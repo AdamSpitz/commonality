@@ -1530,3 +1530,12 @@ I updated the relevant TODO.md item with this result. Suggested next step: inspe
 - IPFS adds force CIDv1, raw leaves, and pinning, verify the returned CID, persist an atomic retry cursor bound to the configured chain and contract, and reject content above the 256 KiB raw-block boundary. Startup also rejects an RPC whose reported chain ID differs from `CHAIN_ID`. Existing Base Sepolia recovery measurements (15 publications, 423 bytes total) are far below the boundary; large content still needs a shared manifest design.
 - Wired the SDK default resolver as calldata-first then IPFS whenever a non-mock gateway is configured, and updated the PublishedData documentation and TODO.
 - Files added under `published-data-ipfs-mirror/`; also changed root workspace config, SDK resolver composition, PublishedData spec, `TODO.md`, and package lock.
+
+## 2026-08-02 — Adopted a shared pointer-only index as the founder default
+
+- Accepted ADR 0006: cause founders normally use one broad pointer-only index with static client scope/policy and do not operate Ponder/Postgres.
+- Kept operator-scoped indexer deployments as an optional path for custom source admission, operational/organizational independence, or strong possession boundaries.
+- Deferred The Graph: it may later remove Commonality's shared metadata service and improve factual multiplicity, but is not required to remove indexer operations from the founder launch path.
+- Updated founder, product, legal, and indexer specs; removed the operator-scoped implementation task from `TODO.md` and The Graph decision item from `inbox.md`.
+- Legal boundary retained: pointers-only lowers indexer content-hosting exposure, but UIs that retrieve/render bytes and mirrors that retain them still have their own operator obligations. This is an architectural posture, not legal advice.
+- Validation: documentation consistency searches and `git diff --check`.

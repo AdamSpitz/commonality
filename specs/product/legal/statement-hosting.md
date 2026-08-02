@@ -33,7 +33,7 @@ This came up because "switch to permanent storage (Arweave) so takedown demands 
 
 **Pinning: per-vertical and per-author, never "we pin everything."** Until (and alongside) self-publication: each vertical pins exactly what it curates — its core statement S, seed cluster, curated-collection entries, statements on its boards — so pins match editorial exposure. Authors pin their own statements via a pinning service they choose in the creation flow. Publish pin-lists so communities can re-pin. This is also [multiple-providers.md](multiple-providers.md) priority #3 (cheapest real multiplicity), extended from "recruit more pinners" to "make the pin boundaries follow the vertical seams." Keep the documented notice-and-unpin process for anything we do pin: no UI makes notices *less frequent* (less salience), but the duty on receiving one is unchanged.
 
-**Display: curated verticals, each owning its view.** Tally becomes a module (statement signing embedded in movement/vertical sites for their curated statement sets) rather than a global browser. The vertical's relationship to the wider graph is: it *points* ("look how many people published statements implying S"), it *re-serves what it curates* through its operator-scoped indexer, and it can decline to display or aggregate any CID under its policy. Its core statement S is its own explicit editorial speech, owned the way Civility owns its criteria.
+**Display: curated verticals, each owning its view.** Tally becomes a module (statement signing embedded in movement/vertical sites for their curated statement sets) rather than a global browser. The vertical's relationship to the wider graph is: it *points* ("look how many people published statements implying S"), discovers publication pointers through the shared index, resolves bytes from calldata or hash-verified mirrors, and chooses what to display or aggregate under its policy. Its core statement S is its own explicit editorial speech, owned the way Civility owns its criteria.
 
 **The Sn→S link: still our speech until attester multiplicity is real.** The statements Sn belong to their authors, but the implication attestation connecting Sn to a vertical's S is editorial — and today the sole attester is ours, default-trusted in every build ([what-we-host-and-control.md](what-we-host-and-control.md) finding #4). The attester's conservatism (require context; don't attest vague statements) is genuine "reasonable procedures / disclosed methodology" evidence, but it changes how *defensible* the speech is, not *whose* it is. Independent attesters remain the fix ([multiple-providers.md](multiple-providers.md) ranks it first).
 
@@ -42,7 +42,7 @@ This came up because "switch to permanent storage (Arweave) so takedown demands 
 A recurring confusion worth stating plainly: "the user is the publisher" does **not** mean the user runs a server. Two distinct roles carry two distinct kinds of duty, and self-publication assigns them deliberately.
 
 - **The user is the speaker (primary publisher).** They signed and paid for the calldata transaction; the statement is cryptographically attributed to their address. This is the letter-to-the-editor author. Speaker liability doesn't require running any UI — it attaches to having said the thing. So a user *can* face orders directed at them as speaker (a defamation judgment, a third-party-personal-data problem, a blasphemy/self-incrimination regime), and because they cannot erase chain history, **self-retraction of their own `(publisher, cid)` is their only possible compliance act** — "I have done everything within my power."
-- **The vertical is the redistributor/host.** Its operator-scoped indexer re-serves the bytes and its UI renders and aggregates them. This is the newspaper with the printing press. Intermediary duties (notice-and-takedown, regulator demands, its own controllership under privacy law) attach here, and its compliance lever is the denylist / honored-retractor config: stop rendering, stop counting.
+- **The vertical is the display-layer redistributor.** Its browser retrieves bytes from calldata or third-party mirrors, and its UI renders and aggregates them. The shared pointer index does not serve those bytes, but that does not immunize the operated front door. Intermediary duties (notice-and-takedown, regulator demands, its own controllership under privacy law) can still attach here, and its compliance lever is the denylist / honored-retractor config: stop fetching where practical, stop rendering, stop counting.
 
 These map onto the two retraction paths in the [PublishedData contract](/specs/tech/subsystems/published-data/README.md):
 
@@ -59,7 +59,7 @@ These map onto the two retraction paths in the [PublishedData contract](/specs/t
 
 - **The composer tool** — providing a statement-writing UI is far better than publishing (the user signs and pays), but LLM drafting assistance has a co-authorship flavor; keep the "LLM never generates statement text directly" principle.
 - **Gas sponsorship** — sponsoring a publish transaction is facilitation ([political-funding.md](political-funding.md)); users pay their own gas to publish their own beliefs.
-- **Re-serving** — each vertical's indexer/UI serving statement bytes is re-publication: scoped, curated, denylistable. That's the display lever we keep on purpose.
+- **Retrieval and display** — a vertical UI that fetches statement bytes from calldata or a mirror and renders them remains a scoped, curated redistribution surface. The shared pointer index is not the byte server; the display lever remains the UI's on purpose.
 - **Informed consent** — permanence must be the user's *disclosed* choice: "this cannot be deleted — by us, by you, by anyone."
 
 ## Permanence cuts back: the user's side of the bargain
@@ -73,7 +73,7 @@ Self-publication solves *our* takedown problem by giving the *user* one: a state
 
 ## The standing caveat
 
-While Adam operates all the verticals, "that's the vertical's problem" is the solo-founder-two-orgs trap from [operator-posture.md](operator-posture.md) — cosmetic until different people run them. The reason to restructure *now* anyway: exposure boundaries come to follow the vertical seams (own pins, own indexer scope, own denylist, own statement set), so when an independent operator takes over a vertical — or a new movement stands one up — the separation is factual from their day one. Each real independent operator converts the story from affordance to fact.
+While Adam operates all the verticals, "that's the vertical's problem" is the solo-founder-two-orgs trap from [operator-posture.md](operator-posture.md) — cosmetic until different people run them. The reason to restructure *now* anyway: exposure boundaries follow the vertical seams (own UI scope, content-source choices, denylist, and statement set), even when the neutral publication-pointer cache is shared. When an independent operator takes over a vertical — or a new movement stands one up — the separation is factual from day one. Each real independent operator converts the story from affordance to fact.
 
 ## Remaining work, in priority order
 

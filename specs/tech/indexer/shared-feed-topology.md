@@ -1,21 +1,12 @@
 # Shared feed vs. per-operator deployments
 
-Status: **proposed, not reviewed** (Jul 2026). This document argues that
-[operator-scoped-deployments.md](./operator-scoped-deployments.md) picks the wrong default
-deployment topology. It does not contradict that document's goals — disclosed operator scope,
-admission kept separate from blocking, no contract-level takedown — only its assumption that each
-operator runs its own indexer.
+Status: **adopted as the default topology** (Aug 2026), after `PublishedData` became pointers-only. Decision: [ADR 0006](/specs/decisions/0006-shared-pointer-index.md).
 
-Nothing here is decided. It was written from a conversation and has not been reviewed.
+One broad pointer-only index is the default read plane. A vertical normally applies its scope and display/aggregation policy in static client configuration and runs no stateful indexer. Commonality may operate the initial shared Ponder feed; [The Graph](./the-graph.md) is an optional later way to stop operating that shared metadata service, not a prerequisite for relieving founders of indexer operations.
 
-See also [the-graph.md](./the-graph.md) (also unreviewed), which takes the shared-feed idea one
-step further by making the shared feed's operator a third party rather than Commonality. It hits
-this document's own open question about escaping PublishedData bytes in its sharpest form, and its
-2026-07-31 revision answers it with a **pointers-only** precondition: keep content bytes out of the
-shared read layer entirely and retrieve them by targeted RPC. If that holds, it is worth applying
-back here — it would remove the route-level data-flow analysis (`/api/events`, `/sql/*`, GraphQL)
-that this document's review names as its biggest technical gap, since no route would carry the
-bytes at all.
+[Operator-scoped deployments](./operator-scoped-deployments.md) remain an escape hatch for availability or organizational independence, custom source onboarding, and strong possession boundaries. They are not the default.
+
+This document predates the shipped pointer-only event. Historical sections that discuss inline `PublishedData` bytes explain the concern that motivated the redesign, not the current implementation. Today no indexer route carries those bytes, so the old route-level `refuse-serve` problem is closed. Content retrieval and mirroring are separate, hash-verified roles.
 
 ## The complaint that started this
 
@@ -35,7 +26,7 @@ Two things make that feel absurd:
 
 Point 2 is the substantive one. This document is about whether that forced fragmentation is real.
 
-## Correction: the indexer is a content host, not a pointer mirror
+## Historical problem (resolved): the indexer used to be a content host
 
 `PublishedData.sol:17` emits content bytes inline:
 
@@ -224,58 +215,31 @@ indexer deployment.**
 Nothing is multi-tenant. There are several single-tenant surfaces over one shared data plane, each
 with its own digest, posture, and reporting address.
 
-## The price: someone owns the shared feed's posture
+## The price: someone operates the shared metadata service
 
-This is a business decision, not a technical one. Whoever runs the shared feed accepts host duties:
-a stated policy, a reporting address, a notice-and-takedown process, and willingness to actually
-remove things. Given inline `DataPublished` bytes, that is a hosting posture.
+Pointers-only materially narrows this role: the feed stores protocol facts and transaction pointers, not user-authored bytes. Commonality nevertheless owns its uptime, source onboarding, database, API behavior, and the practical convenience boundary while it runs Ponder. Describe it as replaceable infrastructure, not a canonical or perfectly neutral view.
 
-Arguments that Commonality can accept this:
-
-- [ui-operator-posture.md](/specs/product/ui-operator-posture.md) worries about becoming the
-  universal *front door* — a consumer browsing surface. A developer API is not a front door, and the
-  posture document already blesses running Conceptspace as "infrastructure docs plus minimal
-  inspectors."
-- The global browsing UI is already being dropped (the Tally shape-2 update).
+Each vertical separately owns its content role: choosing which pointers to follow, resolving bytes from calldata or mirrors, and deciding what to render and aggregate. Its policy and notice obligations do not move into the shared index merely because discovery is shared.
 
 Constraints that follow:
 
-- Removals at the shared feed are for **legal cause only, never editorial preference**. Editorial
-  exclusions belong in per-vertical config, where they are cheap.
-- Disclose it as explicitly editorial infrastructure, never as neutral. policy-lists
-  [§ Risks](../subsystems/policy-lists/README.md#risks-and-open-questions) makes exactly this point
-  about running a standard list; the same wording applies to the feed.
-- Tier 2 must stay available, or the shared feed is a chokepoint. The escape hatch is what makes the
-  arrangement acceptable.
-- policy-lists stage 0 (compliance operations) is required for the shared-feed operator regardless,
-  and gates mainnet on its own. It is not engineering.
+- Keep the origin content-blind; do not add content proxying or mirror storage to the indexer.
+- Publish self-hosting/configuration documentation and retain independent deployments as an escape hatch.
+- Treat source onboarding and uptime as explicit shared-service risks.
+- Revisit The Graph if factual multiplicity or shedding the shared service becomes worth its dependencies.
 
 ## What is genuinely lost
 
-A vertical reading from a shared feed **cannot claim it never possessed excluded bytes**, because
-the shared operator possessed them. Never-serve is achievable at Tier 0/1; never-possess is not.
+A vertical using the shared feed lacks indexing availability independence and cannot onboard arbitrary new sources without the shared operator. It does **not** lose a content-possession guarantee merely because the pointer index is shared: possession depends on which calldata/RPC/mirror paths the vertical's browser or services actually use. Operators needing stronger organizational or availability separation can run the optional independent deployment.
 
-Open question worth answering before building anything: **does any real vertical actually need a
-never-possess claim?** If none does,
-[operator-scoped-deployments.md milestone 4](./operator-scoped-deployments.md#4-strong-no-ingestion-guarantees--mediumlarge-only-if-required)
-stays hypothetical indefinitely.
+## Adopted changes relative to operator-scoped-deployments.md
 
-## Proposed changes to operator-scoped-deployments.md
-
-1. **Demote admission** from a core policy axis to the conditional stage policy-lists already assigns
-   it; prefer static scope in the bundle over a followed admission source.
-2. **Re-aim milestone 1** at "the gateway can carry a policy bundle and enforce `refuse-serve`"
-   rather than "Ponder conditionally constructs sources and registers matching handlers." Much
-   smaller, and it multiplies nobody's ops burden.
-3. **Make Tier 2 the exception**, with the never-possess / independence conditions stated.
-4. **Scope the "weakest path" principle to intra-operator** explicitly.
-5. **Name PublishedData inline bytes** as the risk concentration; scope milestone 4 to it
-   specifically rather than to ingestion generally.
-6. **State that the risk reduction is organizational**, not a property of scoped software.
-7. **Make IPFS proxying a non-goal** rather than a policy axis. The current "metadata policy — which
-   admitted bytes may be fetched, cached, proxied, or rendered" invites re-entering byte territory
-   that [ipfs-in-indexer.md](./ipfs-in-indexer.md) deliberately stayed out of. "We hold what the
-   chain emitted, nothing else" is a clean line worth keeping.
+1. **Demote dynamic admission** from a baseline requirement to an optional capability driven by a real vertical; prefer static, inspectable client scope where it suffices.
+2. **Make independent Ponder deployments the exception**, for custom source admission or genuine organizational, availability, or possession-boundary needs.
+3. **Keep content enforcement with the operator's content surfaces.** The shared index carries pointers only, so `refuse-serve` belongs in any retrieval gateway that actually serves bytes, not in Ponder by default.
+4. **Scope the "weakest path" principle to each operator's own surfaces** rather than requiring a vertical's policy to govern Commonality's separate metadata API.
+5. **Keep content proxying and mirror storage out of the indexer.** Retrieval services and mirrors are separate roles with separate policy obligations.
+6. **State that the benefit is operational and organizational**, not a claim that shared software eliminates operator duties.
 
 ## If server-side folding ever does happen
 
@@ -290,83 +254,9 @@ The gate: **can a client get the same answer without it?** If yes, it is a cache
 no, a trusted server has grown and it should be rejected. `getTopContributorsForCause` passes. A
 hand-written SQL leaderboard does not.
 
-## Open questions
+## Remaining questions
 
-1. Does any real vertical need a never-possess claim? (Decides whether Tier 2 and milestone 4 matter.)
-2. Is Commonality willing to be the shared feed's host-of-record, with stage-0 compliance operations
-   behind it? If not, who?
-3. Does static scope in the bundle cover the real admission cases, or does some vertical need a
-   followed source with its inverted failure semantics?
-4. Is per-route single-tenancy at the gateway sufficient, or does something force real multi-tenancy
-   in the indexer?
-
-
-
-REVIEW FROM GPT5.6:
-
-Yes—the **core topology makes sense**, but the document currently overclaims what it proves.
-
-## The sound core
-
-A shared ingestion/data plane with per-operator gateways is a credible alternative to duplicating Ponder + Postgres + backfills for every vertical:
-
-- one shared archival event cache;
-- one policy-filtering gateway per operator;
-- client-side folding;
-- independent indexers only where operational or legal independence matters.
-
-That is probably the strongest practical default for Commonality-operated verticals.
-
-## The important holes
-
-1. **Tier 0 does not enforce the operator’s serving policy.**  
-   At `shared-feed-topology.md:97`, the browser enforces display and aggregation, but the shared API serves under **Commonality’s** policy. A bundle digest proves which policy the browser used; it does not make the shared server enforce that policy.
-
-2. **The serving filter is not currently “one CID check.”**  
-   `indexer/src/api/index.ts` exposes PublishedData bytes through:
-   - `/api/published-data/*`
-   - `/api/events`
-   - `/sql/*`
-   - GraphQL
-
-   A Worker blocking `/api/published-data/:cid` can still proxy the same ABI-encoded bytes through `/api/events`, SQL, or GraphQL. Tier 1 must close or filter every route. With the current raw-events API, that may require decoding/filtering response rows, not merely checking `request.cid`.
-
-3. **The policy bundle does not contain admission scope.**  
-   The policy-list spec explicitly says v1 has **no admission profile** (`policy-lists/README.md:913`). “Static scope in the bundle” is a reasonable new proposal, but it is not machinery that already exists. It also still needs:
-   - a scope schema;
-   - mapping scope subjects to event queries;
-   - dependency-closure rules;
-   - enforcement rules for broad/raw API requests.
-
-4. **“Blocking wants to be global” is too broad.**  
-   Legal obligations differ by jurisdiction, recipient, court order, and operator. What is defensible is:
-
-   > Commonality’s shared feed has one baseline host policy; operators may reuse that policy but remain responsible for additional legal and editorial exclusions.
-
-   The existing policy-list spec itself warns about a de facto censorship cartel.
-
-5. **“A developer API is not a front door” does not answer the existing objection.**  
-   `ui-operator-posture.md` specifically says a broad firehose API can recreate the platform center. The new document acknowledges hosting duties, but it does not really rebut the convenience/discovery/chokepoint concern. “Not a consumer UI” reduces salience; it does not remove the operated-service role.
-
-6. **The possession language is confused.**  
-   At lines 246–247, if the shared operator and vertical operator are genuinely different organizations, the vertical did not possess bytes merely because Commonality did. The guarantees should be separated:
-   - shared origin stored them;
-   - gateway may have processed or cached them;
-   - browser may have downloaded them;
-   - vertical UI did or did not render them.
-
-7. **“Tier 0 runs nothing” understates policy operations.**  
-   A current policy bundle still needs resolution, publication, monitoring, notice handling, and updates. The vertical may run no stateful indexer, but it does not have zero operational burden.
-
-8. **A universal feed still needs source onboarding.**  
-   Ponder watches configured contracts/factories. One deployment serves every vertical only if all relevant factories are already discoverable from a common source or somebody continuously adds new operator factories.
-
-## My verdict
-
-**It makes enough sense to preserve, but not enough to supersede `operator-scoped-deployments.md` yet.**
-
-The defensible conclusion is narrower:
-
-> Default to shared ingestion for Commonality-operated or dependency-tolerant verticals; use single-tenant policy gateways where server-side operator enforcement is required; retain independent deployments for organizational independence, availability independence, custom source admission, and strong possession guarantees.
-
-Before calling Tier 0/1 viable, the document needs an explicit route-level data-flow analysis showing whether prohibited PublishedData bytes can escape through `/api/events`, SQL, GraphQL, caches, or direct-origin access. That is the biggest technical issue.
+1. Does any real vertical need an independent index or strong possession boundary?
+2. Does static client scope cover real admission cases, or does a vertical need a followed source?
+3. How should new factories and contract deployments be onboarded into the broad shared index?
+4. When does shared-Ponder operational burden or chokepoint risk justify moving to The Graph?

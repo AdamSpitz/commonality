@@ -8,10 +8,10 @@ Technical architecture and implementation specs.
 
 **Key pattern — Client-Side Folding:** The indexer is intentionally dumb. It stores raw on-chain events in a single table and serves data via `GET /api/events`. Ponder also exposes `/graphql` for liveness/health checks, but application state reconstruction (project state, delegation chains, funding totals) happens in the SDK's fold functions on the client. No business logic lives in the indexer.
 
-See [indexer/README.md](indexer/README.md) for the full explanation and rationale, and
-[operator-scoped indexer deployments](indexer/operator-scoped-deployments.md) for the proposed
-production topology: one reusable dumb-cache package deployed as operator-specific read models,
-not one canonical universal feed.
+See [indexer/README.md](indexer/README.md) for the full explanation and rationale. The adopted
+production topology is a [shared pointer-only feed](indexer/shared-feed-topology.md), with
+per-vertical scope and policy applied client-side; [operator-scoped deployments](indexer/operator-scoped-deployments.md)
+remain an optional independence path. See [ADR 0006](/specs/decisions/0006-shared-pointer-index.md).
 
 ## Decision records
 
