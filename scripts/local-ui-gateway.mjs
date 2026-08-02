@@ -6,6 +6,19 @@ import { getDomainForLocalHost, getLocalStableUrl, uiDomains } from './ui-domain
 const port = Number(process.env.PORT || 8088)
 const artifactRoot = process.env.UI_IPFS_ARTIFACT_ROOT || path.resolve('data', 'ui-ipfs')
 const ipfsGatewayBaseUrl = (process.env.UI_IPFS_GATEWAY_INTERNAL || 'http://localhost:8080/ipfs').replace(/\/$/, '')
+const indexerBaseUrl = (process.env.UI_INDEXER_INTERNAL || 'http://localhost:42069').replace(/\/$/, '')
+
+// The IPFS bundles ship a config.json without VITE_EVENT_CACHE_URL, so the SDK
+// falls back to the page origin and issues same-origin requests. Forward those
+// to the local indexer instead of the IPFS bundle, which would 404 on all of
+// them and make every data-backed page render an empty or error state.
+const indexerPathPrefixes = ['/api/', '/sql/', '/graphql', '/status']
+
+function isIndexerPath(pathname) {
+  return indexerPathPrefixes.some(prefix =>
+    prefix.endsWith('/') ? pathname.startsWith(prefix) : pathname === prefix || pathname.startsWith(`${prefix}/`),
+  )
+}
 
 function resolveDomainFromHost(hostHeader = '') {
   return getDomainForLocalHost(hostHeader)
@@ -31,12 +44,7 @@ function renderAdminPage() {
 `
 }
 
-async function proxyToIpfs(req, res, domain) {
-  const cid = await readCid(domain)
-  const requestUrl = new URL(req.url || '/', `http://${req.headers.host || `${domain}.localhost:${port}`}`)
-  const targetPath = requestUrl.pathname === '/' ? '/' : requestUrl.pathname
-  const targetUrl = `${ipfsGatewayBaseUrl}/${cid}/${domain}-ui${targetPath}${requestUrl.search}`
-
+async function forward(req, res, targetUrl, { noStore = false } = {}) {
   const headers = new Headers()
   for (const [key, value] of Object.entries(req.headers)) {
     if (key.toLowerCase() === 'host' || value === undefined) continue
@@ -58,7 +66,7 @@ async function proxyToIpfs(req, res, domain) {
   for (const [key, value] of upstreamResponse.headers) {
     res.setHeader(key, value)
   }
-  if (targetPath === '/' || targetPath.endsWith('/index.html')) {
+  if (noStore) {
     res.setHeader('cache-control', 'no-store')
   }
   if (!upstreamResponse.body) {
@@ -71,6 +79,25 @@ async function proxyToIpfs(req, res, domain) {
   res.end()
 }
 
+function requestUrlFor(req, domain) {
+  return new URL(req.url || '/', `http://${req.headers.host || `${domain}.localhost:${port}`}`)
+}
+
+async function proxyToIpfs(req, res, domain) {
+  const cid = await readCid(domain)
+  const requestUrl = requestUrlFor(req, domain)
+  const targetPath = requestUrl.pathname === '/' ? '/' : requestUrl.pathname
+  const targetUrl = `${ipfsGatewayBaseUrl}/${cid}/${domain}-ui${targetPath}${requestUrl.search}`
+  await forward(req, res, targetUrl, {
+    noStore: targetPath === '/' || targetPath.endsWith('/index.html'),
+  })
+}
+
+async function proxyToIndexer(req, res, domain) {
+  const requestUrl = requestUrlFor(req, domain)
+  await forward(req, res, `${indexerBaseUrl}${requestUrl.pathname}${requestUrl.search}`, { noStore: true })
+}
+
 const server = createServer(async (req, res) => {
   try {
     if (req.url === '/health') {
@@ -80,6 +107,11 @@ const server = createServer(async (req, res) => {
     }
 
     const domain = resolveDomainFromHost(req.headers.host)
+    if (domain && isIndexerPath(requestUrlFor(req, domain).pathname)) {
+      await proxyToIndexer(req, res, domain)
+      return
+    }
+
     if (!domain) {
       res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' })
       res.end(renderAdminPage())

@@ -1522,3 +1522,11 @@ I updated the relevant TODO.md item with this result. Suggested next step: inspe
 - Fixed drift across the remaining 15 test files, including current project/CID/contact/trust-result shapes; partial wagmi/client mocks use explicit casts where constructing full library hook results would add noise.
 - Removed the completed item from `TODO.md`.
 - Checks passed: UI typecheck, production build, full UI Vitest suite (110 files / 1,708 tests), UI lint (0 errors; 88 pre-existing warnings), and `git diff --check`.
+
+## 2026-08-02 — Added the PublishedData IPFS mirror
+
+- Added `@commonality/published-data-ipfs-mirror`, a standalone permissionless worker that follows finalized `DataPublished` logs directly from RPC, recovers and hash-verifies calldata, and pins bytes through a Kubo-compatible API.
+- Chose a standalone, operator-neutral artifact rather than coupling archival storage to the indexer. It mirrors all content for now; selective copying is explicitly deferred until it can consume the shared policy-list evaluator.
+- IPFS adds force CIDv1, raw leaves, and pinning, verify the returned CID, persist an atomic retry cursor bound to the configured chain and contract, and reject content above the 256 KiB raw-block boundary. Startup also rejects an RPC whose reported chain ID differs from `CHAIN_ID`. Existing Base Sepolia recovery measurements (15 publications, 423 bytes total) are far below the boundary; large content still needs a shared manifest design.
+- Wired the SDK default resolver as calldata-first then IPFS whenever a non-mock gateway is configured, and updated the PublishedData documentation and TODO.
+- Files added under `published-data-ipfs-mirror/`; also changed root workspace config, SDK resolver composition, PublishedData spec, `TODO.md`, and package lock.

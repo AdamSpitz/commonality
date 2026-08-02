@@ -388,6 +388,7 @@ services:
       - PORT=8088
       - UI_IPFS_ARTIFACT_ROOT=/workspace/data/ui-ipfs
       - UI_IPFS_GATEWAY_INTERNAL=http://ipfs:8080/ipfs
+      - UI_INDEXER_INTERNAL=http://indexer:42069
     ports:
       - "8088:8088"
     networks:
