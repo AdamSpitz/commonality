@@ -9,8 +9,20 @@ import { readNextBlock, writeNextBlock } from './state.js';
 
 const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
+export function validateRpcChainId(rpcChainId: number, configuredChainId: number): void {
+  if (rpcChainId !== configuredChainId) {
+    throw new Error(`RPC chain ID ${rpcChainId} does not match configured CHAIN_ID ${configuredChainId}`);
+  }
+}
+
 export async function runMirror(config: MirrorConfig, signal?: AbortSignal): Promise<void> {
   const client = createPublicClient({ transport: http(config.rpcUrl) });
+  validateRpcChainId(await client.getChainId(), config.chainId);
+
+  const stateIdentity = {
+    chainId: config.chainId,
+    publishedDataAddress: config.publishedDataAddress,
+  };
   const resolver = createCalldataContentResolver({
     publishedDataAddress: config.publishedDataAddress,
     getTransaction: async (hash) => {
@@ -18,7 +30,7 @@ export async function runMirror(config: MirrorConfig, signal?: AbortSignal): Pro
       return { from: transaction.from, to: transaction.to, input: transaction.input };
     },
   });
-  let nextBlock = await readNextBlock(config.stateFile, config.startBlock);
+  let nextBlock = await readNextBlock(config.stateFile, config.startBlock, stateIdentity);
 
   while (!signal?.aborted) {
     const head = await client.getBlockNumber();
@@ -60,7 +72,7 @@ export async function runMirror(config: MirrorConfig, signal?: AbortSignal): Pro
     }
 
     nextBlock = toBlock + 1n;
-    await writeNextBlock(config.stateFile, nextBlock);
+    await writeNextBlock(config.stateFile, nextBlock, stateIdentity);
   }
 }
 

@@ -15,7 +15,7 @@ IPFS_API_URL=http://127.0.0.1:5001 \
 npm run dev --workspace=@commonality/published-data-ipfs-mirror
 ```
 
-Optional: `CONFIRMATIONS` (12), `BLOCK_RANGE` (1000), `POLL_INTERVAL_MS` (10000), and `STATE_FILE`. The state file records the next fully processed block. Failed recovery or pinning does not advance that block, so restart retries it. IPFS adds use `cid-version=1`, `raw-leaves=true`, and pinning; the returned CID is checked against the on-chain `dataId`.
+Optional: `CONFIRMATIONS` (12), `BLOCK_RANGE` (1000), `POLL_INTERVAL_MS` (10000), and `STATE_FILE`. Startup verifies that the RPC reports `CHAIN_ID`. The state file records the next fully processed block and is bound to that chain and PublishedData contract, preventing accidental cursor reuse across deployments. Failed recovery or pinning does not advance that block, so restart retries it. IPFS adds use `cid-version=1`, `raw-leaves=true`, and pinning; the returned CID is checked against the on-chain `dataId`.
 
 ## Size boundary
 

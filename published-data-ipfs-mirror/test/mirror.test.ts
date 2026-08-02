@@ -1,8 +1,13 @@
 import assert from 'node:assert/strict';
+import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { describe, it } from 'mocha';
 import { computePublishedDataId, publishedDataIdToCid } from '@commonality/sdk/published-data';
+import { validateRpcChainId } from '../src/index.js';
 import { addPublishedDataToIpfs, MAX_RAW_BLOCK_BYTES } from '../src/ipfs.js';
 import { mirrorPublication } from '../src/mirror.js';
+import { readNextBlock, writeNextBlock } from '../src/state.js';
 
 const content = new TextEncoder().encode('{"text":"hello"}');
 const dataId = computePublishedDataId(content);
@@ -68,5 +73,36 @@ describe('PublishedData IPFS mirror', () => {
       ),
       /does not match/,
     );
+  });
+
+  it('rejects an RPC connected to a different chain', () => {
+    assert.doesNotThrow(() => validateRpcChainId(84532, 84532));
+    assert.throws(() => validateRpcChainId(1, 84532), /does not match configured CHAIN_ID/);
+  });
+
+  it('binds the persisted cursor to its chain and contract', async () => {
+    const directory = await mkdtemp(join(tmpdir(), 'published-data-mirror-'));
+    const stateFile = join(directory, 'state.json');
+    const identity = { chainId: 84532, publishedDataAddress: publisher };
+
+    try {
+      await writeNextBlock(stateFile, 123n, identity);
+      assert.equal(await readNextBlock(stateFile, 1n, identity), 123n);
+      assert.match(await readFile(stateFile, 'utf8'), /"chainId":84532/);
+
+      await assert.rejects(
+        readNextBlock(stateFile, 1n, { ...identity, chainId: 1 }),
+        /different chain or PublishedData contract/,
+      );
+      await assert.rejects(
+        readNextBlock(stateFile, 1n, {
+          ...identity,
+          publishedDataAddress: '0x0000000000000000000000000000000000000002',
+        }),
+        /different chain or PublishedData contract/,
+      );
+    } finally {
+      await rm(directory, { recursive: true, force: true });
+    }
   });
 });
