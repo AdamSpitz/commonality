@@ -1593,3 +1593,10 @@ I updated the relevant TODO.md item with this result. Suggested next step: inspe
 - Corrected the documented npm-workspace paths after executing the workflow. The pinned local exception resolves successfully; the raw GitHub shared-list URL remains a 404 until this feature branch is merged to `dev`, so a clean resolver correctly reports that closed layer unresolved for now.
 - Changed the starter root/example docs, added `civility-starter-exceptions.json`, and updated the implementation tracker. Remaining starter-gate work is the complete Civility no-bypass inventory, server-side serving enforcement/digest agreement, and verifier coverage.
 - Checks passed: 71 focused SDK policy tests, SDK typecheck, 14 focused Civility UI tests, UI production/test typecheck, and `git diff --check`.
+
+## 2026-08-02 — Added the policy-list serving guard
+
+- Added a reusable `@commonality/sdk/policy-lists` serving adapter for operator-scoped CID routes. It evaluates `refuse-serve` against one atomic runtime snapshot, refuses unavailable cold starts, and continues enforcing a stale last-known-good bundle.
+- Standardized HTTP surface reporting with `x-commonality-policy-status` and, when active, `x-commonality-policy-digest`; allow and refusal results retain the full provenance-bearing evaluation.
+- Kept Civility policy out of the neutral shared pointer index. The remaining integration step is to put this adapter in front of Civility's operator-controlled content/metadata serving routes and add deployed digest/no-bypass coverage.
+- Changed `sdk/src/policy-lists/serving.ts`, its focused tests/export, and the implementation tracker. Checks passed: 8 focused SDK tests, SDK typecheck, and SDK lint (0 errors; 37 pre-existing warnings).
