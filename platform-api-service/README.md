@@ -53,7 +53,9 @@ All configuration is via environment variables.
   `GET /policy-content/:cid` gateway. They must be configured together. Startup activates the
   resolved bundle before accepting traffic; listed CIDs return 451 and every response reports the
   enforced policy status/digest. Point a Civility deployment's IPFS retrieval at this route instead
-  of applying its policy to the neutral shared pointer index.
+  of applying its policy to the neutral shared pointer index. `POLICY_CONTENT_MAX_BYTES` (8 MiB),
+  `POLICY_CONTENT_TIMEOUT_MS` (10 seconds), `POLICY_CONTENT_RATE_LIMIT_WINDOW_MS` (60 seconds), and
+  `POLICY_CONTENT_RATE_LIMIT_MAX_REQUESTS` (60) bound public proxy resource use.
 
 ### Twitter/X
 

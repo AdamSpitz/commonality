@@ -22,9 +22,16 @@ export function createApp(
   app.use(express.json());
 
   if (policyRuntime && config.policyContentGatewayUrl) {
-    app.get('/policy-content/:cid', handleRoute(createPolicyContentGatewayHandler({
+    const policyContentLimiter = createRateLimiter({
+      windowMs: config.policyContentRateLimitWindowMs ?? 60_000,
+      maxRequests: config.policyContentRateLimitMaxRequests ?? 60,
+      message: 'Too many content gateway requests. Please wait before trying again.',
+    });
+    app.get('/policy-content/:cid', policyContentLimiter, handleRoute(createPolicyContentGatewayHandler({
       runtime: policyRuntime,
       upstreamGatewayUrl: config.policyContentGatewayUrl,
+      maxContentBytes: config.policyContentMaxBytes,
+      timeoutMs: config.policyContentTimeoutMs,
     })));
   }
 

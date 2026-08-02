@@ -35,6 +35,10 @@ export interface PlatformApiServiceConfig {
   blockedChannelIds?: string[];
   policyBundleUrl?: string;
   policyContentGatewayUrl?: string;
+  policyContentMaxBytes?: number;
+  policyContentTimeoutMs?: number;
+  policyContentRateLimitWindowMs?: number;
+  policyContentRateLimitMaxRequests?: number;
 }
 
 export function loadConfig(): PlatformApiServiceConfig {
@@ -117,6 +121,10 @@ export function loadConfig(): PlatformApiServiceConfig {
     blockedChannelIds: parseCommaSeparated(process.env.BLOCKED_CHANNEL_IDS),
     policyBundleUrl,
     policyContentGatewayUrl,
+    policyContentMaxBytes: parseInteger('POLICY_CONTENT_MAX_BYTES', process.env.POLICY_CONTENT_MAX_BYTES, 8 * 1024 * 1024),
+    policyContentTimeoutMs: parseInteger('POLICY_CONTENT_TIMEOUT_MS', process.env.POLICY_CONTENT_TIMEOUT_MS, 10_000),
+    policyContentRateLimitWindowMs: parseInteger('POLICY_CONTENT_RATE_LIMIT_WINDOW_MS', process.env.POLICY_CONTENT_RATE_LIMIT_WINDOW_MS, 60_000),
+    policyContentRateLimitMaxRequests: parseInteger('POLICY_CONTENT_RATE_LIMIT_MAX_REQUESTS', process.env.POLICY_CONTENT_RATE_LIMIT_MAX_REQUESTS, 60),
   };
 }
 
