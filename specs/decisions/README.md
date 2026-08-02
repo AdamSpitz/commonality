@@ -53,3 +53,4 @@ instance most needs answered and can't get anywhere else.
 | [0003](./0003-reimbursement-only-retroactive-funding.md) | Reimbursement-only retroactive funding | Accepted |
 | [0004](./0004-user-publishes-displayable-data.md) | Users publish their own displayable data | Accepted |
 | [0005](./0005-founder-first-verticals.md) | Founder-first: recruit vertical founders instead of operating generic sites | Accepted |
+| [0006](./0006-shared-pointer-index.md) | Shared pointer-only index; founder-specific indexers are optional | Accepted |

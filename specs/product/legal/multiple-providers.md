@@ -28,7 +28,7 @@ And the standing caveat from [operator-posture.md](operator-posture.md): only *f
 
 - **Purpose:** convenience cache of raw on-chain events so UIs don't need an archive node. Deliberately dumb — client-side folding means all business logic runs in the user's browser.
 - **Exposure from operating:** low and non-editorial. It serves raw events without selecting, ranking, or interpreting; there's little speech or judgment to attach liability to. The client-side-folding architecture is itself a legal asset worth preserving: the "platform logic" is not operated by anyone — it executes on the user's machine.
-- **Multiple providers?** Needed for reason 2 (essential infrastructure), not reason 1. If we run the only indexer, the system fails the "if I disappeared tomorrow" test. The planned Graph migration is the structural fix (a permissionless indexer network is multiplicity by construction); until then, documenting how to self-host the Ponder indexer and having at least one independent instance is the honest interim. Verdict: **multiple providers valuable for operator-posture credibility; the indexing itself is not where risk lives.**
+- **Multiple providers?** Useful for reason 2 (essential-infrastructure resilience), not reason 1. [ADR 0006](/specs/decisions/0006-shared-pointer-index.md) adopts one broad pointer-only Ponder feed as the practical default so founders do not run stateful infrastructure. The Graph remains a possible structural multiplicity upgrade; meanwhile the feed must be replaceable and self-hosting documented. Verdict: **multiplicity is valuable for operator-posture credibility and resilience, but not a founder-launch prerequisite; the indexing itself is not where content risk lives.**
 
 ### Attesters (implication-attester, content-attester, beat-agent)
 
@@ -94,7 +94,7 @@ And the standing caveat from [operator-posture.md](operator-posture.md): only *f
 1. **Attesters + nudgers/curators** — editorial speech that gates money and steers beliefs; multiplicity is the difference between "our ratings" and "a market of opinions users chose." Needed early, and the chooser UX is part of the legal design.
 2. **UIs (and their gateways/domains/submission queues)** — the biggest exposure surface; community-run front-ends are the end state, gated on securities cleanup.
 3. **PublishedData/display operations** — preserve author-signed publication, and make runtime suppression plus notice handling real. Independent pins remain useful for UI and operator-authored artifacts, but do not re-create universal user-content pinning.
-4. **Indexer** — operator-posture credibility, not risk reduction; The Graph is the structural fix.
+4. **Indexer** — operator-posture credibility and resilience, not content-risk reduction; use the shared pointer-only feed now and revisit The Graph when factual multiplicity is worth its dependencies.
 5. **Not worth multiplying:** finders and platform-api plumbing (low stakes), gas sponsorship (multiplicity doesn't help; screening does), contracts (already permissionless — protect the no-admin-keys property), on-ramp (already fully third-party).
 
 The pattern worth noticing: the priority order tracks *how much judgment the service exercises*, not how technically central it is. The most load-bearing infrastructure (contracts, indexer) needs multiplicity least; the most opinionated services (attesters, curators, UIs) need it most.

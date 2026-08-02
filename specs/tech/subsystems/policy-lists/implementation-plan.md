@@ -96,7 +96,7 @@ If implementing one of these defaults exposes a real conflict with the codebase 
 
 ### E. Integrate operator-side serving
 
-- [ ] At the start of this phase, choose the deployment boundary: enforcement in each operator-scoped indexer/API, or a single-tenant vertical gateway over a shared feed. The pure evaluator must support either. Review [operator-scoped deployments](../../indexer/operator-scoped-deployments.md) and the still-unreviewed [shared-feed topology proposal](../../indexer/shared-feed-topology.md); do not accidentally freeze that open topology through library design.
+- [ ] Use the [adopted shared pointer-only feed](../../indexer/shared-feed-topology.md) as the default boundary. Because the indexer carries no `PublishedData` bytes, content serving policy belongs to the vertical's retrieval/display/aggregation paths rather than a per-vertical Ponder deployment. Keep the pure evaluator portable to the optional [independent deployment](../../indexer/operator-scoped-deployments.md).
 - [ ] Apply `refuse-serve` to PublishedData/content-serving and metadata-serving routes using the activated operator bundle.
 - [ ] Close, authenticate, or equivalently filter SQL, GraphQL, raw-event, and alternate API paths that would bypass the operator's serving policy.
 - [ ] Report the enforced digest and runtime status through responses, logs, and operator introspection.
@@ -117,7 +117,7 @@ If implementing one of these defaults exposes a real conflict with the codebase 
 
 These should be decided at the phase that needs them rather than expanded into speculative design now:
 
-- **Server topology:** per-operator indexer/API versus single-tenant gateway over a shared feed. Decide before phase E.
+- **Server topology:** shared pointer-only Ponder is the default; decide during phase E whether any remaining byte-serving endpoint needs a single-tenant gateway. Per-operator Ponder is optional, not the baseline.
 - **Resolver hosting and durable storage:** the file-backed CLI is enough to begin; choose scheduling/storage before relying on automatic remote updates in production.
 - **Bundle artifact storage:** embed initial local documents; add separate content-addressed artifacts only when bundle size or deployment constraints justify them.
 - **Alert transport and reviewer UI:** structured status and explicit CLI review are enough initially; choose paging and a graphical diff viewer from operational experience.

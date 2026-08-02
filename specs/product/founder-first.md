@@ -61,15 +61,16 @@ authoritative copy; this list is the map.
 
 ### Make the founder's job easier (platform work)
 
-- [ ] Operator-scoped indexer deployments — the technical prerequisite for a founder
-      running their own front door over their own slice of the data.
-      See [operator-scoped-deployments.md](/specs/tech/indexer/operator-scoped-deployments.md).
-      *(tracked in [TODO.md](/TODO.md))*
+- [x] Remove indexer operations from the normal founder launch path. The adopted
+      [shared pointer-only feed](/specs/tech/indexer/shared-feed-topology.md) lets a founder
+      ship static scope/policy configuration; independent
+      [operator-scoped deployments](/specs/tech/indexer/operator-scoped-deployments.md)
+      are an optional independence path. See [ADR 0006](/specs/decisions/0006-shared-pointer-index.md).
 - [ ] Policy lists: let each operator declare and enforce their own content policy, so
       "this vertical excludes X" is the operator's editorial choice rather than a
       protocol-level takedown. See [policy-lists/](/specs/tech/subsystems/policy-lists/README.md).
-- [ ] Decide how much of a founder's infrastructure we absorb, if any. A founder currently
-      needs hosting/pinning, RPC, a bundler, a wallet provider and a funded wallet — all
+- [ ] Decide how much of a founder's remaining infrastructure we absorb, if any. A founder does
+      not normally need an indexer, but still needs hosting/pinning, RPC, a bundler, a wallet provider and a funded wallet — all
       due at launch, before he knows the vertical works. Absorbing them (we already serve
       our domains off [`cloudflare-ui-gateway`](/cloudflare-ui-gateway/README.md)) is easy
       but re-centralizes what this pivot decentralized. **Adam is uneasy about that and

@@ -1,6 +1,6 @@
 # Moving the read layer to The Graph
 
-Status: **proposed, not adopted** (Jul 2026). Written from a conversation. **Updated 2026-08-01**
+Status: **deferred; shared Ponder adopted for now** (Aug 2026). [ADR 0006](/specs/decisions/0006-shared-pointer-index.md) decides that founders use a broad pointer-only index and do not run their own indexer. A Graph port is therefore optional operational decentralization, not founder-launch work. Revisit when the shared Ponder service becomes a material burden or chokepoint. Historical analysis follows. **Updated 2026-08-01**
 with the EthStorage desk-check results (spike 1b Tier A): EthStorage is blocked on network
 maturity, so calldata remains the canonical byte-layer candidate — and with spike 1a, which
 cleared the nested-calldata precondition for that candidate (smart accounts, batches and
@@ -39,14 +39,14 @@ keeps user content out of the index altogether. Switching that one shared metada
 Ponder to The Graph is a separate, secondary decision about whether eliminating Commonality's last
 read service is worth The Graph's dependencies and loss of control.
 
-This document sits alongside the two existing topology documents rather than replacing either:
+This document sits alongside the adopted shared topology and optional independent-deployment design:
 
 - [operator-scoped-deployments.md](./operator-scoped-deployments.md) — each operator deploys
   its own scoped read model.
-- [shared-feed-topology.md](./shared-feed-topology.md) — unreviewed counter-proposal: one
-  shared feed, per-operator scope as a config artifact.
+- [shared-feed-topology.md](./shared-feed-topology.md) — adopted default: one shared
+  pointer feed, with per-operator scope and policy as client configuration.
 
-The Graph is best understood as **a third variant of the shared feed**, in which the shared
+The Graph is best understood as **an alternative implementation of the shared feed**, in which the shared
 feed's operator is neither Commonality nor the vertical founder. That single change is what
 makes it interesting, and it is also where the hard objection lives.
 
