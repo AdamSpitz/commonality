@@ -1,6 +1,6 @@
 # Policy-list starter profile example
 
-`civility-starter-root.json` is the concrete operator-profile fixture for the Civility reference integration. It subscribes to the repository-hosted example list over HTTPS and pins its canonical sha256, so changing the URL's bytes cannot silently change an active policy. The raw GitHub URL becomes available when this feature branch is merged to `dev`; until then, a clean cold-start resolution intentionally leaves the closed layer unresolved. It also attaches the pinned `civility-starter-exceptions.json` file to that layer. The exception exempts only the matching entry from this layer; it is not a global allowlist.
+`civility-starter-root.json` is the concrete operator-profile fixture for the Civility reference integration. It subscribes to the repository-hosted example list over HTTPS and pins its canonical sha256, so changing the URL's bytes cannot silently change an active policy. That raw GitHub URL is live on `dev`, so a clean cold-start resolution reaches the shared layer. It also attaches the pinned `civility-starter-exceptions.json` file to that layer. The exception exempts only the matching entry from this layer; it is not a global allowlist.
 
 The entries are conspicuous test identities, not a moderation dataset and not production policy.
 
@@ -40,6 +40,33 @@ Edit `civility-starter-exceptions.json`, strictly validate and canonically hash 
 ## Roll back safely
 
 Keep previously deployed root inputs, not an old generated bundle. Restore the approved pins/files in the root and run the resolver again so it creates a new, higher-sequence bundle. Activation rejects replaying an older bundle sequence even when its contents were formerly valid.
+
+## Publish the resolved bundle (testnet)
+
+For testnet the resolved bundle is committed to this directory as
+`civility-policy-bundle.json` and served from its raw GitHub URL on `dev`. That URL
+is recorded once in `deployments/base-sepolia.env` as `POLICY_BUNDLE_URL`, which
+feeds both the platform API (via `render.yaml`, regenerated with
+`node scripts/generate-render-yaml.mjs`) and the Civility UI's
+`VITE_POLICY_BUNDLE_URL` (via `scripts/setup-env.sh`).
+
+To publish an update, resolve into the tracked file and commit it:
+
+```sh
+npm run policy-lists:resolve --workspace=@commonality/sdk -- \
+  examples/policy-lists/civility-starter-root.json \
+  examples/policy-lists/civility-policy-bundle.json
+```
+
+Each resolve mints a higher `sequence`; activation refuses to load an older one, so
+publish bundles in the order they were resolved. The committed bundle must be
+reachable at its URL **before** any service is pointed at it: the platform API and a
+testnet Civility UI both fail closed on a bundle they cannot load.
+
+Note that this puts the bundle and the maintainer's shared list on the same origin,
+so GitHub write access controls both. The layer's `contentHash` pin still constrains
+the list; the bundle itself is unpinned. A separate operator-controlled origin is the
+right move before mainnet.
 
 Publish the resolved bundle at a stable operator-controlled URL and set
 `VITE_POLICY_BUNDLE_URL` for the Civility UI. Civility validates and atomically loads

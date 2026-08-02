@@ -274,7 +274,7 @@ services:
       - key: SUBMIT_VERIFICATION_TX
         value: "false"
       - key: POLICY_BUNDLE_URL
-        sync: false  # Stable URL of Civility's resolved policy bundle
+        value: "https://raw.githubusercontent.com/AdamSpitz/commonality/dev/sdk/examples/policy-lists/civility-policy-bundle.json"
       - key: POLICY_CONTENT_GATEWAY_URL
         value: "https://ipfs.io/ipfs"
     healthCheckPath: /health

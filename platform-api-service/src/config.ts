@@ -44,8 +44,11 @@ export interface PlatformApiServiceConfig {
 export function loadConfig(): PlatformApiServiceConfig {
   const policyBundleUrl = normalizeOptionalUrl(process.env.POLICY_BUNDLE_URL);
   const policyContentGatewayUrl = normalizeOptionalUrl(process.env.POLICY_CONTENT_GATEWAY_URL);
-  if (Boolean(policyBundleUrl) !== Boolean(policyContentGatewayUrl)) {
-    throw new Error('POLICY_BUNDLE_URL and POLICY_CONTENT_GATEWAY_URL must be configured together');
+  // A gateway URL on its own is inert: the policy routes only mount when a bundle
+  // runtime exists. The unsafe direction is a configured bundle with nowhere to
+  // fetch its content from, so only that one fails closed.
+  if (policyBundleUrl && !policyContentGatewayUrl) {
+    throw new Error('POLICY_BUNDLE_URL requires POLICY_CONTENT_GATEWAY_URL to be configured');
   }
 
   return {
