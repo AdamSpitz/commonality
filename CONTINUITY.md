@@ -1539,3 +1539,11 @@ I updated the relevant TODO.md item with this result. Suggested next step: inspe
 - Updated founder, product, legal, and indexer specs; removed the operator-scoped implementation task from `TODO.md` and The Graph decision item from `inbox.md`.
 - Legal boundary retained: pointers-only lowers indexer content-hosting exposure, but UIs that retrieve/render bytes and mirrors that retain them still have their own operator obligations. This is an architectural posture, not legal advice.
 - Validation: documentation consistency searches and `git diff --check`.
+
+## 2026-08-02 — Narrowed policy-list near-term goal to a starter profile
+
+- Reframed the content-only policy-list milestone around one useful stopping gate rather than completion of every planned subscription feature.
+- The next deliverable is one cause vertical using an operator-selected, content-hash-pinned HTTPS list maintained by someone else, an optional pinned local exception, and one activated bundle across rendering, aggregation, metadata retrieval, and operator-controlled serving with no known public bypass.
+- Explicitly deferred mutable unpinned following, diff holds/review, richer alerting, multi-vertical rollout, registry publication, admission, and money screening. The existing schema/evaluator/local-resolver foundation should not be generalized further unless integration exposes a concrete gap.
+- Updated `TODO.md`, the normative policy-list README, and its implementation plan. No runtime behavior or enforcement changed.
+- Clarified the implementation boundary: policy-list machinery stays generic in shared SDK/operator code, while Civility is the single complete reference integration for the starter gate. CSM and other verticals reuse it later and do not block the near-term stopping point.

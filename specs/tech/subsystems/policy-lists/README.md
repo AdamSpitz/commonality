@@ -1,8 +1,6 @@
 # Policy lists: subscribable policy blocklists
 
-Status: **proposed; phase A foundation implementation in progress** (Jul 2026). Design for
-generalizing the existing per-UI display denylist into interoperable, subscribable, verifiable
-lists. Do not treat the partial SDK foundation as active enforcement.
+Status: **proposed; local foundation substantially implemented, Civility starter-profile integration next** (Aug 2026). Design for generalizing the existing per-UI display denylist into interoperable, subscribable, verifiable lists. The machinery remains generic shared SDK/operator infrastructure; Civility is the first complete reference integration, not a source of vertical-specific policy semantics. Do not treat the SDK foundation as active enforcement until Civility passes the cross-surface stopping gate in the [implementation plan](./implementation-plan.md).
 
 What this is, stated precisely so nobody plans around a stronger claim:
 
@@ -859,6 +857,18 @@ relationships that come with it remains the actual hard part, and it is not an e
 
 ## What it would take
 
+### Immediate product milestone: one starter profile
+
+The short-term goal is deliberately narrower than completing every v1 operational feature. Civility is the reference vertical: it should be able to select an operator-provided profile that references a content-hash-pinned HTTPS list maintained by someone else, optionally attach a pinned local exception, and enforce the resulting bundle across all of its governed content surfaces.
+
+This does not make the policy-list system Civility-specific. Schemas, fetching, resolution, bundle activation, evaluation, inspection, and reusable integration APIs belong in shared SDK/operator infrastructure. Civility provides the first concrete call sites and no-bypass coverage. CSM and later verticals reuse that implementation after the starter milestone; integrating them in parallel is not required.
+
+Pinning means updates are deliberate: when the maintainer publishes new bytes, the profile operator reviews and adopts the new hash. Automatic following, diff holds, and richer review tooling can come later. This still establishes the important initial product story: a cause founder need not originate or continuously maintain a moderation dataset in order to launch a vertical.
+
+The milestone is complete only when Civility has one activated bundle across rendering, client-side aggregation, metadata retrieval, and operator-controlled serving, with focused tests showing no known public bypass. At that point the project has a good near-term stopping point even if mutable unpinned subscriptions, broader rollout, and registry publication remain unfinished. See the executable [starter-profile stopping gate](./implementation-plan.md#near-term-stopping-point).
+
+This is burden reduction, not outsourced responsibility. The operator still chooses the profile and owns reporting, appeals, and incidents; the external maintainer supplies the reusable dataset.
+
 **Build the evaluator and the bundle first; build the registry last; leave money alone.** An earlier
 ordering put the registry and remote snapshots at stages 1–2, ad-hoc stage-0 filters before them,
 and the shared evaluator at stage 3 — with the reassurance that stage 4 would be "a repoint rather
@@ -891,6 +901,8 @@ implied.
 | 10 | Published recursive compositions — only when a real third-party curator needs to publish one | Deferred (schema bump) |
 | 11 | Authenticated-absence lookup — only once real list sizes require it | Deferred |
 | 12 | Fingerprint/provider integration | Separate work (schema bump) |
+
+For the near-term starter profile, stages 2 and 3 need only be completed for Civility and one pinned HTTPS list. CSM integration, other vertical rollout, and safe automatic following of mutable unpinned sources are subsequent increments, not conditions for the first useful stopping point.
 
 Stages 2 and 3 are the real cost, and stage 3 is a **coverage** problem rather than a composability
 one. [published-data/README.md](../published-data/README.md) § "Honored retractors" rule 2 is

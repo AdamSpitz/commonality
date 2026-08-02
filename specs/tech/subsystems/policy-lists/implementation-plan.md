@@ -1,10 +1,33 @@
 # Policy lists: content-only implementation plan
 
-Status: **in progress; phase A foundation started** (Jul 2026).
+Status: **in progress; local foundation substantially complete, starter-profile vertical slice next** (Aug 2026).
 
 This is the resumable work tracker for implementing the basic content-only portion of policy lists. A fresh LLM should be able to start here, complete one coherent unchecked item, update this file, and leave the next item ready for another instance.
 
 The normative design remains [README.md](./README.md). If this checklist and that document disagree, the README wins. [design-history.md](./design-history.md) explains rejected alternatives; do not reintroduce them casually.
+
+## Near-term stopping point
+
+The next goal is not to finish every feature in this plan. It is to make one narrow, honest product story work end to end:
+
+> A Civility-style cause vertical can start with an operator-selected standard content-policy profile backed by a content-hash-pinned HTTPS blocklist maintained by someone else, optionally add a pinned local exception list, and enforce the resulting policy consistently without maintaining its own moderation dataset.
+
+The implementation boundary is **generic shared machinery plus one complete Civility reference integration**. Schemas, fetching, resolution, activation, evaluation, inspection, and reusable surface adapters belong in shared SDK/operator code. Civility supplies the first real call sites and coverage inventory; it must not introduce Civility-specific list semantics or a second evaluator. CSM and other verticals adopt the same path later, and their rollout does not block this stopping point.
+
+For this first vertical slice:
+
+1. fetch one pinned HTTPS list through the bounded untrusted-artifact path;
+2. provide one concrete example profile and list;
+3. activate one resolved bundle in Civility as the reference vertical;
+4. enforce it across Civility's rendering, client-side aggregation, metadata retrieval, and every operator-controlled content-serving route;
+5. add focused tests showing representative entries cannot bypass those surfaces; and
+6. document the small operator workflow for selecting the profile, pinning an update, inspecting a decision, and adding a scoped exception.
+
+This is the **starter-profile stopping gate**. Once it passes, the basic milestone may stop even though automatic following of mutable unpinned lists, held-candidate review, richer alerting, broader multi-vertical rollout, and registry publication remain future work. A pinned subscription requires an operator to approve a new hash when its maintainer publishes an update; that is acceptable for the starter story and is materially less burdensome than originating and maintaining the dataset.
+
+Do not spend more time generalizing schemas, canonicalization, evaluation, or local bundle machinery unless the vertical slice exposes a concrete gap. Those foundations are already substantial. Do not claim the stopping gate has passed while a public render, aggregation, metadata-fetch, or serving bypass remains in Civility. Do not expand the gate to CSM or every vertical before stopping.
+
+This infrastructure reduces dataset and integration burden; it does not provide compliance for free. The vertical operator still chooses the profile and needs reporting, appeals, and incident ownership.
 
 ## Goal
 
@@ -74,14 +97,24 @@ If implementing one of these defaults exposes a real conflict with the codebase 
 
 **Local-core exit:** an operator can compose local block and exception files into one immutable bundle and obtain deterministic, explainable decisions in browser and Node runtimes.
 
-### C. Add safe shared HTTPS subscriptions
+### C. Add the starter pinned HTTPS subscription
 
-- [ ] Implement the bounded untrusted-artifact fetcher: streaming size and entry limits, decompression bounds, timeouts, redirect limits, public-HTTPS-only network checks, DNS-rebinding protection, and explicit operator egress exceptions.
-- [ ] Implement optional `contentHash` pinning and unpinned-source `maxAdded` / `maxRemoved` gates against the last operator-accepted subject set.
+- [ ] Implement the bounded untrusted-artifact fetcher needed by the starter profile: streaming size and entry limits, decompression bounds, timeouts, redirect limits, public-HTTPS-only network checks, DNS-rebinding protection, and explicit operator egress exceptions.
+- [ ] Resolve and verify an HTTPS ref with a required `contentHash` through the existing bundle resolver. A mismatch is an ordinary per-layer resolution failure and must preserve last-known-good behavior.
+- [ ] Provide one concrete shared-list fixture or operator-controlled example endpoint and a root/profile that subscribes to it.
+
+**Starter subscription exit:** an operator can reuse exact bytes published over HTTPS by another maintainer and deliberately adopt an update by changing its pinned hash.
+
+#### Deferred subscription automation
+
+These remain valuable, but are not required for the starter-profile stopping gate:
+
+- [ ] Implement unpinned-source `maxAdded` / `maxRemoved` gates against the last operator-accepted subject set.
 - [ ] Implement held-candidate persistence and an explicit review/accept flow. A later fetch must not silently clear a hold.
-- [ ] Add source-health, stale-resolution, anomalous-diff, and fetch-bound alert hooks. The first implementation may use logs/structured status; production paging integration can be selected later.
+- [ ] Add candidate diff inspection to the operator CLI.
+- [ ] Add source-health, stale-resolution, anomalous-diff, and fetch-bound alert hooks beyond the minimum status needed to operate the pinned slice.
 
-**Subscription exit:** an operator can reuse a mutable HTTPS list without silently accepting an oversized change, and can pin exact bytes when automatic following is inappropriate.
+**Automatic-subscription exit:** an operator can safely follow a mutable HTTPS list without silently accepting an oversized change.
 
 ### D. Integrate the browser and SDK content surfaces
 
@@ -104,14 +137,17 @@ If implementing one of these defaults exposes a real conflict with the codebase 
 
 **Serving exit:** an operator does not serve governed blocked bytes through any public route while another complete bundle is being fetched or activated.
 
-### F. Production coverage and operator handoff
+### F. Starter-profile coverage and operator handoff
 
-- [ ] Add cross-surface tests proving representative CID, address, and channel entries have the specified effect on every action they govern, while scoped exceptions and unrelated layers remain independent.
-- [ ] Test mandatory-list failure, open-list failure, stale last-known-good data, large additions/removals, granted exceptions, removal of exceptions, malformed documents, and digest divergence.
-- [ ] Document the operator workflow: author a local list, subscribe/pin, configure actions, inspect a suppression, review a diff, accept/reject a candidate, roll back safely, and respond to an alert.
-- [ ] Provide one narrow vertical example using a shared list, a local editorial list, and a scoped local exception.
-- [ ] Add verifier coverage for active-digest agreement, stale/unavailable surfaces, source health, and cross-surface suppression. Define operational thresholds when a real deployment supplies the needed evidence.
-- [ ] Remove the old standalone display-denylist path and declare the content-only milestone complete only after the coverage inventory has no unhandled public surface.
+- [ ] Add cross-surface Civility tests proving representative CID, address, and channel entries have the specified effect on every action they govern, while scoped exceptions and unrelated layers remain independent.
+- [ ] Test pinned-list failure, stale last-known-good data, granted and removed exceptions, malformed documents, failed activation/rollback, and digest divergence. Large-diff hold behavior belongs to deferred automatic subscriptions.
+- [ ] Document the starter operator workflow: select the profile, subscribe/pin, inspect a suppression, adopt a new pinned hash, add or remove a scoped exception, and roll back safely. Diff acceptance and anomalous-change response belong to deferred automatic subscriptions.
+- [ ] Provide one narrow vertical example using a pinned shared HTTPS list and a scoped pinned local exception. A separate local editorial list is optional for the starter profile.
+- [ ] Document the starter-profile boundary clearly: maintainers supply the dataset; operators still choose the profile, pin updates, receive reports, support appeals, and own incidents.
+- [ ] Add verifier coverage for active-digest agreement and cross-surface suppression in Civility. Broader source-health thresholds, CSM integration, and other vertical coverage may follow operational experience.
+- [ ] Remove or route around the old standalone display-denylist path in Civility, and declare the starter-profile stopping gate complete only after its coverage inventory has no unhandled public surface.
+
+**Starter-profile exit:** Civility can adopt the example shared profile with small configuration, reports one enforced digest, and has no known public bypass across its governed content surfaces. The underlying implementation remains generic and reusable; CSM integration is explicitly not part of this exit gate. This is a good near-term stopping point; completion of every deferred subscription and rollout feature is not required.
 
 ## Decision checkpoints that do not block starting
 
