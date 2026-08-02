@@ -1634,3 +1634,10 @@ I updated the relevant TODO.md item with this result. Suggested next step: inspe
 - Added `functionality.civility-policy-surfaces`, a deterministic verifier leaf that fails when a Civility route is unclassified or key enforcement/focused-test markers drift. It is required by the fast `validation.pr` rollup.
 - This closes the local inventory item but does not claim deployed enforcement. Remaining starter-gate work is operational bundle publication/configuration and redeployment, followed by verifier coverage for deployed client/server digest agreement and a live blocked-fixture journey.
 - Changed the policy-list implementation plan, new surface inventory and verifier coverage/check files, `validation.pr`, `TODO.md`, and this continuity log. The focused verifier leaf passes with 13 routes and 9 enforcement/coverage invariants; `git diff --check` passes.
+
+## 2026-08-02 — Added deployed Civility policy enforcement verification
+
+- Added guarded, read-only `testnet.policy-enforcement` coverage. It discovers the policy bundle and platform API from deployed Civility runtime config, confirms the configured starter CID is asserted by that bundle, and requires `/policy-content/:cid` to return HTTP 451 with `content_refused_by_policy`, `current` status, and the exact client bundle digest.
+- Wired the check into the standard testnet wrapper, `testnet.environment`, and the guarded release-candidate policy. Its focused deterministic tests cover the successful path plus missing-fixture and digest-divergence failures.
+- This does not claim deployed enforcement yet: the resolved bundle still needs publishing/configuration and the gateway/UI need redeployment before the new check can produce passing retained evidence.
+- Checks passed: focused Node tests, `coverage.guarded-check-policy`, `functionality.civility-policy-surfaces`, and `git diff --check`.

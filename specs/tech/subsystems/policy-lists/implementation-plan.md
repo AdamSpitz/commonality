@@ -162,6 +162,7 @@ These remain valuable, but are not required for the starter-profile stopping gat
 - [x] Document the starter-profile boundary clearly: maintainers supply the dataset; operators still choose the profile, pin updates, receive reports, support appeals, and own incidents.
 - [ ] Add verifier coverage for active-digest agreement and cross-surface suppression in Civility. Broader source-health thresholds, CSM integration, and other vertical coverage may follow operational experience.
   - [x] Added `functionality.civility-policy-surfaces` as a required fast-validation leaf for route classification and source/test enforcement drift. Deployed active-digest agreement and a live blocked-fixture journey remain.
+  - [x] Added guarded read-only `testnet.policy-enforcement` coverage that obtains the bundle URL from deployed Civility config, verifies the configured fixture is asserted, and requires the gateway to refuse it under the same current digest. Publishing/configuring the bundle, redeploying, and obtaining a passing retained result remain operational work.
 - [ ] Remove or route around the old standalone display-denylist path in Civility, and declare the starter-profile stopping gate complete only after its coverage inventory has no unhandled public surface.
   - [x] Civility now routes around `VITE_DISPLAY_DENYLIST_URL`, leaving its activated bundle as the only content-policy decision source; other domains retain the compatibility path.
 

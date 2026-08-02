@@ -67,6 +67,7 @@ LEAVES=(
 	testnet.app-config
 	testnet.contracts
 	testnet.sponsored-gas
+	testnet.policy-enforcement
 )
 
 if [ "$WITH_BROWSER" = "1" ]; then
