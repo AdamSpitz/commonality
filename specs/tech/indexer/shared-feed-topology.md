@@ -234,20 +234,12 @@ A vertical using the shared feed lacks indexing availability independence and ca
 
 ## Adopted changes relative to operator-scoped-deployments.md
 
-1. **Demote admission** from a core policy axis to the conditional stage policy-lists already assigns
-   it; prefer static scope in the bundle over a followed admission source.
-2. **Re-aim milestone 1** at "the gateway can carry a policy bundle and enforce `refuse-serve`"
-   rather than "Ponder conditionally constructs sources and registers matching handlers." Much
-   smaller, and it multiplies nobody's ops burden.
-3. **Make Tier 2 the exception**, with the never-possess / independence conditions stated.
-4. **Scope the "weakest path" principle to intra-operator** explicitly.
-5. **Name PublishedData inline bytes** as the risk concentration; scope milestone 4 to it
-   specifically rather than to ingestion generally.
-6. **State that the risk reduction is organizational**, not a property of scoped software.
-7. **Make IPFS proxying a non-goal** rather than a policy axis. The current "metadata policy — which
-   admitted bytes may be fetched, cached, proxied, or rendered" invites re-entering byte territory
-   that [ipfs-in-indexer.md](./ipfs-in-indexer.md) deliberately stayed out of. "We hold what the
-   chain emitted, nothing else" is a clean line worth keeping.
+1. **Demote dynamic admission** from a baseline requirement to an optional capability driven by a real vertical; prefer static, inspectable client scope where it suffices.
+2. **Make independent Ponder deployments the exception**, for custom source admission or genuine organizational, availability, or possession-boundary needs.
+3. **Keep content enforcement with the operator's content surfaces.** The shared index carries pointers only, so `refuse-serve` belongs in any retrieval gateway that actually serves bytes, not in Ponder by default.
+4. **Scope the "weakest path" principle to each operator's own surfaces** rather than requiring a vertical's policy to govern Commonality's separate metadata API.
+5. **Keep content proxying and mirror storage out of the indexer.** Retrieval services and mirrors are separate roles with separate policy obligations.
+6. **State that the benefit is operational and organizational**, not a claim that shared software eliminates operator duties.
 
 ## If server-side folding ever does happen
 
@@ -268,74 +260,3 @@ hand-written SQL leaderboard does not.
 2. Does static client scope cover real admission cases, or does a vertical need a followed source?
 3. How should new factories and contract deployments be onboarded into the broad shared index?
 4. When does shared-Ponder operational burden or chokepoint risk justify moving to The Graph?
-
-
-
-REVIEW FROM GPT5.6:
-
-Yes—the **core topology makes sense**, but the document currently overclaims what it proves.
-
-## The sound core
-
-A shared ingestion/data plane with per-operator gateways is a credible alternative to duplicating Ponder + Postgres + backfills for every vertical:
-
-- one shared archival event cache;
-- one policy-filtering gateway per operator;
-- client-side folding;
-- independent indexers only where operational or legal independence matters.
-
-That is probably the strongest practical default for Commonality-operated verticals.
-
-## The important holes
-
-1. **Tier 0 does not enforce the operator’s serving policy.**  
-   At `shared-feed-topology.md:97`, the browser enforces display and aggregation, but the shared API serves under **Commonality’s** policy. A bundle digest proves which policy the browser used; it does not make the shared server enforce that policy.
-
-2. **The serving filter is not currently “one CID check.”**  
-   `indexer/src/api/index.ts` exposes PublishedData bytes through:
-   - `/api/published-data/*`
-   - `/api/events`
-   - `/sql/*`
-   - GraphQL
-
-   A Worker blocking `/api/published-data/:cid` can still proxy the same ABI-encoded bytes through `/api/events`, SQL, or GraphQL. Tier 1 must close or filter every route. With the current raw-events API, that may require decoding/filtering response rows, not merely checking `request.cid`.
-
-3. **The policy bundle does not contain admission scope.**  
-   The policy-list spec explicitly says v1 has **no admission profile** (`policy-lists/README.md:913`). “Static scope in the bundle” is a reasonable new proposal, but it is not machinery that already exists. It also still needs:
-   - a scope schema;
-   - mapping scope subjects to event queries;
-   - dependency-closure rules;
-   - enforcement rules for broad/raw API requests.
-
-4. **“Blocking wants to be global” is too broad.**  
-   Legal obligations differ by jurisdiction, recipient, court order, and operator. What is defensible is:
-
-   > Commonality’s shared feed has one baseline host policy; operators may reuse that policy but remain responsible for additional legal and editorial exclusions.
-
-   The existing policy-list spec itself warns about a de facto censorship cartel.
-
-5. **“A developer API is not a front door” does not answer the existing objection.**  
-   `ui-operator-posture.md` specifically says a broad firehose API can recreate the platform center. The new document acknowledges hosting duties, but it does not really rebut the convenience/discovery/chokepoint concern. “Not a consumer UI” reduces salience; it does not remove the operated-service role.
-
-6. **The possession language is confused.**  
-   At lines 246–247, if the shared operator and vertical operator are genuinely different organizations, the vertical did not possess bytes merely because Commonality did. The guarantees should be separated:
-   - shared origin stored them;
-   - gateway may have processed or cached them;
-   - browser may have downloaded them;
-   - vertical UI did or did not render them.
-
-7. **“Tier 0 runs nothing” understates policy operations.**  
-   A current policy bundle still needs resolution, publication, monitoring, notice handling, and updates. The vertical may run no stateful indexer, but it does not have zero operational burden.
-
-8. **A universal feed still needs source onboarding.**  
-   Ponder watches configured contracts/factories. One deployment serves every vertical only if all relevant factories are already discoverable from a common source or somebody continuously adds new operator factories.
-
-## My verdict
-
-**It makes enough sense to preserve, but not enough to supersede `operator-scoped-deployments.md` yet.**
-
-The defensible conclusion is narrower:
-
-> Default to shared ingestion for Commonality-operated or dependency-tolerant verticals; use single-tenant policy gateways where server-side operator enforcement is required; retain independent deployments for organizational independence, availability independence, custom source admission, and strong possession guarantees.
-
-Before calling Tier 0/1 viable, the document needs an explicit route-level data-flow analysis showing whether prohibited PublishedData bytes can escape through `/api/events`, SQL, GraphQL, caches, or direct-origin access. That is the biggest technical issue.
