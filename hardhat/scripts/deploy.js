@@ -102,7 +102,6 @@ async function main() {
         'DELEGATABLE_NOTES_CONTRACT_ADDRESS',
         'RECURRING_PLEDGES_CONTRACT_ADDRESS',
         'MUTABLE_REF_UPDATER_CONTRACT_ADDRESS',
-        'FREE_ERC1155_FACTORY_ADDRESS',
         'ASSURANCE_CONTRACT_FACTORY_ADDRESS',
         'ERC1155_FACTORY_ADDRESS',
         'ETH_THRESHOLD_CONDITION_FACTORY_ADDRESS',
@@ -117,18 +116,36 @@ async function main() {
         'PUBLISHED_DATA_CONTRACT_ADDRESS',
       ];
       const checks = await Promise.all(addressKeys.map(k => hasCode(existing[k])));
-      if (checks.every(Boolean)) {
+      const unsatisfied = addressKeys.filter((_, i) => !checks[i]);
+      if (unsatisfied.length === 0) {
         await updateEnvFile(join(rootDir, 'ui', '.env'), {
           VITE_DEFAULT_NUDGERS: LOCAL_SEED_NUDGER_ADDRESS,
         });
+        // Reconcile the root .env with the deployment file we just verified
+        // on-chain. Skipping this used to leave a drifted .env in place: local
+        // addresses change from deploy to deploy, so a root .env left over from
+        // an earlier layout points at addresses with no code, and the seed dies
+        // with `returned no data ("0x")` on the first read. The deployment file
+        // is the checked source of truth here — it is what we proved has code.
         await updateEnvFile(join(rootDir, '.env'), {
+          ...existing,
           LOCAL_SEED_NUDGER_ADDRESS,
         });
         console.log('Contracts already deployed on-chain — skipping redeployment.');
         console.log(`(addresses from ${networkEnvPath})\n`);
         process.exit(0);
       }
-      console.log('Some contracts missing from chain — redeploying all contracts.\n');
+      // Name the keys that forced the redeploy. A key listed here but never
+      // written to the deployment file reads as "missing from chain" forever,
+      // which silently makes this whole branch unreachable and turns every local
+      // restart into a full redeploy (which churns addresses). Say which ones.
+      const absent = unsatisfied.filter(k => !existing[k]);
+      console.log(`Some contracts missing from chain — redeploying all contracts.`);
+      console.log(`  forced by: ${unsatisfied.join(', ')}`);
+      if (absent.length > 0) {
+        console.log(`  (absent from ${networkEnvPath}, not merely uncodeful: ${absent.join(', ')})`);
+      }
+      console.log('');
     } catch {
       // No existing deployment file; deploy fresh.
     }
