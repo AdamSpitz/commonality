@@ -5,7 +5,7 @@ import {
   CSM_MISSION_STATEMENT_DOCUMENT,
   CSM_MISSION_STATEMENT_TEXT,
 } from '../../sdk/src/subsystems/conceptspace/constants.js';
-import { publishDocument } from '../../sdk/src/subsystems/displayable-documents/displayable-document.js';
+import { publishedDataCidForDocument } from '../../sdk/src/subsystems/displayable-documents/displayable-document.js';
 import { getSeedProjectAlignmentRef, getSeedProjectMetadata } from '../fundingAndDelegationActions.js';
 import { buildContractMetadata } from '../contentFundingActions.js';
 import { createStatementDocumentFromSeed, flattenSeedStatements, loadSeedCollections } from '../seed-content-format.js';
@@ -62,8 +62,10 @@ test('CSM mission statement seed content matches the well-known SDK constant and
   assert.equal(csmRecords.length, 1);
   assert.equal(csmRecords[0]!.statement.text, CSM_MISSION_STATEMENT_TEXT);
   assert.deepEqual(createStatementDocumentFromSeed(csmRecords[0]!), CSM_MISSION_STATEMENT_DOCUMENT);
+  // The well-known constant is the PublishedData CID (raw multicodec) the document gets
+  // when published through a DocumentStore, not the legacy dag-pb `ipfs add` CID.
   assert.equal(
-    await publishDocument({ shouldUseMock: true }, createStatementDocumentFromSeed(csmRecords[0]!)),
+    publishedDataCidForDocument(createStatementDocumentFromSeed(csmRecords[0]!)),
     CSM_MISSION_STATEMENT_CID,
   );
 });

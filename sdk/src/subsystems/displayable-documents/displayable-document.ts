@@ -11,7 +11,7 @@
 import { type Address, type Hash } from 'viem';
 import { uploadToIPFS, fetchFromIPFS, IPFSConfig } from '../../utils/ipfs.js';
 import { type WriteClients } from '../../utils/ethereum.js';
-import { publishData, readData, publishedDataCidToId, createEventCacheCidResolver, createPublishedDataApiCidResolver, type DisplayPolicy, type CidResolution, type PublishedDataCache, type PublishedDataContract, type PublishedDataId, type PublishedDataReadResult, type PublishedDataCid } from '../published-data/index.js';
+import { publishData, readData, computePublishedDataId, publishedDataCidToId, publishedDataIdToCid, createEventCacheCidResolver, createPublishedDataApiCidResolver, type DisplayPolicy, type CidResolution, type PublishedDataCache, type PublishedDataContract, type PublishedDataId, type PublishedDataReadResult, type PublishedDataCid } from '../published-data/index.js';
 import type { SDKMachinery } from '../../machinery.js';
 import { IpfsCidV1 } from '../../utils/cid-types.js';
 
@@ -371,6 +371,18 @@ export function createStatement(options: CreateStatementOptions): DisplayableDoc
 
 function canonicalDocumentBytes(doc: DisplayableDocument): Uint8Array {
   return new TextEncoder().encode(toCanonicalJson(doc));
+}
+
+/**
+ * The canonical PublishedData CID a document will have once published.
+ *
+ * This is a pure function of the document's canonical bytes, so callers can pin a
+ * well-known CID (or check one) without publishing anything. Note that it is *not*
+ * the legacy `publishDocument` IPFS CID: PublishedData pins the raw multicodec
+ * (`bafkrei…`) where `ipfs add` defaults to dag-pb (`bafybei…`) over the same digest.
+ */
+export function publishedDataCidForDocument(doc: DisplayableDocument): PublishedDataCid {
+  return publishedDataIdToCid(computePublishedDataId(canonicalDocumentBytes(doc)));
 }
 
 function parseDisplayableDocumentBytes(data: Uint8Array): DisplayableDocument | null {
