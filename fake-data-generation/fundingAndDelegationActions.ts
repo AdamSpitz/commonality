@@ -89,6 +89,20 @@ interface SeedProjectMetadataTemplate {
 }
 
 const PROJECT_SEED_METADATA: SeedProjectMetadataTemplate[] = [
+  // Deliberately first so the deterministic funding/success seeding (which covers the
+  // first few projects) lands on a local public-goods storyline. Without this, every
+  // seeded project is a national/abstract political-content cause and the local-community
+  // use cases cannot be demonstrated in the UI at all.
+  {
+    name: 'Riverside Community Garden',
+    description: 'Turn a vacant lot on Third Street into a neighbourhood garden with raised beds, a tool library, and a weekly market stall for the growers.',
+    kind: 'local-community',
+    alignmentRef: {
+      collectionId: 'fundable-projects',
+      groupId: 'local-community',
+      statementId: 'local-food-systems',
+    },
+  },
   {
     name: 'Bridge-Building Workshop Series',
     description: 'Run small-group workshops that help people with different politics coordinate on shared goals.',

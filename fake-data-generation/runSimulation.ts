@@ -1136,7 +1136,9 @@ async function publishSeedWorkerOutputs(simulation: SimulationRunner): Promise<v
   console.log(`Seed worker outputs published by trusted local nudger ${nudger}.`);
 }
 
-const DETERMINISTIC_SEED_PROJECT_ALIGNMENT_COUNT = 5;
+// One per PROJECT_SEED_METADATA template, so every seeded storyline (including the
+// local public-goods one) gets a deterministic alignment attestation.
+const DETERMINISTIC_SEED_PROJECT_ALIGNMENT_COUNT = 6;
 
 async function publishSeedProjectAlignments(simulation: SimulationRunner): Promise<void> {
   if (!simulation.contracts.alignmentAttestations) {
