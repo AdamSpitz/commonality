@@ -12,6 +12,16 @@ vi.mock('wagmi', () => ({
   usePublicClient: vi.fn(),
 }))
 
+// Stubbed so the tests do not depend on whether the developer running them
+// happens to have VITE_PRIVY_SMART_WALLET_BUNDLER_URL set in ui/.env.
+const privySmartWallet = vi.hoisted(() => ({ enabled: false }))
+
+vi.mock('../../privy/config', () => ({
+  get isPrivySmartWalletEnabled() {
+    return privySmartWallet.enabled
+  },
+}))
+
 vi.mock('@commonality/sdk/abis', async () => {
   const actual = await vi.importActual('@commonality/sdk/abis')
   return {
@@ -83,6 +93,7 @@ describe('RefundSection', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
+    privySmartWallet.enabled = false
     vi.mocked(useWalletClient).mockReturnValue({
       data: { chain: { blockExplorers: { default: { url: 'https://explorer.example' } } } },
     } as any)
@@ -177,6 +188,32 @@ describe('RefundSection', () => {
     })
   })
 
+  it('batches the approval into the refund when the smart wallet is enabled', async () => {
+    privySmartWallet.enabled = true
+    const user = userEvent.setup()
+    const contributions = [makeContribution()]
+    render(
+      <RefundSection
+        project={makeProject()}
+        contributions={contributions}
+        refunds={[]}
+        address={USER_ADDR}
+        onRefresh={onRefresh}
+      />
+    )
+
+    await user.click(screen.getByRole('button', { name: 'Refund All' }))
+
+    await waitFor(() => {
+      expect(refundProjectTokens).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.anything(),
+        expect.objectContaining({ batchApproval: true }),
+      )
+    })
+    expect(approveERC1155ForOperator).not.toHaveBeenCalled()
+  })
+
   it('calls refundProjectTokens with correct params', async () => {
     const user = userEvent.setup()
     const contributions = [makeContribution({ tokenIds: '["1", "2"]', tokenCounts: '["5", "3"]' })]
@@ -201,6 +238,7 @@ describe('RefundSection', () => {
           tokenAddress: ERC1155_ADDR,
           tokenIds: [1n, 2n],
           tokenCounts: [5n, 3n],
+          batchApproval: false,
         }),
       )
     })
