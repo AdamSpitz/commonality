@@ -14,6 +14,11 @@ It is **not** the source of truth for landing-page copy, CTA wording, spotlight 
 
 Four product sites for funding (LazyGiving, Aligning, Content Funding, Civility), one product site for signing (Tally), two movement sites (Commonality, CSM), and one mostly developer-facing infrastructure site (Conceptspace).
 
+This four-bucket grouping — **funding / signing / movement / infrastructure** — is the canonical taxonomy of the eight sites. Other docs may cut the same eight sites along a different axis (subsystems vs. branded builds in [specs/README.md](../README.md), purpose-neutral vs. cause vertical in [marketing.md](./marketing.md)); those are orthogonal cuts for their own purposes and do not replace this one. Two placements are easy to get wrong:
+
+- **Tally** is the signing site, not infrastructure. Conceptspace owns the statement/implication primitives; Tally owns the consumer-facing signing experience built on them.
+- **Civility** is a funding site — a cause vertical layered on Content Funding. It is not a movement site; CSM is the movement that uses it.
+
 No ecosystem-wide product umbrella. Each site stands on its own and pitches to its own audience. Cross-site links are kept lightweight (nav/footer or secondary pages), not prominent above the fold on every landing page.
 
 ## Primary UX workflows

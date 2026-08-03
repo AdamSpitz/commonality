@@ -28,7 +28,9 @@ committed to directly — they only advance by merging a **reviewed GitHub PR**.
 
 - **`feature/*`** (also `fix/*`, `chore/*`) — where you actually work
 - **`dev`** — integration branch; the review gate lives here
-- **`master`** — release branch, auto-deploys to Render
+- **`master`** — release branch, auto-deploys to Render. End-user documentation
+  links source files at `master` on purpose: it is the code the deployed sites
+  are running, even though `dev` is GitHub's default branch.
 
 ```
 feature/x ──▶ PR ──▶ /code-review ──▶ merge to dev ──▶ PR ──▶ merge to master ──▶ Render deploys
@@ -149,8 +151,10 @@ its own PR — the `review-received` check is what does the enforcing. The full
 protocol (so other agents can post receipts) is in
 [`review-gate.md`](review-gate.md).
 
-`master` is **not** gated: a `dev → master` release is a rubber-stamp of content
-already reviewed on the way into `dev`.
+`master` is **not** gated by the `review-received` check: a `dev → master`
+release is a rubber-stamp of content already reviewed on the way into `dev`. The
+full test suite still runs — the `pre-merge-commit` hook executes
+`automated.test-full` on every merge into `master` and aborts on failure.
 
 ## Hook reference
 
