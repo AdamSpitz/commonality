@@ -35,7 +35,7 @@ npm run gen:simulate
 # Or with custom parameters
 npm run gen:tiny        # 5 users, 1 round, 12 statements, capped actions, no invariant pass
 npm run gen:small       # 10 users, 3 rounds
-npm run gen:seed:local  # 10 users, 3 rounds, formal seed content, Alignment Explorer/nudge fixtures
+npm run gen:seed:local  # 12 users, 3 rounds, formal seed content, Alignment Explorer/nudge fixtures
 npm run gen:medium      # 50 users, 5 rounds
 npm run gen:large       # 100 users, 10 rounds
 ```
@@ -129,7 +129,7 @@ npm run gen:proliferation
 
 ### Pre-generated Seed Worker Outputs
 
-`./scripts/data.sh --seed=demo` replays checked-in worker outputs from `data/seed-worker-outputs.json` after publishing the formal seed-content universe. This gives local dev an Alignment `/explore` Fundable Project Explorer collection, statement nudges, a small implication graph, and deterministic project↔statement alignment attestations without running continuous AI workers or making live LLM calls. Tally intentionally has no `/explore` route yet.
+`./scripts/data.sh --seed=demo` replays checked-in worker outputs from `data/seed-worker-outputs.json` after publishing the formal seed-content universe. This gives local dev an Alignment `/explore` Fundable Project Explorer collection, statement nudges, a small implication graph, and deterministic project↔statement alignment attestations without running continuous AI workers or making live LLM calls. One deterministic seed project per `PROJECT_SEED_METADATA` template is created and aligned; project 0 is a local public-goods storyline (Riverside Community Garden) and is also the first project the funding/success seeding covers, so the local-community use cases are demonstrable in the UI. Tally intentionally has no `/explore` route yet.
 
 Regenerate the fixture when the formal seed content changes:
 
