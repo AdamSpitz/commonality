@@ -3,6 +3,13 @@ import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { AttestAlignmentForm } from './AttestAlignmentForm'
 
+// These tests drive a controlled MUI Autocomplete through userEvent, which costs
+// one render per keystroke plus async project loading. That fits in the 5s default
+// when the file runs alone, but not when the full suite is competing for CPU —
+// whichever test lost the race would time out. Give the file real headroom instead
+// of raising the global timeout, which would mask genuine hangs elsewhere.
+vi.setConfig({ testTimeout: 30000 })
+
 vi.mock('wagmi', () => ({
   useAccount: vi.fn(),
   useWalletClient: vi.fn(),
@@ -202,7 +209,10 @@ describe('AttestAlignmentForm', () => {
     })
 
     it('disables submit button when invalid address entered', async () => {
-      const user = userEvent.setup()
+      // The controlled combobox re-renders once per keystroke, so the default
+      // inter-keystroke delay is dead time that pushes this past the 5s timeout
+      // when the full suite is competing for CPU.
+      const user = userEvent.setup({ delay: null })
       render(<AttestAlignmentForm statementCid={STATEMENT_CID} />)
 
       await user.click(screen.getByRole('button', { name: 'Vouch for a Project' }))
