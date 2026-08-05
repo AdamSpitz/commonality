@@ -10,6 +10,7 @@ A subsystem for retroactively funding individual pieces of content via creator-l
 - **[Canonicalization](canonicalization.md)** — Rules for turning platform URLs and identities into stable canonical IDs before hashing or claiming.
 - **[Content registry](content-registry.md)** — On-chain mapping ensuring each content item appears in at most one *active* assurance contract.
 - **[Creator contracts](creator-contracts.md)** — Creator-level assurance contracts using ERC-1155 token types for individual content items.
+- **[Materialization](materialization.md)** — ⚠️ *Design note, unresolved.* How a funded future-content round turns into concrete content items. The redemption half of future-content rounds **cannot currently execute**; read this before touching `MaterializedContentTokens`.
 - **[Channel claiming](channel-claiming.md)** — Rules for who can create contracts for a creator's content, and how creators take ownership.
 - **[Channel escrow](channel-escrow.md)** — Holding contract that receives funds for unclaimed channels and releases them when the creator verifies.
 - **[Content attesters](content-attesters.md)** — AI services that evaluate content quality and publish attestations. General framework; specific attester criteria are per-use-case.
