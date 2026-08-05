@@ -61,6 +61,68 @@ export async function getProspectiveRoundOnchainState(
   return { channelId, materializedToken: materializedToken === zeroAddress ? null : materializedToken };
 }
 
+/** Minimal ERC-1155 read surface: the receipt token is only ever balance-checked here. */
+const ERC1155_BALANCE_OF_ABI = [{
+  type: 'function',
+  name: 'balanceOf',
+  stateMutability: 'view',
+  inputs: [{ name: 'account', type: 'address' }, { name: 'id', type: 'uint256' }],
+  outputs: [{ name: '', type: 'uint256' }],
+}] as const;
+
+/** One account's claim position on a single materialized content item. */
+export interface MaterializedContentClaimState {
+  contentId: bigint;
+  /** Receipts held for the round -- the total this account may ever claim per item. */
+  entitlement: bigint;
+  /** Already claimed for this item. */
+  claimed: bigint;
+  /** Still claimable now (entitlement minus claimed, never negative). */
+  claimable: bigint;
+}
+
+/**
+ * Read an account's per-item claim position directly from chain.
+ *
+ * Entitlement is the account's non-transferable receipt balance for the round,
+ * so buying more receipts after a first claim raises the claimable remainder.
+ * Read on-chain rather than folded from ContentTokenClaimed so the UI reflects
+ * a claim immediately instead of waiting for the indexer.
+ */
+export async function getMaterializedClaimStates(
+  machinery: SDKMachinery,
+  tokenContract: Address,
+  account: Address,
+  contentIds: bigint[],
+): Promise<MaterializedContentClaimState[]> {
+  const publicClient = machinery.publicClient;
+  if (!publicClient) throw new Error('Public client not configured');
+  if (contentIds.length === 0) return [];
+
+  const [receiptToken, receiptTokenId] = await Promise.all([
+    publicClient.readContract({ address: tokenContract, abi: MaterializedContentTokensAbi, functionName: 'prospectiveToken', authorizationList: undefined }),
+    publicClient.readContract({ address: tokenContract, abi: MaterializedContentTokensAbi, functionName: 'prospectiveTokenId', authorizationList: undefined }),
+  ]);
+  const entitlement = await publicClient.readContract({
+    address: receiptToken,
+    abi: ERC1155_BALANCE_OF_ABI,
+    functionName: 'balanceOf',
+    args: [account, receiptTokenId],
+    authorizationList: undefined,
+  });
+
+  return Promise.all(contentIds.map(async (contentId) => {
+    const claimed = await publicClient.readContract({
+      address: tokenContract,
+      abi: MaterializedContentTokensAbi,
+      functionName: 'claimedAmount',
+      args: [contentId, account],
+      authorizationList: undefined,
+    });
+    return { contentId, entitlement, claimed, claimable: claimed >= entitlement ? 0n : entitlement - claimed };
+  }));
+}
+
 export async function getMaterializedContentOnchain(
   machinery: SDKMachinery,
   tokenContract: Address,
