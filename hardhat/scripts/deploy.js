@@ -323,8 +323,7 @@ async function main() {
     paymentTokenAddress,
     creatorContractFactoryAddress,
     await prospectiveRoundDeploymentHelper.getAddress(),
-    await materializedContentDeploymentHelper.getAddress(),
-    ':'
+    await materializedContentDeploymentHelper.getAddress()
   );
   await prospectiveContentRoundFactory.waitForDeployment();
   const prospectiveContentRoundFactoryAddress = await prospectiveContentRoundFactory.getAddress();

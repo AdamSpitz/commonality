@@ -27,7 +27,7 @@ async function fixture({ verified = true, creatorCaller = true, threshold = 10n 
   const MaterializedHelper = await ethers.getContractFactory("MaterializedContentDeploymentHelper");
   const materializedHelper = await MaterializedHelper.deploy();
   const Factory = await ethers.getContractFactory("ProspectiveContentRoundFactory");
-  const factory = await Factory.deploy(await channels.getAddress(), await registry.getAddress(), await conditions.getAddress(), await payment.getAddress(), await authority.getAddress(), await roundHelper.getAddress(), await materializedHelper.getAddress(), ":");
+  const factory = await Factory.deploy(await channels.getAddress(), await registry.getAddress(), await conditions.getAddress(), await payment.getAddress(), await authority.getAddress(), await roundHelper.getAddress(), await materializedHelper.getAddress());
   await authority.setFactory(await factory.getAddress());
 
   const now = (await ethers.provider.getBlock("latest")).timestamp;
@@ -101,6 +101,29 @@ describe("Prospective content funding", function () {
     expect(await materialized.claimedAmount(id, ctx.alice.address)).to.equal(12n);
     await expect(materialized.connect(ctx.alice).safeTransferFrom(ctx.alice.address, ctx.bob.address, id, 1, "0x")).to.be.revertedWithCustomError(materialized, "NonTransferableContentToken");
     await materialized.connect(ctx.alice).burn(ctx.alice.address, id, 1);
+  });
+
+  it("uses the canonical platform separator when materializing Substack content", async function () {
+    const ctx = await fixture();
+    const substackCanonical = "substack:example";
+    const substackChannelId = ethers.id(substackCanonical);
+    await ctx.channels.setChannel(substackChannelId, ctx.creator.address, true);
+    const substackParams = [...ctx.params];
+    substackParams[0] = substackChannelId;
+    substackParams[1] = substackCanonical;
+    const roundAddress = await ctx.factory.connect(ctx.creator).createProspectiveRound.staticCall(substackParams);
+    await ctx.factory.connect(ctx.creator).createProspectiveRound(substackParams);
+    const round = await ethers.getContractAt("ProspectiveContentAssuranceContract", roundAddress);
+    const receipt = await ethers.getContractAt("ProspectiveContentTokens", await ctx.factory.receiptTokenByRound(roundAddress));
+    await ctx.payment.connect(ctx.alice).approve(roundAddress, 10n);
+    await round.connect(ctx.alice).buyERC1155(ctx.alice.address, await receipt.getAddress(), [tokenId], [10n], "0x");
+    const address = await ctx.factory.connect(ctx.creator).createMaterializedContentTokens.staticCall(roundAddress, "u", "c");
+    await ctx.factory.connect(ctx.creator).createMaterializedContentTokens(roundAddress, "u", "c");
+    const materialized = await ethers.getContractAt("MaterializedContentTokens", address);
+    await materialized.connect(ctx.creator).addContent("my-post");
+    const contentId = ethers.toBigInt(ethers.id("substack:example/my-post"));
+    expect(await materialized.contentCanonicalId(contentId)).to.equal("substack:example/my-post");
+    expect(await ctx.registry.contentContract(contentId)).to.equal(roundAddress);
   });
 
   it("protects refunds while pending, permits failure refunds, and permits success burns without changing reimbursement", async function () {

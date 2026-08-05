@@ -1645,3 +1645,10 @@ I updated the relevant TODO.md item with this result. Suggested next step: inspe
 ## 2026-08-05 — channel-bound prospective content materialization
 
 Implemented the accepted future-content decisions now recorded in ADR 0007 and the materialization spec. Added the trusted prospective-round factory/deployment helpers, channel-bound receipt and materialized collections, a prospective assurance subtype with a one-time materialized link, success-gated registrar plumbing, suffix-derived content IDs resolving to the source assurance round, and outcome-aware prospective burns. Updated deployment wiring, Hardhat coverage, materialization documentation, contract-version classification, and TODO. SDK/indexer/UI wiring remains a follow-up and UI creation remains blocked.
+
+## 2026-08-05 — Fixed prospective materialization separators
+
+- Addressed PR #79 review finding: `ProspectiveContentRoundFactory` now derives the content separator from each verified channel canonical ID (`/` for Substack, `:` for Twitter/X and YouTube) instead of using one deployment-wide separator.
+- Unsupported channel canonical prefixes are rejected, and the per-round separator is retained for later materialization.
+- Updated deployment wiring and added a regression test proving `substack:example/my-post` is registered correctly.
+- Focused Hardhat suite: 5 passing.

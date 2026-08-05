@@ -20,6 +20,7 @@ error InvalidReceiptTerms();
 error NotProspectiveRound(address round);
 error ProspectiveRoundNotSuccessful(address round);
 error MaterializedCollectionAlreadyCreated(address round);
+error UnsupportedChannelCanonicalId(string canonicalId);
 
 interface IRegistrarAuthority {
     function authorizeMaterializedRegistrar(address registrar) external;
@@ -62,8 +63,6 @@ contract ProspectiveContentRoundFactory is ReentrancyGuard {
     address public immutable registrarAuthority;
     ProspectiveRoundDeploymentHelper public immutable roundDeploymentHelper;
     MaterializedContentDeploymentHelper public immutable materializedDeploymentHelper;
-    string public contentIdSeparator;
-
     mapping(address => bool) public isProspectiveRound;
     mapping(address => bytes32) public channelIdByRound;
     mapping(address => address) public receiptTokenByRound;
@@ -71,11 +70,12 @@ contract ProspectiveContentRoundFactory is ReentrancyGuard {
     mapping(address => address) public conditionByRound;
     mapping(address => address) public materializedTokenByRound;
     mapping(address => string) private _channelCanonicalIdByRound;
+    mapping(address => string) private _contentIdSeparatorByRound;
 
     event ProspectiveRoundCreated(address indexed round, bytes32 indexed channelId, address indexed receiptToken, uint256 receiptTokenId, address condition);
     event ProspectiveRoundMaterialized(address indexed round, address indexed tokenContract);
 
-    constructor(address channels, address contents, address conditions, address settlementToken, address authority, address roundHelper, address materializedHelper, string memory separator) {
+    constructor(address channels, address contents, address conditions, address settlementToken, address authority, address roundHelper, address materializedHelper) {
         channelRegistry = ChannelRegistry(channels);
         contentRegistry = ContentRegistry(contents);
         conditionFactory = ValueThresholdConditionFactory(conditions);
@@ -83,7 +83,6 @@ contract ProspectiveContentRoundFactory is ReentrancyGuard {
         registrarAuthority = authority;
         roundDeploymentHelper = ProspectiveRoundDeploymentHelper(roundHelper);
         materializedDeploymentHelper = MaterializedContentDeploymentHelper(materializedHelper);
-        contentIdSeparator = separator;
     }
 
     function createProspectiveRound(CreateRoundParams calldata p) external returns (address) {
@@ -91,6 +90,7 @@ contract ProspectiveContentRoundFactory is ReentrancyGuard {
         _requireChannelOwner(p.channelId);
         bytes32 canonicalHash = keccak256(bytes(p.channelCanonicalId));
         if (canonicalHash != p.channelId) revert ChannelCanonicalIdMismatch(p.channelId, canonicalHash);
+        string memory contentIdSeparator = _contentIdSeparator(p.channelCanonicalId);
         if (p.threshold == 0 || p.deadline <= block.timestamp) revert InvalidFundingTerms();
         if (p.supply == 0 || p.price == 0) revert InvalidReceiptTerms();
 
@@ -116,6 +116,7 @@ contract ProspectiveContentRoundFactory is ReentrancyGuard {
         receiptTokenIdByRound[roundAddress] = p.tokenId;
         conditionByRound[roundAddress] = address(condition);
         _channelCanonicalIdByRound[roundAddress] = p.channelCanonicalId;
+        _contentIdSeparatorByRound[roundAddress] = contentIdSeparator;
         emit ProspectiveRoundCreated(roundAddress, p.channelId, address(token), p.tokenId, address(condition));
         return roundAddress;
     }
@@ -129,7 +130,7 @@ contract ProspectiveContentRoundFactory is ReentrancyGuard {
 
         MaterializedContentTokens token = materializedDeploymentHelper.deploy(
             msg.sender, receiptTokenByRound[round], receiptTokenIdByRound[round], address(contentRegistry),
-            address(channelRegistry), round, channelId, _channelCanonicalIdByRound[round], contentIdSeparator,
+            address(channelRegistry), round, channelId, _channelCanonicalIdByRound[round], _contentIdSeparatorByRound[round],
             metadataUri, contractUri
         );
         materializedTokenByRound[round] = address(token);
@@ -137,6 +138,21 @@ contract ProspectiveContentRoundFactory is ReentrancyGuard {
         ProspectiveContentAssuranceContract(round).setMaterializedContentTokens(address(token));
         emit ProspectiveRoundMaterialized(round, address(token));
         return address(token);
+    }
+
+    function _contentIdSeparator(string calldata canonicalId) private pure returns (string memory) {
+        bytes memory value = bytes(canonicalId);
+        if (_startsWith(value, bytes("substack:"))) return "/";
+        if (_startsWith(value, bytes("twitter:uid:")) || _startsWith(value, bytes("youtube:channel:"))) return ":";
+        revert UnsupportedChannelCanonicalId(canonicalId);
+    }
+
+    function _startsWith(bytes memory value, bytes memory prefix) private pure returns (bool) {
+        if (value.length <= prefix.length) return false;
+        for (uint256 i = 0; i < prefix.length; i++) {
+            if (value[i] != prefix[i]) return false;
+        }
+        return true;
     }
 
     function _requireChannelOwner(bytes32 channelId) private view {
