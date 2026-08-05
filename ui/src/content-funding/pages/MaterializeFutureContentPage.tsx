@@ -44,7 +44,7 @@ export function MaterializeFutureContentPage() {
         Materialize future content
       </Typography>
       <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-        Attach published posts, videos, or articles to a funded future-content round so original backers can claim transferable content tokens.
+        Attach published posts, videos, or articles to a funded future-content round so original backers can claim their content tokens.
       </Typography>
 
       <Paper sx={{ p: 3, mb: 3 }}>
@@ -110,7 +110,7 @@ export function MaterializeFutureContentPage() {
           <Box>
             <Typography variant="h6" component="h2" gutterBottom>Materialized token metadata</Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              Needed the first time this round creates a materialized token collection. These tokens are transferable; the original future-content receipts remain non-transferable.
+              Needed the first time this round creates a materialized token collection. Like the original future-content receipts, these tokens are non-transferable: they are permanent recognition for backing the work, not something to trade.
             </Typography>
             <Stack spacing={2}>
               <TextField label="Token metadata URI" value={tokenMetadataUri} onChange={(event) => setTokenMetadataUri(event.target.value)} fullWidth size="small" placeholder="ipfs://.../{id}.json" />
@@ -119,7 +119,7 @@ export function MaterializeFutureContentPage() {
           </Box>
 
           <Alert severity="info">
-            Claim UX after materialization: connected backers should see each new content item with a “Claim my content tokens” action. Claim amount equals their non-transferable receipt balance, and each holder can claim once per content item.
+            Claim UX after materialization: connected backers should see each new content item with a “Claim my content tokens” action. Their first claim equals their non-transferable receipt balance; if they later buy more receipts, they can claim the additional amount.
           </Alert>
 
           <Stack direction="row" spacing={1}>

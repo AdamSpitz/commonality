@@ -35,6 +35,8 @@ error InvalidFundingDeadline(uint256 deadline, uint256 currentTimestamp);
 error ThresholdMustExceedInitialPurchase();
 error ThirdPartyDeadlineTooLong(uint256 deadline, uint256 maxDeadline);
 error InvalidThirdPartyMaxDuration();
+error InvalidProspectiveRoundFactory();
+error OnlyProspectiveRoundFactory();
 
 /**
  * @title IChannelRegistry
@@ -124,6 +126,7 @@ contract CreatorAssuranceContractFactory is Ownable2Step {
      */
     event ThirdPartyMinPurchaseUpdated(uint256 oldValue, uint256 newValue);
     event ThirdPartyMaxDurationUpdated(uint256 oldValue, uint256 newValue);
+    event ProspectiveRoundFactoryAuthorizationSet(address indexed factory, bool authorized);
 
     /// @notice The content registry for tracking content-to-contract mappings
     ContentRegistry public contentRegistry;
@@ -144,6 +147,7 @@ contract CreatorAssuranceContractFactory is Ownable2Step {
     mapping(address => bytes32) public channelIdByContract;
     /// @notice Whether a contract was created by a third party (not the channel owner)
     mapping(address => bool) public isThirdPartyCreated;
+    mapping(address => bool) public isAuthorizedProspectiveRoundFactory;
     /// @notice Maps contract address to its condition contract
     mapping(address => address) public contractCondition;
     /// @notice Maps contract address to its ERC1155 token contract
@@ -209,6 +213,19 @@ contract CreatorAssuranceContractFactory is Ownable2Step {
         uint256 oldValue = thirdPartyMaxDuration;
         thirdPartyMaxDuration = _maxDuration;
         emit ThirdPartyMaxDurationUpdated(oldValue, _maxDuration);
+    }
+
+    function setProspectiveRoundFactoryAuthorization(address factory, bool authorized) external onlyOwner {
+        if (factory == address(0)) revert InvalidProspectiveRoundFactory();
+        if (isAuthorizedProspectiveRoundFactory[factory] == authorized) return;
+        isAuthorizedProspectiveRoundFactory[factory] = authorized;
+        contentRegistry.setRegistrar(factory, authorized);
+        emit ProspectiveRoundFactoryAuthorizationSet(factory, authorized);
+    }
+
+    function authorizeMaterializedRegistrar(address registrar) external {
+        if (!isAuthorizedProspectiveRoundFactory[msg.sender]) revert OnlyProspectiveRoundFactory();
+        contentRegistry.setRegistrar(registrar, true);
     }
 
     /**

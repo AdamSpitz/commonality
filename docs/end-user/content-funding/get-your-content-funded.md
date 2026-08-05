@@ -20,7 +20,7 @@ You can browse your funded content before doing that. If someone sends you a cla
 
 **Group content into a contract and set a goal.** Pick the pieces you want to fund together — a month of videos, a series of posts, a single big piece — and set how much you're asking for and a deadline. Each piece becomes something supporters can pledge toward individually.
 
-**Or fund future content.** If the pieces do not exist yet, create a future-content round instead: describe what you plan to make, set a goal and deadline, and let supporters pledge before you do the work. Supporters receive non-transferable receipts for backing the round. Later, when you publish the actual posts/videos/articles, you attach them to the round and the backers can claim normal transferable tokens for each finished piece.
+**Or fund future content.** If the pieces do not exist yet, create a future-content round instead: describe what you plan to make, set a goal and deadline, and let supporters pledge before you do the work. Supporters receive non-transferable receipts for backing the round. Later, when you publish the actual posts/videos/articles, you attach them to the round and the backers can claim a recognition token for each finished piece. Those are non-transferable too — permanent credit for having backed the work, not something anyone trades.
 
 **Supporters pledge.** People who value your work pledge toward the pieces they like, or toward the future-content round they want you to make. Their money is held safely and only moves if your contract reaches its goal by the deadline; otherwise everyone is refunded. When you hit the goal, the funds are released to you.
 

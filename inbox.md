@@ -17,17 +17,15 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 ## Main list
 
-- **Policy lists Tell report (updated 2026-08-02):** phases A–B, the starter pinned-HTTPS subscription, and atomic browser/Node bundle runtime are in `@commonality/sdk/policy-lists` (schemas, hashing, pure evaluation, local/HTTPS resolver, bounded untrusted fetcher, activation lifecycle, and inspection CLI). HTTPS resolution requires a pinned hash, prevents private-network access/DNS rebinding by default, enforces resource/time/redirect bounds, and preserves closed layers' last-known-good data on failure. Civility loads a configured `VITE_POLICY_BUNDLE_URL` before rendering, with last-known-good stale fallback and unavailable cold-start status. Its content-funding rendering, aggregation, metadata, auxiliary fetches, creator dashboard, and direct contract-detail route now share the activated evaluator/filter topology, with focused no-bypass coverage; a suppressed contract deep link no longer mounts the generic metadata reader. The starter operator example includes a pinned scoped exception and executable update/inspection/rollback instructions; its raw GitHub shared-list URL will remain unavailable until the feature branch lands on `dev`. A reusable serving guard now applies `refuse-serve` to an atomic snapshot, fails closed on unavailable cold starts, retains stale last-known-good enforcement, and supplies standard digest/status response headers. **The guard is not yet wired into Civility's operator-controlled serving routes; deployed digest agreement and the complete public-surface inventory are also unfinished.** Remaining work is tracked in [policy-lists/implementation-plan.md](specs/tech/subsystems/policy-lists/implementation-plan.md).
-
 ### Security/recoverability human actions
 
 - Replace/scopedown external account tokens: Cloudflare scoped DNS token instead of global key; Render/Pinata scoped as narrowly as possible; OpenRouter spend limit.
 
-### Features that I'm realizing would make a big difference
-
-- Decide whether to prioritize a LazyGiving donor-page de-crypto pass. The check has now been recalibrated to allow accurate crypto terminology in optional technical details and inherently crypto-specific operations rather than treating words as a blacklist. Its fresh 2026-08-01 review still finds three primary-path blockers: the Give flow foregrounds wallet/USDC/on-chain/gas mechanics, the refund flow foregrounds receipt-token approvals/gas tanks/ETH/off-ramp language, and project pages use raw `0x` addresses as ordinary contributor/recipient identities. Suggested boundary: keep precise settlement records behind “technical details,” while the default donor path speaks in dollars, accounts, people, giving, and refunds.
+### Docs / UI copy
 
 - Decide whether to act on the fresh landing-copy positioning findings. The Civility grievance-first hero was reviewed and is fine; the verifier rubric was corrected so CSM’s recognition-register rule is not imposed on every vertical. Remaining findings are elsewhere: the umbrella Commonality landing still recruits generic end users despite the founder-first strategy, CSM front-loads the mediator toggle and uses “the other side’s bullshit,” Aligning repeats its main tradeoff several times, and Tally’s “Sign once, counted forever” headline presents a future goal as current capability.
+
+### Features that I'm realizing would make a big difference
 
 - Bridge-creator package is done; remaining work (CSM beat-agent stand-up, Civility-agent context source adapter, feeding signing outcomes into anchor reflection, and end-to-end rehearsal) is enumerated in [`bridge-creator-csm-next-steps.md`](workflow/bridge-creator-csm-next-steps.md). Mostly LLM-doable; the rehearsal pass needs your judgment.
 

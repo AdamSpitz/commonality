@@ -328,13 +328,13 @@ When a creator takes channel control (state 2 → state 3), they get a bounded g
 
 #### Why veto is necessary
 
-The third-party creation fee prevents *spam* (locking up content items for free), but it doesn't prevent *underpricing*. And underpricing is the dangerous case — because underpriced contracts are easy to fund. If someone creates a contract valuing a creator's best work at a penny per token, that contract *succeeds* (cheap tokens sell fast), the content items are permanently locked to it in the registry, and the creator can never sell that content again through this system.
+The third-party creation fee prevents *spam* (locking up content items for free), but it doesn't prevent *underpricing*. And underpricing is the dangerous case — because underpriced contracts are easy to fund. If someone creates a contract valuing a creator's best work at a penny per token, that contract *succeeds* (cheap tokens sell fast), the content items are permanently locked to it in the registry, and the creator can never raise funds for that content again through this system.
 
 Overpriced contracts are self-correcting: they fail to attract buyers, the deadline passes, and the content items free up. Underpriced contracts are the opposite — they succeed quickly, and success is permanent.
 
-The secondary market doesn't fix this for the creator. Secondary appreciation rewards early token holders, not the creator. The creator already got paid from the primary market at the insulting price.
+Nothing downstream fixes this for the creator. Retroactive funding only reimburses the early contributors — at cost, capped at what they put in — so a later flood of enthusiasm returns money to *backers*, never topping up the creator. The creator already got paid at the insulting price, and that is final.
 
-Without veto, a creator's first experience with the system could be: *"This system lets strangers set the prices for my work? Some random person thought my best thread was worth a penny, and the system let them get away with it, and now I can never sell that content here again?"* That's a terrible onboarding moment, and it's a strong enough objection to kill creator adoption entirely.
+Without veto, a creator's first experience with the system could be: *"This system lets strangers set the prices for my work? Some random person thought my best thread was worth a penny, and the system let them get away with it, and now I can never raise funds for that content here again?"* That's a terrible onboarding moment, and it's a strong enough objection to kill creator adoption entirely.
 
 The veto exists to make the third-party creation loop safe. Fans can still bootstrap contracts for creators who don't know the system exists — that's the viral loop. But the creator isn't permanently bound by terms they never agreed to. If they show up and don't like what they see, they can cancel and start fresh.
 
