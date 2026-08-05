@@ -639,6 +639,25 @@ describe("ContentFunding", function () {
       );
     });
 
+    it("allows the owner to authorize multiple prospective factory generations", async function () {
+      await expect(factory.connect(alice).setProspectiveRoundFactoryAuthorization(alice.address, true))
+        .to.be.revertedWithCustomError(factory, "OwnableUnauthorizedAccount");
+
+      await factory.setProspectiveRoundFactoryAuthorization(alice.address, true);
+      await factory.setProspectiveRoundFactoryAuthorization(bob.address, true);
+      expect(await factory.isAuthorizedProspectiveRoundFactory(alice.address)).to.equal(true);
+      expect(await factory.isAuthorizedProspectiveRoundFactory(bob.address)).to.equal(true);
+      expect(await contentRegistry.isRegistrar(alice.address)).to.equal(true);
+
+      await factory.connect(alice).authorizeMaterializedRegistrar(charlie.address);
+      expect(await contentRegistry.isRegistrar(charlie.address)).to.equal(true);
+
+      await factory.setProspectiveRoundFactoryAuthorization(alice.address, false);
+      expect(await contentRegistry.isRegistrar(alice.address)).to.equal(false);
+      await expect(factory.connect(alice).authorizeMaterializedRegistrar(thirdParty.address))
+        .to.be.revertedWithCustomError(factory, "OnlyProspectiveRoundFactory");
+    });
+
     it("Should create creator contract successfully", async function () {
       const tx = await createContentFundingContract({
         factory,

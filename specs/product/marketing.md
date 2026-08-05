@@ -4,7 +4,9 @@
 
 ## What's in scope and what isn't
 
-If you look at the various [UI domains](./ui-domains.md), there are some (Conceptspace, Tally, LazyGiving, Aligning, Content Funding) that are purpose-neutral - just generic infrastructure that can be used for any purpose.
+This page cuts the [UI domains](./ui-domains.md) along a marketing axis — who I'd market a site to — rather than by the canonical funding / signing / movement / infrastructure taxonomy. Both descriptions apply to the same eight sites.
+
+On that marketing axis, some sites (Conceptspace, Tally, LazyGiving, Aligning, Content Funding) are purpose-neutral - usable for any cause, whatever bucket they sit in.
 
 And then there are some UI domains (Civility, Common Sense Majority) that are specific causes (verticals) built on top of that infrastructure. I'm building those both because I care about those causes and because they're good use cases for demoing/testing the underlying infrastructure. So I'd like to do some marketing for those in particular, for both those reasons.
 

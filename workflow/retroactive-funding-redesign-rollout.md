@@ -136,6 +136,50 @@ UI new-build:
 Verification:
 - [x] Rerun `verifier-run product.messaging` and `review.not-crypto-scary` after the copy/UI changes. The stale secondary-market/order-book findings are gone from the fresh review. The facet still fails for a separate, broader crypto-jargon pass (`wallet`, `USDC`, `onchain`, gas/off-ramp language) across contribution/refund/content screens; handle that as a separate UX task rather than conflating it with the securities redesign.
 
+## Content-funding pass (2026-08-05)
+
+The original rollout treated "content funding" as covered once the end-user
+*prose* was scrubbed. It wasn't: the content-funding subsystem had its own token
+class outside the LazyGiving waterfall.
+
+- **`MaterializedContentTokens.sol` was a plain, freely transferable ERC-1155.**
+  Back a future-content round → non-transferable receipt → creator publishes →
+  claim a **sellable** per-item token. That is exactly the appreciation-on-a-
+  transferable-instrument shape the redesign deleted from LazyGiving.
+  `specs/product/legal/securities.md` had flagged it for separate counsel review;
+  nothing had acted on it.
+- [x] Added an `_update` override rejecting holder-to-holder transfers
+  (`NonTransferableContentToken`); mint-on-claim and burn still allowed. Replaced
+  the test that asserted transferability with one asserting the revert, plus a
+  burn-still-works test. 76 content-funding contract tests pass.
+- [x] Scrubbed the content-funding UI copy that advertised transferable tokens
+  (`MaterializeFutureContentPage.tsx`, `CreateContractPage.tsx`).
+- [x] Scrubbed the end-user docs (`fund-content.md`, `get-your-content-funded.md`).
+- [x] Rewrote the tech specs that used the **deleted market as load-bearing
+  rationale** — this was the substantive part, not copy-editing:
+  - `creator-contracts.md` "Why per-content-item tokens matter" justified per-item
+    tokens *entirely* by secondary-market price discovery. Rewritten on three
+    surviving grounds: fine-grained demand signal, the content-registry
+    one-active-contract invariant (token type ID *is* the content ID hash), and
+    per-item recognition/attribution.
+  - `content-registry.md` justified its uniqueness rule as "the scarcity that
+    makes secondary markets work." Rewritten as funding coherence: split a piece
+    across rival contracts and its total, supporter list, and reimbursement
+    waterfall all stop meaning anything.
+  - `creator-contracts.md` supply/pricing was framed as a scarcity/"speculative
+    incentives" lever; it is now just a price-per-participant dial.
+  - `channel-claiming.md` argued the secondary market can't compensate an
+    underpriced creator; the argument still holds but now runs through
+    reimbursement (later money returns to *backers*, never tops up the creator).
+  - `README.md`, `ui.md`, `canonicalization.md`: remaining trading references.
+- [x] Updated `specs/product/legal/securities.md` and the redesign spec's
+  "Residual" note to record that this item is closed.
+
+Note for whoever picks this up: `MaterializedContentTokens` is **not** wired into
+the SDK, indexer, or ABI sync yet, so this change had no downstream plumbing cost.
+It will need the usual bindings when the materialize/claim flow is actually built
+(the UI page's action buttons are still disabled).
+
 ## Progress log
 
 - **2026-07-22 (cont. 12)** — Reran the messaging verifiers. The fresh `review.not-crypto-scary` no longer reports the deleted secondary market or appreciation copy, confirming the redesign rollout. It still fails on broader wallet/USDC/onchain/gas terminology in live giving screens; `product.messaging` also rolls up unrelated stale product-review failures and one pre-existing banned-term result. Recorded this as a separate UX concern rather than expanding the securities task.

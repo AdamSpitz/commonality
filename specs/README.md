@@ -28,7 +28,7 @@ The system is composed of seven core product subsystems, all sharing a single th
 
 Additional technical subsystem specs cover cross-cutting implementation surfaces that support those products, including the [General Nudger Service](tech/subsystems/nudger/README.md) and [Funding Portals](tech/subsystems/fundingportals/README.md).
 
-Subsystems are capabilities; the [eight UI domains](product/ui-domains.md) are branded builds that compose subsets of those capabilities. Conceptspace, LazyGiving, Aligning, and Content Funding happen to share names with sites; Tally, Civility, Common Sense Majority, and Commonality are presentation/vertical sites; Delegation, Subjectiv, and Mutable Refs have no standalone site.
+Subsystems are capabilities; the [eight UI domains](product/ui-domains.md) are branded builds that compose subsets of those capabilities. Conceptspace, LazyGiving, Aligning, and Content Funding happen to share names with sites; Tally, Civility, Common Sense Majority, and Commonality are sites with no same-named subsystem; Delegation, Subjectiv, and Mutable Refs have no standalone site. This is a subsystem-to-site mapping, not a classification of the sites — for that, use the canonical funding / signing / movement / infrastructure taxonomy in [ui-domains.md](product/ui-domains.md#current-shape-eight-sites).
 
 ## Speculative
 

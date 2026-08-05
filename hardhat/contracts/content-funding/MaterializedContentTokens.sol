@@ -8,32 +8,31 @@ import {ERC1155Burnable} from "@openzeppelin/contracts/token/ERC1155/extensions/
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {ERC7572} from "../utils/ERC7572.sol";
 import {ContentRegistry} from "./ContentRegistry.sol";
+import {ChannelRegistry} from "./ChannelRegistry.sol";
 
 error NoProspectiveBalance();
 error ContentTokenAlreadyClaimed(uint256 contentId, address account);
 error ContentTokenAlreadyAdded(uint256 contentId);
 error InvalidContentId();
-error ArrayLengthMismatch();
+error EmptyContentSuffix(uint256 index);
+error NonTransferableContentToken();
+error OnlyCurrentChannelOwner(address caller);
 
-/**
- * @title MaterializedContentTokens
- * @notice Transferable content-item tokens claimable by holders of a non-transferable
- *      prospective content receipt token.
- * @dev A creator can add one or more concrete content IDs over time. For each content
- *      ID, every prospective-token holder can claim an equal number of transferable
- *      content tokens. This intentionally relies on prospective receipt tokens being
- *      non-transferable; otherwise claims would require snapshots.
- */
+/** Channel-bound, non-transferable recognition for content fulfilled by a prospective round. */
 contract MaterializedContentTokens is Ownable, ERC1155, ERC1155Burnable, ERC7572, ReentrancyGuard {
     IERC1155 public immutable prospectiveToken;
     uint256 public immutable prospectiveTokenId;
     ContentRegistry public immutable contentRegistry;
+    ChannelRegistry public immutable channelRegistry;
     address public immutable sourceProspectiveContract;
+    bytes32 public immutable channelId;
+    string public channelCanonicalId;
+    string public contentIdSeparator;
 
     uint256[] public contentIds;
     mapping(uint256 => bool) public contentIdAdded;
     mapping(uint256 => string) public contentCanonicalId;
-    mapping(uint256 => mapping(address => bool)) public claimed;
+    mapping(uint256 => mapping(address => uint256)) public claimedAmount;
 
     event ContentMaterialized(uint256 indexed contentId, string canonicalId);
     event ContentTokenClaimed(address indexed account, uint256 indexed contentId, uint256 amount);
@@ -43,104 +42,70 @@ contract MaterializedContentTokens is Ownable, ERC1155, ERC1155Burnable, ERC7572
         address _prospectiveToken,
         uint256 _prospectiveTokenId,
         address _contentRegistry,
+        address _channelRegistry,
         address _sourceProspectiveContract,
+        bytes32 _channelId,
+        string memory _channelCanonicalId,
+        string memory _contentIdSeparator,
         string memory uri,
         string memory initialContractURI
     ) Ownable(owner) ERC1155(uri) ERC7572(initialContractURI) {
         prospectiveToken = IERC1155(_prospectiveToken);
         prospectiveTokenId = _prospectiveTokenId;
         contentRegistry = ContentRegistry(_contentRegistry);
+        channelRegistry = ChannelRegistry(_channelRegistry);
         sourceProspectiveContract = _sourceProspectiveContract;
+        channelId = _channelId;
+        channelCanonicalId = _channelCanonicalId;
+        contentIdSeparator = _contentIdSeparator;
     }
 
-    function addContent(uint256 contentId, string calldata canonicalId) external onlyOwner nonReentrant {
+    modifier onlyCurrentChannelOwner() {
+        if (msg.sender != channelRegistry.channelOwner(channelId)) revert OnlyCurrentChannelOwner(msg.sender);
+        _;
+    }
+
+    function addContent(string calldata suffix) external onlyCurrentChannelOwner nonReentrant returns (uint256) {
+        return _addContent(suffix, 0);
+    }
+
+    function addContentBatch(string[] calldata suffixes) external onlyCurrentChannelOwner nonReentrant {
+        for (uint256 i = 0; i < suffixes.length; i++) _addContent(suffixes[i], i);
+    }
+
+    function claim(uint256 contentId) external nonReentrant { _claim(msg.sender, contentId); }
+    function claimBatch(uint256[] calldata ids) external nonReentrant {
+        for (uint256 i = 0; i < ids.length; i++) _claim(msg.sender, ids[i]);
+    }
+    function getContentIds() external view returns (uint256[] memory) { return contentIds; }
+
+    function _addContent(string calldata suffix, uint256 index) private returns (uint256 contentId) {
+        if (bytes(suffix).length == 0) revert EmptyContentSuffix(index);
+        string memory canonicalId = string.concat(channelCanonicalId, contentIdSeparator, suffix);
+        contentId = uint256(keccak256(bytes(canonicalId)));
         if (contentId == 0) revert InvalidContentId();
         if (contentIdAdded[contentId]) revert ContentTokenAlreadyAdded(contentId);
         contentIdAdded[contentId] = true;
         contentCanonicalId[contentId] = canonicalId;
         contentIds.push(contentId);
-        contentRegistry.registerContent(contentId, address(this), canonicalId);
+        contentRegistry.registerContent(contentId, sourceProspectiveContract, canonicalId);
         emit ContentMaterialized(contentId, canonicalId);
     }
 
-    function addContentBatch(uint256[] calldata ids, string[] calldata canonicalIds) external onlyOwner nonReentrant {
-        if (ids.length != canonicalIds.length) revert ArrayLengthMismatch();
-        for (uint256 i = 0; i < ids.length; i++) {
-            if (ids[i] == 0) revert InvalidContentId();
-            if (contentIdAdded[ids[i]]) revert ContentTokenAlreadyAdded(ids[i]);
-            contentIdAdded[ids[i]] = true;
-            contentCanonicalId[ids[i]] = canonicalIds[i];
-            contentIds.push(ids[i]);
-        }
-        for (uint256 i = 0; i < ids.length; i++) {
-            contentRegistry.registerContent(ids[i], address(this), canonicalIds[i]);
-            emit ContentMaterialized(ids[i], canonicalIds[i]);
-        }
-    }
-
-    function claim(uint256 contentId) external nonReentrant {
-        _claim(msg.sender, contentId);
-    }
-
-    function claimFor(address account, uint256 contentId) external nonReentrant {
-        _claim(account, contentId);
-    }
-
-    function claimBatch(uint256[] calldata ids) external nonReentrant {
-        for (uint256 i = 0; i < ids.length; i++) {
-            _claim(msg.sender, ids[i]);
-        }
-    }
-
-    function getContentIds() external view returns (uint256[] memory) {
-        return contentIds;
+    function _update(address from, address to, uint256[] memory ids, uint256[] memory values) internal override {
+        if (from != address(0) && to != address(0)) revert NonTransferableContentToken();
+        super._update(from, to, ids, values);
     }
 
     function _claim(address account, uint256 contentId) private {
         if (!contentIdAdded[contentId]) revert InvalidContentId();
-        if (claimed[contentId][account]) revert ContentTokenAlreadyClaimed(contentId, account);
-        uint256 amount = prospectiveToken.balanceOf(account, prospectiveTokenId);
-        if (amount == 0) revert NoProspectiveBalance();
-        claimed[contentId][account] = true;
+        uint256 receiptBalance = prospectiveToken.balanceOf(account, prospectiveTokenId);
+        if (receiptBalance == 0) revert NoProspectiveBalance();
+        uint256 previouslyClaimed = claimedAmount[contentId][account];
+        if (receiptBalance <= previouslyClaimed) revert ContentTokenAlreadyClaimed(contentId, account);
+        uint256 amount = receiptBalance - previouslyClaimed;
+        claimedAmount[contentId][account] = receiptBalance;
         _mint(account, contentId, amount, "");
         emit ContentTokenClaimed(account, contentId, amount);
-    }
-}
-
-contract MaterializedContentTokensFactory {
-    event MaterializedContentTokensCreated(
-        address indexed tokenContract,
-        address indexed owner,
-        address indexed sourceProspectiveContract,
-        address prospectiveToken,
-        uint256 prospectiveTokenId
-    );
-
-    function createMaterializedContentTokens(
-        address owner,
-        address prospectiveToken,
-        uint256 prospectiveTokenId,
-        address contentRegistry,
-        address sourceProspectiveContract,
-        string memory uri,
-        string memory initialContractURI
-    ) external returns (MaterializedContentTokens) {
-        MaterializedContentTokens token = new MaterializedContentTokens(
-            owner,
-            prospectiveToken,
-            prospectiveTokenId,
-            contentRegistry,
-            sourceProspectiveContract,
-            uri,
-            initialContractURI
-        );
-        emit MaterializedContentTokensCreated(
-            address(token),
-            owner,
-            sourceProspectiveContract,
-            prospectiveToken,
-            prospectiveTokenId
-        );
-        return token;
     }
 }

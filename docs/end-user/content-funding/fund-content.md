@@ -19,7 +19,7 @@ A "like" costs nothing and tells the creator nothing about what their work is wo
 
 Browse creators on Content Funding, or open a creator's channel to see their open contracts. Pick the pieces you want to reward, or a future-content round you want to make possible, and pledge. If you'd rather support a *kind* of content than hunt piece by piece, pledge to a cause on [Aligning](../alignment/index.md) instead and let delegates route it to content that qualifies.
 
-For future-content rounds, remember the distinction: the initial receipt is not something you trade; it is proof that you backed the round. When the creator publishes actual items from that round, you can claim the normal content tokens for those items, and those tokens can be sold or transferred like other content tokens.
+For future-content rounds, remember what the receipt is: it is proof that you backed the round, not something you trade. When the creator publishes actual items from that round, you can claim a recognition token for each item — a permanent record that you were one of the people who made that piece possible. Nothing here can be sold or transferred. If you funded early and later supporters want to close the loop, the money comes back to you through [reimbursement](../lazyGiving/retroactive-funding.md) — at cost, capped at what you put in — never as a profit.
 
 ## On other sites
 
