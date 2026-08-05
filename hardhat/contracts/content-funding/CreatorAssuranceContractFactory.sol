@@ -37,7 +37,6 @@ error ThirdPartyDeadlineTooLong(uint256 deadline, uint256 maxDeadline);
 error InvalidThirdPartyMaxDuration();
 error InvalidProspectiveRoundFactory();
 error OnlyProspectiveRoundFactory();
-error ProspectiveRoundFactoryAlreadySet();
 
 /**
  * @title IChannelRegistry
@@ -127,7 +126,7 @@ contract CreatorAssuranceContractFactory is Ownable2Step {
      */
     event ThirdPartyMinPurchaseUpdated(uint256 oldValue, uint256 newValue);
     event ThirdPartyMaxDurationUpdated(uint256 oldValue, uint256 newValue);
-    event ProspectiveRoundFactorySet(address indexed factory);
+    event ProspectiveRoundFactoryAuthorizationSet(address indexed factory, bool authorized);
 
     /// @notice The content registry for tracking content-to-contract mappings
     ContentRegistry public contentRegistry;
@@ -148,11 +147,11 @@ contract CreatorAssuranceContractFactory is Ownable2Step {
     mapping(address => bytes32) public channelIdByContract;
     /// @notice Whether a contract was created by a third party (not the channel owner)
     mapping(address => bool) public isThirdPartyCreated;
+    mapping(address => bool) public isAuthorizedProspectiveRoundFactory;
     /// @notice Maps contract address to its condition contract
     mapping(address => address) public contractCondition;
     /// @notice Maps contract address to its ERC1155 token contract
     mapping(address => address) public contractERC1155;
-    address public prospectiveRoundFactory;
 
     /// @notice Minimum initial purchase required for third-party contract creation
     /// @dev Default is 1 unit of the settlement token (e.g., 1 USDC for 6-decimal tokens).
@@ -216,16 +215,16 @@ contract CreatorAssuranceContractFactory is Ownable2Step {
         emit ThirdPartyMaxDurationUpdated(oldValue, _maxDuration);
     }
 
-    function setProspectiveRoundFactory(address factory) external onlyOwner {
+    function setProspectiveRoundFactoryAuthorization(address factory, bool authorized) external onlyOwner {
         if (factory == address(0)) revert InvalidProspectiveRoundFactory();
-        if (prospectiveRoundFactory != address(0)) revert ProspectiveRoundFactoryAlreadySet();
-        prospectiveRoundFactory = factory;
-        contentRegistry.setRegistrar(factory, true);
-        emit ProspectiveRoundFactorySet(factory);
+        if (isAuthorizedProspectiveRoundFactory[factory] == authorized) return;
+        isAuthorizedProspectiveRoundFactory[factory] = authorized;
+        contentRegistry.setRegistrar(factory, authorized);
+        emit ProspectiveRoundFactoryAuthorizationSet(factory, authorized);
     }
 
     function authorizeMaterializedRegistrar(address registrar) external {
-        if (msg.sender != prospectiveRoundFactory) revert OnlyProspectiveRoundFactory();
+        if (!isAuthorizedProspectiveRoundFactory[msg.sender]) revert OnlyProspectiveRoundFactory();
         contentRegistry.setRegistrar(registrar, true);
     }
 

@@ -74,7 +74,6 @@ contract MaterializedContentTokens is Ownable, ERC1155, ERC1155Burnable, ERC7572
     }
 
     function claim(uint256 contentId) external nonReentrant { _claim(msg.sender, contentId); }
-    function claimFor(address account, uint256 contentId) external nonReentrant { _claim(account, contentId); }
     function claimBatch(uint256[] calldata ids) external nonReentrant {
         for (uint256 i = 0; i < ids.length; i++) _claim(msg.sender, ids[i]);
     }

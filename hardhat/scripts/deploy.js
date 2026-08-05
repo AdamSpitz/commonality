@@ -331,7 +331,7 @@ async function main() {
   console.log(`✓ ProspectiveContentRoundFactory: ${prospectiveContentRoundFactoryAddress}`);
 
   await (await contentRegistry.transferOwnership(creatorContractFactoryAddress)).wait();
-  await (await creatorContractFactory.setProspectiveRoundFactory(prospectiveContentRoundFactoryAddress)).wait();
+  await (await creatorContractFactory.setProspectiveRoundFactoryAuthorization(prospectiveContentRoundFactoryAddress, true)).wait();
   await (await channelRegistry.setFactoryAuthorization(creatorContractFactoryAddress, true)).wait();
   await (await delegatableNotes.setPrimaryMarketFactoryAuthorization(creatorContractFactoryAddress, true)).wait();
   console.log('✓ Content funding ownership wired (ContentRegistry owner + ChannelRegistry factory authorization + delegated purchases)');

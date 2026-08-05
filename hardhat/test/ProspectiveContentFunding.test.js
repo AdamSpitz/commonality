@@ -90,7 +90,7 @@ describe("Prospective content funding", function () {
     await expect(materialized.connect(ctx.creator).addContent("post-a")).to.be.reverted;
     await materialized.connect(ctx.alice).claim(id);
     expect(await materialized.balanceOf(ctx.alice.address, id)).to.equal(10n);
-    await expect(materialized.connect(ctx.alice).claimFor(ctx.alice.address, id)).to.be.revertedWithCustomError(materialized, "ContentTokenAlreadyClaimed");
+    await expect(materialized.connect(ctx.alice).claim(id)).to.be.revertedWithCustomError(materialized, "ContentTokenAlreadyClaimed");
     await expect(materialized.connect(ctx.alice).safeTransferFrom(ctx.alice.address, ctx.bob.address, id, 1, "0x")).to.be.revertedWithCustomError(materialized, "NonTransferableContentToken");
     await materialized.connect(ctx.alice).burn(ctx.alice.address, id, 1);
   });
