@@ -44,6 +44,11 @@ The SDK and smart contract documentation is auto-generated:
 
 Run `npm run build:docs` to regenerate these.
 
+Source links in the end-user documentation point at the repository's `master`
+branch, which is the released code the deployed sites are running. GitHub's
+default branch is `dev`, where reviewed work lands before a release — so a fresh
+clone will be slightly ahead of what these links show.
+
 ## Interacting directly with the contracts
 
 The contracts are standard Solidity/EVM. You can interact with them directly via any tool that speaks JSON-RPC: `cast` (Foundry), `ethers.js`, `viem`, etc. Contract addresses for deployed instances are available in the app's settings page.

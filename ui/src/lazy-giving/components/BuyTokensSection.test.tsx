@@ -57,6 +57,16 @@ vi.mock('../../shared/components/WalletButton', () => ({
   WalletButton: () => <button type="button">Sign In / Wallet</button>,
 }))
 
+// Stubbed so the tests do not depend on whether the developer running them
+// happens to have VITE_PRIVY_SMART_WALLET_BUNDLER_URL set in ui/.env.
+const privySmartWallet = vi.hoisted(() => ({ enabled: false }))
+
+vi.mock('../../privy/config', () => ({
+  get isPrivySmartWalletEnabled() {
+    return privySmartWallet.enabled
+  },
+}))
+
 import { useWalletClient, usePublicClient } from 'wagmi'
 import { getNotesByOwner, getDelegationChain, purchaseFromPrimaryMarketWithNotes } from '@commonality/sdk/delegation'
 import { buyProjectTokens, donateNormally } from '@commonality/sdk/lazy-giving'
@@ -114,6 +124,7 @@ describe('BuyTokensSection', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
+    privySmartWallet.enabled = false
     vi.mocked(createSDKMachinery).mockReturnValue(mockMachinery)
     vi.mocked(useWalletClient).mockReturnValue({
       data: { chain: { blockExplorers: { default: { url: 'https://explorer.example' } } } },
@@ -426,7 +437,25 @@ describe('BuyTokensSection', () => {
             tokenIds: [1n],
             tokenCounts: [3n],
             totalCost: 300000000000000000n,
+            batchApproval: false,
           }),
+        )
+      })
+    })
+
+    it('requests a batched approval when the smart wallet is enabled', async () => {
+      privySmartWallet.enabled = true
+      const user = userEvent.setup()
+      renderSection()
+
+      await user.type(screen.getByLabelText('Give amount (ETH)'), '0.3')
+      await user.click(screen.getByRole('button', { name: 'Give' }))
+
+      await waitFor(() => {
+        expect(buyProjectTokens).toHaveBeenCalledWith(
+          expect.anything(),
+          expect.anything(),
+          expect.objectContaining({ batchApproval: true }),
         )
       })
     })

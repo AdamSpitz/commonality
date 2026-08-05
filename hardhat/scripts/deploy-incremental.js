@@ -25,6 +25,9 @@ const ADDRESS_KEYS = {
   ChannelRegistry: ['CHANNEL_REGISTRY_ADDRESS'],
   ChannelEscrow: ['CHANNEL_ESCROW_ADDRESS'],
   CreatorAssuranceContractFactory: ['CREATOR_CONTRACT_FACTORY_ADDRESS'],
+  ProspectiveRoundDeploymentHelper: ['PROSPECTIVE_ROUND_DEPLOYMENT_HELPER_ADDRESS'],
+  MaterializedContentDeploymentHelper: ['MATERIALIZED_CONTENT_DEPLOYMENT_HELPER_ADDRESS'],
+  ProspectiveContentRoundFactory: ['PROSPECTIVE_CONTENT_ROUND_FACTORY_ADDRESS'],
   NudgePublications: ['NUDGE_PUBLICATIONS_CONTRACT_ADDRESS'],
   PublishedData: ['PUBLISHED_DATA_CONTRACT_ADDRESS'],
   ProjectFactory: ['PROJECT_FACTORY_ADDRESS'],
@@ -136,11 +139,16 @@ async function main() {
   const manifest = { network, deployer: deployerAddress, contractAdmin: contractAdminAddress, updatedAt: new Date().toISOString(), contracts: {} };
   let deployStartBlock = env.START_BLOCK || env.CONTENT_FUNDING_START_BLOCK || '';
 
-  function adminCapable(contract) {
+  async function ownerCapable(contract) {
     if (isLocal) return contract;
+    const owner = ethers.getAddress(await contract.owner());
+    if (owner === ethers.getAddress(deployerAddress)) return contract;
     const adminPrivateKey = process.env.CONTRACT_ADMIN_PRIVATE_KEY?.trim();
-    if (!adminPrivateKey) return contract;
-    return contract.connect(new ethers.Wallet(adminPrivateKey, ethers.provider));
+    if (adminPrivateKey) {
+      const admin = new ethers.Wallet(adminPrivateKey, ethers.provider);
+      if (owner === ethers.getAddress(admin.address)) return contract.connect(admin);
+    }
+    throw new Error(`No signer available for owner ${owner} of ${await contract.getAddress()}`);
   }
 
   async function deployOrReuse(name, contractName, args = [], opts = {}) {
@@ -217,17 +225,34 @@ async function main() {
   await deployOrReuse('ChannelRegistry', 'ChannelRegistry', [addresses.ChannelVerifier]);
   await deployOrReuse('ChannelEscrow', 'ChannelEscrow', [addresses.ChannelRegistry, addresses.FreeERC20]);
   await deployOrReuse('CreatorAssuranceContractFactory', 'CreatorAssuranceContractFactory', [addresses.ContentRegistry, addresses.ChannelRegistry, addresses.ChannelEscrow, addresses.PremintingERC1155Factory, addresses.ValueThresholdConditionFactory, addresses.FreeERC20, ':']);
+  await deployOrReuse('ProspectiveRoundDeploymentHelper', 'ProspectiveRoundDeploymentHelper');
+  await deployOrReuse('MaterializedContentDeploymentHelper', 'MaterializedContentDeploymentHelper');
+  await deployOrReuse('ProspectiveContentRoundFactory', 'ProspectiveContentRoundFactory', [
+    addresses.ChannelRegistry,
+    addresses.ContentRegistry,
+    addresses.ValueThresholdConditionFactory,
+    addresses.FreeERC20,
+    addresses.CreatorAssuranceContractFactory,
+    addresses.ProspectiveRoundDeploymentHelper,
+    addresses.MaterializedContentDeploymentHelper,
+  ]);
   if (freshlyDeployed.has('ContentRegistry') || freshlyDeployed.has('CreatorAssuranceContractFactory')) {
     const c = await ethers.getContractAt('ContentRegistry', addresses.ContentRegistry);
     if (ethers.getAddress(await c.owner()) !== addresses.CreatorAssuranceContractFactory) await (await c.transferOwnership(addresses.CreatorAssuranceContractFactory)).wait();
   }
   if (freshlyDeployed.has('ChannelRegistry') || freshlyDeployed.has('CreatorAssuranceContractFactory')) {
-    const c = adminCapable(await ethers.getContractAt('ChannelRegistry', addresses.ChannelRegistry));
+    const c = await ownerCapable(await ethers.getContractAt('ChannelRegistry', addresses.ChannelRegistry));
     if (!(await c.authorizedFactories(addresses.CreatorAssuranceContractFactory))) await (await c.setFactoryAuthorization(addresses.CreatorAssuranceContractFactory, true)).wait();
   }
   if (freshlyDeployed.has('DelegatableNotes') || freshlyDeployed.has('CreatorAssuranceContractFactory')) {
-    const d = adminCapable(await ethers.getContractAt('DelegatableNotes', addresses.DelegatableNotes));
+    const d = await ownerCapable(await ethers.getContractAt('DelegatableNotes', addresses.DelegatableNotes));
     if (!(await d.authorizedPrimaryMarketFactories(addresses.CreatorAssuranceContractFactory))) await (await d.setPrimaryMarketFactoryAuthorization(addresses.CreatorAssuranceContractFactory, true)).wait();
+  }
+  if (freshlyDeployed.has('CreatorAssuranceContractFactory') || freshlyDeployed.has('ProspectiveContentRoundFactory')) {
+    const c = await ownerCapable(await ethers.getContractAt('CreatorAssuranceContractFactory', addresses.CreatorAssuranceContractFactory));
+    if (!(await c.isAuthorizedProspectiveRoundFactory(addresses.ProspectiveContentRoundFactory))) {
+      await (await c.setProspectiveRoundFactoryAuthorization(addresses.ProspectiveContentRoundFactory, true)).wait();
+    }
   }
   await deployOrReuse('NudgePublications', 'NudgePublications');
   await deployOrReuse('PublishedData', 'PublishedData');
@@ -367,6 +392,9 @@ async function main() {
     CHANNEL_REGISTRY_ADDRESS: addresses.ChannelRegistry,
     CHANNEL_ESCROW_ADDRESS: addresses.ChannelEscrow,
     CREATOR_CONTRACT_FACTORY_ADDRESS: addresses.CreatorAssuranceContractFactory,
+    PROSPECTIVE_ROUND_DEPLOYMENT_HELPER_ADDRESS: addresses.ProspectiveRoundDeploymentHelper,
+    MATERIALIZED_CONTENT_DEPLOYMENT_HELPER_ADDRESS: addresses.MaterializedContentDeploymentHelper,
+    PROSPECTIVE_CONTENT_ROUND_FACTORY_ADDRESS: addresses.ProspectiveContentRoundFactory,
     NUDGE_PUBLICATIONS_CONTRACT_ADDRESS: addresses.NudgePublications,
     PUBLISHED_DATA_CONTRACT_ADDRESS: addresses.PublishedData,
     PUBLISHED_DATA_START_BLOCK: String(manifest.contracts.PublishedData?.blockNumber ?? env.PUBLISHED_DATA_START_BLOCK ?? deployStartBlock),
@@ -400,6 +428,7 @@ async function main() {
     VITE_ACCOUNT_ASSERTIONS_CONTRACT_ADDRESS: addresses.AccountAssertions,
     VITE_CONTENT_REGISTRY_ADDRESS: addresses.ContentRegistry, VITE_CHANNEL_REGISTRY_ADDRESS: addresses.ChannelRegistry, VITE_CHANNEL_VERIFIER_ADDRESS: addresses.ChannelVerifier,
     VITE_CHANNEL_ESCROW_ADDRESS: addresses.ChannelEscrow, VITE_CREATOR_CONTRACT_FACTORY_ADDRESS: addresses.CreatorAssuranceContractFactory, VITE_PROJECT_FACTORY_CONTRACT_ADDRESS: addresses.ProjectFactory,
+    VITE_PROSPECTIVE_CONTENT_ROUND_FACTORY_ADDRESS: addresses.ProspectiveContentRoundFactory,
     VITE_CREATOR_GAS_TANK_ADDRESS: addresses.CreatorGasTank, VITE_SPONSORED_GAS_ENTRY_POINT_ADDRESS: addresses.SponsoredGasEntryPoint,
     ...(addresses.GasTankFunder ? { VITE_GAS_TANK_FUNDER_ADDRESS: addresses.GasTankFunder } : {}),
     VITE_PAYMENT_TOKEN_ADDRESS: addresses.FreeERC20, VITE_PAYMENT_TOKEN_SYMBOL: 'USDZZZ', VITE_PAYMENT_TOKEN_DECIMALS: '6', ...(isLocal ? { VITE_IPFS_GATEWAY: 'http://localhost:8080/ipfs', VITE_DEFAULT_NUDGERS: LOCAL_SEED_NUDGER_ADDRESS } : {})

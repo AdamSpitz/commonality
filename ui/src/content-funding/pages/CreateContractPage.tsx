@@ -664,7 +664,7 @@ export function CreateContractPage({
                 Future-content promise
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                Describe the future chunk of work. Backers receive non-transferable receipts now, then claim transferable content-item tokens after you publish and materialize the actual items.
+                Describe the future chunk of work. Backers receive non-transferable receipts now, then claim per-content-item recognition tokens after you publish and materialize the actual items. Both are permanent recognition, not tradeable.
               </Typography>
               <Stack spacing={2}>
                 <TextField

@@ -10,7 +10,7 @@ Each platform (Twitter, YouTube, Substack) gets its own ContentRegistry instance
 mapping(uint256 contentId => address assuranceContract)
 ```
 
-The platform's assurance contract factory checks the registry at creation time and reverts if any listed content ID is already claimed by an *active* contract. This enforces the scarcity that makes secondary markets work: if you want to retroactively fund *that specific tweet*, you can't just create a new contract — you must buy tokens from the existing one.
+The platform's assurance contract factory checks the registry at creation time and reverts if any listed content ID is already claimed by an *active* contract. This keeps funding for a given piece in **one** place: if you want to fund *that specific tweet*, you contribute to the existing contract rather than spinning up a competing one. That matters because a piece's funding total, its supporter list, and its reimbursement waterfall all have to be coherent — split them across rival contracts and none of those figures mean anything, and a creator's content could be fragmented by third parties.
 
 ## Content ID scheme
 
@@ -40,7 +40,7 @@ Implementation: the registry's mapping gets cleared for each content item when t
 
 The lazy approach is simplest (no callback infrastructure), but it means stale entries sit in the registry until someone tries to re-register those content items. That's probably fine — the only cost is that a lookup returns a dead contract address, which callers can check.
 
-**Successful contracts** keep their registry entries permanently. The content items remain associated with those tokens forever, which is what makes the secondary market work.
+**Successful contracts** keep their registry entries permanently. The content items remain associated with those tokens forever, so the recognition receipts stay resolvable to the exact piece they funded, and later supporters can always find the right contract to close the reimbursement loop.
 
 ## Plaintext event for off-chain resolution
 

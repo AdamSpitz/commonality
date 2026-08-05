@@ -221,5 +221,5 @@ founder, and it drags every community UI into the regulated perimeter.
 - **Done:** assurance contracts implement capped `donateRetroactive`, pull-based pro-rata withdrawal, normal-donation/waiver, and reimbursement-forgoing paths. Donations stop at the outstanding reimbursable amount rather than overflowing to the project.
 - **Done:** SDK folds/actions and the LazyGiving UI expose outstanding reimbursement, withdrawal, forgoing, and “close the loop” donation flows.
 - **Done:** end-user LazyGiving and strategy documentation was rewritten around reimbursement and reputation.
-- **Residual:** generic secondary-market code and old resale language still exist elsewhere in the repository. They are not part of this LazyGiving flow, but stale specs must be corrected, and transferable content-item tokens need separate counsel review.
+- **Residual:** generic secondary-market code and old resale language still exist elsewhere in the repository. They are not part of this LazyGiving flow, but stale specs must be corrected. *(Update 2026-08-05: the transferable content-item tokens named here were made non-transferable and the content-funding docs/specs/UI were scrubbed to match — see the rollout tracker's content-funding pass.)*
 - **Residual:** counsel must answer the four questions above before mainnet.
