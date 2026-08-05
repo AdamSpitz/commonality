@@ -26,11 +26,11 @@ Each contract represents a funding round for a batch of content. Once funded and
 
 ## Prospective content rounds
 
-Future content can be funded before concrete content IDs exist by using a one-token-type LazyGiving assurance contract backed by non-transferable prospective receipt tokens. These receipt tokens are intentionally not tradeable between holders; they can only move through the primary market for the initial purchase/refund flow. This keeps the entitlement table stable without snapshot or Merkle-drop machinery.
+Future content is funded through `ProspectiveContentRoundFactory`, which atomically creates a one-token-type assurance round only for the current verified channel owner. Its non-transferable prospective receipts move through the assurance market for purchases and failure refunds. Holders cannot burn while the outcome is unresolved or failed; after success they may burn voluntarily.
 
-After the creator publishes content, they materialize one or more concrete content IDs. For each materialized content item, every prospective receipt holder can claim content-item tokens equal to their prospective-token balance. Those materialized tokens are **also non-transferable** (`MaterializedContentTokens._update` rejects holder-to-holder transfers, allowing only mint-on-claim and burn) — they are permanent recognition for having backed the round, not a tradeable instrument. Non-transferability is what lets `_claim` read current prospective balances directly rather than snapshotting.
+Only a successful round can create its one materialized collection. The current channel owner adds suffixes, from which the collection derives canonical IDs inside the authenticated channel namespace. For each item, holders can claim non-transferable recognition equal to their **current** prospective balance. A post-success receipt burn therefore reduces later claims without changing reimbursement history.
 
-A prospective round may materialize content gradually: if a creator funds "June housing explainers," each explainer can be added as it is published, and backers can claim that item's content tokens immediately. The MVP uses creator self-finalization; reputation and the public round description carry the delivery semantics rather than an on-chain evaluator.
+A prospective round may materialize content gradually. The content registry maps every resulting ID to the source prospective assurance contract, whose one-time `materializedContentTokens` field links to recognition inventory. See [materialization.md](materialization.md).
 
 ## Supply and pricing
 

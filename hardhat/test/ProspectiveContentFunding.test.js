@@ -2,151 +2,118 @@ import { expect } from "chai";
 import hre from "hardhat";
 const { ethers } = hre;
 
+const canonicalChannel = "twitter:uid:creator";
+const channelId = ethers.id(canonicalChannel);
+const tokenId = 1n;
+
+async function fixture({ verified = true, creatorCaller = true, threshold = 10n } = {}) {
+  const [owner, creator, alice, bob] = await ethers.getSigners();
+  const Payment = await ethers.getContractFactory("PremintingERC20");
+  const payment = await Payment.deploy(owner.address, "Payment", "PAY", "ipfs://pay");
+  await payment.mint(alice.address, 100n);
+
+  const Channels = await ethers.getContractFactory("ProspectiveChannelRegistryHarness");
+  const channels = await Channels.deploy();
+  await channels.setChannel(channelId, creator.address, verified);
+  const Registry = await ethers.getContractFactory("ContentRegistry");
+  const registry = await Registry.deploy();
+  const Authority = await ethers.getContractFactory("RegistrarAuthorityHarness");
+  const authority = await Authority.deploy(await registry.getAddress());
+  await registry.transferOwnership(await authority.getAddress());
+  const Conditions = await ethers.getContractFactory("ValueThresholdConditionFactory");
+  const conditions = await Conditions.deploy();
+  const RoundHelper = await ethers.getContractFactory("ProspectiveRoundDeploymentHelper");
+  const roundHelper = await RoundHelper.deploy();
+  const MaterializedHelper = await ethers.getContractFactory("MaterializedContentDeploymentHelper");
+  const materializedHelper = await MaterializedHelper.deploy();
+  const Factory = await ethers.getContractFactory("ProspectiveContentRoundFactory");
+  const factory = await Factory.deploy(await channels.getAddress(), await registry.getAddress(), await conditions.getAddress(), await payment.getAddress(), await authority.getAddress(), await roundHelper.getAddress(), await materializedHelper.getAddress(), ":");
+  await authority.setFactory(await factory.getAddress());
+
+  const now = (await ethers.provider.getBlock("latest")).timestamp;
+  const params = [channelId, canonicalChannel, tokenId, 100n, 1n, threshold, now + 100, "ipfs://round", "ipfs://receipt/{id}", "ipfs://receipt"];
+  const caller = creatorCaller ? creator : bob;
+  const roundAddress = await factory.connect(caller).createProspectiveRound.staticCall(params).catch(() => ethers.ZeroAddress);
+  if (roundAddress !== ethers.ZeroAddress) await factory.connect(caller).createProspectiveRound(params);
+  const round = roundAddress === ethers.ZeroAddress ? null : await ethers.getContractAt("ProspectiveContentAssuranceContract", roundAddress);
+  const receiptAddress = round ? await factory.receiptTokenByRound(roundAddress) : ethers.ZeroAddress;
+  const receipt = round ? await ethers.getContractAt("ProspectiveContentTokens", receiptAddress) : null;
+  return { owner, creator, alice, bob, payment, channels, registry, factory, params, round, roundAddress, receipt };
+}
+
+async function buy(ctx, amount) {
+  await ctx.payment.connect(ctx.alice).approve(ctx.roundAddress, amount);
+  await ctx.round.connect(ctx.alice).buyERC1155(ctx.alice.address, await ctx.receipt.getAddress(), [tokenId], [amount], "0x");
+}
+
+async function materialize(ctx) {
+  const address = await ctx.factory.connect(ctx.creator).createMaterializedContentTokens.staticCall(ctx.roundAddress, "ipfs://content/{id}", "ipfs://content");
+  await ctx.factory.connect(ctx.creator).createMaterializedContentTokens(ctx.roundAddress, "ipfs://content/{id}", "ipfs://content");
+  return ethers.getContractAt("MaterializedContentTokens", address);
+}
+
 describe("Prospective content funding", function () {
-  let owner, creator, alice, bob;
-  let paymentToken, prospectiveToken, assuranceContract, contentRegistry, materialized;
-  const prospectiveTokenId = 1n;
-  const contentIdA = ethers.toBigInt(ethers.id("twitter:uid:creator:post-a"));
-  const contentIdB = ethers.toBigInt(ethers.id("twitter:uid:creator:post-b"));
-
-  beforeEach(async function () {
-    [owner, creator, alice, bob] = await ethers.getSigners();
-
-    const PremintingERC20 = await ethers.getContractFactory("PremintingERC20");
-    paymentToken = await PremintingERC20.deploy(
-      owner.address,
-      "Payment Token",
-      "PAY",
-      "ipfs://payment-token"
-    );
-    await paymentToken.connect(owner).mint(alice.address, ethers.parseEther("100"));
-    await paymentToken.connect(owner).mint(bob.address, ethers.parseEther("100"));
-
-    const ProspectiveContentTokens = await ethers.getContractFactory("ProspectiveContentTokens");
-    prospectiveToken = await ProspectiveContentTokens.deploy(
-      owner.address,
-      "https://prospective/{id}.json",
-      "ipfs://prospective-contract"
-    );
-
-    const MultiERC1155AssuranceContract = await ethers.getContractFactory("MultiERC1155AssuranceContract");
-    assuranceContract = await MultiERC1155AssuranceContract.deploy(
-      owner.address,
-      creator.address,
-      await paymentToken.getAddress(),
-      await prospectiveToken.getAddress(),
-      "ipfs://prospective-round"
-    );
-
-    await prospectiveToken.connect(owner).setPrimaryMarket(await assuranceContract.getAddress());
-    await prospectiveToken.connect(owner).mintBatch(
-      await assuranceContract.getAddress(),
-      [prospectiveTokenId],
-      [100]
-    );
-
-    const ValueThresholdConditionFactory = await ethers.getContractFactory("ValueThresholdConditionFactory");
-    const conditionFactory = await ValueThresholdConditionFactory.deploy();
-    const latestBlock = await ethers.provider.getBlock("latest");
-    const conditionAddress = await conditionFactory.createCondition.staticCall(
-      await assuranceContract.getAddress(),
-      ethers.parseEther("10"),
-      latestBlock.timestamp + 86400
-    );
-    await conditionFactory.createCondition(
-      await assuranceContract.getAddress(),
-      ethers.parseEther("10"),
-      latestBlock.timestamp + 86400
-    );
-    await assuranceContract.connect(owner).setCondition(conditionAddress);
-    await assuranceContract.connect(owner).setPricesERC1155([prospectiveTokenId], [ethers.parseEther("1")]);
-
-    await paymentToken.connect(alice).approve(await assuranceContract.getAddress(), ethers.parseEther("10"));
-    await assuranceContract.connect(alice).buyERC1155(
-      alice.address,
-      await prospectiveToken.getAddress(),
-      [prospectiveTokenId],
-      [10],
-      "0x"
-    );
-    await paymentToken.connect(bob).approve(await assuranceContract.getAddress(), ethers.parseEther("5"));
-    await assuranceContract.connect(bob).buyERC1155(
-      bob.address,
-      await prospectiveToken.getAddress(),
-      [prospectiveTokenId],
-      [5],
-      "0x"
-    );
-
-    const ContentRegistry = await ethers.getContractFactory("ContentRegistry");
-    contentRegistry = await ContentRegistry.deploy();
-
-    const MaterializedContentTokens = await ethers.getContractFactory("MaterializedContentTokens");
-    materialized = await MaterializedContentTokens.deploy(
-      creator.address,
-      await prospectiveToken.getAddress(),
-      prospectiveTokenId,
-      await contentRegistry.getAddress(),
-      await assuranceContract.getAddress(),
-      "https://content/{id}.json",
-      "ipfs://materialized-contract"
-    );
-    await contentRegistry.connect(owner).setRegistrar(await materialized.getAddress(), true);
+  it("requires a verified channel owner and canonical channel ID", async function () {
+    const unverified = await fixture({ verified: false });
+    await expect(unverified.factory.connect(unverified.creator).createProspectiveRound(unverified.params)).to.be.revertedWithCustomError(unverified.factory, "ChannelNotVerified");
+    const outsider = await fixture({ creatorCaller: false });
+    await expect(outsider.factory.connect(outsider.bob).createProspectiveRound(outsider.params)).to.be.revertedWithCustomError(outsider.factory, "OnlyCurrentChannelOwner");
+    const valid = await fixture();
+    expect(await valid.factory.isProspectiveRound(valid.roundAddress)).to.equal(true);
+    expect(await valid.receipt.channelId()).to.equal(channelId);
   });
 
-  it("keeps prospective receipt tokens non-transferable between holders", async function () {
-    await expect(
-      prospectiveToken.connect(alice).safeTransferFrom(
-        alice.address,
-        bob.address,
-        prospectiveTokenId,
-        1,
-        "0x"
-      )
-    ).to.be.revertedWithCustomError(prospectiveToken, "NonTransferableReceipt");
+  it("rejects pending, failed, and foreign rounds and materializes a success exactly once", async function () {
+    const ctx = await fixture();
+    await expect(ctx.factory.connect(ctx.creator).createMaterializedContentTokens(ctx.roundAddress, "u", "c")).to.be.revertedWithCustomError(ctx.factory, "ProspectiveRoundNotSuccessful");
+    await expect(ctx.factory.connect(ctx.creator).createMaterializedContentTokens(ctx.alice.address, "u", "c")).to.be.revertedWithCustomError(ctx.factory, "NotProspectiveRound");
+    await buy(ctx, 10n);
+    const materialized = await materialize(ctx);
+    expect(await ctx.round.materializedContentTokens()).to.equal(await materialized.getAddress());
+    await expect(ctx.factory.connect(ctx.creator).createMaterializedContentTokens(ctx.roundAddress, "u", "c")).to.be.revertedWithCustomError(ctx.factory, "MaterializedCollectionAlreadyCreated");
+
+    const failed = await fixture();
+    await ethers.provider.send("evm_increaseTime", [101]);
+    await ethers.provider.send("evm_mine", []);
+    await expect(failed.factory.connect(failed.creator).createMaterializedContentTokens(failed.roundAddress, "u", "c")).to.be.revertedWithCustomError(failed.factory, "ProspectiveRoundNotSuccessful");
   });
 
-  it("lets prospective holders claim recognition tokens for each materialized content item", async function () {
-    await materialized.connect(creator).addContentBatch(
-      [contentIdA, contentIdB],
-      ["twitter:uid:creator:post-a", "twitter:uid:creator:post-b"]
-    );
-
-    await materialized.connect(alice).claim(contentIdA);
-    await materialized.connect(alice).claim(contentIdB);
-    await materialized.connect(bob).claim(contentIdA);
-
-    expect(await materialized.balanceOf(alice.address, contentIdA)).to.equal(10n);
-    expect(await materialized.balanceOf(alice.address, contentIdB)).to.equal(10n);
-    expect(await materialized.balanceOf(bob.address, contentIdA)).to.equal(5n);
+  it("derives channel-bound IDs, registers the assurance round, claims once, and stays non-transferable", async function () {
+    const ctx = await fixture();
+    await buy(ctx, 10n);
+    const materialized = await materialize(ctx);
+    await expect(materialized.connect(ctx.creator).addContent("")).to.be.revertedWithCustomError(materialized, "EmptyContentSuffix");
+    await materialized.connect(ctx.creator).addContent("post-a");
+    const id = ethers.toBigInt(ethers.id(`${canonicalChannel}:post-a`));
+    expect(await materialized.contentCanonicalId(id)).to.equal(`${canonicalChannel}:post-a`);
+    expect(await ctx.registry.contentContract(id)).to.equal(ctx.roundAddress);
+    await expect(materialized.connect(ctx.creator).addContent("post-a")).to.be.reverted;
+    await materialized.connect(ctx.alice).claim(id);
+    expect(await materialized.balanceOf(ctx.alice.address, id)).to.equal(10n);
+    await expect(materialized.connect(ctx.alice).claimFor(ctx.alice.address, id)).to.be.revertedWithCustomError(materialized, "ContentTokenAlreadyClaimed");
+    await expect(materialized.connect(ctx.alice).safeTransferFrom(ctx.alice.address, ctx.bob.address, id, 1, "0x")).to.be.revertedWithCustomError(materialized, "NonTransferableContentToken");
+    await materialized.connect(ctx.alice).burn(ctx.alice.address, id, 1);
   });
 
-  it("prevents holder-to-holder transfers of materialized content tokens", async function () {
-    await materialized.connect(creator).addContent(contentIdA, "twitter:uid:creator:post-a");
-    await materialized.connect(alice).claim(contentIdA);
+  it("protects refunds while pending, permits failure refunds, and permits success burns without changing reimbursement", async function () {
+    const pending = await fixture();
+    await buy(pending, 5n);
+    await expect(pending.receipt.connect(pending.alice).burn(pending.alice.address, tokenId, 1)).to.be.revertedWithCustomError(pending.receipt, "ProspectiveReceiptBurnNotAllowed");
+    await ethers.provider.send("evm_increaseTime", [101]);
+    await ethers.provider.send("evm_mine", []);
+    await pending.receipt.connect(pending.alice).setApprovalForAll(pending.roundAddress, true);
+    await pending.round.connect(pending.alice).refundERC1155(pending.alice.address, await pending.receipt.getAddress(), [tokenId], [5], "0x");
+    expect(await pending.receipt.balanceOf(pending.alice.address, tokenId)).to.equal(0n);
 
-    await expect(
-      materialized.connect(alice).safeTransferFrom(alice.address, bob.address, contentIdA, 2, "0x")
-    ).to.be.revertedWithCustomError(materialized, "NonTransferableContentToken");
-
-    expect(await materialized.balanceOf(alice.address, contentIdA)).to.equal(10n);
-    expect(await materialized.balanceOf(bob.address, contentIdA)).to.equal(0n);
-  });
-
-  it("still allows burning a materialized content token", async function () {
-    await materialized.connect(creator).addContent(contentIdA, "twitter:uid:creator:post-a");
-    await materialized.connect(alice).claim(contentIdA);
-
-    await materialized.connect(alice).burn(alice.address, contentIdA, 3);
-    expect(await materialized.balanceOf(alice.address, contentIdA)).to.equal(7n);
-  });
-
-  it("prevents double claiming a materialized content item", async function () {
-    await materialized.connect(creator).addContent(contentIdA, "twitter:uid:creator:post-a");
-    await materialized.connect(alice).claim(contentIdA);
-
-    await expect(materialized.connect(alice).claim(contentIdA))
-      .to.be.revertedWithCustomError(materialized, "ContentTokenAlreadyClaimed")
-      .withArgs(contentIdA, alice.address);
+    const success = await fixture();
+    await buy(success, 10n);
+    expect(await success.round.earlyContributions(success.alice.address)).to.equal(10n);
+    await success.receipt.connect(success.alice).burn(success.alice.address, tokenId, 4);
+    expect(await success.round.earlyContributions(success.alice.address)).to.equal(10n);
+    const materialized = await materialize(success);
+    await materialized.connect(success.creator).addContent("post-b");
+    const id = ethers.toBigInt(ethers.id(`${canonicalChannel}:post-b`));
+    await materialized.connect(success.alice).claim(id);
+    expect(await materialized.balanceOf(success.alice.address, id)).to.equal(6n);
   });
 });

@@ -87,17 +87,17 @@ The constraints are the **cross-contract couplings**, not the factories themselv
 
 Content-funding tokens that are in repo but not yet wired/indexed:
 
-- **`ProspectiveContentTokens` + `ProspectiveContentTokensFactory` — Class 2.** A
-  prospective token contract is a per-round child: receipts are non-transferable
-  except through the primary market, and the contract's useful lifetime follows the
-  funding round and any later materialization claims. A v2 should be a new factory
-  and new children; old prospective-token contracts remain readable forever for
-  refunds/materialization entitlements.
-- **`MaterializedContentTokens` + `MaterializedContentTokensFactory` — Class 2.** A
-  materialized token contract is a per-prospective-round child with immutable links
-  to the source prospective token, content registry, and source prospective contract.
-  A v2 should be deployed alongside v1 via a new factory; existing materialized
-  token contracts keep serving claims/burns/transfers under their original rules.
+- **`ProspectiveContentRoundFactory`, its deployment helpers,
+  `ProspectiveContentAssuranceContract`, and `ProspectiveContentTokens` — Class 2.**
+  The assurance and token contracts are per-round children with immutable channel and
+  factory provenance. A v2 requires a new factory/helper generation and new children;
+  old rounds remain readable forever for refunds, reimbursements, and materialization
+  entitlements.
+- **`MaterializedContentTokens` and its deployment helper — Class 2.** A materialized
+  collection is a per-prospective-round child with immutable links to the source round,
+  receipt, channel, and registries. A v2 should be deployed through a new trusted factory
+  generation; existing collections keep serving claims and burns under their original
+  rules.
 
 Deployed but not Ponder-indexed: `TrustRegistry`, `ChannelVerifier` (the latter is
 stateless — nonces live in ChannelRegistry — and replaceable via `setVerifier`, so

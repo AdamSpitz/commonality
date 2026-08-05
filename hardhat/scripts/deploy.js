@@ -309,7 +309,29 @@ async function main() {
   const creatorContractFactoryAddress = await creatorContractFactory.getAddress();
   console.log(`✓ CreatorAssuranceContractFactory: ${creatorContractFactoryAddress}`);
 
+  const ProspectiveRoundDeploymentHelper = await ethers.getContractFactory('ProspectiveRoundDeploymentHelper');
+  const prospectiveRoundDeploymentHelper = await ProspectiveRoundDeploymentHelper.deploy();
+  await prospectiveRoundDeploymentHelper.waitForDeployment();
+  const MaterializedContentDeploymentHelper = await ethers.getContractFactory('MaterializedContentDeploymentHelper');
+  const materializedContentDeploymentHelper = await MaterializedContentDeploymentHelper.deploy();
+  await materializedContentDeploymentHelper.waitForDeployment();
+  const ProspectiveContentRoundFactory = await ethers.getContractFactory('ProspectiveContentRoundFactory');
+  const prospectiveContentRoundFactory = await ProspectiveContentRoundFactory.deploy(
+    channelRegistryAddress,
+    contentRegistryAddress,
+    conditionFactoryAddress,
+    paymentTokenAddress,
+    creatorContractFactoryAddress,
+    await prospectiveRoundDeploymentHelper.getAddress(),
+    await materializedContentDeploymentHelper.getAddress(),
+    ':'
+  );
+  await prospectiveContentRoundFactory.waitForDeployment();
+  const prospectiveContentRoundFactoryAddress = await prospectiveContentRoundFactory.getAddress();
+  console.log(`✓ ProspectiveContentRoundFactory: ${prospectiveContentRoundFactoryAddress}`);
+
   await (await contentRegistry.transferOwnership(creatorContractFactoryAddress)).wait();
+  await (await creatorContractFactory.setProspectiveRoundFactory(prospectiveContentRoundFactoryAddress)).wait();
   await (await channelRegistry.setFactoryAuthorization(creatorContractFactoryAddress, true)).wait();
   await (await delegatableNotes.setPrimaryMarketFactoryAuthorization(creatorContractFactoryAddress, true)).wait();
   console.log('✓ Content funding ownership wired (ContentRegistry owner + ChannelRegistry factory authorization + delegated purchases)');
@@ -384,6 +406,9 @@ async function main() {
         ChannelRegistry: channelRegistryAddress,
         ChannelEscrow: channelEscrowAddress,
         CreatorAssuranceContractFactory: creatorContractFactoryAddress,
+        ProspectiveContentRoundFactory: prospectiveContentRoundFactoryAddress,
+        ProspectiveRoundDeploymentHelper: await prospectiveRoundDeploymentHelper.getAddress(),
+        MaterializedContentDeploymentHelper: await materializedContentDeploymentHelper.getAddress(),
       }
     };
 

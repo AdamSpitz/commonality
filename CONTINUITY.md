@@ -1641,3 +1641,7 @@ I updated the relevant TODO.md item with this result. Suggested next step: inspe
 - Wired the check into the standard testnet wrapper, `testnet.environment`, and the guarded release-candidate policy. Its focused deterministic tests cover the successful path plus missing-fixture and digest-divergence failures.
 - This does not claim deployed enforcement yet: the resolved bundle still needs publishing/configuration and the gateway/UI need redeployment before the new check can produce passing retained evidence.
 - Checks passed: focused Node tests, `coverage.guarded-check-policy`, `functionality.civility-policy-surfaces`, and `git diff --check`.
+
+## 2026-08-05 — channel-bound prospective content materialization
+
+Implemented the accepted future-content decisions now recorded in ADR 0007 and the materialization spec. Added the trusted prospective-round factory/deployment helpers, channel-bound receipt and materialized collections, a prospective assurance subtype with a one-time materialized link, success-gated registrar plumbing, suffix-derived content IDs resolving to the source assurance round, and outcome-aware prospective burns. Updated deployment wiring, Hardhat coverage, materialization documentation, contract-version classification, and TODO. SDK/indexer/UI wiring remains a follow-up and UI creation remains blocked.
