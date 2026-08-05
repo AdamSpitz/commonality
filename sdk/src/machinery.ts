@@ -57,6 +57,8 @@ export interface ContractAddresses {
   channelEscrow?: `0x${string}`;
   /** Factory that deploys per-creator assurance contracts. */
   creatorContractFactory?: `0x${string}`;
+  /** Factory for channel-bound future-content rounds. */
+  prospectiveContentRoundFactory?: `0x${string}`;
   /** PublishedData.sol -- shared user-published content/retraction registry. */
   publishedData?: `0x${string}`;
 }

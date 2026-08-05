@@ -8,6 +8,7 @@ import type {
   DepositedEvent,
   WithdrawnEvent,
   CreatorContractCreatedEvent,
+  ProspectiveContentEvent,
 } from './events.js';
 import type {
   ChannelEscrowState,
@@ -29,9 +30,97 @@ import {
   decodeDepositedEvent,
   decodeWithdrawnEvent,
   decodeCreatorContractCreatedEvent,
+  decodeProspectiveContentEvent,
 } from '../../utils/eventDecoder.js';
 import { hashCanonicalId } from './canonicalization.js';
 import { cidToBytes32, type IpfsCidV1 } from '../../utils/cid-types.js';
+import { MaterializedContentTokensAbi, ProspectiveContentRoundFactoryAbi } from '../../abis.js';
+import { zeroAddress, type Address, type Hex } from 'viem';
+
+export interface ProspectiveRoundOnchainState {
+  channelId: Hex;
+  materializedToken: Address | null;
+}
+
+/** Read the authoritative channel and materialized collection directly from the factory. */
+export async function getProspectiveRoundOnchainState(
+  machinery: SDKMachinery,
+  round: Address,
+): Promise<ProspectiveRoundOnchainState> {
+  const publicClient = machinery.publicClient;
+  const factory = machinery.contractAddresses?.prospectiveContentRoundFactory;
+  if (!publicClient) throw new Error('Public client not configured');
+  if (!factory) throw new Error('Prospective content round factory not configured');
+
+  const [isRound, channelId, materializedToken] = await Promise.all([
+    publicClient.readContract({ address: factory, abi: ProspectiveContentRoundFactoryAbi, functionName: 'isProspectiveRound', args: [round], authorizationList: undefined }),
+    publicClient.readContract({ address: factory, abi: ProspectiveContentRoundFactoryAbi, functionName: 'channelIdByRound', args: [round], authorizationList: undefined }),
+    publicClient.readContract({ address: factory, abi: ProspectiveContentRoundFactoryAbi, functionName: 'materializedTokenByRound', args: [round], authorizationList: undefined }),
+  ]);
+  if (!isRound) throw new Error('Prospective content round not found');
+  return { channelId, materializedToken: materializedToken === zeroAddress ? null : materializedToken };
+}
+
+export async function getMaterializedContentOnchain(
+  machinery: SDKMachinery,
+  tokenContract: Address,
+): Promise<{ contentId: bigint; canonicalId: string }[]> {
+  const publicClient = machinery.publicClient;
+  if (!publicClient) throw new Error('Public client not configured');
+  const contentIds = await publicClient.readContract({
+    address: tokenContract,
+    abi: MaterializedContentTokensAbi,
+    functionName: 'getContentIds',
+    authorizationList: undefined,
+  });
+  return Promise.all(contentIds.map(async (contentId) => ({
+    contentId,
+    canonicalId: await publicClient.readContract({
+      address: tokenContract,
+      abi: MaterializedContentTokensAbi,
+      functionName: 'contentCanonicalId',
+      args: [contentId],
+      authorizationList: undefined,
+    }),
+  })));
+}
+
+export interface ProspectiveRoundSummary {
+  round: `0x${string}`;
+  /** Keccak-256 hash of the canonical channel ID emitted by the factory. */
+  channelIdHash: Hex;
+  receiptToken: `0x${string}`;
+  receiptTokenId: bigint;
+  condition: `0x${string}`;
+  materializedToken: `0x${string}` | null;
+  content: { contentId: bigint; canonicalId: string }[];
+}
+
+/** Fold prospective-round events in chain order into round summaries. */
+export function foldProspectiveRounds(events: ProspectiveContentEvent[]): ProspectiveRoundSummary[] {
+  const rounds = new Map<string, ProspectiveRoundSummary>();
+  const tokenToRound = new Map<string, ProspectiveRoundSummary>();
+  for (const event of sortedByBlockOrder([...events])) {
+    if (event.type === 'ProspectiveRoundCreated') {
+      const summary: ProspectiveRoundSummary = { round: event.round, channelIdHash: event.channelId as Hex, receiptToken: event.receiptToken, receiptTokenId: event.receiptTokenId, condition: event.condition, materializedToken: null, content: [] };
+      rounds.set(summary.round.toLowerCase(), summary);
+    } else if (event.type === 'ProspectiveRoundMaterialized') {
+      const summary = rounds.get(event.round.toLowerCase());
+      if (summary) { summary.materializedToken = event.tokenContract; tokenToRound.set(summary.materializedToken.toLowerCase(), summary); }
+    } else if (event.type === 'ContentMaterialized') {
+      tokenToRound.get(event.contractAddress.toLowerCase())?.content.push({ contentId: event.contentId, canonicalId: event.canonicalId });
+    }
+  }
+  return [...rounds.values()];
+}
+
+/** Fetch and fold prospective-round creation/materialization into round summaries. */
+export async function getProspectiveRounds(machinery: SDKMachinery): Promise<ProspectiveRoundSummary[]> {
+  const decoded = (await fetchAllContentFundingEvents(machinery))
+    .map(decodeProspectiveContentEvent)
+    .filter((event): event is ProspectiveContentEvent => event !== null);
+  return foldProspectiveRounds(decoded);
+}
 
 /** Default veto window: 7 days in seconds. */
 export const DEFAULT_VETO_WINDOW_SECONDS = 7n * 24n * 60n * 60n;

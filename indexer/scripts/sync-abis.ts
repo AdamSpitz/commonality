@@ -38,6 +38,8 @@ const CONTRACTS_TO_SYNC: Record<string, { artifactPath: string; outputFile: stri
   ChannelRegistry: { artifactPath: "content-funding/ChannelRegistry.sol/ChannelRegistry.json", outputFile: "ChannelRegistryAbi.ts" },
   ChannelEscrow: { artifactPath: "content-funding/ChannelEscrow.sol/ChannelEscrow.json", outputFile: "ChannelEscrowAbi.ts" },
   CreatorAssuranceContractFactory: { artifactPath: "content-funding/CreatorAssuranceContractFactory.sol/CreatorAssuranceContractFactory.json", outputFile: "CreatorAssuranceContractFactoryAbi.ts" },
+  ProspectiveContentRoundFactory: { artifactPath: "content-funding/ProspectiveContentRoundFactory.sol/ProspectiveContentRoundFactory.json", outputFile: "ProspectiveContentRoundFactoryAbi.ts" },
+  MaterializedContentTokens: { artifactPath: "content-funding/MaterializedContentTokens.sol/MaterializedContentTokens.json", outputFile: "MaterializedContentTokensAbi.ts" },
   // Factory ABIs are manually maintained
   ProjectFactories: null,
 };

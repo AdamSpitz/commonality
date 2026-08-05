@@ -1652,3 +1652,34 @@ Implemented the accepted future-content decisions now recorded in ADR 0007 and t
 - Unsupported channel canonical prefixes are rejected, and the per-round separator is retained for later materialization.
 - Updated deployment wiring and added a regression test proving `substack:example/my-post` is registered correctly.
 - Focused Hardhat suite: 5 passing.
+
+## 2026-08-05 — Prospective-round SDK, indexer, and UI wiring
+
+- Added generated ABIs and SDK actions for prospective-round creation, collection materialization, content addition, and claims, plus an event-cache fold for round/materialized-content discovery.
+- Indexed prospective factory events and dynamically discovered materialized token collections; propagated the factory address through deployment manifests, environment generation, runtime config, and SDK machinery.
+- Enabled creator UI submission for future-content rounds and made the materialization page load indexed state, verify submitted URLs belong to the channel, create the collection after success, and add content. The contract path remains the authority for ownership, success, and one-time-materialization checks.
+- Validation: SDK 483 tests pass; SDK build, indexer typecheck, Hardhat compile, and UI production build pass. Existing ProspectiveContentFunding Hardhat coverage exercises the deployment-equivalent creation-to-materialization contract path.
+- PR review follow-up: enabled the future-content selector, sourced its factory from runtime-aware SDK machinery, and routed successful creation directly to the round's materialization page. UI typecheck and focused CreateContractPage tests pass.
+
+## 2026-08-05 — PR #83 review fixes
+
+- Rebased `feat/prospective-round-sdk-indexer-ui` onto current `origin/dev`, removing the unrelated/stale PR diff.
+- Added an authoritative prospective-round factory read for round validity, channel binding, and the materialized token address.
+- Updated the materialization UI to reject route/round channel mismatches and use on-chain state rather than indexer freshness before creating a collection.
+- Validation: SDK and UI typechecks; SDK tests (483 passing); SDK/UI lint (warnings only from existing SDK rules).
+
+## 2026-08-05 — Prospective-round PR review completion
+
+- Made prospective rounds donor-discoverable on channel pages and linked them to the shared contract backing page; successful creation now opens that backing page instead of sending creators directly to fulfillment.
+- Dynamically index prospective assurance-contract events so the shared project detail and purchase flow can load and fund these rounds.
+- Added materialized-content claim controls for connected receipt holders and retained direct creator fulfillment access from each channel card.
+- Corrected the SDK summary model to expose the emitted bytes32 value as `channelIdHash`, rather than implying it was a canonical channel ID.
+- Validation: SDK build and 483 tests; UI and indexer typechecks; focused ChannelPage/CreateContractPage tests; UI lint (existing warnings only).
+
+## 2026-08-05 — PR #83 latest review follow-up
+
+- Made prospective-round folding explicitly chain-ordered and strongly typed, with a regression test for event-cache groups arriving out of order.
+- Removed the unused `ContentTokenClaimed` bulk query, fixed future-round success text, and changed the generated receipt metadata URI to the published document rather than a nonexistent per-token path.
+- After materialization, the UI now re-reads authoritative content on-chain instead of duplicating canonical-ID separator logic, and distinguishes round load failures from channel mismatches.
+- Kept `authorizationList: undefined`: this project's viem client type requires the property on these generated-ABI reads.
+- Validation: SDK tests (484 passing); SDK and UI typechecks.

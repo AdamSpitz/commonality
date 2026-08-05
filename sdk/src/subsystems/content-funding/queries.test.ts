@@ -7,6 +7,7 @@ import type {
   ContractVetoedEvent,
   CreatorContractCreatedEvent,
   DepositedEvent,
+  ProspectiveContentEvent,
 } from './events.js';
 import { foldAllContentFundingEvents, foldContentRegistry } from './folds.js';
 import {
@@ -20,6 +21,7 @@ import {
   getAllChannelOverviews,
   getOwnerForCanonicalChannelId,
   getVetoableContracts,
+  foldProspectiveRounds,
 } from './queries.js';
 import type { Project } from '../lazy-giving/types.js';
 import { createSDKMachinery } from '../../machinery.js';
@@ -147,6 +149,27 @@ function makeProject(overrides: Partial<Project> = {}): Project {
 }
 
 describe('content-funding query helpers', () => {
+  it('folds prospective-round events by chain order rather than fetch order', () => {
+    const round = CONTRACT_A;
+    const token = CONTRACT_B;
+    const base = { blockTimestamp: 1n, transactionHash: TX_HASH, logIndex: 0 };
+    const events: ProspectiveContentEvent[] = [
+      { ...base, type: 'ContentMaterialized', contractAddress: token, blockNumber: 3n, contentId: 7n, canonicalId: 'twitter:uid:creator-a:post-7' },
+      { ...base, type: 'ProspectiveRoundMaterialized', contractAddress: CONTRACT_C, blockNumber: 2n, round, tokenContract: token },
+      { ...base, type: 'ProspectiveRoundCreated', contractAddress: CONTRACT_C, blockNumber: 1n, round, channelId: CHANNEL_A, receiptToken: CONTRACT_C, receiptTokenId: 0n, condition: OWNER_A },
+    ];
+
+    assert.deepStrictEqual(foldProspectiveRounds(events), [{
+      round,
+      channelIdHash: CHANNEL_A,
+      receiptToken: CONTRACT_C,
+      receiptTokenId: 0n,
+      condition: OWNER_A,
+      materializedToken: token,
+      content: [{ contentId: 7n, canonicalId: 'twitter:uid:creator-a:post-7' }],
+    }]);
+  });
+
   const state = foldAllContentFundingEvents(
     [
       makeRegisteredEvent(),
