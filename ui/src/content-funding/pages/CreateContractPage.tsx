@@ -171,7 +171,7 @@ export function CreateContractPage({
   contractPathForAddress = projectPathForAddress,
 }: CreateContractPageProps) {
   const navigate = useNavigate()
-  const { platform, channelId: channelIdParam } = useParams<{ platform: string; channelId: string }>()
+  const { channelId: channelIdParam } = useParams<{ platform: string; channelId: string }>()
   const { address, isConnected } = useAccount()
   const publicClient = usePublicClient()
   const writeClients = useWriteClients(address)
@@ -850,11 +850,7 @@ export function CreateContractPage({
                   {createdContractAddress && (
                     <Button
                       size="small"
-                      onClick={() => navigate(
-                        roundType === 'future'
-                          ? `/content/${platform ?? channelParsed?.platform ?? 'twitter'}/${encodeURIComponent(canonicalChannelId)}/prospective/${createdContractAddress}/materialize`
-                          : contractPathForAddress(createdContractAddress),
-                      )}
+                      onClick={() => navigate(contractPathForAddress(createdContractAddress))}
                       sx={{ ml: 1 }}
                     >
                       {viewButtonLabel}

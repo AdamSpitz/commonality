@@ -26,13 +26,14 @@ vi.mock('@commonality/sdk/content-funding', async () => {
   return {
     ...actual,
     getChannelOverview: vi.fn(),
+    getProspectiveRounds: vi.fn(),
     hashCanonicalId: vi.fn(() => '0xchannel'),
   }
 })
 
 import { useParams } from 'react-router-dom'
 import { useAccount } from 'wagmi'
-import { getChannelOverview } from '@commonality/sdk/content-funding'
+import { getChannelOverview, getProspectiveRounds } from '@commonality/sdk/content-funding'
 import { useContentFundingState } from '../hooks/useContentFundingState'
 
 function mockContentFundingState(overrides: {
@@ -64,12 +65,32 @@ describe('ChannelPage', () => {
     window.localStorage.clear()
     vi.mocked(useParams).mockReturnValue({ platform: 'twitter', channelId: 'twitter%3Auid%3A12345%3A18347' })
     vi.mocked(useAccount).mockReturnValue({ address: undefined, isConnected: false } as any)
+    vi.mocked(getProspectiveRounds).mockResolvedValue([])
     vi.mocked(getChannelOverview).mockReturnValue({
       channel: { channelId: '0xchannel', owner: null, state: 'unclaimed', controlTakenAt: null },
       escrow: { balance: 0n, totalDeposited: 0n, totalWithdrawn: 0n },
       contracts: [],
       contentItems: [],
     } as any)
+  })
+
+  it('shows indexed prospective rounds for this channel with funding and fulfillment links', async () => {
+    vi.mocked(getProspectiveRounds).mockResolvedValue([{
+      round: '0x1111111111111111111111111111111111111111',
+      channelIdHash: '0xchannel',
+      receiptToken: '0x2222222222222222222222222222222222222222',
+      receiptTokenId: 0n,
+      condition: '0x3333333333333333333333333333333333333333',
+      materializedToken: null,
+      content: [],
+    }])
+    mockContentFundingState({ state: {} })
+
+    render(<ChannelPage />)
+
+    expect(await screen.findByText('Future content')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'View and fund' })).toHaveAttribute('href', expect.stringContaining('0x1111111111111111111111111111111111111111'))
+    expect(screen.getByRole('link', { name: 'Fulfill or claim' })).toHaveAttribute('href', expect.stringContaining('/prospective/0x1111111111111111111111111111111111111111/materialize'))
   })
 
   it('shows loading spinner when loading', () => {

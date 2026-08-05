@@ -14,7 +14,7 @@ import {
 import AddIcon from '@mui/icons-material/Add'
 import DeleteIcon from '@mui/icons-material/Delete'
 import { useAccount } from 'wagmi'
-import { addMaterializedContent, createMaterializedContentTokens, getProspectiveRoundOnchainState, hashCanonicalId, parseContentFundingUrl } from '@commonality/sdk/content-funding'
+import { addMaterializedContent, claimMaterializedContent, createMaterializedContentTokens, getMaterializedContentOnchain, getProspectiveRoundOnchainState, hashCanonicalId, parseContentFundingUrl } from '@commonality/sdk/content-funding'
 import { getChannelDisplayLabels } from '../channelDisplay'
 import { useMachinery, useWriteClients } from '../../shared'
 import { usePlatformApi } from '../hooks/usePlatformApi'
@@ -45,6 +45,8 @@ export function MaterializeFutureContentPage() {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+  const [materializedContent, setMaterializedContent] = useState<{ contentId: bigint; canonicalId: string }[]>([])
+  const [claimingContentId, setClaimingContentId] = useState<bigint | null>(null)
 
   useEffect(() => {
     if (!roundAddress || !canonicalChannelId) return
@@ -53,6 +55,13 @@ export function MaterializeFutureContentPage() {
     getProspectiveRoundOnchainState(machinery, roundAddress as `0x${string}`).then((round) => {
       setMaterializedToken(round.materializedToken)
       setRoundChannelMatches(round.channelId.toLowerCase() === hashCanonicalId(canonicalChannelId).toLowerCase())
+      if (round.materializedToken) {
+        void getMaterializedContentOnchain(machinery, round.materializedToken)
+          .then(setMaterializedContent)
+          .catch(() => setMaterializedContent([]))
+      } else {
+        setMaterializedContent([])
+      }
     }).catch((reason) => {
       setRoundChannelMatches(false)
       setError(reason instanceof Error ? reason.message : 'Could not load round')
@@ -78,8 +87,28 @@ export function MaterializeFutureContentPage() {
       }
       const result = await addMaterializedContent(clients, token, suffixes)
       setSuccess(result.hash)
+      setMaterializedContent((current) => [
+        ...current,
+        ...suffixes.map((suffix) => ({
+          contentId: BigInt(hashCanonicalId(`${canonicalChannelId}${canonicalChannelId.startsWith('substack:') ? '/' : ':'}${suffix}`)),
+          canonicalId: `${canonicalChannelId}${canonicalChannelId.startsWith('substack:') ? '/' : ':'}${suffix}`,
+        })).filter((item) => !current.some((existing) => existing.contentId === item.contentId)),
+      ])
     } catch (reason) { setError(reason instanceof Error ? reason.message : 'Materialization failed') }
     finally { setSubmitting(false) }
+  }
+
+  const claim = async (contentId: bigint) => {
+    if (!clients || !materializedToken) return
+    setClaimingContentId(contentId); setError(null); setSuccess(null)
+    try {
+      const result = await claimMaterializedContent(clients, materializedToken, contentId)
+      setSuccess(`Claimed content recognition. Transaction: ${result.hash}`)
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : 'Claim failed')
+    } finally {
+      setClaimingContentId(null)
+    }
   }
 
   const setRowUrl = (id: string, url: string) => {
@@ -164,12 +193,26 @@ export function MaterializeFutureContentPage() {
             </Stack>
           </Box>
 
-          <Alert severity="info">
-            Claim UX after materialization: connected backers should see each new content item with a “Claim my content tokens” action. Their first claim equals their non-transferable receipt balance; if they later buy more receipts, they can claim the additional amount.
-          </Alert>
+          {materializedContent.length > 0 && (
+            <Box>
+              <Typography variant="h6" gutterBottom>Materialized content</Typography>
+              <Stack spacing={1}>
+                {materializedContent.map((item) => (
+                  <Paper key={item.contentId.toString()} variant="outlined" sx={{ p: 1.5 }}>
+                    <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ sm: 'center' }} spacing={1}>
+                      <Typography variant="body2" sx={{ wordBreak: 'break-all' }}>{item.canonicalId}</Typography>
+                      <Button disabled={!isConnected || claimingContentId !== null} onClick={() => { void claim(item.contentId) }} size="small" variant="outlined">
+                        {claimingContentId === item.contentId ? 'Claiming…' : 'Claim my content tokens'}
+                      </Button>
+                    </Stack>
+                  </Paper>
+                ))}
+              </Stack>
+            </Box>
+          )}
 
           {error && <Alert severity="error">{error}</Alert>}
-          {success && <Alert severity="success">Content materialized. Transaction: {success}</Alert>}
+          {success && <Alert severity="success">{success}</Alert>}
           <Stack direction="row" spacing={1}>
             <Button variant="contained" disabled={!isConnected || submitting || loading || !roundChannelMatches || contentRows.some((row) => !row.url)} onClick={submit}>
               {submitting ? 'Materializing…' : materializedToken ? 'Add content' : 'Create collection and materialize'}

@@ -33,7 +33,7 @@ import {
 } from '../../utils/eventDecoder.js';
 import { hashCanonicalId } from './canonicalization.js';
 import { cidToBytes32, type IpfsCidV1 } from '../../utils/cid-types.js';
-import { ProspectiveContentRoundFactoryAbi } from '../../abis.js';
+import { MaterializedContentTokensAbi, ProspectiveContentRoundFactoryAbi } from '../../abis.js';
 import { zeroAddress, type Address, type Hex } from 'viem';
 
 export interface ProspectiveRoundOnchainState {
@@ -60,9 +60,34 @@ export async function getProspectiveRoundOnchainState(
   return { channelId, materializedToken: materializedToken === zeroAddress ? null : materializedToken };
 }
 
+export async function getMaterializedContentOnchain(
+  machinery: SDKMachinery,
+  tokenContract: Address,
+): Promise<{ contentId: bigint; canonicalId: string }[]> {
+  const publicClient = machinery.publicClient;
+  if (!publicClient) throw new Error('Public client not configured');
+  const contentIds = await publicClient.readContract({
+    address: tokenContract,
+    abi: MaterializedContentTokensAbi,
+    functionName: 'getContentIds',
+    authorizationList: undefined,
+  });
+  return Promise.all(contentIds.map(async (contentId) => ({
+    contentId,
+    canonicalId: await publicClient.readContract({
+      address: tokenContract,
+      abi: MaterializedContentTokensAbi,
+      functionName: 'contentCanonicalId',
+      args: [contentId],
+      authorizationList: undefined,
+    }),
+  })));
+}
+
 export interface ProspectiveRoundSummary {
   round: `0x${string}`;
-  channelId: string;
+  /** Keccak-256 hash of the canonical channel ID emitted by the factory. */
+  channelIdHash: Hex;
   receiptToken: `0x${string}`;
   receiptTokenId: bigint;
   condition: `0x${string}`;
@@ -77,7 +102,7 @@ export async function getProspectiveRounds(machinery: SDKMachinery): Promise<Pro
   const tokenToRound = new Map<string, ProspectiveRoundSummary>();
   for (const event of decoded) {
     if (event.type === 'ProspectiveRoundCreated') {
-      const summary: ProspectiveRoundSummary = { round: event.round as `0x${string}`, channelId: event.channelId as string, receiptToken: event.receiptToken as `0x${string}`, receiptTokenId: event.receiptTokenId as bigint, condition: event.condition as `0x${string}`, materializedToken: null, content: [] };
+      const summary: ProspectiveRoundSummary = { round: event.round as `0x${string}`, channelIdHash: event.channelId as Hex, receiptToken: event.receiptToken as `0x${string}`, receiptTokenId: event.receiptTokenId as bigint, condition: event.condition as `0x${string}`, materializedToken: null, content: [] };
       rounds.set(summary.round.toLowerCase(), summary);
     } else if (event.type === 'ProspectiveRoundMaterialized') {
       const summary = rounds.get((event.round as string).toLowerCase());

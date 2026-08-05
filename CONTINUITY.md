@@ -1667,3 +1667,11 @@ Implemented the accepted future-content decisions now recorded in ADR 0007 and t
 - Added an authoritative prospective-round factory read for round validity, channel binding, and the materialized token address.
 - Updated the materialization UI to reject route/round channel mismatches and use on-chain state rather than indexer freshness before creating a collection.
 - Validation: SDK and UI typechecks; SDK tests (483 passing); SDK/UI lint (warnings only from existing SDK rules).
+
+## 2026-08-05 — Prospective-round PR review completion
+
+- Made prospective rounds donor-discoverable on channel pages and linked them to the shared contract backing page; successful creation now opens that backing page instead of sending creators directly to fulfillment.
+- Dynamically index prospective assurance-contract events so the shared project detail and purchase flow can load and fund these rounds.
+- Added materialized-content claim controls for connected receipt holders and retained direct creator fulfillment access from each channel card.
+- Corrected the SDK summary model to expose the emitted bytes32 value as `channelIdHash`, rather than implying it was a canonical channel ID.
+- Validation: SDK build and 483 tests; UI and indexer typechecks; focused ChannelPage/CreateContractPage tests; UI lint (existing warnings only).

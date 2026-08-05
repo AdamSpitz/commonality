@@ -76,6 +76,18 @@ function getRpcTransport(url: string | undefined) {
     : undefined;
 }
 
+const prospectiveRoundCreatedEvent = {
+  type: "event",
+  name: "ProspectiveRoundCreated",
+  inputs: [
+    { name: "round", type: "address", indexed: true },
+    { name: "channelId", type: "bytes32", indexed: true },
+    { name: "receiptToken", type: "address", indexed: true },
+    { name: "receiptTokenId", type: "uint256", indexed: false },
+    { name: "condition", type: "address", indexed: false },
+  ],
+} as const;
+
 const prospectiveRoundMaterializedEvent = {
   type: "event", name: "ProspectiveRoundMaterialized",
   inputs: [{ name: "round", type: "address", indexed: true }, { name: "tokenContract", type: "address", indexed: true }],
@@ -396,6 +408,21 @@ const contracts = {
     chain: chainForContract("default"),
     address: factoryAddress(PROSPECTIVE_FACTORY_DEPLOYMENTS)
       ? factory({ ...factoryAddress(PROSPECTIVE_FACTORY_DEPLOYMENTS)!, event: prospectiveRoundMaterializedEvent, parameter: "tokenContract" })
+      : undefined,
+    startBlock: CONTENT_FUNDING_START_BLOCK,
+  },
+
+  // Prospective rounds use the same assurance-contract event surface as
+  // creator contracts, so index them for the shared backing/details UI.
+  ProspectiveContentAssuranceContract: {
+    abi: AssuranceContractAbi,
+    chain: chainForContract("default"),
+    address: factoryAddress(PROSPECTIVE_FACTORY_DEPLOYMENTS)
+      ? factory({
+          ...factoryAddress(PROSPECTIVE_FACTORY_DEPLOYMENTS)!,
+          event: prospectiveRoundCreatedEvent,
+          parameter: "round",
+        })
       : undefined,
     startBlock: CONTENT_FUNDING_START_BLOCK,
   },
