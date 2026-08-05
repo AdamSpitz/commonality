@@ -13,6 +13,6 @@ canonical ID = channel canonical ID + separator + suffix
 content ID   = uint256(keccak256(bytes(canonical ID)))
 ```
 
-The registry stores `content ID → source prospective assurance contract`. Holders claim each item once, in an amount equal to their current prospective-receipt balance.
+The registry stores `content ID → source prospective assurance contract`. A holder initially claims each item in an amount equal to their current prospective-receipt balance. If they subsequently buy enough receipts to raise that balance above the amount already claimed for the item, they may claim the difference.
 
 Both receipt types reject holder-to-holder transfers. Prospective receipts cannot be burned while the round is pending or failed, preserving token-backed refunds. After success they may be burned; this does not alter reimbursement history but does reduce claims on content materialized later. Materialized recognition may be burned without accounting effects.

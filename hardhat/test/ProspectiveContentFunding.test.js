@@ -55,6 +55,9 @@ async function materialize(ctx) {
 describe("Prospective content funding", function () {
   it("requires a verified channel owner and canonical channel ID", async function () {
     const unverified = await fixture({ verified: false });
+    const zeroChannelParams = [...unverified.params];
+    zeroChannelParams[0] = ethers.ZeroHash;
+    await expect(unverified.factory.connect(unverified.creator).createProspectiveRound(zeroChannelParams)).to.be.revertedWithCustomError(unverified.factory, "InvalidChannelId");
     await expect(unverified.factory.connect(unverified.creator).createProspectiveRound(unverified.params)).to.be.revertedWithCustomError(unverified.factory, "ChannelNotVerified");
     const outsider = await fixture({ creatorCaller: false });
     await expect(outsider.factory.connect(outsider.bob).createProspectiveRound(outsider.params)).to.be.revertedWithCustomError(outsider.factory, "OnlyCurrentChannelOwner");
@@ -90,7 +93,12 @@ describe("Prospective content funding", function () {
     await expect(materialized.connect(ctx.creator).addContent("post-a")).to.be.reverted;
     await materialized.connect(ctx.alice).claim(id);
     expect(await materialized.balanceOf(ctx.alice.address, id)).to.equal(10n);
+    expect(await materialized.claimedAmount(id, ctx.alice.address)).to.equal(10n);
     await expect(materialized.connect(ctx.alice).claim(id)).to.be.revertedWithCustomError(materialized, "ContentTokenAlreadyClaimed");
+    await buy(ctx, 2n);
+    await materialized.connect(ctx.alice).claim(id);
+    expect(await materialized.balanceOf(ctx.alice.address, id)).to.equal(12n);
+    expect(await materialized.claimedAmount(id, ctx.alice.address)).to.equal(12n);
     await expect(materialized.connect(ctx.alice).safeTransferFrom(ctx.alice.address, ctx.bob.address, id, 1, "0x")).to.be.revertedWithCustomError(materialized, "NonTransferableContentToken");
     await materialized.connect(ctx.alice).burn(ctx.alice.address, id, 1);
   });

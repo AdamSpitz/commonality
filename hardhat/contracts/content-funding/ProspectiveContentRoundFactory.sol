@@ -87,8 +87,8 @@ contract ProspectiveContentRoundFactory is ReentrancyGuard {
     }
 
     function createProspectiveRound(CreateRoundParams calldata p) external returns (address) {
-        _requireChannelOwner(p.channelId);
         if (p.channelId == bytes32(0)) revert InvalidChannelId();
+        _requireChannelOwner(p.channelId);
         bytes32 canonicalHash = keccak256(bytes(p.channelCanonicalId));
         if (canonicalHash != p.channelId) revert ChannelCanonicalIdMismatch(p.channelId, canonicalHash);
         if (p.threshold == 0 || p.deadline <= block.timestamp) revert InvalidFundingTerms();

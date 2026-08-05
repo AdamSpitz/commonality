@@ -32,7 +32,7 @@ contract MaterializedContentTokens is Ownable, ERC1155, ERC1155Burnable, ERC7572
     uint256[] public contentIds;
     mapping(uint256 => bool) public contentIdAdded;
     mapping(uint256 => string) public contentCanonicalId;
-    mapping(uint256 => mapping(address => bool)) public claimed;
+    mapping(uint256 => mapping(address => uint256)) public claimedAmount;
 
     event ContentMaterialized(uint256 indexed contentId, string canonicalId);
     event ContentTokenClaimed(address indexed account, uint256 indexed contentId, uint256 amount);
@@ -99,10 +99,12 @@ contract MaterializedContentTokens is Ownable, ERC1155, ERC1155Burnable, ERC7572
 
     function _claim(address account, uint256 contentId) private {
         if (!contentIdAdded[contentId]) revert InvalidContentId();
-        if (claimed[contentId][account]) revert ContentTokenAlreadyClaimed(contentId, account);
-        uint256 amount = prospectiveToken.balanceOf(account, prospectiveTokenId);
-        if (amount == 0) revert NoProspectiveBalance();
-        claimed[contentId][account] = true;
+        uint256 receiptBalance = prospectiveToken.balanceOf(account, prospectiveTokenId);
+        if (receiptBalance == 0) revert NoProspectiveBalance();
+        uint256 previouslyClaimed = claimedAmount[contentId][account];
+        if (receiptBalance <= previouslyClaimed) revert ContentTokenAlreadyClaimed(contentId, account);
+        uint256 amount = receiptBalance - previouslyClaimed;
+        claimedAmount[contentId][account] = receiptBalance;
         _mint(account, contentId, amount, "");
         emit ContentTokenClaimed(account, contentId, amount);
     }

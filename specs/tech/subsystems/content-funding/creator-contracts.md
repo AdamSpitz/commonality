@@ -28,7 +28,7 @@ Each contract represents a funding round for a batch of content. Once funded and
 
 Future content is funded through `ProspectiveContentRoundFactory`, which atomically creates a one-token-type assurance round only for the current verified channel owner. Its non-transferable prospective receipts move through the assurance market for purchases and failure refunds. Holders cannot burn while the outcome is unresolved or failed; after success they may burn voluntarily.
 
-Only a successful round can create its one materialized collection. The current channel owner adds suffixes, from which the collection derives canonical IDs inside the authenticated channel namespace. For each item, holders can claim non-transferable recognition equal to their **current** prospective balance. A post-success receipt burn therefore reduces later claims without changing reimbursement history.
+Only a successful round can create its one materialized collection. The current channel owner adds suffixes, from which the collection derives canonical IDs inside the authenticated channel namespace. For each item, holders can claim non-transferable recognition up to their **current** prospective balance. Claims record the high-water amount already recognized, so a later receipt purchase can be claimed once the current balance exceeds that amount. A post-success receipt burn therefore reduces later claims without changing reimbursement history.
 
 A prospective round may materialize content gradually. The content registry maps every resulting ID to the source prospective assurance contract, whose one-time `materializedContentTokens` field links to recognition inventory. See [materialization.md](materialization.md).
 

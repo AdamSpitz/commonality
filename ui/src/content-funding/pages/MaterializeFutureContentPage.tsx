@@ -119,7 +119,7 @@ export function MaterializeFutureContentPage() {
           </Box>
 
           <Alert severity="info">
-            Claim UX after materialization: connected backers should see each new content item with a “Claim my content tokens” action. Claim amount equals their non-transferable receipt balance, and each holder can claim once per content item.
+            Claim UX after materialization: connected backers should see each new content item with a “Claim my content tokens” action. Their first claim equals their non-transferable receipt balance; if they later buy more receipts, they can claim the additional amount.
           </Alert>
 
           <Stack direction="row" spacing={1}>

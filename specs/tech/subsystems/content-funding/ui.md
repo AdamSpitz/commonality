@@ -218,9 +218,9 @@ Flow:
 
 Claim behavior:
 
-- A holder can claim once per content ID.
-- Claim amount equals `ProspectiveContentTokens.balanceOf(holder, receiptTokenId)`.
-- Anyone can call `claimFor(holder, contentId)`, but the normal UI should have connected users call `claim(contentId)` for themselves.
+- A holder's first claim for a content ID equals `ProspectiveContentTokens.balanceOf(holder, receiptTokenId)`.
+- If later purchases raise that receipt balance above the recorded claimed amount, the holder can claim the difference.
+- Connected users call `claim(contentId)` for themselves.
 - Both claimed materialized content tokens and prospective receipt tokens are non-transferable; `MaterializedContentTokens._update` reverts with `NonTransferableContentToken` on any holder-to-holder transfer. Do not present a transfer, sale, or listing affordance for either.
 
 Channel page/project detail should show prospective rounds with a timeline:
