@@ -29,9 +29,39 @@ import {
   decodeDepositedEvent,
   decodeWithdrawnEvent,
   decodeCreatorContractCreatedEvent,
+  decodeProspectiveContentEvent,
 } from '../../utils/eventDecoder.js';
 import { hashCanonicalId } from './canonicalization.js';
 import { cidToBytes32, type IpfsCidV1 } from '../../utils/cid-types.js';
+
+export interface ProspectiveRoundSummary {
+  round: `0x${string}`;
+  channelId: string;
+  receiptToken: `0x${string}`;
+  receiptTokenId: bigint;
+  condition: `0x${string}`;
+  materializedToken: `0x${string}` | null;
+  content: { contentId: bigint; canonicalId: string }[];
+}
+
+/** Fetch and fold prospective-round creation/materialization into authoritative round summaries. */
+export async function getProspectiveRounds(machinery: SDKMachinery): Promise<ProspectiveRoundSummary[]> {
+  const decoded = (await fetchAllContentFundingEvents(machinery)).map(decodeProspectiveContentEvent).filter((event): event is Record<string, unknown> => event !== null);
+  const rounds = new Map<string, ProspectiveRoundSummary>();
+  const tokenToRound = new Map<string, ProspectiveRoundSummary>();
+  for (const event of decoded) {
+    if (event.type === 'ProspectiveRoundCreated') {
+      const summary: ProspectiveRoundSummary = { round: event.round as `0x${string}`, channelId: event.channelId as string, receiptToken: event.receiptToken as `0x${string}`, receiptTokenId: event.receiptTokenId as bigint, condition: event.condition as `0x${string}`, materializedToken: null, content: [] };
+      rounds.set(summary.round.toLowerCase(), summary);
+    } else if (event.type === 'ProspectiveRoundMaterialized') {
+      const summary = rounds.get((event.round as string).toLowerCase());
+      if (summary) { summary.materializedToken = event.tokenContract as `0x${string}`; tokenToRound.set(summary.materializedToken.toLowerCase(), summary); }
+    } else if (event.type === 'ContentMaterialized') {
+      tokenToRound.get((event.contractAddress as string).toLowerCase())?.content.push({ contentId: event.contentId as bigint, canonicalId: event.canonicalId as string });
+    }
+  }
+  return [...rounds.values()];
+}
 
 /** Default veto window: 7 days in seconds. */
 export const DEFAULT_VETO_WINDOW_SECONDS = 7n * 24n * 60n * 60n;

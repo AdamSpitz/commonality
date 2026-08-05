@@ -27,7 +27,7 @@ import { parseUnits } from 'viem'
 import { parseCanonicalChannelId, hashCanonicalId, getChannelOverview, parseContentFundingUrl, type ParsedContentFundingUrl } from '@commonality/sdk/content-funding'
 import { createDefaultDocumentStore, createDisplayableDocument } from '@commonality/sdk/displayable-documents'
 import { CreatorAssuranceContractFactoryAbi, PublishedDataAbi } from '@commonality/sdk/abis'
-import { createContentFundingContract, getThirdPartyMinPurchase } from '@commonality/sdk/content-funding'
+import { createContentFundingContract, createProspectiveRound, getThirdPartyMinPurchase } from '@commonality/sdk/content-funding'
 import { getChannelDisplayLabels } from '../channelDisplay'
 import { useContentFundingState } from '../hooks/useContentFundingState'
 import { usePlatformApi } from '../hooks/usePlatformApi'
@@ -311,12 +311,30 @@ export function CreateContractPage({
   }
 
   const handleSubmit = async () => {
+    if (!writeClients || !address || !canonicalChannelId) return
+
     if (roundType === 'future') {
-      setSubmitError('Future-content round deployment is not wired yet. The UI is ready, but the SDK/indexer actions for ProspectiveContentTokens and materialization still need to be added.')
+      const prospectiveFactory = import.meta.env.VITE_PROSPECTIVE_CONTENT_ROUND_FACTORY_ADDRESS
+      if (!prospectiveFactory) { setSubmitError('Prospective content round factory not configured'); return }
+      if (!deadline || Math.floor(new Date(deadline).getTime() / 1000) <= Math.floor(Date.now() / 1000)) { setSubmitError('Deadline must be in the future'); return }
+      try {
+        const thresholdValue = parsePaymentAmount(threshold)
+        const price = parsePaymentAmount(receiptPrice)
+        const supply = BigInt(receiptSupply)
+        if (thresholdValue <= 0n || price <= 0n || supply <= 0n) throw new Error('Threshold, receipt price, and receipt supply must be positive')
+        setSubmitting(true); setSubmitError(null)
+        const documentStore = createDefaultDocumentStore(machinery, { clients: writeClients, ...(machinery.contractAddresses?.publishedData ? { publishedDataContract: { address: machinery.contractAddresses.publishedData, abi: PublishedDataAbi } } : {}) })
+        const publication = await documentStore.publish(createDisplayableDocument({ format: 'markdown-restricted', content: contractDescription.trim() || `Future content funding for ${canonicalChannelId}`, extras: { statementType: 'prospective-content-round-metadata', name: contractName.trim(), channel: canonicalChannelId } }))
+        const result = await createProspectiveRound(writeClients, prospectiveFactory as `0x${string}`, {
+          channelCanonicalId: canonicalChannelId, tokenId: 0n, supply, price, threshold: thresholdValue,
+          deadline: BigInt(Math.floor(new Date(deadline).getTime() / 1000)), metadataCid: publication.cid,
+          receiptMetadataUri: receiptMetadataUri || `ipfs://${publication.cid}/{id}.json`, receiptContractUri: receiptContractUri || `ipfs://${publication.cid}`,
+        })
+        setCreatedContractAddress(result.roundAddress); setSuccess(result.hash)
+      } catch (err) { setSubmitError(err instanceof Error ? err.message : 'Failed to create future-content round') }
+      finally { setSubmitting(false) }
       return
     }
-
-    if (!writeClients || !address || !canonicalChannelId) return
 
     if (!factoryAddress) {
       setSubmitError('Creator contract factory not configured')

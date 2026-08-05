@@ -25,5 +25,7 @@ export { ContentRegistryAbi } from '../abis/ContentRegistryAbi.js';
 export { ChannelRegistryAbi } from '../abis/ChannelRegistryAbi.js';
 export { ChannelEscrowAbi } from '../abis/ChannelEscrowAbi.js';
 export { CreatorAssuranceContractFactoryAbi } from '../abis/CreatorAssuranceContractFactoryAbi.js';
+export { ProspectiveContentRoundFactoryAbi } from '../abis/ProspectiveContentRoundFactoryAbi.js';
+export { MaterializedContentTokensAbi } from '../abis/MaterializedContentTokensAbi.js';
 export { NudgePublicationsAbi } from '../abis/NudgePublicationsAbi.js';
 export { AccountAssertionsAbi } from '../abis/AccountAssertionsAbi.js';

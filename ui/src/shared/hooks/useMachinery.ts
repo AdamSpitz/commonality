@@ -83,6 +83,7 @@ export function useMachinery(): SDKMachinery {
       channelRegistry: getRuntimeConfigValue('VITE_CHANNEL_REGISTRY_ADDRESS') as `0x${string}` | undefined,
       channelEscrow: getRuntimeConfigValue('VITE_CHANNEL_ESCROW_ADDRESS') as `0x${string}` | undefined,
       creatorContractFactory: getRuntimeConfigValue('VITE_CREATOR_CONTRACT_FACTORY_ADDRESS') as `0x${string}` | undefined,
+      prospectiveContentRoundFactory: getRuntimeConfigValue('VITE_PROSPECTIVE_CONTENT_ROUND_FACTORY_ADDRESS') as `0x${string}` | undefined,
     }
     const configuredChainId = getRuntimeConfigValue('VITE_CHAIN_ID')
     const defaultChainId = configuredChainId ? Number(configuredChainId) : undefined

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link as RouterLink, useParams } from 'react-router-dom'
 import {
   Alert,
@@ -14,7 +14,10 @@ import {
 import AddIcon from '@mui/icons-material/Add'
 import DeleteIcon from '@mui/icons-material/Delete'
 import { useAccount } from 'wagmi'
+import { addMaterializedContent, createMaterializedContentTokens, getProspectiveRounds, parseContentFundingUrl } from '@commonality/sdk/content-funding'
 import { getChannelDisplayLabels } from '../channelDisplay'
+import { useMachinery, useWriteClients } from '../../shared'
+import { usePlatformApi } from '../hooks/usePlatformApi'
 
 interface MaterializedContentRow {
   id: string
@@ -27,12 +30,50 @@ function newRow(): MaterializedContentRow {
 
 export function MaterializeFutureContentPage() {
   const { platform, channelId: channelIdParam, roundAddress } = useParams<{ platform: string; channelId: string; roundAddress: string }>()
-  const { isConnected } = useAccount()
+  const { address, isConnected } = useAccount()
+  const clients = useWriteClients(address)
+  const machinery = useMachinery()
+  const { resolveContent } = usePlatformApi()
   const canonicalChannelId = channelIdParam ? decodeURIComponent(channelIdParam) : ''
   const displayLabels = useMemo(() => getChannelDisplayLabels(canonicalChannelId), [canonicalChannelId])
   const [contentRows, setContentRows] = useState<MaterializedContentRow[]>([newRow()])
   const [tokenMetadataUri, setTokenMetadataUri] = useState('')
   const [contractUri, setContractUri] = useState('')
+  const [materializedToken, setMaterializedToken] = useState<`0x${string}` | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!roundAddress) return
+    getProspectiveRounds(machinery).then((rounds) => {
+      setMaterializedToken(rounds.find((round) => round.round.toLowerCase() === roundAddress.toLowerCase())?.materializedToken ?? null)
+    }).catch((reason) => setError(reason instanceof Error ? reason.message : 'Could not load round')).finally(() => setLoading(false))
+  }, [machinery, roundAddress])
+
+  const submit = async () => {
+    if (!clients || !roundAddress) return
+    setSubmitting(true); setError(null); setSuccess(null)
+    try {
+      const resolved = await Promise.all(contentRows.map((row) => resolveContent(row.url)))
+      if (resolved.some((item) => item.channelId !== canonicalChannelId)) throw new Error('Every content URL must belong to this channel')
+      const suffixes = contentRows.map((row) => {
+        const parsed = parseContentFundingUrl(row.url)
+        return parsed.platform === 'twitter' ? parsed.tweetId : parsed.platform === 'youtube' ? parsed.videoId : parsed.slug
+      })
+      let token = materializedToken
+      if (!token) {
+        const factory = machinery.contractAddresses?.prospectiveContentRoundFactory
+        if (!factory) throw new Error('Prospective content round factory not configured')
+        const result = await createMaterializedContentTokens(clients, factory, roundAddress as `0x${string}`, tokenMetadataUri, contractUri)
+        token = result.tokenContract; setMaterializedToken(token)
+      }
+      const result = await addMaterializedContent(clients, token, suffixes)
+      setSuccess(result.hash)
+    } catch (reason) { setError(reason instanceof Error ? reason.message : 'Materialization failed') }
+    finally { setSubmitting(false) }
+  }
 
   const setRowUrl = (id: string, url: string) => {
     setContentRows((rows) => rows.map((row) => row.id === id ? { ...row, url } : row))
@@ -58,9 +99,7 @@ export function MaterializeFutureContentPage() {
             <Typography variant="caption" color="text.secondary">Round address</Typography>
             <Typography variant="body2" sx={{ fontFamily: 'monospace', wordBreak: 'break-all' }}>{roundAddress}</Typography>
           </Box>
-          <Alert severity="info">
-            The indexer for prospective rounds is not wired yet, so this page cannot confirm the round status or materialized-token contract automatically. Treat this as the creator workflow shell until those events are indexed.
-          </Alert>
+          {loading ? <Alert severity="info">Loading indexed round state…</Alert> : materializedToken ? <Alert severity="success">Materialized collection: {materializedToken}</Alert> : <Alert severity="info">This round has not created its materialized collection yet. The transaction will succeed only after its funding condition succeeds.</Alert>}
         </Stack>
       </Paper>
 
@@ -122,9 +161,11 @@ export function MaterializeFutureContentPage() {
             Claim UX after materialization: connected backers should see each new content item with a “Claim my content tokens” action. Their first claim equals their non-transferable receipt balance; if they later buy more receipts, they can claim the additional amount.
           </Alert>
 
+          {error && <Alert severity="error">{error}</Alert>}
+          {success && <Alert severity="success">Content materialized. Transaction: {success}</Alert>}
           <Stack direction="row" spacing={1}>
-            <Button variant="contained" disabled>
-              Materialize content (indexer/actions not wired yet)
+            <Button variant="contained" disabled={!isConnected || submitting || contentRows.some((row) => !row.url)} onClick={submit}>
+              {submitting ? 'Materializing…' : materializedToken ? 'Add content' : 'Create collection and materialize'}
             </Button>
             <Button component={RouterLink} to={`/content/${platform ?? 'twitter'}/${encodeURIComponent(canonicalChannelId)}`}>
               Back to channel

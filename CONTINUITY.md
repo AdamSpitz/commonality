@@ -1652,3 +1652,10 @@ Implemented the accepted future-content decisions now recorded in ADR 0007 and t
 - Unsupported channel canonical prefixes are rejected, and the per-round separator is retained for later materialization.
 - Updated deployment wiring and added a regression test proving `substack:example/my-post` is registered correctly.
 - Focused Hardhat suite: 5 passing.
+
+## 2026-08-05 — Prospective-round SDK, indexer, and UI wiring
+
+- Added generated ABIs and SDK actions for prospective-round creation, collection materialization, content addition, and claims, plus an event-cache fold for round/materialized-content discovery.
+- Indexed prospective factory events and dynamically discovered materialized token collections; propagated the factory address through deployment manifests, environment generation, runtime config, and SDK machinery.
+- Enabled creator UI submission for future-content rounds and made the materialization page load indexed state, verify submitted URLs belong to the channel, create the collection after success, and add content. The contract path remains the authority for ownership, success, and one-time-materialization checks.
+- Validation: SDK 483 tests pass; SDK build, indexer typecheck, Hardhat compile, and UI production build pass. Existing ProspectiveContentFunding Hardhat coverage exercises the deployment-equivalent creation-to-materialization contract path.

@@ -20,6 +20,8 @@ import {
   CreatorAssuranceContractFactoryAbi,
   NudgePublicationsAbi,
   AccountAssertionsAbi,
+  ProspectiveContentRoundFactoryAbi,
+  MaterializedContentTokensAbi,
 } from '../abis.js';
 
 const ABI_MAP: Record<string, readonly unknown[]> = {
@@ -40,6 +42,8 @@ const ABI_MAP: Record<string, readonly unknown[]> = {
   CreatorAssuranceContractFactory: CreatorAssuranceContractFactoryAbi,
   NudgePublications: NudgePublicationsAbi,
   AccountAssertions: AccountAssertionsAbi,
+  ProspectiveContentRoundFactory: ProspectiveContentRoundFactoryAbi,
+  MaterializedContentTokens: MaterializedContentTokensAbi,
 };
 
 function decodeRawEventLog(rawEvent: RawEventFromCache): Record<string, unknown> | null {
@@ -1197,6 +1201,21 @@ export function decodeStandingPledgeExecutedEvent(
     blockNumber: BigInt(rawEvent.blockNumber),
     blockTimestamp: BigInt(rawEvent.blockTimestamp),
     transactionHash: rawEvent.transactionHash as `0x${string}`,
+    logIndex: rawEvent.logIndex,
+  };
+}
+
+export function decodeProspectiveContentEvent(rawEvent: RawEventFromCache): Record<string, unknown> | null {
+  if (!['ProspectiveRoundCreated', 'ProspectiveRoundMaterialized', 'ContentMaterialized', 'ContentTokenClaimed'].includes(rawEvent.eventName)) return null;
+  const args = decodeRawEventLog(rawEvent);
+  if (!args) return null;
+  return {
+    ...args,
+    type: rawEvent.eventName,
+    contractAddress: rawEvent.contractAddress,
+    blockNumber: BigInt(rawEvent.blockNumber),
+    blockTimestamp: BigInt(rawEvent.blockTimestamp),
+    transactionHash: rawEvent.transactionHash,
     logIndex: rawEvent.logIndex,
   };
 }

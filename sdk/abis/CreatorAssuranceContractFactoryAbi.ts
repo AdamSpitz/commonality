@@ -167,6 +167,11 @@ export const CreatorAssuranceContractFactoryAbi = [
   },
   {
     "inputs": [],
+    "name": "InvalidProspectiveRoundFactory",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "InvalidThirdPartyMaxDuration",
     "type": "error"
   },
@@ -190,6 +195,11 @@ export const CreatorAssuranceContractFactoryAbi = [
       }
     ],
     "name": "OnlyChannelOwnerCanCreateCreatorContract",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "OnlyProspectiveRoundFactory",
     "type": "error"
   },
   {
@@ -319,6 +329,25 @@ export const CreatorAssuranceContractFactoryAbi = [
     "anonymous": false,
     "inputs": [
       {
+        "indexed": true,
+        "internalType": "address",
+        "name": "factory",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "bool",
+        "name": "authorized",
+        "type": "bool"
+      }
+    ],
+    "name": "ProspectiveRoundFactoryAuthorizationSet",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
         "indexed": false,
         "internalType": "uint256",
         "name": "oldValue",
@@ -356,6 +385,19 @@ export const CreatorAssuranceContractFactoryAbi = [
   {
     "inputs": [],
     "name": "acceptOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "registrar",
+        "type": "address"
+      }
+    ],
+    "name": "authorizeMaterializedRegistrar",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -661,6 +703,25 @@ export const CreatorAssuranceContractFactoryAbi = [
     "inputs": [
       {
         "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "isAuthorizedProspectiveRoundFactory",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
         "name": "primaryMarket",
         "type": "address"
       }
@@ -750,6 +811,24 @@ export const CreatorAssuranceContractFactoryAbi = [
   {
     "inputs": [],
     "name": "renounceOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "factory",
+        "type": "address"
+      },
+      {
+        "internalType": "bool",
+        "name": "authorized",
+        "type": "bool"
+      }
+    ],
+    "name": "setProspectiveRoundFactoryAuthorization",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
