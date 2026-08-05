@@ -171,7 +171,7 @@ export function CreateContractPage({
   contractPathForAddress = projectPathForAddress,
 }: CreateContractPageProps) {
   const navigate = useNavigate()
-  const { channelId: channelIdParam } = useParams<{ platform: string; channelId: string }>()
+  const { platform, channelId: channelIdParam } = useParams<{ platform: string; channelId: string }>()
   const { address, isConnected } = useAccount()
   const publicClient = usePublicClient()
   const writeClients = useWriteClients(address)
@@ -314,7 +314,7 @@ export function CreateContractPage({
     if (!writeClients || !address || !canonicalChannelId) return
 
     if (roundType === 'future') {
-      const prospectiveFactory = import.meta.env.VITE_PROSPECTIVE_CONTENT_ROUND_FACTORY_ADDRESS
+      const prospectiveFactory = machinery.contractAddresses?.prospectiveContentRoundFactory
       if (!prospectiveFactory) { setSubmitError('Prospective content round factory not configured'); return }
       if (!deadline || Math.floor(new Date(deadline).getTime() / 1000) <= Math.floor(Date.now() / 1000)) { setSubmitError('Deadline must be in the future'); return }
       try {
@@ -593,10 +593,10 @@ export function CreateContractPage({
                 onChange={(event) => setRoundType(event.target.value as 'existing' | 'future')}
               >
                 <FormControlLabel value="existing" control={<Radio />} label="Fund existing content" />
-                <FormControlLabel value="future" control={<Radio />} label="Fund future content (coming soon)" disabled />
+                <FormControlLabel value="future" control={<Radio />} label="Fund future content" />
               </RadioGroup>
               <Typography variant="body2" color="text.secondary">
-                Existing-content rounds list posts/videos/articles now. Future-content rounds are not available yet, so start with existing content for this MVP.
+                Existing-content rounds list posts/videos/articles now. Future-content rounds fund a promised body of work that the creator materializes after the funding condition succeeds.
               </Typography>
             </Box>
 
@@ -850,7 +850,11 @@ export function CreateContractPage({
                   {createdContractAddress && (
                     <Button
                       size="small"
-                      onClick={() => navigate(contractPathForAddress(createdContractAddress))}
+                      onClick={() => navigate(
+                        roundType === 'future'
+                          ? `/content/${platform ?? channelParsed?.platform ?? 'twitter'}/${encodeURIComponent(canonicalChannelId)}/prospective/${createdContractAddress}/materialize`
+                          : contractPathForAddress(createdContractAddress),
+                      )}
                       sx={{ ml: 1 }}
                     >
                       {viewButtonLabel}
