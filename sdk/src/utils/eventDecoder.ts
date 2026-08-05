@@ -1205,7 +1205,7 @@ export function decodeStandingPledgeExecutedEvent(
   };
 }
 
-export function decodeProspectiveContentEvent(rawEvent: RawEventFromCache): Record<string, unknown> | null {
+export function decodeProspectiveContentEvent(rawEvent: RawEventFromCache): import('../subsystems/content-funding/events.js').ProspectiveContentEvent | null {
   if (!['ProspectiveRoundCreated', 'ProspectiveRoundMaterialized', 'ContentMaterialized', 'ContentTokenClaimed'].includes(rawEvent.eventName)) return null;
   const args = decodeRawEventLog(rawEvent);
   if (!args) return null;
@@ -1217,7 +1217,7 @@ export function decodeProspectiveContentEvent(rawEvent: RawEventFromCache): Reco
     blockTimestamp: BigInt(rawEvent.blockTimestamp),
     transactionHash: rawEvent.transactionHash,
     logIndex: rawEvent.logIndex,
-  };
+  } as import('../subsystems/content-funding/events.js').ProspectiveContentEvent;
 }
 
 export function decodeStandingPledgeCancelledEvent(

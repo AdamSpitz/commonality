@@ -449,7 +449,6 @@ export async function fetchAllContentFundingEvents(
     'ProspectiveRoundCreated',
     'ProspectiveRoundMaterialized',
     'ContentMaterialized',
-    'ContentTokenClaimed',
   ];
   const eventGroups = await Promise.all(eventNames.map(eventName => fetchEvents(machinery, { eventName, limit })));
   return eventGroups.flat();

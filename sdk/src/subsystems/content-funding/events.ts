@@ -66,6 +66,12 @@ export interface ContentTokenClaimedEvent extends RawEvent {
   type: 'ContentTokenClaimed'; account: `0x${string}`; contentId: bigint; amount: bigint;
 }
 
+export type ProspectiveContentEvent =
+  | ProspectiveRoundCreatedEvent
+  | ProspectiveRoundMaterializedEvent
+  | ContentMaterializedEvent
+  | ContentTokenClaimedEvent;
+
 export type ContentFundingEvent =
   | ContentItemRegisteredEvent
   | ContentItemReleasedEvent

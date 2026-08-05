@@ -41,6 +41,7 @@ export function MaterializeFutureContentPage() {
   const [contractUri, setContractUri] = useState('')
   const [materializedToken, setMaterializedToken] = useState<`0x${string}` | null>(null)
   const [roundChannelMatches, setRoundChannelMatches] = useState<boolean | null>(null)
+  const [roundLoadError, setRoundLoadError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -52,6 +53,7 @@ export function MaterializeFutureContentPage() {
     if (!roundAddress || !canonicalChannelId) return
     setLoading(true)
     setRoundChannelMatches(null)
+    setRoundLoadError(null)
     getProspectiveRoundOnchainState(machinery, roundAddress as `0x${string}`).then((round) => {
       setMaterializedToken(round.materializedToken)
       setRoundChannelMatches(round.channelId.toLowerCase() === hashCanonicalId(canonicalChannelId).toLowerCase())
@@ -63,8 +65,7 @@ export function MaterializeFutureContentPage() {
         setMaterializedContent([])
       }
     }).catch((reason) => {
-      setRoundChannelMatches(false)
-      setError(reason instanceof Error ? reason.message : 'Could not load round')
+      setRoundLoadError(reason instanceof Error ? reason.message : 'Could not load round')
     }).finally(() => setLoading(false))
   }, [canonicalChannelId, machinery, roundAddress])
 
@@ -86,14 +87,8 @@ export function MaterializeFutureContentPage() {
         token = result.tokenContract; setMaterializedToken(token)
       }
       const result = await addMaterializedContent(clients, token, suffixes)
-      setSuccess(result.hash)
-      setMaterializedContent((current) => [
-        ...current,
-        ...suffixes.map((suffix) => ({
-          contentId: BigInt(hashCanonicalId(`${canonicalChannelId}${canonicalChannelId.startsWith('substack:') ? '/' : ':'}${suffix}`)),
-          canonicalId: `${canonicalChannelId}${canonicalChannelId.startsWith('substack:') ? '/' : ':'}${suffix}`,
-        })).filter((item) => !current.some((existing) => existing.contentId === item.contentId)),
-      ])
+      setSuccess(`Content materialized. Transaction: ${result.hash}`)
+      setMaterializedContent(await getMaterializedContentOnchain(machinery, token))
     } catch (reason) { setError(reason instanceof Error ? reason.message : 'Materialization failed') }
     finally { setSubmitting(false) }
   }
@@ -135,7 +130,7 @@ export function MaterializeFutureContentPage() {
             <Typography variant="caption" color="text.secondary">Round address</Typography>
             <Typography variant="body2" sx={{ fontFamily: 'monospace', wordBreak: 'break-all' }}>{roundAddress}</Typography>
           </Box>
-          {loading ? <Alert severity="info">Loading round state…</Alert> : !roundChannelMatches ? <Alert severity="error">This round does not belong to the channel in this URL.</Alert> : materializedToken ? <Alert severity="success">Materialized collection: {materializedToken}</Alert> : <Alert severity="info">This round has not created its materialized collection yet. The transaction will succeed only after its funding condition succeeds.</Alert>}
+          {loading ? <Alert severity="info">Loading round state…</Alert> : roundLoadError ? <Alert severity="error">Could not load round: {roundLoadError}</Alert> : !roundChannelMatches ? <Alert severity="error">This round does not belong to the channel in this URL.</Alert> : materializedToken ? <Alert severity="success">Materialized collection: {materializedToken}</Alert> : <Alert severity="info">This round has not created its materialized collection yet. The transaction will succeed only after its funding condition succeeds.</Alert>}
         </Stack>
       </Paper>
 

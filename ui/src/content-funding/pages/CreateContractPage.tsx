@@ -328,9 +328,9 @@ export function CreateContractPage({
         const result = await createProspectiveRound(writeClients, prospectiveFactory as `0x${string}`, {
           channelCanonicalId: canonicalChannelId, tokenId: 0n, supply, price, threshold: thresholdValue,
           deadline: BigInt(Math.floor(new Date(deadline).getTime() / 1000)), metadataCid: publication.cid,
-          receiptMetadataUri: receiptMetadataUri || `ipfs://${publication.cid}/{id}.json`, receiptContractUri: receiptContractUri || `ipfs://${publication.cid}`,
+          receiptMetadataUri: receiptMetadataUri || `ipfs://${publication.cid}`, receiptContractUri: receiptContractUri || `ipfs://${publication.cid}`,
         })
-        setCreatedContractAddress(result.roundAddress); setSuccess(result.hash)
+        setCreatedContractAddress(result.roundAddress); setSuccess('Contract created successfully!')
       } catch (err) { setSubmitError(err instanceof Error ? err.message : 'Failed to create future-content round') }
       finally { setSubmitting(false) }
       return

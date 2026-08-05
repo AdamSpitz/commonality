@@ -1675,3 +1675,11 @@ Implemented the accepted future-content decisions now recorded in ADR 0007 and t
 - Added materialized-content claim controls for connected receipt holders and retained direct creator fulfillment access from each channel card.
 - Corrected the SDK summary model to expose the emitted bytes32 value as `channelIdHash`, rather than implying it was a canonical channel ID.
 - Validation: SDK build and 483 tests; UI and indexer typechecks; focused ChannelPage/CreateContractPage tests; UI lint (existing warnings only).
+
+## 2026-08-05 — PR #83 latest review follow-up
+
+- Made prospective-round folding explicitly chain-ordered and strongly typed, with a regression test for event-cache groups arriving out of order.
+- Removed the unused `ContentTokenClaimed` bulk query, fixed future-round success text, and changed the generated receipt metadata URI to the published document rather than a nonexistent per-token path.
+- After materialization, the UI now re-reads authoritative content on-chain instead of duplicating canonical-ID separator logic, and distinguishes round load failures from channel mismatches.
+- Kept `authorizationList: undefined`: this project's viem client type requires the property on these generated-ABI reads.
+- Validation: SDK tests (484 passing); SDK and UI typechecks.

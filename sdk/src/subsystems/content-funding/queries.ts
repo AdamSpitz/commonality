@@ -8,6 +8,7 @@ import type {
   DepositedEvent,
   WithdrawnEvent,
   CreatorContractCreatedEvent,
+  ProspectiveContentEvent,
 } from './events.js';
 import type {
   ChannelEscrowState,
@@ -95,23 +96,30 @@ export interface ProspectiveRoundSummary {
   content: { contentId: bigint; canonicalId: string }[];
 }
 
-/** Fetch and fold prospective-round creation/materialization into authoritative round summaries. */
-export async function getProspectiveRounds(machinery: SDKMachinery): Promise<ProspectiveRoundSummary[]> {
-  const decoded = (await fetchAllContentFundingEvents(machinery)).map(decodeProspectiveContentEvent).filter((event): event is Record<string, unknown> => event !== null);
+/** Fold prospective-round events in chain order into round summaries. */
+export function foldProspectiveRounds(events: ProspectiveContentEvent[]): ProspectiveRoundSummary[] {
   const rounds = new Map<string, ProspectiveRoundSummary>();
   const tokenToRound = new Map<string, ProspectiveRoundSummary>();
-  for (const event of decoded) {
+  for (const event of sortedByBlockOrder([...events])) {
     if (event.type === 'ProspectiveRoundCreated') {
-      const summary: ProspectiveRoundSummary = { round: event.round as `0x${string}`, channelIdHash: event.channelId as Hex, receiptToken: event.receiptToken as `0x${string}`, receiptTokenId: event.receiptTokenId as bigint, condition: event.condition as `0x${string}`, materializedToken: null, content: [] };
+      const summary: ProspectiveRoundSummary = { round: event.round, channelIdHash: event.channelId as Hex, receiptToken: event.receiptToken, receiptTokenId: event.receiptTokenId, condition: event.condition, materializedToken: null, content: [] };
       rounds.set(summary.round.toLowerCase(), summary);
     } else if (event.type === 'ProspectiveRoundMaterialized') {
-      const summary = rounds.get((event.round as string).toLowerCase());
-      if (summary) { summary.materializedToken = event.tokenContract as `0x${string}`; tokenToRound.set(summary.materializedToken.toLowerCase(), summary); }
+      const summary = rounds.get(event.round.toLowerCase());
+      if (summary) { summary.materializedToken = event.tokenContract; tokenToRound.set(summary.materializedToken.toLowerCase(), summary); }
     } else if (event.type === 'ContentMaterialized') {
-      tokenToRound.get((event.contractAddress as string).toLowerCase())?.content.push({ contentId: event.contentId as bigint, canonicalId: event.canonicalId as string });
+      tokenToRound.get(event.contractAddress.toLowerCase())?.content.push({ contentId: event.contentId, canonicalId: event.canonicalId });
     }
   }
   return [...rounds.values()];
+}
+
+/** Fetch and fold prospective-round creation/materialization into round summaries. */
+export async function getProspectiveRounds(machinery: SDKMachinery): Promise<ProspectiveRoundSummary[]> {
+  const decoded = (await fetchAllContentFundingEvents(machinery))
+    .map(decodeProspectiveContentEvent)
+    .filter((event): event is ProspectiveContentEvent => event !== null);
+  return foldProspectiveRounds(decoded);
 }
 
 /** Default veto window: 7 days in seconds. */
