@@ -33,6 +33,32 @@ import {
 } from '../../utils/eventDecoder.js';
 import { hashCanonicalId } from './canonicalization.js';
 import { cidToBytes32, type IpfsCidV1 } from '../../utils/cid-types.js';
+import { ProspectiveContentRoundFactoryAbi } from '../../abis.js';
+import { zeroAddress, type Address, type Hex } from 'viem';
+
+export interface ProspectiveRoundOnchainState {
+  channelId: Hex;
+  materializedToken: Address | null;
+}
+
+/** Read the authoritative channel and materialized collection directly from the factory. */
+export async function getProspectiveRoundOnchainState(
+  machinery: SDKMachinery,
+  round: Address,
+): Promise<ProspectiveRoundOnchainState> {
+  const publicClient = machinery.publicClient;
+  const factory = machinery.contractAddresses?.prospectiveContentRoundFactory;
+  if (!publicClient) throw new Error('Public client not configured');
+  if (!factory) throw new Error('Prospective content round factory not configured');
+
+  const [isRound, channelId, materializedToken] = await Promise.all([
+    publicClient.readContract({ address: factory, abi: ProspectiveContentRoundFactoryAbi, functionName: 'isProspectiveRound', args: [round], authorizationList: undefined }),
+    publicClient.readContract({ address: factory, abi: ProspectiveContentRoundFactoryAbi, functionName: 'channelIdByRound', args: [round], authorizationList: undefined }),
+    publicClient.readContract({ address: factory, abi: ProspectiveContentRoundFactoryAbi, functionName: 'materializedTokenByRound', args: [round], authorizationList: undefined }),
+  ]);
+  if (!isRound) throw new Error('Prospective content round not found');
+  return { channelId, materializedToken: materializedToken === zeroAddress ? null : materializedToken };
+}
 
 export interface ProspectiveRoundSummary {
   round: `0x${string}`;

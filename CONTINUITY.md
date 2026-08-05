@@ -1660,3 +1660,10 @@ Implemented the accepted future-content decisions now recorded in ADR 0007 and t
 - Enabled creator UI submission for future-content rounds and made the materialization page load indexed state, verify submitted URLs belong to the channel, create the collection after success, and add content. The contract path remains the authority for ownership, success, and one-time-materialization checks.
 - Validation: SDK 483 tests pass; SDK build, indexer typecheck, Hardhat compile, and UI production build pass. Existing ProspectiveContentFunding Hardhat coverage exercises the deployment-equivalent creation-to-materialization contract path.
 - PR review follow-up: enabled the future-content selector, sourced its factory from runtime-aware SDK machinery, and routed successful creation directly to the round's materialization page. UI typecheck and focused CreateContractPage tests pass.
+
+## 2026-08-05 — PR #83 review fixes
+
+- Rebased `feat/prospective-round-sdk-indexer-ui` onto current `origin/dev`, removing the unrelated/stale PR diff.
+- Added an authoritative prospective-round factory read for round validity, channel binding, and the materialized token address.
+- Updated the materialization UI to reject route/round channel mismatches and use on-chain state rather than indexer freshness before creating a collection.
+- Validation: SDK and UI typechecks; SDK tests (483 passing); SDK/UI lint (warnings only from existing SDK rules).

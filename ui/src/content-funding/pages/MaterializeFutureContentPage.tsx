@@ -14,7 +14,7 @@ import {
 import AddIcon from '@mui/icons-material/Add'
 import DeleteIcon from '@mui/icons-material/Delete'
 import { useAccount } from 'wagmi'
-import { addMaterializedContent, createMaterializedContentTokens, getProspectiveRounds, parseContentFundingUrl } from '@commonality/sdk/content-funding'
+import { addMaterializedContent, createMaterializedContentTokens, getProspectiveRoundOnchainState, hashCanonicalId, parseContentFundingUrl } from '@commonality/sdk/content-funding'
 import { getChannelDisplayLabels } from '../channelDisplay'
 import { useMachinery, useWriteClients } from '../../shared'
 import { usePlatformApi } from '../hooks/usePlatformApi'
@@ -40,20 +40,27 @@ export function MaterializeFutureContentPage() {
   const [tokenMetadataUri, setTokenMetadataUri] = useState('')
   const [contractUri, setContractUri] = useState('')
   const [materializedToken, setMaterializedToken] = useState<`0x${string}` | null>(null)
+  const [roundChannelMatches, setRoundChannelMatches] = useState<boolean | null>(null)
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!roundAddress) return
-    getProspectiveRounds(machinery).then((rounds) => {
-      setMaterializedToken(rounds.find((round) => round.round.toLowerCase() === roundAddress.toLowerCase())?.materializedToken ?? null)
-    }).catch((reason) => setError(reason instanceof Error ? reason.message : 'Could not load round')).finally(() => setLoading(false))
-  }, [machinery, roundAddress])
+    if (!roundAddress || !canonicalChannelId) return
+    setLoading(true)
+    setRoundChannelMatches(null)
+    getProspectiveRoundOnchainState(machinery, roundAddress as `0x${string}`).then((round) => {
+      setMaterializedToken(round.materializedToken)
+      setRoundChannelMatches(round.channelId.toLowerCase() === hashCanonicalId(canonicalChannelId).toLowerCase())
+    }).catch((reason) => {
+      setRoundChannelMatches(false)
+      setError(reason instanceof Error ? reason.message : 'Could not load round')
+    }).finally(() => setLoading(false))
+  }, [canonicalChannelId, machinery, roundAddress])
 
   const submit = async () => {
-    if (!clients || !roundAddress) return
+    if (!clients || !roundAddress || !roundChannelMatches) return
     setSubmitting(true); setError(null); setSuccess(null)
     try {
       const resolved = await Promise.all(contentRows.map((row) => resolveContent(row.url)))
@@ -99,7 +106,7 @@ export function MaterializeFutureContentPage() {
             <Typography variant="caption" color="text.secondary">Round address</Typography>
             <Typography variant="body2" sx={{ fontFamily: 'monospace', wordBreak: 'break-all' }}>{roundAddress}</Typography>
           </Box>
-          {loading ? <Alert severity="info">Loading indexed round state…</Alert> : materializedToken ? <Alert severity="success">Materialized collection: {materializedToken}</Alert> : <Alert severity="info">This round has not created its materialized collection yet. The transaction will succeed only after its funding condition succeeds.</Alert>}
+          {loading ? <Alert severity="info">Loading round state…</Alert> : !roundChannelMatches ? <Alert severity="error">This round does not belong to the channel in this URL.</Alert> : materializedToken ? <Alert severity="success">Materialized collection: {materializedToken}</Alert> : <Alert severity="info">This round has not created its materialized collection yet. The transaction will succeed only after its funding condition succeeds.</Alert>}
         </Stack>
       </Paper>
 
@@ -164,7 +171,7 @@ export function MaterializeFutureContentPage() {
           {error && <Alert severity="error">{error}</Alert>}
           {success && <Alert severity="success">Content materialized. Transaction: {success}</Alert>}
           <Stack direction="row" spacing={1}>
-            <Button variant="contained" disabled={!isConnected || submitting || contentRows.some((row) => !row.url)} onClick={submit}>
+            <Button variant="contained" disabled={!isConnected || submitting || loading || !roundChannelMatches || contentRows.some((row) => !row.url)} onClick={submit}>
               {submitting ? 'Materializing…' : materializedToken ? 'Add content' : 'Create collection and materialize'}
             </Button>
             <Button component={RouterLink} to={`/content/${platform ?? 'twitter'}/${encodeURIComponent(canonicalChannelId)}`}>
