@@ -139,11 +139,16 @@ async function main() {
   const manifest = { network, deployer: deployerAddress, contractAdmin: contractAdminAddress, updatedAt: new Date().toISOString(), contracts: {} };
   let deployStartBlock = env.START_BLOCK || env.CONTENT_FUNDING_START_BLOCK || '';
 
-  function adminCapable(contract) {
+  async function ownerCapable(contract) {
     if (isLocal) return contract;
+    const owner = ethers.getAddress(await contract.owner());
+    if (owner === ethers.getAddress(deployerAddress)) return contract;
     const adminPrivateKey = process.env.CONTRACT_ADMIN_PRIVATE_KEY?.trim();
-    if (!adminPrivateKey) return contract;
-    return contract.connect(new ethers.Wallet(adminPrivateKey, ethers.provider));
+    if (adminPrivateKey) {
+      const admin = new ethers.Wallet(adminPrivateKey, ethers.provider);
+      if (owner === ethers.getAddress(admin.address)) return contract.connect(admin);
+    }
+    throw new Error(`No signer available for owner ${owner} of ${await contract.getAddress()}`);
   }
 
   async function deployOrReuse(name, contractName, args = [], opts = {}) {
@@ -236,15 +241,15 @@ async function main() {
     if (ethers.getAddress(await c.owner()) !== addresses.CreatorAssuranceContractFactory) await (await c.transferOwnership(addresses.CreatorAssuranceContractFactory)).wait();
   }
   if (freshlyDeployed.has('ChannelRegistry') || freshlyDeployed.has('CreatorAssuranceContractFactory')) {
-    const c = adminCapable(await ethers.getContractAt('ChannelRegistry', addresses.ChannelRegistry));
+    const c = await ownerCapable(await ethers.getContractAt('ChannelRegistry', addresses.ChannelRegistry));
     if (!(await c.authorizedFactories(addresses.CreatorAssuranceContractFactory))) await (await c.setFactoryAuthorization(addresses.CreatorAssuranceContractFactory, true)).wait();
   }
   if (freshlyDeployed.has('DelegatableNotes') || freshlyDeployed.has('CreatorAssuranceContractFactory')) {
-    const d = adminCapable(await ethers.getContractAt('DelegatableNotes', addresses.DelegatableNotes));
+    const d = await ownerCapable(await ethers.getContractAt('DelegatableNotes', addresses.DelegatableNotes));
     if (!(await d.authorizedPrimaryMarketFactories(addresses.CreatorAssuranceContractFactory))) await (await d.setPrimaryMarketFactoryAuthorization(addresses.CreatorAssuranceContractFactory, true)).wait();
   }
   if (freshlyDeployed.has('CreatorAssuranceContractFactory') || freshlyDeployed.has('ProspectiveContentRoundFactory')) {
-    const c = await ethers.getContractAt('CreatorAssuranceContractFactory', addresses.CreatorAssuranceContractFactory);
+    const c = await ownerCapable(await ethers.getContractAt('CreatorAssuranceContractFactory', addresses.CreatorAssuranceContractFactory));
     if (!(await c.isAuthorizedProspectiveRoundFactory(addresses.ProspectiveContentRoundFactory))) {
       await (await c.setProspectiveRoundFactoryAuthorization(addresses.ProspectiveContentRoundFactory, true)).wait();
     }
