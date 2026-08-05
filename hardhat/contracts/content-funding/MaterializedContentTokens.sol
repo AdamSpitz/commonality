@@ -14,15 +14,19 @@ error ContentTokenAlreadyClaimed(uint256 contentId, address account);
 error ContentTokenAlreadyAdded(uint256 contentId);
 error InvalidContentId();
 error ArrayLengthMismatch();
+error NonTransferableContentToken();
 
 /**
  * @title MaterializedContentTokens
- * @notice Transferable content-item tokens claimable by holders of a non-transferable
- *      prospective content receipt token.
+ * @notice Non-transferable content-item recognition tokens claimable by holders of a
+ *      non-transferable prospective content receipt token.
  * @dev A creator can add one or more concrete content IDs over time. For each content
- *      ID, every prospective-token holder can claim an equal number of transferable
- *      content tokens. This intentionally relies on prospective receipt tokens being
- *      non-transferable; otherwise claims would require snapshots.
+ *      ID, every prospective-token holder can claim an equal number of content tokens.
+ *      Like every other receipt in the system these are permanent recognition, not a
+ *      tradeable instrument: holder-to-holder transfers are disabled, so money only
+ *      ever comes back to a backer through the assurance contract's capped pro-rata
+ *      reimbursement waterfall. Non-transferability also means claims can read current
+ *      balances directly instead of requiring snapshots.
  */
 contract MaterializedContentTokens is Ownable, ERC1155, ERC1155Burnable, ERC7572, ReentrancyGuard {
     IERC1155 public immutable prospectiveToken;
@@ -94,6 +98,18 @@ contract MaterializedContentTokens is Ownable, ERC1155, ERC1155Burnable, ERC7572
 
     function getContentIds() external view returns (uint256[] memory) {
         return contentIds;
+    }
+
+    /// @dev Recognition tokens are permanent: only minting (claim) and burning may move them.
+    function _update(
+        address from,
+        address to,
+        uint256[] memory ids,
+        uint256[] memory values
+    ) internal override {
+        bool mintOrBurn = from == address(0) || to == address(0);
+        if (!mintOrBurn) revert NonTransferableContentToken();
+        super._update(from, to, ids, values);
     }
 
     function _claim(address account, uint256 contentId) private {

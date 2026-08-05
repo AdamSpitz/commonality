@@ -174,7 +174,7 @@ The UI catches this at creation time by fetching the tweet and verifying the aut
 
 Canonicalization handles the mechanical cases: same URL with different query params, `twitter.com` vs `x.com`, `youtu.be` vs `youtube.com` — these all resolve to the same canonical ID, so the content registry rejects the second registration automatically.
 
-But the interesting duplicate problem is not one canonicalization can solve. What if a creator posts the same (or very similar) text as a new tweet and tries to sell content tokens for both? What about cross-platform reposts? These are content-level duplicates, not URL-level duplicates, and no ID format can detect them.
+But the interesting duplicate problem is not one canonicalization can solve. What if a creator posts the same (or very similar) text as a new tweet and tries to raise funds for both? What about cross-platform reposts? These are content-level duplicates, not URL-level duplicates, and no ID format can detect them.
 
 This requires a social solution: people notice, and they stop funding it. The same way that the broader content funding system relies on social consensus about what's worth funding, it relies on social consensus to not reward obvious duplication. This is not a problem for canonicalization to solve.
 

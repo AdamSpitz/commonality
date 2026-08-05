@@ -7,7 +7,7 @@ There are four pages: Browse Creators, Channel Page, Create Contract, and Creato
 Content Funding supports two round types:
 
 1. **Concrete content contracts** — the original flow. The creator or a fan lists already-published content items up front. Each content item is a token type in the assurance contract.
-2. **Prospective content rounds** — the creator raises funds for a described future chunk of content before concrete content IDs exist. The assurance contract sells one non-transferable receipt token type. Later, as the creator publishes items, they materialize concrete content IDs and receipt holders claim transferable per-content-item tokens.
+2. **Prospective content rounds** — the creator raises funds for a described future chunk of content before concrete content IDs exist. The assurance contract sells one non-transferable receipt token type. Later, as the creator publishes items, they materialize concrete content IDs and receipt holders claim per-content-item recognition tokens (also non-transferable).
 
 UI should present these as user concepts, not contract jargon: **"Fund existing content"** vs **"Fund future content."**
 
@@ -175,7 +175,7 @@ Fields:
 - **Receipt token price** — one price for the single prospective receipt token type.
 - **Funding threshold** — usually `supply * price` if the creator wants full sellout, but the underlying LazyGiving condition is still the source of truth.
 - **Deadline**.
-- **Receipt token metadata URI / contract URI** — should make clear these are non-transferable prospective receipts, not final content-item tokens.
+- **Receipt token metadata URI / contract URI** — should make clear these are prospective receipts, not final content-item tokens. Both kinds are non-transferable.
 
 Creation flow:
 
@@ -187,7 +187,7 @@ Creation flow:
 6. Set the one token price on the assurance contract.
 7. Render it as a prospective content round in project detail pages.
 
-Important UX copy: prospective receipt tokens are **not transferable**. They are receipts that entitle the original backer to claim content-item tokens when the creator materializes actual content. The later materialized content tokens are transferable.
+Important UX copy: prospective receipt tokens are **not transferable**. They are receipts that entitle the original backer to claim content-item tokens when the creator materializes actual content. The later materialized content tokens are **not transferable either** — both are permanent recognition for having backed the work. A backer's money only ever comes back through the contract's capped pro-rata reimbursement waterfall, never through a sale.
 
 
 ## Materialize Future Content Flow
@@ -196,7 +196,7 @@ Important UX copy: prospective receipt tokens are **not transferable**. They are
 
 Shown only to the verified creator/channel owner for a prospective content round.
 
-Purpose: link newly published concrete content to a funded prospective round and let original backers claim transferable content-item tokens.
+Purpose: link newly published concrete content to a funded prospective round and let original backers claim their content-item recognition tokens.
 
 Fields:
 
@@ -221,7 +221,7 @@ Claim behavior:
 - A holder can claim once per content ID.
 - Claim amount equals `ProspectiveContentTokens.balanceOf(holder, receiptTokenId)`.
 - Anyone can call `claimFor(holder, contentId)`, but the normal UI should have connected users call `claim(contentId)` for themselves.
-- Claimed materialized content tokens are transferable; prospective receipt tokens remain non-transferable.
+- Both claimed materialized content tokens and prospective receipt tokens are non-transferable; `MaterializedContentTokens._update` reverts with `NonTransferableContentToken` on any holder-to-holder transfer. Do not present a transfer, sale, or listing affordance for either.
 
 Channel page/project detail should show prospective rounds with a timeline:
 

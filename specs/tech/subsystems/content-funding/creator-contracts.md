@@ -18,7 +18,7 @@ A single creator contract lists specific content items:
 2. Each content item becomes a token type in the ERC-1155 contract, with a configurable supply and price.
 3. Donors choose which content items to fund by buying tokens of that type. Third-party contract creators must make an initial token purchase during creation. To fund the creator without expressing a preference, buy some of each.
 4. Funds go into the assurance contract. If the contract's threshold is met, the creator gets the funds; for unclaimed channels, successful funds are moved into the channel escrow first. If not, token holders can reclaim.
-5. After funding, tokens are tradeable on secondary markets — at the per-content-item level.
+5. Tokens are permanent, non-transferable recognition receipts. Money comes back to an early funder only through the inherited [reimbursement waterfall](/specs/product/legal/retroactive-funding-redesign.md): later retroactive donors reimburse earlier contributors pro-rata, at cost, capped at what they put in. There is no secondary market and no resale.
 
 ## Contracts as "rounds"
 
@@ -28,23 +28,29 @@ Each contract represents a funding round for a batch of content. Once funded and
 
 Future content can be funded before concrete content IDs exist by using a one-token-type LazyGiving assurance contract backed by non-transferable prospective receipt tokens. These receipt tokens are intentionally not tradeable between holders; they can only move through the primary market for the initial purchase/refund flow. This keeps the entitlement table stable without snapshot or Merkle-drop machinery.
 
-After the creator publishes content, they materialize one or more concrete content IDs. For each materialized content item, every prospective receipt holder can claim transferable content-item tokens equal to their prospective-token balance. The resulting content-item tokens are ordinary transferable ERC-1155s, so early backers can still sell the tokens for the actual pieces of content once those pieces exist.
+After the creator publishes content, they materialize one or more concrete content IDs. For each materialized content item, every prospective receipt holder can claim content-item tokens equal to their prospective-token balance. Those materialized tokens are **also non-transferable** (`MaterializedContentTokens._update` rejects holder-to-holder transfers, allowing only mint-on-claim and burn) — they are permanent recognition for having backed the round, not a tradeable instrument. Non-transferability is what lets `_claim` read current prospective balances directly rather than snapshotting.
 
 A prospective round may materialize content gradually: if a creator funds "June housing explainers," each explainer can be added as it is published, and backers can claim that item's content tokens immediately. The MVP uses creator self-finalization; reputation and the public round description carry the delivery semantics rather than an on-chain evaluator.
 
 ## Supply and pricing
 
-**Supply per content item** is configurable per contract or per content item. Lower supply (e.g., 10 tokens) means more scarcity and stronger speculative incentives but fewer primary-market participants. Higher supply (e.g., 500 tokens) means broader access but a diluted scarcity signal. The contract creator sets this based on the expected donor base and desired price point.
+**Supply per content item** is configurable per contract or per content item. It functions purely as a price/participation dial: supply × price is what the item can raise, so lower supply (e.g., 10 tokens) implies a higher per-token contribution and fewer participants, while higher supply (e.g., 500 tokens) implies broader access at a smaller ticket size. The contract creator sets this based on the expected donor base and desired price point. (Supply is *not* a scarcity or speculation lever — the tokens are non-transferable and cannot appreciate.)
 
 **Price tiers.** Existing LazyGiving contracts use different token types for different price tiers ($5, $25, $100 "Gold Supporter" etc.). With token types now representing content items, explicit tiers go away — but a donor who wants to contribute $50 to a $5-per-token content item just buys 10. The granularity of having many tokens per item handles this naturally. Cosmetic tier differences (badges, etc.) can move to a quantity-held basis if anyone cares.
 
 ## Why per-content-item tokens matter
 
-The per-content-item granularity is what makes the secondary market interesting. A tweet that goes viral as a model of good discourse sees its token price rise, directly rewarding early supporters who identified it. Without per-item tokens, the secondary market would operate at the creator level, which is coarser and less responsive to individual content quality.
+Per-content-item granularity is how a funder expresses *which piece* they are backing, rather than just "this creator." That drives three things:
+
+- **A fine-grained demand signal.** The creator can see which specific posts people were willing to pay for — the signal the ad model never gives them.
+- **The content-registry invariant.** Token type IDs *are* content ID hashes, which is what lets the [content registry](content-registry.md) enforce "each content item appears in at most one active contract."
+- **Per-item recognition.** A receipt names the exact piece you helped fund, so leaderboards and track records can be attributed at the item level.
+
+This rationale used to be stated in terms of a secondary market, where per-item tokens let a viral piece's price rise and reward whoever spotted it. That market has been [deleted](/specs/product/legal/retroactive-funding-redesign.md); per-item tokens survive on the grounds above, not on price discovery.
 
 ## Retroactive funding
 
-Retroactive funding is arguably the *best* fit for content. Creators publish first, let the actual reception prove quality, *then* get retroactively funded via the token model. Early supporters who bet on a creator's quality can later sell their per-content-item tokens to altruistic donors who arrive later. The proof-of-quality is baked into the retroactive model.
+Retroactive funding is arguably the *best* fit for content. Creators publish first, let the actual reception prove quality, *then* get retroactively funded. Because `CreatorAssuranceContract` extends `MultiERC1155AssuranceContract`, it inherits the reimbursement waterfall unchanged: a scout who funded a piece early gets reimbursed pro-rata **at cost, capped at their own contribution**, out of donations from later supporters who close the loop. The scout's reward is getting the same giving budget back to spend on the next piece, plus a public track record — never interest, a premium, or a profit.
 
 ## Delegation
 
@@ -60,6 +66,6 @@ Not much. The actual new infrastructure is:
 
 These four contracts (ContentRegistry, ChannelRegistry, ChannelEscrow, CreatorAssuranceContractFactory) are deployed as a [per-platform set](README.md#per-platform-deployment). The factory, registry, escrow, and channel-claiming contracts for Twitter are separate deployments from the YouTube ones, etc.
 
-The ERC-1155 structure, threshold/deadline mechanics, escrow, secondary market, and delegation all come from LazyGiving unchanged.
+The ERC-1155 structure, threshold/deadline mechanics, escrow, reimbursement waterfall, and delegation all come from LazyGiving unchanged.
 
 To create social-recognition incentives for owning the tokens, the contribution leaderboards may need to be specialized for this system, because they should show "who owns (or has burned) the tokens for this content item" as well as "who owns (or has burned) the tokens for this creator".

@@ -106,7 +106,7 @@ describe("Prospective content funding", function () {
     ).to.be.revertedWithCustomError(prospectiveToken, "NonTransferableReceipt");
   });
 
-  it("lets prospective holders claim transferable tokens for each materialized content item", async function () {
+  it("lets prospective holders claim recognition tokens for each materialized content item", async function () {
     await materialized.connect(creator).addContentBatch(
       [contentIdA, contentIdB],
       ["twitter:uid:creator:post-a", "twitter:uid:creator:post-b"]
@@ -119,10 +119,26 @@ describe("Prospective content funding", function () {
     expect(await materialized.balanceOf(alice.address, contentIdA)).to.equal(10n);
     expect(await materialized.balanceOf(alice.address, contentIdB)).to.equal(10n);
     expect(await materialized.balanceOf(bob.address, contentIdA)).to.equal(5n);
+  });
 
-    await materialized.connect(alice).safeTransferFrom(alice.address, bob.address, contentIdA, 2, "0x");
-    expect(await materialized.balanceOf(alice.address, contentIdA)).to.equal(8n);
-    expect(await materialized.balanceOf(bob.address, contentIdA)).to.equal(7n);
+  it("prevents holder-to-holder transfers of materialized content tokens", async function () {
+    await materialized.connect(creator).addContent(contentIdA, "twitter:uid:creator:post-a");
+    await materialized.connect(alice).claim(contentIdA);
+
+    await expect(
+      materialized.connect(alice).safeTransferFrom(alice.address, bob.address, contentIdA, 2, "0x")
+    ).to.be.revertedWithCustomError(materialized, "NonTransferableContentToken");
+
+    expect(await materialized.balanceOf(alice.address, contentIdA)).to.equal(10n);
+    expect(await materialized.balanceOf(bob.address, contentIdA)).to.equal(0n);
+  });
+
+  it("still allows burning a materialized content token", async function () {
+    await materialized.connect(creator).addContent(contentIdA, "twitter:uid:creator:post-a");
+    await materialized.connect(alice).claim(contentIdA);
+
+    await materialized.connect(alice).burn(alice.address, contentIdA, 3);
+    expect(await materialized.balanceOf(alice.address, contentIdA)).to.equal(7n);
   });
 
   it("prevents double claiming a materialized content item", async function () {

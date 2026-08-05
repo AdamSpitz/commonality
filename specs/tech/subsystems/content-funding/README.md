@@ -38,7 +38,7 @@ The UI maintains a list of known platform contract sets. Assurance contracts cre
 
 2. **Independent namespace governance.** If the ContentRegistry were shared across platforms, the first person to deploy Bluesky contracts would start claiming content IDs in that namespace, blocking anyone else's competing Bluesky deployment. Per-platform registries mean competing deployments each have their own content-item space — the UI decides which to trust.
 
-3. **Clean upgrades.** When contracts need updating, the UI config can specify "this was the YouTube contract set valid until timestamp X, and this new one after." Old contracts keep working on-chain (refunds, withdrawals, secondary trading), but the UI stops creating new contracts through the old factory.
+3. **Clean upgrades.** When contracts need updating, the UI config can specify "this was the YouTube contract set valid until timestamp X, and this new one after." Old contracts keep working on-chain (refunds, withdrawals, retroactive donations and reimbursements), but the UI stops creating new contracts through the old factory.
 
 ### UI configuration
 
@@ -72,7 +72,7 @@ Creator assurance contracts don't need a free-text description of which content 
 
 Content funding builds on top of existing Commonality infrastructure:
 
-- **LazyGiving**: Creator contracts are a specialization of LazyGiving assurance contracts. The ERC-1155 structure, threshold/deadline mechanics, and secondary market all come from LazyGiving. The new piece is using token type IDs to represent content items (via content ID hashes) rather than price tiers.
+- **LazyGiving**: Creator contracts are a specialization of LazyGiving assurance contracts. The ERC-1155 structure, threshold/deadline mechanics, non-transferable receipts, and the capped pro-rata reimbursement waterfall all come from LazyGiving. The new piece is using token type IDs to represent content items (via content ID hashes) rather than price tiers.
 - **Conceptspace**: Content is funded *for a reason*, expressed as alignment with statements in conceptspace. The same alignment-attestation and implication-graph mechanics connect content funding to causes.
 - **Delegation**: "I delegate $20/month toward noninflammatory political content" works unchanged — the delegate picks creators and content items on the donor's behalf.
 - **Cause boards**: A specialized cause board for content funding is a natural extension of the existing Aligning UI.
