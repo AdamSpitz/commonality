@@ -23,7 +23,7 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy'
 import OpenInNewIcon from '@mui/icons-material/OpenInNew'
 import { ETH_CURRENCY, type Currency } from '@commonality/sdk/utils'
 import { useAccount } from 'wagmi'
-import { parseCanonicalChannelId, getChannelOverview, getContentItemKey, hashCanonicalId, type ChannelOverview, type ContentFundingContractSummary, type ContentItem, type ChannelState } from '@commonality/sdk/content-funding'
+import { parseCanonicalChannelId, getChannelOverview, getContentItemKey, getProspectiveRounds, hashCanonicalId, type ChannelOverview, type ContentFundingContractSummary, type ContentItem, type ChannelState, type ProspectiveRoundSummary } from '@commonality/sdk/content-funding'
 import { useContentFundingState, type ContentAttestationInfo } from '../hooks/useContentFundingState'
 import { getChannelDisplayLabels } from '../channelDisplay'
 import { formatCurrencyAmount } from '../../shared'
@@ -324,8 +324,9 @@ export function ChannelPage({
   contractPathForAddress = contentContractPathForAddress,
 }: ChannelPageProps) {
   const { platform, channelId: channelIdParam } = useParams<{ platform: string; channelId: string }>()
-  const { state, projects, channels, aggregationChannels, loading, error, contentAttestations, channelDisplayMetadata = new Map() } = useContentFundingState()
+  const { state, projects, channels, aggregationChannels, loading, error, contentAttestations, channelDisplayMetadata = new Map(), machinery } = useContentFundingState()
   const [claimModalOpen, setClaimModalOpen] = useState(false)
+  const [prospectiveRounds, setProspectiveRounds] = useState<ProspectiveRoundSummary[]>([])
   const [showTrustedOnly, setShowTrustedOnly] = useState(false)
   const trustedAttesters = useTrustedContentAttesters()
   const { address } = useAccount()
@@ -361,6 +362,20 @@ export function ChannelPage({
       ? aggregationChannels?.find((channel) => channel.canonicalChannelId === canonicalChannelId) ?? overview
       : null
   ), [aggregationChannels, canonicalChannelId, overview])
+
+  useEffect(() => {
+    if (!canonicalChannelId || !machinery) return
+    let cancelled = false
+    getProspectiveRounds(machinery).then((rounds) => {
+      if (!cancelled) {
+        const channelIdHash = hashCanonicalId(canonicalChannelId).toLowerCase()
+        setProspectiveRounds(rounds.filter((round) => round.channelIdHash.toLowerCase() === channelIdHash))
+      }
+    }).catch(() => {
+      if (!cancelled) setProspectiveRounds([])
+    })
+    return () => { cancelled = true }
+  }, [canonicalChannelId, machinery])
 
   if (loading) {
     return (
@@ -546,7 +561,7 @@ export function ChannelPage({
       )}
 
       {/* Contracts List */}
-      {contracts.length > 0 && (
+      {(contracts.length > 0 || prospectiveRounds.length > 0) && (
         <Box sx={{ mb: 3 }}>
           <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1.5}>
             <Typography variant="h5">
@@ -562,6 +577,29 @@ export function ChannelPage({
             </Button>
           </Stack>
           <Stack spacing={1.5}>
+            {prospectiveRounds.map((round) => (
+              <Paper key={round.round} variant="outlined" sx={{ p: 2 }}>
+                <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" spacing={2}>
+                  <Box>
+                    <Stack direction="row" spacing={1} sx={{ mb: 1 }}>
+                      <Chip label="Future content" color="primary" size="small" />
+                      {round.materializedToken && <Chip label="Materialized" color="success" size="small" />}
+                    </Stack>
+                    <Typography variant="body2" color="text.secondary">
+                      Back a promised body of future work and receive non-transferable supporter receipts.
+                    </Typography>
+                  </Box>
+                  <Stack direction="row" spacing={1} alignItems="center">
+                    <Button component={RouterLink} to={contractPathForAddress(round.round)} variant="contained" size="small">
+                      View and fund
+                    </Button>
+                    <Button component={RouterLink} to={`/content/${platform ?? parsedChannel?.platform ?? 'unknown'}/${encodeURIComponent(canonicalChannelId)}/prospective/${round.round}/materialize`} variant="outlined" size="small">
+                      Fulfill or claim
+                    </Button>
+                  </Stack>
+                </Stack>
+              </Paper>
+            ))}
             {contracts.map((contract) => (
               <ContractCard
                 key={contract.contractAddress}
@@ -573,7 +611,7 @@ export function ChannelPage({
         </Box>
       )}
 
-      {contracts.length === 0 && (
+      {contracts.length === 0 && prospectiveRounds.length === 0 && (
         <Paper sx={{ p: 3, mb: 3, textAlign: 'center' }}>
           <Typography color="text.secondary" sx={{ mb: 2 }}>{emptyCampaignState}</Typography>
           <Button

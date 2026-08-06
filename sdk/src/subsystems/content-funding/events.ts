@@ -52,6 +52,26 @@ export interface CreatorContractCreatedEvent extends RawEvent {
   isThirdParty: boolean;
 }
 
+export interface ProspectiveRoundCreatedEvent extends RawEvent {
+  type: 'ProspectiveRoundCreated'; round: `0x${string}`; channelId: string;
+  receiptToken: `0x${string}`; receiptTokenId: bigint; condition: `0x${string}`;
+}
+export interface ProspectiveRoundMaterializedEvent extends RawEvent {
+  type: 'ProspectiveRoundMaterialized'; round: `0x${string}`; tokenContract: `0x${string}`;
+}
+export interface ContentMaterializedEvent extends RawEvent {
+  type: 'ContentMaterialized'; contentId: bigint; canonicalId: string;
+}
+export interface ContentTokenClaimedEvent extends RawEvent {
+  type: 'ContentTokenClaimed'; account: `0x${string}`; contentId: bigint; amount: bigint;
+}
+
+export type ProspectiveContentEvent =
+  | ProspectiveRoundCreatedEvent
+  | ProspectiveRoundMaterializedEvent
+  | ContentMaterializedEvent
+  | ContentTokenClaimedEvent;
+
 export type ContentFundingEvent =
   | ContentItemRegisteredEvent
   | ContentItemReleasedEvent
@@ -60,7 +80,11 @@ export type ContentFundingEvent =
   | ContractVetoedEvent
   | DepositedEvent
   | WithdrawnEvent
-  | CreatorContractCreatedEvent;
+  | CreatorContractCreatedEvent
+  | ProspectiveRoundCreatedEvent
+  | ProspectiveRoundMaterializedEvent
+  | ContentMaterializedEvent
+  | ContentTokenClaimedEvent;
 
 export type ContentFundingEventNames =
   | 'ContentItemRegistered'
@@ -70,4 +94,8 @@ export type ContentFundingEventNames =
   | 'ContractVetoed'
   | 'Deposited'
   | 'Withdrawn'
-  | 'CreatorContractCreated';
+  | 'CreatorContractCreated'
+  | 'ProspectiveRoundCreated'
+  | 'ProspectiveRoundMaterialized'
+  | 'ContentMaterialized'
+  | 'ContentTokenClaimed';

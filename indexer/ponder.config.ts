@@ -38,6 +38,8 @@ import { ContentRegistryAbi } from "./abis/ContentRegistryAbi";
 import { ChannelRegistryAbi } from "./abis/ChannelRegistryAbi";
 import { ChannelEscrowAbi } from "./abis/ChannelEscrowAbi";
 import { CreatorAssuranceContractFactoryAbi } from "./abis/CreatorAssuranceContractFactoryAbi";
+import { ProspectiveContentRoundFactoryAbi } from "./abis/ProspectiveContentRoundFactoryAbi";
+import { MaterializedContentTokensAbi } from "./abis/MaterializedContentTokensAbi";
 
 const SUPPORTED_CHAINS = ["hardhat", "base-sepolia", "mainnet"] as const;
 type SupportedChain = (typeof SUPPORTED_CHAINS)[number];
@@ -73,6 +75,23 @@ function getRpcTransport(url: string | undefined) {
       })
     : undefined;
 }
+
+const prospectiveRoundCreatedEvent = {
+  type: "event",
+  name: "ProspectiveRoundCreated",
+  inputs: [
+    { name: "round", type: "address", indexed: true },
+    { name: "channelId", type: "bytes32", indexed: true },
+    { name: "receiptToken", type: "address", indexed: true },
+    { name: "receiptTokenId", type: "uint256", indexed: false },
+    { name: "condition", type: "address", indexed: false },
+  ],
+} as const;
+
+const prospectiveRoundMaterializedEvent = {
+  type: "event", name: "ProspectiveRoundMaterialized",
+  inputs: [{ name: "round", type: "address", indexed: true }, { name: "tokenContract", type: "address", indexed: true }],
+} as const;
 
 const creatorContractCreatedEvent = {
   type: "event",
@@ -185,6 +204,7 @@ const CONTENT_REGISTRY_DEPLOYMENTS = getDeployments("ContentRegistry", "CONTENT_
 const CHANNEL_REGISTRY_DEPLOYMENTS = getDeployments("ChannelRegistry", "CHANNEL_REGISTRY_ADDRESS", CONTENT_FUNDING_START_BLOCK);
 const CHANNEL_ESCROW_DEPLOYMENTS = getDeployments("ChannelEscrow", "CHANNEL_ESCROW_ADDRESS", CONTENT_FUNDING_START_BLOCK);
 const CREATOR_CONTRACT_FACTORY_DEPLOYMENTS = getDeployments("CreatorAssuranceContractFactory", "CREATOR_CONTRACT_FACTORY_ADDRESS", CONTENT_FUNDING_START_BLOCK);
+const PROSPECTIVE_FACTORY_DEPLOYMENTS = getDeployments("ProspectiveContentRoundFactory", "PROSPECTIVE_CONTENT_ROUND_FACTORY_ADDRESS", CONTENT_FUNDING_START_BLOCK);
 
 const ETH_GET_LOGS_BLOCK_RANGE = process.env.PONDER_ETH_GET_LOGS_BLOCK_RANGE
   ? Number(process.env.PONDER_ETH_GET_LOGS_BLOCK_RANGE)
@@ -375,6 +395,36 @@ const contracts = {
     abi: CreatorAssuranceContractFactoryAbi,
     chain: chainForContract("default"),
     ...deploymentConfig(CREATOR_CONTRACT_FACTORY_DEPLOYMENTS, CONTENT_FUNDING_START_BLOCK),
+  },
+
+  ProspectiveContentRoundFactory: {
+    abi: ProspectiveContentRoundFactoryAbi,
+    chain: chainForContract("default"),
+    ...deploymentConfig(PROSPECTIVE_FACTORY_DEPLOYMENTS, CONTENT_FUNDING_START_BLOCK),
+  },
+
+  MaterializedContentTokens: {
+    abi: MaterializedContentTokensAbi,
+    chain: chainForContract("default"),
+    address: factoryAddress(PROSPECTIVE_FACTORY_DEPLOYMENTS)
+      ? factory({ ...factoryAddress(PROSPECTIVE_FACTORY_DEPLOYMENTS)!, event: prospectiveRoundMaterializedEvent, parameter: "tokenContract" })
+      : undefined,
+    startBlock: CONTENT_FUNDING_START_BLOCK,
+  },
+
+  // Prospective rounds use the same assurance-contract event surface as
+  // creator contracts, so index them for the shared backing/details UI.
+  ProspectiveContentAssuranceContract: {
+    abi: AssuranceContractAbi,
+    chain: chainForContract("default"),
+    address: factoryAddress(PROSPECTIVE_FACTORY_DEPLOYMENTS)
+      ? factory({
+          ...factoryAddress(PROSPECTIVE_FACTORY_DEPLOYMENTS)!,
+          event: prospectiveRoundCreatedEvent,
+          parameter: "round",
+        })
+      : undefined,
+    startBlock: CONTENT_FUNDING_START_BLOCK,
   },
 
   // Dynamically indexed creator assurance contracts (created by factory)

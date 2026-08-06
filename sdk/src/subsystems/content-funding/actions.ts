@@ -5,6 +5,7 @@
 import { type Address, type Hash, type Abi, parseEventLogs } from 'viem';
 import { type WriteClients } from '../../utils/ethereum.js';
 import { hashCanonicalId, parseContentFundingUrl } from './canonicalization.js';
+import { MaterializedContentTokensAbi, ProspectiveContentRoundFactoryAbi } from '../../abis.js';
 
 /** Contract instance for the CreatorAssuranceContractFactory. */
 export interface ContentFundingContract {
@@ -275,6 +276,65 @@ export async function createContentFundingContract(
       isThirdParty: args.isThirdParty,
     },
   };
+}
+
+/** Parameters for atomically creating a channel-bound future-content round. */
+export interface CreateProspectiveRoundParams {
+  channelCanonicalId: string;
+  tokenId: bigint;
+  supply: bigint;
+  price: bigint;
+  threshold: bigint;
+  deadline: bigint;
+  metadataCid: string;
+  receiptMetadataUri: string;
+  receiptContractUri: string;
+}
+
+/** Create a prospective round and return its authoritative addresses from the receipt. */
+export async function createProspectiveRound(
+  clients: WriteClients,
+  factoryAddress: Address,
+  params: CreateProspectiveRoundParams,
+): Promise<{ hash: Hash; roundAddress: Address; receiptTokenAddress: Address; conditionAddress: Address }> {
+  const hash = await clients.walletClient.writeContract({
+    address: factoryAddress,
+    abi: ProspectiveContentRoundFactoryAbi,
+    functionName: 'createProspectiveRound',
+    args: [{ ...params, channelId: hashCanonicalId(params.channelCanonicalId) }],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
+  });
+  const receipt = await clients.publicClient.waitForTransactionReceipt({ hash });
+  const [event] = parseEventLogs({ abi: ProspectiveContentRoundFactoryAbi, eventName: 'ProspectiveRoundCreated', logs: receipt.logs });
+  if (!event) throw new Error('Failed to find ProspectiveRoundCreated event in transaction receipt');
+  return { hash, roundAddress: event.args.round, receiptTokenAddress: event.args.receiptToken, conditionAddress: event.args.condition };
+}
+
+/** Create the one materialized collection for a successful prospective round. */
+export async function createMaterializedContentTokens(
+  clients: WriteClients, factoryAddress: Address, roundAddress: Address, metadataUri: string, contractUri: string,
+): Promise<{ hash: Hash; tokenContract: Address }> {
+  const hash = await clients.walletClient.writeContract({ address: factoryAddress, abi: ProspectiveContentRoundFactoryAbi, functionName: 'createMaterializedContentTokens', args: [roundAddress, metadataUri, contractUri], chain: clients.walletClient.chain, account: clients.walletClient.account! });
+  const receipt = await clients.publicClient.waitForTransactionReceipt({ hash });
+  const [event] = parseEventLogs({ abi: ProspectiveContentRoundFactoryAbi, eventName: 'ProspectiveRoundMaterialized', logs: receipt.logs });
+  if (!event) throw new Error('Failed to find ProspectiveRoundMaterialized event in transaction receipt');
+  return { hash, tokenContract: event.args.tokenContract };
+}
+
+/** Add fulfilled content suffixes to a materialized collection. */
+export async function addMaterializedContent(clients: WriteClients, tokenContract: Address, suffixes: string[]): Promise<{ hash: Hash }> {
+  if (suffixes.length === 0) throw new Error('At least one content suffix is required');
+  const hash = await clients.walletClient.writeContract({ address: tokenContract, abi: MaterializedContentTokensAbi, functionName: suffixes.length === 1 ? 'addContent' : 'addContentBatch', args: suffixes.length === 1 ? [suffixes[0]!] : [suffixes], chain: clients.walletClient.chain, account: clients.walletClient.account! });
+  await clients.publicClient.waitForTransactionReceipt({ hash });
+  return { hash };
+}
+
+/** Claim recognition for one materialized content item. */
+export async function claimMaterializedContent(clients: WriteClients, tokenContract: Address, contentId: bigint): Promise<{ hash: Hash }> {
+  const hash = await clients.walletClient.writeContract({ address: tokenContract, abi: MaterializedContentTokensAbi, functionName: 'claim', args: [contentId], chain: clients.walletClient.chain, account: clients.walletClient.account! });
+  await clients.publicClient.waitForTransactionReceipt({ hash });
+  return { hash };
 }
 
 /**
