@@ -22,6 +22,7 @@ import {
   getOwnerForCanonicalChannelId,
   getVetoableContracts,
   foldProspectiveRounds,
+  getMaterializedClaimStates,
 } from './queries.js';
 import type { Project } from '../lazy-giving/types.js';
 import { createSDKMachinery } from '../../machinery.js';
@@ -149,6 +150,50 @@ function makeProject(overrides: Partial<Project> = {}): Project {
 }
 
 describe('content-funding query helpers', () => {
+  it('reports per-item claim state against the receipt balance', async () => {
+    const claimedByContentId = new Map<bigint, bigint>([[1n, 0n], [2n, 3n], [3n, 5n]]);
+    const machinery = {
+      publicClient: {
+        async readContract({ functionName, args }: { functionName: string; args?: readonly unknown[] }) {
+          if (functionName === 'prospectiveToken') return CONTRACT_B;
+          if (functionName === 'prospectiveTokenId') return 0n;
+          if (functionName === 'balanceOf') return 5n;
+          if (functionName === 'claimedAmount') return claimedByContentId.get(args![0] as bigint)!;
+          throw new Error(`unexpected read: ${functionName}`);
+        },
+      },
+    } as unknown as Parameters<typeof getMaterializedClaimStates>[0];
+
+    assert.deepStrictEqual(
+      await getMaterializedClaimStates(machinery, CONTRACT_A, OWNER_A, [1n, 2n, 3n]),
+      [
+        { contentId: 1n, entitlement: 5n, claimed: 0n, claimable: 5n },
+        // Claimed some, then bought more receipts: the remainder stays claimable.
+        { contentId: 2n, entitlement: 5n, claimed: 3n, claimable: 2n },
+        { contentId: 3n, entitlement: 5n, claimed: 5n, claimable: 0n },
+      ],
+    );
+  });
+
+  it('reports nothing claimable once receipts are gone but claims remain on record', async () => {
+    const machinery = {
+      publicClient: {
+        async readContract({ functionName }: { functionName: string }) {
+          if (functionName === 'prospectiveToken') return CONTRACT_B;
+          if (functionName === 'prospectiveTokenId') return 0n;
+          if (functionName === 'balanceOf') return 2n;
+          if (functionName === 'claimedAmount') return 4n;
+          throw new Error(`unexpected read: ${functionName}`);
+        },
+      },
+    } as unknown as Parameters<typeof getMaterializedClaimStates>[0];
+
+    assert.deepStrictEqual(
+      await getMaterializedClaimStates(machinery, CONTRACT_A, OWNER_A, [1n]),
+      [{ contentId: 1n, entitlement: 2n, claimed: 4n, claimable: 0n }],
+    );
+  });
+
   it('folds prospective-round events by chain order rather than fetch order', () => {
     const round = CONTRACT_A;
     const token = CONTRACT_B;

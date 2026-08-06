@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link as RouterLink, useParams } from 'react-router-dom'
 import {
   Alert,
@@ -14,7 +14,7 @@ import {
 import AddIcon from '@mui/icons-material/Add'
 import DeleteIcon from '@mui/icons-material/Delete'
 import { useAccount } from 'wagmi'
-import { addMaterializedContent, claimMaterializedContent, createMaterializedContentTokens, getMaterializedContentOnchain, getProspectiveRoundOnchainState, hashCanonicalId, parseContentFundingUrl } from '@commonality/sdk/content-funding'
+import { addMaterializedContent, claimMaterializedContent, createMaterializedContentTokens, getMaterializedClaimStates, getMaterializedContentOnchain, getProspectiveRoundOnchainState, hashCanonicalId, parseContentFundingUrl, type MaterializedContentClaimState } from '@commonality/sdk/content-funding'
 import { getChannelDisplayLabels } from '../channelDisplay'
 import { useMachinery, useWriteClients } from '../../shared'
 import { usePlatformApi } from '../hooks/usePlatformApi'
@@ -26,6 +26,39 @@ interface MaterializedContentRow {
 
 function newRow(): MaterializedContentRow {
   return { id: Math.random().toString(36).slice(2), url: '' }
+}
+
+function clearClaimStates(previous: Map<string, MaterializedContentClaimState>) {
+  return previous.size === 0 ? previous : new Map<string, MaterializedContentClaimState>()
+}
+
+/**
+ * Describe one account's position on a content item, stating both numbers
+ * rather than hiding a mismatch between them.
+ *
+ * Entitlement is the CURRENT receipt balance while claimed is permanent, so an
+ * account that claimed and later burned receipts shows more claimed than it now
+ * holds. Receipts are non-transferable, so burning is the only way this
+ * happens. That surplus is reported outright rather than hidden.
+ *
+ * Note what is not knowable here: claims forgone by burning receipts BEFORE an
+ * item was materialized would need the receipt token's transfer history to
+ * establish a high-water mark. Neither claimedAmount nor ContentTokenClaimed
+ * records it, so this never implies a forgone figure it cannot support. See
+ * specs/tech/subsystems/content-funding/materialization.md for the open
+ * question about whether this model should change.
+ */
+function claimSummary({ entitlement, claimed, claimable }: MaterializedContentClaimState): string {
+  if (claimable > 0n) {
+    return claimed > 0n
+      ? `${claimable.toString()} claimable · ${claimed.toString()} of ${entitlement.toString()} receipts already claimed`
+      : `${claimable.toString()} claimable · ${entitlement.toString()} receipts held`
+  }
+  if (claimed === 0n) return 'No receipts for this round, so nothing to claim.'
+  if (claimed > entitlement) {
+    return `Claimed ${claimed.toString()} · only ${entitlement.toString()} receipts held now, so nothing further is claimable`
+  }
+  return `Claimed ${claimed.toString()} of ${entitlement.toString()}`
 }
 
 export function MaterializeFutureContentPage() {
@@ -48,6 +81,24 @@ export function MaterializeFutureContentPage() {
   const [success, setSuccess] = useState<string | null>(null)
   const [materializedContent, setMaterializedContent] = useState<{ contentId: bigint; canonicalId: string }[]>([])
   const [claimingContentId, setClaimingContentId] = useState<bigint | null>(null)
+  const [claimStates, setClaimStates] = useState<Map<string, MaterializedContentClaimState>>(new Map())
+
+  const refreshClaimStates = useCallback(async (token: `0x${string}` | null, content: { contentId: bigint }[]) => {
+    // Keep the identity of an already-empty map: this runs from an effect, so a
+    // fresh Map each time would re-render on every dependency change.
+    if (!token || !address || content.length === 0) { setClaimStates(clearClaimStates); return }
+    try {
+      const states = await getMaterializedClaimStates(machinery, token, address, content.map((item) => item.contentId))
+      setClaimStates(new Map(states.map((state) => [state.contentId.toString(), state])))
+    } catch {
+      // Claim state is supplementary: a failed read must not hide the content list.
+      setClaimStates(clearClaimStates)
+    }
+  }, [address, machinery])
+
+  useEffect(() => {
+    void refreshClaimStates(materializedToken, materializedContent)
+  }, [materializedToken, materializedContent, refreshClaimStates])
 
   useEffect(() => {
     if (!roundAddress || !canonicalChannelId) return
@@ -99,6 +150,7 @@ export function MaterializeFutureContentPage() {
     try {
       const result = await claimMaterializedContent(clients, materializedToken, contentId)
       setSuccess(`Claimed content recognition. Transaction: ${result.hash}`)
+      await refreshClaimStates(materializedToken, materializedContent)
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'Claim failed')
     } finally {
@@ -192,16 +244,25 @@ export function MaterializeFutureContentPage() {
             <Box>
               <Typography variant="h6" gutterBottom>Materialized content</Typography>
               <Stack spacing={1}>
-                {materializedContent.map((item) => (
-                  <Paper key={item.contentId.toString()} variant="outlined" sx={{ p: 1.5 }}>
-                    <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ sm: 'center' }} spacing={1}>
-                      <Typography variant="body2" sx={{ wordBreak: 'break-all' }}>{item.canonicalId}</Typography>
-                      <Button disabled={!isConnected || claimingContentId !== null} onClick={() => { void claim(item.contentId) }} size="small" variant="outlined">
-                        {claimingContentId === item.contentId ? 'Claiming…' : 'Claim my content tokens'}
-                      </Button>
-                    </Stack>
-                  </Paper>
-                ))}
+                {materializedContent.map((item) => {
+                  const claimState = claimStates.get(item.contentId.toString())
+                  const nothingToClaim = claimState !== undefined && claimState.claimable === 0n
+                  return (
+                    <Paper key={item.contentId.toString()} variant="outlined" sx={{ p: 1.5 }}>
+                      <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ sm: 'center' }} spacing={1}>
+                        <Box>
+                          <Typography variant="body2" sx={{ wordBreak: 'break-all' }}>{item.canonicalId}</Typography>
+                          {claimState && (
+                            <Typography variant="caption" color="text.secondary">{claimSummary(claimState)}</Typography>
+                          )}
+                        </Box>
+                        <Button disabled={!isConnected || claimingContentId !== null || nothingToClaim} onClick={() => { void claim(item.contentId) }} size="small" variant="outlined">
+                          {claimingContentId === item.contentId ? 'Claiming…' : nothingToClaim ? 'Claimed' : 'Claim my content tokens'}
+                        </Button>
+                      </Stack>
+                    </Paper>
+                  )
+                })}
               </Stack>
             </Box>
           )}
