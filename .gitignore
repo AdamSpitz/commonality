@@ -32,3 +32,9 @@ tmp/
 /hardhat/.coverage_cache/
 /hardhat/.coverage_contracts/
 
+
+# Local build outputs for new packages
+ui2/dist/
+cause-assist/dist/
+
+ui2/.env

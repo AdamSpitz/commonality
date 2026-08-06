@@ -107,7 +107,7 @@ check_existing_containers() {
 
 print_spa_urls() {
     local found=false
-    for domain in commonality lazyGiving alignment tally content-funding civility common-sense-majority conceptspace; do
+    for domain in commonality lazyGiving alignment tally content-funding civility common-sense-majority conceptspace causestarter; do
         local stable_file="$UI_IPFS_ARTIFACT_DIR/$domain/stable-url.txt"
         local spa_file="$UI_IPFS_ARTIFACT_DIR/$domain/spa-url.txt"
         if [ -f "$stable_file" ]; then
@@ -130,7 +130,7 @@ wait_for_spa_gateway() {
     echo "Waiting for the local IPFS gateway to serve all domain SPAs..."
     local max_attempts=30
 
-    for domain in commonality lazyGiving alignment tally content-funding civility common-sense-majority conceptspace; do
+    for domain in commonality lazyGiving alignment tally content-funding civility common-sense-majority conceptspace causestarter; do
         local spa_file="$UI_IPFS_ARTIFACT_DIR/$domain/spa-url.txt"
         [ -f "$spa_file" ] || continue
 
@@ -192,7 +192,7 @@ publish_ui_domains_to_ipfs() {
 
     # Building all domain SPAs concurrently can exhaust Docker Desktop memory and
     # kill Vite with exit code 137. Build/publish sequentially for reliability.
-    for domain in commonality lazyGiving alignment tally content-funding civility common-sense-majority conceptspace; do
+    for domain in commonality lazyGiving alignment tally content-funding civility common-sense-majority conceptspace causestarter; do
         echo "  $domain: building and publishing..."
         docker_compose up -d --no-deps --force-recreate "ui-ipfs-publisher-${domain}"
         wait_for_ui_ipfs_publisher "$domain"
@@ -242,6 +242,8 @@ start_services() {
         ui-ipfs-publisher-civility
         ui-ipfs-publisher-common-sense-majority
         ui-ipfs-publisher-conceptspace
+        ui-ipfs-publisher-causestarter
+        ui2
     )
     local -a services_to_build=()
 
@@ -259,12 +261,13 @@ start_services() {
         "$UI_IPFS_ARTIFACT_DIR/content-funding" \
         "$UI_IPFS_ARTIFACT_DIR/civility" \
         "$UI_IPFS_ARTIFACT_DIR/common-sense-majority" \
-        "$UI_IPFS_ARTIFACT_DIR/conceptspace"
+        "$UI_IPFS_ARTIFACT_DIR/conceptspace" \
+        "$UI_IPFS_ARTIFACT_DIR/causestarter"
     # The UI publisher bind-mounts these files so it reads contract addresses
     # written by hardhat-deploy at runtime instead of stale values baked into
     # the Docker image. Ensure clean checkouts have files to mount.
-    mkdir -p ui
-    touch .env ui/.env
+    mkdir -p ui ui2
+    touch .env ui/.env ui2/.env
     services_to_build=()
     while IFS= read -r line; do
         services_to_build+=("$line")

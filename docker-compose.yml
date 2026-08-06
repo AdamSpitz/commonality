@@ -72,13 +72,18 @@ services:
       # Use configurable data directory for IPFS storage
       - ${COMMONALITY_DATA_DIR:-./data}/ipfs:/data/ipfs
     # Custom entrypoint to configure IPFS for path-based gateway (no subdomain redirects)
-    # This prevents the gateway from redirecting to CID.ipfs.localhost which doesn't resolve
+    # This prevents the gateway from redirecting to CID.ipfs.localhost which doesn't resolve.
+    # Also enable browser CORS on the API: Kubo returns 403 for any Origin when
+    # Access-Control-Allow-Origin is unset, which breaks SPA uploads (ui / ui2).
     entrypoint: >
       sh -c "
       if [ ! -f /data/ipfs/config ]; then ipfs init --profile=test; fi &&
       ipfs config --json Gateway.PublicGateways '{\"localhost\": {\"Paths\": [\"/ipfs\", \"/ipns\"], \"UseSubdomains\": false}}' &&
       ipfs config Addresses.API /ip4/0.0.0.0/tcp/5001 &&
       ipfs config Addresses.Gateway /ip4/0.0.0.0/tcp/8080 &&
+      ipfs config --json API.HTTPHeaders.Access-Control-Allow-Origin '[\"*\"]' &&
+      ipfs config --json API.HTTPHeaders.Access-Control-Allow-Methods '[\"GET\", \"POST\", \"PUT\", \"OPTIONS\"]' &&
+      ipfs config --json API.HTTPHeaders.Access-Control-Allow-Headers '[\"Authorization\", \"Content-Type\", \"X-Requested-With\"]' &&
       ipfs daemon --migrate=true
       "
     healthcheck:
@@ -355,6 +360,128 @@ services:
     networks:
       - commonality
 
+  ui-ipfs-publisher-causestarter:
+    image: commonality-ui2-ipfs-publisher:dev
+    build:
+      context: .
+      dockerfile: ui2/Dockerfile.ipfs
+    container_name: commonality-ui-ipfs-publisher-causestarter
+    user: "${UID:-1000}:${GID:-1000}"
+    command: ["node", "scripts/publish-ui2-to-ipfs.mjs"]
+    working_dir: /workspace
+    volumes:
+      - ./.env:/workspace/.env:ro
+      - ./ui/.env:/workspace/ui/.env:ro
+      - ./ui2/.env:/workspace/ui2/.env:ro
+      - ./data/ui-ipfs/causestarter:/artifacts
+    depends_on:
+      ipfs:
+        condition: service_healthy
+      hardhat-deploy:
+        condition: service_completed_successfully
+    environment:
+      - VITE_HASH_ROUTING=true
+      - UI_IPFS_API_URL=http://ipfs:5001
+      - UI_IPFS_GATEWAY_URL=http://localhost:8080/ipfs
+      - VITE_IPFS_GATEWAY=http://localhost:8080/ipfs
+      - VITE_IPFS_API=http://localhost:5001
+      - VITE_PLATFORM_API_URL=http://localhost:3001
+      - VITE_ETH_RPC_URL=http://127.0.0.1:8545
+      - UI_IPFS_ARTIFACT_DIR=/artifacts
+      - HOME=/tmp
+    networks:
+      - commonality
+
+  # CauseStarter LLM helpers: statement suggestions + safety filter (Grok 4.5 / xAI).
+  cause-assist:
+    image: commonality-cause-assist:dev
+    build:
+      context: .
+      dockerfile: cause-assist/Dockerfile
+    container_name: commonality-cause-assist
+    ports:
+      - "${CAUSE_ASSIST_PORT:-3002}:3002"
+    # Loads GROK_API_Key (and any other xAI vars) when present.
+    # required: false so compose still starts without a local key file.
+    env_file:
+      - path: .env.grok
+        required: false
+    environment:
+      PORT: "3002"
+      # deploy-ui2.sh also exports XAI_API_KEY from .env.grok for hosts without env_file.
+      XAI_API_KEY: ${XAI_API_KEY:-}
+      GROK_API_KEY: ${GROK_API_KEY:-}
+      CAUSE_ASSIST_API_BASE_URL: ${CAUSE_ASSIST_API_BASE_URL:-https://api.x.ai/v1}
+      CAUSE_ASSIST_SUGGEST_MODEL: ${CAUSE_ASSIST_SUGGEST_MODEL:-grok-4.5}
+      CAUSE_ASSIST_SAFETY_MODEL: ${CAUSE_ASSIST_SAFETY_MODEL:-grok-4.5}
+    networks:
+      - commonality
+    restart: unless-stopped
+
+  # CauseStarter (ui2) — nginx static SPA, independent of the multi-domain IPFS publishers.
+  # Deploy with: ./scripts/deploy-ui2.sh   or   docker compose up -d ui2
+  # Contract addresses / RPC URLs are injected at container start into config.json.
+  # Prefer exporting them via ./scripts/deploy-ui2.sh (loads .env + hardhat.env).
+  ui2:
+    image: commonality-ui2:dev
+    build:
+      context: .
+      dockerfile: ui2/Dockerfile
+      args:
+        VITE_WALLETCONNECT_PROJECT_ID: ${VITE_WALLETCONNECT_PROJECT_ID:-}
+    container_name: commonality-ui2
+    ports:
+      - "${UI2_PORT:-8090}:80"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      COMMONALITY_ENVIRONMENT: ${COMMONALITY_ENVIRONMENT:-local}
+      # host:port override for nginx → indexer proxy (see docker-entrypoint.d/30-indexer-upstream.sh)
+      INDEXER_UPSTREAM: ${INDEXER_UPSTREAM:-}
+      VITE_EVENT_CACHE_URL: ${VITE_EVENT_CACHE_URL:-}
+      VITE_IPFS_GATEWAY: ${VITE_IPFS_GATEWAY:-http://localhost:8080/ipfs}
+      # Empty default: useMachinery rewrites to same-origin /ipfs-api (nginx proxy).
+      # Set explicitly only if you need a direct API URL outside Docker.
+      VITE_IPFS_API: ${VITE_IPFS_API:-}
+      IPFS_API_UPSTREAM: ${IPFS_API_UPSTREAM:-}
+      VITE_PLATFORM_API_URL: ${VITE_PLATFORM_API_URL:-http://localhost:3001}
+      VITE_MAINNET_RPC_URL: ${VITE_MAINNET_RPC_URL:-}
+      VITE_ETH_RPC_URL: ${VITE_ETH_RPC_URL:-http://127.0.0.1:8545}
+      VITE_BELIEFS_CONTRACT_ADDRESS: ${VITE_BELIEFS_CONTRACT_ADDRESS:-}
+      VITE_IMPLICATIONS_CONTRACT_ADDRESS: ${VITE_IMPLICATIONS_CONTRACT_ADDRESS:-}
+      VITE_ASSURANCE_CONTRACT_FACTORY_ADDRESS: ${VITE_ASSURANCE_CONTRACT_FACTORY_ADDRESS:-}
+      VITE_ERC1155_FACTORY_ADDRESS: ${VITE_ERC1155_FACTORY_ADDRESS:-}
+      VITE_DELEGATABLE_NOTES_CONTRACT_ADDRESS: ${VITE_DELEGATABLE_NOTES_CONTRACT_ADDRESS:-}
+      VITE_RECURRING_PLEDGES_CONTRACT_ADDRESS: ${VITE_RECURRING_PLEDGES_CONTRACT_ADDRESS:-}
+      VITE_NOTE_INTENT_CONTRACT_ADDRESS: ${VITE_NOTE_INTENT_CONTRACT_ADDRESS:-}
+      VITE_ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS: ${VITE_ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS:-}
+      VITE_MUTABLE_REF_UPDATER_CONTRACT_ADDRESS: ${VITE_MUTABLE_REF_UPDATER_CONTRACT_ADDRESS:-}
+      VITE_TRUST_REGISTRY_CONTRACT_ADDRESS: ${VITE_TRUST_REGISTRY_CONTRACT_ADDRESS:-}
+      VITE_NUDGE_PUBLICATIONS_CONTRACT_ADDRESS: ${VITE_NUDGE_PUBLICATIONS_CONTRACT_ADDRESS:-}
+      VITE_PUBLISHED_DATA_CONTRACT_ADDRESS: ${VITE_PUBLISHED_DATA_CONTRACT_ADDRESS:-}
+      VITE_CONTENT_REGISTRY_ADDRESS: ${VITE_CONTENT_REGISTRY_ADDRESS:-}
+      VITE_CHANNEL_REGISTRY_ADDRESS: ${VITE_CHANNEL_REGISTRY_ADDRESS:-}
+      VITE_CHANNEL_ESCROW_ADDRESS: ${VITE_CHANNEL_ESCROW_ADDRESS:-}
+      VITE_CREATOR_CONTRACT_FACTORY_ADDRESS: ${VITE_CREATOR_CONTRACT_FACTORY_ADDRESS:-}
+      VITE_PROJECT_FACTORY_CONTRACT_ADDRESS: ${VITE_PROJECT_FACTORY_CONTRACT_ADDRESS:-}
+      VITE_PAYMENT_TOKEN_ADDRESS: ${VITE_PAYMENT_TOKEN_ADDRESS:-}
+      VITE_CHAIN_ID: ${VITE_CHAIN_ID:-31337}
+      VITE_PAYMENT_TOKEN_SYMBOL: ${VITE_PAYMENT_TOKEN_SYMBOL:-}
+      VITE_PAYMENT_TOKEN_DECIMALS: ${VITE_PAYMENT_TOKEN_DECIMALS:-}
+      VITE_COMMONALITY_URL: ${VITE_COMMONALITY_URL:-http://commonality.localhost:8088/#/}
+      VITE_LAZYGIVING_URL: ${VITE_LAZYGIVING_URL:-http://lazygiving.localhost:8088/#/}
+      VITE_ALIGNMENT_URL: ${VITE_ALIGNMENT_URL:-http://alignment.localhost:8088/#/}
+      VITE_TALLY_URL: ${VITE_TALLY_URL:-http://tally.localhost:8088/#/}
+      VITE_CONTENT_FUNDING_URL: ${VITE_CONTENT_FUNDING_URL:-http://content-funding.localhost:8088/#/}
+      VITE_CIVILITY_URL: ${VITE_CIVILITY_URL:-http://civility.localhost:8088/#/}
+      VITE_COMMON_SENSE_MAJORITY_URL: ${VITE_COMMON_SENSE_MAJORITY_URL:-http://common-sense-majority.localhost:8088/#/}
+      VITE_CONCEPTSPACE_URL: ${VITE_CONCEPTSPACE_URL:-http://conceptspace.localhost:8088/#/}
+    depends_on:
+      - cause-assist
+    networks:
+      - commonality
+    restart: unless-stopped
+
   ui-local-gateway:
     image: node:24-alpine
     container_name: commonality-ui-local-gateway
@@ -383,6 +510,8 @@ services:
       ui-ipfs-publisher-common-sense-majority:
         condition: service_completed_successfully
       ui-ipfs-publisher-conceptspace:
+        condition: service_completed_successfully
+      ui-ipfs-publisher-causestarter:
         condition: service_completed_successfully
     environment:
       - PORT=8088

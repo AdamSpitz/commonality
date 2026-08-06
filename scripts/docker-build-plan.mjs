@@ -171,6 +171,44 @@ buildConfigs['ui-ipfs-publisher-civility'] = buildConfigs['ui-ipfs-publisher-com
 buildConfigs['ui-ipfs-publisher-common-sense-majority'] = buildConfigs['ui-ipfs-publisher-commonality']
 buildConfigs['ui-ipfs-publisher-conceptspace'] = buildConfigs['ui-ipfs-publisher-commonality']
 
+buildConfigs['ui-ipfs-publisher-causestarter'] = {
+  buildKey: 'ui2-ipfs-publisher',
+  image: 'commonality-ui2-ipfs-publisher:dev',
+  hashEntries: [
+    '.dockerignore',
+    '.npmrc',
+    'package.json',
+    'package-lock.json',
+    'scripts/publish-ui2-to-ipfs.mjs',
+    'scripts/ui-domains.mjs',
+    'ui2/Dockerfile.ipfs',
+    'sdk/package.json',
+    'ui2/package.json',
+    { path: 'sdk', ignore: [] },
+    { path: 'ui2', ignore: ['dist'] },
+  ],
+}
+
+buildConfigs.ui2 = {
+  buildKey: 'ui2',
+  image: 'commonality-ui2:dev',
+  hashEntries: [
+    '.dockerignore',
+    '.npmrc',
+    'package.json',
+    'package-lock.json',
+    'ui2/Dockerfile',
+    'ui2/nginx.conf',
+    'ui2/docker-entrypoint.d/30-indexer-upstream.sh',
+    'ui2/docker-entrypoint.d/35-ipfs-upstream.sh',
+    'ui2/docker-entrypoint.d/40-causestarter-config.sh',
+    'sdk/package.json',
+    'ui2/package.json',
+    { path: 'sdk', ignore: [] },
+    { path: 'ui2', ignore: ['dist'] },
+  ],
+}
+
 const commands = new Set(['list', 'record'])
 const [, , command, ...serviceNames] = process.argv
 

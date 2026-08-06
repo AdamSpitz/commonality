@@ -7,6 +7,7 @@ export const uiDomains = [
   'civility',
   'common-sense-majority',
   'conceptspace',
+  'causestarter',
 ]
 
 const localHostnames = {
@@ -18,6 +19,7 @@ const localHostnames = {
   civility: 'civility.localhost',
   'common-sense-majority': 'common-sense-majority.localhost',
   conceptspace: 'conceptspace.localhost',
+  causestarter: 'causestarter.localhost',
   noninflammatory: 'civility.localhost',
   csm: 'common-sense-majority.localhost',
 }
