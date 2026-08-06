@@ -34,7 +34,5 @@ tmp/
 
 
 # Local build outputs for new packages
-ui2/dist/
+causestarter/dist/
 cause-assist/dist/
-
-ui2/.env

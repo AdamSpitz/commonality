@@ -22,10 +22,10 @@ Without an API key, the suggester uses local templates and the safety filter use
 | Env | Default | Notes |
 | --- | --- | --- |
 | `XAI_API_KEY` / `GROK_API_KEY` / `GROK_API_Key` | — | xAI key (optional repo local file: `.env.grok`) |
-| `OPENROUTER_API_KEY` | — | Legacy fallback if only OpenRouter is configured |
-| `CAUSE_ASSIST_API_BASE_URL` | `https://api.x.ai/v1` | OpenAI-compatible base URL |
-| `CAUSE_ASSIST_SUGGEST_MODEL` | `grok-4.5` | Suggester model id |
-| `CAUSE_ASSIST_SAFETY_MODEL` | `grok-4.5` | Safety filter model id |
+| `OPENROUTER_API_KEY` | — | Legacy fallback if no xAI/Grok key; pairs with OpenRouter base URL + `x-ai/grok-4.5` model defaults |
+| `CAUSE_ASSIST_API_BASE_URL` | `https://api.x.ai/v1` (or OpenRouter when only `OPENROUTER_API_KEY` is set) | OpenAI-compatible base URL |
+| `CAUSE_ASSIST_SUGGEST_MODEL` | `grok-4.5` (or `x-ai/grok-4.5` for OpenRouter-only) | Suggester model id |
+| `CAUSE_ASSIST_SAFETY_MODEL` | `grok-4.5` (or `x-ai/grok-4.5` for OpenRouter-only) | Safety filter model id |
 | `PORT` / `CAUSE_ASSIST_PORT` | `3002` | HTTP port |
 
 ## Run

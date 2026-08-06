@@ -423,7 +423,7 @@ services:
 
   # CauseStarter — nginx static SPA (core founder surface).
   # Contract addresses / RPC URLs are injected at container start into config.json.
-  # Prefer ./scripts/deploy-causestarter.sh or services.sh (loads .env + hardhat.env).
+  # Prefer ./scripts/deploy-causestarter.sh or services.sh (loads .env + localhost.env).
   # Statement content publish uses PublishedData (VITE_PUBLISHED_DATA_CONTRACT_ADDRESS).
   causestarter:
     image: commonality-causestarter:dev

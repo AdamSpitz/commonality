@@ -339,10 +339,11 @@ start_services() {
     wait_for_local_ui_gateway
 
     # CauseStarter SPA + cause-assist (core founder surface on :8090).
+    # localhost.env matches hardhat-deploy --network localhost; live .env files win.
+    load_env_file_if_present deployments/localhost.env
     load_env_file_if_present .env
     load_env_file_if_present ui/.env
     load_env_file_if_present causestarter/.env
-    load_env_file_if_present deployments/hardhat.env
     load_env_file_if_present .env.grok
     map_causestarter_contract_env
     docker_compose up -d --force-recreate cause-assist causestarter

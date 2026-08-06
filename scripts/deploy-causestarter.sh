@@ -71,9 +71,10 @@ map_contract_env() {
 }
 
 if [ "$MODE" = "--stop" ]; then
-  echo "Stopping CauseStarter container..."
+  echo "Stopping CauseStarter + cause-assist..."
   docker rm -f "$CONTAINER_NAME" 2>/dev/null || true
-  docker_compose stop causestarter 2>/dev/null || true
+  docker_compose stop causestarter cause-assist 2>/dev/null || true
+  docker_compose rm -f cause-assist 2>/dev/null || true
   echo "Stopped."
   exit 0
 fi
@@ -83,11 +84,11 @@ if ! docker info >/dev/null 2>&1; then
   exit 1
 fi
 
-# Prefer live local deploy env, then committed hardhat defaults.
+# localhost.env matches hardhat-deploy --network localhost; live .env files win.
+load_env_file "$ROOT/deployments/localhost.env"
 load_env_file "$ROOT/.env"
 load_env_file "$ROOT/ui/.env"
 load_env_file "$ROOT/causestarter/.env"
-load_env_file "$ROOT/deployments/hardhat.env"
 # xAI / Grok key for cause-assist (file may use GROK_API_Key casing).
 load_env_file "$ROOT/.env.grok"
 # Normalize Grok key env names for compose + cause-assist config loader.
