@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 
 # Pre-merge-commit hook: Run full test suite when merging into master
 # Runs after merge resolution but before the merge commit is created.
@@ -9,8 +9,11 @@ export FORCE_COLOR=1
 # Get the branch being merged into
 target_branch=$(git rev-parse --symbolic-full-name HEAD 2>/dev/null | sed 's/refs\/heads\///')
 
-# Only run tests when merging into master
-if [[ "$target_branch" == "master" ]]; then
+# Only run tests when merging into master.
+# NOTE: husky's runner invokes hooks with `sh -e`, ignoring the shebang, so this
+# file must stay POSIX — bash-only syntax like [[ ]] fails with "[[: not found"
+# and silently skips the whole check.
+if [ "$target_branch" = "master" ]; then
   echo "=== Merging into master - running full test suite ==="
   
   # Check if working tree is clean (excluding untracked files which are fine)
