@@ -69,8 +69,8 @@ describe('MaterializeFutureContentPage claim state', () => {
 
     render(<MaterializeFutureContentPage />)
 
-    expect(await screen.findByText('2 claimable · 3 already claimed')).toBeInTheDocument()
-    expect(screen.getByText('5 claimable')).toBeInTheDocument()
+    expect(await screen.findByText('2 claimable · 3 of 5 receipts already claimed')).toBeInTheDocument()
+    expect(screen.getByText('5 claimable · 5 receipts held')).toBeInTheDocument()
     expect(screen.getAllByRole('button', { name: 'Claim my content tokens' })).toHaveLength(2)
   })
 
@@ -87,7 +87,7 @@ describe('MaterializeFutureContentPage claim state', () => {
     expect(screen.getByRole('button', { name: 'Claim my content tokens' })).toBeEnabled()
   })
 
-  it('drops the "of N" when receipts were sold after claiming', async () => {
+  it('states both numbers when receipts were parted with after claiming', async () => {
     vi.mocked(getMaterializedClaimStates).mockResolvedValue([
       { contentId: 1n, entitlement: 2n, claimed: 4n, claimable: 0n },
       { contentId: 2n, entitlement: 2n, claimed: 0n, claimable: 2n },
@@ -95,7 +95,9 @@ describe('MaterializeFutureContentPage claim state', () => {
 
     render(<MaterializeFutureContentPage />)
 
-    expect(await screen.findByText('Claimed 4')).toBeInTheDocument()
+    expect(
+      await screen.findByText('Claimed 4 · only 2 receipts held now, so nothing further is claimable'),
+    ).toBeInTheDocument()
   })
 
   it('says there is nothing to claim without receipts', async () => {

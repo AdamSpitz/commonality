@@ -28,26 +28,35 @@ function newRow(): MaterializedContentRow {
   return { id: Math.random().toString(36).slice(2), url: '' }
 }
 
-/**
- * Describe one account's position on a content item.
- *
- * Entitlement tracks the current receipt balance, so an account that claimed
- * and then parted with receipts can show more claimed than it is now entitled
- * to. That is not an error, and the "of N" is dropped rather than reading
- * "Claimed 4 of 2".
- */
 function clearClaimStates(previous: Map<string, MaterializedContentClaimState>) {
   return previous.size === 0 ? previous : new Map<string, MaterializedContentClaimState>()
 }
 
+/**
+ * Describe one account's position on a content item, stating both numbers
+ * rather than hiding a mismatch between them.
+ *
+ * Entitlement is the CURRENT receipt balance while claimed is permanent, so an
+ * account that claimed and later parted with receipts shows more claimed than
+ * it now holds. That surplus is reported outright.
+ *
+ * Note what is not knowable here: claims genuinely forgone -- capacity lost by
+ * parting with receipts BEFORE claiming -- would need the receipt token's
+ * transfer history to establish a high-water mark. Neither claimedAmount nor
+ * ContentTokenClaimed records it, so this never implies a forgone figure it
+ * cannot support.
+ */
 function claimSummary({ entitlement, claimed, claimable }: MaterializedContentClaimState): string {
   if (claimable > 0n) {
     return claimed > 0n
-      ? `${claimable.toString()} claimable · ${claimed.toString()} already claimed`
-      : `${claimable.toString()} claimable`
+      ? `${claimable.toString()} claimable · ${claimed.toString()} of ${entitlement.toString()} receipts already claimed`
+      : `${claimable.toString()} claimable · ${entitlement.toString()} receipts held`
   }
   if (claimed === 0n) return 'No receipts for this round, so nothing to claim.'
-  return claimed > entitlement ? `Claimed ${claimed.toString()}` : `Claimed ${claimed.toString()} of ${entitlement.toString()}`
+  if (claimed > entitlement) {
+    return `Claimed ${claimed.toString()} · only ${entitlement.toString()} receipts held now, so nothing further is claimable`
+  }
+  return `Claimed ${claimed.toString()} of ${entitlement.toString()}`
 }
 
 export function MaterializeFutureContentPage() {
