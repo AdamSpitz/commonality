@@ -30,9 +30,16 @@ import { execFileSync } from "node:child_process";
 
 const STATUS_CONTEXT = "review-received";
 const TRAILER = /^Reviewed-commit:\s*([0-9a-f]{7,40})\s*$/im;
-// The gate only guards merges INTO this branch. Release PRs (dev -> master) are
-// a rubber-stamp of already-reviewed content, so they pass without a fresh one.
+// Review receipts are required on the way INTO these branches.
 const GATED_BASE = "dev";
+const RELEASE_BASE = "master";
+// One exemption: a release PR (dev -> master) is a rubber-stamp of content that
+// already passed the gate on its way into dev, so it needs no fresh receipt.
+// Anything ELSE aimed at master — a hotfix branch, say — is treated exactly like
+// a PR into dev: land it directly and quickly, but carry a receipt. That keeps
+// the isolated hotfix path open while closing the bypass that let unreviewed
+// feature branches merge straight into the release branch.
+const RELEASE_HEAD = "dev";
 
 const repo = process.env.GITHUB_REPOSITORY;
 if (!repo) fail("GITHUB_REPOSITORY is not set");
@@ -70,15 +77,30 @@ if (!prNumber) fail("could not determine the PR number");
 
 // Always re-fetch the PR so we act on the current head sha, not a stale payload.
 const pr = JSON.parse(
-  gh(["api", `repos/${repo}/pulls/${prNumber}`, "--jq", "{headSha: .head.sha, base: .base.ref}"]),
+  gh([
+    "api",
+    `repos/${repo}/pulls/${prNumber}`,
+    "--jq",
+    "{headSha: .head.sha, base: .base.ref, head: .head.ref, headRepo: .head.repo.full_name}",
+  ]),
 );
 const headSha = pr.headSha;
 const baseRef = pr.base;
+const headRef = pr.head;
+
+// --- Releases are exempt; everything else aimed at a gated base needs a receipt
+
+// Same-repo only: a fork branch named `dev` is not our dev.
+if (baseRef === RELEASE_BASE && headRef === RELEASE_HEAD && pr.headRepo === repo) {
+  setStatus(headSha, "success", `Release from '${RELEASE_HEAD}' — already reviewed on the way in`);
+  console.log(`review-gate: release PR from '${RELEASE_HEAD}' — passing.`);
+  process.exit(0);
+}
 
 // --- Non-gated bases pass trivially ------------------------------------------
 
-if (baseRef !== GATED_BASE) {
-  setStatus(headSha, "success", `Not gated (base is '${baseRef}', gate lives on '${GATED_BASE}')`);
+if (baseRef !== GATED_BASE && baseRef !== RELEASE_BASE) {
+  setStatus(headSha, "success", `Not gated (base is '${baseRef}')`);
   console.log(`review-gate: base '${baseRef}' is not gated — passing.`);
   process.exit(0);
 }
