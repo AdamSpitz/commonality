@@ -37,14 +37,16 @@ function clearClaimStates(previous: Map<string, MaterializedContentClaimState>) 
  * rather than hiding a mismatch between them.
  *
  * Entitlement is the CURRENT receipt balance while claimed is permanent, so an
- * account that claimed and later parted with receipts shows more claimed than
- * it now holds. That surplus is reported outright.
+ * account that claimed and later burned receipts shows more claimed than it now
+ * holds. Receipts are non-transferable, so burning is the only way this
+ * happens. That surplus is reported outright rather than hidden.
  *
- * Note what is not knowable here: claims genuinely forgone -- capacity lost by
- * parting with receipts BEFORE claiming -- would need the receipt token's
- * transfer history to establish a high-water mark. Neither claimedAmount nor
- * ContentTokenClaimed records it, so this never implies a forgone figure it
- * cannot support.
+ * Note what is not knowable here: claims forgone by burning receipts BEFORE an
+ * item was materialized would need the receipt token's transfer history to
+ * establish a high-water mark. Neither claimedAmount nor ContentTokenClaimed
+ * records it, so this never implies a forgone figure it cannot support. See
+ * specs/tech/subsystems/content-funding/materialization.md for the open
+ * question about whether this model should change.
  */
 function claimSummary({ entitlement, claimed, claimable }: MaterializedContentClaimState): string {
   if (claimable > 0n) {
