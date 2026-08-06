@@ -11,6 +11,7 @@
       "outputs": [
         "dist/**",
         "ui/dist/**",
+        "causestarter/dist/**",
         "artifacts/**",
         "typechain-types/**",
         ".ponder/**",

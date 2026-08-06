@@ -10,9 +10,11 @@ This file is the product-boundary source of truth: which sites exist and what jo
 
 It is **not** the source of truth for landing-page copy, CTA wording, spotlight cards, or navigation. The live domain manifests and landing pages live under [`ui/src/domains/`](/ui/src/domains/) and should be treated as the source of truth for the actual site copy.
 
-## Current shape: eight sites
+## Current shape: eight sites (+ CauseStarter)
 
 Four product sites for funding (LazyGiving, Aligning, Content Funding, Civility), one product site for signing (Tally), two movement sites (Commonality, CSM), and one mostly developer-facing infrastructure site (Conceptspace).
+
+**CauseStarter** ([`causestarter/`](../../causestarter/)) is a core founder-first domain on the same substrate (separate package from the eight multi-domain `ui/` builds for now). Directionally it becomes the primary entry, with the other sites de-emphasized as tools rather than equal top-level destinations. Known gaps: [`causestarter/TODO.md`](../../causestarter/TODO.md). Local stack: included in `./scripts/services.sh --start` (gateway + dedicated SPA) and `./scripts/deploy-causestarter.sh`.
 
 This four-bucket grouping — **funding / signing / movement / infrastructure** — is the canonical taxonomy of the eight sites. Other docs may cut the same eight sites along a different axis (subsystems vs. branded builds in [specs/README.md](../README.md), purpose-neutral vs. cause vertical in [marketing.md](./marketing.md)); those are orthogonal cuts for their own purposes and do not replace this one. Two placements are easy to get wrong:
 

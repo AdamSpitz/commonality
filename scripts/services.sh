@@ -45,6 +45,11 @@ show_usage() {
     echo "  --help    Show this help message"
     echo ""
     echo "Data is stored in $DATA_DIR/. Use scripts/data.sh to manage it."
+    echo ""
+    echo "CauseStarter is a core domain (IPFS gateway + dedicated SPA on :8090)."
+    echo "  Gateway: http://causestarter.localhost:8088/#/"
+    echo "  App:     http://localhost:8090/  (cause-assist on :3002)"
+    echo "  Rebuild: ./scripts/deploy-causestarter.sh"
 }
 
 resolve_path_allow_missing() {
@@ -107,7 +112,7 @@ check_existing_containers() {
 
 print_spa_urls() {
     local found=false
-    for domain in commonality lazyGiving alignment tally content-funding civility common-sense-majority conceptspace; do
+    for domain in commonality lazyGiving alignment tally content-funding civility common-sense-majority conceptspace causestarter; do
         local stable_file="$UI_IPFS_ARTIFACT_DIR/$domain/stable-url.txt"
         local spa_file="$UI_IPFS_ARTIFACT_DIR/$domain/spa-url.txt"
         if [ -f "$stable_file" ]; then
@@ -130,7 +135,7 @@ wait_for_spa_gateway() {
     echo "Waiting for the local IPFS gateway to serve all domain SPAs..."
     local max_attempts=30
 
-    for domain in commonality lazyGiving alignment tally content-funding civility common-sense-majority conceptspace; do
+    for domain in commonality lazyGiving alignment tally content-funding civility common-sense-majority conceptspace causestarter; do
         local spa_file="$UI_IPFS_ARTIFACT_DIR/$domain/spa-url.txt"
         [ -f "$spa_file" ] || continue
 
@@ -192,7 +197,7 @@ publish_ui_domains_to_ipfs() {
 
     # Building all domain SPAs concurrently can exhaust Docker Desktop memory and
     # kill Vite with exit code 137. Build/publish sequentially for reliability.
-    for domain in commonality lazyGiving alignment tally content-funding civility common-sense-majority conceptspace; do
+    for domain in commonality lazyGiving alignment tally content-funding civility common-sense-majority conceptspace causestarter; do
         echo "  $domain: building and publishing..."
         docker_compose up -d --no-deps --force-recreate "ui-ipfs-publisher-${domain}"
         wait_for_ui_ipfs_publisher "$domain"
@@ -222,6 +227,53 @@ wait_for_local_ui_gateway() {
     return 1
 }
 
+load_env_file_if_present() {
+    local file="$1"
+    if [ ! -f "$file" ]; then
+        return 0
+    fi
+    # shellcheck disable=SC1090
+    set -a
+    # shellcheck disable=SC1091
+    . "$file"
+    set +a
+}
+
+map_causestarter_contract_env() {
+    # Map root .env / hardhat deploy names onto VITE_* keys for CauseStarter runtime config.
+    export VITE_BELIEFS_CONTRACT_ADDRESS="${VITE_BELIEFS_CONTRACT_ADDRESS:-${BELIEFS_CONTRACT_ADDRESS:-}}"
+    export VITE_IMPLICATIONS_CONTRACT_ADDRESS="${VITE_IMPLICATIONS_CONTRACT_ADDRESS:-${IMPLICATIONS_CONTRACT_ADDRESS:-}}"
+    export VITE_MUTABLE_REF_UPDATER_CONTRACT_ADDRESS="${VITE_MUTABLE_REF_UPDATER_CONTRACT_ADDRESS:-${MUTABLE_REF_UPDATER_CONTRACT_ADDRESS:-${MUTABLE_REF_UPDATER_ADDRESS:-}}}"
+    export VITE_DELEGATABLE_NOTES_CONTRACT_ADDRESS="${VITE_DELEGATABLE_NOTES_CONTRACT_ADDRESS:-${DELEGATABLE_NOTES_CONTRACT_ADDRESS:-${DELEGATABLE_NOTES_ADDRESS:-}}}"
+    export VITE_NOTE_INTENT_CONTRACT_ADDRESS="${VITE_NOTE_INTENT_CONTRACT_ADDRESS:-${NOTE_INTENT_ADDRESS:-}}"
+    export VITE_ASSURANCE_CONTRACT_FACTORY_ADDRESS="${VITE_ASSURANCE_CONTRACT_FACTORY_ADDRESS:-${ASSURANCE_CONTRACT_FACTORY_ADDRESS:-}}"
+    export VITE_ERC1155_FACTORY_ADDRESS="${VITE_ERC1155_FACTORY_ADDRESS:-${ERC1155_FACTORY_ADDRESS:-}}"
+    export VITE_ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS="${VITE_ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS:-${ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS:-${ALIGNMENT_ATTESTATIONS_ADDRESS:-}}}"
+    export VITE_TRUST_REGISTRY_CONTRACT_ADDRESS="${VITE_TRUST_REGISTRY_CONTRACT_ADDRESS:-${TRUST_REGISTRY_ADDRESS:-}}"
+    export VITE_NUDGE_PUBLICATIONS_CONTRACT_ADDRESS="${VITE_NUDGE_PUBLICATIONS_CONTRACT_ADDRESS:-${NUDGE_PUBLICATIONS_CONTRACT_ADDRESS:-}}"
+    export VITE_PUBLISHED_DATA_CONTRACT_ADDRESS="${VITE_PUBLISHED_DATA_CONTRACT_ADDRESS:-${PUBLISHED_DATA_CONTRACT_ADDRESS:-}}"
+    export VITE_PROJECT_FACTORY_CONTRACT_ADDRESS="${VITE_PROJECT_FACTORY_CONTRACT_ADDRESS:-${PROJECT_FACTORY_ADDRESS:-}}"
+    export VITE_PAYMENT_TOKEN_ADDRESS="${VITE_PAYMENT_TOKEN_ADDRESS:-${PAYMENT_TOKEN_ADDRESS:-}}"
+    export VITE_CONTENT_REGISTRY_ADDRESS="${VITE_CONTENT_REGISTRY_ADDRESS:-${CONTENT_REGISTRY_ADDRESS:-}}"
+    export VITE_CHANNEL_REGISTRY_ADDRESS="${VITE_CHANNEL_REGISTRY_ADDRESS:-${CHANNEL_REGISTRY_ADDRESS:-}}"
+    export VITE_CHANNEL_ESCROW_ADDRESS="${VITE_CHANNEL_ESCROW_ADDRESS:-${CHANNEL_ESCROW_ADDRESS:-}}"
+    export VITE_CREATOR_CONTRACT_FACTORY_ADDRESS="${VITE_CREATOR_CONTRACT_FACTORY_ADDRESS:-${CREATOR_CONTRACT_FACTORY_ADDRESS:-}}"
+    export VITE_CHAIN_ID="${VITE_CHAIN_ID:-${CHAIN_ID:-31337}}"
+    export VITE_ETH_RPC_URL="${VITE_ETH_RPC_URL:-${ETH_RPC_URL:-http://127.0.0.1:8545}}"
+    export VITE_PLATFORM_API_URL="${VITE_PLATFORM_API_URL:-http://localhost:3001}"
+    export COMMONALITY_ENVIRONMENT="${COMMONALITY_ENVIRONMENT:-local}"
+    export VITE_EVENT_CACHE_URL="${VITE_EVENT_CACHE_URL:-}"
+    # Optional xAI key for cause-assist (file may use GROK_API_Key casing).
+    if [ -z "${XAI_API_KEY:-}" ]; then
+        if [ -n "${GROK_API_KEY:-}" ]; then
+            export XAI_API_KEY="$GROK_API_KEY"
+        elif [ -n "${GROK_API_Key:-}" ]; then
+            export XAI_API_KEY="$GROK_API_Key"
+            export GROK_API_KEY="$GROK_API_Key"
+        fi
+    fi
+}
+
 start_services() {
     local -a core_services=(
         hardhat-node
@@ -242,6 +294,9 @@ start_services() {
         ui-ipfs-publisher-civility
         ui-ipfs-publisher-common-sense-majority
         ui-ipfs-publisher-conceptspace
+        ui-ipfs-publisher-causestarter
+        cause-assist
+        causestarter
     )
     local -a services_to_build=()
 
@@ -259,12 +314,13 @@ start_services() {
         "$UI_IPFS_ARTIFACT_DIR/content-funding" \
         "$UI_IPFS_ARTIFACT_DIR/civility" \
         "$UI_IPFS_ARTIFACT_DIR/common-sense-majority" \
-        "$UI_IPFS_ARTIFACT_DIR/conceptspace"
+        "$UI_IPFS_ARTIFACT_DIR/conceptspace" \
+        "$UI_IPFS_ARTIFACT_DIR/causestarter"
     # The UI publisher bind-mounts these files so it reads contract addresses
     # written by hardhat-deploy at runtime instead of stale values baked into
     # the Docker image. Ensure clean checkouts have files to mount.
-    mkdir -p ui
-    touch .env ui/.env
+    mkdir -p ui causestarter
+    touch .env ui/.env causestarter/.env
     services_to_build=()
     while IFS= read -r line; do
         services_to_build+=("$line")
@@ -281,9 +337,21 @@ start_services() {
     publish_ui_domains_to_ipfs
     docker_compose up -d --no-deps --force-recreate ui-local-gateway
     wait_for_local_ui_gateway
+
+    # CauseStarter SPA + cause-assist (core founder surface on :8090).
+    # localhost.env matches hardhat-deploy --network localhost; live .env files win.
+    load_env_file_if_present deployments/localhost.env
+    load_env_file_if_present .env
+    load_env_file_if_present ui/.env
+    load_env_file_if_present causestarter/.env
+    load_env_file_if_present .env.grok
+    map_causestarter_contract_env
+    docker_compose up -d --force-recreate cause-assist causestarter
+
     echo ""
     echo "Services started. Use 'docker compose logs -f' to view logs."
     echo "Platform API service health: http://localhost:3001/health"
+    echo "CauseStarter: http://localhost:${CAUSESTARTER_PORT:-8090}/  (gateway: http://causestarter.localhost:8088/#/)"
 }
 
 stop_services() {
