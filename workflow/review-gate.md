@@ -14,21 +14,23 @@ another agent, or a human — whatever you like — without touching CI.
 
 ## Why `master` is gated too
 
-A `dev -> master` release carries **no** fresh receipt — its content was already
-reviewed on the way into `dev`, and re-reviewing it would be pure ceremony. (The
-receipt lookup is per-PR and keyed to the head sha, so it could not recognise the
-earlier reviews even if we wanted it to: merging into `dev` mints a new merge
-commit, and that sha never carried a receipt.)
+`review-received` is required on `master` as well as `dev`, with **one
+exemption**: a `dev -> master` release carries no fresh receipt, because its
+content already passed the gate on the way into `dev`. Re-reviewing it would be
+pure ceremony. (The lookup couldn't recognise those earlier reviews anyway — it
+is per-PR and keyed to the head sha, and merging into `dev` mints a new merge
+commit whose sha never carried a receipt.)
 
-That trust is only warranted if the content really did come through `dev`. So
-`review-received` is **also required on `master`**, where it enforces a different
-rule: **`master` accepts PRs headed by `dev` and nothing else.** A feature branch
-merged straight into `master` would otherwise launder unreviewed commits into the
-release branch — which is exactly what happened with #86 and #87.
+Every other PR into `master` — **a hotfix branch, say** — is treated exactly like
+a PR into `dev`: it needs a receipt for its head commit. Without this, a feature
+branch could merge straight into the release branch having been reviewed nowhere
+at all, which is what happened with #86 and #87.
 
-Need to land something on `master` that isn't a plain promotion (a history
-reconcile, say)? Merge it into `dev` first, where it passes the normal gate, then
-promote. There is no bypass short of an admin lifting protection.
+Note what this deliberately does **not** do: it doesn't force hotfixes to travel
+through `dev`. Requiring that would mean a one-line production fix could only
+ship by promoting all of `dev`, unreleased work included. Branch off `master`,
+fix, review, merge — the fast path stays open. Just remember to back-merge into
+`dev` afterwards, or the two will drift.
 
 Neither half runs an LLM in CI. The referee is a ~100-line script with no API
 key; it only inspects the PR's existing reviews.

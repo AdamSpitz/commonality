@@ -30,14 +30,15 @@ import { execFileSync } from "node:child_process";
 
 const STATUS_CONTEXT = "review-received";
 const TRAILER = /^Reviewed-commit:\s*([0-9a-f]{7,40})\s*$/im;
-// Review receipts are required on the way INTO this branch.
+// Review receipts are required on the way INTO these branches.
 const GATED_BASE = "dev";
-// Release PRs into this branch are a rubber-stamp of already-reviewed content,
-// so they need no fresh receipt — but that argument only holds if the content
-// actually came through the gate. A feature branch merged straight into
-// `master` would bypass review entirely, so releases must be headed by
-// RELEASE_HEAD and nothing else.
 const RELEASE_BASE = "master";
+// One exemption: a release PR (dev -> master) is a rubber-stamp of content that
+// already passed the gate on its way into dev, so it needs no fresh receipt.
+// Anything ELSE aimed at master — a hotfix branch, say — is treated exactly like
+// a PR into dev: land it directly and quickly, but carry a receipt. That keeps
+// the isolated hotfix path open while closing the bypass that let unreviewed
+// feature branches merge straight into the release branch.
 const RELEASE_HEAD = "dev";
 
 const repo = process.env.GITHUB_REPOSITORY;
@@ -87,36 +88,19 @@ const headSha = pr.headSha;
 const baseRef = pr.base;
 const headRef = pr.head;
 
-// --- Releases into master must come from dev ---------------------------------
-//
-// Content reaching master is trusted because it was reviewed on the way into
-// dev. A PR from anywhere else launders unreviewed commits straight into the
-// release branch, so refuse it. (Same-repo only: a fork branch named `dev` is
-// not our dev.)
+// --- Releases are exempt; everything else aimed at a gated base needs a receipt
 
-if (baseRef === RELEASE_BASE) {
-  const fromRelease = headRef === RELEASE_HEAD && pr.headRepo === repo;
-  if (fromRelease) {
-    setStatus(headSha, "success", `Release from '${RELEASE_HEAD}' — reviewed on the way into '${RELEASE_HEAD}'`);
-    console.log(`review-gate: release PR from '${RELEASE_HEAD}' — passing.`);
-    process.exit(0);
-  }
-  setStatus(
-    headSha,
-    "failure",
-    `'${baseRef}' only accepts PRs from '${RELEASE_HEAD}' (this one is from '${headRef}')`,
-  );
-  console.log(
-    `review-gate: PR into '${baseRef}' is headed by '${headRef}', not '${RELEASE_HEAD}'. ` +
-      `Merge the work into '${RELEASE_HEAD}' first so it passes the review gate, then promote.`,
-  );
-  process.exit(1);
+// Same-repo only: a fork branch named `dev` is not our dev.
+if (baseRef === RELEASE_BASE && headRef === RELEASE_HEAD && pr.headRepo === repo) {
+  setStatus(headSha, "success", `Release from '${RELEASE_HEAD}' — already reviewed on the way in`);
+  console.log(`review-gate: release PR from '${RELEASE_HEAD}' — passing.`);
+  process.exit(0);
 }
 
 // --- Non-gated bases pass trivially ------------------------------------------
 
-if (baseRef !== GATED_BASE) {
-  setStatus(headSha, "success", `Not gated (base is '${baseRef}', gate lives on '${GATED_BASE}')`);
+if (baseRef !== GATED_BASE && baseRef !== RELEASE_BASE) {
+  setStatus(headSha, "success", `Not gated (base is '${baseRef}')`);
   console.log(`review-gate: base '${baseRef}' is not gated — passing.`);
   process.exit(0);
 }
