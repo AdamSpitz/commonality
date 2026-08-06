@@ -28,7 +28,10 @@ COPY nudger-core/package.json ./nudger-core/package.json
 COPY implication-graph-nudger/package.json ./implication-graph-nudger/package.json
 COPY bridge-creator/package.json ./bridge-creator/package.json
 COPY explorer-curator/package.json ./explorer-curator/package.json
+COPY published-data-ipfs-mirror/package.json ./published-data-ipfs-mirror/package.json
+COPY cause-assist/package.json ./cause-assist/package.json
 COPY ui/package.json ./ui/package.json
+COPY causestarter/package.json ./causestarter/package.json
 RUN --mount=type=cache,target=/root/.npm npm ci
 COPY sdk ./sdk
 COPY platform-api-service ./platform-api-service

@@ -6,7 +6,7 @@ This package contains the reusable pieces that do not depend on a specific attes
 
 - environment/config parsing helpers
 - blockchain error classification
-- OpenRouter JSON completion wrapper
+- OpenAI-compatible JSON chat completion client (OpenRouter defaults; configurable `baseUrl` for xAI and others)
 - IPFS read/write helpers
 - x402-style payment quote/validation helpers
 - Express rate limiting middleware
