@@ -24,15 +24,18 @@ export function getEventCacheUrl(): string {
 }
 
 /**
- * Browser IPFS API base URL.
- * Prefer same-origin `/ipfs-api` (nginx → Kubo) so uploads work without Kubo CORS.
+ * Browser IPFS API base URL (legacy / hosting edge cases only).
+ *
+ * Statement content publish is PublishedData-first and does not require this.
+ * Same-origin `/ipfs-api` (nginx → Kubo) remains available for any remaining
+ * browser→API fallbacks when the SPA origin cannot talk to Kubo directly.
  * Explicit VITE_IPFS_API still wins when set (e.g. direct local node).
  */
 export function getIpfsApiUrl(): string {
   const configured = getRuntimeConfigValue('VITE_IPFS_API')
   if (configured) {
     // Rewrite host-direct local API to same-origin proxy when the UI is served
-    // from a different origin (Docker ui2 on :8090 → Kubo on :5001).
+    // from a different origin (Docker CauseStarter on :8090 → Kubo on :5001).
     if (typeof window !== 'undefined') {
       try {
         const api = new URL(configured, window.location.origin)

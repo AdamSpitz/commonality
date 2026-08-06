@@ -172,40 +172,56 @@ buildConfigs['ui-ipfs-publisher-common-sense-majority'] = buildConfigs['ui-ipfs-
 buildConfigs['ui-ipfs-publisher-conceptspace'] = buildConfigs['ui-ipfs-publisher-commonality']
 
 buildConfigs['ui-ipfs-publisher-causestarter'] = {
-  buildKey: 'ui2-ipfs-publisher',
-  image: 'commonality-ui2-ipfs-publisher:dev',
+  buildKey: 'causestarter-ipfs-publisher',
+  image: 'commonality-causestarter-ipfs-publisher:dev',
   hashEntries: [
     '.dockerignore',
     '.npmrc',
     'package.json',
     'package-lock.json',
-    'scripts/publish-ui2-to-ipfs.mjs',
+    'scripts/publish-ui-to-ipfs.mjs',
     'scripts/ui-domains.mjs',
-    'ui2/Dockerfile.ipfs',
+    'causestarter/Dockerfile.ipfs',
     'sdk/package.json',
-    'ui2/package.json',
+    'causestarter/package.json',
     { path: 'sdk', ignore: [] },
-    { path: 'ui2', ignore: ['dist'] },
+    { path: 'causestarter', ignore: ['dist'] },
   ],
 }
 
-buildConfigs.ui2 = {
-  buildKey: 'ui2',
-  image: 'commonality-ui2:dev',
+buildConfigs.causestarter = {
+  buildKey: 'causestarter',
+  image: 'commonality-causestarter:dev',
   hashEntries: [
     '.dockerignore',
     '.npmrc',
     'package.json',
     'package-lock.json',
-    'ui2/Dockerfile',
-    'ui2/nginx.conf',
-    'ui2/docker-entrypoint.d/30-indexer-upstream.sh',
-    'ui2/docker-entrypoint.d/35-ipfs-upstream.sh',
-    'ui2/docker-entrypoint.d/40-causestarter-config.sh',
+    'causestarter/Dockerfile',
+    'causestarter/nginx.conf',
+    'causestarter/docker-entrypoint.d/30-indexer-upstream.sh',
+    'causestarter/docker-entrypoint.d/35-ipfs-upstream.sh',
+    'causestarter/docker-entrypoint.d/40-causestarter-config.sh',
     'sdk/package.json',
-    'ui2/package.json',
+    'causestarter/package.json',
     { path: 'sdk', ignore: [] },
-    { path: 'ui2', ignore: ['dist'] },
+    { path: 'causestarter', ignore: ['dist'] },
+  ],
+}
+
+buildConfigs['cause-assist'] = {
+  buildKey: 'cause-assist',
+  image: 'commonality-cause-assist:dev',
+  hashEntries: [
+    '.dockerignore',
+    '.npmrc',
+    'package.json',
+    'package-lock.json',
+    'cause-assist/Dockerfile',
+    'cause-assist/package.json',
+    'attester-core/package.json',
+    { path: 'cause-assist', ignore: ['dist'] },
+    { path: 'attester-core', ignore: ['dist'] },
   ],
 }
 

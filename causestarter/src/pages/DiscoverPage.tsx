@@ -108,7 +108,7 @@ export function DiscoverPage() {
               whiteSpace: 'pre-wrap',
             }}
           >
-            ./scripts/deploy-ui2.sh{'\n'}# or: ./scripts/services.sh --start
+            ./scripts/deploy-causestarter.sh{'\n'}# or: ./scripts/services.sh --start
           </Typography>
           <Button
             size="small"

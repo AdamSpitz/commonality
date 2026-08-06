@@ -1,5 +1,5 @@
 #!/bin/sh
-# Pick an IPFS API upstream that is reachable so publish works when ui2 is on
+# Pick an IPFS API upstream that is reachable so publish works when CauseStarter is on
 # the compose network (service "ipfs") or only the host-published port is up.
 set -eu
 

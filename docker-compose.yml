@@ -73,8 +73,10 @@ services:
       - ${COMMONALITY_DATA_DIR:-./data}/ipfs:/data/ipfs
     # Custom entrypoint to configure IPFS for path-based gateway (no subdomain redirects)
     # This prevents the gateway from redirecting to CID.ipfs.localhost which doesn't resolve.
-    # Also enable browser CORS on the API: Kubo returns 403 for any Origin when
-    # Access-Control-Allow-Origin is unset, which breaks SPA uploads (ui / ui2).
+    # Browser CORS on the API: Kubo returns 403 for any Origin when
+    # Access-Control-Allow-Origin is unset. Keeps legacy browser→Kubo API
+    # fallbacks (and any remaining edge-case uploads) working; statement
+    # content publish is PublishedData-first and does not require this.
     entrypoint: >
       sh -c "
       if [ ! -f /data/ipfs/config ]; then ipfs init --profile=test; fi &&
@@ -360,19 +362,20 @@ services:
     networks:
       - commonality
 
+  # CauseStarter SPA hosting on local IPFS (core domain).
   ui-ipfs-publisher-causestarter:
-    image: commonality-ui2-ipfs-publisher:dev
+    image: commonality-causestarter-ipfs-publisher:dev
     build:
       context: .
-      dockerfile: ui2/Dockerfile.ipfs
+      dockerfile: causestarter/Dockerfile.ipfs
     container_name: commonality-ui-ipfs-publisher-causestarter
     user: "${UID:-1000}:${GID:-1000}"
-    command: ["node", "scripts/publish-ui2-to-ipfs.mjs"]
+    command: ["node", "scripts/publish-ui-to-ipfs.mjs"]
     working_dir: /workspace
     volumes:
       - ./.env:/workspace/.env:ro
       - ./ui/.env:/workspace/ui/.env:ro
-      - ./ui2/.env:/workspace/ui2/.env:ro
+      - ./causestarter/.env:/workspace/causestarter/.env:ro
       - ./data/ui-ipfs/causestarter:/artifacts
     depends_on:
       ipfs:
@@ -380,6 +383,7 @@ services:
       hardhat-deploy:
         condition: service_completed_successfully
     environment:
+      - UI_PACKAGE=causestarter
       - VITE_HASH_ROUTING=true
       - UI_IPFS_API_URL=http://ipfs:5001
       - UI_IPFS_GATEWAY_URL=http://localhost:8080/ipfs
@@ -393,6 +397,7 @@ services:
       - commonality
 
   # CauseStarter LLM helpers: statement suggestions + safety filter (Grok 4.5 / xAI).
+  # Graceful without .env.grok / API key (templates + heuristics).
   cause-assist:
     image: commonality-cause-assist:dev
     build:
@@ -401,14 +406,12 @@ services:
     container_name: commonality-cause-assist
     ports:
       - "${CAUSE_ASSIST_PORT:-3002}:3002"
-    # Loads GROK_API_Key (and any other xAI vars) when present.
-    # required: false so compose still starts without a local key file.
     env_file:
       - path: .env.grok
         required: false
     environment:
       PORT: "3002"
-      # deploy-ui2.sh also exports XAI_API_KEY from .env.grok for hosts without env_file.
+      # deploy-causestarter.sh also exports XAI_API_KEY from .env.grok for hosts without env_file.
       XAI_API_KEY: ${XAI_API_KEY:-}
       GROK_API_KEY: ${GROK_API_KEY:-}
       CAUSE_ASSIST_API_BASE_URL: ${CAUSE_ASSIST_API_BASE_URL:-https://api.x.ai/v1}
@@ -418,20 +421,20 @@ services:
       - commonality
     restart: unless-stopped
 
-  # CauseStarter (ui2) — nginx static SPA, independent of the multi-domain IPFS publishers.
-  # Deploy with: ./scripts/deploy-ui2.sh   or   docker compose up -d ui2
+  # CauseStarter — nginx static SPA (core founder surface).
   # Contract addresses / RPC URLs are injected at container start into config.json.
-  # Prefer exporting them via ./scripts/deploy-ui2.sh (loads .env + hardhat.env).
-  ui2:
-    image: commonality-ui2:dev
+  # Prefer ./scripts/deploy-causestarter.sh or services.sh (loads .env + hardhat.env).
+  # Statement content publish uses PublishedData (VITE_PUBLISHED_DATA_CONTRACT_ADDRESS).
+  causestarter:
+    image: commonality-causestarter:dev
     build:
       context: .
-      dockerfile: ui2/Dockerfile
+      dockerfile: causestarter/Dockerfile
       args:
         VITE_WALLETCONNECT_PROJECT_ID: ${VITE_WALLETCONNECT_PROJECT_ID:-}
-    container_name: commonality-ui2
+    container_name: commonality-causestarter
     ports:
-      - "${UI2_PORT:-8090}:80"
+      - "${CAUSESTARTER_PORT:-8090}:80"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     environment:
@@ -440,8 +443,8 @@ services:
       INDEXER_UPSTREAM: ${INDEXER_UPSTREAM:-}
       VITE_EVENT_CACHE_URL: ${VITE_EVENT_CACHE_URL:-}
       VITE_IPFS_GATEWAY: ${VITE_IPFS_GATEWAY:-http://localhost:8080/ipfs}
-      # Empty default: useMachinery rewrites to same-origin /ipfs-api (nginx proxy).
-      # Set explicitly only if you need a direct API URL outside Docker.
+      # Optional legacy browser IPFS API (same-origin /ipfs-api proxy). Not required
+      # for statement launch when PublishedData is configured.
       VITE_IPFS_API: ${VITE_IPFS_API:-}
       IPFS_API_UPSTREAM: ${IPFS_API_UPSTREAM:-}
       VITE_PLATFORM_API_URL: ${VITE_PLATFORM_API_URL:-http://localhost:3001}

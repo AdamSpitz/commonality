@@ -1,6 +1,6 @@
 #!/bin/sh
 # Pick an indexer upstream that is actually reachable so Discover and live
-# tool examples do not 502 when only ui2 is running (or only the host stack is).
+# tool examples do not 502 when only CauseStarter is running (or only the host stack is).
 set -eu
 
 CONF=/etc/nginx/conf.d/default.conf

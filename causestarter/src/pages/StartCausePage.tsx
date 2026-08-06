@@ -322,7 +322,14 @@ export function StartCausePage() {
     if (!beliefsAddress || !mutableRefAddress) {
       throw new Error(
         'Contract addresses are missing from runtime config. '
-        + 'Redeploy after hardhat-deploy (./scripts/deploy-ui2.sh) so config.json includes them.',
+        + 'Redeploy after hardhat-deploy (./scripts/deploy-causestarter.sh) so config.json includes them.',
+      )
+    }
+    if (!publishedDataAddress) {
+      throw new Error(
+        'PublishedData contract address is missing (VITE_PUBLISHED_DATA_CONTRACT_ADDRESS). '
+        + 'Statement launch uses on-chain PublishedData, not browser IPFS upload. '
+        + 'Redeploy after hardhat-deploy (./scripts/deploy-causestarter.sh) so config.json includes it.',
       )
     }
 
@@ -341,9 +348,7 @@ export function StartCausePage() {
       {
         beliefs: beliefsContract,
         mutableRefUpdater: mutableRefContract,
-        ...(publishedDataAddress
-          ? { publishedData: { address: publishedDataAddress, abi: PublishedDataAbi } }
-          : {}),
+        publishedData: { address: publishedDataAddress, abi: PublishedDataAbi },
       },
       statementData,
       { machinery, addToCreatedList: true },

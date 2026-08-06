@@ -27,7 +27,7 @@
     "explorer-curator",
     "cause-assist",
     "ui",
-    "ui2"
+    "causestarter"
   ],
   "engines": {
     "node": ">=24 <25"
@@ -42,14 +42,17 @@
     "build:docs": "turbo run docs --filter=@commonality/sdk --filter=@commonality/hardhat",
     "attester:build": "turbo run build --filter=@commonality/implication-attester",
     "ui:dev": "npm run dev --workspace=ui",
-    "ui2:dev": "npm run dev --workspace=ui2",
-    "ui2:build": "npm run build --workspace=ui2",
-    "ui2:test": "npm run test --workspace=ui2",
-    "ui2:deploy": "./scripts/deploy-ui2.sh",
-    "ui2:deploy:stop": "./scripts/deploy-ui2.sh --stop",
+    "causestarter:dev": "npm run dev --workspace=causestarter",
+    "causestarter:build": "npm run build --workspace=causestarter",
+    "causestarter:test": "npm run test --workspace=causestarter",
+    "causestarter:deploy": "./scripts/deploy-causestarter.sh",
+    "causestarter:deploy:stop": "./scripts/deploy-causestarter.sh --stop",
     "cause-assist:dev": "npm run dev --workspace=@commonality/cause-assist",
     "cause-assist:build": "npm run build --workspace=@commonality/cause-assist",
     "cause-assist:start": "npm run start --workspace=@commonality/cause-assist",
+    "cause-assist:test": "npm run test --workspace=@commonality/cause-assist",
+    "cause-assist:typecheck": "npm run typecheck --workspace=@commonality/cause-assist",
+    "causestarter:typecheck": "npm run typecheck --workspace=causestarter",
     "ui:dev:commonality": "npm run dev:commonality --workspace=ui",
     "ui:dev:lazyGiving": "npm run dev:lazyGiving --workspace=ui",
     "ui:dev:alignment": "npm run dev:alignment --workspace=ui",

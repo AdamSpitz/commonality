@@ -36,8 +36,8 @@
     "integration-tests/src/**/*.ts",
     "ui/src/**/*.ts",
     "ui/src/**/*.tsx",
-    "ui2/src/**/*.ts",
-    "ui2/src/**/*.tsx",
+    "causestarter/src/**/*.ts",
+    "causestarter/src/**/*.tsx",
     "cause-assist/src/**/*.ts"
   ],
   "exclude": ["node_modules", "dist", ".turbo"]

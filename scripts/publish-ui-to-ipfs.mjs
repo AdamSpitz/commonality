@@ -7,9 +7,17 @@ import { getLocalStableUrl } from './ui-domains.mjs'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 const rootDir = path.resolve(__dirname, '..')
-const buildDomain = resolveDomain(process.env.VITE_DOMAIN)
-const distDir = path.join(rootDir, 'ui', 'dist', buildDomain)
-const artifactDir = process.env.UI_IPFS_ARTIFACT_DIR || path.join(rootDir, 'data', 'ui-ipfs')
+
+// UI_PACKAGE selects the app package: "ui" (multi-domain) or "causestarter".
+const uiPackage = resolveUiPackage(process.env.UI_PACKAGE)
+const buildDomain = uiPackage === 'causestarter'
+  ? 'causestarter'
+  : resolveDomain(process.env.VITE_DOMAIN)
+const distDir = uiPackage === 'causestarter'
+  ? path.join(rootDir, 'causestarter', 'dist')
+  : path.join(rootDir, 'ui', 'dist', buildDomain)
+const artifactDir = process.env.UI_IPFS_ARTIFACT_DIR
+  || path.join(rootDir, 'data', 'ui-ipfs', buildDomain)
 const ipfsApiBaseUrl = (process.env.UI_IPFS_API_URL || 'http://ipfs:5001').replace(/\/$/, '')
 const gatewayBaseUrl = (process.env.UI_IPFS_GATEWAY_URL || 'http://localhost:8080/ipfs').replace(/\/$/, '')
 const publishDirName = `${buildDomain}-ui`
@@ -50,6 +58,11 @@ const UI_ENV_ADDRESS_MAPPINGS = {
   PROSPECTIVE_CONTENT_ROUND_FACTORY_ADDRESS: 'VITE_PROSPECTIVE_CONTENT_ROUND_FACTORY_ADDRESS',
 }
 
+function resolveUiPackage(value) {
+  if (value === 'causestarter') return 'causestarter'
+  return 'ui'
+}
+
 function parseEnvFile(content) {
   const entries = {}
 
@@ -85,7 +98,10 @@ async function loadEnvFile(filePath) {
 async function loadUiBuildEnvFromFiles() {
   const rootEnv = await loadEnvFile(path.join(rootDir, '.env'))
   const uiEnv = await loadEnvFile(path.join(rootDir, 'ui', '.env'))
-  const env = { ...uiEnv }
+  const causestarterEnv = uiPackage === 'causestarter'
+    ? await loadEnvFile(path.join(rootDir, 'causestarter', '.env'))
+    : {}
+  const env = { ...uiEnv, ...causestarterEnv }
 
   for (const [sourceKey, viteKey] of Object.entries(UI_ENV_ADDRESS_MAPPINGS)) {
     if (rootEnv[sourceKey]) {
@@ -107,6 +123,7 @@ function runOrThrow(command, args, options = {}) {
       HUSKY: process.env.HUSKY || '0',
       VITE_DOMAIN: buildDomain,
       VITE_ROUTER_MODE: process.env.VITE_ROUTER_MODE || extraEnv.VITE_ROUTER_MODE || 'hash',
+      VITE_HASH_ROUTING: process.env.VITE_HASH_ROUTING || extraEnv.VITE_HASH_ROUTING || 'true',
       VITE_IPFS_GATEWAY: process.env.VITE_IPFS_GATEWAY || extraEnv.VITE_IPFS_GATEWAY || 'http://localhost:8080/ipfs',
       VITE_IPFS_API: process.env.VITE_IPFS_API || extraEnv.VITE_IPFS_API || 'http://localhost:5001',
       VITE_PLATFORM_API_URL: process.env.VITE_PLATFORM_API_URL || extraEnv.VITE_PLATFORM_API_URL || 'http://localhost:3001',
@@ -233,18 +250,34 @@ async function writeArtifacts(result) {
   }
 }
 
-async function main() {
-  const buildEnv = await loadUiBuildEnvFromFiles()
+function buildUiPackage(buildEnv) {
+  if (uiPackage === 'causestarter') {
+    console.log('Building CauseStarter for IPFS...')
+    runOrThrow('npm', ['run', 'build', '--workspace=@commonality/sdk'], { env: buildEnv })
+    runOrThrow('npm', ['run', 'build', '--workspace=causestarter'], {
+      env: {
+        ...buildEnv,
+        VITE_HASH_ROUTING: 'true',
+      },
+    })
+    return
+  }
 
   console.log(`Building ${buildDomain} UI in IPFS mode...`)
   runOrThrow('npm', ['run', 'ui:build:ipfs'], { env: buildEnv })
+}
+
+async function main() {
+  const buildEnv = await loadUiBuildEnvFromFiles()
+
+  buildUiPackage(buildEnv)
 
   console.log(`Publishing ${distDir} to ${ipfsApiBaseUrl}...`)
   const result = await publishDirectoryToIpfs()
   await writeArtifacts(result)
 
   console.log('')
-  console.log('UI published to local IPFS.')
+  console.log(uiPackage === 'causestarter' ? 'CauseStarter published to local IPFS.' : 'UI published to local IPFS.')
   console.log(`  CID: ${result.cid}`)
   console.log(`  IPFS root: ${result.ipfsRootUrl}`)
   console.log(`  SPA URL: ${result.spaUrl}`)
@@ -264,6 +297,7 @@ function resolveDomain(value) {
     case 'noninflammatory':
     case 'csm':
     case 'conceptspace':
+    case 'causestarter':
       return value
     default:
       return 'commonality'

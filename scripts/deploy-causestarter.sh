@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 #
-# Build the CauseStarter (ui2) Docker image and deploy the container locally.
+# Build the CauseStarter Docker image and deploy the container locally.
 #
 # Usage:
-#   ./scripts/deploy-ui2.sh              # build + run on http://localhost:8090
-#   ./scripts/deploy-ui2.sh --build-only
-#   ./scripts/deploy-ui2.sh --stop
+#   ./scripts/deploy-causestarter.sh              # build + run on http://localhost:8090
+#   ./scripts/deploy-causestarter.sh --build-only
+#   ./scripts/deploy-causestarter.sh --stop
 #
 # Optional env:
-#   UI2_PORT                 host port (default 8090)
-#   UI2_IMAGE                image tag (default commonality-ui2:dev)
+#   CAUSESTARTER_PORT                 host port (default 8090)
+#   CAUSESTARTER_IMAGE                image tag (default commonality-causestarter:dev)
 #   COMMONALITY_ENVIRONMENT  local|testnet|mainnet (default local)
 #   Contract address / URL vars are passed through to the runtime config.json.
 
@@ -18,9 +18,9 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
-UI2_PORT="${UI2_PORT:-8090}"
-UI2_IMAGE="${UI2_IMAGE:-commonality-ui2:dev}"
-CONTAINER_NAME="${UI2_CONTAINER_NAME:-commonality-ui2}"
+CAUSESTARTER_PORT="${CAUSESTARTER_PORT:-8090}"
+CAUSESTARTER_IMAGE="${CAUSESTARTER_IMAGE:-commonality-causestarter:dev}"
+CONTAINER_NAME="${CAUSESTARTER_CONTAINER_NAME:-commonality-causestarter}"
 MODE="${1:-}"
 
 docker_compose() {
@@ -73,7 +73,7 @@ map_contract_env() {
 if [ "$MODE" = "--stop" ]; then
   echo "Stopping CauseStarter container..."
   docker rm -f "$CONTAINER_NAME" 2>/dev/null || true
-  docker_compose stop ui2 2>/dev/null || true
+  docker_compose stop causestarter 2>/dev/null || true
   echo "Stopped."
   exit 0
 fi
@@ -86,7 +86,7 @@ fi
 # Prefer live local deploy env, then committed hardhat defaults.
 load_env_file "$ROOT/.env"
 load_env_file "$ROOT/ui/.env"
-load_env_file "$ROOT/ui2/.env"
+load_env_file "$ROOT/causestarter/.env"
 load_env_file "$ROOT/deployments/hardhat.env"
 # xAI / Grok key for cause-assist (file may use GROK_API_Key casing).
 load_env_file "$ROOT/.env.grok"
@@ -107,7 +107,7 @@ if [ -z "${VITE_WALLETCONNECT_PROJECT_ID:-}" ]; then
   echo "Note: VITE_WALLETCONNECT_PROJECT_ID is unset."
   echo "  Injected browser wallets (MetaMask, etc.) still work."
   echo "  For WalletConnect QR / mobile wallets, set VITE_WALLETCONNECT_PROJECT_ID"
-  echo "  (https://cloud.reown.com) in the environment or ui2/.env, then rebuild."
+  echo "  (https://cloud.reown.com) in the environment or causestarter/.env, then rebuild."
 fi
 map_contract_env
 
@@ -125,8 +125,8 @@ ensure_local_indexer() {
   fi
 
   echo "Indexer not reachable on :42069 — starting local chain + indexer..."
-  mkdir -p "$ROOT/data/hardhat" "$ROOT/data/ipfs" "$ROOT/data/ponder" ui ui2
-  touch "$ROOT/.env" "$ROOT/ui/.env" "$ROOT/ui2/.env"
+  mkdir -p "$ROOT/data/hardhat" "$ROOT/data/ipfs" "$ROOT/data/ponder" ui causestarter
+  touch "$ROOT/.env" "$ROOT/ui/.env" "$ROOT/causestarter/.env"
 
   docker_compose up -d hardhat-node ipfs
   # Wait for hardhat RPC
@@ -229,7 +229,7 @@ ensure_local_tool_stack() {
   for domain in "${LOCAL_UI_DOMAINS[@]}"; do
     mkdir -p "$ROOT/data/ui-ipfs/$domain"
   done
-  touch "$ROOT/.env" "$ROOT/ui/.env" "$ROOT/ui2/.env"
+  touch "$ROOT/.env" "$ROOT/ui/.env" "$ROOT/causestarter/.env"
 
   if ! curl --silent --show-error --fail --max-time 2 "http://localhost:3001/health" >/dev/null 2>&1; then
     echo "Starting platform-api-service on :3001..."
@@ -290,7 +290,7 @@ ensure_local_tool_stack() {
     fi
   fi
 
-  # Stable defaults used by ui2 runtime config.json tool cards.
+  # Stable defaults used by CauseStarter runtime config.json tool cards.
   export VITE_COMMONALITY_URL="${VITE_COMMONALITY_URL:-http://commonality.localhost:8088/#/}"
   export VITE_LAZYGIVING_URL="${VITE_LAZYGIVING_URL:-http://lazygiving.localhost:8088/#/}"
   export VITE_ALIGNMENT_URL="${VITE_ALIGNMENT_URL:-http://alignment.localhost:8088/#/}"
@@ -302,24 +302,24 @@ ensure_local_tool_stack() {
 }
 
 echo "Building CauseStarter + cause-assist images..."
-docker_compose build cause-assist ui2
+docker_compose build cause-assist causestarter
 
 if [ "$MODE" = "--build-only" ]; then
-  echo "Build complete: $UI2_IMAGE (+ cause-assist)"
+  echo "Build complete: $CAUSESTARTER_IMAGE (+ cause-assist)"
   exit 0
 fi
 
 ensure_local_indexer
 ensure_local_tool_stack
 
-echo "Deploying cause-assist and CauseStarter on http://localhost:${UI2_PORT}/"
-docker_compose up -d --force-recreate cause-assist ui2
+echo "Deploying cause-assist and CauseStarter on http://localhost:${CAUSESTARTER_PORT}/"
+docker_compose up -d --force-recreate cause-assist causestarter
 
 echo "Waiting for health..."
 max_attempts=40
 attempt=1
 while [ "$attempt" -le "$max_attempts" ]; do
-  if curl --silent --show-error --fail "http://localhost:${UI2_PORT}/" >/dev/null 2>&1; then
+  if curl --silent --show-error --fail "http://localhost:${CAUSESTARTER_PORT}/" >/dev/null 2>&1; then
     break
   fi
   sleep 1
@@ -327,18 +327,18 @@ while [ "$attempt" -le "$max_attempts" ]; do
 done
 
 if [ "$attempt" -gt "$max_attempts" ]; then
-  echo "Error: CauseStarter did not become healthy on port ${UI2_PORT}" >&2
-  docker_compose logs --tail=80 ui2 || true
+  echo "Error: CauseStarter did not become healthy on port ${CAUSESTARTER_PORT}" >&2
+  docker_compose logs --tail=80 causestarter || true
   exit 1
 fi
 
 echo ""
 echo "CauseStarter is deployed."
-echo "  URL:     http://localhost:${UI2_PORT}/"
-echo "  Image:   $UI2_IMAGE"
+echo "  URL:     http://localhost:${CAUSESTARTER_PORT}/"
+echo "  Image:   $CAUSESTARTER_IMAGE"
 echo "  Tools:   http://localhost:8088/  (admin index for domain SPAs)"
-echo "  Logs:    docker compose logs -f ui2"
-echo "  Stop:    ./scripts/deploy-ui2.sh --stop"
+echo "  Logs:    docker compose logs -f causestarter"
+echo "  Stop:    ./scripts/deploy-causestarter.sh --stop"
 echo ""
 echo "Tool deep-links (open from CauseStarter or browser):"
 echo "  Tally:          http://tally.localhost:8088/#/"

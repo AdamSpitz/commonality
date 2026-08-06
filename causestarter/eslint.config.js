@@ -28,6 +28,9 @@ export default defineConfig([
         varsIgnorePattern: '^_',
       }],
       '@typescript-eslint/no-explicit-any': 'off',
+      // Match main ui/: data-loading effects and test wallet setup are intentional.
+      'react-hooks/set-state-in-effect': 'off',
+      'react-hooks/immutability': 'off',
       'react-hooks/exhaustive-deps': 'warn',
       'react-hooks/rules-of-hooks': 'error',
       'react-refresh/only-export-components': 'warn',

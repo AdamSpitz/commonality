@@ -1,4 +1,8 @@
-import { requestJsonCompletion, type LlmJsonRequest, type RequestJsonCompletionFn } from './llmClient.js'
+import {
+  requestJsonCompletion,
+  type LlmJsonRequest,
+  type RequestJsonCompletionFn,
+} from '@commonality/attester-core'
 import { heuristicCheckAll, heuristicCheckItem } from './heuristicSafety.js'
 import type {
   CauseAssistConfig,
