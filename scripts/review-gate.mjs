@@ -30,9 +30,15 @@ import { execFileSync } from "node:child_process";
 
 const STATUS_CONTEXT = "review-received";
 const TRAILER = /^Reviewed-commit:\s*([0-9a-f]{7,40})\s*$/im;
-// The gate only guards merges INTO this branch. Release PRs (dev -> master) are
-// a rubber-stamp of already-reviewed content, so they pass without a fresh one.
+// Review receipts are required on the way INTO this branch.
 const GATED_BASE = "dev";
+// Release PRs into this branch are a rubber-stamp of already-reviewed content,
+// so they need no fresh receipt — but that argument only holds if the content
+// actually came through the gate. A feature branch merged straight into
+// `master` would bypass review entirely, so releases must be headed by
+// RELEASE_HEAD and nothing else.
+const RELEASE_BASE = "master";
+const RELEASE_HEAD = "dev";
 
 const repo = process.env.GITHUB_REPOSITORY;
 if (!repo) fail("GITHUB_REPOSITORY is not set");
@@ -70,10 +76,42 @@ if (!prNumber) fail("could not determine the PR number");
 
 // Always re-fetch the PR so we act on the current head sha, not a stale payload.
 const pr = JSON.parse(
-  gh(["api", `repos/${repo}/pulls/${prNumber}`, "--jq", "{headSha: .head.sha, base: .base.ref}"]),
+  gh([
+    "api",
+    `repos/${repo}/pulls/${prNumber}`,
+    "--jq",
+    "{headSha: .head.sha, base: .base.ref, head: .head.ref, headRepo: .head.repo.full_name}",
+  ]),
 );
 const headSha = pr.headSha;
 const baseRef = pr.base;
+const headRef = pr.head;
+
+// --- Releases into master must come from dev ---------------------------------
+//
+// Content reaching master is trusted because it was reviewed on the way into
+// dev. A PR from anywhere else launders unreviewed commits straight into the
+// release branch, so refuse it. (Same-repo only: a fork branch named `dev` is
+// not our dev.)
+
+if (baseRef === RELEASE_BASE) {
+  const fromRelease = headRef === RELEASE_HEAD && pr.headRepo === repo;
+  if (fromRelease) {
+    setStatus(headSha, "success", `Release from '${RELEASE_HEAD}' — reviewed on the way into '${RELEASE_HEAD}'`);
+    console.log(`review-gate: release PR from '${RELEASE_HEAD}' — passing.`);
+    process.exit(0);
+  }
+  setStatus(
+    headSha,
+    "failure",
+    `'${baseRef}' only accepts PRs from '${RELEASE_HEAD}' (this one is from '${headRef}')`,
+  );
+  console.log(
+    `review-gate: PR into '${baseRef}' is headed by '${headRef}', not '${RELEASE_HEAD}'. ` +
+      `Merge the work into '${RELEASE_HEAD}' first so it passes the review gate, then promote.`,
+  );
+  process.exit(1);
+}
 
 // --- Non-gated bases pass trivially ------------------------------------------
 
