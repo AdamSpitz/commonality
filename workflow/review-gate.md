@@ -12,6 +12,26 @@ another agent, or a human — whatever you like — without touching CI.
 | A review actually ran on **this commit** | `review-received` status check (`scripts/review-gate.mjs`) | posting a **receipt** (below) |
 | Every **finding** is dealt with | GitHub `required_conversation_resolution` | posting findings as review threads and resolving them |
 
+## Why `master` is gated too
+
+`review-received` is required on `master` as well as `dev`, with **one
+exemption**: a `dev -> master` release carries no fresh receipt, because its
+content already passed the gate on the way into `dev`. Re-reviewing it would be
+pure ceremony. (The lookup couldn't recognise those earlier reviews anyway — it
+is per-PR and keyed to the head sha, and merging into `dev` mints a new merge
+commit whose sha never carried a receipt.)
+
+Every other PR into `master` — **a hotfix branch, say** — is treated exactly like
+a PR into `dev`: it needs a receipt for its head commit. Without this, a feature
+branch could merge straight into the release branch having been reviewed nowhere
+at all, which is what happened with #86 and #87.
+
+Note what this deliberately does **not** do: it doesn't force hotfixes to travel
+through `dev`. Requiring that would mean a one-line production fix could only
+ship by promoting all of `dev`, unreleased work included. Branch off `master`,
+fix, review, merge — the fast path stays open. Just remember to back-merge into
+`dev` afterwards, or the two will drift.
+
 Neither half runs an LLM in CI. The referee is a ~100-line script with no API
 key; it only inspects the PR's existing reviews.
 
@@ -73,5 +93,9 @@ they exist, are hard-blocked by conversation resolution.
 - Reviewer receipts / findings: `scripts/post-review.sh`, `/code-review`.
 - The referee logic: `scripts/review-gate.mjs`.
 - The CI trigger: `.github/workflows/review-gate.yml`.
-- Branch protection (marks `review-received` **required** on `dev`):
-  `scripts/protect-branches.sh` — re-run after changing it.
+- Branch protection (marks `review-received` **required** on both `dev` and
+  `master`): `scripts/protect-branches.sh` — re-run after changing it.
+
+Note that `.github/workflows/review-gate.yml` checks the referee out from the
+**default branch**, not the PR head, so a change to `scripts/review-gate.mjs`
+only takes effect once it reaches `master`.
