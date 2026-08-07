@@ -47,6 +47,8 @@ is the living spec with the full backlog. What's left here is only the part that
 
 - New site, or potential rename of Commonality: "CauseStarter"? (The ADR deliberately
   froze the strategy and not the brand, so this is still fully open.)
+  - In fact, let's make this the main UI.
+  - Let's merge in Sam's "ui2" thing - maybe *that* should be the main CauseStarter UI? For now let's just pull in the changes it made to the core stuff, and keep it as "ui2".
 
 - Improve the [pitch for Christians](docs/founder/christian-pitch.md). Come up with other ones along those lines.
 
@@ -54,7 +56,7 @@ is the living spec with the full backlog. What's left here is only the part that
 
 ### Stuff I want to think through
 
-- Hold on, does the content-funding token system still make sense after the redesign of retroactive funding (to cap the reimbursement at the amount they put in)? Maybe it's fine? Early backers can't make a profit, but that's okay; they still get social recognition for having done it, and the retroactive-funders still get social recognition for having donated. But we should at least make sure that the documentation and the UI accurately convey that. (Maybe it already does? I know we updated the docs and UI for the LazyGiving system in general; I don't remember whether we did that for the content-funding system in particular.)
+- Asking the cause founder to make statements is going to be a problem because the idea of statements is not obvious. (Need to not be vague or ambiguous, etc.)
 
 - Now that have (or at least are close to having) a proper testnet setup, can we start creating an ecosystem of simulated fake users of various types? (We can use LLMs to run the ones that need more intelligence, though ideally they'll mostly be made of conventional code, to avoid burning too many LLM tokens.)
   - Cause founder: cares a lot about some cause, comes across CauseStarter, tries actually forking the repo and making a new cause, etc.
@@ -78,6 +80,8 @@ is the living spec with the full backlog. What's left here is only the part that
 - **(Ask) Use cases — one decision left: is A2/A3/A5/A6 one combinator project rather than four features?** The full inventory, with statuses verified against the live UI, is in [use-cases.md](specs/product/use-cases.md); the other three questions from that pass have since resolved themselves. Headline was that the build is further along than the specs suggested. Side note worth acting on: the demo seed is entirely political-content flavoured, so A1/A5/E2 can't be *seen* working even in principle — seeding one local-public-goods cause would make the story demonstrable.
 
 - **Revisit the prospective-round claim/entitlement model — it confused me, which is a bad sign.** Entitlement is the *current* receipt balance while `claimedAmount` is permanent, so an account can have claimed more than it now holds, and burning receipts silently reduces future claims with nothing recording what was given up. The specific questions (snapshot vs. live balance, whether unclaimed capacity survives a burn, per-item vs. per-round claiming) are written up under [materialization.md § Open question](specs/tech/subsystems/content-funding/materialization.md#open-question-is-the-claim-model-too-confusing).
+
+- It's time to switch over to GitHub Issues, now that Sam is creating some.
 
 ## Before mainnet
 

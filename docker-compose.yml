@@ -397,7 +397,8 @@ services:
       - commonality
 
   # CauseStarter LLM helpers: statement suggestions + safety filter (Grok 4.5 / xAI).
-  # Graceful without .env.grok / API key (templates + heuristics).
+  # Graceful without an API key (templates + heuristics). Key comes from root .env
+  # (via .env.secrets + setup-env.sh) or the process environment.
   cause-assist:
     image: commonality-cause-assist:dev
     build:
@@ -407,13 +408,12 @@ services:
     ports:
       - "${CAUSE_ASSIST_PORT:-3002}:3002"
     env_file:
-      - path: .env.grok
+      - path: .env
         required: false
     environment:
       PORT: "3002"
-      # deploy-causestarter.sh also exports XAI_API_KEY from .env.grok for hosts without env_file.
       XAI_API_KEY: ${XAI_API_KEY:-}
-      GROK_API_KEY: ${GROK_API_KEY:-}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
       CAUSE_ASSIST_API_BASE_URL: ${CAUSE_ASSIST_API_BASE_URL:-https://api.x.ai/v1}
       CAUSE_ASSIST_SUGGEST_MODEL: ${CAUSE_ASSIST_SUGGEST_MODEL:-grok-4.5}
       CAUSE_ASSIST_SAFETY_MODEL: ${CAUSE_ASSIST_SAFETY_MODEL:-grok-4.5}

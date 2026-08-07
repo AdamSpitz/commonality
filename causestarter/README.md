@@ -111,9 +111,9 @@ IPFS publish for CauseStarter uses the shared
 
 ## cause-assist (LLM helpers)
 
-Statement suggestions and safety filter default to Grok via xAI. Optional local
-key: repo-root `.env.grok` (`XAI_API_KEY` / `GROK_API_KEY`). Without a key the
-service still starts (template suggestions + heuristic safety).
+Statement suggestions and safety filter default to Grok via xAI. Optional key:
+`XAI_API_KEY` in repo-root `.env.secrets`, then `./scripts/setup-env.sh`.
+Without a key the service still starts (template suggestions + heuristic safety).
 
 ```bash
 npm run cause-assist:dev

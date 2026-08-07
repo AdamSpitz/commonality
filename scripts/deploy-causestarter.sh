@@ -89,17 +89,6 @@ load_env_file "$ROOT/deployments/localhost.env"
 load_env_file "$ROOT/.env"
 load_env_file "$ROOT/ui/.env"
 load_env_file "$ROOT/causestarter/.env"
-# xAI / Grok key for cause-assist (file may use GROK_API_Key casing).
-load_env_file "$ROOT/.env.grok"
-# Normalize Grok key env names for compose + cause-assist config loader.
-if [ -z "${XAI_API_KEY:-}" ]; then
-  if [ -n "${GROK_API_KEY:-}" ]; then
-    export XAI_API_KEY="$GROK_API_KEY"
-  elif [ -n "${GROK_API_Key:-}" ]; then
-    export XAI_API_KEY="$GROK_API_Key"
-    export GROK_API_KEY="$GROK_API_Key"
-  fi
-fi
 export CAUSE_ASSIST_SUGGEST_MODEL="${CAUSE_ASSIST_SUGGEST_MODEL:-grok-4.5}"
 export CAUSE_ASSIST_SAFETY_MODEL="${CAUSE_ASSIST_SAFETY_MODEL:-grok-4.5}"
 export CAUSE_ASSIST_API_BASE_URL="${CAUSE_ASSIST_API_BASE_URL:-https://api.x.ai/v1}"
