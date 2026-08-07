@@ -263,15 +263,6 @@ map_causestarter_contract_env() {
     export VITE_PLATFORM_API_URL="${VITE_PLATFORM_API_URL:-http://localhost:3001}"
     export COMMONALITY_ENVIRONMENT="${COMMONALITY_ENVIRONMENT:-local}"
     export VITE_EVENT_CACHE_URL="${VITE_EVENT_CACHE_URL:-}"
-    # Optional xAI key for cause-assist (file may use GROK_API_Key casing).
-    if [ -z "${XAI_API_KEY:-}" ]; then
-        if [ -n "${GROK_API_KEY:-}" ]; then
-            export XAI_API_KEY="$GROK_API_KEY"
-        elif [ -n "${GROK_API_Key:-}" ]; then
-            export XAI_API_KEY="$GROK_API_Key"
-            export GROK_API_KEY="$GROK_API_Key"
-        fi
-    fi
 }
 
 start_services() {
@@ -344,7 +335,6 @@ start_services() {
     load_env_file_if_present .env
     load_env_file_if_present ui/.env
     load_env_file_if_present causestarter/.env
-    load_env_file_if_present .env.grok
     map_causestarter_contract_env
     docker_compose up -d --force-recreate cause-assist causestarter
 
