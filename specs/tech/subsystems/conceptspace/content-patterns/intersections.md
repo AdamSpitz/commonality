@@ -54,7 +54,7 @@ Concretely, the loop is:
 4. Submit (C, S1) and (C, S2) to the implication attester.
 
 This fits cleanly into the finder tier:
-- **Finder core** (`finder-core/`) provides the polling loop and batch-submission helpers.
+- **Finder core** (`services/finder-core/`) provides the polling loop and batch-submission helpers.
 - The statement-creator adds an LLM generation step before the submission step.
 - No new service tier is needed.
 

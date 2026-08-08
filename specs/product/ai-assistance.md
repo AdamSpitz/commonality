@@ -29,18 +29,18 @@ These are separate logical roles even when several are bundled into one physical
 
 ### Attesters
 Evaluate claims and publish on-chain attestations. Anyone can run one; users configure which ones they trust.
-- **Implication attester** — evaluates whether S1 implies S2. See [attester-core/](../../attester-core/README.md) and [implication-attester/](../../implication-attester/README.md).
-- **Content attester** — evaluates whether a content item aligns with a statement. See [content-attester/](../../content-attester/README.md).
-- **Beat agent** — a purpose-guided discourse-following agent for a configured beat. Stateful content attestation is the first concrete capability: when a beat agent evaluates context-dependent content positively, it publishes the same `AlignmentAttestation` output as a content attester. The same beat memory may also support content discovery, context-provider APIs, or CSM bridge-opportunity detection. See [beat-agent/](../../beat-agent/README.md) and [beat-agents.md](../tech/subsystems/content-funding/noninflammatory-content/beat-agents.md).
+- **Implication attester** — evaluates whether S1 implies S2. See [attester-core/](../../services/attester-core/README.md) and [implication-attester/](../../services/implication-attester/README.md).
+- **Content attester** — evaluates whether a content item aligns with a statement. See [content-attester/](../../services/content-attester/README.md).
+- **Beat agent** — a purpose-guided discourse-following agent for a configured beat. Stateful content attestation is the first concrete capability: when a beat agent evaluates context-dependent content positively, it publishes the same `AlignmentAttestation` output as a content attester. The same beat memory may also support content discovery, context-provider APIs, or CSM bridge-opportunity detection. See [beat-agent/](../../services/beat-agent/README.md) and [beat-agents.md](../tech/subsystems/content-funding/noninflammatory-content/beat-agents.md).
 
 ### Finders
 Proactively discover candidates and submit them to attesters. Finders are not the trust boundary: a bad finder can waste budget or miss opportunities, but the attester still decides what gets published as an attestation.
-- **Implication finder** — scans the statement graph for pairs worth submitting to the implication attester. See [implication-finder/](../../implication-finder/README.md).
-- **Content finder** — processes a submission queue for the content attester. See [content-finder/](../../content-finder/README.md).
+- **Implication finder** — scans the statement graph for pairs worth submitting to the implication attester. See [implication-finder/](../../services/implication-finder/README.md).
+- **Content finder** — processes a submission queue for the content attester. See [content-finder/](../../services/content-finder/README.md).
 
 ### Nudgers
 Publish typed suggestion batches (on-chain CID → IPFS document). Users configure which nudgers they trust; the SDK fetches and folds their publications. See [specs/tech/subsystems/nudger/README.md](../tech/subsystems/nudger/README.md) for the full publication model.
-- **Implication-graph nudger** — "you signed S1; you might want to sign S2 which implies it and is more popular," plus clarification nudges toward clearer statements when S1 is too ambiguous to connect safely. See [implication-graph-nudger/](../../implication-graph-nudger/README.md).
+- **Implication-graph nudger** — "you signed S1; you might want to sign S2 which implies it and is more popular," plus clarification nudges toward clearer statements when S1 is too ambiguous to connect safely. See [implication-graph-nudger/](../../services/implication-graph-nudger/README.md).
 - **Bridge-creator nudger** — synthesizes new common-ground statements between opposing views and publishes them as nudges. See [bridge-creator.md](bridge-creator.md).
 
 ### Explorers
@@ -48,7 +48,7 @@ Explorers are nudgers with a particular strategy and UI surface. A background LL
 - **Fundable Project Explorer** — helps new users discover funding areas they're likely to care about.
 - **Movement-specific explorers** (e.g. CSM) — elicits what a user believes in order to find bridging opportunities. For the vision behind the CSM bridge-creator-plus-explorer combination, see [the CSM mediator doc](/docs/end-user/common-sense-majority/mediator.md).
 
-The currently implemented package for this pattern is [explorer-curator/](../../explorer-curator/README.md).
+The currently implemented package for this pattern is [explorer-curator/](../../services/explorer-curator/README.md).
 
 The nudger/explorer family has several services because they suggest different things:
 

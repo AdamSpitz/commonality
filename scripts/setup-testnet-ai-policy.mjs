@@ -11,11 +11,11 @@ const rootDir = join(dirname(fileURLToPath(import.meta.url)), "..");
 const secretsPath = join(rootDir, ".env.secrets");
 const statelessPromptPath = join(
 	rootDir,
-	"content-attester/prompts/perspective-neutral.md",
+	"services/content-attester/prompts/perspective-neutral.md",
 );
 const beatPromptPath = join(
 	rootDir,
-	"beat-agent/prompts/us-politics-civility.md",
+	"services/beat-agent/prompts/us-politics-civility.md",
 );
 
 const args = new Map();

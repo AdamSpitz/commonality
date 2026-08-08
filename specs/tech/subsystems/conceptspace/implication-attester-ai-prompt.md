@@ -1,6 +1,6 @@
 # Implication Attester AI — LLM prompt
 
-This is the prompt used by the Implication Attester AI service (`implication-attester/src/evaluator.ts`) to evaluate whether one statement S1 logically implies another S2. The canonical copy lives in code; this spec is the human-readable explanation of what's in it and why.
+This is the prompt used by the Implication Attester AI service (`services/implication-attester/src/evaluator.ts`) to evaluate whether one statement S1 logically implies another S2. The canonical copy lives in code; this spec is the human-readable explanation of what's in it and why.
 
 The stable guidance (role, rules, examples, output format) lives in the **system prompt**. The **user prompt** carries only the specific pair being evaluated, so it stays short and so the LLM's caching can kick in across requests.
 
@@ -65,7 +65,7 @@ Do NOT approve a pair merely because the statements are topically related, would
 }
 ```
 
-(See `implication-attester/src/evaluator.ts` for the full text with worked examples.)
+(See `services/implication-attester/src/evaluator.ts` for the full text with worked examples.)
 
 ## User prompt
 
@@ -124,4 +124,4 @@ Per [implication-attester-ai.md](implication-attester-ai.md):
 - Only proceed with an on-chain attestation if `decision: true` AND `confidence` is `"high"` or `"medium"`.
 - Discard `"low"` confidence results even when the decision is true.
 
-This threshold is enforced in `implication-attester/src/index.ts`, not in the prompt itself — the prompt's job is to return an honest confidence level.
+This threshold is enforced in `services/implication-attester/src/index.ts`, not in the prompt itself — the prompt's job is to return an honest confidence level.

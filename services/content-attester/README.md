@@ -1,0 +1,122 @@
+# Content Attester AI Service
+
+This service evaluates whether a content item passes a configured content-quality profile (for Civility, whether it is noninflammatory) and, when a target statement is provided, whether the same content actually supports that statement. Positive judgments are published to `AlignmentAttestations.sol`.
+
+## Role in the AI-service ecosystem
+
+- **Family:** Attester.
+- **Primary UI domains:** Content Funding and Civility; CSM uses these attestations through Civility/content flows.
+- **Trust boundary:** Users are trusting the attester identity for content/criterion judgment under its configured prompt/profile.
+- **Output:** Positive on-chain `AlignmentAttestation` records; negative/low-confidence evaluations do not publish positive attestations.
+- **Related services:** `content-finder` submits candidates; `platform-api-service` resolves canonical content IDs and local context; `beat-agent` handles context-dependent short-form/social content while publishing the same positive attestation type.
+
+## Overview
+
+The content attester:
+1. Accepts a content item plus an optional target statement CID
+2. Requires payment via the shared x402-style flow from `attester-core`
+3. Resolves content from inline text, a URL, or IPFS; when provided, resolves the target statement text from IPFS
+4. Uses OpenRouter to return a structured evaluation
+5. Publishes a standalone noninflammatory attestation when the content-quality decision is `true` with `high` or `medium` confidence
+6. Publishes a separate C→S support attestation when the `supports_statement` judgment is `pass` with `high` or `medium` confidence
+
+This stateless service is the right tool for long-form or self-contained content, and for short-form posts where the submitted content plus mechanically retrievable local context is enough. It should not try to guess at running discourse it has not been following. If a short-form social post depends on ambient context — in-jokes, current factional meanings, recent controversy, account reputation within a topic area — route it to a beat agent or treat insufficient context as a non-publishable result. See the beat-agent design in [`specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md`](../../specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md). Beat agents publish the same alignment attestation type, but add standing beat context and an explicit abstain outcome.
+
+## Configuration
+
+Required environment variables:
+
+```bash
+# Ethereum
+ETHEREUM_RPC_URL=http://localhost:8545
+ATTESTER_PRIVATE_KEY=0x...
+ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS=0x...
+ALIGNMENT_TOPIC_STATEMENT_CID=bafy...
+
+# OpenRouter
+OPENROUTER_API_KEY=sk-or-...
+OPENROUTER_MODEL=anthropic/claude-3.5-haiku
+
+# Prompt/profile
+CONTENT_ATTESTER_NAME=noninflammatory-neutral
+CONTENT_ATTESTER_PROMPT_TEMPLATE="...prompt text with {content}, {statement}, and optional {declared_perspective_context} placeholders..."
+
+# IPFS
+IPFS_API=http://localhost:5001
+IPFS_GATEWAY=http://localhost:8080
+
+# Server
+PORT=3000
+
+# x402 Payment
+X402_PAYMENT_ADDRESS=0x...
+SERVICE_MARGIN_PERCENT=20
+ETH_USD_PRICE=3000
+GAS_PRICE_MULTIPLIER=1.2
+ESTIMATED_INPUT_TOKENS=2500
+ESTIMATED_OUTPUT_TOKENS=400
+
+# Rate Limiting
+RATE_LIMIT_WINDOW_MS=60000
+RATE_LIMIT_MAX_REQUESTS=10
+
+# Optional finder bypass
+TRUSTED_FINDER_KEY=shared-secret-for-content-finders
+```
+
+## API Endpoints
+
+### POST /evaluate-content
+
+Request body:
+
+```json
+{
+  "contentCanonicalId": "twitter:uid:12345678:18347",
+  "statementCid": "bafy...",
+  "contentText": "Optional inline text",
+  "contentUrl": "Optional URL",
+  "contentCid": "Optional IPFS CID",
+  "declaredPerspective": "Optional perspective string"
+}
+```
+
+Exactly one of `contentText`, `contentUrl`, or `contentCid` must be provided.
+
+Response:
+
+```json
+{
+  "alreadyAttested": false,
+  "decision": true,
+  "confidence": "high",
+  "reasoning": "2-4 sentence explanation",
+  "dimensions": {
+    "steelmanning": "pass"
+  },
+  "supportDecision": "pass",
+  "subjectId": "0x...",
+  "explanationCid": "bafy...",
+  "transactionHash": "0x...",
+  "transactionHashes": ["0x...", "0x..."],
+  "processingTime": 1234
+}
+```
+
+### GET /quote
+
+Shared quote endpoint from `attester-core`.
+
+### GET /health
+
+Shared health endpoint from `attester-core`.
+
+### GET /status/:statementCid/:contentCanonicalId
+
+Shared placeholder status endpoint from `attester-core`.
+
+### POST /evaluate-content-batch
+
+Evaluate multiple content items in a single request. Maximum batch size is 10.
+
+This endpoint is intended for trusted finder services. If `TRUSTED_FINDER_KEY` is configured, callers can provide that value in the `X-Finder-Key` header to bypass the x402 payment flow.

@@ -6,7 +6,7 @@
 // truncated labels, topicArea = collection title, no parent/child depth).
 //
 // In production the map is NOT seeded or frozen: the real Explorer Curator
-// (`explorer-curator/`) runs live and cause-neutral over all on-chain
+// (`services/explorer-curator/`) runs live and cause-neutral over all on-chain
 // statements and picks up the seed statements early simply because they are
 // early content. See specs/tech/subsystems/conceptspace/explorer.md
 // ("Still needed", decision 2026-06-17).

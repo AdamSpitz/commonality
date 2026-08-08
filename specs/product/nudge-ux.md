@@ -64,7 +64,7 @@ All core nudge UX features are implemented as of 2026-04-22:
 
 | Component | Status |
 |---|---|
-| Nudger service framework | `nudger-core/` |
+| Nudger service framework | `services/nudger-core/` |
 | SDK: fetch + fold typed nudger publications | `sdk/` |
 | Nudge display in UI (`StatementSuggestions`) | `ui/` |
 | Nudge dismissal / "seen" tracking | `ui/` (localStorage via `nudgeStore`) |
@@ -78,4 +78,4 @@ Deferred: staleness decay (see "Surface area budget" above).
 
 Nudge suggestions for a statement don't appear until the nudger's next batch cycle (the implication-graph nudger runs every hour by default). The underlying attestations exist within ~2 minutes (the implication finder polls every 30s; the attester is synchronous), but `StatementSuggestions` reads from nudger publications, not directly from attestations.
 
-If snappier UX for new statements becomes a priority: lower `NUDGE_INTERVAL_MS` in `implication-graph-nudger/src/index.ts` (it's just a constant), or add a periodic refresh to `StatementSuggestions`.
+If snappier UX for new statements becomes a priority: lower `NUDGE_INTERVAL_MS` in `services/implication-graph-nudger/src/index.ts` (it's just a constant), or add a periodic refresh to `StatementSuggestions`.

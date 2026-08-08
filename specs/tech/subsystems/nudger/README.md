@@ -259,8 +259,8 @@ This strategy publishes `curated-collection` publications rather than `nudge-bat
 | UI: display `nudge-batch` suggestions | ✅ Implemented |
 | UI: nudge dismissal / intensity / topic filtering | ✅ Implemented |
 | UI: explorer pages backed by `curated-collection` publications | ✅ Implemented (`ExplorerPage` at `/explore`) |
-| Bridge-creator nudger | ✅ Implemented (`bridge-creator/`) |
-| Explorer nudger strategy (background curator + per-user personalizer) | ✅ Implemented (`explorer-curator/`) |
+| Bridge-creator nudger | ✅ Implemented (`services/bridge-creator/`) |
+| Explorer nudger strategy (background curator + per-user personalizer) | ✅ Implemented (`services/explorer-curator/`) |
 
 The existing `StatementSuggestions` / `getStatementSuggestions` is a proto-nudger — it implements one nudging strategy but is tightly coupled into the SDK rather than reading from the nudger publication system. The migration path is: update the SDK to fetch typed publications from the indexer (querying `NudgesPublished` events from trusted nudgers), then have each UI surface consume the publication kinds it cares about.
 

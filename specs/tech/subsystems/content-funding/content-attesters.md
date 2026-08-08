@@ -4,7 +4,7 @@ AI services that evaluate content and publish quality attestations. Structurally
 
 With the noninflammatory content attesters (neutral, left-evaluating-right, right-evaluating-left) joining the existing implication attester, we now have enough concrete attester types to justify extracting the shared infrastructure into a common library.
 
-## Shared attester library (`attester-core/`)
+## Shared attester library (`services/attester-core/`)
 
 The plan is to extract the infrastructure that's identical across all attesters into a shared library, keeping each attester type as a thin service that provides its specific prompt, contract interaction, and input/output shape.
 
@@ -12,7 +12,7 @@ The plan is to extract the infrastructure that's identical across all attesters 
 
 **Per-attester-type (pluggable):** LLM prompt, which contract to call (Implications vs. AlignmentAttestations), input shape (two CIDs for implications vs. content + optional perspective for content attesters), response schema (content attesters return `dimensions` that implication attesters don't).
 
-The existing `attester/` (implication attester) gets refactored to import from `attester-core/`. The new `content-attester/` service also imports from `attester-core/`. Each noninflammatory content attester instance (neutral, left, right) is the same `content-attester/` code deployed with different config (different prompt, different Ethereum key).
+The existing `attester/` (implication attester) gets refactored to import from `services/attester-core/`. The new `services/content-attester/` service also imports from `services/attester-core/`. Each noninflammatory content attester instance (neutral, left, right) is the same `services/content-attester/` code deployed with different config (different prompt, different Ethereum key).
 
 ## Architecture
 
@@ -21,7 +21,7 @@ The existing `attester/` (implication attester) gets refactored to import from `
 - Same on-chain output: publishes positive alignment attestations
 - Different LLM prompt: evaluates content against criteria specific to the use case
 
-The default `content-attester/` service is stateless. It is appropriate for long-form/self-contained content and for social posts where local context (parent, quote, thread, author-recent items) is enough. It is not meant to reconstruct ambient discourse from scratch on each request. When a content item's meaning depends on what a particular community has been arguing about recently, use a stateful [beat agent](noninflammatory-content/beat-agents.md) or return a non-publishable insufficient-context result instead of guessing.
+The default `services/content-attester/` service is stateless. It is appropriate for long-form/self-contained content and for social posts where local context (parent, quote, thread, author-recent items) is enough. It is not meant to reconstruct ambient discourse from scratch on each request. When a content item's meaning depends on what a particular community has been arguing about recently, use a stateful [beat agent](noninflammatory-content/beat-agents.md) or return a non-publishable insufficient-context result instead of guessing.
 
 ## Input/output
 
