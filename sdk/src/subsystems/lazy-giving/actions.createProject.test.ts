@@ -25,9 +25,19 @@ describe('enhanceCreateProjectError', () => {
     assert.strictEqual(enhanced, err);
   });
 
-  it('wraps non-Error throwables', () => {
+  it('leaves bare execution-reverted strings unchanged (no create entrypoint named)', () => {
     const enhanced = enhanceCreateProjectError('execution reverted');
     assert.ok(enhanced instanceof Error);
-    assert.match(enhanced.message, /legacy ABI|createProject failed/);
+    assert.strictEqual(enhanced.message, 'execution reverted');
+    assert.doesNotMatch(enhanced.message, /legacy ABI/);
+  });
+
+  it('does not attach a redeploy hint when a reason string is present', () => {
+    const err = new Error(
+      `The contract function "${'createERC1155AndAssuranceContract'}" reverted.\n`
+        + 'Details: execution reverted: insufficient funds',
+    );
+    const enhanced = enhanceCreateProjectError(err);
+    assert.strictEqual(enhanced, err);
   });
 });

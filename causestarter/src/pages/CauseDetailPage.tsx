@@ -105,15 +105,18 @@ export function CauseDetailPage() {
   const [projectsLoading, setProjectsLoading] = useState(false)
   const [projectsError, setProjectsError] = useState<string | null>(null)
 
-  const loadSupportCounts = useCallback(async () => {
+  const loadSupportCounts = useCallback(async (options?: { isCancelled?: () => boolean }) => {
+    const isCancelled = options?.isCancelled ?? (() => false)
     const cids = statementCidsKey ? statementCidsKey.split('\0').filter(Boolean) : []
     if (cids.length === 0) {
-      setSupportByCid({})
-      setSupportLoading(false)
+      if (!isCancelled()) {
+        setSupportByCid({})
+        setSupportLoading(false)
+      }
       return
     }
 
-    setSupportLoading(true)
+    if (!isCancelled()) setSupportLoading(true)
     const next: Record<string, number> = {}
     await Promise.all(
       cids.map(async (cid) => {
@@ -126,45 +129,18 @@ export function CauseDetailPage() {
         }
       }),
     )
+    if (isCancelled()) return
     setSupportByCid((prev) => ({ ...prev, ...next }))
     setSupportLoading(false)
   }, [machinery, statementCidsKey])
 
   useEffect(() => {
     let cancelled = false
-
-    const run = async () => {
-      const cids = statementCidsKey ? statementCidsKey.split('\0').filter(Boolean) : []
-      if (cids.length === 0) {
-        if (!cancelled) {
-          setSupportByCid({})
-          setSupportLoading(false)
-        }
-        return
-      }
-
-      if (!cancelled) setSupportLoading(true)
-      const next: Record<string, number> = {}
-      await Promise.all(
-        cids.map(async (cid) => {
-          try {
-            const statement = await getStatement(machinery, cid as IpfsCidV1)
-            next[cid] = statement?.believerCount ?? 0
-          } catch {
-            // preserve previous values for this cid
-          }
-        }),
-      )
-      if (cancelled) return
-      setSupportByCid((prev) => ({ ...prev, ...next }))
-      setSupportLoading(false)
-    }
-
-    void run()
+    void loadSupportCounts({ isCancelled: () => cancelled })
     return () => {
       cancelled = true
     }
-  }, [machinery, statementCidsKey])
+  }, [loadSupportCounts])
 
   useEffect(() => {
     let cancelled = false

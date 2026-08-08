@@ -6,8 +6,11 @@ import { WagmiProvider } from 'wagmi'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ConnectKitProvider } from 'connectkit'
 import { config, createMockConfig } from './wagmi'
-import { loadRuntimeConfig as loadUiSharedRuntimeConfig } from '@ui/shared'
-import { loadRuntimeConfig } from './lib/runtimeConfig'
+import {
+  getRuntimeConfigValue as getUiSharedRuntimeConfigValue,
+  loadRuntimeConfig as loadUiSharedRuntimeConfig,
+} from '@ui/shared'
+import { getRuntimeConfigValue, loadRuntimeConfig } from './lib/runtimeConfig'
 import { ThemeModeContext } from './lib/themeMode'
 import App from './App'
 import './index.css'
@@ -137,10 +140,49 @@ export function Root() {
   )
 }
 
-// Cause board reuses ui/fundingportals, which reads contracts/URLs via ui/shared
-// runtime config. Load both stores from the same config.json.
+// Cause board reuses ui/fundingportals, which reads contracts/URLs via
+// ui/shared runtime config (separate module store from CauseStarter's own
+// lib/runtimeConfig). Both must load the same config.json and stay aligned on
+// shared keys until those stores are unified. Failure of either load fails boot.
+const SHARED_RUNTIME_KEYS = [
+  'VITE_PROJECT_FACTORY_CONTRACT_ADDRESS',
+  'VITE_ASSURANCE_CONTRACT_FACTORY_ADDRESS',
+  'VITE_ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS',
+  'VITE_PAYMENT_TOKEN_ADDRESS',
+  'VITE_CHAIN_ID',
+  'VITE_ETH_RPC_URL',
+  'VITE_EVENT_CACHE_URL',
+  'VITE_IPFS_API',
+] as const
+
+function assertRuntimeConfigStoresAligned(): void {
+  const mismatches: string[] = []
+  for (const key of SHARED_RUNTIME_KEYS) {
+    const host = getRuntimeConfigValue(key)
+    const shared = getUiSharedRuntimeConfigValue(key)
+    if ((host ?? '') !== (shared ?? '')) {
+      mismatches.push(`${key}: host=${host ?? '(unset)'} ui/shared=${shared ?? '(unset)'}`)
+    }
+  }
+  if (mismatches.length > 0) {
+    console.warn(
+      '[CauseStarter] dual runtime-config stores disagree after loadRuntimeConfig; '
+        + 'board/project pages may use different addresses than native pages:\n'
+        + mismatches.join('\n'),
+    )
+  } else if (import.meta.env.DEV) {
+    console.info(
+      '[CauseStarter] dual runtime-config stores aligned on shared keys',
+      Object.fromEntries(
+        SHARED_RUNTIME_KEYS.map((key) => [key, getRuntimeConfigValue(key) ?? '(unset)']),
+      ),
+    )
+  }
+}
+
 Promise.all([loadRuntimeConfig(), loadUiSharedRuntimeConfig()])
   .then(() => {
+    assertRuntimeConfigStoresAligned()
     createRoot(document.getElementById('root')!).render(
       <StrictMode>
         <Root />

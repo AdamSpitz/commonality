@@ -38,16 +38,30 @@ const PROJECT_FACTORY_CREATE_FN =
 /**
  * Enrich empty/opaque createProject reverts with a redeploy hint when the
  * on-chain ProjectFactory still exposes only the pre-rename marketplace entrypoint.
+ * Only attaches the legacy-ABI hint when the error clearly names the create
+ * entrypoint and has no decoded custom error — bare "execution reverted" from
+ * unrelated validation is left alone so operators are not sent on a redeploy chase.
  * Exported for unit tests.
  */
 export function enhanceCreateProjectError(err: unknown, factoryAddress?: Address): Error {
   const base = err instanceof Error ? err : new Error(String(err));
   const msg = base.message || String(err);
-  const looksLikeOpaqueRevert =
+  const mentionsCreateEntrypoint =
+    msg.includes(PROJECT_FACTORY_CREATE_FN)
+    || /createERC1155AndMarketplaceAndAssuranceContract/i.test(msg);
+  const hasDecodedCustomError =
+    /Invalid(Deadline|Threshold|Owner|Recipient|Factory)|EmptyTokenList|ZeroPrice|TokenArrayLengthMismatch/i.test(msg);
+  // viem typically reports empty reverts as "execution reverted" / "Details: execution reverted".
+  // A non-empty Solidity reason looks like "execution reverted: <reason>".
+  const looksLikeEmptyReason =
     /execution reverted/i.test(msg)
-    && !/Invalid(Deadline|Threshold|Owner|Recipient|Factory)|EmptyTokenList|ZeroPrice|TokenArrayLengthMismatch/i.test(msg);
+    && !/execution reverted\s*:\s*\S+/i.test(msg);
+  const looksLikeOpaqueCreateRevert =
+    mentionsCreateEntrypoint
+    && looksLikeEmptyReason
+    && !hasDecodedCustomError;
 
-  if (!looksLikeOpaqueRevert) {
+  if (!looksLikeOpaqueCreateRevert) {
     return base;
   }
 
