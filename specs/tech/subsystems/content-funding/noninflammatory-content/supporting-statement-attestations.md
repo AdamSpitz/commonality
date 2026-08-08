@@ -76,7 +76,7 @@ off.
 No contract, event, or indexer-schema change. The indexer already caches
 `AlignmentAttestation` events; derived data is folded client-side in the SDK.
 
-### 1. Attester service (`content-attester/`) — the substantive work
+### 1. Attester service (`services/content-attester/`) — the substantive work
 
 - `app.ts`: it already receives `statementCid`. When present, **fetch S's statement text
   from IPFS** (attester-core already has IPFS read used for content resolution) and pass

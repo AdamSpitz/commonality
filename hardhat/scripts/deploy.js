@@ -539,17 +539,17 @@ async function main() {
   await fs.writeFile(uiEnvPath, uiEnvContent);
   console.log('  ✓ Updated ui/.env');
 
-  // implication-attester/.env — just the contract address
-  const attesterEnvPath = join(rootDir, 'implication-attester', '.env');
+  // services/implication-attester/.env — just the contract address
+  const attesterEnvPath = join(rootDir, 'services', 'implication-attester', '.env');
   let attesterEnvContent = '';
   try {
     attesterEnvContent = await fs.readFile(attesterEnvPath, 'utf-8');
   } catch {
-    console.log('  No existing implication-attester/.env, creating new one');
+    console.log('  No existing services/implication-attester/.env, creating new one');
   }
   attesterEnvContent = updateEnv(attesterEnvContent, 'IMPLICATIONS_CONTRACT_ADDRESS', implicationsAddress);
   await fs.writeFile(attesterEnvPath, attesterEnvContent);
-  console.log('  ✓ Updated implication-attester/.env');
+  console.log('  ✓ Updated services/implication-attester/.env');
 
   // Print summary
   console.log('\n=== Deployment Complete ===\n');

@@ -1683,3 +1683,71 @@ Implemented the accepted future-content decisions now recorded in ADR 0007 and t
 - After materialization, the UI now re-reads authoritative content on-chain instead of duplicating canonical-ID separator logic, and distinguishes round load failures from channel mismatches.
 - Kept `authorizationList: undefined`: this project's viem client type requires the property on these generated-ABI reads.
 - Validation: SDK tests (484 passing); SDK and UI typechecks.
+
+## 2026-08-08 — Move AI services into `services/` (done)
+
+Goal: cut root-directory clutter by grouping the 12 AI worker/core packages
+under `services/` (36 root directories down to 25). Landed as `3055a559` on
+branch `refactor/services-subdir`; not yet merged to `dev`. Branch: `refactor/services-subdir`.
+Mechanical only — no behavior change. Adam approved on 2026-08-08.
+
+Moving (12): attester-core, finder-core, nudger-core, implication-attester,
+content-attester, implication-finder, content-finder, implication-graph-nudger,
+beat-agent, beat-memory, bridge-creator, explorer-curator.
+Deliberately NOT moving: cause-assist (a CauseStarter dependency, not a worker),
+service-host, platform-api-service, published-data-ipfs-mirror, indexer, sdk, ui,
+causestarter, hardhat, fake-data-generation, integration-tests.
+
+Why it is cheap: cross-package imports all go through `@commonality/*` package
+names, and every Docker build already uses `context: .` from the repo root, so
+only `dockerfile:` paths and in-Dockerfile `COPY` lines move.
+
+**Hazard — do not blind find-and-replace these names.** Many `/beat-agent/`-style
+occurrences are HTTP route segments and service-registry / env-var keys, not
+filesystem paths: `service-host/src/serviceRegistry.ts`,
+`service-host/src/envConfig.ts`, `deployments/base-sepolia.env`. Those must keep
+their current strings.
+
+Checklist:
+- [x] `git mv` the 12 directories into `services/`
+- [x] `package.json` workspaces → `services/*` glob
+- [x] `tsconfig.json` includes → `services/*/src/**/*.ts` glob
+- [x] `docker-compose.yml` `dockerfile:` paths
+- [x] Each moved service's Dockerfile `COPY` lines
+- [x] `render.yaml` and `render.yaml.template`
+- [x] `scripts/` path references (setup-env.sh, setup-testnet-ai-policy.mjs, docker-build-plan.mjs)
+- [x] `verifier/checks/review/docs-coherence.mjs`
+- [x] `fake-data-generation` seed scripts
+- [x] `README.md` + docs that give path-based instructions (leave CONTINUITY.md history alone)
+- [x] Validation: `npm install` (23 workspaces resolve, 12 under `services/`);
+      `npm run typecheck` 35/35; `turbo run test --filter='./services/*'` 25/25;
+      service-host 22, platform-api-service 76, cause-assist 9 tests pass;
+      `check-docs-inventory` passes; `lint-precommit` 0 errors (38 pre-existing
+      warnings); **real `docker build` of `service-host` and `cause-assist` images
+      succeeds** and `/app/services/content-attester/prompts/` resolves in-image.
+
+Two bugs were found and fixed during the pass, both worth knowing about if this
+is ever repeated for another directory:
+- The Dockerfile `COPY <src> <dest>` **destination** side and the bare
+  `COPY <name> ./<name>` lines are easy to miss when rewriting only path-looking
+  strings. Container layout must mirror the repo layout or the `services/*`
+  workspace glob resolves to nothing inside the image.
+- `scripts/check-docs-inventory.mjs` asserted on literal `workspaces` entries and
+  could not handle a glob; it now expands one level (`services/*`).
+
+Also updated: `docker-compose.yml` `CONTENT_ATTESTER_PROMPT_TEMPLATE_FILE` to
+`/app/services/...`; `bridge-creator` cwd-relative default data paths in
+`src/config.ts` / `src/anchorCli.ts`; relative links in moved READMEs that pointed
+outside `services/` needed one extra `../`.
+
+Confirmed untouched, as intended: `render.yaml` / `render.yaml.template` (their
+matches are HTTP URLs, `sourceType` values, and `/data/...` volume paths),
+`service-host/src/config.ts` service IDs, and `deployments/base-sepolia.env`.
+
+Late additions found only by the pre-commit hook and a full lint run, both of
+which are worth checking first if this is repeated:
+- `specs/` had root-absolute markdown links (`](/content-attester/prompts/...)`)
+  that a relative-link scan misses. `npm run check:docs-links` catches them.
+- Each moved package's `eslint.config.js` imports the root `eslint.metrics.mjs`
+  relatively and needed `../../`. `npm run lint-precommit` does **not** cover
+  these packages, so only a full `npx turbo run lint` surfaces it.

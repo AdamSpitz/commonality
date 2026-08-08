@@ -1,0 +1,148 @@
+# Bridge Creator
+
+A nudger service that uses AI to synthesize "bridge" statements — modified or common-ground versions of statements designed to make opposing views more compatible.
+
+It publishes nudge batches through [nudger-core](../nudger-core/README.md), and uses the LLM wrapper from [attester-core](../attester-core/README.md).
+
+## Role in the AI-service ecosystem
+
+- **Family:** Nudger / bridge-building suggestion service.
+- **Primary UI domain:** Common Sense Majority (CSM).
+- **Consumption surface:** Tally, where users see/sign statement suggestions.
+- **Infrastructure substrate:** Conceptspace statements and nudger publications.
+- **Trust boundary:** Users are trusting this service for mediation/bridge-building taste, not for canonical truth. Its nudges are suggestions; they do not themselves become durable support unless a user chooses to sign.
+- **Related services:** `implication-graph-nudger` suggests existing graph-adjacent statements; `explorer-curator` surfaces existing statement areas; `bridge-creator` synthesizes new or modified common-ground statements.
+
+## What it does
+
+On each scheduled tick:
+
+1. Fetches context summaries from trusted CSM beat agents.
+2. Loads the current CSM strategy prompt and active anchor set.
+3. Uses an LLM to synthesize moderate-left, moderate-right, and common-ground bridge triples.
+4. Publishes generated statements, publishes a public nudge batch, and optionally submits modified→common-ground implications.
+5. Skips publication when upstream context/anchors have not meaningfully changed since the previous tick.
+
+It also accepts **external bridge proposals** so anyone can suggest a bridge for it to consider — see below.
+
+## Proposing a bridge (`POST /propose-bridge`)
+
+A public, paid intake channel: external parties can suggest bridges that the bridge-creator will hear. The AI is not obligated to use a proposal verbatim — it may adopt, adapt, or decline it.
+
+Request body (only `suggestion` is required):
+
+```json
+{
+  "suggestion": "There's hidden agreement on a 12-week abortion line; bridge it.",
+  "left_statement": "Optional: a moderate-left position CID or text",
+  "right_statement": "Optional: a moderate-right position",
+  "common_ground": "Optional: a proposed common-ground statement",
+  "topic_tag": "Optional: a topic cluster hint",
+  "proposer": "Optional: self-identified address/name"
+}
+```
+
+Flow:
+
+1. The request is paid via the shared x402-style flow (`402 payment_required` → pay → retry with `X-PAYMENT-PROOF`). The fee covers the marginal LLM cost of considering the proposal; no per-request on-chain transaction is involved.
+2. A valid, paid proposal is persisted and returns `202` with a `proposalId`.
+3. Pending proposals are fed into the synthesizer as advisory input on a later tick, then marked consumed (considered once, not every tick).
+
+The endpoint is advertised as `propose_bridge_url` in `/.well-known/nudger.json`. Relevant env vars: `BRIDGE_CREATOR_PROPOSAL_STORE_PATH`, `BRIDGE_CREATOR_PAYMENT_ADDRESS` (defaults to the nudger signer address), `BRIDGE_CREATOR_ETH_USD_PRICE`, `BRIDGE_CREATOR_SERVICE_MARGIN_PERCENT`, `BRIDGE_CREATOR_RATE_LIMIT_WINDOW_MS`, `BRIDGE_CREATOR_RATE_LIMIT_MAX_REQUESTS`.
+
+## Status
+
+The bridge-creator package itself is complete. The bridge-creator now follows the CSM mediator architecture in [`specs/product/bridge-creator.md`](../../specs/product/bridge-creator.md): trusted CSM beat-agent context sources, a live anchor set, synthesizer-only bridge generation, and reusable publication/implication submission seams.
+
+The remaining work is in the beat-agent layer and one small bridge-creator wiring gap.
+
+### Done
+
+- Legacy discovery code gutted (`getAllStatements` polling, env-var anchors, left/right classifier, similarity scoring, old prompts and tests).
+- New synthesizer loop: fetch `GET /context` from trusted CSM beat agents, check `readiness`, load strategy prompt + active anchors, LLM call producing `{ modified-left, modified-right, common-ground, rationale }` triples, publication-level dedup, statement publication, nudge-batch publication, optional implication submission.
+- Anchor store: JSON storage, curated seed anchors from `hidden-majority` topics, `GET /anchors` endpoint.
+- Anchor reflection: periodic LLM job that proposes `status: proposed` anchor additions/edits based on CSM context and previous publication text; operator CLI (`npm run anchors --workspace=@commonality/bridge-creator -- ...`) to list/approve/retire/delete.
+- Long-running `run(...)` loop with configurable tick interval and anchor-reflection interval.
+- `.well-known/nudger.json` endpoint wired up and reflected in the nudger spec.
+- CSM strategy prompt at `services/bridge-creator/prompts/csm-strategy.md`, served at `GET /strategy-prompt`.
+- Tests for all of the above.
+
+### Remaining
+
+**1. CSM beat-agent stand-up** ← do this next
+
+Configure a `us-political-csm` beat-memory instance with memory purpose `general_beat_context`. Initial sources: Tally indexer only (no civility agent yet). Verify ingestion, observation extraction, and purpose snapshots work against real Tally activity. This is beat-memory work, independent of the bridge-creator.
+
+**2. Civility-agent context source adapter** ← do after step 1
+
+Add a source-adapter type to the beat-agent that calls a sibling beat agent's `GET /context` and converts the response into ingestible items tagged with provenance (`source: civility-agent:<name>`). Wire it into the CSM beat-agent config alongside the Tally indexer. Beat-agent work, independent of the bridge-creator.
+
+**3. Feed anchor reflection real signing/ignore outcomes** ← partial bridge-creator seam done
+
+The anchor reflection LLM now accepts an optional signing/ignore outcome summary and the long-running service can read it from `BRIDGE_CREATOR_ANCHOR_REFLECTION_OUTCOME_SUMMARY_PATH`. Remaining work is to generate that summary from real Tally/client outcomes once the beat-agent/rehearsal stack is running.
+
+**4. End-to-end rehearsal** ← do after steps 1–2
+
+Run the full chain: Civility agent → CSM agent → bridge-creator emitting nudges. Manually inspect a handful of bridges and anchor-reflection outputs. Integration check, not a code task.
+
+### Deliberately deferred
+
+- Multiple Civility agents per CSM agent (architecture supports it; no merge logic needed yet).
+- Operator web UI for anchor review (CLI is sufficient for now).
+- Autonomy for anchor reflection (advisory-only until proposals are reliably boring).
+- Per-call billing or auth between CSM agent and bridge-creator (single operator, one budget).
+- Typed `/bridge-opportunities` endpoint (the whole point is to avoid this).
+
+## Configuration
+
+| Variable | Required | Default | Description |
+|---|---|---|---|
+| `OPENROUTER_API_KEY` | Yes | — | API key for OpenRouter LLM calls |
+| `BRIDGE_CREATOR_PRIVATE_KEY` | Yes | — | Ethereum private key for signing nudge messages |
+| `BRIDGE_CREATOR_ETHEREUM_RPC_URL` / `ETHEREUM_RPC_URL` | Yes | — | RPC URL for blockchain access |
+| `BRIDGE_CREATOR_INDEXER_URL` / `INDEXER_URL` | No | `http://localhost:3001` | URL of the Ponder event cache |
+| `BRIDGE_CREATOR_IPFS_API` / `IPFS_API` | No | `http://localhost:5001` | IPFS API URL |
+| `BRIDGE_CREATOR_IPFS_GATEWAY` / `IPFS_GATEWAY` | No | `http://localhost:8080` | IPFS gateway URL |
+| `BRIDGE_CREATOR_OPENROUTER_MODEL` / `OPENROUTER_MODEL` | No | `anthropic/claude-3.5-haiku` | Model to use |
+| `BRIDGE_CREATOR_NAME` | No | `Bridge Creator` | Display name for nudger metadata |
+| `BRIDGE_CREATOR_DESCRIPTION` | No | `Creates synthesized bridge statements from moderate positions` | Description for nudger metadata |
+| `BRIDGE_CREATOR_SOURCE_TYPE` | No | `bridge-creator` | Source type for nudge messages |
+| `BRIDGE_CREATOR_VERSION` | No | `0.1.0` | Service metadata version |
+| `PORT` | No | `3003` | HTTP server port |
+| `BRIDGE_CREATOR_CSM_CONTEXT_SOURCES` | No | `[]` | JSON array of trusted context sources, e.g. `[{"service_url":"http://localhost:3004","expected_signer_address":"0x...","topic":"current bridge opportunities","purpose":"bridge_opportunity_context"}]`; entries fetch `GET /context?topic=...`, may target native `beat-memory` services, and may override staleness with `max_staleness_ms` |
+| `BRIDGE_CREATOR_CONTEXT_MAX_AGE_MS` | No | `86400000` | Default maximum age for trusted CSM `/context` snapshots before rejecting them as stale |
+| `BRIDGE_CREATOR_ANCHOR_STORE_PATH` | No | `services/bridge-creator/data/seed-anchors.json` | JSON anchor-store file exposed by `GET /anchors` |
+| `BRIDGE_CREATOR_STRATEGY_PROMPT_URL` | No | `/strategy-prompt` | URL advertised in `.well-known/nudger.json` for the current strategy prompt |
+| `BRIDGE_CREATOR_PUBLIC_BASE_URL` | No | (empty) | Public service base URL used to turn relative discovery links into absolute URLs |
+| `BRIDGE_CREATOR_PUBLICATION_DEDUP_STATE_PATH` | No | `services/bridge-creator/data/publication-dedup-state.json` | JSON state file storing the last published input hash and summary so repeated ticks can skip duplicate publications |
+| `BRIDGE_CREATOR_TICK_INTERVAL_MS` | No | `3600000` | Interval for the long-running synthesizer/publication loop |
+| `BRIDGE_CREATOR_ANCHOR_REFLECTION_INTERVAL_MS` | No | `86400000` | Interval for the advisory anchor-reflection job that appends proposed anchor records for operator review |
+| `BRIDGE_CREATOR_ANCHOR_REFLECTION_OUTCOME_SUMMARY_PATH` | No | (empty) | Optional text/Markdown file of signing/ignore outcome notes from prior bridge publications; included in the anchor-reflection LLM prompt |
+| `IMPLICATIONS_CONTRACT_ADDRESS` | No | (empty) | If set, the long-running loop submits modified→common-ground implications after publishing each batch |
+| `BRIDGE_CREATOR_CONTACT` | No | (empty) | Optional contact field advertised in `.well-known/nudger.json` |
+
+## Anchor review CLI
+
+Reflection is advisory-only in v1: `src/anchorReflection.ts` can ask an LLM to propose new anchor records from trusted CSM context, the previous publication summary, and an optional signing/ignore outcome summary file. Proposed anchor changes stay in the JSON anchor store until an operator reviews them. Use the package script to inspect and apply those changes:
+
+```bash
+npm run anchors --workspace=@commonality/bridge-creator -- list-proposed
+npm run anchors --workspace=@commonality/bridge-creator -- approve <anchor-id>
+npm run anchors --workspace=@commonality/bridge-creator -- retire <anchor-id>
+npm run anchors --workspace=@commonality/bridge-creator -- delete <anchor-id>
+npm run anchors --workspace=@commonality/bridge-creator -- feature <cluster-id>
+npm run anchors --workspace=@commonality/bridge-creator -- unfeature <cluster-id>
+```
+
+Pass `--store path/to/anchors.json` before the command to review a non-default store.
+
+`active` is the **quality gate** (a legitimate bridge); `featured` is the **display gate** (shown publicly on the CSM bridges page). `feature`/`unfeature` operate on a whole **cluster id** — they set the `featured` flag on every anchor in that cluster, so a triple is never half-featured. Featuring an incomplete cluster (missing a left/right/common-ground role) succeeds but prints a warning.
+
+## HTTP endpoints
+
+- `GET /anchors` returns the active anchor records from the configured anchor store. Proposed and retired anchors stay in storage but are not advertised as current anchors. Pass `?featured=true` to return only the curated display set (records that are both `active` and `featured`) — this is what the public CSM bridges page consumes.
+- `GET /strategy-prompt` serves the default CSM mediator strategy prompt as Markdown. `.well-known/nudger.json` advertises this endpoint by default via `strategy_prompt_url`.
+- `GET /.well-known/nudger.json` now follows the generic nudger-discovery shape from the redesign: signer address, strategy/anchor links, trusted CSM context sources, and a `warming`/`ready` status derived from upstream context readiness.
+- `src/synthesizer.ts` contains the new synthesis LLM seam: strategy prompt + trusted CSM context snapshots + active anchors in, normalized `{ modifiedLeft, modifiedRight, commonGround, rationale }` triples out.
+- `src/runner.ts` contains the tick-level orchestration: skip while context is warming, load active anchors and strategy prompt, synthesize triples, skip duplicate input hashes using the publication dedup state, publish the generated statements and nudge batch, and optionally submit modified→common-ground implications.
+- `run(...)` starts that tick once immediately and then repeats it on `BRIDGE_CREATOR_TICK_INTERVAL_MS`, using the configured SDK/IPFS machinery and an implication submitter when `IMPLICATIONS_CONTRACT_ADDRESS` is present. It also runs the advisory anchor-reflection job immediately and on `BRIDGE_CREATOR_ANCHOR_REFLECTION_INTERVAL_MS`; proposals are appended with `status: proposed` for CLI review, never activated automatically.

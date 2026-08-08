@@ -16,23 +16,23 @@
 The core pipeline (attesters, finders, nudgers, explorer) is implemented and under active validation — not yet deployed to mainnet. See `specs/product/ai-assistance.md` for the ecosystem overview and `specs/product/` and `specs/tech/subsystems/` for individual specs.
 
 **AI services — attesters** (evaluate claims and publish on-chain attestations):
-  - [Attester Core](../../attester-core/README.md) — shared library for all attester services
-  - [Implication Attester](../../implication-attester/README.md) — evaluates whether S1 implies S2
-  - [Content Attester](../../content-attester/README.md) — evaluates whether a content item aligns with a statement
+  - [Attester Core](../../services/attester-core/README.md) — shared library for all attester services
+  - [Implication Attester](../../services/implication-attester/README.md) — evaluates whether S1 implies S2
+  - [Content Attester](../../services/content-attester/README.md) — evaluates whether a content item aligns with a statement
 
 **AI services — finders** (proactively discover candidates for attestation):
-  - [Finder Core](../../finder-core/README.md) — shared library for all finder services
-  - [Implication Finder](../../implication-finder/README.md) — discovers statement pairs for the implication attester
-  - [Content Finder](../../content-finder/README.md) — processes a submission queue for the content attester
+  - [Finder Core](../../services/finder-core/README.md) — shared library for all finder services
+  - [Implication Finder](../../services/implication-finder/README.md) — discovers statement pairs for the implication attester
+  - [Content Finder](../../services/content-finder/README.md) — processes a submission queue for the content attester
 
 **AI services — nudgers** (suggest statements to users based on what they already believe):
-  - [Nudger Core](../../nudger-core/README.md) — shared library for all nudger services
-  - [Implication Graph Nudger](../../implication-graph-nudger/README.md) — suggests statements implied by ones you already signed
-  - [Bridge Creator](../../bridge-creator/README.md) — synthesizes common-ground statements between opposing views
-  - [Explorer Curator](../../explorer-curator/README.md) — maintains a curated collection for goal-oriented exploration; personalizes per user
+  - [Nudger Core](../../services/nudger-core/README.md) — shared library for all nudger services
+  - [Implication Graph Nudger](../../services/implication-graph-nudger/README.md) — suggests statements implied by ones you already signed
+  - [Bridge Creator](../../services/bridge-creator/README.md) — synthesizes common-ground statements between opposing views
+  - [Explorer Curator](../../services/explorer-curator/README.md) — maintains a curated collection for goal-oriented exploration; personalizes per user
 
 **AI services — beat agents** (follow a configured slice of discourse and expose multiple capabilities depending on declared purposes):
-  - [Beat Agent](../../beat-agent/README.md) — ingests and remembers a beat; may act as attester (civility evaluation), finder (push-discovery), context provider (for bridge-creator), or any combination
+  - [Beat Agent](../../services/beat-agent/README.md) — ingests and remembers a beat; may act as attester (civility evaluation), finder (push-discovery), context provider (for bridge-creator), or any combination
 
 **AI service hosting**:
   - [Service Host](../../service-host/README.md) — unified host that runs multiple AI logical services (attesters, finders, nudgers) in one supervised Node process with a shared Express listener

@@ -114,8 +114,8 @@ Relevant Dockerfiles include:
 - [hardhat/Dockerfile](/hardhat/Dockerfile)
 - [indexer/Dockerfile](/indexer/Dockerfile)
 - [platform-api-service/Dockerfile](/platform-api-service/Dockerfile)
-- `content-attester/Dockerfile` (not yet created)
-- `implication-graph-nudger/Dockerfile` (not yet created)
+- `services/content-attester/Dockerfile` (not yet created)
+- `services/implication-graph-nudger/Dockerfile` (not yet created)
 
 ## Current Build Workflow
 

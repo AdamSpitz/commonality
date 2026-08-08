@@ -4,7 +4,7 @@ This document clarifies the plan for implication "discovery" services — the me
 
 ## Current Architecture: The Finder
 
-The **finder** is an AI-assisted service that automatically discovers candidate implication pairs. It's implemented in `implication-finder/`.
+The **finder** is an AI-assisted service that automatically discovers candidate implication pairs. It's implemented in `services/implication-finder/`.
 
 ### What it does
 

@@ -11,7 +11,7 @@ Short answer: yes for the *user-authored* content, where the calldata design gen
 3. **Content-funding contract metadata** (`ui/src/content-funding/pages/CreateContractPage.tsx`) — channel/creator assurance-contract descriptions.
 4. **Our own editorial documents** — the fundingportal alignment-topic document (`sdk/src/subsystems/fundingportals/constants.ts`) and the CSM mission statement (`sdk/src/subsystems/conceptspace/constants.ts`).
 5. **Mutable-refs lists** (`sdk/src/subsystems/mutable-refs/actions.ts`) — e.g. `created-statements`: an onchain ref points at an IPFS JSON list that is re-uploaded in full on each append.
-6. **Nudger publications** (`nudger-core/src/signer.ts`) — nudge batches and curated explorer collections are uploaded to IPFS, with the CID anchored onchain via `publishNudgeBatch`.
+6. **Nudger publications** (`services/nudger-core/src/signer.ts`) — nudge batches and curated explorer collections are uploaded to IPFS, with the CID anchored onchain via `publishNudgeBatch`.
 7. **The UI builds themselves** — `scripts/deploy-ui.sh` pins each build to Pinata; the [cloudflare-ui-gateway](/cloudflare-ui-gateway/README.md) worker resolves IPNS → CID and proxies gateways. This is censorship resistance for the frontend, not content hosting.
 
 ## Case-by-case

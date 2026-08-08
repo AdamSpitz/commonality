@@ -17,6 +17,10 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 ## Main list
 
+### Done, for review
+
+- **(Tell)** Moved the 12 AI worker/core packages out of the repo root into `services/` (root went from 25 directories to 13). Branch `refactor/services-subdir`; mechanical only, package names unchanged. `cause-assist` deliberately stayed in root as a CauseStarter dependency. Validated with typecheck (35/35), all service tests, and real `docker build` runs of the `service-host` and `cause-assist` images. Details and the two bugs found along the way are in the 2026-08-08 [CONTINUITY.md](/CONTINUITY.md) entry. Worth a look before merge since it touches deploy config.
+
 ### Security/recoverability human actions
 
 - Replace/scopedown external account tokens: Cloudflare scoped DNS token instead of global key; Render/Pinata scoped as narrowly as possible; OpenRouter spend limit.

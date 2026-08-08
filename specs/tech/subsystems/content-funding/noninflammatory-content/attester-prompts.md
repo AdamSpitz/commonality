@@ -6,9 +6,9 @@ This document describes how the noninflammatory-content attester prompts are use
 
 Live prompt files:
 
-- [Perspective-neutral](/content-attester/prompts/perspective-neutral.md)
-- [Left evaluating right](/content-attester/prompts/left-evaluating-right.md)
-- [Right evaluating left](/content-attester/prompts/right-evaluating-left.md)
+- [Perspective-neutral](/services/content-attester/prompts/perspective-neutral.md)
+- [Left evaluating right](/services/content-attester/prompts/left-evaluating-right.md)
+- [Right evaluating left](/services/content-attester/prompts/right-evaluating-left.md)
 
 End-user explanation:
 
@@ -18,9 +18,9 @@ Do **not** paste full prompt bodies into this spec. Prompt copies drift quickly;
 
 ## How these prompts are used
 
-Each content-attester deployment runs the same `content-attester/` service with different configuration:
+Each content-attester deployment runs the same `services/content-attester/` service with different configuration:
 
-- a prompt template from `content-attester/prompts/`
+- a prompt template from `services/content-attester/prompts/`
 - a service identity / Ethereum key
 - an alignment topic statement CID for the noninflammatory meta-statement
 - thresholds for whether to publish a positive attestation

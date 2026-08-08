@@ -94,8 +94,27 @@ function assertDocumentedPackagePathsExist() {
   const packageJson = readRootJson('package.json')
   const documentedWorkspacePaths = new Set(packageJson.workspaces ?? [])
 
+  // Workspace entries may be globs (e.g. `services/*`); expand one level so the
+  // check asserts on the real packages rather than the literal pattern.
   for (const workspacePath of documentedWorkspacePaths) {
-    assertExists(`${workspacePath}/package.json`, `workspace package ${workspacePath}`)
+    if (!workspacePath.endsWith('/*')) {
+      assertExists(`${workspacePath}/package.json`, `workspace package ${workspacePath}`)
+      continue
+    }
+
+    const parent = workspacePath.slice(0, -2)
+    const entries = readdirSync(path.join(root, parent), { withFileTypes: true })
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => `${parent}/${entry.name}`)
+
+    if (entries.length === 0) {
+      failures.push(`workspace glob ${workspacePath}: matched no directories`)
+      continue
+    }
+
+    for (const entry of entries) {
+      assertExists(`${entry}/package.json`, `workspace package ${entry}`)
+    }
   }
 
   const durablePackageDocs = [
@@ -145,8 +164,8 @@ function assertEnvExamplesExist() {
     '.env.example',
     '.env.secrets.example',
     'ui/.env.example',
-    'implication-attester/.env.example',
-    'implication-graph-nudger/.env.example',
+    'services/implication-attester/.env.example',
+    'services/implication-graph-nudger/.env.example',
   ]
 
   for (const file of envExampleFiles) {
@@ -228,14 +247,14 @@ for (const file of listMarkdownFiles('docs/end-user')) {
 }
 
 const aiServiceDocs = [
-  'attester-core/README.md',
-  'implication-attester/README.md',
-  'content-attester/README.md',
-  'beat-agent/README.md',
-  'implication-finder/README.md',
-  'content-finder/README.md',
-  'implication-graph-nudger/README.md',
-  'explorer-curator/README.md',
+  'services/attester-core/README.md',
+  'services/implication-attester/README.md',
+  'services/content-attester/README.md',
+  'services/beat-agent/README.md',
+  'services/implication-finder/README.md',
+  'services/content-finder/README.md',
+  'services/implication-graph-nudger/README.md',
+  'services/explorer-curator/README.md',
   'platform-api-service/README.md',
   'service-host/README.md',
   'specs/product/bridge-creator.md',

@@ -47,7 +47,7 @@ This section explains the "one new primitive, several ordinary consumers" idea b
 | **3. Bridge/context consumers read `beat-memory`'s context API** instead of growing their own beat memory. | ✅ **Done for the current boundary** — `bridge-creator` fetches generic trusted `/context` sources, sends a configured/default topic plus optional purpose filter, accepts the native `beat-memory` observation response, and has no bespoke bridge memory. Real deployments still need to point it at a real beat-memory instance. |
 | **4. Decide whether to merge the beat-aware attester into `content-attester`.** | ⬜ **Deferred** — intentionally postponed until the package boundary is proven. |
 | **5. Fold the beat finder into `finder-core`/`content-finder`.** | ✅ **Good stopping point reached** — all reusable finder mechanics now live in `finder-core` (state persistence, JSON-state candidate-pass orchestration, bookkeeping, JSON submission, text-quality/keyword scoring, scored text-candidate selection, and scored text-to-evaluation-request construction). `beat-agent` retains only the beat-memory item adapter, beat-specific config aliases, and attester endpoint wiring. Further consolidation into `content-finder` is optional product packaging, not refactoring debt. |
-| **6. `beat-memory` package README.** | ✅ **Done** — substrate responsibilities, config, worker/API usage, adapters, and feedback loops are documented in `beat-memory/README.md`. |
+| **6. `beat-memory` package README.** | ✅ **Done** — substrate responsibilities, config, worker/API usage, adapters, and feedback loops are documented in `services/beat-memory/README.md`. |
 
 The refactoring is now at a good stopping point. The rest of the remaining work (pilot rehearsal, retrieval quality, poisoning mitigation, finder judgment) is quality/depth hardening, tracked in [Current to-do list](#current-to-do-list), not substrate/consumer refactoring.
 
@@ -400,8 +400,8 @@ The current implementation is best understood as **v1 scaffolding with the packa
 
 **Package/service split**
 
-- `beat-memory/` is now a separate workspace and root package. It owns the follower/context substrate: `BeatDefinition`, memory-purpose config, ingestion, source adapters, observation extraction, JSON memory, compaction, purpose snapshots, source-management observations/reports, and a small context API.
-- `beat-agent/` no longer contains local substrate implementations or compatibility re-exports for memory/ingestion/source-adapter helpers. It imports substrate types/helpers from `@commonality/beat-memory` where it needs read-only context.
+- `services/beat-memory/` is now a separate workspace and root package. It owns the follower/context substrate: `BeatDefinition`, memory-purpose config, ingestion, source adapters, observation extraction, JSON memory, compaction, purpose snapshots, source-management observations/reports, and a small context API.
+- `services/beat-agent/` no longer contains local substrate implementations or compatibility re-exports for memory/ingestion/source-adapter helpers. It imports substrate types/helpers from `@commonality/beat-memory` where it needs read-only context.
 - `service-host` can now run `beat-memory` as a separate logical service from `beat-agent`.
 - Deployment/testnet/render env defaults moved ingestion, memory, purposes, beat definitions, worker extraction, and source-management config to `BEAT_MEMORY_*` names.
 - Legacy beat-agent memory config fallbacks/fields have been removed: no `BEAT_AGENT_PURPOSES`, no `BEAT_AGENT_BEAT_DEFINITION_*`, no beat-agent memory-compaction knobs, and no beat-agent LLM-extraction flag.
@@ -417,7 +417,7 @@ The current implementation is best understood as **v1 scaffolding with the packa
 
 **Beat-aware attester/finder consumer**
 
-- `beat-agent/` provides TypeScript schemas for three-valued decisions (`positive`, `negative`, `abstain`) and beat-agent explanation/log documents.
+- `services/beat-agent/` provides TypeScript schemas for three-valued decisions (`positive`, `negative`, `abstain`) and beat-agent explanation/log documents.
 - Attester-mode HTTP service uses `attester-core` conventions: `/evaluate-content`, `/quote`, `/health`, `/status/:statementCid/:contentCanonicalId`, payment validation, rate limiting, IPFS explanation upload, and positive-only publishing to `AlignmentAttestations`.
 - Attester evaluation can read beat-memory's JSON memory file for ambient context and includes richer ambient-context citation metadata in explanations: source author count, time span, and diversity score.
 - JSONL operator logs cover all paid evaluations, including negative decisions and abstentions. JSONL lookup remains a local idempotency fast path for previously published positives.
@@ -485,7 +485,7 @@ These are small correctness/documentation issues that should be fixed before any
 
 3. ~~**Update beat-agent docs to match the code.**~~
    - ✅ Done for the immediate stale README issues: UI trust-policy warnings and the scored/keyword finder selector are now described accurately.
-   - ✅ Done for the extracted substrate package: `beat-memory/README.md` now documents the package boundary, `BEAT_MEMORY_*` config, worker/API usage, current adapters, and development feedback loops.
+   - ✅ Done for the extracted substrate package: `services/beat-memory/README.md` now documents the package boundary, `BEAT_MEMORY_*` config, worker/API usage, current adapters, and development feedback loops.
    - Keep this spec, package READMEs, and any operator docs in sync so future implementers do not work from stale status notes.
 
 4. ~~**Add canonical-ID based local-context lookup, not only URL-based lookup.**~~

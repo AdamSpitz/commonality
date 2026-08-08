@@ -24,7 +24,7 @@ The bridge-creator and related nudgers use this shape to propose modified statem
 
 - Product spec for synthesis: [bridge-creator](/specs/product/bridge-creator.md)
 - Nudger architecture: [nudges](../nudges.md) and [general nudger service](../../nudger/README.md)
-- CSM strategy prompt: [bridge-creator/prompts/csm-strategy.md](/bridge-creator/prompts/csm-strategy.md)
+- CSM strategy prompt: [services/bridge-creator/prompts/csm-strategy.md](/services/bridge-creator/prompts/csm-strategy.md)
 - Seed examples: [seed-content/hidden-majority.md](../seed-content/hidden-majority.md)
 - Noninflammatory-content distribution mechanism: [noninflammatory content funding](noninflammatory-content.md)
 

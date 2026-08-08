@@ -4,7 +4,7 @@ Focused checklist for the work that remains after the bridge-creator package rew
 
 ## Current state
 
-- `bridge-creator/` has the scheduled synthesizer loop, trusted CSM `/context` sources, anchor store, strategy prompt, publication dedup, optional implication submission, anchor reflection, and operator anchor CLI.
+- `services/bridge-creator/` has the scheduled synthesizer loop, trusted CSM `/context` sources, anchor store, strategy prompt, publication dedup, optional implication submission, anchor reflection, and operator anchor CLI.
 - Anchor reflection can optionally read a signing/ignore outcome summary from `BRIDGE_CREATOR_ANCHOR_REFLECTION_OUTCOME_SUMMARY_PATH`.
 - Beat-memory has v1 worker/context-provider scaffolding and supports the `general_beat_context` memory purpose, but a CSM instance has not been stood up and rehearsed.
 
@@ -15,7 +15,7 @@ Focused checklist for the work that remains after the bridge-creator package rew
 Goal: a CSM beat-memory instance exposes useful `GET /context` summaries for the bridge-creator.
 
 - [x] Decide where deployment/runtime config should live for named beat-memory instances.
-  - Checked-in example config lives at `beat-agent/config/us-political-csm.example.json`; local env/run notes live in `beat-agent/README.md`.
+  - Checked-in example config lives at `services/beat-agent/config/us-political-csm.example.json`; local env/run notes live in `services/beat-agent/README.md`.
   - Do not bury this only in a private shell session; future agents/operators need a discoverable path.
 - [x] Define a `us-political-csm` beat definition with purposes including `general_beat_context`.
   - Initial source is a single Tally/indexer `DirectSupport` activity source; do not add civility-agent context yet.
@@ -56,7 +56,7 @@ Goal: the CSM beat-agent can ingest a sibling civility beat-agent’s `GET /cont
   - [ ] stale/unready context handling,
   - [ ] signer mismatch / trust failure,
   - [ ] provenance tagging.
-- [ ] Update `beat-agent/README.md` with config shape and operational notes.
+- [ ] Update `services/beat-agent/README.md` with config shape and operational notes.
 - [ ] Wire this adapter into the CSM beat-agent config alongside the initial Tally/indexer source.
 
 ### 4. Generate signing/ignore outcome summaries for anchor reflection
