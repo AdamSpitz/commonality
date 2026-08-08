@@ -200,7 +200,6 @@ buildConfigs.causestarter = {
     'causestarter/Dockerfile',
     'causestarter/nginx.conf',
     'causestarter/docker-entrypoint.d/30-indexer-upstream.sh',
-    'causestarter/docker-entrypoint.d/35-ipfs-upstream.sh',
     'causestarter/docker-entrypoint.d/40-causestarter-config.sh',
     'sdk/package.json',
     'causestarter/package.json',

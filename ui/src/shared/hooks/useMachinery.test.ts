@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const mockGetRuntimeConfigValue = vi.fn()
 const mockGetActivePolicyBundle = vi.fn()
@@ -13,53 +13,11 @@ vi.mock('../config/policyBundle', () => ({
 import { civilityPolicyGatewayConfig, getIpfsApiUrl } from './useMachinery'
 
 describe('getIpfsApiUrl', () => {
-  const originalWindow = globalThis.window
-
-  beforeEach(() => {
-    mockGetRuntimeConfigValue.mockReset()
-  })
-
-  afterEach(() => {
-    // restore window if tests stubbed location
-    if (originalWindow) {
-      Object.defineProperty(globalThis, 'window', { value: originalWindow, configurable: true, writable: true })
-    }
-  })
-
-  it('rewrites host-direct local Kubo API to same-origin /ipfs-api', () => {
+  it('returns empty after browser IPFS write cutover', () => {
     mockGetRuntimeConfigValue.mockImplementation((key: string) =>
       key === 'VITE_IPFS_API' ? 'http://127.0.0.1:5001' : undefined,
     )
-    Object.defineProperty(globalThis, 'window', {
-      value: { location: { origin: 'http://localhost:8090' } },
-      configurable: true,
-      writable: true,
-    })
-    expect(getIpfsApiUrl()).toBe('http://localhost:8090/ipfs-api')
-  })
-
-  it('does not rewrite local Kubo for a UI host without the proxy', () => {
-    mockGetRuntimeConfigValue.mockImplementation((key: string) =>
-      key === 'VITE_IPFS_API' ? 'http://127.0.0.1:5001' : undefined,
-    )
-    Object.defineProperty(globalThis, 'window', {
-      value: { location: { origin: 'http://conceptspace.localhost:8088' } },
-      configurable: true,
-      writable: true,
-    })
-    expect(getIpfsApiUrl()).toBe('http://127.0.0.1:5001')
-  })
-
-  it('keeps non-local configured API URLs', () => {
-    mockGetRuntimeConfigValue.mockImplementation((key: string) =>
-      key === 'VITE_IPFS_API' ? 'https://ipfs.example/api' : undefined,
-    )
-    Object.defineProperty(globalThis, 'window', {
-      value: { location: { origin: 'http://localhost:8090' } },
-      configurable: true,
-      writable: true,
-    })
-    expect(getIpfsApiUrl()).toBe('https://ipfs.example/api')
+    expect(getIpfsApiUrl()).toBe('')
   })
 })
 

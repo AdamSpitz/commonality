@@ -24,35 +24,12 @@ export function getEventCacheUrl(): string {
 }
 
 /**
- * Browser IPFS API base URL (legacy / hosting edge cases only).
+ * Browser IPFS API base URL.
  *
- * Statement content publish is PublishedData-first and does not require this.
- * Same-origin `/ipfs-api` (nginx → Kubo) remains available for any remaining
- * browser→API fallbacks when the SPA origin cannot talk to Kubo directly.
- * Explicit VITE_IPFS_API still wins when set (e.g. direct local node).
+ * Product publication is PublishedData-only. Gateway reads use VITE_IPFS_GATEWAY.
+ * Kept as an empty export for any remaining shared call sites; uploads fail closed.
  */
 export function getIpfsApiUrl(): string {
-  const configured = getRuntimeConfigValue('VITE_IPFS_API')
-  if (configured) {
-    // Rewrite host-direct local API to same-origin proxy when the UI is served
-    // from a different origin (Docker CauseStarter on :8090 → Kubo on :5001).
-    if (typeof window !== 'undefined') {
-      try {
-        const api = new URL(configured, window.location.origin)
-        const page = new URL(window.location.origin)
-        const isLocalIpfsApi =
-          (api.hostname === 'localhost' || api.hostname === '127.0.0.1')
-          && (api.port === '5001' || api.port === '')
-        if (isLocalIpfsApi && api.origin !== page.origin) {
-          return `${page.origin}/ipfs-api`
-        }
-      } catch {
-        // fall through to configured value
-      }
-    }
-    return configured.replace(/\/$/, '')
-  }
-  if (typeof window !== 'undefined') return `${window.location.origin}/ipfs-api`
   return ''
 }
 
@@ -60,7 +37,6 @@ export function useMachinery(): SDKMachinery {
   return useMemo(() => {
     const ipfsConfig = {
       gatewayUrl: getRuntimeConfigValue('VITE_IPFS_GATEWAY'),
-      apiUrl: getIpfsApiUrl(),
     }
     const twitterApiConfig = {
       platformApiBaseUrl: getRuntimeConfigValue('VITE_PLATFORM_API_URL') || 'http://localhost:3001',

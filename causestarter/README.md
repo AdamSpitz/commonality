@@ -32,8 +32,8 @@ as main `CreateStatementForm`), not browser → Kubo API upload.
   `VITE_PUBLISHED_DATA_CONTRACT_ADDRESS` the same way as the rest of the stack
   (`./scripts/services.sh --start` or `./scripts/deploy-causestarter.sh`).
 - If the address is missing, launch fails with a clear config error.
-- Optional same-origin `/ipfs-api` proxy and Kubo CORS are for **legacy / hosting**
-  edge cases only, not the product requirement for statement launch.
+- There is no browser `/ipfs-api` proxy. Durability mirroring is the standalone
+  [`published-data-ipfs-mirror`](../published-data-ipfs-mirror/README.md) worker.
 
 ## Run (local dev)
 
@@ -59,7 +59,7 @@ as main `CreateStatementForm`), not browser → Kubo API upload.
 
 Dev server: **http://localhost:5174** (main `ui` stays on 5173).
 
-Vite proxies `/api` → indexer, `/api/cause-assist` → cause-assist, `/ipfs-api` → Kubo. Tool cards still open the other domains at `*.localhost:8088`.
+Vite proxies `/api` → indexer and `/api/cause-assist` → cause-assist. Tool cards still open the other domains at `*.localhost:8088`.
 
 **Note:** browser `localStorage` is per-origin, so causes saved on `:8090` do not appear on `:5174` (and vice versa). Use Vite for day-to-day UI work; use Docker (`./scripts/deploy-causestarter.sh` → `:8090`) when you need the packaged nginx SPA.
 

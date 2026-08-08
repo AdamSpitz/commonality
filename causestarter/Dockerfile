@@ -63,10 +63,8 @@ FROM nginx:1.27-alpine AS runtime
 COPY causestarter/nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=builder /workspace/causestarter/dist /usr/share/nginx/html
 COPY causestarter/docker-entrypoint.d/30-indexer-upstream.sh /docker-entrypoint.d/30-indexer-upstream.sh
-COPY causestarter/docker-entrypoint.d/35-ipfs-upstream.sh /docker-entrypoint.d/35-ipfs-upstream.sh
 COPY causestarter/docker-entrypoint.d/40-causestarter-config.sh /docker-entrypoint.d/40-causestarter-config.sh
 RUN chmod +x /docker-entrypoint.d/30-indexer-upstream.sh \
-      /docker-entrypoint.d/35-ipfs-upstream.sh \
       /docker-entrypoint.d/40-causestarter-config.sh \
   && apk add --no-cache wget \
   && chown -R nginx:nginx /usr/share/nginx/html

@@ -18,7 +18,6 @@ CONFIG_URL = os.environ.get("CAUSESTARTER_CONFIG_URL", "http://localhost:8090/co
 
 PREFERRED = [
     "VITE_IPFS_GATEWAY",
-    "VITE_IPFS_API",
     "VITE_PLATFORM_API_URL",
     "VITE_ETH_RPC_URL",
     "VITE_MAINNET_RPC_URL",
@@ -96,8 +95,6 @@ def main() -> int:
         if val not in (None, ""):
             lines.append(f"{key}={val}")
 
-    if not any(line.startswith("VITE_IPFS_API=") for line in lines):
-        lines.append("VITE_IPFS_API=http://127.0.0.1:5001")
 
     wc = read_root_walletconnect()
     if wc:

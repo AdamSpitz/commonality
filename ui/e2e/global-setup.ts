@@ -78,7 +78,6 @@ function copyContractAddresses(projectRoot: string): void {
       ...addressesToCopy.map(key => `VITE_${key}=`),
       'VITE_EVENT_CACHE_URL=',
       'VITE_IPFS_GATEWAY=',
-      'VITE_IPFS_API=',
       'VITE_ETH_RPC_URL=',
       'VITE_PLATFORM_API_URL=',
       'VITE_CHAIN_ID=',
@@ -141,8 +140,6 @@ function copyContractAddresses(projectRoot: string): void {
       `VITE_EVENT_CACHE_URL=`,
       // IPFS gateway for client-side IPFS content fetching (project names, statement titles)
       `VITE_IPFS_GATEWAY=http://localhost:8080/ipfs`,
-      // Keep client-side writes against the local throwaway IPFS daemon.
-      `VITE_IPFS_API=http://localhost:5001`,
       // Hardhat RPC for on-chain reads (e.g. threshold/deadline from condition contracts)
       `VITE_ETH_RPC_URL=http://127.0.0.1:8545`,
       `VITE_CHAIN_ID=31337`,
