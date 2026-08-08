@@ -132,7 +132,7 @@ describe('AlignedProjectCard', () => {
       expect(fundLink).toHaveAttribute('href', `/projects/eip155%3A31337%3A${PROJECT_ADDR}`)
     })
 
-    it('uses local project copy and path when projectLinks is local', () => {
+    it('uses local project copy and RouterLink path when projectLinks is local', () => {
       render(
         <AlignedProjectCard
           project={makeProject()}
@@ -144,7 +144,11 @@ describe('AlignedProjectCard', () => {
       expect(screen.getByText('Fund this project')).toBeInTheDocument()
       expect(screen.getByText(/Pledge, refund, and withdraw here/i)).toBeInTheDocument()
       const fundLink = screen.getByRole('link', { name: /Open project: Local Hosted Project/i })
+      // Local mode must use in-app route path (RouterLink), not a full-page external href.
       expect(fundLink).toHaveAttribute('href', `/projects/eip155%3A31337%3A${PROJECT_ADDR}`)
+      // Vouch also stays in-router for HashRouter hosts (CauseStarter Docker).
+      const vouchLink = screen.getByRole('link', { name: /Vouch for this project/i })
+      expect(vouchLink).toHaveAttribute('href', `/projects/eip155%3A31337%3A${PROJECT_ADDR}`)
     })
   })
 

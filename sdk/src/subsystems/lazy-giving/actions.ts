@@ -229,6 +229,9 @@ export async function createProject(
     throw new Error('createProject requires a paymentToken address');
   }
 
+  // Only wrap factory simulate/write with the legacy-ABI redeploy hint.
+  // setTokenURI / log-parse failures must not look like a ProjectFactory ABI mismatch.
+  let hash: Hash;
   try {
     // Simulate first so ABI/dispatcher mismatches fail before a sent tx, with a clear message.
     await clients.publicClient.simulateContract({
@@ -251,7 +254,7 @@ export async function createProject(
       account: clients.walletClient.account!,
     });
 
-    const hash = await clients.walletClient.writeContract({
+    hash = await clients.walletClient.writeContract({
       address: projectFactoryContract.address,
       abi: projectFactoryContract.abi,
       functionName: PROJECT_FACTORY_CREATE_FN,
@@ -271,60 +274,60 @@ export async function createProject(
       chain: clients.walletClient.chain,
       account: clients.walletClient.account!,
     });
-
-    const receipt = await clients.publicClient.waitForTransactionReceipt({ hash });
-
-    // Parse the events to get the created contract addresses using viem's parseEventLogs
-    const tokenEvents = parseEventLogs({
-      abi: PremintingERC1155FactoryAbi,
-      eventName: 'LazyGivingERC1155ContractCreated',
-      logs: receipt.logs,
-    });
-
-    const assuranceEvents = parseEventLogs({
-      abi: AssuranceContractFactoryAbi,
-      eventName: 'LazyGivingAssuranceContractCreated',
-      logs: receipt.logs,
-    });
-
-    if (tokenEvents.length === 0 || assuranceEvents.length === 0) {
-      throw new Error(`Failed to extract contract addresses from transaction logs. Found: ${tokenEvents.length} token events, ${assuranceEvents.length} assurance events`);
-    }
-
-    const tokenAddress = tokenEvents[0].args.erc1155;
-    const marketplaceAddress = null;
-    const assuranceContractAddress = assuranceEvents[0].args.assuranceContract;
-
-    if (params.tokenMetadataURIs) {
-      if (params.tokenMetadataURIs.length !== params.tokenIds.length) {
-        throw new Error('tokenMetadataURIs length must match tokenIds length');
-      }
-
-      for (let i = 0; i < params.tokenIds.length; i++) {
-        if (!params.tokenMetadataURIs[i]) continue;
-        const setUriHash = await clients.walletClient.writeContract({
-          address: tokenAddress,
-          abi: PremintingERC1155Abi,
-          functionName: 'setTokenURI',
-          args: [params.tokenIds[i], params.tokenMetadataURIs[i]],
-          chain: clients.walletClient.chain,
-          account: clients.walletClient.account!,
-        });
-        await clients.publicClient.waitForTransactionReceipt({ hash: setUriHash });
-      }
-    }
-
-    return {
-      hash,
-      projectDetails: {
-        tokenAddress,
-        marketplaceAddress,
-        assuranceContractAddress,
-      },
-    };
   } catch (err) {
     throw enhanceCreateProjectError(err, projectFactoryContract.address);
   }
+
+  const receipt = await clients.publicClient.waitForTransactionReceipt({ hash });
+
+  // Parse the events to get the created contract addresses using viem's parseEventLogs
+  const tokenEvents = parseEventLogs({
+    abi: PremintingERC1155FactoryAbi,
+    eventName: 'LazyGivingERC1155ContractCreated',
+    logs: receipt.logs,
+  });
+
+  const assuranceEvents = parseEventLogs({
+    abi: AssuranceContractFactoryAbi,
+    eventName: 'LazyGivingAssuranceContractCreated',
+    logs: receipt.logs,
+  });
+
+  if (tokenEvents.length === 0 || assuranceEvents.length === 0) {
+    throw new Error(`Failed to extract contract addresses from transaction logs. Found: ${tokenEvents.length} token events, ${assuranceEvents.length} assurance events`);
+  }
+
+  const tokenAddress = tokenEvents[0].args.erc1155;
+  const marketplaceAddress = null;
+  const assuranceContractAddress = assuranceEvents[0].args.assuranceContract;
+
+  if (params.tokenMetadataURIs) {
+    if (params.tokenMetadataURIs.length !== params.tokenIds.length) {
+      throw new Error('tokenMetadataURIs length must match tokenIds length');
+    }
+
+    for (let i = 0; i < params.tokenIds.length; i++) {
+      if (!params.tokenMetadataURIs[i]) continue;
+      const setUriHash = await clients.walletClient.writeContract({
+        address: tokenAddress,
+        abi: PremintingERC1155Abi,
+        functionName: 'setTokenURI',
+        args: [params.tokenIds[i], params.tokenMetadataURIs[i]],
+        chain: clients.walletClient.chain,
+        account: clients.walletClient.account!,
+      });
+      await clients.publicClient.waitForTransactionReceipt({ hash: setUriHash });
+    }
+  }
+
+  return {
+    hash,
+    projectDetails: {
+      tokenAddress,
+      marketplaceAddress,
+      assuranceContractAddress,
+    },
+  };
 }
 
 /**

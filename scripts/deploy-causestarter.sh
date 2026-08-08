@@ -369,9 +369,10 @@ echo "  Logs:    docker compose logs -f causestarter"
 echo "  Stop:    ./scripts/deploy-causestarter.sh --stop"
 echo ""
 echo "Tool deep-links (open from CauseStarter or browser):"
-echo "  Projects:       http://alignment.localhost:8088/#/"
-echo "  Delegation:     http://lazygiving.localhost:8088/#/delegation/notes"
-echo "  Content Funding:http://content-funding.localhost:8088/#/"
+echo "  Aligning / cause boards: http://alignment.localhost:8088/#/"
+echo "  LazyGiving projects:     http://lazygiving.localhost:8088/#/projects"
+echo "  LazyGiving delegation:   http://lazygiving.localhost:8088/#/delegation/notes"
+echo "  Content Funding:         http://content-funding.localhost:8088/#/"
 
 # Reload env (hardhat-deploy during ensure_local_indexer may have rewritten addresses)
 # then verify runtime config.json matches deploy env + on-chain ABI.

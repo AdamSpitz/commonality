@@ -49,11 +49,43 @@ export function getEventCacheUrl(): string {
   return ''
 }
 
+/**
+ * Browser IPFS API base URL.
+ *
+ * When config points at host-direct Kubo (`localhost:5001` / `127.0.0.1:5001`)
+ * but the SPA is served from another origin (CauseStarter :8090/:5174, domain
+ * SPAs under the gateway), rewrite to same-origin `/ipfs-api` so the host's
+ * Vite/nginx proxy can forward without CORS. Explicit non-local VITE_IPFS_API
+ * values still win.
+ */
+export function getIpfsApiUrl(): string {
+  const configured = getRuntimeConfigValue('VITE_IPFS_API')
+  if (configured) {
+    if (typeof window !== 'undefined') {
+      try {
+        const api = new URL(configured, window.location.origin)
+        const page = new URL(window.location.origin)
+        const isLocalIpfsApi =
+          (api.hostname === 'localhost' || api.hostname === '127.0.0.1')
+          && (api.port === '5001' || api.port === '')
+        if (isLocalIpfsApi && api.origin !== page.origin) {
+          return `${page.origin}/ipfs-api`
+        }
+      } catch {
+        // fall through to configured value
+      }
+    }
+    return configured.replace(/\/$/, '')
+  }
+  if (typeof window !== 'undefined') return `${window.location.origin}/ipfs-api`
+  return ''
+}
+
 export function useMachinery(): SDKMachinery {
   return useMemo(() => {
     const ipfsConfig = {
       gatewayUrl: getRuntimeConfigValue('VITE_IPFS_GATEWAY'),
-      apiUrl: getRuntimeConfigValue('VITE_IPFS_API'),
+      apiUrl: getIpfsApiUrl(),
       ...civilityPolicyGatewayConfig(),
     };
     const twitterApiConfig = {

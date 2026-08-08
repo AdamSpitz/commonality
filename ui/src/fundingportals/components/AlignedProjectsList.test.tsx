@@ -22,6 +22,19 @@ vi.mock('../../shared/hooks/useTrustedSet', () => ({
   useTrustedSet: vi.fn(),
 }))
 
+vi.mock('../../shared/routing/domainUrls', async () => {
+  const actual = await vi.importActual<typeof import('../../shared/routing/domainUrls')>(
+    '../../shared/routing/domainUrls',
+  )
+  return {
+    ...actual,
+    isDomainConfigured: vi.fn(() => false),
+    getDomainUrl: vi.fn((domainId: string, path = '/') =>
+      `http://${domainId === 'lazyGiving' ? 'lazygiving' : domainId}.localhost:8088/#${path.startsWith('/') ? path : `/${path}`}`,
+    ),
+  }
+})
+
 vi.mock('@commonality/sdk/fundingportals', async () => {
   const actual = await vi.importActual('@commonality/sdk/fundingportals')
   return {
@@ -60,7 +73,7 @@ import { getProject } from '@commonality/sdk/lazy-giving'
 import { createSDKMachinery } from '@commonality/sdk/machinery'
 import { readProjectMetadata } from './projectMetadata'
 import { useAccount } from 'wagmi'
-import { useTrustedSet } from '../../shared'
+import { getDomainUrl, isDomainConfigured, useTrustedSet } from '../../shared'
 
 const mockMachinery = {} as any
 
@@ -212,16 +225,34 @@ describe('AlignedProjectsList', () => {
   })
 
   describe('Empty state', () => {
-    it('offers project creation when no projects are returned', async () => {
+    it('offers project creation when LazyGiving is configured and no projects are returned', async () => {
       vi.mocked(getAllAlignedProjectsForCause).mockResolvedValue([])
+      vi.mocked(isDomainConfigured).mockReturnValue(true)
+      vi.mocked(getDomainUrl).mockReturnValue('http://lazygiving.localhost:8088/#/projects/new')
 
       render(<AlignedProjectsList statementCid="QmTest" />)
 
       await waitFor(() => {
         expect(screen.getByText(/No aligned projects yet/)).toBeInTheDocument()
       })
-      expect(screen.getByRole('link', { name: 'Create a project' })).toHaveAttribute('href', '/projects/new')
+      expect(screen.getByRole('link', { name: 'Create a project' })).toHaveAttribute(
+        'href',
+        'http://lazygiving.localhost:8088/#/projects/new',
+      )
       expect(screen.queryByRole('link', { name: 'Browse all projects' })).not.toBeInTheDocument()
+    })
+
+    it('explains missing LazyGiving config instead of path-only create links', async () => {
+      vi.mocked(getAllAlignedProjectsForCause).mockResolvedValue([])
+      vi.mocked(isDomainConfigured).mockReturnValue(false)
+
+      render(<AlignedProjectsList statementCid="QmTest" projectLinks="local" />)
+
+      await waitFor(() => {
+        expect(screen.getByText(/No aligned projects yet/)).toBeInTheDocument()
+      })
+      expect(screen.queryByRole('link', { name: /Create a project/i })).not.toBeInTheDocument()
+      expect(screen.getByText(/Project creation still happens on LazyGiving/i)).toBeInTheDocument()
     })
 
     it('shows "No projects match" message when all projects are filtered out', async () => {

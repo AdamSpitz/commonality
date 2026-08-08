@@ -43,10 +43,12 @@ as main `CreateStatementForm`), not browser → Kubo API upload.
 2. Seed `causestarter/.env` from the running Docker SPA config (contract addresses + tool domain URLs):
 
    ```bash
-   python3 tmp/seed-causestarter-vite-env.py
+   python3 scripts/seed-causestarter-vite-env.py
    ```
 
-   (Needs Docker CauseStarter on `:8090` once so `config.json` is available. Re-seed after a chain re-deploy.)
+   (Needs Docker CauseStarter on `:8090` once so `config.json` is available. Re-seed after a chain re-deploy.
+   Alternatively copy `VITE_*` keys from `deployments/localhost.env` / `ui/.env`, or re-run
+   `./scripts/deploy-contracts.sh localhost` which mirrors addresses into `causestarter/.env`.)
 3. From the repo root:
 
    ```bash

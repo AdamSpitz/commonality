@@ -6,8 +6,9 @@ import { defineConfig, devices } from '@playwright/test'
  * Default: hit the Docker SPA at http://localhost:8090 (hash routing).
  * Override with CAUSESTARTER_BASE_URL (e.g. http://localhost:5174 for vite dev).
  *
- * Does not start Docker — run `./scripts/deploy-causestarter.sh` (or services.sh)
- * first. Set CAUSESTARTER_REUSE_SERVER=0 to fail if the URL is down.
+ * Does not start Docker or a local webServer — run
+ * `./scripts/deploy-causestarter.sh` (or services.sh / `npm run causestarter:dev`)
+ * first. If the base URL is down, navigation fails with a normal timeout.
  */
 const baseURL = (process.env.CAUSESTARTER_BASE_URL || 'http://localhost:8090').replace(/\/$/, '')
 

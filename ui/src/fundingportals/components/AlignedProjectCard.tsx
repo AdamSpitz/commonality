@@ -10,6 +10,7 @@ import {
   LinearProgress,
   Button,
 } from '@mui/material'
+import { Link as RouterLink } from 'react-router-dom'
 import { getDomainUrl } from '../../shared'
 import type { Currency } from '@commonality/sdk/utils'
 import {
@@ -153,9 +154,28 @@ function ContentFundingCardDetails({ info }: { info: ContentFundingInfo }) {
 /** Where project detail links resolve. `local` = same-origin /projects/...; `lazyGiving` = cross-domain LazyGiving. */
 export type ProjectLinkMode = 'local' | 'lazyGiving'
 
+/** Discriminated project navigation target so callers cannot misuse path strings as external hrefs. */
+export type ProjectNavTarget =
+  | { kind: 'route'; to: string }
+  | { kind: 'external'; href: string }
+
+/**
+ * Resolve a project path for navigation.
+ * - `local`: in-app React Router route (works with BrowserRouter and HashRouter).
+ * - `lazyGiving`: absolute/cross-domain LazyGiving URL.
+ */
+export function resolveProjectNav(projectPath: string, mode: ProjectLinkMode = 'lazyGiving'): ProjectNavTarget {
+  if (mode === 'local') return { kind: 'route', to: projectPath }
+  return {
+    kind: 'external',
+    href: getDomainUrl('lazyGiving', projectPath, { fallbackHref: projectPath }),
+  }
+}
+
+/** @deprecated Prefer {@link resolveProjectNav}; kept for callers that only need a string href in lazyGiving mode. */
 export function resolveProjectHref(projectPath: string, mode: ProjectLinkMode = 'lazyGiving'): string {
-  if (mode === 'local') return projectPath
-  return getDomainUrl('lazyGiving', projectPath, { fallbackHref: projectPath })
+  const nav = resolveProjectNav(projectPath, mode)
+  return nav.kind === 'route' ? nav.to : nav.href
 }
 
 export function AlignedProjectCard({
@@ -180,8 +200,8 @@ export function AlignedProjectCard({
 
   const projectPath = projectPathForAddress(project.projectAddress)
   const causeParam = causeCid ? `?causeCid=${encodeURIComponent(causeCid)}` : ''
-  const projectHref = resolveProjectHref(projectPath, projectLinks)
-  const vouchHref = resolveProjectHref(`${projectPath}${causeParam}`, projectLinks)
+  const projectNav = resolveProjectNav(projectPath, projectLinks)
+  const vouchNav = resolveProjectNav(`${projectPath}${causeParam}`, projectLinks)
   const projectLabel = metadata?.name || project.projectAddress
   const openAriaLabel =
     projectLinks === 'local'
@@ -190,70 +210,137 @@ export function AlignedProjectCard({
 
   return (
     <Card>
-      <CardActionArea component="a" href={projectHref} aria-label={openAriaLabel}>
-        <CardContent>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
-            <Typography variant="h6" component="h2" sx={{ flexGrow: 1 }}>
-              {metadata?.name || `Project ${project.projectAddress.slice(0, 8)}...`}
-            </Typography>
-            <Stack direction="row" spacing={1} sx={{ ml: 1 }}>
-              {contentFundingInfo && <ContentFundingBadge info={contentFundingInfo} />}
-              <Chip
-                label={project.alignmentType === 'direct' ? 'Direct' : 'Indirect'}
-                size="small"
-                variant="outlined"
-                color={project.alignmentType === 'direct' ? 'primary' : 'default'}
-                aria-label={alignmentExplanation(project.alignmentType)}
-              />
-              <Chip label={STATUS_LABELS[status]} color={STATUS_COLORS[status]} size="small" />
-              <Chip label={formatRelativeDeadline(project.deadline)} size="small" variant="outlined" />
-            </Stack>
-          </Box>
-
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
-            {alignmentExplanation(project.alignmentType)}
-          </Typography>
-
-          <Box sx={{ mb: 1 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-              <Typography variant="body2" color="text.secondary">
-                {formatCurrencyProgress(project.totalReceived, project.threshold, project.fundingCurrency)}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                {hasMinimum ? `${Math.round(fundingProgress)}%` : 'No minimum'}
-              </Typography>
-            </Box>
-            {hasMinimum && (
-              <LinearProgress
-                variant="determinate"
-                value={progressPercent}
-                sx={{ height: 8, borderRadius: 4 }}
-              />
-            )}
-          </Box>
-
-          {contentFundingInfo && <ContentFundingCardDetails info={contentFundingInfo} />}
-
-          <Button component="span" size="small" variant="contained" sx={{ mt: 2 }}>
-            {projectLinks === 'local' ? 'Fund this project' : 'Fund on LazyGiving'}
-          </Button>
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-            {projectLinks === 'local'
-              ? 'Pledge, refund, and withdraw here — then return to explore more aligned projects.'
-              : 'Pledge, refund, and withdraw on LazyGiving — then return here to explore more aligned projects.'}
-          </Typography>
-        </CardContent>
-      </CardActionArea>
-      <CardActions sx={{ pt: 0 }}>
-        <Button
-          component="a"
-          href={vouchHref}
-          size="small"
-          variant="outlined"
+      {projectNav.kind === 'route' ? (
+        <CardActionArea
+          component={RouterLink}
+          to={projectNav.to}
+          aria-label={openAriaLabel}
         >
-          Vouch for this project
-        </Button>
+          <AlignedProjectCardBody
+            project={project}
+            metadata={metadata}
+            status={status}
+            hasMinimum={hasMinimum}
+            fundingProgress={fundingProgress}
+            progressPercent={progressPercent}
+            contentFundingInfo={contentFundingInfo}
+            projectLinks={projectLinks}
+          />
+        </CardActionArea>
+      ) : (
+        <CardActionArea
+          component="a"
+          href={projectNav.href}
+          aria-label={openAriaLabel}
+        >
+          <AlignedProjectCardBody
+            project={project}
+            metadata={metadata}
+            status={status}
+            hasMinimum={hasMinimum}
+            fundingProgress={fundingProgress}
+            progressPercent={progressPercent}
+            contentFundingInfo={contentFundingInfo}
+            projectLinks={projectLinks}
+          />
+        </CardActionArea>
+      )}
+      <CardActions sx={{ pt: 0 }}>
+        {vouchNav.kind === 'route' ? (
+          <Button
+            component={RouterLink}
+            to={vouchNav.to}
+            size="small"
+            variant="outlined"
+          >
+            Vouch for this project
+          </Button>
+        ) : (
+          <Button
+            component="a"
+            href={vouchNav.href}
+            size="small"
+            variant="outlined"
+          >
+            Vouch for this project
+          </Button>
+        )}
       </CardActions>
     </Card>
+  )
+}
+
+function AlignedProjectCardBody({
+  project,
+  metadata,
+  status,
+  hasMinimum,
+  fundingProgress,
+  progressPercent,
+  contentFundingInfo,
+  projectLinks,
+}: {
+  project: AlignedProject
+  metadata: ProjectMetadata | undefined
+  status: ReturnType<typeof getProjectStatus>
+  hasMinimum: boolean
+  fundingProgress: number
+  progressPercent: number
+  contentFundingInfo: ContentFundingInfo | null
+  projectLinks: ProjectLinkMode
+}) {
+  return (
+    <CardContent>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+        <Typography variant="h6" component="h2" sx={{ flexGrow: 1 }}>
+          {metadata?.name || `Project ${project.projectAddress.slice(0, 8)}...`}
+        </Typography>
+        <Stack direction="row" spacing={1} sx={{ ml: 1 }}>
+          {contentFundingInfo && <ContentFundingBadge info={contentFundingInfo} />}
+          <Chip
+            label={project.alignmentType === 'direct' ? 'Direct' : 'Indirect'}
+            size="small"
+            variant="outlined"
+            color={project.alignmentType === 'direct' ? 'primary' : 'default'}
+            aria-label={alignmentExplanation(project.alignmentType)}
+          />
+          <Chip label={STATUS_LABELS[status]} color={STATUS_COLORS[status]} size="small" />
+          <Chip label={formatRelativeDeadline(project.deadline)} size="small" variant="outlined" />
+        </Stack>
+      </Box>
+
+      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+        {alignmentExplanation(project.alignmentType)}
+      </Typography>
+
+      <Box sx={{ mb: 1 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+          <Typography variant="body2" color="text.secondary">
+            {formatCurrencyProgress(project.totalReceived, project.threshold, project.fundingCurrency)}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            {hasMinimum ? `${Math.round(fundingProgress)}%` : 'No minimum'}
+          </Typography>
+        </Box>
+        {hasMinimum && (
+          <LinearProgress
+            variant="determinate"
+            value={progressPercent}
+            sx={{ height: 8, borderRadius: 4 }}
+          />
+        )}
+      </Box>
+
+      {contentFundingInfo && <ContentFundingCardDetails info={contentFundingInfo} />}
+
+      <Button component="span" size="small" variant="contained" sx={{ mt: 2 }}>
+        {projectLinks === 'local' ? 'Fund this project' : 'Fund on LazyGiving'}
+      </Button>
+      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
+        {projectLinks === 'local'
+          ? 'Pledge, refund, and withdraw here — then return to explore more aligned projects.'
+          : 'Pledge, refund, and withdraw on LazyGiving — then return here to explore more aligned projects.'}
+      </Typography>
+    </CardContent>
   )
 }

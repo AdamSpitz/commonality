@@ -292,43 +292,53 @@ export function CauseDetailPage() {
             Supporting statements
           </Typography>
           <Stack spacing={1.25}>
-            {adopted.map((s, index) => {
-              const cid = cause.statementCids?.[index]
-              const count = cid ? supportByCid[cid] : undefined
-              return (
-                <Box key={s.id}>
-                  <Stack direction="row" spacing={1} alignItems="flex-start" justifyContent="space-between">
-                    <Typography variant="body2" sx={{ flex: 1 }}>
-                      {s.text}
-                    </Typography>
-                    {cid && (
-                      <Chip
-                        size="small"
-                        color="primary"
-                        variant="outlined"
-                        label={formatSupportersShort(count, supportLoading)}
-                        sx={{ minWidth: 40 }}
-                      />
-                    )}
-                  </Stack>
-                  {cid && (
-                    <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 0.5 }}>
-                      <Typography variant="caption" color="text.secondary">
-                        {formatSupporters(count, supportLoading)}
+            {(() => {
+              // Launch stores extras only: adopted statements whose text !== goal
+              // (see StartCausePage publish loop). Zip by that same filter so a
+              // goal-duplicate adopted statement does not shift later CID slots.
+              const goalText = (cause.goal || '').trim()
+              let extraIdx = 0
+              return adopted.map((s) => {
+                const isGoalDuplicate = s.text.trim() === goalText
+                const cid = isGoalDuplicate
+                  ? cause.statementCid
+                  : cause.statementCids?.[extraIdx++]
+                const count = cid ? supportByCid[cid] : undefined
+                return (
+                  <Box key={s.id}>
+                    <Stack direction="row" spacing={1} alignItems="flex-start" justifyContent="space-between">
+                      <Typography variant="body2" sx={{ flex: 1 }}>
+                        {s.text}
                       </Typography>
-                      <Button
-                        component={RouterLink}
-                        to={`/statement/${cid}`}
-                        size="small"
-                        sx={{ textTransform: 'none' }}
-                      >
-                        View
-                      </Button>
+                      {cid && (
+                        <Chip
+                          size="small"
+                          color="primary"
+                          variant="outlined"
+                          label={formatSupportersShort(count, supportLoading)}
+                          sx={{ minWidth: 40 }}
+                        />
+                      )}
                     </Stack>
-                  )}
-                </Box>
-              )
-            })}
+                    {cid && (
+                      <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 0.5 }}>
+                        <Typography variant="caption" color="text.secondary">
+                          {formatSupporters(count, supportLoading)}
+                        </Typography>
+                        <Button
+                          component={RouterLink}
+                          to={`/statement/${cid}`}
+                          size="small"
+                          sx={{ textTransform: 'none' }}
+                        >
+                          View
+                        </Button>
+                      </Stack>
+                    )}
+                  </Box>
+                )
+              })
+            })()}
           </Stack>
         </Paper>
       )}
