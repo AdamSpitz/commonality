@@ -419,7 +419,7 @@ async function main() {
 
   await updateEnvFile(join(root, '.env'), isLocal ? { ...addressEntries, IPFS_API: 'http://localhost:5001', IPFS_GATEWAY: 'http://localhost:8080/ipfs', EVENT_CACHE_URL: 'http://localhost:42069', VERIFIER_PRIVATE_KEY: '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80', LOCAL_SEED_NUDGER_ADDRESS } : addressEntries);
   await updateEnvFile(join(root, 'integration-tests', '.env.local'), isLocal ? { ...addressEntries, IPFS_API: 'http://localhost:5001', IPFS_GATEWAY: 'http://localhost:8080/ipfs', EVENT_CACHE_URL: 'http://localhost:42069', VERIFIER_PRIVATE_KEY: '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80', LOCAL_SEED_NUDGER_ADDRESS } : addressEntries);
-  await updateEnvFile(join(root, 'ui', '.env'), {
+  const viteAddressEntries = {
     VITE_BELIEFS_CONTRACT_ADDRESS: addresses.Beliefs, VITE_IMPLICATIONS_CONTRACT_ADDRESS: addresses.Implications, VITE_MUTABLE_REF_UPDATER_CONTRACT_ADDRESS: addresses.MutableRefUpdater,
     VITE_DELEGATABLE_NOTES_CONTRACT_ADDRESS: addresses.DelegatableNotes, VITE_RECURRING_PLEDGES_CONTRACT_ADDRESS: addresses.RecurringPledges, VITE_NOTE_INTENT_CONTRACT_ADDRESS: addresses.NoteIntent,
     VITE_ASSURANCE_CONTRACT_FACTORY_ADDRESS: addresses.AssuranceContractFactory, VITE_ERC1155_FACTORY_ADDRESS: addresses.PremintingERC1155Factory,
@@ -432,7 +432,11 @@ async function main() {
     VITE_CREATOR_GAS_TANK_ADDRESS: addresses.CreatorGasTank, VITE_SPONSORED_GAS_ENTRY_POINT_ADDRESS: addresses.SponsoredGasEntryPoint,
     ...(addresses.GasTankFunder ? { VITE_GAS_TANK_FUNDER_ADDRESS: addresses.GasTankFunder } : {}),
     VITE_PAYMENT_TOKEN_ADDRESS: addresses.FreeERC20, VITE_PAYMENT_TOKEN_SYMBOL: 'USDZZZ', VITE_PAYMENT_TOKEN_DECIMALS: '6', ...(isLocal ? { VITE_IPFS_GATEWAY: 'http://localhost:8080/ipfs', VITE_DEFAULT_NUDGERS: LOCAL_SEED_NUDGER_ADDRESS } : {})
-  });
+  };
+  await updateEnvFile(join(root, 'ui', '.env'), viteAddressEntries);
+  // CauseStarter package .env is optional at runtime (Docker injects config.json),
+  // but stale VITE_* values here fail local:check — keep them in sync with ui/.env.
+  await updateEnvFile(join(root, 'causestarter', '.env'), viteAddressEntries);
   await updateEnvFile(join(root, 'services', 'implication-attester', '.env'), { IMPLICATIONS_CONTRACT_ADDRESS: addresses.Implications });
 
   const changed = [...freshlyDeployed];

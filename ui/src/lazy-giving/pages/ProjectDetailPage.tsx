@@ -24,10 +24,29 @@ import { tryParseChainAddressRef } from '../../shared'
 import { readLazyGivingProjectMetadata, readLazyGivingTokenMetadata, type ProjectMetadata } from '../metadata'
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000' as const
 
-export function ProjectDetailPage() {
+export type ProjectDetailPageProps = {
+  /**
+   * Where error / not-found "back" links go.
+   * LazyGiving uses the projects index; hosts without `/projects` should override
+   * (e.g. CauseStarter → `/momentum`).
+   */
+  listPath?: string
+  /** Label for the back link (default: "Back to projects"). */
+  listLabel?: string
+}
+
+export function ProjectDetailPage({
+  listPath = '/projects',
+  listLabel = 'Back to projects',
+}: ProjectDetailPageProps = {}) {
   const { projectAddress } = useParams<{ projectAddress: string }>()
   const [searchParams] = useSearchParams()
   const causeCid = searchParams.get('causeCid') ?? undefined
+  // CauseStarter HashRouter owns location.hash, so local board links use
+  // ?closeTheLoop=1. LazyGiving BrowserRouter still uses #close-the-loop.
+  const closeTheLoop =
+    searchParams.get('closeTheLoop') === '1'
+    || (typeof window !== 'undefined' && window.location.hash === '#close-the-loop')
   const { address, isConnected } = useAccount()
   const machinery = useMachinery()
   const machineryDefaultChainId = (machinery as { defaultChainId?: number }).defaultChainId
@@ -214,6 +233,19 @@ export function ProjectDetailPage() {
     await loadProjectData()
   }, [loadProjectData, reloadProject])
 
+  // Scroll to reimbursement when linked via ?closeTheLoop=1 or #close-the-loop.
+  // ReimbursementSection only mounts for succeeded + connected projects with state.
+  useEffect(() => {
+    if (!closeTheLoop) return
+    if (!isConnected || !reimbursementState || !project) return
+    if (getProjectStatus(project) !== 'succeeded') return
+    const el = document.getElementById('close-the-loop')
+    if (!el) return
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    const focusable = el.querySelector<HTMLElement>('button, input, [tabindex]:not([tabindex="-1"])')
+    focusable?.focus({ preventScroll: true })
+  }, [closeTheLoop, isConnected, reimbursementState, project])
+
   if (projectLoading || loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
@@ -236,8 +268,8 @@ export function ProjectDetailPage() {
             <Button variant="contained" onClick={handleRefresh}>
               Retry
             </Button>
-            <Button component={RouterLink} to="/projects" variant="outlined">
-              Back to projects
+            <Button component={RouterLink} to={listPath} variant="outlined">
+              {listLabel}
             </Button>
           </Box>
           <Typography variant="caption" color="text.secondary" component="div">
@@ -258,8 +290,8 @@ export function ProjectDetailPage() {
           <Typography color="text.secondary" sx={{ mb: 3 }}>
             This project may not exist on the current network, or the indexer may not have seen it yet.
           </Typography>
-          <Button component={RouterLink} to="/projects" variant="contained">
-            Back to projects
+          <Button component={RouterLink} to={listPath} variant="contained">
+            {listLabel}
           </Button>
         </Paper>
       </Box>
@@ -269,6 +301,7 @@ export function ProjectDetailPage() {
   const status = getProjectStatus(project)
   const fundingCurrency = project.fundingCurrency
   const cardOnrampSupported = fundingCurrency?.kind === 'erc20' && fundingCurrency.symbol.toUpperCase() === 'USDC' && fundingCurrency.decimals === 6
+  const showReimbursement = isConnected && status === 'succeeded' && Boolean(reimbursementState)
 
   const userRefundableTokens = computeUserTokenBalance(address, contributions, refunds)
 
@@ -318,7 +351,7 @@ export function ProjectDetailPage() {
         />
       )}
 
-      {isConnected && status === 'succeeded' && reimbursementState && (
+      {showReimbursement && reimbursementState && (
         <ReimbursementSection
           project={project}
           projectState={reimbursementState}

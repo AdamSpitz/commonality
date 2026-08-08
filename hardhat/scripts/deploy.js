@@ -539,6 +539,49 @@ async function main() {
   await fs.writeFile(uiEnvPath, uiEnvContent);
   console.log('  ✓ Updated ui/.env');
 
+  // Mirror VITE_* contract addresses into causestarter/.env so local:check does not
+  // flag a stale package env after hardhat-deploy (Docker still injects config.json).
+  const causestarterEnvPath = join(rootDir, 'causestarter', '.env');
+  let causestarterEnvContent = '';
+  try {
+    causestarterEnvContent = await fs.readFile(causestarterEnvPath, 'utf-8');
+  } catch {
+    console.log('  No existing causestarter/.env, creating new one');
+  }
+  for (const key of [
+    'VITE_BELIEFS_CONTRACT_ADDRESS',
+    'VITE_IMPLICATIONS_CONTRACT_ADDRESS',
+    'VITE_MUTABLE_REF_UPDATER_CONTRACT_ADDRESS',
+    'VITE_DELEGATABLE_NOTES_CONTRACT_ADDRESS',
+    'VITE_RECURRING_PLEDGES_CONTRACT_ADDRESS',
+    'VITE_NOTE_INTENT_CONTRACT_ADDRESS',
+    'VITE_ASSURANCE_CONTRACT_FACTORY_ADDRESS',
+    'VITE_ERC1155_FACTORY_ADDRESS',
+    'VITE_ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS',
+    'VITE_TRUST_REGISTRY_CONTRACT_ADDRESS',
+    'VITE_NUDGE_PUBLICATIONS_CONTRACT_ADDRESS',
+    'VITE_PUBLISHED_DATA_CONTRACT_ADDRESS',
+    'VITE_CONTENT_REGISTRY_ADDRESS',
+    'VITE_CHANNEL_REGISTRY_ADDRESS',
+    'VITE_CHANNEL_VERIFIER_ADDRESS',
+    'VITE_CHANNEL_ESCROW_ADDRESS',
+    'VITE_CREATOR_CONTRACT_FACTORY_ADDRESS',
+    'VITE_PROJECT_FACTORY_CONTRACT_ADDRESS',
+    'VITE_PAYMENT_TOKEN_ADDRESS',
+    'VITE_PAYMENT_TOKEN_SYMBOL',
+    'VITE_PAYMENT_TOKEN_DECIMALS',
+  ]) {
+    const match = uiEnvContent.match(new RegExp(`^${key}=(.*)$`, 'm'));
+    if (match) {
+      causestarterEnvContent = updateEnv(causestarterEnvContent, key, match[1]);
+    }
+  }
+  if (isLocal) {
+    causestarterEnvContent = updateEnv(causestarterEnvContent, 'VITE_IPFS_GATEWAY', 'http://localhost:8080/ipfs');
+  }
+  await fs.writeFile(causestarterEnvPath, causestarterEnvContent);
+  console.log('  ✓ Updated causestarter/.env');
+
   // services/implication-attester/.env — just the contract address
   const attesterEnvPath = join(rootDir, 'services', 'implication-attester', '.env');
   let attesterEnvContent = '';

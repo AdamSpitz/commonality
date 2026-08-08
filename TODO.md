@@ -8,6 +8,8 @@ When an item from this page is done and no longer needs an LLM implementor's att
 
 ----
 
+- Complete the [PublishedData / browser IPFS cutover](specs/tech/published-data-ipfs-cutover-plan.md): audit remaining browser `uploadToIPFS` callers, migrate eligible publication flows to PublishedData, deploy and monitor the existing `published-data-ipfs-mirror`, provide an independent cause-operator runbook, and then remove browser Kubo write configuration and CauseStarter's temporary `/ipfs-api` proxy.
+
 - [x] **(Ask → decided 2026-08-05)** Implement the channel-bound future-content materialization contract path. See [ADR 0007](specs/decisions/0007-channel-bound-prospective-content-materialization.md) and [materialization.md](specs/tech/subsystems/content-funding/materialization.md).
 - Do a LazyGiving donor-page de-crypto pass. The check has now been recalibrated to allow accurate crypto terminology in optional technical details and inherently crypto-specific operations rather than treating words as a blacklist. Its fresh 2026-08-01 review still finds three primary-path blockers: the Give flow foregrounds wallet/USDC/on-chain/gas mechanics, the refund flow foregrounds receipt-token approvals/gas tanks/ETH/off-ramp language, and project pages use raw `0x` addresses as ordinary contributor/recipient identities. Suggested boundary: keep precise settlement records behind “technical details,” while the default donor path speaks in dollars, accounts, people, giving, and refunds.
 

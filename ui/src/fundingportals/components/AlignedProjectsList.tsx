@@ -15,9 +15,14 @@ import SortIcon from '@mui/icons-material/Sort'
 import { getAllAlignedProjectsForCause } from '@commonality/sdk/fundingportals'
 import { getProject } from '@commonality/sdk/lazy-giving'
 import { type IpfsCidV1 } from '@commonality/sdk/utils'
-import { getDomainUrl, useMachinery, useTrustedSet } from '../../shared'
+import { getDomainUrl, isDomainConfigured, useMachinery, useTrustedSet } from '../../shared'
 import { getProjectStatus } from '../../lazy-giving'
-import { AlignedProjectCard, type AlignedProject, type ProjectMetadata } from './AlignedProjectCard'
+import {
+  AlignedProjectCard,
+  type AlignedProject,
+  type ProjectLinkMode,
+  type ProjectMetadata,
+} from './AlignedProjectCard'
 import { DiscoverySlider } from './DiscoverySlider'
 import { DISCOVERY_LEVEL_MAX_HOPS, type DiscoveryLevel } from './discoveryLevels'
 import { readProjectMetadata } from './projectMetadata'
@@ -44,10 +49,12 @@ export function AlignedProjectsList({
   statementCid,
   trustedImplicationAttesters,
   trustedAlignmentAttesters,
+  projectLinks = 'lazyGiving',
 }: {
   statementCid: string
   trustedImplicationAttesters?: Iterable<string>
   trustedAlignmentAttesters?: Iterable<string>
+  projectLinks?: ProjectLinkMode
 }) {
   const machinery = useMachinery()
   const { address } = useAccount()
@@ -222,26 +229,30 @@ export function AlignedProjectsList({
         <Paper sx={{ p: 3, textAlign: 'center' }}>
           <Typography variant="body1" color="text.secondary">
             {projects.length === 0
-              ? 'No aligned projects yet. Create one for this cause, or browse other projects that need support.'
+              ? 'No aligned projects yet. Create one for this cause to get started.'
               : 'No projects match the current filters.'}
           </Typography>
           {projects.length === 0 && (
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} justifyContent="center" sx={{ mt: 2 }}>
-              <Button
-                component="a"
-                href={getDomainUrl('lazyGiving', '/projects/new', { fallbackHref: '/projects/new' })}
-                variant="contained"
-              >
-                Create a project
-              </Button>
-              <Button
-                component="a"
-                href={getDomainUrl('lazyGiving', '/projects', { fallbackHref: '/projects' })}
-                variant="outlined"
-              >
-                Browse all projects
-              </Button>
-            </Stack>
+            isDomainConfigured('lazyGiving') ? (
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} justifyContent="center" sx={{ mt: 2 }}>
+                <Button
+                  component="a"
+                  // Create still lives on LazyGiving (no path-only fallback).
+                  href={getDomainUrl('lazyGiving', '/projects/new')}
+                  variant="contained"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {projectLinks === 'local' ? 'Create a project on LazyGiving' : 'Create a project'}
+                </Button>
+              </Stack>
+            ) : (
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+                {projectLinks === 'local'
+                  ? 'Project creation still happens on LazyGiving once its domain URL is configured.'
+                  : 'Configure VITE_LAZYGIVING_URL to create a project for this cause.'}
+              </Typography>
+            )
           )}
         </Paper>
       ) : (
@@ -252,6 +263,7 @@ export function AlignedProjectsList({
               project={project}
               metadata={metadata[project.projectAddress]}
               causeCid={statementCid}
+              projectLinks={projectLinks}
             />
           ))}
         </Stack>

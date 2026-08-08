@@ -31,6 +31,54 @@ export interface ProjectDetails {
   assuranceContractAddress: Address;
 }
 
+/** Current ProjectFactory create entrypoint (post secondary-market removal). */
+const PROJECT_FACTORY_CREATE_FN =
+  'createERC1155AndAssuranceContract' as const;
+
+/**
+ * Enrich empty/opaque createProject reverts with a redeploy hint when the
+ * on-chain ProjectFactory still exposes only the pre-rename marketplace entrypoint.
+ * Only attaches the legacy-ABI hint when the error clearly names the create
+ * entrypoint and has no decoded custom error — bare "execution reverted" from
+ * unrelated validation is left alone so operators are not sent on a redeploy chase.
+ * Exported for unit tests.
+ */
+export function enhanceCreateProjectError(err: unknown, factoryAddress?: Address): Error {
+  const base = err instanceof Error ? err : new Error(String(err));
+  const msg = base.message || String(err);
+  const mentionsCreateEntrypoint =
+    msg.includes(PROJECT_FACTORY_CREATE_FN)
+    || /createERC1155AndMarketplaceAndAssuranceContract/i.test(msg);
+  const hasDecodedCustomError =
+    /Invalid(Deadline|Threshold|Owner|Recipient|Factory)|EmptyTokenList|ZeroPrice|TokenArrayLengthMismatch/i.test(msg);
+  // viem typically reports empty reverts as "execution reverted" / "Details: execution reverted".
+  // A non-empty Solidity reason looks like "execution reverted: <reason>".
+  const looksLikeEmptyReason =
+    /execution reverted/i.test(msg)
+    && !/execution reverted\s*:\s*\S+/i.test(msg);
+  const looksLikeOpaqueCreateRevert =
+    mentionsCreateEntrypoint
+    && looksLikeEmptyReason
+    && !hasDecodedCustomError;
+
+  if (!looksLikeOpaqueCreateRevert) {
+    return base;
+  }
+
+  const hint =
+    `createProject failed against ProjectFactory${factoryAddress ? ` at ${factoryAddress}` : ''}. `
+    + `If this is a local stack, the factory may still be the legacy ABI `
+    + `(createERC1155AndMarketplaceAndAssuranceContract) while the SDK calls `
+    + `${PROJECT_FACTORY_CREATE_FN}. Redeploy contracts from the current tree `
+    + `(\`./scripts/deploy-contracts.sh localhost\`), then republish UIs / recreate CauseStarter. `
+    + `Verify with \`./scripts/check-local-config-sync.sh\`. `
+    + `Original error: ${msg}`;
+
+  const enhanced = new Error(hint);
+  enhanced.cause = base;
+  return enhanced;
+}
+
 const erc20ApproveAbi = [
   {
     inputs: [
@@ -195,26 +243,54 @@ export async function createProject(
     throw new Error('createProject requires a paymentToken address');
   }
 
-  const hash = await clients.walletClient.writeContract({
-    address: projectFactoryContract.address,
-    abi: projectFactoryContract.abi,
-    functionName: 'createERC1155AndAssuranceContract',
-    args: [
-      params.metadataURI,
-      params.contractURI,
-      params.owner,
-      params.recipient,
-      params.paymentToken,
-      params.threshold,
-      params.deadline,
-      params.projectMetadataCid,
-      params.tokenIds,
-      params.tokenCounts,
-      params.tokenPrices,
-    ],
-    chain: clients.walletClient.chain,
-    account: clients.walletClient.account!,
-  });
+  // Only wrap factory simulate/write with the legacy-ABI redeploy hint.
+  // setTokenURI / log-parse failures must not look like a ProjectFactory ABI mismatch.
+  let hash: Hash;
+  try {
+    // Simulate first so ABI/dispatcher mismatches fail before a sent tx, with a clear message.
+    await clients.publicClient.simulateContract({
+      address: projectFactoryContract.address,
+      abi: projectFactoryContract.abi,
+      functionName: PROJECT_FACTORY_CREATE_FN,
+      args: [
+        params.metadataURI,
+        params.contractURI,
+        params.owner,
+        params.recipient,
+        params.paymentToken,
+        params.threshold,
+        params.deadline,
+        params.projectMetadataCid,
+        params.tokenIds,
+        params.tokenCounts,
+        params.tokenPrices,
+      ],
+      account: clients.walletClient.account!,
+    });
+
+    hash = await clients.walletClient.writeContract({
+      address: projectFactoryContract.address,
+      abi: projectFactoryContract.abi,
+      functionName: PROJECT_FACTORY_CREATE_FN,
+      args: [
+        params.metadataURI,
+        params.contractURI,
+        params.owner,
+        params.recipient,
+        params.paymentToken,
+        params.threshold,
+        params.deadline,
+        params.projectMetadataCid,
+        params.tokenIds,
+        params.tokenCounts,
+        params.tokenPrices,
+      ],
+      chain: clients.walletClient.chain,
+      account: clients.walletClient.account!,
+    });
+  } catch (err) {
+    throw enhanceCreateProjectError(err, projectFactoryContract.address);
+  }
 
   const receipt = await clients.publicClient.waitForTransactionReceipt({ hash });
 

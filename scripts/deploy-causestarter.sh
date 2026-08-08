@@ -70,6 +70,43 @@ map_contract_env() {
   export VITE_EVENT_CACHE_URL="${VITE_EVENT_CACHE_URL:-}"
 }
 
+require_local_contract_env() {
+  # Fail fast when local deploy is missing addresses CauseStarter needs at runtime.
+  # Skip for non-local chain ids (testnet/mainnet images may inject differently).
+  local chain_id="${VITE_CHAIN_ID:-${CHAIN_ID:-31337}}"
+  if [ "$chain_id" != "31337" ] && [ "${COMMONALITY_ENVIRONMENT:-local}" != "local" ]; then
+    return 0
+  fi
+
+  local missing=()
+  local key
+  for key in \
+    VITE_BELIEFS_CONTRACT_ADDRESS \
+    VITE_PROJECT_FACTORY_CONTRACT_ADDRESS \
+    VITE_PUBLISHED_DATA_CONTRACT_ADDRESS \
+    VITE_PAYMENT_TOKEN_ADDRESS \
+    VITE_ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS \
+    VITE_MUTABLE_REF_UPDATER_CONTRACT_ADDRESS
+  do
+    if [ -z "${!key:-}" ]; then
+      missing+=("$key")
+    fi
+  done
+
+  if [ "${#missing[@]}" -gt 0 ]; then
+    echo "Error: CauseStarter local deploy is missing required contract addresses:" >&2
+    printf '  %s\n' "${missing[@]}" >&2
+    echo "" >&2
+    echo "Statement launch needs PublishedData; project tooling needs ProjectFactory." >&2
+    echo "Fix:" >&2
+    echo "  ./scripts/deploy-contracts.sh localhost" >&2
+    echo "  # reloads deployments/localhost.env + .env + ui/.env" >&2
+    echo "  ./scripts/check-local-config-sync.sh --env-only" >&2
+    echo "  ./scripts/deploy-causestarter.sh" >&2
+    exit 1
+  fi
+}
+
 if [ "$MODE" = "--stop" ]; then
   echo "Stopping CauseStarter + cause-assist..."
   docker rm -f "$CONTAINER_NAME" 2>/dev/null || true
@@ -100,6 +137,7 @@ if [ -z "${VITE_WALLETCONNECT_PROJECT_ID:-}" ]; then
   echo "  (https://cloud.reown.com) in the environment or causestarter/.env, then rebuild."
 fi
 map_contract_env
+require_local_contract_env
 
 export UID
 export GID
@@ -331,8 +369,18 @@ echo "  Logs:    docker compose logs -f causestarter"
 echo "  Stop:    ./scripts/deploy-causestarter.sh --stop"
 echo ""
 echo "Tool deep-links (open from CauseStarter or browser):"
-echo "  Tally:          http://tally.localhost:8088/#/"
-echo "  Conceptspace:   http://conceptspace.localhost:8088/#/"
-echo "  LazyGiving:     http://lazygiving.localhost:8088/#/"
-echo "  Aligning:       http://alignment.localhost:8088/#/"
-echo "  Content Funding:http://content-funding.localhost:8088/#/"
+echo "  Aligning / cause boards: http://alignment.localhost:8088/#/"
+echo "  LazyGiving projects:     http://lazygiving.localhost:8088/#/projects"
+echo "  LazyGiving delegation:   http://lazygiving.localhost:8088/#/delegation/notes"
+echo "  Content Funding:         http://content-funding.localhost:8088/#/"
+
+# Reload env (hardhat-deploy during ensure_local_indexer may have rewritten addresses)
+# then verify runtime config.json matches deploy env + on-chain ABI.
+load_env_file "$ROOT/deployments/localhost.env"
+load_env_file "$ROOT/.env"
+map_contract_env
+if ! "$ROOT/scripts/check-local-config-sync.sh"; then
+  echo "" >&2
+  echo "Error: local config sync check failed after CauseStarter deploy." >&2
+  exit 1
+fi

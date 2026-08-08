@@ -42,6 +42,8 @@ COPY turbo.json ./turbo.json
 RUN --mount=type=cache,target=/root/.npm HUSKY=0 npm ci --legacy-peer-deps
 
 COPY sdk ./sdk
+# Cause board reuses ui/fundingportals (+ shared, lazy-giving, content-funding, delegation).
+COPY ui ./ui
 COPY causestarter ./causestarter
 
 # Optional build-time Vite defines (runtime config.json is preferred for contracts).

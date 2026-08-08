@@ -62,7 +62,7 @@ export function ReimbursementSection({ project, projectState, contributorState, 
   }
 
   return (
-    <Paper sx={{ p: 3, mb: 3 }}>
+    <Paper id="close-the-loop" sx={{ p: 3, mb: 3 }}>
       <Typography variant="h5" component="h2" gutterBottom>Close the loop</Typography>
       <Typography color="text.secondary" sx={{ mb: 2 }}>
         Early contributors are still out {formatCurrencyAmount(outstanding, currency)}. Donate to reimburse them pro-rata, at cost, so they can fund the next project.
