@@ -5,11 +5,11 @@ node_modules
 .env.secrets
 .env.render
 .env.cloudflare
-implication-attester/.env
+services/implication-attester/.env
 ui/.env
 integration-tests/.env.local
 typechain-types/
-implication-attester/dist
+services/implication-attester/dist
 published-data-ipfs-mirror/dist/
 hardhat/deployments/
 deployments/localhost.env

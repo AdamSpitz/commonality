@@ -112,7 +112,6 @@ function buildRuntimeConfig(env: Record<string, string>) {
     'VITE_DISPLAY_DENYLIST_URL',
     'VITE_POLICY_BUNDLE_URL',
     'VITE_IPFS_GATEWAY',
-    'VITE_IPFS_API',
     'COMMONALITY_ENVIRONMENT',
     'VITE_PLATFORM_API_URL',
     'VITE_ENABLE_CHANNEL_METADATA_LOOKUP',

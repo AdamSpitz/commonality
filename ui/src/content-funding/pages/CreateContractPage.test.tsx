@@ -151,6 +151,18 @@ describe('CreateContractPage', () => {
         ipfsConfig: { gatewayUrl: 'https://ipfs.io/ipfs', apiUrl: '', shouldUseMock: false, debugIpfs: false },
         testConfig: { areWeJustRunningTests: true },
         twitterApiConfig: {},
+        contractAddresses: {
+          beliefs: '0x0000000000000000000000000000000000000001',
+          implications: '0x0000000000000000000000000000000000000002',
+          assuranceContractFactory: '0x0000000000000000000000000000000000000003',
+          erc1155Factory: '0x0000000000000000000000000000000000000004',
+          delegatableNotes: '0x0000000000000000000000000000000000000005',
+          noteIntent: '0x0000000000000000000000000000000000000006',
+          alignmentAttestations: '0x0000000000000000000000000000000000000007',
+          mutableRefUpdater: '0x0000000000000000000000000000000000000008',
+          trustRegistry: '0x0000000000000000000000000000000000000009',
+          publishedData: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+        },
       },
     })
     vi.mocked(usePlatformApi).mockReturnValue({

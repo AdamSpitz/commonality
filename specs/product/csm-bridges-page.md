@@ -12,11 +12,11 @@ This spec is high-level on purpose. The implementer owns the component details; 
 
 ## Data source
 
-Each bridge is a **cluster** of anchor records sharing a `cluster_id`, with one record per `role` (`moderate-left`, `moderate-right`, `common-ground`). Record shape (`BridgeAnchorRecord` in `bridge-creator/src/anchors.ts`): `{ id, cluster_id, role, text, topic_tag, rationale, status, featured, tally_cid, created_at, last_reviewed_at }`.
+Each bridge is a **cluster** of anchor records sharing a `cluster_id`, with one record per `role` (`moderate-left`, `moderate-right`, `common-ground`). Record shape (`BridgeAnchorRecord` in `services/bridge-creator/src/anchors.ts`): `{ id, cluster_id, role, text, topic_tag, rationale, status, featured, tally_cid, created_at, last_reviewed_at }`.
 
 The page must consume the **featured display set**, NOT all active anchors. Two ways to get it (implementer chooses; **start static**):
 
-- **Static (recommended first):** snapshot `bridge-creator/data/seed-anchors.json` at build time and filter to `status === 'active' && featured === true`. Always renders, no service dependency. This is the right default for a landing/exploration page.
+- **Static (recommended first):** snapshot `services/bridge-creator/data/seed-anchors.json` at build time and filter to `status === 'active' && featured === true`. Always renders, no service dependency. This is the right default for a landing/exploration page.
 - **Dynamic (later):** `GET {bridge-creator}/anchors?featured=true`, which already returns exactly the active+featured set. Needs the service URL wired in and graceful loading/empty/error states.
 
 Why featured-only: the `active` set is a quality gate that grows unboundedly and accumulates multiple overlapping bridges per topic over time; `featured` is the curated, operator-controlled display set. See the "Featured anchors" section of [bridge-creator.md](./bridge-creator.md).

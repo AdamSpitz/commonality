@@ -5,6 +5,7 @@ import { useTrustedSet } from '../../shared'
 import { SuccessfulProjectsList } from './SuccessfulProjectsList'
 import { DiscoverySlider } from './DiscoverySlider'
 import { DISCOVERY_LEVEL_MAX_HOPS, type DiscoveryLevel } from './discoveryLevels'
+import type { ProjectLinkMode } from './AlignedProjectCard'
 
 /**
  * The Successful tab on the cause board, wired to a discovery slider that loosens
@@ -19,9 +20,11 @@ import { DISCOVERY_LEVEL_MAX_HOPS, type DiscoveryLevel } from './discoveryLevels
 export function SuccessfulProjectsTab({
   statementCid,
   trustedImplicationAttesters,
+  projectLinks = 'lazyGiving',
 }: {
   statementCid: string
   trustedImplicationAttesters?: Iterable<string>
+  projectLinks?: ProjectLinkMode
 }) {
   const { address } = useAccount()
   const [discoveryLevel, setDiscoveryLevel] = useState<DiscoveryLevel>('network')
@@ -49,6 +52,7 @@ export function SuccessfulProjectsTab({
         trustedImplicationAttesters={trustedImplicationAttesters}
         trustedSuccessAttesters={trustedSuccessAttesters}
         trustWeights={activeTrustWeights}
+        projectLinks={projectLinks}
       />
     </Box>
   )

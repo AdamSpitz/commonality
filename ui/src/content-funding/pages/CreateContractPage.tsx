@@ -323,7 +323,17 @@ export function CreateContractPage({
         const supply = BigInt(receiptSupply)
         if (thresholdValue <= 0n || price <= 0n || supply <= 0n) throw new Error('Threshold, receipt price, and receipt supply must be positive')
         setSubmitting(true); setSubmitError(null)
-        const documentStore = createDefaultDocumentStore(machinery, { clients: writeClients, ...(machinery.contractAddresses?.publishedData ? { publishedDataContract: { address: machinery.contractAddresses.publishedData, abi: PublishedDataAbi } } : {}) })
+        const publishedDataAddress = machinery.contractAddresses?.publishedData
+        if (!publishedDataAddress) {
+          throw new Error(
+            'PublishedData contract address is missing (VITE_PUBLISHED_DATA_CONTRACT_ADDRESS). '
+            + 'Contract metadata publish uses on-chain PublishedData, not browser IPFS upload.',
+          )
+        }
+        const documentStore = createDefaultDocumentStore(machinery, {
+          clients: writeClients,
+          publishedDataContract: { address: publishedDataAddress, abi: PublishedDataAbi },
+        })
         const publication = await documentStore.publish(createDisplayableDocument({ format: 'markdown-restricted', content: contractDescription.trim() || `Future content funding for ${canonicalChannelId}`, extras: { statementType: 'prospective-content-round-metadata', name: contractName.trim(), channel: canonicalChannelId } }))
         const result = await createProspectiveRound(writeClients, prospectiveFactory as `0x${string}`, {
           channelCanonicalId: canonicalChannelId, tokenId: 0n, supply, price, threshold: thresholdValue,
@@ -456,11 +466,16 @@ export function CreateContractPage({
         threshold: thresholdValue.toString(),
         deadline: deadlineTimestamp,
       }
+      const publishedDataAddress = machinery.contractAddresses?.publishedData
+      if (!publishedDataAddress) {
+        throw new Error(
+          'PublishedData contract address is missing (VITE_PUBLISHED_DATA_CONTRACT_ADDRESS). '
+          + 'Contract metadata publish uses on-chain PublishedData, not browser IPFS upload.',
+        )
+      }
       const documentStore = createDefaultDocumentStore(machinery, {
         clients,
-        ...(machinery.contractAddresses?.publishedData
-          ? { publishedDataContract: { address: machinery.contractAddresses.publishedData, abi: PublishedDataAbi } }
-          : {}),
+        publishedDataContract: { address: publishedDataAddress, abi: PublishedDataAbi },
       })
       const metadataPublication = await documentStore.publish(createDisplayableDocument({
         format: 'markdown-restricted',

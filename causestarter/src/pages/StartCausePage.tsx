@@ -397,7 +397,7 @@ export function StartCausePage() {
   }
 
   return (
-    <Stack spacing={2.5}>
+    <Stack spacing={2.5} data-testid="start-cause-page">
       <Box>
         <Typography variant="h4" component="h1" sx={{ fontWeight: 800, fontSize: { xs: '1.6rem', sm: '2rem' } }}>
           Start a cause
@@ -435,6 +435,7 @@ export function StartCausePage() {
               multiline
               minRows={4}
               autoFocus
+              slotProps={{ htmlInput: { 'data-testid': 'start-cause-goal' } }}
               error={Boolean(goalSafety && !goalSafety.allowed)}
               helperText={
                 goalSafety && !goalSafety.allowed
@@ -578,6 +579,7 @@ export function StartCausePage() {
           <Button
             onClick={() => void handleSaveDraftOnly()}
             disabled={busy || checkingSafety}
+            data-testid="start-cause-save-draft"
             sx={{ textTransform: 'none' }}
           >
             {checkingSafety ? 'Checking…' : 'Save draft'}
@@ -587,6 +589,7 @@ export function StartCausePage() {
               variant="contained"
               onClick={() => void handleNext()}
               disabled={busy || checkingSafety}
+              data-testid="start-cause-continue"
               startIcon={checkingSafety ? <CircularProgress size={18} color="inherit" /> : undefined}
               sx={{ minHeight: 44, borderRadius: 999, textTransform: 'none', fontWeight: 700, px: 2.5 }}
             >
@@ -597,6 +600,7 @@ export function StartCausePage() {
               variant="contained"
               onClick={() => void handleLaunch()}
               disabled={busy || checkingSafety}
+              data-testid="start-cause-publish"
               startIcon={busy || checkingSafety ? <CircularProgress size={18} color="inherit" /> : undefined}
               sx={{ minHeight: 44, borderRadius: 999, textTransform: 'none', fontWeight: 700, px: 2.5 }}
             >

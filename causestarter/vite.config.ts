@@ -16,8 +16,22 @@ export default defineConfig(({ mode }) => {
     plugins: [react(), runtimeConfigPlugin(env)],
     resolve: {
       preserveSymlinks: true,
+      // Single React/MUI/wagmi graph when bundling ui feature modules into CauseStarter.
+      dedupe: [
+        'react',
+        'react-dom',
+        'react-router-dom',
+        '@mui/material',
+        '@mui/icons-material',
+        '@emotion/react',
+        '@emotion/styled',
+        'wagmi',
+        'viem',
+        '@tanstack/react-query',
+      ],
       alias: {
         ...sdkSourceAliases(),
+        '@ui': path.resolve(process.cwd(), '../ui/src'),
         events: 'events',
       },
     },
@@ -28,6 +42,9 @@ export default defineConfig(({ mode }) => {
           global: 'globalThis',
         },
       },
+    },
+    worker: {
+      format: 'es',
     },
     server: {
       port: 5174,
@@ -103,7 +120,6 @@ function buildRuntimeConfig(env: Record<string, string>) {
   const keys = [
     'VITE_EVENT_CACHE_URL',
     'VITE_IPFS_GATEWAY',
-    'VITE_IPFS_API',
     'COMMONALITY_ENVIRONMENT',
     'VITE_PLATFORM_API_URL',
     'VITE_MAINNET_RPC_URL',

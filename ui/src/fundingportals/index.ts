@@ -9,18 +9,18 @@
 // and may be moved/renamed freely. When this module becomes its own published
 // package, this file becomes the package root (`@commonality/fundingportals`).
 //
-// Eager surface (components used at import time). Today only two components
-// cross the module boundary: `FundingPortalSummary` (rendered on the
-// conceptspace statement page) and `AlignmentAttestationsSection` (rendered on
-// the lazy-giving project-detail page). The rest of the component surface
-// (AlignedProjectCard, AlignedProjectsList, AttestAlignmentForm,
-// DelegatableNotesSection, SuccessfulProjectsList/Tab, DiscoverySlider, …) and
-// all utils are consumed only by fundingportals' own pages/components, so they
-// stay module-internal until an external consumer actually needs one. Promote
-// a symbol here only when a real external caller appears.
+// Eager surface (components used at import time).
+// - FundingPortalSummary — conceptspace statement page
+// - AlignmentAttestationsSection — lazy-giving project-detail page
+// - CauseBoard / CauseLeaderboard — Aligning routes + CauseStarter host
+// Remaining components stay module-internal until an external consumer needs them.
 
 export { FundingPortalSummary } from './components/FundingPortalSummary'
 export { AlignmentAttestationsSection } from './components/AlignmentAttestationsSection'
+export { CauseBoard } from './components/CauseBoard'
+export type { CauseBoardProps, CauseBoardNavLink } from './components/CauseBoard'
+export { CauseLeaderboard } from './components/CauseLeaderboard'
+export type { CauseLeaderboardProps } from './components/CauseLeaderboard'
 
 // Note on pages: the route components (StatementFundingPortalPage,
 // CauseLeaderboardPage, ExplorerPage) are intentionally NOT re-exported here.

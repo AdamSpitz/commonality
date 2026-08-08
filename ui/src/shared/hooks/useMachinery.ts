@@ -49,11 +49,21 @@ export function getEventCacheUrl(): string {
   return ''
 }
 
+/**
+ * Browser IPFS API base URL.
+ *
+ * Product publication no longer writes from the browser. Gateway reads use
+ * `VITE_IPFS_GATEWAY` only. This helper stays empty so accidental legacy
+ * upload paths fail closed rather than hitting Kubo.
+ */
+export function getIpfsApiUrl(): string {
+  return ''
+}
+
 export function useMachinery(): SDKMachinery {
   return useMemo(() => {
     const ipfsConfig = {
       gatewayUrl: getRuntimeConfigValue('VITE_IPFS_GATEWAY'),
-      apiUrl: getRuntimeConfigValue('VITE_IPFS_API'),
       ...civilityPolicyGatewayConfig(),
     };
     const twitterApiConfig = {

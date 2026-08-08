@@ -87,15 +87,15 @@ These docs explain the system for developers who want to understand or build on 
 
 - **SDK API docs:** [/api-docs/sdk/](/api-docs/sdk/) — the generated TypeScript SDK reference.
 - **Contract docs:** [/api-docs/contracts/index.md](/api-docs/contracts/index.md) — the generated Solidity contract reference.
-- **Implementation packages:** `sdk/`, `hardhat/`, `indexer/`, `attester-core/`, `implication-attester/`, `finder-core/`, `implication-finder/`, `nudger-core/`, `implication-graph-nudger/`, `bridge-creator/`, and `explorer-curator/` — code-level READMEs for each layer.
+- **Implementation packages:** `sdk/`, `hardhat/`, `indexer/`, `services/attester-core/`, `services/implication-attester/`, `services/finder-core/`, `services/implication-finder/`, `services/nudger-core/`, `services/implication-graph-nudger/`, `services/bridge-creator/`, and `services/explorer-curator/` — code-level READMEs for each layer.
 
 ### Reference service repositories
 
 You don't have to trust our services — anyone can run their own. These are the reference implementations:
 
-- **Implication attester:** [`implication-attester/`](https://github.com/AdamSpitz/commonality/tree/master/implication-attester) — publishes the implication arrows.
-- **Implication finder:** [`implication-finder/`](https://github.com/AdamSpitz/commonality/tree/master/implication-finder) — uses AI to surface candidate implications for an attester to confirm.
-- **Sample nudger:** [`implication-graph-nudger/`](https://github.com/AdamSpitz/commonality/tree/master/implication-graph-nudger) — emits signed "you might also believe this" suggestions.
+- **Implication attester:** [`services/implication-attester/`](https://github.com/AdamSpitz/commonality/tree/master/implication-attester) — publishes the implication arrows.
+- **Implication finder:** [`services/implication-finder/`](https://github.com/AdamSpitz/commonality/tree/master/implication-finder) — uses AI to surface candidate implications for an attester to confirm.
+- **Sample nudger:** [`services/implication-graph-nudger/`](https://github.com/AdamSpitz/commonality/tree/master/implication-graph-nudger) — emits signed "you might also believe this" suggestions.
 
 
 ## What to build on

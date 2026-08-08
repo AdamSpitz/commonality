@@ -2,6 +2,18 @@
 
 Copy these non-secret values into Render `sync: false` fields when the dashboard asks for them. Secrets/private keys still come from `.env.secrets` and `deployments/operator-addresses.env`.
 
+## PublishedData IPFS mirror (`commonality-published-data-ipfs-mirror`)
+
+The blueprint supplies the Base Sepolia chain ID, PublishedData address/start block, cursor disk, polling settings, and a private Kubo service with a persistent 10 GB repository. Set this dashboard value before deploying:
+
+```env
+RPC_URL=...  # Base Sepolia RPC retaining full transaction bodies/calldata
+```
+
+The worker does not need a wallet or private key. Kubo is a Render private service with no public endpoint or browser CORS; the worker reaches it at `http://commonality-published-data-ipfs:10000`. Applying the blueprint creates two paid persistent disks (10 GB for Kubo and 1 GB for the cursor), so confirm the resulting Render cost. Increase and monitor the Kubo disk as its pinset grows.
+
+After deploy, confirm the worker logs show chain ID `84532`, then check that `/data/published-data-ipfs-mirror.base-sepolia.json` advances toward chain head minus 12 confirmations and that no recovery/pin errors repeat.
+
 ## Platform API (`commonality-platform-api`)
 
 ```env

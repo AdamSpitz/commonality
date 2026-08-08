@@ -32,24 +32,36 @@ as main `CreateStatementForm`), not browser → Kubo API upload.
   `VITE_PUBLISHED_DATA_CONTRACT_ADDRESS` the same way as the rest of the stack
   (`./scripts/services.sh --start` or `./scripts/deploy-causestarter.sh`).
 - If the address is missing, launch fails with a clear config error.
-- Optional same-origin `/ipfs-api` proxy and Kubo CORS are for **legacy / hosting**
-  edge cases only, not the product requirement for statement launch.
+- There is no browser `/ipfs-api` proxy. Durability mirroring is the standalone
+  [`published-data-ipfs-mirror`](../published-data-ipfs-mirror/README.md) worker.
 
 ## Run (local dev)
 
-From the repo root (with deps installed):
+**Recommended while iterating on CauseStarter UI:** keep the Docker stack for chain/indexer/IPFS/tool domains, and serve this SPA with Vite so HMR applies immediately (no image rebuild).
 
-```bash
-npm run causestarter:dev
-```
+1. Start (or leave running) the local stack: `./scripts/services.sh --start` (or at least hardhat + indexer + cause-assist + gateway).
+2. Seed `causestarter/.env` from the running Docker SPA config (contract addresses + tool domain URLs):
 
-Or from this package:
+   ```bash
+   python3 scripts/seed-causestarter-vite-env.py
+   ```
 
-```bash
-npm run dev
-```
+   (Needs Docker CauseStarter on `:8090` once so `config.json` is available. Re-seed after a chain re-deploy.
+   Alternatively copy `VITE_*` keys from `deployments/localhost.env` / `ui/.env`, or re-run
+   `./scripts/deploy-contracts.sh localhost` which mirrors addresses into `causestarter/.env`.)
+3. From the repo root:
 
-Dev server defaults to **http://localhost:5174** (main `ui` stays on 5173).
+   ```bash
+   npm run causestarter:dev
+   ```
+
+   Or from this package: `npm run dev`.
+
+Dev server: **http://localhost:5174** (main `ui` stays on 5173).
+
+Vite proxies `/api` → indexer and `/api/cause-assist` → cause-assist. Tool cards still open the other domains at `*.localhost:8088`.
+
+**Note:** browser `localStorage` is per-origin, so causes saved on `:8090` do not appear on `:5174` (and vice versa). Use Vite for day-to-day UI work; use Docker (`./scripts/deploy-causestarter.sh` → `:8090`) when you need the packaged nginx SPA.
 
 Build / typecheck / test:
 
@@ -87,6 +99,25 @@ That publishes the CauseStarter SPA to local IPFS (gateway
 `http://causestarter.localhost:8088/#/`) and starts the dedicated nginx SPA on
 **http://localhost:8090/** with **cause-assist** (LLM helpers) on **:3002**.
 
+After start, `services.sh` runs a **fail-fast config sync check**
+(`./scripts/check-local-config-sync.sh` / `npm run local:check`) so missing
+`PublishedData`, stale ProjectFactory ABIs, or SPA address drift fail loudly
+instead of at first publish/create-project. Re-run anytime:
+
+```bash
+npm run local:check
+./scripts/services.sh --check
+```
+
+If the check fails after a chain reset or partial redeploy:
+
+```bash
+./scripts/deploy-contracts.sh localhost   # refresh deployments/localhost.env + .env + ui/.env
+npm run causestarter:deploy               # rewrite CauseStarter config.json
+# Republish domain UIs if LazyGiving/etc. still show old addresses:
+./scripts/services.sh --start             # or re-run the ui-ipfs-publisher-* services
+```
+
 Focused rebuild/redeploy of only CauseStarter + cause-assist:
 
 ```bash
@@ -111,9 +142,9 @@ IPFS publish for CauseStarter uses the shared
 
 ## cause-assist (LLM helpers)
 
-Statement suggestions and safety filter default to Grok via xAI. Optional local
-key: repo-root `.env.grok` (`XAI_API_KEY` / `GROK_API_KEY`). Without a key the
-service still starts (template suggestions + heuristic safety).
+Statement suggestions and safety filter default to Grok via xAI. Optional key:
+`XAI_API_KEY` in repo-root `.env.secrets`, then `./scripts/setup-env.sh`.
+Without a key the service still starts (template suggestions + heuristic safety).
 
 ```bash
 npm run cause-assist:dev
@@ -132,6 +163,68 @@ See [`cause-assist/README.md`](../cause-assist/README.md).
   (`VITE_LAZYGIVING_URL`, `VITE_CIVILITY_URL`, …) and default to the local
   gateway hosts.
 
-This package is intentionally thinner than `ui/`: no multi-domain build matrix,
-no Privy path, no Playwright suite yet. Product posture:
+## Agent / browser automation
+
+Grok (or any agent) can drive CauseStarter in a real browser.
+
+### Prerequisites
+
+1. Local stack + SPA: `./scripts/deploy-causestarter.sh` → http://localhost:8090/
+2. Playwright MCP in Grok (`~/.grok/config.toml`):
+
+```toml
+[mcp_servers.playwright]
+command = "npx"
+args = ["-y", "@playwright/mcp@latest"]
+enabled = true
+startup_timeout_sec = 90
+```
+
+Register once with: `grok mcp add playwright -- npx -y @playwright/mcp@latest`  
+Then **restart Grok** so MCP tools load.
+
+3. Chromium for Playwright tests (repo root):  
+   `npx playwright install chromium`
+
+### Stable selectors (`data-testid`)
+
+| Test id | Purpose |
+|---|---|
+| `wallet-connect-button` | Open Connect / show connected account |
+| `wallet-account-menu` | Hardhat account picker (localhost only) |
+| `wallet-hardhat-0` … `wallet-hardhat-9` | Pick Hardhat account |
+| `wallet-disconnect` | Disconnect |
+| `home-start-cause` | Home CTA → wizard |
+| `nav-start` | Desktop nav “Start” |
+| `start-cause-page` | Wizard root |
+| `start-cause-goal` | Goal textarea |
+| `start-cause-continue` | Continue |
+| `start-cause-publish` | Publish cause |
+
+On **localhost**, Connect only lists Hardhat accounts (no MetaMask). Use **Hardhat #0** for funded local txs.
+
+### Smoke script (Playwright)
+
+Against the Docker SPA (hash routing, default):
+
+```bash
+npm run causestarter:deploy   # if not already up
+npm run test:e2e --workspace=causestarter
+# watch the browser:
+npm run test:e2e:headed --workspace=causestarter
+```
+
+Vite dev (path routing, not hash):
+
+```bash
+CAUSESTARTER_BASE_URL=http://localhost:5174 CAUSESTARTER_HASH_ROUTING=0 \
+  npm run test:e2e --workspace=causestarter
+```
+
+### Example agent prompt
+
+> Use the browser. Open http://localhost:8090/, click Connect, choose Hardhat #0,  
+> click “Start a cause”, fill the goal with …, then Continue.
+
+This package stays thinner than `ui/` (no multi-domain matrix, no Privy). Product posture:
 [`specs/product/founder-first.md`](../specs/product/founder-first.md).

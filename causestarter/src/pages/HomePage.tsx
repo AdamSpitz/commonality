@@ -36,7 +36,7 @@ export function HomePage() {
             lineHeight: 1.15,
           }}
         >
-          Start a cause. Grow support. Deliver results.
+          Start a cause. Build a Movement. Change the world.
         </Typography>
         <Typography variant="body1" color="text.secondary" sx={{ mt: 1.5, maxWidth: 520 }}>
           Start from the goal you want to accomplish, add short statements people can stand behind,
@@ -49,6 +49,7 @@ export function HomePage() {
             to="/start"
             variant="contained"
             size="large"
+            data-testid="home-start-cause"
             sx={{ minHeight: 48, borderRadius: 999, fontWeight: 700, textTransform: 'none', px: 3 }}
           >
             Start a cause
@@ -58,6 +59,7 @@ export function HomePage() {
             to="/discover"
             variant="outlined"
             size="large"
+            data-testid="home-support-cause"
             sx={{ minHeight: 48, borderRadius: 999, fontWeight: 600, textTransform: 'none', px: 3 }}
           >
             Support a cause

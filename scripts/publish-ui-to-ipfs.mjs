@@ -125,7 +125,6 @@ function runOrThrow(command, args, options = {}) {
       VITE_ROUTER_MODE: process.env.VITE_ROUTER_MODE || extraEnv.VITE_ROUTER_MODE || 'hash',
       VITE_HASH_ROUTING: process.env.VITE_HASH_ROUTING || extraEnv.VITE_HASH_ROUTING || 'true',
       VITE_IPFS_GATEWAY: process.env.VITE_IPFS_GATEWAY || extraEnv.VITE_IPFS_GATEWAY || 'http://localhost:8080/ipfs',
-      VITE_IPFS_API: process.env.VITE_IPFS_API || extraEnv.VITE_IPFS_API || 'http://localhost:5001',
       VITE_PLATFORM_API_URL: process.env.VITE_PLATFORM_API_URL || extraEnv.VITE_PLATFORM_API_URL || 'http://localhost:3001',
       VITE_ETH_RPC_URL: process.env.VITE_ETH_RPC_URL || extraEnv.VITE_ETH_RPC_URL || 'http://127.0.0.1:8545',
       ...Object.fromEntries(

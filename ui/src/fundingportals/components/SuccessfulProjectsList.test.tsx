@@ -7,6 +7,11 @@ vi.mock('./projectMetadata', () => ({
   readProjectMetadata: vi.fn(),
 }))
 
+vi.mock('react-router-dom', () => ({
+  Link: vi.fn(({ to, children, ...props }: any) => (
+    <a href={to} {...props}>{children}</a>
+  )),
+}))
 
 vi.mock('@commonality/sdk/fundingportals', async () => {
   const actual = await vi.importActual('@commonality/sdk/fundingportals')
@@ -157,6 +162,24 @@ describe('SuccessfulProjectsList', () => {
     const encodedProjectRef = encodeURIComponent(`eip155:31337:${PROJECT_ADDR}`)
     expect(screen.getByRole('link', { name: 'Open project' })).toHaveAttribute('href', `/projects/${encodedProjectRef}`)
     expect(screen.getByRole('link', { name: 'Donate to close the loop' })).toHaveAttribute('href', `/projects/${encodedProjectRef}#close-the-loop`)
+  })
+
+  it('uses in-app RouterLink routes when projectLinks is local (HashRouter-safe)', async () => {
+    vi.mocked(getSuccessfulProjectsForCause).mockResolvedValue([makeSuccessfulProject()])
+
+    render(<SuccessfulProjectsList statementCid="bafyCause" projectLinks="local" />)
+
+    expect(await screen.findByRole('heading', { name: 'Clean Water Build' })).toBeInTheDocument()
+    const encodedProjectRef = encodeURIComponent(`eip155:31337:${PROJECT_ADDR}`)
+    expect(screen.getByRole('link', { name: 'Open project' })).toHaveAttribute(
+      'href',
+      `/projects/${encodedProjectRef}`,
+    )
+    // Local mode uses search param instead of document-hash (HashRouter owns #).
+    expect(screen.getByRole('link', { name: 'Donate to close the loop' })).toHaveAttribute(
+      'href',
+      `/projects/${encodedProjectRef}?closeTheLoop=1`,
+    )
   })
 
   it('falls back gracefully when project metadata cannot be loaded', async () => {

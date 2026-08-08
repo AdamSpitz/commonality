@@ -9,12 +9,12 @@ For the general content-funding mechanics (contracts, registry, tokens, channel 
 **See also:**
 - [seed-statements.md](seed-statements.md) — concrete statements to seed the conceptspace
 - [attester-prompts.md](attester-prompts.md) — LLM prompts for different attester personas
-- [../content-attesters.md](../content-attesters.md) — attester architecture (shared `attester-core/` library, `content-attester/` service)
+- [../content-attesters.md](../content-attesters.md) — attester architecture (shared `services/attester-core/` library, `services/content-attester/` service)
 - [beat-agents.md](beat-agents.md) — stateful beat-following agents for evaluating short-form social content where context is necessarily external
 
 ## Architecture note
 
-A stateless "noninflammatory content attester" is **not a separate service type** — it is the general `content-attester/` service deployed with noninflammatory-specific config: a different `CONTENT_ATTESTER_PROMPT_TEMPLATE` (from [attester-prompts.md](attester-prompts.md)) and a different `ALIGNMENT_TOPIC_STATEMENT_CID` (pointing to the noninflammatory meta-statement in conceptspace). The attester's `CONTENT_ATTESTER_NAME` (e.g. `noninflammatory-neutral`, `noninflammatory-left-evaluates-right`) identifies which persona it represents.
+A stateless "noninflammatory content attester" is **not a separate service type** — it is the general `services/content-attester/` service deployed with noninflammatory-specific config: a different `CONTENT_ATTESTER_PROMPT_TEMPLATE` (from [attester-prompts.md](attester-prompts.md)) and a different `ALIGNMENT_TOPIC_STATEMENT_CID` (pointing to the noninflammatory meta-statement in conceptspace). The attester's `CONTENT_ATTESTER_NAME` (e.g. `noninflammatory-neutral`, `noninflammatory-left-evaluates-right`) identifies which persona it represents.
 
 The attester emits two decoupled claims. `alignment(C, noninflammatory-meta)` says the content itself is noninflammatory. When a target statement S is provided and the prompt's `supports_statement` judgment passes, `alignment(C, S)` says the content actually makes the case for S. Tally and Content Funding compose these at query time, so a "noninflammatory writeup supporting S" requires both claims instead of pretending a civility-only evaluation also checked relevance to S.
 
@@ -108,7 +108,7 @@ The [bridge creator](/specs/product/bridge-creator.md) is the systematic version
 
 1. **Seed the conceptspace** with statements spanning the political spectrum around noninflammatory discourse.
 2. **Build the content-funding subsystem** — the content registry, factory modifications, and channel claiming (see other files in this directory).
-3. **Deploy the content attester** — the `content-attester/` service is the general-purpose stateless evaluator; deploy it with the noninflammatory prompts from [attester-prompts.md](attester-prompts.md) and a `ALIGNMENT_TOPIC_STATEMENT_CID` pointing to the relevant meta-statement. See [../content-attesters.md](../content-attesters.md) for the architecture.
+3. **Deploy the content attester** — the `services/content-attester/` service is the general-purpose stateless evaluator; deploy it with the noninflammatory prompts from [attester-prompts.md](attester-prompts.md) and a `ALIGNMENT_TOPIC_STATEMENT_CID` pointing to the relevant meta-statement. See [../content-attesters.md](../content-attesters.md) for the architecture.
 4. **Deploy beat agents for context-heavy social beats** — when short-form posts require ambient discourse context, use [beat agents](beat-agents.md) rather than pretending the stateless attester can evaluate the item from text alone.
 5. **Start with retroactive funding** of existing noninflammatory content. This validates whether people actually want to fund this.
 6. **Build a specialized showcase cause board** for noninflammatory content.

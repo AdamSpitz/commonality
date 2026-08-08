@@ -42,6 +42,7 @@ show_usage() {
     echo "  --stop    Stop services (preserves existing data)"
     echo "  --status  Show whether services are running"
     echo "  --url     Print the stable local UI URLs for all domains"
+    echo "  --check   Fail-fast: env / on-chain / SPA config sync (see check-local-config-sync.sh)"
     echo "  --help    Show this help message"
     echo ""
     echo "Data is stored in $DATA_DIR/. Use scripts/data.sh to manage it."
@@ -263,15 +264,6 @@ map_causestarter_contract_env() {
     export VITE_PLATFORM_API_URL="${VITE_PLATFORM_API_URL:-http://localhost:3001}"
     export COMMONALITY_ENVIRONMENT="${COMMONALITY_ENVIRONMENT:-local}"
     export VITE_EVENT_CACHE_URL="${VITE_EVENT_CACHE_URL:-}"
-    # Optional xAI key for cause-assist (file may use GROK_API_Key casing).
-    if [ -z "${XAI_API_KEY:-}" ]; then
-        if [ -n "${GROK_API_KEY:-}" ]; then
-            export XAI_API_KEY="$GROK_API_KEY"
-        elif [ -n "${GROK_API_Key:-}" ]; then
-            export XAI_API_KEY="$GROK_API_Key"
-            export GROK_API_KEY="$GROK_API_Key"
-        fi
-    fi
 }
 
 start_services() {
@@ -279,11 +271,13 @@ start_services() {
         hardhat-node
         hardhat-deploy
         ipfs
+        published-data-ipfs-mirror
         indexer
         platform-api-service
     )
     local -a buildable_services=(
         hardhat-deploy
+        published-data-ipfs-mirror
         indexer
         platform-api-service
         ui-ipfs-publisher-commonality
@@ -306,7 +300,7 @@ start_services() {
     echo "Starting services with data directory: $DATA_DIR"
     # Pre-create data directories owned by the current user so containers
     # don't create them as root.
-    mkdir -p "$DATA_DIR/hardhat" "$DATA_DIR/ipfs" "$DATA_DIR/ponder" \
+    mkdir -p "$DATA_DIR/hardhat" "$DATA_DIR/ipfs" "$DATA_DIR/published-data-ipfs-mirror" "$DATA_DIR/ponder" \
         "$UI_IPFS_ARTIFACT_DIR/commonality" \
         "$UI_IPFS_ARTIFACT_DIR/lazyGiving" \
         "$UI_IPFS_ARTIFACT_DIR/alignment" \
@@ -344,7 +338,6 @@ start_services() {
     load_env_file_if_present .env
     load_env_file_if_present ui/.env
     load_env_file_if_present causestarter/.env
-    load_env_file_if_present .env.grok
     map_causestarter_contract_env
     docker_compose up -d --force-recreate cause-assist causestarter
 
@@ -352,6 +345,15 @@ start_services() {
     echo "Services started. Use 'docker compose logs -f' to view logs."
     echo "Platform API service health: http://localhost:3001/health"
     echo "CauseStarter: http://localhost:${CAUSESTARTER_PORT:-8090}/  (gateway: http://causestarter.localhost:8088/#/)"
+
+    # Fail fast on env / on-chain / SPA config drift (PublishedData missing, stale ProjectFactory ABI, …).
+    echo ""
+    if ! "$SCRIPT_DIR/check-local-config-sync.sh"; then
+        echo ""
+        echo "Error: local config sync check failed after start."
+        echo "Services are up, but contract addresses or ABIs are inconsistent — fix before using the stack."
+        exit 1
+    fi
 }
 
 stop_services() {
@@ -376,6 +378,9 @@ case "${1:-}" in
         ;;
     --url)
         print_spa_urls
+        ;;
+    --check)
+        exec "$SCRIPT_DIR/check-local-config-sync.sh"
         ;;
     --help|-h|"")
         show_usage

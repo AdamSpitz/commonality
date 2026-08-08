@@ -10,7 +10,16 @@ vi.mock('../config/policyBundle', () => ({
   getActivePolicyBundle: () => mockGetActivePolicyBundle(),
 }))
 
-import { civilityPolicyGatewayConfig } from './useMachinery'
+import { civilityPolicyGatewayConfig, getIpfsApiUrl } from './useMachinery'
+
+describe('getIpfsApiUrl', () => {
+  it('returns empty after browser IPFS write cutover', () => {
+    mockGetRuntimeConfigValue.mockImplementation((key: string) =>
+      key === 'VITE_IPFS_API' ? 'http://127.0.0.1:5001' : undefined,
+    )
+    expect(getIpfsApiUrl()).toBe('')
+  })
+})
 
 describe('Civility policy content gateway configuration', () => {
   beforeEach(() => {

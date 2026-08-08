@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react'
 import { Alert, Box, Button, Card, CardActions, CardContent, Chip, CircularProgress, Stack, Tooltip, Typography } from '@mui/material'
+import { Link as RouterLink } from 'react-router-dom'
 import { getSuccessfulProjectsForCause, type SuccessfulProjectForCause } from '@commonality/sdk/fundingportals'
 import { getProject } from '@commonality/sdk/lazy-giving'
 import { type IpfsCidV1 } from '@commonality/sdk/utils'
 import { useMachinery } from '../../shared'
 import { formatCurrencyAmount } from '../../shared'
-import { getDomainUrl } from '../../shared'
 import { projectPathForAddress } from '../../shared'
-import type { ProjectMetadata } from './AlignedProjectCard'
+import { resolveProjectNav, type ProjectLinkMode, type ProjectMetadata } from './AlignedProjectCard'
 import { readProjectMetadata } from './projectMetadata'
 
 function shortAddress(address: string) {
@@ -25,11 +25,13 @@ export function SuccessfulProjectsList({
   trustedImplicationAttesters,
   trustedSuccessAttesters,
   trustWeights,
+  projectLinks = 'lazyGiving',
 }: {
   statementCid: string
   trustedImplicationAttesters?: Iterable<string>
   trustedSuccessAttesters?: Iterable<string>
   trustWeights?: Map<string, number>
+  projectLinks?: ProjectLinkMode
 }) {
   const machinery = useMachinery()
   const [projects, setProjects] = useState<SuccessfulProjectForCause[]>([])
@@ -98,10 +100,14 @@ export function SuccessfulProjectsList({
       ) : (
         <Stack spacing={2}>
           {projects.map((project) => {
-            const lazyGivingPath = projectPathForAddress(project.projectAddress)
-            const projectHref = getDomainUrl('lazyGiving', lazyGivingPath, { fallbackHref: lazyGivingPath })
-            const closeLoopPath = `${lazyGivingPath}#close-the-loop`
-            const closeLoopHref = getDomainUrl('lazyGiving', closeLoopPath, { fallbackHref: closeLoopPath })
+            const projectPath = projectPathForAddress(project.projectAddress)
+            // Prefer search over document-hash for local hosts: HashRouter already
+            // owns window.location.hash, so `#close-the-loop` is not a reliable fragment.
+            const closeLoopPath = projectLinks === 'local'
+              ? `${projectPath}?closeTheLoop=1`
+              : `${projectPath}#close-the-loop`
+            const projectNav = resolveProjectNav(projectPath, projectLinks)
+            const closeLoopNav = resolveProjectNav(closeLoopPath, projectLinks)
             const suggestedDelegates = project.scoutRecords.slice().sort((a, b) => {
               const outstandingA = BigInt(a.outstandingAmount)
               const outstandingB = BigInt(b.outstandingAmount)
@@ -187,8 +193,24 @@ export function SuccessfulProjectsList({
                   )}
                 </CardContent>
                 <CardActions>
-                  <Button component="a" href={closeLoopHref} variant="contained">Donate to close the loop</Button>
-                  <Button component="a" href={projectHref} variant="outlined">Open project</Button>
+                  {closeLoopNav.kind === 'route' ? (
+                    <Button component={RouterLink} to={closeLoopNav.to} variant="contained">
+                      Donate to close the loop
+                    </Button>
+                  ) : (
+                    <Button component="a" href={closeLoopNav.href} variant="contained">
+                      Donate to close the loop
+                    </Button>
+                  )}
+                  {projectNav.kind === 'route' ? (
+                    <Button component={RouterLink} to={projectNav.to} variant="outlined">
+                      Open project
+                    </Button>
+                  ) : (
+                    <Button component="a" href={projectNav.href} variant="outlined">
+                      Open project
+                    </Button>
+                  )}
                 </CardActions>
               </Card>
             )

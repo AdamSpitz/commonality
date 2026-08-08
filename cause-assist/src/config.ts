@@ -14,7 +14,7 @@ function firstEnv(env: NodeJS.ProcessEnv, keys: string[]): string | undefined {
 }
 
 export function loadConfigFromEnv(env: NodeJS.ProcessEnv = process.env): CauseAssistConfig {
-  const xaiKey = firstEnv(env, ['XAI_API_KEY', 'GROK_API_KEY', 'GROK_API_Key'])
+  const xaiKey = firstEnv(env, ['XAI_API_KEY'])
   // Legacy fallback if someone still only has OpenRouter configured.
   const openRouterKey = firstEnv(env, ['OPENROUTER_API_KEY'])
   const apiKey = xaiKey || openRouterKey

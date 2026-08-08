@@ -15,11 +15,11 @@ open **if they stay listed here**.
 
 - [ ] Long-term: fold CauseStarter into the real domain/shell model (shared machinery, runtime config, domain manifests) as we make it the primary surface; avoid unbounded parallel app growth under a second package forever.
 - [ ] Optional: extract Hardhat local connectors for reuse by main `ui` local DX.
-- [ ] Optional: main `ui` same-origin IPFS API proxy only if we still need legacy browser uploads.
+- [x] Browser `/ipfs-api` proxy removed; product publish is PublishedData-only.
 
 ## Local stack notes
 
 - Default `./scripts/services.sh --start` **does** build/start CauseStarter (IPFS domain + `:8090` SPA), `cause-assist`, and `ui-ipfs-publisher-causestarter`.
 - Focused path: `./scripts/deploy-causestarter.sh`.
-- Statement **content** publish is **PublishedData-first** (`VITE_PUBLISHED_DATA_CONTRACT_ADDRESS` from hardhat deploy / `.env`). Missing address → clear config error, not silent IPFS upload.
-- Local Kubo API CORS and optional `/ipfs-api` proxy are for legacy/hosting edge cases, not the product requirement for launch.
+- Statement **content** publish is **PublishedData-only** (`VITE_PUBLISHED_DATA_CONTRACT_ADDRESS` from hardhat deploy / `.env`). Missing address → clear config error, not IPFS upload.
+- Optional durability: run [`published-data-ipfs-mirror`](../published-data-ipfs-mirror/README.md); no browser Kubo write path.

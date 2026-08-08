@@ -1,4 +1,4 @@
-import { useState, type MouseEvent } from 'react'
+import { useState, type HTMLAttributes, type MouseEvent } from 'react'
 import {
   Button,
   Divider,
@@ -80,6 +80,7 @@ function LocalHardhatWalletButton() {
         disabled={busy}
         aria-haspopup="menu"
         aria-expanded={open}
+        data-testid="wallet-connect-button"
         sx={{
           minHeight: 40,
           borderRadius: 999,
@@ -104,6 +105,10 @@ function LocalHardhatWalletButton() {
           paper: {
             sx: { minWidth: 280, maxHeight: 420 },
           },
+          // MenuList is the focusable list inside the portal — stable for agents/Playwright.
+          list: {
+            'data-testid': 'wallet-account-menu',
+          } as HTMLAttributes<HTMLUListElement>,
         }}
       >
         <MenuItem disabled sx={{ opacity: 1 }}>
@@ -125,6 +130,7 @@ function LocalHardhatWalletButton() {
               selected={selected}
               disabled={!connector || busy}
               onClick={() => void handleSelect(`hardhat-${account.index}`)}
+              data-testid={`wallet-hardhat-${account.index}`}
             >
               {selected ? (
                 <ListItemIcon sx={{ minWidth: 32 }}>
@@ -144,7 +150,11 @@ function LocalHardhatWalletButton() {
         {isConnected ? (
           <>
             <Divider />
-            <MenuItem onClick={() => void handleDisconnect()} disabled={busy}>
+            <MenuItem
+              onClick={() => void handleDisconnect()}
+              disabled={busy}
+              data-testid="wallet-disconnect"
+            >
               <ListItemText primary="Disconnect" />
             </MenuItem>
           </>
@@ -180,6 +190,7 @@ function BrowserWalletButton() {
           }}
           disabled={isConnecting}
           aria-expanded={open}
+          data-testid="wallet-connect-button"
           sx={{
             minHeight: 40,
             borderRadius: 999,
