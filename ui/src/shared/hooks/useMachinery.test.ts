@@ -38,6 +38,18 @@ describe('getIpfsApiUrl', () => {
     expect(getIpfsApiUrl()).toBe('http://localhost:8090/ipfs-api')
   })
 
+  it('does not rewrite local Kubo for a UI host without the proxy', () => {
+    mockGetRuntimeConfigValue.mockImplementation((key: string) =>
+      key === 'VITE_IPFS_API' ? 'http://127.0.0.1:5001' : undefined,
+    )
+    Object.defineProperty(globalThis, 'window', {
+      value: { location: { origin: 'http://conceptspace.localhost:8088' } },
+      configurable: true,
+      writable: true,
+    })
+    expect(getIpfsApiUrl()).toBe('http://127.0.0.1:5001')
+  })
+
   it('keeps non-local configured API URLs', () => {
     mockGetRuntimeConfigValue.mockImplementation((key: string) =>
       key === 'VITE_IPFS_API' ? 'https://ipfs.example/api' : undefined,

@@ -71,8 +71,11 @@ export function DelegatableNotesSection({ statementCid }: Props) {
         const attests = await getNoteIntentAttestationsByStatement(machinery, statementCid)
         if (cancelled) return
 
+        // Different attesters may attest the same note for this statement. Fetch and
+        // count each note once so pledge totals and detail rows are not duplicated.
+        const noteKeys = [...new Set(attests.map(noteIntentLookupKey))]
         const noteResults = await Promise.all(
-          attests.map((a) => getNote(machinery, noteIntentLookupKey(a)).catch(() => null)),
+          noteKeys.map((key) => getNote(machinery, key).catch(() => null)),
         )
         if (cancelled) return
 

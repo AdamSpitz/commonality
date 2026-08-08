@@ -49,22 +49,29 @@ export function getEventCacheUrl(): string {
   return ''
 }
 
+/** CauseStarter is currently the only UI host that exposes `/ipfs-api`. */
+function isCauseStarterOrigin(url: URL): boolean {
+  return url.hostname === 'causestarter.localhost'
+    || url.hostname.startsWith('causestarter.')
+    || (url.hostname === 'localhost' && (url.port === '8090' || url.port === '5174'))
+}
+
 /**
  * Browser IPFS API base URL.
  *
- * When config points at host-direct Kubo (`localhost:5001` / `127.0.0.1:5001`)
- * but the SPA is served from another origin (CauseStarter :8090/:5174, domain
- * SPAs under the gateway), rewrite to same-origin `/ipfs-api` so the host's
- * Vite/nginx proxy can forward without CORS. Explicit non-local VITE_IPFS_API
- * values still win.
+ * CauseStarter's Vite/nginx hosts expose a same-origin `/ipfs-api` proxy for
+ * legacy browser uploads. Other UI domains do not, so they must retain their
+ * explicitly configured API URL rather than being rewritten to a dead route.
+ * PublishedData publication itself does not require browser-to-IPFS writes.
  */
 export function getIpfsApiUrl(): string {
   const configured = getRuntimeConfigValue('VITE_IPFS_API')
-  if (configured) {
-    if (typeof window !== 'undefined') {
+  if (typeof window !== 'undefined') {
+    const page = new URL(window.location.origin)
+    if (isCauseStarterOrigin(page)) {
+      if (!configured) return `${page.origin}/ipfs-api`
       try {
-        const api = new URL(configured, window.location.origin)
-        const page = new URL(window.location.origin)
+        const api = new URL(configured, page.origin)
         const isLocalIpfsApi =
           (api.hostname === 'localhost' || api.hostname === '127.0.0.1')
           && (api.port === '5001' || api.port === '')
@@ -72,13 +79,11 @@ export function getIpfsApiUrl(): string {
           return `${page.origin}/ipfs-api`
         }
       } catch {
-        // fall through to configured value
+        // Fall through to the configured value.
       }
     }
-    return configured.replace(/\/$/, '')
   }
-  if (typeof window !== 'undefined') return `${window.location.origin}/ipfs-api`
-  return ''
+  return configured?.replace(/\/$/, '') ?? ''
 }
 
 export function useMachinery(): SDKMachinery {

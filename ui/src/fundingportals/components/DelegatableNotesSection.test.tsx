@@ -133,6 +133,22 @@ describe('DelegatableNotesSection', () => {
       })
     })
 
+    it('counts a note only once when multiple attesters attest it', async () => {
+      vi.mocked(getNoteIntentAttestationsByStatement).mockResolvedValue([
+        makeAttestation('1'),
+        { ...makeAttestation('1'), attester: OWNER_B },
+      ])
+      vi.mocked(getNote).mockResolvedValue(
+        makeNote({ id: '1', amount: '1000000000000000000' }),
+      )
+
+      render(<DelegatableNotesSection statementCid="QmTest" />)
+
+      await waitForTotal('1 ETH')
+      expect(getNote).toHaveBeenCalledTimes(1)
+      expect(screen.queryByText('2 ETH')).not.toBeInTheDocument()
+    })
+
     it('shows amount the connected user has pledged (root owner)', async () => {
       vi.mocked(useAccount).mockReturnValue({ address: USER } as any)
       vi.mocked(getNoteIntentAttestationsByStatement).mockResolvedValue([
