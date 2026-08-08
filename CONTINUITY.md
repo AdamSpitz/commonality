@@ -1684,10 +1684,11 @@ Implemented the accepted future-content decisions now recorded in ADR 0007 and t
 - Kept `authorizationList: undefined`: this project's viem client type requires the property on these generated-ABI reads.
 - Validation: SDK tests (484 passing); SDK and UI typechecks.
 
-## 2026-08-08 — Move AI services into `services/` (in progress)
+## 2026-08-08 — Move AI services into `services/` (done)
 
-Goal: cut root-directory clutter roughly in half by grouping the 12 AI
-worker/core packages under `services/`. Branch: `refactor/services-subdir`.
+Goal: cut root-directory clutter by grouping the 12 AI worker/core packages
+under `services/` (36 root directories down to 25). Landed as `3055a559` on
+branch `refactor/services-subdir`; not yet merged to `dev`. Branch: `refactor/services-subdir`.
 Mechanical only — no behavior change. Adam approved on 2026-08-08.
 
 Moving (12): attester-core, finder-core, nudger-core, implication-attester,
@@ -1742,3 +1743,11 @@ outside `services/` needed one extra `../`.
 Confirmed untouched, as intended: `render.yaml` / `render.yaml.template` (their
 matches are HTTP URLs, `sourceType` values, and `/data/...` volume paths),
 `service-host/src/config.ts` service IDs, and `deployments/base-sepolia.env`.
+
+Late additions found only by the pre-commit hook and a full lint run, both of
+which are worth checking first if this is repeated:
+- `specs/` had root-absolute markdown links (`](/content-attester/prompts/...)`)
+  that a relative-link scan misses. `npm run check:docs-links` catches them.
+- Each moved package's `eslint.config.js` imports the root `eslint.metrics.mjs`
+  relatively and needed `../../`. `npm run lint-precommit` does **not** cover
+  these packages, so only a full `npx turbo run lint` surfaces it.
