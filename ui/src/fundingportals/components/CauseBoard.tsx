@@ -1,4 +1,4 @@
-import { useState, useEffect, type ReactNode } from 'react'
+import { useState, useEffect, useMemo, type ReactNode } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
 import { useAccount } from 'wagmi'
 import {
@@ -110,6 +110,24 @@ export function CauseBoard({
     trustedImplicationAttesters.length > 0 ? trustedImplicationAttesters : undefined
   const { trustedSet, isLoading: trustedSetLoading } = useTrustedSet(address)
 
+  // Stabilize effect deps: useTrustedSet replaces the Set on progressive updates.
+  // Membership serialization avoids full board reloads when only the Set identity changes.
+  const trustedSetKey = useMemo(() => {
+    if (!trustedSet || trustedSet.size === 0) return ''
+    return Array.from(trustedSet)
+      .map((a) => a.toLowerCase())
+      .sort()
+      .join(',')
+  }, [trustedSet])
+  const trustedAttestersKey = useMemo(
+    () =>
+      (activeTrustedImplicationAttesters ?? [])
+        .map((a) => a.toLowerCase())
+        .sort()
+        .join(','),
+    [activeTrustedImplicationAttesters],
+  )
+
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [title, setTitle] = useState<string | null>(null)
@@ -127,6 +145,12 @@ export function CauseBoard({
   useEffect(() => {
     const cid = statementCid
     let cancelled = false
+    const trustedSetForLoad: Set<string> | undefined = trustedSetKey
+      ? new Set(trustedSetKey.split(','))
+      : undefined
+    const attestersForLoad = trustedAttestersKey
+      ? trustedAttestersKey.split(',')
+      : undefined
 
     async function load() {
       setLoading(true)
@@ -137,8 +161,8 @@ export function CauseBoard({
           getTotalFundingForCause(
             machinery,
             cid as IpfsCidV1,
-            activeTrustedImplicationAttesters,
-            trustedSet,
+            attestersForLoad,
+            trustedSetForLoad,
           ),
         ])
 
@@ -181,7 +205,7 @@ export function CauseBoard({
     return () => {
       cancelled = true
     }
-  }, [machinery, statementCid, activeTrustedImplicationAttesters, trustedSet])
+  }, [machinery, statementCid, trustedAttestersKey, trustedSetKey])
 
   if (loading) {
     return (

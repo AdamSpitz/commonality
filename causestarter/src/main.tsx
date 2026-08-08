@@ -10,7 +10,7 @@ import {
   getRuntimeConfigValue as getUiSharedRuntimeConfigValue,
   loadRuntimeConfig as loadUiSharedRuntimeConfig,
 } from '@ui/shared'
-import { getRuntimeConfigValue, loadRuntimeConfig } from './lib/runtimeConfig'
+import { getRuntimeConfig, getRuntimeConfigValue, loadRuntimeConfig } from './lib/runtimeConfig'
 import { ThemeModeContext } from './lib/themeMode'
 import App from './App'
 import './index.css'
@@ -144,16 +144,54 @@ export function Root() {
 // ui/shared runtime config (separate module store from CauseStarter's own
 // lib/runtimeConfig). Both must load the same config.json and stay aligned on
 // shared keys until those stores are unified. Failure of either load fails boot.
+// Keys cover useMachinery contract/RPC/IPFS surface, payment currency, and
+// domain URLs used by embedded @ui/* board/project pages.
 const SHARED_RUNTIME_KEYS = [
-  'VITE_PROJECT_FACTORY_CONTRACT_ADDRESS',
-  'VITE_ASSURANCE_CONTRACT_FACTORY_ADDRESS',
-  'VITE_ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS',
-  'VITE_PAYMENT_TOKEN_ADDRESS',
-  'VITE_CHAIN_ID',
-  'VITE_ETH_RPC_URL',
   'VITE_EVENT_CACHE_URL',
+  'VITE_IPFS_GATEWAY',
   'VITE_IPFS_API',
+  'VITE_PLATFORM_API_URL',
+  'VITE_MAINNET_RPC_URL',
+  'VITE_ETH_RPC_URL',
+  'VITE_BELIEFS_CONTRACT_ADDRESS',
+  'VITE_IMPLICATIONS_CONTRACT_ADDRESS',
+  'VITE_ASSURANCE_CONTRACT_FACTORY_ADDRESS',
+  'VITE_ERC1155_FACTORY_ADDRESS',
+  'VITE_DELEGATABLE_NOTES_CONTRACT_ADDRESS',
+  'VITE_RECURRING_PLEDGES_CONTRACT_ADDRESS',
+  'VITE_NOTE_INTENT_CONTRACT_ADDRESS',
+  'VITE_ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS',
+  'VITE_MUTABLE_REF_UPDATER_CONTRACT_ADDRESS',
+  'VITE_TRUST_REGISTRY_CONTRACT_ADDRESS',
+  'VITE_NUDGE_PUBLICATIONS_CONTRACT_ADDRESS',
+  'VITE_PUBLISHED_DATA_CONTRACT_ADDRESS',
+  'VITE_CONTENT_REGISTRY_ADDRESS',
+  'VITE_CHANNEL_REGISTRY_ADDRESS',
+  'VITE_CHANNEL_ESCROW_ADDRESS',
+  'VITE_CREATOR_CONTRACT_FACTORY_ADDRESS',
+  'VITE_PROJECT_FACTORY_CONTRACT_ADDRESS',
+  'VITE_PAYMENT_TOKEN_ADDRESS',
+  'VITE_PAYMENT_TOKEN_SYMBOL',
+  'VITE_PAYMENT_TOKEN_DECIMALS',
+  'VITE_CHAIN_ID',
+  'VITE_COMMONALITY_URL',
+  'VITE_LAZYGIVING_URL',
+  'VITE_ALIGNMENT_URL',
+  'VITE_TALLY_URL',
+  'VITE_CONTENT_FUNDING_URL',
+  'VITE_CIVILITY_URL',
+  'VITE_COMMON_SENSE_MAJORITY_URL',
+  'VITE_CONCEPTSPACE_URL',
 ] as const
+
+/** Fail boot on dual-store drift in local/dev; warn-only elsewhere. */
+function isStrictRuntimeConfigEnv(): boolean {
+  if (import.meta.env.DEV) return true
+  const environment =
+    getRuntimeConfig().COMMONALITY_ENVIRONMENT
+    ?? (import.meta.env.COMMONALITY_ENVIRONMENT as string | undefined)
+  return environment === 'local'
+}
 
 function assertRuntimeConfigStoresAligned(): void {
   const mismatches: string[] = []
@@ -165,11 +203,16 @@ function assertRuntimeConfigStoresAligned(): void {
     }
   }
   if (mismatches.length > 0) {
-    console.warn(
+    const detail =
       '[CauseStarter] dual runtime-config stores disagree after loadRuntimeConfig; '
-        + 'board/project pages may use different addresses than native pages:\n'
-        + mismatches.join('\n'),
-    )
+      + 'board/project pages may use different addresses than native pages:\n'
+      + mismatches.join('\n')
+    // Local/dev: fail boot so silent wrong contracts cannot ship a broken board.
+    // Production dual-store drift still warns until stores are unified.
+    if (isStrictRuntimeConfigEnv()) {
+      throw new Error(detail)
+    }
+    console.warn(detail)
   } else if (import.meta.env.DEV) {
     console.info(
       '[CauseStarter] dual runtime-config stores aligned on shared keys',

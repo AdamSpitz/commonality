@@ -193,6 +193,16 @@ describe('ProjectDetailPage', () => {
       })
     })
 
+    it('uses host listPath/listLabel for not-found recovery', async () => {
+      vi.mocked(getProject).mockResolvedValue(null)
+
+      render(<ProjectDetailPage listPath="/momentum" listLabel="Back to momentum" />)
+
+      await waitFor(() => {
+        expect(screen.getByRole('link', { name: 'Back to momentum' })).toHaveAttribute('href', '/momentum')
+      })
+    })
+
     it('displays error when API call fails', async () => {
       vi.mocked(getProject).mockRejectedValue(new Error('Network error'))
 

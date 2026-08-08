@@ -15,6 +15,7 @@ import { getStatement } from '@commonality/sdk/conceptspace'
 import { getAllAlignedProjectsForCause } from '@commonality/sdk/fundingportals'
 import type { IpfsCidV1 } from '@commonality/sdk/utils'
 import { projectPathForAddress } from '@ui/shared'
+import { getProjectStatus, STATUS_LABELS } from '@ui/lazy-giving'
 import { SupportButton } from '../components/SupportButton'
 import { ToolCard } from '../components/ToolCard'
 import {
@@ -40,11 +41,11 @@ function shortAddress(address: string): string {
 }
 
 function projectStatus(project: CauseProject): string {
-  const raised = BigInt(project.totalReceived || '0')
-  const goal = BigInt(project.threshold || '0')
-  if (raised > 0n && goal > 0n && raised >= goal) return 'Funded'
-  if (raised > 0n) return 'Has contributions'
-  return 'Open campaign'
+  return STATUS_LABELS[getProjectStatus({
+    totalReceived: project.totalReceived || '0',
+    threshold: project.threshold || '0',
+    deadline: project.deadline || '0',
+  })]
 }
 
 function collectStatementCids(cause: CauseDraft): string[] {
