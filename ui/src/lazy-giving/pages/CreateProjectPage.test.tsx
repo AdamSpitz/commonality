@@ -32,6 +32,21 @@ vi.mock('../../shared/components/WalletButton', () => ({
 
 const mockDocumentStorePublish = vi.fn()
 
+vi.mock('../../shared', async () => {
+  const actual = await vi.importActual('../../shared') as Record<string, unknown>
+  return {
+    ...actual,
+    useMachinery: () => ({
+      ipfsConfig: { gatewayUrl: 'http://localhost:8080/ipfs' },
+      twitterApiConfig: {},
+      testConfig: { areWeJustRunningTests: true },
+      contractAddresses: {
+        publishedData: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+      },
+    }),
+  }
+})
+
 // Mock SDK
 vi.mock('@commonality/sdk/lazy-giving', async () => {
   const actual = await vi.importActual('@commonality/sdk/lazy-giving')

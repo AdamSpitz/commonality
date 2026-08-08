@@ -2,6 +2,15 @@
 
 Append new entries to the end of the file.
 
+
+## 2026-08-08 — PublishedData / browser IPFS cutover
+
+- Forced browser product publishers onto PublishedData (CreateStatementForm, CreateProjectPage, CreateContractPage); missing address hard-fails.
+- Emptied browser `getIpfsApiUrl()`; removed CauseStarter `/ipfs-api` Vite+nginx proxy and `35-ipfs-upstream` entrypoint; stopped wiring `VITE_IPFS_API` into UI compose/setup-env/publish-ui/e2e browser env.
+- Expanded `published-data-ipfs-mirror/README.md` with Commonality + independent-operator runbook; marked cutover plan complete for browser writers (ops deploy of mirror still environment-specific).
+- Deleted the cutover item from root `TODO.md`.
+- Checks: UI focused vitest (useMachinery, CreateProjectPage, CreateContractPage) ✅; mirror package tests ✅; `ui` + `causestarter` typecheck ✅.
+
 ## 2026-07-01 — Beat-memory refactor started (mid-refactor, not build-clean)
 
 - User asked to update the `beat-agents.md` planned refactor section and start implementation. I loaded `do-one-coding-task`/technical-lead guidance and began, but stopped because context was getting low.

@@ -94,14 +94,19 @@ export function CreateStatementForm({ onStatementCreated }: CreateStatementFormP
 
     const clients = writeClients!
 
+    if (!PUBLISHED_DATA_CONTRACT_ADDRESS) {
+      throw new Error(
+        'PublishedData contract address is missing (VITE_PUBLISHED_DATA_CONTRACT_ADDRESS). '
+        + 'Browser statement publish uses on-chain PublishedData, not IPFS upload.',
+      )
+    }
+
     return createAndSignStatement(
       clients,
       {
         beliefs: beliefsContract,
         mutableRefUpdater: mutableRefContract,
-        ...(PUBLISHED_DATA_CONTRACT_ADDRESS
-          ? { publishedData: { address: PUBLISHED_DATA_CONTRACT_ADDRESS, abi: PublishedDataAbi } }
-          : {}),
+        publishedData: { address: PUBLISHED_DATA_CONTRACT_ADDRESS, abi: PublishedDataAbi },
       },
       statementData,
       {

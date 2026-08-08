@@ -1,0 +1,5 @@
+FROM ipfs/kubo:latest
+
+COPY --chmod=755 published-data-ipfs-mirror/render-kubo-entrypoint.sh /usr/local/bin/commonality-kubo
+
+ENTRYPOINT ["/usr/local/bin/commonality-kubo"]

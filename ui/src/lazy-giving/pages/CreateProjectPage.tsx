@@ -184,14 +184,19 @@ export function CreateProjectPage() {
       setError(null)
       setSuccess(null)
 
-      // Publish display text metadata through the migration store. Images stay CID-only:
+      // Publish display text metadata through PublishedData. Images stay CID-only:
       // users choose a curated CID or bring a CID they have pinned elsewhere.
       const clients = writeClients!
+      const publishedDataAddress = machinery.contractAddresses?.publishedData
+      if (!publishedDataAddress) {
+        throw new Error(
+          'PublishedData contract address is missing (VITE_PUBLISHED_DATA_CONTRACT_ADDRESS). '
+          + 'Project metadata publish uses on-chain PublishedData, not browser IPFS upload.',
+        )
+      }
       const documentStore = createDefaultDocumentStore(machinery, {
         clients,
-        ...(machinery.contractAddresses?.publishedData
-          ? { publishedDataContract: { address: machinery.contractAddresses.publishedData, abi: PublishedDataAbi } }
-          : {}),
+        publishedDataContract: { address: publishedDataAddress, abi: PublishedDataAbi },
       })
 
       const tokenMetadataCids: Record<string, string> = {}

@@ -93,6 +93,59 @@ services:
     autoDeploy: true
     plan: standard
 
+  # Private, durable Kubo for the PublishedData mirror. It deliberately has no
+  # public web endpoint or browser CORS configuration.
+  - type: pserv
+    name: commonality-published-data-ipfs
+    env: docker
+    rootDir: .
+    dockerContext: .
+    dockerfilePath: published-data-ipfs-mirror/Dockerfile.kubo
+    envVars:
+      - key: PORT
+        value: "10000"
+    disk:
+      name: commonality-published-data-ipfs-repo
+      mountPath: /data/ipfs
+      sizeGB: 10
+    autoDeploy: true
+    plan: starter
+
+  # PublishedData calldata → IPFS durability mirror (Base Sepolia).
+  - type: worker
+    name: commonality-published-data-ipfs-mirror
+    env: docker
+    rootDir: .
+    dockerContext: .
+    dockerfilePath: published-data-ipfs-mirror/Dockerfile
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: RPC_URL
+        sync: false  # Secret: Base Sepolia RPC with full transaction history
+      - key: CHAIN_ID
+        value: "84532"
+      - key: PUBLISHED_DATA_CONTRACT_ADDRESS
+        value: "0xee860Bb27652a3Be968bf6D351ee0eBb9d995eD3"
+      - key: START_BLOCK
+        value: "45094307"
+      - key: IPFS_API_URL
+        value: http://commonality-published-data-ipfs:10000
+      - key: STATE_FILE
+        value: /data/published-data-ipfs-mirror.base-sepolia.json
+      - key: CONFIRMATIONS
+        value: "12"
+      - key: BLOCK_RANGE
+        value: "1000"
+      - key: POLL_INTERVAL_MS
+        value: "10000"
+    disk:
+      name: commonality-published-data-ipfs-mirror-state
+      mountPath: /data
+      sizeGB: 1
+    autoDeploy: true
+    plan: starter
+
   # Bundled AI service host (Bundle A — Attesters)
   - type: web
     name: commonality-service-host-attesters

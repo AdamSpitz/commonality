@@ -42,6 +42,7 @@ function copyContractAddresses(projectRoot: string): void {
       'ERC1155_FACTORY_ADDRESS',
       'ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS',
       'TRUST_REGISTRY_ADDRESS',
+      'PUBLISHED_DATA_CONTRACT_ADDRESS',
       'PROJECT_FACTORY_ADDRESS',
       'PAYMENT_TOKEN_ADDRESS',
       'CONTENT_REGISTRY_ADDRESS',
@@ -78,7 +79,6 @@ function copyContractAddresses(projectRoot: string): void {
       ...addressesToCopy.map(key => `VITE_${key}=`),
       'VITE_EVENT_CACHE_URL=',
       'VITE_IPFS_GATEWAY=',
-      'VITE_IPFS_API=',
       'VITE_ETH_RPC_URL=',
       'VITE_PLATFORM_API_URL=',
       'VITE_CHAIN_ID=',
@@ -128,6 +128,7 @@ function copyContractAddresses(projectRoot: string): void {
       `VITE_ERC1155_FACTORY_ADDRESS=${addresses.ERC1155_FACTORY_ADDRESS || ''}`,
       `VITE_ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS=${addresses.ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS || ''}`,
       `VITE_TRUST_REGISTRY_CONTRACT_ADDRESS=${addresses.TRUST_REGISTRY_ADDRESS || ''}`,
+      `VITE_PUBLISHED_DATA_CONTRACT_ADDRESS=${addresses.PUBLISHED_DATA_CONTRACT_ADDRESS || ''}`,
       `VITE_PROJECT_FACTORY_CONTRACT_ADDRESS=${addresses.PROJECT_FACTORY_ADDRESS || ''}`,
       `VITE_PAYMENT_TOKEN_ADDRESS=${addresses.PAYMENT_TOKEN_ADDRESS || ''}`,
       `VITE_CONTENT_REGISTRY_ADDRESS=${addresses.CONTENT_REGISTRY_ADDRESS || ''}`,
@@ -141,8 +142,6 @@ function copyContractAddresses(projectRoot: string): void {
       `VITE_EVENT_CACHE_URL=`,
       // IPFS gateway for client-side IPFS content fetching (project names, statement titles)
       `VITE_IPFS_GATEWAY=http://localhost:8080/ipfs`,
-      // Keep client-side writes against the local throwaway IPFS daemon.
-      `VITE_IPFS_API=http://localhost:5001`,
       // Hardhat RPC for on-chain reads (e.g. threshold/deadline from condition contracts)
       `VITE_ETH_RPC_URL=http://127.0.0.1:8545`,
       `VITE_CHAIN_ID=31337`,

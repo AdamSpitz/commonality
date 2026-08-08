@@ -49,48 +49,21 @@ export function getEventCacheUrl(): string {
   return ''
 }
 
-/** CauseStarter is currently the only UI host that exposes `/ipfs-api`. */
-function isCauseStarterOrigin(url: URL): boolean {
-  return url.hostname === 'causestarter.localhost'
-    || url.hostname.startsWith('causestarter.')
-    || (url.hostname === 'localhost' && (url.port === '8090' || url.port === '5174'))
-}
-
 /**
  * Browser IPFS API base URL.
  *
- * CauseStarter's Vite/nginx hosts expose a same-origin `/ipfs-api` proxy for
- * legacy browser uploads. Other UI domains do not, so they must retain their
- * explicitly configured API URL rather than being rewritten to a dead route.
- * PublishedData publication itself does not require browser-to-IPFS writes.
+ * Product publication no longer writes from the browser. Gateway reads use
+ * `VITE_IPFS_GATEWAY` only. This helper stays empty so accidental legacy
+ * upload paths fail closed rather than hitting Kubo.
  */
 export function getIpfsApiUrl(): string {
-  const configured = getRuntimeConfigValue('VITE_IPFS_API')
-  if (typeof window !== 'undefined') {
-    const page = new URL(window.location.origin)
-    if (isCauseStarterOrigin(page)) {
-      if (!configured) return `${page.origin}/ipfs-api`
-      try {
-        const api = new URL(configured, page.origin)
-        const isLocalIpfsApi =
-          (api.hostname === 'localhost' || api.hostname === '127.0.0.1')
-          && (api.port === '5001' || api.port === '')
-        if (isLocalIpfsApi && api.origin !== page.origin) {
-          return `${page.origin}/ipfs-api`
-        }
-      } catch {
-        // Fall through to the configured value.
-      }
-    }
-  }
-  return configured?.replace(/\/$/, '') ?? ''
+  return ''
 }
 
 export function useMachinery(): SDKMachinery {
   return useMemo(() => {
     const ipfsConfig = {
       gatewayUrl: getRuntimeConfigValue('VITE_IPFS_GATEWAY'),
-      apiUrl: getIpfsApiUrl(),
       ...civilityPolicyGatewayConfig(),
     };
     const twitterApiConfig = {

@@ -61,17 +61,6 @@ export default defineConfig(({ mode }) => {
         },
         '/api/platform-api': 'http://localhost:3001',
         '/api': indexerUrl,
-        // Same-origin Kubo proxy (parity with Docker nginx /ipfs-api).
-        // SDK calls `${apiUrl}/api/v0/...` (see sdk/src/utils/ipfs.ts), and
-        // getIpfsApiUrl() sets apiUrl to `${origin}/ipfs-api`, so the browser
-        // hits `/ipfs-api/api/v0/add`. nginx strips only the `/ipfs-api` prefix
-        // (see causestarter/nginx.conf); do the same here — do NOT inject
-        // another `/api/v0` or the path becomes `/api/v0/api/v0/...`.
-        '/ipfs-api': {
-          target: process.env.IPFS_API_URL ?? 'http://127.0.0.1:5001',
-          changeOrigin: true,
-          rewrite: (path: string) => path.replace(/^\/ipfs-api\/?/, '/'),
-        },
       },
     },
   }
@@ -131,7 +120,6 @@ function buildRuntimeConfig(env: Record<string, string>) {
   const keys = [
     'VITE_EVENT_CACHE_URL',
     'VITE_IPFS_GATEWAY',
-    'VITE_IPFS_API',
     'COMMONALITY_ENVIRONMENT',
     'VITE_PLATFORM_API_URL',
     'VITE_MAINNET_RPC_URL',

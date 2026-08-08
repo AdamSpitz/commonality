@@ -66,26 +66,23 @@ services:
     container_name: commonality-ipfs
     user: "${UID:-1000}:${GID:-1000}"
     ports:
-      - "5001:5001"  # API port
+      # Keep the operator API reachable by host-side tooling, but never expose it
+      # beyond loopback. Browser product code uses PublishedData for writes.
+      - "127.0.0.1:5001:5001"  # API port
       - "8080:8080"  # Gateway port
     volumes:
       # Use configurable data directory for IPFS storage
       - ${COMMONALITY_DATA_DIR:-./data}/ipfs:/data/ipfs
-    # Custom entrypoint to configure IPFS for path-based gateway (no subdomain redirects)
-    # This prevents the gateway from redirecting to CID.ipfs.localhost which doesn't resolve.
-    # Browser CORS on the API: Kubo returns 403 for any Origin when
-    # Access-Control-Allow-Origin is unset. Keeps legacy browser→Kubo API
-    # fallbacks (and any remaining edge-case uploads) working; statement
-    # content publish is PublishedData-first and does not require this.
+    # Custom entrypoint to configure IPFS for path-based gateway (no subdomain redirects).
+    # The API intentionally has no browser CORS allowance: only operator tooling
+    # and other compose services may write to Kubo.
     entrypoint: >
       sh -c "
       if [ ! -f /data/ipfs/config ]; then ipfs init --profile=test; fi &&
       ipfs config --json Gateway.PublicGateways '{\"localhost\": {\"Paths\": [\"/ipfs\", \"/ipns\"], \"UseSubdomains\": false}}' &&
       ipfs config Addresses.API /ip4/0.0.0.0/tcp/5001 &&
       ipfs config Addresses.Gateway /ip4/0.0.0.0/tcp/8080 &&
-      ipfs config --json API.HTTPHeaders.Access-Control-Allow-Origin '[\"*\"]' &&
-      ipfs config --json API.HTTPHeaders.Access-Control-Allow-Methods '[\"GET\", \"POST\", \"PUT\", \"OPTIONS\"]' &&
-      ipfs config --json API.HTTPHeaders.Access-Control-Allow-Headers '[\"Authorization\", \"Content-Type\", \"X-Requested-With\"]' &&
+      ipfs config --json API.HTTPHeaders '{}' &&
       ipfs daemon --migrate=true
       "
     healthcheck:
@@ -94,6 +91,37 @@ services:
       timeout: 5s
       retries: 30
       start_period: 5s
+    networks:
+      - commonality
+
+  # Permissionless PublishedData calldata → IPFS durability mirror. The deploy
+  # file is read after hardhat-deploy finishes so a fresh/recreated chain cannot
+  # leave this worker pointed at a stale contract address.
+  published-data-ipfs-mirror:
+    image: commonality-published-data-ipfs-mirror:dev
+    build:
+      context: .
+      dockerfile: published-data-ipfs-mirror/Dockerfile
+    container_name: commonality-published-data-ipfs-mirror
+    user: "${UID:-1000}:${GID:-1000}"
+    depends_on:
+      hardhat-node:
+        condition: service_healthy
+      hardhat-deploy:
+        condition: service_completed_successfully
+      ipfs:
+        condition: service_healthy
+    environment:
+      RPC_URL: http://hardhat-node:8545
+      CHAIN_ID: "31337"
+      IPFS_API_URL: http://ipfs:5001
+      DEPLOYMENT_ENV_FILE: /workspace/deployments/localhost.env
+      STATE_FILE: /data/published-data-ipfs-mirror.local.json
+      CONFIRMATIONS: "0"
+    volumes:
+      - ./deployments:/workspace/deployments:ro
+      - ${COMMONALITY_DATA_DIR:-./data}/published-data-ipfs-mirror:/data
+    restart: unless-stopped
     networks:
       - commonality
 
@@ -130,7 +158,6 @@ services:
       - UI_IPFS_GATEWAY_URL=http://localhost:8080/ipfs
       - VITE_ROUTER_MODE=hash
       - VITE_IPFS_GATEWAY=http://localhost:8080/ipfs
-      - VITE_IPFS_API=http://localhost:5001
       - VITE_PLATFORM_API_URL=http://localhost:3001
       - VITE_ETH_RPC_URL=http://127.0.0.1:8545
       - UI_IPFS_ARTIFACT_DIR=/artifacts
@@ -162,7 +189,6 @@ services:
       - UI_IPFS_GATEWAY_URL=http://localhost:8080/ipfs
       - VITE_ROUTER_MODE=hash
       - VITE_IPFS_GATEWAY=http://localhost:8080/ipfs
-      - VITE_IPFS_API=http://localhost:5001
       - VITE_PLATFORM_API_URL=http://localhost:3001
       - VITE_ETH_RPC_URL=http://127.0.0.1:8545
       - UI_IPFS_ARTIFACT_DIR=/artifacts
@@ -194,7 +220,6 @@ services:
       - UI_IPFS_GATEWAY_URL=http://localhost:8080/ipfs
       - VITE_ROUTER_MODE=hash
       - VITE_IPFS_GATEWAY=http://localhost:8080/ipfs
-      - VITE_IPFS_API=http://localhost:5001
       - VITE_PLATFORM_API_URL=http://localhost:3001
       - VITE_ETH_RPC_URL=http://127.0.0.1:8545
       - UI_IPFS_ARTIFACT_DIR=/artifacts
@@ -226,7 +251,6 @@ services:
       - UI_IPFS_GATEWAY_URL=http://localhost:8080/ipfs
       - VITE_ROUTER_MODE=hash
       - VITE_IPFS_GATEWAY=http://localhost:8080/ipfs
-      - VITE_IPFS_API=http://localhost:5001
       - VITE_PLATFORM_API_URL=http://localhost:3001
       - VITE_ETH_RPC_URL=http://127.0.0.1:8545
       - UI_IPFS_ARTIFACT_DIR=/artifacts
@@ -258,7 +282,6 @@ services:
       - UI_IPFS_GATEWAY_URL=http://localhost:8080/ipfs
       - VITE_ROUTER_MODE=hash
       - VITE_IPFS_GATEWAY=http://localhost:8080/ipfs
-      - VITE_IPFS_API=http://localhost:5001
       - VITE_PLATFORM_API_URL=http://localhost:3001
       - VITE_ETH_RPC_URL=http://127.0.0.1:8545
       - UI_IPFS_ARTIFACT_DIR=/artifacts
@@ -290,7 +313,6 @@ services:
       - UI_IPFS_GATEWAY_URL=http://localhost:8080/ipfs
       - VITE_ROUTER_MODE=hash
       - VITE_IPFS_GATEWAY=http://localhost:8080/ipfs
-      - VITE_IPFS_API=http://localhost:5001
       - VITE_PLATFORM_API_URL=http://localhost:3001
       - VITE_ETH_RPC_URL=http://127.0.0.1:8545
       - UI_IPFS_ARTIFACT_DIR=/artifacts
@@ -322,7 +344,6 @@ services:
       - UI_IPFS_GATEWAY_URL=http://localhost:8080/ipfs
       - VITE_ROUTER_MODE=hash
       - VITE_IPFS_GATEWAY=http://localhost:8080/ipfs
-      - VITE_IPFS_API=http://localhost:5001
       - VITE_PLATFORM_API_URL=http://localhost:3001
       - VITE_ETH_RPC_URL=http://127.0.0.1:8545
       - UI_IPFS_ARTIFACT_DIR=/artifacts
@@ -354,7 +375,6 @@ services:
       - UI_IPFS_GATEWAY_URL=http://localhost:8080/ipfs
       - VITE_ROUTER_MODE=hash
       - VITE_IPFS_GATEWAY=http://localhost:8080/ipfs
-      - VITE_IPFS_API=http://localhost:5001
       - VITE_PLATFORM_API_URL=http://localhost:3001
       - VITE_ETH_RPC_URL=http://127.0.0.1:8545
       - UI_IPFS_ARTIFACT_DIR=/artifacts
@@ -388,7 +408,6 @@ services:
       - UI_IPFS_API_URL=http://ipfs:5001
       - UI_IPFS_GATEWAY_URL=http://localhost:8080/ipfs
       - VITE_IPFS_GATEWAY=http://localhost:8080/ipfs
-      - VITE_IPFS_API=http://localhost:5001
       - VITE_PLATFORM_API_URL=http://localhost:3001
       - VITE_ETH_RPC_URL=http://127.0.0.1:8545
       - UI_IPFS_ARTIFACT_DIR=/artifacts
@@ -443,10 +462,6 @@ services:
       INDEXER_UPSTREAM: ${INDEXER_UPSTREAM:-}
       VITE_EVENT_CACHE_URL: ${VITE_EVENT_CACHE_URL:-}
       VITE_IPFS_GATEWAY: ${VITE_IPFS_GATEWAY:-http://localhost:8080/ipfs}
-      # Optional legacy browser IPFS API (same-origin /ipfs-api proxy). Not required
-      # for statement launch when PublishedData is configured.
-      VITE_IPFS_API: ${VITE_IPFS_API:-}
-      IPFS_API_UPSTREAM: ${IPFS_API_UPSTREAM:-}
       VITE_PLATFORM_API_URL: ${VITE_PLATFORM_API_URL:-http://localhost:3001}
       VITE_MAINNET_RPC_URL: ${VITE_MAINNET_RPC_URL:-}
       VITE_ETH_RPC_URL: ${VITE_ETH_RPC_URL:-http://127.0.0.1:8545}

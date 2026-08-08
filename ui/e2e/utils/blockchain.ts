@@ -82,8 +82,10 @@ export function createE2EMachinery(rpcUrl = 'http://localhost:8545'): SDKMachine
 
   return createSDKMachinery({
     ipfsConfig: {
-      gatewayUrl: envVars.VITE_IPFS_GATEWAY || process.env.VITE_IPFS_GATEWAY || 'http://localhost:8080',
-      apiUrl: envVars.VITE_IPFS_API || process.env.VITE_IPFS_API || 'http://localhost:5001',
+      // Gateway for legacy CID reads only. Browser product paths do not upload.
+      // Node-side E2E helpers may still use IPFS_API when PublishedData is absent.
+      gatewayUrl: envVars.VITE_IPFS_GATEWAY || process.env.VITE_IPFS_GATEWAY || 'http://localhost:8080/ipfs',
+      apiUrl: process.env.IPFS_API || 'http://localhost:5001',
     },
     twitterApiConfig: {
       platformApiBaseUrl: envVars.VITE_PLATFORM_API_URL || process.env.VITE_PLATFORM_API_URL || 'http://localhost:3001',
