@@ -39,6 +39,7 @@ const rootWorkspaceManifests = [
   'services/bridge-creator/package.json',
   'services/explorer-curator/package.json',
   'platform-api-service/package.json',
+  'published-data-ipfs-mirror/package.json',
   'services/implication-graph-nudger/package.json',
   'ui/package.json',
 ]
@@ -70,6 +71,20 @@ const buildConfigs = {
       ...rootWorkspaceManifests,
       { path: 'sdk', ignore: [] },
       { path: 'platform-api-service', ignore: ['dist'] },
+    ],
+  },
+  'published-data-ipfs-mirror': {
+    buildKey: 'published-data-ipfs-mirror',
+    image: 'commonality-published-data-ipfs-mirror:dev',
+    hashEntries: [
+      '.dockerignore',
+      '.npmrc',
+      'package.json',
+      'package-lock.json',
+      'published-data-ipfs-mirror/Dockerfile',
+      ...rootWorkspaceManifests,
+      { path: 'sdk', ignore: [] },
+      { path: 'published-data-ipfs-mirror', ignore: ['dist'] },
     ],
   },
   'service-host': {

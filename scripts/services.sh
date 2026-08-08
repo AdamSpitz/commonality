@@ -271,11 +271,13 @@ start_services() {
         hardhat-node
         hardhat-deploy
         ipfs
+        published-data-ipfs-mirror
         indexer
         platform-api-service
     )
     local -a buildable_services=(
         hardhat-deploy
+        published-data-ipfs-mirror
         indexer
         platform-api-service
         ui-ipfs-publisher-commonality
@@ -298,7 +300,7 @@ start_services() {
     echo "Starting services with data directory: $DATA_DIR"
     # Pre-create data directories owned by the current user so containers
     # don't create them as root.
-    mkdir -p "$DATA_DIR/hardhat" "$DATA_DIR/ipfs" "$DATA_DIR/ponder" \
+    mkdir -p "$DATA_DIR/hardhat" "$DATA_DIR/ipfs" "$DATA_DIR/published-data-ipfs-mirror" "$DATA_DIR/ponder" \
         "$UI_IPFS_ARTIFACT_DIR/commonality" \
         "$UI_IPFS_ARTIFACT_DIR/lazyGiving" \
         "$UI_IPFS_ARTIFACT_DIR/alignment" \

@@ -34,14 +34,18 @@ Base Sepolia example values live in `deployments/base-sepolia.env` (`PUBLISHED_D
 
 ## Run (local)
 
+The normal `./scripts/services.sh --start` path starts the mirror automatically with the local Anvil deployment and Kubo. Its cursor persists under `${COMMONALITY_DATA_DIR:-./data}/published-data-ipfs-mirror`.
+
+For a standalone development process instead:
+
 ```sh
 set -a
 # shellcheck disable=SC1091
-source deployments/localhost.env  # or base-sepolia.env
+source deployments/localhost.env
 set +a
 
 RPC_URL="${ETH_RPC_URL:-http://127.0.0.1:8545}" \
-CHAIN_ID="${CHAIN_ID:-31337}" \
+CHAIN_ID=31337 \
 PUBLISHED_DATA_CONTRACT_ADDRESS="$PUBLISHED_DATA_CONTRACT_ADDRESS" \
 START_BLOCK="${PUBLISHED_DATA_START_BLOCK:-0}" \
 IPFS_API_URL="${IPFS_API:-http://127.0.0.1:5001}" \
@@ -49,7 +53,29 @@ STATE_FILE=./data/published-data-ipfs-mirror.local.json \
 npm run dev --workspace=@commonality/published-data-ipfs-mirror
 ```
 
+## Run (Base Sepolia)
+
+`deployments/base-sepolia.env` provides the contract address and deployment block, but intentionally does not contain an RPC credential. Supply an RPC URL explicitly:
+
+```sh
+set -a
+# shellcheck disable=SC1091
+source deployments/base-sepolia.env
+set +a
+
+: "${RPC_URL:?Set RPC_URL to a Base Sepolia RPC with full transaction history}"
+RPC_URL="$RPC_URL" \
+CHAIN_ID=84532 \
+PUBLISHED_DATA_CONTRACT_ADDRESS="$PUBLISHED_DATA_CONTRACT_ADDRESS" \
+START_BLOCK="$PUBLISHED_DATA_START_BLOCK" \
+IPFS_API_URL="${IPFS_API_URL:-http://127.0.0.1:5001}" \
+STATE_FILE=./data/published-data-ipfs-mirror.base-sepolia.json \
+npm run dev --workspace=@commonality/published-data-ipfs-mirror
+```
+
 ## Run (Commonality-operated testnet / mainnet)
+
+The committed Render blueprint provisions the Base Sepolia worker, a 1 GB cursor disk, and a private Kubo service with a 10 GB repository disk. The only dashboard secret it needs is `RPC_URL`; see [`workflow/testnet-render-env.md`](../workflow/testnet-render-env.md). For another hosting platform or mainnet:
 
 1. Provision a durable host with disk for the state file and pinset growth.
 2. Point `RPC_URL` at a provider that retains full transaction bodies (archive-capable or equivalent for calldata).
