@@ -212,7 +212,7 @@ describe('AlignedProjectsList', () => {
   })
 
   describe('Empty state', () => {
-    it('offers project creation and discovery actions when no projects are returned', async () => {
+    it('offers project creation when no projects are returned', async () => {
       vi.mocked(getAllAlignedProjectsForCause).mockResolvedValue([])
 
       render(<AlignedProjectsList statementCid="QmTest" />)
@@ -221,7 +221,7 @@ describe('AlignedProjectsList', () => {
         expect(screen.getByText(/No aligned projects yet/)).toBeInTheDocument()
       })
       expect(screen.getByRole('link', { name: 'Create a project' })).toHaveAttribute('href', '/projects/new')
-      expect(screen.getByRole('link', { name: 'Browse all projects' })).toHaveAttribute('href', '/projects')
+      expect(screen.queryByRole('link', { name: 'Browse all projects' })).not.toBeInTheDocument()
     })
 
     it('shows "No projects match" message when all projects are filtered out', async () => {

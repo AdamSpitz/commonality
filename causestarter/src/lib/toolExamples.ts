@@ -40,14 +40,8 @@ export async function loadToolExamples(
 ): Promise<ToolExample[]> {
   try {
     switch (tool.id) {
-      case 'tally':
-      case 'conceptspace':
       case 'common-sense-majority':
         return await loadStatementImplicationExamples(machinery, tool.domain)
-      case 'lazyGiving':
-        return await loadProjectExamples(machinery)
-      case 'alignment':
-        return await loadAlignmentPortalExamples(machinery)
       case 'content-funding':
       case 'civility':
         return await loadContentFundingExamples(machinery, tool.domain)
@@ -115,41 +109,6 @@ async function loadStatementImplicationExamples(
   return examples.slice(0, 2)
 }
 
-async function loadProjectExamples(machinery: SDKMachinery): Promise<ToolExample[]> {
-  const projects = await getAllProjects(machinery)
-  const sorted = [...projects].sort((a, b) => {
-    const aRaised = BigInt(a.totalReceived || '0')
-    const bRaised = BigInt(b.totalReceived || '0')
-    if (aRaised === bRaised) return (b.createdAt || '').localeCompare(a.createdAt || '')
-    return aRaised > bRaised ? -1 : 1
-  })
-
-  return sorted.slice(0, 2).map((project) => {
-    const shortId = `${project.id.slice(0, 6)}…${project.id.slice(-4)}`
-    const raised = project.totalReceived && project.totalReceived !== '0'
-      ? 'Has contributions'
-      : 'Open campaign'
-    return {
-      label: `Project ${shortId}`,
-      detail: raised,
-      href: getDomainUrl('lazyGiving', `/project/${project.id}`, '#'),
-    }
-  })
-}
-
-async function loadAlignmentPortalExamples(machinery: SDKMachinery): Promise<ToolExample[]> {
-  // Alignment portals are statement-keyed; show popular statements as portal entry points.
-  const statements = await browseStatements(machinery, {
-    limit: 2,
-    orderBy: 'believerCount',
-  })
-  return statements.map((statement) => ({
-    label: statementLabel(statement, statement.cid),
-    detail: 'Cause board entry',
-    href: getDomainUrl('alignment', `/portal/${statement.cid}`, '#'),
-  }))
-}
-
 async function loadContentFundingExamples(
   machinery: SDKMachinery,
   domain: SupportingTool['domain'],
@@ -175,7 +134,7 @@ async function loadContentFundingExamples(
   return statements.map((statement) => ({
     label: statementLabel(statement, statement.cid),
     detail: 'Related public statement',
-    href: getDomainUrl('tally', `/statement/${statement.cid}`, '#'),
+    href: getDomainUrl(domain, `/statement/${statement.cid}`, '#'),
   }))
 }
 

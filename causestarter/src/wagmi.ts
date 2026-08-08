@@ -83,7 +83,7 @@ function buildWagmiConfig() {
   const defaultConnectors = getDefaultConnectors({
     app: {
       name: 'CauseStarter',
-      description: 'Start a cause. Grow support. Deliver results.',
+      description: 'Start a cause. Build a Movement. Change the world.',
       url: typeof window !== 'undefined' ? window.location.origin : 'http://localhost:8090',
     },
     // Empty string → ConnectKit skips the WalletConnect connector (no broken project id).
@@ -105,7 +105,7 @@ function buildWagmiConfig() {
       connectors: connectors as never,
       walletConnectProjectId: walletConnectProjectId || '',
       appName: 'CauseStarter',
-      appDescription: 'Start a cause. Grow support. Deliver results.',
+      appDescription: 'Start a cause. Build a Movement. Change the world.',
       appUrl: typeof window !== 'undefined' ? window.location.origin : 'http://localhost:8090',
       enableAaveAccount: false,
     }),

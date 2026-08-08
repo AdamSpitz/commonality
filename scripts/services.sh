@@ -42,6 +42,7 @@ show_usage() {
     echo "  --stop    Stop services (preserves existing data)"
     echo "  --status  Show whether services are running"
     echo "  --url     Print the stable local UI URLs for all domains"
+    echo "  --check   Fail-fast: env / on-chain / SPA config sync (see check-local-config-sync.sh)"
     echo "  --help    Show this help message"
     echo ""
     echo "Data is stored in $DATA_DIR/. Use scripts/data.sh to manage it."
@@ -342,6 +343,15 @@ start_services() {
     echo "Services started. Use 'docker compose logs -f' to view logs."
     echo "Platform API service health: http://localhost:3001/health"
     echo "CauseStarter: http://localhost:${CAUSESTARTER_PORT:-8090}/  (gateway: http://causestarter.localhost:8088/#/)"
+
+    # Fail fast on env / on-chain / SPA config drift (PublishedData missing, stale ProjectFactory ABI, …).
+    echo ""
+    if ! "$SCRIPT_DIR/check-local-config-sync.sh"; then
+        echo ""
+        echo "Error: local config sync check failed after start."
+        echo "Services are up, but contract addresses or ABIs are inconsistent — fix before using the stack."
+        exit 1
+    fi
 }
 
 stop_services() {
@@ -366,6 +376,9 @@ case "${1:-}" in
         ;;
     --url)
         print_spa_urls
+        ;;
+    --check)
+        exec "$SCRIPT_DIR/check-local-config-sync.sh"
         ;;
     --help|-h|"")
         show_usage

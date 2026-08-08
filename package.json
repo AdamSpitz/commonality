@@ -36,6 +36,8 @@
     "causestarter:test": "npm run test --workspace=causestarter",
     "causestarter:deploy": "./scripts/deploy-causestarter.sh",
     "causestarter:deploy:stop": "./scripts/deploy-causestarter.sh --stop",
+    "local:check": "./scripts/check-local-config-sync.sh",
+    "local:check:env": "./scripts/check-local-config-sync.sh --env-only",
     "cause-assist:dev": "npm run dev --workspace=@commonality/cause-assist",
     "cause-assist:build": "npm run build --workspace=@commonality/cause-assist",
     "cause-assist:start": "npm run start --workspace=@commonality/cause-assist",

@@ -150,14 +150,24 @@ function ContentFundingCardDetails({ info }: { info: ContentFundingInfo }) {
   )
 }
 
+/** Where project detail links resolve. `local` = same-origin /projects/...; `lazyGiving` = cross-domain LazyGiving. */
+export type ProjectLinkMode = 'local' | 'lazyGiving'
+
+export function resolveProjectHref(projectPath: string, mode: ProjectLinkMode = 'lazyGiving'): string {
+  if (mode === 'local') return projectPath
+  return getDomainUrl('lazyGiving', projectPath, { fallbackHref: projectPath })
+}
+
 export function AlignedProjectCard({
   project,
   metadata,
   causeCid,
+  projectLinks = 'lazyGiving',
 }: {
   project: AlignedProject
   metadata: ProjectMetadata | undefined
   causeCid?: string
+  projectLinks?: ProjectLinkMode
 }) {
   const status = getProjectStatus(project)
   const hasMinimum = BigInt(project.threshold) > 0n
@@ -168,14 +178,19 @@ export function AlignedProjectCard({
 
   const contentFundingInfo = useContentFundingInfo(project.projectAddress)
 
-  const lazyGivingPath = projectPathForAddress(project.projectAddress)
+  const projectPath = projectPathForAddress(project.projectAddress)
   const causeParam = causeCid ? `?causeCid=${encodeURIComponent(causeCid)}` : ''
-  const projectHref = getDomainUrl('lazyGiving', lazyGivingPath, { fallbackHref: lazyGivingPath })
-  const vouchHref = getDomainUrl('lazyGiving', `${lazyGivingPath}${causeParam}`, { fallbackHref: `${lazyGivingPath}${causeParam}` })
+  const projectHref = resolveProjectHref(projectPath, projectLinks)
+  const vouchHref = resolveProjectHref(`${projectPath}${causeParam}`, projectLinks)
+  const projectLabel = metadata?.name || project.projectAddress
+  const openAriaLabel =
+    projectLinks === 'local'
+      ? `Open project: ${projectLabel}`
+      : `Open project on LazyGiving: ${projectLabel}`
 
   return (
     <Card>
-      <CardActionArea component="a" href={projectHref} aria-label={`Open project on LazyGiving: ${metadata?.name || project.projectAddress}`}>
+      <CardActionArea component="a" href={projectHref} aria-label={openAriaLabel}>
         <CardContent>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
             <Typography variant="h6" component="h2" sx={{ flexGrow: 1 }}>
@@ -220,10 +235,12 @@ export function AlignedProjectCard({
           {contentFundingInfo && <ContentFundingCardDetails info={contentFundingInfo} />}
 
           <Button component="span" size="small" variant="contained" sx={{ mt: 2 }}>
-            Fund on LazyGiving
+            {projectLinks === 'local' ? 'Fund this project' : 'Fund on LazyGiving'}
           </Button>
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-            Pledge, refund, and withdraw on LazyGiving — then return here to explore more aligned projects.
+            {projectLinks === 'local'
+              ? 'Pledge, refund, and withdraw here — then return to explore more aligned projects.'
+              : 'Pledge, refund, and withdraw on LazyGiving — then return here to explore more aligned projects.'}
           </Typography>
         </CardContent>
       </CardActionArea>

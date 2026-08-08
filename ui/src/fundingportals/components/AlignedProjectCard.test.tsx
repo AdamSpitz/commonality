@@ -131,6 +131,21 @@ describe('AlignedProjectCard', () => {
       const fundLink = links.find(l => l.getAttribute('aria-label')?.includes('Open project'))
       expect(fundLink).toHaveAttribute('href', `/projects/eip155%3A31337%3A${PROJECT_ADDR}`)
     })
+
+    it('uses local project copy and path when projectLinks is local', () => {
+      render(
+        <AlignedProjectCard
+          project={makeProject()}
+          metadata={{ name: 'Local Hosted Project' }}
+          projectLinks="local"
+        />,
+      )
+
+      expect(screen.getByText('Fund this project')).toBeInTheDocument()
+      expect(screen.getByText(/Pledge, refund, and withdraw here/i)).toBeInTheDocument()
+      const fundLink = screen.getByRole('link', { name: /Open project: Local Hosted Project/i })
+      expect(fundLink).toHaveAttribute('href', `/projects/eip155%3A31337%3A${PROJECT_ADDR}`)
+    })
   })
 
   describe('Alignment type', () => {

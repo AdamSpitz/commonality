@@ -38,7 +38,13 @@ function activeNavPath(pathname: string): string {
   if (pathname === '/') return '/'
   const match = navItems.find((item) => item.path !== '/' && pathname.startsWith(item.path))
   if (match) return match.path
-  if (pathname.startsWith('/cause') || pathname.startsWith('/statement')) return '/momentum'
+  if (
+    pathname.startsWith('/cause')
+    || pathname.startsWith('/statement')
+    || pathname.startsWith('/projects')
+  ) {
+    return '/momentum'
+  }
   return pathname
 }
 
@@ -103,6 +109,7 @@ export function CauseShell({ children }: CauseShellProps) {
                   key={item.path}
                   component={Link}
                   to={item.path}
+                  data-testid={`nav-${item.label.toLowerCase()}`}
                   sx={{
                     px: 1.5,
                     py: 0.75,

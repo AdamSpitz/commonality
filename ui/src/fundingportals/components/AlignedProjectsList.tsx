@@ -17,7 +17,12 @@ import { getProject } from '@commonality/sdk/lazy-giving'
 import { type IpfsCidV1 } from '@commonality/sdk/utils'
 import { getDomainUrl, useMachinery, useTrustedSet } from '../../shared'
 import { getProjectStatus } from '../../lazy-giving'
-import { AlignedProjectCard, type AlignedProject, type ProjectMetadata } from './AlignedProjectCard'
+import {
+  AlignedProjectCard,
+  type AlignedProject,
+  type ProjectLinkMode,
+  type ProjectMetadata,
+} from './AlignedProjectCard'
 import { DiscoverySlider } from './DiscoverySlider'
 import { DISCOVERY_LEVEL_MAX_HOPS, type DiscoveryLevel } from './discoveryLevels'
 import { readProjectMetadata } from './projectMetadata'
@@ -44,10 +49,12 @@ export function AlignedProjectsList({
   statementCid,
   trustedImplicationAttesters,
   trustedAlignmentAttesters,
+  projectLinks = 'lazyGiving',
 }: {
   statementCid: string
   trustedImplicationAttesters?: Iterable<string>
   trustedAlignmentAttesters?: Iterable<string>
+  projectLinks?: ProjectLinkMode
 }) {
   const machinery = useMachinery()
   const { address } = useAccount()
@@ -222,7 +229,7 @@ export function AlignedProjectsList({
         <Paper sx={{ p: 3, textAlign: 'center' }}>
           <Typography variant="body1" color="text.secondary">
             {projects.length === 0
-              ? 'No aligned projects yet. Create one for this cause, or browse other projects that need support.'
+              ? 'No aligned projects yet. Create one for this cause to get started.'
               : 'No projects match the current filters.'}
           </Typography>
           {projects.length === 0 && (
@@ -233,13 +240,6 @@ export function AlignedProjectsList({
                 variant="contained"
               >
                 Create a project
-              </Button>
-              <Button
-                component="a"
-                href={getDomainUrl('lazyGiving', '/projects', { fallbackHref: '/projects' })}
-                variant="outlined"
-              >
-                Browse all projects
               </Button>
             </Stack>
           )}
@@ -252,6 +252,7 @@ export function AlignedProjectsList({
               project={project}
               metadata={metadata[project.projectAddress]}
               causeCid={statementCid}
+              projectLinks={projectLinks}
             />
           ))}
         </Stack>

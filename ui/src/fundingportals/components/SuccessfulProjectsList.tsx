@@ -5,9 +5,8 @@ import { getProject } from '@commonality/sdk/lazy-giving'
 import { type IpfsCidV1 } from '@commonality/sdk/utils'
 import { useMachinery } from '../../shared'
 import { formatCurrencyAmount } from '../../shared'
-import { getDomainUrl } from '../../shared'
 import { projectPathForAddress } from '../../shared'
-import type { ProjectMetadata } from './AlignedProjectCard'
+import { resolveProjectHref, type ProjectLinkMode, type ProjectMetadata } from './AlignedProjectCard'
 import { readProjectMetadata } from './projectMetadata'
 
 function shortAddress(address: string) {
@@ -25,11 +24,13 @@ export function SuccessfulProjectsList({
   trustedImplicationAttesters,
   trustedSuccessAttesters,
   trustWeights,
+  projectLinks = 'lazyGiving',
 }: {
   statementCid: string
   trustedImplicationAttesters?: Iterable<string>
   trustedSuccessAttesters?: Iterable<string>
   trustWeights?: Map<string, number>
+  projectLinks?: ProjectLinkMode
 }) {
   const machinery = useMachinery()
   const [projects, setProjects] = useState<SuccessfulProjectForCause[]>([])
@@ -98,10 +99,9 @@ export function SuccessfulProjectsList({
       ) : (
         <Stack spacing={2}>
           {projects.map((project) => {
-            const lazyGivingPath = projectPathForAddress(project.projectAddress)
-            const projectHref = getDomainUrl('lazyGiving', lazyGivingPath, { fallbackHref: lazyGivingPath })
-            const closeLoopPath = `${lazyGivingPath}#close-the-loop`
-            const closeLoopHref = getDomainUrl('lazyGiving', closeLoopPath, { fallbackHref: closeLoopPath })
+            const projectPath = projectPathForAddress(project.projectAddress)
+            const projectHref = resolveProjectHref(projectPath, projectLinks)
+            const closeLoopHref = resolveProjectHref(`${projectPath}#close-the-loop`, projectLinks)
             const suggestedDelegates = project.scoutRecords.slice().sort((a, b) => {
               const outstandingA = BigInt(a.outstandingAmount)
               const outstandingB = BigInt(b.outstandingAmount)
