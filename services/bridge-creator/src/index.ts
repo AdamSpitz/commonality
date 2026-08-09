@@ -22,7 +22,8 @@ import { publishBridgeNudgeBatch as defaultPublishBridgeNudgeBatch } from './pub
 import { publishBridgeStatement as defaultPublishBridgeStatement } from './statementPublisher.js';
 import { loadBridgePublicationDedupState, saveBridgePublicationDedupState } from './dedup.js';
 import { synthesizeBridgeTriples as defaultSynthesizeBridgeTriples } from './synthesizer.js';
-import { appendAnchorReflectionProposals } from './anchorReflection.js';
+import { appendAnchorReflectionProposals, reflectAnchorProposals } from './anchorReflection.js';
+import { loadMediatorAnchors, loadMediatorStrategyPrompt, saveMediatorAnchors } from './mediatorConfig.js';
 import { runBridgeCreatorTick } from './runner.js';
 export { loadConfigFromEnv };
 export type { BridgeCreatorConfig } from './config.js';
@@ -55,7 +56,9 @@ export type { BridgeProposalInput, BridgeProposalRecord, BridgeProposalStatus, B
 export { getActiveAnchors, getFeaturedAnchors, loadAnchorStoreFile, normalizeAnchorStoreFile } from './anchors.js';
 export type { BridgeAnchorRecord, BridgeAnchorStatus, BridgeAnchorStoreFile } from './anchors.js';
 export { loadDefaultStrategyPrompt } from './strategyPrompt.js';
-export { renderSynthesisUserPrompt, synthesizeBridgeTriples } from './synthesizer.js';
+export { loadMediatorConfigArtifact, scaffoldMediatorConfig } from './mediatorConfig.js';
+export type { MediatorConfigArtifact } from './mediatorConfig.js';
+export { interpolateStrategyLabels, renderSynthesisUserPrompt, synthesizeBridgeTriples } from './synthesizer.js';
 export type { BridgeSynthesisConfig, BridgeSynthesisInput, SynthesizedBridgeTriple } from './synthesizer.js';
 export {
   computeBridgePublicationInputHash,
@@ -122,6 +125,20 @@ export function createBridgeCreatorApp(
   signerAddress = createNudgerSigner(config).address,
 ): Express {
   const app = express();
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    const requestOrigin = req.headers.origin;
+    const allowedOrigin = config.corsOrigins.includes('*')
+      ? '*'
+      : requestOrigin && config.corsOrigins.includes(requestOrigin) ? requestOrigin : undefined;
+    if (allowedOrigin) {
+      res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
+      res.setHeader('Vary', 'Origin');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Payment-Proof');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    }
+    if (req.method === 'OPTIONS') { res.sendStatus(204); return; }
+    next();
+  });
   app.use(express.json());
 
   app.get('/.well-known/nudger.json', async (_req: Request, res: Response) => {
@@ -138,7 +155,7 @@ export function createBridgeCreatorApp(
         trusted_sources: config.trustedContextSources.map((source) => ({
           service_url: source.serviceUrl,
           signer_address: source.expectedSignerAddress,
-          role: 'csm-beat-context',
+          role: 'cause-context',
         })),
         status: allContextsReady(snapshots) ? 'ready' : 'warming',
         contact: config.contact,
@@ -156,7 +173,9 @@ export function createBridgeCreatorApp(
 
   app.get('/anchors', (req: Request, res: Response) => {
     try {
-      const store = loadAnchorStoreFile(config.anchorStorePath);
+      const store = config.mediatorConfigPath
+        ? { anchors: loadMediatorAnchors(config.mediatorConfigPath) }
+        : loadAnchorStoreFile(config.anchorStorePath);
       const anchors = req.query.featured === 'true' ? getFeaturedAnchors(store) : getActiveAnchors(store);
       res.json({ anchors });
     } catch (error) {
@@ -229,7 +248,9 @@ export function createBridgeCreatorApp(
 
   app.get('/strategy-prompt', (_req: Request, res: Response) => {
     try {
-      res.type('text/markdown').send(loadDefaultStrategyPrompt());
+      res.type('text/markdown').send(
+        config.mediatorConfigPath ? loadMediatorStrategyPrompt(config.mediatorConfigPath) : loadDefaultStrategyPrompt(),
+      );
     } catch (error) {
       console.error('Error in /strategy-prompt:', error);
       res.status(500).json({
@@ -270,8 +291,12 @@ export function run(config = loadConfig()): BridgeCreatorRunHandle {
   async function runTick(): Promise<void> {
     const result = await runBridgeCreatorTick(machinery, config, {
       fetchBridgeContextSnapshots,
-      loadAnchorStoreFile,
-      loadStrategyPrompt: loadDefaultStrategyPrompt,
+      loadAnchorStoreFile: config.mediatorConfigPath
+        ? () => ({ anchors: loadMediatorAnchors(config.mediatorConfigPath!) })
+        : loadAnchorStoreFile,
+      loadStrategyPrompt: config.mediatorConfigPath
+        ? () => loadMediatorStrategyPrompt(config.mediatorConfigPath!)
+        : loadDefaultStrategyPrompt,
       synthesizeBridgeTriples: defaultSynthesizeBridgeTriples,
       publishBridgeStatement: (tickMachinery, content) => defaultPublishBridgeStatement(
         tickMachinery,
@@ -301,18 +326,20 @@ export function run(config = loadConfig()): BridgeCreatorRunHandle {
     }
 
     const dedupState = loadBridgePublicationDedupState(config.publicationDedupStatePath);
-    const result = await appendAnchorReflectionProposals(
-      config.anchorStorePath,
-      {
-        contextSnapshots,
-        previousPublicationSummary: dedupState.lastPublicationSummary,
-        outcomeSummary: loadOptionalTextFile(config.anchorReflectionOutcomeSummaryPath),
-      },
-      {
-        openRouterApiKey: config.openRouterApiKey,
-        openRouterModel: config.openRouterModel,
-      },
-    );
+    const reflectionInput = {
+      contextSnapshots,
+      previousPublicationSummary: dedupState.lastPublicationSummary,
+      outcomeSummary: loadOptionalTextFile(config.anchorReflectionOutcomeSummaryPath),
+    };
+    const reflectionConfig = { openRouterApiKey: config.openRouterApiKey, openRouterModel: config.openRouterModel };
+    const result = config.mediatorConfigPath
+      ? await (async () => {
+          const currentAnchors = loadMediatorAnchors(config.mediatorConfigPath!);
+          const proposals = await reflectAnchorProposals({ ...reflectionInput, currentAnchors }, reflectionConfig);
+          if (proposals.length > 0) saveMediatorAnchors(config.mediatorConfigPath!, [...currentAnchors, ...proposals]);
+          return { proposals };
+        })()
+      : await appendAnchorReflectionProposals(config.anchorStorePath, reflectionInput, reflectionConfig);
     console.log(`Bridge creator anchor reflection: proposed=${result.proposals.length}`);
   }
 

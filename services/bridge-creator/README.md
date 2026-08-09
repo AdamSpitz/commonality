@@ -1,6 +1,6 @@
 # Bridge Creator
 
-A nudger service that uses AI to synthesize "bridge" statements — modified or common-ground versions of statements designed to make opposing views more compatible.
+A founder-operated nudger service — **a mediator for your cause** — that synthesizes two-sided bridge statements and common ground. Common Sense Majority (CSM) is the reference instance, not a hardcoded product boundary.
 
 It publishes nudge batches through [nudger-core](../nudger-core/README.md), and uses the LLM wrapper from [attester-core](../attester-core/README.md).
 
@@ -93,6 +93,14 @@ Run the full chain: Civility agent → CSM agent → bridge-creator emitting nud
 - Per-call billing or auth between CSM agent and bridge-creator (single operator, one budget).
 - Typed `/bridge-opportunities` endpoint (the whole point is to avoid this).
 
+## Founder mediator artifact (provisional)
+
+Set `BRIDGE_CREATOR_MEDIATOR_CONFIG_PATH` to a `provisional-v1` JSON artifact containing the founder-facing knobs: identity, founding statement, `side_a`/`side_b` labels, founder-written strategy prompt, anchors, context sources, and the **name** of the signer-secret environment variable. `config/csm.example.json` is the annotated real CSM example. It contains no signer secret.
+
+Create a blank artifact with `npm run scaffold --workspace=@commonality/bridge-creator -- --founding-statement "..." --output ../../mediator.json`. The scaffold deliberately provides no default mediation strategy: the founder must replace the strategy-prompt blank and curate anchors. See [the founder guide](../../docs/founder/mediator-for-your-cause.md).
+
+This schema is explicitly provisional for one revision pending a live rehearsal. Legacy file/env operation remains supported for CSM compatibility.
+
 ## Configuration
 
 | Variable | Required | Default | Description |
@@ -109,7 +117,10 @@ Run the full chain: Civility agent → CSM agent → bridge-creator emitting nud
 | `BRIDGE_CREATOR_SOURCE_TYPE` | No | `bridge-creator` | Source type for nudge messages |
 | `BRIDGE_CREATOR_VERSION` | No | `0.1.0` | Service metadata version |
 | `PORT` | No | `3003` | HTTP server port |
-| `BRIDGE_CREATOR_CSM_CONTEXT_SOURCES` | No | `[]` | JSON array of trusted context sources, e.g. `[{"service_url":"http://localhost:3004","expected_signer_address":"0x...","topic":"current bridge opportunities","purpose":"bridge_opportunity_context"}]`; entries fetch `GET /context?topic=...`, may target native `beat-memory` services, and may override staleness with `max_staleness_ms` |
+| `BRIDGE_CREATOR_CONTEXT_SOURCES` / `BRIDGE_CREATOR_CSM_CONTEXT_SOURCES` | No | `[]` | JSON array of trusted context sources, e.g. `[{"service_url":"http://localhost:3004","expected_signer_address":"0x...","topic":"current bridge opportunities","purpose":"bridge_opportunity_context"}]`; entries fetch `GET /context?topic=...`, may target native `beat-memory` services, and may override staleness with `max_staleness_ms` |
+| `BRIDGE_CREATOR_LABELS` | No | `["left","right"]` | Founder-facing JSON label pair interpolated into synthesis; artifact labels take precedence |
+| `BRIDGE_CREATOR_MEDIATOR_CONFIG_PATH` | No | — | Provisional all-in-one founder mediator artifact; preferred for new instances |
+| `BRIDGE_CREATOR_CORS_ORIGINS` | No | `*` | Comma-separated browser origins allowed to read public mediator endpoints; restrict in deployments if desired |
 | `BRIDGE_CREATOR_CONTEXT_MAX_AGE_MS` | No | `86400000` | Default maximum age for trusted CSM `/context` snapshots before rejecting them as stale |
 | `BRIDGE_CREATOR_ANCHOR_STORE_PATH` | No | `services/bridge-creator/data/seed-anchors.json` | JSON anchor-store file exposed by `GET /anchors` |
 | `BRIDGE_CREATOR_STRATEGY_PROMPT_URL` | No | `/strategy-prompt` | URL advertised in `.well-known/nudger.json` for the current strategy prompt |
@@ -134,7 +145,7 @@ npm run anchors --workspace=@commonality/bridge-creator -- feature <cluster-id>
 npm run anchors --workspace=@commonality/bridge-creator -- unfeature <cluster-id>
 ```
 
-Pass `--store path/to/anchors.json` before the command to review a non-default store.
+Pass `--config path/to/mediator.json` to review anchors inside an all-in-one mediator artifact. `--store path/to/anchors.json` remains available for legacy CSM stores.
 
 `active` is the **quality gate** (a legitimate bridge); `featured` is the **display gate** (shown publicly on the CSM bridges page). `feature`/`unfeature` operate on a whole **cluster id** — they set the `featured` flag on every anchor in that cluster, so a triple is never half-featured. Featuring an incomplete cluster (missing a left/right/common-ground role) succeeds but prints a warning.
 

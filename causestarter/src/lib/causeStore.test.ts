@@ -34,6 +34,19 @@ describe('causeStore v2', () => {
     expect(getCause(created.id)?.statements).toHaveLength(1)
   })
 
+  it('persists the optional founder mediator identity and service URL', () => {
+    const created = saveCause({
+      goal: 'Make housing abundant.', statements: [], levers: ['supporters'],
+      mediator: {
+        address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
+        serviceUrl: 'https://housing.example/mediator',
+        name: 'Housing mediator',
+        description: 'Bridges homeowners and renters.',
+      },
+    })
+    expect(getCause(created.id)?.mediator?.serviceUrl).toBe('https://housing.example/mediator')
+  })
+
   it('marks a cause launched with statement CIDs', () => {
     const created = saveCause({
       goal: 'Clean the creek.',

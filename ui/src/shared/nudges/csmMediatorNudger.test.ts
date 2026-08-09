@@ -19,6 +19,15 @@ describe('CSM mediator nudger configuration', () => {
     })
   })
 
+  it('takes identity from cause config when a reusable cause block supplies it', () => {
+    expect(getCsmMediatorNudger(emptyLocalConfig, {
+      address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
+      name: 'Housing mediator',
+      description: 'Bridges homeowners and renters.',
+      serviceUrl: 'https://housing.example',
+    })).toMatchObject({ name: 'Housing mediator', serviceUrl: 'https://housing.example' })
+  })
+
   it('does not silently invent a mediator for non-local deployments', () => {
     const mediator = getCsmMediatorNudger({
       ...emptyLocalConfig,

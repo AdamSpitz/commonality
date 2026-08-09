@@ -49,11 +49,11 @@ export function parseTrustedContextSources(
 		parsed = JSON.parse(value);
 	} catch (error) {
 		throw new Error(
-			`BRIDGE_CREATOR_CSM_CONTEXT_SOURCES must be valid JSON: ${error instanceof Error ? error.message : String(error)}`,
+			`BRIDGE_CREATOR_CONTEXT_SOURCES must be valid JSON: ${error instanceof Error ? error.message : String(error)}`,
 		);
 	}
 	if (!Array.isArray(parsed)) {
-		throw new Error("BRIDGE_CREATOR_CSM_CONTEXT_SOURCES must be a JSON array");
+		throw new Error("BRIDGE_CREATOR_CONTEXT_SOURCES must be a JSON array");
 	}
 
 	return parsed.map((entry, index) =>

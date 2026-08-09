@@ -94,7 +94,7 @@ describe('bridge creator anchor CLI', () => {
       console.warn = originalWarn;
     }
 
-    assert.ok(warnings.some((w) => /missing role\(s\): moderate-right/.test(w)));
+    assert.ok(warnings.some((w) => /missing role\(s\): side-b/.test(w)));
     const store = normalizeAnchorStoreFile(JSON.parse(readFileSync(storePath, 'utf8')));
     assert.ok(store.anchors.every((a) => a.featured));
   });

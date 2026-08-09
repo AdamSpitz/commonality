@@ -19,6 +19,7 @@ import { getProjectStatus, STATUS_LABELS } from '@ui/lazy-giving'
 import { DelegatableNotesSection } from '@ui/fundingportals'
 import { SupportButton } from '../components/SupportButton'
 import { ToolCard } from '../components/ToolCard'
+import { CauseMediatorCard } from '../components/CauseMediatorCard'
 import {
   adoptedStatements,
   deleteCause,
@@ -474,6 +475,8 @@ export function CauseDetailPage() {
           </Typography>
         </Paper>
       )}
+
+      {cause.mediator && <CauseMediatorCard mediator={cause.mediator} />}
 
       {tools.length > 0 && (
         <Stack spacing={1.25}>

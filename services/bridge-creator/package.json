@@ -13,7 +13,8 @@
     "typecheck": "tsc --noEmit",
     "test": "mocha",
     "lint": "eslint .",
-    "anchors": "tsx src/anchorCli.ts"
+    "anchors": "tsx src/anchorCli.ts",
+    "scaffold": "tsx src/scaffoldCli.ts"
   },
   "dependencies": {
     "@commonality/sdk": "1.0.0",

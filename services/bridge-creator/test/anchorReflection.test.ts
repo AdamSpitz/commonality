@@ -30,7 +30,7 @@ describe('anchor reflection', () => {
 
     const request = requests[0] as { userPrompt: string; staticUserPrompt: string; title: string };
     assert.strictEqual(request.title, 'Commonality Bridge Anchor Reflection');
-    assert.match(request.staticUserPrompt, /popular-and-sane/);
+    assert.match(request.staticUserPrompt, /trusted cause context/);
     assert.match(request.userPrompt, /Housing affordability is now a live topic/);
     assert.match(request.userPrompt, /immigration-common/);
     assert.match(request.userPrompt, /Published immigration bridge last tick/);
@@ -124,6 +124,7 @@ function makeAnchor(overrides: Partial<BridgeAnchorRecord> = {}): BridgeAnchorRe
     topic_tag: 'topic',
     rationale: 'Test fixture.',
     status: 'active',
+    featured: false,
     created_at: '2026-05-21T00:00:00.000Z',
     last_reviewed_at: '2026-05-21T00:00:00.000Z',
     ...overrides,

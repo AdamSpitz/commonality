@@ -51,6 +51,13 @@ export interface CauseStatement {
   implication?: ImplicationState
 }
 
+export interface CauseMediator {
+  address: string
+  serviceUrl: string
+  name: string
+  description: string
+}
+
 export interface CauseDraft {
   id: string
   /** What the cause intends to accomplish. */
@@ -67,6 +74,8 @@ export interface CauseDraft {
   statementCids?: string[]
   status: 'draft' | 'launched'
   goalSafety?: SafetyState
+  /** Optional founder-operated mediator used by reusable bridge/opt-in blocks. */
+  mediator?: CauseMediator
 }
 
 const STORAGE_KEY = 'causestarter.causes.v2'
@@ -199,6 +208,7 @@ export function saveCause(input: {
   statementCid?: string
   statementCids?: string[]
   goalSafety?: SafetyState
+  mediator?: CauseMediator
 }): CauseDraft {
   const now = new Date().toISOString()
   const causes = readAll()
@@ -217,6 +227,7 @@ export function saveCause(input: {
       statementCid: input.statementCid ?? existing.statementCid,
       statementCids: input.statementCids ?? existing.statementCids,
       goalSafety: input.goalSafety ?? existing.goalSafety,
+      mediator: input.mediator ?? existing.mediator,
       updatedAt: now,
     }
     causes[existingIndex] = updated
@@ -234,6 +245,7 @@ export function saveCause(input: {
     statementCid: input.statementCid,
     statementCids: input.statementCids,
     goalSafety: input.goalSafety,
+    mediator: input.mediator,
     createdAt: now,
     updatedAt: now,
   }

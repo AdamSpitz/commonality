@@ -15,9 +15,9 @@ For each such issue, the content people write tends to classifiable into categor
 
 The two normal-side statements are your raw material. From them you produce a **triple**:
 
-  - a **modified-left** statement — a statement that a normal left-wing person would be willing to sign, but that has common ground with the **modified-right** statement;
-  - a **modified-right** statement (ditto);
-  - and a **commonality** statement that is (very directly and straightforwardly and uncontroversially) *implied* by the modified-left and modified-right statements.
+  - a **side-a** statement — a statement that a normal left-wing person would be willing to sign, but that has common ground with the **side-b** statement;
+  - a **side-b** statement (ditto);
+  - and a **commonality** statement that is (very directly and straightforwardly and uncontroversially) *implied* by the side-a and side-b statements.
 
 The modified statements are the load-bearing part of the work — and the subtlest. Each one is *not* exactly what its side would write on their own; it's been adjusted just enough that two things are true at once:
 
@@ -37,7 +37,7 @@ If a modification buys the implication but no one on that side would sign it, yo
 ### Core strategy
 
 1. Prefer popular-and-sane positions. A bridge is useful when it reflects something real people on each side currently believe and can hear without rage-quitting.
-2. Look for moderate-left and moderate-right statements that do not actually conflict, or that can be made compatible by making existing concessions explicit.
+2. Look for side-a (left) and side-b (right) statements that do not actually conflict, or that can be made compatible by making existing concessions explicit.
 3. Use anchors as living hypotheses, not scripture. Stay near the active anchors unless the current context clearly suggests that a framing has shifted.
 4. Synthesize triples: a modified statement for one side, a modified statement for the other side, and a common-ground statement that both modified statements imply.
 5. Make modified statements plausible for their intended signers. Do not smuggle in a full conversion; add the smallest compatibility-making concession or clarification.
@@ -124,7 +124,7 @@ A few techniques show up across several of the patterns.
 
 **Defer the details.** Support for a statement often hinges on details that shouldn't be spelled out — because getting dragged into a fight over the fine print destroys the high-level agreement that matters more. Trying to enumerate every case ("punish cops who do A, B, C, D…") is a trap; you'll never get agreement on the list. The better move is to state the agreement and explicitly defer the details *with a good-faith pledge*: "Cops who abuse their power should be punished. We can work out exactly what 'abuse' means separately — and I mean the ordinary, reasonable sense of it, not some edge case I'm sneaking in." The pledge is the point: you're deferring the details because they're a distraction, not to exploit the ambiguity later. The details can be argued later — that's the ordinary, productive kind of disagreement. What the high-level agreement buys you is the shift from "these people are enemies" to "these people are reasonable and we'll work it out."
 
-**Expressing reservations while still supporting the statement.** A commonality statement is rarely exactly what any one signer would choose to say. It might be a compromise, or fail to emphasize what they'd emphasize, or condition on hypothetical facts they don't actually believe. So it's often useful to build a qualification right into the statement: "I've got my own views on [the details], but I do agree that [the commonality]." That makes signing more comfortable, because the statement no longer presents itself as the signer's ideal — it says on the tin that it's a compromise being supported anyway. The moderate-left and moderate-right nudges can do the same, except each one can name the specific reservation each side holds.
+**Expressing reservations while still supporting the statement.** A commonality statement is rarely exactly what any one signer would choose to say. It might be a compromise, or fail to emphasize what they'd emphasize, or condition on hypothetical facts they don't actually believe. So it's often useful to build a qualification right into the statement: "I've got my own views on [the details], but I do agree that [the commonality]." That makes signing more comfortable, because the statement no longer presents itself as the signer's ideal — it says on the tin that it's a compromise being supported anyway. The side-a (left) and side-b (right) nudges can do the same, except each one can name the specific reservation each side holds.
 
 ## How to use these patterns
 
