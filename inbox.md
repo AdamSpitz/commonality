@@ -58,9 +58,7 @@ is the living spec with the full backlog. What's left here is only the part that
 
 - Improve the [pitch for Christians](docs/founder/christian-pitch.md). Come up with other ones along those lines.
 
-- [ ] **(Ask)** What is a cause actually made of? The **planks / views / anchors** model in [shaping-your-cause-statements.md](docs/founder/shaping-your-cause-statements.md) is settled enough to build against: planks are the published atoms, views are free client-side set operations (so "one main statement" is a default promoted view, not a structural rule), anchors are promoted views, and two rules fell out — conjunction views must show **two bands** (`noOpinion` is the default, so a strict intersection collapses on silence rather than disagreement) and **align low, aggregate high** (attach alignment/earmarks to planks, never conjunctions). The two remaining design questions were closed on 2026-08-09 and written up with their reasoning in that doc's **§ Resolved** — they need your sign-off, not more thinking: (1) direct/indirect doesn't cross the bands, it maps onto them (band 1 = direct only, band 2 = direct ∪ indirect), and the transparency rule binds at the plank, not the view — note the two sets are *not* disjoint, so a naive split double-counts; (2) the founder never sees the three shapes — the wizard asks for issues and previews the two views, which makes the unsound main→supporting gating problem disappear rather than need fixing. Also recorded: a promoted disjunctive anchor must keep its enumerated list visible and can't be phrased as a slogan; and "views are free" is true of the chain but not of the read layer, so if the scale check forces a server-side aggregate, views add to the founder's infrastructure burden.
-
-- Better yet (or in addition to that), have an AI generate a bunch of imaginary founders and causes and so on.
+- Have an AI generate a bunch of imaginary founders and causes and so on, as a way of pressure-testing the founder-facing model.
 
 ### Stuff I want to think through
 

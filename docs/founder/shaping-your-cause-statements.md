@@ -1,12 +1,13 @@
 # Shaping your cause's statements
 
-**Status: settled in outline, unbuilt.** This is how a cause is built out of
+**Status: signed off, unbuilt.** This is how a cause is built out of
 statements. The mechanics it describes (implication direction, how support and
 cause boards aggregate) are accurate to the system as specified. The architecture
-it proposes — **planks, views, and anchors** — is settled enough to build against
-as of 2026-08-09, but none of it is implemented. The design questions that were
-open closed on 2026-08-09 and are recorded, with their reasoning, in
-[§ Resolved](#resolved-2026-08-09); what remains open is one bug, at the end.
+it proposes — **planks, views, and anchors** — was signed off by Adam on
+2026-08-09 and is the model to build against, but none of it is implemented. The
+design questions that were open closed on the same date and are recorded, with
+their reasoning, in [§ Resolved](#resolved-2026-08-09); what remains open is one
+bug, at the end.
 
 Companion to [standing up a vertical](/docs/founder/standing-up-a-vertical.md),
 which covers the vertical as a whole. This one covers the narrow question of what
@@ -500,22 +501,17 @@ semantics and note-lifecycle inheritance are unresolved, so the earmarked-funds
 surfaces are being removed while the contract and SDK primitives stay dormant. So
 "earmark to the plank, let views aggregate" is the right *shape*, and it currently
 has no shipping UI behind it. See the NoteIntent item in [TODO.md](/TODO.md).
-  `getNoteIntentAttestationsByStatement`
-  (`sdk/src/subsystems/delegation/queries.ts:245`) is exact-match on
-  `intendedStatementId` — no implication traversal.
-  `getTotalFundingForCause` (`sdk/src/subsystems/fundingportals/queries.ts:786-801`)
-  does expand the CID set, but sources it from `getIndirectlyAlignedSubjects`,
-  which emits one entry *per alignment* — so a plank with earmarked money but **no
-  aligned projects yet** never enters the set and its funds are invisible to the
-  cause total. Meanwhile the cause board's own "Earmarked funds" panel
-  (`DelegatableNotesSection`, via `CauseBoard.tsx:357`) and
-  `AvailableDelegatableFunding` call the exact-match primitive directly, so they
-  don't roll up at all and can disagree with the aggregate beside them. The
-  exact-match path also applies no attester-trust filtering while the expanding
-  path does. Worth fixing on its own terms. *Note that the views model mostly
-  routes around this*: a view queries each plank exactly and unions client-side,
-  which is what the exact-match primitive already does well. The bug bites
-  published anchors, not views.
+
+(Two further symptoms, for whoever revisits this: the cause board's own "Earmarked
+funds" panel — `DelegatableNotesSection`, via `CauseBoard.tsx:357` — and
+`AvailableDelegatableFunding` call the exact-match primitive directly, so they
+don't roll up at all and can disagree with the aggregate beside them; and the
+exact-match path applies no attester-trust filtering while the expanding path
+does.)
+
+*Note that the views model mostly routes around this bug anyway*: a view queries
+each plank exactly and unions client-side, which is what the exact-match primitive
+already does well. The bug bites published anchors, not views.
 
 ## See also
 
