@@ -1,7 +1,7 @@
 {
   "name": "@commonality/cause-assist",
   "version": "0.1.0",
-  "description": "LLM statement suggester and safety filter for CauseStarter (Grok 4.5 / xAI)",
+  "description": "LLM statement suggester, implication check, and safety filter for CauseStarter (Grok 4.5 / xAI)",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -9,8 +9,10 @@
     ".": "./dist/index.js"
   },
   "scripts": {
+    "prebuild": "npm run build --workspace=@commonality/attester-core && npm run build --workspace=@commonality/implication-attester",
     "build": "tsc",
     "clean": "rm -rf dist",
+    "pretypecheck": "npm run build --workspace=@commonality/attester-core && npm run build --workspace=@commonality/implication-attester",
     "typecheck": "tsc --noEmit",
     "dev": "tsx watch src/index.ts",
     "start": "node dist/index.js",
@@ -19,6 +21,7 @@
   },
   "dependencies": {
     "@commonality/attester-core": "0.1.0",
+    "@commonality/implication-attester": "0.1.0",
     "express": "^4.18.2"
   },
   "devDependencies": {

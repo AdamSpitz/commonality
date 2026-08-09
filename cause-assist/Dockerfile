@@ -39,11 +39,17 @@ COPY turbo.json ./turbo.json
 
 RUN --mount=type=cache,target=/root/.npm HUSKY=0 npm ci --legacy-peer-deps
 
+COPY sdk ./sdk
 COPY services/attester-core ./services/attester-core
+COPY services/implication-attester ./services/implication-attester
 COPY cause-assist ./cause-assist
 
 ENV HUSKY=0
-RUN npm run build --workspace=@commonality/attester-core \
+# implication-attester/api is used only for the evaluator system prompt + types;
+# sdk is required to typecheck/build that package in the monorepo.
+RUN npm run build --workspace=@commonality/sdk \
+  && npm run build --workspace=@commonality/attester-core \
+  && npm run build --workspace=@commonality/implication-attester \
   && npm run build --workspace=@commonality/cause-assist
 
 FROM node:24.14.1-alpine AS runtime
@@ -57,9 +63,13 @@ COPY --from=builder /workspace/cause-assist/dist ./dist
 # packages (symlinks in the builder tree do not survive a slim runtime layout).
 COPY --from=builder /workspace/node_modules ./node_modules
 RUN rm -rf ./node_modules/@commonality/attester-core \
-  && mkdir -p ./node_modules/@commonality/attester-core
+  && mkdir -p ./node_modules/@commonality/attester-core \
+  && rm -rf ./node_modules/@commonality/implication-attester \
+  && mkdir -p ./node_modules/@commonality/implication-attester
 COPY --from=builder /workspace/services/attester-core/package.json ./node_modules/@commonality/attester-core/package.json
 COPY --from=builder /workspace/services/attester-core/dist ./node_modules/@commonality/attester-core/dist
+COPY --from=builder /workspace/services/implication-attester/package.json ./node_modules/@commonality/implication-attester/package.json
+COPY --from=builder /workspace/services/implication-attester/dist ./node_modules/@commonality/implication-attester/dist
 
 EXPOSE 3002
 CMD ["node", "dist/index.js"]

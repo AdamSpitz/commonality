@@ -16,6 +16,7 @@ import { getAllAlignedProjectsForCause } from '@commonality/sdk/fundingportals'
 import type { IpfsCidV1 } from '@commonality/sdk/utils'
 import { projectPathForAddress } from '@ui/shared'
 import { getProjectStatus, STATUS_LABELS } from '@ui/lazy-giving'
+import { DelegatableNotesSection } from '@ui/fundingportals'
 import { SupportButton } from '../components/SupportButton'
 import { ToolCard } from '../components/ToolCard'
 import {
@@ -24,7 +25,7 @@ import {
   getCause,
   type CauseDraft,
 } from '../lib/causeStore'
-import { toolsForLevers } from '../lib/tools'
+import { SUPPORTING_TOOLS } from '../lib/tools'
 import { useMachinery } from '../lib/useMachinery'
 
 type CauseProject = {
@@ -84,9 +85,10 @@ export function CauseDetailPage() {
     setCause(causeId ? getCause(causeId) : undefined)
   }, [causeId])
 
+  // Always surface every growth surface on the cause page (no lever checklist).
   const tools = useMemo(
-    () => (cause ? toolsForLevers(cause.levers) : []),
-    [cause],
+    () => SUPPORTING_TOOLS.filter((t) => t.kind === 'substrate' && t.id !== 'delegation'),
+    [],
   )
   const adopted = useMemo(
     () => (cause ? adoptedStatements(cause) : []),
@@ -425,17 +427,29 @@ export function CauseDetailPage() {
         )}
       </Paper>
 
-      {tools.length > 0 && (
-        <Box>
-          <Typography variant="h6" sx={{ fontWeight: 700, mb: 1.25 }}>
-            Tools for this cause
+      {cause.statementCid ? (
+        <DelegatableNotesSection
+          statementCid={cause.statementCid}
+          to={`/cause/${cause.id}/earmarked`}
+        />
+      ) : (
+        <Paper elevation={0} sx={{ p: 2.5, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
+          <Typography variant="h6" sx={{ fontWeight: 700 }}>
+            Earmarked funds
           </Typography>
-          <Stack spacing={1.25}>
-            {tools.map((tool) => (
-              <ToolCard key={tool.id} tool={tool} compact />
-            ))}
-          </Stack>
-        </Box>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.75 }}>
+            After you publish, this shows how much is pledged to the cause, how much you have
+            pledged, and how much others have directed to you.
+          </Typography>
+        </Paper>
+      )}
+
+      {tools.length > 0 && (
+        <Stack spacing={1.25}>
+          {tools.map((tool) => (
+            <ToolCard key={tool.id} tool={tool} compact />
+          ))}
+        </Stack>
       )}
 
       <Divider />

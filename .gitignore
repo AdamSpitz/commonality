@@ -35,4 +35,6 @@ tmp/
 
 # Local build outputs for new packages
 causestarter/dist/
+# Generated at container startup; local copies may contain environment-specific addresses.
+/causestarter/public/config.json
 cause-assist/dist/

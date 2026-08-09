@@ -1,13 +1,7 @@
-import { render, screen, waitFor } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { cleanup, render, screen, waitFor } from '@testing-library/react'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { MemoryRouter } from 'react-router-dom'
 import { DelegatableNotesSection } from './DelegatableNotesSection'
-
-vi.mock('react-router-dom', () => ({
-  Link: vi.fn(({ to, children, ...props }: any) => (
-    <a href={to} {...props}>{children}</a>
-  )),
-}))
 
 vi.mock('wagmi', () => ({
   useAccount: vi.fn(),
@@ -83,10 +77,10 @@ function makeNote(overrides: Partial<{
   }
 }
 
-async function openDetails() {
-  const user = userEvent.setup()
-  await user.click(screen.getByRole('button', { name: /show\s+note details/i }))
-  return user
+function renderSection(
+  ui: React.ReactElement = <DelegatableNotesSection statementCid="QmTest" />,
+) {
+  return render(<MemoryRouter>{ui}</MemoryRouter>)
 }
 
 async function waitForTotal(text: string | RegExp) {
@@ -96,6 +90,10 @@ async function waitForTotal(text: string | RegExp) {
 }
 
 describe('DelegatableNotesSection', () => {
+  afterEach(() => {
+    cleanup()
+  })
+
   beforeEach(() => {
     vi.clearAllMocks()
     vi.mocked(createSDKMachinery).mockReturnValue(mockMachinery)
@@ -105,11 +103,18 @@ describe('DelegatableNotesSection', () => {
   })
 
   describe('Summary metrics', () => {
-    it('loads notes on mount without requiring expand', async () => {
-      render(<DelegatableNotesSection statementCid="QmTest" />)
+    it('loads notes on mount', async () => {
+      renderSection()
 
       await waitFor(() => {
         expect(getNoteIntentAttestationsByStatement).toHaveBeenCalledWith(mockMachinery, 'QmTest')
+      })
+    })
+
+    it('titles the section Earmarked funds', async () => {
+      renderSection()
+      await waitFor(() => {
+        expect(screen.getByRole('heading', { name: /earmarked funds/i })).toBeInTheDocument()
       })
     })
 
@@ -125,10 +130,10 @@ describe('DelegatableNotesSection', () => {
         return makeNote({ id: '2', amount: '2000000000000000000' })
       })
 
-      render(<DelegatableNotesSection statementCid="QmTest" />)
+      renderSection()
 
       await waitFor(() => {
-        expect(screen.getByText('Total pledged to this cause')).toBeInTheDocument()
+        expect(screen.getByText('Total pledged')).toBeInTheDocument()
         expect(screen.getByText('3 ETH')).toBeInTheDocument()
       })
     })
@@ -142,7 +147,7 @@ describe('DelegatableNotesSection', () => {
         makeNote({ id: '1', amount: '1000000000000000000' }),
       )
 
-      render(<DelegatableNotesSection statementCid="QmTest" />)
+      renderSection()
 
       await waitForTotal('1 ETH')
       expect(getNote).toHaveBeenCalledTimes(1)
@@ -157,7 +162,6 @@ describe('DelegatableNotesSection', () => {
       ])
       vi.mocked(getNote).mockImplementation(async (_m, noteId) => {
         if (noteId === `${NOTE_CONTRACT.toLowerCase()}:1`) {
-          // User deposited and delegated away
           return makeNote({
             id: '1',
             amount: '1000000000000000000',
@@ -165,7 +169,6 @@ describe('DelegatableNotesSection', () => {
             owner: OWNER_B,
           })
         }
-        // Someone else
         return makeNote({
           id: '2',
           amount: '5000000000000000000',
@@ -174,17 +177,16 @@ describe('DelegatableNotesSection', () => {
         })
       })
 
-      render(<DelegatableNotesSection statementCid="QmTest" />)
+      renderSection()
 
       await waitFor(() => {
         expect(screen.getByText("You've pledged")).toBeInTheDocument()
-        // User's 1 ETH appears under You've pledged; total is 6 ETH
         expect(screen.getByText('6 ETH')).toBeInTheDocument()
         expect(screen.getAllByText('1 ETH').length).toBeGreaterThanOrEqual(1)
       })
     })
 
-    it('shows amount delegated to the connected user (leaf owner, not root)', async () => {
+    it('shows amount directed to the connected user (leaf owner, not root)', async () => {
       vi.mocked(useAccount).mockReturnValue({ address: USER } as any)
       vi.mocked(getNoteIntentAttestationsByStatement).mockResolvedValue([makeAttestation('1')])
       vi.mocked(getNote).mockResolvedValue(
@@ -196,16 +198,15 @@ describe('DelegatableNotesSection', () => {
         }),
       )
 
-      render(<DelegatableNotesSection statementCid="QmTest" />)
+      renderSection()
 
       await waitFor(() => {
-        expect(screen.getByText('Delegated to you')).toBeInTheDocument()
-        // Total and delegated-to-you both 2.5 ETH
+        expect(screen.getByText('Directed to you')).toBeInTheDocument()
         expect(screen.getAllByText('2.5 ETH').length).toBeGreaterThanOrEqual(2)
       })
     })
 
-    it('does not count self-held notes as delegated to you', async () => {
+    it('does not count self-held notes as directed to you', async () => {
       vi.mocked(useAccount).mockReturnValue({ address: USER } as any)
       vi.mocked(getNoteIntentAttestationsByStatement).mockResolvedValue([makeAttestation('1')])
       vi.mocked(getNote).mockResolvedValue(
@@ -217,28 +218,63 @@ describe('DelegatableNotesSection', () => {
         }),
       )
 
-      render(<DelegatableNotesSection statementCid="QmTest" />)
+      renderSection()
 
       await waitFor(() => {
-        expect(screen.getByText('Total pledged to this cause')).toBeInTheDocument()
+        expect(screen.getByText('Total pledged')).toBeInTheDocument()
       })
 
-      // You've pledged = 1 ETH; delegated to you = 0
       expect(screen.getByText("You've pledged")).toBeInTheDocument()
-      expect(screen.getByText('Delegated to you')).toBeInTheDocument()
-      expect(screen.getByText('0 ETH')).toBeInTheDocument()
+      expect(screen.getByText('Directed to you')).toBeInTheDocument()
+      expect(screen.getByText('nothing')).toBeInTheDocument()
     })
 
-    it('prompts to connect when wallet is disconnected for personal metrics', async () => {
+    it('shows em dash for personal metrics when wallet is disconnected', async () => {
       vi.mocked(useAccount).mockReturnValue({ address: undefined } as any)
       vi.mocked(getNoteIntentAttestationsByStatement).mockResolvedValue([])
 
-      render(<DelegatableNotesSection statementCid="QmTest" />)
+      renderSection()
 
       await waitFor(() => {
-        expect(screen.getByText('Connect a wallet to see your pledges')).toBeInTheDocument()
-        expect(screen.getByText('Connect a wallet to see notes delegated to you')).toBeInTheDocument()
+        expect(screen.getByText('Your pledge')).toBeInTheDocument()
+        expect(screen.getByText('Directed to you')).toBeInTheDocument()
+        expect(screen.getAllByText('—').length).toBeGreaterThanOrEqual(2)
       })
+    })
+
+    it('does not show note details in explicit summary mode', async () => {
+      vi.mocked(getNoteIntentAttestationsByStatement).mockResolvedValue([makeAttestation('1')])
+      vi.mocked(getNote).mockResolvedValue(makeNote())
+
+      renderSection(<DelegatableNotesSection statementCid="QmTest" variant="summary" />)
+      await waitForTotal('1 ETH')
+
+      expect(screen.queryByRole('button', { name: /note details/i })).not.toBeInTheDocument()
+      expect(screen.queryByText('Notes earmarked for this cause')).not.toBeInTheDocument()
+      expect(screen.queryByText('#1')).not.toBeInTheDocument()
+    })
+
+    it('links the whole summary card when to is provided', async () => {
+      renderSection(<DelegatableNotesSection statementCid="QmTest" to="/cause/abc/earmarked" />)
+
+      await waitFor(() => {
+        expect(screen.getByRole('heading', { name: /earmarked funds/i })).toBeInTheDocument()
+      })
+
+      const link = screen.getByRole('link')
+      expect(link).toHaveAttribute('href', '/cause/abc/earmarked')
+      expect(screen.getByText('Details →')).toBeInTheDocument()
+    })
+
+    it('uses a single caption line per metric (no secondary descriptions)', async () => {
+      renderSection()
+      await waitFor(() => {
+        expect(screen.getByText('Total pledged')).toBeInTheDocument()
+      })
+
+      expect(screen.queryByText(/all active notes earmarked/i)).not.toBeInTheDocument()
+      expect(screen.queryByText(/connect a wallet to see/i)).not.toBeInTheDocument()
+      expect(screen.queryByText(/notes you deposited/i)).not.toBeInTheDocument()
     })
   })
 
@@ -246,7 +282,7 @@ describe('DelegatableNotesSection', () => {
     it('shows spinner while data is loading', () => {
       vi.mocked(getNoteIntentAttestationsByStatement).mockReturnValue(new Promise(() => {}))
 
-      render(<DelegatableNotesSection statementCid="QmTest" />)
+      renderSection()
 
       expect(screen.getByRole('progressbar')).toBeInTheDocument()
       expect(screen.getByText(/loading pledges/i)).toBeInTheDocument()
@@ -257,7 +293,7 @@ describe('DelegatableNotesSection', () => {
     it('shows error Alert with message when loading fails', async () => {
       vi.mocked(getNoteIntentAttestationsByStatement).mockRejectedValue(new Error('Network failure'))
 
-      render(<DelegatableNotesSection statementCid="QmTest" />)
+      renderSection()
 
       await waitFor(() => {
         expect(screen.getByRole('alert')).toBeInTheDocument()
@@ -268,42 +304,46 @@ describe('DelegatableNotesSection', () => {
     it('shows generic error for non-Error exceptions', async () => {
       vi.mocked(getNoteIntentAttestationsByStatement).mockRejectedValue('string error')
 
-      render(<DelegatableNotesSection statementCid="QmTest" />)
+      renderSection()
 
       await waitFor(() => {
-        expect(screen.getByText('Failed to load delegatable notes')).toBeInTheDocument()
+        expect(screen.getByText('Failed to load earmarked funds')).toBeInTheDocument()
       })
     })
   })
 
-  describe('Empty state', () => {
-    it('shows empty message in details when no notes exist', async () => {
+  describe('Detail variant', () => {
+    it('preserves the full note table by default for existing funding portal hosts', async () => {
+      vi.mocked(getNoteIntentAttestationsByStatement).mockResolvedValue([makeAttestation('1')])
+      vi.mocked(getNote).mockResolvedValue(makeNote())
+
+      renderSection()
+      await waitForTotal('1 ETH')
+
+      expect(screen.getByText('Notes earmarked for this cause')).toBeInTheDocument()
+      expect(screen.getByRole('columnheader', { name: 'Note ID' })).toBeInTheDocument()
+      expect(screen.getByText('#1')).toBeInTheDocument()
+    })
+
+    it('shows empty message when no notes exist', async () => {
       vi.mocked(getNoteIntentAttestationsByStatement).mockResolvedValue([])
 
-      render(<DelegatableNotesSection statementCid="QmTest" />)
-      await waitFor(() => expect(screen.getByText('0 ETH')).toBeInTheDocument())
-      await openDetails()
+      renderSection(<DelegatableNotesSection statementCid="QmTest" variant="detail" />)
+      await waitFor(() => expect(screen.getByText('nothing')).toBeInTheDocument())
 
-      await waitFor(() => {
-        expect(screen.getByText('No delegatable notes intended for this cause.')).toBeInTheDocument()
-      })
+      expect(screen.getByText('No notes earmarked for this cause yet.')).toBeInTheDocument()
     })
 
     it('shows empty message when all notes are inactive', async () => {
       vi.mocked(getNoteIntentAttestationsByStatement).mockResolvedValue([makeAttestation('1')])
       vi.mocked(getNote).mockResolvedValue(makeNote({ id: '1', active: false }))
 
-      render(<DelegatableNotesSection statementCid="QmTest" />)
-      await waitFor(() => expect(screen.getByText('0 ETH')).toBeInTheDocument())
-      await openDetails()
+      renderSection(<DelegatableNotesSection statementCid="QmTest" variant="detail" />)
+      await waitFor(() => expect(screen.getByText('nothing')).toBeInTheDocument())
 
-      await waitFor(() => {
-        expect(screen.getByText('No delegatable notes intended for this cause.')).toBeInTheDocument()
-      })
+      expect(screen.getByText('No notes earmarked for this cause yet.')).toBeInTheDocument()
     })
-  })
 
-  describe('Note filtering', () => {
     it('excludes inactive notes from the table', async () => {
       vi.mocked(getNoteIntentAttestationsByStatement).mockResolvedValue([
         makeAttestation('1'),
@@ -315,9 +355,8 @@ describe('DelegatableNotesSection', () => {
         return null
       })
 
-      render(<DelegatableNotesSection statementCid="QmTest" />)
+      renderSection(<DelegatableNotesSection statementCid="QmTest" variant="detail" />)
       await waitForTotal('1 ETH')
-      await openDetails()
 
       await waitFor(() => {
         expect(screen.getByText('#1')).toBeInTheDocument()
@@ -336,9 +375,8 @@ describe('DelegatableNotesSection', () => {
         return null
       })
 
-      render(<DelegatableNotesSection statementCid="QmTest" />)
+      renderSection(<DelegatableNotesSection statementCid="QmTest" variant="detail" />)
       await waitFor(() => expect(getNote).toHaveBeenCalled())
-      await openDetails()
 
       await waitFor(() => {
         expect(screen.getByText('#1')).toBeInTheDocument()
@@ -356,45 +394,38 @@ describe('DelegatableNotesSection', () => {
         throw new Error('Not found')
       })
 
-      render(<DelegatableNotesSection statementCid="QmTest" />)
+      renderSection(<DelegatableNotesSection statementCid="QmTest" variant="detail" />)
       await waitForTotal('1 ETH')
-      await openDetails()
 
       await waitFor(() => {
         expect(screen.getByText('#1')).toBeInTheDocument()
         expect(screen.queryByText('#2')).not.toBeInTheDocument()
       })
     })
-  })
 
-  describe('Table display', () => {
-    it('shows table column headers and explains owner/delegation labels', async () => {
+    it('shows table column headers and explains owner/status labels', async () => {
       vi.mocked(getNoteIntentAttestationsByStatement).mockResolvedValue([makeAttestation('1')])
       vi.mocked(getNote).mockResolvedValue(makeNote())
 
-      render(<DelegatableNotesSection statementCid="QmTest" />)
+      renderSection(<DelegatableNotesSection statementCid="QmTest" variant="detail" />)
       await waitForTotal('1 ETH')
-      await openDetails()
 
       await waitFor(() => {
         expect(screen.getByRole('columnheader', { name: 'Note ID' })).toBeInTheDocument()
         expect(screen.getByRole('columnheader', { name: 'Amount' })).toBeInTheDocument()
         expect(screen.getByRole('columnheader', { name: 'Root Owner (Depositor)' })).toBeInTheDocument()
         expect(screen.getByRole('columnheader', { name: 'Current Leaf Owner' })).toBeInTheDocument()
-        expect(screen.getByRole('columnheader', { name: 'Delegation' })).toBeInTheDocument()
+        expect(screen.getByRole('columnheader', { name: 'Status' })).toBeInTheDocument()
         expect(screen.getByText(/root owner is the depositor who can revoke the note/i)).toBeInTheDocument()
-        expect(screen.getByText(/current leaf owner is the wallet currently allowed to direct it/i)).toBeInTheDocument()
-        expect(screen.getByText(/direct means those are the same wallet/i)).toBeInTheDocument()
       })
     })
 
-    it('shows note id as a Delegation link', async () => {
+    it('shows note id as a link', async () => {
       vi.mocked(getNoteIntentAttestationsByStatement).mockResolvedValue([makeAttestation('42')])
       vi.mocked(getNote).mockResolvedValue(makeNote({ id: '42' }))
 
-      render(<DelegatableNotesSection statementCid="QmTest" />)
+      renderSection(<DelegatableNotesSection statementCid="QmTest" variant="detail" />)
       await waitForTotal('1 ETH')
-      await openDetails()
 
       await waitFor(() => {
         const link = screen.getByRole('link', { name: '#42' })
@@ -405,14 +436,12 @@ describe('DelegatableNotesSection', () => {
 
     it('formats ETH amount correctly', async () => {
       vi.mocked(getNoteIntentAttestationsByStatement).mockResolvedValue([makeAttestation('1')])
-      vi.mocked(getNote).mockResolvedValue(makeNote({ amount: '1500000000000000000' })) // 1.5 ETH
+      vi.mocked(getNote).mockResolvedValue(makeNote({ amount: '1500000000000000000' }))
 
-      render(<DelegatableNotesSection statementCid="QmTest" />)
+      renderSection(<DelegatableNotesSection statementCid="QmTest" variant="detail" />)
       await waitForTotal('1.5 ETH')
-      await openDetails()
 
       await waitFor(() => {
-        // Summary + table both show the amount
         expect(screen.getAllByText('1.5 ETH').length).toBeGreaterThanOrEqual(1)
       })
     })
@@ -427,22 +456,20 @@ describe('DelegatableNotesSection', () => {
         }),
       )
 
-      render(<DelegatableNotesSection statementCid="QmTest" />)
+      renderSection(<DelegatableNotesSection statementCid="QmTest" variant="detail" />)
       await waitForTotal('2.5 tokens')
-      await openDetails()
 
       await waitFor(() => {
         expect(screen.getAllByText('2.5 tokens').length).toBeGreaterThanOrEqual(1)
       })
     })
 
-    it('shows "Direct" chip when owner equals rootOwner (not delegated)', async () => {
+    it('shows "Direct" chip when owner equals rootOwner', async () => {
       vi.mocked(getNoteIntentAttestationsByStatement).mockResolvedValue([makeAttestation('1')])
       vi.mocked(getNote).mockResolvedValue(makeNote({ owner: OWNER_A, rootOwner: OWNER_A }))
 
-      render(<DelegatableNotesSection statementCid="QmTest" />)
+      renderSection(<DelegatableNotesSection statementCid="QmTest" variant="detail" />)
       await waitForTotal('1 ETH')
-      await openDetails()
 
       await waitFor(() => {
         expect(screen.getByText('Direct')).toBeInTheDocument()
@@ -453,9 +480,8 @@ describe('DelegatableNotesSection', () => {
       vi.mocked(getNoteIntentAttestationsByStatement).mockResolvedValue([makeAttestation('1')])
       vi.mocked(getNote).mockResolvedValue(makeNote({ owner: OWNER_B, rootOwner: ROOT_OWNER }))
 
-      render(<DelegatableNotesSection statementCid="QmTest" />)
+      renderSection(<DelegatableNotesSection statementCid="QmTest" variant="detail" />)
       await waitForTotal('1 ETH')
-      await openDetails()
 
       await waitFor(() => {
         expect(screen.getByText('Delegated')).toBeInTheDocument()
@@ -466,9 +492,8 @@ describe('DelegatableNotesSection', () => {
       vi.mocked(getNoteIntentAttestationsByStatement).mockResolvedValue([makeAttestation('1')])
       vi.mocked(getNote).mockResolvedValue(makeNote({ owner: OWNER_A, rootOwner: ROOT_OWNER }))
 
-      render(<DelegatableNotesSection statementCid="QmTest" />)
+      renderSection(<DelegatableNotesSection statementCid="QmTest" variant="detail" />)
       await waitForTotal('1 ETH')
-      await openDetails()
 
       await waitFor(() => {
         expect(screen.getByText('0xAAAA...AAAA')).toBeInTheDocument()
@@ -486,9 +511,8 @@ describe('DelegatableNotesSection', () => {
         makeNote({ id: noteId.split(':').at(-1) ?? noteId }),
       )
 
-      render(<DelegatableNotesSection statementCid="QmTest" />)
+      renderSection(<DelegatableNotesSection statementCid="QmTest" variant="detail" />)
       await waitForTotal('3 ETH')
-      await openDetails()
 
       await waitFor(() => {
         expect(screen.getByText('#1')).toBeInTheDocument()
@@ -496,32 +520,23 @@ describe('DelegatableNotesSection', () => {
         expect(screen.getByText('#3')).toBeInTheDocument()
       })
     })
-  })
 
-  describe('Toggle behavior', () => {
-    it('keeps summary loaded while toggling note details', async () => {
-      vi.mocked(getNoteIntentAttestationsByStatement).mockResolvedValue([])
-
-      render(<DelegatableNotesSection statementCid="QmTest" />)
+    it('does not wrap the detail card as a link even if to is provided', async () => {
+      renderSection(
+        <DelegatableNotesSection
+          statementCid="QmTest"
+          variant="detail"
+          to="/cause/abc/earmarked"
+        />,
+      )
 
       await waitFor(() => {
-        expect(screen.getByText('Total pledged to this cause')).toBeInTheDocument()
-        expect(screen.getByText('0 ETH')).toBeInTheDocument()
+        expect(screen.getByRole('heading', { name: /earmarked funds/i })).toBeInTheDocument()
       })
 
-      const user = await openDetails()
-      await waitFor(() => {
-        expect(screen.getByRole('button', { name: /hide\s+note details/i })).toBeInTheDocument()
-        expect(screen.getByText('No delegatable notes intended for this cause.')).toBeVisible()
-      })
-
-      await user.click(screen.getByRole('button', { name: /hide\s+note details/i }))
-      await waitFor(() => {
-        expect(screen.getByRole('button', { name: /show\s+note details/i })).toBeInTheDocument()
-      })
-
-      // Still only one load on mount
-      expect(getNoteIntentAttestationsByStatement).toHaveBeenCalledTimes(1)
+      expect(screen.queryByText('Details →')).not.toBeInTheDocument()
+      // Note table may add lazy-giving note links; the card itself is not a router link.
+      expect(screen.queryByRole('link', { name: /earmarked funds/i })).not.toBeInTheDocument()
     })
   })
 })

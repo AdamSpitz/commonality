@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import {
   deleteCause,
   getCause,
+  hasBlockingImplication,
   hasBlockingSafety,
   listCauses,
   markCauseLaunched,
@@ -44,6 +45,47 @@ describe('causeStore v2', () => {
     expect(launched?.status).toBe('launched')
     expect(launched?.statementCid).toBe('bafygoal')
     expect(launched?.statementCids).toEqual(['bafysupport'])
+  })
+
+  it('detects blocking implication only for adopted medium/high non-implies', () => {
+    expect(hasBlockingImplication([{
+      id: '1',
+      text: 'extra policy',
+      origin: 'user',
+      disposition: 'adopted',
+      implication: {
+        implies: false,
+        confidence: 'high',
+        reasoning: 'S2 adds a claim',
+        checkedAt: '',
+      },
+    }])).toBe(true)
+
+    expect(hasBlockingImplication([{
+      id: '1',
+      text: 'extra policy',
+      origin: 'user',
+      disposition: 'adopted',
+      implication: {
+        implies: false,
+        confidence: 'low',
+        reasoning: 'unchecked',
+        checkedAt: '',
+      },
+    }])).toBe(false)
+
+    expect(hasBlockingImplication([{
+      id: '1',
+      text: 'pending extra',
+      origin: 'suggested',
+      disposition: 'pending',
+      implication: {
+        implies: false,
+        confidence: 'high',
+        reasoning: 'S2 adds a claim',
+        checkedAt: '',
+      },
+    }])).toBe(false)
   })
 
   it('detects blocking safety on goal or adopted statements only', () => {

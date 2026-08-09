@@ -31,6 +31,14 @@ export interface SafetyState {
   checkedAt: string
 }
 
+export interface ImplicationState {
+  implies: boolean
+  confidence: 'high' | 'medium' | 'low'
+  reasoning: string
+  keyDifference?: string
+  checkedAt: string
+}
+
 export interface CauseStatement {
   id: string
   text: string
@@ -39,6 +47,8 @@ export interface CauseStatement {
   rationale?: string
   role?: string
   safety?: SafetyState
+  /** Whether the main statement implies this supporting statement. */
+  implication?: ImplicationState
 }
 
 export interface CauseDraft {
@@ -162,6 +172,21 @@ export function hasBlockingSafety(cause: Pick<CauseDraft, 'goal' | 'goalSafety' 
   return cause.statements.some(
     (s) => s.disposition === 'adopted' && s.safety && !s.safety.allowed && s.text.trim(),
   )
+}
+
+/**
+ * Adopted supporting statements that fail a medium/high-confidence implication
+ * check against the main statement. Low-confidence (e.g. offline heuristic)
+ * results do not block — the founder still gets a warning in the UI.
+ */
+export function hasBlockingImplication(
+  statements: CauseStatement[],
+): boolean {
+  return statements.some((s) => {
+    if (s.disposition !== 'adopted' || !s.text.trim() || !s.implication) return false
+    if (s.implication.implies) return false
+    return s.implication.confidence !== 'low'
+  })
 }
 
 export function saveCause(input: {

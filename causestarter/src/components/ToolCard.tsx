@@ -1,6 +1,5 @@
 import {
   Box,
-  Chip,
   CircularProgress,
   Link as MuiLink,
   Paper,
@@ -17,12 +16,6 @@ interface ToolCardProps {
   compact?: boolean
   /** When true (default), load and show up to 2 live examples from the tool domain. */
   showExamples?: boolean
-}
-
-const kindLabel: Record<SupportingTool['kind'], string> = {
-  substrate: 'Tool',
-  reference: 'Example cause',
-  thesis: 'Background',
 }
 
 export function ToolCard({ tool, compact = false, showExamples = true }: ToolCardProps) {
@@ -55,7 +48,6 @@ export function ToolCard({ tool, compact = false, showExamples = true }: ToolCar
           sx={{ textDecoration: 'none', color: 'inherit' }}
         >
           <Box>
-            <Chip size="small" label={kindLabel[tool.kind]} sx={{ mb: 0.75 }} />
             <Typography variant={compact ? 'subtitle1' : 'h6'} sx={{ fontWeight: 700 }}>
               {tool.name}
             </Typography>

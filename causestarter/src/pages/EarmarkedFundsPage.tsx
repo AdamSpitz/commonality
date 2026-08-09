@@ -1,14 +1,14 @@
 import { useEffect, useState } from 'react'
-import { Alert, Button, Stack } from '@mui/material'
+import { Alert, Button, Stack, Typography } from '@mui/material'
 import { Link as RouterLink, useParams } from 'react-router-dom'
-import { CauseBoard } from '@ui/fundingportals'
+import { DelegatableNotesSection } from '@ui/fundingportals'
 import { getCause, type CauseDraft } from '../lib/causeStore'
 
 /**
- * CauseStarter host for the shared fundingportals {@link CauseBoard}.
- * This is the primary in-app cause board (not a deep-link out to Aligning).
+ * Full earmarked-funds view for a local cause (pledge rollups + note table).
+ * Hosted on CauseStarter; reuses the shared fundingportals section in detail mode.
  */
-export function CauseBoardPage() {
+export function EarmarkedFundsPage() {
   const { causeId } = useParams<{ causeId: string }>()
   const [cause, setCause] = useState<CauseDraft | undefined>(() =>
     causeId ? getCause(causeId) : undefined,
@@ -35,8 +35,8 @@ export function CauseBoardPage() {
     return (
       <Stack spacing={2}>
         <Alert severity="info" sx={{ borderRadius: 2 }}>
-          Publish this cause before opening its board. The board is keyed by the on-chain goal
-          statement.
+          Publish this cause before viewing earmarked funds. Funds are tagged against the
+          on-chain goal statement.
         </Alert>
         <Button
           component={RouterLink}
@@ -54,20 +54,18 @@ export function CauseBoardPage() {
   }
 
   return (
-    <CauseBoard
-      statementCid={cause.statementCid}
-      preferredTitle={cause.name || undefined}
-      preferredSummary={cause.goal || undefined}
-      projectLinks="local"
-      earmarkedFundsTo={`/cause/${cause.id}/earmarked`}
-      navLinks={[
-        { label: '← Back to cause', to: `/cause/${cause.id}` },
-        {
-          label: 'View Leaderboard',
-          to: `/cause/${cause.id}/board/leaderboard`,
-          variant: 'outlined',
-        },
-      ]}
-    />
+    <Stack spacing={2}>
+      <Button
+        component={RouterLink}
+        to={`/cause/${cause.id}`}
+        sx={{ textTransform: 'none', alignSelf: 'flex-start' }}
+      >
+        ← Back to {cause.name?.trim() || 'cause'}
+      </Button>
+      <Typography variant="h4" component="h1" sx={{ fontWeight: 800, fontSize: { xs: '1.45rem', sm: '1.85rem' } }}>
+        {cause.name?.trim() || 'Cause'}
+      </Typography>
+      <DelegatableNotesSection statementCid={cause.statementCid} variant="detail" />
+    </Stack>
   )
 }

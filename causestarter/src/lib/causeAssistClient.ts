@@ -2,11 +2,31 @@ export interface StatementSuggestion {
   text: string
   rationale: string
   role?: string
+  implication?: {
+    implies: boolean
+    confidence: 'high' | 'medium' | 'low'
+    reasoning: string
+    keyDifference?: string
+  }
 }
 
 export interface SuggestStatementsResponse {
   suggestions: StatementSuggestion[]
   source: 'llm' | 'fallback'
+}
+
+export interface ImplicationPairResult {
+  supportingStatement: string
+  implies: boolean
+  confidence: 'high' | 'medium' | 'low'
+  reasoning: string
+  keyDifference?: string
+  source: 'llm' | 'heuristic'
+}
+
+export interface CheckImplicationsResponse {
+  results: ImplicationPairResult[]
+  source: 'llm' | 'heuristic' | 'mixed'
 }
 
 export type SafetyCategory =
@@ -63,4 +83,11 @@ export async function suggestStatements(input: {
 
 export async function checkSafety(items: Array<{ text: string; fieldLabel?: string }>): Promise<SafetyCheckResponse> {
   return postJson<SafetyCheckResponse>('/safety-check', { items })
+}
+
+export async function checkImplications(input: {
+  mainStatement: string
+  supportingStatements: string[]
+}): Promise<CheckImplicationsResponse> {
+  return postJson<CheckImplicationsResponse>('/check-implications', input)
 }

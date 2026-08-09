@@ -1,10 +1,10 @@
-import { Alert, Box, Button, Stack, Typography } from '@mui/material'
+import { Alert, Box, Button, CircularProgress, Stack, Typography } from '@mui/material'
 import { Link as RouterLink } from 'react-router-dom'
 import { CauseCard } from '../components/CauseCard'
-import { listCauses } from '../lib/causeStore'
+import { useUserCauses } from '../hooks/useUserCauses'
 
 export function MomentumPage() {
-  const causes = listCauses()
+  const { causes, loading } = useUserCauses()
   const drafts = causes.filter((c) => c.status === 'draft')
   const launched = causes.filter((c) => c.status === 'launched')
 
@@ -15,11 +15,21 @@ export function MomentumPage() {
           Momentum
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 0.75 }}>
-          Track the causes you are building. Open one to grow support and take the next step.
+          Causes you are building on this device, plus causes whose main statement you have
+          publicly supported on-chain.
         </Typography>
       </Box>
 
-      {causes.length === 0 && (
+      {loading && causes.length === 0 && (
+        <Stack direction="row" spacing={1} alignItems="center" sx={{ py: 1 }}>
+          <CircularProgress size={18} />
+          <Typography variant="body2" color="text.secondary">
+            Loading on-chain support…
+          </Typography>
+        </Stack>
+      )}
+
+      {!loading && causes.length === 0 && (
         <Alert
           severity="info"
           sx={{ borderRadius: 2 }}
@@ -29,7 +39,7 @@ export function MomentumPage() {
             </Button>
           }
         >
-          No causes yet. Start one to begin building momentum.
+          No causes yet. Start one to begin building momentum, or support a public cause from Discover.
         </Alert>
       )}
 

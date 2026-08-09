@@ -104,10 +104,10 @@ export function StatementPage() {
 
       <Paper elevation={0} sx={{ p: 2.5, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
         <Typography variant="h6" sx={{ fontWeight: 700, mb: 1.5 }}>
-          Stand with this cause
+          Your support
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          Your support is public. It is how a cause shows real people stand behind it.
+          Support is public. It is how a cause shows real people stand behind it.
         </Typography>
         <SupportButton
           statementCid={statementCid as IpfsCidV1}

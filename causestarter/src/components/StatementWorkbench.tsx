@@ -89,7 +89,7 @@ export function StatementWorkbench({
           Add your own
         </Button>
         <Typography variant="caption" color="text.secondary">
-          Aim for a handful (about 1–5). Not required.
+          Optional. Each must already be implied by the main statement.
         </Typography>
       </Stack>
 
@@ -118,6 +118,12 @@ export function StatementWorkbench({
                   <Stack direction="row" spacing={0.75} flexWrap="wrap" useFlexGap>
                     <Chip size="small" label="Suggested" variant="outlined" />
                     {statement.role && <Chip size="small" label={statement.role} />}
+                    {statement.implication && statement.implication.implies && statement.implication.confidence !== 'low' && (
+                      <Chip size="small" color="success" variant="outlined" label="Implied by main" />
+                    )}
+                    {statement.implication && !statement.implication.implies && statement.implication.confidence !== 'low' && (
+                      <Chip size="small" color="warning" label="Not clearly implied" />
+                    )}
                     {statement.safety && !statement.safety.allowed && (
                       <Chip
                         size="small"
@@ -134,6 +140,7 @@ export function StatementWorkbench({
                     onChange={(e) => update(statement.id, {
                       text: e.target.value,
                       safety: undefined,
+                      implication: undefined,
                       origin: 'suggested',
                     })}
                     fullWidth
@@ -144,7 +151,15 @@ export function StatementWorkbench({
                   />
                   {statement.rationale && (
                     <Typography variant="caption" color="text.secondary">
-                      Why this helps: {statement.rationale}
+                      Why this fits: {statement.rationale}
+                    </Typography>
+                  )}
+                  {statement.implication && !statement.implication.implies && (
+                    <Typography variant="caption" color="warning.main">
+                      Implication check: {statement.implication.reasoning}
+                      {statement.implication.keyDifference
+                        ? ` (${statement.implication.keyDifference})`
+                        : ''}
                     </Typography>
                   )}
                   <Stack direction="row" spacing={1}>
@@ -182,7 +197,8 @@ export function StatementWorkbench({
         </Typography>
         {adopted.length === 0 ? (
           <Alert severity="info" sx={{ borderRadius: 2 }}>
-            Adopt suggestions or add your own. These are the beliefs people can stand behind.
+            Adopt suggestions or add your own. Only keep claims the main statement already implies —
+            people who believe the main one should already believe these.
           </Alert>
         ) : (
           <Stack spacing={1.25}>
@@ -204,6 +220,12 @@ export function StatementWorkbench({
                   <Stack direction="row" justifyContent="space-between" alignItems="center">
                     <Stack direction="row" spacing={0.75} alignItems="center">
                       <Chip size="small" color="primary" variant="outlined" label={statement.origin === 'user' ? 'Yours' : 'Adopted'} />
+                      {statement.implication && statement.implication.implies && statement.implication.confidence !== 'low' && (
+                        <Chip size="small" color="success" variant="outlined" label="Implied by main" />
+                      )}
+                      {statement.implication && !statement.implication.implies && statement.implication.confidence !== 'low' && (
+                        <Chip size="small" color="warning" label="Not clearly implied" />
+                      )}
                       {statement.safety && !statement.safety.allowed && (
                         <Chip
                           size="small"
@@ -224,14 +246,35 @@ export function StatementWorkbench({
                     onChange={(e) => update(statement.id, {
                       text: e.target.value,
                       safety: undefined,
+                      implication: undefined,
                     })}
                     fullWidth
                     multiline
                     minRows={2}
                     disabled={disabled}
-                    error={Boolean(statement.safety && !statement.safety.allowed)}
-                    helperText={statement.safety && !statement.safety.allowed ? 'Blocked by safety review' : undefined}
+                    error={
+                      Boolean(statement.safety && !statement.safety.allowed)
+                      || Boolean(
+                        statement.implication
+                        && !statement.implication.implies
+                        && statement.implication.confidence !== 'low',
+                      )
+                    }
+                    helperText={
+                      statement.safety && !statement.safety.allowed
+                        ? 'Blocked by safety review'
+                        : statement.implication
+                          && !statement.implication.implies
+                          && statement.implication.confidence !== 'low'
+                          ? 'Not clearly implied by the main statement — edit or remove'
+                          : undefined
+                    }
                   />
+                  {statement.implication && !statement.implication.implies && (
+                    <Typography variant="caption" color="warning.main">
+                      {statement.implication.reasoning}
+                    </Typography>
+                  )}
                 </Stack>
               </Paper>
             ))}

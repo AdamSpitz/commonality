@@ -11,6 +11,7 @@ describe('loadConfigFromEnv', () => {
     assert.equal(config.apiBaseUrl, 'https://api.x.ai/v1')
     assert.equal(config.suggestModel, 'grok-4.5')
     assert.equal(config.safetyModel, 'grok-4.5')
+    assert.equal(config.implicationModel, 'grok-4.5')
   })
 
   it('pairs OPENROUTER_API_KEY with OpenRouter base URL and model ids', () => {
@@ -21,6 +22,7 @@ describe('loadConfigFromEnv', () => {
     assert.equal(config.apiBaseUrl, 'https://openrouter.ai/api/v1')
     assert.equal(config.suggestModel, 'x-ai/grok-4.5')
     assert.equal(config.safetyModel, 'x-ai/grok-4.5')
+    assert.equal(config.implicationModel, 'x-ai/grok-4.5')
   })
 
   it('prefers xAI key over OpenRouter and keeps xAI defaults', () => {
