@@ -436,6 +436,7 @@ services:
       CAUSE_ASSIST_API_BASE_URL: ${CAUSE_ASSIST_API_BASE_URL:-https://api.x.ai/v1}
       CAUSE_ASSIST_SUGGEST_MODEL: ${CAUSE_ASSIST_SUGGEST_MODEL:-grok-4.5}
       CAUSE_ASSIST_SAFETY_MODEL: ${CAUSE_ASSIST_SAFETY_MODEL:-grok-4.5}
+      CAUSE_ASSIST_IMPLICATION_MODEL: ${CAUSE_ASSIST_IMPLICATION_MODEL:-grok-4.5}
     networks:
       - commonality
     restart: unless-stopped

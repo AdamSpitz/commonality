@@ -1,4 +1,5 @@
 export interface SuggestStatementsRequest {
+  /** Main / founding statement for the cause. */
   goal: string
   existingStatements?: string[]
   count?: number
@@ -6,15 +7,41 @@ export interface SuggestStatementsRequest {
 
 export interface StatementSuggestion {
   text: string
-  /** Short plain-language reason this statement helps explain the goal. */
+  /** Why this is already implied by the main statement (or how it helps). */
   rationale: string
-  /** Optional role: goal-driver, principle, obstacle, beneficiary, etc. */
+  /** Optional role: subset, rephrase, generalization, clarification, other. */
   role?: string
+  /** Optional implication check vs the main statement (when verified). */
+  implication?: {
+    implies: boolean
+    confidence: 'high' | 'medium' | 'low'
+    reasoning: string
+    keyDifference?: string
+  }
 }
 
 export interface SuggestStatementsResponse {
   suggestions: StatementSuggestion[]
   source: 'llm' | 'fallback'
+}
+
+export interface CheckImplicationsRequest {
+  mainStatement: string
+  supportingStatements: string[]
+}
+
+export interface ImplicationPairResult {
+  supportingStatement: string
+  implies: boolean
+  confidence: 'high' | 'medium' | 'low'
+  reasoning: string
+  keyDifference?: string
+  source: 'llm' | 'heuristic'
+}
+
+export interface CheckImplicationsResponse {
+  results: ImplicationPairResult[]
+  source: 'llm' | 'heuristic' | 'mixed'
 }
 
 export type SafetyCategory =
@@ -58,5 +85,7 @@ export interface CauseAssistConfig {
   apiBaseUrl: string
   suggestModel: string
   safetyModel: string
+  /** Model used for main→supporting implication checks (same prompt as implication attester). */
+  implicationModel: string
   port: number
 }

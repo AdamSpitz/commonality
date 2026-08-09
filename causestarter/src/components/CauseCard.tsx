@@ -1,7 +1,7 @@
 import { Box, Chip, Paper, Stack, Typography } from '@mui/material'
 import { Link as RouterLink } from 'react-router-dom'
 import type { CauseDraft } from '../lib/causeStore'
-import { LEVER_LABELS, adoptedStatements } from '../lib/causeStore'
+import { adoptedStatements } from '../lib/causeStore'
 
 interface CauseCardProps {
   cause: CauseDraft
@@ -66,14 +66,6 @@ export function CauseCard({ cause }: CauseCardProps) {
         <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
           {adopted.length} supporting statement{adopted.length === 1 ? '' : 's'}
         </Typography>
-      )}
-
-      {cause.levers.length > 0 && (
-        <Stack direction="row" flexWrap="wrap" gap={0.75} sx={{ mt: 2 }}>
-          {cause.levers.map((lever) => (
-            <Chip key={lever} size="small" variant="outlined" label={LEVER_LABELS[lever].label} />
-          ))}
-        </Stack>
       )}
     </Paper>
   )

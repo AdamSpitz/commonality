@@ -57,6 +57,11 @@ export interface CauseBoardProps {
    * CauseStarter hosts project detail locally; Aligning deep-links to LazyGiving.
    */
   projectLinks?: ProjectLinkMode
+  /**
+   * Optional same-app path for the earmarked-funds summary card (CauseStarter hosts
+   * `/cause/:id/earmarked`). When omitted the card is not a link.
+   */
+  earmarkedFundsTo?: string
 }
 
 function defaultNavLinks(statementCid: string): CauseBoardNavLink[] {
@@ -102,6 +107,7 @@ export function CauseBoard({
   navLinks,
   headerExtra,
   projectLinks = 'lazyGiving',
+  earmarkedFundsTo,
 }: CauseBoardProps) {
   const machinery = useMachinery()
   const { address } = useAccount()
@@ -326,7 +332,7 @@ export function CauseBoard({
 
       <AttestAlignmentForm statementCid={statementCid} />
 
-      <DelegatableNotesSection statementCid={statementCid} />
+      <DelegatableNotesSection statementCid={statementCid} to={earmarkedFundsTo} />
     </Box>
   )
 }

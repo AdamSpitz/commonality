@@ -1,11 +1,12 @@
-import { Box, Button, Paper, Stack, Typography } from '@mui/material'
+import { Box, Button, CircularProgress, Paper, Stack, Typography } from '@mui/material'
 import { Link as RouterLink } from 'react-router-dom'
 import { MomentumSteps } from '../components/MomentumSteps'
 import { CauseCard } from '../components/CauseCard'
-import { listCauses } from '../lib/causeStore'
+import { useUserCauses } from '../hooks/useUserCauses'
 
 export function HomePage() {
-  const causes = listCauses().slice(0, 2)
+  const { causes: allCauses, loading } = useUserCauses()
+  const causes = allCauses.slice(0, 2)
 
   return (
     <Stack spacing={3}>
@@ -74,7 +75,7 @@ export function HomePage() {
         <MomentumSteps />
       </Box>
 
-      {causes.length > 0 && (
+      {(loading || causes.length > 0) && (
         <Box>
           <Stack direction="row" justifyContent="space-between" alignItems="baseline" sx={{ mb: 1.5 }}>
             <Typography variant="h6" sx={{ fontWeight: 700 }}>
@@ -84,11 +85,20 @@ export function HomePage() {
               See all
             </Button>
           </Stack>
-          <Stack spacing={1.5}>
-            {causes.map((cause) => (
-              <CauseCard key={cause.id} cause={cause} />
-            ))}
-          </Stack>
+          {loading && causes.length === 0 ? (
+            <Stack direction="row" spacing={1} alignItems="center" sx={{ py: 1 }}>
+              <CircularProgress size={18} />
+              <Typography variant="body2" color="text.secondary">
+                Loading causes you support…
+              </Typography>
+            </Stack>
+          ) : (
+            <Stack spacing={1.5}>
+              {causes.map((cause) => (
+                <CauseCard key={cause.id} cause={cause} />
+              ))}
+            </Stack>
+          )}
         </Box>
       )}
 

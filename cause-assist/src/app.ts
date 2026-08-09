@@ -2,7 +2,12 @@ import express, { type NextFunction, type Request, type Response } from 'express
 import type { CauseAssistConfig } from './types.js'
 import { suggestStatements } from './statementSuggester.js'
 import { checkSafety } from './safetyFilter.js'
-import type { SafetyCheckRequest, SuggestStatementsRequest } from './types.js'
+import { checkImplications } from './implicationCheck.js'
+import type {
+  CheckImplicationsRequest,
+  SafetyCheckRequest,
+  SuggestStatementsRequest,
+} from './types.js'
 
 export function createCauseAssistApp(config: CauseAssistConfig): express.Express {
   const app = express()
@@ -14,6 +19,7 @@ export function createCauseAssistApp(config: CauseAssistConfig): express.Express
       service: 'cause-assist',
       llmConfigured: Boolean(config.apiKey),
       model: config.suggestModel,
+      implicationModel: config.implicationModel,
       apiBaseUrl: config.apiBaseUrl,
     })
   })
@@ -26,6 +32,28 @@ export function createCauseAssistApp(config: CauseAssistConfig): express.Express
         return
       }
       const result = await suggestStatements(body, config)
+      res.json(result)
+    } catch (error) {
+      next(error)
+    }
+  })
+
+  app.post('/check-implications', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const body = req.body as CheckImplicationsRequest
+      if (typeof body?.mainStatement !== 'string' || !body.mainStatement.trim()) {
+        res.status(400).json({ error: 'invalid_request', message: 'mainStatement is required' })
+        return
+      }
+      if (!Array.isArray(body.supportingStatements)) {
+        res.status(400).json({ error: 'invalid_request', message: 'supportingStatements array is required' })
+        return
+      }
+      if (body.supportingStatements.length > 20) {
+        res.status(400).json({ error: 'invalid_request', message: 'at most 20 supporting statements per request' })
+        return
+      }
+      const result = await checkImplications(body, config)
       res.json(result)
     } catch (error) {
       next(error)

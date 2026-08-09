@@ -60,7 +60,10 @@ is the living spec with the full backlog. What's left here is only the part that
 
 ### Stuff I want to think through
 
+- How to eliminate CauseStarter’s reliance on browser `localStorage` for cause drafts / founder progress (`causestarter/src/lib/causeStore.ts`). Today drafts are origin-scoped (so Vite `:5174` vs Docker `:8090` don’t share them) and vanish across devices/clears. Worth thinking through durable alternatives (on-chain draft, IPFS + pointer, account-linked backend, etc.) without re-centralizing or making launch heavier.
+
 - Asking the cause founder to make statements is going to be a problem because the idea of statements is not obvious. (Need to not be vague or ambiguous, etc.)
+  - **(Tell)** Partial pass done: CauseStarter “start a cause” copy reframes main vs supporting statements as signable beliefs with main→supporting implication; cause-assist suggester prompt + new `/check-implications` (Implication Attester system prompt) verify pairs; wizard blocks medium/high non-implies. Still product-sensitive — review wording and whether hard-block is right.
 
 - Now that have (or at least are close to having) a proper testnet setup, can we start creating an ecosystem of simulated fake users of various types? (We can use LLMs to run the ones that need more intelligence, though ideally they'll mostly be made of conventional code, to avoid burning too many LLM tokens.)
   - Cause founder: cares a lot about some cause, comes across CauseStarter, tries actually forking the repo and making a new cause, etc.

@@ -21,6 +21,8 @@ export { CauseBoard } from './components/CauseBoard'
 export type { CauseBoardProps, CauseBoardNavLink } from './components/CauseBoard'
 export { CauseLeaderboard } from './components/CauseLeaderboard'
 export type { CauseLeaderboardProps } from './components/CauseLeaderboard'
+export { DelegatableNotesSection } from './components/DelegatableNotesSection'
+export type { DelegatableNotesSectionProps } from './components/DelegatableNotesSection'
 
 // Note on pages: the route components (StatementFundingPortalPage,
 // CauseLeaderboardPage, ExplorerPage) are intentionally NOT re-exported here.

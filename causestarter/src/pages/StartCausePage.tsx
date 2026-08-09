@@ -3,10 +3,7 @@ import {
   Alert,
   Box,
   Button,
-  Checkbox,
   CircularProgress,
-  FormControlLabel,
-  FormGroup,
   Paper,
   Stack,
   Step,
@@ -22,19 +19,18 @@ import { createAndSignStatement, type BeliefsContract } from '@commonality/sdk/c
 import { createStatement } from '@commonality/sdk/displayable-documents'
 import type { MutableRefUpdaterContract } from '@commonality/sdk/mutable-refs'
 import {
-  LEVER_LABELS,
   adoptedStatements,
   getCause,
+  hasBlockingImplication,
   hasBlockingSafety,
   markCauseLaunched,
   saveCause,
   type CauseStatement,
+  type ImplicationState,
   type MomentumLever,
   type SafetyState,
 } from '../lib/causeStore'
-import { checkSafety, suggestStatements } from '../lib/causeAssistClient'
-import { toolsForLevers } from '../lib/tools'
-import { ToolCard } from '../components/ToolCard'
+import { checkImplications, checkSafety, suggestStatements } from '../lib/causeAssistClient'
 import { StatementWorkbench } from '../components/StatementWorkbench'
 import { SafetyRejectionDialog } from '../components/SafetyRejectionDialog'
 import { useMachinery } from '../lib/useMachinery'
@@ -42,8 +38,15 @@ import { useWriteClients } from '../lib/useWriteClients'
 import { getRuntimeConfigValue } from '../lib/runtimeConfig'
 import { WalletButton } from '../components/WalletButton'
 
-const steps = ['Goal', 'Statements', 'How you grow', 'Launch']
-const allLevers = Object.keys(LEVER_LABELS) as MomentumLever[]
+const steps = ['Main statement', 'Supporting', 'Launch']
+/** All growth surfaces are always on the cause page; wizard no longer picks levers. */
+const DEFAULT_LEVERS: MomentumLever[] = [
+  'supporters',
+  'volunteers',
+  'collaborators',
+  'funding',
+  'content',
+]
 
 function toSafetyState(verdict: {
   allowed: boolean
@@ -72,17 +75,19 @@ export function StartCausePage() {
   const [goal, setGoal] = useState(existing?.goal ?? '')
   const [goalSafety, setGoalSafety] = useState<SafetyState | undefined>(existing?.goalSafety)
   const [statements, setStatements] = useState<CauseStatement[]>(existing?.statements ?? [])
-  const [levers, setLevers] = useState<MomentumLever[]>(existing?.levers ?? ['supporters', 'funding'])
+  const [levers] = useState<MomentumLever[]>(
+    existing?.levers?.length ? existing.levers : DEFAULT_LEVERS,
+  )
   const [draftId, setDraftId] = useState<string | undefined>(existing?.id)
   const [busy, setBusy] = useState(false)
   const [suggesting, setSuggesting] = useState(false)
   const [checkingSafety, setCheckingSafety] = useState(false)
+  const [checkingImplications, setCheckingImplications] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [dialogLabel, setDialogLabel] = useState<string | undefined>()
   const [dialogSafety, setDialogSafety] = useState<SafetyState | null>(null)
 
-  const recommendedTools = useMemo(() => toolsForLevers(levers).slice(0, 3), [levers])
   const adopted = useMemo(
     () => statements.filter((s) => s.disposition === 'adopted' && s.text.trim()),
     [statements],
@@ -113,6 +118,57 @@ export function StartCausePage() {
     statements: CauseStatement[]
   }
 
+  const applyImplicationResults = (
+    current: CauseStatement[],
+    main: string,
+  ): Promise<CauseStatement[]> => {
+    const targets = current.filter(
+      (s) => s.disposition !== 'rejected' && s.text.trim() && s.text.trim() !== main.trim(),
+    )
+    if (!main.trim() || targets.length === 0) {
+      return Promise.resolve(current.map((s) => ({ ...s, implication: undefined })))
+    }
+    setCheckingImplications(true)
+    return checkImplications({
+      mainStatement: main.trim(),
+      supportingStatements: targets.map((s) => s.text.trim()),
+    })
+      .then((response) => {
+        const byText = new Map(
+          response.results.map((r) => [r.supportingStatement.trim(), r] as const),
+        )
+        const checkedAt = new Date().toISOString()
+        return current.map((s) => {
+          if (s.disposition === 'rejected' || !s.text.trim()) {
+            return { ...s, implication: undefined }
+          }
+          if (s.text.trim() === main.trim()) {
+            return {
+              ...s,
+              implication: {
+                implies: true,
+                confidence: 'high' as const,
+                reasoning: 'Same wording as the main statement.',
+                checkedAt,
+              },
+            }
+          }
+          const verdict = byText.get(s.text.trim())
+          if (!verdict) return { ...s, implication: undefined }
+          const implication: ImplicationState = {
+            implies: verdict.implies,
+            confidence: verdict.confidence,
+            reasoning: verdict.reasoning,
+            keyDifference: verdict.keyDifference,
+            checkedAt,
+          }
+          return { ...s, implication }
+        })
+      })
+      .catch(() => current)
+      .finally(() => setCheckingImplications(false))
+  }
+
   const runSafetyReview = async (): Promise<SafetyReviewResult> => {
     setCheckingSafety(true)
     setError(null)
@@ -121,7 +177,7 @@ export function StartCausePage() {
       // are still scanned so cards can show "Blocked", but they won't trap Continue.
       const items: Array<{ text: string; fieldLabel: string; key: string }> = []
       if (goal.trim()) {
-        items.push({ text: goal.trim(), fieldLabel: 'Goal', key: 'goal' })
+        items.push({ text: goal.trim(), fieldLabel: 'Main statement', key: 'goal' })
       }
       for (const statement of statements) {
         if (statement.disposition === 'rejected') continue
@@ -139,7 +195,7 @@ export function StartCausePage() {
 
       const response = await checkSafety(items.map(({ text, fieldLabel }) => ({ text, fieldLabel })))
       let goalNext: SafetyState | undefined
-      const nextStatements = statements.map((s) => ({ ...s, safety: undefined as SafetyState | undefined }))
+      let nextStatements: CauseStatement[] = statements.map((s) => ({ ...s, safety: undefined }))
 
       response.results.forEach((verdict, index) => {
         const meta = items[index]
@@ -155,6 +211,9 @@ export function StartCausePage() {
         }
       })
 
+      // Verify main → supporting for non-rejected statements (advisory + block on clear fails).
+      nextStatements = await applyImplicationResults(nextStatements, goal)
+
       setGoalSafety(goalNext)
       setStatements(nextStatements)
 
@@ -166,7 +225,7 @@ export function StartCausePage() {
       if (blocking) {
         const firstBlocked =
           (goalNext && !goalNext.allowed
-            ? { fieldLabel: 'Goal', safety: goalNext }
+            ? { fieldLabel: 'Main statement', safety: goalNext }
             : null)
           ?? nextStatements
             .filter((s) => s.disposition === 'adopted' && s.safety && !s.safety.allowed)
@@ -174,6 +233,13 @@ export function StartCausePage() {
         if (firstBlocked) {
           showSafety(firstBlocked.fieldLabel, firstBlocked.safety)
         }
+        return { ok: false, goalSafety: goalNext, statements: nextStatements }
+      }
+      if (hasBlockingImplication(nextStatements)) {
+        setError(
+          'A supporting statement is not clearly implied by the main statement. '
+          + 'Edit it so it only restates or narrows what the main claim already says, or remove it.',
+        )
         return { ok: false, goalSafety: goalNext, statements: nextStatements }
       }
       return { ok: true, goalSafety: goalNext, statements: nextStatements }
@@ -187,7 +253,7 @@ export function StartCausePage() {
 
   const handleRequestSuggestions = async () => {
     if (!goal.trim()) {
-      setError('Write a goal first so we can suggest supporting statements.')
+      setError('Write a main statement first so we can suggest supporting statements.')
       return
     }
     setSuggesting(true)
@@ -213,6 +279,7 @@ export function StartCausePage() {
         safetyByText = new Map()
       }
 
+      const checkedAt = new Date().toISOString()
       const incoming: CauseStatement[] = result.suggestions.map((s) => ({
         id: crypto.randomUUID(),
         text: s.text,
@@ -221,6 +288,15 @@ export function StartCausePage() {
         rationale: s.rationale,
         role: s.role,
         safety: safetyByText.get(s.text.trim()),
+        implication: s.implication
+          ? {
+              implies: s.implication.implies,
+              confidence: s.implication.confidence,
+              reasoning: s.implication.reasoning,
+              keyDifference: s.implication.keyDifference,
+              checkedAt,
+            }
+          : undefined,
       }))
 
       // Drop previous pending suggestions; keep adopted/rejected.
@@ -235,23 +311,20 @@ export function StartCausePage() {
     }
   }
 
-  const toggleLever = (lever: MomentumLever) => {
-    setLevers((current) =>
-      current.includes(lever) ? current.filter((item) => item !== lever) : [...current, lever],
-    )
-  }
-
   const canAdvance = () => {
     if (activeStep === 0) return goal.trim().length >= 12
     if (activeStep === 1) return true // 0–n statements allowed
-    if (activeStep === 2) return levers.length > 0
     return true
   }
 
   const handleNext = async () => {
     setError(null)
     if (!canAdvance()) {
-      setError(activeStep === 0 ? 'Describe the goal in a full sentence or two.' : 'Fill in this step before continuing.')
+      setError(
+        activeStep === 0
+          ? 'Write a clear main statement in a full sentence or two.'
+          : 'Fill in this step before continuing.',
+      )
       return
     }
     if (activeStep === 0 || activeStep === 1) {
@@ -403,8 +476,9 @@ export function StartCausePage() {
           Start a cause
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 0.75 }}>
-          Begin with the goal you want to accomplish. Then add short statements that explain why it
-          matters — people can stand behind those beliefs in public.
+          A cause is built from statements people can sincerely say “yes, I believe this” to.
+          Start with one clear main statement, then optional supporting ones that it already
+          implies — nothing vague, and nothing that sneaks in a new claim.
         </Typography>
       </Box>
 
@@ -419,13 +493,15 @@ export function StartCausePage() {
       <Paper elevation={0} sx={{ p: { xs: 2, sm: 3 }, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
         {activeStep === 0 && (
           <Stack spacing={2}>
-            <Typography variant="h6" sx={{ fontWeight: 700 }}>What do you intend to accomplish?</Typography>
+            <Typography variant="h6" sx={{ fontWeight: 700 }}>Main statement</Typography>
             <Typography variant="body2" color="text.secondary">
-              Write a clear goal in plain language. This becomes the lead public statement for your cause.
-              It is permanent once published — avoid private contact details.
+              Write the claim a supporter of this cause would be willing to stand behind in public —
+              something they can answer “yes, I believe this.” Be specific and self-contained: avoid
+              slogans, tribe markers, or wording that needs unstated background to interpret. This is
+              permanent once published — no private contact details.
             </Typography>
             <TextField
-              label="Goal"
+              label="Main statement"
               value={goal}
               onChange={(e) => {
                 setGoal(e.target.value)
@@ -440,7 +516,7 @@ export function StartCausePage() {
               helperText={
                 goalSafety && !goalSafety.allowed
                   ? 'Blocked by safety review — tap “Why blocked?”'
-                  : 'Example: Make night walks on Oak Street feel safe within a year through lighting, watches, and civic follow-through.'
+                  : 'Example: Night walks on Oak Street should feel safe within a year through better lighting, neighborhood watches, and civic follow-through.'
               }
               sx={
                 goalSafety && !goalSafety.allowed
@@ -456,7 +532,7 @@ export function StartCausePage() {
               <Button
                 size="small"
                 color="error"
-                onClick={() => showSafety('Goal', goalSafety)}
+                onClick={() => showSafety('Main statement', goalSafety)}
                 sx={{ alignSelf: 'flex-start', textTransform: 'none' }}
               >
                 Why blocked?
@@ -467,14 +543,15 @@ export function StartCausePage() {
 
         {activeStep === 1 && (
           <Stack spacing={2}>
-            <Typography variant="h6" sx={{ fontWeight: 700 }}>Explain the goal with statements</Typography>
+            <Typography variant="h6" sx={{ fontWeight: 700 }}>Supporting statements</Typography>
             <Typography variant="body2" color="text.secondary">
-              Statements are plain-English beliefs people can stand behind. Use suggestions for drivers
-              and principles, edit them, reject what does not fit, or write your own. About 1–5 is a
-              good range — not a hard limit.
+              Optional extras someone can also believe. Each one must be clearly and unambiguously
+              implied by your main statement — a subset, rephrasing, or safe generalization of what
+              the main claim already says. Do not add new policy, beneficiaries, urgency, or framing
+              the main statement does not already commit a signer to. About 1–5 is a good range.
             </Typography>
             <Paper variant="outlined" sx={{ p: 1.5, borderRadius: 2, bgcolor: 'action.hover' }}>
-              <Typography variant="caption" color="text.secondary">Goal</Typography>
+              <Typography variant="caption" color="text.secondary">Main statement</Typography>
               <Typography variant="body2" sx={{ fontWeight: 600 }}>{goal || '—'}</Typography>
             </Paper>
             <StatementWorkbench
@@ -490,42 +567,9 @@ export function StartCausePage() {
 
         {activeStep === 2 && (
           <Stack spacing={2}>
-            <Typography variant="h6" sx={{ fontWeight: 700 }}>How will you grow support?</Typography>
-            <Typography variant="body2" color="text.secondary">
-              Choose where you will focus first. You can add more later.
-            </Typography>
-            <FormGroup>
-              {allLevers.map((lever) => (
-                <FormControlLabel
-                  key={lever}
-                  control={
-                    <Checkbox
-                      checked={levers.includes(lever)}
-                      onChange={() => toggleLever(lever)}
-                    />
-                  }
-                  label={
-                    <Box sx={{ py: 0.5 }}>
-                      <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                        {LEVER_LABELS[lever].label}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        {LEVER_LABELS[lever].description}
-                      </Typography>
-                    </Box>
-                  }
-                  sx={{ alignItems: 'flex-start', ml: 0, mb: 0.5 }}
-                />
-              ))}
-            </FormGroup>
-          </Stack>
-        )}
-
-        {activeStep === 3 && (
-          <Stack spacing={2}>
             <Typography variant="h6" sx={{ fontWeight: 700 }}>Launch checklist</Typography>
             <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
-              <Typography variant="subtitle2" color="text.secondary">Goal</Typography>
+              <Typography variant="subtitle2" color="text.secondary">Main statement</Typography>
               <Typography variant="body1" sx={{ fontWeight: 700, mb: 1.5 }}>{goal}</Typography>
               <Typography variant="subtitle2" color="text.secondary">
                 Supporting statements ({adopted.length})
@@ -541,28 +585,12 @@ export function StartCausePage() {
                   ))}
                 </Stack>
               )}
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 1.5 }}>
-                Focus: {levers.map((l) => LEVER_LABELS[l].label).join(' · ')}
-              </Typography>
             </Paper>
 
             {!isConnected && (
               <Alert severity="info" sx={{ borderRadius: 2 }} action={<WalletButton />}>
                 Connect a wallet to publish. You can also save a draft.
               </Alert>
-            )}
-
-            {recommendedTools.length > 0 && (
-              <Box>
-                <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>
-                  Helpful next tools
-                </Typography>
-                <Stack spacing={1.25}>
-                  {recommendedTools.map((tool) => (
-                    <ToolCard key={tool.id} tool={tool} compact />
-                  ))}
-                </Stack>
-              </Box>
             )}
           </Stack>
         )}
@@ -571,26 +599,34 @@ export function StartCausePage() {
 
         <Stack direction="row" spacing={1} sx={{ mt: 3 }} flexWrap="wrap" useFlexGap>
           {activeStep > 0 && (
-            <Button onClick={handleBack} disabled={busy || checkingSafety} sx={{ textTransform: 'none' }}>
+            <Button
+              onClick={handleBack}
+              disabled={busy || checkingSafety || checkingImplications}
+              sx={{ textTransform: 'none' }}
+            >
               Back
             </Button>
           )}
           <Box sx={{ flexGrow: 1 }} />
           <Button
             onClick={() => void handleSaveDraftOnly()}
-            disabled={busy || checkingSafety}
+            disabled={busy || checkingSafety || checkingImplications}
             data-testid="start-cause-save-draft"
             sx={{ textTransform: 'none' }}
           >
-            {checkingSafety ? 'Checking…' : 'Save draft'}
+            {checkingSafety || checkingImplications ? 'Checking…' : 'Save draft'}
           </Button>
           {activeStep < steps.length - 1 ? (
             <Button
               variant="contained"
               onClick={() => void handleNext()}
-              disabled={busy || checkingSafety}
+              disabled={busy || checkingSafety || checkingImplications}
               data-testid="start-cause-continue"
-              startIcon={checkingSafety ? <CircularProgress size={18} color="inherit" /> : undefined}
+              startIcon={
+                checkingSafety || checkingImplications
+                  ? <CircularProgress size={18} color="inherit" />
+                  : undefined
+              }
               sx={{ minHeight: 44, borderRadius: 999, textTransform: 'none', fontWeight: 700, px: 2.5 }}
             >
               Continue
@@ -599,9 +635,13 @@ export function StartCausePage() {
             <Button
               variant="contained"
               onClick={() => void handleLaunch()}
-              disabled={busy || checkingSafety}
+              disabled={busy || checkingSafety || checkingImplications}
               data-testid="start-cause-publish"
-              startIcon={busy || checkingSafety ? <CircularProgress size={18} color="inherit" /> : undefined}
+              startIcon={
+                busy || checkingSafety || checkingImplications
+                  ? <CircularProgress size={18} color="inherit" />
+                  : undefined
+              }
               sx={{ minHeight: 44, borderRadius: 999, textTransform: 'none', fontWeight: 700, px: 2.5 }}
             >
               {busy ? 'Publishing…' : 'Publish cause'}

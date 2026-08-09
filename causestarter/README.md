@@ -197,7 +197,7 @@ Then **restart Grok** so MCP tools load.
 | `home-start-cause` | Home CTA → wizard |
 | `nav-start` | Desktop nav “Start” |
 | `start-cause-page` | Wizard root |
-| `start-cause-goal` | Goal textarea |
+| `start-cause-goal` | Main statement textarea |
 | `start-cause-continue` | Continue |
 | `start-cause-publish` | Publish cause |
 
