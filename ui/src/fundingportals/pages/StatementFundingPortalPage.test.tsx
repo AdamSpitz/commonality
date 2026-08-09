@@ -127,6 +127,8 @@ describe('StatementFundingPortalPage', () => {
     vi.mocked(getTotalFundingForCause).mockResolvedValue({
       totalRaisedAcrossProjects: [{ amount: 2000000000000000000n, currency: { kind: 'native', symbol: 'ETH', decimals: 18, tokenAddress: null, tokenType: 0 } }],
       totalAvailableFromNotes: [],
+      remainingToThreshold: [],
+      totalUnreimbursed: [],
       projectCount: 4,
       noteCount: 0,
     })

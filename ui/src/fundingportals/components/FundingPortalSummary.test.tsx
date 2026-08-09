@@ -96,11 +96,15 @@ type TestCurrency = typeof ETH_CURRENCY | typeof USDZZZ_CURRENCY | typeof TOKENS
 
 function makeFundingMetrics(overrides: Partial<{
   totalRaisedAcrossProjects: Array<{ amount: bigint; currency: TestCurrency }>
+  remainingToThreshold: Array<{ amount: bigint; currency: TestCurrency }>
+  totalUnreimbursed: Array<{ amount: bigint; currency: TestCurrency }>
   projectCount: number
 }> = {}) {
   return {
     totalRaisedAcrossProjects: [],
     totalAvailableFromNotes: [],
+    remainingToThreshold: [],
+    totalUnreimbursed: [],
     projectCount: 0,
     noteCount: 0,
     ...overrides,
@@ -243,6 +247,28 @@ describe('FundingPortalSummary', () => {
       })
     })
 
+    it('shows remaining-to-threshold and unreimbursed aggregates', async () => {
+      vi.mocked(getTotalFundingForCause).mockResolvedValue(
+        makeFundingMetrics({
+          remainingToThreshold: [
+            { amount: 250000000000000000n, currency: ETH_CURRENCY },
+          ],
+          totalUnreimbursed: [
+            { amount: 1000000n, currency: USDZZZ_CURRENCY },
+          ],
+        })
+      )
+
+      render(<FundingPortalSummary statementCid="QmTest" />)
+
+      await waitFor(() => {
+        expect(screen.getByText('Still Needed (Open Projects)')).toBeInTheDocument()
+        expect(screen.getByText('Unreimbursed (Succeeded)')).toBeInTheDocument()
+        expect(screen.getByText('0.25 ETH')).toBeInTheDocument()
+        expect(screen.getByText('1 USDZZZ')).toBeInTheDocument()
+      })
+    })
+
     it('shows ongoing monthly pledge total', async () => {
       vi.mocked(getMonthlyPledgedByCause).mockResolvedValue(new Map([['QmTest', 4_200_000n]]))
 
@@ -286,7 +312,8 @@ describe('FundingPortalSummary', () => {
       render(<FundingPortalSummary statementCid="QmTest" />)
 
       await waitFor(() => {
-        expect(screen.getAllByText('0 USDZZZ')).toHaveLength(2)
+        // Total raised, still needed, unreimbursed, and funds from delegates all default to zero.
+        expect(screen.getAllByText('0 USDZZZ')).toHaveLength(4)
       })
       expect(screen.queryByText('0 ETH')).not.toBeInTheDocument()
     })

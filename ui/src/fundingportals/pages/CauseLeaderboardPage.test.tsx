@@ -76,6 +76,8 @@ describe('CauseLeaderboardPage', () => {
     vi.mocked(getTotalFundingForCause).mockResolvedValue({
       totalRaisedAcrossProjects: [],
       totalAvailableFromNotes: [{ amount: 500000000000000000n, currency: { symbol: 'ETH', decimals: 18 } }],
+      remainingToThreshold: [],
+      totalUnreimbursed: [],
       projectCount: 1,
       noteCount: 1,
     } as any)

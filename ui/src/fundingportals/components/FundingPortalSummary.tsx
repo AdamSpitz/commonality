@@ -34,6 +34,8 @@ export function FundingPortalSummary({
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [totalRaised, setTotalRaised] = useState<Awaited<ReturnType<typeof getTotalFundingForCause>>['totalRaisedAcrossProjects']>([])
+  const [remainingToThreshold, setRemainingToThreshold] = useState<Awaited<ReturnType<typeof getTotalFundingForCause>>['remainingToThreshold']>([])
+  const [totalUnreimbursed, setTotalUnreimbursed] = useState<Awaited<ReturnType<typeof getTotalFundingForCause>>['totalUnreimbursed']>([])
   const [availableDelegatable, setAvailableDelegatable] = useState<Awaited<ReturnType<typeof computeAvailableDelegatableFunding>>>([])
   const [monthlyPledged, setMonthlyPledged] = useState<bigint>(0n)
   const [projectCount, setProjectCount] = useState<number>(0)
@@ -55,6 +57,8 @@ export function FundingPortalSummary({
         if (cancelled) return
 
         setTotalRaised(fundingMetrics.totalRaisedAcrossProjects)
+        setRemainingToThreshold(fundingMetrics.remainingToThreshold)
+        setTotalUnreimbursed(fundingMetrics.totalUnreimbursed)
         setProjectCount(fundingMetrics.projectCount)
         const projectFundingCurrency = allProjects.find((project) => project.fundingCurrency)?.fundingCurrency
         setPortalCurrency(fundingMetrics.totalRaisedAcrossProjects[0]?.currency ?? projectFundingCurrency ?? getConfiguredPaymentCurrency() ?? DEFAULT_PAYMENT_CURRENCY)
@@ -146,12 +150,26 @@ export function FundingPortalSummary({
 
         <Divider sx={{ mb: 2 }} />
 
-        <Stack direction="row" spacing={4} flexWrap="wrap" sx={{ mb: 2 }}>
+        <Stack direction="row" spacing={4} flexWrap="wrap" useFlexGap sx={{ mb: 2 }}>
           <Box>
             <Typography variant="caption" color="text.secondary" display="block">
               Total Funding Raised
             </Typography>
             <Typography variant="h6">{formatCurrencyTotals(totalRaised, portalCurrency)}</Typography>
+          </Box>
+
+          <Box>
+            <Typography variant="caption" color="text.secondary" display="block">
+              Still Needed (Open Projects)
+            </Typography>
+            <Typography variant="h6">{formatCurrencyTotals(remainingToThreshold, portalCurrency)}</Typography>
+          </Box>
+
+          <Box>
+            <Typography variant="caption" color="text.secondary" display="block">
+              Unreimbursed (Succeeded)
+            </Typography>
+            <Typography variant="h6">{formatCurrencyTotals(totalUnreimbursed, portalCurrency)}</Typography>
           </Box>
 
           <Box>

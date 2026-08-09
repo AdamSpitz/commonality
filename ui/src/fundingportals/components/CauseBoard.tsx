@@ -141,6 +141,12 @@ export function CauseBoard({
   const [totalRaised, setTotalRaised] = useState<
     Awaited<ReturnType<typeof getTotalFundingForCause>>['totalRaisedAcrossProjects']
   >([])
+  const [remainingToThreshold, setRemainingToThreshold] = useState<
+    Awaited<ReturnType<typeof getTotalFundingForCause>>['remainingToThreshold']
+  >([])
+  const [totalUnreimbursed, setTotalUnreimbursed] = useState<
+    Awaited<ReturnType<typeof getTotalFundingForCause>>['totalUnreimbursed']
+  >([])
   const [availableDelegatable, setAvailableDelegatable] = useState<
     Awaited<ReturnType<typeof computeAvailableDelegatableFunding>>
   >([])
@@ -186,6 +192,8 @@ export function CauseBoard({
         }
 
         setTotalRaised(fundingMetrics.totalRaisedAcrossProjects)
+        setRemainingToThreshold(fundingMetrics.remainingToThreshold)
+        setTotalUnreimbursed(fundingMetrics.totalUnreimbursed)
         setProjectCount(fundingMetrics.projectCount)
 
         const [total, monthlyTotals] = await Promise.all([
@@ -258,12 +266,26 @@ export function CauseBoard({
 
         <Divider sx={{ my: 2 }} />
 
-        <Stack direction="row" spacing={4} flexWrap="wrap">
+        <Stack direction="row" spacing={4} flexWrap="wrap" useFlexGap>
           <Box>
             <Typography variant="caption" color="text.secondary" display="block">
               Total Funding Raised
             </Typography>
             <Typography variant="h6">{formatCurrencyTotals(totalRaised)}</Typography>
+          </Box>
+
+          <Box>
+            <Typography variant="caption" color="text.secondary" display="block">
+              Still Needed (Open Projects)
+            </Typography>
+            <Typography variant="h6">{formatCurrencyTotals(remainingToThreshold)}</Typography>
+          </Box>
+
+          <Box>
+            <Typography variant="caption" color="text.secondary" display="block">
+              Unreimbursed (Succeeded)
+            </Typography>
+            <Typography variant="h6">{formatCurrencyTotals(totalUnreimbursed)}</Typography>
           </Box>
 
           <Box>

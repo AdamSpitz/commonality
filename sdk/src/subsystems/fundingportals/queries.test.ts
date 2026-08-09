@@ -1,5 +1,12 @@
 import assert from 'assert';
-import { calculateSuccessConfidenceScore, getSubjectStatements, getSubjectSuccessStatements, noteIntentNoteLookupKey } from './queries.js';
+import {
+  calculateSuccessConfidenceScore,
+  classifyAlignedProjectStatus,
+  getSubjectStatements,
+  getSubjectSuccessStatements,
+  noteIntentNoteLookupKey,
+  remainingToThresholdForProject,
+} from './queries.js';
 import { PROJECT_ALIGNMENT_TOPIC } from './constants.js';
 const A = '0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA';
 const B = '0xBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB';
@@ -34,6 +41,70 @@ describe('funding portal queries', () => {
 
   afterEach(() => {
     global.fetch = originalFetch;
+  });
+
+  describe('aligned project open/succeeded classification', () => {
+    const now = 1_700_000_000;
+
+    it('classifies threshold-met projects as succeeded even after deadline', () => {
+      assert.strictEqual(
+        classifyAlignedProjectStatus({
+          totalReceived: '100',
+          threshold: '100',
+          deadline: String(now - 10),
+        }, now),
+        'succeeded',
+      );
+    });
+
+    it('classifies under-threshold past-deadline projects as refunding', () => {
+      assert.strictEqual(
+        classifyAlignedProjectStatus({
+          totalReceived: '50',
+          threshold: '100',
+          deadline: String(now - 1),
+        }, now),
+        'refunding',
+      );
+    });
+
+    it('classifies under-threshold before-deadline projects as active', () => {
+      assert.strictEqual(
+        classifyAlignedProjectStatus({
+          totalReceived: '50',
+          threshold: '100',
+          deadline: String(now + 100),
+        }, now),
+        'active',
+      );
+    });
+
+    it('reports remaining-to-threshold only for open projects', () => {
+      assert.strictEqual(
+        remainingToThresholdForProject({
+          totalReceived: '40',
+          threshold: '100',
+          deadline: String(now + 100),
+        }, now),
+        60n,
+      );
+      assert.strictEqual(
+        remainingToThresholdForProject({
+          totalReceived: '100',
+          threshold: '100',
+          deadline: String(now + 100),
+        }, now),
+        0n,
+      );
+      assert.strictEqual(
+        remainingToThresholdForProject({
+          totalReceived: '40',
+          threshold: '100',
+          deadline: String(now - 1),
+        }, now),
+        0n,
+      );
+    });
   });
 
   it('scopes note-intent note lookups by DelegatableNotes contract address', () => {
