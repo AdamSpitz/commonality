@@ -33,8 +33,9 @@ import { truncateAddress } from '../../shared'
 export interface DelegatableNotesSectionProps {
   statementCid: string
   /**
-   * `summary` — three rollups only (default). Optional `to` makes the card a same-app link.
+   * `summary` — three rollups only. Optional `to` makes the card a same-app link.
    * `detail` — rollups plus the full earmarked-notes table.
+   * Defaults to summary when `to` is supplied, otherwise detail for legacy hosts.
    */
   variant?: 'summary' | 'detail'
   /** When set on the summary variant, the whole card navigates here (react-router path). */
@@ -58,11 +59,11 @@ function formatPledgeTotal(totals: CurrencyAmountBigInt[]): string {
 
 /**
  * Earmarked funds (delegatable notes tagged for a cause goal statement).
- * Summary rollups for cause cards; detail variant for a dedicated page.
+ * Summary rollups for linked CauseStarter cards; full detail for existing hosts.
  */
 export function DelegatableNotesSection({
   statementCid,
-  variant = 'summary',
+  variant,
   to,
 }: DelegatableNotesSectionProps) {
   const machinery = useMachinery()
@@ -70,7 +71,8 @@ export function DelegatableNotesSection({
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [notes, setNotes] = useState<Note[]>([])
-  const isDetail = variant === 'detail'
+  const resolvedVariant = variant ?? (to ? 'summary' : 'detail')
+  const isDetail = resolvedVariant === 'detail'
   const isLink = Boolean(to) && !isDetail
 
   useEffect(() => {

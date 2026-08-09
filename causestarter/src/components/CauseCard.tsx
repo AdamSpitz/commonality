@@ -9,10 +9,13 @@ interface CauseCardProps {
 
 export function CauseCard({ cause }: CauseCardProps) {
   const adopted = adoptedStatements(cause)
+  const to = cause.id.startsWith('supported:') && cause.statementCid
+    ? `/statement/${cause.statementCid}`
+    : `/cause/${cause.id}`
   return (
     <Paper
       component={RouterLink}
-      to={`/cause/${cause.id}`}
+      to={to}
       elevation={0}
       sx={{
         display: 'block',

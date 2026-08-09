@@ -97,7 +97,7 @@ CauseStarter is part of the default local stack:
 
 That publishes the CauseStarter SPA to local IPFS (gateway
 `http://causestarter.localhost:8088/#/`) and starts the dedicated nginx SPA on
-**http://localhost:8090/** with **cause-assist** (LLM helpers) on **:3002**.
+**http://localhost:8090/** with **cause-assist** (LLM helpers) proxied internally at `/api/cause-assist/`.
 
 After start, `services.sh` runs a **fail-fast config sync check**
 (`./scripts/check-local-config-sync.sh` / `npm run local:check`) so missing

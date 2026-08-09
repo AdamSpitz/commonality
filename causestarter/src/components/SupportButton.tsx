@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Alert, Button, CircularProgress, Stack, Typography } from '@mui/material'
 import { useAccount } from 'wagmi'
 import { BeliefsAbi } from '@commonality/sdk/abis'
@@ -35,6 +35,8 @@ export function SupportButton({
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [beliefState, setBeliefState] = useState<number | null>(null)
+  const operationContext = `${address ?? ''}:${statementCid}`
+  const operationContextRef = useRef(operationContext)
 
   const beliefsAddress = (
     getRuntimeConfigValue('VITE_BELIEFS_CONTRACT_ADDRESS')
@@ -42,10 +44,12 @@ export function SupportButton({
   ) as `0x${string}` | undefined
 
   useEffect(() => {
+    operationContextRef.current = operationContext
     // Drop status banners when the wallet or statement changes so a prior user's
     // "retracted" (or error) message never stacks with the next user's state.
     setSuccess(null)
     setError(null)
+    setBusy(false)
 
     if (!isConnected || !address) {
       setBeliefState(null)
@@ -74,7 +78,7 @@ export function SupportButton({
     return () => {
       cancelled = true
     }
-  }, [address, isConnected, machinery, statementCid])
+  }, [address, isConnected, machinery, operationContext, statementCid])
 
   if (!isConnected) {
     return (
@@ -93,6 +97,8 @@ export function SupportButton({
   }
 
   const handleSupport = async () => {
+    const startedFor = operationContext
+    const isCurrent = () => operationContextRef.current === startedFor
     setError(null)
     setSuccess(null)
 
@@ -109,18 +115,24 @@ export function SupportButton({
     setBusy(true)
     try {
       const txHash = await believeStatement(writeClients, beliefsContract, statementCid)
-      await writeClients.publicClient.waitForTransactionReceipt({ hash: txHash })
+      const receipt = await writeClients.publicClient.waitForTransactionReceipt({ hash: txHash })
+      if (receipt.status !== 'success') throw new Error('Support transaction reverted')
+      if (!isCurrent()) return
       setBeliefState(BeliefStates.BELIEVES)
       setSuccess(null)
       onSupported?.()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to record support')
+      if (isCurrent()) {
+        setError(err instanceof Error ? err.message : 'Failed to record support')
+      }
     } finally {
-      setBusy(false)
+      if (isCurrent()) setBusy(false)
     }
   }
 
   const handleRetract = async () => {
+    const startedFor = operationContext
+    const isCurrent = () => operationContextRef.current === startedFor
     setError(null)
     setSuccess(null)
 
@@ -137,14 +149,18 @@ export function SupportButton({
     setBusy(true)
     try {
       const txHash = await clearOpinion(writeClients, beliefsContract, statementCid)
-      await writeClients.publicClient.waitForTransactionReceipt({ hash: txHash })
+      const receipt = await writeClients.publicClient.waitForTransactionReceipt({ hash: txHash })
+      if (receipt.status !== 'success') throw new Error('Retract transaction reverted')
+      if (!isCurrent()) return
       setBeliefState(BeliefStates.NO_OPINION)
       setSuccess('You retracted your support for this cause.')
       onSupported?.()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to retract support')
+      if (isCurrent()) {
+        setError(err instanceof Error ? err.message : 'Failed to retract support')
+      }
     } finally {
-      setBusy(false)
+      if (isCurrent()) setBusy(false)
     }
   }
 

@@ -242,11 +242,11 @@ describe('DelegatableNotesSection', () => {
       })
     })
 
-    it('does not show note details in summary mode', async () => {
+    it('does not show note details in explicit summary mode', async () => {
       vi.mocked(getNoteIntentAttestationsByStatement).mockResolvedValue([makeAttestation('1')])
       vi.mocked(getNote).mockResolvedValue(makeNote())
 
-      renderSection()
+      renderSection(<DelegatableNotesSection statementCid="QmTest" variant="summary" />)
       await waitForTotal('1 ETH')
 
       expect(screen.queryByRole('button', { name: /note details/i })).not.toBeInTheDocument()
@@ -313,6 +313,18 @@ describe('DelegatableNotesSection', () => {
   })
 
   describe('Detail variant', () => {
+    it('preserves the full note table by default for existing funding portal hosts', async () => {
+      vi.mocked(getNoteIntentAttestationsByStatement).mockResolvedValue([makeAttestation('1')])
+      vi.mocked(getNote).mockResolvedValue(makeNote())
+
+      renderSection()
+      await waitForTotal('1 ETH')
+
+      expect(screen.getByText('Notes earmarked for this cause')).toBeInTheDocument()
+      expect(screen.getByRole('columnheader', { name: 'Note ID' })).toBeInTheDocument()
+      expect(screen.getByText('#1')).toBeInTheDocument()
+    })
+
     it('shows empty message when no notes exist', async () => {
       vi.mocked(getNoteIntentAttestationsByStatement).mockResolvedValue([])
 

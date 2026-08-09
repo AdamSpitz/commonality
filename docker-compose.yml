@@ -424,8 +424,9 @@ services:
       context: .
       dockerfile: cause-assist/Dockerfile
     container_name: commonality-cause-assist
-    ports:
-      - "${CAUSE_ASSIST_PORT:-3002}:3002"
+    # Internal-only; CauseStarter's nginx proxies /api/cause-assist/.
+    expose:
+      - "3002"
     env_file:
       - path: .env
         required: false
@@ -433,10 +434,11 @@ services:
       PORT: "3002"
       XAI_API_KEY: ${XAI_API_KEY:-}
       OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
-      CAUSE_ASSIST_API_BASE_URL: ${CAUSE_ASSIST_API_BASE_URL:-https://api.x.ai/v1}
-      CAUSE_ASSIST_SUGGEST_MODEL: ${CAUSE_ASSIST_SUGGEST_MODEL:-grok-4.5}
-      CAUSE_ASSIST_SAFETY_MODEL: ${CAUSE_ASSIST_SAFETY_MODEL:-grok-4.5}
-      CAUSE_ASSIST_IMPLICATION_MODEL: ${CAUSE_ASSIST_IMPLICATION_MODEL:-grok-4.5}
+      # Keep overrides empty by default so config.ts can choose provider-appropriate defaults.
+      CAUSE_ASSIST_API_BASE_URL: ${CAUSE_ASSIST_API_BASE_URL:-}
+      CAUSE_ASSIST_SUGGEST_MODEL: ${CAUSE_ASSIST_SUGGEST_MODEL:-}
+      CAUSE_ASSIST_SAFETY_MODEL: ${CAUSE_ASSIST_SAFETY_MODEL:-}
+      CAUSE_ASSIST_IMPLICATION_MODEL: ${CAUSE_ASSIST_IMPLICATION_MODEL:-}
     networks:
       - commonality
     restart: unless-stopped

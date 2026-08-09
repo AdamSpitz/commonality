@@ -139,6 +139,39 @@ describe('SupportButton', () => {
     expect(screen.getByText(/you retracted your support/i)).toBeInTheDocument()
   })
 
+  it('ignores an in-flight support completion after switching wallets', async () => {
+    const USER_B = '0xBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB'
+    let resolveReceipt!: (value: { status: string }) => void
+    const receipt = new Promise<{ status: string }>((resolve) => {
+      resolveReceipt = resolve
+    })
+    const oldClients = mockWriteClients()
+    oldClients.publicClient.waitForTransactionReceipt.mockReturnValue(receipt)
+    vi.mocked(useWriteClients).mockReturnValue(oldClients as any)
+    const onSupported = vi.fn()
+
+    const { rerender } = render(<SupportButton statementCid={CID} onSupported={onSupported} />)
+    fireEvent.click(await screen.findByRole('button', { name: /stand with this cause/i }))
+    await waitFor(() => expect(believeStatement).toHaveBeenCalled())
+
+    vi.mocked(useAccount).mockReturnValue({ address: USER_B, isConnected: true } as any)
+    vi.mocked(useWriteClients).mockReturnValue(mockWriteClients() as any)
+    vi.mocked(getUserBelief).mockResolvedValue({
+      statementCid: CID,
+      beliefState: BeliefStates.NO_OPINION,
+    })
+    rerender(<SupportButton statementCid={CID} onSupported={onSupported} />)
+    expect(await screen.findByRole('button', { name: /stand with this cause/i })).toBeInTheDocument()
+
+    resolveReceipt({ status: 'success' })
+    await waitFor(() => expect(oldClients.publicClient.waitForTransactionReceipt).toHaveBeenCalled())
+    await Promise.resolve()
+
+    expect(screen.getByRole('button', { name: /stand with this cause/i })).toBeInTheDocument()
+    expect(screen.queryByText(/you've declared your support/i)).not.toBeInTheDocument()
+    expect(onSupported).not.toHaveBeenCalled()
+  })
+
   it('clears retract banner when switching to another wallet that still supports', async () => {
     const USER_B = '0xBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB'
     vi.mocked(getUserBelief).mockResolvedValue({ statementCid: CID, beliefState: BeliefStates.BELIEVES })

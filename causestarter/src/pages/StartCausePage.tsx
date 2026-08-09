@@ -169,7 +169,9 @@ export function StartCausePage() {
       .finally(() => setCheckingImplications(false))
   }
 
-  const runSafetyReview = async (): Promise<SafetyReviewResult> => {
+  const runSafetyReview = async (
+    checkSupportingImplications = true,
+  ): Promise<SafetyReviewResult> => {
     setCheckingSafety(true)
     setError(null)
     try {
@@ -211,8 +213,11 @@ export function StartCausePage() {
         }
       })
 
-      // Verify main → supporting for non-rejected statements (advisory + block on clear fails).
-      nextStatements = await applyImplicationResults(nextStatements, goal)
+      // Step 0 precedes the supporting-statement editor, so implication checks begin
+      // only when leaving that editor (and are repeated before launch).
+      if (checkSupportingImplications) {
+        nextStatements = await applyImplicationResults(nextStatements, goal)
+      }
 
       setGoalSafety(goalNext)
       setStatements(nextStatements)
@@ -235,7 +240,7 @@ export function StartCausePage() {
         }
         return { ok: false, goalSafety: goalNext, statements: nextStatements }
       }
-      if (hasBlockingImplication(nextStatements)) {
+      if (checkSupportingImplications && hasBlockingImplication(nextStatements)) {
         setError(
           'A supporting statement is not clearly implied by the main statement. '
           + 'Edit it so it only restates or narrows what the main claim already says, or remove it.',
@@ -328,7 +333,7 @@ export function StartCausePage() {
       return
     }
     if (activeStep === 0 || activeStep === 1) {
-      const review = await runSafetyReview()
+      const review = await runSafetyReview(activeStep === 1)
       if (!review.ok) {
         setError('Blocked text cannot be saved. Edit or remove highlighted fields.')
         return
@@ -357,7 +362,7 @@ export function StartCausePage() {
 
   const handleSaveDraftOnly = async () => {
     setError(null)
-    const review = await runSafetyReview()
+    const review = await runSafetyReview(activeStep >= 1)
     if (!review.ok) {
       setError('Blocked text cannot be saved. Edit or remove highlighted fields.')
       return
