@@ -6,6 +6,14 @@ to stand up their own bridge-builder — a *mediator for their cause* — and of
 [CauseStarter](/causestarter/README.md), the same way they'd pick up delegation or content
 funding as a tool.
 
+*Possible second tenant, not yet decided:* [shaping-your-cause-statements.md](/docs/founder/shaping-your-cause-statements.md)
+argues that **cause-assist is threading the same needle as the mediator** (a statement crisp
+enough for the implication attester and natural enough that someone will sign it), and should
+therefore be a strategy configuration on this engine rather than a parallel implementation —
+sharing the engine and the [hidden-majority pattern catalog](/docs/end-user/common-sense-majority/hidden-majority-patterns.md),
+but never a strategy prompt, since a cause founder mobilizes a side where the mediator
+de-polarizes one.
+
 The founder-first triage rule from [founder-first.md](./founder-first.md) applies: this is
 "making a founder's job easier," so it's core platform work. But the *opinion* stays with
 the founder. We ship the engine; they write the strategy prompt and curate the anchors. If

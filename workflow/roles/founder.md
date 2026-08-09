@@ -1,6 +1,7 @@
 # Founder-level documentation
 
   - [Standing up a vertical](/docs/founder/standing-up-a-vertical.md) — the "now actually build one" guide, using Civility/CSM as worked examples
+  - [Shaping your cause's statements](/docs/founder/shaping-your-cause-statements.md) — what a cause is made of: planks, views, and anchors, and how implication direction constrains each (working proposal, still open)
   - [docs/end-user/commonality/vision-and-strategy/](/docs/end-user/commonality/vision-and-strategy/)
   - [specs/README.md](/specs/README.md)
   - [Verifier workspace](/verifier/README.md) (for when you want to know "is this thing actually *ready*?")
