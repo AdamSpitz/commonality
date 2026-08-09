@@ -6,13 +6,27 @@ to stand up their own bridge-builder — a *mediator for their cause* — and of
 [CauseStarter](/causestarter/README.md), the same way they'd pick up delegation or content
 funding as a tool.
 
-*Possible second tenant, not yet decided:* [shaping-your-cause-statements.md](/docs/founder/shaping-your-cause-statements.md)
-argues that **cause-assist is threading the same needle as the mediator** (a statement crisp
-enough for the implication attester and natural enough that someone will sign it), and should
-therefore be a strategy configuration on this engine rather than a parallel implementation —
-sharing the engine and the [hidden-majority pattern catalog](/docs/end-user/common-sense-majority/hidden-majority-patterns.md),
-but never a strategy prompt, since a cause founder mobilizes a side where the mediator
-de-polarizes one.
+**Second tenant — decided 2026-08-09: cause-assist is a strategy configuration on this
+engine, not a parallel implementation.** It threads the same needle as the mediator (a
+statement crisp enough for the implication attester and natural enough that someone will
+sign it), so it shares the engine and the
+[hidden-majority pattern catalog](/docs/end-user/common-sense-majority/hidden-majority-patterns.md)
+— but never a strategy prompt, since a cause founder mobilizes a side where the mediator
+de-polarizes one. The reasoning is in
+[shaping-your-cause-statements.md](/docs/founder/shaping-your-cause-statements.md).
+
+This makes the engine multi-tenant across two *kinds* of tenant, which sharpens the
+generalization work below rather than adding to it: the vocabulary in Tier 1 must cover a
+founder's planks as well as a mediator's sides, and the config artifact in Tier 2 becomes the
+seam a plank-authoring strategy plugs into. Three concrete capabilities are specified in
+[§ What cause-assist should do](/docs/founder/shaping-your-cause-statements.md#what-cause-assist-should-do)
+— atomize a bundle label into planks, sharpen a plank, draft an anchor from planks — and are
+queued in [TODO.md](/TODO.md).
+
+**Revisit if:** plank-authoring turns out to need a materially different synthesizer schema or
+context-source model than bridge triples do. Sharing the engine is justified by the shared
+needle and pattern catalog; if the shared surface shrinks to just the LLM client, the two
+should split again.
 
 The founder-first triage rule from [founder-first.md](./founder-first.md) applies: this is
 "making a founder's job easier," so it's core platform work. But the *opinion* stays with

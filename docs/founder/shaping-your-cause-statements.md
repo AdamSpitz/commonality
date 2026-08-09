@@ -1,11 +1,12 @@
 # Shaping your cause's statements
 
-**Status: progress, not a conclusion.** This is a working pass at how a cause is
-built out of statements. The mechanics it describes (implication direction, how
-support and cause boards aggregate) are accurate to the system as specified; the
-architecture it proposes — **planks, views, and anchors** — is a proposal under
-active discussion, and parts of it are unbuilt. See the open questions at the end
-before treating any of it as settled.
+**Status: settled in outline, unbuilt.** This is how a cause is built out of
+statements. The mechanics it describes (implication direction, how support and
+cause boards aggregate) are accurate to the system as specified. The architecture
+it proposes — **planks, views, and anchors** — is settled enough to build against
+as of 2026-08-09, but none of it is implemented. The design questions that were
+open closed on 2026-08-09 and are recorded, with their reasoning, in
+[§ Resolved](#resolved-2026-08-09); what remains open is one bug, at the end.
 
 Companion to [standing up a vertical](/docs/founder/standing-up-a-vertical.md),
 which covers the vertical as a whole. This one covers the narrow question of what
@@ -251,19 +252,79 @@ disbelief, not inventing a new kind of statement.
 ## What cause-assist should do
 
 The founder arrives with "conservatism" and no idea that any of the above exists.
-He should not have to learn it. The service should understand the shapes; the UI
-should offer **concrete alternative drafts of his own cause**, each with a
-one-line note on what it buys him — he picks by reading, not by learning a theory:
+He should not have to learn it, and this is not a gap to apologize for — **guiding
+him into a workable pattern is the entire job of the service.** Statements are an
+unnatural artifact to be asked for cold; the founder shouldn't be the one bridging
+that gap.
 
-- *"I'm a conservative and I agree with all of: […]"* — lets committed supporters
-  sign once and be counted on every issue; won't attract many signers by itself.
-- *"I support at least one of: […]"* — this is what totals up all the issues on
-  your cause page; broad but shallow.
-- *"[single issue]"* — simple, and picks up support from anyone who agrees,
-  including people who'd never call themselves conservative.
+### The mismatch today
 
-Plus, in every case, the atomized planks — because under the planks/views/anchors
-model the planks are what he actually needs first, and the anchor is optional.
+Every existing service assumes the artifact he is least able to produce, and none
+of them helps him produce it:
+
+| Piece | Today | Under planks/views/anchors |
+|---|---|---|
+| Wizard steps | `Main statement → Supporting → Launch` (`causestarter/src/pages/StartCausePage.tsx:41`) | `Issues → Preview → Launch`; no main statement is authored |
+| `/suggest-statements` | Needs a `goal` (the main statement) and derives things it implies | Needs a *rough description of the cause* and derives **planks** |
+| Suggester prompt | Hardcodes main (S1) → supporting (S2) (`cause-assist/src/statementSuggester.ts:15`) | Direction depends on shape; plank-authoring has no main statement at all |
+| Implication gating | Blocks medium/high non-implies against the main statement | Nothing to gate against until an anchor is promoted |
+
+The direction hardcoded in the suggester is sound for a conjunctive manifesto and
+**unsound for the other two shapes** — see
+[§ How this relates](#how-this-relates-to-what-causestarter-does-today). Because
+the wizard asks for the main statement first, the founder is committed to a shape
+before anything has told him shapes exist.
+
+### The service surface this model needs
+
+Three capabilities, none of which exist. They are additions to cause-assist, and
+under [§ This is the mediator's job](#this-is-the-mediators-job-again) they should
+be built as strategy configuration on the bridge-creator engine rather than as
+parallel implementations.
+
+**1. Atomize.** Rough description in — "I want to start a conservatism cause" —
+candidate **planks** out, each already at the quality bar in
+`cause-assist/src/statementGuidance.ts`: specific, self-contained, signable. This
+is the one the founder cannot do himself and the one that unblocks everything
+else. It is *coalition unbundling* from
+[hidden-majority-patterns.md](/docs/end-user/common-sense-majority/hidden-majority-patterns.md)
+pointed at a bundle label the founder supplied rather than one found in the wild.
+
+**2. Sharpen a plank.** Existing wording in, better wording out, against the
+mediator's two-sided bar: crisp enough that the implication attester will draw
+arrows, natural enough that a real supporter would sign it. The relevant
+techniques — *defer the details*, *expressing reservations* — are already in the
+pattern catalog. **Hedge, don't blur**
+([§ Hedge, don't blur](#hedge-dont-blur)) is the rule this must enforce, because
+the failure it prevents is silent: a vague plank collects no arrows and nothing
+tells the founder why.
+
+**3. Draft an anchor from planks.** Only at promotion time, and only *after* the
+planks exist — the reverse of today's ordering. It must enumerate its disjuncts
+verbatim (see [§ Resolved](#a-promoted-disjunctive-anchor-must-keep-its-list-visible)),
+and the existing `/check-implications` verifies the plank→anchor arrows before the
+anchor is published.
+
+### What the UI does with them
+
+The founder never sees the word "conjunctive." He types a rough description, gets
+candidate planks back, edits and accepts them — and then the wizard shows him a
+**live preview of his own cause page** with the two views togglable. That preview
+is the teaching mechanism: he learns what the shapes buy him by watching his own
+numbers move, not by reading a taxonomy. Promotion to an anchor is a later,
+optional action taken once a combination has proven itself
+([§ Promotion](#promotion)), not a decision extracted from him on day one.
+
+Where he still needs telling, tell him at the point of consequence, not up front:
+a plank too vague to attest should say so *when he writes it*, and a promoted
+anchor that would overstate what its signers agreed to should say so *at
+promotion*.
+
+**Confidence:** the reasoning here is sound and disposes of a real unsoundness,
+but "list your issues" is itself an untested claim about what a founder finds
+natural — someone arriving with "conservatism" in his head may find it just as
+alien as the shapes were. Treat this as the leading candidate and watch a real
+founder before hardening it.
 
 ### This is the mediator's job, again
 
@@ -323,22 +384,122 @@ Gaps, none of them implemented:
 - There is no notion of a view. The site currently renders one statement's
   aggregates, not set operations over several.
 
+## Resolved, 2026-08-09
+
+These were open questions; this is where they landed. Each is a decision, not a
+measurement — the measurements they imply are queued in [TODO.md](/TODO.md).
+
+### Indirect support maps onto the bands, it doesn't cross them
+
+The worry was that *(direct | indirect)* × *(strict | no-disagreement)* is four
+numbers nobody will read. It isn't four, because the two axes aren't independent
+and there's a natural assignment:
+
+- **Band 1 ("signed all five") counts direct support only.** Its entire claim to
+  being the hard number is that these people literally signed each plank.
+  Admitting indirect support weakens exactly what band 1 is for.
+- **Band 2 ("signed some, disagreed with none") counts direct ∪ indirect.** Band 2
+  is already an inference — it estimates whole-heartedness from silence. Indirect
+  support is the same kind of move (inferring a belief from an implying belief),
+  so it belongs here and concedes nothing band 2 hasn't conceded already.
+
+Two numbers, one gloss each, and the direct/indirect distinction becomes the
+*reason the bands differ* rather than a second axis crossing them.
+
+This also settles where the transparency rule binds: **at the plank**, in the
+per-plank strip, where it already reads honestly ("17 signed this; 118 signed five
+other statements that imply this"). Views are derived display and inherit
+legibility from the planks beneath them; they don't re-derive a parallel
+disclosure. If a fuller breakdown is wanted, it goes in the expansion — "of the
+1,840, 1,190 signed at least one plank directly" — never the headline.
+
+**Implementation trap:** the direct and indirect sets are **not disjoint**.
+`getIndirectSupportTieredHeadCount` unions them
+(`sdk/src/subsystems/conceptspace/queries.ts:478`), and one account can be in
+both — it signed the plank *and* signed something implying it. Any UI presenting
+them as a split rather than a union double-counts unless it subtracts. This
+applies to today's plank-level transparency wording too, not just to views.
+
+### A promoted disjunctive anchor must keep its list visible
+
+Plank → *enumerated* disjunction is disjunction introduction, as mechanically
+crisp as the conjunction-elimination direction. The logic was never the risk; the
+wording is. The arrow exists only while the anchor literally enumerates its
+disjuncts. Phrase it as an identity claim — "I'm generally conservative" — and
+it's the trap in [§ Three shapes](#disjunctive-or-hedgedbroad): the attester
+should refuse, and the anchor silently collects nothing.
+
+So this is a product constraint, not just an attester note: **a promoted
+disjunctive anchor cannot be phrased as a slogan.** A founder will instinctively
+want the headline to read as one. It can't. (Still worth testing against the real
+prompt — expect ambiguity refusals, not logical ones.)
+
+### Three shapes is too much theory — so the founder never sees them
+
+The wizard should not say "conjunctive." It asks for **issues** — the planks,
+which is what he needs first anyway since the anchor is optional — and then shows
+a live preview of his own cause page with the two views togglable. He picks by
+looking at his own numbers, which teaches better than any explanation, and
+[§ Promotion](#promotion) arrives naturally instead of as a separate feature.
+
+The payoff is that the main→supporting gating problem in
+[§ How this relates](#how-this-relates-to-what-causestarter-does-today)
+**disappears rather than needing a fix**: with no main statement at wizard time
+there is no arrow to gate and no unsound direction to pick. cause-assist's job
+becomes wording each plank to be attestable *and* signable — precisely the
+mediator's needle, landing where [§ This is the mediator's job](#this-is-the-mediators-job-again)
+already argues it should. It also satisfies the ordering constraint for free: a
+disjunctive anchor names its planks, so it must be generated after them.
+
+### Scale: the fold is fine, the transport isn't
+
+The set algebra was never the risk — union and intersection over 10⁵ anonymized
+IDs is milliseconds. What breaks is the event fetching underneath.
+`computeIndirectSupport` (`sdk/src/subsystems/conceptspace/queries.ts:330`)
+fetches `DirectSupport` events per statement under a hard `limit: 10000`, then
+fans out one fetch *per implying statement* plus a `fetchStatementDocument`
+retraction check per implying CID. A five-plank view multiplies that whole
+fan-out by five. So the ceiling bites at **10⁴, not 10⁵**, and it bites
+*silently*: a truncated fold returns a plausible-looking wrong number.
+
+Cost also scales with the implication graph rather than the signer count, so a
+heavily-attested plank is expensive before it is popular.
+
+The remedy, if measurement confirms it, is an indexer-side aggregate returning
+folded believer-ID sets per statement. The client-side set algebra survives
+either way — nothing above depends on where the sets come from.
+
+### Caveat: "views are free" is a claim about the chain, not about cost
+
+What [§ Planks, views, anchors](#planks-views-anchors) establishes is that a view
+needs no published statement, no attestation, and nothing on chain. That is not
+the same as free. Views are not free at the *read* layer, and pointers-only
+already made RPC load-bearing for reads. If the answer to the scale question is a
+server-side aggregate, then views quietly add to a founder's infrastructure
+burden — the exact thing
+[what-a-founder-needs.md § 3.3](/docs/founder/what-a-founder-needs.md#33-open-question-how-much-of-this-should-we-absorb)
+is trying to shrink. Don't let the two claims slide into each other.
+
 ## Open questions
 
-- **Does the views model hold up at scale?** Union and intersection over signer
-  sets means folding `DirectSupport` events per plank client-side. Fine now,
-  possibly not at 10⁵ signers. Unmeasured.
-- **How does indirect support compose into a view?** The union of
-  *(direct + indirect)* sets is well-defined, but the transparency rule requires
-  keeping the two legible separately, and it isn't obvious what that means for an
-  *intersection* view — which now has two bands of its own, so the naive
-  cross-product is four numbers and nobody will read that. Needs a design pass,
-  not just a decision.
-- **Will the attester actually produce plank→disjunctive-anchor arrows?** The
-  claim that they're "crisp" is a logical argument, not an observed result. Should
-  be tested against the real implication-attester prompt before tooling commits to
-  it. (Only bites promoted anchors; views don't need arrows.)
-- **NoteIntent earmarks don't roll up reliably.** Checked 2026-08-09.
+None of the design questions above remain open. What's left is queued work:
+measuring the client-side fold at ~10⁵ signers, testing plank→disjunctive-anchor
+arrows against the real attester prompt, and building the plank-first service and
+wizard. All four are in [TODO.md](/TODO.md).
+
+One caveat on earmarking, since this doc's [§ Align low, aggregate
+high](#align-low-aggregate-high) tells founders to earmark to planks: **NoteIntent
+earmark rollup is broken, and the decision (2026-08-09) is to withdraw the UI
+rather than fix it.** The rollup bug was real —
+`getNoteIntentAttestationsByStatement`
+(`sdk/src/subsystems/delegation/queries.ts:245`) is exact-match with no
+implication traversal, while `getTotalFundingForCause` expands but sources its CID
+set from the alignment traversal, so a plank with earmarked money and no aligned
+projects yet is invisible to the cause total — but the underlying attestation
+semantics and note-lifecycle inheritance are unresolved, so the earmarked-funds
+surfaces are being removed while the contract and SDK primitives stay dormant. So
+"earmark to the plank, let views aggregate" is the right *shape*, and it currently
+has no shipping UI behind it. See the NoteIntent item in [TODO.md](/TODO.md).
   `getNoteIntentAttestationsByStatement`
   (`sdk/src/subsystems/delegation/queries.ts:245`) is exact-match on
   `intendedStatementId` — no implication traversal.
@@ -355,8 +516,6 @@ Gaps, none of them implemented:
   routes around this*: a view queries each plank exactly and unions client-side,
   which is what the exact-match primitive already does well. The bug bites
   published anchors, not views.
-- **Is three shapes too much theory for a real founder**, even hidden behind
-  concrete drafts? The wizard may need to just pick for him and explain later.
 
 ## See also
 
