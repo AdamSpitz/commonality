@@ -35,19 +35,18 @@ export function CauseCard({ cause }: CauseCardProps) {
     >
       <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={1}>
         <Box sx={{ minWidth: 0 }}>
-          <Typography variant="overline" color="text.secondary" sx={{ letterSpacing: '0.08em' }}>
-            {cause.status === 'launched' ? 'Live cause' : 'Draft'}
-          </Typography>
           <Typography variant="h6" sx={{ fontWeight: 700, lineHeight: 1.25 }}>
             {cause.name || 'Untitled cause'}
           </Typography>
         </Box>
-        <Chip
-          size="small"
-          label={cause.status === 'launched' ? 'Launched' : 'Draft'}
-          color={cause.status === 'launched' ? 'success' : 'default'}
-          sx={{ flexShrink: 0 }}
-        />
+        {cause.status !== 'launched' && (
+          <Chip
+            size="small"
+            label="Not yet launched"
+            color="default"
+            sx={{ flexShrink: 0 }}
+          />
+        )}
       </Stack>
 
       {cause.goal && (

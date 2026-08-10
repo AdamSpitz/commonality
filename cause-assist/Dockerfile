@@ -42,14 +42,20 @@ RUN --mount=type=cache,target=/root/.npm HUSKY=0 npm ci --legacy-peer-deps
 COPY sdk ./sdk
 COPY services/attester-core ./services/attester-core
 COPY services/implication-attester ./services/implication-attester
+COPY services/nudger-core ./services/nudger-core
+COPY services/bridge-creator ./services/bridge-creator
 COPY cause-assist ./cause-assist
 
 ENV HUSKY=0
-# implication-attester/api is used only for the evaluator system prompt + types;
-# sdk is required to typecheck/build that package in the monorepo.
+# cause-assist prebuild builds attester-core, implication-attester, and bridge-creator.
+# bridge-creator typechecks against nudger-core + sdk, so those must be built first.
+# Only package.json was copied for bridge-creator/nudger-core previously, so `tsc`
+# ran with no tsconfig and printed help (exit 1).
 RUN npm run build --workspace=@commonality/sdk \
   && npm run build --workspace=@commonality/attester-core \
   && npm run build --workspace=@commonality/implication-attester \
+  && npm run build --workspace=@commonality/nudger-core \
+  && npm run build --workspace=@commonality/bridge-creator \
   && npm run build --workspace=@commonality/cause-assist
 
 FROM node:24.14.1-alpine AS runtime
@@ -65,11 +71,15 @@ COPY --from=builder /workspace/node_modules ./node_modules
 RUN rm -rf ./node_modules/@commonality/attester-core \
   && mkdir -p ./node_modules/@commonality/attester-core \
   && rm -rf ./node_modules/@commonality/implication-attester \
-  && mkdir -p ./node_modules/@commonality/implication-attester
+  && mkdir -p ./node_modules/@commonality/implication-attester \
+  && rm -rf ./node_modules/@commonality/bridge-creator \
+  && mkdir -p ./node_modules/@commonality/bridge-creator
 COPY --from=builder /workspace/services/attester-core/package.json ./node_modules/@commonality/attester-core/package.json
 COPY --from=builder /workspace/services/attester-core/dist ./node_modules/@commonality/attester-core/dist
 COPY --from=builder /workspace/services/implication-attester/package.json ./node_modules/@commonality/implication-attester/package.json
 COPY --from=builder /workspace/services/implication-attester/dist ./node_modules/@commonality/implication-attester/dist
+COPY --from=builder /workspace/services/bridge-creator/package.json ./node_modules/@commonality/bridge-creator/package.json
+COPY --from=builder /workspace/services/bridge-creator/dist ./node_modules/@commonality/bridge-creator/dist
 
 EXPOSE 3002
 CMD ["node", "dist/index.js"]
