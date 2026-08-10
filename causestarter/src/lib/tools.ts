@@ -1,6 +1,15 @@
 import type { DomainId } from './domainUrls'
 import { getDomainUrl } from './domainUrls'
-import type { MomentumLever } from './causeStore'
+/**
+ * How a founder grows a cause. This is a taxonomy for *tools*, not a field on a
+ * cause — a cause is its planks, and every growth surface stays available.
+ */
+export type MomentumLever =
+  | 'supporters'
+  | 'volunteers'
+  | 'collaborators'
+  | 'funding'
+  | 'content'
 
 export interface SupportingTool {
   id: string

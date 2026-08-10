@@ -5,7 +5,7 @@ Founder-first interface for the Commonality substrate. Where the main
 Civility, CSM, LazyGiving, …), **CauseStarter** is a single app organized around
 the cause-starter job:
 
-1. **Found a cause** — turn a rough description into independent, signable planks
+1. **Found a cause** — write the independent, signable planks it is made of
 2. **Enroll people** — supporters (signers), volunteers, and collaborators
 3. **Build momentum** — funding portals, assurance contracts, content funding
 4. **Use the rest as tools** — Commonality thesis, Civility, CSM, Tally, etc. are
@@ -154,9 +154,19 @@ See [`cause-assist/README.md`](../cause-assist/README.md).
 
 ## Design notes
 
-- **Cause draft store** (`src/lib/causeStore.ts`) keeps founder progress in
-  `localStorage` so a multi-step launch survives reloads before/while on-chain
-  publication.
+- **A cause is a set of planks**, not a main statement with supporters. Each
+  plank is published separately and carries its own CID; a cause is "live" once
+  any plank is on chain, and there is no launch step. The cause page is the
+  founder's editor *and* the visitor's view — see
+  [shaping-your-cause-statements.md](../docs/founder/shaping-your-cause-statements.md).
+- **Views** (`CauseViewStrip` + `useViewCounts`) are client-side set operations
+  over the planks: a union count, and a conjunction shown as **two bands**
+  (signed-all, plus signed-some-disagreed-with-none). Never render a bare
+  intersection — `noOpinion` is the default, so it collapses on silence.
+- **Alignment is per statement.** Boards live at `/statement/:cid/board`; a
+  cause page shows the union of its planks' boards, deduped by project.
+- **Cause store** (`src/lib/causeStore.ts`) keeps planks in `localStorage` so
+  unpublished wording survives reloads.
 - On-chain actions reuse the same SDK functions the main UI uses
   (`createAndSignStatement`, `browseStatements`, `believeStatement`, …).
 - Cross-domain links resolve via the same runtime config keys as `ui`
@@ -194,12 +204,21 @@ Then **restart Grok** so MCP tools load.
 | `wallet-account-menu` | Hardhat account picker (localhost only) |
 | `wallet-hardhat-0` … `wallet-hardhat-9` | Pick Hardhat account |
 | `wallet-disconnect` | Disconnect |
-| `home-start-cause` | Home CTA → wizard |
+| `home-start-cause` | Home CTA → start a cause |
 | `nav-start` | Desktop nav “Start” |
-| `start-cause-page` | Wizard root |
-| `start-cause-goal` | Rough cause description textarea (legacy selector name) |
-| `start-cause-continue` | Continue |
-| `start-cause-publish` | Publish cause |
+| `start-cause-page` | Start-a-cause root |
+| `start-cause-goal` | Rough cause description textarea (legacy selector name; it is only a suggestion seed) |
+| `start-cause-continue` | Create the cause and open its page |
+| `cause-detail-page` | Cause page root (where all editing happens) |
+| `cause-add-plank` | Add an issue |
+| `cause-suggest-planks` | Open the suggest-issues box |
+| `cause-suggestion-seed` | Rough description used only to suggest issues |
+| `plank-text-N` | Nth issue's editable text (drafts only) |
+| `plank-publish-N` | Publish the Nth issue |
+| `plank-row-draft` / `plank-row-published` | Issue rows by state |
+| `cause-view-strip` | Union / conjunction counts over selected issues |
+| `view-mode-any` / `view-mode-all` | Switch view |
+| `view-count-any` / `view-count-all` / `view-count-none-disagreed` | The counts themselves |
 
 On **localhost**, Connect only lists Hardhat accounts (no MetaMask). Use **Hardhat #0** for funded local txs.
 
@@ -224,7 +243,8 @@ CAUSESTARTER_BASE_URL=http://localhost:5174 CAUSESTARTER_HASH_ROUTING=0 \
 ### Example agent prompt
 
 > Use the browser. Open http://localhost:8090/, click Connect, choose Hardhat #0,  
-> click “Start a cause”, fill the goal with …, then Continue.
+> click “Start a cause”, describe the cause, click Continue, then add and publish
+> issues on the cause page.
 
 This package stays thinner than `ui/` (no multi-domain matrix, no Privy). Product posture:
 [`specs/product/founder-first.md`](../specs/product/founder-first.md).

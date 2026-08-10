@@ -753,30 +753,42 @@ async function readUnreimbursedForProject(
   }
 }
 
-/**
- * Get total funding raised for a cause (across all aligned projects).
- * Includes both direct and indirect alignments.
- */
-export async function getTotalFundingForCause(
-  machinery: SDKMachinery,
-  statementCid: IpfsCidV1,
-  trustedImplicationAttesters?: TrustedAddressInput,
-  trustedAlignmentAttesters?: TrustedAddressInput
-): Promise<CauseFundingMetrics> {
-  const allAlignedProjects = await getAllAlignedProjectsForCause(
-    machinery,
-    statementCid,
-    trustedImplicationAttesters,
-    trustedAlignmentAttesters
-  );
+/** A project as returned by {@link getAllAlignedProjectsForCause}. */
+export interface AlignedProjectFunding {
+  projectAddress: string;
+  fundingCurrency: Currency;
+  totalReceived: string;
+  threshold: string;
+  deadline: string;
+}
 
-  const nowSeconds = Math.floor(Date.now() / 1000);
+/** The per-project portion of {@link CauseFundingMetrics} (everything but notes). */
+export type AlignedProjectFundingTotals = Pick<
+  CauseFundingMetrics,
+  'totalRaisedAcrossProjects' | 'remainingToThreshold' | 'totalUnreimbursed' | 'projectCount'
+>;
+
+/**
+ * Fold funding totals over an explicit list of projects.
+ *
+ * Split out from {@link getTotalFundingForCause} because alignment attaches to
+ * *statements*, not to causes: a cause page showing totals across several
+ * planks must first dedupe by project address, since one project aligned with
+ * two planks is one project's worth of money, not two. Callers that have
+ * already deduped pass the result here rather than summing per-statement
+ * metrics, which would double-count.
+ */
+export async function foldAlignedProjectFunding(
+  machinery: SDKMachinery,
+  projects: AlignedProjectFunding[],
+  nowSeconds: number = Math.floor(Date.now() / 1000),
+): Promise<AlignedProjectFundingTotals> {
   const totalRaised = new Map<string, CurrencyAmountBigInt>();
   const remainingToThreshold = new Map<string, CurrencyAmountBigInt>();
   const totalUnreimbursed = new Map<string, CurrencyAmountBigInt>();
-  const succeededProjects: typeof allAlignedProjects = [];
+  const succeededProjects: AlignedProjectFunding[] = [];
 
-  for (const project of allAlignedProjects) {
+  for (const project of projects) {
     addCurrencyAmount(totalRaised, project.fundingCurrency, BigInt(project.totalReceived));
 
     const status = classifyAlignedProjectStatus(project, nowSeconds);
@@ -797,10 +809,37 @@ export async function getTotalFundingForCause(
     for (let i = 0; i < succeededProjects.length; i++) {
       const amount = unreimbursedAmounts[i] ?? 0n;
       if (amount > 0n) {
-        addCurrencyAmount(totalUnreimbursed, succeededProjects[i].fundingCurrency, amount);
+        addCurrencyAmount(totalUnreimbursed, succeededProjects[i]!.fundingCurrency, amount);
       }
     }
   }
+
+  return {
+    totalRaisedAcrossProjects: currencyTotalsToArray(totalRaised),
+    remainingToThreshold: currencyTotalsToArray(remainingToThreshold),
+    totalUnreimbursed: currencyTotalsToArray(totalUnreimbursed),
+    projectCount: projects.length,
+  };
+}
+
+/**
+ * Get total funding raised for a cause (across all aligned projects).
+ * Includes both direct and indirect alignments.
+ */
+export async function getTotalFundingForCause(
+  machinery: SDKMachinery,
+  statementCid: IpfsCidV1,
+  trustedImplicationAttesters?: TrustedAddressInput,
+  trustedAlignmentAttesters?: TrustedAddressInput
+): Promise<CauseFundingMetrics> {
+  const allAlignedProjects = await getAllAlignedProjectsForCause(
+    machinery,
+    statementCid,
+    trustedImplicationAttesters,
+    trustedAlignmentAttesters
+  );
+
+  const projectTotals = await foldAlignedProjectFunding(machinery, allAlignedProjects);
 
   const statementCids = new Set<string>([statementCid]);
   const indirectAlignments = await getIndirectlyAlignedSubjects(
@@ -830,11 +869,8 @@ export async function getTotalFundingForCause(
   }
 
   return {
-    totalRaisedAcrossProjects: currencyTotalsToArray(totalRaised),
+    ...projectTotals,
     totalAvailableFromNotes: currencyTotalsToArray(noteTotals),
-    remainingToThreshold: currencyTotalsToArray(remainingToThreshold),
-    totalUnreimbursed: currencyTotalsToArray(totalUnreimbursed),
-    projectCount: allAlignedProjects.length,
     noteCount,
   };
 }

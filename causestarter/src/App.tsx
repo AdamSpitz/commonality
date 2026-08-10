@@ -4,8 +4,8 @@ import { HomePage } from './pages/HomePage'
 import { StartCausePage } from './pages/StartCausePage'
 import { MomentumPage } from './pages/MomentumPage'
 import { CauseDetailPage } from './pages/CauseDetailPage'
-import { CauseBoardPage } from './pages/CauseBoardPage'
-import { CauseBoardLeaderboardPage } from './pages/CauseBoardLeaderboardPage'
+import { StatementBoardPage } from './pages/StatementBoardPage'
+import { StatementBoardLeaderboardPage } from './pages/StatementBoardLeaderboardPage'
 import { DiscoverPage } from './pages/DiscoverPage'
 import { StatementPage } from './pages/StatementPage'
 import { ToolsPage } from './pages/ToolsPage'
@@ -27,10 +27,12 @@ export default function App() {
           <Route path="/start" element={<StartCausePage />} />
           <Route path="/momentum" element={<MomentumPage />} />
           <Route path="/cause/:causeId" element={<CauseDetailPage />} />
-          <Route path="/cause/:causeId/board" element={<CauseBoardPage />} />
-          <Route path="/cause/:causeId/board/leaderboard" element={<CauseBoardLeaderboardPage />} />
           <Route path="/discover" element={<DiscoverPage />} />
           <Route path="/statement/:statementCid" element={<StatementPage />} />
+          {/* Boards are keyed by statement: alignment attestations name a
+              statement, never a cause. */}
+          <Route path="/statement/:statementCid/board" element={<StatementBoardPage />} />
+          <Route path="/statement/:statementCid/board/leaderboard" element={<StatementBoardLeaderboardPage />} />
           <Route path="/projects/:projectAddress" element={<ProjectDetailPage />} />
           <Route path="/tools" element={<ToolsPage />} />
           <Route path="*" element={<NotFoundPage />} />

@@ -2,11 +2,14 @@ import { Alert, Box, Button, CircularProgress, Stack, Typography } from '@mui/ma
 import { Link as RouterLink } from 'react-router-dom'
 import { CauseCard } from '../components/CauseCard'
 import { useUserCauses } from '../hooks/useUserCauses'
+import { isLive } from '../lib/causeStore'
 
 export function MomentumPage() {
   const { causes, loading } = useUserCauses()
-  const drafts = causes.filter((c) => c.status === 'draft')
-  const launched = causes.filter((c) => c.status === 'launched')
+  // "Live" is derived, not a status flag: a cause is live once any of its
+  // planks is on chain, and it can gain more planks at any time.
+  const drafts = causes.filter((cause) => !isLive(cause))
+  const launched = causes.filter(isLive)
 
   return (
     <Stack spacing={3}>

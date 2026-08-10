@@ -5,30 +5,15 @@
 
 import { getUserBeliefs, type StatementListItem } from '@commonality/sdk/conceptspace'
 import type { SDKMachinery } from '@commonality/sdk/machinery'
-import {
-  listCauses,
-  type CauseDraft,
-  type MomentumLever,
-} from './causeStore'
+import { listCauses, realPlanks, type CauseDraft } from './causeStore'
 
-const DEFAULT_LEVERS: MomentumLever[] = [
-  'supporters',
-  'volunteers',
-  'collaborators',
-  'funding',
-  'content',
-]
-
-function displayNameFromText(text: string): string {
-  const trimmed = text.trim()
-  if (!trimmed) return 'Untitled cause'
-  if (trimmed.length <= 48) return trimmed
-  return `${trimmed.slice(0, 45).trim()}…`
-}
-
-/** Build an in-memory cause card for an on-chain belief without writing localStorage. */
+/**
+ * Build an in-memory cause card for an on-chain belief without writing
+ * localStorage. A statement someone merely supports is a one-plank cause: the
+ * plank is the statement itself.
+ */
 export function supportedCause(statement: StatementListItem): CauseDraft {
-  const goal =
+  const text =
     statement.excerpt?.trim()
     || statement.title?.trim()
     || `Supported statement ${statement.cid.slice(0, 12)}…`
@@ -36,21 +21,21 @@ export function supportedCause(statement: StatementListItem): CauseDraft {
 
   return {
     id: `supported:${statement.cid}`,
-    goal,
-    name: displayNameFromText(statement.title || goal),
-    statements: [],
-    levers: DEFAULT_LEVERS,
+    planks: [{
+      id: `supported-plank:${statement.cid}`,
+      text,
+      origin: 'user',
+      cid: statement.cid,
+    }],
     createdAt: now,
     updatedAt: now,
-    status: 'launched',
-    statementCid: statement.cid,
   }
 }
 
 function causeStatementCids(cause: CauseDraft): string[] {
-  return [cause.statementCid, ...(cause.statementCids ?? [])].filter(
-    (cid): cid is string => Boolean(cid),
-  )
+  return realPlanks(cause)
+    .map((plank) => plank.cid)
+    .filter((cid): cid is string => Boolean(cid))
 }
 
 /**

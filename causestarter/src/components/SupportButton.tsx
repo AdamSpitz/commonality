@@ -32,6 +32,12 @@ interface SupportButtonProps {
    */
   onSupported?: (info: SupportSettledInfo) => void
   label?: string
+  /**
+   * What the signer is signing, for the surrounding copy. Always a single
+   * statement — signing a *cause* is not a thing that exists, since a cause is
+   * a set of separately signed planks.
+   */
+  subject?: string
 }
 
 const INDEXER_POLL_DELAYS_MS = [50, 100, 200, 400, 800, 1200] as const
@@ -63,7 +69,8 @@ async function waitForIndexedBelief(
 export function SupportButton({
   statementCid,
   onSupported,
-  label = 'Stand with this cause',
+  subject = 'statement',
+  label = `Stand with this ${subject}`,
 }: SupportButtonProps) {
   const { address, isConnected } = useAccount()
   const writeClients = useWriteClients(address)
@@ -140,7 +147,7 @@ export function SupportButton({
     return (
       <Stack spacing={1.5}>
         <Alert severity="info" sx={{ borderRadius: 2 }}>
-          Connect a wallet to publicly stand with this cause.
+          Connect a wallet to publicly stand with this {subject}.
         </Alert>
         <WalletButton />
       </Stack>
@@ -224,7 +231,7 @@ export function SupportButton({
       if (!isCurrent()) return
       // Swap declared → retracted in one commit so the status band never empties.
       setBeliefState(BeliefStates.NO_OPINION)
-      setSuccess('You retracted your support for this cause.')
+      setSuccess(`You retracted your support for this ${subject}.`)
       loadedContextRef.current = operationContext
       onSupported?.({ action: 'retract', indexed: false })
       const indexed = address
@@ -271,7 +278,7 @@ export function SupportButton({
       */}
       {alreadySupports ? (
         <Alert severity="success" sx={{ borderRadius: 2 }}>
-          You&apos;ve declared your support for this cause.
+          You&apos;ve declared your support for this {subject}.
         </Alert>
       ) : success ? (
         <Alert severity="success" sx={{ borderRadius: 2 }}>{success}</Alert>
@@ -288,7 +295,7 @@ export function SupportButton({
           startIcon={busy ? <CircularProgress size={18} color="inherit" /> : undefined}
           sx={{ minHeight: 48, borderRadius: 999, fontWeight: 600, textTransform: 'none' }}
         >
-          {busy ? 'Retracting…' : 'Retract your support for this cause'}
+          {busy ? 'Retracting…' : `Retract your support for this ${subject}`}
         </Button>
       ) : (
         <Button

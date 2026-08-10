@@ -327,8 +327,12 @@ export async function getIndirectSupporters(
  *     statement is "believes".
  *   - `indirectBelieverIds` — the Tally set-union of believer IDs across the
  *     implying statements, with target-disbelievers excluded.
+ *   - `disbelieverIds` — anchors whose latest belief on the *target* statement
+ *     is "disbelieves". Exposed because `noOpinion` and `disbelieves` are
+ *     different facts and view folds must not conflate them (see
+ *     {@link computeViewBands}).
  *
- * Both sets are deduped by anonymized anchor ID (see
+ * All three sets are deduped by anonymized anchor ID (see
  * `specs/tech/shared/unique-human-id.md`); today address → anonymized_ID is
  * 1:1, so counts are unchanged from the raw-address era, but the anonymized-ID
  * key is the seam proof-of-personhood tiers will attach to.
@@ -341,6 +345,7 @@ async function computeIndirectSupport(
   supporters: IndirectSupporter[];
   directBelieverIds: Set<AnonymizedId>;
   indirectBelieverIds: Set<AnonymizedId>;
+  disbelieverIds: Set<AnonymizedId>;
 }> {
   const decodedToEvents = await fetchDecodedImplicationAttestationEvents(machinery, {
     topic3: cidToBytes32(statementCid),
@@ -371,7 +376,12 @@ async function computeIndirectSupport(
   }
 
   if (implications.length === 0) {
-    return { supporters: [], directBelieverIds, indirectBelieverIds: new Set<AnonymizedId>() };
+    return {
+      supporters: [],
+      directBelieverIds,
+      indirectBelieverIds: new Set<AnonymizedId>(),
+      disbelieverIds: targetDisbelieverIds,
+    };
   }
 
   const uniqueFromCids = [...new Set(implications.map(i => i.fromStatementCid))];
@@ -444,7 +454,57 @@ async function computeIndirectSupport(
     supporters.push({ user, viaStatementCid });
   }
 
-  return { supporters, directBelieverIds, indirectBelieverIds };
+  return { supporters, directBelieverIds, indirectBelieverIds, disbelieverIds: targetDisbelieverIds };
+}
+
+/**
+ * The three belief sets for a statement, deduped by anonymized anchor ID.
+ *
+ * This is the read primitive behind **views** — the client-side set operations
+ * a cause site runs over its planks (see
+ * `docs/founder/shaping-your-cause-statements.md` § Planks, views, anchors).
+ * Counts are not enough: a union or an intersection over several planks needs
+ * the member sets themselves, and the two-band conjunction additionally needs
+ * to tell `disbelieves` apart from `noOpinion`.
+ *
+ * **Cost:** this walks direct-support events for the statement *and* for every
+ * statement implying it, so a view over N planks multiplies that walk by N.
+ * The per-fetch `limit: 10000` is a silent ceiling — see § Scale in the doc
+ * above; the eventual remedy is an indexer-side aggregate.
+ */
+export interface StatementBelieverSets {
+  statementCid: IpfsCidV1;
+  /** Anchors whose latest belief on this statement is "believes". */
+  directBelieverIds: Set<AnonymizedId>;
+  /** Anchors believing something that implies this statement, disbelievers excluded. */
+  indirectBelieverIds: Set<AnonymizedId>;
+  /** Anchors whose latest belief on this statement is "disbelieves". */
+  disbelieverIds: Set<AnonymizedId>;
+}
+
+/**
+ * Get the deduped believer / disbeliever ID sets for a statement, for folding
+ * into a view alongside other planks' sets.
+ *
+ * Prefer {@link getStatementSupportTieredHeadCount} when a single statement's
+ * headline number is all that's wanted; this exists for the multi-plank case
+ * where the sets must be combined before they are counted.
+ *
+ * @param machinery - SDK machinery with event cache configuration
+ * @param statementCid - CIDv1 of the target statement
+ * @param trustedAttesters - Optional list of attester addresses to filter implications by
+ */
+export async function getStatementBelieverSets(
+  machinery: SDKMachinery,
+  statementCid: IpfsCidV1,
+  trustedAttesters?: string[],
+): Promise<StatementBelieverSets> {
+  const { directBelieverIds, indirectBelieverIds, disbelieverIds } = await computeIndirectSupport(
+    machinery,
+    statementCid,
+    trustedAttesters,
+  );
+  return { statementCid, directBelieverIds, indirectBelieverIds, disbelieverIds };
 }
 
 /**
