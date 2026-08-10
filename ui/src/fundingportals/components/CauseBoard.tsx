@@ -27,11 +27,9 @@ import {
   useTrustedSet,
   useTrustedAttesters,
 } from '../../shared'
-import { computeAvailableDelegatableFunding } from '../utils'
 import { AlignedProjectsList } from './AlignedProjectsList'
 import { SuccessfulProjectsTab } from './SuccessfulProjectsTab'
 import { AttestAlignmentForm } from './AttestAlignmentForm'
-import { DelegatableNotesSection } from './DelegatableNotesSection'
 import type { ProjectLinkMode } from './AlignedProjectCard'
 
 /** In-app router link or external href for cause-board chrome. */
@@ -57,11 +55,6 @@ export interface CauseBoardProps {
    * CauseStarter hosts project detail locally; Aligning deep-links to LazyGiving.
    */
   projectLinks?: ProjectLinkMode
-  /**
-   * Optional same-app path for the earmarked-funds summary card (CauseStarter hosts
-   * `/cause/:id/earmarked`). When omitted the card is not a link.
-   */
-  earmarkedFundsTo?: string
 }
 
 function defaultNavLinks(statementCid: string): CauseBoardNavLink[] {
@@ -98,7 +91,7 @@ function NavLinkButton({ link }: { link: CauseBoardNavLink }) {
 
 /**
  * Full cause board surface (funding metrics, aligned/successful projects,
- * vouch form, delegatable notes). Shared by Aligning and CauseStarter.
+ * and vouch form). Shared by Aligning and CauseStarter.
  */
 export function CauseBoard({
   statementCid,
@@ -107,7 +100,6 @@ export function CauseBoard({
   navLinks,
   headerExtra,
   projectLinks = 'lazyGiving',
-  earmarkedFundsTo,
 }: CauseBoardProps) {
   const machinery = useMachinery()
   const { address } = useAccount()
@@ -146,9 +138,6 @@ export function CauseBoard({
   >([])
   const [totalUnreimbursed, setTotalUnreimbursed] = useState<
     Awaited<ReturnType<typeof getTotalFundingForCause>>['totalUnreimbursed']
-  >([])
-  const [availableDelegatable, setAvailableDelegatable] = useState<
-    Awaited<ReturnType<typeof computeAvailableDelegatableFunding>>
   >([])
   const [monthlyPledged, setMonthlyPledged] = useState<bigint>(0n)
   const [projectCount, setProjectCount] = useState<number>(0)
@@ -196,14 +185,10 @@ export function CauseBoard({
         setTotalUnreimbursed(fundingMetrics.totalUnreimbursed)
         setProjectCount(fundingMetrics.projectCount)
 
-        const [total, monthlyTotals] = await Promise.all([
-          computeAvailableDelegatableFunding(machinery, cid),
-          machinery.contractAddresses?.recurringPledges
-            ? getMonthlyPledgedByCause(machinery)
-            : Promise.resolve(new Map<string, bigint>()),
-        ])
+        const monthlyTotals = machinery.contractAddresses?.recurringPledges
+          ? await getMonthlyPledgedByCause(machinery)
+          : new Map<string, bigint>()
         if (cancelled) return
-        setAvailableDelegatable(total)
         setMonthlyPledged(monthlyTotals.get(cid) ?? 0n)
       } catch (err) {
         if (!cancelled) {
@@ -303,13 +288,6 @@ export function CauseBoard({
 
           <Box>
             <Typography variant="caption" color="text.secondary" display="block">
-              Funds from Delegates
-            </Typography>
-            <Typography variant="h6">{formatCurrencyTotals(availableDelegatable)}</Typography>
-          </Box>
-
-          <Box>
-            <Typography variant="caption" color="text.secondary" display="block">
               Projects
             </Typography>
             <Typography variant="h6">{projectCount}</Typography>
@@ -353,8 +331,6 @@ export function CauseBoard({
       )}
 
       <AttestAlignmentForm statementCid={statementCid} />
-
-      <DelegatableNotesSection statementCid={statementCid} to={earmarkedFundsTo} />
     </Box>
   )
 }

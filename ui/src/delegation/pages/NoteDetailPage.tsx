@@ -23,7 +23,7 @@ import {
 import { useAccount } from 'wagmi'
 import { formatEther, parseEther } from 'viem'
 import { DelegatableNotesAbi } from '@commonality/sdk/abis'
-import { getNote, getDelegationChain, getNoteIntentAttestationsByNote, delegateNote, revokeNote, reclaimFunds, purchaseFromPrimaryMarketWithNotes, refundNote, type Note, type DelegationChainLink, type NoteIntentAttestation } from '@commonality/sdk/delegation'
+import { getNote, getDelegationChain, delegateNote, revokeNote, reclaimFunds, purchaseFromPrimaryMarketWithNotes, refundNote, type Note, type DelegationChainLink } from '@commonality/sdk/delegation'
 import { getProjectsFiltered, type ProjectWithMetrics, getProjectTokens, type ProjectToken } from '@commonality/sdk/lazy-giving'
 import { useMachinery } from '../../shared'
 import { useWriteClients } from '../../shared'
@@ -105,53 +105,6 @@ function DelegationChainVisualization({ chain, note }: DelegationChainVisualizat
                 {new Date(Number(link.createdAt) * 1000).toLocaleString()}
               </Typography>
             </Box>
-          </Box>
-        ))}
-      </Stack>
-    </Paper>
-  )
-}
-
-interface IntendedPurposeProps {
-  attestations: NoteIntentAttestation[]
-}
-
-function IntendedPurpose({ attestations }: IntendedPurposeProps) {
-  if (attestations.length === 0) {
-    return (
-      <Paper sx={{ p: 2 }}>
-        <Typography variant="subtitle2" gutterBottom>
-          Intended Purpose
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          No intended statement set for this note
-        </Typography>
-      </Paper>
-    )
-  }
-
-  return (
-    <Paper sx={{ p: 2 }}>
-      <Typography variant="subtitle2" gutterBottom>
-        Intended Purpose
-      </Typography>
-      <Stack spacing={1}>
-        {attestations.map((attestation) => (
-          <Box key={`${attestation.attester}-${attestation.noteContract}-${attestation.noteId}`}>
-            <Typography variant="body2">
-              Intended for{' '}
-              <Typography
-                component={RouterLink}
-                to={`/statement/${attestation.intendedStatementId}`}
-                sx={{ textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}
-              >
-                {attestation.intendedStatementId.slice(0, 20)}...
-              </Typography>
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              Set by {truncateAddress(attestation.attester)} on{' '}
-              {new Date(Number(attestation.createdAt) * 1000).toLocaleDateString()}
-            </Typography>
           </Box>
         ))}
       </Stack>
@@ -354,7 +307,6 @@ export function NoteDetailPage() {
 
   const [note, setNote] = useState<Note | null>(null)
   const [chain, setChain] = useState<DelegationChainLink[]>([])
-  const [attestations, setAttestations] = useState<NoteIntentAttestation[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
@@ -389,14 +341,12 @@ export function NoteDetailPage() {
     try {
       setLoading(true)
       setError(null)
-      const [noteData, chainData, attestationData] = await Promise.all([
+      const [noteData, chainData] = await Promise.all([
         getNote(machinery, scopedNoteId),
         getDelegationChain(machinery, scopedNoteId),
-        getNoteIntentAttestationsByNote(machinery, noteContract, noteId),
       ])
       setNote(noteData)
       setChain(chainData)
-      setAttestations(attestationData)
       if (noteData) await loadRefundEligibility(noteData)
     } catch (err) {
       console.error('Error loading note:', err)
@@ -712,7 +662,6 @@ export function NoteDetailPage() {
 
       <Stack spacing={3} sx={{ mb: 3 }}>
         <DelegationChainVisualization chain={chain} note={note} />
-        <IntendedPurpose attestations={attestations} />
       </Stack>
 
       <Paper sx={{ p: 3 }}>

@@ -489,25 +489,12 @@ arrows against the real attester prompt, and building the plank-first service an
 wizard. All four are in [TODO.md](/TODO.md).
 
 One caveat on earmarking, since this doc's [§ Align low, aggregate
-high](#align-low-aggregate-high) tells founders to earmark to planks: **NoteIntent
-earmark rollup is broken, and the decision (2026-08-09) is to withdraw the UI
-rather than fix it.** The rollup bug was real —
-`getNoteIntentAttestationsByStatement`
-(`sdk/src/subsystems/delegation/queries.ts:245`) is exact-match with no
-implication traversal, while `getTotalFundingForCause` expands but sources its CID
-set from the alignment traversal, so a plank with earmarked money and no aligned
-projects yet is invisible to the cause total — but the underlying attestation
-semantics and note-lifecycle inheritance are unresolved, so the earmarked-funds
-surfaces are being removed while the contract and SDK primitives stay dormant. So
-"earmark to the plank, let views aggregate" is the right *shape*, and it currently
-has no shipping UI behind it. See the NoteIntent item in [TODO.md](/TODO.md).
-
-(Two further symptoms, for whoever revisits this: the cause board's own "Earmarked
-funds" panel — `DelegatableNotesSection`, via `CauseBoard.tsx:357` — and
-`AvailableDelegatableFunding` call the exact-match primitive directly, so they
-don't roll up at all and can disagree with the aggregate beside them; and the
-exact-match path applies no attester-trust filtering while the expanding path
-does.)
+high](#align-low-aggregate-high) describes earmarking to planks: **NoteIntent is
+currently dormant in the product UI.** Its permissionless attestation semantics
+and inheritance through note splitting, purchasing, and refunds remain unresolved.
+The contract, historical events, SDK APIs, and indexer support remain available
+for possible reconsideration, but founders and donors cannot currently set or view
+note intent and cause pages do not show earmarked-funds totals or note lists.
 
 *Note that the views model mostly routes around this bug anyway*: a view queries
 each plank exactly and unions client-side, which is what the exact-match primitive

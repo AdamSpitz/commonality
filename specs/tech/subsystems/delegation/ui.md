@@ -2,7 +2,9 @@
 
 The delegation UI lives in `ui/src/delegation/`. It uses the same stack as the rest of the app (React, MUI, wagmi/viem, queries via the SDK over the event cache + folds).
 
-There are three pages: My Notes, Note Detail, and Deposit. Plus a section that will appear on other subsystems' pages (the Aligning's statement page).
+There are three pages: My Notes, Note Detail, and Deposit.
+
+`NoteIntent` remains available as a contract and through SDK/indexer primitives, but the UI does not display or collect note intent while its permissionless attestation and note-lifecycle inheritance semantics remain unresolved.
 
 
 ## My Notes Page
@@ -26,7 +28,6 @@ Lists all active notes where the connected user is the current leaf owner. Uses 
 - Amount (formatted as ETH or token amount)
 - Token type indicator (ETH vs ERC1155 — if ERC1155, show the token contract and token ID)
 - Whether it was delegated to you (i.e. you're not the root) — if so, show "delegated from [root address]"
-- Intended statement/cause, if any NoteIntent attestation exists from the root owner (looked up via `getNoteIntentAttestationsByNote`)
 
 Clicking a note goes to the Note Detail page.
 
@@ -42,7 +43,6 @@ Each note shows:
 - Note ID
 - Amount
 - Current leaf owner (with chain depth, e.g. "controlled by [address] (3 levels deep)")
-- Intended statement/cause, if any
 - Status: "Undelegated" / "Delegated"
 
 For delegated notes, a **Revoke** button is available. This calls `revokeNote` with the full delegation chain (obtained via `getDelegationChain`). Revoking brings control back to the root.
@@ -82,10 +82,6 @@ The core visualization. Shows the full delegation chain from root to leaf, obtai
 
 Each link shows the address (and ENS name if resolvable) with a copy button and "view on explorer" link, plus the timestamp of delegation.
 
-### Intended Purpose
-
-If there are NoteIntent attestations for this note (from `getNoteIntentAttestationsByNote`), show the intended statement/cause. Link to the statement page (`/statement/:statementCid`). Show the attester address so users can see who made the attestation.
-
 ### Actions
 
 Only shown to relevant users:
@@ -94,7 +90,6 @@ Only shown to relevant users:
 - **Revoke** (shown to any chain member who is not the leaf): calls `revokeNote`. The UI should make it clear that revoking will truncate the chain at the revoker's position, removing all delegations below them.
 - **Reclaim** (shown only to the root owner, and only when the note is undelegated — root = leaf): calls `reclaimFunds`.
 - **Spend on Project** (shown to the current leaf owner): see "Spending" section below.
-- **Set Intent** (shown to any user, since NoteIntent allows any address to attest): a form with a statement selector (autocomplete searching the concept space). Calls `attestNoteIntent`.
 
 ### Note History
 
@@ -110,13 +105,11 @@ A form for creating a new delegatable note.
 ### Fields
 - **Amount** (ETH input — for the MVP, only ETH deposits are supported since that's what the contract primarily handles)
 - **Delegate to** (optional) — an address field. If provided, after depositing, the UI automatically calls `delegateNote` to delegate the new note to this address. This saves the common two-step flow of "deposit then delegate."
-- **Intended statement** (optional) — a statement selector (autocomplete from the concept space). If provided, after depositing, the UI automatically calls `attestNoteIntent` on the NoteIntent contract to associate the note with this cause.
 
 ### On submit
 1. Call `depositETH` with the specified amount.
 2. If a delegate address was specified, call `delegateNote` with the returned noteId.
-3. If an intended statement was specified, call `attestNoteIntent` on the NoteIntent contract.
-4. Show success with a link to the new note's detail page.
+3. Show success with a link to the new note's detail page.
 
 ### Why deposit?
 
@@ -159,19 +152,6 @@ In the "Buy Tokens" section, add an option to pay using a delegatable note inste
 This is an alternative entry point to the spending flow described in the Note Detail page — it's the same action, just initiated from the project side rather than the note side.
 
 
-## Integration with Aligning (Statement Page)
-
-This isn't a page in the delegation UI itself, but the delegation system surfaces information on the Aligning's statement pages. Specifically:
-
-### "Available Funding" section on a Statement Page
-
-For a given statement, show the total amount of delegatable notes that have been attested (via NoteIntent) as intended for that statement. Uses `getNoteIntentAttestationsByStatement` to find all relevant notes, then sums their active amounts.
-
-Display: "X ETH available in delegatable notes for this cause" — with a link to browse the individual notes.
-
-This creates the signaling effect described in the spec: potential project creators can see that money is available for their cause, encouraging them to create aligned projects.
-
-
 ## Navigation
 
 The Delegation domain's AppShell navigation should link to the delegated-fund pages (`/notes`, `/notes/new`). Other domains should link across to Delegation when they need donor-delegate setup, note detail, or delegate track-record views instead of mounting these pages locally.
@@ -191,4 +171,3 @@ The Delegation domain's AppShell navigation should link to the delegated-fund pa
 
 Read from environment variables, following the existing pattern:
 - `VITE_DELEGATABLE_NOTES_CONTRACT_ADDRESS`
-- `VITE_NOTE_INTENT_CONTRACT_ADDRESS`

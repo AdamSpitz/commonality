@@ -47,16 +47,12 @@ vi.mock('@commonality/sdk/machinery', async () => {
 })
 
 
-vi.mock('../utils', () => ({
-  computeAvailableDelegatableFunding: vi.fn(),
-}))
 
 import { getMonthlyPledgedByCause } from '@commonality/sdk/delegation'
 import { getTotalFundingForCause, getAllAlignedProjectsForCause } from '@commonality/sdk/fundingportals'
 import { getProject } from '@commonality/sdk/lazy-giving'
 import { createSDKMachinery } from '@commonality/sdk/machinery'
 import { readProjectMetadata } from './projectMetadata'
-import { computeAvailableDelegatableFunding } from '../utils'
 
 const mockMachinery = { contractAddresses: { recurringPledges: '0x9999999999999999999999999999999999999999' } } as any
 
@@ -84,15 +80,7 @@ const USDZZZ_CURRENCY = {
   tokenType: 0,
 }
 
-const TOKENS_CURRENCY = {
-  kind: 'erc20' as const,
-  symbol: 'tokens',
-  decimals: 18,
-  tokenAddress: '0x9876543210987654321098765432109876543210',
-  tokenType: 0,
-}
-
-type TestCurrency = typeof ETH_CURRENCY | typeof USDZZZ_CURRENCY | typeof TOKENS_CURRENCY
+type TestCurrency = typeof ETH_CURRENCY | typeof USDZZZ_CURRENCY
 
 function makeFundingMetrics(overrides: Partial<{
   totalRaisedAcrossProjects: Array<{ amount: bigint; currency: TestCurrency }>
@@ -136,7 +124,6 @@ describe('FundingPortalSummary', () => {
     vi.mocked(createSDKMachinery).mockReturnValue(mockMachinery)
     vi.mocked(getProject).mockResolvedValue(null)
     vi.mocked(readProjectMetadata).mockResolvedValue(null)
-    vi.mocked(computeAvailableDelegatableFunding).mockResolvedValue([])
     vi.mocked(getMonthlyPledgedByCause).mockResolvedValue(new Map())
   })
 
@@ -292,17 +279,6 @@ describe('FundingPortalSummary', () => {
       expect(getMonthlyPledgedByCause).not.toHaveBeenCalled()
     })
 
-    it('shows available delegatable funding in ETH', async () => {
-      vi.mocked(computeAvailableDelegatableFunding).mockResolvedValue([
-        { amount: 250000000000000000n, currency: ETH_CURRENCY },
-      ])
-
-      render(<FundingPortalSummary statementCid="QmTest" />)
-
-      await waitFor(() => {
-        expect(screen.getByText('0.25 ETH')).toBeInTheDocument()
-      })
-    })
 
     it('uses the portal payment currency for empty funding labels', async () => {
       vi.mocked(getAllAlignedProjectsForCause).mockResolvedValue([
@@ -312,24 +288,12 @@ describe('FundingPortalSummary', () => {
       render(<FundingPortalSummary statementCid="QmTest" />)
 
       await waitFor(() => {
-        // Total raised, still needed, unreimbursed, and funds from delegates all default to zero.
-        expect(screen.getAllByText('0 USDZZZ')).toHaveLength(4)
+        // Total raised, still needed, and unreimbursed all default to zero.
+        expect(screen.getAllByText('0 USDZZZ')).toHaveLength(3)
       })
       expect(screen.queryByText('0 ETH')).not.toBeInTheDocument()
     })
 
-    it('shows grouped mixed-currency delegatable funding', async () => {
-      vi.mocked(computeAvailableDelegatableFunding).mockResolvedValue([
-        { amount: 250000000000000000n, currency: ETH_CURRENCY },
-        { amount: 1500000000000000000n, currency: TOKENS_CURRENCY },
-      ] as any)
-
-      render(<FundingPortalSummary statementCid="QmTest" />)
-
-      await waitFor(() => {
-        expect(screen.getByText('0.25 ETH + 1.5 tokens')).toBeInTheDocument()
-      })
-    })
 
     it('shows aligned project count', async () => {
       vi.mocked(getTotalFundingForCause).mockResolvedValue(
@@ -517,19 +481,6 @@ describe('FundingPortalSummary', () => {
       })
     })
 
-    it('calls computeAvailableDelegatableFunding with the statementCid', async () => {
-      vi.mocked(getAllAlignedProjectsForCause).mockResolvedValue([])
-
-      render(<FundingPortalSummary statementCid="QmSpecificCid" />)
-
-      await waitFor(() => {
-        expect(screen.getByText('Cause Board')).toBeInTheDocument()
-      })
-      expect(computeAvailableDelegatableFunding).toHaveBeenCalledWith(
-        mockMachinery,
-        'QmSpecificCid'
-      )
-    })
 
     it('renders multiple project cards for multiple projects', async () => {
       vi.mocked(getTotalFundingForCause).mockResolvedValue(makeFundingMetrics({ projectCount: 2 }))

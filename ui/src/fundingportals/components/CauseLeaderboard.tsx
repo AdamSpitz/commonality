@@ -19,7 +19,6 @@ import { useAccount } from 'wagmi'
 import { getMonthlyPledgedByCause } from '@commonality/sdk/delegation'
 import {
   getTopContributorsForCause,
-  getTotalFundingForCause,
   getUserContributionRankForCause,
   type ContributorStats,
 } from '@commonality/sdk/fundingportals'
@@ -54,9 +53,6 @@ export function CauseLeaderboard({ statementCid, backLink }: CauseLeaderboardPro
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [contributors, setContributors] = useState<ContributorStats[]>([])
-  const [delegatedFunds, setDelegatedFunds] = useState<
-    Awaited<ReturnType<typeof getTotalFundingForCause>>['totalAvailableFromNotes']
-  >([])
   const [monthlyPledged, setMonthlyPledged] = useState<bigint>(0n)
   const [userRank, setUserRank] = useState<{
     rank: number
@@ -72,16 +68,14 @@ export function CauseLeaderboard({ statementCid, backLink }: CauseLeaderboardPro
       setLoading(true)
       setError(null)
       try {
-        const [topContributors, fundingMetrics, monthlyTotals] = await Promise.all([
+        const [topContributors, monthlyTotals] = await Promise.all([
           getTopContributorsForCause(machinery, causeCid as IpfsCidV1, 50, undefined, trustedSet),
-          getTotalFundingForCause(machinery, causeCid as IpfsCidV1, undefined, trustedSet),
           machinery.contractAddresses?.recurringPledges
             ? getMonthlyPledgedByCause(machinery)
             : Promise.resolve(new Map<string, bigint>()),
         ])
         if (cancelled) return
         setContributors(topContributors)
-        setDelegatedFunds(fundingMetrics.totalAvailableFromNotes)
         setMonthlyPledged(monthlyTotals.get(causeCid) ?? 0n)
 
         if (userAddress) {
@@ -175,17 +169,6 @@ export function CauseLeaderboard({ statementCid, backLink }: CauseLeaderboardPro
               : 'Refreshing your trust network. Until any trusted accounts are found, this leaderboard still includes all alignment attestations.'}
           </Alert>
         )}
-
-        <Paper variant="outlined" sx={{ p: 2, mb: 3 }}>
-          <Typography variant="caption" color="text.secondary" display="block">
-            Available in Delegated Funds
-          </Typography>
-          <Typography variant="h6">{formatCurrencyTotals(delegatedFunds)}</Typography>
-          <Typography variant="body2" color="text.secondary">
-            Delegated-note deposits are revocable pledges, so they are shown only as an aggregate and
-            are not ranked per person.
-          </Typography>
-        </Paper>
 
         <Paper variant="outlined" sx={{ p: 2, mb: 3 }}>
           <Typography variant="caption" color="text.secondary" display="block">

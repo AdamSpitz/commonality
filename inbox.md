@@ -19,6 +19,8 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 ### Done, for review
 
+- **(Tell)** Removed the NoteIntent-dependent UI: one-time deposits no longer collect intent, note details and cause/statement/leaderboard surfaces no longer display intent-derived earmarked funds, and CauseStarter's earmarked route is gone. The contract plus SDK/indexer primitives remain untouched and dormant. Updated affected tests and UI specs; focused UI tests and the UI build pass.
+
 - **(Tell)** Landed the bridge-creator generalization infrastructure: generic roles/labels with CSM aliases, provisional all-in-one config, a no-opinion scaffold, CORS-enabled live anchor fetching with a bundled CSM fallback, reusable bridge/opt-in blocks, and a CauseStarter per-cause mediator card. Independent review correctly found that cause-assist enrichment and the founder-facing CauseStarter attachment flow are still missing, so the narrowed remainder is back in [TODO.md](/TODO.md); `provisional-v1` still awaits the live CSM rehearsal.
 
 - **(Tell)** Moved the 12 AI worker/core packages out of the repo root into `services/` (root went from 25 directories to 13). Branch `refactor/services-subdir`; mechanical only, package names unchanged. `cause-assist` deliberately stayed in root as a CauseStarter dependency. Validated with typecheck (35/35), all service tests, and real `docker build` runs of the `service-host` and `cause-assist` images. Details and the two bugs found along the way are in the 2026-08-08 [CONTINUITY.md](/CONTINUITY.md) entry. Worth a look before merge since it touches deploy config.

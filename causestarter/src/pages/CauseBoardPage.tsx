@@ -59,7 +59,6 @@ export function CauseBoardPage() {
       preferredTitle={cause.name || undefined}
       preferredSummary={cause.goal || undefined}
       projectLinks="local"
-      earmarkedFundsTo={`/cause/${cause.id}/earmarked`}
       navLinks={[
         { label: '← Back to cause', to: `/cause/${cause.id}` },
         {

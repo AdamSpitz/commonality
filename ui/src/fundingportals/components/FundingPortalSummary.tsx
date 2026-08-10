@@ -16,7 +16,6 @@ import { getProject } from '@commonality/sdk/lazy-giving'
 import { type Currency, type IpfsCidV1 } from '@commonality/sdk/utils'
 import { useMachinery } from '../../shared'
 import { DEFAULT_PAYMENT_CURRENCY, formatCurrencyAmount, formatCurrencyTotals, getConfiguredPaymentCurrency } from '../../shared'
-import { computeAvailableDelegatableFunding } from '../utils'
 import { AlignedProjectCard, type AlignedProject, type ProjectMetadata } from './AlignedProjectCard'
 import { readProjectMetadata } from './projectMetadata'
 
@@ -36,7 +35,6 @@ export function FundingPortalSummary({
   const [totalRaised, setTotalRaised] = useState<Awaited<ReturnType<typeof getTotalFundingForCause>>['totalRaisedAcrossProjects']>([])
   const [remainingToThreshold, setRemainingToThreshold] = useState<Awaited<ReturnType<typeof getTotalFundingForCause>>['remainingToThreshold']>([])
   const [totalUnreimbursed, setTotalUnreimbursed] = useState<Awaited<ReturnType<typeof getTotalFundingForCause>>['totalUnreimbursed']>([])
-  const [availableDelegatable, setAvailableDelegatable] = useState<Awaited<ReturnType<typeof computeAvailableDelegatableFunding>>>([])
   const [monthlyPledged, setMonthlyPledged] = useState<bigint>(0n)
   const [projectCount, setProjectCount] = useState<number>(0)
   const [topProjects, setTopProjects] = useState<AlignedProject[]>([])
@@ -95,16 +93,11 @@ export function FundingPortalSummary({
         }
         setMetadata(newMetadata)
 
-        const [total, monthlyTotals] = await Promise.all([
-          computeAvailableDelegatableFunding(machinery, statementCid),
-          machinery.contractAddresses?.recurringPledges
-            ? getMonthlyPledgedByCause(machinery)
-            : Promise.resolve(new Map<string, bigint>()),
-        ])
+        const monthlyTotals = machinery.contractAddresses?.recurringPledges
+          ? await getMonthlyPledgedByCause(machinery)
+          : new Map<string, bigint>()
         if (cancelled) return
-        setAvailableDelegatable(total)
         setMonthlyPledged(monthlyTotals.get(statementCid) ?? 0n)
-        setPortalCurrency((current) => total[0]?.currency ?? current)
       } catch (err) {
         if (!cancelled) {
           console.error('Error loading cause board summary:', err)
@@ -170,13 +163,6 @@ export function FundingPortalSummary({
               Unreimbursed (Succeeded)
             </Typography>
             <Typography variant="h6">{formatCurrencyTotals(totalUnreimbursed, portalCurrency)}</Typography>
-          </Box>
-
-          <Box>
-            <Typography variant="caption" color="text.secondary" display="block">
-              Funds from Delegates
-            </Typography>
-            <Typography variant="h6">{formatCurrencyTotals(availableDelegatable, portalCurrency)}</Typography>
           </Box>
 
           <Box>

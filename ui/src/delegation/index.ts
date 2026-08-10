@@ -7,16 +7,13 @@
 // and may be moved/renamed freely. When this module becomes its own published
 // package, this file becomes the package root (`@commonality/delegation`).
 //
-// Eager surface (components + utils used at import time):
-
-export { AvailableDelegatableFunding } from './components'
+// Eager surface (utils used at import time):
 
 export {
   formatNoteAmount,
   isDelegate,
   noteScopedKey,
   noteDetailPath,
-  noteIntentLookupKey,
 } from './utils'
 
 // Note on pages: the route components (MyNotesPage, DepositPage, NoteDetailPage,

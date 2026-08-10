@@ -18,7 +18,6 @@ This is the main page — the cause board for a specific statement/cause. It's l
 - Statement title and summary (fetched from IPFS metadata via the statement's `metadataCid`)
 - Link back to the statement page (`/statement/:statementCid`)
 - **Total Funding Raised** — aggregate ETH raised across all aligned projects (direct + indirect alignment)
-- **Available Delegatable Funding** — total ETH in delegatable notes intended for this cause (from `getNoteIntentAttestationsByStatement`, summing active note amounts). This is the "money waiting to be spent" signal. Links to a filtered view of those notes.
 
 ### Project tabs
 
@@ -60,18 +59,6 @@ A form (collapsible, or behind an "Attest Alignment" button) for attesting that 
 
 Only shown when a wallet is connected.
 
-### Available Delegatable Notes
-
-A collapsible section showing individual delegatable notes that have been marked (via NoteIntent) as intended for this cause. Each note shows:
-- Note ID (links to the Delegation domain's `/notes/:noteId` route)
-- Amount
-- Root owner (depositor)
-- Current leaf owner (who controls it)
-- Delegation depth
-
-This makes the available funding concrete — potential project creators can see real committed money, not just an aggregate number.
-
-
 ## Cause Leaderboard Page
 
 **Route:** `/portal/:statementCid/leaderboard`
@@ -81,8 +68,6 @@ The cross-project contributor leaderboard for a specific cause. This is the "soc
 ### Design rationale: what counts as a "contribution"
 
 The leaderboard tracks only **direct project purchases** (ERC-1155 token buys), not delegated-note deposits. Rationale: direct purchases are committed and non-revocable — the contributor has actually funded a project. Delegated-note deposits are revocable pledges that the depositor can withdraw at any time, so they don't warrant individual social recognition on a leaderboard.
-
-However, the aggregate amount of delegated funds available for a cause is still important — it signals ecosystem interest and available capital. So the page shows a **summary stat** for total delegated funds available (not broken down per depositor), sourced from `getTotalFundingForCause().totalAvailableFromNotes`. When the leaderboard is empty but delegated funds exist, the empty state should reflect this (e.g. "No direct project purchases yet" alongside the delegated-funds stat) rather than a bare "No contributions yet."
 
 ### Leaderboard Table
 
@@ -107,7 +92,7 @@ Not a cause board page itself, but the cause board adds a section to the concept
 
 ### "Cause Board" Section
 
-- **Total Funding Raised** and **Available Delegatable Funding** (same numbers as the portal header)
+- **Total Funding Raised**
 - Count of aligned projects (direct + indirect)
 - A "View Cause Board" link/button going to `/portal/:statementCid`
 - Top 3 projects by funding progress (as a preview)
@@ -142,7 +127,7 @@ Only shown when a wallet is connected. This is the same action as the "Attest Pr
 
 - **Project creation** — that's the LazyGiving UI's job.
 - **Token buying/selling/burning** — LazyGiving UI.
-- **Delegation management** — Delegation UI. (But the cause board does display delegation chains in leaderboards, and shows available delegatable notes.)
+- **Delegation management** — Delegation UI. (The cause board can still display delegation chains for actual project purchases.)
 - **Statement creation/signing** — Concept Space UI.
 - **Implication attestation management** — Concept Space / Attester AI.
 - **Commission for trustees** — deferred from MVP per delegation spec.
