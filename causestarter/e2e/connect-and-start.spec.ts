@@ -53,7 +53,7 @@ test.describe('CauseStarter agent smoke', () => {
     // Still connected after navigation.
     await expect(page.getByTestId('wallet-connect-button')).toContainText(/Hardhat #0/i)
 
-    // Type a short goal so the agent path is exercised through the first field.
+    // Type a rough cause description so the plank-first path reaches the atomizer.
     const goal = page.getByTestId('start-cause-goal')
     await goal.fill(
       'Make Oak Street sidewalks safe and well lit within one year through neighbors and the city.',

@@ -40,7 +40,7 @@ export function HomePage() {
           Start a cause. Build a Movement. Change the world.
         </Typography>
         <Typography variant="body1" color="text.secondary" sx={{ mt: 1.5, maxWidth: 520 }}>
-          Start from the goal you want to accomplish, add short statements people can stand behind,
+          Describe what brings your cause together, shape it into clear issues people can support,
           then grow support with funding and media tools when you need them.
         </Typography>
 

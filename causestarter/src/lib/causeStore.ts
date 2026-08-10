@@ -60,6 +60,8 @@ export interface CauseMediator {
 
 export interface CauseDraft {
   id: string
+  /** Founder's rough, unpublished description used to derive planks. */
+  description?: string
   /** What the cause intends to accomplish. */
   goal: string
   /** Optional short label for lists (defaults to truncated goal). */
@@ -201,6 +203,7 @@ export function hasBlockingImplication(
 export function saveCause(input: {
   id?: string
   goal: string
+  description?: string
   name?: string
   statements: CauseStatement[]
   levers: MomentumLever[]
@@ -220,6 +223,7 @@ export function saveCause(input: {
     const updated: CauseDraft = {
       ...existing,
       goal: input.goal,
+      description: input.description ?? existing.description,
       name,
       statements: input.statements,
       levers: input.levers,
@@ -238,6 +242,7 @@ export function saveCause(input: {
   const created: CauseDraft = {
     id: input.id ?? crypto.randomUUID(),
     goal: input.goal,
+    description: input.description,
     name,
     statements: input.statements,
     levers: input.levers,

@@ -14,8 +14,9 @@ describe('causeStore v2', () => {
     window.localStorage.clear()
   })
 
-  it('saves goal-first drafts with statements', () => {
+  it('saves a rough description separately from the primary plank', () => {
     const created = saveCause({
+      description: 'Neighbors organizing for safer night walks.',
       goal: 'Make night walks safe on Oak Street.',
       statements: [
         {
@@ -30,6 +31,7 @@ describe('causeStore v2', () => {
 
     expect(created.status).toBe('draft')
     expect(created.goal).toContain('Oak Street')
+    expect(created.description).toContain('Neighbors organizing')
     expect(listCauses()).toHaveLength(1)
     expect(getCause(created.id)?.statements).toHaveLength(1)
   })

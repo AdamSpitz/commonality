@@ -15,6 +15,22 @@ export interface SuggestStatementsResponse {
   source: 'llm' | 'fallback'
 }
 
+export interface PlankSuggestion {
+  text: string
+  rationale: string
+}
+
+export interface AtomizeResponse {
+  planks: PlankSuggestion[]
+  source: 'llm' | 'fallback'
+}
+
+export interface SharpenPlankResponse {
+  plank: string
+  rationale: string
+  source: 'llm' | 'fallback'
+}
+
 export interface ImplicationPairResult {
   supportingStatement: string
   implies: boolean
@@ -79,6 +95,21 @@ export async function suggestStatements(input: {
   count?: number
 }): Promise<SuggestStatementsResponse> {
   return postJson<SuggestStatementsResponse>('/suggest-statements', input)
+}
+
+export async function atomizeCause(input: {
+  description: string
+  existingPlanks?: string[]
+  count?: number
+}): Promise<AtomizeResponse> {
+  return postJson<AtomizeResponse>('/atomize', input)
+}
+
+export async function sharpenPlank(input: {
+  plank: string
+  causeDescription?: string
+}): Promise<SharpenPlankResponse> {
+  return postJson<SharpenPlankResponse>('/sharpen-plank', input)
 }
 
 export async function checkSafety(items: Array<{ text: string; fieldLabel?: string }>): Promise<SafetyCheckResponse> {
