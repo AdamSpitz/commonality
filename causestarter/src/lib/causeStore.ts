@@ -211,7 +211,7 @@ export function saveCause(input: {
   statementCid?: string
   statementCids?: string[]
   goalSafety?: SafetyState
-  mediator?: CauseMediator
+  mediator?: CauseMediator | null
 }): CauseDraft {
   const now = new Date().toISOString()
   const causes = readAll()
@@ -231,7 +231,7 @@ export function saveCause(input: {
       statementCid: input.statementCid ?? existing.statementCid,
       statementCids: input.statementCids ?? existing.statementCids,
       goalSafety: input.goalSafety ?? existing.goalSafety,
-      mediator: input.mediator ?? existing.mediator,
+      mediator: input.mediator === undefined ? existing.mediator : input.mediator ?? undefined,
       updatedAt: now,
     }
     causes[existingIndex] = updated
@@ -250,7 +250,7 @@ export function saveCause(input: {
     statementCid: input.statementCid,
     statementCids: input.statementCids,
     goalSafety: input.goalSafety,
-    mediator: input.mediator,
+    mediator: input.mediator ?? undefined,
     createdAt: now,
     updatedAt: now,
   }

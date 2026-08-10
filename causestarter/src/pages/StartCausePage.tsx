@@ -14,7 +14,7 @@ import { createStatement } from '@commonality/sdk/displayable-documents'
 import type { MutableRefUpdaterContract } from '@commonality/sdk/mutable-refs'
 import {
   getCause, markCauseLaunched, saveCause, type CauseStatement, type MomentumLever,
-  type SafetyState,
+  type CauseMediator, type SafetyState,
 } from '../lib/causeStore'
 import { atomizeCause, checkSafety, sharpenPlank } from '../lib/causeAssistClient'
 import { SafetyRejectionDialog } from '../components/SafetyRejectionDialog'
@@ -53,6 +53,9 @@ export function StartCausePage() {
   const [sharpeningId, setSharpeningId] = useState<string>()
   const [error, setError] = useState<string | null>(null)
   const [dialogSafety, setDialogSafety] = useState<SafetyState | null>(null)
+  const [mediator, setMediator] = useState<CauseMediator>(existing?.mediator ?? {
+    address: '', serviceUrl: '', name: '', description: '',
+  })
 
   const planks = useMemo(
     () => statements.filter((s) => s.disposition === 'adopted' && s.text.trim()),
@@ -115,6 +118,25 @@ export function StartCausePage() {
       setError('Each issue needs enough detail for a person to understand and attest it.')
       return undefined
     }
+    const mediatorValues = Object.values(mediator).map((value) => value.trim())
+    const hasMediator = mediatorValues.some(Boolean)
+    if (hasMediator && mediatorValues.some((value) => !value)) {
+      setError('Complete all mediator fields, or leave all of them blank.')
+      return undefined
+    }
+    if (hasMediator && !/^0x[0-9a-fA-F]{40}$/.test(mediator.address.trim())) {
+      setError('Mediator address must be a 0x-prefixed Ethereum address.')
+      return undefined
+    }
+    if (hasMediator) {
+      try {
+        const url = new URL(mediator.serviceUrl.trim())
+        if (!['http:', 'https:'].includes(url.protocol)) throw new Error('bad protocol')
+      } catch {
+        setError('Mediator service URL must be a valid HTTP or HTTPS URL.')
+        return undefined
+      }
+    }
     setBusy(true)
     setError(null)
     try {
@@ -141,6 +163,10 @@ export function StartCausePage() {
         id: draftId, name: description.trim(), description: description.trim(), goal: primary.text.trim(), statements: next,
         levers: existing?.levers?.length ? existing.levers : DEFAULT_LEVERS, status: 'draft',
         goalSafety: descriptionVerdict ? safetyState(descriptionVerdict) : undefined,
+        mediator: hasMediator ? {
+          address: mediator.address.trim(), serviceUrl: mediator.serviceUrl.trim().replace(/\/+$/, ''),
+          name: mediator.name.trim(), description: mediator.description.trim(),
+        } : null,
       })
       setDraftId(saved.id)
       return saved
@@ -259,6 +285,18 @@ export function StartCausePage() {
           <Typography variant="h6" sx={{ fontWeight: 700 }}>Ready to launch</Typography>
           <Typography variant="body2" color="text.secondary">Each issue will be published as its own signable statement. You can promote a proven combination into a shared anchor later.</Typography>
           <CauseViewPreview description={description} planks={planks} />
+          <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
+            <Stack spacing={1.5}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>Mediator setup (optional)</Typography>
+              <Typography variant="body2" color="text.secondary">
+                After deploying your generated bridge-creator artifact, attach its public identity here. Supporters will then see featured bridges and an opt-in link for this cause.
+              </Typography>
+              <TextField label="Mediator name" value={mediator.name} onChange={(event) => setMediator((value) => ({ ...value, name: event.target.value }))} fullWidth />
+              <TextField label="Mediator description" value={mediator.description} onChange={(event) => setMediator((value) => ({ ...value, description: event.target.value }))} multiline minRows={2} fullWidth />
+              <TextField label="Mediator signer address" value={mediator.address} onChange={(event) => setMediator((value) => ({ ...value, address: event.target.value }))} placeholder="0x…" fullWidth />
+              <TextField label="Public mediator service URL" value={mediator.serviceUrl} onChange={(event) => setMediator((value) => ({ ...value, serviceUrl: event.target.value }))} placeholder="https://mediator.example" fullWidth />
+            </Stack>
+          </Paper>
           {!isConnected && <Alert severity="info" action={<WalletButton />}>Connect a wallet to publish. You can also save a draft.</Alert>}
         </Stack>}
         {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}

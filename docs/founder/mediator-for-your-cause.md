@@ -8,8 +8,11 @@ A mediator watches the context you choose and proposes bridge triples: one state
 npm run scaffold --workspace=@commonality/bridge-creator -- \
   --founding-statement "Your cause's founding statement" \
   --name "Your cause mediator" \
+  --cause-assist-url http://localhost:3002 \
   --output ../../my-mediator.json
 ```
+
+When `--cause-assist-url` (or `CAUSE_ASSIST_URL`) is present, the scaffold asks the existing CauseStarter assistant for editable identity, side-label, and complete anchor-cluster starting points. Without it, the command remains a blank offline scaffold. Either way, the strategy prompt stays blank: the assistant never supplies the mediator's operating policy.
 
 The generated `provisional-v1` artifact intentionally contains obvious blanks. In particular, **Commonality does not supply a default strategy prompt**. Write the policy and mediation judgment you intend to operate under, name `side_a` and `side_b`, add a few complete `side-a` / `side-b` / `common-ground` anchor clusters, and configure inspectable context sources.
 

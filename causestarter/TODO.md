@@ -9,7 +9,6 @@ open **if they stay listed here**.
 - [ ] Cause drafts in `localStorage` only — multi-device / recovery later.
 - [ ] No Privy path / full parity with main `ui` wallet story yet.
 - [ ] No Playwright / full e2e suite for CauseStarter yet.
-- [ ] No bridge-building / mediator tool yet. Once the bridge-creator is generalized (see [bridge-building-for-founders.md](../specs/product/bridge-building-for-founders.md) and the root [TODO.md](../TODO.md) item), add a `SUPPORTING_TOOLS` entry in `src/lib/tools.ts` plus a cause-record field holding the founder's mediator address + service URL, and surface the opt-in deep link and featured-bridges block.
 - [ ] Product: how CauseStarter ranks vs other domains in nav/marketing once it’s “the main thing.”
 
 ## Architecture

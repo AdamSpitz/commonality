@@ -47,6 +47,11 @@ describe('causeStore v2', () => {
       },
     })
     expect(getCause(created.id)?.mediator?.serviceUrl).toBe('https://housing.example/mediator')
+    saveCause({
+      id: created.id, goal: created.goal, statements: created.statements,
+      levers: created.levers, mediator: null,
+    })
+    expect(getCause(created.id)?.mediator).toBeUndefined()
   })
 
   it('marks a cause launched with statement CIDs', () => {

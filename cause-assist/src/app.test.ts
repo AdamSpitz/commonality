@@ -108,6 +108,21 @@ describe('cause-assist request guards', () => {
     assert.equal(body.implicationChecks.length, 2)
   })
 
+  it('validates mediator scaffold requests and returns an offline editable shell', async () => {
+    const baseUrl = await start()
+    assert.equal((await post(baseUrl, '/suggest-mediator-scaffold', { foundingStatement: '' })).status, 400)
+    const response = await post(baseUrl, '/suggest-mediator-scaffold', {
+      foundingStatement: 'Neighbors should be able to walk safely at night.',
+      name: 'Night walk mediator',
+    })
+    assert.equal(response.status, 200)
+    const body = await response.json() as Record<string, unknown>
+    assert.equal(body.source, 'fallback')
+    assert.deepEqual(body.anchorClusters, [])
+    assert.equal((body.identity as { name: string }).name, 'Night walk mediator')
+    assert.equal('strategyPrompt' in body, false)
+  })
+
   it('rate limits repeated expensive requests by client IP', async () => {
     const baseUrl = await start()
     const ip = '198.51.100.77'

@@ -44,6 +44,21 @@ export interface DraftAnchorResponse {
   implicationChecks: Array<{ mainStatement: string; supportingStatements: string[] }>
 }
 
+export interface SuggestMediatorScaffoldRequest { foundingStatement: string; name?: string }
+export interface MediatorAnchorSuggestion {
+  topicTag: string
+  sideA: string
+  sideB: string
+  commonGround: string
+  rationale: string
+}
+export interface SuggestMediatorScaffoldResponse {
+  identity: { name: string; description: string }
+  labels: { sideA: string; sideB: string }
+  anchorClusters: MediatorAnchorSuggestion[]
+  source: 'llm' | 'fallback'
+}
+
 export interface CheckImplicationsRequest {
   mainStatement: string
   supportingStatements: string[]

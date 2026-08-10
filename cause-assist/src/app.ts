@@ -5,6 +5,7 @@ import { suggestStatements } from './statementSuggester.js'
 import { checkSafety } from './safetyFilter.js'
 import { checkImplications } from './implicationCheck.js'
 import { atomizeCause, draftDisjunctiveAnchor, sharpenPlank } from './plankStrategies.js'
+import { suggestMediatorScaffold } from './mediatorScaffold.js'
 import type {
   AtomizeRequest,
   CheckImplicationsRequest,
@@ -12,6 +13,7 @@ import type {
   SafetyCheckRequest,
   SharpenPlankRequest,
   SuggestStatementsRequest,
+  SuggestMediatorScaffoldRequest,
 } from './types.js'
 
 const MAX_STATEMENT_LENGTH = 2_000
@@ -37,7 +39,7 @@ export function createCauseAssistApp(config: CauseAssistConfig): express.Express
   app.set('trust proxy', 1)
   app.use(express.json({ limit: '64kb' }))
   app.use(
-    ['/suggest-statements', '/atomize', '/sharpen-plank', '/draft-anchor', '/check-implications', '/safety-check'],
+    ['/suggest-statements', '/atomize', '/sharpen-plank', '/draft-anchor', '/suggest-mediator-scaffold', '/check-implications', '/safety-check'],
     createRateLimiter({
       windowMs: 60_000,
       maxRequests: 20,
@@ -128,6 +130,17 @@ export function createCauseAssistApp(config: CauseAssistConfig): express.Express
       return
     }
     res.json(draftDisjunctiveAnchor(body.planks))
+  })
+
+  app.post('/suggest-mediator-scaffold', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const body = req.body as SuggestMediatorScaffoldRequest
+      if (!validStatement(body?.foundingStatement) || (body.name !== undefined && !validStatement(body.name))) {
+        invalidRequest(res, `foundingStatement and optional name must be non-empty and at most ${MAX_STATEMENT_LENGTH} characters`)
+        return
+      }
+      res.json(await suggestMediatorScaffold(body, config))
+    } catch (error) { next(error) }
   })
 
   app.post('/check-implications', async (req: Request, res: Response, next: NextFunction) => {

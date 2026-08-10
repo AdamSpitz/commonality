@@ -29,6 +29,7 @@ See `src/statementGuidance.ts` and the Implication Attester evaluator prompt for
 | POST | `/atomize` | `{ description, existingPlanks?, count? }` | Rough cause description → 1–5 independent candidate planks |
 | POST | `/sharpen-plank` | `{ plank, causeDescription? }` | Reword one plank against the attestable + signable bar |
 | POST | `/draft-anchor` | `{ planks[] }` | Deterministic disjunctive anchor with verbatim planks and plank→anchor check payloads |
+| POST | `/suggest-mediator-scaffold` | `{ foundingStatement, name? }` | Editable mediator identity, side labels, and complete starting anchor triples; never a strategy prompt |
 | POST | `/check-implications` | `{ mainStatement, supportingStatements[] }` | Per-pair implies / confidence / reasoning |
 | POST | `/safety-check` | `{ items: [{ text, fieldLabel? }] }` | Per-item allow/deny + user-facing explanation |
 
