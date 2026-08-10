@@ -976,7 +976,16 @@ available, but it arrives with the registry. Until then `maxAdded`/`maxRemoved` 
 are the whole defense against a source quietly broadening what it lists. That is thin, and it is the
 clearest single argument for the registry not being deferred *indefinitely*.
 
-**Open: does admission allowlisting come before the registry?** This is the one genuinely undecided
+**~~Open~~ Resolved (Aug 2026): admission allowlisting does not come before the registry — no admission
+profile is needed at all for now.** [ADR 0008](/specs/decisions/0008-operated-surfaces-are-lenses.md)
+settles the product question this item was waiting on: Commonality's operated cause surface authors no
+discovery, so there is nothing to allowlist, and the trust claim it makes rests on recomputability plus
+positive-only attestations rather than on a curated listing. The registry therefore keeps its place in
+the queue, and the block evaluator is not asked to carry inverted failure semantics. The original
+reasoning is preserved below, because it stays correct if an operated surface ever does need a curated
+listing — the asymmetry in the last sentence is the thing to re-read first if that happens.
+
+This was the one genuinely undecided
 item, and it is a product question rather than a design one. Admission ("show only the listed
 subjects") is a separate evaluation profile with inverted failure semantics, staged but unscheduled.
 The reason it is open is that [operator-posture.md](/specs/product/ui-operator-posture.md)

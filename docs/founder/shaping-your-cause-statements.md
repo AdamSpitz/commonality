@@ -21,9 +21,18 @@ what remains open is one bug, at the end.
   that re-folds locally and costs nothing.
 - **The cause page is the views layer**, and is edited in place by the founder —
   there is no separate authoring mode.
+- **Band 2 is paired with the weakest link.** Shown alone it is inflatable by
+  editing the roster, and only upward; the fewest-signed count moves the other
+  way, so the pair is not. See
+  [§ Band 2 is never shown alone](#band-2-is-never-shown-alone-pair-it-with-the-weakest-link).
 - **Anchors are not built.** No promotion action exists yet, which is consistent
   with [§ Promotion](#promotion): it is a later move, taken once a combination
   has proven itself.
+- **The roster is not a publication yet.** A cause's plank list lives in
+  `localStorage`, unversioned and unsigned, so there is nothing for a signature
+  receipt to pin against and nothing for a coherence badge to bind to. The design
+  for fixing this is [§ The roster is a publication](#the-roster-is-a-publication);
+  it is queued in [TODO.md](/TODO.md) and is the prerequisite for the badge.
 
 Companion to [standing up a vertical](/docs/founder/standing-up-a-vertical.md),
 which covers the vertical as a whole. This one covers the narrow question of what
@@ -211,6 +220,56 @@ It's also the more decision-useful of the two views for a founder: the second ba
 measures how much of his base is plausibly whole-hearted, which is exactly what
 tells him whether promoting a conjunctive manifesto would find signers.
 
+### Band 2 is never shown alone: pair it with the weakest link
+
+**Built 2026-08-10.** Band 2 as described above is inflatable by editing the
+roster, and the direction is the dangerous one. Adding a plank:
+
+- can only **raise** the union — it is a union;
+- can only **lower** band 1 — it is an intersection over one more set;
+- can only **raise** band 2, from both directions at once. It gains the new
+  plank's supporters, *and* it absorbs everyone who just fell out of band 1. It
+  loses only people who have signed explicit *disbelief* in the new plank, which
+  for a plank nobody has encountered yet is approximately nobody, because
+  `noOpinion` is the default.
+
+So a founder can bolt a controversial plank onto a proven cause and the headline
+"1,840 more support this and have disagreed with none" **cannot go down**.
+Symmetrically, deleting a plank people *did* disbelieve makes that dissent vanish
+and band 2 jump. Nothing about this is a bug in the fold: band 2's *sentence*
+stays true of those 1,840 people. What breaks is band 2's *job* — estimating
+whole-heartedness from silence is licensed when the planks were all there to be
+seen, and is not licensed for one added afterwards.
+
+Because the sentence is true, the fix is to show more rather than to compute
+differently. Band 2 renders paired with the **weakest link**:
+
+> **1,840 more** support at least one and have disagreed with none — they were
+> never asked about the rest.
+> Fewest signatures on any single issue: **3**. An issue added later starts
+> here, however large the number above is.
+
+The minimum is monotone in the *opposite* direction — adding a plank can only
+lower it — so the pair cannot be inflated by editing the roster. Three
+implementation decisions, all in `CauseViewStrip`:
+
+- **Direct signatures only**, unlike band 2 itself, which counts direct ∪
+  indirect. Matching band 2 would let an implication arrow into a freshly added
+  plank lift its indirect count to its neighbours' and re-hide exactly the case
+  the line exists to expose — and on a cause page the founder may well be the
+  attester who drew that arrow.
+- **Band 2 is withheld entirely when the minimum is unknown**, rather than shown
+  alone. If a plank's counts fail to load, a minimum over the remainder reports
+  too high a floor, and the plank that failed is disproportionately likely to be
+  the one that mattered.
+- **Nothing renders below two planks**, where there is no combination to qualify.
+
+Per-plank signature counts (which the plank rows already show) make the same
+disparity visible on their own, and for *detecting* a hollow plank they are
+sufficient. What they do not do is correct the headline, which is the number that
+gets quoted and screenshotted. The weakest-link line lifts the per-plank signal
+into the aggregate, where the misleading number lives.
+
 ### Align low, aggregate high
 
 Alignment attestations for projects should attach to **planks**, not to
@@ -265,6 +324,192 @@ gatekeeper.
 Disavowal is native, incidentally: beliefs are three-valued (`noOpinion` /
 `believes` / `disbelieves`), so marking out what a cause is *not* means signing
 disbelief, not inventing a new kind of statement.
+
+## The roster is a publication
+
+**Status: designed, not built (2026-08-10).** Everything in this section is a
+plan. Today a cause's plank list lives in `localStorage` with no version, no
+signature, and no history.
+
+### The problem it solves
+
+A cause page and the statements it shows are different artifacts with different
+owners, and the current design lets them be confused.
+
+The founder owns the page. He chooses which planks appear, and **he must be able
+to change his mind** — he operates the site, so which issues it shows is his
+call, including later. A supporter owns his signatures, and those are on
+individual statement CIDs, immutably. He never signed "the cause."
+
+So when a founder swaps a plank, the supporter's signature does not follow. The
+page must not imply otherwise. An old signature reaches a newly added plank only
+by an attested implication arrow — from an attester the *viewer* trusts, which is
+already viewer-side configuration — or not at all. The remaining case is a
+dishonest cause site simply rendering whatever it likes, and no amount of UI copy
+constrains that; only recomputability does.
+
+None of this is enforceable while the roster is unversioned private state. There
+is nothing for an attestation to bind to, nothing to pin a signature receipt
+against, and no way to say "these were the issues on 4 August" as a checkable
+claim rather than an assertion.
+
+### Two identifiers, not one
+
+The instinct to identify a roster by hashing `(description, plank CIDs)` is
+right, and it is exactly wrong for the URL.
+
+A content hash changes on every edit. That is the property the badge needs, and
+it is fatal for the link: the founder posts a URL, adds a plank next week, and
+every share he has ever made 404s. Since [ADR
+0008](/specs/decisions/0008-operated-surfaces-are-lenses.md) removed authored
+discovery, the broadcast link is the *only* path to a cause, so link stability is
+load-bearing rather than a nicety.
+
+| | Identifies | Changes on edit | Used for |
+|---|---|---|---|
+| **Stable ID** | the cause | no | the URL the founder broadcasts |
+| **Version ID** | this roster | yes | what the badge binds to; pinned views |
+
+`/cause/<stable>` renders current; `/cause/<stable>@<version>` renders a pinned
+roster, which is what a signature receipt should link to.
+
+### Use existing primitives for both
+
+**Version ID — publish the roster as a displayable document; its CID is the
+version.** Do not hand-roll a hash. A bespoke hash drags in canonicalization
+rules that are all silent-failure surfaces: UTF-8 and NFC normalization on the
+description, a defined sort order for the CIDs, whitespace policy, a
+domain-separation tag, a format version. Publishing through `PublishedData` makes
+the bytes the bytes, and brings author attribution via `(publisher, cid)`,
+retraction semantics, and CID-first reads along with it. It is also what [ADR
+0004](/specs/decisions/0004-user-publishes-displayable-data.md) already requires
+for founder-authored content. `causestarter/src/lib/publishPlank.ts` does the
+same move for plank text.
+
+**Stable ID — a mutable ref.** [`MutableRefUpdater`](/specs/tech/subsystems/mutable-refs/README.md)
+is `(owner, name) → value`, and the indexer keeps `ref_updates` as full history,
+"one row per event, never overwritten."
+
+- `owner` = the founder's address, so nobody else can publish a version of his
+  cause; someone else's `(theirAddress, "conservatism")` is correctly a
+  *different* cause
+- `name` = his slug, giving the stable URL
+- `value` = the current roster document's CID
+- `getUserRefHistory` = the version history, free
+
+That is an append-only, signed, resolvable roster history built from primitives
+that already exist. **Trap:** do not reach for `appendToUserList` — per the
+mutable-refs spec it "uploads the updated list to IPFS," which is the legacy
+browser-write path CauseStarter deliberately does not have. Publish via
+`PublishedData`, then `updateRef` to the resulting CID.
+
+### What goes in the document
+
+Wider than `(description, plank CIDs)`: **all founder-authored display text**. If
+the document holds only the summary and the CIDs, the founder keeps his badge
+while putting anything he likes in the title or the mediator blurb, and the badge
+covers a fraction of the page. Binding the whole of it means the badge covers
+everything on the page not derived from chain data.
+
+Two consequences to accept deliberately:
+
+- A typo fix drops the badge until re-attested. Correct — the attester judged
+  what it saw — and cheap, because re-attestation is automated.
+- **Plank order becomes significant**, since it is in the bytes. Reordering voids
+  the badge. Defensible (the first plank reads as the headline) and it saves
+  specifying a sort order, but it is a choice, not an accident.
+
+### The coherence badge
+
+An attestation that a roster's planks match its own summary and hide no riders.
+Its subject is the roster document's CID, so editing the roster drops the badge
+until re-attested — which is the entire enforcement mechanism for everything
+above.
+
+Scope it narrowly and keep it **positive-only** (silence, never a published
+negative judgment), following the Civility precedent that
+[what-we-host-and-control.md](/specs/product/legal/what-we-host-and-control.md)
+credits with "substantially softening the disparagement worry." It is a claim
+about *construction*, not merit: **a coherent cause we find repellent earns the
+badge**, per ADR 0008. A badge withholdable on grounds of distaste is an
+endorsement, and an endorsement needs the admission machinery that ADR
+deliberately does not have.
+
+Two implementation notes:
+
+- **Not the same call as generation.** cause-assist's atomize/sharpen and the
+  coherence evaluator share an engine per
+  [bridge-building-for-founders.md](/specs/product/bridge-building-for-founders.md),
+  but a model blessing its own output is worth nothing. Separate prompt, separate
+  config, and the attestation records which.
+- **"Listed = passed *a* trusted coherence attester", not *the* one.** Same
+  trajectory as the channel verifier; it pre-empts rather than repeats finding #4
+  in what-we-host-and-control.md ("we author the entire judgment layer in
+  practice").
+
+### Preview before publish
+
+Roster saves are two-step: ask for the badge, see what you would get, edit, then
+publish. Content-addressing makes this work — the client can assemble the
+document, compute the CID it *would* publish at, and ask the attester about it
+before anything is on chain. The attester can even return a signed attestation
+conditional on that CID, so the badge appears the instant the publish lands
+rather than after a poll. It cannot be tricked into blessing different content,
+because the CID commits to the bytes it saw.
+
+Three rules:
+
+1. **The preview must not become a gate.** If publishing without a badge is
+   awkward — a warning dialog, a greyed button, scolding copy — admission has
+   been rebuilt inside the client, and ADR 0008's central claim is that nothing
+   is reviewed before it renders. *"Publish anyway" is a peer of "Publish"*: same
+   prominence, no friction. The consequence of declining is that the page renders
+   without a badge, which is the default state for everything anyway.
+2. **The two-step goes on the roster save, not on plank publish.** A plank is a
+   statement — immutable, and already pre-flighted by `checkSafety`. Coherence is
+   not a property one plank has. Keeping them separate also lets a founder
+   publish three planks over a week as three cheap statement transactions and
+   then do *one* roster update, instead of a publish-plus-`updateRef` per plank.
+3. **Any edit after preview voids the verdict**, because the CID changed and the
+   attestation is about a document no longer being published. Follow the existing
+   pattern: `CauseDetailPage` already clears `safety: undefined` on any wording
+   change, with the note "the wording changed, so the old verdict no longer
+   describes it."
+
+On the obvious objection — free unlimited iteration against an LLM judge is
+normally an invitation to tune content until it passes. It is mostly benign *for
+this badge*, because coherence is a relation between summary and planks: the two
+ways to game it are rewording the plank to fit the summary, or rewording the
+summary to disclose the plank, and both genuinely achieve what the badge claims.
+Iterating toward a pass is largely the same act as fixing the problem. That is a
+property of judging construction rather than merit, and another reason to keep
+the claim narrow. The residual risk — wording that fools the model while still
+misleading a human — is not addressed by rate limiting; it is addressed by the
+weakest-link line, which is empirical and immune to phrasing. The two mechanisms
+fail in opposite directions, which is why both are shown.
+
+### What it costs
+
+Every roster edit becomes a `PublishedData` publish plus an `updateRef`
+transaction, where today editing is free and local. That is the main argument
+against this design, and it is worth checking whether the plank publish and the
+ref update can share a transaction before committing to it.
+
+Bought back: version history, "roster changed 3 days ago", and per-plank
+*added-later* provenance markers all fall straight out of `ref_updates` with no
+extra machinery — and the per-person refinement below may then be unnecessary.
+
+### Shelved: scoping band 2 to the roster each signer saw
+
+Given signature timestamps and plank publication times, band 2 could count each
+person only against the planks that existed when they last signed something on
+this cause — "disagreed with none of the issues they were shown." That restores
+the number's job rather than disclosing its limits.
+
+It is correct and it is **not currently planned**. The weakest-link pairing
+already makes the display non-inflatable, at a fraction of the cost and without
+making the number harder to explain. Revisit only if the paired display proves
+insufficient in practice.
 
 ## What cause-assist should do
 

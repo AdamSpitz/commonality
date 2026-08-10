@@ -70,8 +70,8 @@ export function StatementPage() {
     return (
       <Stack spacing={2}>
         <Alert severity="error" sx={{ borderRadius: 2 }}>{error ?? 'Statement not found'}</Alert>
-        <Button component={RouterLink} to="/discover" sx={{ textTransform: 'none' }}>
-          Back to discover
+        <Button component={RouterLink} to="/" sx={{ textTransform: 'none' }}>
+          Back to home
         </Button>
       </Stack>
     )

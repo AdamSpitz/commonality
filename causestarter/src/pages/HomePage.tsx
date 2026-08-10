@@ -55,16 +55,9 @@ export function HomePage() {
           >
             Start a cause
           </Button>
-          <Button
-            component={RouterLink}
-            to="/discover"
-            variant="outlined"
-            size="large"
-            data-testid="home-support-cause"
-            sx={{ minHeight: 48, borderRadius: 999, fontWeight: 600, textTransform: 'none', px: 3 }}
-          >
-            Support a cause
-          </Button>
+          {/* There is deliberately no "support a cause" counterpart: we list no
+              causes and rank none. You reach a cause through its founder's own
+              link. */}
         </Stack>
       </Paper>
 

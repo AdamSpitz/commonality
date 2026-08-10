@@ -6,7 +6,6 @@ import { MomentumPage } from './pages/MomentumPage'
 import { CauseDetailPage } from './pages/CauseDetailPage'
 import { StatementBoardPage } from './pages/StatementBoardPage'
 import { StatementBoardLeaderboardPage } from './pages/StatementBoardLeaderboardPage'
-import { DiscoverPage } from './pages/DiscoverPage'
 import { StatementPage } from './pages/StatementPage'
 import { ToolsPage } from './pages/ToolsPage'
 import { ProjectDetailPage } from './pages/ProjectDetailPage'
@@ -27,7 +26,9 @@ export default function App() {
           <Route path="/start" element={<StartCausePage />} />
           <Route path="/momentum" element={<MomentumPage />} />
           <Route path="/cause/:causeId" element={<CauseDetailPage />} />
-          <Route path="/discover" element={<DiscoverPage />} />
+          {/* No browse or search route by design: a cause is reached by its own
+              link, never by a directory we rank. See ADR 0005 and
+              specs/product/ui-operator-posture.md. */}
           <Route path="/statement/:statementCid" element={<StatementPage />} />
           {/* Boards are keyed by statement: alignment attestations name a
               statement, never a cause. */}

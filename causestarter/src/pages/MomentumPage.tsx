@@ -42,7 +42,7 @@ export function MomentumPage() {
             </Button>
           }
         >
-          No causes yet. Start one to begin building momentum, or support a public cause from Discover.
+          No causes yet. Start one to begin building momentum.
         </Alert>
       )}
 

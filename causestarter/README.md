@@ -154,6 +154,15 @@ See [`cause-assist/README.md`](../cause-assist/README.md).
 
 ## Design notes
 
+- **CauseStarter is a lens, not a directory** ([ADR 0008](../specs/decisions/0008-operated-surfaces-are-lenses.md)).
+  It authors no discovery: no search, browse, ranking, featuring, or leaderboards.
+  A cause is reached at `/cause/:causeId` through a link its founder circulates.
+  Nothing is reviewed before it renders and nothing is listed, so there are no
+  admission criteria; what the operated surface offers is that its numbers are
+  correct and independently recomputable, never that the causes are good.
+  **Do not add a browse/search/"popular causes" surface** — its absence is the
+  posture, not a gap. Policy-list suppression still applies and still must reach
+  aggregation, not just rendering.
 - **A cause is a set of planks**, not a main statement with supporters. Each
   plank is published separately and carries its own CID; a cause is "live" once
   any plank is on chain, and there is no launch step. The cause page is the

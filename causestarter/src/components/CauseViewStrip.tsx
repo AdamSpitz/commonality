@@ -10,6 +10,12 @@ interface CauseViewStripProps {
   selectedCount: number
   publishedCount: number
   loading: boolean
+  /**
+   * Direct signatures on the least-signed selected plank, or `undefined` when
+   * that cannot be stated exactly. See {@link CauseViewStrip} for why band 2 is
+   * not shown without it.
+   */
+  fewestDirectSignatures: number | undefined
 }
 
 /**
@@ -20,6 +26,19 @@ interface CauseViewStripProps {
  * bands because a bare intersection collapses on silence rather than on
  * disagreement: `noOpinion` is the default, so someone who signed four planks
  * and never saw the fifth would vanish from a one-band number.
+ *
+ * Band 2 is never shown alone, because on its own it rewards roster churn. The
+ * founder owns which planks appear here and may change them; adding one can
+ * only *raise* band 2, since a plank nobody has encountered yet contributes
+ * silence and silence is what band 2 counts as assent. So it is paired with the
+ * weakest link, which moves the other way — adding a plank can only lower the
+ * fewest-signed count — and the pair cannot be inflated by editing the roster.
+ *
+ * The weakest link counts **direct** signatures only, unlike band 2 itself. An
+ * implication arrow into a freshly added plank would lift its indirect support
+ * to match its neighbours' and re-hide precisely the case this line exists to
+ * expose — and on a cause page the founder may well be the attester who drew
+ * that arrow.
  */
 export function CauseViewStrip({
   mode,
@@ -28,6 +47,7 @@ export function CauseViewStrip({
   selectedCount,
   publishedCount,
   loading,
+  fewestDirectSignatures,
 }: CauseViewStripProps) {
   const allSelected = selectedCount === publishedCount
   const scope = allSelected
@@ -98,7 +118,7 @@ export function CauseViewStrip({
                 {singular ? 'this issue' : `every one of ${scope}`}.
               </Typography>
             </Box>
-            {!singular && (
+            {!singular && fewestDirectSignatures !== undefined && (
               <Box>
                 <Typography variant="h6" sx={{ fontWeight: 700 }} data-testid="view-count-none-disagreed">
                   {counts.conjunction.noneDisagreed.toLocaleString()} more
@@ -106,6 +126,18 @@ export function CauseViewStrip({
                 <Typography variant="body2" color="text.secondary">
                   support at least one and have disagreed with none — they were never asked about the
                   rest.
+                </Typography>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ mt: 0.75 }}
+                  data-testid="view-fewest-signatures"
+                >
+                  Fewest signatures on any single issue:{' '}
+                  <Box component="span" sx={{ fontWeight: 700, color: 'text.primary' }}>
+                    {fewestDirectSignatures.toLocaleString()}
+                  </Box>
+                  . An issue added later starts here, however large the number above is.
                 </Typography>
               </Box>
             )}

@@ -152,6 +152,26 @@ export function CauseDetailPage() {
     trustReady,
   )
 
+  /**
+   * Direct signatures on the least-signed selected plank — the check that keeps
+   * band 2 honest as the roster changes (see {@link CauseViewStrip}).
+   *
+   * `undefined` whenever it cannot be stated exactly: with fewer than two planks
+   * there is no combination to qualify, and if any selected plank's counts are
+   * missing, a minimum over the rest would report a floor that is too high —
+   * hiding the very plank most likely to be the one that failed to load.
+   */
+  const fewestDirectSignatures = useMemo(() => {
+    if (selectedCids.length < 2) return undefined
+    let fewest = Number.POSITIVE_INFINITY
+    for (const cid of selectedCids) {
+      const support = perPlank.get(cid)
+      if (!support) return undefined
+      fewest = Math.min(fewest, support.direct)
+    }
+    return fewest
+  }, [selectedCids, perPlank])
+
   const tools = useMemo(
     () => SUPPORTING_TOOLS.filter((t) => t.kind === 'substrate' && t.id !== 'delegation'),
     [],
@@ -336,6 +356,7 @@ export function CauseDetailPage() {
             selectedCount={selectedCids.length}
             publishedCount={publishedCids.length}
             loading={countsLoading}
+            fewestDirectSignatures={fewestDirectSignatures}
           />
           {countsError && (
             <Alert severity="warning" sx={{ borderRadius: 2 }}>

@@ -15,7 +15,6 @@ import {
 import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined'
 import FlagOutlinedIcon from '@mui/icons-material/FlagOutlined'
 import TrendingUpOutlinedIcon from '@mui/icons-material/TrendingUpOutlined'
-import ExploreOutlinedIcon from '@mui/icons-material/ExploreOutlined'
 import HandymanOutlinedIcon from '@mui/icons-material/HandymanOutlined'
 import GitHubIcon from '@mui/icons-material/GitHub'
 import DarkModeIcon from '@mui/icons-material/DarkMode'
@@ -30,7 +29,6 @@ const navItems = [
   { label: 'Home', path: '/', icon: <HomeOutlinedIcon /> },
   { label: 'Start', path: '/start', icon: <FlagOutlinedIcon /> },
   { label: 'Momentum', path: '/momentum', icon: <TrendingUpOutlinedIcon /> },
-  { label: 'Discover', path: '/discover', icon: <ExploreOutlinedIcon /> },
   { label: 'Tools', path: '/tools', icon: <HandymanOutlinedIcon /> },
 ] as const
 
