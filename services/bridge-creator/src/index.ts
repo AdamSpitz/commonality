@@ -60,6 +60,12 @@ export { loadMediatorConfigArtifact, scaffoldMediatorConfig } from './mediatorCo
 export type { MediatorConfigArtifact } from './mediatorConfig.js';
 export { interpolateStrategyLabels, renderSynthesisUserPrompt, synthesizeBridgeTriples } from './synthesizer.js';
 export type { BridgeSynthesisConfig, BridgeSynthesisInput, SynthesizedBridgeTriple } from './synthesizer.js';
+export { HIDDEN_MAJORITY_PATTERN_TECHNIQUES, runStatementStrategy } from './strategyEngine.js';
+export type {
+  StatementStrategy,
+  StatementStrategyEngineConfig,
+  StatementStrategyEngineDependencies,
+} from './strategyEngine.js';
 export {
   computeBridgePublicationInputHash,
   loadBridgePublicationDedupState,

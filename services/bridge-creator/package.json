@@ -4,6 +4,10 @@
   "description": "Nudger service that creates synthesized bridge statements",
   "type": "module",
   "main": "dist/index.js",
+  "exports": {
+    ".": "./dist/index.js",
+    "./strategy-engine": "./dist/strategyEngine.js"
+  },
   "scripts": {
     "predev": "npm run build --workspace=@commonality/sdk && npm run build --workspace=@commonality/nudger-core",
     "dev": "tsx watch src/index.ts",

@@ -2,9 +2,13 @@
 
 LLM-backed helpers for CauseStarter, defaulting to **Grok 4.5** via the xAI API:
 
-1. **Statement suggester** — given a cause **main statement**, propose short supporting statements that it already **implies** (Implication Attester criteria).
-2. **Implication check** — verify main → supporting pairs using the same system prompt as `@commonality/implication-attester`.
-3. **Safety filter** — review goals, statements, and other free text against operational acceptable-use themes from the legal specs.
+1. **Atomizer** — turn a rough cause description or bundle label into independent, signable planks.
+2. **Plank sharpener** — make a plank attestable without making it vague or unnatural to sign.
+3. **Anchor drafter** — promote established planks into an explicitly enumerated disjunctive anchor.
+4. **Legacy statement suggester** — preserve the main → supporting workflow for existing causes.
+5. **Implication check and safety filter** — verify arrows and apply operational acceptable-use rules.
+
+The three plank-first capabilities run as cause-assist-owned strategies on the shared bridge-creator statement engine. They share execution machinery and pattern techniques with bridge creation, but never its mediation strategy prompt.
 
 Uses the shared OpenAI-compatible client from `@commonality/attester-core` (configurable `baseUrl`).
 
@@ -22,6 +26,9 @@ See `src/statementGuidance.ts` and the Implication Attester evaluator prompt for
 | --- | --- | --- | --- |
 | GET | `/health` | — | Liveness + whether an API key is configured |
 | POST | `/suggest-statements` | `{ goal, existingStatements?, count? }` | 1–5 suggestions (filtered by implication check when LLM is on) |
+| POST | `/atomize` | `{ description, existingPlanks?, count? }` | Rough cause description → 1–5 independent candidate planks |
+| POST | `/sharpen-plank` | `{ plank, causeDescription? }` | Reword one plank against the attestable + signable bar |
+| POST | `/draft-anchor` | `{ planks[] }` | Deterministic disjunctive anchor with verbatim planks and plank→anchor check payloads |
 | POST | `/check-implications` | `{ mainStatement, supportingStatements[] }` | Per-pair implies / confidence / reasoning |
 | POST | `/safety-check` | `{ items: [{ text, fieldLabel? }] }` | Per-item allow/deny + user-facing explanation |
 

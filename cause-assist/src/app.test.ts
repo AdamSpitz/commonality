@@ -93,6 +93,21 @@ describe('cause-assist request guards', () => {
     assert.equal(oversized.status, 400)
   })
 
+  it('validates plank-first endpoints and preserves anchor disjuncts', async () => {
+    const baseUrl = await start()
+    assert.equal((await post(baseUrl, '/atomize', { description: '' })).status, 400)
+    assert.equal((await post(baseUrl, '/sharpen-plank', { plank: '' })).status, 400)
+    assert.equal((await post(baseUrl, '/draft-anchor', { planks: ['only one'] })).status, 400)
+
+    const planks = ['The creek should be clean.', 'Oak Street should be safe at night.']
+    const response = await post(baseUrl, '/draft-anchor', { planks })
+    assert.equal(response.status, 200)
+    const body = await response.json() as { anchor: string; disjuncts: string[]; implicationChecks: unknown[] }
+    assert.deepEqual(body.disjuncts, planks)
+    assert.ok(planks.every((plank) => body.anchor.includes(plank)))
+    assert.equal(body.implicationChecks.length, 2)
+  })
+
   it('rate limits repeated expensive requests by client IP', async () => {
     const baseUrl = await start()
     const ip = '198.51.100.77'

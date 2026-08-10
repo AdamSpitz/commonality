@@ -4,9 +4,13 @@ import type { CauseAssistConfig } from './types.js'
 import { suggestStatements } from './statementSuggester.js'
 import { checkSafety } from './safetyFilter.js'
 import { checkImplications } from './implicationCheck.js'
+import { atomizeCause, draftDisjunctiveAnchor, sharpenPlank } from './plankStrategies.js'
 import type {
+  AtomizeRequest,
   CheckImplicationsRequest,
+  DraftAnchorRequest,
   SafetyCheckRequest,
+  SharpenPlankRequest,
   SuggestStatementsRequest,
 } from './types.js'
 
@@ -33,7 +37,7 @@ export function createCauseAssistApp(config: CauseAssistConfig): express.Express
   app.set('trust proxy', 1)
   app.use(express.json({ limit: '64kb' }))
   app.use(
-    ['/suggest-statements', '/check-implications', '/safety-check'],
+    ['/suggest-statements', '/atomize', '/sharpen-plank', '/draft-anchor', '/check-implications', '/safety-check'],
     createRateLimiter({
       windowMs: 60_000,
       maxRequests: 20,
@@ -85,6 +89,45 @@ export function createCauseAssistApp(config: CauseAssistConfig): express.Express
     } catch (error) {
       next(error)
     }
+  })
+
+  app.post('/atomize', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const body = req.body as AtomizeRequest
+      if (!validStatement(body?.description)) {
+        invalidRequest(res, `description is required and must be at most ${MAX_STATEMENT_LENGTH} characters`)
+        return
+      }
+      if (body.existingPlanks !== undefined && (!Array.isArray(body.existingPlanks) || body.existingPlanks.length > MAX_EXISTING_STATEMENTS || body.existingPlanks.some((item) => !validStatement(item)))) {
+        invalidRequest(res, `existingPlanks must contain at most ${MAX_EXISTING_STATEMENTS} valid statements`)
+        return
+      }
+      if (body.count !== undefined && (!Number.isInteger(body.count) || body.count < 1 || body.count > MAX_SUGGESTION_COUNT)) {
+        invalidRequest(res, `count must be an integer from 1 to ${MAX_SUGGESTION_COUNT}`)
+        return
+      }
+      res.json(await atomizeCause(body, config))
+    } catch (error) { next(error) }
+  })
+
+  app.post('/sharpen-plank', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const body = req.body as SharpenPlankRequest
+      if (!validStatement(body?.plank) || (body.causeDescription !== undefined && !validStatement(body.causeDescription))) {
+        invalidRequest(res, `plank and optional causeDescription must be non-empty and at most ${MAX_STATEMENT_LENGTH} characters`)
+        return
+      }
+      res.json(await sharpenPlank(body, config))
+    } catch (error) { next(error) }
+  })
+
+  app.post('/draft-anchor', (req: Request, res: Response) => {
+    const body = req.body as DraftAnchorRequest
+    if (!Array.isArray(body?.planks) || body.planks.length < 2 || body.planks.length > MAX_SUPPORTING_STATEMENTS || body.planks.some((item) => !validStatement(item))) {
+      invalidRequest(res, `planks must contain 2–${MAX_SUPPORTING_STATEMENTS} valid statements`)
+      return
+    }
+    res.json(draftDisjunctiveAnchor(body.planks))
   })
 
   app.post('/check-implications', async (req: Request, res: Response, next: NextFunction) => {
