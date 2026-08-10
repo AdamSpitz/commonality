@@ -12,7 +12,13 @@ import {
   decodeSuccessAttestationEvent,
 } from '../../utils/eventDecoder.js';
 import { foldAlignmentAttestations } from './folds.js';
-import { getProject, getProjectContributions, getProjectRefunds } from '../lazy-giving/queries.js';
+import {
+  getProject,
+  getProjectContributions,
+  getProjectRefunds,
+  getProjectReimbursementSnapshot,
+  getProjectReimbursementState,
+} from '../lazy-giving/queries.js';
 import { getNote, getNoteIntentAttestationsByStatement } from '../delegation/queries.js';
 import {
   type AlignmentAttestation,
@@ -35,7 +41,12 @@ import {
   type Currency,
   type CurrencyAmountBigInt,
 } from '../../utils/currency.js';
-import { readProjectFundingSnapshots, readProjectPaymentTokenInfo } from '../../utils/chain-reads.js';
+import {
+  readOutstandingReimbursementTotal,
+  readProjectFundingSnapshots,
+  readProjectPaymentTokenInfo,
+} from '../../utils/chain-reads.js';
+import type { Address } from 'viem';
 
 function addAmountToCurrencyList(
   totals: CurrencyAmountBigInt[],
@@ -573,36 +584,52 @@ async function getReceiptReimbursementSnapshot(machinery: SDKMachinery, projectA
     return { outstandingReceipts: 0n, outstandingUnreimbursedAmount: 0n, scoutRecords: [] };
   }
 
-  const contributions = await getProjectContributions(machinery, projectAddress);
+  // Receipt counts are permanent recognition of early contributions; unreimbursed
+  // amounts come from the reimbursement waterfall (early − retro − withdrawn).
+  const [contributions, reimbursement] = await Promise.all([
+    getProjectContributions(machinery, projectAddress),
+    getProjectReimbursementSnapshot(machinery, projectAddress),
+  ]);
 
-  // Receipts are permanent recognition of contributions in the reimbursement model.
-  // They are no longer consumed to signal a donation; reimbursement state is tracked
-  // separately from receipt-token balances.
   const outstandingReceipts = contributions.reduce((total, contribution) => (
     total + parseJsonBigIntArray(contribution.tokenCounts).reduce((sum, count) => sum + count, 0n)
   ), 0n);
 
-  const scouts = new Map<string, bigint>();
-  for (const contribution of contributions) {
-    const key = contribution.participant.toLowerCase();
-    scouts.set(key, (scouts.get(key) ?? 0n) + BigInt(contribution.totalCost));
-  }
-  const totalEarlyContributions = [...scouts.values()].reduce((sum, amount) => sum + amount, 0n);
+  const outstandingUnreimbursedAmount = BigInt(reimbursement.project.outstandingReimbursement || '0');
+  const scoutRecords = reimbursement.contributors
+    .map((contributor) => {
+      const scoutedAmount = BigInt(contributor.earlyContribution || '0');
+      const reimbursedAmount = BigInt(contributor.withdrawnAmount || '0');
+      const forgoneAmount = BigInt(contributor.forgoneAmount || '0');
+      const outstandingAmount = scoutedAmount > reimbursedAmount + forgoneAmount
+        ? scoutedAmount - reimbursedAmount - forgoneAmount
+        : 0n;
+      return {
+        scout: contributor.contributor,
+        scoutedAmount: scoutedAmount.toString(),
+        reimbursedAmount: reimbursedAmount.toString(),
+        outstandingAmount: outstandingAmount.toString(),
+      };
+    })
+    .filter((record) => BigInt(record.scoutedAmount) > 0n)
+    .sort((a, b) => {
+      const outstandingA = BigInt(a.outstandingAmount);
+      const outstandingB = BigInt(b.outstandingAmount);
+      if (outstandingA > outstandingB) return -1;
+      if (outstandingA < outstandingB) return 1;
+      return a.scout.localeCompare(b.scout);
+    });
 
   return {
     outstandingReceipts,
-    outstandingUnreimbursedAmount: totalEarlyContributions,
-    scoutRecords: [...scouts.entries()].map(([scout, scoutedAmount]) => ({
-      scout,
-      scoutedAmount: scoutedAmount.toString(),
-      reimbursedAmount: '0',
-      outstandingAmount: scoutedAmount.toString(),
-    })),
+    outstandingUnreimbursedAmount,
+    scoutRecords,
   };
 }
 
 /**
- * Get projects that have trusted success attestations for a cause and still have outstanding receipts.
+ * Get projects that have trusted success attestations for a cause and still have
+ * outstanding unreimbursed early contributions (not merely permanent receipt tokens).
  */
 export async function getSuccessfulProjectsForCause(
   machinery: SDKMachinery,
@@ -642,7 +669,9 @@ export async function getSuccessfulProjectsForCause(
       getProject(machinery, projectAddress).catch(() => null),
       getReceiptReimbursementSnapshot(machinery, projectAddress).catch(() => ({ outstandingReceipts: 0n, outstandingUnreimbursedAmount: 0n, scoutRecords: [] })),
     ]);
-    if (!project || reimbursement.outstandingReceipts <= 0n) return null;
+    // Drop fully reimbursed (or never-scouted) successes; receipt tokens are permanent
+    // and must not keep a project listed after outstanding unreimbursed money hits zero.
+    if (!project || reimbursement.outstandingUnreimbursedAmount <= 0n) return null;
     return {
       projectAddress: project.id,
       successType: success.successType,
@@ -662,8 +691,8 @@ export async function getSuccessfulProjectsForCause(
   return rows
     .filter((row): row is NonNullable<typeof row> => row !== null)
     .sort((a, b) => {
-      const scoreA = BigInt(a.outstandingReceipts) * BigInt(a.successConfidenceScore);
-      const scoreB = BigInt(b.outstandingReceipts) * BigInt(b.successConfidenceScore);
+      const scoreA = BigInt(a.outstandingUnreimbursedAmount) * BigInt(a.successConfidenceScore);
+      const scoreB = BigInt(b.outstandingUnreimbursedAmount) * BigInt(b.successConfidenceScore);
       if (scoreA > scoreB) return -1;
       if (scoreA < scoreB) return 1;
       return a.projectAddress.localeCompare(b.projectAddress);
@@ -673,6 +702,56 @@ export async function getSuccessfulProjectsForCause(
 // ============================================================================
 // Aggregated Funding Metrics (E2) - Event Cache + Chain Reads
 // ============================================================================
+
+/**
+ * Classify an assurance project the same way LazyGiving UIs do:
+ * threshold met → succeeded; past deadline without threshold → refunding (failed);
+ * otherwise still open (active funding).
+ */
+export function classifyAlignedProjectStatus(project: {
+  totalReceived: string;
+  threshold: string;
+  deadline: string;
+}, nowSeconds: number = Math.floor(Date.now() / 1000)): 'active' | 'succeeded' | 'refunding' {
+  const thresholdMet = BigInt(project.totalReceived) >= BigInt(project.threshold);
+  if (thresholdMet) return 'succeeded';
+  if (Number(project.deadline) < nowSeconds) return 'refunding';
+  return 'active';
+}
+
+/**
+ * Remaining amount needed for an open project to hit its funding threshold.
+ * Zero when the project is not open or already at/above threshold.
+ */
+export function remainingToThresholdForProject(project: {
+  totalReceived: string;
+  threshold: string;
+  deadline: string;
+}, nowSeconds: number = Math.floor(Date.now() / 1000)): bigint {
+  if (classifyAlignedProjectStatus(project, nowSeconds) !== 'active') return 0n;
+  const received = BigInt(project.totalReceived);
+  const threshold = BigInt(project.threshold);
+  return threshold > received ? threshold - received : 0n;
+}
+
+async function readUnreimbursedForProject(
+  machinery: SDKMachinery,
+  projectAddress: string,
+): Promise<bigint> {
+  if (machinery.publicClient) {
+    try {
+      return await readOutstandingReimbursementTotal(machinery, projectAddress as Address);
+    } catch {
+      return 0n;
+    }
+  }
+  try {
+    const state = await getProjectReimbursementState(machinery, projectAddress);
+    return BigInt(state.outstandingReimbursement || '0');
+  } catch {
+    return 0n;
+  }
+}
 
 /**
  * Get total funding raised for a cause (across all aligned projects).
@@ -691,9 +770,36 @@ export async function getTotalFundingForCause(
     trustedAlignmentAttesters
   );
 
+  const nowSeconds = Math.floor(Date.now() / 1000);
   const totalRaised = new Map<string, CurrencyAmountBigInt>();
+  const remainingToThreshold = new Map<string, CurrencyAmountBigInt>();
+  const totalUnreimbursed = new Map<string, CurrencyAmountBigInt>();
+  const succeededProjects: typeof allAlignedProjects = [];
+
   for (const project of allAlignedProjects) {
     addCurrencyAmount(totalRaised, project.fundingCurrency, BigInt(project.totalReceived));
+
+    const status = classifyAlignedProjectStatus(project, nowSeconds);
+    if (status === 'active') {
+      const need = remainingToThresholdForProject(project, nowSeconds);
+      if (need > 0n) {
+        addCurrencyAmount(remainingToThreshold, project.fundingCurrency, need);
+      }
+    } else if (status === 'succeeded') {
+      succeededProjects.push(project);
+    }
+  }
+
+  if (succeededProjects.length > 0) {
+    const unreimbursedAmounts = await Promise.all(
+      succeededProjects.map((project) => readUnreimbursedForProject(machinery, project.projectAddress)),
+    );
+    for (let i = 0; i < succeededProjects.length; i++) {
+      const amount = unreimbursedAmounts[i] ?? 0n;
+      if (amount > 0n) {
+        addCurrencyAmount(totalUnreimbursed, succeededProjects[i].fundingCurrency, amount);
+      }
+    }
   }
 
   const statementCids = new Set<string>([statementCid]);
@@ -726,6 +832,8 @@ export async function getTotalFundingForCause(
   return {
     totalRaisedAcrossProjects: currencyTotalsToArray(totalRaised),
     totalAvailableFromNotes: currencyTotalsToArray(noteTotals),
+    remainingToThreshold: currencyTotalsToArray(remainingToThreshold),
+    totalUnreimbursed: currencyTotalsToArray(totalUnreimbursed),
     projectCount: allAlignedProjects.length,
     noteCount,
   };

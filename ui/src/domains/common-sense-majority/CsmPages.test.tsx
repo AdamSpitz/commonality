@@ -1,13 +1,30 @@
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
-import { describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { CsmAboutPage, CsmBridgesPage, CsmNudgersPage, CsmOrganizingPage, CsmPopularStatementsPage } from './CsmPages'
-import { buildCompleteBridgeCards, csmBridgeAnchors, getBridgeAnchorTallyPath, getSignableCommonGroundAnchors, type BridgeAnchorRecord } from './csmBridges'
+import { buildCompleteBridgeCards, fetchFeaturedBridgeAnchors, getBridgeAnchorTallyPath, type BridgeAnchorRecord } from './csmBridges'
+
+const anchor = (cluster: string, role: string, text: string, cid: string | null = null): BridgeAnchorRecord => ({
+  id: `${cluster}-${role}`, cluster_id: cluster, role, text, tally_cid: cid, topic_tag: cluster,
+  rationale: 'Fixture', status: 'active', featured: true, created_at: '2026-01-01T00:00:00.000Z', last_reviewed_at: '2026-01-01T00:00:00.000Z',
+})
+const featuredAnchors = [
+  anchor('abortion', 'side-a', 'Abortion should be available through the first trimester.'),
+  anchor('abortion', 'side-b', "I'm uncomfortable with abortion but accept early-term exceptions."),
+  anchor('abortion', 'common-ground', 'Early-term abortion should be available.', 'bafy-abortion'),
+  anchor('immigration', 'side-a', 'Prioritize humane enforcement.'),
+  anchor('immigration', 'side-b', 'Prioritize orderly enforcement.'),
+  anchor('immigration', 'common-ground', 'Deport illegal immigrants who are also criminals.', 'bafy-immigration'),
+]
+
+beforeEach(() => {
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => ({ anchors: featuredAnchors }) }))
+})
 
 describe('CSM movement pages', () => {
   describe('Bridges page', () => {
-    it('renders the suggested-bridge framing and featured bridge cards', () => {
+    it('renders the suggested-bridge framing and featured bridge cards fetched from the mediator', async () => {
       render(
         <MemoryRouter>
           <CsmBridgesPage />
@@ -16,10 +33,10 @@ describe('CSM movement pages', () => {
 
       expect(screen.getByRole('heading', { name: /common ground bridges/i })).toBeInTheDocument()
       expect(screen.getByText(/ai-synthesized suggested bridges, not poll results/i)).toBeInTheDocument()
-      expect(screen.getByText(/abortion should be available at least through the first trimester/i)).toBeInTheDocument()
+      expect(await screen.findByText(/abortion should be available at least through the first trimester/i)).toBeInTheDocument()
       expect(screen.getByText(/i'm uncomfortable with abortion/i)).toBeInTheDocument()
       expect(screen.getByText(/early-term abortion should be available/i)).toBeInTheDocument()
-      expect(screen.getAllByRole('link', { name: /view and sign on tally/i })[0]).toHaveAttribute(
+      expect(screen.getAllByRole('link', { name: /view and sign/i })[0]).toHaveAttribute(
         'href',
         expect.stringContaining('/statement/bafybeieapyat4uy4rfqmeznaafl3tn64enzgycbgaqgmlm23q4bt2r3c2q'),
       )
@@ -33,7 +50,7 @@ describe('CSM movement pages', () => {
         </MemoryRouter>,
       )
 
-      await user.click(screen.getByRole('button', { name: /immigration/i }))
+      await user.click(await screen.findByRole('button', { name: /immigration/i }))
 
       expect(screen.getByText(/deport illegal immigrants who are also criminals/i)).toBeInTheDocument()
       expect(screen.queryByText(/early-term abortion should be available/i)).not.toBeInTheDocument()
@@ -44,16 +61,9 @@ describe('CSM movement pages', () => {
       expect(getBridgeAnchorTallyPath({ tally_cid: null })).toBe('/statements')
     })
 
-    it('keeps every featured common-ground bridge published to a seeded Tally statement', () => {
-      const commonGroundAnchors = csmBridgeAnchors.filter((anchor) => anchor.role === 'common-ground')
-
-      expect(commonGroundAnchors).toHaveLength(4)
-      expect(commonGroundAnchors.map((anchor) => anchor.tally_cid)).toEqual([
-        'bafybeieapyat4uy4rfqmeznaafl3tn64enzgycbgaqgmlm23q4bt2r3c2q',
-        'bafybeiehim7wsgd35doqihxyzawz2zt4zegdhntbw2mmkrh7wcg2oj5c6m',
-        'bafybeieazweue53u6uxqsuyd6e4iwackl3d5grwpkhagv4zs3seyxhth7q',
-        'bafybeici37535ecl4byld75o7bs7u7k3dttcf2oobfeoq23zbta7ipa4sm',
-      ])
+    it('requests only featured anchors from the configured mediator endpoint', async () => {
+      await fetchFeaturedBridgeAnchors('https://mediator.example/')
+      expect(fetch).toHaveBeenCalledWith('https://mediator.example/anchors?featured=true', { cache: 'no-store' })
     })
 
     it('does not build cards for incomplete clusters', () => {
@@ -76,7 +86,7 @@ describe('CSM movement pages', () => {
   })
 
   describe('Popular statements page', () => {
-    it('keeps the CSM-related statement list', () => {
+    it('keeps the CSM-related statement list', async () => {
       render(
         <MemoryRouter>
           <CsmPopularStatementsPage />
@@ -84,12 +94,8 @@ describe('CSM movement pages', () => {
       )
 
       expect(screen.getByRole('heading', { name: /popular csm-related statements/i })).toBeInTheDocument()
-      // Every seeded signable common-ground statement is rendered with a link to its live Tally page.
-      const signable = getSignableCommonGroundAnchors(buildCompleteBridgeCards(csmBridgeAnchors))
-      expect(signable.length).toBeGreaterThan(0)
-      for (const anchor of signable) {
-        expect(screen.getByText(anchor.text)).toBeInTheDocument()
-      }
+      expect(await screen.findByText(/early-term abortion should be available. late-term abortion should be restricted/i)).toBeInTheDocument()
+      expect(screen.getByText(/deport illegal immigrants who are also criminals. for peaceful long-term residents/i)).toBeInTheDocument()
     })
 
     it('signposts users to focused product sites instead of embedding product routes', () => {

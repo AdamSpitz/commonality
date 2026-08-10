@@ -41,7 +41,6 @@ vi.mock('@commonality/sdk/delegation', async () => {
     ...actual,
     depositERC20: vi.fn(),
     delegateNote: vi.fn(),
-    attestNoteIntent: vi.fn(),
     approveRecurringPledgeToken: vi.fn(),
     createStandingPledge: vi.fn(),
   }
@@ -58,7 +57,7 @@ vi.mock('@commonality/sdk/machinery', async () => {
 import { useNavigate } from 'react-router-dom'
 import { useAccount, useWalletClient, usePublicClient } from 'wagmi'
 import { browseStatementsByNewest } from '@commonality/sdk/conceptspace'
-import { depositERC20, delegateNote, attestNoteIntent, approveRecurringPledgeToken, createStandingPledge } from '@commonality/sdk/delegation'
+import { depositERC20, delegateNote, approveRecurringPledgeToken, createStandingPledge } from '@commonality/sdk/delegation'
 import { createSDKMachinery } from '@commonality/sdk/machinery'
 
 const mockNavigate = vi.fn()
@@ -129,10 +128,10 @@ describe('DepositPage', () => {
       expect(screen.queryByRole('radio', { name: /my account/i })).not.toBeInTheDocument()
     })
 
-    it('shows intended statement autocomplete', () => {
+    it('does not collect note intent for one-time deposits', () => {
       render(<DepositPage />)
 
-      expect(screen.getByLabelText(/intended statement/i)).toBeInTheDocument()
+      expect(screen.queryByLabelText(/cause/i)).not.toBeInTheDocument()
     })
 
     it('shows Deposit submit button', () => {
@@ -268,7 +267,7 @@ describe('DepositPage', () => {
       fireEvent.change(screen.getByLabelText(/authorize monthly payments/i), { target: { value: '6' } })
       await typeDelegate(OTHER_ADDR)
 
-      const autocomplete = screen.getByLabelText(/intended statement\/cause/i)
+      const autocomplete = screen.getByLabelText(/^cause$/i)
       fireEvent.mouseDown(autocomplete)
       const option = await screen.findByText(/universal basic income/i)
       fireEvent.click(option)
@@ -405,84 +404,6 @@ describe('DepositPage', () => {
       await waitFor(() => {
         expect(screen.getByText('Delegation reverted')).toBeInTheDocument()
       })
-    })
-  })
-
-  describe('Statement attestation during deposit', () => {
-    it('calls attestNoteIntent when statement is selected', async () => {
-      vi.mocked(depositERC20).mockResolvedValue({ noteId: 12n, hash: '0xabc' })
-      vi.mocked(attestNoteIntent).mockResolvedValue({ hash: '0xdef' } as any)
-      vi.mocked(browseStatementsByNewest).mockResolvedValue([TEST_STATEMENT] as any)
-
-      render(<DepositPage />)
-      fireEvent.change(screen.getByLabelText(/amount \(usdzzz\)/i), { target: { value: '1' } })
-
-      // Select a statement from autocomplete
-      const autocomplete = screen.getByLabelText(/intended statement/i)
-      fireEvent.mouseDown(autocomplete)
-      const option = await screen.findByText(/universal basic income/i)
-      fireEvent.click(option)
-
-      fireEvent.click(screen.getByRole('button', { name: 'Deposit' }))
-
-      await waitFor(() => {
-        expect(attestNoteIntent).toHaveBeenCalledWith(
-          expect.any(Object),
-          expect.any(Object),
-          CONTRACT_ADDR,
-          12n,
-          TEST_STATEMENT.cid
-        )
-      })
-    })
-
-    it('skips attestNoteIntent when no statement is selected', async () => {
-      vi.mocked(depositERC20).mockResolvedValue({ noteId: 12n, hash: '0xabc' })
-
-      render(<DepositPage />)
-      fireEvent.change(screen.getByLabelText(/amount \(usdzzz\)/i), { target: { value: '1' } })
-      fireEvent.click(screen.getByRole('button', { name: 'Deposit' }))
-
-      await waitFor(() => {
-        expect(screen.getByText('Funds Added')).toBeInTheDocument()
-      })
-      expect(attestNoteIntent).not.toHaveBeenCalled()
-    })
-
-    it('shows statement options in autocomplete', async () => {
-      vi.mocked(browseStatementsByNewest).mockResolvedValue([TEST_STATEMENT] as any)
-
-      render(<DepositPage />)
-
-      const autocomplete = screen.getByLabelText(/intended statement/i)
-      fireEvent.mouseDown(autocomplete)
-
-      await waitFor(() => {
-        expect(screen.getByText(/universal basic income/i)).toBeInTheDocument()
-      })
-    })
-
-    it('shows statement excerpt in autocomplete options', async () => {
-      vi.mocked(browseStatementsByNewest).mockResolvedValue([TEST_STATEMENT] as any)
-
-      render(<DepositPage />)
-
-      const autocomplete = screen.getByLabelText(/intended statement/i)
-      fireEvent.mouseDown(autocomplete)
-
-      await waitFor(() => {
-        expect(screen.getByText(/every citizen should receive/i)).toBeInTheDocument()
-      })
-    })
-  })
-
-  describe('Statement autocomplete loading', () => {
-    it('shows loading spinner while statements are fetching', () => {
-      vi.mocked(browseStatementsByNewest).mockReturnValue(new Promise(() => {}))
-
-      render(<DepositPage />)
-
-      expect(screen.getByRole('progressbar')).toBeInTheDocument()
     })
   })
 

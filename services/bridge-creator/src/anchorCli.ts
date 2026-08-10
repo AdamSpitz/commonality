@@ -1,9 +1,10 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { normalizeAnchorStoreFile, type BridgeAnchorRecord, type BridgeAnchorStatus, type BridgeAnchorStoreFile } from './anchors.js';
+import { loadMediatorAnchors, saveMediatorAnchors } from './mediatorConfig.js';
 
 export type AnchorCliCommand = 'list-proposed' | 'approve' | 'retire' | 'delete' | 'feature' | 'unfeature';
 
-const REQUIRED_CLUSTER_ROLES = ['moderate-left', 'moderate-right', 'common-ground'];
+const REQUIRED_CLUSTER_ROLES = ['side-a', 'side-b', 'common-ground'];
 
 export interface AnchorCliResult {
   message: string;
@@ -12,8 +13,8 @@ export interface AnchorCliResult {
 }
 
 export function runAnchorCli(argv: string[]): AnchorCliResult {
-  const { storePath, command, anchorIds } = parseAnchorCliArgs(argv);
-  const store = loadMutableAnchorStore(storePath);
+  const { storePath, configPath, command, anchorIds } = parseAnchorCliArgs(argv);
+  const store = configPath ? { anchors: loadMediatorAnchors(configPath) } : loadMutableAnchorStore(storePath);
 
   let result: AnchorCliResult;
   switch (command) {
@@ -42,7 +43,8 @@ export function runAnchorCli(argv: string[]): AnchorCliResult {
   }
 
   if (result.storeChanged) {
-    writeAnchorStore(storePath, store);
+    if (configPath) saveMediatorAnchors(configPath, store.anchors);
+    else writeAnchorStore(storePath, store);
   }
 
   return result;
@@ -50,16 +52,26 @@ export function runAnchorCli(argv: string[]): AnchorCliResult {
 
 export function parseAnchorCliArgs(argv: string[]): {
   storePath: string;
+  configPath?: string;
   command: AnchorCliCommand;
   anchorIds: string[];
 } {
   const args = [...argv];
   let storePath = process.env.BRIDGE_CREATOR_ANCHOR_STORE_PATH ?? 'services/bridge-creator/data/seed-anchors.json';
+  let configPath = process.env.BRIDGE_CREATOR_MEDIATOR_CONFIG_PATH || undefined;
+  const configFlagIndex = args.indexOf('--config');
+  if (configFlagIndex !== -1) {
+    const value = args[configFlagIndex + 1];
+    if (!value) throw new Error('--config requires a file path');
+    configPath = value;
+    args.splice(configFlagIndex, 2);
+  }
   const storeFlagIndex = args.indexOf('--store');
   if (storeFlagIndex !== -1) {
     const value = args[storeFlagIndex + 1];
     if (!value) throw new Error('--store requires a file path');
     storePath = value;
+    configPath = undefined;
     args.splice(storeFlagIndex, 2);
   }
 
@@ -73,7 +85,7 @@ export function parseAnchorCliArgs(argv: string[]): {
     throw new Error(`${command} requires at least one ${noun}`);
   }
 
-  return { storePath, command, anchorIds: args };
+  return { storePath, configPath, command, anchorIds: args };
 }
 
 function loadMutableAnchorStore(storePath: string): BridgeAnchorStoreFile {

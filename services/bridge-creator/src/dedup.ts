@@ -33,8 +33,12 @@ export function computeBridgePublicationInputHash(input: {
   contextSnapshots: BridgeContextSnapshot[];
   activeAnchors: BridgeAnchorRecord[];
   pendingProposals?: BridgeProposalRecord[];
+  strategyPrompt: string;
+  labels: { sideA: string; sideB: string };
 }): string {
   return hashStableJson({
+    strategy_prompt: input.strategyPrompt,
+    labels: input.labels,
     upstream_context_summary_hash: hashStableJson(input.contextSnapshots.map((snapshot) => ({
       service_url: snapshot.source.serviceUrl,
       signer_address: snapshot.response.signerAddress ?? null,
@@ -61,7 +65,7 @@ export function summarizePublishedBridgeTriples(triples: SynthesizedBridgeTriple
   return triples
     .map((triple, index) => {
       const cluster = triple.anchorClusterId ? ` [${triple.anchorClusterId}]` : '';
-      return `${index + 1}.${cluster} left="${triple.modifiedLeft}" right="${triple.modifiedRight}" common="${triple.commonGround}" rationale="${triple.rationale}"`;
+      return `${index + 1}.${cluster} side-a="${triple.sideA}" side-b="${triple.sideB}" common="${triple.commonGround}" rationale="${triple.rationale}"`;
     })
     .join('\n');
 }

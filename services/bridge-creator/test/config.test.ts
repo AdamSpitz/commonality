@@ -68,6 +68,18 @@ describe('bridge creator config', () => {
     assert.strictEqual(config.implicationsContractAddress, '0x0000000000000000000000000000000000000002');
     assert.strictEqual(config.publishedDataContractAddress, '0x0000000000000000000000000000000000000003');
     assert.strictEqual(config.contact, 'ops@example.com');
+    assert.deepStrictEqual(config.corsOrigins, ['*']);
+  });
+
+  it('prefers generic context and label env names while keeping the CSM source alias', () => {
+    const config = loadConfig({
+      ...baseEnv,
+      BRIDGE_CREATOR_CONTEXT_SOURCES: '[{"service_url":"https://generic.example"}]',
+      BRIDGE_CREATOR_CSM_CONTEXT_SOURCES: '[{"service_url":"https://legacy.example"}]',
+      BRIDGE_CREATOR_LABELS: '["homeowners","renters"]',
+    });
+    assert.strictEqual(config.trustedContextSources[0]?.serviceUrl, 'https://generic.example');
+    assert.deepStrictEqual(config.labels, { sideA: 'homeowners', sideB: 'renters' });
   });
 
   it('keeps loadConfigFromEnv as an alias for the single loader implementation', () => {

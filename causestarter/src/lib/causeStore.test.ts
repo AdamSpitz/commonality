@@ -14,8 +14,9 @@ describe('causeStore v2', () => {
     window.localStorage.clear()
   })
 
-  it('saves goal-first drafts with statements', () => {
+  it('saves a rough description separately from the primary plank', () => {
     const created = saveCause({
+      description: 'Neighbors organizing for safer night walks.',
       goal: 'Make night walks safe on Oak Street.',
       statements: [
         {
@@ -30,8 +31,27 @@ describe('causeStore v2', () => {
 
     expect(created.status).toBe('draft')
     expect(created.goal).toContain('Oak Street')
+    expect(created.description).toContain('Neighbors organizing')
     expect(listCauses()).toHaveLength(1)
     expect(getCause(created.id)?.statements).toHaveLength(1)
+  })
+
+  it('persists the optional founder mediator identity and service URL', () => {
+    const created = saveCause({
+      goal: 'Make housing abundant.', statements: [], levers: ['supporters'],
+      mediator: {
+        address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
+        serviceUrl: 'https://housing.example/mediator',
+        name: 'Housing mediator',
+        description: 'Bridges homeowners and renters.',
+      },
+    })
+    expect(getCause(created.id)?.mediator?.serviceUrl).toBe('https://housing.example/mediator')
+    saveCause({
+      id: created.id, goal: created.goal, statements: created.statements,
+      levers: created.levers, mediator: null,
+    })
+    expect(getCause(created.id)?.mediator).toBeUndefined()
   })
 
   it('marks a cause launched with statement CIDs', () => {

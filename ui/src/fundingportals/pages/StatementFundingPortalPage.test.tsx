@@ -51,9 +51,6 @@ vi.mock('../../shared/hooks/useTrustedAttesters', () => ({
   useTrustedAttesters: vi.fn(),
 }))
 
-vi.mock('../utils', () => ({
-  computeAvailableDelegatableFunding: vi.fn(),
-}))
 
 vi.mock('../components/AlignedProjectsList', () => ({
   AlignedProjectsList: vi.fn(() => <div>Aligned Projects List</div>),
@@ -75,9 +72,6 @@ vi.mock('../components/AttestAlignmentForm', () => ({
   AttestAlignmentForm: vi.fn(() => <div>Attest Alignment Form</div>),
 }))
 
-vi.mock('../components/DelegatableNotesSection', () => ({
-  DelegatableNotesSection: vi.fn(() => <div>Delegatable Notes Section</div>),
-}))
 
 import { useParams } from 'react-router-dom'
 import { useAccount } from 'wagmi'
@@ -87,7 +81,6 @@ import { getTotalFundingForCause } from '@commonality/sdk/fundingportals'
 import { useMachinery } from '../../shared'
 import { useTrustedSet } from '../../shared'
 import { useTrustedAttesters } from '../../shared'
-import { computeAvailableDelegatableFunding } from '../utils'
 import { AlignedProjectsList } from '../components/AlignedProjectsList'
 import { SuccessfulProjectsTab } from '../components/SuccessfulProjectsTab'
 
@@ -127,13 +120,12 @@ describe('StatementFundingPortalPage', () => {
     vi.mocked(getTotalFundingForCause).mockResolvedValue({
       totalRaisedAcrossProjects: [{ amount: 2000000000000000000n, currency: { kind: 'native', symbol: 'ETH', decimals: 18, tokenAddress: null, tokenType: 0 } }],
       totalAvailableFromNotes: [],
+      remainingToThreshold: [],
+      totalUnreimbursed: [],
       projectCount: 4,
       noteCount: 0,
     })
     vi.mocked(getMonthlyPledgedByCause).mockResolvedValue(new Map([[STATEMENT_CID, 12340000n]]))
-    vi.mocked(computeAvailableDelegatableFunding).mockResolvedValue([
-      { amount: 500000000000000000n, currency: { kind: 'native', symbol: 'ETH', decimals: 18, tokenAddress: null, tokenType: 0 } },
-    ])
   })
 
   it('threads trusted implication attesters into aligned-project filtering and leaves alignment discovery to the tab', async () => {

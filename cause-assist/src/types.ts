@@ -25,6 +25,40 @@ export interface SuggestStatementsResponse {
   source: 'llm' | 'fallback'
 }
 
+export interface AtomizeRequest { description: string; existingPlanks?: string[]; count?: number }
+export interface PlankDraft { text: string; rationale: string }
+export interface AtomizeResponse { planks: PlankDraft[]; source: 'llm' | 'fallback' }
+
+export interface SharpenPlankRequest { plank: string; causeDescription?: string }
+export interface SharpenPlankResponse {
+  plank: string
+  rationale: string
+  warnings: string[]
+  source: 'llm' | 'fallback'
+}
+
+export interface DraftAnchorRequest { planks: string[] }
+export interface DraftAnchorResponse {
+  anchor: string
+  disjuncts: string[]
+  implicationChecks: Array<{ mainStatement: string; supportingStatements: string[] }>
+}
+
+export interface SuggestMediatorScaffoldRequest { foundingStatement: string; name?: string }
+export interface MediatorAnchorSuggestion {
+  topicTag: string
+  sideA: string
+  sideB: string
+  commonGround: string
+  rationale: string
+}
+export interface SuggestMediatorScaffoldResponse {
+  identity: { name: string; description: string }
+  labels: { sideA: string; sideB: string }
+  anchorClusters: MediatorAnchorSuggestion[]
+  source: 'llm' | 'fallback'
+}
+
 export interface CheckImplicationsRequest {
   mainStatement: string
   supportingStatements: string[]

@@ -18,7 +18,7 @@ describe('bridge creator anchors', () => {
         .filter((anchor) => anchor.cluster_id === clusterId)
         .map((anchor) => anchor.role)
         .sort();
-      assert.deepStrictEqual(roles, ['common-ground', 'moderate-left', 'moderate-right']);
+      assert.deepStrictEqual(roles, ['common-ground', 'side-a', 'side-b']);
     }
   });
 

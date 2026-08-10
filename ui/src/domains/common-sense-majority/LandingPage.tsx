@@ -1,18 +1,10 @@
-import { useState } from 'react'
 import { CSM_MISSION_STATEMENT_CID, CSM_MISSION_STATEMENT_TEXT } from '@commonality/sdk/conceptspace'
-import { Alert, Button, Chip, FormControlLabel, Paper, Stack, Switch, Typography } from '@mui/material'
-import { landingHeroContainedButtonSx } from '../../shared'
+import { MediatorOptInBlock } from '../../shared'
 import { DomainLandingPage } from '../components/DomainLandingPage'
 import { getDomainUrl } from '../../shared'
 import { getCsmMediatorNudger, getTallyMediatorOptInPath } from '../../shared'
 import { buildCompleteBridgeCards, csmBridgeAnchors, getBridgeAnchorTallyPath, getSignableCommonGroundAnchors } from './csmBridges'
-import {
-  addTrustedNudger,
-  isTrustedNudger,
-  loadTrustedNudgers,
-  removeTrustedNudger,
-  type TrustedNudgerEntry,
-} from '../../shared'
+import type { TrustedNudgerEntry } from '../../shared'
 
 const missionStatementAlignmentPath = `/portal/${CSM_MISSION_STATEMENT_CID}`
 
@@ -25,71 +17,12 @@ function getTallyNudgerPath(mediator: TrustedNudgerEntry | null): string {
   return mediator ? getTallyMediatorOptInPath(mediator) : '/settings'
 }
 
-function mediatorName(mediator: TrustedNudgerEntry): string {
-  return mediator.name ?? 'Common Sense Majority mediator'
-}
-
 function CsmMediatorOptInControl({ mediator }: { mediator: TrustedNudgerEntry | null }) {
-  const [trustedNudgers, setTrustedNudgers] = useState(loadTrustedNudgers)
-
-  if (!mediator) {
-    return (
-      <Alert severity="info" sx={{ maxWidth: 780 }}>
-        The CSM mediator nudger is not configured for this deployment yet. You can still use Tally directly; mediator suggestions will appear here once an operator configures <code>VITE_CSM_MEDIATOR_NUDGER</code>.
-      </Alert>
-    )
-  }
-
-  const optedIn = isTrustedNudger(mediator.address, trustedNudgers)
-  const tallyOptInHref = getDomainUrl('tally', getTallyMediatorOptInPath(mediator))
-  const tallyStatementsHref = getDomainUrl('tally', '/statements')
-  const tallySettingsHref = getDomainUrl('tally', '/settings')
-
-  const handleToggle = () => {
-    setTrustedNudgers(optedIn ? removeTrustedNudger(mediator.address) : addTrustedNudger(mediator))
-  }
-
-  return (
-    <Paper
-      id="mediator-opt-in"
-      component="section"
-      aria-labelledby="csm-mediator-opt-in-heading"
-      sx={(theme) => ({
-        p: 2.5,
-        borderRadius: 3,
-        bgcolor: theme.palette.mode === 'light' ? 'rgba(255,255,255,0.88)' : 'rgba(15, 23, 42, 0.76)',
-        color: theme.palette.mode === 'light' ? '#14213d' : theme.palette.text.primary,
-        border: '1px solid',
-        borderColor: theme.palette.mode === 'light' ? 'rgba(20, 33, 61, 0.10)' : 'rgba(148, 163, 184, 0.24)',
-        maxWidth: 820,
-      })}
-    >
-      <Stack spacing={1.5}>
-        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} alignItems={{ xs: 'flex-start', sm: 'center' }} justifyContent="space-between">
-          <Typography id="csm-mediator-opt-in-heading" variant="h6" sx={{ color: 'inherit', fontWeight: 700 }}>
-            Opt in to the CSM mediator
-          </Typography>
-          <Chip color={optedIn ? 'success' : 'default'} label={optedIn ? 'Opted in' : 'Off by default'} />
-        </Stack>
-        <Typography variant="body2" sx={{ color: 'inherit', maxWidth: 720 }}>
-          This just adds {mediatorName(mediator)} to your trusted nudgers. The only consequence is that Tally may show you suggestions for statements you might be willing to sign. You are not agreeing to sign anything, and you can turn it back off anytime.
-        </Typography>
-        <FormControlLabel
-          control={<Switch checked={optedIn} onChange={handleToggle} />}
-          label={optedIn ? 'Showing mediator suggestions' : 'Not showing mediator suggestions'}
-          sx={{ color: 'inherit' }}
-        />
-        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
-          <Button component="a" href={tallyOptInHref} variant="contained" color="inherit" sx={landingHeroContainedButtonSx}>
-            {optedIn ? 'Open Tally with mediator enabled' : 'Opt in on Tally'}
-          </Button>
-          <Button component="a" href={optedIn ? tallyStatementsHref : tallySettingsHref} variant="outlined" color="inherit">
-            {optedIn ? 'View Tally statements' : 'Manage nudgers'}
-          </Button>
-        </Stack>
-      </Stack>
-    </Paper>
-  )
+  return <MediatorOptInBlock
+    mediator={mediator}
+    heading="Opt in to the CSM mediator"
+    tallyUrl={(path) => getDomainUrl('tally', path)}
+  />
 }
 
 export function CsmLandingPage() {

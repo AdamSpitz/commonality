@@ -31,6 +31,7 @@ being the universal operator to whom every conduct element attaches) and product
 | What a founder needs: decisions, artifacts, accounts, obligations | [docs/founder/what-a-founder-needs.md](/docs/founder/what-a-founder-needs.md) |
 | "Now actually build one" guide for a founder | [docs/founder/standing-up-a-vertical.md](/docs/founder/standing-up-a-vertical.md) |
 | How a founder fills an empty cause board | [cause-taxonomy.md](./cause-taxonomy.md) |
+| What a cause is made of: planks, views, anchors; what cause-assist should suggest | [shaping-your-cause-statements.md](/docs/founder/shaping-your-cause-statements.md) |
 | Recruiting collateral / worked pitches | [christian-pitch.md](/docs/founder/christian-pitch.md), [docs/founder/csm/](/docs/founder/csm/) |
 | What we market and to whom | [marketing.md](./marketing.md) |
 | Which UIs we operate vs. publish | [ui-operator-posture.md](./ui-operator-posture.md) |

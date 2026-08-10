@@ -12,13 +12,13 @@ import {
 } from '@mui/material'
 import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom'
 import { getStatement } from '@commonality/sdk/conceptspace'
-import { getAllAlignedProjectsForCause } from '@commonality/sdk/fundingportals'
-import type { IpfsCidV1 } from '@commonality/sdk/utils'
-import { projectPathForAddress } from '@ui/shared'
+import { getAllAlignedProjectsForCause, getTotalFundingForCause } from '@commonality/sdk/fundingportals'
+import type { CurrencyAmountBigInt, IpfsCidV1 } from '@commonality/sdk/utils'
+import { formatCurrencyTotals, projectPathForAddress } from '@ui/shared'
 import { getProjectStatus, STATUS_LABELS } from '@ui/lazy-giving'
-import { DelegatableNotesSection } from '@ui/fundingportals'
 import { SupportButton } from '../components/SupportButton'
 import { ToolCard } from '../components/ToolCard'
+import { CauseMediatorCard } from '../components/CauseMediatorCard'
 import {
   adoptedStatements,
   deleteCause,
@@ -107,6 +107,8 @@ export function CauseDetailPage() {
   const [projects, setProjects] = useState<CauseProject[]>([])
   const [projectsLoading, setProjectsLoading] = useState(false)
   const [projectsError, setProjectsError] = useState<string | null>(null)
+  const [remainingToThreshold, setRemainingToThreshold] = useState<CurrencyAmountBigInt[]>([])
+  const [totalUnreimbursed, setTotalUnreimbursed] = useState<CurrencyAmountBigInt[]>([])
 
   const loadSupportCounts = useCallback(async (options?: { isCancelled?: () => boolean }) => {
     const isCancelled = options?.isCancelled ?? (() => false)
@@ -153,6 +155,8 @@ export function CauseDetailPage() {
       if (!goalCid) {
         if (!cancelled) {
           setProjects([])
+          setRemainingToThreshold([])
+          setTotalUnreimbursed([])
           setProjectsError(null)
           setProjectsLoading(false)
         }
@@ -164,11 +168,20 @@ export function CauseDetailPage() {
         setProjectsError(null)
       }
       try {
-        const aligned = await getAllAlignedProjectsForCause(machinery, goalCid as IpfsCidV1)
-        if (!cancelled) setProjects(aligned)
+        const [aligned, fundingMetrics] = await Promise.all([
+          getAllAlignedProjectsForCause(machinery, goalCid as IpfsCidV1),
+          getTotalFundingForCause(machinery, goalCid as IpfsCidV1),
+        ])
+        if (!cancelled) {
+          setProjects(aligned)
+          setRemainingToThreshold(fundingMetrics.remainingToThreshold)
+          setTotalUnreimbursed(fundingMetrics.totalUnreimbursed)
+        }
       } catch (err) {
         if (!cancelled) {
           setProjects([])
+          setRemainingToThreshold([])
+          setTotalUnreimbursed([])
           setProjectsError(err instanceof Error ? err.message : 'Failed to load projects')
         }
       } finally {
@@ -384,6 +397,24 @@ export function CauseDetailPage() {
 
         {projects.length > 0 && (
           <Stack spacing={1.25}>
+            <Stack direction="row" spacing={3} flexWrap="wrap" useFlexGap sx={{ pb: 0.5 }}>
+              <Box>
+                <Typography variant="caption" color="text.secondary" display="block">
+                  Still needed (open projects)
+                </Typography>
+                <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                  {formatCurrencyTotals(remainingToThreshold)}
+                </Typography>
+              </Box>
+              <Box>
+                <Typography variant="caption" color="text.secondary" display="block">
+                  Unreimbursed (succeeded)
+                </Typography>
+                <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                  {formatCurrencyTotals(totalUnreimbursed)}
+                </Typography>
+              </Box>
+            </Stack>
             {projects.map((project) => {
               const projectPath = projectPathForAddress(project.projectAddress)
               return (
@@ -427,22 +458,7 @@ export function CauseDetailPage() {
         )}
       </Paper>
 
-      {cause.statementCid ? (
-        <DelegatableNotesSection
-          statementCid={cause.statementCid}
-          to={`/cause/${cause.id}/earmarked`}
-        />
-      ) : (
-        <Paper elevation={0} sx={{ p: 2.5, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
-          <Typography variant="h6" sx={{ fontWeight: 700 }}>
-            Earmarked funds
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.75 }}>
-            After you publish, this shows how much is pledged to the cause, how much you have
-            pledged, and how much others have directed to you.
-          </Typography>
-        </Paper>
-      )}
+      {cause.mediator && <CauseMediatorCard mediator={cause.mediator} />}
 
       {tools.length > 0 && (
         <Stack spacing={1.25}>

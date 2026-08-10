@@ -51,8 +51,17 @@ export interface CauseStatement {
   implication?: ImplicationState
 }
 
+export interface CauseMediator {
+  address: string
+  serviceUrl: string
+  name: string
+  description: string
+}
+
 export interface CauseDraft {
   id: string
+  /** Founder's rough, unpublished description used to derive planks. */
+  description?: string
   /** What the cause intends to accomplish. */
   goal: string
   /** Optional short label for lists (defaults to truncated goal). */
@@ -67,6 +76,8 @@ export interface CauseDraft {
   statementCids?: string[]
   status: 'draft' | 'launched'
   goalSafety?: SafetyState
+  /** Optional founder-operated mediator used by reusable bridge/opt-in blocks. */
+  mediator?: CauseMediator
 }
 
 const STORAGE_KEY = 'causestarter.causes.v2'
@@ -192,6 +203,7 @@ export function hasBlockingImplication(
 export function saveCause(input: {
   id?: string
   goal: string
+  description?: string
   name?: string
   statements: CauseStatement[]
   levers: MomentumLever[]
@@ -199,6 +211,7 @@ export function saveCause(input: {
   statementCid?: string
   statementCids?: string[]
   goalSafety?: SafetyState
+  mediator?: CauseMediator | null
 }): CauseDraft {
   const now = new Date().toISOString()
   const causes = readAll()
@@ -210,6 +223,7 @@ export function saveCause(input: {
     const updated: CauseDraft = {
       ...existing,
       goal: input.goal,
+      description: input.description ?? existing.description,
       name,
       statements: input.statements,
       levers: input.levers,
@@ -217,6 +231,7 @@ export function saveCause(input: {
       statementCid: input.statementCid ?? existing.statementCid,
       statementCids: input.statementCids ?? existing.statementCids,
       goalSafety: input.goalSafety ?? existing.goalSafety,
+      mediator: input.mediator === undefined ? existing.mediator : input.mediator ?? undefined,
       updatedAt: now,
     }
     causes[existingIndex] = updated
@@ -227,6 +242,7 @@ export function saveCause(input: {
   const created: CauseDraft = {
     id: input.id ?? crypto.randomUUID(),
     goal: input.goal,
+    description: input.description,
     name,
     statements: input.statements,
     levers: input.levers,
@@ -234,6 +250,7 @@ export function saveCause(input: {
     statementCid: input.statementCid,
     statementCids: input.statementCids,
     goalSafety: input.goalSafety,
+    mediator: input.mediator ?? undefined,
     createdAt: now,
     updatedAt: now,
   }

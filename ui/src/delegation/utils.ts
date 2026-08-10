@@ -1,4 +1,4 @@
-import type { Note, NoteIntentAttestation } from '@commonality/sdk/delegation'
+import type { Note } from '@commonality/sdk/delegation'
 import { formatCurrencyAmount, getCurrencyForNote } from '../shared'
 
 const ETH_ADDRESS = '0x0000000000000000000000000000000000000000'
@@ -35,8 +35,4 @@ export function parseNoteRouteId(routeId: string): { noteId: string; noteContrac
   const hasScopedContract = /^0x[0-9a-fA-F]{40}$/.test(maybeContract ?? '') && maybeNoteId !== undefined
   if (!hasScopedContract) return null
   return { noteContract: maybeContract, noteId: maybeNoteId }
-}
-
-export function noteIntentLookupKey(attestation: Pick<NoteIntentAttestation, 'noteContract' | 'noteId'>): string {
-  return `${attestation.noteContract.toLowerCase()}:${attestation.noteId}`
 }

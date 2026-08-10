@@ -6,7 +6,6 @@ import { MomentumPage } from './pages/MomentumPage'
 import { CauseDetailPage } from './pages/CauseDetailPage'
 import { CauseBoardPage } from './pages/CauseBoardPage'
 import { CauseBoardLeaderboardPage } from './pages/CauseBoardLeaderboardPage'
-import { EarmarkedFundsPage } from './pages/EarmarkedFundsPage'
 import { DiscoverPage } from './pages/DiscoverPage'
 import { StatementPage } from './pages/StatementPage'
 import { ToolsPage } from './pages/ToolsPage'
@@ -28,7 +27,6 @@ export default function App() {
           <Route path="/start" element={<StartCausePage />} />
           <Route path="/momentum" element={<MomentumPage />} />
           <Route path="/cause/:causeId" element={<CauseDetailPage />} />
-          <Route path="/cause/:causeId/earmarked" element={<EarmarkedFundsPage />} />
           <Route path="/cause/:causeId/board" element={<CauseBoardPage />} />
           <Route path="/cause/:causeId/board/leaderboard" element={<CauseBoardLeaderboardPage />} />
           <Route path="/discover" element={<DiscoverPage />} />

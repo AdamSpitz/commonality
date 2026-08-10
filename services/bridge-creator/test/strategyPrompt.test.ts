@@ -7,7 +7,7 @@ describe('default CSM strategy prompt', () => {
 
     assert.match(prompt, /Common Sense Majority bridge-creator strategy prompt/);
     assert.match(prompt, /popular-and-sane/);
-    assert.match(prompt, /modified-left/);
+    assert.match(prompt, /side-a/);
     assert.match(prompt, /common-ground/);
     assert.match(prompt, /Emit nothing when the context is warming/);
   });

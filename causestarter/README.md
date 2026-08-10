@@ -5,7 +5,7 @@ Founder-first interface for the Commonality substrate. Where the main
 Civility, CSM, LazyGiving, …), **CauseStarter** is a single app organized around
 the cause-starter job:
 
-1. **Found a cause** — publish a founding statement that names what you stand for
+1. **Found a cause** — turn a rough description into independent, signable planks
 2. **Enroll people** — supporters (signers), volunteers, and collaborators
 3. **Build momentum** — funding portals, assurance contracts, content funding
 4. **Use the rest as tools** — Commonality thesis, Civility, CSM, Tally, etc. are
@@ -197,7 +197,7 @@ Then **restart Grok** so MCP tools load.
 | `home-start-cause` | Home CTA → wizard |
 | `nav-start` | Desktop nav “Start” |
 | `start-cause-page` | Wizard root |
-| `start-cause-goal` | Main statement textarea |
+| `start-cause-goal` | Rough cause description textarea (legacy selector name) |
 | `start-cause-continue` | Continue |
 | `start-cause-publish` | Publish cause |
 

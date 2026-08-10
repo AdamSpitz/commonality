@@ -17,9 +17,9 @@ import {
 import { useNavigate } from 'react-router-dom'
 import { useAccount, usePublicClient } from 'wagmi'
 import { parseUnits, isAddress } from 'viem'
-import { DelegatableNotesAbi, NoteIntentAbi, RecurringPledgesAbi } from '@commonality/sdk/abis'
+import { DelegatableNotesAbi, RecurringPledgesAbi } from '@commonality/sdk/abis'
 import { browseStatementsByNewest, type StatementListItem } from '@commonality/sdk/conceptspace'
-import { depositERC20, delegateNote, attestNoteIntent, approveRecurringPledgeToken, createStandingPledge, type DelegatableNotesContract, type NoteIntentContract, type RecurringPledgesContract } from '@commonality/sdk/delegation'
+import { depositERC20, delegateNote, approveRecurringPledgeToken, createStandingPledge, type DelegatableNotesContract, type RecurringPledgesContract } from '@commonality/sdk/delegation'
 import { useMachinery } from '../../shared'
 import { noteDetailPathFor } from '../utils'
 import { useWriteClients } from '../../shared'
@@ -32,12 +32,6 @@ function getDelegationContract(): DelegatableNotesContract | null {
   const addr = import.meta.env.VITE_DELEGATABLE_NOTES_CONTRACT_ADDRESS
   if (!addr) return null
   return { address: addr as `0x${string}`, abi: DelegatableNotesAbi }
-}
-
-function getNoteIntentContract(): NoteIntentContract | null {
-  const addr = import.meta.env.VITE_NOTE_INTENT_CONTRACT_ADDRESS
-  if (!addr) return null
-  return { address: addr as `0x${string}`, abi: NoteIntentAbi }
 }
 
 function getRecurringPledgesContract(): RecurringPledgesContract | null {
@@ -120,7 +114,6 @@ export function DepositPage() {
     e.preventDefault()
     const clients = getClients()
     const delegationContract = getDelegationContract()
-    const noteIntentContract = getNoteIntentContract()
     const recurringPledgesContract = getRecurringPledgesContract()
 
     if (!clients || !delegationContract) {
@@ -199,10 +192,6 @@ export function DepositPage() {
           delegateTo: delegateTo as `0x${string}`,
           amount: depositAmount,
         })
-      }
-
-      if (selectedStatement && noteIntentContract) {
-        await attestNoteIntent(clients, noteIntentContract, delegationContract.address, noteId, selectedStatement.cid)
       }
 
       setSuccessNoteId(noteId)
@@ -348,7 +337,7 @@ export function DepositPage() {
               </Typography>
             </Box>
 
-            <Autocomplete
+            {isRecurring && <Autocomplete
               options={statements}
               loading={statementsLoading}
               getOptionLabel={(option) => option.title || truncateAddress(option.cid)}
@@ -358,7 +347,7 @@ export function DepositPage() {
               renderInput={(params) => (
                 <TextField
                   {...params}
-                  label={isRecurring ? 'Intended statement/cause' : 'Intended statement (optional)'}
+                  label="Cause"
                   placeholder="Search for a cause or project"
                   InputProps={{
                     ...params.InputProps,
@@ -390,7 +379,7 @@ export function DepositPage() {
                 )
               }}
               isOptionEqualToValue={(option, value) => option.cid === value.cid}
-            />
+            />}
 
             <Box sx={{ display: 'flex', gap: 2 }}>
               <Button

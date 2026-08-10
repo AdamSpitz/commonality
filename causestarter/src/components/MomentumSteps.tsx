@@ -8,7 +8,7 @@ const steps: Array<{ icon: ReactNode; title: string; body: string }> = [
   {
     icon: <FlagIcon fontSize="small" />,
     title: 'Start',
-    body: 'State a clear belief people can say yes to, plus only supporting claims it already implies.',
+    body: 'Shape the cause into clear, independent issues people can sincerely support.',
   },
   {
     icon: <GroupsIcon fontSize="small" />,

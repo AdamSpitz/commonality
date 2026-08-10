@@ -20,6 +20,7 @@ function createConfig(): BridgeCreatorConfig {
     version: '0.1.0',
     nudgePublicationsContractAddress: ('0x' + '22'.repeat(20)) as `0x${string}`,
     trustedContextSources: [{ serviceUrl: 'http://csm.local' }],
+    labels: { sideA: 'left', sideB: 'right' },
     anchorStorePath: 'services/bridge-creator/data/seed-anchors.json',
     strategyPromptUrl: '/strategy-prompt',
     publicBaseUrl: '',
@@ -28,6 +29,7 @@ function createConfig(): BridgeCreatorConfig {
     contextMaxAgeMs: 24 * 60 * 60 * 1000,
     anchorReflectionIntervalMs: 24 * 60 * 60 * 1000,
     proposalStorePath: 'tmp/bridge-creator-proposals-test.json',
+    corsOrigins: ['*'],
     serviceMarginPercent: 20,
     ethUsdPrice: 3000,
     proposalEstimatedInputTokens: 1500,
@@ -56,6 +58,7 @@ function createDependencies(overrides: Partial<BridgeCreatorRunnerDependencies> 
           topic_tag: 'topic',
           rationale: 'Seed',
           status: 'active',
+          featured: true,
           created_at: '2026-05-21T00:00:00.000Z',
           last_reviewed_at: '2026-05-21T00:00:00.000Z',
         },
@@ -64,8 +67,8 @@ function createDependencies(overrides: Partial<BridgeCreatorRunnerDependencies> 
     loadStrategyPrompt: () => 'Strategy prompt',
     synthesizeBridgeTriples: async () => [
       {
-        modifiedLeft: 'Modified left',
-        modifiedRight: 'Modified right',
+        sideA: 'Modified left',
+        sideB: 'Modified right',
         commonGround: 'Common ground',
         rationale: 'Good bridge',
         anchorClusterId: 'cluster-1',
@@ -141,8 +144,8 @@ describe('runBridgeCreatorTick', () => {
         assert.strictEqual(input.previousPublicationSummary, 'Previous bridges');
         return [
           {
-            modifiedLeft: 'Modified left',
-            modifiedRight: 'Modified right',
+            sideA: 'Modified left',
+            sideB: 'Modified right',
             commonGround: 'Common ground',
             rationale: 'Good bridge',
             anchorClusterId: 'cluster-1',

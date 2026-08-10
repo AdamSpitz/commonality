@@ -92,6 +92,16 @@ export interface CauseFundingMetrics {
   totalRaisedAcrossProjects: CurrencyAmountBigInt[];
   /** Sum of available note values aligned to this cause, grouped by currency. */
   totalAvailableFromNotes: CurrencyAmountBigInt[];
+  /**
+   * Sum of (threshold − totalReceived) for aligned projects that are still open
+   * (funding has not met threshold and the deadline has not passed). Grouped by currency.
+   */
+  remainingToThreshold: CurrencyAmountBigInt[];
+  /**
+   * Sum of outstanding (unreimbursed) early contributions across aligned projects
+   * that have already met their funding threshold. Grouped by currency.
+   */
+  totalUnreimbursed: CurrencyAmountBigInt[];
   /** Number of projects aligned to this cause. */
   projectCount: number;
   /** Number of notes aligned to this cause. */
