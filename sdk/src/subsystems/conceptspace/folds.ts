@@ -2,7 +2,7 @@ import type {
   Implication,
   UserBelief,
 } from './types.js';
-import type { DirectSupportEvent, ImplicationAttestationEvent } from './events.js';
+import type { DirectSupportEvent, ImplicationLifecycleEvent } from './events.js';
 import type { IpfsCidV1 } from '../../utils/cid-types.js';
 
 /**
@@ -92,19 +92,26 @@ export function foldUserBeliefs(events: DirectSupportEvent[]): UserBelief[] {
 }
 
 /**
- * Fold ImplicationAttestation events → implication records.
- * Key = (attester, fromStatementCid, toStatementCid).
- * Re-attestation updates explanationCid; createdAt and blockNumber are set from the first event.
- *
- * Caller may pass all implication events; deduplication is handled internally.
+ * Fold implication attestations and revocations → active implication records.
+ * Key = (attester, fromStatementCid, toStatementCid). Events are applied in
+ * chain order, regardless of event-cache response order. Re-attestation after
+ * a revocation starts a new active record.
  */
-export function foldImplications(events: ImplicationAttestationEvent[]): Implication[] {
+export function foldImplications(events: ImplicationLifecycleEvent[]): Implication[] {
   const map = new Map<string, Implication>();
+  const ordered = [...events].sort((a, b) => {
+    if (a.blockNumber !== b.blockNumber) return a.blockNumber < b.blockNumber ? -1 : 1;
+    return a.logIndex - b.logIndex;
+  });
 
-  for (const e of events) {
+  for (const e of ordered) {
     const key = `${e.attester.toLowerCase()}-${e.fromStatementCid}-${e.toStatementCid}`;
-    const existing = map.get(key);
+    if (!('explanationCid' in e)) {
+      map.delete(key);
+      continue;
+    }
 
+    const existing = map.get(key);
     if (!existing) {
       map.set(key, {
         attester: e.attester,

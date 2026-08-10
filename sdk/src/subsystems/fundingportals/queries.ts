@@ -4,12 +4,17 @@
  * All queries use event cache + folds + chain reads.
  */
 
-import { fetchEvents } from '../../utils/eventCacheClient.js';
+import {
+  fetchEvents,
+  padAddressAsTopic,
+  type EventQueryParams,
+} from '../../utils/eventCacheClient.js';
 import {
   decodeAlignmentAttestationEvent,
+  decodeAlignmentRevokedEvent,
   decodeAssuranceContractInitializedEvent,
-  decodeImplicationAttestationEvent,
   decodeSuccessAttestationEvent,
+  decodeSuccessRevokedEvent,
 } from '../../utils/eventDecoder.js';
 import { foldAlignmentAttestations } from './folds.js';
 import {
@@ -30,7 +35,7 @@ import {
   type SuccessfulProjectForCause,
 } from './types.js';
 import { IpfsCidV1, normalizeCidV1, cidToBytes32 } from '../../utils/cid-types.js';
-import { padAddressAsTopic } from '../../utils/eventCacheClient.js';
+import { getImplicationsTo } from '../conceptspace/queries.js';
 import { SDKMachinery } from '../../machinery.js';
 import {
   addCurrencyAmount,
@@ -110,6 +115,42 @@ function normalizeTrustedAddresses(
   return normalized.size > 0 ? normalized : null;
 }
 
+async function fetchDecodedAlignmentLifecycleEvents(
+  machinery: SDKMachinery,
+  params: Omit<EventQueryParams, 'eventName'>,
+) {
+  const [attestations, revocations] = await Promise.all([
+    fetchEvents(machinery, { ...params, eventName: 'AlignmentAttestation' }),
+    fetchEvents(machinery, { ...params, eventName: 'AlignmentRevoked' }),
+  ]);
+  return [
+    ...attestations.map(decodeAlignmentAttestationEvent).filter(
+      (event): event is NonNullable<typeof event> => event !== null,
+    ),
+    ...revocations.map(decodeAlignmentRevokedEvent).filter(
+      (event): event is NonNullable<typeof event> => event !== null,
+    ),
+  ];
+}
+
+async function fetchDecodedSuccessLifecycleEvents(
+  machinery: SDKMachinery,
+  params: Omit<EventQueryParams, 'eventName'>,
+) {
+  const [attestations, revocations] = await Promise.all([
+    fetchEvents(machinery, { ...params, eventName: 'SuccessAttestation' }),
+    fetchEvents(machinery, { ...params, eventName: 'SuccessRevoked' }),
+  ]);
+  return [
+    ...attestations.map(decodeSuccessAttestationEvent).filter(
+      (event): event is NonNullable<typeof event> => event !== null,
+    ),
+    ...revocations.map(decodeSuccessRevokedEvent).filter(
+      (event): event is NonNullable<typeof event> => event !== null,
+    ),
+  ];
+}
+
 function normalizeSubjectIdForTopic(subjectId: string): `0x${string}` {
   if (/^0x[0-9a-fA-F]{40}$/.test(subjectId)) {
     return padAddressAsTopic(subjectId) as `0x${string}`;
@@ -168,18 +209,19 @@ export async function getAlignedSubjects(
   
   // AlignmentAttestation(address indexed attester, bytes32 indexed subjectId, bytes32 indexed statementId, bytes32 topicStatementId)
   // topic1=attester, topic2=subjectId, topic3=statementId (bytes32)
-  const events = await fetchEvents(machinery, {
-    eventName: 'AlignmentAttestation',
+  const decodedEvents = await fetchDecodedAlignmentLifecycleEvents(machinery, {
     topic3: cidToBytes32(statementCid),
     limit: 10000,
   });
   
-  const decodedEvents = events
-    .map(e => decodeAlignmentAttestationEvent(e))
-    .filter((e): e is NonNullable<typeof e> => e !== null);
-  
   let attestations = foldAlignmentAttestations(decodedEvents);
-  
+
+  if (topicStatementCid) {
+    attestations = attestations.filter((attestation) =>
+      cidReferencesSameDigest(attestation.topicStatementCid, topicStatementCid),
+    );
+  }
+
   const trustedAddresses = normalizeTrustedAddresses(trustedAlignmentAttesters);
   if (trustedAddresses) {
     attestations = attestations.filter(a => trustedAddresses.has(a.attester.toLowerCase()));
@@ -189,7 +231,7 @@ export async function getAlignedSubjects(
     attester: a.attester,
     subjectId: a.subjectId,
     statementCid: a.statementCid,
-    topicStatementCid,
+    topicStatementCid: a.topicStatementCid || topicStatementCid,
     createdAt: a.createdAt,
     blockNumber: a.blockNumber,
   }));
@@ -209,23 +251,17 @@ export async function getSubjectStatements(
   attesterAddress?: string,
   topicStatementCid?: IpfsCidV1
 ): Promise<AlignmentAttestation[]> {
-  const events = await fetchEvents(machinery, {
-    eventName: 'AlignmentAttestation',
+  const decodedEvents = await fetchDecodedAlignmentLifecycleEvents(machinery, {
     topic2: normalizeSubjectIdForTopic(subjectId),
     limit: 10000,
   });
 
-  const decodedEvents = events
-    .map(e => decodeAlignmentAttestationEvent(e))
-    .filter((e): e is NonNullable<typeof e> => e !== null);
-
   let attestations = foldAlignmentAttestations(decodedEvents);
 
   if (topicStatementCid) {
-    attestations = attestations.filter(a => {
-      const foldedTopic = a.topicStatementCid ?? '';
-      return foldedTopic === '' || cidReferencesSameDigest(foldedTopic, topicStatementCid);
-    });
+    attestations = attestations.filter(a =>
+      cidReferencesSameDigest(a.topicStatementCid, topicStatementCid),
+    );
   }
 
   if (attesterAddress) {
@@ -258,32 +294,24 @@ export async function getAlignmentAttestation(
   statementCid: IpfsCidV1,
   topicStatementCid?: IpfsCidV1
 ): Promise<AlignmentAttestation | null> {
-  const events = await fetchEvents(machinery, {
-    eventName: 'AlignmentAttestation',
+  const decodedEvents = await fetchDecodedAlignmentLifecycleEvents(machinery, {
     topic3: cidToBytes32(statementCid),
     topic2: normalizeSubjectIdForTopic(subjectId),
     limit: 1000,
   });
 
-  const decodedEvents = events
-    .map(e => decodeAlignmentAttestationEvent(e))
-    .filter((e): e is NonNullable<typeof e> => e !== null);
-
   const attesterLower = attesterAddress.toLowerCase();
   const matching = decodedEvents.filter(e => e.attester.toLowerCase() === attesterLower);
 
-  if (matching.length === 0) {
-    return null;
-  }
+  const active = foldAlignmentAttestations(matching).find((attestation) =>
+    !topicStatementCid
+    || cidReferencesSameDigest(attestation.topicStatementCid, topicStatementCid),
+  );
+  if (!active) return null;
 
-  const latest = matching[matching.length - 1];
   return {
-    attester: latest.attester,
-    subjectId: latest.subjectId,
-    statementCid: latest.statementId as IpfsCidV1,
-    topicStatementCid,
-    createdAt: '',
-    blockNumber: '',
+    ...active,
+    topicStatementCid: topicStatementCid ?? active.topicStatementCid,
   };
 }
 
@@ -299,23 +327,23 @@ export async function getAlignmentsByAttester(
   topicStatementCid?: IpfsCidV1
 ): Promise<AlignmentAttestation[]> {
   // AlignmentAttestation: topic1=attester, topic2=subjectId, topic3=statementId
-  const events = await fetchEvents(machinery, {
-    eventName: 'AlignmentAttestation',
+  const decodedEvents = await fetchDecodedAlignmentLifecycleEvents(machinery, {
     topic1: padAddressAsTopic(attesterAddress),
     limit: 10000,
   });
 
-  const decodedEvents = events
-    .map(e => decodeAlignmentAttestationEvent(e))
-    .filter((e): e is NonNullable<typeof e> => e !== null);
-
-  const attestations = foldAlignmentAttestations(decodedEvents);
+  let attestations = foldAlignmentAttestations(decodedEvents);
+  if (topicStatementCid) {
+    attestations = attestations.filter((attestation) =>
+      cidReferencesSameDigest(attestation.topicStatementCid, topicStatementCid),
+    );
+  }
 
   return attestations.map(a => ({
     attester: a.attester,
     subjectId: a.subjectId,
     statementCid: normalizeCidV1(a.statementCid),
-    topicStatementCid,
+    topicStatementCid: a.topicStatementCid || topicStatementCid,
     createdAt: a.createdAt,
     blockNumber: a.blockNumber,
   }));
@@ -338,21 +366,12 @@ export async function getIndirectlyAlignedSubjects(
   trustedImplicationAttesters?: TrustedAddressInput,
   trustedAlignmentAttesters?: TrustedAddressInput
 ): Promise<IndirectSubjectAlignment[]> {
-  // ImplicationAttestation: topic1=attester, topic2=fromStatementCid, topic3=toStatementCid (all bytes32)
-  const toEvents = await fetchEvents(machinery, {
-    eventName: 'ImplicationAttestation',
-    topic3: cidToBytes32(statementCid),
-    limit: 10000,
-  });
-
-  const decodedImplicationEvents = toEvents.map(e => decodeImplicationAttestationEvent(e)).filter((e): e is NonNullable<typeof e> => e !== null);
-
-  let implications = decodedImplicationEvents;
-
   const trustedImplicationAttesterSet = normalizeTrustedAddresses(trustedImplicationAttesters);
-  if (trustedImplicationAttesterSet) {
-    implications = implications.filter(i => trustedImplicationAttesterSet.has(i.attester.toLowerCase()));
-  }
+  const implications = await getImplicationsTo(
+    machinery,
+    statementCid,
+    trustedImplicationAttesterSet ? [...trustedImplicationAttesterSet] : undefined,
+  );
 
   if (implications.length === 0) {
     return [];
@@ -395,17 +414,17 @@ export async function getSuccessfulSubjects(
   trustedSuccessAttesters?: TrustedAddressInput,
   topicStatementCid?: IpfsCidV1,
 ): Promise<SuccessAttestation[]> {
-  const events = await fetchEvents(machinery, {
-    eventName: 'SuccessAttestation',
+  const decodedEvents = await fetchDecodedSuccessLifecycleEvents(machinery, {
     topic3: cidToBytes32(statementCid),
     limit: 10000,
   });
 
-  const decodedEvents = events
-    .map(e => decodeSuccessAttestationEvent(e))
-    .filter((e): e is NonNullable<typeof e> => e !== null);
-
   let attestations = foldAlignmentAttestations(decodedEvents);
+  if (topicStatementCid) {
+    attestations = attestations.filter((attestation) =>
+      cidReferencesSameDigest(attestation.topicStatementCid, topicStatementCid),
+    );
+  }
 
   const trustedAddresses = normalizeTrustedAddresses(trustedSuccessAttesters);
   if (trustedAddresses) {
@@ -432,15 +451,10 @@ export async function getSubjectSuccessStatements(
     ? padAddressAsTopic(subjectAddressOrId as `0x${string}`)
     : subjectAddressOrId;
 
-  const events = await fetchEvents(machinery, {
-    eventName: 'SuccessAttestation',
+  const decodedEvents = await fetchDecodedSuccessLifecycleEvents(machinery, {
     topic2: subjectId as `0x${string}`,
     limit: 10000,
   });
-
-  const decodedEvents = events
-    .map(e => decodeSuccessAttestationEvent(e))
-    .filter((e): e is NonNullable<typeof e> => e !== null);
 
   let attestations = foldAlignmentAttestations(decodedEvents);
   const trustedAddresses = normalizeTrustedAddresses(trustedSuccessAttesters);
@@ -464,19 +478,12 @@ export async function getIndirectlySuccessfulSubjects(
   trustedImplicationAttesters?: TrustedAddressInput,
   trustedSuccessAttesters?: TrustedAddressInput,
 ): Promise<IndirectSubjectSuccess[]> {
-  const toEvents = await fetchEvents(machinery, {
-    eventName: 'ImplicationAttestation',
-    topic3: cidToBytes32(statementCid),
-    limit: 10000,
-  });
-
-  const decodedImplicationEvents = toEvents.map(e => decodeImplicationAttestationEvent(e)).filter((e): e is NonNullable<typeof e> => e !== null);
-
-  let implications = decodedImplicationEvents;
   const trustedImplicationAttesterSet = normalizeTrustedAddresses(trustedImplicationAttesters);
-  if (trustedImplicationAttesterSet) {
-    implications = implications.filter(i => trustedImplicationAttesterSet.has(i.attester.toLowerCase()));
-  }
+  const implications = await getImplicationsTo(
+    machinery,
+    statementCid,
+    trustedImplicationAttesterSet ? [...trustedImplicationAttesterSet] : undefined,
+  );
 
   const indirectSuccesses: IndirectSubjectSuccess[] = [];
   for (const implication of implications) {

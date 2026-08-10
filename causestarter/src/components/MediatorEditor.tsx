@@ -68,13 +68,19 @@ export function MediatorEditor({ mediator, onChange }: MediatorEditorProps) {
     <Paper elevation={0} sx={{ p: { xs: 2, sm: 2.5 }, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
       <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={1}>
         <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>Mediator (optional)</Typography>
-        <Button size="small" onClick={() => setOpen((value) => !value)} sx={{ textTransform: 'none' }}>
+        <Button
+          size="small"
+          onClick={() => setOpen((value) => !value)}
+          aria-expanded={open}
+          aria-controls="cause-mediator-editor"
+          sx={{ textTransform: 'none' }}
+        >
           {open ? 'Close' : mediator ? 'Edit' : 'Add'}
         </Button>
       </Stack>
 
       <Collapse in={open}>
-        <Stack spacing={1.5} sx={{ mt: 1.5 }}>
+        <Stack id="cause-mediator-editor" spacing={1.5} sx={{ mt: 1.5 }}>
           <Typography variant="body2" color="text.secondary">
             After deploying your bridge-creator artifact, attach its public identity here.
             Supporters will then see featured bridges and an opt-in link for this cause.

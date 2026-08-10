@@ -151,6 +151,44 @@ describe('SupportButton', () => {
     expect(screen.getByText(/you retracted your support/i)).toBeInTheDocument()
   })
 
+  it('does not repeat the optimistic support callback when indexing times out', async () => {
+    const onSupported = vi.fn()
+    vi.mocked(getUserBelief).mockResolvedValue({
+      statementCid: CID,
+      beliefState: BeliefStates.NO_OPINION,
+    })
+
+    render(<SupportButton statementCid={CID} onSupported={onSupported} />)
+    fireEvent.click(await screen.findByRole('button', { name: /stand with this statement/i }))
+
+    await waitFor(() => expect(onSupported).toHaveBeenCalledTimes(1))
+    await waitFor(
+      () => expect(screen.getByRole('button', { name: /retract your support/i })).not.toBeDisabled(),
+      { timeout: 5000 },
+    )
+    expect(onSupported).toHaveBeenCalledTimes(1)
+    expect(onSupported).toHaveBeenCalledWith({ action: 'support', indexed: false })
+  }, 10000)
+
+  it('does not repeat the optimistic retract callback when indexing times out', async () => {
+    const onSupported = vi.fn()
+    vi.mocked(getUserBelief).mockResolvedValue({
+      statementCid: CID,
+      beliefState: BeliefStates.BELIEVES,
+    })
+
+    render(<SupportButton statementCid={CID} onSupported={onSupported} />)
+    fireEvent.click(await screen.findByRole('button', { name: /retract your support/i }))
+
+    await waitFor(() => expect(onSupported).toHaveBeenCalledTimes(1))
+    await waitFor(
+      () => expect(screen.getByRole('button', { name: /stand with this statement/i })).not.toBeDisabled(),
+      { timeout: 5000 },
+    )
+    expect(onSupported).toHaveBeenCalledTimes(1)
+    expect(onSupported).toHaveBeenCalledWith({ action: 'retract', indexed: false })
+  }, 10000)
+
   it('ignores an in-flight support completion after switching wallets', async () => {
     const USER_B = '0xBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB'
     let resolveReceipt!: (value: { status: string }) => void

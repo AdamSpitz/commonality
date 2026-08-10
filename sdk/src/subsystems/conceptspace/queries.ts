@@ -7,8 +7,10 @@ import { fetchEvents, padAddressAsTopic, type EventQueryParams } from '../../uti
 import {
   decodeDirectSupportEvent,
   decodeImplicationAttestationEvent,
+  decodeImplicationRevokedEvent,
   type DecodedDirectSupportEvent,
   type DecodedImplicationAttestationEvent,
+  type DecodedImplicationRevokedEvent,
 } from '../../utils/eventDecoder.js';
 import {
   foldStatementBeliefs,
@@ -84,14 +86,21 @@ async function fetchDecodedDirectSupportEvents(
   return decoded;
 }
 
-async function fetchDecodedImplicationAttestationEvents(
+async function fetchDecodedImplicationLifecycleEvents(
   machinery: SDKMachinery,
   params: Omit<EventQueryParams, 'eventName'>,
-): Promise<DecodedImplicationAttestationEvent[]> {
-  const events = await fetchEvents(machinery, { ...params, eventName: 'ImplicationAttestation' });
-  const decoded: DecodedImplicationAttestationEvent[] = [];
-  for (const event of events) {
+): Promise<Array<DecodedImplicationAttestationEvent | DecodedImplicationRevokedEvent>> {
+  const [attestations, revocations] = await Promise.all([
+    fetchEvents(machinery, { ...params, eventName: 'ImplicationAttestation' }),
+    fetchEvents(machinery, { ...params, eventName: 'ImplicationRevoked' }),
+  ]);
+  const decoded: Array<DecodedImplicationAttestationEvent | DecodedImplicationRevokedEvent> = [];
+  for (const event of attestations) {
     const d = decodeImplicationAttestationEvent(event);
+    if (d) decoded.push(d);
+  }
+  for (const event of revocations) {
+    const d = decodeImplicationRevokedEvent(event);
     if (d) decoded.push(d);
   }
   return decoded;
@@ -226,7 +235,7 @@ export async function getImplicationsFrom(
   statementCid: IpfsCidV1,
   trustedAttesters?: string[]
 ): Promise<Implication[]> {
-  const decodedEvents = await fetchDecodedImplicationAttestationEvents(machinery, {
+  const decodedEvents = await fetchDecodedImplicationLifecycleEvents(machinery, {
     topic2: cidToBytes32(statementCid),
     limit: 10000,
   });
@@ -247,7 +256,7 @@ export async function getImplicationsTo(
   statementCid: IpfsCidV1,
   trustedAttesters?: string[]
 ): Promise<Implication[]> {
-  const decodedEvents = await fetchDecodedImplicationAttestationEvents(machinery, {
+  const decodedEvents = await fetchDecodedImplicationLifecycleEvents(machinery, {
     topic3: cidToBytes32(statementCid),
     limit: 10000,
   });
@@ -270,7 +279,7 @@ export async function getImplication(
   fromStatementCid: IpfsCidV1,
   toStatementCid: IpfsCidV1
 ): Promise<Implication | null> {
-  const decodedEvents = await fetchDecodedImplicationAttestationEvents(machinery, {
+  const decodedEvents = await fetchDecodedImplicationLifecycleEvents(machinery, {
     topic2: cidToBytes32(fromStatementCid),
     topic3: cidToBytes32(toStatementCid),
     limit: 1000,
@@ -279,18 +288,12 @@ export async function getImplication(
   const attesterLower = attesterAddress.toLowerCase();
   const matching = decodedEvents.filter(e => e.attester.toLowerCase() === attesterLower);
 
-  if (matching.length === 0) {
-    return null;
-  }
+  const active = foldImplications(matching)[0];
+  if (!active) return null;
 
-  const latest = matching.sort((a, b) => Number(b.blockNumber - a.blockNumber))[0];
   return {
-    attester: latest.attester,
-    fromStatementCid: latest.fromStatementCid as IpfsCidV1,
-    toStatementCid: latest.toStatementCid as IpfsCidV1,
-    explanationCid: latest.explanationCid as IpfsCidV1,
-    createdAt: new Date(Number(latest.blockTimestamp) * 1000).toISOString(),
-    blockNumber: latest.blockNumber.toString(),
+    ...active,
+    createdAt: new Date(Number(active.createdAt) * 1000).toISOString(),
   };
 }
 
@@ -347,7 +350,7 @@ async function computeIndirectSupport(
   indirectBelieverIds: Set<AnonymizedId>;
   disbelieverIds: Set<AnonymizedId>;
 }> {
-  const decodedToEvents = await fetchDecodedImplicationAttestationEvents(machinery, {
+  const decodedToEvents = await fetchDecodedImplicationLifecycleEvents(machinery, {
     topic3: cidToBytes32(statementCid),
     limit: 10000,
   });
@@ -591,7 +594,7 @@ export async function getImplicationSourceActivity(
   trustedAttesters?: string[]
 ): Promise<ImplicationSourceActivity> {
   const implications = foldImplications(
-    await fetchDecodedImplicationAttestationEvents(machinery, { limit: 10000 })
+    await fetchDecodedImplicationLifecycleEvents(machinery, { limit: 10000 })
   );
 
   const countByAttester = new Map<string, number>();

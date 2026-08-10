@@ -41,6 +41,8 @@ function summarize(sets: StatementBelieverSets) {
 export function useViewCounts(
   publishedCids: string[],
   selectedCids: string[],
+  trustedImplicationAttesters?: Iterable<string>,
+  enabled = true,
 ): UseViewCountsResult {
   const machinery = useMachinery()
   const [setsByCid, setSetsByCid] = useState<Map<string, StatementBelieverSets>>(new Map())
@@ -49,13 +51,16 @@ export function useViewCounts(
   const [tick, setTick] = useState(0)
   // Primitive key so the effect doesn't refire on array identity alone.
   const publishedKey = publishedCids.join('\0')
+  const trustedAttestersKey = trustedImplicationAttesters
+    ? [...trustedImplicationAttesters].map((address) => address.toLowerCase()).sort().join('\0')
+    : ''
   const generationRef = useRef(0)
 
   const refresh = useCallback(() => setTick((n) => n + 1), [])
 
   useEffect(() => {
     const cids = publishedKey ? publishedKey.split('\0').filter(Boolean) : []
-    if (cids.length === 0) {
+    if (!enabled || cids.length === 0) {
       setSetsByCid(new Map())
       setLoading(false)
       setError(null)
@@ -75,13 +80,18 @@ export function useViewCounts(
         const results = await Promise.all(
           cids.map(async (cid) => [
             cid,
-            await getStatementBelieverSets(machinery, cid as IpfsCidV1),
+            await getStatementBelieverSets(
+              machinery,
+              cid as IpfsCidV1,
+              trustedAttestersKey ? trustedAttestersKey.split('\0') : undefined,
+            ),
           ] as const),
         )
         if (isStale()) return
         setSetsByCid(new Map(results))
       } catch (err) {
         if (isStale()) return
+        setSetsByCid(new Map())
         setError(err instanceof Error ? err.message : 'Could not load supporter counts')
       } finally {
         if (!isStale()) setLoading(false)
@@ -91,7 +101,7 @@ export function useViewCounts(
     return () => {
       cancelled = true
     }
-  }, [machinery, publishedKey, tick])
+  }, [machinery, publishedKey, tick, trustedAttestersKey, enabled])
 
   const selectedKey = selectedCids.join('\0')
   const counts = useMemo(() => {
@@ -99,7 +109,7 @@ export function useViewCounts(
     const sets = cids
       .map((cid) => setsByCid.get(cid))
       .filter((entry): entry is StatementBelieverSets => Boolean(entry))
-    if (sets.length === 0) return undefined
+    if (sets.length === 0 || sets.length !== cids.length) return undefined
     return computeViewCounts(sets)
   }, [selectedKey, setsByCid])
 

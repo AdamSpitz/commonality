@@ -198,7 +198,7 @@ export function SupportButton({
         )
         : false
       if (!isCurrent()) return
-      onSupported?.({ action: 'support', indexed })
+      if (indexed) onSupported?.({ action: 'support', indexed: true })
     } catch (err) {
       if (isCurrent()) {
         setError(err instanceof Error ? err.message : 'Failed to record support')
@@ -244,7 +244,7 @@ export function SupportButton({
         )
         : false
       if (!isCurrent()) return
-      onSupported?.({ action: 'retract', indexed })
+      if (indexed) onSupported?.({ action: 'retract', indexed: true })
     } catch (err) {
       if (isCurrent()) {
         setError(err instanceof Error ? err.message : 'Failed to retract support')
@@ -313,4 +313,3 @@ export function SupportButton({
     </Stack>
   )
 }
-

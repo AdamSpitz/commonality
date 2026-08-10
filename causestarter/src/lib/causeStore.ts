@@ -70,6 +70,40 @@ export interface CauseDraft {
 }
 
 const STORAGE_KEY = 'causestarter.causes.v3'
+const PREVIOUS_STORAGE_KEY = 'causestarter.causes.v2'
+const LEGACY_STORAGE_KEY = 'causestarter.causes.v1'
+
+interface PreviousCauseStatement {
+  id: string
+  text: string
+  origin: StatementOrigin
+  disposition: 'pending' | 'adopted' | 'rejected'
+  rationale?: string
+  safety?: SafetyState
+}
+
+interface LegacyCauseDraft {
+  id: string
+  name?: string
+  audience?: string
+  foundingStatement?: string
+  createdAt?: string
+  updatedAt?: string
+  statementCid?: string
+}
+
+interface PreviousCauseDraft {
+  id: string
+  description?: string
+  goal: string
+  statements: PreviousCauseStatement[]
+  createdAt: string
+  updatedAt: string
+  statementCid?: string
+  statementCids?: string[]
+  goalSafety?: SafetyState
+  mediator?: CauseMediator
+}
 
 function canUseStorage(): boolean {
   return typeof window !== 'undefined' && typeof window.localStorage !== 'undefined'
@@ -115,13 +149,124 @@ export function newPlank(text = '', origin: StatementOrigin = 'user'): CausePlan
   return { id: crypto.randomUUID(), text, origin }
 }
 
+function migratePreviousCauses(): CauseDraft[] {
+  const raw = window.localStorage.getItem(PREVIOUS_STORAGE_KEY)
+  if (!raw) return []
+  const previous = JSON.parse(raw) as PreviousCauseDraft[]
+  if (!Array.isArray(previous)) return []
+
+  return previous.map((cause) => {
+    const supportingCids = cause.statementCids ?? []
+    const planks: CausePlank[] = []
+    const trimmedGoal = cause.goal?.trim()
+    const goalDuplicatesStatement = trimmedGoal && (cause.statements ?? []).some(
+      (statement) => statement.text?.trim() === trimmedGoal,
+    )
+    if (trimmedGoal && !goalDuplicatesStatement) {
+      planks.push({
+        id: `goal-${cause.id}`,
+        text: cause.goal,
+        origin: 'user',
+        safety: cause.goalSafety,
+      })
+    }
+
+    let adoptedIndex = 0
+    for (const statement of cause.statements ?? []) {
+      if (!statement.text?.trim()) continue
+      let cid: string | undefined
+      if (statement.disposition === 'adopted') {
+        // v2 published the first nonblank adopted statement as statementCid;
+        // statementCids contains only the subsequent adopted statements.
+        cid = adoptedIndex === 0
+          ? cause.statementCid
+          : supportingCids[adoptedIndex - 1]
+        adoptedIndex += 1
+      }
+      planks.push({
+        id: statement.id,
+        text: statement.text,
+        origin: statement.origin,
+        rationale: statement.rationale,
+        safety: statement.safety,
+        cid,
+      })
+    }
+
+    return {
+      id: cause.id,
+      planks,
+      suggestionSeed: cause.description?.trim() || undefined,
+      mediator: cause.mediator,
+      createdAt: cause.createdAt,
+      updatedAt: cause.updatedAt,
+    }
+  })
+}
+
+function migrateLegacyCauses(): CauseDraft[] {
+  const raw = window.localStorage.getItem(LEGACY_STORAGE_KEY)
+  if (!raw) return []
+  const legacy = JSON.parse(raw) as LegacyCauseDraft[]
+  if (!Array.isArray(legacy)) return []
+
+  return legacy.map((cause) => {
+    const now = new Date().toISOString()
+    const primaryText = cause.foundingStatement?.trim() || cause.name?.trim() || ''
+    const planks: CausePlank[] = []
+    if (primaryText) {
+      planks.push({
+        id: `goal-${cause.id}`,
+        text: primaryText,
+        origin: 'user',
+        cid: cause.statementCid,
+      })
+    }
+    if (cause.audience?.trim()) {
+      planks.push({
+        id: `audience-${cause.id}`,
+        text: `This cause is for ${cause.audience.trim()}.`,
+        origin: 'user',
+      })
+    }
+    return {
+      id: cause.id,
+      planks,
+      createdAt: cause.createdAt ?? now,
+      updatedAt: cause.updatedAt ?? now,
+    }
+  })
+}
+
+function parseCurrentCauses(): CauseDraft[] {
+  const raw = window.localStorage.getItem(STORAGE_KEY)
+  if (!raw) return []
+  const parsed = JSON.parse(raw) as CauseDraft[]
+  return Array.isArray(parsed) ? parsed : []
+}
+
 function readAll(): CauseDraft[] {
   if (!canUseStorage()) return []
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY)
-    if (!raw) return []
-    const parsed = JSON.parse(raw) as CauseDraft[]
-    return Array.isArray(parsed) ? parsed : []
+    const current = parseCurrentCauses()
+    const previous = migratePreviousCauses()
+    const legacy = migrateLegacyCauses()
+    const merged = new Map<string, CauseDraft>()
+
+    // Prefer the newest representation when the same cause exists in more than
+    // one key, but still recover causes that were never migrated forward.
+    for (const cause of legacy) merged.set(cause.id, cause)
+    for (const cause of previous) merged.set(cause.id, cause)
+    for (const cause of current) merged.set(cause.id, cause)
+
+    if (previous.length > 0 || legacy.length > 0) {
+      const causes = [...merged.values()]
+      writeAll(causes)
+      window.localStorage.removeItem(PREVIOUS_STORAGE_KEY)
+      window.localStorage.removeItem(LEGACY_STORAGE_KEY)
+      return causes
+    }
+    return current
   } catch {
     return []
   }
@@ -177,16 +322,21 @@ export function updateCause(
   return updated
 }
 
-/** Record the CID a plank was just published under. */
+/** Record the CID and immutable wording a plank was just published under. */
 export function markPlankPublished(
   causeId: string,
   plankId: string,
   cid: string,
+  publishedText?: string,
 ): CauseDraft | undefined {
   const cause = getCause(causeId)
   if (!cause) return undefined
   return updateCause(causeId, {
-    planks: cause.planks.map((plank) => (plank.id === plankId ? { ...plank, cid } : plank)),
+    planks: cause.planks.map((plank) => (
+      plank.id === plankId
+        ? { ...plank, text: publishedText ?? plank.text, cid }
+        : plank
+    )),
   })
 }
 

@@ -35,6 +35,8 @@ interface PlankRowProps {
   onPublish: () => void
   sharpening: boolean
   publishing: boolean
+  /** Another cause mutation is in flight, so all draft controls are locked. */
+  mutationLocked?: boolean
 }
 
 function supportSummary(support: PlankSupport | undefined, loading: boolean): string {
@@ -49,10 +51,12 @@ function supportSummary(support: PlankSupport | undefined, loading: boolean): st
 export function PlankRow({
   plank, index, selected, onSelectedChange, support, supportLoading, projectCount,
   onSupported, onTextChange, onDelete, onSharpen, onPublish, sharpening, publishing,
+  mutationLocked = false,
 }: PlankRowProps) {
   const published = Boolean(plank.cid)
   const tooShort = plank.text.trim().length > 0 && plank.text.trim().length < MIN_PLANK_LENGTH
   const blocked = Boolean(plank.safety && !plank.safety.allowed)
+  const draftBusy = mutationLocked || publishing || sharpening
 
   return (
     <Paper
@@ -86,6 +90,7 @@ export function PlankRow({
               minRows={2}
               fullWidth
               size="small"
+              disabled={draftBusy}
               placeholder="One issue a supporter could sincerely sign, on its own."
               error={tooShort || blocked}
               helperText={
@@ -137,7 +142,7 @@ export function PlankRow({
                   variant="contained"
                   size="small"
                   onClick={onPublish}
-                  disabled={publishing || tooShort || plank.text.trim().length === 0}
+                  disabled={draftBusy || tooShort || plank.text.trim().length === 0}
                   sx={{ textTransform: 'none' }}
                   data-testid={`plank-publish-${index}`}
                 >
@@ -147,7 +152,7 @@ export function PlankRow({
                   size="small"
                   startIcon={sharpening ? <CircularProgress size={14} /> : <AutoFixHighIcon fontSize="small" />}
                   onClick={onSharpen}
-                  disabled={sharpening || plank.text.trim().length === 0}
+                  disabled={draftBusy || plank.text.trim().length === 0}
                   sx={{ textTransform: 'none' }}
                 >
                   {sharpening ? 'Sharpening…' : 'Help make this attestable'}
@@ -159,9 +164,16 @@ export function PlankRow({
 
         {!published && (
           <Tooltip title="Remove issue">
-            <IconButton size="small" onClick={onDelete} aria-label={`Remove issue ${index + 1}`}>
-              <DeleteOutlineIcon fontSize="small" />
-            </IconButton>
+            <span>
+              <IconButton
+                size="small"
+                onClick={onDelete}
+                disabled={draftBusy}
+                aria-label={`Remove issue ${index + 1}`}
+              >
+                <DeleteOutlineIcon fontSize="small" />
+              </IconButton>
+            </span>
           </Tooltip>
         )}
       </Stack>

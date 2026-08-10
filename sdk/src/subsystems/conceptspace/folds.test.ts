@@ -5,7 +5,11 @@ import {
   foldImplications,
   foldAllStatements,
 } from './folds.js';
-import type { DirectSupportEvent, ImplicationAttestationEvent } from './events.js';
+import type {
+  DirectSupportEvent,
+  ImplicationAttestationEvent,
+  ImplicationRevokedEvent,
+} from './events.js';
 import { fakeIpfsCidV1 } from '../../utils/test-helpers.js';
 
 const USER_A = '0x1111111111111111111111111111111111111111' as const;
@@ -47,6 +51,23 @@ function makeImplicationEvent(overrides: Partial<ImplicationAttestationEvent> = 
     blockTimestamp: 1700000000n,
     transactionHash: TX_HASH,
     logIndex: 0,
+    ...overrides,
+  };
+}
+
+function makeImplicationRevocation(
+  overrides: Partial<ImplicationRevokedEvent> = {},
+): ImplicationRevokedEvent {
+  return {
+    contractAddress: CONTRACT_ADDRESS,
+    attester: ATTESTER,
+    fromStatementCid: STMT_A,
+    toStatementCid: STMT_B,
+    blockNumber: 200n,
+    blockTimestamp: 1700001000n,
+    transactionHash: TX_HASH_2,
+    logIndex: 0,
+    revoked: true,
     ...overrides,
   };
 }
@@ -262,6 +283,25 @@ describe('foldImplications', () => {
     const result = foldImplications([lower, upper]);
     assert.strictEqual(result.length, 1);
     assert.strictEqual(result[0]!.explanationCid, EXPL_2);
+  });
+
+  it('removes a revoked implication regardless of response order', () => {
+    const result = foldImplications([
+      makeImplicationRevocation(),
+      makeImplicationEvent({ blockNumber: 100n }),
+    ]);
+    assert.deepStrictEqual(result, []);
+  });
+
+  it('restores an implication re-attested after revocation', () => {
+    const result = foldImplications([
+      makeImplicationRevocation(),
+      makeImplicationEvent({ blockNumber: 300n, explanationCid: EXPL_2 }),
+      makeImplicationEvent({ blockNumber: 100n }),
+    ]);
+    assert.strictEqual(result.length, 1);
+    assert.strictEqual(result[0]!.explanationCid, EXPL_2);
+    assert.strictEqual(result[0]!.blockNumber, '300');
   });
 
   it('does not mutate the input array', () => {

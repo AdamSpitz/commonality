@@ -44,7 +44,12 @@ export interface UseCauseProjectsResult {
   refresh: () => void
 }
 
-export function useCauseProjects(publishedCids: string[]): UseCauseProjectsResult {
+export function useCauseProjects(
+  publishedCids: string[],
+  trustedImplicationAttesters?: Iterable<string>,
+  trustedAlignmentAttesters?: Iterable<string>,
+  enabled = true,
+): UseCauseProjectsResult {
   const machinery = useMachinery()
   const [projects, setProjects] = useState<CauseProject[]>([])
   const [totals, setTotals] = useState<AlignedProjectFundingTotals>()
@@ -52,13 +57,19 @@ export function useCauseProjects(publishedCids: string[]): UseCauseProjectsResul
   const [error, setError] = useState<string | null>(null)
   const [tick, setTick] = useState(0)
   const publishedKey = publishedCids.join('\0')
+  const implicationTrustKey = trustedImplicationAttesters
+    ? [...trustedImplicationAttesters].map((address) => address.toLowerCase()).sort().join('\0')
+    : ''
+  const alignmentTrustKey = trustedAlignmentAttesters
+    ? [...trustedAlignmentAttesters].map((address) => address.toLowerCase()).sort().join('\0')
+    : ''
   const generationRef = useRef(0)
 
   const refresh = useCallback(() => setTick((n) => n + 1), [])
 
   useEffect(() => {
     const cids = publishedKey ? publishedKey.split('\0').filter(Boolean) : []
-    if (cids.length === 0) {
+    if (!enabled || cids.length === 0) {
       setProjects([])
       setTotals(undefined)
       setLoading(false)
@@ -79,7 +90,12 @@ export function useCauseProjects(publishedCids: string[]): UseCauseProjectsResul
         const perPlank = await Promise.all(
           cids.map(async (cid) => ({
             cid,
-            aligned: await getAllAlignedProjectsForCause(machinery, cid as IpfsCidV1),
+            aligned: await getAllAlignedProjectsForCause(
+              machinery,
+              cid as IpfsCidV1,
+              implicationTrustKey ? implicationTrustKey.split('\0') : undefined,
+              alignmentTrustKey ? alignmentTrustKey.split('\0') : undefined,
+            ),
           })),
         )
         if (isStale()) return
@@ -136,7 +152,7 @@ export function useCauseProjects(publishedCids: string[]): UseCauseProjectsResul
     return () => {
       cancelled = true
     }
-  }, [machinery, publishedKey, tick])
+  }, [machinery, publishedKey, tick, implicationTrustKey, alignmentTrustKey, enabled])
 
   const countByPlankCid = useMemo(() => {
     const counts = new Map<string, number>()

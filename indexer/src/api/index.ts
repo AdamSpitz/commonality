@@ -11,7 +11,7 @@ import { db } from "ponder:api";
 import schema from "ponder:schema";
 import { Hono } from "hono";
 import { client, graphql } from "ponder";
-import { and, eq, gte, lte } from "ponder";
+import { and, desc, eq, gte, lte } from "ponder";
 import { getAddress, isAddress, type Hex } from "viem";
 
 /**
@@ -243,15 +243,16 @@ app.get("/api/events", async (c) => {
     if (blockNumber_gte) conditions.push(gte(schema.events.blockNumber, BigInt(blockNumber_gte)));
     if (blockNumber_lte) conditions.push(lte(schema.events.blockNumber, BigInt(blockNumber_lte)));
 
-    // Stable chain order so clients that fold with last-write-wins see a
-    // predictable sequence (SDK folds also compare blockNumber/logIndex).
+    // Select the newest transitions when a bounded query is truncated, then
+    // restore chain order for legacy clients that still fold sequentially.
     const query = db.select().from(schema.events);
     const filtered = conditions.length > 0
       ? query.where(and(...conditions))
       : query;
-    const items = await filtered
-      .orderBy(schema.events.blockNumber, schema.events.logIndex)
-      .limit(limit);
+    const items = (await filtered
+      .orderBy(desc(schema.events.blockNumber), desc(schema.events.logIndex))
+      .limit(limit))
+      .reverse();
 
     return c.json(serializeBigInts({ items }) as object);
   } catch (error) {

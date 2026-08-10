@@ -98,15 +98,17 @@ export function CauseViewStrip({
                 {singular ? 'this issue' : `every one of ${scope}`}.
               </Typography>
             </Box>
-            <Box>
-              <Typography variant="h6" sx={{ fontWeight: 700 }} data-testid="view-count-none-disagreed">
-                {counts.conjunction.noneDisagreed.toLocaleString()} more
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                support at least one and have disagreed with none — they were never asked about the
-                rest.
-              </Typography>
-            </Box>
+            {!singular && (
+              <Box>
+                <Typography variant="h6" sx={{ fontWeight: 700 }} data-testid="view-count-none-disagreed">
+                  {counts.conjunction.noneDisagreed.toLocaleString()} more
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  support at least one and have disagreed with none — they were never asked about the
+                  rest.
+                </Typography>
+              </Box>
+            )}
           </Stack>
         )}
 

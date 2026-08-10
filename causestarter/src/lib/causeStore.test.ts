@@ -80,6 +80,162 @@ describe('causeStore', () => {
     expect(after.planks[1]?.cid).toBe('bafytwo')
   })
 
+  it('stores the exact wording associated with a newly published CID', () => {
+    const cause = causeWith([{ text: 'A later local edit.' }])
+    const after = markPlankPublished(
+      cause.id,
+      cause.planks[0]!.id,
+      'bafyexact',
+      'The exact published wording.',
+    )!
+    expect(after.planks[0]).toMatchObject({
+      text: 'The exact published wording.',
+      cid: 'bafyexact',
+    })
+  })
+
+  it('migrates v2 causes to planks without losing feasible founder data', () => {
+    window.localStorage.setItem('causestarter.causes.v2', JSON.stringify([{
+      id: 'old-cause',
+      description: 'A rough founder description.',
+      goal: 'The old primary goal.',
+      statements: [
+        {
+          id: 'adopted',
+          text: 'An adopted supporting issue.',
+          origin: 'suggested',
+          disposition: 'adopted',
+          rationale: 'Why this issue matters.',
+          safety: { allowed: true, category: 'ok', explanation: '', checkedAt: 'then' },
+        },
+        {
+          id: 'second-adopted',
+          text: 'A second adopted issue.',
+          origin: 'user',
+          disposition: 'adopted',
+        },
+        {
+          id: 'pending',
+          text: 'A pending issue.',
+          origin: 'user',
+          disposition: 'pending',
+        },
+      ],
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-02T00:00:00.000Z',
+      statementCid: 'bafyprimary',
+      statementCids: ['bafysupporting'],
+      goalSafety: { allowed: true, category: 'ok', explanation: '', checkedAt: 'then' },
+      mediator: {
+        address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
+        serviceUrl: 'https://example.test/mediator',
+        name: 'Example mediator',
+        description: 'Connects participants.',
+      },
+    }]))
+
+    const migrated = getCause('old-cause')!
+    expect(migrated).toMatchObject({
+      id: 'old-cause',
+      suggestionSeed: 'A rough founder description.',
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-02T00:00:00.000Z',
+      mediator: { name: 'Example mediator' },
+    })
+    expect(migrated.planks).toEqual([
+      expect.objectContaining({ text: 'The old primary goal.' }),
+      expect.objectContaining({
+        id: 'adopted',
+        text: 'An adopted supporting issue.',
+        cid: 'bafyprimary',
+        rationale: 'Why this issue matters.',
+      }),
+      expect.objectContaining({
+        id: 'second-adopted',
+        text: 'A second adopted issue.',
+        cid: 'bafysupporting',
+      }),
+      expect.objectContaining({ id: 'pending', text: 'A pending issue.' }),
+    ])
+    expect(window.localStorage.getItem('causestarter.causes.v2')).toBeNull()
+    expect(window.localStorage.getItem('causestarter.causes.v3')).not.toBeNull()
+  })
+
+  it('does not duplicate a v2 goal that is also the primary adopted statement', () => {
+    window.localStorage.setItem('causestarter.causes.v2', JSON.stringify([{
+      id: 'duplicate-primary',
+      goal: 'The primary issue.',
+      statements: [
+        { id: 'primary', text: 'The primary issue.', origin: 'user', disposition: 'adopted' },
+      ],
+      statementCid: 'bafyprimary',
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-02T00:00:00.000Z',
+    }]))
+
+    expect(getCause('duplicate-primary')?.planks).toEqual([
+      expect.objectContaining({ id: 'primary', text: 'The primary issue.', cid: 'bafyprimary' }),
+    ])
+  })
+
+  it('keeps supporting CIDs associated with the matching nonblank adopted wording', () => {
+    window.localStorage.setItem('causestarter.causes.v2', JSON.stringify([{
+      id: 'cid-associations',
+      goal: '',
+      statements: [
+        { id: 'blank', text: ' ', origin: 'user', disposition: 'adopted' },
+        { id: 'first', text: 'First published issue.', origin: 'user', disposition: 'adopted' },
+        { id: 'second', text: 'Second published issue.', origin: 'user', disposition: 'adopted' },
+      ],
+      statementCid: 'bafyfirst',
+      statementCids: ['bafysecond'],
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-02T00:00:00.000Z',
+    }]))
+
+    expect(getCause('cid-associations')?.planks).toEqual([
+      expect.objectContaining({ id: 'first', text: 'First published issue.', cid: 'bafyfirst' }),
+      expect.objectContaining({ id: 'second', text: 'Second published issue.', cid: 'bafysecond' }),
+    ])
+  })
+
+  it('recovers unmigrated v2 causes even when v3 storage already exists', () => {
+    const current = createCause('Already migrated')
+    window.localStorage.setItem('causestarter.causes.v2', JSON.stringify([{
+      id: 'remaining-v2',
+      goal: 'A remaining old cause.',
+      statements: [],
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-02T00:00:00.000Z',
+    }]))
+
+    expect(listCauses().map((cause) => cause.id)).toEqual(
+      expect.arrayContaining([current.id, 'remaining-v2']),
+    )
+    expect(window.localStorage.getItem('causestarter.causes.v2')).toBeNull()
+  })
+
+  it('migrates v1 causes directly to v3 without losing published wording', () => {
+    window.localStorage.setItem('causestarter.causes.v1', JSON.stringify([{
+      id: 'legacy-cause',
+      name: 'Legacy name',
+      audience: 'night-shift workers',
+      foundingStatement: 'Safe late-night transit exists.',
+      statementCid: 'bafylegacy',
+      createdAt: '2025-01-01T00:00:00.000Z',
+      updatedAt: '2025-01-02T00:00:00.000Z',
+    }]))
+
+    const migrated = getCause('legacy-cause')!
+    expect(migrated.planks).toEqual([
+      expect.objectContaining({ text: 'Safe late-night transit exists.', cid: 'bafylegacy' }),
+      expect.objectContaining({ text: 'This cause is for night-shift workers.' }),
+    ])
+    expect(migrated.planks[1]?.cid).toBeUndefined()
+    expect(window.localStorage.getItem('causestarter.causes.v1')).toBeNull()
+    expect(window.localStorage.getItem('causestarter.causes.v3')).not.toBeNull()
+  })
+
   it('persists the optional founder mediator identity and service URL', () => {
     const created = createCause()
     updateCause(created.id, {

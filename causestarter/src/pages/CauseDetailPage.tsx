@@ -7,7 +7,12 @@ import AddIcon from '@mui/icons-material/Add'
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome'
 import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom'
 import { useAccount } from 'wagmi'
-import { formatCurrencyTotals, projectPathForAddress } from '@ui/shared'
+import {
+  formatCurrencyTotals,
+  projectPathForAddress,
+  useTrustedAttesters,
+  useTrustedSet,
+} from '@ui/shared'
 import { getProjectStatus, STATUS_LABELS } from '@ui/lazy-giving'
 import { CauseViewStrip, type ViewMode } from '../components/CauseViewStrip'
 import { CauseMediatorCard } from '../components/CauseMediatorCard'
@@ -60,6 +65,22 @@ export function CauseDetailPage() {
   const machinery = useMachinery()
   const { address, isConnected } = useAccount()
   const writeClients = useWriteClients(address)
+  const trustedImplicationAttesters = useTrustedAttesters()
+  const activeTrustedImplicationAttesters = trustedImplicationAttesters.length > 0
+    ? trustedImplicationAttesters
+    : undefined
+  const {
+    trustedSet: trustedAlignmentAttesters,
+    isLoading: trustLoading,
+    error: trustError,
+  } = useTrustedSet(address)
+  const trustReady = !address || (
+    !trustLoading && !trustError && trustedAlignmentAttesters !== undefined
+  )
+  const trustUnavailable = Boolean(address)
+    && !trustLoading
+    && !trustError
+    && trustedAlignmentAttesters === undefined
 
   const [cause, setCause] = useState<CauseDraft | undefined>(() =>
     causeId ? getCause(causeId) : undefined,
@@ -89,6 +110,16 @@ export function CauseDetailPage() {
   }, [causeId])
 
   const setPlanks = useCallback((planks: CausePlank[]) => patch({ planks }), [patch])
+  const storePlankPatch = useCallback((id: string, changes: Partial<CausePlank>) => {
+    if (!causeId) return undefined
+    const latest = getCause(causeId)
+    if (!latest) return undefined
+    const updated = updateCause(causeId, {
+      planks: latest.planks.map((plank) => (plank.id === id ? { ...plank, ...changes } : plank)),
+    })
+    if (updated) setCause(updated)
+    return updated
+  }, [causeId])
 
   const published = useMemo(() => (cause ? publishedPlanks(cause) : []), [cause])
   const publishedCids = useMemo(
@@ -100,11 +131,26 @@ export function CauseDetailPage() {
     [publishedCids, deselectedCids],
   )
 
-  const { counts, perPlank, loading: countsLoading, refresh: refreshCounts } =
-    useViewCounts(publishedCids, selectedCids)
+  const {
+    counts,
+    perPlank,
+    loading: countsLoading,
+    error: countsError,
+    refresh: refreshCounts,
+  } = useViewCounts(
+    publishedCids,
+    selectedCids,
+    activeTrustedImplicationAttesters,
+    trustReady,
+  )
   const {
     projects, totals, countByPlankCid, loading: projectsLoading, error: projectsError,
-  } = useCauseProjects(publishedCids)
+  } = useCauseProjects(
+    publishedCids,
+    activeTrustedImplicationAttesters,
+    trustedAlignmentAttesters,
+    trustReady,
+  )
 
   const tools = useMemo(
     () => SUPPORTING_TOOLS.filter((t) => t.kind === 'substrate' && t.id !== 'delegation'),
@@ -126,18 +172,25 @@ export function CauseDetailPage() {
 
   const drafts = unpublishedPlanks(cause)
   const live = isLive(cause)
+  const mutationLocked = Boolean(publishingId || sharpeningId || atomizing)
 
   const updatePlank = (id: string, changes: Partial<CausePlank>) => {
-    setPlanks(cause.planks.map((plank) => (plank.id === id ? { ...plank, ...changes } : plank)))
+    if (mutationLocked) return
+    storePlankPatch(id, changes)
   }
 
-  const handleAddPlank = () => setPlanks([...cause.planks, newPlank()])
+  const handleAddPlank = () => {
+    if (mutationLocked) return
+    setPlanks([...cause.planks, newPlank()])
+  }
 
   const handleDeletePlank = (id: string) => {
+    if (mutationLocked) return
     setPlanks(cause.planks.filter((plank) => plank.id !== id))
   }
 
   const handleSuggest = async () => {
+    if (mutationLocked) return
     if (seed.trim().length < MIN_SEED_LENGTH) {
       setError('Describe the cause in a sentence or two so suggestions have something to work from.')
       return
@@ -169,7 +222,7 @@ export function CauseDetailPage() {
   }
 
   const handleSharpen = async (plank: CausePlank) => {
-    if (!plank.text.trim()) return
+    if (!plank.text.trim() || mutationLocked) return
     setSharpeningId(plank.id)
     setError(null)
     try {
@@ -177,7 +230,7 @@ export function CauseDetailPage() {
         plank: plank.text.trim(),
         causeDescription: cause.suggestionSeed?.trim() ?? '',
       })
-      updatePlank(plank.id, {
+      storePlankPatch(plank.id, {
         text: result.plank,
         rationale: result.rationale,
         // The wording changed, so the old verdict no longer describes it.
@@ -191,6 +244,7 @@ export function CauseDetailPage() {
   }
 
   const handlePublish = async (plank: CausePlank) => {
+    if (publishingId) return
     const text = plank.text.trim()
     if (!text) return
     if (!isConnected || !address || !writeClients) {
@@ -203,7 +257,7 @@ export function CauseDetailPage() {
       const review = await checkSafety([{ text, fieldLabel: 'Issue' }])
       const verdict = review.results[0]
       if (verdict) {
-        updatePlank(plank.id, { safety: safetyState(verdict) })
+        storePlankPatch(plank.id, { safety: safetyState(verdict) })
         if (!verdict.allowed) {
           setDialogSafety(safetyState(verdict))
           setError('Blocked text cannot be published. Edit this issue and try again.')
@@ -211,7 +265,7 @@ export function CauseDetailPage() {
         }
       }
       const cid = await publishPlank({ machinery, writeClients, text })
-      const updated = markPlankPublished(cause.id, plank.id, cid)
+      const updated = markPlankPublished(cause.id, plank.id, cid, text)
       if (updated) setCause(updated)
       refreshCounts()
     } catch (err) {
@@ -222,6 +276,7 @@ export function CauseDetailPage() {
   }
 
   const handleDeleteCause = () => {
+    if (mutationLocked) return
     if (!window.confirm('Remove this cause from this device? Published statements are unaffected.')) return
     deleteCause(cause.id)
     navigate('/momentum')
@@ -256,15 +311,38 @@ export function CauseDetailPage() {
         </Typography>
       </Box>
 
-      {publishedCids.length > 0 && (
-        <CauseViewStrip
-          mode={mode}
-          onModeChange={setMode}
-          counts={counts}
-          selectedCount={selectedCids.length}
-          publishedCount={publishedCids.length}
-          loading={countsLoading}
-        />
+      {publishedCids.length > 0 && trustLoading && (
+        <Alert severity="info" sx={{ borderRadius: 2 }}>
+          Loading your trust network before supporter and project counts…
+        </Alert>
+      )}
+      {publishedCids.length > 0 && trustError && (
+        <Alert severity="warning" sx={{ borderRadius: 2 }}>
+          Supporter and project counts are paused because your trust network could not be loaded: {trustError}
+        </Alert>
+      )}
+      {publishedCids.length > 0 && trustUnavailable && (
+        <Alert severity="info" sx={{ borderRadius: 2 }}>
+          Supporter and project counts are paused until this wallet has trusted attesters.
+        </Alert>
+      )}
+
+      {publishedCids.length > 0 && trustReady && (
+        <>
+          <CauseViewStrip
+            mode={mode}
+            onModeChange={setMode}
+            counts={counts}
+            selectedCount={selectedCids.length}
+            publishedCount={publishedCids.length}
+            loading={countsLoading}
+          />
+          {countsError && (
+            <Alert severity="warning" sx={{ borderRadius: 2 }}>
+              Supporter counts could not be loaded: {countsError}
+            </Alert>
+          )}
+        </>
       )}
 
       <Paper elevation={0} sx={{ p: { xs: 2, sm: 2.5 }, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
@@ -294,6 +372,7 @@ export function CauseDetailPage() {
               onPublish={() => void handlePublish(plank)}
               sharpening={sharpeningId === plank.id}
               publishing={publishingId === plank.id}
+              mutationLocked={mutationLocked}
             />
           ))}
         </Stack>
@@ -302,6 +381,7 @@ export function CauseDetailPage() {
           <Button
             startIcon={<AddIcon />}
             onClick={handleAddPlank}
+            disabled={mutationLocked}
             sx={{ textTransform: 'none' }}
             data-testid="cause-add-plank"
           >
@@ -310,7 +390,7 @@ export function CauseDetailPage() {
           <Button
             startIcon={atomizing ? <CircularProgress size={16} /> : <AutoAwesomeIcon />}
             onClick={() => setSeedOpen((open) => !open)}
-            disabled={atomizing}
+            disabled={mutationLocked}
             sx={{ textTransform: 'none' }}
             data-testid="cause-suggest-planks"
           >
@@ -334,7 +414,7 @@ export function CauseDetailPage() {
             <Button
               variant="contained"
               onClick={() => void handleSuggest()}
-              disabled={atomizing}
+              disabled={mutationLocked}
               sx={{ alignSelf: 'flex-start', textTransform: 'none' }}
             >
               {atomizing ? 'Finding issues…' : 'Suggest issues'}
@@ -364,7 +444,7 @@ export function CauseDetailPage() {
           </Alert>
         )}
 
-        {publishedCids.length > 0 && projectsLoading && (
+        {publishedCids.length > 0 && trustReady && projectsLoading && (
           <Stack direction="row" spacing={1} alignItems="center" sx={{ py: 1 }}>
             <CircularProgress size={18} />
             <Typography variant="body2" color="text.secondary">Loading aligned projects…</Typography>
@@ -375,7 +455,7 @@ export function CauseDetailPage() {
           <Alert severity="warning" sx={{ borderRadius: 2 }}>{projectsError}</Alert>
         )}
 
-        {publishedCids.length > 0 && !projectsLoading && !projectsError && projects.length === 0 && (
+        {publishedCids.length > 0 && trustReady && !projectsLoading && !projectsError && projects.length === 0 && (
           <Typography variant="body2" color="text.secondary">
             No projects are aligned with these issues yet. Open an issue's board to vouch for work
             that advances it.
@@ -453,7 +533,9 @@ export function CauseDetailPage() {
       {cause.mediator && <CauseMediatorCard mediator={cause.mediator} />}
       <MediatorEditor
         mediator={cause.mediator}
-        onChange={(mediator) => patch({ mediator })}
+        onChange={(mediator) => {
+          if (!mutationLocked) patch({ mediator })
+        }}
       />
 
       {tools.length > 0 && (
@@ -465,7 +547,12 @@ export function CauseDetailPage() {
       <Divider />
 
       <Stack direction="row" spacing={1}>
-        <Button color="error" onClick={handleDeleteCause} sx={{ textTransform: 'none' }}>
+        <Button
+          color="error"
+          onClick={handleDeleteCause}
+          disabled={mutationLocked}
+          sx={{ textTransform: 'none' }}
+        >
           Remove locally
         </Button>
       </Stack>

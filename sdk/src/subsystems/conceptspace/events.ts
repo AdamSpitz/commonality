@@ -11,4 +11,14 @@ export interface ImplicationAttestationEvent extends RawEvent {
   fromStatementCid: string;  // CIDv1
   toStatementCid: string;    // CIDv1
   explanationCid: string;    // CIDv1
+  revoked?: false;
 }
+
+export interface ImplicationRevokedEvent extends RawEvent {
+  attester: `0x${string}`;
+  fromStatementCid: string;
+  toStatementCid: string;
+  revoked: true;
+}
+
+export type ImplicationLifecycleEvent = ImplicationAttestationEvent | ImplicationRevokedEvent;
