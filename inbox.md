@@ -19,6 +19,8 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 ### Done, for review
 
+- **(Ask, done at your request)** CauseStarter **roster as publication**: PublishedData roster document (title, summary, ordered plank CIDs, mediator blurb) + MutableRef `(founder, slug) → CID` stable URL `/cause/:owner/:slug` with `@version` pins, history display, preview-before-publish with peer **Publish** / **Publish anyway**, and a separate cause-assist `/check-coherence` attester (construction-only, own model config). Not yet: on-chain coherence attestation persistence, single-tx batch of publish+updateRef, per-plank "added later" UI markers. Unit tests green for causestarter + cause-assist.
+
 - **(Tell)** Rebuilt the CauseStarter launch wizard around `Issues → Preview → Launch`: rough descriptions feed cause-assist atomization, planks can be edited or sharpened with inline vagueness feedback, and the founder learns the union/two-band intersection views through an interactive preview of his own cause. Main→supporting implication gating is gone. The first plank remains the primary stored CID only as a compatibility detail for existing cause pages; all planks are peers in the wizard. Focused CauseStarter typecheck and tests pass.
 
 - **(Tell)** Removed the NoteIntent-dependent UI: one-time deposits no longer collect intent, note details and cause/statement/leaderboard surfaces no longer display intent-derived earmarked funds, and CauseStarter's earmarked route is gone. The contract plus SDK/indexer primitives remain untouched and dormant. Updated affected tests and UI specs; focused UI tests and the UI build pass.

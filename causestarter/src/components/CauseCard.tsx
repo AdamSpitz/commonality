@@ -1,7 +1,7 @@
 import { Box, Chip, Paper, Stack, Typography } from '@mui/material'
 import { Link as RouterLink } from 'react-router-dom'
 import type { CauseDraft } from '../lib/causeStore'
-import { causeTitle, isLive, publishedPlanks, realPlanks } from '../lib/causeStore'
+import { causePath, causeTitle, isLive, publishedPlanks, realPlanks } from '../lib/causeStore'
 
 interface CauseCardProps {
   cause: CauseDraft
@@ -13,7 +13,7 @@ export function CauseCard({ cause }: CauseCardProps) {
   // A statement supported on chain isn't a local cause — send it to the
   // statement itself rather than to a cause page that doesn't exist here.
   const supportedCid = cause.id.startsWith('supported:') ? planks[0]?.cid : undefined
-  const to = supportedCid ? `/statement/${supportedCid}` : `/cause/${cause.id}`
+  const to = supportedCid ? `/statement/${supportedCid}` : causePath(cause)
   return (
     <Paper
       component={RouterLink}

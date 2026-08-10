@@ -122,3 +122,22 @@ export async function checkImplications(input: {
 }): Promise<CheckImplicationsResponse> {
   return postJson<CheckImplicationsResponse>('/check-implications', input)
 }
+
+export interface CoherenceVerdict {
+  coherent: boolean
+  reasoning: string
+  attesterId: string
+  rosterCid: string
+  source: 'llm' | 'heuristic'
+}
+
+/** Construction-only roster check (separate prompt/config from generation). */
+export async function checkCoherence(input: {
+  rosterCid: string
+  title: string
+  summary: string
+  planks: string[]
+  mediatorBlurb?: string
+}): Promise<CoherenceVerdict> {
+  return postJson<CoherenceVerdict>('/check-coherence', input)
+}

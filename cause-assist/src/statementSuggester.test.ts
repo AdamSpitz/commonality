@@ -8,7 +8,7 @@ const baseConfig: CauseAssistConfig = {
   apiBaseUrl: 'https://api.x.ai/v1',
   suggestModel: 'grok-4.5',
   safetyModel: 'grok-4.5',
-  implicationModel: 'grok-4.5',
+  implicationModel: 'grok-4.5', coherenceModel: 'test',
   port: 3002,
 }
 

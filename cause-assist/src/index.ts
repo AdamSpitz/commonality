@@ -6,6 +6,7 @@ export { createCauseAssistApp } from './app.js'
 export { loadConfigFromEnv } from './config.js'
 export { suggestStatements } from './statementSuggester.js'
 export { checkSafety } from './safetyFilter.js'
+export { checkCoherence } from './coherenceCheck.js'
 export { heuristicCheckAll, heuristicCheckItem } from './heuristicSafety.js'
 export type * from './types.js'
 

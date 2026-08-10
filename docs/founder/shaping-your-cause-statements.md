@@ -28,11 +28,13 @@ what remains open is one bug, at the end.
 - **Anchors are not built.** No promotion action exists yet, which is consistent
   with [§ Promotion](#promotion): it is a later move, taken once a combination
   has proven itself.
-- **The roster is not a publication yet.** A cause's plank list lives in
-  `localStorage`, unversioned and unsigned, so there is nothing for a signature
-  receipt to pin against and nothing for a coherence badge to bind to. The design
-  for fixing this is [§ The roster is a publication](#the-roster-is-a-publication);
-  it is queued in [TODO.md](/TODO.md) and is the prerequisite for the badge.
+- **The roster is a publication.** Founder-authored display text (title, summary,
+  ordered plank CIDs, mediator blurb) is published through `PublishedData`; its
+  CID is the version ID. A `MutableRef` `(founder, slug) → CID` is the stable ID
+  in `/cause/:owner/:slug`, with optional `/cause/:owner/:slug@version` pins.
+  Preview-before-publish and a separate coherence attester (`cause-assist`
+  `/check-coherence`) are wired; on-chain coherence *attestations* (badge
+  persistence for third parties) are still client-side preview only.
 
 Companion to [standing up a vertical](/docs/founder/standing-up-a-vertical.md),
 which covers the vertical as a whole. This one covers the narrow question of what
@@ -327,9 +329,12 @@ disbelief, not inventing a new kind of statement.
 
 ## The roster is a publication
 
-**Status: designed, not built (2026-08-10).** Everything in this section is a
-plan. Today a cause's plank list lives in `localStorage` with no version, no
-signature, and no history.
+**Status: built for CauseStarter (2026-08-10), with two follow-ups.** Roster
+document publish + stable ref, history/pinned URLs, preview-before-publish, and
+the separate coherence check are in. Still open: (1) persisting a positive-only
+on-chain coherence attestation (preview verdict is live; the badge is not yet a
+substrate attestation), (2) batching `PublishedData` publish with `updateRef` in
+one wallet transaction.
 
 ### The problem it solves
 

@@ -65,6 +65,26 @@ export interface CauseDraft {
    * as page content — a cause is described by its planks.
    */
   suggestionSeed?: string
+  /**
+   * Optional founder-chosen page title. When absent, the page falls back to the
+   * first plank; when a roster is published, the chosen (or fallback) title is
+   * sealed into the roster document.
+   */
+  title?: string
+  /**
+   * Optional public summary shown on the cause page and sealed into the roster.
+   * Distinct from {@link suggestionSeed}, which is never published.
+   */
+  summary?: string
+  /**
+   * Stable URL slug for the published roster ref `(founder, slug) → roster CID`.
+   * Chosen once (or edited carefully) when the founder first publishes a roster.
+   */
+  slug?: string
+  /** Founder address that owns the stable ref, once a roster has been published. */
+  founderAddress?: string
+  /** Latest published roster document CID known to this device. */
+  rosterCid?: string
   /** Optional founder-operated mediator used by reusable bridge/opt-in blocks. */
   mediator?: CauseMediator
 }
@@ -128,16 +148,28 @@ export function isLive(cause: CauseDraft): boolean {
 }
 
 /**
- * A cause has no title of its own — it is titled by its first plank, truncated.
- * Anything else would be an unpublished claim about the cause competing with the
- * statements that actually constitute it.
+ * Display title: founder-set title when present, otherwise the first plank
+ * (truncated for chrome). Roster publish seals the full title into the document.
  */
 export function causeTitle(cause: CauseDraft): string {
+  const explicit = cause.title?.trim()
+  if (explicit) {
+    if (explicit.length <= 48) return explicit
+    return `${explicit.slice(0, 45).trim()}…`
+  }
   const first = realPlanks(cause)[0]
   if (!first) return 'Untitled cause'
   const trimmed = first.text.trim()
   if (trimmed.length <= 48) return trimmed
   return `${trimmed.slice(0, 45).trim()}…`
+}
+
+/** Local path while drafting; stable `/cause/:owner/:slug` once published. */
+export function causePath(cause: CauseDraft): string {
+  if (cause.founderAddress && cause.slug) {
+    return `/cause/${cause.founderAddress.toLowerCase()}/${encodeURIComponent(cause.slug)}`
+  }
+  return `/cause/${cause.id}`
 }
 
 /** Blocking safety applies per plank, and only to planks with text. */
@@ -337,6 +369,18 @@ export function markPlankPublished(
         ? { ...plank, text: publishedText ?? plank.text, cid }
         : plank
     )),
+  })
+}
+
+/** Record a successful roster publish on the local draft. */
+export function markRosterPublished(
+  causeId: string,
+  args: { slug: string; founderAddress: string; rosterCid: string },
+): CauseDraft | undefined {
+  return updateCause(causeId, {
+    slug: args.slug,
+    founderAddress: args.founderAddress.toLowerCase(),
+    rosterCid: args.rosterCid,
   })
 }
 

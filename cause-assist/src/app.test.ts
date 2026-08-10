@@ -9,7 +9,7 @@ const config: CauseAssistConfig = {
   apiBaseUrl: 'https://api.example.test/v1',
   suggestModel: 'test',
   safetyModel: 'test',
-  implicationModel: 'test',
+  implicationModel: 'test', coherenceModel: 'test',
   port: 0,
 }
 

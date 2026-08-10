@@ -35,6 +35,9 @@ export function loadConfigFromEnv(env: NodeJS.ProcessEnv = process.env): CauseAs
     implicationModel:
       firstEnv(env, ['CAUSE_ASSIST_IMPLICATION_MODEL', 'CAUSE_ASSIST_SUGGEST_MODEL', 'CAUSE_ASSIST_MODEL'])
       || defaultModel,
+    coherenceModel:
+      firstEnv(env, ['CAUSE_ASSIST_COHERENCE_MODEL', 'CAUSE_ASSIST_SAFETY_MODEL', 'CAUSE_ASSIST_MODEL'])
+      || defaultModel,
     port: Number(env.PORT || env.CAUSE_ASSIST_PORT || 3002),
   }
 }

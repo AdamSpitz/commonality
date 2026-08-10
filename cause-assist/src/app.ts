@@ -6,9 +6,11 @@ import { checkSafety } from './safetyFilter.js'
 import { checkImplications } from './implicationCheck.js'
 import { atomizeCause, draftDisjunctiveAnchor, sharpenPlank } from './plankStrategies.js'
 import { suggestMediatorScaffold } from './mediatorScaffold.js'
+import { checkCoherence } from './coherenceCheck.js'
 import type {
   AtomizeRequest,
   CheckImplicationsRequest,
+  CoherenceCheckRequest,
   DraftAnchorRequest,
   SafetyCheckRequest,
   SharpenPlankRequest,
@@ -39,7 +41,7 @@ export function createCauseAssistApp(config: CauseAssistConfig): express.Express
   app.set('trust proxy', 1)
   app.use(express.json({ limit: '64kb' }))
   app.use(
-    ['/suggest-statements', '/atomize', '/sharpen-plank', '/draft-anchor', '/suggest-mediator-scaffold', '/check-implications', '/safety-check'],
+    ['/suggest-statements', '/atomize', '/sharpen-plank', '/draft-anchor', '/suggest-mediator-scaffold', '/check-implications', '/safety-check', '/check-coherence'],
     createRateLimiter({
       windowMs: 60_000,
       maxRequests: 20,
@@ -193,6 +195,45 @@ export function createCauseAssistApp(config: CauseAssistConfig): express.Express
       }
       const result = await checkSafety(body, config)
       res.json(result)
+    } catch (error) {
+      next(error)
+    }
+  })
+
+  app.post('/check-coherence', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const body = req.body as CoherenceCheckRequest
+      if (typeof body?.rosterCid !== 'string' || !body.rosterCid.trim()) {
+        invalidRequest(res, 'rosterCid is required')
+        return
+      }
+      if (typeof body.title !== 'string' || body.title.length > MAX_STATEMENT_LENGTH) {
+        invalidRequest(res, `title must be a string of at most ${MAX_STATEMENT_LENGTH} characters`)
+        return
+      }
+      if (typeof body.summary !== 'string' || body.summary.length > MAX_STATEMENT_LENGTH) {
+        invalidRequest(res, `summary must be a string of at most ${MAX_STATEMENT_LENGTH} characters`)
+        return
+      }
+      if (
+        !Array.isArray(body.planks)
+        || body.planks.length > MAX_SUPPORTING_STATEMENTS
+        || body.planks.some((plank) => typeof plank !== 'string' || plank.length > MAX_STATEMENT_LENGTH)
+      ) {
+        invalidRequest(
+          res,
+          `planks must be an array of at most ${MAX_SUPPORTING_STATEMENTS} strings of at most ${MAX_STATEMENT_LENGTH} characters`,
+        )
+        return
+      }
+      if (
+        body.mediatorBlurb !== undefined
+        && (typeof body.mediatorBlurb !== 'string' || body.mediatorBlurb.length > MAX_STATEMENT_LENGTH)
+      ) {
+        invalidRequest(res, `mediatorBlurb must be a string of at most ${MAX_STATEMENT_LENGTH} characters`)
+        return
+      }
+      res.json(await checkCoherence(body, config))
     } catch (error) {
       next(error)
     }

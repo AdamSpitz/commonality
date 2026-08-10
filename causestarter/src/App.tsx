@@ -25,6 +25,10 @@ export default function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/start" element={<StartCausePage />} />
           <Route path="/momentum" element={<MomentumPage />} />
+          {/* Local drafts use a UUID. Published causes use
+              /cause/:owner/:slug[@versionCid] — stable id + optional pin.
+              See docs/founder/shaping-your-cause-statements.md § roster. */}
+          <Route path="/cause/:owner/:slugPart" element={<CauseDetailPage />} />
           <Route path="/cause/:causeId" element={<CauseDetailPage />} />
           {/* No browse or search route by design: a cause is reached by its own
               link, never by a directory we rank. See ADR 0005 and
