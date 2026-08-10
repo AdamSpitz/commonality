@@ -243,11 +243,15 @@ app.get("/api/events", async (c) => {
     if (blockNumber_gte) conditions.push(gte(schema.events.blockNumber, BigInt(blockNumber_gte)));
     if (blockNumber_lte) conditions.push(lte(schema.events.blockNumber, BigInt(blockNumber_lte)));
 
+    // Stable chain order so clients that fold with last-write-wins see a
+    // predictable sequence (SDK folds also compare blockNumber/logIndex).
     const query = db.select().from(schema.events);
-    const items = await (conditions.length > 0
+    const filtered = conditions.length > 0
       ? query.where(and(...conditions))
-      : query
-    ).limit(limit);
+      : query;
+    const items = await filtered
+      .orderBy(schema.events.blockNumber, schema.events.logIndex)
+      .limit(limit);
 
     return c.json(serializeBigInts({ items }) as object);
   } catch (error) {

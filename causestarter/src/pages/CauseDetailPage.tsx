@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   Alert,
   Box,
@@ -109,19 +109,19 @@ export function CauseDetailPage() {
   const [projectsError, setProjectsError] = useState<string | null>(null)
   const [remainingToThreshold, setRemainingToThreshold] = useState<CurrencyAmountBigInt[]>([])
   const [totalUnreimbursed, setTotalUnreimbursed] = useState<CurrencyAmountBigInt[]>([])
+  // Drop stale in-flight count fetches (support then quick retract, etc.).
+  const supportLoadGenRef = useRef(0)
+  // Holds the pre/post optimistic count so confirm fetches cannot paint a regression
+  // (the classic 0 → 1 → 0 → 1 flicker while the indexer lags).
+  const pendingSupportRef = useRef<{
+    cid: string
+    action: 'support' | 'retract'
+    baseline: number
+    optimistic: number
+  } | null>(null)
 
-  const loadSupportCounts = useCallback(async (options?: { isCancelled?: () => boolean }) => {
-    const isCancelled = options?.isCancelled ?? (() => false)
+  const fetchSupportCounts = useCallback(async (): Promise<Record<string, number>> => {
     const cids = statementCidsKey ? statementCidsKey.split('\0').filter(Boolean) : []
-    if (cids.length === 0) {
-      if (!isCancelled()) {
-        setSupportByCid({})
-        setSupportLoading(false)
-      }
-      return
-    }
-
-    if (!isCancelled()) setSupportLoading(true)
     const next: Record<string, number> = {}
     await Promise.all(
       cids.map(async (cid) => {
@@ -134,10 +134,129 @@ export function CauseDetailPage() {
         }
       }),
     )
-    if (isCancelled()) return
+    return next
+  }, [machinery, statementCidsKey])
+
+  const loadSupportCounts = useCallback(async (options?: { isCancelled?: () => boolean }) => {
+    const gen = ++supportLoadGenRef.current
+    const isStale = () =>
+      gen !== supportLoadGenRef.current || (options?.isCancelled?.() ?? false)
+    const cids = statementCidsKey ? statementCidsKey.split('\0').filter(Boolean) : []
+    if (cids.length === 0) {
+      if (!isStale()) {
+        setSupportByCid({})
+        setSupportLoading(false)
+      }
+      return
+    }
+
+    if (!isStale()) setSupportLoading(true)
+    const next = await fetchSupportCounts()
+    if (isStale()) return
+    // Don't clobber an in-flight optimistic chip with a lagging indexer read.
+    const pending = pendingSupportRef.current
+    if (pending && next[pending.cid] !== undefined) {
+      const counted = next[pending.cid]!
+      const regresses =
+        (pending.action === 'support' && counted < pending.optimistic)
+        || (pending.action === 'retract' && counted > pending.optimistic)
+      if (regresses) {
+        if (!isStale()) setSupportLoading(false)
+        return
+      }
+      pendingSupportRef.current = null
+    }
     setSupportByCid((prev) => ({ ...prev, ...next }))
     setSupportLoading(false)
-  }, [machinery, statementCidsKey])
+  }, [fetchSupportCounts, statementCidsKey])
+
+  /**
+   * After support/retract: optimistically nudge the chip once, then poll the event
+   * cache until it confirms — without ever painting a lagging intermediate value.
+   */
+  const handleSupportSettled = useCallback((info?: {
+    action?: 'support' | 'retract'
+    indexed?: boolean
+  }) => {
+    const cid = cause?.statementCid
+    if (!cid) return
+
+    const action = info?.action
+
+    // Phase 1: optimistic paint only (do not start fetching yet).
+    if (info?.indexed === false && action) {
+      setSupportByCid((prev) => {
+        const baseline = prev[cid] ?? 0
+        const optimistic =
+          action === 'support'
+            ? baseline + 1
+            : Math.max(0, baseline - 1)
+        pendingSupportRef.current = { cid, action, baseline, optimistic }
+        return { ...prev, [cid]: optimistic }
+      })
+      return
+    }
+
+    // Phase 2 (indexed / legacy): poll until the cache matches the optimistic
+    // direction. Never apply a fetch that would roll the chip backwards.
+    const pending = pendingSupportRef.current?.cid === cid
+      ? pendingSupportRef.current
+      : null
+    const effectiveAction = action ?? pending?.action
+    const baseline = pending?.baseline
+    const optimistic = pending?.optimistic
+
+    const gen = ++supportLoadGenRef.current
+    const delaysMs = [0, 100, 200, 400, 800, 1200, 2000]
+    void (async () => {
+      let lastNext: Record<string, number> | null = null
+      for (let i = 0; i < delaysMs.length; i++) {
+        if (gen !== supportLoadGenRef.current) return
+        const delay = delaysMs[i]!
+        if (delay > 0) await new Promise((r) => setTimeout(r, delay))
+        if (gen !== supportLoadGenRef.current) return
+        const next = await fetchSupportCounts()
+        if (gen !== supportLoadGenRef.current) return
+        lastNext = next
+
+        const counted = next[cid]
+        if (counted === undefined) continue
+
+        const confirmed =
+          effectiveAction === 'support'
+            ? (baseline !== undefined ? counted > baseline : counted >= (optimistic ?? 1))
+            : effectiveAction === 'retract'
+              ? (baseline !== undefined ? counted < baseline : counted === 0)
+              : true
+
+        if (!confirmed) continue
+
+        if (pendingSupportRef.current?.cid === cid) pendingSupportRef.current = null
+        setSupportByCid((prev) => ({ ...prev, ...next }))
+        setSupportLoading(false)
+        return
+      }
+
+      // Exhausted retries: only commit if we would not regress the optimistic chip.
+      if (gen !== supportLoadGenRef.current || !lastNext) return
+      const counted = lastNext[cid]
+      if (
+        counted !== undefined
+        && optimistic !== undefined
+        && (
+          (effectiveAction === 'support' && counted < optimistic)
+          || (effectiveAction === 'retract' && counted > optimistic)
+        )
+      ) {
+        // Keep optimistic value; leave pending so a later load can still heal.
+        setSupportLoading(false)
+        return
+      }
+      if (pendingSupportRef.current?.cid === cid) pendingSupportRef.current = null
+      setSupportByCid((prev) => ({ ...prev, ...lastNext }))
+      setSupportLoading(false)
+    })()
+  }, [cause?.statementCid, fetchSupportCounts])
 
   useEffect(() => {
     let cancelled = false
@@ -219,13 +338,11 @@ export function CauseDetailPage() {
   return (
     <Stack spacing={2.5}>
       <Box>
-        <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.75 }}>
-          <Chip
-            size="small"
-            label={cause.status === 'launched' ? 'Launched' : 'Draft'}
-            color={cause.status === 'launched' ? 'success' : 'default'}
-          />
-        </Stack>
+        {cause.status !== 'launched' && (
+          <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.75 }}>
+            <Chip size="small" label="Not yet launched" color="default" />
+          </Stack>
+        )}
         <Typography variant="h4" component="h1" sx={{ fontWeight: 800, fontSize: { xs: '1.55rem', sm: '1.9rem' } }}>
           {cause.name || 'Untitled cause'}
         </Typography>
@@ -260,7 +377,7 @@ export function CauseDetailPage() {
             </Button>
             <SupportButton
               statementCid={cause.statementCid as IpfsCidV1}
-              onSupported={() => void loadSupportCounts()}
+              onSupported={handleSupportSettled}
             />
           </Box>
         ) : (
@@ -486,3 +603,4 @@ export function CauseDetailPage() {
     </Stack>
   )
 }
+

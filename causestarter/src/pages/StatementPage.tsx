@@ -111,7 +111,43 @@ export function StatementPage() {
         </Typography>
         <SupportButton
           statementCid={statementCid as IpfsCidV1}
-          onSupported={() => void load()}
+          onSupported={(info) => {
+            if (!info.indexed) {
+              // Optimistic: tick the visible count before the indexer round-trip.
+              // Do not call load() yet — a lagging read would flicker 1 → 0 → 1.
+              setStatement((prev) => {
+                if (!prev) return prev
+                const delta = info.action === 'support' ? 1 : -1
+                return {
+                  ...prev,
+                  believerCount: Math.max(0, (prev.believerCount ?? 0) + delta),
+                }
+              })
+              return
+            }
+            // Confirmed: reload content, but never paint a regressive believerCount.
+            void (async () => {
+              if (!statementCid) return
+              try {
+                const result = await getStatementWithContent(machinery, statementCid as IpfsCidV1)
+                if (!result) return
+                setStatement((prev) => {
+                  const incoming = result.statement.believerCount ?? 0
+                  if (!prev) return result.statement
+                  if (info.action === 'support' && incoming < prev.believerCount) {
+                    return { ...result.statement, believerCount: prev.believerCount }
+                  }
+                  if (info.action === 'retract' && incoming > prev.believerCount) {
+                    return { ...result.statement, believerCount: prev.believerCount }
+                  }
+                  return result.statement
+                })
+                setContent(result.content)
+              } catch {
+                // Keep optimistic count; user can refresh.
+              }
+            })()
+          }}
         />
       </Paper>
 

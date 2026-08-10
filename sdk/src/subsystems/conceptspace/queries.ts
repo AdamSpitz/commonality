@@ -183,7 +183,13 @@ export async function getUserBelief(
     return { statementCid, beliefState: 0 };
   }
 
-  const latestEvent = userEvents.sort((a, b) => Number(b.blockNumber - a.blockNumber))[0];
+  // Event cache does not guarantee order; pick latest by (blockNumber, logIndex).
+  const latestEvent = userEvents.reduce((best, e) => {
+    if (e.blockNumber !== best.blockNumber) {
+      return e.blockNumber > best.blockNumber ? e : best;
+    }
+    return e.logIndex > best.logIndex ? e : best;
+  });
   return {
     statementCid,
     beliefState: latestEvent.beliefState,
