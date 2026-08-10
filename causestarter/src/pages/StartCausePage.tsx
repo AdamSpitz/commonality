@@ -216,15 +216,58 @@ export function StartCausePage() {
       return
     }
     setBusy(true)
+    // Resume-safe: reuse CIDs already written on a partial previous attempt so we
+    // do not re-publish the same plank as a new statement after a mid-loop failure.
+    let primaryCid = saved.statementCid
+    const extra: string[] = [...(saved.statementCids ?? [])]
     try {
       const currentPlanks = saved.statements.filter((item) => item.disposition === 'adopted' && item.text.trim())
-      const primaryCid = await publishOne(currentPlanks[0]!.text)
-      const extra: string[] = []
-      for (const plank of currentPlanks.slice(1)) extra.push(await publishOne(plank.text))
-      const launched = markCauseLaunched(saved.id, primaryCid, extra)
+      if (currentPlanks.length === 0) {
+        setError('Add at least one issue before publishing.')
+        return
+      }
+      if (!primaryCid) {
+        primaryCid = await publishOne(currentPlanks[0]!.text)
+        // Persist after primary so a crash mid-extras leaves a recoverable draft.
+        saveCause({
+          id: saved.id,
+          goal: saved.goal,
+          description: saved.description,
+          statements: saved.statements,
+          levers: saved.levers,
+          status: 'draft',
+          statementCid: primaryCid,
+          statementCids: [],
+          goalSafety: saved.goalSafety,
+          mediator: saved.mediator,
+        })
+      }
+      for (let i = 0; i < currentPlanks.length - 1; i++) {
+        if (extra[i]) continue
+        const plank = currentPlanks[i + 1]!
+        const cid = await publishOne(plank.text)
+        extra[i] = cid
+        saveCause({
+          id: saved.id,
+          goal: saved.goal,
+          description: saved.description,
+          statements: saved.statements,
+          levers: saved.levers,
+          status: 'draft',
+          statementCid: primaryCid,
+          statementCids: extra.filter(Boolean),
+          goalSafety: saved.goalSafety,
+          mediator: saved.mediator,
+        })
+      }
+      const launched = markCauseLaunched(saved.id, primaryCid, extra.filter(Boolean))
       navigate(`/cause/${launched?.id ?? saved.id}`)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to publish')
+      setError(
+        err instanceof Error
+          ? `${err.message}${primaryCid ? ' Some issues may already be on-chain; try Launch again to resume.' : ''}`
+          : 'Failed to publish',
+      )
     } finally {
       setBusy(false)
     }

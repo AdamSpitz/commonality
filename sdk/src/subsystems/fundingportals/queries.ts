@@ -16,6 +16,7 @@ import {
   getProject,
   getProjectContributions,
   getProjectRefunds,
+  getProjectReimbursementSnapshot,
   getProjectReimbursementState,
 } from '../lazy-giving/queries.js';
 import { getNote, getNoteIntentAttestationsByStatement } from '../delegation/queries.js';
@@ -583,36 +584,52 @@ async function getReceiptReimbursementSnapshot(machinery: SDKMachinery, projectA
     return { outstandingReceipts: 0n, outstandingUnreimbursedAmount: 0n, scoutRecords: [] };
   }
 
-  const contributions = await getProjectContributions(machinery, projectAddress);
+  // Receipt counts are permanent recognition of early contributions; unreimbursed
+  // amounts come from the reimbursement waterfall (early − retro − withdrawn).
+  const [contributions, reimbursement] = await Promise.all([
+    getProjectContributions(machinery, projectAddress),
+    getProjectReimbursementSnapshot(machinery, projectAddress),
+  ]);
 
-  // Receipts are permanent recognition of contributions in the reimbursement model.
-  // They are no longer consumed to signal a donation; reimbursement state is tracked
-  // separately from receipt-token balances.
   const outstandingReceipts = contributions.reduce((total, contribution) => (
     total + parseJsonBigIntArray(contribution.tokenCounts).reduce((sum, count) => sum + count, 0n)
   ), 0n);
 
-  const scouts = new Map<string, bigint>();
-  for (const contribution of contributions) {
-    const key = contribution.participant.toLowerCase();
-    scouts.set(key, (scouts.get(key) ?? 0n) + BigInt(contribution.totalCost));
-  }
-  const totalEarlyContributions = [...scouts.values()].reduce((sum, amount) => sum + amount, 0n);
+  const outstandingUnreimbursedAmount = BigInt(reimbursement.project.outstandingReimbursement || '0');
+  const scoutRecords = reimbursement.contributors
+    .map((contributor) => {
+      const scoutedAmount = BigInt(contributor.earlyContribution || '0');
+      const reimbursedAmount = BigInt(contributor.withdrawnAmount || '0');
+      const forgoneAmount = BigInt(contributor.forgoneAmount || '0');
+      const outstandingAmount = scoutedAmount > reimbursedAmount + forgoneAmount
+        ? scoutedAmount - reimbursedAmount - forgoneAmount
+        : 0n;
+      return {
+        scout: contributor.contributor,
+        scoutedAmount: scoutedAmount.toString(),
+        reimbursedAmount: reimbursedAmount.toString(),
+        outstandingAmount: outstandingAmount.toString(),
+      };
+    })
+    .filter((record) => BigInt(record.scoutedAmount) > 0n)
+    .sort((a, b) => {
+      const outstandingA = BigInt(a.outstandingAmount);
+      const outstandingB = BigInt(b.outstandingAmount);
+      if (outstandingA > outstandingB) return -1;
+      if (outstandingA < outstandingB) return 1;
+      return a.scout.localeCompare(b.scout);
+    });
 
   return {
     outstandingReceipts,
-    outstandingUnreimbursedAmount: totalEarlyContributions,
-    scoutRecords: [...scouts.entries()].map(([scout, scoutedAmount]) => ({
-      scout,
-      scoutedAmount: scoutedAmount.toString(),
-      reimbursedAmount: '0',
-      outstandingAmount: scoutedAmount.toString(),
-    })),
+    outstandingUnreimbursedAmount,
+    scoutRecords,
   };
 }
 
 /**
- * Get projects that have trusted success attestations for a cause and still have outstanding receipts.
+ * Get projects that have trusted success attestations for a cause and still have
+ * outstanding unreimbursed early contributions (not merely permanent receipt tokens).
  */
 export async function getSuccessfulProjectsForCause(
   machinery: SDKMachinery,
@@ -652,7 +669,9 @@ export async function getSuccessfulProjectsForCause(
       getProject(machinery, projectAddress).catch(() => null),
       getReceiptReimbursementSnapshot(machinery, projectAddress).catch(() => ({ outstandingReceipts: 0n, outstandingUnreimbursedAmount: 0n, scoutRecords: [] })),
     ]);
-    if (!project || reimbursement.outstandingReceipts <= 0n) return null;
+    // Drop fully reimbursed (or never-scouted) successes; receipt tokens are permanent
+    // and must not keep a project listed after outstanding unreimbursed money hits zero.
+    if (!project || reimbursement.outstandingUnreimbursedAmount <= 0n) return null;
     return {
       projectAddress: project.id,
       successType: success.successType,
@@ -672,8 +691,8 @@ export async function getSuccessfulProjectsForCause(
   return rows
     .filter((row): row is NonNullable<typeof row> => row !== null)
     .sort((a, b) => {
-      const scoreA = BigInt(a.outstandingReceipts) * BigInt(a.successConfidenceScore);
-      const scoreB = BigInt(b.outstandingReceipts) * BigInt(b.successConfidenceScore);
+      const scoreA = BigInt(a.outstandingUnreimbursedAmount) * BigInt(a.successConfidenceScore);
+      const scoreB = BigInt(b.outstandingUnreimbursedAmount) * BigInt(b.successConfidenceScore);
       if (scoreA > scoreB) return -1;
       if (scoreA < scoreB) return 1;
       return a.projectAddress.localeCompare(b.projectAddress);
