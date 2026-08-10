@@ -8,22 +8,42 @@
  * See docs/founder/shaping-your-cause-statements.md § The roster is a publication.
  */
 
-import { MutableRefUpdaterAbi, PublishedDataAbi } from '@commonality/sdk/abis'
+import {
+  AlignmentAttestationsAbi,
+  MutableRefUpdaterAbi,
+  PublishedDataAbi,
+} from '@commonality/sdk/abis'
 import {
   createDefaultDocumentStore,
   createDisplayableDocument,
   publishedDataCidForDocument,
+  toCanonicalJson,
+  validateDisplayableDocument,
   type DisplayableDocument,
 } from '@commonality/sdk/displayable-documents'
+import {
+  getSubjectStatements,
+  type AlignmentAttestation,
+} from '@commonality/sdk/fundingportals'
 import type { SDKMachinery } from '@commonality/sdk/machinery'
 import {
   getUserRef,
   getUserRefHistory,
-  updateRef,
-  type MutableRefUpdaterContract,
   type RefUpdate,
 } from '@commonality/sdk/mutable-refs'
-import type { WriteClients } from '@commonality/sdk/utils'
+import {
+  cidToBytes32,
+  type IpfsCidV1,
+  type WriteClients,
+} from '@commonality/sdk/utils'
+import {
+  encodeFunctionData,
+  numberToHex,
+  toHex,
+  type Abi,
+  type Address,
+  type Hash,
+} from 'viem'
 import { getRuntimeConfigValue } from './runtimeConfig'
 import type { CauseDraft, CauseMediator } from './causeStore'
 import { publishedPlanks } from './causeStore'
@@ -31,6 +51,41 @@ import { publishedPlanks } from './causeStore'
 /** Structured payload stored in DisplayableDocument.extras. */
 export const ROSTER_KIND = 'causestarter.roster' as const
 export const ROSTER_SCHEMA_VERSION = 1 as const
+
+/**
+ * Well-known topic for roster coherence attestations (construction, not merit).
+ * Positive-only: silence means no badge — never a published negative judgment.
+ */
+export const ROSTER_COHERENCE_TOPIC_DOCUMENT: DisplayableDocument = createDisplayableDocument({
+  format: 'text/plain',
+  content: 'This is the well-known topic for cause-roster coherence attestations in Commonality.',
+  extras: {
+    statementType: 'topic',
+    kind: 'causestarter.roster-coherence',
+  },
+})
+
+/**
+ * Well-known claim: subject roster is coherently constructed.
+ * Bound on-chain via AlignmentAttestations (subject = roster CID digest).
+ */
+export const ROSTER_COHERENCE_CLAIM_DOCUMENT: DisplayableDocument = createDisplayableDocument({
+  format: 'text/plain',
+  content:
+    'This roster is coherently constructed: its published issues match its title and summary, and it hides no riders. This is a claim about construction only, not about merit.',
+  extras: {
+    statementType: 'claim',
+    kind: 'causestarter.roster-coherence',
+  },
+})
+
+export const ROSTER_COHERENCE_TOPIC: IpfsCidV1 = publishedDataCidForDocument(
+  ROSTER_COHERENCE_TOPIC_DOCUMENT,
+) as IpfsCidV1
+
+export const ROSTER_COHERENCE_CLAIM: IpfsCidV1 = publishedDataCidForDocument(
+  ROSTER_COHERENCE_CLAIM_DOCUMENT,
+) as IpfsCidV1
 
 /** Ref names reserved by the substrate; founders may not use these as slugs. */
 export const RESERVED_REF_NAMES = new Set([
@@ -68,6 +123,19 @@ export interface PublishRosterResult {
   rosterCid: string
   refTxHash: `0x${string}`
   publishTxHash: `0x${string}`
+  /** Present when a positive coherence attestation was written for this roster CID. */
+  coherenceTxHash?: `0x${string}`
+  /** True when publish + updateRef (+ optional attest) shared one wallet batch. */
+  batched: boolean
+}
+
+export interface RosterCoherenceBadge {
+  rosterCid: string
+  /** On-chain attester addresses that asserted the well-known coherence claim. */
+  attesters: `0x${string}`[]
+  /** Earliest attestation timestamp (ISO), when available. */
+  attestedAt?: string
+  attestations: AlignmentAttestation[]
 }
 
 const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
@@ -220,20 +288,112 @@ function contractsFromMachinery(machinery: SDKMachinery) {
     || getRuntimeConfigValue('VITE_MUTABLE_REF_UPDATER_CONTRACT_ADDRESS')) as `0x${string}` | undefined
   const publishedDataAddress = (addresses?.publishedData
     || getRuntimeConfigValue('VITE_PUBLISHED_DATA_CONTRACT_ADDRESS')) as `0x${string}` | undefined
-  return { mutableRefAddress, publishedDataAddress }
+  const alignmentAddress = (addresses?.alignmentAttestations
+    || getRuntimeConfigValue('VITE_ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS')) as `0x${string}` | undefined
+  return { mutableRefAddress, publishedDataAddress, alignmentAddress }
+}
+
+/** Subject id for AlignmentAttestations: roster document CID digest. */
+export function rosterSubjectId(rosterCid: string): `0x${string}` {
+  return cidToBytes32(rosterCid)
+}
+
+type ContractCall = {
+  to: Address
+  abi: Abi
+  functionName: string
+  args: readonly unknown[]
 }
 
 /**
- * Publish roster document via PublishedData, then point the stable ref at its CID.
- * Two transactions today (publish + updateRef); batching is a later optimization.
+ * EIP-5792 atomic batch when the wallet supports it; otherwise sequential writes.
+ * Local Hardhat EOAs often lack wallet_sendCalls — fall back without failing the publish.
+ */
+async function sendCallsPreferAtomic(
+  clients: WriteClients,
+  calls: readonly ContractCall[],
+): Promise<{ hashes: Hash[]; batched: boolean }> {
+  if (calls.length === 0) return { hashes: [], batched: false }
+
+  const chainId = clients.walletClient.chain?.id
+  if (chainId && calls.length > 1) {
+    try {
+      const id = await clients.walletClient.request({
+        method: 'wallet_sendCalls',
+        params: [{
+          version: '2.0.0',
+          chainId: numberToHex(chainId),
+          from: clients.account,
+          atomicRequired: true,
+          calls: calls.map(({ to, abi, functionName, args }) => ({
+            to,
+            data: encodeFunctionData({ abi, functionName, args }),
+          })),
+        }],
+      })
+      const batchId = typeof id === 'string' ? id : (id as { id: string }).id
+      const deadline = Date.now() + 120_000
+      while (Date.now() < deadline) {
+        const status = await clients.walletClient.request({
+          method: 'wallet_getCallsStatus',
+          params: [batchId],
+        }) as { status: number; receipts?: { transactionHash?: Hash }[] }
+        if (status.status === 200) {
+          const hash = status.receipts?.[0]?.transactionHash
+          if (!hash) throw new Error('Atomic transaction completed without a transaction hash.')
+          return { hashes: [hash], batched: true }
+        }
+        if (status.status >= 300) throw new Error('Atomic transaction failed.')
+        await new Promise((resolve) => setTimeout(resolve, 1_000))
+      }
+      throw new Error('Timed out waiting for atomic transaction confirmation.')
+    } catch (error) {
+      // Fall through to sequential — common for Hardhat/local injectors.
+      const message = error instanceof Error ? error.message : String(error)
+      if (/atomic|sendCalls|wallet_sendCalls|method.*not.*support|does not exist/i.test(message)
+        || message.includes('Atomic transaction')) {
+        // continue sequential
+      } else if (!/not supported|Method not found|does not support/i.test(message)) {
+        // Unknown error from batch path: still try sequential rather than strand a half-publish.
+      }
+    }
+  }
+
+  const hashes: Hash[] = []
+  for (const call of calls) {
+    const hash = await clients.walletClient.writeContract({
+      address: call.to,
+      abi: call.abi,
+      functionName: call.functionName,
+      args: call.args as never,
+      chain: clients.walletClient.chain,
+      account: clients.walletClient.account!,
+    })
+    await clients.publicClient.waitForTransactionReceipt({ hash })
+    hashes.push(hash)
+  }
+  return { hashes, batched: false }
+}
+
+/**
+ * Publish roster document via PublishedData, point the stable ref at its CID, and
+ * optionally write a positive-only coherence attestation for that CID.
+ *
+ * Prefers one atomic wallet batch (publish + updateRef [+ attest]); falls back to
+ * sequential txs when the wallet cannot batch.
  */
 export async function publishRoster(args: {
   machinery: SDKMachinery
   writeClients: WriteClients | null | undefined
   slug: string
   fields: RosterFields
+  /**
+   * When true, also attest the well-known coherence claim for this roster CID
+   * (positive-only; callers must only pass true after a matching preview pass).
+   */
+  attestCoherence?: boolean
 }): Promise<PublishRosterResult> {
-  const { machinery, writeClients, slug, fields } = args
+  const { machinery, writeClients, slug, fields, attestCoherence = false } = args
   const slugError = validateSlug(slug)
   if (slugError) throw new Error(slugError)
   if (!writeClients) {
@@ -243,29 +403,149 @@ export async function publishRoster(args: {
     throw new Error('Publish at least one issue before publishing the cause roster.')
   }
 
-  const { mutableRefAddress, publishedDataAddress } = contractsFromMachinery(machinery)
+  const { mutableRefAddress, publishedDataAddress, alignmentAddress } = contractsFromMachinery(machinery)
   if (!mutableRefAddress || !publishedDataAddress) {
     throw new Error('Contract addresses are missing. Redeploy CauseStarter to refresh config.json.')
   }
+  if (attestCoherence && !alignmentAddress) {
+    throw new Error(
+      'Alignment attestations contract is missing; cannot persist the coherence badge. Redeploy CauseStarter.',
+    )
+  }
 
   const doc = buildRosterDocument(fields)
-  const store = createDefaultDocumentStore(machinery, {
-    clients: writeClients,
-    publishedDataContract: { address: publishedDataAddress, abi: PublishedDataAbi },
-  })
-  const published = await store.publish(doc)
-
-  const mutableRefUpdater: MutableRefUpdaterContract = {
-    address: mutableRefAddress,
-    abi: MutableRefUpdaterAbi,
+  const validation = validateDisplayableDocument(doc)
+  if (!validation.valid) {
+    throw new Error(`Invalid roster document: ${validation.errors.join(', ')}`)
   }
-  const refTxHash = await updateRef(writeClients, mutableRefUpdater, slug, published.cid)
+  const content = new TextEncoder().encode(toCanonicalJson(doc))
+  const rosterCid = publishedDataCidForDocument(doc)
 
+  const calls: ContractCall[] = [
+    {
+      to: publishedDataAddress,
+      abi: PublishedDataAbi as Abi,
+      functionName: 'publishData',
+      args: [toHex(content)],
+    },
+    {
+      to: mutableRefAddress,
+      abi: MutableRefUpdaterAbi as Abi,
+      functionName: 'updateRef',
+      args: [slug, rosterCid],
+    },
+  ]
+
+  if (attestCoherence && alignmentAddress) {
+    calls.push({
+      to: alignmentAddress,
+      abi: AlignmentAttestationsAbi as Abi,
+      functionName: 'attestAlignment',
+      args: [
+        rosterSubjectId(rosterCid),
+        cidToBytes32(ROSTER_COHERENCE_CLAIM),
+        cidToBytes32(ROSTER_COHERENCE_TOPIC),
+      ],
+    })
+  }
+
+  const { hashes, batched } = await sendCallsPreferAtomic(writeClients, calls)
+
+  if (batched) {
+    const hash = hashes[0]!
+    return {
+      rosterCid,
+      publishTxHash: hash,
+      refTxHash: hash,
+      coherenceTxHash: attestCoherence ? hash : undefined,
+      batched: true,
+    }
+  }
+
+  // Sequential: publish, updateRef, optional attest
+  const publishTxHash = hashes[0]!
+  const refTxHash = hashes[1]!
+  const coherenceTxHash = attestCoherence ? hashes[2] : undefined
   return {
-    rosterCid: published.cid,
-    publishTxHash: published.txHash,
+    rosterCid,
+    publishTxHash,
     refTxHash,
+    coherenceTxHash,
+    batched: false,
   }
+}
+
+/**
+ * Load on-chain positive coherence attestations for a roster version CID.
+ * Viewers recompute the badge from AlignmentAttestations + well-known claim/topic.
+ */
+export async function loadRosterCoherenceBadge(
+  machinery: SDKMachinery,
+  rosterCid: string,
+): Promise<RosterCoherenceBadge | null> {
+  if (!rosterCid) return null
+  let attestations: AlignmentAttestation[]
+  try {
+    attestations = await getSubjectStatements(
+      machinery,
+      rosterSubjectId(rosterCid),
+      undefined,
+      ROSTER_COHERENCE_TOPIC,
+    )
+  } catch {
+    return null
+  }
+
+  // AlignmentAttestations stores only the multihash digest; decoded CIDs may use
+  // dag-pb (bafybei…) while well-known PublishedData CIDs use raw (bafkrei…).
+  const claimDigest = cidToBytes32(ROSTER_COHERENCE_CLAIM).toLowerCase()
+  const matching = attestations.filter((a) => {
+    try {
+      return cidToBytes32(a.statementCid).toLowerCase() === claimDigest
+    } catch {
+      return a.statementCid === ROSTER_COHERENCE_CLAIM
+    }
+  })
+
+  if (matching.length === 0) return null
+  const active = matching
+
+  const attesters = [...new Set(active.map((a) => a.attester.toLowerCase() as `0x${string}`))]
+  const times = active
+    .map((a) => a.createdAt)
+    .filter((t): t is string => Boolean(t))
+    .sort()
+  return {
+    rosterCid,
+    attesters,
+    attestedAt: times[0],
+    attestations: active,
+  }
+}
+
+/**
+ * Pure helper: which planks first appeared after the earliest roster version.
+ * History is newest-first (getUserRefHistory).
+ */
+export function plankAddedLaterLabels(
+  history: RefUpdate[],
+  firstSeen: Map<string, RefUpdate>,
+  now = Date.now(),
+): Map<string, string> {
+  const labels = new Map<string, string>()
+  if (history.length < 2) return labels
+  const oldest = history[history.length - 1]
+  if (!oldest) return labels
+
+  for (const [cid, update] of firstSeen) {
+    if (update.id === oldest.id) continue
+    if (update.value === oldest.value) continue
+    // Same block as first version is not "later"
+    if (update.blockNumber === oldest.blockNumber && update.logIndex === oldest.logIndex) continue
+    const age = formatRosterAge(Number(update.timestamp) * 1000, now)
+    labels.set(cid, `Added later · ${age}`)
+  }
+  return labels
 }
 
 /** Resolve current roster CID from the stable ref, or null if unset. */

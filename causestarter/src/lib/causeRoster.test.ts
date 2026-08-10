@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import type { RefUpdate } from '@commonality/sdk/mutable-refs'
 import {
   buildRosterDocument,
   formatRosterAge,
@@ -6,9 +7,14 @@ import {
   normalizeSlug,
   parseCauseRouteParams,
   parseRosterDocument,
+  plankAddedLaterLabels,
+  plankFirstSeenInHistory,
   previewRosterCid,
   renderRosterContent,
+  ROSTER_COHERENCE_CLAIM,
+  ROSTER_COHERENCE_TOPIC,
   rosterFieldsFromCause,
+  rosterSubjectId,
   stableCausePath,
   validateSlug,
 } from './causeRoster'
@@ -142,5 +148,64 @@ describe('causeRoster', () => {
       mediatorBlurb: '',
     })
     expect(content.indexOf('cid-a')).toBeLessThan(content.indexOf('cid-b'))
+  })
+
+  it('pins well-known coherence topic and claim CIDs', () => {
+    expect(ROSTER_COHERENCE_TOPIC).toMatch(/^bafkrei/)
+    expect(ROSTER_COHERENCE_CLAIM).toMatch(/^bafkrei/)
+    expect(ROSTER_COHERENCE_TOPIC).not.toBe(ROSTER_COHERENCE_CLAIM)
+    expect(ROSTER_COHERENCE_TOPIC).toBe('bafkreigcuduguak3tvfltu56ggksxheukrqtbvf22zntpb7uibbpni27zm')
+    expect(ROSTER_COHERENCE_CLAIM).toBe('bafkreiddm4nvelu26hac2hqc6gpaegbrvcjfficxoddgnhjxedokngrv6a')
+  })
+
+  it('derives roster subject id from CID digest', () => {
+    const cid = previewRosterCid({
+      title: 'T',
+      summary: 'S',
+      plankCids: ['bafyplank1'],
+      mediatorBlurb: '',
+    })
+    expect(rosterSubjectId(cid)).toMatch(/^0x[0-9a-f]{64}$/)
+  })
+
+  it('marks planks added after the first roster version', async () => {
+    const owner = '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+    const v1: RefUpdate = {
+      id: `${owner}:oak:1:0`,
+      owner,
+      name: 'oak',
+      value: 'bafyroster1',
+      blockNumber: '1',
+      timestamp: '1700000000',
+      transactionHash: '0x1',
+      logIndex: 0,
+    }
+    const v2: RefUpdate = {
+      id: `${owner}:oak:2:0`,
+      owner,
+      name: 'oak',
+      value: 'bafyroster2',
+      blockNumber: '2',
+      timestamp: '1700086400',
+      transactionHash: '0x2',
+      logIndex: 0,
+    }
+    // Newest-first history (matches getUserRefHistory)
+    const history = [v2, v1]
+    const fieldsByCid: Record<string, { title: string; summary: string; plankCids: string[]; mediatorBlurb: string }> = {
+      bafyroster1: {
+        title: 'T', summary: 'S', plankCids: ['plank-a'], mediatorBlurb: '',
+      },
+      bafyroster2: {
+        title: 'T', summary: 'S', plankCids: ['plank-a', 'plank-b'], mediatorBlurb: '',
+      },
+    }
+    const firstSeen = await plankFirstSeenInHistory(history, (cid) => fieldsByCid[cid] ?? null)
+    expect(firstSeen.get('plank-a')?.value).toBe('bafyroster1')
+    expect(firstSeen.get('plank-b')?.value).toBe('bafyroster2')
+
+    const labels = plankAddedLaterLabels(history, firstSeen, Number(v2.timestamp) * 1000 + 60_000)
+    expect(labels.has('plank-a')).toBe(false)
+    expect(labels.get('plank-b')).toMatch(/Added later/i)
   })
 })

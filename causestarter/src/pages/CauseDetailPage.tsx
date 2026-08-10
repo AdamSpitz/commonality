@@ -35,9 +35,10 @@ import {
   type CoherenceVerdict,
 } from '../lib/causeAssistClient'
 import {
-  formatRosterAge, loadRosterDocument, loadRosterHistory, normalizeSlug,
-  parseCauseRouteParams, previewRosterCid, publishRoster, resolveRosterCid,
-  rosterFieldsFromCause, stableCausePath, validateSlug,
+  formatRosterAge, loadRosterCoherenceBadge, loadRosterDocument, loadRosterHistory,
+  normalizeSlug, parseCauseRouteParams, plankAddedLaterLabels, plankFirstSeenInHistory,
+  previewRosterCid, publishRoster, resolveRosterCid, rosterFieldsFromCause,
+  stableCausePath, validateSlug, type RosterCoherenceBadge,
 } from '../lib/causeRoster'
 import { publishPlank } from '../lib/publishPlank'
 import { SUPPORTING_TOOLS } from '../lib/tools'
@@ -122,6 +123,8 @@ export function CauseDetailPage() {
   const [publishingRoster, setPublishingRoster] = useState(false)
   const [checkingCoherence, setCheckingCoherence] = useState(false)
   const [coherence, setCoherence] = useState<CoherenceVerdict | null>(null)
+  const [onChainBadge, setOnChainBadge] = useState<RosterCoherenceBadge | null>(null)
+  const [addedLaterByCid, setAddedLaterByCid] = useState<Map<string, string>>(new Map())
   const [error, setError] = useState<string | null>(null)
   const [dialogSafety, setDialogSafety] = useState<SafetyState | null>(null)
   const [titleDraft, setTitleDraft] = useState('')
@@ -200,8 +203,10 @@ export function CauseDetailPage() {
         }
 
         const hist = await loadRosterHistory(machinery, routeRef.owner, routeRef.slug)
+        const badge = await loadRosterCoherenceBadge(machinery, rosterCid)
         if (cancelled) return
         setHistory(hist)
+        setOnChainBadge(badge)
         setCause(remoteCause)
         // Founder with local draft can edit current tip; pinned and pure visitors are read-only.
         const isFounder = Boolean(
@@ -230,6 +235,38 @@ export function CauseDetailPage() {
     setSummaryDraft(cause?.summary ?? '')
     setSlugDraft(cause?.slug ?? '')
   }, [cause?.id, cause?.suggestionSeed, cause?.title, cause?.summary, cause?.slug])
+
+  // Per-plank "added later" markers from ref history + prior roster docs.
+  useEffect(() => {
+    if (history.length < 2) {
+      setAddedLaterByCid(new Map())
+      return
+    }
+    let cancelled = false
+    void (async () => {
+      const firstSeen = await plankFirstSeenInHistory(history, async (cid) => {
+        const loaded = await loadRosterDocument(machinery, cid)
+        return loaded?.fields ?? null
+      })
+      if (cancelled) return
+      setAddedLaterByCid(plankAddedLaterLabels(history, firstSeen))
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [history, machinery])
+
+  // Refresh on-chain badge when local draft already has a rosterCid (founder return).
+  useEffect(() => {
+    if (!cause?.rosterCid || routeRef) return
+    let cancelled = false
+    void loadRosterCoherenceBadge(machinery, cause.rosterCid).then((badge) => {
+      if (!cancelled) setOnChainBadge(badge)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [cause?.rosterCid, machinery, routeRef])
 
   const canEdit = Boolean(cause) && !remoteReadOnly && !routeRef?.versionCid
 
@@ -496,11 +533,18 @@ export function CauseDetailPage() {
       if (!withFields) throw new Error('Cause draft missing on this device.')
 
       const fields = rosterFieldsFromCause(withFields)
+      const wouldBe = previewRosterCid(fields)
+      const shouldAttest = Boolean(
+        coherence
+        && coherence.coherent
+        && coherence.rosterCid === wouldBe,
+      )
       const result = await publishRoster({
         machinery,
         writeClients,
         slug,
         fields,
+        attestCoherence: shouldAttest,
       })
       const marked = markRosterPublished(cause.id, {
         slug,
@@ -509,8 +553,12 @@ export function CauseDetailPage() {
       })
       if (marked) setCause(marked)
       setCoherence(null)
-      const hist = await loadRosterHistory(machinery, address, slug)
+      const [hist, badge] = await Promise.all([
+        loadRosterHistory(machinery, address, slug),
+        loadRosterCoherenceBadge(machinery, result.rosterCid),
+      ])
       setHistory(hist)
+      setOnChainBadge(badge)
       navigate(stableCausePath({
         owner: address.toLowerCase() as `0x${string}`,
         slug,
@@ -549,6 +597,16 @@ export function CauseDetailPage() {
         )}
         {cause.rosterCid && !routeRef?.versionCid && (
           <Chip size="small" color="success" label="Roster published" sx={{ mb: 0.75, ml: live ? 1 : 0 }} />
+        )}
+        {onChainBadge && onChainBadge.attesters.length > 0 && (
+          <Chip
+            size="small"
+            color="success"
+            variant="filled"
+            label="Coherent construction"
+            sx={{ mb: 0.75, ml: 1 }}
+            data-testid="cause-coherence-badge"
+          />
         )}
         <Typography
           variant="h4"
@@ -649,6 +707,7 @@ export function CauseDetailPage() {
               sharpening={sharpeningId === plank.id}
               publishing={publishingId === plank.id}
               mutationLocked={mutationLocked || !canEdit}
+              addedLaterLabel={plank.cid ? addedLaterByCid.get(plank.cid) : undefined}
             />
           ))}
         </Stack>
@@ -719,6 +778,7 @@ export function CauseDetailPage() {
             slug={slugDraft}
             previewCid={wouldBeCid}
             coherence={coherence}
+            onChainBadge={onChainBadge}
             slugLocked={slugLocked}
             canPublish={publishedCids.length > 0}
             checking={checkingCoherence}

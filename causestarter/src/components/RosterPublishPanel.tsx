@@ -12,12 +12,19 @@ import {
 import type { CoherenceVerdict } from '../lib/causeAssistClient'
 import { normalizeSlug, validateSlug } from '../lib/causeRoster'
 
+function shortAddr(address: string): string {
+  if (address.length < 12) return address
+  return `${address.slice(0, 6)}…${address.slice(-4)}`
+}
+
 export interface RosterPublishPanelProps {
   title: string
   summary: string
   slug: string
   previewCid: string | null
   coherence: CoherenceVerdict | null
+  /** On-chain badge for the currently published roster tip (if any). */
+  onChainBadge?: { attesters: string[]; attestedAt?: string } | null
   slugLocked: boolean
   canPublish: boolean
   checking: boolean
@@ -40,6 +47,7 @@ export function RosterPublishPanel({
   slug,
   previewCid,
   coherence,
+  onChainBadge,
   slugLocked,
   canPublish,
   checking,
@@ -85,6 +93,16 @@ export function RosterPublishPanel({
           <Typography component="span" variant="body2" sx={{ fontFamily: 'monospace' }}>
             {lastPublishedCid.slice(0, 18)}…
           </Typography>
+        </Alert>
+      )}
+
+      {onChainBadge && onChainBadge.attesters.length > 0 && (
+        <Alert severity="success" sx={{ borderRadius: 2 }} data-testid="roster-on-chain-badge">
+          Coherence badge on chain
+          {onChainBadge.attesters.length === 1
+            ? ` · attester ${shortAddr(onChainBadge.attesters[0]!)}`
+            : ` · ${onChainBadge.attesters.length} attesters`}
+          . Viewers recompute this from the roster CID and AlignmentAttestations.
         </Alert>
       )}
 

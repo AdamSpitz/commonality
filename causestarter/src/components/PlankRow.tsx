@@ -37,6 +37,11 @@ interface PlankRowProps {
   publishing: boolean
   /** Another cause mutation is in flight, so all draft controls are locked. */
   mutationLocked?: boolean
+  /**
+   * Provenance from roster history: issue first appeared after the initial
+   * published roster (e.g. "Added later · 3 days ago").
+   */
+  addedLaterLabel?: string
 }
 
 function supportSummary(support: PlankSupport | undefined, loading: boolean): string {
@@ -52,6 +57,7 @@ export function PlankRow({
   plank, index, selected, onSelectedChange, support, supportLoading, projectCount,
   onSupported, onTextChange, onDelete, onSharpen, onPublish, sharpening, publishing,
   mutationLocked = false,
+  addedLaterLabel,
 }: PlankRowProps) {
   const published = Boolean(plank.cid)
   const tooShort = plank.text.trim().length > 0 && plank.text.trim().length < MIN_PLANK_LENGTH
@@ -116,6 +122,15 @@ export function PlankRow({
               <Typography variant="caption" color="text.secondary">
                 {supportSummary(support, supportLoading)}
               </Typography>
+              {addedLaterLabel && (
+                <Chip
+                  size="small"
+                  variant="outlined"
+                  label={addedLaterLabel}
+                  data-testid={`plank-added-later-${index}`}
+                  sx={{ borderStyle: 'dashed' }}
+                />
+              )}
             </Stack>
           )}
 

@@ -32,9 +32,10 @@ what remains open is one bug, at the end.
   ordered plank CIDs, mediator blurb) is published through `PublishedData`; its
   CID is the version ID. A `MutableRef` `(founder, slug) → CID` is the stable ID
   in `/cause/:owner/:slug`, with optional `/cause/:owner/:slug@version` pins.
-  Preview-before-publish and a separate coherence attester (`cause-assist`
-  `/check-coherence`) are wired; on-chain coherence *attestations* (badge
-  persistence for third parties) are still client-side preview only.
+  Preview-before-publish, a separate coherence check (`cause-assist`
+  `/check-coherence`), and a positive-only on-chain coherence badge
+  (`AlignmentAttestations` subject = roster CID digest) are wired. Publish +
+  `updateRef` (+ optional attest) prefer one atomic wallet batch.
 
 Companion to [standing up a vertical](/docs/founder/standing-up-a-vertical.md),
 which covers the vertical as a whole. This one covers the narrow question of what
@@ -329,12 +330,12 @@ disbelief, not inventing a new kind of statement.
 
 ## The roster is a publication
 
-**Status: built for CauseStarter (2026-08-10), with two follow-ups.** Roster
-document publish + stable ref, history/pinned URLs, preview-before-publish, and
-the separate coherence check are in. Still open: (1) persisting a positive-only
-on-chain coherence attestation (preview verdict is live; the badge is not yet a
-substrate attestation), (2) batching `PublishedData` publish with `updateRef` in
-one wallet transaction.
+**Status: built for CauseStarter (2026-08-10).** Roster document publish +
+stable ref, history/pinned URLs, preview-before-publish, separate coherence
+check, positive-only on-chain badge (subject = roster CID via
+`AlignmentAttestations` + well-known claim/topic), atomic publish+ref(+attest)
+when the wallet supports EIP-5792 (sequential fallback for local EOAs), and
+per-plank "added later" provenance from `getUserRefHistory` are in.
 
 ### The problem it solves
 
@@ -495,10 +496,11 @@ fail in opposite directions, which is why both are shown.
 
 ### What it costs
 
-Every roster edit becomes a `PublishedData` publish plus an `updateRef`
-transaction, where today editing is free and local. That is the main argument
-against this design, and it is worth checking whether the plank publish and the
-ref update can share a transaction before committing to it.
+Every roster edit becomes a `PublishedData` publish plus an `updateRef` (and,
+when a preview passed, a positive coherence attestation). CauseStarter prefers
+one EIP-5792 atomic batch for those calls and falls back to sequential txs when
+the wallet cannot batch (common for local Hardhat EOAs). Draft editing remains
+free and local until publish.
 
 Bought back: version history, "roster changed 3 days ago", and per-plank
 *added-later* provenance markers all fall straight out of `ref_updates` with no
