@@ -55,6 +55,21 @@ describe('useViewCounts', () => {
     expect(getStatementBelieverSets).not.toHaveBeenCalled()
   })
 
+  it('keeps prior sets when temporarily disabled instead of blanking the UI', async () => {
+    const { result, rerender } = renderHook(
+      ({ enabled }: { enabled: boolean }) => useViewCounts([CID], [CID], undefined, enabled),
+      { initialProps: { enabled: true } },
+    )
+
+    await waitFor(() => expect(result.current.perPlank.size).toBe(1))
+    expect(getStatementBelieverSets).toHaveBeenCalledTimes(1)
+
+    rerender({ enabled: false })
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    expect(result.current.perPlank.size).toBe(1)
+    expect(getStatementBelieverSets).toHaveBeenCalledTimes(1)
+  })
+
   it('clears stale sets and exposes SDK query failures', async () => {
     vi.mocked(getStatementBelieverSets).mockRejectedValue(new Error('event cache unavailable'))
     const { result } = renderHook(() => useViewCounts([CID], [CID]))

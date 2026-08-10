@@ -314,7 +314,11 @@ start_services() {
     # written by hardhat-deploy at runtime instead of stale values baked into
     # the Docker image. Ensure clean checkouts have files to mount.
     mkdir -p ui causestarter
-    touch .env ui/.env causestarter/.env
+    # Create empty env files only when missing. `touch` on existing files updates
+    # mtime and forces Vite (npm run causestarter:dev) to full-reload the SPA.
+    [ -f .env ] || touch .env
+    [ -f ui/.env ] || touch ui/.env
+    [ -f causestarter/.env ] || touch causestarter/.env
     services_to_build=()
     while IFS= read -r line; do
         services_to_build+=("$line")

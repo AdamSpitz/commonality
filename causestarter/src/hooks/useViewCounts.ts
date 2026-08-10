@@ -60,10 +60,16 @@ export function useViewCounts(
 
   useEffect(() => {
     const cids = publishedKey ? publishedKey.split('\0').filter(Boolean) : []
-    if (!enabled || cids.length === 0) {
+    if (cids.length === 0) {
       setSetsByCid(new Map())
       setLoading(false)
       setError(null)
+      return
+    }
+    // Keep prior counts when temporarily disabled (e.g. trust gate re-check) so
+    // the cause page does not blank the views strip on every refresh.
+    if (!enabled) {
+      setLoading(false)
       return
     }
 

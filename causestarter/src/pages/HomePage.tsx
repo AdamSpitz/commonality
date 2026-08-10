@@ -1,10 +1,12 @@
 import { Box, Button, CircularProgress, Paper, Stack, Typography } from '@mui/material'
-import { Link as RouterLink } from 'react-router-dom'
+import { Link as RouterLink, useNavigate } from 'react-router-dom'
 import { MomentumSteps } from '../components/MomentumSteps'
 import { CauseCard } from '../components/CauseCard'
 import { useUserCauses } from '../hooks/useUserCauses'
+import { createCausePath } from '../lib/causeStore'
 
 export function HomePage() {
+  const navigate = useNavigate()
   const { causes: allCauses, loading } = useUserCauses()
   const causes = allCauses.slice(0, 2)
 
@@ -40,17 +42,16 @@ export function HomePage() {
           Start a cause. Build a Movement. Change the world.
         </Typography>
         <Typography variant="body1" color="text.secondary" sx={{ mt: 1.5, maxWidth: 520 }}>
-          Describe what brings your cause together, shape it into clear issues people can support,
-          then grow support with funding and media tools when you need them.
+          Write clear issues people can support one at a time, then grow support with funding
+          and media tools when you need them.
         </Typography>
 
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.25} sx={{ mt: 3 }}>
           <Button
-            component={RouterLink}
-            to="/start"
             variant="contained"
             size="large"
             data-testid="home-start-cause"
+            onClick={() => navigate(createCausePath())}
             sx={{ minHeight: 48, borderRadius: 999, fontWeight: 700, textTransform: 'none', px: 3 }}
           >
             Start a cause

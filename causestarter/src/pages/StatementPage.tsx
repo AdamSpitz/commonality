@@ -9,11 +9,12 @@ import {
   Stack,
   Typography,
 } from '@mui/material'
-import { Link as RouterLink, useParams } from 'react-router-dom'
+import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom'
 import { getStatementWithContent, type Statement } from '@commonality/sdk/conceptspace'
 import type { DisplayableDocument } from '@commonality/sdk/displayable-documents'
 import type { IpfsCidV1 } from '@commonality/sdk/utils'
 import { SupportButton } from '../components/SupportButton'
+import { createCausePath } from '../lib/causeStore'
 import { useMachinery } from '../lib/useMachinery'
 
 function documentText(doc: DisplayableDocument | null | undefined): string | null {
@@ -27,6 +28,7 @@ function documentText(doc: DisplayableDocument | null | undefined): string | nul
 
 export function StatementPage() {
   const { statementCid } = useParams<{ statementCid: string }>()
+  const navigate = useNavigate()
   const machinery = useMachinery()
   const [statement, setStatement] = useState<Statement | null>(null)
   const [content, setContent] = useState<DisplayableDocument | null>(null)
@@ -152,10 +154,9 @@ export function StatementPage() {
       </Paper>
 
       <Button
-        component={RouterLink}
-        to="/start"
         variant="outlined"
         sx={{ minHeight: 48, borderRadius: 999, textTransform: 'none', fontWeight: 600 }}
+        onClick={() => navigate(createCausePath())}
       >
         Start a related cause
       </Button>

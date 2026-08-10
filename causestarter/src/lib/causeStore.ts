@@ -60,9 +60,10 @@ export interface CauseDraft {
   createdAt: string
   updatedAt: string
   /**
-   * Rough description of the cause, kept **only** as the seed for plank
-   * suggestions. It is not a statement, is never published, and is never shown
-   * as page content — a cause is described by its planks.
+   * Legacy free-text seed from an older "describe then auto-suggest issues"
+   * flow. Still migrated from older localStorage shapes, but new starts no
+   * longer set it and the cause page does not draft issues from it. A cause is
+   * described by its planks.
    */
   suggestionSeed?: string
   /**
@@ -328,6 +329,11 @@ export function createCause(seed?: string): CauseDraft {
   }
   writeAll([...readAll(), cause])
   return cause
+}
+
+/** Mint a local draft and return its editor path (`/cause/:id`). */
+export function createCausePath(seed?: string): string {
+  return causePath(createCause(seed))
 }
 
 /**

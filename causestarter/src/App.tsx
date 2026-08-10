@@ -1,7 +1,7 @@
 import { BrowserRouter, HashRouter, Route, Routes } from 'react-router-dom'
 import { CauseShell } from './shell/CauseShell'
 import { HomePage } from './pages/HomePage'
-import { StartCausePage } from './pages/StartCausePage'
+import { StartCauseRedirect } from './pages/StartCauseRedirect'
 import { MomentumPage } from './pages/MomentumPage'
 import { CauseDetailPage } from './pages/CauseDetailPage'
 import { StatementBoardPage } from './pages/StatementBoardPage'
@@ -23,7 +23,8 @@ export default function App() {
       <CauseShell>
         <Routes>
           <Route path="/" element={<HomePage />} />
-          <Route path="/start" element={<StartCausePage />} />
+          {/* No intermediate form — creates a draft and opens the editor. */}
+          <Route path="/start" element={<StartCauseRedirect />} />
           <Route path="/momentum" element={<MomentumPage />} />
           {/* Local drafts use a UUID. Published causes use
               /cause/:owner/:slug[@versionCid] — stable id + optional pin.

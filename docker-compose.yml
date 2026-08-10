@@ -418,15 +418,19 @@ services:
   # CauseStarter LLM helpers: statement suggestions + safety filter (Grok 4.5 / xAI).
   # Graceful without an API key (templates + heuristics). Key comes from root .env
   # (via .env.secrets + setup-env.sh) or the process environment.
+  #
+  # Always started with the local stack (services.sh / deploy-causestarter.sh).
+  # - Docker CauseStarter nginx proxies /api/cause-assist/ → cause-assist:3002
+  # - Host Vite (npm run causestarter:dev) proxies to loopback :3002
   cause-assist:
     image: commonality-cause-assist:dev
     build:
       context: .
       dockerfile: cause-assist/Dockerfile
     container_name: commonality-cause-assist
-    # Internal-only; CauseStarter's nginx proxies /api/cause-assist/.
-    expose:
-      - "3002"
+    ports:
+      # Loopback only: Vite on the host needs this; do not expose beyond the machine.
+      - "127.0.0.1:3002:3002"
     env_file:
       - path: .env
         required: false
@@ -439,6 +443,12 @@ services:
       CAUSE_ASSIST_SUGGEST_MODEL: ${CAUSE_ASSIST_SUGGEST_MODEL:-}
       CAUSE_ASSIST_SAFETY_MODEL: ${CAUSE_ASSIST_SAFETY_MODEL:-}
       CAUSE_ASSIST_IMPLICATION_MODEL: ${CAUSE_ASSIST_IMPLICATION_MODEL:-}
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3002/health >/dev/null || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
     networks:
       - commonality
     restart: unless-stopped
@@ -498,7 +508,8 @@ services:
       VITE_COMMON_SENSE_MAJORITY_URL: ${VITE_COMMON_SENSE_MAJORITY_URL:-http://common-sense-majority.localhost:8088/#/}
       VITE_CONCEPTSPACE_URL: ${VITE_CONCEPTSPACE_URL:-http://conceptspace.localhost:8088/#/}
     depends_on:
-      - cause-assist
+      cause-assist:
+        condition: service_healthy
     networks:
       - commonality
     restart: unless-stopped

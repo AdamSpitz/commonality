@@ -26,8 +26,11 @@ export interface AtomizeResponse {
 }
 
 export interface SharpenPlankResponse {
+  /** Example rewording — UI must not apply this without an explicit founder action. */
   plank: string
   rationale: string
+  /** Concrete problems that could block attestation or public signing. */
+  warnings?: string[]
   source: 'llm' | 'fallback'
 }
 
@@ -77,14 +80,30 @@ function assistBaseUrl(): string {
 }
 
 async function postJson<T>(path: string, body: unknown): Promise<T> {
-  const response = await fetch(`${assistBaseUrl()}${path}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  })
+  let response: Response
+  try {
+    response = await fetch(`${assistBaseUrl()}${path}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    })
+  } catch {
+    throw new Error(
+      'Could not reach cause-assist. For local Vite, start it with: docker compose up -d cause-assist',
+    )
+  }
   if (!response.ok) {
-    const err = await response.json().catch(() => ({})) as { message?: string }
-    throw new Error(err.message || `Cause assist request failed (${response.status})`)
+    const err = await response.json().catch(() => ({})) as { message?: string; error?: string }
+    const serverMessage = err.message || err.error
+    if (serverMessage) throw new Error(serverMessage)
+    // Vite's proxy returns a bare 500 when nothing is listening on :3002.
+    if (response.status === 500 || response.status === 502 || response.status === 503) {
+      throw new Error(
+        `Cause-assist is unavailable (${response.status}). Is it running on port 3002? `
+        + 'Try: docker compose up -d cause-assist',
+      )
+    }
+    throw new Error(`Cause assist request failed (${response.status})`)
   }
   return response.json() as Promise<T>
 }

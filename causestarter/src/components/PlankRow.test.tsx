@@ -13,7 +13,7 @@ function renderDraft(publishing: boolean, mutationLocked = false) {
   const handlers = {
     onTextChange: vi.fn(),
     onDelete: vi.fn(),
-    onSharpen: vi.fn(),
+    onReview: vi.fn(),
     onPublish: vi.fn(),
   }
   render(
@@ -28,7 +28,7 @@ function renderDraft(publishing: boolean, mutationLocked = false) {
         projectCount={0}
         onSupported={vi.fn()}
         {...handlers}
-        sharpening={false}
+        reviewing={false}
         publishing={publishing}
         mutationLocked={mutationLocked}
       />
@@ -38,12 +38,12 @@ function renderDraft(publishing: boolean, mutationLocked = false) {
 }
 
 describe('PlankRow', () => {
-  it('disables editing, sharpening, and deletion while publication is pending', () => {
+  it('disables editing, review, and deletion while publication is pending', () => {
     const handlers = renderDraft(true)
 
     expect(screen.getByRole('textbox')).toBeDisabled()
     expect(screen.getByRole('button', { name: /publishing/i })).toBeDisabled()
-    expect(screen.getByRole('button', { name: /help make this attestable/i })).toBeDisabled()
+    expect(screen.getByRole('button', { name: /check phrasing/i })).toBeDisabled()
     expect(screen.getByRole('button', { name: /remove issue 1/i })).toBeDisabled()
 
     fireEvent.click(screen.getByRole('button', { name: /remove issue 1/i }))
@@ -55,9 +55,43 @@ describe('PlankRow', () => {
 
     expect(screen.getByRole('textbox')).toBeDisabled()
     expect(screen.getByRole('button', { name: /publish issue/i })).toBeDisabled()
-    expect(screen.getByRole('button', { name: /help make this attestable/i })).toBeDisabled()
+    expect(screen.getByRole('button', { name: /check phrasing/i })).toBeDisabled()
     expect(screen.getByRole('button', { name: /remove issue 1/i })).toBeDisabled()
     fireEvent.click(screen.getByRole('button', { name: /remove issue 1/i }))
     expect(handlers.onDelete).not.toHaveBeenCalled()
+  })
+
+  it('shows review feedback without replacing the text field', () => {
+    render(
+      <MemoryRouter>
+        <PlankRow
+          plank={{ id: 'plank', text: 'Better parks.', origin: 'user' }}
+          index={0}
+          selected={false}
+          onSelectedChange={vi.fn()}
+          support={undefined}
+          supportLoading={false}
+          projectCount={0}
+          onSupported={vi.fn()}
+          onTextChange={vi.fn()}
+          onDelete={vi.fn()}
+          onReview={vi.fn()}
+          onPublish={vi.fn()}
+          reviewing={false}
+          publishing={false}
+          review={{
+            summary: 'Too vague for an implication attester.',
+            issues: ['Name what should change about parks.'],
+            exampleWording: 'City parks should stay free to enter and open after dark.',
+          }}
+          onUseExampleWording={vi.fn()}
+        />
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByRole('textbox')).toHaveValue('Better parks.')
+    expect(screen.getByTestId('plank-review-0')).toHaveTextContent(/Too vague/)
+    expect(screen.getByTestId('plank-review-example-0')).toHaveTextContent(/stay free/)
+    expect(screen.getByTestId('plank-use-example-0')).toBeInTheDocument()
   })
 })

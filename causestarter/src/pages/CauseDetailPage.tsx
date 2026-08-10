@@ -1,10 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
-  Alert, Box, Button, Chip, CircularProgress, Collapse, Divider, Paper, Stack,
-  TextField, Typography,
+  Alert, Box, Button, Chip, CircularProgress, Divider, Paper, Stack,
+  Typography,
 } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
-import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome'
 import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom'
 import { useAccount } from 'wagmi'
 import { getStatementWithContent } from '@commonality/sdk/conceptspace'
@@ -20,18 +19,18 @@ import { getProjectStatus, STATUS_LABELS } from '@ui/lazy-giving'
 import { CauseViewStrip, type ViewMode } from '../components/CauseViewStrip'
 import { CauseMediatorCard } from '../components/CauseMediatorCard'
 import { MediatorEditor } from '../components/MediatorEditor'
-import { PlankRow } from '../components/PlankRow'
+import { PlankRow, type PlankReview } from '../components/PlankRow'
 import { RosterHistory } from '../components/RosterHistory'
 import { RosterPublishPanel } from '../components/RosterPublishPanel'
 import { SafetyRejectionDialog } from '../components/SafetyRejectionDialog'
 import { ToolCard } from '../components/ToolCard'
 import {
   causePath, causeTitle, deleteCause, getCause, isLive, listCauses, markPlankPublished,
-  markRosterPublished, newPlank, publishedPlanks, unpublishedPlanks, updateCause,
+  markRosterPublished, newPlank, publishedPlanks, realPlanks, unpublishedPlanks, updateCause,
   type CauseDraft, type CausePlank, type SafetyState,
 } from '../lib/causeStore'
 import {
-  checkCoherence, atomizeCause, checkSafety, sharpenPlank,
+  checkCoherence, checkSafety, sharpenPlank,
   type CoherenceVerdict,
 } from '../lib/causeAssistClient'
 import {
@@ -46,8 +45,6 @@ import { useMachinery } from '../lib/useMachinery'
 import { useWriteClients } from '../lib/useWriteClients'
 import { useCauseProjects } from '../hooks/useCauseProjects'
 import { useViewCounts } from '../hooks/useViewCounts'
-
-const MIN_SEED_LENGTH = 8
 
 function shortAddress(address: string): string {
   if (address.length < 12) return address
@@ -92,13 +89,28 @@ export function CauseDetailPage() {
     isLoading: trustLoading,
     error: trustError,
   } = useTrustedSet(address)
+  /**
+   * useTrustedSet re-fetches on window focus and on a timer, flipping isLoading
+   * each time. Gate counts only until the *first* settle for this wallet so
+   * background refreshes do not unmount the views/projects sections (white flash).
+   */
+  const addressKey = address?.toLowerCase() ?? ''
+  const [trustSettled, setTrustSettled] = useState(() => !address)
+  useEffect(() => {
+    setTrustSettled(!addressKey)
+  }, [addressKey])
+  useEffect(() => {
+    if (!addressKey) return
+    if (!trustLoading) setTrustSettled(true)
+  }, [addressKey, trustLoading])
   const trustReady = !address || (
-    !trustLoading && !trustError && trustedAlignmentAttesters !== undefined
+    trustSettled && !trustError && trustedAlignmentAttesters !== undefined
   )
   const trustUnavailable = Boolean(address)
-    && !trustLoading
+    && trustSettled
     && !trustError
     && trustedAlignmentAttesters === undefined
+  const showInitialTrustLoad = Boolean(address) && !trustSettled && trustLoading
 
   const routeRef = useMemo(
     () => parseCauseRouteParams(params.owner, params.slugPart),
@@ -115,10 +127,8 @@ export function CauseDetailPage() {
   const [history, setHistory] = useState<RefUpdate[]>([])
   const [mode, setMode] = useState<ViewMode>('any')
   const [deselectedCids, setDeselectedCids] = useState<Set<string>>(new Set())
-  const [seedOpen, setSeedOpen] = useState(false)
-  const [seed, setSeed] = useState('')
-  const [atomizing, setAtomizing] = useState(false)
-  const [sharpeningId, setSharpeningId] = useState<string>()
+  const [reviewingId, setReviewingId] = useState<string>()
+  const [reviewsByPlankId, setReviewsByPlankId] = useState<Record<string, PlankReview>>({})
   const [publishingId, setPublishingId] = useState<string>()
   const [publishingRoster, setPublishingRoster] = useState(false)
   const [checkingCoherence, setCheckingCoherence] = useState(false)
@@ -230,11 +240,11 @@ export function CauseDetailPage() {
   }, [routeRef, machinery, address])
 
   useEffect(() => {
-    setSeed(cause?.suggestionSeed ?? '')
     setTitleDraft(cause?.title ?? '')
     setSummaryDraft(cause?.summary ?? '')
     setSlugDraft(cause?.slug ?? '')
-  }, [cause?.id, cause?.suggestionSeed, cause?.title, cause?.summary, cause?.slug])
+    setReviewsByPlankId({})
+  }, [cause?.id, cause?.title, cause?.summary, cause?.slug])
 
   // Per-plank "added later" markers from ref history + prior roster docs.
   useEffect(() => {
@@ -355,7 +365,9 @@ export function CauseDetailPage() {
     [],
   )
 
-  if (loadingRemote) {
+  // Soft revalidation (e.g. wallet address reconnect) must not blank the page
+  // when we already have cause content painted.
+  if (loadingRemote && !cause) {
     return (
       <Box sx={{ display: 'grid', placeItems: 'center', py: 8 }}>
         <CircularProgress />
@@ -378,8 +390,15 @@ export function CauseDetailPage() {
 
   const drafts = unpublishedPlanks(cause)
   const live = isLive(cause)
+  /** Brand-new local draft: show the start-a-cause coach copy instead of "Untitled". */
+  const isFreshDraft = Boolean(
+    canEdit
+    && !live
+    && !titleDraft.trim()
+    && realPlanks(cause).length === 0,
+  )
   const mutationLocked = Boolean(
-    publishingId || sharpeningId || atomizing || publishingRoster || checkingCoherence,
+    publishingId || reviewingId || publishingRoster || checkingCoherence,
   )
   const slugLocked = Boolean(cause.slug && cause.founderAddress && cause.rosterCid)
   const stable = cause.founderAddress && cause.slug
@@ -404,56 +423,50 @@ export function CauseDetailPage() {
     setPlanks(cause.planks.filter((plank) => plank.id !== id))
   }
 
-  const handleSuggest = async () => {
-    if (mutationLocked || !canEdit) return
-    if (seed.trim().length < MIN_SEED_LENGTH) {
-      setError('Describe the cause in a sentence or two so suggestions have something to work from.')
-      return
-    }
-    setAtomizing(true)
+  /**
+   * Coach the founder on this issue's wording. Do not overwrite their text —
+   * only show feedback (and an optional example rephrasing they may adopt).
+   */
+  const handleReviewPlank = async (plank: CausePlank) => {
+    if (!plank.text.trim() || mutationLocked || !canEdit) return
+    setReviewingId(plank.id)
     setError(null)
     try {
-      const result = await atomizeCause({
-        description: seed.trim(),
-        existingPlanks: cause.planks.map((plank) => plank.text.trim()).filter(Boolean),
-        count: 5,
+      const siblingContext = cause.planks
+        .filter((other) => other.id !== plank.id && other.text.trim())
+        .map((other) => other.text.trim())
+        .slice(0, 8)
+        .join('\n')
+      const result = await sharpenPlank({
+        plank: plank.text.trim(),
+        causeDescription: siblingContext || undefined,
       })
-      const incoming: CausePlank[] = result.planks.map((item) => ({
-        ...newPlank(item.text, 'suggested'),
-        rationale: item.rationale,
+      const example = result.plank.trim()
+      setReviewsByPlankId((prev) => ({
+        ...prev,
+        [plank.id]: {
+          summary: result.rationale.trim()
+            || (result.warnings?.length
+              ? 'This wording may be hard to attest or sign as written.'
+              : 'Looks specific enough to try publishing.'),
+          issues: result.warnings ?? [],
+          exampleWording: example && example !== plank.text.trim() ? example : undefined,
+        },
       }))
-      patch({
-        suggestionSeed: seed.trim(),
-        planks: [...cause.planks.filter((plank) => plank.text.trim()), ...incoming],
-      })
-      setSeedOpen(false)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not suggest issues')
+      setError(err instanceof Error ? err.message : 'Could not review this issue')
     } finally {
-      setAtomizing(false)
+      setReviewingId(undefined)
     }
   }
 
-  const handleSharpen = async (plank: CausePlank) => {
-    if (!plank.text.trim() || mutationLocked || !canEdit) return
-    setSharpeningId(plank.id)
-    setError(null)
-    try {
-      const result = await sharpenPlank({
-        plank: plank.text.trim(),
-        causeDescription: cause.suggestionSeed?.trim() ?? '',
-      })
-      storePlankPatch(plank.id, {
-        text: result.plank,
-        rationale: result.rationale,
-        // The wording changed, so the old verdict no longer describes it.
-        safety: undefined,
-      })
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not sharpen this issue')
-    } finally {
-      setSharpeningId(undefined)
-    }
+  const clearReview = (plankId: string) => {
+    setReviewsByPlankId((prev) => {
+      if (!(plankId in prev)) return prev
+      const next = { ...prev }
+      delete next[plankId]
+      return next
+    })
   }
 
   const handlePublishPlank = async (plank: CausePlank) => {
@@ -589,7 +602,7 @@ export function CauseDetailPage() {
   return (
     <Stack spacing={2.5} data-testid="cause-detail-page">
       <Box>
-        {!live && (
+        {!live && !isFreshDraft && (
           <Chip size="small" label="Nothing published yet" sx={{ mb: 0.75 }} />
         )}
         {routeRef?.versionCid && (
@@ -613,18 +626,34 @@ export function CauseDetailPage() {
           component="h1"
           sx={{ fontWeight: 800, fontSize: { xs: '1.55rem', sm: '1.9rem' } }}
         >
-          {titleDraft.trim() || causeTitle(cause)}
+          {isFreshDraft ? 'Start a cause' : (titleDraft.trim() || causeTitle(cause))}
         </Typography>
-        {(summaryDraft.trim() || cause.summary?.trim()) && (
-          <Typography variant="body1" sx={{ mt: 1, whiteSpace: 'pre-wrap' }}>
-            {summaryDraft.trim() || cause.summary}
-          </Typography>
+        {isFreshDraft ? (
+          <>
+            <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>
+              A cause is a set of clear issues people can support one at a time.
+              You write those issues yourself — CauseStarter helps you check that
+              each one is specific enough to sign and attest.
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+              Prefer concrete claims a real supporter would sincerely sign (for example,
+              a single policy position or local outcome) over slogans or broad identity labels.
+            </Typography>
+          </>
+        ) : (
+          <>
+            {(summaryDraft.trim() || cause.summary?.trim()) && (
+              <Typography variant="body1" sx={{ mt: 1, whiteSpace: 'pre-wrap' }}>
+                {summaryDraft.trim() || cause.summary}
+              </Typography>
+            )}
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+              {live
+                ? 'People sign each issue separately. The counts below combine those signatures.'
+                : 'Write the issues this cause is made of. Publish each one when it is ready.'}
+            </Typography>
+          </>
         )}
-        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-          {live
-            ? 'People sign each issue separately. The counts below combine those signatures.'
-            : 'Write the issues this cause is made of. Publish each one when it is ready.'}
-        </Typography>
         {stable && (
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.75 }}>
             Share link: {stableCausePath(stable)}
@@ -641,7 +670,7 @@ export function CauseDetailPage() {
         />
       )}
 
-      {publishedCids.length > 0 && trustLoading && (
+      {publishedCids.length > 0 && showInitialTrustLoad && (
         <Alert severity="info" sx={{ borderRadius: 2 }}>
           Loading your trust network before supporter and project counts…
         </Alert>
@@ -679,9 +708,24 @@ export function CauseDetailPage() {
       <Paper elevation={0} sx={{ p: { xs: 2, sm: 2.5 }, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
         <Typography variant="h6" sx={{ fontWeight: 700, mb: 1.5 }}>Issues</Typography>
 
+        {canEdit && (
+          <Alert severity="info" sx={{ mb: 2, borderRadius: 2 }} data-testid="issue-guidance">
+            <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5 }}>
+              What counts as an issue
+            </Typography>
+            <Typography variant="body2" component="div">
+              Write claims you are willing to stand behind — each one should be something a real
+              supporter could sincerely sign in public. Prefer specific, self-contained positions
+              over slogans or broad labels. CauseStarter will not draft issues for you; use
+              <strong> Check phrasing</strong> on a draft if you want feedback on whether it is
+              clear enough to attest.
+            </Typography>
+          </Alert>
+        )}
+
         {cause.planks.length === 0 && (
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            No issues yet. Add one yourself, or describe the cause and let CauseStarter suggest some.
+            No issues yet. Add one and write it in your own words.
           </Typography>
         )}
 
@@ -699,66 +743,41 @@ export function CauseDetailPage() {
               onSupported={() => refreshCounts()}
               onTextChange={(text) => {
                 updatePlank(plank.id, { text, safety: undefined })
+                clearReview(plank.id)
                 voidCoherence()
               }}
-              onDelete={() => handleDeletePlank(plank.id)}
-              onSharpen={() => void handleSharpen(plank)}
+              onDelete={() => {
+                clearReview(plank.id)
+                handleDeletePlank(plank.id)
+              }}
+              onReview={() => void handleReviewPlank(plank)}
               onPublish={() => void handlePublishPlank(plank)}
-              sharpening={sharpeningId === plank.id}
+              reviewing={reviewingId === plank.id}
               publishing={publishingId === plank.id}
               mutationLocked={mutationLocked || !canEdit}
+              review={reviewsByPlankId[plank.id] ?? null}
+              onUseExampleWording={(wording) => {
+                updatePlank(plank.id, { text: wording, safety: undefined, rationale: undefined })
+                clearReview(plank.id)
+                voidCoherence()
+              }}
               addedLaterLabel={plank.cid ? addedLaterByCid.get(plank.cid) : undefined}
             />
           ))}
         </Stack>
 
         {canEdit && (
-          <>
-            <Stack direction="row" spacing={1} sx={{ mt: 2 }} flexWrap="wrap" useFlexGap>
-              <Button
-                startIcon={<AddIcon />}
-                onClick={handleAddPlank}
-                disabled={mutationLocked}
-                sx={{ textTransform: 'none' }}
-                data-testid="cause-add-plank"
-              >
-                Add an issue
-              </Button>
-              <Button
-                startIcon={atomizing ? <CircularProgress size={16} /> : <AutoAwesomeIcon />}
-                onClick={() => setSeedOpen((open) => !open)}
-                disabled={mutationLocked}
-                sx={{ textTransform: 'none' }}
-                data-testid="cause-suggest-planks"
-              >
-                Suggest issues
-              </Button>
-            </Stack>
-
-            <Collapse in={seedOpen}>
-              <Stack spacing={1} sx={{ mt: 2 }}>
-                <TextField
-                  label="Describe your cause in your own words"
-                  value={seed}
-                  onChange={(event) => setSeed(event.target.value)}
-                  multiline
-                  minRows={2}
-                  fullWidth
-                  size="small"
-                  helperText="Used only to suggest issues. This text is never published and never shown on your cause."
-                  slotProps={{ htmlInput: { 'data-testid': 'cause-suggestion-seed' } }}
-                />
-                <Button
-                  variant="contained"
-                  onClick={() => void handleSuggest()}
-                  disabled={mutationLocked}
-                  sx={{ alignSelf: 'flex-start', textTransform: 'none' }}
-                >
-                  {atomizing ? 'Finding issues…' : 'Suggest issues'}
-                </Button>
-              </Stack>
-            </Collapse>
-          </>
+          <Stack direction="row" spacing={1} sx={{ mt: 2 }} flexWrap="wrap" useFlexGap>
+            <Button
+              startIcon={<AddIcon />}
+              onClick={handleAddPlank}
+              disabled={mutationLocked}
+              sx={{ textTransform: 'none' }}
+              data-testid="cause-add-plank"
+            >
+              Add an issue
+            </Button>
+          </Stack>
         )}
 
         {drafts.length > 0 && !isConnected && canEdit && (

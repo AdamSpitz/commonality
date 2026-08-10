@@ -125,7 +125,7 @@ export function RosterPublishPanel({
         multiline
         minRows={2}
         disabled={busy}
-        helperText="Public description of the cause — not the private suggestion seed."
+        helperText="Optional public blurb for the cause page. Distinct from the issues people sign."
         slotProps={{ htmlInput: { 'data-testid': 'roster-summary' } }}
       />
       <TextField
