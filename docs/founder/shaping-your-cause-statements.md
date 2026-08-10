@@ -1,13 +1,29 @@
 # Shaping your cause's statements
 
-**Status: signed off, unbuilt.** This is how a cause is built out of
-statements. The mechanics it describes (implication direction, how support and
-cause boards aggregate) are accurate to the system as specified. The architecture
-it proposes — **planks, views, and anchors** — was signed off by Adam on
-2026-08-09 and is the model to build against, but none of it is implemented. The
-design questions that were open closed on the same date and are recorded, with
-their reasoning, in [§ Resolved](#resolved-2026-08-09); what remains open is one
-bug, at the end.
+**Status: signed off; planks and views built, anchors not.** This is how a cause
+is built out of statements. The mechanics it describes (implication direction,
+how support and cause boards aggregate) are accurate to the system as specified.
+The architecture it proposes — **planks, views, and anchors** — was signed off by
+Adam on 2026-08-09. The design questions that were open closed on the same date
+and are recorded, with their reasoning, in [§ Resolved](#resolved-2026-08-09);
+what remains open is one bug, at the end.
+
+**What exists as of 2026-08-10**, in CauseStarter:
+
+- **Planks** are the cause. `CauseDraft` is a list of `CausePlank`s, each
+  published separately and each carrying its own CID
+  (`causestarter/src/lib/causeStore.ts`). There is no main statement, no goal
+  field, and no launch step — a cause is "live" once any plank is on chain.
+- **Views** are real. `getStatementBelieverSets` returns the deduped
+  believer/indirect/disbeliever ID sets per plank, and `computeViewCounts` folds
+  them into the union view and the two conjunction bands
+  (`sdk/src/subsystems/conceptspace/views.ts`). Visitors can deselect planks;
+  that re-folds locally and costs nothing.
+- **The cause page is the views layer**, and is edited in place by the founder —
+  there is no separate authoring mode.
+- **Anchors are not built.** No promotion action exists yet, which is consistent
+  with [§ Promotion](#promotion): it is a later move, taken once a combination
+  has proven itself.
 
 Companion to [standing up a vertical](/docs/founder/standing-up-a-vertical.md),
 which covers the vertical as a whole. This one covers the narrow question of what
@@ -263,9 +279,13 @@ that gap.
 Every existing service assumes the artifact he is least able to produce, and none
 of them helps him produce it:
 
-| Piece | Today | Under planks/views/anchors |
+This table describes the mismatch as it stood before the plank model was built;
+the wizard row is now resolved (there is no wizard — see the status note at the
+top), and the rest still describes cause-assist.
+
+| Piece | Before | Under planks/views/anchors |
 |---|---|---|
-| Wizard steps | `Main statement → Supporting → Launch` (`causestarter/src/pages/StartCausePage.tsx:41`) | `Issues → Preview → Launch`; no main statement is authored |
+| Wizard steps | `Main statement → Supporting → Launch` | *Resolved:* no wizard and no launch; planks are written and published in place on the cause page |
 | `/suggest-statements` | Needs a `goal` (the main statement) and derives things it implies | Needs a *rough description of the cause* and derives **planks** |
 | Suggester prompt | Hardcodes main (S1) → supporting (S2) (`cause-assist/src/statementSuggester.ts:15`) | Direction depends on shape; plank-authoring has no main statement at all |
 | Implication gating | Blocks medium/high non-implies against the main statement | Nothing to gate against until an anchor is promoted |
@@ -469,6 +489,18 @@ heavily-attested plank is expensive before it is popular.
 The remedy, if measurement confirms it, is an indexer-side aggregate returning
 folded believer-ID sets per statement. The client-side set algebra survives
 either way — nothing above depends on where the sets come from.
+
+**Sketches, if that aggregate is ever built.** Probabilistic sketches
+(HyperLogLog, Bloom) would let such an aggregate ship fixed-size per-plank blobs
+instead of full ID sets. Worth remembering, with one constraint that decides
+where they may be used: HyperLogLog unions cleanly but intersects only via
+inclusion–exclusion, whose error compounds across terms until a five-plank
+intersection is noise; Bloom filters intersect approximately but admit false
+positives. **Band 1 must therefore stay exact** — its whole claim to being the
+hard number is that these people literally signed each plank, and an estimated
+hard number is not one. The union view and band 2 are already inferences and
+tolerate approximation. This is a transport optimization for later, not a
+change to the model.
 
 ### Caveat: "views are free" is a claim about the chain, not about cost
 

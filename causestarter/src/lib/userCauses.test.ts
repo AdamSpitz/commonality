@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { listCauses, saveCause } from './causeStore'
+import { createCause, isLive, listCauses, newPlank, updateCause } from './causeStore'
 import { listUserCauses, supportedCause } from './userCauses'
 
 vi.mock('@commonality/sdk/conceptspace', () => ({
@@ -11,7 +11,7 @@ import { getUserBeliefs, type StatementListItem } from '@commonality/sdk/concept
 function belief(cid: string, title = cid): StatementListItem {
   return {
     id: cid,
-    cid,
+    cid: cid as `b${string}`,
     statementType: '',
     title,
     excerpt: `${title} goal`,
@@ -21,6 +21,18 @@ function belief(cid: string, title = cid): StatementListItem {
   }
 }
 
+/** CIDs of the planks a cause row is built from. */
+function plankCids(cause: { planks: Array<{ cid?: string }> }): Array<string | undefined> {
+  return cause.planks.map((plank) => plank.cid)
+}
+
+function localCauseWith(cids: string[]) {
+  const created = createCause()
+  return updateCause(created.id, {
+    planks: cids.map((cid) => ({ ...newPlank(`Plank ${cid}`), cid })),
+  })!
+}
+
 describe('userCauses', () => {
   beforeEach(() => {
     window.localStorage.clear()
@@ -28,7 +40,7 @@ describe('userCauses', () => {
   })
 
   it('returns only local causes when no wallet address', async () => {
-    saveCause({ goal: 'Local only goal', statements: [], levers: [], status: 'draft' })
+    localCauseWith([])
 
     const result = await listUserCauses({} as any, undefined)
     expect(result).toHaveLength(1)
@@ -41,7 +53,7 @@ describe('userCauses', () => {
 
     const result = await listUserCauses(machinery, '0xabc')
     expect(getUserBeliefs).toHaveBeenCalledWith(machinery, '0xabc')
-    expect(result.some((c) => c.statementCid === 'bafy-onchain')).toBe(true)
+    expect(result.some((cause) => plankCids(cause).includes('bafy-onchain'))).toBe(true)
     expect(listCauses()).toEqual([])
   })
 
@@ -53,41 +65,34 @@ describe('userCauses', () => {
     const walletA = await listUserCauses({} as any, '0xaaa')
     const walletB = await listUserCauses({} as any, '0xbbb')
 
-    expect(walletA.map((c) => c.statementCid)).toEqual(['bafy-wallet-a'])
-    expect(walletB.map((c) => c.statementCid)).toEqual(['bafy-wallet-b'])
+    expect(walletA.flatMap(plankCids)).toEqual(['bafy-wallet-a'])
+    expect(walletB.flatMap(plankCids)).toEqual(['bafy-wallet-b'])
     expect(listCauses()).toEqual([])
   })
 
-  it('dedupes beliefs against every local primary and supporting CID', async () => {
-    saveCause({
-      goal: 'A local cause long enough',
-      statements: [],
-      levers: [],
-      status: 'launched',
-      statementCid: 'bafy-primary',
-      statementCids: ['bafy-supporting'],
-    })
+  it('dedupes beliefs against every plank of a local cause', async () => {
+    localCauseWith(['bafy-first', 'bafy-second'])
     vi.mocked(getUserBeliefs).mockResolvedValue([
-      belief('bafy-primary'),
-      belief('bafy-supporting'),
+      belief('bafy-first'),
+      belief('bafy-second'),
       belief('bafy-new'),
       belief('bafy-new'),
     ])
 
     const result = await listUserCauses({} as any, '0xabc')
+    // The local cause covers both of its planks; only the unrelated statement
+    // becomes a separate row, and the duplicate of it collapses.
     expect(result).toHaveLength(2)
-    expect(result.filter((c) => c.statementCid === 'bafy-primary')).toHaveLength(1)
-    expect(result.filter((c) => c.statementCid === 'bafy-new')).toHaveLength(1)
-    expect(result.some((c) => c.statementCid === 'bafy-supporting')).toBe(false)
+    expect(result.filter((cause) => plankCids(cause).includes('bafy-new'))).toHaveLength(1)
     expect(listCauses()).toHaveLength(1)
   })
 
-  it('builds stable synthetic entries without storage writes', () => {
+  it('builds a supported statement as a one-plank cause without storage writes', () => {
     const result = supportedCause(belief('bafy-supported', 'Supported title'))
 
     expect(result.id).toBe('supported:bafy-supported')
-    expect(result.statementCid).toBe('bafy-supported')
-    expect(result.status).toBe('launched')
+    expect(plankCids(result)).toEqual(['bafy-supported'])
+    expect(isLive(result)).toBe(true)
     expect(listCauses()).toEqual([])
   })
 })

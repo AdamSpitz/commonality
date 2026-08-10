@@ -85,10 +85,10 @@ describe('SupportButton', () => {
     expect(screen.getByRole('button', { name: /connect wallet/i })).toBeInTheDocument()
   })
 
-  it('shows Stand with this cause when the user does not yet support', async () => {
+  it('shows Stand with this statement when the user does not yet support', async () => {
     render(<SupportButton statementCid={CID} />)
 
-    expect(await screen.findByRole('button', { name: /stand with this cause/i })).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: /stand with this statement/i })).toBeInTheDocument()
     expect(screen.queryByText(/you've declared your support/i)).not.toBeInTheDocument()
   })
 
@@ -97,47 +97,97 @@ describe('SupportButton', () => {
 
     render(<SupportButton statementCid={CID} />)
 
-    expect(await screen.findByText(/you've declared your support for this cause/i)).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /retract your support for this cause/i })).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /stand with this cause/i })).not.toBeInTheDocument()
+    expect(await screen.findByText(/you've declared your support for this statement/i)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /retract your support for this statement/i })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /stand with this statement/i })).not.toBeInTheDocument()
   })
 
   it('records support and switches to the supported state', async () => {
     const onSupported = vi.fn()
+    // After the tx, polling should observe the new indexed belief.
+    vi.mocked(getUserBelief)
+      .mockResolvedValueOnce({ statementCid: CID, beliefState: BeliefStates.NO_OPINION })
+      .mockResolvedValue({ statementCid: CID, beliefState: BeliefStates.BELIEVES })
 
     render(<SupportButton statementCid={CID} onSupported={onSupported} />)
 
-    const stand = await screen.findByRole('button', { name: /stand with this cause/i })
+    const stand = await screen.findByRole('button', { name: /stand with this statement/i })
     fireEvent.click(stand)
 
     await waitFor(() => {
       expect(believeStatement).toHaveBeenCalled()
     })
     await waitFor(() => {
-      expect(onSupported).toHaveBeenCalled()
+      expect(onSupported).toHaveBeenCalledWith({ action: 'support', indexed: false })
     })
-    expect(await screen.findByText(/you've declared your support for this cause/i)).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /retract your support for this cause/i })).toBeInTheDocument()
+    await waitFor(() => {
+      expect(onSupported).toHaveBeenCalledWith({ action: 'support', indexed: true })
+    })
+    expect(await screen.findByText(/you've declared your support for this statement/i)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /retract your support for this statement/i })).toBeInTheDocument()
   })
 
   it('retracts support and returns to the stand CTA', async () => {
-    vi.mocked(getUserBelief).mockResolvedValue({ statementCid: CID, beliefState: BeliefStates.BELIEVES })
+    vi.mocked(getUserBelief)
+      .mockResolvedValueOnce({ statementCid: CID, beliefState: BeliefStates.BELIEVES })
+      .mockResolvedValue({ statementCid: CID, beliefState: BeliefStates.NO_OPINION })
     const onSupported = vi.fn()
 
     render(<SupportButton statementCid={CID} onSupported={onSupported} />)
 
-    const retract = await screen.findByRole('button', { name: /retract your support for this cause/i })
+    const retract = await screen.findByRole('button', { name: /retract your support for this statement/i })
     fireEvent.click(retract)
 
     await waitFor(() => {
       expect(clearOpinion).toHaveBeenCalled()
     })
     await waitFor(() => {
-      expect(onSupported).toHaveBeenCalled()
+      expect(onSupported).toHaveBeenCalledWith({ action: 'retract', indexed: false })
     })
-    expect(await screen.findByRole('button', { name: /stand with this cause/i })).toBeInTheDocument()
+    await waitFor(() => {
+      expect(onSupported).toHaveBeenCalledWith({ action: 'retract', indexed: true })
+    })
+    expect(await screen.findByRole('button', { name: /stand with this statement/i })).toBeInTheDocument()
     expect(screen.getByText(/you retracted your support/i)).toBeInTheDocument()
   })
+
+  it('does not repeat the optimistic support callback when indexing times out', async () => {
+    const onSupported = vi.fn()
+    vi.mocked(getUserBelief).mockResolvedValue({
+      statementCid: CID,
+      beliefState: BeliefStates.NO_OPINION,
+    })
+
+    render(<SupportButton statementCid={CID} onSupported={onSupported} />)
+    fireEvent.click(await screen.findByRole('button', { name: /stand with this statement/i }))
+
+    await waitFor(() => expect(onSupported).toHaveBeenCalledTimes(1))
+    await waitFor(
+      () => expect(screen.getByRole('button', { name: /retract your support/i })).not.toBeDisabled(),
+      { timeout: 5000 },
+    )
+    expect(onSupported).toHaveBeenCalledTimes(1)
+    expect(onSupported).toHaveBeenCalledWith({ action: 'support', indexed: false })
+  }, 10000)
+
+  it('does not repeat the optimistic retract callback when indexing times out', async () => {
+    const onSupported = vi.fn()
+    vi.mocked(getUserBelief).mockResolvedValue({
+      statementCid: CID,
+      beliefState: BeliefStates.BELIEVES,
+    })
+
+    render(<SupportButton statementCid={CID} onSupported={onSupported} />)
+    fireEvent.click(await screen.findByRole('button', { name: /retract your support/i }))
+
+    await waitFor(() => expect(onSupported).toHaveBeenCalledTimes(1))
+    await waitFor(
+      () => expect(screen.getByRole('button', { name: /stand with this statement/i })).not.toBeDisabled(),
+      { timeout: 5000 },
+    )
+    expect(onSupported).toHaveBeenCalledTimes(1)
+    expect(onSupported).toHaveBeenCalledWith({ action: 'retract', indexed: false })
+  }, 10000)
 
   it('ignores an in-flight support completion after switching wallets', async () => {
     const USER_B = '0xBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB'
@@ -151,7 +201,7 @@ describe('SupportButton', () => {
     const onSupported = vi.fn()
 
     const { rerender } = render(<SupportButton statementCid={CID} onSupported={onSupported} />)
-    fireEvent.click(await screen.findByRole('button', { name: /stand with this cause/i }))
+    fireEvent.click(await screen.findByRole('button', { name: /stand with this statement/i }))
     await waitFor(() => expect(believeStatement).toHaveBeenCalled())
 
     vi.mocked(useAccount).mockReturnValue({ address: USER_B, isConnected: true } as any)
@@ -161,14 +211,15 @@ describe('SupportButton', () => {
       beliefState: BeliefStates.NO_OPINION,
     })
     rerender(<SupportButton statementCid={CID} onSupported={onSupported} />)
-    expect(await screen.findByRole('button', { name: /stand with this cause/i })).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: /stand with this statement/i })).toBeInTheDocument()
 
     resolveReceipt({ status: 'success' })
     await waitFor(() => expect(oldClients.publicClient.waitForTransactionReceipt).toHaveBeenCalled())
     await Promise.resolve()
 
-    expect(screen.getByRole('button', { name: /stand with this cause/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /stand with this statement/i })).toBeInTheDocument()
     expect(screen.queryByText(/you've declared your support/i)).not.toBeInTheDocument()
+    // In-flight completion must not notify after the wallet context changed.
     expect(onSupported).not.toHaveBeenCalled()
   })
 
@@ -178,7 +229,7 @@ describe('SupportButton', () => {
 
     const { rerender } = render(<SupportButton statementCid={CID} />)
 
-    const retract = await screen.findByRole('button', { name: /retract your support for this cause/i })
+    const retract = await screen.findByRole('button', { name: /retract your support for this statement/i })
     fireEvent.click(retract)
 
     await waitFor(() => {
@@ -190,7 +241,7 @@ describe('SupportButton', () => {
     vi.mocked(getUserBelief).mockResolvedValue({ statementCid: CID, beliefState: BeliefStates.BELIEVES })
     rerender(<SupportButton statementCid={CID} />)
 
-    expect(await screen.findByText(/you've declared your support for this cause/i)).toBeInTheDocument()
+    expect(await screen.findByText(/you've declared your support for this statement/i)).toBeInTheDocument()
     expect(screen.queryByText(/you retracted your support/i)).not.toBeInTheDocument()
   })
 })

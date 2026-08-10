@@ -1,17 +1,19 @@
 import { Box, Chip, Paper, Stack, Typography } from '@mui/material'
 import { Link as RouterLink } from 'react-router-dom'
 import type { CauseDraft } from '../lib/causeStore'
-import { adoptedStatements } from '../lib/causeStore'
+import { causeTitle, isLive, publishedPlanks, realPlanks } from '../lib/causeStore'
 
 interface CauseCardProps {
   cause: CauseDraft
 }
 
 export function CauseCard({ cause }: CauseCardProps) {
-  const adopted = adoptedStatements(cause)
-  const to = cause.id.startsWith('supported:') && cause.statementCid
-    ? `/statement/${cause.statementCid}`
-    : `/cause/${cause.id}`
+  const planks = realPlanks(cause)
+  const publishedCount = publishedPlanks(cause).length
+  // A statement supported on chain isn't a local cause — send it to the
+  // statement itself rather than to a cause page that doesn't exist here.
+  const supportedCid = cause.id.startsWith('supported:') ? planks[0]?.cid : undefined
+  const to = supportedCid ? `/statement/${supportedCid}` : `/cause/${cause.id}`
   return (
     <Paper
       component={RouterLink}
@@ -35,39 +37,24 @@ export function CauseCard({ cause }: CauseCardProps) {
     >
       <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={1}>
         <Box sx={{ minWidth: 0 }}>
-          <Typography variant="overline" color="text.secondary" sx={{ letterSpacing: '0.08em' }}>
-            {cause.status === 'launched' ? 'Live cause' : 'Draft'}
-          </Typography>
           <Typography variant="h6" sx={{ fontWeight: 700, lineHeight: 1.25 }}>
-            {cause.name || 'Untitled cause'}
+            {causeTitle(cause)}
           </Typography>
         </Box>
-        <Chip
-          size="small"
-          label={cause.status === 'launched' ? 'Launched' : 'Draft'}
-          color={cause.status === 'launched' ? 'success' : 'default'}
-          sx={{ flexShrink: 0 }}
-        />
+        {!isLive(cause) && (
+          <Chip
+            size="small"
+            label="Nothing published yet"
+            color="default"
+            sx={{ flexShrink: 0 }}
+          />
+        )}
       </Stack>
 
-      {cause.goal && (
-        <Typography
-          variant="body2"
-          sx={{
-            mt: 1.5,
-            display: '-webkit-box',
-            WebkitLineClamp: 3,
-            WebkitBoxOrient: 'vertical',
-            overflow: 'hidden',
-          }}
-        >
-          {cause.goal}
-        </Typography>
-      )}
-
-      {adopted.length > 0 && (
-        <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-          {adopted.length} supporting statement{adopted.length === 1 ? '' : 's'}
+      {planks.length > 0 && (
+        <Typography variant="caption" color="text.secondary" sx={{ mt: 1.5, display: 'block' }}>
+          {planks.length} issue{planks.length === 1 ? '' : 's'}
+          {publishedCount < planks.length && ` · ${publishedCount} published`}
         </Typography>
       )}
     </Paper>

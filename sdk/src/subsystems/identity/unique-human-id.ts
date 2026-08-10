@@ -269,15 +269,30 @@ export function foldAnonymizedBelieverIds(
   events: ReadonlyArray<{ user: Address; beliefState: number } & RawEvent>,
   config: UniqueHumanIdConfig = createUniqueHumanIdConfig(),
 ): Set<AnonymizedId> {
-  const latestStateByAnchor = new Map<AnonymizedId, number>();
+  const latestStateByAnchor = new Map<
+    AnonymizedId,
+    { beliefState: number; blockNumber: bigint; logIndex: number }
+  >();
 
   for (const e of events) {
-    latestStateByAnchor.set(computeAnonymizedId(e.user, config), e.beliefState);
+    const id = computeAnonymizedId(e.user, config);
+    const current = latestStateByAnchor.get(id);
+    if (
+      !current
+      || e.blockNumber > current.blockNumber
+      || (e.blockNumber === current.blockNumber && e.logIndex > current.logIndex)
+    ) {
+      latestStateByAnchor.set(id, {
+        beliefState: e.beliefState,
+        blockNumber: e.blockNumber,
+        logIndex: e.logIndex,
+      });
+    }
   }
 
   const believerIds = new Set<AnonymizedId>();
-  for (const [id, state] of latestStateByAnchor) {
-    if (state === BELIEVES) believerIds.add(id);
+  for (const [id, latest] of latestStateByAnchor) {
+    if (latest.beliefState === BELIEVES) believerIds.add(id);
   }
   return believerIds;
 }

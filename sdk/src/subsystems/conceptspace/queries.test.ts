@@ -9,7 +9,13 @@ import { fakeIpfsCidV1 } from '../../utils/test-helpers.js';
 import type { RawEventFromCache } from '../../utils/eventCacheClient.js';
 import { BeliefsAbi, ImplicationsAbi } from '../../abis.js';
 import { computeAnonymizedId, ProofTier, type AnonymizedId } from '../identity/unique-human-id.js';
-import { browseStatementsByMostSupporters, getIndirectSupporters, getStatementSupportTieredHeadCount, getStatementWithContent } from './queries.js';
+import {
+  browseStatementsByMostSupporters,
+  getImplicationsTo,
+  getIndirectSupporters,
+  getStatementSupportTieredHeadCount,
+  getStatementWithContent,
+} from './queries.js';
 
 // ============================================================================
 // getIndirectSupporters — Tally set-union dedupe (anonymized anchor ID)
@@ -685,5 +691,38 @@ describe('getStatementWithContent — PublishedData fallback', () => {
     assert.equal(cidToBytes32(results[0]?.cid ?? ''), cidToBytes32(unavailableCid));
     assert.equal(results[0]?.believerCount, 1);
     assert.equal(results[0]?.title, '');
+  });
+});
+
+
+describe('implication lifecycle queries', () => {
+  const originalFetch = globalThis.fetch;
+
+  afterEach(() => {
+    globalThis.fetch = originalFetch;
+  });
+
+  it('fetches both attestations and revocations before folding active implications', async () => {
+    const requestedEventNames: Array<string | null> = [];
+    globalThis.fetch = (async (input: string | URL | Request) => {
+      requestedEventNames.push(new URL(requestUrlString(input)).searchParams.get('eventName'));
+      return new Response(JSON.stringify({ items: [] }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      });
+    }) as typeof fetch;
+    const machinery = createSDKMachinery({
+      ipfsConfig: { shouldUseMock: true },
+      eventCacheUrl: 'http://localhost:42069',
+      contractAddresses: { implications: IMPLICATIONS_CONTRACT },
+    });
+
+    const result = await getImplicationsTo(machinery, fakeIpfsCidV1('target'));
+
+    assert.deepStrictEqual(result, []);
+    assert.deepStrictEqual(
+      requestedEventNames.sort(),
+      ['ImplicationAttestation', 'ImplicationRevoked'],
+    );
   });
 });
