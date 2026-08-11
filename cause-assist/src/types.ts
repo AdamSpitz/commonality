@@ -120,6 +120,18 @@ export interface CoherenceCheckRequest {
   mediatorBlurb?: string
 }
 
+/**
+ * Attest path requires plank CIDs so the roster CID can be recomputed and each
+ * plank text loaded by content id (never trusted free-form for chain writes).
+ */
+export interface CoherenceAttestRequest {
+  rosterCid: string
+  title: string
+  summary: string
+  plankCids: string[]
+  mediatorBlurb?: string
+}
+
 export interface CoherenceVerdict {
   coherent: boolean
   reasoning: string
@@ -152,4 +164,10 @@ export interface CauseAssistConfig {
   ethereumPrivateKey?: string
   ethereumRpcUrl?: string
   alignmentAttestationsContractAddress?: string
+  /** Gateway base used to fetch published statement/roster documents (e.g. http://ipfs:8080/ipfs). */
+  ipfsGatewayUrl?: string
+  /** Event-cache / indexer URL for PublishedData document reads. */
+  eventCacheUrl?: string
+  publishedDataContractAddress?: string
+  chainId?: number
 }

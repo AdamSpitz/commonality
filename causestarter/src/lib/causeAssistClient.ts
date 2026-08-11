@@ -187,12 +187,15 @@ export async function checkCoherence(input: {
 /**
  * Ask the CauseStarter operator (cause-assist) to re-judge and, if coherent,
  * publish a positive-only on-chain badge. Founder wallets never write this.
+ *
+ * Server binds structure by recomputing the roster CID from title/summary/
+ * plankCids/mediatorBlurb and loads plank *texts* by CID (ignores free-form).
  */
 export async function requestCoherenceAttestation(input: {
   rosterCid: string
   title: string
   summary: string
-  planks: string[]
+  plankCids: string[]
   mediatorBlurb?: string
 }): Promise<AttestCoherenceResult> {
   return postJson<AttestCoherenceResult>('/attest-coherence', input)

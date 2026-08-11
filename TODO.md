@@ -10,7 +10,54 @@ When an item from this page is done and no longer needs an LLM implementor's att
 
 ----
 
-- [ ] **(Tell)** Stand up **cause-assist on testnet** (it is local-only today: Docker Compose / `:3002`, no Render service, not in `render.yaml` or the Cloudflare service gateway). Needed for CauseStarter LLM helpers *and* operator-authored coherence badges (`POST /attest-coherence`). Ship a deployed service (new Render web service or fold into a service-host bundle), wire env: `XAI_API_KEY` (or OpenRouter), `CAUSE_ASSIST_COHERENCE_ATTESTER_PRIVATE_KEY` + fund that address on Base Sepolia, `ETHEREUM_RPC_URL` / Base Sepolia RPC, `ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS` from `deployments/base-sepolia.env`, model overrides as needed; expose a stable public or gateway URL; point testnet CauseStarter’s `/api/cause-assist` (or `VITE_CAUSE_ASSIST_URL`) at it; confirm `/health` reports `coherenceAttesterConfigured: true` and a publish path can mint a badge. Until this exists, testnet roster publish soft-fails coherence (preview may also fail if the SPA has no assist backend).
+- [ ] **(Tell)** Stand up **cause-assist on testnet** (it is local-only today: Docker Compose / `:3002`, no Render service, not in `render.yaml` or the Cloudflare service gateway). Needed for CauseStarter LLM helpers (`/check-coherence`, atomize, etc.). Operator coherence **badges** should follow the worker design in the item below (do not plan testnet around a public SPA-callable `/attest-coherence` long-term). Ship a deployed service for the LLM HTTP API, wire env: `XAI_API_KEY` (or OpenRouter), model overrides as needed; expose a stable public or gateway URL; point testnet CauseStarter’s `/api/cause-assist` (or `VITE_CAUSE_ASSIST_URL`) at it; confirm `/health`. Badge minting needs the operator key on the **worker** (or an internal-only path), not a browser-reachable hot wallet. Until assist + worker exist on testnet, roster publish soft-fails coherence (preview may also fail if the SPA has no assist backend).
+
+- [ ] **(Tell)** Move operator coherence badges off the public HTTP path: **worker watches `RefUpdated`, not the SPA.** Today after `publishRoster` the CauseStarter browser calls cause-assist `POST /attest-coherence`, which can spend `CAUSE_ASSIST_COHERENCE_ATTESTER_PRIVATE_KEY` behind only a rate limit. Goal: only a trusted process that observed a real on-chain tip update may mint badges.
+
+  ### Why this shape
+  - Product rule: founder never self-attests; operator key is `msg.sender` on `AlignmentAttestations`.
+  - `publishRoster` already emits a clear chain signal — no custom “roster published” contract needed.
+  - Prefer this over shared secrets in the SPA, mTLS, or founder-signed challenges (see prior discussion). Binding + LLM rules already live in cause-assist; reuse them.
+
+  ### Current code (start here)
+  - Publish path: `causestarter/src/lib/causeRoster.ts` → `publishRoster` — `PublishedData.publishData` then `MutableRefUpdater.updateRef(slug, rosterCid)` (EIP-5792 batch when possible).
+  - SPA post-publish attest (remove or soft-fail only until worker exists): `causestarter/src/pages/CauseDetailPage.tsx` calls `requestCoherenceAttestation` in `causestarter/src/lib/causeAssistClient.ts`.
+  - Bind + judge + write: `cause-assist/src/bindRosterPayload.ts`, `attestCoherence.ts`, `coherenceCheck.ts`, `blockchain.ts`, `rosterDocument.ts` (`kind: causestarter.roster`, schema version 1). Attest already requires CID recompute from `title/summary/plankCids/mediatorBlurb` and loads plank **texts by CID**; only `verdict.source === 'llm'` may mint (`judgment_unavailable` for heuristic).
+  - HTTP surface today: `cause-assist/src/app.ts` `POST /attest-coherence` (public + rate limit). Keep `POST /check-coherence` as the **preview-only** public route (no chain write).
+  - Mirror pattern to copy: `published-data-ipfs-mirror/` (poll logs, cursor/state file, permissionless, Compose service). Contract: `hardhat/contracts/utils/MutableRefUpdater.sol` event `RefUpdated(address indexed owner, string name, string currentRefValue)`. Indexer already registers `MutableRefUpdater:RefUpdated` (`indexer/src/events-cache/index.ts`). Reserved ref names that are **not** cause slugs: `RESERVED_REF_NAMES` in `causestarter/src/lib/causeRoster.ts` (`created-statements`, `favorites`, `bookmarks`, `draft-post`).
+  - Badge display already reloads from chain: `loadRosterCoherenceBadge` + operator address from `/health` — SPA only needs to stop *requesting* the mint.
+
+  ### Target design
+  1. **Worker** (new package or Compose service; closest sibling is `published-data-ipfs-mirror`):
+     - Poll (or subscribe) for `MutableRefUpdater.RefUpdated` via RPC logs and/or event-cache, with a durable cursor (block number + log index) in a state file under the data dir.
+     - For each event:
+       - Skip empty `currentRefValue`.
+       - Skip `name` in `RESERVED_REF_NAMES` (and any future reserved list shared with CauseStarter).
+       - Load document at `currentRefValue` (PublishedData / IPFS / same resolvers as `createDefaultDocumentStore`). Require `extras.kind === 'causestarter.roster'` and valid schema version; otherwise ignore (not every ref is a cause).
+       - Treat `currentRefValue` as `rosterCid`. Build attest input from **loaded** roster fields (`title`, `summary`, `plankCids`, `mediatorBlurb`) — do not trust browser-supplied free-form plank strings.
+       - Run the same path as `attestCoherenceIfJudged` (bind plank texts by CID → LLM only → `publishCoherenceAttestation`). Silence on mismatch, unloadable content, heuristic-only, not coherent, or attester not configured. Never write a negative on-chain judgment.
+       - Idempotent: existing `hasCoherenceAttestation` / `already_attested` handles re-processing and tip rewrites to the same CID.
+     - Retry briefly when content is not yet available (indexer/mirror lag after the same tx); then log and continue (do not crash the loop).
+  2. **Hot wallet placement** (pick one; document the choice in the worker README):
+     - **Preferred:** worker imports pure helpers from cause-assist/sdk and holds `CAUSE_ASSIST_COHERENCE_ATTESTER_PRIVATE_KEY` itself; **or**
+     - Worker calls an **internal-only** attest entrypoint (loopback / docker network, not published on nginx `/api/cause-assist/`, not on host `0.0.0.0`).
+  3. **Remove public chain-write surface:**
+     - Stop CauseStarter from calling `POST /attest-coherence` after publish (soft-fail path goes away for badges; UI only polls/loads `loadRosterCoherenceBadge`).
+     - Delete or disable public `POST /attest-coherence` (or guard so it cannot run without internal auth that the SPA never has). Preview stays on `POST /check-coherence`.
+  4. **Compose / ops:** service in `docker-compose.yml`, start with local stack (`scripts/services.sh` / `deploy-causestarter.sh` as appropriate), env: RPC, chain id, MutableRefUpdater + AlignmentAttestations + PublishedData addresses, operator private key, XAI/OpenRouter for LLM, IPFS gateway / event-cache as needed for document load. Mirror `published-data-ipfs-mirror` restart/health patterns.
+  5. **Tests:** unit tests for filter (reserved name, non-roster doc, empty value), bind+attest reuse, idempotency; if feasible a small integration test with a synthetic `RefUpdated` + fake content resolver (see SDK test fakes).
+
+  ### Acceptance
+  - Publishing a roster (founder wallet) eventually yields an operator coherence badge **without** the browser calling a chain-write API, when LLM judges coherent and operator key is configured.
+  - No public unauthenticated route can spend the operator key.
+  - Non-roster `RefUpdated` events never mint badges.
+  - Re-processing the same tip is a no-op (`already_attested`).
+  - Local docs: `cause-assist/README.md` and/or new worker README describe the watch signal, filters, and env; `causestarter/TODO.md` note if useful.
+
+  ### Out of scope for this task
+  - Merit judgment, negative on-chain attestations, discovery ranking.
+  - Changing roster document schema.
+  - Full testnet deploy (separate TODO item above) — but do not re-introduce a public attest HTTP API as the testnet design.
 
 - Fix the three failing funding-portal integration tests. `automated.test-full-integration` fails (exit 3, 101 passing / 3 failing) because cause-level aggregation reads back `0n` where seeded contributions should appear: "total funding raised across all aligned projects for a cause" expects `800000n` (`integration-tests/src/fundingportal/fundingportal-aggregated-metrics.test.ts:219`), and the leaderboard tests expect `3000000n` and `2000000n` (`fundingportal-leaderboards.test.ts:221` and `:346`). All three get `0n`, so suspect one shared cause: contributions not being attributed to the cause in the aggregation query/indexer rather than three separate bugs. This is the only red under `automated.test-full` — SDK, Hardhat, and UI legs pass.
 

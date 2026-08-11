@@ -229,11 +229,11 @@ export function CauseDetailPage() {
         setHistory(hist)
         // Badge loads separately: it needs the operator address, which arrives async.
         setCause(remoteCause)
-        // Founder with local draft can edit current tip; pinned and pure visitors are read-only.
-        const isFounder = Boolean(
-          address && address.toLowerCase() === routeRef.owner.toLowerCase() && local && !routeRef.versionCid,
-        )
-        setRemoteReadOnly(!isFounder)
+        // Local draft for this stable id can edit the tip without a connected wallet
+        // (draft patches are device-local). On-chain actions still require the founder
+        // wallet. Pinned versions and pure remote visitors stay read-only.
+        const canEditLocally = Boolean(local && !routeRef.versionCid)
+        setRemoteReadOnly(!canEditLocally)
       } catch (err) {
         if (!cancelled) {
           setCause(undefined)
@@ -583,7 +583,7 @@ export function CauseDetailPage() {
           rosterCid: result.rosterCid,
           title: fields.title,
           summary: fields.summary,
-          planks: published.map((p) => p.text),
+          plankCids: fields.plankCids,
           mediatorBlurb: fields.mediatorBlurb,
         })
         if (attest.attesterAddress) {

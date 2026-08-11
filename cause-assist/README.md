@@ -33,10 +33,10 @@ See `src/statementGuidance.ts` and the Implication Attester evaluator prompt for
 | POST | `/suggest-mediator-scaffold` | `{ foundingStatement, name? }` | Editable mediator identity, side labels, and complete starting anchor triples; never a strategy prompt |
 | POST | `/check-implications` | `{ mainStatement, supportingStatements[] }` | Per-pair implies / confidence / reasoning |
 | POST | `/safety-check` | `{ items: [{ text, fieldLabel? }] }` | Per-item allow/deny + user-facing explanation |
-| POST | `/check-coherence` | `{ rosterCid, title, summary, planks[], mediatorBlurb? }` | Positive-only construction check for a would-be roster CID (preview; no chain write) |
-| POST | `/attest-coherence` | same as `/check-coherence` | Re-judges construction; if coherent and operator key is configured, writes `AlignmentAttestations` for the roster CID from the **operator** wallet. Silence (`attested: false`) when not coherent or attester not configured — never a negative chain write |
+| POST | `/check-coherence` | `{ rosterCid, title, summary, planks[], mediatorBlurb? }` | Positive-only construction check for a would-be roster CID (preview; no chain write; may use heuristic without an API key) |
+| POST | `/attest-coherence` | `{ rosterCid, title, summary, plankCids[], mediatorBlurb? }` | Binds structure by recomputing the roster CID and loads each plank’s text by CID, then re-judges with the **LLM only**. If coherent and operator key is configured, writes `AlignmentAttestations` from the **operator** wallet. Silence (`attested: false`) on mismatch, unloadable planks, heuristic-only judgment, not coherent, or attester not configured — never a negative chain write |
 
-Without an API key, the suggester uses conservative local templates, implication checks are low-confidence heuristics, the safety filter uses heuristics only, and coherence uses a narrow heuristic (no merit judgment). Without a coherence attester private key / RPC / contract address, `/attest-coherence` never writes on chain (preview still works).
+Without an API key, the suggester uses conservative local templates, implication checks are low-confidence heuristics, the safety filter uses heuristics only, and `/check-coherence` uses a narrow heuristic (no merit judgment). **`/attest-coherence` never mints a badge from the heuristic** — LLM judgment is required. Without a coherence attester private key / RPC / contract address, it never writes on chain.
 
 ## Configuration
 
@@ -50,8 +50,11 @@ Without an API key, the suggester uses conservative local templates, implication
 | `CAUSE_ASSIST_SAFETY_MODEL` | `grok-4.5` (or `x-ai/grok-4.5` for OpenRouter-only) | Safety filter model id |
 | `CAUSE_ASSIST_IMPLICATION_MODEL` | same as suggest model | Implication check model id |
 | `CAUSE_ASSIST_COHERENCE_ATTESTER_PRIVATE_KEY` | — | Operator key for on-chain coherence badges (local Compose defaults to Hardhat account #9) |
-| `ETHEREUM_RPC_URL` / `CAUSE_ASSIST_ETHEREUM_RPC_URL` | — | RPC used for `attestAlignment` |
+| `ETHEREUM_RPC_URL` / `CAUSE_ASSIST_ETHEREUM_RPC_URL` | — | RPC used for `attestAlignment` and document resolution |
 | `ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS` | — | AlignmentAttestations deployment |
+| `CAUSE_ASSIST_IPFS_GATEWAY_URL` / `IPFS_GATEWAY` | — | Gateway for loading plank documents by CID (Compose: `http://ipfs:8080/ipfs`) |
+| `EVENT_CACHE_URL` | — | Indexer/event-cache base for PublishedData reads |
+| `PUBLISHED_DATA_CONTRACT_ADDRESS` | — | PublishedData deployment (document reads) |
 | `PORT` / `CAUSE_ASSIST_PORT` | `3002` | HTTP port |
 
 `GET /health` includes `coherenceAttesterAddress` and `coherenceAttesterConfigured` so viewers can trust who authors the badge.

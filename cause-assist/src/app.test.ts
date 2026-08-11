@@ -135,18 +135,27 @@ describe('cause-assist request guards', () => {
     assert.equal(body.coherenceAttesterAddress, null)
   })
 
-  it('attest-coherence stays silent when coherent but operator key is unset', async () => {
+  it('attest-coherence requires plankCids and fails closed without loadable planks', async () => {
     const baseUrl = await start()
-    const response = await post(baseUrl, '/attest-coherence', {
+    const missingCids = await post(baseUrl, '/attest-coherence', {
       rosterCid: 'bafytestroster',
       title: 'Neighborhood parks',
       summary: 'We want more local parks and green space for families.',
       planks: ['Our city should fund neighborhood parks.'],
     })
-    assert.equal(response.status, 200)
-    const body = await response.json() as { attested: boolean; reason: string }
+    assert.equal(missingCids.status, 400)
+
+    const unbound = await post(baseUrl, '/attest-coherence', {
+      rosterCid: 'bafytestroster',
+      title: 'Neighborhood parks',
+      summary: 'We want more local parks and green space for families.',
+      plankCids: ['bafkreiplank1'],
+    })
+    assert.equal(unbound.status, 200)
+    const body = await unbound.json() as { attested: boolean; reason: string }
     assert.equal(body.attested, false)
-    assert.equal(body.reason, 'attester_not_configured')
+    // Without a statement loader (no IPFS/event-cache in unit tests), bind fails closed.
+    assert.ok(body.reason === 'roster_mismatch' || body.reason === 'roster_unavailable')
   })
 
   it('rate limits repeated expensive requests by client IP', async () => {
