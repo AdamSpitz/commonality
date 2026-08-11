@@ -1,8 +1,16 @@
-import { describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { RefUpdate } from '@commonality/sdk/mutable-refs'
+
+const getSubjectStatements = vi.hoisted(() => vi.fn())
+vi.mock('@commonality/sdk/fundingportals', async (importOriginal) => ({
+  ...(await importOriginal<object>()),
+  getSubjectStatements,
+}))
+
 import {
   buildRosterDocument,
   formatRosterAge,
+  loadRosterCoherenceBadge,
   mediatorBlurbFrom,
   normalizeSlug,
   parseCauseRouteParams,
@@ -207,5 +215,46 @@ describe('causeRoster', () => {
     const labels = plankAddedLaterLabels(history, firstSeen, Number(v2.timestamp) * 1000 + 60_000)
     expect(labels.has('plank-a')).toBe(false)
     expect(labels.get('plank-b')).toMatch(/Added later/i)
+  })
+
+  describe('loadRosterCoherenceBadge', () => {
+    const OPERATOR = '0x1111111111111111111111111111111111111111' as const
+    const FOUNDER = '0x2222222222222222222222222222222222222222' as const
+    const rosterCid = previewRosterCid({
+      title: 'Oak Street', summary: 'S', plankCids: ['bafy1'], mediatorBlurb: '',
+    })
+    const machinery = {} as never
+
+    beforeEach(() => {
+      getSubjectStatements.mockClear()
+    })
+
+    const attestation = (attester: string) => ({
+      attester,
+      statementCid: ROSTER_COHERENCE_CLAIM,
+      topicCid: ROSTER_COHERENCE_TOPIC,
+      subjectId: rosterSubjectId(rosterCid),
+      createdAt: '2026-01-01T00:00:00.000Z',
+    })
+
+    it('ignores coherence claims attested by anyone but the operator', async () => {
+      getSubjectStatements.mockResolvedValueOnce([attestation(FOUNDER)])
+      expect(await loadRosterCoherenceBadge(machinery, rosterCid, OPERATOR)).toBeNull()
+    })
+
+    it('shows the badge for the operator and drops other attesters', async () => {
+      getSubjectStatements.mockResolvedValueOnce([
+        attestation(FOUNDER),
+        attestation(OPERATOR),
+      ])
+      const badge = await loadRosterCoherenceBadge(machinery, rosterCid, OPERATOR)
+      expect(badge?.attesters).toEqual([OPERATOR])
+    })
+
+    it('shows no badge when the operator address is unknown', async () => {
+      getSubjectStatements.mockResolvedValueOnce([attestation(FOUNDER)])
+      expect(await loadRosterCoherenceBadge(machinery, rosterCid, null)).toBeNull()
+      expect(getSubjectStatements).not.toHaveBeenCalled()
+    })
   })
 })

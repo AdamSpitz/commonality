@@ -303,6 +303,18 @@ type ContractCall = {
 }
 
 /**
+ * True when a wallet rejected a request because it does not implement the method
+ * (JSON-RPC -32601, or the equivalent message from injectors like local Hardhat).
+ */
+function isUnsupportedMethodError(error: unknown): boolean {
+  const code = (error as { code?: unknown } | null)?.code
+  if (code === -32601 || code === 4200) return true
+  const message = error instanceof Error ? error.message : String(error)
+  return /method not found|not supported|does not support|unsupported method|does not exist/i
+    .test(message)
+}
+
+/**
  * EIP-5792 atomic batch when the wallet supports it; otherwise sequential writes.
  * Local Hardhat EOAs often lack wallet_sendCalls — fall back without failing the publish.
  */
@@ -314,6 +326,7 @@ async function sendCallsPreferAtomic(
 
   const chainId = clients.walletClient.chain?.id
   if (chainId && calls.length > 1) {
+    let batchId: string | null = null
     try {
       const id = await clients.walletClient.request({
         method: 'wallet_sendCalls',
@@ -328,9 +341,18 @@ async function sendCallsPreferAtomic(
           })),
         }],
       })
-      const batchId = typeof id === 'string' ? id : (id as { id: string }).id
+      batchId = typeof id === 'string' ? id : (id as { id: string }).id
+    } catch (error) {
+      // Only a wallet that cannot batch may fall through to sequential. Any other
+      // submission failure is surfaced, since retrying could double-send.
+      if (!isUnsupportedMethodError(error)) throw error
+    }
+
+    // Past this point the batch is in flight: never retry sequentially, or the
+    // publish + updateRef would run a second time on a slow-but-successful batch.
+    if (batchId !== null) {
       const deadline = Date.now() + 120_000
-      while (Date.now() < deadline) {
+      for (;;) {
         const status = await clients.walletClient.request({
           method: 'wallet_getCallsStatus',
           params: [batchId],
@@ -341,17 +363,10 @@ async function sendCallsPreferAtomic(
           return { hashes: [hash], batched: true }
         }
         if (status.status >= 300) throw new Error('Atomic transaction failed.')
+        if (Date.now() >= deadline) {
+          throw new Error('Timed out waiting for atomic transaction confirmation.')
+        }
         await new Promise((resolve) => setTimeout(resolve, 1_000))
-      }
-      throw new Error('Timed out waiting for atomic transaction confirmation.')
-    } catch (error) {
-      // Fall through to sequential — common for Hardhat/local injectors.
-      const message = error instanceof Error ? error.message : String(error)
-      if (/atomic|sendCalls|wallet_sendCalls|method.*not.*support|does not exist/i.test(message)
-        || message.includes('Atomic transaction')) {
-        // continue sequential
-      } else if (!/not supported|Method not found|does not support/i.test(message)) {
-        // Unknown error from batch path: still try sequential rather than strand a half-publish.
       }
     }
   }
@@ -448,12 +463,19 @@ export async function publishRoster(args: {
 /**
  * Load on-chain positive coherence attestations for a roster version CID.
  * Viewers recompute the badge from AlignmentAttestations + well-known claim/topic.
+ *
+ * `operator` is the CauseStarter operator address (from cause-assist /health).
+ * Anyone can write the well-known claim about any roster — including the founder —
+ * so only attestations signed by that operator count. Without a known operator
+ * there is nothing to trust, and no badge is shown.
  */
 export async function loadRosterCoherenceBadge(
   machinery: SDKMachinery,
   rosterCid: string,
+  operator: `0x${string}` | null | undefined,
 ): Promise<RosterCoherenceBadge | null> {
-  if (!rosterCid) return null
+  if (!rosterCid || !operator) return null
+  const operatorAddress = operator.toLowerCase()
   let attestations: AlignmentAttestation[]
   try {
     attestations = await getSubjectStatements(
@@ -470,6 +492,7 @@ export async function loadRosterCoherenceBadge(
   // dag-pb (bafybei…) while well-known PublishedData CIDs use raw (bafkrei…).
   const claimDigest = cidToBytes32(ROSTER_COHERENCE_CLAIM).toLowerCase()
   const matching = attestations.filter((a) => {
+    if (a.attester.toLowerCase() !== operatorAddress) return false
     try {
       return cidToBytes32(a.statementCid).toLowerCase() === claimDigest
     } catch {

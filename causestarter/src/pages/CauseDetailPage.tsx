@@ -225,10 +225,9 @@ export function CauseDetailPage() {
         }
 
         const hist = await loadRosterHistory(machinery, routeRef.owner, routeRef.slug)
-        const badge = await loadRosterCoherenceBadge(machinery, rosterCid)
         if (cancelled) return
         setHistory(hist)
-        setOnChainBadge(badge)
+        // Badge loads separately: it needs the operator address, which arrives async.
         setCause(remoteCause)
         // Founder with local draft can edit current tip; pinned and pure visitors are read-only.
         const isFounder = Boolean(
@@ -278,17 +277,21 @@ export function CauseDetailPage() {
     }
   }, [history, machinery])
 
-  // Refresh on-chain badge when local draft already has a rosterCid (founder return).
+  // On-chain badge for whichever roster version is on screen (visitor or founder).
+  // Re-runs once the operator address resolves; without it no badge is trustworthy.
   useEffect(() => {
-    if (!cause?.rosterCid || routeRef) return
+    if (!cause?.rosterCid || !coherenceOperator) {
+      setOnChainBadge(null)
+      return
+    }
     let cancelled = false
-    void loadRosterCoherenceBadge(machinery, cause.rosterCid).then((badge) => {
+    void loadRosterCoherenceBadge(machinery, cause.rosterCid, coherenceOperator).then((badge) => {
       if (!cancelled) setOnChainBadge(badge)
     })
     return () => {
       cancelled = true
     }
-  }, [cause?.rosterCid, machinery, routeRef])
+  }, [cause?.rosterCid, machinery, coherenceOperator])
 
   const canEdit = Boolean(cause) && !remoteReadOnly && !routeRef?.versionCid
 
@@ -574,6 +577,7 @@ export function CauseDetailPage() {
 
       // Operator-side badge: founder never writes AlignmentAttestations for coherence.
       // Soft-fail if cause-assist is down or judges not coherent (silence, not error).
+      let operator = coherenceOperator
       try {
         const attest = await requestCoherenceAttestation({
           rosterCid: result.rosterCid,
@@ -583,7 +587,8 @@ export function CauseDetailPage() {
           mediatorBlurb: fields.mediatorBlurb,
         })
         if (attest.attesterAddress) {
-          setCoherenceOperator(attest.attesterAddress.toLowerCase() as `0x${string}`)
+          operator = attest.attesterAddress.toLowerCase() as `0x${string}`
+          setCoherenceOperator(operator)
         }
       } catch {
         // Preview remains available; badge simply does not appear.
@@ -591,7 +596,7 @@ export function CauseDetailPage() {
 
       const [hist, badge] = await Promise.all([
         loadRosterHistory(machinery, address, slug),
-        loadRosterCoherenceBadge(machinery, result.rosterCid),
+        loadRosterCoherenceBadge(machinery, result.rosterCid, operator),
       ])
       setHistory(hist)
       setOnChainBadge(badge)
@@ -640,14 +645,10 @@ export function CauseDetailPage() {
             color="success"
             variant="filled"
             label="Coherent construction"
-            title={
-              coherenceOperator
-                ? `Attested by CauseStarter operator ${coherenceOperator}`
-                : `Attested by ${onChainBadge.attesters.join(', ')}`
-            }
+            title={`Attested by CauseStarter operator ${onChainBadge.attesters[0]}`}
             sx={{ mb: 0.75, ml: 1 }}
             data-testid="cause-coherence-badge"
-            data-attester={coherenceOperator ?? onChainBadge.attesters[0]}
+            data-attester={onChainBadge.attesters[0]}
           />
         )}
         <Typography

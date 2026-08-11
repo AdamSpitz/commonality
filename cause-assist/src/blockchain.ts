@@ -81,27 +81,23 @@ function clientsFor(config: CoherenceChainConfig): {
 }
 
 /** True when this operator already attested the well-known claim for the roster CID. */
-export async function hasCoherenceAttestation(
-  config: CoherenceChainConfig,
+async function hasCoherenceAttestation(
+  writeClients: WriteClients,
+  alignmentAddress: `0x${string}`,
   rosterCid: string,
 ): Promise<boolean> {
-  const { writeClients, alignmentAddress } = clientsFor(config)
-  try {
-    const result = await writeClients.publicClient.readContract({
-      address: alignmentAddress,
-      abi: AlignmentAttestationsAbi,
-      functionName: 'hasAttestation',
-      args: [
-        writeClients.account,
-        cidToBytes32(ROSTER_COHERENCE_TOPIC),
-        rosterSubjectId(rosterCid),
-        cidToBytes32(ROSTER_COHERENCE_CLAIM),
-      ],
-    })
-    return result === true
-  } catch (error) {
-    throw classifyBlockchainError(error)
-  }
+  const result = await writeClients.publicClient.readContract({
+    address: alignmentAddress,
+    abi: AlignmentAttestationsAbi,
+    functionName: 'hasAttestation',
+    args: [
+      writeClients.account,
+      cidToBytes32(ROSTER_COHERENCE_TOPIC),
+      rosterSubjectId(rosterCid),
+      cidToBytes32(ROSTER_COHERENCE_CLAIM),
+    ],
+  })
+  return result === true
 }
 
 /**
@@ -120,18 +116,7 @@ export async function publishCoherenceAttestation(
   const attesterAddress = writeClients.account
 
   try {
-    const already = await writeClients.publicClient.readContract({
-      address: alignmentAddress,
-      abi: AlignmentAttestationsAbi,
-      functionName: 'hasAttestation',
-      args: [
-        attesterAddress,
-        cidToBytes32(ROSTER_COHERENCE_TOPIC),
-        rosterSubjectId(rosterCid),
-        cidToBytes32(ROSTER_COHERENCE_CLAIM),
-      ],
-    })
-    if (already === true) {
+    if (await hasCoherenceAttestation(writeClients, alignmentAddress, rosterCid)) {
       return { attesterAddress, alreadyAttested: true }
     }
 
