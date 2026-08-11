@@ -44,7 +44,7 @@ describe('CsmLandingPage mediator opt-in', () => {
     const mediatorOptIn = getMediatorOptInRegion()
 
     expect(within(mediatorOptIn).getByRole('heading', { name: /opt in to the csm mediator/i })).toBeInTheDocument()
-    expect(within(mediatorOptIn).getByText(/the only consequence is that Tally may show you suggestions/i)).toBeInTheDocument()
+    expect(within(mediatorOptIn).getByText(/suggestions appear only after you opt in/i)).toBeInTheDocument()
     expect(getMediatorSuggestionsSwitch()).not.toBeChecked()
   })
 

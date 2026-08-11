@@ -76,6 +76,11 @@ export { usePaymentTokenCurrency } from './currency/usePaymentTokenCurrency'
 // === nudges/ — dismissed-nudge store + CSM mediator nudger ===
 export { dismissNudge, getDismissedNudges } from './nudges/nudgeStore'
 export { getCsmMediatorNudger, getTallyMediatorOptInPath } from './nudges/csmMediatorNudger'
+export { getMediatorOptInPath, mediatorNudgerFromCause } from './nudges/mediatorNudger'
+export type { CauseMediatorConfig } from './nudges/mediatorNudger'
+export { MediatorOptInBlock } from './nudges/MediatorOptInBlock'
+export { BridgeDisplayBlock, buildMediatorBridgeCards, fetchFeaturedMediatorAnchors, useMediatorAnchors } from './mediator/BridgeDisplayBlock'
+export type { BridgeLabels, MediatorBridgeAnchor, MediatorBridgeCard } from './mediator/BridgeDisplayBlock'
 
 // === stores/ — client-side persistence (contacts; folded-state cache via hooks) ===
 export { addContact, getContacts } from './stores/contactStore'

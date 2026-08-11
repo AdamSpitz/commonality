@@ -418,6 +418,10 @@ services:
   # CauseStarter LLM helpers: statement suggestions + safety filter (Grok 4.5 / xAI).
   # Graceful without an API key (templates + heuristics). Key comes from root .env
   # (via .env.secrets + setup-env.sh) or the process environment.
+  #
+  # Always started with the local stack (services.sh / deploy-causestarter.sh).
+  # - Docker CauseStarter nginx proxies /api/cause-assist/ → cause-assist:3002
+  # - Host Vite (npm run causestarter:dev) proxies to loopback :3002
   cause-assist:
     image: commonality-cause-assist:dev
     build:
@@ -425,7 +429,8 @@ services:
       dockerfile: cause-assist/Dockerfile
     container_name: commonality-cause-assist
     ports:
-      - "${CAUSE_ASSIST_PORT:-3002}:3002"
+      # Loopback only: Vite on the host needs this; do not expose beyond the machine.
+      - "127.0.0.1:3002:3002"
     env_file:
       - path: .env
         required: false
@@ -433,12 +438,62 @@ services:
       PORT: "3002"
       XAI_API_KEY: ${XAI_API_KEY:-}
       OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
-      CAUSE_ASSIST_API_BASE_URL: ${CAUSE_ASSIST_API_BASE_URL:-https://api.x.ai/v1}
-      CAUSE_ASSIST_SUGGEST_MODEL: ${CAUSE_ASSIST_SUGGEST_MODEL:-grok-4.5}
-      CAUSE_ASSIST_SAFETY_MODEL: ${CAUSE_ASSIST_SAFETY_MODEL:-grok-4.5}
+      # Keep overrides empty by default so config.ts can choose provider-appropriate defaults.
+      CAUSE_ASSIST_API_BASE_URL: ${CAUSE_ASSIST_API_BASE_URL:-}
+      CAUSE_ASSIST_SUGGEST_MODEL: ${CAUSE_ASSIST_SUGGEST_MODEL:-}
+      CAUSE_ASSIST_SAFETY_MODEL: ${CAUSE_ASSIST_SAFETY_MODEL:-}
+      CAUSE_ASSIST_IMPLICATION_MODEL: ${CAUSE_ASSIST_IMPLICATION_MODEL:-}
+      CAUSE_ASSIST_COHERENCE_MODEL: ${CAUSE_ASSIST_COHERENCE_MODEL:-}
+      # Public identity only. The private key lives exclusively in coherence-badge-worker.
+      CAUSE_ASSIST_COHERENCE_ATTESTER_ADDRESS: ${CAUSE_ASSIST_COHERENCE_ATTESTER_ADDRESS:-0xa0Ee7A142d267C1f36714E4a8F75612F20a79720}
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3002/health >/dev/null || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
     networks:
       - commonality
     restart: unless-stopped
+
+  # Trusted roster coherence worker. It alone holds the operator hot key and
+  # watches real RefUpdated logs; no browser-reachable route can request a write.
+  coherence-badge-worker:
+    image: commonality-coherence-badge-worker:dev
+    build:
+      context: .
+      dockerfile: coherence-badge-worker/Dockerfile
+    container_name: commonality-coherence-badge-worker
+    user: "${UID:-1000}:${GID:-1000}"
+    depends_on:
+      hardhat-node:
+        condition: service_healthy
+      hardhat-deploy:
+        condition: service_completed_successfully
+      ipfs:
+        condition: service_healthy
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      RPC_URL: http://hardhat-node:8545
+      CHAIN_ID: "31337"
+      DEPLOYMENT_ENV_FILE: /workspace/deployments/localhost.env
+      STATE_FILE: /data/coherence-badge-worker.local.json
+      CONFIRMATIONS: "0"
+      CAUSE_ASSIST_COHERENCE_ATTESTER_PRIVATE_KEY: ${CAUSE_ASSIST_COHERENCE_ATTESTER_PRIVATE_KEY:-0x2a871d0798f97d79848a013d4936a73bf4cc922c825d33c1cf7073dff6d409c6}
+      XAI_API_KEY: ${XAI_API_KEY:-}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      CAUSE_ASSIST_API_BASE_URL: ${CAUSE_ASSIST_API_BASE_URL:-}
+      CAUSE_ASSIST_COHERENCE_MODEL: ${CAUSE_ASSIST_COHERENCE_MODEL:-}
+      CAUSE_ASSIST_IPFS_GATEWAY_URL: http://ipfs:8080/ipfs
+      EVENT_CACHE_URL: http://indexer:42069
+    volumes:
+      - ./deployments:/workspace/deployments:ro
+      - ${COMMONALITY_DATA_DIR:-./data}/coherence-badge-worker:/data
+    restart: unless-stopped
+    networks:
+      - commonality
 
   # CauseStarter — nginx static SPA (core founder surface).
   # Contract addresses / RPC URLs are injected at container start into config.json.
@@ -495,7 +550,8 @@ services:
       VITE_COMMON_SENSE_MAJORITY_URL: ${VITE_COMMON_SENSE_MAJORITY_URL:-http://common-sense-majority.localhost:8088/#/}
       VITE_CONCEPTSPACE_URL: ${VITE_CONCEPTSPACE_URL:-http://conceptspace.localhost:8088/#/}
     depends_on:
-      - cause-assist
+      cause-assist:
+        condition: service_healthy
     networks:
       - commonality
     restart: unless-stopped

@@ -19,6 +19,20 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 ### Done, for review
 
+- **(Tell)** Moved CauseStarter coherence badge writes into a trusted `RefUpdated` worker. The browser no longer requests minting, cause-assist exposes no chain-write route or hot key, and the worker filters/loads schema-v1 roster tips before reusing the LLM-only bind-and-attest path. Local Compose includes the durable worker; focused tests/typechecks pass.
+
+- **(Tell)** Fixed CauseStarter **coherence badge authorship**: on-chain attester is now the **CauseStarter operator** (cause-assist keypair → `msg.sender`), not the founder. Removed founder-side `attestCoherence` from `publishRoster`. After roster publish the UI calls cause-assist `POST /attest-coherence` (re-judges construction; positive-only write; silence if not coherent / not configured). `/health` surfaces `coherenceAttesterAddress` for viewer trust. Local Compose defaults Hardhat account #9. Wallet generation / setup-env know the new key. Design: docs/founder/shaping-your-cause-statements.md § The coherence badge.
+
+- **(Tell)** Finished CauseStarter **roster follow-ups**: (1) positive-only on-chain coherence badge via `AlignmentAttestations` (subject = roster CID digest, well-known claim/topic; written when preview passed and founder uses Publish; viewers recompute from chain), (2) `PublishedData` publish + `updateRef` (+ optional attest) prefer one EIP-5792 atomic batch with sequential fallback, (3) per-plank "Added later" chips from `getUserRefHistory` + prior roster docs. CauseStarter unit tests + typecheck green.
+
+- **(Ask, done at your request)** CauseStarter **roster as publication**: PublishedData roster document (title, summary, ordered plank CIDs, mediator blurb) + MutableRef `(founder, slug) → CID` stable URL `/cause/:owner/:slug` with `@version` pins, history display, preview-before-publish with peer **Publish** / **Publish anyway**, and a separate cause-assist `/check-coherence` attester (construction-only, own model config). Follow-ups above.
+
+- **(Tell)** Rebuilt the CauseStarter launch wizard around `Issues → Preview → Launch`: rough descriptions feed cause-assist atomization, planks can be edited or sharpened with inline vagueness feedback, and the founder learns the union/two-band intersection views through an interactive preview of his own cause. Main→supporting implication gating is gone. The first plank remains the primary stored CID only as a compatibility detail for existing cause pages; all planks are peers in the wizard. Focused CauseStarter typecheck and tests pass.
+
+- **(Tell)** Removed the NoteIntent-dependent UI: one-time deposits no longer collect intent, note details and cause/statement/leaderboard surfaces no longer display intent-derived earmarked funds, and CauseStarter's earmarked route is gone. The contract plus SDK/indexer primitives remain untouched and dormant. Updated affected tests and UI specs; focused UI tests and the UI build pass.
+
+- **(Tell)** Landed the bridge-creator generalization infrastructure: generic roles/labels with CSM aliases, provisional all-in-one config, a no-opinion scaffold, CORS-enabled live anchor fetching with a bundled CSM fallback, reusable bridge/opt-in blocks, and a CauseStarter per-cause mediator card. Independent review correctly found that cause-assist enrichment and the founder-facing CauseStarter attachment flow are still missing, so the narrowed remainder is back in [TODO.md](/TODO.md); `provisional-v1` still awaits the live CSM rehearsal.
+
 - **(Tell)** Moved the 12 AI worker/core packages out of the repo root into `services/` (root went from 25 directories to 13). Branch `refactor/services-subdir`; mechanical only, package names unchanged. `cause-assist` deliberately stayed in root as a CauseStarter dependency. Validated with typecheck (35/35), all service tests, and real `docker build` runs of the `service-host` and `cause-assist` images. Details and the two bugs found along the way are in the 2026-08-08 [CONTINUITY.md](/CONTINUITY.md) entry. Worth a look before merge since it touches deploy config.
 
 ### Security/recoverability human actions
@@ -56,11 +70,18 @@ is the living spec with the full backlog. What's left here is only the part that
 
 - Improve the [pitch for Christians](docs/founder/christian-pitch.md). Come up with other ones along those lines.
 
-- Better yet (or in addition to that), have an AI generate a bunch of imaginary founders and causes and so on.
+- Have an AI generate a bunch of imaginary founders and causes and so on, as a way of pressure-testing the founder-facing model.
 
 ### Stuff I want to think through
 
+- Let's figure out how to make clear that the cause page (owned by its founder, and editable) isn't the same as the underlying statements. If a user signs some statements, those statements are the ones that he signed; they're immutable, and even if the cause-founder modifies which statements he shows on his site (which is his right to do - he's the one operating the site, so he needs to have control over which statements it shows, including being able to change his mind later), the user's signature is only on the statements he actually signed, and the cause page itself won't show the user's signature on the cause's new statements (unless the implication attester says it's okay) (or unless the cause site is dishonest).
+
+- Since we switched over to the "we don't operate the cause sites, cause-founders do" model, that means that an unscrupulous cause-founder can make a site that fakes his numbers.
+
+- How to eliminate CauseStarter’s reliance on browser `localStorage` for cause drafts / founder progress (`causestarter/src/lib/causeStore.ts`). Today drafts are origin-scoped (so Vite `:5174` vs Docker `:8090` don’t share them) and vanish across devices/clears. Worth thinking through durable alternatives (on-chain draft, IPFS + pointer, account-linked backend, etc.) without re-centralizing or making launch heavier.
+
 - Asking the cause founder to make statements is going to be a problem because the idea of statements is not obvious. (Need to not be vague or ambiguous, etc.)
+  - **(Tell)** Partial pass done: CauseStarter “start a cause” copy reframes main vs supporting statements as signable beliefs with main→supporting implication; cause-assist suggester prompt + new `/check-implications` (Implication Attester system prompt) verify pairs; wizard blocks medium/high non-implies. Still product-sensitive — review wording and whether hard-block is right.
 
 - Now that have (or at least are close to having) a proper testnet setup, can we start creating an ecosystem of simulated fake users of various types? (We can use LLMs to run the ones that need more intelligence, though ideally they'll mostly be made of conventional code, to avoid burning too many LLM tokens.)
   - Cause founder: cares a lot about some cause, comes across CauseStarter, tries actually forking the repo and making a new cause, etc.

@@ -26,6 +26,23 @@ Instead:
 
 This makes screening/moderation less philosophically weird. A curated site excluding something is not “censoring the protocol”; it is one front end applying its own editorial/legal policy.
 
+## The lens posture: generic in subject, non-universal in admission
+
+Frozen as [ADR 0008](/specs/decisions/0008-operated-surfaces-are-lenses.md) (Aug 2026). The design goal above admits a third option that the original framing missed, and CauseStarter is built on it.
+
+The goal says to avoid a “canonical, neutral, universal front end.” Those four adjectives were treated as one property because in the original eight-sites design they arrived together. They are separable, and only one of them is load-bearing. What [ADR 0005](/specs/decisions/0005-founder-first-verticals.md) actually identified as untenable was being *the* platform for everything **with no editorial principle to point at when declining something** — a property of **universal admission**, not of genericness. A front end can therefore be generic in subject matter while listing nothing at all.
+
+A **lens** is such a surface:
+
+- **It authors no discovery.** No search, no browse, no ranking, no featured items, no leaderboards. Content is reached by its own URL, via links its author circulates. The operator drives no traffic and selects no winners, so amplification and endorsement exposure largely vanish.
+- **It reviews nothing.** No admission criteria, no queue, no rejections, no listing appeals — because nothing is listed. The apparatus a listing standard needs exists only to gate discovery.
+- **Its trust claim is recomputability, not endorsement.** Every derived number exposes its inputs and can be checked independently against chain data. It never claims the things it renders are good.
+- **Editorial judgments become attestations, not site properties.** Anything the operator wants to assert (for CauseStarter: that a cause's roster matches its own summary and hides no riders) is published as a positive-only, narrowly-scoped, viewer-trust-configurable attestation bound to an exact artifact hash. That makes the judgment *portable* — a founder-run site can display it and cannot forge it — instead of making the operated site the only trustworthy place to look.
+
+**What the lens posture does not do is discharge any compliance duty.** It addresses curation and promotion exposure and leaves distribution exposure untouched: rendering an arbitrary CID on demand is a display act however the visitor arrived, and [statement-hosting.md](legal/statement-hosting.md) already names shareable links among those arrivals. Post-notice, “we curate nothing” is not a defense — distributor liability attaches *on* notice. Sanctions exposure is unaffected, being about whom you serve rather than what you rank. So [policy-list](/specs/tech/subsystems/policy-lists/README.md) suppression stays mandatory on a lens, and must cover **aggregation as well as rendering** — a suppressed statement has to drop out of believer sets and therefore out of any supporter count, or it is still being published with extra steps.
+
+One cost worth recording, because it is easy to miss when adopting this: removing authored discovery removes the *soft* lever. A directory can feature, list, list quietly, or decline to list. A lens has two states, render and suppress. Every remaining decision is maximally blunt, and the blocklist goes from one tool among several to the only one.
+
 ## Domain-by-domain posture
 
 ### Commonality — run it
@@ -79,6 +96,8 @@ Better split:
 Aligning displays projects through statement/cause boards and trust/attestation defaults. That is funding discovery and curation. It should naturally belong to cause operators: each cause/community runs its own front end, chooses attesters/trust defaults, and owns its moderation/screening policy.
 
 Avoid “the Aligning site” as the canonical universal cause-board platform. Prefer “Aligning software for cause-board operators,” with any Commonality-operated boards clearly labeled as Commonality’s own curated view.
+
+**Update (Aug 2026): [ADR 0008](/specs/decisions/0008-operated-surfaces-are-lenses.md) adds a third option this section did not consider — the lens.** Commonality *does* operate a generic cause surface (CauseStarter), but it authors no discovery: no search, browse, ranking, or featuring. That turns out to separate the two things this section bundled. What made a universal front door untenable was **universal admission** — being the surface where everything is listed and therefore where every demand about anything lands — not being generic in subject matter. A surface that ranks nothing is neither “the canonical platform” nor a “curated view”; it renders what it is pointed at and offers recomputability rather than endorsement. See [§ The lens posture](#the-lens-posture-generic-in-subject-non-universal-in-admission).
 
 ### Content Funding — do not run generic
 
@@ -188,7 +207,7 @@ Concrete implications:
 3. **Move contribution-routing services to the operator layer.** On-ramp session endpoints, sponsored-gas defaults, submission queues, and deny/report flows should belong to the front-end operator, not to a supposedly neutral global UI.
 4. **Keep the shared index replaceable.** Each vertical/operator chooses its scope, content sources, policy, and filters; it need not run stateful indexing infrastructure. Independent indexers remain supported.
 5. **Package modules for independent operators.** The planned per-vertical repo/package split supports this: publish explicit module APIs and deployment docs so other operators can run real front ends and indexers.
-6. **Avoid canonical global directories.** A global “all projects” or “all content contracts” browser is exactly the front-door role this posture is trying to avoid.
+6. **Avoid authored discovery, not genericness.** No global “all projects” or “all content contracts” browser, and — sharpened by [ADR 0008](/specs/decisions/0008-operated-surfaces-are-lenses.md) — no search, ranking, or featuring on an operated surface either, since every ordering is an editorial act. Supporter-count ranking is the worst of them: it rewards bundling a rider onto a popular plank, which is precisely what the plank model exists to expose. What this rules out is the *directory*; a generic surface that ranks nothing and is reached only by link is the [lens](#the-lens-posture-generic-in-subject-non-universal-in-admission), and is allowed.
 7. **Keep contract-layer neutrality.** Do not add contract-level admin takedowns or custody levers to compensate for UI/indexer moderation.
 
 ## Suggested public framing

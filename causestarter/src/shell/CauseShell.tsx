@@ -15,13 +15,13 @@ import {
 import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined'
 import FlagOutlinedIcon from '@mui/icons-material/FlagOutlined'
 import TrendingUpOutlinedIcon from '@mui/icons-material/TrendingUpOutlined'
-import ExploreOutlinedIcon from '@mui/icons-material/ExploreOutlined'
 import HandymanOutlinedIcon from '@mui/icons-material/HandymanOutlined'
 import GitHubIcon from '@mui/icons-material/GitHub'
 import DarkModeIcon from '@mui/icons-material/DarkMode'
 import LightModeIcon from '@mui/icons-material/LightMode'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { WalletButton } from '../components/WalletButton'
+import { createCausePath } from '../lib/causeStore'
 import { useThemeMode } from '../lib/themeMode'
 
 const GITHUB_ISSUES_URL = 'https://github.com/AdamSpitz/commonality/issues'
@@ -30,7 +30,6 @@ const navItems = [
   { label: 'Home', path: '/', icon: <HomeOutlinedIcon /> },
   { label: 'Start', path: '/start', icon: <FlagOutlinedIcon /> },
   { label: 'Momentum', path: '/momentum', icon: <TrendingUpOutlinedIcon /> },
-  { label: 'Discover', path: '/discover', icon: <ExploreOutlinedIcon /> },
   { label: 'Tools', path: '/tools', icon: <HandymanOutlinedIcon /> },
 ] as const
 
@@ -60,6 +59,10 @@ export function CauseShell({ children }: CauseShellProps) {
   const { mode, toggleMode } = useThemeMode()
   const current = activeNavPath(location.pathname)
 
+  const goStartCause = () => {
+    navigate(createCausePath())
+  }
+
   return (
     <Box
       sx={{
@@ -87,7 +90,7 @@ export function CauseShell({ children }: CauseShellProps) {
             to="/"
             sx={{
               display: 'flex',
-              flexDirection: 'column',
+              alignItems: 'center',
               textDecoration: 'none',
               color: 'inherit',
               minWidth: 0,
@@ -97,36 +100,41 @@ export function CauseShell({ children }: CauseShellProps) {
             <Typography variant="subtitle1" sx={{ fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1.1 }}>
               CauseStarter
             </Typography>
-            <Typography variant="caption" color="text.secondary" sx={{ display: { xs: 'none', sm: 'block' } }}>
-              Start · Grow · Deliver
-            </Typography>
           </Box>
 
           {isDesktop && (
             <Box sx={{ display: 'flex', gap: 0.5, mr: 1 }}>
-              {navItems.map((item) => (
-                <Box
-                  key={item.path}
-                  component={Link}
-                  to={item.path}
-                  data-testid={`nav-${item.label.toLowerCase()}`}
-                  sx={{
-                    px: 1.5,
-                    py: 0.75,
-                    borderRadius: 999,
-                    textDecoration: 'none',
-                    color: current === item.path ? 'primary.contrastText' : 'text.primary',
-                    bgcolor: current === item.path ? 'primary.main' : 'transparent',
-                    fontWeight: 600,
-                    fontSize: 14,
-                    '&:hover': {
-                      bgcolor: current === item.path ? 'primary.dark' : 'action.hover',
-                    },
-                  }}
-                >
-                  {item.label}
-                </Box>
-              ))}
+              {navItems.map((item) => {
+                const isStart = item.path === '/start'
+                return (
+                  <Box
+                    key={item.path}
+                    component={isStart ? 'button' : Link}
+                    {...(isStart
+                      ? { type: 'button', onClick: goStartCause }
+                      : { to: item.path })}
+                    data-testid={`nav-${item.label.toLowerCase()}`}
+                    sx={{
+                      px: 1.5,
+                      py: 0.75,
+                      borderRadius: 999,
+                      border: 'none',
+                      cursor: 'pointer',
+                      font: 'inherit',
+                      textDecoration: 'none',
+                      color: current === item.path ? 'primary.contrastText' : 'text.primary',
+                      bgcolor: current === item.path ? 'primary.main' : 'transparent',
+                      fontWeight: 600,
+                      fontSize: 14,
+                      '&:hover': {
+                        bgcolor: current === item.path ? 'primary.dark' : 'action.hover',
+                      },
+                    }}
+                  >
+                    {item.label}
+                  </Box>
+                )
+              })}
             </Box>
           )}
 
@@ -186,6 +194,10 @@ export function CauseShell({ children }: CauseShellProps) {
             value={current}
             onChange={(_, value: string) => {
               if (value === 'github-issues') return
+              if (value === '/start') {
+                goStartCause()
+                return
+              }
               navigate(value)
             }}
             sx={{

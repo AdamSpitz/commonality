@@ -1,5 +1,6 @@
 import { getRuntimeConfig, type UiRuntimeConfig } from '../config/runtimeConfig'
 import { isValidNudgerAddress, type TrustedNudgerEntry } from '../hooks/useTrustedNudgers'
+import { getMediatorOptInPath, mediatorNudgerFromCause, type CauseMediatorConfig } from './mediatorNudger'
 
 const LOCAL_DEFAULT_CSM_MEDIATOR_ADDRESS = '0x14dC79964da2C08b23698B3D3cc7Ca32193d9955'
 
@@ -10,14 +11,17 @@ const DEFAULT_CSM_MEDIATOR_ENTRY: Omit<TrustedNudgerEntry, 'address'> = {
 }
 
 function normalizeMediatorEntry(entry: TrustedNudgerEntry): TrustedNudgerEntry | null {
-  if (!isValidNudgerAddress(entry.address)) {
-    return null
-  }
-
-  return {
-    ...DEFAULT_CSM_MEDIATOR_ENTRY,
-    ...entry,
-  }
+  const merged = { ...DEFAULT_CSM_MEDIATOR_ENTRY, ...entry }
+  if (!isValidNudgerAddress(merged.address)) return null
+  if (!merged.serviceUrl) return merged
+  return mediatorNudgerFromCause({
+    address: merged.address,
+    name: merged.name!,
+    description: merged.description!,
+    serviceUrl: merged.serviceUrl,
+    sourceType: merged.sourceType,
+    version: merged.version,
+  })
 }
 
 function parseConfiguredMediator(raw: string | undefined): TrustedNudgerEntry | null {
@@ -36,7 +40,11 @@ function parseConfiguredMediator(raw: string | undefined): TrustedNudgerEntry | 
   return normalizeMediatorEntry({ address: trimmed })
 }
 
-export function getCsmMediatorNudger(config: UiRuntimeConfig = getRuntimeConfig()): TrustedNudgerEntry | null {
+export function getCsmMediatorNudger(
+  config: UiRuntimeConfig = getRuntimeConfig(),
+  causeMediator?: CauseMediatorConfig,
+): TrustedNudgerEntry | null {
+  if (causeMediator) return mediatorNudgerFromCause(causeMediator)
   const configured = parseConfiguredMediator(config.VITE_CSM_MEDIATOR_NUDGER)
   if (configured) return configured
 
@@ -47,21 +55,4 @@ export function getCsmMediatorNudger(config: UiRuntimeConfig = getRuntimeConfig(
   return normalizeMediatorEntry({ address: LOCAL_DEFAULT_CSM_MEDIATOR_ADDRESS })
 }
 
-export function getTallyMediatorOptInPath(mediator: TrustedNudgerEntry): string {
-  const params = new URLSearchParams({
-    addNudger: mediator.address,
-    nudgerName: mediator.name ?? DEFAULT_CSM_MEDIATOR_ENTRY.name!,
-    nudgerDescription: mediator.description ?? DEFAULT_CSM_MEDIATOR_ENTRY.description!,
-    nudgerSourceType: mediator.sourceType ?? DEFAULT_CSM_MEDIATOR_ENTRY.sourceType!,
-  })
-
-  if (mediator.serviceUrl) {
-    params.set('nudgerServiceUrl', mediator.serviceUrl)
-  }
-
-  if (mediator.version) {
-    params.set('nudgerVersion', mediator.version)
-  }
-
-  return `/settings?${params.toString()}`
-}
+export const getTallyMediatorOptInPath = getMediatorOptInPath

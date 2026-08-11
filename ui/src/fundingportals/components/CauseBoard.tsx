@@ -27,11 +27,9 @@ import {
   useTrustedSet,
   useTrustedAttesters,
 } from '../../shared'
-import { computeAvailableDelegatableFunding } from '../utils'
 import { AlignedProjectsList } from './AlignedProjectsList'
 import { SuccessfulProjectsTab } from './SuccessfulProjectsTab'
 import { AttestAlignmentForm } from './AttestAlignmentForm'
-import { DelegatableNotesSection } from './DelegatableNotesSection'
 import type { ProjectLinkMode } from './AlignedProjectCard'
 
 /** In-app router link or external href for cause-board chrome. */
@@ -93,7 +91,7 @@ function NavLinkButton({ link }: { link: CauseBoardNavLink }) {
 
 /**
  * Full cause board surface (funding metrics, aligned/successful projects,
- * vouch form, delegatable notes). Shared by Aligning and CauseStarter.
+ * and vouch form). Shared by Aligning and CauseStarter.
  */
 export function CauseBoard({
   statementCid,
@@ -135,8 +133,11 @@ export function CauseBoard({
   const [totalRaised, setTotalRaised] = useState<
     Awaited<ReturnType<typeof getTotalFundingForCause>>['totalRaisedAcrossProjects']
   >([])
-  const [availableDelegatable, setAvailableDelegatable] = useState<
-    Awaited<ReturnType<typeof computeAvailableDelegatableFunding>>
+  const [remainingToThreshold, setRemainingToThreshold] = useState<
+    Awaited<ReturnType<typeof getTotalFundingForCause>>['remainingToThreshold']
+  >([])
+  const [totalUnreimbursed, setTotalUnreimbursed] = useState<
+    Awaited<ReturnType<typeof getTotalFundingForCause>>['totalUnreimbursed']
   >([])
   const [monthlyPledged, setMonthlyPledged] = useState<bigint>(0n)
   const [projectCount, setProjectCount] = useState<number>(0)
@@ -180,16 +181,14 @@ export function CauseBoard({
         }
 
         setTotalRaised(fundingMetrics.totalRaisedAcrossProjects)
+        setRemainingToThreshold(fundingMetrics.remainingToThreshold)
+        setTotalUnreimbursed(fundingMetrics.totalUnreimbursed)
         setProjectCount(fundingMetrics.projectCount)
 
-        const [total, monthlyTotals] = await Promise.all([
-          computeAvailableDelegatableFunding(machinery, cid),
-          machinery.contractAddresses?.recurringPledges
-            ? getMonthlyPledgedByCause(machinery)
-            : Promise.resolve(new Map<string, bigint>()),
-        ])
+        const monthlyTotals = machinery.contractAddresses?.recurringPledges
+          ? await getMonthlyPledgedByCause(machinery)
+          : new Map<string, bigint>()
         if (cancelled) return
-        setAvailableDelegatable(total)
         setMonthlyPledged(monthlyTotals.get(cid) ?? 0n)
       } catch (err) {
         if (!cancelled) {
@@ -252,12 +251,26 @@ export function CauseBoard({
 
         <Divider sx={{ my: 2 }} />
 
-        <Stack direction="row" spacing={4} flexWrap="wrap">
+        <Stack direction="row" spacing={4} flexWrap="wrap" useFlexGap>
           <Box>
             <Typography variant="caption" color="text.secondary" display="block">
               Total Funding Raised
             </Typography>
             <Typography variant="h6">{formatCurrencyTotals(totalRaised)}</Typography>
+          </Box>
+
+          <Box>
+            <Typography variant="caption" color="text.secondary" display="block">
+              Still Needed (Open Projects)
+            </Typography>
+            <Typography variant="h6">{formatCurrencyTotals(remainingToThreshold)}</Typography>
+          </Box>
+
+          <Box>
+            <Typography variant="caption" color="text.secondary" display="block">
+              Unreimbursed (Succeeded)
+            </Typography>
+            <Typography variant="h6">{formatCurrencyTotals(totalUnreimbursed)}</Typography>
           </Box>
 
           <Box>
@@ -271,13 +284,6 @@ export function CauseBoard({
               )}
               /month
             </Typography>
-          </Box>
-
-          <Box>
-            <Typography variant="caption" color="text.secondary" display="block">
-              Funds from Delegates
-            </Typography>
-            <Typography variant="h6">{formatCurrencyTotals(availableDelegatable)}</Typography>
           </Box>
 
           <Box>
@@ -325,8 +331,6 @@ export function CauseBoard({
       )}
 
       <AttestAlignmentForm statementCid={statementCid} />
-
-      <DelegatableNotesSection statementCid={statementCid} />
     </Box>
   )
 }

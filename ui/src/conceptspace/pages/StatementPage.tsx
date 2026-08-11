@@ -14,7 +14,6 @@ import { BeliefControls } from '../components/BeliefControls'
 import { SupportMetrics } from '../components/SupportMetrics'
 import { StatementSuggestions } from '../components/StatementSuggestions'
 import { HighProfileSigners } from '../components/HighProfileSigners'
-import { AvailableDelegatableFunding } from '../../delegation'
 import { FundingPortalSummary } from '../../fundingportals'
 import { ContentSubmissionForm } from '../../content-funding'
 import { StatementSupportingContent } from '../components/StatementSupportingContent'
@@ -174,9 +173,6 @@ export function StatementPage() {
 
       {/* Statement Suggestions */}
       <StatementSuggestions statementCid={statementCid as IpfsCidV1} />
-
-      {/* Available Delegatable Funding */}
-      <AvailableDelegatableFunding statementCid={statementCid || ''} />
 
       {/* Cause Board Summary */}
       <FundingPortalSummary

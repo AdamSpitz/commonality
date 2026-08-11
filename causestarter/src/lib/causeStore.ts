@@ -1,17 +1,19 @@
 /**
- * Local drafts and launched-cause bookmarks for CauseStarter.
- * On-chain truth still lives in the SDK/indexer; this store tracks the founder's
- * journey (wizard progress, adopted statements, safety state).
+ * Local cause records for CauseStarter.
+ *
+ * A cause is a **set of planks** — single-issue statements, each published
+ * separately, each with its own signers, aligned projects, and earmarks. There
+ * is no main statement: what a visitor sees is a **view**, a client-side set
+ * operation over some subset of the planks, and "one main statement" is at most
+ * a view someone later promoted to an anchor. See
+ * `docs/founder/shaping-your-cause-statements.md`.
+ *
+ * On-chain truth still lives in the SDK/indexer. This store holds only what the
+ * chain doesn't: which planks the founder groups into one cause, and the
+ * wording of planks not yet published.
  */
 
-export type MomentumLever =
-  | 'supporters'
-  | 'volunteers'
-  | 'collaborators'
-  | 'funding'
-  | 'content'
-
-export type StatementDisposition = 'pending' | 'adopted' | 'rejected'
+export type StatementOrigin = 'suggested' | 'user'
 
 export type SafetyCategory =
   | 'ok'
@@ -31,106 +33,273 @@ export interface SafetyState {
   checkedAt: string
 }
 
-export interface CauseStatement {
+/**
+ * One plank: a single-issue statement. Published planks carry a `cid` and are
+ * immutable from then on — editing one would change what its signers signed.
+ */
+export interface CausePlank {
   id: string
   text: string
-  origin: 'suggested' | 'user'
-  disposition: StatementDisposition
+  origin: StatementOrigin
   rationale?: string
-  role?: string
   safety?: SafetyState
+  /** Published statement CID. Absent until this plank is published. */
+  cid?: string
+}
+
+export interface CauseMediator {
+  address: string
+  serviceUrl: string
+  name: string
+  description: string
 }
 
 export interface CauseDraft {
   id: string
-  /** What the cause intends to accomplish. */
-  goal: string
-  /** Optional short label for lists (defaults to truncated goal). */
-  name: string
-  statements: CauseStatement[]
-  levers: MomentumLever[]
+  planks: CausePlank[]
   createdAt: string
   updatedAt: string
-  /** Primary published goal statement CID (if launched). */
-  statementCid?: string
-  /** Additional published supporting statement CIDs. */
-  statementCids?: string[]
-  status: 'draft' | 'launched'
-  goalSafety?: SafetyState
+  /**
+   * Legacy free-text seed from an older "describe then auto-suggest issues"
+   * flow. Still migrated from older localStorage shapes, but new starts no
+   * longer set it and the cause page does not draft issues from it. A cause is
+   * described by its planks.
+   */
+  suggestionSeed?: string
+  /**
+   * Optional founder-chosen page title. When absent, the page falls back to the
+   * first plank; when a roster is published, the chosen (or fallback) title is
+   * sealed into the roster document.
+   */
+  title?: string
+  /**
+   * Optional public summary shown on the cause page and sealed into the roster.
+   * Distinct from {@link suggestionSeed}, which is never published.
+   */
+  summary?: string
+  /**
+   * Stable URL slug for the published roster ref `(founder, slug) → roster CID`.
+   * Chosen once (or edited carefully) when the founder first publishes a roster.
+   */
+  slug?: string
+  /** Founder address that owns the stable ref, once a roster has been published. */
+  founderAddress?: string
+  /** Latest published roster document CID known to this device. */
+  rosterCid?: string
+  /** Optional founder-operated mediator used by reusable bridge/opt-in blocks. */
+  mediator?: CauseMediator
 }
 
-const STORAGE_KEY = 'causestarter.causes.v2'
+const STORAGE_KEY = 'causestarter.causes.v3'
+const PREVIOUS_STORAGE_KEY = 'causestarter.causes.v2'
 const LEGACY_STORAGE_KEY = 'causestarter.causes.v1'
+
+interface PreviousCauseStatement {
+  id: string
+  text: string
+  origin: StatementOrigin
+  disposition: 'pending' | 'adopted' | 'rejected'
+  rationale?: string
+  safety?: SafetyState
+}
+
+interface LegacyCauseDraft {
+  id: string
+  name?: string
+  audience?: string
+  foundingStatement?: string
+  createdAt?: string
+  updatedAt?: string
+  statementCid?: string
+}
+
+interface PreviousCauseDraft {
+  id: string
+  description?: string
+  goal: string
+  statements: PreviousCauseStatement[]
+  createdAt: string
+  updatedAt: string
+  statementCid?: string
+  statementCids?: string[]
+  goalSafety?: SafetyState
+  mediator?: CauseMediator
+}
 
 function canUseStorage(): boolean {
   return typeof window !== 'undefined' && typeof window.localStorage !== 'undefined'
 }
 
-function displayNameFromGoal(goal: string): string {
-  const trimmed = goal.trim()
-  if (!trimmed) return 'Untitled cause'
+/** Planks with text worth showing — a blank row the founder hasn't filled in yet isn't one. */
+export function realPlanks(cause: CauseDraft): CausePlank[] {
+  return cause.planks.filter((plank) => plank.text.trim())
+}
+
+export function publishedPlanks(cause: CauseDraft): CausePlank[] {
+  return realPlanks(cause).filter((plank) => plank.cid)
+}
+
+export function unpublishedPlanks(cause: CauseDraft): CausePlank[] {
+  return realPlanks(cause).filter((plank) => !plank.cid)
+}
+
+/** A cause is live once any plank of it is on chain. There is no launch event. */
+export function isLive(cause: CauseDraft): boolean {
+  return publishedPlanks(cause).length > 0
+}
+
+/**
+ * Display title: founder-set title when present, otherwise the first plank
+ * (truncated for chrome). Roster publish seals the full title into the document.
+ */
+export function causeTitle(cause: CauseDraft): string {
+  const explicit = cause.title?.trim()
+  if (explicit) {
+    if (explicit.length <= 48) return explicit
+    return `${explicit.slice(0, 45).trim()}…`
+  }
+  const first = realPlanks(cause)[0]
+  if (!first) return 'Untitled cause'
+  const trimmed = first.text.trim()
   if (trimmed.length <= 48) return trimmed
   return `${trimmed.slice(0, 45).trim()}…`
 }
 
-function migrateLegacy(): CauseDraft[] {
-  try {
-    const raw = window.localStorage.getItem(LEGACY_STORAGE_KEY)
-    if (!raw) return []
-    const legacy = JSON.parse(raw) as Array<{
-      id: string
-      name?: string
-      audience?: string
-      foundingStatement?: string
-      levers?: MomentumLever[]
-      createdAt?: string
-      updatedAt?: string
-      statementCid?: string
-      status?: 'draft' | 'launched'
-    }>
-    if (!Array.isArray(legacy)) return []
-    return legacy.map((item) => {
-      const goal = item.foundingStatement?.trim() || item.name?.trim() || ''
-      const statements: CauseStatement[] = []
-      if (item.audience?.trim()) {
-        statements.push({
-          id: crypto.randomUUID(),
-          text: `This cause is for ${item.audience.trim()}.`,
-          origin: 'user',
-          disposition: 'adopted',
-        })
-      }
-      return {
-        id: item.id,
-        goal,
-        name: item.name?.trim() || displayNameFromGoal(goal),
-        statements,
-        levers: item.levers ?? ['supporters'],
-        createdAt: item.createdAt ?? new Date().toISOString(),
-        updatedAt: item.updatedAt ?? new Date().toISOString(),
-        statementCid: item.statementCid,
-        status: item.status ?? 'draft',
-      } satisfies CauseDraft
-    })
-  } catch {
-    return []
+/** Local path while drafting; stable `/cause/:owner/:slug` once published. */
+export function causePath(cause: CauseDraft): string {
+  if (cause.founderAddress && cause.slug) {
+    return `/cause/${cause.founderAddress.toLowerCase()}/${encodeURIComponent(cause.slug)}`
   }
+  return `/cause/${cause.id}`
+}
+
+/** Blocking safety applies per plank, and only to planks with text. */
+export function hasBlockingSafety(cause: CauseDraft): boolean {
+  return realPlanks(cause).some((plank) => plank.safety && !plank.safety.allowed)
+}
+
+export function newPlank(text = '', origin: StatementOrigin = 'user'): CausePlank {
+  return { id: crypto.randomUUID(), text, origin }
+}
+
+function migratePreviousCauses(): CauseDraft[] {
+  const raw = window.localStorage.getItem(PREVIOUS_STORAGE_KEY)
+  if (!raw) return []
+  const previous = JSON.parse(raw) as PreviousCauseDraft[]
+  if (!Array.isArray(previous)) return []
+
+  return previous.map((cause) => {
+    const supportingCids = cause.statementCids ?? []
+    const planks: CausePlank[] = []
+    const trimmedGoal = cause.goal?.trim()
+    const goalDuplicatesStatement = trimmedGoal && (cause.statements ?? []).some(
+      (statement) => statement.text?.trim() === trimmedGoal,
+    )
+    if (trimmedGoal && !goalDuplicatesStatement) {
+      planks.push({
+        id: `goal-${cause.id}`,
+        text: cause.goal,
+        origin: 'user',
+        safety: cause.goalSafety,
+      })
+    }
+
+    let adoptedIndex = 0
+    for (const statement of cause.statements ?? []) {
+      if (!statement.text?.trim()) continue
+      let cid: string | undefined
+      if (statement.disposition === 'adopted') {
+        // v2 published the first nonblank adopted statement as statementCid;
+        // statementCids contains only the subsequent adopted statements.
+        cid = adoptedIndex === 0
+          ? cause.statementCid
+          : supportingCids[adoptedIndex - 1]
+        adoptedIndex += 1
+      }
+      planks.push({
+        id: statement.id,
+        text: statement.text,
+        origin: statement.origin,
+        rationale: statement.rationale,
+        safety: statement.safety,
+        cid,
+      })
+    }
+
+    return {
+      id: cause.id,
+      planks,
+      suggestionSeed: cause.description?.trim() || undefined,
+      mediator: cause.mediator,
+      createdAt: cause.createdAt,
+      updatedAt: cause.updatedAt,
+    }
+  })
+}
+
+function migrateLegacyCauses(): CauseDraft[] {
+  const raw = window.localStorage.getItem(LEGACY_STORAGE_KEY)
+  if (!raw) return []
+  const legacy = JSON.parse(raw) as LegacyCauseDraft[]
+  if (!Array.isArray(legacy)) return []
+
+  return legacy.map((cause) => {
+    const now = new Date().toISOString()
+    const primaryText = cause.foundingStatement?.trim() || cause.name?.trim() || ''
+    const planks: CausePlank[] = []
+    if (primaryText) {
+      planks.push({
+        id: `goal-${cause.id}`,
+        text: primaryText,
+        origin: 'user',
+        cid: cause.statementCid,
+      })
+    }
+    if (cause.audience?.trim()) {
+      planks.push({
+        id: `audience-${cause.id}`,
+        text: `This cause is for ${cause.audience.trim()}.`,
+        origin: 'user',
+      })
+    }
+    return {
+      id: cause.id,
+      planks,
+      createdAt: cause.createdAt ?? now,
+      updatedAt: cause.updatedAt ?? now,
+    }
+  })
+}
+
+function parseCurrentCauses(): CauseDraft[] {
+  const raw = window.localStorage.getItem(STORAGE_KEY)
+  if (!raw) return []
+  const parsed = JSON.parse(raw) as CauseDraft[]
+  return Array.isArray(parsed) ? parsed : []
 }
 
 function readAll(): CauseDraft[] {
   if (!canUseStorage()) return []
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY)
-    if (raw) {
-      const parsed = JSON.parse(raw) as CauseDraft[]
-      return Array.isArray(parsed) ? parsed : []
-    }
-    const migrated = migrateLegacy()
-    if (migrated.length > 0) {
-      writeAll(migrated)
+    const current = parseCurrentCauses()
+    const previous = migratePreviousCauses()
+    const legacy = migrateLegacyCauses()
+    const merged = new Map<string, CauseDraft>()
+
+    // Prefer the newest representation when the same cause exists in more than
+    // one key, but still recover causes that were never migrated forward.
+    for (const cause of legacy) merged.set(cause.id, cause)
+    for (const cause of previous) merged.set(cause.id, cause)
+    for (const cause of current) merged.set(cause.id, cause)
+
+    if (previous.length > 0 || legacy.length > 0) {
+      const causes = [...merged.values()]
+      writeAll(causes)
+      window.localStorage.removeItem(PREVIOUS_STORAGE_KEY)
       window.localStorage.removeItem(LEGACY_STORAGE_KEY)
+      return causes
     }
-    return migrated
+    return current
   } catch {
     return []
   }
@@ -149,87 +318,41 @@ export function getCause(id: string): CauseDraft | undefined {
   return readAll().find((cause) => cause.id === id)
 }
 
-export function adoptedStatements(cause: CauseDraft): CauseStatement[] {
-  return cause.statements.filter((s) => s.disposition === 'adopted' && s.text.trim())
-}
-
-/**
- * Only the goal and *adopted* statements block save/continue/publish.
- * Pending suggestions can be blocked in the UI without trapping the wizard.
- */
-export function hasBlockingSafety(cause: Pick<CauseDraft, 'goal' | 'goalSafety' | 'statements'>): boolean {
-  if (cause.goalSafety && !cause.goalSafety.allowed) return true
-  return cause.statements.some(
-    (s) => s.disposition === 'adopted' && s.safety && !s.safety.allowed && s.text.trim(),
-  )
-}
-
-export function saveCause(input: {
-  id?: string
-  goal: string
-  name?: string
-  statements: CauseStatement[]
-  levers: MomentumLever[]
-  status?: CauseDraft['status']
-  statementCid?: string
-  statementCids?: string[]
-  goalSafety?: SafetyState
-}): CauseDraft {
+export function createCause(seed?: string): CauseDraft {
   const now = new Date().toISOString()
-  const causes = readAll()
-  const existingIndex = input.id ? causes.findIndex((c) => c.id === input.id) : -1
-  const name = input.name?.trim() || displayNameFromGoal(input.goal)
-
-  if (existingIndex >= 0) {
-    const existing = causes[existingIndex]!
-    const updated: CauseDraft = {
-      ...existing,
-      goal: input.goal,
-      name,
-      statements: input.statements,
-      levers: input.levers,
-      status: input.status ?? existing.status,
-      statementCid: input.statementCid ?? existing.statementCid,
-      statementCids: input.statementCids ?? existing.statementCids,
-      goalSafety: input.goalSafety ?? existing.goalSafety,
-      updatedAt: now,
-    }
-    causes[existingIndex] = updated
-    writeAll(causes)
-    return updated
-  }
-
-  const created: CauseDraft = {
-    id: input.id ?? crypto.randomUUID(),
-    goal: input.goal,
-    name,
-    statements: input.statements,
-    levers: input.levers,
-    status: input.status ?? 'draft',
-    statementCid: input.statementCid,
-    statementCids: input.statementCids,
-    goalSafety: input.goalSafety,
+  const cause: CauseDraft = {
+    id: crypto.randomUUID(),
+    planks: [],
+    suggestionSeed: seed?.trim() || undefined,
     createdAt: now,
     updatedAt: now,
   }
-  causes.push(created)
-  writeAll(causes)
-  return created
+  writeAll([...readAll(), cause])
+  return cause
 }
 
-export function markCauseLaunched(
+/** Mint a local draft and return its editor path (`/cause/:id`). */
+export function createCausePath(seed?: string): string {
+  return causePath(createCause(seed))
+}
+
+/**
+ * Apply a patch to a stored cause and return the result.
+ *
+ * Editing is continuous on the cause page rather than staged behind a save
+ * step, so this is deliberately small: read, merge, write, hand back the new
+ * value for the caller to render.
+ */
+export function updateCause(
   id: string,
-  primaryCid: string,
-  extraCids: string[] = [],
+  patch: Partial<Omit<CauseDraft, 'id' | 'createdAt'>>,
 ): CauseDraft | undefined {
   const causes = readAll()
-  const index = causes.findIndex((c) => c.id === id)
+  const index = causes.findIndex((cause) => cause.id === id)
   if (index < 0) return undefined
   const updated: CauseDraft = {
     ...causes[index]!,
-    status: 'launched',
-    statementCid: primaryCid,
-    statementCids: extraCids,
+    ...patch,
     updatedAt: new Date().toISOString(),
   }
   causes[index] = updated
@@ -237,34 +360,36 @@ export function markCauseLaunched(
   return updated
 }
 
-export function deleteCause(id: string): void {
-  writeAll(readAll().filter((c) => c.id !== id))
+/** Record the CID and immutable wording a plank was just published under. */
+export function markPlankPublished(
+  causeId: string,
+  plankId: string,
+  cid: string,
+  publishedText?: string,
+): CauseDraft | undefined {
+  const cause = getCause(causeId)
+  if (!cause) return undefined
+  return updateCause(causeId, {
+    planks: cause.planks.map((plank) => (
+      plank.id === plankId
+        ? { ...plank, text: publishedText ?? plank.text, cid }
+        : plank
+    )),
+  })
 }
 
-export const LEVER_LABELS: Record<MomentumLever, { label: string; short: string; description: string }> = {
-  supporters: {
-    label: 'Supporters',
-    short: 'Sign',
-    description: 'People who publicly stand with your statements.',
-  },
-  volunteers: {
-    label: 'Volunteers',
-    short: 'Help',
-    description: 'People who will do work — outreach, research, organizing.',
-  },
-  collaborators: {
-    label: 'Collaborators',
-    short: 'Build',
-    description: 'Peers who co-own strategy or run related projects with you.',
-  },
-  funding: {
-    label: 'Funding',
-    short: 'Fund',
-    description: 'Assurance contracts and cause-aligned project funding.',
-  },
-  content: {
-    label: 'Content',
-    short: 'Media',
-    description: 'Fund creators and channels that advance the cause.',
-  },
+/** Record a successful roster publish on the local draft. */
+export function markRosterPublished(
+  causeId: string,
+  args: { slug: string; founderAddress: string; rosterCid: string },
+): CauseDraft | undefined {
+  return updateCause(causeId, {
+    slug: args.slug,
+    founderAddress: args.founderAddress.toLowerCase(),
+    rosterCid: args.rosterCid,
+  })
+}
+
+export function deleteCause(id: string): void {
+  writeAll(readAll().filter((cause) => cause.id !== id))
 }

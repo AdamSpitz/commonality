@@ -107,6 +107,19 @@ export interface DecodedImplicationAttestationEvent {
   logIndex: number;
 }
 
+export interface DecodedImplicationRevokedEvent {
+  chainId?: number;
+  attester: `0x${string}`;
+  fromStatementCid: string;
+  toStatementCid: string;
+  contractAddress: `0x${string}`;
+  blockNumber: bigint;
+  blockTimestamp: bigint;
+  transactionHash: `0x${string}`;
+  logIndex: number;
+  revoked: true;
+}
+
 export interface DecodedNudgesPublishedEvent {
   chainId?: number;
   nudger: `0x${string}`;
@@ -157,6 +170,28 @@ export function decodeImplicationAttestationEvent(rawEvent: RawEventFromCache): 
   };
 }
 
+export function decodeImplicationRevokedEvent(
+  rawEvent: RawEventFromCache,
+): DecodedImplicationRevokedEvent | null {
+  if (rawEvent.eventName !== 'ImplicationRevoked') return null;
+
+  const args = decodeRawEventLog(rawEvent);
+  if (!args) return null;
+
+  return {
+    chainId: rawEvent.chainId,
+    attester: args.attester as `0x${string}`,
+    fromStatementCid: bytes32ToCid(args.fromStatementCid as `0x${string}`),
+    toStatementCid: bytes32ToCid(args.toStatementCid as `0x${string}`),
+    contractAddress: rawEvent.contractAddress as `0x${string}`,
+    blockNumber: BigInt(rawEvent.blockNumber),
+    blockTimestamp: BigInt(rawEvent.blockTimestamp),
+    transactionHash: rawEvent.transactionHash as `0x${string}`,
+    logIndex: rawEvent.logIndex,
+    revoked: true,
+  };
+}
+
 export function decodeNudgesPublishedEvent(rawEvent: RawEventFromCache): DecodedNudgesPublishedEvent | null {
   if (rawEvent.eventName !== 'NudgesPublished') return null;
 
@@ -204,6 +239,37 @@ export function decodeAlignmentAttestationEvent(rawEvent: RawEventFromCache): {
   };
 }
 
+export function decodeAlignmentRevokedEvent(rawEvent: RawEventFromCache): {
+  attester: `0x${string}`;
+  subjectId: `0x${string}`;
+  statementId: string;
+  topicStatementId?: string;
+  contractAddress: `0x${string}`;
+  blockNumber: bigint;
+  blockTimestamp: bigint;
+  transactionHash: `0x${string}`;
+  logIndex: number;
+  revoked: true;
+} | null {
+  if (rawEvent.eventName !== 'AlignmentRevoked') return null;
+
+  const args = decodeRawEventLog(rawEvent);
+  if (!args) return null;
+
+  return {
+    attester: args.attester as `0x${string}`,
+    subjectId: args.subjectId as `0x${string}`,
+    statementId: bytes32ToCid(args.statementId as `0x${string}`),
+    topicStatementId: args.topicStatementId ? bytes32ToCid(args.topicStatementId as `0x${string}`) : undefined,
+    contractAddress: rawEvent.contractAddress as `0x${string}`,
+    blockNumber: BigInt(rawEvent.blockNumber),
+    blockTimestamp: BigInt(rawEvent.blockTimestamp),
+    transactionHash: rawEvent.transactionHash as `0x${string}`,
+    logIndex: rawEvent.logIndex,
+    revoked: true,
+  };
+}
+
 export function decodeSuccessAttestationEvent(rawEvent: RawEventFromCache): {
   attester: `0x${string}`;
   subjectId: `0x${string}`;
@@ -230,6 +296,37 @@ export function decodeSuccessAttestationEvent(rawEvent: RawEventFromCache): {
     blockTimestamp: BigInt(rawEvent.blockTimestamp),
     transactionHash: rawEvent.transactionHash as `0x${string}`,
     logIndex: rawEvent.logIndex,
+  };
+}
+
+export function decodeSuccessRevokedEvent(rawEvent: RawEventFromCache): {
+  attester: `0x${string}`;
+  subjectId: `0x${string}`;
+  statementId: string;
+  topicStatementId?: string;
+  contractAddress: `0x${string}`;
+  blockNumber: bigint;
+  blockTimestamp: bigint;
+  transactionHash: `0x${string}`;
+  logIndex: number;
+  revoked: true;
+} | null {
+  if (rawEvent.eventName !== 'SuccessRevoked') return null;
+
+  const args = decodeRawEventLog(rawEvent);
+  if (!args) return null;
+
+  return {
+    attester: args.attester as `0x${string}`,
+    subjectId: args.subjectId as `0x${string}`,
+    statementId: bytes32ToCid(args.statementId as `0x${string}`),
+    topicStatementId: args.topicStatementId ? bytes32ToCid(args.topicStatementId as `0x${string}`) : undefined,
+    contractAddress: rawEvent.contractAddress as `0x${string}`,
+    blockNumber: BigInt(rawEvent.blockNumber),
+    blockTimestamp: BigInt(rawEvent.blockTimestamp),
+    transactionHash: rawEvent.transactionHash as `0x${string}`,
+    logIndex: rawEvent.logIndex,
+    revoked: true,
   };
 }
 

@@ -19,6 +19,10 @@ describe('toolsForLevers', () => {
     expect(tools).toHaveLength(substrateCount)
   })
 
+  it('does not route every founder to the CSM mediator as a generic tool', () => {
+    expect(SUPPORTING_TOOLS.map((tool) => tool.id)).not.toContain('cause-mediator')
+  })
+
   it('does not list removed product tools', () => {
     const ids = SUPPORTING_TOOLS.map((t) => t.id)
     expect(ids).not.toContain('tally')

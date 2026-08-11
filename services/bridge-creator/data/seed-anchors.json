@@ -3,7 +3,7 @@
     {
       "id": "abortion-moderate-left-v1",
       "cluster_id": "abortion-v1",
-      "role": "moderate-left",
+      "role": "side-a",
       "text": "Abortion should be available at least through the first trimester. After that it gets complicated and I'm open to restrictions.",
       "tally_cid": null,
       "topic_tag": "abortion",
@@ -16,7 +16,7 @@
     {
       "id": "abortion-moderate-right-v1",
       "cluster_id": "abortion-v1",
-      "role": "moderate-right",
+      "role": "side-b",
       "text": "I'm uncomfortable with abortion, but I understand early-term situations are different. Banning it completely isn't realistic and isn't what I'd want for my own family in a crisis.",
       "tally_cid": null,
       "topic_tag": "abortion",
@@ -42,7 +42,7 @@
     {
       "id": "immigration-moderate-left-v1",
       "cluster_id": "immigration-v1",
-      "role": "moderate-left",
+      "role": "side-a",
       "text": "I'm fine with enforcing immigration laws, especially against people who've committed other crimes. But ripping apart families who've been here for decades and are otherwise law-abiding seems cruel and pointless.",
       "tally_cid": null,
       "topic_tag": "immigration",
@@ -55,7 +55,7 @@
     {
       "id": "immigration-moderate-right-v1",
       "cluster_id": "immigration-v1",
-      "role": "moderate-right",
+      "role": "side-b",
       "text": "Illegal immigration is a real problem and we need to enforce the law. But obviously the violent criminals are the priority, and I understand that mass deportation of millions of peaceful people isn't practical or necessarily desirable.",
       "tally_cid": null,
       "topic_tag": "immigration",
@@ -81,8 +81,8 @@
     {
       "id": "gun-policy-moderate-left-v1",
       "cluster_id": "gun-policy-v1",
-      "role": "moderate-left",
-      "text": "I don't want to ban guns. I just want basic stuff — background checks, maybe waiting periods. I'm fine with responsible people owning firearms.",
+      "role": "side-a",
+      "text": "I don't want to ban guns. I just want basic stuff \u2014 background checks, maybe waiting periods. I'm fine with responsible people owning firearms.",
       "tally_cid": null,
       "topic_tag": "gun-policy",
       "rationale": "Seeded from hidden-majority curated statements as the moderate-left variant for a gun-policy bridge cluster.",
@@ -94,7 +94,7 @@
     {
       "id": "gun-policy-moderate-right-v1",
       "cluster_id": "gun-policy-v1",
-      "role": "moderate-right",
+      "role": "side-b",
       "text": "I'm a gun owner and I support the Second Amendment, but I don't think convicted violent felons should be able to buy guns at a gun show with no background check. That's just common sense.",
       "tally_cid": null,
       "topic_tag": "gun-policy",
@@ -120,7 +120,7 @@
     {
       "id": "drug-policy-moderate-left-v1",
       "cluster_id": "drug-policy-v1",
-      "role": "moderate-left",
+      "role": "side-a",
       "text": "Marijuana should be legal. For harder drugs, I'd rather see treatment than prison, but I don't think heroin should be sold at the corner store.",
       "tally_cid": null,
       "topic_tag": "drug-policy",
@@ -133,7 +133,7 @@
     {
       "id": "drug-policy-moderate-right-v1",
       "cluster_id": "drug-policy-v1",
-      "role": "moderate-right",
+      "role": "side-b",
       "text": "I think drug use is destructive and I don't love the idea of legalizing it all. But I can see that filling prisons with nonviolent drug offenders isn't working, and I'm open to treatment-focused approaches if they actually reduce drug use.",
       "tally_cid": null,
       "topic_tag": "drug-policy",

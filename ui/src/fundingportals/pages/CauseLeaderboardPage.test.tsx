@@ -76,6 +76,8 @@ describe('CauseLeaderboardPage', () => {
     vi.mocked(getTotalFundingForCause).mockResolvedValue({
       totalRaisedAcrossProjects: [],
       totalAvailableFromNotes: [{ amount: 500000000000000000n, currency: { symbol: 'ETH', decimals: 18 } }],
+      remainingToThreshold: [],
+      totalUnreimbursed: [],
       projectCount: 1,
       noteCount: 1,
     } as any)
@@ -109,12 +111,6 @@ describe('CauseLeaderboardPage', () => {
       mockMachinery,
       STATEMENT_CID,
       50,
-      undefined,
-      trustedSet
-    )
-    expect(getTotalFundingForCause).toHaveBeenCalledWith(
-      mockMachinery,
-      STATEMENT_CID,
       undefined,
       trustedSet
     )
@@ -190,28 +186,4 @@ describe('CauseLeaderboardPage', () => {
     expect(getMonthlyPledgedByCause).not.toHaveBeenCalled()
   })
 
-  it('shows delegated funds as an aggregate separate from the direct-purchase leaderboard', async () => {
-    vi.mocked(getTopContributorsForCause).mockResolvedValue([])
-    vi.mocked(getUserContributionRankForCause).mockResolvedValue({
-      rank: 0,
-      stats: null,
-      totalContributors: 0,
-    } as any)
-
-    render(<CauseLeaderboardPage />)
-
-    await waitFor(() => {
-      expect(screen.getByText('0.5 ETH')).toBeInTheDocument()
-    })
-
-    expect(screen.getByText('Available in Delegated Funds')).toBeInTheDocument()
-    expect(
-      screen.getByText(
-        'Delegated-note deposits are revocable pledges, so they are shown only as an aggregate and are not ranked per person.'
-      )
-    ).toBeInTheDocument()
-    expect(screen.getByText('This leaderboard ranks direct project purchases only.')).toBeInTheDocument()
-    expect(screen.getByText('No direct project purchases yet.')).toBeInTheDocument()
-    expect(screen.queryByText('No contributions yet.')).not.toBeInTheDocument()
-  })
 })

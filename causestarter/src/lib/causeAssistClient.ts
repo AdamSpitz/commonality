@@ -2,11 +2,50 @@ export interface StatementSuggestion {
   text: string
   rationale: string
   role?: string
+  implication?: {
+    implies: boolean
+    confidence: 'high' | 'medium' | 'low'
+    reasoning: string
+    keyDifference?: string
+  }
 }
 
 export interface SuggestStatementsResponse {
   suggestions: StatementSuggestion[]
   source: 'llm' | 'fallback'
+}
+
+export interface PlankSuggestion {
+  text: string
+  rationale: string
+}
+
+export interface AtomizeResponse {
+  planks: PlankSuggestion[]
+  source: 'llm' | 'fallback'
+}
+
+export interface SharpenPlankResponse {
+  /** Example rewording — UI must not apply this without an explicit founder action. */
+  plank: string
+  rationale: string
+  /** Concrete problems that could block attestation or public signing. */
+  warnings?: string[]
+  source: 'llm' | 'fallback'
+}
+
+export interface ImplicationPairResult {
+  supportingStatement: string
+  implies: boolean
+  confidence: 'high' | 'medium' | 'low'
+  reasoning: string
+  keyDifference?: string
+  source: 'llm' | 'heuristic'
+}
+
+export interface CheckImplicationsResponse {
+  results: ImplicationPairResult[]
+  source: 'llm' | 'heuristic' | 'mixed'
 }
 
 export type SafetyCategory =
@@ -41,14 +80,30 @@ function assistBaseUrl(): string {
 }
 
 async function postJson<T>(path: string, body: unknown): Promise<T> {
-  const response = await fetch(`${assistBaseUrl()}${path}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  })
+  let response: Response
+  try {
+    response = await fetch(`${assistBaseUrl()}${path}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    })
+  } catch {
+    throw new Error(
+      'Could not reach cause-assist. For local Vite, start it with: docker compose up -d cause-assist',
+    )
+  }
   if (!response.ok) {
-    const err = await response.json().catch(() => ({})) as { message?: string }
-    throw new Error(err.message || `Cause assist request failed (${response.status})`)
+    const err = await response.json().catch(() => ({})) as { message?: string; error?: string }
+    const serverMessage = err.message || err.error
+    if (serverMessage) throw new Error(serverMessage)
+    // Vite's proxy returns a bare 500 when nothing is listening on :3002.
+    if (response.status === 500 || response.status === 502 || response.status === 503) {
+      throw new Error(
+        `Cause-assist is unavailable (${response.status}). Is it running on port 3002? `
+        + 'Try: docker compose up -d cause-assist',
+      )
+    }
+    throw new Error(`Cause assist request failed (${response.status})`)
   }
   return response.json() as Promise<T>
 }
@@ -61,6 +116,72 @@ export async function suggestStatements(input: {
   return postJson<SuggestStatementsResponse>('/suggest-statements', input)
 }
 
+export async function atomizeCause(input: {
+  description: string
+  existingPlanks?: string[]
+  count?: number
+}): Promise<AtomizeResponse> {
+  return postJson<AtomizeResponse>('/atomize', input)
+}
+
+export async function sharpenPlank(input: {
+  plank: string
+  causeDescription?: string
+}): Promise<SharpenPlankResponse> {
+  return postJson<SharpenPlankResponse>('/sharpen-plank', input)
+}
+
 export async function checkSafety(items: Array<{ text: string; fieldLabel?: string }>): Promise<SafetyCheckResponse> {
   return postJson<SafetyCheckResponse>('/safety-check', { items })
+}
+
+export async function checkImplications(input: {
+  mainStatement: string
+  supportingStatements: string[]
+}): Promise<CheckImplicationsResponse> {
+  return postJson<CheckImplicationsResponse>('/check-implications', input)
+}
+
+export interface CoherenceVerdict {
+  coherent: boolean
+  reasoning: string
+  attesterId: string
+  rosterCid: string
+  source: 'llm' | 'heuristic'
+}
+
+export interface CauseAssistHealth {
+  status: string
+  service: string
+  llmConfigured: boolean
+  /** Operator address that writes on-chain coherence badges (null if unset). */
+  coherenceAttesterAddress: `0x${string}` | null
+  coherenceAttesterConfigured: boolean
+}
+
+/** Construction-only roster check (separate prompt/config from generation). */
+export async function checkCoherence(input: {
+  rosterCid: string
+  title: string
+  summary: string
+  planks: string[]
+  mediatorBlurb?: string
+}): Promise<CoherenceVerdict> {
+  return postJson<CoherenceVerdict>('/check-coherence', input)
+}
+
+/** Operator attester address for viewer trust (null when service unreachable or key unset). */
+export async function fetchCoherenceAttesterAddress(): Promise<`0x${string}` | null> {
+  try {
+    const response = await fetch(`${assistBaseUrl()}/health`)
+    if (!response.ok) return null
+    const body = await response.json() as Partial<CauseAssistHealth>
+    const addr = body.coherenceAttesterAddress
+    if (typeof addr === 'string' && /^0x[0-9a-fA-F]{40}$/.test(addr)) {
+      return addr.toLowerCase() as `0x${string}`
+    }
+    return null
+  } catch {
+    return null
+  }
 }

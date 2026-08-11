@@ -46,12 +46,10 @@ export function createRateLimiter(config: RateLimitConfig) {
 }
 
 function getClientIdentifier(req: Request): string {
-  const forwarded = req.headers['x-forwarded-for'];
-  const ip = typeof forwarded === 'string'
-    ? forwarded.split(',')[0].trim()
-    : req.socket.remoteAddress || 'unknown';
-
-  return ip;
+  // Express derives req.ip from the socket and the application's explicit
+  // `trust proxy` policy. Reading X-Forwarded-For directly lets callers spoof
+  // arbitrary rate-limit buckets when a service is reachable without a proxy.
+  return req.ip || req.socket.remoteAddress || 'unknown';
 }
 
 export function cleanupExpiredRateLimits(): void {

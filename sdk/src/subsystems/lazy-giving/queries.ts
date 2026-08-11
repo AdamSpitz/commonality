@@ -485,6 +485,17 @@ export async function getProjectReimbursementState(
   return (await getReimbursementSnapshot(machinery, assuranceContractAddress)).project;
 }
 
+/**
+ * Full reimbursement waterfall snapshot (project totals + per-contributor rows).
+ * Prefer this over N+1 getContributorReimbursementState when several scouts are needed.
+ */
+export async function getProjectReimbursementSnapshot(
+  machinery: SDKMachinery,
+  assuranceContractAddress: string,
+): Promise<{ project: ProjectReimbursementState; contributors: ContributorReimbursementState[] }> {
+  return getReimbursementSnapshot(machinery, assuranceContractAddress);
+}
+
 /** Get indexed reimbursement state for one contributor. */
 export async function getContributorReimbursementState(
   machinery: SDKMachinery,

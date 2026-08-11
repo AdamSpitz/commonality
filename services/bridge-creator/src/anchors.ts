@@ -55,7 +55,7 @@ function normalizeAnchorRecord(value: unknown): BridgeAnchorRecord {
   return {
     id: requireString(record.id, 'id'),
     cluster_id: requireString(record.cluster_id, 'cluster_id'),
-    role: requireString(record.role, 'role'),
+    role: normalizeAnchorRole(requireString(record.role, 'role')),
     text: requireString(record.text, 'text'),
     tally_cid: requireNullableString(record.tally_cid, 'tally_cid') as IpfsCidV1 | null,
     topic_tag: requireString(record.topic_tag, 'topic_tag'),
@@ -65,6 +65,13 @@ function normalizeAnchorRecord(value: unknown): BridgeAnchorRecord {
     created_at: requireString(record.created_at, 'created_at'),
     last_reviewed_at: requireString(record.last_reviewed_at, 'last_reviewed_at'),
   };
+}
+
+function normalizeAnchorRole(role: string): string {
+  // Read-only compatibility for CSM stores created before the generic role vocabulary.
+  if (role === 'moderate-left') return 'side-a';
+  if (role === 'moderate-right') return 'side-b';
+  return role;
 }
 
 function requireString(value: unknown, field: string): string {

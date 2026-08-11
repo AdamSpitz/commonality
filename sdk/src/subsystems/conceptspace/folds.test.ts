@@ -5,7 +5,11 @@ import {
   foldImplications,
   foldAllStatements,
 } from './folds.js';
-import type { DirectSupportEvent, ImplicationAttestationEvent } from './events.js';
+import type {
+  DirectSupportEvent,
+  ImplicationAttestationEvent,
+  ImplicationRevokedEvent,
+} from './events.js';
 import { fakeIpfsCidV1 } from '../../utils/test-helpers.js';
 
 const USER_A = '0x1111111111111111111111111111111111111111' as const;
@@ -47,6 +51,23 @@ function makeImplicationEvent(overrides: Partial<ImplicationAttestationEvent> = 
     blockTimestamp: 1700000000n,
     transactionHash: TX_HASH,
     logIndex: 0,
+    ...overrides,
+  };
+}
+
+function makeImplicationRevocation(
+  overrides: Partial<ImplicationRevokedEvent> = {},
+): ImplicationRevokedEvent {
+  return {
+    contractAddress: CONTRACT_ADDRESS,
+    attester: ATTESTER,
+    fromStatementCid: STMT_A,
+    toStatementCid: STMT_B,
+    blockNumber: 200n,
+    blockTimestamp: 1700001000n,
+    transactionHash: TX_HASH_2,
+    logIndex: 0,
+    revoked: true,
     ...overrides,
   };
 }
@@ -101,6 +122,29 @@ describe('foldStatementBeliefs', () => {
     const result = foldStatementBeliefs(events);
     assert.strictEqual(result.believerCount, 0);
     assert.strictEqual(result.disbelieverCount, 1);
+  });
+
+  it('state transition: later event wins even when array order is reversed (support then retract)', () => {
+    // Event cache /api/events does not ORDER BY block; reverse order used to leave
+    // believerCount stuck at 1 after retract on the cause page chip.
+    const events = [
+      makeDirectSupportEvent({ user: USER_A, beliefState: 0, blockNumber: 200n, transactionHash: TX_HASH_2, logIndex: 0 }),
+      makeDirectSupportEvent({ user: USER_A, beliefState: 1, blockNumber: 100n, transactionHash: TX_HASH, logIndex: 0 }),
+    ];
+    const result = foldStatementBeliefs(events);
+    assert.strictEqual(result.believerCount, 0);
+    assert.strictEqual(result.disbelieverCount, 0);
+    assert.strictEqual(result.beliefs.get(USER_A.toLowerCase()), 0);
+  });
+
+  it('state transition: later logIndex in the same block wins over array order', () => {
+    const events = [
+      makeDirectSupportEvent({ user: USER_A, beliefState: 0, blockNumber: 100n, logIndex: 3, transactionHash: TX_HASH_2 }),
+      makeDirectSupportEvent({ user: USER_A, beliefState: 1, blockNumber: 100n, logIndex: 1, transactionHash: TX_HASH }),
+    ];
+    const result = foldStatementBeliefs(events);
+    assert.strictEqual(result.believerCount, 0);
+    assert.strictEqual(result.beliefs.get(USER_A.toLowerCase()), 0);
   });
 
   it('state transition: believe → noOpinion removes from counts', () => {
@@ -241,6 +285,25 @@ describe('foldImplications', () => {
     assert.strictEqual(result[0]!.explanationCid, EXPL_2);
   });
 
+  it('removes a revoked implication regardless of response order', () => {
+    const result = foldImplications([
+      makeImplicationRevocation(),
+      makeImplicationEvent({ blockNumber: 100n }),
+    ]);
+    assert.deepStrictEqual(result, []);
+  });
+
+  it('restores an implication re-attested after revocation', () => {
+    const result = foldImplications([
+      makeImplicationRevocation(),
+      makeImplicationEvent({ blockNumber: 300n, explanationCid: EXPL_2 }),
+      makeImplicationEvent({ blockNumber: 100n }),
+    ]);
+    assert.strictEqual(result.length, 1);
+    assert.strictEqual(result[0]!.explanationCid, EXPL_2);
+    assert.strictEqual(result[0]!.blockNumber, '300');
+  });
+
   it('does not mutate the input array', () => {
     const events = [makeImplicationEvent()];
     const copy = [...events];
@@ -298,6 +361,16 @@ describe('foldAllStatements', () => {
     // USER_A switched from believe to disbelieve
     assert.strictEqual(result.get(STMT_A)!.believerCount, 0);
     assert.strictEqual(result.get(STMT_A)!.disbelieverCount, 1);
+  });
+
+  it('state transition: later event wins when array order is reversed', () => {
+    const events = [
+      makeDirectSupportEvent({ user: USER_A, statementId: STMT_A, beliefState: 0, blockNumber: 200n, transactionHash: TX_HASH_2 }),
+      makeDirectSupportEvent({ user: USER_A, statementId: STMT_A, beliefState: 1, blockNumber: 100n, transactionHash: TX_HASH }),
+    ];
+    const result = foldAllStatements(events);
+    assert.strictEqual(result.get(STMT_A)!.believerCount, 0);
+    assert.strictEqual(result.get(STMT_A)!.disbelieverCount, 0);
   });
 
   it('noOpinion state does not contribute to counts', () => {

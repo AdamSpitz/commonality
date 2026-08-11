@@ -9,11 +9,15 @@
 input=$(cat)
 cmd=$(printf '%s' "$input" | sed -n 's/.*"command"[[:space:]]*:[[:space:]]*"\(.*\)/\1/p')
 
-# Only care about git commit / git push invocations.
-case "$cmd" in
-  *"git commit"*|*"git push"*|*"git merge"*) ;;
-  *) exit 0 ;;
-esac
+# Only care about git commit / push / merge as real subcommands.
+# Pattern: git, optional intermediate tokens (e.g. -C path), then commit|push|merge
+# as a whole token. The char after the subcommand must not be alnum/_/- so we do
+# NOT match false friends: merge-base, merge-file, merge-tree, commit-tree.
+# Example that must stay allowed: `git merge-base --is-ancestor origin/master origin/dev`
+if ! printf '%s' "$cmd" | grep -Eq \
+  '(^|[^[:alnum:]_/-])git[[:space:]]+(.+[[:space:]])?(commit|push|merge)([^[:alnum:]_-]|$)'; then
+  exit 0
+fi
 
 # Honor the same escape hatch as the git hooks.
 case "$cmd" in

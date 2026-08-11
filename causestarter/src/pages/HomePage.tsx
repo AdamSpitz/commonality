@@ -1,11 +1,14 @@
-import { Box, Button, Paper, Stack, Typography } from '@mui/material'
-import { Link as RouterLink } from 'react-router-dom'
+import { Box, Button, CircularProgress, Paper, Stack, Typography } from '@mui/material'
+import { Link as RouterLink, useNavigate } from 'react-router-dom'
 import { MomentumSteps } from '../components/MomentumSteps'
 import { CauseCard } from '../components/CauseCard'
-import { listCauses } from '../lib/causeStore'
+import { useUserCauses } from '../hooks/useUserCauses'
+import { createCausePath } from '../lib/causeStore'
 
 export function HomePage() {
-  const causes = listCauses().slice(0, 2)
+  const navigate = useNavigate()
+  const { causes: allCauses, loading } = useUserCauses()
+  const causes = allCauses.slice(0, 2)
 
   return (
     <Stack spacing={3}>
@@ -39,31 +42,23 @@ export function HomePage() {
           Start a cause. Build a Movement. Change the world.
         </Typography>
         <Typography variant="body1" color="text.secondary" sx={{ mt: 1.5, maxWidth: 520 }}>
-          Start from the goal you want to accomplish, add short statements people can stand behind,
-          then grow support with funding and media tools when you need them.
+          Write clear issues people can support one at a time, then grow support with funding
+          and media tools when you need them.
         </Typography>
 
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.25} sx={{ mt: 3 }}>
           <Button
-            component={RouterLink}
-            to="/start"
             variant="contained"
             size="large"
             data-testid="home-start-cause"
+            onClick={() => navigate(createCausePath())}
             sx={{ minHeight: 48, borderRadius: 999, fontWeight: 700, textTransform: 'none', px: 3 }}
           >
             Start a cause
           </Button>
-          <Button
-            component={RouterLink}
-            to="/discover"
-            variant="outlined"
-            size="large"
-            data-testid="home-support-cause"
-            sx={{ minHeight: 48, borderRadius: 999, fontWeight: 600, textTransform: 'none', px: 3 }}
-          >
-            Support a cause
-          </Button>
+          {/* There is deliberately no "support a cause" counterpart: we list no
+              causes and rank none. You reach a cause through its founder's own
+              link. */}
         </Stack>
       </Paper>
 
@@ -74,7 +69,7 @@ export function HomePage() {
         <MomentumSteps />
       </Box>
 
-      {causes.length > 0 && (
+      {(loading || causes.length > 0) && (
         <Box>
           <Stack direction="row" justifyContent="space-between" alignItems="baseline" sx={{ mb: 1.5 }}>
             <Typography variant="h6" sx={{ fontWeight: 700 }}>
@@ -84,11 +79,20 @@ export function HomePage() {
               See all
             </Button>
           </Stack>
-          <Stack spacing={1.5}>
-            {causes.map((cause) => (
-              <CauseCard key={cause.id} cause={cause} />
-            ))}
-          </Stack>
+          {loading && causes.length === 0 ? (
+            <Stack direction="row" spacing={1} alignItems="center" sx={{ py: 1 }}>
+              <CircularProgress size={18} />
+              <Typography variant="body2" color="text.secondary">
+                Loading causes you support…
+              </Typography>
+            </Stack>
+          ) : (
+            <Stack spacing={1.5}>
+              {causes.map((cause) => (
+                <CauseCard key={cause.id} cause={cause} />
+              ))}
+            </Stack>
+          )}
         </Box>
       )}
 

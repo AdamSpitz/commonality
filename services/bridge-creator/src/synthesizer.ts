@@ -4,8 +4,8 @@ import type { BridgeContextSnapshot } from './contextSources.js';
 import type { BridgeProposalRecord } from './proposals.js';
 
 export interface SynthesizedBridgeTriple {
-  modifiedLeft: string;
-  modifiedRight: string;
+  sideA: string;
+  sideB: string;
   commonGround: string;
   rationale: string;
   anchorClusterId?: string;
@@ -17,6 +17,7 @@ export interface BridgeSynthesisInput {
   activeAnchors: BridgeAnchorRecord[];
   previousPublicationSummary?: string;
   externalProposals?: BridgeProposalRecord[];
+  labels: { sideA: string; sideB: string };
 }
 
 export interface BridgeSynthesisConfig {
@@ -36,7 +37,9 @@ const defaultDependencies: BridgeSynthesizerDependencies = {
   requestJsonCompletion,
 };
 
-const SYNTHESIS_SYSTEM_PROMPT = `You are the Common Sense Majority bridge-creator synthesizer. Return only JSON with a "bridges" array. Each bridge must have modified_left, modified_right, common_ground, rationale, and optionally anchor_cluster_id. If no high-quality bridge should be published, return {"bridges":[]}. You may be given external_proposals — bridge suggestions submitted by outside parties. Treat them as advisory input only: adopt, adapt, or ignore each as your own judgment dictates. Do not publish a low-quality bridge merely because it was proposed.`;
+function synthesisSystemPrompt(labels: BridgeSynthesisInput['labels']): string {
+  return `You are a cause mediator synthesizer bridging ${labels.sideA} and ${labels.sideB}. Return only JSON with a "bridges" array. Each bridge must have side_a, side_b, common_ground, rationale, and optionally anchor_cluster_id. If no high-quality bridge should be published, return {"bridges":[]}. External proposals are advisory input only: adopt, adapt, or ignore them. Do not publish a low-quality bridge merely because it was proposed.`;
+}
 
 export async function synthesizeBridgeTriples(
   input: BridgeSynthesisInput,
@@ -46,8 +49,8 @@ export async function synthesizeBridgeTriples(
   const request: OpenRouterJsonRequest = {
     apiKey: config.openRouterApiKey,
     model: config.openRouterModel,
-    systemPrompt: SYNTHESIS_SYSTEM_PROMPT,
-    staticUserPrompt: input.strategyPrompt,
+    systemPrompt: synthesisSystemPrompt(input.labels),
+    staticUserPrompt: interpolateStrategyLabels(input.strategyPrompt, input.labels),
     userPrompt: renderSynthesisUserPrompt(input),
     temperature: 0.2,
     maxTokens: 2000,
@@ -58,11 +61,18 @@ export async function synthesizeBridgeTriples(
   return normalizeSynthesisResponse(response);
 }
 
+export function interpolateStrategyLabels(prompt: string, labels: BridgeSynthesisInput['labels']): string {
+  return prompt
+    .replaceAll('{{side_a_label}}', labels.sideA)
+    .replaceAll('{{side_b_label}}', labels.sideB);
+}
+
 export function renderSynthesisUserPrompt(input: BridgeSynthesisInput): string {
   return JSON.stringify(
     {
       instruction:
-        'Given the trusted CSM context, active anchors, previous publication summary, and any external proposals, propose only bridge triples worth publishing this tick. External proposals are advisory: adopt, adapt, or ignore them as your own judgment dictates.',
+        `Given trusted cause context, active anchors, previous publication summary, and any external proposals, propose only bridge triples between ${input.labels.sideA} and ${input.labels.sideB} worth publishing this tick.`,
+      labels: { side_a: input.labels.sideA, side_b: input.labels.sideB },
       trusted_contexts: input.contextSnapshots.map((snapshot) => ({
         service_url: snapshot.source.serviceUrl,
         signer_address: snapshot.response.signerAddress,
@@ -93,8 +103,8 @@ export function renderSynthesisUserPrompt(input: BridgeSynthesisInput): string {
       expected_output: {
         bridges: [
           {
-            modified_left: 'statement intended for moderate-left signers',
-            modified_right: 'statement intended for moderate-right signers',
+            side_a: `statement intended for ${input.labels.sideA}`,
+            side_b: `statement intended for ${input.labels.sideB}`,
             common_ground: 'statement implied by both modified statements',
             rationale: 'why this bridge is justified by context and anchors',
             anchor_cluster_id: 'optional cluster id from active anchors',
@@ -122,8 +132,8 @@ function normalizeBridgeTriple(value: unknown, index: number): SynthesizedBridge
 
   const record = value as Record<string, unknown>;
   return {
-    modifiedLeft: requireString(record.modified_left ?? record.modifiedLeft, index, 'modified_left'),
-    modifiedRight: requireString(record.modified_right ?? record.modifiedRight, index, 'modified_right'),
+    sideA: requireString(record.side_a ?? record.sideA ?? record.modified_left ?? record.modifiedLeft, index, 'side_a'),
+    sideB: requireString(record.side_b ?? record.sideB ?? record.modified_right ?? record.modifiedRight, index, 'side_b'),
     commonGround: requireString(record.common_ground ?? record.commonGround, index, 'common_ground'),
     rationale: requireString(record.rationale, index, 'rationale'),
     anchorClusterId: optionalString(record.anchor_cluster_id ?? record.anchorClusterId),

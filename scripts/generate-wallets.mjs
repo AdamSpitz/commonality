@@ -41,6 +41,11 @@ const roles = [
     addressEnvKey: 'CONTENT_ATTESTER_ADDRESS',
   },
   {
+    label: 'CauseStarter coherence attester (cause-assist operator)',
+    privateKeyEnvKey: 'CAUSE_ASSIST_COHERENCE_ATTESTER_PRIVATE_KEY',
+    addressEnvKey: 'CAUSE_ASSIST_COHERENCE_ATTESTER_ADDRESS',
+  },
+  {
     label: 'Beat agent',
     privateKeyEnvKey: 'BEAT_AGENT_PRIVATE_KEY',
     addressEnvKey: 'BEAT_AGENT_ADDRESS',

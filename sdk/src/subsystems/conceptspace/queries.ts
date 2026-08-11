@@ -7,8 +7,10 @@ import { fetchEvents, padAddressAsTopic, type EventQueryParams } from '../../uti
 import {
   decodeDirectSupportEvent,
   decodeImplicationAttestationEvent,
+  decodeImplicationRevokedEvent,
   type DecodedDirectSupportEvent,
   type DecodedImplicationAttestationEvent,
+  type DecodedImplicationRevokedEvent,
 } from '../../utils/eventDecoder.js';
 import {
   foldStatementBeliefs,
@@ -84,14 +86,21 @@ async function fetchDecodedDirectSupportEvents(
   return decoded;
 }
 
-async function fetchDecodedImplicationAttestationEvents(
+async function fetchDecodedImplicationLifecycleEvents(
   machinery: SDKMachinery,
   params: Omit<EventQueryParams, 'eventName'>,
-): Promise<DecodedImplicationAttestationEvent[]> {
-  const events = await fetchEvents(machinery, { ...params, eventName: 'ImplicationAttestation' });
-  const decoded: DecodedImplicationAttestationEvent[] = [];
-  for (const event of events) {
+): Promise<Array<DecodedImplicationAttestationEvent | DecodedImplicationRevokedEvent>> {
+  const [attestations, revocations] = await Promise.all([
+    fetchEvents(machinery, { ...params, eventName: 'ImplicationAttestation' }),
+    fetchEvents(machinery, { ...params, eventName: 'ImplicationRevoked' }),
+  ]);
+  const decoded: Array<DecodedImplicationAttestationEvent | DecodedImplicationRevokedEvent> = [];
+  for (const event of attestations) {
     const d = decodeImplicationAttestationEvent(event);
+    if (d) decoded.push(d);
+  }
+  for (const event of revocations) {
+    const d = decodeImplicationRevokedEvent(event);
     if (d) decoded.push(d);
   }
   return decoded;
@@ -183,7 +192,13 @@ export async function getUserBelief(
     return { statementCid, beliefState: 0 };
   }
 
-  const latestEvent = userEvents.sort((a, b) => Number(b.blockNumber - a.blockNumber))[0];
+  // Event cache does not guarantee order; pick latest by (blockNumber, logIndex).
+  const latestEvent = userEvents.reduce((best, e) => {
+    if (e.blockNumber !== best.blockNumber) {
+      return e.blockNumber > best.blockNumber ? e : best;
+    }
+    return e.logIndex > best.logIndex ? e : best;
+  });
   return {
     statementCid,
     beliefState: latestEvent.beliefState,
@@ -220,7 +235,7 @@ export async function getImplicationsFrom(
   statementCid: IpfsCidV1,
   trustedAttesters?: string[]
 ): Promise<Implication[]> {
-  const decodedEvents = await fetchDecodedImplicationAttestationEvents(machinery, {
+  const decodedEvents = await fetchDecodedImplicationLifecycleEvents(machinery, {
     topic2: cidToBytes32(statementCid),
     limit: 10000,
   });
@@ -241,7 +256,7 @@ export async function getImplicationsTo(
   statementCid: IpfsCidV1,
   trustedAttesters?: string[]
 ): Promise<Implication[]> {
-  const decodedEvents = await fetchDecodedImplicationAttestationEvents(machinery, {
+  const decodedEvents = await fetchDecodedImplicationLifecycleEvents(machinery, {
     topic3: cidToBytes32(statementCid),
     limit: 10000,
   });
@@ -264,7 +279,7 @@ export async function getImplication(
   fromStatementCid: IpfsCidV1,
   toStatementCid: IpfsCidV1
 ): Promise<Implication | null> {
-  const decodedEvents = await fetchDecodedImplicationAttestationEvents(machinery, {
+  const decodedEvents = await fetchDecodedImplicationLifecycleEvents(machinery, {
     topic2: cidToBytes32(fromStatementCid),
     topic3: cidToBytes32(toStatementCid),
     limit: 1000,
@@ -273,18 +288,12 @@ export async function getImplication(
   const attesterLower = attesterAddress.toLowerCase();
   const matching = decodedEvents.filter(e => e.attester.toLowerCase() === attesterLower);
 
-  if (matching.length === 0) {
-    return null;
-  }
+  const active = foldImplications(matching)[0];
+  if (!active) return null;
 
-  const latest = matching.sort((a, b) => Number(b.blockNumber - a.blockNumber))[0];
   return {
-    attester: latest.attester,
-    fromStatementCid: latest.fromStatementCid as IpfsCidV1,
-    toStatementCid: latest.toStatementCid as IpfsCidV1,
-    explanationCid: latest.explanationCid as IpfsCidV1,
-    createdAt: new Date(Number(latest.blockTimestamp) * 1000).toISOString(),
-    blockNumber: latest.blockNumber.toString(),
+    ...active,
+    createdAt: new Date(Number(active.createdAt) * 1000).toISOString(),
   };
 }
 
@@ -321,8 +330,12 @@ export async function getIndirectSupporters(
  *     statement is "believes".
  *   - `indirectBelieverIds` — the Tally set-union of believer IDs across the
  *     implying statements, with target-disbelievers excluded.
+ *   - `disbelieverIds` — anchors whose latest belief on the *target* statement
+ *     is "disbelieves". Exposed because `noOpinion` and `disbelieves` are
+ *     different facts and view folds must not conflate them (see
+ *     {@link computeViewBands}).
  *
- * Both sets are deduped by anonymized anchor ID (see
+ * All three sets are deduped by anonymized anchor ID (see
  * `specs/tech/shared/unique-human-id.md`); today address → anonymized_ID is
  * 1:1, so counts are unchanged from the raw-address era, but the anonymized-ID
  * key is the seam proof-of-personhood tiers will attach to.
@@ -335,8 +348,9 @@ async function computeIndirectSupport(
   supporters: IndirectSupporter[];
   directBelieverIds: Set<AnonymizedId>;
   indirectBelieverIds: Set<AnonymizedId>;
+  disbelieverIds: Set<AnonymizedId>;
 }> {
-  const decodedToEvents = await fetchDecodedImplicationAttestationEvents(machinery, {
+  const decodedToEvents = await fetchDecodedImplicationLifecycleEvents(machinery, {
     topic3: cidToBytes32(statementCid),
     limit: 10000,
   });
@@ -365,7 +379,12 @@ async function computeIndirectSupport(
   }
 
   if (implications.length === 0) {
-    return { supporters: [], directBelieverIds, indirectBelieverIds: new Set<AnonymizedId>() };
+    return {
+      supporters: [],
+      directBelieverIds,
+      indirectBelieverIds: new Set<AnonymizedId>(),
+      disbelieverIds: targetDisbelieverIds,
+    };
   }
 
   const uniqueFromCids = [...new Set(implications.map(i => i.fromStatementCid))];
@@ -438,7 +457,57 @@ async function computeIndirectSupport(
     supporters.push({ user, viaStatementCid });
   }
 
-  return { supporters, directBelieverIds, indirectBelieverIds };
+  return { supporters, directBelieverIds, indirectBelieverIds, disbelieverIds: targetDisbelieverIds };
+}
+
+/**
+ * The three belief sets for a statement, deduped by anonymized anchor ID.
+ *
+ * This is the read primitive behind **views** — the client-side set operations
+ * a cause site runs over its planks (see
+ * `docs/founder/shaping-your-cause-statements.md` § Planks, views, anchors).
+ * Counts are not enough: a union or an intersection over several planks needs
+ * the member sets themselves, and the two-band conjunction additionally needs
+ * to tell `disbelieves` apart from `noOpinion`.
+ *
+ * **Cost:** this walks direct-support events for the statement *and* for every
+ * statement implying it, so a view over N planks multiplies that walk by N.
+ * The per-fetch `limit: 10000` is a silent ceiling — see § Scale in the doc
+ * above; the eventual remedy is an indexer-side aggregate.
+ */
+export interface StatementBelieverSets {
+  statementCid: IpfsCidV1;
+  /** Anchors whose latest belief on this statement is "believes". */
+  directBelieverIds: Set<AnonymizedId>;
+  /** Anchors believing something that implies this statement, disbelievers excluded. */
+  indirectBelieverIds: Set<AnonymizedId>;
+  /** Anchors whose latest belief on this statement is "disbelieves". */
+  disbelieverIds: Set<AnonymizedId>;
+}
+
+/**
+ * Get the deduped believer / disbeliever ID sets for a statement, for folding
+ * into a view alongside other planks' sets.
+ *
+ * Prefer {@link getStatementSupportTieredHeadCount} when a single statement's
+ * headline number is all that's wanted; this exists for the multi-plank case
+ * where the sets must be combined before they are counted.
+ *
+ * @param machinery - SDK machinery with event cache configuration
+ * @param statementCid - CIDv1 of the target statement
+ * @param trustedAttesters - Optional list of attester addresses to filter implications by
+ */
+export async function getStatementBelieverSets(
+  machinery: SDKMachinery,
+  statementCid: IpfsCidV1,
+  trustedAttesters?: string[],
+): Promise<StatementBelieverSets> {
+  const { directBelieverIds, indirectBelieverIds, disbelieverIds } = await computeIndirectSupport(
+    machinery,
+    statementCid,
+    trustedAttesters,
+  );
+  return { statementCid, directBelieverIds, indirectBelieverIds, disbelieverIds };
 }
 
 /**
@@ -525,7 +594,7 @@ export async function getImplicationSourceActivity(
   trustedAttesters?: string[]
 ): Promise<ImplicationSourceActivity> {
   const implications = foldImplications(
-    await fetchDecodedImplicationAttestationEvents(machinery, { limit: 10000 })
+    await fetchDecodedImplicationLifecycleEvents(machinery, { limit: 10000 })
   );
 
   const countByAttester = new Map<string, number>();

@@ -8,7 +8,7 @@ const steps: Array<{ icon: ReactNode; title: string; body: string }> = [
   {
     icon: <FlagIcon fontSize="small" />,
     title: 'Start',
-    body: 'State the goal and supporting beliefs people can stand behind.',
+    body: 'Shape the cause into clear, independent issues people can sincerely support.',
   },
   {
     icon: <GroupsIcon fontSize="small" />,

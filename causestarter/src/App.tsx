@@ -1,12 +1,11 @@
 import { BrowserRouter, HashRouter, Route, Routes } from 'react-router-dom'
 import { CauseShell } from './shell/CauseShell'
 import { HomePage } from './pages/HomePage'
-import { StartCausePage } from './pages/StartCausePage'
+import { StartCauseRedirect } from './pages/StartCauseRedirect'
 import { MomentumPage } from './pages/MomentumPage'
 import { CauseDetailPage } from './pages/CauseDetailPage'
-import { CauseBoardPage } from './pages/CauseBoardPage'
-import { CauseBoardLeaderboardPage } from './pages/CauseBoardLeaderboardPage'
-import { DiscoverPage } from './pages/DiscoverPage'
+import { StatementBoardPage } from './pages/StatementBoardPage'
+import { StatementBoardLeaderboardPage } from './pages/StatementBoardLeaderboardPage'
 import { StatementPage } from './pages/StatementPage'
 import { ToolsPage } from './pages/ToolsPage'
 import { ProjectDetailPage } from './pages/ProjectDetailPage'
@@ -24,13 +23,22 @@ export default function App() {
       <CauseShell>
         <Routes>
           <Route path="/" element={<HomePage />} />
-          <Route path="/start" element={<StartCausePage />} />
+          {/* No intermediate form — creates a draft and opens the editor. */}
+          <Route path="/start" element={<StartCauseRedirect />} />
           <Route path="/momentum" element={<MomentumPage />} />
+          {/* Local drafts use a UUID. Published causes use
+              /cause/:owner/:slug[@versionCid] — stable id + optional pin.
+              See docs/founder/shaping-your-cause-statements.md § roster. */}
+          <Route path="/cause/:owner/:slugPart" element={<CauseDetailPage />} />
           <Route path="/cause/:causeId" element={<CauseDetailPage />} />
-          <Route path="/cause/:causeId/board" element={<CauseBoardPage />} />
-          <Route path="/cause/:causeId/board/leaderboard" element={<CauseBoardLeaderboardPage />} />
-          <Route path="/discover" element={<DiscoverPage />} />
+          {/* No browse or search route by design: a cause is reached by its own
+              link, never by a directory we rank. See ADR 0005 and
+              specs/product/ui-operator-posture.md. */}
           <Route path="/statement/:statementCid" element={<StatementPage />} />
+          {/* Boards are keyed by statement: alignment attestations name a
+              statement, never a cause. */}
+          <Route path="/statement/:statementCid/board" element={<StatementBoardPage />} />
+          <Route path="/statement/:statementCid/board/leaderboard" element={<StatementBoardLeaderboardPage />} />
           <Route path="/projects/:projectAddress" element={<ProjectDetailPage />} />
           <Route path="/tools" element={<ToolsPage />} />
           <Route path="*" element={<NotFoundPage />} />

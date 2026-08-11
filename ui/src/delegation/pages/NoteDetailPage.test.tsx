@@ -26,7 +26,6 @@ vi.mock('@commonality/sdk/delegation', async () => {
     ...actual,
     getNote: vi.fn(),
     getDelegationChain: vi.fn(),
-    getNoteIntentAttestationsByNote: vi.fn(),
     delegateNote: vi.fn(),
     revokeNote: vi.fn(),
     reclaimFunds: vi.fn(),
@@ -54,7 +53,7 @@ vi.mock('@commonality/sdk/machinery', async () => {
 
 import { useParams } from 'react-router-dom'
 import { useAccount, useWalletClient, usePublicClient } from 'wagmi'
-import { getNote, getDelegationChain, getNoteIntentAttestationsByNote, delegateNote as _delegateNote, revokeNote as _revokeNote, reclaimFunds as _reclaimFunds, purchaseFromPrimaryMarketWithNotes as _purchaseFromPrimaryMarketWithNotes, refundNote as _refundNote } from '@commonality/sdk/delegation'
+import { getNote, getDelegationChain, delegateNote as _delegateNote, revokeNote as _revokeNote, reclaimFunds as _reclaimFunds, purchaseFromPrimaryMarketWithNotes as _purchaseFromPrimaryMarketWithNotes, refundNote as _refundNote } from '@commonality/sdk/delegation'
 import { getProjectsFiltered as _getProjectsFiltered, getProjectTokens as _getProjectTokens } from '@commonality/sdk/lazy-giving'
 import { createSDKMachinery } from '@commonality/sdk/machinery'
 
@@ -129,7 +128,6 @@ describe('NoteDetailPage', () => {
     vi.mocked(useParams).mockReturnValue({ noteId: `${NOTE_CONTRACT}:42` })
     vi.mocked(useAccount).mockReturnValue({ address: USER_ADDR } as any)
     vi.mocked(getDelegationChain).mockResolvedValue([])
-    vi.mocked(getNoteIntentAttestationsByNote).mockResolvedValue([])
     vi.mocked(_getProjectsFiltered).mockResolvedValue([])
   })
 
@@ -174,7 +172,6 @@ describe('NoteDetailPage', () => {
         expect(getNote).toHaveBeenCalledWith(mockMachinery, `${NOTE_CONTRACT}:42`)
         expect(getDelegationChain).toHaveBeenCalledWith(mockMachinery, `${NOTE_CONTRACT}:42`)
       })
-      expect(getNoteIntentAttestationsByNote).toHaveBeenCalledWith(mockMachinery, NOTE_CONTRACT, '42')
     })
   })
 
@@ -308,73 +305,6 @@ describe('NoteDetailPage', () => {
       await waitFor(() => {
         expect(screen.getByText('Delegate 1')).toBeInTheDocument()
       })
-    })
-  })
-
-  describe('IntendedPurpose', () => {
-    it('shows "no intended statement" when attestations are empty', async () => {
-      vi.mocked(getNote).mockResolvedValue(makeNote())
-      vi.mocked(getNoteIntentAttestationsByNote).mockResolvedValue([])
-
-      render(<NoteDetailPage />)
-
-      await waitFor(() => {
-        expect(screen.getByText(/no intended statement set/i)).toBeInTheDocument()
-      })
-    })
-
-    it('shows attestation info when present', async () => {
-      vi.mocked(getNote).mockResolvedValue(makeNote())
-      vi.mocked(getNoteIntentAttestationsByNote).mockResolvedValue([
-        {
-          attester: USER_ADDR,
-          noteContract: NOTE_CONTRACT,
-          noteId: '42',
-          intendedStatementId: 'QmXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
-          createdAt: '1700000000',
-        } as any,
-      ])
-
-      render(<NoteDetailPage />)
-
-      await waitFor(() => {
-        expect(screen.getByText(/intended for/i)).toBeInTheDocument()
-      })
-    })
-
-    it('keys same-note-id attestations by contract version', async () => {
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-      vi.mocked(getNote).mockResolvedValue(makeNote())
-      vi.mocked(getNoteIntentAttestationsByNote).mockResolvedValue([
-        {
-          attester: USER_ADDR,
-          noteContract: NOTE_CONTRACT,
-          noteId: '42',
-          intendedStatementId: 'QmXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
-          createdAt: '1700000000',
-        } as any,
-        {
-          attester: USER_ADDR,
-          noteContract: OTHER_ADDR,
-          noteId: '42',
-          intendedStatementId: 'QmYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY',
-          createdAt: '1700000001',
-        } as any,
-      ])
-
-      try {
-        render(<NoteDetailPage />)
-
-        await waitFor(() => {
-          expect(screen.getAllByText(/intended for/i)).toHaveLength(2)
-        })
-        const duplicateKeyWarning = consoleErrorSpy.mock.calls.some((args) =>
-          args.some((arg) => String(arg).includes('Encountered two children with the same key')),
-        )
-        expect(duplicateKeyWarning).toBe(false)
-      } finally {
-        consoleErrorSpy.mockRestore()
-      }
     })
   })
 

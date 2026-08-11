@@ -20,13 +20,18 @@ const TX = '0x' + 'aa'.repeat(32) as const
 
 const ALT_SALT = '0x' + '01'.repeat(32) as const
 
-function supportEvent(user: typeof USER_A, beliefState: number): DirectSupportEvent {
+function supportEvent(
+  user: DirectSupportEvent['user'],
+  beliefState: number,
+  blockNumber = 1n,
+  logIndex = 0,
+): DirectSupportEvent {
   return {
     contractAddress: CONTRACT,
-    blockNumber: 1n,
+    blockNumber,
     blockTimestamp: 0n,
     transactionHash: TX,
-    logIndex: 0,
+    logIndex,
     user,
     statementId: 'bafyfake',
     beliefState,
@@ -123,12 +128,12 @@ describe('unique-human-id', () => {
       assert.ok(!ids.has(computeAnonymizedId(USER_B)))
     })
 
-    it('applies last-write-wins per anchor', () => {
+    it('applies chain-order last-write-wins per anchor regardless of response order', () => {
       const ids = foldAnonymizedBelieverIds([
-        supportEvent(USER_A, 1),
-        supportEvent(USER_A, 0), // later flips to no-opinion
-        supportEvent(USER_B, 2),
-        supportEvent(USER_B, 1), // later flips to believes
+        supportEvent(USER_A, 0, 2n), // latest flips to no-opinion
+        supportEvent(USER_B, 1, 2n, 1), // latest flips to believes
+        supportEvent(USER_A, 1, 1n),
+        supportEvent(USER_B, 2, 2n, 0),
       ])
       assert.strictEqual(ids.size, 1)
       assert.ok(!ids.has(computeAnonymizedId(USER_A)))

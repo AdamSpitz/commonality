@@ -1,5 +1,8 @@
 import assert from 'assert';
-import { foldAlignmentAttestations } from './folds.js';
+import {
+  foldAlignmentAttestations,
+  type DecodedAlignmentRevocation,
+} from './folds.js';
 import type { AlignmentAttestationEvent } from './events.js';
 import { fakeIpfsCidV1 } from '../../utils/test-helpers.js';
 
@@ -30,6 +33,24 @@ function makeEvent(overrides: Partial<AlignmentAttestationEvent> = {}): Alignmen
   };
 }
 
+function makeRevocation(
+  overrides: Partial<DecodedAlignmentRevocation> = {},
+): DecodedAlignmentRevocation {
+  return {
+    contractAddress: CONTRACT_ADDRESS,
+    attester: ATTESTER,
+    subjectId: SUBJECT,
+    statementId: STATEMENT_CID,
+    topicStatementId: TOPIC_CID_1,
+    blockNumber: 200n,
+    blockTimestamp: 1700001000n,
+    transactionHash: TX_HASH_2,
+    logIndex: 0,
+    revoked: true,
+    ...overrides,
+  };
+}
+
 // ============================================================================
 // foldAlignmentAttestations
 // ============================================================================
@@ -51,20 +72,23 @@ describe('foldAlignmentAttestations', () => {
     assert.strictEqual(att.blockNumber, '100');
   });
 
-  it('re-attestation updates topicStatementCid', () => {
+  it('keeps alignments for different topics as separate records', () => {
     const events = [
       makeEvent({ blockNumber: 100n, blockTimestamp: 1700000000n, topicStatementId: TOPIC_CID_1, transactionHash: TX_HASH }),
       makeEvent({ blockNumber: 200n, blockTimestamp: 1700001000n, topicStatementId: TOPIC_CID_2, transactionHash: TX_HASH_2, logIndex: 0 }),
     ];
     const result = foldAlignmentAttestations(events);
-    assert.strictEqual(result.length, 1);
-    assert.strictEqual(result[0]!.topicStatementCid, TOPIC_CID_2);
+    assert.strictEqual(result.length, 2);
+    assert.deepStrictEqual(
+      result.map((attestation) => attestation.topicStatementCid).sort(),
+      [TOPIC_CID_1, TOPIC_CID_2].sort(),
+    );
   });
 
-  it('re-attestation preserves original createdAt and blockNumber', () => {
+  it('re-attestation for the same topic preserves original createdAt and blockNumber', () => {
     const events = [
       makeEvent({ blockNumber: 100n, blockTimestamp: 1700000000n, topicStatementId: TOPIC_CID_1, transactionHash: TX_HASH }),
-      makeEvent({ blockNumber: 200n, blockTimestamp: 1700001000n, topicStatementId: TOPIC_CID_2, transactionHash: TX_HASH_2 }),
+      makeEvent({ blockNumber: 200n, blockTimestamp: 1700001000n, topicStatementId: TOPIC_CID_1, transactionHash: TX_HASH_2 }),
     ];
     const result = foldAlignmentAttestations(events);
     assert.strictEqual(result[0]!.createdAt, '1700000000');
@@ -83,10 +107,39 @@ describe('foldAlignmentAttestations', () => {
 
   it('address comparison is case-insensitive for deduplication', () => {
     const lower = makeEvent({ attester: '0xaaaa000000000000000000000000000000000001' as const });
-    const upper = makeEvent({ attester: '0xAAaa000000000000000000000000000000000001' as const, topicStatementId: TOPIC_CID_2, blockNumber: 200n });
+    const upper = makeEvent({ attester: '0xAAaa000000000000000000000000000000000001' as const, topicStatementId: TOPIC_CID_1, blockNumber: 200n });
     const result = foldAlignmentAttestations([lower, upper]);
     assert.strictEqual(result.length, 1);
+    assert.strictEqual(result[0]!.topicStatementCid, TOPIC_CID_1);
+  });
+
+  it('removes a revoked alignment regardless of response order', () => {
+    const result = foldAlignmentAttestations([
+      makeRevocation(),
+      makeEvent({ blockNumber: 100n }),
+    ]);
+    assert.deepStrictEqual(result, []);
+  });
+
+  it('revokes only the matching topic-scoped alignment', () => {
+    const result = foldAlignmentAttestations([
+      makeEvent({ topicStatementId: TOPIC_CID_1 }),
+      makeEvent({ topicStatementId: TOPIC_CID_2, logIndex: 1 }),
+      makeRevocation({ topicStatementId: TOPIC_CID_1 }),
+    ]);
+    assert.strictEqual(result.length, 1);
     assert.strictEqual(result[0]!.topicStatementCid, TOPIC_CID_2);
+  });
+
+  it('restores an alignment re-attested after revocation', () => {
+    const result = foldAlignmentAttestations([
+      makeRevocation(),
+      makeEvent({ blockNumber: 300n, topicStatementId: TOPIC_CID_2 }),
+      makeEvent({ blockNumber: 100n }),
+    ]);
+    assert.strictEqual(result.length, 1);
+    assert.strictEqual(result[0]!.topicStatementCid, TOPIC_CID_2);
+    assert.strictEqual(result[0]!.blockNumber, '300');
   });
 
   it('does not mutate the input array', () => {

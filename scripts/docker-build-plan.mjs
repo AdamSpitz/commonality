@@ -234,8 +234,16 @@ buildConfigs['cause-assist'] = {
     'cause-assist/Dockerfile',
     'cause-assist/package.json',
     'services/attester-core/package.json',
+    'services/implication-attester/package.json',
+    'services/nudger-core/package.json',
+    'services/bridge-creator/package.json',
+    'sdk/package.json',
     { path: 'cause-assist', ignore: ['dist'] },
     { path: 'services/attester-core', ignore: ['dist'] },
+    { path: 'services/implication-attester', ignore: ['dist'] },
+    { path: 'services/nudger-core', ignore: ['dist'] },
+    { path: 'services/bridge-creator', ignore: ['dist'] },
+    { path: 'sdk', ignore: [] },
   ],
 }
 

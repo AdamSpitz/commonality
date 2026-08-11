@@ -57,8 +57,8 @@ const defaultDependencies: BridgeCreatorRunnerDependencies = {
 
 interface PublishedTriple {
   triple: SynthesizedBridgeTriple;
-  modifiedLeftCid: IpfsCidV1;
-  modifiedRightCid: IpfsCidV1;
+  sideACid: IpfsCidV1;
+  sideBCid: IpfsCidV1;
   commonGroundCid: IpfsCidV1;
 }
 
@@ -76,19 +76,23 @@ export async function runBridgeCreatorTick(
   const pendingProposals = config.proposalStorePath
     ? getPendingProposals(dependencies.loadProposalStore(config.proposalStorePath))
     : [];
+  const strategyPrompt = dependencies.loadStrategyPrompt();
   const inputHash = computeBridgePublicationInputHash({
     contextSnapshots,
     activeAnchors: anchors,
     pendingProposals,
+    strategyPrompt,
+    labels: config.labels,
   });
   const dedupState = dependencies.loadDedupState(config.publicationDedupStatePath);
   const triples = await dependencies.synthesizeBridgeTriples(
     {
-      strategyPrompt: dependencies.loadStrategyPrompt(),
+      strategyPrompt,
       contextSnapshots,
       activeAnchors: anchors,
       previousPublicationSummary: dedupState.lastPublicationSummary,
       externalProposals: pendingProposals,
+      labels: config.labels,
     },
     {
       openRouterApiKey: config.openRouterApiKey,
@@ -115,12 +119,12 @@ export async function runBridgeCreatorTick(
 
   const publishedTriples: PublishedTriple[] = [];
   for (const triple of triples) {
-    const [modifiedLeftCid, modifiedRightCid, commonGroundCid] = await Promise.all([
-      dependencies.publishBridgeStatement(machinery, triple.modifiedLeft),
-      dependencies.publishBridgeStatement(machinery, triple.modifiedRight),
+    const [sideACid, sideBCid, commonGroundCid] = await Promise.all([
+      dependencies.publishBridgeStatement(machinery, triple.sideA),
+      dependencies.publishBridgeStatement(machinery, triple.sideB),
       dependencies.publishBridgeStatement(machinery, triple.commonGround),
     ]);
-    publishedTriples.push({ triple, modifiedLeftCid, modifiedRightCid, commonGroundCid });
+    publishedTriples.push({ triple, sideACid, sideBCid, commonGroundCid });
   }
 
   const nudges = createNudgesForPublishedTriples(publishedTriples);
@@ -128,8 +132,8 @@ export async function runBridgeCreatorTick(
   const implicationTxHashes = dependencies.implicationSubmitter
     ? await dependencies.implicationSubmitter.submitImplications(
         publishedTriples.flatMap((published) => [
-          { fromStatementCid: published.modifiedLeftCid, toStatementCid: published.commonGroundCid },
-          { fromStatementCid: published.modifiedRightCid, toStatementCid: published.commonGroundCid },
+          { fromStatementCid: published.sideACid, toStatementCid: published.commonGroundCid },
+          { fromStatementCid: published.sideBCid, toStatementCid: published.commonGroundCid },
         ]),
       )
     : [];
@@ -152,15 +156,15 @@ export async function runBridgeCreatorTick(
 export function createNudgesForPublishedTriples(publishedTriples: PublishedTriple[]): NudgeMessage[] {
   return publishedTriples.flatMap((published) => [
     {
-      targetStatementCid: published.modifiedLeftCid,
+      targetStatementCid: published.sideACid,
       suggestedStatementCid: published.commonGroundCid,
-      reason: `This modified left-side bridge statement implies common ground: ${published.triple.rationale}`,
+      reason: `This side A bridge statement implies common ground: ${published.triple.rationale}`,
       confidence: 0.8,
     },
     {
-      targetStatementCid: published.modifiedRightCid,
+      targetStatementCid: published.sideBCid,
       suggestedStatementCid: published.commonGroundCid,
-      reason: `This modified right-side bridge statement implies common ground: ${published.triple.rationale}`,
+      reason: `This side B bridge statement implies common ground: ${published.triple.rationale}`,
       confidence: 0.8,
     },
   ]);

@@ -55,3 +55,4 @@ instance most needs answered and can't get anywhere else.
 | [0005](./0005-founder-first-verticals.md) | Founder-first: recruit vertical founders instead of operating generic sites | Accepted |
 | [0006](./0006-shared-pointer-index.md) | Shared pointer-only index; founder-specific indexers are optional | Accepted |
 | [0007](./0007-channel-bound-prospective-content-materialization.md) | Channel-bound prospective content materialization | Accepted |
+| [0008](./0008-operated-surfaces-are-lenses.md) | Operated cause surfaces are lenses: render on demand, rank nothing | Accepted |

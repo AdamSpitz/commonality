@@ -4,15 +4,26 @@
  * All queries use event cache + folds + chain reads.
  */
 
-import { fetchEvents } from '../../utils/eventCacheClient.js';
+import {
+  fetchEvents,
+  padAddressAsTopic,
+  type EventQueryParams,
+} from '../../utils/eventCacheClient.js';
 import {
   decodeAlignmentAttestationEvent,
+  decodeAlignmentRevokedEvent,
   decodeAssuranceContractInitializedEvent,
-  decodeImplicationAttestationEvent,
   decodeSuccessAttestationEvent,
+  decodeSuccessRevokedEvent,
 } from '../../utils/eventDecoder.js';
 import { foldAlignmentAttestations } from './folds.js';
-import { getProject, getProjectContributions, getProjectRefunds } from '../lazy-giving/queries.js';
+import {
+  getProject,
+  getProjectContributions,
+  getProjectRefunds,
+  getProjectReimbursementSnapshot,
+  getProjectReimbursementState,
+} from '../lazy-giving/queries.js';
 import { getNote, getNoteIntentAttestationsByStatement } from '../delegation/queries.js';
 import {
   type AlignmentAttestation,
@@ -24,7 +35,7 @@ import {
   type SuccessfulProjectForCause,
 } from './types.js';
 import { IpfsCidV1, normalizeCidV1, cidToBytes32 } from '../../utils/cid-types.js';
-import { padAddressAsTopic } from '../../utils/eventCacheClient.js';
+import { getImplicationsTo } from '../conceptspace/queries.js';
 import { SDKMachinery } from '../../machinery.js';
 import {
   addCurrencyAmount,
@@ -35,7 +46,12 @@ import {
   type Currency,
   type CurrencyAmountBigInt,
 } from '../../utils/currency.js';
-import { readProjectFundingSnapshots, readProjectPaymentTokenInfo } from '../../utils/chain-reads.js';
+import {
+  readOutstandingReimbursementTotal,
+  readProjectFundingSnapshots,
+  readProjectPaymentTokenInfo,
+} from '../../utils/chain-reads.js';
+import type { Address } from 'viem';
 
 function addAmountToCurrencyList(
   totals: CurrencyAmountBigInt[],
@@ -99,6 +115,42 @@ function normalizeTrustedAddresses(
   return normalized.size > 0 ? normalized : null;
 }
 
+async function fetchDecodedAlignmentLifecycleEvents(
+  machinery: SDKMachinery,
+  params: Omit<EventQueryParams, 'eventName'>,
+) {
+  const [attestations, revocations] = await Promise.all([
+    fetchEvents(machinery, { ...params, eventName: 'AlignmentAttestation' }),
+    fetchEvents(machinery, { ...params, eventName: 'AlignmentRevoked' }),
+  ]);
+  return [
+    ...attestations.map(decodeAlignmentAttestationEvent).filter(
+      (event): event is NonNullable<typeof event> => event !== null,
+    ),
+    ...revocations.map(decodeAlignmentRevokedEvent).filter(
+      (event): event is NonNullable<typeof event> => event !== null,
+    ),
+  ];
+}
+
+async function fetchDecodedSuccessLifecycleEvents(
+  machinery: SDKMachinery,
+  params: Omit<EventQueryParams, 'eventName'>,
+) {
+  const [attestations, revocations] = await Promise.all([
+    fetchEvents(machinery, { ...params, eventName: 'SuccessAttestation' }),
+    fetchEvents(machinery, { ...params, eventName: 'SuccessRevoked' }),
+  ]);
+  return [
+    ...attestations.map(decodeSuccessAttestationEvent).filter(
+      (event): event is NonNullable<typeof event> => event !== null,
+    ),
+    ...revocations.map(decodeSuccessRevokedEvent).filter(
+      (event): event is NonNullable<typeof event> => event !== null,
+    ),
+  ];
+}
+
 function normalizeSubjectIdForTopic(subjectId: string): `0x${string}` {
   if (/^0x[0-9a-fA-F]{40}$/.test(subjectId)) {
     return padAddressAsTopic(subjectId) as `0x${string}`;
@@ -157,18 +209,19 @@ export async function getAlignedSubjects(
   
   // AlignmentAttestation(address indexed attester, bytes32 indexed subjectId, bytes32 indexed statementId, bytes32 topicStatementId)
   // topic1=attester, topic2=subjectId, topic3=statementId (bytes32)
-  const events = await fetchEvents(machinery, {
-    eventName: 'AlignmentAttestation',
+  const decodedEvents = await fetchDecodedAlignmentLifecycleEvents(machinery, {
     topic3: cidToBytes32(statementCid),
     limit: 10000,
   });
   
-  const decodedEvents = events
-    .map(e => decodeAlignmentAttestationEvent(e))
-    .filter((e): e is NonNullable<typeof e> => e !== null);
-  
   let attestations = foldAlignmentAttestations(decodedEvents);
-  
+
+  if (topicStatementCid) {
+    attestations = attestations.filter((attestation) =>
+      cidReferencesSameDigest(attestation.topicStatementCid, topicStatementCid),
+    );
+  }
+
   const trustedAddresses = normalizeTrustedAddresses(trustedAlignmentAttesters);
   if (trustedAddresses) {
     attestations = attestations.filter(a => trustedAddresses.has(a.attester.toLowerCase()));
@@ -178,7 +231,7 @@ export async function getAlignedSubjects(
     attester: a.attester,
     subjectId: a.subjectId,
     statementCid: a.statementCid,
-    topicStatementCid,
+    topicStatementCid: a.topicStatementCid || topicStatementCid,
     createdAt: a.createdAt,
     blockNumber: a.blockNumber,
   }));
@@ -198,23 +251,17 @@ export async function getSubjectStatements(
   attesterAddress?: string,
   topicStatementCid?: IpfsCidV1
 ): Promise<AlignmentAttestation[]> {
-  const events = await fetchEvents(machinery, {
-    eventName: 'AlignmentAttestation',
+  const decodedEvents = await fetchDecodedAlignmentLifecycleEvents(machinery, {
     topic2: normalizeSubjectIdForTopic(subjectId),
     limit: 10000,
   });
 
-  const decodedEvents = events
-    .map(e => decodeAlignmentAttestationEvent(e))
-    .filter((e): e is NonNullable<typeof e> => e !== null);
-
   let attestations = foldAlignmentAttestations(decodedEvents);
 
   if (topicStatementCid) {
-    attestations = attestations.filter(a => {
-      const foldedTopic = a.topicStatementCid ?? '';
-      return foldedTopic === '' || cidReferencesSameDigest(foldedTopic, topicStatementCid);
-    });
+    attestations = attestations.filter(a =>
+      cidReferencesSameDigest(a.topicStatementCid, topicStatementCid),
+    );
   }
 
   if (attesterAddress) {
@@ -247,32 +294,24 @@ export async function getAlignmentAttestation(
   statementCid: IpfsCidV1,
   topicStatementCid?: IpfsCidV1
 ): Promise<AlignmentAttestation | null> {
-  const events = await fetchEvents(machinery, {
-    eventName: 'AlignmentAttestation',
+  const decodedEvents = await fetchDecodedAlignmentLifecycleEvents(machinery, {
     topic3: cidToBytes32(statementCid),
     topic2: normalizeSubjectIdForTopic(subjectId),
     limit: 1000,
   });
 
-  const decodedEvents = events
-    .map(e => decodeAlignmentAttestationEvent(e))
-    .filter((e): e is NonNullable<typeof e> => e !== null);
-
   const attesterLower = attesterAddress.toLowerCase();
   const matching = decodedEvents.filter(e => e.attester.toLowerCase() === attesterLower);
 
-  if (matching.length === 0) {
-    return null;
-  }
+  const active = foldAlignmentAttestations(matching).find((attestation) =>
+    !topicStatementCid
+    || cidReferencesSameDigest(attestation.topicStatementCid, topicStatementCid),
+  );
+  if (!active) return null;
 
-  const latest = matching[matching.length - 1];
   return {
-    attester: latest.attester,
-    subjectId: latest.subjectId,
-    statementCid: latest.statementId as IpfsCidV1,
-    topicStatementCid,
-    createdAt: '',
-    blockNumber: '',
+    ...active,
+    topicStatementCid: topicStatementCid ?? active.topicStatementCid,
   };
 }
 
@@ -288,23 +327,23 @@ export async function getAlignmentsByAttester(
   topicStatementCid?: IpfsCidV1
 ): Promise<AlignmentAttestation[]> {
   // AlignmentAttestation: topic1=attester, topic2=subjectId, topic3=statementId
-  const events = await fetchEvents(machinery, {
-    eventName: 'AlignmentAttestation',
+  const decodedEvents = await fetchDecodedAlignmentLifecycleEvents(machinery, {
     topic1: padAddressAsTopic(attesterAddress),
     limit: 10000,
   });
 
-  const decodedEvents = events
-    .map(e => decodeAlignmentAttestationEvent(e))
-    .filter((e): e is NonNullable<typeof e> => e !== null);
-
-  const attestations = foldAlignmentAttestations(decodedEvents);
+  let attestations = foldAlignmentAttestations(decodedEvents);
+  if (topicStatementCid) {
+    attestations = attestations.filter((attestation) =>
+      cidReferencesSameDigest(attestation.topicStatementCid, topicStatementCid),
+    );
+  }
 
   return attestations.map(a => ({
     attester: a.attester,
     subjectId: a.subjectId,
     statementCid: normalizeCidV1(a.statementCid),
-    topicStatementCid,
+    topicStatementCid: a.topicStatementCid || topicStatementCid,
     createdAt: a.createdAt,
     blockNumber: a.blockNumber,
   }));
@@ -327,21 +366,12 @@ export async function getIndirectlyAlignedSubjects(
   trustedImplicationAttesters?: TrustedAddressInput,
   trustedAlignmentAttesters?: TrustedAddressInput
 ): Promise<IndirectSubjectAlignment[]> {
-  // ImplicationAttestation: topic1=attester, topic2=fromStatementCid, topic3=toStatementCid (all bytes32)
-  const toEvents = await fetchEvents(machinery, {
-    eventName: 'ImplicationAttestation',
-    topic3: cidToBytes32(statementCid),
-    limit: 10000,
-  });
-
-  const decodedImplicationEvents = toEvents.map(e => decodeImplicationAttestationEvent(e)).filter((e): e is NonNullable<typeof e> => e !== null);
-
-  let implications = decodedImplicationEvents;
-
   const trustedImplicationAttesterSet = normalizeTrustedAddresses(trustedImplicationAttesters);
-  if (trustedImplicationAttesterSet) {
-    implications = implications.filter(i => trustedImplicationAttesterSet.has(i.attester.toLowerCase()));
-  }
+  const implications = await getImplicationsTo(
+    machinery,
+    statementCid,
+    trustedImplicationAttesterSet ? [...trustedImplicationAttesterSet] : undefined,
+  );
 
   if (implications.length === 0) {
     return [];
@@ -384,17 +414,17 @@ export async function getSuccessfulSubjects(
   trustedSuccessAttesters?: TrustedAddressInput,
   topicStatementCid?: IpfsCidV1,
 ): Promise<SuccessAttestation[]> {
-  const events = await fetchEvents(machinery, {
-    eventName: 'SuccessAttestation',
+  const decodedEvents = await fetchDecodedSuccessLifecycleEvents(machinery, {
     topic3: cidToBytes32(statementCid),
     limit: 10000,
   });
 
-  const decodedEvents = events
-    .map(e => decodeSuccessAttestationEvent(e))
-    .filter((e): e is NonNullable<typeof e> => e !== null);
-
   let attestations = foldAlignmentAttestations(decodedEvents);
+  if (topicStatementCid) {
+    attestations = attestations.filter((attestation) =>
+      cidReferencesSameDigest(attestation.topicStatementCid, topicStatementCid),
+    );
+  }
 
   const trustedAddresses = normalizeTrustedAddresses(trustedSuccessAttesters);
   if (trustedAddresses) {
@@ -421,15 +451,10 @@ export async function getSubjectSuccessStatements(
     ? padAddressAsTopic(subjectAddressOrId as `0x${string}`)
     : subjectAddressOrId;
 
-  const events = await fetchEvents(machinery, {
-    eventName: 'SuccessAttestation',
+  const decodedEvents = await fetchDecodedSuccessLifecycleEvents(machinery, {
     topic2: subjectId as `0x${string}`,
     limit: 10000,
   });
-
-  const decodedEvents = events
-    .map(e => decodeSuccessAttestationEvent(e))
-    .filter((e): e is NonNullable<typeof e> => e !== null);
 
   let attestations = foldAlignmentAttestations(decodedEvents);
   const trustedAddresses = normalizeTrustedAddresses(trustedSuccessAttesters);
@@ -453,19 +478,12 @@ export async function getIndirectlySuccessfulSubjects(
   trustedImplicationAttesters?: TrustedAddressInput,
   trustedSuccessAttesters?: TrustedAddressInput,
 ): Promise<IndirectSubjectSuccess[]> {
-  const toEvents = await fetchEvents(machinery, {
-    eventName: 'ImplicationAttestation',
-    topic3: cidToBytes32(statementCid),
-    limit: 10000,
-  });
-
-  const decodedImplicationEvents = toEvents.map(e => decodeImplicationAttestationEvent(e)).filter((e): e is NonNullable<typeof e> => e !== null);
-
-  let implications = decodedImplicationEvents;
   const trustedImplicationAttesterSet = normalizeTrustedAddresses(trustedImplicationAttesters);
-  if (trustedImplicationAttesterSet) {
-    implications = implications.filter(i => trustedImplicationAttesterSet.has(i.attester.toLowerCase()));
-  }
+  const implications = await getImplicationsTo(
+    machinery,
+    statementCid,
+    trustedImplicationAttesterSet ? [...trustedImplicationAttesterSet] : undefined,
+  );
 
   const indirectSuccesses: IndirectSubjectSuccess[] = [];
   for (const implication of implications) {
@@ -573,36 +591,52 @@ async function getReceiptReimbursementSnapshot(machinery: SDKMachinery, projectA
     return { outstandingReceipts: 0n, outstandingUnreimbursedAmount: 0n, scoutRecords: [] };
   }
 
-  const contributions = await getProjectContributions(machinery, projectAddress);
+  // Receipt counts are permanent recognition of early contributions; unreimbursed
+  // amounts come from the reimbursement waterfall (early − retro − withdrawn).
+  const [contributions, reimbursement] = await Promise.all([
+    getProjectContributions(machinery, projectAddress),
+    getProjectReimbursementSnapshot(machinery, projectAddress),
+  ]);
 
-  // Receipts are permanent recognition of contributions in the reimbursement model.
-  // They are no longer consumed to signal a donation; reimbursement state is tracked
-  // separately from receipt-token balances.
   const outstandingReceipts = contributions.reduce((total, contribution) => (
     total + parseJsonBigIntArray(contribution.tokenCounts).reduce((sum, count) => sum + count, 0n)
   ), 0n);
 
-  const scouts = new Map<string, bigint>();
-  for (const contribution of contributions) {
-    const key = contribution.participant.toLowerCase();
-    scouts.set(key, (scouts.get(key) ?? 0n) + BigInt(contribution.totalCost));
-  }
-  const totalEarlyContributions = [...scouts.values()].reduce((sum, amount) => sum + amount, 0n);
+  const outstandingUnreimbursedAmount = BigInt(reimbursement.project.outstandingReimbursement || '0');
+  const scoutRecords = reimbursement.contributors
+    .map((contributor) => {
+      const scoutedAmount = BigInt(contributor.earlyContribution || '0');
+      const reimbursedAmount = BigInt(contributor.withdrawnAmount || '0');
+      const forgoneAmount = BigInt(contributor.forgoneAmount || '0');
+      const outstandingAmount = scoutedAmount > reimbursedAmount + forgoneAmount
+        ? scoutedAmount - reimbursedAmount - forgoneAmount
+        : 0n;
+      return {
+        scout: contributor.contributor,
+        scoutedAmount: scoutedAmount.toString(),
+        reimbursedAmount: reimbursedAmount.toString(),
+        outstandingAmount: outstandingAmount.toString(),
+      };
+    })
+    .filter((record) => BigInt(record.scoutedAmount) > 0n)
+    .sort((a, b) => {
+      const outstandingA = BigInt(a.outstandingAmount);
+      const outstandingB = BigInt(b.outstandingAmount);
+      if (outstandingA > outstandingB) return -1;
+      if (outstandingA < outstandingB) return 1;
+      return a.scout.localeCompare(b.scout);
+    });
 
   return {
     outstandingReceipts,
-    outstandingUnreimbursedAmount: totalEarlyContributions,
-    scoutRecords: [...scouts.entries()].map(([scout, scoutedAmount]) => ({
-      scout,
-      scoutedAmount: scoutedAmount.toString(),
-      reimbursedAmount: '0',
-      outstandingAmount: scoutedAmount.toString(),
-    })),
+    outstandingUnreimbursedAmount,
+    scoutRecords,
   };
 }
 
 /**
- * Get projects that have trusted success attestations for a cause and still have outstanding receipts.
+ * Get projects that have trusted success attestations for a cause and still have
+ * outstanding unreimbursed early contributions (not merely permanent receipt tokens).
  */
 export async function getSuccessfulProjectsForCause(
   machinery: SDKMachinery,
@@ -642,7 +676,9 @@ export async function getSuccessfulProjectsForCause(
       getProject(machinery, projectAddress).catch(() => null),
       getReceiptReimbursementSnapshot(machinery, projectAddress).catch(() => ({ outstandingReceipts: 0n, outstandingUnreimbursedAmount: 0n, scoutRecords: [] })),
     ]);
-    if (!project || reimbursement.outstandingReceipts <= 0n) return null;
+    // Drop fully reimbursed (or never-scouted) successes; receipt tokens are permanent
+    // and must not keep a project listed after outstanding unreimbursed money hits zero.
+    if (!project || reimbursement.outstandingUnreimbursedAmount <= 0n) return null;
     return {
       projectAddress: project.id,
       successType: success.successType,
@@ -662,8 +698,8 @@ export async function getSuccessfulProjectsForCause(
   return rows
     .filter((row): row is NonNullable<typeof row> => row !== null)
     .sort((a, b) => {
-      const scoreA = BigInt(a.outstandingReceipts) * BigInt(a.successConfidenceScore);
-      const scoreB = BigInt(b.outstandingReceipts) * BigInt(b.successConfidenceScore);
+      const scoreA = BigInt(a.outstandingUnreimbursedAmount) * BigInt(a.successConfidenceScore);
+      const scoreB = BigInt(b.outstandingUnreimbursedAmount) * BigInt(b.successConfidenceScore);
       if (scoreA > scoreB) return -1;
       if (scoreA < scoreB) return 1;
       return a.projectAddress.localeCompare(b.projectAddress);
@@ -673,6 +709,125 @@ export async function getSuccessfulProjectsForCause(
 // ============================================================================
 // Aggregated Funding Metrics (E2) - Event Cache + Chain Reads
 // ============================================================================
+
+/**
+ * Classify an assurance project the same way LazyGiving UIs do:
+ * threshold met → succeeded; past deadline without threshold → refunding (failed);
+ * otherwise still open (active funding).
+ */
+export function classifyAlignedProjectStatus(project: {
+  totalReceived: string;
+  threshold: string;
+  deadline: string;
+}, nowSeconds: number = Math.floor(Date.now() / 1000)): 'active' | 'succeeded' | 'refunding' {
+  const thresholdMet = BigInt(project.totalReceived) >= BigInt(project.threshold);
+  if (thresholdMet) return 'succeeded';
+  if (Number(project.deadline) < nowSeconds) return 'refunding';
+  return 'active';
+}
+
+/**
+ * Remaining amount needed for an open project to hit its funding threshold.
+ * Zero when the project is not open or already at/above threshold.
+ */
+export function remainingToThresholdForProject(project: {
+  totalReceived: string;
+  threshold: string;
+  deadline: string;
+}, nowSeconds: number = Math.floor(Date.now() / 1000)): bigint {
+  if (classifyAlignedProjectStatus(project, nowSeconds) !== 'active') return 0n;
+  const received = BigInt(project.totalReceived);
+  const threshold = BigInt(project.threshold);
+  return threshold > received ? threshold - received : 0n;
+}
+
+async function readUnreimbursedForProject(
+  machinery: SDKMachinery,
+  projectAddress: string,
+): Promise<bigint> {
+  if (machinery.publicClient) {
+    try {
+      return await readOutstandingReimbursementTotal(machinery, projectAddress as Address);
+    } catch {
+      return 0n;
+    }
+  }
+  try {
+    const state = await getProjectReimbursementState(machinery, projectAddress);
+    return BigInt(state.outstandingReimbursement || '0');
+  } catch {
+    return 0n;
+  }
+}
+
+/** A project as returned by {@link getAllAlignedProjectsForCause}. */
+export interface AlignedProjectFunding {
+  projectAddress: string;
+  fundingCurrency: Currency;
+  totalReceived: string;
+  threshold: string;
+  deadline: string;
+}
+
+/** The per-project portion of {@link CauseFundingMetrics} (everything but notes). */
+export type AlignedProjectFundingTotals = Pick<
+  CauseFundingMetrics,
+  'totalRaisedAcrossProjects' | 'remainingToThreshold' | 'totalUnreimbursed' | 'projectCount'
+>;
+
+/**
+ * Fold funding totals over an explicit list of projects.
+ *
+ * Split out from {@link getTotalFundingForCause} because alignment attaches to
+ * *statements*, not to causes: a cause page showing totals across several
+ * planks must first dedupe by project address, since one project aligned with
+ * two planks is one project's worth of money, not two. Callers that have
+ * already deduped pass the result here rather than summing per-statement
+ * metrics, which would double-count.
+ */
+export async function foldAlignedProjectFunding(
+  machinery: SDKMachinery,
+  projects: AlignedProjectFunding[],
+  nowSeconds: number = Math.floor(Date.now() / 1000),
+): Promise<AlignedProjectFundingTotals> {
+  const totalRaised = new Map<string, CurrencyAmountBigInt>();
+  const remainingToThreshold = new Map<string, CurrencyAmountBigInt>();
+  const totalUnreimbursed = new Map<string, CurrencyAmountBigInt>();
+  const succeededProjects: AlignedProjectFunding[] = [];
+
+  for (const project of projects) {
+    addCurrencyAmount(totalRaised, project.fundingCurrency, BigInt(project.totalReceived));
+
+    const status = classifyAlignedProjectStatus(project, nowSeconds);
+    if (status === 'active') {
+      const need = remainingToThresholdForProject(project, nowSeconds);
+      if (need > 0n) {
+        addCurrencyAmount(remainingToThreshold, project.fundingCurrency, need);
+      }
+    } else if (status === 'succeeded') {
+      succeededProjects.push(project);
+    }
+  }
+
+  if (succeededProjects.length > 0) {
+    const unreimbursedAmounts = await Promise.all(
+      succeededProjects.map((project) => readUnreimbursedForProject(machinery, project.projectAddress)),
+    );
+    for (let i = 0; i < succeededProjects.length; i++) {
+      const amount = unreimbursedAmounts[i] ?? 0n;
+      if (amount > 0n) {
+        addCurrencyAmount(totalUnreimbursed, succeededProjects[i]!.fundingCurrency, amount);
+      }
+    }
+  }
+
+  return {
+    totalRaisedAcrossProjects: currencyTotalsToArray(totalRaised),
+    remainingToThreshold: currencyTotalsToArray(remainingToThreshold),
+    totalUnreimbursed: currencyTotalsToArray(totalUnreimbursed),
+    projectCount: projects.length,
+  };
+}
 
 /**
  * Get total funding raised for a cause (across all aligned projects).
@@ -691,10 +846,7 @@ export async function getTotalFundingForCause(
     trustedAlignmentAttesters
   );
 
-  const totalRaised = new Map<string, CurrencyAmountBigInt>();
-  for (const project of allAlignedProjects) {
-    addCurrencyAmount(totalRaised, project.fundingCurrency, BigInt(project.totalReceived));
-  }
+  const projectTotals = await foldAlignedProjectFunding(machinery, allAlignedProjects);
 
   const statementCids = new Set<string>([statementCid]);
   const indirectAlignments = await getIndirectlyAlignedSubjects(
@@ -724,9 +876,8 @@ export async function getTotalFundingForCause(
   }
 
   return {
-    totalRaisedAcrossProjects: currencyTotalsToArray(totalRaised),
+    ...projectTotals,
     totalAvailableFromNotes: currencyTotalsToArray(noteTotals),
-    projectCount: allAlignedProjects.length,
     noteCount,
   };
 }
