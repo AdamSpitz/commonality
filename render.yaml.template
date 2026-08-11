@@ -39,8 +39,56 @@ services:
       - key: CAUSE_ASSIST_COHERENCE_MODEL
         value: grok-4.5
       - key: CAUSE_ASSIST_COHERENCE_ATTESTER_ADDRESS
-        sync: false  # Public worker address; never put its private key here
+        value: "${CAUSE_ASSIST_COHERENCE_ATTESTER_ADDRESS}"
     healthCheckPath: /health
+    autoDeploy: true
+    plan: starter
+
+  # Trusted roster coherence badge writer. This is the only deployed process
+  # that receives the operator private key; it has no browser-facing endpoint.
+  - type: worker
+    name: commonality-coherence-badge-worker
+    env: docker
+    rootDir: .
+    dockerContext: .
+    dockerfilePath: coherence-badge-worker/Dockerfile
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: RPC_URL
+        sync: false  # Secret: Base Sepolia RPC provider URL
+      - key: CHAIN_ID
+        value: "84532"
+      - key: MUTABLE_REF_UPDATER_CONTRACT_ADDRESS
+        value: "${MUTABLE_REF_UPDATER_CONTRACT_ADDRESS}"
+      - key: START_BLOCK
+        value: "${PUBLISHED_DATA_START_BLOCK}"
+      - key: ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS
+        value: "${ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS}"
+      - key: PUBLISHED_DATA_CONTRACT_ADDRESS
+        value: "${PUBLISHED_DATA_CONTRACT_ADDRESS}"
+      - key: CAUSE_ASSIST_COHERENCE_ATTESTER_PRIVATE_KEY
+        sync: false  # Secret: worker only; never add to cause-assist
+      - key: XAI_API_KEY
+        sync: false  # Secret
+      - key: CAUSE_ASSIST_COHERENCE_MODEL
+        value: grok-4.5
+      - key: CAUSE_ASSIST_IPFS_GATEWAY_URL
+        value: https://ipfs.io/ipfs
+      - key: EVENT_CACHE_URL
+        value: https://commonality-indexer.onrender.com
+      - key: STATE_FILE
+        value: /data/coherence-badge-worker.base-sepolia.json
+      - key: CONFIRMATIONS
+        value: "12"
+      - key: BLOCK_RANGE
+        value: "1000"
+      - key: POLL_INTERVAL_MS
+        value: "10000"
+    disk:
+      name: commonality-coherence-badge-worker-state
+      mountPath: /data
+      sizeGB: 1
     autoDeploy: true
     plan: starter
 
