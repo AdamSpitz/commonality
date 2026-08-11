@@ -42,6 +42,21 @@ afterEach(async () => {
 })
 
 describe('cause-assist request guards', () => {
+  it('allows browser requests from the testnet CauseStarter origin', async () => {
+    const baseUrl = await start()
+    const response = await fetch(`${baseUrl}/health`, {
+      headers: { Origin: 'https://causestarter.testnet.commonality.works' },
+    })
+    assert.equal(response.headers.get('access-control-allow-origin'), 'https://causestarter.testnet.commonality.works')
+
+    const preflight = await fetch(`${baseUrl}/check-coherence`, {
+      method: 'OPTIONS',
+      headers: { Origin: 'https://causestarter.testnet.commonality.works' },
+    })
+    assert.equal(preflight.status, 204)
+    assert.equal(preflight.headers.get('access-control-allow-methods'), 'GET,POST,OPTIONS')
+  })
+
   it('rejects oversized suggestion inputs and invalid requested counts', async () => {
     const baseUrl = await start()
 

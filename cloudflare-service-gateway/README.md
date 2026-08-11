@@ -13,6 +13,7 @@ The Worker strips the first path segment and proxies to the corresponding Render
 | `/platform-api/*` | `PLATFORM_API_ORIGIN/*` |
 | `/attesters/*` | `ATTESTERS_ORIGIN/*` |
 | `/workers/*` | `WORKERS_ORIGIN/*` |
+| `/cause-assist/*` | `CAUSE_ASSIST_ORIGIN/*` |
 
 Examples:
 
@@ -21,6 +22,7 @@ https://services.testnet.commonality.works/indexer/graphql
 https://services.testnet.commonality.works/platform-api/health
 https://services.testnet.commonality.works/attesters/content-attester
 https://services.testnet.commonality.works/workers/health
+https://services.testnet.commonality.works/cause-assist/health
 ```
 
 ## Direct Render fallback
