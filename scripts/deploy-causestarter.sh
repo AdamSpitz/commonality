@@ -154,7 +154,10 @@ ensure_local_indexer() {
 
   echo "Indexer not reachable on :42069 — starting local chain + indexer..."
   mkdir -p "$ROOT/data/hardhat" "$ROOT/data/ipfs" "$ROOT/data/ponder" ui causestarter
-  touch "$ROOT/.env" "$ROOT/ui/.env" "$ROOT/causestarter/.env"
+  # Do not `touch` existing env files — that restarts host Vite on mtime change.
+  [ -f "$ROOT/.env" ] || touch "$ROOT/.env"
+  [ -f "$ROOT/ui/.env" ] || touch "$ROOT/ui/.env"
+  [ -f "$ROOT/causestarter/.env" ] || touch "$ROOT/causestarter/.env"
 
   docker_compose up -d hardhat-node ipfs
   # Wait for hardhat RPC
@@ -257,7 +260,9 @@ ensure_local_tool_stack() {
   for domain in "${LOCAL_UI_DOMAINS[@]}"; do
     mkdir -p "$ROOT/data/ui-ipfs/$domain"
   done
-  touch "$ROOT/.env" "$ROOT/ui/.env" "$ROOT/causestarter/.env"
+  [ -f "$ROOT/.env" ] || touch "$ROOT/.env"
+  [ -f "$ROOT/ui/.env" ] || touch "$ROOT/ui/.env"
+  [ -f "$ROOT/causestarter/.env" ] || touch "$ROOT/causestarter/.env"
 
   if ! curl --silent --show-error --fail --max-time 2 "http://localhost:3001/health" >/dev/null 2>&1; then
     echo "Starting platform-api-service on :3001..."

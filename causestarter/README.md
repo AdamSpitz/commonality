@@ -39,7 +39,8 @@ as main `CreateStatementForm`), not browser → Kubo API upload.
 
 **Recommended while iterating on CauseStarter UI:** keep the Docker stack for chain/indexer/IPFS/tool domains, and serve this SPA with Vite so HMR applies immediately (no image rebuild).
 
-1. Start (or leave running) the local stack: `./scripts/services.sh --start` (or at least hardhat + indexer + cause-assist + gateway).
+1. Start (or leave running) the local stack: `./scripts/services.sh --start` (or at least hardhat + indexer + **cause-assist** + gateway).  
+   `cause-assist` is a Compose service (loopback **:3002**). You do **not** need a separate `npm run cause-assist:*` process for normal UI work.
 2. Seed `causestarter/.env` from the running Docker SPA config (contract addresses + tool domain URLs):
 
    ```bash
@@ -59,7 +60,7 @@ as main `CreateStatementForm`), not browser → Kubo API upload.
 
 Dev server: **http://localhost:5174** (main `ui` stays on 5173).
 
-Vite proxies `/api` → indexer and `/api/cause-assist` → cause-assist. Tool cards still open the other domains at `*.localhost:8088`.
+Vite proxies `/api` → indexer and `/api/cause-assist` → **Docker** `cause-assist` on `http://127.0.0.1:3002`. Tool cards still open the other domains at `*.localhost:8088`.
 
 **Note:** browser `localStorage` is per-origin, so causes saved on `:8090` do not appear on `:5174` (and vice versa). Use Vite for day-to-day UI work; use Docker (`./scripts/deploy-causestarter.sh` → `:8090`) when you need the packaged nginx SPA.
 
@@ -142,11 +143,20 @@ IPFS publish for CauseStarter uses the shared
 
 ## cause-assist (LLM helpers)
 
+Included in Docker Compose (`cause-assist` service). `./scripts/services.sh --start`
+and `./scripts/deploy-causestarter.sh` bring it up on **127.0.0.1:3002**. Docker
+CauseStarter nginx and Vite both proxy `/api/cause-assist/` to that service.
+
 Statement suggestions and safety filter default to Grok via xAI. Optional key:
 `XAI_API_KEY` in repo-root `.env.secrets`, then `./scripts/setup-env.sh`.
 Without a key the service still starts (template suggestions + heuristic safety).
 
+Only run it on the host when iterating on **cause-assist itself** (not needed for
+CauseStarter UI work):
+
 ```bash
+# stop the container first so port 3002 is free
+docker compose stop cause-assist
 npm run cause-assist:dev
 ```
 
@@ -154,11 +164,26 @@ See [`cause-assist/README.md`](../cause-assist/README.md).
 
 ## Design notes
 
+- **CauseStarter is a lens, not a directory** ([ADR 0008](../specs/decisions/0008-operated-surfaces-are-lenses.md)).
+  It authors no discovery: no search, browse, ranking, featuring, or leaderboards.
+  A cause is reached at `/cause/:causeId` through a link its founder circulates.
+  Nothing is reviewed before it renders and nothing is listed, so there are no
+  admission criteria; what the operated surface offers is that its numbers are
+  correct and independently recomputable, never that the causes are good.
+  **Do not add a browse/search/"popular causes" surface** — its absence is the
+  posture, not a gap. Policy-list suppression still applies and still must reach
+  aggregation, not just rendering.
 - **A cause is a set of planks**, not a main statement with supporters. Each
   plank is published separately and carries its own CID; a cause is "live" once
   any plank is on chain, and there is no launch step. The cause page is the
   founder's editor *and* the visitor's view — see
   [shaping-your-cause-statements.md](../docs/founder/shaping-your-cause-statements.md).
+- **Founder writes the issues; assist only coaches.** Start does not collect a
+  free-text seed that an LLM turns into planks, and the cause page does not
+  pre-populate issue fields with model text. **Check phrasing** returns feedback
+  (and an optional example rewording the founder may adopt). `/atomize` still
+  exists on `cause-assist` for other tools, but CauseStarter's authoring path
+  does not inject draft statements into the form.
 - **Views** (`CauseViewStrip` + `useViewCounts`) are client-side set operations
   over the planks: a union count, and a conjunction shown as **two bands**
   (signed-all, plus signed-some-disagreed-with-none). Never render a bare
@@ -204,17 +229,16 @@ Then **restart Grok** so MCP tools load.
 | `wallet-account-menu` | Hardhat account picker (localhost only) |
 | `wallet-hardhat-0` … `wallet-hardhat-9` | Pick Hardhat account |
 | `wallet-disconnect` | Disconnect |
-| `home-start-cause` | Home CTA → start a cause |
-| `nav-start` | Desktop nav “Start” |
-| `start-cause-page` | Start-a-cause root |
-| `start-cause-goal` | Rough cause description textarea (legacy selector name; it is only a suggestion seed) |
-| `start-cause-continue` | Create the cause and open its page |
-| `cause-detail-page` | Cause page root (where all editing happens) |
+| `home-start-cause` | Home CTA → create a draft and open the cause editor |
+| `nav-start` | Desktop/mobile nav “Start” → same (creates a new draft) |
+| `cause-detail-page` | Cause page root (where all editing happens; brand-new drafts show “Start a cause” coach copy here) |
+| `issue-guidance` | Static coach copy for what an issue is |
 | `cause-add-plank` | Add an issue |
-| `cause-suggest-planks` | Open the suggest-issues box |
-| `cause-suggestion-seed` | Rough description used only to suggest issues |
 | `plank-text-N` | Nth issue's editable text (drafts only) |
 | `plank-publish-N` | Publish the Nth issue |
+| `plank-review-button-N` | Request phrasing feedback for the Nth draft |
+| `plank-review-N` | Feedback panel for the Nth draft |
+| `plank-use-example-N` | Explicitly adopt the example rewording into the field |
 | `plank-row-draft` / `plank-row-published` | Issue rows by state |
 | `cause-view-strip` | Union / conjunction counts over selected issues |
 | `view-mode-any` / `view-mode-all` | Switch view |

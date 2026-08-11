@@ -1,8 +1,8 @@
 import {
-  Box, Button, Checkbox, Chip, CircularProgress, IconButton, Paper, Stack,
+  Alert, Box, Button, Checkbox, Chip, CircularProgress, IconButton, Paper, Stack,
   TextField, Tooltip, Typography,
 } from '@mui/material'
-import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh'
+import RateReviewOutlinedIcon from '@mui/icons-material/RateReviewOutlined'
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
 import { Link as RouterLink } from 'react-router-dom'
 import type { IpfsCidV1 } from '@commonality/sdk/utils'
@@ -11,6 +11,19 @@ import type { CausePlank } from '../lib/causeStore'
 
 /** Below this, a plank is too vague for the attester to draw an arrow either way. */
 export const MIN_PLANK_LENGTH = 12
+
+/** Coaching notes from a phrasing review — never auto-applied to the field. */
+export interface PlankReview {
+  /** Why the current wording works or falls short for attestation / signing. */
+  summary: string
+  /** Concrete problems the founder should fix in their own words. */
+  issues: string[]
+  /**
+   * Optional rephrasing the model thought of. Shown only as an example the
+   * founder may copy — never written into the text field without a click.
+   */
+  exampleWording?: string
+}
 
 export interface PlankSupport {
   direct: number
@@ -31,12 +44,22 @@ interface PlankRowProps {
   // Owner-only editing. A published plank is immutable, so these apply to drafts.
   onTextChange: (text: string) => void
   onDelete: () => void
-  onSharpen: () => void
+  /** Request a phrasing review (feedback only; does not rewrite the field). */
+  onReview: () => void
   onPublish: () => void
-  sharpening: boolean
+  reviewing: boolean
   publishing: boolean
   /** Another cause mutation is in flight, so all draft controls are locked. */
   mutationLocked?: boolean
+  /** Latest review for this draft, if any. */
+  review?: PlankReview | null
+  /** Explicit opt-in: put the example wording into the text field. */
+  onUseExampleWording?: (wording: string) => void
+  /**
+   * Provenance from roster history: issue first appeared after the initial
+   * published roster (e.g. "Added later · 3 days ago").
+   */
+  addedLaterLabel?: string
 }
 
 function supportSummary(support: PlankSupport | undefined, loading: boolean): string {
@@ -50,13 +73,18 @@ function supportSummary(support: PlankSupport | undefined, loading: boolean): st
 
 export function PlankRow({
   plank, index, selected, onSelectedChange, support, supportLoading, projectCount,
-  onSupported, onTextChange, onDelete, onSharpen, onPublish, sharpening, publishing,
+  onSupported, onTextChange, onDelete, onReview, onPublish, reviewing, publishing,
   mutationLocked = false,
+  review = null,
+  onUseExampleWording,
+  addedLaterLabel,
 }: PlankRowProps) {
   const published = Boolean(plank.cid)
   const tooShort = plank.text.trim().length > 0 && plank.text.trim().length < MIN_PLANK_LENGTH
   const blocked = Boolean(plank.safety && !plank.safety.allowed)
-  const draftBusy = mutationLocked || publishing || sharpening
+  const draftBusy = mutationLocked || publishing || reviewing
+  const example = review?.exampleWording?.trim()
+  const exampleDiffers = Boolean(example && example !== plank.text.trim())
 
   return (
     <Paper
@@ -98,7 +126,7 @@ export function PlankRow({
                   ? plank.safety?.explanation
                   : tooShort
                     ? 'Too vague to attest yet. Say what a supporter actually believes.'
-                    : plank.rationale || 'Keep this specific, self-contained, and natural to sign.'
+                    : 'Keep this specific, self-contained, and natural to sign.'
               }
               slotProps={{ htmlInput: { 'data-testid': `plank-text-${index}` } }}
             />
@@ -116,7 +144,68 @@ export function PlankRow({
               <Typography variant="caption" color="text.secondary">
                 {supportSummary(support, supportLoading)}
               </Typography>
+              {addedLaterLabel && (
+                <Chip
+                  size="small"
+                  variant="outlined"
+                  label={addedLaterLabel}
+                  data-testid={`plank-added-later-${index}`}
+                  sx={{ borderStyle: 'dashed' }}
+                />
+              )}
             </Stack>
+          )}
+
+          {!published && review && (
+            <Alert
+              severity={review.issues.length > 0 ? 'warning' : 'info'}
+              sx={{ borderRadius: 2 }}
+              data-testid={`plank-review-${index}`}
+            >
+              <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5 }}>
+                Phrasing feedback
+              </Typography>
+              {review.summary && (
+                <Typography variant="body2" sx={{ mb: review.issues.length > 0 ? 1 : 0 }}>
+                  {review.summary}
+                </Typography>
+              )}
+              {review.issues.length > 0 && (
+                <Box component="ul" sx={{ m: 0, pl: 2.25 }}>
+                  {review.issues.map((issue) => (
+                    <Typography key={issue} component="li" variant="body2">
+                      {issue}
+                    </Typography>
+                  ))}
+                </Box>
+              )}
+              {exampleDiffers && example && (
+                <Box sx={{ mt: 1.25 }}>
+                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
+                    Example rephrasing (not applied unless you choose it):
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    sx={{ fontStyle: 'italic', mb: 1 }}
+                    data-testid={`plank-review-example-${index}`}
+                  >
+                    {example}
+                  </Typography>
+                  {onUseExampleWording && (
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      onClick={() => onUseExampleWording(example)}
+                      disabled={draftBusy}
+                      sx={{ textTransform: 'none' }}
+                      data-testid={`plank-use-example-${index}`}
+                    >
+                      Use this wording
+                    </Button>
+                  )}
+                </Box>
+              )}
+            </Alert>
           )}
 
           <Stack direction="row" spacing={0.5} alignItems="center" flexWrap="wrap" useFlexGap>
@@ -150,12 +239,13 @@ export function PlankRow({
                 </Button>
                 <Button
                   size="small"
-                  startIcon={sharpening ? <CircularProgress size={14} /> : <AutoFixHighIcon fontSize="small" />}
-                  onClick={onSharpen}
+                  startIcon={reviewing ? <CircularProgress size={14} /> : <RateReviewOutlinedIcon fontSize="small" />}
+                  onClick={onReview}
                   disabled={draftBusy || plank.text.trim().length === 0}
                   sx={{ textTransform: 'none' }}
+                  data-testid={`plank-review-button-${index}`}
                 >
-                  {sharpening ? 'Sharpening…' : 'Help make this attestable'}
+                  {reviewing ? 'Checking…' : 'Check phrasing'}
                 </Button>
               </>
             )}

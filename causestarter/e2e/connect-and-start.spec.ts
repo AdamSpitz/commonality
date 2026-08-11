@@ -4,9 +4,10 @@ import { expect, test, type Page } from '@playwright/test'
  * Smoke: open CauseStarter → connect Hardhat #0 → start a cause → write and
  * publish an issue on the cause page itself.
  *
- * There is no launch wizard: a cause is a set of planks edited in place, and
- * each is published on its own. Requires a running SPA (Docker :8090 with hash
- * routing, or vite dev) plus the local chain and cause-assist.
+ * There is no launch wizard or intermediate start form: a cause is a set of
+ * planks edited in place, and each is published on its own. Requires a running
+ * SPA (Docker :8090 with hash routing, or vite dev) plus the local chain and
+ * cause-assist.
  */
 
 function appPath(path: string): string {
@@ -26,11 +27,8 @@ async function connectHardhat0(page: Page) {
   })
 }
 
-async function startCause(page: Page, description: string) {
+async function startCause(page: Page) {
   await page.getByTestId('home-start-cause').click()
-  await expect(page.getByTestId('start-cause-page')).toBeVisible({ timeout: 10_000 })
-  await page.getByTestId('start-cause-goal').fill(description)
-  await page.getByTestId('start-cause-continue').click()
   await expect(page.getByTestId('cause-detail-page')).toBeVisible({ timeout: 10_000 })
 }
 
@@ -52,7 +50,7 @@ test.describe('CauseStarter agent smoke', () => {
   test('starts a cause and lands on its editable page', async ({ page }) => {
     await expect(page.getByTestId('wallet-connect-button')).toBeVisible()
     await connectHardhat0(page)
-    await startCause(page, 'Make Oak Street sidewalks safe and well lit within one year.')
+    await startCause(page)
 
     // Still connected after navigation.
     await expect(page.getByTestId('wallet-connect-button')).toContainText(/Hardhat #0/i)
@@ -60,11 +58,12 @@ test.describe('CauseStarter agent smoke', () => {
     // A brand-new cause has no planks, so no counts and nothing to select.
     await expect(page.getByTestId('cause-view-strip')).toBeHidden()
     await expect(page.getByTestId('cause-add-plank')).toBeVisible()
+    await expect(page.getByRole('heading', { name: /start a cause/i })).toBeVisible()
   })
 
   test('edits issues in place on the cause page', async ({ page }) => {
     await connectHardhat0(page)
-    await startCause(page, 'Neighbors organizing for safer night walks on Oak Street.')
+    await startCause(page)
 
     await page.getByTestId('cause-add-plank').click()
     const first = page.getByTestId('plank-text-0')
@@ -82,7 +81,7 @@ test.describe('CauseStarter agent smoke', () => {
 
   test('publishes one issue and counts it in the views strip', async ({ page }) => {
     await connectHardhat0(page)
-    await startCause(page, 'Neighbors organizing for safer night walks on Oak Street.')
+    await startCause(page)
 
     await page.getByTestId('cause-add-plank').click()
     await page.getByTestId('plank-text-0').fill('Oak Street gets working streetlights on every block by June.')
@@ -101,7 +100,7 @@ test.describe('CauseStarter agent smoke', () => {
     await expect(page.getByTestId('view-count-none-disagreed')).toBeVisible()
   })
 
-  test('nav Start link opens the start page while connected', async ({ page }) => {
+  test('nav Start creates a cause and opens the editor while connected', async ({ page }) => {
     await connectHardhat0(page)
 
     // Desktop nav (viewport is Desktop Chrome in playwright.config).
@@ -112,7 +111,7 @@ test.describe('CauseStarter agent smoke', () => {
       await page.goto(appPath('/start'))
     }
 
-    await expect(page.getByTestId('start-cause-page')).toBeVisible()
+    await expect(page.getByTestId('cause-detail-page')).toBeVisible({ timeout: 10_000 })
     await expect(page.getByTestId('wallet-connect-button')).toContainText(/Hardhat #0/i)
   })
 })

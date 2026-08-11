@@ -6,9 +6,16 @@ import { checkSafety } from './safetyFilter.js'
 import { checkImplications } from './implicationCheck.js'
 import { atomizeCause, draftDisjunctiveAnchor, sharpenPlank } from './plankStrategies.js'
 import { suggestMediatorScaffold } from './mediatorScaffold.js'
+import { checkCoherence } from './coherenceCheck.js'
+import { attestCoherenceIfJudged } from './attestCoherence.js'
+import {
+  getCoherenceAttesterAddress,
+  isCoherenceAttesterConfigured,
+} from './blockchain.js'
 import type {
   AtomizeRequest,
   CheckImplicationsRequest,
+  CoherenceCheckRequest,
   DraftAnchorRequest,
   SafetyCheckRequest,
   SharpenPlankRequest,
@@ -39,7 +46,17 @@ export function createCauseAssistApp(config: CauseAssistConfig): express.Express
   app.set('trust proxy', 1)
   app.use(express.json({ limit: '64kb' }))
   app.use(
-    ['/suggest-statements', '/atomize', '/sharpen-plank', '/draft-anchor', '/suggest-mediator-scaffold', '/check-implications', '/safety-check'],
+    [
+      '/suggest-statements',
+      '/atomize',
+      '/sharpen-plank',
+      '/draft-anchor',
+      '/suggest-mediator-scaffold',
+      '/check-implications',
+      '/safety-check',
+      '/check-coherence',
+      '/attest-coherence',
+    ],
     createRateLimiter({
       windowMs: 60_000,
       maxRequests: 20,
@@ -48,6 +65,7 @@ export function createCauseAssistApp(config: CauseAssistConfig): express.Express
   )
 
   app.get('/health', (_req, res) => {
+    const coherenceAttesterAddress = getCoherenceAttesterAddress(config)
     res.json({
       status: 'ok',
       service: 'cause-assist',
@@ -55,6 +73,9 @@ export function createCauseAssistApp(config: CauseAssistConfig): express.Express
       model: config.suggestModel,
       implicationModel: config.implicationModel,
       apiBaseUrl: config.apiBaseUrl,
+      /** Operator address that signs on-chain coherence badges (null if key unset). */
+      coherenceAttesterAddress,
+      coherenceAttesterConfigured: isCoherenceAttesterConfigured(config),
     })
   })
 
@@ -192,6 +213,66 @@ export function createCauseAssistApp(config: CauseAssistConfig): express.Express
         return
       }
       const result = await checkSafety(body, config)
+      res.json(result)
+    } catch (error) {
+      next(error)
+    }
+  })
+
+  function parseCoherenceBody(body: CoherenceCheckRequest, res: Response): CoherenceCheckRequest | null {
+    if (typeof body?.rosterCid !== 'string' || !body.rosterCid.trim()) {
+      invalidRequest(res, 'rosterCid is required')
+      return null
+    }
+    if (typeof body.title !== 'string' || body.title.length > MAX_STATEMENT_LENGTH) {
+      invalidRequest(res, `title must be a string of at most ${MAX_STATEMENT_LENGTH} characters`)
+      return null
+    }
+    if (typeof body.summary !== 'string' || body.summary.length > MAX_STATEMENT_LENGTH) {
+      invalidRequest(res, `summary must be a string of at most ${MAX_STATEMENT_LENGTH} characters`)
+      return null
+    }
+    if (
+      !Array.isArray(body.planks)
+      || body.planks.length > MAX_SUPPORTING_STATEMENTS
+      || body.planks.some((plank) => typeof plank !== 'string' || plank.length > MAX_STATEMENT_LENGTH)
+    ) {
+      invalidRequest(
+        res,
+        `planks must be an array of at most ${MAX_SUPPORTING_STATEMENTS} strings of at most ${MAX_STATEMENT_LENGTH} characters`,
+      )
+      return null
+    }
+    if (
+      body.mediatorBlurb !== undefined
+      && (typeof body.mediatorBlurb !== 'string' || body.mediatorBlurb.length > MAX_STATEMENT_LENGTH)
+    ) {
+      invalidRequest(res, `mediatorBlurb must be a string of at most ${MAX_STATEMENT_LENGTH} characters`)
+      return null
+    }
+    return body
+  }
+
+  app.post('/check-coherence', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const body = parseCoherenceBody(req.body as CoherenceCheckRequest, res)
+      if (!body) return
+      res.json(await checkCoherence(body, config))
+    } catch (error) {
+      next(error)
+    }
+  })
+
+  /**
+   * Re-judge construction and, only if coherent, publish a positive-only on-chain
+   * badge from the operator key. Silence (attested:false) when not coherent or
+   * when the attester is not configured — never a negative chain write.
+   */
+  app.post('/attest-coherence', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const body = parseCoherenceBody(req.body as CoherenceCheckRequest, res)
+      if (!body) return
+      const result = await attestCoherenceIfJudged(body, config)
       res.json(result)
     } catch (error) {
       next(error)

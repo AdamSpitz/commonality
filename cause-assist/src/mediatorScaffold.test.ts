@@ -6,7 +6,7 @@ import type { LlmJsonRequest, RequestJsonCompletionFn } from '@commonality/attes
 
 const config: CauseAssistConfig = {
   apiKey: 'test', apiBaseUrl: 'https://example.test/v1', suggestModel: 'test',
-  safetyModel: 'test', implicationModel: 'test', port: 0,
+  safetyModel: 'test', implicationModel: 'test', coherenceModel: 'test', port: 0,
 }
 
 describe('mediator scaffold suggestions', () => {

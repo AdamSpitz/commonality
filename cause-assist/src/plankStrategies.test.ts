@@ -6,7 +6,7 @@ import type { CauseAssistConfig } from './types.js'
 
 const config: CauseAssistConfig = {
   apiKey: 'key', apiBaseUrl: 'https://example.test/v1', suggestModel: 'model',
-  safetyModel: 'model', implicationModel: 'model', port: 0,
+  safetyModel: 'model', implicationModel: 'model', coherenceModel: 'test', port: 0,
 }
 
 describe('plank-first strategies', () => {

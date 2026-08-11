@@ -26,8 +26,11 @@ export interface AtomizeResponse {
 }
 
 export interface SharpenPlankResponse {
+  /** Example rewording — UI must not apply this without an explicit founder action. */
   plank: string
   rationale: string
+  /** Concrete problems that could block attestation or public signing. */
+  warnings?: string[]
   source: 'llm' | 'fallback'
 }
 
@@ -77,14 +80,30 @@ function assistBaseUrl(): string {
 }
 
 async function postJson<T>(path: string, body: unknown): Promise<T> {
-  const response = await fetch(`${assistBaseUrl()}${path}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  })
+  let response: Response
+  try {
+    response = await fetch(`${assistBaseUrl()}${path}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    })
+  } catch {
+    throw new Error(
+      'Could not reach cause-assist. For local Vite, start it with: docker compose up -d cause-assist',
+    )
+  }
   if (!response.ok) {
-    const err = await response.json().catch(() => ({})) as { message?: string }
-    throw new Error(err.message || `Cause assist request failed (${response.status})`)
+    const err = await response.json().catch(() => ({})) as { message?: string; error?: string }
+    const serverMessage = err.message || err.error
+    if (serverMessage) throw new Error(serverMessage)
+    // Vite's proxy returns a bare 500 when nothing is listening on :3002.
+    if (response.status === 500 || response.status === 502 || response.status === 503) {
+      throw new Error(
+        `Cause-assist is unavailable (${response.status}). Is it running on port 3002? `
+        + 'Try: docker compose up -d cause-assist',
+      )
+    }
+    throw new Error(`Cause assist request failed (${response.status})`)
   }
   return response.json() as Promise<T>
 }
@@ -121,4 +140,76 @@ export async function checkImplications(input: {
   supportingStatements: string[]
 }): Promise<CheckImplicationsResponse> {
   return postJson<CheckImplicationsResponse>('/check-implications', input)
+}
+
+export interface CoherenceVerdict {
+  coherent: boolean
+  reasoning: string
+  attesterId: string
+  rosterCid: string
+  source: 'llm' | 'heuristic'
+}
+
+export type AttestCoherenceReason =
+  | 'attested'
+  | 'already_attested'
+  | 'not_coherent'
+  | 'attester_not_configured'
+
+export interface AttestCoherenceResult {
+  attested: boolean
+  reason: AttestCoherenceReason
+  verdict: CoherenceVerdict
+  attesterAddress?: `0x${string}`
+  txHash?: `0x${string}`
+}
+
+export interface CauseAssistHealth {
+  status: string
+  service: string
+  llmConfigured: boolean
+  /** Operator address that writes on-chain coherence badges (null if unset). */
+  coherenceAttesterAddress: `0x${string}` | null
+  coherenceAttesterConfigured: boolean
+}
+
+/** Construction-only roster check (separate prompt/config from generation). */
+export async function checkCoherence(input: {
+  rosterCid: string
+  title: string
+  summary: string
+  planks: string[]
+  mediatorBlurb?: string
+}): Promise<CoherenceVerdict> {
+  return postJson<CoherenceVerdict>('/check-coherence', input)
+}
+
+/**
+ * Ask the CauseStarter operator (cause-assist) to re-judge and, if coherent,
+ * publish a positive-only on-chain badge. Founder wallets never write this.
+ */
+export async function requestCoherenceAttestation(input: {
+  rosterCid: string
+  title: string
+  summary: string
+  planks: string[]
+  mediatorBlurb?: string
+}): Promise<AttestCoherenceResult> {
+  return postJson<AttestCoherenceResult>('/attest-coherence', input)
+}
+
+/** Operator attester address for viewer trust (null when service unreachable or key unset). */
+export async function fetchCoherenceAttesterAddress(): Promise<`0x${string}` | null> {
+  try {
+    const response = await fetch(`${assistBaseUrl()}/health`)
+    if (!response.ok) return null
+    const body = await response.json() as Partial<CauseAssistHealth>
+    const addr = body.coherenceAttesterAddress
+    if (typeof addr === 'string' && /^0x[0-9a-fA-F]{40}$/.test(addr)) {
+      return addr.toLowerCase() as `0x${string}`
+    }
+    return null
+  } catch {
+    return null
+  }
 }

@@ -1,10 +1,11 @@
 import { Alert, Box, Button, CircularProgress, Stack, Typography } from '@mui/material'
-import { Link as RouterLink } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { CauseCard } from '../components/CauseCard'
 import { useUserCauses } from '../hooks/useUserCauses'
-import { isLive } from '../lib/causeStore'
+import { createCausePath, isLive } from '../lib/causeStore'
 
 export function MomentumPage() {
+  const navigate = useNavigate()
   const { causes, loading } = useUserCauses()
   // "Live" is derived, not a status flag: a cause is live once any of its
   // planks is on chain, and it can gain more planks at any time.
@@ -37,12 +38,17 @@ export function MomentumPage() {
           severity="info"
           sx={{ borderRadius: 2 }}
           action={
-            <Button component={RouterLink} to="/start" color="inherit" size="small" sx={{ textTransform: 'none' }}>
+            <Button
+              color="inherit"
+              size="small"
+              sx={{ textTransform: 'none' }}
+              onClick={() => navigate(createCausePath())}
+            >
               Start
             </Button>
           }
         >
-          No causes yet. Start one to begin building momentum, or support a public cause from Discover.
+          No causes yet. Start one to begin building momentum.
         </Alert>
       )}
 
@@ -73,12 +79,11 @@ export function MomentumPage() {
       )}
 
       <Button
-        component={RouterLink}
-        to="/start"
         variant="contained"
         size="large"
         fullWidth
         sx={{ minHeight: 48, borderRadius: 999, textTransform: 'none', fontWeight: 700 }}
+        onClick={() => navigate(createCausePath())}
       >
         Start another cause
       </Button>

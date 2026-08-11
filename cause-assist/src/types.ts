@@ -112,6 +112,22 @@ export interface SafetyCheckResponse {
   source: 'llm' | 'heuristic' | 'mixed'
 }
 
+export interface CoherenceCheckRequest {
+  rosterCid: string
+  title: string
+  summary: string
+  planks: string[]
+  mediatorBlurb?: string
+}
+
+export interface CoherenceVerdict {
+  coherent: boolean
+  reasoning: string
+  attesterId: string
+  rosterCid: string
+  source: 'llm' | 'heuristic'
+}
+
 export interface CauseAssistConfig {
   /** xAI / Grok API key (or compatible provider). */
   apiKey?: string
@@ -121,5 +137,19 @@ export interface CauseAssistConfig {
   safetyModel: string
   /** Model used for main→supporting implication checks (same prompt as implication attester). */
   implicationModel: string
+  /**
+   * Model for roster coherence (construction only). Separate config slot from
+   * generation so the same call path never silently reuses atomize/sharpen's model
+   * unless the operator sets them equal on purpose.
+   */
+  coherenceModel: string
   port: number
+  /**
+   * Operator Ethereum private key for on-chain coherence badges.
+   * When set (with RPC + AlignmentAttestations address), cause-assist is msg.sender
+   * on positive-only attestations — never the founder.
+   */
+  ethereumPrivateKey?: string
+  ethereumRpcUrl?: string
+  alignmentAttestationsContractAddress?: string
 }

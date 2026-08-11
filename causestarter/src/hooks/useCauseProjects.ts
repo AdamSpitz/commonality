@@ -69,11 +69,17 @@ export function useCauseProjects(
 
   useEffect(() => {
     const cids = publishedKey ? publishedKey.split('\0').filter(Boolean) : []
-    if (!enabled || cids.length === 0) {
+    if (cids.length === 0) {
       setProjects([])
       setTotals(undefined)
       setLoading(false)
       setError(null)
+      return
+    }
+    // Keep prior results while a gate (trust settle) flips; avoids a white flash
+    // of empty project list on focus/interval trust reloads.
+    if (!enabled) {
+      setLoading(false)
       return
     }
 
