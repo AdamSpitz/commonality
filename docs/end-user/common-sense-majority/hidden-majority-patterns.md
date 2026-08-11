@@ -2,7 +2,7 @@
 
 The [central idea behind Common Sense Majority](./index.md) is that on many polarized issues the two loud "sides" are both minorities, and there's a common-sense supermajority that nobody can currently see. The [implication graph](/docs/end-user/tally/statements-and-implication-graph.md) and the [mediator](./mediator.md) are how we make these hidden majorities visible. This page catalogs the recurring shapes they take.
 
-(Note: the stuff on this page isn't just an explanation for readers — it's the working instructions the [mediator](./mediator.md) operates from. The various patterns are written into its [strategy prompt](https://github.com/AdamSpitz/commonality/blob/master/bridge-creator/prompts/csm-strategy.md), which is open for anyone to read: you can see exactly how it's told to find bridges, or run your own version instead.)
+(Note: the stuff on this page isn't just an explanation for readers — it's the working instructions the [mediator](./mediator.md) operates from. The various patterns are written into its [strategy prompt](https://github.com/AdamSpitz/commonality/blob/master/services/bridge-creator/prompts/csm-strategy.md), which is open for anyone to read: you can see exactly how it's told to find bridges, or run your own version instead.)
 
 ## Basic premise
 
