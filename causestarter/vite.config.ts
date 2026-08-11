@@ -122,6 +122,7 @@ function buildRuntimeConfig(env: Record<string, string>) {
     'VITE_IPFS_GATEWAY',
     'COMMONALITY_ENVIRONMENT',
     'VITE_PLATFORM_API_URL',
+    'VITE_CAUSE_ASSIST_URL',
     'VITE_MAINNET_RPC_URL',
     'VITE_ETH_RPC_URL',
     'VITE_BELIEFS_CONTRACT_ADDRESS',

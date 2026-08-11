@@ -11,6 +11,39 @@ databases:
     postgresMajorVersion: 16
 
 services:
+  # CauseStarter's browser-facing, read-only LLM helpers. This process never
+  # receives the coherence badge private key; chain writes belong to the worker.
+  - type: web
+    name: commonality-cause-assist
+    env: docker
+    rootDir: .
+    dockerContext: .
+    dockerfilePath: cause-assist/Dockerfile
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3002
+      - key: XAI_API_KEY
+        sync: false  # Secret
+      - key: OPENROUTER_API_KEY
+        sync: false  # Optional fallback secret
+      - key: CAUSE_ASSIST_API_BASE_URL
+        value: https://api.x.ai/v1
+      - key: CAUSE_ASSIST_SUGGEST_MODEL
+        value: grok-4.5
+      - key: CAUSE_ASSIST_SAFETY_MODEL
+        value: grok-4.5
+      - key: CAUSE_ASSIST_IMPLICATION_MODEL
+        value: grok-4.5
+      - key: CAUSE_ASSIST_COHERENCE_MODEL
+        value: grok-4.5
+      - key: CAUSE_ASSIST_COHERENCE_ATTESTER_ADDRESS
+        sync: false  # Public worker address; never put its private key here
+    healthCheckPath: /health
+    autoDeploy: true
+    plan: starter
+
   # Indexer
   - type: web
     name: commonality-indexer

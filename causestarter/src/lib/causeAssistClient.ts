@@ -1,3 +1,5 @@
+import { getRuntimeConfigValue } from './runtimeConfig'
+
 export interface StatementSuggestion {
   text: string
   rationale: string
@@ -73,7 +75,7 @@ export interface SafetyCheckResponse {
 }
 
 function assistBaseUrl(): string {
-  const configured = import.meta.env.VITE_CAUSE_ASSIST_URL as string | undefined
+  const configured = getRuntimeConfigValue('VITE_CAUSE_ASSIST_URL')
   if (configured?.trim()) return configured.replace(/\/$/, '')
   // Same-origin proxy in Vite/nginx: /api/cause-assist/*
   return '/api/cause-assist'
