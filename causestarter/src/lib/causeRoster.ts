@@ -9,7 +9,6 @@
  */
 
 import {
-  AlignmentAttestationsAbi,
   MutableRefUpdaterAbi,
   PublishedDataAbi,
 } from '@commonality/sdk/abis'
@@ -123,9 +122,7 @@ export interface PublishRosterResult {
   rosterCid: string
   refTxHash: `0x${string}`
   publishTxHash: `0x${string}`
-  /** Present when a positive coherence attestation was written for this roster CID. */
-  coherenceTxHash?: `0x${string}`
-  /** True when publish + updateRef (+ optional attest) shared one wallet batch. */
+  /** True when publish + updateRef shared one wallet batch. */
   batched: boolean
 }
 
@@ -376,24 +373,21 @@ async function sendCallsPreferAtomic(
 }
 
 /**
- * Publish roster document via PublishedData, point the stable ref at its CID, and
- * optionally write a positive-only coherence attestation for that CID.
+ * Publish roster document via PublishedData and point the stable ref at its CID.
  *
- * Prefers one atomic wallet batch (publish + updateRef [+ attest]); falls back to
- * sequential txs when the wallet cannot batch.
+ * Coherence badges are written by the CauseStarter operator (cause-assist), never
+ * from the founder wallet — see /attest-coherence on cause-assist.
+ *
+ * Prefers one atomic wallet batch (publish + updateRef); falls back to sequential
+ * txs when the wallet cannot batch.
  */
 export async function publishRoster(args: {
   machinery: SDKMachinery
   writeClients: WriteClients | null | undefined
   slug: string
   fields: RosterFields
-  /**
-   * When true, also attest the well-known coherence claim for this roster CID
-   * (positive-only; callers must only pass true after a matching preview pass).
-   */
-  attestCoherence?: boolean
 }): Promise<PublishRosterResult> {
-  const { machinery, writeClients, slug, fields, attestCoherence = false } = args
+  const { machinery, writeClients, slug, fields } = args
   const slugError = validateSlug(slug)
   if (slugError) throw new Error(slugError)
   if (!writeClients) {
@@ -403,14 +397,9 @@ export async function publishRoster(args: {
     throw new Error('Publish at least one issue before publishing the cause roster.')
   }
 
-  const { mutableRefAddress, publishedDataAddress, alignmentAddress } = contractsFromMachinery(machinery)
+  const { mutableRefAddress, publishedDataAddress } = contractsFromMachinery(machinery)
   if (!mutableRefAddress || !publishedDataAddress) {
     throw new Error('Contract addresses are missing. Redeploy CauseStarter to refresh config.json.')
-  }
-  if (attestCoherence && !alignmentAddress) {
-    throw new Error(
-      'Alignment attestations contract is missing; cannot persist the coherence badge. Redeploy CauseStarter.',
-    )
   }
 
   const doc = buildRosterDocument(fields)
@@ -436,19 +425,6 @@ export async function publishRoster(args: {
     },
   ]
 
-  if (attestCoherence && alignmentAddress) {
-    calls.push({
-      to: alignmentAddress,
-      abi: AlignmentAttestationsAbi as Abi,
-      functionName: 'attestAlignment',
-      args: [
-        rosterSubjectId(rosterCid),
-        cidToBytes32(ROSTER_COHERENCE_CLAIM),
-        cidToBytes32(ROSTER_COHERENCE_TOPIC),
-      ],
-    })
-  }
-
   const { hashes, batched } = await sendCallsPreferAtomic(writeClients, calls)
 
   if (batched) {
@@ -457,20 +433,14 @@ export async function publishRoster(args: {
       rosterCid,
       publishTxHash: hash,
       refTxHash: hash,
-      coherenceTxHash: attestCoherence ? hash : undefined,
       batched: true,
     }
   }
 
-  // Sequential: publish, updateRef, optional attest
-  const publishTxHash = hashes[0]!
-  const refTxHash = hashes[1]!
-  const coherenceTxHash = attestCoherence ? hashes[2] : undefined
   return {
     rosterCid,
-    publishTxHash,
-    refTxHash,
-    coherenceTxHash,
+    publishTxHash: hashes[0]!,
+    refTxHash: hashes[1]!,
     batched: false,
   }
 }

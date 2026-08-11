@@ -123,6 +123,32 @@ describe('cause-assist request guards', () => {
     assert.equal('strategyPrompt' in body, false)
   })
 
+  it('exposes coherence attester configuration on health', async () => {
+    const baseUrl = await start()
+    const response = await fetch(`${baseUrl}/health`)
+    assert.equal(response.status, 200)
+    const body = await response.json() as {
+      coherenceAttesterConfigured: boolean
+      coherenceAttesterAddress: string | null
+    }
+    assert.equal(body.coherenceAttesterConfigured, false)
+    assert.equal(body.coherenceAttesterAddress, null)
+  })
+
+  it('attest-coherence stays silent when coherent but operator key is unset', async () => {
+    const baseUrl = await start()
+    const response = await post(baseUrl, '/attest-coherence', {
+      rosterCid: 'bafytestroster',
+      title: 'Neighborhood parks',
+      summary: 'We want more local parks and green space for families.',
+      planks: ['Our city should fund neighborhood parks.'],
+    })
+    assert.equal(response.status, 200)
+    const body = await response.json() as { attested: boolean; reason: string }
+    assert.equal(body.attested, false)
+    assert.equal(body.reason, 'attester_not_configured')
+  })
+
   it('rate limits repeated expensive requests by client IP', async () => {
     const baseUrl = await start()
     const ip = '198.51.100.77'

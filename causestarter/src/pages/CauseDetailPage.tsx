@@ -30,7 +30,8 @@ import {
   type CauseDraft, type CausePlank, type SafetyState,
 } from '../lib/causeStore'
 import {
-  checkCoherence, checkSafety, sharpenPlank,
+  checkCoherence, checkSafety, fetchCoherenceAttesterAddress,
+  requestCoherenceAttestation, sharpenPlank,
   type CoherenceVerdict,
 } from '../lib/causeAssistClient'
 import {
@@ -134,12 +135,23 @@ export function CauseDetailPage() {
   const [checkingCoherence, setCheckingCoherence] = useState(false)
   const [coherence, setCoherence] = useState<CoherenceVerdict | null>(null)
   const [onChainBadge, setOnChainBadge] = useState<RosterCoherenceBadge | null>(null)
+  /** CauseStarter operator address that authors coherence badges (for viewer trust). */
+  const [coherenceOperator, setCoherenceOperator] = useState<`0x${string}` | null>(null)
   const [addedLaterByCid, setAddedLaterByCid] = useState<Map<string, string>>(new Map())
   const [error, setError] = useState<string | null>(null)
   const [dialogSafety, setDialogSafety] = useState<SafetyState | null>(null)
   const [titleDraft, setTitleDraft] = useState('')
   const [summaryDraft, setSummaryDraft] = useState('')
   const [slugDraft, setSlugDraft] = useState('')
+
+  // Operator attester address for badge trust display
+  useEffect(() => {
+    let cancelled = false
+    void fetchCoherenceAttesterAddress().then((addr) => {
+      if (!cancelled) setCoherenceOperator(addr)
+    })
+    return () => { cancelled = true }
+  }, [])
 
   // Load local draft by UUID
   useEffect(() => {
@@ -546,18 +558,11 @@ export function CauseDetailPage() {
       if (!withFields) throw new Error('Cause draft missing on this device.')
 
       const fields = rosterFieldsFromCause(withFields)
-      const wouldBe = previewRosterCid(fields)
-      const shouldAttest = Boolean(
-        coherence
-        && coherence.coherent
-        && coherence.rosterCid === wouldBe,
-      )
       const result = await publishRoster({
         machinery,
         writeClients,
         slug,
         fields,
-        attestCoherence: shouldAttest,
       })
       const marked = markRosterPublished(cause.id, {
         slug,
@@ -566,6 +571,24 @@ export function CauseDetailPage() {
       })
       if (marked) setCause(marked)
       setCoherence(null)
+
+      // Operator-side badge: founder never writes AlignmentAttestations for coherence.
+      // Soft-fail if cause-assist is down or judges not coherent (silence, not error).
+      try {
+        const attest = await requestCoherenceAttestation({
+          rosterCid: result.rosterCid,
+          title: fields.title,
+          summary: fields.summary,
+          planks: published.map((p) => p.text),
+          mediatorBlurb: fields.mediatorBlurb,
+        })
+        if (attest.attesterAddress) {
+          setCoherenceOperator(attest.attesterAddress.toLowerCase() as `0x${string}`)
+        }
+      } catch {
+        // Preview remains available; badge simply does not appear.
+      }
+
       const [hist, badge] = await Promise.all([
         loadRosterHistory(machinery, address, slug),
         loadRosterCoherenceBadge(machinery, result.rosterCid),
@@ -617,8 +640,14 @@ export function CauseDetailPage() {
             color="success"
             variant="filled"
             label="Coherent construction"
+            title={
+              coherenceOperator
+                ? `Attested by CauseStarter operator ${coherenceOperator}`
+                : `Attested by ${onChainBadge.attesters.join(', ')}`
+            }
             sx={{ mb: 0.75, ml: 1 }}
             data-testid="cause-coherence-badge"
+            data-attester={coherenceOperator ?? onChainBadge.attesters[0]}
           />
         )}
         <Typography

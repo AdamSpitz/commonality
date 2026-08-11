@@ -34,8 +34,10 @@ what remains open is one bug, at the end.
   in `/cause/:owner/:slug`, with optional `/cause/:owner/:slug@version` pins.
   Preview-before-publish, a separate coherence check (`cause-assist`
   `/check-coherence`), and a positive-only on-chain coherence badge
-  (`AlignmentAttestations` subject = roster CID digest) are wired. Publish +
-  `updateRef` (+ optional attest) prefer one atomic wallet batch.
+  (`AlignmentAttestations` subject = roster CID digest; **attester =
+  CauseStarter operator via cause-assist**, never the founder) are wired.
+  Publish + `updateRef` prefer one atomic wallet batch; the operator attestation
+  is a separate post-publish step (`/attest-coherence`).
 
 Companion to [standing up a vertical](/docs/founder/standing-up-a-vertical.md),
 which covers the vertical as a whole. This one covers the narrow question of what
@@ -333,9 +335,10 @@ disbelief, not inventing a new kind of statement.
 **Status: built for CauseStarter (2026-08-10).** Roster document publish +
 stable ref, history/pinned URLs, preview-before-publish, separate coherence
 check, positive-only on-chain badge (subject = roster CID via
-`AlignmentAttestations` + well-known claim/topic), atomic publish+ref(+attest)
-when the wallet supports EIP-5792 (sequential fallback for local EOAs), and
-per-plank "added later" provenance from `getUserRefHistory` are in.
+`AlignmentAttestations` + well-known claim/topic; authored by the site operator
+key in cause-assist, not the founder), atomic publish+ref when the wallet
+supports EIP-5792 (sequential fallback for local EOAs), and per-plank "added
+later" provenance from `getUserRefHistory` are in.
 
 ### The problem it solves
 
@@ -496,11 +499,12 @@ fail in opposite directions, which is why both are shown.
 
 ### What it costs
 
-Every roster edit becomes a `PublishedData` publish plus an `updateRef` (and,
-when a preview passed, a positive coherence attestation). CauseStarter prefers
-one EIP-5792 atomic batch for those calls and falls back to sequential txs when
-the wallet cannot batch (common for local Hardhat EOAs). Draft editing remains
-free and local until publish.
+Every roster edit becomes a `PublishedData` publish plus an `updateRef` from the
+founder wallet. When the operator's cause-assist service judges the roster
+coherent, it separately writes a positive coherence attestation from the
+operator key. CauseStarter prefers one EIP-5792 atomic batch for publish+ref and
+falls back to sequential txs when the wallet cannot batch (common for local
+Hardhat EOAs). Draft editing remains free and local until publish.
 
 Bought back: version history, "roster changed 3 days ago", and per-plank
 *added-later* provenance markers all fall straight out of `ref_updates` with no

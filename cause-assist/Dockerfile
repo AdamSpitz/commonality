@@ -47,7 +47,7 @@ COPY services/bridge-creator ./services/bridge-creator
 COPY cause-assist ./cause-assist
 
 ENV HUSKY=0
-# cause-assist prebuild builds attester-core, implication-attester, and bridge-creator.
+# cause-assist prebuild builds sdk, attester-core, implication-attester, and bridge-creator.
 # bridge-creator typechecks against nudger-core + sdk, so those must be built first.
 # Only package.json was copied for bridge-creator/nudger-core previously, so `tsc`
 # ran with no tsconfig and printed help (exit 1).
@@ -68,12 +68,16 @@ COPY --from=builder /workspace/cause-assist/dist ./dist
 # Production node_modules from the monorepo install, then materialize workspace
 # packages (symlinks in the builder tree do not survive a slim runtime layout).
 COPY --from=builder /workspace/node_modules ./node_modules
-RUN rm -rf ./node_modules/@commonality/attester-core \
+RUN rm -rf ./node_modules/@commonality/sdk \
+  && mkdir -p ./node_modules/@commonality/sdk \
+  && rm -rf ./node_modules/@commonality/attester-core \
   && mkdir -p ./node_modules/@commonality/attester-core \
   && rm -rf ./node_modules/@commonality/implication-attester \
   && mkdir -p ./node_modules/@commonality/implication-attester \
   && rm -rf ./node_modules/@commonality/bridge-creator \
   && mkdir -p ./node_modules/@commonality/bridge-creator
+COPY --from=builder /workspace/sdk/package.json ./node_modules/@commonality/sdk/package.json
+COPY --from=builder /workspace/sdk/dist ./node_modules/@commonality/sdk/dist
 COPY --from=builder /workspace/services/attester-core/package.json ./node_modules/@commonality/attester-core/package.json
 COPY --from=builder /workspace/services/attester-core/dist ./node_modules/@commonality/attester-core/dist
 COPY --from=builder /workspace/services/implication-attester/package.json ./node_modules/@commonality/implication-attester/package.json

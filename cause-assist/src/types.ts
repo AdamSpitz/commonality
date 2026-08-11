@@ -144,4 +144,12 @@ export interface CauseAssistConfig {
    */
   coherenceModel: string
   port: number
+  /**
+   * Operator Ethereum private key for on-chain coherence badges.
+   * When set (with RPC + AlignmentAttestations address), cause-assist is msg.sender
+   * on positive-only attestations — never the founder.
+   */
+  ethereumPrivateKey?: string
+  ethereumRpcUrl?: string
+  alignmentAttestationsContractAddress?: string
 }

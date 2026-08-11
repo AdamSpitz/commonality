@@ -39,5 +39,17 @@ export function loadConfigFromEnv(env: NodeJS.ProcessEnv = process.env): CauseAs
       firstEnv(env, ['CAUSE_ASSIST_COHERENCE_MODEL', 'CAUSE_ASSIST_SAFETY_MODEL', 'CAUSE_ASSIST_MODEL'])
       || defaultModel,
     port: Number(env.PORT || env.CAUSE_ASSIST_PORT || 3002),
+    ethereumPrivateKey: firstEnv(env, [
+      'CAUSE_ASSIST_COHERENCE_ATTESTER_PRIVATE_KEY',
+      'COHERENCE_ATTESTER_PRIVATE_KEY',
+    ]),
+    ethereumRpcUrl: firstEnv(env, [
+      'CAUSE_ASSIST_ETHEREUM_RPC_URL',
+      'ETHEREUM_RPC_URL',
+    ]),
+    alignmentAttestationsContractAddress: firstEnv(env, [
+      'ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS',
+      'ALIGNMENT_ATTESTATIONS_ADDRESS',
+    ]),
   }
 }

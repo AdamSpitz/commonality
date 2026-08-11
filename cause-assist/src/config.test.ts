@@ -44,4 +44,19 @@ describe('loadConfigFromEnv', () => {
     assert.equal(config.suggestModel, 'custom-model')
     assert.equal(config.safetyModel, 'custom-model')
   })
+
+  it('loads optional coherence attester chain config', () => {
+    const config = loadConfigFromEnv({
+      XAI_API_KEY: 'xai-test-key',
+      CAUSE_ASSIST_COHERENCE_ATTESTER_PRIVATE_KEY: `0x${'11'.repeat(32)}`,
+      ETHEREUM_RPC_URL: 'http://hardhat-node:8545',
+      ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS: '0x00000000000000000000000000000000000000aa',
+    })
+    assert.equal(config.ethereumPrivateKey, `0x${'11'.repeat(32)}`)
+    assert.equal(config.ethereumRpcUrl, 'http://hardhat-node:8545')
+    assert.equal(
+      config.alignmentAttestationsContractAddress,
+      '0x00000000000000000000000000000000000000aa',
+    )
+  })
 })
