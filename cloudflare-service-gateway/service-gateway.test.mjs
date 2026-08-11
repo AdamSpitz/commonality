@@ -11,6 +11,11 @@ assert.deepEqual(matchRoute('/platform-api/content-submission'), {
   upstreamPath: '/content-submission',
 })
 
+assert.deepEqual(matchRoute('/cause-assist/health'), {
+  service: 'cause-assist',
+  upstreamPath: '/health',
+})
+
 assert.equal(matchRoute('/unknown/health'), null)
 
 const originalFetch = globalThis.fetch

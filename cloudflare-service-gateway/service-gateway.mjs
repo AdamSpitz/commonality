@@ -1,10 +1,11 @@
-const DEFAULT_ROUTE_PREFIXES = ['indexer', 'platform-api', 'attesters', 'workers']
+const DEFAULT_ROUTE_PREFIXES = ['indexer', 'platform-api', 'attesters', 'workers', 'cause-assist']
 
 const UPSTREAM_KEYS = {
   indexer: 'INDEXER_ORIGIN',
   'platform-api': 'PLATFORM_API_ORIGIN',
   attesters: 'ATTESTERS_ORIGIN',
   workers: 'WORKERS_ORIGIN',
+  'cause-assist': 'CAUSE_ASSIST_ORIGIN',
 }
 
 export default {
