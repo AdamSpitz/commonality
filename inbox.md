@@ -19,6 +19,8 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 ### Done, for review
 
+- **(Tell)** Deployed CauseStarter assistance to testnet. `commonality-cause-assist.onrender.com` is healthy with Grok configured, CauseStarter's runtime config points at it, and browser CORS/preflight plus a real `/atomize` call were verified. The separate durable `commonality-coherence-badge-worker` holds the funded Base Sepolia operator key; the public HTTP service exposes only address `0x39e477B6D9776244849eea9f79FC890ADB25cCbA` and has no chain-write key. The Cloudflare `/cause-assist` route is staged in source, but the available token lacks Workers permission, so testnet uses the stable direct Render URL for now.
+
 - **(Tell)** Moved CauseStarter coherence badge writes into a trusted `RefUpdated` worker. The browser no longer requests minting, cause-assist exposes no chain-write route or hot key, and the worker filters/loads schema-v1 roster tips before reusing the LLM-only bind-and-attest path. Local Compose includes the durable worker; focused tests/typechecks pass.
 
 - **(Tell)** Fixed CauseStarter **coherence badge authorship**: on-chain attester is now the **CauseStarter operator** (cause-assist keypair → `msg.sender`), not the founder. Removed founder-side `attestCoherence` from `publishRoster`. After roster publish the UI calls cause-assist `POST /attest-coherence` (re-judges construction; positive-only write; silence if not coherent / not configured). `/health` surfaces `coherenceAttesterAddress` for viewer trust. Local Compose defaults Hardhat account #9. Wallet generation / setup-env know the new key. Design: docs/founder/shaping-your-cause-statements.md § The coherence badge.
