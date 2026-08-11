@@ -4,6 +4,8 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, it } from 'mocha';
 import { createDisplayableDocument, type DisplayableDocument } from '@commonality/sdk/displayable-documents';
+import { assertWorkerCanMint } from '../src/index.js';
+import type { WorkerConfig } from '../src/config.js';
 import { processRefUpdated, type RefUpdatedLog, type WorkerDependencies } from '../src/worker.js';
 import { readCursor, writeCursor } from '../src/state.js';
 
@@ -90,6 +92,24 @@ describe('coherence badge worker', () => {
     assert.equal(sleeps, 2);
   });
 
+  it('retries when plank texts are temporarily unavailable after the roster loads', async () => {
+    let attestCalls = 0;
+    let sleeps = 0;
+    const result = await processRefUpdated(log, {
+      loadDocument: async () => roster(),
+      attest: async () => {
+        attestCalls += 1;
+        if (attestCalls < 3) return { attested: false, reason: 'roster_unavailable' };
+        return { attested: true, reason: 'already_attested' };
+      },
+      sleep: async () => { sleeps += 1; },
+    }, 3, 1);
+    assert.equal(result.status, 'judged');
+    if (result.status === 'judged') assert.equal(result.result.reason, 'already_attested');
+    assert.equal(attestCalls, 3);
+    assert.equal(sleeps, 2);
+  });
+
   it('persists block plus log-index cursor bound to chain and contract', async () => {
     const directory = await mkdtemp(join(tmpdir(), 'coherence-worker-'));
     const path = join(directory, 'state.json');
@@ -101,5 +121,67 @@ describe('coherence badge worker', () => {
     } finally {
       await rm(directory, { recursive: true, force: true });
     }
+  });
+
+  it('refuses to start without LLM and operator attester configuration', () => {
+    const base = {
+      rpcUrl: 'http://127.0.0.1:8545',
+      chainId: 31337,
+      mutableRefUpdaterAddress: log.owner,
+      startBlock: 1n,
+      confirmations: 0n,
+      blockRange: 1000n,
+      pollIntervalMs: 10_000,
+      stateFile: './data/x.json',
+      contentRetryCount: 3,
+      contentRetryDelayMs: 2_000,
+    } satisfies Omit<WorkerConfig, 'causeAssist'>;
+
+    assert.throws(
+      () => assertWorkerCanMint({
+        ...base,
+        causeAssist: {
+          apiBaseUrl: 'https://api.example.test/v1',
+          suggestModel: 'm',
+          implicationModel: 'm',
+          safetyModel: 'm',
+          coherenceModel: 'm',
+          port: 0,
+        },
+      }),
+      /XAI_API_KEY|OPENROUTER_API_KEY/,
+    );
+
+    assert.throws(
+      () => assertWorkerCanMint({
+        ...base,
+        causeAssist: {
+          apiBaseUrl: 'https://api.example.test/v1',
+          suggestModel: 'm',
+          implicationModel: 'm',
+          safetyModel: 'm',
+          coherenceModel: 'm',
+          port: 0,
+          apiKey: 'test-key',
+        },
+      }),
+      /CAUSE_ASSIST_COHERENCE_ATTESTER_PRIVATE_KEY|ALIGNMENT_ATTESTATIONS/,
+    );
+
+    assert.doesNotThrow(() => assertWorkerCanMint({
+      ...base,
+      causeAssist: {
+        apiBaseUrl: 'https://api.example.test/v1',
+        suggestModel: 'm',
+        implicationModel: 'm',
+        safetyModel: 'm',
+        coherenceModel: 'm',
+        port: 0,
+        apiKey: 'test-key',
+        ethereumPrivateKey: `0x${'11'.repeat(32)}`,
+        ethereumRpcUrl: 'http://127.0.0.1:8545',
+        alignmentAttestationsContractAddress: log.owner,
+      },
+    }));
   });
 });

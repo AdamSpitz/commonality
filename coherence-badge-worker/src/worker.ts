@@ -68,25 +68,33 @@ export async function processRefUpdated(
   if (!rosterCid) return { status: 'ignored', reason: 'empty_ref' };
   if (RESERVED_REF_NAMES.has(log.name)) return { status: 'ignored', reason: 'reserved_name' };
 
-  let document: DisplayableDocument | null = null;
+  // Retry both roster and plank resolution. Plank texts load inside attest/bind;
+  // roster_unavailable means content lag, not a permanent ignore.
   for (let attempt = 0; attempt <= retryCount; attempt += 1) {
-    document = await dependencies.loadDocument(rosterCid);
-    if (document) break;
-    if (attempt < retryCount) await dependencies.sleep(retryDelayMs);
-  }
-  if (!document) return { status: 'unavailable' };
+    const document = await dependencies.loadDocument(rosterCid);
+    if (!document) {
+      if (attempt < retryCount) await dependencies.sleep(retryDelayMs);
+      continue;
+    }
 
-  const fields = parseRosterDocument(document);
-  if (!fields) return { status: 'ignored', reason: 'non_roster' };
+    const fields = parseRosterDocument(document);
+    if (!fields) return { status: 'ignored', reason: 'non_roster' };
 
-  return {
-    status: 'judged',
-    result: await dependencies.attest({
+    const result = await dependencies.attest({
       rosterCid,
       title: fields.title,
       summary: fields.summary,
       plankCids: fields.plankCids,
       mediatorBlurb: fields.mediatorBlurb,
-    }),
-  };
+    });
+
+    if (result.reason === 'roster_unavailable') {
+      if (attempt < retryCount) await dependencies.sleep(retryDelayMs);
+      continue;
+    }
+
+    return { status: 'judged', result };
+  }
+
+  return { status: 'unavailable' };
 }

@@ -2,7 +2,7 @@
 
 Trusted background worker for operator-authored roster coherence badges. It polls `MutableRefUpdater.RefUpdated`, resolves the new tip as a published document, and only considers schema-v1 documents whose `extras.kind` is `causestarter.roster`. Empty tips, shared reserved ref names, and all non-roster documents are ignored.
 
-The worker loads title, summary, ordered plank CIDs, and mediator blurb from the resolved roster—not from a browser request—then reuses cause-assist's binding path. That path recomputes the roster CID, loads plank texts by CID, requires an LLM coherence verdict, and calls the positive-only `AlignmentAttestations` writer. Existing attestations return `already_attested`, so rescans and same-tip rewrites are harmless. Unavailable content is retried briefly and then skipped without stopping the poller.
+The worker loads title, summary, ordered plank CIDs, and mediator blurb from the resolved roster—not from a browser request—then reuses cause-assist's binding path. That path recomputes the roster CID, loads plank texts by CID, requires an LLM coherence verdict, and calls the positive-only `AlignmentAttestations` writer. Existing attestations return `already_attested`, so rescans and same-tip rewrites are harmless. Roster and plank content are retried briefly together; if content is still missing the poller advances past that tip so one stuck CID cannot block later rosters. The process **refuses to start** without an LLM API key and a fully configured operator attester, and **refuses to advance the cursor** on `judgment_unavailable` / `attester_not_configured` so a misconfiguration cannot permanently skip tips.
 
 ## Security boundary
 

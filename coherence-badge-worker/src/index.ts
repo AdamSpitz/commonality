@@ -1,5 +1,8 @@
 import { pathToFileURL } from 'node:url';
 import { createPublicClient, http } from 'viem';
+import {
+  isCoherenceAttesterConfigured,
+} from '@commonality/cause-assist';
 import { MutableRefUpdaterAbi } from '@commonality/sdk/abis';
 import { loadWorkerConfig, type WorkerConfig } from './config.js';
 import { readCursor, writeCursor } from './state.js';
@@ -7,13 +10,38 @@ import { createWorkerDependencies, processRefUpdated, type RefUpdatedLog } from 
 
 const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
+/** Outcomes that mean "not ready to mint" — advancing the cursor would drop the tip forever. */
+const NON_TERMINAL_JUDGED_REASONS = new Set([
+  'judgment_unavailable',
+  'attester_not_configured',
+  'roster_unavailable',
+]);
+
 export function validateRpcChainId(rpcChainId: number, configuredChainId: number): void {
   if (rpcChainId !== configuredChainId) {
     throw new Error(`RPC chain ID ${rpcChainId} does not match configured CHAIN_ID ${configuredChainId}`);
   }
 }
 
+/**
+ * Refuse to scan when the worker cannot mint. Scanning without a key/LLM advances
+ * the durable cursor past RefUpdated tips and permanently skips badges.
+ */
+export function assertWorkerCanMint(config: WorkerConfig): void {
+  if (!config.causeAssist.apiKey?.trim()) {
+    throw new Error(
+      'coherence-badge-worker requires XAI_API_KEY or OPENROUTER_API_KEY (LLM judgment only; heuristics never mint)',
+    );
+  }
+  if (!isCoherenceAttesterConfigured(config.causeAssist)) {
+    throw new Error(
+      'coherence-badge-worker requires CAUSE_ASSIST_COHERENCE_ATTESTER_PRIVATE_KEY, RPC URL, and ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS',
+    );
+  }
+}
+
 export async function runWorker(config: WorkerConfig, signal?: AbortSignal): Promise<void> {
+  assertWorkerCanMint(config);
   const client = createPublicClient({ transport: http(config.rpcUrl) });
   validateRpcChainId(await client.getChainId(), config.chainId);
   const identity = {
@@ -61,7 +89,21 @@ export async function runWorker(config: WorkerConfig, signal?: AbortSignal): Pro
         config.contentRetryCount,
         config.contentRetryDelayMs,
       );
-      console.log(`RefUpdated ${update.transactionHash}:${update.logIndex} ${result.status}`);
+
+      // Config/judgment gaps must not burn the durable cursor — restart with a key
+      // should still see this tip. Permanent content miss after retries still advances
+      // so one stuck CID cannot block later rosters (see worker README).
+      if (result.status === 'judged' && NON_TERMINAL_JUDGED_REASONS.has(result.result.reason)) {
+        throw new Error(
+          `RefUpdated ${update.transactionHash}:${update.logIndex} non-terminal attest reason ${result.result.reason}; refusing to advance cursor`,
+        );
+      }
+
+      console.log(
+        result.status === 'judged'
+          ? `RefUpdated ${update.transactionHash}:${update.logIndex} judged ${result.result.reason}`
+          : `RefUpdated ${update.transactionHash}:${update.logIndex} ${result.status}${result.status === 'ignored' ? `:${result.reason}` : ''}`,
+      );
       cursor = { blockNumber: update.blockNumber, logIndex: update.logIndex };
       await writeCursor(config.stateFile, cursor, identity);
     }
