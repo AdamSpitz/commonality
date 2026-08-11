@@ -735,6 +735,42 @@ export function CauseDetailPage() {
         </>
       )}
 
+      {canEdit && !cause.id.startsWith('remote:') && (
+        <Paper elevation={0} sx={{ p: { xs: 2, sm: 2.5 }, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
+          <RosterPublishPanel
+            title={titleDraft}
+            summary={summaryDraft}
+            slug={slugDraft}
+            previewCid={wouldBeCid}
+            coherence={coherence}
+            onChainBadge={onChainBadge}
+            slugLocked={slugLocked}
+            canPublish={publishedCids.length > 0}
+            checking={checkingCoherence}
+            publishing={publishingRoster}
+            disabled={mutationLocked}
+            walletReady={Boolean(isConnected && address && writeClients)}
+            lastPublishedCid={cause.rosterCid}
+            rosterAgeLabel={rosterAgeLabel}
+            onTitleChange={(value) => {
+              setTitleDraft(value)
+              voidCoherence()
+            }}
+            onSummaryChange={(value) => {
+              setSummaryDraft(value)
+              voidCoherence()
+            }}
+            onSlugChange={(value) => {
+              setSlugDraft(value)
+              voidCoherence()
+            }}
+            onCheckCoherence={() => void handleCheckCoherence()}
+            onPublish={() => void handlePublishRoster()}
+            onPublishAnyway={() => void handlePublishRoster()}
+          />
+        </Paper>
+      )}
+
       <Paper elevation={0} sx={{ p: { xs: 2, sm: 2.5 }, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
         <Typography variant="h6" sx={{ fontWeight: 700, mb: 1.5 }}>Issues</Typography>
 
@@ -818,42 +854,6 @@ export function CauseDetailPage() {
 
         {error && <Alert severity="error" sx={{ mt: 2, borderRadius: 2 }}>{error}</Alert>}
       </Paper>
-
-      {canEdit && !cause.id.startsWith('remote:') && (
-        <Paper elevation={0} sx={{ p: { xs: 2, sm: 2.5 }, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
-          <RosterPublishPanel
-            title={titleDraft}
-            summary={summaryDraft}
-            slug={slugDraft}
-            previewCid={wouldBeCid}
-            coherence={coherence}
-            onChainBadge={onChainBadge}
-            slugLocked={slugLocked}
-            canPublish={publishedCids.length > 0}
-            checking={checkingCoherence}
-            publishing={publishingRoster}
-            disabled={mutationLocked}
-            walletReady={Boolean(isConnected && address && writeClients)}
-            lastPublishedCid={cause.rosterCid}
-            rosterAgeLabel={rosterAgeLabel}
-            onTitleChange={(value) => {
-              setTitleDraft(value)
-              voidCoherence()
-            }}
-            onSummaryChange={(value) => {
-              setSummaryDraft(value)
-              voidCoherence()
-            }}
-            onSlugChange={(value) => {
-              setSlugDraft(value)
-              voidCoherence()
-            }}
-            onCheckCoherence={() => void handleCheckCoherence()}
-            onPublish={() => void handlePublishRoster()}
-            onPublishAnyway={() => void handlePublishRoster()}
-          />
-        </Paper>
-      )}
 
       <Paper elevation={0} sx={{ p: { xs: 2, sm: 2.5 }, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
         <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }}>Projects</Typography>
