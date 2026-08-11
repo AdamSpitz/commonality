@@ -7,7 +7,7 @@ LLM-backed helpers for CauseStarter, defaulting to **Grok 4.5** via the xAI API:
 3. **Anchor drafter** — promote established planks into an explicitly enumerated disjunctive anchor.
 4. **Legacy statement suggester** — preserve the main → supporting workflow for existing causes.
 5. **Implication check and safety filter** — verify arrows and apply operational acceptable-use rules.
-6. **Coherence check + operator attestation** — construction-only roster judgment (planks match summary, no riders); separate prompt and model config from generation. When configured with an Ethereum keypair, positive-only on-chain badges are written as the **CauseStarter site operator** (`msg.sender`), never the founder.
+6. **Coherence check + worker attestation helpers** — construction-only roster judgment (planks match summary, no riders); separate prompt and model config from generation. The trusted [`coherence-badge-worker`](../coherence-badge-worker/) imports the binding/judgment helpers and writes positive-only badges as the **CauseStarter site operator** (`msg.sender`), never the founder.
 
 The three plank-first capabilities run as cause-assist-owned strategies on the shared bridge-creator statement engine. They share execution machinery and pattern techniques with bridge creation, but never its mediation strategy prompt.
 
@@ -33,10 +33,9 @@ See `src/statementGuidance.ts` and the Implication Attester evaluator prompt for
 | POST | `/suggest-mediator-scaffold` | `{ foundingStatement, name? }` | Editable mediator identity, side labels, and complete starting anchor triples; never a strategy prompt |
 | POST | `/check-implications` | `{ mainStatement, supportingStatements[] }` | Per-pair implies / confidence / reasoning |
 | POST | `/safety-check` | `{ items: [{ text, fieldLabel? }] }` | Per-item allow/deny + user-facing explanation |
-| POST | `/check-coherence` | `{ rosterCid, title, summary, planks[], mediatorBlurb? }` | Positive-only construction check for a would-be roster CID (preview; no chain write) |
-| POST | `/attest-coherence` | same as `/check-coherence` | Re-judges construction; if coherent and operator key is configured, writes `AlignmentAttestations` for the roster CID from the **operator** wallet. Silence (`attested: false`) when not coherent or attester not configured — never a negative chain write |
+| POST | `/check-coherence` | `{ rosterCid, title, summary, planks[], mediatorBlurb? }` | Positive-only construction check for a would-be roster CID (preview; no chain write; may use heuristic without an API key) |
 
-Without an API key, the suggester uses conservative local templates, implication checks are low-confidence heuristics, the safety filter uses heuristics only, and coherence uses a narrow heuristic (no merit judgment). Without a coherence attester private key / RPC / contract address, `/attest-coherence` never writes on chain (preview still works).
+Without an API key, the suggester uses conservative local templates, implication checks are low-confidence heuristics, the safety filter uses heuristics only, and `/check-coherence` uses a narrow heuristic (no merit judgment). The HTTP service has **no chain-write endpoint or operator private key**. The worker's imported attest helper requires an LLM judgment and never mints from a heuristic.
 
 ## Configuration
 
@@ -49,12 +48,10 @@ Without an API key, the suggester uses conservative local templates, implication
 | `CAUSE_ASSIST_COHERENCE_MODEL` | same as safety/suggest | Roster coherence model (own slot so it is not generation's model by accident) |
 | `CAUSE_ASSIST_SAFETY_MODEL` | `grok-4.5` (or `x-ai/grok-4.5` for OpenRouter-only) | Safety filter model id |
 | `CAUSE_ASSIST_IMPLICATION_MODEL` | same as suggest model | Implication check model id |
-| `CAUSE_ASSIST_COHERENCE_ATTESTER_PRIVATE_KEY` | — | Operator key for on-chain coherence badges (local Compose defaults to Hardhat account #9) |
-| `ETHEREUM_RPC_URL` / `CAUSE_ASSIST_ETHEREUM_RPC_URL` | — | RPC used for `attestAlignment` |
-| `ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS` | — | AlignmentAttestations deployment |
+| `CAUSE_ASSIST_COHERENCE_ATTESTER_ADDRESS` | — | Public worker address exposed by `/health`; the HTTP process does not receive its private key |
 | `PORT` / `CAUSE_ASSIST_PORT` | `3002` | HTTP port |
 
-`GET /health` includes `coherenceAttesterAddress` and `coherenceAttesterConfigured` so viewers can trust who authors the badge.
+`GET /health` includes `coherenceAttesterAddress` so viewers can trust who authors the badge. Worker-only key/RPC/contract/read configuration is documented in [`coherence-badge-worker/README.md`](../coherence-badge-worker/README.md).
 
 ## Run (default: Docker Compose)
 

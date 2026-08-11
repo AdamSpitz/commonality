@@ -21,6 +21,7 @@
     "service-host/src/**/*.ts",
     "platform-api-service/src/**/*.ts",
     "published-data-ipfs-mirror/src/**/*.ts",
+    "coherence-badge-worker/src/**/*.ts",
     "fake-data-generation/*.ts",
     "integration-tests/src/**/*.ts",
     "ui/src/**/*.ts",

@@ -43,6 +43,10 @@ export function loadConfigFromEnv(env: NodeJS.ProcessEnv = process.env): CauseAs
       'CAUSE_ASSIST_COHERENCE_ATTESTER_PRIVATE_KEY',
       'COHERENCE_ATTESTER_PRIVATE_KEY',
     ]),
+    coherenceAttesterAddress: firstEnv(env, [
+      'CAUSE_ASSIST_COHERENCE_ATTESTER_ADDRESS',
+      'COHERENCE_ATTESTER_ADDRESS',
+    ]),
     ethereumRpcUrl: firstEnv(env, [
       'CAUSE_ASSIST_ETHEREUM_RPC_URL',
       'ETHEREUM_RPC_URL',
@@ -51,5 +55,22 @@ export function loadConfigFromEnv(env: NodeJS.ProcessEnv = process.env): CauseAs
       'ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS',
       'ALIGNMENT_ATTESTATIONS_ADDRESS',
     ]),
+    ipfsGatewayUrl: firstEnv(env, [
+      'CAUSE_ASSIST_IPFS_GATEWAY_URL',
+      'IPFS_GATEWAY_URL',
+      'IPFS_GATEWAY',
+    ]),
+    eventCacheUrl: firstEnv(env, [
+      'CAUSE_ASSIST_EVENT_CACHE_URL',
+      'EVENT_CACHE_URL',
+      'VITE_EVENT_CACHE_URL',
+    ]),
+    publishedDataContractAddress: firstEnv(env, [
+      'PUBLISHED_DATA_CONTRACT_ADDRESS',
+      'VITE_PUBLISHED_DATA_CONTRACT_ADDRESS',
+    ]),
+    chainId: env.CHAIN_ID || env.VITE_CHAIN_ID
+      ? Number(env.CHAIN_ID || env.VITE_CHAIN_ID)
+      : undefined,
   }
 }

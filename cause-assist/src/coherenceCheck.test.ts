@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { describe, it } from 'node:test'
+import { describe, it } from 'mocha'
 import type { LlmJsonRequest, RequestJsonCompletionFn } from '@commonality/attester-core'
 import { checkCoherence } from './coherenceCheck.js'
 import type { CauseAssistConfig } from './types.js'

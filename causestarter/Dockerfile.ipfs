@@ -31,6 +31,7 @@ COPY services/implication-graph-nudger/package.json ./services/implication-graph
 COPY services/bridge-creator/package.json ./services/bridge-creator/package.json
 COPY services/explorer-curator/package.json ./services/explorer-curator/package.json
 COPY published-data-ipfs-mirror/package.json ./published-data-ipfs-mirror/package.json
+COPY coherence-badge-worker/package.json ./coherence-badge-worker/package.json
 COPY cause-assist/package.json ./cause-assist/package.json
 COPY ui/package.json ./ui/package.json
 COPY causestarter/package.json ./causestarter/package.json

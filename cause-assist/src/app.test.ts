@@ -135,18 +135,15 @@ describe('cause-assist request guards', () => {
     assert.equal(body.coherenceAttesterAddress, null)
   })
 
-  it('attest-coherence stays silent when coherent but operator key is unset', async () => {
+  it('does not expose the operator chain-write route', async () => {
     const baseUrl = await start()
     const response = await post(baseUrl, '/attest-coherence', {
       rosterCid: 'bafytestroster',
       title: 'Neighborhood parks',
       summary: 'We want more local parks and green space for families.',
-      planks: ['Our city should fund neighborhood parks.'],
+      plankCids: ['bafkreiplank1'],
     })
-    assert.equal(response.status, 200)
-    const body = await response.json() as { attested: boolean; reason: string }
-    assert.equal(body.attested, false)
-    assert.equal(body.reason, 'attester_not_configured')
+    assert.equal(response.status, 404)
   })
 
   it('rate limits repeated expensive requests by client IP', async () => {

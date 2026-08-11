@@ -444,11 +444,8 @@ services:
       CAUSE_ASSIST_SAFETY_MODEL: ${CAUSE_ASSIST_SAFETY_MODEL:-}
       CAUSE_ASSIST_IMPLICATION_MODEL: ${CAUSE_ASSIST_IMPLICATION_MODEL:-}
       CAUSE_ASSIST_COHERENCE_MODEL: ${CAUSE_ASSIST_COHERENCE_MODEL:-}
-      # Operator key for on-chain coherence badges (Hardhat account #9 by default).
-      # msg.sender on attestations — never the founder wallet.
-      CAUSE_ASSIST_COHERENCE_ATTESTER_PRIVATE_KEY: ${CAUSE_ASSIST_COHERENCE_ATTESTER_PRIVATE_KEY:-0x2a871d0798f97d79848a013d4936a73bf4cc922c825d33c1cf7073dff6d409c6}
-      ETHEREUM_RPC_URL: ${ETHEREUM_RPC_URL:-http://hardhat-node:8545}
-      ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS: ${ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS:-}
+      # Public identity only. The private key lives exclusively in coherence-badge-worker.
+      CAUSE_ASSIST_COHERENCE_ATTESTER_ADDRESS: ${CAUSE_ASSIST_COHERENCE_ATTESTER_ADDRESS:-0xa0Ee7A142d267C1f36714E4a8F75612F20a79720}
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3002/health >/dev/null || exit 1"]
       interval: 5s
@@ -458,6 +455,45 @@ services:
     networks:
       - commonality
     restart: unless-stopped
+
+  # Trusted roster coherence worker. It alone holds the operator hot key and
+  # watches real RefUpdated logs; no browser-reachable route can request a write.
+  coherence-badge-worker:
+    image: commonality-coherence-badge-worker:dev
+    build:
+      context: .
+      dockerfile: coherence-badge-worker/Dockerfile
+    container_name: commonality-coherence-badge-worker
+    user: "${UID:-1000}:${GID:-1000}"
+    depends_on:
+      hardhat-node:
+        condition: service_healthy
+      hardhat-deploy:
+        condition: service_completed_successfully
+      ipfs:
+        condition: service_healthy
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      RPC_URL: http://hardhat-node:8545
+      CHAIN_ID: "31337"
+      DEPLOYMENT_ENV_FILE: /workspace/deployments/localhost.env
+      STATE_FILE: /data/coherence-badge-worker.local.json
+      CONFIRMATIONS: "0"
+      CAUSE_ASSIST_COHERENCE_ATTESTER_PRIVATE_KEY: ${CAUSE_ASSIST_COHERENCE_ATTESTER_PRIVATE_KEY:-0x2a871d0798f97d79848a013d4936a73bf4cc922c825d33c1cf7073dff6d409c6}
+      XAI_API_KEY: ${XAI_API_KEY:-}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      CAUSE_ASSIST_API_BASE_URL: ${CAUSE_ASSIST_API_BASE_URL:-}
+      CAUSE_ASSIST_COHERENCE_MODEL: ${CAUSE_ASSIST_COHERENCE_MODEL:-}
+      CAUSE_ASSIST_IPFS_GATEWAY_URL: http://ipfs:8080/ipfs
+      EVENT_CACHE_URL: http://indexer:42069
+    volumes:
+      - ./deployments:/workspace/deployments:ro
+      - ${COMMONALITY_DATA_DIR:-./data}/coherence-badge-worker:/data
+    restart: unless-stopped
+    networks:
+      - commonality
 
   # CauseStarter — nginx static SPA (core founder surface).
   # Contract addresses / RPC URLs are injected at container start into config.json.

@@ -7,7 +7,6 @@ import { checkImplications } from './implicationCheck.js'
 import { atomizeCause, draftDisjunctiveAnchor, sharpenPlank } from './plankStrategies.js'
 import { suggestMediatorScaffold } from './mediatorScaffold.js'
 import { checkCoherence } from './coherenceCheck.js'
-import { attestCoherenceIfJudged } from './attestCoherence.js'
 import {
   getCoherenceAttesterAddress,
   isCoherenceAttesterConfigured,
@@ -55,7 +54,6 @@ export function createCauseAssistApp(config: CauseAssistConfig): express.Express
       '/check-implications',
       '/safety-check',
       '/check-coherence',
-      '/attest-coherence',
     ],
     createRateLimiter({
       windowMs: 60_000,
@@ -258,22 +256,6 @@ export function createCauseAssistApp(config: CauseAssistConfig): express.Express
       const body = parseCoherenceBody(req.body as CoherenceCheckRequest, res)
       if (!body) return
       res.json(await checkCoherence(body, config))
-    } catch (error) {
-      next(error)
-    }
-  })
-
-  /**
-   * Re-judge construction and, only if coherent, publish a positive-only on-chain
-   * badge from the operator key. Silence (attested:false) when not coherent or
-   * when the attester is not configured — never a negative chain write.
-   */
-  app.post('/attest-coherence', async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const body = parseCoherenceBody(req.body as CoherenceCheckRequest, res)
-      if (!body) return
-      const result = await attestCoherenceIfJudged(body, config)
-      res.json(result)
     } catch (error) {
       next(error)
     }
