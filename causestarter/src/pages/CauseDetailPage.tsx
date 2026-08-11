@@ -30,8 +30,7 @@ import {
   type CauseDraft, type CausePlank, type SafetyState,
 } from '../lib/causeStore'
 import {
-  checkCoherence, checkSafety, fetchCoherenceAttesterAddress,
-  requestCoherenceAttestation, sharpenPlank,
+  checkCoherence, checkSafety, fetchCoherenceAttesterAddress, sharpenPlank,
   type CoherenceVerdict,
 } from '../lib/causeAssistClient'
 import {
@@ -575,28 +574,11 @@ export function CauseDetailPage() {
       if (marked) setCause(marked)
       setCoherence(null)
 
-      // Operator-side badge: founder never writes AlignmentAttestations for coherence.
-      // Soft-fail if cause-assist is down or judges not coherent (silence, not error).
-      let operator = coherenceOperator
-      try {
-        const attest = await requestCoherenceAttestation({
-          rosterCid: result.rosterCid,
-          title: fields.title,
-          summary: fields.summary,
-          plankCids: fields.plankCids,
-          mediatorBlurb: fields.mediatorBlurb,
-        })
-        if (attest.attesterAddress) {
-          operator = attest.attesterAddress.toLowerCase() as `0x${string}`
-          setCoherenceOperator(operator)
-        }
-      } catch {
-        // Preview remains available; badge simply does not appear.
-      }
-
+      // The trusted worker observes RefUpdated and may mint asynchronously.
+      // Publishing never asks a browser-reachable endpoint to spend the operator key.
       const [hist, badge] = await Promise.all([
         loadRosterHistory(machinery, address, slug),
-        loadRosterCoherenceBadge(machinery, result.rosterCid, operator),
+        loadRosterCoherenceBadge(machinery, result.rosterCid, coherenceOperator),
       ])
       setHistory(hist)
       setOnChainBadge(badge)

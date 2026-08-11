@@ -162,6 +162,8 @@ export interface CauseAssistConfig {
    * on positive-only attestations — never the founder.
    */
   ethereumPrivateKey?: string
+  /** Public worker address exposed by HTTP health without placing its private key in this process. */
+  coherenceAttesterAddress?: string
   ethereumRpcUrl?: string
   alignmentAttestationsContractAddress?: string
   /** Gateway base used to fetch published statement/roster documents (e.g. http://ipfs:8080/ipfs). */

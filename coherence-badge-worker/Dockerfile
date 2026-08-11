@@ -1,12 +1,8 @@
 # syntax=docker/dockerfile:1.7
-
 FROM node:24.14.1-alpine
-
 ARG NPM_VERSION=11.16.0
-RUN npm install -g npm@${NPM_VERSION} \
-  && apk add --no-cache python3 make g++
-
-WORKDIR /app
+RUN npm install -g npm@${NPM_VERSION} && apk add --no-cache python3 make g++
+WORKDIR /workspace
 
 COPY package.json package-lock.json .npmrc ./
 COPY sdk/package.json ./sdk/package.json
@@ -33,13 +29,22 @@ COPY coherence-badge-worker/package.json ./coherence-badge-worker/package.json
 COPY cause-assist/package.json ./cause-assist/package.json
 COPY ui/package.json ./ui/package.json
 COPY causestarter/package.json ./causestarter/package.json
-RUN --mount=type=cache,target=/root/.npm HUSKY=0 npm ci
+RUN --mount=type=cache,target=/root/.npm HUSKY=0 npm ci --legacy-peer-deps
 
 COPY sdk ./sdk
-COPY published-data-ipfs-mirror ./published-data-ipfs-mirror
+COPY services/attester-core ./services/attester-core
+COPY services/implication-attester ./services/implication-attester
+COPY services/nudger-core ./services/nudger-core
+COPY services/bridge-creator ./services/bridge-creator
+COPY cause-assist ./cause-assist
+COPY coherence-badge-worker ./coherence-badge-worker
 RUN npm run build --workspace=@commonality/sdk \
-  && npm run build --workspace=@commonality/published-data-ipfs-mirror \
-  && chmod +x published-data-ipfs-mirror/docker-entrypoint.sh
-
-ENTRYPOINT ["published-data-ipfs-mirror/docker-entrypoint.sh"]
-CMD ["node", "published-data-ipfs-mirror/dist/src/index.js"]
+  && npm run build --workspace=@commonality/attester-core \
+  && npm run build --workspace=@commonality/implication-attester \
+  && npm run build --workspace=@commonality/nudger-core \
+  && npm run build --workspace=@commonality/bridge-creator \
+  && npm run build --workspace=@commonality/cause-assist \
+  && npm run build --workspace=@commonality/coherence-badge-worker \
+  && chmod +x coherence-badge-worker/docker-entrypoint.sh
+ENTRYPOINT ["coherence-badge-worker/docker-entrypoint.sh"]
+CMD ["node", "coherence-badge-worker/dist/src/index.js"]

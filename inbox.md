@@ -19,6 +19,8 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 ### Done, for review
 
+- **(Tell)** Moved CauseStarter coherence badge writes into a trusted `RefUpdated` worker. The browser no longer requests minting, cause-assist exposes no chain-write route or hot key, and the worker filters/loads schema-v1 roster tips before reusing the LLM-only bind-and-attest path. Local Compose includes the durable worker; focused tests/typechecks pass.
+
 - **(Tell)** Fixed CauseStarter **coherence badge authorship**: on-chain attester is now the **CauseStarter operator** (cause-assist keypair → `msg.sender`), not the founder. Removed founder-side `attestCoherence` from `publishRoster`. After roster publish the UI calls cause-assist `POST /attest-coherence` (re-judges construction; positive-only write; silence if not coherent / not configured). `/health` surfaces `coherenceAttesterAddress` for viewer trust. Local Compose defaults Hardhat account #9. Wallet generation / setup-env know the new key. Design: docs/founder/shaping-your-cause-statements.md § The coherence badge.
 
 - **(Tell)** Finished CauseStarter **roster follow-ups**: (1) positive-only on-chain coherence badge via `AlignmentAttestations` (subject = roster CID digest, well-known claim/topic; written when preview passed and founder uses Publish; viewers recompute from chain), (2) `PublishedData` publish + `updateRef` (+ optional attest) prefer one EIP-5792 atomic batch with sequential fallback, (3) per-plank "Added later" chips from `getUserRefHistory` + prior roster docs. CauseStarter unit tests + typecheck green.

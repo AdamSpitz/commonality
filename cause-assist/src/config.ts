@@ -43,6 +43,10 @@ export function loadConfigFromEnv(env: NodeJS.ProcessEnv = process.env): CauseAs
       'CAUSE_ASSIST_COHERENCE_ATTESTER_PRIVATE_KEY',
       'COHERENCE_ATTESTER_PRIVATE_KEY',
     ]),
+    coherenceAttesterAddress: firstEnv(env, [
+      'CAUSE_ASSIST_COHERENCE_ATTESTER_ADDRESS',
+      'COHERENCE_ATTESTER_ADDRESS',
+    ]),
     ethereumRpcUrl: firstEnv(env, [
       'CAUSE_ASSIST_ETHEREUM_RPC_URL',
       'ETHEREUM_RPC_URL',

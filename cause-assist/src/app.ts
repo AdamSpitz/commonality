@@ -7,20 +7,13 @@ import { checkImplications } from './implicationCheck.js'
 import { atomizeCause, draftDisjunctiveAnchor, sharpenPlank } from './plankStrategies.js'
 import { suggestMediatorScaffold } from './mediatorScaffold.js'
 import { checkCoherence } from './coherenceCheck.js'
-import { attestCoherenceIfJudged } from './attestCoherence.js'
 import {
   getCoherenceAttesterAddress,
   isCoherenceAttesterConfigured,
 } from './blockchain.js'
-import {
-  createCauseAssistMachinery,
-  createLoadStatementText,
-} from './loadStatementText.js'
-import type { LoadStatementText } from './bindRosterPayload.js'
 import type {
   AtomizeRequest,
   CheckImplicationsRequest,
-  CoherenceAttestRequest,
   CoherenceCheckRequest,
   DraftAnchorRequest,
   SafetyCheckRequest,
@@ -46,15 +39,7 @@ function invalidRequest(res: Response, message: string): void {
   res.status(400).json({ error: 'invalid_request', message })
 }
 
-export interface CreateCauseAssistAppOptions {
-  /** Override plank text loading (tests). Default uses IPFS / event-cache / RPC. */
-  loadStatementText?: LoadStatementText
-}
-
-export function createCauseAssistApp(
-  config: CauseAssistConfig,
-  options: CreateCauseAssistAppOptions = {},
-): express.Express {
+export function createCauseAssistApp(config: CauseAssistConfig): express.Express {
   const app = express()
   // Requests arrive through the CauseStarter nginx service in Compose.
   app.set('trust proxy', 1)
@@ -69,7 +54,6 @@ export function createCauseAssistApp(
       '/check-implications',
       '/safety-check',
       '/check-coherence',
-      '/attest-coherence',
     ],
     createRateLimiter({
       windowMs: 60_000,
@@ -77,9 +61,6 @@ export function createCauseAssistApp(
       message: 'Too many cause-assist requests; try again shortly.',
     }),
   )
-
-  const loadStatementText = options.loadStatementText
-    ?? createLoadStatementText(createCauseAssistMachinery(config))
 
   app.get('/health', (_req, res) => {
     const coherenceAttesterAddress = getCoherenceAttesterAddress(config)
@@ -270,69 +251,11 @@ export function createCauseAssistApp(
     return body
   }
 
-  function parseAttestBody(body: CoherenceAttestRequest, res: Response): CoherenceAttestRequest | null {
-    if (typeof body?.rosterCid !== 'string' || !body.rosterCid.trim()) {
-      invalidRequest(res, 'rosterCid is required')
-      return null
-    }
-    if (typeof body.title !== 'string' || body.title.length > MAX_STATEMENT_LENGTH) {
-      invalidRequest(res, `title must be a string of at most ${MAX_STATEMENT_LENGTH} characters`)
-      return null
-    }
-    if (typeof body.summary !== 'string' || body.summary.length > MAX_STATEMENT_LENGTH) {
-      invalidRequest(res, `summary must be a string of at most ${MAX_STATEMENT_LENGTH} characters`)
-      return null
-    }
-    if (
-      !Array.isArray(body.plankCids)
-      || body.plankCids.length === 0
-      || body.plankCids.length > MAX_SUPPORTING_STATEMENTS
-      || body.plankCids.some((cid) => typeof cid !== 'string' || !cid.trim() || cid.length > MAX_STATEMENT_LENGTH)
-    ) {
-      invalidRequest(
-        res,
-        `plankCids must be a non-empty array of at most ${MAX_SUPPORTING_STATEMENTS} CID strings`,
-      )
-      return null
-    }
-    if (
-      body.mediatorBlurb !== undefined
-      && (typeof body.mediatorBlurb !== 'string' || body.mediatorBlurb.length > MAX_STATEMENT_LENGTH)
-    ) {
-      invalidRequest(res, `mediatorBlurb must be a string of at most ${MAX_STATEMENT_LENGTH} characters`)
-      return null
-    }
-    return {
-      rosterCid: body.rosterCid.trim(),
-      title: body.title,
-      summary: body.summary,
-      plankCids: body.plankCids.map((cid) => cid.trim()),
-      mediatorBlurb: body.mediatorBlurb,
-    }
-  }
-
   app.post('/check-coherence', async (req: Request, res: Response, next: NextFunction) => {
     try {
       const body = parseCoherenceBody(req.body as CoherenceCheckRequest, res)
       if (!body) return
       res.json(await checkCoherence(body, config))
-    } catch (error) {
-      next(error)
-    }
-  })
-
-  /**
-   * Bind to published roster (CID recompute + plank text by CID), re-judge with
-   * the LLM only, and if coherent publish a positive-only on-chain badge from
-   * the operator key. Silence when not coherent, judgment unavailable, bind
-   * failed, or attester not configured — never a negative chain write.
-   */
-  app.post('/attest-coherence', async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const body = parseAttestBody(req.body as CoherenceAttestRequest, res)
-      if (!body) return
-      const result = await attestCoherenceIfJudged(body, config, { loadStatementText })
-      res.json(result)
     } catch (error) {
       next(error)
     }

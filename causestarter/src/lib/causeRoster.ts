@@ -28,6 +28,7 @@ import type { SDKMachinery } from '@commonality/sdk/machinery'
 import {
   getUserRef,
   getUserRefHistory,
+  RESERVED_REF_NAMES,
   type RefUpdate,
 } from '@commonality/sdk/mutable-refs'
 import {
@@ -85,14 +86,6 @@ export const ROSTER_COHERENCE_TOPIC: IpfsCidV1 = publishedDataCidForDocument(
 export const ROSTER_COHERENCE_CLAIM: IpfsCidV1 = publishedDataCidForDocument(
   ROSTER_COHERENCE_CLAIM_DOCUMENT,
 ) as IpfsCidV1
-
-/** Ref names reserved by the substrate; founders may not use these as slugs. */
-export const RESERVED_REF_NAMES = new Set([
-  'created-statements',
-  'favorites',
-  'bookmarks',
-  'draft-post',
-])
 
 export interface RosterFields {
   title: string
@@ -391,7 +384,7 @@ async function sendCallsPreferAtomic(
  * Publish roster document via PublishedData and point the stable ref at its CID.
  *
  * Coherence badges are written by the CauseStarter operator (cause-assist), never
- * from the founder wallet — see /attest-coherence on cause-assist.
+ * from the founder wallet — the trusted RefUpdated worker handles it asynchronously.
  *
  * Prefers one atomic wallet batch (publish + updateRef); falls back to sequential
  * txs when the wallet cannot batch.

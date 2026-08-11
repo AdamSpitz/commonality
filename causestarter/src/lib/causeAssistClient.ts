@@ -150,20 +150,6 @@ export interface CoherenceVerdict {
   source: 'llm' | 'heuristic'
 }
 
-export type AttestCoherenceReason =
-  | 'attested'
-  | 'already_attested'
-  | 'not_coherent'
-  | 'attester_not_configured'
-
-export interface AttestCoherenceResult {
-  attested: boolean
-  reason: AttestCoherenceReason
-  verdict: CoherenceVerdict
-  attesterAddress?: `0x${string}`
-  txHash?: `0x${string}`
-}
-
 export interface CauseAssistHealth {
   status: string
   service: string
@@ -182,23 +168,6 @@ export async function checkCoherence(input: {
   mediatorBlurb?: string
 }): Promise<CoherenceVerdict> {
   return postJson<CoherenceVerdict>('/check-coherence', input)
-}
-
-/**
- * Ask the CauseStarter operator (cause-assist) to re-judge and, if coherent,
- * publish a positive-only on-chain badge. Founder wallets never write this.
- *
- * Server binds structure by recomputing the roster CID from title/summary/
- * plankCids/mediatorBlurb and loads plank *texts* by CID (ignores free-form).
- */
-export async function requestCoherenceAttestation(input: {
-  rosterCid: string
-  title: string
-  summary: string
-  plankCids: string[]
-  mediatorBlurb?: string
-}): Promise<AttestCoherenceResult> {
-  return postJson<AttestCoherenceResult>('/attest-coherence', input)
 }
 
 /** Operator attester address for viewer trust (null when service unreachable or key unset). */

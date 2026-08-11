@@ -35,9 +35,9 @@ what remains open is one bug, at the end.
   Preview-before-publish, a separate coherence check (`cause-assist`
   `/check-coherence`), and a positive-only on-chain coherence badge
   (`AlignmentAttestations` subject = roster CID digest; **attester =
-  CauseStarter operator via cause-assist**, never the founder) are wired.
+  CauseStarter operator via the trusted coherence worker**, never the founder) are wired.
   Publish + `updateRef` prefer one atomic wallet batch; the operator attestation
-  is a separate post-publish step (`/attest-coherence`).
+  follows asynchronously when the worker observes the resulting `RefUpdated` log.
 
 Companion to [standing up a vertical](/docs/founder/standing-up-a-vertical.md),
 which covers the vertical as a whole. This one covers the narrow question of what

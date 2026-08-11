@@ -20,7 +20,7 @@ import type { CauseAssistConfig } from './types.js'
 
 export type CoherenceChainConfig = Pick<
   CauseAssistConfig,
-  'ethereumPrivateKey' | 'ethereumRpcUrl' | 'alignmentAttestationsContractAddress'
+  'ethereumPrivateKey' | 'coherenceAttesterAddress' | 'ethereumRpcUrl' | 'alignmentAttestationsContractAddress'
 >
 
 function requireChainConfig(config: CoherenceChainConfig): {
@@ -53,7 +53,12 @@ export function isCoherenceAttesterConfigured(config: CoherenceChainConfig): boo
 }
 
 export function getCoherenceAttesterAddress(config: CoherenceChainConfig): `0x${string}` | null {
-  if (!config.ethereumPrivateKey?.trim()) return null
+  if (!config.ethereumPrivateKey?.trim()) {
+    const address = config.coherenceAttesterAddress?.trim()
+    return address && /^0x[0-9a-fA-F]{40}$/.test(address)
+      ? address.toLowerCase() as `0x${string}`
+      : null
+  }
   try {
     const clients = createWriteClients(
       config.ethereumPrivateKey as `0x${string}`,
