@@ -172,3 +172,692 @@ Maybe that would allow us to have this idea of a Cause Page centred around a sin
 That is, maybe the thing we've been fumbling towards isn't that we need some new data type representing a "cause", but that (a) we need to have a better pattern language for creating grouping statements, and (b) we need to think of a cause as being a particular role that a statement takes in some contexts (like showing a "cause board" containing many projects aligned with that statement) - which is in line with many ways in which we already use the word "cause", so it's not exactly like this is a new insight, I'm just saying that maybe the missing thing was the grouping-statement pattern language.
 
 Does that make sense? Help me clarify my thoughts.
+
+
+# AI response (second pass)
+
+Yes, it makes sense, and I think you got there. But you got there *back* to
+something you already signed off on five weeks ago and appear to have
+forgotten, and the forgetting is itself informative — so let me place your
+conclusion first, then say what's genuinely new in it, then hand you the
+concrete blockers.
+
+## Your conclusion is the "anchor" layer of planks/views/anchors
+
+`docs/founder/shaping-your-cause-statements.md` — signed off 2026-08-09,
+mostly built — already says:
+
+- a cause is **planks** (individual published statements; all signing,
+  alignment, and earmarking happens here);
+- **views** are client-side set operations over any subset of planks (union,
+  strict intersection, "signed some / disbelieved none"), free, nothing on
+  chain, togglable by founder *or visitor*;
+- an **anchor** is a *promoted* view: a published statement for a combination
+  that earned its own signable identity, with attested arrows from its planks.
+  "'One main statement' is therefore just the default promoted view, not a
+  structural requirement."
+
+Your §172 — "we don't need a new data type representing a cause; a cause is a
+role a statement takes in some contexts, and the missing thing was the
+grouping-statement pattern language" — is that model, arrived at from the
+opposite end. The doc even lists three shapes (single-issue, conjunctive
+manifesto, disjunctive/hedged-broad) with a table of which arrows each buys.
+So the first half of your intuition isn't a pivot; it's already the design.
+
+**What's actually new is the second half**, and it's the right complaint: that
+doc has *three* shapes and explicitly decides the founder never sees them
+("Three shapes is too much theory — so the founder never sees them"). You're
+saying three isn't enough and the taxonomy should be richer and should be
+*worked*, not hidden. I think you're right, and the reason you're right is that
+the doc hid the shapes because a *human founder* couldn't be asked to learn
+them — but under the pivot in this file, the entity choosing the shape is an
+LLM, and an LLM can absolutely hold a twelve-item pattern catalog. **The
+audience for the pattern language changed, so the decision to suppress it
+should be revisited.** That's a clean, specific consequence of your pivot and
+it's the thing I'd write down.
+
+## The correction that sharpens it: most grouping needs no statement
+
+You're calling for grouping *statements*. The planks/views insight is that
+grouping mostly doesn't need statements — union/intersection over plank signer
+sets is a set operation, and a cause page is a views layer. A published
+grouping statement buys exactly three things a view can't do:
+
+1. someone can **sign** the combination,
+2. someone can **earmark money** to it (delegation),
+3. someone can **align a project** with it.
+
+So the pattern language isn't "how do we group statements in general." It's
+narrower and much more tractable: **what shapes are worth minting a CID for,
+given that display-only grouping is already free?** Ask that of each of your
+proposed patterns and most of them answer themselves.
+
+This also resolves your §110 objection to the previous response's §1. You said
+a donor won't delegate to "that entire big list of everything you believe" —
+correct, and it's not a counterexample to the unification, it's what the
+unification predicts. Profile = all your planks. Delegate earmark = an anchor
+over a *subset*. Cause page = a view over a subset. Same substrate, three
+selections. And note the asymmetry that makes your objection load-bearing: the
+cause page can be a free view, but **the earmark cannot** — money needs a CID.
+So delegation is the single strongest reason grouping statements have to exist
+at all. If you want one motivating use case for the pattern language, it's
+that one, not the cause page.
+
+## Sorting your candidate patterns by whether they mechanically work
+
+The organizing axis isn't conjunction vs. disjunction. It's **which arrow
+direction you're buying**, because inbound arrows give a statement its
+supporter count and its cause board, and outbound arrows give it nothing.
+
+| Pattern | Arrows | Worth a CID? |
+|---|---|---|
+| **Enumerated disjunction** ("at least one of: A, B, C") | inbound from every disjunct (disjunction introduction) | **Yes** — this is the cause-board/anchor shape |
+| **Scope-restricted broad claim** (your 16-weeks example, your tax example) | inbound from every stricter position | **Yes** — your best new one, see below |
+| **Conjunctive manifesto** | outbound to each conjunct, ~no inbound | Only to let the wholehearted sign once |
+| **Join / intersection** ("pro-crypto ∧ in Grey County") | outbound to both parents | **Yes**, and for a different reason: it's the shape a *project* aligns against. Already specified in `specs/tech/subsystems/conceptspace/content-patterns/intersections.md` |
+| **"Mostly agree, with quibbles"** | **none, either way** | **No** |
+| **"At least 8 of these 10"** | inbound only from ≥8-way conjunctions nobody signs | **No** |
+
+The two rejections are the useful part, because you were tentatively in favour
+of both.
+
+**"I'm mostly in agreement with the conservatives, with quibbles"** is
+mechanically inert. Nothing implies it — "I'm pro-life" does not imply "I'm
+generally conservative," pro-life leftists exist, and the attester should and
+does refuse that arrow (`shaping-your-cause-statements.md` calls this out
+explicitly as "the trap in the hedged variant"). And it implies nothing, since
+it names no specific commitment. It reads like the perfect coalition statement
+and it collects nothing in either direction. If you want the thing it's
+gesturing at — "broad support with internal dissent visible" — that's a
+**view**, and it's already built: band 1 ("signed all five") + band 2 ("signed
+some, disagreed with none") + the weakest-link line is precisely "here's the
+coalition, and here's how unanimous it isn't." You wanted a statement; the
+honest version is a display.
+
+**"At least 8 of 10"** fails for the same reason plus a verification problem:
+the attester evaluates a pair of statements as text, so it would have to do
+combinatorial counting over ten enumerated propositions to decide any arrow.
+Don't.
+
+## Your vagueness intuition is right, and it isn't vagueness
+
+The reason your tax paragraph feels legitimate and "reasonable gun control"
+doesn't is not breadth. It's that **your statement declares its own
+boundary**. It says which direction it commits to and explicitly names what it
+is *not* claiming ("not saying zero, not saying which taxes"). "Reasonable gun
+control" leaves its extension for the reader to fill in, so signing it commits
+you to whatever the reader imagined.
+
+Same with your abortion example: "Without commenting on whether abortion before
+16 weeks is wrong, I do believe abortion after 16 weeks is wrong" isn't vague
+at all — it's a **scope restriction with the excluded region named**. That's
+why both stricter positions imply it: it's strictly weaker, and there's nothing
+hidden in the weakening.
+
+So the rule to write down is not "allow vagueness." It's:
+
+> **A statement may be as broad as it likes provided its text bounds its own
+> extension.** Broad-with-declared-boundary is a legitimate implication sink;
+> broad-with-undeclared-boundary is not.
+
+That's testable by an attester ("does the text itself say what it doesn't
+claim?"), coachable by cause-assist, and it explains why declared-breadth
+statements are exactly the good anchors: many things imply them, they imply
+little. It's also the same move as `deferDetails` in
+`bridge-creator/src/strategyEngine.ts` — "defer them with an explicit good-faith
+boundary instead of using ambiguous shorthand" — which never propagated to the
+attester or cause-assist.
+
+## The blocker: the shipped attester rejects your abortion example
+
+Concretely, in `services/implication-attester/src/evaluator.ts`:
+
+- **line 57** — reject "**softened, hedged, or 'bridge' rewording of a stronger
+  claim**… If S2 tempers S1 by adding concessions… the S1 signer endorsed the
+  stronger form, not the hedged one."
+- **line 54** — reject when S2 "changes strength, modality, quantifier, or
+  **scope**."
+- **line 52** — reject when S2 is vaguer than S1.
+
+"All abortions are morally wrong" → "abortion after 16 weeks is morally wrong,
+without commenting on before" is a **concession-adding, scope-changing
+weakening**. Lines 54 and 57 both fire. The arrow you need for the entire
+grouping-statement idea is currently prohibited by name.
+
+Worse, this contradicts a signed-off doc. `shaping-your-cause-statements.md`
+§"Hedge, don't blur" says hedging "makes a statement logically weaker and so
+*easier to imply* — that helps. … Weaken with explicit hedges and enumerated
+disjuncts, never with fuzzy nouns." The shipped prompt rejects explicit hedges
+outright. One of the two is wrong, and I think the prompt is: it conflates two
+different things under "hedged."
+
+- **Rhetorical softening** — "immigration is a crisis threatening American
+  workers" → "immigration policy deserves careful attention." Correctly
+  rejected: the emotional register and the implied urgency are part of what was
+  signed, and the softer version isn't a logical consequence, it's a different
+  speech act.
+- **Logical weakening with a declared boundary** — dropping a claim, or
+  narrowing scope while naming the dropped region. This *is* entailment. It's
+  what line 45's "subset of claims" and line 46's "generalization" rules
+  already accept, just written in the first person with the exclusion made
+  explicit.
+
+The fix isn't to relax line 57; it's to split it, and add a positive rule for
+declared-boundary weakening with your two examples as the worked cases. That's
+a self-contained prompt change with test cases, independent of any UI
+reorganization, and it unblocks the pattern language.
+
+Also worth noting: line 52's "reasonable gun control" example stays exactly as
+it is. Your rule doesn't loosen the attester in the direction it's rightly
+conservative about. It only stops it from rejecting statements that say out
+loud what they aren't claiming.
+
+## Two smaller things you raised
+
+**Drilling down (§160).** "I've got opinions about American politics" doesn't
+need to be a signable statement. Navigating a user from broad interest to
+specific position is the **explorer's** job, and the explorer is already
+top-down by design — its curated collection has `topicArea` and `parentCid` as
+explicitly "map-local structure, not canonical facts about the statement
+itself" (`specs/tech/subsystems/conceptspace/explorer.md`). Don't mint
+statements to do navigation; a bad statement that exists forever is a worse
+artifact than a map entry that gets reorganized next snapshot. Keep the
+statement layer for things people actually mean to commit to.
+
+Note that this cuts against the "gazillion statements" framing generally. The
+navigational hierarchy you were reaching for is the curator's map, which is
+deliberately small; the statement graph underneath it can be large but should
+grow from things people meant. And `intersections.md` already has the machinery
+for growing it deliberately: the **statement-creator service** as "a lattice
+completion service: given a set of signed statements, find missing intermediate
+nodes that would make the implication graph more useful." That's your
+gazillion-statements engine, specified, unbuilt, and correctly demand-driven
+rather than pre-generated. The pattern language is exactly what that service
+would need as its generation vocabulary — which is the second concrete
+consumer, after cause-assist.
+
+**Cause pages and trust (§120, §132–140).** You reasoned your way to "a
+description field, LLM-checked for honesty" and then said it didn't feel like
+the thing. It is in fact the thing, and it's built (2026-08-10): the roster is
+a `PublishedData` document containing *all* founder-authored display text,
+addressed by CID, pointed to by a `MutableRef` for a stable shareable URL, with
+a positive-only **coherence badge** attested by the operator key against the
+roster CID — "an attestation that a roster's planks match its own summary and
+hide no riders," which drops on any edit until re-attested. Explicitly
+construction-not-merit, so "a coherent cause we find repellent earns the
+badge." You have the answer; you'd stopped believing you had it.
+
+The **embeddable widget** (§140) is genuinely new and isn't specified anywhere.
+It's also the best answer available to the distribution problem the previous
+response flagged as unresolved — ADR 0008 means a cause has no discovery path
+except the owner circulating a link, and a widget turns every founder's
+existing site into a distribution surface without us hosting or endorsing
+anything. Worth its own spec stub. One constraint falls out of the above: the
+widget should render numbers only for statements/views it names, and should
+carry the coherence badge state, or it becomes an unverifiable rendering of our
+data on someone else's page.
+
+## What I'd do
+
+1. **Split the "hedged" rejection in `evaluator.ts`** into rhetorical softening
+   (reject) vs. declared-boundary weakening (accept), with your tax and
+   16-weeks examples as tests, and propagate the declared-breadth rule to
+   `cause-assist/src/statementGuidance.ts`. Smallest, highest-confidence,
+   unblocks everything else. Nothing here depends on it being right about the
+   product reorganization.
+2. **Write the grouping-statement pattern catalog** as a spec — I'd put it at
+   `specs/tech/subsystems/conceptspace/content-patterns/grouping-statements.md`,
+   next to `intersections.md`, which is already one entry in it. Key each
+   pattern by the arrows it buys and whether it's worth a CID; include the two
+   rejections, since knowing which appealing shapes don't work is most of the
+   value. Consumers: cause-assist's anchor-drafting, and the statement-creator
+   service.
+3. **Revisit "the founder never sees the shapes"** in
+   `shaping-your-cause-statements.md` — not to expose the taxonomy to humans,
+   but because the shape-chooser is now an LLM, which changes the argument for
+   suppressing it. This is a small amendment to a signed-off doc, not a rewrite.
+4. Then the reorganization question, which I'd now state as: the cause page is
+   a view, the delegate earmark is an anchor, and the front door is the
+   explorer. If that's the shape, the open question isn't "what is a cause" —
+   it's **what promotes a view to an anchor, and who decides**, which
+   `shaping-your-cause-statements.md` §Promotion leaves as "watch which
+   combinations people converge on" with no mechanism.
+
+One thing I'd flag as still unresolved rather than solved: none of this
+recovers "cause founder" as a distinct customer, which ADR 0005 makes
+load-bearing. Under the model above, a founder is someone who published an
+anchor and circulates its link. That may be fine, but 0005's triage table stops
+sorting work cleanly, and it's better to revisit it deliberately than to drift.
+
+
+# My response
+
+Okay, promoting to anchors, yes, fine.
+
+Having patterns for the shapes, good. Yes, now that AI is doing them we can make the pattern catalog explicit.
+
+You say "A published grouping statement buys exactly three things a view can't do", but the thing I want is the ability to *point* to it. Some "cause founder" (even if that's no longer quite so explicitly a special role) comes to the CauseStarter website, and we walk him through the process of choosing some statements (which now will be AI-generated, and AI will have more of a role in walking him through the process), and... then what? I feel like it's weird to have a cause defined by a *set* of statements. What does the URL look like? I mean... okay, I guess he chooses a slug? Maybe that's fine?
+
+You say "delegation is the single strongest reason grouping statements have to exist" but I'm not sure about that.
+
+Rejecting those two overly-vague patterns is fine with me.
+
+"scope restriction with the excluded region named" sounds good to me as a more-precise description of one kind of broad statement that's useful. Although I do also want to leave room for at least one more kind of broadness/vagueness/ambiguity: the kind that the statement-writer either didn't have the foresight to make explicit (it's hard to predict in advance all the possible degrees of freedom that a statement offer or all the ways that it might be misinterpreted), or that would have made the statement overly verbose (we're looking for clarity, not legalese). I'm open to suggestions regarding how exactly to tell the difference between statements that should be rejected for not being specific enough and statements that should be accepted even though of course there's always going to be some aspects not pinned down.
+
+"which arrow direction you're buying", yes, that makes sense to me.
+
+
+# AI response (third pass)
+
+Three things you pushed back on or asked for. Taking them in reverse order of how
+settled they are: the vagueness question is the one with a real answer I don't
+think you've heard yet, the delegation claim I'll withdraw and replace with a
+better one, and the pointing/URL question turns out to dissolve — but into a
+*different* open problem that I think is the actual one.
+
+## 1. Vagueness: quantify over readings, don't demand declared boundaries
+
+You asked how to tell the difference between vagueness that should be rejected
+and the residual under-specification that's unavoidable — the degrees of freedom
+the writer didn't foresee, or that would have made the statement legalese.
+
+The previous pass told you "the text must bound its own extension." That's too
+strong, and your objection is right: nobody can enumerate what they aren't
+claiming, and a statement that tries reads like a EULA. Declared breadth is a
+*technique*, not the criterion.
+
+Here's the criterion. **The test isn't a property of S2 at all. It's a
+quantifier over S2's readings, relative to S1.**
+
+> S2's residual ambiguity is harmless iff *every* plausible resolution of it is
+> already endorsed by someone who signed S1. It's fatal iff *some* plausible
+> resolution is one an S1 signer would reject.
+
+Note that this is nearly what `evaluator.ts:52` already says — "vaguer **in a way
+that could cover claims S1's signer would reject**." The rule is correct. The bug
+is that it's *applied* as if it read "S2 is vaguer than S1," which is the summary
+clause and the part a model will actually pattern-match on. So this isn't a
+loosening; it's making the existing qualifier operative.
+
+Why this gives you exactly what you asked for:
+
+- **No foresight required.** The writer doesn't have to anticipate the degrees of
+  freedom. He only has to leave ones that are *harmless in every direction*.
+  Unforeseen ambiguity is fine as long as it's inert.
+- **No legalese.** "Not saying zero, not saying which taxes" is one way to make
+  all readings safe. Choosing a naturally-bounded phrasing is another. Being
+  about a topic where the readings simply don't diverge much is a third.
+- **It's mechanical.** The attester can be instructed to do it as a procedure:
+  *enumerate two or three genuinely different readings of S2's unresolved
+  parameters; ask whether S1's signer endorses each one; reject on the first
+  failure.* That's testable, it produces a legible rejection reason ("under the
+  reading where this includes a registry, a background-checks signer would
+  object"), and it's the same move as the confidence calibration already in the
+  prompt.
+- **It preserves the rejections you want.** "Reasonable gun control" still fails
+  — not for being broad, but because *registries* and *bans* are live readings a
+  background-checks signer rejects. Your tax statement passes because there is no
+  reading of "generally favour lower taxes, direction only" that someone who
+  signed a specific tax cut would refuse. Same test, opposite results, and the
+  distinction is no longer aesthetic.
+
+The corollary worth writing down explicitly, because it's counterintuitive:
+**breadth is not the risk factor; contested extension is.** A very broad
+statement whose readings all lie in the same direction is a *safer* implication
+target than a narrow statement with one contested unstated parameter.
+
+This also disposes of the line-57 "hedged" problem without needing a separate
+argument. Rhetorical softening ("crisis threatening workers" → "deserves careful
+attention") fails the reading test — under the reading where "careful attention"
+means "and the current level is fine," the S1 signer objects. Logical weakening
+with a named excluded region passes it — every reading of "wrong after 16 weeks,
+no comment before" is endorsed by someone who thinks all abortion is wrong. **One
+test, both cases, no taxonomy of hedges.** That's a better prompt change than the
+"split rule 57 in two" I proposed last time; it's smaller and it generalizes.
+
+## 2. Withdrawing "delegation is the strongest reason"
+
+You were right to doubt it, and there's a concrete reason I should have caught:
+**NoteIntent is dormant.** `shaping-your-cause-statements.md` § Open questions
+says so directly — permissionless attestation semantics and inheritance through
+splitting/purchasing/refunds are unresolved, and founders and donors can't
+currently set or view note intent at all. Building a pattern language justified
+by earmarking means justifying it with the one consumer that doesn't exist.
+
+Here's what I think the real answer is, and it changes which shape matters.
+
+**The strongest reason to mint a grouping CID is one-click arrival — and that
+requires a *conjunctive* anchor, not a disjunctive one.**
+
+Follow the two-level model through. A normie arrives from X on someone's link.
+He is not going to evaluate five planks; he'll click once or leave. Now: what
+does that one click need to be attached to?
+
+- If he signs the **disjunctive** anchor ("at least one of these five"), the
+  planks get *nothing*. The anchor's arrows are inbound; signing it propagates
+  nowhere. He has endorsed the weakest possible claim and no plank's supporter
+  count moves, no project's alignment reaches him.
+- If he signs the **conjunctive** anchor, it implies each plank by conjunction
+  elimination, so his one signature credits all five. That's the only shape where
+  a single click does five clicks' work.
+
+Which inverts the ranking in `shaping-your-cause-statements.md`. That doc treats
+the conjunctive manifesto as the weak one — "its own supporter count and board
+stay near empty," good only "for letting the wholehearted sign once." True about
+its *count*, and the count isn't what it's for. **The conjunctive anchor is a
+compression device for distribution, and under a link-driven, no-discovery
+product (ADR 0008) distribution is the scarce thing.** Its empty board is
+irrelevant; the boards you care about are the planks', and it fills those.
+
+The honest caveat, which sharpens the criterion rather than undermining it: the
+same effect is available with no CID at all — a "sign all five" checkbox list
+batched into one transaction. So what does the anchor buy over batched signing?
+Exactly two things:
+
+1. **Durability.** The anchor's text is immutable. A roster isn't — the founder
+   can swap planks, and a signature on the roster's *current* contents is
+   meaningless a week later. Signing a conjunction is signing something that
+   can't be edited under you.
+2. **Portability.** It's a single CID that can be signed from a context that has
+   no roster: your embeddable widget, someone else's page, a wallet deeplink, a
+   future client we didn't write.
+
+So the criterion for promotion — which `shaping-your-cause-statements.md`
+§ Promotion leaves as "watch which combinations people converge on," with no
+mechanism — becomes statable:
+
+> **Mint a CID when the combination must survive independently of the founder's
+> mutable roster.** Aggregation is never a reason; views already do that for
+> free.
+
+That's a cleaner test than convergence, it's decidable at design time rather than
+by waiting for data, and it explains why the roster and the anchor are different
+objects instead of feeling like redundant ones.
+
+## 3. The pointing problem dissolves — but the thing under it doesn't
+
+> the thing I want is the ability to *point* to it… I feel like it's weird to
+> have a cause defined by a *set* of statements. What does the URL look like? I
+> mean… okay, I guess he chooses a slug? Maybe that's fine?
+
+Yes, he chooses a slug, and it's fine, and it's already built. The URL is
+`/cause/<founder>/<slug>`, backed by a `MutableRef` `(owner, name) → CID` where
+the CID is the published roster document containing the title, summary, ordered
+plank CIDs and blurb. `/cause/<founder>/<slug>@<version>` pins a specific roster.
+That shipped 2026-08-10.
+
+So the pointable object exists and is not a statement. Which I think is the
+source of the weirdness rather than a gap in it — you keep looking for the cause
+to be *one thing*, and the system deliberately has three:
+
+| Object | Mutable? | Has a URL? | Can be signed / funded / aligned-to? |
+|---|---|---|---|
+| **Roster** (the page, the rhetoric, the name) | yes, versioned | yes — the shareable link | **no** |
+| **View** (a subset selection over planks) | ephemeral, per-visitor | as query params, at most | no |
+| **Statement** (plank or anchor) | never | by CID | yes |
+
+The thing with the name and the rhetoric is the one thing nobody can sign. That
+feels wrong and is exactly right: it's the mechanism that stops "4,210 people
+signed at least one plank" from being launderable into "4,210 people endorsed my
+page." The coherence badge exists precisely because the roster is the unsigned,
+mutable, persuasive layer and therefore the one needing a non-founder check. Your
+widget is a third renderer of that same roster, and inherits the property.
+
+**The problem this exposes, which I think is your actual unresolved one:
+`(owner, slug)` means causes fork by construction.** Two people rallying to the
+same cause produce two rosters with overlapping-but-different plank sets and two
+links, and there is no mechanism that ever merges them. Under ADR 0008 there's no
+directory to notice the duplication, and under the pivot in this file — where
+statements are AI-generated and cheap and *everyone* is invited to assemble a set
+— the fork rate goes up sharply, not down. That's the cost of the pivot that
+nothing above pays for.
+
+But it also hands you the convergence mechanism the promotion section is missing,
+and a better one than "watch which combinations people converge on within one
+cause." Rosters are public documents with public plank CIDs. So:
+
+> **Promote a view to an anchor when N independent rosters, from unrelated
+> owners, share a plank subset.**
+
+That's observable from `ref_updates` with no new machinery, it's cross-founder
+rather than per-founder, and it makes the anchor into what it should be — the
+shared, durable, portable object that several people's pages all point at — while
+each of them keeps his own roster, his own rhetoric, and his own link. Forking
+stays cheap at the presentation layer, and convergence happens at the statement
+layer where it actually matters. That is, I think, the answer to "we don't need
+cause founders, we need believers and leaders": a leader is someone whose roster
+other people's rosters came to overlap.
+
+## What I'd write down now
+
+Revised from the last pass, mostly because #1 got smaller and better:
+
+1. **The reading-quantifier rule in `evaluator.ts`.** Make line 52's qualifier
+   operative and add the enumerate-the-readings procedure; drop the separate
+   "split rule 57" proposal, since the reading test subsumes it. Test cases: the
+   tax statement (accept), the 16-weeks scope restriction (accept), reasonable
+   gun control (reject, unchanged), immigration-softening (reject, unchanged).
+   Propagate to `cause-assist/src/statementGuidance.ts:19`, which has the same
+   correct qualifier and the same risk of being read as "vaguer = bad."
+2. **The pattern catalog**, at
+   `specs/tech/subsystems/conceptspace/content-patterns/grouping-statements.md`,
+   keyed by arrows bought — with the mint criterion above (survives the roster)
+   as the gate, and the two rejections you've already accepted. Note in it that
+   the conjunctive shape's job is one-click distribution, not its own count,
+   because `shaping-your-cause-statements.md`'s table implies otherwise and an
+   LLM reading both will follow the table.
+3. **An amendment to `shaping-your-cause-statements.md`** covering: the shape
+   catalog is now for the LLM, not hidden from the founder (your point, and I
+   agree); § Promotion gains the cross-roster convergence mechanism; the
+   conjunctive-manifesto row of the three-shapes table gets its distribution
+   role.
+4. **A spec stub for the widget**, as the only distribution surface ADR 0008
+   permits — rendering roster-named statements only, carrying badge state.
+
+Still unresolved, and I don't want to pretend otherwise: cause forking has a
+convergence path now but no *deduplication* path, and ADR 0005's "the customer is
+the vertical founder" still doesn't survive this file intact. Under everything
+above, a founder is someone who published a roster and got other rosters to
+overlap his — which may be a fine definition, but it isn't 0005's, and 0005's
+triage table is what currently sorts platform work.
+
+# My response
+
+You said: "S2's residual ambiguity is harmless iff *every* plausible resolution of it is already endorsed by someone who signed S1. It's fatal iff *some* plausible resolution is one an S1 signer would reject." I'm not sure that's right. For example, it might be that he's got more opinions about the details, even though he's not voicing them in this statement. e.g. I'd like taxes to be lower and I'm happy saying so as a general statement, but I'm not saying I'd approve of *every* way of lowering taxes (not even counting completely-silly ways - like, there are ways of lowering taxes that some people might genuinely approve of but I wouldn't). Maybe your point is that I should explicitly make it clear in my statement that I only approve of some ways but not others? But that's starting to sound inhuman; people should be able to say that they think taxes should be lower without obsessively needing to dot every i and cross every t. (I wonder whether maybe there are cases where it's still reasonable to make a statement even if it's too vague to support implication arrows.) I dunno.
+
+I think I'm getting the picture regarding the cause/roster/description stuff. A "cause" can and should have some descriptive/rhetorical content attached to it. That's important because statements are meant to be more precise, so that they can participate in the implication graph; put too much rhetoric into a statement and it won't be able to receive any incoming arrows (although maybe it can still have outgoing ones). People aren't going to sign the rhetoric; there isn't too much point in that. (If you think there's some important substance in the rhetorical description that would be useful to sharpen into a useful statement, great, go ahead. But it's still worthwhile to have this description field where the cause founder can put some stuff that isn't quite in usable-statement form.) But we still want to check the description to make sure it's not just completely misleading, so we have this AI service that checks for that; it's a looser check than the logical-implication check that we use for the implication system. That's starting to make sense to me.
+
+Having heuristics for when to promote a view to an anchor sounds fine to me. I'm not too worried about forking; hopefull the implication system and the strategic-broadness patterns will be enough to let us achieve convergence where possible.
+
+
+# AI response (fourth pass)
+
+You caught a real equivocation in my rule, and the fix is smaller and more
+deflationary than the last three passes have been. The roster/description stuff
+is settled, so this is only about the vagueness question — plus your
+parenthetical, which I think is the most useful thing in your last message.
+
+## 1. You found an ambiguity in "plausible resolution", and it was load-bearing
+
+My rule said S2's residual ambiguity is fatal if *some* plausible resolution is
+one an S1 signer would reject. "Resolution" was doing two jobs:
+
+- **resolution of what S2 asserts** — which of several candidate propositions
+  did the signer actually put his name to?
+- **resolution of how S2 gets satisfied** — granted we know what he asserted,
+  which of the many world-states that would satisfy it does he like?
+
+Your tax objection is entirely about the second, and the second is not a defect
+at all. "I'd like the overall tax burden lower" has *one* meaning. It has a
+truth condition. What it lacks is a specification of implementation — and it
+lacks that because it never quantified over implementations in the first place.
+"I don't approve of every way of lowering taxes" isn't an unresolved reading of
+your statement; it's simply not something your statement says. There's nothing
+to resolve, so no i's to dot.
+
+This is the old generality/vagueness distinction: **many satisfiers, one meaning
+(general — fine) vs. many meanings, pick one (vague — fatal).** So:
+
+> Reject when the reader cannot tell *which proposition* was asserted. Do not
+> reject merely because many world-states would satisfy the proposition that
+> was asserted.
+
+"Reasonable gun control" fails on the first clause — background checks, a
+registry, and a handgun ban are three *different propositions*, and signing the
+phrase doesn't tell you which one you got. It does not fail because gun control
+admits many implementations. Your tax statement is broad in the second sense
+only. Same test, opposite verdicts, and no declared-boundary requirement, no
+enumeration of what you aren't claiming, no legalese. Declared breadth ("not
+saying zero, not saying which taxes") drops back to being one handy technique
+for making a statement's assertion unmistakable, which is where it belonged.
+
+## 2. And the misattribution you're worried about doesn't actually exist
+
+Worth separating, because I think the residual unease is here rather than in the
+rule. Ask what harm you're guarding against when you say "I'm not endorsing
+every way of lowering taxes." The candidate harm is: *a project I'd hate ends up
+on the board for a statement I signed, and I get counted as behind it.*
+
+Check the mechanism. Alignment attestations are permissionless third-party
+claims ("subject S is aligned with statement T"), filtered through the viewer's
+trust graph, and the cause board for T shows projects aligned with T or with
+anything implying T (`specs/tech/subsystems/aligning/README.md`). Nowhere does
+signing T attribute anything to you about those projects. **The board is a menu,
+not an endorsement roll.** Your signature says what it says; the projects are
+things *other people* claim are aligned, and you're free to look at the board
+and fund none of them.
+
+So the two layers guard different things, and only one of them can put words in
+your mouth:
+
+- **Implication** can misattribute — it makes you an indirect supporter of a
+  *statement*. Conservatism here is load-bearing, and rule 1 above is the right
+  scope for it.
+- **Alignment** cannot misattribute to signers at all. It can produce a junk
+  board, which is a quality/trust-filter problem, handled by the trust graph and
+  attester reputation, not by making statements more precise.
+
+Which means your tax worry, filed correctly, is not an argument for tightening
+the implication attester. It's at most an argument that broad statements make
+noisier boards. I'd let that be true and cheap.
+
+## 3. The deflationary part: your tax example needs no prompt change
+
+Having narrowed the rule, look at what arrows the tax statement actually earns.
+
+"I support cutting the capital gains tax" → "I want the overall tax burden
+lower"? **That should be rejected**, and not for vagueness. Someone can want
+capital gains cut and the burden held constant by raising something else. The
+aggregate-direction claim is a genuinely additional claim. Correctly caught by
+the existing "S2 adds a claim" rule.
+
+The arrows it legitimately receives come from statements that already assert the
+direction: "I want taxes lower overall, and in particular capital gains" → "I
+want taxes lower overall" is the **strict subset** rule, already accepted, no
+change needed. So the tax statement was never blocked by the prompt on its
+merits — the risk was only that the "S2 is vaguer than S1" bullet fires
+spuriously on the general/vague confusion. The fix is a clarification, not a
+loosening, and it buys fewer new arrows than the last two passes implied.
+
+Your **16-weeks** example is the one that genuinely is blocked: "all abortion is
+morally wrong" → "without commenting on before 16 weeks, abortion after 16
+weeks is morally wrong" is a determined assertion and a real weakening, but
+`evaluator.ts` rejects it by name under *"softened, hedged... adding
+concessions"* and *"changes... scope"*. That one needs the fix. One example
+needs nothing, one needs a real edit — that's the whole delta, and it's much
+less than "rework the attester."
+
+### Concrete prompt change
+
+Narrower than what I proposed in passes two and three:
+
+- The fatal case is **already covered** by the existing *"either statement
+  depends on unstated context"* rule — "reasonable gun control" and "I am
+  pro-choice" are the same failure, an underdetermined assertion. I'd fold the
+  *"S2 is vaguer than S1"* bullet into that rule and delete it as a standalone,
+  because as a standalone it invites the model to pattern-match on breadth. Keep
+  the gun-control worked example, re-file it under unstated context, and state
+  the reason as "which proposition was asserted is unclear" rather than "vague
+  target."
+- Add a positive bullet for **scope restriction with the excluded region named**,
+  with the 16-weeks case as the worked example, and scope the "softened/hedged"
+  rejection explicitly to *rhetorical* softening (the immigration example),
+  which fails rule 1 anyway: under the reading where "deserves careful
+  attention" means "the current level is fine," it's a different proposition.
+- Add the general/vague sentence as a named principle, since it's the thing that
+  keeps the two bullets from being read as contradictory.
+- Propagate to `cause-assist/src/statementGuidance.ts:11,19`, whose "vague
+  aspirations" phrasing has the same failure mode.
+
+Test set: capital-gains → overall-lower (**reject**, adds a claim);
+lower-overall-and-capital-gains → lower-overall (**accept**, subset);
+all-abortion-wrong → after-16-weeks-wrong-no-comment-before (**accept**, named
+scope restriction); background-checks → reasonable-gun-control (**reject**,
+unstated context); immigration-crisis → deserves-careful-attention (**reject**,
+rhetorical softening).
+
+## 4. Your parenthetical is the right idea and it's already free
+
+> I wonder whether maybe there are cases where it's still reasonable to make a
+> statement even if it's too vague to support implication arrows.
+
+Yes, and nothing stops you — publishing a statement doesn't gate on arrow
+eligibility, so an arrow-inert statement is already legal today. Its only cost
+is an empty inbound board.
+
+I'd go further: this is the same insight you reached about the roster
+description, one layer down. You concluded that rhetoric belongs in the
+description field because rhetoric can't receive arrows. The generalization is
+that the system has a **precision gradient**, and only the arrows need
+discipline:
+
+| Layer | Precise enough for inbound arrows? | Signable? | What it's for |
+|---|---|---|---|
+| Roster description | no, and not trying | no | rhetoric, rallying, context |
+| Arrow-inert statement | no | **yes** | "this is my position", flag-planting, delegation earmark target |
+| Plank / anchor | yes | yes | counts, boards, propagation |
+
+The middle row is the one you were reaching for and it's the one nothing has
+named. It's genuinely useful: it can be signed, pointed at, and earmarked
+against, and it just doesn't accumulate indirect support. That's a fine trade
+for "I want to say this even though it's mushy."
+
+Two things to say about it, so it doesn't become a dumping ground:
+
+- **It should be visibly a different kind of thing in the UI.** An anchor with
+  4,210 indirect supporters and a mushy statement with 12 direct signers should
+  not render identically, or the gradient collapses and people will pick the
+  mushy one because it's easier to write. Showing direct-vs-indirect counts
+  separately probably does most of this work already.
+- **The cost isn't zero:** statements are permanent and public, so a mushy one
+  that attracts signatures *instead of* the plank it's gesturing at fragments
+  the very counts you want. That's an argument for cause-assist steering toward
+  precision, not for prohibiting imprecision.
+
+This also gives the pattern catalog a cleaner job. It isn't "how to write
+statements"; it's **"how to write statements that earn inbound arrows"** — with
+an explicit note that not every statement needs to, and that failing to is a
+choice rather than a defect.
+
+## What I'd write down, revised
+
+1. **`evaluator.ts` clarification** as spelled out in §3 — fold the vagueness
+   bullet into unstated-context, add named-scope-restriction, narrow
+   softened/hedged to rhetorical. Plus the five test cases. Still the smallest,
+   highest-confidence item.
+2. **`grouping-statements.md`** as before, with the general/vague distinction and
+   the precision gradient stated up front, and framed as "patterns that earn
+   inbound arrows."
+3. **The precision gradient itself**, as a short section — probably in
+   `specs/tech/subsystems/conceptspace/statements.md` since it's about what a
+   statement is, with pointers from the founder doc. This is the new item, and
+   it's the one that answers your parenthetical.
+4. Widget spec stub and the `shaping-your-cause-statements.md` amendment
+   (shape catalog is for the LLM; § Promotion gains cross-roster convergence)
+   — unchanged from the last pass.
+
+Forking: taking your ruling, dropping it. ADR 0005's "the customer is the
+vertical founder" I've now flagged three passes running without a ruling, so I'll
+stop raising it here and file it as a TODO item instead of re-litigating in this
+file.
+
