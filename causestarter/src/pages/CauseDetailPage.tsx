@@ -44,6 +44,7 @@ import {
 } from '../lib/causeRoster'
 import { publishPlank } from '../lib/publishPlank'
 import { SUPPORTING_TOOLS } from '../lib/tools'
+import { getDomainUrl } from '../lib/domainUrls'
 import { useMachinery } from '../lib/useMachinery'
 import { useWriteClients } from '../lib/useWriteClients'
 import { useCauseProjects } from '../hooks/useCauseProjects'
@@ -727,6 +728,38 @@ export function CauseDetailPage() {
 
       {publishedCids.length > 0 && (
         <MonthlyPledgeSignal statementCids={publishedCids} />
+      )}
+
+      {published.length > 0 && (
+        <Paper elevation={0} sx={{ p: { xs: 2, sm: 2.5 }, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
+          <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }}>Set aside funds for an issue</Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+            Create a one-time delegated fund or a monthly pledge earmarked for one immutable
+            statement. The earmark does not follow later edits to this cause publication.
+          </Typography>
+          <Stack spacing={1}>
+            {published.map((plank) => (
+              <Stack
+                key={plank.cid}
+                direction={{ xs: 'column', sm: 'row' }}
+                spacing={1}
+                alignItems={{ sm: 'center' }}
+                justifyContent="space-between"
+              >
+                <Typography variant="body2" sx={{ flex: 1 }}>{plank.text}</Typography>
+                <Button
+                  component="a"
+                  href={getDomainUrl('lazyGiving', `/delegation/notes/new?statement=${encodeURIComponent(plank.cid!)}`)}
+                  variant="outlined"
+                  size="small"
+                  sx={{ textTransform: 'none', flexShrink: 0 }}
+                >
+                  Earmark funds
+                </Button>
+              </Stack>
+            ))}
+          </Stack>
+        </Paper>
       )}
 
       {canEdit && !cause.id.startsWith('remote:') && (

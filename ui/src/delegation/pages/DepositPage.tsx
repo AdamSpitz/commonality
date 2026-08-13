@@ -14,11 +14,12 @@ import {
   Checkbox,
   FormControlLabel,
 } from '@mui/material'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAccount, usePublicClient } from 'wagmi'
 import { parseUnits, isAddress } from 'viem'
 import { DelegatableNotesAbi, NoteIntentAbi, RecurringPledgesAbi } from '@commonality/sdk/abis'
-import { browseStatementsByNewest, type StatementListItem } from '@commonality/sdk/conceptspace'
+import { browseStatementsByNewest, getStatementWithContent, type StatementListItem } from '@commonality/sdk/conceptspace'
+import type { IpfsCidV1 } from '@commonality/sdk/utils'
 import { depositERC20, delegateNote, attestNoteIntent, approveRecurringPledgeToken, createStandingPledge, type DelegatableNotesContract, type NoteIntentContract, type RecurringPledgesContract } from '@commonality/sdk/delegation'
 import { useMachinery } from '../../shared'
 import { noteDetailPathFor } from '../utils'
@@ -50,6 +51,7 @@ const DEFAULT_RECURRING_ALLOWANCE_PERIODS = 12n
 
 export function DepositPage() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const { address } = useAccount()
   const publicClient = usePublicClient()
   const writeClients = useWriteClients(address)
@@ -63,6 +65,7 @@ export function DepositPage() {
   const [recurringAllowancePeriods, setRecurringAllowancePeriods] = useState(DEFAULT_RECURRING_ALLOWANCE_PERIODS.toString())
   const [statements, setStatements] = useState<StatementListItem[]>([])
   const [statementsLoading, setStatementsLoading] = useState(false)
+  const requestedStatementCid = searchParams.get('statement')?.trim() || null
 
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -106,6 +109,21 @@ export function DepositPage() {
       setStatementsLoading(true)
       try {
         const results = await browseStatementsByNewest(machinery, { limit: 50 })
+        if (requestedStatementCid && !results.some((statement) => statement.cid === requestedStatementCid)) {
+          const requested = await getStatementWithContent(machinery, requestedStatementCid as IpfsCidV1)
+          if (requested) {
+            results.unshift({
+              id: requested.statement.id,
+              cid: requested.statement.cid,
+              statementType: requested.statement.statementType ?? '',
+              title: requested.statement.title ?? requestedStatementCid,
+              excerpt: requested.statement.excerpt ?? '',
+              believerCount: requested.statement.believerCount,
+              disbelieverCount: requested.statement.disbelieverCount,
+              createdAt: requested.statement.createdAt ?? '',
+            })
+          }
+        }
         setStatements(results)
       } catch (err) {
         console.error('Failed to load statements:', err)
@@ -114,7 +132,13 @@ export function DepositPage() {
       }
     }
     loadStatements()
-  }, [machinery])
+  }, [machinery, requestedStatementCid])
+
+  useEffect(() => {
+    if (!requestedStatementCid || selectedStatement || statements.length === 0) return
+    const requested = statements.find((statement) => statement.cid === requestedStatementCid)
+    if (requested) setSelectedStatement(requested)
+  }, [requestedStatementCid, selectedStatement, statements])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

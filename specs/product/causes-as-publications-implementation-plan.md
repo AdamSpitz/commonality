@@ -63,9 +63,10 @@ us more.
   of the organizer, narrative, roster, or unselected planks.
 - [x] Show the union of projects aligned with the selected immutable statements, with
   direct project funding and the specialized aligned-content board available in context.
-- [ ] Add statement-scoped delegation entry points only through the delegation product's
-  settled semantics; do not reactivate or redesign unresolved `NoteIntent` behavior as a
-  side effect of this work.
+- [x] Add statement-scoped delegation entry points through the delegation product's settled
+  no-inheritance `NoteIntent` semantics. Cause pages link each immutable plank to the existing
+  one-time/monthly delegated-fund flow with that exact CID preselected; the mutable cause
+  publication itself is never used as the earmark.
 - [x] Preserve ADR 0008: no Commonality-authored cause search, browse, ranking, featuring,
   or leaderboards; policy suppression must cover both rendering and aggregation.
 

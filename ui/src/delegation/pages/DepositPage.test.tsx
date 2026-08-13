@@ -19,6 +19,7 @@ async function typeDelegate(value: string) {
 
 vi.mock('react-router-dom', () => ({
   useNavigate: vi.fn(),
+  useSearchParams: vi.fn(),
 }))
 
 vi.mock('wagmi', () => ({
@@ -54,7 +55,7 @@ vi.mock('@commonality/sdk/machinery', async () => {
   }
 })
 
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAccount, useWalletClient, usePublicClient } from 'wagmi'
 import { browseStatementsByNewest } from '@commonality/sdk/conceptspace'
 import { depositERC20, delegateNote, approveRecurringPledgeToken, createStandingPledge } from '@commonality/sdk/delegation'
@@ -79,6 +80,7 @@ describe('DepositPage', () => {
     vi.stubEnv('VITE_PAYMENT_TOKEN_DECIMALS', '6')
     vi.mocked(createSDKMachinery).mockReturnValue(mockMachinery)
     vi.mocked(useNavigate).mockReturnValue(mockNavigate)
+    vi.mocked(useSearchParams).mockReturnValue([new URLSearchParams(), vi.fn()] as any)
     vi.mocked(useAccount).mockReturnValue({ address: USER_ADDR } as any)
     vi.mocked(useWalletClient).mockReturnValue({ data: {} } as any)
     vi.mocked(usePublicClient).mockReturnValue({} as any)
@@ -108,6 +110,20 @@ describe('DepositPage', () => {
   })
 
   describe('Form render', () => {
+    it('preselects an immutable statement requested by a cause-page link', async () => {
+      vi.mocked(useSearchParams).mockReturnValue([
+        new URLSearchParams(`statement=${encodeURIComponent(TEST_STATEMENT.cid)}`),
+        vi.fn(),
+      ] as any)
+      vi.mocked(browseStatementsByNewest).mockResolvedValue([TEST_STATEMENT] as any)
+
+      render(<DepositPage />)
+
+      await waitFor(() => {
+        expect(screen.getByLabelText(/cause to earmark for/i)).toHaveValue(TEST_STATEMENT.title)
+      })
+    })
+
     it('shows amount input field', () => {
       render(<DepositPage />)
 

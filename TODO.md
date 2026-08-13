@@ -10,14 +10,17 @@ When an item from this page is done and no longer needs an LLM implementor's att
 
 ----
 
-- [ ] **(Tell)** Implement the accepted causes-as-publications model: make CauseStarter a
-  retrieval-first, AI-assisted statement-selection flow with deterministic human
-  approval; preserve versioned cause publications and existing drafts; keep anchors
-  optional; reuse the picker for distinct alignment/delegation/belief workflows; and
-  retain the founder-first and lens/no-directory boundaries. Work through the phased
-  checklist in [the implementation plan](specs/product/causes-as-publications-implementation-plan.md);
-  product semantics are in [the living spec](specs/product/causes-as-publications.md)
-  and frozen rationale is in [ADR 0009](specs/decisions/0009-causes-are-publications-over-statements.md).
+- [ ] **(Tell)** Finish the accepted causes-as-publications rollout. The retrieval-first
+  CauseStarter authoring flow, deterministic approval, versioned publications/draft
+  compatibility, cause-first page, derived views, aligned-project union, recurring-pledge
+  signal, and statement-scoped one-time/monthly delegation entry points are implemented.
+  Remaining: reuse the picker for project alignment, delegate offerings/donor scope, and
+  personal belief exploration; add the organizer and visitor end-to-end journeys; test
+  misleading narrative/roster combinations; run published-cause/local-draft regression
+  coverage; and validate the complete journey with non-expert users. Work through the open
+  items in [the implementation plan](specs/product/causes-as-publications-implementation-plan.md);
+  product semantics are in [the living spec](specs/product/causes-as-publications.md), with
+  frozen rationale in [ADR 0009](specs/decisions/0009-causes-are-publications-over-statements.md).
 
 - Fix the three failing funding-portal integration tests. `automated.test-full-integration` fails (exit 3, 101 passing / 3 failing) because cause-level aggregation reads back `0n` where seeded contributions should appear: "total funding raised across all aligned projects for a cause" expects `800000n` (`integration-tests/src/fundingportal/fundingportal-aggregated-metrics.test.ts:219`), and the leaderboard tests expect `3000000n` and `2000000n` (`fundingportal-leaderboards.test.ts:221` and `:346`). All three get `0n`, so suspect one shared cause: contributions not being attributed to the cause in the aggregation query/indexer rather than three separate bugs. This is the only red under `automated.test-full` — SDK, Hardhat, and UI legs pass.
 
