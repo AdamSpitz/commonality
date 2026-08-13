@@ -81,11 +81,11 @@ One place I'd push back: the explorer curates a **small, deliberately non-redund
 
 I checked. The prompts treat vagueness as uniformly bad:
 
-- `services/implication-attester/src/evaluator.ts:52` — rejects when "**S2 is vaguer than S1**," with "reasonable gun control" as the example
-- `cause-assist/src/statementGuidance.ts:11` — "Prefer concrete, signable claims over marketing fluff, mission slogans, or vague aspirations"
-- `cause-assist/src/statementGuidance.ts:19` — reject supporting statements that "are vaguer in a way that could cover claims the main signer would reject"
+- `services/implication-attester/src/evaluator.ts` — rejects when "**S2 is vaguer than S1**," with "reasonable gun control" as the example
+- `cause-assist/src/statementGuidance.ts` — "Prefer concrete, signable claims over marketing fluff, mission slogans, or vague aspirations"
+- `cause-assist/src/statementGuidance.ts` — reject supporting statements that "are vaguer in a way that could cover claims the main signer would reject"
 
-Note that `evaluator.ts:52` doesn't just fail to support broad statements — it **actively rejects arrows pointing at them**, which is precisely the arrow direction you need for delegation earmarks and alignment attestations. Your fiscal-conservatism example would be rejected by the current attester.
+Note that `evaluator.ts` doesn't just fail to support broad statements — it **actively rejects arrows pointing at them**, which is precisely the arrow direction you need for delegation earmarks and alignment attestations. Your fiscal-conservatism example would be rejected by the current attester.
 
 But the rule isn't simply wrong, and the fix isn't "allow vagueness." The gun-control example is a *good* rejection. What actually separates it from your tax example isn't broad-vs-specific — it's whether the statement **self-delimits**. "Reasonable gun control" leaves its own extension unknown, so signing it commits you to whatever the reader fills in. Your tax statement is broader in scope but bounds itself inline: it names the direction, and explicitly disclaims the endpoints ("not saying zero, not saying which taxes"). You can't sign it and be surprised by what you signed.
 
@@ -473,7 +473,7 @@ quantifier over S2's readings, relative to S1.**
 > already endorsed by someone who signed S1. It's fatal iff *some* plausible
 > resolution is one an S1 signer would reject.
 
-Note that this is nearly what `evaluator.ts:52` already says — "vaguer **in a way
+Note that this is nearly what `evaluator.ts` already says — "vaguer **in a way
 that could cover claims S1's signer would reject**." The rule is correct. The bug
 is that it's *applied* as if it read "S2 is vaguer than S1," which is the summary
 clause and the part a model will actually pattern-match on. So this isn't a
@@ -861,3 +861,141 @@ vertical founder" I've now flagged three passes running without a ruling, so I'l
 stop raising it here and file it as a TODO item instead of re-litigating in this
 file.
 
+
+# Codex's response
+
+The discussion has already surfaced a promising simplification: “cause” may not need to be a new stored object at all; it may be a role played by a well-shaped statement, while arbitrary statement groupings remain views. I’m checking that idea against the signed-off product model and the actual implication rules, because the main risk is that an elegant product story depends on arrows the current semantics reject.
+
+The key distinction is becoming clearer: the discussion sometimes treats “cause,” “statement,” “shareable page,” and “independently operated vertical” as if one object must serve all four jobs. The existing architecture is simpler when those stay separate—and, importantly, AI-written planks do not eliminate the human role. They move the human’s value from sentence-writing to judgment, framing, distribution, moderation, and accountability. I’m doing one last pass over the canonical use cases and AI posture before giving you a concrete reduced model.
+
+My third opinion: the underlying pivot is right, but Claude’s later passes add machinery where the clean model is already available.
+
+The simplest coherent formulation is:
+
+> A cause is a shareable, mutable publication that uses immutable statements to define its actionable scope.
+
+It is not itself a statement, a belief profile, or an independent vertical.
+
+## The clean product grammar
+
+Five objects are enough:
+
+- **Statement:** an immutable proposition people can sign and projects can align with.
+- **Cause page:** a mutable title, narrative, and curated selection of statements, with a stable URL and version history.
+- **Project:** something fundable, aligned to one or more individual statements.
+- **Delegation:** authority given to a person, optionally constrained by statement CIDs.
+- **Vertical:** an independently operated front end with its own audience, policies, moderation, and distribution.
+
+AI is not a sixth domain object. It is the translator and curator helping people move between human intentions and those formal objects.
+
+This largely matches the existing roster design in [shaping-your-cause-statements.md](/docs/founder/shaping-your-cause-statements.md) and the operated-lens decision in [ADR 0008](/specs/decisions/0008-operated-surfaces-are-lenses.md).
+
+## What makes sense in the discussion
+
+You are right about AI authorship. Writing implication-friendly statements is machine-facing work. The human’s job should be to explain what they mean, reject bad formulations, approve good ones, and take responsibility for publishing them. “AI proposes; human adopts” is not putting words in someone’s mouth, provided that:
+
+- Nothing is signed or published without explicit approval.
+- “None of these captures it” is a real path.
+- The AI searches existing statements before creating another near-duplicate.
+- The final deterministic UI shows exactly what will be signed.
+
+The two-level participation model is also right:
+
+- Motivated organizers converse with AI, curate a page, and circulate it.
+- Ordinary visitors follow a link, understand the cause, and make a few explicit choices.
+
+The distinction eventually reached in the fourth Claude response—**generality versus ambiguity**—is the right one. “I favor a lower overall tax burden” expresses one broad proposition with many possible implementations. “I support reasonable gun control” may leave the proposition itself indeterminate. Broadness is fine; unclear meaning is the problem.
+
+Separating rhetoric from signable claims is also exactly right:
+
+- Narrative explains, persuades, motivates, and supplies context.
+- Statements record the propositions someone actually endorsed.
+- The coherence badge can attest that the narrative fairly represents the selected statements.
+
+But the badge should never be described as verifying that a cause is “honest.” It verifies internal correspondence, not factual truth, good intentions, project quality, or moral legitimacy.
+
+## What I would reject or simplify
+
+The “gazillion AI-generated seed statements” framing is counterproductive. It creates permanent clutter, duplicate wording, sparse implication coverage, moderation burden, and fragmented supporter counts. The existing explorer model—small curated maps plus demand-driven statement creation—is much healthier ([explorer.md](/specs/tech/subsystems/conceptspace/explorer.md)).
+
+I also would not make “promoting views to anchors” central to the product. A shareable URL does not require an anchor; the roster already has one. A one-click visitor flow does not require an anchor either: show an explicit checklist and batch the selected signatures.
+
+An anchor is worthwhile only when the combination is itself a natural, durable proposition that someone would sincerely sign outside that particular cause page. For example:
+
+- “Abortions after 16 weeks are morally wrong.”
+- “I support expanding cryptocurrency adoption in Grey County.”
+- A concise manifesto whose complete contents people genuinely endorse.
+
+Do not mint anchors merely for aggregation, URL identity, or UI convenience.
+
+Claude’s proposed “promote when N independent rosters overlap” is interesting as a discovery signal, but not a semantic rule. It is sybilable, generic planks will overlap accidentally, and popularity does not make a conjunction meaningful.
+
+The proposed “arrow-inert statement” also does not need to become a distinct type. All statements already may receive zero arrows. The UI can simply show direct and indirect support separately. Naming another product category would make the ontology harder without adding capability.
+
+The embeddable widget is reasonable later, but it is a distribution affordance, not the missing conceptual piece. A trustworthy link and good preview card come first.
+
+## Where I disagree most strongly with the current implication rules
+
+The existing attester’s requirement that S2 preserve S1’s “emotional framing,” and its blanket rejection of softened statements, conflicts with the project’s common-ground goal ([evaluator.ts](/services/implication-attester/src/evaluator.ts)).
+
+If someone believes:
+
+> Illegal immigration is a crisis that threatens American workers.
+
+they would ordinarily also assent to:
+
+> Immigration policy affects American workers and deserves careful attention.
+
+The second drops rhetoric and urgency, but it does not put a contrary belief in the signer’s mouth. Indeed, finding such weaker shared propositions is much of the point of bridge-building.
+
+The system needs to decide whether an implication arrow represents:
+
+1. endorsement of a proposition, or
+2. endorsement of an entire speech act, including tone and tribal framing.
+
+The product docs overwhelmingly describe the first. If so, tone-stripped logical weakening should be allowed as long as it adds no claim.
+
+Likewise, the abortion example does not need legalistic wording:
+
+- S1: “All abortions are morally wrong.”
+- S2: “Abortions after 16 weeks are morally wrong.”
+
+That is straightforward entailment. “Without commenting on…” risks being interpreted as a claim about the signer’s own neutrality rather than merely delimiting S2.
+
+## “Cause founder” is two roles currently being conflated
+
+This is the largest strategic clarification I would add.
+
+There is a difference between:
+
+- **Cause organizer/curator:** publishes a cause page, selects statements, writes rhetoric, recruits supporters, and circulates the link.
+- **Vertical operator:** runs an independent website, chooses policies and moderation, and owns its distribution and legal/operator posture.
+
+AI replacing sentence-writing does not eliminate either role. The organizer’s scarce contribution was never prose composition; it is judgment, legitimacy, commitment, relationships, distribution, and accountability.
+
+Nor does this pivot invalidate the founder-first strategy in [ADR 0005](/specs/decisions/0005-founder-first-verticals.md). It merely shows that “vertical founder” is the wrong label for every person who creates a cause page. CauseStarter can serve cause organizers while the platform’s strategic customer remains the independent vertical operator.
+
+## The resulting experience
+
+An organizer:
+
+1. Describes what they want to accomplish.
+2. AI retrieves fitting existing statements and drafts only genuine gaps.
+3. The organizer approves, rejects, edits, and orders them.
+4. They add a title and persuasive narrative.
+5. A coherence check explains any mismatch.
+6. They publish a stable shareable cause URL.
+
+A visitor:
+
+1. Follows that URL.
+2. Reads the narrative and sees exactly which statements constitute the page.
+3. Sees supporter counts and projects per statement.
+4. Signs selected statements—possibly in one batched wallet action.
+5. Funds directly or delegates within a clearly stated scope.
+
+A project creator or delegate uses the same AI-assisted statement picker, but for a different verb: “align my project,” “show what I would fund,” or “constrain this delegation.”
+
+That reuse is the real unification. The people and pages are not the same object; they share a **statement-selection interaction**.
+
+I would call the document **“Causes as Publications: AI-Curated Statements and Shareable Cause Pages.”** The headline decision is: causes are publications over statements; statements remain the semantic and financial coordination primitive.
