@@ -31,6 +31,32 @@ and implication-friendly statements. Humans remain responsible for choosing what
 mean, approving what is published or signed, supplying rhetoric and judgment, and
 circulating or operating the resulting cause.
 
+## Why the cause is the top-level division
+
+An earlier objection to packaging signing, alignment, and funding into one surface was that
+the features have different audiences: some people want tallies and nothing to do with
+money, some want to fund work and do not care about position-taking. That objection was
+correct about a **feature-partitioned** product — a Commonality umbrella whose top-level
+headings are Tally, LazyGiving, and Alignment — and it is the reason the eight-site design
+felt incoherent. It does not apply to a **cause-partitioned** one.
+
+Two things follow from partitioning by cause instead:
+
+- **The features stop looking unrelated.** Within a single cause it is unsurprising that a
+  page offers "here are statements you might sign" next to "here are projects you might
+  fund." They are aspects of one purpose rather than separate products sharing a login.
+- **It matches where the differentiator actually lives.** Against a per-project funding site
+  such as Kickstarter, Commonality adds little for a single project in isolation. The value
+  appears only across an **ecosystem of aligned fundable projects**: a board with many
+  projects sharing a purpose, from which a funder can choose a few, or to which a donor can
+  delegate so that someone else evaluates several on their behalf. That comparison is only
+  available once projects are grouped by the purpose they serve — which is to say, by cause.
+
+So the generic per-feature surfaces are not the shape to build. The generic surface is
+CauseStarter, and the per-feature capabilities appear inside a cause. This is a claim about
+how functionality is *organized and presented*; it does not change the object model below,
+in which projects still align with immutable statements rather than with a cause.
+
 ## Product model
 
 ### Statements
@@ -392,9 +418,11 @@ them incidentally.
 
 So... lemme try to wrap my head around what the new model is, and whether it satisfies my earlier feelings.
 
-  - We're going to have AI be much more involved in writing the statements and steering the user towards the statements he might want to sign (while being careful not to put words in his mouth). A lot of this document is about refining our instructions to the various LLMs that are doing this work.
-  - We're back to a model where *we* run the general-purpose CauseStarter site. It's a generic lens capable of rendering a cause at its stable URL, but organizers - not Commonality - distribute those URLs, and we provide no universal cause-discovery surface. Our reasons for deciding to run it are: partially for reducing friction (we don't need to ask cause-founders to start a website), and partially for increasing the users' trust in the system (our site can be audited; it's much harder for users to audit a whole bunch of separate cause sites). This might cause us legal or moral trouble; our strategy for mitigating (but not eliminating) this is partially that we'll have blocklists, and partially that we're not going to list or rank or promote causes, just host them.
-  - A cause has a bunch of statements (AI-written because they need to be carefully written in order to participate properly in the implication system), as well as some human-written stuff (name, description) that is checked by an AI to at least make sure it's not saying anything misleading. (We're not endorsing or checking the content, just making sure the whole package is reasonably internally consistent. And we're not censoring it on that basis, just putting up a badge or something.)
+  - We're going to have AI be much more involved in finding statements and steering the user towards the statements he might want to sign (while being careful not to put words in his mouth). Note that it should look for existing statements *first* and only write a new one when nothing that already exists says the thing; we're not trying to pre-generate a giant pile of statements. And the human always explicitly adopts what he ends up with - the final text and CIDs get shown outside the chat before he acts. A lot of this document is about refining our instructions to the various LLMs that are doing this work.
+  - We're going to run the general-purpose CauseStarter site ourselves.
+    - This is *in addition to* cause founders running their own verticals, not instead of it - we can't (and don't want to) stop people from making whatever websites they want, and it's a good thing anyway for a cause to have its own site that they made and they control and it has whatever other features they want (e.g. discussion board or whatever). We can provide a widget that shows high-level stats on their cause and a link to the cause's page on CauseStarter.
+    - But yeah, CauseStarter is run by us, and it serves as both a convenient default (someone can just start a cause without necessarily starting a website yet) and also a more-trustless reference. It's a generic lens capable of rendering a cause at its stable URL, but organizers - not Commonality - distribute those URLs, and we provide no universal cause-discovery surface. Our reasons for deciding to run it are: partially for reducing friction (we don't need to ask cause-founders to start a website), and partially for increasing the users' trust in the system (our site can be audited; it's much harder for users to audit a whole bunch of separate cause sites). This might cause us legal or moral trouble; our strategy for mitigating (but not eliminating) this is partially that we'll have blocklists, and partially that we're not going to list or rank or promote causes, just host them.
+  - A cause has a bunch of statements (AI-assisted because they need to be carefully written in order to participate properly in the implication system), as well as some human-written stuff (name, description) that gets checked to at least make sure it's not saying anything misleading. (We're not endorsing or checking the content, just making sure the whole package is reasonably internally consistent. And we're not censoring it on that basis, just putting up a badge or something.)
   - We have a "two-level" model of our users, in the sense that there are some who'll be more-motivated and willing to do a bit of extra work, and some normies who we basically only expect to do a click or two or fire-and-forget some money. More-motivated roles: cause founder, project creator, delegate who decides where other people's money should go. The cause-founder in particular will probably have to be willing to chat with an AI to figure out what statements he wants to list in his cause, and the project-creator and delegate may also (or they might just choose the statements they see on some cause page). Normies will just come across a link to a cause page (via social media or wherever) and maybe click the Support button (for one or more of the cause's statements) or the Donate button (ditto).
   - So the core use cases are something like:
     - For the CauseStarter site: A cause founder clicks Start Cause, interacts with an AI to create a list of statements and write a description and so on, and then tada he has a link to his cause, which he can then spread around on social media. (Maybe he also sets up a bridge-creator/mediator to try to build bridges to people who wouldn't support his cause but do have *something* in common.)
@@ -408,7 +436,7 @@ So... lemme try to wrap my head around what the new model is, and whether it sat
 
 This is different from the old eight-UI-domains setup because we've created this one central CauseStarter site, and the various pieces of functionality are features of that site rather than a bunch of separate UI domains. (Simpler and more intuitive from the user's POV.)
 
-It's different from the old "cause founders create their own sites" idea because we're running the CauseStarter site, which is a bit harder on us but easier for the cause founders and better for trustworthiness.
+It doesn't replace the old "cause founders create their own sites" idea, but it does add to it: we're running the CauseStarter site too, which is a bit harder on us but easier for the cause organizers and better for trustworthiness. Founders who want their own vertical still do that.
 
 This retains the good cause-centric idea (the primary focus here is on a cause as its own thing in itself). A long time ago I objected to the idea of packaging all these features together in one site because the different features aren't obviously related to each other and they kinda have different user bases: some people will enjoy Tally but won't want anything to do with the money stuff, some people will want to fund projects but won't care about any of this "cause" stuff, etc. But that was back when I was imagining grouping by feature rather than by cause: I was imagining a big Commonality umbrella site where the main headings were Tally, LazyGiving, Alignment, etc. But that was both the wrong way to organize the functionality (the top-level division should be into causes, and then each cause can show statement tallies and a project-funding dashboard and so on) and also the wrong product focus. Our core differentiator (from Kickstarter, etc.) is the focus on entire ecosystems of aligned fundable projects; there isn't really much benefit to using LazyGiving over Kickstarter for a single project, the benefit only shows up when you can have a whole dashboard full of many aligned projects and choose to fund just a few, or choose to delegate money to someone so that he can go look at multiple projects and choose which ones to fund. So let's not bother having the generic Tally site and generic LazyGiving site and so on; let's have the generic CauseStarter site and then within each cause it's not really so weird to have it offer users many features like "maybe you might like to sign these statements" and "here are some projects you might like to fund".
 
