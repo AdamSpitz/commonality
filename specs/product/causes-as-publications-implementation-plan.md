@@ -11,11 +11,11 @@ us more.
 - [ ] Replace organizer-facing uses of “cause founder” with **cause organizer** where the
   person is curating and circulating a publication; reserve **vertical operator** for the
   person operating an independent front end and policy stack.
-- [ ] Update CauseStarter and founder guidance that still says “founder writes; AI only
+- [x] Update CauseStarter and founder guidance that still says “founder writes; AI only
   coaches” to the retrieval-first “AI proposes; human explicitly adopts” model.
 - [ ] Reconcile the old eight-UI-domain descriptions with CauseStarter as the primary
   cause-first reference surface, without deleting the generic sites or weakening ADR 0005.
-- [ ] Keep cause assistance and mediation separate in product copy: clarification versus
+- [x] Keep cause assistance and mediation separate in product copy: clarification versus
   an explicitly proposed change in position.
 
 ## 2. Prove statement semantics before changing production prompts
@@ -23,50 +23,50 @@ us more.
 - [ ] Build a focused implication corpus covering logical weakening, named scope
   restriction, rhetoric removal, ambiguous targets, concessions, reservations, and
   negotiated compromises.
-- [ ] Update the implication-attester rules so breadth and multiple possible
+- [x] Update the implication-attester rules so breadth and multiple possible
   implementations are not mistaken for ambiguity, while false-positive implications
   remain conservative.
-- [ ] Update cause-assist statement guidance to use the same rules and add regression
+- [x] Update cause-assist statement guidance to use the same rules and add regression
   tests for the examples in the product spec.
-- [ ] Teach the assistants the grouping/hidden-majority pattern catalog, while making
+- [x] Teach the assistants the grouping/hidden-majority pattern catalog, while making
   clear that patterns guide generation and do not create new protocol types.
 
 ## 3. Build the retrieval-first statement picker
 
-- [ ] Define one reusable picker contract for intent gathering, statement retrieval,
+- [x] Define one reusable picker contract for intent gathering, statement retrieval,
   optional drafting, rejection/correction, selection, ordering, and deterministic review.
 - [ ] Search existing statements and the relevant curated explorer map before offering
   newly drafted text; expose an explicit “none of these” correction path.
-- [ ] Render exact final statement text and CIDs outside free-form chat before any
+- [x] Render exact final statement text and CIDs outside free-form chat before any
   publication, signature, alignment, or funding-intent action.
-- [ ] Instrument reuse-versus-creation, rejected suggestions, corrections, and abandoned
+- [x] Instrument reuse-versus-creation, rejected suggestions, corrections, and abandoned
   flows so duplication and misinterpretation can be measured.
 
 ## 4. Replace CauseStarter authoring without breaking existing work
 
-- [ ] Replace the blank plank-writing start flow with conversational intent gathering,
+- [x] Replace the blank plank-writing start flow with conversational intent gathering,
   retrieval, selection, and on-demand drafting.
-- [ ] Preserve the existing title, narrative, ordered plank roster, preview, coherence
+- [x] Preserve the existing title, narrative, ordered plank roster, preview, coherence
   check, `PublishedData` publication, `MutableRef`, stable URL, and pinned-version URL.
-- [ ] Preserve every existing published roster CID and history; when opening an existing
+- [x] Preserve every existing published roster CID and history; when opening an existing
   local `CauseDraft`, carry its title, narrative, and planks into review without silently
   rewriting or publishing anything.
-- [ ] Add compatibility coverage before removing any legacy-only local-storage fields.
-- [ ] Keep anchors optional and keep union/intersection/no-disagreement views derived
+- [x] Add compatibility coverage before removing any legacy-only local-storage fields.
+- [x] Keep anchors optional and keep union/intersection/no-disagreement views derived
   client-side. Do not mint an anchor merely for a URL, count, grouping, or batch action.
 
 ## 5. Make the cause page the cause-first product surface
 
-- [ ] Clearly distinguish organizer narrative, immutable statements, derived views,
+- [x] Clearly distinguish organizer narrative, immutable statements, derived views,
   direct signatures, and indirect support.
 - [ ] Let a visitor select and batch-sign individual planks without implying endorsement
   of the organizer, narrative, roster, or unselected planks.
-- [ ] Show the union of projects aligned with the selected immutable statements, with
+- [x] Show the union of projects aligned with the selected immutable statements, with
   direct project funding and the specialized aligned-content board available in context.
 - [ ] Add statement-scoped delegation entry points only through the delegation product's
   settled semantics; do not reactivate or redesign unresolved `NoteIntent` behavior as a
   side effect of this work.
-- [ ] Preserve ADR 0008: no Commonality-authored cause search, browse, ranking, featuring,
+- [x] Preserve ADR 0008: no Commonality-authored cause search, browse, ranking, featuring,
   or leaderboards; policy suppression must cover both rendering and aggregation.
 
 ## 6. Reuse the picker in distinct workflows

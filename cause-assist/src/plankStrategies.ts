@@ -10,7 +10,7 @@ import type {
   SharpenPlankRequest, SharpenPlankResponse,
 } from './types.js'
 
-const PATTERN_TECHNIQUES = `${HIDDEN_MAJORITY_PATTERN_TECHNIQUES.coalitionUnbundling} ${HIDDEN_MAJORITY_PATTERN_TECHNIQUES.deferDetails} ${HIDDEN_MAJORITY_PATTERN_TECHNIQUES.expressReservations} ${HIDDEN_MAJORITY_PATTERN_TECHNIQUES.hedgeDontBlur} Keep each claim attestable and signable. Do not depolarize the founder toward opponents.`
+const PATTERN_TECHNIQUES = `${HIDDEN_MAJORITY_PATTERN_TECHNIQUES.coalitionUnbundling} ${HIDDEN_MAJORITY_PATTERN_TECHNIQUES.deferDetails} ${HIDDEN_MAJORITY_PATTERN_TECHNIQUES.expressReservations} ${HIDDEN_MAJORITY_PATTERN_TECHNIQUES.hedgeDontBlur} These are generation techniques, not protocol types. Keep each claim attestable and signable. This is editorial cause assistance: clarify positions the organizer already expressed. Do not introduce a compromise, concession, or other change in position; that belongs to an explicitly labeled mediation workflow.`
 
 function records(value: unknown, key: string): Record<string, unknown>[] {
   if (!value || typeof value !== 'object') return []
@@ -27,7 +27,7 @@ function normalizePlanks(value: unknown): PlankDraft[] {
 
 export const atomizeStrategy: StatementStrategy<AtomizeRequest, PlankDraft[]> = {
   name: 'cause-assist-atomize',
-  systemPrompt: `You draft atomic planks for a public-goods cause. This is a cause-mobilizing strategy, not a cross-partisan mediation strategy.\n\n${STATEMENT_QUALITY_GUIDANCE}\n\n${PATTERN_TECHNIQUES}\n\nReturn JSON only: {"planks":[{"text":"...","rationale":"which independent seam this captures and why it is signable"}]}.`,
+  systemPrompt: `You propose atomic planks for a public-goods cause from an organizer's stated intent. The human may reject every proposal. This is cause assistance, not mediation.\n\n${STATEMENT_QUALITY_GUIDANCE}\n\n${PATTERN_TECHNIQUES}\n\nReturn JSON only: {"planks":[{"text":"...","rationale":"which expressed seam this captures and why it is signable"}]}.`,
   renderInput: (input) => ({
     rough_cause_description: input.description,
     existing_planks: input.existingPlanks ?? [],

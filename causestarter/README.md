@@ -1,11 +1,11 @@
 # CauseStarter
 
-Founder-first interface for the Commonality substrate. Where the main
+Organizer-first reference lens for the Commonality substrate. Where the main
 [`ui/`](../ui/) package is organized as multi-domain product sites (Commonality,
 Civility, CSM, LazyGiving, …), **CauseStarter** is a single app organized around
 the cause-starter job:
 
-1. **Found a cause** — write the independent, signable planks it is made of
+1. **Organize a cause** — retrieve, review, and select the independent, signable statements it is made of
 2. **Enroll people** — supporters (signers), volunteers, and collaborators
 3. **Build momentum** — funding portals, assurance contracts, content funding
 4. **Use the rest as tools** — Commonality thesis, Civility, CSM, Tally, etc. are
@@ -178,12 +178,10 @@ See [`cause-assist/README.md`](../cause-assist/README.md).
   any plank is on chain, and there is no launch step. The cause page is the
   founder's editor *and* the visitor's view — see
   [shaping-your-cause-statements.md](../docs/founder/shaping-your-cause-statements.md).
-- **Founder writes the issues; assist only coaches.** Start does not collect a
-  free-text seed that an LLM turns into planks, and the cause page does not
-  pre-populate issue fields with model text. **Check phrasing** returns feedback
-  (and an optional example rewording the founder may adopt). `/atomize` still
-  exists on `cause-assist` for other tools, but CauseStarter's authoring path
-  does not inject draft statements into the form.
+- **Retrieval first; organizer approval is deterministic.** Start gathers ordinary-language
+  intent, searches published statements before asking cause-assist for new drafts, and exposes
+  rejection/correction and manual-writing paths. Suggestions enter the same page-level review
+  as existing drafts; exact immutable text and CIDs remain visible before publication or signing.
 - **Views** (`CauseViewStrip` + `useViewCounts`) are client-side set operations
   over the planks: a union count, and a conjunction shown as **two bands**
   (signed-all, plus signed-some-disagreed-with-none). Never render a bare

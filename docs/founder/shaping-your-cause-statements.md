@@ -1,6 +1,6 @@
 # Shaping your cause's statements
 
-**Status: signed off; planks and views built, anchors not.** This is how a cause
+**Status: signed off; publications, retrieval-first selection, planks, and views built; anchors not.** This is how a cause
 is built out of statements. The mechanics it describes (implication direction,
 how support and cause boards aggregate) are accurate to the system as specified.
 The architecture it proposes — **planks, views, and anchors** — was signed off by
@@ -19,7 +19,7 @@ what remains open is one bug, at the end.
   them into the union view and the two conjunction bands
   (`sdk/src/subsystems/conceptspace/views.ts`). Visitors can deselect planks;
   that re-folds locally and costs nothing.
-- **The cause page is the views layer**, and is edited in place by the founder —
+- **The cause page is the views layer**, and is edited in place by the organizer —
   there is no separate authoring mode.
 - **Band 2 is paired with the weakest link.** Shown alone it is inflatable by
   editing the roster, and only upward; the fewest-signed count moves the other
@@ -28,7 +28,7 @@ what remains open is one bug, at the end.
 - **Anchors are not built.** No promotion action exists yet, which is consistent
   with [§ Promotion](#promotion): it is a later move, taken once a combination
   has proven itself.
-- **The roster is a publication.** Founder-authored display text (title, summary,
+- **The roster is a publication.** Organizer-authored display text (title, summary,
   ordered plank CIDs, mediator blurb) is published through `PublishedData`; its
   CID is the version ID. A `MutableRef` `(founder, slug) → CID` is the stable ID
   in `/cause/:owner/:slug`, with optional `/cause/:owner/:slug@version` pins.
@@ -584,10 +584,12 @@ anchor is published.
 
 ### What the UI does with them
 
-The founder never sees the word "conjunctive." He types a rough description, gets
-candidate planks back, edits and accepts them — and then the wizard shows him a
-**live preview of his own cause page** with the two views togglable. That preview
-is the teaching mechanism: he learns what the shapes buy him by watching his own
+The organizer never sees the word "conjunctive." They describe their intent, see
+matching published statements first, and may reject them all before requesting new
+candidate planks. Exact text and CIDs enter deterministic review before adoption.
+The wizard then shows a
+**live preview of their own cause page** with the two views togglable. That preview
+is the teaching mechanism: they learn what the shapes buy them by watching their own
 numbers move, not by reading a taxonomy. Promotion to an anchor is a later,
 optional action taken once a combination has proven itself
 ([§ Promotion](#promotion)), not a decision extracted from him on day one.
@@ -642,24 +644,12 @@ built the wrong thing."
 
 ## How this relates to what CauseStarter does today
 
-The wizard is main-statement-first: the founder writes a goal, and cause-assist
-suggests supporting statements gated on **main → supporting** (the suggester
-requires suggestions to pass "main (S1) → supporting (S2)", roles
-`subset | rephrase | generalization | clarification`).
-
-That direction is sound for a conjunctive manifesto — "subset" is conjunction
-elimination — but it's the wrong direction for planks under a disjunctive anchor,
-and it's unsound if the main statement is hedged and broad, where it would hand
-every soft supporter's name to a specific plank they never endorsed. Nothing
-currently tells the founder which deal he's accepting.
-
-Gaps, none of them implemented:
-
-- Cause-assist assumes one direction; it needs to know which shape is being built.
-- A disjunctive anchor must name its planks, so it has to be generated *after*
-  them — the reverse of the current goal-first ordering.
-- There is no notion of a view. The site currently renders one statement's
-  aggregates, not set operations over several.
+CauseStarter is roster-first, not main-statement-first. Its shared picker gathers
+ordinary-language intent, retrieves published statements, offers a clear “none fit”
+correction path, and only then asks cause-assist for draft candidates. Existing CIDs
+are reused; drafts remain unpublished until the organizer approves them. The roster
+keeps the ordered selection, while union and conjunction displays remain client-side
+views. Optional anchors are still a later promotion step after the planks exist.
 
 ## Resolved, 2026-08-09
 

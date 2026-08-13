@@ -18,6 +18,7 @@ import {
 import { getProjectStatus, STATUS_LABELS } from '@ui/lazy-giving'
 import { CauseViewStrip, type ViewMode } from '../components/CauseViewStrip'
 import { CauseMediatorCard } from '../components/CauseMediatorCard'
+import { StatementPicker } from '../components/StatementPicker'
 import { MediatorEditor } from '../components/MediatorEditor'
 import { PlankRow, type PlankReview } from '../components/PlankRow'
 import { RosterHistory } from '../components/RosterHistory'
@@ -432,6 +433,12 @@ export function CauseDetailPage() {
     setPlanks([...cause.planks, newPlank()])
   }
 
+  const handlePickerSelection = (selection: { text: string; cid?: string; source: 'existing' | 'drafted' }) => {
+    if (mutationLocked || !canEdit) return
+    setPlanks([...cause.planks, newPlank(selection.text, 'suggested', selection.cid)])
+    voidCoherence()
+  }
+
   const handleDeletePlank = (id: string) => {
     if (mutationLocked || !canEdit) return
     setPlanks(cause.planks.filter((plank) => plank.id !== id))
@@ -643,13 +650,12 @@ export function CauseDetailPage() {
         {isFreshDraft ? (
           <>
             <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>
-              A cause is a set of clear issues people can support one at a time.
-              You write those issues yourself — CauseStarter helps you check that
-              each one is specific enough to sign and attest.
+              Tell CauseStarter what you want people to be able to support. It searches
+              published statements first and can propose new wording when none fit.
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-              Prefer concrete claims a real supporter would sincerely sign (for example,
-              a single policy position or local outcome) over slogans or broad identity labels.
+              You decide what belongs in the cause. Nothing is published until you review
+              the exact statement text and CID in the page below and explicitly approve it.
             </Typography>
           </>
         ) : (
@@ -762,19 +768,30 @@ export function CauseDetailPage() {
               What counts as an issue
             </Typography>
             <Typography variant="body2" component="div">
-              Write claims you are willing to stand behind — each one should be something a real
-              supporter could sincerely sign in public. Prefer specific, self-contained positions
-              over slogans or broad labels. CauseStarter will not draft issues for you; use
-              <strong> Check phrasing</strong> on a draft if you want feedback on whether it is
-              clear enough to attest.
+              Describe your intent in the picker. It looks for reusable published statements
+              before offering new drafts. Reject or correct any suggestion that misses your
+              meaning; broad statements are fine when their proposition is clear.
             </Typography>
           </Alert>
         )}
 
         {cause.planks.length === 0 && (
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            No issues yet. Add one and write it in your own words.
+            No statements selected yet. Start with the picker; you can reject every suggestion
+            and write one manually.
           </Typography>
+        )}
+
+        {canEdit && (
+          <Box sx={{ mb: 2 }}>
+            <StatementPicker
+              intent="cause"
+              machinery={machinery}
+              existingCids={publishedCids}
+              disabled={mutationLocked}
+              onSelect={handlePickerSelection}
+            />
+          </Box>
         )}
 
         <Stack spacing={1.5}>
@@ -823,7 +840,7 @@ export function CauseDetailPage() {
               sx={{ textTransform: 'none' }}
               data-testid="cause-add-plank"
             >
-              Add an issue
+              Write one manually
             </Button>
           </Stack>
         )}

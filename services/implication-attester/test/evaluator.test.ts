@@ -212,7 +212,7 @@ describe('evaluateImplicationWithLLM', () => {
       'System prompt should describe all three confidence levels');
   });
 
-  it('rejects softened / bridge-style rewordings per the guidance', async () => {
+  it('distinguishes rhetoric removal from added concessions', async () => {
     const captured: OpenRouterJsonRequest[] = [];
 
     await evaluateImplicationWithLLM(
@@ -221,8 +221,10 @@ describe('evaluateImplicationWithLLM', () => {
     );
 
     const systemPrompt = captured[0]!.systemPrompt;
-    assert.ok(/hedg|softened|bridge/i.test(systemPrompt),
-      'System prompt should warn against softened/hedged/bridge rewordings');
+    assert.ok(/rhetoric.*remov|removing rhetorical/i.test(systemPrompt),
+      'System prompt should permit removal of rhetoric when the proposition remains');
+    assert.ok(/concession|reservation|negotiated commitment/i.test(systemPrompt),
+      'System prompt should reject newly added compromise propositions');
   });
 
   it('tells the LLM not to infer unstated context for ambiguous statements', async () => {
