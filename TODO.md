@@ -14,10 +14,9 @@ When an item from this page is done and no longer needs an LLM implementor's att
   CauseStarter authoring flow, deterministic approval, versioned publications/draft
   compatibility, cause-first page, derived views, aligned-project union, recurring-pledge
   signal, and statement-scoped one-time/monthly delegation entry points are implemented.
-  Remaining: reuse the picker for project alignment, delegate offerings/donor scope, and
-  personal belief exploration; add the organizer and visitor end-to-end journeys; test
-  misleading narrative/roster combinations; run published-cause/local-draft regression
-  coverage; and validate the complete journey with non-expert users. Work through the open
+  Remaining: settle and add the public delegate-offering picker semantics; add the organizer
+  and visitor end-to-end journeys; run published-cause/local-draft regression coverage; and
+  validate the complete journey with non-expert users. Work through the open
   items in [the implementation plan](specs/product/causes-as-publications-implementation-plan.md);
   product semantics are in [the living spec](specs/product/causes-as-publications.md), with
   frozen rationale in [ADR 0009](specs/decisions/0009-causes-are-publications-over-statements.md).

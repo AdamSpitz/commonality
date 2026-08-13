@@ -89,7 +89,7 @@ us more.
   published organizer browser journey remains open.
 - [ ] Add visitor coverage for signing selected planks, inspecting direct/indirect
   support, viewing aligned projects, and following current and pinned-version URLs.
-- [ ] Test misleading narrative/roster combinations and verify that coherence is a
+- [x] Test misleading narrative/roster combinations and verify that coherence is a
   narrow positive badge rather than an admission gate or general endorsement.
 - [ ] Run migration/regression coverage against existing published causes and local
   drafts before deployment.
