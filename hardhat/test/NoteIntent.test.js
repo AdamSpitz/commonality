@@ -44,10 +44,11 @@ describe("NoteIntent", function () {
       ).to.be.revertedWithCustomError(noteIntent, "InvalidNoteContractAddress");
     });
 
-    it("Should reject zero intendedStatementId", async function () {
-      await expect(
-        noteIntent.connect(alice).attestNoteIntent(noteContractAddr, 1, ethers.ZeroHash)
-      ).to.be.revertedWithCustomError(noteIntent, "InvalidStatementId");
+    it("Should allow clearing intent with zero intendedStatementId", async function () {
+      await expect(noteIntent.connect(alice).attestNoteIntent(noteContractAddr, 1, ethers.ZeroHash))
+        .to.emit(noteIntent, "NoteIntentAttested")
+        .withArgs(alice.address, noteContractAddr, 1, ethers.ZeroHash);
+      expect(await noteIntent.getAttestation(alice.address, noteContractAddr, 1)).to.equal(ethers.ZeroHash);
     });
 
     it("Should allow updating intent by re-attesting with a different statement", async function () {
@@ -154,13 +155,12 @@ describe("NoteIntent", function () {
       ).to.be.revertedWithCustomError(noteIntent, "InvalidNoteContractAddress");
     });
 
-    it("Should reject batch with zero statement ID", async function () {
+    it("Should allow clearing intent in a batch", async function () {
       const noteIds = [1];
       const statementIds = [ethers.ZeroHash];
 
-      await expect(
-        noteIntent.connect(alice).attestNoteIntentsInBatch(noteContractAddr, noteIds, statementIds)
-      ).to.be.revertedWithCustomError(noteIntent, "InvalidStatementId");
+      await noteIntent.connect(alice).attestNoteIntentsInBatch(noteContractAddr, noteIds, statementIds);
+      expect(await noteIntent.getAttestation(alice.address, noteContractAddr, 1)).to.equal(ethers.ZeroHash);
     });
 
     it("Should handle empty batch", async function () {

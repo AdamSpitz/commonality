@@ -2,7 +2,7 @@
  * User actions for NoteIntent contract (delegation subsystem)
  */
 
-import { type Address, type Hash, type Abi } from 'viem';
+import { type Address, type Hash, type Abi, zeroHash } from 'viem';
 import { type WriteClients } from '../../utils/ethereum.js';
 import { cidToBytes32, IpfsCidV1 } from '../../utils/cid-types.js';
 
@@ -19,13 +19,13 @@ export async function attestNoteIntent(
   noteIntentContract: NoteIntentContract,
   noteContract: Address,
   noteId: bigint,
-  intendedStatementCid: IpfsCidV1
+  intendedStatementCid: IpfsCidV1 | null
 ): Promise<Hash> {
   const hash = await clients.walletClient.writeContract({
     address: noteIntentContract.address,
     abi: noteIntentContract.abi,
     functionName: 'attestNoteIntent',
-    args: [noteContract, noteId, cidToBytes32(intendedStatementCid)],
+    args: [noteContract, noteId, intendedStatementCid === null ? zeroHash : cidToBytes32(intendedStatementCid)],
     chain: clients.walletClient.chain,
     account: clients.walletClient.account!,
   });

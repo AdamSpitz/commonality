@@ -8,10 +8,11 @@ import {
   type DelegationChainLink,
   type DelegationChainLinkWithNote,
   type NoteEvent,
+  type NoteIntentAggregate,
 } from './types.js';
 import type { NoteIntentAttestedEvent } from './events.js';
 import { SDKMachinery } from '../../machinery.js';
-import { fetchAllDelegationEvents, fetchNoteIntentEvents, fetchAllNoteIntentEvents } from '../../utils/eventCacheClient.js';
+import { fetchAllDelegationEvents, fetchAllDelegationEventsComplete, fetchAllNoteIntentEvents, fetchAllNoteIntentEventsComplete } from '../../utils/eventCacheClient.js';
 import {
   decodeNoteCreatedEvent,
   decodeNoteDelegatedEvent,
@@ -187,7 +188,10 @@ export async function getNoteIntentAttestation(
   noteContract: string,
   noteId: string
 ): Promise<NoteIntentAttestation | null> {
-  const rawEvents = await fetchNoteIntentEvents(machinery, noteContract);
+  const rawEvents = (await fetchAllNoteIntentEventsComplete(machinery)).filter(raw => {
+    const decoded = decodeNoteIntentAttestedEvent(raw);
+    return decoded?.noteContract.toLowerCase() === noteContract.toLowerCase();
+  });
   const events: NoteIntentAttestedEvent[] = [];
   for (const raw of rawEvents) {
     const d = decodeNoteIntentAttestedEvent(raw);
@@ -217,7 +221,10 @@ export async function getNoteIntentAttestationsByNote(
   noteContract: string,
   noteId: string
 ): Promise<NoteIntentAttestation[]> {
-  const rawEvents = await fetchNoteIntentEvents(machinery, noteContract);
+  const rawEvents = (await fetchAllNoteIntentEventsComplete(machinery)).filter(raw => {
+    const decoded = decodeNoteIntentAttestedEvent(raw);
+    return decoded?.noteContract.toLowerCase() === noteContract.toLowerCase();
+  });
   const events: NoteIntentAttestedEvent[] = [];
   for (const raw of rawEvents) {
     const d = decodeNoteIntentAttestedEvent(raw);
@@ -251,15 +258,94 @@ export async function getNoteIntentAttestationsByStatement(
   const events: NoteIntentAttestedEvent[] = [];
   for (const raw of rawEvents) {
     const d = decodeNoteIntentAttestedEvent(raw);
-    if (d && d.intendedStatementId === intendedStatementId) {
-      events.push(d);
-    }
+    if (d) events.push(d);
   }
   events.sort((a, b) => {
     const bn = Number(a.blockNumber - b.blockNumber);
     return bn !== 0 ? bn : a.logIndex - b.logIndex;
   });
-  return foldNoteIntentAttestations(events);
+  return foldNoteIntentAttestations(events).filter(a => a.intendedStatementId === intendedStatementId);
+}
+
+type AggregateFetchCacheEntry = {
+  expiresAt: number;
+  delegation?: Promise<Awaited<ReturnType<typeof fetchAllDelegationEventsComplete>>>;
+  intents: Promise<Awaited<ReturnType<typeof fetchAllNoteIntentEventsComplete>>>;
+};
+const aggregateFetchCache = new WeakMap<SDKMachinery, AggregateFetchCacheEntry>();
+
+function getAggregateRawEvents(machinery: SDKMachinery) {
+  const cached = aggregateFetchCache.get(machinery);
+  if (cached && cached.expiresAt > Date.now()) return cached;
+  const next: AggregateFetchCacheEntry = {
+    expiresAt: Date.now() + 15_000,
+    intents: fetchAllNoteIntentEventsComplete(machinery),
+  };
+  aggregateFetchCache.set(machinery, next);
+  return next;
+}
+
+/** Fold every note and latest intent once, then apply the normative validity filters. */
+export async function getNoteIntentAggregate(
+  machinery: SDKMachinery,
+  statementId: string,
+): Promise<NoteIntentAggregate> {
+  const cached = getAggregateRawEvents(machinery);
+  const intentRaw = await cached.intents;
+  const decodedIntents = intentRaw
+    .map(decodeNoteIntentAttestedEvent)
+    .filter((event): event is NoteIntentAttestedEvent => event !== null)
+    .sort((a, b) => Number(a.blockNumber - b.blockNumber) || a.logIndex - b.logIndex);
+  const latest = foldNoteIntentAttestations(decodedIntents);
+  if (!latest.some(attestation => attestation.intendedStatementId === statementId)) {
+    return { statementId, currencies: [], supporterCount: 0, noteCount: 0 };
+  }
+
+  cached.delegation ??= fetchAllDelegationEventsComplete(machinery);
+  const delegationRaw = await cached.delegation;
+  const { notes } = foldDelegationState(decodeDelegationEvents(delegationRaw));
+
+  const noteContract = machinery.contractAddresses?.delegatableNotes?.toLowerCase();
+  const supportedTokens = new Set([
+    '0x0000000000000000000000000000000000000000',
+    ...(machinery.settlementTokenAddresses ?? []).map(address => address.toLowerCase()),
+  ]);
+  const chainId = machinery.defaultChainId ?? 31337;
+  const currencyGroups = new Map<string, { amount: bigint; supporters: Set<string> }>();
+  const allSupporters = new Set<string>();
+  let noteCount = 0;
+
+  for (const attestation of latest) {
+    if (attestation.intendedStatementId !== statementId) continue;
+    if (!noteContract || attestation.noteContract.toLowerCase() !== noteContract) continue;
+    const note = notes.get(`${noteContract}:${attestation.noteId}`);
+    if (!note || !note.active || note.tokenType !== 0 || !supportedTokens.has(note.token.toLowerCase())) continue;
+    if (attestation.attester.toLowerCase() !== note.rootOwner.toLowerCase()) continue;
+    const attestationBlock = BigInt(attestation.blockNumber);
+    const birthBlock = BigInt(note.createdAtBlock);
+    if (attestationBlock < birthBlock || (attestationBlock === birthBlock && attestation.logIndex <= (note.createdAtLogIndex ?? -1))) continue;
+
+    const tokenAddress = note.token.toLowerCase();
+    const key = `${chainId}:${tokenAddress}`;
+    const group = currencyGroups.get(key) ?? { amount: 0n, supporters: new Set<string>() };
+    group.amount += BigInt(note.amount);
+    group.supporters.add(note.rootOwner.toLowerCase());
+    currencyGroups.set(key, group);
+    allSupporters.add(note.rootOwner.toLowerCase());
+    noteCount += 1;
+  }
+
+  return {
+    statementId,
+    currencies: [...currencyGroups.entries()].map(([key, group]) => ({
+      chainId,
+      tokenAddress: key.slice(key.indexOf(':') + 1),
+      amount: group.amount.toString(),
+      supporterCount: group.supporters.size,
+    })),
+    supporterCount: allSupporters.size,
+    noteCount,
+  };
 }
 
 // ============================================================================

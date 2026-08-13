@@ -41,7 +41,9 @@ export interface NoteState {
   parentNoteId?: string;
   createdAt: string;
   createdAtBlock: string;
+  createdAtLogIndex: number;
   updatedAt: string;
+  rootOwner: `0x${string}`;
   chain: DelegationChainLink[]; // position 0 = root, highest position = leaf
 }
 
@@ -88,7 +90,8 @@ function copyChainToOutputNote(
 ): void {
   const inputState = stateMap.get(contractScopedId(contractAddress, inputNoteId));
   const outputState = stateMap.get(contractScopedId(contractAddress, outputNoteId));
-  if (inputState && outputState && inputState.chain.length > 1) {
+  if (inputState && outputState) {
+    outputState.rootOwner = inputState.rootOwner;
     outputState.chain = inputState.chain.map((link, position) => ({
       ...link,
       position,
@@ -102,7 +105,6 @@ function copyChainToOutputNote(
 function toNote(state: NoteState): Note {
   const chain = state.chain;
   const owner = chain.length > 0 ? chain[chain.length - 1].address : '';
-  const rootOwner = chain.length > 0 ? chain[0].address : '';
   return {
     id: state.id,
     contractAddress: state.contractAddress,
@@ -112,11 +114,12 @@ function toNote(state: NoteState): Note {
     tokenType: state.tokenType,
     tokenId: state.tokenId.toString(),
     owner,
-    rootOwner,
+    rootOwner: state.rootOwner,
     active: state.active,
     parentNoteId: state.parentNoteId,
     createdAt: state.createdAt,
     createdAtBlock: state.createdAtBlock,
+    createdAtLogIndex: state.createdAtLogIndex,
     updatedAt: state.updatedAt,
   };
 }
@@ -158,7 +161,7 @@ export function foldDelegationState(
   for (const ev of events) {
     switch (ev.type) {
       case 'noteCreated': {
-        const { noteId, owner, amount, token, tokenType, tokenId, blockTimestamp, blockNumber } =
+        const { noteId, owner, amount, token, tokenType, tokenId, blockTimestamp, blockNumber, logIndex } =
           ev.event;
         const id = noteId.toString();
         const key = contractScopedId(ev.event.contractAddress, noteId);
@@ -172,7 +175,9 @@ export function foldDelegationState(
           active: true,
           createdAt: blockTimestamp.toString(),
           createdAtBlock: blockNumber.toString(),
+          createdAtLogIndex: logIndex,
           updatedAt: blockTimestamp.toString(),
+          rootOwner: owner,
           chain: [{ address: owner, position: 0, createdAt: blockTimestamp.toString() }],
         });
         break;
@@ -191,6 +196,9 @@ export function foldDelegationState(
             ...original,
             id: splitLeafId.toString(),
             amount: splitAmount,
+            createdAt: blockTimestamp.toString(),
+            createdAtBlock: ev.event.blockNumber.toString(),
+            createdAtLogIndex: ev.event.logIndex,
             updatedAt: blockTimestamp.toString(),
             chain: original.chain.map((link) => ({ ...link })), // deep copy
           });
@@ -243,21 +251,11 @@ export function foldDelegationState(
             (link) => link.address.toLowerCase() === revoker.toLowerCase(),
           );
           if (rPos >= 0) {
-            // The contract's revoke() builds a new hash from owners[owners.length-newChainLength..end]
-            // where owners is leaf-first and newChainLength = callerIndex+1.
-            // This reverses the sub-chain: e.g. root-revoking [alice,bob] → [bob,alice].
-            // In root-first terms: keep the revoker's sub-chain reversed.
-            // Specifically, the new chain contains chain[0..len-1-rPos] reversed.
-            const len = note.chain.length;
-            const newChain: DelegationChainLink[] = [];
-            for (let offset = 0; offset <= len - 1 - rPos; offset++) {
-              newChain.push({
-                address: note.chain[len - 1 - rPos - offset].address,
-                position: offset,
-                createdAt: blockTimestamp.toString(),
-              });
-            }
-            note.chain = newChain;
+            const retainedLength = Math.max(1, Math.min(rPos + 1, note.chain.length - 1));
+            note.chain = note.chain.slice(0, retainedLength).map((link, position) => ({
+              ...link,
+              position,
+            }));
             note.updatedAt = blockTimestamp.toString();
           }
         }
@@ -309,13 +307,14 @@ export function foldDelegationState(
             const inputState = stateMap.get(inputId);
             const outputState = stateMap.get(outputId);
 
-            if (inputState && outputState && inputState.chain.length > 1) {
+            if (inputState && outputState) {
               // Replace the single-link chain with the full input chain.
               outputState.chain = inputState.chain.map((link, i) => ({
                 ...link,
                 position: i,
                 createdAt: blockTimestamp.toString(),
               }));
+              outputState.rootOwner = inputState.rootOwner;
               outputState.updatedAt = blockTimestamp.toString();
             }
           }
@@ -434,6 +433,7 @@ export function foldNoteIntentAttestations(
       intendedStatementId: event.intendedStatementId,
       createdAt: event.blockTimestamp.toString(),
       blockNumber: event.blockNumber.toString(),
+      logIndex: event.logIndex,
     });
   }
 

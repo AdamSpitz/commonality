@@ -74,7 +74,7 @@ export interface NoteIntentAttestedEvent extends RawEvent {
   attester: `0x${string}`;
   noteContract: `0x${string}`;
   noteId: bigint;
-  intendedStatementId: string; // CIDv1
+  intendedStatementId: string | null; // CIDv1, or null for bytes32(0) (cleared)
 }
 
 export interface StandingPledgeCreatedEvent extends RawEvent {

@@ -30,6 +30,8 @@ export interface Note {
   createdAt: string;
   /** Block number when the note was created. */
   createdAtBlock: string;
+  /** Log index of the note's birth event (NoteCreated or ChainSplit). */
+  createdAtLogIndex?: number;
   /** Block timestamp of the most recent event affecting this note. */
   updatedAt: string;
 }
@@ -47,12 +49,28 @@ export interface NoteIntentAttestation {
   noteContract: string;
   /** Numeric ID of the note. */
   noteId: string;
-  /** CIDv1 of the statement/cause this note is intended for. */
-  intendedStatementId: string;
+  /** CIDv1 of the statement/cause, or null when the root cleared intent. */
+  intendedStatementId: string | null;
   /** Block timestamp of the attestation. */
   createdAt: string;
   /** Block number of the attestation. */
   blockNumber: string;
+  /** Log index within the attestation block. */
+  logIndex: number;
+}
+
+export interface NoteIntentAggregateCurrency {
+  chainId: number;
+  tokenAddress: string;
+  amount: string;
+  supporterCount: number;
+}
+
+export interface NoteIntentAggregate {
+  statementId: string;
+  currencies: NoteIntentAggregateCurrency[];
+  supporterCount: number;
+  noteCount: number;
 }
 
 /**

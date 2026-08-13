@@ -1007,7 +1007,7 @@ export function decodeNoteIntentAttestedEvent(
   attester: `0x${string}`;
   noteContract: `0x${string}`;
   noteId: bigint;
-  intendedStatementId: string;
+  intendedStatementId: string | null;
   contractAddress: `0x${string}`;
   blockNumber: bigint;
   blockTimestamp: bigint;
@@ -1021,7 +1021,9 @@ export function decodeNoteIntentAttestedEvent(
     attester: args.attester as `0x${string}`,
     noteContract: args.noteContract as `0x${string}`,
     noteId: args.noteId as bigint,
-    intendedStatementId: bytes32ToCid(args.intendedStatementId as `0x${string}`),
+    intendedStatementId: (args.intendedStatementId as `0x${string}`) === `0x${'00'.repeat(32)}`
+      ? null
+      : bytes32ToCid(args.intendedStatementId as `0x${string}`),
     contractAddress: rawEvent.contractAddress as `0x${string}`,
     blockNumber: BigInt(rawEvent.blockNumber),
     blockTimestamp: BigInt(rawEvent.blockTimestamp),

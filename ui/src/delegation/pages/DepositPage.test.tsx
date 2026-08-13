@@ -128,10 +128,10 @@ describe('DepositPage', () => {
       expect(screen.queryByRole('radio', { name: /my account/i })).not.toBeInTheDocument()
     })
 
-    it('does not collect note intent for one-time deposits', () => {
+    it('offers an optional cause earmark for one-time deposits', () => {
       render(<DepositPage />)
 
-      expect(screen.queryByLabelText(/cause/i)).not.toBeInTheDocument()
+      expect(screen.getByLabelText(/cause to earmark for/i)).toBeInTheDocument()
     })
 
     it('shows Deposit submit button', () => {

@@ -22,8 +22,10 @@ import {
 } from '@mui/material'
 import { useAccount } from 'wagmi'
 import { formatEther, parseEther } from 'viem'
-import { DelegatableNotesAbi } from '@commonality/sdk/abis'
-import { getNote, getDelegationChain, delegateNote, revokeNote, reclaimFunds, purchaseFromPrimaryMarketWithNotes, refundNote, type Note, type DelegationChainLink } from '@commonality/sdk/delegation'
+import { DelegatableNotesAbi, NoteIntentAbi } from '@commonality/sdk/abis'
+import { getNote, getDelegationChain, getNoteIntentAttestation, attestNoteIntent, delegateNote, revokeNote, reclaimFunds, purchaseFromPrimaryMarketWithNotes, refundNote, type Note, type NoteIntentAttestation, type DelegationChainLink, type NoteIntentContract } from '@commonality/sdk/delegation'
+import { browseStatementsByNewest, getStatement, type StatementListItem } from '@commonality/sdk/conceptspace'
+import type { IpfsCidV1 } from '@commonality/sdk/utils'
 import { getProjectsFiltered, type ProjectWithMetrics, getProjectTokens, type ProjectToken } from '@commonality/sdk/lazy-giving'
 import { useMachinery } from '../../shared'
 import { useWriteClients } from '../../shared'
@@ -33,6 +35,11 @@ function getContract(address?: string) {
   const addr = address ?? import.meta.env.VITE_DELEGATABLE_NOTES_CONTRACT_ADDRESS
   if (!addr) return null
   return { address: addr as `0x${string}`, abi: DelegatableNotesAbi }
+}
+
+function getNoteIntentContract(): NoteIntentContract | null {
+  const addr = import.meta.env.VITE_NOTE_INTENT_CONTRACT_ADDRESS
+  return addr ? { address: addr as `0x${string}`, abi: NoteIntentAbi } : null
 }
 
 interface DelegationChainVisualizationProps {
@@ -322,6 +329,11 @@ export function NoteDetailPage() {
   // can be refunded against, if any. null = not refundable (not a receipt, or project
   // hasn't failed).
   const [refundProject, setRefundProject] = useState<ProjectWithMetrics | null>(null)
+  const [intent, setIntent] = useState<NoteIntentAttestation | null>(null)
+  const [intentTitle, setIntentTitle] = useState<string | null>(null)
+  const [intentDialogOpen, setIntentDialogOpen] = useState(false)
+  const [intentStatements, setIntentStatements] = useState<StatementListItem[]>([])
+  const [selectedIntentStatement, setSelectedIntentStatement] = useState<StatementListItem | null>(null)
 
   const getClients = () => {
     if (!writeClients || !address) return null
@@ -347,7 +359,21 @@ export function NoteDetailPage() {
       ])
       setNote(noteData)
       setChain(chainData)
-      if (noteData) await loadRefundEligibility(noteData)
+      if (noteData) {
+        await loadRefundEligibility(noteData)
+        const currentIntent = machinery.eventCacheUrl
+          ? await getNoteIntentAttestation(
+              machinery, noteData.rootOwner, noteData.contractAddress, noteData.id,
+            ).catch(() => null)
+          : null
+        setIntent(currentIntent)
+        if (currentIntent?.intendedStatementId) {
+          const statement = await getStatement(machinery, currentIntent.intendedStatementId as IpfsCidV1).catch(() => null)
+          setIntentTitle(statement?.title ?? currentIntent.intendedStatementId)
+        } else {
+          setIntentTitle(null)
+        }
+      }
     } catch (err) {
       console.error('Error loading note:', err)
       setError(err instanceof Error ? err.message : 'Failed to load note')
@@ -491,6 +517,42 @@ export function NoteDetailPage() {
     }
   }
 
+  const openIntentDialog = async () => {
+    setIntentDialogOpen(true)
+    if (intentStatements.length === 0) {
+      setIntentStatements(await browseStatementsByNewest(machinery, { limit: 50 }).catch(() => []))
+    }
+  }
+
+  const handleIntentChange = async (clear: boolean) => {
+    if (!note) return
+    const clients = getClients()
+    const contract = getNoteIntentContract()
+    if (!clients || !contract) {
+      setActionError('Wallet not connected or earmark contract not configured')
+      return
+    }
+    if (!clear && !selectedIntentStatement) return
+    try {
+      setActionLoading(true)
+      setActionError(null)
+      await attestNoteIntent(
+        clients,
+        contract,
+        note.contractAddress as `0x${string}`,
+        BigInt(note.id),
+        clear ? null : selectedIntentStatement!.cid,
+      )
+      setIntentDialogOpen(false)
+      setSelectedIntentStatement(null)
+      await loadNoteData()
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'Earmark change failed')
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
   const loadProjects = async () => {
     try {
       setProjectsLoading(true)
@@ -589,6 +651,7 @@ export function NoteDetailPage() {
   const canReclaim = isRootOwner && isUndelegated
   const canSpend = isCurrentLeafOwner && isEthNote(note)
   const canRefund = note.active && isCurrentLeafOwner && note.tokenType === 1 && refundProject !== null
+  const canChangeIntent = note.active && note.tokenType === 0 && isRootOwner
 
   return (
     <Box>
@@ -662,6 +725,15 @@ export function NoteDetailPage() {
 
       <Stack spacing={3} sx={{ mb: 3 }}>
         <DelegationChainVisualization chain={chain} note={note} />
+        {note.active && note.tokenType === 0 && (
+          <Paper sx={{ p: 2 }}>
+            <Typography variant="subtitle2">Earmark</Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ my: 1 }}>
+              {intentTitle ? `Earmarked for ${intentTitle}. This is a revocable signal of intent, not committed funding.` : 'This fund is not earmarked for a cause.'}
+            </Typography>
+            {canChangeIntent && <Button size="small" variant="outlined" onClick={openIntentDialog}>Change or clear earmark</Button>}
+          </Paper>
+        )}
       </Stack>
 
       <Paper sx={{ p: 3 }}>
@@ -725,6 +797,26 @@ export function NoteDetailPage() {
         onProjectChange={setSelectedProject}
         onSubmit={handleSpendSubmit}
       />
+      <Dialog open={intentDialogOpen} onClose={() => setIntentDialogOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>Change earmark</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            An earmark is a public, revocable indication of interest. It does not commit these funds.
+          </Typography>
+          <Autocomplete
+            options={intentStatements}
+            value={selectedIntentStatement}
+            onChange={(_, value) => setSelectedIntentStatement(value)}
+            getOptionLabel={option => option.title || truncateAddress(option.cid)}
+            renderInput={params => <TextField {...params} label="Cause" />}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setIntentDialogOpen(false)}>Cancel</Button>
+          {intent?.intendedStatementId && <Button color="warning" onClick={() => handleIntentChange(true)}>Clear earmark</Button>}
+          <Button variant="contained" disabled={!selectedIntentStatement} onClick={() => handleIntentChange(false)}>Save earmark</Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   )
 }

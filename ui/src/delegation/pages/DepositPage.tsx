@@ -17,9 +17,9 @@ import {
 import { useNavigate } from 'react-router-dom'
 import { useAccount, usePublicClient } from 'wagmi'
 import { parseUnits, isAddress } from 'viem'
-import { DelegatableNotesAbi, RecurringPledgesAbi } from '@commonality/sdk/abis'
+import { DelegatableNotesAbi, NoteIntentAbi, RecurringPledgesAbi } from '@commonality/sdk/abis'
 import { browseStatementsByNewest, type StatementListItem } from '@commonality/sdk/conceptspace'
-import { depositERC20, delegateNote, approveRecurringPledgeToken, createStandingPledge, type DelegatableNotesContract, type RecurringPledgesContract } from '@commonality/sdk/delegation'
+import { depositERC20, delegateNote, attestNoteIntent, approveRecurringPledgeToken, createStandingPledge, type DelegatableNotesContract, type NoteIntentContract, type RecurringPledgesContract } from '@commonality/sdk/delegation'
 import { useMachinery } from '../../shared'
 import { noteDetailPathFor } from '../utils'
 import { useWriteClients } from '../../shared'
@@ -38,6 +38,11 @@ function getRecurringPledgesContract(): RecurringPledgesContract | null {
   const addr = import.meta.env.VITE_RECURRING_PLEDGES_CONTRACT_ADDRESS
   if (!addr) return null
   return { address: addr as `0x${string}`, abi: RecurringPledgesAbi }
+}
+
+function getNoteIntentContract(): NoteIntentContract | null {
+  const addr = import.meta.env.VITE_NOTE_INTENT_CONTRACT_ADDRESS
+  return addr ? { address: addr as `0x${string}`, abi: NoteIntentAbi } : null
 }
 
 const MONTHLY_PERIOD_SECONDS = 30n * 24n * 60n * 60n
@@ -62,6 +67,7 @@ export function DepositPage() {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [successNoteId, setSuccessNoteId] = useState<bigint | null>(null)
+  const [intentWarning, setIntentWarning] = useState<string | null>(null)
   const paymentTokenAddress = import.meta.env.VITE_PAYMENT_TOKEN_ADDRESS
   const { currency: loadedPaymentCurrency, loading: paymentCurrencyLoading } = usePaymentTokenCurrency(publicClient, paymentTokenAddress)
   const paymentCurrency = loadedPaymentCurrency ?? getConfiguredPaymentCurrency() ?? DEFAULT_PAYMENT_CURRENCY
@@ -195,6 +201,19 @@ export function DepositPage() {
       }
 
       setSuccessNoteId(noteId)
+      if (selectedStatement) {
+        const noteIntentContract = getNoteIntentContract()
+        if (!noteIntentContract) {
+          setIntentWarning('The fund was created, but the earmark contract is not configured, so it remains untagged.')
+        } else {
+          try {
+            await attestNoteIntent(clients, noteIntentContract, delegationContract.address, noteId, selectedStatement.cid)
+          } catch (intentError) {
+            console.error('Earmark failed after deposit:', intentError)
+            setIntentWarning('The fund was created, but the earmark transaction did not succeed. You can add it from the fund details page.')
+          }
+        }
+      }
     } catch (err) {
       console.error('Deposit failed:', err)
       setError(err instanceof Error ? err.message : 'Deposit failed')
@@ -227,6 +246,7 @@ export function DepositPage() {
         <Alert severity="success" sx={{ mb: 3 }}>
           Your delegated fund has been created successfully!
         </Alert>
+        {intentWarning && <Alert severity="warning" sx={{ mb: 3 }}>{intentWarning}</Alert>}
         <Card>
           <CardContent>
             <Typography variant="body1" gutterBottom>
@@ -337,7 +357,7 @@ export function DepositPage() {
               </Typography>
             </Box>
 
-            {isRecurring && <Autocomplete
+            <Autocomplete
               options={statements}
               loading={statementsLoading}
               getOptionLabel={(option) => option.title || truncateAddress(option.cid)}
@@ -347,7 +367,7 @@ export function DepositPage() {
               renderInput={(params) => (
                 <TextField
                   {...params}
-                  label="Cause"
+                  label={isRecurring ? 'Cause' : 'Cause to earmark for (optional)'}
                   placeholder="Search for a cause or project"
                   InputProps={{
                     ...params.InputProps,
@@ -379,7 +399,7 @@ export function DepositPage() {
                 )
               }}
               isOptionEqualToValue={(option, value) => option.cid === value.cid}
-            />}
+            />
 
             <Box sx={{ display: 'flex', gap: 2 }}>
               <Button

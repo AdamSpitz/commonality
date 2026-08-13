@@ -340,12 +340,7 @@ describe('foldDelegationState', () => {
     assert.strictEqual(note.chainHash, expectedChainHash([ALICE, BOB, CAROL]));
   });
 
-  it('handles revocation in a two-link chain (alice revokes from bob)', () => {
-    // Chain: alice(root) → bob(leaf). Alice revokes.
-    // Contract revoke: owners=[bob, alice], callerIndex=1 (alice)
-    // new hash = keccak256(alice, keccak256(bob, 0))
-    // New chain (DelegationChainLink): [{bob, 0}, {alice, 1}]
-    // New leaf (owner) = alice, new "root" = bob
+  it('truncates to the root when the root revokes', () => {
     const events: DelegationEvent[] = [
       { type: 'noteCreated', event: makeNoteCreated() },
       { type: 'noteDelegated', event: makeNoteDelegated({ delegate: BOB }) },
@@ -360,41 +355,45 @@ describe('foldDelegationState', () => {
 
     const chain = chains.get('1');
     assert.ok(chain);
-    assert.strictEqual(chain.length, 2);
-    assert.strictEqual(chain[0].address, BOB);   // bob at position 0
-    assert.strictEqual(chain[1].address, ALICE); // alice at position 1 (leaf)
-
-    // chainHash = computeChainHash([bob, alice]) = keccak256(alice, keccak256(bob, 0))
-    assert.strictEqual(note.chainHash, expectedChainHash([BOB, ALICE]));
+    assert.deepStrictEqual(chain.map(link => link.address), [ALICE]);
+    assert.strictEqual(note.rootOwner, ALICE);
+    assert.strictEqual(note.chainHash, expectedChainHash([ALICE]));
   });
 
-  it('handles revocation in a three-link chain (alice revokes from bob→carol)', () => {
-    // Chain: alice(root, pos0) → bob(pos1) → carol(leaf, pos2)
-    // Alice revokes (rPos=0, callerIndex=2):
-    //   j from owners.length-newChainLength=3-3=0 to 2
-    //   j=0: carol, j=1: bob, j=2: alice
-    //   new hash = keccak256(alice, keccak256(bob, keccak256(carol, 0)))
-    //   new chain = [{carol,0},{bob,1},{alice,2}]
+  it('truncates after a middle owner when they revoke', () => {
     const events: DelegationEvent[] = [
       { type: 'noteCreated', event: makeNoteCreated() },
       { type: 'noteDelegated', event: makeNoteDelegated({ delegate: BOB }) },
       { type: 'noteDelegated', event: makeNoteDelegated({ delegate: CAROL, blockNumber: 102n, logIndex: 0 }) },
-      { type: 'noteRevoked', event: makeNoteRevoked({ revoker: ALICE, blockNumber: 103n }) },
+      { type: 'noteRevoked', event: makeNoteRevoked({ revoker: BOB, blockNumber: 103n }) },
     ];
     const { notes, chains } = foldDelegationState(events);
 
     const note = notes.get('1');
     assert.ok(note);
-    assert.strictEqual(note.owner, ALICE); // alice is the new leaf
+    assert.strictEqual(note.owner, BOB);
 
     const chain = chains.get('1');
     assert.ok(chain);
-    assert.strictEqual(chain.length, 3);
-    assert.strictEqual(chain[0].address, CAROL);
-    assert.strictEqual(chain[1].address, BOB);
-    assert.strictEqual(chain[2].address, ALICE);
+    assert.deepStrictEqual(chain.map(link => link.address), [ALICE, BOB]);
+    assert.strictEqual(note.rootOwner, ALICE);
+    assert.strictEqual(note.chainHash, expectedChainHash([ALICE, BOB]));
+  });
 
-    assert.strictEqual(note.chainHash, expectedChainHash([CAROL, BOB, ALICE]));
+  it('removes the leaf when the leaf revokes', () => {
+    const events: DelegationEvent[] = [
+      { type: 'noteCreated', event: makeNoteCreated() },
+      { type: 'noteDelegated', event: makeNoteDelegated({ delegate: BOB }) },
+      { type: 'noteDelegated', event: makeNoteDelegated({ delegate: CAROL, blockNumber: 102n }) },
+      { type: 'noteRevoked', event: makeNoteRevoked({ revoker: CAROL, blockNumber: 103n }) },
+    ];
+    const { notes, chains } = foldDelegationState(events);
+    const note = notes.get('1');
+    const chain = chains.get('1');
+    assert.ok(note && chain);
+    assert.deepStrictEqual(chain.map(link => link.address), [ALICE, BOB]);
+    assert.strictEqual(note.owner, BOB);
+    assert.strictEqual(note.rootOwner, ALICE);
   });
 
   it('handles note consumption (partial — deleted=false)', () => {
