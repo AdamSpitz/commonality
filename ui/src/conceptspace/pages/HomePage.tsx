@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Box, Typography, Paper, Button, Alert, Stack } from '@mui/material'
 import { useAccount } from 'wagmi'
 import { Link, useNavigate } from 'react-router-dom'
-import { getDomainUrl, landingHeroContainedButtonSx, landingHeroPaperSx } from '../../shared'
+import { getDomainUrl, landingHeroContainedButtonSx, landingHeroPaperSx, StatementPicker } from '../../shared'
 import type { DomainId } from '../../shared'
 import { CreateStatementForm } from '../components'
 import type { IpfsCidV1 } from '@commonality/sdk/utils'
@@ -198,6 +198,17 @@ export function HomePage() {
         Suggested flow
       </Typography>
       {onboardingSection}
+
+      <Box sx={{ my: 3 }}>
+        <StatementPicker
+          intent="belief"
+          onSelect={(selection) => navigate(`/statement/${selection.cid}`)}
+          onNoneFit={() => setShowCreateForm(true)}
+        />
+        <Typography variant="caption" color="text.secondary">
+          This exploration is not stored as a universal profile. Nothing is signed until you review the statement page and act there.
+        </Typography>
+      </Box>
 
       {!showCreateForm ? (
         <Paper sx={{ p: 3, mb: 3, mt: 3, borderRadius: 3 }}>

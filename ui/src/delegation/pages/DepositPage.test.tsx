@@ -120,7 +120,7 @@ describe('DepositPage', () => {
       render(<DepositPage />)
 
       await waitFor(() => {
-        expect(screen.getByLabelText(/cause to earmark for/i)).toHaveValue(TEST_STATEMENT.title)
+        expect(screen.getByText(/funding scope selected/i)).toHaveTextContent(TEST_STATEMENT.title)
       })
     })
 
@@ -147,7 +147,7 @@ describe('DepositPage', () => {
     it('offers an optional cause earmark for one-time deposits', () => {
       render(<DepositPage />)
 
-      expect(screen.getByLabelText(/cause to earmark for/i)).toBeInTheDocument()
+      expect(screen.getByTestId('statement-picker-delegation')).toBeInTheDocument()
     })
 
     it('shows Deposit submit button', () => {
@@ -272,6 +272,10 @@ describe('DepositPage', () => {
     })
 
     it('starts a monthly pledge using the settlement token when recurring is checked', async () => {
+      vi.mocked(useSearchParams).mockReturnValue([
+        new URLSearchParams(`statement=${encodeURIComponent(TEST_STATEMENT.cid)}`),
+        vi.fn(),
+      ] as any)
       vi.mocked(browseStatementsByNewest).mockResolvedValue([TEST_STATEMENT] as any)
       vi.mocked(approveRecurringPledgeToken).mockResolvedValue('0xapprove')
       vi.mocked(createStandingPledge).mockResolvedValue({ hash: '0xpledge', pledgeId: 1n, firstNoteId: 99n })
@@ -283,10 +287,7 @@ describe('DepositPage', () => {
       fireEvent.change(screen.getByLabelText(/authorize monthly payments/i), { target: { value: '6' } })
       await typeDelegate(OTHER_ADDR)
 
-      const autocomplete = screen.getByLabelText(/^cause$/i)
-      fireEvent.mouseDown(autocomplete)
-      const option = await screen.findByText(/universal basic income/i)
-      fireEvent.click(option)
+      await screen.findByText(/funding scope selected/i)
 
       fireEvent.click(screen.getByRole('button', { name: 'Start Monthly Pledge' }))
 

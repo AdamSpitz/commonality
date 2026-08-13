@@ -7,8 +7,6 @@ import {
   Button,
   Alert,
   Stack,
-  Autocomplete,
-  CircularProgress,
   Card,
   CardContent,
   Checkbox,
@@ -21,7 +19,7 @@ import { DelegatableNotesAbi, NoteIntentAbi, RecurringPledgesAbi } from '@common
 import { browseStatementsByNewest, getStatementWithContent, type StatementListItem } from '@commonality/sdk/conceptspace'
 import type { IpfsCidV1 } from '@commonality/sdk/utils'
 import { depositERC20, delegateNote, attestNoteIntent, approveRecurringPledgeToken, createStandingPledge, type DelegatableNotesContract, type NoteIntentContract, type RecurringPledgesContract } from '@commonality/sdk/delegation'
-import { useMachinery } from '../../shared'
+import { getDomainUrl, StatementPicker, useMachinery } from '../../shared'
 import { noteDetailPathFor } from '../utils'
 import { useWriteClients } from '../../shared'
 import { truncateAddress } from '../utils'
@@ -381,48 +379,25 @@ export function DepositPage() {
               </Typography>
             </Box>
 
-            <Autocomplete
-              options={statements}
-              loading={statementsLoading}
-              getOptionLabel={(option) => option.title || truncateAddress(option.cid)}
-              value={selectedStatement}
-              onChange={(_, newValue) => setSelectedStatement(newValue)}
+            {statementsLoading && requestedStatementCid && <Alert severity="info">Loading the statement from the cause link…</Alert>}
+            {selectedStatement && (
+              <Alert severity="success" onClose={() => setSelectedStatement(null)}>
+                Funding scope selected: {selectedStatement.title || truncateAddress(selectedStatement.cid)}<br />
+                <Typography variant="caption" sx={{ overflowWrap: 'anywhere' }}>CID: {selectedStatement.cid}</Typography>
+              </Alert>
+            )}
+            <StatementPicker
+              intent="delegation"
+              selectedCid={selectedStatement?.cid}
               disabled={submitting}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label={isRecurring ? 'Cause' : 'Cause to earmark for (optional)'}
-                  placeholder="Search for a cause or project"
-                  InputProps={{
-                    ...params.InputProps,
-                    endAdornment: (
-                      <>
-                        {statementsLoading ? <CircularProgress color="inherit" size={20} /> : null}
-                        {params.InputProps.endAdornment}
-                      </>
-                    ),
-                  }}
-                />
-              )}
-              renderOption={(props, option) => {
-                const { key, ...rest } = props
-                return (
-                  <li key={key} {...rest}>
-                    <Box>
-                      <Typography variant="body2">
-                        {option.title || truncateAddress(option.cid)}
-                      </Typography>
-                      {option.excerpt && (
-                        <Typography variant="caption" color="text.secondary">
-                          {option.excerpt.slice(0, 100)}
-                          {option.excerpt.length > 100 ? '...' : ''}
-                        </Typography>
-                      )}
-                    </Box>
-                  </li>
-                )
-              }}
-              isOptionEqualToValue={(option, value) => option.cid === value.cid}
+              onSelect={(selection) => setSelectedStatement({
+                id: selection.cid,
+                cid: selection.cid as IpfsCidV1,
+                title: selection.text,
+                excerpt: selection.text,
+                statementType: '', believerCount: 0, disbelieverCount: 0, createdAt: '',
+              })}
+              onNoneFit={() => window.open(getDomainUrl('tally', '/'), '_blank', 'noopener,noreferrer')}
             />
 
             <Box sx={{ display: 'flex', gap: 2 }}>

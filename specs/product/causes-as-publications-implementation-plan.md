@@ -72,11 +72,13 @@ us more.
 
 ## 6. Reuse the picker in distinct workflows
 
-- [ ] Add an intent-specific project-alignment picker that targets immutable statements
+- [x] Add an intent-specific project-alignment picker that targets immutable statements
   and supports inviting trusted alignment attesters.
 - [ ] Add an intent-specific delegate-offering and donor-scope picker once delegation
-  intent semantics are settled.
-- [ ] Reuse retrieval and review components for personal belief exploration without
+  intent semantics are settled. The donor-scope picker now targets immutable `NoteIntent`
+  statements; a public delegate-offering action still lacks settled storage/publication
+  semantics and must not be faked as a universal profile.
+- [x] Reuse retrieval and review components for personal belief exploration without
   introducing a universal stored “profile” object.
 
 ## 7. Validate and ship

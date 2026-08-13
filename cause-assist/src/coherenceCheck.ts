@@ -75,9 +75,9 @@ function heuristicCoherence(request: CoherenceCheckRequest): CoherenceVerdict {
     }
   }
 
-  // Without an LLM, only pass when the organizer wrote a non-trivial summary.
-  // Empty summary is allowed on publish but does not earn a coherence pass
-  // from the heuristic — the badge is optional.
+  // A lexical heuristic cannot detect a polished summary that conceals a rider.
+  // Publishing remains allowed, but only an actual coherence judgment can earn
+  // the optional positive badge.
   if (summary.length < 12) {
     return {
       coherent: false,
@@ -89,8 +89,8 @@ function heuristicCoherence(request: CoherenceCheckRequest): CoherenceVerdict {
   }
 
   return {
-    coherent: true,
-    reasoning: 'Title, summary, and issues are present (heuristic pass; LLM attester unavailable).',
+    coherent: false,
+    reasoning: 'The page can be published, but a coherence attester is unavailable, so no optional badge is awarded.',
     attesterId: ATTTESTER_ID,
     rosterCid: request.rosterCid,
     source: 'heuristic',
