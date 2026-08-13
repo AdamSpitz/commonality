@@ -1,10 +1,19 @@
 import { describe, expect, it } from 'vitest'
 import type { StatementListItem } from '@commonality/sdk/conceptspace'
-import { rankStatementMatches } from './statementPicker'
+import { parseTrustedNudgerAddresses, rankStatementMatches } from './statementPicker'
 
 const statement = (cid: string, title: string, believerCount = 0): StatementListItem => ({
   id: cid, cid: cid as StatementListItem['cid'], title, excerpt: title,
   statementType: '', believerCount, disbelieverCount: 0, createdAt: '',
+})
+
+describe('parseTrustedNudgerAddresses', () => {
+  const address = `0x${'1'.repeat(40)}`
+
+  it('accepts shared JSON entries and the comma-separated fallback', () => {
+    expect(parseTrustedNudgerAddresses(JSON.stringify([{ address, name: 'Explorer' }]))).toEqual([address])
+    expect(parseTrustedNudgerAddresses(`${address},not-an-address`)).toEqual([address])
+  })
 })
 
 describe('rankStatementMatches', () => {

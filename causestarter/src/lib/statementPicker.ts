@@ -2,6 +2,28 @@ import type { StatementListItem } from '@commonality/sdk/conceptspace'
 
 export type StatementPickerIntent = 'cause' | 'alignment' | 'delegation' | 'belief'
 
+export function parseTrustedNudgerAddresses(value: string | undefined): string[] {
+  if (!value?.trim()) return []
+  const valid = (candidate: unknown): candidate is string => (
+    typeof candidate === 'string' && /^0x[a-fA-F0-9]{40}$/.test(candidate)
+  )
+  try {
+    const parsed = JSON.parse(value)
+    if (Array.isArray(parsed)) {
+      return parsed.flatMap((entry) => {
+        if (valid(entry)) return [entry]
+        if (entry && typeof entry === 'object' && valid((entry as { address?: unknown }).address)) {
+          return [(entry as { address: string }).address]
+        }
+        return []
+      })
+    }
+  } catch {
+    // The supported fallback is a comma-separated address list.
+  }
+  return value.split(',').map((entry) => entry.trim()).filter(valid)
+}
+
 export interface StatementPickerSelection {
   text: string
   cid?: string

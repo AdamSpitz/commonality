@@ -288,7 +288,7 @@ export function rosterSubjectId(rosterCid: string): `0x${string}` {
   return cidToBytes32(rosterCid)
 }
 
-type ContractCall = {
+export type ContractCall = {
   to: Address
   abi: Abi
   functionName: string
@@ -311,7 +311,7 @@ function isUnsupportedMethodError(error: unknown): boolean {
  * EIP-5792 atomic batch when the wallet supports it; otherwise sequential writes.
  * Local Hardhat EOAs often lack wallet_sendCalls — fall back without failing the publish.
  */
-async function sendCallsPreferAtomic(
+export async function sendCallsPreferAtomic(
   clients: WriteClients,
   calls: readonly ContractCall[],
 ): Promise<{ hashes: Hash[]; batched: boolean }> {

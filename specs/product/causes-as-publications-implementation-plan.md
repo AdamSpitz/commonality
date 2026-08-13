@@ -35,7 +35,7 @@ us more.
 
 - [x] Define one reusable picker contract for intent gathering, statement retrieval,
   optional drafting, rejection/correction, selection, ordering, and deterministic review.
-- [ ] Search existing statements and the relevant curated explorer map before offering
+- [x] Search existing statements and the relevant curated explorer map before offering
   newly drafted text; expose an explicit “none of these” correction path.
 - [x] Render exact final statement text and CIDs outside free-form chat before any
   publication, signature, alignment, or funding-intent action.
@@ -59,7 +59,7 @@ us more.
 
 - [x] Clearly distinguish organizer narrative, immutable statements, derived views,
   direct signatures, and indirect support.
-- [ ] Let a visitor select and batch-sign individual planks without implying endorsement
+- [x] Let a visitor select and batch-sign individual planks without implying endorsement
   of the organizer, narrative, roster, or unselected planks.
 - [x] Show the union of projects aligned with the selected immutable statements, with
   direct project funding and the specialized aligned-content board available in context.

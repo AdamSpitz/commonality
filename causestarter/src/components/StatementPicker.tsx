@@ -1,13 +1,17 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Alert, Button, CircularProgress, Paper, Stack, TextField, Typography } from '@mui/material'
 import { browseStatements, getStatementWithContent, type StatementListItem } from '@commonality/sdk/conceptspace'
+import { getCuratedCollections } from '@commonality/sdk/nudger-publications'
 import type { SDKMachinery } from '@commonality/sdk/machinery'
 import type { IpfsCidV1 } from '@commonality/sdk/utils'
 import { atomizeCause } from '../lib/causeAssistClient'
 import {
-  rankStatementMatches, recordStatementPickerEvent,
+  parseTrustedNudgerAddresses, rankStatementMatches, recordStatementPickerEvent,
   type StatementPickerIntent, type StatementPickerSelection,
 } from '../lib/statementPicker'
+import { getRuntimeConfigValue } from '../lib/runtimeConfig'
+
+const EXPLORER_STREAM = 'fundable-project-explorer'
 
 interface Props {
   intent: StatementPickerIntent
@@ -43,9 +47,27 @@ export function StatementPicker({ intent, machinery, existingCids, disabled, onS
     setDrafts([])
     recordStatementPickerEvent(intent, 'retrieval_started')
     try {
-      const available = statements.length > 0
-        ? statements
-        : await browseStatements(machinery, { limit: 100, orderBy: 'believerCount' })
+      const available = statements.length > 0 ? statements : await (async () => {
+        const general = await browseStatements(machinery, { limit: 100, orderBy: 'believerCount' })
+        const trustedNudgers = parseTrustedNudgerAddresses(getRuntimeConfigValue('VITE_DEFAULT_NUDGERS'))
+        if (trustedNudgers.length === 0) return general
+        const collections = await getCuratedCollections(machinery, trustedNudgers, EXPLORER_STREAM)
+          .catch(() => [])
+        const curated: StatementListItem[] = collections.flatMap((collection) => (
+          collection.entries.map((entry) => ({
+            id: entry.cid,
+            cid: entry.cid,
+            title: entry.label,
+            excerpt: `${entry.label} ${entry.topicArea}`,
+            statementType: '',
+            believerCount: 0,
+            disbelieverCount: 0,
+            createdAt: '',
+          }))
+        ))
+        const byCid = new Map([...curated, ...general].map((item) => [item.cid, item]))
+        return [...byCid.values()]
+      })()
       setStatements(available)
       setMatches(rankStatementMatches(intentText, available, excluded).slice(0, 5))
       setSearched(true)

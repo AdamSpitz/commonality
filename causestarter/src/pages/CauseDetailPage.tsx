@@ -19,6 +19,7 @@ import { getProjectStatus, STATUS_LABELS } from '@ui/lazy-giving'
 import { CauseViewStrip, type ViewMode } from '../components/CauseViewStrip'
 import { CauseMediatorCard } from '../components/CauseMediatorCard'
 import { StatementPicker } from '../components/StatementPicker'
+import { SelectedPlankSupport } from '../components/SelectedPlankSupport'
 import { MediatorEditor } from '../components/MediatorEditor'
 import { PlankRow, type PlankReview } from '../components/PlankRow'
 import { RosterHistory } from '../components/RosterHistory'
@@ -830,6 +831,16 @@ export function CauseDetailPage() {
             />
           ))}
         </Stack>
+
+        <Box sx={{ mt: 2 }}>
+          <SelectedPlankSupport
+            planks={published.filter((plank) => plank.cid && selectedCids.includes(plank.cid)).map((plank) => ({
+              cid: plank.cid!,
+              text: plank.text,
+            }))}
+            onSupported={() => refreshCounts()}
+          />
+        </Box>
 
         {canEdit && (
           <Stack direction="row" spacing={1} sx={{ mt: 2 }} flexWrap="wrap" useFlexGap>
