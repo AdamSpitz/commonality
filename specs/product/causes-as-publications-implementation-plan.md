@@ -84,7 +84,9 @@ us more.
 ## 7. Validate and ship
 
 - [ ] Add end-to-end coverage for a non-expert organizer creating, reviewing, publishing,
-  revising, and sharing a cause, including rejecting every AI suggestion.
+  revising, and sharing a cause. The picker now has focused interaction coverage for
+  rejecting every AI-drafted suggestion and correcting the organizer's intent; the full
+  published organizer browser journey remains open.
 - [ ] Add visitor coverage for signing selected planks, inspecting direct/indirect
   support, viewing aligned projects, and following current and pinned-version URLs.
 - [ ] Test misleading narrative/roster combinations and verify that coherence is a
