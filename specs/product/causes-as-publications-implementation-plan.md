@@ -83,10 +83,10 @@ us more.
 
 ## 7. Validate and ship
 
-- [ ] Add end-to-end coverage for a non-expert organizer creating, reviewing, publishing,
-  revising, and sharing a cause. The picker now has focused interaction coverage for
-  rejecting every AI-drafted suggestion and correcting the organizer's intent; the full
-  published organizer browser journey remains open.
+- [x] Add end-to-end coverage for a non-expert organizer creating, reviewing, publishing,
+  revising, and sharing a cause. The browser journey verifies the stable URL follows the
+  revised roster while the first immutable version remains reachable at its pinned URL;
+  focused picker coverage separately exercises rejection and intent correction.
 - [ ] Add visitor coverage for signing selected planks, inspecting direct/indirect
   support, viewing aligned projects, and following current and pinned-version URLs.
 - [x] Test misleading narrative/roster combinations and verify that coherence is a

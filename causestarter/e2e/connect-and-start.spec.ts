@@ -114,4 +114,57 @@ test.describe('CauseStarter agent smoke', () => {
     await expect(page.getByTestId('cause-detail-page')).toBeVisible({ timeout: 10_000 })
     await expect(page.getByTestId('wallet-connect-button')).toContainText(/Hardhat #0/i)
   })
+
+  test('organizer publishes, revises, and shares stable and pinned cause pages', async ({ page }) => {
+    test.setTimeout(180_000)
+    await connectHardhat0(page)
+    await startCause(page)
+
+    await page.getByTestId('cause-add-plank').click()
+    await page.getByTestId('plank-text-0').fill(
+      'Every Oak Street block has working streetlights by June.',
+    )
+    await page.getByTestId('plank-publish-0').click()
+    await expect(page.getByTestId('plank-row-published')).toHaveCount(1, { timeout: 60_000 })
+
+    const slug = `oak-street-${Date.now()}`
+    await page.getByTestId('roster-title').fill('Safer Oak Street')
+    await page.getByTestId('roster-summary').fill('Neighbors organizing for working streetlights.')
+    await page.getByTestId('roster-slug').fill(slug)
+
+    // Publishing without a badge is an explicit peer action, not an admission bypass.
+    await page.getByTestId('roster-publish-anyway').click()
+    await expect(page).toHaveURL(new RegExp(`/cause/0x[0-9a-f]{40}/${slug}$`), {
+      timeout: 60_000,
+    })
+    const stableUrl = page.url()
+    await expect(page.getByText('Roster published', { exact: true })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Safer Oak Street' })).toBeVisible()
+
+    // A revision updates the stable ref while preserving the first immutable version.
+    await page.getByTestId('roster-summary').fill(
+      'Neighbors organizing for working streetlights and safer evening walks.',
+    )
+    await page.getByTestId('roster-publish-anyway').click()
+    await expect(page).toHaveURL(stableUrl, { timeout: 60_000 })
+    await expect(page.getByTestId('roster-history')).toContainText('2 versions', {
+      timeout: 30_000,
+    })
+
+    const versionLinks = page.getByTestId('roster-history').getByRole('link')
+    await expect(versionLinks).toHaveCount(2)
+    const pinnedHref = await versionLinks.last().getAttribute('href')
+    expect(pinnedHref).toContain(`/${slug}@`)
+
+    await versionLinks.last().click()
+    await expect(page.getByText('Pinned version', { exact: true })).toBeVisible({ timeout: 30_000 })
+    await expect(page.getByText('Neighbors organizing for working streetlights.', { exact: true })).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Open current' })).toBeVisible()
+
+    await page.getByRole('link', { name: 'Open current' }).click()
+    await expect(page).toHaveURL(stableUrl)
+    await expect(page.locator('p').filter({
+      hasText: /^Neighbors organizing for working streetlights and safer evening walks\.$/,
+    })).toBeVisible()
+  })
 })
