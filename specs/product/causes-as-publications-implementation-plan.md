@@ -91,8 +91,10 @@ us more.
   support, viewing aligned projects, and following current and pinned-version URLs.
 - [x] Test misleading narrative/roster combinations and verify that coherence is a
   narrow positive badge rather than an admission gate or general endorsement.
-- [ ] Run migration/regression coverage against existing published causes and local
-  drafts before deployment.
+- [x] Run migration/regression coverage against existing published causes and local
+  drafts before deployment. A frozen compatibility corpus covers v1/v2 local-storage
+  migration (including exact statement/CID associations) and an immutable v1 roster
+  publication captured from the local IPFS corpus.
 - [ ] Validate the complete journey with non-expert users and revisit ADR 0009 if explicit
   review does not reliably prevent accidental adoption of unintended statements.
 
