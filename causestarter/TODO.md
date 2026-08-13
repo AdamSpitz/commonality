@@ -14,7 +14,10 @@ open **if they stay listed here**.
 - [ ] Safety filter is MVP/heuristic + LLM policy text — not legal-grade; version/align with operator/legal specs later.
 - [ ] Unpublished draft state still in `localStorage` only — multi-device recovery of *drafts* later (published rosters are on chain).
 - [ ] No Privy path / full parity with main `ui` wallet story yet.
-- [ ] No Playwright / full e2e suite for CauseStarter yet.
+- [ ] Playwright smoke coverage now exercises wallet connection, draft persistence, and
+  single-plank publication against the live local stack. Expand it to the complete
+  organizer revision/share journey and the visitor selection/signing/board/version
+  journey tracked in the causes-as-publications implementation plan.
 - [ ] Product: how CauseStarter ranks vs other domains in nav/marketing once it’s “the main thing.”
 
 ## Architecture

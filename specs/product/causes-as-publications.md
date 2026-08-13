@@ -97,7 +97,7 @@ proof; uncertain implication pairs should still be rejected conservatively.
 A cause is a versioned roster publication containing:
 
 - a title and short summary;
-- founder-authored narrative or rhetorical material;
+- organizer-authored narrative or rhetorical material;
 - an ordered selection of statement CIDs;
 - other presentation metadata already supported by the roster schema.
 
@@ -110,7 +110,7 @@ The existing identity model is the intended one:
 
 The narrative is intentionally not signable. It may motivate, persuade, provide context,
 or use language that would be unsuitable for implication attestations. Visitors sign
-the selected statements, not the founder's page or rhetoric. If the narrative contains
+the selected statements, not the organizer's page or rhetoric. If the narrative contains
 substantive claims worth signing, the organizer or AI can sharpen them into separate
 statements.
 

@@ -166,7 +166,7 @@ See [`cause-assist/README.md`](../cause-assist/README.md).
 
 - **CauseStarter is a lens, not a directory** ([ADR 0008](../specs/decisions/0008-operated-surfaces-are-lenses.md)).
   It authors no discovery: no search, browse, ranking, featuring, or leaderboards.
-  A cause is reached at `/cause/:causeId` through a link its founder circulates.
+  A cause is reached at `/cause/:causeId` through a link its organizer circulates.
   Nothing is reviewed before it renders and nothing is listed, so there are no
   admission criteria; what the operated surface offers is that its numbers are
   correct and independently recomputable, never that the causes are good.
@@ -176,7 +176,7 @@ See [`cause-assist/README.md`](../cause-assist/README.md).
 - **A cause is a set of planks**, not a main statement with supporters. Each
   plank is published separately and carries its own CID; a cause is "live" once
   any plank is on chain, and there is no launch step. The cause page is the
-  founder's editor *and* the visitor's view — see
+  organizer's editor *and* the visitor's view — see
   [shaping-your-cause-statements.md](../docs/founder/shaping-your-cause-statements.md).
 - **Retrieval first; organizer approval is deterministic.** Start gathers ordinary-language
   intent, searches published statements before asking cause-assist for new drafts, and exposes

@@ -8,19 +8,19 @@ us more.
 
 ## 1. Align terminology and documentation
 
-- [ ] Replace organizer-facing uses of “cause founder” with **cause organizer** where the
+- [x] Replace organizer-facing uses of “cause founder” with **cause organizer** where the
   person is curating and circulating a publication; reserve **vertical operator** for the
   person operating an independent front end and policy stack.
 - [x] Update CauseStarter and founder guidance that still says “founder writes; AI only
   coaches” to the retrieval-first “AI proposes; human explicitly adopts” model.
-- [ ] Reconcile the old eight-UI-domain descriptions with CauseStarter as the primary
+- [x] Reconcile the old eight-UI-domain descriptions with CauseStarter as the primary
   cause-first reference surface, without deleting the generic sites or weakening ADR 0005.
 - [x] Keep cause assistance and mediation separate in product copy: clarification versus
   an explicitly proposed change in position.
 
 ## 2. Prove statement semantics before changing production prompts
 
-- [ ] Build a focused implication corpus covering logical weakening, named scope
+- [x] Build a focused implication corpus covering logical weakening, named scope
   restriction, rhetoric removal, ambiguous targets, concessions, reservations, and
   negotiated compromises.
 - [x] Update the implication-attester rules so breadth and multiple possible

@@ -1,9 +1,9 @@
 /**
  * Cause roster as a published, versioned artifact.
  *
- * A roster is all founder-authored display text for a cause page: title, summary,
+ * A roster is all organizer-authored display text for a cause page: title, summary,
  * ordered plank CIDs, and mediator blurb. Its PublishedData CID is the version ID;
- * a MutableRef `(founder, slug) → CID` is the stable ID used in the URL.
+ * a MutableRef `(owner, slug) → CID` is the stable ID used in the URL.
  *
  * See docs/founder/shaping-your-cause-statements.md § The roster is a publication.
  */
@@ -164,8 +164,8 @@ export function mediatorBlurbFrom(mediator: CauseMediator | undefined): string {
 }
 
 /**
- * Build the founder-authored fields that go into a roster document.
- * Title falls back to the first published plank when the founder left it blank.
+ * Build the organizer-authored fields that go into a roster document.
+ * Title falls back to the first published plank when the organizer left it blank.
  */
 export function rosterFieldsFromCause(cause: CauseDraft): RosterFields {
   const planks = publishedPlanks(cause)
@@ -384,7 +384,7 @@ export async function sendCallsPreferAtomic(
  * Publish roster document via PublishedData and point the stable ref at its CID.
  *
  * Coherence badges are written by the CauseStarter operator (cause-assist), never
- * from the founder wallet — the trusted RefUpdated worker handles it asynchronously.
+ * from the organizer wallet — the trusted RefUpdated worker handles it asynchronously.
  *
  * Prefers one atomic wallet batch (publish + updateRef); falls back to sequential
  * txs when the wallet cannot batch.
@@ -458,7 +458,7 @@ export async function publishRoster(args: {
  * Viewers recompute the badge from AlignmentAttestations + well-known claim/topic.
  *
  * `operator` is the CauseStarter operator address (from cause-assist /health).
- * Anyone can write the well-known claim about any roster — including the founder —
+ * Anyone can write the well-known claim about any roster — including the organizer —
  * so only attestations signed by that operator count. Without a known operator
  * there is nothing to trust, and no badge is shown.
  */

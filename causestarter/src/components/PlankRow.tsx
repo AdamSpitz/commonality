@@ -16,11 +16,11 @@ export const MIN_PLANK_LENGTH = 12
 export interface PlankReview {
   /** Why the current wording works or falls short for attestation / signing. */
   summary: string
-  /** Concrete problems the founder should fix in their own words. */
+  /** Concrete problems the organizer should fix in their own words. */
   issues: string[]
   /**
    * Optional rephrasing the model thought of. Shown only as an example the
-   * founder may copy — never written into the text field without a click.
+   * organizer may copy — never written into the text field without a click.
    */
   exampleWording?: string
 }

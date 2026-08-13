@@ -121,7 +121,47 @@ Confidence calibration:
 
 12) S1: "Abortion should usually remain legal"
     S2: "Abortion should always remain legal"
-    → {"implies": false, "confidence": "high", "reasoning": "S2 changes the quantifier and makes a stronger universal claim than S1.", "key_difference": "Stronger quantifier in S2"}`;
+    → {"implies": false, "confidence": "high", "reasoning": "S2 changes the quantifier and makes a stronger universal claim than S1.", "key_difference": "Stronger quantifier in S2"}
+
+13) S1: "I want taxes lower overall, especially capital-gains tax."
+    S2: "I want taxes lower overall."
+    → {"implies": true, "confidence": "high", "reasoning": "Strict subset: S2 retains the aggregate-direction claim and drops the secondary claim."}
+
+14) S1: "I support cutting capital-gains tax."
+    S2: "I want taxes lower overall."
+    → {"implies": false, "confidence": "high", "reasoning": "S2 adds an aggregate-direction claim not contained in S1."}
+
+15) S1: "All abortions are morally wrong."
+    S2: "Abortions after 16 weeks are morally wrong."
+    → {"implies": true, "confidence": "high", "reasoning": "Named scope restriction: S2 applies the same predicate to a subset."}
+
+16) S1: "We must immediately repeal this outrageous municipal parking tax."
+    S2: "The municipal parking tax should be repealed."
+    → {"implies": true, "confidence": "high", "reasoning": "S2 retains the explicit repeal position while dropping urgency and rhetoric."}
+
+17) S1: "Illegal immigration is a crisis."
+    S2: "Immigration policy deserves careful attention."
+    → {"implies": false, "confidence": "high", "reasoning": "S2 substitutes a new, underdetermined speech act rather than retaining a proposition."}
+
+18) S1: "I support background checks for gun purchases."
+    S2: "I support reasonable gun control."
+    → {"implies": false, "confidence": "medium", "reasoning": "The target is underdetermined and could include policies absent from S1."}
+
+19) S1: "Late-term abortion is horrific."
+    S2: "I would accept abortion through 16 weeks."
+    → {"implies": false, "confidence": "high", "reasoning": "S2 adds acceptance of an outcome absent from S1."}
+
+20) S1: "The municipal parking tax should be repealed."
+    S2: "The municipal parking tax should be repealed, provided replacement revenue is found."
+    → {"implies": false, "confidence": "high", "reasoning": "S2 adds a condition and reservation absent from S1."}
+
+21) S1: "Late-term abortion is horrific."
+    S2: "I would accept abortion through 16 weeks as a compromise."
+    → {"implies": false, "confidence": "high", "reasoning": "S2 adds a negotiated commitment absent from S1."}
+
+22) S1: "Late-term abortion is horrific, but I would accept abortion through 16 weeks as a compromise."
+    S2: "I would accept abortion through 16 weeks as a compromise."
+    → {"implies": true, "confidence": "high", "reasoning": "Strict subset: the negotiated commitment is explicitly contained in S1."}`;
 
 export async function evaluateImplicationWithLLM(
   statement1Content: string,

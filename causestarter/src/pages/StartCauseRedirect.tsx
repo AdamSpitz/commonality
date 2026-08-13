@@ -5,7 +5,7 @@ import { createCausePath } from '../lib/causeStore'
 
 /**
  * Legacy `/start` entry: create a draft and open its editor. There is no
- * intermediate start form — founders land on the cause page immediately.
+ * intermediate start form — organizers land on the cause page immediately.
  */
 export function StartCauseRedirect() {
   const navigate = useNavigate()

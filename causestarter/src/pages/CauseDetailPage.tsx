@@ -74,7 +74,7 @@ function findLocalByStable(owner: string, slug: string): CauseDraft | undefined 
  * Local drafts live at `/cause/:uuid`. Once a roster is published, the share URL
  * is `/cause/:owner/:slug` (stable) or `/cause/:owner/:slug@version` (pinned).
  * Editing is allowed when this browser holds the draft or the connected wallet
- * is the founder.
+ * is the organizer.
  */
 export function CauseDetailPage() {
   const params = useParams<{ causeId?: string; owner?: string; slugPart?: string }>()
@@ -231,7 +231,7 @@ export function CauseDetailPage() {
         // Badge loads separately: it needs the operator address, which arrives async.
         setCause(remoteCause)
         // Local draft for this stable id can edit the tip without a connected wallet
-        // (draft patches are device-local). On-chain actions still require the founder
+        // (draft patches are device-local). On-chain actions still require the organizer
         // wallet. Pinned versions and pure remote visitors stay read-only.
         const canEditLocally = Boolean(local && !routeRef.versionCid)
         setRemoteReadOnly(!canEditLocally)
@@ -278,7 +278,7 @@ export function CauseDetailPage() {
     }
   }, [history, machinery])
 
-  // On-chain badge for whichever roster version is on screen (visitor or founder).
+  // On-chain badge for whichever roster version is on screen (visitor or organizer).
   // Re-runs once the operator address resolves; without it no badge is trustworthy.
   useEffect(() => {
     if (!cause?.rosterCid || !coherenceOperator) {
@@ -446,7 +446,7 @@ export function CauseDetailPage() {
   }
 
   /**
-   * Coach the founder on this issue's wording. Do not overwrite their text —
+   * Coach the organizer on this issue's wording. Do not overwrite their text —
    * only show feedback (and an optional example rephrasing they may adopt).
    */
   const handleReviewPlank = async (plank: CausePlank) => {

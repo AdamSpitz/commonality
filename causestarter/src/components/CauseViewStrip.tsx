@@ -28,7 +28,7 @@ interface CauseViewStripProps {
  * and never saw the fifth would vanish from a one-band number.
  *
  * Band 2 is never shown alone, because on its own it rewards roster churn. The
- * founder owns which planks appear here and may change them; adding one can
+ * organizer owns which planks appear here and may change them; adding one can
  * only *raise* band 2, since a plank nobody has encountered yet contributes
  * silence and silence is what band 2 counts as assent. So it is paired with the
  * weakest link, which moves the other way — adding a plank can only lower the
@@ -37,7 +37,7 @@ interface CauseViewStripProps {
  * The weakest link counts **direct** signatures only, unlike band 2 itself. An
  * implication arrow into a freshly added plank would lift its indirect support
  * to match its neighbours' and re-hide precisely the case this line exists to
- * expose — and on a cause page the founder may well be the attester who drew
+ * expose — and on a cause page the organizer may well be the attester who drew
  * that arrow.
  */
 export function CauseViewStrip({

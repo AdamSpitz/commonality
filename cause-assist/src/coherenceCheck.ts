@@ -75,7 +75,7 @@ function heuristicCoherence(request: CoherenceCheckRequest): CoherenceVerdict {
     }
   }
 
-  // Without an LLM, only pass when the founder wrote a non-trivial summary.
+  // Without an LLM, only pass when the organizer wrote a non-trivial summary.
   // Empty summary is allowed on publish but does not earn a coherence pass
   // from the heuristic — the badge is optional.
   if (summary.length < 12) {
