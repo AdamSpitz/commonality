@@ -74,10 +74,14 @@ us more.
 
 - [x] Add an intent-specific project-alignment picker that targets immutable statements
   and supports inviting trusted alignment attesters.
-- [ ] Add an intent-specific delegate-offering and donor-scope picker once delegation
-  intent semantics are settled. The donor-scope picker now targets immutable `NoteIntent`
-  statements; a public delegate-offering action still lacks settled storage/publication
-  semantics and must not be faked as a universal profile.
+- [x] Add intent-specific delegate-offering and donor-scope pickers. Donor scope targets
+  immutable `NoteIntent` statements. A delegate offering is a separate, versioned
+  `commonality.delegate-offering` publication: the delegate's fixed `delegate-offering`
+  `MutableRef` selects the current version, whose roster contains immutable statement CIDs
+  and an optional funding-judgment summary. Clearing the ref withdraws the offer; old
+  versions remain auditable. It is displayed alongside the address's derived funding track
+  record, but is not a universal identity profile, endorsement, promise to accept funds, or
+  source of authority over a donor's note.
 - [x] Reuse retrieval and review components for personal belief exploration without
   introducing a universal stored “profile” object.
 

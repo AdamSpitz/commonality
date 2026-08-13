@@ -201,6 +201,16 @@ project alignment as one stored object. They differ in ownership, mutability, id
 meaning, and available actions. They reuse the selection interaction and statement
 substrate, not a universal profile schema.
 
+A public **delegate offering** is its own versioned publication. The delegate owns one
+fixed `delegate-offering` mutable reference; its current document lists the immutable
+statement CIDs for which the address offers to make project-funding decisions, plus an
+optional short description of its approach. Revising the roster publishes a new immutable
+version, and clearing the reference withdraws the current offer without erasing history.
+The offering may be shown beside the address's recomputed funding track record, but it is
+not an identity profile, an endorsement by Commonality, a promise to accept funds, or an
+authorization to spend. A donor separately selects that address and attests each note's
+own immutable statement scope through `NoteIntent`.
+
 The assistant should:
 
 1. converse in ordinary language to understand the user's purpose;

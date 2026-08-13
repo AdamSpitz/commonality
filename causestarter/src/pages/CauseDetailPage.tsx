@@ -756,6 +756,15 @@ export function CauseDetailPage() {
                 >
                   Earmark funds
                 </Button>
+                <Button
+                  component="a"
+                  href={getDomainUrl('lazyGiving', `/delegates/offer?statement=${encodeURIComponent(plank.cid!)}`)}
+                  variant="text"
+                  size="small"
+                  sx={{ textTransform: 'none', flexShrink: 0 }}
+                >
+                  Offer to delegate
+                </Button>
               </Stack>
             ))}
           </Stack>
