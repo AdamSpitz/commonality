@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import type { StatementListItem } from '@commonality/sdk/conceptspace'
-import { parseTrustedNudgerAddresses, rankStatementMatches } from './statementPicker'
+import {
+  existingPlanksForAtomize,
+  MAX_EXISTING_PLANKS_FOR_ATOMIZE,
+  parseTrustedNudgerAddresses,
+  rankStatementMatches,
+} from './statementPicker'
 
 const statement = (cid: string, title: string, believerCount = 0): StatementListItem => ({
   id: cid, cid: cid as StatementListItem['cid'], title, excerpt: title,
@@ -13,6 +18,15 @@ describe('parseTrustedNudgerAddresses', () => {
   it('accepts shared JSON entries and the comma-separated fallback', () => {
     expect(parseTrustedNudgerAddresses(JSON.stringify([{ address, name: 'Explorer' }]))).toEqual([address])
     expect(parseTrustedNudgerAddresses(`${address},not-an-address`)).toEqual([address])
+  })
+})
+
+describe('existingPlanksForAtomize', () => {
+  it('omits empty input and caps at the atomize limit', () => {
+    expect(existingPlanksForAtomize(['', '  '])).toBeUndefined()
+    expect(existingPlanksForAtomize([' keep me ', ''])).toEqual(['keep me'])
+    const many = Array.from({ length: MAX_EXISTING_PLANKS_FOR_ATOMIZE + 5 }, (_, i) => `plank ${i}`)
+    expect(existingPlanksForAtomize(many)).toHaveLength(MAX_EXISTING_PLANKS_FOR_ATOMIZE)
   })
 })
 

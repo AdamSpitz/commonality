@@ -789,6 +789,7 @@ export function CauseDetailPage() {
               intent="cause"
               machinery={machinery}
               existingCids={publishedCids}
+              existingPlankTexts={cause.planks.map((plank) => plank.text)}
               disabled={mutationLocked}
               onSelect={handlePickerSelection}
             />

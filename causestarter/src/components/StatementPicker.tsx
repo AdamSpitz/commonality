@@ -6,6 +6,7 @@ import type { SDKMachinery } from '@commonality/sdk/machinery'
 import type { IpfsCidV1 } from '@commonality/sdk/utils'
 import { atomizeCause } from '../lib/causeAssistClient'
 import {
+  existingPlanksForAtomize,
   parseTrustedNudgerAddresses, rankStatementMatches, recordStatementPickerEvent,
   type StatementPickerIntent, type StatementPickerSelection,
 } from '../lib/statementPicker'
@@ -17,11 +18,14 @@ interface Props {
   intent: StatementPickerIntent
   machinery: SDKMachinery
   existingCids: readonly string[]
+  existingPlankTexts?: readonly string[]
   disabled?: boolean
   onSelect: (selection: StatementPickerSelection) => void
 }
 
-export function StatementPicker({ intent, machinery, existingCids, disabled, onSelect }: Props) {
+export function StatementPicker({
+  intent, machinery, existingCids, existingPlankTexts = [], disabled, onSelect,
+}: Props) {
   const [query, setQuery] = useState('')
   const [statements, setStatements] = useState<StatementListItem[]>([])
   const [rejected, setRejected] = useState<Set<string>>(new Set())
@@ -87,7 +91,7 @@ export function StatementPicker({ intent, machinery, existingCids, disabled, onS
     try {
       const response = await atomizeCause({
         description: query.trim(),
-        existingPlanks: statements.map((item) => item.title || item.excerpt || '').filter(Boolean),
+        existingPlanks: existingPlanksForAtomize(existingPlankTexts),
         count: 4,
       })
       setDrafts(response.planks)

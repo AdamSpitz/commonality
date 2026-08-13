@@ -43,6 +43,15 @@ function words(value: string): Set<string> {
   return new Set(value.toLowerCase().match(/[a-z0-9]+/g)?.filter((word) => word.length > 2) ?? [])
 }
 
+/** Matches cause-assist `/atomize` `MAX_EXISTING_STATEMENTS`. */
+export const MAX_EXISTING_PLANKS_FOR_ATOMIZE = 20
+
+/** Cause-owned plank texts for `/atomize`, never the retrieved catalog. */
+export function existingPlanksForAtomize(texts: readonly string[]): string[] | undefined {
+  const cleaned = texts.map((text) => text.trim()).filter(Boolean).slice(0, MAX_EXISTING_PLANKS_FOR_ATOMIZE)
+  return cleaned.length > 0 ? cleaned : undefined
+}
+
 /** Deterministic lexical ranking. Retrieval is always attempted before drafting. */
 export function rankStatementMatches(
   query: string,
