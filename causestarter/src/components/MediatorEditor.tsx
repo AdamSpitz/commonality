@@ -32,7 +32,7 @@ interface MediatorEditorProps {
 }
 
 /**
- * Optional founder-operated mediator, attached after its bridge-creator
+ * Optional organizer-operated mediator, attached after its bridge-creator
  * artifact is deployed. Collapsed by default: most causes never set one, and it
  * shouldn't compete with the issues for attention.
  */

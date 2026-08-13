@@ -57,7 +57,7 @@ export function HomePage() {
             Start a cause
           </Button>
           {/* There is deliberately no "support a cause" counterpart: we list no
-              causes and rank none. You reach a cause through its founder's own
+              causes and rank none. You reach a cause through its organizer's own
               link. */}
         </Stack>
       </Paper>

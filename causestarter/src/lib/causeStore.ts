@@ -1,7 +1,7 @@
 /**
  * Local cause records for CauseStarter.
  *
- * A cause is a **set of planks** — single-issue statements, each published
+ * A cause is a **versioned publication over planks** — immutable statements, each published
  * separately, each with its own signers, aligned projects, and earmarks. There
  * is no main statement: what a visitor sees is a **view**, a client-side set
  * operation over some subset of the planks, and "one main statement" is at most
@@ -9,7 +9,7 @@
  * `docs/founder/shaping-your-cause-statements.md`.
  *
  * On-chain truth still lives in the SDK/indexer. This store holds only what the
- * chain doesn't: which planks the founder groups into one cause, and the
+ * chain doesn't: which planks the organizer groups into one cause, and the
  * wording of planks not yet published.
  */
 
@@ -67,7 +67,7 @@ export interface CauseDraft {
    */
   suggestionSeed?: string
   /**
-   * Optional founder-chosen page title. When absent, the page falls back to the
+   * Optional organizer-chosen page title. When absent, the page falls back to the
    * first plank; when a roster is published, the chosen (or fallback) title is
    * sealed into the roster document.
    */
@@ -78,15 +78,15 @@ export interface CauseDraft {
    */
   summary?: string
   /**
-   * Stable URL slug for the published roster ref `(founder, slug) → roster CID`.
-   * Chosen once (or edited carefully) when the founder first publishes a roster.
+   * Stable URL slug for the published roster ref `(owner, slug) → roster CID`.
+   * Chosen once (or edited carefully) when the organizer first publishes a roster.
    */
   slug?: string
   /** Founder address that owns the stable ref, once a roster has been published. */
   founderAddress?: string
   /** Latest published roster document CID known to this device. */
   rosterCid?: string
-  /** Optional founder-operated mediator used by reusable bridge/opt-in blocks. */
+  /** Optional organizer-operated mediator used by reusable bridge/opt-in blocks. */
   mediator?: CauseMediator
 }
 
@@ -130,7 +130,7 @@ function canUseStorage(): boolean {
   return typeof window !== 'undefined' && typeof window.localStorage !== 'undefined'
 }
 
-/** Planks with text worth showing — a blank row the founder hasn't filled in yet isn't one. */
+/** Planks with text worth showing — a blank row the organizer hasn't filled in yet isn't one. */
 export function realPlanks(cause: CauseDraft): CausePlank[] {
   return cause.planks.filter((plank) => plank.text.trim())
 }
@@ -149,7 +149,7 @@ export function isLive(cause: CauseDraft): boolean {
 }
 
 /**
- * Display title: founder-set title when present, otherwise the first plank
+ * Display title: organizer-set title when present, otherwise the first plank
  * (truncated for chrome). Roster publish seals the full title into the document.
  */
 export function causeTitle(cause: CauseDraft): string {
@@ -178,8 +178,8 @@ export function hasBlockingSafety(cause: CauseDraft): boolean {
   return realPlanks(cause).some((plank) => plank.safety && !plank.safety.allowed)
 }
 
-export function newPlank(text = '', origin: StatementOrigin = 'user'): CausePlank {
-  return { id: crypto.randomUUID(), text, origin }
+export function newPlank(text = '', origin: StatementOrigin = 'user', cid?: string): CausePlank {
+  return { id: crypto.randomUUID(), text, origin, cid }
 }
 
 function migratePreviousCauses(): CauseDraft[] {

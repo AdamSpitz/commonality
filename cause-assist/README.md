@@ -2,8 +2,8 @@
 
 LLM-backed helpers for CauseStarter, defaulting to **Grok 4.5** via the xAI API:
 
-1. **Atomizer** — turn a rough cause description or bundle label into independent, signable planks (available as an API; CauseStarter's founder UI does **not** pre-fill form fields from this).
-2. **Plank sharpener** — critique/reword a plank against the attestable + signable bar. CauseStarter uses this for **feedback** and shows any rewording as an opt-in example, not an automatic field overwrite.
+1. **Atomizer** — turn an organizer's ordinary-language intent into independent, signable candidate planks after retrieval has failed. CauseStarter shows these as selectable proposals and never silently adopts them.
+2. **Plank sharpener** — critique/reword a plank against the attestable + signable bar. CauseStarter shows any rewording as an explicit proposal, not an automatic field overwrite.
 3. **Anchor drafter** — promote established planks into an explicitly enumerated disjunctive anchor.
 4. **Legacy statement suggester** — preserve the main → supporting workflow for existing causes.
 5. **Implication check and safety filter** — verify arrows and apply operational acceptable-use rules.

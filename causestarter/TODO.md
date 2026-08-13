@@ -7,13 +7,17 @@ open **if they stay listed here**.
 
 - [ ] **Anchors are not built.** A founder cannot promote a proven view into a published statement, so the three things only an anchor can do — sign the combination, earmark to it, align a project with it — remain unavailable. See [shaping-your-cause-statements.md § Promotion](/docs/founder/shaping-your-cause-statements.md#promotion). The seat for it is the cause page's view strip.
 - [x] **Roster is a publication.** Stable `/cause/:owner/:slug` + pinned `@version`, PublishedData roster document, MutableRef tip, history UI, preview-before-publish with peer "Publish anyway", separate coherence check, on-chain positive-only coherence attestation by the **CauseStarter operator** (the trusted `RefUpdated` worker's key is `msg.sender`; founder never self-attests), atomic publish+updateRef when the wallet supports EIP-5792 (sequential fallback), per-plank "added later" markers from ref history.
+- [x] **Retrieval sources are complete for the shared statement picker.** CauseStarter searches both the general published-statement feed and the trusted Explorer `curated-collection` map before offering AI drafts, supports rejecting every result, and resolves exact text before reusing a CID. This is retrieval input, not a CauseStarter cause directory. Cross-workflow picker adoption remains tracked in the [causes-as-publications implementation plan](/specs/product/causes-as-publications-implementation-plan.md#6-reuse-the-picker-in-distinct-workflows).
 - [ ] View counts fetch believer sets per plank, and each fetch walks events for the plank *plus* every statement implying it, under a `limit: 10000` that truncates silently. Fine locally; measure before it matters. Remedy is an indexer-side aggregate ([§ Scale](/docs/founder/shaping-your-cause-statements.md#scale-the-fold-is-fine-the-transport-isnt)), optionally sketch-backed — but band 1 must stay exact.
-- [x] Phrasing help is coach-only: no seed→auto-atomize into form fields; **Check phrasing** shows feedback (+ optional example wording). Sibling planks are passed as review context.
+- [x] **Retrieval-first assistance is explicit-adoption only.** Ordinary-language intent searches existing statements first; “none fit” may request AI-drafted candidates; rejection and manual correction remain available. Neither retrieved nor generated text is silently adopted. **Check phrasing** remains a separate optional clarification tool, and mediation must label any proposed change in position rather than presenting it as the organizer's belief.
 
 - [ ] Safety filter is MVP/heuristic + LLM policy text — not legal-grade; version/align with operator/legal specs later.
 - [ ] Unpublished draft state still in `localStorage` only — multi-device recovery of *drafts* later (published rosters are on chain).
 - [ ] No Privy path / full parity with main `ui` wallet story yet.
-- [ ] No Playwright / full e2e suite for CauseStarter yet.
+- [ ] Playwright smoke coverage now exercises wallet connection, draft persistence, and
+  single-plank publication against the live local stack. Expand it to the complete
+  organizer revision/share journey and the visitor selection/signing/board/version
+  journey tracked in the causes-as-publications implementation plan.
 - [ ] Product: how CauseStarter ranks vs other domains in nav/marketing once it’s “the main thing.”
 
 ## Architecture
