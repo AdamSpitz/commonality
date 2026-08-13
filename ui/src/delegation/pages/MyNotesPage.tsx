@@ -25,8 +25,9 @@ import { Link as RouterLink } from 'react-router-dom'
 import { useAccount } from 'wagmi'
 import { formatEther, parseEther } from 'viem'
 import { DelegatableNotesAbi, RecurringPledgesAbi } from '@commonality/sdk/abis'
+import { getStatement } from '@commonality/sdk/conceptspace'
 import { getNotesByOwner, getNotesByRoot, getDelegationChain, delegateNote, revokeNote, reclaimFunds, getActiveStandingPledgesByUser, cancelStandingPledge, type Note, type StandingPledge, type DelegatableNotesContract, type RecurringPledgesContract } from '@commonality/sdk/delegation'
-import type { Currency } from '@commonality/sdk/utils'
+import type { Currency, IpfsCidV1 } from '@commonality/sdk/utils'
 import { useMachinery } from '../../shared'
 import { useWriteClients } from '../../shared'
 import { formatCurrencyAmount, getCurrencyForNote } from '../../shared'
@@ -248,10 +249,12 @@ function formatPledgeDate(timestamp: string): string {
 
 function StandingPledgeCard({
   pledge,
+  causeTitle,
   onCancel,
   actionLoading,
 }: {
   pledge: StandingPledge
+  causeTitle?: string
   onCancel: (pledge: StandingPledge) => void
   actionLoading: boolean
 }) {
@@ -270,7 +273,10 @@ function StandingPledgeCard({
             Delegated to {truncateAddress(pledge.delegateTo)}
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Cause reference: {pledge.causeRef}
+            Cause:{' '}
+            <Link component={RouterLink} to={`/statement/${pledge.causeRef}`}>
+              {causeTitle ?? 'Untitled cause'}
+            </Link>
           </Typography>
           <Typography variant="body2" color="text.secondary">
             Last executed: {pledge.lastExecuted === '0' ? 'not yet' : formatPledgeDate(pledge.lastExecuted)}
@@ -300,6 +306,7 @@ export function MyNotesPage() {
   const [ownedNotes, setOwnedNotes] = useState<Note[]>([])
   const [depositedNotes, setDepositedNotes] = useState<Note[]>([])
   const [standingPledges, setStandingPledges] = useState<StandingPledge[]>([])
+  const [causeTitles, setCauseTitles] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
@@ -327,6 +334,13 @@ export function MyNotesPage() {
       setOwnedNotes(owned.filter(n => n.active))
       setDepositedNotes(deposited.filter(n => n.active))
       setStandingPledges(activePledges)
+      const causeEntries = await Promise.all(
+        [...new Set(activePledges.map((pledge) => pledge.causeRef))].map(async (causeRef) => {
+          const statement = await getStatement(machinery, causeRef as IpfsCidV1).catch(() => null)
+          return [causeRef, statement?.title?.trim() || 'Untitled cause'] as const
+        }),
+      )
+      setCauseTitles(Object.fromEntries(causeEntries))
     } catch (err) {
       console.error('Error loading notes:', err)
       setError(err instanceof Error ? err.message : 'Failed to load notes')
@@ -527,6 +541,7 @@ export function MyNotesPage() {
                 <StandingPledgeCard
                   key={`${pledge.contractAddress.toLowerCase()}:${pledge.id}`}
                   pledge={pledge}
+                  causeTitle={causeTitles[pledge.causeRef]}
                   actionLoading={actionLoading}
                   onCancel={handleCancelStandingPledge}
                 />

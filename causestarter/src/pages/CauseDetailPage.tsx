@@ -18,6 +18,7 @@ import {
 import { getProjectStatus, STATUS_LABELS } from '@ui/lazy-giving'
 import { CauseViewStrip, type ViewMode } from '../components/CauseViewStrip'
 import { CauseMediatorCard } from '../components/CauseMediatorCard'
+import { MonthlyPledgeSignal } from '../components/MonthlyPledgeSignal'
 import { StatementPicker } from '../components/StatementPicker'
 import { SelectedPlankSupport } from '../components/SelectedPlankSupport'
 import { MediatorEditor } from '../components/MediatorEditor'
@@ -722,6 +723,10 @@ export function CauseDetailPage() {
             </Alert>
           )}
         </>
+      )}
+
+      {publishedCids.length > 0 && (
+        <MonthlyPledgeSignal statementCids={publishedCids} />
       )}
 
       {canEdit && !cause.id.startsWith('remote:') && (
