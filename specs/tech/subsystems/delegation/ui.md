@@ -4,7 +4,7 @@ The delegation UI lives in `ui/src/delegation/`. It uses the same stack as the r
 
 There are three pages: My Notes, Note Detail, and Deposit.
 
-`NoteIntent` remains available as a contract and through SDK/indexer primitives, but the UI does not display or collect note intent while its permissionless attestation and note-lifecycle inheritance semantics remain unresolved.
+`NoteIntent` is currently dormant in the UI. The semantics that blocked it have now been settled — see [Note intent](#note-intent) below for the agreed rules and what still has to be built before the UI can display or collect intent again.
 
 
 ## My Notes Page
@@ -150,6 +150,110 @@ When a contribution was made via a delegatable note, the contributor leaderboard
 In the "Buy Tokens" section, add an option to pay using a delegatable note instead of paying directly from the wallet. When selected, show a dropdown of the user's active notes (from `getNotesByOwner`) with their balances. This calls `purchaseFromPrimaryMarketWithNotes` instead of the direct buy function, and must restrict each note-funded transaction to one token type.
 
 This is an alternative entry point to the spending flow described in the Note Detail page — it's the same action, just initiated from the project side rather than the note side.
+
+
+## Note intent
+
+`NoteIntent` (`hardhat/contracts/delegation/NoteIntent.sol`) lets an attester declare that a note is intended for a particular cause/statement. `DelegatableNotes` stays a pure financial primitive; intent is an optional layer on top.
+
+The UI for this was removed once (commit `7fc1ba5c`) because the attestation authority and lifecycle-inheritance semantics were unresolved. Those questions are now settled. The rules below are normative for any restored UI; the outstanding implementation work is tracked in the root [TODO.md](/TODO.md).
+
+### The rule
+
+> A live fungible note counts for cause C when the latest attestation by that note's **root owner**, on that **exact note ID**, names C.
+
+That is the whole rule. There is deliberately **no inheritance**.
+
+### Why no inheritance
+
+Intent inheritance looks cheap — every derivation event carries explicit parent→child linkage (`NoteDelegated`, `ChainSplit`, `RefundedIntoNote`, `ReimbursementClaimedIntoNote`, `ERC1155Purchased`) — but "nearest ancestor attestation" has no coherent meaning over time.
+
+Consider note 1 (100, cause A) partially split into a remainder (note 1, 60) and a child (note 2, 40). If the root later retargets note 1 to cause B, it is genuinely ambiguous whether that changes only the live remainder or retroactively changes note 2 as well, because note 1's ID is simultaneously a live note and a historical ancestor. Under "nearest current ancestor" the root cannot retag only the remainder. Snapshot-at-derivation-time resolves the ambiguity but is a heavier rule requiring inherited state stored at each derivation.
+
+Inheritance also buys much less than it appears to, because note IDs survive the two operations that matter most:
+
+- **Full delegation** keeps the same note ID (`DelegatableNotes.sol:485`), so intent survives for free.
+- **Revoke** only truncates the delegation chain; the note ID is unchanged, so intent survives for free.
+
+What starts untagged, and must be tagged explicitly by the root if they care: partial-split children, purchase outputs, refund outputs, and reimbursement outputs.
+
+### Consequences
+
+| Operation | Effect on intent |
+|---|---|
+| Full delegation | Survives (same note ID) |
+| Revoke | Survives (same note ID) |
+| Partial split | Remainder keeps intent at its reduced amount; the new child is untagged |
+| Partial purchase | Input remainder keeps intent at its reduced amount |
+| Purchase / refund / reimbursement output | Untagged |
+| `FundsReclaimed` | Note leaves the live set |
+| `NoteConsumed` | Amount reduces; the note leaves the live set only when `deleted == true` |
+
+### Validity filters
+
+An attestation counts only when all of these hold. `NoteIntent` itself validates none of them — it does not check that the note contract or note ID exists — so these are read-side obligations.
+
+- The note contract is a configured `DelegatableNotes` deployment.
+- The note exists, and the attestation is not earlier than the note's **birth event**. Birth is `NoteCreated` for deposits and recurring pledges, but partial-split children are born in `ChainSplit` and have no `NoteCreated` at all (`DelegatableNotes.sol:487`), so the fold must track a real birth block/log-index cursor.
+- `attester == rootOwner`.
+- The note is active and fungible.
+
+### Root ownership
+
+Root ownership is immutable at the contract level — there is no transfer-root operation. It must be an explicit `rootOwner` field on the folded note state, seeded at birth and copied through derivations, **not** recomputed as `chain[0]` on each read.
+
+`NoteCreated.owner` is the true root only for deposits and recurring pledges. For purchase, refund, and reimbursement outputs the emitted owner is the current *leaf* (`DelegatableNotes.sol:891`, `:719`), and split children emit no `NoteCreated`. The fold invariant:
+
+- Deposit / recurring-pledge note: seed `rootOwner` from `NoteCreated.owner`. Under `createDelegatedNoteFor` the emitted owner is the pledger who actually supplies the funds via `transferFrom`; the recurring-pledge registry is only the caller, never the root.
+- Split child: copy `rootOwner` from the original.
+- Purchase / refund / reimbursement output: copy `rootOwner` from the linked input.
+- Delegate / revoke / consume: never change it.
+- Assert `chain[0] == rootOwner` after every event.
+
+This is lineage reconstruction, which the fold needs anyway. It is not intent propagation.
+
+### Display
+
+The number is soft: a root owner can `reclaimFunds`, `revoke`, or retarget their attestation at any moment. It must never be presented as committed or guaranteed funding.
+
+- Show **"N supporters have earmarked X"**, carrying the supporter count as prominently as the amount. A count of distinct supporters is a far more robust signal of interest than a revocable sum.
+- Supporter count is **unique root-owner addresses** — not notes and not attestations, or a single supporter splitting a note would inflate it.
+- Group amounts **per currency, by chain and token address**. Never sum unlike assets into one figure.
+- Count only the native token and configured settlement ERC-20s. Otherwise anyone can deposit a worthless ERC-20 and manufacture an impressive-looking amount.
+- Exclude ERC-1155 receipt notes entirely (`tokenType === 1`): their `amount` is a receipt quantity, not currency value.
+- Optionally break down direct (root still holds it) versus delegated (a delegate can spend it without the supporter acting again), which mean different things to a project creator.
+
+### Write surfaces
+
+- An optional cause picker on one-time deposit, reusing the statement picker the deposit page already loads for recurring pledges (`ui/src/delegation/pages/DepositPage.tsx`).
+- A current-earmark display plus a change/clear action on the detail page of an active fungible note.
+- Offer the write action **only to the root owner**. Delegation does not move this authority. Do not offer it for receipt notes — the permissionless contract will still accept such an attestation from an external caller, but the UI and the aggregate ignore it.
+- Sequential transactions are acceptable; be explicit about partial success, since a succeeding deposit with a rejected attestation simply leaves the note untagged.
+
+### Clearing an earmark
+
+`NoteIntent.attestNoteIntent` rejects `bytes32(0)` (`NoteIntent.sol:43`), so intent can currently only be *retargeted*, never withdrawn. That is a real gap: a supporter who changes their mind cannot remove a claim without relocating the false signal to some other cause.
+
+The contract is dormant and not on mainnet, so the agreed fix is to **allow `bytes32(0)` to mean "cleared"**, emitting the same last-write-wins event. The SDK decoder must then preserve zero as "no intent" rather than converting it to a synthetic CID (`sdk/src/utils/eventDecoder.ts` currently calls `bytes32ToCid` unconditionally). A reserved sentinel statement is a strictly worse fallback — it is magic protocol data every reader must special-case forever — and would be a temporary compatibility measure, not the design.
+
+### Querying and scale
+
+`intendedStatementId` is not indexed on-chain; all three indexed slots are spent on attester, note contract, and note ID. Cause→notes is therefore a reverse query that requires downloading all NoteIntent events and filtering locally.
+
+Two known bugs must be fixed before any aggregate is trustworthy:
+
+- `getNoteIntentAttestationsByStatement` filters by statement **before** folding (`sdk/src/subsystems/delegation/queries.ts`). A note retargeted from A to B still appears under A. Fold all latest attestations first, then filter by cause.
+- The removed UI called `getNote` once per matching attestation, and each call downloads and folds every delegation event globally. That shape must not return; use a single aggregate fold instead.
+
+On completeness: the event API defaults to a 1000-row limit and caps at 10,000, with no cursor pagination (`indexer/src/api/index.ts`). Because it returns the *newest* rows, once any event type exceeds the cap, older events silently disappear and the fold becomes incomplete — and since anyone can attest on any note ID, spam can push legitimate attestations out of the window. Rule-1 filtering happens after fetching, so it does not protect the window.
+
+The cheap mitigation needs no contract change and no server view: the API already accepts `blockNumber_gte`/`blockNumber_lte`, so fetch from the deployment block and recursively bisect any range that returns exactly the cap, then cache the folded result. This makes fetching complete, but clients still download every attestation. Reassess against measured event volume before this becomes a prominent production signal; if abuse makes global downloads material, index the cause in a new contract/event version or add a derived server-side view.
+
+Do not ship a creator-facing number that silently reflects only the newest 10,000 events.
+
+### Explicitly deferred
+
+Intent inheritance of any kind; receipt-note tagging; automatic tagging of split, refund, or reimbursement outputs; atomic transaction batching of deposit + attestation; server-side materialized cause views; and any headline total or ranking of causes by earmarked money.
 
 
 ## Navigation
