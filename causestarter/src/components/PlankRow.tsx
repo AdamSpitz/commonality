@@ -64,11 +64,9 @@ interface PlankRowProps {
 
 function supportSummary(support: PlankSupport | undefined, loading: boolean): string {
   if (!support) return loading ? 'Counting supporters…' : 'Supporters unavailable'
-  if (support.indirect === 0) {
-    return `${support.direct} signed this`
-  }
-  // Direct and indirect overlap, so `total` is a union — never direct + indirect.
-  return `${support.direct} signed this; ${support.total} support it counting statements that imply it`
+  // Keep both provenance categories visible even when indirect support is zero. A cause
+  // visitor should never have to infer whether the displayed number is direct or derived.
+  return `${support.direct} direct signer${support.direct === 1 ? '' : 's'}, ${support.indirect} indirect supporter${support.indirect === 1 ? '' : 's'} · ${support.total} total`
 }
 
 export function PlankRow({

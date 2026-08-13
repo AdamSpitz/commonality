@@ -38,6 +38,31 @@ function renderDraft(publishing: boolean, mutationLocked = false) {
 }
 
 describe('PlankRow', () => {
+  it('labels direct and indirect support separately, including a zero indirect count', () => {
+    render(
+      <MemoryRouter>
+        <PlankRow
+          plank={{ id: 'plank', text: 'Repair every streetlight.', origin: 'user', cid: 'bafktest' }}
+          index={0}
+          selected
+          onSelectedChange={vi.fn()}
+          support={{ direct: 1, indirect: 0, total: 1 }}
+          supportLoading={false}
+          projectCount={0}
+          onSupported={vi.fn()}
+          onTextChange={vi.fn()}
+          onDelete={vi.fn()}
+          onReview={vi.fn()}
+          onPublish={vi.fn()}
+          reviewing={false}
+          publishing={false}
+        />
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByText('1 direct signer, 0 indirect supporters · 1 total')).toBeInTheDocument()
+  })
+
   it('disables editing, review, and deletion while publication is pending', () => {
     const handlers = renderDraft(true)
 
