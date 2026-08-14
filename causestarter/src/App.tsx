@@ -1,8 +1,8 @@
-import { BrowserRouter, HashRouter, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, HashRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { CauseShell } from './shell/CauseShell'
 import { HomePage } from './pages/HomePage'
 import { StartCauseRedirect } from './pages/StartCauseRedirect'
-import { MomentumPage } from './pages/MomentumPage'
+import { CausesPage } from './pages/CausesPage'
 import { CauseDetailPage } from './pages/CauseDetailPage'
 import { StatementBoardPage } from './pages/StatementBoardPage'
 import { StatementBoardLeaderboardPage } from './pages/StatementBoardLeaderboardPage'
@@ -23,6 +23,12 @@ import {
   ContentFundingMaterializeFutureContentPage,
   ContentFundingStartContractPage,
 } from './pages/ContentFundingPages'
+import {
+  DelegateProfilePage,
+  DepositPage,
+  MyNotesPage,
+  NoteDetailPage,
+} from './pages/DelegationPages'
 import { NotFoundPage } from './pages/NotFoundPage'
 
 function isHashRouting(): boolean {
@@ -39,7 +45,13 @@ export default function App() {
           <Route path="/" element={<HomePage />} />
           {/* No intermediate form — creates a draft and opens the editor. */}
           <Route path="/start" element={<StartCauseRedirect />} />
-          <Route path="/momentum" element={<MomentumPage />} />
+          <Route path="/causes" element={<CausesPage />} />
+          <Route path="/delegation" element={<Navigate to="/delegation/notes" replace />} />
+          <Route path="/delegation/notes" element={<MyNotesPage />} />
+          <Route path="/delegation/notes/new" element={<DepositPage />} />
+          <Route path="/delegation/notes/:noteId" element={<NoteDetailPage />} />
+          <Route path="/delegates/offer" element={<DelegateProfilePage />} />
+          <Route path="/delegates/:address" element={<DelegateProfilePage />} />
           {/* Local drafts use a UUID. Published causes use
               /cause/:owner/:slug[@versionCid] — stable id + optional pin.
               See docs/founder/shaping-your-cause-statements.md § roster. */}

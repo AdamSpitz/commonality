@@ -45,7 +45,7 @@ import {
 } from '../lib/causeRoster'
 import { publishPlank } from '../lib/publishPlank'
 import { SUPPORTING_TOOLS } from '../lib/tools'
-import { getDomainUrl } from '../lib/domainUrls'
+
 import { useMachinery } from '../lib/useMachinery'
 import { useWriteClients } from '../lib/useWriteClients'
 import { useCauseProjects } from '../hooks/useCauseProjects'
@@ -186,11 +186,11 @@ export function CauseDetailPage() {
             }
             return
           }
-          throw new Error('No published roster found for this cause link.')
+          throw new Error('No published cause found for this link.')
         }
 
         const loaded = await loadRosterDocument(machinery, rosterCid)
-        if (!loaded) throw new Error('Could not load the roster document for this cause.')
+        if (!loaded) throw new Error('Could not load the published cause for this link.')
 
         const { fields } = loaded
         const planks: CausePlank[] = []
@@ -445,8 +445,8 @@ export function CauseDetailPage() {
         <Alert severity="warning" sx={{ borderRadius: 2 }}>
           {loadError || 'Cause not found on this device.'}
         </Alert>
-        <Button component={RouterLink} to="/momentum" sx={{ textTransform: 'none' }}>
-          Back to momentum
+        <Button component={RouterLink} to="/causes" sx={{ textTransform: 'none' }}>
+          Back to causes
         </Button>
       </Stack>
     )
@@ -657,7 +657,7 @@ export function CauseDetailPage() {
         slug,
       }), { replace: true })
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to publish roster')
+      setError(err instanceof Error ? err.message : 'Failed to publish this cause')
     } finally {
       setPublishingRoster(false)
     }
@@ -665,9 +665,9 @@ export function CauseDetailPage() {
 
   const handleDeleteCause = () => {
     if (mutationLocked || !canEdit || cause.id.startsWith('remote:')) return
-    if (!window.confirm('Unbookmark this cause? It is removed from this device only. Published statements and rosters are unaffected.')) return
+    if (!window.confirm('Unbookmark this cause? It is removed from this device only. Published statements and cause pages are unaffected.')) return
     deleteCause(cause.id)
-    navigate('/momentum')
+    navigate('/causes')
   }
 
   const toggleSelected = (cid: string, selected: boolean) => {
@@ -715,7 +715,7 @@ export function CauseDetailPage() {
           <Chip size="small" color="info" label="Pinned version" sx={{ mb: 0.75, ml: live ? 0 : 1 }} />
         )}
         {cause.rosterCid && !routeRef?.versionCid && (
-          <Chip size="small" color="success" label="Roster published" sx={{ mb: 0.75, ml: live ? 1 : 0 }} />
+          <Chip size="small" color="success" label="Published" sx={{ mb: 0.75, ml: live ? 1 : 0 }} />
         )}
         {onChainBadge && onChainBadge.attesters.length > 0 && (
           <Chip
@@ -728,6 +728,14 @@ export function CauseDetailPage() {
             data-testid="cause-coherence-badge"
             data-attester={onChainBadge.attesters[0]}
           />
+        )}
+        {!isFreshDraft && (
+          <Typography
+            variant="overline"
+            sx={{ letterSpacing: '0.14em', fontWeight: 700, color: 'primary.main', display: 'block' }}
+          >
+            Cause
+          </Typography>
         )}
         <Typography
           variant="h4"
@@ -820,8 +828,8 @@ export function CauseDetailPage() {
                   {plank.text}
                 </Typography>
                 <Button
-                  component="a"
-                  href={getDomainUrl('lazyGiving', `/delegation/notes/new?statement=${encodeURIComponent(plank.cid!)}`)}
+                  component={RouterLink}
+                  to={`/delegation/notes/new?statement=${encodeURIComponent(plank.cid!)}`}
                   variant="outlined"
                   size="small"
                   sx={{ textTransform: 'none', flexShrink: 0 }}
@@ -829,8 +837,8 @@ export function CauseDetailPage() {
                   Earmark funds
                 </Button>
                 <Button
-                  component="a"
-                  href={getDomainUrl('lazyGiving', `/delegates/offer?statement=${encodeURIComponent(plank.cid!)}`)}
+                  component={RouterLink}
+                  to={`/delegates/offer?statement=${encodeURIComponent(plank.cid!)}`}
                   variant="text"
                   size="small"
                   sx={{ textTransform: 'none', flexShrink: 0 }}

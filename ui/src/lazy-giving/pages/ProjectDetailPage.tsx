@@ -28,7 +28,7 @@ export type ProjectDetailPageProps = {
   /**
    * Where error / not-found "back" links go.
    * LazyGiving uses the projects index; hosts without `/projects` should override
-   * (e.g. CauseStarter → `/momentum`).
+   * (e.g. CauseStarter → `/causes`).
    */
   listPath?: string
   /** Label for the back link (default: "Back to projects"). */

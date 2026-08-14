@@ -7,7 +7,7 @@ the cause-starter job:
 
 1. **Organize a cause** — retrieve, review, and select the independent, signable statements it is made of
 2. **Enroll people** — supporters (signers), volunteers, and collaborators
-3. **Build momentum** — funding portals, assurance contracts, content funding
+3. **Fund the work** — cause boards, assurance contracts, content funding
 4. **Use the rest as tools** — Commonality thesis, Civility, CSM, Tally, etc. are
    supporting features, not equal top-level entry points
 

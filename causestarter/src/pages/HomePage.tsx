@@ -1,6 +1,6 @@
 import { Box, Button, CircularProgress, Paper, Stack, Typography } from '@mui/material'
 import { Link as RouterLink, useNavigate } from 'react-router-dom'
-import { MomentumSteps } from '../components/MomentumSteps'
+import { HowItWorksSteps } from '../components/HowItWorksSteps'
 import { CauseCard } from '../components/CauseCard'
 import { useUserCauses } from '../hooks/useUserCauses'
 import { createCausePath } from '../lib/causeStore'
@@ -66,7 +66,7 @@ export function HomePage() {
         <Typography variant="h6" sx={{ fontWeight: 700, mb: 1.5 }}>
           How it works
         </Typography>
-        <MomentumSteps />
+        <HowItWorksSteps />
       </Box>
 
       {(loading || causes.length > 0) && (
@@ -75,7 +75,7 @@ export function HomePage() {
             <Typography variant="h6" sx={{ fontWeight: 700 }}>
               Your causes
             </Typography>
-            <Button component={RouterLink} to="/momentum" size="small" sx={{ textTransform: 'none' }}>
+            <Button component={RouterLink} to="/causes" size="small" sx={{ textTransform: 'none' }}>
               See all
             </Button>
           </Stack>

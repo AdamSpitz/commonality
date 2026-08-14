@@ -22,7 +22,7 @@ const steps: Array<{ icon: ReactNode; title: string; body: string }> = [
   },
 ]
 
-export function MomentumSteps() {
+export function HowItWorksSteps() {
   return (
     <Stack spacing={1.5}>
       {steps.map((step, index) => (

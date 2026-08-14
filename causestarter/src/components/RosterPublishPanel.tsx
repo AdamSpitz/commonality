@@ -78,16 +78,16 @@ export function RosterPublishPanel({
   return (
     <Stack spacing={1.5} data-testid="roster-publish-panel">
       <Box>
-        <Typography variant="h6" sx={{ fontWeight: 700 }}>Cause page (roster)</Typography>
+        <Typography variant="h6" sx={{ fontWeight: 700 }}>Publish this cause</Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
           Title, summary, issue list, and mediator blurb publish together as a versioned
-          document. The URL stays stable when you edit; each publish is a new version.
+          cause page. The URL stays stable when you edit; each publish is a new version.
         </Typography>
       </Box>
 
       {lastPublishedCid && (
         <Alert severity="info" sx={{ borderRadius: 2 }}>
-          Published roster
+          Published
           {rosterAgeLabel ? ` · last changed ${rosterAgeLabel}` : ''}
           {' · '}
           <Typography component="span" variant="body2" sx={{ fontFamily: 'monospace' }}>
@@ -102,7 +102,7 @@ export function RosterPublishPanel({
           {onChainBadge.attesters.length === 1
             ? ` · attester ${shortAddr(onChainBadge.attesters[0]!)}`
             : ` · ${onChainBadge.attesters.length} attesters`}
-          . Viewers recompute this from the roster CID and AlignmentAttestations.
+          . Viewers recompute this from the published cause CID and AlignmentAttestations.
         </Alert>
       )}
 
@@ -113,7 +113,7 @@ export function RosterPublishPanel({
         fullWidth
         size="small"
         disabled={busy}
-        helperText="Shown at the top of the cause page and sealed into the roster."
+        helperText="Shown at the top of the cause page and sealed into the published version."
         slotProps={{ htmlInput: { 'data-testid': 'roster-title' } }}
       />
       <TextField

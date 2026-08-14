@@ -149,7 +149,7 @@ async function loadDelegationHintExamples(machinery: SDKMachinery): Promise<Tool
     return {
       label: `Fundable work ${shortId}`,
       detail: 'Example target for delegated judgment',
-      href: getDomainUrl('lazyGiving', `/delegation/notes`, '#'),
+      href: '/delegation/notes',
     }
   })
 }

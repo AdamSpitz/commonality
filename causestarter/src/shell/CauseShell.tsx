@@ -14,7 +14,6 @@ import {
 } from '@mui/material'
 import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined'
 import FlagOutlinedIcon from '@mui/icons-material/FlagOutlined'
-import TrendingUpOutlinedIcon from '@mui/icons-material/TrendingUpOutlined'
 import HandymanOutlinedIcon from '@mui/icons-material/HandymanOutlined'
 import GitHubIcon from '@mui/icons-material/GitHub'
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined'
@@ -22,15 +21,13 @@ import DarkModeIcon from '@mui/icons-material/DarkMode'
 import LightModeIcon from '@mui/icons-material/LightMode'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { WalletButton } from '../components/WalletButton'
-import { createCausePath } from '../lib/causeStore'
 import { useThemeMode } from '../lib/themeMode'
 
 const GITHUB_ISSUES_URL = 'https://github.com/AdamSpitz/commonality/issues'
 
 const navItems = [
   { label: 'Home', path: '/', icon: <HomeOutlinedIcon /> },
-  { label: 'Start', path: '/start', icon: <FlagOutlinedIcon /> },
-  { label: 'Momentum', path: '/momentum', icon: <TrendingUpOutlinedIcon /> },
+  { label: 'Causes', path: '/causes', icon: <FlagOutlinedIcon /> },
   { label: 'Tools', path: '/tools', icon: <HandymanOutlinedIcon /> },
 ] as const
 
@@ -43,12 +40,14 @@ function activeNavPath(pathname: string): string {
     || pathname.startsWith('/statement')
     || pathname.startsWith('/projects')
   ) {
-    return '/momentum'
+    return '/causes'
   }
   if (
     pathname.startsWith('/content')
     || pathname.startsWith('/content-funding')
     || pathname.startsWith('/explore')
+    || pathname.startsWith('/delegation')
+    || pathname.startsWith('/delegates')
   ) {
     return '/tools'
   }
@@ -66,10 +65,6 @@ export function CauseShell({ children }: CauseShellProps) {
   const isDesktop = useMediaQuery(theme.breakpoints.up('md'))
   const { mode, toggleMode } = useThemeMode()
   const current = activeNavPath(location.pathname)
-
-  const goStartCause = () => {
-    navigate(createCausePath())
-  }
 
   return (
     <Box
@@ -113,14 +108,11 @@ export function CauseShell({ children }: CauseShellProps) {
           {isDesktop && (
             <Box sx={{ display: 'flex', gap: 0.5, mr: 1 }}>
               {navItems.map((item) => {
-                const isStart = item.path === '/start'
                 return (
                   <Box
                     key={item.path}
-                    component={isStart ? 'button' : Link}
-                    {...(isStart
-                      ? { type: 'button', onClick: goStartCause }
-                      : { to: item.path })}
+                    component={Link}
+                    to={item.path}
                     data-testid={`nav-${item.label.toLowerCase()}`}
                     sx={{
                       px: 1.5,
@@ -210,10 +202,6 @@ export function CauseShell({ children }: CauseShellProps) {
             value={current}
             onChange={(_, value: string) => {
               if (value === 'github-issues') return
-              if (value === '/start') {
-                goStartCause()
-                return
-              }
               navigate(value)
             }}
             sx={{

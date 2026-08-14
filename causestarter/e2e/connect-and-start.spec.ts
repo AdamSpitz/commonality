@@ -105,16 +105,12 @@ test.describe('CauseStarter agent smoke', () => {
     await expect(page.getByTestId('view-count-none-disagreed')).toBeVisible()
   })
 
-  test('nav Start creates a cause and opens the editor while connected', async ({ page }) => {
+  test('Causes page starts a cause and opens the editor while connected', async ({ page }) => {
     await connectHardhat0(page)
 
-    // Desktop nav (viewport is Desktop Chrome in playwright.config).
-    const navStart = page.getByTestId('nav-start')
-    if (await navStart.isVisible().catch(() => false)) {
-      await navStart.click()
-    } else {
-      await page.goto(appPath('/start'))
-    }
+    await page.getByTestId('nav-causes').click()
+    await expect(page.getByRole('heading', { name: 'Causes' })).toBeVisible()
+    await page.getByTestId('causes-start-cause').click()
 
     await expect(page.getByTestId('cause-detail-page')).toBeVisible({ timeout: 10_000 })
     await expect(page.getByTestId('wallet-connect-button')).toContainText(/Hardhat #0/i)
@@ -143,7 +139,7 @@ test.describe('CauseStarter agent smoke', () => {
       timeout: 60_000,
     })
     const stableUrl = page.url()
-    await expect(page.getByText('Roster published', { exact: true })).toBeVisible()
+    await expect(page.getByText('Published', { exact: true })).toBeVisible()
     await expect(page.getByRole('heading', { name: 'Safer Oak Street' })).toBeVisible()
 
     // A revision updates the stable ref while preserving the first immutable version.

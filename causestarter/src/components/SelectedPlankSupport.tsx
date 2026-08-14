@@ -62,7 +62,7 @@ export function SelectedPlankSupport({ planks, onSupported }: Props) {
         <div>
           <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>Review selected statements</Typography>
           <Typography variant="body2" color="text.secondary">
-            This supports only the statements below—not the organizer, narrative, cause roster, or unselected statements.
+            This supports only the statements below—not the organizer, narrative, cause page, or unselected statements.
           </Typography>
         </div>
         {planks.map((plank) => (

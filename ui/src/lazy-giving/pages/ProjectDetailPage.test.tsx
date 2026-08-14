@@ -196,10 +196,10 @@ describe('ProjectDetailPage', () => {
     it('uses host listPath/listLabel for not-found recovery', async () => {
       vi.mocked(getProject).mockResolvedValue(null)
 
-      render(<ProjectDetailPage listPath="/momentum" listLabel="Back to momentum" />)
+      render(<ProjectDetailPage listPath="/causes" listLabel="Back to causes" />)
 
       await waitFor(() => {
-        expect(screen.getByRole('link', { name: 'Back to momentum' })).toHaveAttribute('href', '/momentum')
+        expect(screen.getByRole('link', { name: 'Back to causes' })).toHaveAttribute('href', '/causes')
       })
     })
 

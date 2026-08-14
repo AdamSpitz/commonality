@@ -30,7 +30,7 @@
           "causestarter/src/pages/StatementBoardPage.tsx",
           "causestarter/src/pages/StatementPage.tsx",
           "causestarter/src/pages/ProjectDetailPage.tsx",
-          "causestarter/src/pages/MomentumPage.tsx",
+          "causestarter/src/pages/CausesPage.tsx",
           "causestarter/src/components/CauseViewStrip.tsx"
         ]
       }
