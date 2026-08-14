@@ -33,7 +33,10 @@ async function connectHardhat(page: Page, account: number) {
 }
 
 async function startCause(page: Page) {
-  await page.getByTestId('home-start-cause').click()
+  // Occupied home drops the landing CTA once this wallet already has causes.
+  // Causes always exposes the same start control.
+  await page.getByTestId('nav-causes').click()
+  await page.getByTestId('causes-start-cause').click()
   await expect(page.getByTestId('cause-detail-page')).toBeVisible({ timeout: 10_000 })
 }
 
@@ -54,6 +57,7 @@ test.describe('CauseStarter agent smoke', () => {
 
   test('starts a cause and lands on its editable page', async ({ page }) => {
     await expect(page.getByTestId('wallet-connect-button')).toBeVisible()
+    await expect(page.getByTestId('home-start-cause')).toBeVisible()
     await connectHardhat0(page)
     await startCause(page)
 
@@ -141,6 +145,9 @@ test.describe('CauseStarter agent smoke', () => {
     const stableUrl = page.url()
     await expect(page.getByText('Published', { exact: true })).toBeVisible()
     await expect(page.getByRole('heading', { name: 'Safer Oak Street' })).toBeVisible()
+
+    // Live causes open in viewing; revision needs the organizer editing surface.
+    await page.getByTestId('cause-mode-editing').click()
 
     // A revision updates the stable ref while preserving the first immutable version.
     await page.getByTestId('roster-summary').fill(

@@ -108,7 +108,7 @@ export function CauseDetailPage() {
     if (!addressKey) return
     if (!trustLoading) setTrustSettled(true)
   }, [addressKey, trustLoading])
-  const alignmentTrustReady = !address || (
+  const alignmentTrustReady = Boolean(address) && (
     trustSettled && !trustError && trustedAlignmentAttesters !== undefined
   )
   const alignmentTrustUnavailable = Boolean(address)
@@ -681,7 +681,7 @@ export function CauseDetailPage() {
 
   return (
     <Stack spacing={2.5} data-testid="cause-detail-page">
-      {isOrganizer && !isFreshDraft && (
+      {isOrganizer && canEdit && !isFreshDraft && (
         <ToggleButtonGroup
           exclusive
           size="small"
@@ -790,7 +790,7 @@ export function CauseDetailPage() {
           Loading your trust network before listing projects…
         </Alert>
       )}
-      {publishedCids.length > 0 && (trustError || alignmentTrustUnavailable) && (
+      {publishedCids.length > 0 && (!address || trustError || alignmentTrustUnavailable) && (
         <AlignmentTrustGate error={trustError} />
       )}
 
@@ -1044,7 +1044,7 @@ export function CauseDetailPage() {
           </Typography>
         )}
 
-        {projects.length > 0 && (
+        {alignmentTrustReady && projects.length > 0 && (
           <Stack spacing={1.25}>
             {totals && (
               <Stack direction="row" spacing={3} flexWrap="wrap" useFlexGap sx={{ pb: 0.5 }}>
