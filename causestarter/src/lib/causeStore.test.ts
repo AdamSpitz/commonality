@@ -1,19 +1,24 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import {
+  bookmarkCause,
   causeContentBoardPath,
   causePath,
   causeTitle,
   createCause,
   deleteCause,
+  findCauseByStable,
   forgetUnsavedCauses,
   getCause,
   hasBlockingSafety,
+  isCauseBookmarked,
   isEmptyDraft,
   isLive,
   listCauses,
   markPlankPublished,
+  publishedBookmarkIds,
   newPlank,
   publishedPlanks,
+  unbookmarkCause,
   unpublishedPlanks,
   updateCause,
   type CauseDraft,
@@ -336,5 +341,36 @@ describe('causeStore', () => {
     const created = createCause()
     deleteCause(created.id)
     expect(listCauses()).toHaveLength(0)
+  })
+
+  it('bookmarks a published cause by owner and slug without creating a second row', () => {
+    const remote: CauseDraft = {
+      id: 'remote:0xabc:safer-nights',
+      planks: [{ id: 'p1', text: 'Oak Street gets working streetlights.', origin: 'user', cid: 'bafy-one' }],
+      title: 'Safer nights',
+      slug: 'safer-nights',
+      founderAddress: '0xAbC',
+      rosterCid: 'bafy-roster',
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-01T00:00:00.000Z',
+    }
+
+    expect(isCauseBookmarked(remote)).toBe(false)
+    const saved = bookmarkCause(remote)
+    expect(saved.founderAddress).toBe('0xabc')
+    expect(isCauseBookmarked(remote)).toBe(true)
+    expect(findCauseByStable('0xABC', 'safer-nights')?.id).toBe(saved.id)
+    expect(listCauses()).toHaveLength(1)
+
+    const again = bookmarkCause({ ...remote, summary: 'Neighbors organizing.' })
+    expect(again.id).toBe(saved.id)
+    expect(listCauses()).toHaveLength(1)
+    expect(getCause(saved.id)?.summary).toBe('Neighbors organizing.')
+    expect(publishedBookmarkIds()).toEqual([
+      { owner: '0xabc', slug: 'safer-nights' },
+    ])
+    unbookmarkCause(remote)
+    expect(listCauses()).toHaveLength(0)
+    expect(publishedBookmarkIds()).toEqual([])
   })
 })

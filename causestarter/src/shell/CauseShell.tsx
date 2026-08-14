@@ -23,7 +23,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { WalletButton } from '../components/WalletButton'
 import { useThemeMode } from '../lib/themeMode'
 
-const GITHUB_ISSUES_URL = 'https://github.com/AdamSpitz/commonality/issues'
+const GITHUB_REPO_URL = 'https://github.com/AdamSpitz/commonality'
 
 const navItems = [
   { label: 'Home', path: '/', icon: <HomeOutlinedIcon /> },
@@ -132,10 +132,10 @@ export function CauseShell({ children }: CauseShellProps) {
           {isDesktop && (
             <IconButton
               component="a"
-              href={GITHUB_ISSUES_URL}
+              href={GITHUB_REPO_URL}
               target="_blank"
               rel="noopener noreferrer"
-              aria-label="Open GitHub issues for this project"
+              aria-label="Open the GitHub repository"
               size="small"
             >
               <GitHubIcon fontSize="small" />
@@ -192,7 +192,7 @@ export function CauseShell({ children }: CauseShellProps) {
             showLabels
             value={current}
             onChange={(_, value: string) => {
-              if (value === 'github-issues') return
+              if (value === 'github-repo') return
               navigate(value)
             }}
             sx={{
@@ -217,14 +217,14 @@ export function CauseShell({ children }: CauseShellProps) {
               />
             ))}
             <BottomNavigationAction
-              label="Issues"
-              value="github-issues"
+              label="GitHub"
+              value="github-repo"
               icon={<GitHubIcon />}
               component="a"
-              href={GITHUB_ISSUES_URL}
+              href={GITHUB_REPO_URL}
               target="_blank"
               rel="noopener noreferrer"
-              aria-label="Open GitHub issues for this project"
+              aria-label="Open the GitHub repository"
             />
           </BottomNavigation>
         </Paper>

@@ -29,8 +29,10 @@ import { RosterPublishPanel } from '../components/RosterPublishPanel'
 import { SafetyRejectionDialog } from '../components/SafetyRejectionDialog'
 import { ToolCard } from '../components/ToolCard'
 import {
-  causeContentBoardPath, causePath, causeTitle, deleteCause, getCause, isLive, listCauses, markPlankPublished,
-  markRosterPublished, newPlank, publishedPlanks, realPlanks, unpublishedPlanks, updateCause,
+  bookmarkCause, causeContentBoardPath, causePath, causeTitle, findCauseByStable,
+  getCause, isCauseBookmarked, isLive, markPlankPublished,
+  markRosterPublished, newPlank, publishedBookmarkIds, publishedPlanks, realPlanks,
+  unbookmarkCause, unpublishedPlanks, updateCause,
   type CauseDraft, type CausePlank, type SafetyState,
 } from '../lib/causeStore'
 import {
@@ -43,6 +45,7 @@ import {
   previewRosterCid, publishRoster, resolveRosterCid, rosterFieldsFromCause,
   stableCausePath, validateSlug, type RosterCoherenceBadge,
 } from '../lib/causeRoster'
+import { writeCauseBookmarkList } from '../lib/causeBookmarks'
 import { publishPlank } from '../lib/publishPlank'
 import { SUPPORTING_TOOLS } from '../lib/tools'
 
@@ -62,13 +65,6 @@ function safetyState(verdict: {
   explanation: string
 }): SafetyState {
   return { ...verdict, checkedAt: new Date().toISOString() }
-}
-
-function findLocalByStable(owner: string, slug: string): CauseDraft | undefined {
-  const ownerLc = owner.toLowerCase()
-  return listCauses().find(
-    (cause) => cause.slug === slug && cause.founderAddress?.toLowerCase() === ownerLc,
-  )
 }
 
 /**
@@ -175,7 +171,7 @@ export function CauseDetailPage() {
       setLoadingRemote(true)
       setLoadError(null)
       try {
-        const local = findLocalByStable(routeRef.owner, routeRef.slug)
+        const local = findCauseByStable(routeRef.owner, routeRef.slug)
         const tipCid = await resolveRosterCid(machinery, routeRef.owner, routeRef.slug)
         const rosterCid = routeRef.versionCid || tipCid
         if (!rosterCid) {
@@ -322,6 +318,37 @@ export function CauseDetailPage() {
   const canEdit = Boolean(cause)
     && !routeRef?.versionCid
     && (isOrganizer || (isUnpublishedLocalDraft && !remoteReadOnly))
+  const canKeepOnDevice = Boolean(
+    cause
+    && cause.founderAddress
+    && cause.slug
+    && !isOrganizer
+    && !isUnpublishedLocalDraft,
+  )
+  const keptOnDevice = Boolean(cause && isCauseBookmarked(cause))
+
+  const persistWalletBookmarks = useCallback(async () => {
+    if (!writeClients) return
+    try {
+      await writeCauseBookmarkList(writeClients, publishedBookmarkIds())
+    } catch (err) {
+      console.warn('Could not update wallet cause bookmarks', err)
+    }
+  }, [writeClients])
+
+  const keepThisCause = useCallback(() => {
+    if (!cause || isOrganizer || !cause.founderAddress || !cause.slug) return
+    setCause(bookmarkCause(cause))
+    void persistWalletBookmarks()
+  }, [cause, isOrganizer, persistWalletBookmarks])
+
+  const handleRemoveFromDevice = () => {
+    if (!cause || isOrganizer) return
+    if (!window.confirm('Remove this bookmark? The cause page stays published. You can still open it from its share link.')) return
+    unbookmarkCause(cause)
+    setCause({ ...cause })
+    void persistWalletBookmarks()
+  }
 
   /**
    * Which view the organizer asked for, or `null` while they have not said.
@@ -665,8 +692,9 @@ export function CauseDetailPage() {
 
   const handleDeleteCause = () => {
     if (mutationLocked || !canEdit || cause.id.startsWith('remote:')) return
-    if (!window.confirm('Unbookmark this cause? It is removed from this device only. Published statements and cause pages are unaffected.')) return
-    deleteCause(cause.id)
+    if (!window.confirm('Unbookmark this cause? Published statements and cause pages are unaffected.')) return
+    unbookmarkCause(cause)
+    void persistWalletBookmarks()
     navigate('/causes')
   }
 
@@ -773,6 +801,19 @@ export function CauseDetailPage() {
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.75 }}>
             Share link: {stableCausePath(stable)}
           </Typography>
+        )}
+        {canKeepOnDevice && (
+          <Button
+            variant={keptOnDevice ? 'text' : 'outlined'}
+            data-testid={keptOnDevice ? 'cause-remove-from-device' : 'cause-keep-on-device'}
+            onClick={() => {
+              if (keptOnDevice) handleRemoveFromDevice()
+              else keepThisCause()
+            }}
+            sx={{ mt: 1.5, textTransform: 'none', fontWeight: 600 }}
+          >
+            {keptOnDevice ? 'Remove bookmark' : 'Bookmark'}
+          </Button>
         )}
       </Box>
 
@@ -938,7 +979,10 @@ export function CauseDetailPage() {
               support={plank.cid ? perPlank.get(plank.cid) : undefined}
               supportLoading={countsLoading}
               projectCount={plank.cid ? countByPlankCid.get(plank.cid) ?? 0 : 0}
-              onSupported={() => refreshCounts()}
+              onSupported={(info) => {
+                refreshCounts()
+                if (info.action === 'support') keepThisCause()
+              }}
               onTextChange={(text) => {
                 updatePlank(plank.id, { text, safety: undefined })
                 clearReview(plank.id)
@@ -989,7 +1033,10 @@ export function CauseDetailPage() {
               cid: plank.cid!,
               text: plank.text,
             }))}
-            onSupported={() => refreshCounts()}
+            onSupported={() => {
+              refreshCounts()
+              keepThisCause()
+            }}
           />
         </Box>
 

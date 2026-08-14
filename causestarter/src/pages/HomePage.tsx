@@ -104,15 +104,6 @@ export function HomePage() {
         causes={causes}
         loading={loading}
         testId="home-dashboard"
-        footer={
-          <Button
-            component={RouterLink}
-            to="/docs"
-            sx={{ alignSelf: 'flex-start', textTransform: 'none', fontWeight: 600, px: 0 }}
-          >
-            How it works and examples
-          </Button>
-        }
       />
     )
   }
@@ -122,7 +113,7 @@ export function HomePage() {
       <Stack direction="row" spacing={1} alignItems="center" sx={{ py: 3 }} data-testid="home-loading">
         <CircularProgress size={18} />
         <Typography variant="body2" color="text.secondary">
-          Loading on-chain support…
+          Loading causes…
         </Typography>
       </Stack>
     )

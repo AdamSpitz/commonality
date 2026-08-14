@@ -60,7 +60,7 @@ wrong (or this file is out of date and needs an ADR — see
 |---|---|
 | **Subsystem** | A capability: a contract family + SDK subsystem + UI feature module sharing one name |
 | **Site / UI domain** | A branded build that composes a subset of subsystems. There are eight |
-| **Bookmark** | A cause kept in this browser's local storage. Purely device-local and off-chain: bookmarking or unbookmarking never touches published statements or published cause pages. The user-facing word for local save/remove — never "remove locally", "save to device", or "delete cause" |
+| **Bookmark** | A published cause or statement the user chose to keep, independently of signing. Cause bookmarks are cached locally and, with a connected wallet, stored in the `bookmarked-causes` mutable ref (public). Statement bookmarks use the separate `bookmarks` ref (statement CIDs). Unpublished cause drafts stay device-local. Never mix the two lists. User-facing verbs: bookmark / remove bookmark — never "save to device" or "delete cause" |
 | **Cause page** | The versioned publication of a cause's title, summary, issue list, and mediator blurb. User-facing word for what code still calls a *roster* (`causestarter.roster`, `rosterCid`). Never say "roster" in UI copy. |
 
 ---

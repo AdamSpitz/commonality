@@ -23,32 +23,47 @@ export function YourCauses({
 
   return (
     <Stack spacing={3} data-testid={testId}>
-      <Box>
-        <Typography variant="h4" component="h1" sx={{ fontWeight: 800, fontSize: { xs: '1.6rem', sm: '2rem' } }}>
-          Causes
-        </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.75 }}>
-          Causes you have bookmarked on this device, plus causes whose issues you have
-          publicly signed on-chain.
-        </Typography>
-      </Box>
-
-      <Button
-        variant="contained"
-        size="large"
-        fullWidth
-        data-testid="causes-start-cause"
-        sx={{ minHeight: 48, borderRadius: 999, textTransform: 'none', fontWeight: 700 }}
-        onClick={() => navigate(createCausePath())}
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'flex-start',
+          justifyContent: 'space-between',
+          gap: 2,
+        }}
       >
-        Start a cause
-      </Button>
+        <Box sx={{ minWidth: 0 }}>
+          <Typography variant="h4" component="h1" sx={{ fontWeight: 800, fontSize: { xs: '1.6rem', sm: '2rem' } }}>
+            Causes
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.75 }}>
+            Drafts stay on this device. Published bookmarks follow your wallet
+            and are public.
+          </Typography>
+        </Box>
+        <Button
+          variant="outlined"
+          data-testid="causes-start-cause"
+          sx={{
+            flexShrink: 0,
+            mt: 0.35,
+            minHeight: 40,
+            px: 1.75,
+            borderRadius: 999,
+            textTransform: 'none',
+            fontWeight: 700,
+            whiteSpace: 'nowrap',
+          }}
+          onClick={() => navigate(createCausePath())}
+        >
+          Start a cause
+        </Button>
+      </Box>
 
       {loading && causes.length === 0 && (
         <Stack direction="row" spacing={1} alignItems="center" sx={{ py: 1 }}>
           <CircularProgress size={18} />
           <Typography variant="body2" color="text.secondary">
-            Loading on-chain support…
+            Loading causes…
           </Typography>
         </Stack>
       )}

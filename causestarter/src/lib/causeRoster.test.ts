@@ -42,6 +42,8 @@ describe('causeRoster', () => {
     expect(normalizeSlug('  Free the Oaks! ')).toBe('free-the-oaks')
     expect(validateSlug('free-the-oaks')).toBeNull()
     expect(validateSlug('created-statements')).toMatch(/reserved/i)
+    expect(validateSlug('bookmarks')).toMatch(/reserved/i)
+    expect(validateSlug('bookmarked-causes')).toMatch(/reserved/i)
     expect(validateSlug('Bad_Slug')).toMatch(/lowercase/i)
     expect(validateSlug('')).toMatch(/slug/i)
   })
