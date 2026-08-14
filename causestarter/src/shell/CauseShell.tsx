@@ -17,6 +17,7 @@ import FlagOutlinedIcon from '@mui/icons-material/FlagOutlined'
 import TrendingUpOutlinedIcon from '@mui/icons-material/TrendingUpOutlined'
 import HandymanOutlinedIcon from '@mui/icons-material/HandymanOutlined'
 import GitHubIcon from '@mui/icons-material/GitHub'
+import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined'
 import DarkModeIcon from '@mui/icons-material/DarkMode'
 import LightModeIcon from '@mui/icons-material/LightMode'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
@@ -151,6 +152,14 @@ export function CauseShell({ children }: CauseShellProps) {
             </IconButton>
           )}
 
+          <IconButton
+            component={Link}
+            to="/settings"
+            aria-label="Trust settings"
+            size="small"
+          >
+            <SettingsOutlinedIcon fontSize="small" />
+          </IconButton>
           <IconButton
             onClick={toggleMode}
             aria-label={mode === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}

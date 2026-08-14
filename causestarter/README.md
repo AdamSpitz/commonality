@@ -60,6 +60,22 @@ as main `CreateStatementForm`), not browser → Kubo API upload.
 
 Dev server: **http://localhost:5174** (main `ui` stays on 5173).
 
+### Local trust network (project lists)
+
+Project lists on a cause are filtered by your **Subjectiv trust graph**: vouches
+that “this project advances that issue” only count from wallets you have named
+on-chain. That is not an attestation of the cause itself. If a connected
+Hardhat wallet has never called `TrustRegistry.setTrust`, CauseStarter hides
+the project list and explains how to name someone.
+
+`./scripts/data.sh --seed` (any size) records that graph for Hardhat `#0`–`#9`
+via `scripts/seed-local-alignment-trust.mjs`. After a wipe, the usual
+`services.sh --start` then `data.sh --seed` is enough.
+
+To re-run only the trust edges: `node scripts/seed-local-alignment-trust.mjs`.
+The cause-page banner (“Local test: trust Hardhat #N”) and **Trust settings**
+(gear icon) still work for any other wallet.
+
 Vite proxies `/api` → indexer and `/api/cause-assist` → **Docker** `cause-assist` on `http://127.0.0.1:3002`. Tool cards still open the other domains at `*.localhost:8088`.
 
 **Note:** browser `localStorage` is per-origin, so causes saved on `:8090` do not appear on `:5174` (and vice versa). Use Vite for day-to-day UI work; use Docker (`./scripts/deploy-causestarter.sh` → `:8090`) when you need the packaged nginx SPA.

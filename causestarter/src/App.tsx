@@ -8,6 +8,7 @@ import { StatementBoardPage } from './pages/StatementBoardPage'
 import { StatementBoardLeaderboardPage } from './pages/StatementBoardLeaderboardPage'
 import { StatementPage } from './pages/StatementPage'
 import { ToolsPage } from './pages/ToolsPage'
+import { SettingsPage } from './pages/SettingsPage'
 import { ProjectDetailPage } from './pages/ProjectDetailPage'
 import { NotFoundPage } from './pages/NotFoundPage'
 
@@ -41,6 +42,7 @@ export default function App() {
           <Route path="/statement/:statementCid/board/leaderboard" element={<StatementBoardLeaderboardPage />} />
           <Route path="/projects/:projectAddress" element={<ProjectDetailPage />} />
           <Route path="/tools" element={<ToolsPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </CauseShell>

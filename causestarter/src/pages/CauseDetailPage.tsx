@@ -16,6 +16,7 @@ import {
   useTrustedSet,
 } from '@ui/shared'
 import { getProjectStatus, STATUS_LABELS } from '@ui/lazy-giving'
+import { AlignmentTrustGate } from '../components/AlignmentTrustGate'
 import { CauseViewStrip, type ViewMode } from '../components/CauseViewStrip'
 import { CauseMediatorCard } from '../components/CauseMediatorCard'
 import { MonthlyPledgeSignal } from '../components/MonthlyPledgeSignal'
@@ -107,10 +108,10 @@ export function CauseDetailPage() {
     if (!addressKey) return
     if (!trustLoading) setTrustSettled(true)
   }, [addressKey, trustLoading])
-  const trustReady = !address || (
+  const alignmentTrustReady = !address || (
     trustSettled && !trustError && trustedAlignmentAttesters !== undefined
   )
-  const trustUnavailable = Boolean(address)
+  const alignmentTrustUnavailable = Boolean(address)
     && trustSettled
     && !trustError
     && trustedAlignmentAttesters === undefined
@@ -356,7 +357,7 @@ export function CauseDetailPage() {
     publishedCids,
     selectedCids,
     activeTrustedImplicationAttesters,
-    trustReady,
+    true,
   )
   const {
     projects, totals, countByPlankCid, loading: projectsLoading, error: projectsError,
@@ -364,7 +365,7 @@ export function CauseDetailPage() {
     publishedCids,
     activeTrustedImplicationAttesters,
     trustedAlignmentAttesters,
-    trustReady,
+    alignmentTrustReady,
   )
 
   const fewestDirectSignatures = useMemo(() => {
@@ -693,21 +694,14 @@ export function CauseDetailPage() {
 
       {publishedCids.length > 0 && showInitialTrustLoad && (
         <Alert severity="info" sx={{ borderRadius: 2 }}>
-          Loading your trust network before supporter and project counts…
+          Loading your trust network before listing projects…
         </Alert>
       )}
-      {publishedCids.length > 0 && trustError && (
-        <Alert severity="warning" sx={{ borderRadius: 2 }}>
-          Supporter and project counts are paused because your trust network could not be loaded: {trustError}
-        </Alert>
-      )}
-      {publishedCids.length > 0 && trustUnavailable && (
-        <Alert severity="info" sx={{ borderRadius: 2 }}>
-          Supporter and project counts are paused until this wallet has trusted attesters.
-        </Alert>
+      {publishedCids.length > 0 && (trustError || alignmentTrustUnavailable) && (
+        <AlignmentTrustGate error={trustError} />
       )}
 
-      {publishedCids.length > 0 && trustReady && (
+      {publishedCids.length > 0 && (
         <>
           <CauseViewStrip
             mode={mode}
@@ -926,7 +920,7 @@ export function CauseDetailPage() {
           </Alert>
         )}
 
-        {publishedCids.length > 0 && trustReady && projectsLoading && (
+        {publishedCids.length > 0 && alignmentTrustReady && projectsLoading && (
           <Stack direction="row" spacing={1} alignItems="center" sx={{ py: 1 }}>
             <CircularProgress size={18} />
             <Typography variant="body2" color="text.secondary">Loading aligned projects…</Typography>
@@ -937,7 +931,7 @@ export function CauseDetailPage() {
           <Alert severity="warning" sx={{ borderRadius: 2 }}>{projectsError}</Alert>
         )}
 
-        {publishedCids.length > 0 && trustReady && !projectsLoading && !projectsError && projects.length === 0 && (
+        {publishedCids.length > 0 && alignmentTrustReady && !projectsLoading && !projectsError && projects.length === 0 && (
           <Typography variant="body2" color="text.secondary">
             No projects are aligned with these issues yet. Open an issue's board to vouch for work
             that advances it.
