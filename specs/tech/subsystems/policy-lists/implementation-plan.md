@@ -1,6 +1,6 @@
 # Policy lists: content-only implementation plan
 
-Status: **in progress; local foundation substantially complete, starter-profile vertical slice next** (Aug 2026).
+Status: **in progress; starter-profile operational gate passed on testnet** (2026-08-14). Source machinery plus deployed Civility/gateway enforcement of the pinned example bundle are live; remaining checklist items are coverage holes, deferred subscription automation, and later verticals.
 
 This is the resumable work tracker for implementing the basic content-only portion of policy lists. A fresh LLM should be able to start here, complete one coherent unchecked item, update this file, and leave the next item ready for another instance.
 
@@ -143,7 +143,7 @@ These remain valuable, but are not required for the starter-profile stopping gat
 - [ ] Apply `refuse-serve` to PublishedData/content-serving and metadata-serving routes using the activated operator bundle.
   - [x] Added a reusable SDK serving adapter that evaluates one atomic runtime snapshot, fails closed on an unavailable cold start, continues enforcing stale last-known-good bundles, and returns standard digest/status response headers.
   - [x] Added an opt-in generic platform-API `/policy-content/:cid` gateway which activates the operator bundle before listening, refuses listed CIDs before upstream retrieval, and reports the enforced status/digest.
-  - [x] Added the Render policy-gateway configuration seam and routed Civility client CID retrieval through it with browser-readable digest/status headers. Setting the deployed bundle URL and redeploying remain operational work.
+  - [x] Added the Render policy-gateway configuration seam and routed Civility client CID retrieval through it with browser-readable digest/status headers. The testnet bundle URL is published at the raw GitHub `dev` path recorded in `deployments/base-sepolia.env`; the 2026-08-14 `testnet.policy-enforcement` run confirmed the deployed UI and platform API both load that bundle.
   - [ ] Wire the adapter into the Civility operator-controlled serving route(s); do not apply Civility's policy to the neutral shared pointer index.
 - [ ] Close, authenticate, or equivalently filter SQL, GraphQL, raw-event, and alternate API paths that would bypass the operator's serving policy.
 - [ ] Report the enforced digest and runtime status through responses, logs, and operator introspection.
@@ -162,7 +162,7 @@ These remain valuable, but are not required for the starter-profile stopping gat
 - [x] Document the starter-profile boundary clearly: maintainers supply the dataset; operators still choose the profile, pin updates, receive reports, support appeals, and own incidents.
 - [ ] Add verifier coverage for active-digest agreement and cross-surface suppression in Civility. Broader source-health thresholds, CSM integration, and other vertical coverage may follow operational experience.
   - [x] Added `functionality.civility-policy-surfaces` as a required fast-validation leaf for route classification and source/test enforcement drift. Deployed active-digest agreement and a live blocked-fixture journey remain.
-  - [x] Added guarded read-only `testnet.policy-enforcement` coverage that obtains the bundle URL from deployed Civility config, verifies the configured fixture is asserted, and requires the gateway to refuse it under the same current digest. Publishing/configuring the bundle, redeploying, and obtaining a passing retained result remain operational work.
+  - [x] Added guarded read-only `testnet.policy-enforcement` coverage that obtains the bundle URL from deployed Civility config, verifies the configured fixture is asserted, and requires the gateway to refuse it under the same current digest. Passing retained result on 2026-08-14: digest `0x5bc37be2a41bf9525cb0180fe1ceeeb6cd31752d798f7087928b22a74634ee0b`, gateway HTTP 451 + `content_refused_by_policy` + `current`.
 - [ ] Remove or route around the old standalone display-denylist path in Civility, and declare the starter-profile stopping gate complete only after its coverage inventory has no unhandled public surface.
   - [x] Civility now routes around `VITE_DISPLAY_DENYLIST_URL`, leaving its activated bundle as the only content-policy decision source; other domains retain the compatibility path.
 
