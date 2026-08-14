@@ -529,7 +529,7 @@ services:
       - key: CONTENT_FINDER_POLL_INTERVAL_MS
         value: 30000
       - key: RECURRING_PLEDGE_SCHEDULER_ENABLED
-        value: "false"
+        value: "true"
       - key: RECURRING_PLEDGE_SCHEDULER_CHAIN
         value: base-sepolia
       - key: RECURRING_PLEDGE_SCHEDULER_RPC_URL

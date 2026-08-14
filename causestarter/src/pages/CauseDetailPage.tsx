@@ -18,6 +18,9 @@ import {
 import { getProjectStatus, STATUS_LABELS } from '@ui/lazy-giving'
 import { CauseViewStrip, type ViewMode } from '../components/CauseViewStrip'
 import { CauseMediatorCard } from '../components/CauseMediatorCard'
+import { MonthlyPledgeSignal } from '../components/MonthlyPledgeSignal'
+import { StatementPicker } from '../components/StatementPicker'
+import { SelectedPlankSupport } from '../components/SelectedPlankSupport'
 import { MediatorEditor } from '../components/MediatorEditor'
 import { PlankRow, type PlankReview } from '../components/PlankRow'
 import { RosterHistory } from '../components/RosterHistory'
@@ -41,6 +44,7 @@ import {
 } from '../lib/causeRoster'
 import { publishPlank } from '../lib/publishPlank'
 import { SUPPORTING_TOOLS } from '../lib/tools'
+import { getDomainUrl } from '../lib/domainUrls'
 import { useMachinery } from '../lib/useMachinery'
 import { useWriteClients } from '../lib/useWriteClients'
 import { useCauseProjects } from '../hooks/useCauseProjects'
@@ -72,7 +76,7 @@ function findLocalByStable(owner: string, slug: string): CauseDraft | undefined 
  * Local drafts live at `/cause/:uuid`. Once a roster is published, the share URL
  * is `/cause/:owner/:slug` (stable) or `/cause/:owner/:slug@version` (pinned).
  * Editing is allowed when this browser holds the draft or the connected wallet
- * is the founder.
+ * is the organizer.
  */
 export function CauseDetailPage() {
   const params = useParams<{ causeId?: string; owner?: string; slugPart?: string }>()
@@ -229,7 +233,7 @@ export function CauseDetailPage() {
         // Badge loads separately: it needs the operator address, which arrives async.
         setCause(remoteCause)
         // Local draft for this stable id can edit the tip without a connected wallet
-        // (draft patches are device-local). On-chain actions still require the founder
+        // (draft patches are device-local). On-chain actions still require the organizer
         // wallet. Pinned versions and pure remote visitors stay read-only.
         const canEditLocally = Boolean(local && !routeRef.versionCid)
         setRemoteReadOnly(!canEditLocally)
@@ -276,7 +280,7 @@ export function CauseDetailPage() {
     }
   }, [history, machinery])
 
-  // On-chain badge for whichever roster version is on screen (visitor or founder).
+  // On-chain badge for whichever roster version is on screen (visitor or organizer).
   // Re-runs once the operator address resolves; without it no badge is trustworthy.
   useEffect(() => {
     if (!cause?.rosterCid || !coherenceOperator) {
@@ -432,13 +436,19 @@ export function CauseDetailPage() {
     setPlanks([...cause.planks, newPlank()])
   }
 
+  const handlePickerSelection = (selection: { text: string; cid?: string; source: 'existing' | 'drafted' }) => {
+    if (mutationLocked || !canEdit) return
+    setPlanks([...cause.planks, newPlank(selection.text, 'suggested', selection.cid)])
+    voidCoherence()
+  }
+
   const handleDeletePlank = (id: string) => {
     if (mutationLocked || !canEdit) return
     setPlanks(cause.planks.filter((plank) => plank.id !== id))
   }
 
   /**
-   * Coach the founder on this issue's wording. Do not overwrite their text —
+   * Coach the organizer on this issue's wording. Do not overwrite their text —
    * only show feedback (and an optional example rephrasing they may adopt).
    */
   const handleReviewPlank = async (plank: CausePlank) => {
@@ -643,13 +653,12 @@ export function CauseDetailPage() {
         {isFreshDraft ? (
           <>
             <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>
-              A cause is a set of clear issues people can support one at a time.
-              You write those issues yourself — CauseStarter helps you check that
-              each one is specific enough to sign and attest.
+              Tell CauseStarter what you want people to be able to support. It searches
+              published statements first and can propose new wording when none fit.
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-              Prefer concrete claims a real supporter would sincerely sign (for example,
-              a single policy position or local outcome) over slogans or broad identity labels.
+              You decide what belongs in the cause. Nothing is published until you review
+              the exact statement text and CID in the page below and explicitly approve it.
             </Typography>
           </>
         ) : (
@@ -717,6 +726,51 @@ export function CauseDetailPage() {
         </>
       )}
 
+      {publishedCids.length > 0 && (
+        <MonthlyPledgeSignal statementCids={publishedCids} />
+      )}
+
+      {published.length > 0 && (
+        <Paper elevation={0} sx={{ p: { xs: 2, sm: 2.5 }, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
+          <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }}>Set aside funds for an issue</Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+            Create a one-time delegated fund or a monthly pledge earmarked for one immutable
+            statement. The earmark does not follow later edits to this cause publication.
+          </Typography>
+          <Stack spacing={1}>
+            {published.map((plank) => (
+              <Stack
+                key={plank.cid}
+                direction={{ xs: 'column', sm: 'row' }}
+                spacing={1}
+                alignItems={{ sm: 'center' }}
+                justifyContent="space-between"
+              >
+                <Typography variant="body2" sx={{ flex: 1 }}>{plank.text}</Typography>
+                <Button
+                  component="a"
+                  href={getDomainUrl('lazyGiving', `/delegation/notes/new?statement=${encodeURIComponent(plank.cid!)}`)}
+                  variant="outlined"
+                  size="small"
+                  sx={{ textTransform: 'none', flexShrink: 0 }}
+                >
+                  Earmark funds
+                </Button>
+                <Button
+                  component="a"
+                  href={getDomainUrl('lazyGiving', `/delegates/offer?statement=${encodeURIComponent(plank.cid!)}`)}
+                  variant="text"
+                  size="small"
+                  sx={{ textTransform: 'none', flexShrink: 0 }}
+                >
+                  Offer to delegate
+                </Button>
+              </Stack>
+            ))}
+          </Stack>
+        </Paper>
+      )}
+
       {canEdit && !cause.id.startsWith('remote:') && (
         <Paper elevation={0} sx={{ p: { xs: 2, sm: 2.5 }, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
           <RosterPublishPanel
@@ -762,19 +816,31 @@ export function CauseDetailPage() {
               What counts as an issue
             </Typography>
             <Typography variant="body2" component="div">
-              Write claims you are willing to stand behind — each one should be something a real
-              supporter could sincerely sign in public. Prefer specific, self-contained positions
-              over slogans or broad labels. CauseStarter will not draft issues for you; use
-              <strong> Check phrasing</strong> on a draft if you want feedback on whether it is
-              clear enough to attest.
+              Describe your intent in the picker. It looks for reusable published statements
+              before offering new drafts. Reject or correct any suggestion that misses your
+              meaning; broad statements are fine when their proposition is clear.
             </Typography>
           </Alert>
         )}
 
         {cause.planks.length === 0 && (
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            No issues yet. Add one and write it in your own words.
+            No statements selected yet. Start with the picker; you can reject every suggestion
+            and write one manually.
           </Typography>
+        )}
+
+        {canEdit && (
+          <Box sx={{ mb: 2 }}>
+            <StatementPicker
+              intent="cause"
+              machinery={machinery}
+              existingCids={publishedCids}
+              existingPlankTexts={cause.planks.map((plank) => plank.text)}
+              disabled={mutationLocked}
+              onSelect={handlePickerSelection}
+            />
+          </Box>
         )}
 
         <Stack spacing={1.5}>
@@ -814,6 +880,16 @@ export function CauseDetailPage() {
           ))}
         </Stack>
 
+        <Box sx={{ mt: 2 }}>
+          <SelectedPlankSupport
+            planks={published.filter((plank) => plank.cid && selectedCids.includes(plank.cid)).map((plank) => ({
+              cid: plank.cid!,
+              text: plank.text,
+            }))}
+            onSupported={() => refreshCounts()}
+          />
+        </Box>
+
         {canEdit && (
           <Stack direction="row" spacing={1} sx={{ mt: 2 }} flexWrap="wrap" useFlexGap>
             <Button
@@ -823,7 +899,7 @@ export function CauseDetailPage() {
               sx={{ textTransform: 'none' }}
               data-testid="cause-add-plank"
             >
-              Add an issue
+              Write one manually
             </Button>
           </Stack>
         )}

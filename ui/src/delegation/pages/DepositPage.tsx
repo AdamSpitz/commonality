@@ -7,20 +7,19 @@ import {
   Button,
   Alert,
   Stack,
-  Autocomplete,
-  CircularProgress,
   Card,
   CardContent,
   Checkbox,
   FormControlLabel,
 } from '@mui/material'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAccount, usePublicClient } from 'wagmi'
 import { parseUnits, isAddress } from 'viem'
-import { DelegatableNotesAbi, RecurringPledgesAbi } from '@commonality/sdk/abis'
-import { browseStatementsByNewest, type StatementListItem } from '@commonality/sdk/conceptspace'
-import { depositERC20, delegateNote, approveRecurringPledgeToken, createStandingPledge, type DelegatableNotesContract, type RecurringPledgesContract } from '@commonality/sdk/delegation'
-import { useMachinery } from '../../shared'
+import { DelegatableNotesAbi, NoteIntentAbi, RecurringPledgesAbi } from '@commonality/sdk/abis'
+import { browseStatementsByNewest, getStatementWithContent, type StatementListItem } from '@commonality/sdk/conceptspace'
+import type { IpfsCidV1 } from '@commonality/sdk/utils'
+import { depositERC20, delegateNote, attestNoteIntent, approveRecurringPledgeToken, createStandingPledge, type DelegatableNotesContract, type NoteIntentContract, type RecurringPledgesContract } from '@commonality/sdk/delegation'
+import { getDomainUrl, StatementPicker, useMachinery } from '../../shared'
 import { noteDetailPathFor } from '../utils'
 import { useWriteClients } from '../../shared'
 import { truncateAddress } from '../utils'
@@ -40,11 +39,17 @@ function getRecurringPledgesContract(): RecurringPledgesContract | null {
   return { address: addr as `0x${string}`, abi: RecurringPledgesAbi }
 }
 
+function getNoteIntentContract(): NoteIntentContract | null {
+  const addr = import.meta.env.VITE_NOTE_INTENT_CONTRACT_ADDRESS
+  return addr ? { address: addr as `0x${string}`, abi: NoteIntentAbi } : null
+}
+
 const MONTHLY_PERIOD_SECONDS = 30n * 24n * 60n * 60n
 const DEFAULT_RECURRING_ALLOWANCE_PERIODS = 12n
 
 export function DepositPage() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const { address } = useAccount()
   const publicClient = usePublicClient()
   const writeClients = useWriteClients(address)
@@ -58,10 +63,12 @@ export function DepositPage() {
   const [recurringAllowancePeriods, setRecurringAllowancePeriods] = useState(DEFAULT_RECURRING_ALLOWANCE_PERIODS.toString())
   const [statements, setStatements] = useState<StatementListItem[]>([])
   const [statementsLoading, setStatementsLoading] = useState(false)
+  const requestedStatementCid = searchParams.get('statement')?.trim() || null
 
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [successNoteId, setSuccessNoteId] = useState<bigint | null>(null)
+  const [intentWarning, setIntentWarning] = useState<string | null>(null)
   const paymentTokenAddress = import.meta.env.VITE_PAYMENT_TOKEN_ADDRESS
   const { currency: loadedPaymentCurrency, loading: paymentCurrencyLoading } = usePaymentTokenCurrency(publicClient, paymentTokenAddress)
   const paymentCurrency = loadedPaymentCurrency ?? getConfiguredPaymentCurrency() ?? DEFAULT_PAYMENT_CURRENCY
@@ -100,6 +107,21 @@ export function DepositPage() {
       setStatementsLoading(true)
       try {
         const results = await browseStatementsByNewest(machinery, { limit: 50 })
+        if (requestedStatementCid && !results.some((statement) => statement.cid === requestedStatementCid)) {
+          const requested = await getStatementWithContent(machinery, requestedStatementCid as IpfsCidV1)
+          if (requested) {
+            results.unshift({
+              id: requested.statement.id,
+              cid: requested.statement.cid,
+              statementType: requested.statement.statementType ?? '',
+              title: requested.statement.title ?? requestedStatementCid,
+              excerpt: requested.statement.excerpt ?? '',
+              believerCount: requested.statement.believerCount,
+              disbelieverCount: requested.statement.disbelieverCount,
+              createdAt: requested.statement.createdAt ?? '',
+            })
+          }
+        }
         setStatements(results)
       } catch (err) {
         console.error('Failed to load statements:', err)
@@ -108,7 +130,13 @@ export function DepositPage() {
       }
     }
     loadStatements()
-  }, [machinery])
+  }, [machinery, requestedStatementCid])
+
+  useEffect(() => {
+    if (!requestedStatementCid || selectedStatement || statements.length === 0) return
+    const requested = statements.find((statement) => statement.cid === requestedStatementCid)
+    if (requested) setSelectedStatement(requested)
+  }, [requestedStatementCid, selectedStatement, statements])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -195,6 +223,19 @@ export function DepositPage() {
       }
 
       setSuccessNoteId(noteId)
+      if (selectedStatement) {
+        const noteIntentContract = getNoteIntentContract()
+        if (!noteIntentContract) {
+          setIntentWarning('The fund was created, but the earmark contract is not configured, so it remains untagged.')
+        } else {
+          try {
+            await attestNoteIntent(clients, noteIntentContract, delegationContract.address, noteId, selectedStatement.cid)
+          } catch (intentError) {
+            console.error('Earmark failed after deposit:', intentError)
+            setIntentWarning('The fund was created, but the earmark transaction did not succeed. You can add it from the fund details page.')
+          }
+        }
+      }
     } catch (err) {
       console.error('Deposit failed:', err)
       setError(err instanceof Error ? err.message : 'Deposit failed')
@@ -227,6 +268,7 @@ export function DepositPage() {
         <Alert severity="success" sx={{ mb: 3 }}>
           Your delegated fund has been created successfully!
         </Alert>
+        {intentWarning && <Alert severity="warning" sx={{ mb: 3 }}>{intentWarning}</Alert>}
         <Card>
           <CardContent>
             <Typography variant="body1" gutterBottom>
@@ -337,49 +379,26 @@ export function DepositPage() {
               </Typography>
             </Box>
 
-            {isRecurring && <Autocomplete
-              options={statements}
-              loading={statementsLoading}
-              getOptionLabel={(option) => option.title || truncateAddress(option.cid)}
-              value={selectedStatement}
-              onChange={(_, newValue) => setSelectedStatement(newValue)}
+            {statementsLoading && requestedStatementCid && <Alert severity="info">Loading the statement from the cause link…</Alert>}
+            {selectedStatement && (
+              <Alert severity="success" onClose={() => setSelectedStatement(null)}>
+                Funding scope selected: {selectedStatement.title || truncateAddress(selectedStatement.cid)}<br />
+                <Typography variant="caption" sx={{ overflowWrap: 'anywhere' }}>CID: {selectedStatement.cid}</Typography>
+              </Alert>
+            )}
+            <StatementPicker
+              intent="delegation"
+              selectedCid={selectedStatement?.cid}
               disabled={submitting}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="Cause"
-                  placeholder="Search for a cause or project"
-                  InputProps={{
-                    ...params.InputProps,
-                    endAdornment: (
-                      <>
-                        {statementsLoading ? <CircularProgress color="inherit" size={20} /> : null}
-                        {params.InputProps.endAdornment}
-                      </>
-                    ),
-                  }}
-                />
-              )}
-              renderOption={(props, option) => {
-                const { key, ...rest } = props
-                return (
-                  <li key={key} {...rest}>
-                    <Box>
-                      <Typography variant="body2">
-                        {option.title || truncateAddress(option.cid)}
-                      </Typography>
-                      {option.excerpt && (
-                        <Typography variant="caption" color="text.secondary">
-                          {option.excerpt.slice(0, 100)}
-                          {option.excerpt.length > 100 ? '...' : ''}
-                        </Typography>
-                      )}
-                    </Box>
-                  </li>
-                )
-              }}
-              isOptionEqualToValue={(option, value) => option.cid === value.cid}
-            />}
+              onSelect={(selection) => setSelectedStatement({
+                id: selection.cid,
+                cid: selection.cid as IpfsCidV1,
+                title: selection.text,
+                excerpt: selection.text,
+                statementType: '', believerCount: 0, disbelieverCount: 0, createdAt: '',
+              })}
+              onNoneFit={() => window.open(getDomainUrl('tally', '/'), '_blank', 'noopener,noreferrer')}
+            />
 
             <Box sx={{ display: 'flex', gap: 2 }}>
               <Button

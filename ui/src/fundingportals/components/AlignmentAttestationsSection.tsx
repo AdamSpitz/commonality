@@ -9,8 +9,6 @@ import {
   Chip,
   Divider,
   Button,
-  TextField,
-  Autocomplete,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -18,13 +16,11 @@ import {
 } from '@mui/material'
 import { Link as RouterLink } from 'react-router-dom'
 import { useAccount } from 'wagmi'
-import { getStatement, getAllStatements, type StatementListItem } from '@commonality/sdk/conceptspace'
+import { getStatement } from '@commonality/sdk/conceptspace'
 import { getSubjectStatements, attestAlignment, attestSuccess, getSubjectSuccessStatements, toSubjectId, PROJECT_ALIGNMENT_TOPIC, type AlignmentAttestation, type SuccessAttestation } from '@commonality/sdk/fundingportals'
 import { waitForIndexerToSyncToTxHash } from '@commonality/sdk/indexer-sync'
 import type { IpfsCidV1 } from '@commonality/sdk/utils'
-import { useMachinery } from '../../shared'
-import { useWriteClients } from '../../shared'
-import { truncateAddress } from '../../shared'
+import { StatementPicker, truncateAddress, useMachinery, useWriteClients } from '../../shared'
 import { getAlignmentContract } from './alignmentContract'
 
 type AlignmentWithTitle = AlignmentAttestation & { statementTitle?: string }
@@ -48,9 +44,7 @@ export function AlignmentAttestationsSection({ projectAddress, initialStatementC
 
   const [dialogOpen, setDialogOpen] = useState(false)
   const [attestationKind, setAttestationKind] = useState<'alignment' | 'success'>('alignment')
-  const [statements, setStatements] = useState<StatementListItem[]>([])
-  const [statementsLoading, setStatementsLoading] = useState(false)
-  const [selectedStatement, setSelectedStatement] = useState<StatementListItem | string | null>(null)
+  const [selectedStatementCid, setSelectedStatementCid] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [submitSuccess, setSubmitSuccess] = useState(false)
@@ -101,20 +95,12 @@ export function AlignmentAttestationsSection({ projectAddress, initialStatementC
     setDialogOpen(true)
     setSubmitError(null)
     setSubmitSuccess(false)
-    setSelectedStatement(initialStatementCid ?? null)
-    setStatementsLoading(true)
-    getAllStatements(machinery)
-      .then(setStatements)
-      .catch(err => console.warn('Failed to load statements:', err))
-      .finally(() => setStatementsLoading(false))
+    setSelectedStatementCid(initialStatementCid ?? '')
   }
 
   const getClients = () => writeClients
 
-  const statementCid =
-    typeof selectedStatement === 'string'
-      ? selectedStatement
-      : selectedStatement?.cid ?? ''
+  const statementCid = selectedStatementCid
 
   const handleSubmit = async () => {
     const clients = getClients()
@@ -143,7 +129,7 @@ export function AlignmentAttestationsSection({ projectAddress, initialStatementC
       )
       await waitForIndexerToSyncToTxHash(machinery, clients.publicClient, txHash)
       setSubmitSuccess(true)
-      setSelectedStatement(null)
+      setSelectedStatementCid('')
       setRefreshKey(k => k + 1)
     } catch (err) {
       console.error('Attestation failed:', err)
@@ -264,49 +250,27 @@ export function AlignmentAttestationsSection({ projectAddress, initialStatementC
             </Alert>
           )}
 
-          <Autocomplete<StatementListItem, false, false, true>
-            freeSolo
-            options={statements}
-            loading={statementsLoading}
-            getOptionLabel={(option) =>
-              typeof option === 'string' ? option : (option.title || option.cid)
-            }
-            value={selectedStatement}
-            onChange={(_, newValue) => setSelectedStatement(newValue)}
+          {initialStatementCid && statementCid === initialStatementCid && (
+            <Alert severity="info" sx={{ mb: 2 }}>
+              Selected immutable statement CID: {initialStatementCid}
+            </Alert>
+          )}
+          <StatementPicker
+            intent="alignment"
+            selectedCid={statementCid}
             disabled={submitting}
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                label="Statement"
-                placeholder="Search for a cause statement"
-                InputProps={{
-                  ...params.InputProps,
-                  endAdornment: (
-                    <>
-                      {statementsLoading ? <CircularProgress color="inherit" size={20} /> : null}
-                      {params.InputProps.endAdornment}
-                    </>
-                  ),
-                }}
-              />
-            )}
-            renderOption={(props, option) => {
-              const { key, ...rest } = props
-              return (
-                <li key={key} {...rest}>
-                  <Box>
-                    <Typography variant="body2">{option.title || option.cid}</Typography>
-                    <Typography variant="caption" color="text.secondary" sx={{ fontFamily: 'monospace' }}>
-                      {option.cid}
-                    </Typography>
-                  </Box>
-                </li>
-              )
-            }}
-            isOptionEqualToValue={(option, value) =>
-              typeof value === 'string' ? option.cid === value : option.cid === value.cid
-            }
+            onSelect={(selection) => setSelectedStatementCid(selection.cid)}
+            onNoneFit={() => window.open('/#/', '_blank', 'noopener,noreferrer')}
           />
+          {statementCid && (
+            <Button
+              component="a"
+              href={`mailto:?subject=${encodeURIComponent('Please review this project alignment')}&body=${encodeURIComponent(`Please independently review whether project ${projectAddress} advances immutable statement ${statementCid}. Open ${window.location.href} to vouch only if you agree.`)}`}
+              sx={{ mt: 1 }}
+            >
+              Invite a trusted attester to review
+            </Button>
+          )}
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setDialogOpen(false)} disabled={submitting}>Cancel</Button>

@@ -3,7 +3,7 @@
  *
  * Each plank is published as its own signable statement — that is the whole
  * point of planks, and it is why publishing is per-plank rather than a
- * once-per-cause "launch". A founder can publish one plank today and another
+ * once-per-cause "launch". An organizer can publish one plank today and another
  * next month; the cause page simply shows which are live.
  *
  * Statement *content* goes through the PublishedData contract, the same path

@@ -19,6 +19,7 @@ async function typeDelegate(value: string) {
 
 vi.mock('react-router-dom', () => ({
   useNavigate: vi.fn(),
+  useSearchParams: vi.fn(),
 }))
 
 vi.mock('wagmi', () => ({
@@ -54,7 +55,7 @@ vi.mock('@commonality/sdk/machinery', async () => {
   }
 })
 
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAccount, useWalletClient, usePublicClient } from 'wagmi'
 import { browseStatementsByNewest } from '@commonality/sdk/conceptspace'
 import { depositERC20, delegateNote, approveRecurringPledgeToken, createStandingPledge } from '@commonality/sdk/delegation'
@@ -79,6 +80,7 @@ describe('DepositPage', () => {
     vi.stubEnv('VITE_PAYMENT_TOKEN_DECIMALS', '6')
     vi.mocked(createSDKMachinery).mockReturnValue(mockMachinery)
     vi.mocked(useNavigate).mockReturnValue(mockNavigate)
+    vi.mocked(useSearchParams).mockReturnValue([new URLSearchParams(), vi.fn()] as any)
     vi.mocked(useAccount).mockReturnValue({ address: USER_ADDR } as any)
     vi.mocked(useWalletClient).mockReturnValue({ data: {} } as any)
     vi.mocked(usePublicClient).mockReturnValue({} as any)
@@ -108,6 +110,20 @@ describe('DepositPage', () => {
   })
 
   describe('Form render', () => {
+    it('preselects an immutable statement requested by a cause-page link', async () => {
+      vi.mocked(useSearchParams).mockReturnValue([
+        new URLSearchParams(`statement=${encodeURIComponent(TEST_STATEMENT.cid)}`),
+        vi.fn(),
+      ] as any)
+      vi.mocked(browseStatementsByNewest).mockResolvedValue([TEST_STATEMENT] as any)
+
+      render(<DepositPage />)
+
+      await waitFor(() => {
+        expect(screen.getByText(/funding scope selected/i)).toHaveTextContent(TEST_STATEMENT.title)
+      })
+    })
+
     it('shows amount input field', () => {
       render(<DepositPage />)
 
@@ -128,10 +144,10 @@ describe('DepositPage', () => {
       expect(screen.queryByRole('radio', { name: /my account/i })).not.toBeInTheDocument()
     })
 
-    it('does not collect note intent for one-time deposits', () => {
+    it('offers an optional cause earmark for one-time deposits', () => {
       render(<DepositPage />)
 
-      expect(screen.queryByLabelText(/cause/i)).not.toBeInTheDocument()
+      expect(screen.getByTestId('statement-picker-delegation')).toBeInTheDocument()
     })
 
     it('shows Deposit submit button', () => {
@@ -256,6 +272,10 @@ describe('DepositPage', () => {
     })
 
     it('starts a monthly pledge using the settlement token when recurring is checked', async () => {
+      vi.mocked(useSearchParams).mockReturnValue([
+        new URLSearchParams(`statement=${encodeURIComponent(TEST_STATEMENT.cid)}`),
+        vi.fn(),
+      ] as any)
       vi.mocked(browseStatementsByNewest).mockResolvedValue([TEST_STATEMENT] as any)
       vi.mocked(approveRecurringPledgeToken).mockResolvedValue('0xapprove')
       vi.mocked(createStandingPledge).mockResolvedValue({ hash: '0xpledge', pledgeId: 1n, firstNoteId: 99n })
@@ -267,10 +287,7 @@ describe('DepositPage', () => {
       fireEvent.change(screen.getByLabelText(/authorize monthly payments/i), { target: { value: '6' } })
       await typeDelegate(OTHER_ADDR)
 
-      const autocomplete = screen.getByLabelText(/^cause$/i)
-      fireEvent.mouseDown(autocomplete)
-      const option = await screen.findByText(/universal basic income/i)
-      fireEvent.click(option)
+      await screen.findByText(/funding scope selected/i)
 
       fireEvent.click(screen.getByRole('button', { name: 'Start Monthly Pledge' }))
 

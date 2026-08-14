@@ -6,6 +6,8 @@ import {
   type OpenRouterJsonCompletion,
 } from '@commonality/attester-core';
 import { evaluateImplicationWithLLM, type LlmEvaluationResult } from '../src/evaluator.js';
+import { IMPLICATION_EVALUATOR_SYSTEM_PROMPT } from '../src/evaluator.js';
+import { semanticImplicationCorpus } from './semantic-corpus.js';
 
 /**
  * Curated-corpus snapshot/schema tests for the implication attester.
@@ -157,4 +159,31 @@ describe('evaluateImplicationWithLLM curated-corpus snapshots', () => {
       assert.strictEqual(result.reasoning, entry.expected.reasoning, `reasoning drift for ${entry.id}`);
     });
   }
+});
+
+describe('implication semantic boundary corpus', () => {
+  it('covers every accepted causes-as-publications boundary category in both directions where applicable', () => {
+    const categories = new Set(semanticImplicationCorpus.map((entry) => entry.category));
+    for (const category of [
+      'logical-weakening', 'named-scope-restriction', 'rhetoric-removal',
+      'ambiguous-target', 'concession', 'reservation', 'negotiated-compromise',
+    ]) assert.ok(categories.has(category as never), `missing semantic corpus category: ${category}`);
+
+    assert.ok(semanticImplicationCorpus.some((entry) => entry.implies), 'corpus needs accepted arrows');
+    assert.ok(semanticImplicationCorpus.some((entry) => !entry.implies), 'corpus needs rejected arrows');
+  });
+
+  it('keeps every reviewed pair and decision represented in the production prompt', () => {
+    for (const entry of semanticImplicationCorpus) {
+      assert.ok(
+        IMPLICATION_EVALUATOR_SYSTEM_PROMPT.includes(entry.statement1)
+          && IMPLICATION_EVALUATOR_SYSTEM_PROMPT.includes(entry.statement2),
+        `${entry.id} is not represented in the production prompt`,
+      );
+      const expectedDecision = entry.implies ? 'true' : 'false';
+      const start = IMPLICATION_EVALUATOR_SYSTEM_PROMPT.indexOf(entry.statement1);
+      const nearby = IMPLICATION_EVALUATOR_SYSTEM_PROMPT.slice(start, start + entry.statement1.length + entry.statement2.length + 500);
+      assert.ok(nearby.includes(`"implies": ${expectedDecision}`) || nearby.includes(`implies: ${expectedDecision}`), `${entry.id} decision drifted`);
+    }
+  });
 });

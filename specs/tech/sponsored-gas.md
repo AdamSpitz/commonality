@@ -249,10 +249,11 @@ Not done yet / not production-ready:
   ERC-7677-compatible `/sponsored-gas/paymaster` endpoint for Privy/Pimlico. It infers the sponsored
   project and returns the custom `CreatorGasTank` with that project as `paymasterData`. On 2026-07-31
   the endpoint source was extended to validate Kernel v3 atomic batches, including approval + primary
-  action agreement; deploy that update after the UI batches first-time approval + contribution and
-  approval + refund. This batching is required because the onchain paymaster deliberately rejects a
-  standalone approval UserOp as a free tank-drain vector. The remaining live trace needs an interactive
-  Privy email login. `GasTankFunder` swap infrastructure is a separate optional adapter and does not
+  action agreement. That endpoint is live, the UI/SDK batches first-time approval + contribution and
+  approval + refund (`cef4af18`), LazyGiving testnet UI was republished 2026-08-13, and a Base Sepolia
+  creator tank is enrolled/funded (project `0x0b34E11c5A014C77b3b61E9e8b94609D8598FF93`, 0.002 ETH).
+  The onchain paymaster still rejects a standalone approval UserOp as a free tank-drain vector. The
+  remaining live trace needs an interactive Privy email login. `GasTankFunder` swap infrastructure is a separate optional adapter and does not
   block direct ETH tank funding or the sponsored UserOp path.
 - **`GasTankFunder`.** Implemented as a Uniswap-v3-compatible USDC→WETH→ETH adapter with focused
   mock-router tests; deployment is optional in the incremental script and gated on swap infra env.

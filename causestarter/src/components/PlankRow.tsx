@@ -16,11 +16,11 @@ export const MIN_PLANK_LENGTH = 12
 export interface PlankReview {
   /** Why the current wording works or falls short for attestation / signing. */
   summary: string
-  /** Concrete problems the founder should fix in their own words. */
+  /** Concrete problems the organizer should fix in their own words. */
   issues: string[]
   /**
    * Optional rephrasing the model thought of. Shown only as an example the
-   * founder may copy — never written into the text field without a click.
+   * organizer may copy — never written into the text field without a click.
    */
   exampleWording?: string
 }
@@ -64,11 +64,9 @@ interface PlankRowProps {
 
 function supportSummary(support: PlankSupport | undefined, loading: boolean): string {
   if (!support) return loading ? 'Counting supporters…' : 'Supporters unavailable'
-  if (support.indirect === 0) {
-    return `${support.direct} signed this`
-  }
-  // Direct and indirect overlap, so `total` is a union — never direct + indirect.
-  return `${support.direct} signed this; ${support.total} support it counting statements that imply it`
+  // Keep both provenance categories visible even when indirect support is zero. A cause
+  // visitor should never have to infer whether the displayed number is direct or derived.
+  return `${support.direct} direct signer${support.direct === 1 ? '' : 's'}, ${support.indirect} indirect supporter${support.indirect === 1 ? '' : 's'} · ${support.total} total`
 }
 
 export function PlankRow({
@@ -109,7 +107,12 @@ export function PlankRow({
 
         <Stack spacing={1} sx={{ flex: 1, minWidth: 0 }}>
           {published ? (
-            <Typography variant="body1" sx={{ fontWeight: 500 }}>{plank.text}</Typography>
+            <Box>
+              <Typography variant="body1" sx={{ fontWeight: 500 }}>{plank.text}</Typography>
+              <Typography variant="caption" color="text.secondary" sx={{ overflowWrap: 'anywhere' }}>
+                Immutable statement CID: {plank.cid}
+              </Typography>
+            </Box>
           ) : (
             <TextField
               value={plank.text}

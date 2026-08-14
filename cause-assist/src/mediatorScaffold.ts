@@ -4,7 +4,7 @@ import type {
   SuggestMediatorScaffoldResponse,
 } from './types.js'
 
-const SYSTEM_PROMPT = `You help a cause founder begin configuring a two-sided mediator. Infer useful, neutral names for the two constituencies and draft a few starting bridge-anchor triples from the founding statement.
+const SYSTEM_PROMPT = `You help a cause organizer begin configuring a two-sided mediator. Infer useful, neutral names for the two constituencies and draft a few starting bridge-anchor triples from the founding statement.
 
 This is setup assistance, not the mediator's operating strategy. Never write or suggest a strategy prompt. Do not assume conventional political left/right sides unless the founding statement explicitly calls for them.
 

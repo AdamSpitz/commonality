@@ -159,7 +159,7 @@ export interface CauseAssistConfig {
   /**
    * Operator Ethereum private key for on-chain coherence badges.
    * When set (with RPC + AlignmentAttestations address), cause-assist is msg.sender
-   * on positive-only attestations — never the founder.
+   * on positive-only attestations — never the cause organizer.
    */
   ethereumPrivateKey?: string
   /** Public worker address exposed by HTTP health without placing its private key in this process. */

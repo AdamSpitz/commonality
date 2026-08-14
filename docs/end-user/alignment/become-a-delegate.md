@@ -26,7 +26,15 @@ You can also sub-delegate: if you trust someone else's judgment in a particular 
 
 ## Getting started
 
-You don't need to "apply" to become a delegate. Start by making good funding decisions with your own money, or ask a few people you know to assign small delegated funds to you. Build a visible track record.
+You don't need to "apply" to become a delegate. On your LazyGiving delegate page, publish
+an offering by choosing the immutable cause statements you are willing to serve and, if
+useful, briefly describing how you assess projects. Share that page directly with donors.
+You can revise or withdraw the current offering later; its older immutable versions remain
+auditable. The offering is not approval by Commonality or a commitment to accept funds.
+
+Then start making good funding decisions with your own money, or ask a few people you know
+to assign small delegated funds to you. Your actual funding activity builds the visible
+track record shown beside the offering.
 
 As your track record grows, more donors will find you. Make sure your profile clearly describes what causes you focus on and what standards you apply when evaluating projects — that's what donors are looking for when they're choosing a delegate.
 

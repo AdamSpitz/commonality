@@ -6,9 +6,9 @@ One of the promises of Civility is that you don't have to take any AI evaluator 
 
 The live prompt files are the source of truth:
 
-- [Perspective-neutral evaluator prompt](https://github.com/AdamSpitz/commonality/blob/master/content-attester/prompts/perspective-neutral.md)
-- [Left-evaluating-right prompt](https://github.com/AdamSpitz/commonality/blob/master/content-attester/prompts/left-evaluating-right.md)
-- [Right-evaluating-left prompt](https://github.com/AdamSpitz/commonality/blob/master/content-attester/prompts/right-evaluating-left.md)
+- [Perspective-neutral evaluator prompt](https://github.com/AdamSpitz/commonality/blob/master/services/content-attester/prompts/perspective-neutral.md)
+- [Left-evaluating-right prompt](https://github.com/AdamSpitz/commonality/blob/master/services/content-attester/prompts/left-evaluating-right.md)
+- [Right-evaluating-left prompt](https://github.com/AdamSpitz/commonality/blob/master/services/content-attester/prompts/right-evaluating-left.md)
 
 If the exact wording matters, read those files. This page explains what they are for, but deliberately does **not** paste copies of the prompts, so the public docs do not drift from the code.
 

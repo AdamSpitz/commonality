@@ -30,6 +30,14 @@ vi.mock('@commonality/sdk/delegation', async () => {
   }
 })
 
+vi.mock('@commonality/sdk/conceptspace', async () => {
+  const actual = await vi.importActual('@commonality/sdk/conceptspace')
+  return {
+    ...actual,
+    getStatement: vi.fn(),
+  }
+})
+
 vi.mock('@commonality/sdk/machinery', async () => {
   const actual = await vi.importActual('@commonality/sdk/machinery')
   return {
@@ -41,6 +49,8 @@ vi.mock('@commonality/sdk/machinery', async () => {
 import { useAccount, useWalletClient, usePublicClient } from 'wagmi'
 import { getNotesByOwner, getNotesByRoot, getDelegationChain, delegateNote, revokeNote, reclaimFunds, getActiveStandingPledgesByUser, cancelStandingPledge } from '@commonality/sdk/delegation'
 import { createSDKMachinery } from '@commonality/sdk/machinery'
+import { getStatement } from '@commonality/sdk/conceptspace'
+import { getDomainUrl } from '../../shared'
 
 const mockMachinery = {} as any
 
@@ -90,6 +100,7 @@ describe('MyNotesPage', () => {
     vi.unstubAllEnvs()
     vi.mocked(createSDKMachinery).mockReturnValue(mockMachinery)
     vi.mocked(getActiveStandingPledgesByUser).mockResolvedValue([])
+    vi.mocked(getStatement).mockResolvedValue(null)
   })
 
   describe('Wallet not connected', () => {
@@ -202,6 +213,7 @@ describe('MyNotesPage', () => {
       vi.mocked(getNotesByOwner).mockResolvedValue([])
       vi.mocked(getNotesByRoot).mockResolvedValue([])
       vi.mocked(getActiveStandingPledgesByUser).mockResolvedValue([makeStandingPledge()] as any)
+      vi.mocked(getStatement).mockResolvedValue({ title: 'Community food security' } as any)
 
       render(<MyNotesPage />)
 
@@ -210,6 +222,11 @@ describe('MyNotesPage', () => {
         expect(screen.getByText('Monthly pledge #5')).toBeInTheDocument()
         expect(screen.getByText('1 USDZZZ/month')).toBeInTheDocument()
         expect(screen.getByText(/Delegated to 0x2222...2222/i)).toBeInTheDocument()
+        expect(screen.getByRole('link', { name: 'Community food security' })).toHaveAttribute(
+          'href',
+          getDomainUrl('tally', '/statement/bafy-cause'),
+        )
+        expect(screen.queryByText(/Cause reference:/i)).not.toBeInTheDocument()
         const activePledgesCard = screen.getByText('Active Monthly Pledges').closest('div')
         expect(activePledgesCard).toHaveTextContent('1')
       })

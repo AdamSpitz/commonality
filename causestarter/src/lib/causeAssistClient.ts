@@ -28,7 +28,7 @@ export interface AtomizeResponse {
 }
 
 export interface SharpenPlankResponse {
-  /** Example rewording — UI must not apply this without an explicit founder action. */
+  /** Example rewording — UI must not apply this without an explicit organizer action. */
   plank: string
   rationale: string
   /** Concrete problems that could block attestation or public signing. */

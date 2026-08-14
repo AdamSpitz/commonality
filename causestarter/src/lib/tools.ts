@@ -1,7 +1,7 @@
 import type { DomainId } from './domainUrls'
 import { getDomainUrl } from './domainUrls'
 /**
- * How a founder grows a cause. This is a taxonomy for *tools*, not a field on a
+ * How an organizer grows a cause. This is a taxonomy for *tools*, not a field on a
  * cause — a cause is its planks, and every growth surface stays available.
  */
 export type MomentumLever =
@@ -22,7 +22,7 @@ export interface SupportingTool {
   kind: 'substrate' | 'reference' | 'thesis'
 }
 
-/** Substrate and reference surfaces, framed as tools for a cause founder. */
+/** Substrate and reference surfaces, framed as tools for a cause organizer. */
 export const SUPPORTING_TOOLS: SupportingTool[] = [
   {
     id: 'delegation',
