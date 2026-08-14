@@ -24,7 +24,7 @@ describe('SelectedPlankSupport', () => {
     vi.mocked(sendCallsPreferAtomic).mockReset().mockResolvedValue({ hashes: ['0xabc'], batched: true })
   })
 
-  it('shows exact text and CIDs before submitting distinct statement calls', async () => {
+  it('shows exact text before submitting distinct statement calls', async () => {
     const onSupported = vi.fn()
     render(
       <MemoryRouter>
@@ -33,7 +33,8 @@ describe('SelectedPlankSupport', () => {
     )
 
     expect(screen.getByText(planks[0].text)).toBeInTheDocument()
-    expect(screen.getByText(`CID: ${planks[1].cid}`)).toBeInTheDocument()
+    expect(screen.getByText(planks[1].text)).toBeInTheDocument()
+    expect(screen.queryByText(/CID:/)).not.toBeInTheDocument()
     expect(screen.getByText(/not the organizer, narrative, cause roster/i)).toBeInTheDocument()
 
     fireEvent.click(screen.getByTestId('support-selected-planks'))

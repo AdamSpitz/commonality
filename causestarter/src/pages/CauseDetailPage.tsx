@@ -76,8 +76,8 @@ function findLocalByStable(owner: string, slug: string): CauseDraft | undefined 
  *
  * Local drafts live at `/cause/:uuid`. Once a roster is published, the share URL
  * is `/cause/:owner/:slug` (stable) or `/cause/:owner/:slug@version` (pinned).
- * Editing is allowed when this browser holds the draft or the connected wallet
- * is the organizer.
+ * Editing published rosters requires the organizer's connected wallet.
+ * Unpublished local drafts can still be shaped on this device before publish.
  */
 export function CauseDetailPage() {
   const params = useParams<{ causeId?: string; owner?: string; slugPart?: string }>()
@@ -233,11 +233,15 @@ export function CauseDetailPage() {
         setHistory(hist)
         // Badge loads separately: it needs the operator address, which arrives async.
         setCause(remoteCause)
-        // Local draft for this stable id can edit the tip without a connected wallet
-        // (draft patches are device-local). On-chain actions still require the organizer
-        // wallet. Pinned versions and pure remote visitors stay read-only.
-        const canEditLocally = Boolean(local && !routeRef.versionCid)
-        setRemoteReadOnly(!canEditLocally)
+        // Visitors and bookmarked copies stay read-only. Only the organizer's
+        // wallet (or an unpublished local draft with no founder yet) can edit.
+        const connectedOrganizer = Boolean(
+          address
+          && remoteCause.founderAddress
+          && address.toLowerCase() === remoteCause.founderAddress.toLowerCase()
+          && !routeRef.versionCid,
+        )
+        setRemoteReadOnly(!connectedOrganizer && Boolean(remoteCause.founderAddress || remoteCause.rosterCid))
       } catch (err) {
         if (!cancelled) {
           setCause(undefined)
@@ -300,8 +304,24 @@ export function CauseDetailPage() {
   /**
    * Permission to mutate this cause. Guards every handler; never gates display
    * alone — see {@link editing} for the organizer's chosen view.
+   *
+   * Published causes: only the connected founder. Unpublished local drafts:
+   * this device, even before a wallet is connected.
    */
-  const canEdit = Boolean(cause) && !remoteReadOnly && !routeRef?.versionCid
+  const isOrganizer = Boolean(
+    address
+    && cause?.founderAddress
+    && address.toLowerCase() === cause.founderAddress.toLowerCase(),
+  )
+  const isUnpublishedLocalDraft = Boolean(
+    cause
+    && !cause.founderAddress
+    && !cause.rosterCid
+    && !cause.id.startsWith('remote:'),
+  )
+  const canEdit = Boolean(cause)
+    && !routeRef?.versionCid
+    && (isOrganizer || (isUnpublishedLocalDraft && !remoteReadOnly))
 
   /**
    * Which view the organizer asked for, or `null` while they have not said.
@@ -661,7 +681,7 @@ export function CauseDetailPage() {
 
   return (
     <Stack spacing={2.5} data-testid="cause-detail-page">
-      {canEdit && !isFreshDraft && (
+      {isOrganizer && !isFreshDraft && (
         <ToggleButtonGroup
           exclusive
           size="small"
@@ -680,7 +700,7 @@ export function CauseDetailPage() {
         </ToggleButtonGroup>
       )}
 
-      {canEdit && !isEditing && (
+      {isOrganizer && !isEditing && (
         <Alert severity="info" sx={{ borderRadius: 2 }} data-testid="cause-viewing-notice">
           This is what a supporter sees. Unpublished drafts and your organizer controls are
           hidden until you switch to Editing.

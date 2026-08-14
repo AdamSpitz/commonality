@@ -7,8 +7,9 @@ import {
   Typography,
 } from '@mui/material'
 import OpenInNewIcon from '@mui/icons-material/OpenInNew'
+import { Link as RouterLink } from 'react-router-dom'
 import type { SupportingTool } from '../lib/tools'
-import { toolHref } from '../lib/tools'
+import { isInternalTool, toolHref } from '../lib/tools'
 import { useToolExamples } from '../hooks/useToolExamples'
 
 interface ToolCardProps {
@@ -21,6 +22,8 @@ interface ToolCardProps {
 export function ToolCard({ tool, compact = false, showExamples = true }: ToolCardProps) {
   const { examples, loading } = useToolExamples(tool)
   const shouldShowExamples = showExamples && tool.kind !== 'thesis'
+  const internal = isInternalTool(tool)
+  const href = toolHref(tool)
 
   return (
     <Paper
@@ -37,10 +40,11 @@ export function ToolCard({ tool, compact = false, showExamples = true }: ToolCar
     >
       <Stack spacing={1.25} sx={{ height: '100%' }}>
         <Stack
-          component="a"
-          href={toolHref(tool)}
-          target="_blank"
-          rel="noreferrer"
+          component={internal ? RouterLink : 'a'}
+          to={internal ? href : undefined}
+          href={internal ? undefined : href}
+          target={internal ? undefined : '_blank'}
+          rel={internal ? undefined : 'noreferrer'}
           direction="row"
           justifyContent="space-between"
           alignItems="flex-start"
@@ -55,7 +59,9 @@ export function ToolCard({ tool, compact = false, showExamples = true }: ToolCar
               {tool.role}
             </Typography>
           </Box>
-          <OpenInNewIcon fontSize="small" sx={{ color: 'text.secondary', mt: 0.5 }} />
+          {!internal && (
+            <OpenInNewIcon fontSize="small" sx={{ color: 'text.secondary', mt: 0.5 }} />
+          )}
         </Stack>
 
         <Typography variant="body2" color="text.secondary">
@@ -108,9 +114,11 @@ export function ToolCard({ tool, compact = false, showExamples = true }: ToolCar
                   >
                     {example.href && example.href !== '#' ? (
                       <MuiLink
-                        href={example.href}
-                        target="_blank"
-                        rel="noreferrer"
+                        component={example.href.startsWith('/') ? RouterLink : 'a'}
+                        to={example.href.startsWith('/') ? example.href : undefined}
+                        href={example.href.startsWith('/') ? undefined : example.href}
+                        target={example.href.startsWith('/') ? undefined : '_blank'}
+                        rel={example.href.startsWith('/') ? undefined : 'noreferrer'}
                         underline="hover"
                         variant="body2"
                         sx={{ fontWeight: 600, display: 'block', color: 'text.primary' }}

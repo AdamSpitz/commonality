@@ -10,6 +10,19 @@ import { StatementPage } from './pages/StatementPage'
 import { ToolsPage } from './pages/ToolsPage'
 import { SettingsPage } from './pages/SettingsPage'
 import { ProjectDetailPage } from './pages/ProjectDetailPage'
+import {
+  ContentFundingAboutPage,
+  ContentFundingBrowsePage,
+  ContentFundingChannelPage,
+  ContentFundingContractPage,
+  ContentFundingCreateContractPage,
+  ContentFundingCreatorDashboardPage,
+  ContentFundingCreatorsPage,
+  ContentFundingExploreKindsPage,
+  ContentFundingLandingPage,
+  ContentFundingMaterializeFutureContentPage,
+  ContentFundingStartContractPage,
+} from './pages/ContentFundingPages'
 import { NotFoundPage } from './pages/NotFoundPage'
 
 function isHashRouting(): boolean {
@@ -41,6 +54,17 @@ export default function App() {
           <Route path="/statement/:statementCid/board" element={<StatementBoardPage />} />
           <Route path="/statement/:statementCid/board/leaderboard" element={<StatementBoardLeaderboardPage />} />
           <Route path="/projects/:projectAddress" element={<ProjectDetailPage />} />
+          <Route path="/content-funding" element={<ContentFundingLandingPage />} />
+          <Route path="/content-funding/about" element={<ContentFundingAboutPage />} />
+          <Route path="/content" element={<ContentFundingCreatorsPage />} />
+          <Route path="/content/new" element={<ContentFundingStartContractPage />} />
+          <Route path="/content/dashboard" element={<ContentFundingCreatorDashboardPage />} />
+          <Route path="/content/contracts/:projectAddress" element={<ContentFundingContractPage />} />
+          <Route path="/content/:platform" element={<ContentFundingBrowsePage />} />
+          <Route path="/content/:platform/:channelId" element={<ContentFundingChannelPage />} />
+          <Route path="/content/:platform/:channelId/new" element={<ContentFundingCreateContractPage />} />
+          <Route path="/content/:platform/:channelId/prospective/:roundAddress/materialize" element={<ContentFundingMaterializeFutureContentPage />} />
+          <Route path="/explore" element={<ContentFundingExploreKindsPage />} />
           <Route path="/tools" element={<ToolsPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="*" element={<NotFoundPage />} />

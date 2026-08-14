@@ -23,6 +23,11 @@ describe('toolsForLevers', () => {
     expect(SUPPORTING_TOOLS.map((tool) => tool.id)).not.toContain('cause-mediator')
   })
 
+  it('hosts Content Funding inside CauseStarter rather than linking out', () => {
+    const tool = SUPPORTING_TOOLS.find((t) => t.id === 'content-funding')
+    expect(tool?.internalPath).toBe('/content-funding')
+  })
+
   it('does not list removed product tools', () => {
     const ids = SUPPORTING_TOOLS.map((t) => t.id)
     expect(ids).not.toContain('tally')

@@ -109,9 +109,6 @@ export function PlankRow({
           {published ? (
             <Box>
               <Typography variant="body1" sx={{ fontWeight: 500 }}>{plank.text}</Typography>
-              <Typography variant="caption" color="text.secondary" sx={{ overflowWrap: 'anywhere' }}>
-                Immutable statement CID: {plank.cid}
-              </Typography>
             </Box>
           ) : (
             <TextField

@@ -80,7 +80,6 @@ export function SelectedPlankSupport({ planks, onSupported }: Props) {
             >
               {plank.text}
             </Typography>
-            <Typography variant="caption" color="text.secondary" sx={{ overflowWrap: 'anywhere' }}>CID: {plank.cid}</Typography>
           </div>
         ))}
         {error && <Alert severity="error">{error}</Alert>}

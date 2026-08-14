@@ -18,6 +18,8 @@ export interface SupportingTool {
   description: string
   domain: DomainId
   path: string
+  /** When set, the tool lives inside CauseStarter instead of another domain. */
+  internalPath?: string
   levers: MomentumLever[]
   kind: 'substrate' | 'reference' | 'thesis'
 }
@@ -41,6 +43,7 @@ export const SUPPORTING_TOOLS: SupportingTool[] = [
     description: 'Fund posts, videos, and channels that move people toward your goals.',
     domain: 'content-funding',
     path: '/',
+    internalPath: '/content-funding',
     levers: ['content', 'funding'],
     kind: 'substrate',
   },
@@ -77,7 +80,12 @@ export const SUPPORTING_TOOLS: SupportingTool[] = [
 ]
 
 export function toolHref(tool: SupportingTool): string {
+  if (tool.internalPath) return tool.internalPath
   return getDomainUrl(tool.domain, tool.path, '#')
+}
+
+export function isInternalTool(tool: SupportingTool): boolean {
+  return Boolean(tool.internalPath)
 }
 
 export function toolsForLevers(levers: MomentumLever[]): SupportingTool[] {

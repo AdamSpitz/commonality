@@ -45,6 +45,13 @@ function activeNavPath(pathname: string): string {
   ) {
     return '/momentum'
   }
+  if (
+    pathname.startsWith('/content')
+    || pathname.startsWith('/content-funding')
+    || pathname.startsWith('/explore')
+  ) {
+    return '/tools'
+  }
   return pathname
 }
 
