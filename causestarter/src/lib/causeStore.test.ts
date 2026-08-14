@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import {
+  causeContentBoardPath,
+  causePath,
   causeTitle,
   createCause,
   deleteCause,
@@ -40,6 +42,12 @@ describe('causeStore', () => {
     expect(listCauses()).toHaveLength(0)
     expect(window.localStorage.getItem('causestarter.causes.v3')).toBeNull()
     expect(getCause(created.id)?.id).toBe(created.id)
+  })
+
+  it('puts the content board under the cause share path', () => {
+    const local = createCause()
+    updateCause(local.id, { title: 'Safer nights' })
+    expect(causeContentBoardPath(getCause(local.id)!)).toBe(`${causePath(getCause(local.id)!)}/content`)
   })
 
   it('does not persist a draft until it has a title, summary, or plank text', () => {

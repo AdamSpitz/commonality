@@ -10,6 +10,8 @@ import { StatementPage } from './pages/StatementPage'
 import { DocsPage } from './pages/DocsPage'
 import { SettingsPage } from './pages/SettingsPage'
 import { ProjectDetailPage } from './pages/ProjectDetailPage'
+import { CreateProjectPage } from './pages/CreateProjectPage'
+import { CauseContentBoardPage } from './pages/CauseContentBoardPage'
 import {
   ContentFundingAboutPage,
   ContentFundingBrowsePage,
@@ -55,6 +57,8 @@ export default function App() {
           {/* Local drafts use a UUID. Published causes use
               /cause/:owner/:slug[@versionCid] — stable id + optional pin.
               See docs/founder/shaping-your-cause-statements.md § roster. */}
+          <Route path="/cause/:owner/:slugPart/content" element={<CauseContentBoardPage />} />
+          <Route path="/cause/:causeId/content" element={<CauseContentBoardPage />} />
           <Route path="/cause/:owner/:slugPart" element={<CauseDetailPage />} />
           <Route path="/cause/:causeId" element={<CauseDetailPage />} />
           {/* No browse or search route by design: a cause is reached by its own
@@ -65,6 +69,7 @@ export default function App() {
               statement, never a cause. */}
           <Route path="/statement/:statementCid/board" element={<StatementBoardPage />} />
           <Route path="/statement/:statementCid/board/leaderboard" element={<StatementBoardLeaderboardPage />} />
+          <Route path="/projects/new" element={<CreateProjectPage />} />
           <Route path="/projects/:projectAddress" element={<ProjectDetailPage />} />
           <Route path="/content-funding" element={<ContentFundingLandingPage />} />
           <Route path="/content-funding/about" element={<ContentFundingAboutPage />} />

@@ -173,6 +173,11 @@ export function causePath(cause: CauseDraft): string {
   return `/cause/${cause.id}`
 }
 
+/** Cause-scoped social-media / content-funding board. */
+export function causeContentBoardPath(cause: CauseDraft): string {
+  return `${causePath(cause)}/content`
+}
+
 /** Blocking safety applies per plank, and only to planks with text. */
 export function hasBlockingSafety(cause: CauseDraft): boolean {
   return realPlanks(cause).some((plank) => plank.safety && !plank.safety.allowed)

@@ -245,7 +245,7 @@ describe('StatementFundingPortalPage', () => {
       expect(screen.getByText('Cause Board')).toBeInTheDocument()
     })
 
-    await user.click(screen.getByRole('tab', { name: 'Successful' }))
+    await user.click(screen.getByRole('tab', { name: 'Needs reimbursement' }))
 
     expect(await screen.findByText('Successful Projects Tab')).toBeInTheDocument()
     expect(vi.mocked(SuccessfulProjectsTab).mock.calls[0]?.[0]).toEqual(

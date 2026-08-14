@@ -29,7 +29,7 @@ import { RosterPublishPanel } from '../components/RosterPublishPanel'
 import { SafetyRejectionDialog } from '../components/SafetyRejectionDialog'
 import { ToolCard } from '../components/ToolCard'
 import {
-  causePath, causeTitle, deleteCause, getCause, isLive, listCauses, markPlankPublished,
+  causeContentBoardPath, causePath, causeTitle, deleteCause, getCause, isLive, listCauses, markPlankPublished,
   markRosterPublished, newPlank, publishedPlanks, realPlanks, unpublishedPlanks, updateCause,
   type CauseDraft, type CausePlank, type SafetyState,
 } from '../lib/causeStore'
@@ -803,7 +803,10 @@ export function CauseDetailPage() {
           <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }}>Set aside funds for an issue</Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
             Create a one-time delegated fund or a monthly pledge earmarked for one immutable
-            statement. The earmark does not follow later edits to this cause publication.
+            statement. The earmark is public, auditable guidance — not a binding restriction
+            on a delegate. If they direct the money elsewhere, that will also be public.
+            Choosing a delegate is public too. The earmark does not follow later edits to
+            this cause publication.
           </Typography>
           <Stack spacing={1}>
             {published.map((plank) => (
@@ -1014,11 +1017,26 @@ export function CauseDetailPage() {
       </Paper>
 
       <Paper elevation={0} sx={{ p: { xs: 2, sm: 2.5 }, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
-        <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }}>Projects</Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
-          Projects vouched for as advancing one of this cause's issues. Each is aligned with a
-          specific statement, not with the cause as a whole.
-        </Typography>
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} alignItems={{ sm: 'center' }} justifyContent="space-between" sx={{ mb: 1.5 }}>
+          <Box>
+            <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }}>Projects</Typography>
+            <Typography variant="body2" color="text.secondary">
+              Projects vouched for as advancing one of this cause's issues. Each is aligned with a
+              specific statement, not with the cause as a whole.
+            </Typography>
+          </Box>
+          {publishedCids.length > 0 && (
+            <Button
+              component={RouterLink}
+              to={`/projects/new?statement=${encodeURIComponent(selectedCids[0] ?? publishedCids[0])}`}
+              variant="contained"
+              size="small"
+              sx={{ textTransform: 'none', flexShrink: 0 }}
+            >
+              Start project
+            </Button>
+          )}
+        </Stack>
 
         {publishedCids.length === 0 && (
           <Alert severity="info" sx={{ borderRadius: 2 }}>
@@ -1114,7 +1132,18 @@ export function CauseDetailPage() {
 
       {tools.length > 0 && (
         <Stack spacing={1.25}>
-          {tools.map((tool) => <ToolCard key={tool.id} tool={tool} compact />)}
+          {tools.map((tool) => (
+            <ToolCard
+              key={tool.id}
+              tool={tool}
+              compact
+              href={
+                tool.id === 'content-funding'
+                  ? causeContentBoardPath(cause)
+                  : undefined
+              }
+            />
+          ))}
         </Stack>
       )}
 

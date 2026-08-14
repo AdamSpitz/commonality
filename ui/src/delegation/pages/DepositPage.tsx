@@ -306,6 +306,12 @@ export function DepositPage() {
           can use to fund projects aligned with a cause. You can delegate the decision to
           someone you trust, or direct it yourself.
         </Typography>
+        <Alert severity="info" sx={{ mb: 3 }}>
+          An earmark is public, auditable guidance — not a binding restriction. If a
+          delegate directs the money elsewhere, the system will not stop them, but the
+          earmark and where the funds actually go are both public. Choosing a delegate
+          is public too.
+        </Alert>
 
         {error && (
           <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
