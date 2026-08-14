@@ -1,10 +1,13 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { getCause, listCauses, publishedPlanks, unpublishedPlanks } from './causeStore'
+import { forgetUnsavedCauses, getCause, listCauses, publishedPlanks, unpublishedPlanks } from './causeStore'
 import { parseRosterDocument } from './causeRoster'
 import { legacyCauseDrafts, publishedRosterV1 } from './fixtures/causeCompatibility'
 
 describe('cause publication rollout compatibility corpus', () => {
-  beforeEach(() => window.localStorage.clear())
+  beforeEach(() => {
+    window.localStorage.clear()
+    forgetUnsavedCauses()
+  })
 
   it('opens saved v1 and v2 drafts together without losing wording or CID associations', () => {
     window.localStorage.setItem('causestarter.causes.v1', JSON.stringify(legacyCauseDrafts.v1))

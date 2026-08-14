@@ -293,21 +293,53 @@ function readAll(): CauseDraft[] {
     for (const cause of current) merged.set(cause.id, cause)
 
     if (previous.length > 0 || legacy.length > 0) {
-      const causes = [...merged.values()]
+      const causes = persistable([...merged.values()])
       writeAll(causes)
       window.localStorage.removeItem(PREVIOUS_STORAGE_KEY)
       window.localStorage.removeItem(LEGACY_STORAGE_KEY)
       return causes
     }
-    return current
+    const kept = persistable(current)
+    if (kept.length !== current.length) writeAll(kept)
+    return kept
   } catch {
     return []
   }
 }
 
+/**
+ * Nothing worth listing or writing: no title, no summary, no plank text, no
+ * published roster identity. Suggestion seeds and blank plank rows do not count.
+ */
+export function isEmptyDraft(cause: CauseDraft): boolean {
+  return !cause.title?.trim()
+    && !cause.summary?.trim()
+    && realPlanks(cause).length === 0
+    && !cause.rosterCid
+    && !cause.slug?.trim()
+    && !cause.founderAddress
+}
+
+function persistable(causes: CauseDraft[]): CauseDraft[] {
+  return causes.filter((cause) => !isEmptyDraft(cause))
+}
+
+/** In-session drafts that have not been written (or were emptied after a write). */
+const unsaved = new Map<string, CauseDraft>()
+
+/** Drop in-session unsaved drafts. Tests call this next to `localStorage.clear()`. */
+export function forgetUnsavedCauses(): void {
+  unsaved.clear()
+}
+
 function writeAll(causes: CauseDraft[]): void {
   if (!canUseStorage()) return
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(causes))
+  const kept = persistable(causes)
+  if (kept.length === 0) {
+    window.localStorage.removeItem(STORAGE_KEY)
+    return
+  }
+  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(kept))
 }
 
 export function listCauses(): CauseDraft[] {
@@ -315,7 +347,7 @@ export function listCauses(): CauseDraft[] {
 }
 
 export function getCause(id: string): CauseDraft | undefined {
-  return readAll().find((cause) => cause.id === id)
+  return unsaved.get(id) ?? readAll().find((cause) => cause.id === id)
 }
 
 export function createCause(seed?: string): CauseDraft {
@@ -327,7 +359,7 @@ export function createCause(seed?: string): CauseDraft {
     createdAt: now,
     updatedAt: now,
   }
-  writeAll([...readAll(), cause])
+  unsaved.set(cause.id, cause)
   return cause
 }
 
@@ -347,16 +379,26 @@ export function updateCause(
   id: string,
   patch: Partial<Omit<CauseDraft, 'id' | 'createdAt'>>,
 ): CauseDraft | undefined {
-  const causes = readAll()
-  const index = causes.findIndex((cause) => cause.id === id)
-  if (index < 0) return undefined
+  const existing = getCause(id)
+  if (!existing) return undefined
   const updated: CauseDraft = {
-    ...causes[index]!,
+    ...existing,
     ...patch,
     updatedAt: new Date().toISOString(),
   }
-  causes[index] = updated
-  writeAll(causes)
+  if (isEmptyDraft(updated)) {
+    unsaved.set(id, updated)
+    writeAll(readAll().filter((cause) => cause.id !== id))
+    return updated
+  }
+  unsaved.delete(id)
+  const causes = readAll()
+  const index = causes.findIndex((cause) => cause.id === id)
+  if (index < 0) writeAll([...causes, updated])
+  else {
+    causes[index] = updated
+    writeAll(causes)
+  }
   return updated
 }
 
@@ -391,5 +433,6 @@ export function markRosterPublished(
 }
 
 export function deleteCause(id: string): void {
+  unsaved.delete(id)
   writeAll(readAll().filter((cause) => cause.id !== id))
 }
