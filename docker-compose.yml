@@ -404,6 +404,7 @@ services:
         condition: service_completed_successfully
     environment:
       - UI_PACKAGE=causestarter
+      - VITE_DEFAULT_ALIGNMENT_TRUST_ROOT=${VITE_DEFAULT_ALIGNMENT_TRUST_ROOT:-0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f}
       - VITE_HASH_ROUTING=true
       - UI_IPFS_API_URL=http://ipfs:5001
       - UI_IPFS_GATEWAY_URL=http://localhost:8080/ipfs
@@ -495,6 +496,39 @@ services:
     networks:
       - commonality
 
+  # Bootstrap spam-filter root for CauseStarter. It admits wallets that publish
+  # project vouches and revokes any address added to the operator denylist.
+  alignment-trust-bootstrap:
+    image: commonality-alignment-trust-bootstrap:dev
+    build:
+      context: .
+      dockerfile: alignment-trust-bootstrap/Dockerfile
+    container_name: commonality-alignment-trust-bootstrap
+    user: "${UID:-1000}:${GID:-1000}"
+    depends_on:
+      hardhat-node:
+        condition: service_healthy
+      hardhat-deploy:
+        condition: service_completed_successfully
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      RPC_URL: http://hardhat-node:8545
+      CHAIN_ID: "31337"
+      DEPLOYMENT_ENV_FILE: /workspace/deployments/localhost.env
+      STATE_FILE: /data/state.local.json
+      DENYLIST_FILE: /data/denylist.txt
+      PAUSE_FILE: /data/PAUSED
+      CONFIRMATIONS: "0"
+      ALIGNMENT_TRUST_BOOTSTRAP_PRIVATE_KEY: ${ALIGNMENT_TRUST_BOOTSTRAP_PRIVATE_KEY:-0xdbda1821b80551c9d65939329250298aa3472ba22feea921c0cf5d620ea67b97}
+    volumes:
+      - ./deployments:/workspace/deployments:ro
+      - ${COMMONALITY_DATA_DIR:-./data}/alignment-trust-bootstrap:/data
+    restart: unless-stopped
+    networks:
+      - commonality
+
   # CauseStarter — nginx static SPA (core founder surface).
   # Contract addresses / RPC URLs are injected at container start into config.json.
   # Prefer ./scripts/deploy-causestarter.sh or services.sh (loads .env + localhost.env).
@@ -530,6 +564,7 @@ services:
       VITE_ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS: ${VITE_ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS:-}
       VITE_MUTABLE_REF_UPDATER_CONTRACT_ADDRESS: ${VITE_MUTABLE_REF_UPDATER_CONTRACT_ADDRESS:-}
       VITE_TRUST_REGISTRY_CONTRACT_ADDRESS: ${VITE_TRUST_REGISTRY_CONTRACT_ADDRESS:-}
+      VITE_DEFAULT_ALIGNMENT_TRUST_ROOT: ${VITE_DEFAULT_ALIGNMENT_TRUST_ROOT:-0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f}
       VITE_NUDGE_PUBLICATIONS_CONTRACT_ADDRESS: ${VITE_NUDGE_PUBLICATIONS_CONTRACT_ADDRESS:-}
       VITE_DEFAULT_NUDGERS: ${VITE_DEFAULT_NUDGERS:-}
       VITE_PUBLISHED_DATA_CONTRACT_ADDRESS: ${VITE_PUBLISHED_DATA_CONTRACT_ADDRESS:-}
@@ -553,6 +588,8 @@ services:
     depends_on:
       cause-assist:
         condition: service_healthy
+      alignment-trust-bootstrap:
+        condition: service_started
     networks:
       - commonality
     restart: unless-stopped

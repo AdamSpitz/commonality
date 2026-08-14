@@ -22,7 +22,7 @@ vi.mock('../lib/useWriteClients', () => ({
 afterEach(cleanup)
 
 describe('AlignmentTrustGate', () => {
-  it('explains that project vouches need a named trustee, not a cause attestation', () => {
+  it('explains that the starter network is unavailable, not that the cause needs attestation', () => {
     render(
       <MemoryRouter>
         <AlignmentTrustGate />
@@ -30,7 +30,7 @@ describe('AlignmentTrustGate', () => {
     )
 
     expect(screen.getByTestId('alignment-trust-gate')).toHaveTextContent(
-      /name someone whose vouches you accept/i,
+      /no project-vouching network is available/i,
     )
     expect(screen.getByTestId('alignment-trust-gate')).toHaveTextContent(
       /not an attestation of this cause/i,

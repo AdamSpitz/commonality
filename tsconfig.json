@@ -22,6 +22,7 @@
     "platform-api-service/src/**/*.ts",
     "published-data-ipfs-mirror/src/**/*.ts",
     "coherence-badge-worker/src/**/*.ts",
+    "alignment-trust-bootstrap/src/**/*.ts",
     "fake-data-generation/*.ts",
     "integration-tests/src/**/*.ts",
     "ui/src/**/*.ts",

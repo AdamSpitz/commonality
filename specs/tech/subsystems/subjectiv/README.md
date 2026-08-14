@@ -128,6 +128,16 @@ The existing Settings page UI for manually adding trusted attester addresses can
 
 First time: trust graph is empty, user sees all attestations (or a "building your trust network..." indicator). Within a few seconds of background processing, attestations start getting filtered as the graph fills in. By the next session it's mostly complete and loads instantly from IndexedDB.
 
+**CauseStarter bootstrap refinement (August 2026):** CauseStarter no longer shows
+all attestations or blocks the project list when a viewer has no direct trust.
+It uses an operator-configured bootstrap wallet's direct trustees as a disclosed
+starter network. The bootstrap service initially trusts any wallet observed
+publishing a project-alignment attestation, except an operator denylist. Its
+purpose is spam revocation, not project-quality judgment. Any personal direct
+trust mapping replaces the starter network. The fallback is deliberately
+limited to one hop from the service wallet so an admitted attester cannot add
+arbitrary downstream attesters through its own trust declarations.
+
 ### Rate limiting consideration
 
 Each hop in the graph requires a network request to the indexer (to fetch that user's TrustSet events). So the graph fills in at roughly "one user per round-trip" pace. With a reasonable network, that's a few hundred transitive trust relationships per minute — more than enough for practical use.

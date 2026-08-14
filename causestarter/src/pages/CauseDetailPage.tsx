@@ -47,6 +47,7 @@ import {
 } from '../lib/causeRoster'
 import { writeCauseBookmarkList } from '../lib/causeBookmarks'
 import { publishPlank } from '../lib/publishPlank'
+import { getRuntimeConfigValue } from '../lib/runtimeConfig'
 import { SUPPORTING_TOOLS } from '../lib/tools'
 
 import { useMachinery } from '../lib/useMachinery'
@@ -86,32 +87,44 @@ export function CauseDetailPage() {
     ? trustedImplicationAttesters
     : undefined
   const {
-    trustedSet: trustedAlignmentAttesters,
-    isLoading: trustLoading,
-    error: trustError,
+    trustedSet: personalAlignmentAttesters,
+    isLoading: personalTrustLoading,
+    error: personalTrustError,
   } = useTrustedSet(address)
+  const defaultAlignmentTrustRoot = getRuntimeConfigValue('VITE_DEFAULT_ALIGNMENT_TRUST_ROOT')
+  const {
+    trustedSet: defaultAlignmentAttesters,
+    isLoading: defaultTrustLoading,
+    error: defaultTrustError,
+  } = useTrustedSet(defaultAlignmentTrustRoot, { maxHops: 1 })
+  const usingDefaultAlignmentTrust = personalAlignmentAttesters === undefined
+    && defaultAlignmentAttesters !== undefined
+  const trustedAlignmentAttesters = personalAlignmentAttesters ?? defaultAlignmentAttesters
+  const trustLoading = personalTrustLoading
+    || (personalAlignmentAttesters === undefined && defaultTrustLoading)
+  const trustError = personalAlignmentAttesters === undefined
+    ? (defaultTrustError ?? personalTrustError)
+    : personalTrustError
   /**
    * useTrustedSet re-fetches on window focus and on a timer, flipping isLoading
    * each time. Gate counts only until the *first* settle for this wallet so
    * background refreshes do not unmount the views/projects sections (white flash).
    */
-  const addressKey = address?.toLowerCase() ?? ''
-  const [trustSettled, setTrustSettled] = useState(() => !address)
+  const addressKey = `${address?.toLowerCase() ?? ''}:${defaultAlignmentTrustRoot?.toLowerCase() ?? ''}`
+  const [trustSettled, setTrustSettled] = useState(false)
   useEffect(() => {
-    setTrustSettled(!addressKey)
+    setTrustSettled(false)
   }, [addressKey])
   useEffect(() => {
-    if (!addressKey) return
     if (!trustLoading) setTrustSettled(true)
-  }, [addressKey, trustLoading])
-  const alignmentTrustReady = Boolean(address) && (
+  }, [trustLoading])
+  const alignmentTrustReady = (
     trustSettled && !trustError && trustedAlignmentAttesters !== undefined
   )
-  const alignmentTrustUnavailable = Boolean(address)
-    && trustSettled
+  const alignmentTrustUnavailable = trustSettled
     && !trustError
     && trustedAlignmentAttesters === undefined
-  const showInitialTrustLoad = Boolean(address) && !trustSettled && trustLoading
+  const showInitialTrustLoad = !trustSettled && trustLoading
 
   const routeRef = useMemo(
     () => parseCauseRouteParams(params.owner, params.slugPart),
@@ -831,8 +844,14 @@ export function CauseDetailPage() {
           Loading your trust network before listing projects…
         </Alert>
       )}
-      {publishedCids.length > 0 && (!address || trustError || alignmentTrustUnavailable) && (
+      {publishedCids.length > 0 && (trustError || alignmentTrustUnavailable) && (
         <AlignmentTrustGate error={trustError} />
+      )}
+      {publishedCids.length > 0 && alignmentTrustReady && usingDefaultAlignmentTrust && (
+        <Alert severity="info" sx={{ borderRadius: 2 }}>
+          Projects are filtered using CauseStarter's starter network. You can replace it with
+          your own choices in <RouterLink to="/settings">trust settings</RouterLink>.
+        </Alert>
       )}
 
       {publishedCids.length > 0 && (

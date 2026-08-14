@@ -21,6 +21,8 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 - Replace/scopedown external account tokens: Cloudflare scoped DNS token instead of global key; Render/Pinata scoped as narrowly as possible; OpenRouter spend limit.
 
+- Before deploying the CauseStarter alignment-trust bootstrap outside local Hardhat, create and fund its dedicated operator wallet, then set `ALIGNMENT_TRUST_BOOTSTRAP_PRIVATE_KEY` and the matching chain-scoped `VITE_DEFAULT_ALIGNMENT_TRUST_ROOT` in deployment secrets/config. Never deploy the checked-in local Hardhat key.
+
 ### Docs / UI copy
 
 - Decide whether to act on the fresh landing-copy positioning findings. The Civility grievance-first hero was reviewed and is fine; the verifier rubric was corrected so CSM’s recognition-register rule is not imposed on every vertical. Remaining findings are elsewhere: the umbrella Commonality landing still recruits generic end users despite the founder-first strategy, CSM front-loads the mediator toggle and uses “the other side’s bullshit,” Aligning repeats its main tradeoff several times, and Tally’s “Sign once, counted forever” headline presents a future goal as current capability.
