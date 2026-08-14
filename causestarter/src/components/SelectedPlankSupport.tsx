@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Alert, Button, CircularProgress, Paper, Stack, Typography } from '@mui/material'
+import { Link as RouterLink } from 'react-router-dom'
 import { useAccount } from 'wagmi'
 import { BeliefsAbi } from '@commonality/sdk/abis'
 import { BeliefStates } from '@commonality/sdk/conceptspace'
@@ -66,7 +67,19 @@ export function SelectedPlankSupport({ planks, onSupported }: Props) {
         </div>
         {planks.map((plank) => (
           <div key={plank.cid}>
-            <Typography variant="body2">{plank.text}</Typography>
+            <Typography
+              component={RouterLink}
+              to={`/statement/${plank.cid}`}
+              variant="body2"
+              sx={{
+                display: 'block',
+                color: 'text.primary',
+                textDecoration: 'none',
+                '&:hover': { textDecoration: 'underline' },
+              }}
+            >
+              {plank.text}
+            </Typography>
             <Typography variant="caption" color="text.secondary" sx={{ overflowWrap: 'anywhere' }}>CID: {plank.cid}</Typography>
           </div>
         ))}

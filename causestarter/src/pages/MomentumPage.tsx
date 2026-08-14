@@ -19,7 +19,7 @@ export function MomentumPage() {
           Momentum
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 0.75 }}>
-          Causes you are building on this device, plus causes whose main statement you have
+          Causes you have bookmarked on this device, plus causes whose main statement you have
           publicly supported on-chain.
         </Typography>
       </Box>

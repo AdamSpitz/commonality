@@ -60,6 +60,7 @@ wrong (or this file is out of date and needs an ADR — see
 |---|---|
 | **Subsystem** | A capability: a contract family + SDK subsystem + UI feature module sharing one name |
 | **Site / UI domain** | A branded build that composes a subset of subsystems. There are eight |
+| **Bookmark** | A cause kept in this browser's local storage. Purely device-local and off-chain: bookmarking or unbookmarking never touches published statements or rosters. The user-facing word for local save/remove — never "remove locally", "save to device", or "delete cause" |
 
 ---
 

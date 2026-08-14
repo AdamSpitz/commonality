@@ -59,11 +59,14 @@ export function CauseViewStrip({
 
   return (
     <Paper
-      elevation={0}
+      variant="outlined"
       data-testid="cause-view-strip"
-      sx={{ p: { xs: 2, sm: 2.5 }, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}
+      sx={{ p: 2, borderRadius: 2 }}
     >
       <Stack spacing={1.75}>
+        <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+          Supporters across the checked issues
+        </Typography>
         <ToggleButtonGroup
           exclusive
           fullWidth
