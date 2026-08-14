@@ -3,8 +3,10 @@ import {
   causeTitle,
   createCause,
   deleteCause,
+  forgetUnsavedCauses,
   getCause,
   hasBlockingSafety,
+  isEmptyDraft,
   isLive,
   listCauses,
   markPlankPublished,
@@ -25,6 +27,7 @@ function causeWith(planks: Array<{ text: string; cid?: string }>): CauseDraft {
 describe('causeStore', () => {
   beforeEach(() => {
     window.localStorage.clear()
+    forgetUnsavedCauses()
   })
 
   it('creates a cause with no planks and no title of its own', () => {
@@ -33,7 +36,54 @@ describe('causeStore', () => {
     // The seed is only ever an input to plank suggestion, never page content.
     expect(created.suggestionSeed).toContain('Neighbors organizing')
     expect(causeTitle(created)).toBe('Untitled cause')
+    expect(isEmptyDraft(created)).toBe(true)
+    expect(listCauses()).toHaveLength(0)
+    expect(window.localStorage.getItem('causestarter.causes.v3')).toBeNull()
+    expect(getCause(created.id)?.id).toBe(created.id)
+  })
+
+  it('does not persist a draft until it has a title, summary, or plank text', () => {
+    const created = createCause()
+    expect(listCauses()).toHaveLength(0)
+
+    updateCause(created.id, { title: 'Safer nights' })
+    expect(listCauses().map((cause) => cause.id)).toEqual([created.id])
+    expect(JSON.parse(window.localStorage.getItem('causestarter.causes.v3')!)).toHaveLength(1)
+  })
+
+  it('drops leftover empty drafts from storage and the list', () => {
+    window.localStorage.setItem('causestarter.causes.v3', JSON.stringify([
+      {
+        id: 'empty-leftover',
+        planks: [{ id: 'blank', text: '   ', origin: 'user' }],
+        createdAt: '2026-01-01T00:00:00.000Z',
+        updatedAt: '2026-01-02T00:00:00.000Z',
+      },
+      {
+        id: 'real-cause',
+        title: 'Working streetlights',
+        planks: [],
+        createdAt: '2026-01-01T00:00:00.000Z',
+        updatedAt: '2026-01-03T00:00:00.000Z',
+      },
+    ]))
+
+    expect(listCauses().map((cause) => cause.id)).toEqual(['real-cause'])
+    expect(getCause('empty-leftover')).toBeUndefined()
+    expect(JSON.parse(window.localStorage.getItem('causestarter.causes.v3')!)).toEqual([
+      expect.objectContaining({ id: 'real-cause' }),
+    ])
+  })
+
+  it('removes a persisted draft from storage if it is emptied again', () => {
+    const created = createCause()
+    updateCause(created.id, { planks: [newPlank('Streetlights repaired.')] })
     expect(listCauses()).toHaveLength(1)
+
+    updateCause(created.id, { planks: [] })
+    expect(listCauses()).toHaveLength(0)
+    expect(window.localStorage.getItem('causestarter.causes.v3')).toBeNull()
+    expect(getCause(created.id)?.planks).toEqual([])
   })
 
   it('titles a cause from its first plank', () => {
@@ -201,6 +251,7 @@ describe('causeStore', () => {
 
   it('recovers unmigrated v2 causes even when v3 storage already exists', () => {
     const current = createCause('Already migrated')
+    updateCause(current.id, { title: 'Already migrated' })
     window.localStorage.setItem('causestarter.causes.v2', JSON.stringify([{
       id: 'remaining-v2',
       goal: 'A remaining old cause.',
