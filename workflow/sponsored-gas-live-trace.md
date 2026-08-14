@@ -81,11 +81,19 @@ against the actually-configured wallet stack. Selectors verified with
 
 The contract correctly permits helper approvals only inside a batch containing `buyERC1155` or
 `refundERC1155`, preventing wallets from draining a creator tank with cost-free repeated approvals.
-The UI/SDK currently submits those approvals and primary actions as separate writes, so a first-time
-contribution or refund would ask the paymaster to sponsor an approval-only UserOp and fail validation.
-The platform API source now understands Kernel v3 atomic batches and rejects doomed approval-only or
-mixed-project requests before they reach the bundler. Remaining code work is to make the contribution
-and refund transaction wiring use atomic batches, deploy the API update, then run the human trace.
+That gap is closed in source (`cef4af18`) and on the live testnet path: the SDK submits
+`approve + buyERC1155` and `setApprovalForAll + refundERC1155` as atomic EIP-5792 batches, the
+platform API infers one project from those batches and still rejects approval-only UserOps, and
+LazyGiving was republished to IPFS/IPNS on 2026-08-13 (`QmSh2hAPbeV9TCiHRvbYvoXyxbv4tTBpeQnvkQBBXnjttw`).
+A Base Sepolia measurement project is enrolled and the deployer tank is funded:
+
+- project (assurance): `0x0b34E11c5A014C77b3b61E9e8b94609D8598FF93`
+- token: `0x5f8Bca170353364D4d68eF16474Cd40DE0B074Da`
+- creator / tank key: `0xFC0054CAA8417b946666a0093521B57efC5e5E4a`
+- tank balance: 0.002 ETH
+- UI: https://lazygiving.testnet.commonality.works/#/projects/0x0b34E11c5A014C77b3b61E9e8b94609D8598FF93
+
+Remaining work is the human Privy OTP capture and cap retune.
 
 ## What needs a human vs. what an LLM can do
 
