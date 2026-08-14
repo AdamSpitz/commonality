@@ -50,6 +50,7 @@ import { useAccount, useWalletClient, usePublicClient } from 'wagmi'
 import { getNotesByOwner, getNotesByRoot, getDelegationChain, delegateNote, revokeNote, reclaimFunds, getActiveStandingPledgesByUser, cancelStandingPledge } from '@commonality/sdk/delegation'
 import { createSDKMachinery } from '@commonality/sdk/machinery'
 import { getStatement } from '@commonality/sdk/conceptspace'
+import { getDomainUrl } from '../../shared'
 
 const mockMachinery = {} as any
 
@@ -221,7 +222,10 @@ describe('MyNotesPage', () => {
         expect(screen.getByText('Monthly pledge #5')).toBeInTheDocument()
         expect(screen.getByText('1 USDZZZ/month')).toBeInTheDocument()
         expect(screen.getByText(/Delegated to 0x2222...2222/i)).toBeInTheDocument()
-        expect(screen.getByRole('link', { name: 'Community food security' })).toHaveAttribute('href', '/statement/bafy-cause')
+        expect(screen.getByRole('link', { name: 'Community food security' })).toHaveAttribute(
+          'href',
+          getDomainUrl('tally', '/statement/bafy-cause'),
+        )
         expect(screen.queryByText(/Cause reference:/i)).not.toBeInTheDocument()
         const activePledgesCard = screen.getByText('Active Monthly Pledges').closest('div')
         expect(activePledgesCard).toHaveTextContent('1')

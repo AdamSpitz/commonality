@@ -76,8 +76,12 @@ export function DelegateProfilePage() {
 
     async function load() {
       if (!address || !isAddress(address)) {
-        setError('Invalid delegate address')
         setNotes([])
+        if (routeAddress === 'offer' && !address) {
+          setError(null)
+          return
+        }
+        setError('Invalid delegate address')
         return
       }
 
@@ -114,7 +118,7 @@ export function DelegateProfilePage() {
     return () => {
       cancelled = true
     }
-  }, [address, machinery])
+  }, [address, machinery, routeAddress])
 
   useEffect(() => {
     if (!isOwner || !requestedStatement || scopes.some((scope) => scope.cid === requestedStatement)) return

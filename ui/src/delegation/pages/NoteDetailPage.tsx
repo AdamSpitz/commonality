@@ -24,10 +24,10 @@ import { useAccount } from 'wagmi'
 import { formatEther, parseEther } from 'viem'
 import { DelegatableNotesAbi, NoteIntentAbi } from '@commonality/sdk/abis'
 import { getNote, getDelegationChain, getNoteIntentAttestation, attestNoteIntent, delegateNote, revokeNote, reclaimFunds, purchaseFromPrimaryMarketWithNotes, refundNote, type Note, type NoteIntentAttestation, type DelegationChainLink, type NoteIntentContract } from '@commonality/sdk/delegation'
-import { browseStatementsByNewest, getStatement, type StatementListItem } from '@commonality/sdk/conceptspace'
+import { getStatement, type StatementListItem } from '@commonality/sdk/conceptspace'
 import type { IpfsCidV1 } from '@commonality/sdk/utils'
 import { getProjectsFiltered, type ProjectWithMetrics, getProjectTokens, type ProjectToken } from '@commonality/sdk/lazy-giving'
-import { useMachinery } from '../../shared'
+import { StatementPicker, useMachinery } from '../../shared'
 import { useWriteClients } from '../../shared'
 import { formatNoteAmount, isDelegate, truncateAddress, isEthNote, parseNoteRouteId } from '../utils'
 
@@ -332,7 +332,6 @@ export function NoteDetailPage() {
   const [intent, setIntent] = useState<NoteIntentAttestation | null>(null)
   const [intentTitle, setIntentTitle] = useState<string | null>(null)
   const [intentDialogOpen, setIntentDialogOpen] = useState(false)
-  const [intentStatements, setIntentStatements] = useState<StatementListItem[]>([])
   const [selectedIntentStatement, setSelectedIntentStatement] = useState<StatementListItem | null>(null)
 
   const getClients = () => {
@@ -517,11 +516,8 @@ export function NoteDetailPage() {
     }
   }
 
-  const openIntentDialog = async () => {
+  const openIntentDialog = () => {
     setIntentDialogOpen(true)
-    if (intentStatements.length === 0) {
-      setIntentStatements(await browseStatementsByNewest(machinery, { limit: 50 }).catch(() => []))
-    }
   }
 
   const handleIntentChange = async (clear: boolean) => {
@@ -803,12 +799,19 @@ export function NoteDetailPage() {
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
             An earmark is a public, revocable indication of interest. It does not commit these funds.
           </Typography>
-          <Autocomplete
-            options={intentStatements}
-            value={selectedIntentStatement}
-            onChange={(_, value) => setSelectedIntentStatement(value)}
-            getOptionLabel={option => option.title || truncateAddress(option.cid)}
-            renderInput={params => <TextField {...params} label="Cause" />}
+          <StatementPicker
+            intent="delegation"
+            selectedCid={selectedIntentStatement?.cid}
+            onSelect={(selection) => setSelectedIntentStatement({
+              id: selection.cid,
+              cid: selection.cid as IpfsCidV1,
+              title: selection.text,
+              excerpt: selection.text,
+              statementType: '',
+              believerCount: 0,
+              disbelieverCount: 0,
+              createdAt: '',
+            })}
           />
         </DialogContent>
         <DialogActions>

@@ -28,7 +28,7 @@ import { DelegatableNotesAbi, RecurringPledgesAbi } from '@commonality/sdk/abis'
 import { getStatement } from '@commonality/sdk/conceptspace'
 import { getNotesByOwner, getNotesByRoot, getDelegationChain, delegateNote, revokeNote, reclaimFunds, getActiveStandingPledgesByUser, cancelStandingPledge, type Note, type StandingPledge, type DelegatableNotesContract, type RecurringPledgesContract } from '@commonality/sdk/delegation'
 import type { Currency, IpfsCidV1 } from '@commonality/sdk/utils'
-import { useMachinery } from '../../shared'
+import { getDomainUrl, useMachinery } from '../../shared'
 import { useWriteClients } from '../../shared'
 import { formatCurrencyAmount, getCurrencyForNote } from '../../shared'
 import { formatNoteAmount, isDelegate, truncateAddress, isEthNote, noteDetailPath, noteScopedKey } from '../utils'
@@ -274,7 +274,7 @@ function StandingPledgeCard({
           </Typography>
           <Typography variant="body2" color="text.secondary">
             Cause:{' '}
-            <Link component={RouterLink} to={`/statement/${pledge.causeRef}`}>
+            <Link href={getDomainUrl('tally', `/statement/${pledge.causeRef}`)}>
               {causeTitle ?? 'Untitled cause'}
             </Link>
           </Typography>
