@@ -35,8 +35,8 @@ Most TypeScript workspaces also expose `typecheck`, `build`, and `lint` scripts 
 
 The verifier workspace adds a retained, dashboard-oriented layer on top of conventional tests:
 
-- 107 check definitions under `verifier/checks/`.
-- 70 project-specific checker scripts under `verifier/checks/`.
+- 108 check definitions under `verifier/checks/`.
+- 71 project-specific checker scripts under `verifier/checks/`.
 - Facets: functionality, docs, product, security, plus verifier-health meta checks.
 - Guarded deep checks for fresh seeded stacks, restart consistency, IPFS artifacts, deployed testnet, and mutating testnet canaries.
 - Known-bad fixtures/checks that prove several verifier leaves reject intentionally bad inputs.
@@ -60,7 +60,7 @@ These match the open backlog in `TODO.md` and `verifier/coverage/validation-rost
 1. **Whole-product E2E depth:** `stack.user-journeys` exists, but at least one journey should assert strict rendered-value equality against indexer data, and the named newcomer donor / CSM movement-to-action journeys are still missing.
 2. **Operations/degradation canaries:** there are focused negative-path tests, but deliberate end-to-end dependency-failure coverage across IPFS, indexer, RPC, platform API, and wrong-chain state remains thin.
 3. **Uniform AI-service fixture harness:** individual services have tests, but there is not yet one consistent cross-service fixture harness that proves schema validity, publication shape, and downstream discoverability without live model calls.
-4. **Rendered-product judgment:** some product LLM checks still judge source/docs rather than rendered pages or screenshots.
+4. **Rendered-product judgment:** some product LLM checks still judge source/docs rather than rendered pages or screenshots. Founder-authored E2E leaves (`review.founder-e2e.*`) exist so Adam can describe a surface in his own words; they currently explore source, not a live browser session.
 5. **Performance beyond bundle size:** real latency/throughput/page-interactivity probes against a running stack remain a known gap.
 6. **Domain UI-state matrices:** LazyGiving, Aligning, Tally, Content Funding, Civility, CSM, and Conceptspace all have partial coverage; the remaining gaps are mostly end-user affordance/state matrices rather than core contract logic.
 

@@ -47,27 +47,11 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 ### The founder-first pivot ("causelets")
 
-The strategy itself is now written down: [ADR 0005](specs/decisions/0005-founder-first-verticals.md)
-freezes the decision and its revisit triggers, and [specs/product/founder-first.md](specs/product/founder-first.md)
-is the living spec with the full backlog. What's left here is only the part that needs *your* judgment.
-
-- New site, or potential rename of Commonality: "CauseStarter"? (The ADR deliberately
-  froze the strategy and not the brand, so this is still fully open.)
-  - In fact, let's make this the main UI.
-  - Let's merge in Sam's "ui2" thing - maybe *that* should be the main CauseStarter UI? For now let's just pull in the changes it made to the core stuff, and keep it as "ui2".
-
 - Improve the [pitch for Christians](docs/founder/christian-pitch.md). Come up with other ones along those lines.
-
-- Have an AI generate a bunch of imaginary founders and causes and so on, as a way of pressure-testing the founder-facing model.
 
 ### Stuff I want to think through
 
-- Let's figure out how to make clear that the cause page (owned by its founder, and editable) isn't the same as the underlying statements. If a user signs some statements, those statements are the ones that he signed; they're immutable, and even if the cause-founder modifies which statements he shows on his site (which is his right to do - he's the one operating the site, so he needs to have control over which statements it shows, including being able to change his mind later), the user's signature is only on the statements he actually signed, and the cause page itself won't show the user's signature on the cause's new statements (unless the implication attester says it's okay) (or unless the cause site is dishonest).
-
 - How to eliminate CauseStarter’s reliance on browser `localStorage` for cause drafts / founder progress (`causestarter/src/lib/causeStore.ts`). Today drafts are origin-scoped (so Vite `:5174` vs Docker `:8090` don’t share them) and vanish across devices/clears. Worth thinking through durable alternatives (on-chain draft, IPFS + pointer, account-linked backend, etc.) without re-centralizing or making launch heavier.
-
-- Asking the cause founder to make statements is going to be a problem because the idea of statements is not obvious. (Need to not be vague or ambiguous, etc.)
-  - **(Tell)** Partial pass done: CauseStarter “start a cause” copy reframes main vs supporting statements as signable beliefs with main→supporting implication; cause-assist suggester prompt + new `/check-implications` (Implication Attester system prompt) verify pairs; wizard blocks medium/high non-implies. Still product-sensitive — review wording and whether hard-block is right.
 
 - Now that have (or at least are close to having) a proper testnet setup, can we start creating an ecosystem of simulated fake users of various types? (We can use LLMs to run the ones that need more intelligence, though ideally they'll mostly be made of conventional code, to avoid burning too many LLM tokens.)
   - Cause founder: cares a lot about some cause, comes across CauseStarter, tries actually forking the repo and making a new cause, etc.
