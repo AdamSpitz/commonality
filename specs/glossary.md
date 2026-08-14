@@ -35,7 +35,7 @@ wrong (or this file is out of date and needs an ADR — see
 | **Project** | A crowdfunding effort run as an assurance contract. Its assurance-contract address *is* its ID |
 | **Assurance contract** | The escrow mechanism underneath a project: funds held until threshold-or-deadline, refunded otherwise. The mechanism; "project" is the thing users see |
 | **Contribution** | Money going into a project *before* it succeeds, in exchange for receipts. Refundable if the threshold isn't met |
-| **Contributor** | Someone who made a contribution. The one word for the money-giver role pre-success | 
+| **Contributor** | Someone who made a contribution. The one word for the money-giver role pre-success |
 | **Receipt** | The non-transferable ERC-1155 token you get for contributing. Recognition, not equity, not a reward |
 | **Retroactive donation** | Money going into a *successful* project's reimbursement flow, after the fact. Buys nothing; it repays early contributors |
 | **Reimbursement** | What a retroactive donation pays out to an early contributor — at cost, no upside |
@@ -49,7 +49,7 @@ wrong (or this file is out of date and needs an ADR — see
 |---|---|
 | **Attestation** | Any signed, revocable, published judgment. The umbrella word |
 | **Alignment attestation** | "This project serves this cause". Called a **vouch** in user-facing copy |
-| **Vouch** | The user-facing word for publishing an attestation. What the buttons say | 
+| **Vouch** | The user-facing word for publishing an attestation. What the buttons say |
 | **Success attestation** | "This project actually delivered" |
 | **Trust score** | A user's direct trust setting on another user (Subjectiv). Filtering is by *transitive* trust over these |
 | **Attester / Finder / Nudger** | The three AI-service verbs. An attester judges a pair; a finder discovers pairs worth judging; a nudger proposes new things to the graph. (A fourth, *follower*/context-provider, is being extracted as `beat-memory`) |
