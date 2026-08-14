@@ -107,6 +107,9 @@ export function useMachinery(): SDKMachinery {
       publicClient: publicClient as any,
       eventCacheUrl,
       contractAddresses,
+      settlementTokenAddresses: getRuntimeConfigValue('VITE_PAYMENT_TOKEN_ADDRESS')
+        ? [getRuntimeConfigValue('VITE_PAYMENT_TOKEN_ADDRESS') as `0x${string}`]
+        : [],
     })
     return defaultChainId ? { ...machinery, defaultChainId } : machinery
   }, [])

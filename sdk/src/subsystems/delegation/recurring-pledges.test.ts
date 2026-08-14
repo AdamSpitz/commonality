@@ -1,8 +1,10 @@
 import assert from 'assert';
+import type { StandingPledge } from './types.js';
 import {
   foldStandingPledges,
   isStandingPledgeFundable,
   monthlyPledgedByCause,
+  monthlyPledgedByCauseForToken,
   type RecurringPledgeEvent,
 } from './recurring-pledges.js';
 
@@ -167,5 +169,16 @@ describe('recurring pledge folds', () => {
 
     const totals = monthlyPledgedByCause(foldStandingPledges(events).values());
     assert.equal(totals.get('bafy-cause'), undefined);
+  });
+
+  it('keeps monthly cause totals scoped to one currency', () => {
+    const otherToken = '0x5555555555555555555555555555555555555555';
+    const pledges = [
+      { active: true, causeRef: 'bafy-cause', token: TOKEN, amountPerPeriod: '10' },
+      { active: true, causeRef: 'bafy-cause', token: otherToken, amountPerPeriod: '2000000' },
+    ] as StandingPledge[];
+
+    const totals = monthlyPledgedByCauseForToken(pledges, TOKEN.toUpperCase());
+    assert.equal(totals.get('bafy-cause'), 10n);
   });
 });

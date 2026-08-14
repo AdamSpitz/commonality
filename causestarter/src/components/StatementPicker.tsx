@@ -173,7 +173,17 @@ export function StatementPicker({
           <Paper key={draft.text} variant="outlined" sx={{ p: 1.5 }}>
             <Typography>{draft.text}</Typography>
             <Typography variant="body2" color="text.secondary">{draft.rationale}</Typography>
-            <Button size="small" variant="contained" sx={{ mt: 1 }} onClick={() => choose({ text: draft.text, source: 'drafted' })}>Add to deterministic review</Button>
+            <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
+              <Button size="small" variant="contained" onClick={() => choose({ text: draft.text, source: 'drafted' })}>
+                Add to deterministic review
+              </Button>
+              <Button size="small" onClick={() => {
+                setDrafts((current) => current.filter((candidate) => candidate.text !== draft.text))
+                recordStatementPickerEvent(intent, 'suggestion_rejected')
+              }}>
+                Not what I mean
+              </Button>
+            </Stack>
           </Paper>
         ))}
       </Stack>

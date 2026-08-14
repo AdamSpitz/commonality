@@ -79,6 +79,8 @@ export type SDKMachinery = {
   chainStatusKey?: string;
   /** Optional chain-keyed address registry for multi-chain deployments. */
   contractAddressesByChain?: ContractAddressesByChain;
+  /** Settlement ERC-20s whose balances may be included in soft note-intent aggregates. */
+  settlementTokenAddresses?: `0x${string}`[];
   /**
    * Where PublishedData content bytes are fetched from.
    *
@@ -100,6 +102,7 @@ export function createSDKMachinery(options: Partial<SDKMachinery>): SDKMachinery
     defaultChainId: options.defaultChainId,
     chainStatusKey: options.chainStatusKey,
     contractAddressesByChain: options.contractAddressesByChain,
+    settlementTokenAddresses: options.settlementTokenAddresses,
     publishedContentResolver: options.publishedContentResolver,
   };
 }

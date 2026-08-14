@@ -24,6 +24,10 @@ export function RosterHistory({
 
   const latest = history[0]
   const latestAge = latest ? formatRosterAge(Number(latest.timestamp) * 1000) : null
+  // On a pinned route, CauseDetailPage's loaded roster CID is the version on screen,
+  // not the MutableRef tip. History is newest-first, so keep "current" attached to
+  // the tip and offer a route back to it even while an older version is displayed.
+  const effectiveCurrentVersionCid = pinnedVersionCid ? latest?.value : currentVersionCid
 
   return (
     <Stack spacing={1} data-testid="roster-history">
@@ -33,7 +37,7 @@ export function RosterHistory({
           {history.length > 1 ? ` · ${history.length} versions` : ''}
         </Typography>
       )}
-      {pinnedVersionCid && pinnedVersionCid !== currentVersionCid && (
+      {pinnedVersionCid && (
         <Alert severity="info" sx={{ borderRadius: 2 }}>
           Viewing a pinned version.
           {' '}
@@ -49,7 +53,7 @@ export function RosterHistory({
           </Typography>
           {history.slice(0, 8).map((update) => {
             const cid = update.value
-            const isCurrent = cid === currentVersionCid
+            const isCurrent = cid === effectiveCurrentVersionCid
             const isPinned = cid === pinnedVersionCid
             return (
               <Typography key={update.id} variant="caption" color="text.secondary">

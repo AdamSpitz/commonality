@@ -168,6 +168,44 @@ export async function fetchEvents(
   return requireListResponse<RawEventFromCache>(data, 'event-cache response').items;
 }
 
+const EVENT_API_CAP = 10_000;
+
+/** Fetch a complete event set by recursively splitting capped block ranges. */
+export async function fetchEventsComplete(
+  machinery: SDKMachinery,
+  params: Omit<EventQueryParams, 'limit' | 'blockNumber_gte' | 'blockNumber_lte'>,
+  fromBlock = 0n,
+): Promise<RawEventFromCache[]> {
+  const newest = await fetchEvents(machinery, { ...params, blockNumber_gte: fromBlock.toString(), limit: EVENT_API_CAP });
+  if (newest.length < EVENT_API_CAP) return newest;
+
+  const endBlock = newest.reduce((max, event) => {
+    const block = BigInt(event.blockNumber);
+    return block > max ? block : max;
+  }, fromBlock);
+
+  const fetchRange = async (start: bigint, end: bigint): Promise<RawEventFromCache[]> => {
+    const events = await fetchEvents(machinery, {
+      ...params,
+      blockNumber_gte: start.toString(),
+      blockNumber_lte: end.toString(),
+      limit: EVENT_API_CAP,
+    });
+    if (events.length < EVENT_API_CAP) return events;
+    if (start === end) {
+      throw new Error(`Event-cache block ${start} contains at least ${EVENT_API_CAP} matching events; complete retrieval is impossible without log pagination`);
+    }
+    const midpoint = start + (end - start) / 2n;
+    const [left, right] = await Promise.all([
+      fetchRange(start, midpoint),
+      fetchRange(midpoint + 1n, end),
+    ]);
+    return [...left, ...right];
+  };
+
+  return fetchRange(fromBlock, endBlock);
+}
+
 /**
  * Get the configured contract addresses from SDK machinery.
  *
@@ -276,6 +314,16 @@ export async function fetchAllDelegationEvents(
   return eventGroups.flat();
 }
 
+export async function fetchAllDelegationEventsComplete(
+  machinery: SDKMachinery,
+): Promise<RawEventFromCache[]> {
+  const eventNames = [
+    'NoteCreated', 'NoteDelegated', 'ChainSplit', 'NoteRevoked', 'FundsReclaimed',
+    'NoteConsumed', 'ERC1155Purchased', 'RefundedIntoNote', 'ReimbursementClaimedIntoNote',
+  ];
+  return (await Promise.all(eventNames.map(eventName => fetchEventsComplete(machinery, { eventName })))).flat();
+}
+
 /**
  * Fetch NoteIntentAttested events filtered by noteContract address.
  *
@@ -298,6 +346,12 @@ export async function fetchNoteIntentEvents(
     topic2: paddedNoteContract,
     limit: options.limit ?? 10000,
   });
+}
+
+export async function fetchAllNoteIntentEventsComplete(
+  machinery: SDKMachinery,
+): Promise<RawEventFromCache[]> {
+  return fetchEventsComplete(machinery, { eventName: 'NoteIntentAttested' });
 }
 
 /**

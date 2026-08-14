@@ -14,6 +14,7 @@ import { getStatementWithContent, type Statement } from '@commonality/sdk/concep
 import type { DisplayableDocument } from '@commonality/sdk/displayable-documents'
 import type { IpfsCidV1 } from '@commonality/sdk/utils'
 import { SupportButton } from '../components/SupportButton'
+import { MonthlyPledgeSignal } from '../components/MonthlyPledgeSignal'
 import { createCausePath } from '../lib/causeStore'
 import { useMachinery } from '../lib/useMachinery'
 
@@ -152,6 +153,8 @@ export function StatementPage() {
           }}
         />
       </Paper>
+
+      <MonthlyPledgeSignal statementCids={[statementCid as string]} />
 
       <Button
         variant="outlined"

@@ -170,6 +170,7 @@ export { AddressPicker } from './components/AddressPicker'
 export type { AddressPickerProps, AddressPickerStatus } from './components/AddressPicker'
 export { CrossDomainUnavailablePage } from './components/CrossDomainUnavailablePage'
 export { NetworkSwitchPrompt } from './components/NetworkSwitchPrompt'
+export { StatementPicker } from './components/StatementPicker'
 export { NotFoundPage } from './components/NotFoundPage'
 
 // === utils/ — small pure helpers ===

@@ -11,7 +11,6 @@ pragma solidity 0.8.33;
 contract NoteIntent {
 
     error InvalidNoteContractAddress();
-    error InvalidStatementId();
     error ArrayLengthMismatch();
 
     /**
@@ -46,7 +45,6 @@ contract NoteIntent {
         bytes32 intendedStatementId
     ) external {
         if (noteContract == address(0)) revert InvalidNoteContractAddress();
-        if (intendedStatementId == bytes32(0)) revert InvalidStatementId();
 
         attestations[msg.sender][noteContract][noteId] = intendedStatementId;
 
@@ -74,7 +72,6 @@ contract NoteIntent {
 
         for (uint256 i = 0; i < noteIds.length; i++) {
             bytes32 statementId = intendedStatementIds[i];
-            if (statementId == bytes32(0)) revert InvalidStatementId();
 
             attestations[msg.sender][noteContract][noteIds[i]] = statementId;
 

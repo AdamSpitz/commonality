@@ -15,6 +15,21 @@ vi.mock('wagmi', () => ({
   usePublicClient: vi.fn(),
 }))
 
+vi.mock('../../shared', async () => {
+  const actual = await vi.importActual<typeof import('../../shared')>('../../shared')
+  return {
+    ...actual,
+    StatementPicker: ({ onSelect, disabled }: { onSelect: (selection: { cid: string; text: string; source: 'existing' }) => void; disabled?: boolean }) => (
+      <input
+        role="combobox"
+        aria-label="Statement"
+        disabled={disabled}
+        onChange={(event) => onSelect({ cid: event.target.value, text: event.target.value, source: 'existing' })}
+      />
+    ),
+  }
+})
+
 vi.mock('@commonality/sdk/conceptspace', async () => {
   const actual = await vi.importActual('@commonality/sdk/conceptspace')
   return {
@@ -318,12 +333,12 @@ describe('AlignmentAttestationsSection', () => {
       expect(screen.getByRole('dialog')).toBeInTheDocument()
     })
 
-    it('calls getAllStatements when dialog opens', async () => {
+    it('opens the intent-specific statement picker', async () => {
       vi.mocked(getAllStatements).mockResolvedValue([])
 
       await openDialog()
 
-      expect(getAllStatements).toHaveBeenCalledTimes(1)
+      expect(screen.getByRole('combobox', { name: 'Statement' })).toBeInTheDocument()
     })
 
     it('closes when Cancel is clicked', async () => {

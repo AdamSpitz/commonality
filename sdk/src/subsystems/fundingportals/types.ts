@@ -106,6 +106,8 @@ export interface CauseFundingMetrics {
   projectCount: number;
   /** Number of notes aligned to this cause. */
   noteCount: number;
+  /** Distinct root owners whose currently-live notes are earmarked for this exact cause. */
+  noteSupporterCount?: number;
 }
 
 /** Aggregated contribution statistics for a single participant across projects. */

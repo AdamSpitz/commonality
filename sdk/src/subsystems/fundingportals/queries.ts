@@ -24,7 +24,7 @@ import {
   getProjectReimbursementSnapshot,
   getProjectReimbursementState,
 } from '../lazy-giving/queries.js';
-import { getNote, getNoteIntentAttestationsByStatement } from '../delegation/queries.js';
+import { getNoteIntentAggregate } from '../delegation/queries.js';
 import {
   type AlignmentAttestation,
   type SuccessAttestation,
@@ -848,37 +848,28 @@ export async function getTotalFundingForCause(
 
   const projectTotals = await foldAlignedProjectFunding(machinery, allAlignedProjects);
 
-  const statementCids = new Set<string>([statementCid]);
-  const indirectAlignments = await getIndirectlyAlignedSubjects(
-    machinery,
-    statementCid,
-    trustedImplicationAttesters,
-    trustedAlignmentAttesters,
-  );
-  for (const alignment of indirectAlignments) {
-    statementCids.add(alignment.directStatementCid);
-  }
-
-  const noteAttestations = (
-    await Promise.all(
-      [...statementCids].map((cid) => getNoteIntentAttestationsByStatement(machinery, cid))
-    )
-  ).flat();
-
   const noteTotals = new Map<string, CurrencyAmountBigInt>();
   let noteCount = 0;
-  const noteKeys = [...new Set(noteAttestations.map(noteIntentNoteLookupKey))];
-  const notes = await Promise.all(noteKeys.map((noteKey) => getNote(machinery, noteKey).catch(() => null)));
-  for (const note of notes) {
-    if (!note || !note.active) continue;
-    addCurrencyAmount(noteTotals, getCurrencyForTokenValue(note), BigInt(note.amount));
-    noteCount += 1;
+  // Earmarks are exact-note/exact-cause attestations; implication expansion would
+  // claim intent the supporter did not state.
+  const noteAggregates = [await getNoteIntentAggregate(machinery, statementCid)];
+  let noteSupporterCount = 0;
+  for (const aggregate of noteAggregates) {
+    noteCount += aggregate.noteCount;
+    noteSupporterCount += aggregate.supporterCount;
+    for (const currency of aggregate.currencies) {
+      addCurrencyAmount(noteTotals, getCurrencyForTokenValue({
+        token: currency.tokenAddress,
+        tokenType: 0,
+      }), BigInt(currency.amount));
+    }
   }
 
   return {
     ...projectTotals,
     totalAvailableFromNotes: currencyTotalsToArray(noteTotals),
     noteCount,
+    noteSupporterCount,
   };
 }
 

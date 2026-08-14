@@ -63,31 +63,42 @@ us more.
   of the organizer, narrative, roster, or unselected planks.
 - [x] Show the union of projects aligned with the selected immutable statements, with
   direct project funding and the specialized aligned-content board available in context.
-- [ ] Add statement-scoped delegation entry points only through the delegation product's
-  settled semantics; do not reactivate or redesign unresolved `NoteIntent` behavior as a
-  side effect of this work.
+- [x] Add statement-scoped delegation entry points through the delegation product's settled
+  no-inheritance `NoteIntent` semantics. Cause pages link each immutable plank to the existing
+  one-time/monthly delegated-fund flow with that exact CID preselected; the mutable cause
+  publication itself is never used as the earmark.
 - [x] Preserve ADR 0008: no Commonality-authored cause search, browse, ranking, featuring,
   or leaderboards; policy suppression must cover both rendering and aggregation.
 
 ## 6. Reuse the picker in distinct workflows
 
-- [ ] Add an intent-specific project-alignment picker that targets immutable statements
+- [x] Add an intent-specific project-alignment picker that targets immutable statements
   and supports inviting trusted alignment attesters.
-- [ ] Add an intent-specific delegate-offering and donor-scope picker once delegation
-  intent semantics are settled.
-- [ ] Reuse retrieval and review components for personal belief exploration without
+- [x] Add intent-specific delegate-offering and donor-scope pickers. Donor scope targets
+  immutable `NoteIntent` statements. A delegate offering is a separate, versioned
+  `commonality.delegate-offering` publication: the delegate's fixed `delegate-offering`
+  `MutableRef` selects the current version, whose roster contains immutable statement CIDs
+  and an optional funding-judgment summary. Clearing the ref withdraws the offer; old
+  versions remain auditable. It is displayed alongside the address's derived funding track
+  record, but is not a universal identity profile, endorsement, promise to accept funds, or
+  source of authority over a donor's note.
+- [x] Reuse retrieval and review components for personal belief exploration without
   introducing a universal stored “profile” object.
 
 ## 7. Validate and ship
 
-- [ ] Add end-to-end coverage for a non-expert organizer creating, reviewing, publishing,
-  revising, and sharing a cause, including rejecting every AI suggestion.
-- [ ] Add visitor coverage for signing selected planks, inspecting direct/indirect
+- [x] Add end-to-end coverage for a non-expert organizer creating, reviewing, publishing,
+  revising, and sharing a cause. The browser journey verifies the stable URL follows the
+  revised roster while the first immutable version remains reachable at its pinned URL;
+  focused picker coverage separately exercises rejection and intent correction.
+- [x] Add visitor coverage for signing selected planks, inspecting direct/indirect
   support, viewing aligned projects, and following current and pinned-version URLs.
-- [ ] Test misleading narrative/roster combinations and verify that coherence is a
+- [x] Test misleading narrative/roster combinations and verify that coherence is a
   narrow positive badge rather than an admission gate or general endorsement.
-- [ ] Run migration/regression coverage against existing published causes and local
-  drafts before deployment.
+- [x] Run migration/regression coverage against existing published causes and local
+  drafts before deployment. A frozen compatibility corpus covers v1/v2 local-storage
+  migration (including exact statement/CID associations) and an immutable v1 roster
+  publication captured from the local IPFS corpus.
 - [ ] Validate the complete journey with non-expert users and revisit ADR 0009 if explicit
   review does not reliably prevent accidental adoption of unintended statements.
 

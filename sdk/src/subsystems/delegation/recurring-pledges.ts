@@ -123,6 +123,16 @@ export function monthlyPledgedByCause(pledges: Iterable<StandingPledge>): Map<st
   return totals;
 }
 
+export function monthlyPledgedByCauseForToken(
+  pledges: Iterable<StandingPledge>,
+  token: string,
+): Map<string, bigint> {
+  const tokenLower = token.toLowerCase();
+  return monthlyPledgedByCause(
+    uniqueStandingPledges(pledges).filter(pledge => pledge.token.toLowerCase() === tokenLower),
+  );
+}
+
 function decodeRecurringPledgeEvents(rawEvents: Awaited<ReturnType<typeof fetchEvents>>): RecurringPledgeEvent[] {
   const events: RecurringPledgeEvent[] = [];
   for (const raw of rawEvents) {
@@ -169,6 +179,13 @@ export async function getActiveStandingPledgesByUser(
 
 export async function getMonthlyPledgedByCause(machinery: SDKMachinery): Promise<Map<string, bigint>> {
   return monthlyPledgedByCause(await getStandingPledges(machinery));
+}
+
+export async function getMonthlyPledgedByCauseForToken(
+  machinery: SDKMachinery,
+  token: string,
+): Promise<Map<string, bigint>> {
+  return monthlyPledgedByCauseForToken(await getStandingPledges(machinery), token);
 }
 
 export async function getDueStandingPledges(machinery: SDKMachinery): Promise<StandingPledge[]> {

@@ -6,3 +6,4 @@ export * from './actions.js';
 export type * from './events.js';
 export * from './folds.js';
 export * from './views.js';
+export * from './statement-picker.js';
