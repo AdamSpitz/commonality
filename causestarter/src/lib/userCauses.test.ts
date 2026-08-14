@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { createCause, isLive, listCauses, newPlank, updateCause } from './causeStore'
+import { createCause, forgetUnsavedCauses, isLive, listCauses, newPlank, updateCause } from './causeStore'
 import { listUserCauses, supportedCause } from './userCauses'
 
 vi.mock('@commonality/sdk/conceptspace', () => ({
@@ -28,14 +28,19 @@ function plankCids(cause: { planks: Array<{ cid?: string }> }): Array<string | u
 
 function localCauseWith(cids: string[]) {
   const created = createCause()
+  const texts = cids.length > 0 ? cids : ['Local unpublished plank']
   return updateCause(created.id, {
-    planks: cids.map((cid) => ({ ...newPlank(`Plank ${cid}`), cid })),
+    planks: texts.map((text, i) => ({
+      ...newPlank(`Plank ${text}`),
+      cid: cids[i],
+    })),
   })!
 }
 
 describe('userCauses', () => {
   beforeEach(() => {
     window.localStorage.clear()
+    forgetUnsavedCauses()
     vi.mocked(getUserBeliefs).mockReset()
   })
 
