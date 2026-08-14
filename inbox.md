@@ -17,6 +17,8 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 ## Main list
 
+- **(Tell)** Policy-list starter-profile *ops* gate is already live; no redeploy was needed. `testnet.policy-enforcement` passed 2026-08-14: Civility `config.json` has `VITE_POLICY_BUNDLE_URL`, the GitHub-hosted artifact is `commonality.policy-bundle/v1` digest `0x5bc37be2…ee0b`, and `/policy-content/<blocked fixture CID>` returns 451 / `content_refused_by_policy` / `current` with matching digest. Removed the stale 2026-08-02 TODO item. Remaining plan items (deeper surface coverage, deferred unpinned following, CSM) are unchanged.
+
 - **(Tell)** Finished the LLM-doable sponsored-gas rollout ops. Batch wiring (`cef4af18`) was already on `master`/`dev`; live `/sponsored-gas/paymaster` rejects standalone approvals as designed. Deployed LazyGiving testnet UI to IPFS `QmSh2hAPbeV9TCiHRvbYvoXyxbv4tTBpeQnvkQBBXnjttw` (IPNS seq 13). Created/enrolled project `0x0b34E11c5A014C77b3b61E9e8b94609D8598FF93` to deployer `0xFC0054CAA8417b946666a0093521B57efC5e5E4a` and funded that creator tank with 0.002 ETH (`fundTank` `0x9b7dbe0f30e3a1957c7b9b98071c0ebf871ae7d9c4ad4e4c86cf0167a87c393e`). Remaining work is only the Privy OTP live trace + cap tuning below.
 
 ### Security/recoverability human actions

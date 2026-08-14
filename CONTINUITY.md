@@ -2,6 +2,16 @@
 
 Append new entries to the end of the file.
 
+## 2026-08-14 — Policy-list testnet enforcement already live
+
+The TODO claimed deployed Civility still lacked `VITE_POLICY_BUNDLE_URL` and that the gateway was unconfigured (2026-08-02 snapshot). Live probe + `verifier-run testnet.policy-enforcement` now pass without any publish/redeploy:
+
+- Bundle URL: `https://raw.githubusercontent.com/AdamSpitz/commonality/dev/sdk/examples/policy-lists/civility-policy-bundle.json`
+- Digest: `0x5bc37be2a41bf9525cb0180fe1ceeeb6cd31752d798f7087928b22a74634ee0b` (client config and `x-commonality-policy-digest` agree)
+- Gateway: `https://commonality-platform-api.onrender.com/policy-content/bafkreifzjut3te2nhyekklss27nh3k7232xplrvgnbo3wxj335rkr3v36m` → HTTP 451, `content_refused_by_policy`, `x-commonality-policy-status: current`
+
+Deleted that Tell item from `TODO.md`. Updated the implementation-plan status and the two operational checklist notes. Did not claim the full starter-profile stopping gate (remaining inventory/coverage items in D–F are still open).
+
 
 ## 2026-08-08 — PublishedData / browser IPFS cutover
 
