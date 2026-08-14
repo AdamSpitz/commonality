@@ -210,15 +210,15 @@ export function CauseLeaderboard({ statementCid, backLink }: CauseLeaderboardPro
               <TableBody>
                 {contributors.map((entry, i) => {
                   const isUser =
-                    userAddress && entry.participant.toLowerCase() === userAddress.toLowerCase()
+                    userAddress && entry.contributor.toLowerCase() === userAddress.toLowerCase()
                   return (
                     <TableRow
-                      key={entry.participant}
+                      key={entry.contributor}
                       sx={isUser ? { bgcolor: 'action.selected' } : undefined}
                     >
                       <TableCell>{i + 1}</TableCell>
                       <TableCell>
-                        <Tooltip title={entry.participant} placement="top">
+                        <Tooltip title={entry.contributor} placement="top">
                           <Typography
                             variant="body2"
                             sx={{
@@ -227,7 +227,7 @@ export function CauseLeaderboard({ statementCid, backLink }: CauseLeaderboardPro
                               cursor: 'help',
                             }}
                           >
-                            {truncateAddress(entry.participant)}
+                            {truncateAddress(entry.contributor)}
                             {isUser && ' (you)'}
                           </Typography>
                         </Tooltip>

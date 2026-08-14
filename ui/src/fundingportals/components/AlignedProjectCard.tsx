@@ -338,8 +338,8 @@ function AlignedProjectCardBody({
       </Button>
       <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
         {projectLinks === 'local'
-          ? 'Pledge, refund, and withdraw here — then return to explore more aligned projects.'
-          : 'Pledge, refund, and withdraw on LazyGiving — then return here to explore more aligned projects.'}
+          ? 'Contribute, refund, and withdraw here — then return to explore more aligned projects.'
+          : 'Contribute, refund, and withdraw on LazyGiving — then return here to explore more aligned projects.'}
       </Typography>
     </CardContent>
   )

@@ -8,7 +8,7 @@ import type { IpfsCidV1 } from '@commonality/sdk/utils'
 import {
   ProjectHeader,
   BuyTokensSection,
-  PledgePreviewPanel,
+  ContributionPreviewPanel,
   RefundSection,
   WithdrawSection,
   ReimbursementSection,
@@ -326,7 +326,7 @@ export function ProjectDetailPage({
       )}
 
       {!isConnected && status === 'active' && !(tokens.length > 0 && cardOnrampSupported) && (
-        <PledgePreviewPanel tokens={tokens} tokenImages={tokenImages} />
+        <ContributionPreviewPanel tokens={tokens} tokenImages={tokenImages} />
       )}
 
       {isConnected && status === 'active' && tokens.length === 0 && (

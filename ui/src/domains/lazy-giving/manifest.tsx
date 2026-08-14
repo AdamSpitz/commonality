@@ -35,7 +35,7 @@ export const lazyGivingManifest: DomainManifest = {
       { label: 'Delegation', path: '/delegation/notes' }
     ],
     secondaryNavigation: [],
-    footerText: 'LazyGiving helps people create and fund individual public-goods projects with pledge-and-refund assurance contracts.',
+    footerText: 'LazyGiving helps people create and fund individual public-goods projects with fund-and-refund assurance contracts.',
   },
   features: {
     conceptspace: false,

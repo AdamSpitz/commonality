@@ -20,7 +20,7 @@ export function ContentFundingCreatorsPage() {
   return (
     <CreatorsLandingPage
       title="Content Funding"
-      description="Fund creators and individual pieces of content people already value. Browse by platform, back work you care about, and let creators claim what supporters have pooled for them."
+      description="Fund creators and individual pieces of content people already value. Browse by platform, back work you care about, and let creators claim what contributors have pooled for them."
       secondaryDescription="Open a channel to see active contracts and escrowed funds, or create a new contract around content you want to reward."
       learnMoreLabel="Learn how content funding contracts work"
     />
@@ -31,7 +31,7 @@ export function ContentFundingBrowsePage() {
   return (
     <BrowseCreatorsPage
       title="Browse Fundable Creators"
-      description="Find creators on Twitter, YouTube, and Substack. Each channel shows active funding contracts, how much supporters have pooled, and the specific posts or videos tied to those contracts."
+      description="Find creators on Twitter, YouTube, and Substack. Each channel shows active funding contracts, how much contributors have pooled, and the specific posts or videos tied to those contracts."
     />
   )
 }
@@ -39,10 +39,10 @@ export function ContentFundingBrowsePage() {
 export function ContentFundingChannelPage() {
   return (
     <ChannelPage
-      campaignHeading="Content Funding Contracts"
-      createCampaignLabel="Start Contract"
-      emptyCampaignState="No content-funding contracts exist for this channel yet."
-      unclaimedHeroDescription="This creator has not claimed the channel yet. If it is yours, verify your identity and claim the escrowed funds supporters have already pooled here."
+      contractsHeading="Content Funding Contracts"
+      createContractLabel="Start Contract"
+      emptyContractsState="No content-funding contracts exist for this channel yet."
+      unclaimedHeroDescription="This creator has not claimed the channel yet. If it is yours, verify your identity and claim the escrowed funds contributors have already pooled here."
       shareDescription="If you know this creator, send them the claim link below so they can verify ownership and collect the funds waiting for them."
       contractPathForAddress={getContentFundingContractPath}
     />
@@ -173,14 +173,14 @@ export function ContentFundingExploreKindsPage() {
         Explore kinds of content
       </Typography>
       <Typography variant="body1" color="text.secondary" sx={{ mb: 3, maxWidth: 760 }}>
-        Content contracts here are organized around creators and channels. If you want statement- or cause-centric browsing, use Aligning; these examples are just common kinds of content supporters may fund.
+        Content contracts here are organized around creators and channels. If you want statement- or cause-centric browsing, use Aligning; these examples are just common kinds of content contributors may fund.
       </Typography>
       <Stack spacing={2}>
         {['Funny', 'Educational', 'Investigative', 'Noninflammatory'].map((kind) => (
           <Paper key={kind} sx={{ p: 2 }}>
             <Typography variant="h6">{kind}</Typography>
             <Typography variant="body2" color="text.secondary">
-              Fund creator/channel contracts for this kind of work here, or use Aligning when you want a cause portal organized around a statement.
+              Fund creator/channel contracts for this kind of work here, or use Aligning when you want a cause board organized around a statement.
             </Typography>
           </Paper>
         ))}
@@ -199,7 +199,7 @@ export function ContentFundingAboutPage() {
         About Content Funding
       </Typography>
       <Typography variant="body1" color="text.secondary" sx={{ mb: 3, maxWidth: 780 }}>
-        Reward articles, videos, posts, and channels you want more of. Supporters pool money around a creator or piece of work; if the channel owner verifies, the escrow pays out to the creator.
+        Reward articles, videos, posts, and channels you want more of. Contributors pool money around a creator or piece of work; if the channel owner verifies, the escrow pays out to the creator.
       </Typography>
 
       <Stack spacing={2}>
@@ -237,10 +237,10 @@ export function ContentFundingAboutPage() {
               • Browse creators by platform and open a funding contract around a channel or specific piece of content.
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              • Pledge funds that stay in escrow until the creator verifies ownership and claims them.
+              • Contribute funds that stay in escrow until the creator verifies ownership and claims them.
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              • Share a claim link with the creator so they can verify and collect what supporters have pooled.
+              • Share a claim link with the creator so they can verify and collect what contributors have pooled.
             </Typography>
             <Typography variant="body2" color="text.secondary">
               • If you are the creator, verify your channel and withdraw escrowed balances from one dashboard.
@@ -252,7 +252,7 @@ export function ContentFundingAboutPage() {
             How money flows
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            A supporter pledges funds into an escrow contract tied to a specific channel or content item. The creator verifies ownership through the platform API. Once verified, the creator can withdraw the pooled balance. If the creator never shows up, supporters can reclaim their pledge.
+            A contributor puts funds into an escrow contract tied to a specific channel or content item. The creator verifies ownership through the platform API. Once verified, the creator can withdraw the pooled balance. If the creator never shows up, contributors can reclaim their contribution.
           </Typography>
         </Paper>
         <Paper sx={{ p: 2 }}>
@@ -260,7 +260,7 @@ export function ContentFundingAboutPage() {
             Concrete example
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-            You liked a YouTube essay and want more like it. You open a funding contract for that channel, pledge funds, and share the claim link. The channel owner verifies ownership and collects the escrow — instead of leaving supporters to guess where to send money.
+            You liked a YouTube essay and want more like it. You open a funding contract for that channel, contribute funds, and share the claim link. The channel owner verifies ownership and collects the escrow — instead of leaving contributors to guess where to send money.
           </Typography>
           <Button component="a" href={getDomainUrl('commonality', '/docs/use-case-walkthroughs/noninflammatory-content', { fallbackHref: '#' })} size="small">
             Read the full walkthrough
@@ -311,7 +311,7 @@ export function ContentFundingContractPage() {
           Content Funding Contract
         </Typography>
         <Typography variant="body1" color="text.secondary">
-          See who pledged, what content is covered, and where the escrow stands. Creators can verify the channel here to claim pooled funds.
+          See who contributed, what content is covered, and where the escrow stands. Creators can verify the channel here to claim pooled funds.
         </Typography>
       </Paper>
       <ProjectDetailPage />

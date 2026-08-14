@@ -296,14 +296,14 @@ describe('ExplorerPage', () => {
       expect(screen.queryByText(/Fits with statements/)).not.toBeInTheDocument()
     })
 
-    it('shows supporter counts for each entry', async () => {
+    it('shows signer counts for each entry', async () => {
       mockExplorerData()
 
       renderWithRouter(<ExplorerPage />)
 
       await waitFor(() => {
-        const supporterChips = screen.getAllByText(/supporters?/)
-        expect(supporterChips.length).toBeGreaterThan(0)
+        const signerChips = screen.getAllByText(/signers?/)
+        expect(signerChips.length).toBeGreaterThan(0)
       })
     })
 

@@ -202,7 +202,7 @@ describe('StatementFundingPortalPage', () => {
     await waitFor(() => {
       expect(
         screen.getByText(
-          'Refreshing your trust network. Until any trusted accounts are found, this portal still shows all project endorsements.'
+          'Refreshing your trust network. Until any trusted accounts are found, this cause board still shows all project vouches.'
         )
       ).toBeInTheDocument()
     })

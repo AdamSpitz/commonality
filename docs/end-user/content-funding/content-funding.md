@@ -6,7 +6,7 @@ You want to reward that. Not with a like — with money.
 
 Content funding is [assurance contracts](../lazyGiving/assurance-contracts.md) (the same mechanism LazyGiving uses for projects) pointed at social-media content. There are three ways it shows up:
 
-- **Reward a post you loved.** The work already exists — so put money behind that specific piece, not just a like. Supporters pool funds on it, and the creator claims them.
+- **Reward a post you loved.** The work already exists — so put money behind that specific piece, not just a like. Contributors pool funds on it, and the creator claims them.
 - **Commission a creator's next chapter.** Pledge toward *future* work — a month of videos, a series of posts — as an assurance contract: the money is released only if the goal is reached, and everyone is refunded otherwise. The creator gets a guarantee before they start, and nobody risks anything.
 - **Fund a whole *kind* of content.** Pledge toward a *type* of content you want more of, and let it fund qualifying work, old or new. This runs on cause pools over on [Aligning](../alignment/index.md); the [Civility](../civility/index.md) vertical is built this way.
 
@@ -26,7 +26,7 @@ The trick is deciding what counts as that kind of content. A cause pool can trus
 
 ## How this shows up in practice
 
-- **As a reader/supporter:** You see a piece you value and pledge toward it. Your money is refunded if the contract doesn't reach its goal. Or you delegate to someone whose taste you trust, or pledge to a cause and let aligned content pull from it.
+- **As a reader/contributor:** You see a piece you value and pledge toward it. Your money is refunded if the contract doesn't reach its goal. Or you delegate to someone whose taste you trust, or pledge to a cause and let aligned content pull from it.
 - **As a creator:** You claim your channel, group your content into a contract, set a goal, and collect when it's met. Content registered to your channel flows funds to you.
 - **As a delegate:** You direct pooled funds toward content that serves the causes you're responsible for.
 

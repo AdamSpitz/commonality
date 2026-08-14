@@ -10,7 +10,7 @@ export function RetroFundingStory() {
   return (
     <Box
       component="iframe"
-      title="Animated story showing early backers funding a project and later users buying them out"
+      title="Animated story showing early contributors funding a project and later users buying them out"
       srcDoc={embeddedRetroFundingStoryHtml}
       sx={{
         width: '100%',

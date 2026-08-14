@@ -436,8 +436,8 @@ describe('LazyGiving Project Lifecycle Integration Tests', () => {
     assert.strictEqual(contributions.length, 2, 'Should have 2 contributions');
 
     // Find each contributor's contribution
-    const contrib1 = contributions.find(c => c.participant.toLowerCase() === contributor1Clients.account.toLowerCase());
-    const contrib2 = contributions.find(c => c.participant.toLowerCase() === contributor2Clients.account.toLowerCase());
+    const contrib1 = contributions.find(c => c.contributor.toLowerCase() === contributor1Clients.account.toLowerCase());
+    const contrib2 = contributions.find(c => c.contributor.toLowerCase() === contributor2Clients.account.toLowerCase());
 
     assert.ok(contrib1, 'Contributor 1 contribution should exist');
     assert.ok(contrib2, 'Contributor 2 contribution should exist');

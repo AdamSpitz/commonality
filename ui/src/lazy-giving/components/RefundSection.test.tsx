@@ -59,7 +59,7 @@ function makeProject(overrides: Record<string, any> = {}): any {
 function makeContribution(overrides: Record<string, any> = {}): any {
   return {
     id: 'contrib-1',
-    participant: USER_ADDR,
+    contributor: USER_ADDR,
     projectAddress: PROJECT_ADDR,
     erc1155Address: ERC1155_ADDR,
     tokenIds: '["1"]',
@@ -75,7 +75,7 @@ function makeContribution(overrides: Record<string, any> = {}): any {
 function makeRefund(overrides: Record<string, any> = {}): any {
   return {
     id: 'refund-1',
-    participant: USER_ADDR,
+    contributor: USER_ADDR,
     projectAddress: PROJECT_ADDR,
     erc1155Address: ERC1155_ADDR,
     tokenIds: '["1"]',

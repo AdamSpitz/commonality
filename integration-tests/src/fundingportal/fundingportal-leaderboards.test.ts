@@ -208,13 +208,13 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
     const rank2 = topContributors[1];
     const rank3 = topContributors[2];
 
-    testLog(`  Rank 1: ${rank1.participant} - ${rank1.netContribution} wei`);
-    testLog(`  Rank 2: ${rank2.participant} - ${rank2.netContribution} wei`);
-    testLog(`  Rank 3: ${rank3.participant} - ${rank3.netContribution} wei`);
+    testLog(`  Rank 1: ${rank1.contributor} - ${rank1.netContribution} wei`);
+    testLog(`  Rank 2: ${rank2.contributor} - ${rank2.netContribution} wei`);
+    testLog(`  Rank 3: ${rank3.contributor} - ${rank3.netContribution} wei`);
 
     // Rank 1 should be contributor 1 (3 ETH)
     assert.strictEqual(
-      rank1.participant.toLowerCase(),
+      rank1.contributor.toLowerCase(),
       contributor1Clients.account.toLowerCase(),
       'Rank 1 should be Contributor 1'
     );
@@ -224,7 +224,7 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
 
     // Rank 2 should be contributor 2 (1.5 ETH)
     assert.strictEqual(
-      rank2.participant.toLowerCase(),
+      rank2.contributor.toLowerCase(),
       contributor2Clients.account.toLowerCase(),
       'Rank 2 should be Contributor 2'
     );
@@ -233,7 +233,7 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
 
     // Rank 3 should be contributor 3 (0.5 ETH)
     assert.strictEqual(
-      rank3.participant.toLowerCase(),
+      rank3.contributor.toLowerCase(),
       contributor3Clients.account.toLowerCase(),
       'Rank 3 should be Contributor 3'
     );

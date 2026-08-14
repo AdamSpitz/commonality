@@ -851,12 +851,12 @@ export async function getTotalFundingForCause(
   const noteTotals = new Map<string, CurrencyAmountBigInt>();
   let noteCount = 0;
   // Earmarks are exact-note/exact-cause attestations; implication expansion would
-  // claim intent the supporter did not state.
+  // claim intent the contributor did not state.
   const noteAggregates = [await getNoteIntentAggregate(machinery, statementCid)];
-  let noteSupporterCount = 0;
+  let noteContributorCount = 0;
   for (const aggregate of noteAggregates) {
     noteCount += aggregate.noteCount;
-    noteSupporterCount += aggregate.supporterCount;
+    noteContributorCount += aggregate.contributorCount;
     for (const currency of aggregate.currencies) {
       addCurrencyAmount(noteTotals, getCurrencyForTokenValue({
         token: currency.tokenAddress,
@@ -869,7 +869,7 @@ export async function getTotalFundingForCause(
     ...projectTotals,
     totalAvailableFromNotes: currencyTotalsToArray(noteTotals),
     noteCount,
-    noteSupporterCount,
+    noteContributorCount,
   };
 }
 
@@ -1013,7 +1013,7 @@ export async function getTopContributorsForCause(
     return [];
   }
 
-  const participantMap = new Map<string, ContributorStats>();
+  const contributorMap = new Map<string, ContributorStats>();
 
   const projectHistories = await Promise.all(
     alignedProjects.map(async (project) => {
@@ -1028,18 +1028,18 @@ export async function getTopContributorsForCause(
 
   for (const { project, contributions, refunds } of projectHistories) {
 
-    // Build per-participant refund totals for this project
-    const refundsByParticipant = new Map<string, bigint>();
+    // Build per-contributor refund totals for this project
+    const refundsByContributor = new Map<string, bigint>();
     for (const refund of refunds) {
-      const addr = refund.participant.toLowerCase();
-      refundsByParticipant.set(addr, (refundsByParticipant.get(addr) ?? 0n) + BigInt(refund.totalRefund));
+      const addr = refund.contributor.toLowerCase();
+      refundsByContributor.set(addr, (refundsByContributor.get(addr) ?? 0n) + BigInt(refund.totalRefund));
     }
 
-    // Aggregate contributions per participant for this project
-    const projectParticipants = new Map<string, { totalContributed: bigint; count: number; firstAt?: bigint; lastAt?: bigint }>();
+    // Aggregate contributions per contributor for this project
+    const projectContributors = new Map<string, { totalContributed: bigint; count: number; firstAt?: bigint; lastAt?: bigint }>();
     for (const c of contributions) {
-      const addr = c.participant.toLowerCase();
-      const existing = projectParticipants.get(addr);
+      const addr = c.contributor.toLowerCase();
+      const existing = projectContributors.get(addr);
       const ts = BigInt(c.createdAt);
       if (existing) {
         existing.totalContributed += BigInt(c.totalCost);
@@ -1047,15 +1047,15 @@ export async function getTopContributorsForCause(
         if (ts < (existing.firstAt ?? ts + 1n)) existing.firstAt = ts;
         if (ts > (existing.lastAt ?? 0n)) existing.lastAt = ts;
       } else {
-        projectParticipants.set(addr, { totalContributed: BigInt(c.totalCost), count: 1, firstAt: ts, lastAt: ts });
+        projectContributors.set(addr, { totalContributed: BigInt(c.totalCost), count: 1, firstAt: ts, lastAt: ts });
       }
     }
 
-    // Merge into the cross-project participantMap
-    for (const [participant, stats] of projectParticipants.entries()) {
-      const totalRefunded = refundsByParticipant.get(participant) ?? 0n;
+    // Merge into the cross-project contributorMap
+    for (const [contributor, stats] of projectContributors.entries()) {
+      const totalRefunded = refundsByContributor.get(contributor) ?? 0n;
       const netContribution = stats.totalContributed - totalRefunded;
-      const existing = participantMap.get(participant);
+      const existing = contributorMap.get(contributor);
 
       if (existing) {
         existing.totalContributed = addAmountToCurrencyList(
@@ -1087,8 +1087,8 @@ export async function getTopContributorsForCause(
           }
         }
       } else {
-        participantMap.set(participant, {
-          participant,
+        contributorMap.set(contributor, {
+          contributor,
           totalContributed: addAmountToCurrencyList([], project.fundingCurrency, stats.totalContributed),
           totalRefunded: addAmountToCurrencyList([], project.fundingCurrency, totalRefunded),
           netContribution: addAmountToCurrencyList([], project.fundingCurrency, netContribution),
@@ -1101,7 +1101,7 @@ export async function getTopContributorsForCause(
     }
   }
 
-  return Array.from(participantMap.values())
+  return Array.from(contributorMap.values())
     .sort((a, b) => {
       const comparableAmounts = compareCurrencyTotals(a.netContribution, b.netContribution);
       if (comparableAmounts !== null) {
@@ -1116,7 +1116,7 @@ export async function getTopContributorsForCause(
       }
       if ((a.lastContributionAt ?? 0n) > (b.lastContributionAt ?? 0n)) return -1;
       if ((a.lastContributionAt ?? 0n) < (b.lastContributionAt ?? 0n)) return 1;
-      return a.participant.localeCompare(b.participant);
+      return a.contributor.localeCompare(b.contributor);
     })
     .slice(0, limit);
 }
@@ -1144,7 +1144,7 @@ export async function getUserContributionRankForCause(
   );
 
   const userAddr = userAddress.toLowerCase();
-  const userIndex = allContributors.findIndex(c => c.participant.toLowerCase() === userAddr);
+  const userIndex = allContributors.findIndex(c => c.contributor.toLowerCase() === userAddr);
 
   if (userIndex === -1) {
     return {

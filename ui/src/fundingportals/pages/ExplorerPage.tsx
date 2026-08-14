@@ -319,7 +319,7 @@ export function ExplorerPage() {
                       {entry.label}
                     </Typography>
                     <Chip
-                      label={`${entry.believerCount} supporter${entry.believerCount !== 1 ? 's' : ''}`}
+                      label={`${entry.believerCount} signer${entry.believerCount !== 1 ? 's' : ''}`}
                       color="primary"
                       size="small"
                       sx={{ ml: 1 }}

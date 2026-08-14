@@ -12,6 +12,7 @@ Commonality is a system for decentralized crowdfunding of public goods: people c
   - Product boundaries between the eight sites: [product UI domains](./specs/product/ui-domains.md).
   - Technical domain composition and live route ownership: [technical UI domains](./specs/tech/ui-domains.md) and the actual domain manifests under [`ui/src/domains/`](./ui/src/domains/).
   - **CauseStarter** ([`causestarter/`](./causestarter/), backlog [`causestarter/TODO.md`](./causestarter/TODO.md)): founder-first core domain (eventual primary entry; Tally / LazyGiving / etc. de-emphasized as tools). Included in `./scripts/services.sh --start` and `./scripts/deploy-causestarter.sh`. LLM helpers: [`cause-assist/`](./cause-assist/).
+  - [Glossary](./specs/glossary.md) — the project's ubiquitous language. Read before naming anything; it also lists the known terminology drift.
   - [Architecture Decision Records](./specs/decisions/README.md) — immutable log of *why* consequential decisions were made (and what was rejected). Grep before reversing something that looks wrong.
   - [Role-based guidance](./workflow/roles/README.md) on what docs to read:
     - [founder](./workflow/roles/founder.md)

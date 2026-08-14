@@ -63,13 +63,13 @@ export interface NoteIntentAggregateCurrency {
   chainId: number;
   tokenAddress: string;
   amount: string;
-  supporterCount: number;
+  contributorCount: number;
 }
 
 export interface NoteIntentAggregate {
   statementId: string;
   currencies: NoteIntentAggregateCurrency[];
-  supporterCount: number;
+  contributorCount: number;
   noteCount: number;
 }
 

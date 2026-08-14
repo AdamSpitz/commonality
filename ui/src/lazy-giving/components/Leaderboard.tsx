@@ -54,7 +54,7 @@ export function Leaderboard({ contributions, refunds, contributionChains }: Lead
     for (const c of contributions) {
       const chain = contributionChains[c.transactionHash]
       if (!chain) continue
-      const addr = c.participant.toLowerCase()
+      const addr = c.contributor.toLowerCase()
       if (!addressChains[addr]) addressChains[addr] = []
       // Deduplicate chains by their string representation
       const chainKey = chain.join(',')

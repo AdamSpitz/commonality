@@ -42,18 +42,18 @@ vi.mock('../../content-funding/pages/BrowseCreatorsPage', () => ({
 
 vi.mock('../../content-funding/pages/ChannelPage', () => ({
   ChannelPage: vi.fn(({
-    campaignHeading,
-    createCampaignLabel,
-    emptyCampaignState,
+    contractsHeading,
+    createContractLabel,
+    emptyContractsState,
     unclaimedHeroDescription,
     shareHeading,
     shareDescription,
     suggestedMessagePrefix,
   }: any) => (
     <div>
-      <h1>{campaignHeading}</h1>
-      <p data-testid="create-label">{createCampaignLabel}</p>
-      <p data-testid="empty-state">{emptyCampaignState}</p>
+      <h1>{contractsHeading}</h1>
+      <p data-testid="create-label">{createContractLabel}</p>
+      <p data-testid="empty-state">{emptyContractsState}</p>
       <p data-testid="unclaimed">{unclaimedHeroDescription}</p>
       <p data-testid="share-heading">{shareHeading}</p>
       <p data-testid="share">{shareDescription}</p>
@@ -336,7 +336,7 @@ describe('Noninflammatory branded surfaces', () => {
       )
 
       expect(
-        screen.getByText(/See who pledged, what content is covered, and why it was submitted under the bridge-building standard/i),
+        screen.getByText(/See who contributed, what content is covered, and why it was submitted under the bridge-building standard/i),
       ).toBeInTheDocument()
     })
 
