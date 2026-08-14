@@ -1,17 +1,15 @@
 import { Box, Button, CircularProgress, Paper, Stack, Typography } from '@mui/material'
 import { Link as RouterLink, useNavigate } from 'react-router-dom'
 import { HowItWorksSteps } from '../components/HowItWorksSteps'
-import { CauseCard } from '../components/CauseCard'
+import { YourCauses } from '../components/YourCauses'
 import { useUserCauses } from '../hooks/useUserCauses'
 import { createCausePath } from '../lib/causeStore'
 
-export function HomePage() {
+function LandingHome() {
   const navigate = useNavigate()
-  const { causes: allCauses, loading } = useUserCauses()
-  const causes = allCauses.slice(0, 2)
 
   return (
-    <Stack spacing={3}>
+    <Stack spacing={3} data-testid="home-landing">
       <Paper
         elevation={0}
         sx={{
@@ -69,33 +67,6 @@ export function HomePage() {
         <HowItWorksSteps />
       </Box>
 
-      {(loading || causes.length > 0) && (
-        <Box>
-          <Stack direction="row" justifyContent="space-between" alignItems="baseline" sx={{ mb: 1.5 }}>
-            <Typography variant="h6" sx={{ fontWeight: 700 }}>
-              Your causes
-            </Typography>
-            <Button component={RouterLink} to="/causes" size="small" sx={{ textTransform: 'none' }}>
-              See all
-            </Button>
-          </Stack>
-          {loading && causes.length === 0 ? (
-            <Stack direction="row" spacing={1} alignItems="center" sx={{ py: 1 }}>
-              <CircularProgress size={18} />
-              <Typography variant="body2" color="text.secondary">
-                Loading causes you support…
-              </Typography>
-            </Stack>
-          ) : (
-            <Stack spacing={1.5}>
-              {causes.map((cause) => (
-                <CauseCard key={cause.id} cause={cause} />
-              ))}
-            </Stack>
-          )}
-        </Box>
-      )}
-
       <Paper
         elevation={0}
         sx={{
@@ -106,20 +77,56 @@ export function HomePage() {
         }}
       >
         <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-          Need a specific tool?
+          Examples and background
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 0.75 }}>
-          Signing, funding, media support, and worked examples live under Tools. Open them when
-          your cause needs that next step — keep CauseStarter as home base.
+          Worked example causes and optional reading live under Docs. Funding and growth
+          tools stay on each cause page.
         </Typography>
         <Button
           component={RouterLink}
-          to="/tools"
+          to="/docs"
           sx={{ mt: 1.5, textTransform: 'none', fontWeight: 600 }}
         >
-          Browse tools
+          Browse docs
         </Button>
       </Paper>
     </Stack>
   )
+}
+
+export function HomePage() {
+  const { causes, loading } = useUserCauses()
+
+  if (causes.length > 0) {
+    return (
+      <YourCauses
+        causes={causes}
+        loading={loading}
+        testId="home-dashboard"
+        footer={
+          <Button
+            component={RouterLink}
+            to="/docs"
+            sx={{ alignSelf: 'flex-start', textTransform: 'none', fontWeight: 600, px: 0 }}
+          >
+            How it works and examples
+          </Button>
+        }
+      />
+    )
+  }
+
+  if (loading) {
+    return (
+      <Stack direction="row" spacing={1} alignItems="center" sx={{ py: 3 }} data-testid="home-loading">
+        <CircularProgress size={18} />
+        <Typography variant="body2" color="text.secondary">
+          Loading on-chain support…
+        </Typography>
+      </Stack>
+    )
+  }
+
+  return <LandingHome />
 }

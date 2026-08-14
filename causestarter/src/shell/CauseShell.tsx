@@ -14,7 +14,7 @@ import {
 } from '@mui/material'
 import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined'
 import FlagOutlinedIcon from '@mui/icons-material/FlagOutlined'
-import HandymanOutlinedIcon from '@mui/icons-material/HandymanOutlined'
+import MenuBookOutlinedIcon from '@mui/icons-material/MenuBookOutlined'
 import GitHubIcon from '@mui/icons-material/GitHub'
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined'
 import DarkModeIcon from '@mui/icons-material/DarkMode'
@@ -28,7 +28,7 @@ const GITHUB_ISSUES_URL = 'https://github.com/AdamSpitz/commonality/issues'
 const navItems = [
   { label: 'Home', path: '/', icon: <HomeOutlinedIcon /> },
   { label: 'Causes', path: '/causes', icon: <FlagOutlinedIcon /> },
-  { label: 'Tools', path: '/tools', icon: <HandymanOutlinedIcon /> },
+  { label: 'Docs', path: '/docs', icon: <MenuBookOutlinedIcon /> },
 ] as const
 
 function activeNavPath(pathname: string): string {
@@ -41,15 +41,6 @@ function activeNavPath(pathname: string): string {
     || pathname.startsWith('/projects')
   ) {
     return '/causes'
-  }
-  if (
-    pathname.startsWith('/content')
-    || pathname.startsWith('/content-funding')
-    || pathname.startsWith('/explore')
-    || pathname.startsWith('/delegation')
-    || pathname.startsWith('/delegates')
-  ) {
-    return '/tools'
   }
   return pathname
 }

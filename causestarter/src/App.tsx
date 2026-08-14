@@ -7,7 +7,7 @@ import { CauseDetailPage } from './pages/CauseDetailPage'
 import { StatementBoardPage } from './pages/StatementBoardPage'
 import { StatementBoardLeaderboardPage } from './pages/StatementBoardLeaderboardPage'
 import { StatementPage } from './pages/StatementPage'
-import { ToolsPage } from './pages/ToolsPage'
+import { DocsPage } from './pages/DocsPage'
 import { SettingsPage } from './pages/SettingsPage'
 import { ProjectDetailPage } from './pages/ProjectDetailPage'
 import {
@@ -77,7 +77,8 @@ export default function App() {
           <Route path="/content/:platform/:channelId/new" element={<ContentFundingCreateContractPage />} />
           <Route path="/content/:platform/:channelId/prospective/:roundAddress/materialize" element={<ContentFundingMaterializeFutureContentPage />} />
           <Route path="/explore" element={<ContentFundingExploreKindsPage />} />
-          <Route path="/tools" element={<ToolsPage />} />
+          <Route path="/docs" element={<DocsPage />} />
+          <Route path="/tools" element={<Navigate to="/docs" replace />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
