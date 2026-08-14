@@ -4,11 +4,6 @@ import { SUPPORTING_TOOLS } from '../lib/tools'
 
 const sections = [
   {
-    key: 'substrate' as const,
-    title: 'Growth tools',
-    description: 'Ways to grow support, move money, and coordinate work for your cause.',
-  },
-  {
     key: 'reference' as const,
     title: 'Example causes',
     description: 'Worked examples of focused causes you can learn from.',
@@ -20,16 +15,16 @@ const sections = [
   },
 ]
 
-export function ToolsPage() {
+export function DocsPage() {
   return (
     <Stack spacing={3}>
       <Box>
         <Typography variant="h4" component="h1" sx={{ fontWeight: 800, fontSize: { xs: '1.6rem', sm: '2rem' } }}>
-          Tools
+          Docs
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 0.75 }}>
-          Extra tools for starting and growing a cause. Open what you need; keep CauseStarter as
-          home base.
+          Worked examples and background reading. Funding and growth tools live on each
+          cause page.
         </Typography>
       </Box>
 

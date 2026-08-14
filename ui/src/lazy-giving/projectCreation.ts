@@ -88,7 +88,7 @@ export function suggestGivingLevels<T extends SuggestedGivingLevelDraft>(tokens:
     tokenId: String(nextId++),
     supply: stopAtGoal ? '1' : KEEP_ACCEPTING_DEFAULT_SUPPLY,
     price: String(amount),
-    name: `$${amount} Supporter`,
+    name: `$${amount} Contributor`,
     imageFile: null,
     imagePreviewUrl: null,
   }) as T)

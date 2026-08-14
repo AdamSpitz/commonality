@@ -177,14 +177,14 @@ export function DirectTrustSettingsSection() {
       </Typography>
 
       <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-        Project endorsements are filtered through your personal trust network rather than
+        Project vouches are filtered through your personal trust network rather than
         a single approved source. Add trust scores here, and project pages will
         follow those trust links and filter based on the accounts discovered so far.
       </Typography>
 
       {!isConnected ? (
         <Alert severity="info">
-          Connect your wallet to manage trust scores for filtering project endorsements.
+          Connect your wallet to manage trust scores for filtering project vouches.
         </Alert>
       ) : (
         <>
@@ -252,7 +252,7 @@ export function DirectTrustSettingsSection() {
           ) : entries.length === 0 ? (
             <Typography variant="body2" color="text.secondary" sx={{ py: 2, textAlign: 'center' }}>
               No direct trust scores yet. Until you add some, project pages will show
-              all project endorsements.
+              all project vouches.
             </Typography>
           ) : (
             <List>
@@ -290,7 +290,7 @@ export function DirectTrustSettingsSection() {
             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
               {trustedSet
                 ? `Refreshing your trust network. Currently using ${trustedSet.size} account${trustedSet.size !== 1 ? 's' : ''} in your network.`
-                : 'Refreshing your trust network. Until any trusted accounts are found, project pages still show all project endorsements.'}
+                : 'Refreshing your trust network. Until any trusted accounts are found, project pages still show all project vouches.'}
             </Typography>
           ) : trustedSet ? (
             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>

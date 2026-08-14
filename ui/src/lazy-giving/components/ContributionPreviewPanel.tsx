@@ -3,7 +3,7 @@ import type { ProjectToken } from '@commonality/sdk/lazy-giving'
 import { formatCurrencyAmount } from '../../shared'
 import { WalletButton } from '../../shared/components/WalletButton'
 
-interface PledgePreviewPanelProps {
+interface ContributionPreviewPanelProps {
   tokens: ProjectToken[]
   tokenImages?: Record<string, string>
 }
@@ -12,7 +12,7 @@ interface PledgePreviewPanelProps {
 // connected a wallet. It lets people understand the prices and the
 // contribution/refund mechanics before deciding to connect — connecting reveals
 // the interactive BuyTokensSection in its place.
-export function PledgePreviewPanel({ tokens, tokenImages = {} }: PledgePreviewPanelProps) {
+export function ContributionPreviewPanel({ tokens, tokenImages = {} }: ContributionPreviewPanelProps) {
   return (
     <Paper sx={{ p: 3, mb: 3 }}>
       <Typography variant="h5" component="h2" gutterBottom>

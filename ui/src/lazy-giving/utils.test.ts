@@ -97,7 +97,7 @@ describe('formatRelativeDeadline', () => {
 describe('computeUserTokenBalance', () => {
   const makeContribution = (overrides: Partial<Contribution> = {}): Contribution =>
     ({
-      participant: '0xaaa',
+      contributor: '0xaaa',
       tokenIds: JSON.stringify(['1', '2']),
       tokenCounts: JSON.stringify(['10', '20']),
       currency: '0x0000000000000000000000000000000000000000',
@@ -107,7 +107,7 @@ describe('computeUserTokenBalance', () => {
 
   const makeRefund = (overrides: Partial<Refund> = {}): Refund =>
     ({
-      participant: '0xaaa',
+      contributor: '0xaaa',
       tokenIds: JSON.stringify(['1']),
       tokenCounts: JSON.stringify(['5']),
       currency: '0x0000000000000000000000000000000000000000',
@@ -159,21 +159,21 @@ describe('computeUserTokenBalance', () => {
   })
 
   it('ignores contributions from other addresses', () => {
-    const contributions = [makeContribution({ participant: '0xbbb' })]
+    const contributions = [makeContribution({ contributor: '0xbbb' })]
     const result = computeUserTokenBalance('0xaaa', contributions, [])
     expect(result).toEqual([])
   })
 
   it('ignores refunds from other addresses', () => {
     const contributions = [makeContribution()]
-    const refunds = [makeRefund({ participant: '0xbbb' })]
+    const refunds = [makeRefund({ contributor: '0xbbb' })]
     const result = computeUserTokenBalance('0xaaa', contributions, refunds)
     expect(result).toContainEqual({ tokenId: '1', count: 10n })
     expect(result).toContainEqual({ tokenId: '2', count: 20n })
   })
 
   it('normalizes address to lowercase for matching', () => {
-    const contributions = [makeContribution({ participant: '0xAAA' })]
+    const contributions = [makeContribution({ contributor: '0xAAA' })]
     const result = computeUserTokenBalance('0xaaa', contributions, [])
     expect(result).toContainEqual({ tokenId: '1', count: 10n })
   })
@@ -193,7 +193,7 @@ describe('computeUserTokenBalance', () => {
 describe('computeContributorStats', () => {
   const makeContribution = (overrides: Partial<Contribution> = {}): Contribution =>
     ({
-      participant: '0xaaa',
+      contributor: '0xaaa',
       totalCost: '100',
       currency: '0x0000000000000000000000000000000000000000',
       ...overrides,
@@ -201,7 +201,7 @@ describe('computeContributorStats', () => {
 
   const makeRefund = (overrides: Partial<Refund> = {}): Refund =>
     ({
-      participant: '0xaaa',
+      contributor: '0xaaa',
       totalRefund: '50',
       currency: '0x0000000000000000000000000000000000000000',
       ...overrides,
@@ -252,16 +252,16 @@ describe('computeContributorStats', () => {
 
   it('sorts by net descending', () => {
     const contributions = [
-      makeContribution({ participant: '0xaaa', totalCost: '100' }),
-      makeContribution({ participant: '0xbbb', totalCost: '300' }),
-      makeContribution({ participant: '0xccc', totalCost: '200' }),
+      makeContribution({ contributor: '0xaaa', totalCost: '100' }),
+      makeContribution({ contributor: '0xbbb', totalCost: '300' }),
+      makeContribution({ contributor: '0xccc', totalCost: '200' }),
     ]
     const result = computeContributorStats(contributions, [])
     expect(result.map(r => r.address)).toEqual(['0xbbb', '0xccc', '0xaaa'])
   })
 
   it('normalizes address to lowercase', () => {
-    const contributions = [makeContribution({ participant: '0xAAA' })]
+    const contributions = [makeContribution({ contributor: '0xAAA' })]
     const result = computeContributorStats(contributions, [])
     expect(result[0].address).toBe('0xaaa')
   })
@@ -274,8 +274,8 @@ describe('computeContributorStats', () => {
 
   it('handles multiple addresses separately', () => {
     const contributions = [
-      makeContribution({ participant: '0xaaa', totalCost: '100' }),
-      makeContribution({ participant: '0xbbb', totalCost: '200' }),
+      makeContribution({ contributor: '0xaaa', totalCost: '100' }),
+      makeContribution({ contributor: '0xbbb', totalCost: '200' }),
     ]
     const result = computeContributorStats(contributions, [])
     expect(result).toHaveLength(2)
@@ -285,10 +285,10 @@ describe('computeContributorStats', () => {
 
   it('handles refunds for different addresses', () => {
     const contributions = [
-      makeContribution({ participant: '0xaaa', totalCost: '100' }),
-      makeContribution({ participant: '0xbbb', totalCost: '200' }),
+      makeContribution({ contributor: '0xaaa', totalCost: '100' }),
+      makeContribution({ contributor: '0xbbb', totalCost: '200' }),
     ]
-    const refunds = [makeRefund({ participant: '0xaaa', totalRefund: '50' })]
+    const refunds = [makeRefund({ contributor: '0xaaa', totalRefund: '50' })]
     const result = computeContributorStats(contributions, refunds)
     expect(result).toHaveLength(2)
     expect(result.find(r => r.address === '0xaaa')?.net).toBe(50n)

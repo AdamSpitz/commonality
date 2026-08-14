@@ -34,7 +34,7 @@ const sections = [
   {
     title: 'Want to be the one people trust? Vouch, or become a delegate',
     description:
-      "Open a LazyGiving project page and use Project Endorsements → Vouch for This Project to attach it to a cause; your vouches reach everyone who trusts you. Build a public track record and others will assign their pledged funds to you to direct.",
+      "Open a LazyGiving project page and use Project Vouches → Vouch for This Project to attach it to a cause; your vouches reach everyone who trusts you. Build a public track record and others will assign their funds to you to direct.",
     domain: 'lazyGiving',
     path: '/projects',
     cta: 'Browse projects to vouch',

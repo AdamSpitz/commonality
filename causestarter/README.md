@@ -7,7 +7,7 @@ the cause-starter job:
 
 1. **Organize a cause** — retrieve, review, and select the independent, signable statements it is made of
 2. **Enroll people** — supporters (signers), volunteers, and collaborators
-3. **Build momentum** — funding portals, assurance contracts, content funding
+3. **Fund the work** — cause boards, assurance contracts, content funding
 4. **Use the rest as tools** — Commonality thesis, Civility, CSM, Tally, etc. are
    supporting features, not equal top-level entry points
 
@@ -59,6 +59,22 @@ as main `CreateStatementForm`), not browser → Kubo API upload.
    Or from this package: `npm run dev`.
 
 Dev server: **http://localhost:5174** (main `ui` stays on 5173).
+
+### Local trust network (project lists)
+
+Project lists on a cause are filtered by your **Subjectiv trust graph**: vouches
+that “this project advances that issue” only count from wallets you have named
+on-chain. That is not an attestation of the cause itself. If a connected
+Hardhat wallet has never called `TrustRegistry.setTrust`, CauseStarter hides
+the project list and explains how to name someone.
+
+`./scripts/data.sh --seed` (any size) records that graph for Hardhat `#0`–`#9`
+via `scripts/seed-local-alignment-trust.mjs`. After a wipe, the usual
+`services.sh --start` then `data.sh --seed` is enough.
+
+To re-run only the trust edges: `node scripts/seed-local-alignment-trust.mjs`.
+The cause-page banner (“Local test: trust Hardhat #N”) and **Trust settings**
+(gear icon) still work for any other wallet.
 
 Vite proxies `/api` → indexer and `/api/cause-assist` → **Docker** `cause-assist` on `http://127.0.0.1:3002`. Tool cards still open the other domains at `*.localhost:8088`.
 

@@ -10,17 +10,15 @@ When an item from this page is done and no longer needs an LLM implementor's att
 
 ----
 
-- [ ] **(Tell)** Finish the accepted causes-as-publications rollout. The retrieval-first
-  CauseStarter authoring flow, deterministic approval, versioned publications/draft
-  compatibility, cause-first page, derived views, aligned-project union, recurring-pledge
-  signal, statement-scoped one-time/monthly delegation entry points, organizer
-  create/publish/revise/share browser journey, visitor journey, and frozen
-  published-cause/local-draft regression corpus, donor-scope picker, and versioned public
-  delegate-offering publication/picker are implemented. Remaining: validate the complete
-  journey with non-expert users. Work through the open
-  items in [the implementation plan](specs/product/causes-as-publications-implementation-plan.md);
-  product semantics are in [the living spec](specs/product/causes-as-publications.md), with
-  frozen rationale in [ADR 0009](specs/decisions/0009-causes-are-publications-over-statements.md).
+- **(Tell)** Glossary follow-ups. [`specs/glossary.md`](specs/glossary.md) is now the
+  ubiquitous-language reference; Adam ruled on support/sign/pledge/contributor 2026-08-14
+  and those sweeps are done. Part 2 §6 lists what's left, none of it urgent: **earmark**
+  is used ~35 times and defined nowhere (define it or fold it into "contribution to a
+  cause"); `Project.marketplaceAddress` may be dead since receipts went non-transferable;
+  and the contract directory names (`individual-projects/` = LazyGiving, `statements/` =
+  Conceptspace, `alignment-attestations/` = fundingportals) don't match their subsystem
+  names, which breaks the four-layer isomorphism. Add new terms to the glossary as they
+  appear rather than letting drift re-accumulate.
 
 - Fix the three failing funding-portal integration tests. `automated.test-full-integration` fails (exit 3, 101 passing / 3 failing) because cause-level aggregation reads back `0n` where seeded contributions should appear: "total funding raised across all aligned projects for a cause" expects `800000n` (`integration-tests/src/fundingportal/fundingportal-aggregated-metrics.test.ts:219`), and the leaderboard tests expect `3000000n` and `2000000n` (`fundingportal-leaderboards.test.ts:221` and `:346`). All three get `0n`, so suspect one shared cause: contributions not being attributed to the cause in the aggregation query/indexer rather than three separate bugs. This is the only red under `automated.test-full` — SDK, Hardhat, and UI legs pass.
 

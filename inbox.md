@@ -17,10 +17,6 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 ## Main list
 
-- **(Tell)** Policy-list starter-profile *ops* gate is already live; no redeploy was needed. `testnet.policy-enforcement` passed 2026-08-14: Civility `config.json` has `VITE_POLICY_BUNDLE_URL`, the GitHub-hosted artifact is `commonality.policy-bundle/v1` digest `0x5bc37be2…ee0b`, and `/policy-content/<blocked fixture CID>` returns 451 / `content_refused_by_policy` / `current` with matching digest. Removed the stale 2026-08-02 TODO item. Remaining plan items (deeper surface coverage, deferred unpinned following, CSM) are unchanged.
-
-- **(Tell)** Finished the LLM-doable sponsored-gas rollout ops. Batch wiring (`cef4af18`) was already on `master`/`dev`; live `/sponsored-gas/paymaster` rejects standalone approvals as designed. Deployed LazyGiving testnet UI to IPFS `QmSh2hAPbeV9TCiHRvbYvoXyxbv4tTBpeQnvkQBBXnjttw` (IPNS seq 13). Created/enrolled project `0x0b34E11c5A014C77b3b61E9e8b94609D8598FF93` to deployer `0xFC0054CAA8417b946666a0093521B57efC5e5E4a` and funded that creator tank with 0.002 ETH (`fundTank` `0x9b7dbe0f30e3a1957c7b9b98071c0ebf871ae7d9c4ad4e4c86cf0167a87c393e`). Remaining work is only the Privy OTP live trace + cap tuning below.
-
 ### Security/recoverability human actions
 
 - Replace/scopedown external account tokens: Cloudflare scoped DNS token instead of global key; Render/Pinata scoped as narrowly as possible; OpenRouter spend limit.
@@ -47,27 +43,11 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 ### The founder-first pivot ("causelets")
 
-The strategy itself is now written down: [ADR 0005](specs/decisions/0005-founder-first-verticals.md)
-freezes the decision and its revisit triggers, and [specs/product/founder-first.md](specs/product/founder-first.md)
-is the living spec with the full backlog. What's left here is only the part that needs *your* judgment.
-
-- New site, or potential rename of Commonality: "CauseStarter"? (The ADR deliberately
-  froze the strategy and not the brand, so this is still fully open.)
-  - In fact, let's make this the main UI.
-  - Let's merge in Sam's "ui2" thing - maybe *that* should be the main CauseStarter UI? For now let's just pull in the changes it made to the core stuff, and keep it as "ui2".
-
 - Improve the [pitch for Christians](docs/founder/christian-pitch.md). Come up with other ones along those lines.
-
-- Have an AI generate a bunch of imaginary founders and causes and so on, as a way of pressure-testing the founder-facing model.
 
 ### Stuff I want to think through
 
-- Let's figure out how to make clear that the cause page (owned by its founder, and editable) isn't the same as the underlying statements. If a user signs some statements, those statements are the ones that he signed; they're immutable, and even if the cause-founder modifies which statements he shows on his site (which is his right to do - he's the one operating the site, so he needs to have control over which statements it shows, including being able to change his mind later), the user's signature is only on the statements he actually signed, and the cause page itself won't show the user's signature on the cause's new statements (unless the implication attester says it's okay) (or unless the cause site is dishonest).
-
 - How to eliminate CauseStarter’s reliance on browser `localStorage` for cause drafts / founder progress (`causestarter/src/lib/causeStore.ts`). Today drafts are origin-scoped (so Vite `:5174` vs Docker `:8090` don’t share them) and vanish across devices/clears. Worth thinking through durable alternatives (on-chain draft, IPFS + pointer, account-linked backend, etc.) without re-centralizing or making launch heavier.
-
-- Asking the cause founder to make statements is going to be a problem because the idea of statements is not obvious. (Need to not be vague or ambiguous, etc.)
-  - **(Tell)** Partial pass done: CauseStarter “start a cause” copy reframes main vs supporting statements as signable beliefs with main→supporting implication; cause-assist suggester prompt + new `/check-implications` (Implication Attester system prompt) verify pairs; wizard blocks medium/high non-implies. Still product-sensitive — review wording and whether hard-block is right.
 
 - Now that have (or at least are close to having) a proper testnet setup, can we start creating an ecosystem of simulated fake users of various types? (We can use LLMs to run the ones that need more intelligence, though ideally they'll mostly be made of conventional code, to avoid burning too many LLM tokens.)
   - Cause founder: cares a lot about some cause, comes across CauseStarter, tries actually forking the repo and making a new cause, etc.

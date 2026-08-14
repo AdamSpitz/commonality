@@ -1,14 +1,34 @@
-import { BrowserRouter, HashRouter, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, HashRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { CauseShell } from './shell/CauseShell'
 import { HomePage } from './pages/HomePage'
 import { StartCauseRedirect } from './pages/StartCauseRedirect'
-import { MomentumPage } from './pages/MomentumPage'
+import { CausesPage } from './pages/CausesPage'
 import { CauseDetailPage } from './pages/CauseDetailPage'
 import { StatementBoardPage } from './pages/StatementBoardPage'
 import { StatementBoardLeaderboardPage } from './pages/StatementBoardLeaderboardPage'
 import { StatementPage } from './pages/StatementPage'
-import { ToolsPage } from './pages/ToolsPage'
+import { DocsPage } from './pages/DocsPage'
+import { SettingsPage } from './pages/SettingsPage'
 import { ProjectDetailPage } from './pages/ProjectDetailPage'
+import {
+  ContentFundingAboutPage,
+  ContentFundingBrowsePage,
+  ContentFundingChannelPage,
+  ContentFundingContractPage,
+  ContentFundingCreateContractPage,
+  ContentFundingCreatorDashboardPage,
+  ContentFundingCreatorsPage,
+  ContentFundingExploreKindsPage,
+  ContentFundingLandingPage,
+  ContentFundingMaterializeFutureContentPage,
+  ContentFundingStartContractPage,
+} from './pages/ContentFundingPages'
+import {
+  DelegateProfilePage,
+  DepositPage,
+  MyNotesPage,
+  NoteDetailPage,
+} from './pages/DelegationPages'
 import { NotFoundPage } from './pages/NotFoundPage'
 
 function isHashRouting(): boolean {
@@ -25,7 +45,13 @@ export default function App() {
           <Route path="/" element={<HomePage />} />
           {/* No intermediate form — creates a draft and opens the editor. */}
           <Route path="/start" element={<StartCauseRedirect />} />
-          <Route path="/momentum" element={<MomentumPage />} />
+          <Route path="/causes" element={<CausesPage />} />
+          <Route path="/delegation" element={<Navigate to="/delegation/notes" replace />} />
+          <Route path="/delegation/notes" element={<MyNotesPage />} />
+          <Route path="/delegation/notes/new" element={<DepositPage />} />
+          <Route path="/delegation/notes/:noteId" element={<NoteDetailPage />} />
+          <Route path="/delegates/offer" element={<DelegateProfilePage />} />
+          <Route path="/delegates/:address" element={<DelegateProfilePage />} />
           {/* Local drafts use a UUID. Published causes use
               /cause/:owner/:slug[@versionCid] — stable id + optional pin.
               See docs/founder/shaping-your-cause-statements.md § roster. */}
@@ -40,7 +66,20 @@ export default function App() {
           <Route path="/statement/:statementCid/board" element={<StatementBoardPage />} />
           <Route path="/statement/:statementCid/board/leaderboard" element={<StatementBoardLeaderboardPage />} />
           <Route path="/projects/:projectAddress" element={<ProjectDetailPage />} />
-          <Route path="/tools" element={<ToolsPage />} />
+          <Route path="/content-funding" element={<ContentFundingLandingPage />} />
+          <Route path="/content-funding/about" element={<ContentFundingAboutPage />} />
+          <Route path="/content" element={<ContentFundingCreatorsPage />} />
+          <Route path="/content/new" element={<ContentFundingStartContractPage />} />
+          <Route path="/content/dashboard" element={<ContentFundingCreatorDashboardPage />} />
+          <Route path="/content/contracts/:projectAddress" element={<ContentFundingContractPage />} />
+          <Route path="/content/:platform" element={<ContentFundingBrowsePage />} />
+          <Route path="/content/:platform/:channelId" element={<ContentFundingChannelPage />} />
+          <Route path="/content/:platform/:channelId/new" element={<ContentFundingCreateContractPage />} />
+          <Route path="/content/:platform/:channelId/prospective/:roundAddress/materialize" element={<ContentFundingMaterializeFutureContentPage />} />
+          <Route path="/explore" element={<ContentFundingExploreKindsPage />} />
+          <Route path="/docs" element={<DocsPage />} />
+          <Route path="/tools" element={<Navigate to="/docs" replace />} />
+          <Route path="/settings" element={<SettingsPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </CauseShell>

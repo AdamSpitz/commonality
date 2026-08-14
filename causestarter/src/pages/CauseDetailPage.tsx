@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   Alert, Box, Button, Chip, CircularProgress, Divider, Paper, Stack,
-  Typography,
+  ToggleButton, ToggleButtonGroup, Typography,
 } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
 import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom'
@@ -16,6 +16,7 @@ import {
   useTrustedSet,
 } from '@ui/shared'
 import { getProjectStatus, STATUS_LABELS } from '@ui/lazy-giving'
+import { AlignmentTrustGate } from '../components/AlignmentTrustGate'
 import { CauseViewStrip, type ViewMode } from '../components/CauseViewStrip'
 import { CauseMediatorCard } from '../components/CauseMediatorCard'
 import { MonthlyPledgeSignal } from '../components/MonthlyPledgeSignal'
@@ -44,7 +45,7 @@ import {
 } from '../lib/causeRoster'
 import { publishPlank } from '../lib/publishPlank'
 import { SUPPORTING_TOOLS } from '../lib/tools'
-import { getDomainUrl } from '../lib/domainUrls'
+
 import { useMachinery } from '../lib/useMachinery'
 import { useWriteClients } from '../lib/useWriteClients'
 import { useCauseProjects } from '../hooks/useCauseProjects'
@@ -75,8 +76,8 @@ function findLocalByStable(owner: string, slug: string): CauseDraft | undefined 
  *
  * Local drafts live at `/cause/:uuid`. Once a roster is published, the share URL
  * is `/cause/:owner/:slug` (stable) or `/cause/:owner/:slug@version` (pinned).
- * Editing is allowed when this browser holds the draft or the connected wallet
- * is the organizer.
+ * Editing published rosters requires the organizer's connected wallet.
+ * Unpublished local drafts can still be shaped on this device before publish.
  */
 export function CauseDetailPage() {
   const params = useParams<{ causeId?: string; owner?: string; slugPart?: string }>()
@@ -107,10 +108,10 @@ export function CauseDetailPage() {
     if (!addressKey) return
     if (!trustLoading) setTrustSettled(true)
   }, [addressKey, trustLoading])
-  const trustReady = !address || (
+  const alignmentTrustReady = Boolean(address) && (
     trustSettled && !trustError && trustedAlignmentAttesters !== undefined
   )
-  const trustUnavailable = Boolean(address)
+  const alignmentTrustUnavailable = Boolean(address)
     && trustSettled
     && !trustError
     && trustedAlignmentAttesters === undefined
@@ -185,11 +186,11 @@ export function CauseDetailPage() {
             }
             return
           }
-          throw new Error('No published roster found for this cause link.')
+          throw new Error('No published cause found for this link.')
         }
 
         const loaded = await loadRosterDocument(machinery, rosterCid)
-        if (!loaded) throw new Error('Could not load the roster document for this cause.')
+        if (!loaded) throw new Error('Could not load the published cause for this link.')
 
         const { fields } = loaded
         const planks: CausePlank[] = []
@@ -232,11 +233,15 @@ export function CauseDetailPage() {
         setHistory(hist)
         // Badge loads separately: it needs the operator address, which arrives async.
         setCause(remoteCause)
-        // Local draft for this stable id can edit the tip without a connected wallet
-        // (draft patches are device-local). On-chain actions still require the organizer
-        // wallet. Pinned versions and pure remote visitors stay read-only.
-        const canEditLocally = Boolean(local && !routeRef.versionCid)
-        setRemoteReadOnly(!canEditLocally)
+        // Visitors and bookmarked copies stay read-only. Only the organizer's
+        // wallet (or an unpublished local draft with no founder yet) can edit.
+        const connectedOrganizer = Boolean(
+          address
+          && remoteCause.founderAddress
+          && address.toLowerCase() === remoteCause.founderAddress.toLowerCase()
+          && !routeRef.versionCid,
+        )
+        setRemoteReadOnly(!connectedOrganizer && Boolean(remoteCause.founderAddress || remoteCause.rosterCid))
       } catch (err) {
         if (!cancelled) {
           setCause(undefined)
@@ -296,7 +301,48 @@ export function CauseDetailPage() {
     }
   }, [cause?.rosterCid, machinery, coherenceOperator])
 
-  const canEdit = Boolean(cause) && !remoteReadOnly && !routeRef?.versionCid
+  /**
+   * Permission to mutate this cause. Guards every handler; never gates display
+   * alone — see {@link editing} for the organizer's chosen view.
+   *
+   * Published causes: only the connected founder. Unpublished local drafts:
+   * this device, even before a wallet is connected.
+   */
+  const isOrganizer = Boolean(
+    address
+    && cause?.founderAddress
+    && address.toLowerCase() === cause.founderAddress.toLowerCase(),
+  )
+  const isUnpublishedLocalDraft = Boolean(
+    cause
+    && !cause.founderAddress
+    && !cause.rosterCid
+    && !cause.id.startsWith('remote:'),
+  )
+  const canEdit = Boolean(cause)
+    && !routeRef?.versionCid
+    && (isOrganizer || (isUnpublishedLocalDraft && !remoteReadOnly))
+
+  /**
+   * Which view the organizer asked for, or `null` while they have not said.
+   * Only an organizer ever sees the switch.
+   */
+  const [editing, setEditing] = useState<boolean | null>(null)
+  /**
+   * The default view, decided from whether the cause was already live *when it
+   * loaded*: building a new cause opens in editing, arriving at a live one opens
+   * in viewing. Deliberately not recomputed from current liveness — publishing
+   * the first issue makes a cause live, and re-deriving would throw the
+   * organizer out of editing mid-build.
+   */
+  const [defaultEditing, setDefaultEditing] = useState<boolean | null>(null)
+  const causeKey = cause?.id ?? ''
+  useEffect(() => {
+    // Also clears an explicit choice when navigating between causes.
+    setEditing(null)
+    setDefaultEditing(cause ? !isLive(cause) : null)
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- keyed on identity, not contents
+  }, [causeKey])
 
   const patch = useCallback((changes: Partial<CauseDraft>) => {
     if (!cause || !canEdit) return
@@ -356,7 +402,7 @@ export function CauseDetailPage() {
     publishedCids,
     selectedCids,
     activeTrustedImplicationAttesters,
-    trustReady,
+    true,
   )
   const {
     projects, totals, countByPlankCid, loading: projectsLoading, error: projectsError,
@@ -364,7 +410,7 @@ export function CauseDetailPage() {
     publishedCids,
     activeTrustedImplicationAttesters,
     trustedAlignmentAttesters,
-    trustReady,
+    alignmentTrustReady,
   )
 
   const fewestDirectSignatures = useMemo(() => {
@@ -399,8 +445,8 @@ export function CauseDetailPage() {
         <Alert severity="warning" sx={{ borderRadius: 2 }}>
           {loadError || 'Cause not found on this device.'}
         </Alert>
-        <Button component={RouterLink} to="/momentum" sx={{ textTransform: 'none' }}>
-          Back to momentum
+        <Button component={RouterLink} to="/causes" sx={{ textTransform: 'none' }}>
+          Back to causes
         </Button>
       </Stack>
     )
@@ -408,6 +454,20 @@ export function CauseDetailPage() {
 
   const drafts = unpublishedPlanks(cause)
   const live = isLive(cause)
+  /**
+   * Whether to render the organizer's editing affordances. Display only: every
+   * handler still checks `canEdit`, so turning this on can never grant rights
+   * a visitor lacks, and turning it off can never strand an in-flight mutation.
+   */
+  const isEditing = canEdit && (editing ?? defaultEditing ?? !live)
+  /**
+   * In viewing mode an organizer is asking what a supporter sees, so the header
+   * shows what is actually published rather than unsaved local edits.
+   */
+  const displayTitle = isEditing ? (titleDraft.trim() || causeTitle(cause)) : causeTitle(cause)
+  const displaySummary = isEditing ? (summaryDraft.trim() || cause.summary) : cause.summary
+  /** Drafts exist only on this device, so a supporter's view has none of them. */
+  const visiblePlanks = isEditing ? cause.planks : cause.planks.filter((plank) => plank.cid)
   /** Brand-new local draft: show the start-a-cause coach copy instead of "Untitled". */
   const isFreshDraft = Boolean(
     canEdit
@@ -597,7 +657,7 @@ export function CauseDetailPage() {
         slug,
       }), { replace: true })
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to publish roster')
+      setError(err instanceof Error ? err.message : 'Failed to publish this cause')
     } finally {
       setPublishingRoster(false)
     }
@@ -605,9 +665,9 @@ export function CauseDetailPage() {
 
   const handleDeleteCause = () => {
     if (mutationLocked || !canEdit || cause.id.startsWith('remote:')) return
-    if (!window.confirm('Remove this cause from this device? Published statements and rosters are unaffected.')) return
+    if (!window.confirm('Unbookmark this cause? It is removed from this device only. Published statements and cause pages are unaffected.')) return
     deleteCause(cause.id)
-    navigate('/momentum')
+    navigate('/causes')
   }
 
   const toggleSelected = (cid: string, selected: boolean) => {
@@ -621,6 +681,32 @@ export function CauseDetailPage() {
 
   return (
     <Stack spacing={2.5} data-testid="cause-detail-page">
+      {isOrganizer && canEdit && !isFreshDraft && (
+        <ToggleButtonGroup
+          exclusive
+          size="small"
+          value={isEditing ? 'editing' : 'viewing'}
+          onChange={(_, next: string | null) => next && setEditing(next === 'editing')}
+          aria-label="Organizer view"
+          data-testid="cause-mode-toggle"
+          sx={{ alignSelf: 'flex-start' }}
+        >
+          <ToggleButton value="viewing" data-testid="cause-mode-viewing">
+            Viewing
+          </ToggleButton>
+          <ToggleButton value="editing" data-testid="cause-mode-editing">
+            Editing
+          </ToggleButton>
+        </ToggleButtonGroup>
+      )}
+
+      {isOrganizer && !isEditing && (
+        <Alert severity="info" sx={{ borderRadius: 2 }} data-testid="cause-viewing-notice">
+          This is what a supporter sees. Unpublished drafts and your organizer controls are
+          hidden until you switch to Editing.
+        </Alert>
+      )}
+
       <Box>
         {!live && !isFreshDraft && (
           <Chip size="small" label="Nothing published yet" sx={{ mb: 0.75 }} />
@@ -629,7 +715,7 @@ export function CauseDetailPage() {
           <Chip size="small" color="info" label="Pinned version" sx={{ mb: 0.75, ml: live ? 0 : 1 }} />
         )}
         {cause.rosterCid && !routeRef?.versionCid && (
-          <Chip size="small" color="success" label="Roster published" sx={{ mb: 0.75, ml: live ? 1 : 0 }} />
+          <Chip size="small" color="success" label="Published" sx={{ mb: 0.75, ml: live ? 1 : 0 }} />
         )}
         {onChainBadge && onChainBadge.attesters.length > 0 && (
           <Chip
@@ -643,12 +729,20 @@ export function CauseDetailPage() {
             data-attester={onChainBadge.attesters[0]}
           />
         )}
+        {!isFreshDraft && (
+          <Typography
+            variant="overline"
+            sx={{ letterSpacing: '0.14em', fontWeight: 700, color: 'primary.main', display: 'block' }}
+          >
+            Cause
+          </Typography>
+        )}
         <Typography
           variant="h4"
           component="h1"
           sx={{ fontWeight: 800, fontSize: { xs: '1.55rem', sm: '1.9rem' } }}
         >
-          {isFreshDraft ? 'Start a cause' : (titleDraft.trim() || causeTitle(cause))}
+          {isFreshDraft ? 'Start a cause' : displayTitle}
         </Typography>
         {isFreshDraft ? (
           <>
@@ -663,9 +757,9 @@ export function CauseDetailPage() {
           </>
         ) : (
           <>
-            {(summaryDraft.trim() || cause.summary?.trim()) && (
+            {displaySummary?.trim() && (
               <Typography variant="body1" sx={{ mt: 1, whiteSpace: 'pre-wrap' }}>
-                {summaryDraft.trim() || cause.summary}
+                {displaySummary}
               </Typography>
             )}
             <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
@@ -693,37 +787,11 @@ export function CauseDetailPage() {
 
       {publishedCids.length > 0 && showInitialTrustLoad && (
         <Alert severity="info" sx={{ borderRadius: 2 }}>
-          Loading your trust network before supporter and project counts…
+          Loading your trust network before listing projects…
         </Alert>
       )}
-      {publishedCids.length > 0 && trustError && (
-        <Alert severity="warning" sx={{ borderRadius: 2 }}>
-          Supporter and project counts are paused because your trust network could not be loaded: {trustError}
-        </Alert>
-      )}
-      {publishedCids.length > 0 && trustUnavailable && (
-        <Alert severity="info" sx={{ borderRadius: 2 }}>
-          Supporter and project counts are paused until this wallet has trusted attesters.
-        </Alert>
-      )}
-
-      {publishedCids.length > 0 && trustReady && (
-        <>
-          <CauseViewStrip
-            mode={mode}
-            onModeChange={setMode}
-            counts={counts}
-            selectedCount={selectedCids.length}
-            publishedCount={publishedCids.length}
-            loading={countsLoading}
-            fewestDirectSignatures={fewestDirectSignatures}
-          />
-          {countsError && (
-            <Alert severity="warning" sx={{ borderRadius: 2 }}>
-              Supporter counts could not be loaded: {countsError}
-            </Alert>
-          )}
-        </>
+      {publishedCids.length > 0 && (!address || trustError || alignmentTrustUnavailable) && (
+        <AlignmentTrustGate error={trustError} />
       )}
 
       {publishedCids.length > 0 && (
@@ -746,10 +814,22 @@ export function CauseDetailPage() {
                 alignItems={{ sm: 'center' }}
                 justifyContent="space-between"
               >
-                <Typography variant="body2" sx={{ flex: 1 }}>{plank.text}</Typography>
+                <Typography
+                  component={RouterLink}
+                  to={`/statement/${plank.cid}`}
+                  variant="body2"
+                  sx={{
+                    flex: 1,
+                    color: 'text.primary',
+                    textDecoration: 'none',
+                    '&:hover': { textDecoration: 'underline' },
+                  }}
+                >
+                  {plank.text}
+                </Typography>
                 <Button
-                  component="a"
-                  href={getDomainUrl('lazyGiving', `/delegation/notes/new?statement=${encodeURIComponent(plank.cid!)}`)}
+                  component={RouterLink}
+                  to={`/delegation/notes/new?statement=${encodeURIComponent(plank.cid!)}`}
                   variant="outlined"
                   size="small"
                   sx={{ textTransform: 'none', flexShrink: 0 }}
@@ -757,13 +837,13 @@ export function CauseDetailPage() {
                   Earmark funds
                 </Button>
                 <Button
-                  component="a"
-                  href={getDomainUrl('lazyGiving', `/delegates/offer?statement=${encodeURIComponent(plank.cid!)}`)}
+                  component={RouterLink}
+                  to={`/delegates/offer?statement=${encodeURIComponent(plank.cid!)}`}
                   variant="text"
                   size="small"
                   sx={{ textTransform: 'none', flexShrink: 0 }}
                 >
-                  Offer to delegate
+                  Offer to become a delegate
                 </Button>
               </Stack>
             ))}
@@ -771,7 +851,7 @@ export function CauseDetailPage() {
         </Paper>
       )}
 
-      {canEdit && !cause.id.startsWith('remote:') && (
+      {isEditing && !cause.id.startsWith('remote:') && (
         <Paper elevation={0} sx={{ p: { xs: 2, sm: 2.5 }, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
           <RosterPublishPanel
             title={titleDraft}
@@ -810,7 +890,7 @@ export function CauseDetailPage() {
       <Paper elevation={0} sx={{ p: { xs: 2, sm: 2.5 }, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
         <Typography variant="h6" sx={{ fontWeight: 700, mb: 1.5 }}>Issues</Typography>
 
-        {canEdit && (
+        {isEditing && (
           <Alert severity="info" sx={{ mb: 2, borderRadius: 2 }} data-testid="issue-guidance">
             <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5 }}>
               What counts as an issue
@@ -823,14 +903,15 @@ export function CauseDetailPage() {
           </Alert>
         )}
 
-        {cause.planks.length === 0 && (
+        {visiblePlanks.length === 0 && (
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            No statements selected yet. Start with the picker; you can reject every suggestion
-            and write one manually.
+            {isEditing
+              ? 'No statements selected yet. Start with the picker; you can reject every suggestion and write one manually.'
+              : 'This cause has no published issues yet.'}
           </Typography>
         )}
 
-        {canEdit && (
+        {isEditing && (
           <Box sx={{ mb: 2 }}>
             <StatementPicker
               intent="cause"
@@ -844,7 +925,7 @@ export function CauseDetailPage() {
         )}
 
         <Stack spacing={1.5}>
-          {cause.planks.map((plank, index) => (
+          {visiblePlanks.map((plank, index) => (
             <PlankRow
               key={plank.id}
               plank={plank}
@@ -868,7 +949,7 @@ export function CauseDetailPage() {
               onPublish={() => void handlePublishPlank(plank)}
               reviewing={reviewingId === plank.id}
               publishing={publishingId === plank.id}
-              mutationLocked={mutationLocked || !canEdit}
+              mutationLocked={mutationLocked || !isEditing}
               review={reviewsByPlankId[plank.id] ?? null}
               onUseExampleWording={(wording) => {
                 updatePlank(plank.id, { text: wording, safety: undefined, rationale: undefined })
@@ -880,6 +961,25 @@ export function CauseDetailPage() {
           ))}
         </Stack>
 
+        {publishedCids.length > 0 && (
+          <Box sx={{ mt: 2 }}>
+            <CauseViewStrip
+              mode={mode}
+              onModeChange={setMode}
+              counts={counts}
+              selectedCount={selectedCids.length}
+              publishedCount={publishedCids.length}
+              loading={countsLoading}
+              fewestDirectSignatures={fewestDirectSignatures}
+            />
+            {countsError && (
+              <Alert severity="warning" sx={{ mt: 1, borderRadius: 2 }}>
+                Supporter counts could not be loaded: {countsError}
+              </Alert>
+            )}
+          </Box>
+        )}
+
         <Box sx={{ mt: 2 }}>
           <SelectedPlankSupport
             planks={published.filter((plank) => plank.cid && selectedCids.includes(plank.cid)).map((plank) => ({
@@ -890,7 +990,7 @@ export function CauseDetailPage() {
           />
         </Box>
 
-        {canEdit && (
+        {isEditing && (
           <Stack direction="row" spacing={1} sx={{ mt: 2 }} flexWrap="wrap" useFlexGap>
             <Button
               startIcon={<AddIcon />}
@@ -904,7 +1004,7 @@ export function CauseDetailPage() {
           </Stack>
         )}
 
-        {drafts.length > 0 && !isConnected && canEdit && (
+        {drafts.length > 0 && !isConnected && isEditing && (
           <Alert severity="info" sx={{ mt: 2, borderRadius: 2 }}>
             Connect a wallet to publish issues. Unpublished issues stay on this device.
           </Alert>
@@ -926,7 +1026,7 @@ export function CauseDetailPage() {
           </Alert>
         )}
 
-        {publishedCids.length > 0 && trustReady && projectsLoading && (
+        {publishedCids.length > 0 && alignmentTrustReady && projectsLoading && (
           <Stack direction="row" spacing={1} alignItems="center" sx={{ py: 1 }}>
             <CircularProgress size={18} />
             <Typography variant="body2" color="text.secondary">Loading aligned projects…</Typography>
@@ -937,14 +1037,14 @@ export function CauseDetailPage() {
           <Alert severity="warning" sx={{ borderRadius: 2 }}>{projectsError}</Alert>
         )}
 
-        {publishedCids.length > 0 && trustReady && !projectsLoading && !projectsError && projects.length === 0 && (
+        {publishedCids.length > 0 && alignmentTrustReady && !projectsLoading && !projectsError && projects.length === 0 && (
           <Typography variant="body2" color="text.secondary">
             No projects are aligned with these issues yet. Open an issue's board to vouch for work
             that advances it.
           </Typography>
         )}
 
-        {projects.length > 0 && (
+        {alignmentTrustReady && projects.length > 0 && (
           <Stack spacing={1.25}>
             {totals && (
               <Stack direction="row" spacing={3} flexWrap="wrap" useFlexGap sx={{ pb: 0.5 }}>
@@ -1012,8 +1112,14 @@ export function CauseDetailPage() {
         )}
       </Paper>
 
+      {tools.length > 0 && (
+        <Stack spacing={1.25}>
+          {tools.map((tool) => <ToolCard key={tool.id} tool={tool} compact />)}
+        </Stack>
+      )}
+
       {cause.mediator && <CauseMediatorCard mediator={cause.mediator} />}
-      {canEdit && (
+      {isEditing && (
         <MediatorEditor
           mediator={cause.mediator}
           onChange={(mediator) => {
@@ -1025,13 +1131,7 @@ export function CauseDetailPage() {
         />
       )}
 
-      {tools.length > 0 && (
-        <Stack spacing={1.25}>
-          {tools.map((tool) => <ToolCard key={tool.id} tool={tool} compact />)}
-        </Stack>
-      )}
-
-      {canEdit && !cause.id.startsWith('remote:') && (
+      {isEditing && !cause.id.startsWith('remote:') && (
         <>
           <Divider />
           <Stack direction="row" spacing={1}>
@@ -1041,7 +1141,7 @@ export function CauseDetailPage() {
               disabled={mutationLocked}
               sx={{ textTransform: 'none' }}
             >
-              Remove locally
+              Unbookmark
             </Button>
             {stable && (
               <Button

@@ -4,7 +4,7 @@ import { getDomainUrl } from './domainUrls'
  * How an organizer grows a cause. This is a taxonomy for *tools*, not a field on a
  * cause — a cause is its planks, and every growth surface stays available.
  */
-export type MomentumLever =
+export type GrowthLever =
   | 'supporters'
   | 'volunteers'
   | 'collaborators'
@@ -18,7 +18,9 @@ export interface SupportingTool {
   description: string
   domain: DomainId
   path: string
-  levers: MomentumLever[]
+  /** When set, the tool lives inside CauseStarter instead of another domain. */
+  internalPath?: string
+  levers: GrowthLever[]
   kind: 'substrate' | 'reference' | 'thesis'
 }
 
@@ -31,6 +33,7 @@ export const SUPPORTING_TOOLS: SupportingTool[] = [
     description: 'Let supporters who lack time follow a volunteer or collaborator they trust.',
     domain: 'lazyGiving',
     path: '/delegation/notes',
+    internalPath: '/delegation/notes',
     levers: ['volunteers', 'collaborators', 'funding'],
     kind: 'substrate',
   },
@@ -41,6 +44,7 @@ export const SUPPORTING_TOOLS: SupportingTool[] = [
     description: 'Fund posts, videos, and channels that move people toward your goals.',
     domain: 'content-funding',
     path: '/',
+    internalPath: '/content-funding',
     levers: ['content', 'funding'],
     kind: 'substrate',
   },
@@ -77,10 +81,15 @@ export const SUPPORTING_TOOLS: SupportingTool[] = [
 ]
 
 export function toolHref(tool: SupportingTool): string {
+  if (tool.internalPath) return tool.internalPath
   return getDomainUrl(tool.domain, tool.path, '#')
 }
 
-export function toolsForLevers(levers: MomentumLever[]): SupportingTool[] {
+export function isInternalTool(tool: SupportingTool): boolean {
+  return Boolean(tool.internalPath)
+}
+
+export function toolsForLevers(levers: GrowthLever[]): SupportingTool[] {
   if (levers.length === 0) return SUPPORTING_TOOLS.filter((t) => t.kind === 'substrate')
   return SUPPORTING_TOOLS.filter(
     (tool) => tool.kind === 'substrate' && tool.levers.some((lever) => levers.includes(lever)),

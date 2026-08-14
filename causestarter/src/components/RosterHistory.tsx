@@ -33,7 +33,7 @@ export function RosterHistory({
     <Stack spacing={1} data-testid="roster-history">
       {latestAge && (
         <Typography variant="body2" color="text.secondary">
-          Roster changed {latestAge}
+          Updated {latestAge}
           {history.length > 1 ? ` · ${history.length} versions` : ''}
         </Typography>
       )}

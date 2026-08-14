@@ -10,6 +10,12 @@ The core concept: large numbers of people who share values can fund projects ali
 
 See [/docs/end-user/commonality/vision-and-strategy/README.md](/docs/end-user/commonality/vision-and-strategy/README.md) for the full motivational discussion.
 
+## Vocabulary
+
+[glossary.md](./glossary.md) — the ubiquitous language: what our words mean, which words
+are synonyms we're trying to kill, and the naming rules. Check it before naming a new
+type, event, route, or piece of UI copy.
+
 ## Who is reading this?
 
 See [roles](/workflow/roles/README.md) for role-based guidance on what docs to read, depending on whether you're in the role of founder, product manager, technical lead, developer, or user.

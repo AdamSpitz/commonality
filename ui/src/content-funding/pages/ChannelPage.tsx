@@ -96,9 +96,9 @@ function getOverviewFundingCurrency(overview: ChannelOverview): Currency {
 }
 
 interface ChannelPageProps {
-  campaignHeading?: string
-  createCampaignLabel?: string
-  emptyCampaignState?: string
+  contractsHeading?: string
+  createContractLabel?: string
+  emptyContractsState?: string
   unclaimedHeroDescription?: string
   shareHeading?: string
   shareDescription?: string
@@ -167,7 +167,7 @@ function ContractCard({
             />
           )}
           <Typography variant="body2" color="primary" sx={{ fontWeight: 600 }}>
-            Open backing page to pledge funds
+            Open backing page to contribute funds
           </Typography>
         </Stack>
       )}
@@ -314,13 +314,13 @@ function CopyLinkButton({ url }: { url: string }) {
 }
 
 export function ChannelPage({
-  campaignHeading = 'Funding Campaigns',
-  createCampaignLabel = 'Create Campaign',
-  emptyCampaignState = 'No funding campaigns yet for this channel.',
+  contractsHeading = 'Funding Contracts',
+  createContractLabel = 'Create Contract',
+  emptyContractsState = 'No funding contracts yet for this channel.',
   unclaimedHeroDescription = 'This channel hasn\'t been claimed yet. If you\'re the creator, you can verify your identity and withdraw these funds.',
   shareHeading = 'Share with the creator',
   shareDescription = 'Know this creator? Send them the link below so they can claim their funds.',
-  suggestedMessagePrefix = 'Hey! Your supporters have pooled',
+  suggestedMessagePrefix = 'Hey! Your contributors have pooled',
   contractPathForAddress = contentContractPathForAddress,
 }: ChannelPageProps) {
   const { platform, channelId: channelIdParam } = useParams<{ platform: string; channelId: string }>()
@@ -495,7 +495,7 @@ export function ChannelPage({
           elevation={0}
         >
           <Typography variant="h5" gutterBottom>
-            Supporters have pooled {formatCurrencyAmount(escrow.balance, fundingCurrency)} for {displayName}&apos;s work.
+            Contributors have pooled {formatCurrencyAmount(escrow.balance, fundingCurrency)} for {displayName}&apos;s work.
           </Typography>
           <Typography variant="body1" sx={{ mb: 2 }}>
             {unclaimedHeroDescription}
@@ -565,7 +565,7 @@ export function ChannelPage({
         <Box sx={{ mb: 3 }}>
           <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1.5}>
             <Typography variant="h5">
-              {campaignHeading}
+              {contractsHeading}
             </Typography>
             <Button
               variant="contained"
@@ -573,7 +573,7 @@ export function ChannelPage({
               component={RouterLink}
               to={`/content/${platform ?? 'unknown'}/${encodeURIComponent(canonicalChannelId)}/new`}
             >
-              {createCampaignLabel}
+              {createContractLabel}
             </Button>
           </Stack>
           <Stack spacing={1.5}>
@@ -586,7 +586,7 @@ export function ChannelPage({
                       {round.materializedToken && <Chip label="Materialized" color="success" size="small" />}
                     </Stack>
                     <Typography variant="body2" color="text.secondary">
-                      Back a promised body of future work and receive non-transferable supporter receipts.
+                      Back a promised body of future work and receive non-transferable contributor receipts.
                     </Typography>
                   </Box>
                   <Stack direction="row" spacing={1} alignItems="center">
@@ -613,13 +613,13 @@ export function ChannelPage({
 
       {contracts.length === 0 && prospectiveRounds.length === 0 && (
         <Paper sx={{ p: 3, mb: 3, textAlign: 'center' }}>
-          <Typography color="text.secondary" sx={{ mb: 2 }}>{emptyCampaignState}</Typography>
+          <Typography color="text.secondary" sx={{ mb: 2 }}>{emptyContractsState}</Typography>
           <Button
             variant="contained"
             component={RouterLink}
             to={`/content/${platform ?? 'unknown'}/${encodeURIComponent(canonicalChannelId)}/new`}
           >
-            {createCampaignLabel}
+            {createContractLabel}
           </Button>
         </Paper>
       )}

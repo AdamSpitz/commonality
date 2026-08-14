@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { MemoryRouter } from 'react-router-dom'
 import { SelectedPlankSupport } from './SelectedPlankSupport'
 import { sendCallsPreferAtomic } from '../lib/causeRoster'
 
@@ -23,13 +24,18 @@ describe('SelectedPlankSupport', () => {
     vi.mocked(sendCallsPreferAtomic).mockReset().mockResolvedValue({ hashes: ['0xabc'], batched: true })
   })
 
-  it('shows exact text and CIDs before submitting distinct statement calls', async () => {
+  it('shows exact text before submitting distinct statement calls', async () => {
     const onSupported = vi.fn()
-    render(<SelectedPlankSupport planks={planks} onSupported={onSupported} />)
+    render(
+      <MemoryRouter>
+        <SelectedPlankSupport planks={planks} onSupported={onSupported} />
+      </MemoryRouter>,
+    )
 
     expect(screen.getByText(planks[0].text)).toBeInTheDocument()
-    expect(screen.getByText(`CID: ${planks[1].cid}`)).toBeInTheDocument()
-    expect(screen.getByText(/not the organizer, narrative, cause roster/i)).toBeInTheDocument()
+    expect(screen.getByText(planks[1].text)).toBeInTheDocument()
+    expect(screen.queryByText(/CID:/)).not.toBeInTheDocument()
+    expect(screen.getByText(/not the organizer, narrative, cause page/i)).toBeInTheDocument()
 
     fireEvent.click(screen.getByTestId('support-selected-planks'))
     await waitFor(() => expect(sendCallsPreferAtomic).toHaveBeenCalledOnce())

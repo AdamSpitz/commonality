@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Alert, Button, CircularProgress, Paper, Stack, Typography } from '@mui/material'
+import { Link as RouterLink } from 'react-router-dom'
 import { useAccount } from 'wagmi'
 import { BeliefsAbi } from '@commonality/sdk/abis'
 import { BeliefStates } from '@commonality/sdk/conceptspace'
@@ -61,13 +62,24 @@ export function SelectedPlankSupport({ planks, onSupported }: Props) {
         <div>
           <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>Review selected statements</Typography>
           <Typography variant="body2" color="text.secondary">
-            This supports only the statements below—not the organizer, narrative, cause roster, or unselected statements.
+            This supports only the statements below—not the organizer, narrative, cause page, or unselected statements.
           </Typography>
         </div>
         {planks.map((plank) => (
           <div key={plank.cid}>
-            <Typography variant="body2">{plank.text}</Typography>
-            <Typography variant="caption" color="text.secondary" sx={{ overflowWrap: 'anywhere' }}>CID: {plank.cid}</Typography>
+            <Typography
+              component={RouterLink}
+              to={`/statement/${plank.cid}`}
+              variant="body2"
+              sx={{
+                display: 'block',
+                color: 'text.primary',
+                textDecoration: 'none',
+                '&:hover': { textDecoration: 'underline' },
+              }}
+            >
+              {plank.text}
+            </Typography>
           </div>
         ))}
         {error && <Alert severity="error">{error}</Alert>}

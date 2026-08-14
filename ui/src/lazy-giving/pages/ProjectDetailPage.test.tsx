@@ -114,7 +114,7 @@ function makeToken(overrides: Record<string, any> = {}) {
 function makeContribution(overrides: Record<string, any> = {}) {
   return {
     id: 'contrib-1',
-    participant: '0x1111111111111111111111111111111111111111',
+    contributor: '0x1111111111111111111111111111111111111111',
     projectAddress: mockProjectAddress,
     erc1155Address: '0xaaaa',
     tokenIds: '["1"]',
@@ -130,7 +130,7 @@ function makeContribution(overrides: Record<string, any> = {}) {
 function makeRefund(overrides: Record<string, any> = {}) {
   return {
     id: 'refund-1',
-    participant: '0x1111111111111111111111111111111111111111',
+    contributor: '0x1111111111111111111111111111111111111111',
     projectAddress: mockProjectAddress,
     erc1155Address: '0xaaaa',
     tokenIds: '["1"]',
@@ -196,10 +196,10 @@ describe('ProjectDetailPage', () => {
     it('uses host listPath/listLabel for not-found recovery', async () => {
       vi.mocked(getProject).mockResolvedValue(null)
 
-      render(<ProjectDetailPage listPath="/momentum" listLabel="Back to momentum" />)
+      render(<ProjectDetailPage listPath="/causes" listLabel="Back to causes" />)
 
       await waitFor(() => {
-        expect(screen.getByRole('link', { name: 'Back to momentum' })).toHaveAttribute('href', '/momentum')
+        expect(screen.getByRole('link', { name: 'Back to causes' })).toHaveAttribute('href', '/causes')
       })
     })
 
@@ -656,7 +656,7 @@ describe('ProjectDetailPage', () => {
       mockAccount.address = userAddr
       mockAccount.isConnected = true
       vi.mocked(getProject).mockResolvedValue(refundingProject() as any)
-      vi.mocked(getProjectContributions).mockResolvedValue([makeContribution({ participant: userAddr })] as any)
+      vi.mocked(getProjectContributions).mockResolvedValue([makeContribution({ contributor: userAddr })] as any)
 
       render(<ProjectDetailPage />)
 
@@ -671,7 +671,7 @@ describe('ProjectDetailPage', () => {
       mockAccount.address = userAddr
       mockAccount.isConnected = true
       vi.mocked(getProject).mockResolvedValue(makeProject() as any)
-      vi.mocked(getProjectContributions).mockResolvedValue([makeContribution({ participant: userAddr })] as any)
+      vi.mocked(getProjectContributions).mockResolvedValue([makeContribution({ contributor: userAddr })] as any)
 
       render(<ProjectDetailPage />)
 
@@ -700,10 +700,10 @@ describe('ProjectDetailPage', () => {
       mockAccount.isConnected = true
       vi.mocked(getProject).mockResolvedValue(refundingProject() as any)
       vi.mocked(getProjectContributions).mockResolvedValue([
-        makeContribution({ participant: userAddr, tokenIds: '["1"]', tokenCounts: '["5"]' }),
+        makeContribution({ contributor: userAddr, tokenIds: '["1"]', tokenCounts: '["5"]' }),
       ] as any)
       vi.mocked(getProjectRefunds).mockResolvedValue([
-        makeRefund({ participant: userAddr, tokenIds: '["1"]', tokenCounts: '["3"]' }),
+        makeRefund({ contributor: userAddr, tokenIds: '["1"]', tokenCounts: '["3"]' }),
       ] as any)
 
       render(<ProjectDetailPage />)
@@ -719,10 +719,10 @@ describe('ProjectDetailPage', () => {
       mockAccount.isConnected = true
       vi.mocked(getProject).mockResolvedValue(refundingProject() as any)
       vi.mocked(getProjectContributions).mockResolvedValue([
-        makeContribution({ participant: userAddr, tokenIds: '["1"]', tokenCounts: '["5"]' }),
+        makeContribution({ contributor: userAddr, tokenIds: '["1"]', tokenCounts: '["5"]' }),
       ] as any)
       vi.mocked(getProjectRefunds).mockResolvedValue([
-        makeRefund({ participant: userAddr, tokenIds: '["1"]', tokenCounts: '["5"]' }),
+        makeRefund({ contributor: userAddr, tokenIds: '["1"]', tokenCounts: '["5"]' }),
       ] as any)
 
       render(<ProjectDetailPage />)
@@ -739,7 +739,7 @@ describe('ProjectDetailPage', () => {
       mockAccount.isConnected = true
       mockWalletClient.data = {} as any
       vi.mocked(getProject).mockResolvedValue(refundingProject() as any)
-      vi.mocked(getProjectContributions).mockResolvedValue([makeContribution({ participant: userAddr })] as any)
+      vi.mocked(getProjectContributions).mockResolvedValue([makeContribution({ contributor: userAddr })] as any)
       vi.mocked(refundProjectTokens).mockResolvedValue('0xhash' as any)
 
       render(<ProjectDetailPage />)
@@ -771,7 +771,7 @@ describe('ProjectDetailPage', () => {
       mockAccount.isConnected = true
       mockWalletClient.data = {} as any
       vi.mocked(getProject).mockResolvedValue(refundingProject() as any)
-      vi.mocked(getProjectContributions).mockResolvedValue([makeContribution({ participant: userAddr })] as any)
+      vi.mocked(getProjectContributions).mockResolvedValue([makeContribution({ contributor: userAddr })] as any)
       vi.mocked(refundProjectTokens).mockResolvedValue('0xhash' as any)
 
       render(<ProjectDetailPage />)
@@ -794,7 +794,7 @@ describe('ProjectDetailPage', () => {
       mockAccount.isConnected = true
       mockWalletClient.data = {} as any
       vi.mocked(getProject).mockResolvedValue(refundingProject() as any)
-      vi.mocked(getProjectContributions).mockResolvedValue([makeContribution({ participant: userAddr })] as any)
+      vi.mocked(getProjectContributions).mockResolvedValue([makeContribution({ contributor: userAddr })] as any)
       vi.mocked(refundProjectTokens).mockRejectedValue(new Error('Transaction reverted'))
 
       render(<ProjectDetailPage />)
@@ -930,11 +930,11 @@ describe('ProjectDetailPage', () => {
       vi.mocked(getProject).mockResolvedValue(makeProject() as any)
       vi.mocked(getProjectContributions).mockResolvedValue([
         makeContribution({
-          participant: '0xaaaa111111111111111111111111111111111111',
+          contributor: '0xaaaa111111111111111111111111111111111111',
           totalCost: '1000000000000000000',
         }),
         makeContribution({
-          participant: '0xbbbb111111111111111111111111111111111111',
+          contributor: '0xbbbb111111111111111111111111111111111111',
           totalCost: '500000000000000000',
         }),
       ] as any)
@@ -963,11 +963,11 @@ describe('ProjectDetailPage', () => {
       vi.mocked(getProject).mockResolvedValue(makeProject() as any)
       vi.mocked(getProjectContributions).mockResolvedValue([
         makeContribution({
-          participant: '0xaaaa111111111111111111111111111111111111',
+          contributor: '0xaaaa111111111111111111111111111111111111',
           totalCost: '500000000000000000', // 0.5 ETH
         }),
         makeContribution({
-          participant: '0xbbbb111111111111111111111111111111111111',
+          contributor: '0xbbbb111111111111111111111111111111111111',
           totalCost: '1000000000000000000', // 1 ETH
         }),
       ] as any)
@@ -986,13 +986,13 @@ describe('ProjectDetailPage', () => {
       vi.mocked(getProject).mockResolvedValue(makeProject() as any)
       vi.mocked(getProjectContributions).mockResolvedValue([
         makeContribution({
-          participant: '0xaaaa111111111111111111111111111111111111',
+          contributor: '0xaaaa111111111111111111111111111111111111',
           totalCost: '1000000000000000000', // 1 ETH
         }),
       ] as any)
       vi.mocked(getProjectRefunds).mockResolvedValue([
         makeRefund({
-          participant: '0xaaaa111111111111111111111111111111111111',
+          contributor: '0xaaaa111111111111111111111111111111111111',
           totalRefund: '300000000000000000', // 0.3 ETH
         }),
       ] as any)
@@ -1010,13 +1010,13 @@ describe('ProjectDetailPage', () => {
       vi.mocked(getProject).mockResolvedValue(makeProject() as any)
       vi.mocked(getProjectContributions).mockResolvedValue([
         makeContribution({
-          participant: '0xaaaa111111111111111111111111111111111111',
+          contributor: '0xaaaa111111111111111111111111111111111111',
           totalCost: '500000000000000000',
         }),
       ] as any)
       vi.mocked(getProjectRefunds).mockResolvedValue([
         makeRefund({
-          participant: '0xaaaa111111111111111111111111111111111111',
+          contributor: '0xaaaa111111111111111111111111111111111111',
           totalRefund: '500000000000000000',
         }),
       ] as any)

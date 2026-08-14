@@ -203,7 +203,7 @@ export function foldContributionsFromEvents(
     const id = `${event.transactionHash}-${event.logIndex}`;
     contributions.push({
       id,
-      participant: event.participant,
+      contributor: event.participant,
       projectAddress: event.contractAddress,
       erc1155Address: event.erc1155Addr,
       tokenIds: JSON.stringify(event.ids.map((id) => id.toString())),
@@ -220,7 +220,7 @@ export function foldContributionsFromEvents(
     const id = `${event.transactionHash}-${event.logIndex}`;
     refunds.push({
       id,
-      participant: event.participant,
+      contributor: event.participant,
       projectAddress: event.contractAddress,
       erc1155Address: event.erc1155Addr,
       tokenIds: JSON.stringify(event.ids.map((id) => id.toString())),

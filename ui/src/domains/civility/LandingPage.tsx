@@ -13,7 +13,7 @@ const sections = [
     eyebrow: 'Creators',
     title: "There's money earmarked for this",
     description:
-      'Supporters have pooled real money for content that makes its case without contempt. Claim your channel and collect it.',
+      'Contributors have pooled real money for content that makes its case without contempt. Claim your channel and collect it.',
     cta: 'Get your content funded',
     path: '/content/dashboard',
   },

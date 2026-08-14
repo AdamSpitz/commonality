@@ -20,16 +20,16 @@ The real question is whether there's a *better* way to crowdfund public goods �
 
 LazyGiving beats the alternatives on their own terms:
 
-- **Better than government or big charity:** it's fine-grained instead of coarse, and it routes money by what individual supporters actually value rather than by what a committee or grant program approves.
+- **Better than government or big charity:** it's fine-grained instead of coarse, and it routes money by what individual contributors actually value rather than by what a committee or grant program approves.
 - **Better than Patreon-style tipping:** it combines mechanisms that ordinary tipping lacks — and those mechanisms are what actually make it work.
 
 ### Two mechanisms, two jobs
 
 [Assurance contracts](../lazyGiving/assurance-contracts.md) and [retroactive funding](../lazyGiving/retroactive-funding.md) answer two different questions, and content funding needs both.
 
-- **Assurance contracts answer "does this get made at all?"** A creator may not be willing to put in the effort without some guarantee they'll be paid. An assurance contract gives them that: supporters pledge, and the money is released only if the goal is reached — so the "I'll pay if enough others do" coordination problem is solved up front, before the work happens.
+- **Assurance contracts answer "does this get made at all?"** A creator may not be willing to put in the effort without some guarantee they'll be paid. An assurance contract gives them that: contributors contribute, and the money is released only if the goal is reached — so the "I'll pay if enough others do" coordination problem is solved up front, before the work happens.
 
-- **Retroactive funding answers "who fronts the money?"** Scouts who are good at recognizing promising creators can fund work early. If it succeeds, later supporters can reimburse those contributions pro-rata at cost. The scout gets the same giving budget back to use on another piece of work, plus a public track record that can attract larger delegated budgets. Nobody receives interest, a premium, or a profit.
+- **Retroactive funding answers "who fronts the money?"** Scouts who are good at recognizing promising creators can fund work early. If it succeeds, later donors can reimburse those contributions pro-rata at cost. The scout gets the same giving budget back to use on another piece of work, plus a public track record that can attract larger delegated budgets. Nobody receives interest, a premium, or a profit.
 
 [Delegation](../shared/key-ideas/delegation.md) rounds this out: you can back someone whose taste you trust instead of judging every piece yourself.
 

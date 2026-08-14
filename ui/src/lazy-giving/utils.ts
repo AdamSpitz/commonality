@@ -54,7 +54,7 @@ export function computeUserTokenBalance(
   const held = new Map<string, bigint>()
 
   for (const c of contributions) {
-    if (c.participant.toLowerCase() !== userAddr) continue
+    if (c.contributor.toLowerCase() !== userAddr) continue
     const ids: string[] = JSON.parse(c.tokenIds)
     const counts: string[] = JSON.parse(c.tokenCounts)
     for (let i = 0; i < ids.length; i++) {
@@ -64,7 +64,7 @@ export function computeUserTokenBalance(
   }
 
   for (const r of refunds) {
-    if (r.participant.toLowerCase() !== userAddr) continue
+    if (r.contributor.toLowerCase() !== userAddr) continue
     const ids: string[] = JSON.parse(r.tokenIds)
     const counts: string[] = JSON.parse(r.tokenCounts)
     for (let i = 0; i < ids.length; i++) {
@@ -82,14 +82,14 @@ export function computeContributorStats(contributions: Contribution[], refunds: 
   const stats = new Map<string, { contributed: bigint; refunded: bigint; currency: Contribution['currency'] | Refund['currency'] }>()
 
   for (const c of contributions) {
-    const addr = c.participant.toLowerCase()
+    const addr = c.contributor.toLowerCase()
     const entry = stats.get(addr) ?? { contributed: 0n, refunded: 0n, currency: c.currency }
     entry.contributed += BigInt(c.totalCost)
     stats.set(addr, entry)
   }
 
   for (const r of refunds) {
-    const addr = r.participant.toLowerCase()
+    const addr = r.contributor.toLowerCase()
     const entry = stats.get(addr) ?? { contributed: 0n, refunded: 0n, currency: r.currency }
     entry.refunded += BigInt(r.totalRefund)
     stats.set(addr, entry)

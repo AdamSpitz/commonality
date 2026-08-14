@@ -43,8 +43,9 @@ export async function loadToolExamples(
       case 'common-sense-majority':
         return await loadStatementImplicationExamples(machinery, tool.domain)
       case 'content-funding':
+        return await loadContentFundingExamples(machinery, tool.domain, Boolean(tool.internalPath))
       case 'civility':
-        return await loadContentFundingExamples(machinery, tool.domain)
+        return await loadContentFundingExamples(machinery, tool.domain, false)
       case 'delegation':
         return await loadDelegationHintExamples(machinery)
       default:
@@ -112,6 +113,7 @@ async function loadStatementImplicationExamples(
 async function loadContentFundingExamples(
   machinery: SDKMachinery,
   domain: SupportingTool['domain'],
+  internal: boolean,
 ): Promise<ToolExample[]> {
   const rounds = await getProspectiveRounds(machinery)
   if (rounds.length > 0) {
@@ -121,7 +123,7 @@ async function loadContentFundingExamples(
       return {
         label: `Content round ${short}`,
         detail: status,
-        href: getDomainUrl(domain, '/', '#'),
+        href: internal ? '/content' : getDomainUrl(domain, '/', '#'),
       }
     })
   }
@@ -134,7 +136,7 @@ async function loadContentFundingExamples(
   return statements.map((statement) => ({
     label: statementLabel(statement, statement.cid),
     detail: 'Related public statement',
-    href: getDomainUrl(domain, `/statement/${statement.cid}`, '#'),
+    href: `/statement/${statement.cid}`,
   }))
 }
 
@@ -147,7 +149,7 @@ async function loadDelegationHintExamples(machinery: SDKMachinery): Promise<Tool
     return {
       label: `Fundable work ${shortId}`,
       detail: 'Example target for delegated judgment',
-      href: getDomainUrl('lazyGiving', `/delegation/notes`, '#'),
+      href: '/delegation/notes',
     }
   })
 }

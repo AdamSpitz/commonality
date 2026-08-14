@@ -128,28 +128,28 @@ describe('ChannelPage', () => {
     expect(screen.getByRole('link', { name: 'Browse creators' })).toHaveAttribute('href', '/content')
   })
 
-  it('shows custom campaign heading', () => {
+  it('shows custom contracts heading', () => {
     mockContentFundingState({ loading: false, state: null })
 
-    render(<ChannelPage campaignHeading="Support Campaigns" />)
+    render(<ChannelPage contractsHeading="Support Contracts" />)
 
-    expect(screen.queryByText('Support Campaigns')).not.toBeInTheDocument()
+    expect(screen.queryByText('Support Contracts')).not.toBeInTheDocument()
   })
 
-  it('shows custom create campaign label', () => {
+  it('shows custom create contract label', () => {
     mockContentFundingState({ loading: false, state: null })
 
-    render(<ChannelPage createCampaignLabel="Start Campaign" />)
+    render(<ChannelPage createContractLabel="Start Contract" />)
 
-    expect(screen.queryByText('Start Campaign')).not.toBeInTheDocument()
+    expect(screen.queryByText('Start Contract')).not.toBeInTheDocument()
   })
 
-  it('shows custom empty campaign state', () => {
+  it('shows custom empty contracts state', () => {
     mockContentFundingState({ loading: false, state: null })
 
-    render(<ChannelPage emptyCampaignState="No campaigns yet" />)
+    render(<ChannelPage emptyContractsState="No contracts yet" />)
 
-    expect(screen.queryByText('No campaigns yet')).not.toBeInTheDocument()
+    expect(screen.queryByText('No contracts yet')).not.toBeInTheDocument()
   })
 
   it('shows custom unclaimed hero description', () => {
@@ -366,7 +366,7 @@ describe('ChannelPage', () => {
 
     render(<ChannelPage />)
 
-    expect(screen.getByText(/Your supporters have pooled 0\.11 ETH/)).toBeInTheDocument()
-    expect(screen.queryByText(/Your supporters have pooled 0 ETH/)).not.toBeInTheDocument()
+    expect(screen.getByText(/Your contributors have pooled 0\.11 ETH/)).toBeInTheDocument()
+    expect(screen.queryByText(/Your contributors have pooled 0 ETH/)).not.toBeInTheDocument()
   })
 })

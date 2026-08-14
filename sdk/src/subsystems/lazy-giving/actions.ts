@@ -197,7 +197,7 @@ async function sendAtomicContractCalls(
  * @param params.owner - Owner of the token contract
  * @param params.recipient - Address that will receive funds if project succeeds
  * @param params.threshold - Minimum funding amount required for project success
- * @param params.deadline - Unix timestamp deadline for the funding campaign
+ * @param params.deadline - Unix timestamp deadline for the funding round
  * @param params.projectMetadataCid - IPFS CID for project metadata
  * @param params.tokenIds - Token IDs to create
  * @param params.tokenCounts - Supply for each token ID

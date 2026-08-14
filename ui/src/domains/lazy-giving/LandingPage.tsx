@@ -6,7 +6,7 @@ const sections = [
   {
     title: 'Crowdfunding, the part you already know',
     description:
-      "A creator posts a project with a funding goal. Backers pledge. If the goal is reached, the project proceeds and pledges are collected. If not, everyone gets refunded. No one donates alone, and nobody's money is at risk on a project that doesn't happen.",
+      "A creator posts a project with a funding goal. Contributors contribute. If the goal is reached, the project proceeds and the contributions are collected. If not, everyone gets refunded. No one donates alone, and nobody's money is at risk on a project that doesn't happen.",
     path: '/docs/lazyGiving/assurance-contracts',
     cta: 'How assurance contracts work',
   },
@@ -35,7 +35,7 @@ export function LazyGivingLandingPage() {
         spotlights={[
         {
           label: "Don't want to gamble on unproven projects?",
-          text: "Wait for the ones that have clearly delivered, then fund them after the fact. You already know they did good — so back them now, and help repay the early backers who took the risk so you didn't have to. There's even a satisfying, concrete goal: find a project you admire and finish funding it."
+          text: "Wait for the ones that have clearly delivered, then fund them after the fact. You already know they did good — so back them now, and help repay the early contributors who took the risk so you didn't have to. There's even a satisfying, concrete goal: find a project you admire and finish funding it."
         },
         {
           label: "Don't want to pick projects at all?",
@@ -43,11 +43,11 @@ export function LazyGivingLandingPage() {
         },
         {
           label: "Either way, you never donate alone",
-          text: "Like any crowdfunding platform, a project either reaches its funding goal or your pledge is refunded. No solo gambles, whichever way you choose to give.",
+          text: "Like any crowdfunding platform, a project either reaches its funding goal or your contribution is refunded. No solo gambles, whichever way you choose to give.",
         },
         {
           label: 'Runs on neutral ground',
-          text: "It all runs on open infrastructure, so no company owns the shared record. Your pledges, your refunds, and the contributor list are not locked inside one platform that can change the rules on you.",
+          text: "It all runs on open infrastructure, so no company owns the shared record. Your contributions, your refunds, and the contributor list are not locked inside one platform that can change the rules on you.",
         },
       ]}
         heroActions={[

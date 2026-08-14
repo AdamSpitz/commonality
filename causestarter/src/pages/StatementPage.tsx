@@ -73,6 +73,16 @@ export function StatementPage() {
     return (
       <Stack spacing={2}>
         <Alert severity="error" sx={{ borderRadius: 2 }}>{error ?? 'Statement not found'}</Alert>
+        {statementCid && (
+          <Typography
+            variant="caption"
+            color="text.disabled"
+            sx={{ overflowWrap: 'anywhere' }}
+            data-testid="statement-cid"
+          >
+            Statement CID {statementCid}
+          </Typography>
+        )}
         <Button component={RouterLink} to="/" sx={{ textTransform: 'none' }}>
           Back to home
         </Button>
@@ -155,6 +165,15 @@ export function StatementPage() {
       </Paper>
 
       <MonthlyPledgeSignal statementCids={[statementCid as string]} />
+
+      <Typography
+        variant="caption"
+        color="text.disabled"
+        sx={{ overflowWrap: 'anywhere', display: 'block', pt: 1 }}
+        data-testid="statement-cid"
+      >
+        Statement CID {statementCid}
+      </Typography>
 
       <Button
         variant="outlined"

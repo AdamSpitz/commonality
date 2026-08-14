@@ -2,7 +2,7 @@
 
 Civility is a way to put money behind one specific kind of content: political writing you'd actually be willing to read from people you disagree with — because it makes its case without treating you as stupid or evil.
 
-It isn't a new piece of technology. It's an ecosystem built on top of [Content Funding](../content-funding/index.md), pointed at a single kind of content and wired up to make funding that content nearly effortless. The funding mechanism is the same (supporters and cause pools back content through pledge-and-refund contracts), and the [AI-evaluator mechanism](../alignment/ai-evaluators.md) that decides which content qualifies is the same. What Civility adds is the *standard* — "noninflammatory" — and the evaluators, filters, and defaults tuned for it.
+It isn't a new piece of technology. It's an ecosystem built on top of [Content Funding](../content-funding/index.md), pointed at a single kind of content and wired up to make funding that content nearly effortless. The funding mechanism is the same (contributors and cause pools back content through fund-and-refund contracts), and the [AI-evaluator mechanism](../alignment/ai-evaluators.md) that decides which content qualifies is the same. What Civility adds is the *standard* — "noninflammatory" — and the evaluators, filters, and defaults tuned for it.
 
 ## Why this content needs funding at all
 

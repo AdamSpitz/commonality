@@ -168,7 +168,7 @@ export function MaterializeFutureContentPage() {
         Materialize future content
       </Typography>
       <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-        Attach published posts, videos, or articles to a funded future-content round so original backers can claim their content tokens.
+        Attach published posts, videos, or articles to a funded future-content round so original contributors can claim their content tokens.
       </Typography>
 
       <Paper sx={{ p: 3, mb: 3 }}>

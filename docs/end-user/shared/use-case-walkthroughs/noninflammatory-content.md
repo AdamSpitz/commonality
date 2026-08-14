@@ -48,7 +48,7 @@ The system's implication graph notices that these statements all point toward so
 
 ## Three roles, each genuinely easy
 
-### The passive supporter
+### The passive contributor
 
 You find a delegate you trust — someone who's good at curating thoughtful political writing. You pledge $10/month and let them decide where it goes. Done. You don't have to think about it again. You can check in whenever you want (everything is transparent), but you don't have to. And you can revoke your delegation at any time if you change your mind.
 

@@ -143,7 +143,7 @@ export function AlignmentAttestationsSection({ projectAddress, initialStatementC
     <Box sx={{ mb: 3 }}>
       <Paper sx={{ p: 3 }}>
         <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-          <Typography variant="h6">Project Endorsements</Typography>
+          <Typography variant="h6">Project Vouches</Typography>
           {isConnected ? (
             <Stack direction="row" spacing={1}>
               <Button variant="outlined" size="small" onClick={() => handleOpenDialog('alignment')}>
@@ -200,7 +200,7 @@ export function AlignmentAttestationsSection({ projectAddress, initialStatementC
                     Vouched by: {truncateAddress(a.attester)}
                   </Typography>
                 </Box>
-                <Chip label="Direct" size="small" color="primary" variant="outlined" aria-label="Direct endorsement: a person vouched this project serves this cause, not an implication-derived link." />
+                <Chip label="Direct" size="small" color="primary" variant="outlined" aria-label="Direct vouch: a person vouched this project serves this cause, not an implication-derived link." />
               </Box>
             ))}
           </Stack>

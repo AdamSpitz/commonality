@@ -142,7 +142,7 @@ describe('AlignedProjectCard', () => {
       )
 
       expect(screen.getByText('Fund this project')).toBeInTheDocument()
-      expect(screen.getByText(/Pledge, refund, and withdraw here/i)).toBeInTheDocument()
+      expect(screen.getByText(/Contribute, refund, and withdraw here/i)).toBeInTheDocument()
       const fundLink = screen.getByRole('link', { name: /Open project: Local Hosted Project/i })
       // Local mode must use in-app route path (RouterLink), not a full-page external href.
       expect(fundLink).toHaveAttribute('href', `/projects/eip155%3A31337%3A${PROJECT_ADDR}`)
