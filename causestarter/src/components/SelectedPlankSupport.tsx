@@ -60,10 +60,10 @@ export function SelectedPlankSupport({ planks, onSupported }: Props) {
     <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }} data-testid="selected-plank-support">
       <Stack spacing={1.25}>
         <div>
-          <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>Review selected statements</Typography>
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>Review selected statements</Typography>
+          <Alert severity="info" sx={{ borderRadius: 2 }}>
             This supports only the statements below—not the organizer, narrative, cause page, or unselected statements.
-          </Typography>
+          </Alert>
         </div>
         {planks.map((plank) => (
           <div key={plank.cid}>

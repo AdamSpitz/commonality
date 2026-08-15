@@ -149,6 +149,14 @@ export function isLive(cause: CauseDraft): boolean {
 }
 
 /**
+ * The shareable cause page exists only after a roster document is sealed.
+ * Publishing individual issues does not publish the cause grouping.
+ */
+export function hasPublishedRoster(cause: CauseDraft): boolean {
+  return Boolean(cause.rosterCid)
+}
+
+/**
  * Display title: organizer-set title when present, otherwise the first plank
  * (truncated for chrome). Roster publish seals the full title into the document.
  */

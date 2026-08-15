@@ -30,7 +30,7 @@ import { SafetyRejectionDialog } from '../components/SafetyRejectionDialog'
 import { ToolCard } from '../components/ToolCard'
 import {
   bookmarkCause, causeContentBoardPath, causePath, causeTitle, findCauseByStable,
-  getCause, isCauseBookmarked, isLive, markPlankPublished,
+  getCause, hasPublishedRoster, isCauseBookmarked, isLive, markPlankPublished,
   markRosterPublished, newPlank, publishedBookmarkIds, publishedPlanks, realPlanks,
   unbookmarkCause, unpublishedPlanks, updateCause,
   type CauseDraft, type CausePlank, type SafetyState,
@@ -369,18 +369,17 @@ export function CauseDetailPage() {
    */
   const [editing, setEditing] = useState<boolean | null>(null)
   /**
-   * The default view, decided from whether the cause was already live *when it
-   * loaded*: building a new cause opens in editing, arriving at a live one opens
-   * in viewing. Deliberately not recomputed from current liveness — publishing
-   * the first issue makes a cause live, and re-deriving would throw the
-   * organizer out of editing mid-build.
+   * The default view, decided from whether a roster was already published *when
+   * this cause loaded*: shaping the cause page opens in editing; arriving at a
+   * published roster opens in viewing. Issue publishes make the cause "live" for
+   * supporters but must not hide the publish-cause panel after a reload.
    */
   const [defaultEditing, setDefaultEditing] = useState<boolean | null>(null)
   const causeKey = cause?.id ?? ''
   useEffect(() => {
     // Also clears an explicit choice when navigating between causes.
     setEditing(null)
-    setDefaultEditing(cause ? !isLive(cause) : null)
+    setDefaultEditing(cause ? !hasPublishedRoster(cause) : null)
     // eslint-disable-next-line react-hooks/exhaustive-deps -- keyed on identity, not contents
   }, [causeKey])
 
@@ -722,7 +721,7 @@ export function CauseDetailPage() {
 
   return (
     <Stack spacing={2.5} data-testid="cause-detail-page">
-      {isOrganizer && canEdit && !isFreshDraft && (
+      {canEdit && !isFreshDraft && (
         <ToggleButtonGroup
           exclusive
           size="small"
@@ -741,7 +740,7 @@ export function CauseDetailPage() {
         </ToggleButtonGroup>
       )}
 
-      {isOrganizer && !isEditing && (
+      {canEdit && !isEditing && (
         <Alert severity="info" sx={{ borderRadius: 2 }} data-testid="cause-viewing-notice">
           This is what a supporter sees. Unpublished drafts and your organizer controls are
           hidden until you switch to Editing.
@@ -749,14 +748,11 @@ export function CauseDetailPage() {
       )}
 
       <Box>
-        {!live && !isFreshDraft && (
-          <Chip size="small" label="Nothing published yet" sx={{ mb: 0.75 }} />
+        {!cause.rosterCid && (
+          <Chip size="small" label="Unpublished" sx={{ mb: 0.75 }} data-testid="cause-unpublished" />
         )}
         {routeRef?.versionCid && (
-          <Chip size="small" color="info" label="Pinned version" sx={{ mb: 0.75, ml: live ? 0 : 1 }} />
-        )}
-        {cause.rosterCid && !routeRef?.versionCid && (
-          <Chip size="small" color="success" label="Published" sx={{ mb: 0.75, ml: live ? 1 : 0 }} />
+          <Chip size="small" color="info" label="Pinned version" sx={{ mb: 0.75 }} />
         )}
         {onChainBadge && onChainBadge.attesters.length > 0 && (
           <Chip
@@ -786,29 +782,18 @@ export function CauseDetailPage() {
           {isFreshDraft ? 'Start a cause' : displayTitle}
         </Typography>
         {isFreshDraft ? (
-          <>
-            <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>
-              Tell CauseStarter what you want people to be able to support. It searches
-              published statements first and can propose new wording when none fit.
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-              You decide what belongs in the cause. Nothing is published until you review
-              the exact statement text and CID in the page below and explicitly approve it.
-            </Typography>
-          </>
+          <Alert severity="info" sx={{ mt: 1.5, borderRadius: 2 }} data-testid="start-cause-help">
+            Tell CauseStarter what you want people to be able to support. It searches
+            published statements first and can propose new wording when none fit.
+            You decide what belongs in the cause. Nothing is published until you review
+            the exact statement text and CID in the page below and explicitly approve it.
+          </Alert>
         ) : (
-          <>
-            {displaySummary?.trim() && (
-              <Typography variant="body1" sx={{ mt: 1, whiteSpace: 'pre-wrap' }}>
-                {displaySummary}
-              </Typography>
-            )}
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-              {live
-                ? 'People sign each issue separately. The counts below combine those signatures.'
-                : 'Write the issues this cause is made of. Publish each one when it is ready.'}
+          displaySummary?.trim() && (
+            <Typography variant="body1" sx={{ mt: 1, whiteSpace: 'pre-wrap' }}>
+              {displaySummary}
             </Typography>
-          </>
+          )
         )}
         {stable && (
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.75 }}>
@@ -860,14 +845,14 @@ export function CauseDetailPage() {
 
       {published.length > 0 && (
         <Paper elevation={0} sx={{ p: { xs: 2, sm: 2.5 }, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
-          <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }}>Set aside funds for an issue</Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+          <Typography variant="h6" sx={{ fontWeight: 700, mb: 1.5 }}>Set aside funds for an issue</Typography>
+          <Alert severity="info" sx={{ mb: 1.5, borderRadius: 2 }} data-testid="earmark-help">
             Create a one-time delegated fund or a monthly pledge earmarked for one immutable
             statement. The earmark is public, auditable guidance — not a binding restriction
             on a delegate. If they direct the money elsewhere, that will also be public.
             Choosing a delegate is public too. The earmark does not follow later edits to
             this cause publication.
-          </Typography>
+          </Alert>
           <Stack spacing={1}>
             {published.map((plank) => (
               <Stack
@@ -952,6 +937,16 @@ export function CauseDetailPage() {
 
       <Paper elevation={0} sx={{ p: { xs: 2, sm: 2.5 }, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
         <Typography variant="h6" sx={{ fontWeight: 700, mb: 1.5 }}>Issues</Typography>
+
+        {live ? (
+          <Alert severity="info" sx={{ mb: 2, borderRadius: 2 }} data-testid="issue-sign-help">
+            People sign each issue separately. The counts below combine those signatures.
+          </Alert>
+        ) : (
+          <Alert severity="info" sx={{ mb: 2, borderRadius: 2 }} data-testid="issue-draft-help">
+            Write the issues this cause is made of. Publish each one when it is ready.
+          </Alert>
+        )}
 
         {isEditing && (
           <Alert severity="info" sx={{ mb: 2, borderRadius: 2 }} data-testid="issue-guidance">
@@ -1084,12 +1079,12 @@ export function CauseDetailPage() {
 
       <Paper elevation={0} sx={{ p: { xs: 2, sm: 2.5 }, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} alignItems={{ sm: 'center' }} justifyContent="space-between" sx={{ mb: 1.5 }}>
-          <Box>
-            <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }}>Projects</Typography>
-            <Typography variant="body2" color="text.secondary">
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>Fundable Projects</Typography>
+            <Alert severity="info" sx={{ borderRadius: 2 }} data-testid="projects-help">
               Projects vouched for as advancing one of this cause's issues. Each is aligned with a
               specific statement, not with the cause as a whole.
-            </Typography>
+            </Alert>
           </Box>
           {publishedCids.length > 0 && (
             <Button

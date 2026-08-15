@@ -12,6 +12,7 @@ import {
   hasBlockingSafety,
   isCauseBookmarked,
   isEmptyDraft,
+  hasPublishedRoster,
   isLive,
   listCauses,
   markPlankPublished,
@@ -133,6 +134,7 @@ describe('causeStore', () => {
 
     const published = markPlankPublished(draft.id, draft.planks[0]!.id, 'bafyone')!
     expect(isLive(published)).toBe(true)
+    expect(hasPublishedRoster(published)).toBe(false)
     expect(getCause(draft.id)?.planks[0]?.cid).toBe('bafyone')
   })
 

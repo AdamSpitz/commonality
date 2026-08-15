@@ -143,7 +143,7 @@ test.describe('CauseStarter agent smoke', () => {
       timeout: 60_000,
     })
     const stableUrl = page.url()
-    await expect(page.getByText('Published', { exact: true })).toBeVisible()
+    await expect(page.getByTestId('cause-unpublished')).toHaveCount(0)
     await expect(page.getByRole('heading', { name: 'Safer Oak Street' })).toBeVisible()
 
     // Live causes open in viewing; revision needs the organizer editing surface.

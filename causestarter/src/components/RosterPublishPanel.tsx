@@ -78,11 +78,11 @@ export function RosterPublishPanel({
   return (
     <Stack spacing={1.5} data-testid="roster-publish-panel">
       <Box>
-        <Typography variant="h6" sx={{ fontWeight: 700 }}>Publish this cause</Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+        <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>Publish this cause</Typography>
+        <Alert severity="info" sx={{ borderRadius: 2 }}>
           Title, summary, issue list, and mediator blurb publish together as a versioned
           cause page. The URL stays stable when you edit; each publish is a new version.
-        </Typography>
+        </Alert>
       </Box>
 
       {lastPublishedCid && (
