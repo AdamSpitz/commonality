@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
-  Alert, Box, Button, Chip, CircularProgress, Divider, Paper, Stack,
-  ToggleButton, ToggleButtonGroup, Typography,
+  Alert, Box, Button, Chip, CircularProgress, Divider, IconButton, Paper, Snackbar,
+  Stack, ToggleButton, ToggleButtonGroup, Tooltip, Typography,
 } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
+import BookmarkIcon from '@mui/icons-material/Bookmark'
+import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder'
 import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom'
 import { useAccount } from 'wagmi'
 import { getStatementWithContent } from '@commonality/sdk/conceptspace'
@@ -339,6 +341,7 @@ export function CauseDetailPage() {
     && !isUnpublishedLocalDraft,
   )
   const keptOnDevice = Boolean(cause && isCauseBookmarked(cause))
+  const [bookmarkUndoOpen, setBookmarkUndoOpen] = useState(false)
 
   const persistWalletBookmarks = useCallback(async () => {
     if (!writeClients) return
@@ -353,14 +356,20 @@ export function CauseDetailPage() {
     if (!cause || isOrganizer || !cause.founderAddress || !cause.slug) return
     setCause(bookmarkCause(cause))
     void persistWalletBookmarks()
+    setBookmarkUndoOpen(false)
   }, [cause, isOrganizer, persistWalletBookmarks])
 
   const handleRemoveFromDevice = () => {
     if (!cause || isOrganizer) return
-    if (!window.confirm('Remove this bookmark? The cause page stays published. You can still open it from its share link.')) return
     unbookmarkCause(cause)
     setCause({ ...cause })
     void persistWalletBookmarks()
+    setBookmarkUndoOpen(true)
+  }
+
+  const undoRemoveBookmark = () => {
+    setBookmarkUndoOpen(false)
+    keepThisCause()
   }
 
   /**
@@ -702,11 +711,10 @@ export function CauseDetailPage() {
     }
   }
 
-  const handleDeleteCause = () => {
-    if (mutationLocked || !canEdit || cause.id.startsWith('remote:')) return
-    if (!window.confirm('Unbookmark this cause? Published statements and cause pages are unaffected.')) return
+  const handleDeleteDraft = () => {
+    if (mutationLocked || !canEdit || !isUnpublishedLocalDraft) return
+    if (!window.confirm('Delete this draft? Nothing has been published.')) return
     unbookmarkCause(cause)
-    void persistWalletBookmarks()
     navigate('/causes')
   }
 
@@ -774,13 +782,31 @@ export function CauseDetailPage() {
             Cause
           </Typography>
         )}
-        <Typography
-          variant="h4"
-          component="h1"
-          sx={{ fontWeight: 800, fontSize: { xs: '1.55rem', sm: '1.9rem' } }}
-        >
-          {isFreshDraft ? 'Start a cause' : displayTitle}
-        </Typography>
+        <Stack direction="row" alignItems="flex-start" spacing={0.5} sx={{ pr: canKeepOnDevice ? 0.5 : 0 }}>
+          <Typography
+            variant="h4"
+            component="h1"
+            sx={{ fontWeight: 800, fontSize: { xs: '1.55rem', sm: '1.9rem' }, flex: 1, minWidth: 0 }}
+          >
+            {isFreshDraft ? 'Start a cause' : displayTitle}
+          </Typography>
+          {canKeepOnDevice && (
+            <Tooltip title={keptOnDevice ? 'Saved to your causes' : 'Save to your causes'}>
+              <IconButton
+                data-testid={keptOnDevice ? 'cause-remove-from-device' : 'cause-keep-on-device'}
+                onClick={() => {
+                  if (keptOnDevice) handleRemoveFromDevice()
+                  else keepThisCause()
+                }}
+                aria-label={keptOnDevice ? 'Remove bookmark' : 'Bookmark'}
+                aria-pressed={keptOnDevice}
+                sx={{ mt: 0.25, color: keptOnDevice ? 'primary.main' : 'text.secondary' }}
+              >
+                {keptOnDevice ? <BookmarkIcon /> : <BookmarkBorderIcon />}
+              </IconButton>
+            </Tooltip>
+          )}
+        </Stack>
         {isFreshDraft ? (
           <Alert severity="info" sx={{ mt: 1.5, borderRadius: 2 }} data-testid="start-cause-help">
             Tell CauseStarter what you want people to be able to support. It searches
@@ -799,19 +825,6 @@ export function CauseDetailPage() {
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.75 }}>
             Share link: {stableCausePath(stable)}
           </Typography>
-        )}
-        {canKeepOnDevice && (
-          <Button
-            variant={keptOnDevice ? 'text' : 'outlined'}
-            data-testid={keptOnDevice ? 'cause-remove-from-device' : 'cause-keep-on-device'}
-            onClick={() => {
-              if (keptOnDevice) handleRemoveFromDevice()
-              else keepThisCause()
-            }}
-            sx={{ mt: 1.5, textTransform: 'none', fontWeight: 600 }}
-          >
-            {keptOnDevice ? 'Remove bookmark' : 'Bookmark'}
-          </Button>
         )}
       </Box>
 
@@ -1221,31 +1234,46 @@ export function CauseDetailPage() {
         />
       )}
 
-      {isEditing && !cause.id.startsWith('remote:') && (
+      {isEditing && isUnpublishedLocalDraft && (
         <>
           <Divider />
           <Stack direction="row" spacing={1}>
             <Button
               color="error"
-              onClick={handleDeleteCause}
+              onClick={handleDeleteDraft}
               disabled={mutationLocked}
               sx={{ textTransform: 'none' }}
             >
-              Unbookmark
+              Delete draft
             </Button>
-            {stable && (
-              <Button
-                component={RouterLink}
-                to={causePath(cause)}
-                sx={{ textTransform: 'none' }}
-              >
-                Open share URL
-              </Button>
-            )}
           </Stack>
         </>
       )}
+      {isEditing && stable && (
+        <Button
+          component={RouterLink}
+          to={causePath(cause)}
+          sx={{ textTransform: 'none' }}
+        >
+          Open share URL
+        </Button>
+      )}
 
+      <Snackbar
+        open={bookmarkUndoOpen}
+        autoHideDuration={6000}
+        onClose={(_, reason) => {
+          if (reason === 'clickaway') return
+          setBookmarkUndoOpen(false)
+        }}
+        message="Removed from your causes"
+        action={(
+          <Button color="inherit" size="small" onClick={undoRemoveBookmark} sx={{ textTransform: 'none', fontWeight: 700 }}>
+            Undo
+          </Button>
+        )}
+        data-testid="cause-bookmark-undo"
+      />
       <SafetyRejectionDialog
         open={Boolean(dialogSafety)}
         safety={dialogSafety}
