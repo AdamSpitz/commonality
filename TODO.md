@@ -10,6 +10,26 @@ When an item from this page is done and no longer needs an LLM implementor's att
 
 ----
 
+- Wire the CauseStarter alignment-trust bootstrap through the complete testnet
+  operations path. Local Docker Compose is done (`services.sh --start` builds and
+  starts the worker, and CauseStarter receives the local Hardhat #8 root), but
+  Base Sepolia/Render is not: add the dedicated wallet role to
+  `scripts/generate-wallets.mjs`; add the private key to `.env.secrets.example`
+  and `scripts/generate-render-secrets.mjs`; add a persistent-disk Render worker
+  to `render.yaml.template` and regenerate `render.yaml`; publish the matching
+  `VITE_DEFAULT_ALIGNMENT_TRUST_ROOT` through the Base Sepolia/CauseStarter UI
+  configuration; document funding, pause, and denylist-edit procedures; and add
+  a testnet check proving the configured root has direct trust for an observed
+  alignment attester and excludes a denylisted one. The human wallet creation,
+  funding, and secret installation are separately recorded in `inbox.md`.
+
+- Add a fresh-stack integration test for the alignment-trust bootstrap: publish
+  an alignment vouch from a previously unknown wallet, observe the service's
+  `TrustSet(..., 100)`, confirm a wallet with no personal graph sees that vouch
+  through CauseStarter's one-hop fallback, then add the attester to the denylist
+  and confirm `TrustSet(..., 0)` removes it. Also cover that any personal direct
+  trust mapping replaces rather than merges with the shipped fallback.
+
 - **(Tell)** Glossary follow-ups. [`specs/glossary.md`](specs/glossary.md) is now the
   ubiquitous-language reference; Adam ruled on support/sign/pledge/contributor 2026-08-14
   and those sweeps are done. Part 2 §6 lists what's left, none of it urgent: **earmark**
