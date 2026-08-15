@@ -27,26 +27,6 @@ When an item from this page is done and no longer needs an LLM implementor's att
   names, which breaks the four-layer isomorphism. Add new terms to the glossary as they
   appear rather than letting drift re-accumulate.
 
-- Cause-board tab **“Fully reimbursed” is mislabeled.** It is not a
-  reimbursement-zero filter. The four tabs look like a lifecycle, but two of
-  them use different queries. **Not yet reimbursed** uses
-  `getSuccessfulProjectsForCause` (`sdk/src/subsystems/fundingportals/queries.ts`):
-  a project is included only if (1) someone vouched that it succeeded for this
-  statement and (2) early contributors still have
-  `outstandingUnreimbursedAmount > 0`. Once that hits zero the SDK drops the
-  project on purpose (receipt tokens are permanent; the board is only “close
-  the loop”). **Fully reimbursed** (added on `CauseBoard` in
-  `ui/src/fundingportals/components/CauseBoard.tsx`) reuses
-  `AlignedProjectsList` with `statusFilterLock="succeeded"`.
-  `getProjectStatus === 'succeeded'` means only “raised ≥ threshold”
-  (`ui/src/lazy-giving/utils.ts`) and does **not** look at reimbursement. So a
-  project that just hit its goal — still full of unpaid scouts — is succeeded
-  and shows up on **both** “Fully reimbursed” and “Not yet reimbursed.” The
-  label overclaims. Fix: make “Fully reimbursed” mean success-vouched (or at
-  least succeeded) **and** `outstandingUnreimbursedAmount === 0`. That snapshot
-  already exists (`getReceiptReimbursementSnapshot`); it just is not wired to
-  this tab.
-
 - Fix the three failing funding-portal integration tests. `automated.test-full-integration` fails (exit 3, 101 passing / 3 failing) because cause-level aggregation reads back `0n` where seeded contributions should appear: "total funding raised across all aligned projects for a cause" expects `800000n` (`integration-tests/src/fundingportal/fundingportal-aggregated-metrics.test.ts:219`), and the leaderboard tests expect `3000000n` and `2000000n` (`fundingportal-leaderboards.test.ts:221` and `:346`). All three get `0n`, so suspect one shared cause: contributions not being attributed to the cause in the aggregation query/indexer rather than three separate bugs. This is the only red under `automated.test-full` — SDK, Hardhat, and UI legs pass.
 
 - Fix the canonical Playwright user journeys (`stack.user-journeys`, exit 1). The content-funding flow reverts in `verifyChannel` with `InvalidVerifierSignature()` (custom error `0x0574e985`) when creating a channel and landing on the creators page, and retries hit the same error. Either the signer/verifier key the E2E harness uses no longer matches the deployed `ChannelRegistry` verifier, or the signed payload's shape/domain changed.

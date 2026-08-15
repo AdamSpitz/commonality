@@ -199,8 +199,11 @@ buildConfigs['ui-ipfs-publisher-causestarter'] = {
     'scripts/ui-domains.mjs',
     'causestarter/Dockerfile.ipfs',
     'sdk/package.json',
+    'ui/package.json',
     'causestarter/package.json',
     { path: 'sdk', ignore: [] },
+    { path: 'docs', ignore: [] },
+    { path: 'ui', ignore: ['dist'] },
     { path: 'causestarter', ignore: ['dist'] },
   ],
 }
@@ -218,8 +221,10 @@ buildConfigs.causestarter = {
     'causestarter/docker-entrypoint.d/30-indexer-upstream.sh',
     'causestarter/docker-entrypoint.d/40-causestarter-config.sh',
     'sdk/package.json',
+    'ui/package.json',
     'causestarter/package.json',
     { path: 'sdk', ignore: [] },
+    { path: 'ui', ignore: ['dist'] },
     { path: 'causestarter', ignore: ['dist'] },
   ],
 }

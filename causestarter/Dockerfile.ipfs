@@ -38,14 +38,19 @@ COPY causestarter/package.json ./causestarter/package.json
 COPY turbo.json ./turbo.json
 RUN --mount=type=cache,target=/root/.npm HUSKY=0 npm ci --legacy-peer-deps
 COPY sdk ./sdk
+# CauseStarter typecheck/bundle resolves @ui/* into the main ui package.
+COPY docs ./docs
+COPY ui ./ui
 COPY causestarter ./causestarter
 COPY scripts ./scripts
-RUN chmod -R a+rX /workspace/sdk /workspace/causestarter /workspace/scripts \
+RUN chmod -R a+rX /workspace/sdk /workspace/docs /workspace/ui /workspace/causestarter /workspace/scripts \
   && mkdir -p /workspace/sdk/.turbo /workspace/sdk/dist /workspace/sdk/src/generated \
+    /workspace/ui/.turbo /workspace/ui/dist /workspace/ui/node_modules/.tmp /workspace/ui/node_modules/.vite-temp \
     /workspace/causestarter/.turbo /workspace/causestarter/dist \
     /workspace/causestarter/node_modules/.tmp /workspace/causestarter/node_modules/.vite-temp \
     /workspace/.turbo/cache /tmp/node-compile-cache \
   && chmod -R a+rwX /workspace/sdk/.turbo /workspace/sdk/dist /workspace/sdk/src/generated \
+    /workspace/ui/.turbo /workspace/ui/dist /workspace/ui/node_modules/.tmp /workspace/ui/node_modules/.vite-temp \
     /workspace/causestarter/.turbo /workspace/causestarter/dist \
     /workspace/causestarter/node_modules/.tmp /workspace/causestarter/node_modules/.vite-temp \
     /workspace/.turbo /tmp/node-compile-cache

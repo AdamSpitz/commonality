@@ -255,4 +255,29 @@ describe('StatementFundingPortalPage', () => {
       }),
     )
   })
+
+  it('renders the Fully reimbursed tab from the success-vouch query, not the raised-enough status filter', async () => {
+    const userEvent = (await import('@testing-library/user-event')).default
+    const user = userEvent.setup()
+    const trustedImplicationAttesters = [TRUSTED_IMPLICATION_ATTESTER]
+    vi.mocked(useTrustedAttesters).mockReturnValue(trustedImplicationAttesters)
+
+    render(<StatementFundingPortalPage />)
+
+    await waitFor(() => {
+      expect(screen.getByText('Cause Board')).toBeInTheDocument()
+    })
+
+    await user.click(screen.getByRole('tab', { name: 'Fully reimbursed' }))
+
+    expect(await screen.findByText('Successful Projects Tab')).toBeInTheDocument()
+    expect(vi.mocked(SuccessfulProjectsTab).mock.calls.at(-1)?.[0]).toEqual(
+      expect.objectContaining({
+        statementCid: STATEMENT_CID,
+        trustedImplicationAttesters,
+        reimbursement: 'reimbursed',
+      }),
+    )
+    expect(vi.mocked(AlignedProjectsList).mock.calls.every((call) => call[0].statusFilterLock !== 'succeeded')).toBe(true)
+  })
 })

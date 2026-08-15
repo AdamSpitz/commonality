@@ -634,17 +634,23 @@ async function getReceiptReimbursementSnapshot(machinery: SDKMachinery, projectA
   };
 }
 
-/**
- * Get projects that have trusted success attestations for a cause and still have
- * outstanding unreimbursed early contributions (not merely permanent receipt tokens).
- */
-export async function getSuccessfulProjectsForCause(
+type SuccessVouchedProjectRow = SuccessfulProjectForCause;
+
+function hadEarlyContributions(row: {
+  outstandingReceipts: string;
+  scoutRecords: Array<{ scoutedAmount: string }>;
+}): boolean {
+  if (BigInt(row.outstandingReceipts) > 0n) return true;
+  return row.scoutRecords.some((record) => BigInt(record.scoutedAmount) > 0n);
+}
+
+async function listSuccessVouchedProjectsForCause(
   machinery: SDKMachinery,
   statementCid: IpfsCidV1,
   trustedImplicationAttesters?: TrustedAddressInput,
   trustedSuccessAttesters?: TrustedAddressInput,
   trustWeights?: TrustWeightInput,
-): Promise<SuccessfulProjectForCause[]> {
+): Promise<SuccessVouchedProjectRow[]> {
   const weightsMap = normalizeTrustWeights(trustWeights);
   const [directSuccesses, indirectSuccesses] = await Promise.all([
     getSuccessfulSubjects(machinery, statementCid, trustedSuccessAttesters),
@@ -676,9 +682,7 @@ export async function getSuccessfulProjectsForCause(
       getProject(machinery, projectAddress).catch(() => null),
       getReceiptReimbursementSnapshot(machinery, projectAddress).catch(() => ({ outstandingReceipts: 0n, outstandingUnreimbursedAmount: 0n, scoutRecords: [] })),
     ]);
-    // Drop fully reimbursed (or never-scouted) successes; receipt tokens are permanent
-    // and must not keep a project listed after outstanding unreimbursed money hits zero.
-    if (!project || reimbursement.outstandingUnreimbursedAmount <= 0n) return null;
+    if (!project) return null;
     return {
       projectAddress: project.id,
       successType: success.successType,
@@ -695,11 +699,66 @@ export async function getSuccessfulProjectsForCause(
     };
   }));
 
+  return rows.filter((row): row is SuccessVouchedProjectRow => row !== null);
+}
+
+/**
+ * Get projects that have trusted success attestations for a cause and still have
+ * outstanding unreimbursed early contributions (not merely permanent receipt tokens).
+ */
+export async function getSuccessfulProjectsForCause(
+  machinery: SDKMachinery,
+  statementCid: IpfsCidV1,
+  trustedImplicationAttesters?: TrustedAddressInput,
+  trustedSuccessAttesters?: TrustedAddressInput,
+  trustWeights?: TrustWeightInput,
+): Promise<SuccessfulProjectForCause[]> {
+  const rows = await listSuccessVouchedProjectsForCause(
+    machinery,
+    statementCid,
+    trustedImplicationAttesters,
+    trustedSuccessAttesters,
+    trustWeights,
+  );
+
   return rows
-    .filter((row): row is NonNullable<typeof row> => row !== null)
+    // Drop fully reimbursed (or never-scouted) successes; receipt tokens are permanent
+    // and must not keep a project listed after outstanding unreimbursed money hits zero.
+    .filter((row) => BigInt(row.outstandingUnreimbursedAmount) > 0n)
     .sort((a, b) => {
       const scoreA = BigInt(a.outstandingUnreimbursedAmount) * BigInt(a.successConfidenceScore);
       const scoreB = BigInt(b.outstandingUnreimbursedAmount) * BigInt(b.successConfidenceScore);
+      if (scoreA > scoreB) return -1;
+      if (scoreA < scoreB) return 1;
+      return a.projectAddress.localeCompare(b.projectAddress);
+    });
+}
+
+/**
+ * Success-vouched projects for a cause whose early contributors have been made whole
+ * (`outstandingUnreimbursedAmount === 0`). Never-scouted successes are omitted so the
+ * cause-board "Fully reimbursed" tab is not just "raised enough money."
+ */
+export async function getFullyReimbursedProjectsForCause(
+  machinery: SDKMachinery,
+  statementCid: IpfsCidV1,
+  trustedImplicationAttesters?: TrustedAddressInput,
+  trustedSuccessAttesters?: TrustedAddressInput,
+  trustWeights?: TrustWeightInput,
+): Promise<SuccessfulProjectForCause[]> {
+  const rows = await listSuccessVouchedProjectsForCause(
+    machinery,
+    statementCid,
+    trustedImplicationAttesters,
+    trustedSuccessAttesters,
+    trustWeights,
+  );
+
+  return rows
+    .filter((row) => BigInt(row.outstandingUnreimbursedAmount) === 0n && hadEarlyContributions(row))
+    .sort((a, b) => {
+      const scoreA = BigInt(a.successConfidenceScore);
+      const scoreB = BigInt(b.successConfidenceScore);
       if (scoreA > scoreB) return -1;
       if (scoreA < scoreB) return 1;
       return a.projectAddress.localeCompare(b.projectAddress);

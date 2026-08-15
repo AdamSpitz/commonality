@@ -17,6 +17,10 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 ## Main list
 
+- **(Tell)** Cause-board **Fully reimbursed** now means success-vouched *and* `outstandingUnreimbursedAmount === 0` (never-scouted successes omitted). It no longer reuses `AlignedProjectsList` with `statusFilterLock="succeeded"` (raised ≥ threshold). New SDK query: `getFullyReimbursedProjectsForCause`.
+
+
+
 ### Security/recoverability human actions
 
 - Replace/scopedown external account tokens: Cloudflare scoped DNS token instead of global key; Render/Pinata scoped as narrowly as possible; OpenRouter spend limit.

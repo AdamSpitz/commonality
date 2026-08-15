@@ -21,10 +21,12 @@ export function SuccessfulProjectsTab({
   statementCid,
   trustedImplicationAttesters,
   projectLinks = 'lazyGiving',
+  reimbursement = 'outstanding',
 }: {
   statementCid: string
   trustedImplicationAttesters?: Iterable<string>
   projectLinks?: ProjectLinkMode
+  reimbursement?: 'outstanding' | 'reimbursed'
 }) {
   const { address } = useAccount()
   const [discoveryLevel, setDiscoveryLevel] = useState<DiscoveryLevel>('network')
@@ -53,6 +55,7 @@ export function SuccessfulProjectsTab({
         trustedSuccessAttesters={trustedSuccessAttesters}
         trustWeights={activeTrustWeights}
         projectLinks={projectLinks}
+        reimbursement={reimbursement}
       />
     </Box>
   )

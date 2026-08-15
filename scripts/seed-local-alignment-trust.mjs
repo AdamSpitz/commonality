@@ -24,6 +24,7 @@ const PRIVATE_KEYS = [
 
 const abi = parseAbi([
   'function setTrustBatch(address[] trustees, uint8[] scores)',
+  'function getTrust(address truster, address trustee) view returns (uint8)',
 ])
 
 function readTrustRegistryAddress() {
@@ -40,6 +41,17 @@ async function main() {
   const publicClient = createPublicClient({ chain: hardhat, transport: http(rpcUrl) })
   const accounts = PRIVATE_KEYS.map((key) => privateKeyToAccount(key))
   const addresses = accounts.map((account) => account.address)
+
+  const alreadySeeded = await publicClient.readContract({
+    address: registry,
+    abi,
+    functionName: 'getTrust',
+    args: [addresses[0], addresses[1]],
+  })
+  if (alreadySeeded === 100) {
+    console.log('Local Hardhat trust graph already present; skipping.')
+    return
+  }
 
   for (const account of accounts) {
     const trustees = addresses.filter((address) => address.toLowerCase() !== account.address.toLowerCase())

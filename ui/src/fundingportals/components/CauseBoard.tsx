@@ -351,7 +351,6 @@ export function CauseBoard({
             value="reimbursed"
             label="Fully reimbursed"
             id="cause-board-tab-reimbursed"
-            sx={{ opacity: 0.75 }}
           />
           <Tab
             value="failed"
@@ -378,11 +377,11 @@ export function CauseBoard({
         />
       )}
       {projectTab === 'reimbursed' && (
-        <AlignedProjectsList
+        <SuccessfulProjectsTab
           statementCid={statementCid}
           trustedImplicationAttesters={activeTrustedImplicationAttesters}
           projectLinks={projectLinks}
-          statusFilterLock="succeeded"
+          reimbursement="reimbursed"
         />
       )}
       {projectTab === 'failed' && (

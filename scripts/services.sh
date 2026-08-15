@@ -348,6 +348,12 @@ start_services() {
     map_causestarter_contract_env
     docker_compose up -d --force-recreate cause-assist alignment-trust-bootstrap causestarter
 
+    echo "Recording local Hardhat-account trust (CauseStarter starter network)..."
+    if ! node "$SCRIPT_DIR/seed-local-alignment-trust.mjs"; then
+        echo "Warning: could not seed local alignment trust. CauseStarter project lists may stay gated until you run:"
+        echo "  node scripts/seed-local-alignment-trust.mjs"
+    fi
+
     echo ""
     echo "Services started. Use 'docker compose logs -f' to view logs."
     echo "Platform API service health: http://localhost:3001/health"

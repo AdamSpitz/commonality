@@ -18,6 +18,7 @@ vi.mock('@commonality/sdk/fundingportals', async () => {
   return {
     ...actual,
     getSuccessfulProjectsForCause: vi.fn(),
+    getFullyReimbursedProjectsForCause: vi.fn(),
   }
 })
 
@@ -38,7 +39,7 @@ vi.mock('@commonality/sdk/machinery', async () => {
 })
 
 
-import { getSuccessfulProjectsForCause } from '@commonality/sdk/fundingportals'
+import { getFullyReimbursedProjectsForCause, getSuccessfulProjectsForCause } from '@commonality/sdk/fundingportals'
 import { getProject } from '@commonality/sdk/lazy-giving'
 import { createSDKMachinery } from '@commonality/sdk/machinery'
 import { readProjectMetadata } from './projectMetadata'
@@ -273,5 +274,27 @@ describe('SuccessfulProjectsList', () => {
 
       expect(await screen.findByText(/Wallets that vouched this project delivered the cause/i)).toBeInTheDocument()
     })
+  })
+
+  it('loads the fully-reimbursed query and omits the close-the-loop CTA', async () => {
+    vi.mocked(getFullyReimbursedProjectsForCause).mockResolvedValue([
+      makeSuccessfulProject({ outstandingUnreimbursedAmount: '0' }),
+    ])
+
+    render(<SuccessfulProjectsList statementCid="bafyCause" reimbursement="reimbursed" />)
+
+    expect(await screen.findByText('Fully reimbursed projects')).toBeInTheDocument()
+    expect(screen.getByText('Fully reimbursed')).toBeInTheDocument()
+    expect(screen.queryByText('Donate to close the loop')).not.toBeInTheDocument()
+    expect(getFullyReimbursedProjectsForCause).toHaveBeenCalled()
+    expect(getSuccessfulProjectsForCause).not.toHaveBeenCalled()
+  })
+
+  it('shows an empty-state when no success-vouched projects are fully reimbursed', async () => {
+    vi.mocked(getFullyReimbursedProjectsForCause).mockResolvedValue([])
+
+    render(<SuccessfulProjectsList statementCid="bafyCause" reimbursement="reimbursed" />)
+
+    expect(await screen.findByText('No success-vouched projects have been fully reimbursed yet.')).toBeInTheDocument()
   })
 })
