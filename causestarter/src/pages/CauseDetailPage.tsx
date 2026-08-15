@@ -6,6 +6,7 @@ import {
 import AddIcon from '@mui/icons-material/Add'
 import BookmarkIcon from '@mui/icons-material/Bookmark'
 import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder'
+import IosShareIcon from '@mui/icons-material/IosShare'
 import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom'
 import { useAccount } from 'wagmi'
 import type { RefUpdate } from '@commonality/sdk/mutable-refs'
@@ -99,9 +100,24 @@ export function CauseDetailPage() {
     isLoading: defaultTrustLoading,
     error: defaultTrustError,
   } = useTrustedSet(defaultAlignmentTrustRoot, { maxHops: 1 })
+  /**
+   * A configured starter root is itself a vouching network, even before it
+   * names other wallets. useTrustedSet returns undefined when the root has no
+   * outgoing TrustSet edges; treat that as `{root}` so the cause page does not
+   * claim the starter network is missing.
+   */
+  const starterAlignmentAttesters = useMemo(() => {
+    if (defaultAlignmentAttesters && defaultAlignmentAttesters.size > 0) {
+      return defaultAlignmentAttesters
+    }
+    if (defaultAlignmentTrustRoot) {
+      return new Set([defaultAlignmentTrustRoot.toLowerCase()])
+    }
+    return undefined
+  }, [defaultAlignmentAttesters, defaultAlignmentTrustRoot])
   const usingDefaultAlignmentTrust = personalAlignmentAttesters === undefined
-    && defaultAlignmentAttesters !== undefined
-  const trustedAlignmentAttesters = personalAlignmentAttesters ?? defaultAlignmentAttesters
+    && starterAlignmentAttesters !== undefined
+  const trustedAlignmentAttesters = personalAlignmentAttesters ?? starterAlignmentAttesters
   const trustLoading = personalTrustLoading
     || (personalAlignmentAttesters === undefined && defaultTrustLoading)
   const trustError = personalAlignmentAttesters === undefined
@@ -336,6 +352,7 @@ export function CauseDetailPage() {
   )
   const keptOnDevice = Boolean(cause && isCauseBookmarked(cause))
   const [bookmarkUndoOpen, setBookmarkUndoOpen] = useState(false)
+  const [shareCopiedOpen, setShareCopiedOpen] = useState(false)
 
   const persistWalletBookmarks = useCallback(async () => {
     if (!writeClients) return
@@ -776,7 +793,7 @@ export function CauseDetailPage() {
             Cause
           </Typography>
         )}
-        <Stack direction="row" alignItems="flex-start" spacing={0.5} sx={{ pr: canKeepOnDevice ? 0.5 : 0 }}>
+        <Stack direction="row" alignItems="flex-start" spacing={0.5} sx={{ pr: (canKeepOnDevice || stable) ? 0.5 : 0 }}>
           <Typography
             variant="h4"
             component="h1"
@@ -784,6 +801,29 @@ export function CauseDetailPage() {
           >
             {isFreshDraft ? 'Start a cause' : displayTitle}
           </Typography>
+          {stable && (
+            <Tooltip title="Copy share link">
+              <IconButton
+                data-testid="cause-share-link"
+                onClick={() => {
+                  const url = `${window.location.origin}${stableCausePath(stable)}`
+                  const shareData = { title: displayTitle, url }
+                  const share = navigator.share
+                  if (typeof share === 'function') {
+                    void share.call(navigator, shareData).catch(() => {
+                      void navigator.clipboard.writeText(url).then(() => setShareCopiedOpen(true))
+                    })
+                    return
+                  }
+                  void navigator.clipboard.writeText(url).then(() => setShareCopiedOpen(true))
+                }}
+                aria-label="Share cause"
+                sx={{ mt: 0.25, color: 'text.secondary' }}
+              >
+                <IosShareIcon />
+              </IconButton>
+            </Tooltip>
+          )}
           {canKeepOnDevice && (
             <Tooltip title={keptOnDevice ? 'Saved to your causes' : 'Save to your causes'}>
               <IconButton
@@ -814,11 +854,6 @@ export function CauseDetailPage() {
               {displaySummary}
             </Typography>
           )
-        )}
-        {stable && (
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.75 }}>
-            Share link: {stableCausePath(stable)}
-          </Typography>
         )}
       </Box>
 
@@ -1283,6 +1318,13 @@ export function CauseDetailPage() {
         </Button>
       )}
 
+      <Snackbar
+        open={shareCopiedOpen}
+        autoHideDuration={2500}
+        onClose={() => setShareCopiedOpen(false)}
+        message="Link copied"
+        data-testid="cause-share-copied"
+      />
       <Snackbar
         open={bookmarkUndoOpen}
         autoHideDuration={6000}
