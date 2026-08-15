@@ -8,6 +8,7 @@ vi.mock('@commonality/sdk/fundingportals', async (importOriginal) => ({
 }))
 
 import {
+  applyPlankTexts,
   buildRosterDocument,
   formatRosterAge,
   loadRosterCoherenceBadge,
@@ -15,6 +16,7 @@ import {
   normalizeSlug,
   parseCauseRouteParams,
   parseRosterDocument,
+  placeholderPlanksFromCids,
   plankAddedLaterLabels,
   plankFirstSeenInHistory,
   previewRosterCid,
@@ -24,6 +26,7 @@ import {
   rosterFieldsFromCause,
   rosterSubjectId,
   stableCausePath,
+  textFromStatementDocument,
   validateSlug,
 } from './causeRoster'
 import type { CauseDraft } from './causeStore'
@@ -42,6 +45,8 @@ describe('causeRoster', () => {
     expect(normalizeSlug('  Free the Oaks! ')).toBe('free-the-oaks')
     expect(validateSlug('free-the-oaks')).toBeNull()
     expect(validateSlug('created-statements')).toMatch(/reserved/i)
+    expect(validateSlug('bookmarks')).toMatch(/reserved/i)
+    expect(validateSlug('bookmarked-causes')).toMatch(/reserved/i)
     expect(validateSlug('Bad_Slug')).toMatch(/lowercase/i)
     expect(validateSlug('')).toMatch(/slug/i)
   })
@@ -215,6 +220,37 @@ describe('causeRoster', () => {
     const labels = plankAddedLaterLabels(history, firstSeen, Number(v2.timestamp) * 1000 + 60_000)
     expect(labels.has('plank-a')).toBe(false)
     expect(labels.get('plank-b')).toMatch(/Added later/i)
+  })
+
+  it('builds CID placeholders so a cause page can paint before bodies load', () => {
+    expect(placeholderPlanksFromCids(['bafy1', 'bafy2'])).toEqual([
+      { id: 'plank:bafy1', text: 'bafy1', origin: 'user', cid: 'bafy1' },
+      { id: 'plank:bafy2', text: 'bafy2', origin: 'user', cid: 'bafy2' },
+    ])
+  })
+
+  it('reads statement body text from a displayable document', () => {
+    expect(textFromStatementDocument({ format: 'text/plain', content: '  Repair the lights.  ' } as never)).toBe(
+      'Repair the lights.',
+    )
+    expect(textFromStatementDocument(undefined)).toBe('')
+  })
+
+  it('applies resolved plank texts without clobbering local edits', () => {
+    const planks = [
+      { id: 'plank:a', text: 'bafya', origin: 'user' as const, cid: 'bafya' },
+      { id: 'plank:b', text: 'Keep my local wording', origin: 'user' as const, cid: 'bafyb' },
+      { id: 'draft', text: 'Unpublished', origin: 'user' as const },
+    ]
+    const texts = new Map([
+      ['bafya', 'Published issue A'],
+      ['bafyb', 'Published issue B'],
+    ])
+    expect(applyPlankTexts(planks, texts)).toEqual([
+      { id: 'plank:a', text: 'Published issue A', origin: 'user', cid: 'bafya' },
+      { id: 'plank:b', text: 'Keep my local wording', origin: 'user', cid: 'bafyb' },
+      { id: 'draft', text: 'Unpublished', origin: 'user' },
+    ])
   })
 
   describe('loadRosterCoherenceBadge', () => {

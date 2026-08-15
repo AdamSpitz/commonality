@@ -8,12 +8,15 @@ export function SettingsPage() {
         Trust settings
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-        Project lists on a cause only include vouches from wallets in your
-        trust network. Name at least one person whose project-alignment vouches
-        you accept. This does not attest to a cause; it only says whose vouches
-        you will count.
+        Until you name someone yourself, project lists use CauseStarter's starter
+        network to screen obvious spam. Naming anyone here replaces that default
+        with your personal trust network. This does not attest to a cause; it only
+        says whose project vouches you will count.
       </Typography>
-      <DirectTrustSettingsSection />
+      <DirectTrustSettingsSection
+        emptyTrustMessage="No personal trust scores yet. CauseStarter's starter network is currently filtering project vouches for you."
+        refreshingEmptyMessage="Refreshing your personal trust network. CauseStarter's starter network remains in use until you name someone yourself."
+      />
     </Box>
   )
 }

@@ -9,7 +9,7 @@ import {
 import OpenInNewIcon from '@mui/icons-material/OpenInNew'
 import { Link as RouterLink } from 'react-router-dom'
 import type { SupportingTool } from '../lib/tools'
-import { isInternalTool, toolHref } from '../lib/tools'
+import { toolHref } from '../lib/tools'
 import { useToolExamples } from '../hooks/useToolExamples'
 
 interface ToolCardProps {
@@ -17,13 +17,15 @@ interface ToolCardProps {
   compact?: boolean
   /** When true (default), load and show up to 2 live examples from the tool domain. */
   showExamples?: boolean
+  /** Override the tool's default destination (e.g. a cause-scoped board). */
+  href?: string
 }
 
-export function ToolCard({ tool, compact = false, showExamples = true }: ToolCardProps) {
+export function ToolCard({ tool, compact = false, showExamples = true, href: hrefOverride }: ToolCardProps) {
   const { examples, loading } = useToolExamples(tool)
   const shouldShowExamples = showExamples && tool.kind !== 'thesis'
-  const internal = isInternalTool(tool)
-  const href = toolHref(tool)
+  const href = hrefOverride ?? toolHref(tool)
+  const internal = href.startsWith('/')
 
   return (
     <Paper

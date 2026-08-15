@@ -40,6 +40,7 @@ const rootWorkspaceManifests = [
   'services/explorer-curator/package.json',
   'platform-api-service/package.json',
   'published-data-ipfs-mirror/package.json',
+  'alignment-trust-bootstrap/package.json',
   'services/implication-graph-nudger/package.json',
   'ui/package.json',
 ]
@@ -243,6 +244,22 @@ buildConfigs['cause-assist'] = {
     { path: 'services/implication-attester', ignore: ['dist'] },
     { path: 'services/nudger-core', ignore: ['dist'] },
     { path: 'services/bridge-creator', ignore: ['dist'] },
+    { path: 'sdk', ignore: [] },
+  ],
+}
+
+buildConfigs['alignment-trust-bootstrap'] = {
+  buildKey: 'alignment-trust-bootstrap',
+  image: 'commonality-alignment-trust-bootstrap:dev',
+  hashEntries: [
+    '.dockerignore',
+    '.npmrc',
+    'package.json',
+    'package-lock.json',
+    'alignment-trust-bootstrap/Dockerfile',
+    'alignment-trust-bootstrap/package.json',
+    'sdk/package.json',
+    { path: 'alignment-trust-bootstrap', ignore: ['dist'] },
     { path: 'sdk', ignore: [] },
   ],
 }

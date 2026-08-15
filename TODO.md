@@ -10,6 +10,13 @@ When an item from this page is done and no longer needs an LLM implementor's att
 
 ----
 
+- Add a fresh-stack integration test for the alignment-trust bootstrap: publish
+  an alignment vouch from a previously unknown wallet, observe the service's
+  `TrustSet(..., 100)`, confirm a wallet with no personal graph sees that vouch
+  through CauseStarter's one-hop fallback, then add the attester to the denylist
+  and confirm `TrustSet(..., 0)` removes it. Also cover that any personal direct
+  trust mapping replaces rather than merges with the shipped fallback.
+
 - **(Tell)** Glossary follow-ups. [`specs/glossary.md`](specs/glossary.md) is now the
   ubiquitous-language reference; Adam ruled on support/sign/pledge/contributor 2026-08-14
   and those sweeps are done. Part 2 §6 lists what's left, none of it urgent: **earmark**

@@ -267,12 +267,6 @@ export function PlankRow({
           </Tooltip>
         )}
       </Stack>
-
-      {published && (
-        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1, pl: 4.5 }}>
-          Published — people sign this exact wording, so it can no longer be edited.
-        </Typography>
-      )}
     </Paper>
   )
 }

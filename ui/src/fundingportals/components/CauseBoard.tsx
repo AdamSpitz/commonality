@@ -261,14 +261,14 @@ export function CauseBoard({
 
           <Box>
             <Typography variant="caption" color="text.secondary" display="block">
-              Still Needed (Open Projects)
+              Still needed (needs initial funding)
             </Typography>
             <Typography variant="h6">{formatCurrencyTotals(remainingToThreshold)}</Typography>
           </Box>
 
           <Box>
             <Typography variant="caption" color="text.secondary" display="block">
-              Unreimbursed (Succeeded)
+              Unreimbursed (needs reimbursement)
             </Typography>
             <Typography variant="h6">{formatCurrencyTotals(totalUnreimbursed)}</Typography>
           </Box>
@@ -294,6 +294,26 @@ export function CauseBoard({
           </Box>
         </Stack>
 
+        <Box sx={{ mt: 2 }}>
+          <NavLinkButton
+            link={
+              projectLinks === 'local'
+                ? {
+                    label: 'Start project',
+                    to: `/projects/new?statement=${encodeURIComponent(statementCid)}`,
+                    variant: 'contained',
+                  }
+                : {
+                    label: 'Start project',
+                    href: getDomainUrl('lazyGiving', `/projects/new?statement=${encodeURIComponent(statementCid)}`, {
+                      fallbackHref: `/projects/new?statement=${encodeURIComponent(statementCid)}`,
+                    }),
+                    variant: 'contained',
+                  }
+            }
+          />
+        </Box>
+
         {headerExtra}
       </Paper>
 
@@ -311,8 +331,16 @@ export function CauseBoard({
           onChange={(_, value: 'aligned' | 'successful') => setProjectTab(value)}
           aria-label="Cause board project views"
         >
-          <Tab value="aligned" label="Aligned" />
-          <Tab value="successful" label="Successful" />
+          <Tab
+            value="aligned"
+            label="Needs initial funding"
+            id="cause-board-tab-aligned"
+          />
+          <Tab
+            value="successful"
+            label="Needs reimbursement"
+            id="cause-board-tab-successful"
+          />
         </Tabs>
       </Paper>
 

@@ -1,4 +1,4 @@
-import { Box, Chip, CircularProgress, Paper, Stack, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material'
+import { Alert, Box, CircularProgress, Paper, Stack, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material'
 import type { ViewCounts } from '@commonality/sdk/conceptspace'
 
 export type ViewMode = 'any' | 'all'
@@ -94,10 +94,11 @@ export function CauseViewStrip({
 
         {counts && mode === 'any' && (
           <Box>
-            <Typography variant="h4" sx={{ fontWeight: 800 }} data-testid="view-count-any">
-              {counts.union.total.toLocaleString()}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant="body1" sx={{ whiteSpace: 'nowrap' }}>
+              <Box component="span" sx={{ fontWeight: 800 }} data-testid="view-count-any">
+                {counts.union.total.toLocaleString()}
+              </Box>
+              {' '}
               {counts.union.total === 1 ? 'person supports' : 'people support'}{' '}
               {singular ? 'this issue' : `at least one of ${scope}`}.
             </Typography>
@@ -113,10 +114,11 @@ export function CauseViewStrip({
         {counts && mode === 'all' && (
           <Stack spacing={1.5}>
             <Box>
-              <Typography variant="h4" sx={{ fontWeight: 800 }} data-testid="view-count-all">
-                {counts.conjunction.signedAll.toLocaleString()}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
+              <Typography variant="body1" sx={{ whiteSpace: 'nowrap' }}>
+                <Box component="span" sx={{ fontWeight: 800 }} data-testid="view-count-all">
+                  {counts.conjunction.signedAll.toLocaleString()}
+                </Box>
+                {' '}
                 {counts.conjunction.signedAll === 1 ? 'person has' : 'people have'} signed{' '}
                 {singular ? 'this issue' : `every one of ${scope}`}.
               </Typography>
@@ -147,12 +149,9 @@ export function CauseViewStrip({
           </Stack>
         )}
 
-        <Chip
-          size="small"
-          variant="outlined"
-          label="Counted from signatures on individual issues — nobody signs the combination"
-          sx={{ alignSelf: 'flex-start', height: 'auto', py: 0.5, '& .MuiChip-label': { whiteSpace: 'normal' } }}
-        />
+        <Alert severity="info" sx={{ borderRadius: 2 }}>
+          Counted from signatures on individual issues — nobody signs the combination.
+        </Alert>
       </Stack>
     </Paper>
   )

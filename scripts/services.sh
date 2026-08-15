@@ -251,6 +251,7 @@ map_causestarter_contract_env() {
     export VITE_ERC1155_FACTORY_ADDRESS="${VITE_ERC1155_FACTORY_ADDRESS:-${ERC1155_FACTORY_ADDRESS:-}}"
     export VITE_ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS="${VITE_ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS:-${ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS:-${ALIGNMENT_ATTESTATIONS_ADDRESS:-}}}"
     export VITE_TRUST_REGISTRY_CONTRACT_ADDRESS="${VITE_TRUST_REGISTRY_CONTRACT_ADDRESS:-${TRUST_REGISTRY_ADDRESS:-}}"
+    export VITE_DEFAULT_ALIGNMENT_TRUST_ROOT="${VITE_DEFAULT_ALIGNMENT_TRUST_ROOT:-0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f}"
     export VITE_NUDGE_PUBLICATIONS_CONTRACT_ADDRESS="${VITE_NUDGE_PUBLICATIONS_CONTRACT_ADDRESS:-${NUDGE_PUBLICATIONS_CONTRACT_ADDRESS:-}}"
     export VITE_PUBLISHED_DATA_CONTRACT_ADDRESS="${VITE_PUBLISHED_DATA_CONTRACT_ADDRESS:-${PUBLISHED_DATA_CONTRACT_ADDRESS:-}}"
     export VITE_PROJECT_FACTORY_CONTRACT_ADDRESS="${VITE_PROJECT_FACTORY_CONTRACT_ADDRESS:-${PROJECT_FACTORY_ADDRESS:-}}"
@@ -290,6 +291,7 @@ start_services() {
         ui-ipfs-publisher-conceptspace
         ui-ipfs-publisher-causestarter
         cause-assist
+        alignment-trust-bootstrap
         causestarter
     )
     local -a services_to_build=()
@@ -301,6 +303,7 @@ start_services() {
     # Pre-create data directories owned by the current user so containers
     # don't create them as root.
     mkdir -p "$DATA_DIR/hardhat" "$DATA_DIR/ipfs" "$DATA_DIR/published-data-ipfs-mirror" "$DATA_DIR/ponder" \
+        "$DATA_DIR/alignment-trust-bootstrap" \
         "$UI_IPFS_ARTIFACT_DIR/commonality" \
         "$UI_IPFS_ARTIFACT_DIR/lazyGiving" \
         "$UI_IPFS_ARTIFACT_DIR/alignment" \
@@ -343,7 +346,7 @@ start_services() {
     load_env_file_if_present ui/.env
     load_env_file_if_present causestarter/.env
     map_causestarter_contract_env
-    docker_compose up -d --force-recreate cause-assist causestarter
+    docker_compose up -d --force-recreate cause-assist alignment-trust-bootstrap causestarter
 
     echo ""
     echo "Services started. Use 'docker compose logs -f' to view logs."

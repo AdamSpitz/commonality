@@ -1,17 +1,25 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import {
+  bookmarkCause,
+  causeContentBoardPath,
+  causePath,
   causeTitle,
   createCause,
   deleteCause,
+  findCauseByStable,
   forgetUnsavedCauses,
   getCause,
   hasBlockingSafety,
+  isCauseBookmarked,
   isEmptyDraft,
+  hasPublishedRoster,
   isLive,
   listCauses,
   markPlankPublished,
+  publishedBookmarkIds,
   newPlank,
   publishedPlanks,
+  unbookmarkCause,
   unpublishedPlanks,
   updateCause,
   type CauseDraft,
@@ -40,6 +48,12 @@ describe('causeStore', () => {
     expect(listCauses()).toHaveLength(0)
     expect(window.localStorage.getItem('causestarter.causes.v3')).toBeNull()
     expect(getCause(created.id)?.id).toBe(created.id)
+  })
+
+  it('puts the content board under the cause share path', () => {
+    const local = createCause()
+    updateCause(local.id, { title: 'Safer nights' })
+    expect(causeContentBoardPath(getCause(local.id)!)).toBe(`${causePath(getCause(local.id)!)}/content`)
   })
 
   it('does not persist a draft until it has a title, summary, or plank text', () => {
@@ -120,6 +134,7 @@ describe('causeStore', () => {
 
     const published = markPlankPublished(draft.id, draft.planks[0]!.id, 'bafyone')!
     expect(isLive(published)).toBe(true)
+    expect(hasPublishedRoster(published)).toBe(false)
     expect(getCause(draft.id)?.planks[0]?.cid).toBe('bafyone')
   })
 
@@ -328,5 +343,36 @@ describe('causeStore', () => {
     const created = createCause()
     deleteCause(created.id)
     expect(listCauses()).toHaveLength(0)
+  })
+
+  it('bookmarks a published cause by owner and slug without creating a second row', () => {
+    const remote: CauseDraft = {
+      id: 'remote:0xabc:safer-nights',
+      planks: [{ id: 'p1', text: 'Oak Street gets working streetlights.', origin: 'user', cid: 'bafy-one' }],
+      title: 'Safer nights',
+      slug: 'safer-nights',
+      founderAddress: '0xAbC',
+      rosterCid: 'bafy-roster',
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-01T00:00:00.000Z',
+    }
+
+    expect(isCauseBookmarked(remote)).toBe(false)
+    const saved = bookmarkCause(remote)
+    expect(saved.founderAddress).toBe('0xabc')
+    expect(isCauseBookmarked(remote)).toBe(true)
+    expect(findCauseByStable('0xABC', 'safer-nights')?.id).toBe(saved.id)
+    expect(listCauses()).toHaveLength(1)
+
+    const again = bookmarkCause({ ...remote, summary: 'Neighbors organizing.' })
+    expect(again.id).toBe(saved.id)
+    expect(listCauses()).toHaveLength(1)
+    expect(getCause(saved.id)?.summary).toBe('Neighbors organizing.')
+    expect(publishedBookmarkIds()).toEqual([
+      { owner: '0xabc', slug: 'safer-nights' },
+    ])
+    unbookmarkCause(remote)
+    expect(listCauses()).toHaveLength(0)
+    expect(publishedBookmarkIds()).toEqual([])
   })
 })

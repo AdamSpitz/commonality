@@ -54,6 +54,7 @@ map_contract_env() {
   export VITE_ERC1155_FACTORY_ADDRESS="${VITE_ERC1155_FACTORY_ADDRESS:-${ERC1155_FACTORY_ADDRESS:-}}"
   export VITE_ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS="${VITE_ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS:-${ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS:-${ALIGNMENT_ATTESTATIONS_ADDRESS:-}}}"
   export VITE_TRUST_REGISTRY_CONTRACT_ADDRESS="${VITE_TRUST_REGISTRY_CONTRACT_ADDRESS:-${TRUST_REGISTRY_ADDRESS:-}}"
+  export VITE_DEFAULT_ALIGNMENT_TRUST_ROOT="${VITE_DEFAULT_ALIGNMENT_TRUST_ROOT:-0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f}"
   export VITE_NUDGE_PUBLICATIONS_CONTRACT_ADDRESS="${VITE_NUDGE_PUBLICATIONS_CONTRACT_ADDRESS:-${NUDGE_PUBLICATIONS_CONTRACT_ADDRESS:-}}"
   export VITE_PUBLISHED_DATA_CONTRACT_ADDRESS="${VITE_PUBLISHED_DATA_CONTRACT_ADDRESS:-${PUBLISHED_DATA_CONTRACT_ADDRESS:-}}"
   export VITE_PROJECT_FACTORY_CONTRACT_ADDRESS="${VITE_PROJECT_FACTORY_CONTRACT_ADDRESS:-${PROJECT_FACTORY_ADDRESS:-}}"
@@ -108,10 +109,10 @@ require_local_contract_env() {
 }
 
 if [ "$MODE" = "--stop" ]; then
-  echo "Stopping CauseStarter + cause-assist..."
+  echo "Stopping CauseStarter + its helper services..."
   docker rm -f "$CONTAINER_NAME" 2>/dev/null || true
-  docker_compose stop causestarter cause-assist 2>/dev/null || true
-  docker_compose rm -f cause-assist 2>/dev/null || true
+  docker_compose stop causestarter cause-assist alignment-trust-bootstrap 2>/dev/null || true
+  docker_compose rm -f cause-assist alignment-trust-bootstrap 2>/dev/null || true
   echo "Stopped."
   exit 0
 fi
@@ -334,19 +335,19 @@ ensure_local_tool_stack() {
   export VITE_CONCEPTSPACE_URL="${VITE_CONCEPTSPACE_URL:-http://conceptspace.localhost:8088/#/}"
 }
 
-echo "Building CauseStarter + cause-assist images..."
-docker_compose build cause-assist causestarter
+echo "Building CauseStarter + helper service images..."
+docker_compose build cause-assist alignment-trust-bootstrap causestarter
 
 if [ "$MODE" = "--build-only" ]; then
-  echo "Build complete: $CAUSESTARTER_IMAGE (+ cause-assist)"
+  echo "Build complete: $CAUSESTARTER_IMAGE (+ helper services)"
   exit 0
 fi
 
 ensure_local_indexer
 ensure_local_tool_stack
 
-echo "Deploying cause-assist and CauseStarter on http://localhost:${CAUSESTARTER_PORT}/"
-docker_compose up -d --force-recreate cause-assist causestarter
+echo "Deploying CauseStarter and helper services on http://localhost:${CAUSESTARTER_PORT}/"
+docker_compose up -d --force-recreate cause-assist alignment-trust-bootstrap causestarter
 
 echo "Waiting for health..."
 max_attempts=40

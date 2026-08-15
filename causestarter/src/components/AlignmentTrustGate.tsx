@@ -83,13 +83,15 @@ export function AlignmentTrustGate({
         <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
           {error
             ? 'Project lists are paused because your trust network could not be loaded'
-            : 'Project lists wait until you name someone whose vouches you accept'}
+            : 'No project-vouching network is available'}
         </Typography>
         {error && (
           <Typography variant="body2">{error}</Typography>
         )}
         <Typography variant="body2">
-          Supporter counts (who signed the issues) are shown without this step.
+          CauseStarter normally supplies a starter network until you name someone
+          yourself. It is unavailable in this environment. Supporter counts (who
+          signed the issues) are shown without this step.
           Project lists are different: a project only appears after someone
           vouches that it advances an issue, and CauseStarter only counts vouches
           from wallets in <em>your</em> trust network. That is not an attestation

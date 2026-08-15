@@ -92,6 +92,11 @@ const services = {
     ['YOUTUBE_API_KEY', get('YOUTUBE_API_KEY')],
   ]),
 
+  'commonality-alignment-trust-bootstrap': () => block([
+    ['RPC_URL', get('BASE_SEPOLIA_RPC_URL')],
+    ['ALIGNMENT_TRUST_BOOTSTRAP_PRIVATE_KEY', get('ALIGNMENT_TRUST_BOOTSTRAP_PRIVATE_KEY')],
+  ]),
+
   'commonality-service-host-workers': () => block([
     ['ETHEREUM_RPC_URL', get('BASE_SEPOLIA_RPC_URL')],
     ['OPENROUTER_API_KEY', get('OPENROUTER_API_KEY')],

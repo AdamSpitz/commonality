@@ -499,8 +499,11 @@ export interface PublishedDataDocumentStoreOptions extends PublishedDataDocument
   publishedDataContract: PublishedDataContract;
 }
 
+/** How long the default reader waits on a missing CID at the legacy IPFS gateway. */
+export const LEGACY_IPFS_FALLBACK_TIMEOUT_MS = 1500
+
 export interface DefaultDocumentReaderOptions {
-  /** Timeout for the legacy IPFS fallback reader. */
+  /** Timeout for the legacy IPFS fallback reader. Defaults to {@link LEGACY_IPFS_FALLBACK_TIMEOUT_MS}. */
   readTimeout?: number;
 }
 
@@ -566,7 +569,9 @@ export function createDefaultDocumentReader(
   options: DefaultDocumentReaderOptions = {},
 ): DocumentReader {
   const publishedDataReader = machinery.eventCacheUrl ? createPublishedDataApiDocumentReader({ machinery }) : null;
-  const ipfsReader = createIpfsDocumentStore(machinery.ipfsConfig, { readTimeout: options.readTimeout });
+  const ipfsReader = createIpfsDocumentStore(machinery.ipfsConfig, {
+    readTimeout: options.readTimeout ?? LEGACY_IPFS_FALLBACK_TIMEOUT_MS,
+  });
 
   return {
     async read(cid, policy) {
@@ -603,7 +608,9 @@ export function createDefaultDocumentStore(
         publishedDataContract: options.publishedDataContract,
         machinery,
       })
-    : createIpfsDocumentStore(machinery.ipfsConfig, { readTimeout: options.readTimeout });
+    : createIpfsDocumentStore(machinery.ipfsConfig, {
+        readTimeout: options.readTimeout ?? LEGACY_IPFS_FALLBACK_TIMEOUT_MS,
+      });
   const reader = createDefaultDocumentReader(machinery, options);
 
   return {

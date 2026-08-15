@@ -71,8 +71,10 @@ When using refs to store lists (e.g., `created-statements`), the ref value is an
 ## Known Uses
 
 - **`created-statements`**: Tracks statements a user has created (for re-discovery). Written automatically by the statement-creation flow via `addToCreatedStatements()`. Used to populate the "Statements I've Created" section of a user's profile page.
+- **`bookmarks`**: Statement CIDs the user chose to remember without (or before) signing. Do not store causes here.
+- **`bookmarked-causes`**: Published CauseStarter causes the user chose to keep. Value is a last-write-wins JSON list of `{ owner, slug }` identities, not statement CIDs. Unpublished drafts stay off this ref.
 
-Other ref names are possible (bookmarks, drafts, etc.) — the system is fully generic.
+Other ref names are possible (favorites, drafts, etc.) — the system is fully generic.
 
 **Considered but rejected: nudger feeds.** We considered having [nudgers](../conceptspace/nudges.md) maintain mutable refs pointing to their current nudge sets, but decided nudges should be fully off-chain (signed messages served via API). Nudges don't affect on-chain state and benefit from *not* having permanent on-chain history — a nudger should be able to retract bad suggestions without a permanent record. See [nudges.md](../conceptspace/nudges.md) for the nudger architecture.
 

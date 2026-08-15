@@ -149,6 +149,14 @@ export function isLive(cause: CauseDraft): boolean {
 }
 
 /**
+ * The shareable cause page exists only after a roster document is sealed.
+ * Publishing individual issues does not publish the cause grouping.
+ */
+export function hasPublishedRoster(cause: CauseDraft): boolean {
+  return Boolean(cause.rosterCid)
+}
+
+/**
  * Display title: organizer-set title when present, otherwise the first plank
  * (truncated for chrome). Roster publish seals the full title into the document.
  */
@@ -171,6 +179,11 @@ export function causePath(cause: CauseDraft): string {
     return `/cause/${cause.founderAddress.toLowerCase()}/${encodeURIComponent(cause.slug)}`
   }
   return `/cause/${cause.id}`
+}
+
+/** Cause-scoped social-media / content-funding board. */
+export function causeContentBoardPath(cause: CauseDraft): string {
+  return `${causePath(cause)}/content`
 }
 
 /** Blocking safety applies per plank, and only to planks with text. */
@@ -435,4 +448,74 @@ export function markRosterPublished(
 export function deleteCause(id: string): void {
   unsaved.delete(id)
   writeAll(readAll().filter((cause) => cause.id !== id))
+}
+
+/** Published causes kept locally, as wallet-ref identities. Drafts are omitted. */
+export function publishedBookmarkIds(): Array<{ owner: string; slug: string }> {
+  const seen = new Set<string>()
+  const ids: Array<{ owner: string; slug: string }> = []
+  for (const cause of listCauses()) {
+    if (!cause.founderAddress || !cause.slug) continue
+    const owner = cause.founderAddress.toLowerCase()
+    const key = `${owner}:${cause.slug}`
+    if (seen.has(key)) continue
+    seen.add(key)
+    ids.push({ owner, slug: cause.slug })
+  }
+  return ids
+}
+
+/** Remove the local row for this cause (and any same owner/slug copy). */
+export function unbookmarkCause(cause: CauseDraft): void {
+  if (cause.founderAddress && cause.slug) {
+    const row = findCauseByStable(cause.founderAddress, cause.slug)
+    if (row) deleteCause(row.id)
+  }
+  deleteCause(cause.id)
+}
+
+/** Local row for a published roster, if this device already kept it. */
+export function findCauseByStable(owner: string, slug: string): CauseDraft | undefined {
+  const ownerLc = owner.toLowerCase()
+  return listCauses().find(
+    (cause) => cause.slug === slug && cause.founderAddress?.toLowerCase() === ownerLc,
+  )
+}
+
+/** True when this cause (or the same owner/slug roster) is in localStorage. */
+export function isCauseBookmarked(cause: CauseDraft): boolean {
+  if (listCauses().some((row) => row.id === cause.id)) return true
+  if (cause.founderAddress && cause.slug) {
+    return Boolean(findCauseByStable(cause.founderAddress, cause.slug))
+  }
+  return false
+}
+
+/**
+ * Persist this published cause on this device. Does not imply support for
+ * other causes that happen to include the same statements.
+ */
+export function bookmarkCause(cause: CauseDraft): CauseDraft {
+  const existing = cause.founderAddress && cause.slug
+    ? findCauseByStable(cause.founderAddress, cause.slug)
+    : getCause(cause.id)
+  const now = new Date().toISOString()
+  const next: CauseDraft = {
+    ...cause,
+    id: existing?.id ?? cause.id,
+    founderAddress: cause.founderAddress?.toLowerCase() ?? existing?.founderAddress,
+    createdAt: existing?.createdAt ?? cause.createdAt,
+    updatedAt: now,
+    mediator: cause.mediator ?? existing?.mediator,
+    suggestionSeed: cause.suggestionSeed ?? existing?.suggestionSeed,
+  }
+  if (isEmptyDraft(next)) {
+    unsaved.set(next.id, next)
+    writeAll(readAll().filter((row) => row.id !== next.id))
+    return next
+  }
+  unsaved.delete(next.id)
+  const causes = readAll().filter((row) => row.id !== next.id)
+  writeAll([...causes, next])
+  return next
 }

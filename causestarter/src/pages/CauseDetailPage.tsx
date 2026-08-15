@@ -1,14 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
-  Alert, Box, Button, Chip, CircularProgress, Divider, Paper, Stack,
-  ToggleButton, ToggleButtonGroup, Typography,
+  Alert, Box, Button, Chip, CircularProgress, Divider, IconButton, Paper, Snackbar,
+  Stack, ToggleButton, ToggleButtonGroup, Tooltip, Typography,
 } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
+import BookmarkIcon from '@mui/icons-material/Bookmark'
+import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder'
 import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom'
 import { useAccount } from 'wagmi'
-import { getStatementWithContent } from '@commonality/sdk/conceptspace'
 import type { RefUpdate } from '@commonality/sdk/mutable-refs'
-import type { IpfsCidV1 } from '@commonality/sdk/utils'
 import {
   formatCurrencyTotals,
   projectPathForAddress,
@@ -29,8 +29,10 @@ import { RosterPublishPanel } from '../components/RosterPublishPanel'
 import { SafetyRejectionDialog } from '../components/SafetyRejectionDialog'
 import { ToolCard } from '../components/ToolCard'
 import {
-  causePath, causeTitle, deleteCause, getCause, isLive, listCauses, markPlankPublished,
-  markRosterPublished, newPlank, publishedPlanks, realPlanks, unpublishedPlanks, updateCause,
+  bookmarkCause, causeContentBoardPath, causePath, causeTitle, findCauseByStable,
+  getCause, hasPublishedRoster, isCauseBookmarked, isLive, markPlankPublished,
+  markRosterPublished, newPlank, publishedBookmarkIds, publishedPlanks, realPlanks,
+  unbookmarkCause, unpublishedPlanks, updateCause,
   type CauseDraft, type CausePlank, type SafetyState,
 } from '../lib/causeStore'
 import {
@@ -38,12 +40,15 @@ import {
   type CoherenceVerdict,
 } from '../lib/causeAssistClient'
 import {
-  formatRosterAge, loadRosterCoherenceBadge, loadRosterDocument, loadRosterHistory,
-  normalizeSlug, parseCauseRouteParams, plankAddedLaterLabels, plankFirstSeenInHistory,
+  applyPlankTexts, formatRosterAge, loadPlankTexts, loadRosterCoherenceBadge,
+  loadRosterDocument, loadRosterHistory, normalizeSlug, parseCauseRouteParams,
+  placeholderPlanksFromCids, plankAddedLaterLabels, plankFirstSeenInHistory,
   previewRosterCid, publishRoster, resolveRosterCid, rosterFieldsFromCause,
   stableCausePath, validateSlug, type RosterCoherenceBadge,
 } from '../lib/causeRoster'
+import { writeCauseBookmarkList } from '../lib/causeBookmarks'
 import { publishPlank } from '../lib/publishPlank'
+import { getRuntimeConfigValue } from '../lib/runtimeConfig'
 import { SUPPORTING_TOOLS } from '../lib/tools'
 
 import { useMachinery } from '../lib/useMachinery'
@@ -62,13 +67,6 @@ function safetyState(verdict: {
   explanation: string
 }): SafetyState {
   return { ...verdict, checkedAt: new Date().toISOString() }
-}
-
-function findLocalByStable(owner: string, slug: string): CauseDraft | undefined {
-  const ownerLc = owner.toLowerCase()
-  return listCauses().find(
-    (cause) => cause.slug === slug && cause.founderAddress?.toLowerCase() === ownerLc,
-  )
 }
 
 /**
@@ -90,32 +88,44 @@ export function CauseDetailPage() {
     ? trustedImplicationAttesters
     : undefined
   const {
-    trustedSet: trustedAlignmentAttesters,
-    isLoading: trustLoading,
-    error: trustError,
+    trustedSet: personalAlignmentAttesters,
+    isLoading: personalTrustLoading,
+    error: personalTrustError,
   } = useTrustedSet(address)
+  const defaultAlignmentTrustRoot = getRuntimeConfigValue('VITE_DEFAULT_ALIGNMENT_TRUST_ROOT')
+  const {
+    trustedSet: defaultAlignmentAttesters,
+    isLoading: defaultTrustLoading,
+    error: defaultTrustError,
+  } = useTrustedSet(defaultAlignmentTrustRoot, { maxHops: 1 })
+  const usingDefaultAlignmentTrust = personalAlignmentAttesters === undefined
+    && defaultAlignmentAttesters !== undefined
+  const trustedAlignmentAttesters = personalAlignmentAttesters ?? defaultAlignmentAttesters
+  const trustLoading = personalTrustLoading
+    || (personalAlignmentAttesters === undefined && defaultTrustLoading)
+  const trustError = personalAlignmentAttesters === undefined
+    ? (defaultTrustError ?? personalTrustError)
+    : personalTrustError
   /**
    * useTrustedSet re-fetches on window focus and on a timer, flipping isLoading
    * each time. Gate counts only until the *first* settle for this wallet so
    * background refreshes do not unmount the views/projects sections (white flash).
    */
-  const addressKey = address?.toLowerCase() ?? ''
-  const [trustSettled, setTrustSettled] = useState(() => !address)
+  const addressKey = `${address?.toLowerCase() ?? ''}:${defaultAlignmentTrustRoot?.toLowerCase() ?? ''}`
+  const [trustSettled, setTrustSettled] = useState(false)
   useEffect(() => {
-    setTrustSettled(!addressKey)
+    setTrustSettled(false)
   }, [addressKey])
   useEffect(() => {
-    if (!addressKey) return
     if (!trustLoading) setTrustSettled(true)
-  }, [addressKey, trustLoading])
-  const alignmentTrustReady = Boolean(address) && (
+  }, [trustLoading])
+  const alignmentTrustReady = (
     trustSettled && !trustError && trustedAlignmentAttesters !== undefined
   )
-  const alignmentTrustUnavailable = Boolean(address)
-    && trustSettled
+  const alignmentTrustUnavailable = trustSettled
     && !trustError
     && trustedAlignmentAttesters === undefined
-  const showInitialTrustLoad = Boolean(address) && !trustSettled && trustLoading
+  const showInitialTrustLoad = !trustSettled && trustLoading
 
   const routeRef = useMemo(
     () => parseCauseRouteParams(params.owner, params.slugPart),
@@ -175,7 +185,7 @@ export function CauseDetailPage() {
       setLoadingRemote(true)
       setLoadError(null)
       try {
-        const local = findLocalByStable(routeRef.owner, routeRef.slug)
+        const local = findCauseByStable(routeRef.owner, routeRef.slug)
         const tipCid = await resolveRosterCid(machinery, routeRef.owner, routeRef.slug)
         const rosterCid = routeRef.versionCid || tipCid
         if (!rosterCid) {
@@ -193,30 +203,12 @@ export function CauseDetailPage() {
         if (!loaded) throw new Error('Could not load the published cause for this link.')
 
         const { fields } = loaded
-        const planks: CausePlank[] = []
-        for (const cid of fields.plankCids) {
-          let text = cid
-          try {
-            const result = await getStatementWithContent(machinery, cid as IpfsCidV1)
-            const content = result?.content
-            const body = content && typeof content.content === 'string' ? content.content.trim() : ''
-            text = body || result?.statement.title || result?.statement.excerpt || cid
-          } catch {
-            // Keep CID as placeholder text if statement content is unavailable.
-          }
-          planks.push({
-            id: `plank:${cid}`,
-            text,
-            origin: 'user',
-            cid,
-          })
-        }
-
+        const stubPlanks = placeholderPlanksFromCids(fields.plankCids)
         const remoteCause: CauseDraft = {
           id: local?.id ?? `remote:${routeRef.owner}:${routeRef.slug}`,
           planks: local && !routeRef.versionCid
-            ? mergeRemotePlanks(local.planks, planks)
-            : planks,
+            ? mergeRemotePlanks(local.planks, stubPlanks)
+            : stubPlanks,
           title: fields.title,
           summary: fields.summary,
           slug: routeRef.slug,
@@ -228,13 +220,10 @@ export function CauseDetailPage() {
           updatedAt: local?.updatedAt ?? new Date().toISOString(),
         }
 
-        const hist = await loadRosterHistory(machinery, routeRef.owner, routeRef.slug)
         if (cancelled) return
-        setHistory(hist)
-        // Badge loads separately: it needs the operator address, which arrives async.
+        // Paint title/summary/roster immediately; plank bodies and history fill in after.
         setCause(remoteCause)
-        // Visitors and bookmarked copies stay read-only. Only the organizer's
-        // wallet (or an unpublished local draft with no founder yet) can edit.
+        setLoadingRemote(false)
         const connectedOrganizer = Boolean(
           address
           && remoteCause.founderAddress
@@ -242,6 +231,21 @@ export function CauseDetailPage() {
           && !routeRef.versionCid,
         )
         setRemoteReadOnly(!connectedOrganizer && Boolean(remoteCause.founderAddress || remoteCause.rosterCid))
+
+        try {
+          const [texts, hist] = await Promise.all([
+            loadPlankTexts(machinery, fields.plankCids),
+            loadRosterHistory(machinery, routeRef.owner, routeRef.slug),
+          ])
+          if (cancelled) return
+          setHistory(hist)
+          setCause((current) => {
+            if (!current || current.id !== remoteCause.id) return current
+            return { ...current, planks: applyPlankTexts(current.planks, texts) }
+          })
+        } catch {
+          // Title/summary already painted; missing bodies or history stay as stubs.
+        }
       } catch (err) {
         if (!cancelled) {
           setCause(undefined)
@@ -322,6 +326,44 @@ export function CauseDetailPage() {
   const canEdit = Boolean(cause)
     && !routeRef?.versionCid
     && (isOrganizer || (isUnpublishedLocalDraft && !remoteReadOnly))
+  const canKeepOnDevice = Boolean(
+    cause
+    && cause.founderAddress
+    && cause.slug
+    && !isOrganizer
+    && !isUnpublishedLocalDraft,
+  )
+  const keptOnDevice = Boolean(cause && isCauseBookmarked(cause))
+  const [bookmarkUndoOpen, setBookmarkUndoOpen] = useState(false)
+
+  const persistWalletBookmarks = useCallback(async () => {
+    if (!writeClients) return
+    try {
+      await writeCauseBookmarkList(writeClients, publishedBookmarkIds())
+    } catch (err) {
+      console.warn('Could not update wallet cause bookmarks', err)
+    }
+  }, [writeClients])
+
+  const keepThisCause = useCallback(() => {
+    if (!cause || isOrganizer || !cause.founderAddress || !cause.slug) return
+    setCause(bookmarkCause(cause))
+    void persistWalletBookmarks()
+    setBookmarkUndoOpen(false)
+  }, [cause, isOrganizer, persistWalletBookmarks])
+
+  const handleRemoveFromDevice = () => {
+    if (!cause || isOrganizer) return
+    unbookmarkCause(cause)
+    setCause({ ...cause })
+    void persistWalletBookmarks()
+    setBookmarkUndoOpen(true)
+  }
+
+  const undoRemoveBookmark = () => {
+    setBookmarkUndoOpen(false)
+    keepThisCause()
+  }
 
   /**
    * Which view the organizer asked for, or `null` while they have not said.
@@ -329,18 +371,17 @@ export function CauseDetailPage() {
    */
   const [editing, setEditing] = useState<boolean | null>(null)
   /**
-   * The default view, decided from whether the cause was already live *when it
-   * loaded*: building a new cause opens in editing, arriving at a live one opens
-   * in viewing. Deliberately not recomputed from current liveness — publishing
-   * the first issue makes a cause live, and re-deriving would throw the
-   * organizer out of editing mid-build.
+   * The default view, decided from whether a roster was already published *when
+   * this cause loaded*: shaping the cause page opens in editing; arriving at a
+   * published roster opens in viewing. Issue publishes make the cause "live" for
+   * supporters but must not hide the publish-cause panel after a reload.
    */
   const [defaultEditing, setDefaultEditing] = useState<boolean | null>(null)
   const causeKey = cause?.id ?? ''
   useEffect(() => {
     // Also clears an explicit choice when navigating between causes.
     setEditing(null)
-    setDefaultEditing(cause ? !isLive(cause) : null)
+    setDefaultEditing(cause ? !hasPublishedRoster(cause) : null)
     // eslint-disable-next-line react-hooks/exhaustive-deps -- keyed on identity, not contents
   }, [causeKey])
 
@@ -663,10 +704,10 @@ export function CauseDetailPage() {
     }
   }
 
-  const handleDeleteCause = () => {
-    if (mutationLocked || !canEdit || cause.id.startsWith('remote:')) return
-    if (!window.confirm('Unbookmark this cause? It is removed from this device only. Published statements and cause pages are unaffected.')) return
-    deleteCause(cause.id)
+  const handleDeleteDraft = () => {
+    if (mutationLocked || !canEdit || !isUnpublishedLocalDraft) return
+    if (!window.confirm('Delete this draft? Nothing has been published.')) return
+    unbookmarkCause(cause)
     navigate('/causes')
   }
 
@@ -681,7 +722,7 @@ export function CauseDetailPage() {
 
   return (
     <Stack spacing={2.5} data-testid="cause-detail-page">
-      {isOrganizer && canEdit && !isFreshDraft && (
+      {canEdit && !isFreshDraft && (
         <ToggleButtonGroup
           exclusive
           size="small"
@@ -700,7 +741,7 @@ export function CauseDetailPage() {
         </ToggleButtonGroup>
       )}
 
-      {isOrganizer && !isEditing && (
+      {canEdit && !isEditing && (
         <Alert severity="info" sx={{ borderRadius: 2 }} data-testid="cause-viewing-notice">
           This is what a supporter sees. Unpublished drafts and your organizer controls are
           hidden until you switch to Editing.
@@ -708,14 +749,11 @@ export function CauseDetailPage() {
       )}
 
       <Box>
-        {!live && !isFreshDraft && (
-          <Chip size="small" label="Nothing published yet" sx={{ mb: 0.75 }} />
+        {!cause.rosterCid && (
+          <Chip size="small" label="Unpublished" sx={{ mb: 0.75 }} data-testid="cause-unpublished" />
         )}
         {routeRef?.versionCid && (
-          <Chip size="small" color="info" label="Pinned version" sx={{ mb: 0.75, ml: live ? 0 : 1 }} />
-        )}
-        {cause.rosterCid && !routeRef?.versionCid && (
-          <Chip size="small" color="success" label="Published" sx={{ mb: 0.75, ml: live ? 1 : 0 }} />
+          <Chip size="small" color="info" label="Pinned version" sx={{ mb: 0.75 }} />
         )}
         {onChainBadge && onChainBadge.attesters.length > 0 && (
           <Chip
@@ -737,37 +775,44 @@ export function CauseDetailPage() {
             Cause
           </Typography>
         )}
-        <Typography
-          variant="h4"
-          component="h1"
-          sx={{ fontWeight: 800, fontSize: { xs: '1.55rem', sm: '1.9rem' } }}
-        >
-          {isFreshDraft ? 'Start a cause' : displayTitle}
-        </Typography>
+        <Stack direction="row" alignItems="flex-start" spacing={0.5} sx={{ pr: canKeepOnDevice ? 0.5 : 0 }}>
+          <Typography
+            variant="h4"
+            component="h1"
+            sx={{ fontWeight: 800, fontSize: { xs: '1.55rem', sm: '1.9rem' }, flex: 1, minWidth: 0 }}
+          >
+            {isFreshDraft ? 'Start a cause' : displayTitle}
+          </Typography>
+          {canKeepOnDevice && (
+            <Tooltip title={keptOnDevice ? 'Saved to your causes' : 'Save to your causes'}>
+              <IconButton
+                data-testid={keptOnDevice ? 'cause-remove-from-device' : 'cause-keep-on-device'}
+                onClick={() => {
+                  if (keptOnDevice) handleRemoveFromDevice()
+                  else keepThisCause()
+                }}
+                aria-label={keptOnDevice ? 'Remove bookmark' : 'Bookmark'}
+                aria-pressed={keptOnDevice}
+                sx={{ mt: 0.25, color: keptOnDevice ? 'primary.main' : 'text.secondary' }}
+              >
+                {keptOnDevice ? <BookmarkIcon /> : <BookmarkBorderIcon />}
+              </IconButton>
+            </Tooltip>
+          )}
+        </Stack>
         {isFreshDraft ? (
-          <>
-            <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>
-              Tell CauseStarter what you want people to be able to support. It searches
-              published statements first and can propose new wording when none fit.
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-              You decide what belongs in the cause. Nothing is published until you review
-              the exact statement text and CID in the page below and explicitly approve it.
-            </Typography>
-          </>
+          <Alert severity="info" sx={{ mt: 1.5, borderRadius: 2 }} data-testid="start-cause-help">
+            Tell CauseStarter what you want people to be able to support. It searches
+            published statements first and can propose new wording when none fit.
+            You decide what belongs in the cause. Nothing is published until you review
+            the exact statement text and CID in the page below and explicitly approve it.
+          </Alert>
         ) : (
-          <>
-            {displaySummary?.trim() && (
-              <Typography variant="body1" sx={{ mt: 1, whiteSpace: 'pre-wrap' }}>
-                {displaySummary}
-              </Typography>
-            )}
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-              {live
-                ? 'People sign each issue separately. The counts below combine those signatures.'
-                : 'Write the issues this cause is made of. Publish each one when it is ready.'}
+          displaySummary?.trim() && (
+            <Typography variant="body1" sx={{ mt: 1, whiteSpace: 'pre-wrap' }}>
+              {displaySummary}
             </Typography>
-          </>
+          )
         )}
         {stable && (
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.75 }}>
@@ -790,8 +835,14 @@ export function CauseDetailPage() {
           Loading your trust network before listing projects…
         </Alert>
       )}
-      {publishedCids.length > 0 && (!address || trustError || alignmentTrustUnavailable) && (
+      {publishedCids.length > 0 && (trustError || alignmentTrustUnavailable) && (
         <AlignmentTrustGate error={trustError} />
+      )}
+      {publishedCids.length > 0 && alignmentTrustReady && usingDefaultAlignmentTrust && (
+        <Alert severity="info" sx={{ borderRadius: 2 }}>
+          Projects are filtered using CauseStarter's starter network. You can replace it with
+          your own choices in <RouterLink to="/settings">trust settings</RouterLink>.
+        </Alert>
       )}
 
       {publishedCids.length > 0 && (
@@ -800,11 +851,14 @@ export function CauseDetailPage() {
 
       {published.length > 0 && (
         <Paper elevation={0} sx={{ p: { xs: 2, sm: 2.5 }, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
-          <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }}>Set aside funds for an issue</Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+          <Typography variant="h6" sx={{ fontWeight: 700, mb: 1.5 }}>Set aside funds for an issue</Typography>
+          <Alert severity="info" sx={{ mb: 1.5, borderRadius: 2 }} data-testid="earmark-help">
             Create a one-time delegated fund or a monthly pledge earmarked for one immutable
-            statement. The earmark does not follow later edits to this cause publication.
-          </Typography>
+            statement. The earmark is public, auditable guidance — not a binding restriction
+            on a delegate. If they direct the money elsewhere, that will also be public.
+            Choosing a delegate is public too. The earmark does not follow later edits to
+            this cause publication.
+          </Alert>
           <Stack spacing={1}>
             {published.map((plank) => (
               <Stack
@@ -890,6 +944,16 @@ export function CauseDetailPage() {
       <Paper elevation={0} sx={{ p: { xs: 2, sm: 2.5 }, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
         <Typography variant="h6" sx={{ fontWeight: 700, mb: 1.5 }}>Issues</Typography>
 
+        {live ? (
+          <Alert severity="info" sx={{ mb: 2, borderRadius: 2 }} data-testid="issue-sign-help">
+            People sign each issue separately. The counts below combine those signatures.
+          </Alert>
+        ) : (
+          <Alert severity="info" sx={{ mb: 2, borderRadius: 2 }} data-testid="issue-draft-help">
+            Write the issues this cause is made of. Publish each one when it is ready.
+          </Alert>
+        )}
+
         {isEditing && (
           <Alert severity="info" sx={{ mb: 2, borderRadius: 2 }} data-testid="issue-guidance">
             <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5 }}>
@@ -935,7 +999,10 @@ export function CauseDetailPage() {
               support={plank.cid ? perPlank.get(plank.cid) : undefined}
               supportLoading={countsLoading}
               projectCount={plank.cid ? countByPlankCid.get(plank.cid) ?? 0 : 0}
-              onSupported={() => refreshCounts()}
+              onSupported={(info) => {
+                refreshCounts()
+                if (info.action === 'support') keepThisCause()
+              }}
               onTextChange={(text) => {
                 updatePlank(plank.id, { text, safety: undefined })
                 clearReview(plank.id)
@@ -986,7 +1053,10 @@ export function CauseDetailPage() {
               cid: plank.cid!,
               text: plank.text,
             }))}
-            onSupported={() => refreshCounts()}
+            onSupported={() => {
+              refreshCounts()
+              keepThisCause()
+            }}
           />
         </Box>
 
@@ -1014,11 +1084,26 @@ export function CauseDetailPage() {
       </Paper>
 
       <Paper elevation={0} sx={{ p: { xs: 2, sm: 2.5 }, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
-        <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }}>Projects</Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
-          Projects vouched for as advancing one of this cause's issues. Each is aligned with a
-          specific statement, not with the cause as a whole.
-        </Typography>
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} alignItems={{ sm: 'center' }} justifyContent="space-between" sx={{ mb: 1.5 }}>
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>Fundable Projects</Typography>
+            <Alert severity="info" sx={{ borderRadius: 2 }} data-testid="projects-help">
+              Projects vouched for as advancing one of this cause's issues. Each is aligned with a
+              specific statement, not with the cause as a whole.
+            </Alert>
+          </Box>
+          {publishedCids.length > 0 && (
+            <Button
+              component={RouterLink}
+              to={`/projects/new?statement=${encodeURIComponent(selectedCids[0] ?? publishedCids[0])}`}
+              variant="contained"
+              size="small"
+              sx={{ textTransform: 'none', flexShrink: 0 }}
+            >
+              Start project
+            </Button>
+          )}
+        </Stack>
 
         {publishedCids.length === 0 && (
           <Alert severity="info" sx={{ borderRadius: 2 }}>
@@ -1114,7 +1199,18 @@ export function CauseDetailPage() {
 
       {tools.length > 0 && (
         <Stack spacing={1.25}>
-          {tools.map((tool) => <ToolCard key={tool.id} tool={tool} compact />)}
+          {tools.map((tool) => (
+            <ToolCard
+              key={tool.id}
+              tool={tool}
+              compact
+              href={
+                tool.id === 'content-funding'
+                  ? causeContentBoardPath(cause)
+                  : undefined
+              }
+            />
+          ))}
         </Stack>
       )}
 
@@ -1131,31 +1227,46 @@ export function CauseDetailPage() {
         />
       )}
 
-      {isEditing && !cause.id.startsWith('remote:') && (
+      {isEditing && isUnpublishedLocalDraft && (
         <>
           <Divider />
           <Stack direction="row" spacing={1}>
             <Button
               color="error"
-              onClick={handleDeleteCause}
+              onClick={handleDeleteDraft}
               disabled={mutationLocked}
               sx={{ textTransform: 'none' }}
             >
-              Unbookmark
+              Delete draft
             </Button>
-            {stable && (
-              <Button
-                component={RouterLink}
-                to={causePath(cause)}
-                sx={{ textTransform: 'none' }}
-              >
-                Open share URL
-              </Button>
-            )}
           </Stack>
         </>
       )}
+      {isEditing && stable && (
+        <Button
+          component={RouterLink}
+          to={causePath(cause)}
+          sx={{ textTransform: 'none' }}
+        >
+          Open share URL
+        </Button>
+      )}
 
+      <Snackbar
+        open={bookmarkUndoOpen}
+        autoHideDuration={6000}
+        onClose={(_, reason) => {
+          if (reason === 'clickaway') return
+          setBookmarkUndoOpen(false)
+        }}
+        message="Removed from your causes"
+        action={(
+          <Button color="inherit" size="small" onClick={undoRemoveBookmark} sx={{ textTransform: 'none', fontWeight: 700 }}>
+            Undo
+          </Button>
+        )}
+        data-testid="cause-bookmark-undo"
+      />
       <SafetyRejectionDialog
         open={Boolean(dialogSafety)}
         safety={dialogSafety}

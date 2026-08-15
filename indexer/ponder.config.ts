@@ -23,6 +23,7 @@ import { AlignmentAttestationsAbi } from "./abis/AlignmentAttestationsAbi";
 
 // Subjectiv identity ABIs
 import { AccountAssertionsAbi } from "./abis/AccountAssertionsAbi";
+import { TrustRegistryAbi } from "./abis/TrustRegistryAbi";
 
 // Mutable Refs ABIs
 import { MutableRefUpdaterAbi } from "./abis/MutableRefUpdaterAbi";
@@ -197,6 +198,7 @@ const RECURRING_PLEDGES_DEPLOYMENTS = getDeployments("RecurringPledges", "RECURR
 const NOTE_INTENT_DEPLOYMENTS = getDeployments("NoteIntent", "NOTE_INTENT_ADDRESS", DELEGATION_START_BLOCK);
 const ALIGNMENT_ATTESTATIONS_DEPLOYMENTS = getDeployments("AlignmentAttestations", "ALIGNMENT_ATTESTATIONS_ADDRESS", FUNDING_PORTAL_START_BLOCK);
 const ACCOUNT_ASSERTIONS_DEPLOYMENTS = getDeployments("AccountAssertions", "ACCOUNT_ASSERTIONS_ADDRESS", START_BLOCK);
+const TRUST_REGISTRY_DEPLOYMENTS = getDeployments("TrustRegistry", "TRUST_REGISTRY_ADDRESS", START_BLOCK);
 const MUTABLE_REF_UPDATER_DEPLOYMENTS = getDeployments("MutableRefUpdater", "MUTABLE_REF_UPDATER_ADDRESS", START_BLOCK);
 const NUDGE_PUBLICATIONS_DEPLOYMENTS = getDeployments("NudgePublications", "NUDGE_PUBLICATIONS_CONTRACT_ADDRESS", START_BLOCK);
 const PUBLISHED_DATA_DEPLOYMENTS = getDeployments("PublishedData", "PUBLISHED_DATA_CONTRACT_ADDRESS", PUBLISHED_DATA_START_BLOCK);
@@ -331,6 +333,14 @@ const contracts = {
     abi: AccountAssertionsAbi,
     chain: chainForContract("default"),
     ...deploymentConfig(ACCOUNT_ASSERTIONS_DEPLOYMENTS, START_BLOCK),
+  },
+
+  // TrustRegistry — Subjectiv direct-trust edges. CauseStarter (and the
+  // alignment-trust bootstrap) fold TrustSet events client-side.
+  TrustRegistry: {
+    abi: TrustRegistryAbi,
+    chain: chainForContract("default"),
+    ...deploymentConfig(TRUST_REGISTRY_DEPLOYMENTS, START_BLOCK),
   },
 
   // ========================================================================

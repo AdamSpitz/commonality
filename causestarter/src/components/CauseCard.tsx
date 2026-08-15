@@ -10,10 +10,7 @@ interface CauseCardProps {
 export function CauseCard({ cause }: CauseCardProps) {
   const planks = realPlanks(cause)
   const publishedCount = publishedPlanks(cause).length
-  // A statement supported on chain isn't a local cause — send it to the
-  // statement itself rather than to a cause page that doesn't exist here.
-  const supportedCid = cause.id.startsWith('supported:') ? planks[0]?.cid : undefined
-  const to = supportedCid ? `/statement/${supportedCid}` : causePath(cause)
+  const to = causePath(cause)
   return (
     <Paper
       component={RouterLink}

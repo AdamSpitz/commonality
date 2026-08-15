@@ -34,7 +34,13 @@ function normalizeEntries(entries: Map<string, number>) {
     .sort((a, b) => b.score - a.score || a.trustee.localeCompare(b.trustee))
 }
 
-export function DirectTrustSettingsSection() {
+export function DirectTrustSettingsSection({
+  emptyTrustMessage = 'No direct trust scores yet. Until you add some, project pages will show all project vouches.',
+  refreshingEmptyMessage = 'Refreshing your trust network. Until any trusted accounts are found, project pages still show all project vouches.',
+}: {
+  emptyTrustMessage?: string
+  refreshingEmptyMessage?: string
+} = {}) {
   const machinery = useMachinery()
   const { address, isConnected } = useAccount()
   const writeClients = useWriteClients(address)
@@ -251,8 +257,7 @@ export function DirectTrustSettingsSection() {
             </Box>
           ) : entries.length === 0 ? (
             <Typography variant="body2" color="text.secondary" sx={{ py: 2, textAlign: 'center' }}>
-              No direct trust scores yet. Until you add some, project pages will show
-              all project vouches.
+              {emptyTrustMessage}
             </Typography>
           ) : (
             <List>
@@ -290,7 +295,7 @@ export function DirectTrustSettingsSection() {
             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
               {trustedSet
                 ? `Refreshing your trust network. Currently using ${trustedSet.size} account${trustedSet.size !== 1 ? 's' : ''} in your network.`
-                : 'Refreshing your trust network. Until any trusted accounts are found, project pages still show all project vouches.'}
+                : refreshingEmptyMessage}
             </Typography>
           ) : trustedSet ? (
             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>

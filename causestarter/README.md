@@ -62,19 +62,24 @@ Dev server: **http://localhost:5174** (main `ui` stays on 5173).
 
 ### Local trust network (project lists)
 
-Project lists on a cause are filtered by your **Subjectiv trust graph**: vouches
-that “this project advances that issue” only count from wallets you have named
-on-chain. That is not an attestation of the cause itself. If a connected
-Hardhat wallet has never called `TrustRegistry.setTrust`, CauseStarter hides
-the project list and explains how to name someone.
+Project lists on a cause are filtered by a **Subjectiv trust graph**: vouches
+that “this project advances that issue” only count from accepted wallets. A
+viewer who has named anyone on-chain uses their personal transitive graph. A
+viewer without personal trust uses the direct trustees of the configured
+`VITE_DEFAULT_ALIGNMENT_TRUST_ROOT`; this intentionally does not traverse the
+attesters' own trust edges. The shipped local root is maintained by
+[`alignment-trust-bootstrap`](../alignment-trust-bootstrap/README.md), which
+admits observed attesters and supports operator revocation for spam response.
+That trust relationship is not an attestation of the cause itself.
 
 `./scripts/data.sh --seed` (any size) records that graph for Hardhat `#0`–`#9`
-via `scripts/seed-local-alignment-trust.mjs`. After a wipe, the usual
-`services.sh --start` then `data.sh --seed` is enough.
+via `scripts/seed-local-alignment-trust.mjs`. The indexer must capture
+`TrustRegistry:TrustSet` for CauseStarter to see those edges. After a wipe, the
+usual `services.sh --start` then `data.sh --seed` is enough.
 
 To re-run only the trust edges: `node scripts/seed-local-alignment-trust.mjs`.
-The cause-page banner (“Local test: trust Hardhat #N”) and **Trust settings**
-(gear icon) still work for any other wallet.
+The cause-page disclosure identifies the starter network, and **Trust settings**
+(gear icon) lets any connected wallet replace it by naming its own trustees.
 
 Vite proxies `/api` → indexer and `/api/cause-assist` → **Docker** `cause-assist` on `http://127.0.0.1:3002`. Tool cards still open the other domains at `*.localhost:8088`.
 
