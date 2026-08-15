@@ -15,7 +15,9 @@
 - Cause board:
   - There's a "start project" button.
   - The main purpose of the cause board is to show a bunch of projects (aligned with the statements of this cause).
-  - Two main sections: projects that still need initial funding, and projects that still need reimbursement.
+  - Two main tabs or pages or sections or something: not yet funded, not yet reimbursed.
+    - Each shows a list of projects; each one has a title, creator, maybe a short description?, partially-green-filled slider showing amount of money already raised and amount of money needed. If it's an assurance contract, it also shows the deadline.
+  - Somewhere less prominent there should be two more tabs/pages: fully reimbursed, and failed.
 
 - Project:
   - Shows description, funding threshold, deadline, who's contributed, not sure what else.
