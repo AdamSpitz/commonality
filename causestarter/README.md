@@ -73,8 +73,9 @@ admits observed attesters and supports operator revocation for spam response.
 That trust relationship is not an attestation of the cause itself.
 
 `./scripts/data.sh --seed` (any size) records that graph for Hardhat `#0`–`#9`
-via `scripts/seed-local-alignment-trust.mjs`. After a wipe, the usual
-`services.sh --start` then `data.sh --seed` is enough.
+via `scripts/seed-local-alignment-trust.mjs`. The indexer must capture
+`TrustRegistry:TrustSet` for CauseStarter to see those edges. After a wipe, the
+usual `services.sh --start` then `data.sh --seed` is enough.
 
 To re-run only the trust edges: `node scripts/seed-local-alignment-trust.mjs`.
 The cause-page disclosure identifies the starter network, and **Trust settings**

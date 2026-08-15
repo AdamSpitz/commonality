@@ -63,8 +63,9 @@ register("RecurringPledges:StandingPledgeCancelled");
 register("AlignmentAttestations:AlignmentAttestation");
 register("AlignmentAttestations:SuccessAttestation");
 
-// SUBJECTIV IDENTITY: AccountAssertions (tier-0/1 proof-of-personhood self-declarations)
+// SUBJECTIV IDENTITY: AccountAssertions + TrustRegistry
 register("AccountAssertions:AccountAssertionSet");
+register("TrustRegistry:TrustSet");
 
 // MUTABLE REFS
 register("MutableRefUpdater:RefUpdated");
