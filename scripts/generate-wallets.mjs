@@ -46,6 +46,11 @@ const roles = [
     addressEnvKey: 'CAUSE_ASSIST_COHERENCE_ATTESTER_ADDRESS',
   },
   {
+    label: 'CauseStarter alignment trust bootstrap',
+    privateKeyEnvKey: 'ALIGNMENT_TRUST_BOOTSTRAP_PRIVATE_KEY',
+    addressEnvKey: 'ALIGNMENT_TRUST_BOOTSTRAP_ADDRESS',
+  },
+  {
     label: 'Beat agent',
     privateKeyEnvKey: 'BEAT_AGENT_PRIVATE_KEY',
     addressEnvKey: 'BEAT_AGENT_ADDRESS',
@@ -217,6 +222,8 @@ Object.assign(publicEntries, {
   VITE_DEFAULT_TRUSTED_ATTESTERS: implicationAttesterAddress,
   VITE_DEFAULT_TRUSTED_CONTENT_ATTESTERS: contentAttesterAddress,
   VITE_DEFAULT_TRUSTED_BEAT_AGENTS: beatAgentAddress,
+  VITE_DEFAULT_ALIGNMENT_TRUST_ROOT: byAddress.get('ALIGNMENT_TRUST_BOOTSTRAP_ADDRESS').address,
+  ALIGNMENT_TRUST_DENYLISTED_ADDRESS: byAddress.get('COMMONALITY_TESTNET_VERIFIER_ADDRESS').address,
   VITE_DEFAULT_NUDGERS: defaultNudgers,
   VITE_CSM_MEDIATOR_NUDGER: csmMediator,
 })

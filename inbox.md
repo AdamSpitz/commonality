@@ -21,7 +21,7 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 - Replace/scopedown external account tokens: Cloudflare scoped DNS token instead of global key; Render/Pinata scoped as narrowly as possible; OpenRouter spend limit.
 
-- Before deploying the CauseStarter alignment-trust bootstrap outside local Hardhat, create and fund its dedicated operator wallet, then set `ALIGNMENT_TRUST_BOOTSTRAP_PRIVATE_KEY` and the matching chain-scoped `VITE_DEFAULT_ALIGNMENT_TRUST_ROOT` in deployment secrets/config. Never deploy the checked-in local Hardhat key.
+- Before deploying the CauseStarter alignment-trust bootstrap outside local Hardhat, run `node scripts/generate-wallets.mjs`, fund `ALIGNMENT_TRUST_BOOTSTRAP_ADDRESS`, install the worker's generated Render secret block, and add the configured denylist canary to its persistent disk. Never deploy the checked-in local Hardhat key; see the worker README runbook.
 
 ### Docs / UI copy
 

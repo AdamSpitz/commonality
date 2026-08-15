@@ -89,6 +89,52 @@ services:
     autoDeploy: true
     plan: starter
 
+  # CauseStarter's shipped one-hop trust root. The durable disk holds the scan
+  # cursor plus operator-edited pause and denylist controls.
+  - type: worker
+    name: commonality-alignment-trust-bootstrap
+    env: docker
+    rootDir: .
+    dockerContext: .
+    dockerfilePath: alignment-trust-bootstrap/Dockerfile
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: RPC_URL
+        sync: false  # Secret: Base Sepolia RPC provider URL
+      - key: CHAIN_ID
+        value: "84532"
+      - key: ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS
+        value: "0xAc19417eE26f7795AEeAD374911932b412Ef808d"
+      - key: TRUST_REGISTRY_ADDRESS
+        value: "0x3a93BAB464Cc20333076b83490DE40357094355E"
+      - key: ALIGNMENT_TRUST_BOOTSTRAP_PRIVATE_KEY
+        sync: false  # Secret: dedicated funded hot wallet
+      - key: START_BLOCK
+        value: "42768673"
+      - key: STATE_FILE
+        value: /data/alignment-trust-bootstrap.base-sepolia.json
+      - key: DENYLIST_FILE
+        value: /data/denylist.txt
+      - key: PAUSE_FILE
+        value: /data/PAUSED
+      - key: CONFIRMATIONS
+        value: "12"
+      - key: BLOCK_RANGE
+        value: "1000"
+      - key: POLL_INTERVAL_MS
+        value: "10000"
+      - key: BATCH_SIZE
+        value: "50"
+      - key: MAX_ADMISSIONS_PER_POLL
+        value: "100"
+    disk:
+      name: commonality-alignment-trust-bootstrap-state
+      mountPath: /data
+      sizeGB: 1
+    autoDeploy: true
+    plan: starter
+
   # Indexer
   - type: web
     name: commonality-indexer

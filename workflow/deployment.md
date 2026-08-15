@@ -79,7 +79,7 @@ Put operator-only values in `~/.secrets/commonality/operator.env`:
 
 ### 2. Fund Base Sepolia operational wallets
 
-The human/operator only needs to use a Base Sepolia faucet for `DEPLOYER_ADDRESS` in `deployments/operator-addresses.env`. The deployer needs ETH for contract deployment anyway, and the distribution script can use `DEPLOYER_PRIVATE_KEY` from the operator secrets file to fund the other transaction-sending wallets, including `RECURRING_PLEDGE_SCHEDULER_ADDRESS` for permissionless standing-pledge execution pokes.
+The human/operator only needs to use a Base Sepolia faucet for `DEPLOYER_ADDRESS` in `deployments/operator-addresses.env`. The deployer needs ETH for contract deployment anyway, and the distribution script can use `DEPLOYER_PRIVATE_KEY` from the operator secrets file to fund the other transaction-sending wallets, including `RECURRING_PLEDGE_SCHEDULER_ADDRESS` for permissionless standing-pledge execution pokes and `ALIGNMENT_TRUST_BOOTSTRAP_ADDRESS` for CauseStarter trust writes.
 
 After the faucet transfer lands, inspect the distribution plan:
 
@@ -173,7 +173,7 @@ First time only:
 
 1. Make sure `render.yaml` is up to date: `node scripts/generate-render-yaml.mjs` and commit if it changed.
 2. In Render, **New → Blueprint**, connect to this GitHub repo.
-3. Render reads `render.yaml` and creates the 4 runtime services (`commonality-indexer`, `commonality-service-host-attesters`, `commonality-service-host-workers`, `commonality-platform-api`) plus the indexer Postgres database.
+3. Render reads `render.yaml` and creates the declared web, private, and worker services plus the indexer Postgres database. This includes the persistent-disk `commonality-alignment-trust-bootstrap` worker.
 4. For each service, open its dashboard and set the `sync: false` env vars. Use the helper script to generate a per-service block you can paste into **Environment → Add from .env**:
 
    ```bash
@@ -181,6 +181,11 @@ First time only:
    ```
 
    It reads `.env.secrets`, `deployments/operator-addresses.env`, and `deployments/base-sepolia.env` and prints one block per service. `ALIGNMENT_TOPIC_STATEMENT_CID` will be missing until you run `scripts/setup-testnet-ai-policy.mjs` — add it to the attesters service afterward.
+
+For the alignment-trust worker, also open its Render Shell and put
+`ALIGNMENT_TRUST_DENYLISTED_ADDRESS` from `deployments/operator-addresses.env` in
+`/data/denylist.txt`. Funding, pause/resume, denylist editing, and verification
+procedures are in [`alignment-trust-bootstrap/README.md`](../alignment-trust-bootstrap/README.md#base-sepolia-operations).
 
 Subsequent deploys: just `git push`. Render rebuilds automatically (`autoDeploy: true`).
 
@@ -209,6 +214,10 @@ Before building the UI, set `VITE_EVENT_CACHE_URL` in `.env.secrets` to the publ
 ```bash
 VITE_EVENT_CACHE_URL=https://services.testnet.commonality.works/indexer
 ```
+
+Run `./scripts/setup-env.sh base-sepolia` after wallet generation. It publishes
+the chain-scoped `VITE_DEFAULT_ALIGNMENT_TRUST_ROOT` derived from the dedicated
+bootstrap key into both the domain UI and CauseStarter Vite configuration.
 
 The IPFS UI cannot use the local Vite proxy, so this URL is written into `ui/.env` by `scripts/setup-env.sh` and emitted into each domain's runtime `config.json` by the Vite build. `scripts/deploy-ui.sh` will stop early if `VITE_EVENT_CACHE_URL` is missing.
 
