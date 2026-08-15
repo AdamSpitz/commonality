@@ -3,8 +3,6 @@ import {
   Alert, Box, Button, CircularProgress, Link as MuiLink, Paper, Stack, Typography,
 } from '@mui/material'
 import { Link as RouterLink, useParams } from 'react-router-dom'
-import { getStatementWithContent } from '@commonality/sdk/conceptspace'
-import type { IpfsCidV1 } from '@commonality/sdk/utils'
 import { getChannelDisplayLabels, useContentFundingState } from '@ui/content-funding'
 import {
   contentChannelPath,
@@ -17,11 +15,13 @@ import {
   listCauses,
   publishedPlanks,
   type CauseDraft,
-  type CausePlank,
 } from '../lib/causeStore'
 import {
+  applyPlankTexts,
+  loadPlankTexts,
   loadRosterDocument,
   parseCauseRouteParams,
+  placeholderPlanksFromCids,
   resolveRosterCid,
 } from '../lib/causeRoster'
 import { useMachinery } from '../lib/useMachinery'
@@ -78,24 +78,11 @@ export function CauseContentBoardPage() {
         const loaded = await loadRosterDocument(machinery, rosterCid)
         if (!loaded) throw new Error('Could not load the published cause for this link.')
 
-        const planks: CausePlank[] = []
-        for (const cid of loaded.fields.plankCids) {
-          let text = cid
-          try {
-            const result = await getStatementWithContent(machinery, cid as IpfsCidV1)
-            const content = result?.content
-            const body = content && typeof content.content === 'string' ? content.content.trim() : ''
-            text = body || result?.statement.title || result?.statement.excerpt || cid
-          } catch {
-            // Keep CID as placeholder text if statement content is unavailable.
-          }
-          planks.push({ id: `plank:${cid}`, text, origin: 'user', cid })
-        }
-
+        const causeId = local?.id ?? `remote:${routeRef.owner}:${routeRef.slug}`
         if (cancelled) return
         setCause({
-          id: local?.id ?? `remote:${routeRef.owner}:${routeRef.slug}`,
-          planks,
+          id: causeId,
+          planks: placeholderPlanksFromCids(loaded.fields.plankCids),
           title: loaded.fields.title,
           summary: loaded.fields.summary,
           slug: routeRef.slug,
@@ -104,6 +91,18 @@ export function CauseContentBoardPage() {
           createdAt: local?.createdAt ?? new Date().toISOString(),
           updatedAt: local?.updatedAt ?? new Date().toISOString(),
         })
+        setLoadingCause(false)
+
+        try {
+          const texts = await loadPlankTexts(machinery, loaded.fields.plankCids)
+          if (cancelled) return
+          setCause((current) => {
+            if (!current || current.id !== causeId) return current
+            return { ...current, planks: applyPlankTexts(current.planks, texts) }
+          })
+        } catch {
+          // Roster already painted; missing statement bodies stay as CID stubs.
+        }
       } catch (err) {
         if (!cancelled) {
           setCause(undefined)

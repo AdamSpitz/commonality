@@ -8,9 +8,7 @@ import BookmarkIcon from '@mui/icons-material/Bookmark'
 import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder'
 import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom'
 import { useAccount } from 'wagmi'
-import { getStatementWithContent } from '@commonality/sdk/conceptspace'
 import type { RefUpdate } from '@commonality/sdk/mutable-refs'
-import type { IpfsCidV1 } from '@commonality/sdk/utils'
 import {
   formatCurrencyTotals,
   projectPathForAddress,
@@ -42,8 +40,9 @@ import {
   type CoherenceVerdict,
 } from '../lib/causeAssistClient'
 import {
-  formatRosterAge, loadRosterCoherenceBadge, loadRosterDocument, loadRosterHistory,
-  normalizeSlug, parseCauseRouteParams, plankAddedLaterLabels, plankFirstSeenInHistory,
+  applyPlankTexts, formatRosterAge, loadPlankTexts, loadRosterCoherenceBadge,
+  loadRosterDocument, loadRosterHistory, normalizeSlug, parseCauseRouteParams,
+  placeholderPlanksFromCids, plankAddedLaterLabels, plankFirstSeenInHistory,
   previewRosterCid, publishRoster, resolveRosterCid, rosterFieldsFromCause,
   stableCausePath, validateSlug, type RosterCoherenceBadge,
 } from '../lib/causeRoster'
@@ -204,30 +203,12 @@ export function CauseDetailPage() {
         if (!loaded) throw new Error('Could not load the published cause for this link.')
 
         const { fields } = loaded
-        const planks: CausePlank[] = []
-        for (const cid of fields.plankCids) {
-          let text = cid
-          try {
-            const result = await getStatementWithContent(machinery, cid as IpfsCidV1)
-            const content = result?.content
-            const body = content && typeof content.content === 'string' ? content.content.trim() : ''
-            text = body || result?.statement.title || result?.statement.excerpt || cid
-          } catch {
-            // Keep CID as placeholder text if statement content is unavailable.
-          }
-          planks.push({
-            id: `plank:${cid}`,
-            text,
-            origin: 'user',
-            cid,
-          })
-        }
-
+        const stubPlanks = placeholderPlanksFromCids(fields.plankCids)
         const remoteCause: CauseDraft = {
           id: local?.id ?? `remote:${routeRef.owner}:${routeRef.slug}`,
           planks: local && !routeRef.versionCid
-            ? mergeRemotePlanks(local.planks, planks)
-            : planks,
+            ? mergeRemotePlanks(local.planks, stubPlanks)
+            : stubPlanks,
           title: fields.title,
           summary: fields.summary,
           slug: routeRef.slug,
@@ -239,13 +220,10 @@ export function CauseDetailPage() {
           updatedAt: local?.updatedAt ?? new Date().toISOString(),
         }
 
-        const hist = await loadRosterHistory(machinery, routeRef.owner, routeRef.slug)
         if (cancelled) return
-        setHistory(hist)
-        // Badge loads separately: it needs the operator address, which arrives async.
+        // Paint title/summary/roster immediately; plank bodies and history fill in after.
         setCause(remoteCause)
-        // Visitors and bookmarked copies stay read-only. Only the organizer's
-        // wallet (or an unpublished local draft with no founder yet) can edit.
+        setLoadingRemote(false)
         const connectedOrganizer = Boolean(
           address
           && remoteCause.founderAddress
@@ -253,6 +231,21 @@ export function CauseDetailPage() {
           && !routeRef.versionCid,
         )
         setRemoteReadOnly(!connectedOrganizer && Boolean(remoteCause.founderAddress || remoteCause.rosterCid))
+
+        try {
+          const [texts, hist] = await Promise.all([
+            loadPlankTexts(machinery, fields.plankCids),
+            loadRosterHistory(machinery, routeRef.owner, routeRef.slug),
+          ])
+          if (cancelled) return
+          setHistory(hist)
+          setCause((current) => {
+            if (!current || current.id !== remoteCause.id) return current
+            return { ...current, planks: applyPlankTexts(current.planks, texts) }
+          })
+        } catch {
+          // Title/summary already painted; missing bodies or history stay as stubs.
+        }
       } catch (err) {
         if (!cancelled) {
           setCause(undefined)

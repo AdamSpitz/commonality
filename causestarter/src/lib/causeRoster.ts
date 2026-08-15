@@ -13,6 +13,7 @@ import {
   PublishedDataAbi,
 } from '@commonality/sdk/abis'
 import {
+  createDefaultDocumentReader,
   createDefaultDocumentStore,
   createDisplayableDocument,
   publishedDataCidForDocument,
@@ -45,7 +46,7 @@ import {
   type Hash,
 } from 'viem'
 import { getRuntimeConfigValue } from './runtimeConfig'
-import type { CauseDraft, CauseMediator } from './causeStore'
+import type { CauseDraft, CauseMediator, CausePlank } from './causeStore'
 import { publishedPlanks } from './causeStore'
 
 /** Structured payload stored in DisplayableDocument.extras. */
@@ -555,6 +556,59 @@ export async function loadRosterDocument(
   const fields = parseRosterDocument(read.document)
   if (!fields) return null
   return { document: read.document, fields }
+}
+
+/** Placeholder rows so the cause page can paint before statement bodies resolve. */
+export function placeholderPlanksFromCids(plankCids: readonly string[]): CausePlank[] {
+  return plankCids.map((cid) => ({
+    id: `plank:${cid}`,
+    text: cid,
+    origin: 'user' as const,
+    cid,
+  }))
+}
+
+/** Body text from a statement document, or empty when the payload is missing. */
+export function textFromStatementDocument(document: DisplayableDocument | null | undefined): string {
+  const content = document?.content
+  return typeof content === 'string' ? content.trim() : ''
+}
+
+/**
+ * Cheap plank-body read: PublishedData (then a short IPFS fallback).
+ * Does not walk DirectSupport events the way getStatementWithContent does.
+ */
+export async function readPlankText(machinery: SDKMachinery, cid: string): Promise<string> {
+  try {
+    const reader = createDefaultDocumentReader(machinery)
+    const read = await reader.read(cid as IpfsCidV1)
+    if (read.status !== 'active') return cid
+    return textFromStatementDocument(read.document) || cid
+  } catch {
+    return cid
+  }
+}
+
+/** Resolve plank bodies in parallel. Missing content stays the CID. */
+export async function loadPlankTexts(
+  machinery: SDKMachinery,
+  plankCids: readonly string[],
+): Promise<Map<string, string>> {
+  const entries = await Promise.all(
+    plankCids.map(async (cid) => [cid, await readPlankText(machinery, cid)] as const),
+  )
+  return new Map(entries)
+}
+
+/** Fill in resolved bodies without clobbering a local edit that is not just the CID. */
+export function applyPlankTexts(planks: CausePlank[], texts: Map<string, string>): CausePlank[] {
+  return planks.map((plank) => {
+    if (!plank.cid) return plank
+    const next = texts.get(plank.cid)
+    if (!next || next === plank.text) return plank
+    if (plank.text && plank.text !== plank.cid) return plank
+    return { ...plank, text: next }
+  })
 }
 
 export async function loadRosterHistory(
