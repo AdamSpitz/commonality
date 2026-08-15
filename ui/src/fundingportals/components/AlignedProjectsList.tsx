@@ -31,6 +31,12 @@ type StatusFilter = 'all' | 'active' | 'succeeded' | 'refunding'
 type AlignmentFilter = 'all' | 'direct' | 'indirect'
 type SortOption = 'latest' | 'deadline' | 'mostFunded' | 'closestToGoal'
 
+const STATUS_HEADINGS: Record<Exclude<StatusFilter, 'all'>, string> = {
+  active: 'Projects still raising',
+  succeeded: 'Succeeded projects',
+  refunding: 'Failed projects',
+}
+
 function dedupeProjectsForDisplay(projects: AlignedProject[]): AlignedProject[] {
   const byAddress = new Map<string, AlignedProject>()
 
@@ -50,11 +56,14 @@ export function AlignedProjectsList({
   trustedImplicationAttesters,
   trustedAlignmentAttesters,
   projectLinks = 'lazyGiving',
+  statusFilterLock,
 }: {
   statementCid: string
   trustedImplicationAttesters?: Iterable<string>
   trustedAlignmentAttesters?: Iterable<string>
   projectLinks?: ProjectLinkMode
+  /** When set, only this status is shown and the status toggles are hidden. */
+  statusFilterLock?: Exclude<StatusFilter, 'all'>
 }) {
   const machinery = useMachinery()
   const { address } = useAccount()
@@ -68,7 +77,7 @@ export function AlignedProjectsList({
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [sortBy, setSortBy] = useState<SortOption>('latest')
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>(statusFilterLock ?? 'all')
   const [alignmentFilter, setAlignmentFilter] = useState<AlignmentFilter>('all')
 
   useEffect(() => {
@@ -118,8 +127,9 @@ export function AlignedProjectsList({
     return () => { cancelled = true }
   }, [machinery, statementCid, trustedImplicationAttesters, activeTrustedAlignmentAttesters])
 
+  const effectiveStatus = statusFilterLock ?? statusFilter
   const filtered = projects
-    .filter(p => statusFilter === 'all' || getProjectStatus(p) === statusFilter)
+    .filter(p => effectiveStatus === 'all' || getProjectStatus(p) === effectiveStatus)
     .filter(p => alignmentFilter === 'all' || p.alignmentType === alignmentFilter)
 
   const sorted = [...filtered].sort((a, b) => {
@@ -158,7 +168,7 @@ export function AlignedProjectsList({
   return (
     <Box>
       <Typography variant="h5" gutterBottom>
-        Aligned Projects
+        {statusFilterLock ? STATUS_HEADINGS[statusFilterLock] : 'Aligned Projects'}
       </Typography>
 
       <DiscoverySlider
@@ -194,6 +204,7 @@ export function AlignedProjectsList({
             </ToggleButtonGroup>
           </Stack>
 
+          {!statusFilterLock && (
           <Stack direction="row" alignItems="center" spacing={2}>
             <Typography variant="body2" color="text.secondary">Status:</Typography>
             <ToggleButtonGroup
@@ -208,6 +219,7 @@ export function AlignedProjectsList({
               <ToggleButton value="refunding">Refunding</ToggleButton>
             </ToggleButtonGroup>
           </Stack>
+          )}
 
           <Stack direction="row" alignItems="center" spacing={2}>
             <Typography variant="body2" color="text.secondary">Alignment:</Typography>

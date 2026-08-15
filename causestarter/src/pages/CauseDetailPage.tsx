@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
-  Alert, Box, Button, Chip, CircularProgress, Divider, IconButton, Paper, Snackbar,
+  Alert, Box, Button, Chip, CircularProgress, Divider, IconButton, LinearProgress, Paper, Snackbar,
   Stack, ToggleButton, ToggleButtonGroup, Tooltip, Typography,
 } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
@@ -10,12 +10,13 @@ import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom'
 import { useAccount } from 'wagmi'
 import type { RefUpdate } from '@commonality/sdk/mutable-refs'
 import {
+  formatCurrencyProgress,
   formatCurrencyTotals,
   projectPathForAddress,
   useTrustedAttesters,
   useTrustedSet,
 } from '@ui/shared'
-import { getProjectStatus, STATUS_LABELS } from '@ui/lazy-giving'
+import { formatRelativeDeadline, getProjectStatus, STATUS_LABELS } from '@ui/lazy-giving'
 import { AlignmentTrustGate } from '../components/AlignmentTrustGate'
 import { CauseViewStrip, type ViewMode } from '../components/CauseViewStrip'
 import { CauseMediatorCard } from '../components/CauseMediatorCard'
@@ -1086,7 +1087,7 @@ export function CauseDetailPage() {
       <Paper elevation={0} sx={{ p: { xs: 2, sm: 2.5 }, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} alignItems={{ sm: 'center' }} justifyContent="space-between" sx={{ mb: 1.5 }}>
           <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>Fundable Projects</Typography>
+            <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>Cause board</Typography>
             <Alert severity="info" sx={{ borderRadius: 2 }} data-testid="projects-help">
               Projects vouched for as advancing one of this cause's issues. Each is aligned with a
               specific statement, not with the cause as a whole.
@@ -1151,14 +1152,25 @@ export function CauseDetailPage() {
                 </Box>
               </Stack>
             )}
-            {projects.map((project) => (
+            {projects.map((project) => {
+              const status = getProjectStatus({
+                totalReceived: project.totalReceived || '0',
+                threshold: project.threshold || '0',
+                deadline: project.deadline || '0',
+              })
+              const threshold = BigInt(project.threshold || '0')
+              const received = BigInt(project.totalReceived || '0')
+              const progressPercent = threshold > 0n
+                ? Math.min(Number((received * 10000n) / threshold) / 100, 100)
+                : 0
+              return (
               <Paper
                 key={project.projectAddress}
                 elevation={0}
                 sx={{ p: 1.75, borderRadius: 2, bgcolor: 'action.hover' }}
               >
                 <Stack direction="row" justifyContent="space-between" spacing={1} alignItems="flex-start">
-                  <Box>
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
                     <Typography
                       component={RouterLink}
                       to={projectPathForAddress(project.projectAddress)}
@@ -1173,16 +1185,34 @@ export function CauseDetailPage() {
                       Project {shortAddress(project.projectAddress)}
                     </Typography>
                     <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.25 }}>
-                      {STATUS_LABELS[getProjectStatus({
-                        totalReceived: project.totalReceived || '0',
-                        threshold: project.threshold || '0',
-                        deadline: project.deadline || '0',
-                      })]}
+                      {STATUS_LABELS[status]}
                       {' · aligned with '}
                       {project.viaPlankCids.length === 1
                         ? '1 issue'
                         : `${project.viaPlankCids.length} issues`}
+                      {status === 'active' && project.deadline
+                        ? ` · ${formatRelativeDeadline(project.deadline)}`
+                        : ''}
                     </Typography>
+                    <Box sx={{ mt: 1 }}>
+                      <LinearProgress
+                        variant="determinate"
+                        value={progressPercent}
+                        sx={{
+                          height: 8,
+                          borderRadius: 999,
+                          bgcolor: 'action.selected',
+                          '& .MuiLinearProgress-bar': { bgcolor: 'success.main' },
+                        }}
+                      />
+                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+                        {formatCurrencyProgress(
+                          project.totalReceived || '0',
+                          project.threshold || '0',
+                          project.fundingCurrency,
+                        )}
+                      </Typography>
+                    </Box>
                   </Box>
                   <Chip
                     size="small"
@@ -1192,7 +1222,8 @@ export function CauseDetailPage() {
                   />
                 </Stack>
               </Paper>
-            ))}
+              )
+            })}
           </Stack>
         )}
       </Paper>

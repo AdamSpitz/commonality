@@ -141,7 +141,9 @@ export function CauseBoard({
   >([])
   const [monthlyPledged, setMonthlyPledged] = useState<bigint>(0n)
   const [projectCount, setProjectCount] = useState<number>(0)
-  const [projectTab, setProjectTab] = useState<'aligned' | 'successful'>('aligned')
+  const [projectTab, setProjectTab] = useState<
+    'aligned' | 'successful' | 'reimbursed' | 'failed'
+  >('aligned')
 
   useEffect(() => {
     const cid = statementCid
@@ -328,33 +330,67 @@ export function CauseBoard({
       <Paper sx={{ mb: 3 }}>
         <Tabs
           value={projectTab}
-          onChange={(_, value: 'aligned' | 'successful') => setProjectTab(value)}
+          onChange={(_, value: 'aligned' | 'successful' | 'reimbursed' | 'failed') =>
+            setProjectTab(value)
+          }
           aria-label="Cause board project views"
+          variant="scrollable"
+          allowScrollButtonsMobile
         >
           <Tab
             value="aligned"
-            label="Needs initial funding"
+            label="Not yet funded"
             id="cause-board-tab-aligned"
           />
           <Tab
             value="successful"
-            label="Needs reimbursement"
+            label="Not yet reimbursed"
             id="cause-board-tab-successful"
+          />
+          <Tab
+            value="reimbursed"
+            label="Fully reimbursed"
+            id="cause-board-tab-reimbursed"
+            sx={{ opacity: 0.75 }}
+          />
+          <Tab
+            value="failed"
+            label="Failed"
+            id="cause-board-tab-failed"
+            sx={{ opacity: 0.75 }}
           />
         </Tabs>
       </Paper>
 
-      {projectTab === 'aligned' ? (
+      {projectTab === 'aligned' && (
         <AlignedProjectsList
           statementCid={statementCid}
           trustedImplicationAttesters={activeTrustedImplicationAttesters}
           projectLinks={projectLinks}
+          statusFilterLock="active"
         />
-      ) : (
+      )}
+      {projectTab === 'successful' && (
         <SuccessfulProjectsTab
           statementCid={statementCid}
           trustedImplicationAttesters={activeTrustedImplicationAttesters}
           projectLinks={projectLinks}
+        />
+      )}
+      {projectTab === 'reimbursed' && (
+        <AlignedProjectsList
+          statementCid={statementCid}
+          trustedImplicationAttesters={activeTrustedImplicationAttesters}
+          projectLinks={projectLinks}
+          statusFilterLock="succeeded"
+        />
+      )}
+      {projectTab === 'failed' && (
+        <AlignedProjectsList
+          statementCid={statementCid}
+          trustedImplicationAttesters={activeTrustedImplicationAttesters}
+          projectLinks={projectLinks}
+          statusFilterLock="refunding"
         />
       )}
 
