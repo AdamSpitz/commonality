@@ -117,8 +117,6 @@ export function CauseDetailPage() {
     }
     return undefined
   }, [defaultAlignmentAttesters, defaultAlignmentTrustRoot])
-  const usingDefaultAlignmentTrust = personalAlignmentAttesters === undefined
-    && starterAlignmentAttesters !== undefined
   const trustedAlignmentAttesters = personalAlignmentAttesters ?? starterAlignmentAttesters
   const trustLoading = personalTrustLoading
     || (personalAlignmentAttesters === undefined && defaultTrustLoading)
@@ -932,13 +930,6 @@ export function CauseDetailPage() {
       {publishedCids.length > 0 && (trustError || alignmentTrustUnavailable) && (
         <AlignmentTrustGate error={trustError} />
       )}
-      {publishedCids.length > 0 && alignmentTrustReady && usingDefaultAlignmentTrust && (
-        <Alert severity="info" sx={{ borderRadius: 2 }}>
-          Projects are filtered using CauseStarter's starter network. You can replace it with
-          your own choices in <RouterLink to="/settings">trust settings</RouterLink>.
-        </Alert>
-      )}
-
       {publishedCids.length > 0 && (
         <MonthlyPledgeSignal statementCids={publishedCids} />
       )}
@@ -1180,11 +1171,7 @@ export function CauseDetailPage() {
       <Paper elevation={0} sx={{ p: { xs: 2, sm: 2.5 }, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} alignItems={{ sm: 'center' }} justifyContent="space-between" sx={{ mb: 1.5 }}>
           <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>Cause board</Typography>
-            <Alert severity="info" sx={{ borderRadius: 2 }} data-testid="projects-help">
-              Projects vouched for as advancing one of this cause's issues. Each is aligned with a
-              specific statement, not with the cause as a whole.
-            </Alert>
+            <Typography variant="h6" sx={{ fontWeight: 700 }}>Cause board</Typography>
           </Box>
           {publishedCids.length > 0 && (
             <Button
