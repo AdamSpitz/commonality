@@ -565,6 +565,58 @@ describe('getStatementWithContent — PublishedData fallback', () => {
     assert.ok(requestedUrls.some(url => url.includes(`contractAddress=${PUBLISHED_DATA_CONTRACT}`)));
   });
 
+  it('returns published content with zero support when no DirectSupport events exist', async () => {
+    const document = createStatement({ content: 'Unsigned published plank' });
+    const contentBytes = new TextEncoder().encode(toCanonicalJson(document));
+    const dataId = computePublishedDataId(contentBytes);
+    const cid = publishedDataIdToCid(dataId);
+
+    globalThis.fetch = (async (input: string | URL | Request) => {
+      const url = new URL(requestUrlString(input));
+      if (url.pathname === '/api/events') {
+        return new Response(JSON.stringify({ items: [] }), {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        });
+      }
+      if (url.pathname.toLowerCase() === `/api/published-data/${dataId}`) {
+        return new Response(JSON.stringify({
+          status: 'active',
+          publications: [{
+            publisher: PUBLISHER_FOR_POINTER,
+            transactionHash: POINTER_TX_HASH,
+            blockNumber: '1',
+            logIndex: 0,
+          }],
+        }), { status: 200, headers: { 'content-type': 'application/json' } });
+      }
+      return new Response(JSON.stringify({ error: 'unexpected url' }), { status: 404 });
+    }) as typeof fetch;
+
+    const result = await getStatementWithContent(createSDKMachinery({
+      ipfsConfig: { shouldUseMock: true },
+      eventCacheUrl: 'http://localhost:42069',
+      publishedContentResolver: fakeContentResolver([contentBytes]),
+      contractAddresses: {
+        beliefs: BELIEFS_CONTRACT,
+        implications: IMPLICATIONS_CONTRACT,
+        assuranceContractFactory: '0x0000000000000000000000000000000000000000',
+        erc1155Factory: '0x0000000000000000000000000000000000000000',
+        delegatableNotes: '0x0000000000000000000000000000000000000000',
+        noteIntent: '0x0000000000000000000000000000000000000000',
+        alignmentAttestations: '0x0000000000000000000000000000000000000000',
+        mutableRefUpdater: '0x0000000000000000000000000000000000000000',
+        trustRegistry: '0x0000000000000000000000000000000000000000',
+        publishedData: PUBLISHED_DATA_CONTRACT,
+      },
+    }), cid);
+
+    assert.equal(result?.content?.content, 'Unsigned published plank');
+    assert.equal(result?.contentStatus, 'active');
+    assert.equal(result?.statement.believerCount, 0);
+    assert.equal(result?.statement.cid, cid);
+  });
+
   it('marks a PublishedData-only statement retracted when every honored publication is self-retracted', async () => {
     const document = createStatement({ content: 'Retracted PublishedData statement' });
     const contentBytes = new TextEncoder().encode(toCanonicalJson(document));

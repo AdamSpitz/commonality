@@ -1033,7 +1033,8 @@ export async function getStatementSuggestions(
  * @param machinery - SDK machinery with event cache and IPFS configuration
  * @param statementCid - CIDv1 of the statement
  * @param options - Include metrics, IPFS timeout, trusted attesters for indirect support
- * @returns Statement with content, or null if the statement doesn't exist on-chain
+ * @returns Statement with content, or null if there is no on-chain publication
+ *   and no DirectSupport events for this CID
  */
 export async function getStatementWithContent(
   machinery: SDKMachinery,
@@ -1047,10 +1048,7 @@ export async function getStatementWithContent(
     knownTiers,
   } = options;
 
-  const statement = await getStatement(machinery, statementCid);
-  if (!statement) {
-    return null;
-  }
+  const statementFromEvents = await getStatement(machinery, statementCid);
 
   const statementEvents = await fetchDecodedDirectSupportEvents(machinery, {
     topic2: cidToBytes32(statementCid),
@@ -1059,16 +1057,30 @@ export async function getStatementWithContent(
 
   let content: DisplayableDocument | null = null;
   let contentStatus: StatementContentStatus = 'unavailable';
-  if (statement.cid) {
-    const document = await fetchStatementDocument(
-      machinery,
-      statement.cid,
-      timeout,
-      uniqueAddresses(statementEvents.map(event => event.user)),
-    );
-    content = document.content;
-    contentStatus = document.status;
+  const document = await fetchStatementDocument(
+    machinery,
+    statementCid,
+    timeout,
+    uniqueAddresses(statementEvents.map(event => event.user)),
+  );
+  content = document.content;
+  contentStatus = document.status;
+
+  // Published (or retracted) documents are viewable even before anyone signs.
+  // getStatement only looks at DirectSupport events, so unsigned planks
+  // would otherwise 404 on /statement/:cid.
+  if (!statementFromEvents) {
+    if (!content && contentStatus === 'unavailable') {
+      return null;
+    }
   }
+
+  const statement: Statement = statementFromEvents ?? {
+    id: statementCid,
+    cid: statementCid,
+    believerCount: 0,
+    disbelieverCount: 0,
+  };
 
   let metrics: StatementWithContent['metrics'] | undefined;
   if (includeMetrics) {
