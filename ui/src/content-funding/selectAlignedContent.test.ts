@@ -44,4 +44,40 @@ describe('selectAlignedContentContracts', () => {
       viaStatementCids: [STATEMENT],
     })])
   })
+
+  it('ignores attestations from untrusted attesters when a trust set is configured', () => {
+    const rows = selectAlignedContentContracts(
+      [channel()],
+      new Map([
+        ['twitter:uid:1:111', [{
+          canonicalId: 'twitter:uid:1:111',
+          subjectId: 'x',
+          attested: true,
+          attester: '0xuntrusted',
+          statementCid: STATEMENT,
+        }]],
+      ]),
+      [STATEMENT],
+      ['0xtrusted'],
+    )
+    expect(rows).toEqual([])
+  })
+
+  it('treats an empty trust set as unfiltered', () => {
+    const rows = selectAlignedContentContracts(
+      [channel()],
+      new Map([
+        ['twitter:uid:1:111', [{
+          canonicalId: 'twitter:uid:1:111',
+          subjectId: 'x',
+          attested: true,
+          attester: '0xanyone',
+          statementCid: STATEMENT,
+        }]],
+      ]),
+      [STATEMENT],
+      [],
+    )
+    expect(rows).toHaveLength(1)
+  })
 })

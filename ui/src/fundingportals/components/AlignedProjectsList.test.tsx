@@ -22,6 +22,10 @@ vi.mock('../../shared/hooks/useTrustedSet', () => ({
   useTrustedSet: vi.fn(),
 }))
 
+vi.mock('../../shared/hooks/useTrustedContentAttesters', () => ({
+  useTrustedContentAttesters: vi.fn(() => []),
+}))
+
 vi.mock('../../shared/routing/domainUrls', async () => {
   const actual = await vi.importActual<typeof import('../../shared/routing/domainUrls')>(
     '../../shared/routing/domainUrls',

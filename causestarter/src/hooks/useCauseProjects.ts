@@ -21,7 +21,23 @@ import {
 } from '@commonality/sdk/fundingportals'
 import { ETH_CURRENCY, type Currency, type IpfsCidV1 } from '@commonality/sdk/utils'
 import { selectAlignedContentContracts, useContentFundingState } from '@ui/content-funding'
+import { useTrustedContentAttesters } from '@ui/shared'
 import { useMachinery } from '../lib/useMachinery'
+
+function contentAttestationsFingerprint(
+  attestations: Map<string, { attested: boolean; statementCid: string; attester: string }[]>,
+): string {
+  return [...attestations.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([id, list]) => {
+      const inner = list
+        .map((row) => `${row.attested ? 1 : 0}:${row.statementCid}:${row.attester.toLowerCase()}`)
+        .sort()
+        .join(',')
+      return `${id}=${inner}`
+    })
+    .join('|')
+}
 
 export interface CauseProject {
   projectAddress: string
@@ -60,6 +76,12 @@ export function useCauseProjects(
     contentAttestations,
     loading: contentLoading,
   } = useContentFundingState()
+  const trustedContentAttesters = useTrustedContentAttesters()
+  const contentTrustKey = trustedContentAttesters
+    .map((entry) => entry.address.toLowerCase())
+    .sort()
+    .join('\0')
+  const contentAttestationsKey = contentAttestationsFingerprint(contentAttestations)
   const [projects, setProjects] = useState<CauseProject[]>([])
   const [totals, setTotals] = useState<AlignedProjectFundingTotals>()
   const [loading, setLoading] = useState(false)
@@ -144,6 +166,7 @@ export function useCauseProjects(
           channels,
           contentAttestations,
           cids,
+          contentTrustKey ? contentTrustKey.split('\0') : undefined,
         )
         for (const contract of contentContracts) {
           const existing = byAddress.get(contract.contractAddress)
@@ -203,7 +226,8 @@ export function useCauseProjects(
     alignmentTrustKey,
     enabled,
     channels.length,
-    contentAttestations.size,
+    contentAttestationsKey,
+    contentTrustKey,
     contentLoading,
   ])
 

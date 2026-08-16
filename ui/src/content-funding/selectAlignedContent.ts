@@ -13,13 +13,23 @@ export interface AlignedContentContract {
   fundingCurrency: Currency | undefined
 }
 
+function trustedAttesterSet(trustedAttesters?: Iterable<string>): Set<string> | undefined {
+  if (!trustedAttesters) return undefined
+  const set = new Set(
+    [...trustedAttesters].map((address) => address.toLowerCase()).filter(Boolean),
+  )
+  return set.size > 0 ? set : undefined
+}
+
 function alignedItemsForStatements(
   channels: readonly ChannelWithCanonicalId[],
   attestations: Map<string, ContentAttestationInfo[]>,
   statementCids: readonly string[],
+  trustedAttesters?: Iterable<string>,
 ): { contractAddress: string; statementCids: string[] }[] {
   const wanted = new Set(statementCids.filter(Boolean))
   if (wanted.size === 0) return []
+  const trusted = trustedAttesterSet(trustedAttesters)
 
   const rows: { contractAddress: string; statementCids: string[] }[] = []
   const seen = new Set<string>()
@@ -28,7 +38,10 @@ function alignedItemsForStatements(
     for (const contract of channel.contracts) {
       for (const item of contract.contentItems) {
         const matches = (attestations.get(item.canonicalId) ?? [])
-          .filter((attestation) => attestation.attested && wanted.has(attestation.statementCid))
+          .filter((attestation) =>
+            attestation.attested
+            && wanted.has(attestation.statementCid)
+            && (!trusted || trusted.has(attestation.attester.toLowerCase())))
           .map((attestation) => attestation.statementCid)
         if (matches.length === 0) continue
         const key = `${item.canonicalId}:${contract.contractAddress}`
@@ -49,8 +62,9 @@ export function selectAlignedContentContracts(
   channels: readonly ChannelWithCanonicalId[],
   attestations: Map<string, ContentAttestationInfo[]>,
   statementCids: readonly string[],
+  trustedAttesters?: Iterable<string>,
 ): AlignedContentContract[] {
-  const items = alignedItemsForStatements(channels, attestations, statementCids)
+  const items = alignedItemsForStatements(channels, attestations, statementCids, trustedAttesters)
   const byAddress = new Map<string, AlignedContentContract>()
 
   for (const item of items) {

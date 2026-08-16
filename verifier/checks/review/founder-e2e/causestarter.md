@@ -7,14 +7,14 @@
   - You can decide to sign one of the cause's statements, so the number of signers goes up by one.
   - You can start a fundable project aligned with a particular statement.
   - You can declare that you'd be willing to direct money earmarked for a particular statement.
-  - You can browse the "cause board" and see a bunch of projects that need money.
+  - You can browse the "cause board" and see a bunch of projects that need money, plus any content-funding contracts that already have a trusted attestation tying a post to a published plank (one row per contract, not one row per post).
   - You can contribute $X or pledge $Y/month, earmarked for a particular statement. Optionally you can delegate the funding decisions to someone you know and trust, or to someone who's declared that he's willing to be a delegate.
-  - There's also a specialized cause board showing social-media content aligned with the cause's statements.
+  - There's also a specialized post-level content board showing social-media items aligned with the cause's statements.
   - There's also maybe a place to sign up to receive nudges from the mediator thingy.
 
 - Cause board:
   - There's a "start project" button.
-  - The main purpose of the cause board is to show a bunch of projects (aligned with the statements of this cause).
+  - The main purpose of the cause board is to show a bunch of projects aligned with the statements of this cause, and also relevant content-funding contracts (listed as the contract, with “N of M posts attested”, not mixed in as individual posts).
   - Two main tabs or pages or sections or something: not yet funded, not yet reimbursed.
     - Each shows a list of projects; each one has a title, creator, maybe a short description?, partially-green-filled slider showing amount of money already raised and amount of money needed. If it's an assurance contract, it also shows the deadline.
   - Somewhere less prominent there should be two more tabs/pages: fully reimbursed, and failed.

@@ -35,9 +35,14 @@ export function selectAlignedContentItems(
   channels: readonly ChannelWithCanonicalId[],
   attestations: Map<string, ContentAttestationInfo[]>,
   statementCids: readonly string[],
+  trustedAttesters?: Iterable<string>,
 ): AlignedContentItem[] {
   const wanted = new Set(statementCids.filter(Boolean))
   if (wanted.size === 0) return []
+  const trusted = trustedAttesters
+    ? new Set([...trustedAttesters].map((address) => address.toLowerCase()).filter(Boolean))
+    : undefined
+  const requireTrusted = Boolean(trusted && trusted.size > 0)
 
   const rows: AlignedContentItem[] = []
   const seen = new Set<string>()
@@ -46,7 +51,10 @@ export function selectAlignedContentItems(
     for (const contract of channel.contracts) {
       for (const item of contract.contentItems) {
         const matches = (attestations.get(item.canonicalId) ?? [])
-          .filter((attestation) => attestation.attested && wanted.has(attestation.statementCid))
+          .filter((attestation) =>
+            attestation.attested
+            && wanted.has(attestation.statementCid)
+            && (!requireTrusted || trusted!.has(attestation.attester.toLowerCase())))
           .map((attestation) => attestation.statementCid)
         if (matches.length === 0) continue
         const key = `${item.canonicalId}:${contract.contractAddress}`

@@ -54,6 +54,19 @@ describe('selectAlignedContentItems', () => {
     expect(rows[0]?.statementCids).toEqual([STATEMENT_A])
   })
 
+  it('drops items attested only by an untrusted wallet', () => {
+    const attestations = new Map([
+      ['twitter:uid:1:111', [{
+        canonicalId: 'twitter:uid:1:111',
+        subjectId: 'x',
+        attested: true,
+        attester: '0xuntrusted',
+        statementCid: STATEMENT_A,
+      }]],
+    ])
+    expect(selectAlignedContentItems([channel()], attestations, [STATEMENT_A], ['0xtrusted'])).toEqual([])
+  })
+
   it('ignores retracted or off-topic attestations', () => {
     const attestations = new Map([
       ['twitter:uid:1:111', [{

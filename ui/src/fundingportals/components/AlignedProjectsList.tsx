@@ -15,7 +15,7 @@ import SortIcon from '@mui/icons-material/Sort'
 import { getAllAlignedProjectsForCause } from '@commonality/sdk/fundingportals'
 import { getProject } from '@commonality/sdk/lazy-giving'
 import { ETH_CURRENCY, type IpfsCidV1 } from '@commonality/sdk/utils'
-import { getDomainUrl, isDomainConfigured, useMachinery, useTrustedSet } from '../../shared'
+import { getDomainUrl, isDomainConfigured, useMachinery, useTrustedContentAttesters, useTrustedSet } from '../../shared'
 import { selectAlignedContentContracts, useContentFundingState } from '../../content-funding'
 import { getProjectStatus } from '../../lazy-giving'
 import {
@@ -69,6 +69,15 @@ export function AlignedProjectsList({
   const machinery = useMachinery()
   const { address } = useAccount()
   const { channels, contentAttestations } = useContentFundingState()
+  const trustedContentAttesters = useTrustedContentAttesters()
+  const contentTrustKey = trustedContentAttesters
+    .map((entry) => entry.address.toLowerCase())
+    .sort()
+    .join('\0')
+  const contentAttestationsKey = [...contentAttestations.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([id, list]) => `${id}:${list.map((row) => `${row.attested ? 1 : 0}:${row.statementCid}:${row.attester.toLowerCase()}`).sort().join(',')}`)
+    .join('|')
   const [discoveryLevel, setDiscoveryLevel] = useState<DiscoveryLevel>('network')
   const maxHops = DISCOVERY_LEVEL_MAX_HOPS[discoveryLevel]
   const { trustedSet, isLoading: trustedSetLoading } = useTrustedSet(address, { maxHops })
@@ -101,6 +110,7 @@ export function AlignedProjectsList({
           channels,
           contentAttestations,
           [statementCid],
+          contentTrustKey ? contentTrustKey.split('\0') : undefined,
         ).map((contract) => ({
           projectAddress: contract.contractAddress,
           alignmentType: 'direct' as const,
@@ -146,7 +156,8 @@ export function AlignedProjectsList({
     trustedImplicationAttesters,
     activeTrustedAlignmentAttesters,
     channels.length,
-    contentAttestations.size,
+    contentAttestationsKey,
+    contentTrustKey,
   ])
 
   const effectiveStatus = statusFilterLock ?? statusFilter

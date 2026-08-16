@@ -4,6 +4,7 @@ import {
 } from '@mui/material'
 import { Link as RouterLink, useParams } from 'react-router-dom'
 import { getChannelDisplayLabels, useContentFundingState } from '@ui/content-funding'
+import { useTrustedContentAttesters } from '@ui/shared'
 import {
   contentChannelPath,
   contentItemPublicUrl,
@@ -38,6 +39,7 @@ export function CauseContentBoardPage() {
   const machinery = useMachinery()
   const { channels, contentAttestations, channelDisplayMetadata, loading: contentLoading, error: contentError } =
     useContentFundingState()
+  const trustedContentAttesters = useTrustedContentAttesters()
 
   const routeRef = useMemo(
     () => parseCauseRouteParams(params.owner, params.slugPart),
@@ -139,7 +141,12 @@ export function CauseContentBoardPage() {
   }
 
   const plankCids = publishedPlanks(cause).map((plank) => plank.cid!).filter(Boolean)
-  const items = selectAlignedContentItems(channels, contentAttestations, plankCids)
+  const items = selectAlignedContentItems(
+    channels,
+    contentAttestations,
+    plankCids,
+    trustedContentAttesters.map((entry) => entry.address),
+  )
   const backTo = causePath(cause)
 
   return (

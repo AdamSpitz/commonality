@@ -25,6 +25,16 @@ vi.mock('@ui/content-funding', async () => {
   }
 })
 
+const trustedContentState = { addresses: [] as string[] }
+vi.mock('@ui/shared', async () => {
+  const actual = await vi.importActual<typeof import('@ui/shared')>('@ui/shared')
+  return {
+    ...actual,
+    useTrustedContentAttesters: () =>
+      trustedContentState.addresses.map((address) => ({ address, kind: 'content-attester' as const })),
+  }
+})
+
 import {
   foldAlignedProjectFunding,
   getAllAlignedProjectsForCause,
@@ -38,6 +48,7 @@ describe('useCauseProjects', () => {
     contentState.channels = []
     contentState.contentAttestations = new Map()
     contentState.loading = false
+    trustedContentState.addresses = []
     vi.mocked(getAllAlignedProjectsForCause).mockResolvedValue([])
     vi.mocked(foldAlignedProjectFunding).mockResolvedValue({
       totalReceived: [],
@@ -138,5 +149,34 @@ describe('useCauseProjects', () => {
     expect(result.current.projects[0]?.projectAddress).toBe('0xcccccccccccccccccccccccccccccccccccccccc')
     expect(result.current.projects[0]?.alignedContentItemCount).toBe(1)
     expect(result.current.projects[0]?.contentItemCount).toBe(2)
+  })
+
+  it('excludes content contracts attested only by untrusted wallets', async () => {
+    trustedContentState.addresses = ['0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa']
+    contentState.channels = [{
+      contracts: [{
+        contractAddress: '0xcccccccccccccccccccccccccccccccccccccccc',
+        contentItems: [{ canonicalId: 'twitter:uid:1:111' }],
+        project: {
+          totalReceived: '10',
+          threshold: '100',
+          deadline: '1',
+          fundingCurrency: { symbol: 'ETH', decimals: 18 },
+        },
+      }],
+    }]
+    contentState.contentAttestations = new Map([
+      ['twitter:uid:1:111', [{
+        canonicalId: 'twitter:uid:1:111',
+        attested: true,
+        statementCid: CID,
+        attester: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+        subjectId: 'x',
+      }]],
+    ])
+
+    const { result } = renderHook(() => useCauseProjects([CID], [], new Set()))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    expect(result.current.projects).toHaveLength(0)
   })
 })
