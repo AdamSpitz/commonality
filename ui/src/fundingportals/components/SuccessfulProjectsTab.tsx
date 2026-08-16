@@ -17,11 +17,13 @@ import type { ProjectLinkMode } from './AlignedProjectCard'
  */
 export function SuccessfulProjectsTab({
   statementCid,
+  statementCids,
   trustedImplicationAttesters,
   projectLinks = 'lazyGiving',
   reimbursement = 'outstanding',
 }: {
   statementCid: string
+  statementCids?: string[]
   trustedImplicationAttesters?: Iterable<string>
   projectLinks?: ProjectLinkMode
   reimbursement?: 'outstanding' | 'reimbursed'
@@ -47,6 +49,7 @@ export function SuccessfulProjectsTab({
 
       <SuccessfulProjectsList
         statementCid={statementCid}
+        statementCids={statementCids}
         trustedImplicationAttesters={trustedImplicationAttesters}
         trustedSuccessAttesters={trustedSuccessAttesters}
         trustWeights={activeTrustWeights}

@@ -7,7 +7,7 @@
   - You can decide to sign one of the cause's statements, so the number of signers goes up by one.
   - You can start a fundable project aligned with a particular statement.
   - You can declare that you'd be willing to direct money earmarked for a particular statement.
-  - You can browse the "cause board" and see a bunch of projects that need money, plus any content-funding contracts that already have a trusted attestation tying a post to a published plank (one row per contract, not one row per post).
+  - You can browse **Fundable Projects** on the cause page (union of its statements) and see a bunch of projects that need money, plus any content-funding contracts that already have a trusted attestation tying a post to a published plank (one row per contract, not one row per post). The same dashboard is inlined on each statement page.
   - You can contribute $X or pledge $Y/month, earmarked for a particular statement. Optionally you can delegate the funding decisions to someone you know and trust, or to someone who's declared that he's willing to be a delegate.
   - There's also a specialized post-level content board showing social-media items aligned with the cause's statements.
   - There's also maybe a place to sign up to receive nudges from the mediator thingy.

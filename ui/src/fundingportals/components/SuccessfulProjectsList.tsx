@@ -13,6 +13,7 @@ import { formatCurrencyAmount } from '../../shared'
 import { projectPathForAddress } from '../../shared'
 import { resolveProjectNav, type ProjectLinkMode, type ProjectMetadata } from './AlignedProjectCard'
 import { readProjectMetadata } from './projectMetadata'
+import { resolveStatementCids } from './statementCids'
 
 function shortAddress(address: string) {
   return `${address.slice(0, 6)}…${address.slice(-4)}`
@@ -26,6 +27,7 @@ function successTypeExplanation(successType: 'direct' | 'indirect') {
 
 export function SuccessfulProjectsList({
   statementCid,
+  statementCids,
   trustedImplicationAttesters,
   trustedSuccessAttesters,
   trustWeights,
@@ -33,6 +35,7 @@ export function SuccessfulProjectsList({
   reimbursement = 'outstanding',
 }: {
   statementCid: string
+  statementCids?: string[]
   trustedImplicationAttesters?: Iterable<string>
   trustedSuccessAttesters?: Iterable<string>
   trustWeights?: Map<string, number>
@@ -40,6 +43,8 @@ export function SuccessfulProjectsList({
   /** outstanding = close-the-loop queue; reimbursed = loop already closed. */
   reimbursement?: 'outstanding' | 'reimbursed'
 }) {
+  const cids = resolveStatementCids(statementCid, statementCids)
+  const cidsKey = cids.join('\0')
   const machinery = useMachinery()
   const [projects, setProjects] = useState<SuccessfulProjectForCause[]>([])
   const [metadata, setMetadata] = useState<Record<string, ProjectMetadata>>({})
@@ -56,13 +61,26 @@ export function SuccessfulProjectsList({
         const loader = reimbursement === 'reimbursed'
           ? getFullyReimbursedProjectsForCause
           : getSuccessfulProjectsForCause
-        const successful = await loader(
-          machinery,
-          statementCid as IpfsCidV1,
-          trustedImplicationAttesters,
-          trustedSuccessAttesters,
-          trustWeights,
+        const loadCids = cidsKey ? cidsKey.split('\0') : []
+        const perPlank = await Promise.all(
+          loadCids.map((cid) =>
+            loader(
+              machinery,
+              cid as IpfsCidV1,
+              trustedImplicationAttesters,
+              trustedSuccessAttesters,
+              trustWeights,
+            ),
+          ),
         )
+        const byAddress = new Map<string, (typeof perPlank)[number][number]>()
+        for (const list of perPlank) {
+          for (const project of list) {
+            const key = project.projectAddress.toLowerCase()
+            if (!byAddress.has(key)) byAddress.set(key, project)
+          }
+        }
+        const successful = [...byAddress.values()]
         if (cancelled) return
         setProjects(successful)
 
@@ -90,7 +108,7 @@ export function SuccessfulProjectsList({
 
     load()
     return () => { cancelled = true }
-  }, [machinery, statementCid, trustedImplicationAttesters, trustedSuccessAttesters, trustWeights, reimbursement])
+  }, [machinery, cidsKey, trustedImplicationAttesters, trustedSuccessAttesters, trustWeights, reimbursement])
 
   if (loading) {
     return <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}><CircularProgress /></Box>

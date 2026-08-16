@@ -4,8 +4,8 @@ import { HomePage } from './pages/HomePage'
 import { StartCauseRedirect } from './pages/StartCauseRedirect'
 import { CausesPage } from './pages/CausesPage'
 import { CauseDetailPage } from './pages/CauseDetailPage'
-import { StatementBoardPage } from './pages/StatementBoardPage'
 import { StatementBoardLeaderboardPage } from './pages/StatementBoardLeaderboardPage'
+import { StatementBoardRedirect } from './pages/StatementBoardRedirect'
 import { StatementPage } from './pages/StatementPage'
 import { DocsPage } from './pages/DocsPage'
 import { SettingsPage } from './pages/SettingsPage'
@@ -68,9 +68,11 @@ export default function App() {
               link, never by a directory we rank. See ADR 0005 and
               specs/product/ui-operator-posture.md. */}
           <Route path="/statement/:statementCid" element={<StatementPage />} />
-          {/* Boards are keyed by statement: alignment attestations name a
-              statement, never a cause. */}
-          <Route path="/statement/:statementCid/board" element={<StatementBoardPage />} />
+          {/* Old standalone board URL: the dashboard now lives on the statement. */}
+          <Route
+            path="/statement/:statementCid/board"
+            element={<StatementBoardRedirect />}
+          />
           <Route path="/statement/:statementCid/board/leaderboard" element={<StatementBoardLeaderboardPage />} />
           <Route path="/projects/new" element={<CreateProjectPage />} />
           <Route path="/projects/:projectAddress" element={<ProjectDetailPage />} />

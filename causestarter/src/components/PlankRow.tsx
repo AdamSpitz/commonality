@@ -173,7 +173,7 @@ export function PlankRow({
                   {' · '}
                   <Box
                     component={RouterLink}
-                    to={`/statement/${plank.cid}/board`}
+                    to={`/statement/${plank.cid}#fundable-projects`}
                     sx={{ color: 'inherit', textDecoration: 'underline', textUnderlineOffset: 2 }}
                   >
                     {projectCount > 0

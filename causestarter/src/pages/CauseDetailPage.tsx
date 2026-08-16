@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
-  Alert, Box, Button, Chip, CircularProgress, Divider, IconButton, LinearProgress, Link, Paper, Snackbar,
+  Alert, Box, Button, Chip, CircularProgress, Divider, IconButton, Link, Paper, Snackbar,
   Stack, ToggleButton, ToggleButtonGroup, Tooltip, Typography,
 } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
@@ -13,13 +13,10 @@ import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom'
 import { useAccount } from 'wagmi'
 import type { RefUpdate } from '@commonality/sdk/mutable-refs'
 import {
-  formatCurrencyProgress,
-  formatCurrencyTotals,
-  projectPathForAddress,
   useTrustedAttesters,
   useTrustedSet,
 } from '@ui/shared'
-import { formatRelativeDeadline, getProjectStatus, STATUS_LABELS } from '@ui/lazy-giving'
+import { CauseBoard } from '@ui/fundingportals'
 import { AlignmentTrustGate } from '../components/AlignmentTrustGate'
 import { CauseViewStrip } from '../components/CauseViewStrip'
 import { CauseMediatorCard } from '../components/CauseMediatorCard'
@@ -29,6 +26,7 @@ import { StatementPicker } from '../components/StatementPicker'
 import { SelectedPlankSupport } from '../components/SelectedPlankSupport'
 import { MediatorEditor } from '../components/MediatorEditor'
 import { PlankRow, type PlankReview } from '../components/PlankRow'
+import { StarterNetworkFilterCopy } from '../components/StarterNetworkFilterNotice'
 import { RosterHistory } from '../components/RosterHistory'
 import { RosterPublishPanel } from '../components/RosterPublishPanel'
 import { SafetyRejectionDialog } from '../components/SafetyRejectionDialog'
@@ -58,11 +56,6 @@ import { useMachinery } from '../lib/useMachinery'
 import { useWriteClients } from '../lib/useWriteClients'
 import { useCauseProjects } from '../hooks/useCauseProjects'
 import { useViewCounts } from '../hooks/useViewCounts'
-
-function shortAddress(address: string): string {
-  if (address.length < 12) return address
-  return `${address.slice(0, 6)}…${address.slice(-4)}`
-}
 
 function safetyState(verdict: {
   allowed: boolean
@@ -479,7 +472,7 @@ export function CauseDetailPage() {
     true,
   )
   const {
-    projects, totals, countByPlankCid, loading: projectsLoading, error: projectsError,
+    countByPlankCid,
   } = useCauseProjects(
     publishedCids,
     activeTrustedImplicationAttesters,
@@ -1107,168 +1100,37 @@ export function CauseDetailPage() {
         {error && <Alert severity="error" sx={{ mt: 2, borderRadius: 2 }}>{error}</Alert>}
       </Paper>
 
-      <Paper elevation={0} sx={{ p: { xs: 2, sm: 2.5 }, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
-        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} alignItems={{ sm: 'center' }} justifyContent="space-between" sx={{ mb: 1.5 }}>
-          <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Typography variant="h6" sx={{ fontWeight: 700 }}>Cause board</Typography>
-          </Box>
-          {publishedCids.length > 0 && (
-            <Stack direction="row" spacing={1} sx={{ flexShrink: 0 }} flexWrap="wrap" useFlexGap>
-              <Button
-                component={RouterLink}
-                to={`/projects/new?statement=${encodeURIComponent(selectedCids[0] ?? publishedCids[0])}`}
-                variant="contained"
-                size="small"
-                sx={{ textTransform: 'none' }}
-              >
-                Start project
-              </Button>
-              <Button
-                component={RouterLink}
-                to="/content/new"
-                variant="outlined"
-                size="small"
-                sx={{ textTransform: 'none' }}
-              >
-                Start content contract
-              </Button>
-            </Stack>
-          )}
-        </Stack>
-
-        {publishedCids.length === 0 && (
+      {publishedCids.length === 0 ? (
+        <Paper elevation={0} sx={{ p: { xs: 2, sm: 2.5 }, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
+          <Typography variant="h6" sx={{ fontWeight: 700 }} gutterBottom>Fundable Projects</Typography>
           <Alert severity="info" sx={{ borderRadius: 2 }}>
             Publish a statement to see projects aligned with it.
           </Alert>
-        )}
-
-        {publishedCids.length > 0 && alignmentTrustReady && projectsLoading && (
-          <Stack direction="row" spacing={1} alignItems="center" sx={{ py: 1 }}>
-            <CircularProgress size={18} />
-            <Typography variant="body2" color="text.secondary">Loading aligned projects…</Typography>
-          </Stack>
-        )}
-
-        {projectsError && (
-          <Alert severity="warning" sx={{ borderRadius: 2 }}>{projectsError}</Alert>
-        )}
-
-        {publishedCids.length > 0 && alignmentTrustReady && !projectsLoading && !projectsError && projects.length === 0 && (
-          <Typography variant="body2" color="text.secondary">
-            No projects are aligned with these statements yet. Open a statement's board to vouch for work
-            that advances it.
-          </Typography>
-        )}
-
-        {alignmentTrustReady && projects.length > 0 && (
-          <Stack spacing={1.25}>
-            {totals && (
-              <Stack direction="row" spacing={3} flexWrap="wrap" useFlexGap sx={{ pb: 0.5 }}>
-                <Box>
-                  <Typography variant="caption" color="text.secondary" display="block">
-                    Still needed (open projects)
-                  </Typography>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-                    {formatCurrencyTotals(totals.remainingToThreshold)}
-                  </Typography>
-                </Box>
-                <Box>
-                  <Typography variant="caption" color="text.secondary" display="block">
-                    Unreimbursed (succeeded)
-                  </Typography>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-                    {formatCurrencyTotals(totals.totalUnreimbursed)}
-                  </Typography>
-                </Box>
-              </Stack>
-            )}
-            {projects.map((project) => {
-              const status = getProjectStatus({
-                totalReceived: project.totalReceived || '0',
-                threshold: project.threshold || '0',
-                deadline: project.deadline || '0',
-              })
-              const threshold = BigInt(project.threshold || '0')
-              const received = BigInt(project.totalReceived || '0')
-              const progressPercent = threshold > 0n
-                ? Math.min(Number((received * 10000n) / threshold) / 100, 100)
-                : 0
-              return (
-              <Paper
-                key={project.projectAddress}
-                elevation={0}
-                sx={{ p: 1.75, borderRadius: 2, bgcolor: 'action.hover' }}
-              >
-                <Stack direction="row" justifyContent="space-between" spacing={1} alignItems="flex-start">
-                  <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <Typography
-                      component={RouterLink}
-                      to={`${projectPathForAddress(project.projectAddress)}${
-                        project.viaPlankCids.length > 0
-                          ? `?aligned=${project.viaPlankCids.map(encodeURIComponent).join(',')}`
-                          : ''
-                      }`}
-                      variant="subtitle2"
-                      sx={{
-                        fontWeight: 700,
-                        color: 'text.primary',
-                        textDecoration: 'none',
-                        '&:hover': { textDecoration: 'underline' },
-                      }}
-                    >
-                      Project {shortAddress(project.projectAddress)}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.25 }}>
-                      {STATUS_LABELS[status]}
-                      {' · aligned with '}
-                      {project.viaPlankCids.length === 1
-                        ? '1 statement'
-                        : `${project.viaPlankCids.length} statements`}
-                      {project.alignedContentItemCount != null && project.contentItemCount != null
-                        ? ` · ${project.alignedContentItemCount} of ${project.contentItemCount} posts attested`
-                        : ''}
-                      {status === 'active' && project.deadline
-                        ? ` · ${formatRelativeDeadline(project.deadline)}`
-                        : ''}
-                    </Typography>
-                    <Box sx={{ mt: 1 }}>
-                      <LinearProgress
-                        variant="determinate"
-                        value={progressPercent}
-                        sx={{
-                          height: 8,
-                          borderRadius: 999,
-                          bgcolor: 'action.selected',
-                          '& .MuiLinearProgress-bar': { bgcolor: 'success.main' },
-                        }}
-                      />
-                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
-                        {formatCurrencyProgress(
-                          project.totalReceived || '0',
-                          project.threshold || '0',
-                          project.fundingCurrency,
-                        )}
-                      </Typography>
-                    </Box>
-                  </Box>
-                  <Stack spacing={0.5} alignItems="flex-end">
-                    {project.alignedContentItemCount != null && (
-                      <Chip size="small" label="Content" variant="outlined" />
-                    )}
-                    <Chip
-                      size="small"
-                      label={project.alignmentType}
-                      variant="outlined"
-                      sx={{ textTransform: 'capitalize' }}
-                    />
-                  </Stack>
-                </Stack>
-              </Paper>
-              )
-            })}
-          </Stack>
-        )}
-      </Paper>
+        </Paper>
+      ) : (
+        <CauseBoard
+          statementCids={publishedCids}
+          embedded
+          surfaceTitle="Fundable Projects"
+          projectLinks="local"
+          navLinks={[
+            {
+              label: 'Start content contract',
+              to: '/content/new',
+              variant: 'outlined',
+            },
+          ]}
+          projectsHelp={
+            <Stack spacing={1}>
+              <Typography variant="body2">
+                Union of projects vouched for as advancing any published statement of this
+                cause. Alignment attaches to a statement, never to the cause as a whole.
+              </Typography>
+              <StarterNetworkFilterCopy />
+            </Stack>
+          }
+        />
+      )}
 
       {stable && history.length > 0 && (
         <RosterHistory

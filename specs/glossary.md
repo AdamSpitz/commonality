@@ -41,7 +41,7 @@ wrong (or this file is out of date and needs an ADR — see
 | **Reimbursement** | What a retroactive donation pays out to an early contributor — at cost, no upside |
 | **Note** | A `DelegatableNote`: a bucket of deposited funds whose spending authority can be delegated down a chain, revocably. The unit of delegated giving |
 | **Standing pledge** | A *recurring* funding commitment registered with `RecurringPledges`, executed periodically into a note |
-| **Cause board** | The statement-anchored page where a donor sees projects aligned with a cause and decides where money goes |
+| **Cause board** | The fundable-projects dashboard (heading **Fundable Projects**) inlined on a statement or cause page, where a donor sees aligned projects and decides where money goes |
 
 ### Judgments people and services publish
 

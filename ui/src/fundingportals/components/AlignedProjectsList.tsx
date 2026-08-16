@@ -28,6 +28,7 @@ import { DISCOVERY_LEVEL_MAX_HOPS } from './discoveryLevels'
 import { useDiscoveryLevel } from '../hooks/useDiscoveryLevel'
 import { useAlignmentFilter } from '../hooks/useAlignmentFilter'
 import { readProjectMetadata } from './projectMetadata'
+import { resolveStatementCids } from './statementCids'
 
 type StatusFilter = 'all' | 'active' | 'succeeded' | 'refunding'
 type SortOption = 'latest' | 'deadline' | 'mostFunded' | 'closestToGoal'
@@ -54,18 +55,22 @@ function dedupeProjectsForDisplay(projects: AlignedProject[]): AlignedProject[] 
 
 export function AlignedProjectsList({
   statementCid,
+  statementCids,
   trustedImplicationAttesters,
   trustedAlignmentAttesters,
   projectLinks = 'lazyGiving',
   statusFilterLock,
 }: {
   statementCid: string
+  statementCids?: string[]
   trustedImplicationAttesters?: Iterable<string>
   trustedAlignmentAttesters?: Iterable<string>
   projectLinks?: ProjectLinkMode
   /** When set, only this status is shown and the status toggles are hidden. */
   statusFilterLock?: Exclude<StatusFilter, 'all'>
 }) {
+  const cids = resolveStatementCids(statementCid, statementCids)
+  const cidsKey = cids.join('\0')
   const machinery = useMachinery()
   const { address } = useAccount()
   const { channels, contentAttestations } = useContentFundingState()
@@ -98,18 +103,24 @@ export function AlignedProjectsList({
       setLoading(true)
       setError(null)
       try {
-        const aligned = await getAllAlignedProjectsForCause(
-          machinery,
-          statementCid as IpfsCidV1,
-          trustedImplicationAttesters,
-          activeTrustedAlignmentAttesters
+        const loadCids = cidsKey ? cidsKey.split('\0') : []
+        const perPlank = await Promise.all(
+          loadCids.map((cid) =>
+            getAllAlignedProjectsForCause(
+              machinery,
+              cid as IpfsCidV1,
+              trustedImplicationAttesters,
+              activeTrustedAlignmentAttesters,
+            ),
+          ),
         )
+        const aligned = perPlank.flat()
         if (cancelled) return
 
         const contentRows = selectAlignedContentContracts(
           channels,
           contentAttestations,
-          [statementCid],
+          loadCids,
           contentTrustKey ? contentTrustKey.split('\0') : undefined,
         ).map((contract) => ({
           projectAddress: contract.contractAddress,
@@ -152,7 +163,7 @@ export function AlignedProjectsList({
     return () => { cancelled = true }
   }, [
     machinery,
-    statementCid,
+    cidsKey,
     trustedImplicationAttesters,
     activeTrustedAlignmentAttesters,
     channels.length,

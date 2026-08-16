@@ -236,10 +236,10 @@ test.describe('CauseStarter agent smoke', () => {
       timeout: 60_000,
     })
 
-    // Every immutable plank retains its own project board even when no project is aligned yet.
-    await page.getByRole('link', { name: 'Aligned projects' }).first().click()
-    await expect(page).toHaveURL(/\/statement\/[^/]+\/board$/)
-    await expect(page.getByRole('heading', { name: /aligned projects/i })).toBeVisible({ timeout: 30_000 })
+    // Every immutable plank retains its own statement page (fundable projects live there).
+    await page.getByRole('link', { name: /project/i }).first().click()
+    await expect(page).toHaveURL(/\/statement\/[^/]+/)
+    await expect(page.getByRole('heading', { name: /fundable projects/i })).toBeVisible({ timeout: 30_000 })
 
     await page.goto(pinnedHref!)
     await expect(page.getByText('Pinned version', { exact: true })).toBeVisible({ timeout: 30_000 })

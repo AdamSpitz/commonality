@@ -13,8 +13,10 @@ import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom'
 import { getStatementWithContent, type Statement } from '@commonality/sdk/conceptspace'
 import type { DisplayableDocument } from '@commonality/sdk/displayable-documents'
 import type { IpfsCidV1 } from '@commonality/sdk/utils'
+import { CauseBoard } from '@ui/fundingportals'
 import { SupportButton } from '../components/SupportButton'
 import { MonthlyPledgeSignal } from '../components/MonthlyPledgeSignal'
+import { StarterNetworkFilterCopy } from '../components/StarterNetworkFilterNotice'
 import { createCausePath } from '../lib/causeStore'
 import { useMachinery } from '../lib/useMachinery'
 
@@ -165,6 +167,29 @@ export function StatementPage() {
       </Paper>
 
       <MonthlyPledgeSignal statementCids={[statementCid as string]} />
+
+      <CauseBoard
+        statementCid={statementCid}
+        embedded
+        surfaceTitle="Fundable Projects"
+        projectLinks="local"
+        navLinks={[
+          {
+            label: 'View Leaderboard',
+            to: `/statement/${statementCid}/board/leaderboard`,
+            variant: 'outlined',
+          },
+        ]}
+        projectsHelp={
+          <Stack spacing={1}>
+            <Typography variant="body2">
+              Projects vouched for as advancing this statement. Each is aligned with this
+              statement, not with a cause as a whole.
+            </Typography>
+            <StarterNetworkFilterCopy />
+          </Stack>
+        }
+      />
 
       <Typography
         variant="caption"

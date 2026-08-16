@@ -18,7 +18,11 @@ import {
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
 import { getStatementWithContent } from '@commonality/sdk/conceptspace'
 import { getMonthlyPledgedByCause } from '@commonality/sdk/delegation'
-import { getTotalFundingForCause } from '@commonality/sdk/fundingportals'
+import {
+  foldAlignedProjectFunding,
+  getAllAlignedProjectsForCause,
+  getTotalFundingForCause,
+} from '@commonality/sdk/fundingportals'
 import type { IpfsCidV1 } from '@commonality/sdk/utils'
 import { useMachinery } from '../../shared'
 import {
@@ -34,6 +38,7 @@ import { AlignedProjectsList } from './AlignedProjectsList'
 import { SuccessfulProjectsTab } from './SuccessfulProjectsTab'
 import { AttestAlignmentForm } from './AttestAlignmentForm'
 import type { ProjectLinkMode } from './AlignedProjectCard'
+import { resolveStatementCids } from './statementCids'
 
 /** In-app router link or external href for cause-board chrome. */
 export type CauseBoardNavLink =
@@ -41,11 +46,21 @@ export type CauseBoardNavLink =
   | { label: string; href: string; variant?: 'text' | 'outlined' | 'contained' }
 
 export interface CauseBoardProps {
-  statementCid: string
+  statementCid?: string
+  /** Union several statements (a cause's published planks). Deduped by project. */
+  statementCids?: string[]
   /** Prefer this title over the statement document title (e.g. local cause name). */
   preferredTitle?: string
   /** Prefer this summary over the statement excerpt. */
   preferredSummary?: string
+  /**
+   * Drop standalone page chrome (statement title, default nav) and use
+   * {@link surfaceTitle} as the section heading — for inlining on a cause
+   * or statement page.
+   */
+  embedded?: boolean
+  /** Section heading when {@link embedded} is true. */
+  surfaceTitle?: string
   /**
    * Header navigation. When omitted, uses Aligning defaults
    * (back to Tally statement + leaderboard under `/portal/...`).
@@ -62,7 +77,8 @@ export interface CauseBoardProps {
   projectLinks?: ProjectLinkMode
 }
 
-function defaultNavLinks(statementCid: string): CauseBoardNavLink[] {
+function defaultNavLinks(statementCid: string | undefined): CauseBoardNavLink[] {
+  if (!statementCid) return []
   return [
     {
       label: '← Back to Statement on Tally',
@@ -100,13 +116,22 @@ function NavLinkButton({ link }: { link: CauseBoardNavLink }) {
  */
 export function CauseBoard({
   statementCid,
+  statementCids,
   preferredTitle,
   preferredSummary,
+  embedded = false,
+  surfaceTitle = 'Fundable Projects',
   navLinks,
   headerExtra,
   projectsHelp,
   projectLinks = 'lazyGiving',
 }: CauseBoardProps) {
+  const cids = useMemo(
+    () => resolveStatementCids(statementCid, statementCids),
+    [statementCid, statementCids],
+  )
+  const cidsKey = cids.join('\0')
+  const primaryCid = cids[0]
   const machinery = useMachinery()
   const { address } = useAccount()
   const trustedImplicationAttesters = useTrustedAttesters()
@@ -152,7 +177,7 @@ export function CauseBoard({
   >('aligned')
 
   useEffect(() => {
-    const cid = statementCid
+    const loadCids = cidsKey ? cidsKey.split('\0') : []
     let cancelled = false
     const trustedSetForLoad: Set<string> | undefined = trustedSetKey
       ? new Set(trustedSetKey.split(','))
@@ -162,17 +187,48 @@ export function CauseBoard({
       : undefined
 
     async function load() {
+      if (loadCids.length === 0) {
+        setLoading(false)
+        setError('No statement specified.')
+        return
+      }
       setLoading(true)
       setError(null)
       try {
+        const cid = loadCids[0]!
         const [stmtResult, fundingMetrics] = await Promise.all([
-          getStatementWithContent(machinery, cid as IpfsCidV1),
-          getTotalFundingForCause(
-            machinery,
-            cid as IpfsCidV1,
-            attestersForLoad,
-            trustedSetForLoad,
-          ),
+          embedded
+            ? Promise.resolve(null)
+            : getStatementWithContent(machinery, cid as IpfsCidV1),
+          loadCids.length === 1
+            ? getTotalFundingForCause(
+                machinery,
+                cid as IpfsCidV1,
+                attestersForLoad,
+                trustedSetForLoad,
+              )
+            : (async () => {
+                const perPlank = await Promise.all(
+                  loadCids.map((plankCid) =>
+                    getAllAlignedProjectsForCause(
+                      machinery,
+                      plankCid as IpfsCidV1,
+                      attestersForLoad,
+                      trustedSetForLoad,
+                    ),
+                  ),
+                )
+                const byAddress = new Map<string, (typeof perPlank)[number][number]>()
+                for (const aligned of perPlank) {
+                  for (const project of aligned) {
+                    const existing = byAddress.get(project.projectAddress.toLowerCase())
+                    if (!existing || (existing.alignmentType === 'indirect' && project.alignmentType === 'direct')) {
+                      byAddress.set(project.projectAddress.toLowerCase(), project)
+                    }
+                  }
+                }
+                return foldAlignedProjectFunding(machinery, [...byAddress.values()])
+              })(),
         ])
 
         if (cancelled) return
@@ -197,7 +253,11 @@ export function CauseBoard({
           ? await getMonthlyPledgedByCause(machinery)
           : new Map<string, bigint>()
         if (cancelled) return
-        setMonthlyPledged(monthlyTotals.get(cid) ?? 0n)
+        let monthly = 0n
+        for (const plankCid of loadCids) {
+          monthly += monthlyTotals.get(plankCid) ?? 0n
+        }
+        setMonthlyPledged(monthly)
       } catch (err) {
         if (!cancelled) {
           console.error('Error loading cause board:', err)
@@ -212,7 +272,7 @@ export function CauseBoard({
     return () => {
       cancelled = true
     }
-  }, [machinery, statementCid, trustedAttestersKey, trustedSetKey])
+  }, [machinery, cidsKey, embedded, trustedAttestersKey, trustedSetKey])
 
   if (loading) {
     return (
@@ -228,10 +288,10 @@ export function CauseBoard({
 
   const displayTitle = preferredTitle?.trim() || title
   const displaySummary = preferredSummary?.trim() || summary
-  const links = navLinks ?? defaultNavLinks(statementCid)
+  const links = navLinks ?? (embedded ? [] : defaultNavLinks(primaryCid))
 
   return (
-    <Box>
+    <Box id="fundable-projects" data-testid="fundable-projects">
       <Paper sx={{ p: 3, mb: 3 }}>
         {links.length > 0 && (
           <Stack direction="row" spacing={1} sx={{ mb: 2 }} flexWrap="wrap" useFlexGap>
@@ -241,23 +301,31 @@ export function CauseBoard({
           </Stack>
         )}
 
-        <Typography
-          variant="overline"
-          sx={{ letterSpacing: '0.14em', fontWeight: 700, color: 'primary.main', display: 'block' }}
-        >
-          Statement
-        </Typography>
-
-        {displayTitle && (
-          <Typography variant="body1" component="h1" gutterBottom sx={{ fontWeight: 500 }}>
-            {displayTitle}
+        {embedded ? (
+          <Typography variant="h6" component="h2" sx={{ fontWeight: 700 }} gutterBottom>
+            {surfaceTitle}
           </Typography>
-        )}
+        ) : (
+          <>
+            <Typography
+              variant="overline"
+              sx={{ letterSpacing: '0.14em', fontWeight: 700, color: 'primary.main', display: 'block' }}
+            >
+              Statement
+            </Typography>
 
-        {displaySummary && (
-          <Typography variant="body1" color="text.secondary" gutterBottom>
-            {displaySummary}
-          </Typography>
+            {displayTitle && (
+              <Typography variant="body1" component="h1" gutterBottom sx={{ fontWeight: 500 }}>
+                {displayTitle}
+              </Typography>
+            )}
+
+            {displaySummary && (
+              <Typography variant="body1" color="text.secondary" gutterBottom>
+                {displaySummary}
+              </Typography>
+            )}
+          </>
         )}
 
         <Divider sx={{ my: 2 }} />
@@ -322,25 +390,27 @@ export function CauseBoard({
           </Box>
         </Stack>
 
+        {primaryCid && (
         <Box sx={{ mt: 2 }}>
           <NavLinkButton
             link={
               projectLinks === 'local'
                 ? {
                     label: 'Start project',
-                    to: `/projects/new?statement=${encodeURIComponent(statementCid)}`,
+                    to: `/projects/new?statement=${encodeURIComponent(primaryCid)}`,
                     variant: 'contained',
                   }
                 : {
                     label: 'Start project',
-                    href: getDomainUrl('lazyGiving', `/projects/new?statement=${encodeURIComponent(statementCid)}`, {
-                      fallbackHref: `/projects/new?statement=${encodeURIComponent(statementCid)}`,
+                    href: getDomainUrl('lazyGiving', `/projects/new?statement=${encodeURIComponent(primaryCid)}`, {
+                      fallbackHref: `/projects/new?statement=${encodeURIComponent(primaryCid)}`,
                     }),
                     variant: 'contained',
                   }
             }
           />
         </Box>
+        )}
 
         {headerExtra}
       </Paper>
@@ -389,7 +459,8 @@ export function CauseBoard({
 
       {projectTab === 'aligned' && (
         <AlignedProjectsList
-          statementCid={statementCid}
+          statementCid={primaryCid ?? ''}
+          statementCids={cids}
           trustedImplicationAttesters={activeTrustedImplicationAttesters}
           projectLinks={projectLinks}
           statusFilterLock="active"
@@ -397,14 +468,16 @@ export function CauseBoard({
       )}
       {projectTab === 'successful' && (
         <SuccessfulProjectsTab
-          statementCid={statementCid}
+          statementCid={primaryCid ?? ''}
+          statementCids={cids}
           trustedImplicationAttesters={activeTrustedImplicationAttesters}
           projectLinks={projectLinks}
         />
       )}
       {projectTab === 'reimbursed' && (
         <SuccessfulProjectsTab
-          statementCid={statementCid}
+          statementCid={primaryCid ?? ''}
+          statementCids={cids}
           trustedImplicationAttesters={activeTrustedImplicationAttesters}
           projectLinks={projectLinks}
           reimbursement="reimbursed"
@@ -412,14 +485,15 @@ export function CauseBoard({
       )}
       {projectTab === 'failed' && (
         <AlignedProjectsList
-          statementCid={statementCid}
+          statementCid={primaryCid ?? ''}
+          statementCids={cids}
           trustedImplicationAttesters={activeTrustedImplicationAttesters}
           projectLinks={projectLinks}
           statusFilterLock="refunding"
         />
       )}
 
-      <AttestAlignmentForm statementCid={statementCid} />
+      {primaryCid && <AttestAlignmentForm statementCid={primaryCid} />}
     </Box>
   )
 }

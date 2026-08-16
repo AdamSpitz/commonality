@@ -213,8 +213,9 @@ See [`cause-assist/README.md`](../cause-assist/README.md).
   over the planks: a union count, and a conjunction shown as **two bands**
   (signed-all, plus signed-some-disagreed-with-none). Never render a bare
   intersection — `noOpinion` is the default, so it collapses on silence.
-- **Alignment is per statement.** Boards live at `/statement/:cid/board`; a
-  cause page shows the union of its planks' boards, deduped by project.
+- **Alignment is per statement.** The fundable-projects dashboard is inlined on
+  the statement page (`/statement/:cid`) and, as a union of planks, on the
+  cause page. `/statement/:cid/board` redirects to the statement.
 - **Cause store** (`src/lib/causeStore.ts`) keeps planks in `localStorage` so
   unpublished wording survives reloads.
 - On-chain actions reuse the same SDK functions the main UI uses
