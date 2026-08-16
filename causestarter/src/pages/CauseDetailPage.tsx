@@ -6,7 +6,9 @@ import {
 import AddIcon from '@mui/icons-material/Add'
 import BookmarkIcon from '@mui/icons-material/Bookmark'
 import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder'
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
 import IosShareIcon from '@mui/icons-material/IosShare'
+import WarningAmberIcon from '@mui/icons-material/WarningAmber'
 import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom'
 import { useAccount } from 'wagmi'
 import type { RefUpdate } from '@commonality/sdk/mutable-refs'
@@ -168,6 +170,8 @@ export function CauseDetailPage() {
   const [onChainBadge, setOnChainBadge] = useState<RosterCoherenceBadge | null>(null)
   /** CauseStarter operator address that authors coherence badges (for viewer trust). */
   const [coherenceOperator, setCoherenceOperator] = useState<`0x${string}` | null>(null)
+  const [coherenceOperatorResolved, setCoherenceOperatorResolved] = useState(false)
+  const [coherenceBadgeResolved, setCoherenceBadgeResolved] = useState(false)
   const [addedLaterByCid, setAddedLaterByCid] = useState<Map<string, string>>(new Map())
   const [error, setError] = useState<string | null>(null)
   const [dialogSafety, setDialogSafety] = useState<SafetyState | null>(null)
@@ -179,7 +183,9 @@ export function CauseDetailPage() {
   useEffect(() => {
     let cancelled = false
     void fetchCoherenceAttesterAddress().then((addr) => {
-      if (!cancelled) setCoherenceOperator(addr)
+      if (cancelled) return
+      setCoherenceOperator(addr)
+      setCoherenceOperatorResolved(true)
     })
     return () => { cancelled = true }
   }, [])
@@ -309,18 +315,31 @@ export function CauseDetailPage() {
   // On-chain badge for whichever roster version is on screen (visitor or organizer).
   // Re-runs once the operator address resolves; without it no badge is trustworthy.
   useEffect(() => {
-    if (!cause?.rosterCid || !coherenceOperator) {
+    if (!cause?.rosterCid) {
       setOnChainBadge(null)
+      setCoherenceBadgeResolved(true)
+      return
+    }
+    if (!coherenceOperatorResolved) {
+      setCoherenceBadgeResolved(false)
+      return
+    }
+    if (!coherenceOperator) {
+      setOnChainBadge(null)
+      setCoherenceBadgeResolved(true)
       return
     }
     let cancelled = false
+    setCoherenceBadgeResolved(false)
     void loadRosterCoherenceBadge(machinery, cause.rosterCid, coherenceOperator).then((badge) => {
-      if (!cancelled) setOnChainBadge(badge)
+      if (cancelled) return
+      setOnChainBadge(badge)
+      setCoherenceBadgeResolved(true)
     })
     return () => {
       cancelled = true
     }
-  }, [cause?.rosterCid, machinery, coherenceOperator])
+  }, [cause?.rosterCid, machinery, coherenceOperator, coherenceOperatorResolved])
 
   /**
    * Permission to mutate this cause. Guards every handler; never gates display
@@ -534,6 +553,10 @@ export function CauseDetailPage() {
     && !titleDraft.trim()
     && realPlanks(cause).length === 0,
   )
+  const hasCoherenceBadge = Boolean(onChainBadge && onChainBadge.attesters.length > 0)
+  const showCoherenceAbsence = Boolean(cause.rosterCid)
+    && coherenceBadgeResolved
+    && !hasCoherenceBadge
   const mutationLocked = Boolean(
     publishingId || reviewingId || publishingRoster || checkingCoherence,
   )
@@ -773,18 +796,6 @@ export function CauseDetailPage() {
         {routeRef?.versionCid && (
           <Chip size="small" color="info" label="Pinned version" sx={{ mb: 0.75 }} />
         )}
-        {onChainBadge && onChainBadge.attesters.length > 0 && (
-          <Chip
-            size="small"
-            color="success"
-            variant="filled"
-            label="Coherent construction"
-            title={`Attested by CauseStarter operator ${onChainBadge.attesters[0]}`}
-            sx={{ mb: 0.75, ml: 1 }}
-            data-testid="cause-coherence-badge"
-            data-attester={onChainBadge.attesters[0]}
-          />
-        )}
         {!isFreshDraft && (
           <Typography
             variant="overline"
@@ -841,6 +852,41 @@ export function CauseDetailPage() {
             </Tooltip>
           )}
         </Stack>
+        {hasCoherenceBadge && (
+          <Tooltip
+            title={`CauseStarter's coherence checker attested this version as coherent construction (title and description match the issues). Attested by operator ${onChainBadge!.attesters[0]}.`}
+          >
+            <Chip
+              size="small"
+              color="success"
+              variant="filled"
+              icon={<InfoOutlinedIcon />}
+              label="Coherent construction"
+              sx={{ mt: 1 }}
+              data-testid="cause-coherence-badge"
+              data-attester={onChainBadge!.attesters[0]}
+            />
+          </Tooltip>
+        )}
+        {showCoherenceAbsence && (
+          <Tooltip
+            title={coherenceOperator
+              ? 'CauseStarter\'s coherence checker has not published a badge for this version. That is not a finding that the cause is incoherent, but it does mean that we haven\'t confirmed that the title and description match the issues, so you may want to read them especially carefully.'
+              : 'Could not reach CauseStarter\'s coherence checker, so this page cannot confirm whether a badge exists.'}
+          >
+            <Chip
+              size="small"
+              color="warning"
+              variant="filled"
+              icon={<WarningAmberIcon />}
+              label={coherenceOperator
+                ? 'No coherence badge'
+                : 'Coherence badge not confirmed'}
+              sx={{ mt: 1 }}
+              data-testid="cause-coherence-absent"
+            />
+          </Tooltip>
+        )}
         {isFreshDraft ? (
           <Alert severity="info" sx={{ mt: 1.5, borderRadius: 2 }} data-testid="start-cause-help">
             Tell CauseStarter what you want people to be able to support. It searches
@@ -848,14 +894,26 @@ export function CauseDetailPage() {
             You decide what belongs in the cause. Nothing is published until you review
             the exact statement text and CID in the page below and explicitly approve it.
           </Alert>
-        ) : (
-          displaySummary?.trim() && (
-            <Typography variant="body1" sx={{ mt: 1, whiteSpace: 'pre-wrap' }}>
-              {displaySummary}
-            </Typography>
-          )
-        )}
+        ) : null}
       </Box>
+
+      {!isFreshDraft && displaySummary?.trim() && (
+        <Paper
+          elevation={0}
+          sx={{ p: { xs: 2, sm: 2.5 }, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}
+          data-testid="cause-description"
+        >
+          <Typography
+            variant="overline"
+            sx={{ letterSpacing: '0.14em', fontWeight: 700, color: 'text.secondary', display: 'block', mb: 0.5 }}
+          >
+            Description
+          </Typography>
+          <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
+            {displaySummary}
+          </Typography>
+        </Paper>
+      )}
 
       {stable && history.length > 0 && (
         <RosterHistory

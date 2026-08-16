@@ -444,6 +444,11 @@ badge**, per ADR 0008. A badge withholdable on grounds of distaste is an
 endorsement, and an endorsement needs the admission machinery that ADR
 deliberately does not have.
 
+The CauseStarter cause page still *names the absence* when a published roster
+has no operator badge ("No coherence badge"), so visitors can see that the
+check did not land. That is UI disclosure, not an on-chain negative
+attestation, and it must not be phrased as "this cause is incoherent."
+
 Two implementation notes:
 
 - **Not the same call as generation.** cause-assist's atomize/sharpen and the
@@ -472,8 +477,9 @@ Three rules:
    awkward — a warning dialog, a greyed button, scolding copy — admission has
    been rebuilt inside the client, and ADR 0008's central claim is that nothing
    is reviewed before it renders. *"Publish anyway" is a peer of "Publish"*: same
-   prominence, no friction. The consequence of declining is that the page renders
-   without a badge, which is the default state for everything anyway.
+   prominence, no friction. The consequence of declining is that the published
+   page has no positive badge (the default). The cause page may still *say* that
+   no badge was published, without turning Publish anyway into a scold.
 2. **The two-step goes on the roster save, not on plank publish.** A plank is a
    statement — immutable, and already pre-flighted by `checkSafety`. Coherence is
    not a property one plank has. Keeping them separate also lets a founder
