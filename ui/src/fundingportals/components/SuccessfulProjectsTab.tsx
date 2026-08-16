@@ -1,21 +1,19 @@
-import { useState } from 'react'
 import { Alert, Box } from '@mui/material'
 import { useAccount } from 'wagmi'
 import { useTrustedSet } from '../../shared'
 import { SuccessfulProjectsList } from './SuccessfulProjectsList'
-import { DiscoverySlider } from './DiscoverySlider'
-import { DISCOVERY_LEVEL_MAX_HOPS, type DiscoveryLevel } from './discoveryLevels'
+import { DISCOVERY_LEVEL_MAX_HOPS } from './discoveryLevels'
+import { useDiscoveryLevel } from '../hooks/useDiscoveryLevel'
 import type { ProjectLinkMode } from './AlignedProjectCard'
 
 /**
- * The Successful tab on the cause board, wired to a discovery slider that loosens
- * the trust-graph filter on success vouches ("My network" → "+1 hop" → "Anyone").
+ * The Successful tab on the cause board, filtered by the persisted discovery
+ * level from trust settings ("My network" → "+1 hop" → "Anyone").
  *
- * The slider controls the `maxHops` trust-traversal knob on a dedicated
- * `useTrustedSet` call so the Successful tab's filter is independent of the
- * Aligned tab's. "Anyone" drops the trust filter entirely (passing `undefined`
- * for the trusted-attester set and weights), which falls back to the flat
- * count-based success confidence score.
+ * The stored level controls the `maxHops` trust-traversal knob on a dedicated
+ * `useTrustedSet` call. "Anyone" drops the trust filter entirely (passing
+ * `undefined` for the trusted-attester set and weights), which falls back to
+ * the flat count-based success confidence score.
  */
 export function SuccessfulProjectsTab({
   statementCid,
@@ -29,7 +27,7 @@ export function SuccessfulProjectsTab({
   reimbursement?: 'outstanding' | 'reimbursed'
 }) {
   const { address } = useAccount()
-  const [discoveryLevel, setDiscoveryLevel] = useState<DiscoveryLevel>('network')
+  const [discoveryLevel] = useDiscoveryLevel()
   const maxHops = DISCOVERY_LEVEL_MAX_HOPS[discoveryLevel]
   const { trustedSet, trustWeights, isLoading } = useTrustedSet(address, { maxHops })
 
@@ -39,8 +37,6 @@ export function SuccessfulProjectsTab({
 
   return (
     <Box>
-      <DiscoverySlider value={discoveryLevel} onChange={setDiscoveryLevel} disabled={!address} />
-
       {address && isLoading && (
         <Alert severity="info" sx={{ mb: 2 }}>
           {trustedSet

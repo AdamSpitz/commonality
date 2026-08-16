@@ -1,7 +1,9 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { AlignedProjectsList } from './AlignedProjectsList'
+import { DISCOVERY_LEVEL_STORAGE_KEY } from '../hooks/useDiscoveryLevel'
+import { ALIGNMENT_FILTER_STORAGE_KEY } from '../hooks/useAlignmentFilter'
 
 vi.mock('./projectMetadata', () => ({
   readProjectMetadata: vi.fn(),
@@ -135,6 +137,8 @@ function makeProject(overrides: {
 describe('AlignedProjectsList', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    window.localStorage.removeItem(DISCOVERY_LEVEL_STORAGE_KEY)
+    window.localStorage.removeItem(ALIGNMENT_FILTER_STORAGE_KEY)
     vi.mocked(createSDKMachinery).mockReturnValue(mockMachinery)
     vi.mocked(useAccount).mockReturnValue({ address: USER_ADDRESS } as any)
     vi.mocked(useTrustedSet).mockReturnValue({
@@ -193,10 +197,10 @@ describe('AlignedProjectsList', () => {
     })
 
     it('drops the alignment trust filter when discovery is set to Anyone', async () => {
+      window.localStorage.setItem(DISCOVERY_LEVEL_STORAGE_KEY, 'anyone')
       vi.mocked(getAllAlignedProjectsForCause).mockResolvedValue([])
 
       render(<AlignedProjectsList statementCid="QmTest" />)
-      fireEvent.change(await screen.findByRole('slider'), { target: { value: '2' } })
 
       await waitFor(() => {
         expect(getAllAlignedProjectsForCause).toHaveBeenLastCalledWith(
@@ -305,8 +309,9 @@ describe('AlignedProjectsList', () => {
         expect(screen.getByRole('button', { name: 'Deadline' })).toBeInTheDocument()
         expect(screen.getByRole('button', { name: 'Most Funded' })).toBeInTheDocument()
         expect(screen.getByRole('button', { name: 'Closest to Goal' })).toBeInTheDocument()
-        expect(screen.getByRole('button', { name: 'Direct' })).toBeInTheDocument()
-        expect(screen.getByRole('button', { name: 'Indirect' })).toBeInTheDocument()
+        expect(screen.queryByRole('button', { name: 'Alignment' })).toBeNull()
+        expect(screen.queryByRole('button', { name: 'Direct only' })).toBeNull()
+        expect(screen.queryByRole('button', { name: 'Indirect' })).toBeNull()
       })
     })
 
@@ -344,9 +349,8 @@ describe('AlignedProjectsList', () => {
       render(<AlignedProjectsList statementCid="QmTest" />)
 
       await waitFor(() => {
-        // "Direct" and "Indirect" appear in both filter buttons and alignment chips on cards
-        expect(screen.getAllByText('Direct').length).toBeGreaterThanOrEqual(2)
-        expect(screen.getAllByText('Indirect').length).toBeGreaterThanOrEqual(2)
+        expect(screen.getByText('Direct')).toBeInTheDocument()
+        expect(screen.getByText('Indirect')).toBeInTheDocument()
       })
     })
 
@@ -362,8 +366,8 @@ describe('AlignedProjectsList', () => {
       await waitFor(() => {
         expect(screen.getAllByText('Project 0xAAAAAA...')).toHaveLength(1)
       })
-      expect(screen.getAllByText('Direct').length).toBeGreaterThanOrEqual(2)
-      expect(screen.getAllByText('Indirect')).toHaveLength(1)
+      expect(screen.getByText('Direct')).toBeInTheDocument()
+      expect(screen.queryByText('Indirect')).toBeNull()
     })
   })
 
@@ -486,37 +490,14 @@ describe('AlignedProjectsList', () => {
       })
     })
 
-    it('shows only direct projects when "Direct" filter is selected', async () => {
+    it('shows only direct projects when the settings filter is Direct only', async () => {
+      window.localStorage.setItem(ALIGNMENT_FILTER_STORAGE_KEY, 'direct')
       setupDirectIndirectProjects()
       render(<AlignedProjectsList statementCid="QmTest" />)
-
-      await waitFor(() => {
-        expect(screen.getByText('Direct Project')).toBeInTheDocument()
-      })
-
-      const user = userEvent.setup()
-      await user.click(screen.getByRole('button', { name: 'Direct', pressed: false }))
 
       await waitFor(() => {
         expect(screen.getByText('Direct Project')).toBeInTheDocument()
         expect(screen.queryByText('Indirect Project')).not.toBeInTheDocument()
-      })
-    })
-
-    it('shows only indirect projects when "Indirect" filter is selected', async () => {
-      setupDirectIndirectProjects()
-      render(<AlignedProjectsList statementCid="QmTest" />)
-
-      await waitFor(() => {
-        expect(screen.getByText('Indirect Project')).toBeInTheDocument()
-      })
-
-      const user = userEvent.setup()
-      await user.click(screen.getByRole('button', { name: 'Indirect', pressed: false }))
-
-      await waitFor(() => {
-        expect(screen.queryByText('Direct Project')).not.toBeInTheDocument()
-        expect(screen.getByText('Indirect Project')).toBeInTheDocument()
       })
     })
   })

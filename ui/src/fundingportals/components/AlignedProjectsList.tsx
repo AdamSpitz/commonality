@@ -24,12 +24,12 @@ import {
   type ProjectLinkMode,
   type ProjectMetadata,
 } from './AlignedProjectCard'
-import { DiscoverySlider } from './DiscoverySlider'
-import { DISCOVERY_LEVEL_MAX_HOPS, type DiscoveryLevel } from './discoveryLevels'
+import { DISCOVERY_LEVEL_MAX_HOPS } from './discoveryLevels'
+import { useDiscoveryLevel } from '../hooks/useDiscoveryLevel'
+import { useAlignmentFilter } from '../hooks/useAlignmentFilter'
 import { readProjectMetadata } from './projectMetadata'
 
 type StatusFilter = 'all' | 'active' | 'succeeded' | 'refunding'
-type AlignmentFilter = 'all' | 'direct' | 'indirect'
 type SortOption = 'latest' | 'deadline' | 'mostFunded' | 'closestToGoal'
 
 const STATUS_HEADINGS: Record<Exclude<StatusFilter, 'all'>, string> = {
@@ -78,7 +78,8 @@ export function AlignedProjectsList({
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([id, list]) => `${id}:${list.map((row) => `${row.attested ? 1 : 0}:${row.statementCid}:${row.attester.toLowerCase()}`).sort().join(',')}`)
     .join('|')
-  const [discoveryLevel, setDiscoveryLevel] = useState<DiscoveryLevel>('network')
+  const [discoveryLevel] = useDiscoveryLevel()
+  const [alignmentFilter] = useAlignmentFilter()
   const maxHops = DISCOVERY_LEVEL_MAX_HOPS[discoveryLevel]
   const { trustedSet, isLoading: trustedSetLoading } = useTrustedSet(address, { maxHops })
   const activeTrustedAlignmentAttesters = trustedAlignmentAttesters ?? (discoveryLevel === 'anyone' ? undefined : trustedSet)
@@ -89,7 +90,6 @@ export function AlignedProjectsList({
   const [error, setError] = useState<string | null>(null)
   const [sortBy, setSortBy] = useState<SortOption>('latest')
   const [statusFilter, setStatusFilter] = useState<StatusFilter>(statusFilterLock ?? 'all')
-  const [alignmentFilter, setAlignmentFilter] = useState<AlignmentFilter>('all')
 
   useEffect(() => {
     let cancelled = false
@@ -204,13 +204,6 @@ export function AlignedProjectsList({
         {statusFilterLock ? STATUS_HEADINGS[statusFilterLock] : 'Aligned Projects'}
       </Typography>
 
-      <DiscoverySlider
-        value={discoveryLevel}
-        onChange={setDiscoveryLevel}
-        disabled={!address || trustedAlignmentAttesters !== undefined}
-        voucherLabel="alignment vouches"
-      />
-
       {address && trustedSetLoading && trustedAlignmentAttesters === undefined && (
         <Alert severity="info" sx={{ mb: 2 }}>
           {trustedSet
@@ -253,20 +246,6 @@ export function AlignedProjectsList({
             </ToggleButtonGroup>
           </Stack>
           )}
-
-          <Stack direction="row" alignItems="center" spacing={2}>
-            <Typography variant="body2" color="text.secondary">Alignment:</Typography>
-            <ToggleButtonGroup
-              value={alignmentFilter}
-              exclusive
-              onChange={(_, v) => v && setAlignmentFilter(v)}
-              size="small"
-            >
-              <ToggleButton value="all">All</ToggleButton>
-              <ToggleButton value="direct">Direct</ToggleButton>
-              <ToggleButton value="indirect">Indirect</ToggleButton>
-            </ToggleButtonGroup>
-          </Stack>
         </Stack>
       </Paper>
 

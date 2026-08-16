@@ -21,6 +21,16 @@ export { CauseBoard } from './components/CauseBoard'
 export type { CauseBoardProps, CauseBoardNavLink } from './components/CauseBoard'
 export { CauseLeaderboard } from './components/CauseLeaderboard'
 export type { CauseLeaderboardProps } from './components/CauseLeaderboard'
+export { DiscoverySlider } from './components/DiscoverySlider'
+export { AlignmentFilterToggle } from './components/AlignmentFilterToggle'
+export { useDiscoveryLevel } from './hooks/useDiscoveryLevel'
+export { useAlignmentFilter } from './hooks/useAlignmentFilter'
+export {
+  DISCOVERY_LEVEL_MAX_HOPS,
+  DISCOVERY_LEVELS,
+  DISCOVERY_LEVEL_LABELS,
+  type DiscoveryLevel,
+} from './components/discoveryLevels'
 
 // Note on pages: the route components (StatementFundingPortalPage,
 // CauseLeaderboardPage, ExplorerPage) are intentionally NOT re-exported here.

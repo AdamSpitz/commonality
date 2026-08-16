@@ -12,7 +12,10 @@ import {
   Button,
   Tabs,
   Tab,
+  Tooltip,
+  IconButton,
 } from '@mui/material'
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
 import { getStatementWithContent } from '@commonality/sdk/conceptspace'
 import { getMonthlyPledgedByCause } from '@commonality/sdk/delegation'
 import { getTotalFundingForCause } from '@commonality/sdk/fundingportals'
@@ -50,6 +53,8 @@ export interface CauseBoardProps {
   navLinks?: CauseBoardNavLink[]
   /** Optional extra content under the header metrics (host chrome). */
   headerExtra?: ReactNode
+  /** Tooltip on the Projects metric — host-specific explanation of what the count means. */
+  projectsHelp?: ReactNode
   /**
    * Where aligned/successful project detail links resolve.
    * CauseStarter hosts project detail locally; Aligning deep-links to LazyGiving.
@@ -99,6 +104,7 @@ export function CauseBoard({
   preferredSummary,
   navLinks,
   headerExtra,
+  projectsHelp,
   projectLinks = 'lazyGiving',
 }: CauseBoardProps) {
   const machinery = useMachinery()
@@ -235,12 +241,15 @@ export function CauseBoard({
           </Stack>
         )}
 
-        <Typography variant="h4" component="h1" gutterBottom>
-          Cause Board
+        <Typography
+          variant="overline"
+          sx={{ letterSpacing: '0.14em', fontWeight: 700, color: 'primary.main', display: 'block' }}
+        >
+          Statement
         </Typography>
 
         {displayTitle && (
-          <Typography variant="h5" gutterBottom>
+          <Typography variant="body1" component="h1" gutterBottom sx={{ fontWeight: 500 }}>
             {displayTitle}
           </Typography>
         )}
@@ -289,9 +298,26 @@ export function CauseBoard({
           </Box>
 
           <Box>
-            <Typography variant="caption" color="text.secondary" display="block">
-              Projects
-            </Typography>
+            <Stack direction="row" alignItems="center" spacing={0.25}>
+              <Typography variant="caption" color="text.secondary">
+                Projects
+              </Typography>
+              {projectsHelp && (
+                <Tooltip
+                  title={projectsHelp}
+                  slotProps={{ tooltip: { sx: { maxWidth: 360 } } }}
+                >
+                  <IconButton
+                    size="small"
+                    aria-label="About projects on this board"
+                    data-testid="projects-help"
+                    sx={{ p: 0.25, color: 'text.secondary' }}
+                  >
+                    <InfoOutlinedIcon sx={{ fontSize: 16 }} />
+                  </IconButton>
+                </Tooltip>
+              )}
+            </Stack>
             <Typography variant="h6">{projectCount}</Typography>
           </Box>
         </Stack>

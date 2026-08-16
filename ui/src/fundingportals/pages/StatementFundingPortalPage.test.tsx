@@ -140,7 +140,7 @@ describe('StatementFundingPortalPage', () => {
     render(<StatementFundingPortalPage />)
 
     await waitFor(() => {
-      expect(screen.getByText('Cause Board')).toBeInTheDocument()
+      expect(screen.getByText('Subjectiv Cause')).toBeInTheDocument()
     })
 
     expect(getTotalFundingForCause).toHaveBeenCalledWith(
@@ -163,7 +163,7 @@ describe('StatementFundingPortalPage', () => {
     render(<StatementFundingPortalPage />)
 
     await waitFor(() => {
-      expect(screen.getByText('Cause Board')).toBeInTheDocument()
+      expect(screen.getByText('Subjectiv Cause')).toBeInTheDocument()
     })
 
     expect(getTotalFundingForCause).toHaveBeenCalledWith(
@@ -233,7 +233,7 @@ describe('StatementFundingPortalPage', () => {
     expect(screen.getByText('0 USDZZZ/month')).toBeInTheDocument()
   })
 
-  it('renders the Successful tab with the discovery slider when the Successful view is selected', async () => {
+  it('renders the Successful tab when the Successful view is selected', async () => {
     const userEvent = (await import('@testing-library/user-event')).default
     const user = userEvent.setup()
     const trustedImplicationAttesters = [TRUSTED_IMPLICATION_ATTESTER]
@@ -242,7 +242,7 @@ describe('StatementFundingPortalPage', () => {
     render(<StatementFundingPortalPage />)
 
     await waitFor(() => {
-      expect(screen.getByText('Cause Board')).toBeInTheDocument()
+      expect(screen.getByText('Subjectiv Cause')).toBeInTheDocument()
     })
 
     await user.click(screen.getByRole('tab', { name: 'Not yet reimbursed' }))
@@ -265,7 +265,7 @@ describe('StatementFundingPortalPage', () => {
     render(<StatementFundingPortalPage />)
 
     await waitFor(() => {
-      expect(screen.getByText('Cause Board')).toBeInTheDocument()
+      expect(screen.getByText('Subjectiv Cause')).toBeInTheDocument()
     })
 
     await user.click(screen.getByRole('tab', { name: 'Fully reimbursed' }))

@@ -1,14 +1,11 @@
-import { Alert } from '@mui/material'
 import { Link as RouterLink } from 'react-router-dom'
+import { Link, Typography } from '@mui/material'
 import { useAccount } from 'wagmi'
 import { useTrustedSet } from '@ui/shared'
 import { getRuntimeConfigValue } from '../lib/runtimeConfig'
 
-/**
- * Shown on project/cause-board surfaces when the visitor has no personal
- * trust set and CauseStarter is filtering vouches through the starter network.
- */
-export function StarterNetworkFilterNotice() {
+/** True when CauseStarter is filtering vouches through the starter network. */
+export function useUsingStarterNetworkFilter(): boolean {
   const { address } = useAccount()
   const { trustedSet: personalAlignmentAttesters, isLoading: personalTrustLoading } =
     useTrustedSet(address)
@@ -24,12 +21,24 @@ export function StarterNetworkFilterNotice() {
   const trustLoading =
     personalTrustLoading || (personalAlignmentAttesters === undefined && defaultTrustLoading)
 
-  if (trustLoading || !usingDefaultAlignmentTrust) return null
+  return !trustLoading && usingDefaultAlignmentTrust
+}
+
+/**
+ * Copy for project/cause-board surfaces when the visitor has no personal
+ * trust set and CauseStarter is filtering vouches through the starter network.
+ */
+export function StarterNetworkFilterCopy() {
+  if (!useUsingStarterNetworkFilter()) return null
 
   return (
-    <Alert severity="info" sx={{ borderRadius: 2 }} data-testid="starter-network-filter-notice">
+    <Typography variant="body2" data-testid="starter-network-filter-notice">
       Projects are filtered using CauseStarter's starter network. You can replace it with
-      your own choices in <RouterLink to="/settings">trust settings</RouterLink>.
-    </Alert>
+      your own choices in{' '}
+      <Link component={RouterLink} to="/settings" color="inherit" underline="always">
+        trust settings
+      </Link>
+      .
+    </Typography>
   )
 }

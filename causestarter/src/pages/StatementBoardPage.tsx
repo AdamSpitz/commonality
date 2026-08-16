@@ -1,7 +1,7 @@
 import { Link as RouterLink, useParams } from 'react-router-dom'
-import { Alert, Button, Stack } from '@mui/material'
+import { Alert, Button, Stack, Typography } from '@mui/material'
 import { CauseBoard } from '@ui/fundingportals'
-import { StarterNetworkFilterNotice } from '../components/StarterNetworkFilterNotice'
+import { StarterNetworkFilterCopy } from '../components/StarterNetworkFilterNotice'
 
 /**
  * CauseStarter host for the shared fundingportals {@link CauseBoard}.
@@ -36,13 +36,13 @@ export function StatementBoardPage() {
           variant: 'outlined',
         },
       ]}
-      headerExtra={
-        <Stack spacing={1.5}>
-          <Alert severity="info" sx={{ borderRadius: 2 }} data-testid="projects-help">
+      projectsHelp={
+        <Stack spacing={1}>
+          <Typography variant="body2">
             Projects vouched for as advancing this statement. Each is aligned with this
             statement, not with a cause as a whole.
-          </Alert>
-          <StarterNetworkFilterNotice />
+          </Typography>
+          <StarterNetworkFilterCopy />
         </Stack>
       }
     />

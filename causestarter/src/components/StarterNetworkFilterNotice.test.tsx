@@ -1,7 +1,7 @@
 import { cleanup, render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { StarterNetworkFilterNotice } from './StarterNetworkFilterNotice'
+import { StarterNetworkFilterCopy } from './StarterNetworkFilterNotice'
 
 const useTrustedSet = vi.fn()
 
@@ -22,7 +22,7 @@ afterEach(() => {
   useTrustedSet.mockReset()
 })
 
-describe('StarterNetworkFilterNotice', () => {
+describe('StarterNetworkFilterCopy', () => {
   it('explains starter-network filtering when the visitor has no personal trust set', () => {
     useTrustedSet.mockImplementation((root?: string) => {
       if (root === '0xstarter') {
@@ -33,7 +33,7 @@ describe('StarterNetworkFilterNotice', () => {
 
     render(
       <MemoryRouter>
-        <StarterNetworkFilterNotice />
+        <StarterNetworkFilterCopy />
       </MemoryRouter>,
     )
 
@@ -56,7 +56,7 @@ describe('StarterNetworkFilterNotice', () => {
 
     render(
       <MemoryRouter>
-        <StarterNetworkFilterNotice />
+        <StarterNetworkFilterCopy />
       </MemoryRouter>,
     )
 
