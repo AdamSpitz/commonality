@@ -12,6 +12,19 @@ vi.mock('@commonality/sdk/fundingportals', () => ({
   foldAlignedProjectFunding: vi.fn(),
 }))
 
+const contentState = {
+  channels: [] as unknown[],
+  contentAttestations: new Map(),
+  loading: false,
+}
+vi.mock('@ui/content-funding', async () => {
+  const actual = await vi.importActual<typeof import('@ui/content-funding')>('@ui/content-funding')
+  return {
+    ...actual,
+    useContentFundingState: () => contentState,
+  }
+})
+
 import {
   foldAlignedProjectFunding,
   getAllAlignedProjectsForCause,
@@ -22,6 +35,9 @@ const CID = 'bafytest'
 describe('useCauseProjects', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    contentState.channels = []
+    contentState.contentAttestations = new Map()
+    contentState.loading = false
     vi.mocked(getAllAlignedProjectsForCause).mockResolvedValue([])
     vi.mocked(foldAlignedProjectFunding).mockResolvedValue({
       totalReceived: [],
@@ -88,5 +104,39 @@ describe('useCauseProjects', () => {
       undefined,
       undefined,
     ))
+  })
+
+  it('adds content-funding contracts that contain posts attested to a plank', async () => {
+    contentState.channels = [{
+      contracts: [{
+        contractAddress: '0xcccccccccccccccccccccccccccccccccccccccc',
+        contentItems: [
+          { canonicalId: 'twitter:uid:1:111' },
+          { canonicalId: 'twitter:uid:1:222' },
+        ],
+        project: {
+          totalReceived: '10',
+          threshold: '100',
+          deadline: '1',
+          fundingCurrency: { symbol: 'ETH', decimals: 18 },
+        },
+      }],
+    }]
+    contentState.contentAttestations = new Map([
+      ['twitter:uid:1:111', [{
+        canonicalId: 'twitter:uid:1:111',
+        attested: true,
+        statementCid: CID,
+        attester: '0x1',
+        subjectId: 'x',
+      }]],
+    ])
+
+    const { result } = renderHook(() => useCauseProjects([CID], [], new Set()))
+
+    await waitFor(() => expect(result.current.projects).toHaveLength(1))
+    expect(result.current.projects[0]?.projectAddress).toBe('0xcccccccccccccccccccccccccccccccccccccccc')
+    expect(result.current.projects[0]?.alignedContentItemCount).toBe(1)
+    expect(result.current.projects[0]?.contentItemCount).toBe(2)
   })
 })

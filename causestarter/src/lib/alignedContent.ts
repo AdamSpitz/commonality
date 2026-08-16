@@ -64,3 +64,8 @@ export function selectAlignedContentItems(
 
   return rows
 }
+
+export {
+  selectAlignedContentContracts,
+  type AlignedContentContract,
+} from '@ui/content-funding'

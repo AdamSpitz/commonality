@@ -7,6 +7,7 @@ vi.mock('react-router-dom', () => ({
   Link: ({ children, to, ...props }: { children: React.ReactNode; to: string }) => (
     <a href={to} {...props}>{children}</a>
   ),
+  useSearchParams: () => [new URLSearchParams(), vi.fn()],
 }))
 
 vi.mock('../hooks/useContentFundingState', () => ({
@@ -369,5 +370,30 @@ describe('ContentFundingProjectSection', () => {
     render(<ContentFundingProjectSection projectAddress={projectAddress.toLowerCase()} />)
 
     expect(screen.getByText('Content Funding')).toBeInTheDocument()
+  })
+
+  it('labels posts as aligned or not attested as aligned', () => {
+    mockContentFundingState({
+      channels: [mockChannel(projectAddress, {
+        contentItems: [
+          { contentId: 1n, canonicalId: 'twitter:uid:123:111', status: 'submitted' },
+          { contentId: 2n, canonicalId: 'twitter:uid:123:222', status: 'submitted' },
+        ],
+      })],
+      contentAttestations: new Map([
+        ['twitter:uid:123:111', [{
+          canonicalId: 'twitter:uid:123:111',
+          attested: true,
+          attester: '0x1',
+          statementCid: 'bafy-a',
+          subjectId: 'x',
+        }]],
+      ]),
+    })
+
+    render(<ContentFundingProjectSection projectAddress={projectAddress} />)
+
+    expect(screen.getByText('Aligned')).toBeInTheDocument()
+    expect(screen.getByText('Not attested as aligned')).toBeInTheDocument()
   })
 })

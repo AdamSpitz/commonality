@@ -19,7 +19,8 @@ import {
   getAllAlignedProjectsForCause,
   type AlignedProjectFundingTotals,
 } from '@commonality/sdk/fundingportals'
-import type { Currency, IpfsCidV1 } from '@commonality/sdk/utils'
+import { ETH_CURRENCY, type Currency, type IpfsCidV1 } from '@commonality/sdk/utils'
+import { selectAlignedContentContracts, useContentFundingState } from '@ui/content-funding'
 import { useMachinery } from '../lib/useMachinery'
 
 export interface CauseProject {
@@ -32,6 +33,9 @@ export interface CauseProject {
   viaPlankCids: string[]
   /** 'direct' if it is directly aligned with any plank, else 'indirect'. */
   alignmentType: 'direct' | 'indirect'
+  /** Present when this row is (also) a content-funding contract with attested posts. */
+  alignedContentItemCount?: number
+  contentItemCount?: number
 }
 
 export interface UseCauseProjectsResult {
@@ -51,6 +55,11 @@ export function useCauseProjects(
   enabled = true,
 ): UseCauseProjectsResult {
   const machinery = useMachinery()
+  const {
+    channels,
+    contentAttestations,
+    loading: contentLoading,
+  } = useContentFundingState()
   const [projects, setProjects] = useState<CauseProject[]>([])
   const [totals, setTotals] = useState<AlignedProjectFundingTotals>()
   const [loading, setLoading] = useState(false)
@@ -131,6 +140,34 @@ export function useCauseProjects(
           }
         }
 
+        const contentContracts = selectAlignedContentContracts(
+          channels,
+          contentAttestations,
+          cids,
+        )
+        for (const contract of contentContracts) {
+          const existing = byAddress.get(contract.contractAddress)
+          if (existing) {
+            existing.alignedContentItemCount = contract.alignedItemCount
+            existing.contentItemCount = contract.contentItemCount
+            for (const cid of contract.viaStatementCids) {
+              if (!existing.viaPlankCids.includes(cid)) existing.viaPlankCids.push(cid)
+            }
+            continue
+          }
+          byAddress.set(contract.contractAddress, {
+            projectAddress: contract.contractAddress,
+            fundingCurrency: contract.fundingCurrency ?? ETH_CURRENCY,
+            totalReceived: contract.totalReceived,
+            threshold: contract.threshold,
+            deadline: contract.deadline,
+            alignmentType: 'direct',
+            viaPlankCids: [...contract.viaStatementCids],
+            alignedContentItemCount: contract.alignedItemCount,
+            contentItemCount: contract.contentItemCount,
+          })
+        }
+
         const deduped = [...byAddress.values()]
         const folded = await foldAlignedProjectFunding(
           machinery,
@@ -158,7 +195,17 @@ export function useCauseProjects(
     return () => {
       cancelled = true
     }
-  }, [machinery, publishedKey, tick, implicationTrustKey, alignmentTrustKey, enabled])
+  }, [
+    machinery,
+    publishedKey,
+    tick,
+    implicationTrustKey,
+    alignmentTrustKey,
+    enabled,
+    channels.length,
+    contentAttestations.size,
+    contentLoading,
+  ])
 
   const countByPlankCid = useMemo(() => {
     const counts = new Map<string, number>()

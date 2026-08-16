@@ -3,6 +3,7 @@ import type { ChannelWithCanonicalId } from '@commonality/sdk/content-funding'
 import {
   contentChannelPath,
   contentItemPublicUrl,
+  selectAlignedContentContracts,
   selectAlignedContentItems,
 } from './alignedContent'
 
@@ -64,6 +65,26 @@ describe('selectAlignedContentItems', () => {
       }]],
     ])
     expect(selectAlignedContentItems([channel()], attestations, [STATEMENT_A])).toEqual([])
+  })
+})
+
+describe('selectAlignedContentContracts', () => {
+  it('groups aligned items by contract and counts mixed batches', () => {
+    const attestations = new Map([
+      ['twitter:uid:1:111', [{
+        canonicalId: 'twitter:uid:1:111',
+        subjectId: 'x',
+        attested: true,
+        attester: '0x1',
+        statementCid: STATEMENT_A,
+      }]],
+    ])
+    const rows = selectAlignedContentContracts([channel()], attestations, [STATEMENT_A])
+    expect(rows).toHaveLength(1)
+    expect(rows[0]?.contractAddress).toBe('0xabc')
+    expect(rows[0]?.alignedItemCount).toBe(1)
+    expect(rows[0]?.contentItemCount).toBe(2)
+    expect(rows[0]?.viaStatementCids).toEqual([STATEMENT_A])
   })
 })
 

@@ -10,6 +10,11 @@ When an item from this page is done and no longer needs an LLM implementor's att
 
 ----
 
+- Finish **content contracts on the cause board** (inclusion rule is already
+  implemented; do not rebuild it). Remaining work and file pointers:
+  [`causestarter/TODO.md`](causestarter/TODO.md) § Content contracts on the
+  cause board.
+
 - Add a fresh-stack integration test for the alignment-trust bootstrap: publish
   an alignment vouch from a previously unknown wallet, observe the service's
   `TrustSet(..., 100)`, confirm a wallet with no personal graph sees that vouch

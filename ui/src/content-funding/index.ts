@@ -19,6 +19,10 @@ export { ContentFundingProjectSection } from './components/ContentFundingProject
 export { useClaimFlow } from './hooks/useClaimFlow'
 export { useContentFundingState } from './hooks/useContentFundingState'
 export type { ContentAttestationInfo } from './hooks/useContentFundingState'
+export {
+  selectAlignedContentContracts,
+  type AlignedContentContract,
+} from './selectAlignedContent'
 
 export {
   getChannelDisplayLabels,

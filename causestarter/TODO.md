@@ -5,6 +5,49 @@ open **if they stay listed here**.
 
 ## Product / UX
 
+- [ ] **Content contracts on the cause board — leftover after first slice.**
+  Product rule (settled): list the *contract* (not individual posts) on the
+  cause project list when any post in that contract has a current positive
+  content attestation to a published plank. Dedup by address with vouched
+  LazyGiving projects. Prospective / not-yet-materialized rounds appear
+  only via a project-level vouch. Do **not** add an include/exclude
+  checkbox. Do **not** mix post rows into the project list. The dedicated
+  content board (`/cause/.../content`) stays as a post-level surface.
+
+  **Already landed (do not redo):**
+  - Inclusion helper: `ui/src/content-funding/selectAlignedContent.ts`
+    (`selectAlignedContentContracts`).
+  - Cause page union: `causestarter/src/hooks/useCauseProjects.ts` merges
+    those contracts into the plank-aligned project list; cards in
+    `CauseDetailPage.tsx` show “N of M posts attested” and a Content chip,
+    and link with `?aligned=<plankCids>`.
+  - Shared statement boards: `ui/src/fundingportals/components/AlignedProjectsList.tsx`.
+  - Contract detail: `ContentFundingProjectSection.tsx` labels each post
+    **Aligned** vs **Not attested as aligned**, and explains the batch
+    succeeds or fails as a whole.
+
+  **Still to do:**
+  1. **Verify on a live local cause** (`http://localhost:5174`) that has
+     both a vouched LazyGiving project and a content contract with mixed
+     attested/unattested posts. Confirm one contract row, honest N-of-M
+     copy, and the detail-page labels. Seed data may not already have this
+     mix — add a focused seed or fake-data scenario if the board is empty.
+  2. **Trust filter.** Inclusion currently treats *any* positive content
+     attestation as enough. Decide whether it should require a trusted
+     content attester (same spirit as Subjectiv filtering of project
+     vouches) and implement that if yes.
+  3. **Update founder e2e copy** in
+     `verifier/checks/review/founder-e2e/causestarter.md` so the cause
+     board is described as projects *plus* relevant content contracts, not
+     only a separate specialized content board.
+  4. **Effect deps.** `useCauseProjects` / `AlignedProjectsList` re-merge
+     on `channels.length` and `contentAttestations.size` only, to avoid
+     infinite re-renders from unstable hook identities. If attestations
+     change without those counts changing, the list can go stale — tighten
+     if you see that.
+  5. Delete this item from *root* `TODO.md` when the leftovers above are
+     done; keep a one-liner here only if a product gap remains.
+
 - [ ] **Anchors are not built.** A founder cannot promote a proven view into a published statement, so the three things only an anchor can do — sign the combination, earmark to it, align a project with it — remain unavailable. See [shaping-your-cause-statements.md § Promotion](/docs/founder/shaping-your-cause-statements.md#promotion). The seat for it is the cause page's view strip.
 - [ ] View counts fetch believer sets per plank, and each fetch walks events for the plank *plus* every statement implying it, under a `limit: 10000` that truncates silently. Fine locally; measure before it matters. Remedy is an indexer-side aggregate ([§ Scale](/docs/founder/shaping-your-cause-statements.md#scale-the-fold-is-fine-the-transport-isnt)), optionally sketch-backed — but band 1 must stay exact.
 

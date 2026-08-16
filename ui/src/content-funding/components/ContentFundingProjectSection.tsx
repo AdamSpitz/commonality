@@ -9,7 +9,7 @@ import {
   Switch,
   Tooltip,
 } from '@mui/material'
-import { Link as RouterLink } from 'react-router-dom'
+import { Link as RouterLink, useSearchParams } from 'react-router-dom'
 import { formatCurrencyAmount } from '../../shared'
 import { getContentItemKey, type ContentItem } from '@commonality/sdk/content-funding'
 import { ETH_CURRENCY } from '@commonality/sdk/utils'
@@ -57,9 +57,18 @@ function getContentUrl(canonicalId: string): string | null {
   return null
 }
 
-function ContentItemList({ items, contentAttestations }: { items: ContentItem[]; contentAttestations?: Map<string, ContentAttestationInfo[]> }) {
+function ContentItemList({
+  items,
+  contentAttestations,
+  highlightStatementCids,
+}: {
+  items: ContentItem[]
+  contentAttestations?: Map<string, ContentAttestationInfo[]>
+  highlightStatementCids?: readonly string[]
+}) {
   const trustedAttesters = useTrustedContentAttesters()
   const [showTrustedOnly, setShowTrustedOnly] = useState(false)
+  const highlight = new Set((highlightStatementCids ?? []).filter(Boolean))
 
   if (items.length === 0) return null
 
@@ -112,6 +121,10 @@ function ContentItemList({ items, contentAttestations }: { items: ContentItem[];
           />
         )}
       </Stack>
+      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+        This round funds the whole batch if the threshold is met. Only posts marked Aligned
+        have a current positive attestation.
+      </Typography>
       <Stack spacing={1}>
         {visibleItems.map((item) => {
           const url = getContentUrl(item.canonicalId)
@@ -120,6 +133,10 @@ function ContentItemList({ items, contentAttestations }: { items: ContentItem[];
           const hasTrustedAttestation = trustedMatches.length > 0
           const hasAnyAttestation = attestations && attestations.length > 0
           const isUncovered = trustedAttesters.length > 0 && !hasTrustedAttestation
+          const alignedAttestations = (attestations ?? []).filter((entry) => (
+            entry.attested && (highlight.size === 0 || highlight.has(entry.statementCid))
+          ))
+          const isAligned = alignedAttestations.length > 0
           return (
             <Box
               key={getContentItemKey(item)}
@@ -156,6 +173,11 @@ function ContentItemList({ items, contentAttestations }: { items: ContentItem[];
               {item.status === 'released' && (
                 <Chip label="Released" size="small" variant="outlined" />
               )}
+              {isAligned ? (
+                <Chip label="Aligned" size="small" color="success" />
+              ) : (
+                <Chip label="Not attested as aligned" size="small" variant="outlined" />
+              )}
               {isUncovered && (
                 <Tooltip title={hasAnyAttestation ? 'This content has attestations but none from your trusted attesters' : 'No attester has evaluated this content yet — it may be a coverage gap'}>
                   <Chip label="Uncovered" size="small" color="warning" variant="outlined" />
@@ -178,6 +200,11 @@ interface ContentFundingProjectSectionProps {
 }
 
 export function ContentFundingProjectSection({ projectAddress }: ContentFundingProjectSectionProps) {
+  const [searchParams] = useSearchParams()
+  const highlightStatementCids = (searchParams.get('aligned') ?? '')
+    .split(',')
+    .map((cid) => decodeURIComponent(cid.trim()))
+    .filter(Boolean)
   const { state, channels, loading, contentAttestations, channelDisplayMetadata = new Map() } = useContentFundingState()
 
   // eslint-disable-next-line react-hooks/preserve-manual-memoization -- React Compiler can't preserve this memo as-is; not worth restructuring for an unrelated lint rule
@@ -292,7 +319,11 @@ export function ContentFundingProjectSection({ projectAddress }: ContentFundingP
       </Stack>
 
       {contract.contentItems.length > 0 && (
-        <ContentItemList items={contract.contentItems} contentAttestations={contentAttestations} />
+        <ContentItemList
+          items={contract.contentItems}
+          contentAttestations={contentAttestations}
+          highlightStatementCids={highlightStatementCids}
+        />
       )}
     </Paper>
   )

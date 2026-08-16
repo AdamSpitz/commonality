@@ -64,9 +64,23 @@ vi.mock('../../content-funding/hooks/useContentFundingState', () => ({
   useContentFundingState: vi.fn(() => ({
     state: null,
     channels: [],
+    contentAttestations: new Map(),
     loading: false,
   })),
 }))
+
+vi.mock('../../content-funding', async () => {
+  const actual = await vi.importActual<typeof import('../../content-funding')>('../../content-funding')
+  return {
+    ...actual,
+    useContentFundingState: vi.fn(() => ({
+      state: null,
+      channels: [],
+      contentAttestations: new Map(),
+      loading: false,
+    })),
+  }
+})
 
 import { getAllAlignedProjectsForCause } from '@commonality/sdk/fundingportals'
 import { getProject } from '@commonality/sdk/lazy-giving'

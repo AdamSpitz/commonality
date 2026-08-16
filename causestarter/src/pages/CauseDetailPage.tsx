@@ -1253,7 +1253,11 @@ export function CauseDetailPage() {
                   <Box sx={{ flex: 1, minWidth: 0 }}>
                     <Typography
                       component={RouterLink}
-                      to={projectPathForAddress(project.projectAddress)}
+                      to={`${projectPathForAddress(project.projectAddress)}${
+                        project.viaPlankCids.length > 0
+                          ? `?aligned=${project.viaPlankCids.map(encodeURIComponent).join(',')}`
+                          : ''
+                      }`}
                       variant="subtitle2"
                       sx={{
                         fontWeight: 700,
@@ -1270,6 +1274,9 @@ export function CauseDetailPage() {
                       {project.viaPlankCids.length === 1
                         ? '1 issue'
                         : `${project.viaPlankCids.length} issues`}
+                      {project.alignedContentItemCount != null && project.contentItemCount != null
+                        ? ` · ${project.alignedContentItemCount} of ${project.contentItemCount} posts attested`
+                        : ''}
                       {status === 'active' && project.deadline
                         ? ` · ${formatRelativeDeadline(project.deadline)}`
                         : ''}
@@ -1294,12 +1301,17 @@ export function CauseDetailPage() {
                       </Typography>
                     </Box>
                   </Box>
-                  <Chip
-                    size="small"
-                    label={project.alignmentType}
-                    variant="outlined"
-                    sx={{ textTransform: 'capitalize' }}
-                  />
+                  <Stack spacing={0.5} alignItems="flex-end">
+                    {project.alignedContentItemCount != null && (
+                      <Chip size="small" label="Content" variant="outlined" />
+                    )}
+                    <Chip
+                      size="small"
+                      label={project.alignmentType}
+                      variant="outlined"
+                      sx={{ textTransform: 'capitalize' }}
+                    />
+                  </Stack>
                 </Stack>
               </Paper>
               )

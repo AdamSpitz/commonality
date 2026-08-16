@@ -14,8 +14,9 @@ import {
 import SortIcon from '@mui/icons-material/Sort'
 import { getAllAlignedProjectsForCause } from '@commonality/sdk/fundingportals'
 import { getProject } from '@commonality/sdk/lazy-giving'
-import { type IpfsCidV1 } from '@commonality/sdk/utils'
+import { ETH_CURRENCY, type IpfsCidV1 } from '@commonality/sdk/utils'
 import { getDomainUrl, isDomainConfigured, useMachinery, useTrustedSet } from '../../shared'
+import { selectAlignedContentContracts, useContentFundingState } from '../../content-funding'
 import { getProjectStatus } from '../../lazy-giving'
 import {
   AlignedProjectCard,
@@ -67,6 +68,7 @@ export function AlignedProjectsList({
 }) {
   const machinery = useMachinery()
   const { address } = useAccount()
+  const { channels, contentAttestations } = useContentFundingState()
   const [discoveryLevel, setDiscoveryLevel] = useState<DiscoveryLevel>('network')
   const maxHops = DISCOVERY_LEVEL_MAX_HOPS[discoveryLevel]
   const { trustedSet, isLoading: trustedSetLoading } = useTrustedSet(address, { maxHops })
@@ -95,7 +97,20 @@ export function AlignedProjectsList({
         )
         if (cancelled) return
 
-        setProjects(dedupeProjectsForDisplay(aligned))
+        const contentRows = selectAlignedContentContracts(
+          channels,
+          contentAttestations,
+          [statementCid],
+        ).map((contract) => ({
+          projectAddress: contract.contractAddress,
+          alignmentType: 'direct' as const,
+          fundingCurrency: contract.fundingCurrency ?? ETH_CURRENCY,
+          totalReceived: contract.totalReceived,
+          threshold: contract.threshold,
+          deadline: contract.deadline,
+        }))
+
+        setProjects(dedupeProjectsForDisplay([...aligned, ...contentRows]))
 
         // Read project display metadata through the CID-first migration seam.
         const metadataEntries = await Promise.all(
@@ -125,7 +140,14 @@ export function AlignedProjectsList({
 
     load()
     return () => { cancelled = true }
-  }, [machinery, statementCid, trustedImplicationAttesters, activeTrustedAlignmentAttesters])
+  }, [
+    machinery,
+    statementCid,
+    trustedImplicationAttesters,
+    activeTrustedAlignmentAttesters,
+    channels.length,
+    contentAttestations.size,
+  ])
 
   const effectiveStatus = statusFilterLock ?? statusFilter
   const filtered = projects
