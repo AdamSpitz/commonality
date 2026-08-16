@@ -10,11 +10,6 @@ When an item from this page is done and no longer needs an LLM implementor's att
 
 ----
 
-- **Content contracts on the cause board — live mix still missing.** Trust
-  filter, founder e2e copy, and attestation-fingerprint effect deps are in.
-  Remaining: seed or attest a mixed batch onto a live local cause and
-  confirm one contract row + N-of-M on `http://localhost:5174`. (ADAM'S NOTE: yes, enhance the seed data so it includes some stuff like this, don't just do a one-time attestation on the live system. I want the seed data to include things like this.) See [`causestarter/TODO.md`](causestarter/TODO.md).
-
 - Add a fresh-stack integration test for the alignment-trust bootstrap: publish
   an alignment vouch from a previously unknown wallet, observe the service's
   `TrustSet(..., 100)`, confirm a wallet with no personal graph sees that vouch

@@ -10,7 +10,8 @@ import { FundingAndDelegationActions, getSeedProjectAlignmentRef } from './fundi
 import { AttackScenarios } from './attackScenarios.js';
 import { InvariantChecker } from './invariantChecker.js';
 import { loadEnv, CONTRACT_ADDRESSES, RPC_URL } from './loadEnv.js';
-import { generateContentFundingScenarios } from './contentFundingActions.js';
+import { generateContentFundingScenarios, SEED_CONTENT_ALIGNMENT_REF } from './contentFundingActions.js';
+import { publishSeedLocalFoodCause } from './seedCauseRoster.js';
 import { BeliefsAbi, ImplicationsAbi, AlignmentAttestationsAbi, ProjectFactoryAbi, AssuranceContractAbi, DelegatableNotesAbi, NudgePublicationsAbi } from '@commonality/sdk/abis';
 import { toSubjectId, PROJECT_ALIGNMENT_TOPIC } from '@commonality/sdk/fundingportals';
 import { cidToBytes32, type IpfsCidV1, type IPFSConfig, uploadToIPFS } from '@commonality/sdk/utils';
@@ -1330,12 +1331,27 @@ async function main(): Promise<void> {
     await publishSeedProjectSuccesses(simulation);
   }
 
+  let localFoodPlankCid: IpfsCidV1 | undefined;
+  try {
+    const statementsByRef = await mapSeedStatementsToUploadedCids(simulation.statements);
+    if (statementsByRef.size > 0) {
+      localFoodPlankCid = requireSeedStatement(
+        statementsByRef,
+        SEED_CONTENT_ALIGNMENT_REF,
+        'seed content alignment',
+      ).cid;
+    }
+  } catch (error) {
+    console.warn('Could not resolve seed local-food-systems plank.', error);
+  }
+
   // Generate content-funding on-chain state (deterministic scenarios).
   const cfAddresses = {
     channelRegistry: CONTRACT_ADDRESSES.channelRegistry,
     channelVerifier: CONTRACT_ADDRESSES.channelVerifier,
     creatorContractFactory: CONTRACT_ADDRESSES.creatorContractFactory,
     publishedData: CONTRACT_ADDRESSES.publishedData,
+    alignmentAttestations: CONTRACT_ADDRESSES.alignmentAttestations,
   };
   if (cfAddresses.channelRegistry && cfAddresses.channelVerifier && cfAddresses.creatorContractFactory) {
     await generateContentFundingScenarios(
@@ -1344,12 +1360,18 @@ async function main(): Promise<void> {
         channelVerifier: `0x${string}`;
         creatorContractFactory: `0x${string}`;
         publishedData?: `0x${string}`;
+        alignmentAttestations?: `0x${string}`;
       },
       simulation.users,
+      localFoodPlankCid ? { statementCid: localFoodPlankCid } : undefined,
     );
   } else {
     console.warn('Content-funding addresses not configured — skipping content-funding scenarios.');
     console.warn('  (Set CHANNEL_REGISTRY_ADDRESS, CHANNEL_VERIFIER_ADDRESS, CREATOR_CONTRACT_FACTORY_ADDRESS in .env)');
+  }
+
+  if (localFoodPlankCid) {
+    await publishSeedLocalFoodCause(localFoodPlankCid);
   }
 
   // Run attack scenarios if requested

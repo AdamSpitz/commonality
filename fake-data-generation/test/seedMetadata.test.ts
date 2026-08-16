@@ -7,7 +7,21 @@ import {
 } from '../../sdk/src/subsystems/conceptspace/constants.js';
 import { publishedDataCidForDocument } from '../../sdk/src/subsystems/displayable-documents/displayable-document.js';
 import { getSeedProjectAlignmentRef, getSeedProjectMetadata } from '../fundingAndDelegationActions.js';
-import { buildContractMetadata } from '../contentFundingActions.js';
+import {
+  buildContractMetadata,
+  SEED_CONTENT_ALIGNMENT_REF,
+  seedMixedContentAlignmentCanonicalIds,
+} from '../contentFundingActions.js';
+import {
+  buildSeedRosterDocument,
+  CAUSE_BOOKMARKS_SCHEMA_VERSION,
+  ROSTER_KIND,
+  ROSTER_SCHEMA_VERSION,
+  SEED_CAUSE_OWNER_ADDRESS,
+  SEED_CAUSE_SLUG,
+  seedCauseRosterFields,
+  serializeSeedCauseBookmarkList,
+} from '../seedCauseRoster.js';
 import { createStatementDocumentFromSeed, flattenSeedStatements, loadSeedCollections } from '../seed-content-format.js';
 
 test('seed LazyGiving projects have human-readable metadata', () => {
@@ -82,4 +96,41 @@ test('content-funding seed contracts use uploadable metadata instead of fake IPF
   assert.equal(metadata.contractType, 'creator');
   assert.deepEqual(metadata.contentSuffixes, ['my-first-big-piece']);
   assert.doesNotMatch(JSON.stringify(metadata), /fake-metadata/);
+});
+
+test('seed content contracts leave a mixed attested/unattested batch for the cause board', async () => {
+  const records = flattenSeedStatements(await loadSeedCollections());
+  const plank = records.find((record) =>
+    record.collection.id === SEED_CONTENT_ALIGNMENT_REF.collectionId &&
+    record.group.id === SEED_CONTENT_ALIGNMENT_REF.groupId &&
+    record.statement.id === SEED_CONTENT_ALIGNMENT_REF.statementId);
+  assert.ok(plank, 'content-alignment plank must exist in seed statements');
+
+  const attested = seedMixedContentAlignmentCanonicalIds();
+  assert.equal(attested.length, 1);
+  assert.equal(attested[0], 'twitter:uid:111111111:1000000000000000001');
+  assert.notEqual(attested[0], 'twitter:uid:111111111:1000000000000000002');
+});
+
+test('seed cause roster is a CauseStarter document owned by Hardhat #0', () => {
+  const fields = seedCauseRosterFields('bafkreiplankcid');
+  const doc = buildSeedRosterDocument(fields);
+  assert.equal(doc.extras?.kind, ROSTER_KIND);
+  assert.equal(doc.extras?.version, ROSTER_SCHEMA_VERSION);
+  assert.deepEqual(doc.extras?.plankCids, ['bafkreiplankcid']);
+  assert.match(doc.content, /# Local food systems/);
+  assert.equal(SEED_CAUSE_SLUG, 'local-food-systems');
+  assert.equal(
+    SEED_CAUSE_OWNER_ADDRESS.toLowerCase(),
+    '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266',
+  );
+
+  const bookmarks = JSON.parse(serializeSeedCauseBookmarkList([
+    { owner: SEED_CAUSE_OWNER_ADDRESS, slug: SEED_CAUSE_SLUG },
+  ]));
+  assert.equal(bookmarks.version, CAUSE_BOOKMARKS_SCHEMA_VERSION);
+  assert.deepEqual(bookmarks.causes, [{
+    owner: SEED_CAUSE_OWNER_ADDRESS.toLowerCase(),
+    slug: SEED_CAUSE_SLUG,
+  }]);
 });

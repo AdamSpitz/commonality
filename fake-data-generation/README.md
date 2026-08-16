@@ -235,6 +235,22 @@ The simulation performs these actions:
 - `delegateNote` - Delegate note ownership to another user (4% weight)
 - `revokeDelegation` - Revoke a delegation and reclaim note ownership (2% weight)
 
+### Content-funding scenarios
+
+After the random rounds, `generateContentFundingScenarios` deploys a few
+deterministic channels/contracts. The unclaimed Twitter (`@civicbuilder`)
+contract has two posts; only
+`twitter:uid:111111111:1000000000000000001` is attested to the same
+`local-food-systems` plank as the Riverside Community Garden project, signed
+by `CONTENT_ATTESTER_PRIVATE_KEY` so CauseStarter's trusted-content filter
+accepts it. A cause that publishes that plank should show one content-contract
+row with “1 of 2 posts attested”.
+
+The same seed publishes a CauseStarter roster at
+`/cause/0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266/local-food-systems`
+(Hardhat #0) and writes `bookmarked-causes` for Hardhat `#0`–`#9`, so any of
+those accounts sees the cause on the landing page after connect.
+
 ## Metrics Collected
 
 - **Gas usage** - mean, median, p95, max per action type

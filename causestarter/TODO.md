@@ -27,15 +27,18 @@ open **if they stay listed here**.
     succeeds or fails as a whole.
 
   **Still to do:**
-  1. **Verify on a live local cause** (`http://localhost:5174`) that has
-     both a vouched LazyGiving project and a content contract with mixed
-     attested/unattested posts. Confirm one contract row, honest N-of-M
-     copy, and the detail-page labels. Seed content-funding contracts do
-     **not** currently emit plank-aligned content attestations, so the
-     cause board will stay empty of contract rows until a focused seed
-     (or a manual attestation) is added.
+  1. After a seed (`./scripts/data.sh --seed` or `--seed=demo`), connect
+     as Hardhat `#0` (or any `#0`–`#9`) on `http://localhost:5174`. The
+     landing page should list the seeded **Local food systems** cause
+     (`/cause/0xf39F…2266/local-food-systems`). Confirm the board shows
+     the Riverside garden project **and** one `@civicbuilder`
+     content-contract row with “1 of 2 posts attested”. This has not
+     been walked in a live browser this pass.
 
   **Done this pass:**
+  - Seed now emits a mixed content-alignment batch
+    (`fake-data-generation/contentFundingActions.ts`:
+    `SEED_CONTENT_ALIGNMENT_REF` / `seedMixedContentAlignmentCanonicalIds`).
   - Trust filter: inclusion now requires a *trusted* content attester when
     any are configured (`useTrustedContentAttesters` / env defaults), same
     spirit as Subjectiv project vouches. Empty trust set stays unfiltered.

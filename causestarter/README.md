@@ -109,6 +109,12 @@ Vite bakes `VITE_*` into the bundle at build time, so change the id → rebuild/
 
 For local hardhat (chain id `31337`), switch your wallet to that network after connecting (RPC `http://127.0.0.1:8545`), or use the built-in Hardhat #0–#9 local connectors.
 
+After `./scripts/data.sh --seed`, connect as **Hardhat #0** (or any of `#0`–`#9`).
+The landing page should include the seeded **Local food systems** cause
+(`/cause/0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266/local-food-systems`), whose
+board lists the Riverside garden project and the mixed `@civicbuilder` content
+contract.
+
 ## Local stack (core domain)
 
 CauseStarter is part of the default local stack:

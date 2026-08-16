@@ -15,14 +15,17 @@ import {
   createWalletClient,
   http,
   keccak256,
+  parseEther,
   toBytes,
   type Hex,
 } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { ChannelRegistryAbi } from '../indexer/abis/ChannelRegistryAbi.js';
 import { CreatorAssuranceContractFactoryAbi } from '../indexer/abis/CreatorAssuranceContractFactoryAbi.js';
-import { AssuranceContractAbi, PublishedDataAbi } from '@commonality/sdk/abis';
-import { type WriteClients } from '@commonality/sdk/utils';
+import { AlignmentAttestationsAbi, AssuranceContractAbi, PublishedDataAbi } from '@commonality/sdk/abis';
+import { hashCanonicalId } from '@commonality/sdk/content-funding';
+import { attestAlignment, PROJECT_ALIGNMENT_TOPIC } from '@commonality/sdk/fundingportals';
+import { type IpfsCidV1, type WriteClients } from '@commonality/sdk/utils';
 import { createIPFSConfigInNodeJSFromTheUsualEnvVars } from '@commonality/sdk/node';
 import { createSDKMachinery } from '@commonality/sdk/machinery';
 import { createDefaultDocumentStore, createDisplayableDocument } from '@commonality/sdk/displayable-documents';
@@ -107,6 +110,23 @@ function readableChannelName(channelCanonicalId: string): string {
     case 'substack:smartwriter': return 'Smart Writer';
     default: return channelCanonicalId;
   }
+}
+
+/** Same plank the Riverside garden project aligns to — so a cause that includes
+ *  `local-food-systems` shows both the LazyGiving project and this content contract. */
+export const SEED_CONTENT_ALIGNMENT_REF = {
+  collectionId: 'fundable-projects',
+  groupId: 'local-community',
+  statementId: 'local-food-systems',
+} as const;
+
+const TWITTER_CHANNEL = 'twitter:uid:111111111';
+const TWITTER_SUFFIXES = ['1000000000000000001', '1000000000000000002'] as const;
+
+/** Canonical IDs that receive a seed content attestation. The Twitter contract
+ *  has two posts; only the first is attested so the cause board can show 1 of 2. */
+export function seedMixedContentAlignmentCanonicalIds(): string[] {
+  return [`${TWITTER_CHANNEL}:${TWITTER_SUFFIXES[0]}`];
 }
 
 export function buildContractMetadata(
@@ -421,6 +441,40 @@ async function getERC1155Address(
   }) as Promise<`0x${string}`>;
 }
 
+async function fundIfNeeded(
+  from: ReturnType<typeof createClients>,
+  to: `0x${string}`,
+  amount = parseEther('1'),
+) {
+  const balance = await from.publicClient.getBalance({ address: to });
+  if (balance >= parseEther('0.05')) return;
+  const hash = await from.walletClient.sendTransaction({
+    to,
+    value: amount,
+    chain: hardhat,
+    account: from.walletClient.account!,
+  });
+  await waitForTx(from.publicClient, hash);
+}
+
+async function attestContentToPlank(
+  attesterKey: Hex,
+  alignmentAttestations: `0x${string}`,
+  canonicalContentId: string,
+  statementCid: IpfsCidV1,
+) {
+  const clients = createClients(attesterKey);
+  const hash = await attestAlignment(
+    clients as WriteClients,
+    { address: alignmentAttestations, abi: AlignmentAttestationsAbi },
+    hashCanonicalId(canonicalContentId),
+    statementCid,
+    PROJECT_ALIGNMENT_TOPIC,
+  );
+  await clients.publicClient.waitForTransactionReceipt({ hash });
+  console.log(`  ✓ Content attested to plank: ${canonicalContentId}`);
+}
+
 // ---------------------------------------------------------------------------
 // Main export
 // ---------------------------------------------------------------------------
@@ -430,6 +484,14 @@ export interface ContentFundingAddresses {
   channelVerifier: `0x${string}`;
   creatorContractFactory: `0x${string}`;
   publishedData?: `0x${string}`;
+  alignmentAttestations?: `0x${string}`;
+}
+
+export interface ContentFundingAlignmentSeed {
+  statementCid: IpfsCidV1;
+  /** Defaults to `CONTENT_ATTESTER_PRIVATE_KEY` so the cause-board trust filter
+   *  (VITE_DEFAULT_TRUSTED_CONTENT_ATTESTERS) accepts the attestation. */
+  attesterPrivateKey?: Hex;
 }
 
 /**
@@ -439,6 +501,7 @@ export interface ContentFundingAddresses {
 export async function generateContentFundingScenarios(
   addresses: ContentFundingAddresses,
   users: User[],
+  alignment?: ContentFundingAlignmentSeed,
 ): Promise<void> {
   console.log('\n=== Generating Content-Funding Scenarios ===\n');
 
@@ -478,8 +541,8 @@ export async function generateContentFundingScenarios(
   // -------------------------------------------------------------------------
   console.log('--- Scenario 1: Unclaimed Twitter channel ---');
   {
-    const channelCanonicalId = 'twitter:uid:111111111';
-    const contentSuffixes = ['1000000000000000001', '1000000000000000002'];
+    const channelCanonicalId = TWITTER_CHANNEL;
+    const contentSuffixes = [...TWITTER_SUFFIXES];
     const supplies = [100n, 100n];
     const tokenPrice = parsePaymentTokenUnits('0.01');
     const prices = [tokenPrice, tokenPrice];
@@ -506,6 +569,24 @@ export async function generateContentFundingScenarios(
 
     await buyTokens(buyerAClients, contractAddress, erc1155, [firstContentId], [5n], [tokenPrice]);
     await buyTokens(buyerBClients, contractAddress, erc1155, [firstContentId, secondContentId], [3n, 2n], [tokenPrice, tokenPrice]);
+
+    const attesterKey = (alignment?.attesterPrivateKey
+      ?? process.env.CONTENT_ATTESTER_PRIVATE_KEY) as Hex | undefined;
+    if (alignment && addresses.alignmentAttestations && attesterKey) {
+      const attester = createClients(attesterKey);
+      await fundIfNeeded(fanClients, attester.account);
+      for (const canonicalId of seedMixedContentAlignmentCanonicalIds()) {
+        await attestContentToPlank(
+          attesterKey,
+          addresses.alignmentAttestations,
+          canonicalId,
+          alignment.statementCid,
+        );
+      }
+      console.log(`  Mixed alignment: ${seedMixedContentAlignmentCanonicalIds().length} of ${contentSuffixes.length} posts attested to the local-food-systems plank.`);
+    } else if (alignment) {
+      console.warn('  Alignment seed requested but alignment contract or CONTENT_ATTESTER_PRIVATE_KEY is missing — skipping content attestations.');
+    }
 
     console.log(`  Channel ${channelCanonicalId}: unclaimed, 1 contract, buyers have purchased tokens.\n`);
   }
