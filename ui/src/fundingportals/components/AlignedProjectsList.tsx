@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { useAccount } from 'wagmi'
 import {
   Box,
@@ -88,6 +88,14 @@ export function AlignedProjectsList({
   const maxHops = DISCOVERY_LEVEL_MAX_HOPS[discoveryLevel]
   const { trustedSet, isLoading: trustedSetLoading } = useTrustedSet(address, { maxHops })
   const activeTrustedAlignmentAttesters = trustedAlignmentAttesters ?? (discoveryLevel === 'anyone' ? undefined : trustedSet)
+  const implicationTrustKey = useMemo(() => {
+    if (!trustedImplicationAttesters) return ''
+    return [...trustedImplicationAttesters].map((a) => a.toLowerCase()).sort().join(',')
+  }, [trustedImplicationAttesters])
+  const alignmentTrustKey = useMemo(() => {
+    if (!activeTrustedAlignmentAttesters) return ''
+    return [...activeTrustedAlignmentAttesters].map((a) => a.toLowerCase()).sort().join(',')
+  }, [activeTrustedAlignmentAttesters])
 
   const [projects, setProjects] = useState<AlignedProject[]>([])
   const [metadata, setMetadata] = useState<Record<string, ProjectMetadata>>({})
@@ -95,22 +103,29 @@ export function AlignedProjectsList({
   const [error, setError] = useState<string | null>(null)
   const [sortBy, setSortBy] = useState<SortOption>('latest')
   const [statusFilter, setStatusFilter] = useState<StatusFilter>(statusFilterLock ?? 'all')
+  const hasResolvedRef = useRef(false)
 
   useEffect(() => {
     let cancelled = false
 
     async function load() {
-      setLoading(true)
+      if (!hasResolvedRef.current) setLoading(true)
       setError(null)
       try {
         const loadCids = cidsKey ? cidsKey.split('\0') : []
+        const implicationForLoad = implicationTrustKey
+          ? implicationTrustKey.split(',')
+          : undefined
+        const alignmentForLoad = alignmentTrustKey
+          ? new Set(alignmentTrustKey.split(','))
+          : undefined
         const perPlank = await Promise.all(
           loadCids.map((cid) =>
             getAllAlignedProjectsForCause(
               machinery,
               cid as IpfsCidV1,
-              trustedImplicationAttesters,
-              activeTrustedAlignmentAttesters,
+              implicationForLoad,
+              alignmentForLoad,
             ),
           ),
         )
@@ -155,7 +170,10 @@ export function AlignedProjectsList({
           setError(err instanceof Error ? err.message : 'Failed to load aligned projects')
         }
       } finally {
-        if (!cancelled) setLoading(false)
+        if (!cancelled) {
+          hasResolvedRef.current = true
+          setLoading(false)
+        }
       }
     }
 
@@ -164,8 +182,8 @@ export function AlignedProjectsList({
   }, [
     machinery,
     cidsKey,
-    trustedImplicationAttesters,
-    activeTrustedAlignmentAttesters,
+    implicationTrustKey,
+    alignmentTrustKey,
     channels.length,
     contentAttestationsKey,
     contentTrustKey,

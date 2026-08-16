@@ -3,7 +3,6 @@ import {
   Alert,
   Box,
   Button,
-  Chip,
   CircularProgress,
   Paper,
   Stack,
@@ -13,10 +12,12 @@ import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom'
 import { getStatementWithContent, type Statement } from '@commonality/sdk/conceptspace'
 import type { DisplayableDocument } from '@commonality/sdk/displayable-documents'
 import type { IpfsCidV1 } from '@commonality/sdk/utils'
+import { useTrustedAttesters } from '@ui/shared'
 import { CauseBoard } from '@ui/fundingportals'
 import { SupportButton } from '../components/SupportButton'
 import { MonthlyPledgeSignal } from '../components/MonthlyPledgeSignal'
 import { StarterNetworkFilterCopy } from '../components/StarterNetworkFilterNotice'
+import { useViewCounts } from '../hooks/useViewCounts'
 import { createCausePath } from '../lib/causeStore'
 import { useMachinery } from '../lib/useMachinery'
 
@@ -33,6 +34,21 @@ export function StatementPage() {
   const { statementCid } = useParams<{ statementCid: string }>()
   const navigate = useNavigate()
   const machinery = useMachinery()
+  const trustedImplicationAttesters = useTrustedAttesters()
+  const activeTrustedImplicationAttesters = trustedImplicationAttesters.length > 0
+    ? trustedImplicationAttesters
+    : undefined
+  const statementCids = statementCid ? [statementCid] : []
+  const {
+    perPlank,
+    loading: countsLoading,
+    refresh: refreshCounts,
+  } = useViewCounts(
+    statementCids,
+    statementCids,
+    activeTrustedImplicationAttesters,
+    Boolean(statementCid),
+  )
   const [statement, setStatement] = useState<Statement | null>(null)
   const [content, setContent] = useState<DisplayableDocument | null>(null)
   const [loading, setLoading] = useState(true)
@@ -97,36 +113,62 @@ export function StatementPage() {
     ?? statement.excerpt
     ?? statement.title
     ?? 'No content available for this statement.'
+  const title = statement.title?.trim()
+  const showTitle = Boolean(
+    title
+    && title !== 'Statement'
+    && !body.trim().startsWith(title),
+  )
+  const support = statementCid ? perPlank.get(statementCid) : undefined
+  const supportCaption = support
+    ? `${support.total.toLocaleString()} · ${support.direct} direct · ${support.indirect} indirect`
+    : countsLoading
+      ? 'Counting signers…'
+      : 'Signers unavailable'
+  const createdLabel = statement.createdAt
+    ? ` · ${new Date(statement.createdAt).toLocaleDateString()}`
+    : ''
 
   return (
     <Stack spacing={2.5}>
       <Box>
-        <Chip size="small" label="Public statement" sx={{ mb: 1 }} />
-        <Typography variant="h4" component="h1" sx={{ fontWeight: 800, fontSize: { xs: '1.45rem', sm: '1.85rem' } }}>
-          {statement.title?.trim() || 'Statement'}
+        <Typography
+          variant="overline"
+          sx={{ letterSpacing: '0.14em', fontWeight: 700, color: 'primary.main', display: 'block' }}
+        >
+          Statement
         </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.75 }}>
-          {statement.believerCount} supporters
-          {statement.createdAt ? ` · ${new Date(statement.createdAt).toLocaleDateString()}` : ''}
-        </Typography>
-      </Box>
-
-      <Paper elevation={0} sx={{ p: 2.5, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
-        <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', lineHeight: 1.65 }}>
-          {body}
-        </Typography>
-      </Paper>
-
-      <Paper elevation={0} sx={{ p: 2.5, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
-        <Typography variant="h6" sx={{ fontWeight: 700, mb: 1.5 }}>
-          Your support
-        </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          Support is public. It is how a cause shows real people have signed it.
-        </Typography>
-        <SupportButton
-          statementCid={statementCid as IpfsCidV1}
-          onSupported={(info) => {
+      <Paper
+        variant="outlined"
+        sx={{ p: 1.25, borderRadius: 2 }}
+        data-testid="statement-header"
+      >
+        <Stack spacing={0.75}>
+          {showTitle && (
+            <Typography variant="subtitle2" component="h1" sx={{ fontWeight: 700 }}>
+              {title}
+            </Typography>
+          )}
+          <Typography
+            variant="body2"
+            component={showTitle ? 'p' : 'h1'}
+            sx={{ fontWeight: 500, whiteSpace: 'pre-wrap' }}
+          >
+            {body}
+          </Typography>
+          <Stack
+            direction="row"
+            spacing={0.75}
+            alignItems="center"
+            flexWrap="wrap"
+            useFlexGap
+          >
+            <SupportButton
+              statementCid={statementCid as IpfsCidV1}
+              subject="statement"
+              label="Sign"
+              compact
+              onSupported={(info) => {
             if (!info.indexed) {
               // Optimistic: tick the visible count before the indexer round-trip.
               // Do not call load() yet — a lagging read would flicker 1 → 0 → 1.
@@ -140,6 +182,7 @@ export function StatementPage() {
               })
               return
             }
+            refreshCounts()
             // Confirmed: reload content, but never paint a regressive believerCount.
             void (async () => {
               if (!statementCid) return
@@ -163,8 +206,14 @@ export function StatementPage() {
               }
             })()
           }}
-        />
+            />
+            <Typography variant="caption" color="text.secondary">
+              {supportCaption}{createdLabel}
+            </Typography>
+          </Stack>
+        </Stack>
       </Paper>
+      </Box>
 
       <MonthlyPledgeSignal statementCids={[statementCid as string]} />
 

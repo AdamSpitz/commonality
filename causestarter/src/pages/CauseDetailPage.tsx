@@ -1113,7 +1113,7 @@ export function CauseDetailPage() {
           embedded
           surfaceTitle="Fundable Projects"
           projectLinks="local"
-          navLinks={[
+          actionLinks={[
             {
               label: 'Start content contract',
               to: '/content/new',

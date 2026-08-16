@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, type ReactNode } from 'react'
+import { useState, useEffect, useMemo, useRef, type ReactNode } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
 import { useAccount } from 'wagmi'
 import {
@@ -66,6 +66,11 @@ export interface CauseBoardProps {
    * (back to Tally statement + leaderboard under `/portal/...`).
    */
   navLinks?: CauseBoardNavLink[]
+  /**
+   * Extra create/action buttons rendered with “Start project” at the bottom
+   * of the metrics paper (e.g. Start content contract).
+   */
+  actionLinks?: CauseBoardNavLink[]
   /** Optional extra content under the header metrics (host chrome). */
   headerExtra?: ReactNode
   /** Tooltip on the Projects metric — host-specific explanation of what the count means. */
@@ -122,6 +127,7 @@ export function CauseBoard({
   embedded = false,
   surfaceTitle = 'Fundable Projects',
   navLinks,
+  actionLinks,
   headerExtra,
   projectsHelp,
   projectLinks = 'lazyGiving',
@@ -175,6 +181,7 @@ export function CauseBoard({
   const [projectTab, setProjectTab] = useState<
     'aligned' | 'successful' | 'reimbursed' | 'failed'
   >('aligned')
+  const hasResolvedRef = useRef(false)
 
   useEffect(() => {
     const loadCids = cidsKey ? cidsKey.split('\0') : []
@@ -192,7 +199,7 @@ export function CauseBoard({
         setError('No statement specified.')
         return
       }
-      setLoading(true)
+      if (!hasResolvedRef.current) setLoading(true)
       setError(null)
       try {
         const cid = loadCids[0]!
@@ -264,7 +271,10 @@ export function CauseBoard({
           setError(err instanceof Error ? err.message : 'Failed to load cause board')
         }
       } finally {
-        if (!cancelled) setLoading(false)
+        if (!cancelled) {
+          hasResolvedRef.current = true
+          setLoading(false)
+        }
       }
     }
 
@@ -390,8 +400,9 @@ export function CauseBoard({
           </Box>
         </Stack>
 
-        {primaryCid && (
-        <Box sx={{ mt: 2 }}>
+        {(primaryCid || (actionLinks && actionLinks.length > 0)) && (
+        <Stack direction="row" spacing={1} sx={{ mt: 2 }} flexWrap="wrap" useFlexGap>
+          {primaryCid && (
           <NavLinkButton
             link={
               projectLinks === 'local'
@@ -409,7 +420,11 @@ export function CauseBoard({
                   }
             }
           />
-        </Box>
+          )}
+          {(actionLinks ?? []).map((link) => (
+            <NavLinkButton key={link.label} link={link} />
+          ))}
+        </Stack>
         )}
 
         {headerExtra}
