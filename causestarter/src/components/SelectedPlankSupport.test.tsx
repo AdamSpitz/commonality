@@ -35,7 +35,7 @@ describe('SelectedPlankSupport', () => {
     expect(screen.getByText(planks[0].text)).toBeInTheDocument()
     expect(screen.getByText(planks[1].text)).toBeInTheDocument()
     expect(screen.queryByText(/CID:/)).not.toBeInTheDocument()
-    expect(screen.getByText(/not the organizer, narrative, cause page/i)).toBeInTheDocument()
+    expect(screen.getByText(/not the organizer, narrative, or cause page/i)).toBeInTheDocument()
 
     fireEvent.click(screen.getByTestId('support-selected-planks'))
     await waitFor(() => expect(sendCallsPreferAtomic).toHaveBeenCalledOnce())

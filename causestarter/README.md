@@ -265,8 +265,8 @@ Then **restart Grok** so MCP tools load.
 | `plank-review-N` | Feedback panel for the Nth draft |
 | `plank-use-example-N` | Explicitly adopt the example rewording into the field |
 | `plank-row-draft` / `plank-row-published` | Issue rows by state |
-| `cause-view-strip` | Union / conjunction counts over selected issues |
-| `view-mode-any` / `view-mode-all` | Switch view |
+| `cause-view-strip` | Union / conjunction counts over selected statements |
+| `plank-in-totals-N` | Include/exclude the Nth statement from those totals (view only) |
 | `view-count-any` / `view-count-all` / `view-count-none-disagreed` | The counts themselves |
 
 On **localhost**, Connect only lists Hardhat accounts (no MetaMask). Use **Hardhat #0** for funded local txs.

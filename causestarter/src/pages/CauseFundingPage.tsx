@@ -154,7 +154,7 @@ export function CauseFundingPage() {
           Pledges
         </Typography>
         <Typography variant="h4" component="h1" sx={{ fontWeight: 800 }}>
-          Set aside funds for an issue
+          Set aside funds for a statement
         </Typography>
       </Box>
 
@@ -199,7 +199,7 @@ export function CauseFundingPage() {
 
       {published.length === 0 ? (
         <Alert severity="info" sx={{ borderRadius: 2 }}>
-          Publish an issue before you can earmark funds or start a monthly pledge.
+          Publish a statement before you can earmark funds or start a monthly pledge.
         </Alert>
       ) : (
         <Stack spacing={1}>
@@ -230,7 +230,7 @@ export function CauseFundingPage() {
                   </Typography>
                   {pledges.available && (
                     <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
-                      {formatMonthly(pledges.byPlankCid.get(plank.cid!) ?? 0n, pledges.decimals, pledges.symbol)} on this issue
+                      {formatMonthly(pledges.byPlankCid.get(plank.cid!) ?? 0n, pledges.decimals, pledges.symbol)} on this statement
                     </Typography>
                   )}
                 </Box>

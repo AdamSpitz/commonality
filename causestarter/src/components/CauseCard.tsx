@@ -50,7 +50,7 @@ export function CauseCard({ cause }: CauseCardProps) {
 
       {planks.length > 0 && (
         <Typography variant="caption" color="text.secondary" sx={{ mt: 1.5, display: 'block' }}>
-          {planks.length} issue{planks.length === 1 ? '' : 's'}
+          {planks.length} statement{planks.length === 1 ? '' : 's'}
           {publishedCount < planks.length && ` · ${publishedCount} published`}
         </Typography>
       )}

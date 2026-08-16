@@ -40,7 +40,7 @@ function LandingHome() {
           Start a cause. Build a Movement. Change the world.
         </Typography>
         <Typography variant="body1" color="text.secondary" sx={{ mt: 1.5, maxWidth: 520 }}>
-          Write clear issues people can support one at a time, then grow support with funding
+          Write clear statements people can support one at a time, then grow support with funding
           and media tools when you need them.
         </Typography>
 

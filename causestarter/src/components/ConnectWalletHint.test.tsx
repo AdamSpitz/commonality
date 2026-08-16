@@ -8,9 +8,9 @@ vi.mock('./WalletButton', () => ({
 
 describe('ConnectWalletHint', () => {
   it('puts the message and connect action on one info row', () => {
-    render(<ConnectWalletHint>Connect a wallet to publicly stand with this issue.</ConnectWalletHint>)
+    render(<ConnectWalletHint>Connect a wallet to publicly sign this statement.</ConnectWalletHint>)
     const hint = screen.getByTestId('connect-wallet-hint')
-    expect(hint).toHaveTextContent(/connect a wallet to publicly stand/i)
+    expect(hint).toHaveTextContent(/connect a wallet to publicly sign/i)
     expect(screen.getByRole('button', { name: /connect/i })).toBeInTheDocument()
   })
 })

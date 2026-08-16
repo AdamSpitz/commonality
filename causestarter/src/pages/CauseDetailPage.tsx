@@ -21,7 +21,7 @@ import {
 } from '@ui/shared'
 import { formatRelativeDeadline, getProjectStatus, STATUS_LABELS } from '@ui/lazy-giving'
 import { AlignmentTrustGate } from '../components/AlignmentTrustGate'
-import { CauseViewStrip, type ViewMode } from '../components/CauseViewStrip'
+import { CauseViewStrip } from '../components/CauseViewStrip'
 import { CauseMediatorCard } from '../components/CauseMediatorCard'
 import { CauseFundingSummary } from '../components/CauseFundingSummary'
 import { ConnectWalletHint } from '../components/ConnectWalletHint'
@@ -156,7 +156,6 @@ export function CauseDetailPage() {
   const [loadingRemote, setLoadingRemote] = useState(Boolean(routeRef))
   const [remoteReadOnly, setRemoteReadOnly] = useState(false)
   const [history, setHistory] = useState<RefUpdate[]>([])
-  const [mode, setMode] = useState<ViewMode>('any')
   const [deselectedCids, setDeselectedCids] = useState<Set<string>>(new Set())
   const [reviewingId, setReviewingId] = useState<string>()
   const [reviewsByPlankId, setReviewsByPlankId] = useState<Record<string, PlankReview>>({})
@@ -582,7 +581,7 @@ export function CauseDetailPage() {
   }
 
   /**
-   * Coach the organizer on this issue's wording. Do not overwrite their text —
+   * Coach the organizer on this statement's wording. Do not overwrite their text —
    * only show feedback (and an optional example rephrasing they may adopt).
    */
   const handleReviewPlank = async (plank: CausePlank) => {
@@ -612,7 +611,7 @@ export function CauseDetailPage() {
         },
       }))
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not review this issue')
+      setError(err instanceof Error ? err.message : 'Could not review this statement')
     } finally {
       setReviewingId(undefined)
     }
@@ -632,19 +631,19 @@ export function CauseDetailPage() {
     const text = plank.text.trim()
     if (!text) return
     if (!isConnected || !address || !writeClients) {
-      setError('Connect your wallet to publish this issue.')
+      setError('Connect your wallet to publish this statement.')
       return
     }
     setPublishingId(plank.id)
     setError(null)
     try {
-      const review = await checkSafety([{ text, fieldLabel: 'Issue' }])
+      const review = await checkSafety([{ text, fieldLabel: 'Statement' }])
       const verdict = review.results[0]
       if (verdict) {
         storePlankPatch(plank.id, { safety: safetyState(verdict) })
         if (!verdict.allowed) {
           setDialogSafety(safetyState(verdict))
-          setError('Blocked text cannot be published. Edit this issue and try again.')
+          setError('Blocked text cannot be published. Edit this statement and try again.')
           return
         }
       }
@@ -654,7 +653,7 @@ export function CauseDetailPage() {
       voidCoherence()
       refreshCounts()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to publish this issue')
+      setError(err instanceof Error ? err.message : 'Failed to publish this statement')
     } finally {
       setPublishingId(undefined)
     }
@@ -846,7 +845,7 @@ export function CauseDetailPage() {
         </Stack>
         {hasCoherenceBadge && (
           <Tooltip
-            title={`CauseStarter's coherence checker attested this version as coherent construction (title and description match the issues). Attested by operator ${onChainBadge!.attesters[0]}.`}
+            title={`CauseStarter's coherence checker attested this version as coherent construction (title and description match the statements). Attested by operator ${onChainBadge!.attesters[0]}.`}
           >
             <Chip
               size="small"
@@ -863,7 +862,7 @@ export function CauseDetailPage() {
         {showCoherenceAbsence && (
           <Tooltip
             title={coherenceOperator
-              ? 'CauseStarter\'s coherence checker has not published a badge for this version. That is not a finding that the cause is incoherent, but it does mean that we haven\'t confirmed that the title and description match the issues, so you may want to read them especially carefully.'
+              ? 'CauseStarter\'s coherence checker has not published a badge for this version. That is not a finding that the cause is incoherent, but it does mean that we haven\'t confirmed that the title and description match the statements, so you may want to read them especially carefully.'
               : 'Could not reach CauseStarter\'s coherence checker, so this page cannot confirm whether a badge exists.'}
           >
             <Chip
@@ -966,22 +965,18 @@ export function CauseDetailPage() {
       )}
 
       <Paper elevation={0} sx={{ p: { xs: 2, sm: 2.5 }, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
-        <Typography variant="h6" sx={{ fontWeight: 700, mb: 1.5 }}>Issues</Typography>
+        <Typography variant="h6" sx={{ fontWeight: 700, mb: 1.5 }}>Statements</Typography>
 
-        {live ? (
-          <Alert severity="info" sx={{ mb: 2, borderRadius: 2 }} data-testid="issue-sign-help">
-            People sign each issue separately. The counts below combine those signatures.
-          </Alert>
-        ) : (
+        {!live && (
           <Alert severity="info" sx={{ mb: 2, borderRadius: 2 }} data-testid="issue-draft-help">
-            Write the issues this cause is made of. Publish each one when it is ready.
+            Write the statements this cause is made of. Publish each one when it is ready.
           </Alert>
         )}
 
         {!isConnected && published.length > 0 && (
           <Box sx={{ mb: 2 }}>
             <ConnectWalletHint>
-              Connect a wallet to publicly stand with an issue.
+              Connect a wallet to publicly sign a statement.
             </ConnectWalletHint>
           </Box>
         )}
@@ -989,7 +984,7 @@ export function CauseDetailPage() {
         {isEditing && (
           <Alert severity="info" sx={{ mb: 2, borderRadius: 2 }} data-testid="issue-guidance">
             <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5 }}>
-              What counts as an issue
+              What counts as a statement
             </Typography>
             <Typography variant="body2" component="div">
               Describe your intent in the picker. It looks for reusable published statements
@@ -1003,7 +998,7 @@ export function CauseDetailPage() {
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
             {isEditing
               ? 'No statements selected yet. Start with the picker; you can reject every suggestion and write one manually.'
-              : 'This cause has no published issues yet.'}
+              : 'This cause has no published statements yet.'}
           </Typography>
         )}
 
@@ -1017,6 +1012,22 @@ export function CauseDetailPage() {
               disabled={mutationLocked}
               onSelect={handlePickerSelection}
             />
+          </Box>
+        )}
+
+        {publishedCids.length > 0 && (
+          <Box sx={{ mb: 2 }}>
+            <CauseViewStrip
+              counts={counts}
+              selectedCount={selectedCids.length}
+              loading={countsLoading}
+              fewestDirectSignatures={fewestDirectSignatures}
+            />
+            {countsError && (
+              <Alert severity="warning" sx={{ mt: 1, borderRadius: 2 }}>
+                Signer counts could not be loaded: {countsError}
+              </Alert>
+            )}
           </Box>
         )}
 
@@ -1060,28 +1071,9 @@ export function CauseDetailPage() {
           ))}
         </Stack>
 
-        {publishedCids.length > 0 && (
-          <Box sx={{ mt: 2 }}>
-            <CauseViewStrip
-              mode={mode}
-              onModeChange={setMode}
-              counts={counts}
-              selectedCount={selectedCids.length}
-              publishedCount={publishedCids.length}
-              loading={countsLoading}
-              fewestDirectSignatures={fewestDirectSignatures}
-            />
-            {countsError && (
-              <Alert severity="warning" sx={{ mt: 1, borderRadius: 2 }}>
-                Supporter counts could not be loaded: {countsError}
-              </Alert>
-            )}
-          </Box>
-        )}
-
         <Box sx={{ mt: 2 }}>
           <SelectedPlankSupport
-            planks={published.filter((plank) => plank.cid && selectedCids.includes(plank.cid)).map((plank) => ({
+            planks={published.filter((plank) => plank.cid).map((plank) => ({
               cid: plank.cid!,
               text: plank.text,
             }))}
@@ -1108,7 +1100,7 @@ export function CauseDetailPage() {
 
         {drafts.length > 0 && !isConnected && isEditing && (
           <Alert severity="info" sx={{ mt: 2, borderRadius: 2 }}>
-            Connect a wallet to publish issues. Unpublished issues stay on this device.
+            Connect a wallet to publish statements. Unpublished statements stay on this device.
           </Alert>
         )}
 
@@ -1146,7 +1138,7 @@ export function CauseDetailPage() {
 
         {publishedCids.length === 0 && (
           <Alert severity="info" sx={{ borderRadius: 2 }}>
-            Publish an issue to see projects aligned with it.
+            Publish a statement to see projects aligned with it.
           </Alert>
         )}
 
@@ -1163,7 +1155,7 @@ export function CauseDetailPage() {
 
         {publishedCids.length > 0 && alignmentTrustReady && !projectsLoading && !projectsError && projects.length === 0 && (
           <Typography variant="body2" color="text.secondary">
-            No projects are aligned with these issues yet. Open an issue's board to vouch for work
+            No projects are aligned with these statements yet. Open a statement's board to vouch for work
             that advances it.
           </Typography>
         )}
@@ -1230,8 +1222,8 @@ export function CauseDetailPage() {
                       {STATUS_LABELS[status]}
                       {' · aligned with '}
                       {project.viaPlankCids.length === 1
-                        ? '1 issue'
-                        : `${project.viaPlankCids.length} issues`}
+                        ? '1 statement'
+                        : `${project.viaPlankCids.length} statements`}
                       {project.alignedContentItemCount != null && project.contentItemCount != null
                         ? ` · ${project.alignedContentItemCount} of ${project.contentItemCount} posts attested`
                         : ''}

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Alert, Button, CircularProgress, Stack, Typography } from '@mui/material'
+import { Alert, Button, Chip, CircularProgress, Stack, Typography } from '@mui/material'
 import { useAccount } from 'wagmi'
 import { BeliefsAbi } from '@commonality/sdk/abis'
 import {
@@ -40,6 +40,11 @@ interface SupportButtonProps {
   subject?: string
   /** When false, a disconnected wallet renders nothing (parent shows one shared hint). */
   showConnectPrompt?: boolean
+  /**
+   * Inline actions for a statement row. Skips full-width CTAs and status alerts
+   * in favor of a small Sign / Signed / Retract control.
+   */
+  compact?: boolean
 }
 
 const INDEXER_POLL_DELAYS_MS = [50, 100, 200, 400, 800, 1200] as const
@@ -72,8 +77,9 @@ export function SupportButton({
   statementCid,
   onSupported,
   subject = 'statement',
-  label = `Stand with this ${subject}`,
+  label = `Sign this ${subject}`,
   showConnectPrompt = true,
+  compact = false,
 }: SupportButtonProps) {
   const { address, isConnected } = useAccount()
   const writeClients = useWriteClients(address)
@@ -150,7 +156,7 @@ export function SupportButton({
     if (!showConnectPrompt) return null
     return (
       <ConnectWalletHint>
-        {`Connect a wallet to publicly stand with this ${subject}.`}
+        {`Connect a wallet to publicly sign this ${subject}.`}
       </ConnectWalletHint>
     )
   }
@@ -232,7 +238,7 @@ export function SupportButton({
       if (!isCurrent()) return
       // Swap declared → retracted in one commit so the status band never empties.
       setBeliefState(BeliefStates.NO_OPINION)
-      setSuccess(`You retracted your support for this ${subject}.`)
+      setSuccess(compact ? 'Retracted' : `You retracted your support for this ${subject}.`)
       loadedContextRef.current = operationContext
       onSupported?.({ action: 'retract', indexed: false })
       const indexed = address
@@ -257,6 +263,9 @@ export function SupportButton({
 
   // Initial load only — never replace a known status UI with the compact spinner.
   if ((checking && beliefState === null) || beliefState === null) {
+    if (compact) {
+      return <CircularProgress size={16} aria-label="Checking your support" />
+    }
     return (
       <Stack direction="row" spacing={1} alignItems="center" sx={{ py: 0.5 }}>
         <CircularProgress size={18} />
@@ -268,6 +277,48 @@ export function SupportButton({
   }
 
   const alreadySupports = beliefState === BeliefStates.BELIEVES
+
+  if (compact) {
+    return (
+      <Stack direction="row" spacing={0.75} alignItems="center" flexWrap="wrap" useFlexGap>
+        {error && (
+          <Alert severity="error" sx={{ borderRadius: 1, py: 0, px: 1 }}>
+            {error}
+          </Alert>
+        )}
+        {alreadySupports ? (
+          <>
+            <Chip size="small" color="success" label="Signed" />
+            <Button
+              variant="text"
+              color="inherit"
+              size="small"
+              disabled={busy}
+              onClick={() => void handleRetract()}
+              startIcon={busy ? <CircularProgress size={14} color="inherit" /> : undefined}
+              sx={{ textTransform: 'none', minWidth: 0 }}
+            >
+              {busy ? 'Retracting…' : 'Retract'}
+            </Button>
+          </>
+        ) : (
+          <>
+            {success && <Chip size="small" label={success} />}
+            <Button
+              variant="contained"
+              size="small"
+              disabled={busy}
+              onClick={() => void handleSupport()}
+              startIcon={busy ? <CircularProgress size={14} color="inherit" /> : undefined}
+              sx={{ textTransform: 'none' }}
+            >
+              {busy ? 'Signing…' : label}
+            </Button>
+          </>
+        )}
+      </Stack>
+    )
+  }
 
   return (
     <Stack spacing={1.5}>

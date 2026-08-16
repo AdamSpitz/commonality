@@ -120,7 +120,7 @@ export function StatementPage() {
           Your support
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          Support is public. It is how a cause shows real people stand behind it.
+          Support is public. It is how a cause shows real people have signed it.
         </Typography>
         <SupportButton
           statementCid={statementCid as IpfsCidV1}

@@ -46,11 +46,11 @@ export function SelectedPlankSupport({ planks, onSupported }: Props) {
         args: [cidToBytes32(plank.cid), BeliefStates.BELIEVES],
       })))
       setResult(sent.batched
-        ? `Supported ${planks.length} statements in one atomic wallet batch.`
-        : `Supported ${planks.length} statements in ${sent.hashes.length} transactions.`)
+        ? `Signed ${planks.length} statements in one atomic wallet batch.`
+        : `Signed ${planks.length} statements in ${sent.hashes.length} transactions.`)
       onSupported()
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Could not support the selected statements')
+      setError(cause instanceof Error ? cause.message : 'Could not sign these statements')
     } finally {
       setBusy(false)
     }
@@ -60,9 +60,10 @@ export function SelectedPlankSupport({ planks, onSupported }: Props) {
     <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }} data-testid="selected-plank-support">
       <Stack spacing={1.25}>
         <div>
-          <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>Review selected statements</Typography>
+          <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>Sign every statement on this cause</Typography>
           <Alert severity="info" sx={{ borderRadius: 2 }}>
-            This supports only the statements below—not the organizer, narrative, cause page, or unselected statements.
+            This signs the statements below — not the organizer, narrative, or cause page.
+            Deselecting a statement from the totals above does not change what this signs.
           </Alert>
         </div>
         {planks.map((plank) => (
@@ -86,11 +87,11 @@ export function SelectedPlankSupport({ planks, onSupported }: Props) {
         {result && <Alert severity="success">{result}</Alert>}
         {!isConnected ? (
           <ConnectWalletHint>
-            Connect a wallet to support the selected statements.
+            Connect a wallet to sign these statements.
           </ConnectWalletHint>
         ) : (
           <Button variant="contained" disabled={busy} onClick={() => void support()} data-testid="support-selected-planks">
-            {busy ? <CircularProgress size={18} /> : `Support ${planks.length} selected statements`}
+            {busy ? <CircularProgress size={18} /> : `Sign ${planks.length} statements`}
           </Button>
         )}
       </Stack>

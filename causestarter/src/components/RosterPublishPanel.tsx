@@ -80,7 +80,7 @@ export function RosterPublishPanel({
       <Box>
         <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>Publish this cause</Typography>
         <Alert severity="info" sx={{ borderRadius: 2 }}>
-          Title, summary, issue list, and mediator blurb publish together as a versioned
+          Title, summary, statement list, and mediator blurb publish together as a versioned
           cause page. The URL stays stable when you edit; each publish is a new version.
         </Alert>
       </Box>
@@ -125,7 +125,7 @@ export function RosterPublishPanel({
         multiline
         minRows={2}
         disabled={busy}
-        helperText="Optional public blurb for the cause page. Distinct from the issues people sign."
+        helperText="Optional public blurb for the cause page. Distinct from the statements people sign."
         slotProps={{ htmlInput: { 'data-testid': 'roster-summary' } }}
       />
       <TextField
@@ -175,7 +175,7 @@ export function RosterPublishPanel({
 
       {!canPublish && (
         <Alert severity="info" sx={{ borderRadius: 2 }}>
-          Publish at least one issue before publishing the cause page.
+          Publish at least one statement before publishing the cause page.
         </Alert>
       )}
 

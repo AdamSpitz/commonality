@@ -102,11 +102,7 @@ test.describe('CauseStarter agent smoke', () => {
     // One published plank means there is now a view to count over.
     await expect(page.getByTestId('cause-view-strip')).toBeVisible()
     await expect(page.getByTestId('view-count-any')).toBeVisible({ timeout: 30_000 })
-
-    // The conjunction view reports two bands, never a bare intersection.
-    await page.getByTestId('view-mode-all').click()
     await expect(page.getByTestId('view-count-all')).toBeVisible()
-    await expect(page.getByTestId('view-count-none-disagreed')).toBeVisible()
   })
 
   test('Causes page starts a cause and opens the editor while connected', async ({ page }) => {
@@ -224,17 +220,19 @@ test.describe('CauseStarter agent smoke', () => {
     // changing the organizer's roster, then explicitly review the exact selected CIDs.
     await connectHardhat(page, 1)
     await expect(page.getByText(/direct signer.*indirect supporter/i)).toHaveCount(2, { timeout: 30_000 })
-    await page.getByRole('checkbox', { name: 'Include issue 2 in the counts above' }).uncheck()
-    await expect(page.getByTestId('selected-plank-support')).toBeHidden()
-    await page.getByRole('checkbox', { name: 'Include issue 2 in the counts above' }).check()
+    await page.getByTestId('plank-in-totals-1').click()
+    await expect(page.getByTestId('plank-in-totals-1')).toHaveAttribute('aria-pressed', 'false')
+    await expect(page.getByTestId('selected-plank-support')).toBeVisible()
+    await page.getByTestId('plank-in-totals-1').click()
+    await expect(page.getByTestId('plank-in-totals-1')).toHaveAttribute('aria-pressed', 'true')
     await expect(page.getByTestId('selected-plank-support')).toContainText(statements[0])
     await expect(page.getByTestId('selected-plank-support')).toContainText(statements[1])
     await expect(page.getByTestId('selected-plank-support')).toContainText(
-      /not the organizer, narrative, cause roster, or unselected statements/i,
+      /not the organizer, narrative, or cause page/i,
     )
 
     await page.getByTestId('support-selected-planks').click()
-    await expect(page.getByTestId('selected-plank-support')).toContainText(/Supported 2 statements/, {
+    await expect(page.getByTestId('selected-plank-support')).toContainText(/Signed 2 statements/, {
       timeout: 60_000,
     })
 

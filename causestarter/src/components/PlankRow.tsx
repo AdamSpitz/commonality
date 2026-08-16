@@ -1,9 +1,12 @@
 import {
-  Alert, Box, Button, Checkbox, Chip, CircularProgress, IconButton, Paper, Stack,
+  Alert, Box, Button, Chip, CircularProgress, IconButton, Paper, Stack,
   TextField, Tooltip, Typography,
 } from '@mui/material'
 import RateReviewOutlinedIcon from '@mui/icons-material/RateReviewOutlined'
+import OpenInNewIcon from '@mui/icons-material/OpenInNew'
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
+import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined'
+import VisibilityOffOutlinedIcon from '@mui/icons-material/VisibilityOffOutlined'
 import { Link as RouterLink } from 'react-router-dom'
 import type { IpfsCidV1 } from '@commonality/sdk/utils'
 import { SupportButton, type SupportSettledInfo } from './SupportButton'
@@ -63,10 +66,10 @@ interface PlankRowProps {
 }
 
 function supportSummary(support: PlankSupport | undefined, loading: boolean): string {
-  if (!support) return loading ? 'Counting supporters…' : 'Supporters unavailable'
+  if (!support) return loading ? 'Counting signers…' : 'Signers unavailable'
   // Keep both provenance categories visible even when indirect support is zero. A cause
   // visitor should never have to infer whether the displayed number is direct or derived.
-  return `${support.direct} direct signer${support.direct === 1 ? '' : 's'}, ${support.indirect} indirect supporter${support.indirect === 1 ? '' : 's'} · ${support.total} total`
+  return `${support.direct} direct · ${support.indirect} indirect`
 }
 
 export function PlankRow({
@@ -87,29 +90,42 @@ export function PlankRow({
   return (
     <Paper
       variant="outlined"
-      sx={{ p: 1.75, borderRadius: 2 }}
+      sx={{
+        p: 1.25,
+        borderRadius: 2,
+        ...(published
+          ? selected
+            ? {
+                bgcolor: 'action.selected',
+                borderColor: 'primary.main',
+              }
+            : {
+                opacity: 0.48,
+                borderStyle: 'dashed',
+              }
+          : {}),
+      }}
       data-testid={published ? 'plank-row-published' : 'plank-row-draft'}
     >
       <Stack direction="row" spacing={1} alignItems="flex-start">
-        {published ? (
-          <Checkbox
-            size="small"
-            checked={selected}
-            onChange={(event) => onSelectedChange(event.target.checked)}
-            sx={{ mt: -0.5 }}
-            slotProps={{ input: { 'aria-label': `Include issue ${index + 1} in the counts above` } }}
-          />
-        ) : (
-          // Keeps draft rows aligned with published ones without implying they
-          // can be counted — nothing is countable until it is on chain.
-          <Box sx={{ width: 34, flexShrink: 0 }} />
-        )}
-
-        <Stack spacing={1} sx={{ flex: 1, minWidth: 0 }}>
+        <Stack spacing={0.75} sx={{ flex: 1, minWidth: 0 }}>
           {published ? (
-            <Box>
-              <Typography variant="body1" sx={{ fontWeight: 500 }}>{plank.text}</Typography>
-            </Box>
+            <Stack direction="row" spacing={0.5} alignItems="flex-start">
+              <Typography variant="body2" sx={{ fontWeight: 500, flex: 1, minWidth: 0 }}>
+                {plank.text}
+              </Typography>
+              <Tooltip title="Open this statement">
+                <IconButton
+                  component={RouterLink}
+                  to={`/statement/${plank.cid}`}
+                  size="small"
+                  aria-label="Open this statement"
+                  sx={{ mt: -0.5, mr: -0.5, color: 'text.secondary' }}
+                >
+                  <OpenInNewIcon sx={{ fontSize: 16 }} aria-hidden />
+                </IconButton>
+              </Tooltip>
+            </Stack>
           ) : (
             <TextField
               value={plank.text}
@@ -119,7 +135,7 @@ export function PlankRow({
               fullWidth
               size="small"
               disabled={draftBusy}
-              placeholder="One issue a supporter could sincerely sign, on its own."
+              placeholder="One statement a supporter could sincerely sign, on its own."
               error={tooShort || blocked}
               helperText={
                 blocked
@@ -133,26 +149,66 @@ export function PlankRow({
           )}
 
           {published && (
-            <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
-              <Chip
-                size="small"
-                color="primary"
-                variant="outlined"
-                label={support ? support.total.toLocaleString() : supportLoading ? '…' : '—'}
-                sx={{ minWidth: 44 }}
-              />
-              <Typography variant="caption" color="text.secondary">
-                {supportSummary(support, supportLoading)}
-              </Typography>
-              {addedLaterLabel && (
-                <Chip
-                  size="small"
-                  variant="outlined"
-                  label={addedLaterLabel}
-                  data-testid={`plank-added-later-${index}`}
-                  sx={{ borderStyle: 'dashed' }}
+            <Stack
+              direction="row"
+              spacing={0.75}
+              alignItems="center"
+              justifyContent="space-between"
+              flexWrap="wrap"
+              useFlexGap
+            >
+              <Stack direction="row" spacing={0.75} alignItems="center" flexWrap="wrap" useFlexGap>
+                <SupportButton
+                  statementCid={plank.cid as IpfsCidV1}
+                  onSupported={onSupported}
+                  subject="statement"
+                  label="Sign"
+                  compact
+                  showConnectPrompt={false}
                 />
-              )}
+                <Typography variant="caption" color="text.secondary">
+                  {support
+                    ? `${support.total.toLocaleString()} · ${supportSummary(support, supportLoading)}`
+                    : supportSummary(support, supportLoading)}
+                  {' · '}
+                  <Box
+                    component={RouterLink}
+                    to={`/statement/${plank.cid}/board`}
+                    sx={{ color: 'inherit', textDecoration: 'underline', textUnderlineOffset: 2 }}
+                  >
+                    {projectCount > 0
+                      ? `${projectCount} project${projectCount === 1 ? '' : 's'}`
+                      : 'Projects'}
+                  </Box>
+                </Typography>
+                {addedLaterLabel && (
+                  <Chip
+                    size="small"
+                    variant="outlined"
+                    label={addedLaterLabel}
+                    data-testid={`plank-added-later-${index}`}
+                    sx={{ borderStyle: 'dashed' }}
+                  />
+                )}
+              </Stack>
+              <Tooltip title="Only changes the signer totals above. Does not sign or retract.">
+                <IconButton
+                  size="small"
+                  aria-pressed={selected}
+                  aria-label={
+                    selected
+                      ? `Deselect statement ${index + 1} from the signer totals`
+                      : `Select statement ${index + 1} in the signer totals`
+                  }
+                  data-testid={`plank-in-totals-${index}`}
+                  onClick={() => onSelectedChange(!selected)}
+                  sx={{ color: 'text.secondary' }}
+                >
+                  {selected
+                    ? <VisibilityOutlinedIcon fontSize="small" />
+                    : <VisibilityOffOutlinedIcon fontSize="small" />}
+                </IconButton>
+              </Tooltip>
             </Stack>
           )}
 
@@ -208,26 +264,8 @@ export function PlankRow({
             </Alert>
           )}
 
+          {!published && (
           <Stack direction="row" spacing={0.5} alignItems="center" flexWrap="wrap" useFlexGap>
-            {published ? (
-              <>
-                <SupportButton
-                  statementCid={plank.cid as IpfsCidV1}
-                  onSupported={onSupported}
-                  subject="issue"
-                  showConnectPrompt={false}
-                />
-                <Button component={RouterLink} to={`/statement/${plank.cid}`} size="small" sx={{ textTransform: 'none' }}>
-                  View statement
-                </Button>
-                <Button component={RouterLink} to={`/statement/${plank.cid}/board`} size="small" sx={{ textTransform: 'none' }}>
-                  {projectCount > 0
-                    ? `${projectCount} aligned project${projectCount === 1 ? '' : 's'}`
-                    : 'Aligned projects'}
-                </Button>
-              </>
-            ) : (
-              <>
                 <Button
                   variant="contained"
                   size="small"
@@ -236,7 +274,7 @@ export function PlankRow({
                   sx={{ textTransform: 'none' }}
                   data-testid={`plank-publish-${index}`}
                 >
-                  {publishing ? 'Publishing…' : 'Publish issue'}
+                  {publishing ? 'Publishing…' : 'Publish statement'}
                 </Button>
                 <Button
                   size="small"
@@ -248,19 +286,18 @@ export function PlankRow({
                 >
                   {reviewing ? 'Checking…' : 'Check phrasing'}
                 </Button>
-              </>
-            )}
           </Stack>
+          )}
         </Stack>
 
         {!published && (
-          <Tooltip title="Remove issue">
+          <Tooltip title="Remove statement">
             <span>
               <IconButton
                 size="small"
                 onClick={onDelete}
                 disabled={draftBusy}
-                aria-label={`Remove issue ${index + 1}`}
+                aria-label={`Remove statement ${index + 1}`}
               >
                 <DeleteOutlineIcon fontSize="small" />
               </IconButton>

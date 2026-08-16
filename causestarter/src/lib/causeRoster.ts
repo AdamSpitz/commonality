@@ -403,7 +403,7 @@ export async function publishRoster(args: {
     throw new Error('Wallet is not ready. Connect your wallet and try again.')
   }
   if (fields.plankCids.length === 0) {
-    throw new Error('Publish at least one issue before publishing the cause roster.')
+    throw new Error('Publish at least one statement before publishing the cause roster.')
   }
 
   const { mutableRefAddress, publishedDataAddress } = contractsFromMachinery(machinery)

@@ -39,7 +39,7 @@ export function StatementBoardPage() {
       headerExtra={
         <Stack spacing={1.5}>
           <Alert severity="info" sx={{ borderRadius: 2 }} data-testid="projects-help">
-            Projects vouched for as advancing this issue. Each is aligned with this
+            Projects vouched for as advancing this statement. Each is aligned with this
             statement, not with a cause as a whole.
           </Alert>
           <StarterNetworkFilterNotice />
