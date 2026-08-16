@@ -16,11 +16,8 @@ import FlagOutlinedIcon from '@mui/icons-material/FlagOutlined'
 import MenuBookOutlinedIcon from '@mui/icons-material/MenuBookOutlined'
 import GitHubIcon from '@mui/icons-material/GitHub'
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined'
-import DarkModeIcon from '@mui/icons-material/DarkMode'
-import LightModeIcon from '@mui/icons-material/LightMode'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { WalletButton } from '../components/WalletButton'
-import { useThemeMode } from '../lib/themeMode'
 
 const GITHUB_REPO_URL = 'https://github.com/AdamSpitz/commonality'
 
@@ -51,7 +48,6 @@ export function CauseShell({ children }: CauseShellProps) {
   const navigate = useNavigate()
   const theme = useTheme()
   const isDesktop = useMediaQuery(theme.breakpoints.up('md'))
-  const { mode, toggleMode } = useThemeMode()
   const current = activeNavPath(location.pathname)
 
   return (
@@ -147,13 +143,6 @@ export function CauseShell({ children }: CauseShellProps) {
             size="small"
           >
             <SettingsOutlinedIcon fontSize="small" />
-          </IconButton>
-          <IconButton
-            onClick={toggleMode}
-            aria-label={mode === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
-            size="small"
-          >
-            {mode === 'light' ? <DarkModeIcon fontSize="small" /> : <LightModeIcon fontSize="small" />}
           </IconButton>
           <WalletButton />
         </Toolbar>

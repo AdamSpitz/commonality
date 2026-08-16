@@ -63,6 +63,8 @@ describe('PlankRow', () => {
     expect(screen.getByText(/1 · 1 direct · 0 indirect/)).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Projects' })).toBeInTheDocument()
     expect(screen.getByTestId('plank-in-totals-0')).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.queryByText('In these totals')).not.toBeInTheDocument()
+    expect(screen.queryByText('Left out of totals')).not.toBeInTheDocument()
   })
 
   it('disables editing, review, and deletion while publication is pending', () => {

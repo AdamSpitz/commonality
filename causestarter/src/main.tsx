@@ -11,24 +11,15 @@ import {
   loadRuntimeConfig as loadUiSharedRuntimeConfig,
 } from '@ui/shared'
 import { getRuntimeConfig, getRuntimeConfigValue, loadRuntimeConfig } from './lib/runtimeConfig'
-import { ThemeModeContext } from './lib/themeMode'
 import App from './App'
 import './index.css'
 
 const queryClient = new QueryClient()
-const colorModeStorageKey = 'causestarter.colorMode'
 const TOUCH_TARGET_MIN = 44
 
 function getSystemColorMode(): PaletteMode {
   if (typeof window === 'undefined') return 'light'
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-}
-
-function getInitialColorMode(): PaletteMode {
-  if (typeof window === 'undefined') return 'light'
-  const stored = window.localStorage.getItem(colorModeStorageKey)
-  if (stored === 'light' || stored === 'dark') return stored
-  return getSystemColorMode()
 }
 
 function createAppTheme(mode: PaletteMode): Theme {
@@ -96,18 +87,21 @@ declare global {
 }
 
 export function Root() {
-  const [mode, setMode] = useState<PaletteMode>(getInitialColorMode)
+  const [mode, setMode] = useState<PaletteMode>(getSystemColorMode)
   const [wagmiConfig, setWagmiConfig] = useState(config)
   const theme = useMemo(() => createAppTheme(mode), [mode])
-  const themeModeContextValue = useMemo(() => ({
-    mode,
-    toggleMode: () => setMode((current) => (current === 'light' ? 'dark' : 'light')),
-  }), [mode])
 
   useEffect(() => {
-    window.localStorage.setItem(colorModeStorageKey, mode)
     document.documentElement.dataset.colorMode = mode
   }, [mode])
+
+  useEffect(() => {
+    const media = window.matchMedia('(prefers-color-scheme: dark)')
+    const applySystemMode = () => setMode(media.matches ? 'dark' : 'light')
+    applySystemMode()
+    media.addEventListener('change', applySystemMode)
+    return () => media.removeEventListener('change', applySystemMode)
+  }, [])
 
   const setupTestWallet = useCallback(
     (...args: Parameters<typeof createMockConfig>) => {
@@ -123,20 +117,18 @@ export function Root() {
   }
 
   return (
-    <ThemeModeContext.Provider value={themeModeContextValue}>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <QueryClientProvider client={queryClient}>
-          <WagmiProvider config={wagmiConfig}>
-            <ConnectKitProvider>
-              <Box sx={{ minHeight: '100vh' }}>
-                <App />
-              </Box>
-            </ConnectKitProvider>
-          </WagmiProvider>
-        </QueryClientProvider>
-      </ThemeProvider>
-    </ThemeModeContext.Provider>
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <QueryClientProvider client={queryClient}>
+        <WagmiProvider config={wagmiConfig}>
+          <ConnectKitProvider>
+            <Box sx={{ minHeight: '100vh' }}>
+              <App />
+            </Box>
+          </ConnectKitProvider>
+        </WagmiProvider>
+      </QueryClientProvider>
+    </ThemeProvider>
   )
 }
 

@@ -20,10 +20,10 @@ describe('CauseViewStrip', () => {
     )
 
     expect(screen.getByTestId('cause-view-strip')).toHaveTextContent(
-      '1 user signed at least one of the selected statements',
+      '1 user signed at least one selected statement',
     )
     expect(screen.getByTestId('cause-view-strip')).toHaveTextContent(
-      '1 user signed all of the selected statements',
+      '1 user signed every selected statement',
     )
     expect(screen.queryByRole('button', { name: /signed any/i })).not.toBeInTheDocument()
     expect(screen.queryByText(/never asked about the rest/i)).not.toBeInTheDocument()
@@ -48,10 +48,10 @@ describe('CauseViewStrip', () => {
     )
 
     expect(screen.getByTestId('cause-view-strip')).toHaveTextContent(
-      '4,210 users signed at least one of the selected statements',
+      '4,210 users signed at least one selected statement',
     )
     expect(screen.getByTestId('cause-view-strip')).toHaveTextContent(
-      '310 users signed all of the selected statements',
+      '310 users signed every selected statement',
     )
     expect(screen.getByTestId('view-count-none-disagreed')).toHaveTextContent('1,840')
     expect(screen.getByTestId('view-fewest-signatures')).toHaveTextContent('3')

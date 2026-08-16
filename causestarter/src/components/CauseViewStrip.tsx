@@ -76,7 +76,7 @@ export function CauseViewStrip({
                   {counts.union.total.toLocaleString()}
                 </Box>
                 {' '}
-                {userWord(counts.union.total)} at least one of the selected statements.
+                {userWord(counts.union.total)} at least one selected statement.
               </Typography>
               {counts.union.direct < counts.union.total && (
                 <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
@@ -92,7 +92,7 @@ export function CauseViewStrip({
                   {counts.conjunction.signedAll.toLocaleString()}
                 </Box>
                 {' '}
-                {userWord(counts.conjunction.signedAll)} all of the selected statements.
+                {userWord(counts.conjunction.signedAll)} every selected statement.
               </Typography>
             </Box>
 
