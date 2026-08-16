@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
-  Alert, Box, Button, Chip, CircularProgress, Divider, IconButton, LinearProgress, Paper, Snackbar,
+  Alert, Box, Button, Chip, CircularProgress, Divider, IconButton, LinearProgress, Link, Paper, Snackbar,
   Stack, ToggleButton, ToggleButtonGroup, Tooltip, Typography,
 } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
@@ -23,7 +23,8 @@ import { formatRelativeDeadline, getProjectStatus, STATUS_LABELS } from '@ui/laz
 import { AlignmentTrustGate } from '../components/AlignmentTrustGate'
 import { CauseViewStrip, type ViewMode } from '../components/CauseViewStrip'
 import { CauseMediatorCard } from '../components/CauseMediatorCard'
-import { MonthlyPledgeSignal } from '../components/MonthlyPledgeSignal'
+import { CauseFundingSummary } from '../components/CauseFundingSummary'
+import { ConnectWalletHint } from '../components/ConnectWalletHint'
 import { StatementPicker } from '../components/StatementPicker'
 import { SelectedPlankSupport } from '../components/SelectedPlankSupport'
 import { MediatorEditor } from '../components/MediatorEditor'
@@ -31,9 +32,8 @@ import { PlankRow, type PlankReview } from '../components/PlankRow'
 import { RosterHistory } from '../components/RosterHistory'
 import { RosterPublishPanel } from '../components/RosterPublishPanel'
 import { SafetyRejectionDialog } from '../components/SafetyRejectionDialog'
-import { ToolCard } from '../components/ToolCard'
 import {
-  bookmarkCause, causeContentBoardPath, causePath, causeTitle, findCauseByStable,
+  bookmarkCause, causeFundingPath, causePath, causeTitle, findCauseByStable,
   getCause, hasPublishedRoster, isCauseBookmarked, isLive, markPlankPublished,
   markRosterPublished, newPlank, publishedBookmarkIds, publishedPlanks, realPlanks,
   unbookmarkCause, unpublishedPlanks, updateCause,
@@ -53,7 +53,6 @@ import {
 import { writeCauseBookmarkList } from '../lib/causeBookmarks'
 import { publishPlank } from '../lib/publishPlank'
 import { getRuntimeConfigValue } from '../lib/runtimeConfig'
-import { SUPPORTING_TOOLS } from '../lib/tools'
 
 import { useMachinery } from '../lib/useMachinery'
 import { useWriteClients } from '../lib/useWriteClients'
@@ -500,11 +499,6 @@ export function CauseDetailPage() {
     return fewest
   }, [selectedCids, perPlank])
 
-  const tools = useMemo(
-    () => SUPPORTING_TOOLS.filter((t) => t.kind === 'substrate' && t.id !== 'delegation'),
-    [],
-  )
-
   // Soft revalidation (e.g. wallet address reconnect) must not blank the page
   // when we already have cause content painted.
   if (loadingRemote && !cause) {
@@ -913,13 +907,14 @@ export function CauseDetailPage() {
         </Paper>
       )}
 
-      {stable && history.length > 0 && (
-        <RosterHistory
-          stable={stable}
-          history={history}
-          currentVersionCid={cause.rosterCid}
-          pinnedVersionCid={routeRef?.versionCid}
-        />
+      {routeRef?.versionCid && stable && (
+        <Alert severity="info" sx={{ borderRadius: 2 }}>
+          Viewing a pinned version.
+          {' '}
+          <Link component={RouterLink} to={stableCausePath(stable)} underline="hover">
+            Open current
+          </Link>
+        </Alert>
       )}
 
       {publishedCids.length > 0 && showInitialTrustLoad && (
@@ -931,63 +926,7 @@ export function CauseDetailPage() {
         <AlignmentTrustGate error={trustError} />
       )}
       {publishedCids.length > 0 && (
-        <MonthlyPledgeSignal statementCids={publishedCids} />
-      )}
-
-      {published.length > 0 && (
-        <Paper elevation={0} sx={{ p: { xs: 2, sm: 2.5 }, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
-          <Typography variant="h6" sx={{ fontWeight: 700, mb: 1.5 }}>Set aside funds for an issue</Typography>
-          <Alert severity="info" sx={{ mb: 1.5, borderRadius: 2 }} data-testid="earmark-help">
-            Create a one-time delegated fund or a monthly pledge earmarked for one immutable
-            statement. The earmark is public, auditable guidance — not a binding restriction
-            on a delegate. If they direct the money elsewhere, that will also be public.
-            Choosing a delegate is public too. The earmark does not follow later edits to
-            this cause publication.
-          </Alert>
-          <Stack spacing={1}>
-            {published.map((plank) => (
-              <Stack
-                key={plank.cid}
-                direction={{ xs: 'column', sm: 'row' }}
-                spacing={1}
-                alignItems={{ sm: 'center' }}
-                justifyContent="space-between"
-              >
-                <Typography
-                  component={RouterLink}
-                  to={`/statement/${plank.cid}`}
-                  variant="body2"
-                  sx={{
-                    flex: 1,
-                    color: 'text.primary',
-                    textDecoration: 'none',
-                    '&:hover': { textDecoration: 'underline' },
-                  }}
-                >
-                  {plank.text}
-                </Typography>
-                <Button
-                  component={RouterLink}
-                  to={`/delegation/notes/new?statement=${encodeURIComponent(plank.cid!)}`}
-                  variant="outlined"
-                  size="small"
-                  sx={{ textTransform: 'none', flexShrink: 0 }}
-                >
-                  Earmark funds
-                </Button>
-                <Button
-                  component={RouterLink}
-                  to={`/delegates/offer?statement=${encodeURIComponent(plank.cid!)}`}
-                  variant="text"
-                  size="small"
-                  sx={{ textTransform: 'none', flexShrink: 0 }}
-                >
-                  Offer to become a delegate
-                </Button>
-              </Stack>
-            ))}
-          </Stack>
-        </Paper>
+        <CauseFundingSummary statementCids={publishedCids} href={causeFundingPath(cause)} />
       )}
 
       {isEditing && !cause.id.startsWith('remote:') && (
@@ -1037,6 +976,14 @@ export function CauseDetailPage() {
           <Alert severity="info" sx={{ mb: 2, borderRadius: 2 }} data-testid="issue-draft-help">
             Write the issues this cause is made of. Publish each one when it is ready.
           </Alert>
+        )}
+
+        {!isConnected && published.length > 0 && (
+          <Box sx={{ mb: 2 }}>
+            <ConnectWalletHint>
+              Connect a wallet to publicly stand with an issue.
+            </ConnectWalletHint>
+          </Box>
         )}
 
         {isEditing && (
@@ -1174,15 +1121,26 @@ export function CauseDetailPage() {
             <Typography variant="h6" sx={{ fontWeight: 700 }}>Cause board</Typography>
           </Box>
           {publishedCids.length > 0 && (
-            <Button
-              component={RouterLink}
-              to={`/projects/new?statement=${encodeURIComponent(selectedCids[0] ?? publishedCids[0])}`}
-              variant="contained"
-              size="small"
-              sx={{ textTransform: 'none', flexShrink: 0 }}
-            >
-              Start project
-            </Button>
+            <Stack direction="row" spacing={1} sx={{ flexShrink: 0 }} flexWrap="wrap" useFlexGap>
+              <Button
+                component={RouterLink}
+                to={`/projects/new?statement=${encodeURIComponent(selectedCids[0] ?? publishedCids[0])}`}
+                variant="contained"
+                size="small"
+                sx={{ textTransform: 'none' }}
+              >
+                Start project
+              </Button>
+              <Button
+                component={RouterLink}
+                to="/content/new"
+                variant="outlined"
+                size="small"
+                sx={{ textTransform: 'none' }}
+              >
+                Start content contract
+              </Button>
+            </Stack>
           )}
         </Stack>
 
@@ -1320,21 +1278,13 @@ export function CauseDetailPage() {
         )}
       </Paper>
 
-      {tools.length > 0 && (
-        <Stack spacing={1.25}>
-          {tools.map((tool) => (
-            <ToolCard
-              key={tool.id}
-              tool={tool}
-              compact
-              href={
-                tool.id === 'content-funding'
-                  ? causeContentBoardPath(cause)
-                  : undefined
-              }
-            />
-          ))}
-        </Stack>
+      {stable && history.length > 0 && (
+        <RosterHistory
+          stable={stable}
+          history={history}
+          currentVersionCid={cause.rosterCid}
+          pinnedVersionCid={routeRef?.versionCid}
+        />
       )}
 
       {cause.mediator && <CauseMediatorCard mediator={cause.mediator} />}

@@ -215,6 +215,7 @@ export function PlankRow({
                   statementCid={plank.cid as IpfsCidV1}
                   onSupported={onSupported}
                   subject="issue"
+                  showConnectPrompt={false}
                 />
                 <Button component={RouterLink} to={`/statement/${plank.cid}`} size="small" sx={{ textTransform: 'none' }}>
                   View statement

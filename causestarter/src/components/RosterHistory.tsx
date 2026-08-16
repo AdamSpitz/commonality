@@ -1,4 +1,4 @@
-import { Alert, Link, Stack, Typography } from '@mui/material'
+import { Link, Stack, Typography } from '@mui/material'
 import { Link as RouterLink } from 'react-router-dom'
 import type { RefUpdate } from '@commonality/sdk/mutable-refs'
 import { formatRosterAge, stableCausePath, type StableCauseId } from '../lib/causeRoster'
@@ -30,27 +30,15 @@ export function RosterHistory({
   const effectiveCurrentVersionCid = pinnedVersionCid ? latest?.value : currentVersionCid
 
   return (
-    <Stack spacing={1} data-testid="roster-history">
+    <Stack spacing={0.75} data-testid="roster-history" sx={{ pt: 0.5 }}>
       {latestAge && (
-        <Typography variant="body2" color="text.secondary">
+        <Typography variant="caption" color="text.secondary">
           Updated {latestAge}
           {history.length > 1 ? ` · ${history.length} versions` : ''}
         </Typography>
       )}
-      {pinnedVersionCid && (
-        <Alert severity="info" sx={{ borderRadius: 2 }}>
-          Viewing a pinned version.
-          {' '}
-          <Link component={RouterLink} to={stableCausePath(stable)} underline="hover">
-            Open current
-          </Link>
-        </Alert>
-      )}
       {history.length > 1 && (
-        <Stack spacing={0.5}>
-          <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
-            Previous versions
-          </Typography>
+        <Stack spacing={0.25}>
           {history.slice(0, 8).map((update) => {
             const cid = update.value
             const isCurrent = cid === effectiveCurrentVersionCid

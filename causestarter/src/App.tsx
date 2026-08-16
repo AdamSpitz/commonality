@@ -12,6 +12,7 @@ import { SettingsPage } from './pages/SettingsPage'
 import { ProjectDetailPage } from './pages/ProjectDetailPage'
 import { CreateProjectPage } from './pages/CreateProjectPage'
 import { CauseContentBoardPage } from './pages/CauseContentBoardPage'
+import { CauseFundingPage } from './pages/CauseFundingPage'
 import {
   ContentFundingAboutPage,
   ContentFundingBrowsePage,
@@ -59,6 +60,8 @@ export default function App() {
               See docs/founder/shaping-your-cause-statements.md § roster. */}
           <Route path="/cause/:owner/:slugPart/content" element={<CauseContentBoardPage />} />
           <Route path="/cause/:causeId/content" element={<CauseContentBoardPage />} />
+          <Route path="/cause/:owner/:slugPart/funding" element={<CauseFundingPage />} />
+          <Route path="/cause/:causeId/funding" element={<CauseFundingPage />} />
           <Route path="/cause/:owner/:slugPart" element={<CauseDetailPage />} />
           <Route path="/cause/:causeId" element={<CauseDetailPage />} />
           {/* No browse or search route by design: a cause is reached by its own

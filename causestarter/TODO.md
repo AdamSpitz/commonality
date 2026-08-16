@@ -21,6 +21,11 @@ open **if they stay listed here**.
     those contracts into the plank-aligned project list; cards in
     `CauseDetailPage.tsx` show “N of M posts attested” and a Content chip,
     and link with `?aligned=<plankCids>`.
+  - The cause page no longer shows a separate Content Funding tool box
+    (contracts live on the board). Create flows stay hosted:
+    `/content/new` → channel create (`existing` or `future`/prospective)
+    and `/content/.../prospective/:roundAddress/materialize`. Cause board
+    header has **Start content contract**.
   - Shared statement boards: `ui/src/fundingportals/components/AlignedProjectsList.tsx`.
   - Contract detail: `ContentFundingProjectSection.tsx` labels each post
     **Aligned** vs **Not attested as aligned**, and explains the batch

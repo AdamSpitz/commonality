@@ -14,7 +14,7 @@ import type { SDKMachinery } from '@commonality/sdk/machinery'
 import { useWriteClients } from '../lib/useWriteClients'
 import { useMachinery } from '../lib/useMachinery'
 import { getRuntimeConfigValue } from '../lib/runtimeConfig'
-import { WalletButton } from './WalletButton'
+import { ConnectWalletHint } from './ConnectWalletHint'
 
 export type SupportAction = 'support' | 'retract'
 
@@ -38,6 +38,8 @@ interface SupportButtonProps {
    * a set of separately signed planks.
    */
   subject?: string
+  /** When false, a disconnected wallet renders nothing (parent shows one shared hint). */
+  showConnectPrompt?: boolean
 }
 
 const INDEXER_POLL_DELAYS_MS = [50, 100, 200, 400, 800, 1200] as const
@@ -71,6 +73,7 @@ export function SupportButton({
   onSupported,
   subject = 'statement',
   label = `Stand with this ${subject}`,
+  showConnectPrompt = true,
 }: SupportButtonProps) {
   const { address, isConnected } = useAccount()
   const writeClients = useWriteClients(address)
@@ -144,13 +147,11 @@ export function SupportButton({
   }, [address, isConnected, machinery, operationContext, statementCid])
 
   if (!isConnected) {
+    if (!showConnectPrompt) return null
     return (
-      <Stack spacing={1.5}>
-        <Alert severity="info" sx={{ borderRadius: 2 }}>
-          Connect a wallet to publicly stand with this {subject}.
-        </Alert>
-        <WalletButton />
-      </Stack>
+      <ConnectWalletHint>
+        {`Connect a wallet to publicly stand with this ${subject}.`}
+      </ConnectWalletHint>
     )
   }
 

@@ -8,7 +8,7 @@ import { cidToBytes32 } from '@commonality/sdk/utils'
 import { getRuntimeConfigValue } from '../lib/runtimeConfig'
 import { sendCallsPreferAtomic } from '../lib/causeRoster'
 import { useWriteClients } from '../lib/useWriteClients'
-import { WalletButton } from './WalletButton'
+import { ConnectWalletHint } from './ConnectWalletHint'
 
 interface SelectedPlank {
   cid: string
@@ -84,7 +84,11 @@ export function SelectedPlankSupport({ planks, onSupported }: Props) {
         ))}
         {error && <Alert severity="error">{error}</Alert>}
         {result && <Alert severity="success">{result}</Alert>}
-        {!isConnected ? <WalletButton /> : (
+        {!isConnected ? (
+          <ConnectWalletHint>
+            Connect a wallet to support the selected statements.
+          </ConnectWalletHint>
+        ) : (
           <Button variant="contained" disabled={busy} onClick={() => void support()} data-testid="support-selected-planks">
             {busy ? <CircularProgress size={18} /> : `Support ${planks.length} selected statements`}
           </Button>

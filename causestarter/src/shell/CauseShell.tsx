@@ -12,7 +12,6 @@ import {
   useMediaQuery,
   useTheme,
 } from '@mui/material'
-import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined'
 import FlagOutlinedIcon from '@mui/icons-material/FlagOutlined'
 import MenuBookOutlinedIcon from '@mui/icons-material/MenuBookOutlined'
 import GitHubIcon from '@mui/icons-material/GitHub'
@@ -26,14 +25,12 @@ import { useThemeMode } from '../lib/themeMode'
 const GITHUB_REPO_URL = 'https://github.com/AdamSpitz/commonality'
 
 const navItems = [
-  { label: 'Home', path: '/', icon: <HomeOutlinedIcon /> },
   { label: 'Causes', path: '/causes', icon: <FlagOutlinedIcon /> },
   { label: 'Docs', path: '/docs', icon: <MenuBookOutlinedIcon /> },
 ] as const
 
 function activeNavPath(pathname: string): string {
-  if (pathname === '/') return '/'
-  const match = navItems.find((item) => item.path !== '/' && pathname.startsWith(item.path))
+  const match = navItems.find((item) => pathname === item.path || pathname.startsWith(`${item.path}/`))
   if (match) return match.path
   if (
     pathname.startsWith('/cause')
@@ -113,12 +110,13 @@ export function CauseShell({ children }: CauseShellProps) {
                       cursor: 'pointer',
                       font: 'inherit',
                       textDecoration: 'none',
-                      color: current === item.path ? 'primary.contrastText' : 'text.primary',
-                      bgcolor: current === item.path ? 'primary.main' : 'transparent',
-                      fontWeight: 600,
+                      color: current === item.path ? 'primary.main' : 'text.secondary',
+                      bgcolor: 'transparent',
+                      fontWeight: current === item.path ? 700 : 600,
                       fontSize: 14,
                       '&:hover': {
-                        bgcolor: current === item.path ? 'primary.dark' : 'action.hover',
+                        bgcolor: 'action.hover',
+                        color: current === item.path ? 'primary.main' : 'text.primary',
                       },
                     }}
                   >
