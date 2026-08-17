@@ -143,14 +143,15 @@ export function useCauseProjects(
         const byAddress = new Map<string, CauseProject>()
         for (const { cid, aligned } of perPlank) {
           for (const project of aligned) {
-            const existing = byAddress.get(project.projectAddress)
+            const key = project.projectAddress.toLowerCase()
+            const existing = byAddress.get(key)
             if (existing) {
               if (!existing.viaPlankCids.includes(cid)) existing.viaPlankCids.push(cid)
               // Direct alignment with any plank is the stronger claim.
               if (project.alignmentType === 'direct') existing.alignmentType = 'direct'
               continue
             }
-            byAddress.set(project.projectAddress, {
+            byAddress.set(key, {
               projectAddress: project.projectAddress,
               fundingCurrency: project.fundingCurrency,
               totalReceived: project.totalReceived,
@@ -169,7 +170,8 @@ export function useCauseProjects(
           contentTrustKey ? contentTrustKey.split('\0') : undefined,
         )
         for (const contract of contentContracts) {
-          const existing = byAddress.get(contract.contractAddress)
+          const key = contract.contractAddress.toLowerCase()
+          const existing = byAddress.get(key)
           if (existing) {
             existing.alignedContentItemCount = contract.alignedItemCount
             existing.contentItemCount = contract.contentItemCount
@@ -178,7 +180,7 @@ export function useCauseProjects(
             }
             continue
           }
-          byAddress.set(contract.contractAddress, {
+          byAddress.set(key, {
             projectAddress: contract.contractAddress,
             fundingCurrency: contract.fundingCurrency ?? ETH_CURRENCY,
             totalReceived: contract.totalReceived,

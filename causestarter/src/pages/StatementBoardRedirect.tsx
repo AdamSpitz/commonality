@@ -4,5 +4,6 @@ import { Navigate, useParams } from 'react-router-dom'
 export function StatementBoardRedirect() {
   const { statementCid } = useParams<{ statementCid: string }>()
   if (!statementCid) return <Navigate to="/" replace />
-  return <Navigate to={`/statement/${statementCid}#fundable-projects`} replace />
+  // Query param, not a hash: HashRouter already owns location.hash on IPFS builds.
+  return <Navigate to={`/statement/${statementCid}?section=fundable-projects`} replace />
 }

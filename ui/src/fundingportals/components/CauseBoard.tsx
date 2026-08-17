@@ -537,7 +537,7 @@ export function CauseBoard({
         </Box>
       </Paper>
 
-      {primaryCid && <AttestAlignmentForm statementCid={primaryCid} />}
+      {cids.length === 1 && primaryCid && <AttestAlignmentForm statementCid={primaryCid} />}
     </Box>
   )
 }

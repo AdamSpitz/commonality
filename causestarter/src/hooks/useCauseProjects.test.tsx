@@ -117,6 +117,47 @@ describe('useCauseProjects', () => {
     ))
   })
 
+  it('merges content contracts onto aligned projects regardless of address casing', async () => {
+    vi.mocked(getAllAlignedProjectsForCause).mockResolvedValue([
+      {
+        projectAddress: '0xCcCcCcCcCcCcCcCcCcCcCcCcCcCcCcCcCcCcCcCc',
+        alignmentType: 'indirect',
+        fundingCurrency: { symbol: 'ETH', decimals: 18 },
+        totalReceived: '1',
+        threshold: '10',
+        deadline: '1',
+      },
+    ] as any)
+    contentState.channels = [{
+      contracts: [{
+        contractAddress: '0xcccccccccccccccccccccccccccccccccccccccc',
+        contentItems: [{ canonicalId: 'twitter:uid:1:111' }],
+        project: {
+          totalReceived: '1',
+          threshold: '10',
+          deadline: '1',
+          fundingCurrency: { symbol: 'ETH', decimals: 18 },
+        },
+      }],
+    }]
+    contentState.contentAttestations = new Map([
+      ['twitter:uid:1:111', [{
+        canonicalId: 'twitter:uid:1:111',
+        attested: true,
+        statementCid: CID,
+        attester: '0x1',
+        subjectId: 'x',
+      }]],
+    ])
+
+    const { result } = renderHook(() => useCauseProjects([CID], [], new Set()))
+
+    await waitFor(() => expect(result.current.projects).toHaveLength(1))
+    expect(result.current.projects[0]?.projectAddress).toBe('0xCcCcCcCcCcCcCcCcCcCcCcCcCcCcCcCcCcCcCcCc')
+    expect(result.current.projects[0]?.alignmentType).toBe('indirect')
+    expect(result.current.projects[0]?.alignedContentItemCount).toBe(1)
+  })
+
   it('adds content-funding contracts that contain posts attested to a plank', async () => {
     contentState.channels = [{
       contracts: [{

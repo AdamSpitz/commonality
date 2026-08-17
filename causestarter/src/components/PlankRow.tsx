@@ -174,7 +174,7 @@ export function PlankRow({
                   {' · '}
                   <Box
                     component={RouterLink}
-                    to={`/statement/${plank.cid}#fundable-projects`}
+                    to={`/statement/${plank.cid}?section=fundable-projects`}
                     sx={{ color: 'inherit', textDecoration: 'underline', textUnderlineOffset: 2 }}
                   >
                     {projectCount > 0
@@ -193,14 +193,14 @@ export function PlankRow({
                   />
                 )}
               </Stack>
-              <Tooltip title="Only changes the signer totals above. Does not sign or retract.">
+              <Tooltip title="Include this statement in the signer totals and in Sign selected statements. Does not sign or retract by itself.">
                 <IconButton
                   size="small"
                   aria-pressed={selected}
                   aria-label={
                     selected
-                      ? `Deselect statement ${index + 1} from the signer totals`
-                      : `Select statement ${index + 1} in the signer totals`
+                      ? `Deselect statement ${index + 1} from totals and batch sign`
+                      : `Select statement ${index + 1} in totals and batch sign`
                   }
                   data-testid={`plank-in-totals-${index}`}
                   onClick={() => onSelectedChange(!selected)}

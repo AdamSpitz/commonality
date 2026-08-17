@@ -10,7 +10,7 @@ import {
   Stack,
   Typography,
 } from '@mui/material'
-import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom'
+import { Link as RouterLink, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { getStatementWithContent, type Statement } from '@commonality/sdk/conceptspace'
 import type { DisplayableDocument } from '@commonality/sdk/displayable-documents'
 import type { IpfsCidV1 } from '@commonality/sdk/utils'
@@ -34,6 +34,7 @@ function documentText(doc: DisplayableDocument | null | undefined): string | nul
 
 export function StatementPage() {
   const { statementCid } = useParams<{ statementCid: string }>()
+  const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const machinery = useMachinery()
   const trustedImplicationAttesters = useTrustedAttesters()
@@ -77,6 +78,11 @@ export function StatementPage() {
       setLoading(false)
     }
   }, [machinery, statementCid])
+
+  useEffect(() => {
+    if (loading || searchParams.get('section') !== 'fundable-projects') return
+    document.getElementById('fundable-projects')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, [loading, searchParams, statementCid])
 
   useEffect(() => {
     void load()

@@ -1056,7 +1056,7 @@ export function CauseDetailPage() {
               supportLoading={countsLoading}
               projectCount={plank.cid ? countByPlankCid.get(plank.cid) ?? 0 : 0}
               onSupported={(info) => {
-                refreshCounts()
+                if (info.indexed) refreshCounts()
                 if (info.action === 'support') keepThisCause()
               }}
               onTextChange={(text) => {
