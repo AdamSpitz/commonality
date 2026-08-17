@@ -23,6 +23,7 @@ export {
   selectAlignedContentContracts,
   type AlignedContentContract,
 } from './selectAlignedContent'
+export { statementCidInSet, cidReferencesSameDigest } from './statementCidMatch'
 
 export {
   getChannelDisplayLabels,

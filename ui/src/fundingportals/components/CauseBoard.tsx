@@ -504,7 +504,6 @@ export function CauseBoard({
               statementCids={cids}
               trustedImplicationAttesters={activeTrustedImplicationAttesters}
               projectLinks={projectLinks}
-              statusFilterLock="active"
               embedded
             />
           )}

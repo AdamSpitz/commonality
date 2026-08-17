@@ -168,7 +168,7 @@ describe('AlignedProjectsList', () => {
           mockMachinery,
           'QmTest',
           trustedImplicationAttesters,
-          new Set([TRUSTED_A])
+          new Set([TRUSTED_A, USER_ADDRESS])
         )
       })
     })
@@ -191,7 +191,7 @@ describe('AlignedProjectsList', () => {
           mockMachinery,
           'QmTest',
           trustedImplicationAttesters,
-          trustedAlignmentAttesters
+          new Set(['0x3333333333333333333333333333333333333333', USER_ADDRESS])
         )
       })
     })

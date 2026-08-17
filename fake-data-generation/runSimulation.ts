@@ -10,7 +10,7 @@ import { FundingAndDelegationActions, getSeedProjectAlignmentRef } from './fundi
 import { AttackScenarios } from './attackScenarios.js';
 import { InvariantChecker } from './invariantChecker.js';
 import { loadEnv, CONTRACT_ADDRESSES, RPC_URL } from './loadEnv.js';
-import { generateContentFundingScenarios, SEED_CONTENT_ALIGNMENT_REF } from './contentFundingActions.js';
+import { attestSeedMixedContentToPlank, generateContentFundingScenarios, SEED_CONTENT_ALIGNMENT_REF } from './contentFundingActions.js';
 import { publishSeedLocalFoodCause } from './seedCauseRoster.js';
 import { publishSeedLeaderboardActivity } from './seedLeaderboardActivity.js';
 import { BeliefsAbi, ImplicationsAbi, AlignmentAttestationsAbi, ProjectFactoryAbi, AssuranceContractAbi, DelegatableNotesAbi, NudgePublicationsAbi } from '@commonality/sdk/abis';
@@ -1481,6 +1481,20 @@ async function main(): Promise<void> {
 
   if (localFoodPlankCid) {
     await publishSeedLocalFoodCause(localFoodPlankCid);
+    const alignmentAttestations = CONTRACT_ADDRESSES.alignmentAttestations as `0x${string}` | undefined;
+    const contentAttesterKey = (process.env.CONTENT_ATTESTER_PRIVATE_KEY
+      ?? simulation.users[0]?.privateKey) as `0x${string}` | undefined;
+    if (alignmentAttestations && contentAttesterKey) {
+      try {
+        await attestSeedMixedContentToPlank(
+          alignmentAttestations,
+          localFoodPlankCid,
+          contentAttesterKey,
+        );
+      } catch (error) {
+        console.warn('Could not attach seed content contracts to the published local-food plank.', error);
+      }
+    }
   }
 
   // Run attack scenarios if requested

@@ -480,6 +480,31 @@ async function attestContentToPlank(
   console.log(`  ✓ Content attested to plank: ${canonicalContentId}`);
 }
 
+/**
+ * Point the mixed Twitter batch at a cause plank. Idempotent.
+ *
+ * Call this *after* the CauseStarter roster CID is finalized. Creating
+ * contracts first (or retrying a half-seeded chain) can otherwise leave
+ * content vouches on an older statement CID than the published roster.
+ */
+export async function attestSeedMixedContentToPlank(
+  alignmentAttestations: `0x${string}`,
+  statementCid: IpfsCidV1,
+  attesterPrivateKey: Hex,
+): Promise<void> {
+  for (const canonicalId of seedMixedContentAlignmentCanonicalIds()) {
+    await attestContentToPlank(
+      attesterPrivateKey,
+      alignmentAttestations,
+      canonicalId,
+      statementCid,
+    );
+  }
+  console.log(
+    `  Mixed alignment: ${seedMixedContentAlignmentCanonicalIds().length} of ${TWITTER_SUFFIXES.length} posts attested to plank ${statementCid}.`,
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Main export
 // ---------------------------------------------------------------------------
@@ -577,21 +602,18 @@ export async function generateContentFundingScenarios(
     await buyTokens(buyerBClients, contractAddress, erc1155, [firstContentId, secondContentId], [3n, 2n], [tokenPrice, tokenPrice]);
 
     const attesterKey = (alignment?.attesterPrivateKey
-      ?? process.env.CONTENT_ATTESTER_PRIVATE_KEY) as Hex | undefined;
+      ?? process.env.CONTENT_ATTESTER_PRIVATE_KEY
+      ?? users[0]?.privateKey) as Hex | undefined;
     if (alignment && addresses.alignmentAttestations && attesterKey) {
       const attester = createClients(attesterKey);
       await fundIfNeeded(fanClients, attester.account);
-      for (const canonicalId of seedMixedContentAlignmentCanonicalIds()) {
-        await attestContentToPlank(
-          attesterKey,
-          addresses.alignmentAttestations,
-          canonicalId,
-          alignment.statementCid,
-        );
-      }
-      console.log(`  Mixed alignment: ${seedMixedContentAlignmentCanonicalIds().length} of ${contentSuffixes.length} posts attested to the local-food-systems plank.`);
+      await attestSeedMixedContentToPlank(
+        addresses.alignmentAttestations,
+        alignment.statementCid,
+        attesterKey,
+      );
     } else if (alignment) {
-      console.warn('  Alignment seed requested but alignment contract or CONTENT_ATTESTER_PRIVATE_KEY is missing — skipping content attestations.');
+      console.warn('  Alignment seed requested but no attester key is available — skipping content attestations.');
     }
 
     console.log(`  Channel ${channelCanonicalId}: unclaimed, 1 contract, buyers have purchased tokens.\n`);

@@ -91,7 +91,13 @@ export function AlignedProjectsList({
   const [alignmentFilter] = useAlignmentFilter()
   const maxHops = DISCOVERY_LEVEL_MAX_HOPS[discoveryLevel]
   const { trustedSet, isLoading: trustedSetLoading } = useTrustedSet(address, { maxHops })
-  const activeTrustedAlignmentAttesters = trustedAlignmentAttesters ?? (discoveryLevel === 'anyone' ? undefined : trustedSet)
+  const activeTrustedAlignmentAttesters = useMemo(() => {
+    const base = trustedAlignmentAttesters ?? (discoveryLevel === 'anyone' ? undefined : trustedSet)
+    if (!address || !base) return base
+    const next = new Set([...base].map((entry) => entry.toLowerCase()))
+    next.add(address.toLowerCase())
+    return next
+  }, [trustedAlignmentAttesters, trustedSet, discoveryLevel, address])
   const implicationTrustKey = useMemo(() => {
     if (!trustedImplicationAttesters) return ''
     return [...trustedImplicationAttesters].map((a) => a.toLowerCase()).sort().join(',')

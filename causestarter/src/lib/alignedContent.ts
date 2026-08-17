@@ -1,5 +1,6 @@
 import type { ChannelWithCanonicalId } from '@commonality/sdk/content-funding'
 import type { ContentAttestationInfo } from '@ui/content-funding'
+import { statementCidInSet } from '@ui/content-funding/statementCidMatch'
 
 export interface AlignedContentItem {
   canonicalId: string
@@ -53,7 +54,7 @@ export function selectAlignedContentItems(
         const matches = (attestations.get(item.canonicalId) ?? [])
           .filter((attestation) =>
             attestation.attested
-            && wanted.has(attestation.statementCid)
+            && statementCidInSet(attestation.statementCid, wanted)
             && (!requireTrusted || trusted!.has(attestation.attester.toLowerCase())))
           .map((attestation) => attestation.statementCid)
         if (matches.length === 0) continue

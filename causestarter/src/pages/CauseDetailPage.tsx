@@ -109,7 +109,14 @@ export function CauseDetailPage() {
     }
     return undefined
   }, [defaultAlignmentAttesters, defaultAlignmentTrustRoot])
-  const trustedAlignmentAttesters = personalAlignmentAttesters ?? starterAlignmentAttesters
+  const trustedAlignmentAttesters = useMemo(() => {
+    const base = personalAlignmentAttesters ?? starterAlignmentAttesters
+    if (!base) return base
+    const next = new Set([...base].map((entry) => entry.toLowerCase()))
+    if (address) next.add(address.toLowerCase())
+    if (defaultAlignmentTrustRoot) next.add(defaultAlignmentTrustRoot.toLowerCase())
+    return next
+  }, [personalAlignmentAttesters, starterAlignmentAttesters, address, defaultAlignmentTrustRoot])
   const trustLoading = personalTrustLoading
     || (personalAlignmentAttesters === undefined && defaultTrustLoading)
   const trustError = personalAlignmentAttesters === undefined
