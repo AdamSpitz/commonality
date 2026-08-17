@@ -7,6 +7,8 @@ import {
   CircularProgress,
   Alert,
   Button,
+  IconButton,
+  Stack,
   Table,
   TableBody,
   TableCell,
@@ -15,8 +17,9 @@ import {
   TableRow,
   Tooltip,
 } from '@mui/material'
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
 import { useAccount } from 'wagmi'
-import { getMonthlyPledgedByCause } from '@commonality/sdk/delegation'
+import { getStandingPledges, type StandingPledge } from '@commonality/sdk/delegation'
 import {
   getTopContributorsForCause,
   getUserContributionRankForCause,
@@ -35,6 +38,31 @@ import {
 import type { CauseBoardNavLink } from './CauseBoard'
 import { useKeepPaintedWhileRefreshing } from '../hooks/useKeepPaintedWhileRefreshing'
 import { resolveStatementCids } from './statementCids'
+
+function SectionHeading({
+  title,
+  info,
+}: {
+  title: string
+  info: string
+}) {
+  return (
+    <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mb: 1.5 }}>
+      <Typography variant="h6" component="h2" sx={{ fontWeight: 700 }}>
+        {title}
+      </Typography>
+      <Tooltip title={info} placement="top">
+        <IconButton
+          size="small"
+          aria-label={`About ${title}`}
+          sx={{ color: 'text.secondary' }}
+        >
+          <InfoOutlinedIcon fontSize="small" />
+        </IconButton>
+      </Tooltip>
+    </Stack>
+  )
+}
 
 export interface CauseLeaderboardProps {
   statementCid?: string
@@ -87,7 +115,7 @@ export function CauseLeaderboard({
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [contributors, setContributors] = useState<ContributorStats[]>([])
-  const [monthlyPledged, setMonthlyPledged] = useState<bigint>(0n)
+  const [monthlyPledgers, setMonthlyPledgers] = useState<Array<{ owner: string; amount: bigint }>>([])
   const [userRank, setUserRank] = useState<{
     rank: number
     stats: ContributorStats | null
@@ -101,7 +129,7 @@ export function CauseLeaderboard({
     async function load() {
       if (cids.length === 0) {
         setContributors([])
-        setMonthlyPledged(0n)
+        setMonthlyPledgers([])
         setUserRank(null)
         setError(null)
         setLoading(false)
@@ -115,7 +143,7 @@ export function CauseLeaderboard({
           ? new Set(trustedSetKey.split(','))
           : undefined
         const queryCids = (cids.length === 1 ? cids[0]! : cids) as IpfsCidV1 | IpfsCidV1[]
-        const [topContributors, monthlyTotals] = await Promise.all([
+        const [topContributors, standingPledges] = await Promise.all([
           getTopContributorsForCause(
             machinery,
             queryCids,
@@ -124,16 +152,23 @@ export function CauseLeaderboard({
             trustedSetForLoad,
           ),
           !embedded && machinery.contractAddresses?.recurringPledges
-            ? getMonthlyPledgedByCause(machinery)
-            : Promise.resolve(new Map<string, bigint>()),
+            ? getStandingPledges(machinery)
+            : Promise.resolve([] as StandingPledge[]),
         ])
         if (cancelled) return
         setContributors(topContributors)
-        let monthly = 0n
-        for (const cid of cids) {
-          monthly += monthlyTotals.get(cid) ?? 0n
+        const cidSet = new Set(cids)
+        const byOwner = new Map<string, bigint>()
+        for (const pledge of standingPledges) {
+          if (!pledge.active) continue
+          if (!cidSet.has(pledge.causeRef)) continue
+          const owner = pledge.rootOwner.toLowerCase()
+          byOwner.set(owner, (byOwner.get(owner) ?? 0n) + BigInt(pledge.amountPerPeriod))
         }
-        setMonthlyPledged(monthly)
+        const rankedPledgers = [...byOwner.entries()]
+          .map(([owner, amount]) => ({ owner, amount }))
+          .sort((a, b) => (a.amount === b.amount ? a.owner.localeCompare(b.owner) : a.amount > b.amount ? -1 : 1))
+        setMonthlyPledgers(rankedPledgers)
 
         if (!embedded && userAddress) {
           const rankResult = await getUserContributionRankForCause(
@@ -302,41 +337,84 @@ export function CauseLeaderboard({
         </Paper>
       )}
 
-      <Paper sx={{ p: 3 }}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          Cause Leaderboard
-        </Typography>
+      <Typography variant="h4" component="h1" gutterBottom>
+        Cause Leaderboard
+      </Typography>
 
-        {userAddress && trustedSetLoading && (
-          <Alert severity="info" sx={{ mb: 2 }}>
-            {trustedSet
-              ? `Refreshing your trust network. This leaderboard is currently using ${trustedSet.size} account${trustedSet.size !== 1 ? 's' : ''} in your network. Results may still change as more are discovered.`
-              : 'Refreshing your trust network. Until any trusted accounts are found, this leaderboard still includes all alignment attestations.'}
-          </Alert>
-        )}
+      {userAddress && trustedSetLoading && (
+        <Alert severity="info" sx={{ mb: 2 }}>
+          {trustedSet
+            ? `Refreshing your trust network. This leaderboard is currently using ${trustedSet.size} account${trustedSet.size !== 1 ? 's' : ''} in your network. Results may still change as more are discovered.`
+            : 'Refreshing your trust network. Until any trusted accounts are found, this leaderboard still includes all alignment attestations.'}
+        </Alert>
+      )}
 
-        <Paper variant="outlined" sx={{ p: 2, mb: 3 }}>
-          <Typography variant="caption" color="text.secondary" display="block">
-            Ongoing Monthly Pledges
-          </Typography>
-          <Typography variant="h6">
-            {formatCurrencyAmount(
-              monthlyPledged,
-              getConfiguredPaymentCurrency() ?? DEFAULT_PAYMENT_CURRENCY,
-            )}
-            /month
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Active standing pledges are ongoing commitments and are not ranked with one-time project
-            purchases.
-          </Typography>
-        </Paper>
-
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          This leaderboard ranks direct project purchases only.
-        </Typography>
-
+      <Paper variant="outlined" sx={{ p: 2, mb: 3 }}>
+        <SectionHeading
+          title="Already Contributed"
+          info="Ranks one-time project purchases only. Standing monthly pledges are listed separately below."
+        />
         {table}
+      </Paper>
+
+      <Paper variant="outlined" sx={{ p: 2 }}>
+        <SectionHeading
+          title="Ongoing Monthly Pledges"
+          info="Active standing pledges are ongoing commitments and are not ranked with one-time project purchases."
+        />
+        {monthlyPledgers.length === 0 ? (
+          <Typography variant="body2" color="text.secondary">
+            No active monthly pledges yet.
+          </Typography>
+        ) : (
+          <TableContainer>
+            <Table size="small" data-testid="monthly-pledge-list">
+              <TableHead>
+                <TableRow>
+                  <TableCell>#</TableCell>
+                  <TableCell>Address</TableCell>
+                  <TableCell align="right">Pledged</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {monthlyPledgers.map((row, i) => {
+                  const isUser =
+                    userAddress && row.owner.toLowerCase() === userAddress.toLowerCase()
+                  return (
+                    <TableRow
+                      key={row.owner}
+                      sx={isUser ? { bgcolor: 'action.selected' } : undefined}
+                    >
+                      <TableCell>{i + 1}</TableCell>
+                      <TableCell>
+                        <Tooltip title={row.owner} placement="top">
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              fontFamily: 'monospace',
+                              fontSize: '0.85rem',
+                              cursor: 'help',
+                            }}
+                          >
+                            {truncateAddress(row.owner)}
+                            {isUser && ' (you)'}
+                          </Typography>
+                        </Tooltip>
+                      </TableCell>
+                      <TableCell align="right">
+                        {formatCurrencyAmount(
+                          row.amount,
+                          getConfiguredPaymentCurrency() ?? DEFAULT_PAYMENT_CURRENCY,
+                        )}
+                        /month
+                      </TableCell>
+                    </TableRow>
+                  )
+                })}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
       </Paper>
     </Box>
   )

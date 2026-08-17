@@ -942,13 +942,17 @@ describe('ProjectDetailPage', () => {
       render(<ProjectDetailPage />)
 
       await waitFor(() => {
-        expect(screen.getByText('Contributor Leaderboard')).toBeInTheDocument()
+        expect(screen.getByText('Already Contributed')).toBeInTheDocument()
         expect(screen.getByText('0xaaaa...1111')).toBeInTheDocument()
         expect(screen.getByText('0xbbbb...1111')).toBeInTheDocument()
+        expect(screen.getByRole('link', { name: 'Show more' })).toHaveAttribute(
+          'href',
+          `/projects/${mockProjectAddress}/leaderboard`,
+        )
       })
     })
 
-    it('does not show leaderboard when no contributions', async () => {
+    it('still shows the leaderboard preview when no contributions', async () => {
       vi.mocked(getProject).mockResolvedValue(makeProject() as any)
 
       render(<ProjectDetailPage />)
@@ -956,7 +960,8 @@ describe('ProjectDetailPage', () => {
       await waitFor(() => {
         expect(screen.getByText(/ETH raised/)).toBeInTheDocument()
       })
-      expect(screen.queryByText('Contributor Leaderboard')).not.toBeInTheDocument()
+      expect(screen.getByText('Already Contributed')).toBeInTheDocument()
+      expect(screen.getByText('No contributions yet.')).toBeInTheDocument()
     })
 
     it('sorts contributors by net contribution descending', async () => {
@@ -1000,7 +1005,7 @@ describe('ProjectDetailPage', () => {
       render(<ProjectDetailPage />)
 
       await waitFor(() => {
-        expect(screen.getByText('Contributor Leaderboard')).toBeInTheDocument()
+        expect(screen.getByText('Already Contributed')).toBeInTheDocument()
         // Net should be 0.7 ETH
         expect(screen.getByText('0.7 ETH')).toBeInTheDocument()
       })
@@ -1026,7 +1031,9 @@ describe('ProjectDetailPage', () => {
       await waitFor(() => {
         expect(screen.getByText(/ETH raised/)).toBeInTheDocument()
       })
-      expect(screen.queryByText('Contributor Leaderboard')).not.toBeInTheDocument()
+      expect(screen.getByText('Already Contributed')).toBeInTheDocument()
+      expect(screen.getByText('No contributions yet.')).toBeInTheDocument()
+      expect(screen.queryByText('0xaaaa...1111')).not.toBeInTheDocument()
     })
   })
 })

@@ -19,7 +19,7 @@ vi.mock('@commonality/sdk/delegation', async () => {
   const actual = await vi.importActual('@commonality/sdk/delegation')
   return {
     ...actual,
-    getMonthlyPledgedByCause: vi.fn(),
+    getStandingPledges: vi.fn(),
   }
 })
 
@@ -43,7 +43,7 @@ vi.mock('../../shared/hooks/useTrustedSet', () => ({
 
 import { useParams } from 'react-router-dom'
 import { useAccount } from 'wagmi'
-import { getMonthlyPledgedByCause } from '@commonality/sdk/delegation'
+import { getStandingPledges } from '@commonality/sdk/delegation'
 import { getTopContributorsForCause, getTotalFundingForCause, getUserContributionRankForCause } from '@commonality/sdk/fundingportals'
 import { useMachinery } from '../../shared'
 import { useTrustedSet } from '../../shared'
@@ -91,7 +91,25 @@ describe('CauseLeaderboardPage', () => {
       },
       totalContributors: 1,
     } as any)
-    vi.mocked(getMonthlyPledgedByCause).mockResolvedValue(new Map([[STATEMENT_CID, 2_500_000n]]))
+    vi.mocked(getStandingPledges).mockResolvedValue([
+      {
+        id: '1',
+        contractAddress: '0x9999999999999999999999999999999999999999',
+        rootOwner: USER_ADDRESS,
+        delegateTo: USER_ADDRESS,
+        token: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+        amountPerPeriod: '2500000',
+        period: '2592000',
+        causeRef: STATEMENT_CID,
+        backingType: 0,
+        lastExecuted: '0',
+        active: true,
+        createdAt: '0',
+        createdAtBlock: '0',
+        updatedAt: '0',
+        executedNoteIds: [],
+      },
+    ])
   })
 
   it('threads the trusted set into leaderboard queries', async () => {
@@ -121,7 +139,7 @@ describe('CauseLeaderboardPage', () => {
       undefined,
       trustedSet
     )
-    expect(getMonthlyPledgedByCause).toHaveBeenCalledWith(mockMachinery)
+    expect(getStandingPledges).toHaveBeenCalledWith(mockMachinery)
   })
 
   it('shows partial trust-network progress while leaderboard filtering is still filling in', async () => {
@@ -165,12 +183,16 @@ describe('CauseLeaderboardPage', () => {
       expect(screen.getByText('Ongoing Monthly Pledges')).toBeInTheDocument()
     })
 
+    expect(screen.getByText('Already Contributed')).toBeInTheDocument()
     expect(screen.getByText('2.5 USDZZZ/month')).toBeInTheDocument()
     expect(
-      screen.getByText(
+      screen.queryByText(
         'Active standing pledges are ongoing commitments and are not ranked with one-time project purchases.'
       )
-    ).toBeInTheDocument()
+    ).not.toBeInTheDocument()
+    expect(screen.getByLabelText('About Ongoing Monthly Pledges')).toBeInTheDocument()
+    expect(screen.getByLabelText('About Already Contributed')).toBeInTheDocument()
+    expect(screen.getByTestId('monthly-pledge-list')).toBeInTheDocument()
   })
 
   it('skips recurring pledge loading when the recurring contract is not configured', async () => {
@@ -182,8 +204,9 @@ describe('CauseLeaderboardPage', () => {
       expect(screen.getByText('Ongoing Monthly Pledges')).toBeInTheDocument()
     })
 
-    expect(screen.getByText('0 USDZZZ/month')).toBeInTheDocument()
-    expect(getMonthlyPledgedByCause).not.toHaveBeenCalled()
+    expect(screen.getByText('Already Contributed')).toBeInTheDocument()
+    expect(screen.getByText('No active monthly pledges yet.')).toBeInTheDocument()
+    expect(getStandingPledges).not.toHaveBeenCalled()
   })
 
 })

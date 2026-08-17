@@ -10,7 +10,7 @@ import { StatementBoardRedirect } from './pages/StatementBoardRedirect'
 import { StatementPage } from './pages/StatementPage'
 import { DocsPage } from './pages/DocsPage'
 import { SettingsPage } from './pages/SettingsPage'
-import { ProjectDetailPage } from './pages/ProjectDetailPage'
+import { ProjectDetailPage, ProjectLeaderboardPage } from './pages/ProjectDetailPage'
 import { CreateProjectPage } from './pages/CreateProjectPage'
 import { CauseContentBoardPage } from './pages/CauseContentBoardPage'
 import { CauseFundingPage } from './pages/CauseFundingPage'
@@ -78,6 +78,7 @@ export default function App() {
           />
           <Route path="/statement/:statementCid/board/leaderboard" element={<StatementBoardLeaderboardPage />} />
           <Route path="/projects/new" element={<CreateProjectPage />} />
+          <Route path="/projects/:projectAddress/leaderboard" element={<ProjectLeaderboardPage />} />
           <Route path="/projects/:projectAddress" element={<ProjectDetailPage />} />
           <Route path="/content-funding" element={<ContentFundingLandingPage />} />
           <Route path="/content-funding/about" element={<ContentFundingAboutPage />} />
