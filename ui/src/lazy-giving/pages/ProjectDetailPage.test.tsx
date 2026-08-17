@@ -237,6 +237,8 @@ describe('ProjectDetailPage', () => {
       await waitFor(() => {
         expect(screen.getByRole('heading', { name: 'My Cool Project' })).toBeInTheDocument()
       })
+      expect(screen.getByText('Project')).toBeInTheDocument()
+      expect(screen.queryByText('Content project')).not.toBeInTheDocument()
     })
 
     it('displays truncated address when no metadata available', async () => {

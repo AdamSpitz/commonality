@@ -24,6 +24,11 @@ export {
   type AlignedContentContract,
 } from './selectAlignedContent'
 export { statementCidInSet, cidReferencesSameDigest } from './statementCidMatch'
+export {
+  FAN_CREATED_TOOLTIP,
+  CONTENT_FUNDING_BADGE_TOOLTIP,
+  CONTRACT_STATUS_TOOLTIPS,
+} from './chipTooltips'
 
 export {
   getChannelDisplayLabels,

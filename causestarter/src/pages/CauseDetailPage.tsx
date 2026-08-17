@@ -1,18 +1,17 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
-  Alert, Box, Button, Chip, CircularProgress, Divider, IconButton, Link, Paper, Snackbar,
+  Alert, Box, Button, CircularProgress, Divider, IconButton, Link, Paper, Snackbar,
   Stack, ToggleButton, ToggleButtonGroup, Tooltip, Typography,
 } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
 import BookmarkIcon from '@mui/icons-material/Bookmark'
 import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder'
-import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
 import IosShareIcon from '@mui/icons-material/IosShare'
-import WarningAmberIcon from '@mui/icons-material/WarningAmber'
 import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom'
 import { useAccount } from 'wagmi'
 import type { RefUpdate } from '@commonality/sdk/mutable-refs'
 import {
+  InfoChip,
   useTrustedAttesters,
   useTrustedSet,
 } from '@ui/shared'
@@ -782,10 +781,22 @@ export function CauseDetailPage() {
 
       <Box>
         {!cause.rosterCid && (
-          <Chip size="small" label="Unpublished" sx={{ mb: 0.75 }} data-testid="cause-unpublished" />
+          <InfoChip
+            size="small"
+            label="Unpublished"
+            sx={{ mb: 0.75 }}
+            data-testid="cause-unpublished"
+            title="This cause exists only on this device so far. Others cannot open it until you publish."
+          />
         )}
         {routeRef?.versionCid && (
-          <Chip size="small" color="info" label="Pinned version" sx={{ mb: 0.75 }} />
+          <InfoChip
+            size="small"
+            color="info"
+            label="Pinned version"
+            sx={{ mb: 0.75 }}
+            title="This link is pinned to one published version. Later edits to the live cause will not change what you see here."
+          />
         )}
         {!isFreshDraft && (
           <Typography
@@ -844,39 +855,31 @@ export function CauseDetailPage() {
           )}
         </Stack>
         {hasCoherenceBadge && (
-          <Tooltip
+          <InfoChip
             title={`CauseStarter's coherence checker attested this version as coherent construction (title and description match the statements). Attested by operator ${onChainBadge!.attesters[0]}.`}
-          >
-            <Chip
-              size="small"
-              color="success"
-              variant="filled"
-              icon={<InfoOutlinedIcon />}
-              label="Coherent construction"
-              sx={{ mt: 1 }}
-              data-testid="cause-coherence-badge"
-              data-attester={onChainBadge!.attesters[0]}
-            />
-          </Tooltip>
+            size="small"
+            color="success"
+            variant="filled"
+            label="Coherent construction"
+            sx={{ mt: 1 }}
+            data-testid="cause-coherence-badge"
+            data-attester={onChainBadge!.attesters[0]}
+          />
         )}
         {showCoherenceAbsence && (
-          <Tooltip
+          <InfoChip
+            size="small"
+            color="warning"
+            variant="filled"
+            label={coherenceOperator
+              ? 'No coherence badge'
+              : 'Coherence badge not confirmed'}
+            sx={{ mt: 1 }}
+            data-testid="cause-coherence-absent"
             title={coherenceOperator
               ? 'CauseStarter\'s coherence checker has not published a badge for this version. That is not a finding that the cause is incoherent, but it does mean that we haven\'t confirmed that the title and description match the statements, so you may want to read them especially carefully.'
               : 'Could not reach CauseStarter\'s coherence checker, so this page cannot confirm whether a badge exists.'}
-          >
-            <Chip
-              size="small"
-              color="warning"
-              variant="filled"
-              icon={<WarningAmberIcon />}
-              label={coherenceOperator
-                ? 'No coherence badge'
-                : 'Coherence badge not confirmed'}
-              sx={{ mt: 1 }}
-              data-testid="cause-coherence-absent"
-            />
-          </Tooltip>
+          />
         )}
         {isFreshDraft ? (
           <Alert severity="info" sx={{ mt: 1.5, borderRadius: 2 }} data-testid="start-cause-help">

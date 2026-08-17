@@ -106,7 +106,7 @@ export function formatCurrencyRaised(
   const currentValue = typeof current === 'bigint' ? current : BigInt(current)
   const targetValue = typeof target === 'bigint' ? target : BigInt(target)
   if (targetValue === 0n) {
-    return `${formatUnits(currentValue, currency.decimals)} ${currency.symbol} raised · No minimum`
+    return `${formatUnits(currentValue, currency.decimals)} ${currency.symbol} raised`
   }
   return `${formatUnits(currentValue, currency.decimals)} of ${formatUnits(targetValue, currency.decimals)} ${currency.symbol} raised`
 }

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Alert, Button, Chip, CircularProgress, Stack, Typography } from '@mui/material'
+import { InfoChip } from '@ui/shared'
 import { useAccount } from 'wagmi'
 import { BeliefsAbi } from '@commonality/sdk/abis'
 import {
@@ -288,7 +289,12 @@ export function SupportButton({
         )}
         {alreadySupports ? (
           <>
-            <Chip size="small" color="success" label="Signed" />
+            <InfoChip
+              size="small"
+              color="success"
+              label="Signed"
+              title="You have signed this statement. Retract if you no longer stand behind it."
+            />
             <Button
               variant="text"
               color="inherit"

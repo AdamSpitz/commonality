@@ -27,6 +27,19 @@ export const STATUS_LABELS: Record<ProjectStatus, string> = {
   refunding: 'Refunding',
 }
 
+/** Short explanations for the status chip (and its info icon). */
+export const STATUS_TOOLTIPS: Record<ProjectStatus, string> = {
+  active: 'Still raising. The minimum has not been met yet, and the deadline has not passed.',
+  succeeded: 'The project met its minimum — or has none. The recipient can withdraw contributed funds.',
+  refunding: 'The deadline passed without meeting the minimum. Contributors can reclaim their funds.',
+}
+
+export const DEADLINE_ENDED_TOOLTIP =
+  'The fundraising deadline has passed. New contributions are not accepted.'
+
+export const DEADLINE_OPEN_TOOLTIP =
+  'Time remaining until the fundraising deadline. After that, new contributions are not accepted.'
+
 export function formatRelativeDeadline(deadlineStr: string): string {
   const deadline = Number(deadlineStr)
   const now = Math.floor(Date.now() / 1000)

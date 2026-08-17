@@ -1,19 +1,28 @@
 import { useState } from 'react'
 import ContentCopyIcon from '@mui/icons-material/ContentCopy'
-import { Box, Typography, Paper, Chip, Stack, LinearProgress, IconButton, Tooltip, Link } from '@mui/material'
+import { Box, Typography, Paper, Stack, LinearProgress, IconButton, Tooltip, Link } from '@mui/material'
 import type { Project } from '@commonality/sdk/lazy-giving'
-import { getProjectStatus, STATUS_COLORS, STATUS_LABELS, formatRelativeDeadline } from '../utils'
-import { truncateAddress } from '../../shared'
-import { formatCurrencyRaised } from '../../shared'
+import {
+  getProjectStatus,
+  STATUS_COLORS,
+  STATUS_LABELS,
+  STATUS_TOOLTIPS,
+  DEADLINE_ENDED_TOOLTIP,
+  DEADLINE_OPEN_TOOLTIP,
+  formatRelativeDeadline,
+} from '../utils'
+import { truncateAddress, formatCurrencyRaised, InfoChip, InfoLabel } from '../../shared'
 
 type ProjectMetadata = { name?: string; description?: string; updatesUrl?: string }
 
 interface ProjectHeaderProps {
   project: Project
   metadata: ProjectMetadata | null
+  /** Page kind for the overline. Content-funding creator contracts use `content-project`. */
+  kind?: 'project' | 'content-project'
 }
 
-export function ProjectHeader({ project, metadata }: ProjectHeaderProps) {
+export function ProjectHeader({ project, metadata, kind = 'project' }: ProjectHeaderProps) {
   const status = getProjectStatus(project)
   const [copiedRecipient, setCopiedRecipient] = useState(false)
   const hasMinimum = BigInt(project.threshold) > 0n
@@ -27,8 +36,18 @@ export function ProjectHeader({ project, metadata }: ProjectHeaderProps) {
     window.setTimeout(() => setCopiedRecipient(false), 1500)
   }
 
+  const deadlineLabel = formatRelativeDeadline(project.deadline)
+  const deadlineEnded = deadlineLabel === 'Ended'
+
   return (
-    <Paper sx={{ p: 3, mb: 3 }}>
+    <Box sx={{ mb: 3 }}>
+      <Typography
+        variant="overline"
+        sx={{ letterSpacing: '0.14em', fontWeight: 700, color: 'primary.main', display: 'block', mb: 0.5 }}
+      >
+        {kind === 'content-project' ? 'Content project' : 'Project'}
+      </Typography>
+      <Paper sx={{ p: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
         <Box>
           <Typography variant="h4" component="h1" gutterBottom>
@@ -59,12 +78,14 @@ export function ProjectHeader({ project, metadata }: ProjectHeaderProps) {
           </Stack>
         </Box>
         <Stack direction="row" spacing={1}>
-          <Chip
+          <InfoChip
+            title={STATUS_TOOLTIPS[status]}
             label={STATUS_LABELS[status]}
             color={STATUS_COLORS[status]}
           />
-          <Chip
-            label={formatRelativeDeadline(project.deadline)}
+          <InfoChip
+            title={deadlineEnded ? DEADLINE_ENDED_TOOLTIP : DEADLINE_OPEN_TOOLTIP}
+            label={deadlineLabel}
             variant="outlined"
           />
         </Stack>
@@ -75,9 +96,13 @@ export function ProjectHeader({ project, metadata }: ProjectHeaderProps) {
           <Typography variant="body1">
             {formatCurrencyRaised(project.totalReceived, project.threshold, project.fundingCurrency)}
           </Typography>
-          <Typography variant="body1">
-            {hasMinimum ? `${progressPercent}%` : 'No minimum'}
-          </Typography>
+          {hasMinimum ? (
+            <Typography variant="body1">{progressPercent}%</Typography>
+          ) : (
+            <InfoLabel title="This project has no funding minimum. The recipient can withdraw whenever the deadline allows, even if little or nothing has been raised.">
+              <Typography variant="body1" component="span">No minimum</Typography>
+            </InfoLabel>
+          )}
         </Box>
         {hasMinimum && (
           <LinearProgress
@@ -88,5 +113,6 @@ export function ProjectHeader({ project, metadata }: ProjectHeaderProps) {
         )}
       </Box>
     </Paper>
+    </Box>
   )
 }

@@ -9,7 +9,6 @@ import {
   Paper,
   CircularProgress,
   Alert,
-  Chip,
   Stack,
   Button,
   Divider,
@@ -26,11 +25,14 @@ import { useAccount } from 'wagmi'
 import { parseCanonicalChannelId, getChannelOverview, getContentItemKey, getProspectiveRounds, hashCanonicalId, type ChannelOverview, type ContentFundingContractSummary, type ContentItem, type ChannelState, type ProspectiveRoundSummary } from '@commonality/sdk/content-funding'
 import { useContentFundingState, type ContentAttestationInfo } from '../hooks/useContentFundingState'
 import { getChannelDisplayLabels } from '../channelDisplay'
-import { formatCurrencyAmount } from '../../shared'
-import { getAppUrl } from '../../shared'
-import { contentContractPathForAddress } from '../../shared'
+import { formatCurrencyAmount, getAppUrl, contentContractPathForAddress, InfoChip, useTrustedContentAttesters } from '../../shared'
+import {
+  FAN_CREATED_TOOLTIP,
+  CHANNEL_STATE_TOOLTIPS,
+  CONTRACT_STATUS_TOOLTIPS,
+  CONTENT_ITEM_CHIP_TOOLTIPS,
+} from '../chipTooltips'
 import { ClaimFlowModal } from '../components/ClaimFlowModal'
-import { useTrustedContentAttesters } from '../../shared'
 import { ContentAttestationSummary } from '../components/ContentAttestationSummary'
 import { getTrustedContentAttestationMatches } from '../components/trustedContentAttestations'
 
@@ -126,13 +128,14 @@ function ContractCard({
     >
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
         <Stack direction="row" spacing={1} flexWrap="wrap">
-          <Chip
+          <InfoChip
             label={CONTRACT_STATUS_LABELS[status] ?? status}
             color={CONTRACT_STATUS_COLORS[status] ?? 'default'}
             size="small"
+            title={CONTRACT_STATUS_TOOLTIPS[status] ?? 'Status of this funding round.'}
           />
           {contract.isThirdParty && (
-            <Chip label="Fan-created" size="small" variant="outlined" />
+            <InfoChip label="Fan-created" size="small" variant="outlined" title={FAN_CREATED_TOOLTIP} />
           )}
         </Stack>
         <Typography variant="caption" color="text.secondary" sx={{ ml: 1, flexShrink: 0 }}>
@@ -285,15 +288,19 @@ function ContentItemRow({ item, attestations }: { item: ContentItem; attestation
         </Tooltip>
       )}
       {item.status === 'released' && (
-        <Chip label="Released" size="small" variant="outlined" />
+        <InfoChip label="Released" size="small" variant="outlined" title={CONTENT_ITEM_CHIP_TOOLTIPS.released} />
       )}
       {isUncovered && (
-        <Tooltip title={hasAnyAttestation ? 'This content has attestations but none from your trusted attesters' : 'No attester has evaluated this content yet — it may be a coverage gap'}>
-          <Chip label="Uncovered" size="small" color="warning" variant="outlined" />
-        </Tooltip>
+        <InfoChip
+          label="Uncovered"
+          size="small"
+          color="warning"
+          variant="outlined"
+          title={hasAnyAttestation ? CONTENT_ITEM_CHIP_TOOLTIPS.uncoveredHasAttestations : CONTENT_ITEM_CHIP_TOOLTIPS.uncovered}
+        />
       )}
       {hasTrustedAttestation && (
-        <Chip label="Trusted attested" size="small" color="success" />
+        <InfoChip label="Trusted attested" size="small" color="success" title={CONTENT_ITEM_CHIP_TOOLTIPS.trustedAttested} />
       )}
       <ContentAttestationSummary attestations={attestations} />
     </Box>
@@ -472,9 +479,10 @@ export function ChannelPage({
             )}
           </Box>
           <Stack direction="row" spacing={1} sx={{ mt: 0.5 }} alignItems="center">
-            <Chip
+            <InfoChip
               label={STATE_LABELS[channel.state]}
               color={STATE_COLORS[channel.state]}
+              title={CHANNEL_STATE_TOOLTIPS[channel.state] ?? 'Status of this channel.'}
             />
             {isUnclaimed && (
               <Button variant="outlined" size="small" onClick={() => setClaimModalOpen(true)}>
@@ -602,8 +610,10 @@ export function ChannelPage({
                 <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" spacing={2}>
                   <Box>
                     <Stack direction="row" spacing={1} sx={{ mb: 1 }}>
-                      <Chip label="Future content" color="primary" size="small" />
-                      {round.materializedToken && <Chip label="Materialized" color="success" size="small" />}
+                      <InfoChip label="Future content" color="primary" size="small" title={CONTENT_ITEM_CHIP_TOOLTIPS.futureContent} />
+                      {round.materializedToken && (
+                        <InfoChip label="Materialized" color="success" size="small" title={CONTENT_ITEM_CHIP_TOOLTIPS.materialized} />
+                      )}
                     </Stack>
                     <Typography variant="body2" color="text.secondary">
                       Back a promised body of future work and receive non-transferable contributor receipts.
@@ -657,18 +667,20 @@ export function ChannelPage({
               {contentItems.length} total
             </Typography>
             {trustedAttesters.length > 0 && trustedContentItems.length < contentItems.length && (
-              <Chip
+              <InfoChip
                 label={`${contentItems.length - trustedContentItems.length} uncovered`}
                 size="small"
                 color="warning"
                 variant="outlined"
+                title={CONTENT_ITEM_CHIP_TOOLTIPS.uncoveredCount}
               />
             )}
             {trustedAttesters.length > 0 && trustedContentItems.length > 0 && (
-              <Chip
+              <InfoChip
                 label={`${trustedContentItems.length} trusted`}
                 size="small"
                 color="success"
+                title={CONTENT_ITEM_CHIP_TOOLTIPS.trustedCount}
               />
             )}
             {(showTrustedOnly) && (

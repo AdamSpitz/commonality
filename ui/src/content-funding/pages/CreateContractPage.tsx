@@ -13,7 +13,6 @@ import {
   Alert,
   CircularProgress,
   IconButton,
-  Chip,
   Divider,
   RadioGroup,
   FormControlLabel,
@@ -32,7 +31,8 @@ import { getChannelDisplayLabels } from '../channelDisplay'
 import { useContentFundingState } from '../hooks/useContentFundingState'
 import { usePlatformApi } from '../hooks/usePlatformApi'
 import { getAppUrl } from '../../shared'
-import { DEFAULT_PAYMENT_CURRENCY, formatCurrencyAmount, getConfiguredPaymentCurrency } from '../../shared'
+import { DEFAULT_PAYMENT_CURRENCY, formatCurrencyAmount, getConfiguredPaymentCurrency, InfoChip } from '../../shared'
+import { CHANNEL_STATE_TOOLTIPS } from '../chipTooltips'
 import { usePaymentTokenCurrency } from '../../shared'
 import { projectPathForAddress } from '../../shared'
 import { useWriteClients } from '../../shared'
@@ -579,9 +579,10 @@ export function CreateContractPage({
 
       <Paper sx={{ p: 2, mb: 2 }}>
         <Stack direction="row" spacing={2} alignItems="center">
-          <Chip
+          <InfoChip
             label={overview.channel.state === 'unclaimed' ? 'Unclaimed' : overview.channel.state === 'verified' ? 'Verified' : 'Creator-Controlled'}
             color={overview.channel.state === 'creator-controlled' ? 'success' : overview.channel.state === 'verified' ? 'warning' : 'default'}
+            title={CHANNEL_STATE_TOOLTIPS[overview.channel.state] ?? 'Status of this channel.'}
           />
           <Typography variant="body2" color="text.secondary">
             {canonicalChannelId}

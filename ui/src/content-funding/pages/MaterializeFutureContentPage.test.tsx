@@ -22,10 +22,14 @@ vi.mock('wagmi', () => ({
 // The real useMachinery is useMemo(..., []), so the mock must be stable too --
 // a fresh object per render would re-run every effect keyed on it.
 const MACHINERY = {}
-vi.mock('../../shared', () => ({
-  useMachinery: vi.fn(() => MACHINERY),
-  useWriteClients: vi.fn(() => undefined),
-}))
+vi.mock('../../shared', async () => {
+  const actual = await vi.importActual<typeof import('../../shared')>('../../shared')
+  return {
+    ...actual,
+    useMachinery: vi.fn(() => MACHINERY),
+    useWriteClients: vi.fn(() => undefined),
+  }
+})
 
 vi.mock('../hooks/usePlatformApi', () => ({
   usePlatformApi: vi.fn(() => ({ resolveContent: vi.fn() })),

@@ -19,15 +19,20 @@ import {
   getProjectStatus,
   STATUS_COLORS,
   STATUS_LABELS,
+  STATUS_TOOLTIPS,
+  DEADLINE_ENDED_TOOLTIP,
+  DEADLINE_OPEN_TOOLTIP,
   formatRelativeDeadline,
 } from '../../lazy-giving'
 import {
   getChannelDisplayLabels,
   type ChannelDisplayMetadata,
   useContentFundingState,
+  FAN_CREATED_TOOLTIP,
+  CONTENT_FUNDING_BADGE_TOOLTIP,
+  CONTRACT_STATUS_TOOLTIPS,
 } from '../../content-funding'
-import { formatCurrencyProgress } from '../../shared'
-import { projectPathForAddress } from '../../shared'
+import { formatCurrencyProgress, InfoChip, projectPathForAddress } from '../../shared'
 
 export type AlignedProject = {
   projectAddress: string
@@ -80,13 +85,14 @@ function useContentFundingInfo(projectAddress: string): ContentFundingInfo | nul
 function ContentFundingBadge({ info }: { info: ContentFundingInfo }) {
   return (
     <Stack direction="row" spacing={1} alignItems="center">
-      <Chip
+      <InfoChip
         label="Content Funding"
         size="small"
+        title={CONTENT_FUNDING_BADGE_TOOLTIP}
         sx={{ bgcolor: 'primary.light', color: 'primary.contrastText' }}
       />
       {info.isThirdParty && (
-        <Chip label="Fan-created" size="small" variant="outlined" />
+        <InfoChip label="Fan-created" size="small" variant="outlined" title={FAN_CREATED_TOOLTIP} />
       )}
     </Stack>
   )
@@ -136,10 +142,11 @@ function ContentFundingCardDetails({ info }: { info: ContentFundingInfo }) {
         </Box>
         <Box>
           <Typography variant="caption" color="text.secondary">Contract</Typography>
-          <Chip
+          <InfoChip
             label={contractStatusLabels[info.contractStatus]}
             size="small"
             color={info.contractStatus === 'successful' ? 'success' : info.contractStatus === 'active' ? 'primary' : 'default'}
+            title={CONTRACT_STATUS_TOOLTIPS[info.contractStatus] ?? 'Status of this funding round.'}
           />
         </Box>
         {info.contentItemCount > 0 && (
@@ -246,8 +253,18 @@ export function AlignedProjectCard({
         <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
           {contentFundingInfo && <ContentFundingBadge info={contentFundingInfo} />}
           <AlignmentMenuChip alignmentType={project.alignmentType} vouchNav={vouchNav} />
-          <Chip label={STATUS_LABELS[status]} color={STATUS_COLORS[status]} size="small" />
-          <Chip label={formatRelativeDeadline(project.deadline)} size="small" variant="outlined" />
+          <InfoChip
+            label={STATUS_LABELS[status]}
+            color={STATUS_COLORS[status]}
+            size="small"
+            title={STATUS_TOOLTIPS[status]}
+          />
+          <InfoChip
+            label={formatRelativeDeadline(project.deadline)}
+            size="small"
+            variant="outlined"
+            title={formatRelativeDeadline(project.deadline) === 'Ended' ? DEADLINE_ENDED_TOOLTIP : DEADLINE_OPEN_TOOLTIP}
+          />
         </Stack>
 
         <AlignedProjectCardDetails

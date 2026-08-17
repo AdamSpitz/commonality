@@ -12,7 +12,7 @@ function formatIndexedFundingRaised(project: NonNullable<Awaited<ReturnType<type
   const target = BigInt(project.threshold)
   const formattedCurrent = formatUnits(current, project.fundingCurrency.decimals)
   if (target === 0n) {
-    return `${formattedCurrent} ${project.fundingCurrency.symbol} raised · No minimum`
+    return `${formattedCurrent} ${project.fundingCurrency.symbol} raised`
   }
   return `${formattedCurrent} of ${formatUnits(target, project.fundingCurrency.decimals)} ${project.fundingCurrency.symbol} raised`
 }

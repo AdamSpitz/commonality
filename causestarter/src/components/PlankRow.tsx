@@ -1,7 +1,8 @@
 import {
-  Alert, Box, Button, Chip, CircularProgress, IconButton, Paper, Stack,
+  Alert, Box, Button, CircularProgress, IconButton, Paper, Stack,
   TextField, Tooltip, Typography,
 } from '@mui/material'
+import { InfoChip } from '@ui/shared'
 import RateReviewOutlinedIcon from '@mui/icons-material/RateReviewOutlined'
 import OpenInNewIcon from '@mui/icons-material/OpenInNew'
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
@@ -182,12 +183,13 @@ export function PlankRow({
                   </Box>
                 </Typography>
                 {addedLaterLabel && (
-                  <Chip
+                  <InfoChip
                     size="small"
                     variant="outlined"
                     label={addedLaterLabel}
                     data-testid={`plank-added-later-${index}`}
                     sx={{ borderStyle: 'dashed' }}
+                    title="This statement was added after the cause was first published. Earlier signers did not see it when they signed."
                   />
                 )}
               </Stack>

@@ -3,16 +3,20 @@ import {
   Box,
   Typography,
   Paper,
-  Chip,
   Stack,
   FormControlLabel,
   Switch,
-  Tooltip,
   Link,
 } from '@mui/material'
 import { alpha } from '@mui/material/styles'
 import { Link as RouterLink, useSearchParams } from 'react-router-dom'
-import { formatCurrencyAmount } from '../../shared'
+import { formatCurrencyAmount, InfoChip } from '../../shared'
+import {
+  FAN_CREATED_TOOLTIP,
+  CHANNEL_STATE_TOOLTIPS,
+  CONTRACT_STATUS_TOOLTIPS,
+  CONTENT_ITEM_CHIP_TOOLTIPS,
+} from '../chipTooltips'
 import { getContentItemKey, type ContentItem } from '@commonality/sdk/content-funding'
 import { ETH_CURRENCY } from '@commonality/sdk/utils'
 import { getChannelDisplayLabels } from '../channelDisplay'
@@ -89,18 +93,20 @@ function ContentItemList({
             Content Items ({items.length})
           </Typography>
           {uncoveredCount > 0 && (
-            <Chip
+            <InfoChip
               label={`${uncoveredCount} uncovered`}
               size="small"
               color="warning"
               variant="outlined"
+              title={CONTENT_ITEM_CHIP_TOOLTIPS.uncoveredCount}
             />
           )}
           {trustedItems.length > 0 && (
-            <Chip
+            <InfoChip
               label={`${trustedItems.length} trusted`}
               size="small"
               color="success"
+              title={CONTENT_ITEM_CHIP_TOOLTIPS.trustedCount}
             />
           )}
           {showTrustedOnly && (
@@ -178,20 +184,24 @@ function ContentItemList({
                 </Typography>
               )}
               {item.status === 'released' && (
-                <Chip label="Released" size="small" variant="outlined" />
+                <InfoChip label="Released" size="small" variant="outlined" title={CONTENT_ITEM_CHIP_TOOLTIPS.released} />
               )}
               {isAligned ? (
-                <Chip label="Aligned" size="small" color="success" />
+                <InfoChip label="Aligned" size="small" color="success" title={CONTENT_ITEM_CHIP_TOOLTIPS.aligned} />
               ) : (
-                <Chip label="Not attested as aligned" size="small" variant="outlined" />
+                <InfoChip label="Not attested as aligned" size="small" variant="outlined" title={CONTENT_ITEM_CHIP_TOOLTIPS.notAligned} />
               )}
               {isUncovered && (
-                <Tooltip title={hasAnyAttestation ? 'This content has attestations but none from your trusted attesters' : 'No attester has evaluated this content yet — it may be a coverage gap'}>
-                  <Chip label="Uncovered" size="small" color="warning" variant="outlined" />
-                </Tooltip>
+                <InfoChip
+                  label="Uncovered"
+                  size="small"
+                  color="warning"
+                  variant="outlined"
+                  title={hasAnyAttestation ? CONTENT_ITEM_CHIP_TOOLTIPS.uncoveredHasAttestations : CONTENT_ITEM_CHIP_TOOLTIPS.uncovered}
+                />
               )}
               {hasTrustedAttestation && (
-                <Chip label="Trusted attested" size="small" color="success" />
+                <InfoChip label="Trusted attested" size="small" color="success" title={CONTENT_ITEM_CHIP_TOOLTIPS.trustedAttested} />
               )}
               <ContentAttestationSummary attestations={attestations} />
             </Box>
@@ -276,9 +286,12 @@ export function ContentFundingProjectSection({ projectAddress }: ContentFundingP
           Content Funding
         </Typography>
         {contract.isThirdParty && (
-          <Tooltip title="This project was created by a third party. None of the money will go to anyone but the actual content creator.">
-            <Chip label="Fan-created" size="small" variant="outlined" />
-          </Tooltip>
+          <InfoChip
+            title={FAN_CREATED_TOOLTIP}
+            label="Fan-created"
+            size="small"
+            variant="outlined"
+          />
         )}
       </Stack>
 
@@ -313,11 +326,10 @@ export function ContentFundingProjectSection({ projectAddress }: ContentFundingP
         <Box>
           <Typography variant="caption" color="text.secondary">Channel Status</Typography>
           {isUnclaimed ? (
-            <Tooltip
+            <InfoChip
               title={(
                 <>
-                  This channel has not been claimed yet. If you are the creator, you can verify
-                  ownership and collect any funds waiting for you.
+                  {CHANNEL_STATE_TOOLTIPS.unclaimed}
                   {claimChannelPath && (
                     <>
                       {' '}
@@ -333,15 +345,13 @@ export function ContentFundingProjectSection({ projectAddress }: ContentFundingP
                   )}
                 </>
               )}
-            >
-              <Chip
-                label={STATE_LABELS.unclaimed}
-                size="small"
-                sx={{ mt: 0.5 }}
-              />
-            </Tooltip>
+              label={STATE_LABELS.unclaimed}
+              size="small"
+              sx={{ mt: 0.5 }}
+            />
           ) : (
-            <Chip
+            <InfoChip
+              title={CHANNEL_STATE_TOOLTIPS[channel.channel.state] ?? 'Status of this channel.'}
               label={STATE_LABELS[channel.channel.state] ?? channel.channel.state}
               size="small"
               sx={{ mt: 0.5 }}
@@ -350,7 +360,8 @@ export function ContentFundingProjectSection({ projectAddress }: ContentFundingP
         </Box>
         <Box>
           <Typography variant="caption" color="text.secondary">Contract Status</Typography>
-          <Chip
+          <InfoChip
+            title={CONTRACT_STATUS_TOOLTIPS[contract.status] ?? 'Status of this funding round.'}
             label={CONTRACT_STATUS_LABELS[contract.status] ?? contract.status}
             color={CONTRACT_STATUS_COLORS[contract.status]}
             size="small"

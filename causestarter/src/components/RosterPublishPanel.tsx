@@ -7,8 +7,9 @@
  */
 
 import {
-  Alert, Box, Button, Chip, CircularProgress, Stack, TextField, Typography,
+  Alert, Box, Button, CircularProgress, Stack, TextField, Typography,
 } from '@mui/material'
+import { InfoChip } from '@ui/shared'
 import type { CoherenceVerdict } from '../lib/causeAssistClient'
 import { normalizeSlug, validateSlug } from '../lib/causeRoster'
 
@@ -211,7 +212,13 @@ export function RosterPublishPanel({
           Publish anyway
         </Button>
         {badgeMatches && (
-          <Chip size="small" color="success" label="Badge ready" sx={{ alignSelf: 'center' }} />
+          <InfoChip
+            size="small"
+            color="success"
+            label="Badge ready"
+            sx={{ alignSelf: 'center' }}
+            title="CauseStarter's coherence checker is ready to attest that this title and description match the statements. Publishing will attach that badge."
+          />
         )}
       </Stack>
     </Stack>

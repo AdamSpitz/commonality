@@ -1,4 +1,5 @@
-import { Box, Chip, Paper, Stack, Typography } from '@mui/material'
+import { Box, Paper, Stack, Typography } from '@mui/material'
+import { InfoChip } from '@ui/shared'
 import { Link as RouterLink } from 'react-router-dom'
 import type { CauseDraft } from '../lib/causeStore'
 import { causePath, causeTitle, isLive, publishedPlanks, realPlanks } from '../lib/causeStore'
@@ -39,11 +40,12 @@ export function CauseCard({ cause }: CauseCardProps) {
           </Typography>
         </Box>
         {!isLive(cause) && (
-          <Chip
+          <InfoChip
             size="small"
             label="Nothing published yet"
             color="default"
             sx={{ flexShrink: 0 }}
+            title="Only you can see this draft. Publish to get a shareable link."
           />
         )}
       </Stack>
