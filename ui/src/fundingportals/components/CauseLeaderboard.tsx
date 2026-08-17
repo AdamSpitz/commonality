@@ -34,9 +34,12 @@ import {
 } from '../../shared'
 import type { CauseBoardNavLink } from './CauseBoard'
 import { useKeepPaintedWhileRefreshing } from '../hooks/useKeepPaintedWhileRefreshing'
+import { resolveStatementCids } from './statementCids'
 
 export interface CauseLeaderboardProps {
-  statementCid: string
+  statementCid?: string
+  /** Union several statements (a cause's published planks). Deduped by project. */
+  statementCids?: string[]
   /**
    * Back navigation. Defaults to Aligning route `/portal/:statementCid`.
    */
@@ -58,6 +61,7 @@ export interface CauseLeaderboardProps {
  */
 export function CauseLeaderboard({
   statementCid,
+  statementCids,
   backLink,
   limit,
   embedded = false,
@@ -66,6 +70,11 @@ export function CauseLeaderboard({
   const machinery = useMachinery()
   const { address: userAddress } = useAccount()
   const { trustedSet, isLoading: trustedSetLoading } = useTrustedSet(userAddress)
+  const loadCids = useMemo(
+    () => resolveStatementCids(statementCid, statementCids),
+    [statementCid, statementCids],
+  )
+  const loadCidsKey = loadCids.join(',')
   const trustedSetKey = useMemo(() => {
     if (!trustedSet || trustedSet.size === 0) return ''
     return Array.from(trustedSet)
@@ -86,10 +95,18 @@ export function CauseLeaderboard({
   } | null>(null)
 
   useEffect(() => {
-    const causeCid = statementCid
+    const cids = loadCidsKey ? loadCidsKey.split(',') : []
     let cancelled = false
 
     async function load() {
+      if (cids.length === 0) {
+        setContributors([])
+        setMonthlyPledged(0n)
+        setUserRank(null)
+        setError(null)
+        setLoading(false)
+        return
+      }
       keepPainted.beginLoad(setLoading)
       setError(null)
       try {
@@ -97,10 +114,11 @@ export function CauseLeaderboard({
         const trustedSetForLoad: Set<string> | undefined = trustedSetKey
           ? new Set(trustedSetKey.split(','))
           : undefined
+        const queryCids = (cids.length === 1 ? cids[0]! : cids) as IpfsCidV1 | IpfsCidV1[]
         const [topContributors, monthlyTotals] = await Promise.all([
           getTopContributorsForCause(
             machinery,
-            causeCid as IpfsCidV1,
+            queryCids,
             fetchLimit,
             undefined,
             trustedSetForLoad,
@@ -111,12 +129,16 @@ export function CauseLeaderboard({
         ])
         if (cancelled) return
         setContributors(topContributors)
-        setMonthlyPledged(monthlyTotals.get(causeCid) ?? 0n)
+        let monthly = 0n
+        for (const cid of cids) {
+          monthly += monthlyTotals.get(cid) ?? 0n
+        }
+        setMonthlyPledged(monthly)
 
         if (!embedded && userAddress) {
           const rankResult = await getUserContributionRankForCause(
             machinery,
-            causeCid as IpfsCidV1,
+            queryCids,
             userAddress,
             undefined,
             trustedSetForLoad,
@@ -143,7 +165,7 @@ export function CauseLeaderboard({
     return () => {
       cancelled = true
     }
-  }, [machinery, statementCid, userAddress, trustedSetKey, limit, embedded])
+  }, [machinery, loadCidsKey, userAddress, trustedSetKey, limit, embedded])
 
   if (loading) {
     return (
@@ -159,7 +181,7 @@ export function CauseLeaderboard({
 
   const resolvedBack: CauseBoardNavLink = backLink ?? {
     label: '← Back to Cause Board',
-    to: `/portal/${statementCid}`,
+    to: `/portal/${loadCids[0] ?? ''}`,
   }
 
   const table = contributors.length === 0 ? (
@@ -229,7 +251,8 @@ export function CauseLeaderboard({
           Leaderboard
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5, mt: 0.5 }}>
-          Top {limit ?? 3} by direct project purchases.
+          Top {limit ?? 3} by direct project purchases
+          {loadCids.length > 1 ? ' across this cause\'s statements.' : '.'}
         </Typography>
         {table}
         {fullPageTo && (

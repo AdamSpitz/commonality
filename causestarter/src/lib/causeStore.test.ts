@@ -3,6 +3,7 @@ import {
   bookmarkCause,
   causeContentBoardPath,
   causeFundingPath,
+  causeLeaderboardPath,
   causePath,
   causeTitle,
   createCause,
@@ -61,6 +62,12 @@ describe('causeStore', () => {
     const local = createCause()
     updateCause(local.id, { title: 'Safer nights' })
     expect(causeFundingPath(getCause(local.id)!)).toBe(`${causePath(getCause(local.id)!)}/funding`)
+  })
+
+  it('puts the union leaderboard under the cause share path', () => {
+    const local = createCause()
+    updateCause(local.id, { title: 'Safer nights' })
+    expect(causeLeaderboardPath(getCause(local.id)!)).toBe(`${causePath(getCause(local.id)!)}/leaderboard`)
   })
 
   it('does not persist a draft until it has a title, summary, or plank text', () => {

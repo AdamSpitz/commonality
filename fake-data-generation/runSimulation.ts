@@ -12,6 +12,7 @@ import { InvariantChecker } from './invariantChecker.js';
 import { loadEnv, CONTRACT_ADDRESSES, RPC_URL } from './loadEnv.js';
 import { generateContentFundingScenarios, SEED_CONTENT_ALIGNMENT_REF } from './contentFundingActions.js';
 import { publishSeedLocalFoodCause } from './seedCauseRoster.js';
+import { publishSeedLeaderboardActivity } from './seedLeaderboardActivity.js';
 import { BeliefsAbi, ImplicationsAbi, AlignmentAttestationsAbi, ProjectFactoryAbi, AssuranceContractAbi, DelegatableNotesAbi, NudgePublicationsAbi } from '@commonality/sdk/abis';
 import { toSubjectId, PROJECT_ALIGNMENT_TOPIC } from '@commonality/sdk/fundingportals';
 import { cidToBytes32, type IpfsCidV1, type IPFSConfig, uploadToIPFS } from '@commonality/sdk/utils';
@@ -1370,6 +1371,37 @@ async function publishSeedProjectSuccesses(simulation: SimulationRunner): Promis
   console.log(`Funded ${funded} seed projects and published ${published} deterministic seed project success attestations.`);
 }
 
+async function seedLeaderboardActivity(simulation: SimulationRunner, primaryStatementCid?: string): Promise<void> {
+  if (!simulation.fundingDelegation) {
+    console.warn('Funding/delegation actions not initialized — skipping leaderboard activity.');
+    return;
+  }
+
+  const statementsByRef = await mapSeedStatementsToUploadedCids(simulation.statements);
+  const extraCids: string[] = [];
+  for (let i = 0; i < DETERMINISTIC_SEED_PROJECT_ALIGNMENT_COUNT; i++) {
+    const ref = getSeedProjectAlignmentRef(i);
+    const statement = statementsByRef.get(getSeedStatementRefKey(ref));
+    if (statement?.cid && statement.cid !== primaryStatementCid) {
+      extraCids.push(statement.cid);
+    }
+  }
+  const statementCids = [
+    ...(primaryStatementCid ? [primaryStatementCid] : []),
+    ...extraCids,
+  ];
+
+  await publishSeedLeaderboardActivity({
+    projects: simulation.fundingDelegation.createdProjects.map((project) => ({
+      assuranceContract: project.assuranceContract,
+      erc1155: project.erc1155,
+      tokenIds: project.tokenIds,
+      prices: project.prices,
+    })),
+    statementCids,
+  });
+}
+
 // Main execution
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
@@ -1411,6 +1443,7 @@ async function main(): Promise<void> {
 
   await publishSeedProjectAlignments(simulation);
   await publishSeedProjectSuccesses(simulation);
+  await seedLeaderboardActivity(simulation, localFoodPlankCid);
 
   // Generate content-funding on-chain state (deterministic scenarios).
   const cfAddresses = {

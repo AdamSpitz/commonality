@@ -4,6 +4,7 @@ import { HomePage } from './pages/HomePage'
 import { StartCauseRedirect } from './pages/StartCauseRedirect'
 import { CausesPage } from './pages/CausesPage'
 import { CauseDetailPage } from './pages/CauseDetailPage'
+import { CauseBoardLeaderboardPage } from './pages/CauseBoardLeaderboardPage'
 import { StatementBoardLeaderboardPage } from './pages/StatementBoardLeaderboardPage'
 import { StatementBoardRedirect } from './pages/StatementBoardRedirect'
 import { StatementPage } from './pages/StatementPage'
@@ -62,6 +63,8 @@ export default function App() {
           <Route path="/cause/:causeId/content" element={<CauseContentBoardPage />} />
           <Route path="/cause/:owner/:slugPart/funding" element={<CauseFundingPage />} />
           <Route path="/cause/:causeId/funding" element={<CauseFundingPage />} />
+          <Route path="/cause/:owner/:slugPart/leaderboard" element={<CauseBoardLeaderboardPage />} />
+          <Route path="/cause/:causeId/leaderboard" element={<CauseBoardLeaderboardPage />} />
           <Route path="/cause/:owner/:slugPart" element={<CauseDetailPage />} />
           <Route path="/cause/:causeId" element={<CauseDetailPage />} />
           {/* No browse or search route by design: a cause is reached by its own

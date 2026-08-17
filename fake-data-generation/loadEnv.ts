@@ -46,6 +46,7 @@ export const CONTRACT_ADDRESSES = {
   channelRegistry: process.env.CHANNEL_REGISTRY_ADDRESS,
   creatorContractFactory: process.env.CREATOR_CONTRACT_FACTORY_ADDRESS,
   publishedData: process.env.PUBLISHED_DATA_CONTRACT_ADDRESS,
+  recurringPledges: process.env.RECURRING_PLEDGES_ADDRESS || process.env.RECURRING_PLEDGES_CONTRACT_ADDRESS,
 } as const satisfies Record<string, string | undefined>;
 
 export type ContractName = keyof typeof CONTRACT_ADDRESSES;

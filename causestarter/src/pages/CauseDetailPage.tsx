@@ -16,7 +16,7 @@ import {
   useTrustedAttesters,
   useTrustedSet,
 } from '@ui/shared'
-import { CauseBoard } from '@ui/fundingportals'
+import { CauseBoard, CauseLeaderboard } from '@ui/fundingportals'
 import { AlignmentTrustGate } from '../components/AlignmentTrustGate'
 import { CauseViewStrip } from '../components/CauseViewStrip'
 import { CauseMediatorCard } from '../components/CauseMediatorCard'
@@ -31,7 +31,7 @@ import { RosterHistory } from '../components/RosterHistory'
 import { RosterPublishPanel } from '../components/RosterPublishPanel'
 import { SafetyRejectionDialog } from '../components/SafetyRejectionDialog'
 import {
-  bookmarkCause, causeFundingPath, causePath, causeTitle, findCauseByStable,
+  bookmarkCause, causeFundingPath, causeLeaderboardPath, causePath, causeTitle, findCauseByStable,
   getCause, hasPublishedRoster, isCauseBookmarked, isLive, markPlankPublished,
   markRosterPublished, newPlank, publishedBookmarkIds, publishedPlanks, realPlanks,
   unbookmarkCause, unpublishedPlanks, updateCause,
@@ -1129,6 +1129,15 @@ export function CauseDetailPage() {
               <StarterNetworkFilterCopy />
             </Stack>
           }
+        />
+      )}
+
+      {publishedCids.length > 0 && (
+        <CauseLeaderboard
+          statementCids={publishedCids}
+          embedded
+          limit={3}
+          fullPageTo={causeLeaderboardPath(cause)}
         />
       )}
 

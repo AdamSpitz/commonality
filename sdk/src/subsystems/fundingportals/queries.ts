@@ -1051,17 +1051,69 @@ export async function getAllAlignedProjectsForCause(
 // Contributor Leaderboards (E3) - Event Cache + Chain Reads
 // ============================================================================
 
+type AlignedProjectForCause = Awaited<ReturnType<typeof getAllAlignedProjectsForCause>>[number];
+
+function statementCidList(statementCid: IpfsCidV1 | readonly IpfsCidV1[]): IpfsCidV1[] {
+  return [...new Set(Array.isArray(statementCid) ? statementCid : [statementCid])];
+}
+
 /**
- * Get top contributors for a specific cause (across all aligned projects).
+ * Union of projects aligned with any of the given statements, deduped by address.
+ * Direct alignment wins when the same project is both direct and indirect.
+ */
+async function getUnionAlignedProjectsForStatements(
+  machinery: SDKMachinery,
+  statementCid: IpfsCidV1 | readonly IpfsCidV1[],
+  trustedImplicationAttesters?: TrustedAddressInput,
+  trustedAlignmentAttesters?: TrustedAddressInput,
+): Promise<AlignedProjectForCause[]> {
+  const cids = statementCidList(statementCid);
+  if (cids.length === 0) return [];
+  if (cids.length === 1) {
+    return getAllAlignedProjectsForCause(
+      machinery,
+      cids[0]!,
+      trustedImplicationAttesters,
+      trustedAlignmentAttesters,
+    );
+  }
+
+  const perStatement = await Promise.all(
+    cids.map((cid) =>
+      getAllAlignedProjectsForCause(
+        machinery,
+        cid,
+        trustedImplicationAttesters,
+        trustedAlignmentAttesters,
+      ),
+    ),
+  );
+  const byAddress = new Map<string, AlignedProjectForCause>();
+  for (const aligned of perStatement) {
+    for (const project of aligned) {
+      const key = project.projectAddress.toLowerCase();
+      const existing = byAddress.get(key);
+      if (!existing || (existing.alignmentType === 'indirect' && project.alignmentType === 'direct')) {
+        byAddress.set(key, project);
+      }
+    }
+  }
+  return [...byAddress.values()];
+}
+
+/**
+ * Get top contributors for one or more statements (across all aligned projects).
+ * Multiple statements are unioned by project address so a donor is not counted twice
+ * for a project that advances more than one plank.
  */
 export async function getTopContributorsForCause(
   machinery: SDKMachinery,
-  statementCid: IpfsCidV1,
+  statementCid: IpfsCidV1 | readonly IpfsCidV1[],
   limit: number = 10,
   trustedImplicationAttesters?: TrustedAddressInput,
   trustedAlignmentAttesters?: TrustedAddressInput
 ): Promise<ContributorStats[]> {
-  const alignedProjects = await getAllAlignedProjectsForCause(
+  const alignedProjects = await getUnionAlignedProjectsForStatements(
     machinery,
     statementCid,
     trustedImplicationAttesters,
@@ -1185,7 +1237,7 @@ export async function getTopContributorsForCause(
  */
 export async function getUserContributionRankForCause(
   machinery: SDKMachinery,
-  statementCid: IpfsCidV1,
+  statementCid: IpfsCidV1 | readonly IpfsCidV1[],
   userAddress: string,
   trustedImplicationAttesters?: TrustedAddressInput,
   trustedAlignmentAttesters?: TrustedAddressInput
