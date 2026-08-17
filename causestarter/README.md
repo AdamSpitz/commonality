@@ -124,9 +124,10 @@ To add only the Christianity storyline onto an already-seeded local chain:
 npm run gen:seed:christianity --workspace=fake-data-generation
 ```
 
-Featured mediator bridges need the example service on port 3011
-(`scripts/start-seed-christian-mediator.sh`). The roster still publishes
-without it; the mediator card then shows the service as unavailable.
+Featured mediator bridges come from the `christian-bridge-creator` Compose
+service on port 3011 (`./scripts/services.sh --start` brings it up). The
+roster still publishes without it; the mediator card then shows the service
+as unavailable.
 
 ## Local stack (core domain)
 

@@ -847,6 +847,46 @@ services:
     networks:
       - commonality
 
+  # Seed Christianity cause mediator (featured anchors for CauseStarter).
+  # Same image as service-host; runs the bridge-creator HTTP app with the
+  # christian-secular-conservative example artifact. Browser fetches
+  # http://127.0.0.1:3011/anchors?featured=true from the published roster.
+  christian-bridge-creator:
+    image: commonality-service-host:dev
+    build:
+      context: .
+      dockerfile: service-host/Dockerfile
+    container_name: commonality-christian-bridge-creator
+    user: "${UID:-1000}:${GID:-1000}"
+    command: ["node", "services/bridge-creator/dist/index.js"]
+    ports:
+      - "127.0.0.1:3011:3011"
+    depends_on:
+      hardhat-node:
+        condition: service_healthy
+    environment:
+      - PORT=3011
+      - HOME=/tmp
+      - BRIDGE_CREATOR_MEDIATOR_CONFIG_PATH=/app/services/bridge-creator/config/christian-secular-conservative.example.json
+      - CHRISTIAN_BRIDGE_MEDIATOR_PRIVATE_KEY=${CHRISTIAN_BRIDGE_MEDIATOR_PRIVATE_KEY:-0xdbda1821b80551c9d65939329250298aa3472ba22feea921c0cf5d620ea67b97}
+      - ETHEREUM_RPC_URL=http://hardhat-node:8545
+      - INDEXER_URL=http://indexer:42069
+      - IPFS_API=http://ipfs:5001
+      - IPFS_GATEWAY=http://ipfs:8080
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-sk-not-needed-for-featured-anchors}
+      - NUDGE_PUBLICATIONS_CONTRACT_ADDRESS=${NUDGE_PUBLICATIONS_CONTRACT_ADDRESS:-0x0000000000000000000000000000000000000001}
+      - BRIDGE_CREATOR_TICK_INTERVAL_MS=86400000
+      - BRIDGE_CREATOR_PUBLIC_BASE_URL=http://127.0.0.1:3011
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://127.0.0.1:3011/anchors?featured=true || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+    networks:
+      - commonality
+    restart: unless-stopped
+
   # =============================================================================
   # Data Storage
 # =============================================================================

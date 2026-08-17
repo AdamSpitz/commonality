@@ -271,7 +271,8 @@ To add only that Christianity storyline onto an already-seeded chain:
 npm run gen:seed:christianity
 ```
 
-Featured bridges need `../scripts/start-seed-christian-mediator.sh`.
+Featured bridges come from the `christian-bridge-creator` Compose service on
+port 3011 (started by `./scripts/services.sh --start`).
 
 Every seed size (including `tiny`, which the nightly wipe runs) injects that
 `local-food-systems` plank if the random statement set does not already include

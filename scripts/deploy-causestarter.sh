@@ -347,7 +347,7 @@ ensure_local_indexer
 ensure_local_tool_stack
 
 echo "Deploying CauseStarter and helper services on http://localhost:${CAUSESTARTER_PORT}/"
-docker_compose up -d --force-recreate cause-assist alignment-trust-bootstrap causestarter
+docker_compose up -d --force-recreate cause-assist alignment-trust-bootstrap causestarter christian-bridge-creator
 
 echo "Waiting for health..."
 max_attempts=40

@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
-# Serve the Christian / secular-conservative example mediator on :3011 so
-# CauseStarter can fetch featured anchors for the seeded Christianity cause.
+# Host fallback for the Christian / secular-conservative example mediator.
+# Prefer the docker-compose service `christian-bridge-creator` (port 3011),
+# which `./scripts/services.sh --start` already launches. Use this script only
+# when iterating on bridge-creator itself outside Docker.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
