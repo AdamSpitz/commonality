@@ -113,7 +113,20 @@ After `./scripts/data.sh --seed`, connect as **Hardhat #0** (or any of `#0`–`#
 The landing page should include the seeded **Local food systems** cause
 (`/cause/0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266/local-food-systems`), whose
 board lists the Riverside garden project and the mixed `@civicbuilder` content
-contract.
+contract, and a **Christianity** cause
+(`/cause/0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266/christianity`) with the
+Christian / secular-conservative mediator, three LazyGiving projects, monthly
+pledges, and a mixed Common Table essay contract.
+
+To add only the Christianity storyline onto an already-seeded local chain:
+
+```bash
+npm run gen:seed:christianity --workspace=fake-data-generation
+```
+
+Featured mediator bridges need the example service on port 3011
+(`scripts/start-seed-christian-mediator.sh`). The roster still publishes
+without it; the mediator card then shows the service as unavailable.
 
 ## Local stack (core domain)
 

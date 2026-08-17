@@ -34,7 +34,7 @@ npm run gen:simulate
 
 # Or with custom parameters
 npm run gen:tiny        # 5 users, 1 round, 12 statements, capped actions, no invariant pass
-                        # Always publishes the Local food systems plank, garden alignment, and CauseStarter roster (nightly wipe uses this).
+                        # Always publishes the Local food systems + Christianity CauseStarter rosters (nightly wipe uses this).
 npm run gen:small       # 10 users, 3 rounds
 npm run gen:seed:local  # 12 users, 3 rounds, formal seed content, Alignment Explorer/nudge fixtures
 npm run gen:medium      # 50 users, 5 rounds
@@ -255,14 +255,27 @@ The same seed then creates two prospective content rounds:
 - a **successful and materialized** Substack round with one fulfilled post
   (`substack:smartwriter/civic-garden-explainer`) attested to the same plank
 
-The same seed publishes a CauseStarter roster at
-`/cause/0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266/local-food-systems`
+The same seed publishes CauseStarter rosters at
+`/cause/0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266/local-food-systems` and
+`/cause/0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266/christianity`
 (Hardhat #0) and writes `bookmarked-causes` for Hardhat `#0`–`#9`, so any of
-those accounts sees the cause on the landing page after connect.
+those accounts sees both causes on the landing page after connect. The
+Christianity roster includes the Christian / secular-conservative mediator
+identity (`http://127.0.0.1:3011` by default; override with
+`SEED_CHRISTIAN_MEDIATOR_URL`), three LazyGiving projects, monthly pledges, and
+a mixed Common Table essay contract.
+
+To add only that Christianity storyline onto an already-seeded chain:
+
+```bash
+npm run gen:seed:christianity
+```
+
+Featured bridges need `../scripts/start-seed-christian-mediator.sh`.
 
 Every seed size (including `tiny`, which the nightly wipe runs) injects that
 `local-food-systems` plank if the random statement set does not already include
-it, then publishes the garden alignment and roster. Full Explorer/nudge worker
+it, then publishes the garden alignment and both rosters. Full Explorer/nudge worker
 outputs still require `gen:seed:local` / `--publish-seed-worker-outputs`.
 
 ## Metrics Collected

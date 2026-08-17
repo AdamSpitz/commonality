@@ -113,6 +113,7 @@ function readableChannelName(channelCanonicalId: string): string {
     case 'twitter:uid:111111111': return '@civicbuilder';
     case 'youtube:channel:UCaaaaaaaaaaaaaaaaaaaaaaaa': return 'Practical Policy Lab';
     case 'substack:smartwriter': return 'Smart Writer';
+    case 'substack:commontable': return 'Common Table';
     default: return channelCanonicalId;
   }
 }
@@ -745,6 +746,74 @@ export async function generateContentFundingScenarios(
   await generateProspectiveContentRoundScenarios(addresses, users, alignment);
 
   console.log('=== Content-Funding Scenarios Complete ===\n');
+}
+
+const COMMON_TABLE_CHANNEL = 'substack:commontable';
+const COMMON_TABLE_SUFFIXES = ['warming-centre-dispatch', 'unattested-draft'] as const;
+
+/** Mixed attested/unattested essays for the Christianity cause board. */
+export function seedChristianContentAlignmentCanonicalIds(): string[] {
+  return [`${COMMON_TABLE_CHANNEL}:${COMMON_TABLE_SUFFIXES[0]}`];
+}
+
+/**
+ * A creator-owned Substack fund aligned to a Christianity plank.
+ * Uses a dedicated channel so it can be added to an already-seeded chain.
+ */
+export async function generateChristianContentScenario(
+  addresses: ContentFundingAddresses,
+  users: Array<{ privateKey: `0x${string}` }>,
+  alignment?: ContentFundingAlignmentSeed,
+): Promise<void> {
+  if (users.length < 5) {
+    console.warn('  Need at least 5 users for the Christianity content contract — skipping.');
+    return;
+  }
+  const creator = createClients(users[2]!.privateKey);
+  const buyer = createClients(users[4]!.privateKey);
+  const latestBlock = await creator.publicClient.getBlock();
+  const deadline = latestBlock.timestamp + 30n * 24n * 3600n;
+  const tokenPrice = parsePaymentTokenUnits('0.01');
+  const suffixes = [...COMMON_TABLE_SUFFIXES];
+
+  console.log('\n--- Christianity: Common Table essay fund ---');
+  try {
+    await verifyChannel(creator, addresses.channelRegistry, addresses.channelVerifier, COMMON_TABLE_CHANNEL);
+    await takeChannelControl(creator, addresses.channelRegistry, COMMON_TABLE_CHANNEL);
+  } catch (error) {
+    console.warn('  Common Table channel already verified (or verify failed):', error instanceof Error ? error.message : error);
+  }
+
+  const contractAddress = await createCreatorContract(creator, {
+    factoryAddress: addresses.creatorContractFactory,
+    channelCanonicalId: COMMON_TABLE_CHANNEL,
+    contentSuffixes: suffixes,
+    supplies: [100n, 100n],
+    prices: [tokenPrice, tokenPrice],
+    threshold: parsePaymentTokenUnits('1'),
+    deadlineSecs: deadline,
+    isThirdParty: false,
+    publishedDataAddress: addresses.publishedData,
+  });
+
+  const erc1155 = await getERC1155Address(buyer.publicClient, addresses.creatorContractFactory, contractAddress);
+  const contentId = computeContentId(COMMON_TABLE_CHANNEL, suffixes[0]);
+  await buyTokens(buyer, contractAddress, erc1155, [contentId], [4n], [tokenPrice]);
+
+  if (alignment && addresses.alignmentAttestations) {
+    const attesterKey = alignment.attesterPrivateKey
+      ?? (process.env.CONTENT_ATTESTER_PRIVATE_KEY as Hex | undefined)
+      ?? users[0]!.privateKey;
+    for (const canonicalId of seedChristianContentAlignmentCanonicalIds()) {
+      await attestContentToPlank(
+        attesterKey,
+        addresses.alignmentAttestations,
+        canonicalId,
+        alignment.statementCid,
+      );
+    }
+  }
+  console.log(`  ✓ Common Table content contract ${contractAddress} (1 of 2 posts attested)`);
 }
 
 export function buildProspectiveRoundMetadata(

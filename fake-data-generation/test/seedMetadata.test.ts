@@ -24,6 +24,15 @@ import {
   seedCauseRosterFields,
   serializeSeedCauseBookmarkList,
 } from '../seedCauseRoster.js';
+import {
+  CHRISTIANITY_CAUSE_SLUG,
+  CHRISTIANITY_PLANKS,
+  CHRISTIANITY_PROJECTS,
+  CHRISTIAN_MEDIATOR_ADDRESS,
+  CHRISTIAN_MEDIATOR_NAME,
+  christianityRosterFields,
+} from '../seedChristianityCause.js';
+import { seedChristianContentAlignmentCanonicalIds } from '../contentFundingActions.js';
 import { createStatementDocumentFromSeed, flattenSeedStatements, loadSeedCollections } from '../seed-content-format.js';
 
 test('seed LazyGiving projects have human-readable metadata', () => {
@@ -157,4 +166,22 @@ test('seed cause roster is a CauseStarter document owned by Hardhat #0', () => {
     owner: SEED_CAUSE_OWNER_ADDRESS.toLowerCase(),
     slug: SEED_CAUSE_SLUG,
   }]);
+});
+
+test('christianity seed roster includes the example mediator and distinct planks', () => {
+  const plankCids = ['bafkreiplank1', 'bafkreiplank2', 'bafkreiplank3'];
+  const fields = christianityRosterFields(plankCids);
+  const doc = buildSeedRosterDocument(fields);
+  assert.equal(CHRISTIANITY_CAUSE_SLUG, 'christianity');
+  assert.equal(fields.title, 'Christianity');
+  assert.equal(CHRISTIANITY_PLANKS.length, 3);
+  assert.equal(CHRISTIANITY_PROJECTS.length, 3);
+  assert.ok(CHRISTIANITY_PROJECTS.some((project) => project.kind === 'campus-ministry'));
+  assert.match(fields.mediatorBlurb, /secular-conservative/i);
+  assert.equal(fields.mediator?.name, CHRISTIAN_MEDIATOR_NAME);
+  assert.equal(fields.mediator?.address.toLowerCase(), CHRISTIAN_MEDIATOR_ADDRESS.toLowerCase());
+  assert.match(fields.mediator?.serviceUrl ?? '', /^https?:\/\//);
+  assert.deepEqual(doc.extras?.mediator, fields.mediator);
+  assert.match(doc.content, /# Christianity/);
+  assert.equal(seedChristianContentAlignmentCanonicalIds().length, 1);
 });

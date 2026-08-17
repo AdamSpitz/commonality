@@ -61,11 +61,19 @@ const hardhat = {
   },
 } as const;
 
+export interface SeedCauseMediator {
+  name: string;
+  description: string;
+  address: string;
+  serviceUrl: string;
+}
+
 export interface SeedCauseRosterFields {
   title: string;
   summary: string;
   plankCids: string[];
   mediatorBlurb: string;
+  mediator?: SeedCauseMediator;
 }
 
 export function seedCauseRosterFields(plankCid: string): SeedCauseRosterFields {
@@ -106,6 +114,7 @@ export function buildSeedRosterDocument(fields: SeedCauseRosterFields) {
       summary: fields.summary,
       plankCids: [...fields.plankCids],
       mediatorBlurb: fields.mediatorBlurb,
+      ...(fields.mediator ? { mediator: fields.mediator } : {}),
     },
   });
 }
