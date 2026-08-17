@@ -1,8 +1,8 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { MemoryRouter } from 'react-router-dom'
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { SelectedPlankSupport } from './SelectedPlankSupport'
 import { sendCallsPreferAtomic } from '../lib/causeRoster'
+import { getUserBelief } from '@commonality/sdk/conceptspace'
 
 vi.mock('wagmi', () => ({
   useAccount: vi.fn(() => ({ address: '0x1111111111111111111111111111111111111111', isConnected: true })),
@@ -12,7 +12,14 @@ vi.mock('../lib/runtimeConfig', () => ({
   getRuntimeConfigValue: vi.fn(() => '0x2222222222222222222222222222222222222222'),
 }))
 vi.mock('../lib/causeRoster', () => ({ sendCallsPreferAtomic: vi.fn() }))
+vi.mock('@commonality/sdk/conceptspace', () => ({
+  BeliefStates: { NO_OPINION: 0, BELIEVES: 1, DISBELIEVES: 2 },
+  getUserBelief: vi.fn(),
+}))
 vi.mock('./WalletButton', () => ({ WalletButton: () => <button>Connect</button> }))
+
+const BELIEVES = 1
+const NO_OPINION = 0
 
 const planks = [
   { cid: 'bafybeidagx4zc6phhtjng6f3sjzlicqm2ssq4eb6wskinjtuvkt275fmpy', text: 'School crossings should be safer.' },
@@ -20,33 +27,49 @@ const planks = [
 ]
 
 describe('SelectedPlankSupport', () => {
-  beforeEach(() => {
-    vi.mocked(sendCallsPreferAtomic).mockReset().mockResolvedValue({ hashes: ['0xabc'], batched: true })
+  afterEach(() => {
+    cleanup()
   })
 
-  it('shows exact text before submitting distinct statement calls', async () => {
+  beforeEach(() => {
+    vi.mocked(sendCallsPreferAtomic).mockReset().mockResolvedValue({ hashes: ['0xabc'], batched: true })
+    vi.mocked(getUserBelief).mockReset().mockImplementation(async (_machinery, _user, cid) => ({
+      statementCid: cid,
+      beliefState: NO_OPINION,
+    }))
+  })
+
+  it('signs only selected statements the user has not already signed', async () => {
+    vi.mocked(getUserBelief).mockImplementation(async (_machinery, _user, cid) => ({
+      statementCid: cid,
+      beliefState: cid === planks[0].cid ? BELIEVES : NO_OPINION,
+    }))
     const onSupported = vi.fn()
-    render(
-      <MemoryRouter>
-        <SelectedPlankSupport planks={planks} onSupported={onSupported} />
-      </MemoryRouter>,
-    )
+    render(<SelectedPlankSupport machinery={{} as never} planks={planks} onSupported={onSupported} />)
 
-    expect(screen.getByText(planks[0].text)).toBeInTheDocument()
-    expect(screen.getByText(planks[1].text)).toBeInTheDocument()
-    expect(screen.queryByText(/CID:/)).not.toBeInTheDocument()
-    expect(screen.getByText(/not the organizer, narrative, or cause page/i)).toBeInTheDocument()
-
-    fireEvent.click(screen.getByTestId('support-selected-planks'))
+    const button = await screen.findByTestId('support-selected-planks')
+    await waitFor(() => expect(button).toBeEnabled())
+    fireEvent.click(button)
     await waitFor(() => expect(sendCallsPreferAtomic).toHaveBeenCalledOnce())
     const calls = vi.mocked(sendCallsPreferAtomic).mock.calls[0]![1]
-    expect(calls).toHaveLength(2)
-    expect(calls.every((call) => call.functionName === 'setBelief')).toBe(true)
+    expect(calls).toHaveLength(1)
+    expect(calls[0]!.functionName).toBe('setBelief')
     expect(onSupported).toHaveBeenCalledOnce()
   })
 
-  it('stays hidden when fewer than two statements are selected', () => {
-    const { container } = render(<SelectedPlankSupport planks={planks.slice(0, 1)} onSupported={vi.fn()} />)
+  it('hides when every selected statement is already signed', async () => {
+    vi.mocked(getUserBelief).mockResolvedValue({
+      statementCid: planks[0].cid,
+      beliefState: BELIEVES,
+    })
+    const { container } = render(<SelectedPlankSupport machinery={{} as never} planks={planks} onSupported={vi.fn()} />)
+    await waitFor(() => expect(container).toBeEmptyDOMElement())
+    expect(screen.queryByTestId('support-selected-planks')).not.toBeInTheDocument()
+    expect(sendCallsPreferAtomic).not.toHaveBeenCalled()
+  })
+
+  it('stays hidden when no statements are selected', () => {
+    const { container } = render(<SelectedPlankSupport machinery={{} as never} planks={[]} onSupported={vi.fn()} />)
     expect(container).toBeEmptyDOMElement()
   })
 })

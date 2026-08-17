@@ -223,18 +223,16 @@ test.describe('CauseStarter agent smoke', () => {
     await page.getByTestId('plank-in-totals-1').click()
     await expect(page.getByTestId('plank-in-totals-1')).toHaveAttribute('aria-pressed', 'false')
     await expect(page.getByTestId('selected-plank-support')).toBeVisible()
+    await expect(page.getByTestId('support-selected-planks')).toBeEnabled({ timeout: 30_000 })
     await page.getByTestId('plank-in-totals-1').click()
     await expect(page.getByTestId('plank-in-totals-1')).toHaveAttribute('aria-pressed', 'true')
-    await expect(page.getByTestId('selected-plank-support')).toContainText(statements[0])
-    await expect(page.getByTestId('selected-plank-support')).toContainText(statements[1])
-    await expect(page.getByTestId('selected-plank-support')).toContainText(
-      /not the organizer, narrative, or cause page/i,
-    )
+    await expect(page.getByTestId('support-selected-planks')).toBeEnabled()
 
     await page.getByTestId('support-selected-planks').click()
     await expect(page.getByTestId('selected-plank-support')).toContainText(/Signed 2 statements/, {
       timeout: 60_000,
     })
+    await expect(page.getByTestId('support-selected-planks')).toHaveCount(0)
 
     // Every immutable plank retains its own statement page (fundable projects live there).
     await page.getByRole('link', { name: /project/i }).first().click()

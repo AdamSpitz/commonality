@@ -449,6 +449,15 @@ export function CauseDetailPage() {
     () => publishedCids.filter((cid) => !deselectedCids.has(cid)),
     [publishedCids, deselectedCids],
   )
+  const selectedSignPlanks = useMemo(
+    () => published
+      .filter((plank) => plank.cid && !deselectedCids.has(plank.cid))
+      .map((plank) => ({
+        cid: plank.cid! as `b${string}`,
+        text: plank.text,
+      })),
+    [published, deselectedCids],
+  )
 
   const rosterPreviewFields = useMemo(() => {
     if (!cause) return null
@@ -1077,10 +1086,8 @@ export function CauseDetailPage() {
 
         <Box sx={{ mt: 2 }}>
           <SelectedPlankSupport
-            planks={published.filter((plank) => plank.cid).map((plank) => ({
-              cid: plank.cid!,
-              text: plank.text,
-            }))}
+            machinery={machinery}
+            planks={selectedSignPlanks}
             onSupported={() => {
               refreshCounts()
               keepThisCause()
