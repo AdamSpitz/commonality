@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Alert, Button, Chip, Paper, Stack, Typography } from '@mui/material'
+import { Link as RouterLink } from 'react-router-dom'
 import type { CauseMediator } from '../lib/causeStore'
-import { getDomainUrl } from '../lib/domainUrls'
 
 interface FeaturedAnchor { id: string; role: string; text: string; topic_tag: string }
 
@@ -42,8 +42,13 @@ export function CauseMediatorCard({ mediator }: { mediator: CauseMediator }) {
         <Chip size="small" label={anchor.topic_tag} />
         <Typography variant="body2">{anchor.text}</Typography>
       </Stack>)}
-      <Button component="a" href={getDomainUrl('tally', causeMediatorOptInPath(mediator), '#')} target="_blank" rel="noreferrer" variant="contained" sx={{ alignSelf: 'flex-start' }}>
-        Opt in to this mediator on Tally
+      <Button
+        component={RouterLink}
+        to={causeMediatorOptInPath(mediator)}
+        variant="contained"
+        sx={{ alignSelf: 'flex-start' }}
+      >
+        Opt in to this mediator
       </Button>
     </Stack>
   </Paper>

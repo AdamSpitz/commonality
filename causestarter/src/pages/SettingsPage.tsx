@@ -1,5 +1,6 @@
 import { Box, Typography } from '@mui/material'
 import { DirectTrustSettingsSection } from '@ui/conceptspace/components/DirectTrustSettingsSection'
+import { NudgerSettingsSection } from '@ui/conceptspace/components/settings/NudgerSettingsSection'
 import {
   AlignmentFilterToggle,
   DiscoverySlider,
@@ -32,6 +33,7 @@ export function SettingsPage() {
         emptyTrustMessage="No personal trust scores yet. CauseStarter's starter network is currently filtering project vouches for you."
         refreshingEmptyMessage="Refreshing your personal trust network. CauseStarter's starter network remains in use until you name someone yourself."
       />
+      <NudgerSettingsSection />
     </Box>
   )
 }
