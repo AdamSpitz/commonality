@@ -12,12 +12,50 @@ import {
 export const ROSTER_KIND = 'causestarter.roster' as const
 export const ROSTER_SCHEMA_VERSION = 1 as const
 
+/** Mirrors CauseStarter's `CauseMediator`; part of the roster CID when present. */
+export interface RosterMediator {
+  name: string
+  description: string
+  address: string
+  serviceUrl: string
+}
+
 export interface RosterFields {
   title: string
   summary: string
   plankCids: string[]
   mediatorBlurb: string
+  /**
+   * Published mediator identity. Must stay byte-identical to what CauseStarter wrote,
+   * or the recomputed CID in `bindRosterPayload` won't match the published roster.
+   */
+  mediator?: RosterMediator
 }
+
+/** Normalized exactly as CauseStarter's `parseCauseMediator` does, for CID parity. */
+export function parseRosterMediator(value: unknown): RosterMediator | undefined {
+  if (!value || typeof value !== 'object') return undefined
+  const record = value as Record<string, unknown>
+  const name = typeof record.name === 'string' ? record.name.trim() : ''
+  const description = typeof record.description === 'string' ? record.description.trim() : ''
+  const address = typeof record.address === 'string' ? record.address.trim() : ''
+  const serviceUrl = typeof record.serviceUrl === 'string' ? record.serviceUrl.trim() : ''
+  if (!name || !description || !address || !serviceUrl) return undefined
+  if (!/^0x[0-9a-fA-F]{40}$/.test(address)) return undefined
+  try {
+    if (!['http:', 'https:'].includes(new URL(serviceUrl).protocol)) return undefined
+  } catch {
+    return undefined
+  }
+  return {
+    name: name.slice(0, MAX_MEDIATOR_FIELD_LENGTH),
+    description: description.slice(0, MAX_MEDIATOR_FIELD_LENGTH),
+    address,
+    serviceUrl: serviceUrl.replace(/\/+$/, ''),
+  }
+}
+
+const MAX_MEDIATOR_FIELD_LENGTH = 1000
 
 export interface RosterExtras extends RosterFields {
   kind: typeof ROSTER_KIND
@@ -50,6 +88,9 @@ export function buildRosterDocument(fields: RosterFields): DisplayableDocument {
     plankCids: [...fields.plankCids],
     mediatorBlurb: fields.mediatorBlurb,
   }
+  // Added only when present, so mediator-less rosters keep their pre-existing CIDs.
+  const mediator = parseRosterMediator(fields.mediator)
+  if (mediator) extras.mediator = mediator
   return createDisplayableDocument({
     format: 'markdown-restricted',
     content: renderRosterContent(fields),
@@ -77,5 +118,6 @@ export function parseRosterDocument(doc: DisplayableDocument): RosterFields | nu
     : []
 
   if (!title.trim() && plankCids.length === 0) return null
-  return { title, summary, plankCids, mediatorBlurb }
+  const mediator = parseRosterMediator(extras.mediator)
+  return { title, summary, plankCids, mediatorBlurb, ...(mediator ? { mediator } : {}) }
 }

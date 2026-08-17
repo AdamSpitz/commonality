@@ -232,7 +232,8 @@ export function CauseDetailPage() {
           slug: routeRef.slug,
           founderAddress: routeRef.owner,
           rosterCid,
-          mediator: local?.mediator,
+          // Published identity wins: a follower has no local copy to fall back on.
+          mediator: fields.mediator ?? local?.mediator,
           suggestionSeed: local?.suggestionSeed,
           createdAt: local?.createdAt ?? new Date().toISOString(),
           updatedAt: local?.updatedAt ?? new Date().toISOString(),

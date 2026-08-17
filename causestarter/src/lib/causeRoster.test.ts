@@ -73,6 +73,12 @@ describe('causeRoster', () => {
       summary: 'Neighbors funding streetlights.',
       plankCids: ['bafyplank1', 'bafyplank2'],
       mediatorBlurb: 'Oak Bridge: Local opt-in bridge',
+      mediator: {
+        name: 'Oak Bridge',
+        description: 'Local opt-in bridge',
+        address: '0x1111111111111111111111111111111111111111',
+        serviceUrl: 'https://bridge.example',
+      },
     })
   })
 
@@ -114,6 +120,49 @@ describe('causeRoster', () => {
     expect(previewRosterCid({ ...base, summary: 'B2' })).not.toBe(cid)
     expect(previewRosterCid({ ...base, plankCids: ['bafy1', 'bafy2'] })).not.toBe(cid)
     expect(previewRosterCid({ ...base, mediatorBlurb: 'C2' })).not.toBe(cid)
+  })
+
+  describe('published mediator identity', () => {
+    const mediator = {
+      name: 'Oak Bridge',
+      description: 'Local opt-in bridge',
+      address: '0x1111111111111111111111111111111111111111',
+      serviceUrl: 'https://bridge.example',
+    }
+    const base = { title: 'A', summary: 'B', plankCids: ['bafy1'], mediatorBlurb: 'C' }
+
+    it('round-trips the mediator so followers can reach the service', () => {
+      // The bug this guards: followers hydrate from the roster and have no local copy,
+      // so an address/serviceUrl that never got published means no opt-in is possible.
+      const parsed = parseRosterDocument(buildRosterDocument({ ...base, mediator }))
+      expect(parsed?.mediator).toEqual(mediator)
+    })
+
+    it('leaves mediator-less roster CIDs unchanged', () => {
+      expect(previewRosterCid({ ...base, mediator: undefined })).toBe(previewRosterCid(base))
+    })
+
+    it('changes the CID when the mediator changes', () => {
+      expect(previewRosterCid({ ...base, mediator })).not.toBe(previewRosterCid(base))
+      expect(previewRosterCid({ ...base, mediator: { ...mediator, serviceUrl: 'https://other.example' } }))
+        .not.toBe(previewRosterCid({ ...base, mediator }))
+    })
+
+    it('parses rosters published before the field existed', () => {
+      expect(parseRosterDocument(buildRosterDocument(base))?.mediator).toBeUndefined()
+    })
+
+    it('drops malformed or partial mediators rather than trusting them', () => {
+      for (const bad of [
+        { ...mediator, address: 'not-an-address' },
+        { ...mediator, serviceUrl: 'javascript:alert(1)' },
+        { ...mediator, description: '' },
+        'nonsense',
+      ]) {
+        const doc = buildRosterDocument({ ...base, mediator: bad as never })
+        expect(parseRosterDocument(doc)?.mediator).toBeUndefined()
+      }
+    })
   })
 
   it('parses stable routes with optional version pin', () => {

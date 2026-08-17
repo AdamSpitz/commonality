@@ -16,6 +16,14 @@ When `--cause-assist-url` (or `CAUSE_ASSIST_URL`) is present, the scaffold asks 
 
 The generated `provisional-v1` artifact intentionally contains obvious blanks. In particular, **Commonality does not supply a default strategy prompt**. Write the policy and mediation judgment you intend to operate under, name `side_a` and `side_b`, add a few complete `side-a` / `side-b` / `common-ground` anchor clusters, and configure inspectable context sources.
 
+Two filled-in examples are worth reading before you write your own:
+`services/bridge-creator/config/csm.example.json` (a left/right mediator) and
+`services/bridge-creator/config/christian-secular-conservative.example.json` (a
+Christian founder bridging toward secular conservatives). The second shows what changes
+when your two sides are coalition partners who distrust each other's reasons rather than
+opponents who want different outcomes — most of its bridges state a shared conclusion
+while letting each side keep its own justification.
+
 The artifact names the environment variable containing the signer key; it never contains the key. Set that secret only in the runtime environment, then start with:
 
 ```bash
@@ -35,6 +43,14 @@ npm run anchors --workspace=@commonality/bridge-creator -- --config ./my-mediato
 ```
 
 ## Publish the reusable UI blocks
+
+In CauseStarter, open your cause, click **Edit**, and use the collapsed **Mediator
+(optional)** panel to enter the mediator's name, description, signer address, and public
+service URL. It's all-or-nothing: a half-filled mediator can't be contacted or trusted, so
+the editor rejects a partial record. Publishing the roster carries that identity into the
+roster document, which is what lets *followers* — who have no local copy of your cause —
+see the featured bridges and get a working opt-in link. Before that identity is published,
+the mediator card only appears on your own device.
 
 A cause record may advertise the mediator's signer address, public service URL, name, and description. The reusable bridge display reads `GET /anchors?featured=true` and accepts founder labels plus an optional bundled fallback; the opt-in block creates the existing Tally `?addNudger=…` link from that cause-owned identity. Public mediator endpoints enable browser CORS by default (`BRIDGE_CREATOR_CORS_ORIGINS` can restrict origins). CSM keeps its bundled reference anchors when no service is deployed or a configured service is temporarily unavailable. Do not present a founder mediator without both its address and service URL.
 

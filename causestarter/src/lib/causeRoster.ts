@@ -2,7 +2,7 @@
  * Cause roster as a published, versioned artifact.
  *
  * A roster is all organizer-authored display text for a cause page: title, summary,
- * ordered plank CIDs, and mediator blurb. Its PublishedData CID is the version ID;
+ * ordered plank CIDs, and the optional mediator. Its PublishedData CID is the version ID;
  * a MutableRef `(owner, slug) → CID` is the stable ID used in the URL.
  *
  * See docs/founder/shaping-your-cause-statements.md § The roster is a publication.
@@ -93,8 +93,15 @@ export interface RosterFields {
   summary: string
   /** Ordered published plank CIDs — order is significant. */
   plankCids: string[]
-  /** Founder-authored mediator copy (not chain addresses). */
+  /** Founder-authored mediator copy, rendered into the document body. */
   mediatorBlurb: string
+  /**
+   * Machine-readable mediator identity. Published so that *followers* — who have no
+   * local copy of the cause — can fetch its featured bridges and build an opt-in link.
+   * Omitted entirely when the cause has no mediator, which keeps roster CIDs for
+   * mediator-less causes byte-identical to those published before this field existed.
+   */
+  mediator?: CauseMediator
 }
 
 export interface RosterExtras extends RosterFields {
@@ -156,6 +163,36 @@ export function validateSlug(slug: string): string | null {
   return null
 }
 
+/**
+ * Validate a mediator record read back from a published roster.
+ *
+ * Roster documents are fetched from IPFS, and the mediator's `serviceUrl` is fetched
+ * and its `address` put into an opt-in link, so a malformed or hostile record must not
+ * reach the UI. All four fields are required — a half-filled mediator can't be
+ * contacted or trusted — and anything unexpected degrades to "no mediator".
+ */
+export function parseCauseMediator(value: unknown): CauseMediator | undefined {
+  if (!value || typeof value !== 'object') return undefined
+  const record = value as Record<string, unknown>
+  const name = typeof record.name === 'string' ? record.name.trim() : ''
+  const description = typeof record.description === 'string' ? record.description.trim() : ''
+  const address = typeof record.address === 'string' ? record.address.trim() : ''
+  const serviceUrl = typeof record.serviceUrl === 'string' ? record.serviceUrl.trim() : ''
+  if (!name || !description || !address || !serviceUrl) return undefined
+  if (!/^0x[0-9a-fA-F]{40}$/.test(address)) return undefined
+  try {
+    if (!['http:', 'https:'].includes(new URL(serviceUrl).protocol)) return undefined
+  } catch {
+    return undefined
+  }
+  return {
+    name: name.slice(0, MAX_MEDIATOR_BLURB_LENGTH),
+    description: description.slice(0, MAX_MEDIATOR_BLURB_LENGTH),
+    address,
+    serviceUrl: serviceUrl.replace(/\/+$/, ''),
+  }
+}
+
 export function mediatorBlurbFrom(mediator: CauseMediator | undefined): string {
   if (!mediator) return ''
   const name = mediator.name.trim()
@@ -177,6 +214,7 @@ export function rosterFieldsFromCause(cause: CauseDraft): RosterFields {
     summary: (cause.summary?.trim() ?? '').slice(0, MAX_SUMMARY_LENGTH),
     plankCids: planks.map((plank) => plank.cid!).filter(Boolean),
     mediatorBlurb: mediatorBlurbFrom(cause.mediator).slice(0, MAX_MEDIATOR_BLURB_LENGTH),
+    mediator: parseCauseMediator(cause.mediator),
   }
 }
 
@@ -207,6 +245,9 @@ export function buildRosterDocument(fields: RosterFields): DisplayableDocument {
     plankCids: [...fields.plankCids],
     mediatorBlurb: fields.mediatorBlurb,
   }
+  // Added only when present, so mediator-less rosters keep their pre-existing CIDs.
+  const mediator = parseCauseMediator(fields.mediator)
+  if (mediator) extras.mediator = mediator
   return createDisplayableDocument({
     format: 'markdown-restricted',
     content: renderRosterContent(fields),
@@ -234,7 +275,9 @@ export function parseRosterDocument(doc: DisplayableDocument): RosterFields | nu
     : []
 
   if (!title.trim() && plankCids.length === 0) return null
-  return { title, summary, plankCids, mediatorBlurb }
+  // Absent on rosters published before the mediator identity was carried; not an error.
+  const mediator = parseCauseMediator(extras.mediator)
+  return { title, summary, plankCids, mediatorBlurb, ...(mediator ? { mediator } : {}) }
 }
 
 export function stableCausePath(id: StableCauseId, versionCid?: string): string {
