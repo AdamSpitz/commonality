@@ -15,4 +15,4 @@ Polarized systems reward statements that distinguish tribes. CSM needs infrastru
 - Clients can subscribe to or ignore it.
 - Signing remains a user action; the mediator can suggest wording but cannot create durable support on anyone's behalf.
 
-The mechanism-level product spec lives in the repository at `specs/product/bridge-creator.md`.
+The mechanism-level product spec lives in the repository at `specs/product/bridge-creator.md`. When the sides are already published as causes, the same idea is meant to appear as ordinary cause pages — see `specs/product/bridge-causes.md`.

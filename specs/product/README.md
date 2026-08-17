@@ -13,6 +13,7 @@ Product-manager-level planning documents. These describe *what* to build and *wh
 - **[bridge-finder.md](bridge-finder.md)** — A focused finder for hidden-majority patterns (speculative)
 - **[bridge-creator.md](bridge-creator.md)** — Actively synthesizing common-ground statements and getting them in front of people (speculative)
 - **[bridge-building-for-founders.md](bridge-building-for-founders.md)** — Turning the CSM bridge-creator into a building block any cause founder can adopt ("a mediator for your cause"): what's already generic, the four places CSM-ness actually lives, a tiered plan, and why the beat-agent rehearsal gates it.
+- **[bridge-causes.md](bridge-causes.md)** — Present a mediator as natural / modified / bridge causes (\(n+1\) publications); human authors can write the cluster without an LLM loop. Does not replace statement-level triples.
 - **[currency.md](currency.md)** — Currency design: how value moves through the system.
 - **[privacy-slider.md](privacy-slider.md)** — Thoughts about the "sliding scale" of privacy: how much does a user reveal about himself?
 - **[new-user-experience.md](new-user-experience.md)** — New-user experience: how exploration and onboarding work, why explorers aren't nudgers.

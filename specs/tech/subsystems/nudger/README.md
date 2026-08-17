@@ -221,7 +221,7 @@ When possible, the nudger should prefer an already-existing, well-supported clea
 
 ### 2. Bridge-creator nudger
 
-The more sophisticated case: an AI service that synthesizes *new* statements designed to surface hidden common ground. See [bridge-creator.md](../../../product/bridge-creator.md) for full details.
+The more sophisticated case: an AI service that synthesizes *new* statements designed to surface hidden common ground. See [bridge-creator.md](../../../product/bridge-creator.md) for full details. The same modified / common-ground poles can be published as ordinary causes; a human can author that cluster without this service — [bridge-causes.md](../../../product/bridge-causes.md).
 
 Concretely:
 1. Fetches context summaries from trusted Common Sense Majority beat-agent services.

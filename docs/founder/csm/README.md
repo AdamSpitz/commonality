@@ -20,6 +20,7 @@ A reading order for someone new to the project:
 4. **Where CSM sits among the products.** `specs/product/ui-domains.md` — CSM is the quiet-middle movement site; it uses Civility, Tally, Alignment, and LazyGiving rather than owning all of that machinery itself.
 5. **The hard technical pieces.**
    - `specs/product/bridge-creator.md` — the AI that synthesizes modified statements and commonality statements from moderate positions on opposing sides.
+  - `specs/product/bridge-causes.md` — the same triple as natural / modified / bridge *causes*, including human-authored clusters.
    - [hidden-majority patterns](../../end-user/common-sense-majority/hidden-majority-patterns.md) — the canonical taxonomy of gap types the bridge creator works against, and the thesis that a supermajority holds invisible common-sense positions.
    - `specs/tech/subsystems/nudger/README.md` — the general nudger pattern the mediator is an instance of.
    - `specs/tech/subsystems/content-funding/noninflammatory-content/` — content attesters and beat agents, the machinery behind "fund an adjective."

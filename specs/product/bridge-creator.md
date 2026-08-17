@@ -2,6 +2,8 @@
 
 This file describes the mechanism. For the vision behind it — why the CSM bridge creator is best understood as a *mediator*, why it's deliberately opinionated rather than neutral, and what incentive structure it creates for users — see [the CSM mediator doc](/docs/end-user/common-sense-majority/mediator.md).
 
+When the parents are already causes, the same triple can be published as ordinary causes (natural / modified / bridge). That presentation, and the requirement that a *human* can author it without an LLM loop, is [bridge-causes.md](./bridge-causes.md). This file remains the statement-level engine.
+
 ## What it does
 
 The bridge-creator is a **nudger** — an off-chain service identified by its Ethereum address that publishes nudge batches to IPFS with CIDs recorded on-chain. See the [nudger spec](../tech/subsystems/nudger/README.md) for the nudger architecture.

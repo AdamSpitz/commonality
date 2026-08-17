@@ -2,6 +2,8 @@
 
 A mediator watches the context you choose and proposes bridge triples: one statement for each of two founder-named sides, plus common ground both imply. Supporters see its suggestions only after opting in.
 
+When you are bridging *existing causes* (not only sides inside one cause), the public picture is a [bridge cluster](/specs/product/bridge-causes.md): a modified cause per parent plus a bridge cause. You can write that cluster yourself; it does not have to come from this service.
+
 ## Scaffold the instance
 
 ```bash

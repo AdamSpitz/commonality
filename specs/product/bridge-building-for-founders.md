@@ -175,7 +175,9 @@ Founder docs last, once both tracks have landed: a "mediator for your cause" gui
   [ui-operator-posture.md](./ui-operator-posture.md) for why that boundary matters.
 - **A mediator registry or marketplace.** Opt-in is per-nudger via deep link today; that's
   enough until there are more than a handful.
-- **Cross-cause bridge federation.** `POST /propose-bridge` already lets one cause's mediator
-  suggest bridges to another's. That's the whole federation story for now.
+- **Cross-cause bridge federation as a service mesh.** `POST /propose-bridge` already lets one
+  cause's mediator suggest wording to another's. The durable join when parents are causes is a
+  [bridge cluster](./bridge-causes.md) (modified causes + bridge cause), which a human can
+  author without running this service.
 - **More than two sides.** A cause with three real factions can run multiple mediators or
   multiple anchor clusters. Generalizing the role model to N sides buys nothing yet.

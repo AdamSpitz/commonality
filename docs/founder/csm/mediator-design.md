@@ -2,7 +2,7 @@
 
 Builder-facing design reasoning for the CSM mediator. The public [mediator doc](../../end-user/common-sense-majority/mediator.md) covers the vision (why it's an opinionated-but-transparent mediator, why a user opts in, how a user's POV crosses the divide). This covers how it's structured and how we'll know it's working.
 
-For how it's built, see `specs/product/bridge-creator.md` and the [nudger spec](../../../specs/tech/subsystems/nudger/README.md).
+For how it's built, see `specs/product/bridge-creator.md` and the [nudger spec](../../../specs/tech/subsystems/nudger/README.md). When mediation is between existing causes, the same triple is meant to show up as [bridge causes](../../../specs/product/bridge-causes.md) (and a human can author that cluster without the synthesizer).
 
 ## Static strategies plus a curated list of statements
 
