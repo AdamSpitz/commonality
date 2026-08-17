@@ -473,11 +473,11 @@ describe('FundingPortalSummary', () => {
       render(<FundingPortalSummary statementCid="QmTest" />)
 
       await waitFor(() => {
-        const headings = screen.getAllByRole('heading', { level: 2 })
+        const titles = screen.getAllByRole('link', { name: /Open project/i })
         // Alpha (90%) first, Gamma (10%) last
-        expect(headings[0]).toHaveTextContent('Project Alpha')
-        expect(headings[1]).toHaveTextContent('Project Beta')
-        expect(headings[2]).toHaveTextContent('Project Gamma')
+        expect(titles[0]).toHaveTextContent('Project Alpha')
+        expect(titles[1]).toHaveTextContent('Project Beta')
+        expect(titles[2]).toHaveTextContent('Project Gamma')
       })
     })
 

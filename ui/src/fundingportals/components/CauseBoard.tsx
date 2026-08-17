@@ -8,7 +8,6 @@ import {
   CircularProgress,
   Alert,
   Stack,
-  Divider,
   Button,
   Tabs,
   Tab,
@@ -301,145 +300,164 @@ export function CauseBoard({
   const displaySummary = preferredSummary?.trim() || summary
   const links = navLinks ?? (embedded ? [] : defaultNavLinks(primaryCid))
 
+  const metricSx = { minWidth: 0 }
+
   return (
     <Box id="fundable-projects" data-testid="fundable-projects">
-      <Paper sx={{ p: 3, mb: 3 }}>
-        {links.length > 0 && (
-          <Stack direction="row" spacing={1} sx={{ mb: 2 }} flexWrap="wrap" useFlexGap>
-            {links.map((link) => (
-              <NavLinkButton key={link.label} link={link} />
-            ))}
-          </Stack>
-        )}
-
-        {embedded ? (
-          <Typography variant="h6" component="h2" sx={{ fontWeight: 700 }} gutterBottom>
-            {surfaceTitle}
-          </Typography>
-        ) : (
-          <>
-            <Typography
-              variant="overline"
-              sx={{ letterSpacing: '0.14em', fontWeight: 700, color: 'primary.main', display: 'block' }}
-            >
-              Statement
-            </Typography>
-
-            {displayTitle && (
-              <Typography variant="body1" component="h1" gutterBottom sx={{ fontWeight: 500 }}>
-                {displayTitle}
-              </Typography>
-            )}
-
-            {displaySummary && (
-              <Typography variant="body1" color="text.secondary" gutterBottom>
-                {displaySummary}
-              </Typography>
-            )}
-          </>
-        )}
-
-        <Divider sx={{ my: 2 }} />
-
-        <Stack direction="row" spacing={4} flexWrap="wrap" useFlexGap>
-          <Box>
-            <Typography variant="caption" color="text.secondary" display="block">
-              Total Funding Raised
-            </Typography>
-            <Typography variant="h6">{formatCurrencyTotals(totalRaised)}</Typography>
-          </Box>
-
-          <Box>
-            <Typography variant="caption" color="text.secondary" display="block">
-              Still needed (needs initial funding)
-            </Typography>
-            <Typography variant="h6">{formatCurrencyTotals(remainingToThreshold)}</Typography>
-          </Box>
-
-          <Box>
-            <Typography variant="caption" color="text.secondary" display="block">
-              Unreimbursed (needs reimbursement)
-            </Typography>
-            <Typography variant="h6">{formatCurrencyTotals(totalUnreimbursed)}</Typography>
-          </Box>
-
-          <Box>
-            <Typography variant="caption" color="text.secondary" display="block">
-              Ongoing Monthly Pledges
-            </Typography>
-            <Typography variant="h6">
-              {formatCurrencyAmount(
-                monthlyPledged,
-                getConfiguredPaymentCurrency() ?? DEFAULT_PAYMENT_CURRENCY,
-              )}
-              /month
-            </Typography>
-          </Box>
-
-          <Box>
-            <Stack direction="row" alignItems="center" spacing={0.25}>
-              <Typography variant="caption" color="text.secondary">
-                Projects
-              </Typography>
-              {projectsHelp && (
-                <Tooltip
-                  title={projectsHelp}
-                  slotProps={{ tooltip: { sx: { maxWidth: 360 } } }}
-                >
-                  <IconButton
-                    size="small"
-                    aria-label="About projects on this board"
-                    data-testid="projects-help"
-                    sx={{ p: 0.25, color: 'text.secondary' }}
-                  >
-                    <InfoOutlinedIcon sx={{ fontSize: 16 }} />
-                  </IconButton>
-                </Tooltip>
-              )}
+      <Paper
+        sx={{
+          mb: 3,
+          overflow: 'hidden',
+        }}
+      >
+        <Box sx={{ px: 2, pt: 1.5, pb: 1.25 }}>
+          {links.length > 0 && (
+            <Stack direction="row" spacing={1} sx={{ mb: 1 }} flexWrap="wrap" useFlexGap>
+              {links.map((link) => (
+                <NavLinkButton key={link.label} link={link} />
+              ))}
             </Stack>
-            <Typography variant="h6">{projectCount}</Typography>
-          </Box>
-        </Stack>
-
-        {(primaryCid || (actionLinks && actionLinks.length > 0)) && (
-        <Stack direction="row" spacing={1} sx={{ mt: 2 }} flexWrap="wrap" useFlexGap>
-          {primaryCid && (
-          <NavLinkButton
-            link={
-              projectLinks === 'local'
-                ? {
-                    label: 'Start project',
-                    to: `/projects/new?statement=${encodeURIComponent(primaryCid)}`,
-                    variant: 'contained',
-                  }
-                : {
-                    label: 'Start project',
-                    href: getDomainUrl('lazyGiving', `/projects/new?statement=${encodeURIComponent(primaryCid)}`, {
-                      fallbackHref: `/projects/new?statement=${encodeURIComponent(primaryCid)}`,
-                    }),
-                    variant: 'contained',
-                  }
-            }
-          />
           )}
-          {(actionLinks ?? []).map((link) => (
-            <NavLinkButton key={link.label} link={link} />
-          ))}
-        </Stack>
+
+          <Stack
+            direction={{ xs: 'column', sm: 'row' }}
+            spacing={1}
+            alignItems={{ xs: 'flex-start', sm: 'center' }}
+            justifyContent="space-between"
+            sx={{ mb: 1 }}
+          >
+            {embedded ? (
+              <Typography variant="subtitle1" component="h2" sx={{ fontWeight: 700 }}>
+                {surfaceTitle}
+              </Typography>
+            ) : (
+              <Box>
+                <Typography
+                  variant="overline"
+                  sx={{ letterSpacing: '0.14em', fontWeight: 700, color: 'primary.main', display: 'block', lineHeight: 1.2 }}
+                >
+                  Statement
+                </Typography>
+                {displayTitle && (
+                  <Typography variant="subtitle1" component="h1" sx={{ fontWeight: 600 }}>
+                    {displayTitle}
+                  </Typography>
+                )}
+                {displaySummary && (
+                  <Typography variant="body2" color="text.secondary">
+                    {displaySummary}
+                  </Typography>
+                )}
+              </Box>
+            )}
+
+            {(primaryCid || (actionLinks && actionLinks.length > 0)) && (
+              <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                {primaryCid && (
+                  <NavLinkButton
+                    link={
+                      projectLinks === 'local'
+                        ? {
+                            label: 'Start project',
+                            to: `/projects/new?statement=${encodeURIComponent(primaryCid)}`,
+                            variant: 'contained',
+                          }
+                        : {
+                            label: 'Start project',
+                            href: getDomainUrl('lazyGiving', `/projects/new?statement=${encodeURIComponent(primaryCid)}`, {
+                              fallbackHref: `/projects/new?statement=${encodeURIComponent(primaryCid)}`,
+                            }),
+                            variant: 'contained',
+                          }
+                    }
+                  />
+                )}
+                {(actionLinks ?? []).map((link) => (
+                  <NavLinkButton key={link.label} link={link} />
+                ))}
+              </Stack>
+            )}
+          </Stack>
+
+          <Stack direction="row" spacing={2.5} flexWrap="wrap" useFlexGap sx={{ rowGap: 0.75 }}>
+            <Box sx={metricSx}>
+              <Typography variant="caption" color="text.secondary" display="block" sx={{ lineHeight: 1.2 }}>
+                Raised
+              </Typography>
+              <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                {formatCurrencyTotals(totalRaised)}
+              </Typography>
+            </Box>
+
+            <Box sx={metricSx}>
+              <Typography variant="caption" color="text.secondary" display="block" sx={{ lineHeight: 1.2 }}>
+                Still needed
+              </Typography>
+              <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                {formatCurrencyTotals(remainingToThreshold)}
+              </Typography>
+            </Box>
+
+            <Box sx={metricSx}>
+              <Typography variant="caption" color="text.secondary" display="block" sx={{ lineHeight: 1.2 }}>
+                Unreimbursed
+              </Typography>
+              <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                {formatCurrencyTotals(totalUnreimbursed)}
+              </Typography>
+            </Box>
+
+            <Box sx={metricSx}>
+              <Typography variant="caption" color="text.secondary" display="block" sx={{ lineHeight: 1.2 }}>
+                Monthly pledges
+              </Typography>
+              <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                {formatCurrencyAmount(
+                  monthlyPledged,
+                  getConfiguredPaymentCurrency() ?? DEFAULT_PAYMENT_CURRENCY,
+                )}
+                /mo
+              </Typography>
+            </Box>
+
+            <Box sx={metricSx}>
+              <Stack direction="row" alignItems="center" spacing={0.25}>
+                <Typography variant="caption" color="text.secondary" sx={{ lineHeight: 1.2 }}>
+                  Projects
+                </Typography>
+                {projectsHelp && (
+                  <Tooltip
+                    title={projectsHelp}
+                    slotProps={{ tooltip: { sx: { maxWidth: 360 } } }}
+                  >
+                    <IconButton
+                      size="small"
+                      aria-label="About projects on this board"
+                      data-testid="projects-help"
+                      sx={{ p: 0.25, color: 'text.secondary' }}
+                    >
+                      <InfoOutlinedIcon sx={{ fontSize: 16 }} />
+                    </IconButton>
+                  </Tooltip>
+                )}
+              </Stack>
+              <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                {projectCount}
+              </Typography>
+            </Box>
+          </Stack>
+
+          {headerExtra}
+        </Box>
+
+        {address && trustedSetLoading && (
+          <Alert severity="info" sx={{ mx: 2, mb: 1 }}>
+            {trustedSet
+              ? `Refreshing your trust network. This portal is currently filtered using ${trustedSet.size} account${trustedSet.size !== 1 ? 's' : ''} in your network. Results may still change as more are discovered.`
+              : 'Refreshing your trust network. Until any trusted accounts are found, this cause board still shows all project vouches.'}
+          </Alert>
         )}
 
-        {headerExtra}
-      </Paper>
-
-      {address && trustedSetLoading && (
-        <Alert severity="info" sx={{ mb: 2 }}>
-          {trustedSet
-            ? `Refreshing your trust network. This portal is currently filtered using ${trustedSet.size} account${trustedSet.size !== 1 ? 's' : ''} in your network. Results may still change as more are discovered.`
-            : 'Refreshing your trust network. Until any trusted accounts are found, this cause board still shows all project vouches.'}
-        </Alert>
-      )}
-
-      <Paper sx={{ mb: 3 }}>
         <Tabs
           value={projectTab}
           onChange={(_, value: 'aligned' | 'successful' | 'reimbursed' | 'failed') =>
@@ -448,6 +466,13 @@ export function CauseBoard({
           aria-label="Cause board project views"
           variant="scrollable"
           allowScrollButtonsMobile
+          sx={{
+            borderTop: 1,
+            borderBottom: 1,
+            borderColor: 'divider',
+            minHeight: 40,
+            '& .MuiTab-root': { minHeight: 40, py: 0.75, textTransform: 'none' },
+          }}
         >
           <Tab
             value="aligned"
@@ -471,43 +496,47 @@ export function CauseBoard({
             sx={{ opacity: 0.75 }}
           />
         </Tabs>
-      </Paper>
 
-      {projectTab === 'aligned' && (
-        <AlignedProjectsList
-          statementCid={primaryCid ?? ''}
-          statementCids={cids}
-          trustedImplicationAttesters={activeTrustedImplicationAttesters}
-          projectLinks={projectLinks}
-          statusFilterLock="active"
-        />
-      )}
-      {projectTab === 'successful' && (
-        <SuccessfulProjectsTab
-          statementCid={primaryCid ?? ''}
-          statementCids={cids}
-          trustedImplicationAttesters={activeTrustedImplicationAttesters}
-          projectLinks={projectLinks}
-        />
-      )}
-      {projectTab === 'reimbursed' && (
-        <SuccessfulProjectsTab
-          statementCid={primaryCid ?? ''}
-          statementCids={cids}
-          trustedImplicationAttesters={activeTrustedImplicationAttesters}
-          projectLinks={projectLinks}
-          reimbursement="reimbursed"
-        />
-      )}
-      {projectTab === 'failed' && (
-        <AlignedProjectsList
-          statementCid={primaryCid ?? ''}
-          statementCids={cids}
-          trustedImplicationAttesters={activeTrustedImplicationAttesters}
-          projectLinks={projectLinks}
-          statusFilterLock="refunding"
-        />
-      )}
+        <Box sx={{ p: 2 }}>
+          {projectTab === 'aligned' && (
+            <AlignedProjectsList
+              statementCid={primaryCid ?? ''}
+              statementCids={cids}
+              trustedImplicationAttesters={activeTrustedImplicationAttesters}
+              projectLinks={projectLinks}
+              statusFilterLock="active"
+              embedded
+            />
+          )}
+          {projectTab === 'successful' && (
+            <SuccessfulProjectsTab
+              statementCid={primaryCid ?? ''}
+              statementCids={cids}
+              trustedImplicationAttesters={activeTrustedImplicationAttesters}
+              projectLinks={projectLinks}
+            />
+          )}
+          {projectTab === 'reimbursed' && (
+            <SuccessfulProjectsTab
+              statementCid={primaryCid ?? ''}
+              statementCids={cids}
+              trustedImplicationAttesters={activeTrustedImplicationAttesters}
+              projectLinks={projectLinks}
+              reimbursement="reimbursed"
+            />
+          )}
+          {projectTab === 'failed' && (
+            <AlignedProjectsList
+              statementCid={primaryCid ?? ''}
+              statementCids={cids}
+              trustedImplicationAttesters={activeTrustedImplicationAttesters}
+              projectLinks={projectLinks}
+              statusFilterLock="refunding"
+              embedded
+            />
+          )}
+        </Box>
+      </Paper>
 
       {primaryCid && <AttestAlignmentForm statementCid={primaryCid} />}
     </Box>

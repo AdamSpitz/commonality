@@ -212,11 +212,11 @@ describe('StatementFundingPortalPage', () => {
     render(<StatementFundingPortalPage />)
 
     await waitFor(() => {
-      expect(screen.getByText('Ongoing Monthly Pledges')).toBeInTheDocument()
+      expect(screen.getByText('Monthly pledges')).toBeInTheDocument()
     })
 
     expect(getMonthlyPledgedByCause).toHaveBeenCalledWith(mockMachinery)
-    expect(screen.getByText('12.34 USDZZZ/month')).toBeInTheDocument()
+    expect(screen.getByText('12.34 USDZZZ/mo')).toBeInTheDocument()
   })
 
   it('skips monthly pledge loading when the recurring pledge contract is not configured', async () => {
@@ -226,11 +226,11 @@ describe('StatementFundingPortalPage', () => {
     render(<StatementFundingPortalPage />)
 
     await waitFor(() => {
-      expect(screen.getByText('Ongoing Monthly Pledges')).toBeInTheDocument()
+      expect(screen.getByText('Monthly pledges')).toBeInTheDocument()
     })
 
     expect(getMonthlyPledgedByCause).not.toHaveBeenCalled()
-    expect(screen.getByText('0 USDZZZ/month')).toBeInTheDocument()
+    expect(screen.getByText('0 USDZZZ/mo')).toBeInTheDocument()
   })
 
   it('renders the Successful tab when the Successful view is selected', async () => {

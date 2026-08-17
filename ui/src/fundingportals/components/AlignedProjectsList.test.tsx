@@ -559,11 +559,11 @@ describe('AlignedProjectsList', () => {
       render(<AlignedProjectsList statementCid="QmTest" />)
 
       await waitFor(() => {
-        const headings = screen.getAllByRole('heading', { level: 2 })
+        const titles = screen.getAllByRole('link', { name: /Open project/i })
         // Gamma (deadline=300) first, Alpha (deadline=100) last
-        expect(headings[0]).toHaveTextContent('Project Gamma')
-        expect(headings[1]).toHaveTextContent('Project Beta')
-        expect(headings[2]).toHaveTextContent('Project Alpha')
+        expect(titles[0]).toHaveTextContent('Project Gamma')
+        expect(titles[1]).toHaveTextContent('Project Beta')
+        expect(titles[2]).toHaveTextContent('Project Alpha')
       })
     })
 
@@ -579,11 +579,11 @@ describe('AlignedProjectsList', () => {
       await user.click(screen.getByRole('button', { name: 'Deadline', pressed: false }))
 
       await waitFor(() => {
-        const headings = screen.getAllByRole('heading', { level: 2 })
+        const titles = screen.getAllByRole('link', { name: /Open project/i })
         // Alpha (deadline=100) first, Gamma (deadline=300) last
-        expect(headings[0]).toHaveTextContent('Project Alpha')
-        expect(headings[1]).toHaveTextContent('Project Beta')
-        expect(headings[2]).toHaveTextContent('Project Gamma')
+        expect(titles[0]).toHaveTextContent('Project Alpha')
+        expect(titles[1]).toHaveTextContent('Project Beta')
+        expect(titles[2]).toHaveTextContent('Project Gamma')
       })
     })
 
@@ -599,11 +599,11 @@ describe('AlignedProjectsList', () => {
       await user.click(screen.getByRole('button', { name: 'Most Funded', pressed: false }))
 
       await waitFor(() => {
-        const headings = screen.getAllByRole('heading', { level: 2 })
+        const titles = screen.getAllByRole('link', { name: /Open project/i })
         // Alpha (totalReceived=900) first, Gamma (totalReceived=100) last
-        expect(headings[0]).toHaveTextContent('Project Alpha')
-        expect(headings[1]).toHaveTextContent('Project Beta')
-        expect(headings[2]).toHaveTextContent('Project Gamma')
+        expect(titles[0]).toHaveTextContent('Project Alpha')
+        expect(titles[1]).toHaveTextContent('Project Beta')
+        expect(titles[2]).toHaveTextContent('Project Gamma')
       })
     })
 
@@ -619,11 +619,11 @@ describe('AlignedProjectsList', () => {
       await user.click(screen.getByRole('button', { name: 'Closest to Goal', pressed: false }))
 
       await waitFor(() => {
-        const headings = screen.getAllByRole('heading', { level: 2 })
+        const titles = screen.getAllByRole('link', { name: /Open project/i })
         // Alpha (90%) first, Gamma (10%) last
-        expect(headings[0]).toHaveTextContent('Project Alpha')
-        expect(headings[1]).toHaveTextContent('Project Beta')
-        expect(headings[2]).toHaveTextContent('Project Gamma')
+        expect(titles[0]).toHaveTextContent('Project Alpha')
+        expect(titles[1]).toHaveTextContent('Project Beta')
+        expect(titles[2]).toHaveTextContent('Project Gamma')
       })
     })
   })

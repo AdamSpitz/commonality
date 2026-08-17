@@ -61,6 +61,7 @@ export function AlignedProjectsList({
   trustedAlignmentAttesters,
   projectLinks = 'lazyGiving',
   statusFilterLock,
+  embedded = false,
 }: {
   statementCid: string
   statementCids?: string[]
@@ -69,6 +70,8 @@ export function AlignedProjectsList({
   projectLinks?: ProjectLinkMode
   /** When set, only this status is shown and the status toggles are hidden. */
   statusFilterLock?: Exclude<StatusFilter, 'all'>
+  /** Flatten heading/paper chrome when nested in the cause-board card. */
+  embedded?: boolean
 }) {
   const cids = resolveStatementCids(statementCid, statementCids)
   const cidsKey = cids.join('\0')
@@ -230,9 +233,11 @@ export function AlignedProjectsList({
 
   return (
     <Box>
-      <Typography variant="h5" gutterBottom>
-        {statusFilterLock ? STATUS_HEADINGS[statusFilterLock] : 'Aligned Projects'}
-      </Typography>
+      {!embedded && (
+        <Typography variant="h5" gutterBottom>
+          {statusFilterLock ? STATUS_HEADINGS[statusFilterLock] : 'Aligned Projects'}
+        </Typography>
+      )}
 
       {address && trustedSetLoading && trustedAlignmentAttesters === undefined && (
         <Alert severity="info" sx={{ mb: 2 }}>
@@ -242,7 +247,14 @@ export function AlignedProjectsList({
         </Alert>
       )}
 
-      <Paper sx={{ p: 2, mb: 3 }}>
+      <Paper
+        elevation={embedded ? 0 : 1}
+        sx={{
+          p: embedded ? 0 : 2,
+          mb: embedded ? 1.5 : 3,
+          bgcolor: embedded ? 'transparent' : undefined,
+        }}
+      >
         <Stack spacing={2}>
           <Stack direction="row" alignItems="center" spacing={2}>
             <SortIcon fontSize="small" color="action" />
