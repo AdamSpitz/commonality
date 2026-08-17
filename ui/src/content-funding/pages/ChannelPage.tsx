@@ -2,7 +2,7 @@
 // concerns that could be extracted (channel header, content list, and ownership/verification UI). Left intact for now — please split
 // it up when next doing substantial work here. See workflow/reviews/ui-deep-dive-2026-06-25.md (issue #3).
 import { useEffect, useMemo, useState } from 'react'
-import { useParams, Link as RouterLink } from 'react-router-dom'
+import { useParams, useSearchParams, Link as RouterLink } from 'react-router-dom'
 import {
   Box,
   Typography,
@@ -324,6 +324,8 @@ export function ChannelPage({
   contractPathForAddress = contentContractPathForAddress,
 }: ChannelPageProps) {
   const { platform, channelId: channelIdParam } = useParams<{ platform: string; channelId: string }>()
+  const [searchParams] = useSearchParams()
+  const openClaimFromQuery = searchParams.get('claim') === '1'
   const { state, projects, channels, aggregationChannels, loading, error, contentAttestations, channelDisplayMetadata = new Map(), machinery } = useContentFundingState()
   const [claimModalOpen, setClaimModalOpen] = useState(false)
   const [prospectiveRounds, setProspectiveRounds] = useState<ProspectiveRoundSummary[]>([])
@@ -376,6 +378,19 @@ export function ChannelPage({
     })
     return () => { cancelled = true }
   }, [canonicalChannelId, machinery])
+
+  const canStartClaim = Boolean(
+    overview && (
+      overview.channel.state === 'unclaimed'
+      || (overview.channel.state === 'verified' && overview.escrow.balance > 0n)
+    ),
+  )
+
+  useEffect(() => {
+    if (openClaimFromQuery && canStartClaim) {
+      setClaimModalOpen(true)
+    }
+  }, [openClaimFromQuery, canStartClaim])
 
   if (loading) {
     return (
@@ -456,11 +471,16 @@ export function ChannelPage({
               </Typography>
             )}
           </Box>
-          <Stack direction="row" spacing={1} sx={{ mt: 0.5 }}>
+          <Stack direction="row" spacing={1} sx={{ mt: 0.5 }} alignItems="center">
             <Chip
               label={STATE_LABELS[channel.state]}
               color={STATE_COLORS[channel.state]}
             />
+            {isUnclaimed && (
+              <Button variant="outlined" size="small" onClick={() => setClaimModalOpen(true)}>
+                Claim this channel
+              </Button>
+            )}
           </Stack>
         </Stack>
 
@@ -689,7 +709,7 @@ export function ChannelPage({
         )}
       </Box>
 
-      {(channel?.state === 'unclaimed' || channel?.state === 'verified') && escrow.balance > 0n && (
+      {(channel?.state === 'unclaimed' || (channel?.state === 'verified' && escrow.balance > 0n)) && (
         <ClaimFlowModal
           open={claimModalOpen}
           onClose={() => setClaimModalOpen(false)}

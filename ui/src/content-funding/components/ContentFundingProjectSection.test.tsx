@@ -142,6 +142,22 @@ describe('ContentFundingProjectSection', () => {
     expect(screen.getByText('Unclaimed')).toBeInTheDocument()
   })
 
+  it('explains Unclaimed on hover and links to the channel claim page', async () => {
+    mockContentFundingState({
+      channels: [mockChannel(projectAddress, { state: 'unclaimed' })],
+    })
+
+    render(<ContentFundingProjectSection projectAddress={projectAddress} />)
+
+    fireEvent.mouseOver(screen.getByText('Unclaimed'))
+    const tooltip = await screen.findByRole('tooltip')
+    expect(tooltip).toHaveTextContent(/has not been claimed yet/i)
+    expect(screen.getByRole('link', { name: 'Claim this channel' })).toHaveAttribute(
+      'href',
+      '/content/twitter/twitter%3Auid%3A123%3A456?claim=1',
+    )
+  })
+
   it('shows creator-controlled channel status', () => {
     mockContentFundingState({
       channels: [mockChannel(projectAddress, { state: 'creator-controlled' })],
@@ -200,6 +216,19 @@ describe('ContentFundingProjectSection', () => {
     render(<ContentFundingProjectSection projectAddress={projectAddress} />)
 
     expect(screen.getByText('Fan-created')).toBeInTheDocument()
+  })
+
+  it('explains Fan-created on hover', async () => {
+    mockContentFundingState({
+      channels: [mockChannel(projectAddress, { isThirdParty: true })],
+    })
+
+    render(<ContentFundingProjectSection projectAddress={projectAddress} />)
+
+    fireEvent.mouseOver(screen.getByText('Fan-created'))
+    expect(await screen.findByRole('tooltip')).toHaveTextContent(
+      'This project was created by a third party. None of the money will go to anyone but the actual content creator.',
+    )
   })
 
   it('does not show "Fan-created" chip for non-third-party contracts', () => {

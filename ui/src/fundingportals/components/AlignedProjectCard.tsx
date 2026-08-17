@@ -115,7 +115,7 @@ function ContentFundingCardDetails({ info }: { info: ContentFundingInfo }) {
   }
 
   return (
-    <Box sx={{ mt: 2, p: 1.5, bgcolor: 'grey.50', borderRadius: 1 }}>
+    <Box sx={{ mt: 2, p: 1.5, bgcolor: 'action.hover', borderRadius: 1 }}>
       <Stack direction="row" spacing={2} flexWrap="wrap" useFlexGap>
         {info.channelCanonicalId && (
           <Box>

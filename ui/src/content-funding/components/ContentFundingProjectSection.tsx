@@ -8,7 +8,9 @@ import {
   FormControlLabel,
   Switch,
   Tooltip,
+  Link,
 } from '@mui/material'
+import { alpha } from '@mui/material/styles'
 import { Link as RouterLink, useSearchParams } from 'react-router-dom'
 import { formatCurrencyAmount } from '../../shared'
 import { getContentItemKey, type ContentItem } from '@commonality/sdk/content-funding'
@@ -145,7 +147,12 @@ function ContentItemList({
                 alignItems: 'center',
                 gap: 1,
                 p: 1,
-                bgcolor: hasTrustedAttestation ? 'success.light' : isUncovered ? 'grey.100' : 'grey.50',
+                bgcolor: (theme) => {
+                  if (hasTrustedAttestation) {
+                    return alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.16 : 0.12)
+                  }
+                  return theme.palette.action.hover
+                },
                 border: hasTrustedAttestation ? '1px solid' : 'none',
                 borderColor: 'success.main',
                 opacity: isUncovered ? 0.7 : 1,
@@ -251,15 +258,27 @@ export function ContentFundingProjectSection({ projectAddress }: ContentFundingP
   const channelPageUrl = canonicalChannelId
     ? `/content/${platform}/${encodeURIComponent(canonicalChannelId)}`
     : null
+  const claimChannelPath = channelPageUrl ? `${channelPageUrl}?claim=1` : null
+  const isUnclaimed = channel.channel.state === 'unclaimed'
 
   return (
-    <Paper sx={{ p: 3, mb: 3, bgcolor: 'primary.light', borderRadius: 2 }} elevation={0}>
+    <Paper
+      sx={{
+        p: 3,
+        mb: 3,
+        bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.16 : 0.12),
+        borderRadius: 2,
+      }}
+      elevation={0}
+    >
       <Stack direction="row" alignItems="center" spacing={1} mb={2}>
         <Typography variant="h6" component="h2">
           Content Funding
         </Typography>
         {contract.isThirdParty && (
-          <Chip label="Fan-created" size="small" variant="outlined" />
+          <Tooltip title="This project was created by a third party. None of the money will go to anyone but the actual content creator.">
+            <Chip label="Fan-created" size="small" variant="outlined" />
+          </Tooltip>
         )}
       </Stack>
 
@@ -293,11 +312,41 @@ export function ContentFundingProjectSection({ projectAddress }: ContentFundingP
       <Stack direction="row" spacing={2} flexWrap="wrap" useFlexGap>
         <Box>
           <Typography variant="caption" color="text.secondary">Channel Status</Typography>
-          <Chip
-            label={STATE_LABELS[channel.channel.state] ?? channel.channel.state}
-            size="small"
-            sx={{ mt: 0.5 }}
-          />
+          {isUnclaimed ? (
+            <Tooltip
+              title={(
+                <>
+                  This channel has not been claimed yet. If you are the creator, you can verify
+                  ownership and collect any funds waiting for you.
+                  {claimChannelPath && (
+                    <>
+                      {' '}
+                      <Link
+                        component={RouterLink}
+                        to={claimChannelPath}
+                        underline="always"
+                        color="inherit"
+                      >
+                        Claim this channel
+                      </Link>
+                    </>
+                  )}
+                </>
+              )}
+            >
+              <Chip
+                label={STATE_LABELS.unclaimed}
+                size="small"
+                sx={{ mt: 0.5 }}
+              />
+            </Tooltip>
+          ) : (
+            <Chip
+              label={STATE_LABELS[channel.channel.state] ?? channel.channel.state}
+              size="small"
+              sx={{ mt: 0.5 }}
+            />
+          )}
         </Box>
         <Box>
           <Typography variant="caption" color="text.secondary">Contract Status</Typography>
