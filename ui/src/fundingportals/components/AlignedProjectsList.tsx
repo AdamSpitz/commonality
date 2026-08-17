@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useAccount } from 'wagmi'
 import {
   Box,
@@ -29,6 +29,7 @@ import { useDiscoveryLevel } from '../hooks/useDiscoveryLevel'
 import { useAlignmentFilter } from '../hooks/useAlignmentFilter'
 import { readProjectMetadata } from './projectMetadata'
 import { resolveStatementCids } from './statementCids'
+import { useKeepPaintedWhileRefreshing } from '../hooks/useKeepPaintedWhileRefreshing'
 
 type StatusFilter = 'all' | 'active' | 'succeeded' | 'refunding'
 type SortOption = 'latest' | 'deadline' | 'mostFunded' | 'closestToGoal'
@@ -103,13 +104,13 @@ export function AlignedProjectsList({
   const [error, setError] = useState<string | null>(null)
   const [sortBy, setSortBy] = useState<SortOption>('latest')
   const [statusFilter, setStatusFilter] = useState<StatusFilter>(statusFilterLock ?? 'all')
-  const hasResolvedRef = useRef(false)
+  const keepPainted = useKeepPaintedWhileRefreshing()
 
   useEffect(() => {
     let cancelled = false
 
     async function load() {
-      if (!hasResolvedRef.current) setLoading(true)
+      keepPainted.beginLoad(setLoading)
       setError(null)
       try {
         const loadCids = cidsKey ? cidsKey.split('\0') : []
@@ -171,7 +172,7 @@ export function AlignedProjectsList({
         }
       } finally {
         if (!cancelled) {
-          hasResolvedRef.current = true
+          keepPainted.markResolved()
           setLoading(false)
         }
       }

@@ -4,7 +4,9 @@ import {
   Box,
   Button,
   CircularProgress,
+  Link,
   Paper,
+  Snackbar,
   Stack,
   Typography,
 } from '@mui/material'
@@ -13,9 +15,9 @@ import { getStatementWithContent, type Statement } from '@commonality/sdk/concep
 import type { DisplayableDocument } from '@commonality/sdk/displayable-documents'
 import type { IpfsCidV1 } from '@commonality/sdk/utils'
 import { useTrustedAttesters } from '@ui/shared'
-import { CauseBoard } from '@ui/fundingportals'
+import { CauseBoard, CauseLeaderboard } from '@ui/fundingportals'
 import { SupportButton } from '../components/SupportButton'
-import { MonthlyPledgeSignal } from '../components/MonthlyPledgeSignal'
+import { CauseFundingSummary } from '../components/CauseFundingSummary'
 import { StarterNetworkFilterCopy } from '../components/StarterNetworkFilterNotice'
 import { useViewCounts } from '../hooks/useViewCounts'
 import { createCausePath } from '../lib/causeStore'
@@ -53,6 +55,7 @@ export function StatementPage() {
   const [content, setContent] = useState<DisplayableDocument | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [cidCopiedOpen, setCidCopiedOpen] = useState(false)
 
   const load = useCallback(async () => {
     if (!statementCid) return
@@ -79,7 +82,8 @@ export function StatementPage() {
     void load()
   }, [load])
 
-  if (loading) {
+  // Soft revalidation must not unmount CauseBoard (project-list spinner flash).
+  if (loading && !statement) {
     return (
       <Box sx={{ display: 'grid', placeItems: 'center', py: 8 }}>
         <CircularProgress />
@@ -92,14 +96,20 @@ export function StatementPage() {
       <Stack spacing={2}>
         <Alert severity="error" sx={{ borderRadius: 2 }}>{error ?? 'Statement not found'}</Alert>
         {statementCid && (
-          <Typography
+          <Link
+            component="button"
+            type="button"
             variant="caption"
-            color="text.disabled"
-            sx={{ overflowWrap: 'anywhere' }}
+            underline="hover"
             data-testid="statement-cid"
+            onClick={() => {
+              void navigator.clipboard.writeText(statementCid).then(() => {
+                setCidCopiedOpen(true)
+              })
+            }}
           >
-            Statement CID {statementCid}
-          </Typography>
+            Copy CID
+          </Link>
         )}
         <Button component={RouterLink} to="/" sx={{ textTransform: 'none' }}>
           Back to home
@@ -209,26 +219,48 @@ export function StatementPage() {
             />
             <Typography variant="caption" color="text.secondary">
               {supportCaption}{createdLabel}
+              {statementCid && (
+                <>
+                  {' · '}
+                  <Link
+                    component="button"
+                    type="button"
+                    variant="caption"
+                    underline="hover"
+                    data-testid="statement-cid"
+                    sx={{
+                      display: 'inline',
+                      verticalAlign: 'baseline',
+                      p: 0,
+                      border: 0,
+                      background: 'none',
+                      font: 'inherit',
+                      lineHeight: 'inherit',
+                      color: 'inherit',
+                    }}
+                    onClick={() => {
+                      void navigator.clipboard.writeText(statementCid).then(() => {
+                        setCidCopiedOpen(true)
+                      })
+                    }}
+                  >
+                    Copy CID
+                  </Link>
+                </>
+              )}
             </Typography>
           </Stack>
         </Stack>
       </Paper>
       </Box>
 
-      <MonthlyPledgeSignal statementCids={[statementCid as string]} />
+      <CauseFundingSummary statementCids={[statementCid as string]} />
 
       <CauseBoard
         statementCid={statementCid}
         embedded
         surfaceTitle="Fundable Projects"
         projectLinks="local"
-        navLinks={[
-          {
-            label: 'View Leaderboard',
-            to: `/statement/${statementCid}/board/leaderboard`,
-            variant: 'outlined',
-          },
-        ]}
         projectsHelp={
           <Stack spacing={1}>
             <Typography variant="body2">
@@ -240,14 +272,12 @@ export function StatementPage() {
         }
       />
 
-      <Typography
-        variant="caption"
-        color="text.disabled"
-        sx={{ overflowWrap: 'anywhere', display: 'block', pt: 1 }}
-        data-testid="statement-cid"
-      >
-        Statement CID {statementCid}
-      </Typography>
+      <CauseLeaderboard
+        statementCid={statementCid as string}
+        embedded
+        limit={3}
+        fullPageTo={`/statement/${statementCid}/board/leaderboard`}
+      />
 
       <Button
         variant="outlined"
@@ -256,6 +286,13 @@ export function StatementPage() {
       >
         Start a related cause
       </Button>
+
+      <Snackbar
+        open={cidCopiedOpen}
+        autoHideDuration={2500}
+        onClose={() => setCidCopiedOpen(false)}
+        message="CID copied"
+      />
     </Stack>
   )
 }

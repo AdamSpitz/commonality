@@ -13,7 +13,8 @@ export function CauseFundingSummary({
   href,
 }: {
   statementCids: string[]
-  href: string
+  /** When omitted, the summary is not a link (statement pages have no funding route). */
+  href?: string
 }) {
   const { loading, available, symbol, decimals, connected, totalMonthly, personalMonthly } =
     useCauseMonthlyPledges(statementCids)
@@ -29,12 +30,13 @@ export function CauseFundingSummary({
         border: '1px solid',
         borderColor: 'divider',
         transition: 'border-color 0.15s',
-        '&:hover': { borderColor: 'primary.main' },
+        ...(href ? { '&:hover': { borderColor: 'primary.main' } } : {}),
       }}
     >
       <Box
-        component={RouterLink}
-        to={href}
+        {...(href
+          ? { component: RouterLink, to: href }
+          : { component: 'div' })}
         data-testid="cause-funding-summary"
         sx={{ textDecoration: 'none', color: 'inherit', display: 'block' }}
       >

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useAccount } from 'wagmi'
 import { getStandingPledges } from '@commonality/sdk/delegation'
 import { useMachinery } from '../lib/useMachinery'
@@ -30,6 +30,7 @@ export function useCauseMonthlyPledges(statementCids: string[]): CauseMonthlyPle
   const [totalMonthly, setTotalMonthly] = useState(0n)
   const [personalMonthly, setPersonalMonthly] = useState(0n)
   const [byPlankCid, setByPlankCid] = useState<Map<string, bigint>>(() => new Map())
+  const hasResolvedRef = useRef(false)
 
   useEffect(() => {
     let cancelled = false
@@ -45,7 +46,7 @@ export function useCauseMonthlyPledges(statementCids: string[]): CauseMonthlyPle
     const cidSet = new Set(uniqueCids)
     const tokenLower = paymentToken!.toLowerCase()
     const ownerLower = address?.toLowerCase()
-    setLoading(true)
+    if (!hasResolvedRef.current) setLoading(true)
     void getStandingPledges(machinery)
       .then((pledges) => {
         if (cancelled) return
@@ -74,7 +75,10 @@ export function useCauseMonthlyPledges(statementCids: string[]): CauseMonthlyPle
         setByPlankCid(new Map())
       })
       .finally(() => {
-        if (!cancelled) setLoading(false)
+        if (!cancelled) {
+          hasResolvedRef.current = true
+          setLoading(false)
+        }
       })
 
     return () => { cancelled = true }

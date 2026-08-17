@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
 import {
   Box,
@@ -33,6 +33,7 @@ import {
   truncateAddress,
 } from '../../shared'
 import type { CauseBoardNavLink } from './CauseBoard'
+import { useKeepPaintedWhileRefreshing } from '../hooks/useKeepPaintedWhileRefreshing'
 
 export interface CauseLeaderboardProps {
   statementCid: string
@@ -40,15 +41,39 @@ export interface CauseLeaderboardProps {
    * Back navigation. Defaults to Aligning route `/portal/:statementCid`.
    */
   backLink?: CauseBoardNavLink
+  /** Cap the ranked table. Full page defaults to 50; preview typically uses 3. */
+  limit?: number
+  /**
+   * Compact section for embedding on a statement/cause page: no back link,
+   * monthly-pledge card, or rank card. Shows a section heading and optional
+   * “Show more” link to the full leaderboard.
+   */
+  embedded?: boolean
+  /** In-app path for the “Show more” control when {@link embedded}. */
+  fullPageTo?: string
 }
 
 /**
  * Full cause leaderboard surface. Shared by Aligning and CauseStarter.
  */
-export function CauseLeaderboard({ statementCid, backLink }: CauseLeaderboardProps) {
+export function CauseLeaderboard({
+  statementCid,
+  backLink,
+  limit,
+  embedded = false,
+  fullPageTo,
+}: CauseLeaderboardProps) {
   const machinery = useMachinery()
   const { address: userAddress } = useAccount()
   const { trustedSet, isLoading: trustedSetLoading } = useTrustedSet(userAddress)
+  const trustedSetKey = useMemo(() => {
+    if (!trustedSet || trustedSet.size === 0) return ''
+    return Array.from(trustedSet)
+      .map((a) => a.toLowerCase())
+      .sort()
+      .join(',')
+  }, [trustedSet])
+  const keepPainted = useKeepPaintedWhileRefreshing()
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -65,12 +90,22 @@ export function CauseLeaderboard({ statementCid, backLink }: CauseLeaderboardPro
     let cancelled = false
 
     async function load() {
-      setLoading(true)
+      keepPainted.beginLoad(setLoading)
       setError(null)
       try {
+        const fetchLimit = limit ?? (embedded ? 3 : 50)
+        const trustedSetForLoad: Set<string> | undefined = trustedSetKey
+          ? new Set(trustedSetKey.split(','))
+          : undefined
         const [topContributors, monthlyTotals] = await Promise.all([
-          getTopContributorsForCause(machinery, causeCid as IpfsCidV1, 50, undefined, trustedSet),
-          machinery.contractAddresses?.recurringPledges
+          getTopContributorsForCause(
+            machinery,
+            causeCid as IpfsCidV1,
+            fetchLimit,
+            undefined,
+            trustedSetForLoad,
+          ),
+          !embedded && machinery.contractAddresses?.recurringPledges
             ? getMonthlyPledgedByCause(machinery)
             : Promise.resolve(new Map<string, bigint>()),
         ])
@@ -78,13 +113,13 @@ export function CauseLeaderboard({ statementCid, backLink }: CauseLeaderboardPro
         setContributors(topContributors)
         setMonthlyPledged(monthlyTotals.get(causeCid) ?? 0n)
 
-        if (userAddress) {
+        if (!embedded && userAddress) {
           const rankResult = await getUserContributionRankForCause(
             machinery,
             causeCid as IpfsCidV1,
             userAddress,
             undefined,
-            trustedSet,
+            trustedSetForLoad,
           )
           if (cancelled) return
           setUserRank(rankResult)
@@ -97,7 +132,10 @@ export function CauseLeaderboard({ statementCid, backLink }: CauseLeaderboardPro
           setError(err instanceof Error ? err.message : 'Failed to load leaderboard')
         }
       } finally {
-        if (!cancelled) setLoading(false)
+        if (!cancelled) {
+          keepPainted.markResolved()
+          setLoading(false)
+        }
       }
     }
 
@@ -105,11 +143,11 @@ export function CauseLeaderboard({ statementCid, backLink }: CauseLeaderboardPro
     return () => {
       cancelled = true
     }
-  }, [machinery, statementCid, userAddress, trustedSet])
+  }, [machinery, statementCid, userAddress, trustedSetKey, limit, embedded])
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'center', py: embedded ? 3 : 6 }}>
         <CircularProgress />
       </Box>
     )
@@ -122,6 +160,90 @@ export function CauseLeaderboard({ statementCid, backLink }: CauseLeaderboardPro
   const resolvedBack: CauseBoardNavLink = backLink ?? {
     label: '← Back to Cause Board',
     to: `/portal/${statementCid}`,
+  }
+
+  const table = contributors.length === 0 ? (
+    <Typography variant="body2" color="text.secondary">
+      No direct project purchases yet.
+    </Typography>
+  ) : (
+    <TableContainer>
+      <Table size="small">
+        <TableHead>
+          <TableRow>
+            <TableCell>#</TableCell>
+            <TableCell>Address</TableCell>
+            <TableCell align="right">Contributed</TableCell>
+            <TableCell align="right">Projects</TableCell>
+            <TableCell align="right">Net</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {contributors.map((entry, i) => {
+            const isUser =
+              userAddress && entry.contributor.toLowerCase() === userAddress.toLowerCase()
+            return (
+              <TableRow
+                key={entry.contributor}
+                sx={isUser ? { bgcolor: 'action.selected' } : undefined}
+              >
+                <TableCell>{i + 1}</TableCell>
+                <TableCell>
+                  <Tooltip title={entry.contributor} placement="top">
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        fontFamily: 'monospace',
+                        fontSize: '0.85rem',
+                        cursor: 'help',
+                      }}
+                    >
+                      {truncateAddress(entry.contributor)}
+                      {isUser && ' (you)'}
+                    </Typography>
+                  </Tooltip>
+                </TableCell>
+                <TableCell align="right">
+                  {formatCurrencyTotals(entry.totalContributed)}
+                </TableCell>
+                <TableCell align="right">{entry.projectsContributedTo}</TableCell>
+                <TableCell align="right">
+                  {formatCurrencyTotals(entry.netContribution)}
+                </TableCell>
+              </TableRow>
+            )
+          })}
+        </TableBody>
+      </Table>
+    </TableContainer>
+  )
+
+  if (embedded) {
+    return (
+      <Paper
+        elevation={0}
+        sx={{ p: { xs: 2, sm: 2.5 }, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}
+        data-testid="statement-leaderboard-preview"
+      >
+        <Typography variant="h6" sx={{ fontWeight: 700 }}>
+          Leaderboard
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5, mt: 0.5 }}>
+          Top {limit ?? 3} by direct project purchases.
+        </Typography>
+        {table}
+        {fullPageTo && (
+          <Button
+            component={RouterLink}
+            to={fullPageTo}
+            size="small"
+            sx={{ mt: 1.5, textTransform: 'none', fontWeight: 600 }}
+          >
+            Show more
+          </Button>
+        )}
+      </Paper>
+    )
   }
 
   return (
@@ -191,61 +313,7 @@ export function CauseLeaderboard({ statementCid, backLink }: CauseLeaderboardPro
           This leaderboard ranks direct project purchases only.
         </Typography>
 
-        {contributors.length === 0 ? (
-          <Typography variant="body2" color="text.secondary">
-            No direct project purchases yet.
-          </Typography>
-        ) : (
-          <TableContainer>
-            <Table size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell>#</TableCell>
-                  <TableCell>Address</TableCell>
-                  <TableCell align="right">Contributed</TableCell>
-                  <TableCell align="right">Projects</TableCell>
-                  <TableCell align="right">Net</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {contributors.map((entry, i) => {
-                  const isUser =
-                    userAddress && entry.contributor.toLowerCase() === userAddress.toLowerCase()
-                  return (
-                    <TableRow
-                      key={entry.contributor}
-                      sx={isUser ? { bgcolor: 'action.selected' } : undefined}
-                    >
-                      <TableCell>{i + 1}</TableCell>
-                      <TableCell>
-                        <Tooltip title={entry.contributor} placement="top">
-                          <Typography
-                            variant="body2"
-                            sx={{
-                              fontFamily: 'monospace',
-                              fontSize: '0.85rem',
-                              cursor: 'help',
-                            }}
-                          >
-                            {truncateAddress(entry.contributor)}
-                            {isUser && ' (you)'}
-                          </Typography>
-                        </Tooltip>
-                      </TableCell>
-                      <TableCell align="right">
-                        {formatCurrencyTotals(entry.totalContributed)}
-                      </TableCell>
-                      <TableCell align="right">{entry.projectsContributedTo}</TableCell>
-                      <TableCell align="right">
-                        {formatCurrencyTotals(entry.netContribution)}
-                      </TableCell>
-                    </TableRow>
-                  )
-                })}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        )}
+        {table}
       </Paper>
     </Box>
   )

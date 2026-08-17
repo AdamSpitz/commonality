@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef, type ReactNode } from 'react'
+import { useState, useEffect, useMemo, type ReactNode } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
 import { useAccount } from 'wagmi'
 import {
@@ -38,6 +38,7 @@ import { AlignedProjectsList } from './AlignedProjectsList'
 import { SuccessfulProjectsTab } from './SuccessfulProjectsTab'
 import { AttestAlignmentForm } from './AttestAlignmentForm'
 import type { ProjectLinkMode } from './AlignedProjectCard'
+import { useKeepPaintedWhileRefreshing } from '../hooks/useKeepPaintedWhileRefreshing'
 import { resolveStatementCids } from './statementCids'
 
 /** In-app router link or external href for cause-board chrome. */
@@ -181,7 +182,7 @@ export function CauseBoard({
   const [projectTab, setProjectTab] = useState<
     'aligned' | 'successful' | 'reimbursed' | 'failed'
   >('aligned')
-  const hasResolvedRef = useRef(false)
+  const keepPainted = useKeepPaintedWhileRefreshing()
 
   useEffect(() => {
     const loadCids = cidsKey ? cidsKey.split('\0') : []
@@ -199,7 +200,7 @@ export function CauseBoard({
         setError('No statement specified.')
         return
       }
-      if (!hasResolvedRef.current) setLoading(true)
+      keepPainted.beginLoad(setLoading)
       setError(null)
       try {
         const cid = loadCids[0]!
@@ -272,7 +273,7 @@ export function CauseBoard({
         }
       } finally {
         if (!cancelled) {
-          hasResolvedRef.current = true
+          keepPainted.markResolved()
           setLoading(false)
         }
       }

@@ -14,6 +14,7 @@ import { projectPathForAddress } from '../../shared'
 import { resolveProjectNav, type ProjectLinkMode, type ProjectMetadata } from './AlignedProjectCard'
 import { readProjectMetadata } from './projectMetadata'
 import { resolveStatementCids } from './statementCids'
+import { useKeepPaintedWhileRefreshing } from '../hooks/useKeepPaintedWhileRefreshing'
 
 function shortAddress(address: string) {
   return `${address.slice(0, 6)}…${address.slice(-4)}`
@@ -50,12 +51,13 @@ export function SuccessfulProjectsList({
   const [metadata, setMetadata] = useState<Record<string, ProjectMetadata>>({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const keepPainted = useKeepPaintedWhileRefreshing()
 
   useEffect(() => {
     let cancelled = false
 
     async function load() {
-      setLoading(true)
+      keepPainted.beginLoad(setLoading)
       setError(null)
       try {
         const loader = reimbursement === 'reimbursed'
@@ -102,7 +104,10 @@ export function SuccessfulProjectsList({
           setError(err instanceof Error ? err.message : 'Failed to load successful projects')
         }
       } finally {
-        if (!cancelled) setLoading(false)
+        if (!cancelled) {
+          keepPainted.markResolved()
+          setLoading(false)
+        }
       }
     }
 

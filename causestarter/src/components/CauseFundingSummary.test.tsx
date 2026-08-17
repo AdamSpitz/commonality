@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { cleanup, render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
 import { CauseFundingSummary } from './CauseFundingSummary'
@@ -48,5 +48,17 @@ describe('CauseFundingSummary', () => {
     expect(screen.getByTestId('connect-wallet-hint')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /connect/i })).toBeInTheDocument()
     pledges.connected = true
+  })
+
+  it('renders without a funding-page link when href is omitted', () => {
+    cleanup()
+    render(
+      <MemoryRouter>
+        <CauseFundingSummary statementCids={['plank-a']} />
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByTestId('cause-funding-summary').tagName).toBe('DIV')
+    expect(screen.getByText('Pledges')).toBeInTheDocument()
   })
 })

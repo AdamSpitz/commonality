@@ -221,6 +221,29 @@ describe('AlignedProjectsList', () => {
 
       expect(screen.getByRole('progressbar')).toBeInTheDocument()
     })
+
+    it('keeps the list painted while a trust-set identity refresh is in flight', async () => {
+      vi.mocked(getAllAlignedProjectsForCause).mockResolvedValue([])
+      vi.mocked(isDomainConfigured).mockReturnValue(true)
+      vi.mocked(getDomainUrl).mockReturnValue('http://lazygiving.localhost:8088/#/projects/new')
+
+      const { rerender } = render(<AlignedProjectsList statementCid="QmTest" />)
+
+      await waitFor(() => {
+        expect(screen.getByText(/No aligned projects yet/)).toBeInTheDocument()
+      })
+
+      vi.mocked(getAllAlignedProjectsForCause).mockReturnValue(new Promise(() => {}))
+      vi.mocked(useTrustedSet).mockReturnValue({
+        trustedSet: new Set([TRUSTED_A, USER_ADDRESS]),
+        trustWeights: undefined,
+        isLoading: true,
+      } as any)
+      rerender(<AlignedProjectsList statementCid="QmTest" />)
+
+      expect(screen.queryByRole('progressbar')).not.toBeInTheDocument()
+      expect(screen.getByText(/No aligned projects yet/)).toBeInTheDocument()
+    })
   })
 
   describe('Error state', () => {
