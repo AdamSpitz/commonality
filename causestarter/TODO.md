@@ -14,46 +14,6 @@ open **if they stay listed here**.
   checkbox. Do **not** mix post rows into the project list. The dedicated
   content board (`/cause/.../content`) stays as a post-level surface.
 
-  **Already landed (do not redo):**
-  - Inclusion helper: `ui/src/content-funding/selectAlignedContent.ts`
-    (`selectAlignedContentContracts`).
-  - Cause page union: `causestarter/src/hooks/useCauseProjects.ts` merges
-    those contracts into the plank-aligned project list; cards in
-    `CauseDetailPage.tsx` show “N of M posts attested” and a Content chip,
-    and link with `?aligned=<plankCids>`.
-  - The cause page no longer shows a separate Content Funding tool box
-    (contracts live on the board). Create flows stay hosted:
-    `/content/new` → channel create (`existing` or `future`/prospective)
-    and `/content/.../prospective/:roundAddress/materialize`. Cause board
-    header has **Start content contract**.
-  - Shared statement boards: `ui/src/fundingportals/components/AlignedProjectsList.tsx`.
-  - Contract detail: `ContentFundingProjectSection.tsx` labels each post
-    **Aligned** vs **Not attested as aligned**, and explains the batch
-    succeeds or fails as a whole.
-
-  **Still to do:**
-  1. After a seed (`./scripts/data.sh --seed` or `--seed=demo`), connect
-     as Hardhat `#0` (or any `#0`–`#9`) on `http://localhost:5174`. The
-     landing page should list the seeded **Local food systems** cause
-     (`/cause/0xf39F…2266/local-food-systems`). Confirm the board shows
-     the Riverside garden project **and** one `@civicbuilder`
-     content-contract row with “1 of 2 posts attested”. This has not
-     been walked in a live browser this pass.
-
-  **Done this pass:**
-  - Seed now emits a mixed content-alignment batch
-    (`fake-data-generation/contentFundingActions.ts`:
-    `SEED_CONTENT_ALIGNMENT_REF` / `seedMixedContentAlignmentCanonicalIds`).
-  - Trust filter: inclusion now requires a *trusted* content attester when
-    any are configured (`useTrustedContentAttesters` / env defaults), same
-    spirit as Subjectiv project vouches. Empty trust set stays unfiltered.
-    Wired through `selectAlignedContentContracts`, `useCauseProjects`,
-    `AlignedProjectsList`, and the dedicated content board.
-  - Founder e2e copy updated: cause board is projects plus relevant
-    content contracts; the `/content` page stays post-level.
-  - Effect deps: rematch on an attestation fingerprint (item + attested +
-    statement + attester), not just `contentAttestations.size`.
-
 - [ ] **Anchors are not built.** A founder cannot promote a proven view into a published statement, so the three things only an anchor can do — sign the combination, earmark to it, align a project with it — remain unavailable. See [shaping-your-cause-statements.md § Promotion](/docs/founder/shaping-your-cause-statements.md#promotion). The seat for it is the cause page's view strip.
 - [ ] View counts fetch believer sets per plank, and each fetch walks events for the plank *plus* every statement implying it, under a `limit: 10000` that truncates silently. Fine locally; measure before it matters. Remedy is an indexer-side aggregate ([§ Scale](/docs/founder/shaping-your-cause-statements.md#scale-the-fold-is-fine-the-transport-isnt)), optionally sketch-backed — but band 1 must stay exact.
 
