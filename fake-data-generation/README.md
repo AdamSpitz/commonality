@@ -247,6 +247,14 @@ by `CONTENT_ATTESTER_PRIVATE_KEY` so CauseStarter's trusted-content filter
 accepts it. A cause that publishes that plank should show one content-contract
 row with “1 of 2 posts attested”.
 
+The same seed then creates two prospective content rounds:
+
+- an **open** YouTube future-content round (below threshold, not materialized),
+  vouched as a project to `local-food-systems` so CauseStarter lists it before
+  any posts exist
+- a **successful and materialized** Substack round with one fulfilled post
+  (`substack:smartwriter/civic-garden-explainer`) attested to the same plank
+
 The same seed publishes a CauseStarter roster at
 `/cause/0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266/local-food-systems`
 (Hardhat #0) and writes `bookmarked-causes` for Hardhat `#0`–`#9`, so any of

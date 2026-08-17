@@ -1450,6 +1450,7 @@ async function main(): Promise<void> {
     channelRegistry: CONTRACT_ADDRESSES.channelRegistry,
     channelVerifier: CONTRACT_ADDRESSES.channelVerifier,
     creatorContractFactory: CONTRACT_ADDRESSES.creatorContractFactory,
+    prospectiveContentRoundFactory: CONTRACT_ADDRESSES.prospectiveContentRoundFactory,
     publishedData: CONTRACT_ADDRESSES.publishedData,
     alignmentAttestations: CONTRACT_ADDRESSES.alignmentAttestations,
   };
@@ -1460,6 +1461,7 @@ async function main(): Promise<void> {
           channelRegistry: `0x${string}`;
           channelVerifier: `0x${string}`;
           creatorContractFactory: `0x${string}`;
+          prospectiveContentRoundFactory?: `0x${string}`;
           publishedData?: `0x${string}`;
           alignmentAttestations?: `0x${string}`;
         },

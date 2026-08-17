@@ -23,8 +23,13 @@ import { privateKeyToAccount } from 'viem/accounts';
 import { ChannelRegistryAbi } from '../indexer/abis/ChannelRegistryAbi.js';
 import { CreatorAssuranceContractFactoryAbi } from '../indexer/abis/CreatorAssuranceContractFactoryAbi.js';
 import { AlignmentAttestationsAbi, AssuranceContractAbi, PublishedDataAbi } from '@commonality/sdk/abis';
-import { hashCanonicalId } from '@commonality/sdk/content-funding';
-import { attestAlignment, PROJECT_ALIGNMENT_TOPIC } from '@commonality/sdk/fundingportals';
+import {
+  addMaterializedContent,
+  createMaterializedContentTokens,
+  createProspectiveRound,
+  hashCanonicalId,
+} from '@commonality/sdk/content-funding';
+import { attestAlignment, PROJECT_ALIGNMENT_TOPIC, toSubjectId } from '@commonality/sdk/fundingportals';
 import { type IpfsCidV1, type WriteClients } from '@commonality/sdk/utils';
 import { createIPFSConfigInNodeJSFromTheUsualEnvVars } from '@commonality/sdk/node';
 import { createSDKMachinery } from '@commonality/sdk/machinery';
@@ -483,6 +488,7 @@ export interface ContentFundingAddresses {
   channelRegistry: `0x${string}`;
   channelVerifier: `0x${string}`;
   creatorContractFactory: `0x${string}`;
+  prospectiveContentRoundFactory?: `0x${string}`;
   publishedData?: `0x${string}`;
   alignmentAttestations?: `0x${string}`;
 }
@@ -714,5 +720,176 @@ export async function generateContentFundingScenarios(
     console.log(`  Channel ${channelCanonicalId}: creator-controlled, 1 creator + 1 vetoable third-party contract.\n`);
   }
 
+  await generateProspectiveContentRoundScenarios(addresses, users, alignment);
+
   console.log('=== Content-Funding Scenarios Complete ===\n');
+}
+
+export function buildProspectiveRoundMetadata(
+  channelCanonicalId: string,
+  kind: 'open' | 'materialized',
+) {
+  const name = kind === 'open'
+    ? `${readableChannelName(channelCanonicalId)} upcoming series`
+    : `${readableChannelName(channelCanonicalId)} fulfilled series`;
+  return {
+    name,
+    description: kind === 'open'
+      ? `Seed prospective content round (still open) for ${readableChannelName(channelCanonicalId)}.`
+      : `Seed prospective content round that already succeeded and materialized for ${readableChannelName(channelCanonicalId)}.`,
+    channelCanonicalId,
+    creatorDisplayName: readableChannelName(channelCanonicalId),
+    contractType: 'prospective-round',
+    roundStatus: kind,
+  };
+}
+
+async function publishProspectiveRoundMetadata(
+  clients: ReturnType<typeof createClients>,
+  publishedDataAddress: `0x${string}` | undefined,
+  channelCanonicalId: string,
+  kind: 'open' | 'materialized',
+): Promise<string> {
+  const ipfsConfig = createIPFSConfigInNodeJSFromTheUsualEnvVars();
+  const metadata = buildProspectiveRoundMetadata(channelCanonicalId, kind);
+  const store = createDefaultDocumentStore(createSDKMachinery({ ipfsConfig }), {
+    clients: clients as WriteClients,
+    ...(publishedDataAddress
+      ? { publishedDataContract: { address: publishedDataAddress, abi: PublishedDataAbi } }
+      : {}),
+  });
+  const publication = await store.publish(createDisplayableDocument({
+    format: 'markdown-restricted',
+    content: metadata.description,
+    extras: {
+      statementType: 'prospective-content-round-metadata',
+      ...metadata,
+    },
+  }));
+  return publication.cid;
+}
+
+const MATERIALIZED_SUBSTACK_SUFFIX = 'civic-garden-explainer';
+
+export function seedMaterializedContentCanonicalId(): string {
+  return `substack:smartwriter/${MATERIALIZED_SUBSTACK_SUFFIX}`;
+}
+
+/**
+ * Deterministic prospective / materialized rounds on already-verified seed channels.
+ * The open YouTube round is vouched as a project so CauseStarter lists it before
+ * any posts exist. The Substack round succeeds, materializes one post, and
+ * attests that post to the same local-food-systems plank.
+ */
+export async function generateProspectiveContentRoundScenarios(
+  addresses: ContentFundingAddresses,
+  users: User[],
+  alignment?: ContentFundingAlignmentSeed,
+): Promise<void> {
+  const factory = addresses.prospectiveContentRoundFactory;
+  if (!factory) {
+    console.warn('  Prospective content round factory not configured — skipping prospective/materialized rounds.');
+    return;
+  }
+  if (users.length < 4) {
+    console.warn('  Need at least 4 users for prospective content rounds — skipping.');
+    return;
+  }
+
+  const creatorUser = users[2];
+  const buyerA = users[3];
+  const creatorClients = createClients(creatorUser.privateKey);
+  const buyerAClients = createClients(buyerA.privateKey);
+  const latestBlock = await creatorClients.publicClient.getBlock();
+  const deadline = latestBlock.timestamp + 30n * 24n * 3600n;
+
+  console.log('--- Scenario 4: Open prospective YouTube round ---');
+  {
+    const channelCanonicalId = 'youtube:channel:UCaaaaaaaaaaaaaaaaaaaaaaaa';
+    const tokenPrice = parsePaymentTokenUnits('0.01');
+    const threshold = parsePaymentTokenUnits('10');
+    const metadataCid = await publishProspectiveRoundMetadata(
+      creatorClients,
+      addresses.publishedData,
+      channelCanonicalId,
+      'open',
+    );
+    const created = await createProspectiveRound(creatorClients as WriteClients, factory, {
+      channelCanonicalId,
+      tokenId: 0n,
+      supply: 200n,
+      price: tokenPrice,
+      threshold,
+      deadline,
+      metadataCid,
+      receiptMetadataUri: `ipfs://${metadataCid}`,
+      receiptContractUri: `ipfs://${metadataCid}`,
+    });
+    await buyTokens(buyerAClients, created.roundAddress, created.receiptTokenAddress, [0n], [2n], [tokenPrice]);
+    console.log(`  ✓ Open prospective round ${created.roundAddress} (below threshold, not materialized).`);
+
+    if (alignment && addresses.alignmentAttestations) {
+      const projectAttester = createClients(users[0].privateKey);
+      const hash = await attestAlignment(
+        projectAttester as WriteClients,
+        { address: addresses.alignmentAttestations, abi: AlignmentAttestationsAbi },
+        toSubjectId(created.roundAddress),
+        alignment.statementCid,
+        PROJECT_ALIGNMENT_TOPIC,
+      );
+      await projectAttester.publicClient.waitForTransactionReceipt({ hash });
+      console.log(`  ✓ Open prospective round vouched to local-food-systems: ${created.roundAddress}`);
+    }
+  }
+
+  console.log('--- Scenario 5: Materialized Substack prospective round ---');
+  {
+    const channelCanonicalId = 'substack:smartwriter';
+    const tokenPrice = parsePaymentTokenUnits('0.01');
+    const threshold = parsePaymentTokenUnits('0.05');
+    const metadataCid = await publishProspectiveRoundMetadata(
+      creatorClients,
+      addresses.publishedData,
+      channelCanonicalId,
+      'materialized',
+    );
+    const created = await createProspectiveRound(creatorClients as WriteClients, factory, {
+      channelCanonicalId,
+      tokenId: 0n,
+      supply: 100n,
+      price: tokenPrice,
+      threshold,
+      deadline,
+      metadataCid,
+      receiptMetadataUri: `ipfs://${metadataCid}`,
+      receiptContractUri: `ipfs://${metadataCid}`,
+    });
+    await buyTokens(buyerAClients, created.roundAddress, created.receiptTokenAddress, [0n], [6n], [tokenPrice]);
+    const materialized = await createMaterializedContentTokens(
+      creatorClients as WriteClients,
+      factory,
+      created.roundAddress,
+      `ipfs://${metadataCid}`,
+      `ipfs://${metadataCid}`,
+    );
+    await addMaterializedContent(
+      creatorClients as WriteClients,
+      materialized.tokenContract,
+      [MATERIALIZED_SUBSTACK_SUFFIX],
+    );
+    console.log(`  ✓ Materialized round ${created.roundAddress} → ${materialized.tokenContract} (+ ${MATERIALIZED_SUBSTACK_SUFFIX}).`);
+
+    const attesterKey = (alignment?.attesterPrivateKey
+      ?? process.env.CONTENT_ATTESTER_PRIVATE_KEY) as Hex | undefined;
+    if (alignment && addresses.alignmentAttestations && attesterKey) {
+      const attester = createClients(attesterKey);
+      await fundIfNeeded(creatorClients, attester.account);
+      await attestContentToPlank(
+        attesterKey,
+        addresses.alignmentAttestations,
+        seedMaterializedContentCanonicalId(),
+        alignment.statementCid,
+      );
+    }
+  }
 }

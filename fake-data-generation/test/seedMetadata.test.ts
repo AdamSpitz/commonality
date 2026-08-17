@@ -9,7 +9,9 @@ import { publishedDataCidForDocument } from '../../sdk/src/subsystems/displayabl
 import { getSeedProjectAlignmentRef, getSeedProjectMetadata } from '../fundingAndDelegationActions.js';
 import {
   buildContractMetadata,
+  buildProspectiveRoundMetadata,
   SEED_CONTENT_ALIGNMENT_REF,
+  seedMaterializedContentCanonicalId,
   seedMixedContentAlignmentCanonicalIds,
 } from '../contentFundingActions.js';
 import {
@@ -96,6 +98,16 @@ test('content-funding seed contracts use uploadable metadata instead of fake IPF
   assert.equal(metadata.contractType, 'creator');
   assert.deepEqual(metadata.contentSuffixes, ['my-first-big-piece']);
   assert.doesNotMatch(JSON.stringify(metadata), /fake-metadata/);
+});
+
+test('content-funding seed includes prospective and materialized round metadata', () => {
+  const open = buildProspectiveRoundMetadata('youtube:channel:UCaaaaaaaaaaaaaaaaaaaaaaaa', 'open');
+  const done = buildProspectiveRoundMetadata('substack:smartwriter', 'materialized');
+
+  assert.match(open.name, /upcoming series/i);
+  assert.equal(open.roundStatus, 'open');
+  assert.equal(done.roundStatus, 'materialized');
+  assert.equal(seedMaterializedContentCanonicalId(), 'substack:smartwriter/civic-garden-explainer');
 });
 
 test('seed content contracts leave a mixed attested/unattested batch for the cause board', async () => {
