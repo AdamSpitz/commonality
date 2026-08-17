@@ -112,6 +112,18 @@ test('seed content contracts leave a mixed attested/unattested batch for the cau
   assert.notEqual(attested[0], 'twitter:uid:111111111:1000000000000000002');
 });
 
+test('local-food-systems seed ref matches the mapping keys used by tiny seed injection', async () => {
+  const records = flattenSeedStatements(await loadSeedCollections());
+  const plank = records.find((record) =>
+    record.collection.id === SEED_CONTENT_ALIGNMENT_REF.collectionId &&
+    record.group.id === SEED_CONTENT_ALIGNMENT_REF.groupId &&
+    record.statement.id === SEED_CONTENT_ALIGNMENT_REF.statementId);
+  assert.ok(plank);
+  assert.equal(plank.collection.id, 'fundable-projects');
+  assert.equal(plank.group.id, 'local-community');
+  assert.match(plank.statement.text, /local food systems/);
+});
+
 test('seed cause roster is a CauseStarter document owned by Hardhat #0', () => {
   const fields = seedCauseRosterFields('bafkreiplankcid');
   const doc = buildSeedRosterDocument(fields);

@@ -34,6 +34,7 @@ npm run gen:simulate
 
 # Or with custom parameters
 npm run gen:tiny        # 5 users, 1 round, 12 statements, capped actions, no invariant pass
+                        # Always publishes the Local food systems plank, garden alignment, and CauseStarter roster (nightly wipe uses this).
 npm run gen:small       # 10 users, 3 rounds
 npm run gen:seed:local  # 12 users, 3 rounds, formal seed content, Alignment Explorer/nudge fixtures
 npm run gen:medium      # 50 users, 5 rounds
@@ -250,6 +251,11 @@ The same seed publishes a CauseStarter roster at
 `/cause/0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266/local-food-systems`
 (Hardhat #0) and writes `bookmarked-causes` for Hardhat `#0`–`#9`, so any of
 those accounts sees the cause on the landing page after connect.
+
+Every seed size (including `tiny`, which the nightly wipe runs) injects that
+`local-food-systems` plank if the random statement set does not already include
+it, then publishes the garden alignment and roster. Full Explorer/nudge worker
+outputs still require `gen:seed:local` / `--publish-seed-worker-outputs`.
 
 ## Metrics Collected
 

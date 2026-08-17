@@ -1026,6 +1026,64 @@ function requireSeedStatement(
   return statement;
 }
 
+/**
+ * Tiny/small/medium seeds load generated statements, not the curated seed
+ * universe, so local-food-systems is usually missing. Nightly wipe+reseed
+ * uses `--seed=tiny`; without this plank the CauseStarter cause has no
+ * aligned projects.
+ */
+async function ensureMappedSeedStatement(
+  simulation: SimulationRunner,
+  ref: SeedStatementRef,
+): Promise<IpfsCidV1 | undefined> {
+  const alreadyMapped = await mapSeedStatementsToUploadedCids(simulation.statements);
+  const existing = alreadyMapped.get(getSeedStatementRefKey(ref));
+  if (existing) return existing.cid;
+
+  const records = await loadOriginalSeedStatementRecords();
+  const record = records.find((candidate) =>
+    candidate.collection.id === ref.collectionId
+    && candidate.group.id === ref.groupId
+    && candidate.statement.id === ref.statementId
+  );
+  if (!record) {
+    console.warn(`Could not find curated seed statement ${getSeedStatementRefKey(ref)}.`);
+    return undefined;
+  }
+
+  const statement: Statement = {
+    domain: record.collection.id,
+    position: record.group.id,
+    statementType: 'simple',
+    content: {
+      text: record.statement.text,
+      domain: record.collection.id,
+      position: record.group.id,
+    },
+  };
+
+  const ipfsConfig = createIPFSConfigInNodeJSFromTheUsualEnvVars();
+  const publisher = simulation.users[0] ? simulation.getClientsForUser(simulation.users[0]) : undefined;
+  const publishedDataAddress = CONTRACT_ADDRESSES.publishedData as `0x${string}` | undefined;
+  try {
+    statement.cid = await publishGeneratedStatement(
+      ipfsConfig,
+      statement.content,
+      statement.domain,
+      statement.position,
+      statement.statementType,
+      { clients: publisher, publishedDataAddress },
+    );
+  } catch (error) {
+    console.warn(`Failed to publish curated seed statement ${getSeedStatementRefKey(ref)}.`, error);
+    return undefined;
+  }
+
+  simulation.statements.push(statement);
+  console.log(`  Published curated seed statement ${ref.statementId} → ${statement.cid}`);
+  return statement.cid;
+}
+
 async function publishSeedWorkerOutputs(simulation: SimulationRunner): Promise<void> {
   const nudgePublicationsAddress = process.env.NUDGE_PUBLICATIONS_CONTRACT_ADDRESS as `0x${string}` | undefined;
   if (!nudgePublicationsAddress) {
@@ -1177,7 +1235,13 @@ async function publishSeedProjectAlignments(simulation: SimulationRunner): Promi
 
   for (const project of simulation.fundingDelegation.createdProjects.slice(0, DETERMINISTIC_SEED_PROJECT_ALIGNMENT_COUNT)) {
     const alignmentRef = getSeedProjectAlignmentRef(project.seedProjectIndex);
-    const statement = requireSeedStatement(statementsByRef, alignmentRef, 'seed project alignment');
+    const statement = statementsByRef.get(getSeedStatementRefKey(alignmentRef));
+    if (!statement) {
+      console.warn(
+        `Skipping seed alignment for ${alignmentRef.statementId} — statement not in this seed.`,
+      );
+      continue;
+    }
     const hash = await attestAlignment(
       clients,
       simulation.contracts.alignmentAttestations,
@@ -1275,7 +1339,13 @@ async function publishSeedProjectSuccesses(simulation: SimulationRunner): Promis
 
     // Attest success from a small pool of distinct attesters (none are the project owner or buyer).
     const successRef = getSeedProjectAlignmentRef(project.seedProjectIndex);
-    const statement = requireSeedStatement(statementsByRef, successRef, 'seed project success');
+    const statement = statementsByRef.get(getSeedStatementRefKey(successRef));
+    if (!statement) {
+      console.warn(
+        `Skipping seed success attestations for ${successRef.statementId} — statement not in this seed.`,
+      );
+      continue;
+    }
     for (let a = 0; a < SEED_PROJECT_SUCCESS_ATTESTER_COUNT; a++) {
       const attester = simulation.users[attesterPoolStart + a];
       const clients = simulation.getClientsForUser(attester);
@@ -1327,23 +1397,20 @@ async function main(): Promise<void> {
 
   if (publishSeedWorkerOutputsFlag) {
     await publishSeedWorkerOutputs(simulation);
-    await publishSeedProjectAlignments(simulation);
-    await publishSeedProjectSuccesses(simulation);
   }
 
-  let localFoodPlankCid: IpfsCidV1 | undefined;
-  try {
-    const statementsByRef = await mapSeedStatementsToUploadedCids(simulation.statements);
-    if (statementsByRef.size > 0) {
-      localFoodPlankCid = requireSeedStatement(
-        statementsByRef,
-        SEED_CONTENT_ALIGNMENT_REF,
-        'seed content alignment',
-      ).cid;
-    }
-  } catch (error) {
-    console.warn('Could not resolve seed local-food-systems plank.', error);
+  // Always land the local-food-systems plank + alignments, including on
+  // `--seed=tiny` (nightly wipe). Worker-output publication remains optional.
+  const localFoodPlankCid = await ensureMappedSeedStatement(
+    simulation,
+    SEED_CONTENT_ALIGNMENT_REF,
+  );
+  if (!localFoodPlankCid) {
+    console.warn('Could not resolve seed local-food-systems plank.');
   }
+
+  await publishSeedProjectAlignments(simulation);
+  await publishSeedProjectSuccesses(simulation);
 
   // Generate content-funding on-chain state (deterministic scenarios).
   const cfAddresses = {
@@ -1354,17 +1421,24 @@ async function main(): Promise<void> {
     alignmentAttestations: CONTRACT_ADDRESSES.alignmentAttestations,
   };
   if (cfAddresses.channelRegistry && cfAddresses.channelVerifier && cfAddresses.creatorContractFactory) {
-    await generateContentFundingScenarios(
-      cfAddresses as {
-        channelRegistry: `0x${string}`;
-        channelVerifier: `0x${string}`;
-        creatorContractFactory: `0x${string}`;
-        publishedData?: `0x${string}`;
-        alignmentAttestations?: `0x${string}`;
-      },
-      simulation.users,
-      localFoodPlankCid ? { statementCid: localFoodPlankCid } : undefined,
-    );
+    try {
+      await generateContentFundingScenarios(
+        cfAddresses as {
+          channelRegistry: `0x${string}`;
+          channelVerifier: `0x${string}`;
+          creatorContractFactory: `0x${string}`;
+          publishedData?: `0x${string}`;
+          alignmentAttestations?: `0x${string}`;
+        },
+        simulation.users,
+        localFoodPlankCid ? { statementCid: localFoodPlankCid } : undefined,
+      );
+    } catch (error) {
+      console.warn(
+        'Content-funding scenarios failed (often because this chain was already seeded). Continuing so the local-food cause still publishes.',
+        error,
+      );
+    }
   } else {
     console.warn('Content-funding addresses not configured — skipping content-funding scenarios.');
     console.warn('  (Set CHANNEL_REGISTRY_ADDRESS, CHANNEL_VERIFIER_ADDRESS, CREATOR_CONTRACT_FACTORY_ADDRESS in .env)');
