@@ -17,16 +17,6 @@ When an item from this page is done and no longer needs an LLM implementor's att
   and confirm `TrustSet(..., 0)` removes it. Also cover that any personal direct
   trust mapping replaces rather than merges with the shipped fallback.
 
-- **(Tell)** Glossary follow-ups. [`specs/glossary.md`](specs/glossary.md) is now the
-  ubiquitous-language reference; Adam ruled on support/sign/pledge/contributor 2026-08-14
-  and those sweeps are done. Part 2 §6 lists what's left, none of it urgent: **earmark**
-  is used ~35 times and defined nowhere (define it or fold it into "contribution to a
-  cause"); `Project.marketplaceAddress` may be dead since receipts went non-transferable;
-  and the contract directory names (`individual-projects/` = LazyGiving, `statements/` =
-  Conceptspace, `alignment-attestations/` = fundingportals) don't match their subsystem
-  names, which breaks the four-layer isomorphism. Add new terms to the glossary as they
-  appear rather than letting drift re-accumulate.
-
 - Fix the three failing funding-portal integration tests. `automated.test-full-integration` fails (exit 3, 101 passing / 3 failing) because cause-level aggregation reads back `0n` where seeded contributions should appear: "total funding raised across all aligned projects for a cause" expects `800000n` (`integration-tests/src/fundingportal/fundingportal-aggregated-metrics.test.ts:219`), and the leaderboard tests expect `3000000n` and `2000000n` (`fundingportal-leaderboards.test.ts:221` and `:346`). All three get `0n`, so suspect one shared cause: contributions not being attributed to the cause in the aggregation query/indexer rather than three separate bugs. This is the only red under `automated.test-full` — SDK, Hardhat, and UI legs pass.
 
 - Fix the canonical Playwright user journeys (`stack.user-journeys`, exit 1). The content-funding flow reverts in `verifyChannel` with `InvalidVerifierSignature()` (custom error `0x0574e985`) when creating a channel and landing on the creators page, and retries hit the same error. Either the signer/verifier key the E2E harness uses no longer matches the deployed `ChannelRegistry` verifier, or the signed payload's shape/domain changed.
