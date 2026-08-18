@@ -60,7 +60,11 @@ describe('PlankRow', () => {
       </MemoryRouter>,
     )
 
-    expect(screen.getByText('1 direct signer, 0 indirect supporters · 1 total')).toBeInTheDocument()
+    expect(screen.getByText(/1 · 1 direct · 0 indirect/)).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Projects' })).toBeInTheDocument()
+    expect(screen.getByTestId('plank-in-totals-0')).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.queryByText('In these totals')).not.toBeInTheDocument()
+    expect(screen.queryByText('Left out of totals')).not.toBeInTheDocument()
   })
 
   it('disables editing, review, and deletion while publication is pending', () => {
@@ -69,9 +73,9 @@ describe('PlankRow', () => {
     expect(screen.getByRole('textbox')).toBeDisabled()
     expect(screen.getByRole('button', { name: /publishing/i })).toBeDisabled()
     expect(screen.getByRole('button', { name: /check phrasing/i })).toBeDisabled()
-    expect(screen.getByRole('button', { name: /remove issue 1/i })).toBeDisabled()
+    expect(screen.getByRole('button', { name: /remove statement 1/i })).toBeDisabled()
 
-    fireEvent.click(screen.getByRole('button', { name: /remove issue 1/i }))
+    fireEvent.click(screen.getByRole('button', { name: /remove statement 1/i }))
     expect(handlers.onDelete).not.toHaveBeenCalled()
   })
 
@@ -79,10 +83,10 @@ describe('PlankRow', () => {
     const handlers = renderDraft(false, true)
 
     expect(screen.getByRole('textbox')).toBeDisabled()
-    expect(screen.getByRole('button', { name: /publish issue/i })).toBeDisabled()
+    expect(screen.getByRole('button', { name: /publish statement/i })).toBeDisabled()
     expect(screen.getByRole('button', { name: /check phrasing/i })).toBeDisabled()
-    expect(screen.getByRole('button', { name: /remove issue 1/i })).toBeDisabled()
-    fireEvent.click(screen.getByRole('button', { name: /remove issue 1/i }))
+    expect(screen.getByRole('button', { name: /remove statement 1/i })).toBeDisabled()
+    fireEvent.click(screen.getByRole('button', { name: /remove statement 1/i }))
     expect(handlers.onDelete).not.toHaveBeenCalled()
   })
 

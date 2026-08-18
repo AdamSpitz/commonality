@@ -7,8 +7,9 @@
  */
 
 import {
-  Alert, Box, Button, Chip, CircularProgress, Stack, TextField, Typography,
+  Alert, Box, Button, CircularProgress, Stack, TextField, Typography,
 } from '@mui/material'
+import { InfoChip } from '@ui/shared'
 import type { CoherenceVerdict } from '../lib/causeAssistClient'
 import { normalizeSlug, validateSlug } from '../lib/causeRoster'
 
@@ -80,7 +81,7 @@ export function RosterPublishPanel({
       <Box>
         <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>Publish this cause</Typography>
         <Alert severity="info" sx={{ borderRadius: 2 }}>
-          Title, summary, issue list, and mediator blurb publish together as a versioned
+          Title, summary, statement list, and mediator blurb publish together as a versioned
           cause page. The URL stays stable when you edit; each publish is a new version.
         </Alert>
       </Box>
@@ -125,7 +126,7 @@ export function RosterPublishPanel({
         multiline
         minRows={2}
         disabled={busy}
-        helperText="Optional public blurb for the cause page. Distinct from the issues people sign."
+        helperText="Optional public blurb for the cause page. Distinct from the statements people sign."
         slotProps={{ htmlInput: { 'data-testid': 'roster-summary' } }}
       />
       <TextField
@@ -175,7 +176,7 @@ export function RosterPublishPanel({
 
       {!canPublish && (
         <Alert severity="info" sx={{ borderRadius: 2 }}>
-          Publish at least one issue before publishing the cause page.
+          Publish at least one statement before publishing the cause page.
         </Alert>
       )}
 
@@ -211,7 +212,13 @@ export function RosterPublishPanel({
           Publish anyway
         </Button>
         {badgeMatches && (
-          <Chip size="small" color="success" label="Badge ready" sx={{ alignSelf: 'center' }} />
+          <InfoChip
+            size="small"
+            color="success"
+            label="Badge ready"
+            sx={{ alignSelf: 'center' }}
+            title="CauseStarter's coherence checker is ready to attest that this title and description match the statements. Publishing will attach that badge."
+          />
         )}
       </Stack>
     </Stack>

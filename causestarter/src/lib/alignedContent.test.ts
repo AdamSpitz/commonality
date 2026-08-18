@@ -3,6 +3,7 @@ import type { ChannelWithCanonicalId } from '@commonality/sdk/content-funding'
 import {
   contentChannelPath,
   contentItemPublicUrl,
+  selectAlignedContentContracts,
   selectAlignedContentItems,
 } from './alignedContent'
 
@@ -53,6 +54,19 @@ describe('selectAlignedContentItems', () => {
     expect(rows[0]?.statementCids).toEqual([STATEMENT_A])
   })
 
+  it('drops items attested only by an untrusted wallet', () => {
+    const attestations = new Map([
+      ['twitter:uid:1:111', [{
+        canonicalId: 'twitter:uid:1:111',
+        subjectId: 'x',
+        attested: true,
+        attester: '0xuntrusted',
+        statementCid: STATEMENT_A,
+      }]],
+    ])
+    expect(selectAlignedContentItems([channel()], attestations, [STATEMENT_A], ['0xtrusted'])).toEqual([])
+  })
+
   it('ignores retracted or off-topic attestations', () => {
     const attestations = new Map([
       ['twitter:uid:1:111', [{
@@ -64,6 +78,41 @@ describe('selectAlignedContentItems', () => {
       }]],
     ])
     expect(selectAlignedContentItems([channel()], attestations, [STATEMENT_A])).toEqual([])
+  })
+
+  it('matches a raw PublishedData CID against a dag-pb decoded alignment CID', () => {
+    const rosterCid = 'bafkreiccc5wjz3uw6ag2qdu25ftvqp3tt5txt5ornuvtcnjibwdx4mf74e'
+    const decodedCid = 'bafybeiccc5wjz3uw6ag2qdu25ftvqp3tt5txt5ornuvtcnjibwdx4mf74e'
+    const attestations = new Map([
+      ['twitter:uid:1:111', [{
+        canonicalId: 'twitter:uid:1:111',
+        subjectId: 'x',
+        attested: true,
+        attester: '0x1',
+        statementCid: decodedCid,
+      }]],
+    ])
+    expect(selectAlignedContentItems([channel()], attestations, [rosterCid])).toHaveLength(1)
+  })
+})
+
+describe('selectAlignedContentContracts', () => {
+  it('groups aligned items by contract and counts mixed batches', () => {
+    const attestations = new Map([
+      ['twitter:uid:1:111', [{
+        canonicalId: 'twitter:uid:1:111',
+        subjectId: 'x',
+        attested: true,
+        attester: '0x1',
+        statementCid: STATEMENT_A,
+      }]],
+    ])
+    const rows = selectAlignedContentContracts([channel()], attestations, [STATEMENT_A])
+    expect(rows).toHaveLength(1)
+    expect(rows[0]?.contractAddress).toBe('0xabc')
+    expect(rows[0]?.alignedItemCount).toBe(1)
+    expect(rows[0]?.contentItemCount).toBe(2)
+    expect(rows[0]?.viaStatementCids).toEqual([STATEMENT_A])
   })
 })
 

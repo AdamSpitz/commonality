@@ -7,7 +7,32 @@ import {
 } from '../../sdk/src/subsystems/conceptspace/constants.js';
 import { publishedDataCidForDocument } from '../../sdk/src/subsystems/displayable-documents/displayable-document.js';
 import { getSeedProjectAlignmentRef, getSeedProjectMetadata } from '../fundingAndDelegationActions.js';
-import { buildContractMetadata } from '../contentFundingActions.js';
+import {
+  buildContractMetadata,
+  buildProspectiveRoundMetadata,
+  SEED_CONTENT_ALIGNMENT_REF,
+  seedMaterializedContentCanonicalId,
+  seedMixedContentAlignmentCanonicalIds,
+} from '../contentFundingActions.js';
+import {
+  buildSeedRosterDocument,
+  CAUSE_BOOKMARKS_SCHEMA_VERSION,
+  ROSTER_KIND,
+  ROSTER_SCHEMA_VERSION,
+  SEED_CAUSE_OWNER_ADDRESS,
+  SEED_CAUSE_SLUG,
+  seedCauseRosterFields,
+  serializeSeedCauseBookmarkList,
+} from '../seedCauseRoster.js';
+import {
+  CHRISTIANITY_CAUSE_SLUG,
+  CHRISTIANITY_PLANKS,
+  CHRISTIANITY_PROJECTS,
+  CHRISTIAN_MEDIATOR_ADDRESS,
+  CHRISTIAN_MEDIATOR_NAME,
+  christianityRosterFields,
+} from '../seedChristianityCause.js';
+import { seedChristianContentAlignmentCanonicalIds } from '../contentFundingActions.js';
 import { createStatementDocumentFromSeed, flattenSeedStatements, loadSeedCollections } from '../seed-content-format.js';
 
 test('seed LazyGiving projects have human-readable metadata', () => {
@@ -82,4 +107,81 @@ test('content-funding seed contracts use uploadable metadata instead of fake IPF
   assert.equal(metadata.contractType, 'creator');
   assert.deepEqual(metadata.contentSuffixes, ['my-first-big-piece']);
   assert.doesNotMatch(JSON.stringify(metadata), /fake-metadata/);
+});
+
+test('content-funding seed includes prospective and materialized round metadata', () => {
+  const open = buildProspectiveRoundMetadata('youtube:channel:UCaaaaaaaaaaaaaaaaaaaaaaaa', 'open');
+  const done = buildProspectiveRoundMetadata('substack:smartwriter', 'materialized');
+
+  assert.match(open.name, /upcoming series/i);
+  assert.equal(open.roundStatus, 'open');
+  assert.equal(done.roundStatus, 'materialized');
+  assert.equal(seedMaterializedContentCanonicalId(), 'substack:smartwriter/civic-garden-explainer');
+});
+
+test('seed content contracts leave a mixed attested/unattested batch for the cause board', async () => {
+  const records = flattenSeedStatements(await loadSeedCollections());
+  const plank = records.find((record) =>
+    record.collection.id === SEED_CONTENT_ALIGNMENT_REF.collectionId &&
+    record.group.id === SEED_CONTENT_ALIGNMENT_REF.groupId &&
+    record.statement.id === SEED_CONTENT_ALIGNMENT_REF.statementId);
+  assert.ok(plank, 'content-alignment plank must exist in seed statements');
+
+  const attested = seedMixedContentAlignmentCanonicalIds();
+  assert.equal(attested.length, 1);
+  assert.equal(attested[0], 'twitter:uid:111111111:1000000000000000001');
+  assert.notEqual(attested[0], 'twitter:uid:111111111:1000000000000000002');
+});
+
+test('local-food-systems seed ref matches the mapping keys used by tiny seed injection', async () => {
+  const records = flattenSeedStatements(await loadSeedCollections());
+  const plank = records.find((record) =>
+    record.collection.id === SEED_CONTENT_ALIGNMENT_REF.collectionId &&
+    record.group.id === SEED_CONTENT_ALIGNMENT_REF.groupId &&
+    record.statement.id === SEED_CONTENT_ALIGNMENT_REF.statementId);
+  assert.ok(plank);
+  assert.equal(plank.collection.id, 'fundable-projects');
+  assert.equal(plank.group.id, 'local-community');
+  assert.match(plank.statement.text, /local food systems/);
+});
+
+test('seed cause roster is a CauseStarter document owned by Hardhat #0', () => {
+  const fields = seedCauseRosterFields('bafkreiplankcid');
+  const doc = buildSeedRosterDocument(fields);
+  assert.equal(doc.extras?.kind, ROSTER_KIND);
+  assert.equal(doc.extras?.version, ROSTER_SCHEMA_VERSION);
+  assert.deepEqual(doc.extras?.plankCids, ['bafkreiplankcid']);
+  assert.match(doc.content, /# Local food systems/);
+  assert.equal(SEED_CAUSE_SLUG, 'local-food-systems');
+  assert.equal(
+    SEED_CAUSE_OWNER_ADDRESS.toLowerCase(),
+    '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266',
+  );
+
+  const bookmarks = JSON.parse(serializeSeedCauseBookmarkList([
+    { owner: SEED_CAUSE_OWNER_ADDRESS, slug: SEED_CAUSE_SLUG },
+  ]));
+  assert.equal(bookmarks.version, CAUSE_BOOKMARKS_SCHEMA_VERSION);
+  assert.deepEqual(bookmarks.causes, [{
+    owner: SEED_CAUSE_OWNER_ADDRESS.toLowerCase(),
+    slug: SEED_CAUSE_SLUG,
+  }]);
+});
+
+test('christianity seed roster includes the example mediator and distinct planks', () => {
+  const plankCids = ['bafkreiplank1', 'bafkreiplank2', 'bafkreiplank3'];
+  const fields = christianityRosterFields(plankCids);
+  const doc = buildSeedRosterDocument(fields);
+  assert.equal(CHRISTIANITY_CAUSE_SLUG, 'christianity');
+  assert.equal(fields.title, 'Christianity');
+  assert.equal(CHRISTIANITY_PLANKS.length, 3);
+  assert.equal(CHRISTIANITY_PROJECTS.length, 3);
+  assert.ok(CHRISTIANITY_PROJECTS.some((project) => project.kind === 'campus-ministry'));
+  assert.match(fields.mediatorBlurb, /secular-conservative/i);
+  assert.equal(fields.mediator?.name, CHRISTIAN_MEDIATOR_NAME);
+  assert.equal(fields.mediator?.address.toLowerCase(), CHRISTIAN_MEDIATOR_ADDRESS.toLowerCase());
+  assert.match(fields.mediator?.serviceUrl ?? '', /^https?:\/\//);
+  assert.deepEqual(doc.extras?.mediator, fields.mediator);
+  assert.match(doc.content, /# Christianity/);
+  assert.equal(seedChristianContentAlignmentCanonicalIds().length, 1);
 });

@@ -1,7 +1,11 @@
 import { useEffect, useState } from 'react'
 import { Alert, Box, Button, Card, CardActions, CardContent, Chip, CircularProgress, Stack, Tooltip, Typography } from '@mui/material'
 import { Link as RouterLink } from 'react-router-dom'
-import { getSuccessfulProjectsForCause, type SuccessfulProjectForCause } from '@commonality/sdk/fundingportals'
+import {
+  getFullyReimbursedProjectsForCause,
+  getSuccessfulProjectsForCause,
+  type SuccessfulProjectForCause,
+} from '@commonality/sdk/fundingportals'
 import { getProject } from '@commonality/sdk/lazy-giving'
 import { type IpfsCidV1 } from '@commonality/sdk/utils'
 import { useMachinery } from '../../shared'
@@ -9,6 +13,8 @@ import { formatCurrencyAmount } from '../../shared'
 import { projectPathForAddress } from '../../shared'
 import { resolveProjectNav, type ProjectLinkMode, type ProjectMetadata } from './AlignedProjectCard'
 import { readProjectMetadata } from './projectMetadata'
+import { resolveStatementCids } from './statementCids'
+import { useKeepPaintedWhileRefreshing } from '../hooks/useKeepPaintedWhileRefreshing'
 
 function shortAddress(address: string) {
   return `${address.slice(0, 6)}…${address.slice(-4)}`
@@ -22,37 +28,61 @@ function successTypeExplanation(successType: 'direct' | 'indirect') {
 
 export function SuccessfulProjectsList({
   statementCid,
+  statementCids,
   trustedImplicationAttesters,
   trustedSuccessAttesters,
   trustWeights,
   projectLinks = 'lazyGiving',
+  reimbursement = 'outstanding',
 }: {
   statementCid: string
+  statementCids?: string[]
   trustedImplicationAttesters?: Iterable<string>
   trustedSuccessAttesters?: Iterable<string>
   trustWeights?: Map<string, number>
   projectLinks?: ProjectLinkMode
+  /** outstanding = close-the-loop queue; reimbursed = loop already closed. */
+  reimbursement?: 'outstanding' | 'reimbursed'
 }) {
+  const cids = resolveStatementCids(statementCid, statementCids)
+  const cidsKey = cids.join('\0')
   const machinery = useMachinery()
   const [projects, setProjects] = useState<SuccessfulProjectForCause[]>([])
   const [metadata, setMetadata] = useState<Record<string, ProjectMetadata>>({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const keepPainted = useKeepPaintedWhileRefreshing()
 
   useEffect(() => {
     let cancelled = false
 
     async function load() {
-      setLoading(true)
+      keepPainted.beginLoad(setLoading)
       setError(null)
       try {
-        const successful = await getSuccessfulProjectsForCause(
-          machinery,
-          statementCid as IpfsCidV1,
-          trustedImplicationAttesters,
-          trustedSuccessAttesters,
-          trustWeights,
+        const loader = reimbursement === 'reimbursed'
+          ? getFullyReimbursedProjectsForCause
+          : getSuccessfulProjectsForCause
+        const loadCids = cidsKey ? cidsKey.split('\0') : []
+        const perPlank = await Promise.all(
+          loadCids.map((cid) =>
+            loader(
+              machinery,
+              cid as IpfsCidV1,
+              trustedImplicationAttesters,
+              trustedSuccessAttesters,
+              trustWeights,
+            ),
+          ),
         )
+        const byAddress = new Map<string, (typeof perPlank)[number][number]>()
+        for (const list of perPlank) {
+          for (const project of list) {
+            const key = project.projectAddress.toLowerCase()
+            if (!byAddress.has(key)) byAddress.set(key, project)
+          }
+        }
+        const successful = [...byAddress.values()]
         if (cancelled) return
         setProjects(successful)
 
@@ -74,13 +104,16 @@ export function SuccessfulProjectsList({
           setError(err instanceof Error ? err.message : 'Failed to load successful projects')
         }
       } finally {
-        if (!cancelled) setLoading(false)
+        if (!cancelled) {
+          keepPainted.markResolved()
+          setLoading(false)
+        }
       }
     }
 
     load()
     return () => { cancelled = true }
-  }, [machinery, statementCid, trustedImplicationAttesters, trustedSuccessAttesters, trustWeights])
+  }, [machinery, cidsKey, trustedImplicationAttesters, trustedSuccessAttesters, trustWeights, reimbursement])
 
   if (loading) {
     return <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}><CircularProgress /></Box>
@@ -90,13 +123,21 @@ export function SuccessfulProjectsList({
 
   return (
     <Box>
-      <Typography variant="h5" gutterBottom>Successful Projects</Typography>
+      <Typography variant="h5" gutterBottom>
+        {reimbursement === 'reimbursed' ? 'Fully reimbursed projects' : 'Successful Projects'}
+      </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-        Projects shown here have trusted success attestations for this cause and still have early contributors waiting to be reimbursed. Donate to close the loop: refill scouts up to what they originally contributed so they can fund the next project.
+        {reimbursement === 'reimbursed'
+          ? 'These projects have a trusted success vouch for this cause, and early contributors have been made whole. Receipt tokens remain as a permanent record; there is no outstanding reimbursement left to close.'
+          : 'Projects shown here have trusted success attestations for this cause and still have early contributors waiting to be reimbursed. Donate to close the loop: refill scouts up to what they originally contributed so they can fund the next project.'}
       </Typography>
 
       {projects.length === 0 ? (
-        <Alert severity="info">No successful projects with outstanding receipts yet.</Alert>
+        <Alert severity="info">
+          {reimbursement === 'reimbursed'
+            ? 'No success-vouched projects have been fully reimbursed yet.'
+            : 'No successful projects with outstanding receipts yet.'}
+        </Alert>
       ) : (
         <Stack spacing={2}>
           {projects.map((project) => {
@@ -128,7 +169,15 @@ export function SuccessfulProjectsList({
                       color={project.successType === 'direct' ? 'success' : 'default'}
                       aria-label={successTypeExplanation(project.successType)}
                     />
-                    <Chip label={`${formatCurrencyAmount(BigInt(project.outstandingUnreimbursedAmount), project.fundingCurrency)} outstanding`} size="small" variant="outlined" />
+                    <Chip
+                      label={
+                        reimbursement === 'reimbursed'
+                          ? 'Fully reimbursed'
+                          : `${formatCurrencyAmount(BigInt(project.outstandingUnreimbursedAmount), project.fundingCurrency)} outstanding`
+                      }
+                      size="small"
+                      variant="outlined"
+                    />
                   </Stack>
 
                   <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
@@ -193,7 +242,7 @@ export function SuccessfulProjectsList({
                   )}
                 </CardContent>
                 <CardActions>
-                  {closeLoopNav.kind === 'route' ? (
+                  {reimbursement === 'outstanding' && (closeLoopNav.kind === 'route' ? (
                     <Button component={RouterLink} to={closeLoopNav.to} variant="contained">
                       Donate to close the loop
                     </Button>
@@ -201,7 +250,7 @@ export function SuccessfulProjectsList({
                     <Button component="a" href={closeLoopNav.href} variant="contained">
                       Donate to close the loop
                     </Button>
-                  )}
+                  ))}
                   {projectNav.kind === 'route' ? (
                     <Button component={RouterLink} to={projectNav.to} variant="outlined">
                       Open project

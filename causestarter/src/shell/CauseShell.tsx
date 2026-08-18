@@ -12,28 +12,22 @@ import {
   useMediaQuery,
   useTheme,
 } from '@mui/material'
-import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined'
 import FlagOutlinedIcon from '@mui/icons-material/FlagOutlined'
 import MenuBookOutlinedIcon from '@mui/icons-material/MenuBookOutlined'
 import GitHubIcon from '@mui/icons-material/GitHub'
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined'
-import DarkModeIcon from '@mui/icons-material/DarkMode'
-import LightModeIcon from '@mui/icons-material/LightMode'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { WalletButton } from '../components/WalletButton'
-import { useThemeMode } from '../lib/themeMode'
 
 const GITHUB_REPO_URL = 'https://github.com/AdamSpitz/commonality'
 
 const navItems = [
-  { label: 'Home', path: '/', icon: <HomeOutlinedIcon /> },
   { label: 'Causes', path: '/causes', icon: <FlagOutlinedIcon /> },
   { label: 'Docs', path: '/docs', icon: <MenuBookOutlinedIcon /> },
 ] as const
 
 function activeNavPath(pathname: string): string {
-  if (pathname === '/') return '/'
-  const match = navItems.find((item) => item.path !== '/' && pathname.startsWith(item.path))
+  const match = navItems.find((item) => pathname === item.path || pathname.startsWith(`${item.path}/`))
   if (match) return match.path
   if (
     pathname.startsWith('/cause')
@@ -54,7 +48,6 @@ export function CauseShell({ children }: CauseShellProps) {
   const navigate = useNavigate()
   const theme = useTheme()
   const isDesktop = useMediaQuery(theme.breakpoints.up('md'))
-  const { mode, toggleMode } = useThemeMode()
   const current = activeNavPath(location.pathname)
 
   return (
@@ -113,12 +106,13 @@ export function CauseShell({ children }: CauseShellProps) {
                       cursor: 'pointer',
                       font: 'inherit',
                       textDecoration: 'none',
-                      color: current === item.path ? 'primary.contrastText' : 'text.primary',
-                      bgcolor: current === item.path ? 'primary.main' : 'transparent',
-                      fontWeight: 600,
+                      color: current === item.path ? 'primary.main' : 'text.secondary',
+                      bgcolor: 'transparent',
+                      fontWeight: current === item.path ? 700 : 600,
                       fontSize: 14,
                       '&:hover': {
-                        bgcolor: current === item.path ? 'primary.dark' : 'action.hover',
+                        bgcolor: 'action.hover',
+                        color: current === item.path ? 'primary.main' : 'text.primary',
                       },
                     }}
                   >
@@ -149,13 +143,6 @@ export function CauseShell({ children }: CauseShellProps) {
             size="small"
           >
             <SettingsOutlinedIcon fontSize="small" />
-          </IconButton>
-          <IconButton
-            onClick={toggleMode}
-            aria-label={mode === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
-            size="small"
-          >
-            {mode === 'light' ? <DarkModeIcon fontSize="small" /> : <LightModeIcon fontSize="small" />}
           </IconButton>
           <WalletButton />
         </Toolbar>

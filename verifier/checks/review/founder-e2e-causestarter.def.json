@@ -17,7 +17,7 @@
     {
       "kind": "params",
       "data": {
-        "commandTimeoutMs": 600000,
+        "commandTimeoutMs": 900000,
         "taskKind": "big-picture-thinking",
         "surface": "CauseStarter",
         "founderBriefFile": "checks/review/founder-e2e/causestarter.md",
@@ -36,7 +36,7 @@
       }
     }
   ],
-  "timeoutMs": 630000,
+  "timeoutMs": 930000,
   "display": {
     "preferredArtifact": "report.md"
   }

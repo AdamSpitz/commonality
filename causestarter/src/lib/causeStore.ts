@@ -186,6 +186,16 @@ export function causeContentBoardPath(cause: CauseDraft): string {
   return `${causePath(cause)}/content`
 }
 
+/** Cause-scoped pledges and earmarks. */
+export function causeFundingPath(cause: CauseDraft): string {
+  return `${causePath(cause)}/funding`
+}
+
+/** Cause-scoped union of contributor ranks across published statements. */
+export function causeLeaderboardPath(cause: CauseDraft): string {
+  return `${causePath(cause)}/leaderboard`
+}
+
 /** Blocking safety applies per plank, and only to planks with text. */
 export function hasBlockingSafety(cause: CauseDraft): boolean {
   return realPlanks(cause).some((plank) => plank.safety && !plank.safety.allowed)

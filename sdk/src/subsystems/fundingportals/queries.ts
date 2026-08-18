@@ -634,17 +634,23 @@ async function getReceiptReimbursementSnapshot(machinery: SDKMachinery, projectA
   };
 }
 
-/**
- * Get projects that have trusted success attestations for a cause and still have
- * outstanding unreimbursed early contributions (not merely permanent receipt tokens).
- */
-export async function getSuccessfulProjectsForCause(
+type SuccessVouchedProjectRow = SuccessfulProjectForCause;
+
+function hadEarlyContributions(row: {
+  outstandingReceipts: string;
+  scoutRecords: Array<{ scoutedAmount: string }>;
+}): boolean {
+  if (BigInt(row.outstandingReceipts) > 0n) return true;
+  return row.scoutRecords.some((record) => BigInt(record.scoutedAmount) > 0n);
+}
+
+async function listSuccessVouchedProjectsForCause(
   machinery: SDKMachinery,
   statementCid: IpfsCidV1,
   trustedImplicationAttesters?: TrustedAddressInput,
   trustedSuccessAttesters?: TrustedAddressInput,
   trustWeights?: TrustWeightInput,
-): Promise<SuccessfulProjectForCause[]> {
+): Promise<SuccessVouchedProjectRow[]> {
   const weightsMap = normalizeTrustWeights(trustWeights);
   const [directSuccesses, indirectSuccesses] = await Promise.all([
     getSuccessfulSubjects(machinery, statementCid, trustedSuccessAttesters),
@@ -676,9 +682,7 @@ export async function getSuccessfulProjectsForCause(
       getProject(machinery, projectAddress).catch(() => null),
       getReceiptReimbursementSnapshot(machinery, projectAddress).catch(() => ({ outstandingReceipts: 0n, outstandingUnreimbursedAmount: 0n, scoutRecords: [] })),
     ]);
-    // Drop fully reimbursed (or never-scouted) successes; receipt tokens are permanent
-    // and must not keep a project listed after outstanding unreimbursed money hits zero.
-    if (!project || reimbursement.outstandingUnreimbursedAmount <= 0n) return null;
+    if (!project) return null;
     return {
       projectAddress: project.id,
       successType: success.successType,
@@ -695,11 +699,66 @@ export async function getSuccessfulProjectsForCause(
     };
   }));
 
+  return rows.filter((row): row is SuccessVouchedProjectRow => row !== null);
+}
+
+/**
+ * Get projects that have trusted success attestations for a cause and still have
+ * outstanding unreimbursed early contributions (not merely permanent receipt tokens).
+ */
+export async function getSuccessfulProjectsForCause(
+  machinery: SDKMachinery,
+  statementCid: IpfsCidV1,
+  trustedImplicationAttesters?: TrustedAddressInput,
+  trustedSuccessAttesters?: TrustedAddressInput,
+  trustWeights?: TrustWeightInput,
+): Promise<SuccessfulProjectForCause[]> {
+  const rows = await listSuccessVouchedProjectsForCause(
+    machinery,
+    statementCid,
+    trustedImplicationAttesters,
+    trustedSuccessAttesters,
+    trustWeights,
+  );
+
   return rows
-    .filter((row): row is NonNullable<typeof row> => row !== null)
+    // Drop fully reimbursed (or never-scouted) successes; receipt tokens are permanent
+    // and must not keep a project listed after outstanding unreimbursed money hits zero.
+    .filter((row) => BigInt(row.outstandingUnreimbursedAmount) > 0n)
     .sort((a, b) => {
       const scoreA = BigInt(a.outstandingUnreimbursedAmount) * BigInt(a.successConfidenceScore);
       const scoreB = BigInt(b.outstandingUnreimbursedAmount) * BigInt(b.successConfidenceScore);
+      if (scoreA > scoreB) return -1;
+      if (scoreA < scoreB) return 1;
+      return a.projectAddress.localeCompare(b.projectAddress);
+    });
+}
+
+/**
+ * Success-vouched projects for a cause whose early contributors have been made whole
+ * (`outstandingUnreimbursedAmount === 0`). Never-scouted successes are omitted so the
+ * cause-board "Fully reimbursed" tab is not just "raised enough money."
+ */
+export async function getFullyReimbursedProjectsForCause(
+  machinery: SDKMachinery,
+  statementCid: IpfsCidV1,
+  trustedImplicationAttesters?: TrustedAddressInput,
+  trustedSuccessAttesters?: TrustedAddressInput,
+  trustWeights?: TrustWeightInput,
+): Promise<SuccessfulProjectForCause[]> {
+  const rows = await listSuccessVouchedProjectsForCause(
+    machinery,
+    statementCid,
+    trustedImplicationAttesters,
+    trustedSuccessAttesters,
+    trustWeights,
+  );
+
+  return rows
+    .filter((row) => BigInt(row.outstandingUnreimbursedAmount) === 0n && hadEarlyContributions(row))
+    .sort((a, b) => {
+      const scoreA = BigInt(a.successConfidenceScore);
+      const scoreB = BigInt(b.successConfidenceScore);
       if (scoreA > scoreB) return -1;
       if (scoreA < scoreB) return 1;
       return a.projectAddress.localeCompare(b.projectAddress);
@@ -992,17 +1051,69 @@ export async function getAllAlignedProjectsForCause(
 // Contributor Leaderboards (E3) - Event Cache + Chain Reads
 // ============================================================================
 
+type AlignedProjectForCause = Awaited<ReturnType<typeof getAllAlignedProjectsForCause>>[number];
+
+function statementCidList(statementCid: IpfsCidV1 | readonly IpfsCidV1[]): IpfsCidV1[] {
+  return [...new Set(Array.isArray(statementCid) ? statementCid : [statementCid])];
+}
+
 /**
- * Get top contributors for a specific cause (across all aligned projects).
+ * Union of projects aligned with any of the given statements, deduped by address.
+ * Direct alignment wins when the same project is both direct and indirect.
+ */
+async function getUnionAlignedProjectsForStatements(
+  machinery: SDKMachinery,
+  statementCid: IpfsCidV1 | readonly IpfsCidV1[],
+  trustedImplicationAttesters?: TrustedAddressInput,
+  trustedAlignmentAttesters?: TrustedAddressInput,
+): Promise<AlignedProjectForCause[]> {
+  const cids = statementCidList(statementCid);
+  if (cids.length === 0) return [];
+  if (cids.length === 1) {
+    return getAllAlignedProjectsForCause(
+      machinery,
+      cids[0]!,
+      trustedImplicationAttesters,
+      trustedAlignmentAttesters,
+    );
+  }
+
+  const perStatement = await Promise.all(
+    cids.map((cid) =>
+      getAllAlignedProjectsForCause(
+        machinery,
+        cid,
+        trustedImplicationAttesters,
+        trustedAlignmentAttesters,
+      ),
+    ),
+  );
+  const byAddress = new Map<string, AlignedProjectForCause>();
+  for (const aligned of perStatement) {
+    for (const project of aligned) {
+      const key = project.projectAddress.toLowerCase();
+      const existing = byAddress.get(key);
+      if (!existing || (existing.alignmentType === 'indirect' && project.alignmentType === 'direct')) {
+        byAddress.set(key, project);
+      }
+    }
+  }
+  return [...byAddress.values()];
+}
+
+/**
+ * Get top contributors for one or more statements (across all aligned projects).
+ * Multiple statements are unioned by project address so a donor is not counted twice
+ * for a project that advances more than one plank.
  */
 export async function getTopContributorsForCause(
   machinery: SDKMachinery,
-  statementCid: IpfsCidV1,
+  statementCid: IpfsCidV1 | readonly IpfsCidV1[],
   limit: number = 10,
   trustedImplicationAttesters?: TrustedAddressInput,
   trustedAlignmentAttesters?: TrustedAddressInput
 ): Promise<ContributorStats[]> {
-  const alignedProjects = await getAllAlignedProjectsForCause(
+  const alignedProjects = await getUnionAlignedProjectsForStatements(
     machinery,
     statementCid,
     trustedImplicationAttesters,
@@ -1126,7 +1237,7 @@ export async function getTopContributorsForCause(
  */
 export async function getUserContributionRankForCause(
   machinery: SDKMachinery,
-  statementCid: IpfsCidV1,
+  statementCid: IpfsCidV1 | readonly IpfsCidV1[],
   userAddress: string,
   trustedImplicationAttesters?: TrustedAddressInput,
   trustedAlignmentAttesters?: TrustedAddressInput

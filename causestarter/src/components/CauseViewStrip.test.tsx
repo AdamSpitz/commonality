@@ -1,28 +1,31 @@
 import { cleanup, render, screen } from '@testing-library/react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
 import { CauseViewStrip } from './CauseViewStrip'
 
 afterEach(cleanup)
 
 describe('CauseViewStrip', () => {
-  it('does not describe unasked remaining issues for a one-plank conjunction', () => {
+  it('shows both counts without a toggle, and hides band 2 for one plank', () => {
     render(
       <CauseViewStrip
-        mode="all"
-        onModeChange={vi.fn()}
         counts={{
           plankCount: 1,
           union: { direct: 1, total: 1 },
           conjunction: { signedAll: 1, noneDisagreed: 0 },
         }}
         selectedCount={1}
-        publishedCount={1}
         loading={false}
         fewestDirectSignatures={undefined}
       />,
     )
 
-    expect(screen.getByText(/signed this issue/i)).toBeInTheDocument()
+    expect(screen.getByTestId('cause-view-strip')).toHaveTextContent(
+      '1 user signed at least one selected statement',
+    )
+    expect(screen.getByTestId('cause-view-strip')).toHaveTextContent(
+      '1 user signed every selected statement',
+    )
+    expect(screen.queryByRole('button', { name: /signed any/i })).not.toBeInTheDocument()
     expect(screen.queryByText(/never asked about the rest/i)).not.toBeInTheDocument()
   })
 
@@ -37,16 +40,19 @@ describe('CauseViewStrip', () => {
   it('pairs band 2 with the weakest link, so a plank nobody signed stays visible', () => {
     render(
       <CauseViewStrip
-        mode="all"
-        onModeChange={vi.fn()}
         counts={sevenPlanks}
         selectedCount={7}
-        publishedCount={7}
         loading={false}
         fewestDirectSignatures={3}
       />,
     )
 
+    expect(screen.getByTestId('cause-view-strip')).toHaveTextContent(
+      '4,210 users signed at least one selected statement',
+    )
+    expect(screen.getByTestId('cause-view-strip')).toHaveTextContent(
+      '310 users signed every selected statement',
+    )
     expect(screen.getByTestId('view-count-none-disagreed')).toHaveTextContent('1,840')
     expect(screen.getByTestId('view-fewest-signatures')).toHaveTextContent('3')
   })
@@ -56,11 +62,8 @@ describe('CauseViewStrip', () => {
     // report too high a floor — precisely hiding the plank in question.
     render(
       <CauseViewStrip
-        mode="all"
-        onModeChange={vi.fn()}
         counts={sevenPlanks}
         selectedCount={7}
-        publishedCount={7}
         loading={false}
         fewestDirectSignatures={undefined}
       />,

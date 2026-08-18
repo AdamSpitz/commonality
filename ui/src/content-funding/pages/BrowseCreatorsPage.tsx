@@ -10,7 +10,6 @@ import {
   Card,
   CardContent,
   CardActionArea,
-  Chip,
   Stack,
   ToggleButtonGroup,
   ToggleButton,
@@ -27,7 +26,8 @@ import { useContentFundingState } from '../hooks/useContentFundingState'
 import type { ChannelWithCanonicalId } from '@commonality/sdk/content-funding'
 import type { Currency } from '@commonality/sdk/utils'
 import type { ChannelState } from '@commonality/sdk/content-funding'
-import { formatCurrencyAmount } from '../../shared'
+import { formatCurrencyAmount, InfoChip } from '../../shared'
+import { CHANNEL_STATE_TOOLTIPS } from '../chipTooltips'
 
 type SortOption = 'mostFunded' | 'mostContracts' | 'newestActivity'
 type StatusFilter = 'all' | ChannelState
@@ -278,10 +278,11 @@ export function BrowseCreatorsPage({
                         )}
                       </Box>
                       <Stack direction="row" spacing={1} sx={{ ml: 1, flexShrink: 0 }}>
-                        <Chip
+                        <InfoChip
                           label={STATE_LABELS[state]}
                           color={STATE_COLORS[state]}
                           size="small"
+                          title={CHANNEL_STATE_TOOLTIPS[state] ?? 'Status of this channel.'}
                         />
                       </Stack>
                     </Box>

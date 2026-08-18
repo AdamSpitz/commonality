@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { CauseMediatorCard, causeMediatorOptInPath } from './CauseMediatorCard'
 
@@ -18,12 +19,18 @@ describe('CauseMediatorCard', () => {
   })
 
   it('uses this cause’s mediator metadata and service rather than CSM', async () => {
-    render(<CauseMediatorCard mediator={mediator} />)
+    render(
+      <MemoryRouter>
+        <CauseMediatorCard mediator={mediator} />
+      </MemoryRouter>,
+    )
     expect(screen.getByRole('heading', { name: 'Housing mediator' })).toBeInTheDocument()
     expect(await screen.findByText('Stable and abundant housing matters.')).toBeInTheDocument()
     expect(fetch).toHaveBeenCalledWith('https://housing.example/mediator/anchors?featured=true')
     const path = causeMediatorOptInPath(mediator)
     expect(path).toContain('nudgerName=Housing+mediator')
     expect(path).not.toContain('Common+Sense+Majority')
+    const optIn = screen.getByRole('link', { name: 'Opt in to this mediator' })
+    expect(optIn).toHaveAttribute('href', path)
   })
 })

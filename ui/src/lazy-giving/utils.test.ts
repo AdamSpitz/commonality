@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { getProjectStatus, formatRelativeDeadline, computeUserTokenBalance, computeContributorStats, STATUS_COLORS, STATUS_LABELS } from './utils'
+import { getProjectStatus, formatRelativeDeadline, computeUserTokenBalance, computeContributorStats, STATUS_COLORS, STATUS_LABELS, STATUS_TOOLTIPS } from './utils'
 import type { Contribution, Refund } from '@commonality/sdk/lazy-giving'
 import { ETH_CURRENCY } from '@commonality/sdk/utils'
 
@@ -54,6 +54,14 @@ describe('STATUS_LABELS', () => {
 
   it('maps refunding to Refunding', () => {
     expect(STATUS_LABELS.refunding).toBe('Refunding')
+  })
+})
+
+describe('STATUS_TOOLTIPS', () => {
+  it('explains each status', () => {
+    expect(STATUS_TOOLTIPS.active).toMatch(/minimum has not been met/i)
+    expect(STATUS_TOOLTIPS.succeeded).toMatch(/met its minimum/i)
+    expect(STATUS_TOOLTIPS.refunding).toMatch(/reclaim/i)
   })
 })
 

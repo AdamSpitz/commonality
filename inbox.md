@@ -17,6 +17,10 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 ## Main list
 
+- **(Tell)** Cause-board **Fully reimbursed** now means success-vouched *and* `outstandingUnreimbursedAmount === 0` (never-scouted successes omitted). It no longer reuses `AlignedProjectsList` with `statusFilterLock="succeeded"` (raised ≥ threshold). New SDK query: `getFullyReimbursedProjectsForCause`.
+
+
+
 ### Security/recoverability human actions
 
 - Replace/scopedown external account tokens: Cloudflare scoped DNS token instead of global key; Render/Pinata scoped as narrowly as possible; OpenRouter spend limit.
@@ -50,6 +54,10 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 - Improve the [pitch for Christians](docs/founder/christian-pitch.md). Come up with other ones along those lines.
 
 ### Stuff I want to think through
+
+- What's the difference between seed data and example data for testing? I think I may have been using the seed data mechanism for test data, which is probably not what I want.
+
+- Ultimately we want vertical founders to host their own vertical-specific services like mediators, but can we have a middle ground where we can run it for them on our infrastructure (modulo blocklist concerns) until/unless they decide to host it themselves?
 
 - How to eliminate CauseStarter’s reliance on browser `localStorage` for cause drafts / founder progress (`causestarter/src/lib/causeStore.ts`). Today drafts are origin-scoped (so Vite `:5174` vs Docker `:8090` don’t share them) and vanish across devices/clears. Worth thinking through durable alternatives (on-chain draft, IPFS + pointer, account-linked backend, etc.) without re-centralizing or making launch heavier.
 

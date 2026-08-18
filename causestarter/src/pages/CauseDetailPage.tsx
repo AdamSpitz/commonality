@@ -1,35 +1,35 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
-  Alert, Box, Button, Chip, CircularProgress, Divider, IconButton, Paper, Snackbar,
+  Alert, Box, Button, CircularProgress, Divider, IconButton, Link, Paper, Snackbar,
   Stack, ToggleButton, ToggleButtonGroup, Tooltip, Typography,
 } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
 import BookmarkIcon from '@mui/icons-material/Bookmark'
 import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder'
+import IosShareIcon from '@mui/icons-material/IosShare'
 import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom'
 import { useAccount } from 'wagmi'
 import type { RefUpdate } from '@commonality/sdk/mutable-refs'
 import {
-  formatCurrencyTotals,
-  projectPathForAddress,
+  InfoChip,
   useTrustedAttesters,
-  useTrustedSet,
 } from '@ui/shared'
-import { getProjectStatus, STATUS_LABELS } from '@ui/lazy-giving'
+import { CauseBoard, CauseLeaderboard } from '@ui/fundingportals'
 import { AlignmentTrustGate } from '../components/AlignmentTrustGate'
-import { CauseViewStrip, type ViewMode } from '../components/CauseViewStrip'
+import { CauseViewStrip } from '../components/CauseViewStrip'
 import { CauseMediatorCard } from '../components/CauseMediatorCard'
-import { MonthlyPledgeSignal } from '../components/MonthlyPledgeSignal'
+import { CauseFundingSummary } from '../components/CauseFundingSummary'
+import { ConnectWalletHint } from '../components/ConnectWalletHint'
 import { StatementPicker } from '../components/StatementPicker'
 import { SelectedPlankSupport } from '../components/SelectedPlankSupport'
 import { MediatorEditor } from '../components/MediatorEditor'
 import { PlankRow, type PlankReview } from '../components/PlankRow'
+import { StarterNetworkFilterCopy } from '../components/StarterNetworkFilterNotice'
 import { RosterHistory } from '../components/RosterHistory'
 import { RosterPublishPanel } from '../components/RosterPublishPanel'
 import { SafetyRejectionDialog } from '../components/SafetyRejectionDialog'
-import { ToolCard } from '../components/ToolCard'
 import {
-  bookmarkCause, causeContentBoardPath, causePath, causeTitle, findCauseByStable,
+  bookmarkCause, causeFundingPath, causeLeaderboardPath, causePath, causeTitle, findCauseByStable,
   getCause, hasPublishedRoster, isCauseBookmarked, isLive, markPlankPublished,
   markRosterPublished, newPlank, publishedBookmarkIds, publishedPlanks, realPlanks,
   unbookmarkCause, unpublishedPlanks, updateCause,
@@ -48,18 +48,11 @@ import {
 } from '../lib/causeRoster'
 import { writeCauseBookmarkList } from '../lib/causeBookmarks'
 import { publishPlank } from '../lib/publishPlank'
-import { getRuntimeConfigValue } from '../lib/runtimeConfig'
-import { SUPPORTING_TOOLS } from '../lib/tools'
-
 import { useMachinery } from '../lib/useMachinery'
 import { useWriteClients } from '../lib/useWriteClients'
+import { useAlignmentTrust } from '../hooks/useAlignmentTrust'
 import { useCauseProjects } from '../hooks/useCauseProjects'
 import { useViewCounts } from '../hooks/useViewCounts'
-
-function shortAddress(address: string): string {
-  if (address.length < 12) return address
-  return `${address.slice(0, 6)}…${address.slice(-4)}`
-}
 
 function safetyState(verdict: {
   allowed: boolean
@@ -88,44 +81,12 @@ export function CauseDetailPage() {
     ? trustedImplicationAttesters
     : undefined
   const {
-    trustedSet: personalAlignmentAttesters,
-    isLoading: personalTrustLoading,
-    error: personalTrustError,
-  } = useTrustedSet(address)
-  const defaultAlignmentTrustRoot = getRuntimeConfigValue('VITE_DEFAULT_ALIGNMENT_TRUST_ROOT')
-  const {
-    trustedSet: defaultAlignmentAttesters,
-    isLoading: defaultTrustLoading,
-    error: defaultTrustError,
-  } = useTrustedSet(defaultAlignmentTrustRoot, { maxHops: 1 })
-  const usingDefaultAlignmentTrust = personalAlignmentAttesters === undefined
-    && defaultAlignmentAttesters !== undefined
-  const trustedAlignmentAttesters = personalAlignmentAttesters ?? defaultAlignmentAttesters
-  const trustLoading = personalTrustLoading
-    || (personalAlignmentAttesters === undefined && defaultTrustLoading)
-  const trustError = personalAlignmentAttesters === undefined
-    ? (defaultTrustError ?? personalTrustError)
-    : personalTrustError
-  /**
-   * useTrustedSet re-fetches on window focus and on a timer, flipping isLoading
-   * each time. Gate counts only until the *first* settle for this wallet so
-   * background refreshes do not unmount the views/projects sections (white flash).
-   */
-  const addressKey = `${address?.toLowerCase() ?? ''}:${defaultAlignmentTrustRoot?.toLowerCase() ?? ''}`
-  const [trustSettled, setTrustSettled] = useState(false)
-  useEffect(() => {
-    setTrustSettled(false)
-  }, [addressKey])
-  useEffect(() => {
-    if (!trustLoading) setTrustSettled(true)
-  }, [trustLoading])
-  const alignmentTrustReady = (
-    trustSettled && !trustError && trustedAlignmentAttesters !== undefined
-  )
-  const alignmentTrustUnavailable = trustSettled
-    && !trustError
-    && trustedAlignmentAttesters === undefined
-  const showInitialTrustLoad = !trustSettled && trustLoading
+    trustedAlignmentAttesters,
+    alignmentTrustReady,
+    alignmentTrustUnavailable,
+    showInitialTrustLoad,
+    trustError,
+  } = useAlignmentTrust()
 
   const routeRef = useMemo(
     () => parseCauseRouteParams(params.owner, params.slugPart),
@@ -140,7 +101,6 @@ export function CauseDetailPage() {
   const [loadingRemote, setLoadingRemote] = useState(Boolean(routeRef))
   const [remoteReadOnly, setRemoteReadOnly] = useState(false)
   const [history, setHistory] = useState<RefUpdate[]>([])
-  const [mode, setMode] = useState<ViewMode>('any')
   const [deselectedCids, setDeselectedCids] = useState<Set<string>>(new Set())
   const [reviewingId, setReviewingId] = useState<string>()
   const [reviewsByPlankId, setReviewsByPlankId] = useState<Record<string, PlankReview>>({})
@@ -151,6 +111,8 @@ export function CauseDetailPage() {
   const [onChainBadge, setOnChainBadge] = useState<RosterCoherenceBadge | null>(null)
   /** CauseStarter operator address that authors coherence badges (for viewer trust). */
   const [coherenceOperator, setCoherenceOperator] = useState<`0x${string}` | null>(null)
+  const [coherenceOperatorResolved, setCoherenceOperatorResolved] = useState(false)
+  const [coherenceBadgeResolved, setCoherenceBadgeResolved] = useState(false)
   const [addedLaterByCid, setAddedLaterByCid] = useState<Map<string, string>>(new Map())
   const [error, setError] = useState<string | null>(null)
   const [dialogSafety, setDialogSafety] = useState<SafetyState | null>(null)
@@ -162,7 +124,9 @@ export function CauseDetailPage() {
   useEffect(() => {
     let cancelled = false
     void fetchCoherenceAttesterAddress().then((addr) => {
-      if (!cancelled) setCoherenceOperator(addr)
+      if (cancelled) return
+      setCoherenceOperator(addr)
+      setCoherenceOperatorResolved(true)
     })
     return () => { cancelled = true }
   }, [])
@@ -214,7 +178,8 @@ export function CauseDetailPage() {
           slug: routeRef.slug,
           founderAddress: routeRef.owner,
           rosterCid,
-          mediator: local?.mediator,
+          // Published identity wins: a follower has no local copy to fall back on.
+          mediator: fields.mediator ?? local?.mediator,
           suggestionSeed: local?.suggestionSeed,
           createdAt: local?.createdAt ?? new Date().toISOString(),
           updatedAt: local?.updatedAt ?? new Date().toISOString(),
@@ -292,18 +257,31 @@ export function CauseDetailPage() {
   // On-chain badge for whichever roster version is on screen (visitor or organizer).
   // Re-runs once the operator address resolves; without it no badge is trustworthy.
   useEffect(() => {
-    if (!cause?.rosterCid || !coherenceOperator) {
+    if (!cause?.rosterCid) {
       setOnChainBadge(null)
+      setCoherenceBadgeResolved(true)
+      return
+    }
+    if (!coherenceOperatorResolved) {
+      setCoherenceBadgeResolved(false)
+      return
+    }
+    if (!coherenceOperator) {
+      setOnChainBadge(null)
+      setCoherenceBadgeResolved(true)
       return
     }
     let cancelled = false
+    setCoherenceBadgeResolved(false)
     void loadRosterCoherenceBadge(machinery, cause.rosterCid, coherenceOperator).then((badge) => {
-      if (!cancelled) setOnChainBadge(badge)
+      if (cancelled) return
+      setOnChainBadge(badge)
+      setCoherenceBadgeResolved(true)
     })
     return () => {
       cancelled = true
     }
-  }, [cause?.rosterCid, machinery, coherenceOperator])
+  }, [cause?.rosterCid, machinery, coherenceOperator, coherenceOperatorResolved])
 
   /**
    * Permission to mutate this cause. Guards every handler; never gates display
@@ -335,6 +313,7 @@ export function CauseDetailPage() {
   )
   const keptOnDevice = Boolean(cause && isCauseBookmarked(cause))
   const [bookmarkUndoOpen, setBookmarkUndoOpen] = useState(false)
+  const [shareCopiedOpen, setShareCopiedOpen] = useState(false)
 
   const persistWalletBookmarks = useCallback(async () => {
     if (!writeClients) return
@@ -416,6 +395,15 @@ export function CauseDetailPage() {
     () => publishedCids.filter((cid) => !deselectedCids.has(cid)),
     [publishedCids, deselectedCids],
   )
+  const selectedSignPlanks = useMemo(
+    () => published
+      .filter((plank) => plank.cid && !deselectedCids.has(plank.cid))
+      .map((plank) => ({
+        cid: plank.cid! as `b${string}`,
+        text: plank.text,
+      })),
+    [published, deselectedCids],
+  )
 
   const rosterPreviewFields = useMemo(() => {
     if (!cause) return null
@@ -446,7 +434,7 @@ export function CauseDetailPage() {
     true,
   )
   const {
-    projects, totals, countByPlankCid, loading: projectsLoading, error: projectsError,
+    countByPlankCid,
   } = useCauseProjects(
     publishedCids,
     activeTrustedImplicationAttesters,
@@ -464,11 +452,6 @@ export function CauseDetailPage() {
     }
     return fewest
   }, [selectedCids, perPlank])
-
-  const tools = useMemo(
-    () => SUPPORTING_TOOLS.filter((t) => t.kind === 'substrate' && t.id !== 'delegation'),
-    [],
-  )
 
   // Soft revalidation (e.g. wallet address reconnect) must not blank the page
   // when we already have cause content painted.
@@ -516,6 +499,10 @@ export function CauseDetailPage() {
     && !titleDraft.trim()
     && realPlanks(cause).length === 0,
   )
+  const hasCoherenceBadge = Boolean(onChainBadge && onChainBadge.attesters.length > 0)
+  const showCoherenceAbsence = Boolean(cause.rosterCid)
+    && coherenceBadgeResolved
+    && !hasCoherenceBadge
   const mutationLocked = Boolean(
     publishingId || reviewingId || publishingRoster || checkingCoherence,
   )
@@ -549,7 +536,7 @@ export function CauseDetailPage() {
   }
 
   /**
-   * Coach the organizer on this issue's wording. Do not overwrite their text —
+   * Coach the organizer on this statement's wording. Do not overwrite their text —
    * only show feedback (and an optional example rephrasing they may adopt).
    */
   const handleReviewPlank = async (plank: CausePlank) => {
@@ -579,7 +566,7 @@ export function CauseDetailPage() {
         },
       }))
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not review this issue')
+      setError(err instanceof Error ? err.message : 'Could not review this statement')
     } finally {
       setReviewingId(undefined)
     }
@@ -599,19 +586,19 @@ export function CauseDetailPage() {
     const text = plank.text.trim()
     if (!text) return
     if (!isConnected || !address || !writeClients) {
-      setError('Connect your wallet to publish this issue.')
+      setError('Connect your wallet to publish this statement.')
       return
     }
     setPublishingId(plank.id)
     setError(null)
     try {
-      const review = await checkSafety([{ text, fieldLabel: 'Issue' }])
+      const review = await checkSafety([{ text, fieldLabel: 'Statement' }])
       const verdict = review.results[0]
       if (verdict) {
         storePlankPatch(plank.id, { safety: safetyState(verdict) })
         if (!verdict.allowed) {
           setDialogSafety(safetyState(verdict))
-          setError('Blocked text cannot be published. Edit this issue and try again.')
+          setError('Blocked text cannot be published. Edit this statement and try again.')
           return
         }
       }
@@ -621,7 +608,7 @@ export function CauseDetailPage() {
       voidCoherence()
       refreshCounts()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to publish this issue')
+      setError(err instanceof Error ? err.message : 'Failed to publish this statement')
     } finally {
       setPublishingId(undefined)
     }
@@ -750,21 +737,21 @@ export function CauseDetailPage() {
 
       <Box>
         {!cause.rosterCid && (
-          <Chip size="small" label="Unpublished" sx={{ mb: 0.75 }} data-testid="cause-unpublished" />
+          <InfoChip
+            size="small"
+            label="Unpublished"
+            sx={{ mb: 0.75 }}
+            data-testid="cause-unpublished"
+            title="This cause exists only on this device so far. Others cannot open it until you publish."
+          />
         )}
         {routeRef?.versionCid && (
-          <Chip size="small" color="info" label="Pinned version" sx={{ mb: 0.75 }} />
-        )}
-        {onChainBadge && onChainBadge.attesters.length > 0 && (
-          <Chip
+          <InfoChip
             size="small"
-            color="success"
-            variant="filled"
-            label="Coherent construction"
-            title={`Attested by CauseStarter operator ${onChainBadge.attesters[0]}`}
-            sx={{ mb: 0.75, ml: 1 }}
-            data-testid="cause-coherence-badge"
-            data-attester={onChainBadge.attesters[0]}
+            color="info"
+            label="Pinned version"
+            sx={{ mb: 0.75 }}
+            title="This link is pinned to one published version. Later edits to the live cause will not change what you see here."
           />
         )}
         {!isFreshDraft && (
@@ -775,7 +762,7 @@ export function CauseDetailPage() {
             Cause
           </Typography>
         )}
-        <Stack direction="row" alignItems="flex-start" spacing={0.5} sx={{ pr: canKeepOnDevice ? 0.5 : 0 }}>
+        <Stack direction="row" alignItems="flex-start" spacing={0.5} sx={{ pr: (canKeepOnDevice || stable) ? 0.5 : 0 }}>
           <Typography
             variant="h4"
             component="h1"
@@ -783,6 +770,29 @@ export function CauseDetailPage() {
           >
             {isFreshDraft ? 'Start a cause' : displayTitle}
           </Typography>
+          {stable && (
+            <Tooltip title="Copy share link">
+              <IconButton
+                data-testid="cause-share-link"
+                onClick={() => {
+                  const url = `${window.location.origin}${stableCausePath(stable)}`
+                  const shareData = { title: displayTitle, url }
+                  const share = navigator.share
+                  if (typeof share === 'function') {
+                    void share.call(navigator, shareData).catch(() => {
+                      void navigator.clipboard.writeText(url).then(() => setShareCopiedOpen(true))
+                    })
+                    return
+                  }
+                  void navigator.clipboard.writeText(url).then(() => setShareCopiedOpen(true))
+                }}
+                aria-label="Share cause"
+                sx={{ mt: 0.25, color: 'text.secondary' }}
+              >
+                <IosShareIcon />
+              </IconButton>
+            </Tooltip>
+          )}
           {canKeepOnDevice && (
             <Tooltip title={keptOnDevice ? 'Saved to your causes' : 'Save to your causes'}>
               <IconButton
@@ -800,6 +810,33 @@ export function CauseDetailPage() {
             </Tooltip>
           )}
         </Stack>
+        {hasCoherenceBadge && (
+          <InfoChip
+            title={`CauseStarter's coherence checker attested this version as coherent construction (title and description match the statements). Attested by operator ${onChainBadge!.attesters[0]}.`}
+            size="small"
+            color="success"
+            variant="filled"
+            label="Coherent construction"
+            sx={{ mt: 1 }}
+            data-testid="cause-coherence-badge"
+            data-attester={onChainBadge!.attesters[0]}
+          />
+        )}
+        {showCoherenceAbsence && (
+          <InfoChip
+            size="small"
+            color="warning"
+            variant="filled"
+            label={coherenceOperator
+              ? 'No coherence badge'
+              : 'Coherence badge not confirmed'}
+            sx={{ mt: 1 }}
+            data-testid="cause-coherence-absent"
+            title={coherenceOperator
+              ? 'CauseStarter\'s coherence checker has not published a badge for this version. That is not a finding that the cause is incoherent, but it does mean that we haven\'t confirmed that the title and description match the statements, so you may want to read them especially carefully.'
+              : 'Could not reach CauseStarter\'s coherence checker, so this page cannot confirm whether a badge exists.'}
+          />
+        )}
         {isFreshDraft ? (
           <Alert severity="info" sx={{ mt: 1.5, borderRadius: 2 }} data-testid="start-cause-help">
             Tell CauseStarter what you want people to be able to support. It searches
@@ -807,27 +844,35 @@ export function CauseDetailPage() {
             You decide what belongs in the cause. Nothing is published until you review
             the exact statement text and CID in the page below and explicitly approve it.
           </Alert>
-        ) : (
-          displaySummary?.trim() && (
-            <Typography variant="body1" sx={{ mt: 1, whiteSpace: 'pre-wrap' }}>
-              {displaySummary}
-            </Typography>
-          )
-        )}
-        {stable && (
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.75 }}>
-            Share link: {stableCausePath(stable)}
-          </Typography>
-        )}
+        ) : null}
       </Box>
 
-      {stable && history.length > 0 && (
-        <RosterHistory
-          stable={stable}
-          history={history}
-          currentVersionCid={cause.rosterCid}
-          pinnedVersionCid={routeRef?.versionCid}
-        />
+      {!isFreshDraft && displaySummary?.trim() && (
+        <Paper
+          elevation={0}
+          sx={{ p: { xs: 2, sm: 2.5 }, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}
+          data-testid="cause-description"
+        >
+          <Typography
+            variant="overline"
+            sx={{ letterSpacing: '0.14em', fontWeight: 700, color: 'text.secondary', display: 'block', mb: 0.5 }}
+          >
+            Description
+          </Typography>
+          <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
+            {displaySummary}
+          </Typography>
+        </Paper>
+      )}
+
+      {routeRef?.versionCid && stable && (
+        <Alert severity="info" sx={{ borderRadius: 2 }}>
+          Viewing a pinned version.
+          {' '}
+          <Link component={RouterLink} to={stableCausePath(stable)} underline="hover">
+            Open current
+          </Link>
+        </Alert>
       )}
 
       {publishedCids.length > 0 && showInitialTrustLoad && (
@@ -838,71 +883,8 @@ export function CauseDetailPage() {
       {publishedCids.length > 0 && (trustError || alignmentTrustUnavailable) && (
         <AlignmentTrustGate error={trustError} />
       )}
-      {publishedCids.length > 0 && alignmentTrustReady && usingDefaultAlignmentTrust && (
-        <Alert severity="info" sx={{ borderRadius: 2 }}>
-          Projects are filtered using CauseStarter's starter network. You can replace it with
-          your own choices in <RouterLink to="/settings">trust settings</RouterLink>.
-        </Alert>
-      )}
-
       {publishedCids.length > 0 && (
-        <MonthlyPledgeSignal statementCids={publishedCids} />
-      )}
-
-      {published.length > 0 && (
-        <Paper elevation={0} sx={{ p: { xs: 2, sm: 2.5 }, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
-          <Typography variant="h6" sx={{ fontWeight: 700, mb: 1.5 }}>Set aside funds for an issue</Typography>
-          <Alert severity="info" sx={{ mb: 1.5, borderRadius: 2 }} data-testid="earmark-help">
-            Create a one-time delegated fund or a monthly pledge earmarked for one immutable
-            statement. The earmark is public, auditable guidance — not a binding restriction
-            on a delegate. If they direct the money elsewhere, that will also be public.
-            Choosing a delegate is public too. The earmark does not follow later edits to
-            this cause publication.
-          </Alert>
-          <Stack spacing={1}>
-            {published.map((plank) => (
-              <Stack
-                key={plank.cid}
-                direction={{ xs: 'column', sm: 'row' }}
-                spacing={1}
-                alignItems={{ sm: 'center' }}
-                justifyContent="space-between"
-              >
-                <Typography
-                  component={RouterLink}
-                  to={`/statement/${plank.cid}`}
-                  variant="body2"
-                  sx={{
-                    flex: 1,
-                    color: 'text.primary',
-                    textDecoration: 'none',
-                    '&:hover': { textDecoration: 'underline' },
-                  }}
-                >
-                  {plank.text}
-                </Typography>
-                <Button
-                  component={RouterLink}
-                  to={`/delegation/notes/new?statement=${encodeURIComponent(plank.cid!)}`}
-                  variant="outlined"
-                  size="small"
-                  sx={{ textTransform: 'none', flexShrink: 0 }}
-                >
-                  Earmark funds
-                </Button>
-                <Button
-                  component={RouterLink}
-                  to={`/delegates/offer?statement=${encodeURIComponent(plank.cid!)}`}
-                  variant="text"
-                  size="small"
-                  sx={{ textTransform: 'none', flexShrink: 0 }}
-                >
-                  Offer to become a delegate
-                </Button>
-              </Stack>
-            ))}
-          </Stack>
-        </Paper>
+        <CauseFundingSummary statementCids={publishedCids} href={causeFundingPath(cause)} />
       )}
 
       {isEditing && !cause.id.startsWith('remote:') && (
@@ -942,22 +924,26 @@ export function CauseDetailPage() {
       )}
 
       <Paper elevation={0} sx={{ p: { xs: 2, sm: 2.5 }, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
-        <Typography variant="h6" sx={{ fontWeight: 700, mb: 1.5 }}>Issues</Typography>
+        <Typography variant="h6" sx={{ fontWeight: 700, mb: 1.5 }}>Statements</Typography>
 
-        {live ? (
-          <Alert severity="info" sx={{ mb: 2, borderRadius: 2 }} data-testid="issue-sign-help">
-            People sign each issue separately. The counts below combine those signatures.
-          </Alert>
-        ) : (
+        {!live && (
           <Alert severity="info" sx={{ mb: 2, borderRadius: 2 }} data-testid="issue-draft-help">
-            Write the issues this cause is made of. Publish each one when it is ready.
+            Write the statements this cause is made of. Publish each one when it is ready.
           </Alert>
+        )}
+
+        {!isConnected && published.length > 0 && (
+          <Box sx={{ mb: 2 }}>
+            <ConnectWalletHint>
+              Connect a wallet to publicly sign a statement.
+            </ConnectWalletHint>
+          </Box>
         )}
 
         {isEditing && (
           <Alert severity="info" sx={{ mb: 2, borderRadius: 2 }} data-testid="issue-guidance">
             <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5 }}>
-              What counts as an issue
+              What counts as a statement
             </Typography>
             <Typography variant="body2" component="div">
               Describe your intent in the picker. It looks for reusable published statements
@@ -971,7 +957,7 @@ export function CauseDetailPage() {
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
             {isEditing
               ? 'No statements selected yet. Start with the picker; you can reject every suggestion and write one manually.'
-              : 'This cause has no published issues yet.'}
+              : 'This cause has no published statements yet.'}
           </Typography>
         )}
 
@@ -988,6 +974,22 @@ export function CauseDetailPage() {
           </Box>
         )}
 
+        {publishedCids.length > 0 && (
+          <Box sx={{ mb: 2 }}>
+            <CauseViewStrip
+              counts={counts}
+              selectedCount={selectedCids.length}
+              loading={countsLoading}
+              fewestDirectSignatures={fewestDirectSignatures}
+            />
+            {countsError && (
+              <Alert severity="warning" sx={{ mt: 1, borderRadius: 2 }}>
+                Signer counts could not be loaded: {countsError}
+              </Alert>
+            )}
+          </Box>
+        )}
+
         <Stack spacing={1.5}>
           {visiblePlanks.map((plank, index) => (
             <PlankRow
@@ -1000,7 +1002,7 @@ export function CauseDetailPage() {
               supportLoading={countsLoading}
               projectCount={plank.cid ? countByPlankCid.get(plank.cid) ?? 0 : 0}
               onSupported={(info) => {
-                refreshCounts()
+                if (info.indexed) refreshCounts()
                 if (info.action === 'support') keepThisCause()
               }}
               onTextChange={(text) => {
@@ -1028,31 +1030,10 @@ export function CauseDetailPage() {
           ))}
         </Stack>
 
-        {publishedCids.length > 0 && (
-          <Box sx={{ mt: 2 }}>
-            <CauseViewStrip
-              mode={mode}
-              onModeChange={setMode}
-              counts={counts}
-              selectedCount={selectedCids.length}
-              publishedCount={publishedCids.length}
-              loading={countsLoading}
-              fewestDirectSignatures={fewestDirectSignatures}
-            />
-            {countsError && (
-              <Alert severity="warning" sx={{ mt: 1, borderRadius: 2 }}>
-                Supporter counts could not be loaded: {countsError}
-              </Alert>
-            )}
-          </Box>
-        )}
-
         <Box sx={{ mt: 2 }}>
           <SelectedPlankSupport
-            planks={published.filter((plank) => plank.cid && selectedCids.includes(plank.cid)).map((plank) => ({
-              cid: plank.cid!,
-              text: plank.text,
-            }))}
+            machinery={machinery}
+            planks={selectedSignPlanks}
             onSupported={() => {
               refreshCounts()
               keepThisCause()
@@ -1076,142 +1057,62 @@ export function CauseDetailPage() {
 
         {drafts.length > 0 && !isConnected && isEditing && (
           <Alert severity="info" sx={{ mt: 2, borderRadius: 2 }}>
-            Connect a wallet to publish issues. Unpublished issues stay on this device.
+            Connect a wallet to publish statements. Unpublished statements stay on this device.
           </Alert>
         )}
 
         {error && <Alert severity="error" sx={{ mt: 2, borderRadius: 2 }}>{error}</Alert>}
       </Paper>
 
-      <Paper elevation={0} sx={{ p: { xs: 2, sm: 2.5 }, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
-        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} alignItems={{ sm: 'center' }} justifyContent="space-between" sx={{ mb: 1.5 }}>
-          <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>Fundable Projects</Typography>
-            <Alert severity="info" sx={{ borderRadius: 2 }} data-testid="projects-help">
-              Projects vouched for as advancing one of this cause's issues. Each is aligned with a
-              specific statement, not with the cause as a whole.
-            </Alert>
-          </Box>
-          {publishedCids.length > 0 && (
-            <Button
-              component={RouterLink}
-              to={`/projects/new?statement=${encodeURIComponent(selectedCids[0] ?? publishedCids[0])}`}
-              variant="contained"
-              size="small"
-              sx={{ textTransform: 'none', flexShrink: 0 }}
-            >
-              Start project
-            </Button>
-          )}
-        </Stack>
-
-        {publishedCids.length === 0 && (
+      {publishedCids.length === 0 ? (
+        <Paper elevation={0} sx={{ p: { xs: 2, sm: 2.5 }, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
+          <Typography variant="h6" sx={{ fontWeight: 700 }} gutterBottom>Fundable Projects</Typography>
           <Alert severity="info" sx={{ borderRadius: 2 }}>
-            Publish an issue to see projects aligned with it.
+            Publish a statement to see projects aligned with it.
           </Alert>
-        )}
+        </Paper>
+      ) : (
+        <CauseBoard
+          statementCids={publishedCids}
+          trustedAlignmentAttesters={trustedAlignmentAttesters}
+          embedded
+          surfaceTitle="Fundable Projects"
+          projectLinks="local"
+          actionLinks={[
+            {
+              label: 'Start content contract',
+              to: '/content/new',
+              variant: 'outlined',
+            },
+          ]}
+          projectsHelp={
+            <Stack spacing={1}>
+              <Typography variant="body2">
+                Union of projects vouched for as advancing any published statement of this
+                cause. Alignment attaches to a statement, never to the cause as a whole.
+              </Typography>
+              <StarterNetworkFilterCopy />
+            </Stack>
+          }
+        />
+      )}
 
-        {publishedCids.length > 0 && alignmentTrustReady && projectsLoading && (
-          <Stack direction="row" spacing={1} alignItems="center" sx={{ py: 1 }}>
-            <CircularProgress size={18} />
-            <Typography variant="body2" color="text.secondary">Loading aligned projects…</Typography>
-          </Stack>
-        )}
+      {publishedCids.length > 0 && (
+        <CauseLeaderboard
+          statementCids={publishedCids}
+          embedded
+          limit={3}
+          fullPageTo={causeLeaderboardPath(cause)}
+        />
+      )}
 
-        {projectsError && (
-          <Alert severity="warning" sx={{ borderRadius: 2 }}>{projectsError}</Alert>
-        )}
-
-        {publishedCids.length > 0 && alignmentTrustReady && !projectsLoading && !projectsError && projects.length === 0 && (
-          <Typography variant="body2" color="text.secondary">
-            No projects are aligned with these issues yet. Open an issue's board to vouch for work
-            that advances it.
-          </Typography>
-        )}
-
-        {alignmentTrustReady && projects.length > 0 && (
-          <Stack spacing={1.25}>
-            {totals && (
-              <Stack direction="row" spacing={3} flexWrap="wrap" useFlexGap sx={{ pb: 0.5 }}>
-                <Box>
-                  <Typography variant="caption" color="text.secondary" display="block">
-                    Still needed (open projects)
-                  </Typography>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-                    {formatCurrencyTotals(totals.remainingToThreshold)}
-                  </Typography>
-                </Box>
-                <Box>
-                  <Typography variant="caption" color="text.secondary" display="block">
-                    Unreimbursed (succeeded)
-                  </Typography>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-                    {formatCurrencyTotals(totals.totalUnreimbursed)}
-                  </Typography>
-                </Box>
-              </Stack>
-            )}
-            {projects.map((project) => (
-              <Paper
-                key={project.projectAddress}
-                elevation={0}
-                sx={{ p: 1.75, borderRadius: 2, bgcolor: 'action.hover' }}
-              >
-                <Stack direction="row" justifyContent="space-between" spacing={1} alignItems="flex-start">
-                  <Box>
-                    <Typography
-                      component={RouterLink}
-                      to={projectPathForAddress(project.projectAddress)}
-                      variant="subtitle2"
-                      sx={{
-                        fontWeight: 700,
-                        color: 'text.primary',
-                        textDecoration: 'none',
-                        '&:hover': { textDecoration: 'underline' },
-                      }}
-                    >
-                      Project {shortAddress(project.projectAddress)}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.25 }}>
-                      {STATUS_LABELS[getProjectStatus({
-                        totalReceived: project.totalReceived || '0',
-                        threshold: project.threshold || '0',
-                        deadline: project.deadline || '0',
-                      })]}
-                      {' · aligned with '}
-                      {project.viaPlankCids.length === 1
-                        ? '1 issue'
-                        : `${project.viaPlankCids.length} issues`}
-                    </Typography>
-                  </Box>
-                  <Chip
-                    size="small"
-                    label={project.alignmentType}
-                    variant="outlined"
-                    sx={{ textTransform: 'capitalize' }}
-                  />
-                </Stack>
-              </Paper>
-            ))}
-          </Stack>
-        )}
-      </Paper>
-
-      {tools.length > 0 && (
-        <Stack spacing={1.25}>
-          {tools.map((tool) => (
-            <ToolCard
-              key={tool.id}
-              tool={tool}
-              compact
-              href={
-                tool.id === 'content-funding'
-                  ? causeContentBoardPath(cause)
-                  : undefined
-              }
-            />
-          ))}
-        </Stack>
+      {stable && history.length > 0 && (
+        <RosterHistory
+          stable={stable}
+          history={history}
+          currentVersionCid={cause.rosterCid}
+          pinnedVersionCid={routeRef?.versionCid}
+        />
       )}
 
       {cause.mediator && <CauseMediatorCard mediator={cause.mediator} />}
@@ -1252,6 +1153,13 @@ export function CauseDetailPage() {
         </Button>
       )}
 
+      <Snackbar
+        open={shareCopiedOpen}
+        autoHideDuration={2500}
+        onClose={() => setShareCopiedOpen(false)}
+        message="Link copied"
+        data-testid="cause-share-copied"
+      />
       <Snackbar
         open={bookmarkUndoOpen}
         autoHideDuration={6000}

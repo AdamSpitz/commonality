@@ -4,6 +4,7 @@ import {
 } from '@mui/material'
 import { Link as RouterLink, useParams } from 'react-router-dom'
 import { getChannelDisplayLabels, useContentFundingState } from '@ui/content-funding'
+import { useTrustedContentAttesters } from '@ui/shared'
 import {
   contentChannelPath,
   contentItemPublicUrl,
@@ -38,6 +39,7 @@ export function CauseContentBoardPage() {
   const machinery = useMachinery()
   const { channels, contentAttestations, channelDisplayMetadata, loading: contentLoading, error: contentError } =
     useContentFundingState()
+  const trustedContentAttesters = useTrustedContentAttesters()
 
   const routeRef = useMemo(
     () => parseCauseRouteParams(params.owner, params.slugPart),
@@ -139,7 +141,12 @@ export function CauseContentBoardPage() {
   }
 
   const plankCids = publishedPlanks(cause).map((plank) => plank.cid!).filter(Boolean)
-  const items = selectAlignedContentItems(channels, contentAttestations, plankCids)
+  const items = selectAlignedContentItems(
+    channels,
+    contentAttestations,
+    plankCids,
+    trustedContentAttesters.map((entry) => entry.address),
+  )
   const backTo = causePath(cause)
 
   return (
@@ -157,13 +164,13 @@ export function CauseContentBoardPage() {
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
           Posts, videos, and essays attested as advancing one of this cause&apos;s published
-          issues — not a sitewide creator directory.
+          statements — not a sitewide creator directory.
         </Typography>
       </Box>
 
       {plankCids.length === 0 && (
         <Alert severity="info" sx={{ borderRadius: 2 }}>
-          Publish an issue before a content board can show aligned social-media work.
+          Publish a statement before a content board can show aligned social-media work.
         </Alert>
       )}
 
@@ -178,7 +185,7 @@ export function CauseContentBoardPage() {
 
       {plankCids.length > 0 && !contentLoading && items.length === 0 && (
         <Typography variant="body2" color="text.secondary">
-          No social-media content is attested to these issues yet.
+          No social-media content is attested to these statements yet.
         </Typography>
       )}
 

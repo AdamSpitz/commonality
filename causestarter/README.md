@@ -109,6 +109,26 @@ Vite bakes `VITE_*` into the bundle at build time, so change the id → rebuild/
 
 For local hardhat (chain id `31337`), switch your wallet to that network after connecting (RPC `http://127.0.0.1:8545`), or use the built-in Hardhat #0–#9 local connectors.
 
+After `./scripts/data.sh --seed`, connect as **Hardhat #0** (or any of `#0`–`#9`).
+The landing page should include the seeded **Local food systems** cause
+(`/cause/0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266/local-food-systems`), whose
+board lists the Riverside garden project and the mixed `@civicbuilder` content
+contract, and a **Christianity** cause
+(`/cause/0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266/christianity`) with the
+Christian / secular-conservative mediator, three LazyGiving projects, monthly
+pledges, and a mixed Common Table essay contract.
+
+To add only the Christianity storyline onto an already-seeded local chain:
+
+```bash
+npm run gen:seed:christianity --workspace=fake-data-generation
+```
+
+Featured mediator bridges come from the `christian-bridge-creator` Compose
+service on port 3011 (`./scripts/services.sh --start` brings it up). The
+roster still publishes without it; the mediator card then shows the service
+as unavailable.
+
 ## Local stack (core domain)
 
 CauseStarter is part of the default local stack:
@@ -207,8 +227,9 @@ See [`cause-assist/README.md`](../cause-assist/README.md).
   over the planks: a union count, and a conjunction shown as **two bands**
   (signed-all, plus signed-some-disagreed-with-none). Never render a bare
   intersection — `noOpinion` is the default, so it collapses on silence.
-- **Alignment is per statement.** Boards live at `/statement/:cid/board`; a
-  cause page shows the union of its planks' boards, deduped by project.
+- **Alignment is per statement.** The fundable-projects dashboard is inlined on
+  the statement page (`/statement/:cid`) and, as a union of planks, on the
+  cause page. `/statement/:cid/board` redirects to the statement.
 - **Cause store** (`src/lib/causeStore.ts`) keeps planks in `localStorage` so
   unpublished wording survives reloads.
 - On-chain actions reuse the same SDK functions the main UI uses
@@ -259,8 +280,8 @@ Then **restart Grok** so MCP tools load.
 | `plank-review-N` | Feedback panel for the Nth draft |
 | `plank-use-example-N` | Explicitly adopt the example rewording into the field |
 | `plank-row-draft` / `plank-row-published` | Issue rows by state |
-| `cause-view-strip` | Union / conjunction counts over selected issues |
-| `view-mode-any` / `view-mode-all` | Switch view |
+| `cause-view-strip` | Union / conjunction counts over selected statements |
+| `plank-in-totals-N` | Include/exclude the Nth statement from those totals (view only) |
 | `view-count-any` / `view-count-all` / `view-count-none-disagreed` | The counts themselves |
 
 On **localhost**, Connect only lists Hardhat accounts (no MetaMask). Use **Hardhat #0** for funded local txs.

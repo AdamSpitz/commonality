@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
 import { describe, it, expect } from 'vitest'
 import { Leaderboard } from './Leaderboard'
 import { ETH_CURRENCY } from '@commonality/sdk/utils'
@@ -38,22 +39,25 @@ function makeRefund(overrides: Record<string, any> = {}) {
 }
 
 describe('Leaderboard', () => {
-  it('returns null when there are no contributions', () => {
-    const { container } = render(<Leaderboard contributions={[]} refunds={[]} />)
-    expect(container.firstChild).toBeNull()
+  it('shows an empty already-contributed card when there are no contributions', () => {
+    render(<Leaderboard contributions={[]} refunds={[]} />)
+    expect(screen.getByText('Already Contributed')).toBeInTheDocument()
+    expect(screen.getByText('No contributions yet.')).toBeInTheDocument()
+    expect(screen.getByLabelText('About Already Contributed')).toBeInTheDocument()
   })
 
-  it('returns null when all contributors have zero net', () => {
+  it('shows an empty already-contributed card when all contributors have zero net', () => {
     const contributions = [makeContribution({ totalCost: '500000000000000000' })]
     const refunds = [makeRefund({ totalRefund: '500000000000000000' })]
-    const { container } = render(<Leaderboard contributions={contributions} refunds={refunds} />)
-    expect(container.firstChild).toBeNull()
+    render(<Leaderboard contributions={contributions} refunds={refunds} />)
+    expect(screen.getByText('Already Contributed')).toBeInTheDocument()
+    expect(screen.getByText('No contributions yet.')).toBeInTheDocument()
   })
 
-  it('renders contributor leaderboard heading', () => {
+  it('renders the already-contributed heading', () => {
     const contributions = [makeContribution({ totalCost: '1000000000000000000' })]
     render(<Leaderboard contributions={contributions} refunds={[]} />)
-    expect(screen.getByText('Contributor Leaderboard')).toBeInTheDocument()
+    expect(screen.getByText('Already Contributed')).toBeInTheDocument()
   })
 
   it('displays contributor address truncated', () => {
@@ -166,5 +170,36 @@ describe('Leaderboard', () => {
     ]
     render(<Leaderboard contributions={contributions} refunds={[]} />)
     expect(screen.getAllByText('0.8 ETH').length).toBeGreaterThanOrEqual(1)
+  })
+
+  it('caps the embedded preview and links to the full page', () => {
+    const contributions = [
+      makeContribution({ contributor: '0xaaaa00000000000000000000000000000000aaaa', totalCost: '3000000000000000000' }),
+      makeContribution({ contributor: '0xbbbb00000000000000000000000000000000bbbb', totalCost: '2000000000000000000' }),
+      makeContribution({ contributor: '0xcccc00000000000000000000000000000000cccc', totalCost: '1000000000000000000' }),
+      makeContribution({ contributor: '0xdddd00000000000000000000000000000000dddd', totalCost: '500000000000000000' }),
+    ]
+    render(
+      <MemoryRouter>
+        <Leaderboard
+          contributions={contributions}
+          refunds={[]}
+          embedded
+          limit={3}
+          fullPageTo="/projects/0xproject/leaderboard"
+        />
+      </MemoryRouter>,
+    )
+    expect(screen.getByText('Already Contributed')).toBeInTheDocument()
+    expect(screen.queryByText('Ongoing Monthly Pledges')).not.toBeInTheDocument()
+    expect(screen.getByLabelText('About Already Contributed')).toBeInTheDocument()
+    expect(screen.getByText('0xaaaa...aaaa')).toBeInTheDocument()
+    expect(screen.getByText('0xbbbb...bbbb')).toBeInTheDocument()
+    expect(screen.getByText('0xcccc...cccc')).toBeInTheDocument()
+    expect(screen.queryByText('0xdddd...dddd')).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Show more' })).toHaveAttribute(
+      'href',
+      '/projects/0xproject/leaderboard',
+    )
   })
 })

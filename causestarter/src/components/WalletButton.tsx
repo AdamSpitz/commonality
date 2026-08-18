@@ -17,7 +17,27 @@ import {
   shortAddress,
 } from '../lib/hardhatAccounts'
 
-function LocalHardhatWalletButton() {
+interface WalletButtonProps {
+  dense?: boolean
+  testId?: string
+}
+
+function buttonSx(isConnected: boolean, dense: boolean) {
+  return {
+    minHeight: dense ? 32 : 40,
+    borderRadius: 999,
+    px: dense ? 1.25 : 1.5,
+    fontSize: dense ? '0.8125rem' : undefined,
+    textTransform: 'none' as const,
+    fontWeight: 600,
+    bgcolor: isConnected ? 'transparent' : 'primary.main',
+    color: isConnected ? 'inherit' : 'primary.contrastText',
+    borderColor: isConnected ? 'divider' : undefined,
+    whiteSpace: 'nowrap' as const,
+  }
+}
+
+function LocalHardhatWalletButton({ dense = false, testId = 'wallet-connect-button' }: WalletButtonProps) {
   const { address, isConnected, isConnecting } = useAccount()
   const { connectAsync, connectors, isPending } = useConnect()
   const { disconnectAsync } = useDisconnect()
@@ -80,18 +100,8 @@ function LocalHardhatWalletButton() {
         disabled={busy}
         aria-haspopup="menu"
         aria-expanded={open}
-        data-testid="wallet-connect-button"
-        sx={{
-          minHeight: 40,
-          borderRadius: 999,
-          px: 1.5,
-          textTransform: 'none',
-          fontWeight: 600,
-          bgcolor: isConnected ? 'transparent' : 'primary.main',
-          color: isConnected ? 'inherit' : 'primary.contrastText',
-          borderColor: isConnected ? 'divider' : undefined,
-          whiteSpace: 'nowrap',
-        }}
+        data-testid={testId}
+        sx={buttonSx(isConnected, dense)}
       >
         {busy ? 'Connecting…' : label}
       </Button>
@@ -171,7 +181,7 @@ function LocalHardhatWalletButton() {
   )
 }
 
-function BrowserWalletButton() {
+function BrowserWalletButton({ dense = false, testId = 'wallet-connect-button' }: WalletButtonProps) {
   const { setOpen, open } = useModal()
 
   return (
@@ -190,18 +200,8 @@ function BrowserWalletButton() {
           }}
           disabled={isConnecting}
           aria-expanded={open}
-          data-testid="wallet-connect-button"
-          sx={{
-            minHeight: 40,
-            borderRadius: 999,
-            px: 1.5,
-            textTransform: 'none',
-            fontWeight: 600,
-            bgcolor: isConnected ? 'transparent' : 'primary.main',
-            color: isConnected ? 'inherit' : 'primary.contrastText',
-            borderColor: isConnected ? 'divider' : undefined,
-            whiteSpace: 'nowrap',
-          }}
+          data-testid={testId}
+          sx={buttonSx(isConnected, dense)}
         >
           {isConnecting ? 'Connecting…' : isConnected ? (ensName ?? truncatedAddress) : 'Connect'}
         </Button>
@@ -210,9 +210,9 @@ function BrowserWalletButton() {
   )
 }
 
-export function WalletButton() {
+export function WalletButton(props: WalletButtonProps = {}) {
   if (isLocalDevHost()) {
-    return <LocalHardhatWalletButton />
+    return <LocalHardhatWalletButton {...props} />
   }
-  return <BrowserWalletButton />
+  return <BrowserWalletButton {...props} />
 }

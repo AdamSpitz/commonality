@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { AlignedProjectCard, type AlignedProject } from './AlignedProjectCard'
 
@@ -141,13 +141,13 @@ describe('AlignedProjectCard', () => {
         />,
       )
 
-      expect(screen.getByText('Fund this project')).toBeInTheDocument()
-      expect(screen.getByText(/Contribute, refund, and withdraw here/i)).toBeInTheDocument()
+      expect(screen.queryByText('Fund this project')).not.toBeInTheDocument()
+      expect(screen.queryByText(/Contribute, refund, and withdraw here/i)).not.toBeInTheDocument()
       const fundLink = screen.getByRole('link', { name: /Open project: Local Hosted Project/i })
       // Local mode must use in-app route path (RouterLink), not a full-page external href.
       expect(fundLink).toHaveAttribute('href', `/projects/eip155%3A31337%3A${PROJECT_ADDR}`)
-      // Vouch also stays in-router for HashRouter hosts (CauseStarter Docker).
-      const vouchLink = screen.getByRole('link', { name: /Vouch for this project/i })
+      fireEvent.click(screen.getByTestId('alignment-chip'))
+      const vouchLink = screen.getByRole('menuitem', { name: /Vouch for this project/i })
       expect(vouchLink).toHaveAttribute('href', `/projects/eip155%3A31337%3A${PROJECT_ADDR}`)
     })
   })
@@ -183,7 +183,7 @@ describe('AlignedProjectCard', () => {
         />,
       )
 
-      expect(screen.getByText(/Direct alignment: someone vouched that this project serves this cause/i)).toBeInTheDocument()
+      expect(screen.queryByText(/Direct alignment: someone vouched that this project serves this cause/i)).not.toBeInTheDocument()
       expect(screen.getByLabelText(/Direct alignment: someone vouched/i)).toBeInTheDocument()
 
       rerender(
@@ -193,7 +193,7 @@ describe('AlignedProjectCard', () => {
         />,
       )
 
-      expect(screen.getByText(/Indirect alignment: this project is connected through implication links/i)).toBeInTheDocument()
+      expect(screen.queryByText(/Indirect alignment: this project is connected through implication links/i)).not.toBeInTheDocument()
       expect(screen.getByLabelText(/Indirect alignment: this project is connected/i)).toBeInTheDocument()
     })
   })

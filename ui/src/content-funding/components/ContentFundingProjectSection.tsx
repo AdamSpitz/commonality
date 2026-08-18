@@ -3,14 +3,20 @@ import {
   Box,
   Typography,
   Paper,
-  Chip,
   Stack,
   FormControlLabel,
   Switch,
-  Tooltip,
+  Link,
 } from '@mui/material'
-import { Link as RouterLink } from 'react-router-dom'
-import { formatCurrencyAmount } from '../../shared'
+import { alpha } from '@mui/material/styles'
+import { Link as RouterLink, useSearchParams } from 'react-router-dom'
+import { formatCurrencyAmount, InfoChip } from '../../shared'
+import {
+  FAN_CREATED_TOOLTIP,
+  CHANNEL_STATE_TOOLTIPS,
+  CONTRACT_STATUS_TOOLTIPS,
+  CONTENT_ITEM_CHIP_TOOLTIPS,
+} from '../chipTooltips'
 import { getContentItemKey, type ContentItem } from '@commonality/sdk/content-funding'
 import { ETH_CURRENCY } from '@commonality/sdk/utils'
 import { getChannelDisplayLabels } from '../channelDisplay'
@@ -57,9 +63,18 @@ function getContentUrl(canonicalId: string): string | null {
   return null
 }
 
-function ContentItemList({ items, contentAttestations }: { items: ContentItem[]; contentAttestations?: Map<string, ContentAttestationInfo[]> }) {
+function ContentItemList({
+  items,
+  contentAttestations,
+  highlightStatementCids,
+}: {
+  items: ContentItem[]
+  contentAttestations?: Map<string, ContentAttestationInfo[]>
+  highlightStatementCids?: readonly string[]
+}) {
   const trustedAttesters = useTrustedContentAttesters()
   const [showTrustedOnly, setShowTrustedOnly] = useState(false)
+  const highlight = new Set((highlightStatementCids ?? []).filter(Boolean))
 
   if (items.length === 0) return null
 
@@ -78,18 +93,20 @@ function ContentItemList({ items, contentAttestations }: { items: ContentItem[];
             Content Items ({items.length})
           </Typography>
           {uncoveredCount > 0 && (
-            <Chip
+            <InfoChip
               label={`${uncoveredCount} uncovered`}
               size="small"
               color="warning"
               variant="outlined"
+              title={CONTENT_ITEM_CHIP_TOOLTIPS.uncoveredCount}
             />
           )}
           {trustedItems.length > 0 && (
-            <Chip
+            <InfoChip
               label={`${trustedItems.length} trusted`}
               size="small"
               color="success"
+              title={CONTENT_ITEM_CHIP_TOOLTIPS.trustedCount}
             />
           )}
           {showTrustedOnly && (
@@ -112,6 +129,10 @@ function ContentItemList({ items, contentAttestations }: { items: ContentItem[];
           />
         )}
       </Stack>
+      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+        This round funds the whole batch if the threshold is met. Only posts marked Aligned
+        have a current positive attestation.
+      </Typography>
       <Stack spacing={1}>
         {visibleItems.map((item) => {
           const url = getContentUrl(item.canonicalId)
@@ -120,6 +141,10 @@ function ContentItemList({ items, contentAttestations }: { items: ContentItem[];
           const hasTrustedAttestation = trustedMatches.length > 0
           const hasAnyAttestation = attestations && attestations.length > 0
           const isUncovered = trustedAttesters.length > 0 && !hasTrustedAttestation
+          const alignedAttestations = (attestations ?? []).filter((entry) => (
+            entry.attested && (highlight.size === 0 || highlight.has(entry.statementCid))
+          ))
+          const isAligned = alignedAttestations.length > 0
           return (
             <Box
               key={getContentItemKey(item)}
@@ -128,7 +153,12 @@ function ContentItemList({ items, contentAttestations }: { items: ContentItem[];
                 alignItems: 'center',
                 gap: 1,
                 p: 1,
-                bgcolor: hasTrustedAttestation ? 'success.light' : isUncovered ? 'grey.100' : 'grey.50',
+                bgcolor: (theme) => {
+                  if (hasTrustedAttestation) {
+                    return alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.16 : 0.12)
+                  }
+                  return theme.palette.action.hover
+                },
                 border: hasTrustedAttestation ? '1px solid' : 'none',
                 borderColor: 'success.main',
                 opacity: isUncovered ? 0.7 : 1,
@@ -154,15 +184,24 @@ function ContentItemList({ items, contentAttestations }: { items: ContentItem[];
                 </Typography>
               )}
               {item.status === 'released' && (
-                <Chip label="Released" size="small" variant="outlined" />
+                <InfoChip label="Released" size="small" variant="outlined" title={CONTENT_ITEM_CHIP_TOOLTIPS.released} />
+              )}
+              {isAligned ? (
+                <InfoChip label="Aligned" size="small" color="success" title={CONTENT_ITEM_CHIP_TOOLTIPS.aligned} />
+              ) : (
+                <InfoChip label="Not attested as aligned" size="small" variant="outlined" title={CONTENT_ITEM_CHIP_TOOLTIPS.notAligned} />
               )}
               {isUncovered && (
-                <Tooltip title={hasAnyAttestation ? 'This content has attestations but none from your trusted attesters' : 'No attester has evaluated this content yet — it may be a coverage gap'}>
-                  <Chip label="Uncovered" size="small" color="warning" variant="outlined" />
-                </Tooltip>
+                <InfoChip
+                  label="Uncovered"
+                  size="small"
+                  color="warning"
+                  variant="outlined"
+                  title={hasAnyAttestation ? CONTENT_ITEM_CHIP_TOOLTIPS.uncoveredHasAttestations : CONTENT_ITEM_CHIP_TOOLTIPS.uncovered}
+                />
               )}
               {hasTrustedAttestation && (
-                <Chip label="Trusted attested" size="small" color="success" />
+                <InfoChip label="Trusted attested" size="small" color="success" title={CONTENT_ITEM_CHIP_TOOLTIPS.trustedAttested} />
               )}
               <ContentAttestationSummary attestations={attestations} />
             </Box>
@@ -178,6 +217,11 @@ interface ContentFundingProjectSectionProps {
 }
 
 export function ContentFundingProjectSection({ projectAddress }: ContentFundingProjectSectionProps) {
+  const [searchParams] = useSearchParams()
+  const highlightStatementCids = (searchParams.get('aligned') ?? '')
+    .split(',')
+    .map((cid) => decodeURIComponent(cid.trim()))
+    .filter(Boolean)
   const { state, channels, loading, contentAttestations, channelDisplayMetadata = new Map() } = useContentFundingState()
 
   // eslint-disable-next-line react-hooks/preserve-manual-memoization -- React Compiler can't preserve this memo as-is; not worth restructuring for an unrelated lint rule
@@ -224,15 +268,30 @@ export function ContentFundingProjectSection({ projectAddress }: ContentFundingP
   const channelPageUrl = canonicalChannelId
     ? `/content/${platform}/${encodeURIComponent(canonicalChannelId)}`
     : null
+  const claimChannelPath = channelPageUrl ? `${channelPageUrl}?claim=1` : null
+  const isUnclaimed = channel.channel.state === 'unclaimed'
 
   return (
-    <Paper sx={{ p: 3, mb: 3, bgcolor: 'primary.light', borderRadius: 2 }} elevation={0}>
+    <Paper
+      sx={{
+        p: 3,
+        mb: 3,
+        bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.16 : 0.12),
+        borderRadius: 2,
+      }}
+      elevation={0}
+    >
       <Stack direction="row" alignItems="center" spacing={1} mb={2}>
         <Typography variant="h6" component="h2">
           Content Funding
         </Typography>
         {contract.isThirdParty && (
-          <Chip label="Fan-created" size="small" variant="outlined" />
+          <InfoChip
+            title={FAN_CREATED_TOOLTIP}
+            label="Fan-created"
+            size="small"
+            variant="outlined"
+          />
         )}
       </Stack>
 
@@ -266,15 +325,43 @@ export function ContentFundingProjectSection({ projectAddress }: ContentFundingP
       <Stack direction="row" spacing={2} flexWrap="wrap" useFlexGap>
         <Box>
           <Typography variant="caption" color="text.secondary">Channel Status</Typography>
-          <Chip
-            label={STATE_LABELS[channel.channel.state] ?? channel.channel.state}
-            size="small"
-            sx={{ mt: 0.5 }}
-          />
+          {isUnclaimed ? (
+            <InfoChip
+              title={(
+                <>
+                  {CHANNEL_STATE_TOOLTIPS.unclaimed}
+                  {claimChannelPath && (
+                    <>
+                      {' '}
+                      <Link
+                        component={RouterLink}
+                        to={claimChannelPath}
+                        underline="always"
+                        color="inherit"
+                      >
+                        Claim this channel
+                      </Link>
+                    </>
+                  )}
+                </>
+              )}
+              label={STATE_LABELS.unclaimed}
+              size="small"
+              sx={{ mt: 0.5 }}
+            />
+          ) : (
+            <InfoChip
+              title={CHANNEL_STATE_TOOLTIPS[channel.channel.state] ?? 'Status of this channel.'}
+              label={STATE_LABELS[channel.channel.state] ?? channel.channel.state}
+              size="small"
+              sx={{ mt: 0.5 }}
+            />
+          )}
         </Box>
         <Box>
           <Typography variant="caption" color="text.secondary">Contract Status</Typography>
-          <Chip
+          <InfoChip
+            title={CONTRACT_STATUS_TOOLTIPS[contract.status] ?? 'Status of this funding round.'}
             label={CONTRACT_STATUS_LABELS[contract.status] ?? contract.status}
             color={CONTRACT_STATUS_COLORS[contract.status]}
             size="small"
@@ -292,7 +379,11 @@ export function ContentFundingProjectSection({ projectAddress }: ContentFundingP
       </Stack>
 
       {contract.contentItems.length > 0 && (
-        <ContentItemList items={contract.contentItems} contentAttestations={contentAttestations} />
+        <ContentItemList
+          items={contract.contentItems}
+          contentAttestations={contentAttestations}
+          highlightStatementCids={highlightStatementCids}
+        />
       )}
     </Paper>
   )

@@ -239,7 +239,7 @@ describe('cross-domain route ownership', () => {
 
   it('lazyGiving owns assurance-contract project routes', () => {
     const routePaths = extractRoutePaths(domainManifests.lazyGiving.routes)
-    expect(routePaths).toEqual(['/', '/projects', '/projects/new', '/projects/:projectAddress', '/delegation', '/delegation/notes', '/delegation/notes/new', '/delegation/notes/:noteId', '/delegates/offer', '/delegates/:address', '/docs', '/docs/*'])
+    expect(routePaths).toEqual(['/', '/projects', '/projects/new', '/projects/:projectAddress/leaderboard', '/projects/:projectAddress', '/delegation', '/delegation/notes', '/delegation/notes/new', '/delegation/notes/:noteId', '/delegates/offer', '/delegates/:address', '/docs', '/docs/*'])
   })
 
   it('alignment owns funding-portal routes', () => {

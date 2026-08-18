@@ -81,14 +81,14 @@ describe('SupportButton', () => {
 
     render(<SupportButton statementCid={CID} />)
 
-    expect(screen.getByText(/connect a wallet to publicly stand/i)).toBeInTheDocument()
+    expect(screen.getByText(/connect a wallet to publicly sign/i)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /connect wallet/i })).toBeInTheDocument()
   })
 
-  it('shows Stand with this statement when the user does not yet support', async () => {
+  it('shows Sign this statement when the user does not yet support', async () => {
     render(<SupportButton statementCid={CID} />)
 
-    expect(await screen.findByRole('button', { name: /stand with this statement/i })).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: /sign this statement/i })).toBeInTheDocument()
     expect(screen.queryByText(/you've declared your support/i)).not.toBeInTheDocument()
   })
 
@@ -99,7 +99,7 @@ describe('SupportButton', () => {
 
     expect(await screen.findByText(/you've declared your support for this statement/i)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /retract your support for this statement/i })).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /stand with this statement/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /sign this statement/i })).not.toBeInTheDocument()
   })
 
   it('records support and switches to the supported state', async () => {
@@ -111,7 +111,7 @@ describe('SupportButton', () => {
 
     render(<SupportButton statementCid={CID} onSupported={onSupported} />)
 
-    const stand = await screen.findByRole('button', { name: /stand with this statement/i })
+    const stand = await screen.findByRole('button', { name: /sign this statement/i })
     fireEvent.click(stand)
 
     await waitFor(() => {
@@ -147,7 +147,7 @@ describe('SupportButton', () => {
     await waitFor(() => {
       expect(onSupported).toHaveBeenCalledWith({ action: 'retract', indexed: true })
     })
-    expect(await screen.findByRole('button', { name: /stand with this statement/i })).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: /sign this statement/i })).toBeInTheDocument()
     expect(screen.getByText(/you retracted your support/i)).toBeInTheDocument()
   })
 
@@ -159,7 +159,7 @@ describe('SupportButton', () => {
     })
 
     render(<SupportButton statementCid={CID} onSupported={onSupported} />)
-    fireEvent.click(await screen.findByRole('button', { name: /stand with this statement/i }))
+    fireEvent.click(await screen.findByRole('button', { name: /sign this statement/i }))
 
     await waitFor(() => expect(onSupported).toHaveBeenCalledTimes(1))
     await waitFor(
@@ -182,7 +182,7 @@ describe('SupportButton', () => {
 
     await waitFor(() => expect(onSupported).toHaveBeenCalledTimes(1))
     await waitFor(
-      () => expect(screen.getByRole('button', { name: /stand with this statement/i })).not.toBeDisabled(),
+      () => expect(screen.getByRole('button', { name: /sign this statement/i })).not.toBeDisabled(),
       { timeout: 5000 },
     )
     expect(onSupported).toHaveBeenCalledTimes(1)
@@ -201,7 +201,7 @@ describe('SupportButton', () => {
     const onSupported = vi.fn()
 
     const { rerender } = render(<SupportButton statementCid={CID} onSupported={onSupported} />)
-    fireEvent.click(await screen.findByRole('button', { name: /stand with this statement/i }))
+    fireEvent.click(await screen.findByRole('button', { name: /sign this statement/i }))
     await waitFor(() => expect(believeStatement).toHaveBeenCalled())
 
     vi.mocked(useAccount).mockReturnValue({ address: USER_B, isConnected: true } as any)
@@ -211,13 +211,13 @@ describe('SupportButton', () => {
       beliefState: BeliefStates.NO_OPINION,
     })
     rerender(<SupportButton statementCid={CID} onSupported={onSupported} />)
-    expect(await screen.findByRole('button', { name: /stand with this statement/i })).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: /sign this statement/i })).toBeInTheDocument()
 
     resolveReceipt({ status: 'success' })
     await waitFor(() => expect(oldClients.publicClient.waitForTransactionReceipt).toHaveBeenCalled())
     await Promise.resolve()
 
-    expect(screen.getByRole('button', { name: /stand with this statement/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /sign this statement/i })).toBeInTheDocument()
     expect(screen.queryByText(/you've declared your support/i)).not.toBeInTheDocument()
     // In-flight completion must not notify after the wallet context changed.
     expect(onSupported).not.toHaveBeenCalled()
@@ -242,6 +242,29 @@ describe('SupportButton', () => {
     rerender(<SupportButton statementCid={CID} />)
 
     expect(await screen.findByText(/you've declared your support for this statement/i)).toBeInTheDocument()
+    expect(screen.queryByText(/you retracted your support/i)).not.toBeInTheDocument()
+  })
+
+  it('uses a short Sign / Signed / Retract control in compact mode', async () => {
+    vi.mocked(getUserBelief).mockResolvedValue({ statementCid: CID, beliefState: BeliefStates.BELIEVES })
+
+    render(<SupportButton statementCid={CID} label="Sign" compact />)
+
+    expect(await screen.findByText('Signed')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Retract' })).toBeInTheDocument()
+    expect(screen.queryByText(/you've declared your support/i)).not.toBeInTheDocument()
+  })
+
+  it('shows Retracted after a compact retract', async () => {
+    vi.mocked(getUserBelief)
+      .mockResolvedValueOnce({ statementCid: CID, beliefState: BeliefStates.BELIEVES })
+      .mockResolvedValue({ statementCid: CID, beliefState: BeliefStates.NO_OPINION })
+
+    render(<SupportButton statementCid={CID} label="Sign" compact />)
+    fireEvent.click(await screen.findByRole('button', { name: 'Retract' }))
+
+    expect(await screen.findByText('Retracted')).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: 'Sign' })).toBeInTheDocument()
     expect(screen.queryByText(/you retracted your support/i)).not.toBeInTheDocument()
   })
 })

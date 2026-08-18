@@ -2,6 +2,7 @@ import { Box, Button, CircularProgress, Paper, Stack, Typography } from '@mui/ma
 import { Link as RouterLink, useNavigate } from 'react-router-dom'
 import { HowItWorksSteps } from '../components/HowItWorksSteps'
 import { YourCauses } from '../components/YourCauses'
+import { YourNudgersAndNudges } from '../components/YourNudgersAndNudges'
 import { useUserCauses } from '../hooks/useUserCauses'
 import { createCausePath } from '../lib/causeStore'
 
@@ -40,7 +41,7 @@ function LandingHome() {
           Start a cause. Build a Movement. Change the world.
         </Typography>
         <Typography variant="body1" color="text.secondary" sx={{ mt: 1.5, maxWidth: 520 }}>
-          Write clear issues people can support one at a time, then grow support with funding
+          Write clear statements people can support one at a time, then grow support with funding
           and media tools when you need them.
         </Typography>
 
@@ -91,6 +92,8 @@ function LandingHome() {
           Browse docs
         </Button>
       </Paper>
+
+      <YourNudgersAndNudges />
     </Stack>
   )
 }
@@ -104,6 +107,7 @@ export function HomePage() {
         causes={causes}
         loading={loading}
         testId="home-dashboard"
+        footer={<YourNudgersAndNudges />}
       />
     )
   }

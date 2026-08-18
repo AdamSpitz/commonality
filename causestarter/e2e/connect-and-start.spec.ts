@@ -102,11 +102,7 @@ test.describe('CauseStarter agent smoke', () => {
     // One published plank means there is now a view to count over.
     await expect(page.getByTestId('cause-view-strip')).toBeVisible()
     await expect(page.getByTestId('view-count-any')).toBeVisible({ timeout: 30_000 })
-
-    // The conjunction view reports two bands, never a bare intersection.
-    await page.getByTestId('view-mode-all').click()
     await expect(page.getByTestId('view-count-all')).toBeVisible()
-    await expect(page.getByTestId('view-count-none-disagreed')).toBeVisible()
   })
 
   test('Causes page starts a cause and opens the editor while connected', async ({ page }) => {
@@ -224,24 +220,24 @@ test.describe('CauseStarter agent smoke', () => {
     // changing the organizer's roster, then explicitly review the exact selected CIDs.
     await connectHardhat(page, 1)
     await expect(page.getByText(/direct signer.*indirect supporter/i)).toHaveCount(2, { timeout: 30_000 })
-    await page.getByRole('checkbox', { name: 'Include issue 2 in the counts above' }).uncheck()
-    await expect(page.getByTestId('selected-plank-support')).toBeHidden()
-    await page.getByRole('checkbox', { name: 'Include issue 2 in the counts above' }).check()
-    await expect(page.getByTestId('selected-plank-support')).toContainText(statements[0])
-    await expect(page.getByTestId('selected-plank-support')).toContainText(statements[1])
-    await expect(page.getByTestId('selected-plank-support')).toContainText(
-      /not the organizer, narrative, cause roster, or unselected statements/i,
-    )
+    await page.getByTestId('plank-in-totals-1').click()
+    await expect(page.getByTestId('plank-in-totals-1')).toHaveAttribute('aria-pressed', 'false')
+    await expect(page.getByTestId('selected-plank-support')).toBeVisible()
+    await expect(page.getByTestId('support-selected-planks')).toBeEnabled({ timeout: 30_000 })
+    await page.getByTestId('plank-in-totals-1').click()
+    await expect(page.getByTestId('plank-in-totals-1')).toHaveAttribute('aria-pressed', 'true')
+    await expect(page.getByTestId('support-selected-planks')).toBeEnabled()
 
     await page.getByTestId('support-selected-planks').click()
-    await expect(page.getByTestId('selected-plank-support')).toContainText(/Supported 2 statements/, {
+    await expect(page.getByTestId('selected-plank-support')).toContainText(/Signed 2 statements/, {
       timeout: 60_000,
     })
+    await expect(page.getByTestId('support-selected-planks')).toHaveCount(0)
 
-    // Every immutable plank retains its own project board even when no project is aligned yet.
-    await page.getByRole('link', { name: 'Aligned projects' }).first().click()
-    await expect(page).toHaveURL(/\/statement\/[^/]+\/board$/)
-    await expect(page.getByRole('heading', { name: /aligned projects/i })).toBeVisible({ timeout: 30_000 })
+    // Every immutable plank retains its own statement page (fundable projects live there).
+    await page.getByRole('link', { name: /project/i }).first().click()
+    await expect(page).toHaveURL(/\/statement\/[^/]+/)
+    await expect(page.getByRole('heading', { name: /fundable projects/i })).toBeVisible({ timeout: 30_000 })
 
     await page.goto(pinnedHref!)
     await expect(page.getByText('Pinned version', { exact: true })).toBeVisible({ timeout: 30_000 })

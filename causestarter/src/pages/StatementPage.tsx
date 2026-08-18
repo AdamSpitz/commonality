@@ -3,18 +3,24 @@ import {
   Alert,
   Box,
   Button,
-  Chip,
   CircularProgress,
+  Link,
   Paper,
+  Snackbar,
   Stack,
   Typography,
 } from '@mui/material'
-import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom'
+import { Link as RouterLink, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { getStatementWithContent, type Statement } from '@commonality/sdk/conceptspace'
 import type { DisplayableDocument } from '@commonality/sdk/displayable-documents'
 import type { IpfsCidV1 } from '@commonality/sdk/utils'
+import { useTrustedAttesters } from '@ui/shared'
+import { CauseBoard, CauseLeaderboard } from '@ui/fundingportals'
+import { useAlignmentTrust } from '../hooks/useAlignmentTrust'
 import { SupportButton } from '../components/SupportButton'
-import { MonthlyPledgeSignal } from '../components/MonthlyPledgeSignal'
+import { CauseFundingSummary } from '../components/CauseFundingSummary'
+import { StarterNetworkFilterCopy } from '../components/StarterNetworkFilterNotice'
+import { useViewCounts } from '../hooks/useViewCounts'
 import { createCausePath } from '../lib/causeStore'
 import { useMachinery } from '../lib/useMachinery'
 
@@ -29,12 +35,30 @@ function documentText(doc: DisplayableDocument | null | undefined): string | nul
 
 export function StatementPage() {
   const { statementCid } = useParams<{ statementCid: string }>()
+  const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const machinery = useMachinery()
+  const trustedImplicationAttesters = useTrustedAttesters()
+  const { trustedAlignmentAttesters } = useAlignmentTrust()
+  const activeTrustedImplicationAttesters = trustedImplicationAttesters.length > 0
+    ? trustedImplicationAttesters
+    : undefined
+  const statementCids = statementCid ? [statementCid] : []
+  const {
+    perPlank,
+    loading: countsLoading,
+    refresh: refreshCounts,
+  } = useViewCounts(
+    statementCids,
+    statementCids,
+    activeTrustedImplicationAttesters,
+    Boolean(statementCid),
+  )
   const [statement, setStatement] = useState<Statement | null>(null)
   const [content, setContent] = useState<DisplayableDocument | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [cidCopiedOpen, setCidCopiedOpen] = useState(false)
 
   const load = useCallback(async () => {
     if (!statementCid) return
@@ -58,10 +82,16 @@ export function StatementPage() {
   }, [machinery, statementCid])
 
   useEffect(() => {
+    if (loading || searchParams.get('section') !== 'fundable-projects') return
+    document.getElementById('fundable-projects')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, [loading, searchParams, statementCid])
+
+  useEffect(() => {
     void load()
   }, [load])
 
-  if (loading) {
+  // Soft revalidation must not unmount CauseBoard (project-list spinner flash).
+  if (loading && !statement) {
     return (
       <Box sx={{ display: 'grid', placeItems: 'center', py: 8 }}>
         <CircularProgress />
@@ -74,14 +104,20 @@ export function StatementPage() {
       <Stack spacing={2}>
         <Alert severity="error" sx={{ borderRadius: 2 }}>{error ?? 'Statement not found'}</Alert>
         {statementCid && (
-          <Typography
+          <Link
+            component="button"
+            type="button"
             variant="caption"
-            color="text.disabled"
-            sx={{ overflowWrap: 'anywhere' }}
+            underline="hover"
             data-testid="statement-cid"
+            onClick={() => {
+              void navigator.clipboard.writeText(statementCid).then(() => {
+                setCidCopiedOpen(true)
+              })
+            }}
           >
-            Statement CID {statementCid}
-          </Typography>
+            Copy CID
+          </Link>
         )}
         <Button component={RouterLink} to="/" sx={{ textTransform: 'none' }}>
           Back to home
@@ -95,36 +131,62 @@ export function StatementPage() {
     ?? statement.excerpt
     ?? statement.title
     ?? 'No content available for this statement.'
+  const title = statement.title?.trim()
+  const showTitle = Boolean(
+    title
+    && title !== 'Statement'
+    && !body.trim().startsWith(title),
+  )
+  const support = statementCid ? perPlank.get(statementCid) : undefined
+  const supportCaption = support
+    ? `${support.total.toLocaleString()} · ${support.direct} direct · ${support.indirect} indirect`
+    : countsLoading
+      ? 'Counting signers…'
+      : 'Signers unavailable'
+  const createdLabel = statement.createdAt
+    ? ` · ${new Date(statement.createdAt).toLocaleDateString()}`
+    : ''
 
   return (
     <Stack spacing={2.5}>
       <Box>
-        <Chip size="small" label="Public statement" sx={{ mb: 1 }} />
-        <Typography variant="h4" component="h1" sx={{ fontWeight: 800, fontSize: { xs: '1.45rem', sm: '1.85rem' } }}>
-          {statement.title?.trim() || 'Statement'}
+        <Typography
+          variant="overline"
+          sx={{ letterSpacing: '0.14em', fontWeight: 700, color: 'primary.main', display: 'block' }}
+        >
+          Statement
         </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.75 }}>
-          {statement.believerCount} supporters
-          {statement.createdAt ? ` · ${new Date(statement.createdAt).toLocaleDateString()}` : ''}
-        </Typography>
-      </Box>
-
-      <Paper elevation={0} sx={{ p: 2.5, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
-        <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', lineHeight: 1.65 }}>
-          {body}
-        </Typography>
-      </Paper>
-
-      <Paper elevation={0} sx={{ p: 2.5, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
-        <Typography variant="h6" sx={{ fontWeight: 700, mb: 1.5 }}>
-          Your support
-        </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          Support is public. It is how a cause shows real people stand behind it.
-        </Typography>
-        <SupportButton
-          statementCid={statementCid as IpfsCidV1}
-          onSupported={(info) => {
+      <Paper
+        variant="outlined"
+        sx={{ p: 1.25, borderRadius: 2 }}
+        data-testid="statement-header"
+      >
+        <Stack spacing={0.75}>
+          {showTitle && (
+            <Typography variant="subtitle2" component="h1" sx={{ fontWeight: 700 }}>
+              {title}
+            </Typography>
+          )}
+          <Typography
+            variant="body2"
+            component={showTitle ? 'p' : 'h1'}
+            sx={{ fontWeight: 500, whiteSpace: 'pre-wrap' }}
+          >
+            {body}
+          </Typography>
+          <Stack
+            direction="row"
+            spacing={0.75}
+            alignItems="center"
+            flexWrap="wrap"
+            useFlexGap
+          >
+            <SupportButton
+              statementCid={statementCid as IpfsCidV1}
+              subject="statement"
+              label="Sign"
+              compact
+              onSupported={(info) => {
             if (!info.indexed) {
               // Optimistic: tick the visible count before the indexer round-trip.
               // Do not call load() yet — a lagging read would flicker 1 → 0 → 1.
@@ -138,6 +200,7 @@ export function StatementPage() {
               })
               return
             }
+            refreshCounts()
             // Confirmed: reload content, but never paint a regressive believerCount.
             void (async () => {
               if (!statementCid) return
@@ -161,19 +224,69 @@ export function StatementPage() {
               }
             })()
           }}
-        />
+            />
+            <Typography variant="caption" color="text.secondary">
+              {supportCaption}{createdLabel}
+              {statementCid && (
+                <>
+                  {' · '}
+                  <Link
+                    component="button"
+                    type="button"
+                    variant="caption"
+                    underline="hover"
+                    data-testid="statement-cid"
+                    sx={{
+                      display: 'inline',
+                      verticalAlign: 'baseline',
+                      p: 0,
+                      border: 0,
+                      background: 'none',
+                      font: 'inherit',
+                      lineHeight: 'inherit',
+                      color: 'inherit',
+                    }}
+                    onClick={() => {
+                      void navigator.clipboard.writeText(statementCid).then(() => {
+                        setCidCopiedOpen(true)
+                      })
+                    }}
+                  >
+                    Copy CID
+                  </Link>
+                </>
+              )}
+            </Typography>
+          </Stack>
+        </Stack>
       </Paper>
+      </Box>
 
-      <MonthlyPledgeSignal statementCids={[statementCid as string]} />
+      <CauseFundingSummary statementCids={[statementCid as string]} />
 
-      <Typography
-        variant="caption"
-        color="text.disabled"
-        sx={{ overflowWrap: 'anywhere', display: 'block', pt: 1 }}
-        data-testid="statement-cid"
-      >
-        Statement CID {statementCid}
-      </Typography>
+      <CauseBoard
+        statementCid={statementCid}
+        trustedAlignmentAttesters={trustedAlignmentAttesters}
+        embedded
+        surfaceTitle="Fundable Projects"
+        projectLinks="local"
+        projectsHelp={
+          <Stack spacing={1}>
+            <Typography variant="body2">
+              Projects vouched for as advancing this statement. Each is aligned with this
+              statement, not with a cause as a whole.
+            </Typography>
+            <StarterNetworkFilterCopy />
+          </Stack>
+        }
+      />
+
+      <CauseLeaderboard
+        statementCid={statementCid as string}
+        embedded
+        limit={3}
+        fullPageTo={`/statement/${statementCid}/board/leaderboard`}
+      />
 
       <Button
         variant="outlined"
@@ -182,6 +295,13 @@ export function StatementPage() {
       >
         Start a related cause
       </Button>
+
+      <Snackbar
+        open={cidCopiedOpen}
+        autoHideDuration={2500}
+        onClose={() => setCidCopiedOpen(false)}
+        message="CID copied"
+      />
     </Stack>
   )
 }

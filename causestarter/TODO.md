@@ -5,6 +5,15 @@ open **if they stay listed here**.
 
 ## Product / UX
 
+- [ ] **Content contracts on the cause board — leftover after first slice.**
+  Product rule (settled): list the *contract* (not individual posts) on the
+  cause project list when any post in that contract has a current positive
+  content attestation to a published plank. Dedup by address with vouched
+  LazyGiving projects. Prospective / not-yet-materialized rounds appear
+  only via a project-level vouch. Do **not** add an include/exclude
+  checkbox. Do **not** mix post rows into the project list. The dedicated
+  content board (`/cause/.../content`) stays as a post-level surface.
+
 - [ ] **Anchors are not built.** A founder cannot promote a proven view into a published statement, so the three things only an anchor can do — sign the combination, earmark to it, align a project with it — remain unavailable. See [shaping-your-cause-statements.md § Promotion](/docs/founder/shaping-your-cause-statements.md#promotion). The seat for it is the cause page's view strip.
 - [ ] View counts fetch believer sets per plank, and each fetch walks events for the plank *plus* every statement implying it, under a `limit: 10000` that truncates silently. Fine locally; measure before it matters. Remedy is an indexer-side aggregate ([§ Scale](/docs/founder/shaping-your-cause-statements.md#scale-the-fold-is-fine-the-transport-isnt)), optionally sketch-backed — but band 1 must stay exact.
 

@@ -18,7 +18,7 @@ import { getProjectStatus, computeUserTokenBalance } from '../utils'
 import { getEventCacheUrl, useMachinery } from '../../shared'
 import { useCachedProject } from '../../shared'
 import { AlignmentAttestationsSection } from '../../fundingportals'
-import { ContentFundingProjectSection } from '../../content-funding'
+import { ContentFundingProjectSection, useContentFundingState } from '../../content-funding'
 import { getRuntimeConfigValue, isCidDeniedByDisplayDenylist, loadDisplayDenylist } from '../../shared'
 import { tryParseChainAddressRef } from '../../shared'
 import { readLazyGivingProjectMetadata, readLazyGivingTokenMetadata, type ProjectMetadata } from '../metadata'
@@ -33,11 +33,21 @@ export type ProjectDetailPageProps = {
   listPath?: string
   /** Label for the back link (default: "Back to projects"). */
   listLabel?: string
+  /**
+   * `leaderboard` renders the full contributor table with a back link to the
+   * project. Default `detail` embeds a top-three preview.
+   */
+  variant?: 'detail' | 'leaderboard'
+}
+
+export function ProjectLeaderboardPage() {
+  return <ProjectDetailPage variant="leaderboard" />
 }
 
 export function ProjectDetailPage({
   listPath = '/projects',
   listLabel = 'Back to projects',
+  variant = 'detail',
 }: ProjectDetailPageProps = {}) {
   const { projectAddress } = useParams<{ projectAddress: string }>()
   const [searchParams] = useSearchParams()
@@ -72,6 +82,15 @@ export function ProjectDetailPage({
     projectAddress: projectContractAddress,
     cacheOptions,
   })
+  const { channels: contentChannels } = useContentFundingState()
+  const isContentProject = useMemo(() => {
+    if (!projectContractAddress) return false
+    const addr = projectContractAddress.toLowerCase()
+    return contentChannels.some((channel) =>
+      channel.contracts.some((contract) => contract.contractAddress.toLowerCase() === addr),
+    )
+  }, [contentChannels, projectContractAddress])
+  const headerKind = isContentProject ? 'content-project' : 'project'
 
   const [metadata, setMetadata] = useState<ProjectMetadata | null>(null)
   const [metadataWarning, setMetadataWarning] = useState<string | null>(null)
@@ -305,9 +324,28 @@ export function ProjectDetailPage({
 
   const userRefundableTokens = computeUserTokenBalance(address, contributions, refunds)
 
+  const projectPath = `/projects/${projectAddress}`
+  const leaderboardPath = `${projectPath}/leaderboard`
+
+  if (variant === 'leaderboard') {
+    return (
+      <Box>
+        <Button component={RouterLink} to={projectPath} size="small" sx={{ mb: 2, textTransform: 'none' }}>
+          ← Back to project
+        </Button>
+        <ProjectHeader project={project} metadata={metadata} kind={headerKind} />
+        <Leaderboard
+          contributions={contributions}
+          refunds={refunds}
+          contributionChains={contributionChains}
+        />
+      </Box>
+    )
+  }
+
   return (
     <Box>
-      <ProjectHeader project={project} metadata={metadata} />
+      <ProjectHeader project={project} metadata={metadata} kind={headerKind} />
 
       {metadataWarning && (
         <Alert severity="warning" sx={{ mb: 3 }}>
@@ -375,7 +413,14 @@ export function ProjectDetailPage({
         />
       )}
 
-      <Leaderboard contributions={contributions} refunds={refunds} contributionChains={contributionChains} />
+      <Leaderboard
+        contributions={contributions}
+        refunds={refunds}
+        contributionChains={contributionChains}
+        embedded
+        limit={3}
+        fullPageTo={leaderboardPath}
+      />
 
       {projectContractAddress && (
         <>

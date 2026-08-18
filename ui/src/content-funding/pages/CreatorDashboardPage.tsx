@@ -8,7 +8,6 @@ import {
   Alert,
   Stack,
   Button,
-  Chip,
   Divider,
   Card,
   CardContent,
@@ -17,7 +16,8 @@ import {
 import WithdrawIcon from '@mui/icons-material/AccountBalanceWallet'
 import ControlPointIcon from '@mui/icons-material/ControlPoint'
 import GavelIcon from '@mui/icons-material/Gavel'
-import { formatCurrencyAmount } from '../../shared'
+import { formatCurrencyAmount, InfoChip } from '../../shared'
+import { CHANNEL_STATE_TOOLTIPS, CONTRACT_STATUS_TOOLTIPS } from '../chipTooltips'
 import { getVetoableContracts, hashCanonicalId, type ChannelWithCanonicalId, type ChannelState } from '@commonality/sdk/content-funding'
 import { ETH_CURRENCY, type Currency } from '@commonality/sdk/utils'
 import { ChannelRegistryAbi, ChannelEscrowAbi } from '@commonality/sdk/abis'
@@ -90,10 +90,11 @@ function ChannelCard({ channel, state, projects, onWithdraw, onTakeControl, onVe
               </Typography>
             )}
           </Box>
-          <Chip
+          <InfoChip
             label={STATE_LABELS[channel.channel.state]}
             color={STATE_COLORS[channel.channel.state]}
             size="small"
+            title={CHANNEL_STATE_TOOLTIPS[channel.channel.state] ?? 'Status of this channel.'}
           />
         </Box>
 
@@ -208,10 +209,11 @@ function ChannelCard({ channel, state, projects, onWithdraw, onTakeControl, onVe
                       <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
                         {contract.contractAddress.slice(0, 6)}...{contract.contractAddress.slice(-4)}
                       </Typography>
-                      <Chip
+                      <InfoChip
                         label={contract.status}
                         size="small"
                         color={contract.status === 'successful' ? 'success' : contract.status === 'active' ? 'primary' : contract.status === 'vetoed' ? 'warning' : 'default'}
+                        title={CONTRACT_STATUS_TOOLTIPS[contract.status] ?? 'Status of this funding round.'}
                       />
                     </Box>
                     {progress !== null && (

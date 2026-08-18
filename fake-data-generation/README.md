@@ -34,6 +34,7 @@ npm run gen:simulate
 
 # Or with custom parameters
 npm run gen:tiny        # 5 users, 1 round, 12 statements, capped actions, no invariant pass
+                        # Always publishes the Local food systems + Christianity CauseStarter rosters (nightly wipe uses this).
 npm run gen:small       # 10 users, 3 rounds
 npm run gen:seed:local  # 12 users, 3 rounds, formal seed content, Alignment Explorer/nudge fixtures
 npm run gen:medium      # 50 users, 5 rounds
@@ -129,7 +130,7 @@ npm run gen:proliferation
 
 ### Pre-generated Seed Worker Outputs
 
-`./scripts/data.sh --seed=demo` replays checked-in worker outputs from `data/seed-worker-outputs.json` after publishing the formal seed-content universe. This gives local dev an Alignment `/explore` Fundable Project Explorer collection, statement nudges, a small implication graph, and deterministic project↔statement alignment attestations without running continuous AI workers or making live LLM calls. One deterministic seed project per `PROJECT_SEED_METADATA` template is created and aligned; project 0 is a local public-goods storyline (Riverside Community Garden) and is also the first project the funding/success seeding covers, so the local-community use cases are demonstrable in the UI. Tally intentionally has no `/explore` route yet.
+`./scripts/data.sh --seed=demo` replays checked-in worker outputs from `data/seed-worker-outputs.json` after publishing the formal seed-content universe. This gives local dev an Alignment `/explore` Fundable Project Explorer collection, statement nudges, a small implication graph, and deterministic project↔statement alignment attestations without running continuous AI workers or making live LLM calls. One deterministic seed project per `PROJECT_SEED_METADATA` template is created and aligned; project 0 is a local public-goods storyline (Riverside Community Garden) and is also the first project the funding/success seeding covers, so the local-community use cases are demonstrable in the UI. After alignments, Hardhat accounts #1–#5 buy receipt tokens on those projects and open monthly standing pledges against the seed statements, so statement/cause leaderboards and the pledges card are populated without extra setup. Tally intentionally has no `/explore` route yet.
 
 Regenerate the fixture when the formal seed content changes:
 
@@ -234,6 +235,49 @@ The simulation performs these actions:
 - `depositToNote` - Deposit ETH to create a delegatable note (6% weight)
 - `delegateNote` - Delegate note ownership to another user (4% weight)
 - `revokeDelegation` - Revoke a delegation and reclaim note ownership (2% weight)
+
+### Content-funding scenarios
+
+After the random rounds, `generateContentFundingScenarios` deploys a few
+deterministic channels/contracts. The unclaimed Twitter (`@civicbuilder`)
+contract has two posts; only
+`twitter:uid:111111111:1000000000000000001` is attested to the same
+`local-food-systems` plank as the Riverside Community Garden project, signed
+by `CONTENT_ATTESTER_PRIVATE_KEY` so CauseStarter's trusted-content filter
+accepts it. A cause that publishes that plank should show one content-contract
+row with “1 of 2 posts attested”.
+
+The same seed then creates two prospective content rounds:
+
+- an **open** YouTube future-content round (below threshold, not materialized),
+  vouched as a project to `local-food-systems` so CauseStarter lists it before
+  any posts exist
+- a **successful and materialized** Substack round with one fulfilled post
+  (`substack:smartwriter/civic-garden-explainer`) attested to the same plank
+
+The same seed publishes CauseStarter rosters at
+`/cause/0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266/local-food-systems` and
+`/cause/0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266/christianity`
+(Hardhat #0) and writes `bookmarked-causes` for Hardhat `#0`–`#9`, so any of
+those accounts sees both causes on the landing page after connect. The
+Christianity roster includes the Christian / secular-conservative mediator
+identity (`http://127.0.0.1:3011` by default; override with
+`SEED_CHRISTIAN_MEDIATOR_URL`), three LazyGiving projects, monthly pledges, and
+a mixed Common Table essay contract.
+
+To add only that Christianity storyline onto an already-seeded chain:
+
+```bash
+npm run gen:seed:christianity
+```
+
+Featured bridges come from the `christian-bridge-creator` Compose service on
+port 3011 (started by `./scripts/services.sh --start`).
+
+Every seed size (including `tiny`, which the nightly wipe runs) injects that
+`local-food-systems` plank if the random statement set does not already include
+it, then publishes the garden alignment and both rosters. Full Explorer/nudge worker
+outputs still require `gen:seed:local` / `--publish-seed-worker-outputs`.
 
 ## Metrics Collected
 

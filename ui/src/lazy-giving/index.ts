@@ -20,6 +20,9 @@ export {
   getProjectStatus,
   STATUS_COLORS,
   STATUS_LABELS,
+  STATUS_TOOLTIPS,
+  DEADLINE_ENDED_TOOLTIP,
+  DEADLINE_OPEN_TOOLTIP,
   formatRelativeDeadline,
   type ProjectStatus,
 } from './utils'

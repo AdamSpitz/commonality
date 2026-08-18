@@ -4,14 +4,16 @@ import { HomePage } from './pages/HomePage'
 import { StartCauseRedirect } from './pages/StartCauseRedirect'
 import { CausesPage } from './pages/CausesPage'
 import { CauseDetailPage } from './pages/CauseDetailPage'
-import { StatementBoardPage } from './pages/StatementBoardPage'
+import { CauseBoardLeaderboardPage } from './pages/CauseBoardLeaderboardPage'
 import { StatementBoardLeaderboardPage } from './pages/StatementBoardLeaderboardPage'
+import { StatementBoardRedirect } from './pages/StatementBoardRedirect'
 import { StatementPage } from './pages/StatementPage'
 import { DocsPage } from './pages/DocsPage'
 import { SettingsPage } from './pages/SettingsPage'
-import { ProjectDetailPage } from './pages/ProjectDetailPage'
+import { ProjectDetailPage, ProjectLeaderboardPage } from './pages/ProjectDetailPage'
 import { CreateProjectPage } from './pages/CreateProjectPage'
 import { CauseContentBoardPage } from './pages/CauseContentBoardPage'
+import { CauseFundingPage } from './pages/CauseFundingPage'
 import {
   ContentFundingAboutPage,
   ContentFundingBrowsePage,
@@ -59,17 +61,24 @@ export default function App() {
               See docs/founder/shaping-your-cause-statements.md § roster. */}
           <Route path="/cause/:owner/:slugPart/content" element={<CauseContentBoardPage />} />
           <Route path="/cause/:causeId/content" element={<CauseContentBoardPage />} />
+          <Route path="/cause/:owner/:slugPart/funding" element={<CauseFundingPage />} />
+          <Route path="/cause/:causeId/funding" element={<CauseFundingPage />} />
+          <Route path="/cause/:owner/:slugPart/leaderboard" element={<CauseBoardLeaderboardPage />} />
+          <Route path="/cause/:causeId/leaderboard" element={<CauseBoardLeaderboardPage />} />
           <Route path="/cause/:owner/:slugPart" element={<CauseDetailPage />} />
           <Route path="/cause/:causeId" element={<CauseDetailPage />} />
           {/* No browse or search route by design: a cause is reached by its own
               link, never by a directory we rank. See ADR 0005 and
               specs/product/ui-operator-posture.md. */}
           <Route path="/statement/:statementCid" element={<StatementPage />} />
-          {/* Boards are keyed by statement: alignment attestations name a
-              statement, never a cause. */}
-          <Route path="/statement/:statementCid/board" element={<StatementBoardPage />} />
+          {/* Old standalone board URL: the dashboard now lives on the statement. */}
+          <Route
+            path="/statement/:statementCid/board"
+            element={<StatementBoardRedirect />}
+          />
           <Route path="/statement/:statementCid/board/leaderboard" element={<StatementBoardLeaderboardPage />} />
           <Route path="/projects/new" element={<CreateProjectPage />} />
+          <Route path="/projects/:projectAddress/leaderboard" element={<ProjectLeaderboardPage />} />
           <Route path="/projects/:projectAddress" element={<ProjectDetailPage />} />
           <Route path="/content-funding" element={<ContentFundingLandingPage />} />
           <Route path="/content-funding/about" element={<ContentFundingAboutPage />} />

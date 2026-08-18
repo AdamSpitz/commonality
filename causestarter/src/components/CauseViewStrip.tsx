@@ -1,14 +1,9 @@
-import { Alert, Box, CircularProgress, Paper, Stack, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material'
+import { Box, CircularProgress, Paper, Stack, Typography } from '@mui/material'
 import type { ViewCounts } from '@commonality/sdk/conceptspace'
 
-export type ViewMode = 'any' | 'all'
-
 interface CauseViewStripProps {
-  mode: ViewMode
-  onModeChange: (mode: ViewMode) => void
   counts: ViewCounts | undefined
   selectedCount: number
-  publishedCount: number
   loading: boolean
   /**
    * Direct signatures on the least-signed selected plank, or `undefined` when
@@ -18,8 +13,12 @@ interface CauseViewStripProps {
   fewestDirectSignatures: number | undefined
 }
 
+function userWord(count: number): string {
+  return count === 1 ? 'user signed' : 'users signed'
+}
+
 /**
- * The two views over the selected planks.
+ * Both set counts over the checked planks, shown together.
  *
  * Neither number is a signature on a combination — nobody signed "all five" —
  * so each is labeled for exactly what it counts. The conjunction shows two
@@ -41,21 +40,13 @@ interface CauseViewStripProps {
  * that arrow.
  */
 export function CauseViewStrip({
-  mode,
-  onModeChange,
   counts,
   selectedCount,
-  publishedCount,
   loading,
   fewestDirectSignatures,
 }: CauseViewStripProps) {
-  const allSelected = selectedCount === publishedCount
-  const scope = allSelected
-    ? `these ${publishedCount} issues`
-    : `the ${selectedCount} selected issues`
-  // "at least one of this 1 issue" reads badly; with a single plank there is no
-  // combination to describe, so the counts are just that issue's.
-  const singular = selectedCount === 1
+  // Band 2 restates the same people as "signed all" when there is only one plank.
+  const showConjunctionExtra = selectedCount > 1
 
   return (
     <Paper
@@ -63,73 +54,55 @@ export function CauseViewStrip({
       data-testid="cause-view-strip"
       sx={{ p: 2, borderRadius: 2 }}
     >
-      <Stack spacing={1.75}>
-        <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-          Supporters across the checked issues
-        </Typography>
-        <ToggleButtonGroup
-          exclusive
-          fullWidth
-          size="small"
-          value={mode}
-          onChange={(_, next: ViewMode | null) => next && onModeChange(next)}
-          aria-label="How to count supporters across issues"
-        >
-          <ToggleButton value="any" data-testid="view-mode-any">Supports any</ToggleButton>
-          <ToggleButton value="all" data-testid="view-mode-all">Supports all</ToggleButton>
-        </ToggleButtonGroup>
-
+      <Stack spacing={1.25}>
         {loading && !counts && (
           <Stack direction="row" spacing={1} alignItems="center">
             <CircularProgress size={16} />
-            <Typography variant="body2" color="text.secondary">Counting supporters…</Typography>
+            <Typography variant="body2" color="text.secondary">Counting signers…</Typography>
           </Stack>
         )}
 
         {!loading && selectedCount === 0 && (
           <Typography variant="body2" color="text.secondary">
-            Select at least one issue to see who supports it.
+            Select at least one statement to see who signed it.
           </Typography>
         )}
 
-        {counts && mode === 'any' && (
-          <Box>
-            <Typography variant="body1" sx={{ whiteSpace: 'nowrap' }}>
-              <Box component="span" sx={{ fontWeight: 800 }} data-testid="view-count-any">
-                {counts.union.total.toLocaleString()}
-              </Box>
-              {' '}
-              {counts.union.total === 1 ? 'person supports' : 'people support'}{' '}
-              {singular ? 'this issue' : `at least one of ${scope}`}.
-            </Typography>
-            {counts.union.direct < counts.union.total && (
-              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
-                {counts.union.direct.toLocaleString()} signed an issue directly; the rest signed
-                something that implies one.
-              </Typography>
-            )}
-          </Box>
-        )}
-
-        {counts && mode === 'all' && (
-          <Stack spacing={1.5}>
+        {counts && selectedCount > 0 && (
+          <Stack spacing={1.25}>
             <Box>
-              <Typography variant="body1" sx={{ whiteSpace: 'nowrap' }}>
+              <Typography variant="body1">
+                <Box component="span" sx={{ fontWeight: 800 }} data-testid="view-count-any">
+                  {counts.union.total.toLocaleString()}
+                </Box>
+                {' '}
+                {userWord(counts.union.total)} at least one selected statement.
+              </Typography>
+              {counts.union.direct < counts.union.total && (
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+                  {counts.union.direct.toLocaleString()} signed a statement directly; the rest signed
+                  something that implies one.
+                </Typography>
+              )}
+            </Box>
+
+            <Box>
+              <Typography variant="body1">
                 <Box component="span" sx={{ fontWeight: 800 }} data-testid="view-count-all">
                   {counts.conjunction.signedAll.toLocaleString()}
                 </Box>
                 {' '}
-                {counts.conjunction.signedAll === 1 ? 'person has' : 'people have'} signed{' '}
-                {singular ? 'this issue' : `every one of ${scope}`}.
+                {userWord(counts.conjunction.signedAll)} every selected statement.
               </Typography>
             </Box>
-            {!singular && fewestDirectSignatures !== undefined && (
+
+            {showConjunctionExtra && fewestDirectSignatures !== undefined && (
               <Box>
                 <Typography variant="h6" sx={{ fontWeight: 700 }} data-testid="view-count-none-disagreed">
                   {counts.conjunction.noneDisagreed.toLocaleString()} more
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  support at least one and have disagreed with none — they were never asked about the
+                  signed at least one and have disagreed with none — they were never asked about the
                   rest.
                 </Typography>
                 <Typography
@@ -138,20 +111,16 @@ export function CauseViewStrip({
                   sx={{ mt: 0.75 }}
                   data-testid="view-fewest-signatures"
                 >
-                  Fewest signatures on any single issue:{' '}
+                  Fewest signatures on any single statement:{' '}
                   <Box component="span" sx={{ fontWeight: 700, color: 'text.primary' }}>
                     {fewestDirectSignatures.toLocaleString()}
                   </Box>
-                  . An issue added later starts here, however large the number above is.
+                  . A statement added later starts here, however large the number above is.
                 </Typography>
               </Box>
             )}
           </Stack>
         )}
-
-        <Alert severity="info" sx={{ borderRadius: 2 }}>
-          Counted from signatures on individual issues — nobody signs the combination.
-        </Alert>
       </Stack>
     </Paper>
   )

@@ -293,6 +293,7 @@ start_services() {
         cause-assist
         alignment-trust-bootstrap
         causestarter
+        christian-bridge-creator
     )
     local -a services_to_build=()
 
@@ -346,7 +347,13 @@ start_services() {
     load_env_file_if_present ui/.env
     load_env_file_if_present causestarter/.env
     map_causestarter_contract_env
-    docker_compose up -d --force-recreate cause-assist alignment-trust-bootstrap causestarter
+    docker_compose up -d --force-recreate cause-assist alignment-trust-bootstrap causestarter christian-bridge-creator
+
+    echo "Recording local Hardhat-account trust (CauseStarter starter network)..."
+    if ! node "$SCRIPT_DIR/seed-local-alignment-trust.mjs"; then
+        echo "Warning: could not seed local alignment trust. CauseStarter project lists may stay gated until you run:"
+        echo "  node scripts/seed-local-alignment-trust.mjs"
+    fi
 
     echo ""
     echo "Services started. Use 'docker compose logs -f' to view logs."

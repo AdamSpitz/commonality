@@ -1,95 +1,129 @@
-import { useState } from 'react'
-import { Alert, Button, CircularProgress, Paper, Stack, Typography } from '@mui/material'
-import { Link as RouterLink } from 'react-router-dom'
+import { useEffect, useMemo, useState } from 'react'
+import { Alert, Button, CircularProgress, Stack } from '@mui/material'
 import { useAccount } from 'wagmi'
 import { BeliefsAbi } from '@commonality/sdk/abis'
-import { BeliefStates } from '@commonality/sdk/conceptspace'
-import { cidToBytes32 } from '@commonality/sdk/utils'
+import { BeliefStates, getUserBelief } from '@commonality/sdk/conceptspace'
+import { cidToBytes32, type IpfsCidV1 } from '@commonality/sdk/utils'
+import type { SDKMachinery } from '@commonality/sdk/machinery'
 import { getRuntimeConfigValue } from '../lib/runtimeConfig'
 import { sendCallsPreferAtomic } from '../lib/causeRoster'
 import { useWriteClients } from '../lib/useWriteClients'
-import { WalletButton } from './WalletButton'
+import { ConnectWalletHint } from './ConnectWalletHint'
 
 interface SelectedPlank {
-  cid: string
+  cid: IpfsCidV1
   text: string
 }
 
 interface Props {
   planks: readonly SelectedPlank[]
+  machinery: SDKMachinery
   onSupported: () => void
 }
 
-export function SelectedPlankSupport({ planks, onSupported }: Props) {
+export function SelectedPlankSupport({ planks, machinery, onSupported }: Props) {
   const { address, isConnected } = useAccount()
   const clients = useWriteClients(address)
   const [busy, setBusy] = useState(false)
+  const [checking, setChecking] = useState(false)
+  const [signedCids, setSignedCids] = useState<Set<string>>(new Set())
   const [result, setResult] = useState<string>()
   const [error, setError] = useState<string>()
   const beliefsAddress = getRuntimeConfigValue('VITE_BELIEFS_CONTRACT_ADDRESS') as `0x${string}` | undefined
 
-  if (planks.length < 2) return null
+  const plankKey = planks.map((plank) => plank.cid).join('\0')
+
+  useEffect(() => {
+    let cancelled = false
+    if (!isConnected || !address || planks.length === 0) {
+      setSignedCids(new Set())
+      setChecking(false)
+      return
+    }
+    setChecking(true)
+    void Promise.all(
+      planks.map(async (plank) => {
+        const belief = await getUserBelief(machinery, address, plank.cid)
+        return { cid: plank.cid, state: belief?.beliefState ?? BeliefStates.NO_OPINION }
+      }),
+    ).then((rows) => {
+      if (cancelled) return
+      setSignedCids(new Set(
+        rows.filter((row) => row.state === BeliefStates.BELIEVES).map((row) => row.cid),
+      ))
+      setChecking(false)
+    }).catch((cause) => {
+      if (cancelled) return
+      setError(cause instanceof Error ? cause.message : 'Could not check which statements you have signed')
+      setChecking(false)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [address, isConnected, machinery, plankKey, planks])
+
+  const unsigned = useMemo(
+    () => planks.filter((plank) => !signedCids.has(plank.cid)),
+    [planks, signedCids],
+  )
+  const canSign = isConnected && !busy && !checking && unsigned.length > 0
 
   const support = async () => {
     if (!clients || !beliefsAddress) {
       setError(!beliefsAddress ? 'Beliefs contract is not configured' : 'Wallet is not ready yet')
       return
     }
+    if (unsigned.length === 0) return
     setBusy(true)
     setError(undefined)
     setResult(undefined)
     try {
-      const sent = await sendCallsPreferAtomic(clients, planks.map((plank) => ({
+      const sent = await sendCallsPreferAtomic(clients, unsigned.map((plank) => ({
         to: beliefsAddress,
         abi: BeliefsAbi,
         functionName: 'setBelief',
         args: [cidToBytes32(plank.cid), BeliefStates.BELIEVES],
       })))
+      const countLabel = unsigned.length === 1 ? '1 statement' : `${unsigned.length} statements`
       setResult(sent.batched
-        ? `Supported ${planks.length} statements in one atomic wallet batch.`
-        : `Supported ${planks.length} statements in ${sent.hashes.length} transactions.`)
+        ? `Signed ${countLabel} in one atomic wallet batch.`
+        : `Signed ${countLabel} in ${sent.hashes.length} transactions.`)
+      setSignedCids((current) => {
+        const next = new Set(current)
+        for (const plank of unsigned) next.add(plank.cid)
+        return next
+      })
       onSupported()
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Could not support the selected statements')
+      setError(cause instanceof Error ? cause.message : 'Could not sign these statements')
     } finally {
       setBusy(false)
     }
   }
 
+  const showButton = (canSign || busy) && unsigned.length > 0
+  const showConnect = !isConnected && planks.length > 0
+  if (!showButton && !showConnect && !result && !error) return null
+
   return (
-    <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }} data-testid="selected-plank-support">
-      <Stack spacing={1.25}>
-        <div>
-          <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>Review selected statements</Typography>
-          <Alert severity="info" sx={{ borderRadius: 2 }}>
-            This supports only the statements below—not the organizer, narrative, cause page, or unselected statements.
-          </Alert>
-        </div>
-        {planks.map((plank) => (
-          <div key={plank.cid}>
-            <Typography
-              component={RouterLink}
-              to={`/statement/${plank.cid}`}
-              variant="body2"
-              sx={{
-                display: 'block',
-                color: 'text.primary',
-                textDecoration: 'none',
-                '&:hover': { textDecoration: 'underline' },
-              }}
-            >
-              {plank.text}
-            </Typography>
-          </div>
-        ))}
-        {error && <Alert severity="error">{error}</Alert>}
-        {result && <Alert severity="success">{result}</Alert>}
-        {!isConnected ? <WalletButton /> : (
-          <Button variant="contained" disabled={busy} onClick={() => void support()} data-testid="support-selected-planks">
-            {busy ? <CircularProgress size={18} /> : `Support ${planks.length} selected statements`}
-          </Button>
-        )}
-      </Stack>
-    </Paper>
+    <Stack spacing={1.25} data-testid="selected-plank-support">
+      {error && <Alert severity="error">{error}</Alert>}
+      {result && <Alert severity="success">{result}</Alert>}
+      {showConnect && (
+        <ConnectWalletHint>
+          Connect a wallet to sign selected statements.
+        </ConnectWalletHint>
+      )}
+      {showButton && (
+        <Button
+          variant="contained"
+          disabled={!canSign}
+          onClick={() => void support()}
+          data-testid="support-selected-planks"
+        >
+          {busy ? <CircularProgress size={18} /> : 'Sign selected statements'}
+        </Button>
+      )}
+    </Stack>
   )
 }
