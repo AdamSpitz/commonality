@@ -4,7 +4,7 @@
 #
 # Usage:
 #   ./scripts/data.sh --wipe                    # Wipe data directory (stops services first)
-#   ./scripts/data.sh --seed                    # Populate with fake data (services must be running)
+#   ./scripts/data.sh --seed                    # Tiny dataset (default; fast local UI)
 #   ./scripts/data.sh --seed=tiny               # Tiny dataset (5 users, 1 round, capped statements/actions)
 #   ./scripts/data.sh --seed=small              # Small dataset (10 users, 3 rounds)
 #   ./scripts/data.sh --seed=medium             # Medium dataset (50 users, 5 rounds)
@@ -42,7 +42,7 @@ show_usage() {
     echo "Options:"
     echo "  --wipe              Wipe data directory (stops services first)"
     echo "  --seed[=SIZE]       Populate with fake data (services must be running)"
-    echo "                        SIZE: tiny, small (default), medium, large, demo"
+    echo "                        SIZE: tiny (default), small, medium, large, demo"
     echo "                        demo uses formal seed content and publishes Alignment Explorer/nudge fixtures"
     echo "                        Also records local Hardhat-account trust (CauseStarter project lists)"
     echo "  --use-hardhat-accounts  Use hardhat accounts instead of random wallets (for first 20 users)"
@@ -129,7 +129,7 @@ wait_for_indexer() {
 }
 
 seed_data() {
-    local size="${1:-small}"
+    local size="${1:-tiny}"
     local extra_args="${2:-}"
     local allow_existing_data="${3:-false}"
 
@@ -196,7 +196,7 @@ case "${1:-}" in
         wipe_data
         ;;
     --seed|--seed=*)
-        size="small"
+        size="tiny"
         extra_args=""
         allow_existing_data="false"
 

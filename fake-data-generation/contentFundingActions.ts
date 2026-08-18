@@ -12,8 +12,6 @@
 
 import {
   createPublicClient,
-  createWalletClient,
-  http,
   keccak256,
   parseEther,
   toBytes,
@@ -37,6 +35,7 @@ import { createDefaultDocumentStore, createDisplayableDocument } from '@commonal
 import { RPC_URL } from './loadEnv.js';
 import type { User } from './types.js';
 import { parsePaymentTokenUnits } from './paymentTokenUnits.js';
+import { createSeedClients } from './seedRpc.js';
 
 const erc20ApproveAbi = [
   {
@@ -77,17 +76,7 @@ const HARDHAT_DEPLOYER_PRIVATE_KEY: Hex =
 // ---------------------------------------------------------------------------
 
 function createClients(privateKey: `0x${string}`) {
-  const account = privateKeyToAccount(privateKey);
-  const walletClient = createWalletClient({
-    account,
-    chain: hardhat,
-    transport: http(RPC_URL),
-  });
-  const publicClient = createPublicClient({
-    chain: hardhat,
-    transport: http(RPC_URL),
-  });
-  return { walletClient, publicClient, account: account.address };
+  return createSeedClients(privateKey, RPC_URL);
 }
 
 /** Compute the content-item ID the factory will use for a given canonical pair. */

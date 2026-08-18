@@ -1,47 +1,17 @@
-import { createPublicClient, createWalletClient, http, parseEther, isAddress, zeroAddress, getAddress } from 'viem';
+import { parseEther, isAddress, zeroAddress, getAddress } from 'viem';
 import { padHex } from 'viem/utils';
-import { privateKeyToAccount } from 'viem/accounts';
 import { BeliefsAbi } from '@commonality/sdk/abis';
 import { cidToBytes32 } from '@commonality/sdk/utils';
 import { loadEnv, RPC_URL } from './loadEnv.js';
+import { createSeedClients, createSeedPublicClient } from './seedRpc.js';
 import type { User, Statement, SimulationContracts } from './types.js';
 
 loadEnv();
 
-const hardhat = {
-  id: 31337,
-  name: 'Hardhat',
-  network: 'hardhat',
-  nativeCurrency: {
-    name: 'Ether',
-    symbol: 'ETH',
-    decimals: 18,
-  },
-  rpcUrls: {
-    default: { http: ['http://localhost:8545'] },
-    public: { http: ['http://localhost:8545'] },
-  },
-} as const;
-
-const publicClient = createPublicClient({
-  chain: hardhat,
-  transport: http(RPC_URL),
-});
+const publicClient = createSeedPublicClient(RPC_URL);
 
 function createTestClients(privateKey: `0x${string}`) {
-  const account = privateKeyToAccount(privateKey);
-
-  const walletClient = createWalletClient({
-    account,
-    chain: hardhat,
-    transport: http(RPC_URL),
-  });
-
-  return {
-    walletClient,
-    publicClient,
-    account: account.address,
-  };
+  return createSeedClients(privateKey, RPC_URL);
 }
 
 interface CheckResult {

@@ -35,7 +35,8 @@ npm run gen:simulate
 # Or with custom parameters
 npm run gen:tiny        # 5 users, 1 round, 12 statements, capped actions, no invariant pass
                         # Always publishes the Local food systems + Christianity CauseStarter rosters (nightly wipe uses this).
-npm run gen:small       # 10 users, 3 rounds
+                        # This is what `./scripts/data.sh --seed` runs by default.
+npm run gen:small       # 10 users, 3 rounds, no invariant pass (pass `--invariants` to run them)
 npm run gen:seed:local  # 12 users, 3 rounds, formal seed content, Alignment Explorer/nudge fixtures
 npm run gen:medium      # 50 users, 5 rounds
 npm run gen:large       # 100 users, 10 rounds
@@ -216,7 +217,7 @@ Each attester has:
 
 ### Simulation Actions
 
-For fast UI/review setup from the repository root, prefer `./scripts/data.sh --seed=tiny`. It intentionally reuses only a cut-down slice of the fake universe while still leaving enough data for representative statement/project/content-funding pages.
+For fast UI/review setup from the repository root, `./scripts/data.sh --seed` is tiny. It intentionally reuses only a cut-down slice of the fake universe while still leaving enough data for representative statement/project/content-funding pages. Statement publish is parallel across Hardhat wallets and waits for receipts in a batch (see `publishGeneratedStatements` in `generateStatements.ts`).
 
 The simulation performs these actions:
 

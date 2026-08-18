@@ -7,7 +7,6 @@
  * called from the main simulation so a fresh `--seed` includes the same story.
  */
 
-import { createPublicClient, createWalletClient, http } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { fileURLToPath } from 'url';
 import {
@@ -33,6 +32,7 @@ import { cidToBytes32, type IpfsCidV1, type WriteClients } from '@commonality/sd
 import { publishGeneratedStatement } from './generateStatements.js';
 import { HARDHAT_PRIVATE_KEYS } from './generateUsers.js';
 import { CONTRACT_ADDRESSES, loadEnv, RPC_URL } from './loadEnv.js';
+import { createSeedClients } from './seedRpc.js';
 import { parsePaymentTokenUnits } from './paymentTokenUnits.js';
 import { generateChristianContentScenario } from './contentFundingActions.js';
 import {
@@ -46,17 +46,6 @@ import {
 } from './seedCauseRoster.js';
 
 loadEnv();
-
-const hardhat = {
-  id: 31337,
-  name: 'Hardhat',
-  network: 'hardhat',
-  nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
-  rpcUrls: {
-    default: { http: ['http://localhost:8545'] },
-    public: { http: ['http://localhost:8545'] },
-  },
-} as const;
 
 const paymentTokenFundingAbi = [
   {
@@ -144,17 +133,7 @@ export const CHRISTIANITY_PROJECTS = [
 ] as const;
 
 function createClients(privateKey: `0x${string}`) {
-  const account = privateKeyToAccount(privateKey);
-  const walletClient = createWalletClient({
-    account,
-    chain: hardhat,
-    transport: http(RPC_URL),
-  });
-  const publicClient = createPublicClient({
-    chain: hardhat,
-    transport: http(RPC_URL),
-  });
-  return { walletClient, publicClient, account: account.address };
+  return createSeedClients(privateKey, RPC_URL);
 }
 
 async function fundPaymentToken(to: `0x${string}`, amount: bigint): Promise<void> {
