@@ -35,7 +35,8 @@ vi.mock('@commonality/sdk/fundingportals', async () => {
   const actual = await vi.importActual('@commonality/sdk/fundingportals')
   return {
     ...actual,
-    getTotalFundingForCause: vi.fn(),
+    getAllAlignedProjectsForCause: vi.fn(),
+    foldAlignedProjectFunding: vi.fn(),
   }
 })
 
@@ -50,6 +51,23 @@ vi.mock('../../shared/hooks/useTrustedSet', () => ({
 vi.mock('../../shared/hooks/useTrustedAttesters', () => ({
   useTrustedAttesters: vi.fn(),
 }))
+
+vi.mock('../../shared/hooks/useTrustedContentAttesters', () => ({
+  useTrustedContentAttesters: vi.fn(() => []),
+}))
+
+vi.mock('../../content-funding', async () => {
+  const actual = await vi.importActual<typeof import('../../content-funding')>('../../content-funding')
+  return {
+    ...actual,
+    useContentFundingState: vi.fn(() => ({
+      state: null,
+      channels: [],
+      contentAttestations: new Map(),
+      loading: false,
+    })),
+  }
+})
 
 
 vi.mock('../components/AlignedProjectsList', () => ({
@@ -77,7 +95,7 @@ import { useParams } from 'react-router-dom'
 import { useAccount } from 'wagmi'
 import { getStatementWithContent } from '@commonality/sdk/conceptspace'
 import { getMonthlyPledgedByCause } from '@commonality/sdk/delegation'
-import { getTotalFundingForCause } from '@commonality/sdk/fundingportals'
+import { foldAlignedProjectFunding, getAllAlignedProjectsForCause } from '@commonality/sdk/fundingportals'
 import { useMachinery } from '../../shared'
 import { useTrustedSet } from '../../shared'
 import { useTrustedAttesters } from '../../shared'
@@ -117,13 +135,12 @@ describe('StatementFundingPortalPage', () => {
         content: '# Subjectiv Cause',
       },
     } as any)
-    vi.mocked(getTotalFundingForCause).mockResolvedValue({
+    vi.mocked(getAllAlignedProjectsForCause).mockResolvedValue([])
+    vi.mocked(foldAlignedProjectFunding).mockResolvedValue({
       totalRaisedAcrossProjects: [{ amount: 2000000000000000000n, currency: { kind: 'native', symbol: 'ETH', decimals: 18, tokenAddress: null, tokenType: 0 } }],
-      totalAvailableFromNotes: [],
       remainingToThreshold: [],
       totalUnreimbursed: [],
       projectCount: 4,
-      noteCount: 0,
     })
     vi.mocked(getMonthlyPledgedByCause).mockResolvedValue(new Map([[STATEMENT_CID, 12340000n]]))
   })
@@ -143,12 +160,13 @@ describe('StatementFundingPortalPage', () => {
       expect(screen.getByText('Subjectiv Cause')).toBeInTheDocument()
     })
 
-    expect(getTotalFundingForCause).toHaveBeenCalledWith(
+    expect(getAllAlignedProjectsForCause).toHaveBeenCalledWith(
       mockMachinery,
       STATEMENT_CID,
-      trustedImplicationAttesters,
-      trustedSet
+      [TRUSTED_IMPLICATION_ATTESTER, OTHER_TRUSTED_IMPLICATION_ATTESTER].map((a) => a.toLowerCase()).sort(),
+      new Set([TRUSTED_ADDRESS, OTHER_TRUSTED_ADDRESS].map((a) => a.toLowerCase())),
     )
+    expect(foldAlignedProjectFunding).toHaveBeenCalled()
 
     const alignedProjectsProps = vi.mocked(AlignedProjectsList).mock.calls[0]?.[0]
     expect(alignedProjectsProps).toEqual(
@@ -166,11 +184,11 @@ describe('StatementFundingPortalPage', () => {
       expect(screen.getByText('Subjectiv Cause')).toBeInTheDocument()
     })
 
-    expect(getTotalFundingForCause).toHaveBeenCalledWith(
+    expect(getAllAlignedProjectsForCause).toHaveBeenCalledWith(
       mockMachinery,
       STATEMENT_CID,
       undefined,
-      expect.any(Set)
+      expect.any(Set),
     )
   })
 

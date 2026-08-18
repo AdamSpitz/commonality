@@ -20,7 +20,6 @@ import { getMonthlyPledgedByCause } from '@commonality/sdk/delegation'
 import {
   foldAlignedProjectFunding,
   getAllAlignedProjectsForCause,
-  getTotalFundingForCause,
 } from '@commonality/sdk/fundingportals'
 import type { IpfsCidV1 } from '@commonality/sdk/utils'
 import { useMachinery } from '../../shared'
@@ -32,13 +31,16 @@ import {
   getDomainUrl,
   useTrustedSet,
   useTrustedAttesters,
+  useTrustedContentAttesters,
 } from '../../shared'
+import { selectAlignedContentContracts, useContentFundingState } from '../../content-funding'
 import { AlignedProjectsList } from './AlignedProjectsList'
 import { SuccessfulProjectsTab } from './SuccessfulProjectsTab'
 import { AttestAlignmentForm } from './AttestAlignmentForm'
 import type { ProjectLinkMode } from './AlignedProjectCard'
 import { useKeepPaintedWhileRefreshing } from '../hooks/useKeepPaintedWhileRefreshing'
 import { resolveStatementCids } from './statementCids'
+import { unionAlignedFundingProjects } from './unionAlignedFundingProjects'
 
 /** In-app router link or external href for cause-board chrome. */
 export type CauseBoardNavLink =
@@ -167,14 +169,26 @@ export function CauseBoard({
   const [error, setError] = useState<string | null>(null)
   const [title, setTitle] = useState<string | null>(null)
   const [summary, setSummary] = useState<string | null>(null)
+  const { channels, contentAttestations } = useContentFundingState()
+  const trustedContentAttesters = useTrustedContentAttesters()
+  const contentTrustKey = trustedContentAttesters
+    .map((entry) => entry.address.toLowerCase())
+    .sort()
+    .join('\0')
+  const contentAttestationsKey = [...contentAttestations.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([id, list]) =>
+      `${id}:${list.map((row) => `${row.attested ? 1 : 0}:${row.statementCid}:${row.attester.toLowerCase()}`).sort().join(',')}`,
+    )
+    .join('|')
   const [totalRaised, setTotalRaised] = useState<
-    Awaited<ReturnType<typeof getTotalFundingForCause>>['totalRaisedAcrossProjects']
+    Awaited<ReturnType<typeof foldAlignedProjectFunding>>['totalRaisedAcrossProjects']
   >([])
   const [remainingToThreshold, setRemainingToThreshold] = useState<
-    Awaited<ReturnType<typeof getTotalFundingForCause>>['remainingToThreshold']
+    Awaited<ReturnType<typeof foldAlignedProjectFunding>>['remainingToThreshold']
   >([])
   const [totalUnreimbursed, setTotalUnreimbursed] = useState<
-    Awaited<ReturnType<typeof getTotalFundingForCause>>['totalUnreimbursed']
+    Awaited<ReturnType<typeof foldAlignedProjectFunding>>['totalUnreimbursed']
   >([])
   const [monthlyPledged, setMonthlyPledged] = useState<bigint>(0n)
   const [projectCount, setProjectCount] = useState<number>(0)
@@ -207,35 +221,37 @@ export function CauseBoard({
           embedded
             ? Promise.resolve(null)
             : getStatementWithContent(machinery, cid as IpfsCidV1),
-          loadCids.length === 1
-            ? getTotalFundingForCause(
-                machinery,
-                cid as IpfsCidV1,
-                attestersForLoad,
-                trustedSetForLoad,
-              )
-            : (async () => {
-                const perPlank = await Promise.all(
-                  loadCids.map((plankCid) =>
-                    getAllAlignedProjectsForCause(
-                      machinery,
-                      plankCid as IpfsCidV1,
-                      attestersForLoad,
-                      trustedSetForLoad,
-                    ),
-                  ),
-                )
-                const byAddress = new Map<string, (typeof perPlank)[number][number]>()
-                for (const aligned of perPlank) {
-                  for (const project of aligned) {
-                    const existing = byAddress.get(project.projectAddress.toLowerCase())
-                    if (!existing || (existing.alignmentType === 'indirect' && project.alignmentType === 'direct')) {
-                      byAddress.set(project.projectAddress.toLowerCase(), project)
-                    }
-                  }
+          (async () => {
+            const perPlank = await Promise.all(
+              loadCids.map((plankCid) =>
+                getAllAlignedProjectsForCause(
+                  machinery,
+                  plankCid as IpfsCidV1,
+                  attestersForLoad,
+                  trustedSetForLoad,
+                ),
+              ),
+            )
+            const byAddress = new Map<string, (typeof perPlank)[number][number]>()
+            for (const aligned of perPlank) {
+              for (const project of aligned) {
+                const existing = byAddress.get(project.projectAddress.toLowerCase())
+                if (!existing || (existing.alignmentType === 'indirect' && project.alignmentType === 'direct')) {
+                  byAddress.set(project.projectAddress.toLowerCase(), project)
                 }
-                return foldAlignedProjectFunding(machinery, [...byAddress.values()])
-              })(),
+              }
+            }
+            const contentContracts = selectAlignedContentContracts(
+              channels,
+              contentAttestations,
+              loadCids,
+              contentTrustKey ? contentTrustKey.split('\0') : undefined,
+            )
+            return foldAlignedProjectFunding(
+              machinery,
+              unionAlignedFundingProjects([...byAddress.values()], contentContracts),
+            )
+          })(),
         ])
 
         if (cancelled) return
@@ -282,7 +298,16 @@ export function CauseBoard({
     return () => {
       cancelled = true
     }
-  }, [machinery, cidsKey, embedded, trustedAttestersKey, trustedSetKey])
+  }, [
+    machinery,
+    cidsKey,
+    embedded,
+    trustedAttestersKey,
+    trustedSetKey,
+    channels.length,
+    contentAttestationsKey,
+    contentTrustKey,
+  ])
 
   if (loading) {
     return (
