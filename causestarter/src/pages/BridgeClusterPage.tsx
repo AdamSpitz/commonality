@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
-  Alert, Box, Button, CircularProgress, Divider, Link, MenuItem, Paper, Stack,
-  TextField, Typography,
+  Alert, Box, Button, Checkbox, CircularProgress, Divider, FormControlLabel,
+  Link, MenuItem, Paper, Stack, TextField, Typography,
 } from '@mui/material'
 import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom'
 import { useAccount } from 'wagmi'
 import { checkImplications } from '../lib/causeAssistClient'
 import {
+  attestablePairs,
   loadClusterDocument,
   nudgeTargets,
   parseClusterRouteParams,
@@ -14,6 +15,8 @@ import {
   resolveClusterCid,
   type BridgeClusterFields,
 } from '../lib/bridgeCluster'
+import { parentToModifiedNudges, publishParentToModifiedNudges } from '../lib/bridgeNudges'
+import { formatPairSummary, submitPairsToAttester } from '../lib/implicationAttesterClient'
 import {
   loadPlankTexts,
   loadRosterDocument,
@@ -70,6 +73,8 @@ export function BridgeClusterPage() {
   const [busy, setBusy] = useState(false)
   const [status, setStatus] = useState<string | null>(null)
   const [pairCheck, setPairCheck] = useState<string | null>(null)
+  const [submitPairs, setSubmitPairs] = useState(true)
+  const [publishNudges, setPublishNudges] = useState(false)
 
   useEffect(() => {
     if (routeRef) return
@@ -353,7 +358,29 @@ export function BridgeClusterPage() {
       })
       setPublished(fields)
       navigate(`/bridge/${address.toLowerCase()}/${encodeURIComponent(clusterSlug)}`)
-      setStatus('Published. Implication pairs are recorded as intended arrows; submit them to the implication attester separately so they are not silently invented.')
+
+      const followUps: string[] = ['Published the cluster.']
+      if (submitPairs) {
+        setStatus('Paying the implication attester for recorded pairs…')
+        const submitted = await submitPairsToAttester({
+          writeClients,
+          pairs: attestablePairs(fields),
+        })
+        followUps.push(formatPairSummary(submitted.results))
+      }
+      if (publishNudges) {
+        setStatus('Publishing parent→modified nudge batch…')
+        const batch = await publishParentToModifiedNudges({
+          writeClients,
+          mediatorAddress: address,
+          fields,
+        })
+        followUps.push(`Published parent→modified nudges (${batch.batchCid.slice(0, 12)}…).`)
+      }
+      if (!submitPairs && !publishNudges) {
+        followUps.push('Pairs are recorded as intended arrows. Submit them to the attester when you are ready; they are not invented automatically.')
+      }
+      setStatus(followUps.join('\n'))
     } catch (error) {
       setStatus(error instanceof Error ? error.message : String(error))
     } finally {
@@ -371,6 +398,47 @@ export function BridgeClusterPage() {
 
   if (loadError && !published) {
     return <Alert severity="error">{loadError}</Alert>
+  }
+
+  const runSubmitPairs = async (fields: BridgeClusterFields) => {
+    if (!writeClients) {
+      setStatus('Connect the mediator wallet first.')
+      return
+    }
+    setBusy(true)
+    setStatus('Paying the implication attester for recorded pairs…')
+    try {
+      const submitted = await submitPairsToAttester({
+        writeClients,
+        pairs: attestablePairs(fields),
+      })
+      setStatus(formatPairSummary(submitted.results))
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : String(error))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const runPublishNudges = async (fields: BridgeClusterFields) => {
+    if (!writeClients || !address) {
+      setStatus('Connect the mediator wallet first.')
+      return
+    }
+    setBusy(true)
+    setStatus('Publishing parent→modified nudge batch…')
+    try {
+      const batch = await publishParentToModifiedNudges({
+        writeClients,
+        mediatorAddress: address,
+        fields,
+      })
+      setStatus(`Published parent→modified nudges (${batch.batchCid.slice(0, 12)}…).`)
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : String(error))
+    } finally {
+      setBusy(false)
+    }
   }
 
   if (published && routeRef) {
@@ -452,7 +520,31 @@ export function BridgeClusterPage() {
               {pair.role}: {pair.fromCid.slice(0, 12)}… → {pair.toCid.slice(0, 12)}…
             </Typography>
           ))}
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ mt: 1.5 }}>
+            <Button
+              variant="contained"
+              disabled={busy}
+              sx={{ textTransform: 'none' }}
+              onClick={() => void runSubmitPairs(published)}
+              data-testid="bridge-submit-pairs"
+            >
+              Submit pairs to attester
+            </Button>
+            <Button
+              variant="outlined"
+              disabled={busy || parentToModifiedNudges(published.pairs).length === 0}
+              sx={{ textTransform: 'none' }}
+              onClick={() => void runPublishNudges(published)}
+              data-testid="bridge-publish-nudges"
+            >
+              Publish parent→modified nudges
+            </Button>
+          </Stack>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+            Attestation is paid per batch and may refuse a pair. Nudges only exist when you recorded modified→parent pairs.
+          </Typography>
         </Paper>
+        {status && <Alert severity="info" sx={{ borderRadius: 2, whiteSpace: 'pre-wrap' }}>{status}</Alert>}
       </Stack>
     )
   }
@@ -495,8 +587,9 @@ export function BridgeClusterPage() {
         </Typography>
         <Typography variant="body1" color="text.secondary" sx={{ mt: 1, maxWidth: 640 }}>
           Point at existing causes, draft a thinner modified wording for each side, draft the
-          shared bridge, and record plank-to-plank pairs. Assistive wording checks are optional;
-          you remain the publisher. This does not replace the in-cause mediator.
+          shared bridge, and record plank-to-plank pairs. After publish you can pay the
+          implication attester for those pairs and optionally publish parent→modified nudges.
+          You remain the publisher. This does not replace the in-cause mediator.
         </Typography>
       </Box>
 
@@ -754,6 +847,7 @@ export function BridgeClusterPage() {
         <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>Intended implication pairs</Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
           Statement-level only. Checking wording does not attest an arrow.
+          Submit blessed pairs to the implication attester after they are published.
         </Typography>
         {draft.pairs.map((pair) => (
           <Stack key={pair.id} direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ mb: 1 }}>
@@ -811,7 +905,18 @@ export function BridgeClusterPage() {
         )}
       </Paper>
 
-      {status && <Alert severity="info" sx={{ borderRadius: 2 }}>{status}</Alert>}
+      {status && <Alert severity="info" sx={{ borderRadius: 2, whiteSpace: 'pre-wrap' }}>{status}</Alert>}
+
+      <Stack spacing={0.5}>
+        <FormControlLabel
+          control={<Checkbox checked={submitPairs} onChange={(event) => setSubmitPairs(event.target.checked)} />}
+          label="After publish, pay the implication attester for recorded pairs"
+        />
+        <FormControlLabel
+          control={<Checkbox checked={publishNudges} onChange={(event) => setPublishNudges(event.target.checked)} />}
+          label="After publish, also publish parent→modified nudges (needs modified→parent pairs)"
+        />
+      </Stack>
 
       <Button
         variant="contained"

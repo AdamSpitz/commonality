@@ -3,7 +3,7 @@
 Known incompleteness for the founder-first surface. Merge is allowed with these
 open **if they stay listed here**.
 
-- [ ] Bridge cluster editor records intended plank pairs and can wording-check them; it does not yet pay the implication attester or publish nudge-publication batches. Follow-up: submit blessed pairs through the existing attester, and optional parent→modified nudge opt-in using today’s nudger.
+- [x] Bridge cluster editor records intended plank pairs, wording-checks them, can pay the implication attester for those pairs, and can optionally publish parent→modified nudge batches. Attester refusals stay refusals (no invented arrows).
 
 ## Product / UX
 

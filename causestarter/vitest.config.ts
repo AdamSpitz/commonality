@@ -7,6 +7,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@ui': path.resolve(__dirname, '../ui/src'),
+      '@commonality/sdk/published-data': path.resolve(__dirname, '../sdk/src/subsystems/published-data/index.ts'),
     },
   },
   test: {

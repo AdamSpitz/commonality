@@ -347,3 +347,8 @@ export function nudgeTargets(fields: BridgeClusterFields): Array<{ from: CauseRe
     to: { owner: modified.owner, slug: modified.slug },
   }))
 }
+
+/** Statement pairs the attester should judge. Causes never imply each other. */
+export function attestablePairs(fields: BridgeClusterFields): IntendedPair[] {
+  return fields.pairs.filter((pair) => pair.fromCid && pair.toCid)
+}
