@@ -13,7 +13,6 @@ import type { RefUpdate } from '@commonality/sdk/mutable-refs'
 import {
   InfoChip,
   useTrustedAttesters,
-  useTrustedSet,
 } from '@ui/shared'
 import { CauseBoard, CauseLeaderboard } from '@ui/fundingportals'
 import { AlignmentTrustGate } from '../components/AlignmentTrustGate'
@@ -49,10 +48,9 @@ import {
 } from '../lib/causeRoster'
 import { writeCauseBookmarkList } from '../lib/causeBookmarks'
 import { publishPlank } from '../lib/publishPlank'
-import { getRuntimeConfigValue } from '../lib/runtimeConfig'
-
 import { useMachinery } from '../lib/useMachinery'
 import { useWriteClients } from '../lib/useWriteClients'
+import { useAlignmentTrust } from '../hooks/useAlignmentTrust'
 import { useCauseProjects } from '../hooks/useCauseProjects'
 import { useViewCounts } from '../hooks/useViewCounts'
 
@@ -83,64 +81,12 @@ export function CauseDetailPage() {
     ? trustedImplicationAttesters
     : undefined
   const {
-    trustedSet: personalAlignmentAttesters,
-    isLoading: personalTrustLoading,
-    error: personalTrustError,
-  } = useTrustedSet(address)
-  const defaultAlignmentTrustRoot = getRuntimeConfigValue('VITE_DEFAULT_ALIGNMENT_TRUST_ROOT')
-  const {
-    trustedSet: defaultAlignmentAttesters,
-    isLoading: defaultTrustLoading,
-    error: defaultTrustError,
-  } = useTrustedSet(defaultAlignmentTrustRoot, { maxHops: 1 })
-  /**
-   * A configured starter root is itself a vouching network, even before it
-   * names other wallets. useTrustedSet returns undefined when the root has no
-   * outgoing TrustSet edges; treat that as `{root}` so the cause page does not
-   * claim the starter network is missing.
-   */
-  const starterAlignmentAttesters = useMemo(() => {
-    if (defaultAlignmentAttesters && defaultAlignmentAttesters.size > 0) {
-      return defaultAlignmentAttesters
-    }
-    if (defaultAlignmentTrustRoot) {
-      return new Set([defaultAlignmentTrustRoot.toLowerCase()])
-    }
-    return undefined
-  }, [defaultAlignmentAttesters, defaultAlignmentTrustRoot])
-  const trustedAlignmentAttesters = useMemo(() => {
-    const base = personalAlignmentAttesters ?? starterAlignmentAttesters
-    if (!base) return base
-    const next = new Set([...base].map((entry) => entry.toLowerCase()))
-    if (address) next.add(address.toLowerCase())
-    if (defaultAlignmentTrustRoot) next.add(defaultAlignmentTrustRoot.toLowerCase())
-    return next
-  }, [personalAlignmentAttesters, starterAlignmentAttesters, address, defaultAlignmentTrustRoot])
-  const trustLoading = personalTrustLoading
-    || (personalAlignmentAttesters === undefined && defaultTrustLoading)
-  const trustError = personalAlignmentAttesters === undefined
-    ? (defaultTrustError ?? personalTrustError)
-    : personalTrustError
-  /**
-   * useTrustedSet re-fetches on window focus and on a timer, flipping isLoading
-   * each time. Gate counts only until the *first* settle for this wallet so
-   * background refreshes do not unmount the views/projects sections (white flash).
-   */
-  const addressKey = `${address?.toLowerCase() ?? ''}:${defaultAlignmentTrustRoot?.toLowerCase() ?? ''}`
-  const [trustSettled, setTrustSettled] = useState(false)
-  useEffect(() => {
-    setTrustSettled(false)
-  }, [addressKey])
-  useEffect(() => {
-    if (!trustLoading) setTrustSettled(true)
-  }, [trustLoading])
-  const alignmentTrustReady = (
-    trustSettled && !trustError && trustedAlignmentAttesters !== undefined
-  )
-  const alignmentTrustUnavailable = trustSettled
-    && !trustError
-    && trustedAlignmentAttesters === undefined
-  const showInitialTrustLoad = !trustSettled && trustLoading
+    trustedAlignmentAttesters,
+    alignmentTrustReady,
+    alignmentTrustUnavailable,
+    showInitialTrustLoad,
+    trustError,
+  } = useAlignmentTrust()
 
   const routeRef = useMemo(
     () => parseCauseRouteParams(params.owner, params.slugPart),
@@ -1128,6 +1074,7 @@ export function CauseDetailPage() {
       ) : (
         <CauseBoard
           statementCids={publishedCids}
+          trustedAlignmentAttesters={trustedAlignmentAttesters}
           embedded
           surfaceTitle="Fundable Projects"
           projectLinks="local"

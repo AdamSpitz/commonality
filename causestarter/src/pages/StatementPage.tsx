@@ -16,6 +16,7 @@ import type { DisplayableDocument } from '@commonality/sdk/displayable-documents
 import type { IpfsCidV1 } from '@commonality/sdk/utils'
 import { useTrustedAttesters } from '@ui/shared'
 import { CauseBoard, CauseLeaderboard } from '@ui/fundingportals'
+import { useAlignmentTrust } from '../hooks/useAlignmentTrust'
 import { SupportButton } from '../components/SupportButton'
 import { CauseFundingSummary } from '../components/CauseFundingSummary'
 import { StarterNetworkFilterCopy } from '../components/StarterNetworkFilterNotice'
@@ -38,6 +39,7 @@ export function StatementPage() {
   const navigate = useNavigate()
   const machinery = useMachinery()
   const trustedImplicationAttesters = useTrustedAttesters()
+  const { trustedAlignmentAttesters } = useAlignmentTrust()
   const activeTrustedImplicationAttesters = trustedImplicationAttesters.length > 0
     ? trustedImplicationAttesters
     : undefined
@@ -264,6 +266,7 @@ export function StatementPage() {
 
       <CauseBoard
         statementCid={statementCid}
+        trustedAlignmentAttesters={trustedAlignmentAttesters}
         embedded
         surfaceTitle="Fundable Projects"
         projectLinks="local"

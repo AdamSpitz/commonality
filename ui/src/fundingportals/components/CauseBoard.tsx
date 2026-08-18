@@ -82,6 +82,12 @@ export interface CauseBoardProps {
    * CauseStarter hosts project detail locally; Aligning deep-links to LazyGiving.
    */
   projectLinks?: ProjectLinkMode
+  /**
+   * When set, alignment queries use this attester set instead of the viewer's
+   * personal trust graph. CauseStarter passes personal-or-starter so the list
+   * matches plank counts and the starter-network notice.
+   */
+  trustedAlignmentAttesters?: Iterable<string>
 }
 
 function defaultNavLinks(statementCid: string | undefined): CauseBoardNavLink[] {
@@ -133,6 +139,7 @@ export function CauseBoard({
   headerExtra,
   projectsHelp,
   projectLinks = 'lazyGiving',
+  trustedAlignmentAttesters,
 }: CauseBoardProps) {
   const cids = useMemo(
     () => resolveStatementCids(statementCid, statementCids),
@@ -147,15 +154,24 @@ export function CauseBoard({
     trustedImplicationAttesters.length > 0 ? trustedImplicationAttesters : undefined
   const { trustedSet, isLoading: trustedSetLoading } = useTrustedSet(address)
 
+  const alignmentOverrideKey = useMemo(() => {
+    if (trustedAlignmentAttesters === undefined) return null
+    return [...trustedAlignmentAttesters]
+      .map((entry) => entry.toLowerCase())
+      .sort()
+      .join(',')
+  }, [trustedAlignmentAttesters])
+
   // Stabilize effect deps: useTrustedSet replaces the Set on progressive updates.
   // Membership serialization avoids full board reloads when only the Set identity changes.
   const trustedSetKey = useMemo(() => {
+    if (alignmentOverrideKey !== null) return alignmentOverrideKey
     if (!trustedSet || trustedSet.size === 0) return ''
     return Array.from(trustedSet)
       .map((a) => a.toLowerCase())
       .sort()
       .join(',')
-  }, [trustedSet])
+  }, [alignmentOverrideKey, trustedSet])
   const trustedAttestersKey = useMemo(
     () =>
       (activeTrustedImplicationAttesters ?? [])
@@ -200,9 +216,9 @@ export function CauseBoard({
   useEffect(() => {
     const loadCids = cidsKey ? cidsKey.split('\0') : []
     let cancelled = false
-    const trustedSetForLoad: Set<string> | undefined = trustedSetKey
-      ? new Set(trustedSetKey.split(','))
-      : undefined
+    const trustedSetForLoad: Set<string> | undefined = alignmentOverrideKey !== null
+      ? new Set(alignmentOverrideKey ? alignmentOverrideKey.split(',') : [])
+      : (trustedSetKey ? new Set(trustedSetKey.split(',')) : undefined)
     const attestersForLoad = trustedAttestersKey
       ? trustedAttestersKey.split(',')
       : undefined
@@ -304,6 +320,7 @@ export function CauseBoard({
     embedded,
     trustedAttestersKey,
     trustedSetKey,
+    alignmentOverrideKey,
     channels.length,
     contentAttestationsKey,
     contentTrustKey,
@@ -528,6 +545,7 @@ export function CauseBoard({
               statementCid={primaryCid ?? ''}
               statementCids={cids}
               trustedImplicationAttesters={activeTrustedImplicationAttesters}
+              trustedAlignmentAttesters={trustedAlignmentAttesters}
               projectLinks={projectLinks}
               embedded
             />
@@ -554,6 +572,7 @@ export function CauseBoard({
               statementCid={primaryCid ?? ''}
               statementCids={cids}
               trustedImplicationAttesters={activeTrustedImplicationAttesters}
+              trustedAlignmentAttesters={trustedAlignmentAttesters}
               projectLinks={projectLinks}
               statusFilterLock="refunding"
               embedded
