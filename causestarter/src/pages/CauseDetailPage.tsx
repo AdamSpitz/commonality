@@ -31,7 +31,7 @@ import { SafetyRejectionDialog } from '../components/SafetyRejectionDialog'
 import {
   bookmarkCause, causeFundingPath, causeLeaderboardPath, causePath, causeTitle, findCauseByStable,
   getCause, hasPublishedRoster, isCauseBookmarked, isLive, markPlankPublished,
-  markRosterPublished, newPlank, publishedBookmarkIds, publishedPlanks, realPlanks,
+  markRosterPublished, newPlank, publishedPlanks, realPlanks,
   unbookmarkCause, unpublishedPlanks, updateCause,
   type CauseDraft, type CausePlank, type SafetyState,
 } from '../lib/causeStore'
@@ -46,7 +46,11 @@ import {
   previewRosterCid, publishRoster, resolveRosterCid, rosterFieldsFromCause,
   stableCausePath, validateSlug, type RosterCoherenceBadge,
 } from '../lib/causeRoster'
-import { writeCauseBookmarkList } from '../lib/causeBookmarks'
+import {
+  persistCauseBookmarks,
+  rememberBookmarkKept,
+  rememberBookmarkRemoved,
+} from '../lib/causeBookmarks'
 import { publishPlank } from '../lib/publishPlank'
 import { useMachinery } from '../lib/useMachinery'
 import { useWriteClients } from '../lib/useWriteClients'
@@ -317,23 +321,28 @@ export function CauseDetailPage() {
   const [shareCopiedOpen, setShareCopiedOpen] = useState(false)
 
   const persistWalletBookmarks = useCallback(async () => {
-    if (!writeClients) return
+    if (!writeClients || !address) return
     try {
-      await writeCauseBookmarkList(writeClients, publishedBookmarkIds())
+      await persistCauseBookmarks(machinery, address, writeClients)
     } catch (err) {
       console.warn('Could not update wallet cause bookmarks', err)
     }
-  }, [writeClients])
+  }, [writeClients, address, machinery])
 
   const keepThisCause = useCallback(() => {
     if (!cause || isOrganizer || !cause.founderAddress || !cause.slug) return
-    setCause(bookmarkCause(cause))
+    const saved = bookmarkCause(cause)
+    rememberBookmarkKept({ owner: saved.founderAddress!, slug: saved.slug! })
+    setCause(saved)
     void persistWalletBookmarks()
     setBookmarkUndoOpen(false)
   }, [cause, isOrganizer, persistWalletBookmarks])
 
   const handleRemoveFromDevice = () => {
     if (!cause || isOrganizer) return
+    if (cause.founderAddress && cause.slug) {
+      rememberBookmarkRemoved({ owner: cause.founderAddress, slug: cause.slug })
+    }
     unbookmarkCause(cause)
     setCause({ ...cause })
     void persistWalletBookmarks()

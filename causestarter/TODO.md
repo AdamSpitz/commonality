@@ -21,7 +21,7 @@ open **if they stay listed here**.
 
 - [ ] Safety filter is MVP/heuristic + LLM policy text — not legal-grade; version/align with operator/legal specs later.
 - [ ] Unpublished draft state still in `localStorage` only — multi-device recovery of *drafts* later (published rosters are on chain; published *bookmarks* follow the wallet `bookmarked-causes` ref).
-- [ ] Cause bookmarks: Playwright for keep/remove + reconnect hydrating from `bookmarked-causes`. Union-sync can resurrect a bookmark removed on another device (no tombstones). Hydrated list cards may show plank CIDs as text until the cause page is opened. Bookmarking is a public wallet `updateRef` with only the list-page disclaimer.
+- [ ] Cause bookmarks: `bookmarked-causes` is a public wallet `updateRef`; the only user-facing warning is the Causes list-page disclaimer. Keep/remove, reconnect hydrate, and tombstoned union-sync (a later keep can restore) are in place; Playwright covers keep/remove + reconnect.
 - [ ] Statement `bookmarks` ref is still reserved infrastructure only — no CauseStarter (or main `ui`) surface for remembering a statement without signing it.
 - [ ] No Privy path / full parity with main `ui` wallet story yet.
 - [ ] Product: how CauseStarter ranks vs other domains in nav/marketing once it’s “the main thing.”

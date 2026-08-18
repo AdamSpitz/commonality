@@ -283,6 +283,7 @@ Then **restart Grok** so MCP tools load.
 | `cause-view-strip` | Union / conjunction counts over selected statements |
 | `plank-in-totals-N` | Include/exclude the Nth statement from those totals (view only) |
 | `view-count-any` / `view-count-all` / `view-count-none-disagreed` | The counts themselves |
+| `cause-keep-on-device` / `cause-remove-from-device` | Bookmark / remove a published cause you do not organize |
 
 On **localhost**, Connect only lists Hardhat accounts (no MetaMask). Use **Hardhat #0** for funded local txs.
 

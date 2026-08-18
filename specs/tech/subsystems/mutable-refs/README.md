@@ -72,7 +72,7 @@ When using refs to store lists (e.g., `created-statements`), the ref value is an
 
 - **`created-statements`**: Tracks statements a user has created (for re-discovery). Written automatically by the statement-creation flow via `addToCreatedStatements()`. Used to populate the "Statements I've Created" section of a user's profile page.
 - **`bookmarks`**: Statement CIDs the user chose to remember without (or before) signing. Do not store causes here.
-- **`bookmarked-causes`**: Published CauseStarter causes the user chose to keep. Value is a last-write-wins JSON list of `{ owner, slug }` identities, not statement CIDs. Unpublished drafts stay off this ref.
+- **`bookmarked-causes`**: Published CauseStarter causes the user chose to keep. Value is last-write-wins JSON `{ version, causes, removed }`. `causes` are `{ owner, slug, updatedAt? }` identities, not statement CIDs. `removed` is a tombstone list so a stale device cannot union a deletion back onto the wallet. Version 1 documents (causes only) still parse. Unpublished drafts stay off this ref.
 
 Other ref names are possible (favorites, drafts, etc.) — the system is fully generic.
 
