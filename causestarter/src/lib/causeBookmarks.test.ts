@@ -60,6 +60,10 @@ describe('causeBookmarks', () => {
     ])
     expect(sameBookmarkList(a, b)).toBe(false)
     expect(sameBookmarkList(mergeBookmarkIds(a, b), b)).toBe(true)
+    expect(sameBookmarkList(
+      [{ owner: '0xabc0000000000000000000000000000000000001', slug: 'one', updatedAt: '2026-01-01T00:00:00.000Z' }],
+      [{ owner: '0xabc0000000000000000000000000000000000001', slug: 'one', updatedAt: '2026-02-01T00:00:00.000Z' }],
+    )).toBe(false)
   })
 
   it('lets a later tombstone beat a stale keep, and a later keep restore it', () => {
@@ -115,5 +119,43 @@ describe('causeBookmarks', () => {
     rememberBookmarkKept(id)
     const encoded = serializeCauseBookmarkList([id])
     expect(JSON.parse(encoded).removed).toEqual([])
+  })
+
+  it('does not let a later cause-draft clock beat a tombstone', () => {
+    const owner = '0xabc0000000000000000000000000000000000001'
+    const merged = mergeBookmarkDocuments(
+      {
+        version: 2,
+        causes: [],
+        removed: [{ owner, slug: 'safer-nights', updatedAt: '2026-02-01T00:00:00.000Z' }],
+      },
+      {
+        version: 2,
+        causes: [{ owner, slug: 'safer-nights' }],
+        removed: [],
+      },
+    )
+    expect(merged.causes).toEqual([])
+    expect(merged.removed[0]?.updatedAt).toBe('2026-02-01T00:00:00.000Z')
+  })
+
+  it('lets an explicit later keep restore a tombstoned identity', () => {
+    const id = { owner: '0xabc0000000000000000000000000000000000001', slug: 'safer-nights' }
+    rememberBookmarkRemoved(id, '2026-02-01T00:00:00.000Z')
+    rememberBookmarkKept(id, '2026-03-01T00:00:00.000Z')
+    const merged = mergeBookmarkDocuments(
+      {
+        version: 2,
+        causes: [],
+        removed: [{ ...id, updatedAt: '2026-02-01T00:00:00.000Z' }],
+      },
+      {
+        version: 2,
+        causes: [{ ...id, updatedAt: '2026-03-01T00:00:00.000Z' }],
+        removed: [],
+      },
+    )
+    expect(merged.causes[0]?.updatedAt).toBe('2026-03-01T00:00:00.000Z')
+    expect(merged.removed).toEqual([])
   })
 })

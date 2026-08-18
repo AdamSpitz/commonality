@@ -24,6 +24,7 @@ import { getRuntimeConfigValue } from './runtimeConfig'
 export const CAUSE_BOOKMARKS_REF = 'bookmarked-causes'
 export const CAUSE_BOOKMARKS_SCHEMA_VERSION = 2 as const
 const REMOVED_STORAGE_KEY = 'causestarter.bookmark-removed.v1'
+const KEPT_STORAGE_KEY = 'causestarter.bookmark-kept.v1'
 
 export interface CauseBookmarkId {
   owner: string
@@ -77,31 +78,53 @@ function canUseStorage(): boolean {
   return typeof window !== 'undefined' && typeof window.localStorage !== 'undefined'
 }
 
-export function readLocalBookmarkRemovals(): CauseBookmarkId[] {
+function readStoredIds(key: string): CauseBookmarkId[] {
   if (!canUseStorage()) return []
   try {
-    return parseIdList(JSON.parse(window.localStorage.getItem(REMOVED_STORAGE_KEY) ?? '[]'))
+    return parseIdList(JSON.parse(window.localStorage.getItem(key) ?? '[]'))
   } catch {
     return []
   }
 }
 
-function writeLocalBookmarkRemovals(ids: CauseBookmarkId[]): void {
+function writeStoredIds(key: string, ids: CauseBookmarkId[]): void {
   if (!canUseStorage()) return
-  window.localStorage.setItem(REMOVED_STORAGE_KEY, JSON.stringify(ids))
+  window.localStorage.setItem(key, JSON.stringify(ids))
+}
+
+export function readLocalBookmarkRemovals(): CauseBookmarkId[] {
+  return readStoredIds(REMOVED_STORAGE_KEY)
+}
+
+export function readLocalBookmarkKeeps(): CauseBookmarkId[] {
+  return readStoredIds(KEPT_STORAGE_KEY)
+}
+
+function writeLocalBookmarkRemovals(ids: CauseBookmarkId[]): void {
+  writeStoredIds(REMOVED_STORAGE_KEY, ids)
+}
+
+function writeLocalBookmarkKeeps(ids: CauseBookmarkId[]): void {
+  writeStoredIds(KEPT_STORAGE_KEY, ids)
+}
+
+function dropStoredId(ids: CauseBookmarkId[], id: CauseBookmarkId): CauseBookmarkId[] {
+  const key = bookmarkKey(id)
+  return ids.filter((row) => bookmarkKey(row) !== key)
 }
 
 export function rememberBookmarkRemoved(id: CauseBookmarkId, at = new Date().toISOString()): void {
   const next = normalizeId({ ...id, updatedAt: at })
   if (!next) return
-  const kept = readLocalBookmarkRemovals().filter((row) => bookmarkKey(row) !== bookmarkKey(next))
-  writeLocalBookmarkRemovals([...kept, next])
+  writeLocalBookmarkRemovals([...dropStoredId(readLocalBookmarkRemovals(), next), next])
+  writeLocalBookmarkKeeps(dropStoredId(readLocalBookmarkKeeps(), next))
 }
 
-export function rememberBookmarkKept(id: CauseBookmarkId): void {
-  writeLocalBookmarkRemovals(
-    readLocalBookmarkRemovals().filter((row) => bookmarkKey(row) !== bookmarkKey(id)),
-  )
+export function rememberBookmarkKept(id: CauseBookmarkId, at = new Date().toISOString()): void {
+  const next = normalizeId({ ...id, updatedAt: at })
+  if (!next) return
+  writeLocalBookmarkKeeps([...dropStoredId(readLocalBookmarkKeeps(), next), next])
+  writeLocalBookmarkRemovals(dropStoredId(readLocalBookmarkRemovals(), next))
 }
 
 export function parseCauseBookmarkDocument(value: string | null | undefined): CauseBookmarkDocument | null {
@@ -163,10 +186,7 @@ export function mergeBookmarkIds(
   return [...byKey.values()]
 }
 
-/**
- * Union two wallet/local documents. For the same identity, the later stamp
- * wins; a tombstone and a keep at the same stamp prefer the tombstone.
- */
+/** Equal stamps prefer remove so a keep cannot undo a same-instant delete. */
 export function mergeBookmarkDocuments(
   ...documents: Array<CauseBookmarkDocument | null | undefined>
 ): CauseBookmarkDocument {
@@ -206,8 +226,8 @@ export function mergeBookmarkDocuments(
 
 export function sameBookmarkList(a: readonly CauseBookmarkId[], b: readonly CauseBookmarkId[]): boolean {
   if (a.length !== b.length) return false
-  const keys = new Set(a.map(bookmarkKey))
-  return b.every((id) => keys.has(bookmarkKey(id)))
+  const stamps = new Map(a.map((id) => [bookmarkKey(id), stampMs(id)]))
+  return b.every((id) => stamps.get(bookmarkKey(id)) === stampMs(id))
 }
 
 export function sameBookmarkDocument(a: CauseBookmarkDocument, b: CauseBookmarkDocument): boolean {
@@ -215,12 +235,8 @@ export function sameBookmarkDocument(a: CauseBookmarkDocument, b: CauseBookmarkD
 }
 
 export function localBookmarkDocument(): CauseBookmarkDocument {
-  const causes = publishedBookmarkIds().map((id) => {
-    const row = listCauses().find(
-      (cause) => cause.slug === id.slug && cause.founderAddress?.toLowerCase() === id.owner,
-    )
-    return normalizeId({ ...id, updatedAt: row?.updatedAt }) ?? id
-  })
+  const keepByKey = new Map(readLocalBookmarkKeeps().map((id) => [bookmarkKey(id), id]))
+  const causes = publishedBookmarkIds().map((id) => keepByKey.get(bookmarkKey(id)) ?? normalizeId(id) ?? id)
   return {
     version: CAUSE_BOOKMARKS_SCHEMA_VERSION,
     causes,
@@ -280,6 +296,7 @@ export async function persistCauseBookmarks(
   const remote = await readCauseBookmarkDocument(machinery, address)
   const merged = mergeBookmarkDocuments(remote, localBookmarkDocument())
   writeLocalBookmarkRemovals(merged.removed)
+  writeLocalBookmarkKeeps(merged.causes)
   await writeCauseBookmarkDocument(clients, merged)
 }
 
@@ -288,14 +305,16 @@ export async function hydrateCauseBookmark(
   id: CauseBookmarkId,
 ): Promise<CauseDraft> {
   const owner = id.owner.toLowerCase()
-  const now = new Date().toISOString()
+  const stamp = id.updatedAt && Number.isFinite(Date.parse(id.updatedAt))
+    ? id.updatedAt
+    : new Date().toISOString()
   const stub: CauseDraft = {
     id: `remote:${owner}:${id.slug}`,
     planks: [],
     slug: id.slug,
     founderAddress: owner,
-    createdAt: now,
-    updatedAt: now,
+    createdAt: stamp,
+    updatedAt: stamp,
   }
   try {
     const rosterCid = await resolveRosterCid(machinery, owner, id.slug)
@@ -345,6 +364,7 @@ export async function syncCauseBookmarks(
   const merged = mergeBookmarkDocuments(remote, localBookmarkDocument())
 
   writeLocalBookmarkRemovals(merged.removed)
+  writeLocalBookmarkKeeps(merged.causes)
 
   for (const id of merged.removed) dropLocalBookmark(id)
 

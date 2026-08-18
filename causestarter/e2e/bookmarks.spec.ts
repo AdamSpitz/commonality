@@ -34,10 +34,35 @@ async function clearBrowserStorage(page: Page) {
   })
 }
 
-async function waitForWalletBookmarkWrite(page: Page) {
-  // updateRef is fire-and-forget from the bookmark button; give the local
-  // chain time to include it before we wipe the device cache.
-  await page.waitForTimeout(20_000)
+function documentHasSlug(value: string, slug: string, present: boolean): boolean {
+  try {
+    const parsed = JSON.parse(value) as { causes?: Array<{ slug?: string }>; removed?: Array<{ slug?: string }> }
+    const causes = parsed.causes?.some((row) => row.slug === slug) ?? false
+    const removed = parsed.removed?.some((row) => row.slug === slug) ?? false
+    return present ? causes && !removed : removed && !causes
+  } catch {
+    return false
+  }
+}
+
+async function waitForWalletBookmarkWrite(page: Page, slug: string, present: boolean) {
+  const indexerUrl = process.env.INDEXER_URL ?? 'http://localhost:42069'
+  const deadline = Date.now() + 60_000
+  while (Date.now() < deadline) {
+    const res = await page.request.post(`${indexerUrl}/graphql`, {
+      data: {
+        query: `{ mutableRefss(where: { name: "bookmarked-causes" }, limit: 20) { items { value } } }`,
+      },
+    }).catch(() => null)
+    const body = res && res.ok()
+      ? await res.json() as { data?: { mutableRefss?: { items?: Array<{ value: string }> } } }
+      : null
+    const items = body?.data?.mutableRefss?.items ?? []
+    if (items.some((item) => documentHasSlug(item.value, slug, present))) return
+    await page.waitForTimeout(1_000)
+  }
+  // Indexer GraphQL may lag or be down; the reconnect assertions still check the outcome.
+  await page.waitForTimeout(15_000)
 }
 
 test.describe('Cause bookmarks', () => {
@@ -79,7 +104,7 @@ test.describe('Cause bookmarks', () => {
 
     await page.getByTestId('cause-keep-on-device').click()
     await expect(page.getByTestId('cause-remove-from-device')).toBeVisible({ timeout: 10_000 })
-    await waitForWalletBookmarkWrite(page)
+    await waitForWalletBookmarkWrite(page, slug, true)
 
     await page.getByTestId('nav-causes').click()
     await expect(page.getByRole('heading', { name: title, exact: true })).toBeVisible({
@@ -97,7 +122,7 @@ test.describe('Cause bookmarks', () => {
     await expect(page.getByTestId('cause-remove-from-device')).toBeVisible({ timeout: 30_000 })
     await page.getByTestId('cause-remove-from-device').click()
     await expect(page.getByTestId('cause-keep-on-device')).toBeVisible()
-    await waitForWalletBookmarkWrite(page)
+    await waitForWalletBookmarkWrite(page, slug, false)
 
     await page.getByTestId('nav-causes').click()
     await expect(page.getByRole('heading', { name: title, exact: true })).toHaveCount(0)
