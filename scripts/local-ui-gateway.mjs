@@ -28,16 +28,34 @@ async function readCid(domain) {
   return (await fs.readFile(path.join(artifactRoot, domain, 'cid.txt'), 'utf8')).trim()
 }
 
-function renderAdminPage() {
-  const links = uiDomains
+async function publishedDomains() {
+  const found = []
+  for (const domain of uiDomains) {
+    try {
+      await readCid(domain)
+      found.push(domain)
+    } catch {
+      // Skip domains that were not published this start (see LOCAL_UI_DOMAINS).
+    }
+  }
+  return found
+}
+
+async function renderAdminPage() {
+  const domains = await publishedDomains()
+  const links = domains
     .map(domain => `<li><a href="${getLocalStableUrl(domain, port)}">${domain}</a></li>`)
     .join('\n')
+  const note = domains.length < uiDomains.length
+    ? `<p>Only published bundles are listed. Restore the rest with <code>LOCAL_UI_DOMAINS=all</code> (see workflow/local-development.md).</p>`
+    : ''
   return `<!doctype html>
 <html>
   <head><meta charset="utf-8"><title>Commonality local UI admin</title></head>
   <body>
     <h1>Commonality local UI admin</h1>
     <p>Bookmark this page to jump to any of the stable local IPFS UI bundles.</p>
+    ${note}
     <ul>${links}</ul>
   </body>
 </html>
@@ -114,7 +132,7 @@ const server = createServer(async (req, res) => {
 
     if (!domain) {
       res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' })
-      res.end(renderAdminPage())
+      res.end(await renderAdminPage())
       return
     }
 
@@ -126,9 +144,9 @@ const server = createServer(async (req, res) => {
   }
 })
 
-server.listen(port, '0.0.0.0', () => {
+server.listen(port, '0.0.0.0', async () => {
   console.log(`Commonality local UI gateway listening on http://localhost:${port}`)
-  for (const domain of uiDomains) {
+  for (const domain of await publishedDomains()) {
     console.log(`  ${getLocalStableUrl(domain, port)}`)
   }
 })

@@ -24,7 +24,17 @@ After building, you can run:
 ./scripts/data.sh --seed
 ```
 
-That's it. This uses Docker Compose to start a local Hardhat blockchain, deploys the smart contracts, starts IPFS, the Ponder indexer, and the platform API service, then publishes all eight domain SPA builds (commonality, lazyGiving, alignment, tally, content-funding, civility, common-sense-majority, conceptspace) to the local IPFS gateway. A local UI gateway then gives each IPFS bundle a stable URL such as `http://commonality.localhost:8088/#/` and `http://lazygiving.localhost:8088/#/`. Bookmark `http://localhost:8088/admin` for a simple local admin page linking to all eight stable URLs. The latest CIDs, raw IPFS gateway URLs, and stable local URLs are written to `./data/ui-ipfs/<domain>/`. You can re-print the stable URLs any time with `./scripts/services.sh --url`. After that, run `./scripts/data.sh --seed` to populate the chain with fake data (10 users, 3 rounds).
+That's it. This uses Docker Compose to start a local Hardhat blockchain, deploys the smart contracts, starts IPFS, the Ponder indexer, and the platform API service, then publishes the selected UI domain SPA(s) to the local IPFS gateway.
+
+**Which UI bundles get built:** local start currently publishes **CauseStarter only**. The eight legacy `ui` domains (commonality, lazyGiving, alignment, tally, content-funding, civility, common-sense-majority, conceptspace) each run a full Docker Vite build sequentially and were a major part of `--start` time. This is a temporary, reversible default — the compose services and source trees are still there.
+
+- Default: `LOCAL_UI_DOMAINS=causestarter` (implicit)
+- Restore every local IPFS SPA: `LOCAL_UI_DOMAINS=all ./scripts/services.sh --start`
+- Subset: `LOCAL_UI_DOMAINS=causestarter,tally ./scripts/services.sh --start`
+
+The same env var is read by `scripts/deploy-causestarter.sh`. The allow-list lives in `scripts/ui-domains.mjs` (`resolveLocalPublishDomains`). CauseStarter's dedicated SPA on `:8090` is always started and is independent of this list.
+
+A local UI gateway then gives each **published** IPFS bundle a stable URL such as `http://causestarter.localhost:8088/#/`. Bookmark `http://localhost:8088/admin` for links to whatever was published. The latest CIDs, raw IPFS gateway URLs, and stable local URLs are written to `./data/ui-ipfs/<domain>/`. You can re-print the stable URLs any time with `./scripts/services.sh --url`. After that, run `./scripts/data.sh --seed` to populate the chain with fake data. The default is `--seed=tiny` (5 users, 1 round, 12 statements, no invariant pass). Use `--seed=small` for the older 10-user / 3-round set.
 
 For a clean local reset, use:
 
