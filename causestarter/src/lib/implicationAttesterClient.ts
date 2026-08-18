@@ -156,11 +156,12 @@ export async function submitPairsToAttester(args: {
   const allResults: AttesterPairResult[] = []
   let paid = false
   let paymentTxHash: string | undefined
+  let reusedProof: string | undefined
 
   for (let offset = 0; offset < pairs.length; offset += BATCH_SIZE) {
     const batch = pairs.slice(offset, offset + BATCH_SIZE)
-    const first = await postBatch(endpoint, batch)
-    let proof: string | undefined
+    const first = await postBatch(endpoint, batch, reusedProof)
+    let proof = reusedProof
     if (first.status === 402) {
       const details = parsePaymentDetails(first.body)
       if (!details) {
@@ -169,6 +170,7 @@ export async function submitPairsToAttester(args: {
       paymentTxHash = await payQuote(writeClients, details)
       paid = true
       proof = `payment:${details.paymentId}`
+      reusedProof = proof
     } else if (first.status >= 200 && first.status < 300) {
       allResults.push(...parseResults(first.body))
       continue

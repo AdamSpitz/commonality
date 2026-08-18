@@ -56,6 +56,17 @@ function slugOrEmpty(raw: string): string {
   return raw.trim() ? normalizeSlug(raw) : ''
 }
 
+function parentSlotUsed(parent: BridgeParentDraft): boolean {
+  return Boolean(
+    parent.owner.trim()
+    || parent.slug.trim()
+    || parent.title.trim()
+    || parent.modified.title.trim()
+    || parent.modified.slug.trim()
+    || parent.modified.planks.some((plank) => plank.text.trim())
+  )
+}
+
 export function BridgeClusterPage() {
   const params = useParams<{ draftId?: string; owner?: string; slugPart?: string }>()
   const navigate = useNavigate()
@@ -209,9 +220,14 @@ export function BridgeClusterPage() {
       const publishedParents = []
       const publishedModified = []
 
-      for (const parent of draft.parents) {
+      const parentsToPublish = draft.parents.filter(parentSlotUsed)
+      if (parentsToPublish.length === 0) {
+        throw new Error('Add at least one published parent cause.')
+      }
+
+      for (const parent of parentsToPublish) {
         if (!parent.owner.trim() || !parent.slug.trim()) {
-          throw new Error('Every parent needs a published owner and slug.')
+          throw new Error('Every used parent needs a published owner and slug.')
         }
         const parentOwner = parent.owner.trim().toLowerCase() as `0x${string}`
         const parentSlug = normalizeSlug(parent.slug)
@@ -558,10 +574,16 @@ export function BridgeClusterPage() {
   }
 
   const addPair = (role: 'modified-to-bridge' | 'modified-to-parent') => {
-    const from = draft.parents[0]?.modified.planks.find((p) => p.text.trim())
+    const usedParents = draft.parents.filter(parentSlotUsed)
+    const pairedFrom = new Set(draft.pairs.filter((pair) => pair.role === role).map((pair) => pair.fromPlankId))
+    const parent = usedParents.find((item) => item.modified.planks.some((plank) => plank.text.trim() && !pairedFrom.has(plank.id)))
+      ?? usedParents.find((item) => item.modified.planks.some((plank) => plank.text.trim()))
+      ?? draft.parents[0]
+    const from = parent?.modified.planks.find((p) => p.text.trim() && !pairedFrom.has(p.id))
+      ?? parent?.modified.planks.find((p) => p.text.trim())
     const to = role === 'modified-to-bridge'
       ? draft.bridge.planks.find((p) => p.text.trim())
-      : draft.parents[0]?.parentPlanks[0]
+      : parent?.parentPlanks.find((p) => p.text.trim()) ?? parent?.parentPlanks[0]
     if (!from || !to) {
       setStatus('Write the modified and target planks before pairing them.')
       return

@@ -1,11 +1,4 @@
-/**
- * Bridge cluster as a published, versioned artifact.
- *
- * A cluster is n modified causes + one bridge cause, plus the intended
- * plank-to-plank implication pairs. Causes do not imply each other.
- *
- * See specs/product/bridge-causes.md.
- */
+/** Published bridge-cluster document. See specs/product/bridge-causes.md. */
 
 import {
   MutableRefUpdaterAbi,

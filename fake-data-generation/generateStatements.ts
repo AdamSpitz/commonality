@@ -149,8 +149,9 @@ export async function publishGeneratedStatements(
           clients,
           contract,
           statementDocument(stmt.content, stmt.domain, stmt.position, stmt.statementType),
-          { waitForReceipt: false, nonce: nonce++ },
+          { waitForReceipt: false, nonce },
         );
+        nonce += 1;
         stmt.cid = result.cid;
         pending.push({ stmt, hash: result.txHash });
       } catch (err) {
@@ -163,12 +164,16 @@ export async function publishGeneratedStatements(
       pending.map(({ hash }) => clients.publicClient.waitForTransactionReceipt({ hash })),
     );
     receipts.forEach((receipt, index) => {
-      if (receipt.status === 'fulfilled') {
+      if (receipt.status === 'fulfilled' && receipt.value.status === 'success') {
         uploaded++;
-      } else {
-        failed++;
-        delete pending[index].stmt.cid;
+        return;
+      }
+      failed++;
+      delete pending[index].stmt.cid;
+      if (receipt.status === 'rejected') {
         console.error(`  Failed to confirm statement: ${receipt.reason}`);
+      } else {
+        console.error(`  Statement publish reverted: ${pending[index].hash}`);
       }
     });
 
