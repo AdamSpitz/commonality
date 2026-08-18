@@ -2,7 +2,7 @@ import assert from 'assert';
 import { encodeEventTopics, encodeAbiParameters, parseAbiParameters, type Address } from 'viem';
 import { createSDKMachinery } from '../../machinery.js';
 import { cidToBytes32 } from '../../utils/cid-types.js';
-import { createStatement, toCanonicalJson } from '../displayable-documents/displayable-document.js';
+import { createDisplayableDocument, createStatement, toCanonicalJson } from '../displayable-documents/displayable-document.js';
 import { computePublishedDataId, publishedDataIdToCid } from '../published-data/id.js';
 import { fakeContentResolver } from '../published-data/test-support.js';
 import { fakeIpfsCidV1 } from '../../utils/test-helpers.js';
@@ -615,6 +615,74 @@ describe('getStatementWithContent — PublishedData fallback', () => {
     assert.equal(result?.contentStatus, 'active');
     assert.equal(result?.statement.believerCount, 0);
     assert.equal(result?.statement.cid, cid);
+    assert.equal(result?.statement.statementType, 'statement');
+  });
+
+  it('does not synthesize a Statement for unsigned roster or claim publications', async function() {
+    async function loadUnsigned(document: ReturnType<typeof createDisplayableDocument>) {
+      const contentBytes = new TextEncoder().encode(toCanonicalJson(document));
+      const dataId = computePublishedDataId(contentBytes);
+      const cid = publishedDataIdToCid(dataId);
+
+      globalThis.fetch = (async (input: string | URL | Request) => {
+        const url = new URL(requestUrlString(input));
+        if (url.pathname === '/api/events') {
+          return new Response(JSON.stringify({ items: [] }), {
+            status: 200,
+            headers: { 'content-type': 'application/json' },
+          });
+        }
+        if (url.pathname.toLowerCase() === `/api/published-data/${dataId}`) {
+          return new Response(JSON.stringify({
+            status: 'active',
+            publications: [{
+              publisher: PUBLISHER_FOR_POINTER,
+              transactionHash: POINTER_TX_HASH,
+              blockNumber: '1',
+              logIndex: 0,
+            }],
+          }), { status: 200, headers: { 'content-type': 'application/json' } });
+        }
+        return new Response(JSON.stringify({ error: 'unexpected url' }), { status: 404 });
+      }) as typeof fetch;
+
+      return getStatementWithContent(createSDKMachinery({
+        ipfsConfig: { shouldUseMock: true },
+        eventCacheUrl: 'http://localhost:42069',
+        publishedContentResolver: fakeContentResolver([contentBytes]),
+        contractAddresses: {
+          beliefs: BELIEFS_CONTRACT,
+          implications: IMPLICATIONS_CONTRACT,
+          assuranceContractFactory: '0x0000000000000000000000000000000000000000',
+          erc1155Factory: '0x0000000000000000000000000000000000000000',
+          delegatableNotes: '0x0000000000000000000000000000000000000000',
+          noteIntent: '0x0000000000000000000000000000000000000000',
+          alignmentAttestations: '0x0000000000000000000000000000000000000000',
+          mutableRefUpdater: '0x0000000000000000000000000000000000000000',
+          trustRegistry: '0x0000000000000000000000000000000000000000',
+          publishedData: PUBLISHED_DATA_CONTRACT,
+        },
+      }), cid);
+    }
+
+    const roster = await loadUnsigned(createDisplayableDocument({
+      format: 'text/plain',
+      content: 'A cause roster is not a statement.',
+      extras: { kind: 'causestarter.roster', version: 1, title: 'Roster' },
+    }));
+    const claim = await loadUnsigned(createDisplayableDocument({
+      format: 'text/plain',
+      content: 'This roster is coherently constructed.',
+      extras: { statementType: 'claim', kind: 'causestarter.roster-coherence' },
+    }));
+    const untyped = await loadUnsigned(createDisplayableDocument({
+      format: 'text/plain',
+      content: 'Displayable but not a statement.',
+    }));
+
+    assert.equal(roster, null);
+    assert.equal(claim, null);
+    assert.equal(untyped, null);
   });
 
   it('marks a PublishedData-only statement retracted when every honored publication is self-retracted', async () => {

@@ -1024,6 +1024,29 @@ export async function getStatementSuggestions(
 // Composite Functions
 // ============================================================================
 
+/** extras.statementType values that may synthesize a Statement without DirectSupport. */
+const STATEMENT_SHAPED_EXTRAS_TYPES = new Set([
+  'statement',
+  'simple',
+  'disjunction',
+  'conjunction',
+  'proposal',
+]);
+
+function extrasStatementType(doc: DisplayableDocument | null): string | undefined {
+  const value = doc?.extras?.statementType;
+  return typeof value === 'string' && value.length > 0 ? value : undefined;
+}
+
+/**
+ * Unsigned PublishedData fallback must not turn a roster, claim, or other
+ * publication into a signable Statement just because the bytes are displayable.
+ */
+function isStatementShapedDocument(doc: DisplayableDocument | null): boolean {
+  const statementType = extrasStatementType(doc);
+  return statementType !== undefined && STATEMENT_SHAPED_EXTRAS_TYPES.has(statementType);
+}
+
 /**
  * Get a statement's on-chain metadata together with its IPFS content document.
  *
@@ -1033,8 +1056,8 @@ export async function getStatementSuggestions(
  * @param machinery - SDK machinery with event cache and IPFS configuration
  * @param statementCid - CIDv1 of the statement
  * @param options - Include metrics, IPFS timeout, trusted attesters for indirect support
- * @returns Statement with content, or null if there is no on-chain publication
- *   and no DirectSupport events for this CID
+ * @returns Statement with content, or null if there are no DirectSupport events
+ *   and the CID is not an unsigned statement-shaped publication
  */
 export async function getStatementWithContent(
   machinery: SDKMachinery,
@@ -1066,11 +1089,11 @@ export async function getStatementWithContent(
   content = document.content;
   contentStatus = document.status;
 
-  // Published (or retracted) documents are viewable even before anyone signs.
-  // getStatement only looks at DirectSupport events, so unsigned planks
-  // would otherwise 404 on /statement/:cid.
+  // Unsigned planks have no DirectSupport events; getStatement would 404
+  // /statement/:cid. Only synthesize a Statement for statement-shaped extras
+  // (not rosters, claims, or other PublishedData publications).
   if (!statementFromEvents) {
-    if (!content && contentStatus === 'unavailable') {
+    if (contentStatus !== 'active' || !isStatementShapedDocument(content)) {
       return null;
     }
   }
@@ -1080,6 +1103,7 @@ export async function getStatementWithContent(
     cid: statementCid,
     believerCount: 0,
     disbelieverCount: 0,
+    statementType: extrasStatementType(content),
   };
 
   let metrics: StatementWithContent['metrics'] | undefined;
