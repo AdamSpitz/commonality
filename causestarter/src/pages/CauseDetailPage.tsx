@@ -180,6 +180,7 @@ export function CauseDetailPage() {
           rosterCid,
           // Published identity wins: a follower has no local copy to fall back on.
           mediator: fields.mediator ?? local?.mediator,
+          bridgeCluster: fields.bridgeCluster ?? local?.bridgeCluster,
           suggestionSeed: local?.suggestionSeed,
           createdAt: local?.createdAt ?? new Date().toISOString(),
           updatedAt: local?.updatedAt ?? new Date().toISOString(),
@@ -761,6 +762,35 @@ export function CauseDetailPage() {
           >
             Cause
           </Typography>
+        )}
+        {cause.bridgeCluster && (
+          <Alert
+            severity="warning"
+            sx={{ borderRadius: 2, mt: 1, mb: 1 }}
+            data-testid="cause-bridge-authorship"
+          >
+            {cause.bridgeCluster.role === 'bridge'
+              ? 'This is a mediator-authored bridge cause, not a natural parent publication.'
+              : 'This is a mediator-authored wording of another cause. It is not an official revision by that cause’s founder.'}
+            {' '}
+            <Link
+              component={RouterLink}
+              to={`/bridge/${cause.bridgeCluster.clusterOwner}/${encodeURIComponent(cause.bridgeCluster.clusterSlug)}`}
+            >
+              Open the bridge cluster
+            </Link>
+            {cause.bridgeCluster.role === 'modified' && cause.bridgeCluster.parentOwner && cause.bridgeCluster.parentSlug && (
+              <>
+                {' · '}
+                <Link
+                  component={RouterLink}
+                  to={`/cause/${cause.bridgeCluster.parentOwner}/${encodeURIComponent(cause.bridgeCluster.parentSlug)}`}
+                >
+                  Natural parent
+                </Link>
+              </>
+            )}
+          </Alert>
         )}
         <Stack direction="row" alignItems="flex-start" spacing={0.5} sx={{ pr: (canKeepOnDevice || stable) ? 0.5 : 0 }}>
           <Typography

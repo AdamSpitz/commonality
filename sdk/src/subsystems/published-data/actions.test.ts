@@ -39,4 +39,36 @@ describe('publishData', () => {
 
     assert.deepEqual(writtenArgs, ['0xdeadbeef']);
   });
+
+  it('skips waiting for the receipt when asked and forwards nonce', async () => {
+    let waited = false;
+    let writtenNonce: number | undefined;
+    const clients = {
+      walletClient: {
+        chain: hardhat,
+        account: '0x0000000000000000000000000000000000000002',
+        writeContract: async (request: { nonce?: number }) => {
+          writtenNonce = request.nonce;
+          return '0x0000000000000000000000000000000000000000000000000000000000000003';
+        },
+      },
+      publicClient: {
+        waitForTransactionReceipt: async () => {
+          waited = true;
+          return {};
+        },
+      },
+      account: '0x0000000000000000000000000000000000000002',
+    } as unknown as WriteClients;
+
+    await publishData(
+      clients,
+      publishedDataContract,
+      new Uint8Array([0x01]),
+      { waitForReceipt: false, nonce: 7 },
+    );
+
+    assert.equal(writtenNonce, 7);
+    assert.equal(waited, false);
+  });
 });

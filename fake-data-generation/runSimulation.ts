@@ -1,10 +1,11 @@
-import { createPublicClient, createWalletClient, http, parseEther } from 'viem';
-import { privateKeyToAccount } from 'viem/accounts';
+import { parseEther } from 'viem';
 import fs from 'fs/promises';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { generateUsers, HARDHAT_PRIVATE_KEYS } from './generateUsers.js';
-import { generateStatements, publishGeneratedStatement } from './generateStatements.js';
+import { FUNDED_HARDHAT_DEV_KEYS } from './seedCauseRoster.js';
+import { createSeedClients, createSeedPublicClient } from './seedRpc.js';
+import { generateStatements, publishGeneratedStatement, publishGeneratedStatements } from './generateStatements.js';
 import { generateAttestations, loadAttestations, hasAttestations } from './generateAttestations.js';
 import { FundingAndDelegationActions, getSeedProjectAlignmentRef } from './fundingAndDelegationActions.js';
 import { AttackScenarios } from './attackScenarios.js';
@@ -53,44 +54,12 @@ const paymentTokenFundingAbi = [
   },
 ] as const;
 
-const hardhat = {
-  id: 31337,
-  name: 'Hardhat',
-  network: 'hardhat',
-  nativeCurrency: {
-    name: 'Ether',
-    symbol: 'ETH',
-    decimals: 18,
-  },
-  rpcUrls: {
-    default: { http: ['http://localhost:8545'] },
-    public: { http: ['http://localhost:8545'] },
-  },
-} as const;
-
 const BELIEVES = 1;
 const DISBELIEVES = 2;
 
 
 function createTestClients(privateKey: `0x${string}`, rpcUrl = 'http://localhost:8545') {
-  const account = privateKeyToAccount(privateKey);
-
-  const walletClient = createWalletClient({
-    account,
-    chain: hardhat,
-    transport: http(rpcUrl),
-  });
-
-  const publicClient = createPublicClient({
-    chain: hardhat,
-    transport: http(rpcUrl),
-  });
-
-  return {
-    walletClient,
-    publicClient,
-    account: account.address,
-  };
+  return createSeedClients(privateKey, rpcUrl);
 }
 
 type TestClients = ReturnType<typeof createTestClients>;
@@ -383,42 +352,24 @@ class SimulationRunner {
   }
 
   async publishGeneratedStatements(ipfsConfig: IPFSConfig): Promise<void> {
-    let uploaded = 0;
-    let failed = 0;
-    const publisher = this.users[0] ? this.getClientsForUser(this.users[0]) : undefined;
     const publishedDataAddress = CONTRACT_ADDRESSES.publishedData as `0x${string}` | undefined;
-
-    for (const stmt of this.statements) {
-      try {
-        const cid: IpfsCidV1 = await publishGeneratedStatement(
-          ipfsConfig,
-          stmt.content,
-          stmt.domain,
-          stmt.position,
-          stmt.statementType,
-          { clients: publisher, publishedDataAddress },
-        );
-        stmt.cid = cid;
-        uploaded++;
-
-        if (uploaded % 10 === 0) {
-          console.log(`  Published ${uploaded}/${this.statements.length} statements...`);
-        }
-      } catch (err) {
-        const error = err as Error;
-        failed++;
-        console.error(`  Failed to publish statement: ${error.message}`);
-      }
-    }
+    const publisherKeys = (FUNDED_HARDHAT_DEV_KEYS.length > 0
+      ? FUNDED_HARDHAT_DEV_KEYS
+      : HARDHAT_PRIVATE_KEYS
+    ).slice(0, 8) as `0x${string}`[];
+    const publishers = publisherKeys.map((key) => createSeedClients(key, RPC_URL));
+    const { uploaded, failed } = await publishGeneratedStatements(
+      this.statements,
+      ipfsConfig,
+      publishers,
+      publishedDataAddress,
+    );
 
     console.log(`  Published ${uploaded} statements to ${publishedDataAddress ? 'PublishedData' : 'IPFS'} (${failed} failed)`);
   }
 
   async fundUsers(): Promise<void> {
-    const publicClient = createPublicClient({
-      chain: hardhat,
-      transport: http(RPC_URL)
-    });
+    const publicClient = createSeedPublicClient(RPC_URL);
 
     // Use Hardhat's pre-funded default account as funder (starts with 10,000 ETH)
     const funderClient = createTestClients(HARDHAT_PRIVATE_KEYS[0], RPC_URL);
@@ -1504,16 +1455,12 @@ async function main(): Promise<void> {
     await simulation.runAttackScenarios();
   }
 
-  // Run invariant checks if requested
-  if (runInvariants) {
-    await simulation.runInvariantChecks();
-  }
-
-  // Always run invariant checks after simulation unless this is an intentionally tiny/dev seed.
-  if (!skipInvariants) {
-    await simulation.runInvariantChecks();
-  } else {
+  // Invariants are opt-out via --skip-invariants (tiny and small local seeds pass that).
+  // --invariants is accepted as an explicit request; it is the default when skip is absent.
+  if (skipInvariants && !runInvariants) {
     console.log('\nSkipping invariant checks (--skip-invariants).');
+  } else {
+    await simulation.runInvariantChecks();
   }
 
   await simulation.saveResults();

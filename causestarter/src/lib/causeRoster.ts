@@ -46,7 +46,7 @@ import {
   type Hash,
 } from 'viem'
 import { getRuntimeConfigValue } from './runtimeConfig'
-import type { CauseDraft, CauseMediator, CausePlank } from './causeStore'
+import type { CauseDraft, CauseMediator, CausePlank, RosterBridgeLink } from './causeStore'
 import { publishedPlanks } from './causeStore'
 
 /** Structured payload stored in DisplayableDocument.extras. */
@@ -102,6 +102,11 @@ export interface RosterFields {
    * mediator-less causes byte-identical to those published before this field existed.
    */
   mediator?: CauseMediator
+  /**
+   * When this roster is a modified or bridge cause in a cluster, point back at
+   * that cluster so the cause page can label mediator authorship.
+   */
+  bridgeCluster?: RosterBridgeLink
 }
 
 export interface RosterExtras extends RosterFields {
@@ -193,6 +198,28 @@ export function parseCauseMediator(value: unknown): CauseMediator | undefined {
   }
 }
 
+export function parseRosterBridgeLink(value: unknown): RosterBridgeLink | undefined {
+  if (!value || typeof value !== 'object') return undefined
+  const record = value as Record<string, unknown>
+  const clusterOwner = typeof record.clusterOwner === 'string' ? record.clusterOwner.trim() : ''
+  const clusterSlug = typeof record.clusterSlug === 'string' ? record.clusterSlug.trim() : ''
+  const role = record.role
+  if (!/^0x[0-9a-fA-F]{40}$/.test(clusterOwner)) return undefined
+  if (validateSlug(clusterSlug)) return undefined
+  if (role !== 'modified' && role !== 'bridge') return undefined
+  const parentOwner = typeof record.parentOwner === 'string' ? record.parentOwner.trim() : ''
+  const parentSlug = typeof record.parentSlug === 'string' ? record.parentSlug.trim() : ''
+  const parent = /^0x[0-9a-fA-F]{40}$/.test(parentOwner) && !validateSlug(parentSlug)
+    ? { parentOwner: parentOwner.toLowerCase() as `0x${string}`, parentSlug }
+    : {}
+  return {
+    clusterOwner: clusterOwner.toLowerCase() as `0x${string}`,
+    clusterSlug,
+    role,
+    ...parent,
+  }
+}
+
 export function mediatorBlurbFrom(mediator: CauseMediator | undefined): string {
   if (!mediator) return ''
   const name = mediator.name.trim()
@@ -215,6 +242,7 @@ export function rosterFieldsFromCause(cause: CauseDraft): RosterFields {
     plankCids: planks.map((plank) => plank.cid!).filter(Boolean),
     mediatorBlurb: mediatorBlurbFrom(cause.mediator).slice(0, MAX_MEDIATOR_BLURB_LENGTH),
     mediator: parseCauseMediator(cause.mediator),
+    ...(cause.bridgeCluster ? { bridgeCluster: cause.bridgeCluster } : {}),
   }
 }
 
@@ -248,6 +276,8 @@ export function buildRosterDocument(fields: RosterFields): DisplayableDocument {
   // Added only when present, so mediator-less rosters keep their pre-existing CIDs.
   const mediator = parseCauseMediator(fields.mediator)
   if (mediator) extras.mediator = mediator
+  const bridgeCluster = parseRosterBridgeLink(fields.bridgeCluster)
+  if (bridgeCluster) extras.bridgeCluster = bridgeCluster
   return createDisplayableDocument({
     format: 'markdown-restricted',
     content: renderRosterContent(fields),
@@ -277,7 +307,15 @@ export function parseRosterDocument(doc: DisplayableDocument): RosterFields | nu
   if (!title.trim() && plankCids.length === 0) return null
   // Absent on rosters published before the mediator identity was carried; not an error.
   const mediator = parseCauseMediator(extras.mediator)
-  return { title, summary, plankCids, mediatorBlurb, ...(mediator ? { mediator } : {}) }
+  const bridgeCluster = parseRosterBridgeLink(extras.bridgeCluster)
+  return {
+    title,
+    summary,
+    plankCids,
+    mediatorBlurb,
+    ...(mediator ? { mediator } : {}),
+    ...(bridgeCluster ? { bridgeCluster } : {}),
+  }
 }
 
 export function stableCausePath(id: StableCauseId, versionCid?: string): string {

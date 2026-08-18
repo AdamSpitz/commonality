@@ -1770,3 +1770,11 @@ which are worth checking first if this is repeated:
 - Each moved package's `eslint.config.js` imports the root `eslint.metrics.mjs`
   relatively and needed `../../`. `npm run lint-precommit` does **not** cover
   these packages, so only a full `npx turbo run lint` surfaces it.
+
+## 2026-08-18 — Local start publishes CauseStarter IPFS only
+
+Temporary, reversible: `./scripts/services.sh --start` and `./scripts/deploy-causestarter.sh` no longer build/publish the eight legacy `ui` domain SPAs by default. Default `LOCAL_UI_DOMAINS` is `causestarter`. Restore with `LOCAL_UI_DOMAINS=all`. Source of truth: `scripts/ui-domains.mjs` (`resolveLocalPublishDomains`). Docs: `workflow/local-development.md`, `.env.example`, `README.md`. CauseStarter on `:8090` is unchanged.
+
+## 2026-08-18 — Faster local seed
+
+`./scripts/data.sh --seed` now defaults to **tiny** (was small). `gen:small` and `gen:tiny` both pass `--skip-invariants`. Statement publish reuses one document store (or parallel PublishedData writes across Hardhat wallets, receipts awaited in a batch). Seed RPC clients poll every 50ms. See `fake-data-generation/generateStatements.ts`, `fake-data-generation/seedRpc.ts`, `scripts/data.sh`.

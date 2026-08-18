@@ -40,23 +40,38 @@ export function YourCauses({
             and are public.
           </Typography>
         </Box>
-        <Button
-          variant="outlined"
-          data-testid="causes-start-cause"
-          sx={{
-            flexShrink: 0,
-            mt: 0.35,
-            minHeight: 40,
-            px: 1.75,
-            borderRadius: 999,
-            textTransform: 'none',
-            fontWeight: 700,
-            whiteSpace: 'nowrap',
-          }}
-          onClick={() => navigate(createCausePath())}
-        >
-          Start a cause
-        </Button>
+        <Stack direction="row" spacing={1} sx={{ flexShrink: 0, mt: 0.35 }}>
+          <Button
+            variant="text"
+            data-testid="causes-start-bridge"
+            sx={{
+              minHeight: 40,
+              px: 1.75,
+              borderRadius: 999,
+              textTransform: 'none',
+              fontWeight: 700,
+              whiteSpace: 'nowrap',
+            }}
+            onClick={() => navigate('/bridge/new')}
+          >
+            Write a bridge
+          </Button>
+          <Button
+            variant="outlined"
+            data-testid="causes-start-cause"
+            sx={{
+              minHeight: 40,
+              px: 1.75,
+              borderRadius: 999,
+              textTransform: 'none',
+              fontWeight: 700,
+              whiteSpace: 'nowrap',
+            }}
+            onClick={() => navigate(createCausePath())}
+          >
+            Start a cause
+          </Button>
+        </Stack>
       </Box>
 
       {loading && causes.length === 0 && (

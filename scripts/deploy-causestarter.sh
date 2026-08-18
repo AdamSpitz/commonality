@@ -211,17 +211,18 @@ ensure_local_indexer() {
 }
 
 # Domain SPAs that CauseStarter tool cards deep-link to via *.localhost:8088.
-LOCAL_UI_DOMAINS=(
-  commonality
-  lazyGiving
-  alignment
-  tally
-  content-funding
-  civility
-  common-sense-majority
-  conceptspace
-  causestarter
-)
+# Same LOCAL_UI_DOMAINS switch as services.sh (default: causestarter only).
+if [ -z "${LOCAL_UI_DOMAINS:-}" ] && [ -f "$ROOT/.env" ]; then
+  _line="$(grep -E '^[[:space:]]*LOCAL_UI_DOMAINS=' "$ROOT/.env" | tail -n 1 || true)"
+  if [ -n "$_line" ]; then
+    _value="${_line#*=}"
+    _value="${_value%\"}"
+    _value="${_value#\"}"
+    export LOCAL_UI_DOMAINS="$_value"
+  fi
+  unset _line _value
+fi
+mapfile -t LOCAL_UI_DOMAINS < <(node "$ROOT/scripts/ui-domains.mjs" list-local-publish)
 
 wait_for_one_shot_container() {
   local container_name="$1"

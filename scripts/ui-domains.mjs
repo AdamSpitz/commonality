@@ -1,3 +1,10 @@
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+// Local `services.sh --start` / `deploy-causestarter.sh` IPFS publish list.
+// Temporary default is CauseStarter only (legacy eight-domain Vite builds
+// dominate local start time). Restore every bundle with LOCAL_UI_DOMAINS=all.
+// See workflow/local-development.md.
 export const uiDomains = [
   'commonality',
   'lazyGiving',
@@ -9,6 +16,24 @@ export const uiDomains = [
   'conceptspace',
   'causestarter',
 ]
+
+const DEFAULT_LOCAL_PUBLISH_DOMAINS = ['causestarter']
+
+export function resolveLocalPublishDomains(env = process.env) {
+  const raw = (env.LOCAL_UI_DOMAINS ?? 'causestarter').trim()
+  if (!raw || raw === 'causestarter') {
+    return [...DEFAULT_LOCAL_PUBLISH_DOMAINS]
+  }
+  if (raw === 'all') {
+    return [...uiDomains]
+  }
+  const requested = raw.split(/[\s,]+/).filter(Boolean)
+  const unknown = requested.filter((domain) => !uiDomains.includes(domain))
+  if (unknown.length > 0) {
+    throw new Error(`Unknown LOCAL_UI_DOMAINS value(s): ${unknown.join(', ')}`)
+  }
+  return requested
+}
 
 const localHostnames = {
   commonality: 'commonality.localhost',
@@ -39,4 +64,11 @@ export function getDomainForLocalHost(hostHeader = '') {
 
 export function getLocalStableUrl(domain, port) {
   return `http://${getLocalHostname(domain)}:${port}/#/`
+}
+
+const isMain = process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])
+if (isMain && process.argv[2] === 'list-local-publish') {
+  for (const domain of resolveLocalPublishDomains()) {
+    console.log(domain)
+  }
 }

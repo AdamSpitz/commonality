@@ -11,7 +11,7 @@
 import { type Address, type Hash } from 'viem';
 import { uploadToIPFS, fetchFromIPFS, IPFSConfig } from '../../utils/ipfs.js';
 import { type WriteClients } from '../../utils/ethereum.js';
-import { publishData, readData, computePublishedDataId, publishedDataCidToId, publishedDataIdToCid, createEventCacheCidResolver, createPublishedDataApiCidResolver, type DisplayPolicy, type CidResolution, type PublishedDataCache, type PublishedDataContract, type PublishedDataId, type PublishedDataReadResult, type PublishedDataCid } from '../published-data/index.js';
+import { publishData, readData, computePublishedDataId, publishedDataCidToId, publishedDataIdToCid, createEventCacheCidResolver, createPublishedDataApiCidResolver, type DisplayPolicy, type CidResolution, type PublishedDataCache, type PublishedDataContract, type PublishedDataId, type PublishedDataReadResult, type PublishedDataCid, type PublishDataOptions } from '../published-data/index.js';
 import type { SDKMachinery } from '../../machinery.js';
 import { IpfsCidV1 } from '../../utils/cid-types.js';
 
@@ -431,13 +431,14 @@ export async function publishDocumentToPublishedData(
   clients: WriteClients,
   publishedDataContract: PublishedDataContract,
   doc: DisplayableDocument,
+  options: PublishDataOptions = {},
 ): Promise<PublishedDocumentResult> {
   const validation = validateDisplayableDocument(doc);
   if (!validation.valid) {
     throw new Error(`Invalid displayable document: ${validation.errors.join(', ')}`);
   }
 
-  return publishData(clients, publishedDataContract, canonicalDocumentBytes(doc));
+  return publishData(clients, publishedDataContract, canonicalDocumentBytes(doc), options);
 }
 
 /**

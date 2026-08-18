@@ -54,6 +54,15 @@ export interface CauseMediator {
   description: string
 }
 
+/** Link from a modified/bridge roster back to its cluster publication. */
+export interface RosterBridgeLink {
+  clusterOwner: `0x${string}`
+  clusterSlug: string
+  role: 'modified' | 'bridge'
+  parentOwner?: `0x${string}`
+  parentSlug?: string
+}
+
 export interface CauseDraft {
   id: string
   planks: CausePlank[]
@@ -88,6 +97,8 @@ export interface CauseDraft {
   rosterCid?: string
   /** Optional organizer-operated mediator used by reusable bridge/opt-in blocks. */
   mediator?: CauseMediator
+  /** Present when this cause is a modified sliver or the bridge of a cluster. */
+  bridgeCluster?: RosterBridgeLink
 }
 
 const STORAGE_KEY = 'causestarter.causes.v3'

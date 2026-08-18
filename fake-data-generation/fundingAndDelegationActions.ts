@@ -1,5 +1,4 @@
-import { createPublicClient, createWalletClient, http, zeroAddress } from 'viem';
-import { privateKeyToAccount } from 'viem/accounts';
+import { zeroAddress } from 'viem';
 import { generateStatements } from './generateStatements.js';
 import { CONTRACT_ADDRESSES, loadEnv, RPC_URL } from './loadEnv.js';
 import { BeliefsAbi, ImplicationsAbi, AlignmentAttestationsAbi, ProjectFactoryAbi, AssuranceContractAbi, DelegatableNotesAbi, PublishedDataAbi } from '@commonality/sdk/abis';
@@ -11,6 +10,7 @@ import { depositETH as sdkDepositETH, delegateNote as sdkDelegateNote, revokeNot
 import { createProject as sdkCreateProject, buyProjectTokens, withdrawProjectFunds as sdkWithdrawProjectFunds } from '@commonality/sdk/lazy-giving';
 import type { User, Statement, SimulationContracts } from './types.js';
 import { parsePaymentTokenUnits } from './paymentTokenUnits.js';
+import { createSeedClients } from './seedRpc.js';
 
 loadEnv();
 
@@ -18,21 +18,6 @@ loadEnv();
 void BeliefsAbi;
 void ImplicationsAbi;
 void AlignmentAttestationsAbi;
-
-const hardhat = {
-  id: 31337,
-  name: 'Hardhat',
-  network: 'hardhat',
-  nativeCurrency: {
-    name: 'Ether',
-    symbol: 'ETH',
-    decimals: 18,
-  },
-  rpcUrls: {
-    default: { http: ['http://localhost:8545'] },
-    public: { http: ['http://localhost:8545'] },
-  },
-} as const;
 
 /**
  * Funding and Delegation Actions for Generative Testing
@@ -194,24 +179,7 @@ class FundingAndDelegationActions {
   }
 
   createClientsForUser(user: User) {
-    const account = privateKeyToAccount(user.privateKey);
-
-    const walletClient = createWalletClient({
-      account,
-      chain: hardhat,
-      transport: http(this.rpcUrl),
-    });
-
-    const publicClient = createPublicClient({
-      chain: hardhat,
-      transport: http(this.rpcUrl),
-    });
-
-    return {
-      walletClient,
-      publicClient,
-      account: account.address,
-    };
+    return createSeedClients(user.privateKey, this.rpcUrl);
   }
 
   getWalletForUser(user: User) {

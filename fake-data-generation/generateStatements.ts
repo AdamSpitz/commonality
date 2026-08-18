@@ -2,7 +2,7 @@ import fs from 'fs/promises';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import type { Statement, StatementContent } from './types.js';
-import { createDefaultDocumentStore, createStatement } from '@commonality/sdk/displayable-documents';
+import { createDefaultDocumentStore, createStatement, publishDocumentToPublishedData } from '@commonality/sdk/displayable-documents';
 import { PublishedDataAbi } from '@commonality/sdk/abis';
 import { IpfsCidV1, type IPFSConfig, type WriteClients } from '@commonality/sdk/utils';
 import { createIPFSConfigInNodeJSFromTheUsualEnvVars } from '@commonality/sdk/node';
@@ -32,6 +32,42 @@ function generatePositionKey(position: unknown): string {
 interface StatementPublicationOptions {
   clients?: WriteClients;
   publishedDataAddress?: `0x${string}`;
+  store?: ReturnType<typeof createDefaultDocumentStore>;
+}
+
+export const SEED_PUBLISH_CONCURRENCY = 8;
+
+function statementDocument(
+  content: StatementContent,
+  domain: string,
+  position: string,
+  statementType: 'simple' | 'disjunction' | 'conjunction',
+) {
+  return createStatement({
+    content: content.text,
+    topic: domain,
+    extras: {
+      domain: domain,
+      position: position,
+      statementType: statementType,
+      references: content.references || [],
+    },
+  });
+}
+
+export function createStatementPublishStore(
+  ipfsConfig: IPFSConfig,
+  options: StatementPublicationOptions = {},
+) {
+  return createDefaultDocumentStore(
+    createSDKMachinery({ ipfsConfig }),
+    options.clients && options.publishedDataAddress
+      ? {
+          clients: options.clients,
+          publishedDataContract: { address: options.publishedDataAddress, abi: PublishedDataAbi },
+        }
+      : {},
+  );
 }
 
 export async function publishGeneratedStatement(
@@ -42,27 +78,114 @@ export async function publishGeneratedStatement(
   statementType: 'simple' | 'disjunction' | 'conjunction',
   options: StatementPublicationOptions = {},
 ): Promise<IpfsCidV1> {
-  const document = createStatement({
-    content: content.text,
-    topic: domain,
-    extras: {
-      domain: domain,
-      position: position,
-      statementType: statementType,
-      references: content.references || [],
-    },
+  const document = statementDocument(content, domain, position, statementType);
+  const store = options.store ?? createStatementPublishStore(ipfsConfig, options);
+  return (await store.publish(document)).cid;
+}
+
+export async function publishGeneratedStatements(
+  statements: Statement[],
+  ipfsConfig: IPFSConfig,
+  publishers: WriteClients[],
+  publishedDataAddress?: `0x${string}`,
+): Promise<{ uploaded: number; failed: number }> {
+  if (statements.length === 0) {
+    return { uploaded: 0, failed: 0 };
+  }
+
+  if (!publishedDataAddress || publishers.length === 0) {
+    const store = createStatementPublishStore(ipfsConfig, {
+      clients: publishers[0],
+      publishedDataAddress,
+    });
+    let uploaded = 0;
+    let failed = 0;
+    for (const stmt of statements) {
+      try {
+        stmt.cid = await publishGeneratedStatement(
+          ipfsConfig,
+          stmt.content,
+          stmt.domain,
+          stmt.position,
+          stmt.statementType,
+          { store },
+        );
+        uploaded++;
+        if (uploaded % 10 === 0) {
+          console.log(`  Published ${uploaded}/${statements.length} statements...`);
+        }
+      } catch (err) {
+        failed++;
+        console.error(`  Failed to publish statement: ${(err as Error).message}`);
+      }
+    }
+    return { uploaded, failed };
+  }
+
+  const contract = { address: publishedDataAddress, abi: PublishedDataAbi };
+  const workerCount = Math.max(1, Math.min(SEED_PUBLISH_CONCURRENCY, publishers.length, statements.length));
+  const workers = publishers.slice(0, workerCount);
+  console.log(`  Publishing ${statements.length} statements via ${workerCount} wallets (receipts batched)...`);
+
+  const slices: Statement[][] = Array.from({ length: workerCount }, () => []);
+  statements.forEach((stmt, index) => {
+    slices[index % workerCount].push(stmt);
   });
 
-  const store = createDefaultDocumentStore(
-    createSDKMachinery({ ipfsConfig }),
-    options.clients && options.publishedDataAddress
-      ? {
-          clients: options.clients,
-          publishedDataContract: { address: options.publishedDataAddress, abi: PublishedDataAbi },
-        }
-      : {},
-  );
-  return (await store.publish(document)).cid;
+  const results = await Promise.all(slices.map(async (slice, workerIndex) => {
+    const clients = workers[workerIndex];
+    let uploaded = 0;
+    let failed = 0;
+    if (slice.length === 0) {
+      return { uploaded, failed };
+    }
+
+    let nonce = await clients.publicClient.getTransactionCount({ address: clients.account });
+    const pending: Array<{ stmt: Statement; hash: `0x${string}` }> = [];
+
+    for (const stmt of slice) {
+      try {
+        const result = await publishDocumentToPublishedData(
+          clients,
+          contract,
+          statementDocument(stmt.content, stmt.domain, stmt.position, stmt.statementType),
+          { waitForReceipt: false, nonce },
+        );
+        nonce += 1;
+        stmt.cid = result.cid;
+        pending.push({ stmt, hash: result.txHash });
+      } catch (err) {
+        failed++;
+        console.error(`  Failed to submit statement: ${(err as Error).message}`);
+      }
+    }
+
+    const receipts = await Promise.allSettled(
+      pending.map(({ hash }) => clients.publicClient.waitForTransactionReceipt({ hash })),
+    );
+    receipts.forEach((receipt, index) => {
+      if (receipt.status === 'fulfilled' && receipt.value.status === 'success') {
+        uploaded++;
+        return;
+      }
+      failed++;
+      delete pending[index].stmt.cid;
+      if (receipt.status === 'rejected') {
+        console.error(`  Failed to confirm statement: ${receipt.reason}`);
+      } else {
+        console.error(`  Statement publish reverted: ${pending[index].hash}`);
+      }
+    });
+
+    return { uploaded, failed };
+  }));
+
+  const uploaded = results.reduce((sum, result) => sum + result.uploaded, 0);
+  const failed = results.reduce((sum, result) => sum + result.failed, 0);
+  if (uploaded > 0) {
+    console.log(`  Published ${uploaded}/${statements.length} statements...`);
+  }
+  return { uploaded, failed };
 }
 
 export const uploadStatementToIPFS = publishGeneratedStatement;
@@ -78,6 +201,8 @@ async function generateStatements(ipfsConfig: IPFSConfig, options: GenerateState
     domains: Record<string, unknown>;
     statementTemplates: Record<string, Record<string, string[]>>;
   };
+  const store = createStatementPublishStore(ipfsConfig, options);
+  const publishOptions = { ...options, store };
 
   const statements: Statement[] = [];
   let __idCounter = 0;
@@ -97,7 +222,7 @@ async function generateStatements(ipfsConfig: IPFSConfig, options: GenerateState
         };
 
         __idCounter++;
-        const cid = await publishGeneratedStatement(ipfsConfig, content, domain, positionKey, 'simple', options);
+        const cid = await publishGeneratedStatement(ipfsConfig, content, domain, positionKey, 'simple', publishOptions);
         const statement: Statement = {
           domain,
           position: positionKey,
@@ -128,7 +253,7 @@ async function generateStatements(ipfsConfig: IPFSConfig, options: GenerateState
         type: 'or'
       };
 
-      const cid = await publishGeneratedStatement(ipfsConfig, content, stmt1.domain, `coalition(${stmt1.position},${stmt2.position})`, 'disjunction', options);
+      const cid = await publishGeneratedStatement(ipfsConfig, content, stmt1.domain, `coalition(${stmt1.position},${stmt2.position})`, 'disjunction', publishOptions);
       const coalition: Statement = {
         domain: stmt1.domain,
         position: 'coalition',
@@ -155,7 +280,7 @@ async function generateStatements(ipfsConfig: IPFSConfig, options: GenerateState
         type: 'and'
       };
 
-      const cid = await publishGeneratedStatement(ipfsConfig, content, stmt1.domain, `commonality(${stmt1.position},${stmt2.position})`, 'conjunction', options);
+      const cid = await publishGeneratedStatement(ipfsConfig, content, stmt1.domain, `commonality(${stmt1.position},${stmt2.position})`, 'conjunction', publishOptions);
       const commonality: Statement = {
         domain: stmt1.domain,
         position: 'commonality',

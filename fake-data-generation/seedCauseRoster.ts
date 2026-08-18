@@ -17,10 +17,10 @@ import { createSDKMachinery } from '@commonality/sdk/machinery';
 import { updateRef } from '@commonality/sdk/mutable-refs';
 import { createIPFSConfigInNodeJSFromTheUsualEnvVars } from '@commonality/sdk/node';
 import type { IpfsCidV1, WriteClients } from '@commonality/sdk/utils';
-import { createPublicClient, createWalletClient, http } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { HARDHAT_PRIVATE_KEYS } from './generateUsers.js';
 import { CONTRACT_ADDRESSES, RPC_URL } from './loadEnv.js';
+import { createSeedClients } from './seedRpc.js';
 
 export const ROSTER_KIND = 'causestarter.roster' as const;
 export const ROSTER_SCHEMA_VERSION = 1 as const;
@@ -49,17 +49,6 @@ export const FUNDED_HARDHAT_DEV_KEYS = [
   '0xdbda1821b80551c9d65939329250298aa3472ba22feea921c0cf5d620ea67b97',
   '0x2a871d0798f97d79848a013d4936a73bf4cc922c825d33c1cf7073dff6d409c6',
 ] as const;
-
-const hardhat = {
-  id: 31337,
-  name: 'Hardhat',
-  network: 'hardhat',
-  nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
-  rpcUrls: {
-    default: { http: ['http://localhost:8545'] },
-    public: { http: ['http://localhost:8545'] },
-  },
-} as const;
 
 export interface SeedCauseMediator {
   name: string;
@@ -132,17 +121,7 @@ export function serializeSeedCauseBookmarkList(
 }
 
 function createClients(privateKey: `0x${string}`) {
-  const account = privateKeyToAccount(privateKey);
-  const walletClient = createWalletClient({
-    account,
-    chain: hardhat,
-    transport: http(RPC_URL),
-  });
-  const publicClient = createPublicClient({
-    chain: hardhat,
-    transport: http(RPC_URL),
-  });
-  return { walletClient, publicClient, account: account.address };
+  return createSeedClients(privateKey, RPC_URL);
 }
 
 export async function publishSeedLocalFoodCause(plankCid: IpfsCidV1): Promise<{
