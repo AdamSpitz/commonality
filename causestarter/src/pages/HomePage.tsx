@@ -55,18 +55,9 @@ function LandingHome() {
           >
             Start a cause
           </Button>
-          <Button
-            variant="outlined"
-            size="large"
-            data-testid="home-start-bridge"
-            onClick={() => navigate('/bridge/new')}
-            sx={{ minHeight: 48, borderRadius: 999, fontWeight: 700, textTransform: 'none', px: 3 }}
-          >
-            Write a bridge
-          </Button>
           {/* There is deliberately no "support a cause" counterpart: we list no
               causes and rank none. You reach a cause through its organizer's own
-              link. */}
+              link. Bridge writing lives on the cause-editing mediator section. */}
         </Stack>
       </Paper>
 

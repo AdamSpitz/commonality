@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { Alert, Box, Button, CircularProgress, Stack, Typography } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
 import { CauseCard } from './CauseCard'
+import { HeaderInfoTip } from './HeaderInfoTip'
 import { createCausePath, isLive, type CauseDraft } from '../lib/causeStore'
 
 export function YourCauses({
@@ -35,27 +36,8 @@ export function YourCauses({
           <Typography variant="h4" component="h1" sx={{ fontWeight: 800, fontSize: { xs: '1.6rem', sm: '2rem' } }}>
             Causes
           </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.75 }}>
-            Drafts stay on this device. Published bookmarks follow your wallet
-            and are public.
-          </Typography>
         </Box>
         <Stack direction="row" spacing={1} sx={{ flexShrink: 0, mt: 0.35 }}>
-          <Button
-            variant="text"
-            data-testid="causes-start-bridge"
-            sx={{
-              minHeight: 40,
-              px: 1.75,
-              borderRadius: 999,
-              textTransform: 'none',
-              fontWeight: 700,
-              whiteSpace: 'nowrap',
-            }}
-            onClick={() => navigate('/bridge/new')}
-          >
-            Write a bridge
-          </Button>
           <Button
             variant="outlined"
             data-testid="causes-start-cause"
@@ -91,9 +73,15 @@ export function YourCauses({
 
       {launched.length > 0 && (
         <Box>
-          <Typography variant="h6" sx={{ fontWeight: 700, mb: 1.25 }}>
-            Live causes
-          </Typography>
+          <Stack direction="row" alignItems="center" sx={{ mb: 1.25 }}>
+            <Typography variant="h6" sx={{ fontWeight: 700 }}>
+              Bookmarked causes
+            </Typography>
+            <HeaderInfoTip
+              title="Published bookmarks follow your wallet and are public."
+              label="About bookmarked causes"
+            />
+          </Stack>
           <Stack spacing={1.5}>
             {launched.map((cause) => (
               <CauseCard key={cause.id} cause={cause} />
@@ -104,9 +92,15 @@ export function YourCauses({
 
       {drafts.length > 0 && (
         <Box>
-          <Typography variant="h6" sx={{ fontWeight: 700, mb: 1.25 }}>
-            Drafts
-          </Typography>
+          <Stack direction="row" alignItems="center" sx={{ mb: 1.25 }}>
+            <Typography variant="h6" sx={{ fontWeight: 700 }}>
+              Cause drafts
+            </Typography>
+            <HeaderInfoTip
+              title="Drafts stay on this device."
+              label="About cause drafts"
+            />
+          </Stack>
           <Stack spacing={1.5}>
             {drafts.map((cause) => (
               <CauseCard key={cause.id} cause={cause} />

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Alert, Button, Collapse, Paper, Stack, TextField, Typography } from '@mui/material'
+import { useNavigate } from 'react-router-dom'
 import type { CauseMediator } from '../lib/causeStore'
 
 const EMPTY: CauseMediator = { name: '', description: '', address: '', serviceUrl: '' }
@@ -37,6 +38,7 @@ interface MediatorEditorProps {
  * shouldn't compete with the issues for attention.
  */
 export function MediatorEditor({ mediator, onChange }: MediatorEditorProps) {
+  const navigate = useNavigate()
   const [open, setOpen] = useState(Boolean(mediator))
   const [draft, setDraft] = useState<CauseMediator>(mediator ?? EMPTY)
   const [error, setError] = useState<string | null>(null)
@@ -68,15 +70,25 @@ export function MediatorEditor({ mediator, onChange }: MediatorEditorProps) {
     <Paper elevation={0} sx={{ p: { xs: 2, sm: 2.5 }, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
       <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={1}>
         <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>Mediator (optional)</Typography>
-        <Button
-          size="small"
-          onClick={() => setOpen((value) => !value)}
-          aria-expanded={open}
-          aria-controls="cause-mediator-editor"
-          sx={{ textTransform: 'none' }}
-        >
-          {open ? 'Close' : mediator ? 'Edit' : 'Add'}
-        </Button>
+        <Stack direction="row" spacing={0.5}>
+          <Button
+            size="small"
+            data-testid="cause-write-bridge"
+            onClick={() => navigate('/bridge/new')}
+            sx={{ textTransform: 'none' }}
+          >
+            Write a bridge
+          </Button>
+          <Button
+            size="small"
+            onClick={() => setOpen((value) => !value)}
+            aria-expanded={open}
+            aria-controls="cause-mediator-editor"
+            sx={{ textTransform: 'none' }}
+          >
+            {open ? 'Close' : mediator ? 'Edit' : 'Add'}
+          </Button>
+        </Stack>
       </Stack>
 
       <Collapse in={open}>

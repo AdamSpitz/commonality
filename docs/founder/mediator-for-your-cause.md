@@ -2,7 +2,7 @@
 
 A mediator watches the context you choose and proposes bridge triples: one statement for each of two founder-named sides, plus common ground both imply. Supporters see its suggestions only after opting in.
 
-When you are bridging *existing causes* (not only sides inside one cause), the public picture is a [bridge cluster](/specs/product/bridge-causes.md): a modified cause per parent plus a bridge cause. In CauseStarter, write that cluster at **Write a bridge** (`/bridge/new`); it does not have to come from this service.
+When you are bridging *existing causes* (not only sides inside one cause), the public picture is a [bridge cluster](/specs/product/bridge-causes.md): a modified cause per parent plus a bridge cause. In CauseStarter, write that cluster from the cause-editing **Mediator** section (**Write a bridge**, `/bridge/new`); it does not have to come from this service.
 
 ## Scaffold the instance
 
