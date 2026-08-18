@@ -10,8 +10,6 @@ When an item from this page is done and no longer needs an LLM implementor's att
 
 ----
 
-- Implement [bridge causes](specs/product/bridge-causes.md): present a mediator as a cluster of ordinary causes (one modified cause per natural parent, plus one bridge cause whose planks are implied plank-to-plank by the modified ones). Include a CauseStarter (or equivalent) **create/edit bridge** flow so a human can write the modified causes, the bridge cause, and the intended implication pairs without an LLM-powered mediator service — assistive wording help is fine; editorial control stays with the human. Reuse statement-level triples / nudger opt-in; do not invent cause-to-cause implication. Do not replace the existing CSM / in-cause mediator. Cluster page should label mediator authorship loudly and nudge parent → modified, not parent → bridge.
-
 - Add a fresh-stack integration test for the alignment-trust bootstrap: publish
   an alignment vouch from a previously unknown wallet, observe the service's
   `TrustSet(..., 100)`, confirm a wallet with no personal graph sees that vouch

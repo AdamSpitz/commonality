@@ -4,7 +4,7 @@ A way to present — and to author — a mediator’s work as **ordinary causes*
 
 This does **not** replace the [bridge-creator](./bridge-creator.md) or the [mediator-for-your-cause](./bridge-building-for-founders.md) idea. It is a *kind* of mediation (and a presentation mode) whose parents are already causes. Statement-level triples remain the engine: implication is still plank-to-plank; causes are how a cluster is shown, versioned, funded, and edited by a human.
 
-Status: accepted as product direction (2026-08-17). Not implemented.
+Status: accepted as product direction (2026-08-17). First CauseStarter slice shipped: create/edit at `/bridge/new`, published cluster at `/bridge/:owner/:slug`. Implication pairs are recorded as intended arrows and can be wording-checked; paying the implication attester and publishing on-chain nudge batches are still operator/follow-up work. Does not replace CSM / in-cause mediator.
 
 ## The shape
 

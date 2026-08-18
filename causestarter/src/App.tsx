@@ -2,6 +2,8 @@ import { BrowserRouter, HashRouter, Navigate, Route, Routes } from 'react-router
 import { CauseShell } from './shell/CauseShell'
 import { HomePage } from './pages/HomePage'
 import { StartCauseRedirect } from './pages/StartCauseRedirect'
+import { StartBridgeRedirect } from './pages/StartBridgeRedirect'
+import { BridgeClusterPage } from './pages/BridgeClusterPage'
 import { CausesPage } from './pages/CausesPage'
 import { CauseDetailPage } from './pages/CauseDetailPage'
 import { CauseBoardLeaderboardPage } from './pages/CauseBoardLeaderboardPage'
@@ -49,6 +51,9 @@ export default function App() {
           <Route path="/" element={<HomePage />} />
           {/* No intermediate form — creates a draft and opens the editor. */}
           <Route path="/start" element={<StartCauseRedirect />} />
+          <Route path="/bridge/new" element={<StartBridgeRedirect />} />
+          <Route path="/bridge/:owner/:slugPart" element={<BridgeClusterPage />} />
+          <Route path="/bridge/:draftId" element={<BridgeClusterPage />} />
           <Route path="/causes" element={<CausesPage />} />
           <Route path="/delegation" element={<Navigate to="/delegation/notes" replace />} />
           <Route path="/delegation/notes" element={<MyNotesPage />} />

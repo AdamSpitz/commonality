@@ -31,6 +31,7 @@ function activeNavPath(pathname: string): string {
   if (match) return match.path
   if (
     pathname.startsWith('/cause')
+    || pathname.startsWith('/bridge')
     || pathname.startsWith('/statement')
     || pathname.startsWith('/projects')
   ) {

@@ -68,6 +68,7 @@ describe('causeRoster', () => {
       ],
     })
     const fields = rosterFieldsFromCause(cause)
+    expect(fields.bridgeCluster).toBeUndefined()
     expect(fields).toEqual({
       title: 'Oak Street lights',
       summary: 'Neighbors funding streetlights.',
@@ -106,6 +107,28 @@ describe('causeRoster', () => {
     expect(previewRosterCid(fields)).toMatch(/^bafkrei/)
     // Same bytes → same CID
     expect(previewRosterCid(fields)).toBe(previewRosterCid(fields))
+  })
+
+  it('omits bridge-cluster extras unless the roster is a modified or bridge cause', () => {
+    const base = {
+      title: 'Oak Street lights',
+      summary: 'Neighbors funding streetlights.',
+      plankCids: ['bafyplank1'],
+      mediatorBlurb: '',
+    }
+    const linked = {
+      ...base,
+      bridgeCluster: {
+        clusterOwner: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as const,
+        clusterSlug: 'settlement',
+        role: 'modified' as const,
+        parentOwner: '0x1111111111111111111111111111111111111111' as const,
+        parentSlug: 'natural-left',
+      },
+    }
+    expect(previewRosterCid(base)).not.toBe(previewRosterCid(linked))
+    expect(parseRosterDocument(buildRosterDocument(linked))?.bridgeCluster?.role).toBe('modified')
+    expect(parseRosterDocument(buildRosterDocument(base))?.bridgeCluster).toBeUndefined()
   })
 
   it('voids preview CID when any founder display field changes', () => {
