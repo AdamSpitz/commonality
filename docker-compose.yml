@@ -763,6 +763,12 @@ services:
       - CONTENT_ATTESTER_TRUSTED_FINDER_KEY=${CONTENT_ATTESTER_TRUSTED_FINDER_KEY:-local-finder-key}
       - CONTENT_ATTESTER_NAME=perspective-neutral
       - CONTENT_ATTESTER_PROMPT_TEMPLATE_FILE=/app/services/content-attester/prompts/perspective-neutral.md
+      # Off by default locally: content-attester requires ALIGNMENT_TOPIC_STATEMENT_CID,
+      # which is a *published statement* CID rather than a deploy artifact, so a fresh
+      # local chain has none and the whole bundle refuses to boot. That would take the
+      # implication-attester down with it, and the bridge-cluster editor needs that one.
+      # Set both vars to run it locally: CONTENT_ATTESTER_ENABLED=true.
+      - CONTENT_ATTESTER_ENABLED=${CONTENT_ATTESTER_ENABLED:-false}
       - ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS=${ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS:-}
       - ALIGNMENT_TOPIC_STATEMENT_CID=${ALIGNMENT_TOPIC_STATEMENT_CID:-}
       - ETH_USD_PRICE=3000

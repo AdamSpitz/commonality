@@ -317,6 +317,7 @@ start_services() {
         alignment-trust-bootstrap
         causestarter
         christian-bridge-creator
+        service-host-attesters
     )
     local domain
     for domain in $(local_publish_domains); do
@@ -375,9 +376,25 @@ start_services() {
     load_env_file_if_present ui/.env
     load_env_file_if_present causestarter/.env
     map_causestarter_contract_env
-    echo "[$(date +%T)] Starting CauseStarter SPA, cause-assist, workers..."
-    docker_compose up -d --force-recreate cause-assist alignment-trust-bootstrap causestarter christian-bridge-creator
+    # service-host-attesters must start after the env files above are sourced:
+    # it needs IMPLICATIONS_CONTRACT_ADDRESS from deployments/localhost.env, and
+    # compose reads that from this shell. The bridge-cluster editor's "submit
+    # pairs to attester" step talks to it on :3006.
+    echo "[$(date +%T)] Starting CauseStarter SPA, cause-assist, attesters, workers..."
+    docker_compose up -d --force-recreate \
+        cause-assist alignment-trust-bootstrap causestarter christian-bridge-creator \
+        service-host-attesters
     timing_mark causestarter
+
+    # Compose auto-loads the root .env, so once generate-wallets.mjs has run the
+    # services sign with generated keys that hold no ETH on a fresh local chain.
+    # Without this they boot "degraded" and every on-chain write fails.
+    echo "Funding local service signer wallets..."
+    if ! node "$SCRIPT_DIR/fund-local-service-wallets.mjs"; then
+        echo "Warning: could not fund service signer wallets. Attesters may report"
+        echo "'degraded' and fail on-chain writes until you run:"
+        echo "  node scripts/fund-local-service-wallets.mjs"
+    fi
 
     echo "Recording local Hardhat-account trust (CauseStarter starter network)..."
     if ! node "$SCRIPT_DIR/seed-local-alignment-trust.mjs"; then
@@ -389,6 +406,7 @@ start_services() {
     echo ""
     echo "Services started. Use 'docker compose logs -f' to view logs."
     echo "Platform API service health: http://localhost:3001/health"
+    echo "Attesters (implication + content) health: http://localhost:3006/health"
     echo "CauseStarter: http://localhost:${CAUSESTARTER_PORT:-8090}/  (gateway: http://causestarter.localhost:8088/#/)"
 
     # Fail fast on env / on-chain / SPA config drift (PublishedData missing, stale ProjectFactory ABI, …).

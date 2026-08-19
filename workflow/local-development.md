@@ -52,6 +52,33 @@ For a richer first-run demo that uses the formal seed-content corpus (excluding 
 ./scripts/data.sh --seed=demo
 ```
 
+### AI services on the local stack
+
+`--start` runs `cause-assist`, `christian-bridge-creator`, and the attester
+bundle `service-host-attesters` (implication-attester + content-attester on one
+Express listener, `:3006`). Health: `http://localhost:3006/health`, and per
+service at `http://localhost:3006/implication-attester/health`. CauseStarter
+reaches it through `/api/implication-attester` — proxied by Vite on `:5174` and
+by nginx on `:8090` — which is what the bridge-cluster editor's "submit pairs to
+attester" step calls.
+
+Two local-only wrinkles are worth knowing about:
+
+- **content-attester is off by default** (`CONTENT_ATTESTER_ENABLED=false` in
+  `docker-compose.yml`). It requires `ALIGNMENT_TOPIC_STATEMENT_CID`, which is a
+  *published statement* CID rather than a deploy artifact, so a fresh chain has
+  none. Because the bundle validates all its services at boot, leaving it on
+  takes the implication-attester down with it. Set that CID and
+  `CONTENT_ATTESTER_ENABLED=true` to run it.
+- **Service signer wallets need funding.** Compose falls back to prefunded
+  Hardhat keys, but `docker compose` also auto-loads the root `.env`, and once
+  `scripts/generate-wallets.mjs` has run that file holds generated keys with no
+  balance on a local chain. Services then boot, report `degraded`, and fail every
+  on-chain write. `--start` now runs
+  `node scripts/fund-local-service-wallets.mjs`, which tops up any configured
+  signer below 1 ETH from Hardhat account #0 (idempotent, and refuses to run off
+  chain 31337). Run it by hand after a wipe if an attester reports `degraded`.
+
 No API keys or secrets are needed for local development. The generated root `.env` and `ui/.env` are based on the local deployment defaults; use [`.env.example`](/.env.example) and [`ui/.env.example`](/ui/.env.example) as the reference for the variables that the stack and UI understand. `scripts/services.sh` owns starting/stopping/status/URL printing for Docker services; `scripts/data.sh` owns wiping and seeding local chain/IPFS/indexer data.
 
 See [deployment.md](./deployment.md) for testnet/mainnet deployment (which does require secrets).
