@@ -52,7 +52,10 @@ export async function promoteViewToCombinator({
   const reader = createDefaultDocumentReader(machinery)
   for (const cid of operandCids) {
     const read = await reader.read(cid as IpfsCidV1)
-    if (read.status === 'active' && parseCombinatorStatement(read.document)) {
+    if (read.status !== 'active') {
+      throw new Error(`Could not load statement ${cid} to promote. Publish each plank first.`)
+    }
+    if (parseCombinatorStatement(read.document)) {
       throw new Error('v1 promotion is over ordinary planks only, not nested combinators.')
     }
   }

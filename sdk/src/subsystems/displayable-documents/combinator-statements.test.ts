@@ -28,6 +28,11 @@ describe('combinator statements', () => {
     assert.strictEqual(first.extras?.createdDate, undefined);
   });
 
+  it('rejects fewer than two distinct operands', () => {
+    assert.throws(() => createCombinatorStatement('all', [a]), /at least two/i);
+    assert.throws(() => createCombinatorStatement('all', [a, a]), /at least two/i);
+  });
+
   it('all and any of the same operands are different CIDs', () => {
     const allDoc = createCombinatorStatement('all', [a, b]);
     const anyDoc = createCombinatorStatement('any', [a, b]);

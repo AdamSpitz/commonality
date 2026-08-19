@@ -648,7 +648,7 @@ export function CauseDetailPage() {
       const nextAnchors = { ...cause.anchorCids, [kind]: result.cid }
       const updated = updateCause(cause.id, { anchorCids: nextAnchors })
       if (updated) setCause(updated)
-      else setCause({ ...cause, anchorCids: nextAnchors })
+      else setCause(bookmarkCause({ ...cause, anchorCids: nextAnchors }))
       voidCoherence()
     } catch (err) {
       setPromoteError(err instanceof Error ? err.message : 'Failed to promote this combination')

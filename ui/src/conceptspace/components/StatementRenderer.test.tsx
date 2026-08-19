@@ -280,7 +280,7 @@ describe('StatementRenderer', () => {
       )
 
       const link = screen.getByRole('link', { name: /reference/i })
-      expect(link).toHaveAttribute('href', '/document/bafyRef1')
+      expect(link).toHaveAttribute('href', '/statement/bafyRef1')
     })
 
     it('uses CID as label when label is not provided', () => {

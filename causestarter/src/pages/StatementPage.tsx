@@ -12,7 +12,10 @@ import {
 } from '@mui/material'
 import { Link as RouterLink, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { getStatementWithContent, type Statement } from '@commonality/sdk/conceptspace'
-import type { DisplayableDocument } from '@commonality/sdk/displayable-documents'
+import {
+  parseCombinatorStatement,
+  type DisplayableDocument,
+} from '@commonality/sdk/displayable-documents'
 import type { IpfsCidV1 } from '@commonality/sdk/utils'
 import { useTrustedAttesters } from '@ui/shared'
 import { CauseBoard, CauseLeaderboard } from '@ui/fundingportals'
@@ -56,6 +59,7 @@ export function StatementPage() {
   )
   const [statement, setStatement] = useState<Statement | null>(null)
   const [content, setContent] = useState<DisplayableDocument | null>(null)
+  const [operandBodies, setOperandBodies] = useState<Array<{ cid: string; text: string }>>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [cidCopiedOpen, setCidCopiedOpen] = useState(false)
@@ -70,10 +74,25 @@ export function StatementPage() {
         setError('Statement not found')
         setStatement(null)
         setContent(null)
+        setOperandBodies([])
         return
       }
       setStatement(result.statement)
       setContent(result.content)
+      const combinator = result.content ? parseCombinatorStatement(result.content) : null
+      if (combinator) {
+        const operands = await Promise.all(combinator.operandCids.map(async (cid) => {
+          try {
+            const operand = await getStatementWithContent(machinery, cid as IpfsCidV1)
+            return { cid, text: documentText(operand?.content) || cid }
+          } catch {
+            return { cid, text: cid }
+          }
+        }))
+        setOperandBodies(operands)
+      } else {
+        setOperandBodies([])
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load statement')
     } finally {
@@ -143,6 +162,7 @@ export function StatementPage() {
     : countsLoading
       ? 'Counting signers…'
       : 'Signers unavailable'
+  const combinator = content ? parseCombinatorStatement(content) : null
   const createdLabel = statement.createdAt
     ? ` · ${new Date(statement.createdAt).toLocaleDateString()}`
     : ''
@@ -167,6 +187,15 @@ export function StatementPage() {
               {title}
             </Typography>
           )}
+          {combinator && (
+            <Typography
+              variant="overline"
+              sx={{ letterSpacing: '0.12em', fontWeight: 700, color: 'text.secondary', display: 'block' }}
+              data-testid="combinator-kind"
+            >
+              {combinator.combinator === 'all' ? 'All of these statements' : 'Any of these statements'}
+            </Typography>
+          )}
           <Typography
             variant="body2"
             component={showTitle ? 'p' : 'h1'}
@@ -174,6 +203,25 @@ export function StatementPage() {
           >
             {body}
           </Typography>
+          {operandBodies.length > 0 && (
+            <Stack spacing={1} sx={{ pt: 1 }} data-testid="combinator-operands">
+              {operandBodies.map((operand) => (
+                <Box key={operand.cid}>
+                  <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
+                    {operand.text}
+                  </Typography>
+                  <Link
+                    component={RouterLink}
+                    to={`/statement/${operand.cid}`}
+                    variant="caption"
+                    underline="hover"
+                  >
+                    Open statement
+                  </Link>
+                </Box>
+              ))}
+            </Stack>
+          )}
           <Stack
             direction="row"
             spacing={0.75}

@@ -167,7 +167,7 @@ function DisplayableDocumentRenderer({
                         {ref.cid}
                       </Typography>
                     )}
-                    <MuiLink component={RouterLink} to={`/document/${ref.cid}`} variant="caption">
+                    <MuiLink component={RouterLink} to={`/statement/${ref.cid}`} variant="caption">
                       Open statement
                     </MuiLink>
                   </>
@@ -192,7 +192,7 @@ function DisplayableDocumentRenderer({
                     [reference suppressed by display policy]
                   </Typography>
                 ) : (
-                  <MuiLink component={RouterLink} to={`/document/${ref.cid}`}>
+                  <MuiLink component={RouterLink} to={`/statement/${ref.cid}`}>
                     {ref.label || ref.cid}
                   </MuiLink>
                 )}
@@ -245,7 +245,7 @@ function MarkdownContent({
             const ref = references?.[refIndex]
             if (ref) {
               return (
-                <MuiLink component={RouterLink} to={`/document/${ref.cid}`} {...props}>
+                <MuiLink component={RouterLink} to={`/statement/${ref.cid}`} {...props}>
                   {children}
                 </MuiLink>
               )
