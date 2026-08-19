@@ -10,6 +10,8 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=lib/timing.sh
+. "$SCRIPT_DIR/lib/timing.sh"
 
 show_usage() {
     echo "Usage: $0 [--seed[=SIZE] [SEED_OPTIONS...]]"
@@ -42,22 +44,39 @@ esac
 
 seed_args=("$@")
 
+timing_begin
 echo "=== Stopping services ==="
 "$SCRIPT_DIR/services.sh" --stop
+timing_mark stop
 
 echo ""
 echo "=== Wiping data ==="
 "$SCRIPT_DIR/data.sh" --wipe
+timing_mark wipe
 
 echo ""
 echo "=== Starting services ==="
 "$SCRIPT_DIR/services.sh" --start
+timing_mark start
 
 if [ "${#seed_args[@]}" -gt 0 ]; then
     echo ""
     echo "=== Seeding data ==="
+    # --start already writes Hardhat trust txs, so the indexer is not empty.
+    already_allows=false
+    for arg in "${seed_args[@]}"; do
+        if [ "$arg" = "--allow-seed-on-existing-data" ]; then
+            already_allows=true
+            break
+        fi
+    done
+    if [ "$already_allows" = false ]; then
+        seed_args+=(--allow-seed-on-existing-data)
+    fi
     "$SCRIPT_DIR/data.sh" "${seed_args[@]}"
+    timing_mark seed
 fi
 
 echo ""
 echo "Done. Services are running with a clean data directory."
+timing_summary

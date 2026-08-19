@@ -17,6 +17,8 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=lib/timing.sh
+. "$SCRIPT_DIR/lib/timing.sh"
 DATA_DIR="${COMMONALITY_DATA_DIR:-./data}"
 UI_IPFS_ARTIFACT_DIR="./data/ui-ipfs"
 cd "$SCRIPT_DIR/.."
@@ -322,6 +324,7 @@ start_services() {
     done
     local -a services_to_build=()
 
+    timing_begin
     "$SCRIPT_DIR/check-prerequisites.sh"
     check_existing_containers
     clear_stale_ponder_for_fresh_chain
@@ -355,12 +358,15 @@ start_services() {
     else
         echo "[$(date +%T)] Reusing existing Docker images; no declared build inputs changed."
     fi
+    timing_mark docker_images
     echo "[$(date +%T)] Starting core services (hardhat, ipfs, indexer, api)..."
     docker_compose up -d --remove-orphans "${core_services[@]}"
+    timing_mark core_services
     echo "[$(date +%T)] Publishing UI domains to IPFS..."
     publish_ui_domains_to_ipfs
     docker_compose up -d --no-deps --force-recreate ui-local-gateway
     wait_for_local_ui_gateway
+    timing_mark ui_ipfs
 
     # CauseStarter SPA + cause-assist (core founder surface on :8090).
     # localhost.env matches hardhat-deploy --network localhost; live .env files win.
@@ -371,12 +377,14 @@ start_services() {
     map_causestarter_contract_env
     echo "[$(date +%T)] Starting CauseStarter SPA, cause-assist, workers..."
     docker_compose up -d --force-recreate cause-assist alignment-trust-bootstrap causestarter christian-bridge-creator
+    timing_mark causestarter
 
     echo "Recording local Hardhat-account trust (CauseStarter starter network)..."
     if ! node "$SCRIPT_DIR/seed-local-alignment-trust.mjs"; then
         echo "Warning: could not seed local alignment trust. CauseStarter project lists may stay gated until you run:"
         echo "  node scripts/seed-local-alignment-trust.mjs"
     fi
+    timing_mark alignment_trust
 
     echo ""
     echo "Services started. Use 'docker compose logs -f' to view logs."
@@ -391,6 +399,8 @@ start_services() {
         echo "Services are up, but contract addresses or ABIs are inconsistent — fix before using the stack."
         exit 1
     fi
+    timing_mark config_sync
+    timing_summary
 }
 
 stop_services() {
