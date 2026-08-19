@@ -25,9 +25,11 @@ what remains open is one bug, at the end.
   editing the roster, and only upward; the fewest-signed count moves the other
   way, so the pair is not. See
   [§ Band 2 is never shown alone](#band-2-is-never-shown-alone-pair-it-with-the-weakest-link).
-- **Anchors are combinator statements.** The cause page view strip can promote
-  a selection of two or more published planks to an `any` or `all` combinator
-  CID and ask the implication attester for the pairwise arrows. See
+- **Anchors are combinator statements.** Combinators are minted from the action
+  that needs them: the funding page publishes an `all` combinator when earmarking
+  a selected bundle (and reuses the CID if it already exists). Implication
+  arrows for that node are a later graph job and do not block the pledge.
+  There is no generic cause-page promote. See
   [combinator-statements.md](/specs/tech/subsystems/conceptspace/combinator-statements.md).
 - **The roster is a publication.** Organizer-authored display text (title, summary,
   ordered plank CIDs, mediator blurb) is published through `PublishedData`; its
