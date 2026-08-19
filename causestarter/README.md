@@ -216,9 +216,25 @@ See [`cause-assist/README.md`](../cause-assist/README.md). Bridge-cluster wordin
   aggregation, not just rendering.
 - **A cause is a set of planks**, not a main statement with supporters. Each
   plank is published separately and carries its own CID; a cause is "live" once
-  any plank is on chain, and there is no launch step. The cause page is the
-  organizer's editor *and* the visitor's view — see
+  any plank is on chain, and there is no launch step. The visitor's view is
+  `/cause/…` and the organizer's editor is `/cause/…/edit` — separate URLs, not a
+  mode flag, so the browser's back button leaves the editor the way a reader
+  expects. See
   [shaping-your-cause-statements.md](../docs/founder/shaping-your-cause-statements.md).
+- **Bridges are linked, not inlined.** The editor's *Bridges* section lists the
+  clusters that quote this cause as compact links to their own pages, offers
+  *Create a bridge* (`/bridge/new` — human-authored, no service needed), and keeps
+  the standalone bridge-creator instance one quiet link deeper at
+  `/cause/…/mediator`. The visitor's page shows the same rows, published clusters
+  only, with no authoring affordances. An attached mediator is one compact row on
+  both pages — name, opt-in toggle, link out. What it *proposes* lives on
+  `/cause/…/mediator` (`BridgeDisplayBlock`), never inlined into the cause. See
+  [bridge-causes.md](../specs/product/bridge-causes.md).
+- **A pasted link is the parent picker.** Since there is no directory to search,
+  the bridge editor takes the link the other organizer circulated and pulls
+  `owner`/`slug` out of it (`parseCauseLink`) — full URL, hash-routed URL, bare
+  path, or `0xowner/slug`, tolerating `@versionCid` and trailing page segments.
+  It refuses anything ambiguous rather than guessing at an owner.
 - **Retrieval first; organizer approval is deterministic.** Start gathers ordinary-language
   intent, searches published statements before asking cause-assist for new drafts, and exposes
   rejection/correction and manual-writing paths. Suggestions enter the same page-level review

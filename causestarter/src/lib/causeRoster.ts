@@ -395,6 +395,40 @@ export function parseCauseRouteParams(
   }
 }
 
+/**
+ * Pull a cause reference out of whatever an organizer pasted.
+ *
+ * There is no directory to search (ADR 0008), so a link someone circulated is
+ * how one cause reaches another. Accepts a full URL, a hash-routed URL, a bare
+ * path, or just `0xowner/slug`, and tolerates the trailing segments the editor
+ * and boards add (`/edit`, `/funding`, …) plus a pinned `@versionCid`.
+ *
+ * Returns null rather than guessing: a half-parsed owner would publish a
+ * modified cause pointing at nobody.
+ */
+export function parseCauseLink(raw: string): CauseRouteRef | null {
+  const trimmed = raw.trim()
+  if (!trimmed) return null
+
+  let path = trimmed
+  try {
+    // Absolute URLs may carry the route in the hash (IPFS builds) or the path.
+    const url = new URL(trimmed)
+    path = url.hash.startsWith('#/') ? url.hash.slice(1) : url.pathname
+  } catch {
+    // Not an absolute URL: treat it as a path or a bare owner/slug pair.
+    const hash = trimmed.indexOf('#/')
+    if (hash >= 0) path = trimmed.slice(hash + 1)
+  }
+
+  const segments = path.split('/').filter(Boolean)
+  const start = segments.indexOf('cause')
+  const parts = start >= 0 ? segments.slice(start + 1) : segments
+  if (parts.length < 2) return null
+
+  return parseCauseRouteParams(parts[0], parts[1])
+}
+
 function contractsFromMachinery(machinery: SDKMachinery) {
   const addresses = machinery.contractAddresses
   const mutableRefAddress = (addresses?.mutableRefUpdater

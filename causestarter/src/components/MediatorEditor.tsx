@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Alert, Button, Collapse, Paper, Stack, TextField, Typography } from '@mui/material'
-import { useNavigate } from 'react-router-dom'
+import { Alert, Button, Stack, TextField, Typography } from '@mui/material'
 import type { CauseMediator } from '../lib/causeStore'
 
 const EMPTY: CauseMediator = { name: '', description: '', address: '', serviceUrl: '' }
@@ -29,19 +28,20 @@ function isEmpty(mediator: CauseMediator): boolean {
 
 interface MediatorEditorProps {
   mediator: CauseMediator | undefined
+  disabled?: boolean
   onChange: (mediator: CauseMediator | undefined) => void
 }
 
 /**
- * Optional organizer-operated mediator, attached after its bridge-creator
- * artifact is deployed. Collapsed by default: most causes never set one, and it
- * shouldn't compete with the issues for attention.
+ * Form for the optional organizer-operated mediator, attached after its
+ * bridge-creator artifact is deployed. Lives on its own page rather than inline
+ * on the cause: most causes never set one, and it shouldn't compete with the
+ * statements for attention.
  */
-export function MediatorEditor({ mediator, onChange }: MediatorEditorProps) {
-  const navigate = useNavigate()
-  const [open, setOpen] = useState(Boolean(mediator))
+export function MediatorEditor({ mediator, disabled = false, onChange }: MediatorEditorProps) {
   const [draft, setDraft] = useState<CauseMediator>(mediator ?? EMPTY)
   const [error, setError] = useState<string | null>(null)
+  const [saved, setSaved] = useState(false)
 
   useEffect(() => {
     setDraft(mediator ?? EMPTY)
@@ -49,8 +49,11 @@ export function MediatorEditor({ mediator, onChange }: MediatorEditorProps) {
 
   const field = (key: keyof CauseMediator) => ({
     value: draft[key],
-    onChange: (event: { target: { value: string } }) =>
-      setDraft((current) => ({ ...current, [key]: event.target.value })),
+    disabled,
+    onChange: (event: { target: { value: string } }) => {
+      setSaved(false)
+      setDraft((current) => ({ ...current, [key]: event.target.value }))
+    },
   })
 
   const handleSave = () => {
@@ -63,50 +66,34 @@ export function MediatorEditor({ mediator, onChange }: MediatorEditorProps) {
       address: draft.address.trim(),
       serviceUrl: draft.serviceUrl.trim().replace(/\/+$/, ''),
     })
-    setOpen(false)
+    setSaved(true)
   }
 
   return (
-    <Paper elevation={0} sx={{ p: { xs: 2, sm: 2.5 }, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
-      <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={1}>
-        <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>Mediator (optional)</Typography>
-        <Stack direction="row" spacing={0.5}>
-          <Button
-            size="small"
-            data-testid="cause-write-bridge"
-            onClick={() => navigate('/bridge/new')}
-            sx={{ textTransform: 'none' }}
-          >
-            Write a bridge
-          </Button>
-          <Button
-            size="small"
-            onClick={() => setOpen((value) => !value)}
-            aria-expanded={open}
-            aria-controls="cause-mediator-editor"
-            sx={{ textTransform: 'none' }}
-          >
-            {open ? 'Close' : mediator ? 'Edit' : 'Add'}
-          </Button>
-        </Stack>
-      </Stack>
-
-      <Collapse in={open}>
-        <Stack id="cause-mediator-editor" spacing={1.5} sx={{ mt: 1.5 }}>
-          <Typography variant="body2" color="text.secondary">
-            After deploying your bridge-creator artifact, attach its public identity here.
-            Supporters will then see featured bridges and an opt-in link for this cause.
-          </Typography>
-          <TextField label="Mediator name" size="small" fullWidth {...field('name')} />
-          <TextField label="Mediator description" size="small" multiline minRows={2} fullWidth {...field('description')} />
-          <TextField label="Mediator signer address" size="small" placeholder="0x…" fullWidth {...field('address')} />
-          <TextField label="Public mediator service URL" size="small" placeholder="https://mediator.example" fullWidth {...field('serviceUrl')} />
-          {error && <Alert severity="error" sx={{ borderRadius: 2 }}>{error}</Alert>}
-          <Button variant="contained" onClick={handleSave} sx={{ alignSelf: 'flex-start', textTransform: 'none' }}>
-            Save mediator
-          </Button>
-        </Stack>
-      </Collapse>
-    </Paper>
+    <Stack spacing={1.5} data-testid="cause-mediator-editor">
+      <Typography variant="body2" color="text.secondary">
+        After deploying your bridge-creator artifact, attach its public identity here.
+        Supporters will then see featured bridges and an opt-in link for this cause.
+        Clear all four fields to detach it.
+      </Typography>
+      <TextField label="Mediator name" size="small" fullWidth {...field('name')} />
+      <TextField label="Mediator description" size="small" multiline minRows={2} fullWidth {...field('description')} />
+      <TextField label="Mediator signer address" size="small" placeholder="0x…" fullWidth {...field('address')} />
+      <TextField label="Public mediator service URL" size="small" placeholder="https://mediator.example" fullWidth {...field('serviceUrl')} />
+      {error && <Alert severity="error" sx={{ borderRadius: 2 }}>{error}</Alert>}
+      {saved && !error && (
+        <Alert severity="success" sx={{ borderRadius: 2 }} data-testid="cause-mediator-saved">
+          Saved on this device. Publish the cause again to put it in the roster supporters read.
+        </Alert>
+      )}
+      <Button
+        variant="contained"
+        onClick={handleSave}
+        disabled={disabled}
+        sx={{ alignSelf: 'flex-start', textTransform: 'none' }}
+      >
+        Save mediator
+      </Button>
+    </Stack>
   )
 }

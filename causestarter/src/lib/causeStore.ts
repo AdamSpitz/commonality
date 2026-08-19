@@ -238,6 +238,19 @@ export function causePath(cause: CauseDraft): string {
   return `/cause/${cause.id}`
 }
 
+/**
+ * The organizer's editor for a cause. A distinct URL rather than a mode flag, so
+ * the browser's back button leaves editing the way a reader expects.
+ */
+export function causeEditPath(cause: CauseDraft): string {
+  return `${causePath(cause)}/edit`
+}
+
+/** Advanced: attach an organizer-operated mediator service to this cause. */
+export function causeMediatorPath(cause: CauseDraft): string {
+  return `${causePath(cause)}/mediator`
+}
+
 /** Cause-scoped social-media / content-funding board. */
 export function causeContentBoardPath(cause: CauseDraft): string {
   return `${causePath(cause)}/content`
@@ -443,9 +456,9 @@ export function createCause(seed?: string): CauseDraft {
   return cause
 }
 
-/** Mint a local draft and return its editor path (`/cause/:id`). */
+/** Mint a local draft and return its editor path (`/cause/:id/edit`). */
 export function createCausePath(seed?: string): string {
-  return causePath(createCause(seed))
+  return causeEditPath(createCause(seed))
 }
 
 /**

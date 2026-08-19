@@ -21,6 +21,7 @@ import {
   loadPlankTexts,
   loadRosterDocument,
   normalizeSlug,
+  parseCauseLink,
   publishRoster,
   resolveRosterCid,
   rosterFieldsFromCause,
@@ -87,6 +88,8 @@ export function BridgeClusterPage() {
   const [pairCheck, setPairCheck] = useState<string | null>(null)
   const [submitPairs, setSubmitPairs] = useState(true)
   const [publishNudges, setPublishNudges] = useState(false)
+  /** Pasted cause links, keyed by parent slot. Not part of the saved draft. */
+  const [parentLinks, setParentLinks] = useState<Record<string, string>>({})
 
   useEffect(() => {
     if (routeRef) return
@@ -132,12 +135,17 @@ export function BridgeClusterPage() {
 
   const localCauses = useMemo(() => listCauses().filter((c) => c.founderAddress && c.slug), [])
 
-  const loadParentRoster = async (parent: BridgeParentDraft) => {
-    if (!parent.owner.trim() || !parent.slug.trim()) return
+  const loadParentRoster = async (
+    parent: BridgeParentDraft,
+    ref: { owner: string; slug: string } = parent,
+  ) => {
+    const owner = ref.owner.trim()
+    const slug = ref.slug.trim()
+    if (!owner || !slug) return
     setBusy(true)
     setStatus(null)
     try {
-      const cid = await resolveRosterCid(machinery, parent.owner.trim(), normalizeSlug(parent.slug))
+      const cid = await resolveRosterCid(machinery, owner, normalizeSlug(slug))
       if (!cid) throw new Error('That parent cause is not published.')
       const loaded = await loadRosterDocument(machinery, cid)
       if (!loaded) throw new Error('Could not read the parent roster.')
@@ -150,8 +158,8 @@ export function BridgeClusterPage() {
           item.id === parent.id
             ? {
               ...item,
-              owner: parent.owner.trim().toLowerCase(),
-              slug: normalizeSlug(parent.slug),
+              owner: owner.toLowerCase(),
+              slug: normalizeSlug(slug),
               title: loaded.fields.title,
               parentPlanks,
             }
@@ -164,6 +172,21 @@ export function BridgeClusterPage() {
     } finally {
       setBusy(false)
     }
+  }
+
+  /** Fill a parent slot from a pasted link, then load its published roster. */
+  const applyParentLink = (parent: BridgeParentDraft) => {
+    const ref = parseCauseLink(parentLinks[parent.id] ?? '')
+    if (!ref) {
+      setStatus('That does not look like a cause link. Expected something like /cause/0x…/their-slug.')
+      return
+    }
+    patch({
+      parents: draft!.parents.map((item) => (
+        item.id === parent.id ? { ...item, owner: ref.owner, slug: ref.slug } : item
+      )),
+    })
+    void loadParentRoster(parent, { owner: ref.owner, slug: ref.slug })
   }
 
   const runPairCheck = async () => {
@@ -673,6 +696,36 @@ export function BridgeClusterPage() {
             The founder already published this cause. You do not own it.
           </Typography>
           <Stack spacing={1.5}>
+            {/* There is no directory to search (ADR 0008): the organizer's own
+                link is how this cause is found, so accept it as pasted. */}
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
+              <TextField
+                label="Paste the cause link"
+                size="small"
+                fullWidth
+                placeholder="https://…/cause/0x…/their-slug"
+                value={parentLinks[parent.id] ?? ''}
+                data-testid={`bridge-parent-link-${index}`}
+                helperText="A link the other organizer circulated. Fills in the owner and slug below."
+                onChange={(event) => setParentLinks((current) => ({
+                  ...current, [parent.id]: event.target.value,
+                }))}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') {
+                    event.preventDefault()
+                    applyParentLink(parent)
+                  }
+                }}
+              />
+              <Button
+                onClick={() => applyParentLink(parent)}
+                disabled={busy || !(parentLinks[parent.id] ?? '').trim()}
+                data-testid={`bridge-parent-link-load-${index}`}
+                sx={{ textTransform: 'none', whiteSpace: 'nowrap' }}
+              >
+                Use link
+              </Button>
+            </Stack>
             {localCauses.length > 0 && (
               <TextField
                 select

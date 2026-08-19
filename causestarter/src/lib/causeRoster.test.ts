@@ -25,6 +25,7 @@ import {
   loadRosterCoherenceBadge,
   mediatorBlurbFrom,
   normalizeSlug,
+  parseCauseLink,
   parseCauseRouteParams,
   parseRosterDocument,
   placeholderPlanksFromCids,
@@ -438,4 +439,44 @@ describe('causeRoster', () => {
       expect(getSubjectStatements).not.toHaveBeenCalled()
     })
   })
+
+  describe('parseCauseLink', () => {
+    const owner = '0x1111111111111111111111111111111111111111'
+
+    it('accepts a full share URL', () => {
+      expect(parseCauseLink(`https://causestarter.example/cause/${owner}/liberty-localism`))
+        .toEqual({ owner, slug: 'liberty-localism', versionCid: undefined })
+    })
+
+    it('accepts a hash-routed URL from an IPFS build', () => {
+      expect(parseCauseLink(`https://ipfs.example/#/cause/${owner}/liberty-localism`))
+        .toEqual({ owner, slug: 'liberty-localism', versionCid: undefined })
+    })
+
+    it('accepts a bare path and a bare owner/slug pair', () => {
+      expect(parseCauseLink(`/cause/${owner}/liberty-localism`)?.slug).toBe('liberty-localism')
+      expect(parseCauseLink(`${owner}/liberty-localism`)?.slug).toBe('liberty-localism')
+    })
+
+    it('keeps a pinned version and ignores trailing page segments', () => {
+      expect(parseCauseLink(`https://x.example/cause/${owner}/liberty-localism@bafyversion`))
+        .toEqual({ owner, slug: 'liberty-localism', versionCid: 'bafyversion' })
+      expect(parseCauseLink(`/cause/${owner}/liberty-localism/funding`)?.slug)
+        .toBe('liberty-localism')
+    })
+
+    it('lowercases a checksummed owner and trims surrounding whitespace', () => {
+      expect(parseCauseLink(`  /cause/${owner.toUpperCase().replace('0X', '0x')}/liberty-localism  `)?.owner)
+        .toBe(owner)
+    })
+
+    it('refuses anything it cannot resolve rather than guessing', () => {
+      expect(parseCauseLink('')).toBeNull()
+      expect(parseCauseLink('https://x.example/causes')).toBeNull()
+      expect(parseCauseLink(`/cause/${owner}`)).toBeNull()
+      expect(parseCauseLink('/cause/not-an-address/liberty-localism')).toBeNull()
+      expect(parseCauseLink(`/cause/${owner}/Not A Slug`)).toBeNull()
+    })
+  })
+
 })
