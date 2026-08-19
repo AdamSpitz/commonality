@@ -329,7 +329,11 @@ export interface CreateStatementOptions {
   /** Optional topic/category hint for indexers */
   topic?: string;
 
-  /** When the statement was authored (defaults to now) */
+  /**
+   * Optional publication date in extras. Omitted unless the caller passes it
+   * (seed statements that need a frozen CID). Do not default to now: a timestamp
+   * in the claim mints a unique CID per publish of the same prose.
+   */
   createdDate?: string;
 
   /** References to other documents */
@@ -343,7 +347,7 @@ export interface CreateStatementOptions {
  * Creates a conceptspace statement as a displayable document.
  *
  * This is a convenience function that pre-populates extras with
- * the conceptspace-specific fields (statementType, topic, createdDate).
+ * the conceptspace-specific fields (statementType, optional topic/createdDate).
  */
 export function createStatement(options: CreateStatementOptions): DisplayableDocument {
   const extras: Record<string, unknown> = {
@@ -355,7 +359,9 @@ export function createStatement(options: CreateStatementOptions): DisplayableDoc
     extras.topic = options.topic;
   }
 
-  extras.createdDate = options.createdDate || new Date().toISOString();
+  if (options.createdDate) {
+    extras.createdDate = options.createdDate;
+  }
 
   return createDisplayableDocument({
     format: 'markdown-restricted',

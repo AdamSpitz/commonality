@@ -3,7 +3,12 @@ import { useEffect, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import rehypeSanitize from 'rehype-sanitize'
 import { Link as RouterLink } from 'react-router-dom'
-import type { DisplayableDocument, Asset, DocumentReference } from '@commonality/sdk/displayable-documents'
+import {
+  parseCombinatorStatement,
+  type DisplayableDocument,
+  type Asset,
+  type DocumentReference,
+} from '@commonality/sdk/displayable-documents'
 import { isCidDeniedByDisplayDenylist, loadDisplayDenylist, type DisplayDenylist } from '../../shared'
 
 interface StatementRendererProps {
@@ -12,6 +17,8 @@ interface StatementRendererProps {
   loading?: boolean
   error?: string | null
   unavailableSeverity?: 'warning' | 'error'
+  /** Operand documents for a combinator statement, keyed by CID. */
+  referencedDocuments?: Record<string, DisplayableDocument | null>
 }
 
 export function StatementRenderer({
@@ -20,6 +27,7 @@ export function StatementRenderer({
   loading = false,
   error = null,
   unavailableSeverity = 'error',
+  referencedDocuments,
 }: StatementRendererProps) {
   const [displayDenylist, setDisplayDenylist] = useState<DisplayDenylist>({ deniedCids: [], honoredRetractors: [] })
 
@@ -86,16 +94,41 @@ export function StatementRenderer({
     )
   }
 
-  return <DisplayableDocumentRenderer doc={content} displayDenylist={displayDenylist} />
+  return (
+    <DisplayableDocumentRenderer
+      doc={content}
+      displayDenylist={displayDenylist}
+      referencedDocuments={referencedDocuments}
+    />
+  )
 }
 
 // ============================================================================
 // DisplayableDocument renderer
 // ============================================================================
 
-function DisplayableDocumentRenderer({ doc, displayDenylist }: { doc: DisplayableDocument, displayDenylist: DisplayDenylist }) {
+function DisplayableDocumentRenderer({
+  doc,
+  displayDenylist,
+  referencedDocuments,
+}: {
+  doc: DisplayableDocument
+  displayDenylist: DisplayDenylist
+  referencedDocuments?: Record<string, DisplayableDocument | null>
+}) {
+  const combinator = parseCombinatorStatement(doc)
+
   return (
     <Paper sx={{ p: 3, mb: 3 }}>
+      {combinator && (
+        <Typography
+          variant="overline"
+          sx={{ letterSpacing: '0.12em', fontWeight: 700, color: 'text.secondary', display: 'block', mb: 1 }}
+          data-testid="combinator-kind"
+        >
+          {combinator.combinator === 'all' ? 'All of these statements' : 'Any of these statements'}
+        </Typography>
+      )}
       {/* Primary content */}
       <Box sx={{ mb: 2 }}>
         {doc.format === 'text/plain' ? (
@@ -110,8 +143,42 @@ function DisplayableDocumentRenderer({ doc, displayDenylist }: { doc: Displayabl
         )}
       </Box>
 
-      {/* References list */}
-      {doc.references && doc.references.length > 0 && (
+      {combinator && doc.references && doc.references.length > 0 && (
+        <Box sx={{ mt: 3, pt: 2, borderTop: 1, borderColor: 'divider' }} data-testid="combinator-operands">
+          <Typography variant="subtitle2" gutterBottom>
+            Referenced statements
+          </Typography>
+          {doc.references.map((ref) => {
+            const operand = referencedDocuments?.[ref.cid]
+            return (
+              <Box key={ref.cid} sx={{ mb: 2 }}>
+                {isCidDeniedByDisplayDenylist(ref.cid, displayDenylist) ? (
+                  <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+                    [reference suppressed by display policy]
+                  </Typography>
+                ) : (
+                  <>
+                    {operand?.content ? (
+                      <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
+                        {operand.content}
+                      </Typography>
+                    ) : (
+                      <Typography variant="body2" color="text.secondary">
+                        {ref.cid}
+                      </Typography>
+                    )}
+                    <MuiLink component={RouterLink} to={`/statement/${ref.cid}`} variant="caption">
+                      Open statement
+                    </MuiLink>
+                  </>
+                )}
+              </Box>
+            )
+          })}
+        </Box>
+      )}
+
+      {!combinator && doc.references && doc.references.length > 0 && (
         <Box sx={{ mt: 3, pt: 2, borderTop: 1, borderColor: 'divider' }}>
           <Typography variant="subtitle2" gutterBottom>
             References:
@@ -125,7 +192,7 @@ function DisplayableDocumentRenderer({ doc, displayDenylist }: { doc: Displayabl
                     [reference suppressed by display policy]
                   </Typography>
                 ) : (
-                  <MuiLink component={RouterLink} to={`/document/${ref.cid}`}>
+                  <MuiLink component={RouterLink} to={`/statement/${ref.cid}`}>
                     {ref.label || ref.cid}
                   </MuiLink>
                 )}
@@ -178,7 +245,7 @@ function MarkdownContent({
             const ref = references?.[refIndex]
             if (ref) {
               return (
-                <MuiLink component={RouterLink} to={`/document/${ref.cid}`} {...props}>
+                <MuiLink component={RouterLink} to={`/statement/${ref.cid}`} {...props}>
                   {children}
                 </MuiLink>
               )

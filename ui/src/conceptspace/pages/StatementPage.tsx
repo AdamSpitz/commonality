@@ -1,9 +1,9 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { Box, Typography, CircularProgress, Alert } from '@mui/material'
 import { useParams } from 'react-router-dom'
 import { useAccount } from 'wagmi'
 import { getStatementWithContent, getUserBelief, type Statement, type StatementContentStatus } from '@commonality/sdk/conceptspace'
-import type { DisplayableDocument } from '@commonality/sdk/displayable-documents'
+import { parseCombinatorStatement, type DisplayableDocument } from '@commonality/sdk/displayable-documents'
 import type { TieredHeadCount } from '@commonality/sdk/identity'
 import type { IpfsCidV1 } from '@commonality/sdk/utils'
 import { useMachinery } from '../../shared'
@@ -31,6 +31,10 @@ export function StatementPage() {
   const [error, setError] = useState<string | null>(null)
   const [contentError, setContentError] = useState<string | null>(null)
   const [contentStatus, setContentStatus] = useState<StatementContentStatus>('unavailable')
+  const [referencedDocuments, setReferencedDocuments] = useState<Record<string, DisplayableDocument | null>>({})
+
+  // Bumped on every load so a late operand read can tell it has been superseded.
+  const loadTokenRef = useRef(0)
 
   const machinery = useMachinery()
   const trustedAttesters = useTrustedAttesters()
@@ -43,6 +47,9 @@ export function StatementPage() {
       setLoading(false)
       return
     }
+
+    const loadToken = loadTokenRef.current + 1
+    loadTokenRef.current = loadToken
 
     try {
       setLoading(true)
@@ -63,6 +70,25 @@ export function StatementPage() {
       setStatement(result.statement)
       setStatementContent(result.content)
       setContentStatus(result.contentStatus)
+
+      const combinator = result.content ? parseCombinatorStatement(result.content) : null
+      if (combinator) {
+        const operands: Record<string, DisplayableDocument | null> = {}
+        await Promise.all(combinator.operandCids.map(async (cid) => {
+          try {
+            const operand = await getStatementWithContent(machinery, cid as IpfsCidV1)
+            operands[cid] = operand?.content ?? null
+          } catch {
+            operands[cid] = null
+          }
+        }))
+        // Operand reads outlive a navigation; a late resolve must not paint one
+        // statement's operands onto another.
+        if (loadToken !== loadTokenRef.current) return
+        setReferencedDocuments(operands)
+      } else {
+        setReferencedDocuments({})
+      }
 
       if (!result.content && result.statement.cid) {
         setContentError(
@@ -140,6 +166,7 @@ export function StatementPage() {
         content={statementContent}
         error={contentError}
         unavailableSeverity={contentStatus === 'retracted' ? 'warning' : 'error'}
+        referencedDocuments={referencedDocuments}
       />
 
       {/* Support Metrics */}

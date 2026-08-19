@@ -17,6 +17,7 @@ import {
 import { CauseBoard, CauseLeaderboard } from '@ui/fundingportals'
 import { AlignmentTrustGate } from '../components/AlignmentTrustGate'
 import { CauseViewStrip } from '../components/CauseViewStrip'
+import { CauseAnchorPromote } from '../components/CauseAnchorPromote'
 import { CauseMediatorCard } from '../components/CauseMediatorCard'
 import { CauseFundingSummary } from '../components/CauseFundingSummary'
 import { ConnectWalletHint } from '../components/ConnectWalletHint'
@@ -32,7 +33,7 @@ import {
   bookmarkCause, causeFundingPath, causeLeaderboardPath, causePath, causeTitle, findCauseByStable,
   getCause, hasPublishedRoster, isCauseBookmarked, isLive, markPlankPublished,
   markRosterPublished, newPlank, publishedPlanks, realPlanks,
-  unbookmarkCause, unpublishedPlanks, updateCause,
+  unbookmarkCause, unpublishedPlanks, updateCause, withAnchor,
   type CauseDraft, type CausePlank, type SafetyState,
 } from '../lib/causeStore'
 import {
@@ -52,6 +53,8 @@ import {
   rememberBookmarkRemoved,
 } from '../lib/causeBookmarks'
 import { publishPlank } from '../lib/publishPlank'
+import { promoteViewToCombinator } from '../lib/publishCombinator'
+import type { CombinatorKind } from '@commonality/sdk/displayable-documents'
 import { useMachinery } from '../lib/useMachinery'
 import { useWriteClients } from '../lib/useWriteClients'
 import { useAlignmentTrust } from '../hooks/useAlignmentTrust'
@@ -110,6 +113,8 @@ export function CauseDetailPage() {
   const [reviewsByPlankId, setReviewsByPlankId] = useState<Record<string, PlankReview>>({})
   const [publishingId, setPublishingId] = useState<string>()
   const [publishingRoster, setPublishingRoster] = useState(false)
+  const [promotingKind, setPromotingKind] = useState<CombinatorKind | null>(null)
+  const [promoteError, setPromoteError] = useState<string | null>(null)
   const [checkingCoherence, setCheckingCoherence] = useState(false)
   const [coherence, setCoherence] = useState<CoherenceVerdict | null>(null)
   const [onChainBadge, setOnChainBadge] = useState<RosterCoherenceBadge | null>(null)
@@ -143,6 +148,26 @@ export function CauseDetailPage() {
     setLoadingRemote(false)
     setLoadError(null)
   }, [localId])
+
+  // Local copies can persist CID stubs from a failed earlier fetch.
+  useEffect(() => {
+    if (!cause) return
+    const stubCids = cause.planks
+      .filter((plank) => plank.cid && (!plank.text.trim() || plank.text.trim() === plank.cid))
+      .map((plank) => plank.cid!)
+    if (stubCids.length === 0) return
+    let cancelled = false
+    void loadPlankTexts(machinery, stubCids).then((texts) => {
+      if (cancelled) return
+      setCause((current) => {
+        if (!current || current.id !== cause.id) return current
+        return { ...current, planks: applyPlankTexts(current.planks, texts) }
+      })
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [cause?.id, machinery, cause?.planks.map((plank) => `${plank.cid}:${plank.text}`).join('\0')])
 
   // Load published roster by stable id (and optional pin)
   useEffect(() => {
@@ -185,6 +210,7 @@ export function CauseDetailPage() {
           // Published identity wins: a follower has no local copy to fall back on.
           mediator: fields.mediator ?? local?.mediator,
           bridgeCluster: fields.bridgeCluster ?? local?.bridgeCluster,
+          anchors: fields.anchors ?? local?.anchors,
           suggestionSeed: local?.suggestionSeed,
           createdAt: local?.createdAt ?? new Date().toISOString(),
           updatedAt: local?.updatedAt ?? new Date().toISOString(),
@@ -202,20 +228,21 @@ export function CauseDetailPage() {
         )
         setRemoteReadOnly(!connectedOrganizer && Boolean(remoteCause.founderAddress || remoteCause.rosterCid))
 
-        try {
-          const [texts, hist] = await Promise.all([
-            loadPlankTexts(machinery, fields.plankCids),
-            loadRosterHistory(machinery, routeRef.owner, routeRef.slug),
-          ])
+        const textsPromise = loadPlankTexts(machinery, fields.plankCids).then((texts) => {
           if (cancelled) return
-          setHistory(hist)
           setCause((current) => {
             if (!current || current.id !== remoteCause.id) return current
             return { ...current, planks: applyPlankTexts(current.planks, texts) }
           })
-        } catch {
-          // Title/summary already painted; missing bodies or history stay as stubs.
-        }
+        }).catch(() => {
+          // Title/summary already painted; missing bodies stay as stubs.
+        })
+        const historyPromise = loadRosterHistory(machinery, routeRef.owner, routeRef.slug).then((hist) => {
+          if (!cancelled) setHistory(hist)
+        }).catch(() => {
+          // History is optional chrome; do not block statement bodies.
+        })
+        await Promise.all([textsPromise, historyPromise])
       } catch (err) {
         if (!cancelled) {
           setCause(undefined)
@@ -514,7 +541,7 @@ export function CauseDetailPage() {
     && coherenceBadgeResolved
     && !hasCoherenceBadge
   const mutationLocked = Boolean(
-    publishingId || reviewingId || publishingRoster || checkingCoherence,
+    publishingId || reviewingId || publishingRoster || checkingCoherence || promotingKind,
   )
   const slugLocked = Boolean(cause.slug && cause.founderAddress && cause.rosterCid)
   const stable = cause.founderAddress && cause.slug
@@ -621,6 +648,39 @@ export function CauseDetailPage() {
       setError(err instanceof Error ? err.message : 'Failed to publish this statement')
     } finally {
       setPublishingId(undefined)
+    }
+  }
+
+  const handlePromoteView = async (kind: CombinatorKind) => {
+    if (!canEdit || mutationLocked || selectedCids.length < 2) return
+    if (!isConnected || !address || !writeClients) {
+      setPromoteError('Connect your wallet to publish this combination.')
+      return
+    }
+    setPromotingKind(kind)
+    setPromoteError(null)
+    try {
+      const result = await promoteViewToCombinator({
+        machinery,
+        writeClients,
+        operandCids: selectedCids,
+        combinator: kind,
+      })
+      // Keyed by the operands it was minted from: a later promotion over a
+      // different selection is a new anchor, not an update of this one.
+      const nextAnchors = withAnchor(cause.anchors, {
+        combinator: kind,
+        cid: result.cid,
+        operandCids: [...selectedCids],
+      })
+      const updated = updateCause(cause.id, { anchors: nextAnchors })
+      if (updated) setCause(updated)
+      else setCause(bookmarkCause({ ...cause, anchors: nextAnchors }))
+      voidCoherence()
+    } catch (err) {
+      setPromoteError(err instanceof Error ? err.message : 'Failed to promote this combination')
+    } finally {
+      setPromotingKind(null)
     }
   }
 
@@ -1020,6 +1080,14 @@ export function CauseDetailPage() {
               selectedCount={selectedCids.length}
               loading={countsLoading}
               fewestDirectSignatures={fewestDirectSignatures}
+            />
+            <CauseAnchorPromote
+              selectedCids={selectedCids}
+              canPromote={canEdit && !mutationLocked}
+              promoting={promotingKind}
+              error={promoteError}
+              anchors={cause.anchors}
+              onPromote={(kind) => void handlePromoteView(kind)}
             />
             {countsError && (
               <Alert severity="warning" sx={{ mt: 1, borderRadius: 2 }}>

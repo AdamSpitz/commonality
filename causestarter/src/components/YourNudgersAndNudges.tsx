@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Alert, Box, Chip, CircularProgress, Paper, Stack, Typography } from '@mui/material'
+import { HeaderInfoTip } from './HeaderInfoTip'
 import { Link as RouterLink } from 'react-router-dom'
 import { getStatementWithContent } from '@commonality/sdk/conceptspace'
 import {
@@ -69,7 +70,7 @@ export function YourNudgersAndNudges() {
         }))
         if (!cancelled) setPreviews(nextPreviews)
       } catch {
-        if (!cancelled) setError('Could not load nudges from your subscribed mediators.')
+        if (!cancelled) setError('Could not load nudges from your subscribed suggesters.')
       } finally {
         if (!cancelled) setLoading(false)
       }
@@ -84,13 +85,15 @@ export function YourNudgersAndNudges() {
   return (
     <Stack spacing={2} data-testid="home-nudgers">
       <Box>
-        <Typography variant="h6" sx={{ fontWeight: 700 }}>
-          Suggesters you've subscribed to
-        </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-          Opt-ins stay on this device. Suggestions from these services appear here
-          and on statement pages.
-        </Typography>
+        <Stack direction="row" alignItems="center">
+          <Typography variant="h6" sx={{ fontWeight: 700 }}>
+            Suggesters you've subscribed to
+          </Typography>
+          <HeaderInfoTip
+            title="Opt-ins stay on this device. Suggestions from these services appear here and on statement pages."
+            label="About subscribed suggesters"
+          />
+        </Stack>
       </Box>
 
       {trustedNudgers.length === 0 ? (
@@ -130,7 +133,7 @@ export function YourNudgersAndNudges() {
 
       {!loading && !error && trustedNudgers.length > 0 && nudges.length === 0 && (
         <Typography variant="body2" color="text.secondary">
-          No published suggestions from these mediators yet.
+          No published suggestions from these suggesters yet.
         </Typography>
       )}
 

@@ -37,6 +37,7 @@ For the user-facing explanation of what Concept Space is and why it exists, see 
 ## Specs in this directory
 
 - [statements.md](statements.md) — Statement data model (displayable documents, extras, no structured semantics)
+- [combinator-statements.md](combinator-statements.md) — `all` / `any` over referenced statement CIDs as a canonical document class (anchors)
 - [statement-discovery.md](statement-discovery.md) — How the system discovers statements (via `DirectSupport` events, not a `StatementCreated` event) and scalability plan
 - [self-published-statements.md](self-published-statements.md) — Proposed: statement bytes ride in the calldata of the author's own signing transaction, so the author (not us) is the publisher; IPFS demoted to optional cache
 - [statements-list.md](statements-list.md) — Saved statements list (users bookmarking statements via mutable refs)

@@ -44,18 +44,18 @@ describe('YourNudgersAndNudges', () => {
     getStatementWithContent.mockResolvedValue(null)
   })
 
-  it('explains the empty state when no mediators are subscribed', () => {
+  it('explains the empty state when no suggesters are subscribed', () => {
     render(
       <MemoryRouter>
         <YourNudgersAndNudges />
       </MemoryRouter>,
     )
     expect(screen.getByTestId('home-nudgers')).toBeInTheDocument()
-    expect(screen.getByText(/No mediators yet/)).toBeInTheDocument()
+    expect(screen.getByText(/No suggesters yet/)).toBeInTheDocument()
     expect(getNudgerPublications).not.toHaveBeenCalled()
   })
 
-  it('lists subscribed mediators and their recent suggestions', async () => {
+  it('lists subscribed suggesters and their recent suggestions', async () => {
     useTrustedNudgers.mockReturnValue([
       { address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd', name: 'Housing mediator' },
     ])

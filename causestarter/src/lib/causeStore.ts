@@ -99,6 +99,52 @@ export interface CauseDraft {
   mediator?: CauseMediator
   /** Present when this cause is a modified sliver or the bridge of a cluster. */
   bridgeCluster?: RosterBridgeLink
+  /**
+   * Graph handles for promoted views. Optional; omitted from unpublished drafts
+   * and from rosters that have never promoted a combination.
+   */
+  anchors?: CauseAnchor[]
+}
+
+/**
+ * A promoted view. The combinator CID is a pure function of operator + sorted
+ * operands (ADR 0010), so the operands are part of the anchor's identity: an
+ * anchor describes the selection it was minted from and no other. Changing the
+ * selection mints a *new* anchor rather than updating this one.
+ */
+export interface CauseAnchor {
+  combinator: 'all' | 'any'
+  cid: string
+  operandCids: string[]
+}
+
+/** Canonical key for an operand set: order- and duplicate-insensitive. */
+export function operandSetKey(cids: readonly string[]): string {
+  return [...new Set(cids.map((cid) => cid.trim()).filter(Boolean))].sort().join('\n')
+}
+
+/** The anchor minted from exactly this selection with this operator, if any. */
+export function findAnchor(
+  anchors: readonly CauseAnchor[] | undefined,
+  combinator: 'all' | 'any',
+  selectedCids: readonly string[],
+): CauseAnchor | undefined {
+  const key = operandSetKey(selectedCids)
+  return anchors?.find(
+    (anchor) => anchor.combinator === combinator && operandSetKey(anchor.operandCids) === key,
+  )
+}
+
+/** Replaces the anchor for this operator+operand set, keeping all others. */
+export function withAnchor(
+  anchors: readonly CauseAnchor[] | undefined,
+  next: CauseAnchor,
+): CauseAnchor[] {
+  const key = operandSetKey(next.operandCids)
+  const rest = (anchors ?? []).filter(
+    (anchor) => !(anchor.combinator === next.combinator && operandSetKey(anchor.operandCids) === key),
+  )
+  return [...rest, next]
 }
 
 const STORAGE_KEY = 'causestarter.causes.v3'

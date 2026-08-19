@@ -16,7 +16,7 @@ The Implication Attester AI service:
 1. Accepts requests to evaluate S1 → S2 implications
 2. Requires payment via x402 protocol
 3. Fetches statement content from IPFS
-4. Uses OpenRouter (LLM) to evaluate logical implication
+4. Uses a structural gate for canonical combinator `all`/`any` arrows, otherwise OpenRouter (LLM) to evaluate logical implication
 5. If evaluation is positive (high/medium confidence), publishes an on-chain attestation
 
 ## Configuration

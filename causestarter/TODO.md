@@ -16,7 +16,13 @@ open **if they stay listed here**.
   checkbox. Do **not** mix post rows into the project list. The dedicated
   content board (`/cause/.../content`) stays as a post-level surface.
 
-- [ ] **Anchors are not built.** A founder cannot promote a proven view into a published statement, so the three things only an anchor can do — sign the combination, earmark to it, align a project with it — remain unavailable. See [shaping-your-cause-statements.md § Promotion](/docs/founder/shaping-your-cause-statements.md#promotion). The seat for it is the cause page's view strip.
+- [x] **Anchors are combinator statements.** Promote a selected view (`any` /
+  `all`) from the cause page view strip. Canonical CID, no founder title,
+  deterministic pairwise arrows via the implication attester's structural gate.
+  Roster stores optional `anchors` — each carrying the operand set it was minted
+  from, so a handle is only shown against the selection that produced it
+  (republish to attach). Alignment stays on planks. See
+  [combinator-statements.md](/specs/tech/subsystems/conceptspace/combinator-statements.md).
 - [ ] View counts fetch believer sets per plank, and each fetch walks events for the plank *plus* every statement implying it, under a `limit: 10000` that truncates silently. Fine locally; measure before it matters. Remedy is an indexer-side aggregate ([§ Scale](/docs/founder/shaping-your-cause-statements.md#scale-the-fold-is-fine-the-transport-isnt)), optionally sketch-backed — but band 1 must stay exact.
 
 - [ ] Safety filter is MVP/heuristic + LLM policy text — not legal-grade; version/align with operator/legal specs later.

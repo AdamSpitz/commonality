@@ -21,6 +21,7 @@ import {
   validateDisplayableDocument,
   type DisplayableDocument,
 } from '@commonality/sdk/displayable-documents'
+import { getStatementWithContent } from '@commonality/sdk/conceptspace'
 import {
   getSubjectStatements,
   type AlignmentAttestation,
@@ -46,7 +47,7 @@ import {
   type Hash,
 } from 'viem'
 import { getRuntimeConfigValue } from './runtimeConfig'
-import type { CauseDraft, CauseMediator, CausePlank, RosterBridgeLink } from './causeStore'
+import type { CauseAnchor, CauseDraft, CauseMediator, CausePlank, RosterBridgeLink } from './causeStore'
 import { publishedPlanks } from './causeStore'
 
 /** Structured payload stored in DisplayableDocument.extras. */
@@ -107,6 +108,8 @@ export interface RosterFields {
    * that cluster so the cause page can label mediator authorship.
    */
   bridgeCluster?: RosterBridgeLink
+  /** Promoted combinator anchors, omitted entirely when there are none. */
+  anchors?: CauseAnchor[]
 }
 
 export interface RosterExtras extends RosterFields {
@@ -236,6 +239,7 @@ export function rosterFieldsFromCause(cause: CauseDraft): RosterFields {
   const planks = publishedPlanks(cause)
   const firstText = planks[0]?.text.trim() ?? ''
   const title = (cause.title?.trim() || firstText || 'Untitled cause').slice(0, MAX_TITLE_LENGTH)
+  const anchors = parseAnchors(cause.anchors)
   return {
     title,
     summary: (cause.summary?.trim() ?? '').slice(0, MAX_SUMMARY_LENGTH),
@@ -243,6 +247,7 @@ export function rosterFieldsFromCause(cause: CauseDraft): RosterFields {
     mediatorBlurb: mediatorBlurbFrom(cause.mediator).slice(0, MAX_MEDIATOR_BLURB_LENGTH),
     mediator: parseCauseMediator(cause.mediator),
     ...(cause.bridgeCluster ? { bridgeCluster: cause.bridgeCluster } : {}),
+    ...(anchors ? { anchors } : {}),
   }
 }
 
@@ -261,6 +266,13 @@ export function renderRosterContent(fields: RosterFields): string {
   if (fields.mediatorBlurb.trim()) {
     lines.push('', '## Mediator', fields.mediatorBlurb.trim())
   }
+  const anchors = parseAnchors(fields.anchors)
+  if (anchors) {
+    lines.push('', '## Graph handles')
+    for (const anchor of anchors) {
+      lines.push(`- ${anchor.combinator} of ${anchor.operandCids.length} statements: ${anchor.cid}`)
+    }
+  }
   return lines.join('\n')
 }
 
@@ -278,6 +290,8 @@ export function buildRosterDocument(fields: RosterFields): DisplayableDocument {
   if (mediator) extras.mediator = mediator
   const bridgeCluster = parseRosterBridgeLink(fields.bridgeCluster)
   if (bridgeCluster) extras.bridgeCluster = bridgeCluster
+  const anchors = parseAnchors(fields.anchors)
+  if (anchors) extras.anchors = anchors
   return createDisplayableDocument({
     format: 'markdown-restricted',
     content: renderRosterContent(fields),
@@ -308,6 +322,7 @@ export function parseRosterDocument(doc: DisplayableDocument): RosterFields | nu
   // Absent on rosters published before the mediator identity was carried; not an error.
   const mediator = parseCauseMediator(extras.mediator)
   const bridgeCluster = parseRosterBridgeLink(extras.bridgeCluster)
+  const anchors = parseAnchors(extras.anchors)
   return {
     title,
     summary,
@@ -315,7 +330,33 @@ export function parseRosterDocument(doc: DisplayableDocument): RosterFields | nu
     mediatorBlurb,
     ...(mediator ? { mediator } : {}),
     ...(bridgeCluster ? { bridgeCluster } : {}),
+    ...(anchors ? { anchors } : {}),
   }
+}
+
+/**
+ * Anchors carry their operands: a bare CID cannot be shown honestly, because
+ * nothing says which selection minted it. Entries that lack operands (or that
+ * came from the pre-operand shape) are dropped rather than displayed.
+ */
+export function parseAnchors(value: unknown): CauseAnchor[] | undefined {
+  if (!Array.isArray(value)) return undefined
+  const anchors: CauseAnchor[] = []
+  for (const entry of value) {
+    if (!entry || typeof entry !== 'object') continue
+    const record = entry as Record<string, unknown>
+    const combinator = record.combinator
+    if (combinator !== 'all' && combinator !== 'any') continue
+    const cid = typeof record.cid === 'string' ? record.cid.trim() : ''
+    if (!cid) continue
+    if (!Array.isArray(record.operandCids)) continue
+    const operandCids = record.operandCids
+      .filter((operand): operand is string => typeof operand === 'string' && Boolean(operand.trim()))
+      .map((operand) => operand.trim())
+    if (operandCids.length < 2) continue
+    anchors.push({ combinator, cid, operandCids })
+  }
+  return anchors.length > 0 ? anchors : undefined
 }
 
 export function stableCausePath(id: StableCauseId, versionCid?: string): string {
@@ -651,20 +692,36 @@ export function placeholderPlanksFromCids(plankCids: readonly string[]): CausePl
 
 /** Body text from a statement document, or empty when the payload is missing. */
 export function textFromStatementDocument(document: DisplayableDocument | null | undefined): string {
-  const content = document?.content
-  return typeof content === 'string' ? content.trim() : ''
+  if (!document) return ''
+  const raw = document as { content?: unknown; title?: unknown }
+  const content = raw.content
+  if (typeof content === 'string' && content.trim()) return content.trim()
+  if (content && typeof content === 'object') {
+    const nested = (content as { content?: unknown }).content
+    if (typeof nested === 'string' && nested.trim()) return nested.trim()
+  }
+  const title = raw.title
+  return typeof title === 'string' ? title.trim() : ''
 }
 
 /**
- * Cheap plank-body read: PublishedData (then a short IPFS fallback).
- * Does not walk DirectSupport events the way getStatementWithContent does.
+ * Resolve a plank's display text from PublishedData / IPFS, then the statement
+ * query used by the statement page. Missing content stays the CID.
  */
 export async function readPlankText(machinery: SDKMachinery, cid: string): Promise<string> {
   try {
     const reader = createDefaultDocumentReader(machinery)
     const read = await reader.read(cid as IpfsCidV1)
-    if (read.status !== 'active') return cid
-    return textFromStatementDocument(read.document) || cid
+    if (read.status === 'active') {
+      const text = textFromStatementDocument(read.document)
+      if (text) return text
+    }
+  } catch {
+    // Fall through to the statement-page loader.
+  }
+  try {
+    const result = await getStatementWithContent(machinery, cid as IpfsCidV1)
+    return textFromStatementDocument(result?.content) || cid
   } catch {
     return cid
   }

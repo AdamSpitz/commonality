@@ -31,12 +31,53 @@ When an item from this page is done and no longer needs an LLM implementor's att
 
 - Fix the canonical Playwright user journeys (`stack.user-journeys`, exit 1). The content-funding flow reverts in `verifyChannel` with `InvalidVerifierSignature()` (custom error `0x0574e985`) when creating a channel and landing on the creators page, and retries hit the same error. Either the signer/verifier key the E2E harness uses no longer matches the deployed `ChannelRegistry` verifier, or the signed payload's shape/domain changed.
 
+- Stop `stack.fresh-seeded` and `stack.restart-consistency` from racing in the deep
+  cadence. On 2026-08-19 the nightly run seeded successfully and then destroyed the
+  result: `stack.fresh-seeded` started 02:15:12 and was still mid-run when
+  `stack.restart-consistency` began at 02:18:31 (see
+  `verifier/artifacts/stack.restart-consistency/2026-08-19T06-18-31.768Z-7d0c3d6e/command.log`,
+  which ends in `Error response from daemon: No such container: 1ffc7816…`). Its
+  `docker compose stop hardhat-node && up -d` replaced the seeded anvil with an empty
+  one at 02:19:30; `hardhat-deploy` then redeployed contracts (blocks 1-31) and the
+  alignment-trust bootstrap wired trust (blocks 32-41), and nothing else ever landed.
+  Adam woke up to a stack with 48 blocks, 119 logs, and zero cause rosters — while the
+  cadence summary reported `PASS stack.fresh-seeded`. Both checks are destructive to the
+  local stack and must be serialized (or share a lock / be placed in a mutually exclusive
+  supervisor group); a green `fresh-seeded` that another check has since wiped is worse
+  than a red one. Two sub-issues found alongside it:
+  (a) `anvil --state /data/state.json` is not giving restart durability — the restarted
+  anvil came up empty rather than reloading the snapshot, which is also why
+  `stack.restart-consistency` itself failed. Its comment claims `up -d --no-deps` avoids
+  rerunning `hardhat-deploy`, but deploy ran anyway.
+  (b) `stack.fresh-seeded` only probes endpoint reachability, so an unseeded-but-healthy
+  stack passes it. It should assert the seed's own artifacts exist (e.g. the
+  `local-food-systems` / `christianity` roster refs for Hardhat #0 and the
+  `bookmarked-causes` refs for #0-#9), not just that the RPC answers.
+  Workaround if you hit this again: `./scripts/data.sh --seed=tiny --use-hardhat-accounts
+  --allow-seed-on-existing-data` reseeds onto the live stack without a wipe.
+
 
 
 - [ ] **(Tell)** Measure whether the proposed planks/views model can fold `DirectSupport` events per plank client-side at approximately 10⁵ signers, or whether it needs a server-side fold. This is currently an unmeasured assertion in [shaping-your-cause-statements.md](docs/founder/shaping-your-cause-statements.md). Report the setup, timings, memory/browser behavior, and conclusion; do not build the server-side path yet.
 
-- [ ] **(Tell)** Test whether the real implication-attester prompt blesses representative plank→disjunctive-anchor arrows. This is currently a logical argument rather than an observed result in [shaping-your-cause-statements.md](docs/founder/shaping-your-cause-statements.md). Report accepted/rejected cases and reasoning; do not build anchor tooling yet.
-
 - Verify the new local public-goods demo-seed storyline against a live stack. `PROJECT_SEED_METADATA[0]` is now "Riverside Community Garden" (aligned to `fundable-projects`/`local-community`/`local-food-systems`), `DETERMINISTIC_SEED_PROJECT_ALIGNMENT_COUNT` is 6 so no existing storyline lost its alignment, and `gen:seed:local` runs 12 users to keep the success-attester pool satisfied. Unit tests pass, but the seed has still never been run end-to-end: `stack.fresh-seeded` now passes (2026-08-03) but it seeds `tiny`, not `demo`. Run `./scripts/data.sh --wipe && ./scripts/data.sh --seed=demo` and confirm in the UI that the garden project shows an alignment vouch, contributions, and a success attestation. Consider also regenerating `data/seed-worker-outputs.json` if the Explorer fixture should mention the new cause.
 
 - Give the demo seed (`./scripts/data.sh --seed=demo`) more **local public-goods** coverage. One storyline now exists (see above), but rows A5 (federated regional) and E2 (nonprofit on the rails) in [use-cases.md](specs/product/use-cases.md) are still not demonstrable — and those are exactly the cases the strategy docs lean on hardest. Note also that the project-creation form ships "Community garden" / "Clean water" / "Learning circle" stock images that nothing in the seed uses. Found 2026-07-25 while verifying use-case statuses against the live UI.
+
+- Stop combinator operand reads from holding up the whole statement page. Both
+  `causestarter/src/pages/StatementPage.tsx` and
+  `ui/src/conceptspace/pages/StatementPage.tsx` fetch every operand body of a
+  combinator statement *before* clearing `loading`, so one slow IPFS read leaves the
+  reader staring at a spinner even though the statement's own content already
+  resolved. Paint the statement first and let the operand bodies fill in (they
+  already fall back to showing the CID), rather than blocking on `Promise.all`.
+  Found 2026-08-19 reviewing the combinator-statements branch.
+
+- Guard the rest of `ui/src/conceptspace/pages/StatementPage.tsx`'s loader against
+  navigation. The operand fetch now checks a load token before writing, but the
+  earlier `setStatement` / `setStatementContent` / `setContentStatus` / metrics /
+  `setUserBeliefState` writes are still unguarded, so a slow load that resolves after
+  the user has moved to another statement can paint stale content. Pre-existing, not
+  new to the combinator work; the same pattern is worth a sweep across the other
+  conceptspace pages. Found 2026-08-19.
+
