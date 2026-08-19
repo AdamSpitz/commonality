@@ -55,6 +55,8 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 ### Stuff I want to think through
 
+- **(Ask)** Combinator statements (`all` / `any` over plank CIDs) as the graph form of a CauseStarter anchor — canonical document so the CID *is* the combination, no title/date in the bytes, deterministic pairwise arrows only. Tentative spec: [combinator-statements.md](specs/tech/subsystems/conceptspace/combinator-statements.md). Think it through (especially identity vs display, and whether ordinary statements should drop `createdDate` from extras), then implement if it still looks right.
+
 - What's the difference between seed data and example data for testing? I think I may have been using the seed data mechanism for test data, which is probably not what I want.
 
 - Ultimately we want vertical founders to host their own vertical-specific services like mediators, but can we have a middle ground where we can run it for them on our infrastructure (modulo blocklist concerns) until/unless they decide to host it themselves?

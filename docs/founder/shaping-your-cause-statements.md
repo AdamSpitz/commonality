@@ -240,6 +240,10 @@ organizer document. Everything else in the system is statement-shaped. Until
 the combination is a statement, it is not a node other people can imply,
 disbelieve, earmark to, or build a board on without opening the cause page.
 
+Tentative encoding for that node:
+[combinator-statements.md](/specs/tech/subsystems/conceptspace/combinator-statements.md)
+(`all` / `any` over referenced CIDs, canonical bytes, no founder title). Not built.
+
 ### Conjunction views need two bands, or they lie
 
 The two views degrade in opposite ways, because `noOpinion` is the default belief
