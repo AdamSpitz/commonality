@@ -34,6 +34,7 @@ import {
   getConfiguredPaymentCurrency,
   useTrustedSet,
   truncateAddress,
+  TrustNetworkRefreshIndicator,
 } from '../../shared'
 import type { CauseBoardNavLink } from './CauseBoard'
 import { useKeepPaintedWhileRefreshing } from '../hooks/useKeepPaintedWhileRefreshing'
@@ -305,7 +306,16 @@ export function CauseLeaderboard({
   }
 
   return (
-    <Box>
+    <Box sx={{ position: 'relative' }}>
+      {userAddress && trustedSetLoading && (
+        <TrustNetworkRefreshIndicator
+          title={
+            trustedSet
+              ? `Refreshing your trust network. This leaderboard is currently using ${trustedSet.size} account${trustedSet.size !== 1 ? 's' : ''} in your network. Results may still change as more are discovered.`
+              : 'Refreshing your trust network. Until any trusted accounts are found, this leaderboard still includes all alignment attestations.'
+          }
+        />
+      )}
       <Box sx={{ mb: 2 }}>
         {'href' in resolvedBack ? (
           <Button component="a" href={resolvedBack.href} size="small">
@@ -340,14 +350,6 @@ export function CauseLeaderboard({
       <Typography variant="h4" component="h1" gutterBottom>
         Cause Leaderboard
       </Typography>
-
-      {userAddress && trustedSetLoading && (
-        <Alert severity="info" sx={{ mb: 2 }}>
-          {trustedSet
-            ? `Refreshing your trust network. This leaderboard is currently using ${trustedSet.size} account${trustedSet.size !== 1 ? 's' : ''} in your network. Results may still change as more are discovered.`
-            : 'Refreshing your trust network. Until any trusted accounts are found, this leaderboard still includes all alignment attestations.'}
-        </Alert>
-      )}
 
       <Paper variant="outlined" sx={{ p: 2, mb: 3 }}>
         <SectionHeading

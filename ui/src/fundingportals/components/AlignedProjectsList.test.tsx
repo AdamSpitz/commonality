@@ -241,7 +241,7 @@ describe('AlignedProjectsList', () => {
       } as any)
       rerender(<AlignedProjectsList statementCid="QmTest" />)
 
-      expect(screen.queryByRole('progressbar')).not.toBeInTheDocument()
+      expect(screen.getByTestId('trust-network-refresh')).toBeInTheDocument()
       expect(screen.getByText(/No aligned projects yet/)).toBeInTheDocument()
     })
   })

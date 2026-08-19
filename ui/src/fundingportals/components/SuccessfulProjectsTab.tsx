@@ -1,6 +1,6 @@
-import { Alert, Box } from '@mui/material'
+import { Box } from '@mui/material'
 import { useAccount } from 'wagmi'
-import { useTrustedSet } from '../../shared'
+import { useTrustedSet, TrustNetworkRefreshIndicator } from '../../shared'
 import { SuccessfulProjectsList } from './SuccessfulProjectsList'
 import { DISCOVERY_LEVEL_MAX_HOPS } from './discoveryLevels'
 import { useDiscoveryLevel } from '../hooks/useDiscoveryLevel'
@@ -38,13 +38,15 @@ export function SuccessfulProjectsTab({
   const activeTrustWeights = filterActive ? trustWeights : undefined
 
   return (
-    <Box>
+    <Box sx={{ position: 'relative' }}>
       {address && isLoading && (
-        <Alert severity="info" sx={{ mb: 2 }}>
-          {trustedSet
-            ? `Refreshing your trust network. Success vouches are currently filtered using ${trustedSet.size} account${trustedSet.size !== 1 ? 's' : ''} in your network. Results may still change as more are discovered.`
-            : 'Refreshing your trust network. Until any trusted accounts are found, success vouches are not filtered.'}
-        </Alert>
+        <TrustNetworkRefreshIndicator
+          title={
+            trustedSet
+              ? `Refreshing your trust network. Success vouches are currently filtered using ${trustedSet.size} account${trustedSet.size !== 1 ? 's' : ''} in your network. Results may still change as more are discovered.`
+              : 'Refreshing your trust network. Until any trusted accounts are found, success vouches are not filtered.'
+          }
+        />
       )}
 
       <SuccessfulProjectsList

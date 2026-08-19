@@ -32,6 +32,7 @@ import {
   useTrustedSet,
   useTrustedAttesters,
   useTrustedContentAttesters,
+  TrustNetworkRefreshIndicator,
 } from '../../shared'
 import { selectAlignedContentContracts, useContentFundingState } from '../../content-funding'
 import { AlignedProjectsList } from './AlignedProjectsList'
@@ -350,6 +351,7 @@ export function CauseBoard({
         sx={{
           mb: 3,
           overflow: 'hidden',
+          position: 'relative',
         }}
       >
         <Box sx={{ px: 2, pt: 1.5, pb: 1.25 }}>
@@ -492,12 +494,14 @@ export function CauseBoard({
           {headerExtra}
         </Box>
 
-        {address && trustedSetLoading && (
-          <Alert severity="info" sx={{ mx: 2, mb: 1 }}>
-            {trustedSet
-              ? `Refreshing your trust network. This portal is currently filtered using ${trustedSet.size} account${trustedSet.size !== 1 ? 's' : ''} in your network. Results may still change as more are discovered.`
-              : 'Refreshing your trust network. Until any trusted accounts are found, this cause board still shows all project vouches.'}
-          </Alert>
+        {address && trustedSetLoading && trustedAlignmentAttesters === undefined && (
+          <TrustNetworkRefreshIndicator
+            title={
+              trustedSet
+                ? `Refreshing your trust network. This portal is currently filtered using ${trustedSet.size} account${trustedSet.size !== 1 ? 's' : ''} in your network. Results may still change as more are discovered.`
+                : 'Refreshing your trust network. Until any trusted accounts are found, this cause board still shows all project vouches.'
+            }
+          />
         )}
 
         <Tabs

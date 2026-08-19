@@ -97,7 +97,7 @@ describe('SuccessfulProjectsTab', () => {
 
     render(<SuccessfulProjectsTab statementCid="bafyCause" />)
 
-    expect(await screen.findByText(/Success vouches are currently filtered using 1 account/i)).toBeInTheDocument()
+    expect(await screen.findByLabelText(/Success vouches are currently filtered using 1 account/i)).toBeInTheDocument()
   })
 
   it('shows the pre-network progress alert before any trusted accounts are known', async () => {
@@ -109,6 +109,6 @@ describe('SuccessfulProjectsTab', () => {
 
     render(<SuccessfulProjectsTab statementCid="bafyCause" />)
 
-    expect(await screen.findByText(/Until any trusted accounts are found, success vouches are not filtered/i)).toBeInTheDocument()
+    expect(await screen.findByLabelText(/Until any trusted accounts are found, success vouches are not filtered/i)).toBeInTheDocument()
   })
 })

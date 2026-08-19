@@ -23,10 +23,13 @@ import { isAddress } from 'viem'
 import { TrustRegistryAbi } from '@commonality/sdk/abis'
 import { waitForIndexerToSyncToTxHash } from '@commonality/sdk/indexer-sync'
 import { getDirectTrustMapping, setTrust } from '@commonality/sdk/subjectiv'
-import { useMachinery } from '../../shared'
-import { useWriteClients } from '../../shared'
-import { useTrustedSet } from '../../shared'
-import { notifySubjectivTrustNetworkInvalidated } from '../../shared'
+import {
+  notifySubjectivTrustNetworkInvalidated,
+  TrustNetworkRefreshIndicator,
+  useMachinery,
+  useTrustedSet,
+  useWriteClients,
+} from '../../shared'
 
 function normalizeEntries(entries: Map<string, number>) {
   return Array.from(entries.entries())
@@ -291,17 +294,22 @@ export function DirectTrustSettingsSection({
             {entries.length} direct trust score{entries.length !== 1 ? 's' : ''} configured
           </Typography>
 
-          {trustedSetLoading ? (
-            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-              {trustedSet
-                ? `Refreshing your trust network. Currently using ${trustedSet.size} account${trustedSet.size !== 1 ? 's' : ''} in your network.`
-                : refreshingEmptyMessage}
-            </Typography>
-          ) : trustedSet ? (
-            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-              Current network size: {trustedSet.size} account{trustedSet.size !== 1 ? 's' : ''}
-            </Typography>
-          ) : null}
+          <Box sx={{ position: 'relative', mt: 1, minHeight: trustedSet || trustedSetLoading ? 20 : 0 }}>
+            {trustedSetLoading && (
+              <TrustNetworkRefreshIndicator
+                title={
+                  trustedSet
+                    ? `Refreshing your trust network. Currently using ${trustedSet.size} account${trustedSet.size !== 1 ? 's' : ''} in your network.`
+                    : refreshingEmptyMessage
+                }
+              />
+            )}
+            {trustedSet ? (
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', pr: 4 }}>
+                Current network size: {trustedSet.size} account{trustedSet.size !== 1 ? 's' : ''}
+              </Typography>
+            ) : null}
+          </Box>
         </>
       )}
     </Paper>

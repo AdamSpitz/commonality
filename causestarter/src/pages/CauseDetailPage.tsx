@@ -12,6 +12,7 @@ import { useAccount } from 'wagmi'
 import type { RefUpdate } from '@commonality/sdk/mutable-refs'
 import {
   InfoChip,
+  TrustNetworkRefreshIndicator,
   useTrustedAttesters,
 } from '@ui/shared'
 import { CauseBoard, CauseLeaderboard } from '@ui/fundingportals'
@@ -937,9 +938,9 @@ export function CauseDetailPage() {
       )}
 
       {publishedCids.length > 0 && showInitialTrustLoad && (
-        <Alert severity="info" sx={{ borderRadius: 2 }}>
-          Loading your trust network before listing projects…
-        </Alert>
+        <Box sx={{ position: 'relative', height: 0 }}>
+          <TrustNetworkRefreshIndicator title="Refreshing your trust network before listing projects." />
+        </Box>
       )}
       {publishedCids.length > 0 && (trustError || alignmentTrustUnavailable) && (
         <AlignmentTrustGate error={trustError} />

@@ -173,6 +173,7 @@ export { CrossDomainUnavailablePage } from './components/CrossDomainUnavailableP
 export { NetworkSwitchPrompt } from './components/NetworkSwitchPrompt'
 export { StatementPicker } from './components/StatementPicker'
 export { NotFoundPage } from './components/NotFoundPage'
+export { TrustNetworkRefreshIndicator } from './components/TrustNetworkRefreshIndicator'
 
 // === utils/ — small pure helpers ===
 export { truncateAddress } from './utils/address'

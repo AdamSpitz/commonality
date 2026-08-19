@@ -15,7 +15,7 @@ import SortIcon from '@mui/icons-material/Sort'
 import { getAllAlignedProjectsForCause } from '@commonality/sdk/fundingportals'
 import { getProject } from '@commonality/sdk/lazy-giving'
 import { ETH_CURRENCY, type IpfsCidV1 } from '@commonality/sdk/utils'
-import { getDomainUrl, isDomainConfigured, useMachinery, useTrustedContentAttesters, useTrustedSet } from '../../shared'
+import { getDomainUrl, isDomainConfigured, useMachinery, useTrustedContentAttesters, useTrustedSet, TrustNetworkRefreshIndicator } from '../../shared'
 import { selectAlignedContentContracts, useContentFundingState } from '../../content-funding'
 import { getProjectStatus } from '../../lazy-giving'
 import {
@@ -238,7 +238,7 @@ export function AlignedProjectsList({
   }
 
   return (
-    <Box>
+    <Box sx={{ position: 'relative' }}>
       {!embedded && (
         <Typography variant="h5" gutterBottom>
           {statusFilterLock ? STATUS_HEADINGS[statusFilterLock] : 'Aligned Projects'}
@@ -246,11 +246,13 @@ export function AlignedProjectsList({
       )}
 
       {address && trustedSetLoading && trustedAlignmentAttesters === undefined && (
-        <Alert severity="info" sx={{ mb: 2 }}>
-          {trustedSet
-            ? `Refreshing your trust network. Alignment vouches are currently filtered using ${trustedSet.size} account${trustedSet.size !== 1 ? 's' : ''} in your network. Results may still change as more are discovered.`
-            : 'Refreshing your trust network. Until any trusted accounts are found, alignment vouches are not filtered.'}
-        </Alert>
+        <TrustNetworkRefreshIndicator
+          title={
+            trustedSet
+              ? `Refreshing your trust network. Alignment vouches are currently filtered using ${trustedSet.size} account${trustedSet.size !== 1 ? 's' : ''} in your network. Results may still change as more are discovered.`
+              : 'Refreshing your trust network. Until any trusted accounts are found, alignment vouches are not filtered.'
+          }
+        />
       )}
 
       <Paper
