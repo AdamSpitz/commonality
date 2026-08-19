@@ -221,7 +221,7 @@ What a view still cannot do — and why you eventually promote:
 | Show "N signed all / any of these" on the cause page | No — view (if people signed the planks) |
 | Show projects that further any selected plank | No — union of plank boards |
 | Put one project on every plank's board | No, and usually shouldn't |
-| Earmark "this money may further any of these" | **Yes** — a `NoteIntent` target has to be a statement |
+| Earmark "this money may further any of these" | **Yes** — conjunctive (`all`) combinator: you endorse every conjunct, so a delegate may spend on work that furthers any of them. CauseStarter's funding page mints that node if needed, then opens the pledge form against it. Do **not** use `any` for this job: signing a disjunction does not mean you endorse both spend targets. |
 | Sign the *name* / the alliance in one step | **Yes** — one CID, one signature |
 | Have Tally, a vertical, a nudge, or any other surface treat the cause as a statement | **Yes** — they take a CID, not a CauseStarter roster URL |
 | Let wholehearted people sign once and count on every plank | **Yes** — conjunctive anchor, outbound arrows |
@@ -245,6 +245,27 @@ Encoding for that node:
 [combinator-statements.md](/specs/tech/subsystems/conceptspace/combinator-statements.md)
 (`all` / `any` over referenced CIDs, canonical bytes, no founder title). Why:
 [ADR 0010](/specs/decisions/0010-combinator-statements.md).
+
+### Which operator to mint, and from which action (2026-08-19)
+
+Do not mint combinators from a generic "promote" as if both operators were
+the same product. Each operator has a job; mint it from the action that
+needs that job.
+
+| Operator | Job | Mint from | Do not mint from |
+|---|---|---|---|
+| `all` | Money that may further *any conjunct you endorse* | Earmark / pledge on the funding page (built). Optional: a wholehearted signer who wants one signature to count on every plank. | Project alignment. Bridge clusters. "Pick a side." |
+| `any` | A public alliance node: plank signers count toward one CID via inbound arrows; people can sign the coalition without walking every plank | Surfaces that need a *name* other tools can treat as a statement (Tally, a vertical, a public "this cause" counter that is not this SPA's set-math). A plausible later home is **after** a bridge cluster has named the two camps — the `any` is the coalition, not the compromise. | Earmark. Alignment. Auto-minting on every view-strip selection. |
+
+Bridge-building is not an automatic `any`. A cluster already records intended
+plank pairs and optional parent→modified nudges. An `any(camp A, camp B)`
+would say "at least one of these is enough," which is a coalition claim, not
+the mediator's wording. Mint that only if a later product step wants a
+coalition CID (shared board, shared Tally question), not as a side effect of
+paying the implication attester.
+
+There is no generic cause-page promote control. Combinators are created from
+the action that needs them (today: conjunction earmark).
 
 ### Conjunction views need two bands, or they lie
 

@@ -35,6 +35,26 @@ export interface PromoteViewResult {
   attester?: SubmitPairsResult
 }
 
+/**
+ * Publish the combinator only if its CID is not already on PublishedData.
+ * Earmark flows call this so a second funder does not re-mint a shared node.
+ */
+export async function ensureCombinatorPublished(
+  args: PromoteViewArgs,
+): Promise<PromoteViewResult> {
+  if (args.operandCids.length < 2) {
+    throw new Error('Select at least two published statements to promote a combination.')
+  }
+  const document = createCombinatorStatement(args.combinator, args.operandCids)
+  const cid = publishedDataCidForDocument(document)
+  const reader = createDefaultDocumentReader(args.machinery)
+  const existing = await reader.read(cid as IpfsCidV1)
+  if (existing.status === 'active' && parseCombinatorStatement(existing.document)) {
+    return { cid, combinator: args.combinator }
+  }
+  return promoteViewToCombinator(args)
+}
+
 export async function promoteViewToCombinator({
   machinery,
   writeClients,
