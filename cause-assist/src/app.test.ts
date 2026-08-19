@@ -114,6 +114,7 @@ describe('cause-assist request guards', () => {
     assert.equal((await post(baseUrl, '/sharpen-plank', { plank: '' })).status, 400)
     assert.equal((await post(baseUrl, '/draft-anchor', { planks: ['only one'] })).status, 400)
     assert.equal((await post(baseUrl, '/draft-modified-plank', { parentPlanks: [] })).status, 400)
+    assert.equal((await post(baseUrl, '/draft-stand-in-sliver', { sideLabel: '' })).status, 400)
     assert.equal((await post(baseUrl, '/draft-bridge-plank', { modifiedSides: [{ planks: ['only one side'] }] })).status, 400)
     assert.equal((await post(baseUrl, '/critique-triple', { modifiedPlanks: ['only one'], bridgePlank: 'shared' })).status, 400)
 

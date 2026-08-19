@@ -132,6 +132,24 @@ export const CHRISTIANITY_PROJECTS = [
   },
 ] as const;
 
+/** Hardhat #9 — a distinct founder so the other camp is not the Christianity owner. */
+export const SECULAR_CONSERVATIVE_OWNER_KEY = FUNDED_HARDHAT_DEV_KEYS[9]!;
+export const SECULAR_CONSERVATIVE_OWNER_ADDRESS = privateKeyToAccount(SECULAR_CONSERVATIVE_OWNER_KEY).address;
+export const SECULAR_CONSERVATIVE_CAUSE_SLUG = 'secular-conservatism';
+export const SECULAR_CONSERVATIVE_CAUSE_TITLE = 'Secular conservatism';
+export const SECULAR_CONSERVATIVE_CAUSE_SUMMARY =
+  'Order, family formation, and measured outcomes without a theological premise. Seed roster so a mediator can point at a real other cause, not only invent a stand-in.';
+export const SECULAR_CONSERVATIVE_PLANKS = [
+  {
+    id: 'two-parent-outcomes',
+    text: 'Kids do better with two committed parents, and a country that has stopped forming families is storing up a problem it cannot buy its way out of.',
+  },
+  {
+    id: 'family-formation-priority',
+    text: 'Making family formation affordable and normal should be a public priority even if people disagree about why families matter.',
+  },
+] as const;
+
 function createClients(privateKey: `0x${string}`) {
   return createSeedClients(privateKey, RPC_URL);
 }
@@ -408,6 +426,7 @@ async function mergeBookmarks(): Promise<void> {
   const wanted = [
     { owner: SEED_CAUSE_OWNER_ADDRESS, slug: SEED_CAUSE_SLUG },
     { owner: SEED_CAUSE_OWNER_ADDRESS, slug: CHRISTIANITY_CAUSE_SLUG },
+    { owner: SECULAR_CONSERVATIVE_OWNER_ADDRESS, slug: SECULAR_CONSERVATIVE_CAUSE_SLUG },
   ];
   const seen = new Set(existing.map((item) => `${item.owner.toLowerCase()}/${item.slug}`));
   const merged = [...existing];
@@ -515,10 +534,74 @@ export async function publishSeedChristianityCause(): Promise<{
   }
 
   const rosterCid = await publishRoster([...plankMap.values()]);
+  await publishSeedSecularConservativeCause();
   return {
     slug: CHRISTIANITY_CAUSE_SLUG,
     rosterCid,
     plankCids: [...plankMap.values()],
+  };
+}
+
+export function secularConservativeRosterFields(plankCids: string[]): SeedCauseRosterFields {
+  return {
+    title: SECULAR_CONSERVATIVE_CAUSE_TITLE,
+    summary: SECULAR_CONSERVATIVE_CAUSE_SUMMARY,
+    plankCids,
+    mediatorBlurb: '',
+  };
+}
+
+export async function publishSeedSecularConservativeCause(): Promise<{
+  slug: string;
+  rosterCid: string | null;
+  plankCids: string[];
+} | null> {
+  const publishedData = CONTRACT_ADDRESSES.publishedData as `0x${string}` | undefined;
+  const mutableRef = CONTRACT_ADDRESSES.mutableRefUpdater as `0x${string}` | undefined;
+  if (!publishedData || !mutableRef) {
+    console.warn('PublishedData or MutableRefUpdater missing — skipping secular-conservative roster.');
+    return null;
+  }
+  console.log('\n=== Publishing seed CauseStarter roster (secular conservatism) ===\n');
+  const owner = createClients(SECULAR_CONSERVATIVE_OWNER_KEY);
+  const ipfsConfig = createIPFSConfigInNodeJSFromTheUsualEnvVars();
+  const plankCids: string[] = [];
+  for (const plank of SECULAR_CONSERVATIVE_PLANKS) {
+    const cid = await publishGeneratedStatement(
+      ipfsConfig,
+      { text: plank.text, domain: 'secular-conservatism', position: plank.id },
+      'secular-conservatism',
+      plank.id,
+      'simple',
+      { clients: owner as WriteClients, publishedDataAddress: publishedData },
+    );
+    plankCids.push(cid);
+    console.log(`  Published plank ${plank.id} → ${cid}`);
+  }
+  const fields = secularConservativeRosterFields(plankCids);
+  const doc = buildSeedRosterDocument(fields);
+  const store = createDefaultDocumentStore(
+    createSDKMachinery({ ipfsConfig: createIPFSConfigInNodeJSFromTheUsualEnvVars() }),
+    {
+      clients: owner as WriteClients,
+      publishedDataContract: { address: publishedData, abi: PublishedDataAbi },
+    },
+  );
+  const publication = await store.publish(doc);
+  await updateRef(
+    owner as WriteClients,
+    { address: mutableRef, abi: MutableRefUpdaterAbi },
+    SECULAR_CONSERVATIVE_CAUSE_SLUG,
+    publication.cid,
+  );
+  await mergeBookmarks();
+  console.log(
+    `  ✓ Cause ${SECULAR_CONSERVATIVE_CAUSE_SLUG} → ${publication.cid}\n  Open /cause/${owner.account}/${SECULAR_CONSERVATIVE_CAUSE_SLUG}`,
+  );
+  return {
+    slug: SECULAR_CONSERVATIVE_CAUSE_SLUG,
+    rosterCid: publication.cid,
+    plankCids,
   };
 }
 

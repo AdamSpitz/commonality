@@ -36,6 +36,7 @@ describe('bridge assist brief', () => {
     expect(brief).toContain('Marriage is a covenant.')
     expect(brief).toContain('WIP Christian wording')
     expect(brief).toContain('format example only')
+    expect(brief).toContain('stand-in parent')
   })
 
   it('parses fenced JSON and applies plank replacements', () => {

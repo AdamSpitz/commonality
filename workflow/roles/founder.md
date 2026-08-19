@@ -3,6 +3,7 @@
   - [Standing up a vertical](/docs/founder/standing-up-a-vertical.md) — the "now actually build one" guide, using Civility/CSM as worked examples
   - [Shaping your cause's statements](/docs/founder/shaping-your-cause-statements.md) — what a cause is made of: planks, views, and anchors, and how implication direction constrains each (working proposal, still open)
   - [Helping a human write a bridge cluster](/docs/founder/bridge-cluster-wording-help.md) — one-shot wording help + export-to-your-LLM; not a hosted mediation chat
+  - [How a mediator sets up “the Other Cause”](/docs/founder/the-other-cause.md) — stand-in parents when the other camp has no published cause
   - [docs/end-user/commonality/vision-and-strategy/](/docs/end-user/commonality/vision-and-strategy/)
   - [specs/README.md](/specs/README.md)
   - [Verifier workspace](/verifier/README.md) (for when you want to know "is this thing actually *ready*?")

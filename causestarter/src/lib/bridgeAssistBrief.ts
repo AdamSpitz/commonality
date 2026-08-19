@@ -42,6 +42,8 @@ export function modifiedTexts(parent: BridgeParentDraft): string[] {
 export function buildBridgeAssistBrief(draft: BridgeDraft): string {
   const parents = draft.parents.map((parent, index) => ({
     index,
+    kind: parent.kind,
+    skipModified: parent.skipModified,
     title: parent.title.trim() || parent.slug.trim() || `Parent ${index + 1}`,
     owner: parent.owner.trim(),
     slug: parent.slug.trim(),
@@ -55,6 +57,7 @@ export function buildBridgeAssistBrief(draft: BridgeDraft): string {
     task: 'Propose wording patches for a human-authored Commonality bridge cluster. The human remains the publisher. Do not invent implication arrows. Do not write a standing mediator strategy prompt.',
     rules: [
       'A modified cause is a thinner sliver of its parent, not a full rewrite of that movement.',
+      'A stand-in parent (kind stand-in) is a thin roster the mediator writes because that camp has no published cause. It is not a modified cause. Skip modified wording when skipModified is true.',
       'Each modified plank must still sound like that camp and keep that camp\'s reasons.',
       'The bridge plank is a shared conclusion. It must not require either side\'s justification (no theology a secular signer must affirm; no reduction of faith to "studies show").',
       'Implication is plank-to-plank and must be obvious: anyone who signs the modified wording is already committed to the bridge wording.',
@@ -162,13 +165,22 @@ export function applyBridgeClusterPatch(draft: BridgeDraft, patch: BridgeCluster
   const parents = draft.parents.map((parent, index) => {
     const update = patch.parents?.find((item) => item.index === index)
     if (!update) return parent
+    const suggested = update.planks.map((text) => newPlank(text, 'suggested'))
+    if (parent.skipModified || parent.kind === 'stand-in') {
+      return {
+        ...parent,
+        title: update.modifiedTitle || parent.title,
+        summary: update.modifiedSummary ?? parent.summary,
+        parentPlanks: suggested,
+      }
+    }
     return {
       ...parent,
       modified: {
         ...parent.modified,
         title: update.modifiedTitle || parent.modified.title,
         summary: update.modifiedSummary ?? parent.modified.summary,
-        planks: update.planks.map((text) => newPlank(text, 'suggested')),
+        planks: suggested,
       },
     }
   })

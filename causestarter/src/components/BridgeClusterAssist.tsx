@@ -3,7 +3,6 @@ import { Alert, Button, Paper, Stack, TextField, Typography } from '@mui/materia
 import {
   applyBridgeClusterPatch,
   buildBridgeAssistBrief,
-  modifiedTexts,
   parentTexts,
   parseBridgeClusterPatch,
 } from '../lib/bridgeAssistBrief'
@@ -11,8 +10,9 @@ import {
   critiqueTriple,
   draftBridgePlank,
   draftModifiedPlank,
+  draftStandInSliver,
 } from '../lib/causeAssistClient'
-import type { BridgeDraft } from '../lib/bridgeStore'
+import { implicationSourcePlanks, type BridgeDraft } from '../lib/bridgeStore'
 import { newPlank } from '../lib/causeStore'
 
 function optional(value: string): string | undefined {
@@ -21,9 +21,12 @@ function optional(value: string): string | undefined {
 }
 
 interface Proposal {
-  kind: 'modified' | 'bridge'
+  kind: 'modified' | 'bridge' | 'stand-in'
   parentId?: string
   plank: string
+  title?: string
+  summary?: string
+  planks?: string[]
   rationale: string
   warnings: string[]
 }
@@ -68,6 +71,41 @@ export function BridgeClusterAssist({ draft, onDraft, busy, setBusy }: BridgeClu
     setPaste('')
   }
 
+  const runStandIn = async (parentId: string) => {
+    const parent = draft.parents.find((item) => item.id === parentId)
+    if (!parent) return
+    const sideLabel = optional(parent.title) || optional(parent.slug) || 'the other camp'
+    setBusy(true)
+    setStatus(null)
+    try {
+      const result = await draftStandInSliver({
+        sideLabel,
+        bullets: parent.parentPlanks.map((plank) => plank.text.trim()).filter(Boolean),
+        currentDraft: {
+          title: optional(parent.title),
+          summary: optional(parent.summary),
+          planks: parent.parentPlanks.map((plank) => plank.text.trim()).filter(Boolean),
+        },
+        mustNotCaricature: optional(mustNotConcede),
+        complaint: optional(complaint),
+      })
+      setProposal({
+        kind: 'stand-in',
+        parentId,
+        plank: result.planks.join('\n'),
+        title: result.title,
+        summary: result.summary,
+        planks: result.planks,
+        rationale: result.rationale,
+        warnings: result.warnings,
+      })
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : String(error))
+    } finally {
+      setBusy(false)
+    }
+  }
+
   const runModified = async (parentId: string) => {
     const parent = draft.parents.find((item) => item.id === parentId)
     if (!parent) return
@@ -102,12 +140,12 @@ export function BridgeClusterAssist({ draft, onDraft, busy, setBusy }: BridgeClu
 
   const runBridge = async () => {
     const modifiedSides = draft.parents.flatMap((parent) => {
-      const planks = modifiedTexts(parent)
+      const planks = implicationSourcePlanks(parent).map((plank) => plank.text.trim()).filter(Boolean)
       if (planks.length === 0) return []
       return [{ label: optional(parent.title || parent.slug), planks }]
     })
     if (modifiedSides.length < 2) {
-      setStatus('Write or apply modified wording on at least two sides first.')
+      setStatus('Write stand-in or modified wording on at least two sides first.')
       return
     }
     setBusy(true)
@@ -132,7 +170,9 @@ export function BridgeClusterAssist({ draft, onDraft, busy, setBusy }: BridgeClu
   }
 
   const runCritique = async () => {
-    const modifiedPlanks = draft.parents.flatMap((parent) => modifiedTexts(parent))
+    const modifiedPlanks = draft.parents.flatMap((parent) => (
+      implicationSourcePlanks(parent).map((plank) => plank.text.trim()).filter(Boolean)
+    ))
     const bridgePlank = draft.bridge.planks.find((plank) => plank.text.trim())?.text.trim()
     if (modifiedPlanks.length < 2 || !bridgePlank) {
       setStatus('Need at least two modified planks and one bridge plank to critique.')
@@ -151,7 +191,23 @@ export function BridgeClusterAssist({ draft, onDraft, busy, setBusy }: BridgeClu
   }
 
   const applyProposal = () => {
-    if (!proposal?.plank.trim()) return
+    if (!proposal) return
+    if (proposal.kind === 'stand-in' && proposal.parentId && proposal.planks && proposal.planks.length > 0) {
+      onDraft({
+        parents: draft.parents.map((parent) => {
+          if (parent.id !== proposal.parentId) return parent
+          return {
+            ...parent,
+            title: proposal.title || parent.title,
+            summary: proposal.summary ?? parent.summary,
+            parentPlanks: proposal.planks!.map((text) => newPlank(text, 'suggested')),
+          }
+        }),
+      })
+      setProposal(null)
+      return
+    }
+    if (!proposal.plank.trim()) return
     if (proposal.kind === 'modified' && proposal.parentId) {
       onDraft({
         parents: draft.parents.map((parent) => {
@@ -222,16 +278,29 @@ export function BridgeClusterAssist({ draft, onDraft, busy, setBusy }: BridgeClu
         />
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} flexWrap="wrap">
           {draft.parents.map((parent, index) => (
-            <Button
-              key={parent.id}
-              variant="outlined"
-              disabled={busy}
-              sx={{ textTransform: 'none' }}
-              onClick={() => void runModified(parent.id)}
-              data-testid={`bridge-draft-modified-${index}`}
-            >
-              Propose modified wording ({index + 1})
-            </Button>
+            parent.kind === 'stand-in' ? (
+              <Button
+                key={`${parent.id}-stand-in`}
+                variant="outlined"
+                disabled={busy}
+                sx={{ textTransform: 'none' }}
+                onClick={() => void runStandIn(parent.id)}
+                data-testid={`bridge-draft-stand-in-${index}`}
+              >
+                Propose stand-in sliver ({index + 1})
+              </Button>
+            ) : (
+              <Button
+                key={parent.id}
+                variant="outlined"
+                disabled={busy}
+                sx={{ textTransform: 'none' }}
+                onClick={() => void runModified(parent.id)}
+                data-testid={`bridge-draft-modified-${index}`}
+              >
+                Propose modified wording ({index + 1})
+              </Button>
+            )
           ))}
           <Button variant="outlined" disabled={busy} sx={{ textTransform: 'none' }} onClick={() => void runBridge()} data-testid="bridge-draft-bridge">
             Propose shared plank

@@ -116,7 +116,9 @@ board lists the Riverside garden project and the mixed `@civicbuilder` content
 contract, and a **Christianity** cause
 (`/cause/0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266/christianity`) with the
 Christian / secular-conservative mediator, three LazyGiving projects, monthly
-pledges, and a mixed Common Table essay contract.
+pledges, and a mixed Common Table essay contract. Seed also publishes a
+**secular conservatism** cause under Hardhat #9 so the bridge editor can load
+a real other parent (or you can still write a stand-in).
 
 To add only the Christianity storyline onto an already-seeded local chain:
 

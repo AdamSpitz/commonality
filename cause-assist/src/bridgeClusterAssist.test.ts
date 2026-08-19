@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'mocha'
 import type { LlmJsonRequest } from '@commonality/attester-core'
-import { critiqueTriple, draftBridgePlank, draftModifiedPlank } from './bridgeClusterAssist.js'
+import { critiqueTriple, draftBridgePlank, draftModifiedPlank, draftStandInSliver } from './bridgeClusterAssist.js'
 import type { CauseAssistConfig } from './types.js'
 
 const config: CauseAssistConfig = {
@@ -58,6 +58,26 @@ describe('bridge cluster wording verbs', () => {
     assert.equal(result.leakWarnings.length, 1)
   })
 
+  it('drafts a stand-in sliver without treating it as a modified parent', async () => {
+    const result = await draftStandInSliver({
+      sideLabel: 'secular conservatives',
+      bullets: ['Two-parent households have better measured outcomes.'],
+      mustNotCaricature: 'Do not write this as anti-religion.',
+    }, config, async <T>(request: LlmJsonRequest) => {
+      assert.match(request.systemPrompt, /NOT a modified plank/i)
+      assert.match(request.userPrompt, /must_not_caricature/)
+      return {
+        title: 'Family formation without a creed',
+        summary: 'Outcomes and order, not theology.',
+        planks: ['Kids do better with two committed parents.'],
+        rationale: 'Sounds like that camp.',
+        warnings: [],
+      } as T
+    })
+    assert.equal(result.source, 'llm')
+    assert.equal(result.planks.length, 1)
+  })
+
   it('falls back without an API key', async () => {
     const bare: CauseAssistConfig = { ...config, apiKey: undefined }
     const modified = await draftModifiedPlank({ parentPlanks: ['A.'], currentDraft: 'Keep me.' }, bare)
@@ -66,5 +86,12 @@ describe('bridge cluster wording verbs', () => {
     const critique = await critiqueTriple({ modifiedPlanks: ['A.', 'B.'], bridgePlank: 'C.' }, bare)
     assert.equal(critique.source, 'fallback')
     assert.ok(critique.objections.length > 0)
+    const standIn = await draftStandInSliver({
+      sideLabel: 'secular conservatives',
+      currentDraft: { title: 'Keep title', planks: ['Keep plank.'] },
+    }, bare)
+    assert.equal(standIn.source, 'fallback')
+    assert.equal(standIn.title, 'Keep title')
+    assert.equal(standIn.planks[0], 'Keep plank.')
   })
 })

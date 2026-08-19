@@ -77,6 +77,24 @@ export interface DraftModifiedPlankResponse {
   source: 'llm' | 'fallback'
 }
 
+/** Thin roster for a camp that has no published cause. Not a modified-plank call. */
+export interface DraftStandInSliverRequest {
+  sideLabel: string
+  bullets?: string[]
+  mustNotCaricature?: string
+  complaint?: string
+  currentDraft?: { title?: string; summary?: string; planks?: string[] }
+}
+
+export interface DraftStandInSliverResponse {
+  title: string
+  summary: string
+  planks: string[]
+  rationale: string
+  warnings: string[]
+  source: 'llm' | 'fallback'
+}
+
 /** One-shot shared-platform plank from two or more modified wordings. */
 export interface DraftBridgePlankRequest {
   modifiedSides: Array<{ label?: string; planks: string[] }>

@@ -53,8 +53,6 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 ### Stuff I want to think through
 
-- **How a mediator sets up "the Other Cause."** Following from the bridge walkthrough: the create-bridge flow assumes the other side's cause already exists and that you have its link. Your point is that it need not — statements exist independently of causes, duplicate causes packaging similar ideas are fine, and a Christian who roughly understands secular conservatives can write a serviceable secular-conservative sliver himself and evolve it as real ones surface. The UI does not support that path today: `draftModifiedPlank` refuses without loaded parent planks, so there is no "help me write what I think they'd say." Two threads: (a) a drafting affordance for a side you are not part of, and (b) whether one of the semi-independent AI services should suggest a popular existing cause or statement variant to point at instead — we may already have something that proposes more-popular variants of statements you've signed; I did not check.
-
 - What's the difference between seed data and example data for testing? I think I may have been using the seed data mechanism for test data, which is probably not what I want.
 
 - Ultimately we want vertical founders to host their own vertical-specific services like mediators, but can we have a middle ground where we can run it for them on our infrastructure (modulo blocklist concerns) until/unless they decide to host it themselves?

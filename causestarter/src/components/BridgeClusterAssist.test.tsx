@@ -7,6 +7,7 @@ import { BRIDGE_CLUSTER_PATCH_SCHEMA } from '../lib/bridgeAssistBrief'
 
 vi.mock('../lib/causeAssistClient', () => ({
   draftModifiedPlank: vi.fn(),
+  draftStandInSliver: vi.fn(),
   draftBridgePlank: vi.fn(),
   critiqueTriple: vi.fn(),
 }))

@@ -164,6 +164,25 @@ export interface CritiqueTripleResponse {
   source: 'llm' | 'fallback'
 }
 
+export interface DraftStandInSliverResponse {
+  title: string
+  summary: string
+  planks: string[]
+  rationale: string
+  warnings: string[]
+  source: 'llm' | 'fallback'
+}
+
+export async function draftStandInSliver(input: {
+  sideLabel: string
+  bullets?: string[]
+  mustNotCaricature?: string
+  complaint?: string
+  currentDraft?: { title?: string; summary?: string; planks?: string[] }
+}): Promise<DraftStandInSliverResponse> {
+  return postJson<DraftStandInSliverResponse>('/draft-stand-in-sliver', input)
+}
+
 export async function draftModifiedPlank(input: {
   parentPlanks: string[]
   currentDraft?: string

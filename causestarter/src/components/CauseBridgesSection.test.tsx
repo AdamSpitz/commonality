@@ -50,10 +50,13 @@ function bridgeDraft(overrides: Partial<BridgeDraft> = {}): BridgeDraft {
 function parentSlot(owner: string, slug: string) {
   return {
     id: 'parent-1',
+    kind: 'published' as const,
     owner,
     slug,
     title: '',
+    summary: '',
     parentPlanks: [],
+    skipModified: false,
     modified: { title: '', summary: '', slug: '', planks: [] },
   }
 }

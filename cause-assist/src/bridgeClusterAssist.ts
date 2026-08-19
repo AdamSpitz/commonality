@@ -12,6 +12,8 @@ import type {
   DraftBridgePlankResponse,
   DraftModifiedPlankRequest,
   DraftModifiedPlankResponse,
+  DraftStandInSliverRequest,
+  DraftStandInSliverResponse,
 } from './types.js'
 
 const MEDIATION_RULES = `This is explicitly labeled mediation wording help for a human-authored bridge cluster.
@@ -67,6 +69,52 @@ Return JSON only: {"plank":"...","rationale":"why this camp would still sign and
     organizer_complaint: input.complaint ?? null,
   }),
   normalize: draftNormalize,
+}
+
+function standInNormalize(value: unknown): {
+  title: string
+  summary: string
+  planks: string[]
+  rationale: string
+  warnings: string[]
+} {
+  const record = value && typeof value === 'object' ? value as Record<string, unknown> : {}
+  const planks = stringList(record.planks).slice(0, 4)
+  if (planks.length < 1) throw new Error('Stand-in response is missing planks')
+  const title = typeof record.title === 'string' ? record.title.trim() : ''
+  const summary = typeof record.summary === 'string' ? record.summary.trim() : ''
+  if (!title) throw new Error('Stand-in response is missing title')
+  return {
+    title,
+    summary,
+    planks,
+    rationale: typeof record.rationale === 'string' ? record.rationale.trim() : '',
+    warnings: stringList(record.warnings),
+  }
+}
+
+export const draftStandInStrategy: StatementStrategy<
+  DraftStandInSliverRequest,
+  { title: string; summary: string; planks: string[]; rationale: string; warnings: string[] }
+> = {
+  name: 'cause-assist-draft-stand-in-sliver',
+  systemPrompt: `You propose a thin stand-in cause: a short roster the organizer thinks the named camp actually believes, because that camp has not published a cause. This is NOT a modified plank of an existing parent.
+
+${STATEMENT_QUALITY_GUIDANCE}
+
+${MEDIATION_RULES}
+
+Write 2–4 independent signable planks that still sound like that camp. Warn if the draft sounds like the organizer's own camp instead. Do not invent a full movement platform.
+
+Return JSON only: {"title":"...","summary":"...","planks":["..."],"rationale":"...","warnings":["..."]}.`,
+  renderInput: (input) => ({
+    side_label: input.sideLabel,
+    bullets: input.bullets ?? [],
+    must_not_caricature: input.mustNotCaricature ?? null,
+    organizer_complaint: input.complaint ?? null,
+    current_draft: input.currentDraft ?? null,
+  }),
+  normalize: standInNormalize,
 }
 
 export const draftBridgeStrategy: StatementStrategy<
@@ -127,6 +175,29 @@ export async function draftModifiedPlank(
   }
   return {
     ...await runStatementStrategy(draftModifiedStrategy, request, engineConfig(config), dependencies(requestFn)),
+    source: 'llm',
+  }
+}
+
+export async function draftStandInSliver(
+  request: DraftStandInSliverRequest,
+  config: CauseAssistConfig,
+  requestFn?: RequestJsonCompletionFn,
+): Promise<DraftStandInSliverResponse> {
+  if (!config.apiKey) {
+    const existing = request.currentDraft?.planks?.map((item) => item.trim()).filter(Boolean) ?? []
+    const bullets = request.bullets?.map((item) => item.trim()).filter(Boolean) ?? []
+    return {
+      title: request.currentDraft?.title?.trim() || request.sideLabel.trim(),
+      summary: request.currentDraft?.summary?.trim() || '',
+      planks: existing.length > 0 ? existing : bullets.slice(0, 4),
+      rationale: 'No language model is configured; wording was left unchanged.',
+      warnings: ['Automated mediation wording is unavailable.'],
+      source: 'fallback',
+    }
+  }
+  return {
+    ...await runStatementStrategy(draftStandInStrategy, request, engineConfig(config), dependencies(requestFn)),
     source: 'llm',
   }
 }

@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import {
   createBridge,
+  emptyParent,
   findBridgeByStable,
   forgetUnsavedBridges,
   getBridge,
@@ -20,14 +21,7 @@ describe('bridgeStore', () => {
     const draft = createBridge()
     expect(draft.parents).toHaveLength(2)
     const next = updateBridge(draft.id, {
-      parents: [...draft.parents, {
-        id: 'third',
-        owner: '',
-        slug: '',
-        title: '',
-        parentPlanks: [],
-        modified: { title: '', summary: '', slug: '', planks: [] },
-      }],
+      parents: [...draft.parents, { ...emptyParent(), id: 'third' }],
     })
     expect(next?.parents).toHaveLength(3)
     expect(isEmptyBridgeDraft(next!)).toBe(true)

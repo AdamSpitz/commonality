@@ -53,8 +53,9 @@ cause-assist endpoints — proposals, never auto-applied, never a standing strat
 
 | Verb | Purpose |
 |---|---|
-| `POST /draft-modified-plank` | One modified plank from parent texts + optional “must not concede” / complaint |
-| `POST /draft-bridge-plank` | One shared plank from ≥2 modified sides; strip justifications |
+| `POST /draft-modified-plank` | One modified plank from parent texts + optional “must not concede” / complaint. Refuses empty parents. |
+| `POST /draft-stand-in-sliver` | Thin roster for a camp that has no published cause yet (title, summary, planks). Not a modified-plank call. |
+| `POST /draft-bridge-plank` | One shared plank from ≥2 sides (modified wording, or stand-in planks when modified is skipped); strip justifications |
 | `POST /critique-triple` | Objections and justification-leak warnings only — no rewrite |
 
 UI: `causestarter/src/components/BridgeClusterAssist.tsx`. Implementation: `cause-assist/src/bridgeClusterAssist.ts`.
@@ -75,13 +76,13 @@ A later **BYOK in-page chat** (their key, our system prompt, we hold no transcri
 These are product gaps, not “add a chat”:
 
 - Discoverability: bridge writing is only on Edit → Mediator → **Write a bridge**. Home does not start a cluster.
-- Picking a parent by hex + slug. No “paste a cause link” and no “this side is not a cause yet — start a thin sliver here” (the spec wants slivers).
-- No seeded secular-conservative *cause*; the Christianity seed attaches a *service*, not a second parent.
 - Coaching that the publisher key must not be the parent founder’s if the modified page should not look official.
+
+Settled in the editor (see [the-other-cause.md](./the-other-cause.md)): paste a cause link; **this side is not a cause yet — start a thin sliver**; skip modified on a stand-in; `draft-stand-in-sliver`; near-duplicate suggestions from causes already on the device; local seed includes a secular-conservative cause.
 
 ## Checks
 
 - `npm test --workspace=@commonality/cause-assist`
-- `npm test --workspace=causestarter -- src/lib/bridgeAssistBrief.test.ts src/components/BridgeClusterAssist.test.tsx`
+- `npm test --workspace=causestarter -- src/lib/bridgeAssistBrief.test.ts src/lib/bridgeCluster.test.ts src/lib/nearDuplicatePlanks.test.ts src/components/BridgeClusterAssist.test.tsx`
 
 After changing cause-assist HTTP, rebuild the Compose service (`docker compose build cause-assist && docker compose up -d cause-assist`). Vite on `:5174` picks up the SPA without that rebuild; the propose/critique buttons need the new process.
