@@ -1,25 +1,32 @@
 import { Alert, Button, Stack, Typography } from '@mui/material'
 import type { CombinatorKind } from '@commonality/sdk/displayable-documents'
-import type { CauseAnchorCids } from '../lib/causeStore'
+import { findAnchor, type CauseAnchor } from '../lib/causeStore'
 
 interface CauseAnchorPromoteProps {
-  selectedCount: number
+  /** The published statements currently selected on the cause page. */
+  selectedCids: readonly string[]
   canPromote: boolean
   promoting: CombinatorKind | null
   error: string | null
-  anchors: CauseAnchorCids | undefined
+  anchors: CauseAnchor[] | undefined
   onPromote: (kind: CombinatorKind) => void
 }
 
 export function CauseAnchorPromote({
-  selectedCount,
+  selectedCids,
   canPromote,
   promoting,
   error,
   anchors,
   onPromote,
 }: CauseAnchorPromoteProps) {
-  if (selectedCount < 2) return null
+  if (selectedCids.length < 2) return null
+
+  // Only an anchor minted from *this* selection describes it. A promotion over a
+  // different set is a different statement (ADR 0010), so showing it here would
+  // claim the old alliance had been updated to match.
+  const anyAnchor = findAnchor(anchors, 'any', selectedCids)
+  const allAnchor = findAnchor(anchors, 'all', selectedCids)
 
   return (
     <Stack spacing={1} sx={{ mt: 1.5 }} data-testid="cause-anchor-promote">
@@ -32,7 +39,7 @@ export function CauseAnchorPromote({
           <Button
             variant="outlined"
             size="small"
-            disabled={promoting !== null}
+            disabled={promoting !== null || Boolean(anyAnchor)}
             data-testid="promote-any"
             onClick={() => onPromote('any')}
           >
@@ -41,7 +48,7 @@ export function CauseAnchorPromote({
           <Button
             variant="outlined"
             size="small"
-            disabled={promoting !== null}
+            disabled={promoting !== null || Boolean(allAnchor)}
             data-testid="promote-all"
             onClick={() => onPromote('all')}
           >
@@ -49,14 +56,14 @@ export function CauseAnchorPromote({
           </Button>
         </Stack>
       )}
-      {anchors?.any && (
+      {anyAnchor && (
         <Typography variant="caption" color="text.secondary" data-testid="anchor-cid-any">
-          Alliance (any): {anchors.any}
+          Alliance (any): {anyAnchor.cid}
         </Typography>
       )}
-      {anchors?.all && (
+      {allAnchor && (
         <Typography variant="caption" color="text.secondary" data-testid="anchor-cid-all">
-          Manifesto (all): {anchors.all}
+          Manifesto (all): {allAnchor.cid}
         </Typography>
       )}
       {error && (

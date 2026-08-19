@@ -149,15 +149,44 @@ describe('causeRoster', () => {
       plankCids: ['bafyplank1', 'bafyplank2'],
       mediatorBlurb: '',
     }
-    const withAnchor = {
+    const promoted = {
       ...base,
-      anchorCids: { any: 'bafkreianycombo' },
+      anchors: [
+        {
+          combinator: 'any' as const,
+          cid: 'bafkreianycombo',
+          operandCids: ['bafyplank1', 'bafyplank2'],
+        },
+      ],
     }
-    expect(previewRosterCid(base)).not.toBe(previewRosterCid(withAnchor))
-    expect(parseRosterDocument(buildRosterDocument(withAnchor))?.anchorCids).toEqual({
-      any: 'bafkreianycombo',
+    expect(previewRosterCid(base)).not.toBe(previewRosterCid(promoted))
+    expect(parseRosterDocument(buildRosterDocument(promoted))?.anchors).toEqual([
+      {
+        combinator: 'any',
+        cid: 'bafkreianycombo',
+        operandCids: ['bafyplank1', 'bafyplank2'],
+      },
+    ])
+    expect(parseRosterDocument(buildRosterDocument(base))?.anchors).toBeUndefined()
+  })
+
+  it('drops anchors that cannot say which selection minted them', () => {
+    const base = {
+      title: 'Oak Street lights',
+      summary: 'Neighbors funding streetlights.',
+      plankCids: ['bafyplank1', 'bafyplank2'],
+      mediatorBlurb: '',
+    }
+    // The pre-operand shape, and an anchor over a single operand, are both
+    // unshowable: nothing ties them to a selection.
+    const doc = buildRosterDocument({
+      ...base,
+      anchors: [
+        { combinator: 'any', cid: 'bafkreilegacy' },
+        { combinator: 'all', cid: 'bafkreithin', operandCids: ['bafyplank1'] },
+      ] as never,
     })
-    expect(parseRosterDocument(buildRosterDocument(base))?.anchorCids).toBeUndefined()
+    expect(parseRosterDocument(doc)?.anchors).toBeUndefined()
   })
 
   it('voids preview CID when any founder display field changes', () => {

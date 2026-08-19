@@ -47,7 +47,7 @@ import {
   type Hash,
 } from 'viem'
 import { getRuntimeConfigValue } from './runtimeConfig'
-import type { CauseAnchorCids, CauseDraft, CauseMediator, CausePlank, RosterBridgeLink } from './causeStore'
+import type { CauseAnchor, CauseDraft, CauseMediator, CausePlank, RosterBridgeLink } from './causeStore'
 import { publishedPlanks } from './causeStore'
 
 /** Structured payload stored in DisplayableDocument.extras. */
@@ -108,8 +108,8 @@ export interface RosterFields {
    * that cluster so the cause page can label mediator authorship.
    */
   bridgeCluster?: RosterBridgeLink
-  /** Promoted combinator CIDs, omitted entirely when neither exists. */
-  anchorCids?: CauseAnchorCids
+  /** Promoted combinator anchors, omitted entirely when there are none. */
+  anchors?: CauseAnchor[]
 }
 
 export interface RosterExtras extends RosterFields {
@@ -239,6 +239,7 @@ export function rosterFieldsFromCause(cause: CauseDraft): RosterFields {
   const planks = publishedPlanks(cause)
   const firstText = planks[0]?.text.trim() ?? ''
   const title = (cause.title?.trim() || firstText || 'Untitled cause').slice(0, MAX_TITLE_LENGTH)
+  const anchors = parseAnchors(cause.anchors)
   return {
     title,
     summary: (cause.summary?.trim() ?? '').slice(0, MAX_SUMMARY_LENGTH),
@@ -246,9 +247,7 @@ export function rosterFieldsFromCause(cause: CauseDraft): RosterFields {
     mediatorBlurb: mediatorBlurbFrom(cause.mediator).slice(0, MAX_MEDIATOR_BLURB_LENGTH),
     mediator: parseCauseMediator(cause.mediator),
     ...(cause.bridgeCluster ? { bridgeCluster: cause.bridgeCluster } : {}),
-    ...(parseAnchorCids(cause.anchorCids)
-      ? { anchorCids: parseAnchorCids(cause.anchorCids) }
-      : {}),
+    ...(anchors ? { anchors } : {}),
   }
 }
 
@@ -267,11 +266,12 @@ export function renderRosterContent(fields: RosterFields): string {
   if (fields.mediatorBlurb.trim()) {
     lines.push('', '## Mediator', fields.mediatorBlurb.trim())
   }
-  const anchors = parseAnchorCids(fields.anchorCids)
+  const anchors = parseAnchors(fields.anchors)
   if (anchors) {
     lines.push('', '## Graph handles')
-    if (anchors.any) lines.push(`- any: ${anchors.any}`)
-    if (anchors.all) lines.push(`- all: ${anchors.all}`)
+    for (const anchor of anchors) {
+      lines.push(`- ${anchor.combinator} of ${anchor.operandCids.length} statements: ${anchor.cid}`)
+    }
   }
   return lines.join('\n')
 }
@@ -290,8 +290,8 @@ export function buildRosterDocument(fields: RosterFields): DisplayableDocument {
   if (mediator) extras.mediator = mediator
   const bridgeCluster = parseRosterBridgeLink(fields.bridgeCluster)
   if (bridgeCluster) extras.bridgeCluster = bridgeCluster
-  const anchorCids = parseAnchorCids(fields.anchorCids)
-  if (anchorCids) extras.anchorCids = anchorCids
+  const anchors = parseAnchors(fields.anchors)
+  if (anchors) extras.anchors = anchors
   return createDisplayableDocument({
     format: 'markdown-restricted',
     content: renderRosterContent(fields),
@@ -322,7 +322,7 @@ export function parseRosterDocument(doc: DisplayableDocument): RosterFields | nu
   // Absent on rosters published before the mediator identity was carried; not an error.
   const mediator = parseCauseMediator(extras.mediator)
   const bridgeCluster = parseRosterBridgeLink(extras.bridgeCluster)
-  const anchorCids = parseAnchorCids(extras.anchorCids)
+  const anchors = parseAnchors(extras.anchors)
   return {
     title,
     summary,
@@ -330,20 +330,33 @@ export function parseRosterDocument(doc: DisplayableDocument): RosterFields | nu
     mediatorBlurb,
     ...(mediator ? { mediator } : {}),
     ...(bridgeCluster ? { bridgeCluster } : {}),
-    ...(anchorCids ? { anchorCids } : {}),
+    ...(anchors ? { anchors } : {}),
   }
 }
 
-export function parseAnchorCids(value: unknown): CauseAnchorCids | undefined {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined
-  const record = value as Record<string, unknown>
-  const any = typeof record.any === 'string' && record.any.trim() ? record.any.trim() : undefined
-  const all = typeof record.all === 'string' && record.all.trim() ? record.all.trim() : undefined
-  if (!any && !all) return undefined
-  return {
-    ...(any ? { any } : {}),
-    ...(all ? { all } : {}),
+/**
+ * Anchors carry their operands: a bare CID cannot be shown honestly, because
+ * nothing says which selection minted it. Entries that lack operands (or that
+ * came from the pre-operand shape) are dropped rather than displayed.
+ */
+export function parseAnchors(value: unknown): CauseAnchor[] | undefined {
+  if (!Array.isArray(value)) return undefined
+  const anchors: CauseAnchor[] = []
+  for (const entry of value) {
+    if (!entry || typeof entry !== 'object') continue
+    const record = entry as Record<string, unknown>
+    const combinator = record.combinator
+    if (combinator !== 'all' && combinator !== 'any') continue
+    const cid = typeof record.cid === 'string' ? record.cid.trim() : ''
+    if (!cid) continue
+    if (!Array.isArray(record.operandCids)) continue
+    const operandCids = record.operandCids
+      .filter((operand): operand is string => typeof operand === 'string' && Boolean(operand.trim()))
+      .map((operand) => operand.trim())
+    if (operandCids.length < 2) continue
+    anchors.push({ combinator, cid, operandCids })
   }
+  return anchors.length > 0 ? anchors : undefined
 }
 
 export function stableCausePath(id: StableCauseId, versionCid?: string): string {

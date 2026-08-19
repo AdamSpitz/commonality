@@ -33,7 +33,7 @@ import {
   bookmarkCause, causeFundingPath, causeLeaderboardPath, causePath, causeTitle, findCauseByStable,
   getCause, hasPublishedRoster, isCauseBookmarked, isLive, markPlankPublished,
   markRosterPublished, newPlank, publishedPlanks, realPlanks,
-  unbookmarkCause, unpublishedPlanks, updateCause,
+  unbookmarkCause, unpublishedPlanks, updateCause, withAnchor,
   type CauseDraft, type CausePlank, type SafetyState,
 } from '../lib/causeStore'
 import {
@@ -210,7 +210,7 @@ export function CauseDetailPage() {
           // Published identity wins: a follower has no local copy to fall back on.
           mediator: fields.mediator ?? local?.mediator,
           bridgeCluster: fields.bridgeCluster ?? local?.bridgeCluster,
-          anchorCids: fields.anchorCids ?? local?.anchorCids,
+          anchors: fields.anchors ?? local?.anchors,
           suggestionSeed: local?.suggestionSeed,
           createdAt: local?.createdAt ?? new Date().toISOString(),
           updatedAt: local?.updatedAt ?? new Date().toISOString(),
@@ -666,10 +666,16 @@ export function CauseDetailPage() {
         operandCids: selectedCids,
         combinator: kind,
       })
-      const nextAnchors = { ...cause.anchorCids, [kind]: result.cid }
-      const updated = updateCause(cause.id, { anchorCids: nextAnchors })
+      // Keyed by the operands it was minted from: a later promotion over a
+      // different selection is a new anchor, not an update of this one.
+      const nextAnchors = withAnchor(cause.anchors, {
+        combinator: kind,
+        cid: result.cid,
+        operandCids: [...selectedCids],
+      })
+      const updated = updateCause(cause.id, { anchors: nextAnchors })
       if (updated) setCause(updated)
-      else setCause(bookmarkCause({ ...cause, anchorCids: nextAnchors }))
+      else setCause(bookmarkCause({ ...cause, anchors: nextAnchors }))
       voidCoherence()
     } catch (err) {
       setPromoteError(err instanceof Error ? err.message : 'Failed to promote this combination')
@@ -1076,11 +1082,11 @@ export function CauseDetailPage() {
               fewestDirectSignatures={fewestDirectSignatures}
             />
             <CauseAnchorPromote
-              selectedCount={selectedCids.length}
+              selectedCids={selectedCids}
               canPromote={canEdit && !mutationLocked}
               promoting={promotingKind}
               error={promoteError}
-              anchors={cause.anchorCids}
+              anchors={cause.anchors}
               onPromote={(kind) => void handlePromoteView(kind)}
             />
             {countsError && (

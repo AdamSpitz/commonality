@@ -63,3 +63,21 @@ When an item from this page is done and no longer needs an LLM implementor's att
 - Verify the new local public-goods demo-seed storyline against a live stack. `PROJECT_SEED_METADATA[0]` is now "Riverside Community Garden" (aligned to `fundable-projects`/`local-community`/`local-food-systems`), `DETERMINISTIC_SEED_PROJECT_ALIGNMENT_COUNT` is 6 so no existing storyline lost its alignment, and `gen:seed:local` runs 12 users to keep the success-attester pool satisfied. Unit tests pass, but the seed has still never been run end-to-end: `stack.fresh-seeded` now passes (2026-08-03) but it seeds `tiny`, not `demo`. Run `./scripts/data.sh --wipe && ./scripts/data.sh --seed=demo` and confirm in the UI that the garden project shows an alignment vouch, contributions, and a success attestation. Consider also regenerating `data/seed-worker-outputs.json` if the Explorer fixture should mention the new cause.
 
 - Give the demo seed (`./scripts/data.sh --seed=demo`) more **local public-goods** coverage. One storyline now exists (see above), but rows A5 (federated regional) and E2 (nonprofit on the rails) in [use-cases.md](specs/product/use-cases.md) are still not demonstrable — and those are exactly the cases the strategy docs lean on hardest. Note also that the project-creation form ships "Community garden" / "Clean water" / "Learning circle" stock images that nothing in the seed uses. Found 2026-07-25 while verifying use-case statuses against the live UI.
+
+- Stop combinator operand reads from holding up the whole statement page. Both
+  `causestarter/src/pages/StatementPage.tsx` and
+  `ui/src/conceptspace/pages/StatementPage.tsx` fetch every operand body of a
+  combinator statement *before* clearing `loading`, so one slow IPFS read leaves the
+  reader staring at a spinner even though the statement's own content already
+  resolved. Paint the statement first and let the operand bodies fill in (they
+  already fall back to showing the CID), rather than blocking on `Promise.all`.
+  Found 2026-08-19 reviewing the combinator-statements branch.
+
+- Guard the rest of `ui/src/conceptspace/pages/StatementPage.tsx`'s loader against
+  navigation. The operand fetch now checks a load token before writing, but the
+  earlier `setStatement` / `setStatementContent` / `setContentStatus` / metrics /
+  `setUserBeliefState` writes are still unguarded, so a slow load that resolves after
+  the user has moved to another statement can paint stale content. Pre-existing, not
+  new to the combinator work; the same pattern is worth a sweep across the other
+  conceptspace pages. Found 2026-08-19.
+

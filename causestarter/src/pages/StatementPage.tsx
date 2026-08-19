@@ -64,12 +64,15 @@ export function StatementPage() {
   const [error, setError] = useState<string | null>(null)
   const [cidCopiedOpen, setCidCopiedOpen] = useState(false)
 
-  const load = useCallback(async () => {
+  // Operand reads outlive a navigation, so every write past an await is guarded:
+  // a late resolve must not paint one statement's operands onto another.
+  const load = useCallback(async (cancelled: () => boolean) => {
     if (!statementCid) return
     try {
       setLoading(true)
       setError(null)
       const result = await getStatementWithContent(machinery, statementCid as IpfsCidV1)
+      if (cancelled()) return
       if (!result) {
         setError('Statement not found')
         setStatement(null)
@@ -89,14 +92,16 @@ export function StatementPage() {
             return { cid, text: cid }
           }
         }))
+        if (cancelled()) return
         setOperandBodies(operands)
       } else {
         setOperandBodies([])
       }
     } catch (err) {
+      if (cancelled()) return
       setError(err instanceof Error ? err.message : 'Failed to load statement')
     } finally {
-      setLoading(false)
+      if (!cancelled()) setLoading(false)
     }
   }, [machinery, statementCid])
 
@@ -106,7 +111,11 @@ export function StatementPage() {
   }, [loading, searchParams, statementCid])
 
   useEffect(() => {
-    void load()
+    let cancelled = false
+    void load(() => cancelled)
+    return () => {
+      cancelled = true
+    }
   }, [load])
 
   // Soft revalidation must not unmount CauseBoard (project-list spinner flash).
@@ -203,7 +212,7 @@ export function StatementPage() {
           >
             {body}
           </Typography>
-          {operandBodies.length > 0 && (
+          {combinator && operandBodies.length > 0 && (
             <Stack spacing={1} sx={{ pt: 1 }} data-testid="combinator-operands">
               {operandBodies.map((operand) => (
                 <Box key={operand.cid}>

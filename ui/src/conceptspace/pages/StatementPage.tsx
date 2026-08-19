@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { Box, Typography, CircularProgress, Alert } from '@mui/material'
 import { useParams } from 'react-router-dom'
 import { useAccount } from 'wagmi'
@@ -33,6 +33,9 @@ export function StatementPage() {
   const [contentStatus, setContentStatus] = useState<StatementContentStatus>('unavailable')
   const [referencedDocuments, setReferencedDocuments] = useState<Record<string, DisplayableDocument | null>>({})
 
+  // Bumped on every load so a late operand read can tell it has been superseded.
+  const loadTokenRef = useRef(0)
+
   const machinery = useMachinery()
   const trustedAttesters = useTrustedAttesters()
   const implicationSources = useImplicationSourceActivity(trustedAttesters)
@@ -44,6 +47,9 @@ export function StatementPage() {
       setLoading(false)
       return
     }
+
+    const loadToken = loadTokenRef.current + 1
+    loadTokenRef.current = loadToken
 
     try {
       setLoading(true)
@@ -76,6 +82,9 @@ export function StatementPage() {
             operands[cid] = null
           }
         }))
+        // Operand reads outlive a navigation; a late resolve must not paint one
+        // statement's operands onto another.
+        if (loadToken !== loadTokenRef.current) return
         setReferencedDocuments(operands)
       } else {
         setReferencedDocuments({})
