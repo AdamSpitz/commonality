@@ -19,12 +19,7 @@ interface ClusterRow {
   detail: string
 }
 
-/**
- * The create-a-bridge link, prefilled with this cause as natural parent 1.
- *
- * Prefill needs a *published* parent: the editor loads the parent roster from
- * chain, and an unpublished local draft has nothing to load.
- */
+/** Prefill needs a published parent; an unpublished draft has no chain roster. */
 function createBridgeHref(cause: CauseDraft): string {
   const owner = cause.founderAddress?.toLowerCase()
   const slug = slugKey(cause.slug)
@@ -40,13 +35,7 @@ function clusterPath(draft: BridgeDraft): string {
     : `/bridge/${draft.id}`
 }
 
-/**
- * Clusters on this device that name this cause as a natural parent, plus the
- * cluster this cause belongs to when it is itself a modified sliver or bridge.
- *
- * Clusters this client already knows: local drafts plus published clusters it
- * has loaded and remembered. Not a crawl of every ref (ADR 0011).
- */
+/** Local drafts plus published clusters this client already knows — not a crawl. */
 export function causeClusterRows(cause: CauseDraft): ClusterRow[] {
   const owner = cause.founderAddress?.toLowerCase()
   const slug = slugKey(cause.slug)
@@ -87,25 +76,10 @@ export function causeClusterRows(cause: CauseDraft): ClusterRow[] {
 
 interface CauseBridgesSectionProps {
   cause: CauseDraft
-  /**
-   * `organizer` adds the authoring affordances. `visitor` is read-only and hides
-   * unpublished clusters — a draft on the organizer's device is not something a
-   * supporter can open, and the organizer previewing their own page should see
-   * what the supporter sees.
-   */
+  /** `visitor` is read-only and hides unpublished local drafts. */
   variant?: 'organizer' | 'visitor'
 }
 
-/**
- * The bridges attached to one cause: which clusters quote it, and a way to write
- * another. The section renders even when empty so the feature is discoverable,
- * and the create button is offered to visitors too — authoring a bridge needs
- * the mediator's own key, never this cause's. The standalone mediator-service
- * path stays organizer-only and quieter.
- *
- * Rows link out rather than expanding: a cluster's planks, pairs and attestation
- * state belong on the cluster's own page, not inlined into the cause page.
- */
 export function CauseBridgesSection({ cause, variant = 'organizer' }: CauseBridgesSectionProps) {
   const organizer = variant === 'organizer'
   const rows = useMemo(

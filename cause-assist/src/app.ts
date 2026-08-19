@@ -229,7 +229,7 @@ export function createCauseAssistApp(config: CauseAssistConfig): express.Express
         || body.bullets.length > MAX_EXISTING_STATEMENTS
         || body.bullets.some((item) => !validStatement(item))
       )) {
-        invalidRequest(res, `bullets must be 1–${MAX_EXISTING_STATEMENTS} valid statements when provided`)
+        invalidRequest(res, `bullets must be 0–${MAX_EXISTING_STATEMENTS} valid statements when provided`)
         return
       }
       if (body.mustNotCaricature !== undefined && !validStatement(body.mustNotCaricature)) {

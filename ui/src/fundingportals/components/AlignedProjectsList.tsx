@@ -159,8 +159,8 @@ export function AlignedProjectsList({
         const displayed = dedupeProjectsForDisplay([...aligned, ...contentRows])
         setProjects(displayed)
 
-        // Content-funding rows are the same assurance contracts; skip them and
-        // the cause card shows "Project 0x…" even though the detail page has a name.
+        // Load metadata for every displayed row, including content-funding
+        // contracts that never appear in the aligned-project query.
         const metadataEntries = await Promise.all(
           displayed.map(async (p) => {
             const fullProject = await getProject(machinery, p.projectAddress).catch(() => null)
