@@ -94,6 +94,7 @@ import { createSDKMachinery } from '@commonality/sdk/machinery'
 import { readProjectMetadata } from './projectMetadata'
 import { useAccount } from 'wagmi'
 import { getDomainUrl, isDomainConfigured, useTrustedSet } from '../../shared'
+import { useContentFundingState } from '../../content-funding'
 
 const mockMachinery = {} as any
 
@@ -148,6 +149,12 @@ describe('AlignedProjectsList', () => {
     } as any)
     vi.mocked(getProject).mockResolvedValue(null)
     vi.mocked(readProjectMetadata).mockResolvedValue(null)
+    vi.mocked(useContentFundingState).mockReturnValue({
+      state: null,
+      channels: [],
+      contentAttestations: new Map(),
+      loading: false,
+    } as any)
   })
 
   describe('Query arguments', () => {
@@ -336,6 +343,57 @@ describe('AlignedProjectsList', () => {
         expect(screen.queryByRole('button', { name: 'Direct only' })).toBeNull()
         expect(screen.queryByRole('button', { name: 'Indirect' })).toBeNull()
       })
+    })
+
+    it('loads metadata for content-funding rows that are not in the aligned-project query', async () => {
+      const contentAddr = ADDR_C
+      vi.mocked(getAllAlignedProjectsForCause).mockResolvedValue([])
+      vi.mocked(getProject).mockResolvedValue({ metadataCid: 'content-meta' } as any)
+      vi.mocked(readProjectMetadata).mockResolvedValue({ name: 'Common Table creator content fund' })
+      const canonicalId = 'substack:commontable:warming-centre-dispatch'
+      vi.mocked(useContentFundingState).mockImplementation(() => ({
+        state: {} as any,
+        channels: [{
+          canonicalChannelId: 'substack:commontable',
+          channel: { channelId: '0xabc', owner: null, controlTakenAt: null, state: 'creator-controlled' },
+          escrow: { balance: 0n, totalDeposited: 0n, totalWithdrawn: 0n },
+          contentItems: [],
+          contracts: [{
+            contractAddress: contentAddr,
+            channelId: '0xabc',
+            creator: ADDR_A,
+            isThirdParty: false,
+            project: {
+              ...makeProject({ projectAddress: contentAddr }),
+            },
+            fundingProgress: null,
+            status: 'active',
+            contentItems: [{ canonicalId, subjectId: canonicalId }],
+          }],
+        }] as any,
+        contentAttestations: new Map([
+          [canonicalId, [{
+            canonicalId,
+            subjectId: canonicalId,
+            attested: true,
+            attester: TRUSTED_A,
+            statementCid: 'QmTest',
+          }]],
+        ]),
+        loading: false,
+        error: null,
+        projects: [],
+        channelDisplayMetadata: new Map(),
+        vetoedEvents: [],
+        machinery: {} as any,
+      }))
+
+      render(<AlignedProjectsList statementCid="QmTest" />)
+
+      await waitFor(() => {
+        expect(screen.getByText('Common Table creator content fund')).toBeInTheDocument()
+      })
+      expect(getProject).toHaveBeenCalledWith(mockMachinery, contentAddr)
     })
 
     it('shows project metadata name when available', async () => {

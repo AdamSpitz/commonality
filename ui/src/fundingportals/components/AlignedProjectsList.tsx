@@ -156,11 +156,13 @@ export function AlignedProjectsList({
           deadline: contract.deadline,
         }))
 
-        setProjects(dedupeProjectsForDisplay([...aligned, ...contentRows]))
+        const displayed = dedupeProjectsForDisplay([...aligned, ...contentRows])
+        setProjects(displayed)
 
-        // Read project display metadata through the CID-first migration seam.
+        // Content-funding rows are the same assurance contracts; skip them and
+        // the cause card shows "Project 0x…" even though the detail page has a name.
         const metadataEntries = await Promise.all(
-          aligned.map(async (p) => {
+          displayed.map(async (p) => {
             const fullProject = await getProject(machinery, p.projectAddress).catch(() => null)
             if (!fullProject?.metadataCid) return [p.projectAddress, null] as const
             const data = await readProjectMetadata(machinery, fullProject.metadataCid as IpfsCidV1).catch(() => null)
