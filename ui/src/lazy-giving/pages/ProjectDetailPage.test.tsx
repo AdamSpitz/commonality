@@ -370,6 +370,19 @@ describe('ProjectDetailPage', () => {
       expect(screen.queryByRole('button', { name: 'Give' })).not.toBeInTheDocument()
     })
 
+    it('does not dump keccak-sized token ids into the giving-option preview', async () => {
+      const hashedId = '87739086037786759560689438963022693410722013717555310084692160401297514418011'
+      vi.mocked(getProject).mockResolvedValue(makeProject() as any)
+      vi.mocked(getProjectTokens).mockResolvedValue([makeToken({ tokenId: hashedId })] as any)
+
+      render(<ProjectDetailPage />)
+
+      await waitFor(() => {
+        expect(screen.getByText('Giving option 1')).toBeInTheDocument()
+      })
+      expect(screen.queryByText(hashedId)).not.toBeInTheDocument()
+    })
+
     it('shows the card on-ramp sign-in CTA for disconnected visitors on USDC projects', async () => {
       vi.mocked(getProject).mockResolvedValue(makeProject({ fundingCurrency: USDC_CURRENCY }) as any)
       vi.mocked(getProjectTokens).mockResolvedValue([makeToken({ price: '100000', currency: USDC_CURRENCY })] as any)

@@ -19,6 +19,7 @@ import { ContributionNotificationEmail } from './ContributionNotificationEmail'
 import { createCoinbaseOnrampSession, getBaseUsdcBalance } from '../onrampClient'
 import { WalletButton } from '../../shared/components/WalletButton'
 import { isPrivySmartWalletEnabled } from '../../privy/config'
+import { givingOptionLabel } from '../utils'
 
 interface BuyTokensSectionProps {
   project: Project
@@ -26,6 +27,7 @@ interface BuyTokensSectionProps {
   address: string | undefined
   onProjectRefresh: () => void | Promise<void>
   tokenImages?: Record<string, string>
+  tokenLabels?: Record<string, string>
 }
 
 function getDelegatableNotesContract(address?: string) {
@@ -34,7 +36,7 @@ function getDelegatableNotesContract(address?: string) {
   return { address: addr as `0x${string}`, abi: DelegatableNotesAbi }
 }
 
-export function BuyTokensSection({ project, tokens, address, onProjectRefresh, tokenImages = {} }: BuyTokensSectionProps) {
+export function BuyTokensSection({ project, tokens, address, onProjectRefresh, tokenImages = {}, tokenLabels = {} }: BuyTokensSectionProps) {
   const writeClients = useWriteClients(address)
   const machinery = useMachinery()
 
@@ -428,18 +430,20 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
                   </Select>
                 </FormControl>
 
-                {tokens.map((token) => (
+                {tokens.map((token, index) => {
+                  const label = givingOptionLabel(token.tokenId, { name: tokenLabels[token.tokenId], index })
+                  return (
                   <Box key={token.tokenId} sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                     {tokenImages[token.tokenId] && (
                       <Box
                         component="img"
                         src={tokenImages[token.tokenId]}
-                        alt={`Giving option #${token.tokenId}`}
+                        alt={label}
                         sx={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 1 }}
                       />
                     )}
                     <Typography variant="body1" sx={{ minWidth: 120 }}>
-                      Giving option #{token.tokenId}
+                      {label}
                     </Typography>
                     <Typography variant="body2" color="text.secondary" sx={{ minWidth: 140 }}>
                       {formatCurrencyAmount(token.price, token.currency)} each
@@ -454,7 +458,8 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
                       sx={{ width: 120 }}
                     />
                   </Box>
-                ))}
+                  )
+                })}
 
                 {noteTotalCost > 0n && (
                   <Box>
@@ -508,20 +513,23 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
               <Box>
                 <Typography variant="subtitle2" gutterBottom>Optional reward add-ons</Typography>
                 <Stack direction="row" spacing={2} flexWrap="wrap" useFlexGap>
-                  {addOnTokens.map((token) => (
+                  {addOnTokens.map((token, index) => {
+                    const label = givingOptionLabel(token.tokenId, { name: tokenLabels[token.tokenId], index, kind: 'reward' })
+                    return (
                     <Card key={token.tokenId} variant={selectedAddOns[token.tokenId] ? 'elevation' : 'outlined'} sx={{ width: 220 }}>
                       <CardActionArea onClick={() => setSelectedAddOns(prev => ({ ...prev, [token.tokenId]: !prev[token.tokenId] }))} sx={{ p: 2 }}>
                         <Stack spacing={1}>
                           {tokenImages[token.tokenId] && (
-                            <Box component="img" src={tokenImages[token.tokenId]} alt={`Reward option #${token.tokenId}`} sx={{ width: '100%', height: 96, objectFit: 'cover', borderRadius: 1 }} />
+                            <Box component="img" src={tokenImages[token.tokenId]} alt={label} sx={{ width: '100%', height: 96, objectFit: 'cover', borderRadius: 1 }} />
                           )}
-                          <Typography variant="body1">Reward #{token.tokenId}</Typography>
+                          <Typography variant="body1">{label}</Typography>
                           <Typography variant="body2" color="text.secondary">Adds {formatCurrencyAmount(token.price, token.currency)}</Typography>
                           {selectedAddOns[token.tokenId] && <Chip size="small" color="primary" label="Included" sx={{ alignSelf: 'flex-start' }} />}
                         </Stack>
                       </CardActionArea>
                     </Card>
-                  ))}
+                    )
+                  })}
                 </Stack>
               </Box>
             )}
