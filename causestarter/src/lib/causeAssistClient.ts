@@ -144,6 +144,51 @@ export async function checkImplications(input: {
   return postJson<CheckImplicationsResponse>('/check-implications', input)
 }
 
+export interface DraftModifiedPlankResponse {
+  plank: string
+  rationale: string
+  warnings: string[]
+  source: 'llm' | 'fallback'
+}
+
+export interface DraftBridgePlankResponse {
+  plank: string
+  rationale: string
+  warnings: string[]
+  source: 'llm' | 'fallback'
+}
+
+export interface CritiqueTripleResponse {
+  objections: string[]
+  leakWarnings: string[]
+  source: 'llm' | 'fallback'
+}
+
+export async function draftModifiedPlank(input: {
+  parentPlanks: string[]
+  currentDraft?: string
+  sideLabel?: string
+  mustNotConcede?: string
+  complaint?: string
+}): Promise<DraftModifiedPlankResponse> {
+  return postJson<DraftModifiedPlankResponse>('/draft-modified-plank', input)
+}
+
+export async function draftBridgePlank(input: {
+  modifiedSides: Array<{ label?: string; planks: string[] }>
+  currentDraft?: string
+  complaint?: string
+}): Promise<DraftBridgePlankResponse> {
+  return postJson<DraftBridgePlankResponse>('/draft-bridge-plank', input)
+}
+
+export async function critiqueTriple(input: {
+  modifiedPlanks: string[]
+  bridgePlank: string
+}): Promise<CritiqueTripleResponse> {
+  return postJson<CritiqueTripleResponse>('/critique-triple', input)
+}
+
 export interface CoherenceVerdict {
   coherent: boolean
   reasoning: string

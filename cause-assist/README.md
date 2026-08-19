@@ -8,6 +8,7 @@ LLM-backed helpers for CauseStarter, defaulting to **Grok 4.5** via the xAI API:
 4. **Legacy statement suggester** — preserve the main → supporting workflow for existing causes.
 5. **Implication check and safety filter** — verify arrows and apply operational acceptable-use rules.
 6. **Coherence check + worker attestation helpers** — construction-only roster judgment (planks match summary, no riders); separate prompt and model config from generation. The trusted [`coherence-badge-worker`](../coherence-badge-worker/) imports the binding/judgment helpers and writes positive-only badges as the **CauseStarter site operator** (`msg.sender`), never the founder.
+7. **Bridge-cluster wording verbs** — one-shot `draft-modified-plank`, `draft-bridge-plank`, and `critique-triple`. These help a human author a cluster; they are not a chat and they never write a standing strategy prompt. Product intent: [`docs/founder/bridge-cluster-wording-help.md`](../docs/founder/bridge-cluster-wording-help.md).
 
 The three plank-first capabilities run as cause-assist-owned strategies on the shared bridge-creator statement engine. They share execution machinery and pattern techniques with bridge creation, but never its mediation strategy prompt.
 
@@ -31,6 +32,9 @@ See `src/statementGuidance.ts` and the Implication Attester evaluator prompt for
 | POST | `/sharpen-plank` | `{ plank, causeDescription? }` | Critique + optional reword against the attestable + signable bar (callers should treat `plank` as a suggestion, not auto-apply) |
 | POST | `/draft-anchor` | `{ planks[] }` | Deterministic disjunctive anchor with verbatim planks and plank→anchor check payloads |
 | POST | `/suggest-mediator-scaffold` | `{ foundingStatement, name? }` | Editable mediator identity, side labels, and complete starting anchor triples; never a strategy prompt |
+| POST | `/draft-modified-plank` | `{ parentPlanks[], currentDraft?, sideLabel?, mustNotConcede?, complaint? }` | One modified-plank proposal for a human-authored bridge cluster. Not a chat turn. |
+| POST | `/draft-bridge-plank` | `{ modifiedSides[{ label?, planks[] }], currentDraft?, complaint? }` | One shared-platform plank from ≥2 modified sides. Strips justifications. |
+| POST | `/critique-triple` | `{ modifiedPlanks[], bridgePlank }` | Objections and justification-leak warnings only — no rewrite |
 | POST | `/check-implications` | `{ mainStatement, supportingStatements[] }` | Per-pair implies / confidence / reasoning |
 | POST | `/safety-check` | `{ items: [{ text, fieldLabel? }] }` | Per-item allow/deny + user-facing explanation |
 | POST | `/check-coherence` | `{ rosterCid, title, summary, planks[], mediatorBlurb? }` | Positive-only construction check for a would-be roster CID (preview; no chain write; may use heuristic without an API key) |

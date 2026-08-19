@@ -58,7 +58,7 @@ The same objects work whether an LLM service proposed the text or a human typed 
 
 A person who already has specific ideas about a bridge — “left and right could live with *this*” — must be able to **write the modified causes and the bridge cause themselves**, publish them, wire the implication pairs, and offer opt-in nudges, without handing editorial control to an LLM loop.
 
-LLM help is allowed the same way [cause-assist](/docs/founder/shaping-your-cause-statements.md) helps a founder: sharpen wording so planks have the right shape for the implication attester, suggest missing arrows, refuse mush. The human remains the publisher. A service that only emits nudge batches is not sufficient.
+LLM help is allowed the same way [cause-assist](/docs/founder/shaping-your-cause-statements.md) helps a founder: sharpen wording so planks have the right shape for the implication attester, suggest missing arrows, refuse mush. The settled assistance approach — exportable brief plus one-shot verbs, no hosted chat — is [bridge-cluster-wording-help.md](/docs/founder/bridge-cluster-wording-help.md). The human remains the publisher. A service that only emits nudge batches is not sufficient.
 
 Concretely, the product needs a **create / edit bridge** flow (CauseStarter is the natural home) that:
 

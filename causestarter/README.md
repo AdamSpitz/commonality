@@ -201,7 +201,7 @@ docker compose stop cause-assist
 npm run cause-assist:dev
 ```
 
-See [`cause-assist/README.md`](../cause-assist/README.md).
+See [`cause-assist/README.md`](../cause-assist/README.md). Bridge-cluster wording help (brief export + one-shot verbs, no chat): [`docs/founder/bridge-cluster-wording-help.md`](../docs/founder/bridge-cluster-wording-help.md).
 
 ## Design notes
 

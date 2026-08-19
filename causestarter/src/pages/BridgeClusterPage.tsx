@@ -51,6 +51,7 @@ import { publishPlank } from '../lib/publishPlank'
 import { useMachinery } from '../lib/useMachinery'
 import { useWriteClients } from '../lib/useWriteClients'
 import { ConnectWalletHint } from '../components/ConnectWalletHint'
+import { BridgeClusterAssist } from '../components/BridgeClusterAssist'
 
 function slugOrEmpty(raw: string): string {
   return raw.trim() ? normalizeSlug(raw) : ''
@@ -726,6 +727,14 @@ export function BridgeClusterPage() {
               </Button>
             </Stack>
             {parent.title && <Typography variant="body2">Loaded: {parent.title}</Typography>}
+            {parent.parentPlanks.filter((plank) => plank.text.trim()).length > 0 && (
+              <Stack spacing={0.5} data-testid={`bridge-parent-planks-${index}`}>
+                <Typography variant="caption" color="text.secondary">Parent planks (read-only)</Typography>
+                {parent.parentPlanks.filter((plank) => plank.text.trim()).map((plank) => (
+                  <Typography key={plank.id} variant="body2">{plank.text}</Typography>
+                ))}
+              </Stack>
+            )}
 
             <Divider />
             <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>Modified cause (your wording of this side)</Typography>
@@ -864,6 +873,8 @@ export function BridgeClusterPage() {
           </Button>
         </Stack>
       </Paper>
+
+      <BridgeClusterAssist draft={draft} onDraft={patch} busy={busy} setBusy={setBusy} />
 
       <Paper elevation={0} sx={{ p: 2, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
         <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>Intended implication pairs</Typography>
