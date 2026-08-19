@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { PlankRow } from './PlankRow'
@@ -7,6 +7,16 @@ afterEach(cleanup)
 
 vi.mock('./SupportButton', () => ({
   SupportButton: () => <button type="button">Support</button>,
+}))
+
+const machinery = vi.hoisted(() => ({}))
+vi.mock('../lib/useMachinery', () => ({
+  useMachinery: () => machinery,
+}))
+
+const readPlankText = vi.hoisted(() => vi.fn(async (_machinery: unknown, cid: string) => cid))
+vi.mock('../lib/causeRoster', () => ({
+  readPlankText,
 }))
 
 function renderDraft(publishing: boolean, mutationLocked = false) {
@@ -122,5 +132,34 @@ describe('PlankRow', () => {
     expect(screen.getByTestId('plank-review-0')).toHaveTextContent(/Too vague/)
     expect(screen.getByTestId('plank-review-example-0')).toHaveTextContent(/stay free/)
     expect(screen.getByTestId('plank-use-example-0')).toBeInTheDocument()
+  })
+
+  it('replaces a CID placeholder with the published statement body', async () => {
+    readPlankText.mockResolvedValue('Neighbors keep the sidewalks clear.')
+    render(
+      <MemoryRouter>
+        <PlankRow
+          plank={{ id: 'plank', text: 'bafkreiresolvedbody', origin: 'user', cid: 'bafkreiresolvedbody' }}
+          index={0}
+          selected
+          onSelectedChange={vi.fn()}
+          support={{ direct: 1, indirect: 0, total: 1 }}
+          supportLoading={false}
+          projectCount={0}
+          onSupported={vi.fn()}
+          onTextChange={vi.fn()}
+          onDelete={vi.fn()}
+          onReview={vi.fn()}
+          onPublish={vi.fn()}
+          reviewing={false}
+          publishing={false}
+        />
+      </MemoryRouter>,
+    )
+
+    await waitFor(() => {
+      expect(screen.getByText('Neighbors keep the sidewalks clear.')).toBeInTheDocument()
+    })
+    expect(screen.queryByText('bafkreiresolvedbody')).not.toBeInTheDocument()
   })
 })

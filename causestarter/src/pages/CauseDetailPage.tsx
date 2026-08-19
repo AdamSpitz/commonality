@@ -149,6 +149,26 @@ export function CauseDetailPage() {
     setLoadError(null)
   }, [localId])
 
+  // Local copies can persist CID stubs from a failed earlier fetch.
+  useEffect(() => {
+    if (!cause) return
+    const stubCids = cause.planks
+      .filter((plank) => plank.cid && (!plank.text.trim() || plank.text.trim() === plank.cid))
+      .map((plank) => plank.cid!)
+    if (stubCids.length === 0) return
+    let cancelled = false
+    void loadPlankTexts(machinery, stubCids).then((texts) => {
+      if (cancelled) return
+      setCause((current) => {
+        if (!current || current.id !== cause.id) return current
+        return { ...current, planks: applyPlankTexts(current.planks, texts) }
+      })
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [cause?.id, machinery, cause?.planks.map((plank) => `${plank.cid}:${plank.text}`).join('\0')])
+
   // Load published roster by stable id (and optional pin)
   useEffect(() => {
     if (!routeRef) return
@@ -208,20 +228,21 @@ export function CauseDetailPage() {
         )
         setRemoteReadOnly(!connectedOrganizer && Boolean(remoteCause.founderAddress || remoteCause.rosterCid))
 
-        try {
-          const [texts, hist] = await Promise.all([
-            loadPlankTexts(machinery, fields.plankCids),
-            loadRosterHistory(machinery, routeRef.owner, routeRef.slug),
-          ])
+        const textsPromise = loadPlankTexts(machinery, fields.plankCids).then((texts) => {
           if (cancelled) return
-          setHistory(hist)
           setCause((current) => {
             if (!current || current.id !== remoteCause.id) return current
             return { ...current, planks: applyPlankTexts(current.planks, texts) }
           })
-        } catch {
-          // Title/summary already painted; missing bodies or history stay as stubs.
-        }
+        }).catch(() => {
+          // Title/summary already painted; missing bodies stay as stubs.
+        })
+        const historyPromise = loadRosterHistory(machinery, routeRef.owner, routeRef.slug).then((hist) => {
+          if (!cancelled) setHistory(hist)
+        }).catch(() => {
+          // History is optional chrome; do not block statement bodies.
+        })
+        await Promise.all([textsPromise, historyPromise])
       } catch (err) {
         if (!cancelled) {
           setCause(undefined)

@@ -2,14 +2,25 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { RefUpdate } from '@commonality/sdk/mutable-refs'
 
 const getSubjectStatements = vi.hoisted(() => vi.fn())
+const documentRead = vi.hoisted(() => vi.fn())
+const getStatementWithContent = vi.hoisted(() => vi.fn())
 vi.mock('@commonality/sdk/fundingportals', async (importOriginal) => ({
   ...(await importOriginal<object>()),
   getSubjectStatements,
+}))
+vi.mock('@commonality/sdk/displayable-documents', async (importOriginal) => ({
+  ...(await importOriginal<object>()),
+  createDefaultDocumentReader: () => ({ read: documentRead }),
+}))
+vi.mock('@commonality/sdk/conceptspace', async (importOriginal) => ({
+  ...(await importOriginal<object>()),
+  getStatementWithContent,
 }))
 
 import {
   applyPlankTexts,
   buildRosterDocument,
+  readPlankText,
   formatRosterAge,
   loadRosterCoherenceBadge,
   mediatorBlurbFrom,
@@ -323,7 +334,22 @@ describe('causeRoster', () => {
     expect(textFromStatementDocument({ format: 'text/plain', content: '  Repair the lights.  ' } as never)).toBe(
       'Repair the lights.',
     )
+    expect(textFromStatementDocument({
+      format: 'markdown-restricted',
+      content: { content: '  Nested body.  ' },
+    } as never)).toBe('Nested body.')
+    expect(textFromStatementDocument({ format: 'text/plain', title: '  From title  ' } as never)).toBe(
+      'From title',
+    )
     expect(textFromStatementDocument(undefined)).toBe('')
+  })
+
+  it('resolves plank body text via the statement loader when the document reader misses', async () => {
+    documentRead.mockResolvedValue({ status: 'not-published' })
+    getStatementWithContent.mockResolvedValue({
+      content: { format: 'markdown-restricted', content: 'Repair the lights.' },
+    })
+    await expect(readPlankText({} as never, 'bafy1')).resolves.toBe('Repair the lights.')
   })
 
   it('applies resolved plank texts without clobbering local edits', () => {

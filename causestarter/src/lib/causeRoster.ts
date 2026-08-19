@@ -21,6 +21,7 @@ import {
   validateDisplayableDocument,
   type DisplayableDocument,
 } from '@commonality/sdk/displayable-documents'
+import { getStatementWithContent } from '@commonality/sdk/conceptspace'
 import {
   getSubjectStatements,
   type AlignmentAttestation,
@@ -678,20 +679,36 @@ export function placeholderPlanksFromCids(plankCids: readonly string[]): CausePl
 
 /** Body text from a statement document, or empty when the payload is missing. */
 export function textFromStatementDocument(document: DisplayableDocument | null | undefined): string {
-  const content = document?.content
-  return typeof content === 'string' ? content.trim() : ''
+  if (!document) return ''
+  const raw = document as { content?: unknown; title?: unknown }
+  const content = raw.content
+  if (typeof content === 'string' && content.trim()) return content.trim()
+  if (content && typeof content === 'object') {
+    const nested = (content as { content?: unknown }).content
+    if (typeof nested === 'string' && nested.trim()) return nested.trim()
+  }
+  const title = raw.title
+  return typeof title === 'string' ? title.trim() : ''
 }
 
 /**
- * Cheap plank-body read: PublishedData (then a short IPFS fallback).
- * Does not walk DirectSupport events the way getStatementWithContent does.
+ * Resolve a plank's display text from PublishedData / IPFS, then the statement
+ * query used by the statement page. Missing content stays the CID.
  */
 export async function readPlankText(machinery: SDKMachinery, cid: string): Promise<string> {
   try {
     const reader = createDefaultDocumentReader(machinery)
     const read = await reader.read(cid as IpfsCidV1)
-    if (read.status !== 'active') return cid
-    return textFromStatementDocument(read.document) || cid
+    if (read.status === 'active') {
+      const text = textFromStatementDocument(read.document)
+      if (text) return text
+    }
+  } catch {
+    // Fall through to the statement-page loader.
+  }
+  try {
+    const result = await getStatementWithContent(machinery, cid as IpfsCidV1)
+    return textFromStatementDocument(result?.content) || cid
   } catch {
     return cid
   }

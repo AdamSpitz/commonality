@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import {
   Alert, Box, Button, CircularProgress, IconButton, Paper, Stack,
   TextField, Tooltip, Typography,
@@ -12,6 +13,32 @@ import { Link as RouterLink } from 'react-router-dom'
 import type { IpfsCidV1 } from '@commonality/sdk/utils'
 import { SupportButton, type SupportSettledInfo } from './SupportButton'
 import type { CausePlank } from '../lib/causeStore'
+import { readPlankText } from '../lib/causeRoster'
+import { useMachinery } from '../lib/useMachinery'
+
+function looksLikeCid(text: string): boolean {
+  const trimmed = text.trim()
+  return /^(bafkrei|bafy|Qm)[a-z0-9]+$/i.test(trimmed) && !trimmed.includes(' ')
+}
+
+function usePublishedPlankText(plank: CausePlank): string {
+  const machinery = useMachinery()
+  const [resolved, setResolved] = useState(plank.text)
+  useEffect(() => {
+    setResolved(plank.text)
+    if (!plank.cid) return
+    const placeholder = !plank.text.trim() || plank.text.trim() === plank.cid || looksLikeCid(plank.text)
+    if (!placeholder) return
+    let cancelled = false
+    void readPlankText(machinery, plank.cid).then((text) => {
+      if (!cancelled && text) setResolved(text)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [machinery, plank.cid, plank.text])
+  return resolved
+}
 
 /** Below this, a plank is too vague for the attester to draw an arrow either way. */
 export const MIN_PLANK_LENGTH = 12
@@ -82,6 +109,7 @@ export function PlankRow({
   addedLaterLabel,
 }: PlankRowProps) {
   const published = Boolean(plank.cid)
+  const displayText = usePublishedPlankText(plank)
   const tooShort = plank.text.trim().length > 0 && plank.text.trim().length < MIN_PLANK_LENGTH
   const blocked = Boolean(plank.safety && !plank.safety.allowed)
   const draftBusy = mutationLocked || publishing || reviewing
@@ -113,7 +141,7 @@ export function PlankRow({
           {published ? (
             <Stack direction="row" spacing={0.5} alignItems="flex-start">
               <Typography variant="body2" sx={{ fontWeight: 500, flex: 1, minWidth: 0 }}>
-                {plank.text}
+                {displayText}
               </Typography>
               <Tooltip title="Open this statement">
                 <IconButton
