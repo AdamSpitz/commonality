@@ -159,6 +159,8 @@ export function CauseFundingPage() {
         writeClients,
         operandCids,
         combinator: 'all',
+        // NoteIntent only needs the CID. Implication arrows are a separate job.
+        payAttester: false,
       })
       if (cause) {
         const nextAnchors = withAnchor(cause.anchors, {
