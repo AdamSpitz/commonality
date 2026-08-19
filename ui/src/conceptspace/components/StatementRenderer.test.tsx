@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
 import { StatementRenderer } from './StatementRenderer'
 import type { DisplayableDocument } from '@commonality/sdk/displayable-documents'
+import { createCombinatorStatement } from '@commonality/sdk/displayable-documents'
 import { BrowserRouter } from 'react-router-dom'
 
 // Mock react-router-dom Link to avoid routing setup complexity
@@ -483,6 +484,29 @@ describe('StatementRenderer', () => {
       expect(screen.queryByText('Science')).not.toBeInTheDocument()
       expect(screen.queryByText('createdDate')).not.toBeInTheDocument()
       expect(screen.queryByText('2024-01-15')).not.toBeInTheDocument()
+    })
+  })
+
+  describe('combinator statements', () => {
+    it('shows the operator and operand bodies', () => {
+      const a = 'bafkreiaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+      const b = 'bafkreibbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'
+      const content = createCombinatorStatement('any', [a, b])
+
+      renderWithRouter(
+        <StatementRenderer
+          statementCid={mockStatementId}
+          content={content}
+          referencedDocuments={{
+            [a]: { format: 'markdown-restricted', content: 'I am pro-life.' },
+            [b]: { format: 'markdown-restricted', content: 'I support the second amendment.' },
+          }}
+        />
+      )
+
+      expect(screen.getByTestId('combinator-kind')).toHaveTextContent('Any of these statements')
+      expect(screen.getByTestId('combinator-operands')).toHaveTextContent('I am pro-life.')
+      expect(screen.getByTestId('combinator-operands')).toHaveTextContent('I support the second amendment.')
     })
   })
 

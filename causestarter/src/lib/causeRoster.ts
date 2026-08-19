@@ -46,7 +46,7 @@ import {
   type Hash,
 } from 'viem'
 import { getRuntimeConfigValue } from './runtimeConfig'
-import type { CauseDraft, CauseMediator, CausePlank, RosterBridgeLink } from './causeStore'
+import type { CauseAnchorCids, CauseDraft, CauseMediator, CausePlank, RosterBridgeLink } from './causeStore'
 import { publishedPlanks } from './causeStore'
 
 /** Structured payload stored in DisplayableDocument.extras. */
@@ -107,6 +107,8 @@ export interface RosterFields {
    * that cluster so the cause page can label mediator authorship.
    */
   bridgeCluster?: RosterBridgeLink
+  /** Promoted combinator CIDs, omitted entirely when neither exists. */
+  anchorCids?: CauseAnchorCids
 }
 
 export interface RosterExtras extends RosterFields {
@@ -243,6 +245,9 @@ export function rosterFieldsFromCause(cause: CauseDraft): RosterFields {
     mediatorBlurb: mediatorBlurbFrom(cause.mediator).slice(0, MAX_MEDIATOR_BLURB_LENGTH),
     mediator: parseCauseMediator(cause.mediator),
     ...(cause.bridgeCluster ? { bridgeCluster: cause.bridgeCluster } : {}),
+    ...(parseAnchorCids(cause.anchorCids)
+      ? { anchorCids: parseAnchorCids(cause.anchorCids) }
+      : {}),
   }
 }
 
@@ -261,6 +266,12 @@ export function renderRosterContent(fields: RosterFields): string {
   if (fields.mediatorBlurb.trim()) {
     lines.push('', '## Mediator', fields.mediatorBlurb.trim())
   }
+  const anchors = parseAnchorCids(fields.anchorCids)
+  if (anchors) {
+    lines.push('', '## Graph handles')
+    if (anchors.any) lines.push(`- any: ${anchors.any}`)
+    if (anchors.all) lines.push(`- all: ${anchors.all}`)
+  }
   return lines.join('\n')
 }
 
@@ -278,6 +289,8 @@ export function buildRosterDocument(fields: RosterFields): DisplayableDocument {
   if (mediator) extras.mediator = mediator
   const bridgeCluster = parseRosterBridgeLink(fields.bridgeCluster)
   if (bridgeCluster) extras.bridgeCluster = bridgeCluster
+  const anchorCids = parseAnchorCids(fields.anchorCids)
+  if (anchorCids) extras.anchorCids = anchorCids
   return createDisplayableDocument({
     format: 'markdown-restricted',
     content: renderRosterContent(fields),
@@ -308,6 +321,7 @@ export function parseRosterDocument(doc: DisplayableDocument): RosterFields | nu
   // Absent on rosters published before the mediator identity was carried; not an error.
   const mediator = parseCauseMediator(extras.mediator)
   const bridgeCluster = parseRosterBridgeLink(extras.bridgeCluster)
+  const anchorCids = parseAnchorCids(extras.anchorCids)
   return {
     title,
     summary,
@@ -315,6 +329,19 @@ export function parseRosterDocument(doc: DisplayableDocument): RosterFields | nu
     mediatorBlurb,
     ...(mediator ? { mediator } : {}),
     ...(bridgeCluster ? { bridgeCluster } : {}),
+    ...(anchorCids ? { anchorCids } : {}),
+  }
+}
+
+export function parseAnchorCids(value: unknown): CauseAnchorCids | undefined {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined
+  const record = value as Record<string, unknown>
+  const any = typeof record.any === 'string' && record.any.trim() ? record.any.trim() : undefined
+  const all = typeof record.all === 'string' && record.all.trim() ? record.all.trim() : undefined
+  if (!any && !all) return undefined
+  return {
+    ...(any ? { any } : {}),
+    ...(all ? { all } : {}),
   }
 }
 

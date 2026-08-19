@@ -131,6 +131,24 @@ describe('causeRoster', () => {
     expect(parseRosterDocument(buildRosterDocument(base))?.bridgeCluster).toBeUndefined()
   })
 
+  it('omits combinator graph handles unless a view was promoted', () => {
+    const base = {
+      title: 'Oak Street lights',
+      summary: 'Neighbors funding streetlights.',
+      plankCids: ['bafyplank1', 'bafyplank2'],
+      mediatorBlurb: '',
+    }
+    const withAnchor = {
+      ...base,
+      anchorCids: { any: 'bafkreianycombo' },
+    }
+    expect(previewRosterCid(base)).not.toBe(previewRosterCid(withAnchor))
+    expect(parseRosterDocument(buildRosterDocument(withAnchor))?.anchorCids).toEqual({
+      any: 'bafkreianycombo',
+    })
+    expect(parseRosterDocument(buildRosterDocument(base))?.anchorCids).toBeUndefined()
+  })
+
   it('voids preview CID when any founder display field changes', () => {
     const base = {
       title: 'A',

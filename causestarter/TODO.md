@@ -16,15 +16,12 @@ open **if they stay listed here**.
   checkbox. Do **not** mix post rows into the project list. The dedicated
   content board (`/cause/.../content`) stays as a post-level surface.
 
-- [ ] **Anchors are not built.** A founder cannot promote a proven view into a
-  published statement. Alignment is *not* why: the cause board is already the
-  union of plank boards (do not attest one project to every plank, or to a
-  conjunctive slogan). What is still missing is a CID for the *combination* —
-  earmark "any of these," sign the name/alliance in one step, and let other
-  surfaces treat the cause as a graph node. See
-  [shaping-your-cause-statements.md § What an anchor is actually for](/docs/founder/shaping-your-cause-statements.md#what-an-anchor-is-actually-for-2026-08-18)
-  and [§ Promotion](/docs/founder/shaping-your-cause-statements.md#promotion).
-  The seat for promotion is the cause page's view strip.
+- [x] **Anchors are combinator statements.** Promote a selected view (`any` /
+  `all`) from the cause page view strip. Canonical CID, no founder title,
+  deterministic pairwise arrows via the implication attester's structural gate.
+  Roster stores optional `anchorCids` (republish to attach). Alignment stays on
+  planks. See
+  [combinator-statements.md](/specs/tech/subsystems/conceptspace/combinator-statements.md).
 - [ ] View counts fetch believer sets per plank, and each fetch walks events for the plank *plus* every statement implying it, under a `limit: 10000` that truncates silently. Fine locally; measure before it matters. Remedy is an indexer-side aggregate ([§ Scale](/docs/founder/shaping-your-cause-statements.md#scale-the-fold-is-fine-the-transport-isnt)), optionally sketch-backed — but band 1 must stay exact.
 
 - [ ] Safety filter is MVP/heuristic + LLM policy text — not legal-grade; version/align with operator/legal specs later.

@@ -17,6 +17,8 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 ## Main list
 
+- **(Tell)** Combinator statements are specified and implemented: canonical `all`/`any` over sorted plank CIDs (no title/date), CauseStarter view-strip promote, implication attester structural gate for pairwise arrows only. Ordinary `createStatement` no longer defaults `createdDate` into extras.
+
 - **(Tell)** Cause-board **Fully reimbursed** now means success-vouched *and* `outstandingUnreimbursedAmount === 0` (never-scouted successes omitted). It no longer reuses `AlignedProjectsList` with `statusFilterLock="succeeded"` (raised ≥ threshold). New SDK query: `getFullyReimbursedProjectsForCause`.
 
 
@@ -54,8 +56,6 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 - Improve the [pitch for Christians](docs/founder/christian-pitch.md). Come up with other ones along those lines.
 
 ### Stuff I want to think through
-
-- **(Ask)** Combinator statements (`all` / `any` over plank CIDs) as the graph form of a CauseStarter anchor — canonical document so the CID *is* the combination, no title/date in the bytes, deterministic pairwise arrows only. Tentative spec: [combinator-statements.md](specs/tech/subsystems/conceptspace/combinator-statements.md). Think it through (especially identity vs display, and whether ordinary statements should drop `createdDate` from extras), then implement if it still looks right.
 
 - What's the difference between seed data and example data for testing? I think I may have been using the seed data mechanism for test data, which is probably not what I want.
 

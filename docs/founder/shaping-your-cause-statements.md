@@ -1,6 +1,6 @@
 # Shaping your cause's statements
 
-**Status: signed off; publications, retrieval-first selection, planks, and views built; anchors not.** This is how a cause
+**Status: signed off; publications, retrieval-first selection, planks, views, and combinator anchors built.** This is how a cause
 is built out of statements. The mechanics it describes (implication direction,
 how support and cause boards aggregate) are accurate to the system as specified.
 The architecture it proposes — **planks, views, and anchors** — was signed off by
@@ -25,9 +25,10 @@ what remains open is one bug, at the end.
   editing the roster, and only upward; the fewest-signed count moves the other
   way, so the pair is not. See
   [§ Band 2 is never shown alone](#band-2-is-never-shown-alone-pair-it-with-the-weakest-link).
-- **Anchors are not built.** No promotion action exists yet, which is consistent
-  with [§ Promotion](#promotion): it is a later move, taken once a combination
-  has proven itself.
+- **Anchors are combinator statements.** The cause page view strip can promote
+  a selection of two or more published planks to an `any` or `all` combinator
+  CID and ask the implication attester for the pairwise arrows. See
+  [combinator-statements.md](/specs/tech/subsystems/conceptspace/combinator-statements.md).
 - **The roster is a publication.** Organizer-authored display text (title, summary,
   ordered plank CIDs, mediator blurb) is published through `PublishedData`; its
   CID is the version ID. A `MutableRef` `(founder, slug) → CID` is the stable ID
@@ -240,9 +241,10 @@ organizer document. Everything else in the system is statement-shaped. Until
 the combination is a statement, it is not a node other people can imply,
 disbelieve, earmark to, or build a board on without opening the cause page.
 
-Tentative encoding for that node:
+Encoding for that node:
 [combinator-statements.md](/specs/tech/subsystems/conceptspace/combinator-statements.md)
-(`all` / `any` over referenced CIDs, canonical bytes, no founder title). Not built.
+(`all` / `any` over referenced CIDs, canonical bytes, no founder title). Why:
+[ADR 0010](/specs/decisions/0010-combinator-statements.md).
 
 ### Conjunction views need two bands, or they lie
 

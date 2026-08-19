@@ -17,6 +17,7 @@ import {
 import { CauseBoard, CauseLeaderboard } from '@ui/fundingportals'
 import { AlignmentTrustGate } from '../components/AlignmentTrustGate'
 import { CauseViewStrip } from '../components/CauseViewStrip'
+import { CauseAnchorPromote } from '../components/CauseAnchorPromote'
 import { CauseMediatorCard } from '../components/CauseMediatorCard'
 import { CauseFundingSummary } from '../components/CauseFundingSummary'
 import { ConnectWalletHint } from '../components/ConnectWalletHint'
@@ -52,6 +53,8 @@ import {
   rememberBookmarkRemoved,
 } from '../lib/causeBookmarks'
 import { publishPlank } from '../lib/publishPlank'
+import { promoteViewToCombinator } from '../lib/publishCombinator'
+import type { CombinatorKind } from '@commonality/sdk/displayable-documents'
 import { useMachinery } from '../lib/useMachinery'
 import { useWriteClients } from '../lib/useWriteClients'
 import { useAlignmentTrust } from '../hooks/useAlignmentTrust'
@@ -110,6 +113,8 @@ export function CauseDetailPage() {
   const [reviewsByPlankId, setReviewsByPlankId] = useState<Record<string, PlankReview>>({})
   const [publishingId, setPublishingId] = useState<string>()
   const [publishingRoster, setPublishingRoster] = useState(false)
+  const [promotingKind, setPromotingKind] = useState<CombinatorKind | null>(null)
+  const [promoteError, setPromoteError] = useState<string | null>(null)
   const [checkingCoherence, setCheckingCoherence] = useState(false)
   const [coherence, setCoherence] = useState<CoherenceVerdict | null>(null)
   const [onChainBadge, setOnChainBadge] = useState<RosterCoherenceBadge | null>(null)
@@ -185,6 +190,7 @@ export function CauseDetailPage() {
           // Published identity wins: a follower has no local copy to fall back on.
           mediator: fields.mediator ?? local?.mediator,
           bridgeCluster: fields.bridgeCluster ?? local?.bridgeCluster,
+          anchorCids: fields.anchorCids ?? local?.anchorCids,
           suggestionSeed: local?.suggestionSeed,
           createdAt: local?.createdAt ?? new Date().toISOString(),
           updatedAt: local?.updatedAt ?? new Date().toISOString(),
@@ -514,7 +520,7 @@ export function CauseDetailPage() {
     && coherenceBadgeResolved
     && !hasCoherenceBadge
   const mutationLocked = Boolean(
-    publishingId || reviewingId || publishingRoster || checkingCoherence,
+    publishingId || reviewingId || publishingRoster || checkingCoherence || promotingKind,
   )
   const slugLocked = Boolean(cause.slug && cause.founderAddress && cause.rosterCid)
   const stable = cause.founderAddress && cause.slug
@@ -621,6 +627,33 @@ export function CauseDetailPage() {
       setError(err instanceof Error ? err.message : 'Failed to publish this statement')
     } finally {
       setPublishingId(undefined)
+    }
+  }
+
+  const handlePromoteView = async (kind: CombinatorKind) => {
+    if (!canEdit || mutationLocked || selectedCids.length < 2) return
+    if (!isConnected || !address || !writeClients) {
+      setPromoteError('Connect your wallet to publish this combination.')
+      return
+    }
+    setPromotingKind(kind)
+    setPromoteError(null)
+    try {
+      const result = await promoteViewToCombinator({
+        machinery,
+        writeClients,
+        operandCids: selectedCids,
+        combinator: kind,
+      })
+      const nextAnchors = { ...cause.anchorCids, [kind]: result.cid }
+      const updated = updateCause(cause.id, { anchorCids: nextAnchors })
+      if (updated) setCause(updated)
+      else setCause({ ...cause, anchorCids: nextAnchors })
+      voidCoherence()
+    } catch (err) {
+      setPromoteError(err instanceof Error ? err.message : 'Failed to promote this combination')
+    } finally {
+      setPromotingKind(null)
     }
   }
 
@@ -1020,6 +1053,14 @@ export function CauseDetailPage() {
               selectedCount={selectedCids.length}
               loading={countsLoading}
               fewestDirectSignatures={fewestDirectSignatures}
+            />
+            <CauseAnchorPromote
+              selectedCount={selectedCids.length}
+              canPromote={canEdit && !mutationLocked}
+              promoting={promotingKind}
+              error={promoteError}
+              anchors={cause.anchorCids}
+              onPromote={(kind) => void handlePromoteView(kind)}
             />
             {countsError && (
               <Alert severity="warning" sx={{ mt: 1, borderRadius: 2 }}>

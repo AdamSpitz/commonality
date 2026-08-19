@@ -99,6 +99,16 @@ export interface CauseDraft {
   mediator?: CauseMediator
   /** Present when this cause is a modified sliver or the bridge of a cluster. */
   bridgeCluster?: RosterBridgeLink
+  /**
+   * Graph handles for promoted views. Optional; omitted from unpublished drafts
+   * and from rosters that have never promoted a combination.
+   */
+  anchorCids?: CauseAnchorCids
+}
+
+export interface CauseAnchorCids {
+  any?: string
+  all?: string
 }
 
 const STORAGE_KEY = 'causestarter.causes.v3'

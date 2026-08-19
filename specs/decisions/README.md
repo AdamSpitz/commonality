@@ -57,3 +57,4 @@ instance most needs answered and can't get anywhere else.
 | [0007](./0007-channel-bound-prospective-content-materialization.md) | Channel-bound prospective content materialization | Accepted |
 | [0008](./0008-operated-surfaces-are-lenses.md) | Operated cause surfaces are lenses: render on demand, rank nothing | Accepted |
 | [0009](./0009-causes-are-publications-over-statements.md) | Causes are publications over statements | Accepted |
+| [0010](./0010-combinator-statements.md) | Combinator statements are the graph form of a promoted view | Accepted |

@@ -539,7 +539,7 @@ describe('createStatement', () => {
     assert.strictEqual(doc.content, 'I believe in clean energy.');
     assert.ok(doc.extras);
     assert.strictEqual(doc.extras!.statementType, 'statement');
-    assert.ok(doc.extras!.createdDate);
+    assert.strictEqual(doc.extras!.createdDate, undefined);
   });
 
   it('includes topic when provided', () => {
