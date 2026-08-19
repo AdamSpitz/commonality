@@ -34,6 +34,19 @@ describe('bridgeStore', () => {
     expect(getBridge(draft.id)?.mediatorName).toBe('Ada')
   })
 
+  it('persists a parent seeded from a cause page so reload does not blank the slot', () => {
+    const draft = createBridge({
+      owner: '0x1111111111111111111111111111111111111111',
+      slug: 'faithful-neighbors',
+      title: 'Faithful Neighbors',
+    })
+    forgetUnsavedBridges()
+    const saved = getBridge(draft.id)
+    expect(saved?.parents[0]?.owner).toBe('0x1111111111111111111111111111111111111111')
+    expect(saved?.parents[0]?.slug).toBe('faithful-neighbors')
+    expect(saved?.parents[0]?.title).toBe('Faithful Neighbors')
+  })
+
   it('remembers a published cluster so a parent cause can list the citation', () => {
     rememberPublishedCluster({
       owner: '0x1111111111111111111111111111111111111111',

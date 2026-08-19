@@ -207,6 +207,11 @@ export function createBridge(seed?: BridgeParentSeed): BridgeDraft {
     pairs: [],
   }
   unsaved.set(draft.id, draft)
+  // Seeded parent owner/slug must survive a reload; empty scratch drafts stay in-memory.
+  if (!isEmptyBridgeDraft(draft)) {
+    unsaved.delete(draft.id)
+    writeAll([...readAll().filter((item) => item.id !== draft.id), draft])
+  }
   return draft
 }
 
@@ -299,6 +304,7 @@ export function rememberPublishedCluster(args: {
 
 export function allDraftPlanks(draft: BridgeDraft): CausePlank[] {
   return [
+    ...draft.parents.flatMap((parent) => parent.parentPlanks),
     ...draft.parents.flatMap((parent) => parent.modified.planks),
     ...draft.bridge.planks,
   ]
@@ -306,5 +312,9 @@ export function allDraftPlanks(draft: BridgeDraft): CausePlank[] {
 
 export function plankById(draft: BridgeDraft, plankId: string): CausePlank | undefined {
   return allDraftPlanks(draft).find((plank) => plank.id === plankId)
-    ?? draft.parents.flatMap((parent) => parent.parentPlanks).find((plank) => plank.id === plankId)
+}
+
+export function plankByCid(draft: BridgeDraft, cid: string): CausePlank | undefined {
+  if (!cid.trim()) return undefined
+  return allDraftPlanks(draft).find((plank) => plank.cid === cid)
 }

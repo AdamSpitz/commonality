@@ -75,10 +75,9 @@ A later **BYOK in-page chat** (their key, our system prompt, we hold no transcri
 
 These are product gaps, not “add a chat”:
 
-- Discoverability: bridge writing is only on Edit → Mediator → **Write a bridge**. Home does not start a cluster.
-- Coaching that the publisher key must not be the parent founder’s if the modified page should not look official.
+- Discoverability: bridge writing is on a cause’s **Bridges → Create a bridge**. Home does not start a cluster.
 
-Settled in the editor (see [the-other-cause.md](./the-other-cause.md)): paste a cause link; **this side is not a cause yet — start a thin sliver**; skip modified on a stand-in; `draft-stand-in-sliver`; near-duplicate suggestions from causes already on the device; local seed includes a secular-conservative cause.
+Settled in the editor (see [the-other-cause.md](./the-other-cause.md)): paste a cause link; **this side is not a cause yet — start a thin sliver**; skip modified on a stand-in only (not on a published parent); `draft-stand-in-sliver`; near-duplicate suggestions from causes already on the device; local seed includes a secular-conservative cause; parent seed from Create a bridge survives reload; warn when the connected wallet owns a parent cause.
 
 ## Checks
 
