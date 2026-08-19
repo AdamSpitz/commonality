@@ -1,18 +1,25 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
-  Alert, Box, Button, CircularProgress, Paper, Stack, Typography,
+  Alert, Box, Button, Checkbox, CircularProgress, FormControlLabel, Paper, Stack, Typography,
 } from '@mui/material'
-import { Link as RouterLink, useParams } from 'react-router-dom'
+import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom'
 import { formatUnits } from 'viem'
+import { useAccount } from 'wagmi'
 import { ConnectWalletHint } from '../components/ConnectWalletHint'
+import { CauseConjunctionEarmark } from '../components/CauseConjunctionEarmark'
 import { useCauseMonthlyPledges } from '../hooks/useCauseMonthlyPledges'
 import {
+  bookmarkCause,
   causePath,
   getCause,
   listCauses,
   publishedPlanks,
+  updateCause,
+  withAnchor,
   type CauseDraft,
 } from '../lib/causeStore'
+import { ensureCombinatorPublished } from '../lib/publishCombinator'
+import { useWriteClients } from '../lib/useWriteClients'
 import {
   applyPlankTexts,
   loadPlankTexts,
@@ -36,7 +43,10 @@ function formatMonthly(amount: bigint, decimals: number, symbol: string): string
 
 export function CauseFundingPage() {
   const params = useParams<{ causeId?: string; owner?: string; slugPart?: string }>()
+  const navigate = useNavigate()
   const machinery = useMachinery()
+  const { address, isConnected } = useAccount()
+  const writeClients = useWriteClients(address)
 
   const routeRef = useMemo(
     () => parseCauseRouteParams(params.owner, params.slugPart),
@@ -87,6 +97,7 @@ export function CauseFundingPage() {
           slug: routeRef.slug,
           founderAddress: routeRef.owner,
           rosterCid,
+          anchors: loaded.fields.anchors ?? local?.anchors,
           createdAt: local?.createdAt ?? new Date().toISOString(),
           updatedAt: local?.updatedAt ?? new Date().toISOString(),
         })
@@ -116,9 +127,58 @@ export function CauseFundingPage() {
     }
   }, [routeRef, machinery])
 
+  const [selectedCids, setSelectedCids] = useState<Set<string>>(new Set())
+  const [creatingCombination, setCreatingCombination] = useState(false)
+  const [combinationError, setCombinationError] = useState<string | null>(null)
+
   const published = cause ? publishedPlanks(cause) : []
   const publishedCids = published.map((plank) => plank.cid!).filter(Boolean)
   const pledges = useCauseMonthlyPledges(publishedCids)
+
+  const toggleSelected = (cid: string, checked: boolean) => {
+    setSelectedCids((current) => {
+      const next = new Set(current)
+      if (checked) next.add(cid)
+      else next.delete(cid)
+      return next
+    })
+  }
+
+  const handleConjunctionEarmark = async () => {
+    const operandCids = [...selectedCids]
+    if (operandCids.length < 2) return
+    if (!isConnected || !address || !writeClients) {
+      setCombinationError('Connect a wallet to publish this combination and earmark funds.')
+      return
+    }
+    setCreatingCombination(true)
+    setCombinationError(null)
+    try {
+      const result = await ensureCombinatorPublished({
+        machinery,
+        writeClients,
+        operandCids,
+        combinator: 'all',
+        // NoteIntent only needs the CID. Implication arrows are a separate job.
+        payAttester: false,
+      })
+      if (cause) {
+        const nextAnchors = withAnchor(cause.anchors, {
+          combinator: 'all',
+          cid: result.cid,
+          operandCids,
+        })
+        const updated = updateCause(cause.id, { anchors: nextAnchors })
+        if (updated) setCause(updated)
+        else setCause(bookmarkCause({ ...cause, anchors: nextAnchors }))
+      }
+      navigate(`/delegation/notes/new?statement=${encodeURIComponent(result.cid)}`)
+    } catch (err) {
+      setCombinationError(err instanceof Error ? err.message : 'Failed to prepare this combination')
+    } finally {
+      setCreatingCombination(false)
+    }
+  }
 
   if (loadingCause && !cause) {
     return (
@@ -191,10 +251,10 @@ export function CauseFundingPage() {
 
       <Alert severity="info" sx={{ borderRadius: 2 }} data-testid="earmark-help">
         Create a one-time delegated fund or a monthly pledge earmarked for one immutable
-        statement. The earmark is public, auditable guidance — not a binding restriction
-        on a delegate. If they direct the money elsewhere, that will also be public.
-        Choosing a delegate is public too. The earmark does not follow later edits to
-        this cause publication.
+        statement — or for a combination you endorse as a package. The earmark is public,
+        auditable guidance — not a binding restriction on a delegate. If they direct the
+        money elsewhere, that will also be public. Choosing a delegate is public too.
+        The earmark does not follow later edits to this cause publication.
       </Alert>
 
       {published.length === 0 ? (
@@ -202,59 +262,81 @@ export function CauseFundingPage() {
           Publish a statement before you can earmark funds or start a monthly pledge.
         </Alert>
       ) : (
-        <Stack spacing={1}>
-          {published.map((plank) => (
-            <Paper
-              key={plank.cid}
-              elevation={0}
-              sx={{ p: 2, borderRadius: 2, border: '1px solid', borderColor: 'divider' }}
-            >
-              <Stack
-                direction={{ xs: 'column', sm: 'row' }}
-                spacing={1}
-                alignItems={{ sm: 'center' }}
-                justifyContent="space-between"
+        <Stack spacing={2}>
+          <CauseConjunctionEarmark
+            selectedCount={selectedCids.size}
+            walletReady={Boolean(isConnected && writeClients)}
+            creating={creatingCombination}
+            error={combinationError}
+            onEarmark={() => void handleConjunctionEarmark()}
+          />
+          <Stack spacing={1}>
+            {published.map((plank) => (
+              <Paper
+                key={plank.cid}
+                elevation={0}
+                sx={{ p: 2, borderRadius: 2, border: '1px solid', borderColor: 'divider' }}
               >
-                <Box sx={{ flex: 1, minWidth: 0 }}>
-                  <Typography
+                <Stack
+                  direction={{ xs: 'column', sm: 'row' }}
+                  spacing={1}
+                  alignItems={{ sm: 'center' }}
+                  justifyContent="space-between"
+                >
+                  <FormControlLabel
+                    sx={{ flex: 1, minWidth: 0, mr: 0, alignItems: 'flex-start' }}
+                    control={
+                      <Checkbox
+                        checked={selectedCids.has(plank.cid!)}
+                        onChange={(event) => toggleSelected(plank.cid!, event.target.checked)}
+                        inputProps={{ 'aria-label': `Include ${plank.text} in combination` }}
+                        data-testid={`earmark-select-${plank.cid}`}
+                      />
+                    }
+                    label={
+                      <Box sx={{ minWidth: 0 }}>
+                        <Typography
+                          component={RouterLink}
+                          to={`/statement/${plank.cid}`}
+                          variant="body2"
+                          sx={{
+                            color: 'text.primary',
+                            textDecoration: 'none',
+                            '&:hover': { textDecoration: 'underline' },
+                          }}
+                        >
+                          {plank.text}
+                        </Typography>
+                        {pledges.available && (
+                          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+                            {formatMonthly(pledges.byPlankCid.get(plank.cid!) ?? 0n, pledges.decimals, pledges.symbol)} on this statement
+                          </Typography>
+                        )}
+                      </Box>
+                    }
+                  />
+                  <Button
                     component={RouterLink}
-                    to={`/statement/${plank.cid}`}
-                    variant="body2"
-                    sx={{
-                      color: 'text.primary',
-                      textDecoration: 'none',
-                      '&:hover': { textDecoration: 'underline' },
-                    }}
+                    to={`/delegation/notes/new?statement=${encodeURIComponent(plank.cid!)}`}
+                    variant="contained"
+                    size="small"
+                    sx={{ textTransform: 'none', flexShrink: 0 }}
                   >
-                    {plank.text}
-                  </Typography>
-                  {pledges.available && (
-                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
-                      {formatMonthly(pledges.byPlankCid.get(plank.cid!) ?? 0n, pledges.decimals, pledges.symbol)} on this statement
-                    </Typography>
-                  )}
-                </Box>
-                <Button
-                  component={RouterLink}
-                  to={`/delegation/notes/new?statement=${encodeURIComponent(plank.cid!)}`}
-                  variant="contained"
-                  size="small"
-                  sx={{ textTransform: 'none', flexShrink: 0 }}
-                >
-                  Make a pledge
-                </Button>
-                <Button
-                  component={RouterLink}
-                  to={`/delegates/offer?statement=${encodeURIComponent(plank.cid!)}`}
-                  variant="text"
-                  size="small"
-                  sx={{ textTransform: 'none', flexShrink: 0 }}
-                >
-                  Offer to become a delegate
-                </Button>
-              </Stack>
-            </Paper>
-          ))}
+                    Make a pledge
+                  </Button>
+                  <Button
+                    component={RouterLink}
+                    to={`/delegates/offer?statement=${encodeURIComponent(plank.cid!)}`}
+                    variant="text"
+                    size="small"
+                    sx={{ textTransform: 'none', flexShrink: 0 }}
+                  >
+                    Offer to become a delegate
+                  </Button>
+                </Stack>
+              </Paper>
+            ))}
+          </Stack>
         </Stack>
       )}
     </Stack>

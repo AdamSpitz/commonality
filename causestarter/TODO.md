@@ -16,13 +16,19 @@ open **if they stay listed here**.
   checkbox. Do **not** mix post rows into the project list. The dedicated
   content board (`/cause/.../content`) stays as a post-level surface.
 
-- [x] **Anchors are combinator statements.** Promote a selected view (`any` /
-  `all`) from the cause page view strip. Canonical CID, no founder title,
+- [x] **Anchors are combinator statements.** Canonical CID, no founder title,
   deterministic pairwise arrows via the implication attester's structural gate.
   Roster stores optional `anchors` — each carrying the operand set it was minted
-  from, so a handle is only shown against the selection that produced it
-  (republish to attach). Alignment stays on planks. See
+  from. Alignment stays on planks. Combinators are minted from the action that
+  needs them (conjunction earmark), not a generic cause-page promote. See
   [combinator-statements.md](/specs/tech/subsystems/conceptspace/combinator-statements.md).
+- [x] **Conjunction earmark.** Funding page: select ≥2 planks, publish `all`
+  if needed, open the pledge form against that CID. Jobs for each operator:
+  [shaping-your-cause-statements.md](/docs/founder/shaping-your-cause-statements.md#which-operator-to-mint-and-from-which-action-2026-08-19).
+- [ ] **Disjunctive (`any`) mint path.** Do not auto-create from bridges.
+  Next candidate: a surface that needs a coalition CID (Tally / public
+  alliance count / "sign the name"). Ask before wiring it into
+  bridge-cluster publish.
 - [ ] View counts fetch believer sets per plank, and each fetch walks events for the plank *plus* every statement implying it, under a `limit: 10000` that truncates silently. Fine locally; measure before it matters. Remedy is an indexer-side aggregate ([§ Scale](/docs/founder/shaping-your-cause-statements.md#scale-the-fold-is-fine-the-transport-isnt)), optionally sketch-backed — but band 1 must stay exact.
 
 - [ ] Safety filter is MVP/heuristic + LLM policy text — not legal-grade; version/align with operator/legal specs later.
