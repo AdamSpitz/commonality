@@ -80,7 +80,10 @@ describe('CauseBridgesSection', () => {
     renderSection(cause())
 
     expect(screen.getByTestId('cause-bridges-empty')).toBeInTheDocument()
-    expect(screen.getByTestId('cause-create-bridge')).toHaveAttribute('href', '/bridge/new')
+    expect(screen.getByTestId('cause-create-bridge')).toHaveAttribute(
+      'href',
+      '/bridge/new?parentOwner=0x1111111111111111111111111111111111111111&parentSlug=faithful-neighbors',
+    )
     // Advanced path: a link, not a button, and not an inline form.
     const advanced = screen.getByTestId('cause-attach-mediator')
     expect(advanced.tagName).toBe('A')
@@ -152,7 +155,7 @@ describe('CauseBridgesSection', () => {
   })
 
   describe('visitor variant', () => {
-    it('lists published clusters as links, without any authoring affordances', () => {
+    it('lists published clusters as links, without the organizer-only affordances', () => {
       listBridges.mockImplementation(() => [publishedCluster()])
 
       renderSection(cause(), 'visitor')
@@ -161,7 +164,6 @@ describe('CauseBridgesSection', () => {
         'href',
         '/bridge/0x1111111111111111111111111111111111111111/neighbors-localists',
       )
-      expect(screen.queryByTestId('cause-create-bridge')).toBeNull()
       expect(screen.queryByTestId('cause-attach-mediator')).toBeNull()
       expect(screen.queryByTestId('cause-mediator-row')).toBeNull()
     })
@@ -173,10 +175,11 @@ describe('CauseBridgesSection', () => {
 
       renderSection(cause(), 'visitor')
 
-      expect(screen.queryByTestId('cause-bridges-section')).toBeNull()
+      expect(screen.queryByTestId('cause-bridge-row')).toBeNull()
+      expect(screen.getByTestId('cause-bridges-empty')).toBeInTheDocument()
     })
 
-    it('renders nothing at all when there is no published bridge to show', () => {
+    it('still shows the section, an empty note and a create button with no bridges', () => {
       renderSection(cause({
         mediator: {
           name: 'Neighbors mediator',
@@ -186,7 +189,23 @@ describe('CauseBridgesSection', () => {
         },
       }), 'visitor')
 
-      expect(screen.queryByTestId('cause-bridges-section')).toBeNull()
+      expect(screen.getByTestId('cause-bridges-section')).toBeInTheDocument()
+      expect(screen.getByTestId('cause-bridges-empty')).toBeInTheDocument()
+      expect(screen.getByTestId('cause-create-bridge')).toBeInTheDocument()
+      expect(screen.getByTestId('cause-create-bridge-note')).toBeInTheDocument()
+    })
+
+    it('prefills the cause as natural parent 1, and falls back for an unpublished draft', () => {
+      renderSection(cause({ title: 'Faithful Neighbors' }), 'visitor')
+      expect(screen.getByTestId('cause-create-bridge')).toHaveAttribute(
+        'href',
+        '/bridge/new?parentOwner=0x1111111111111111111111111111111111111111'
+        + '&parentSlug=faithful-neighbors&parentTitle=Faithful+Neighbors',
+      )
+
+      cleanup()
+      renderSection(cause({ founderAddress: undefined, slug: undefined }), 'visitor')
+      expect(screen.getByTestId('cause-create-bridge')).toHaveAttribute('href', '/bridge/new')
     })
   })
 })

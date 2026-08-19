@@ -126,15 +126,32 @@ export function getBridge(id: string): BridgeDraft | undefined {
   return unsaved.get(id) ?? readAll().find((draft) => draft.id === id)
 }
 
-export function createBridge(): BridgeDraft {
+/** The cause a bridge was started from, dropped into natural parent 1. */
+export interface BridgeParentSeed {
+  owner: string
+  slug: string
+  title?: string
+}
+
+function seededParent(seed: BridgeParentSeed): BridgeParentDraft {
+  return {
+    ...emptyParent(),
+    owner: seed.owner.trim().toLowerCase(),
+    slug: seed.slug.trim(),
+    title: seed.title?.trim() ?? '',
+  }
+}
+
+export function createBridge(seed?: BridgeParentSeed): BridgeDraft {
   const now = new Date().toISOString()
+  const first = seed?.owner.trim() && seed.slug.trim() ? seededParent(seed) : emptyParent()
   const draft: BridgeDraft = {
     id: crypto.randomUUID(),
     createdAt: now,
     updatedAt: now,
     mediatorName: '',
     mediatorNote: '',
-    parents: [emptyParent(), emptyParent()],
+    parents: [first, emptyParent()],
     bridge: emptyCause(),
     pairs: [],
   }
@@ -142,8 +159,8 @@ export function createBridge(): BridgeDraft {
   return draft
 }
 
-export function createBridgePath(): string {
-  return `/bridge/${createBridge().id}`
+export function createBridgePath(seed?: BridgeParentSeed): string {
+  return `/bridge/${createBridge(seed).id}`
 }
 
 export function updateBridge(

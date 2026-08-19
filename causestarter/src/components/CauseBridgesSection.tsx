@@ -19,6 +19,21 @@ interface ClusterRow {
   detail: string
 }
 
+/**
+ * The create-a-bridge link, prefilled with this cause as natural parent 1.
+ *
+ * Prefill needs a *published* parent: the editor loads the parent roster from
+ * chain, and an unpublished local draft has nothing to load.
+ */
+function createBridgeHref(cause: CauseDraft): string {
+  const owner = cause.founderAddress?.toLowerCase()
+  const slug = slugKey(cause.slug)
+  if (!owner || !slug) return '/bridge/new'
+  const query = new URLSearchParams({ parentOwner: owner, parentSlug: slug })
+  if (cause.title?.trim()) query.set('parentTitle', cause.title.trim())
+  return `/bridge/new?${query.toString()}`
+}
+
 function clusterPath(draft: BridgeDraft): string {
   return draft.founderAddress && draft.slug
     ? `/bridge/${draft.founderAddress.toLowerCase()}/${encodeURIComponent(draft.slug)}`
@@ -82,8 +97,11 @@ interface CauseBridgesSectionProps {
 }
 
 /**
- * The bridges attached to one cause: which clusters quote it, and — for its
- * organizer — a way to write another, plus the quieter standalone mediator path.
+ * The bridges attached to one cause: which clusters quote it, and a way to write
+ * another. The section renders even when empty so the feature is discoverable,
+ * and the create button is offered to visitors too — authoring a bridge needs
+ * the mediator's own key, never this cause's. The standalone mediator-service
+ * path stays organizer-only and quieter.
  *
  * Rows link out rather than expanding: a cluster's planks, pairs and attestation
  * state belong on the cluster's own page, not inlined into the cause page.
@@ -95,9 +113,6 @@ export function CauseBridgesSection({ cause, variant = 'organizer' }: CauseBridg
     [cause, organizer],
   )
 
-  // A supporter with nothing to look at gets no empty section at all.
-  if (!organizer && rows.length === 0) return null
-
   return (
     <Paper
       elevation={0}
@@ -108,7 +123,7 @@ export function CauseBridgesSection({ cause, variant = 'organizer' }: CauseBridg
       <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, mb: 2 }}>
         {organizer
           ? 'A bridge offers people on another side a wording of their own position that implies something yours can also sign. You publish it under your key; it never edits anyone else\u2019s cause.'
-          : 'Mediator-authored clusters that involve this cause. They are published by their mediator, not by this cause\u2019s organizer.'}
+          : 'Mediator-authored clusters that involve this cause. A bridge is published under its mediator\u2019s key, not this cause\u2019s organizer\u2019s \u2014 including one you write yourself.'}
       </Typography>
 
       <Stack spacing={1.25}>
@@ -177,24 +192,41 @@ export function CauseBridgesSection({ cause, variant = 'organizer' }: CauseBridg
           </Paper>
         ))}
 
-        {organizer && rows.length === 0 && !cause.mediator && (
+        {rows.length === 0 && !(organizer && cause.mediator) && (
           <Typography variant="body2" color="text.secondary" data-testid="cause-bridges-empty">
             No bridges yet.
           </Typography>
         )}
       </Stack>
 
-      {organizer && <Box sx={{ mt: 2 }}>
+      <Box sx={{ mt: 2 }}>
         <Button
           component={RouterLink}
-          to="/bridge/new"
+          to={createBridgeHref(cause)}
           variant="outlined"
           data-testid="cause-create-bridge"
           sx={{ textTransform: 'none', fontWeight: 700, borderRadius: 999 }}
         >
           Create a bridge
         </Button>
-      </Box>}
+      </Box>
+
+      {/* Writing a bridge is not an owner privilege: the cluster publishes under
+          the mediator's own key, so a visitor needs no permission from this
+          organizer. What we cannot yet offer is a way to *tell* them. */}
+      {!organizer && (
+        <Typography
+          variant="caption"
+          color="text.secondary"
+          sx={{ display: 'block', mt: 1.5 }}
+          data-testid="cause-create-bridge-note"
+        >
+          You do not have to own this cause to bridge to it. The modified wordings and
+          the shared bridge publish under your key, quoting this cause as a natural
+          parent. Telling this organizer about it is on you for now — share the
+          cluster link wherever you already talk to them.
+        </Typography>
+      )}
 
       {organizer && <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1.5 }}>
         Advanced:{' '}

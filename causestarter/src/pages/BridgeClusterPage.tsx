@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   Alert, Box, Button, Checkbox, CircularProgress, Divider, FormControlLabel,
   Link, MenuItem, Paper, Stack, TextField, Typography,
@@ -56,6 +56,19 @@ import { BridgeClusterAssist } from '../components/BridgeClusterAssist'
 
 function slugOrEmpty(raw: string): string {
   return raw.trim() ? normalizeSlug(raw) : ''
+}
+
+/**
+ * Which side a plank belongs to. With two parents the pair dropdowns otherwise
+ * show two similar-looking truncated sentences and no way to tell them apart.
+ */
+function sideLabel(parent: BridgeParentDraft, index: number): string {
+  return parent.title.trim() || parent.slug.trim() || `Parent ${index + 1}`
+}
+
+function truncate(text: string): string {
+  const trimmed = text.trim()
+  return trimmed.length > 72 ? `${trimmed.slice(0, 72)}\u2026` : trimmed
 }
 
 function parentSlotUsed(parent: BridgeParentDraft): boolean {
@@ -127,6 +140,9 @@ export function BridgeClusterPage() {
     return () => { cancelled = true }
   }, [machinery, routeRef])
 
+  /** Parent slots we already tried to auto-load, so a failure is not retried forever. */
+  const autoLoaded = useRef(new Set<string>())
+
   const patch = useCallback((next: Partial<BridgeDraft>) => {
     if (!draft) return
     const updated = updateBridge(draft.id, next)
@@ -173,6 +189,27 @@ export function BridgeClusterPage() {
       setBusy(false)
     }
   }
+
+  /**
+   * A parent prefilled from the cause page arrives with an owner and slug but no
+   * planks, and the assist verbs refuse to run without them. Pull the roster once
+   * so the mediator does not have to press "Load parent" for a cause they just
+   * came from. Hand-typed slots are left alone until they press the button.
+   */
+  useEffect(() => {
+    if (!draft || busy) return
+    const pending = draft.parents.find((parent) => (
+      parent.owner.trim()
+      && parent.slug.trim()
+      && parent.parentPlanks.length === 0
+      && !autoLoaded.current.has(`${parent.owner.trim().toLowerCase()}/${parent.slug.trim()}`)
+    ))
+    if (!pending) return
+    autoLoaded.current.add(`${pending.owner.trim().toLowerCase()}/${pending.slug.trim()}`)
+    void loadParentRoster(pending)
+    // loadParentRoster closes over draft, which the guard above already tracks.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draft, busy])
 
   /** Fill a parent slot from a pasted link, then load its published roster. */
   const applyParentLink = (parent: BridgeParentDraft) => {
@@ -779,7 +816,16 @@ export function BridgeClusterPage() {
                 Load parent
               </Button>
             </Stack>
-            {parent.title && <Typography variant="body2">Loaded: {parent.title}</Typography>}
+            {/* The title can arrive from the cause page we were started from, so it
+                is not on its own evidence that the roster came down. Say "loaded"
+                only once there are planks to show. */}
+            {parent.title && (
+              <Typography variant="body2">
+                {parent.parentPlanks.length > 0
+                  ? `Loaded: ${parent.title}`
+                  : `${parent.title} — roster not loaded yet.`}
+              </Typography>
+            )}
             {parent.parentPlanks.filter((plank) => plank.text.trim()).length > 0 && (
               <Stack spacing={0.5} data-testid={`bridge-parent-planks-${index}`}>
                 <Typography variant="caption" color="text.secondary">Parent planks (read-only)</Typography>
@@ -947,9 +993,13 @@ export function BridgeClusterPage() {
                 pairs: draft.pairs.map((item) => item.id === pair.id ? { ...item, fromPlankId: event.target.value } : item),
               })}
             >
-              {draft.parents.flatMap((parent) => parent.modified.planks.filter((p) => p.text.trim()).map((plank) => (
-                <MenuItem key={plank.id} value={plank.id}>{plank.text.slice(0, 72)}</MenuItem>
-              )))}
+              {draft.parents.flatMap((parent, parentIndex) => (
+                parent.modified.planks.filter((p) => p.text.trim()).map((plank) => (
+                  <MenuItem key={plank.id} value={plank.id}>
+                    {`${sideLabel(parent, parentIndex)}: ${truncate(plank.text)}`}
+                  </MenuItem>
+                ))
+              ))}
             </TextField>
             <TextField
               select
@@ -963,9 +1013,17 @@ export function BridgeClusterPage() {
             >
               {(pair.role === 'modified-to-bridge'
                 ? draft.bridge.planks
-                : draft.parents.flatMap((parent) => parent.parentPlanks)
-              ).filter((p) => p.text.trim()).map((plank) => (
-                <MenuItem key={plank.id} value={plank.id}>{plank.text.slice(0, 72)}</MenuItem>
+                  .filter((p) => p.text.trim())
+                  .map((plank) => ({ plank, label: 'Bridge' }))
+                : draft.parents.flatMap((parent, parentIndex) => (
+                  parent.parentPlanks
+                    .filter((p) => p.text.trim())
+                    .map((plank) => ({ plank, label: sideLabel(parent, parentIndex) }))
+                ))
+              ).map(({ plank, label }) => (
+                <MenuItem key={plank.id} value={plank.id}>
+                  {`${label}: ${truncate(plank.text)}`}
+                </MenuItem>
               ))}
             </TextField>
             <Button size="small" sx={{ textTransform: 'none' }} onClick={() => {
