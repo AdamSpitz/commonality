@@ -70,7 +70,7 @@ export function YourNudgersAndNudges() {
         }))
         if (!cancelled) setPreviews(nextPreviews)
       } catch {
-        if (!cancelled) setError('Could not load nudges from your subscribed mediators.')
+        if (!cancelled) setError('Could not load nudges from your subscribed suggesters.')
       } finally {
         if (!cancelled) setLoading(false)
       }
@@ -133,7 +133,7 @@ export function YourNudgersAndNudges() {
 
       {!loading && !error && trustedNudgers.length > 0 && nudges.length === 0 && (
         <Typography variant="body2" color="text.secondary">
-          No published suggestions from these mediators yet.
+          No published suggestions from these suggesters yet.
         </Typography>
       )}
 

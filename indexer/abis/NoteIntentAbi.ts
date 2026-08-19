@@ -13,11 +13,6 @@ export const NoteIntentAbi = [
     "type": "error"
   },
   {
-    "inputs": [],
-    "name": "InvalidStatementId",
-    "type": "error"
-  },
-  {
     "anonymous": false,
     "inputs": [
       {
