@@ -25,7 +25,9 @@ import {
   loadRosterCoherenceBadge,
   mediatorBlurbFrom,
   normalizeSlug,
+  parseCauseLink,
   parseCauseRouteParams,
+  parseContactUrl,
   parseRosterDocument,
   placeholderPlanksFromCids,
   plankAddedLaterLabels,
@@ -246,6 +248,28 @@ describe('causeRoster', () => {
     })
   })
 
+  describe('optional contactUrl', () => {
+    const base = { title: 'A', summary: 'B', plankCids: ['bafy1'], mediatorBlurb: 'C' }
+
+    it('accepts https and mailto and rejects javascript', () => {
+      expect(parseContactUrl('https://example.com/me')).toBe('https://example.com/me')
+      expect(parseContactUrl('mailto:you@example.com')).toBe('mailto:you@example.com')
+      expect(parseContactUrl('javascript:alert(1)')).toBeUndefined()
+      expect(parseContactUrl('')).toBeUndefined()
+    })
+
+    it('leaves contact-less roster CIDs unchanged and round-trips a pointer', () => {
+      expect(previewRosterCid({ ...base, contactUrl: undefined })).toBe(previewRosterCid(base))
+      const parsed = parseRosterDocument(buildRosterDocument({
+        ...base,
+        contactUrl: 'https://example.com/me',
+      }))
+      expect(parsed?.contactUrl).toBe('https://example.com/me')
+      expect(previewRosterCid({ ...base, contactUrl: 'https://example.com/me' }))
+        .not.toBe(previewRosterCid(base))
+    })
+  })
+
   it('parses stable routes with optional version pin', () => {
     const owner = '0xAbCdEf0123456789AbCdEf0123456789AbCdEf01'
     expect(parseCauseRouteParams(owner, 'oak-street')).toEqual({
@@ -438,4 +462,44 @@ describe('causeRoster', () => {
       expect(getSubjectStatements).not.toHaveBeenCalled()
     })
   })
+
+  describe('parseCauseLink', () => {
+    const owner = '0x1111111111111111111111111111111111111111'
+
+    it('accepts a full share URL', () => {
+      expect(parseCauseLink(`https://causestarter.example/cause/${owner}/liberty-localism`))
+        .toEqual({ owner, slug: 'liberty-localism', versionCid: undefined })
+    })
+
+    it('accepts a hash-routed URL from an IPFS build', () => {
+      expect(parseCauseLink(`https://ipfs.example/#/cause/${owner}/liberty-localism`))
+        .toEqual({ owner, slug: 'liberty-localism', versionCid: undefined })
+    })
+
+    it('accepts a bare path and a bare owner/slug pair', () => {
+      expect(parseCauseLink(`/cause/${owner}/liberty-localism`)?.slug).toBe('liberty-localism')
+      expect(parseCauseLink(`${owner}/liberty-localism`)?.slug).toBe('liberty-localism')
+    })
+
+    it('keeps a pinned version and ignores trailing page segments', () => {
+      expect(parseCauseLink(`https://x.example/cause/${owner}/liberty-localism@bafyversion`))
+        .toEqual({ owner, slug: 'liberty-localism', versionCid: 'bafyversion' })
+      expect(parseCauseLink(`/cause/${owner}/liberty-localism/funding`)?.slug)
+        .toBe('liberty-localism')
+    })
+
+    it('lowercases a checksummed owner and trims surrounding whitespace', () => {
+      expect(parseCauseLink(`  /cause/${owner.toUpperCase().replace('0X', '0x')}/liberty-localism  `)?.owner)
+        .toBe(owner)
+    })
+
+    it('refuses anything it cannot resolve rather than guessing', () => {
+      expect(parseCauseLink('')).toBeNull()
+      expect(parseCauseLink('https://x.example/causes')).toBeNull()
+      expect(parseCauseLink(`/cause/${owner}`)).toBeNull()
+      expect(parseCauseLink('/cause/not-an-address/liberty-localism')).toBeNull()
+      expect(parseCauseLink(`/cause/${owner}/Not A Slug`)).toBeNull()
+    })
+  })
+
 })

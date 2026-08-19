@@ -110,6 +110,11 @@ export interface RosterFields {
   bridgeCluster?: RosterBridgeLink
   /** Promoted combinator anchors, omitted entirely when there are none. */
   anchors?: CauseAnchor[]
+  /**
+   * Optional public contact URI. Omitted when empty so contact-less roster CIDs
+   * stay byte-identical to pre-field publications (ADR 0011).
+   */
+  contactUrl?: string
 }
 
 export interface RosterExtras extends RosterFields {
@@ -149,6 +154,7 @@ const MAX_SLUG_LENGTH = 64
 const MAX_TITLE_LENGTH = 120
 const MAX_SUMMARY_LENGTH = 2000
 const MAX_MEDIATOR_BLURB_LENGTH = 1000
+const MAX_CONTACT_URL_LENGTH = 300
 
 export function normalizeSlug(raw: string): string {
   return raw
@@ -169,6 +175,28 @@ export function validateSlug(slug: string): string | null {
     return `“${slug}” is reserved. Pick a different slug.`
   }
   return null
+}
+
+/**
+ * One public contact URI the organizer already uses. Not a Commonality inbox.
+ * `mailto:` is allowed; javascript and other schemes are not.
+ */
+export function parseContactUrl(value: unknown): string | undefined {
+  if (typeof value !== 'string') return undefined
+  const trimmed = value.trim().slice(0, MAX_CONTACT_URL_LENGTH)
+  if (!trimmed) return undefined
+  try {
+    const parsed = new URL(trimmed)
+    if (parsed.protocol === 'mailto:') {
+      return parsed.href.startsWith('mailto:') ? parsed.href : undefined
+    }
+    if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+      return parsed.href
+    }
+    return undefined
+  } catch {
+    return undefined
+  }
 }
 
 /**
@@ -240,6 +268,7 @@ export function rosterFieldsFromCause(cause: CauseDraft): RosterFields {
   const firstText = planks[0]?.text.trim() ?? ''
   const title = (cause.title?.trim() || firstText || 'Untitled cause').slice(0, MAX_TITLE_LENGTH)
   const anchors = parseAnchors(cause.anchors)
+  const contactUrl = parseContactUrl(cause.contactUrl)
   return {
     title,
     summary: (cause.summary?.trim() ?? '').slice(0, MAX_SUMMARY_LENGTH),
@@ -248,6 +277,7 @@ export function rosterFieldsFromCause(cause: CauseDraft): RosterFields {
     mediator: parseCauseMediator(cause.mediator),
     ...(cause.bridgeCluster ? { bridgeCluster: cause.bridgeCluster } : {}),
     ...(anchors ? { anchors } : {}),
+    ...(contactUrl ? { contactUrl } : {}),
   }
 }
 
@@ -265,6 +295,10 @@ export function renderRosterContent(fields: RosterFields): string {
   }
   if (fields.mediatorBlurb.trim()) {
     lines.push('', '## Mediator', fields.mediatorBlurb.trim())
+  }
+  const contactUrl = parseContactUrl(fields.contactUrl)
+  if (contactUrl) {
+    lines.push('', '## Contact', contactUrl)
   }
   const anchors = parseAnchors(fields.anchors)
   if (anchors) {
@@ -292,6 +326,8 @@ export function buildRosterDocument(fields: RosterFields): DisplayableDocument {
   if (bridgeCluster) extras.bridgeCluster = bridgeCluster
   const anchors = parseAnchors(fields.anchors)
   if (anchors) extras.anchors = anchors
+  const contactUrl = parseContactUrl(fields.contactUrl)
+  if (contactUrl) extras.contactUrl = contactUrl
   return createDisplayableDocument({
     format: 'markdown-restricted',
     content: renderRosterContent(fields),
@@ -323,6 +359,7 @@ export function parseRosterDocument(doc: DisplayableDocument): RosterFields | nu
   const mediator = parseCauseMediator(extras.mediator)
   const bridgeCluster = parseRosterBridgeLink(extras.bridgeCluster)
   const anchors = parseAnchors(extras.anchors)
+  const contactUrl = parseContactUrl(extras.contactUrl)
   return {
     title,
     summary,
@@ -331,6 +368,7 @@ export function parseRosterDocument(doc: DisplayableDocument): RosterFields | nu
     ...(mediator ? { mediator } : {}),
     ...(bridgeCluster ? { bridgeCluster } : {}),
     ...(anchors ? { anchors } : {}),
+    ...(contactUrl ? { contactUrl } : {}),
   }
 }
 
@@ -393,6 +431,40 @@ export function parseCauseRouteParams(
     slug,
     versionCid,
   }
+}
+
+/**
+ * Pull a cause reference out of whatever an organizer pasted.
+ *
+ * There is no directory to search (ADR 0008), so a link someone circulated is
+ * how one cause reaches another. Accepts a full URL, a hash-routed URL, a bare
+ * path, or just `0xowner/slug`, and tolerates the trailing segments the editor
+ * and boards add (`/edit`, `/funding`, …) plus a pinned `@versionCid`.
+ *
+ * Returns null rather than guessing: a half-parsed owner would publish a
+ * modified cause pointing at nobody.
+ */
+export function parseCauseLink(raw: string): CauseRouteRef | null {
+  const trimmed = raw.trim()
+  if (!trimmed) return null
+
+  let path = trimmed
+  try {
+    // Absolute URLs may carry the route in the hash (IPFS builds) or the path.
+    const url = new URL(trimmed)
+    path = url.hash.startsWith('#/') ? url.hash.slice(1) : url.pathname
+  } catch {
+    // Not an absolute URL: treat it as a path or a bare owner/slug pair.
+    const hash = trimmed.indexOf('#/')
+    if (hash >= 0) path = trimmed.slice(hash + 1)
+  }
+
+  const segments = path.split('/').filter(Boolean)
+  const start = segments.indexOf('cause')
+  const parts = start >= 0 ? segments.slice(start + 1) : segments
+  if (parts.length < 2) return null
+
+  return parseCauseRouteParams(parts[0], parts[1])
 }
 
 function contractsFromMachinery(machinery: SDKMachinery) {

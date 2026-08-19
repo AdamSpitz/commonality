@@ -19,6 +19,7 @@ import { getEventCacheUrl, useMachinery } from '../../shared'
 import { useCachedProject } from '../../shared'
 import { AlignmentAttestationsSection } from '../../fundingportals'
 import { ContentFundingProjectSection, useContentFundingState } from '../../content-funding'
+import { hashCanonicalId } from '@commonality/sdk/content-funding'
 import { getRuntimeConfigValue, isCidDeniedByDisplayDenylist, loadDisplayDenylist } from '../../shared'
 import { tryParseChainAddressRef } from '../../shared'
 import { readLazyGivingProjectMetadata, readLazyGivingTokenMetadata, type ProjectMetadata } from '../metadata'
@@ -96,6 +97,7 @@ export function ProjectDetailPage({
   const [metadataWarning, setMetadataWarning] = useState<string | null>(null)
   const [tokens, setTokens] = useState<ProjectToken[]>([])
   const [tokenImages, setTokenImages] = useState<Record<string, string>>({})
+  const [tokenNames, setTokenNames] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -178,6 +180,7 @@ export function ProjectDetailPage({
         if (!meta) {
           setMetadata(null)
           setTokenImages({})
+          setTokenNames({})
           setMetadataWarning('Project metadata could not be loaded from IPFS/PublishedData. Showing on-chain project data instead.')
         } else {
           setMetadata(meta)
@@ -189,36 +192,42 @@ export function ProjectDetailPage({
               Object.entries(meta.tokens).map(async ([tokenId, cid]) => {
                 try {
                   const tokenMeta = await readLazyGivingTokenMetadata(machinery, cid as IpfsCidV1, displayDenylist)
-                  return { tokenId, image: tokenMeta?.image ?? null, unavailable: !tokenMeta }
+                  return { tokenId, image: tokenMeta?.image ?? null, name: tokenMeta?.name ?? null, unavailable: !tokenMeta }
                 } catch (err) {
                   console.warn('Failed to fetch token metadata:', err)
-                  return { tokenId, image: null, unavailable: true }
+                  return { tokenId, image: null, name: null, unavailable: true }
                 }
               })
             )
             const images: Record<string, string> = {}
+            const names: Record<string, string> = {}
             let missingTokenMetadata = false
             for (const result of tokenMetadataResults) {
               if (result.image && !isCidDeniedByDisplayDenylist(result.image, displayDenylist)) images[result.tokenId] = result.image
+              if (result.name?.trim()) names[result.tokenId] = result.name.trim()
               if (result.unavailable) missingTokenMetadata = true
             }
             setTokenImages(images)
+            setTokenNames(names)
             if (missingTokenMetadata) {
               setMetadataWarning('Some token metadata could not be loaded from IPFS/PublishedData. Funding actions remain available with token IDs and prices.')
             }
           } else {
             setTokenImages({})
+            setTokenNames({})
           }
         }
       } catch (err) {
         console.warn('Failed to fetch project metadata:', err)
         setMetadata(null)
         setTokenImages({})
+        setTokenNames({})
         setMetadataWarning('Project metadata could not be loaded from IPFS/PublishedData. Showing on-chain project data instead.')
       }
     } else {
       setMetadata(null)
       setTokenImages({})
+      setTokenNames({})
     }
 
     return project
@@ -324,6 +333,22 @@ export function ProjectDetailPage({
 
   const userRefundableTokens = computeUserTokenBalance(address, contributions, refunds)
 
+  const tokenLabels: Record<string, string> = { ...tokenNames }
+  if (projectContractAddress) {
+    const addr = projectContractAddress.toLowerCase()
+    for (const channel of contentChannels) {
+      const contract = channel.contracts.find((c) => c.contractAddress.toLowerCase() === addr)
+      if (!contract) continue
+      for (const item of contract.contentItems) {
+        const tokenId = BigInt(hashCanonicalId(item.canonicalId)).toString()
+        if (!tokenLabels[tokenId]) {
+          const sep = Math.max(item.canonicalId.lastIndexOf(':'), item.canonicalId.lastIndexOf('/'))
+          tokenLabels[tokenId] = sep >= 0 ? item.canonicalId.slice(sep + 1) : item.canonicalId
+        }
+      }
+    }
+  }
+
   const projectPath = `/projects/${projectAddress}`
   const leaderboardPath = `${projectPath}/leaderboard`
 
@@ -360,11 +385,12 @@ export function ProjectDetailPage({
           address={address}
           onProjectRefresh={handleRefresh}
           tokenImages={tokenImages}
+          tokenLabels={tokenLabels}
         />
       )}
 
       {!isConnected && status === 'active' && !(tokens.length > 0 && cardOnrampSupported) && (
-        <ContributionPreviewPanel tokens={tokens} tokenImages={tokenImages} />
+        <ContributionPreviewPanel tokens={tokens} tokenImages={tokenImages} tokenLabels={tokenLabels} />
       )}
 
       {isConnected && status === 'active' && tokens.length === 0 && (

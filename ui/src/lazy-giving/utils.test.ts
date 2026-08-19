@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { getProjectStatus, formatRelativeDeadline, computeUserTokenBalance, computeContributorStats, STATUS_COLORS, STATUS_LABELS, STATUS_TOOLTIPS } from './utils'
+import { getProjectStatus, formatRelativeDeadline, computeUserTokenBalance, computeContributorStats, givingOptionLabel, STATUS_COLORS, STATUS_LABELS, STATUS_TOOLTIPS } from './utils'
 import type { Contribution, Refund } from '@commonality/sdk/lazy-giving'
 import { ETH_CURRENCY } from '@commonality/sdk/utils'
 
@@ -99,6 +99,23 @@ describe('formatRelativeDeadline', () => {
   it('handles exactly 1 day left', () => {
     const future = Math.floor(Date.now() / 1000) + 86400
     expect(formatRelativeDeadline(String(future))).toBe('1d 0h left')
+  })
+})
+
+describe('givingOptionLabel', () => {
+  it('prefers a provided name', () => {
+    expect(givingOptionLabel('1', { name: 'Warming centre dispatch' })).toBe('Warming centre dispatch')
+  })
+
+  it('shows sequential token ids as numbered options', () => {
+    expect(givingOptionLabel('2')).toBe('Giving option #2')
+    expect(givingOptionLabel('12', { kind: 'reward' })).toBe('Reward #12')
+  })
+
+  it('does not print keccak-sized token ids', () => {
+    const hashed = '87739086037786759560689438963022693410722013717555310084692160401297514418011'
+    expect(givingOptionLabel(hashed)).toBe('Giving option')
+    expect(givingOptionLabel(hashed, { index: 1 })).toBe('Giving option 2')
   })
 })
 

@@ -10,7 +10,7 @@ Status: accepted as product direction (2026-08-17). CauseStarter create/edit is 
 
 A **bridge cluster** is:
 
-- One or more **natural causes** \(C_1, C_2, \ldots\) — human-authored publications (rosters of planks plus title and description). These already exist; the mediator does not own them.
+- One or more **natural causes** \(C_1, C_2, \ldots\) — publications that stand for a camp’s position (rosters of planks plus title and description). Usually someone else already published them. If they have not, the mediator may author a thin **stand-in** under their own key ([the-other-cause.md](/docs/founder/the-other-cause.md)); that stand-in is still a natural parent, not a modified cause.
 - One **modified cause** \(C_{im}\) per natural parent — authored by the **mediator** (human or service). Each is something the mediator thinks believers of \(C_i\) might also be willing to sign, without feeling misrepresented.
 - One **bridge cause** \(C\) — also mediator-authored — whose featured planks are meant to be **implied by** the corresponding planks of each modified cause.
 
@@ -58,13 +58,13 @@ The same objects work whether an LLM service proposed the text or a human typed 
 
 A person who already has specific ideas about a bridge — “left and right could live with *this*” — must be able to **write the modified causes and the bridge cause themselves**, publish them, wire the implication pairs, and offer opt-in nudges, without handing editorial control to an LLM loop.
 
-LLM help is allowed the same way [cause-assist](/docs/founder/shaping-your-cause-statements.md) helps a founder: sharpen wording so planks have the right shape for the implication attester, suggest missing arrows, refuse mush. The human remains the publisher. A service that only emits nudge batches is not sufficient.
+LLM help is allowed the same way [cause-assist](/docs/founder/shaping-your-cause-statements.md) helps a founder: sharpen wording so planks have the right shape for the implication attester, suggest missing arrows, refuse mush. The settled assistance approach — exportable brief plus one-shot verbs, no hosted chat — is [bridge-cluster-wording-help.md](/docs/founder/bridge-cluster-wording-help.md). The human remains the publisher. A service that only emits nudge batches is not sufficient.
 
 Concretely, the product needs a **create / edit bridge** flow (CauseStarter is the natural home) that:
 
-1. Points at existing natural causes (or creates topical slivers if the “sides” are not already causes).
-2. Lets the human draft \(C_{im}\) and \(C\) as normal causes under their own key.
-3. Records which plank pairs are meant to be modified→bridge (and, where true, modified→parent).
+1. Points at existing natural causes, **or** starts a mediator-authored stand-in sliver when that side is not a cause yet (see [the-other-cause.md](/docs/founder/the-other-cause.md)). A thin stand-in may skip \(C_{im}\) and use parent→bridge plank pairs.
+2. Lets the human draft \(C_{im}\) (when not skipped) and \(C\) as normal causes under their own key.
+3. Records which plank pairs are meant to be modified→bridge, parent→bridge (stand-in skip), and, where true, modified→parent.
 4. Submits those pairs to the implication attester; does not silently invent arrows.
 5. Optionally publishes nudge batches pointing parent-signers at the modified planks — the same nudger opt-in as today’s mediator, but the payload can be hand-authored.
 6. Renders a **bridge cluster page**: the modified causes, the bridge, and links back to the natural parents.
@@ -91,3 +91,7 @@ Cross-cause “federation” is no longer only “one service suggests wording t
 - A marketplace of mediators.
 - N-way role models inside a single synthesizer schema (multiple modified causes plus one bridge are enough).
 - Treating cause-to-cause implication as a substrate primitive.
+
+How a mediator *tells* a natural-parent organizer about a cluster is not a
+message we deliver: [organizer-contact.md](./organizer-contact.md) /
+[ADR 0011](../decisions/0011-organizer-contact-is-pull.md).

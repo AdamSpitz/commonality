@@ -12,25 +12,28 @@ import { useAccount } from 'wagmi'
 import type { RefUpdate } from '@commonality/sdk/mutable-refs'
 import {
   InfoChip,
+  TrustNetworkRefreshIndicator,
   useTrustedAttesters,
 } from '@ui/shared'
 import { CauseBoard, CauseLeaderboard } from '@ui/fundingportals'
 import { AlignmentTrustGate } from '../components/AlignmentTrustGate'
 import { CauseViewStrip } from '../components/CauseViewStrip'
 import { CauseMediatorCard } from '../components/CauseMediatorCard'
+import { CauseBridgesSection } from '../components/CauseBridgesSection'
+import { OrganizerIdentity } from '../components/OrganizerIdentity'
 import { CauseFundingSummary } from '../components/CauseFundingSummary'
 import { ConnectWalletHint } from '../components/ConnectWalletHint'
 import { StatementPicker } from '../components/StatementPicker'
 import { SelectedPlankSupport } from '../components/SelectedPlankSupport'
-import { MediatorEditor } from '../components/MediatorEditor'
 import { PlankRow, type PlankReview } from '../components/PlankRow'
 import { StarterNetworkFilterCopy } from '../components/StarterNetworkFilterNotice'
 import { RosterHistory } from '../components/RosterHistory'
 import { RosterPublishPanel } from '../components/RosterPublishPanel'
 import { SafetyRejectionDialog } from '../components/SafetyRejectionDialog'
 import {
-  bookmarkCause, causeFundingPath, causeLeaderboardPath, causePath, causeTitle, findCauseByStable,
-  getCause, hasPublishedRoster, isCauseBookmarked, isLive, markPlankPublished,
+  bookmarkCause, causeEditPath, causeFundingPath, causeLeaderboardPath, causeMediatorPath,
+  causePath, causeTitle,
+  findCauseByStable, getCause, isCauseBookmarked, isLive, markPlankPublished,
   markRosterPublished, newPlank, publishedPlanks, realPlanks,
   unbookmarkCause, unpublishedPlanks, updateCause,
   type CauseDraft, type CausePlank, type SafetyState,
@@ -74,7 +77,7 @@ function safetyState(verdict: {
  * Editing published rosters requires the organizer's connected wallet.
  * Unpublished local drafts can still be shaped on this device before publish.
  */
-export function CauseDetailPage() {
+export function CauseDetailPage({ editMode = false }: { editMode?: boolean }) {
   const params = useParams<{ causeId?: string; owner?: string; slugPart?: string }>()
   const navigate = useNavigate()
   const machinery = useMachinery()
@@ -122,6 +125,7 @@ export function CauseDetailPage() {
   const [dialogSafety, setDialogSafety] = useState<SafetyState | null>(null)
   const [titleDraft, setTitleDraft] = useState('')
   const [summaryDraft, setSummaryDraft] = useState('')
+  const [contactUrlDraft, setContactUrlDraft] = useState('')
   const [slugDraft, setSlugDraft] = useState('')
 
   // Operator attester address for badge trust display
@@ -204,6 +208,7 @@ export function CauseDetailPage() {
           rosterCid,
           // Published identity wins: a follower has no local copy to fall back on.
           mediator: fields.mediator ?? local?.mediator,
+          contactUrl: fields.contactUrl ?? local?.contactUrl,
           bridgeCluster: fields.bridgeCluster ?? local?.bridgeCluster,
           anchors: fields.anchors ?? local?.anchors,
           suggestionSeed: local?.suggestionSeed,
@@ -257,9 +262,10 @@ export function CauseDetailPage() {
   useEffect(() => {
     setTitleDraft(cause?.title ?? '')
     setSummaryDraft(cause?.summary ?? '')
+    setContactUrlDraft(cause?.contactUrl ?? '')
     setSlugDraft(cause?.slug ?? '')
     setReviewsByPlankId({})
-  }, [cause?.id, cause?.title, cause?.summary, cause?.slug])
+  }, [cause?.id, cause?.title, cause?.summary, cause?.contactUrl, cause?.slug])
 
   // Per-plank "added later" markers from ref history + prior roster docs.
   useEffect(() => {
@@ -377,24 +383,14 @@ export function CauseDetailPage() {
   }
 
   /**
-   * Which view the organizer asked for, or `null` while they have not said.
-   * Only an organizer ever sees the switch.
+   * Viewing and editing are separate URLs (`/cause/…` and `/cause/…/edit`), not a
+   * mode flag, so the browser's back button leaves the editor the way a reader
+   * expects. `editMode` comes from the route.
    */
-  const [editing, setEditing] = useState<boolean | null>(null)
-  /**
-   * The default view, decided from whether a roster was already published *when
-   * this cause loaded*: shaping the cause page opens in editing; arriving at a
-   * published roster opens in viewing. Issue publishes make the cause "live" for
-   * supporters but must not hide the publish-cause panel after a reload.
-   */
-  const [defaultEditing, setDefaultEditing] = useState<boolean | null>(null)
-  const causeKey = cause?.id ?? ''
-  useEffect(() => {
-    // Also clears an explicit choice when navigating between causes.
-    setEditing(null)
-    setDefaultEditing(cause ? !hasPublishedRoster(cause) : null)
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- keyed on identity, not contents
-  }, [causeKey])
+  const goEditing = (next: boolean) => {
+    if (!cause) return
+    navigate(next ? causeEditPath(cause) : causePath(cause))
+  }
 
   const patch = useCallback((changes: Partial<CauseDraft>) => {
     if (!cause || !canEdit) return
@@ -443,8 +439,9 @@ export function CauseDetailPage() {
       ...cause,
       title: titleDraft,
       summary: summaryDraft,
+      contactUrl: contactUrlDraft,
     })
-  }, [cause, titleDraft, summaryDraft])
+  }, [cause, titleDraft, summaryDraft, contactUrlDraft])
 
   const wouldBeCid = useMemo(
     () => (rosterPreviewFields && rosterPreviewFields.plankCids.length > 0
@@ -515,7 +512,7 @@ export function CauseDetailPage() {
    * handler still checks `canEdit`, so turning this on can never grant rights
    * a visitor lacks, and turning it off can never strand an in-flight mutation.
    */
-  const isEditing = canEdit && (editing ?? defaultEditing ?? !live)
+  const isEditing = canEdit && editMode
   /**
    * In viewing mode an organizer is asking what a supporter sees, so the header
    * shows what is actually published rather than unsaved local edits.
@@ -685,6 +682,7 @@ export function CauseDetailPage() {
       const withFields = updateCause(cause.id, {
         title: titleDraft.trim() || undefined,
         summary: summaryDraft.trim() || undefined,
+        contactUrl: contactUrlDraft.trim() || undefined,
         slug,
       })
       if (!withFields) throw new Error('Cause draft missing on this device.')
@@ -712,10 +710,11 @@ export function CauseDetailPage() {
       ])
       setHistory(hist)
       setOnChainBadge(badge)
-      navigate(stableCausePath({
+      // Stay in the editor: publishing a roster is not a request to leave it.
+      navigate(`${stableCausePath({
         owner: address.toLowerCase() as `0x${string}`,
         slug,
-      }), { replace: true })
+      })}/edit`, { replace: true })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to publish this cause')
     } finally {
@@ -746,7 +745,7 @@ export function CauseDetailPage() {
           exclusive
           size="small"
           value={isEditing ? 'editing' : 'viewing'}
-          onChange={(_, next: string | null) => next && setEditing(next === 'editing')}
+          onChange={(_, next: string | null) => next && goEditing(next === 'editing')}
           aria-label="Organizer view"
           data-testid="cause-mode-toggle"
           sx={{ alignSelf: 'flex-start' }}
@@ -871,6 +870,12 @@ export function CauseDetailPage() {
             </Tooltip>
           )}
         </Stack>
+        {cause.founderAddress && !isFreshDraft && (
+          <OrganizerIdentity
+            address={cause.founderAddress}
+            contactUrl={isEditing ? contactUrlDraft : cause.contactUrl}
+          />
+        )}
         {hasCoherenceBadge && (
           <InfoChip
             title={`CauseStarter's coherence checker attested this version as coherent construction (title and description match the statements). Attested by operator ${onChainBadge!.attesters[0]}.`}
@@ -937,9 +942,9 @@ export function CauseDetailPage() {
       )}
 
       {publishedCids.length > 0 && showInitialTrustLoad && (
-        <Alert severity="info" sx={{ borderRadius: 2 }}>
-          Loading your trust network before listing projects…
-        </Alert>
+        <Box sx={{ position: 'relative', height: 0 }}>
+          <TrustNetworkRefreshIndicator title="Refreshing your trust network before listing projects." />
+        </Box>
       )}
       {publishedCids.length > 0 && (trustError || alignmentTrustUnavailable) && (
         <AlignmentTrustGate error={trustError} />
@@ -953,6 +958,7 @@ export function CauseDetailPage() {
           <RosterPublishPanel
             title={titleDraft}
             summary={summaryDraft}
+            contactUrl={contactUrlDraft}
             slug={slugDraft}
             previewCid={wouldBeCid}
             coherence={coherence}
@@ -971,6 +977,10 @@ export function CauseDetailPage() {
             }}
             onSummaryChange={(value) => {
               setSummaryDraft(value)
+              voidCoherence()
+            }}
+            onContactUrlChange={(value) => {
+              setContactUrlDraft(value)
               voidCoherence()
             }}
             onSlugChange={(value) => {
@@ -1176,18 +1186,15 @@ export function CauseDetailPage() {
         />
       )}
 
-      {cause.mediator && <CauseMediatorCard mediator={cause.mediator} />}
-      {isEditing && (
-        <MediatorEditor
-          mediator={cause.mediator}
-          onChange={(mediator) => {
-            if (!mutationLocked) {
-              patch({ mediator })
-              voidCoherence()
-            }
-          }}
-        />
+      {/* Both the mediator and any bridge clusters stay compact links here: the
+          cause page is long enough, and their statements belong on their own
+          pages. The mediator row keeps its opt-in toggle, which is the only
+          decision a supporter makes from this page. */}
+      {!isEditing && cause.mediator && (
+        <CauseMediatorCard mediator={cause.mediator} detailPath={causeMediatorPath(cause)} />
       )}
+      {!isEditing && <CauseBridgesSection cause={cause} variant="visitor" />}
+      {isEditing && <CauseBridgesSection cause={cause} />}
 
       {isEditing && isUnpublishedLocalDraft && (
         <>

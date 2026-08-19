@@ -28,6 +28,8 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=lib/timing.sh
+. "$SCRIPT_DIR/lib/timing.sh"
 DATA_DIR="${COMMONALITY_DATA_DIR:-./data}"
 cd "$SCRIPT_DIR/.."
 
@@ -56,6 +58,7 @@ show_usage() {
 }
 
 wipe_data() {
+    timing_begin
     echo "Wiping data directory: $DATA_DIR"
 
     # Stop containers first to release file handles
@@ -73,6 +76,8 @@ wipe_data() {
     # don't create them as root.
     mkdir -p "$DATA_DIR/hardhat" "$DATA_DIR/ipfs" "$DATA_DIR/ponder"
     echo "Data wiped. (Services were stopped — run ./scripts/services.sh --start to restart.)"
+    timing_mark wipe
+    timing_summary
 }
 
 require_services_running() {
@@ -133,12 +138,14 @@ seed_data() {
     local extra_args="${2:-}"
     local allow_existing_data="${3:-false}"
 
+    timing_begin
     "$SCRIPT_DIR/check-prerequisites.sh"
     require_services_running
 
     echo "Generating fake data (size: $size)..."
 
     wait_for_indexer
+    timing_mark wait_indexer
     error_if_indexer_already_has_data_unless_allowed "$allow_existing_data"
 
     # Give it a moment to stabilize
@@ -184,11 +191,14 @@ seed_data() {
     esac
 
     echo "================================"
+    timing_mark generate
     echo "Recording local Hardhat-account trust (CauseStarter project lists)..."
     cd "$SCRIPT_DIR/.."
     node "$SCRIPT_DIR/seed-local-alignment-trust.mjs"
     echo "================================"
     echo "Done! The indexer is now catching up with the new blockchain data."
+    timing_mark alignment_trust
+    timing_summary
 }
 
 case "${1:-}" in

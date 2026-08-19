@@ -91,6 +91,22 @@ export function computeUserTokenBalance(
     .map(([tokenId, count]) => ({ tokenId, count }))
 }
 
+/** Sequential ERC-1155 IDs stay short; content-funding IDs are keccak hashes. */
+const SMALL_TOKEN_ID = /^\d{1,6}$/
+
+/** Human label for a giving option. Never dumps a 256-bit token id into the UI. */
+export function givingOptionLabel(
+  tokenId: string,
+  options: { name?: string; index?: number; kind?: 'giving' | 'reward' } = {},
+): string {
+  const name = options.name?.trim()
+  if (name) return name
+  const kind = options.kind === 'reward' ? 'Reward' : 'Giving option'
+  if (SMALL_TOKEN_ID.test(tokenId)) return `${kind} #${tokenId}`
+  if (options.index !== undefined) return `${kind} ${options.index + 1}`
+  return kind
+}
+
 export function computeContributorStats(contributions: Contribution[], refunds: Refund[]) {
   const stats = new Map<string, { contributed: bigint; refunded: bigint; currency: Contribution['currency'] | Refund['currency'] }>()
 

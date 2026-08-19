@@ -28,7 +28,7 @@ import {
 export const BRIDGE_CLUSTER_KIND = 'causestarter.bridge-cluster' as const
 export const BRIDGE_CLUSTER_SCHEMA_VERSION = 1 as const
 
-export type ImplicationPairRole = 'modified-to-bridge' | 'modified-to-parent'
+export type ImplicationPairRole = 'modified-to-bridge' | 'modified-to-parent' | 'parent-to-bridge'
 
 export interface CauseRef {
   owner: `0x${string}`
@@ -108,7 +108,7 @@ function parsePair(value: unknown): IntendedPair | null {
   const toCid = typeof record.toCid === 'string' ? record.toCid.trim() : ''
   const role = record.role
   if (!fromCid || !toCid) return null
-  if (role !== 'modified-to-bridge' && role !== 'modified-to-parent') return null
+  if (role !== 'modified-to-bridge' && role !== 'modified-to-parent' && role !== 'parent-to-bridge') return null
   return { fromCid, toCid, role }
 }
 
@@ -116,8 +116,8 @@ export function validateClusterFields(fields: BridgeClusterFields): string | nul
   if (!fields.mediatorName.trim()) return 'Name the mediator. Authorship has to be loud.'
   if (!isAddress(fields.mediatorAddress)) return 'Mediator address must be a 0x-prefixed Ethereum address.'
   if (fields.parents.length === 0) return 'Point at least one natural parent cause.'
-  if (fields.modified.length !== fields.parents.length) {
-    return 'Each natural parent needs exactly one modified cause.'
+  if (fields.modified.length > fields.parents.length) {
+    return 'A cluster cannot have more modified causes than natural parents.'
   }
   for (const parent of fields.parents) {
     if (!isAddress(parent.owner) || validateSlug(parent.slug)) {
@@ -137,9 +137,11 @@ export function validateClusterFields(fields: BridgeClusterFields): string | nul
   if (!isAddress(fields.bridge.owner) || validateSlug(fields.bridge.slug)) {
     return 'Publish the bridge cause before sealing the cluster.'
   }
-  const toBridge = fields.pairs.filter((pair) => pair.role === 'modified-to-bridge')
+  const toBridge = fields.pairs.filter((pair) => (
+    pair.role === 'modified-to-bridge' || pair.role === 'parent-to-bridge'
+  ))
   if (toBridge.length === 0) {
-    return 'Record at least one modified→bridge plank pair. Causes do not imply each other.'
+    return 'Record at least one plank pair into the bridge (modified→bridge or parent→bridge). Causes do not imply each other.'
   }
   return null
 }

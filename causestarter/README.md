@@ -116,7 +116,9 @@ board lists the Riverside garden project and the mixed `@civicbuilder` content
 contract, and a **Christianity** cause
 (`/cause/0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266/christianity`) with the
 Christian / secular-conservative mediator, three LazyGiving projects, monthly
-pledges, and a mixed Common Table essay contract.
+pledges, and a mixed Common Table essay contract. Seed also publishes a
+**secular conservatism** cause under Hardhat #9 so the bridge editor can load
+a real other parent (or you can still write a stand-in).
 
 To add only the Christianity storyline onto an already-seeded local chain:
 
@@ -201,7 +203,7 @@ docker compose stop cause-assist
 npm run cause-assist:dev
 ```
 
-See [`cause-assist/README.md`](../cause-assist/README.md).
+See [`cause-assist/README.md`](../cause-assist/README.md). Bridge-cluster wording help (brief export + one-shot verbs, no chat): [`docs/founder/bridge-cluster-wording-help.md`](../docs/founder/bridge-cluster-wording-help.md).
 
 ## Design notes
 
@@ -216,9 +218,28 @@ See [`cause-assist/README.md`](../cause-assist/README.md).
   aggregation, not just rendering.
 - **A cause is a set of planks**, not a main statement with supporters. Each
   plank is published separately and carries its own CID; a cause is "live" once
-  any plank is on chain, and there is no launch step. The cause page is the
-  organizer's editor *and* the visitor's view — see
+  any plank is on chain, and there is no launch step. The visitor's view is
+  `/cause/…` and the organizer's editor is `/cause/…/edit` — separate URLs, not a
+  mode flag, so the browser's back button leaves the editor the way a reader
+  expects. See
   [shaping-your-cause-statements.md](../docs/founder/shaping-your-cause-statements.md).
+- **Bridges are linked, not inlined.** The editor's *Bridges* section lists the
+  clusters that quote this cause as compact links to their own pages, offers
+  *Create a bridge* (`/bridge/new` — human-authored, no service needed), and keeps
+  the standalone bridge-creator instance one quiet link deeper at
+  `/cause/…/mediator`. The visitor's page shows the same rows, published clusters
+  only, with no authoring affordances. An attached mediator is one compact row on
+  both pages — name, opt-in toggle, link out. What it *proposes* lives on
+  `/cause/…/mediator` (`BridgeDisplayBlock`), never inlined into the cause. See
+  [bridge-causes.md](../specs/product/bridge-causes.md). Commonality does not
+  notify the quoted organizer ([ADR 0011](../specs/decisions/0011-organizer-contact-is-pull.md)):
+  citations are public on the cause page; optional `contactUrl` is a pointer they
+  already use, not an inbox.
+- **A pasted link is the parent picker.** Since there is no directory to search,
+  the bridge editor takes the link the other organizer circulated and pulls
+  `owner`/`slug` out of it (`parseCauseLink`) — full URL, hash-routed URL, bare
+  path, or `0xowner/slug`, tolerating `@versionCid` and trailing page segments.
+  It refuses anything ambiguous rather than guessing at an owner.
 - **Retrieval first; organizer approval is deterministic.** Start gathers ordinary-language
   intent, searches published statements before asking cause-assist for new drafts, and exposes
   rejection/correction and manual-writing paths. Suggestions enter the same page-level review

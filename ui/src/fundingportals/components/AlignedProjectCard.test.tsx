@@ -119,6 +119,57 @@ describe('AlignedProjectCard', () => {
       expect(screen.getByText('Project 0xAAAAAA...')).toBeInTheDocument()
     })
 
+    it('uses the content-funding channel name when project metadata has no title', () => {
+      vi.mocked(useContentFundingState).mockReturnValue({
+        state: {} as any,
+        channels: [makeChannelEntry({ canonicalChannelId: 'substack:commontable' })],
+        loading: false,
+        error: null,
+        projects: [],
+        contentAttestations: new Map(),
+        channelDisplayMetadata: new Map([
+          ['substack:commontable', { displayName: 'Common Table creator content fund' }],
+        ]),
+        vetoedEvents: [],
+        machinery: {} as any,
+      })
+
+      render(
+        <AlignedProjectCard
+          project={makeProject()}
+          metadata={undefined}
+        />,
+      )
+
+      expect(screen.getByRole('link', { name: /Common Table creator content fund/ })).toBeInTheDocument()
+      expect(screen.queryByText('Project 0xAAAAAA...')).not.toBeInTheDocument()
+    })
+
+    it('prefers published metadata name over the channel name', () => {
+      vi.mocked(useContentFundingState).mockReturnValue({
+        state: {} as any,
+        channels: [makeChannelEntry({ canonicalChannelId: 'substack:commontable' })],
+        loading: false,
+        error: null,
+        projects: [],
+        contentAttestations: new Map(),
+        channelDisplayMetadata: new Map([
+          ['substack:commontable', { displayName: 'Common Table creator content fund' }],
+        ]),
+        vetoedEvents: [],
+        machinery: {} as any,
+      })
+
+      render(
+        <AlignedProjectCard
+          project={makeProject()}
+          metadata={{ name: 'Essay fund round 1' }}
+        />,
+      )
+
+      expect(screen.getByText('Essay fund round 1')).toBeInTheDocument()
+    })
+
     it('links to project detail page', () => {
       render(
         <AlignedProjectCard
@@ -357,7 +408,7 @@ describe('AlignedProjectCard', () => {
         />,
       )
 
-      expect(screen.getByText('@alice')).toBeInTheDocument()
+      expect(screen.getAllByText('@alice').length).toBeGreaterThan(0)
     })
 
     it('shows channel display name for YouTube channels', () => {
@@ -380,7 +431,7 @@ describe('AlignedProjectCard', () => {
         />,
       )
 
-      expect(screen.getByText('UC123456')).toBeInTheDocument()
+      expect(screen.getAllByText('UC123456').length).toBeGreaterThan(0)
     })
 
     it('shows channel display name for Substack channels', () => {
@@ -403,7 +454,7 @@ describe('AlignedProjectCard', () => {
         />,
       )
 
-      expect(screen.getByText('alice.substack.com')).toBeInTheDocument()
+      expect(screen.getAllByText('alice.substack.com').length).toBeGreaterThan(0)
     })
 
     it('shows content item count when greater than zero', () => {

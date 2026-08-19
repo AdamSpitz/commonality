@@ -87,6 +87,7 @@ export function CauseContentBoardPage() {
           planks: placeholderPlanksFromCids(loaded.fields.plankCids),
           title: loaded.fields.title,
           summary: loaded.fields.summary,
+          contactUrl: loaded.fields.contactUrl,
           slug: routeRef.slug,
           founderAddress: routeRef.owner,
           rosterCid,

@@ -63,6 +63,14 @@ describe('bridgeCluster', () => {
     expect(validateClusterFields(fields({ pairs: [] }))).toMatch(/plank pair/i)
   })
 
+  it('allows a stand-in parent to skip modified and use parent→bridge pairs', () => {
+    expect(validateClusterFields(fields({
+      parents: [parentA],
+      modified: [],
+      pairs: [{ fromCid: 'bafyfrom1', toCid: 'bafyto1', role: 'parent-to-bridge' }],
+    }))).toBeNull()
+  })
+
   it('rejects a modified cause that does not match a listed parent', () => {
     expect(validateClusterFields(fields({
       modified: [

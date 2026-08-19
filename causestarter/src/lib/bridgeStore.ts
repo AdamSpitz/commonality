@@ -18,12 +18,22 @@ export interface BridgeCauseDraft {
   planks: CausePlank[]
 }
 
+export const STAND_IN_CAUSE_NOTICE =
+  'Mediator-authored stand-in. This is not an official publication of that camp.'
+
+export type BridgeParentKind = 'published' | 'stand-in'
+
 export interface BridgeParentDraft {
   id: string
+  /** published = load someone else's cause; stand-in = mediator writes the parent sliver. */
+  kind: BridgeParentKind
   owner: string
   slug: string
   title: string
+  summary: string
   parentPlanks: CausePlank[]
+  /** Skip C_im when the parent is already a thin stand-in the mediator just wrote. */
+  skipModified: boolean
   modified: BridgeCauseDraft
 }
 
@@ -61,11 +71,46 @@ function emptyCause(): BridgeCauseDraft {
 export function emptyParent(): BridgeParentDraft {
   return {
     id: crypto.randomUUID(),
+    kind: 'published',
     owner: '',
     slug: '',
     title: '',
+    summary: '',
     parentPlanks: [],
+    skipModified: false,
     modified: emptyCause(),
+  }
+}
+
+export function emptyStandInParent(): BridgeParentDraft {
+  return {
+    ...emptyParent(),
+    kind: 'stand-in',
+    skipModified: true,
+    parentPlanks: [newPlank()],
+  }
+}
+
+/** Planks that imply the bridge for this parent: modified, or stand-in parent when skipped. */
+export function implicationSourcePlanks(parent: BridgeParentDraft): CausePlank[] {
+  const modifiedEmpty = parent.modified.planks.every((plank) => !plank.text.trim())
+  if (parent.skipModified || (parent.kind === 'stand-in' && modifiedEmpty)) {
+    return parent.parentPlanks
+  }
+  return parent.modified.planks
+}
+
+function normalizeParent(raw: Partial<BridgeParentDraft> & { id?: string }): BridgeParentDraft {
+  const base = emptyParent()
+  return {
+    ...base,
+    ...raw,
+    id: raw.id ?? base.id,
+    kind: raw.kind === 'stand-in' ? 'stand-in' : 'published',
+    summary: raw.summary ?? '',
+    skipModified: raw.skipModified ?? raw.kind === 'stand-in',
+    parentPlanks: Array.isArray(raw.parentPlanks) ? raw.parentPlanks : [],
+    modified: raw.modified ?? emptyCause(),
   }
 }
 
@@ -82,6 +127,8 @@ export function isEmptyBridgeDraft(draft: BridgeDraft): boolean {
       !parent.owner.trim()
       && !parent.slug.trim()
       && !parent.title.trim()
+      && !parent.summary.trim()
+      && parent.parentPlanks.every((plank) => !plank.text.trim())
       && !parent.modified.title.trim()
       && parent.modified.planks.every((plank) => !plank.text.trim())
     ))
@@ -102,7 +149,11 @@ function readAll(): BridgeDraft[] {
     const raw = window.localStorage.getItem(STORAGE_KEY)
     if (!raw) return []
     const parsed = JSON.parse(raw) as BridgeDraft[]
-    return Array.isArray(parsed) ? parsed : []
+    if (!Array.isArray(parsed)) return []
+    return parsed.map((draft) => ({
+      ...draft,
+      parents: Array.isArray(draft.parents) ? draft.parents.map(normalizeParent) : [],
+    }))
   } catch {
     return []
   }
@@ -126,15 +177,32 @@ export function getBridge(id: string): BridgeDraft | undefined {
   return unsaved.get(id) ?? readAll().find((draft) => draft.id === id)
 }
 
-export function createBridge(): BridgeDraft {
+/** The cause a bridge was started from, dropped into natural parent 1. */
+export interface BridgeParentSeed {
+  owner: string
+  slug: string
+  title?: string
+}
+
+function seededParent(seed: BridgeParentSeed): BridgeParentDraft {
+  return {
+    ...emptyParent(),
+    owner: seed.owner.trim().toLowerCase(),
+    slug: seed.slug.trim(),
+    title: seed.title?.trim() ?? '',
+  }
+}
+
+export function createBridge(seed?: BridgeParentSeed): BridgeDraft {
   const now = new Date().toISOString()
+  const first = seed?.owner.trim() && seed.slug.trim() ? seededParent(seed) : emptyParent()
   const draft: BridgeDraft = {
     id: crypto.randomUUID(),
     createdAt: now,
     updatedAt: now,
     mediatorName: '',
     mediatorNote: '',
-    parents: [emptyParent(), emptyParent()],
+    parents: [first, emptyParent()],
     bridge: emptyCause(),
     pairs: [],
   }
@@ -142,8 +210,8 @@ export function createBridge(): BridgeDraft {
   return draft
 }
 
-export function createBridgePath(): string {
-  return `/bridge/${createBridge().id}`
+export function createBridgePath(seed?: BridgeParentSeed): string {
+  return `/bridge/${createBridge(seed).id}`
 }
 
 export function updateBridge(
@@ -191,6 +259,42 @@ export function markClusterPublished(
     founderAddress: args.founderAddress.toLowerCase(),
     clusterCid: args.clusterCid,
   })
+}
+
+/**
+ * Persist a published cluster this client has actually loaded so the parent
+ * cause page can list it later (ADR 0011: remember opened citations, do not crawl).
+ */
+export function rememberPublishedCluster(args: {
+  owner: string
+  slug: string
+  clusterCid: string
+  mediatorName: string
+  mediatorNote?: string
+  parents: Array<{ owner: string; slug: string }>
+}): BridgeDraft {
+  const owner = args.owner.toLowerCase()
+  const existing = findBridgeByStable(owner, args.slug)
+  const parents: BridgeParentDraft[] = args.parents.length > 0
+    ? args.parents.map((parent) => ({
+      ...emptyParent(),
+      owner: parent.owner.toLowerCase(),
+      slug: parent.slug,
+    }))
+    : [emptyParent()]
+  const patch = {
+    mediatorName: args.mediatorName,
+    mediatorNote: args.mediatorNote ?? '',
+    slug: args.slug,
+    founderAddress: owner,
+    clusterCid: args.clusterCid,
+    parents,
+  }
+  if (existing) {
+    return updateBridge(existing.id, patch) ?? existing
+  }
+  const created = createBridge()
+  return updateBridge(created.id, patch) ?? created
 }
 
 export function allDraftPlanks(draft: BridgeDraft): CausePlank[] {

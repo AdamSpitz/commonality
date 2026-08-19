@@ -1,10 +1,20 @@
-import { useEffect, useState } from 'react'
-import { Alert, Button, Chip, Paper, Stack, Typography } from '@mui/material'
+import { useState } from 'react'
+import { Button, Paper, Stack, Typography } from '@mui/material'
+import CheckIcon from '@mui/icons-material/Check'
 import { Link as RouterLink } from 'react-router-dom'
+import {
+  addTrustedNudger,
+  isTrustedNudger,
+  loadTrustedNudgers,
+  mediatorNudgerFromCause,
+  removeTrustedNudger,
+} from '@ui/shared'
 import type { CauseMediator } from '../lib/causeStore'
 
-interface FeaturedAnchor { id: string; role: string; text: string; topic_tag: string }
-
+/**
+ * Opt-in path for a client that is not this one (or that cannot toggle in
+ * place). CauseStarter reads the same store directly, so its own card toggles.
+ */
 export function causeMediatorOptInPath(mediator: CauseMediator): string {
   const params = new URLSearchParams({
     addNudger: mediator.address,
@@ -16,40 +26,67 @@ export function causeMediatorOptInPath(mediator: CauseMediator): string {
   return `/settings?${params.toString()}`
 }
 
-export function CauseMediatorCard({ mediator }: { mediator: CauseMediator }) {
-  const [anchors, setAnchors] = useState<FeaturedAnchor[]>([])
-  const [error, setError] = useState(false)
-  useEffect(() => {
-    let cancelled = false
-    setAnchors([])
-    setError(false)
-    void fetch(`${mediator.serviceUrl.replace(/\/+$/, '')}/anchors?featured=true`)
-      .then(async (response) => {
-        if (!response.ok) throw new Error(`HTTP ${response.status}`)
-        const body = await response.json() as { anchors?: FeaturedAnchor[] }
-        if (!cancelled) setAnchors((body.anchors ?? []).filter((anchor) => anchor.role === 'common-ground'))
-      })
-      .catch(() => { if (!cancelled) setError(true) })
-    return () => { cancelled = true }
-  }, [mediator.serviceUrl])
+/**
+ * A cause's mediator, compact: who it is, and whether you are listening to it.
+ *
+ * What it actually proposes lives on the mediator's own page. A cause page is
+ * already long, and a wall of another party's statements is the wrong thing to
+ * spend that length on — the decision here is only "do I want its suggestions?".
+ */
+export function CauseMediatorCard({ mediator, detailPath }: {
+  mediator: CauseMediator
+  /** Omitted on the mediator's own page, where the link would point at itself. */
+  detailPath?: string
+}) {
+  const entry = mediatorNudgerFromCause(mediator)
+  const [nudgers, setNudgers] = useState(loadTrustedNudgers)
+  const optedIn = isTrustedNudger(mediator.address, nudgers)
 
-  return <Paper elevation={0} sx={{ p: 2.5, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
-    <Stack spacing={1.5}>
-      <Typography variant="h6" sx={{ fontWeight: 700 }}>{mediator.name}</Typography>
-      <Typography variant="body2" color="text.secondary">{mediator.description}</Typography>
-      {error && <Alert severity="warning">The mediator service is currently unavailable.</Alert>}
-      {anchors.slice(0, 3).map((anchor) => <Stack key={anchor.id} direction="row" spacing={1} alignItems="flex-start">
-        <Chip size="small" label={anchor.topic_tag} />
-        <Typography variant="body2">{anchor.text}</Typography>
-      </Stack>)}
-      <Button
-        component={RouterLink}
-        to={causeMediatorOptInPath(mediator)}
-        variant="contained"
-        sx={{ alignSelf: 'flex-start' }}
+  const toggle = () => {
+    if (!entry) return
+    setNudgers(optedIn ? removeTrustedNudger(mediator.address) : addTrustedNudger(entry))
+  }
+
+  return (
+    <Paper
+      elevation={0}
+      sx={{ p: 2, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}
+      data-testid="cause-mediator-card"
+    >
+      <Stack
+        direction={{ xs: 'column', sm: 'row' }}
+        spacing={1.5}
+        alignItems={{ xs: 'flex-start', sm: 'center' }}
+        justifyContent="space-between"
       >
-        Opt in to this mediator
-      </Button>
-    </Stack>
-  </Paper>
+        <Stack spacing={0.25} sx={{ minWidth: 0 }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+            {mediator.name}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            {detailPath
+              ? <>Mediator · <RouterLink to={detailPath}>see what it proposes</RouterLink></>
+              : mediator.description}
+          </Typography>
+        </Stack>
+        <Button
+          variant={optedIn ? 'outlined' : 'contained'}
+          size="small"
+          disabled={!entry}
+          onClick={toggle}
+          startIcon={optedIn ? <CheckIcon /> : undefined}
+          aria-pressed={optedIn}
+          data-testid="cause-mediator-optin"
+          sx={{ textTransform: 'none', borderRadius: 999, flexShrink: 0 }}
+        >
+          {optedIn ? 'Opted in' : 'Opt in'}
+        </Button>
+      </Stack>
+      {!entry && (
+        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
+          This mediator's published identity is incomplete, so it cannot be enabled.
+        </Typography>
+      )}
+    </Paper>
+  )
 }

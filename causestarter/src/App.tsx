@@ -6,6 +6,7 @@ import { StartBridgeRedirect } from './pages/StartBridgeRedirect'
 import { BridgeClusterPage } from './pages/BridgeClusterPage'
 import { CausesPage } from './pages/CausesPage'
 import { CauseDetailPage } from './pages/CauseDetailPage'
+import { CauseMediatorPage } from './pages/CauseMediatorPage'
 import { CauseBoardLeaderboardPage } from './pages/CauseBoardLeaderboardPage'
 import { StatementBoardLeaderboardPage } from './pages/StatementBoardLeaderboardPage'
 import { StatementBoardRedirect } from './pages/StatementBoardRedirect'
@@ -70,6 +71,10 @@ export default function App() {
           <Route path="/cause/:causeId/funding" element={<CauseFundingPage />} />
           <Route path="/cause/:owner/:slugPart/leaderboard" element={<CauseBoardLeaderboardPage />} />
           <Route path="/cause/:causeId/leaderboard" element={<CauseBoardLeaderboardPage />} />
+          <Route path="/cause/:owner/:slugPart/mediator" element={<CauseMediatorPage />} />
+          <Route path="/cause/:causeId/mediator" element={<CauseMediatorPage />} />
+          <Route path="/cause/:owner/:slugPart/edit" element={<CauseDetailPage editMode />} />
+          <Route path="/cause/:causeId/edit" element={<CauseDetailPage editMode />} />
           <Route path="/cause/:owner/:slugPart" element={<CauseDetailPage />} />
           <Route path="/cause/:causeId" element={<CauseDetailPage />} />
           {/* No browse or search route by design: a cause is reached by its own

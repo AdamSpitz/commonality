@@ -4,6 +4,8 @@ A mediator watches the context you choose and proposes bridge triples: one state
 
 When you are bridging *existing causes* (not only sides inside one cause), the public picture is a [bridge cluster](/specs/product/bridge-causes.md): a modified cause per parent plus a bridge cause. In CauseStarter, write that cluster from the cause-editing **Mediator** section (**Write a bridge**, `/bridge/new`); it does not have to come from this service.
 
+Wording help on that page is **one-shot**, not a conversation. Approach, rejected alternatives, and what is still missing: [Helping a human write a bridge cluster](./bridge-cluster-wording-help.md). **Copy brief for your assistant** builds a constrained packet for Claude / ChatGPT / Grok; paste the JSON it returns and review before applying. The in-page buttons call cause-assist the same way plank sharpening does. You remain the publisher.
+
 ## Scaffold the instance
 
 ```bash

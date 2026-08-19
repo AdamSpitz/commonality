@@ -144,6 +144,70 @@ export async function checkImplications(input: {
   return postJson<CheckImplicationsResponse>('/check-implications', input)
 }
 
+export interface DraftModifiedPlankResponse {
+  plank: string
+  rationale: string
+  warnings: string[]
+  source: 'llm' | 'fallback'
+}
+
+export interface DraftBridgePlankResponse {
+  plank: string
+  rationale: string
+  warnings: string[]
+  source: 'llm' | 'fallback'
+}
+
+export interface CritiqueTripleResponse {
+  objections: string[]
+  leakWarnings: string[]
+  source: 'llm' | 'fallback'
+}
+
+export interface DraftStandInSliverResponse {
+  title: string
+  summary: string
+  planks: string[]
+  rationale: string
+  warnings: string[]
+  source: 'llm' | 'fallback'
+}
+
+export async function draftStandInSliver(input: {
+  sideLabel: string
+  bullets?: string[]
+  mustNotCaricature?: string
+  complaint?: string
+  currentDraft?: { title?: string; summary?: string; planks?: string[] }
+}): Promise<DraftStandInSliverResponse> {
+  return postJson<DraftStandInSliverResponse>('/draft-stand-in-sliver', input)
+}
+
+export async function draftModifiedPlank(input: {
+  parentPlanks: string[]
+  currentDraft?: string
+  sideLabel?: string
+  mustNotConcede?: string
+  complaint?: string
+}): Promise<DraftModifiedPlankResponse> {
+  return postJson<DraftModifiedPlankResponse>('/draft-modified-plank', input)
+}
+
+export async function draftBridgePlank(input: {
+  modifiedSides: Array<{ label?: string; planks: string[] }>
+  currentDraft?: string
+  complaint?: string
+}): Promise<DraftBridgePlankResponse> {
+  return postJson<DraftBridgePlankResponse>('/draft-bridge-plank', input)
+}
+
+export async function critiqueTriple(input: {
+  modifiedPlanks: string[]
+  bridgePlank: string
+}): Promise<CritiqueTripleResponse> {
+  return postJson<CritiqueTripleResponse>('/critique-triple', input)
+}
+
 export interface CoherenceVerdict {
   coherent: boolean
   reasoning: string

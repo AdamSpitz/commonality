@@ -58,3 +58,4 @@ instance most needs answered and can't get anywhere else.
 | [0008](./0008-operated-surfaces-are-lenses.md) | Operated cause surfaces are lenses: render on demand, rank nothing | Accepted |
 | [0009](./0009-causes-are-publications-over-statements.md) | Causes are publications over statements | Accepted |
 | [0010](./0010-combinator-statements.md) | Combinator statements are the graph form of a promoted view | Accepted |
+| [0011](./0011-organizer-contact-is-pull.md) | Organizer contact is pull, not a message hub | Accepted |

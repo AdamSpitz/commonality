@@ -336,6 +336,7 @@ export async function hydrateCauseBookmark(
       rosterCid,
       title: loaded.fields.title,
       summary: loaded.fields.summary,
+      contactUrl: loaded.fields.contactUrl,
       planks,
     })
   } catch {

@@ -545,7 +545,7 @@ describe('DirectTrustSettingsSection', () => {
       })
       render(<DirectTrustSettingsSection />)
       await waitFor(() => {
-        expect(screen.getByText(/refreshing your trust network.*2 accounts/i)).toBeInTheDocument()
+        expect(screen.getByLabelText(/refreshing your trust network.*2 accounts/i)).toBeInTheDocument()
       })
     })
 
@@ -559,7 +559,7 @@ describe('DirectTrustSettingsSection', () => {
       })
       render(<DirectTrustSettingsSection />)
       await waitFor(() => {
-        expect(screen.getByText(/refreshing your trust network/i)).toBeInTheDocument()
+        expect(screen.getByLabelText(/refreshing your trust network/i)).toBeInTheDocument()
       })
     })
   })

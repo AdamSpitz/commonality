@@ -181,6 +181,17 @@ export function resolveProjectNav(projectPath: string, mode: ProjectLinkMode = '
   }
 }
 
+/** Card heading: published name, else the content-funding channel, else a short address. */
+export function projectSummaryTitle(
+  address: string,
+  metadata?: ProjectMetadata,
+  channelPrimary?: string | null,
+): string {
+  const name = metadata?.name?.trim() || channelPrimary?.trim()
+  if (name) return name
+  return `Project ${address.slice(0, 8)}...`
+}
+
 /** @deprecated Prefer {@link resolveProjectNav}; kept for callers that only need a string href in lazyGiving mode. */
 export function resolveProjectHref(projectPath: string, mode: ProjectLinkMode = 'lazyGiving'): string {
   const nav = resolveProjectNav(projectPath, mode)
@@ -211,17 +222,28 @@ export function AlignedProjectCard({
   const causeParam = causeCid ? `?causeCid=${encodeURIComponent(causeCid)}` : ''
   const projectNav = resolveProjectNav(projectPath, projectLinks)
   const vouchNav = resolveProjectNav(`${projectPath}${causeParam}`, projectLinks)
-  const projectLabel = metadata?.name || project.projectAddress
+  const channelLabels = contentFundingInfo
+    ? getChannelDisplayLabels(
+      contentFundingInfo.channelCanonicalId,
+      contentFundingInfo.channelDisplayMetadata,
+    )
+    : null
+  const titleText = projectSummaryTitle(
+    project.projectAddress,
+    metadata,
+    channelLabels?.primary,
+  )
   const openAriaLabel =
     projectLinks === 'local'
-      ? `Open project: ${projectLabel}`
-      : `Open project on LazyGiving: ${projectLabel}`
+      ? `Open project: ${titleText}`
+      : `Open project on LazyGiving: ${titleText}`
 
-  const titleText = metadata?.name || `Project ${project.projectAddress.slice(0, 8)}...`
   const titleSx = {
     fontWeight: 600,
     color: 'inherit',
     textDecoration: 'none',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
     '&:hover': { textDecoration: 'underline' },
   } as const
 
@@ -234,6 +256,8 @@ export function AlignedProjectCard({
             component={RouterLink}
             to={projectNav.to}
             aria-label={openAriaLabel}
+            noWrap
+            title={titleText}
             sx={titleSx}
           >
             {titleText}
@@ -244,6 +268,8 @@ export function AlignedProjectCard({
             component="a"
             href={projectNav.href}
             aria-label={openAriaLabel}
+            noWrap
+            title={titleText}
             sx={titleSx}
           >
             {titleText}

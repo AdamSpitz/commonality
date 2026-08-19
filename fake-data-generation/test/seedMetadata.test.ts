@@ -28,6 +28,9 @@ import {
   CHRISTIANITY_CAUSE_SLUG,
   CHRISTIANITY_PLANKS,
   CHRISTIANITY_PROJECTS,
+  SECULAR_CONSERVATIVE_CAUSE_SLUG,
+  SECULAR_CONSERVATIVE_PLANKS,
+  secularConservativeRosterFields,
   CHRISTIAN_MEDIATOR_ADDRESS,
   CHRISTIAN_MEDIATOR_NAME,
   christianityRosterFields,
@@ -184,4 +187,13 @@ test('christianity seed roster includes the example mediator and distinct planks
   assert.deepEqual(doc.extras?.mediator, fields.mediator);
   assert.match(doc.content, /# Christianity/);
   assert.equal(seedChristianContentAlignmentCanonicalIds().length, 1);
+});
+
+test('secular-conservative seed roster is a distinct founder cause', () => {
+  const plankCids = ['bafkreiplankA', 'bafkreiplankB'];
+  const fields = secularConservativeRosterFields(plankCids);
+  assert.equal(SECULAR_CONSERVATIVE_CAUSE_SLUG, 'secular-conservatism');
+  assert.equal(fields.title, 'Secular conservatism');
+  assert.equal(SECULAR_CONSERVATIVE_PLANKS.length, 2);
+  assert.equal(fields.mediatorBlurb, '');
 });

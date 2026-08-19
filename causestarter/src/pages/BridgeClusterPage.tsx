@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   Alert, Box, Button, Checkbox, CircularProgress, Divider, FormControlLabel,
   Link, MenuItem, Paper, Stack, TextField, Typography,
 } from '@mui/material'
 import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom'
+import { AddressDisplay } from '@ui/shared'
 import { useAccount } from 'wagmi'
 import { checkImplications } from '../lib/causeAssistClient'
 import {
@@ -21,6 +22,7 @@ import {
   loadPlankTexts,
   loadRosterDocument,
   normalizeSlug,
+  parseCauseLink,
   publishRoster,
   resolveRosterCid,
   rosterFieldsFromCause,
@@ -31,13 +33,17 @@ import {
   createBridge,
   emptyParent,
   findBridgeByStable,
+  implicationSourcePlanks,
   getBridge,
   markClusterPublished,
+  rememberPublishedCluster,
   plankById,
   updateBridge,
+  STAND_IN_CAUSE_NOTICE,
   type BridgeDraft,
   type BridgeParentDraft,
 } from '../lib/bridgeStore'
+import { rankNearDuplicates } from '../lib/nearDuplicatePlanks'
 import {
   createCause,
   listCauses,
@@ -51,20 +57,43 @@ import { publishPlank } from '../lib/publishPlank'
 import { useMachinery } from '../lib/useMachinery'
 import { useWriteClients } from '../lib/useWriteClients'
 import { ConnectWalletHint } from '../components/ConnectWalletHint'
+import { BridgeClusterAssist } from '../components/BridgeClusterAssist'
 
 function slugOrEmpty(raw: string): string {
   return raw.trim() ? normalizeSlug(raw) : ''
 }
 
+/**
+ * Which side a plank belongs to. With two parents the pair dropdowns otherwise
+ * show two similar-looking truncated sentences and no way to tell them apart.
+ */
+function sideLabel(parent: BridgeParentDraft, index: number): string {
+  return parent.title.trim() || parent.slug.trim() || `Parent ${index + 1}`
+}
+
+function truncate(text: string): string {
+  const trimmed = text.trim()
+  return trimmed.length > 72 ? `${trimmed.slice(0, 72)}\u2026` : trimmed
+}
+
 function parentSlotUsed(parent: BridgeParentDraft): boolean {
   return Boolean(
-    parent.owner.trim()
+    parent.kind === 'stand-in'
+    || parent.owner.trim()
     || parent.slug.trim()
     || parent.title.trim()
+    || parent.summary.trim()
+    || parent.parentPlanks.some((plank) => plank.text.trim())
     || parent.modified.title.trim()
     || parent.modified.slug.trim()
     || parent.modified.planks.some((plank) => plank.text.trim())
   )
+}
+
+function withStandInNotice(summary: string): string {
+  const trimmed = summary.trim()
+  if (trimmed.includes(STAND_IN_CAUSE_NOTICE)) return trimmed
+  return trimmed ? `${STAND_IN_CAUSE_NOTICE} ${trimmed}` : STAND_IN_CAUSE_NOTICE
 }
 
 export function BridgeClusterPage() {
@@ -86,6 +115,8 @@ export function BridgeClusterPage() {
   const [pairCheck, setPairCheck] = useState<string | null>(null)
   const [submitPairs, setSubmitPairs] = useState(true)
   const [publishNudges, setPublishNudges] = useState(false)
+  /** Pasted cause links, keyed by parent slot. Not part of the saved draft. */
+  const [parentLinks, setParentLinks] = useState<Record<string, string>>({})
 
   useEffect(() => {
     if (routeRef) return
@@ -113,7 +144,17 @@ export function BridgeClusterPage() {
         if (!cid) throw new Error('No published cluster at this link.')
         const loaded = await loadClusterDocument(machinery, cid)
         if (!loaded) throw new Error('Could not load this bridge cluster.')
-        if (!cancelled) setPublished(loaded.fields)
+        if (!cancelled) {
+          setPublished(loaded.fields)
+          rememberPublishedCluster({
+            owner: routeRef.owner,
+            slug: routeRef.slug,
+            clusterCid: cid,
+            mediatorName: loaded.fields.mediatorName,
+            mediatorNote: loaded.fields.mediatorNote,
+            parents: loaded.fields.parents,
+          })
+        }
       } catch (error) {
         if (!cancelled) setLoadError(error instanceof Error ? error.message : String(error))
       } finally {
@@ -123,6 +164,9 @@ export function BridgeClusterPage() {
     return () => { cancelled = true }
   }, [machinery, routeRef])
 
+  /** Parent slots we already tried to auto-load, so a failure is not retried forever. */
+  const autoLoaded = useRef(new Set<string>())
+
   const patch = useCallback((next: Partial<BridgeDraft>) => {
     if (!draft) return
     const updated = updateBridge(draft.id, next)
@@ -131,12 +175,17 @@ export function BridgeClusterPage() {
 
   const localCauses = useMemo(() => listCauses().filter((c) => c.founderAddress && c.slug), [])
 
-  const loadParentRoster = async (parent: BridgeParentDraft) => {
-    if (!parent.owner.trim() || !parent.slug.trim()) return
+  const loadParentRoster = async (
+    parent: BridgeParentDraft,
+    ref: { owner: string; slug: string } = parent,
+  ) => {
+    const owner = ref.owner.trim()
+    const slug = ref.slug.trim()
+    if (!owner || !slug) return
     setBusy(true)
     setStatus(null)
     try {
-      const cid = await resolveRosterCid(machinery, parent.owner.trim(), normalizeSlug(parent.slug))
+      const cid = await resolveRosterCid(machinery, owner, normalizeSlug(slug))
       if (!cid) throw new Error('That parent cause is not published.')
       const loaded = await loadRosterDocument(machinery, cid)
       if (!loaded) throw new Error('Could not read the parent roster.')
@@ -149,8 +198,8 @@ export function BridgeClusterPage() {
           item.id === parent.id
             ? {
               ...item,
-              owner: parent.owner.trim().toLowerCase(),
-              slug: normalizeSlug(parent.slug),
+              owner: owner.toLowerCase(),
+              slug: normalizeSlug(slug),
               title: loaded.fields.title,
               parentPlanks,
             }
@@ -165,11 +214,50 @@ export function BridgeClusterPage() {
     }
   }
 
+  /**
+   * A parent prefilled from the cause page arrives with an owner and slug but no
+   * planks, and the assist verbs refuse to run without them. Pull the roster once
+   * so the mediator does not have to press "Load parent" for a cause they just
+   * came from. Hand-typed slots are left alone until they press the button.
+   */
+  useEffect(() => {
+    if (!draft || busy) return
+    const pending = draft.parents.find((parent) => (
+      parent.kind !== 'stand-in'
+      && parent.owner.trim()
+      && parent.slug.trim()
+      && parent.parentPlanks.length === 0
+      && !autoLoaded.current.has(`${parent.owner.trim().toLowerCase()}/${parent.slug.trim()}`)
+    ))
+    if (!pending) return
+    autoLoaded.current.add(`${pending.owner.trim().toLowerCase()}/${pending.slug.trim()}`)
+    void loadParentRoster(pending)
+    // loadParentRoster closes over draft, which the guard above already tracks.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draft, busy])
+
+  /** Fill a parent slot from a pasted link, then load its published roster. */
+  const applyParentLink = (parent: BridgeParentDraft) => {
+    const ref = parseCauseLink(parentLinks[parent.id] ?? '')
+    if (!ref) {
+      setStatus('That does not look like a cause link. Expected something like /cause/0x…/their-slug.')
+      return
+    }
+    patch({
+      parents: draft!.parents.map((item) => (
+        item.id === parent.id ? { ...item, owner: ref.owner, slug: ref.slug } : item
+      )),
+    })
+    void loadParentRoster(parent, { owner: ref.owner, slug: ref.slug })
+  }
+
   const runPairCheck = async () => {
     if (!draft) return
-    const pairs = draft.pairs.filter((pair) => pair.role === 'modified-to-bridge')
+    const pairs = draft.pairs.filter((pair) => (
+      pair.role === 'modified-to-bridge' || pair.role === 'parent-to-bridge'
+    ))
     if (pairs.length === 0) {
-      setPairCheck('Add at least one modified→bridge pair. The attester judges statements, not causes.')
+      setPairCheck('Add at least one pair into the bridge. The attester judges statements, not causes.')
       return
     }
     setBusy(true)
@@ -219,19 +307,65 @@ export function BridgeClusterPage() {
     try {
       const publishedParents = []
       const publishedModified = []
+      const publishedStandInPlanks = new Map<string, CausePlank[]>()
 
       const parentsToPublish = draft.parents.filter(parentSlotUsed)
       if (parentsToPublish.length === 0) {
-        throw new Error('Add at least one published parent cause.')
+        throw new Error('Add at least one parent cause (published or stand-in).')
       }
 
       for (const parent of parentsToPublish) {
-        if (!parent.owner.trim() || !parent.slug.trim()) {
-          throw new Error('Every used parent needs a published owner and slug.')
+        let parentOwner: `0x${string}`
+        let parentSlug: string
+
+        if (parent.kind === 'stand-in') {
+          parentOwner = address.toLowerCase() as `0x${string}`
+          parentSlug = slugOrEmpty(parent.slug || parent.title || `stand-in-${clusterSlug}`)
+          if (validateSlug(parentSlug)) throw new Error(`Stand-in slug: ${validateSlug(parentSlug)}`)
+          const standInPlanks = parent.parentPlanks.filter((p) => p.text.trim())
+          if (standInPlanks.length === 0) throw new Error('A stand-in parent needs at least one plank.')
+          const local = createCause()
+          updateCause(local.id, {
+            title: parent.title.trim() || 'Stand-in cause',
+            summary: withStandInNotice(parent.summary),
+            slug: parentSlug,
+            planks: standInPlanks,
+          })
+          const nextPlanks: CausePlank[] = []
+          for (const plank of standInPlanks) {
+            if (plank.cid) {
+              nextPlanks.push(plank)
+              continue
+            }
+            const cid = await publishPlank({ machinery, writeClients, text: plank.text })
+            markPlankPublished(local.id, plank.id, cid, plank.text)
+            nextPlanks.push({ ...plank, cid })
+          }
+          const forRoster = updateCause(local.id, { planks: nextPlanks })
+          if (!forRoster) throw new Error('Lost the stand-in cause while publishing.')
+          const roster = await publishRoster({
+            machinery,
+            writeClients,
+            slug: parentSlug,
+            fields: rosterFieldsFromCause(forRoster),
+          })
+          markRosterPublished(local.id, {
+            slug: parentSlug,
+            founderAddress: address,
+            rosterCid: roster.rosterCid,
+          })
+          publishedStandInPlanks.set(parent.id, nextPlanks)
+          publishedParents.push({ owner: parentOwner, slug: parentSlug })
+        } else {
+          if (!parent.owner.trim() || !parent.slug.trim()) {
+            throw new Error('Every published parent needs an owner and slug.')
+          }
+          parentOwner = parent.owner.trim().toLowerCase() as `0x${string}`
+          parentSlug = normalizeSlug(parent.slug)
+          publishedParents.push({ owner: parentOwner, slug: parentSlug })
         }
-        const parentOwner = parent.owner.trim().toLowerCase() as `0x${string}`
-        const parentSlug = normalizeSlug(parent.slug)
-        publishedParents.push({ owner: parentOwner, slug: parentSlug })
+
+        if (parent.skipModified) continue
 
         const modifiedSlug = slugOrEmpty(parent.modified.slug || `${parentSlug}-modified`)
         if (validateSlug(modifiedSlug)) throw new Error(`Modified slug: ${validateSlug(modifiedSlug)}`)
@@ -325,6 +459,10 @@ export function BridgeClusterPage() {
       const idToCid = new Map<string, string>()
       for (const parent of draft.parents) {
         for (const plank of parent.parentPlanks) if (plank.cid) idToCid.set(plank.id, plank.cid)
+        publishedStandInPlanks.get(parent.id)?.forEach((plank, index) => {
+          const original = parent.parentPlanks.filter((p) => p.text.trim())[index]
+          if (original && plank.cid) idToCid.set(original.id, plank.cid)
+        })
         const publishedMod = publishedModified.find((m) => m.parentSlug === normalizeSlug(parent.slug))
         publishedMod?.planks.forEach((plank, index) => {
           const original = parent.modified.planks.filter((p) => p.text.trim())[index]
@@ -463,7 +601,7 @@ export function BridgeClusterPage() {
       <Stack spacing={2.5} data-testid="bridge-cluster-page">
         <Alert severity="warning" sx={{ borderRadius: 2 }} data-testid="bridge-authorship">
           This cluster is authored by <strong>{published.mediatorName}</strong>
-          {' '}({published.mediatorAddress.slice(0, 6)}…{published.mediatorAddress.slice(-4)}).
+          {' '}(<AddressDisplay address={published.mediatorAddress} variant="body2" />).
           The modified causes and the bridge are <strong>not</strong> official revisions of the
           natural parents.
         </Alert>
@@ -573,19 +711,23 @@ export function BridgeClusterPage() {
     )
   }
 
-  const addPair = (role: 'modified-to-bridge' | 'modified-to-parent') => {
+  const addPair = (role: 'modified-to-bridge' | 'modified-to-parent' | 'parent-to-bridge') => {
     const usedParents = draft.parents.filter(parentSlotUsed)
     const pairedFrom = new Set(draft.pairs.filter((pair) => pair.role === role).map((pair) => pair.fromPlankId))
-    const parent = usedParents.find((item) => item.modified.planks.some((plank) => plank.text.trim() && !pairedFrom.has(plank.id)))
-      ?? usedParents.find((item) => item.modified.planks.some((plank) => plank.text.trim()))
+    const sources = (item: BridgeParentDraft) => (
+      role === 'parent-to-bridge' ? item.parentPlanks : implicationSourcePlanks(item)
+    )
+    const parent = usedParents.find((item) => sources(item).some((plank) => plank.text.trim() && !pairedFrom.has(plank.id)))
+      ?? usedParents.find((item) => sources(item).some((plank) => plank.text.trim()))
       ?? draft.parents[0]
-    const from = parent?.modified.planks.find((p) => p.text.trim() && !pairedFrom.has(p.id))
-      ?? parent?.modified.planks.find((p) => p.text.trim())
-    const to = role === 'modified-to-bridge'
-      ? draft.bridge.planks.find((p) => p.text.trim())
-      : parent?.parentPlanks.find((p) => p.text.trim()) ?? parent?.parentPlanks[0]
+    const from = parent ? sources(parent).find((p) => p.text.trim() && !pairedFrom.has(p.id))
+      ?? sources(parent).find((p) => p.text.trim())
+      : undefined
+    const to = role === 'modified-to-parent'
+      ? parent?.parentPlanks.find((p) => p.text.trim()) ?? parent?.parentPlanks[0]
+      : draft.bridge.planks.find((p) => p.text.trim())
     if (!from || !to) {
-      setStatus('Write the modified and target planks before pairing them.')
+      setStatus('Write the source and target planks before pairing them.')
       return
     }
     patch({
@@ -608,10 +750,10 @@ export function BridgeClusterPage() {
           Write the cluster yourself
         </Typography>
         <Typography variant="body1" color="text.secondary" sx={{ mt: 1, maxWidth: 640 }}>
-          Point at existing causes, draft a thinner modified wording for each side, draft the
-          shared bridge, and record plank-to-plank pairs. After publish you can pay the
-          implication attester for those pairs and optionally publish parent→modified nudges.
-          You remain the publisher. This does not replace the in-cause mediator.
+          Point at existing causes, or write a thin stand-in if the other camp has no cause
+          yet. Draft a thinner modified wording when there is a real parent; a stand-in may
+          skip that hop. Draft the shared bridge and record plank-to-plank pairs. You remain
+          the publisher. This does not replace the in-cause mediator.
         </Typography>
       </Box>
 
@@ -658,7 +800,7 @@ export function BridgeClusterPage() {
         <Paper key={parent.id} elevation={0} sx={{ p: 2, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
           <Stack direction="row" justifyContent="space-between" alignItems="center">
             <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-              Natural parent {index + 1}
+              {parent.kind === 'stand-in' ? `Stand-in parent ${index + 1}` : `Natural parent ${index + 1}`}
             </Typography>
             {draft.parents.length > 1 && (
               <Button size="small" sx={{ textTransform: 'none' }} onClick={() => {
@@ -669,9 +811,76 @@ export function BridgeClusterPage() {
             )}
           </Stack>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
-            The founder already published this cause. You do not own it.
+            {parent.kind === 'stand-in'
+              ? 'You write a thin roster for a camp that has no published cause. It publishes under your key and must say so.'
+              : 'The founder already published this cause. You do not own it.'}
           </Typography>
           <Stack spacing={1.5}>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
+              <Button
+                size="small"
+                variant={parent.kind === 'published' ? 'contained' : 'outlined'}
+                sx={{ textTransform: 'none' }}
+                onClick={() => patch({
+                  parents: draft.parents.map((item) => item.id === parent.id
+                    ? { ...item, kind: 'published', skipModified: false }
+                    : item),
+                })}
+              >
+                Published cause
+              </Button>
+              <Button
+                size="small"
+                variant={parent.kind === 'stand-in' ? 'contained' : 'outlined'}
+                sx={{ textTransform: 'none' }}
+                onClick={() => patch({
+                  parents: draft.parents.map((item) => item.id === parent.id
+                    ? {
+                      ...item,
+                      kind: 'stand-in',
+                      skipModified: true,
+                      owner: '',
+                      parentPlanks: item.parentPlanks.length > 0 ? item.parentPlanks : [newPlank()],
+                    }
+                    : item),
+                })}
+                data-testid={`bridge-parent-stand-in-${index}`}
+              >
+                No cause yet — start a thin sliver I will own
+              </Button>
+            </Stack>
+            {parent.kind === 'published' && (
+            <>
+            {/* There is no directory to search (ADR 0008): the organizer's own
+                link is how this cause is found, so accept it as pasted. */}
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
+              <TextField
+                label="Paste the cause link"
+                size="small"
+                fullWidth
+                placeholder="https://…/cause/0x…/their-slug"
+                value={parentLinks[parent.id] ?? ''}
+                data-testid={`bridge-parent-link-${index}`}
+                helperText="A link the other organizer circulated. Fills in the owner and slug below."
+                onChange={(event) => setParentLinks((current) => ({
+                  ...current, [parent.id]: event.target.value,
+                }))}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') {
+                    event.preventDefault()
+                    applyParentLink(parent)
+                  }
+                }}
+              />
+              <Button
+                onClick={() => applyParentLink(parent)}
+                disabled={busy || !(parentLinks[parent.id] ?? '').trim()}
+                data-testid={`bridge-parent-link-load-${index}`}
+                sx={{ textTransform: 'none', whiteSpace: 'nowrap' }}
+              >
+                Use link
+              </Button>
+            </Stack>
             {localCauses.length > 0 && (
               <TextField
                 select
@@ -725,9 +934,132 @@ export function BridgeClusterPage() {
                 Load parent
               </Button>
             </Stack>
-            {parent.title && <Typography variant="body2">Loaded: {parent.title}</Typography>}
+            {/* The title can arrive from the cause page we were started from, so it
+                is not on its own evidence that the roster came down. Say "loaded"
+                only once there are planks to show. */}
+            {parent.title && (
+              <Typography variant="body2">
+                {parent.parentPlanks.length > 0
+                  ? `Loaded: ${parent.title}`
+                  : `${parent.title} — roster not loaded yet.`}
+              </Typography>
+            )}
+            {parent.parentPlanks.filter((plank) => plank.text.trim()).length > 0 && (
+              <Stack spacing={0.5} data-testid={`bridge-parent-planks-${index}`}>
+                <Typography variant="caption" color="text.secondary">Parent planks (read-only)</Typography>
+                {parent.parentPlanks.filter((plank) => plank.text.trim()).map((plank) => (
+                  <Typography key={plank.id} variant="body2">{plank.text}</Typography>
+                ))}
+              </Stack>
+            )}
+            </>
+            )}
+
+            {parent.kind === 'stand-in' && (
+              <>
+                <TextField
+                  label="Stand-in title"
+                  size="small"
+                  fullWidth
+                  value={parent.title}
+                  onChange={(event) => patch({
+                    parents: draft.parents.map((item) => item.id === parent.id ? { ...item, title: event.target.value } : item),
+                  })}
+                  data-testid={`bridge-stand-in-title-${index}`}
+                />
+                <TextField
+                  label="Stand-in summary"
+                  size="small"
+                  fullWidth
+                  multiline
+                  minRows={2}
+                  helperText={STAND_IN_CAUSE_NOTICE}
+                  value={parent.summary}
+                  onChange={(event) => patch({
+                    parents: draft.parents.map((item) => item.id === parent.id ? { ...item, summary: event.target.value } : item),
+                  })}
+                />
+                <TextField
+                  label="Stand-in slug"
+                  size="small"
+                  fullWidth
+                  value={parent.slug}
+                  onChange={(event) => patch({
+                    parents: draft.parents.map((item) => item.id === parent.id ? { ...item, slug: event.target.value } : item),
+                  })}
+                  helperText="Published under your key at /cause/you/slug."
+                />
+                {parent.parentPlanks.map((plank) => (
+                  <TextField
+                    key={plank.id}
+                    label="Stand-in plank"
+                    size="small"
+                    fullWidth
+                    multiline
+                    minRows={2}
+                    value={plank.text}
+                    onChange={(event) => patch({
+                      parents: draft.parents.map((item) => item.id === parent.id
+                        ? {
+                          ...item,
+                          parentPlanks: item.parentPlanks.map((row) => (
+                            row.id === plank.id ? { ...row, text: event.target.value } : row
+                          )),
+                        }
+                        : item),
+                    })}
+                  />
+                ))}
+                <Button
+                  size="small"
+                  sx={{ textTransform: 'none', alignSelf: 'flex-start' }}
+                  onClick={() => patch({
+                    parents: draft.parents.map((item) => item.id === parent.id
+                      ? { ...item, parentPlanks: [...item.parentPlanks, newPlank()] }
+                      : item),
+                  })}
+                >
+                  Add stand-in plank
+                </Button>
+                {parent.parentPlanks.some((plank) => plank.text.trim()) && (
+                  <Stack spacing={0.5} data-testid={`bridge-stand-in-duplicates-${index}`}>
+                    {parent.parentPlanks.flatMap((plank) => {
+                      if (!plank.text.trim()) return []
+                      const candidates = localCauses.flatMap((cause) => (
+                        cause.planks.filter((row) => row.text.trim()).map((row) => ({
+                          text: row.text,
+                          cid: row.cid,
+                          source: cause.title || cause.slug || 'this device',
+                        }))
+                      ))
+                      return rankNearDuplicates(plank.text, candidates).map((hit) => (
+                        <Typography key={`${plank.id}-${hit.text}`} variant="caption" color="text.secondary">
+                          Similar on this device ({hit.source}): {hit.text}
+                          {hit.cid ? ` (${hit.cid.slice(0, 12)}…)` : ''}
+                        </Typography>
+                      ))
+                    })}
+                  </Stack>
+                )}
+              </>
+            )}
 
             <Divider />
+            <FormControlLabel
+              control={(
+                <Checkbox
+                  checked={parent.skipModified}
+                  onChange={(event) => patch({
+                    parents: draft.parents.map((item) => item.id === parent.id
+                      ? { ...item, skipModified: event.target.checked }
+                      : item),
+                  })}
+                />
+              )}
+              label="Skip modified cause (stand-in is already thin enough to imply the bridge)"
+            />
+            {!parent.skipModified && (
+              <>
             <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>Modified cause (your wording of this side)</Typography>
             <TextField
               label="Modified title"
@@ -797,6 +1129,8 @@ export function BridgeClusterPage() {
             >
               Add modified plank
             </Button>
+              </>
+            )}
           </Stack>
         </Paper>
       ))}
@@ -812,7 +1146,7 @@ export function BridgeClusterPage() {
       <Paper elevation={0} sx={{ p: 2, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
         <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>Bridge cause</Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
-          Shared platform. Each modified cause independently implies these planks.
+          Shared platform. Each modified (or skipped stand-in) independently implies these planks.
         </Typography>
         <Stack spacing={1.5}>
           <TextField
@@ -865,6 +1199,8 @@ export function BridgeClusterPage() {
         </Stack>
       </Paper>
 
+      <BridgeClusterAssist draft={draft} onDraft={patch} busy={busy} setBusy={setBusy} />
+
       <Paper elevation={0} sx={{ p: 2, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
         <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>Intended implication pairs</Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
@@ -876,32 +1212,46 @@ export function BridgeClusterPage() {
             <TextField
               select
               size="small"
-              label="From (modified plank)"
+              label="From plank"
               sx={{ flex: 1 }}
               value={pair.fromPlankId}
               onChange={(event) => patch({
                 pairs: draft.pairs.map((item) => item.id === pair.id ? { ...item, fromPlankId: event.target.value } : item),
               })}
             >
-              {draft.parents.flatMap((parent) => parent.modified.planks.filter((p) => p.text.trim()).map((plank) => (
-                <MenuItem key={plank.id} value={plank.id}>{plank.text.slice(0, 72)}</MenuItem>
-              )))}
+              {draft.parents.flatMap((parent, parentIndex) => (
+                implicationSourcePlanks(parent).concat(
+                  parent.parentPlanks.filter((plank) => !implicationSourcePlanks(parent).some((row) => row.id === plank.id)),
+                ).filter((p) => p.text.trim()).map((plank) => (
+                  <MenuItem key={plank.id} value={plank.id}>
+                    {`${sideLabel(parent, parentIndex)}: ${truncate(plank.text)}`}
+                  </MenuItem>
+                ))
+              ))}
             </TextField>
             <TextField
               select
               size="small"
-              label={pair.role === 'modified-to-bridge' ? 'To (bridge plank)' : 'To (parent plank)'}
+              label={pair.role === 'modified-to-parent' ? 'To (parent plank)' : 'To (bridge plank)'}
               sx={{ flex: 1 }}
               value={pair.toPlankId}
               onChange={(event) => patch({
                 pairs: draft.pairs.map((item) => item.id === pair.id ? { ...item, toPlankId: event.target.value } : item),
               })}
             >
-              {(pair.role === 'modified-to-bridge'
-                ? draft.bridge.planks
-                : draft.parents.flatMap((parent) => parent.parentPlanks)
-              ).filter((p) => p.text.trim()).map((plank) => (
-                <MenuItem key={plank.id} value={plank.id}>{plank.text.slice(0, 72)}</MenuItem>
+              {(pair.role === 'modified-to-parent'
+                ? draft.parents.flatMap((parent, parentIndex) => (
+                  parent.parentPlanks
+                    .filter((p) => p.text.trim())
+                    .map((plank) => ({ plank, label: sideLabel(parent, parentIndex) }))
+                ))
+                : draft.bridge.planks
+                  .filter((p) => p.text.trim())
+                  .map((plank) => ({ plank, label: 'Bridge' }))
+              ).map(({ plank, label }) => (
+                <MenuItem key={plank.id} value={plank.id}>
+                  {`${label}: ${truncate(plank.text)}`}
+                </MenuItem>
               ))}
             </TextField>
             <Button size="small" sx={{ textTransform: 'none' }} onClick={() => {
@@ -917,6 +1267,9 @@ export function BridgeClusterPage() {
           </Button>
           <Button variant="outlined" sx={{ textTransform: 'none' }} onClick={() => addPair('modified-to-parent')}>
             Add modified → parent pair
+          </Button>
+          <Button variant="outlined" sx={{ textTransform: 'none' }} onClick={() => addPair('parent-to-bridge')}>
+            Add parent → bridge pair
           </Button>
           <Button sx={{ textTransform: 'none' }} disabled={busy} onClick={() => void runPairCheck()}>
             Check wording

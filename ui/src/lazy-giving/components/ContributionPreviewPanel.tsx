@@ -2,17 +2,19 @@ import { Paper, Typography, Stack, Box, Alert } from '@mui/material'
 import type { ProjectToken } from '@commonality/sdk/lazy-giving'
 import { formatCurrencyAmount } from '../../shared'
 import { WalletButton } from '../../shared/components/WalletButton'
+import { givingOptionLabel } from '../utils'
 
 interface ContributionPreviewPanelProps {
   tokens: ProjectToken[]
   tokenImages?: Record<string, string>
+  tokenLabels?: Record<string, string>
 }
 
 // Read-only preview of a project's giving options shown to visitors who have not
 // connected a wallet. It lets people understand the prices and the
 // contribution/refund mechanics before deciding to connect — connecting reveals
 // the interactive BuyTokensSection in its place.
-export function ContributionPreviewPanel({ tokens, tokenImages = {} }: ContributionPreviewPanelProps) {
+export function ContributionPreviewPanel({ tokens, tokenImages = {}, tokenLabels = {} }: ContributionPreviewPanelProps) {
   return (
     <Paper sx={{ p: 3, mb: 3 }}>
       <Typography variant="h5" component="h2" gutterBottom>
@@ -25,24 +27,27 @@ export function ContributionPreviewPanel({ tokens, tokenImages = {} }: Contribut
       {tokens.length > 0 ? (
         <Stack spacing={1} sx={{ mb: 3 }}>
           <Typography variant="subtitle2">Giving options</Typography>
-          {tokens.map((token) => (
-            <Box key={token.tokenId} sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              {tokenImages[token.tokenId] && (
-                <Box
-                  component="img"
-                  src={tokenImages[token.tokenId]}
-                  alt={`Giving option #${token.tokenId}`}
-                  sx={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 1 }}
-                />
-              )}
-              <Typography variant="body1" sx={{ minWidth: 120 }}>
-                Giving option #{token.tokenId}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                {formatCurrencyAmount(token.price, token.currency)} each
-              </Typography>
-            </Box>
-          ))}
+          {tokens.map((token, index) => {
+            const label = givingOptionLabel(token.tokenId, { name: tokenLabels[token.tokenId], index })
+            return (
+              <Box key={token.tokenId} sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                {tokenImages[token.tokenId] && (
+                  <Box
+                    component="img"
+                    src={tokenImages[token.tokenId]}
+                    alt={label}
+                    sx={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 1 }}
+                  />
+                )}
+                <Typography variant="body1" sx={{ minWidth: 120 }}>
+                  {label}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {formatCurrencyAmount(token.price, token.currency)} each
+                </Typography>
+              </Box>
+            )
+          })}
         </Stack>
       ) : (
         <Alert severity="info" sx={{ mb: 3 }}>

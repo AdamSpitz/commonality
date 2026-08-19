@@ -2,7 +2,7 @@ import { Box, Paper, Stack, Typography } from '@mui/material'
 import { InfoChip } from '@ui/shared'
 import { Link as RouterLink } from 'react-router-dom'
 import type { CauseDraft } from '../lib/causeStore'
-import { causePath, causeTitle, isLive, publishedPlanks, realPlanks } from '../lib/causeStore'
+import { causeEditPath, causePath, causeTitle, hasPublishedRoster, isLive, publishedPlanks, realPlanks } from '../lib/causeStore'
 
 interface CauseCardProps {
   cause: CauseDraft
@@ -11,7 +11,9 @@ interface CauseCardProps {
 export function CauseCard({ cause }: CauseCardProps) {
   const planks = realPlanks(cause)
   const publishedCount = publishedPlanks(cause).length
-  const to = causePath(cause)
+  // An unpublished draft has nothing for a supporter to read yet, so open it
+  // where its organizer can work on it.
+  const to = hasPublishedRoster(cause) ? causePath(cause) : causeEditPath(cause)
   return (
     <Paper
       component={RouterLink}
