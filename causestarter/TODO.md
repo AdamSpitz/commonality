@@ -16,7 +16,15 @@ open **if they stay listed here**.
   checkbox. Do **not** mix post rows into the project list. The dedicated
   content board (`/cause/.../content`) stays as a post-level surface.
 
-- [ ] **Anchors are not built.** A founder cannot promote a proven view into a published statement, so the three things only an anchor can do — sign the combination, earmark to it, align a project with it — remain unavailable. See [shaping-your-cause-statements.md § Promotion](/docs/founder/shaping-your-cause-statements.md#promotion). The seat for it is the cause page's view strip.
+- [ ] **Anchors are not built.** A founder cannot promote a proven view into a
+  published statement. Alignment is *not* why: the cause board is already the
+  union of plank boards (do not attest one project to every plank, or to a
+  conjunctive slogan). What is still missing is a CID for the *combination* —
+  earmark "any of these," sign the name/alliance in one step, and let other
+  surfaces treat the cause as a graph node. See
+  [shaping-your-cause-statements.md § What an anchor is actually for](/docs/founder/shaping-your-cause-statements.md#what-an-anchor-is-actually-for-2026-08-18)
+  and [§ Promotion](/docs/founder/shaping-your-cause-statements.md#promotion).
+  The seat for promotion is the cause page's view strip.
 - [ ] View counts fetch believer sets per plank, and each fetch walks events for the plank *plus* every statement implying it, under a `limit: 10000` that truncates silently. Fine locally; measure before it matters. Remedy is an indexer-side aggregate ([§ Scale](/docs/founder/shaping-your-cause-statements.md#scale-the-fold-is-fine-the-transport-isnt)), optionally sketch-backed — but band 1 must stay exact.
 
 - [ ] Safety filter is MVP/heuristic + LLM policy text — not legal-grade; version/align with operator/legal specs later.

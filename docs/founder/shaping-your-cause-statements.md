@@ -189,13 +189,56 @@ So the three layers:
   Usually a disjunction (to collect its planks) or a conjunction (to distribute
   to them).
 
-What you lose in a view, and only this: nobody can **sign** the combination,
-**earmark** funds to it, or **align a project with** it. Those three need a real
-statement with a real CID. Everything else — counts, boards, filtering,
-comparison — a view does fine.
+A view is enough for **display**. Counts, the cause's fundable-project list
+(union of its planks), filtering, and comparison do not need an anchor. The
+cause website is the views layer. Do not treat "the combination isn't a CID
+yet" as a reason to delay shipping views, and do not treat alignment as a
+reason to rush anchors.
 
 "One main statement" is therefore just the default promoted view, not a structural
 requirement.
+
+### What an anchor is actually for (2026-08-18)
+
+An earlier cut of this section said a view cannot sign, earmark, or **align**
+the combination, as if those three were the same kind of gap. Alignment is not.
+
+**Alignment stays on planks.** The cause board is already the union of plank
+boards (`useCauseProjects` / `getAllAlignedProjectsForCause`). A project
+vouched for on any selected plank appears on the cause page, deduped, with
+`viaPlankCids` naming which sentence someone actually attested. Attesting the
+same project to all six planks so it "covers the combination" is usually a lie
+in several directions and pollutes boards the project does not further.
+Attesting it to a conjunctive anchor is worse: that statement has almost no
+inbound arrows, so the project sits on one empty manifesto board and nowhere
+else. See [§ Align low, aggregate high](#align-low-aggregate-high).
+
+What a view still cannot do — and why you eventually promote:
+
+| Want | Need an anchor? |
+|---|---|
+| Show "N signed all / any of these" on the cause page | No — view (if people signed the planks) |
+| Show projects that further any selected plank | No — union of plank boards |
+| Put one project on every plank's board | No, and usually shouldn't |
+| Earmark "this money may further any of these" | **Yes** — a `NoteIntent` target has to be a statement |
+| Sign the *name* / the alliance in one step | **Yes** — one CID, one signature |
+| Have Tally, a vertical, a nudge, or any other surface treat the cause as a statement | **Yes** — they take a CID, not a CauseStarter roster URL |
+| Let wholehearted people sign once and count on every plank | **Yes** — conjunctive anchor, outbound arrows |
+| Let plank-signers count toward a public "this cause" number that isn't just this SPA's set-math | **Yes** — disjunctive anchor, inbound arrows |
+
+The signing job is not "N signed all 6," which a view already reports when
+people really did sign each plank. It is for people who will sign a *name*
+("I'm in this coalition") or a *weak platform* ("at least one of these")
+without walking six issues — and for putting those people into other
+statements' signer sets, which views never do. If you assume everyone who
+cares will click through and sign every plank, this is mostly aesthetic. The
+reason we unbundle is that they will not.
+
+The load-bearing reasons to build anchors, then, are **money to the bundle**
+and **identity that lives in the graph**. A CauseStarter roster is an
+organizer document. Everything else in the system is statement-shaped. Until
+the combination is a statement, it is not a node other people can imply,
+disbelieve, earmark to, or build a board on without opening the cause page.
 
 ### Conjunction views need two bands, or they lie
 
@@ -286,8 +329,13 @@ propagates up every arrow that plank has: it appears in every view containing th
 plank, and on any disjunctive anchor the plank feeds. Attaching at the plank level
 costs nothing and buys reach.
 
-The same logic applies to earmarked notes. Earmark to the plank; let the views and
-anchors aggregate.
+Earmark the same way **when the donor means a particular plank.** Let views
+union those notes for display. The exception — and it is a reason to promote —
+is a donor who is genuinely fine with the money furthering *any* of the
+selected planks. That intent is not "six notes" and not a view; it needs the
+combination as a statement (almost always a disjunction that names the list).
+`NoteIntent` is currently dormant in the product UI; see the caveat at the end
+of this doc.
 
 ### Promotion
 
