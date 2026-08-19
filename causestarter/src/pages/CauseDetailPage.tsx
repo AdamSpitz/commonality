@@ -20,6 +20,7 @@ import { AlignmentTrustGate } from '../components/AlignmentTrustGate'
 import { CauseViewStrip } from '../components/CauseViewStrip'
 import { CauseMediatorCard } from '../components/CauseMediatorCard'
 import { CauseBridgesSection } from '../components/CauseBridgesSection'
+import { OrganizerIdentity } from '../components/OrganizerIdentity'
 import { CauseFundingSummary } from '../components/CauseFundingSummary'
 import { ConnectWalletHint } from '../components/ConnectWalletHint'
 import { StatementPicker } from '../components/StatementPicker'
@@ -124,6 +125,7 @@ export function CauseDetailPage({ editMode = false }: { editMode?: boolean }) {
   const [dialogSafety, setDialogSafety] = useState<SafetyState | null>(null)
   const [titleDraft, setTitleDraft] = useState('')
   const [summaryDraft, setSummaryDraft] = useState('')
+  const [contactUrlDraft, setContactUrlDraft] = useState('')
   const [slugDraft, setSlugDraft] = useState('')
 
   // Operator attester address for badge trust display
@@ -206,6 +208,7 @@ export function CauseDetailPage({ editMode = false }: { editMode?: boolean }) {
           rosterCid,
           // Published identity wins: a follower has no local copy to fall back on.
           mediator: fields.mediator ?? local?.mediator,
+          contactUrl: fields.contactUrl ?? local?.contactUrl,
           bridgeCluster: fields.bridgeCluster ?? local?.bridgeCluster,
           anchors: fields.anchors ?? local?.anchors,
           suggestionSeed: local?.suggestionSeed,
@@ -259,9 +262,10 @@ export function CauseDetailPage({ editMode = false }: { editMode?: boolean }) {
   useEffect(() => {
     setTitleDraft(cause?.title ?? '')
     setSummaryDraft(cause?.summary ?? '')
+    setContactUrlDraft(cause?.contactUrl ?? '')
     setSlugDraft(cause?.slug ?? '')
     setReviewsByPlankId({})
-  }, [cause?.id, cause?.title, cause?.summary, cause?.slug])
+  }, [cause?.id, cause?.title, cause?.summary, cause?.contactUrl, cause?.slug])
 
   // Per-plank "added later" markers from ref history + prior roster docs.
   useEffect(() => {
@@ -435,8 +439,9 @@ export function CauseDetailPage({ editMode = false }: { editMode?: boolean }) {
       ...cause,
       title: titleDraft,
       summary: summaryDraft,
+      contactUrl: contactUrlDraft,
     })
-  }, [cause, titleDraft, summaryDraft])
+  }, [cause, titleDraft, summaryDraft, contactUrlDraft])
 
   const wouldBeCid = useMemo(
     () => (rosterPreviewFields && rosterPreviewFields.plankCids.length > 0
@@ -677,6 +682,7 @@ export function CauseDetailPage({ editMode = false }: { editMode?: boolean }) {
       const withFields = updateCause(cause.id, {
         title: titleDraft.trim() || undefined,
         summary: summaryDraft.trim() || undefined,
+        contactUrl: contactUrlDraft.trim() || undefined,
         slug,
       })
       if (!withFields) throw new Error('Cause draft missing on this device.')
@@ -864,6 +870,12 @@ export function CauseDetailPage({ editMode = false }: { editMode?: boolean }) {
             </Tooltip>
           )}
         </Stack>
+        {cause.founderAddress && !isFreshDraft && (
+          <OrganizerIdentity
+            address={cause.founderAddress}
+            contactUrl={isEditing ? contactUrlDraft : cause.contactUrl}
+          />
+        )}
         {hasCoherenceBadge && (
           <InfoChip
             title={`CauseStarter's coherence checker attested this version as coherent construction (title and description match the statements). Attested by operator ${onChainBadge!.attesters[0]}.`}
@@ -946,6 +958,7 @@ export function CauseDetailPage({ editMode = false }: { editMode?: boolean }) {
           <RosterPublishPanel
             title={titleDraft}
             summary={summaryDraft}
+            contactUrl={contactUrlDraft}
             slug={slugDraft}
             previewCid={wouldBeCid}
             coherence={coherence}
@@ -964,6 +977,10 @@ export function CauseDetailPage({ editMode = false }: { editMode?: boolean }) {
             }}
             onSummaryChange={(value) => {
               setSummaryDraft(value)
+              voidCoherence()
+            }}
+            onContactUrlChange={(value) => {
+              setContactUrlDraft(value)
               voidCoherence()
             }}
             onSlugChange={(value) => {

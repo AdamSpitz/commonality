@@ -44,8 +44,8 @@ function clusterPath(draft: BridgeDraft): string {
  * Clusters on this device that name this cause as a natural parent, plus the
  * cluster this cause belongs to when it is itself a modified sliver or bridge.
  *
- * Local drafts only: there is no index from a cause to the clusters that quote
- * it, and building one would mean a directory we rank (ADR 0005).
+ * Clusters this client already knows: local drafts plus published clusters it
+ * has loaded and remembered. Not a crawl of every ref (ADR 0011).
  */
 export function causeClusterRows(cause: CauseDraft): ClusterRow[] {
   const owner = cause.founderAddress?.toLowerCase()
@@ -211,9 +211,6 @@ export function CauseBridgesSection({ cause, variant = 'organizer' }: CauseBridg
         </Button>
       </Box>
 
-      {/* Writing a bridge is not an owner privilege: the cluster publishes under
-          the mediator's own key, so a visitor needs no permission from this
-          organizer. What we cannot yet offer is a way to *tell* them. */}
       {!organizer && (
         <Typography
           variant="caption"
@@ -221,10 +218,10 @@ export function CauseBridgesSection({ cause, variant = 'organizer' }: CauseBridg
           sx={{ display: 'block', mt: 1.5 }}
           data-testid="cause-create-bridge-note"
         >
-          You do not have to own this cause to bridge to it. The modified wordings and
-          the shared bridge publish under your key, quoting this cause as a natural
-          parent. Telling this organizer about it is on you for now — share the
-          cluster link wherever you already talk to them.
+          You do not have to own this cause to bridge to it. The cluster publishes
+          under your key. Commonality does not message the organizer — citations are
+          public on this page. If they published a contact pointer, it is shown with
+          their address; paste the cluster link there yourself.
         </Typography>
       )}
 

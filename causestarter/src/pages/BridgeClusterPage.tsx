@@ -4,6 +4,7 @@ import {
   Link, MenuItem, Paper, Stack, TextField, Typography,
 } from '@mui/material'
 import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom'
+import { AddressDisplay } from '@ui/shared'
 import { useAccount } from 'wagmi'
 import { checkImplications } from '../lib/causeAssistClient'
 import {
@@ -34,6 +35,7 @@ import {
   findBridgeByStable,
   getBridge,
   markClusterPublished,
+  rememberPublishedCluster,
   plankById,
   updateBridge,
   type BridgeDraft,
@@ -130,7 +132,17 @@ export function BridgeClusterPage() {
         if (!cid) throw new Error('No published cluster at this link.')
         const loaded = await loadClusterDocument(machinery, cid)
         if (!loaded) throw new Error('Could not load this bridge cluster.')
-        if (!cancelled) setPublished(loaded.fields)
+        if (!cancelled) {
+          setPublished(loaded.fields)
+          rememberPublishedCluster({
+            owner: routeRef.owner,
+            slug: routeRef.slug,
+            clusterCid: cid,
+            mediatorName: loaded.fields.mediatorName,
+            mediatorNote: loaded.fields.mediatorNote,
+            parents: loaded.fields.parents,
+          })
+        }
       } catch (error) {
         if (!cancelled) setLoadError(error instanceof Error ? error.message : String(error))
       } finally {
@@ -524,7 +536,7 @@ export function BridgeClusterPage() {
       <Stack spacing={2.5} data-testid="bridge-cluster-page">
         <Alert severity="warning" sx={{ borderRadius: 2 }} data-testid="bridge-authorship">
           This cluster is authored by <strong>{published.mediatorName}</strong>
-          {' '}({published.mediatorAddress.slice(0, 6)}…{published.mediatorAddress.slice(-4)}).
+          {' '}(<AddressDisplay address={published.mediatorAddress} variant="body2" />).
           The modified causes and the bridge are <strong>not</strong> official revisions of the
           natural parents.
         </Alert>

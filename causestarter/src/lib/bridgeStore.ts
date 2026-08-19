@@ -210,6 +210,42 @@ export function markClusterPublished(
   })
 }
 
+/**
+ * Persist a published cluster this client has actually loaded so the parent
+ * cause page can list it later (ADR 0011: remember opened citations, do not crawl).
+ */
+export function rememberPublishedCluster(args: {
+  owner: string
+  slug: string
+  clusterCid: string
+  mediatorName: string
+  mediatorNote?: string
+  parents: Array<{ owner: string; slug: string }>
+}): BridgeDraft {
+  const owner = args.owner.toLowerCase()
+  const existing = findBridgeByStable(owner, args.slug)
+  const parents: BridgeParentDraft[] = args.parents.length > 0
+    ? args.parents.map((parent) => ({
+      ...emptyParent(),
+      owner: parent.owner.toLowerCase(),
+      slug: parent.slug,
+    }))
+    : [emptyParent()]
+  const patch = {
+    mediatorName: args.mediatorName,
+    mediatorNote: args.mediatorNote ?? '',
+    slug: args.slug,
+    founderAddress: owner,
+    clusterCid: args.clusterCid,
+    parents,
+  }
+  if (existing) {
+    return updateBridge(existing.id, patch) ?? existing
+  }
+  const created = createBridge()
+  return updateBridge(created.id, patch) ?? created
+}
+
 export function allDraftPlanks(draft: BridgeDraft): CausePlank[] {
   return [
     ...draft.parents.flatMap((parent) => parent.modified.planks),

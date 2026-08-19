@@ -11,6 +11,7 @@ function renderPanel(overrides: Partial<RosterPublishPanelProps> = {}) {
   const handlers = {
     onTitleChange: vi.fn(),
     onSummaryChange: vi.fn(),
+    onContactUrlChange: vi.fn(),
     onSlugChange: vi.fn(),
     onCheckCoherence: vi.fn(),
     onPublish: vi.fn(),
@@ -20,6 +21,7 @@ function renderPanel(overrides: Partial<RosterPublishPanelProps> = {}) {
     <RosterPublishPanel
       title="Safer neighborhood walks"
       summary="Neighbors are improving lighting and crossings for pedestrians."
+      contactUrl=""
       slug="safer-walks"
       previewCid={previewCid}
       coherence={null}

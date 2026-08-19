@@ -49,6 +49,7 @@ export function CauseMediatorPage() {
           planks: [],
           title: loaded.fields.title,
           summary: loaded.fields.summary,
+          contactUrl: loaded.fields.contactUrl,
           slug: routeRef.slug,
           founderAddress: routeRef.owner,
           rosterCid: rosterCid ?? undefined,

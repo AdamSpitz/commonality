@@ -21,6 +21,7 @@ function shortAddr(address: string): string {
 export interface RosterPublishPanelProps {
   title: string
   summary: string
+  contactUrl: string
   slug: string
   previewCid: string | null
   coherence: CoherenceVerdict | null
@@ -36,6 +37,7 @@ export interface RosterPublishPanelProps {
   rosterAgeLabel?: string
   onTitleChange: (value: string) => void
   onSummaryChange: (value: string) => void
+  onContactUrlChange: (value: string) => void
   onSlugChange: (value: string) => void
   onCheckCoherence: () => void
   onPublish: () => void
@@ -45,6 +47,7 @@ export interface RosterPublishPanelProps {
 export function RosterPublishPanel({
   title,
   summary,
+  contactUrl,
   slug,
   previewCid,
   coherence,
@@ -59,6 +62,7 @@ export function RosterPublishPanel({
   rosterAgeLabel,
   onTitleChange,
   onSummaryChange,
+  onContactUrlChange,
   onSlugChange,
   onCheckCoherence,
   onPublish,
@@ -128,6 +132,17 @@ export function RosterPublishPanel({
         disabled={busy}
         helperText="Optional public blurb for the cause page. Distinct from the statements people sign."
         slotProps={{ htmlInput: { 'data-testid': 'roster-summary' } }}
+      />
+      <TextField
+        label="Contact (optional)"
+        value={contactUrl}
+        onChange={(event) => onContactUrlChange(event.target.value)}
+        fullWidth
+        size="small"
+        disabled={busy}
+        placeholder="https://… or mailto:you@example.com"
+        helperText="A public pointer you already use. Empty means do not ping you. Commonality never sends the message."
+        slotProps={{ htmlInput: { 'data-testid': 'roster-contact-url' } }}
       />
       <TextField
         label="URL slug"

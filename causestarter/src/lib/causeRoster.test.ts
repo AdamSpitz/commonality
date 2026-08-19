@@ -27,6 +27,7 @@ import {
   normalizeSlug,
   parseCauseLink,
   parseCauseRouteParams,
+  parseContactUrl,
   parseRosterDocument,
   placeholderPlanksFromCids,
   plankAddedLaterLabels,
@@ -244,6 +245,28 @@ describe('causeRoster', () => {
         const doc = buildRosterDocument({ ...base, mediator: bad as never })
         expect(parseRosterDocument(doc)?.mediator).toBeUndefined()
       }
+    })
+  })
+
+  describe('optional contactUrl', () => {
+    const base = { title: 'A', summary: 'B', plankCids: ['bafy1'], mediatorBlurb: 'C' }
+
+    it('accepts https and mailto and rejects javascript', () => {
+      expect(parseContactUrl('https://example.com/me')).toBe('https://example.com/me')
+      expect(parseContactUrl('mailto:you@example.com')).toBe('mailto:you@example.com')
+      expect(parseContactUrl('javascript:alert(1)')).toBeUndefined()
+      expect(parseContactUrl('')).toBeUndefined()
+    })
+
+    it('leaves contact-less roster CIDs unchanged and round-trips a pointer', () => {
+      expect(previewRosterCid({ ...base, contactUrl: undefined })).toBe(previewRosterCid(base))
+      const parsed = parseRosterDocument(buildRosterDocument({
+        ...base,
+        contactUrl: 'https://example.com/me',
+      }))
+      expect(parsed?.contactUrl).toBe('https://example.com/me')
+      expect(previewRosterCid({ ...base, contactUrl: 'https://example.com/me' }))
+        .not.toBe(previewRosterCid(base))
     })
   })
 

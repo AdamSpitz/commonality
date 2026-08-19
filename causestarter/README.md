@@ -229,7 +229,10 @@ See [`cause-assist/README.md`](../cause-assist/README.md). Bridge-cluster wordin
   only, with no authoring affordances. An attached mediator is one compact row on
   both pages — name, opt-in toggle, link out. What it *proposes* lives on
   `/cause/…/mediator` (`BridgeDisplayBlock`), never inlined into the cause. See
-  [bridge-causes.md](../specs/product/bridge-causes.md).
+  [bridge-causes.md](../specs/product/bridge-causes.md). Commonality does not
+  notify the quoted organizer ([ADR 0011](../specs/decisions/0011-organizer-contact-is-pull.md)):
+  citations are public on the cause page; optional `contactUrl` is a pointer they
+  already use, not an inbox.
 - **A pasted link is the parent picker.** Since there is no directory to search,
   the bridge editor takes the link the other organizer circulated and pulls
   `owner`/`slug` out of it (`parseCauseLink`) — full URL, hash-routed URL, bare

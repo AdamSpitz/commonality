@@ -91,3 +91,7 @@ Cross-cause “federation” is no longer only “one service suggests wording t
 - A marketplace of mediators.
 - N-way role models inside a single synthesizer schema (multiple modified causes plus one bridge are enough).
 - Treating cause-to-cause implication as a substrate primitive.
+
+How a mediator *tells* a natural-parent organizer about a cluster is not a
+message we deliver: [organizer-contact.md](./organizer-contact.md) /
+[ADR 0011](../decisions/0011-organizer-contact-is-pull.md).
