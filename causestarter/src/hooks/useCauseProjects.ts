@@ -22,6 +22,7 @@ import {
 import { ETH_CURRENCY, type Currency, type IpfsCidV1 } from '@commonality/sdk/utils'
 import { selectAlignedContentContracts, useContentFundingState } from '@ui/content-funding'
 import { useTrustedContentAttesters } from '@ui/shared'
+import { mapWithConcurrency, PLANK_QUERY_CONCURRENCY } from '../lib/concurrency'
 import { useMachinery } from '../lib/useMachinery'
 
 function contentAttestationsFingerprint(
@@ -124,8 +125,10 @@ export function useCauseProjects(
 
     void (async () => {
       try {
-        const perPlank = await Promise.all(
-          cids.map(async (cid) => ({
+        const perPlank = await mapWithConcurrency(
+          cids,
+          PLANK_QUERY_CONCURRENCY,
+          async (cid) => ({
             cid,
             aligned: await getAllAlignedProjectsForCause(
               machinery,
@@ -133,7 +136,7 @@ export function useCauseProjects(
               implicationTrustKey ? implicationTrustKey.split('\0') : undefined,
               alignmentTrustKey ? alignmentTrustKey.split('\0') : undefined,
             ),
-          })),
+          }),
         )
         if (isStale()) return
 

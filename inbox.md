@@ -84,6 +84,10 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 - It's time to switch over to GitHub Issues, now that Sam is creating some.
 
+- **Indexer-side believer-set aggregate — the last unfixed CauseStarter scale ceiling.** A scalability pass over the CauseStarter UI turned up four per-plank query fan-outs; all four are now concurrency-capped, and believer sets are cached across mounts (`causestarter/src/lib/concurrency.ts`, `causestarter/src/lib/believerSetsCache.ts`). What's left can't be fixed in the UI: `getStatementBelieverSets` ships full anonymized-ID *sets* to the browser, so a plank with 100k believers downloads 100k IDs to render one number, and the SDK's `limit: 10000` per-fetch ceiling truncates *silently* into a plausible-looking wrong count. The remedy and its constraints are already worked out in [shaping-your-cause-statements.md § Scale: the fold is fine, the transport isn't](docs/founder/shaping-your-cause-statements.md#scale-the-fold-is-fine-the-transport-isnt) — including why band 1 must stay exact if sketches are ever used. Needs indexer + SDK work, not UI work.
+
+- **`StatementPicker` searches a top-100-by-popularity window.** `causestarter/src/components/StatementPicker.tsx` calls `browseStatements({ limit: 100, orderBy: 'believerCount' })` and ranks locally. As the corpus grows, the right statement to reuse increasingly falls outside that window, so the picker degrades in *suggestion quality* rather than in speed — silently, and in exactly the direction that pushes organizers to write duplicate planks instead of reusing existing ones. Wants server-side relevance ranking.
+
 ## Before mainnet
 
 - Decide when to schedule the Hardhat 2→3 migration. It is deferred until after current testnet stabilization, but should be revisited before mainnet and treated as a standalone migration project, not a dependency bump.

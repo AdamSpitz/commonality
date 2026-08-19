@@ -10,11 +10,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   computeViewCounts,
-  getStatementBelieverSets,
   type StatementBelieverSets,
   type ViewCounts,
 } from '@commonality/sdk/conceptspace'
-import type { IpfsCidV1 } from '@commonality/sdk/utils'
+import { invalidateBelieverSets, loadBelieverSets } from '../lib/believerSetsCache'
+import { mapWithConcurrency, PLANK_QUERY_CONCURRENCY } from '../lib/concurrency'
 import { useMachinery } from '../lib/useMachinery'
 
 export interface UseViewCountsResult {
@@ -56,7 +56,13 @@ export function useViewCounts(
     : ''
   const generationRef = useRef(0)
 
-  const refresh = useCallback(() => setTick((n) => n + 1), [])
+  // Refresh means "I want newer numbers", so it has to drop the cached sets as
+  // well as retrigger the effect; otherwise the cache would serve the same
+  // answer straight back for the rest of its TTL.
+  const refresh = useCallback(() => {
+    invalidateBelieverSets(publishedKey ? publishedKey.split('\0').filter(Boolean) : undefined)
+    setTick((n) => n + 1)
+  }, [publishedKey])
 
   useEffect(() => {
     const cids = publishedKey ? publishedKey.split('\0').filter(Boolean) : []
@@ -83,15 +89,18 @@ export function useViewCounts(
 
     void (async () => {
       try {
-        const results = await Promise.all(
-          cids.map(async (cid) => [
+        const results = await mapWithConcurrency(
+          cids,
+          PLANK_QUERY_CONCURRENCY,
+          async (cid) => [
             cid,
-            await getStatementBelieverSets(
+            await loadBelieverSets(
               machinery,
-              cid as IpfsCidV1,
+              cid,
               trustedAttestersKey ? trustedAttestersKey.split('\0') : undefined,
+              trustedAttestersKey,
             ),
-          ] as const),
+          ] as const,
         )
         if (isStale()) return
         setSetsByCid(new Map(results))

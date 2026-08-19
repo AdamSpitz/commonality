@@ -1,5 +1,6 @@
 import { renderHook, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { invalidateBelieverSets } from '../lib/believerSetsCache'
 import { useViewCounts } from './useViewCounts'
 
 const mockMachinery = {}
@@ -28,6 +29,9 @@ const EMPTY_SETS = {
 describe('useViewCounts', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    // The believer-set cache outlives any one hook mount by design, so each
+    // test has to start from an empty one or it reads the previous test's sets.
+    invalidateBelieverSets()
     vi.mocked(getStatementBelieverSets).mockResolvedValue(EMPTY_SETS as any)
   })
 
