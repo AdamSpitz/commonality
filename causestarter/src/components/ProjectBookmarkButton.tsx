@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { IconButton, Tooltip } from '@mui/material'
 import BookmarkIcon from '@mui/icons-material/Bookmark'
 import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder'
@@ -7,10 +7,12 @@ import { useParams } from 'react-router-dom'
 import { tryParseChainAddressRef } from '@ui/shared'
 import {
   bookmarkProject,
+  hydrateProjectBookmarks,
   isProjectBookmarked,
   persistProjectBookmarks,
   unbookmarkProject,
 } from '../lib/projectBookmarks'
+import { useMachinery } from '../lib/useMachinery'
 import { useWriteClients } from '../lib/useWriteClients'
 
 export function ProjectBookmarkButton() {
@@ -18,8 +20,20 @@ export function ProjectBookmarkButton() {
   const parsed = tryParseChainAddressRef(projectAddress)
   const address = parsed?.address
   const { address: wallet } = useAccount()
+  const machinery = useMachinery()
   const writeClients = useWriteClients(wallet)
   const [kept, setKept] = useState(() => (address ? isProjectBookmarked(address) : false))
+
+  useEffect(() => {
+    if (!wallet || !address) return
+    let cancelled = false
+    void hydrateProjectBookmarks(machinery, wallet).then(() => {
+      if (!cancelled) setKept(isProjectBookmarked(address))
+    }).catch(() => undefined)
+    return () => {
+      cancelled = true
+    }
+  }, [machinery, wallet, address])
 
   const toggle = useCallback(() => {
     if (!address) return

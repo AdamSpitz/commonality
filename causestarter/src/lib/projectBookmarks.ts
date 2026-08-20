@@ -127,7 +127,12 @@ export async function hydrateProjectBookmarks(
 ): Promise<string[]> {
   if (hasLocalDocument()) return listProjectBookmarks()
   const ref = await getUserRef(machinery, address, PROJECT_BOOKMARKS_REF).catch(() => null)
-  return writeProjectBookmarks(parseProjectBookmarkDocument(ref?.value).projects)
+  const projects = parseProjectBookmarkDocument(ref?.value).projects
+  // An empty chain ref must not write a local document. `hasLocalDocument`
+  // treats any key as authoritative, so a first visit with no bookmarks would
+  // lock this device out of a later persist from another session.
+  if (projects.length === 0) return []
+  return writeProjectBookmarks(projects)
 }
 
 export async function persistProjectBookmarks(
