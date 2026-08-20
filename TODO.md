@@ -33,14 +33,6 @@ When an item from this page is done and no longer needs an LLM implementor's att
 
 - Fix the canonical Playwright user journeys (`stack.user-journeys`, exit 1). The content-funding flow reverts in `verifyChannel` with `InvalidVerifierSignature()` (custom error `0x0574e985`) when creating a channel and landing on the creators page, and retries hit the same error. Either the signer/verifier key the E2E harness uses no longer matches the deployed `ChannelRegistry` verifier, or the signed payload's shape/domain changed.
 
-- `anvil --state /data/state.json` is not giving restart durability. After
-  `stack.restart-consistency` the node can come up empty rather than reloading the
-  snapshot (2026-08-19: blocks 1–31 redeploy, 32–41 trust wiring, no seed). The check
-  comments claim `up -d --no-deps` avoids rerunning `hardhat-deploy`, but deploy ran
-  anyway. Deep cadence now serializes this check against `stack.fresh-seeded` (shared
-  flock + skip remaining local-stack checks after a failure); this item is the
-  remaining anvil/compose durability bug.
-
 - `stack.fresh-seeded` only probes endpoint reachability, so an unseeded-but-healthy
   stack passes it. It should assert the seed's own artifacts exist (e.g. the
   `local-food-systems` / `christianity` roster refs for Hardhat #0 and the
