@@ -1,5 +1,7 @@
 # Commonality — Analysis & Reporting Plan
 
+**Dated snapshot (2026-07).** This is the brief that produced [`scale-launch-analysis/`](./scale-launch-analysis/README.md). It is not live project status — use [project-status.md](./project-status.md) and the verifier for that.
+
 **Engagement posture:** Independent technical + legal (US/Canada) counsel-ready diligence for scale launch  
 **Repo:** [github.com/AdamSpitz/commonality](https://github.com/AdamSpitz/commonality) (`dev` branch; latest commits already include substantial in-repo legal work)  
 **Current phase (repo self-assessment):** MVP implemented in code; **no mainnet**; testnet stabilization / MVP validation  
