@@ -12,6 +12,7 @@ import VisibilityOffOutlinedIcon from '@mui/icons-material/VisibilityOffOutlined
 import { Link as RouterLink } from 'react-router-dom'
 import type { IpfsCidV1 } from '@commonality/sdk/utils'
 import { SupportButton, type SupportSettledInfo } from './SupportButton'
+import { StatementSupportStats, type StatementSupportCounts } from './StatementSupportStats'
 import type { CausePlank } from '../lib/causeStore'
 import { readPlankText } from '../lib/causeRoster'
 import { useMachinery } from '../lib/useMachinery'
@@ -56,11 +57,7 @@ export interface PlankReview {
   exampleWording?: string
 }
 
-export interface PlankSupport {
-  direct: number
-  indirect: number
-  total: number
-}
+export type PlankSupport = StatementSupportCounts
 
 interface PlankRowProps {
   plank: CausePlank
@@ -91,13 +88,6 @@ interface PlankRowProps {
    * published roster (e.g. "Added later · 3 days ago").
    */
   addedLaterLabel?: string
-}
-
-function supportSummary(support: PlankSupport | undefined, loading: boolean): string {
-  if (!support) return loading ? 'Counting signers…' : 'Signers unavailable'
-  // Keep both provenance categories visible even when indirect support is zero. A cause
-  // visitor should never have to infer whether the displayed number is direct or derived.
-  return `${support.direct} direct · ${support.indirect} indirect`
 }
 
 export function PlankRow({
@@ -195,21 +185,12 @@ export function PlankRow({
                   compact
                   showConnectPrompt={false}
                 />
-                <Typography variant="caption" color="text.secondary">
-                  {support
-                    ? `${support.total.toLocaleString()} · ${supportSummary(support, supportLoading)}`
-                    : supportSummary(support, supportLoading)}
-                  {' · '}
-                  <Box
-                    component={RouterLink}
-                    to={`/statement/${plank.cid}?section=fundable-projects`}
-                    sx={{ color: 'inherit', textDecoration: 'underline', textUnderlineOffset: 2 }}
-                  >
-                    {projectCount > 0
-                      ? `${projectCount} project${projectCount === 1 ? '' : 's'}`
-                      : 'Projects'}
-                  </Box>
-                </Typography>
+                <StatementSupportStats
+                  statementCid={plank.cid!}
+                  support={support}
+                  supportLoading={supportLoading}
+                  projectCount={projectCount}
+                />
                 {addedLaterLabel && (
                   <InfoChip
                     size="small"
