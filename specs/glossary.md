@@ -163,9 +163,7 @@ routes, `ui/src/fundingportals/` copy, and ~22 files under `docs/end-user/` stil
 - **Contract directory names** don't match subsystem names: `individual-projects/` holds
   LazyGiving, `statements/` holds Beliefs + Implications (Conceptspace),
   `alignment-attestations/` backs `fundingportals`. Cosmetic, but it breaks the
-  four-layer isomorphism the
-  [coherence review](../workflow/reviews/conceptual-coherence-2026-06-25.md) identifies
-  as this codebase's main legibility property.
+  four-layer isomorphism that improves this codebase's legibility.
 
 ---
 
