@@ -1,5 +1,7 @@
 # Commonality Scale-Launch Analysis — Results Package
 
+**Dated snapshot (2026-07-14).** Keep for the diligence record (rejected options, counsel pack). Do not treat as current code/docs status; start from [project-status.md](../project-status.md) and the legal specs.
+
 **Baseline commit:** `c6faa0a6f50ac368739c57bf645e116762c8e64d` (local branch includes analysis plan; upstream analysis baseline effectively `86347e2a` + plan commit)  
 **Location in repo:** `workflow/scale-launch-analysis/` · upstream [AdamSpitz/commonality](https://github.com/AdamSpitz/commonality)  
 **Date:** 2026-07-14  

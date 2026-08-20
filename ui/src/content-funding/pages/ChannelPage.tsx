@@ -1,6 +1,6 @@
 // REFACTOR-WANTED: this file is large (~630 lines). It mixes several
 // concerns that could be extracted (channel header, content list, and ownership/verification UI). Left intact for now — please split
-// it up when next doing substantial work here. See workflow/reviews/ui-deep-dive-2026-06-25.md (issue #3).
+// it up when next doing substantial work here.
 import { useEffect, useMemo, useState } from 'react'
 import { useParams, useSearchParams, Link as RouterLink } from 'react-router-dom'
 import {

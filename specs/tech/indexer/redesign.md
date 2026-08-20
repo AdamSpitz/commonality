@@ -1,5 +1,7 @@
 # Redesign of the indexer
 
+Status: **adopted.** This is the historical design note that led to today’s thin event-cache + client-side folding indexer. It still talks about the *pre-redesign* GraphQL/federated indexer as “the current system.” For the live architecture, read [README.md](./README.md). Keep this file as the record of what was rejected and why.
+
 ## User's notes
 
 I guess my motivation is something like...

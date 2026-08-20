@@ -5,8 +5,7 @@ export FORCE_COLOR=1  # helps lazygit show color
 protected_branch_guard commit
 
 # Validate doc links whenever any prose doc changes (cheap, offline).
-# specs/chats is raw transcripts, not maintained prose — see check-docs-links.sh.
-if git diff --cached --name-only | grep -vE '^specs/chats/' | grep -qE '\.md$'; then
+if git diff --cached --name-only | grep -qE '\.md$'; then
   echo "Checking docs links..."
   npm run check:docs-links || exit 1
 fi

@@ -22,7 +22,7 @@ This report is **not legal advice** and **not a formal legal opinion**. It is in
 | Same narrative in fund/create docs | `docs/end-user/lazyGiving/fund-something.md`, `get-your-project-funded.md` |
 | “nano-VC” framing | `docs/end-user/lazyGiving/retroactive-funding.md` |
 | Legal strategy identifies this as highest risk | `specs/product/legal/securities.md`, `legal/README.md` |
-| Donation-first reframe planned not fully resolving mechanism | `workflow/donation-first-reframe-plan-2026-06-22.md` |
+| Donation-first reframe planned not fully resolving mechanism | then-path `workflow/donation-first-reframe-plan-2026-06-22.md` (deleted after this snapshot; git history) |
 | Operator runs multi-surface platform | `ui/src/domains/index.ts`; architecture docs |
 | Channel verification is sole trusted signer | `ChannelVerifier.sol` |
 | Unclaimed channel escrow by channel ID | `ChannelEscrow.sol` |

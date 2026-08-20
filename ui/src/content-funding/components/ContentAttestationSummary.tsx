@@ -1,6 +1,6 @@
 // REFACTOR-WANTED: this file is large (~555 lines). It mixes several
 // concerns that could be extracted (summary chips, the attester detail dialog, and trust controls). Left intact for now — please split
-// it up when next doing substantial work here. See workflow/reviews/ui-deep-dive-2026-06-25.md (issue #3).
+// it up when next doing substantial work here.
 import { useEffect, useState } from 'react'
 import { Stack, Chip, Tooltip, Typography, Box, Divider, Button, Dialog, DialogTitle, DialogContent, DialogActions, Alert } from '@mui/material'
 import MemoryIcon from '@mui/icons-material/Memory'

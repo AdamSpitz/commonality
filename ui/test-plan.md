@@ -23,7 +23,7 @@
 
 ### Docs
 - `DocsPage` (21 tests — headings, paragraphs, lists, internal links, blockquotes, inline code, multiple doc paths, max-width styling, 404 handling, bundled public-doc route inventory, rendered internal docs-link crawler)
-- **Gap:** External link `target="_blank"` behavior untestable — no included doc (`docs/` minus `vision-and-strategy/` and `chats/`) contains external URLs. Would need a test-only fixture or doc with an external link.
+- **Gap:** External link `target="_blank"` behavior untestable — no included doc (`docs/` minus `vision-and-strategy/`) contains external URLs. Would need a test-only fixture or doc with an external link.
 
 ### Shared Infrastructure
 - `App` (15 tests — browser/hash routing modes, domain branding passthrough for all 4 domains, primary navigation rendering per domain, footer text, wallet button, children/route rendering; uses full mocking to avoid expensive dynamic imports)

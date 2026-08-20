@@ -110,7 +110,6 @@ const DEFAULT_INPUT_FILES = [
   "../specs/tech/subsystems/content-funding/noninflammatory-content/beat-agents.md",
   "../specs/tech/subsystems/content-funding/platform-api-service.md",
   "../specs/tech/subsystems/conceptspace/explorer.md",
-  "../workflow/reviews/smart-contract-audit-2026-05-07.md",
   "../docs/end-user/tally/statements-and-implication-graph.md",
   "../docs/end-user/shared/key-ideas/README.md",
   "../docs/end-user/commonality/vision-and-strategy/README.md",
