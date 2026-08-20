@@ -1,5 +1,7 @@
 # Big review before deploying to testnet
 
+**Dated snapshot (2026-05-22).** Historical pre-testnet review. Do not treat as current status; start from [project-status.md](../project-status.md). Several findings below were already marked fixed in-file.
+
 (Late May 2026.)
 
 The goal here is to do a giant test run reviewing all the user-facing surfaces of the project, using the `intelligent-tester` skill and the `cofounder` skill.

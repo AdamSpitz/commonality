@@ -69,7 +69,7 @@ The project has unusually strong self-documentation. Analysis will **treat these
 | Scale | `specs/tech/scalability.md` |
 | Security | `specs/tech/security.md`, `workflow/security-recoverability.md`, Slither + Hardhat suite |
 | Legal map | `specs/product/legal/*` (14 risk files + control audit) |
-| Product reframe | `workflow/donation-first-reframe-plan-2026-06-22.md`, `specs/product/legal/retroactive-funding-redesign.md` |
+| Product reframe | historical `workflow/donation-first-reframe-plan-2026-06-22.md` (deleted; git history), `specs/product/legal/retroactive-funding-redesign.md` |
 | Ops | `workflow/deployment.md`, verifier, Render/Cloudflare/IPNS deploy scripts |
 
 **Critical observation for the plan:** recent git history (`legal-analysis` PR) means legal thinking is advanced *on paper*. Launch risk is whether **code + UX copy + marketing + operator control** still contradict the intended legal posture—especially retroactive-funding “scout profit” language still present in end-user documentation (e.g. TL;DR for LLMs).

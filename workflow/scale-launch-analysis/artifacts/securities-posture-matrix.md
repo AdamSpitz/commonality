@@ -22,7 +22,7 @@
 | Uncapped secondary market contract | **Shipped** — `hardhat/contracts/marketplace/ERC1155SecondaryMarket.sol` |
 | Profit narrative in end-user docs | **Shipped** — e.g. `docs/end-user/lazyGiving/retroactive-funding.md` (“make a profit”) |
 | Legal strategy warning | **Shipped** — `specs/product/legal/securities.md` flags middle path as unsafe |
-| Donation-first UI reframe | **Partial / planned** — `workflow/donation-first-reframe-plan-2026-06-22.md` |
+| Donation-first UI reframe | **Partial / planned** (as of this snapshot) — then-path `workflow/donation-first-reframe-plan-2026-06-22.md` (since deleted; git history) |
 | Reimbursement waterfall redesign | **Spec only** — `specs/product/legal/retroactive-funding-redesign.md` |
 
 **Launch decision implication:** shipping mainnet with market UI + current end-user docs is **Posture D without the opinion** — the worst of all worlds. Choose A, B, or C *and implement it*, or fund D properly before mainnet.

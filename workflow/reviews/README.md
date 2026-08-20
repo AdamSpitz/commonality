@@ -2,6 +2,8 @@
 
 I'm worried about this code base getting away from me. So let's try doing regular reviews of various components or aspects of the code base.
 
+Dated one-shot reviews were removed from this folder. The remaining historical artifact is [before-testnet.md](./before-testnet.md) (May 2026, snapshot — not current status).
+
 ## Skills to use
 
 Use the `project-wide-reviewer` skill, or whichever specific skills (mentioned inside the `project-wide-reviewer` skill) are relevant.
