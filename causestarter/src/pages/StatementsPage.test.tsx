@@ -59,6 +59,7 @@ describe('StatementsPage', () => {
     useUserStatements.mockReturnValue({
       connected: true,
       loading: false,
+      error: null,
       refresh: vi.fn(),
       statements: [
         { cid: 'bafy1', title: 'Local food', excerpt: 'Local food' },

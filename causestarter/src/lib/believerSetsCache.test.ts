@@ -47,6 +47,13 @@ describe('believer sets cache', () => {
     expect(getStatementBelieverSets).toHaveBeenCalledTimes(2)
   })
 
+  it('drops expired sibling keys so they do not keep full believer sets', async () => {
+    await loadBelieverSets(machinery, 'cid-a', undefined, '', 1000)
+    await loadBelieverSets(machinery, 'cid-b', undefined, '', 1000 + 60_001)
+    await loadBelieverSets(machinery, 'cid-a', undefined, '', 1000 + 60_001)
+    expect(getStatementBelieverSets).toHaveBeenCalledTimes(3)
+  })
+
   it('keys on the trusted attester list, because it changes the answer', async () => {
     await loadBelieverSets(machinery, 'cid-a', ['0xaa'], '0xaa', 1000)
     await loadBelieverSets(machinery, 'cid-a', ['0xbb'], '0xbb', 1000)

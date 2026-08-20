@@ -1,4 +1,4 @@
-import { Box, Button, CircularProgress, Stack, Typography } from '@mui/material'
+import { Alert, Box, Button, CircularProgress, Stack, Typography } from '@mui/material'
 import { Link as RouterLink } from 'react-router-dom'
 import { ConnectWalletHint } from './ConnectWalletHint'
 import { HeaderInfoTip } from './HeaderInfoTip'
@@ -7,7 +7,7 @@ import { useUserStatements } from '../hooks/useUserStatements'
 const sectionHeadingSx = { fontWeight: 800, fontSize: { xs: '1.6rem', sm: '2rem' } }
 
 export function YourSignedStatements() {
-  const { statements, loading, connected } = useUserStatements()
+  const { statements, loading, connected, error, refresh } = useUserStatements()
   const count = statements.length
 
   return (
@@ -37,7 +37,16 @@ export function YourSignedStatements() {
         </Stack>
       )}
 
-      {connected && !loading && (
+      {connected && !loading && error && (
+        <Alert severity="error" sx={{ borderRadius: 2, mt: 1 }} data-testid="home-statements-error">
+          {error}
+          <Button onClick={refresh} sx={{ display: 'block', mt: 0.5, textTransform: 'none', px: 0 }}>
+            Try again
+          </Button>
+        </Alert>
+      )}
+
+      {connected && !loading && !error && (
         <>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }} data-testid="home-statements-count">
             {count === 1 ? '1 signed statement' : `${count} signed statements`}

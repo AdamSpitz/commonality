@@ -44,4 +44,13 @@ describe('useUserStatements', () => {
     expect(result.current.statements).toEqual([{ cid: 'bafy1', title: 'Hello' }])
     expect(getUserBeliefs).toHaveBeenCalledWith(machinery, '0xabc')
   })
+
+  it('surfaces indexer failures instead of an empty list', async () => {
+    useAccount.mockReturnValue({ address: '0xabc' })
+    getUserBeliefs.mockRejectedValue(new Error('indexer down'))
+    const { result } = renderHook(() => useUserStatements())
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    expect(result.current.statements).toEqual([])
+    expect(result.current.error).toBe('indexer down')
+  })
 })

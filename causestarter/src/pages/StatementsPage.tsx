@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { Alert, Box, CircularProgress, Paper, Stack, Typography } from '@mui/material'
+import { Alert, Box, Button, CircularProgress, Paper, Stack, Typography } from '@mui/material'
 import { Link as RouterLink } from 'react-router-dom'
 import { useTrustedAttesters } from '@ui/shared'
 import { ConnectWalletHint } from '../components/ConnectWalletHint'
@@ -13,7 +13,7 @@ import { useViewCounts } from '../hooks/useViewCounts'
 import type { IpfsCidV1 } from '@commonality/sdk/utils'
 
 export function StatementsPage() {
-  const { statements, loading, connected, refresh } = useUserStatements()
+  const { statements, loading, connected, error, refresh } = useUserStatements()
   const trustedImplicationAttesters = useTrustedAttesters()
   const activeTrustedImplicationAttesters = trustedImplicationAttesters.length > 0
     ? trustedImplicationAttesters
@@ -64,7 +64,16 @@ export function StatementsPage() {
         </Stack>
       )}
 
-      {connected && !loading && statements.length === 0 && (
+      {connected && !loading && error && (
+        <Alert severity="error" sx={{ borderRadius: 2 }}>
+          {error}
+          <Button onClick={() => refresh()} sx={{ display: 'block', mt: 0.5, textTransform: 'none', px: 0 }}>
+            Try again
+          </Button>
+        </Alert>
+      )}
+
+      {connected && !loading && !error && statements.length === 0 && (
         <Alert severity="info" sx={{ borderRadius: 2 }}>
           No signed statements yet. Open a statement and sign it to add it here.
         </Alert>

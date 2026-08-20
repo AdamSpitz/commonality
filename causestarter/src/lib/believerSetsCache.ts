@@ -36,6 +36,12 @@ function keyFor(cid: string, attestersKey: string): string {
   return `${attestersKey} ${cid}`
 }
 
+function dropExpired(now: number): void {
+  for (const [key, entry] of [...entries.entries()]) {
+    if (now - entry.fetchedAt >= TTL_MS) entries.delete(key)
+  }
+}
+
 export function loadBelieverSets(
   machinery: SDKMachinery,
   cid: string,
@@ -43,9 +49,10 @@ export function loadBelieverSets(
   attestersKey: string,
   now = Date.now(),
 ): Promise<StatementBelieverSets> {
+  dropExpired(now)
   const key = keyFor(cid, attestersKey)
   const existing = entries.get(key)
-  if (existing && now - existing.fetchedAt < TTL_MS) return existing.promise
+  if (existing) return existing.promise
 
   const promise = getStatementBelieverSets(machinery, cid as IpfsCidV1, trustedAttesters)
   // A failed fetch must not stay cached, or one blip poisons the plank for a

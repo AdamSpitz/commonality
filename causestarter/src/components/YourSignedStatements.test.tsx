@@ -21,7 +21,7 @@ describe('YourSignedStatements', () => {
   })
 
   it('asks to connect when the wallet is disconnected', () => {
-    useUserStatements.mockReturnValue({ statements: [], loading: false, connected: false })
+    useUserStatements.mockReturnValue({ statements: [], loading: false, connected: false, error: null })
     render(
       <MemoryRouter>
         <YourSignedStatements />
@@ -36,6 +36,7 @@ describe('YourSignedStatements', () => {
       statements: [{ cid: 'a' }, { cid: 'b' }],
       loading: false,
       connected: true,
+      error: null,
     })
     render(
       <MemoryRouter>
