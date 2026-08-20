@@ -22,4 +22,4 @@ Commonality is a system for decentralized crowdfunding of public goods: people c
     - [end-user documentation writer](./specs/user-docs.md)
     - [end user](./workflow/roles/end-user.md)
   - [Reviews](./workflow/reviews/README.md)
-  - [Marketing](/specs/product/marketing.md)
+  - [Marketing](./specs/product/marketing.md)
