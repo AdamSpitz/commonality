@@ -1,16 +1,23 @@
 /**
  * CauseStarter host for the shared lazy-giving {@link ProjectDetailPage}.
  * Project detail is first-class on CauseStarter (not a deep-link out to LazyGiving).
- * Error/not-found recovery goes to Causes — there is no `/projects` index route.
+ * Error/not-found recovery goes to home — there is no public `/projects` index.
  */
+import { Stack } from '@mui/material'
 import { ProjectDetailPage as LazyGivingProjectDetailPage } from '@ui/lazy-giving/pages/ProjectDetailPage'
+import { ProjectBookmarkButton } from '../components/ProjectBookmarkButton'
 
 export function ProjectDetailPage() {
   return (
-    <LazyGivingProjectDetailPage
-      listPath="/causes"
-      listLabel="Back to causes"
-    />
+    <Stack spacing={0.5}>
+      <Stack direction="row" justifyContent="flex-end">
+        <ProjectBookmarkButton />
+      </Stack>
+      <LazyGivingProjectDetailPage
+        listPath="/"
+        listLabel="Back to home"
+      />
+    </Stack>
   )
 }
 

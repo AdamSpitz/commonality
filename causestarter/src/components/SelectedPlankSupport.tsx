@@ -5,6 +5,7 @@ import { BeliefsAbi } from '@commonality/sdk/abis'
 import { BeliefStates, getUserBelief } from '@commonality/sdk/conceptspace'
 import { cidToBytes32, type IpfsCidV1 } from '@commonality/sdk/utils'
 import type { SDKMachinery } from '@commonality/sdk/machinery'
+import { mapWithConcurrency, PLANK_QUERY_CONCURRENCY } from '../lib/concurrency'
 import { getRuntimeConfigValue } from '../lib/runtimeConfig'
 import { sendCallsPreferAtomic } from '../lib/causeRoster'
 import { useWriteClients } from '../lib/useWriteClients'
@@ -41,12 +42,10 @@ export function SelectedPlankSupport({ planks, machinery, onSupported }: Props) 
       return
     }
     setChecking(true)
-    void Promise.all(
-      planks.map(async (plank) => {
-        const belief = await getUserBelief(machinery, address, plank.cid)
-        return { cid: plank.cid, state: belief?.beliefState ?? BeliefStates.NO_OPINION }
-      }),
-    ).then((rows) => {
+    void mapWithConcurrency(planks, PLANK_QUERY_CONCURRENCY, async (plank) => {
+      const belief = await getUserBelief(machinery, address, plank.cid)
+      return { cid: plank.cid, state: belief?.beliefState ?? BeliefStates.NO_OPINION }
+    }).then((rows) => {
       if (cancelled) return
       setSignedCids(new Set(
         rows.filter((row) => row.state === BeliefStates.BELIEVES).map((row) => row.cid),

@@ -27,6 +27,7 @@ import {
   type AlignmentAttestation,
 } from '@commonality/sdk/fundingportals'
 import type { SDKMachinery } from '@commonality/sdk/machinery'
+import { mapWithConcurrency, PLANK_QUERY_CONCURRENCY } from './concurrency'
 import {
   getUserRef,
   getUserRefHistory,
@@ -804,8 +805,10 @@ export async function loadPlankTexts(
   machinery: SDKMachinery,
   plankCids: readonly string[],
 ): Promise<Map<string, string>> {
-  const entries = await Promise.all(
-    plankCids.map(async (cid) => [cid, await readPlankText(machinery, cid)] as const),
+  const entries = await mapWithConcurrency(
+    plankCids,
+    PLANK_QUERY_CONCURRENCY,
+    async (cid) => [cid, await readPlankText(machinery, cid)] as const,
   )
   return new Map(entries)
 }

@@ -4,6 +4,30 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { createBridgePath } from '../lib/bridgeStore'
 
 /**
+ * StrictMode remounts this redirect in development, and `useState`/`useRef`
+ * reset on that remount. Seeded drafts now persist immediately, so a second
+ * `createBridgePath` would leave an extra Untitled bridge on the parent cause.
+ * Reuse a mint from the same seed if it happened in the last half-second.
+ */
+let lastSeededMint: { key: string; path: string; at: number } | null = null
+
+export function seededBridgePath(seed: { owner: string; slug: string; title: string }): string {
+  const key = `${seed.owner}\0${seed.slug}\0${seed.title}`
+  const now = Date.now()
+  if (lastSeededMint && lastSeededMint.key === key && now - lastSeededMint.at < 500) {
+    return lastSeededMint.path
+  }
+  const path = createBridgePath(seed)
+  lastSeededMint = { key, path, at: now }
+  return path
+}
+
+/** Test helper: forget the StrictMode reuse window. */
+export function resetSeededBridgePathReuse(): void {
+  lastSeededMint = null
+}
+
+/**
  * Creates a draft cluster and opens the editor, with no intermediate form.
  *
  * `parentOwner` / `parentSlug` / `parentTitle` prefill natural parent 1 when
@@ -20,7 +44,7 @@ export function StartBridgeRedirect() {
 
   useEffect(() => {
     navigate(
-      createBridgePath({ owner: parentOwner, slug: parentSlug, title: parentTitle }),
+      seededBridgePath({ owner: parentOwner, slug: parentSlug, title: parentTitle }),
       { replace: true },
     )
   }, [navigate, parentOwner, parentSlug, parentTitle])

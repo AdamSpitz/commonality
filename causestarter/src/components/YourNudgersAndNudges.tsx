@@ -84,6 +84,9 @@ export function YourNudgersAndNudges() {
 
   return (
     <Stack spacing={2} data-testid="home-nudgers">
+      <Typography variant="h4" component="h2" sx={{ fontWeight: 800, fontSize: { xs: '1.6rem', sm: '2rem' } }}>
+        Suggesters
+      </Typography>
       <Box>
         <Stack direction="row" alignItems="center">
           <Typography variant="h6" sx={{ fontWeight: 700 }}>

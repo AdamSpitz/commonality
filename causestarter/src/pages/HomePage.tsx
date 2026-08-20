@@ -3,6 +3,8 @@ import { Link as RouterLink, useNavigate } from 'react-router-dom'
 import { HowItWorksSteps } from '../components/HowItWorksSteps'
 import { YourCauses } from '../components/YourCauses'
 import { YourNudgersAndNudges } from '../components/YourNudgersAndNudges'
+import { YourProjects } from '../components/YourProjects'
+import { YourSignedStatements } from '../components/YourSignedStatements'
 import { useUserCauses } from '../hooks/useUserCauses'
 import { createCausePath } from '../lib/causeStore'
 
@@ -93,6 +95,10 @@ function LandingHome() {
         </Button>
       </Paper>
 
+      <YourSignedStatements />
+
+      <YourProjects />
+
       <YourNudgersAndNudges />
     </Stack>
   )
@@ -107,7 +113,13 @@ export function HomePage() {
         causes={causes}
         loading={loading}
         testId="home-dashboard"
-        footer={<YourNudgersAndNudges />}
+        footer={(
+          <>
+            <YourSignedStatements />
+            <YourProjects />
+            <YourNudgersAndNudges />
+          </>
+        )}
       />
     )
   }

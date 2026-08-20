@@ -10,6 +10,8 @@ When an item from this page is done and no longer needs an LLM implementor's att
 
 ----
 
+- **(Tell)** Index `ProjectFactory.ProjectCreated` (or add a creator-filtered SDK query) so CauseStarter’s “projects you created” list does not depend on `eth_getLogs` from block 0. Tracked in [`causestarter/TODO.md`](causestarter/TODO.md). Public RPCs often reject unbounded log ranges and the current catch returns `[]`.
+
 - Add a fresh-stack integration test for the alignment-trust bootstrap: publish
   an alignment vouch from a previously unknown wallet, observe the service's
   `TrustSet(..., 100)`, confirm a wallet with no personal graph sees that vouch

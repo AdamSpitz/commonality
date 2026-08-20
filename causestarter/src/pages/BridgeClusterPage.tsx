@@ -30,13 +30,13 @@ import {
   validateSlug,
 } from '../lib/causeRoster'
 import {
-  createBridge,
   emptyParent,
   findBridgeByStable,
   implicationSourcePlanks,
   getBridge,
   markClusterPublished,
   rememberPublishedCluster,
+  plankByCid,
   plankById,
   updateBridge,
   STAND_IN_CAUSE_NOTICE,
@@ -124,11 +124,12 @@ export function BridgeClusterPage() {
     const existing = getBridge(localDraftId)
     if (existing) {
       setDraft(existing)
+      setLoadError(null)
       return
     }
-    const created = createBridge()
-    navigate(`/bridge/${created.id}`, { replace: true })
-    setDraft(created)
+    // Do not mint a blank draft under this URL — that is how a prefilled
+    // parent from /bridge/new?parentOwner=… used to vanish on reload.
+    setLoadError('This draft is not on this device. Start again from a cause’s Create a bridge button.')
   }, [localDraftId, navigate, routeRef])
 
   useEffect(() => {
@@ -551,7 +552,14 @@ export function BridgeClusterPage() {
   }
 
   if (loadError && !published) {
-    return <Alert severity="error">{loadError}</Alert>
+    return (
+      <Stack spacing={2} data-testid="bridge-draft-missing">
+        <Alert severity="error">{loadError}</Alert>
+        <Button component={RouterLink} to="/bridge/new" sx={{ textTransform: 'none', alignSelf: 'flex-start' }}>
+          Create a bridge
+        </Button>
+      </Stack>
+    )
   }
 
   const runSubmitPairs = async (fields: BridgeClusterFields) => {
@@ -670,8 +678,11 @@ export function BridgeClusterPage() {
             not attested until the implication attester blesses each pair.
           </Typography>
           {published.pairs.map((pair) => (
-            <Typography key={`${pair.fromCid}-${pair.toCid}-${pair.role}`} variant="body2" sx={{ fontFamily: 'monospace', fontSize: 13 }}>
-              {pair.role}: {pair.fromCid.slice(0, 12)}… → {pair.toCid.slice(0, 12)}…
+            <Typography key={`${pair.fromCid}-${pair.toCid}-${pair.role}`} variant="body2">
+              {pair.role.replace(/-/g, ' ')}:{' '}
+              {(draft && plankByCid(draft, pair.fromCid)?.text.trim()) || `${pair.fromCid.slice(0, 12)}…`}
+              {' → '}
+              {(draft && plankByCid(draft, pair.toCid)?.text.trim()) || `${pair.toCid.slice(0, 12)}…`}
             </Typography>
           ))}
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ mt: 1.5 }}>
@@ -761,6 +772,16 @@ export function BridgeClusterPage() {
         <ConnectWalletHint>
           Connect the mediator wallet. Modified causes and the bridge publish under your key.
         </ConnectWalletHint>
+      )}
+      {address && draft.parents.some((parent) => (
+        parent.kind === 'published'
+        && parent.owner.trim().toLowerCase() === address.toLowerCase()
+      )) && (
+        <Alert severity="warning" sx={{ borderRadius: 2 }} data-testid="bridge-key-coaching">
+          The connected wallet also owns a parent cause. Publishing from that key makes
+          the modified wording look like an official revision. Use a different mediator
+          wallet if you want authorship to stay loud.
+        </Alert>
       )}
 
       <Paper elevation={0} sx={{ p: 2, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
@@ -1044,6 +1065,8 @@ export function BridgeClusterPage() {
               </>
             )}
 
+            {parent.kind === 'stand-in' && (
+              <>
             <Divider />
             <FormControlLabel
               control={(
@@ -1056,8 +1079,10 @@ export function BridgeClusterPage() {
                   })}
                 />
               )}
-              label="Skip modified cause (stand-in is already thin enough to imply the bridge)"
+              label="Skip modified cause (this stand-in is already thin enough to imply the bridge)"
             />
+              </>
+            )}
             {!parent.skipModified && (
               <>
             <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>Modified cause (your wording of this side)</Typography>

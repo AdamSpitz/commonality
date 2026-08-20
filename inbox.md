@@ -53,6 +53,8 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 ### Stuff I want to think through
 
+- **(Ask)** Should a human-written bridge cluster be a nudger people can subscribe to — same listener object as an attached LLM `bridge-creator`, with the human doing that job by editing/republishing? Write-up (tentative, not direction): [bridge-cluster-as-nudger.md](specs/product/bridge-cluster-as-nudger.md). Today clusters can publish parent→modified batches but the cluster page has no opt-in; opt-in is only on an attached service.
+
 - What's the difference between seed data and example data for testing? I think I may have been using the seed data mechanism for test data, which is probably not what I want.
 
 - Ultimately we want vertical founders to host their own vertical-specific services like mediators, but can we have a middle ground where we can run it for them on our infrastructure (modulo blocklist concerns) until/unless they decide to host it themselves?
@@ -83,6 +85,10 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 - **Revisit the prospective-round claim/entitlement model — it confused me, which is a bad sign.** Entitlement is the *current* receipt balance while `claimedAmount` is permanent, so an account can have claimed more than it now holds, and burning receipts silently reduces future claims with nothing recording what was given up. The specific questions (snapshot vs. live balance, whether unclaimed capacity survives a burn, per-item vs. per-round claiming) are written up under [materialization.md § Open question](specs/tech/subsystems/content-funding/materialization.md#open-question-is-the-claim-model-too-confusing).
 
 - It's time to switch over to GitHub Issues, now that Sam is creating some.
+
+- **Indexer-side believer-set aggregate — the last unfixed CauseStarter scale ceiling.** A scalability pass over the CauseStarter UI turned up four per-plank query fan-outs; all four are now concurrency-capped, and believer sets are cached across mounts (`causestarter/src/lib/concurrency.ts`, `causestarter/src/lib/believerSetsCache.ts`). What's left can't be fixed in the UI: `getStatementBelieverSets` ships full anonymized-ID *sets* to the browser, so a plank with 100k believers downloads 100k IDs to render one number, and the SDK's `limit: 10000` per-fetch ceiling truncates *silently* into a plausible-looking wrong count. The remedy and its constraints are already worked out in [shaping-your-cause-statements.md § Scale: the fold is fine, the transport isn't](docs/founder/shaping-your-cause-statements.md#scale-the-fold-is-fine-the-transport-isnt) — including why band 1 must stay exact if sketches are ever used. Needs indexer + SDK work, not UI work.
+
+- **`StatementPicker` searches a top-100-by-popularity window.** `causestarter/src/components/StatementPicker.tsx` calls `browseStatements({ limit: 100, orderBy: 'believerCount' })` and ranks locally. As the corpus grows, the right statement to reuse increasingly falls outside that window, so the picker degrades in *suggestion quality* rather than in speed — silently, and in exactly the direction that pushes organizers to write duplicate planks instead of reusing existing ones. Wants server-side relevance ranking.
 
 ## Before mainnet
 
