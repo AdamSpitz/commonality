@@ -85,6 +85,10 @@ Featured [anchor clusters](./bridge-creator.md#featured-anchors-the-public-displ
 
 Cross-cause “federation” is no longer only “one service suggests wording to another.” The durable join is the bridge cluster.
 
+## Open (not accepted)
+
+Whether a published cluster should be a **nudger people opt into** — same listener object as an attached `bridge-creator`, human tick = republish — is a tentative idea, not this spec: [bridge-cluster-as-nudger.md](./bridge-cluster-as-nudger.md).
+
 ## Deliberately later
 
 - Auto-rewriting a natural founder’s roster.

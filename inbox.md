@@ -53,6 +53,8 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 ### Stuff I want to think through
 
+- **(Ask)** Should a human-written bridge cluster be a nudger people can subscribe to — same listener object as an attached LLM `bridge-creator`, with the human doing that job by editing/republishing? Write-up (tentative, not direction): [bridge-cluster-as-nudger.md](specs/product/bridge-cluster-as-nudger.md). Today clusters can publish parent→modified batches but the cluster page has no opt-in; opt-in is only on an attached service.
+
 - What's the difference between seed data and example data for testing? I think I may have been using the seed data mechanism for test data, which is probably not what I want.
 
 - Ultimately we want vertical founders to host their own vertical-specific services like mediators, but can we have a middle ground where we can run it for them on our infrastructure (modulo blocklist concerns) until/unless they decide to host it themselves?
