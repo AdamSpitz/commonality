@@ -17,24 +17,6 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 ## Main list
 
-- **(Tell)** Deep cadence no longer lets `stack.restart-consistency` run alongside or
-  after a failed `stack.fresh-seeded`. Both checks take a shared `flock`
-  (`scripts/lib/local-stack-lock.sh`); the cadence runner skips remaining local-stack
-  checks once one of them fails.
-
-- **(Tell)** `stack.fresh-seeded` now fails if the tiny seed's CauseStarter refs
-  are missing: Hardhat #0 `local-food-systems` / `christianity` rosters and
-  `bookmarked-causes` for Hardhat #0–#9 (`verifier/checks/stack/probe-seed-refs.mjs`).
-
-- **(Tell)** Local Anvil restart durability: `hardhat-node` now uses
-  `scripts/anvil-docker-entrypoint.sh` (SIGTERM→SIGINT so `--state` dumps),
-  `--state-interval 15`, and `stack.restart-consistency` asserts the block
-  height does not drop. Recreate the node to pick up the wrapper.
-
-- **(Tell)** Combinator statements are specified and implemented: canonical `all`/`any` over sorted plank CIDs (no title/date), CauseStarter view-strip promote, implication attester structural gate for pairwise arrows only. Ordinary `createStatement` no longer defaults `createdDate` into extras.
-
-- **(Tell)** Cause-board **Fully reimbursed** now means success-vouched *and* `outstandingUnreimbursedAmount === 0` (never-scouted successes omitted). It no longer reuses `AlignedProjectsList` with `statusFilterLock="succeeded"` (raised ≥ threshold). New SDK query: `getFullyReimbursedProjectsForCause`.
-
 ### Security/recoverability human actions
 
 - Replace/scopedown external account tokens: Cloudflare scoped DNS token instead of global key; Render/Pinata scoped as narrowly as possible; OpenRouter spend limit.
