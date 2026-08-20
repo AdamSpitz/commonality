@@ -12,6 +12,7 @@ import { StatementBoardLeaderboardPage } from './pages/StatementBoardLeaderboard
 import { StatementBoardRedirect } from './pages/StatementBoardRedirect'
 import { StatementPage } from './pages/StatementPage'
 import { DocsPage } from './pages/DocsPage'
+import { StatementsPage } from './pages/StatementsPage'
 import { SettingsPage } from './pages/SettingsPage'
 import { ProjectDetailPage, ProjectLeaderboardPage } from './pages/ProjectDetailPage'
 import { CreateProjectPage } from './pages/CreateProjectPage'
@@ -56,6 +57,7 @@ export default function App() {
           <Route path="/bridge/:owner/:slugPart" element={<BridgeClusterPage />} />
           <Route path="/bridge/:draftId" element={<BridgeClusterPage />} />
           <Route path="/causes" element={<CausesPage />} />
+          <Route path="/statements" element={<StatementsPage />} />
           <Route path="/delegation" element={<Navigate to="/delegation/notes" replace />} />
           <Route path="/delegation/notes" element={<MyNotesPage />} />
           <Route path="/delegation/notes/new" element={<DepositPage />} />

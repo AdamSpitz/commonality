@@ -172,7 +172,7 @@ export function validateSlug(slug: string): string | null {
   if (!SLUG_PATTERN.test(slug)) {
     return 'Slug must be lowercase letters, numbers, and hyphens (no leading/trailing hyphen).'
   }
-  if (RESERVED_REF_NAMES.has(slug)) {
+  if (RESERVED_REF_NAMES.has(slug) || slug === 'bookmarked-projects') {
     return `“${slug}” is reserved. Pick a different slug.`
   }
   return null

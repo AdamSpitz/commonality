@@ -60,6 +60,7 @@ describe('causeRoster', () => {
     expect(validateSlug('created-statements')).toMatch(/reserved/i)
     expect(validateSlug('bookmarks')).toMatch(/reserved/i)
     expect(validateSlug('bookmarked-causes')).toMatch(/reserved/i)
+    expect(validateSlug('bookmarked-projects')).toMatch(/reserved/i)
     expect(validateSlug('Bad_Slug')).toMatch(/lowercase/i)
     expect(validateSlug('')).toMatch(/slug/i)
   })
