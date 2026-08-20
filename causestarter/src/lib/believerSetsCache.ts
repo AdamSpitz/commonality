@@ -1,17 +1,4 @@
-/**
- * Cross-mount cache for {@link getStatementBelieverSets}.
- *
- * Believer sets are expensive to fetch (the SDK walks direct-support events for
- * the statement and for every statement implying it) and they were previously
- * held in component state, so navigating away from a cause page and back
- * refetched every plank from scratch. The same sets are also wanted by more
- * than one caller on the same page.
- *
- * Entries are keyed by statement *and* by the trusted-attester list, because
- * changing trusted attesters changes which implications count. The in-flight
- * promise is cached too, so several callers asking for the same plank at once
- * share one query.
- */
+/** Believer-set cache keyed by statement CID + trusted-attester list. */
 
 import { getStatementBelieverSets, type StatementBelieverSets } from '@commonality/sdk/conceptspace'
 import type { IpfsCidV1 } from '@commonality/sdk/utils'

@@ -45,6 +45,21 @@ describe('projectBookmarks', () => {
     expect(window.localStorage.getItem('causestarter.bookmarked-projects.v1')).toBeNull()
   })
 
+  it('does not overwrite a bookmark written while hydrate is in flight', async () => {
+    let resolveRef: (value: { value: string }) => void = () => {}
+    getUserRef.mockImplementation(
+      () => new Promise((resolve) => {
+        resolveRef = resolve
+      }),
+    )
+    const pending = hydrateProjectBookmarks({} as never, ADDR)
+    bookmarkProject(ADDR)
+    resolveRef({ value: '{"version":1,"projects":["0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"]}' })
+    const projects = await pending
+    expect(projects).toEqual([ADDR])
+    expect(listProjectBookmarks()).toEqual([ADDR])
+  })
+
   it('copies a nonempty chain ref onto a device with no local list', async () => {
     getUserRef.mockResolvedValue({
       value: `{"version":1,"projects":["${ADDR}"]}`,

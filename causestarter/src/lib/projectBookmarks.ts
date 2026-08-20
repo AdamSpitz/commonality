@@ -127,10 +127,11 @@ export async function hydrateProjectBookmarks(
 ): Promise<string[]> {
   if (hasLocalDocument()) return listProjectBookmarks()
   const ref = await getUserRef(machinery, address, PROJECT_BOOKMARKS_REF).catch(() => null)
+  // A click during the await already owns this device; do not clobber it.
+  if (hasLocalDocument()) return listProjectBookmarks()
   const projects = parseProjectBookmarkDocument(ref?.value).projects
-  // An empty chain ref must not write a local document. `hasLocalDocument`
-  // treats any key as authoritative, so a first visit with no bookmarks would
-  // lock this device out of a later persist from another session.
+  // Empty chain must not write a key: any key is treated as this device's list,
+  // which would block a later hydrate from another session.
   if (projects.length === 0) return []
   return writeProjectBookmarks(projects)
 }

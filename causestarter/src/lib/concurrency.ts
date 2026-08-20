@@ -1,12 +1,4 @@
-/**
- * Map over items with a ceiling on how many run at once.
- *
- * The cause page fans a query out per published plank, and `Promise.all` over
- * that array opens one connection per plank at the same instant — a 40-plank
- * cause hits the indexer with 40 simultaneous walks. This keeps the same
- * result order and the same all-or-nothing rejection, but only `limit` are in
- * flight at a time.
- */
+/** Ordered map with at most `limit` promises in flight; rejects on first failure. */
 export async function mapWithConcurrency<T, R>(
   items: readonly T[],
   limit: number,
