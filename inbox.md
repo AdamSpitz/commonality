@@ -17,6 +17,10 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 ## Main list
 
+### Tell — done after the fact
+
+- Indexed `ProjectFactory.ProjectCreated` in the event cache and switched CauseStarter’s “projects you created” list to `getUserCreatedProjects` (creator-filtered by topic1). No more `eth_getLogs` from block 0. Hosted indexer needs `PROJECT_FACTORY_ADDRESS` (added in `render.yaml`; also in the deployment-manifest builder). Existing stacks must reindex that contract to populate the new events.
+
 ### Security/recoverability human actions
 
 - Replace/scopedown external account tokens: Cloudflare scoped DNS token instead of global key; Render/Pinata scoped as narrowly as possible; OpenRouter spend limit.

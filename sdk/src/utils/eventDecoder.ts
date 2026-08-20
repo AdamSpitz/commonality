@@ -14,6 +14,7 @@ import {
   AlignmentAttestationsAbi,
   MutableRefUpdaterAbi,
   AssuranceContractFactoryAbi,
+  ProjectFactoryAbi,
   ContentRegistryAbi,
   ChannelRegistryAbi,
   ChannelEscrowAbi,
@@ -36,6 +37,7 @@ const ABI_MAP: Record<string, readonly unknown[]> = {
   AlignmentAttestations: AlignmentAttestationsAbi,
   MutableRefUpdater: MutableRefUpdaterAbi,
   AssuranceContractFactory: AssuranceContractFactoryAbi,
+  ProjectFactory: ProjectFactoryAbi,
   ContentRegistry: ContentRegistryAbi,
   ChannelRegistry: ChannelRegistryAbi,
   ChannelEscrow: ChannelEscrowAbi,
@@ -441,6 +443,35 @@ export function decodeLazyGivingAssuranceContractCreatedEvent(
   if (!args) return null;
   return {
     assuranceContract: args.assuranceContract as `0x${string}`,
+    contractAddress: rawEvent.contractAddress as `0x${string}`,
+    blockNumber: BigInt(rawEvent.blockNumber),
+    blockTimestamp: BigInt(rawEvent.blockTimestamp),
+    transactionHash: rawEvent.transactionHash as `0x${string}`,
+    logIndex: rawEvent.logIndex,
+  };
+}
+
+export function decodeProjectCreatedEvent(
+  rawEvent: RawEventFromCache
+): {
+  creator: `0x${string}`;
+  token: `0x${string}`;
+  assuranceContract: `0x${string}`;
+  condition: `0x${string}`;
+  contractAddress: `0x${string}`;
+  blockNumber: bigint;
+  blockTimestamp: bigint;
+  transactionHash: `0x${string}`;
+  logIndex: number;
+} | null {
+  if (rawEvent.eventName !== 'ProjectCreated') return null;
+  const args = decodeRawEventLog(rawEvent);
+  if (!args) return null;
+  return {
+    creator: args.creator as `0x${string}`,
+    token: args.token as `0x${string}`,
+    assuranceContract: args.assuranceContract as `0x${string}`,
+    condition: args.condition as `0x${string}`,
     contractAddress: rawEvent.contractAddress as `0x${string}`,
     blockNumber: BigInt(rawEvent.blockNumber),
     blockTimestamp: BigInt(rawEvent.blockTimestamp),

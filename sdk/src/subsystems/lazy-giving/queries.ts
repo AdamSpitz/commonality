@@ -19,9 +19,11 @@ import {
   fetchEvents,
   fetchLazyGivingProjectEvents,
   fetchAllBoughtEvents,
+  padAddressAsTopic,
 } from '../../utils/eventCacheClient.js';
 import {
   decodeLazyGivingAssuranceContractCreatedEvent,
+  decodeProjectCreatedEvent,
   decodeCreatorContractCreatedEvent,
   decodeAssuranceContractInitializedEvent,
   decodeContractMetadataUpdatedEvent,
@@ -405,6 +407,29 @@ export async function getProjectContributions(
     .map(e => e.event);
   const fundingCurrency = await readSettlementCurrency(machinery, assuranceContractAddress);
   return foldContributionsFromEvents(boughtEvents, [], undefined, fundingCurrency).contributions;
+}
+
+/**
+ * Get assurance-contract addresses of LazyGiving projects created by a wallet.
+ *
+ * Filters indexed `ProjectFactory.ProjectCreated` by creator (topic1). Does not
+ * walk `eth_getLogs` from block 0.
+ */
+export async function getUserCreatedProjects(
+  machinery: SDKMachinery,
+  userAddress: string
+): Promise<string[]> {
+  const rawEvents = await fetchEvents(machinery, {
+    eventName: 'ProjectCreated',
+    topic1: padAddressAsTopic(userAddress),
+    limit: 10000,
+  });
+  const addresses = [];
+  for (const raw of rawEvents) {
+    const decoded = decodeProjectCreatedEvent(raw);
+    if (decoded) addresses.push(decoded.assuranceContract.toLowerCase());
+  }
+  return Array.from(new Set(addresses));
 }
 
 /**

@@ -10,6 +10,7 @@ import {
   AssuranceContractFactoryAbi,
   PremintingERC1155FactoryAbi,
 } from "./abis/ProjectFactoriesAbi";
+import { ProjectFactoryAbi } from "./abis/ProjectFactoryAbi";
 import { MultiERC1155AssuranceContractAbi as AssuranceContractAbi } from "./abis/AssuranceContractAbi";
 import { PremintingERC1155Abi } from "./abis/PremintingERC1155Abi";
 
@@ -192,6 +193,7 @@ function factoryAddress(deployments: ContractDeployment[]) {
 const BELIEFS_DEPLOYMENTS = getDeployments("Beliefs", "BELIEFS_CONTRACT_ADDRESS", START_BLOCK);
 const IMPLICATIONS_DEPLOYMENTS = getDeployments("Implications", "IMPLICATIONS_CONTRACT_ADDRESS", START_BLOCK);
 const ASSURANCE_CONTRACT_FACTORY_DEPLOYMENTS = getDeployments("AssuranceContractFactory", "ASSURANCE_CONTRACT_FACTORY_ADDRESS", LAZYGIVING_START_BLOCK);
+const PROJECT_FACTORY_DEPLOYMENTS = getDeployments("ProjectFactory", "PROJECT_FACTORY_ADDRESS", LAZYGIVING_START_BLOCK);
 const ERC1155_FACTORY_DEPLOYMENTS = getDeployments("ERC1155Factory", "ERC1155_FACTORY_ADDRESS", LAZYGIVING_START_BLOCK);
 const DELEGATABLE_NOTES_DEPLOYMENTS = getDeployments("DelegatableNotes", "DELEGATABLE_NOTES_ADDRESS", DELEGATION_START_BLOCK);
 const RECURRING_PLEDGES_DEPLOYMENTS = getDeployments("RecurringPledges", "RECURRING_PLEDGES_ADDRESS", DELEGATION_START_BLOCK);
@@ -245,6 +247,13 @@ const contracts = {
     abi: AssuranceContractFactoryAbi,
     chain: chainForContract("default"),
     ...deploymentConfig(ASSURANCE_CONTRACT_FACTORY_DEPLOYMENTS, LAZYGIVING_START_BLOCK),
+  },
+
+  // ProjectFactory emits ProjectCreated with an indexed creator topic
+  ProjectFactory: {
+    abi: ProjectFactoryAbi,
+    chain: chainForContract("default"),
+    ...deploymentConfig(PROJECT_FACTORY_DEPLOYMENTS, LAZYGIVING_START_BLOCK),
   },
 
   // Factory contract for creating ERC1155 tokens
