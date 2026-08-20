@@ -11,6 +11,9 @@ if [ "${COMMONALITY_VERIFIER_ALLOW_RESTART:-}" != "1" ]; then
 fi
 
 cd "$(dirname "$0")/../../.."
+# shellcheck source=scripts/lib/local-stack-lock.sh
+. ./scripts/lib/local-stack-lock.sh
+acquire_local_stack_lock
 
 before_events=$(curl --silent --show-error --fail 'http://localhost:42069/api/events?limit=1' 2>&1) || {
   echo "Could not read indexed events before restart: $before_events" >&2

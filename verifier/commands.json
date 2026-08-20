@@ -22,7 +22,7 @@
     },
     {
       "name": "Deep cadence — local destructive + E2E",
-      "description": "Nightly/CI-grade local proof that the stack really boots. Runs operations.local-stack-health first, then the guarded checks: stack.fresh-seeded (wipes + reseeds local dev data), restart-consistency, artifact.ipfs-domain-smoke, stack.user-journeys (Playwright round-trips), operations.indexer-lag — then refreshes deployment-depth + facet.functionality so the dashboard retains a fresh end-to-end boot proof. Needs ~20 min and the local Docker stack.",
+      "description": "Nightly/CI-grade local proof that the stack really boots. Runs stack.fresh-seeded (wipes + reseeds), then local-stack-health, restart-consistency, artifact.ipfs-domain-smoke, stack.user-journeys, operations.indexer-lag — serially, skipping later local-stack checks if one fails — then refreshes deployment-depth + facet.functionality. Needs ~20 min and the local Docker stack.",
       "command": ["npm", "run", "verifier:deep-cadence"]
     },
     {

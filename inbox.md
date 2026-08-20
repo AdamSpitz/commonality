@@ -17,6 +17,12 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 ## Main list
 
+- **(Tell)** Deep cadence no longer lets `stack.restart-consistency` run alongside or
+  after a failed `stack.fresh-seeded`. Both checks take a shared `flock`
+  (`scripts/lib/local-stack-lock.sh`); the cadence runner skips remaining local-stack
+  checks once one of them fails. Anvil `--state` durability and seed-artifact
+  assertions are still open in `TODO.md`.
+
 - **(Tell)** Combinator statements are specified and implemented: canonical `all`/`any` over sorted plank CIDs (no title/date), CauseStarter view-strip promote, implication attester structural gate for pairwise arrows only. Ordinary `createStatement` no longer defaults `createdDate` into extras.
 
 - **(Tell)** Cause-board **Fully reimbursed** now means success-vouched *and* `outstandingUnreimbursedAmount === 0` (never-scouted successes omitted). It no longer reuses `AlignedProjectsList` with `statusFilterLock="succeeded"` (raised ≥ threshold). New SDK query: `getFullyReimbursedProjectsForCause`.
