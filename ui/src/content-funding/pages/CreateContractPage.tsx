@@ -1,6 +1,6 @@
 // REFACTOR-WANTED: this file is large (~830 lines). It mixes several
 // concerns that could be extracted (form sections, validation, and the submit/transaction flow). Left intact for now — please split
-// it up when next doing substantial work here. See workflow/reviews/ui-deep-dive-2026-06-25.md (issue #3).
+// it up when next doing substantial work here.
 import { useState, useMemo, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
