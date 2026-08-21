@@ -29,6 +29,8 @@ export interface ClusterRosterPlan {
   parentOwner?: `0x${string}`;
   parentSlug?: string;
   role: 'modified' | 'bridge';
+  clusterOwner: `0x${string}`;
+  clusterSlug: string;
 }
 
 export interface ClusterDocumentPlan {
@@ -95,6 +97,8 @@ export function planClusterFromTick(args: {
       parentOwner: parent.owner.toLowerCase() as `0x${string}`,
       parentSlug: parent.slug,
       role: 'modified',
+      clusterOwner: owner,
+      clusterSlug,
     });
     modified.push({
       owner,
@@ -113,6 +117,8 @@ export function planClusterFromTick(args: {
       parentOwner: parent.owner.toLowerCase() as `0x${string}`,
       parentSlug: parent.slug,
       role: 'modified',
+      clusterOwner: owner,
+      clusterSlug,
     });
     modified.push({
       owner,
@@ -129,6 +135,8 @@ export function planClusterFromTick(args: {
     summary: 'Bridge cause implied by each modified wording.',
     plankCids: bridgePlanks,
     role: 'bridge',
+    clusterOwner: owner,
+    clusterSlug,
   });
 
   const pairs: ClusterDocumentPlan['pairs'] = args.triples.flatMap((triple) => [
@@ -156,6 +164,15 @@ export function planClusterFromTick(args: {
 }
 
 export function rosterDocumentFromPlan(plan: ClusterRosterPlan): Record<string, unknown> {
+  const bridgeCluster: Record<string, string> = {
+    clusterOwner: plan.clusterOwner,
+    clusterSlug: plan.clusterSlug,
+    role: plan.role,
+  };
+  if (plan.role === 'modified' && plan.parentOwner && plan.parentSlug) {
+    bridgeCluster.parentOwner = plan.parentOwner;
+    bridgeCluster.parentSlug = plan.parentSlug;
+  }
   return {
     format: 'markdown-restricted',
     content: `# ${plan.title}\n\n${plan.summary}`,
@@ -168,6 +185,7 @@ export function rosterDocumentFromPlan(plan: ClusterRosterPlan): Record<string, 
       summary: plan.summary,
       plankCids: plan.plankCids,
       mediatorBlurb: '',
+      bridgeCluster,
     },
   };
 }

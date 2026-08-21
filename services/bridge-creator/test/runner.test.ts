@@ -252,4 +252,27 @@ describe('runBridgeCreatorTick', () => {
     assert.strictEqual(result.clusterSlug, 'housing-bridge');
     assert.deepStrictEqual(plans, ['housing-bridge']);
   });
+
+  it('does not persist dedup if cluster publication throws', async () => {
+    let saved = false;
+    await assert.rejects(
+      () => runBridgeCreatorTick({} as SDKMachinery, {
+        ...createConfig(),
+        clusterSlug: 'housing-bridge',
+        parentCauses: [
+          { owner: '0x1111111111111111111111111111111111111111', slug: 'left-camp', side: 'side_a' },
+          { owner: '0x2222222222222222222222222222222222222222', slug: 'right-camp', side: 'side_b' },
+        ],
+      }, createDependencies({
+        publishTickCluster: async () => {
+          throw new Error('cluster write failed');
+        },
+        saveDedupState: () => {
+          saved = true;
+        },
+      })),
+      /cluster write failed/,
+    );
+    assert.strictEqual(saved, false);
+  });
 });

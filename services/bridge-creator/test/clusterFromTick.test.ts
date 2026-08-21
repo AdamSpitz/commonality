@@ -51,5 +51,12 @@ describe('planClusterFromTick', () => {
     const rosterDoc = rosterDocumentFromPlan(plan.rosters[0]!);
     assert.strictEqual((rosterDoc.extras as { kind: string }).kind, ROSTER_KIND);
     assert.deepStrictEqual((rosterDoc.extras as { plankCids: string[] }).plankCids, ['bafymoda']);
+    assert.deepStrictEqual((rosterDoc.extras as { bridgeCluster: Record<string, string> }).bridgeCluster, {
+      clusterOwner: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+      clusterSlug: 'housing-bridge',
+      role: 'modified',
+      parentOwner: parentA.owner,
+      parentSlug: parentA.slug,
+    });
   });
 });

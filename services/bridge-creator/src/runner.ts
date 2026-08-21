@@ -142,11 +142,6 @@ export async function runBridgeCreatorTick(
       )
     : [];
 
-  dependencies.saveDedupState(config.publicationDedupStatePath, {
-    lastInputHash: inputHash,
-    lastPublicationSummary: summarizePublishedBridgeTriples(triples),
-  });
-
   let clusterSlug: string | undefined;
   if (config.parentCauses.length > 0 && dependencies.publishTickCluster) {
     const mediatorAddress = createNudgerSigner(config).address as `0x${string}`;
@@ -167,6 +162,11 @@ export async function runBridgeCreatorTick(
       clusterSlug = clusterPlan.clusterSlug;
     }
   }
+
+  dependencies.saveDedupState(config.publicationDedupStatePath, {
+    lastInputHash: inputHash,
+    lastPublicationSummary: summarizePublishedBridgeTriples(triples),
+  });
 
   return {
     status: 'published',
