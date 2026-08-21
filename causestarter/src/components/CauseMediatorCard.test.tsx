@@ -78,6 +78,13 @@ describe('CauseMediatorCard', () => {
     expect(screen.getByText(/published identity is incomplete/)).toBeInTheDocument()
   })
 
+  it('cannot be enabled without a service URL (featured triples need GET /anchors)', () => {
+    renderCard({ ...mediator, serviceUrl: '' })
+
+    expect(screen.getByTestId('cause-mediator-optin')).toBeDisabled()
+    expect(screen.getByText(/published identity is incomplete/)).toBeInTheDocument()
+  })
+
   it('still offers a deep link for clients that cannot toggle in place', () => {
     const path = causeMediatorOptInPath(mediator)
     expect(path).toContain('nudgerName=Housing+mediator')

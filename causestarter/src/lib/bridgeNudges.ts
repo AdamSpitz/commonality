@@ -49,14 +49,13 @@ export function buildNudgeBatchDocument(args: {
   }
 }
 
-export async function publishParentToModifiedNudges(args: {
+export async function publishNudgeBatch(args: {
   writeClients: WriteClients
   mediatorAddress: `0x${string}`
-  fields: BridgeClusterFields
+  nudges: ParentToModifiedNudge[]
 }): Promise<{ batchCid: string; txHash: `0x${string}` }> {
-  const nudges = parentToModifiedNudges(args.fields.pairs)
-  if (nudges.length === 0) {
-    throw new Error('Add modified→parent pairs first. Nudges are parent-signer → modified plank, and we will not invent them.')
+  if (args.nudges.length === 0) {
+    throw new Error('Add parent→modified pairs first. We will not invent them.')
   }
   const publishedDataAddress = getRuntimeConfigValue('VITE_PUBLISHED_DATA_CONTRACT_ADDRESS') as `0x${string}` | undefined
   const nudgePublicationsAddress = getRuntimeConfigValue('VITE_NUDGE_PUBLICATIONS_CONTRACT_ADDRESS') as `0x${string}` | undefined
@@ -66,7 +65,7 @@ export async function publishParentToModifiedNudges(args: {
 
   const document = buildNudgeBatchDocument({
     nudger: args.mediatorAddress,
-    nudges,
+    nudges: args.nudges,
   })
   const content = new TextEncoder().encode(JSON.stringify(document))
   const batchCid = publishedDataIdToCid(computePublishedDataId(content))
@@ -87,4 +86,20 @@ export async function publishParentToModifiedNudges(args: {
   ])
 
   return { batchCid, txHash: hashes[hashes.length - 1]! }
+}
+
+export async function publishParentToModifiedNudges(args: {
+  writeClients: WriteClients
+  mediatorAddress: `0x${string}`
+  fields: BridgeClusterFields
+}): Promise<{ batchCid: string; txHash: `0x${string}` }> {
+  const nudges = parentToModifiedNudges(args.fields.pairs)
+  if (nudges.length === 0) {
+    throw new Error('Add modified→parent pairs first. Nudges are parent-signer → modified plank, and we will not invent them.')
+  }
+  return publishNudgeBatch({
+    writeClients: args.writeClients,
+    mediatorAddress: args.mediatorAddress,
+    nudges,
+  })
 }

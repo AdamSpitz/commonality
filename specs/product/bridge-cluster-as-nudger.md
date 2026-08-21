@@ -1,54 +1,82 @@
-# Tentative: a bridge cluster is a nudger (human or LLM)
+# Mediator identity: one address, two presentations, two authors
 
-Status: **tentative** (2026-08-19). Not product direction. Do not implement from this file until Adam rules. Conversation that produced it: human-written CauseStarter clusters vs attached `bridge-creator` services.
+Status: **accepted (2026-08-20)**. Frozen why: [ADR 0012](../decisions/0012-mediator-is-an-address.md).
 
-Related accepted specs: [bridge-causes.md](./bridge-causes.md), [bridge-creator.md](./bridge-creator.md), [bridge-building-for-founders.md](./bridge-building-for-founders.md), [nudge-ux.md](./nudge-ux.md). Founder-facing attach path: [mediator-for-your-cause.md](/docs/founder/mediator-for-your-cause.md).
+Related: [bridge-causes.md](./bridge-causes.md), [bridge-creator.md](./bridge-creator.md), [bridge-building-for-founders.md](./bridge-building-for-founders.md), [nudge-ux.md](./nudge-ux.md), [mediator-for-your-cause.md](/docs/founder/mediator-for-your-cause.md).
 
-## The itch
+This file is the living “what” plus the implementation list. A fresh agent should implement from the list below, not reverse the ADR.
 
-CauseStarter currently presents two authoring paths that feel like different products:
+## Decision (short)
 
-1. **Write a bridge** (`/bridge/new`) — a person publishes a cluster of ordinary causes (natural parents, modified causes, shared bridge). Optional parent→modified nudge *batches* exist. There is **no visitor opt-in** on the cluster page.
-2. **Attach a standalone mediator** (`/cause/…/mediator`) — point the cause at a running `bridge-creator` instance (name, description, signer, `serviceUrl`). Opt-in trusts that address; featured triples come from `GET /anchors`.
+Users **subscribe to a mediator Ethereum address**. Human or LLM is how that address authors; listeners do not care.
 
-The editorial job is the same: write a wording of each side that still sounds like that side, write shared planks those wordings imply, and (if anyone is listening) point parent-signers at the **modified** wording, not at the compromise. The LLM service does that on a schedule from anchors + beat context. A human does it when they publish or edit.
+The **job** is the same either way: a wording of each side that still sounds like that side, plus shared ground those wordings imply, and nudges at the **modified** wording, not the compromise.
 
-Watching the discourse and updating *is* still the mediator’s ongoing job if they want to keep mediating. Software does not have to daemonize a human; republishing the cluster / a new batch *is* their tick.
+Two **presentations** of that job, both available to both authors:
 
-## Tentative collapse
+| Presentation | When | Objects |
+|---|---|---|
+| **Triples** | Sides may not be causes (CSM, in-cause fault lines) | Statement-level `{ side-a, side-b, common-ground }` |
+| **Causes** | Parents are (or can be) causes | [Bridge cluster](./bridge-causes.md): modified cause per natural parent + bridge cause |
 
-Treat **one mediator identity** (an Ethereum address people opt into) as the listener-facing object. The author behind that identity is either:
+A human tick is **republish**. An LLM tick is the existing synthesizer schedule. Do not smash those runtimes.
 
-- a human, publishing cluster pages and nudge batches from CauseStarter, or
-- a `bridge-creator` process, synthesizing on a schedule and exposing `GET /anchors`.
+## Rules that keep the collapse honest
 
-Same pull-based nudger contract either way. Signing stays the user’s choice.
+1. **Opt into the address**, labeled as this mediator — not into “this page.” Later batches from the same key show up even if they are a different cluster or a service tick. Say that in the copy.
+2. **No auto-trust.** Opening a cluster or a cause is not subscribe.
+3. **No `serviceUrl` required** to opt in. Featured triples (`GET /anchors`) stay a service feature. Human clusters must not fake a service.
+4. **Nudge path stays parent → modified**, never parent → bridge.
+5. **Staleness is the mediator’s problem.** Subscribers see new batches only when the address publishes again. Do not claim a human cluster “watches the discourse.”
+6. **Cause-assist stays a copy editor** (brief + one-shot verbs), not the mediator.
+7. **Attach-a-service** means “this identity also runs a synthesizer.” It is not a second listener object.
+8. **Do not couple form to author.** A human can publish triples without standing up `bridge-creator`. An LLM can publish a cluster without pretending the human path does not exist.
 
-What that would add to today’s human path: **opt in to this cluster’s mediator address** the way `CauseMediatorCard` already opts into a service. Then “your nudgers” would surface later batches when the human republishes — which is not implemented.
+## What is already true in code
 
-## Keep separate
+- Cluster publish records `mediatorAddress` (the connected wallet). See `causestarter/src/lib/bridgeCluster.ts`.
+- `publishParentToModifiedNudges` (`causestarter/src/lib/bridgeNudges.ts`) writes a `schemaVersion` 1 `nudge-batch` under that address onto `NudgePublications` — same path as the service.
+- The UI refuses to invent parent→modified pairs.
+- `CauseMediatorCard` / `mediatorNudgerFromCause` (`ui/src/shared/nudges/mediatorNudger.ts`) **refuse opt-in without `serviceUrl`**. That is the gap this spec closes for humans.
+- `TrustedNudgerEntry.serviceUrl` is already optional in the store (`ui/src/shared/hooks/useTrustedNudgers.ts`). `getMediatorOptInPath` already omits `nudgerServiceUrl` when absent. Tally Settings `?addNudger=` already keys on address.
+- Suggestion folding is by trusted **address**, not by HTTP (`specs/tech/subsystems/nudger/README.md`).
 
-Do **not** pretend the human *is* the HTTP service:
+The remaining work is **subscribe on the cluster**, **address-only opt-in construction**, and **making both presentations reachable from both authors** — not a new contract.
 
-- No requirement to stand up `bridge-creator` for a one-off cluster.
-- No stretching `GET /anchors` around pages that are already causes.
-- Cause-assist wording help stays a copy editor (brief + one-shot verbs), not the mediator.
-- CSM-style work with no parent causes can stay statement-level triples in the service; this idea is about clusters whose parents are causes.
+## Implementation list
 
-Do **not** smash authoring runtimes together: strategy prompt, beat-agent context, and anchor-reflection CLI stay properties of the LLM instance. A human tick is an edit.
+Do these in order. After each slice, tests should fail if opt-in still requires a service URL, or if a cluster page has no way to trust `mediatorAddress`.
 
-## What is already the same in code
+When a slice is done, delete its bullet here (this spec’s list is the living backlog for this decision). Also delete the pointer in [`TODO.md`](/TODO.md) once the whole list is empty.
 
-- Cluster publish records `mediatorAddress` (the connected wallet).
-- `publishParentToModifiedNudges` writes a `schemaVersion` 1 nudge-batch under that address onto `NudgePublications` — same path as the service.
-- Nudge path is parent → modified; the UI refuses to invent pairs.
+### Slice 1 — Cluster opt-in (the original gap)
 
-The gap is **subscribe**, not **publish**.
+- [x] On `/bridge/:owner/:slug` (`causestarter/src/pages/BridgeClusterPage.tsx`), add an opt-in control for `mediatorAddress` equivalent to `CauseMediatorCard`: toggle `addTrustedNudger` / `removeTrustedNudger` in the shared store. Do **not** require `serviceUrl`. Use a name/description from the cluster document (mediator label, title, or a short default). Copy: you are listening to **this mediator**, not bookmarking the page; later suggestions appear if they publish again. (`ClusterMediatorOptIn`)
+- [x] Reuse or extend `mediatorNudgerFromCause` so an address + name is enough (`serviceUrl` optional). `serviceMediatorFromCause` still requires a URL for attached-service cards. `CauseMediatorCard` uses the latter.
+- [x] Deep link: `clusterMediatorOptInPath` / `getMediatorOptInPath` omit `nudgerServiceUrl` when there is no service. `NudgerSettingsSection` already keys on `addNudger` and treats `nudgerServiceUrl` as optional.
+- [x] Tests: `mediatorNudger.test.ts`, `ClusterMediatorOptIn.test.tsx`, `CauseMediatorCard.test.tsx` (still disabled without URL).
 
-## Decision to make
+### Slice 2 — Honest labels and later batches
 
-Is a published bridge cluster a first-class nudger people can opt into, including after a human update — with the LLM service as one author of that same object, not a parallel product?
+- [x] Suggestion folding is by address (`StatementSuggestions` maps `trustedNudgers` to addresses only). Covered by a test that a trusted entry with no `serviceUrl` is still passed to `getStatementNudges`.
+- [x] Human-only cluster entries omit `sourceType` rather than forcing `bridge-creator`. CSM still sets `sourceType: 'bridge-creator'` on its configured mediator.
 
-If yes: add cluster opt-in; keep `/bridge/new` LLM-free; keep attach-a-service as “this identity also runs a synthesizer.”
+### Slice 3 — Both presentations, both authors
 
-If no: keep opt-in exclusive to `serviceUrl` mediators, and treat human clusters as pages + one-shot batches that only reach people who already trusted that wallet some other way.
+These are product completeness, not required to close slice 1.
+
+- [x] **Human triples, no HTTP.** `/bridge/triple` publishes side-A / side-B / common-ground statements, parent→modified nudge batches, and modified→common-ground attester pairs under the connected wallet. Opt-in is the same address card. No `GET /anchors`.
+- [x] **LLM clusters.** Optional `parent_causes` + `cluster_slug` on the mediator artifact. A tick plans n+1 rosters + a `causestarter.bridge-cluster` document and, when `PUBLISHED_DATA` + `MUTABLE_REF_UPDATER` are set, publishes them under the signer. CSM with no parent causes is unchanged.
+- [x] Founder docs: attached-service cards still need address + URL; cluster opt-in is by address alone. [bridge-cluster-wording-help.md](/docs/founder/bridge-cluster-wording-help.md) treats the LLM service as a different **runtime**, same **address**.
+
+### Out of scope (do not do from this spec)
+
+- Hosted mediation chat; stretching cause-assist into a standing strategy prompt.
+- Auto-subscribe; notifications; message hub ([ADR 0011](../decisions/0011-organizer-contact-is-pull.md)).
+- Per-cluster mute (later, if one address mixing batch kinds becomes noisy).
+- Requiring `/.well-known/nudger.json` for human publishers.
+- Nudging parent-signers straight onto the bridge cause.
+
+## Decision footer
+
+Accepted 2026-08-20. [ADR 0012](../decisions/0012-mediator-is-an-address.md).

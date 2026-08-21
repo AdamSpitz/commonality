@@ -4,6 +4,7 @@ import { HomePage } from './pages/HomePage'
 import { StartCauseRedirect } from './pages/StartCauseRedirect'
 import { StartBridgeRedirect } from './pages/StartBridgeRedirect'
 import { BridgeClusterPage } from './pages/BridgeClusterPage'
+import { BridgeTriplePage } from './pages/BridgeTriplePage'
 import { CausesPage } from './pages/CausesPage'
 import { CauseDetailPage } from './pages/CauseDetailPage'
 import { CauseMediatorPage } from './pages/CauseMediatorPage'
@@ -54,6 +55,7 @@ export default function App() {
           {/* No intermediate form — creates a draft and opens the editor. */}
           <Route path="/start" element={<StartCauseRedirect />} />
           <Route path="/bridge/new" element={<StartBridgeRedirect />} />
+          <Route path="/bridge/triple" element={<BridgeTriplePage />} />
           <Route path="/bridge/:owner/:slugPart" element={<BridgeClusterPage />} />
           <Route path="/bridge/:draftId" element={<BridgeClusterPage />} />
           <Route path="/causes" element={<CausesPage />} />

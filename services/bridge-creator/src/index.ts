@@ -25,6 +25,7 @@ import { synthesizeBridgeTriples as defaultSynthesizeBridgeTriples } from './syn
 import { appendAnchorReflectionProposals, reflectAnchorProposals } from './anchorReflection.js';
 import { loadMediatorAnchors, loadMediatorStrategyPrompt, saveMediatorAnchors } from './mediatorConfig.js';
 import { runBridgeCreatorTick } from './runner.js';
+import { publishTickClusterDocuments } from './clusterPublisher.js';
 export { loadConfigFromEnv };
 export type { BridgeCreatorConfig } from './config.js';
 export { publishBridgeStatement } from './statementPublisher.js';
@@ -74,6 +75,8 @@ export {
 } from './dedup.js';
 export type { BridgePublicationDedupState } from './dedup.js';
 export { createNudgesForPublishedTriples, runBridgeCreatorTick } from './runner.js';
+export { planClusterFromTick } from './clusterFromTick.js';
+export { publishTickClusterDocuments } from './clusterPublisher.js';
 export type { BridgeCreatorRunnerDependencies, BridgeCreatorTickResult, BridgeCreatorTickStatus } from './runner.js';
 import { createNudgerSigner } from '@commonality/nudger-core';
 
@@ -318,6 +321,20 @@ export function run(config = loadConfig()): BridgeCreatorRunHandle {
       loadProposalStore: loadProposalStoreFile,
       markProposalsConsumed,
       implicationSubmitter,
+      publishTickCluster:
+        config.parentCauses.length > 0
+        && config.publishedDataContractAddress
+        && config.mutableRefUpdaterContractAddress
+          ? (plan) => publishTickClusterDocuments(machinery, plan, {
+              clients: bridgeWriteClients,
+              publishedDataContractAddress: config.publishedDataContractAddress!,
+              mutableRefUpdaterContractAddress: config.mutableRefUpdaterContractAddress!,
+            }).then((published) => {
+              console.log(
+                `Bridge creator cluster published: /bridge/${plan.cluster.mediatorAddress}/${plan.clusterSlug} cid=${published.clusterCid}`,
+              );
+            })
+          : undefined,
     });
     console.log(
       `Bridge creator tick: ${result.status}; synthesized=${result.synthesizedBridgeCount}; published_nudges=${result.publishedNudgeCount}`,

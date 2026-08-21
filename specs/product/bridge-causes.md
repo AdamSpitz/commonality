@@ -66,10 +66,10 @@ Concretely, the product needs a **create / edit bridge** flow (CauseStarter is t
 2. Lets the human draft \(C_{im}\) (when not skipped) and \(C\) as normal causes under their own key.
 3. Records which plank pairs are meant to be modified→bridge, parent→bridge (stand-in skip), and, where true, modified→parent.
 4. Submits those pairs to the implication attester; does not silently invent arrows.
-5. Optionally publishes nudge batches pointing parent-signers at the modified planks — the same nudger opt-in as today’s mediator, but the payload can be hand-authored.
+5. Optionally publishes nudge batches pointing parent-signers at the modified planks. Opt-in is to the mediator’s address (same object as an attached `bridge-creator`); the payload can be hand-authored. Cluster-page subscribe is [bridge-cluster-as-nudger.md](./bridge-cluster-as-nudger.md).
 6. Renders a **bridge cluster page**: the modified causes, the bridge, and links back to the natural parents.
 
-An LLM-powered [bridge-creator](./bridge-creator.md) instance is one *author* of the same objects (subject to today’s operator approval of anchors). It is not the only author.
+An LLM-powered [bridge-creator](./bridge-creator.md) instance is one *author* of the same objects (subject to today’s operator approval of anchors). It is not the only author. The listener object is the signer address in either case ([ADR 0012](../decisions/0012-mediator-is-an-address.md)).
 
 ## What this does not eat
 
@@ -85,9 +85,9 @@ Featured [anchor clusters](./bridge-creator.md#featured-anchors-the-public-displ
 
 Cross-cause “federation” is no longer only “one service suggests wording to another.” The durable join is the bridge cluster.
 
-## Open (not accepted)
+## Opt-in
 
-Whether a published cluster should be a **nudger people opt into** — same listener object as an attached `bridge-creator`, human tick = republish — is a tentative idea, not this spec: [bridge-cluster-as-nudger.md](./bridge-cluster-as-nudger.md).
+A published cluster is a way to **offer** the existing nudger contract. Visitors subscribe to the cluster’s **mediator address**, not to the page. Human or LLM is the author behind that address. Both statement-level triples and cause-clusters are available to both authors. See [bridge-cluster-as-nudger.md](./bridge-cluster-as-nudger.md) and [ADR 0012](../decisions/0012-mediator-is-an-address.md).
 
 ## Deliberately later
 

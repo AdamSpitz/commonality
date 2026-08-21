@@ -6,7 +6,7 @@ import {
   addTrustedNudger,
   isTrustedNudger,
   loadTrustedNudgers,
-  mediatorNudgerFromCause,
+  serviceMediatorFromCause,
   removeTrustedNudger,
 } from '@ui/shared'
 import type { CauseMediator } from '../lib/causeStore'
@@ -38,7 +38,7 @@ export function CauseMediatorCard({ mediator, detailPath }: {
   /** Omitted on the mediator's own page, where the link would point at itself. */
   detailPath?: string
 }) {
-  const entry = mediatorNudgerFromCause(mediator)
+  const entry = serviceMediatorFromCause(mediator)
   const [nudgers, setNudgers] = useState(loadTrustedNudgers)
   const optedIn = isTrustedNudger(mediator.address, nudgers)
 

@@ -53,6 +53,7 @@ wrong (or this file is out of date and needs an ADR — see
 | **Success attestation** | "This project actually delivered" |
 | **Trust score** | A user's direct trust setting on another user (Subjectiv). Filtering is by *transitive* trust over these |
 | **Attester / Finder / Nudger** | The three AI-service verbs. An attester judges a pair; a finder discovers pairs worth judging; a nudger proposes new things to the graph. (A fourth, *follower*/context-provider, is being extracted as `beat-memory`) |
+| **Mediator** | An Ethereum **address** people opt into for parent→modified (or triple) suggestions. A human (edit/republish) or an LLM process may author behind it; listeners subscribe to the address, not the runtime. See [ADR 0012](./decisions/0012-mediator-is-an-address.md). | Not the HTTP `bridge-creator` process itself; not cause-assist |
 
 ### Structure
 

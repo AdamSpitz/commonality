@@ -2,7 +2,7 @@
 
 How CauseStarter helps an organizer author a [bridge cluster](/specs/product/bridge-causes.md) without Commonality becoming the mediator.
 
-Status: **approach settled (2026-08-19)**; first slice implemented in the cluster editor (`/bridge/new`). This is the writeup a fresh agent should read before changing that UI or adding LLM help. The cluster *shape* is still [bridge-causes.md](/specs/product/bridge-causes.md). The scheduled AI mediator *service* is still [bridge-creator](/specs/product/bridge-creator.md) and [mediator-for-your-cause.md](./mediator-for-your-cause.md) — a different object.
+Status: **approach settled (2026-08-19)**; first slice implemented in the cluster editor (`/bridge/new`). This is the writeup a fresh agent should read before changing that UI or adding LLM help. The cluster *shape* is still [bridge-causes.md](/specs/product/bridge-causes.md). The scheduled AI mediator is a different **runtime** ([bridge-creator](/specs/product/bridge-creator.md), [mediator-for-your-cause.md](./mediator-for-your-cause.md)), not a different listener object — subscribers opt into an address ([ADR 0012](/specs/decisions/0012-mediator-is-an-address.md), [bridge-cluster-as-nudger.md](/specs/product/bridge-cluster-as-nudger.md)). Statement-level triples without parent causes: `/bridge/triple`.
 
 ## The job
 

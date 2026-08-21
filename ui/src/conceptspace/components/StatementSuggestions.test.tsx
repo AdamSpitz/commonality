@@ -487,6 +487,24 @@ describe('StatementSuggestions', () => {
       })
     })
 
+    it('folds by address even when a trusted mediator has no serviceUrl', async () => {
+      vi.mocked(useTrustedNudgers).mockReturnValue([
+        { address: VALID_NUDGER_1, name: 'Ada Mediator' },
+      ])
+
+      renderWithRouter(
+        <StatementSuggestions statementCid="bafyTest123" />
+      )
+
+      await waitFor(() => {
+        expect(getStatementNudges).toHaveBeenCalledWith(
+          mockMachinery,
+          'bafyTest123',
+          [VALID_NUDGER_1]
+        )
+      })
+    })
+
     it('refetches suggestions when statementCid changes', async () => {
       const { rerender } = renderWithRouter(
         <StatementSuggestions statementCid="bafyTest123" />
