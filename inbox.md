@@ -17,15 +17,21 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 ## Main list
 
-### Tell — done after the fact
+- **(Tell)** Combinator statements are specified and implemented: canonical `all`/`any` over sorted plank CIDs (no title/date), CauseStarter view-strip promote, implication attester structural gate for pairwise arrows only. Ordinary `createStatement` no longer defaults `createdDate` into extras.
 
-- Indexed `ProjectFactory.ProjectCreated` in the event cache and switched CauseStarter’s “projects you created” list to `getUserCreatedProjects` (creator-filtered by topic1). No more `eth_getLogs` from block 0. Hosted indexer needs `PROJECT_FACTORY_ADDRESS` (added in `render.yaml`; also in the deployment-manifest builder). Existing stacks must reindex that contract to populate the new events.
+- **(Tell)** Cause-board **Fully reimbursed** now means success-vouched *and* `outstandingUnreimbursedAmount === 0` (never-scouted successes omitted). It no longer reuses `AlignedProjectsList` with `statusFilterLock="succeeded"` (raised ≥ threshold). New SDK query: `getFullyReimbursedProjectsForCause`.
+
+- **(Tell)** Indexed `ProjectFactory.ProjectCreated` in the event cache and switched CauseStarter’s “projects you created” list to `getUserCreatedProjects` (creator-filtered by topic1). No more `eth_getLogs` from block 0. Hosted indexer needs `PROJECT_FACTORY_ADDRESS` (added in `render.yaml`; also in the deployment-manifest builder). Existing stacks must reindex that contract to populate the new events.
 
 ### Security/recoverability human actions
 
 - Replace/scopedown external account tokens: Cloudflare scoped DNS token instead of global key; Render/Pinata scoped as narrowly as possible; OpenRouter spend limit.
 
 - Before deploying the CauseStarter alignment-trust bootstrap outside local Hardhat, run `node scripts/generate-wallets.mjs`, fund `ALIGNMENT_TRUST_BOOTSTRAP_ADDRESS`, install the worker's generated Render secret block, and add the configured denylist canary to its persistent disk. Never deploy the checked-in local Hardhat key; see the worker README runbook.
+
+### Docs / UI copy
+
+- Decide whether to act on the fresh landing-copy positioning findings. The Civility grievance-first hero was reviewed and is fine; the verifier rubric was corrected so CSM’s recognition-register rule is not imposed on every vertical. Remaining findings are elsewhere: the umbrella Commonality landing still recruits generic end users despite the founder-first strategy, CSM front-loads the mediator toggle and uses “the other side’s bullshit,” Aligning repeats its main tradeoff several times, and Tally’s “Sign once, counted forever” headline presents a future goal as current capability.
 
 ### Features that I'm realizing would make a big difference
 
