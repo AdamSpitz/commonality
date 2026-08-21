@@ -1,15 +1,9 @@
-import { parseAbiItem } from 'viem'
-import { getProject, getUserContributions, type Project } from '@commonality/sdk/lazy-giving'
+import { getProject, getUserContributions, getUserCreatedProjects, type Project } from '@commonality/sdk/lazy-giving'
 import type { SDKMachinery } from '@commonality/sdk/machinery'
 import { readLazyGivingProjectMetadata } from '@ui/lazy-giving/metadata'
 import type { IpfsCidV1 } from '@commonality/sdk/utils'
 import { mapWithConcurrency, PLANK_QUERY_CONCURRENCY } from './concurrency'
-import { getRuntimeConfigValue } from './runtimeConfig'
 import { listProjectBookmarks } from './projectBookmarks'
-
-const PROJECT_CREATED_EVENT = parseAbiItem(
-  'event ProjectCreated(address indexed creator, address indexed token, address indexed assuranceContract, address condition)',
-)
 
 export type ProjectRelation = 'created' | 'contributed' | 'bookmarked'
 
@@ -29,20 +23,10 @@ async function createdProjectAddresses(
   machinery: SDKMachinery,
   userAddress: string,
 ): Promise<string[]> {
-  const factory = getRuntimeConfigValue('VITE_PROJECT_FACTORY_CONTRACT_ADDRESS') as `0x${string}` | undefined
-  const publicClient = machinery.publicClient as
-    | { getLogs: (args: unknown) => Promise<Array<{ args?: { assuranceContract?: string } }>> }
-    | undefined
-  if (!factory || !publicClient?.getLogs) return []
   try {
-    const logs = await publicClient.getLogs({
-      address: factory,
-      event: PROJECT_CREATED_EVENT,
-      args: { creator: userAddress as `0x${string}` },
-      fromBlock: 0n,
-    })
-    return logs
-      .map((log) => normalizeAddress(log.args?.assuranceContract ?? ''))
+    const addresses = await getUserCreatedProjects(machinery, userAddress)
+    return addresses
+      .map((address) => normalizeAddress(address))
       .filter((address): address is string => Boolean(address))
   } catch {
     return []

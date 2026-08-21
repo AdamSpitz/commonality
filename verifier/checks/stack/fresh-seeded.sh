@@ -11,6 +11,9 @@ if [ "${COMMONALITY_VERIFIER_ALLOW_DESTRUCTIVE:-}" != "1" ]; then
 fi
 
 cd "$(dirname "$0")/../../.."
+# shellcheck source=scripts/lib/local-stack-lock.sh
+. ./scripts/lib/local-stack-lock.sh
+acquire_local_stack_lock
 
 ./scripts/stop-wipe-restart.sh --seed=tiny --use-hardhat-accounts --allow-seed-on-existing-data
 
@@ -68,6 +71,8 @@ probe indexer-events "Indexer events API returned at least one indexed event." "
   wait_for_indexed_event
 probe services-url "Service URL summary command completed." "Service URL summary command failed." \
   ./scripts/services.sh --url
+probe seed-roster-refs "Tiny-seed CauseStarter roster and bookmark refs are present on chain." "Tiny-seed CauseStarter roster or bookmark refs are missing on chain." \
+  node verifier/checks/stack/probe-seed-refs.mjs
 
 if [ -n "${COMMONALITY_VERIFIER_HEALTH_EVIDENCE_FILE:-}" ]; then
   mkdir -p "$(dirname "$COMMONALITY_VERIFIER_HEALTH_EVIDENCE_FILE")"
@@ -81,4 +86,4 @@ if [ "$OVERALL_FAIL" -ne 0 ]; then
   exit 1
 fi
 
-echo "Fresh seeded stack smoke passed. Mutated state: stopped services, wiped ./data (or COMMONALITY_DATA_DIR), restarted services, seeded tiny fake data with hardhat accounts, republished local IPFS domain UI artifacts."
+echo "Fresh seeded stack smoke passed. Mutated state: stopped services, wiped ./data (or COMMONALITY_DATA_DIR), restarted services, seeded tiny fake data with hardhat accounts, republished local IPFS domain UI artifacts. Seed artifacts: Hardhat #0 local-food-systems and christianity roster refs plus bookmarked-causes for Hardhat #0-#9."

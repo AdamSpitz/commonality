@@ -31,6 +31,7 @@ register("Implications:ImplicationAttestation");
 
 // LAZYGIVING: Factory + AssuranceContract + non-transferable ERC1155 receipts
 register("AssuranceContractFactory:LazyGivingAssuranceContractCreated");
+register("ProjectFactory:ProjectCreated");
 register("ERC1155Factory:LazyGivingERC1155ContractCreated");
 register("AssuranceContract:AssuranceContractInitialized");
 register("AssuranceContract:ContractMetadataUpdated");

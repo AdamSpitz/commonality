@@ -2,9 +2,11 @@ services:
   # =============================================================================
   # Anvil local blockchain node (from Foundry)
   # =============================================================================
-  # Persists full chain state (blocks + contract storage) via --state flag.
+  # Persists full chain state (blocks + contract storage) via --state.
   # On startup: loads /data/state.json if it exists, otherwise starts fresh.
-  # On exit: dumps chain state to /data/state.json.
+  # On graceful exit and every --state-interval seconds: dumps to that file.
+  # The wrapper maps Docker SIGTERM to SIGINT so Anvil actually dumps instead
+  # of being SIGKILLed after the grace period with an empty/stale snapshot.
   # Use COMMONALITY_DATA_DIR to configure where data is stored.
   # Wipe this directory if you want a fresh chain.
   hardhat-node:
@@ -16,9 +18,16 @@ services:
     volumes:
       # Persist chain data - set COMMONALITY_DATA_DIR to configure location
       - ${COMMONALITY_DATA_DIR:-./data}/hardhat:/data
-    entrypoint: ["anvil"]
-    command: ["--host", "0.0.0.0", "--state", "/data/state.json"]
-    stop_grace_period: 30s
+      - ./scripts/anvil-docker-entrypoint.sh:/entrypoint.sh:ro
+    entrypoint: ["/bin/sh", "/entrypoint.sh"]
+    command:
+      - "--host"
+      - "0.0.0.0"
+      - "--state"
+      - "/data/state.json"
+      - "--state-interval"
+      - "15"
+    stop_grace_period: 60s
     healthcheck:
       test: ["CMD-SHELL", "cast block-number --rpc-url http://localhost:8545 || exit 1"]
       interval: 2s

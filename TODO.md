@@ -10,8 +10,6 @@ When an item from this page is done and no longer needs an LLM implementor's att
 
 ----
 
-- **(Tell)** Index `ProjectFactory.ProjectCreated` (or add a creator-filtered SDK query) so CauseStarter’s “projects you created” list does not depend on `eth_getLogs` from block 0. Tracked in [`causestarter/TODO.md`](causestarter/TODO.md). Public RPCs often reject unbounded log ranges and the current catch returns `[]`.
-
 - Add a fresh-stack integration test for the alignment-trust bootstrap: publish
   an alignment vouch from a previously unknown wallet, observe the service's
   `TrustSet(..., 100)`, confirm a wallet with no personal graph sees that vouch
@@ -32,33 +30,6 @@ When an item from this page is done and no longer needs an LLM implementor's att
 - Fix the three failing funding-portal integration tests. `automated.test-full-integration` fails (exit 3, 101 passing / 3 failing) because cause-level aggregation reads back `0n` where seeded contributions should appear: "total funding raised across all aligned projects for a cause" expects `800000n` (`integration-tests/src/fundingportal/fundingportal-aggregated-metrics.test.ts:219`), and the leaderboard tests expect `3000000n` and `2000000n` (`fundingportal-leaderboards.test.ts:221` and `:346`). All three get `0n`, so suspect one shared cause: contributions not being attributed to the cause in the aggregation query/indexer rather than three separate bugs. This is the only red under `automated.test-full` — SDK, Hardhat, and UI legs pass.
 
 - Fix the canonical Playwright user journeys (`stack.user-journeys`, exit 1). The content-funding flow reverts in `verifyChannel` with `InvalidVerifierSignature()` (custom error `0x0574e985`) when creating a channel and landing on the creators page, and retries hit the same error. Either the signer/verifier key the E2E harness uses no longer matches the deployed `ChannelRegistry` verifier, or the signed payload's shape/domain changed.
-
-- Stop `stack.fresh-seeded` and `stack.restart-consistency` from racing in the deep
-  cadence. On 2026-08-19 the nightly run seeded successfully and then destroyed the
-  result: `stack.fresh-seeded` started 02:15:12 and was still mid-run when
-  `stack.restart-consistency` began at 02:18:31 (see
-  `verifier/artifacts/stack.restart-consistency/2026-08-19T06-18-31.768Z-7d0c3d6e/command.log`,
-  which ends in `Error response from daemon: No such container: 1ffc7816…`). Its
-  `docker compose stop hardhat-node && up -d` replaced the seeded anvil with an empty
-  one at 02:19:30; `hardhat-deploy` then redeployed contracts (blocks 1-31) and the
-  alignment-trust bootstrap wired trust (blocks 32-41), and nothing else ever landed.
-  Adam woke up to a stack with 48 blocks, 119 logs, and zero cause rosters — while the
-  cadence summary reported `PASS stack.fresh-seeded`. Both checks are destructive to the
-  local stack and must be serialized (or share a lock / be placed in a mutually exclusive
-  supervisor group); a green `fresh-seeded` that another check has since wiped is worse
-  than a red one. Two sub-issues found alongside it:
-  (a) `anvil --state /data/state.json` is not giving restart durability — the restarted
-  anvil came up empty rather than reloading the snapshot, which is also why
-  `stack.restart-consistency` itself failed. Its comment claims `up -d --no-deps` avoids
-  rerunning `hardhat-deploy`, but deploy ran anyway.
-  (b) `stack.fresh-seeded` only probes endpoint reachability, so an unseeded-but-healthy
-  stack passes it. It should assert the seed's own artifacts exist (e.g. the
-  `local-food-systems` / `christianity` roster refs for Hardhat #0 and the
-  `bookmarked-causes` refs for #0-#9), not just that the RPC answers.
-  Workaround if you hit this again: `./scripts/data.sh --seed=tiny --use-hardhat-accounts
-  --allow-seed-on-existing-data` reseeds onto the live stack without a wipe.
-
-
 
 - [ ] **(Tell)** Measure whether the proposed planks/views model can fold `DirectSupport` events per plank client-side at approximately 10⁵ signers, or whether it needs a server-side fold. This is currently an unmeasured assertion in [shaping-your-cause-statements.md](docs/founder/shaping-your-cause-statements.md). Report the setup, timings, memory/browser behavior, and conclusion; do not build the server-side path yet.
 

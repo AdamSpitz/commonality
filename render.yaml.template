@@ -184,6 +184,8 @@ services:
         sync: false  # from-env: ACCOUNT_ASSERTIONS_ADDRESS
       - key: ASSURANCE_CONTRACT_FACTORY_ADDRESS
         sync: false  # from-env: ASSURANCE_CONTRACT_FACTORY_ADDRESS
+      - key: PROJECT_FACTORY_ADDRESS
+        sync: false  # from-env: PROJECT_FACTORY_ADDRESS
       - key: ERC1155_FACTORY_ADDRESS
         sync: false  # from-env: ERC1155_FACTORY_ADDRESS
       - key: DELEGATABLE_NOTES_ADDRESS
