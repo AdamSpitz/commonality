@@ -4,9 +4,10 @@ import CheckIcon from '@mui/icons-material/Check'
 import { Link as RouterLink } from 'react-router-dom'
 import {
   addTrustedNudger,
+  getMediatorOptInPath,
   isTrustedNudger,
   loadTrustedNudgers,
-  mediatorNudgerFromCause,
+  serviceMediatorFromCause,
   removeTrustedNudger,
 } from '@ui/shared'
 import type { CauseMediator } from '../lib/causeStore'
@@ -16,14 +17,9 @@ import type { CauseMediator } from '../lib/causeStore'
  * place). CauseStarter reads the same store directly, so its own card toggles.
  */
 export function causeMediatorOptInPath(mediator: CauseMediator): string {
-  const params = new URLSearchParams({
-    addNudger: mediator.address,
-    nudgerName: mediator.name,
-    nudgerDescription: mediator.description,
-    nudgerServiceUrl: mediator.serviceUrl,
-    nudgerSourceType: 'bridge-creator',
-  })
-  return `/settings?${params.toString()}`
+  const entry = serviceMediatorFromCause(mediator)
+  if (!entry) return '/settings'
+  return getMediatorOptInPath(entry)
 }
 
 /**
@@ -38,7 +34,7 @@ export function CauseMediatorCard({ mediator, detailPath }: {
   /** Omitted on the mediator's own page, where the link would point at itself. */
   detailPath?: string
 }) {
-  const entry = mediatorNudgerFromCause(mediator)
+  const entry = serviceMediatorFromCause(mediator)
   const [nudgers, setNudgers] = useState(loadTrustedNudgers)
   const optedIn = isTrustedNudger(mediator.address, nudgers)
 

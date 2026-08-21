@@ -58,6 +58,7 @@ import { useMachinery } from '../lib/useMachinery'
 import { useWriteClients } from '../lib/useWriteClients'
 import { ConnectWalletHint } from '../components/ConnectWalletHint'
 import { BridgeClusterAssist } from '../components/BridgeClusterAssist'
+import { ClusterMediatorOptIn } from '../components/ClusterMediatorOptIn'
 
 function slugOrEmpty(raw: string): string {
   return raw.trim() ? normalizeSlug(raw) : ''
@@ -625,6 +626,8 @@ export function BridgeClusterPage() {
           )}
         </Box>
 
+        <ClusterMediatorOptIn fields={published} />
+
         <Paper elevation={0} sx={{ p: 2, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
           <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>Nudge path: parent → modified</Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 1.25 }}>
@@ -765,6 +768,8 @@ export function BridgeClusterPage() {
           yet. Draft a thinner modified wording when there is a real parent; a stand-in may
           skip that hop. Draft the shared bridge and record plank-to-plank pairs. You remain
           the publisher. This does not replace the in-cause mediator.
+          {' '}If the sides are not causes,{' '}
+          <RouterLink to="/bridge/triple">write a statement-level triple</RouterLink> instead.
         </Typography>
       </Box>
 

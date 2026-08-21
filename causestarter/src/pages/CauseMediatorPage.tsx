@@ -136,8 +136,10 @@ export function CauseMediatorPage() {
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, mb: 1.5 }}>
               Advanced. If you just want to write one bridge yourself, use{' '}
-              <RouterLink to="/bridge/new">Create a bridge</RouterLink> instead — no
-              service required.
+              <RouterLink to="/bridge/new">Create a cluster</RouterLink>
+              {' '}(parents are causes) or{' '}
+              <RouterLink to="/bridge/triple">write a statement-level triple</RouterLink>
+              {' '}— no service required.
             </Typography>
             <MediatorEditor
               mediator={mediator}

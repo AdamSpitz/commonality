@@ -2,7 +2,7 @@
 
 This file describes the mechanism. For the vision behind it — why the CSM bridge creator is best understood as a *mediator*, why it's deliberately opinionated rather than neutral, and what incentive structure it creates for users — see [the CSM mediator doc](/docs/end-user/common-sense-majority/mediator.md).
 
-When the parents are already causes, the same triple can be published as ordinary causes (natural / modified / bridge). That presentation, and the requirement that a *human* can author it without an LLM loop, is [bridge-causes.md](./bridge-causes.md). This file remains the statement-level engine.
+When the parents are already causes, the same triple can be published as ordinary causes (natural / modified / bridge). That presentation, and the requirement that a *human* can author it without an LLM loop, is [bridge-causes.md](./bridge-causes.md). Listeners subscribe to the **signer address**, whether a human or this process is authoring ([ADR 0012](../decisions/0012-mediator-is-an-address.md), [bridge-cluster-as-nudger.md](./bridge-cluster-as-nudger.md)). This file remains the statement-level engine and the LLM runtime.
 
 ## What it does
 

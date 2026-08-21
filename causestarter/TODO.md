@@ -7,6 +7,10 @@ open **if they stay listed here**.
 
 ## Product / UX
 
+- [ ] `normalizeSlug` slices to 64 *after* stripping hyphens, so a cut on a hyphen can fail `validateSlug`. Bridge-creator `slugifyCluster` now strips again after slice; align CauseStarter if organizers hit 64-char slugs.
+
+- [x] **Cluster-page mediator opt-in** and **statement-level triples** (`/bridge/triple`) — [ADR 0012](/specs/decisions/0012-mediator-is-an-address.md).
+
 - [ ] **Content contracts on the cause board — leftover after first slice.**
   Product rule (settled): list the *contract* (not individual posts) on the
   cause project list when any post in that contract has a current positive
