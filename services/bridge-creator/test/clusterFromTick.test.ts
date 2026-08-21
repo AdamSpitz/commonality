@@ -5,6 +5,7 @@ import {
   clusterDocumentFromPlan,
   planClusterFromTick,
   rosterDocumentFromPlan,
+  slugifyCluster,
 } from '../src/clusterFromTick.js';
 
 const parentA = {
@@ -58,5 +59,35 @@ describe('planClusterFromTick', () => {
       parentOwner: parentA.owner,
       parentSlug: parentA.slug,
     });
+  });
+
+  it('slugifyCluster does not leave a trailing hyphen after 64-char truncation', () => {
+    const slug = slugifyCluster(`${'a'.repeat(60)}-modified`);
+    assert.ok(!slug.endsWith('-'));
+    assert.ok(slug.length <= 64);
+    assert.match(slug, /^[a-z0-9]+(?:-[a-z0-9]+)*$/);
+  });
+
+  it('uniquifies modified slugs when two long parent slugs would collide', () => {
+    const longA = 'x'.repeat(64);
+    const longB = 'x'.repeat(63) + 'y';
+    const plan = planClusterFromTick({
+      mediatorName: 'Ada Mediator',
+      mediatorNote: '',
+      mediatorAddress: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+      clusterSlug: 'c',
+      parentCauses: [
+        { ...parentA, slug: longA },
+        { ...parentB, slug: longB },
+      ],
+      triples: [{ sideACid: 'a', sideBCid: 'b', commonGroundCid: 'c' }],
+    });
+    assert.ok(plan);
+    const slugs = plan.rosters.map((roster) => roster.slug);
+    assert.strictEqual(new Set(slugs).size, slugs.length);
+    for (const slug of slugs) {
+      assert.ok(!slug.endsWith('-'));
+      assert.match(slug, /^[a-z0-9]+(?:-[a-z0-9]+)*$/);
+    }
   });
 });

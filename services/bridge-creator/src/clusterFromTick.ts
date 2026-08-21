@@ -55,14 +55,35 @@ export interface TickClusterPlan {
   cluster: ClusterDocumentPlan;
 }
 
+const MAX_SLUG_LENGTH = 64;
+
 export function slugifyCluster(raw: string): string {
   const slug = raw
     .trim()
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
-    .slice(0, 64);
+    .slice(0, MAX_SLUG_LENGTH)
+    .replace(/-+$/g, '');
   return slug || 'bridge-cluster';
+}
+
+function uniqueRosterSlug(raw: string, used: Set<string>): string {
+  const base = slugifyCluster(raw);
+  if (!used.has(base)) {
+    used.add(base);
+    return base;
+  }
+  for (let n = 2; n < 1000; n += 1) {
+    const suffix = `-${n}`;
+    const truncated = base.slice(0, Math.max(1, MAX_SLUG_LENGTH - suffix.length)).replace(/-+$/g, '');
+    const candidate = slugifyCluster(`${truncated}${suffix}`);
+    if (!used.has(candidate)) {
+      used.add(candidate);
+      return candidate;
+    }
+  }
+  throw new Error(`Could not uniquify roster slug from "${raw}"`);
 }
 
 export function planClusterFromTick(args: {
@@ -86,9 +107,10 @@ export function planClusterFromTick(args: {
 
   const rosters: ClusterRosterPlan[] = [];
   const modified: ClusterDocumentPlan['modified'] = [];
+  const usedSlugs = new Set<string>([clusterSlug]);
 
   for (const parent of sideAParents) {
-    const slug = slugifyCluster(`${clusterSlug}-${parent.slug}-modified`);
+    const slug = uniqueRosterSlug(`${clusterSlug}-${parent.slug}-modified`, usedSlugs);
     rosters.push({
       slug,
       title: `${args.mediatorName}: ${parent.slug} (modified)`,
@@ -108,7 +130,7 @@ export function planClusterFromTick(args: {
     });
   }
   for (const parent of sideBParents) {
-    const slug = slugifyCluster(`${clusterSlug}-${parent.slug}-modified`);
+    const slug = uniqueRosterSlug(`${clusterSlug}-${parent.slug}-modified`, usedSlugs);
     rosters.push({
       slug,
       title: `${args.mediatorName}: ${parent.slug} (modified)`,
@@ -128,7 +150,7 @@ export function planClusterFromTick(args: {
     });
   }
 
-  const bridgeSlug = slugifyCluster(`${clusterSlug}-bridge`);
+  const bridgeSlug = uniqueRosterSlug(`${clusterSlug}-bridge`, usedSlugs);
   rosters.push({
     slug: bridgeSlug,
     title: `${args.mediatorName}: shared ground`,
