@@ -67,7 +67,9 @@ export function YourCauses({
 
       {!loading && causes.length === 0 && (
         <Alert severity="info" sx={{ borderRadius: 2 }}>
-          No causes yet on this device. Start one, or open a cause from its organizer’s link.
+          No causes on this device. Start one if you want a different combination of
+          statements — reuse overlapping ones so you are not starting from zero. Or open
+          a cause from its organizer’s link; there is no directory.
         </Alert>
       )}
 

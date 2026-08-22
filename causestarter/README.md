@@ -207,6 +207,12 @@ See [`cause-assist/README.md`](../cause-assist/README.md). Bridge-cluster wordin
 
 ## Design notes
 
+- **Landing pitch is jobs, not a movement lifecycle.** Hero and `/docs/the-jobs`
+  (`docs/end-user/causestarter/the-jobs.md`) are the “do the part you’d do anyway”
+  catalog. Do not restore Start → Grow → Deliver or “build a Movement.”
+- **In-app docs** (`/docs/*`) bundle `docs/end-user/causestarter/`, `shared/`,
+  and `commonality/` via `endUserDocsPlugin`. Keep markdown links relative so
+  they resolve in that viewer.
 - **CauseStarter is a lens, not a directory** ([ADR 0008](../specs/decisions/0008-operated-surfaces-are-lenses.md)).
   It authors no discovery: no search, browse, ranking, featuring, or leaderboards.
   A cause is reached at `/cause/:causeId` through a link its organizer circulates.
@@ -290,7 +296,7 @@ Then **restart Grok** so MCP tools load.
 | `wallet-account-menu` | Hardhat account picker (localhost only) |
 | `wallet-hardhat-0` … `wallet-hardhat-9` | Pick Hardhat account |
 | `wallet-disconnect` | Disconnect |
-| `home-start-cause` | Home CTA → create a draft and open the cause editor |
+| `home-start-cause` | Home / `/welcome` CTA → create a draft and open the cause editor |
 | `nav-start` | Desktop/mobile nav “Start” → same (creates a new draft) |
 | `cause-detail-page` | Cause page root (where all editing happens; brand-new drafts show “Start a cause” coach copy here) |
 | `issue-guidance` | Static coach copy for what an issue is |

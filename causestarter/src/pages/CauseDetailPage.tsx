@@ -905,10 +905,10 @@ export function CauseDetailPage({ editMode = false }: { editMode?: boolean }) {
         )}
         {isFreshDraft ? (
           <Alert severity="info" sx={{ mt: 1.5, borderRadius: 2 }} data-testid="start-cause-help">
-            Tell CauseStarter what you want people to be able to support. It searches
-            published statements first and can propose new wording when none fit.
-            You decide what belongs in the cause. Nothing is published until you review
-            the exact statement text and CID in the page below and explicitly approve it.
+            A cause is a set of statements people can sign one at a time — not a club
+            they join. Reuse published statements when they already say what you mean;
+            you inherit their signers and projects. Write your own when they don’t.
+            Nothing is published until you review the exact text and CID below.
           </Alert>
         ) : null}
       </Box>
@@ -999,7 +999,9 @@ export function CauseDetailPage({ editMode = false }: { editMode?: boolean }) {
 
         {!live && (
           <Alert severity="info" sx={{ mb: 2, borderRadius: 2 }} data-testid="issue-draft-help">
-            Write the statements this cause is made of. Publish each one when it is ready.
+            People sign these sentences, not your brand. If the wording you want would
+            have “zero signers,” write it so similar claims can still count — or start
+            from a published statement and keep your own extras beside it.
           </Alert>
         )}
 
@@ -1018,8 +1020,9 @@ export function CauseDetailPage({ editMode = false }: { editMode?: boolean }) {
             </Typography>
             <Typography variant="body2" component="div">
               Describe your intent in the picker. It looks for reusable published statements
-              before offering new drafts. Reject or correct any suggestion that misses your
-              meaning; broad statements are fine when their proposition is clear.
+              before offering new drafts — that is how you avoid starting from zero signers.
+              Reject or correct any suggestion that misses your meaning; write one manually
+              if you need to.
             </Typography>
           </Alert>
         )}
@@ -1138,8 +1141,10 @@ export function CauseDetailPage({ editMode = false }: { editMode?: boolean }) {
       {publishedCids.length === 0 ? (
         <Paper elevation={0} sx={{ p: { xs: 2, sm: 2.5 }, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
           <Typography variant="h6" sx={{ fontWeight: 700 }} gutterBottom>Fundable Projects</Typography>
-          <Alert severity="info" sx={{ borderRadius: 2 }}>
-            Publish a statement to see projects aligned with it.
+          <Alert severity="info" sx={{ borderRadius: 2 }} data-testid="projects-need-statement">
+            Publish a statement to see projects vouched as advancing it. You do not need a
+            grant officer: a friend who is one hop better-connected can vouch, and the
+            project shows up for everyone watching that statement.
           </Alert>
         </Paper>
       ) : (
@@ -1159,8 +1164,10 @@ export function CauseDetailPage({ editMode = false }: { editMode?: boolean }) {
           projectsHelp={
             <Stack spacing={1}>
               <Typography variant="body2">
-                Union of projects vouched for as advancing any published statement of this
-                cause. Alignment attaches to a statement, never to the cause as a whole.
+                Union of projects vouched as advancing any published statement here.
+                Alignment attaches to a statement, never to the cause as a whole. Watch
+                this list if your job is judgment, not a monthly check — including if you
+                only fund work that has already delivered.
               </Typography>
               <StarterNetworkFilterCopy />
             </Stack>

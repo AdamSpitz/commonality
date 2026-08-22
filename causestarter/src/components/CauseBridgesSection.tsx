@@ -168,7 +168,9 @@ export function CauseBridgesSection({ cause, variant = 'organizer' }: CauseBridg
 
         {rows.length === 0 && !(organizer && cause.mediator) && (
           <Typography variant="body2" color="text.secondary" data-testid="cause-bridges-empty">
-            No bridges yet.
+            No bridges yet. If you would sign something like their statement but theirs
+            does not imply yours, write a bridge. A suggester can nudge its subscribers
+            if it agrees.
           </Typography>
         )}
       </Stack>

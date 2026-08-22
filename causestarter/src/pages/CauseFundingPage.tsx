@@ -6,6 +6,7 @@ import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom'
 import { formatUnits } from 'viem'
 import { useAccount } from 'wagmi'
 import { ConnectWalletHint } from '../components/ConnectWalletHint'
+import { JobTip } from '../components/JobTip'
 import { CauseConjunctionEarmark } from '../components/CauseConjunctionEarmark'
 import { useCauseMonthlyPledges } from '../hooks/useCauseMonthlyPledges'
 import {
@@ -250,13 +251,13 @@ export function CauseFundingPage() {
         )}
       </Paper>
 
-      <Alert severity="info" sx={{ borderRadius: 2 }} data-testid="earmark-help">
-        Create a one-time delegated fund or a monthly pledge earmarked for one immutable
-        statement — or for a combination you endorse as a package. The earmark is public,
-        auditable guidance — not a binding restriction on a delegate. If they direct the
-        money elsewhere, that will also be public. Choosing a delegate is public too.
-        The earmark does not follow later edits to this cause publication.
-      </Alert>
+      <JobTip job="money" testId="earmark-help">
+        Happy to put in $X/month but not to pick every project? Pledge, and hand the
+        choices to a person you already trust — not a black-box charity. The earmark is
+        public guidance, not a lock; if they send the money elsewhere, that is public too.
+        Pledges that miss their threshold refund. The earmark stays on these statement
+        CIDs even if this cause page later changes.
+      </JobTip>
 
       {published.length === 0 ? (
         <Alert severity="info" sx={{ borderRadius: 2 }}>

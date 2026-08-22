@@ -1,6 +1,9 @@
+import { lazy, Suspense } from 'react'
 import { BrowserRouter, HashRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { CircularProgress, Stack } from '@mui/material'
 import { CauseShell } from './shell/CauseShell'
 import { HomePage } from './pages/HomePage'
+import { WelcomePage } from './pages/WelcomePage'
 import { StartCauseRedirect } from './pages/StartCauseRedirect'
 import { StartBridgeRedirect } from './pages/StartBridgeRedirect'
 import { BridgeClusterPage } from './pages/BridgeClusterPage'
@@ -12,7 +15,6 @@ import { CauseBoardLeaderboardPage } from './pages/CauseBoardLeaderboardPage'
 import { StatementBoardLeaderboardPage } from './pages/StatementBoardLeaderboardPage'
 import { StatementBoardRedirect } from './pages/StatementBoardRedirect'
 import { StatementPage } from './pages/StatementPage'
-import { DocsPage } from './pages/DocsPage'
 import { StatementsPage } from './pages/StatementsPage'
 import { SettingsPage } from './pages/SettingsPage'
 import { ProjectDetailPage, ProjectLeaderboardPage } from './pages/ProjectDetailPage'
@@ -40,6 +42,16 @@ import {
 } from './pages/DelegationPages'
 import { NotFoundPage } from './pages/NotFoundPage'
 
+const DocsPage = lazy(() => import('./pages/DocsPage').then((mod) => ({ default: mod.DocsPage })))
+
+function DocsFallback() {
+  return (
+    <Stack alignItems="center" sx={{ py: 6 }} data-testid="docs-loading">
+      <CircularProgress size={22} />
+    </Stack>
+  )
+}
+
 function isHashRouting(): boolean {
   return import.meta.env.MODE === 'ipfs' || import.meta.env.VITE_HASH_ROUTING === 'true'
 }
@@ -52,6 +64,7 @@ export default function App() {
       <CauseShell>
         <Routes>
           <Route path="/" element={<HomePage />} />
+          <Route path="/welcome" element={<WelcomePage />} />
           {/* No intermediate form — creates a draft and opens the editor. */}
           <Route path="/start" element={<StartCauseRedirect />} />
           <Route path="/bridge/new" element={<StartBridgeRedirect />} />
@@ -105,7 +118,22 @@ export default function App() {
           <Route path="/content/:platform/:channelId/new" element={<ContentFundingCreateContractPage />} />
           <Route path="/content/:platform/:channelId/prospective/:roundAddress/materialize" element={<ContentFundingMaterializeFutureContentPage />} />
           <Route path="/explore" element={<ContentFundingExploreKindsPage />} />
-          <Route path="/docs" element={<DocsPage />} />
+          <Route
+            path="/docs"
+            element={(
+              <Suspense fallback={<DocsFallback />}>
+                <DocsPage />
+              </Suspense>
+            )}
+          />
+          <Route
+            path="/docs/*"
+            element={(
+              <Suspense fallback={<DocsFallback />}>
+                <DocsPage />
+              </Suspense>
+            )}
+          />
           <Route path="/tools" element={<Navigate to="/docs" replace />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="*" element={<NotFoundPage />} />

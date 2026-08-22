@@ -62,7 +62,9 @@ export function YourProjects() {
 
       {connected && !loading && projects.length === 0 && (
         <Alert severity="info" sx={{ borderRadius: 2 }}>
-          No projects yet. Create one, contribute, or bookmark a project from its page.
+          No projects yet. If you would do the work but cannot self-fund, create one
+          and ask a better-connected friend for an alignment vouch — no grant officer.
+          Contribute or bookmark if your job is money or attention instead.
         </Alert>
       )}
 

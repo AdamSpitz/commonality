@@ -330,8 +330,10 @@ export function StatementPage() {
         projectsHelp={
           <Stack spacing={1}>
             <Typography variant="body2">
-              Projects vouched for as advancing this statement. Each is aligned with this
-              statement, not with a cause as a whole.
+              Projects vouched as advancing this statement — not a cause as a whole.
+              Do the work? Publish a project and get an alignment vouch; you do not need
+              a foundation intro. Only want to judge? Fund proven work, or fund early and
+              ask to be reimbursed at cost.
             </Typography>
             <StarterNetworkFilterCopy />
           </Stack>
@@ -345,13 +347,24 @@ export function StatementPage() {
         fullPageTo={`/statement/${statementCid}/board/leaderboard`}
       />
 
-      <Button
-        variant="outlined"
-        sx={{ minHeight: 48, borderRadius: 999, textTransform: 'none', fontWeight: 600 }}
-        onClick={() => navigate(createCausePath())}
+      <Paper
+        elevation={0}
+        sx={{ p: 2, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}
       >
-        Start a related cause
-      </Button>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+          Hate this statement’s company on someone else’s cause page? Start your own
+          cause and reuse this statement — you keep its signers and projects. Write a
+          different sentence if this wording is not what you mean; similar claims can
+          still count.
+        </Typography>
+        <Button
+          variant="outlined"
+          sx={{ minHeight: 48, borderRadius: 999, textTransform: 'none', fontWeight: 600 }}
+          onClick={() => navigate(createCausePath())}
+        >
+          Start a related cause
+        </Button>
+      </Paper>
 
       <Snackbar
         open={cidCopiedOpen}

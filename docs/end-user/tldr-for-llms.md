@@ -7,6 +7,14 @@ Each entry follows the same shape:
 - **When a user encounters it** — UI surfaces or moments in the user's flow where this concept becomes load-bearing.
 - **What they might want help with** — typical assistant tasks around this concept.
 
+## Do the part you’d do anyway (jobs, not an org)
+
+[Full page](/docs/end-user/causestarter/the-jobs.md)
+
+- **What it is:** The everyday pitch for CauseStarter / Commonality. Cooperate on agreement; split the work into jobs people would already take (money, attention, work, wording); remove the extra job each role used to demand. Not “join a movement.”
+- **When a user encounters it:** CauseStarter landing, empty states on cause/project/statement pages, `/docs/the-jobs`.
+- **What they might want help with:** Which job to take; why they don’t need a committee, grant officer, or matching manifesto; how delegation / refundable pledges / retroactive funding / bridges / reusing statements unblock the matching “ugh.”
+
 ## Statements and the implication graph
 
 [Full page](/docs/end-user/tally/statements-and-implication-graph.md)

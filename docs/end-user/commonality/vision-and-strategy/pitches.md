@@ -33,3 +33,5 @@ Of course a cause still does need to actually gather users — get donors to ple
 ## The common thread
 
 Every pitch is about something individually useful. Nobody needs to be told "join our movement" or "here's our plan to persuade half the country." It's "here's this one small thing you can do, it's useful to you right now, and it doesn't depend on what anybody else does."
+
+The same idea, written as the “I’d be happy to X, but ugh Y” obstacles the substrate removes: **[Do the part you’d do anyway](../../causestarter/the-jobs.md)** ([strategy note](./the-jobs.md)).

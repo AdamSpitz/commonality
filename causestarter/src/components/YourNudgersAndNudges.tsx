@@ -101,8 +101,8 @@ export function YourNudgersAndNudges() {
 
       {trustedNudgers.length === 0 ? (
         <Alert severity="info" sx={{ borderRadius: 2 }}>
-          No suggesters yet. Open a cause and opt in to a suggester to see
-          suggestions here.
+          No suggesters yet. Opt in on a cause if you would sign a better wording but
+          do not want to hunt for it — a mediator can nudge you when a bridge fits.
         </Alert>
       ) : (
         <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">

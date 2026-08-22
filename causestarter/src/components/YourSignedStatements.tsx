@@ -17,7 +17,7 @@ export function YourSignedStatements() {
           Statements
         </Typography>
         <HeaderInfoTip
-          title="These are statements this wallet has signed. Bookmarks without signing are not listed yet."
+          title="Statements this wallet has signed, one at a time — not membership in a cause. Write your own if you hate the phrasing; similar claims can still count."
           label="About signed statements"
         />
       </Stack>
