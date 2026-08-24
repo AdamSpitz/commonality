@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { PROJECT_FOLD_VERSION, type Project, type ProjectAccumulator } from '@commonality/sdk/lazy-giving';
+import type { Project, ProjectAccumulator } from '@commonality/sdk/lazy-giving';
 import type { SDKMachinery } from '@commonality/sdk/machinery';
 import {
   loadCachedProjectAccumulator,
@@ -20,20 +20,21 @@ interface UseCachedProjectOptions {
   cacheOptions: Omit<FoldCacheOptions, 'address'>;
 }
 
-function projectToAccumulator(project: Project): ProjectAccumulator {
+/** IndexedDB key material shared by every project-fold cache caller. */
+export function projectFoldCacheOptions(
+  machinery: SDKMachinery,
+): Omit<FoldCacheOptions, 'address'> | null {
+  const factory = machinery.contractAddresses?.assuranceContractFactory
+  if (!machinery.eventCacheUrl || !factory) return null
   return {
-    foldVersion: PROJECT_FOLD_VERSION,
-    id: project.id,
-    erc1155Address: project.erc1155Address,
-    recipient: project.recipient,
-    conditionAddress: project.conditionAddress,
-    metadataCid: project.metadataCid,
-    createdAt: project.createdAt,
-    blockNumber: project.blockNumber,
-    lastEventBlockNumber: undefined,
-    lastEventLogIndex: undefined,
-    totalReceived: BigInt(project.totalReceived),
-  };
+    eventCacheUrl: machinery.eventCacheUrl,
+    contractAddresses: { assuranceContractFactory: factory },
+    foldType: 'project',
+  }
+}
+
+function resumeFromBlock(accumulator: ProjectAccumulator, fallbackBlock: string): string {
+  return accumulator.lastEventBlockNumber ?? accumulator.blockNumber ?? fallbackBlock
 }
 
 export async function loadProjectWithCache(
@@ -41,7 +42,7 @@ export async function loadProjectWithCache(
   projectAddress: string,
   cacheOptions: Omit<FoldCacheOptions, 'address'>
 ): Promise<Project | null> {
-  const { getProject } = await import('@commonality/sdk/lazy-giving');
+  const { getProject, getProjectFold } = await import('@commonality/sdk/lazy-giving');
 
   if (!projectAddress) {
     return null;
@@ -61,27 +62,26 @@ export async function loadProjectWithCache(
   };
   const cached = await loadCachedProjectAccumulator(cacheKeyOptions);
 
-  if (cached) {
-    const project = await getProject(machinery, projectAddress);
-    if (project) {
-      await saveCachedProjectAccumulator(
-        cacheKeyOptions,
-        projectToAccumulator(project),
-        project.blockNumber ?? cached.blockNumber
-      );
-    }
-    return project;
-  }
+  const folded = cached
+    ? await getProjectFold(machinery, projectAddress, {
+        initialAccumulator: cached.accumulator,
+        blockNumber_gte: resumeFromBlock(cached.accumulator, cached.blockNumber),
+      })
+    : await getProjectFold(machinery, projectAddress);
 
-  const project = await getProject(machinery, projectAddress);
-  if (project) {
+  if (folded) {
     await saveCachedProjectAccumulator(
       cacheKeyOptions,
-      projectToAccumulator(project),
-      project.blockNumber ?? '0'
+      folded.accumulator,
+      folded.accumulator.lastEventBlockNumber
+        ?? folded.project.blockNumber
+        ?? cached?.blockNumber
+        ?? '0'
     );
+    return folded.project;
   }
-  return project;
+
+  return null;
 }
 
 export function useCachedProject({

@@ -216,7 +216,7 @@ export function CauseLeaderboard({
   }
 
   const resolvedBack: CauseBoardNavLink = backLink ?? {
-    label: '← Back to Cause Board',
+    label: '← Back to fundable-projects board',
     to: `/portal/${loadCids[0] ?? ''}`,
   }
 

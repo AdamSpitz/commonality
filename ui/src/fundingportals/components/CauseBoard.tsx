@@ -25,10 +25,13 @@ import type { IpfsCidV1 } from '@commonality/sdk/utils'
 import { useMachinery } from '../../shared'
 import {
   DEFAULT_PAYMENT_CURRENCY,
+  boardSnapshotCacheOptions,
   formatCurrencyAmount,
   formatCurrencyTotals,
   getConfiguredPaymentCurrency,
   getDomainUrl,
+  loadBoardMetricsSnapshot,
+  saveBoardMetricsSnapshot,
   useTrustedSet,
   useTrustedAttesters,
   useTrustedContentAttesters,
@@ -89,6 +92,11 @@ export interface CauseBoardProps {
    * matches plank counts and the starter-network notice.
    */
   trustedAlignmentAttesters?: Iterable<string>
+  /**
+   * Home teaser: skip metrics/tabs, cap the aligned list, compact cards.
+   * Full board lives at {@link preview.fullPageTo}.
+   */
+  preview?: { limit: number; fullPageTo: string }
 }
 
 function defaultNavLinks(statementCid: string | undefined): CauseBoardNavLink[] {
@@ -141,6 +149,7 @@ export function CauseBoard({
   projectsHelp,
   projectLinks = 'lazyGiving',
   trustedAlignmentAttesters,
+  preview,
 }: CauseBoardProps) {
   const cids = useMemo(
     () => resolveStatementCids(statementCid, statementCids),
@@ -212,6 +221,7 @@ export function CauseBoard({
   const [projectTab, setProjectTab] = useState<
     'aligned' | 'successful' | 'reimbursed' | 'failed'
   >('aligned')
+  const [refreshing, setRefreshing] = useState(false)
   const keepPainted = useKeepPaintedWhileRefreshing()
 
   useEffect(() => {
@@ -223,14 +233,44 @@ export function CauseBoard({
     const attestersForLoad = trustedAttestersKey
       ? trustedAttestersKey.split(',')
       : undefined
+    const snapshotOptions = boardSnapshotCacheOptions(machinery, {
+      kind: 'board-metrics',
+      statementCids: loadCids,
+      implicationTrustKey: trustedAttestersKey,
+      alignmentTrustKey: trustedSetKey,
+      contentTrustKey,
+    })
 
     async function load() {
+      if (preview) {
+        setLoading(false)
+        setError(null)
+        return
+      }
       if (loadCids.length === 0) {
         setLoading(false)
         setError('No statement specified.')
         return
       }
-      keepPainted.beginLoad(setLoading)
+      const cached = snapshotOptions
+        ? await loadBoardMetricsSnapshot(snapshotOptions)
+        : null
+      if (cancelled) return
+      if (cached) {
+        setTitle(cached.title)
+        setSummary(cached.summary)
+        setTotalRaised(cached.totalRaised as typeof totalRaised)
+        setRemainingToThreshold(cached.remainingToThreshold as typeof remainingToThreshold)
+        setTotalUnreimbursed(cached.totalUnreimbursed as typeof totalUnreimbursed)
+        setMonthlyPledged(BigInt(cached.monthlyPledged || '0'))
+        setProjectCount(cached.projectCount)
+        keepPainted.markResolved()
+        setLoading(false)
+        setRefreshing(true)
+      } else {
+        keepPainted.beginLoad(setLoading)
+        setRefreshing(false)
+      }
       setError(null)
       try {
         const cid = loadCids[0]!
@@ -273,15 +313,21 @@ export function CauseBoard({
 
         if (cancelled) return
 
-        if (stmtResult) {
-          const t =
+        const nextTitle = stmtResult
+          ? (
             stmtResult.statement.title ??
             (stmtResult.content?.content
               ? stmtResult.content.content.split('\n')[0].replace(/^#+\s*/, '').trim()
               : null) ??
             `Statement ${cid.slice(0, 12)}...`
-          setTitle(t)
-          setSummary(stmtResult.statement.excerpt ?? null)
+          )
+          : (cached?.title ?? null)
+        const nextSummary = stmtResult
+          ? (stmtResult.statement.excerpt ?? null)
+          : (cached?.summary ?? null)
+        if (stmtResult) {
+          setTitle(nextTitle)
+          setSummary(nextSummary)
         }
 
         setTotalRaised(fundingMetrics.totalRaisedAcrossProjects)
@@ -298,15 +344,30 @@ export function CauseBoard({
           monthly += monthlyTotals.get(plankCid) ?? 0n
         }
         setMonthlyPledged(monthly)
+
+        if (snapshotOptions) {
+          await saveBoardMetricsSnapshot(snapshotOptions, {
+            title: nextTitle,
+            summary: nextSummary,
+            totalRaised: fundingMetrics.totalRaisedAcrossProjects,
+            remainingToThreshold: fundingMetrics.remainingToThreshold,
+            totalUnreimbursed: fundingMetrics.totalUnreimbursed,
+            monthlyPledged: monthly.toString(),
+            projectCount: fundingMetrics.projectCount,
+          })
+        }
       } catch (err) {
         if (!cancelled) {
           console.error('Error loading cause board:', err)
-          setError(err instanceof Error ? err.message : 'Failed to load cause board')
+          if (!cached) {
+            setError(err instanceof Error ? err.message : 'Failed to load fundable-projects board')
+          }
         }
       } finally {
         if (!cancelled) {
           keepPainted.markResolved()
           setLoading(false)
+          setRefreshing(false)
         }
       }
     }
@@ -319,6 +380,7 @@ export function CauseBoard({
     machinery,
     cidsKey,
     embedded,
+    preview,
     trustedAttestersKey,
     trustedSetKey,
     alignmentOverrideKey,
@@ -326,6 +388,24 @@ export function CauseBoard({
     contentAttestationsKey,
     contentTrustKey,
   ])
+
+  if (preview) {
+    return (
+      <Box id="fundable-projects" data-testid="fundable-projects">
+        <AlignedProjectsList
+          statementCid={primaryCid ?? ''}
+          statementCids={cids}
+          trustedImplicationAttesters={activeTrustedImplicationAttesters}
+          trustedAlignmentAttesters={trustedAlignmentAttesters}
+          projectLinks={projectLinks}
+          embedded
+          compact
+          limit={preview.limit}
+          fullPageTo={preview.fullPageTo}
+        />
+      </Box>
+    )
+  }
 
   if (loading) {
     return (
@@ -494,12 +574,16 @@ export function CauseBoard({
           {headerExtra}
         </Box>
 
-        {address && trustedSetLoading && trustedAlignmentAttesters === undefined && (
+        {(refreshing || (address && trustedSetLoading && trustedAlignmentAttesters === undefined)) && (
           <TrustNetworkRefreshIndicator
             title={
-              trustedSet
-                ? `Refreshing your trust network. This portal is currently filtered using ${trustedSet.size} account${trustedSet.size !== 1 ? 's' : ''} in your network. Results may still change as more are discovered.`
-                : 'Refreshing your trust network. Until any trusted accounts are found, this cause board still shows all project vouches.'
+              address && trustedSetLoading && trustedAlignmentAttesters === undefined
+                ? (
+                  trustedSet
+                    ? `Refreshing your trust network. This fundable-projects board is currently filtered using ${trustedSet.size} account${trustedSet.size !== 1 ? 's' : ''} in your network. Results may still change as more are discovered.`
+                    : 'Refreshing your trust network. Until any trusted accounts are found, this fundable-projects board still shows all project vouches.'
+                )
+                : 'Updating this fundable-projects board from the latest events.'
             }
           />
         )}
@@ -509,7 +593,7 @@ export function CauseBoard({
           onChange={(_, value: 'aligned' | 'successful' | 'reimbursed' | 'failed') =>
             setProjectTab(value)
           }
-          aria-label="Cause board project views"
+          aria-label="Fundable-projects board views"
           variant="scrollable"
           allowScrollButtonsMobile
           sx={{

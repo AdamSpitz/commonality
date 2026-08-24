@@ -62,17 +62,8 @@ timing_mark start
 if [ "${#seed_args[@]}" -gt 0 ]; then
     echo ""
     echo "=== Seeding data ==="
-    # --start already writes Hardhat trust txs, so the indexer is not empty.
-    already_allows=false
-    for arg in "${seed_args[@]}"; do
-        if [ "$arg" = "--allow-seed-on-existing-data" ]; then
-            already_allows=true
-            break
-        fi
-    done
-    if [ "$already_allows" = false ]; then
-        seed_args+=(--allow-seed-on-existing-data)
-    fi
+    # --start writes TrustSet bootstrap only; data.sh --seed allows that and
+    # refuses only if signatures/projects/published-data already exist.
     "$SCRIPT_DIR/data.sh" "${seed_args[@]}"
     timing_mark seed
 fi

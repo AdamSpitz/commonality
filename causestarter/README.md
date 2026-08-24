@@ -1,9 +1,12 @@
 # CauseStarter
 
-Organizer-first reference lens for the Commonality substrate. Where the main
-[`ui/`](../ui/) package is organized as multi-domain product sites (Commonality,
-Civility, CSM, LazyGiving, …), **CauseStarter** is a single app organized around
-the cause-starter job:
+Organizer-first reference lens for the Commonality substrate. The SPA source
+lives in [`ui/src/causestarter/`](../ui/src/causestarter/) and is built as
+`VITE_DOMAIN=causestarter` (`npm run causestarter:dev` → Vite on **:5174**).
+This directory keeps Docker/nginx, Playwright, and the product backlog.
+
+Where the other `ui/` domains are focused tool sites (Commonality, Civility,
+CSM, LazyGiving, …), **CauseStarter** is organized around the cause-starter job:
 
 1. **Organize a cause** — retrieve, review, and select the independent, signable statements it is made of
 2. **Enroll people** — supporters (signers), volunteers, and collaborators
@@ -41,7 +44,7 @@ as main `CreateStatementForm`), not browser → Kubo API upload.
 
 1. Start (or leave running) the local stack: `./scripts/services.sh --start` (or at least hardhat + indexer + **cause-assist** + gateway).  
    `cause-assist` is a Compose service (loopback **:3002**). You do **not** need a separate `npm run cause-assist:*` process for normal UI work.
-2. Seed `causestarter/.env` from the running Docker SPA config (contract addresses + tool domain URLs):
+2. Seed `ui/.env` (and optionally overlay `causestarter/.env`) from the running Docker SPA config (contract addresses + tool domain URLs). Vite HMR on :5174 reads `ui/.env`. IPFS/local publish merges `ui/.env` then `causestarter/.env`, then root contract-address mappings:
 
    ```bash
    python3 scripts/seed-causestarter-vite-env.py
@@ -54,6 +57,7 @@ as main `CreateStatementForm`), not browser → Kubo API upload.
 
    ```bash
    npm run causestarter:dev
+   # VITE_DOMAIN=causestarter in the ui package, port 5174
    ```
 
    Or from this package: `npm run dev`.
@@ -207,6 +211,12 @@ See [`cause-assist/README.md`](../cause-assist/README.md). Bridge-cluster wordin
 
 ## Design notes
 
+- **Landing pitch is jobs, not a movement lifecycle.** Hero and `/docs/the-jobs`
+  (`docs/end-user/causestarter/the-jobs.md`) are the “do the part you’d do anyway”
+  catalog. Do not restore Start → Grow → Deliver or “build a Movement.”
+- **In-app docs** (`/docs/*`) bundle `docs/end-user/causestarter/`, `shared/`,
+  and `commonality/` via `endUserDocsPlugin`. Keep markdown links relative so
+  they resolve in that viewer.
 - **CauseStarter is a lens, not a directory** ([ADR 0008](../specs/decisions/0008-operated-surfaces-are-lenses.md)).
   It authors no discovery: no search, browse, ranking, featuring, or leaderboards.
   A cause is reached at `/cause/:causeId` through a link its organizer circulates.
@@ -290,9 +300,13 @@ Then **restart Grok** so MCP tools load.
 | `wallet-account-menu` | Hardhat account picker (localhost only) |
 | `wallet-hardhat-0` … `wallet-hardhat-9` | Pick Hardhat account |
 | `wallet-disconnect` | Disconnect |
-| `home-start-cause` | Home CTA → create a draft and open the cause editor |
+| `home-start-cause` | Home / `/welcome` CTA → create a draft and open the cause editor |
+| `home-dashboard` | Occupied home (connected wallet and/or cause boards on this device) |
+| `home-dashboard-board` | Occupied-home teaser of the personal fundable-projects board |
+| `home-dashboard-see-all` | Occupied home → `/dashboard` (full personal list) |
+| `personal-dashboard-page` | Full personal fundable-projects board at `/dashboard` |
 | `nav-start` | Desktop/mobile nav “Start” → same (creates a new draft) |
-| `cause-detail-page` | Cause page root (where all editing happens; brand-new drafts show “Start a cause” coach copy here) |
+| `cause-detail-page` | Cause page root (where all editing happens; brand-new drafts show “Start a cause board” coach copy here) |
 | `issue-guidance` | Static coach copy for what an issue is |
 | `cause-add-plank` | Add an issue |
 | `plank-text-N` | Nth issue's editable text (drafts only) |
@@ -329,7 +343,7 @@ CAUSESTARTER_BASE_URL=http://localhost:5174 CAUSESTARTER_HASH_ROUTING=0 \
 ### Example agent prompt
 
 > Use the browser. Open http://localhost:8090/, click Connect, choose Hardhat #0,  
-> click “Start a cause”, describe the cause, click Continue, then add and publish
+> click “Start a cause board”, describe the cause, click Continue, then add and publish
 > issues on the cause page.
 
 This package stays thinner than `ui/` (no multi-domain matrix, no Privy). Product posture:

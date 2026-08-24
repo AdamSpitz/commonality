@@ -60,10 +60,10 @@ export function CsmLandingPage() {
       eyebrow: 'Funding surface',
       title: 'Browse CSM-aligned causes and content',
       description:
-        'Aligning uses the mission statement as the cause root for CSM-aligned projects, content, and organizing work. Follow the cause board to see what trusted attesters say is aligned with it.',
+        'Aligning uses the mission statement as the cause root for CSM-aligned projects, content, and organizing work. Follow the fundable-projects board to see what trusted attesters say is aligned with it.',
       domain: 'alignment' as const,
       path: missionStatementAlignmentPath,
-      cta: 'Open the CSM cause board',
+      cta: 'Open the CSM fundable-projects board',
     },
   ]
 

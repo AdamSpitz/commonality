@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
+import { Link as RouterLink } from 'react-router-dom'
 import { useAccount } from 'wagmi'
 import {
   Box,
@@ -15,7 +16,19 @@ import SortIcon from '@mui/icons-material/Sort'
 import { getAllAlignedProjectsForCause } from '@commonality/sdk/fundingportals'
 import { getProject } from '@commonality/sdk/lazy-giving'
 import { ETH_CURRENCY, type IpfsCidV1 } from '@commonality/sdk/utils'
-import { getDomainUrl, isDomainConfigured, useMachinery, useTrustedContentAttesters, useTrustedSet, TrustNetworkRefreshIndicator } from '../../shared'
+import {
+  boardSnapshotCacheOptions,
+  getDomainUrl,
+  isDomainConfigured,
+  loadAlignedListSnapshot,
+  loadProjectWithCache,
+  projectFoldCacheOptions,
+  saveAlignedListSnapshot,
+  useMachinery,
+  useTrustedContentAttesters,
+  useTrustedSet,
+  TrustNetworkRefreshIndicator,
+} from '../../shared'
 import { selectAlignedContentContracts, useContentFundingState } from '../../content-funding'
 import { getProjectStatus } from '../../lazy-giving'
 import {
@@ -62,6 +75,9 @@ export function AlignedProjectsList({
   projectLinks = 'lazyGiving',
   statusFilterLock,
   embedded = false,
+  compact = false,
+  limit,
+  fullPageTo,
 }: {
   statementCid: string
   statementCids?: string[]
@@ -72,6 +88,12 @@ export function AlignedProjectsList({
   statusFilterLock?: Exclude<StatusFilter, 'all'>
   /** Flatten heading/paper chrome when nested in the cause-board card. */
   embedded?: boolean
+  /** Teaser density: hide sort/status chrome and shrink cards. */
+  compact?: boolean
+  /** Cap how many cards to show (home preview). */
+  limit?: number
+  /** In-app path for “See all” when {@link compact} or {@link limit} is set. */
+  fullPageTo?: string
 }) {
   const cids = resolveStatementCids(statementCid, statementCids)
   const cidsKey = cids.join('\0')
@@ -110,6 +132,7 @@ export function AlignedProjectsList({
   const [projects, setProjects] = useState<AlignedProject[]>([])
   const [metadata, setMetadata] = useState<Record<string, ProjectMetadata>>({})
   const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [sortBy, setSortBy] = useState<SortOption>('latest')
   const [statusFilter, setStatusFilter] = useState<StatusFilter>(statusFilterLock ?? 'all')
@@ -117,12 +140,32 @@ export function AlignedProjectsList({
 
   useEffect(() => {
     let cancelled = false
+    const loadCids = cidsKey ? cidsKey.split('\0').filter(Boolean) : []
+    const snapshotOptions = boardSnapshotCacheOptions(machinery, {
+      kind: 'aligned-list',
+      statementCids: loadCids,
+      implicationTrustKey,
+      alignmentTrustKey,
+      contentTrustKey,
+    })
 
     async function load() {
-      keepPainted.beginLoad(setLoading)
+      const cached = snapshotOptions
+        ? await loadAlignedListSnapshot(snapshotOptions)
+        : null
+      if (cancelled) return
+      if (cached) {
+        setProjects(cached.projects as AlignedProject[])
+        setMetadata(cached.metadata as Record<string, ProjectMetadata>)
+        keepPainted.markResolved()
+        setLoading(false)
+        setRefreshing(true)
+      } else {
+        keepPainted.beginLoad(setLoading)
+        setRefreshing(false)
+      }
       setError(null)
       try {
-        const loadCids = cidsKey ? cidsKey.split('\0') : []
         const implicationForLoad = implicationTrustKey
           ? implicationTrustKey.split(',')
           : undefined
@@ -161,9 +204,12 @@ export function AlignedProjectsList({
 
         // Load metadata for every displayed row, including content-funding
         // contracts that never appear in the aligned-project query.
+        const projectCacheOptions = projectFoldCacheOptions(machinery)
         const metadataEntries = await Promise.all(
           displayed.map(async (p) => {
-            const fullProject = await getProject(machinery, p.projectAddress).catch(() => null)
+            const fullProject = projectCacheOptions
+              ? await loadProjectWithCache(machinery, p.projectAddress, projectCacheOptions).catch(() => null)
+              : await getProject(machinery, p.projectAddress).catch(() => null)
             if (!fullProject?.metadataCid) return [p.projectAddress, null] as const
             const data = await readProjectMetadata(machinery, fullProject.metadataCid as IpfsCidV1).catch(() => null)
             return [p.projectAddress, data] as const
@@ -176,15 +222,24 @@ export function AlignedProjectsList({
           if (data) newMetadata[addr] = data
         }
         setMetadata(newMetadata)
+        if (snapshotOptions) {
+          await saveAlignedListSnapshot(snapshotOptions, {
+            projects: displayed,
+            metadata: newMetadata,
+          })
+        }
       } catch (err) {
         if (!cancelled) {
           console.error('Error loading aligned projects:', err)
-          setError(err instanceof Error ? err.message : 'Failed to load aligned projects')
+          if (!cached) {
+            setError(err instanceof Error ? err.message : 'Failed to load aligned projects')
+          }
         }
       } finally {
         if (!cancelled) {
           keepPainted.markResolved()
           setLoading(false)
+          setRefreshing(false)
         }
       }
     }
@@ -226,6 +281,8 @@ export function AlignedProjectsList({
         return Number(b.deadline) - Number(a.deadline)
     }
   })
+  const visible = limit != null ? sorted.slice(0, limit) : sorted
+  const hiddenCount = limit != null ? Math.max(0, sorted.length - limit) : 0
 
   if (loading) {
     return (
@@ -247,16 +304,21 @@ export function AlignedProjectsList({
         </Typography>
       )}
 
-      {address && trustedSetLoading && trustedAlignmentAttesters === undefined && (
+      {(refreshing || (address && trustedSetLoading && trustedAlignmentAttesters === undefined)) && (
         <TrustNetworkRefreshIndicator
           title={
-            trustedSet
-              ? `Refreshing your trust network. Alignment vouches are currently filtered using ${trustedSet.size} account${trustedSet.size !== 1 ? 's' : ''} in your network. Results may still change as more are discovered.`
-              : 'Refreshing your trust network. Until any trusted accounts are found, alignment vouches are not filtered.'
+            address && trustedSetLoading && trustedAlignmentAttesters === undefined
+              ? (
+                trustedSet
+                  ? `Refreshing your trust network. Alignment vouches are currently filtered using ${trustedSet.size} account${trustedSet.size !== 1 ? 's' : ''} in your network. Results may still change as more are discovered.`
+                  : 'Refreshing your trust network. Until any trusted accounts are found, alignment vouches are not filtered.'
+              )
+              : 'Updating aligned projects from the latest events.'
           }
         />
       )}
 
+      {!compact && (
       <Paper
         elevation={embedded ? 0 : 1}
         sx={{
@@ -300,48 +362,72 @@ export function AlignedProjectsList({
           )}
         </Stack>
       </Paper>
+      )}
 
       {sorted.length === 0 ? (
         <Paper sx={{ p: 3, textAlign: 'center' }}>
           <Typography variant="body1" color="text.secondary">
             {projects.length === 0
-              ? 'No aligned projects yet. Create one for this cause to get started.'
+              ? (fullPageTo
+                ? 'No aligned projects on the statements you have signed yet.'
+                : 'No aligned projects yet. Create one for this cause to get started.')
               : 'No projects match the current filters.'}
           </Typography>
           {projects.length === 0 && (
-            isDomainConfigured('lazyGiving') ? (
+            projectLinks === 'local' ? (
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} justifyContent="center" sx={{ mt: 2 }}>
+                <Button
+                  component={RouterLink}
+                  to="/projects/new"
+                  variant="contained"
+                >
+                  Create a project
+                </Button>
+              </Stack>
+            ) : isDomainConfigured('lazyGiving') ? (
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} justifyContent="center" sx={{ mt: 2 }}>
                 <Button
                   component="a"
-                  // Create still lives on LazyGiving (no path-only fallback).
                   href={getDomainUrl('lazyGiving', '/projects/new')}
                   variant="contained"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  {projectLinks === 'local' ? 'Create a project on LazyGiving' : 'Create a project'}
+                  Create a project
                 </Button>
               </Stack>
             ) : (
               <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-                {projectLinks === 'local'
-                  ? 'Project creation still happens on LazyGiving once its domain URL is configured.'
-                  : 'Configure VITE_LAZYGIVING_URL to create a project for this cause.'}
+                Configure VITE_LAZYGIVING_URL to create a project for this cause.
               </Typography>
             )
           )}
         </Paper>
       ) : (
-        <Stack spacing={2}>
-          {sorted.map((project) => (
+        <Stack spacing={compact ? 1 : 2}>
+          {visible.map((project) => (
             <AlignedProjectCard
               key={project.projectAddress}
               project={project}
               metadata={metadata[project.projectAddress]}
               causeCid={statementCid}
               projectLinks={projectLinks}
+              compact={compact}
             />
           ))}
+          {fullPageTo && (compact || hiddenCount > 0) && (
+            <Button
+              component={RouterLink}
+              to={fullPageTo}
+              variant="text"
+              sx={{ textTransform: 'none', alignSelf: 'flex-start', px: 0 }}
+              data-testid="aligned-projects-see-all"
+            >
+              {hiddenCount > 0
+                ? `See all ${sorted.length} projects`
+                : 'See all fundable projects'}
+            </Button>
+          )}
         </Stack>
       )}
     </Box>

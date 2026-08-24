@@ -29,7 +29,11 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 - Before deploying the CauseStarter alignment-trust bootstrap outside local Hardhat, run `node scripts/generate-wallets.mjs`, fund `ALIGNMENT_TRUST_BOOTSTRAP_ADDRESS`, install the worker's generated Render secret block, and add the configured denylist canary to its persistent disk. Never deploy the checked-in local Hardhat key; see the worker README runbook.
 
+- **(Tell)** Personal dashboard spec + first slice: [personal-dashboard.md](specs/product/personal-dashboard.md). CauseStarter home (connected) heroes the fundable-projects union over signed statements. Not an unpublished cause board. Stars/subsets deferred.
+
 ### Docs / UI copy
+
+- **(Tell)** Applied [cause-page-not-a-club.md](specs/product/cause-page-not-a-club.md) copy sweep: glossary two-step rename, end-user docs, Aligning/fundable-projects UI strings, CauseStarter high-traffic docs + organizer publish copy. Leftover “cause page” in comments, `/cause/:owner/:slug` and `fundingportal*` identifiers, and incidental “funding portal” docs still lag.
 
 - Decide whether to act on the fresh landing-copy positioning findings. The Civility grievance-first hero was reviewed and is fine; the verifier rubric was corrected so CSM’s recognition-register rule is not imposed on every vertical. Remaining findings are elsewhere: the umbrella Commonality landing still recruits generic end users despite the founder-first strategy, CSM front-loads the mediator toggle and uses “the other side’s bullshit,” Aligning repeats its main tradeoff several times, and Tally’s “Sign once, counted forever” headline presents a future goal as current capability.
 

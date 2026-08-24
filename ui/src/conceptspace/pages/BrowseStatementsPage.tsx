@@ -81,7 +81,7 @@ export function BrowseStatementsPage() {
       </Typography>
 
       <Typography variant="body1" color="text.secondary" sx={{ mb: 1, maxWidth: 680 }}>
-        A statement is a plain-English belief or value that anyone can sign. The system automatically connects related statements — even when worded differently — so people who care about the same things find each other without having to coordinate. Statements are also the entry point to cause boards for aligned projects and content.
+        A statement is a plain-English belief or value that anyone can sign. The system automatically connects related statements — even when worded differently — so people who care about the same things find each other without having to coordinate. Statements are also the entry point to fundable-projects boards for aligned projects and content.
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 3, maxWidth: 680 }}>
         The supporter chips below count direct signatures on each statement. Open a statement to see indirect support inferred through trusted implication sources.

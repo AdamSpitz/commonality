@@ -67,7 +67,7 @@
 - `ConnectWalletPrompt` (4 tests — wallet prompt message, Paper wrapper, typography styling, padding/margin styles)
 - `utils.ts` (41 tests — getProjectStatus: succeeded/refunding/active states, bigint inputs, deadline edge cases; STATUS_COLORS/LABELS mappings; formatRelativeDeadline: ended/minutes/hours/days formatting; computeUserTokenBalance: contributions/refunds/burns aggregation, address filtering, zero/negative balance filtering, address normalization; computeContributorStats: aggregation, filtering, sorting, currency defaults)
 
-### Cause board
+### Fundable-projects board
 - `AttestAlignmentForm` (18 tests)
 - `AlignedProjectCard` (19 tests)
 - `computeAvailableDelegatableFunding` utility (7 tests — empty attestations, inactive notes, fetch failures, single-currency sum, multi-currency grouping, null filtering, mixed active/inactive)
@@ -123,7 +123,7 @@ Maps each route surface to its Vitest and/or Playwright coverage.
 | `/projects` | `lazy-giving/pages/BrowseProjectsPage.test.tsx` | `lazyGiving-flow.spec.ts` |
 | `/projects/new` | `lazy-giving/pages/CreateProjectPage.test.tsx` | `lazyGiving-flow.spec.ts` |
 | `/projects/:address` | `lazy-giving/pages/ProjectDetailPage.test.tsx` | `lazyGiving-flow.spec.ts` |
-| `/portal/:cid` (cause board) | `fundingportals/pages/StatementFundingPortalPage.test.tsx` | — |
+| `/portal/:cid` (fundable-projects board) | `fundingportals/pages/StatementFundingPortalPage.test.tsx` | — |
 | `/portal/:cid/leaderboard` | `fundingportals/pages/CauseLeaderboardPage.test.tsx` | — |
 
 ### Content Funding domain routes (wrapped)

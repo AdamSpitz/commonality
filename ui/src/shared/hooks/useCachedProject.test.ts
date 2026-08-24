@@ -13,11 +13,13 @@ vi.mock('./useMachinery', () => ({
 }))
 
 const mockGetProject = vi.fn()
+const mockGetProjectFold = vi.fn()
 vi.mock('@commonality/sdk/lazy-giving', async () => {
   const actual = await vi.importActual('@commonality/sdk/lazy-giving')
   return {
     ...actual,
     getProject: mockGetProject,
+    getProjectFold: mockGetProjectFold,
     PROJECT_FOLD_VERSION: 1,
   }
 })
@@ -115,83 +117,93 @@ describe('loadProjectWithCache', () => {
 
   it('fetches from SDK when no cache exists', async () => {
     ;(loadCachedProjectAccumulator as any).mockResolvedValue(null)
-    mockGetProject.mockResolvedValue(mockProject)
+    mockGetProjectFold.mockResolvedValue({ project: mockProject, accumulator: mockAccumulator })
 
     const result = await loadProjectWithCache(mockMachinery, '0xProject', mockCacheOptions)
 
     expect(result).toEqual(mockProject)
     expect(loadCachedProjectAccumulator).toHaveBeenCalled()
-    expect(mockGetProject).toHaveBeenCalledWith(mockMachinery, '0xProject')
+    expect(mockGetProjectFold).toHaveBeenCalledWith(mockMachinery, '0xProject')
     expect(saveCachedProjectAccumulator).toHaveBeenCalled()
   })
 
-  it('saves to cache after fresh fetch', async () => {
+  it('saves the fold accumulator after a fresh fetch', async () => {
     ;(loadCachedProjectAccumulator as any).mockResolvedValue(null)
-    mockGetProject.mockResolvedValue(mockProject)
+    mockGetProjectFold.mockResolvedValue({ project: mockProject, accumulator: mockAccumulator })
 
     await loadProjectWithCache(mockMachinery, '0xProject', mockCacheOptions)
 
     expect(saveCachedProjectAccumulator).toHaveBeenCalledWith(
       expect.objectContaining({ address: '0xProject' }),
-      expect.objectContaining({ id: '1', totalReceived: 500n }),
+      mockAccumulator,
       '100'
     )
   })
 
-  it('refetches from SDK when cached accumulator is available', async () => {
+  it('resumes from the cached accumulator instead of replaying every event', async () => {
     ;(loadCachedProjectAccumulator as any).mockResolvedValue({
       accumulator: mockAccumulator,
       blockNumber: '100',
     })
-    mockGetProject.mockResolvedValue(mockProject)
+    mockGetProjectFold.mockResolvedValue({ project: mockProject, accumulator: mockAccumulator })
 
     const result = await loadProjectWithCache(mockMachinery, '0xProject', mockCacheOptions)
 
     expect(result).toEqual(mockProject)
-    expect(mockGetProject).toHaveBeenCalledWith(mockMachinery, '0xProject')
+    expect(mockGetProjectFold).toHaveBeenCalledWith(mockMachinery, '0xProject', {
+      initialAccumulator: mockAccumulator,
+      blockNumber_gte: '100',
+    })
     expect(saveCachedProjectAccumulator).toHaveBeenCalledWith(
       expect.objectContaining({ address: '0xProject' }),
-      expect.objectContaining({ id: '1', totalReceived: 500n }),
+      mockAccumulator,
       '100'
     )
   })
 
-  it('updates cache when block number changes', async () => {
+  it('updates cache when the resumed fold advances the cursor', async () => {
     const updatedProject = { ...mockProject, blockNumber: '200', totalReceived: '800' }
+    const updatedAccumulator = {
+      ...mockAccumulator,
+      blockNumber: '200',
+      lastEventBlockNumber: '200',
+      lastEventLogIndex: 3,
+      totalReceived: 800n,
+    }
     ;(loadCachedProjectAccumulator as any).mockResolvedValue({
       accumulator: mockAccumulator,
       blockNumber: '100',
     })
-    mockGetProject.mockResolvedValue(updatedProject)
+    mockGetProjectFold.mockResolvedValue({ project: updatedProject, accumulator: updatedAccumulator })
 
     await loadProjectWithCache(mockMachinery, '0xProject', mockCacheOptions)
 
     expect(saveCachedProjectAccumulator).toHaveBeenCalledWith(
       expect.objectContaining({ address: '0xProject' }),
-      expect.objectContaining({ blockNumber: '200' }),
+      updatedAccumulator,
       '200'
     )
   })
 
-  it('rewrites cache after a cached refetch even when block number is unchanged', async () => {
+  it('rewrites cache after a resumed fold even when the cursor is unchanged', async () => {
     ;(loadCachedProjectAccumulator as any).mockResolvedValue({
       accumulator: mockAccumulator,
       blockNumber: '100',
     })
-    mockGetProject.mockResolvedValue(mockProject)
+    mockGetProjectFold.mockResolvedValue({ project: mockProject, accumulator: mockAccumulator })
 
     await loadProjectWithCache(mockMachinery, '0xProject', mockCacheOptions)
 
     expect(saveCachedProjectAccumulator).toHaveBeenCalledWith(
       expect.objectContaining({ address: '0xProject' }),
-      expect.objectContaining({ blockNumber: '100', totalReceived: 500n }),
+      mockAccumulator,
       '100'
     )
   })
 
   it('returns null when SDK returns null and no cache', async () => {
     ;(loadCachedProjectAccumulator as any).mockResolvedValue(null)
-    mockGetProject.mockResolvedValue(null)
+    mockGetProjectFold.mockResolvedValue(null)
 
     const result = await loadProjectWithCache(mockMachinery, '0xProject', mockCacheOptions)
 
@@ -199,21 +211,21 @@ describe('loadProjectWithCache', () => {
     expect(saveCachedProjectAccumulator).not.toHaveBeenCalled()
   })
 
-  it('returns cached result when SDK returns null but cache exists', async () => {
+  it('still returns the resumed project when no new events arrive', async () => {
     ;(loadCachedProjectAccumulator as any).mockResolvedValue({
       accumulator: mockAccumulator,
       blockNumber: '100',
     })
-    mockGetProject.mockResolvedValue(null)
+    mockGetProjectFold.mockResolvedValue({ project: mockProject, accumulator: mockAccumulator })
 
     const result = await loadProjectWithCache(mockMachinery, '0xProject', mockCacheOptions)
 
-    expect(result).toBeNull()
+    expect(result).toEqual(mockProject)
   })
 
-  it('normalizes address to lowercase in cache key', async () => {
+  it('passes the original address into the cache key options', async () => {
     ;(loadCachedProjectAccumulator as any).mockResolvedValue(null)
-    mockGetProject.mockResolvedValue(mockProject)
+    mockGetProjectFold.mockResolvedValue({ project: mockProject, accumulator: mockAccumulator })
 
     await loadProjectWithCache(mockMachinery, '0xPROJECT', mockCacheOptions)
 
@@ -224,7 +236,7 @@ describe('loadProjectWithCache', () => {
 
   it('throws when SDK call fails', async () => {
     ;(loadCachedProjectAccumulator as any).mockResolvedValue(null)
-    mockGetProject.mockRejectedValue(new Error('Network error'))
+    mockGetProjectFold.mockRejectedValue(new Error('Network error'))
 
     await expect(loadProjectWithCache(mockMachinery, '0xProject', mockCacheOptions)).rejects.toThrow('Network error')
   })

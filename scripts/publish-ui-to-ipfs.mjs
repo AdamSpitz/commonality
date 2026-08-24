@@ -8,14 +8,12 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 const rootDir = path.resolve(__dirname, '..')
 
-// UI_PACKAGE selects the app package: "ui" (multi-domain) or "causestarter".
-const uiPackage = resolveUiPackage(process.env.UI_PACKAGE)
-const buildDomain = uiPackage === 'causestarter'
+// CauseStarter is a VITE_DOMAIN of the ui package. UI_PACKAGE=causestarter is
+// accepted as an alias for VITE_DOMAIN=causestarter.
+const buildDomain = process.env.UI_PACKAGE === 'causestarter'
   ? 'causestarter'
   : resolveDomain(process.env.VITE_DOMAIN)
-const distDir = uiPackage === 'causestarter'
-  ? path.join(rootDir, 'causestarter', 'dist')
-  : path.join(rootDir, 'ui', 'dist', buildDomain)
+const distDir = path.join(rootDir, 'ui', 'dist', buildDomain)
 const artifactDir = process.env.UI_IPFS_ARTIFACT_DIR
   || path.join(rootDir, 'data', 'ui-ipfs', buildDomain)
 const ipfsApiBaseUrl = (process.env.UI_IPFS_API_URL || 'http://ipfs:5001').replace(/\/$/, '')
@@ -34,6 +32,7 @@ const LOCAL_STABLE_DOMAIN_URLS = {
   VITE_NONINFLAMMATORY_URL: getLocalStableUrl('civility', localStableGatewayPort),
   VITE_CSM_URL: getLocalStableUrl('common-sense-majority', localStableGatewayPort),
   VITE_CONCEPTSPACE_URL: getLocalStableUrl('conceptspace', localStableGatewayPort),
+  VITE_CAUSESTARTER_URL: getLocalStableUrl('causestarter', localStableGatewayPort),
 }
 
 const UI_ENV_ADDRESS_MAPPINGS = {
@@ -56,11 +55,6 @@ const UI_ENV_ADDRESS_MAPPINGS = {
   CHANNEL_ESCROW_ADDRESS: 'VITE_CHANNEL_ESCROW_ADDRESS',
   CREATOR_CONTRACT_FACTORY_ADDRESS: 'VITE_CREATOR_CONTRACT_FACTORY_ADDRESS',
   PROSPECTIVE_CONTENT_ROUND_FACTORY_ADDRESS: 'VITE_PROSPECTIVE_CONTENT_ROUND_FACTORY_ADDRESS',
-}
-
-function resolveUiPackage(value) {
-  if (value === 'causestarter') return 'causestarter'
-  return 'ui'
 }
 
 function parseEnvFile(content) {
@@ -98,10 +92,10 @@ async function loadEnvFile(filePath) {
 async function loadUiBuildEnvFromFiles() {
   const rootEnv = await loadEnvFile(path.join(rootDir, '.env'))
   const uiEnv = await loadEnvFile(path.join(rootDir, 'ui', '.env'))
-  const causestarterEnv = uiPackage === 'causestarter'
-    ? await loadEnvFile(path.join(rootDir, 'causestarter', '.env'))
-    : {}
-  const env = { ...uiEnv, ...causestarterEnv }
+  const env = { ...uiEnv }
+  if (buildDomain === 'causestarter') {
+    Object.assign(env, await loadEnvFile(path.join(rootDir, 'causestarter', '.env')))
+  }
 
   for (const [sourceKey, viteKey] of Object.entries(UI_ENV_ADDRESS_MAPPINGS)) {
     if (rootEnv[sourceKey]) {
@@ -250,18 +244,6 @@ async function writeArtifacts(result) {
 }
 
 function buildUiPackage(buildEnv) {
-  if (uiPackage === 'causestarter') {
-    console.log('Building CauseStarter for IPFS...')
-    runOrThrow('npm', ['run', 'build', '--workspace=@commonality/sdk'], { env: buildEnv })
-    runOrThrow('npm', ['run', 'build', '--workspace=causestarter'], {
-      env: {
-        ...buildEnv,
-        VITE_HASH_ROUTING: 'true',
-      },
-    })
-    return
-  }
-
   console.log(`Building ${buildDomain} UI in IPFS mode...`)
   runOrThrow('npm', ['run', 'ui:build:ipfs'], { env: buildEnv })
 }
@@ -276,7 +258,7 @@ async function main() {
   await writeArtifacts(result)
 
   console.log('')
-  console.log(uiPackage === 'causestarter' ? 'CauseStarter published to local IPFS.' : 'UI published to local IPFS.')
+  console.log(`${buildDomain} published to local IPFS.`)
   console.log(`  CID: ${result.cid}`)
   console.log(`  IPFS root: ${result.ipfsRootUrl}`)
   console.log(`  SPA URL: ${result.spaUrl}`)

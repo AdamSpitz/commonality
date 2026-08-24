@@ -105,7 +105,7 @@ export function FundingPortalSummary({
       } catch (err) {
         if (!cancelled) {
           console.error('Error loading cause board summary:', err)
-          setError(err instanceof Error ? err.message : 'Failed to load cause board summary')
+          setError(err instanceof Error ? err.message : 'Failed to load fundable-projects board summary')
         }
       } finally {
         if (!cancelled) setLoading(false)
@@ -134,14 +134,14 @@ export function FundingPortalSummary({
     <Box sx={{ mb: 3 }}>
       <Paper sx={{ p: 3 }}>
         <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-          <Typography variant="h6">Cause Board</Typography>
+          <Typography variant="h6">Fundable Projects</Typography>
           <Button
             component={RouterLink}
             to={`/portal/${statementCid}`}
             variant="outlined"
             size="small"
           >
-            View Cause Board
+            View fundable-projects board
           </Button>
         </Stack>
 

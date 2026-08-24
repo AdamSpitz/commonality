@@ -23,15 +23,14 @@
         "founderBriefFile": "checks/review/founder-e2e/causestarter.md",
         "startingPoints": [
           "causestarter/README.md",
-          "causestarter/src/App.tsx",
-          "causestarter/src/pages/HomePage.tsx",
-          "causestarter/src/pages/StartCauseRedirect.tsx",
-          "causestarter/src/pages/CauseDetailPage.tsx",
-          "causestarter/src/pages/StatementBoardPage.tsx",
-          "causestarter/src/pages/StatementPage.tsx",
-          "causestarter/src/pages/ProjectDetailPage.tsx",
-          "causestarter/src/pages/CausesPage.tsx",
-          "causestarter/src/components/CauseViewStrip.tsx"
+          "ui/src/domains/causestarter/manifest.tsx",
+          "ui/src/causestarter/pages/HomePage.tsx",
+          "ui/src/causestarter/pages/StartCauseRedirect.tsx",
+          "ui/src/causestarter/pages/CauseDetailPage.tsx",
+          "ui/src/causestarter/pages/StatementPage.tsx",
+          "ui/src/causestarter/pages/ProjectDetailPage.tsx",
+          "ui/src/causestarter/pages/CausesPage.tsx",
+          "ui/src/causestarter/components/CauseViewStrip.tsx"
         ]
       }
     }

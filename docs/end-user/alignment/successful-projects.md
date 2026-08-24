@@ -9,7 +9,7 @@ A project can be aligned long before anyone is willing to say it succeeded. That
 
 ## The Successful projects page
 
-Every cause board has a **Successful** view. It shows projects that
+Every fundable-projects board has a **Successful** view. It shows projects that
 
 1. people in your trust network have **vouched as successful** at this cause, and
 2. still have **reimbursement outstanding** for early contributors.

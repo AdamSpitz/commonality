@@ -10,11 +10,12 @@ vi.mock('./projectMetadata', () => ({
 }))
 
 
-vi.mock('react-router-dom', () => ({
-  Link: vi.fn(({ to, children, ...props }: any) => (
-    <a href={to} {...props}>{children}</a>
-  )),
-}))
+vi.mock('react-router-dom', () => {
+  function Link({ to, children, ...props }: any) {
+    return <a href={to} {...props}>{children}</a>
+  }
+  return { Link, RouterLink: Link }
+})
 
 vi.mock('wagmi', () => ({
   useAccount: vi.fn(),
@@ -54,6 +55,18 @@ vi.mock('@commonality/sdk/lazy-giving', async () => {
   return {
     ...actual,
     getProject: vi.fn(),
+    getProjectFold: vi.fn(),
+  }
+})
+
+vi.mock('../../shared/stores/foldCache', async () => {
+  const actual = await vi.importActual<typeof import('../../shared/stores/foldCache')>(
+    '../../shared/stores/foldCache',
+  )
+  return {
+    ...actual,
+    loadAlignedListSnapshot: vi.fn(async () => null),
+    saveAlignedListSnapshot: vi.fn(async () => {}),
   }
 })
 
@@ -93,7 +106,7 @@ import { getProject } from '@commonality/sdk/lazy-giving'
 import { createSDKMachinery } from '@commonality/sdk/machinery'
 import { readProjectMetadata } from './projectMetadata'
 import { useAccount } from 'wagmi'
-import { getDomainUrl, isDomainConfigured, useTrustedSet } from '../../shared'
+import { getDomainUrl, isDomainConfigured, loadAlignedListSnapshot, useTrustedSet } from '../../shared'
 import { useContentFundingState } from '../../content-funding'
 
 const mockMachinery = {} as any
@@ -294,7 +307,7 @@ describe('AlignedProjectsList', () => {
       expect(screen.queryByRole('link', { name: 'Browse all projects' })).not.toBeInTheDocument()
     })
 
-    it('explains missing LazyGiving config instead of path-only create links', async () => {
+    it('creates locally when projectLinks is local', async () => {
       vi.mocked(getAllAlignedProjectsForCause).mockResolvedValue([])
       vi.mocked(isDomainConfigured).mockReturnValue(false)
 
@@ -303,8 +316,20 @@ describe('AlignedProjectsList', () => {
       await waitFor(() => {
         expect(screen.getByText(/No aligned projects yet/)).toBeInTheDocument()
       })
+      expect(screen.getByRole('link', { name: /Create a project/i })).toHaveAttribute('href', '/projects/new')
+    })
+
+    it('explains missing LazyGiving config instead of path-only create links', async () => {
+      vi.mocked(getAllAlignedProjectsForCause).mockResolvedValue([])
+      vi.mocked(isDomainConfigured).mockReturnValue(false)
+
+      render(<AlignedProjectsList statementCid="QmTest" />)
+
+      await waitFor(() => {
+        expect(screen.getByText(/No aligned projects yet/)).toBeInTheDocument()
+      })
       expect(screen.queryByRole('link', { name: /Create a project/i })).not.toBeInTheDocument()
-      expect(screen.getByText(/Project creation still happens on LazyGiving/i)).toBeInTheDocument()
+      expect(screen.getByText(/Configure VITE_LAZYGIVING_URL/i)).toBeInTheDocument()
     })
 
     it('shows "No projects match" message when all projects are filtered out', async () => {
@@ -682,6 +707,69 @@ describe('AlignedProjectsList', () => {
         expect(titles[0]).toHaveTextContent('Project Alpha')
         expect(titles[1]).toHaveTextContent('Project Beta')
         expect(titles[2]).toHaveTextContent('Project Gamma')
+      })
+    })
+  })
+
+  describe('Compact preview', () => {
+    it('hides sort/status chrome, caps the list, and links to the full page', async () => {
+      vi.mocked(getAllAlignedProjectsForCause).mockResolvedValue([
+        makeProject({ projectAddress: ADDR_A, deadline: FAR_FUTURE }),
+        makeProject({ projectAddress: ADDR_B, deadline: String(Number(FAR_FUTURE) - 10) }),
+        makeProject({ projectAddress: ADDR_C, deadline: String(Number(FAR_FUTURE) - 20) }),
+      ])
+
+      render(
+        <AlignedProjectsList
+          statementCid="QmTest"
+          compact
+          limit={2}
+          fullPageTo="/dashboard"
+        />,
+      )
+
+      await waitFor(() => {
+        expect(screen.getAllByRole('link', { name: /Open project/i }).length).toBe(2)
+      })
+      expect(screen.queryByRole('button', { name: 'Latest' })).toBeNull()
+      expect(screen.queryByRole('button', { name: 'Funding' })).toBeNull()
+      const seeAll = screen.getByTestId('aligned-projects-see-all')
+      expect(seeAll).toHaveAttribute('href', '/dashboard')
+      expect(seeAll).toHaveTextContent(/see all 3 projects/i)
+    })
+  })
+
+  describe('Cached snapshot', () => {
+    it('paints the last list immediately and shows a corner spinner until the live fold returns', async () => {
+      vi.mocked(createSDKMachinery).mockReturnValue({
+        eventCacheUrl: 'http://localhost:42069/api',
+        contractAddresses: {
+          assuranceContractFactory: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+        },
+      } as any)
+      vi.mocked(loadAlignedListSnapshot).mockResolvedValue({
+        snapshotVersion: 1,
+        projects: [makeProject({ projectAddress: ADDR_A })],
+        metadata: { [ADDR_A]: { name: 'Cached Garden' } },
+      })
+      let resolveLive: (value: ReturnType<typeof makeProject>[]) => void = () => {}
+      vi.mocked(getAllAlignedProjectsForCause).mockReturnValue(
+        new Promise((resolve) => {
+          resolveLive = resolve
+        }),
+      )
+
+      render(<AlignedProjectsList statementCid="QmTest" />)
+
+      expect(await screen.findByText('Cached Garden')).toBeInTheDocument()
+      expect(screen.getByTestId('trust-network-refresh')).toHaveAttribute(
+        'aria-label',
+        'Updating aligned projects from the latest events.',
+      )
+
+      resolveLive([makeProject({ projectAddress: ADDR_B })])
+      await waitFor(() => {
+        expect(screen.queryByText('Cached Garden')).toBeNull()
       })
     })
   })

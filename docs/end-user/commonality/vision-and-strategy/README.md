@@ -54,4 +54,6 @@ It's not just a slightly better mousetrap. We are [remarkably bad at producing p
   - Something [much easier than politics](./so-what/easier-than-politics.md) for people who want to fund public goods but are tired of fighting over government. The response to "the government is hostile, how do we fund our priorities?" isn't "organize a massive political movement" — it's "just start using this."
   - And potentially a path toward [more-local government](./so-what/local-government.md): Commonality's mechanisms work structurally better at smaller scales, so voluntary public-goods funding has a natural gravity toward localism — which, over time, may shift power from higher-level government to communities, not through confrontation but by routing around it.
 
+The everyday pitch is not this whole argument. It is: **[do the part you’d do anyway](./the-jobs.md)** — cooperate on agreement without the extra jobs that used to make that impossible. CauseStarter’s catalog of those jobs is [here](../../causestarter/the-jobs.md).
+
 For a concrete walkthrough of how this plays out, see the [walkthrough](/docs/end-user/shared/use-case-walkthroughs/defunding.md). For tailored pitches to different types of users, see [pitches](./pitches.md). For the "won't this be used for evil?" question, see [ethics](./ethics.md).

@@ -30,6 +30,7 @@ export default defineConfig(({ mode }) => {
       // notice SDK rebuilds while the dev server is running. One alias per SDK
       // subpath (the package has no flat barrel).
       ...sdkSourceAliases(),
+      '@ui': path.resolve(process.cwd(), 'src'),
       events: 'events',
     },
   },
@@ -53,6 +54,16 @@ export default defineConfig(({ mode }) => {
       '/conceptspace': indexerUrl,
       // /status is polled by waitForIndexerToSyncToTxHash in E2E tests
       '/status': indexerUrl,
+      '/api/cause-assist': {
+        target: process.env.CAUSE_ASSIST_URL ?? 'http://localhost:3002',
+        changeOrigin: true,
+        rewrite: (proxyPath: string) => proxyPath.replace(/^\/api\/cause-assist/, ''),
+      },
+      '/api/implication-attester': {
+        target: process.env.IMPLICATION_ATTESTER_URL ?? 'http://localhost:3006/implication-attester',
+        changeOrigin: true,
+        rewrite: (proxyPath: string) => proxyPath.replace(/^\/api\/implication-attester/, ''),
+      },
       '/api': indexerUrl,
       // Proxy platform-api-service requests (runs at localhost:3001)
       '/api/platform-api': 'http://localhost:3001',
@@ -161,6 +172,7 @@ function buildRuntimeConfig(env: Record<string, string>) {
     'VITE_NONINFLAMMATORY_URL',
     'VITE_CSM_URL',
     'VITE_CONCEPTSPACE_URL',
+    'VITE_CAUSESTARTER_URL',
   ]
   return Object.fromEntries(keys.flatMap(key => env[key] ? [[key, env[key]]] : []))
 }
@@ -175,6 +187,7 @@ function resolveDomain(value: string | undefined) {
     case 'civility':
     case 'common-sense-majority':
     case 'conceptspace':
+    case 'causestarter':
       return value
     default:
       return 'commonality'

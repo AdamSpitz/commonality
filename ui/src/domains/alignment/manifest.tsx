@@ -32,7 +32,7 @@ export const alignmentManifest: DomainManifest = {
       { label: 'Set up delegation', domain: 'lazyGiving', path: '/delegation/notes/new' },
       { label: 'Open LazyGiving', domain: 'lazyGiving', path: '/' },
     ],
-    footerText: 'Aligning helps donors fund causes through cause boards and transparent alignment attestations; delegation is managed from LazyGiving and Content Funding.',
+    footerText: 'Aligning helps donors fund causes through fundable-projects boards and transparent alignment attestations; delegation is managed from LazyGiving and Content Funding.',
   },
   features: {
     conceptspace: false,

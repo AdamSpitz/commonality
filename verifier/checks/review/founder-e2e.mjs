@@ -44,7 +44,7 @@ function buildPrompt({ surface, founderBrief, startingPoints }) {
 The description is written by the founder in their own words. Do NOT reword, summarize, or "improve" it into a different spec. Treat the verbatim text as the checklist. Docs and code comments are evidence about the product, not a replacement for this brief.`
   })}
 Where to look:
-- CauseStarter lives in \`causestarter/\` (not the eight-domain \`ui/\` package). Start from \`causestarter/README.md\` and the pages under \`causestarter/src/pages/\`.
+- CauseStarter SPA source lives in \`ui/src/causestarter/\` (\`VITE_DOMAIN=causestarter\`). Glue/backlog stay in \`causestarter/\`. Start from \`causestarter/README.md\` and \`ui/src/domains/causestarter/manifest.tsx\`.
 - Local CauseStarter is typically http://localhost:5174 (Vite) or http://localhost:8090 (Docker SPA). You do not have a browser tool in this run; judge from source and docs unless a later run gives you live access.
 - Suggested starting points (open these first, then follow the product wherever it leads):
 ${hints.length > 0 ? hints.map((p) => `  - \`${p}\``).join("\n") : "  - (none specified — locate the surface yourself from the README)"}

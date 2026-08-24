@@ -14,6 +14,11 @@ const repoRoot = fileURLToPath(new URL('..', import.meta.url))
 
 export default defineConfig({
   plugins: [react(), endUserDocsPlugin({ domain: 'commonality', includeAll: true })],
+  resolve: {
+    alias: {
+      '@ui': fileURLToPath(new URL('./src', import.meta.url)),
+    },
+  },
   server: {
     fs: {
       allow: [repoRoot],

@@ -2,6 +2,7 @@ import { mkdirSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { defineConfig, loadEnv, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
+import { endUserDocsPlugin } from '../ui/endUserDocsPlugin.ts'
 
 const indexerUrl = process.env.INDEXER_URL ?? 'http://localhost:42069'
 
@@ -13,7 +14,11 @@ export default defineConfig(({ mode }) => {
     build: {
       outDir: 'dist',
     },
-    plugins: [react(), runtimeConfigPlugin(env)],
+    plugins: [
+      react(),
+      runtimeConfigPlugin(env),
+      endUserDocsPlugin({ domain: 'causestarter' }),
+    ],
     resolve: {
       preserveSymlinks: true,
       // Single React/MUI/wagmi graph when bundling ui feature modules into CauseStarter.

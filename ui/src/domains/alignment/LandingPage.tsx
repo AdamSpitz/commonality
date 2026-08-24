@@ -19,14 +19,14 @@ const sections = [
   {
     title: 'Or pick projects yourself',
     description:
-      "Prefer the hands-on path? Start with Explore Causes, open a cause statement, then use its cause board to see the projects aligned with it — curated by your trust network, not a gatekeeper. Fund the ones you like directly on their LazyGiving project pages.",
+      "Prefer the hands-on path? Start with Explore Causes, open a cause statement, then use its fundable-projects board to see the projects aligned with it — curated by your trust network, not a gatekeeper. Fund the ones you like directly on their LazyGiving project pages.",
     path: '/explore',
     cta: 'Explore causes',
   },
   {
     title: "Causes don't need exact wording",
     description:
-      "A cause is just a Conceptspace statement. The implication graph connects statements that mean similar things — so a cause board pulls in projects vouched against any cause that implies yours, even when phrased differently. Organic coalitions, no coordination required.",
+      "A cause is just a Conceptspace statement. The implication graph connects statements that mean similar things — so a fundable-projects board pulls in projects vouched against any cause that implies yours, even when phrased differently. Organic coalitions, no coordination required.",
     domain: 'tally',
     path: '/docs/tally/statements-and-implication-graph',
     cta: 'More on implication',

@@ -393,10 +393,10 @@ services:
 
   # CauseStarter SPA hosting on local IPFS (core domain).
   ui-ipfs-publisher-causestarter:
-    image: commonality-causestarter-ipfs-publisher:dev
+    image: commonality-ui-ipfs-publisher:dev
     build:
       context: .
-      dockerfile: causestarter/Dockerfile.ipfs
+      dockerfile: ui/Dockerfile
     container_name: commonality-ui-ipfs-publisher-causestarter
     user: "${UID:-1000}:${GID:-1000}"
     command: ["node", "scripts/publish-ui-to-ipfs.mjs"]
@@ -404,7 +404,6 @@ services:
     volumes:
       - ./.env:/workspace/.env:ro
       - ./ui/.env:/workspace/ui/.env:ro
-      - ./causestarter/.env:/workspace/causestarter/.env:ro
       - ./data/ui-ipfs/causestarter:/artifacts
     depends_on:
       ipfs:
@@ -412,9 +411,10 @@ services:
       hardhat-deploy:
         condition: service_completed_successfully
     environment:
-      - UI_PACKAGE=causestarter
+      - VITE_DOMAIN=causestarter
       - VITE_DEFAULT_ALIGNMENT_TRUST_ROOT=${VITE_DEFAULT_ALIGNMENT_TRUST_ROOT:-0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f}
       - VITE_HASH_ROUTING=true
+      - VITE_ROUTER_MODE=hash
       - UI_IPFS_API_URL=http://ipfs:5001
       - UI_IPFS_GATEWAY_URL=http://localhost:8080/ipfs
       - VITE_IPFS_GATEWAY=http://localhost:8080/ipfs

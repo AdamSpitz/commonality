@@ -1779,6 +1779,14 @@ Temporary, reversible: `./scripts/services.sh --start` and `./scripts/deploy-cau
 
 `./scripts/data.sh --seed` now defaults to **tiny** (was small). `gen:small` and `gen:tiny` both pass `--skip-invariants`. Statement publish reuses one document store (or parallel PublishedData writes across Hardhat wallets, receipts awaited in a batch). Seed RPC clients poll every 50ms. See `fake-data-generation/generateStatements.ts`, `fake-data-generation/seedRpc.ts`, `scripts/data.sh`.
 
+## 2026-08-24 — Cause board is the organizer publication, not the project list
+
+Copy sweep of [cause-page-not-a-club.md](specs/product/cause-page-not-a-club.md):
+the Aligning/project list is now **fundable-projects board** in UI copy and
+end-user docs; **cause board** is the CauseStarter organizer publication
+(leftover “cause page” left in comments). Routes still `/portal/:cid` and
+`/cause/:owner/:slug`; identifiers `fundingportal*` lag.
+
 ## 2026-08-20 — Anvil `--state` restart dump
 
 Local `hardhat-node` was coming back empty after `stack.restart-consistency` because Docker SIGTERM did not make Anvil dump `/data/state.json` (then a fresh deploy + trust wiring filled ~41 blocks with no seed). Fix: `scripts/anvil-docker-entrypoint.sh` maps SIGTERM→SIGINT, compose `--state-interval 15` and 60s grace, restart check records block height and SIGINTs Anvil before stop. Recreate `hardhat-node` to mount the wrapper.
