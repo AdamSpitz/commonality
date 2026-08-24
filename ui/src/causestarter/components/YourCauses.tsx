@@ -34,11 +34,15 @@ export function YourCauses({
           gap: 2,
         }}
       >
-        <Box sx={{ minWidth: 0 }}>
+        <Stack direction="row" alignItems="center" sx={{ minWidth: 0 }}>
           <Typography variant="h4" component={headingComponent} sx={{ fontWeight: 800, fontSize: { xs: '1.6rem', sm: '2rem' } }}>
             Cause boards
           </Typography>
-        </Box>
+          <HeaderInfoTip
+            title="A published mix of independent statements, plus fundable projects aligned with them — not a club you join."
+            label="About cause boards"
+          />
+        </Stack>
         <Stack direction="row" spacing={1} sx={{ flexShrink: 0, mt: 0.35 }}>
           <Button
             variant="outlined"

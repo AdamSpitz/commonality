@@ -93,7 +93,7 @@ export function YourNudgersAndNudges() {
             Suggesters you've subscribed to
           </Typography>
           <HeaderInfoTip
-            title="Opt-ins stay on this device. Suggestions from these services appear here and on statement pages."
+            title="Suggesters offer suggestions like 'If you signed X, you may want to sign Y.'"
             label="About subscribed suggesters"
           />
         </Stack>
@@ -101,8 +101,7 @@ export function YourNudgersAndNudges() {
 
       {trustedNudgers.length === 0 ? (
         <Alert severity="info" sx={{ borderRadius: 2 }}>
-          No suggesters yet. Opt in on a cause if you would sign a better wording but
-          do not want to hunt for it — a mediator can nudge you when a bridge fits.
+          No suggesters yet. Suggesters offer suggestions like 'If you signed X, you may want to sign Y.'
         </Alert>
       ) : (
         <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
@@ -134,10 +133,11 @@ export function YourNudgersAndNudges() {
 
       {error && <Alert severity="warning">{error}</Alert>}
 
-      {!loading && !error && trustedNudgers.length > 0 && nudges.length === 0 && (
-        <Typography variant="body2" color="text.secondary">
-          No published suggestions from these suggesters yet.
-        </Typography>
+      {!loading && !error && nudges.length === 0 && (
+        <Alert severity="info" sx={{ borderRadius: 2 }}>
+          No suggestions. Suggesters you subscribe to can publish notes like 'If you
+          signed X, you may want to sign Y.'
+        </Alert>
       )}
 
       {!loading && nudges.map((nudge) => {

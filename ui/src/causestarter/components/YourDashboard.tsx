@@ -37,7 +37,7 @@ export function YourDashboard({
           Fundable projects
         </Typography>
         <HeaderInfoTip
-          title="Work vouched for as advancing statements this wallet has signed."
+          title="Projects vouched for as advancing statements this wallet has signed."
           label="About your fundable-projects board"
         />
       </Stack>

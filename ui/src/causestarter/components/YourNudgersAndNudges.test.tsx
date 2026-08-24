@@ -52,7 +52,24 @@ describe('YourNudgersAndNudges', () => {
     )
     expect(screen.getByTestId('home-nudgers')).toBeInTheDocument()
     expect(screen.getByText(/No suggesters yet/)).toBeInTheDocument()
+    expect(screen.getByText(/No suggestions/)).toBeInTheDocument()
     expect(getNudgerPublications).not.toHaveBeenCalled()
+  })
+
+  it('shows a short empty suggestions line when subscribed suggesters have published none', async () => {
+    useTrustedNudgers.mockReturnValue([
+      { address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd', name: 'Housing mediator' },
+    ])
+    getNudgerPublications.mockResolvedValue([])
+
+    render(
+      <MemoryRouter>
+        <YourNudgersAndNudges />
+      </MemoryRouter>,
+    )
+
+    expect(await screen.findByText(/No suggestions/)).toBeInTheDocument()
+    expect(screen.queryByText(/No published suggestions/)).not.toBeInTheDocument()
   })
 
   it('lists subscribed suggesters and their recent suggestions', async () => {
