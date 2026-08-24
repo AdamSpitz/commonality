@@ -82,7 +82,7 @@ export function CauseMediatorPage() {
           this link.
         </Alert>
         <Button component={RouterLink} to="/causes" sx={{ textTransform: 'none', alignSelf: 'flex-start' }}>
-          Back to causes
+          Back to cause boards
         </Button>
       </Stack>
     )
@@ -110,7 +110,7 @@ export function CauseMediatorPage() {
           For <RouterLink to={causePath(cause)}>{causeTitle(cause)}</RouterLink>.
           {mediator
             ? ' A service its organizer runs, under their own key and strategy prompt. Its suggestions reach you only if you opt in, and signing stays your choice.'
-            : ' This cause has no mediator service attached.'}
+            : ' This cause board has no mediator service attached.'}
         </Typography>
       </Box>
 
@@ -137,7 +137,7 @@ export function CauseMediatorPage() {
             <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, mb: 1.5 }}>
               Advanced. If you just want to write one bridge yourself, use{' '}
               <RouterLink to="/bridge/new">Create a cluster</RouterLink>
-              {' '}(parents are causes) or{' '}
+              {' '}(parents are cause boards) or{' '}
               <RouterLink to="/bridge/triple">write a statement-level triple</RouterLink>
               {' '}— no service required.
             </Typography>

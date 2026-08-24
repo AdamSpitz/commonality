@@ -10,11 +10,13 @@ export function YourCauses({
   loading,
   footer,
   testId,
+  headingComponent = 'h1',
 }: {
   causes: CauseDraft[]
   loading: boolean
   footer?: ReactNode
   testId?: string
+  headingComponent?: 'h1' | 'h2'
 }) {
   const navigate = useNavigate()
   // "Live" is derived, not a status flag: a cause is live once any of its
@@ -33,8 +35,8 @@ export function YourCauses({
         }}
       >
         <Box sx={{ minWidth: 0 }}>
-          <Typography variant="h4" component="h1" sx={{ fontWeight: 800, fontSize: { xs: '1.6rem', sm: '2rem' } }}>
-            Causes
+          <Typography variant="h4" component={headingComponent} sx={{ fontWeight: 800, fontSize: { xs: '1.6rem', sm: '2rem' } }}>
+            Cause boards
           </Typography>
         </Box>
         <Stack direction="row" spacing={1} sx={{ flexShrink: 0, mt: 0.35 }}>
@@ -51,7 +53,7 @@ export function YourCauses({
             }}
             onClick={() => navigate(createCausePath())}
           >
-            Start a cause
+            Start a cause board
           </Button>
         </Stack>
       </Box>
@@ -60,16 +62,16 @@ export function YourCauses({
         <Stack direction="row" spacing={1} alignItems="center" sx={{ py: 1 }}>
           <CircularProgress size={18} />
           <Typography variant="body2" color="text.secondary">
-            Loading causes…
+            Loading cause boards…
           </Typography>
         </Stack>
       )}
 
       {!loading && causes.length === 0 && (
         <Alert severity="info" sx={{ borderRadius: 2 }}>
-          No causes on this device. Start one if you want a different combination of
+          No cause boards on this device. Start one if you want a different combination of
           statements — reuse overlapping ones so you are not starting from zero. Or open
-          a cause from its organizer’s link; there is no directory.
+          a cause board from its organizer’s link; there is no directory.
         </Alert>
       )}
 
@@ -77,11 +79,11 @@ export function YourCauses({
         <Box>
           <Stack direction="row" alignItems="center" sx={{ mb: 1.25 }}>
             <Typography variant="h6" sx={{ fontWeight: 700 }}>
-              Bookmarked causes
+              Bookmarked cause boards
             </Typography>
             <HeaderInfoTip
               title="Published bookmarks follow your wallet and are public."
-              label="About bookmarked causes"
+              label="About bookmarked cause boards"
             />
           </Stack>
           <Stack spacing={1.5}>
@@ -96,11 +98,11 @@ export function YourCauses({
         <Box>
           <Stack direction="row" alignItems="center" sx={{ mb: 1.25 }}>
             <Typography variant="h6" sx={{ fontWeight: 700 }}>
-              Cause drafts
+              Cause board drafts
             </Typography>
             <HeaderInfoTip
               title="Drafts stay on this device."
-              label="About cause drafts"
+              label="About cause board drafts"
             />
           </Stack>
           <Stack spacing={1.5}>

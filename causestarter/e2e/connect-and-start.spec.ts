@@ -55,6 +55,12 @@ test.describe('CauseStarter agent smoke', () => {
     await page.goto(appPath('/'))
   })
 
+  test('occupied home shows the personal fundable-projects board after connect', async ({ page }) => {
+    await connectHardhat0(page)
+    await expect(page.getByTestId('home-dashboard-board')).toBeVisible({ timeout: 15_000 })
+    await expect(page.getByRole('heading', { name: /your fundable projects/i })).toBeVisible()
+  })
+
   test('starts a cause and lands on its editable page', async ({ page }) => {
     await expect(page.getByTestId('wallet-connect-button')).toBeVisible()
     await expect(page.getByTestId('home-start-cause')).toBeVisible()
@@ -67,7 +73,7 @@ test.describe('CauseStarter agent smoke', () => {
     // A brand-new cause has no planks, so no counts and nothing to select.
     await expect(page.getByTestId('cause-view-strip')).toBeHidden()
     await expect(page.getByTestId('cause-add-plank')).toBeVisible()
-    await expect(page.getByRole('heading', { name: /start a cause/i })).toBeVisible()
+    await expect(page.getByRole('heading', { name: /start a cause board/i })).toBeVisible()
   })
 
   test('edits issues in place on the cause page', async ({ page }) => {
@@ -105,11 +111,11 @@ test.describe('CauseStarter agent smoke', () => {
     await expect(page.getByTestId('view-count-all')).toBeVisible()
   })
 
-  test('Causes page starts a cause and opens the editor while connected', async ({ page }) => {
+  test('Cause boards page starts a cause board and opens the editor while connected', async ({ page }) => {
     await connectHardhat0(page)
 
     await page.getByTestId('nav-causes').click()
-    await expect(page.getByRole('heading', { name: 'Causes' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Cause boards' })).toBeVisible()
     await page.getByTestId('causes-start-cause').click()
 
     await expect(page.getByTestId('cause-detail-page')).toBeVisible({ timeout: 10_000 })

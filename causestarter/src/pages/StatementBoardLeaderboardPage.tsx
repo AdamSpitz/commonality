@@ -11,7 +11,7 @@ export function StatementBoardLeaderboardPage() {
       <Stack spacing={2}>
         <Alert severity="warning" sx={{ borderRadius: 2 }}>No statement specified.</Alert>
         <Button component={RouterLink} to="/causes" sx={{ textTransform: 'none' }}>
-          Back to causes
+          Back to cause boards
         </Button>
       </Stack>
     )

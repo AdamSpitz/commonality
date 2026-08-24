@@ -499,7 +499,7 @@ export function CauseDetailPage({ editMode = false }: { editMode?: boolean }) {
           {loadError || 'Cause not found on this device.'}
         </Alert>
         <Button component={RouterLink} to="/causes" sx={{ textTransform: 'none' }}>
-          Back to causes
+          Back to cause boards
         </Button>
       </Stack>
     )
@@ -773,7 +773,7 @@ export function CauseDetailPage({ editMode = false }: { editMode?: boolean }) {
             label="Unpublished"
             sx={{ mb: 0.75 }}
             data-testid="cause-unpublished"
-            title="This cause exists only on this device so far. Others cannot open it until you publish."
+            title="This cause board exists only on this device so far. Others cannot open it until you publish."
           />
         )}
         {routeRef?.versionCid && (
@@ -782,7 +782,7 @@ export function CauseDetailPage({ editMode = false }: { editMode?: boolean }) {
             color="info"
             label="Pinned version"
             sx={{ mb: 0.75 }}
-            title="This link is pinned to one published version. Later edits to the live cause will not change what you see here."
+            title="This link is pinned to one published version. Later edits to the live cause board will not change what you see here."
           />
         )}
         {!isFreshDraft && (
@@ -790,7 +790,7 @@ export function CauseDetailPage({ editMode = false }: { editMode?: boolean }) {
             variant="overline"
             sx={{ letterSpacing: '0.14em', fontWeight: 700, color: 'primary.main', display: 'block' }}
           >
-            Cause
+            Cause board
           </Typography>
         )}
         {cause.bridgeCluster && (
@@ -828,7 +828,7 @@ export function CauseDetailPage({ editMode = false }: { editMode?: boolean }) {
             component="h1"
             sx={{ fontWeight: 800, fontSize: { xs: '1.55rem', sm: '1.9rem' }, flex: 1, minWidth: 0 }}
           >
-            {isFreshDraft ? 'Start a cause' : displayTitle}
+            {isFreshDraft ? 'Start a cause board' : displayTitle}
           </Typography>
           {stable && (
             <Tooltip title="Copy share link">
@@ -846,7 +846,7 @@ export function CauseDetailPage({ editMode = false }: { editMode?: boolean }) {
                   }
                   void navigator.clipboard.writeText(url).then(() => setShareCopiedOpen(true))
                 }}
-                aria-label="Share cause"
+                aria-label="Share cause board"
                 sx={{ mt: 0.25, color: 'text.secondary' }}
               >
                 <IosShareIcon />
@@ -854,7 +854,7 @@ export function CauseDetailPage({ editMode = false }: { editMode?: boolean }) {
             </Tooltip>
           )}
           {canKeepOnDevice && (
-            <Tooltip title={keptOnDevice ? 'Saved to your causes' : 'Save to your causes'}>
+            <Tooltip title={keptOnDevice ? 'Saved to your cause boards' : 'Save to your cause boards'}>
               <IconButton
                 data-testid={keptOnDevice ? 'cause-remove-from-device' : 'cause-keep-on-device'}
                 onClick={() => {
@@ -905,9 +905,9 @@ export function CauseDetailPage({ editMode = false }: { editMode?: boolean }) {
         )}
         {isFreshDraft ? (
           <Alert severity="info" sx={{ mt: 1.5, borderRadius: 2 }} data-testid="start-cause-help">
-            A cause is a set of statements people can sign one at a time — not a club
-            they join. Reuse published statements when they already say what you mean;
-            you inherit their signers and projects. Write your own when they don’t.
+            A cause board is a mix of statements people can sign one at a time — not a
+            club they join. Reuse published statements when they already say what you
+            mean; you inherit their signers and projects. Write your own when they don’t.
             Nothing is published until you review the exact text and CID below.
           </Alert>
         ) : null}
@@ -1031,7 +1031,7 @@ export function CauseDetailPage({ editMode = false }: { editMode?: boolean }) {
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
             {isEditing
               ? 'No statements selected yet. Start with the picker; you can reject every suggestion and write one manually.'
-              : 'This cause has no published statements yet.'}
+              : 'This cause board has no published statements yet.'}
           </Typography>
         )}
 
@@ -1242,7 +1242,7 @@ export function CauseDetailPage({ editMode = false }: { editMode?: boolean }) {
           if (reason === 'clickaway') return
           setBookmarkUndoOpen(false)
         }}
-        message="Removed from your causes"
+        message="Removed from your cause boards"
         action={(
           <Button color="inherit" size="small" onClick={undoRemoveBookmark} sx={{ textTransform: 'none', fontWeight: 700 }}>
             Undo

@@ -22,8 +22,8 @@ import { WalletButton } from '../components/WalletButton'
 const GITHUB_REPO_URL = 'https://github.com/AdamSpitz/commonality'
 
 const navItems = [
-  { label: 'Causes', path: '/causes', icon: <FlagOutlinedIcon /> },
-  { label: 'Docs', path: '/docs', icon: <MenuBookOutlinedIcon /> },
+  { label: 'Cause boards', path: '/causes', testId: 'nav-causes', icon: <FlagOutlinedIcon /> },
+  { label: 'Docs', path: '/docs', testId: 'nav-docs', icon: <MenuBookOutlinedIcon /> },
 ] as const
 
 function activeNavPath(pathname: string): string {
@@ -98,7 +98,7 @@ export function CauseShell({ children }: CauseShellProps) {
                     key={item.path}
                     component={Link}
                     to={item.path}
-                    data-testid={`nav-${item.label.toLowerCase()}`}
+                    data-testid={item.testId}
                     sx={{
                       px: 1.5,
                       py: 0.75,
@@ -202,6 +202,7 @@ export function CauseShell({ children }: CauseShellProps) {
                 label={item.label}
                 value={item.path}
                 icon={item.icon}
+                data-testid={item.testId}
               />
             ))}
             <BottomNavigationAction

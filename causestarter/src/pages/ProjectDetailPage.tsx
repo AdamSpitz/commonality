@@ -26,7 +26,7 @@ export function ProjectLeaderboardPage() {
   return (
     <LazyGivingProjectDetailPage
       listPath="/causes"
-      listLabel="Back to causes"
+      listLabel="Back to cause boards"
       variant="leaderboard"
     />
   )

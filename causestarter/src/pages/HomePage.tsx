@@ -1,5 +1,7 @@
 import { CircularProgress, Stack, Typography } from '@mui/material'
+import { useAccount } from 'wagmi'
 import { YourCauses } from '../components/YourCauses'
+import { YourDashboard } from '../components/YourDashboard'
 import { YourNudgersAndNudges } from '../components/YourNudgersAndNudges'
 import { YourProjects } from '../components/YourProjects'
 import { YourSignedStatements } from '../components/YourSignedStatements'
@@ -8,21 +10,26 @@ import { WelcomePage } from './WelcomePage'
 
 export function HomePage() {
   const { causes, loading } = useUserCauses()
+  const { isConnected } = useAccount()
+  const occupied = causes.length > 0 || isConnected
 
-  if (causes.length > 0) {
+  if (occupied) {
     return (
-      <YourCauses
-        causes={causes}
-        loading={loading}
-        testId="home-dashboard"
-        footer={(
-          <>
-            <YourSignedStatements />
-            <YourProjects />
-            <YourNudgersAndNudges />
-          </>
-        )}
-      />
+      <Stack spacing={4} data-testid="home-dashboard">
+        <YourDashboard />
+        <YourCauses
+          causes={causes}
+          loading={loading}
+          headingComponent="h2"
+          footer={(
+            <>
+              <YourSignedStatements />
+              <YourProjects />
+              <YourNudgersAndNudges />
+            </>
+          )}
+        />
+      </Stack>
     )
   }
 
@@ -31,7 +38,7 @@ export function HomePage() {
       <Stack direction="row" spacing={1} alignItems="center" sx={{ py: 3 }} data-testid="home-loading">
         <CircularProgress size={18} />
         <Typography variant="body2" color="text.secondary">
-          Loading causes…
+          Loading cause boards…
         </Typography>
       </Stack>
     )

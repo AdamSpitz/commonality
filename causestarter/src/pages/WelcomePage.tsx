@@ -53,7 +53,7 @@ export function WelcomePage() {
             onClick={() => navigate(createCausePath())}
             sx={{ minHeight: 48, borderRadius: 999, fontWeight: 700, textTransform: 'none', px: 3 }}
           >
-            Start a cause
+            Start a cause board
           </Button>
           <Button
             component={RouterLink}
@@ -90,8 +90,8 @@ export function WelcomePage() {
           Docs
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 0.75 }}>
-          How to start a cause, the full ugh-catalog, walkthroughs, and the longer argument.
-          There is no directory of other people’s causes — you get there by their link.
+          How to start a cause board, the full ugh-catalog, walkthroughs, and the longer argument.
+          There is no directory of other people’s cause boards — you get there by their link.
         </Typography>
         <Button
           component={RouterLink}

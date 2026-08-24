@@ -43,6 +43,8 @@ COPY turbo.json ./turbo.json
 RUN --mount=type=cache,target=/root/.npm HUSKY=0 npm ci --legacy-peer-deps
 
 COPY sdk ./sdk
+# In-app /docs bundles docs/end-user (endUserDocsPlugin).
+COPY docs ./docs
 # Cause board reuses ui/fundingportals (+ shared, lazy-giving, content-funding, delegation).
 COPY ui ./ui
 COPY causestarter ./causestarter

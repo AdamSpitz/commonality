@@ -911,7 +911,7 @@ export function BridgeClusterPage() {
               <TextField
                 select
                 size="small"
-                label="Use a cause from this device"
+                label="Use a cause board from this device"
                 value=""
                 onChange={(event) => {
                   const [owner, slug] = event.target.value.split('|')

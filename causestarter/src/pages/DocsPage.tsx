@@ -223,8 +223,8 @@ function DocsExampleTools() {
   const sections = [
     {
       key: 'reference' as const,
-      title: 'Example causes',
-      description: 'Worked examples of focused causes you can learn from.',
+      title: 'Example cause boards',
+      description: 'Worked examples of focused cause boards you can learn from.',
     },
     {
       key: 'thesis' as const,

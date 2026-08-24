@@ -125,7 +125,7 @@ export function CauseBoardLeaderboardPage() {
           {loadError || 'Cause not found on this device.'}
         </Alert>
         <Button component={RouterLink} to="/causes" sx={{ textTransform: 'none' }}>
-          Back to causes
+          Back to cause boards
         </Button>
       </Stack>
     )
@@ -137,10 +137,10 @@ export function CauseBoardLeaderboardPage() {
     return (
       <Stack spacing={2}>
         <Alert severity="info" sx={{ borderRadius: 2 }}>
-          Publish a statement to see contributors across this cause.
+          Publish a statement to see contributors across this cause board.
         </Alert>
         <Button component={RouterLink} to={causePath(cause)} sx={{ textTransform: 'none' }}>
-          Back to cause
+          Back to cause board
         </Button>
       </Stack>
     )
@@ -149,7 +149,7 @@ export function CauseBoardLeaderboardPage() {
   return (
     <CauseLeaderboard
       statementCids={publishedCids}
-      backLink={{ label: '← Back to cause', to: causePath(cause) }}
+      backLink={{ label: '← Back to cause board', to: causePath(cause) }}
     />
   )
 }

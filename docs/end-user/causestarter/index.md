@@ -10,11 +10,11 @@ Look at **Fundable Projects**. That fundable-projects board is the centerpiece. 
 
 **Publish work** if that’s your job. A friend one hop better-connected can vouch that it advances a statement people already watch. Then it can appear on every cause board that includes that statement — including this one.
 
-Signing a statement is free and optional. It marks which claims you personally mean, and the counts can show that more than one person cares. It does not enroll you. You are not a member by being here.
+Signing a statement is free and optional. It marks which claims you personally mean, and the counts can show that more than one person cares. It does not enroll you. You are not a member by being here. After you sign, CauseStarter **home** lists fundable projects on those statements — that is the returning-user loop, not this organizer’s page.
 
 If this mix of claims is not the overlap you want to fund, you can reuse the ones you like on a page of your own. That is later, and it is success, not a split to police.
 
-The jobs — and the extra work each one used to demand — are in **[Do the part you’d do anyway](./the-jobs.md)**. Organizers who want to publish a new board: **[Start a cause](./start-a-cause.md)**.
+The jobs — and the extra work each one used to demand — are in **[Do the part you’d do anyway](./the-jobs.md)**. Organizers who want to publish a new board: **[Start a cause board](./start-a-cause.md)**.
 
 ## Where the money mechanics came from
 

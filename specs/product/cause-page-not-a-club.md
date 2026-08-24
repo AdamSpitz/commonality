@@ -77,7 +77,7 @@ future personal view (“projects aligned with statements I signed”).
 | Statement / plank | The thing you sign; projects attach here | **statement** / **claim** / **plank**. A statement *plays the cause role* when it is a funding anchor |
 | Fundable-projects list | Aligned work you might fund | **fundable-projects board** (today still “cause board” in many files) |
 | Organizer publication | Shareable mix + centerpiece list + bridges etc.; flyer URL | **cause board** (fine leftover: **cause page**) |
-| Personal view (not built) | Projects aligned with *my* signed statements | **dashboard** / **my board** |
+| Personal view | Projects aligned with *my* signed statements | **dashboard** / **my board** — [personal-dashboard.md](./personal-dashboard.md) |
 
 User-facing verbs for the publication: *publish a board*, *start a board*,
 *look at this board* — or keep *start a cause* in the English sense (“start
@@ -113,7 +113,9 @@ organizer cause boards remain the acquisition surface.
 A “projects on statements I signed” surface is the likely everyday home. It
 does not replace organizer cause boards. You encounter a mix, sign the planks
 you mean, then live on your own union. That personal surface can also span
-**multiple causes** (several statements you signed).
+**multiple causes** (several statements you signed). Spec and first slice:
+[personal-dashboard.md](./personal-dashboard.md). Do not implement it as an
+unpublished cause board.
 
 ## What not to do
 
@@ -134,9 +136,10 @@ you mean, then live on your own union. That personal surface can also span
 
 1. **Fundable-projects board:** done in UI copy, end-user docs, glossary Part 1
    and Part 2 §5. Code `fundingportal*` / `/portal/:statementCid` still lag.
-2. **Cause board** = organizer publication: done in glossary and high-traffic
-   CauseStarter docs / publish empty states. Leftover “cause page” in comments
-   and incidental copy left on purpose.
+2. **Cause board** = organizer publication: done in glossary, CauseStarter home /
+   list / editor chrome (“Cause boards”, “Start a cause board”, bookmarked
+   boards), and high-traffic docs. Leftover “cause page” in comments and
+   incidental copy left on purpose. Identifiers (`/causes`) still lag.
 3. Later: identifiers (`/cause/:owner/:slug` can lag). Contract names stay.
    Bridge-cluster terms (natural / modified / bridge cause) still mean
    *publications* in the compound; separate pass.

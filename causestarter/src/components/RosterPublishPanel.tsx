@@ -68,7 +68,7 @@ export function RosterPublishPanel({
   onPublish,
   onPublishAnyway,
 }: RosterPublishPanelProps) {
-  const slugError = slug ? validateSlug(normalizeSlug(slug)) : 'Choose a URL slug for this cause.'
+  const slugError = slug ? validateSlug(normalizeSlug(slug)) : 'Choose a URL slug for this cause board.'
   const busy = checking || publishing || disabled
   const badgeMatches = Boolean(
     coherence
@@ -83,7 +83,7 @@ export function RosterPublishPanel({
   return (
     <Stack spacing={1.5} data-testid="roster-publish-panel">
       <Box>
-        <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>Publish this cause</Typography>
+        <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>Publish this cause board</Typography>
         <Alert severity="info" sx={{ borderRadius: 2 }}>
           Title, summary, statement list, and mediator blurb publish together as a versioned
           cause board. The URL stays stable when you edit; each publish is a new version.

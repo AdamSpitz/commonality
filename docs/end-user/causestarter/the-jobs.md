@@ -18,11 +18,11 @@ In CauseStarter this lives on a cause’s **Pledges** page and on **Delegation**
 
 **I’d be happy to watch for worthwhile projects, but…**
 
-- **…I don’t even know what projects are out there.** Follow (or start) a cause whose statements you want to watch. The project list is the union of work vouched as advancing those statements. You do not need a special introduction.
+- **…I don’t even know what projects are out there.** Sign the statements you mean. Your CauseStarter home is then a **fundable-projects board** of work vouched as advancing those claims — not a club you joined. You can also follow (or start) a cause board whose mix you want to watch. You do not need a special introduction.
 - **…I can’t tell whether this creator is a scammer or incompetent.** Be a delegate who mostly [funds proven work](../lazyGiving/retroactive-funding.md). You reimburse early contributors at cost after results, instead of betting on a pitch.
 - **…I can’t put that much of my *own* money on it.** Be an early funder who asks for reimbursement. If later donors close the loop, that giving budget can go to the next attempt. Your receipt is a track record, not a payout.
 
-The cause board’s **Fundable Projects** list (the fundable-projects board) is that watch surface. Trust settings (the gear) control whose vouches you see.
+The cause board’s **Fundable Projects** list (the fundable-projects board) is the watch surface on a circulated mix. After you sign, the same kind of list on **home** is your everyday watch surface. Trust settings (the gear) control whose vouches you see.
 
 ## Work
 
@@ -50,7 +50,7 @@ Cause boards have a **Bridges** section. Suggesters you opt into appear on Home.
 - **…I don’t love the exact combination of statements they chose.** Publish your own board. A cause board is a mix of statements, not a club you join.
 - **…if I write my own it’ll have zero signers or projects.** Reuse *some* of the same statements and you inherit their signers and aligned projects. Even new wording can pick up overlap through implication and bridges.
 
-**Start a cause** is the organizer action. There is no browse list: circulate the link.
+**Start a cause board** is the organizer action. There is no browse list: circulate the link.
 
 ## What this adds up to
 

@@ -197,7 +197,7 @@ export function CauseFundingPage() {
           {loadError || 'Cause not found on this device.'}
         </Alert>
         <Button component={RouterLink} to="/causes" sx={{ textTransform: 'none' }}>
-          Back to causes
+          Back to cause boards
         </Button>
       </Stack>
     )
@@ -208,7 +208,7 @@ export function CauseFundingPage() {
   return (
     <Stack spacing={2.5} data-testid="cause-funding-page">
       <Button component={RouterLink} to={backTo} sx={{ textTransform: 'none', alignSelf: 'flex-start' }}>
-        ← Back to cause
+        ← Back to cause board
       </Button>
 
       <Box>

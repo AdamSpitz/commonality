@@ -1,10 +1,10 @@
 # Start a cause
 
-A cause in CauseStarter is **a published set of independent statements**, not a manifesto with members. People sign statements one at a time. Projects attach to statements, not to the cause as a blob.
+A cause board in CauseStarter is **a published mix of independent statements**, not a manifesto with members. People sign statements one at a time. Projects attach to statements, not to the board as a blob.
 
 ## Shape it
 
-1. **Start a cause** from Home or Causes. That opens an editor on this device; nothing is on-chain yet.
+1. **Start a cause board** from Home or Cause boards. That opens an editor on this device; nothing is on-chain yet.
 2. Describe the intent in the picker. It searches **published** statements first. Reject anything that is not what you mean. Write one manually if you need to.
 3. Publish each statement when the exact text is right. You will see its CID before you confirm.
 4. Publish the **cause board** (title, optional description, slug) so it has a stable link: `/cause/<your-address>/<slug>`. Circulate that link. There is no directory.

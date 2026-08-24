@@ -130,7 +130,7 @@ test.describe('Cause bookmarks', () => {
     await clearBrowserStorage(page)
     await page.goto(appPath('/causes'))
     await connectHardhat(page, 1)
-    await expect(page.getByRole('heading', { name: 'Causes', exact: true })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Cause boards', exact: true })).toBeVisible()
     await expect(page.getByRole('heading', { name: title, exact: true })).toHaveCount(0, {
       timeout: 45_000,
     })

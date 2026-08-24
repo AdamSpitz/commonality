@@ -297,8 +297,10 @@ Then **restart Grok** so MCP tools load.
 | `wallet-hardhat-0` … `wallet-hardhat-9` | Pick Hardhat account |
 | `wallet-disconnect` | Disconnect |
 | `home-start-cause` | Home / `/welcome` CTA → create a draft and open the cause editor |
+| `home-dashboard` | Occupied home (connected wallet and/or cause boards on this device) |
+| `home-dashboard-board` | Personal fundable-projects board (union over signed statements) |
 | `nav-start` | Desktop/mobile nav “Start” → same (creates a new draft) |
-| `cause-detail-page` | Cause page root (where all editing happens; brand-new drafts show “Start a cause” coach copy here) |
+| `cause-detail-page` | Cause page root (where all editing happens; brand-new drafts show “Start a cause board” coach copy here) |
 | `issue-guidance` | Static coach copy for what an issue is |
 | `cause-add-plank` | Add an issue |
 | `plank-text-N` | Nth issue's editable text (drafts only) |
@@ -335,7 +337,7 @@ CAUSESTARTER_BASE_URL=http://localhost:5174 CAUSESTARTER_HASH_ROUTING=0 \
 ### Example agent prompt
 
 > Use the browser. Open http://localhost:8090/, click Connect, choose Hardhat #0,  
-> click “Start a cause”, describe the cause, click Continue, then add and publish
+> click “Start a cause board”, describe the cause, click Continue, then add and publish
 > issues on the cause page.
 
 This package stays thinner than `ui/` (no multi-domain matrix, no Privy). Product posture:
