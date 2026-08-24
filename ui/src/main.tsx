@@ -149,7 +149,8 @@ declare global {
 
 export function Root() {
   const [mode, setMode] = useState<PaletteMode>(getInitialColorMode)
-  const [wagmiConfig, setWagmiConfig] = useState(config)
+  const [testWagmiConfig, setTestWagmiConfig] = useState<typeof config | null>(null)
+  const wagmiConfig = testWagmiConfig ?? config
 
   const theme = useMemo(() => createAppTheme(mode), [mode])
   const themeModeContextValue = useMemo(() => ({
@@ -166,7 +167,7 @@ export function Root() {
   const setupTestWallet = useCallback(
     (...args: Parameters<typeof createMockConfig>) => {
       const newConfig = createMockConfig(...args)
-      setWagmiConfig(newConfig)
+      setTestWagmiConfig(newConfig)
       return newConfig
     },
     []
