@@ -89,6 +89,11 @@ export interface CauseBoardProps {
    * matches plank counts and the starter-network notice.
    */
   trustedAlignmentAttesters?: Iterable<string>
+  /**
+   * Home teaser: skip metrics/tabs, cap the aligned list, compact cards.
+   * Full board lives at {@link preview.fullPageTo}.
+   */
+  preview?: { limit: number; fullPageTo: string }
 }
 
 function defaultNavLinks(statementCid: string | undefined): CauseBoardNavLink[] {
@@ -141,6 +146,7 @@ export function CauseBoard({
   projectsHelp,
   projectLinks = 'lazyGiving',
   trustedAlignmentAttesters,
+  preview,
 }: CauseBoardProps) {
   const cids = useMemo(
     () => resolveStatementCids(statementCid, statementCids),
@@ -225,6 +231,11 @@ export function CauseBoard({
       : undefined
 
     async function load() {
+      if (preview) {
+        setLoading(false)
+        setError(null)
+        return
+      }
       if (loadCids.length === 0) {
         setLoading(false)
         setError('No statement specified.')
@@ -319,6 +330,7 @@ export function CauseBoard({
     machinery,
     cidsKey,
     embedded,
+    preview,
     trustedAttestersKey,
     trustedSetKey,
     alignmentOverrideKey,
@@ -326,6 +338,24 @@ export function CauseBoard({
     contentAttestationsKey,
     contentTrustKey,
   ])
+
+  if (preview) {
+    return (
+      <Box id="fundable-projects" data-testid="fundable-projects">
+        <AlignedProjectsList
+          statementCid={primaryCid ?? ''}
+          statementCids={cids}
+          trustedImplicationAttesters={activeTrustedImplicationAttesters}
+          trustedAlignmentAttesters={trustedAlignmentAttesters}
+          projectLinks={projectLinks}
+          embedded
+          compact
+          limit={preview.limit}
+          fullPageTo={preview.fullPageTo}
+        />
+      </Box>
+    )
+  }
 
   if (loading) {
     return (

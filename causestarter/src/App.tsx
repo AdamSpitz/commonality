@@ -3,6 +3,7 @@ import { BrowserRouter, HashRouter, Navigate, Route, Routes } from 'react-router
 import { CircularProgress, Stack } from '@mui/material'
 import { CauseShell } from './shell/CauseShell'
 import { HomePage } from './pages/HomePage'
+import { PersonalDashboardPage } from './pages/PersonalDashboardPage'
 import { WelcomePage } from './pages/WelcomePage'
 import { StartCauseRedirect } from './pages/StartCauseRedirect'
 import { StartBridgeRedirect } from './pages/StartBridgeRedirect'
@@ -64,6 +65,7 @@ export default function App() {
       <CauseShell>
         <Routes>
           <Route path="/" element={<HomePage />} />
+          <Route path="/dashboard" element={<PersonalDashboardPage />} />
           <Route path="/welcome" element={<WelcomePage />} />
           {/* No intermediate form — creates a draft and opens the editor. */}
           <Route path="/start" element={<StartCauseRedirect />} />

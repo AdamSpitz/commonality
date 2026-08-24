@@ -1,7 +1,7 @@
 # Personal dashboard (projects on statements you signed)
 
-**Status: first slice specified and implemented 2026-08-24** (CauseStarter home
-hero). Starring / named subsets remain out of scope.
+**Status: first slice specified and implemented 2026-08-24** (home teaser +
+`/dashboard` full list). Starring / named subsets remain out of scope.
 This is the surface reserved by [cause-page-not-a-club.md](./cause-page-not-a-club.md)
 under the names **dashboard** / **my board**. It does **not** reverse
 [ADR 0005](../decisions/0005-founder-first-verticals.md) or
@@ -42,18 +42,21 @@ cause. Not a publication.
 ## First slice (build this)
 
 1. CauseStarter **home**, when the wallet is connected **or** this device
-   already has cause boards: hero is the personal fundable-projects board.
-   Organizer drafts and bookmarks stay below (existing **Cause boards**
-   section). First-visit **Welcome** remains when disconnected and there are
-   no local/bookmarked boards.
+   already has cause boards: hero is a **teaser** of the personal
+   fundable-projects board (a few compact rows). Organizer drafts and
+   bookmarks stay below (existing **Cause boards** section). First-visit
+   **Welcome** remains when disconnected and there are no local/bookmarked
+   boards.
 2. Reuse `CauseBoard` with `statementCids` = this wallet’s direct beliefs.
    Same starter-network / personal trust filter as other CauseStarter lists.
+   Home passes `preview` (compact cards, cap, no metrics/tabs). Content
+   contracts drop the channel-details block on the teaser.
 3. Empty: not connected → connect hint. Connected, no signatures → short
    empty copy (sign from a cause board or statement). Do not mount the list
    on an empty CID set.
-4. No new publication, no starring, no named subsets, no dedicated
-   `/dashboard` URL unless home embedding becomes too long (then a same-query
-   full page is fine; still not a roster).
+4. Full list lives at **`/dashboard`** (same query; still not a roster).
+   Home “See all” is the way in. No new publication, no starring, no named
+   subsets.
 
 ## Later (do not build yet)
 

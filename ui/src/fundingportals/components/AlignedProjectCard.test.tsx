@@ -388,6 +388,32 @@ describe('AlignedProjectCard', () => {
       expect(screen.getByText('Fan-created')).toBeInTheDocument()
     })
 
+    it('keeps the content-funding badge in compact mode but drops the channel details block', () => {
+      vi.mocked(useContentFundingState).mockReturnValue({
+        state: {} as any,
+        channels: [makeChannelEntry({ canonicalChannelId: 'twitter:user:alice' })],
+        loading: false,
+        error: null,
+        projects: [],
+        contentAttestations: new Map(),
+        channelDisplayMetadata: new Map(),
+        vetoedEvents: [],
+        machinery: {} as any,
+      })
+
+      render(
+        <AlignedProjectCard
+          project={makeProject()}
+          metadata={undefined}
+          compact
+        />,
+      )
+
+      expect(screen.getByText('Content Funding')).toBeInTheDocument()
+      expect(screen.queryByText('Channel Status')).not.toBeInTheDocument()
+      expect(screen.queryByText('Content Items')).not.toBeInTheDocument()
+    })
+
     it('shows channel display name for Twitter channels', () => {
       vi.mocked(useContentFundingState).mockReturnValue({
         state: {} as any,

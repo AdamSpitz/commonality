@@ -10,11 +10,12 @@ vi.mock('./projectMetadata', () => ({
 }))
 
 
-vi.mock('react-router-dom', () => ({
-  Link: vi.fn(({ to, children, ...props }: any) => (
-    <a href={to} {...props}>{children}</a>
-  )),
-}))
+vi.mock('react-router-dom', () => {
+  function Link({ to, children, ...props }: any) {
+    return <a href={to} {...props}>{children}</a>
+  }
+  return { Link, RouterLink: Link }
+})
 
 vi.mock('wagmi', () => ({
   useAccount: vi.fn(),
@@ -683,6 +684,34 @@ describe('AlignedProjectsList', () => {
         expect(titles[1]).toHaveTextContent('Project Beta')
         expect(titles[2]).toHaveTextContent('Project Gamma')
       })
+    })
+  })
+
+  describe('Compact preview', () => {
+    it('hides sort/status chrome, caps the list, and links to the full page', async () => {
+      vi.mocked(getAllAlignedProjectsForCause).mockResolvedValue([
+        makeProject({ projectAddress: ADDR_A, deadline: FAR_FUTURE }),
+        makeProject({ projectAddress: ADDR_B, deadline: String(Number(FAR_FUTURE) - 10) }),
+        makeProject({ projectAddress: ADDR_C, deadline: String(Number(FAR_FUTURE) - 20) }),
+      ])
+
+      render(
+        <AlignedProjectsList
+          statementCid="QmTest"
+          compact
+          limit={2}
+          fullPageTo="/dashboard"
+        />,
+      )
+
+      await waitFor(() => {
+        expect(screen.getAllByRole('link', { name: /Open project/i }).length).toBe(2)
+      })
+      expect(screen.queryByRole('button', { name: 'Latest' })).toBeNull()
+      expect(screen.queryByRole('button', { name: 'Funding' })).toBeNull()
+      const seeAll = screen.getByTestId('aligned-projects-see-all')
+      expect(seeAll).toHaveAttribute('href', '/dashboard')
+      expect(seeAll).toHaveTextContent(/see all 3 projects/i)
     })
   })
 })

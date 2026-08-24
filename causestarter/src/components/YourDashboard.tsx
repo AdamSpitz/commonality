@@ -1,4 +1,5 @@
 import { Alert, Box, Button, CircularProgress, Stack, Typography } from '@mui/material'
+import { Link as RouterLink } from 'react-router-dom'
 import { CauseBoard } from '@ui/fundingportals'
 import { TrustNetworkRefreshIndicator } from '@ui/shared'
 import { AlignmentTrustGate } from './AlignmentTrustGate'
@@ -10,11 +11,20 @@ import { useUserStatements } from '../hooks/useUserStatements'
 
 const sectionHeadingSx = { fontWeight: 800, fontSize: { xs: '1.6rem', sm: '2rem' } }
 
+export const PERSONAL_DASHBOARD_PATH = '/dashboard'
+const HOME_PREVIEW_LIMIT = 3
+
 /**
  * Personal fundable-projects board: union of work on statements this wallet signed.
  * Not a cause board. Spec: specs/product/personal-dashboard.md
+ *
+ * `preview` (home): a few compact rows + link. `page`: the full board.
  */
-export function YourDashboard() {
+export function YourDashboard({
+  layout = 'preview',
+}: {
+  layout?: 'preview' | 'page'
+}) {
   const { statements, loading, connected, error, refresh } = useUserStatements()
   const {
     trustedAlignmentAttesters,
@@ -24,9 +34,12 @@ export function YourDashboard() {
   } = useAlignmentTrust()
   const statementCids = statements.map((row) => row.cid).filter(Boolean)
 
+  const preview = layout === 'preview'
+  const headingId = preview ? 'home-dashboard-board' : 'personal-dashboard-page'
+
   return (
-    <Stack spacing={1.5} data-testid="home-dashboard-board">
-      <Stack direction="row" alignItems="center">
+    <Stack spacing={1.5} data-testid={headingId}>
+      <Stack direction="row" alignItems="center" flexWrap="wrap" useFlexGap spacing={1}>
         <Typography variant="h4" component="h1" sx={sectionHeadingSx}>
           Your fundable projects
         </Typography>
@@ -34,6 +47,16 @@ export function YourDashboard() {
           title="Work vouched as advancing statements this wallet has signed — not membership in a cause board. Organizer pages stay for mixes someone else circulated."
           label="About your fundable-projects board"
         />
+        {preview && connected && statementCids.length > 0 && (
+          <Button
+            component={RouterLink}
+            to={PERSONAL_DASHBOARD_PATH}
+            sx={{ textTransform: 'none', ml: 'auto' }}
+            data-testid="home-dashboard-see-all"
+          >
+            See all
+          </Button>
+        )}
       </Stack>
       <Typography variant="body2" color="text.secondary">
         Projects on statements you’ve signed.
@@ -86,7 +109,13 @@ export function YourDashboard() {
             embedded
             surfaceTitle="Fundable Projects"
             projectLinks="local"
+            preview={
+              preview
+                ? { limit: HOME_PREVIEW_LIMIT, fullPageTo: PERSONAL_DASHBOARD_PATH }
+                : undefined
+            }
             projectsHelp={
+              preview ? undefined : (
               <Stack spacing={1}>
                 <Typography variant="body2">
                   Union of projects vouched as advancing any statement you signed. Alignment
@@ -94,6 +123,7 @@ export function YourDashboard() {
                 </Typography>
                 <StarterNetworkFilterCopy />
               </Stack>
+              )
             }
           />
         </>

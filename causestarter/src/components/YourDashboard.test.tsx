@@ -17,8 +17,17 @@ vi.mock('../hooks/useAlignmentTrust', () => ({
 }))
 
 vi.mock('@ui/fundingportals', () => ({
-  CauseBoard: ({ statementCids }: { statementCids: string[] }) => (
-    <div data-testid="fundable-projects">{statementCids.join(',')}</div>
+  CauseBoard: ({
+    statementCids,
+    preview,
+  }: {
+    statementCids: string[]
+    preview?: { limit: number; fullPageTo: string }
+  }) => (
+    <div data-testid="fundable-projects">
+      {preview ? `preview:${preview.limit}:${preview.fullPageTo}:` : 'full:'}
+      {statementCids.join(',')}
+    </div>
   ),
 }))
 
@@ -100,6 +109,25 @@ describe('YourDashboard', () => {
         <YourDashboard />
       </MemoryRouter>,
     )
-    expect(screen.getByTestId('fundable-projects')).toHaveTextContent('bafy1,bafy2')
+    expect(screen.getByTestId('fundable-projects')).toHaveTextContent('preview:3:/dashboard:bafy1,bafy2')
+    expect(screen.getByTestId('home-dashboard-see-all')).toHaveAttribute('href', '/dashboard')
+  })
+
+  it('renders the uncapped board on the dedicated page', () => {
+    useUserStatements.mockReturnValue({
+      statements: [{ cid: 'bafy1' }],
+      loading: false,
+      connected: true,
+      error: null,
+      refresh: vi.fn(),
+    })
+    render(
+      <MemoryRouter>
+        <YourDashboard layout="page" />
+      </MemoryRouter>,
+    )
+    expect(screen.getByTestId('personal-dashboard-page')).toBeInTheDocument()
+    expect(screen.getByTestId('fundable-projects')).toHaveTextContent('full:bafy1')
+    expect(screen.queryByTestId('home-dashboard-see-all')).toBeNull()
   })
 })

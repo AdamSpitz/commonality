@@ -203,11 +203,14 @@ export function AlignedProjectCard({
   metadata,
   causeCid,
   projectLinks = 'lazyGiving',
+  compact = false,
 }: {
   project: AlignedProject
   metadata: ProjectMetadata | undefined
   causeCid?: string
   projectLinks?: ProjectLinkMode
+  /** Home teaser: smaller title, no content-contract channel block. */
+  compact?: boolean
 }) {
   const status = getProjectStatus(project)
   const hasMinimum = BigInt(project.threshold) > 0n
@@ -252,7 +255,7 @@ export function AlignedProjectCard({
       <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 1, '&:last-child': { pb: 2 } }}>
         {projectNav.kind === 'route' ? (
           <Typography
-            variant="h6"
+            variant={compact ? 'subtitle1' : 'h6'}
             component={RouterLink}
             to={projectNav.to}
             aria-label={openAriaLabel}
@@ -264,7 +267,7 @@ export function AlignedProjectCard({
           </Typography>
         ) : (
           <Typography
-            variant="h6"
+            variant={compact ? 'subtitle1' : 'h6'}
             component="a"
             href={projectNav.href}
             aria-label={openAriaLabel}
@@ -299,6 +302,7 @@ export function AlignedProjectCard({
           fundingProgress={fundingProgress}
           progressPercent={progressPercent}
           contentFundingInfo={contentFundingInfo}
+          compact={compact}
         />
       </CardContent>
     </Card>
@@ -372,12 +376,14 @@ function AlignedProjectCardDetails({
   fundingProgress,
   progressPercent,
   contentFundingInfo,
+  compact,
 }: {
   project: AlignedProject
   hasMinimum: boolean
   fundingProgress: number
   progressPercent: number
   contentFundingInfo: ContentFundingInfo | null
+  compact: boolean
 }) {
   return (
     <Box>
@@ -393,10 +399,10 @@ function AlignedProjectCardDetails({
         <LinearProgress
           variant="determinate"
           value={progressPercent}
-          sx={{ height: 8, borderRadius: 4 }}
+          sx={{ height: compact ? 4 : 8, borderRadius: 4 }}
         />
       )}
-      {contentFundingInfo && <ContentFundingCardDetails info={contentFundingInfo} />}
+      {contentFundingInfo && !compact && <ContentFundingCardDetails info={contentFundingInfo} />}
     </Box>
   )
 }

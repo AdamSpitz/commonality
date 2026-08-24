@@ -114,8 +114,9 @@ A “projects on statements I signed” surface is the likely everyday home. It
 does not replace organizer cause boards. You encounter a mix, sign the planks
 you mean, then live on your own union. That personal surface can also span
 **multiple causes** (several statements you signed). Spec and first slice:
-[personal-dashboard.md](./personal-dashboard.md). Do not implement it as an
-unpublished cause board.
+[personal-dashboard.md](./personal-dashboard.md). Home shows a compact teaser;
+the full list is `/dashboard`. Do not implement it as an unpublished cause
+board.
 
 ## What not to do
 

@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
+import { Link as RouterLink } from 'react-router-dom'
 import { useAccount } from 'wagmi'
 import {
   Box,
@@ -62,6 +63,9 @@ export function AlignedProjectsList({
   projectLinks = 'lazyGiving',
   statusFilterLock,
   embedded = false,
+  compact = false,
+  limit,
+  fullPageTo,
 }: {
   statementCid: string
   statementCids?: string[]
@@ -72,6 +76,12 @@ export function AlignedProjectsList({
   statusFilterLock?: Exclude<StatusFilter, 'all'>
   /** Flatten heading/paper chrome when nested in the cause-board card. */
   embedded?: boolean
+  /** Teaser density: hide sort/status chrome and shrink cards. */
+  compact?: boolean
+  /** Cap how many cards to show (home preview). */
+  limit?: number
+  /** In-app path for “See all” when {@link compact} or {@link limit} is set. */
+  fullPageTo?: string
 }) {
   const cids = resolveStatementCids(statementCid, statementCids)
   const cidsKey = cids.join('\0')
@@ -226,6 +236,8 @@ export function AlignedProjectsList({
         return Number(b.deadline) - Number(a.deadline)
     }
   })
+  const visible = limit != null ? sorted.slice(0, limit) : sorted
+  const hiddenCount = limit != null ? Math.max(0, sorted.length - limit) : 0
 
   if (loading) {
     return (
@@ -257,6 +269,7 @@ export function AlignedProjectsList({
         />
       )}
 
+      {!compact && (
       <Paper
         elevation={embedded ? 0 : 1}
         sx={{
@@ -300,6 +313,7 @@ export function AlignedProjectsList({
           )}
         </Stack>
       </Paper>
+      )}
 
       {sorted.length === 0 ? (
         <Paper sx={{ p: 3, textAlign: 'center' }}>
@@ -332,16 +346,30 @@ export function AlignedProjectsList({
           )}
         </Paper>
       ) : (
-        <Stack spacing={2}>
-          {sorted.map((project) => (
+        <Stack spacing={compact ? 1 : 2}>
+          {visible.map((project) => (
             <AlignedProjectCard
               key={project.projectAddress}
               project={project}
               metadata={metadata[project.projectAddress]}
               causeCid={statementCid}
               projectLinks={projectLinks}
+              compact={compact}
             />
           ))}
+          {fullPageTo && (compact || hiddenCount > 0) && (
+            <Button
+              component={RouterLink}
+              to={fullPageTo}
+              variant="text"
+              sx={{ textTransform: 'none', alignSelf: 'flex-start', px: 0 }}
+              data-testid="aligned-projects-see-all"
+            >
+              {hiddenCount > 0
+                ? `See all ${sorted.length} projects`
+                : 'See all fundable projects'}
+            </Button>
+          )}
         </Stack>
       )}
     </Box>

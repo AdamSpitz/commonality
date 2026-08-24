@@ -298,7 +298,9 @@ Then **restart Grok** so MCP tools load.
 | `wallet-disconnect` | Disconnect |
 | `home-start-cause` | Home / `/welcome` CTA → create a draft and open the cause editor |
 | `home-dashboard` | Occupied home (connected wallet and/or cause boards on this device) |
-| `home-dashboard-board` | Personal fundable-projects board (union over signed statements) |
+| `home-dashboard-board` | Occupied-home teaser of the personal fundable-projects board |
+| `home-dashboard-see-all` | Occupied home → `/dashboard` (full personal list) |
+| `personal-dashboard-page` | Full personal fundable-projects board at `/dashboard` |
 | `nav-start` | Desktop/mobile nav “Start” → same (creates a new draft) |
 | `cause-detail-page` | Cause page root (where all editing happens; brand-new drafts show “Start a cause board” coach copy here) |
 | `issue-guidance` | Static coach copy for what an issue is |
