@@ -7,6 +7,14 @@ Each entry follows the same shape:
 - **When a user encounters it** — UI surfaces or moments in the user's flow where this concept becomes load-bearing.
 - **What they might want help with** — typical assistant tasks around this concept.
 
+## CauseStarter (you landed on a cause page)
+
+[Full page](/docs/end-user/causestarter/index.md)
+
+- **What it is:** The newcomer briefing. Almost everyone arrives via a circulated cause URL, not a catalog. The page is a watch surface for **fundable projects** aligned with some of its statements — not a club, not a petition site. Signing is optional and free; pledging (refundable) and publishing work are the real jobs.
+- **When a user encounters it:** In-app `/docs`, or when they ask what this cause page is.
+- **What they might want help with:** What they can do without joining; how projects get on the list; pledging vs signing; when to start their own page vs using this one.
+
 ## Do the part you’d do anyway (jobs, not an org)
 
 [Full page](/docs/end-user/causestarter/the-jobs.md)
