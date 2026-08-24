@@ -301,7 +301,7 @@ export function CauseBoard({
       } catch (err) {
         if (!cancelled) {
           console.error('Error loading cause board:', err)
-          setError(err instanceof Error ? err.message : 'Failed to load cause board')
+          setError(err instanceof Error ? err.message : 'Failed to load fundable-projects board')
         }
       } finally {
         if (!cancelled) {
@@ -498,8 +498,8 @@ export function CauseBoard({
           <TrustNetworkRefreshIndicator
             title={
               trustedSet
-                ? `Refreshing your trust network. This portal is currently filtered using ${trustedSet.size} account${trustedSet.size !== 1 ? 's' : ''} in your network. Results may still change as more are discovered.`
-                : 'Refreshing your trust network. Until any trusted accounts are found, this cause board still shows all project vouches.'
+                ? `Refreshing your trust network. This fundable-projects board is currently filtered using ${trustedSet.size} account${trustedSet.size !== 1 ? 's' : ''} in your network. Results may still change as more are discovered.`
+                : 'Refreshing your trust network. Until any trusted accounts are found, this fundable-projects board still shows all project vouches.'
             }
           />
         )}
@@ -509,7 +509,7 @@ export function CauseBoard({
           onChange={(_, value: 'aligned' | 'successful' | 'reimbursed' | 'failed') =>
             setProjectTab(value)
           }
-          aria-label="Cause board project views"
+          aria-label="Fundable-projects board views"
           variant="scrollable"
           allowScrollButtonsMobile
           sx={{

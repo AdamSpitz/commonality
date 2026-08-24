@@ -25,8 +25,8 @@ const gettingStartedSteps = [
   {
     title: 'Learn about cause funding',
     description:
-      'Cause exploration lives on Alignment, where statements connect to cause boards and aligned projects.',
-    cta: 'Learn about cause boards',
+      'Cause exploration lives on Alignment, where statements connect to fundable-projects boards and aligned projects.',
+    cta: 'Learn about fundable-projects boards',
     to: '/docs/key-ideas/funding-portals',
   },
 ]

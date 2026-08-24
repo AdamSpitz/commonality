@@ -672,7 +672,7 @@ export function CauseDetailPage({ editMode = false }: { editMode?: boolean }) {
       return
     }
     if (!isConnected || !address || !writeClients) {
-      setError('Connect your wallet to publish the cause page.')
+      setError('Connect your wallet to publish the cause board.')
       return
     }
     setPublishingRoster(true)

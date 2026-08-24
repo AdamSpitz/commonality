@@ -88,16 +88,16 @@ If a wallet is connected, highlight the current user's row and show a summary ca
 
 ## Integration with Concept Space (Statement Page)
 
-Not a cause board page itself, but the cause board adds a section to the concept space's statement page (`/statement/:statementCid`).
+Not a fundable-projects board page itself, but the fundable-projects board adds a section to the concept space's statement page (`/statement/:statementCid`).
 
-### "Cause Board" Section
+### "Fundable Projects" Section
 
 - **Total Funding Raised**
 - Count of aligned projects (direct + indirect)
-- A "View Cause Board" link/button going to `/portal/:statementCid`
+- A "View fundable-projects board" link/button going to `/portal/:statementCid`
 - Top 3 projects by funding progress (as a preview)
 
-This is the primary entry point from the concept space into the cause board.
+This is the primary entry point from the concept space into the fundable-projects board.
 
 
 ## Integration with LazyGiving (Project Detail Page)

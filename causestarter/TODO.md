@@ -42,7 +42,7 @@ open **if they stay listed here**.
 - [ ] Statement `bookmarks` ref is still reserved infrastructure only — no CauseStarter (or main `ui`) surface for remembering a statement without signing it.
 - [ ] No Privy path / full parity with main `ui` wallet story yet.
 - [ ] Product: how CauseStarter ranks vs other domains in nav/marketing once it’s “the main thing.”
-- [ ] **Copy (Adam):** two-step rename in [cause-page-not-a-club.md](/specs/product/cause-page-not-a-club.md) — fundable-projects board first, then organizer **cause board**. Do not sweep until he says so; new strings should follow that note.
+- [x] **Copy:** two-step rename in [cause-page-not-a-club.md](/specs/product/cause-page-not-a-club.md) — fundable-projects board first, then organizer **cause board**. Identifiers and leftover “cause page” still lag.
 
 ## Architecture
 

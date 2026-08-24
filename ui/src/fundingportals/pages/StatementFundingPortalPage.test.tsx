@@ -203,7 +203,7 @@ describe('StatementFundingPortalPage', () => {
     await waitFor(() => {
       expect(
         screen.getByLabelText(
-          'Refreshing your trust network. This portal is currently filtered using 2 accounts in your network. Results may still change as more are discovered.'
+          'Refreshing your trust network. This fundable-projects board is currently filtered using 2 accounts in your network. Results may still change as more are discovered.'
         )
       ).toBeInTheDocument()
     })
@@ -220,7 +220,7 @@ describe('StatementFundingPortalPage', () => {
     await waitFor(() => {
       expect(
         screen.getByLabelText(
-          'Refreshing your trust network. Until any trusted accounts are found, this cause board still shows all project vouches.'
+          'Refreshing your trust network. Until any trusted accounts are found, this fundable-projects board still shows all project vouches.'
         )
       ).toBeInTheDocument()
     })

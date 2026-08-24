@@ -7,9 +7,9 @@ A cause in CauseStarter is **a published set of independent statements**, not a 
 1. **Start a cause** from Home or Causes. That opens an editor on this device; nothing is on-chain yet.
 2. Describe the intent in the picker. It searches **published** statements first. Reject anything that is not what you mean. Write one manually if you need to.
 3. Publish each statement when the exact text is right. You will see its CID before you confirm.
-4. Publish a **roster** (title, optional description, slug) so the cause has a stable link: `/cause/<your-address>/<slug>`. Circulate that link. There is no directory.
+4. Publish the **cause board** (title, optional description, slug) so it has a stable link: `/cause/<your-address>/<slug>`. Circulate that link. There is no directory.
 
-You can add or drop statements later. A new roster version does not rewrite old pledges; earmarks stay on the statement CIDs they were made against.
+You can add or drop statements later. A new board version does not rewrite old pledges; earmarks stay on the statement CIDs they were made against.
 
 ## Invite jobs, not members
 
@@ -24,10 +24,10 @@ If someone hates your combination of statements, they should start their own cau
 
 ## Bridges
 
-If another camp’s published cause is close but not implying yours, create a bridge from the cause page. You publish the cluster under *your* key. CauseStarter does not message the other organizer; the citation is public on their page if they look.
+If another camp’s published cause is close but not implying yours, create a bridge from the cause board. You publish the cluster under *your* key. CauseStarter does not message the other organizer; the citation is public on their board if they look.
 
 ## What not to expect
 
 - No search or “popular causes.”
 - No platform verdict that a cause is good — only that counts are recomputable.
-- No requirement that supporters agree with every statement on the page.
+- No requirement that supporters agree with every statement on the board.

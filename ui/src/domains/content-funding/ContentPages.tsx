@@ -180,7 +180,7 @@ export function ContentFundingExploreKindsPage() {
           <Paper key={kind} sx={{ p: 2 }}>
             <Typography variant="h6">{kind}</Typography>
             <Typography variant="body2" color="text.secondary">
-              Fund creator/channel contracts for this kind of work here, or use Aligning when you want a cause board organized around a statement.
+              Fund creator/channel contracts for this kind of work here, or use Aligning when you want a fundable-projects board organized around a statement.
             </Typography>
           </Paper>
         ))}
@@ -279,7 +279,7 @@ export function ContentFundingAboutPage() {
             How this site relates to the other sites
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Content Funding uses LazyGiving-style escrow and payout contracts specialized for creators and content items, with channel verification handled by the platform API. It is organized around channels and contracts; for statement- or cause-centric cause boards, use Aligning. Tally is where people inspect or sign statements.
+            Content Funding uses LazyGiving-style escrow and payout contracts specialized for creators and content items, with channel verification handled by the platform API. It is organized around channels and contracts; for statement- or cause-centric fundable-projects boards, use Aligning. Tally is where people inspect or sign statements.
           </Typography>
         </Paper>
         <Paper sx={{ p: 2 }}>

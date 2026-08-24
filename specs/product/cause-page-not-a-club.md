@@ -1,7 +1,9 @@
 # The organizer publication is a board, not a club
 
-**Status: direction, not swept.** Adam agreed with this framing on 2026-08-23
-and refined the nouns on 2026-08-24. He will apply copy/UI later (fresh LLM).
+**Status: copy sweep started 2026-08-24.** Adam agreed with this framing on 2026-08-23
+and refined the nouns on 2026-08-24. Glossary, high-traffic CauseStarter copy,
+Aligning/fundable-projects UI strings, and end-user docs were updated in this
+pass. Identifiers, routes, and leftover “cause page” / “funding portal” still lag.
 It does **not** reverse [ADR 0009](../decisions/0009-causes-are-publications-over-statements.md):
 the object model (immutable statements; a mutable, shareable publication over a
 roster of them; verticals as a separate operator role) stays. This note is about
@@ -128,18 +130,17 @@ you mean, then live on your own union. That personal surface can also span
   fundable-projects list is still called a cause board, the glossary is worse
   than today.
 
-## Sweep when Adam is ready (fresh LLM)
+## Sweep status (copy 2026-08-24; identifiers later)
 
-1. **Fundable-projects board:** UI copy, end-user docs, glossary Part 1
-   “Cause board” row, glossary Part 2 §5 (portal → cause board is then
-   “portal → fundable-projects board”; code `fundingportal*` may still lag).
-2. **Cause board** = organizer publication: new and high-traffic copy
-   (landing, CauseStarter in-app docs, empty states). Leave incidental
-   “cause page” alone unless it is confusing.
+1. **Fundable-projects board:** done in UI copy, end-user docs, glossary Part 1
+   and Part 2 §5. Code `fundingportal*` / `/portal/:statementCid` still lag.
+2. **Cause board** = organizer publication: done in glossary and high-traffic
+   CauseStarter docs / publish empty states. Leftover “cause page” in comments
+   and incidental copy left on purpose.
 3. Later: identifiers (`/cause/:owner/:slug` can lag). Contract names stay.
    Bridge-cluster terms (natural / modified / bridge cause) still mean
    *publications* in the compound; separate pass.
 
-Until then, new copy should follow this note even if old copy has not been
-swept: if you must name the fundable-projects list, say **fundable-projects
-board**; if you must name the organizer URL, prefer **cause board**.
+New copy should keep following this note: if you must name the fundable-projects
+list, say **fundable-projects board**; if you must name the organizer URL,
+prefer **cause board**.

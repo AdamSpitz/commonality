@@ -352,8 +352,8 @@ export function StatementPage() {
         sx={{ p: 2, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}
       >
         <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
-          Hate this statement’s company on someone else’s cause page? Start your own
-          cause and reuse this statement — you keep its signers and projects. Write a
+          Hate this statement’s company on someone else’s cause board? Start your own
+          board and reuse this statement — you keep its signers and projects. Write a
           different sentence if this wording is not what you mean; similar claims can
           still count.
         </Typography>

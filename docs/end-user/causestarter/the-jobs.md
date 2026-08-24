@@ -22,14 +22,14 @@ In CauseStarter this lives on a cause’s **Pledges** page and on **Delegation**
 - **…I can’t tell whether this creator is a scammer or incompetent.** Be a delegate who mostly [funds proven work](../lazyGiving/retroactive-funding.md). You reimburse early contributors at cost after results, instead of betting on a pitch.
 - **…I can’t put that much of my *own* money on it.** Be an early funder who asks for reimbursement. If later donors close the loop, that giving budget can go to the next attempt. Your receipt is a track record, not a payout.
 
-The cause page’s **Fundable Projects** list is that watch surface. Trust settings (the gear) control whose vouches you see.
+The cause board’s **Fundable Projects** list (the fundable-projects board) is that watch surface. Trust settings (the gear) control whose vouches you see.
 
 ## Work
 
 **I’d be happy to do this work, but…**
 
 - **…I can’t afford to pay for it myself.** Publish the project and let others pledge. Funds release if the threshold is met; otherwise everyone is refunded.
-- **…I don’t even know who to go to for funding.** You do not need a grant officer. Post the project, talk to a friend who is a bit better-connected in the trust graph, and get an **alignment** vouch onto a statement people already watch. The project then shows up on those cause pages.
+- **…I don’t even know who to go to for funding.** You do not need a grant officer. Post the project, talk to a friend who is a bit better-connected in the trust graph, and get an **alignment** vouch onto a statement people already watch. The project then shows up on those cause boards.
 
 Start from **Create Project** on the home page, or from a cause’s project list.
 
@@ -41,13 +41,13 @@ Start from **Create Project** on the home page, or from a cause’s project list
 - **…if I write my own it’ll have zero signers.** Write it so an implication attester can connect it to similar claims. Indirect support can count; you are not starting from a blank petition.
 - **…the statement others signed doesn’t actually imply the better one I have in mind.** Write a **bridge** and, if you want distribution, submit it as a suggestion to a mediator service. If it agrees, it can nudge its subscribers.
 
-Cause pages have a **Bridges** section. Suggesters you opt into appear on Home.
+Cause boards have a **Bridges** section. Suggesters you opt into appear on Home.
 
-## Your own cause page
+## Your own cause board
 
-**I’d be happy to follow a cause page sorta like that one, but…**
+**I’d be happy to follow a cause board sorta like that one, but…**
 
-- **…I don’t love the exact combination of statements they chose.** Create your own cause. A cause is a set of statements, not a club you join.
+- **…I don’t love the exact combination of statements they chose.** Publish your own board. A cause board is a mix of statements, not a club you join.
 - **…if I write my own it’ll have zero signers or projects.** Reuse *some* of the same statements and you inherit their signers and aligned projects. Even new wording can pick up overlap through implication and bridges.
 
 **Start a cause** is the organizer action. There is no browse list: circulate the link.

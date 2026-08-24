@@ -86,7 +86,7 @@ export function RosterPublishPanel({
         <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>Publish this cause</Typography>
         <Alert severity="info" sx={{ borderRadius: 2 }}>
           Title, summary, statement list, and mediator blurb publish together as a versioned
-          cause page. The URL stays stable when you edit; each publish is a new version.
+          cause board. The URL stays stable when you edit; each publish is a new version.
         </Alert>
       </Box>
 
@@ -118,7 +118,7 @@ export function RosterPublishPanel({
         fullWidth
         size="small"
         disabled={busy}
-        helperText="Shown at the top of the cause page and sealed into the published version."
+        helperText="Shown at the top of the cause board and sealed into the published version."
         slotProps={{ htmlInput: { 'data-testid': 'roster-title' } }}
       />
       <TextField
@@ -130,7 +130,7 @@ export function RosterPublishPanel({
         multiline
         minRows={2}
         disabled={busy}
-        helperText="Optional public blurb for the cause page. Distinct from the statements people sign."
+        helperText="Optional public blurb for the cause board. Distinct from the statements people sign."
         slotProps={{ htmlInput: { 'data-testid': 'roster-summary' } }}
       />
       <TextField
@@ -185,13 +185,13 @@ export function RosterPublishPanel({
 
       {!walletReady && (
         <Alert severity="info" sx={{ borderRadius: 2 }}>
-          Connect a wallet to publish the cause page on chain.
+          Connect a wallet to publish the cause board on chain.
         </Alert>
       )}
 
       {!canPublish && (
         <Alert severity="info" sx={{ borderRadius: 2 }}>
-          Publish at least one statement before publishing the cause page.
+          Publish at least one statement before publishing the cause board.
         </Alert>
       )}
 
