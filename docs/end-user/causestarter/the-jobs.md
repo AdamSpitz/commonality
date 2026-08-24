@@ -31,7 +31,7 @@ The cause board’s **Fundable Projects** list (the fundable-projects board) is 
 - **…I can’t afford to pay for it myself.** Publish the project and let others pledge. Funds release if the threshold is met; otherwise everyone is refunded.
 - **…I don’t even know who to go to for funding.** You do not need a grant officer. Post the project, talk to a friend who is a bit better-connected in the trust graph, and get an **alignment** vouch onto a statement people already watch. The project then shows up on those cause boards.
 
-Start from **Create Project** on the home page, or from a cause’s project list.
+Start from **Start project** on a cause board, or from `/projects/new`. Occupied home is a watch list, not the create form.
 
 ## Wording
 

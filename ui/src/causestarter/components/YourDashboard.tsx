@@ -1,5 +1,4 @@
 import { Alert, Box, Button, CircularProgress, Stack, Typography } from '@mui/material'
-import { Link as RouterLink } from 'react-router-dom'
 import { CauseBoard } from '@ui/fundingportals'
 import { TrustNetworkRefreshIndicator } from '@ui/shared'
 import { AlignmentTrustGate } from './AlignmentTrustGate'
@@ -14,12 +13,6 @@ const sectionHeadingSx = { fontWeight: 800, fontSize: { xs: '1.6rem', sm: '2rem'
 export const PERSONAL_DASHBOARD_PATH = '/dashboard'
 const HOME_PREVIEW_LIMIT = 3
 
-/**
- * Personal fundable-projects board: union of work on statements this wallet signed.
- * Not a cause board. Spec: specs/product/personal-dashboard.md
- *
- * `preview` (home): a few compact rows + link. `page`: the full board.
- */
 export function YourDashboard({
   layout = 'preview',
 }: {
@@ -47,16 +40,6 @@ export function YourDashboard({
           title="Work vouched as advancing statements this wallet has signed — not membership in a cause board. Organizer pages stay for mixes someone else circulated."
           label="About your fundable-projects board"
         />
-        {preview && connected && statementCids.length > 0 && (
-          <Button
-            component={RouterLink}
-            to={PERSONAL_DASHBOARD_PATH}
-            sx={{ textTransform: 'none', ml: 'auto' }}
-            data-testid="home-dashboard-see-all"
-          >
-            See all
-          </Button>
-        )}
       </Stack>
       <Typography variant="body2" color="text.secondary">
         Projects on statements you’ve signed.

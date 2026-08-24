@@ -307,7 +307,7 @@ describe('AlignedProjectsList', () => {
       expect(screen.queryByRole('link', { name: 'Browse all projects' })).not.toBeInTheDocument()
     })
 
-    it('explains missing LazyGiving config instead of path-only create links', async () => {
+    it('creates locally when projectLinks is local', async () => {
       vi.mocked(getAllAlignedProjectsForCause).mockResolvedValue([])
       vi.mocked(isDomainConfigured).mockReturnValue(false)
 
@@ -316,8 +316,20 @@ describe('AlignedProjectsList', () => {
       await waitFor(() => {
         expect(screen.getByText(/No aligned projects yet/)).toBeInTheDocument()
       })
+      expect(screen.getByRole('link', { name: /Create a project/i })).toHaveAttribute('href', '/projects/new')
+    })
+
+    it('explains missing LazyGiving config instead of path-only create links', async () => {
+      vi.mocked(getAllAlignedProjectsForCause).mockResolvedValue([])
+      vi.mocked(isDomainConfigured).mockReturnValue(false)
+
+      render(<AlignedProjectsList statementCid="QmTest" />)
+
+      await waitFor(() => {
+        expect(screen.getByText(/No aligned projects yet/)).toBeInTheDocument()
+      })
       expect(screen.queryByRole('link', { name: /Create a project/i })).not.toBeInTheDocument()
-      expect(screen.getByText(/Project creation still happens on LazyGiving/i)).toBeInTheDocument()
+      expect(screen.getByText(/Configure VITE_LAZYGIVING_URL/i)).toBeInTheDocument()
     })
 
     it('shows "No projects match" message when all projects are filtered out', async () => {

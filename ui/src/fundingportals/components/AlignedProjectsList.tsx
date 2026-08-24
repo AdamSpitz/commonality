@@ -368,28 +368,37 @@ export function AlignedProjectsList({
         <Paper sx={{ p: 3, textAlign: 'center' }}>
           <Typography variant="body1" color="text.secondary">
             {projects.length === 0
-              ? 'No aligned projects yet. Create one for this cause to get started.'
+              ? (fullPageTo
+                ? 'No aligned projects on the statements you have signed yet.'
+                : 'No aligned projects yet. Create one for this cause to get started.')
               : 'No projects match the current filters.'}
           </Typography>
           {projects.length === 0 && (
-            isDomainConfigured('lazyGiving') ? (
+            projectLinks === 'local' ? (
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} justifyContent="center" sx={{ mt: 2 }}>
+                <Button
+                  component={RouterLink}
+                  to="/projects/new"
+                  variant="contained"
+                >
+                  Create a project
+                </Button>
+              </Stack>
+            ) : isDomainConfigured('lazyGiving') ? (
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} justifyContent="center" sx={{ mt: 2 }}>
                 <Button
                   component="a"
-                  // Create still lives on LazyGiving (no path-only fallback).
                   href={getDomainUrl('lazyGiving', '/projects/new')}
                   variant="contained"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  {projectLinks === 'local' ? 'Create a project on LazyGiving' : 'Create a project'}
+                  Create a project
                 </Button>
               </Stack>
             ) : (
               <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-                {projectLinks === 'local'
-                  ? 'Project creation still happens on LazyGiving once its domain URL is configured.'
-                  : 'Configure VITE_LAZYGIVING_URL to create a project for this cause.'}
+                Configure VITE_LAZYGIVING_URL to create a project for this cause.
               </Typography>
             )
           )}

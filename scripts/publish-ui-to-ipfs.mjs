@@ -93,6 +93,9 @@ async function loadUiBuildEnvFromFiles() {
   const rootEnv = await loadEnvFile(path.join(rootDir, '.env'))
   const uiEnv = await loadEnvFile(path.join(rootDir, 'ui', '.env'))
   const env = { ...uiEnv }
+  if (buildDomain === 'causestarter') {
+    Object.assign(env, await loadEnvFile(path.join(rootDir, 'causestarter', '.env')))
+  }
 
   for (const [sourceKey, viteKey] of Object.entries(UI_ENV_ADDRESS_MAPPINGS)) {
     if (rootEnv[sourceKey]) {

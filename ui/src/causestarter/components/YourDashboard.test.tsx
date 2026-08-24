@@ -110,7 +110,7 @@ describe('YourDashboard', () => {
       </MemoryRouter>,
     )
     expect(screen.getByTestId('fundable-projects')).toHaveTextContent('preview:3:/dashboard:bafy1,bafy2')
-    expect(screen.getByTestId('home-dashboard-see-all')).toHaveAttribute('href', '/dashboard')
+    expect(screen.queryByTestId('home-dashboard-see-all')).toBeNull()
   })
 
   it('renders the uncapped board on the dedicated page', () => {

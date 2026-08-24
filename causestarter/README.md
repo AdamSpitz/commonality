@@ -44,7 +44,7 @@ as main `CreateStatementForm`), not browser → Kubo API upload.
 
 1. Start (or leave running) the local stack: `./scripts/services.sh --start` (or at least hardhat + indexer + **cause-assist** + gateway).  
    `cause-assist` is a Compose service (loopback **:3002**). You do **not** need a separate `npm run cause-assist:*` process for normal UI work.
-2. Seed `causestarter/.env` from the running Docker SPA config (contract addresses + tool domain URLs):
+2. Seed `ui/.env` (and optionally overlay `causestarter/.env`) from the running Docker SPA config (contract addresses + tool domain URLs). Vite HMR on :5174 reads `ui/.env`. IPFS/local publish merges `ui/.env` then `causestarter/.env`, then root contract-address mappings:
 
    ```bash
    python3 scripts/seed-causestarter-vite-env.py
