@@ -34,16 +34,13 @@ export function YourDashboard({
     <Stack spacing={1.5} data-testid={headingId}>
       <Stack direction="row" alignItems="center" flexWrap="wrap" useFlexGap spacing={1}>
         <Typography variant="h4" component="h1" sx={sectionHeadingSx}>
-          Your fundable projects
+          Fundable projects
         </Typography>
         <HeaderInfoTip
-          title="Work vouched as advancing statements this wallet has signed — not membership in a cause board. Organizer pages stay for mixes someone else circulated."
+          title="Work vouched as advancing statements this wallet has signed."
           label="About your fundable-projects board"
         />
       </Stack>
-      <Typography variant="body2" color="text.secondary">
-        Projects on statements you’ve signed.
-      </Typography>
 
       {!connected && (
         <ConnectWalletHint>
