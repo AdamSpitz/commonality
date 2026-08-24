@@ -41,7 +41,7 @@ wrong (or this file is out of date and needs an ADR — see
 | **Reimbursement** | What a retroactive donation pays out to an early contributor — at cost, no upside |
 | **Note** | A `DelegatableNote`: a bucket of deposited funds whose spending authority can be delegated down a chain, revocably. The unit of delegated giving |
 | **Standing pledge** | A *recurring* funding commitment registered with `RecurringPledges`, executed periodically into a note |
-| **Cause board** | The fundable-projects dashboard (heading **Fundable Projects**) inlined on a statement or cause page, where a donor sees aligned projects and decides where money goes |
+| **Cause board** | *Today:* the fundable-projects dashboard (heading **Fundable Projects**) inlined on a statement or cause page. *Direction (not swept):* that list becomes the **fundable-projects board**; **cause board** moves to the organizer publication (mix of statements + that list + bridges etc.). See [cause-page-not-a-club.md](./product/cause-page-not-a-club.md). |
 
 ### Judgments people and services publish
 
@@ -62,7 +62,7 @@ wrong (or this file is out of date and needs an ADR — see
 | **Subsystem** | A capability: a contract family + SDK subsystem + UI feature module sharing one name |
 | **Site / UI domain** | A branded build that composes a subset of subsystems. There are eight |
 | **Bookmark** | A published cause or statement the user chose to keep, independently of signing. Cause bookmarks are cached locally and, with a connected wallet, stored in the `bookmarked-causes` mutable ref (public). Statement bookmarks use the separate `bookmarks` ref (statement CIDs). Unpublished cause drafts stay device-local. Never mix the two lists. User-facing verbs: bookmark / remove bookmark — never "save to device" or "delete cause" |
-| **Cause page** | The versioned publication of a cause's title, summary, issue list, and mediator blurb. User-facing word for what code still calls a *roster* (`causestarter.roster`, `rosterCid`). Never say "roster" in UI copy. |
+| **Cause page** | The versioned publication of a cause's title, summary, issue list, and mediator blurb. User-facing word for what code still calls a *roster* (`causestarter.roster`, `rosterCid`). Never say "roster" in UI copy. *Direction:* prefer **cause board** for this object; leftover “cause page” is fine. See [cause-page-not-a-club.md](./product/cause-page-not-a-club.md). |
 | **Natural cause** | A cause playing the “this camp’s position” parent role in a [bridge cluster](./product/bridge-causes.md). Usually someone else’s publication; may be a **stand-in cause** the mediator wrote because that camp had no cause yet. |
 | **Stand-in cause** | A mediator-authored natural parent: a thin roster the mediator thinks the other camp believes, published under the mediator’s key and labeled as such. Not a modified cause (there is no prior parent to sliver). See [the-other-cause.md](/docs/founder/the-other-cause.md). |
 | **Modified cause** | A mediator-authored cause: wording the mediator thinks signers of a given natural cause might also accept, without feeling misrepresented. Usually a topical sliver, not a full rewrite of the parent. |
@@ -145,12 +145,30 @@ retired as synonyms. `Contribution.participant`, `Refund.participant`, and
 `ContributorStats.participant` are now `.contributor`; the raw decoded-event field stays
 `participant` because that is the ABI arg name.
 
-### 5. Portal → cause board (already ruled, half-finished)
+### 5a. Bare “cause” names three things — *direction 2026-08-24, not swept*
 
-Adam ruled 2026-06-12: **cause board** wins in user-facing copy; code identifiers,
-routes, and directories keep `fundingportal*`. Still unfinished — `/portal/:statementCid`
-routes, `ui/src/fundingportals/` copy, and ~22 files under `docs/end-user/` still say
+- Ordinary English: the worldly goal.
+- Glossary Part 1: a **statement** used as a funding anchor (a *role*).
+- CauseStarter: the organizer **roster**.
+
+Direction: keep “cause” for the first two; the publication is a **cause board**
+(fine leftover: **cause page**); do not call it a dashboard. A cause board may
+cover multiple causes. Full note and **two-step rename** (fundable-projects
+board first): [cause-page-not-a-club.md](./product/cause-page-not-a-club.md).
+Does not reverse ADR 0009.
+
+### 5. Portal → cause board (already ruled, half-finished; about to be superseded)
+
+Adam ruled 2026-06-12: **cause board** wins in user-facing copy for the
+fundable-projects list; code identifiers, routes, and directories keep
+`fundingportal*`. Still unfinished — `/portal/:statementCid` routes,
+`ui/src/fundingportals/` copy, and ~22 files under `docs/end-user/` still say
 "funding portal". Tracked in [TODO.md](../TODO.md).
+
+**Superseding direction (not swept):** that list becomes **fundable-projects
+board**; **cause board** is reused for the organizer publication. Do the
+fundable-projects rename *before* the publication rename. See
+[cause-page-not-a-club.md](./product/cause-page-not-a-club.md).
 
 ### 6. Smaller ones
 

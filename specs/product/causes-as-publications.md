@@ -26,6 +26,13 @@ to be turned into a new statement merely to acquire a name or URL. The cause ros
 the named, pointable object. Statements remain the semantic objects used for signing,
 support propagation, project alignment, cause boards, and funding intent.
 
+User-facing copy should still not treat that roster as a club you join. Direction
+(not swept): call it a **cause board** (fine leftover: **cause page**); first
+rename today’s “cause board” (the project list) to **fundable-projects board**;
+keep “cause” for ordinary English and for a statement’s funding-anchor role; a
+cause board may cover multiple causes; do not call the publication a dashboard.
+See [cause-page-not-a-club.md](./cause-page-not-a-club.md).
+
 AI should do most of the unnatural translation work between ordinary human intentions
 and implication-friendly statements. Humans remain responsible for choosing what they
 mean, approving what is published or signed, supplying rhetoric and judgment, and

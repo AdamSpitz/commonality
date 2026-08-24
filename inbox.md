@@ -31,6 +31,8 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 ### Docs / UI copy
 
+- **(Ask)** Apply [cause-page-not-a-club.md](specs/product/cause-page-not-a-club.md) when you next pass over CauseStarter copy: two-step rename — today’s “cause board” (project list) → **fundable-projects board**, then organizer publication → **cause board** (don’t sweat leftover “cause page”). Sweep is yours; new copy should already follow that note.
+
 - Decide whether to act on the fresh landing-copy positioning findings. The Civility grievance-first hero was reviewed and is fine; the verifier rubric was corrected so CSM’s recognition-register rule is not imposed on every vertical. Remaining findings are elsewhere: the umbrella Commonality landing still recruits generic end users despite the founder-first strategy, CSM front-loads the mediator toggle and uses “the other side’s bullshit,” Aligning repeats its main tradeoff several times, and Tally’s “Sign once, counted forever” headline presents a future goal as current capability.
 
 ### Features that I'm realizing would make a big difference

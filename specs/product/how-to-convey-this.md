@@ -242,3 +242,19 @@ One paragraph you could paste on the homepage
 │ Here you take the job you’d take anyway. Money can be lazy and cautious. Attention can be expert and cheap. Work can ask for funding without a foundation. Wording can be yours without isolating you. Agreement does the collecting. Nobody has to run the whole thing.
 
 If you want this in the product next, the smallest honest change is: rewrite the hero, replace How it works with the four jobs, and retarget the empty-state copy on cause / project / statement pages to the matching ugh. I would not expand the landing into the full ugh catalog; that catalog belongs on one docs page and in the UI at the moment the ugh appears.
+
+---
+
+# 2026-08-23 — is a “cause” even the thing?
+
+Adam: the CauseStarter “cause” (organizer-owned mix of statements + project board)
+is not protocol-fundamental; labelling it a cause on a site named CauseStarter
+makes it feel like the thing you join. Maybe it is just a dashboard. Maybe the
+primary loop is a personalized board of projects on statements *you* signed.
+
+Direction (agreed, not swept): keep “cause” as ordinary English and as a
+statement’s funding-anchor role; call the publication a **cause board** (fine
+leftover: **cause page**); first rename today’s “cause board” (the project list)
+to **fundable-projects board**. A cause board can cover multiple causes.
+Reserve **dashboard** for the personal surface. Full write-up:
+[cause-page-not-a-club.md](./cause-page-not-a-club.md).
