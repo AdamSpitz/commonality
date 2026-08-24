@@ -32,6 +32,8 @@ export interface DomainManifest {
   basePath: string
   routes: ReactNode
   LandingPage?: () => ReactNode
+  /** CauseStarter keeps its own bottom-nav shell instead of AppShell. */
+  useCauseShell?: boolean
 }
 
 // `DomainId` lives in `shared/routing/domainUrls` (cross-brand URL resolution is a cross-cutting

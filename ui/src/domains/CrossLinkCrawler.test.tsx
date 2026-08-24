@@ -5,7 +5,10 @@ import { domainManifests } from './index'
 import { isRouteResolvableDocLink } from './publicDocLinks'
 import type { DomainId } from './types'
 
+
 const domainIds = Object.keys(domainManifests) as DomainId[]
+/** CauseStarter routes are eager wallet-backed pages, not the lazyRoute samples these crawls assume. */
+const crawledDomainIds = domainIds.filter((id) => id !== 'causestarter')
 const publicDocModules = import.meta.glob('../../../docs/end-user/**/*.md', { query: '?raw', import: 'default', eager: true }) as Record<string, string>
 
 const routeParamSamples: Record<string, string> = {
@@ -16,6 +19,10 @@ const routeParamSamples: Record<string, string> = {
   roundAddress: '0x0000000000000000000000000000000000000003',
   statementCid: 'bafybeigdyrztktxq5mkrl3zpnczqtyse534w7y576guthacdf5uloxx3za',
   channelId: 'demo-channel',
+  owner: '0x0000000000000000000000000000000000000004',
+  slugPart: 'demo-cause',
+  causeId: 'demo-cause-id',
+  draftId: 'draft-1',
 }
 
 type CrawledPage = {
@@ -132,7 +139,7 @@ afterEach(() => {
 
 describe('cross-link crawler for rendered UI and public docs', () => {
   it('renders every public domain route sample without React console errors', () => {
-    for (const domainId of domainIds) {
+    for (const domainId of crawledDomainIds) {
       for (const routePath of extractRoutePaths(domainManifests[domainId].routes)) {
         cleanup()
         const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined)
@@ -144,7 +151,7 @@ describe('cross-link crawler for rendered UI and public docs', () => {
   })
 
   it('crawls rendered route samples and only finds resolvable internal app links', () => {
-    const pages: CrawledPage[] = domainIds.flatMap(domainId =>
+    const pages: CrawledPage[] = crawledDomainIds.flatMap(domainId =>
       extractRoutePaths(domainManifests[domainId].routes).map(routePath => ({
         domainId,
         path: samplePath(routePath),
@@ -165,7 +172,7 @@ describe('cross-link crawler for rendered UI and public docs', () => {
   })
 
   it('keeps rendered route-sample external links on intentionally allowed hosts', () => {
-    for (const domainId of domainIds) {
+    for (const domainId of crawledDomainIds) {
       for (const routePath of extractRoutePaths(domainManifests[domainId].routes)) {
         cleanup()
         const path = samplePath(routePath)

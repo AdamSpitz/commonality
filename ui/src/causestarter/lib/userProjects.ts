@@ -1,5 +1,6 @@
 import { getProject, getUserContributions, getUserCreatedProjects, type Project } from '@commonality/sdk/lazy-giving'
 import type { SDKMachinery } from '@commonality/sdk/machinery'
+import { loadProjectWithCache, projectFoldCacheOptions } from '@ui/shared'
 import { readLazyGivingProjectMetadata } from '@ui/lazy-giving/metadata'
 import type { IpfsCidV1 } from '@commonality/sdk/utils'
 import { mapWithConcurrency, PLANK_QUERY_CONCURRENCY } from './concurrency'
@@ -59,8 +60,13 @@ export async function loadUserProjects(
   }
 
   const ids = [...new Set([...created, ...contributed, ...bookmarked])]
+  const cacheOptions = projectFoldCacheOptions(machinery)
   const loaded = await mapWithConcurrency(ids, PLANK_QUERY_CONCURRENCY, async (id) => {
-    const project = await getProject(machinery, id).catch(() => null)
+    const project = (
+      cacheOptions
+        ? await loadProjectWithCache(machinery, id, cacheOptions).catch(() => null)
+        : await getProject(machinery, id).catch(() => null)
+    )
     if (!project) return null
     let name: string | undefined
     if (project.metadataCid) {

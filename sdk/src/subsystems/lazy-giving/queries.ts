@@ -128,6 +128,51 @@ async function readSettlementCurrency(
 // LazyGiving Queries
 // ============================================================================
 
+export interface ProjectFoldResult {
+  project: Project;
+  accumulator: ProjectAccumulator;
+}
+
+/**
+ * Fold a project and return the resumable accumulator alongside the view model.
+ *
+ * Pass `initialAccumulator` / `blockNumber_gte` to continue from a saved cursor
+ * instead of replaying every event.
+ */
+export async function getProjectFold(
+  machinery: SDKMachinery,
+  assuranceContractAddress: string,
+  options?: {
+    initialAccumulator?: ProjectAccumulator;
+    blockNumber_gte?: string;
+  }
+): Promise<ProjectFoldResult | null> {
+  const projectEvents = await fetchAndDecodeProjectEvents(machinery, assuranceContractAddress, {
+    blockNumber_gte: options?.blockNumber_gte,
+  });
+  const fundingCurrency = await readSettlementCurrency(machinery, assuranceContractAddress);
+  const { project: partial, accumulator } = foldProject(
+    projectEvents,
+    options?.initialAccumulator,
+    fundingCurrency,
+  );
+  if (!partial) return null;
+
+  let threshold = '0';
+  let deadline = '0';
+  if (machinery.publicClient && partial.conditionAddress) {
+    try {
+      const params = await readConditionParams(machinery, partial.conditionAddress as `0x${string}`);
+      threshold = params.threshold.toString();
+      deadline = params.deadline.toString();
+    } catch {
+      // publicClient not configured or read failed — leave as '0'
+    }
+  }
+
+  return { project: { ...partial, threshold, deadline }, accumulator };
+}
+
 /**
  * Get a crowdfunding project by its assurance contract address.
  *
@@ -149,26 +194,8 @@ export async function getProject(
     blockNumber_gte?: string;
   }
 ): Promise<Project | null> {
-  const projectEvents = await fetchAndDecodeProjectEvents(machinery, assuranceContractAddress, {
-    blockNumber_gte: options?.blockNumber_gte,
-  });
-  const fundingCurrency = await readSettlementCurrency(machinery, assuranceContractAddress);
-  const { project: partial } = foldProject(projectEvents, options?.initialAccumulator, fundingCurrency);
-  if (!partial) return null;
-
-  let threshold = '0';
-  let deadline = '0';
-  if (machinery.publicClient && partial.conditionAddress) {
-    try {
-      const params = await readConditionParams(machinery, partial.conditionAddress as `0x${string}`);
-      threshold = params.threshold.toString();
-      deadline = params.deadline.toString();
-    } catch {
-      // publicClient not configured or read failed — leave as '0'
-    }
-  }
-
-  return { ...partial, threshold, deadline };
+  const folded = await getProjectFold(machinery, assuranceContractAddress, options);
+  return folded?.project ?? null;
 }
 
 /**

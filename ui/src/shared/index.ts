@@ -103,7 +103,7 @@ export {
 } from './hooks/useBeatAgentTrustPolicy'
 export type { BeatAgentTrustPolicy } from './hooks/useBeatAgentTrustPolicy'
 
-export { useCachedProject } from './hooks/useCachedProject'
+export { loadProjectWithCache, projectFoldCacheOptions, useCachedProject } from './hooks/useCachedProject'
 export { useCachedProjects } from './hooks/useCachedProjects'
 export { getEventCacheUrl, getIpfsApiUrl, useMachinery } from './hooks/useMachinery'
 export { useMutedNudgers } from './hooks/useMutedNudgers'

@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { SelectedPlankSupport } from './SelectedPlankSupport'
 import { sendCallsPreferAtomic } from '../lib/causeRoster'
 import { getUserBelief } from '@commonality/sdk/conceptspace'
+import type { IpfsCidV1 } from '@commonality/sdk/utils'
 
 vi.mock('wagmi', () => ({
   useAccount: vi.fn(() => ({ address: '0x1111111111111111111111111111111111111111', isConnected: true })),
@@ -21,7 +22,7 @@ vi.mock('./WalletButton', () => ({ WalletButton: () => <button>Connect</button> 
 const BELIEVES = 1
 const NO_OPINION = 0
 
-const planks = [
+const planks: { cid: IpfsCidV1; text: string }[] = [
   { cid: 'bafybeidagx4zc6phhtjng6f3sjzlicqm2ssq4eb6wskinjtuvkt275fmpy', text: 'School crossings should be safer.' },
   { cid: 'bafybeifjzv3oc6zqklqvfmv2j5xgqqjped3zrm4y2a3s4u5v6w7x2y3z4a', text: 'Public parks should remain open.' },
 ]
@@ -59,7 +60,7 @@ describe('SelectedPlankSupport', () => {
 
   it('hides when every selected statement is already signed', async () => {
     vi.mocked(getUserBelief).mockResolvedValue({
-      statementCid: planks[0].cid,
+      statementCid: planks[0].cid as IpfsCidV1,
       beliefState: BELIEVES,
     })
     const { container } = render(<SelectedPlankSupport machinery={{} as never} planks={planks} onSupported={vi.fn()} />)

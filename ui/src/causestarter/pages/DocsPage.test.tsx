@@ -24,7 +24,10 @@ describe('DocsPage', () => {
     expect(screen.getByTestId('docs-page')).toBeInTheDocument()
     expect(screen.getByText('CauseStarter')).toBeInTheDocument()
     expect(screen.getByText(/Do the part you’d do anyway/i)).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'What is this?' })).toHaveAttribute('href', '/welcome')
+    expect(screen.getByRole('link', { name: /Start a cause board/i })).toHaveAttribute(
+      'href',
+      '/docs/start-a-cause',
+    )
   })
 
   it('renders the jobs catalog', () => {

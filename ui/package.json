@@ -14,6 +14,7 @@
     "dev:civility": "VITE_DOMAIN=civility ../node_modules/.bin/vite",
     "dev:common-sense-majority": "VITE_DOMAIN=common-sense-majority ../node_modules/.bin/vite",
     "dev:conceptspace": "VITE_DOMAIN=conceptspace ../node_modules/.bin/vite",
+    "dev:causestarter": "VITE_DOMAIN=causestarter ../node_modules/.bin/vite --port 5174",
     "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json --noEmit",
     "build": "tsc -b && tsc -p tsconfig.test.json --noEmit && ../node_modules/.bin/vite build",
     "build:domains": "tsc -b && tsc -p tsconfig.test.json --noEmit && node ./scripts/build-domains.mjs",

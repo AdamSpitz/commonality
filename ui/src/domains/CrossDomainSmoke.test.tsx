@@ -6,7 +6,7 @@ import { domainManifests } from './index'
 import { isRouteResolvableDocLink } from './publicDocLinks'
 import type { DomainId } from './types'
 
-const domainIds: DomainId[] = ['commonality', 'lazyGiving', 'alignment', 'tally', 'content-funding', 'civility', 'common-sense-majority', 'conceptspace']
+const domainIds: DomainId[] = ['commonality', 'lazyGiving', 'alignment', 'tally', 'content-funding', 'civility', 'common-sense-majority', 'conceptspace', 'causestarter']
 const publicDocModules = import.meta.glob('../../../docs/end-user/**/*.md', { query: '?raw', import: 'default', eager: true }) as Record<string, string>
 
 function renderDomainRoute(domainId: DomainId, path = '/') {
@@ -90,6 +90,7 @@ describe.each(domainIds)('cross-domain smoke: %s', (domainId) => {
       civility: 'Civility',
       'common-sense-majority': 'Common Sense Majority',
       conceptspace: 'Conceptspace',
+      causestarter: 'CauseStarter',
     }
 
     it('has branding copy for the domain', () => {
@@ -122,7 +123,8 @@ describe.each(domainIds)('cross-domain smoke: %s', (domainId) => {
     })
   })
 
-  describe('landing page', () => {
+  // CauseStarter `/` is a wallet-backed dashboard, not a static pitch page.
+  describe.skipIf(domainId === 'causestarter')('landing page', () => {
     it('renders a hero title', () => {
       renderDomainRoute(domainId)
       const heading = screen.getByRole('heading', { level: 1 })

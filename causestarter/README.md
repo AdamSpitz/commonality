@@ -1,9 +1,12 @@
 # CauseStarter
 
-Organizer-first reference lens for the Commonality substrate. Where the main
-[`ui/`](../ui/) package is organized as multi-domain product sites (Commonality,
-Civility, CSM, LazyGiving, …), **CauseStarter** is a single app organized around
-the cause-starter job:
+Organizer-first reference lens for the Commonality substrate. The SPA source
+lives in [`ui/src/causestarter/`](../ui/src/causestarter/) and is built as
+`VITE_DOMAIN=causestarter` (`npm run causestarter:dev` → Vite on **:5174**).
+This directory keeps Docker/nginx, Playwright, and the product backlog.
+
+Where the other `ui/` domains are focused tool sites (Commonality, Civility,
+CSM, LazyGiving, …), **CauseStarter** is organized around the cause-starter job:
 
 1. **Organize a cause** — retrieve, review, and select the independent, signable statements it is made of
 2. **Enroll people** — supporters (signers), volunteers, and collaborators
@@ -54,6 +57,7 @@ as main `CreateStatementForm`), not browser → Kubo API upload.
 
    ```bash
    npm run causestarter:dev
+   # VITE_DOMAIN=causestarter in the ui package, port 5174
    ```
 
    Or from this package: `npm run dev`.

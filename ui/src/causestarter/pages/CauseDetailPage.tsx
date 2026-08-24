@@ -77,6 +77,10 @@ function safetyState(verdict: {
  * Editing published rosters requires the organizer's connected wallet.
  * Unpublished local drafts can still be shaped on this device before publish.
  */
+export function CauseDetailEditPage() {
+  return <CauseDetailPage editMode />
+}
+
 export function CauseDetailPage({ editMode = false }: { editMode?: boolean }) {
   const params = useParams<{ causeId?: string; owner?: string; slugPart?: string }>()
   const navigate = useNavigate()

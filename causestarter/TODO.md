@@ -47,7 +47,7 @@ open **if they stay listed here**.
 
 ## Architecture
 
-- [ ] Long-term: fold CauseStarter into the real domain/shell model (shared machinery, runtime config, domain manifests) as we make it the primary surface; avoid unbounded parallel app growth under a second package forever.
+- [x] Fold CauseStarter into the real domain/shell model (`VITE_DOMAIN=causestarter` in `ui/`). Docker/e2e glue still lives in this directory.
 - [ ] Optional: extract Hardhat local connectors for reuse by main `ui` local DX.
 
 ## Local stack notes
