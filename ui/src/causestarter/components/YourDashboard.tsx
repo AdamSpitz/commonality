@@ -37,14 +37,14 @@ export function YourDashboard({
           Fundable projects
         </Typography>
         <HeaderInfoTip
-          title="Work vouched as advancing statements this wallet has signed."
+          title="Work vouched for as advancing statements this wallet has signed."
           label="About your fundable-projects board"
         />
       </Stack>
 
       {!connected && (
         <ConnectWalletHint>
-          Connect a wallet to see projects on statements you have signed.
+          Connect a wallet to see fundable projects vouched for as advancing statements you have signed.
         </ConnectWalletHint>
       )}
 

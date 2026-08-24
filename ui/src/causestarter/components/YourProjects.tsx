@@ -21,7 +21,7 @@ export function YourProjects() {
       >
         <Stack direction="row" alignItems="center" sx={{ minWidth: 0 }}>
           <Typography variant="h4" component="h2" sx={{ fontWeight: 800, fontSize: { xs: '1.6rem', sm: '2rem' } }}>
-            Projects
+            Bookmarked projects
           </Typography>
           <HeaderInfoTip
             title="Projects this wallet created or contributed to, plus any you bookmarked. Bookmarks follow the wallet when connected."

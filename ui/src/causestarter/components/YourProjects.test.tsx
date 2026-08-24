@@ -27,7 +27,7 @@ describe('YourProjects', () => {
         <YourProjects />
       </MemoryRouter>,
     )
-    expect(screen.getByRole('heading', { name: 'Projects' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Bookmarked projects' })).toBeInTheDocument()
     expect(screen.getByTestId('home-create-project')).toBeInTheDocument()
     expect(screen.getByText(/No projects yet/)).toBeInTheDocument()
   })

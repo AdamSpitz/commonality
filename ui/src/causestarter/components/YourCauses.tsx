@@ -86,7 +86,7 @@ export function YourCauses({
               label="About bookmarked cause boards"
             />
           </Stack>
-          <Stack spacing={1.5}>
+          <Stack spacing={0.75}>
             {launched.map((cause) => (
               <CauseCard key={cause.id} cause={cause} />
             ))}
@@ -105,7 +105,7 @@ export function YourCauses({
               label="About cause board drafts"
             />
           </Stack>
-          <Stack spacing={1.5}>
+          <Stack spacing={0.75}>
             {drafts.map((cause) => (
               <CauseCard key={cause.id} cause={cause} />
             ))}

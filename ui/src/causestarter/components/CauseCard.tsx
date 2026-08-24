@@ -21,8 +21,9 @@ export function CauseCard({ cause }: CauseCardProps) {
       elevation={0}
       sx={{
         display: 'block',
-        p: 2.5,
-        borderRadius: 3,
+        px: 1.5,
+        py: 1,
+        borderRadius: 2,
         border: '1px solid',
         borderColor: 'divider',
         textDecoration: 'none',
@@ -31,33 +32,34 @@ export function CauseCard({ cause }: CauseCardProps) {
         '&:active': { transform: 'scale(0.99)' },
         '&:hover': {
           borderColor: 'primary.main',
-          boxShadow: (theme) => `0 8px 24px ${theme.palette.mode === 'light' ? 'rgba(15,118,110,0.12)' : 'rgba(0,0,0,0.35)'}`,
+          boxShadow: (theme) => `0 4px 12px ${theme.palette.mode === 'light' ? 'rgba(15,118,110,0.10)' : 'rgba(0,0,0,0.28)'}`,
         },
       }}
     >
-      <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={1}>
+      <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={1.5}>
         <Box sx={{ minWidth: 0 }}>
-          <Typography variant="h6" sx={{ fontWeight: 700, lineHeight: 1.25 }}>
+          <Typography variant="subtitle1" noWrap sx={{ fontWeight: 700, lineHeight: 1.3 }}>
             {causeTitle(cause)}
           </Typography>
         </Box>
-        {!isLive(cause) && (
-          <InfoChip
-            size="small"
-            label="Nothing published yet"
-            color="default"
-            sx={{ flexShrink: 0 }}
-            title="Only you can see this draft. Publish to get a shareable link."
-          />
-        )}
+        <Stack direction="row" alignItems="center" spacing={1} sx={{ flexShrink: 0 }}>
+          {planks.length > 0 && (
+            <Typography variant="caption" color="text.secondary">
+              {planks.length} statement{planks.length === 1 ? '' : 's'}
+              {publishedCount < planks.length && ` · ${publishedCount} published`}
+            </Typography>
+          )}
+          {!isLive(cause) && (
+            <InfoChip
+              size="small"
+              label="Nothing published yet"
+              color="default"
+              sx={{ flexShrink: 0 }}
+              title="Only you can see this draft. Publish to get a shareable link."
+            />
+          )}
+        </Stack>
       </Stack>
-
-      {planks.length > 0 && (
-        <Typography variant="caption" color="text.secondary" sx={{ mt: 1.5, display: 'block' }}>
-          {planks.length} statement{planks.length === 1 ? '' : 's'}
-          {publishedCount < planks.length && ` · ${publishedCount} published`}
-        </Typography>
-      )}
     </Paper>
   )
 }
