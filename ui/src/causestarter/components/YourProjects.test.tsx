@@ -32,14 +32,19 @@ describe('YourProjects', () => {
     expect(screen.getByText(/No projects yet/)).toBeInTheDocument()
   })
 
-  it('lists related projects', () => {
+  it('lists related projects with funding status and Owner, not Created', () => {
     useUserProjects.mockReturnValue({
       connected: true,
       loading: false,
       projects: [{
         title: 'Garden beds',
         relations: ['created', 'contributed'],
-        project: { id: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' },
+        project: {
+          id: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+          totalReceived: '100',
+          threshold: '100',
+          deadline: '9999999999',
+        },
       }],
     })
     render(
@@ -48,7 +53,9 @@ describe('YourProjects', () => {
       </MemoryRouter>,
     )
     expect(screen.getByText('Garden beds')).toBeInTheDocument()
-    expect(screen.getByText('Created')).toBeInTheDocument()
+    expect(screen.getByText('Succeeded')).toBeInTheDocument()
+    expect(screen.getByText('Owner')).toBeInTheDocument()
     expect(screen.getByText('Contributed')).toBeInTheDocument()
+    expect(screen.queryByText('Created')).not.toBeInTheDocument()
   })
 })

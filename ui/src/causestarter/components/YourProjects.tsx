@@ -68,9 +68,13 @@ export function YourProjects() {
         </Alert>
       )}
 
-      {projects.map((project) => (
-        <ProjectCard key={project.project.id} project={project} />
-      ))}
+      {projects.length > 0 && (
+        <Stack spacing={0.75}>
+          {projects.map((project) => (
+            <ProjectCard key={project.project.id} project={project} />
+          ))}
+        </Stack>
+      )}
     </Stack>
   )
 }
