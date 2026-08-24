@@ -16,7 +16,19 @@ import SortIcon from '@mui/icons-material/Sort'
 import { getAllAlignedProjectsForCause } from '@commonality/sdk/fundingportals'
 import { getProject } from '@commonality/sdk/lazy-giving'
 import { ETH_CURRENCY, type IpfsCidV1 } from '@commonality/sdk/utils'
-import { getDomainUrl, isDomainConfigured, useMachinery, useTrustedContentAttesters, useTrustedSet, TrustNetworkRefreshIndicator } from '../../shared'
+import {
+  boardSnapshotCacheOptions,
+  getDomainUrl,
+  isDomainConfigured,
+  loadAlignedListSnapshot,
+  loadProjectWithCache,
+  projectFoldCacheOptions,
+  saveAlignedListSnapshot,
+  useMachinery,
+  useTrustedContentAttesters,
+  useTrustedSet,
+  TrustNetworkRefreshIndicator,
+} from '../../shared'
 import { selectAlignedContentContracts, useContentFundingState } from '../../content-funding'
 import { getProjectStatus } from '../../lazy-giving'
 import {
@@ -120,6 +132,7 @@ export function AlignedProjectsList({
   const [projects, setProjects] = useState<AlignedProject[]>([])
   const [metadata, setMetadata] = useState<Record<string, ProjectMetadata>>({})
   const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [sortBy, setSortBy] = useState<SortOption>('latest')
   const [statusFilter, setStatusFilter] = useState<StatusFilter>(statusFilterLock ?? 'all')
@@ -127,12 +140,32 @@ export function AlignedProjectsList({
 
   useEffect(() => {
     let cancelled = false
+    const loadCids = cidsKey ? cidsKey.split('\0').filter(Boolean) : []
+    const snapshotOptions = boardSnapshotCacheOptions(machinery, {
+      kind: 'aligned-list',
+      statementCids: loadCids,
+      implicationTrustKey,
+      alignmentTrustKey,
+      contentTrustKey,
+    })
 
     async function load() {
-      keepPainted.beginLoad(setLoading)
+      const cached = snapshotOptions
+        ? await loadAlignedListSnapshot(snapshotOptions)
+        : null
+      if (cancelled) return
+      if (cached) {
+        setProjects(cached.projects as AlignedProject[])
+        setMetadata(cached.metadata as Record<string, ProjectMetadata>)
+        keepPainted.markResolved()
+        setLoading(false)
+        setRefreshing(true)
+      } else {
+        keepPainted.beginLoad(setLoading)
+        setRefreshing(false)
+      }
       setError(null)
       try {
-        const loadCids = cidsKey ? cidsKey.split('\0') : []
         const implicationForLoad = implicationTrustKey
           ? implicationTrustKey.split(',')
           : undefined
@@ -171,9 +204,12 @@ export function AlignedProjectsList({
 
         // Load metadata for every displayed row, including content-funding
         // contracts that never appear in the aligned-project query.
+        const projectCacheOptions = projectFoldCacheOptions(machinery)
         const metadataEntries = await Promise.all(
           displayed.map(async (p) => {
-            const fullProject = await getProject(machinery, p.projectAddress).catch(() => null)
+            const fullProject = projectCacheOptions
+              ? await loadProjectWithCache(machinery, p.projectAddress, projectCacheOptions).catch(() => null)
+              : await getProject(machinery, p.projectAddress).catch(() => null)
             if (!fullProject?.metadataCid) return [p.projectAddress, null] as const
             const data = await readProjectMetadata(machinery, fullProject.metadataCid as IpfsCidV1).catch(() => null)
             return [p.projectAddress, data] as const
@@ -186,15 +222,24 @@ export function AlignedProjectsList({
           if (data) newMetadata[addr] = data
         }
         setMetadata(newMetadata)
+        if (snapshotOptions) {
+          await saveAlignedListSnapshot(snapshotOptions, {
+            projects: displayed,
+            metadata: newMetadata,
+          })
+        }
       } catch (err) {
         if (!cancelled) {
           console.error('Error loading aligned projects:', err)
-          setError(err instanceof Error ? err.message : 'Failed to load aligned projects')
+          if (!cached) {
+            setError(err instanceof Error ? err.message : 'Failed to load aligned projects')
+          }
         }
       } finally {
         if (!cancelled) {
           keepPainted.markResolved()
           setLoading(false)
+          setRefreshing(false)
         }
       }
     }
@@ -259,12 +304,16 @@ export function AlignedProjectsList({
         </Typography>
       )}
 
-      {address && trustedSetLoading && trustedAlignmentAttesters === undefined && (
+      {(refreshing || (address && trustedSetLoading && trustedAlignmentAttesters === undefined)) && (
         <TrustNetworkRefreshIndicator
           title={
-            trustedSet
-              ? `Refreshing your trust network. Alignment vouches are currently filtered using ${trustedSet.size} account${trustedSet.size !== 1 ? 's' : ''} in your network. Results may still change as more are discovered.`
-              : 'Refreshing your trust network. Until any trusted accounts are found, alignment vouches are not filtered.'
+            address && trustedSetLoading && trustedAlignmentAttesters === undefined
+              ? (
+                trustedSet
+                  ? `Refreshing your trust network. Alignment vouches are currently filtered using ${trustedSet.size} account${trustedSet.size !== 1 ? 's' : ''} in your network. Results may still change as more are discovered.`
+                  : 'Refreshing your trust network. Until any trusted accounts are found, alignment vouches are not filtered.'
+              )
+              : 'Updating aligned projects from the latest events.'
           }
         />
       )}

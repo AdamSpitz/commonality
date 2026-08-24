@@ -85,6 +85,20 @@ export type { BridgeLabels, MediatorBridgeAnchor, MediatorBridgeCard } from './m
 // === stores/ — client-side persistence (contacts; folded-state cache via hooks) ===
 export { addContact, getContacts } from './stores/contactStore'
 export type { ContactKind, SavedContact } from './stores/contactStore'
+export {
+  BOARD_SNAPSHOT_VERSION,
+  boardSnapshotCacheOptions,
+  loadAlignedListSnapshot,
+  loadBoardMetricsSnapshot,
+  saveAlignedListSnapshot,
+  saveBoardMetricsSnapshot,
+} from './stores/foldCache'
+export type {
+  AlignedListSnapshot,
+  BoardMetricsSnapshot,
+  BoardSnapshotKeyOptions,
+  BoardSnapshotKind,
+} from './stores/foldCache'
 
 // === trust/ — subjectiv trust network (computation + cache + worker live behind hooks) ===
 export { notifySubjectivTrustNetworkInvalidated } from './trust/subjectivTrust'

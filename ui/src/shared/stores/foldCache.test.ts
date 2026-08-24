@@ -223,6 +223,73 @@ describe('foldCache', () => {
     ).resolves.toBeNull();
   });
 
+  it('round-trips cause-board snapshots isolated by trust fingerprint', async () => {
+    const {
+      boardSnapshotCacheOptions,
+      loadAlignedListSnapshot,
+      loadBoardMetricsSnapshot,
+      saveAlignedListSnapshot,
+      saveBoardMetricsSnapshot,
+    } = await import('./foldCache');
+
+    const machinery = {
+      eventCacheUrl: 'http://localhost:42069/api/board',
+      contractAddresses: {
+        assuranceContractFactory: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+      },
+    };
+    const metricsKey = boardSnapshotCacheOptions(machinery as never, {
+      kind: 'board-metrics',
+      statementCids: ['QmB', 'QmA'],
+      implicationTrustKey: '0x1',
+      alignmentTrustKey: '0x2',
+      contentTrustKey: '0x3',
+    });
+    const listKey = boardSnapshotCacheOptions(machinery as never, {
+      kind: 'aligned-list',
+      statementCids: ['QmA', 'QmB'],
+      implicationTrustKey: '0x1',
+      alignmentTrustKey: '0x2',
+      contentTrustKey: '0x3',
+    });
+    expect(metricsKey).not.toBeNull();
+    expect(listKey).not.toBeNull();
+
+    await saveBoardMetricsSnapshot(metricsKey!, {
+      title: 'Garden',
+      summary: 'Grow food',
+      totalRaised: [{ symbol: 'ETH', amount: '1' }],
+      remainingToThreshold: [],
+      totalUnreimbursed: [],
+      monthlyPledged: '5',
+      projectCount: 2,
+    });
+    await saveAlignedListSnapshot(listKey!, {
+      projects: [{ projectAddress: '0xabc', totalReceived: '1' }],
+      metadata: { '0xabc': { name: 'Beds' } },
+    });
+
+    await expect(loadBoardMetricsSnapshot(metricsKey!)).resolves.toMatchObject({
+      title: 'Garden',
+      projectCount: 2,
+      monthlyPledged: '5',
+    });
+    await expect(loadAlignedListSnapshot(listKey!)).resolves.toMatchObject({
+      projects: [{ projectAddress: '0xabc', totalReceived: '1' }],
+      metadata: { '0xabc': { name: 'Beds' } },
+    });
+
+    const otherTrust = boardSnapshotCacheOptions(machinery as never, {
+      kind: 'board-metrics',
+      statementCids: ['QmA', 'QmB'],
+      implicationTrustKey: '0x1',
+      alignmentTrustKey: '0xother',
+      contentTrustKey: '0x3',
+    });
+    await expect(loadBoardMetricsSnapshot(otherTrust!)).resolves.toBeNull();
+    await expect(loadAlignedListSnapshot(metricsKey!)).resolves.toBeNull();
+  });
+
   it('returns null when foldVersion mismatches', async () => {
     const { loadCachedProjectAccumulator, saveCachedProjectAccumulator } = await import(
       './foldCache'

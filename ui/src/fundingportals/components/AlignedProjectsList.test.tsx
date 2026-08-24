@@ -55,6 +55,18 @@ vi.mock('@commonality/sdk/lazy-giving', async () => {
   return {
     ...actual,
     getProject: vi.fn(),
+    getProjectFold: vi.fn(),
+  }
+})
+
+vi.mock('../../shared/stores/foldCache', async () => {
+  const actual = await vi.importActual<typeof import('../../shared/stores/foldCache')>(
+    '../../shared/stores/foldCache',
+  )
+  return {
+    ...actual,
+    loadAlignedListSnapshot: vi.fn(async () => null),
+    saveAlignedListSnapshot: vi.fn(async () => {}),
   }
 })
 
@@ -94,7 +106,7 @@ import { getProject } from '@commonality/sdk/lazy-giving'
 import { createSDKMachinery } from '@commonality/sdk/machinery'
 import { readProjectMetadata } from './projectMetadata'
 import { useAccount } from 'wagmi'
-import { getDomainUrl, isDomainConfigured, useTrustedSet } from '../../shared'
+import { getDomainUrl, isDomainConfigured, loadAlignedListSnapshot, useTrustedSet } from '../../shared'
 import { useContentFundingState } from '../../content-funding'
 
 const mockMachinery = {} as any
@@ -712,6 +724,41 @@ describe('AlignedProjectsList', () => {
       const seeAll = screen.getByTestId('aligned-projects-see-all')
       expect(seeAll).toHaveAttribute('href', '/dashboard')
       expect(seeAll).toHaveTextContent(/see all 3 projects/i)
+    })
+  })
+
+  describe('Cached snapshot', () => {
+    it('paints the last list immediately and shows a corner spinner until the live fold returns', async () => {
+      vi.mocked(createSDKMachinery).mockReturnValue({
+        eventCacheUrl: 'http://localhost:42069/api',
+        contractAddresses: {
+          assuranceContractFactory: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+        },
+      } as any)
+      vi.mocked(loadAlignedListSnapshot).mockResolvedValue({
+        snapshotVersion: 1,
+        projects: [makeProject({ projectAddress: ADDR_A })],
+        metadata: { [ADDR_A]: { name: 'Cached Garden' } },
+      })
+      let resolveLive: (value: ReturnType<typeof makeProject>[]) => void = () => {}
+      vi.mocked(getAllAlignedProjectsForCause).mockReturnValue(
+        new Promise((resolve) => {
+          resolveLive = resolve
+        }),
+      )
+
+      render(<AlignedProjectsList statementCid="QmTest" />)
+
+      expect(await screen.findByText('Cached Garden')).toBeInTheDocument()
+      expect(screen.getByTestId('trust-network-refresh')).toHaveAttribute(
+        'aria-label',
+        'Updating aligned projects from the latest events.',
+      )
+
+      resolveLive([makeProject({ projectAddress: ADDR_B })])
+      await waitFor(() => {
+        expect(screen.queryByText('Cached Garden')).toBeNull()
+      })
     })
   })
 })
