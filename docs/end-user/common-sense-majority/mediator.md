@@ -1,6 +1,6 @@
 # CSM mediator
 
-Why the suggested texts are worded the way they are: [statements are peculiar for good reasons](/specs/product/statements-are-peculiar-for-good-reasons.md).
+Why the suggested texts are worded the way they are: see `specs/product/statements-are-peculiar-for-good-reasons.md` in the repository.
 
 The Common Sense Majority mediator is an opinionated bridge-creator service. It looks for statements that people on opposing sides could plausibly sign without feeling misrepresented, then publishes those suggested bridges as nudges.
 

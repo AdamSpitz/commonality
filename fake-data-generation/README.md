@@ -34,6 +34,7 @@ npm run gen:simulate
 
 # Or with custom parameters
 npm run gen:tiny        # 5 users, 1 round, 12 statements, capped actions, no invariant pass
+npm run gen:seed:christian-secular-implications  # live attester on the tiny-bridge designed pairs
                         # Always publishes the Local food systems + Christianity CauseStarter rosters (nightly wipe uses this).
                         # This is what `./scripts/data.sh --seed` runs by default.
 npm run gen:small       # 10 users, 3 rounds, no invariant pass (pass `--invariants` to run them)
@@ -92,7 +93,7 @@ Generated files are split into two directories to make their lifecycle explicit:
 
 ## Formal Seed Content
 
-Statement *shape* (modified vs natural vs commonality, what the implication attester will bless) is documented in [`specs/product/statements-are-peculiar-for-good-reasons.md`](../specs/product/statements-are-peculiar-for-good-reasons.md). `gen:tiny` does **not** load this corpus as the main statement set.
+Statement *shape* (modified vs natural vs commonality, what the implication attester will bless) is documented in [`specs/product/statements-are-peculiar-for-good-reasons.md`](../specs/product/statements-are-peculiar-for-good-reasons.md). Working plan for the Christianity × secular-conservatism tiny seed: [`christian-secular-tiny-seed.md`](./christian-secular-tiny-seed.md). `gen:tiny` does **not** yet replace the 12 random universe statements with that corpus (the CauseStarter Christianity path already publishes it).
 
 The curated seed statements for the real system now live in `seed-content/*.json` using a small formal schema:
 

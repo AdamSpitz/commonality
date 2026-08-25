@@ -172,14 +172,17 @@ test('seed cause roster is a CauseStarter document owned by Hardhat #0', () => {
 });
 
 test('christianity seed roster includes the example mediator and distinct planks', () => {
-  const plankCids = ['bafkreiplank1', 'bafkreiplank2', 'bafkreiplank3'];
+  const plankCids = ['bafkreiplank1', 'bafkreiplank2', 'bafkreiplank3', 'bafkreiplank4'];
   const fields = christianityRosterFields(plankCids);
   const doc = buildSeedRosterDocument(fields);
   assert.equal(CHRISTIANITY_CAUSE_SLUG, 'christianity');
   assert.equal(fields.title, 'Christianity');
-  assert.equal(CHRISTIANITY_PLANKS.length, 3);
-  assert.equal(CHRISTIANITY_PROJECTS.length, 3);
+  assert.equal(CHRISTIANITY_PLANKS.length, 4);
+  assert.equal(CHRISTIANITY_PROJECTS.length, 10);
   assert.ok(CHRISTIANITY_PROJECTS.some((project) => project.kind === 'campus-ministry'));
+  assert.ok(CHRISTIANITY_PROJECTS.some((project) => project.alignments.includes('abortion/modified-christian')));
+  assert.ok(CHRISTIANITY_PROJECTS.some((project) => project.alignments.includes('scripture/natural-christian')));
+  assert.ok(CHRISTIANITY_PROJECTS.some((project) => project.alignments.includes('colorblind-merit/natural-secular')));
   assert.match(fields.mediatorBlurb, /secular-conservative/i);
   assert.equal(fields.mediator?.name, CHRISTIAN_MEDIATOR_NAME);
   assert.equal(fields.mediator?.address.toLowerCase(), CHRISTIAN_MEDIATOR_ADDRESS.toLowerCase());
@@ -190,10 +193,10 @@ test('christianity seed roster includes the example mediator and distinct planks
 });
 
 test('secular-conservative seed roster is a distinct founder cause', () => {
-  const plankCids = ['bafkreiplankA', 'bafkreiplankB'];
+  const plankCids = ['bafkreiplankA', 'bafkreiplankB', 'bafkreiplankC', 'bafkreiplankD'];
   const fields = secularConservativeRosterFields(plankCids);
   assert.equal(SECULAR_CONSERVATIVE_CAUSE_SLUG, 'secular-conservatism');
   assert.equal(fields.title, 'Secular conservatism');
-  assert.equal(SECULAR_CONSERVATIVE_PLANKS.length, 2);
+  assert.equal(SECULAR_CONSERVATIVE_PLANKS.length, 4);
   assert.equal(fields.mediatorBlurb, '');
 });

@@ -1,0 +1,151 @@
+{
+  "format": "commonality-seed-content-v1",
+  "id": "christian-secular-bridge",
+  "title": "Christianity × secular conservatism (tiny seed)",
+  "description": "Natural cause planks plus mediator-authored modified/commonality triples. Naturals go on the two CauseStarter boards. Modified and commonality are the mediator cluster. See fake-data-generation/christian-secular-tiny-seed.md.",
+  "notes": [
+    "Modified statements copy the commonality sentences so the implication attester can bless modified → commonality as a subset.",
+    "Do not put modified texts on the camp cause boards.",
+    "Uniques have no triple."
+  ],
+  "groups": [
+    {
+      "id": "abortion",
+      "title": "Abortion",
+      "notes": [
+        "Compromise in the middle, inside the right: sanctity-of-life vs late-term horror / no theocracy. Not the left/right abortion triple in hidden-majority-patterns.md."
+      ],
+      "statements": [
+        {
+          "id": "natural-christian",
+          "role": "natural-christian",
+          "text": "Abortion ends a child's life. I don't think of it as ordinary healthcare, and I want far fewer of them."
+        },
+        {
+          "id": "natural-secular",
+          "role": "natural-secular",
+          "text": "Late-term abortion is horrific. Early pregnancy is more complicated, and I don't want the state enforcing a church teaching on people who don't believe it."
+        },
+        {
+          "id": "modified-christian",
+          "role": "modified-christian",
+          "text": "Abortion ends a child's life, and I'd prefer far fewer abortions. I still don't want the law to leave a woman no time to decide. I'd be okay with it if abortion were allowed during the first 12-16 weeks and forbidden after that except in serious medical situations. This isn't my ideal outcome, but I'd rather get this settled than keep fighting over it forever."
+        },
+        {
+          "id": "modified-secular",
+          "role": "modified-secular",
+          "text": "Late-term abortion is horrific. I'd still rather not see abortions early in pregnancy, but I don't feel as strongly about that, and I don't need the law to encode a religious claim. I'd be okay with it if abortion were allowed during the first 12-16 weeks and forbidden after that except in serious medical situations. This isn't my ideal outcome, but I'd rather get this settled than keep fighting over it forever."
+        },
+        {
+          "id": "commonality",
+          "role": "commonality",
+          "text": "I'd be okay with it if abortion were allowed during the first 12-16 weeks and forbidden after that except in serious medical situations. This isn't my ideal outcome, but I'd rather get this settled than keep fighting over it forever."
+        }
+      ],
+      "implicationNotes": [
+        "Expect yes: modified-christian → commonality, modified-secular → commonality.",
+        "Expect no: either natural → commonality; either modified → the other modified; commonality → either modified."
+      ]
+    },
+    {
+      "id": "markets",
+      "title": "Markets and provision for the poor",
+      "notes": [
+        "Different reasons, same conclusion. Commonality is the conclusion with neither stewardship nor Hayek attached."
+      ],
+      "statements": [
+        {
+          "id": "natural-christian",
+          "role": "natural-christian",
+          "text": "Caring for the poor is the church's work. A large welfare state often crowds that out and treats people as clients instead of neighbors."
+        },
+        {
+          "id": "natural-secular",
+          "role": "natural-secular",
+          "text": "Free markets create prosperity. A large welfare state traps people in dependence and costs more than it delivers."
+        },
+        {
+          "id": "modified-christian",
+          "role": "modified-christian",
+          "text": "I come to this because I think caring for the poor is the church's work, not because I think the market is an idol. I want ordinary people to be able to earn a living and keep more of what they earn. I do not want a larger welfare state as the default way of providing for people; private charity and local help should do more of that work. The remaining safety-net details can be argued separately, in good faith."
+        },
+        {
+          "id": "modified-secular",
+          "role": "modified-secular",
+          "text": "I come to this from observed outcomes, not from Scripture. I want ordinary people to be able to earn a living and keep more of what they earn. I do not want a larger welfare state as the default way of providing for people; private charity and local help should do more of that work. The remaining safety-net details can be argued separately, in good faith."
+        },
+        {
+          "id": "commonality",
+          "role": "commonality",
+          "text": "I want ordinary people to be able to earn a living and keep more of what they earn. I do not want a larger welfare state as the default way of providing for people; private charity and local help should do more of that work. The remaining safety-net details can be argued separately, in good faith."
+        }
+      ],
+      "implicationNotes": [
+        "Expect yes: modified-christian → commonality, modified-secular → commonality.",
+        "Expect no: either natural → commonality."
+      ]
+    },
+    {
+      "id": "lgbt",
+      "title": "LGBT unbundling",
+      "notes": [
+        "Atomize adult gay neighbors from rushing minors into medical transition. Reaffirm so signing is not betrayal. Commonality does not require Christians to affirm same-sex marriage or secular signers to affirm a theology of sex."
+      ],
+      "statements": [
+        {
+          "id": "natural-christian",
+          "role": "natural-christian",
+          "text": "Marriage, as I understand it from Scripture, is a man and a woman. I still don't want to treat gay people as enemies."
+        },
+        {
+          "id": "natural-secular",
+          "role": "natural-secular",
+          "text": "Gay adults should be able to marry. Schools treating gender-distressed kids as a medical-transition pipeline is a different issue, and I don't want that."
+        },
+        {
+          "id": "modified-christian",
+          "role": "modified-christian",
+          "text": "I still believe marriage, in the Christian sense, is a man and a woman. Gay adults should be treated as neighbors, not enemies. Whatever the civil law does about adult relationships, I do not want schools or clinics to rush minors into medical transition."
+        },
+        {
+          "id": "modified-secular",
+          "role": "modified-secular",
+          "text": "I support same-sex civil marriage for adults. Gay adults should be treated as neighbors, not enemies. Whatever the civil law does about adult relationships, I do not want schools or clinics to rush minors into medical transition."
+        },
+        {
+          "id": "commonality",
+          "role": "commonality",
+          "text": "Gay adults should be treated as neighbors, not enemies. Whatever the civil law does about adult relationships, I do not want schools or clinics to rush minors into medical transition."
+        }
+      ],
+      "implicationNotes": [
+        "Expect yes: modified-christian → commonality, modified-secular → commonality.",
+        "Expect no: natural-christian → commonality (does not mention minors / medical transition); modified-christian → modified-secular (adds SSM)."
+      ]
+    },
+    {
+      "id": "scripture",
+      "title": "Scripture available (Christian unique)",
+      "notes": ["No bridge triple."],
+      "statements": [
+        {
+          "id": "natural-christian",
+          "role": "natural-christian",
+          "text": "Everyone should be able to read Scripture in their own language, including people who currently have no translation."
+        }
+      ]
+    },
+    {
+      "id": "colorblind-merit",
+      "title": "Colorblind merit (secular unique)",
+      "notes": ["No bridge triple."],
+      "statements": [
+        {
+          "id": "natural-secular",
+          "role": "natural-secular",
+          "text": "The law should treat people as individuals, not as racial blocs. Hiring and admissions should not award or penalize people for their ancestry."
+        }
+      ]
+    }
+  ]
+}

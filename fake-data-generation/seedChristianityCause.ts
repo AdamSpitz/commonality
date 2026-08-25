@@ -44,6 +44,13 @@ import {
   serializeSeedCauseBookmarkList,
   type SeedCauseRosterFields,
 } from './seedCauseRoster.js';
+import {
+  CHRISTIANITY_NATURAL_PLANKS,
+  MEDIATOR_STATEMENTS,
+  SECULAR_NATURAL_PLANKS,
+} from './christianSecularBridge.js';
+import { readFileSync } from 'fs';
+import { dirname, join } from 'path';
 
 loadEnv();
 
@@ -76,7 +83,7 @@ const MONTH_SECONDS = 30n * 24n * 60n * 60n;
 export const CHRISTIANITY_CAUSE_SLUG = 'christianity';
 export const CHRISTIANITY_CAUSE_TITLE = 'Christianity';
 export const CHRISTIANITY_CAUSE_SUMMARY =
-  'Shared works practising Christians can fund with neighbours who arrive at the same conclusions for different reasons. Seed includes a Christian / secular-conservative mediator, a winter warming centre, campus chaplaincy, a family-formation housing brief, and a Common Table essay fund.';
+  'Practising Christians, in their own words: abortion, provision for the poor, sex and marriage, and making Scripture available. A mediator (Hardhat #8) publishes modified wordings toward secular conservatives; those modified texts are not these planks.';
 
 /** Hardhat #8 — distinct from the CSM bridge-creator default (#7). */
 export const CHRISTIAN_MEDIATOR_PRIVATE_KEY = FUNDED_HARDHAT_DEV_KEYS[8]!;
@@ -90,47 +97,7 @@ export function seedChristianMediatorServiceUrl(): string {
   return (process.env.SEED_CHRISTIAN_MEDIATOR_URL ?? 'http://127.0.0.1:3011').replace(/\/+$/, '');
 }
 
-export const CHRISTIANITY_PLANKS = [
-  {
-    id: 'shared-local-works',
-    text: 'Christians and their neighbours should be able to fund shared local works — warming centres, chaplaincy, disaster relief — without first resolving why they want the same thing.',
-  },
-  {
-    id: 'family-formation',
-    text: 'It should be easier than it currently is for people to marry and raise children — housing, cost, and working hours included.',
-  },
-  {
-    id: 'kids-and-tech',
-    text: 'Children should not have unrestricted access to pornography or to platforms engineered to be maximally addictive.',
-  },
-] as const;
-
-export const CHRISTIANITY_PROJECTS = [
-  {
-    name: 'Parish winter warming centre',
-    description:
-      'Keep a church hall open overnight through the cold months: cots, a kitchen, and a volunteer rota that neighbouring congregations can share without merging anything.',
-    kind: 'local-ministry',
-    plankId: 'shared-local-works',
-    ownerIndex: 1,
-  },
-  {
-    name: 'Campus chaplaincy at State U',
-    description:
-      'Fund a chaplain and a student hospitality budget at a large secular university — the kind of presence that has no denomination-wide treasury behind it.',
-    kind: 'campus-ministry',
-    plankId: 'shared-local-works',
-    ownerIndex: 2,
-  },
-  {
-    name: 'Family-formation housing brief',
-    description:
-      'Commission a short, public brief on what actually makes it possible for ordinary people to marry and raise children in this city — zoning, hours, and childcare costs, not a culture-war pamphlet.',
-    kind: 'family-formation',
-    plankId: 'family-formation',
-    ownerIndex: 3,
-  },
-] as const;
+export const CHRISTIANITY_PLANKS = CHRISTIANITY_NATURAL_PLANKS;
 
 /** Hardhat #9 — a distinct founder so the other camp is not the Christianity owner. */
 export const SECULAR_CONSERVATIVE_OWNER_KEY = FUNDED_HARDHAT_DEV_KEYS[9]!;
@@ -138,17 +105,37 @@ export const SECULAR_CONSERVATIVE_OWNER_ADDRESS = privateKeyToAccount(SECULAR_CO
 export const SECULAR_CONSERVATIVE_CAUSE_SLUG = 'secular-conservatism';
 export const SECULAR_CONSERVATIVE_CAUSE_TITLE = 'Secular conservatism';
 export const SECULAR_CONSERVATIVE_CAUSE_SUMMARY =
-  'Order, family formation, and measured outcomes without a theological premise. Seed roster so a mediator can point at a real other cause, not only invent a stand-in.';
-export const SECULAR_CONSERVATIVE_PLANKS = [
-  {
-    id: 'two-parent-outcomes',
-    text: 'Kids do better with two committed parents, and a country that has stopped forming families is storing up a problem it cannot buy its way out of.',
-  },
-  {
-    id: 'family-formation-priority',
-    text: 'Making family formation affordable and normal should be a public priority even if people disagree about why families matter.',
-  },
-] as const;
+  'Secular conservatives, in their own words: abortion, markets, sex and marriage, and colorblind merit. Modified wordings live on the mediator cluster, not on this roster.';
+export const SECULAR_CONSERVATIVE_PLANKS = SECULAR_NATURAL_PLANKS;
+
+interface PersonaProject {
+  id: string;
+  name: string;
+  description: string;
+  kind: string;
+  ownerIndex: number;
+  alignments: string[];
+}
+
+interface Persona {
+  id: string;
+  hardhatIndex: number;
+  camp: 'christian' | 'secular';
+  takesModified: boolean;
+  signsNaturals: string[];
+  aligns: boolean;
+}
+
+function loadPersonaFile(): { projects: PersonaProject[]; personas: Persona[] } {
+  const path = join(dirname(fileURLToPath(import.meta.url)), 'data', 'christian-secular-personas.json');
+  return JSON.parse(readFileSync(path, 'utf8')) as { projects: PersonaProject[]; personas: Persona[] };
+}
+
+function loadPersonaProjects(): PersonaProject[] {
+  return loadPersonaFile().projects;
+}
+
+export const CHRISTIANITY_PROJECTS = loadPersonaProjects();
 
 function createClients(privateKey: `0x${string}`) {
   return createSeedClients(privateKey, RPC_URL);
@@ -181,24 +168,41 @@ async function fundPaymentToken(to: `0x${string}`, amount: bigint): Promise<void
   }
 }
 
-async function publishPlanks(): Promise<Map<string, IpfsCidV1>> {
+async function publishStatementSet(
+  statements: readonly { id: string; text: string }[],
+  domain: string,
+  publisherKey: `0x${string}`,
+  cids: Map<string, IpfsCidV1>,
+): Promise<void> {
   const publishedData = CONTRACT_ADDRESSES.publishedData as `0x${string}` | undefined;
-  const owner = createClients(HARDHAT_PRIVATE_KEYS[0]!);
+  const owner = createClients(publisherKey);
   const ipfsConfig = createIPFSConfigInNodeJSFromTheUsualEnvVars();
-  const cids = new Map<string, IpfsCidV1>();
-  for (const plank of CHRISTIANITY_PLANKS) {
+  for (const plank of statements) {
     const cid = await publishGeneratedStatement(
       ipfsConfig,
-      { text: plank.text, domain: 'christianity', position: plank.id },
-      'christianity',
+      { text: plank.text, domain, position: plank.id },
+      domain,
       plank.id,
       'simple',
       { clients: owner as WriteClients, publishedDataAddress: publishedData },
     );
     cids.set(plank.id, cid);
-    console.log(`  Published plank ${plank.id} → ${cid}`);
+    console.log(`  Published ${domain} ${plank.id} → ${cid}`);
   }
+}
+
+async function publishPlanks(): Promise<Map<string, IpfsCidV1>> {
+  const cids = new Map<string, IpfsCidV1>();
+  await publishStatementSet(CHRISTIANITY_PLANKS, 'christianity', HARDHAT_PRIVATE_KEYS[0]!, cids);
+  await publishStatementSet(SECULAR_CONSERVATIVE_PLANKS, 'secular-conservatism', SECULAR_CONSERVATIVE_OWNER_KEY, cids);
+  await publishStatementSet(MEDIATOR_STATEMENTS, 'christian-secular-bridge', CHRISTIAN_MEDIATOR_PRIVATE_KEY, cids);
   return cids;
+}
+
+function modifiedIdForNatural(naturalId: string, camp: 'christian' | 'secular'): string | null {
+  const [group] = naturalId.split('/');
+  if (!group || group === 'scripture' || group === 'colorblind-merit') return null;
+  return `${group}/modified-${camp}`;
 }
 
 async function signPlanks(cids: Map<string, IpfsCidV1>): Promise<void> {
@@ -207,12 +211,24 @@ async function signPlanks(cids: Map<string, IpfsCidV1>): Promise<void> {
     console.warn('Beliefs contract not configured — skipping plank signatures.');
     return;
   }
-  const signerIndexes = [0, 1, 2, 4, 5, 6];
-  for (const index of signerIndexes) {
-    const key = FUNDED_HARDHAT_DEV_KEYS[index];
+  for (const persona of loadPersonaFile().personas) {
+    const key = FUNDED_HARDHAT_DEV_KEYS[persona.hardhatIndex];
     if (!key) continue;
+    const toSign = [...persona.signsNaturals];
+    if (persona.takesModified) {
+      for (const naturalId of persona.signsNaturals) {
+        const modifiedId = modifiedIdForNatural(naturalId, persona.camp);
+        if (modifiedId) toSign.push(modifiedId);
+      }
+    }
     const clients = createClients(key);
-    for (const cid of cids.values()) {
+    let signed = 0;
+    for (const statementId of toSign) {
+      const cid = cids.get(statementId);
+      if (!cid) {
+        console.warn(`  Missing CID for ${statementId} (persona ${persona.id})`);
+        continue;
+      }
       const hash = await clients.walletClient.writeContract({
         address: beliefs,
         abi: BeliefsAbi,
@@ -222,8 +238,9 @@ async function signPlanks(cids: Map<string, IpfsCidV1>): Promise<void> {
         account: clients.walletClient.account,
       });
       await clients.publicClient.waitForTransactionReceipt({ hash });
+      signed += 1;
     }
-    console.log(`  ✓ HH#${index} signed ${cids.size} Christianity planks`);
+    console.log(`  ✓ HH#${persona.hardhatIndex} (${persona.id}) signed ${signed} statements`);
   }
 }
 
@@ -236,7 +253,7 @@ interface CreatedChristianProject {
   prices: string[];
 }
 
-async function createProjects(plankCids: Map<string, IpfsCidV1>): Promise<CreatedChristianProject[]> {
+async function createProjects(statementCids: Map<string, IpfsCidV1>): Promise<CreatedChristianProject[]> {
   const factory = CONTRACT_ADDRESSES.projectFactory as `0x${string}` | undefined;
   const publishedData = CONTRACT_ADDRESSES.publishedData as `0x${string}` | undefined;
   const paymentToken = process.env.PAYMENT_TOKEN_ADDRESS as `0x${string}` | undefined;
@@ -257,7 +274,7 @@ async function createProjects(plankCids: Map<string, IpfsCidV1>): Promise<Create
     parsePaymentTokenUnits('0.01'),
   ];
 
-  for (const template of CHRISTIANITY_PROJECTS) {
+  for (const template of loadPersonaProjects()) {
     const key = FUNDED_HARDHAT_DEV_KEYS[template.ownerIndex];
     if (!key) continue;
     const clients = createClients(key);
@@ -268,6 +285,10 @@ async function createProjects(plankCids: Map<string, IpfsCidV1>): Promise<Create
         ? { publishedDataContract: { address: publishedData, abi: PublishedDataAbi } }
         : {}),
     });
+    const alignedStatementRefs = template.alignments.map((alignment) => {
+      const [groupId, statementId] = alignment.split('/');
+      return { collectionId: 'christian-secular-bridge', groupId, statementId };
+    });
     const publication = await store.publish(createDisplayableDocument({
       format: 'markdown-restricted',
       content: template.description,
@@ -276,7 +297,7 @@ async function createProjects(plankCids: Map<string, IpfsCidV1>): Promise<Create
         name: template.name,
         description: template.description,
         seedProjectKind: template.kind,
-        alignedStatementRefs: [{ collectionId: 'christianity', groupId: 'planks', statementId: template.plankId }],
+        alignedStatementRefs,
       },
     }));
     const { projectDetails } = await sdkCreateProject(
@@ -298,7 +319,7 @@ async function createProjects(plankCids: Map<string, IpfsCidV1>): Promise<Create
     );
     created.push({
       name: template.name,
-      plankId: template.plankId,
+      plankId: template.alignments[0] ?? template.id,
       assuranceContract: projectDetails.assuranceContractAddress,
       erc1155: projectDetails.tokenAddress,
       tokenIds: tokenIds.map(Number),
@@ -307,17 +328,29 @@ async function createProjects(plankCids: Map<string, IpfsCidV1>): Promise<Create
     console.log(`  ✓ Project ${template.name} → ${projectDetails.assuranceContractAddress}`);
 
     const alignment = CONTRACT_ADDRESSES.alignmentAttestations as `0x${string}` | undefined;
-    const plankCid = plankCids.get(template.plankId);
-    if (alignment && plankCid) {
-      const attester = createClients(FUNDED_HARDHAT_DEV_KEYS[0]!);
-      const hash = await attestAlignment(
-        attester as WriteClients,
-        { address: alignment, abi: AlignmentAttestationsAbi },
-        toSubjectId(projectDetails.assuranceContractAddress),
-        plankCid,
-        PROJECT_ALIGNMENT_TOPIC,
-      );
-      await attester.publicClient.waitForTransactionReceipt({ hash });
+    const aligners = loadPersonaFile().personas.filter((persona) => persona.aligns);
+    if (alignment) {
+      for (const alignmentId of template.alignments) {
+        const statementCid = statementCids.get(alignmentId);
+        if (!statementCid) {
+          console.warn(`  Missing CID for alignment ${alignmentId}`);
+          continue;
+        }
+        const attesterPersona = aligners[0];
+        const attesterKey = attesterPersona
+          ? FUNDED_HARDHAT_DEV_KEYS[attesterPersona.hardhatIndex]
+          : FUNDED_HARDHAT_DEV_KEYS[0];
+        if (!attesterKey) continue;
+        const attester = createClients(attesterKey);
+        const hash = await attestAlignment(
+          attester as WriteClients,
+          { address: alignment, abi: AlignmentAttestationsAbi },
+          toSubjectId(projectDetails.assuranceContractAddress),
+          statementCid,
+          PROJECT_ALIGNMENT_TOPIC,
+        );
+        await attester.publicClient.waitForTransactionReceipt({ hash });
+      }
     }
   }
   return created;
@@ -361,17 +394,17 @@ async function buyAndPledge(projects: CreatedChristianProject[], plankCids: Map<
 
   const recurringPledges = CONTRACT_ADDRESSES.recurringPledges as `0x${string}` | undefined;
   const notes = CONTRACT_ADDRESSES.delegatableNotes as `0x${string}` | undefined;
-  const sharedWorks = plankCids.get('shared-local-works');
-  const family = plankCids.get('family-formation');
-  if (!recurringPledges || !notes || !sharedWorks) {
+  const scripture = plankCids.get('scripture/natural-christian');
+  const marketsModified = plankCids.get('markets/modified-christian');
+  if (!recurringPledges || !notes || !scripture) {
     console.warn('Recurring pledges not configured — skipping Christianity monthly pledges.');
     return;
   }
 
   const pledges = [
-    { accountIndex: 4, cid: sharedWorks, amount: '20' },
-    { accountIndex: 5, cid: sharedWorks, amount: '8' },
-    { accountIndex: 6, cid: family ?? sharedWorks, amount: '12' },
+    { accountIndex: 4, cid: scripture, amount: '20' },
+    { accountIndex: 5, cid: marketsModified ?? scripture, amount: '8' },
+    { accountIndex: 6, cid: scripture, amount: '12' },
   ];
   const delegateTo = privateKeyToAccount(FUNDED_HARDHAT_DEV_KEYS[0]!).address;
   for (const pledge of pledges) {
@@ -506,12 +539,12 @@ export async function publishSeedChristianityCause(): Promise<{
     publishedData: CONTRACT_ADDRESSES.publishedData,
     alignmentAttestations: CONTRACT_ADDRESSES.alignmentAttestations,
   };
-  const sharedWorks = plankMap.get('shared-local-works');
+  const scripture = plankMap.get('scripture/natural-christian');
   if (
     cfAddresses.channelRegistry
     && cfAddresses.channelVerifier
     && cfAddresses.creatorContractFactory
-    && sharedWorks
+    && scripture
   ) {
     try {
       await generateChristianContentScenario(
@@ -526,15 +559,18 @@ export async function publishSeedChristianityCause(): Promise<{
           privateKey,
           address: privateKeyToAccount(privateKey).address,
         })),
-        { statementCid: sharedWorks },
+        { statementCid: scripture },
       );
     } catch (error) {
       console.warn('Christianity content contract failed (channel may already exist):', error);
     }
   }
 
-  const rosterCid = await publishRoster([...plankMap.values()]);
-  await publishSeedSecularConservativeCause();
+  const christianPlankCids = CHRISTIANITY_PLANKS.map((plank) => plankMap.get(plank.id)).filter(
+    (cid): cid is IpfsCidV1 => Boolean(cid),
+  );
+  const rosterCid = await publishRoster(christianPlankCids);
+  await publishSeedSecularConservativeCause(plankMap);
   return {
     slug: CHRISTIANITY_CAUSE_SLUG,
     rosterCid,
@@ -551,7 +587,9 @@ export function secularConservativeRosterFields(plankCids: string[]): SeedCauseR
   };
 }
 
-export async function publishSeedSecularConservativeCause(): Promise<{
+export async function publishSeedSecularConservativeCause(
+  existingCids?: Map<string, IpfsCidV1>,
+): Promise<{
   slug: string;
   rosterCid: string | null;
   plankCids: string[];
@@ -564,19 +602,26 @@ export async function publishSeedSecularConservativeCause(): Promise<{
   }
   console.log('\n=== Publishing seed CauseStarter roster (secular conservatism) ===\n');
   const owner = createClients(SECULAR_CONSERVATIVE_OWNER_KEY);
-  const ipfsConfig = createIPFSConfigInNodeJSFromTheUsualEnvVars();
   const plankCids: string[] = [];
-  for (const plank of SECULAR_CONSERVATIVE_PLANKS) {
-    const cid = await publishGeneratedStatement(
-      ipfsConfig,
-      { text: plank.text, domain: 'secular-conservatism', position: plank.id },
-      'secular-conservatism',
-      plank.id,
-      'simple',
-      { clients: owner as WriteClients, publishedDataAddress: publishedData },
-    );
-    plankCids.push(cid);
-    console.log(`  Published plank ${plank.id} → ${cid}`);
+  if (existingCids) {
+    for (const plank of SECULAR_CONSERVATIVE_PLANKS) {
+      const cid = existingCids.get(plank.id);
+      if (cid) plankCids.push(cid);
+    }
+  } else {
+    const ipfsConfig = createIPFSConfigInNodeJSFromTheUsualEnvVars();
+    for (const plank of SECULAR_CONSERVATIVE_PLANKS) {
+      const cid = await publishGeneratedStatement(
+        ipfsConfig,
+        { text: plank.text, domain: 'secular-conservatism', position: plank.id },
+        'secular-conservatism',
+        plank.id,
+        'simple',
+        { clients: owner as WriteClients, publishedDataAddress: publishedData },
+      );
+      plankCids.push(cid);
+      console.log(`  Published plank ${plank.id} → ${cid}`);
+    }
   }
   const fields = secularConservativeRosterFields(plankCids);
   const doc = buildSeedRosterDocument(fields);

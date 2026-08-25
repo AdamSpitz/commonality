@@ -103,7 +103,7 @@ Read these; do not copy them into this file.
 - Seed implication pipeline: [fake-data-generation README](/fake-data-generation/README.md) (`gen:seed:implications`, checked-in `data/seed-implication-evaluations.*`).
 - [Seed content rationale](/specs/tech/subsystems/conceptspace/seed-content/README.md) — *why* we seed; JSON source of truth is [`fake-data-generation/seed-content/`](/fake-data-generation/seed-content/).
 
-**Known mismatch (as of the seed-data cleanup):** default `./scripts/data.sh --seed` is **tiny** (a handful of generated `universe.json` statements plus a couple of CauseStarter refs). It is **not** the hidden-majority corpus, and even that corpus’s “normal-left implies commonality” notes are aspirational — the texts were not written as modified statements that contain the commonality. Fix by hand-working a few clusters, running them through the attester (and mediator) until they bless as expected, and making *that* the tiny seed. Do not bulk-generate first.
+**Tiny-seed work in progress:** [christian-secular-tiny-seed.md](/fake-data-generation/christian-secular-tiny-seed.md) — hand-worked Christianity × secular-conservatism cluster; live attester has blessed the designed modified→commonality pairs.
 
 ## What not to write
 

@@ -10,6 +10,7 @@
     "gen:seed:statements": "tsx prepareSeedStatements.ts",
     "gen:seed:upload": "tsx prepareSeedStatements.ts --upload",
     "gen:seed:implications": "tsx generateSeedImplicationEvaluations.ts",
+    "gen:seed:christian-secular-implications": "tsx evaluateChristianSecularBridge.ts",
     "gen:seed:implications:verify": "tsx verifySeedImplicationEvaluations.ts",
     "gen:seed:worker-outputs": "tsx generateSeedWorkerOutputs.ts",
     "test:seed:worker-outputs": "tsx generateSeedWorkerOutputs.ts --verify",

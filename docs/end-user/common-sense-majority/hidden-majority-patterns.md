@@ -1,6 +1,6 @@
 # Hidden-majority patterns
 
-Why the wording has to be this peculiar — implication vs nudge vs modified statements — is indexed in [statements are peculiar for good reasons](/specs/product/statements-are-peculiar-for-good-reasons.md). This page is the catalog of *shapes*.
+Why the wording has to be this peculiar — implication vs nudge vs modified statements — is indexed in the repo at `specs/product/statements-are-peculiar-for-good-reasons.md`. This page is the catalog of *shapes*.
 
 The [central idea behind Common Sense Majority](./index.md) is that on many polarized issues the two loud "sides" are both minorities, and there's a common-sense supermajority that nobody can currently see. The [implication graph](/docs/end-user/tally/statements-and-implication-graph.md) and the [mediator](./mediator.md) are how we make these hidden majorities visible. This page catalogs the recurring shapes they take.
 

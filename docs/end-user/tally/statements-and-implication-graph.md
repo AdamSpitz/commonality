@@ -32,7 +32,7 @@ On polarized issues, we expect statements to cluster into a recurring structure:
 
 The implication graph is what connects these layers. Two people signing different statements in their own words don't need to know about each other. When the wording is already close enough, attesters can draw arrows. When it is not, a mediator suggests **modified** texts that a person on that side might still sign, and that *do* imply the commonality. The commonality statement's supporter count (direct + indirect) is what can reveal a hidden majority.
 
-Shapes and the modified-layer needle: [hidden-majority patterns](../common-sense-majority/hidden-majority-patterns.md). Why the wording is finicky: [statements are peculiar for good reasons](/specs/product/statements-are-peculiar-for-good-reasons.md). User-facing walkthrough: [common-sense majority](../shared/use-case-walkthroughs/common-sense-majority.md).
+Shapes and the modified-layer needle: [hidden-majority patterns](../common-sense-majority/hidden-majority-patterns.md). Why the wording is finicky is documented in the repository at `specs/product/statements-are-peculiar-for-good-reasons.md`. User-facing walkthrough: [common-sense majority](../shared/use-case-walkthroughs/common-sense-majority.md).
 
 ## Cross-partisan discovery
 
