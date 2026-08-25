@@ -102,6 +102,7 @@ function sdkSourceAliases(): Record<string, string> {
   )
 }
 
+// Must match branding.name in ui/src/domains/*/manifest.tsx (Vite cannot import those TSX files here).
 const DOMAIN_TITLES: Record<string, string> = {
   commonality: 'Commonality',
   lazyGiving: 'LazyGiving',
