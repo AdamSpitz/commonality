@@ -44,11 +44,11 @@ Modified texts **copy the commonality sentences** so the attester’s subset rul
 - [x] CauseStarter click-through on the 2026-08-25 tiny seed (no reseed this pass).
 - [ ] Optional: align bridge-creator example anchors with these texts later; do not fork a second abortion triple in hidden-majority-patterns.
 - [x] CauseStarter **bridge cluster** under #8 (`christian-secular`): two modified rosters + bridge roster + cluster document. Tiny seed publishes it; `--cluster-only` republishes against an existing chain.
-- [ ] Prospective-round content scenario still failed at last seed (`Failed to find ProspectiveRoundCreated event`); local-food + Christianity continued. Unrelated to this cluster unless it starts blocking tiny.
+- [x] Prospective-round content scenario: `Failed to find ProspectiveRoundCreated` was a call to a **no-bytecode** factory address left in `.env` after a chain that never deployed `ProspectiveContentRoundFactory` (empty-account txs succeed with no logs). Seed now skips when `getCode` is empty; SDK `createProspectiveRound` reports missing bytecode instead of a missing event. Local config sync requires `PROSPECTIVE_CONTENT_ROUND_FACTORY_ADDRESS`. 2026-08-25 tiny reseed: open YouTube round `0x147D1dB74c2878E08a6Ac648818421b3d77e90E3`; materialized Substack `0xEa26F3615fd3A84eB5dD24a00E7B4bEc06D63206` → `0xF8ADc47E258b9a56a8E0A717572dB3F1Cb1b4cc4`.
 
 ## Still open (resume here)
 
-Nothing blocking this seed. Optional items above.
+Optional: align bridge-creator example anchors later. Prospective-round seed is fixed.
 
 ## Bridge cluster (2026-08-25)
 
