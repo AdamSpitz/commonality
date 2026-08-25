@@ -78,6 +78,55 @@ Drawn from the patterns page and the conditional-support design notes — not a 
 
 Poles stay short and extreme on purpose. Naturals stay how people actually talk (often too thin to imply commonality). Only modifieds and commonality have to be “peculiar.”
 
+## How to draft (containment is a check, not a method)
+
+The implication attester is conservative on **subset / entailment**. That tempts authors to *assemble* a commonality from sentences, then paste those sentences into each modified text so the bless is guaranteed. That is how you get a graph that is technically correct and statements nobody would sign.
+
+Write in this order:
+
+1. **Name the gap**, using the [hidden-majority patterns](/docs/end-user/common-sense-majority/hidden-majority-patterns.md). The pattern decides the *shape* of the commonality (deal in the overlap; obvious consensus; “if X then Y”; corrective; unbundled piece; policy with neither *why*). If you cannot name the gap, you are not ready to write the triple.
+2. **Write the naturals as speech.** How would this person actually talk? Do not withhold a sentence from the natural just so the modified can “add” it and win a bless. If the natural already implies the commonality, that is a fact about the issue (often “no major controversy”) — maybe you do not need a triple, or the modified’s job is a *limiting principle*, not extra slogans.
+3. **Write each modified as a person still on that side**, with the smallest change in **belief content** that makes the commonality already true in their mouth. String-diff can be small while the belief jump is huge (a Christian natural about marriage-as-sin that suddenly lists Drag Queen Story Hour, Pride, and the youth medical pipeline is not a small modification).
+4. **Write the commonality last**, as something both modifieds already said, with camp *whys* stripped. Then **check** containment. If you can only get a bless by copy-pasting identical clauses, the commonality is too slogan-like or the modifieds are too vague — rewrite the prose, do not glue.
+
+Read each text aloud as a signature. A parishioner, a Reason-reader, a tired moderate — would they put their name on this *paragraph*, not on the topic?
+
+### One voice, one job
+
+- **One register per statement.** Do not concatenate King James, a tweet, and an essay. Three slogans stacked is not a statement.
+- **No mediator meta.** Openings like “I come to this because I think X, not because Y” are the graph talking. So is a commonality that announces the coalition: “we come to this from different places,” “we don’t have to settle why first.” A signer is not writing a caption for a bridge diagram. Keep each side’s *why* on the modified; strip it from the commonality by **omission**. If you need a limit, write it in the first person on that side’s modified (“I am not asking the state to make anyone pray”), not as a comment on whose reasons are in play.
+- **Commonality is not a rant with the theology sanded off.** If the shared text is still one camp’s cadence plus a defensive throat-clearing (“not my enemy, but [list of things I hate]”), you have not found the overlap; you have selected a culture-war shopping list and called it a bridge.
+- **Uniques can stay ordinary.** A cause plank that is not in a triple does not need peculiar syntax. “Everyone should be able to read Scripture in their own language” is the right shape for a unique.
+
+### When the two sides are already allies
+
+Christianity × secular conservatism is **not** a left/right fight. They often already share the conclusion; they mistrust each other’s *reasons* and imagined maximalism. The [bridge-creator example strategy](/services/bridge-creator/config/christian-secular-conservative.example.json) is the right brief: different reasons, same conclusion; make the limiting principle explicit; do not smuggle God-given into a secular signature or reduce faith to “studies show.”
+
+That pattern is real, and the honest commonality **is** just the policy. Do not invent peculiar syntax to pretend there is a deal. **Do not use it as the first (or only) exercise of the implication system.** Tiny seed asked this pairing to both populate two CauseStarter boards *and* demonstrate modifieds / attester / nudges; the second job needs a gap where the commonality is something neither natural would say (compromise in the overlap, bilateral assurance, a costly unbundle, a fact-conditional). See [christian-secular-tiny-seed.md](/fake-data-generation/christian-secular-tiny-seed.md) § Still open.
+
+For that pairing, a triple whose commonality is just two campaign slogans (and whose modifieds are those slogans glued onto the naturals) is decorative. The load-bearing extra is usually:
+
+- keep each side’s *why* on the modified only;
+- state the shared conclusion without either foundation (that omission *is* the protection against adopting the other camp’s metaphysics — you do not need a sentence that says so);
+- on the modified, say where you **stop**, in the first person (not a theocracy; not waiting for the churches to die).
+
+A cooperative closer (“we come from different places”) is the same function as “I don’t need your reasons,” only politer, and it still reads as the statement knowing it is a bridge. Prefer not to use it. The family-formation anchors in the example config still have that closer; treat them as a reasons-kept / conclusion-shared *shape*, not as a license to narrate the coalition.
+
+Compare the family-formation anchors in that example config (a person talking, reasons kept, conclusion shared) with the 2026-08-25 tiny-seed abortion triple (slogan concatenation). The attester blessed both shapes. Only one is a demonstration of the product.
+
+### Tiny seed (what failed, then the rewrite)
+
+The 2026-08-25 [`christian-secular-bridge.json`](/fake-data-generation/seed-content/christian-secular-bridge.json) passed live attester designed-yes/designed-no by **subset-concatenation**. That is necessary and not sufficient. Failures of *shape*:
+
+| Group | What went wrong |
+|---|---|
+| Abortion | Pattern was “same conclusion, different language,” executed as copy-paste. Natural Christian already had “isn’t health care”; modified only inserts “ends a child’s life” so subset can fire. Commonality is two slogans, no reservation, no limiting principle. |
+| Markets | Closest to “different problems, same solution,” then opens with mediator-meta (“I come to this because…”). |
+| LGBT | Unbundling, but the Christian natural never mentioned the public-sexualization / youth-pipeline piece; modified *adds a program* without the verbose “I am not converting.” Commonality is “not my enemy, but” + a vivid hate-list. |
+| Uniques | These already sounded signable. That was a hint: the triples overfit the attester. |
+
+The later rewrite in that JSON follows the draft order above. Copy the *roles* (naturals on camp boards, modified+CG from the mediator, uniques with no triple). Style target remains the family-formation / kids-and-tech / religious-liberty anchors in the example mediator config.
+
 ## Map of the rest of the repo
 
 Read these; do not copy them into this file.
@@ -112,3 +161,9 @@ Read these; do not copy them into this file.
 - Natural camp talk treated as if it already implied the deal.
 - Asking the attester to connect “I care about X” and “I care about Y” into “I care about X and Y.”
 - Putting words in mouths at misunderstanding-pattern scale without persuasion content (that’s [Civility / noninflammatory content](/docs/end-user/shared/use-case-walkthroughs/noninflammatory-content.md), not the attester).
+- **Subset-by-concatenation:** commonality sentences pasted into each modified so the attester’s subset rule fires. A bless is a check on a draft, not a drafting algorithm.
+- **Withholding a line from the natural** so the modified can add it. Naturals are how people talk; they are not a puzzle box.
+- **Mediator-meta openings** (“I come to this because… not because…”).
+- **A commonality that still belongs to one camp’s rant**, with the other camp’s theology deleted.
+- **Belief jumps disguised as small edits** (unbundling that introduces issues the natural never held, without the verbose reaffirmation *and* without treating that as persuasion).
+- **Equidistant-by-default.** The commonality sits where the supermajority actually is, including when that is “extreme.”

@@ -4,54 +4,55 @@
   "title": "Christianity × secular conservatism (tiny seed)",
   "description": "Natural cause planks plus mediator-authored modified/commonality triples. Naturals go on the two CauseStarter boards. Modified and commonality are the mediator cluster. See fake-data-generation/christian-secular-tiny-seed.md.",
   "notes": [
-    "Commonality is the overlap both modifieds already assert, so the attester can bless modified → commonality as a subset. Camp voice (soul/murder, undo-button, SSM, church vs theory) stays on the modifieds, not on commonality.",
-    "Do not put modified texts on the camp cause boards.",
-    "Uniques have no triple."
+    "Draft order: gap named, naturals as speech, modifieds as smallest belief-change still in that camp's voice, commonality last, then check that each modified actually claims what the commonality claims. Camp *why* stays on the modifieds.",
+    "This pairing is mostly different-reasons-same-conclusion plus limiting principle — not a left/right gestational compromise. Do not put modified texts on the camp cause boards.",
+    "Uniques have no triple.",
+    "Prose target: family-formation / kids-and-tech voice in services/bridge-creator/config/christian-secular-conservative.example.json. Containment is a check, not copy-paste."
   ],
   "groups": [
     {
       "id": "abortion",
       "title": "Abortion",
       "notes": [
-        "Different phrasing, same conclusion — not a gestational-line compromise. Christians use soul/murder language; secular conservatives do not. Not the left/right abortion triple in hidden-majority-patterns.md."
+        "Different reasons, same conclusion — not the left/right 12–16 week deal. Naturals stay in camp voice. Modifieds keep the why and a first-person limit (not a theocracy). Commonality is only the civic pair — no 'we come from different places' narrator."
       ],
       "statements": [
         {
           "id": "natural-christian",
           "role": "natural-christian",
-          "text": "An unborn child still has a soul. Unless the mother's life is at stake, abortion isn't health care. Thou shalt not murder."
+          "text": "An unborn child still has a soul. Taking that life is murder."
         },
         {
           "id": "natural-secular",
           "role": "natural-secular",
-          "text": "Abortion ends a child's life. Maybe there are reasonable exceptions for mother's health and rape, but the overwhelming majority of abortions are done by irresponsible people who simply want an undo button."
+          "text": "Abortion ends a child's life. Maybe rape and the mother's health are real edge cases, but the overwhelming majority are people who simply want an undo button."
         },
         {
           "id": "modified-christian",
           "role": "modified-christian",
-          "text": "An unborn child still has a soul. Abortion ends a child's life. Unless the mother's life is at stake, abortion isn't health care. Thou shalt not murder."
+          "text": "An unborn child still has a soul, and taking that life is murder — that's why this matters to me. Elective abortion should not be treated as ordinary health care. A threat to the mother's life is not a license for an undo button. I am not asking the state to make anyone pray."
         },
         {
           "id": "modified-secular",
           "role": "modified-secular",
-          "text": "Abortion ends a child's life. Unless the mother's life is at stake, abortion isn't health care. Maybe there are reasonable exceptions for mother's health and rape, but the overwhelming majority of abortions are done by irresponsible people who simply want an undo button."
+          "text": "Abortion ends a child's life; what I see in the ordinary case is an undo button, not medicine. Elective abortion should not be treated as ordinary health care. A threat to the mother's life is not a license for an undo button."
         },
         {
           "id": "commonality",
           "role": "commonality",
-          "text": "Abortion ends a child's life. Unless the mother's life is at stake, abortion isn't health care."
+          "text": "Elective abortion should not be treated as ordinary health care. A threat to the mother's life is not a license for an undo button."
         }
       ],
       "implicationNotes": [
         "Expect yes: modified-christian → commonality, modified-secular → commonality.",
-        "Expect no: either natural → commonality; either modified → the other modified; commonality → either modified."
+        "Expect no: either natural → commonality (naturals never state the civic pair); either modified → the other modified; commonality → either modified."
       ]
     },
     {
       "id": "markets",
       "title": "Markets and provision for the poor",
       "notes": [
-        "Different reasons, same conclusion. Commonality is the conclusion with neither stewardship nor Hayek attached."
+        "Different reasons, same conclusion. Commonality is only the conclusion — neither stewardship, nor Hayek, nor a comment on whose why."
       ],
       "statements": [
         {
@@ -67,29 +68,29 @@
         {
           "id": "modified-christian",
           "role": "modified-christian",
-          "text": "I come to this because I think caring for the poor is the church's work, not because I think the market is an idol. Still, markets do generally create prosperity, and I want ordinary people to be able to earn a living and keep more of what they earn. I do not want a larger welfare state as the default way of providing for poor people; private charity and local help, including the church, should do more of that work."
+          "text": "Caring for the poor is the church's work — neighbors, not clients of an office. Markets generally let ordinary people earn a living and keep more of what they earn. Private charity and local help, including the church, should do more of providing for poor people than a larger welfare state."
         },
         {
           "id": "modified-secular",
           "role": "modified-secular",
-          "text": "I come to this from observed outcomes and economic theory, not for religious reasons. Markets do generally create prosperity, and I want ordinary people to be able to earn a living and keep more of what they earn. I do not want a larger welfare state as the default way of providing for poor people; private charity and local help, including religious organizations, should do more of that work."
+          "text": "The dependence numbers and the growth numbers are enough for me. Markets generally let ordinary people earn a living and keep more of what they earn. Private charity and local help, including churches I don't sit in, should do more of providing for poor people than a larger welfare state."
         },
         {
           "id": "commonality",
           "role": "commonality",
-          "text": "Markets do generally create prosperity, and I want ordinary people to be able to earn a living and keep more of what they earn. I do not want a larger welfare state as the default way of providing for poor people; private charity and local help should do more of that work."
+          "text": "Markets generally let ordinary people earn a living and keep more of what they earn. Private charity and local help should do more of providing for poor people than a larger welfare state."
         }
       ],
       "implicationNotes": [
         "Expect yes: modified-christian → commonality, modified-secular → commonality.",
-        "Expect no: either natural → commonality."
+        "Expect no: either natural → commonality (no shared civic formulation)."
       ]
     },
     {
       "id": "lgbt",
       "title": "LGBT unbundling",
       "notes": [
-        "Unbundle gay adults from public sexualization and from rushing minors into medical transition. Commonality does not require Christians to affirm same-sex marriage or secular signers to call homosexual acts a sin."
+        "Unbundle gay adults from sexualizing children and from rushing minors into medical transition. Christian natural stays marriage/sin/'not my enemy' and does not already name the civic list. Modified-christian reaffirms the faith bundle, then states the civic piece so signing is not a conversion. Commonality does not require SSM or 'this is a sin.'"
       ],
       "statements": [
         {
@@ -100,33 +101,33 @@
         {
           "id": "natural-secular",
           "role": "natural-secular",
-          "text": "Gay adults should be able to marry; they're participating as best they're able in upholding healthy societal norms of monogamy. That is very different from Drag Queen Story Hour, or \"Pride\" parades where scantily-clad men prance around in broad daylight, or schools treating gender-distressed kids as a medical-transition pipeline; those are destructive."
+          "text": "Gay adults should be able to marry; they're participating as best they're able in upholding healthy societal norms of monogamy. That is very different from putting children in sexualized public events, or from schools treating gender-distressed kids as a medical-transition pipeline."
         },
         {
           "id": "modified-christian",
           "role": "modified-christian",
-          "text": "Scripture says marriage is between a man and a woman. I do believe that what they're doing is a sin. Gay people are not my enemy, but Drag Queen Story Hour, \"Pride\" parades where scantily-clad men prance around in broad daylight, and schools treating gender-distressed kids as a medical-transition pipeline are destructive."
+          "text": "Scripture still says marriage is between a man and a woman, and I still believe homosexual acts are a sin — I am not signing this as a way of taking that back. Gay adults are not my enemies. Children should not be put in sexualized public events, including drag story hours and exhibitionist Pride in front of kids, and schools should not treat gender-distressed minors as a medical-transition pipeline. I can hold all of that without pretending I now bless same-sex marriage, and without asking anyone else to call it sin."
         },
         {
           "id": "modified-secular",
           "role": "modified-secular",
-          "text": "Gay adults should be able to marry; they're participating as best they're able in upholding healthy societal norms of monogamy. Gay people are not my enemy, but Drag Queen Story Hour, \"Pride\" parades where scantily-clad men prance around in broad daylight, and schools treating gender-distressed kids as a medical-transition pipeline are destructive."
+          "text": "Gay adults should be able to marry; they're participating as best they're able in upholding healthy societal norms of monogamy, and I am not taking that back. Gay adults are not my enemies. Children should not be put in sexualized public events, including drag story hours and exhibitionist Pride in front of kids, and schools should not treat gender-distressed minors as a medical-transition pipeline. I can hold that without attending church, and without asking Christians to bless the marriages."
         },
         {
           "id": "commonality",
           "role": "commonality",
-          "text": "Gay people are not my enemy, but Drag Queen Story Hour, \"Pride\" parades where scantily-clad men prance around in broad daylight, and schools treating gender-distressed kids as a medical-transition pipeline are destructive."
+          "text": "Gay adults are not my enemies. Children should not be put in sexualized public events, including drag story hours and exhibitionist Pride in front of kids, and schools should not treat gender-distressed minors as a medical-transition pipeline."
         }
       ],
       "implicationNotes": [
         "Expect yes: modified-christian → commonality, modified-secular → commonality.",
-        "Expect no: natural-christian → commonality (does not mention DQSH / Pride / the pipeline); modified-christian → modified-secular (adds SSM and drops sin)."
+        "Expect no: natural-christian → commonality (does not name the civic list); modified-christian → modified-secular (adds SSM and drops sin)."
       ]
     },
     {
       "id": "scripture",
       "title": "Scripture available (Christian unique)",
-      "notes": ["No bridge triple."],
+      "notes": ["No bridge triple. Ordinary single-issue plank; does not need peculiar syntax."],
       "statements": [
         {
           "id": "natural-christian",
@@ -138,7 +139,7 @@
     {
       "id": "colorblind-merit",
       "title": "Colorblind merit (secular unique)",
-      "notes": ["No bridge triple."],
+      "notes": ["No bridge triple. Ordinary single-issue plank; does not need peculiar syntax."],
       "statements": [
         {
           "id": "natural-secular",
