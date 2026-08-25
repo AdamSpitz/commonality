@@ -31,16 +31,16 @@
     },
     {
       "id": "first-trimester-clinic",
-      "name": "First-trimester decision clinic",
-      "description": "A clinic that offers genuine early-pregnancy options counselling and medical care, and does not offer later-term abortions.",
+      "name": "Crisis pregnancy help, not an abortuary",
+      "description": "A clinic that offers ultrasounds, material help, and genuine alternatives to abortion. It does not treat abortion as health care.",
       "kind": "abortion-bridge",
       "ownerIndex": 2,
       "alignments": ["abortion/modified-christian"]
     },
     {
       "id": "late-term-ban-brief",
-      "name": "Late-term restriction legal brief",
-      "description": "A short public brief on enforceable post-16-week restrictions with medical exceptions — not a total ban from conception.",
+      "name": "Elective-abortion restriction brief",
+      "description": "A short public brief arguing that elective abortion is not health care and that life-of-the-mother exceptions are not a license for an undo button.",
       "kind": "abortion-bridge",
       "ownerIndex": 3,
       "alignments": ["abortion/modified-secular"]
@@ -63,8 +63,8 @@
     },
     {
       "id": "minors-transition-pause",
-      "name": "Minors: exploratory care, not a pipeline",
-      "description": "A clinic protocol and parent-education series that treats gender-distressed minors with therapy first, not medical transition as the default.",
+      "name": "Keep schools and libraries off the pipeline",
+      "description": "Parent-education and school-board work against Drag Queen Story Hour, exhibitionist Pride events around kids, and treating gender-distressed minors as a medical-transition pipeline.",
       "kind": "lgbt-bridge",
       "ownerIndex": 5,
       "alignments": ["lgbt/modified-christian", "lgbt/modified-secular"]

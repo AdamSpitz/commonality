@@ -4,7 +4,7 @@
   "title": "Christianity × secular conservatism (tiny seed)",
   "description": "Natural cause planks plus mediator-authored modified/commonality triples. Naturals go on the two CauseStarter boards. Modified and commonality are the mediator cluster. See fake-data-generation/christian-secular-tiny-seed.md.",
   "notes": [
-    "Modified statements copy the commonality sentences so the implication attester can bless modified → commonality as a subset.",
+    "Commonality is the overlap both modifieds already assert, so the attester can bless modified → commonality as a subset. Camp voice (soul/murder, undo-button, SSM, church vs theory) stays on the modifieds, not on commonality.",
     "Do not put modified texts on the camp cause boards.",
     "Uniques have no triple."
   ],
@@ -13,33 +13,33 @@
       "id": "abortion",
       "title": "Abortion",
       "notes": [
-        "Compromise in the middle, inside the right: sanctity-of-life vs late-term horror / no theocracy. Not the left/right abortion triple in hidden-majority-patterns.md."
+        "Different phrasing, same conclusion — not a gestational-line compromise. Christians use soul/murder language; secular conservatives do not. Not the left/right abortion triple in hidden-majority-patterns.md."
       ],
       "statements": [
         {
           "id": "natural-christian",
           "role": "natural-christian",
-          "text": "Abortion ends a child's life. I don't think of it as ordinary healthcare, and I want far fewer of them."
+          "text": "An unborn child still has a soul. Unless the mother's life is at stake, abortion isn't health care. Thou shalt not murder."
         },
         {
           "id": "natural-secular",
           "role": "natural-secular",
-          "text": "Late-term abortion is horrific. Early pregnancy is more complicated, and I don't want the state enforcing a church teaching on people who don't believe it."
+          "text": "Abortion ends a child's life. Maybe there are reasonable exceptions for mother's health and rape, but the overwhelming majority of abortions are done by irresponsible people who simply want an undo button."
         },
         {
           "id": "modified-christian",
           "role": "modified-christian",
-          "text": "Abortion ends a child's life, and I'd prefer far fewer abortions. I still don't want the law to leave a woman no time to decide. I'd be okay with it if abortion were allowed during the first 12-16 weeks and forbidden after that except in serious medical situations. This isn't my ideal outcome, but I'd rather get this settled than keep fighting over it forever."
+          "text": "An unborn child still has a soul. Abortion ends a child's life. Unless the mother's life is at stake, abortion isn't health care. Thou shalt not murder."
         },
         {
           "id": "modified-secular",
           "role": "modified-secular",
-          "text": "Late-term abortion is horrific. I'd still rather not see abortions early in pregnancy, but I don't feel as strongly about that, and I don't need the law to encode a religious claim. I'd be okay with it if abortion were allowed during the first 12-16 weeks and forbidden after that except in serious medical situations. This isn't my ideal outcome, but I'd rather get this settled than keep fighting over it forever."
+          "text": "Abortion ends a child's life. Unless the mother's life is at stake, abortion isn't health care. Maybe there are reasonable exceptions for mother's health and rape, but the overwhelming majority of abortions are done by irresponsible people who simply want an undo button."
         },
         {
           "id": "commonality",
           "role": "commonality",
-          "text": "I'd be okay with it if abortion were allowed during the first 12-16 weeks and forbidden after that except in serious medical situations. This isn't my ideal outcome, but I'd rather get this settled than keep fighting over it forever."
+          "text": "Abortion ends a child's life. Unless the mother's life is at stake, abortion isn't health care."
         }
       ],
       "implicationNotes": [
@@ -67,17 +67,17 @@
         {
           "id": "modified-christian",
           "role": "modified-christian",
-          "text": "I come to this because I think caring for the poor is the church's work, not because I think the market is an idol. I want ordinary people to be able to earn a living and keep more of what they earn. I do not want a larger welfare state as the default way of providing for people; private charity and local help should do more of that work. The remaining safety-net details can be argued separately, in good faith."
+          "text": "I come to this because I think caring for the poor is the church's work, not because I think the market is an idol. Still, markets do generally create prosperity, and I want ordinary people to be able to earn a living and keep more of what they earn. I do not want a larger welfare state as the default way of providing for poor people; private charity and local help, including the church, should do more of that work."
         },
         {
           "id": "modified-secular",
           "role": "modified-secular",
-          "text": "I come to this from observed outcomes, not from Scripture. I want ordinary people to be able to earn a living and keep more of what they earn. I do not want a larger welfare state as the default way of providing for people; private charity and local help should do more of that work. The remaining safety-net details can be argued separately, in good faith."
+          "text": "I come to this from observed outcomes and economic theory, not for religious reasons. Markets do generally create prosperity, and I want ordinary people to be able to earn a living and keep more of what they earn. I do not want a larger welfare state as the default way of providing for poor people; private charity and local help, including religious organizations, should do more of that work."
         },
         {
           "id": "commonality",
           "role": "commonality",
-          "text": "I want ordinary people to be able to earn a living and keep more of what they earn. I do not want a larger welfare state as the default way of providing for people; private charity and local help should do more of that work. The remaining safety-net details can be argued separately, in good faith."
+          "text": "Markets do generally create prosperity, and I want ordinary people to be able to earn a living and keep more of what they earn. I do not want a larger welfare state as the default way of providing for poor people; private charity and local help should do more of that work."
         }
       ],
       "implicationNotes": [
@@ -89,38 +89,38 @@
       "id": "lgbt",
       "title": "LGBT unbundling",
       "notes": [
-        "Atomize adult gay neighbors from rushing minors into medical transition. Reaffirm so signing is not betrayal. Commonality does not require Christians to affirm same-sex marriage or secular signers to affirm a theology of sex."
+        "Unbundle gay adults from public sexualization and from rushing minors into medical transition. Commonality does not require Christians to affirm same-sex marriage or secular signers to call homosexual acts a sin."
       ],
       "statements": [
         {
           "id": "natural-christian",
           "role": "natural-christian",
-          "text": "Marriage, as I understand it from Scripture, is a man and a woman. I still don't want to treat gay people as enemies."
+          "text": "Scripture says marriage is between a man and a woman. Gay people are not my enemy, but I do believe that what they're doing is a sin."
         },
         {
           "id": "natural-secular",
           "role": "natural-secular",
-          "text": "Gay adults should be able to marry. Schools treating gender-distressed kids as a medical-transition pipeline is a different issue, and I don't want that."
+          "text": "Gay adults should be able to marry; they're participating as best they're able in upholding healthy societal norms of monogamy. That is very different from Drag Queen Story Hour, or \"Pride\" parades where scantily-clad men prance around in broad daylight, or schools treating gender-distressed kids as a medical-transition pipeline; those are destructive."
         },
         {
           "id": "modified-christian",
           "role": "modified-christian",
-          "text": "I still believe marriage, in the Christian sense, is a man and a woman. Gay adults should be treated as neighbors, not enemies. Whatever the civil law does about adult relationships, I do not want schools or clinics to rush minors into medical transition."
+          "text": "Scripture says marriage is between a man and a woman. I do believe that what they're doing is a sin. Gay people are not my enemy, but Drag Queen Story Hour, \"Pride\" parades where scantily-clad men prance around in broad daylight, and schools treating gender-distressed kids as a medical-transition pipeline are destructive."
         },
         {
           "id": "modified-secular",
           "role": "modified-secular",
-          "text": "I support same-sex civil marriage for adults. Gay adults should be treated as neighbors, not enemies. Whatever the civil law does about adult relationships, I do not want schools or clinics to rush minors into medical transition."
+          "text": "Gay adults should be able to marry; they're participating as best they're able in upholding healthy societal norms of monogamy. Gay people are not my enemy, but Drag Queen Story Hour, \"Pride\" parades where scantily-clad men prance around in broad daylight, and schools treating gender-distressed kids as a medical-transition pipeline are destructive."
         },
         {
           "id": "commonality",
           "role": "commonality",
-          "text": "Gay adults should be treated as neighbors, not enemies. Whatever the civil law does about adult relationships, I do not want schools or clinics to rush minors into medical transition."
+          "text": "Gay people are not my enemy, but Drag Queen Story Hour, \"Pride\" parades where scantily-clad men prance around in broad daylight, and schools treating gender-distressed kids as a medical-transition pipeline are destructive."
         }
       ],
       "implicationNotes": [
         "Expect yes: modified-christian → commonality, modified-secular → commonality.",
-        "Expect no: natural-christian → commonality (does not mention minors / medical transition); modified-christian → modified-secular (adds SSM)."
+        "Expect no: natural-christian → commonality (does not mention DQSH / Pride / the pipeline); modified-christian → modified-secular (adds SSM and drops sin)."
       ]
     },
     {
