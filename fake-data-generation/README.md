@@ -92,6 +92,8 @@ Generated files are split into two directories to make their lifecycle explicit:
 
 ## Formal Seed Content
 
+Statement *shape* (modified vs natural vs commonality, what the implication attester will bless) is documented in [`specs/product/statements-are-peculiar-for-good-reasons.md`](../specs/product/statements-are-peculiar-for-good-reasons.md). `gen:tiny` does **not** load this corpus as the main statement set.
+
 The curated seed statements for the real system now live in `seed-content/*.json` using a small formal schema:
 
 - one JSON file per seed-content purpose (`fundable-projects`, `hidden-majority`, `meta`, `content-funding`)

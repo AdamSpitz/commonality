@@ -12,6 +12,7 @@ Product-manager-level planning documents. These describe *what* to build and *wh
 - **[content.md](content.md)** — Content bootstrapping: seeding statements, AI-assisted content discovery, solving the empty-field problem.
 - **[ai-assistance.md](ai-assistance.md)** — AI skills for helping users navigate the system (implication attester, alignment helper, etc.)
 - **[bridge-finder.md](bridge-finder.md)** — A focused finder for hidden-majority patterns (speculative)
+- **[statements-are-peculiar-for-good-reasons.md](statements-are-peculiar-for-good-reasons.md)** — Index for why statement wording is verbose/finicky (implication vs nudge vs modified layer). Read this before writing seed statements or bridge clusters.
 - **[bridge-creator.md](bridge-creator.md)** — Actively synthesizing common-ground statements and getting them in front of people (speculative)
 - **[bridge-building-for-founders.md](bridge-building-for-founders.md)** — Turning the CSM bridge-creator into a building block any cause founder can adopt ("a mediator for your cause"): what's already generic, the four places CSM-ness actually lives, a tiered plan, and why the beat-agent rehearsal gates it.
 - **[bridge-causes.md](bridge-causes.md)** — Present a mediator as natural / modified / bridge causes (\(n+1\) publications); human authors can write the cluster without an LLM loop. Does not replace statement-level triples.

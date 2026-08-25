@@ -2,6 +2,8 @@
 
 This document covers our thinking about *why* we need seed content, *what kind* to create, and *how* to do it.
 
+Wording is not free-form slogans: see [why statements are peculiar](/specs/product/statements-are-peculiar-for-good-reasons.md). Curated JSON that does not pass the implication attester (modified → commonality) is not done. Default `./scripts/data.sh --seed` (**tiny**) currently publishes generated `universe.json` statements, not this corpus.
+
 See this directory for concrete examples.
 
 The formal machine-readable source now lives in [`fake-data-generation/seed-content/`](/fake-data-generation/seed-content/). Use the scripts documented in [`fake-data-generation/README.md`](/fake-data-generation/README.md) to:
