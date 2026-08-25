@@ -13,6 +13,7 @@ services/implication-attester/dist
 published-data-ipfs-mirror/dist/
 hardhat/deployments/
 deployments/localhost.env
+deployments/localhost.contracts-manifest.json
 deployments/operator-addresses.env
 /data
 sdk/src/generated/
