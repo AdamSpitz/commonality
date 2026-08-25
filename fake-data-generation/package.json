@@ -19,7 +19,7 @@
     "gen:attesters": "tsx generateAttesters.ts",
     "gen:attestations": "tsx generateAttestations.ts",
     "gen:simulate": "tsx runSimulation.ts",
-    "gen:tiny": "tsx runSimulation.ts 5 1 --statement-limit=12 --max-actions-per-user=2 --skip-invariants",
+    "gen:tiny": "tsx runSimulation.ts 5 1 --statement-limit=0 --max-actions-per-user=2 --skip-invariants",
     "gen:small": "tsx runSimulation.ts 10 3 --skip-invariants",
     "gen:seed:local": "npm run gen:seed:universe -- --exclude-proliferation && tsx runSimulation.ts 12 3 --universe=output/seed-universe.json --publish-seed-worker-outputs",
     "gen:seed:leaderboard": "tsx seedLeaderboardActivity.ts",

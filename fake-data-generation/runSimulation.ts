@@ -487,6 +487,13 @@ class SimulationRunner {
   }
 
   async performAction(actionType: string, user: User): Promise<void> {
+    const needsStatements = actionType === 'setBelief'
+      || actionType === 'setBeliefsInBatch'
+      || actionType === 'attestImplication';
+    if (needsStatements && this.statements.length === 0) {
+      return;
+    }
+
     const clients = this.getClientsForUser(user);
     const publicClient = clients.publicClient;
 

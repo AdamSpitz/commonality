@@ -35,18 +35,17 @@ Modified texts **copy the commonality sentences** so the attester’s subset rul
 - [x] This plan file.
 - [x] Author seed JSON (8 naturals + 3 triples).
 - [x] Live attester (2026-08-25, `deepseek/deepseek-v3.2`): all 6 designed **yes** pairs blessed (high / subset); all 6 designed **no** pairs refused. Script: `npm run gen:seed:christian-secular-implications`.
-- [x] Point `CHRISTIANITY_PLANKS` / `SECULAR_CONSERVATIVE_PLANKS` at the naturals; publish modified+CG as mediator (#8) statements. **Nudge batches parent→modified still TODO.**
+- [x] Point `CHRISTIANITY_PLANKS` / `SECULAR_CONSERVATIVE_PLANKS` at the naturals; publish modified+CG as mediator (#8) statements.
 - [x] Persona JSON (`data/christian-secular-personas.json`) + driver in `seedChristianityCause.ts`: persona-based signs, 10 projects, mixed natural vs modified alignments, unique-only scripture + colorblind negatives.
-- [ ] Make `gen:tiny` load this instead of 12 random universe statements (Christianity seed already runs on every seed size; random universe statements still published).
+- [x] Make `gen:tiny` skip the 12 random `universe.json` statements (`--statement-limit=0`; Christianity/secular + local-food still seed).
 - [x] `seedMetadata.test.ts` plank counts 4/4 and 10 projects. Common Table retargeted to `scripture/natural-christian`.
+- [x] Nudge batches: Hardhat #8 publishes 6 parent-natural → modified suggestions (`NATURAL_TO_MODIFIED_NUDGES`).
+- [x] On-chain implications: local implication attester replays 6 blessed modified→CG arrows (`BLESSED_MODIFIED_TO_COMMONALITY`).
 - [ ] Optional: align bridge-creator example anchors with these texts later; do not fork a second abortion triple in hidden-majority-patterns.
 
 ## Still open (resume here)
 
-1. **Nudge batches.** Publish parent→modified nudges from Hardhat #8 so the mediator card is not a dead link. Naturals are the parents; modifieds are the suggestions.
-2. **`gen:tiny` still publishes 12 random `universe.json` statements.** Christianity/secular cluster already runs on every seed size; tiny should stop dumping the unrelated generated slice once this cluster is the tiny story.
-3. **Live wipe-and-reseed + CauseStarter click-through.** Not done this session. After (1)–(2), `./scripts/data.sh --wipe` + `--seed=tiny` and check both cause boards, modified alignments crossing via CG, and unique-only projects *not* crossing.
-4. **On-chain implication attestations.** We only ran the LLM evaluator (`evaluateChristianSecularBridge.ts`). Seeding still needs the blessed modified→CG arrows actually published on chain (replay stored decisions, same pattern as `seed-implication-evaluations.*`).
+1. **CauseStarter click-through.** Full wipe+reseed done 2026-08-25 (`./scripts/stop-wipe-restart.sh --seed`, ~2m33s). Tiny published 0 random universe statements, 6 mediator nudges, 6 modified→CG arrows, both cause boards. UI walk (CG crossing, unique-only not crossing) not done in that pass. Prospective-round content scenario still failed (`Failed to find ProspectiveRoundCreated event`); local-food + Christianity continued.
 
 ## Resume hints
 

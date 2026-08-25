@@ -2,7 +2,7 @@
 
 This document covers our thinking about *why* we need seed content, *what kind* to create, and *how* to do it.
 
-Wording is not free-form slogans: see [why statements are peculiar](/specs/product/statements-are-peculiar-for-good-reasons.md). Curated JSON that does not pass the implication attester (modified → commonality) is not done. Default `./scripts/data.sh --seed` (**tiny**) currently publishes generated `universe.json` statements, not this corpus.
+Wording is not free-form slogans: see [why statements are peculiar](/specs/product/statements-are-peculiar-for-good-reasons.md). Curated JSON that does not pass the implication attester (modified → commonality) is not done. Default `./scripts/data.sh --seed` (**tiny**) publishes the Christianity × secular-conservatism CauseStarter cluster plus local-food, not a random `universe.json` slice.
 
 See this directory for concrete examples.
 

@@ -35,6 +35,10 @@ import {
   CHRISTIAN_MEDIATOR_NAME,
   christianityRosterFields,
 } from '../seedChristianityCause.js';
+import {
+  BLESSED_MODIFIED_TO_COMMONALITY,
+  NATURAL_TO_MODIFIED_NUDGES,
+} from '../christianSecularBridge.js';
 import { seedChristianContentAlignmentCanonicalIds } from '../contentFundingActions.js';
 import { createStatementDocumentFromSeed, flattenSeedStatements, loadSeedCollections } from '../seed-content-format.js';
 
@@ -199,4 +203,17 @@ test('secular-conservative seed roster is a distinct founder cause', () => {
   assert.equal(fields.title, 'Secular conservatism');
   assert.equal(SECULAR_CONSERVATIVE_PLANKS.length, 4);
   assert.equal(fields.mediatorBlurb, '');
+});
+
+test('christian-secular bridge has parent→modified nudges and blessed modified→CG arrows', () => {
+  assert.equal(NATURAL_TO_MODIFIED_NUDGES.length, 6);
+  assert.equal(BLESSED_MODIFIED_TO_COMMONALITY.length, 6);
+  for (const pair of NATURAL_TO_MODIFIED_NUDGES) {
+    assert.match(pair.target, /\/natural-/);
+    assert.match(pair.suggested, /\/modified-/);
+  }
+  for (const pair of BLESSED_MODIFIED_TO_COMMONALITY) {
+    assert.match(pair.from, /\/modified-/);
+    assert.match(pair.to, /\/commonality$/);
+  }
 });

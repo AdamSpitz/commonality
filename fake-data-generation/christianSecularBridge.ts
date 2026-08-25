@@ -52,3 +52,23 @@ export const MEDIATOR_STATEMENTS = [
   bridgeStatement('lgbt', 'modified-secular'),
   bridgeStatement('lgbt', 'commonality'),
 ] as const;
+
+/** Parent natural → mediator-authored modified (nudges from Hardhat #8). */
+export const NATURAL_TO_MODIFIED_NUDGES: ReadonlyArray<{ target: string; suggested: string }> = [
+  { target: 'abortion/natural-christian', suggested: 'abortion/modified-christian' },
+  { target: 'abortion/natural-secular', suggested: 'abortion/modified-secular' },
+  { target: 'markets/natural-christian', suggested: 'markets/modified-christian' },
+  { target: 'markets/natural-secular', suggested: 'markets/modified-secular' },
+  { target: 'lgbt/natural-christian', suggested: 'lgbt/modified-christian' },
+  { target: 'lgbt/natural-secular', suggested: 'lgbt/modified-secular' },
+];
+
+/** Designed-yes arrows the live attester already blessed (modified → commonality). */
+export const BLESSED_MODIFIED_TO_COMMONALITY: ReadonlyArray<{ from: string; to: string }> = [
+  { from: 'abortion/modified-christian', to: 'abortion/commonality' },
+  { from: 'abortion/modified-secular', to: 'abortion/commonality' },
+  { from: 'markets/modified-christian', to: 'markets/commonality' },
+  { from: 'markets/modified-secular', to: 'markets/commonality' },
+  { from: 'lgbt/modified-christian', to: 'lgbt/commonality' },
+  { from: 'lgbt/modified-secular', to: 'lgbt/commonality' },
+];

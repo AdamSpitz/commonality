@@ -34,7 +34,7 @@ That's it. This uses Docker Compose to start a local Hardhat blockchain, deploys
 
 The same env var is read by `scripts/deploy-causestarter.sh`. The allow-list lives in `scripts/ui-domains.mjs` (`resolveLocalPublishDomains`). CauseStarter's dedicated SPA on `:8090` is always started and is independent of this list.
 
-A local UI gateway then gives each **published** IPFS bundle a stable URL such as `http://causestarter.localhost:8088/#/`. Bookmark `http://localhost:8088/admin` for links to whatever was published. The latest CIDs, raw IPFS gateway URLs, and stable local URLs are written to `./data/ui-ipfs/<domain>/`. You can re-print the stable URLs any time with `./scripts/services.sh --url`. After that, run `./scripts/data.sh --seed` to populate the chain with fake data. The default is `--seed=tiny` (5 users, 1 round, 12 statements, no invariant pass). Use `--seed=small` for the older 10-user / 3-round set.
+A local UI gateway then gives each **published** IPFS bundle a stable URL such as `http://causestarter.localhost:8088/#/`. Bookmark `http://localhost:8088/admin` for links to whatever was published. The latest CIDs, raw IPFS gateway URLs, and stable local URLs are written to `./data/ui-ipfs/<domain>/`. You can re-print the stable URLs any time with `./scripts/services.sh --url`. After that, run `./scripts/data.sh --seed` to populate the chain with fake data. The default is `--seed=tiny` (5 users, 1 round, no random universe statements, no invariant pass). Use `--seed=small` for the older 10-user / 3-round set.
 
 For a clean local reset, use:
 

@@ -13,7 +13,9 @@ import {
   AlignmentAttestationsAbi,
   AssuranceContractAbi,
   BeliefsAbi,
+  ImplicationsAbi,
   MutableRefUpdaterAbi,
+  NudgePublicationsAbi,
   ProjectFactoryAbi,
   PublishedDataAbi,
   RecurringPledgesAbi,
@@ -28,7 +30,7 @@ import { buyProjectTokens, createProject as sdkCreateProject } from '@commonalit
 import { createSDKMachinery } from '@commonality/sdk/machinery';
 import { getRef, updateRef } from '@commonality/sdk/mutable-refs';
 import { createIPFSConfigInNodeJSFromTheUsualEnvVars } from '@commonality/sdk/node';
-import { cidToBytes32, type IpfsCidV1, type WriteClients } from '@commonality/sdk/utils';
+import { cidToBytes32, type IpfsCidV1, uploadToIPFS, type WriteClients } from '@commonality/sdk/utils';
 import { publishGeneratedStatement } from './generateStatements.js';
 import { HARDHAT_PRIVATE_KEYS } from './generateUsers.js';
 import { CONTRACT_ADDRESSES, loadEnv, RPC_URL } from './loadEnv.js';
@@ -45,8 +47,10 @@ import {
   type SeedCauseRosterFields,
 } from './seedCauseRoster.js';
 import {
+  BLESSED_MODIFIED_TO_COMMONALITY,
   CHRISTIANITY_NATURAL_PLANKS,
   MEDIATOR_STATEMENTS,
+  NATURAL_TO_MODIFIED_NUDGES,
   SECULAR_NATURAL_PLANKS,
 } from './christianSecularBridge.js';
 import { readFileSync } from 'fs';
@@ -197,6 +201,86 @@ async function publishPlanks(): Promise<Map<string, IpfsCidV1>> {
   await publishStatementSet(SECULAR_CONSERVATIVE_PLANKS, 'secular-conservatism', SECULAR_CONSERVATIVE_OWNER_KEY, cids);
   await publishStatementSet(MEDIATOR_STATEMENTS, 'christian-secular-bridge', CHRISTIAN_MEDIATOR_PRIVATE_KEY, cids);
   return cids;
+}
+
+async function publishMediatorNudges(cids: Map<string, IpfsCidV1>): Promise<void> {
+  const nudgePublications = process.env.NUDGE_PUBLICATIONS_CONTRACT_ADDRESS as `0x${string}` | undefined;
+  if (!nudgePublications) {
+    console.warn('NUDGE_PUBLICATIONS_CONTRACT_ADDRESS not configured — skipping mediator nudges.');
+    return;
+  }
+  const nudges = [];
+  for (const pair of NATURAL_TO_MODIFIED_NUDGES) {
+    const target = cids.get(pair.target);
+    const suggested = cids.get(pair.suggested);
+    if (!target || !suggested) {
+      console.warn(`  Missing CID for nudge ${pair.target} → ${pair.suggested}`);
+      continue;
+    }
+    nudges.push({
+      targetStatementCid: target,
+      suggestedStatementCid: suggested,
+      reason: 'Mediator wording that keeps your reasons while naming the overlapping claim.',
+      confidence: 0.9,
+    });
+  }
+  if (nudges.length === 0) return;
+
+  const mediator = createClients(CHRISTIAN_MEDIATOR_PRIVATE_KEY);
+  const ipfsConfig = createIPFSConfigInNodeJSFromTheUsualEnvVars();
+  const batch = {
+    kind: 'nudge-batch',
+    schemaVersion: 1,
+    nudger: mediator.account,
+    publishedAt: Math.floor(Date.now() / 1000),
+    nudges,
+    revocations: [],
+  };
+  const batchCid = await uploadToIPFS(ipfsConfig, batch);
+  const hash = await mediator.walletClient.writeContract({
+    address: nudgePublications,
+    abi: NudgePublicationsAbi,
+    functionName: 'publishNudgeBatch',
+    args: [cidToBytes32(batchCid)],
+    chain: mediator.walletClient.chain,
+    account: mediator.walletClient.account,
+  });
+  await mediator.publicClient.waitForTransactionReceipt({ hash });
+  console.log(`  ✓ Mediator nudge batch (${nudges.length} parent→modified): ${batchCid}`);
+}
+
+async function attestBlessedImplications(cids: Map<string, IpfsCidV1>): Promise<void> {
+  const implications = CONTRACT_ADDRESSES.implications as `0x${string}` | undefined;
+  const attesterKey = process.env.IMPLICATION_ATTESTER_PRIVATE_KEY as `0x${string}` | undefined;
+  if (!implications || !attesterKey) {
+    console.warn('Implications contract or IMPLICATION_ATTESTER_PRIVATE_KEY missing — skipping designed arrows.');
+    return;
+  }
+  const clients = createClients(attesterKey);
+  let attested = 0;
+  for (const pair of BLESSED_MODIFIED_TO_COMMONALITY) {
+    const from = cids.get(pair.from);
+    const to = cids.get(pair.to);
+    if (!from || !to) {
+      console.warn(`  Missing CID for implication ${pair.from} → ${pair.to}`);
+      continue;
+    }
+    const hash = await clients.walletClient.writeContract({
+      address: implications,
+      abi: ImplicationsAbi,
+      functionName: 'attestImplication',
+      args: [
+        cidToBytes32(from),
+        cidToBytes32(to),
+        '0x0000000000000000000000000000000000000000000000000000000000000000',
+      ],
+      chain: clients.walletClient.chain,
+      account: clients.walletClient.account,
+    });
+    await clients.publicClient.waitForTransactionReceipt({ hash });
+    attested += 1;
+  }
+  console.log(`  ✓ Replayed ${attested} blessed modified→commonality implications`);
 }
 
 function modifiedIdForNatural(naturalId: string, camp: 'christian' | 'secular'): string | null {
@@ -528,6 +612,8 @@ export async function publishSeedChristianityCause(): Promise<{
 } | null> {
   console.log('\n=== Publishing seed CauseStarter roster (Christianity + mediator) ===\n');
   const plankMap = await publishPlanks();
+  await publishMediatorNudges(plankMap);
+  await attestBlessedImplications(plankMap);
   await signPlanks(plankMap);
   const projects = await createProjects(plankMap);
   await buyAndPledge(projects, plankMap);
