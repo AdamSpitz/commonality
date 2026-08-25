@@ -11,7 +11,7 @@ Each entry follows the same shape:
 
 [Full page](/docs/end-user/causestarter/index.md)
 
-- **What it is:** The newcomer briefing. Almost everyone arrives via a circulated cause URL, not a catalog. The page is a watch surface for **fundable projects** aligned with some of its statements — not a club, not a petition site. Signing is optional and free; pledging (refundable) and publishing work are the real jobs. After signing, CauseStarter **home** is a personal fundable-projects board (union over signed statements), not a private cause.
+- **What it is:** The newcomer briefing for a cause board. Almost everyone arrives via a circulated URL, not a catalog. A cause board is a published mix of independent statements; the centerpiece is **fundable projects** vouched as advancing *some* of those claims — not a club, not a charity, not a petition. Jobs: pledge (refundable, optionally delegated), direct funds (yours or others'), start a project, vouch alignment/success, optionally sign. After signing, CauseStarter **home** is a personal fundable-projects board. The pitch is ugh-removal: do only the part you'd do anyway; skip grant officers, black-box orgs, sucker-risk, manifesto-swallowing.
 - **When a user encounters it:** In-app `/docs`, or when they ask what this cause page is; returning users on CauseStarter `/`.
 - **What they might want help with:** What they can do without joining; how projects get on the list; pledging vs signing; when to start their own page vs using this one; finding “my” projects vs an organizer’s mix.
 
