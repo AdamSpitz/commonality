@@ -41,11 +41,57 @@ Modified texts **copy the commonality sentences** so the attester’s subset rul
 - [x] `seedMetadata.test.ts` plank counts 4/4 and 10 projects. Common Table retargeted to `scripture/natural-christian`.
 - [x] Nudge batches: Hardhat #8 publishes 6 parent-natural → modified suggestions (`NATURAL_TO_MODIFIED_NUDGES`).
 - [x] On-chain implications: local implication attester replays 6 blessed modified→CG arrows (`BLESSED_MODIFIED_TO_COMMONALITY`).
+- [x] CauseStarter click-through on the 2026-08-25 tiny seed (no reseed this pass).
 - [ ] Optional: align bridge-creator example anchors with these texts later; do not fork a second abortion triple in hidden-majority-patterns.
+- [x] CauseStarter **bridge cluster** under #8 (`christian-secular`): two modified rosters + bridge roster + cluster document. Tiny seed publishes it; `--cluster-only` republishes against an existing chain.
+- [ ] Prospective-round content scenario still failed at last seed (`Failed to find ProspectiveRoundCreated event`); local-food + Christianity continued. Unrelated to this cluster unless it starts blocking tiny.
 
 ## Still open (resume here)
 
-1. **CauseStarter click-through.** Full wipe+reseed done 2026-08-25 (`./scripts/stop-wipe-restart.sh --seed`, ~2m33s). Tiny published 0 random universe statements, 6 mediator nudges, 6 modified→CG arrows, both cause boards. UI walk (CG crossing, unique-only not crossing) not done in that pass. Prospective-round content scenario still failed (`Failed to find ProspectiveRoundCreated event`); local-food + Christianity continued.
+Nothing blocking this seed. Optional items above.
+
+## Bridge cluster (2026-08-25)
+
+Hardhat #8 refs:
+
+- Cluster: `/bridge/0x23618e81e3f5cdf7f54c3d65f7fbc0abf5b21e8f/christian-secular`
+- Modified Christianity: `/cause/0x23618e81e3f5cdf7f54c3d65f7fbc0abf5b21e8f/christian-secular-christianity-modified` (3 modified-christian planks)
+- Modified secular: `/cause/0x23618e81e3f5cdf7f54c3d65f7fbc0abf5b21e8f/christian-secular-secular-conservatism-modified`
+- Bridge cause: `/cause/0x23618e81e3f5cdf7f54c3d65f7fbc0abf5b21e8f/christian-secular-bridge` (3 commonality planks)
+- Six recorded pairs, all `modified-to-bridge` (same as `BLESSED_MODIFIED_TO_COMMONALITY`). Uniques are not in the cluster.
+
+Natural parent pages list the cluster **after this client has opened the cluster URL** (ADR 0011: remember opened citations; no crawl). Fresh browsers still say “No bridges yet” on Christianity/secular until that visit.
+
+`BridgeClusterPage` used to refetch forever (`routeRef` object identity in the load effect). Memoize `parseClusterRouteParams` on `owner`/`slugPart`. Docker/IPFS CauseStarter (`:8090`, `:8088`) still has the old bundle until republished; Vite (`npm run causestarter:dev`) shows the page.
+
+## CauseStarter UI walk (2026-08-25, existing local seed)
+
+CauseStarter at `http://causestarter.localhost:8088/#/`. Hardhat picker works.
+
+**Camp boards (naturals only)**
+
+- Christianity (`#0` / `christianity`): 4 natural planks. Fundable: Common Table, Parish winter warming, Parish marriage-prep, New-language Scripture draft, Campus chaplaincy. **No** first-trimester clinic, **no** colorblind amicus.
+- Secular conservatism (`#9` / `secular-conservatism`): 4 natural planks. Fundable: **only** Colorblind admissions amicus. **No** scripture draft, **no** modified-aligned bridge projects. Natural abortion/markets/lgbt planks show 0 projects (alignments sit on modified, not naturals).
+
+**Commonality crossing (modified → CG arrows live; attester `0x021b3C90931CAdDa12C0dCaB0407A622d717b02C` is trusted)**
+
+- Abortion CG (`bafybeihku3omeh5tkiwyvlmvy36ec6fr2vasgw3ld4qqtxtij2oqqydzum`): First-trimester decision clinic **and** Late-term restriction legal brief, both **Indirect**. Signers: 2 indirect (the two modified signers).
+- Markets CG: Trade apprenticeship match fund + Local charity effectiveness audit, Indirect.
+- LGBT CG: Minors: exploratory care, not a pipeline, Indirect.
+- Modified-christian abortion board: clinic **Direct** only (not the secular brief).
+- Modified-secular abortion board: late-term brief **Direct** only (not the clinic). MC does not imply MS.
+
+**Unique-only (must not cross)**
+
+- Scripture natural board: Common Table, Scripture draft, Campus chaplaincy. Not on the secular cause board. Hardhat #5 (secular nudge-taker) fundable list has no scripture project.
+- Colorblind amicus: only on the secular unique plank / secular cause. Not on Christianity.
+
+**Persona dashboards**
+
+- Hardhat #1 (christian, takesModified): 8 fundable = camp naturals + MC-aligned bridge projects. No colorblind, no MS-only late-term brief.
+- Hardhat #5 (secular, takesModified): 4 fundable = colorblind + MS-aligned + dual LGBT. No scripture unique, no MC-only clinic. Personal “fundable” is the union of **signed** statement boards (direct), not an extra union of implied CG. Crossing for the other camp’s modified-aligned project is on the **CG statement page**, which is the locked implication-direction rule.
+
+**Nudges.** Dashboard still shows no suggestions for subscribers of `#0`. Mediator `#8` published the parent→modified batch; the home “Suggesters” strip is subscribed to `#0`, not `#8`. Not a seed-content bug.
 
 ## Resume hints
 

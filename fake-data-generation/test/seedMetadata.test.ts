@@ -15,6 +15,9 @@ import {
   seedMixedContentAlignmentCanonicalIds,
 } from '../contentFundingActions.js';
 import {
+  BRIDGE_CLUSTER_KIND,
+  BRIDGE_CLUSTER_SCHEMA_VERSION,
+  buildSeedClusterDocument,
   buildSeedRosterDocument,
   CAUSE_BOOKMARKS_SCHEMA_VERSION,
   ROSTER_KIND,
@@ -34,6 +37,14 @@ import {
   CHRISTIAN_MEDIATOR_ADDRESS,
   CHRISTIAN_MEDIATOR_NAME,
   christianityRosterFields,
+  CHRISTIAN_SECULAR_CLUSTER_SLUG,
+  CHRISTIAN_MODIFIED_CAUSE_SLUG,
+  SECULAR_MODIFIED_CAUSE_SLUG,
+  CHRISTIAN_SECULAR_BRIDGE_CAUSE_SLUG,
+  christianModifiedRosterFields,
+  secularModifiedRosterFields,
+  christianSecularBridgeRosterFields,
+  christianSecularClusterFields,
 } from '../seedChristianityCause.js';
 import {
   BLESSED_MODIFIED_TO_COMMONALITY,
@@ -203,6 +214,59 @@ test('secular-conservative seed roster is a distinct founder cause', () => {
   assert.equal(fields.title, 'Secular conservatism');
   assert.equal(SECULAR_CONSERVATIVE_PLANKS.length, 4);
   assert.equal(fields.mediatorBlurb, '');
+});
+
+test('christian-secular seed cluster documents match CauseStarter extras', () => {
+  const modifiedCids = ['bafymc1', 'bafymc2', 'bafymc3'];
+  const modified = christianModifiedRosterFields(modifiedCids);
+  const modifiedDoc = buildSeedRosterDocument(modified);
+  assert.equal(modified.bridgeCluster?.role, 'modified');
+  assert.equal(modified.bridgeCluster?.clusterSlug, CHRISTIAN_SECULAR_CLUSTER_SLUG);
+  assert.equal(modified.bridgeCluster?.parentSlug, CHRISTIANITY_CAUSE_SLUG);
+  assert.equal(modifiedDoc.extras?.kind, ROSTER_KIND);
+  assert.deepEqual(modifiedDoc.extras?.bridgeCluster, {
+    clusterOwner: CHRISTIAN_MEDIATOR_ADDRESS.toLowerCase(),
+    clusterSlug: CHRISTIAN_SECULAR_CLUSTER_SLUG,
+    role: 'modified',
+    parentOwner: SEED_CAUSE_OWNER_ADDRESS.toLowerCase(),
+    parentSlug: CHRISTIANITY_CAUSE_SLUG,
+  });
+
+  const secularModified = secularModifiedRosterFields(['bafyms1']);
+  assert.equal(secularModified.bridgeCluster?.parentSlug, SECULAR_CONSERVATIVE_CAUSE_SLUG);
+  assert.equal(SECULAR_MODIFIED_CAUSE_SLUG, 'christian-secular-secular-conservatism-modified');
+
+  const bridge = christianSecularBridgeRosterFields(['bafycg1']);
+  const bridgeDoc = buildSeedRosterDocument(bridge);
+  assert.equal(bridge.bridgeCluster?.role, 'bridge');
+  assert.equal(bridge.bridgeCluster?.parentSlug, undefined);
+  assert.deepEqual(bridgeDoc.extras?.bridgeCluster, {
+    clusterOwner: CHRISTIAN_MEDIATOR_ADDRESS.toLowerCase(),
+    clusterSlug: CHRISTIAN_SECULAR_CLUSTER_SLUG,
+    role: 'bridge',
+  });
+  assert.equal(CHRISTIAN_MODIFIED_CAUSE_SLUG.length <= 64, true);
+  assert.equal(CHRISTIAN_SECULAR_BRIDGE_CAUSE_SLUG, 'christian-secular-bridge');
+
+  const cids = new Map<string, `b${string}`>([
+    ['abortion/modified-christian', 'bafymcab'],
+    ['abortion/commonality', 'bafycgab'],
+    ['abortion/modified-secular', 'bafymsab'],
+    ['markets/modified-christian', 'bafymcmc'],
+    ['markets/commonality', 'bafycgmc'],
+    ['markets/modified-secular', 'bafymsmc'],
+    ['lgbt/modified-christian', 'bafymclg'],
+    ['lgbt/commonality', 'bafycglg'],
+    ['lgbt/modified-secular', 'bafymslg'],
+  ]);
+  const cluster = christianSecularClusterFields(cids);
+  assert.equal(cluster.pairs.length, 6);
+  assert.ok(cluster.pairs.every((pair) => pair.role === 'modified-to-bridge'));
+  const clusterDoc = buildSeedClusterDocument(cluster);
+  assert.equal(clusterDoc.extras?.kind, BRIDGE_CLUSTER_KIND);
+  assert.equal(clusterDoc.extras?.version, BRIDGE_CLUSTER_SCHEMA_VERSION);
+  assert.equal(clusterDoc.extras?.mediatorAddress, CHRISTIAN_MEDIATOR_ADDRESS.toLowerCase());
+  assert.match(clusterDoc.content, /Natural parents/);
 });
 
 test('christian-secular bridge has parent→modified nudges and blessed modified→CG arrows', () => {

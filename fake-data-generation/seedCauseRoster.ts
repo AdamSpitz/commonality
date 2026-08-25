@@ -24,6 +24,8 @@ import { createSeedClients } from './seedRpc.js';
 
 export const ROSTER_KIND = 'causestarter.roster' as const;
 export const ROSTER_SCHEMA_VERSION = 1 as const;
+export const BRIDGE_CLUSTER_KIND = 'causestarter.bridge-cluster' as const;
+export const BRIDGE_CLUSTER_SCHEMA_VERSION = 1 as const;
 export const CAUSE_BOOKMARKS_REF = 'bookmarked-causes';
 export const CAUSE_BOOKMARKS_SCHEMA_VERSION = 1 as const;
 
@@ -57,12 +59,22 @@ export interface SeedCauseMediator {
   serviceUrl: string;
 }
 
+export interface SeedRosterBridgeLink {
+  clusterOwner: string;
+  clusterSlug: string;
+  role: 'modified' | 'bridge';
+  parentOwner?: string;
+  parentSlug?: string;
+}
+
 export interface SeedCauseRosterFields {
   title: string;
   summary: string;
   plankCids: string[];
   mediatorBlurb: string;
   mediator?: SeedCauseMediator;
+  /** Present on mediator-owned modified/bridge rosters, never on natural camp boards. */
+  bridgeCluster?: SeedRosterBridgeLink;
 }
 
 export function seedCauseRosterFields(plankCid: string): SeedCauseRosterFields {
@@ -104,6 +116,91 @@ export function buildSeedRosterDocument(fields: SeedCauseRosterFields) {
       plankCids: [...fields.plankCids],
       mediatorBlurb: fields.mediatorBlurb,
       ...(fields.mediator ? { mediator: fields.mediator } : {}),
+      ...(fields.bridgeCluster ? { bridgeCluster: normalizeSeedBridgeCluster(fields.bridgeCluster) } : {}),
+    },
+  });
+}
+
+function normalizeSeedBridgeCluster(link: SeedRosterBridgeLink): SeedRosterBridgeLink {
+  return {
+    clusterOwner: link.clusterOwner.toLowerCase(),
+    clusterSlug: link.clusterSlug,
+    role: link.role,
+    ...(link.parentOwner && link.parentSlug
+      ? { parentOwner: link.parentOwner.toLowerCase(), parentSlug: link.parentSlug }
+      : {}),
+  };
+}
+
+export interface SeedClusterPair {
+  fromCid: string;
+  toCid: string;
+  role: 'modified-to-bridge' | 'modified-to-parent' | 'parent-to-bridge';
+}
+
+export interface SeedBridgeClusterFields {
+  mediatorName: string;
+  mediatorNote: string;
+  mediatorAddress: string;
+  parents: Array<{ owner: string; slug: string }>;
+  modified: Array<{ owner: string; slug: string; parentOwner: string; parentSlug: string }>;
+  bridge: { owner: string; slug: string };
+  pairs: SeedClusterPair[];
+}
+
+export function renderSeedClusterContent(fields: SeedBridgeClusterFields): string {
+  const lines = [
+    '# Bridge cluster',
+    '',
+    `Mediator: ${fields.mediatorName.trim()}`,
+  ];
+  if (fields.mediatorNote.trim()) {
+    lines.push('', fields.mediatorNote.trim());
+  }
+  lines.push('', '## Natural parents');
+  for (const parent of fields.parents) {
+    lines.push(`- ${parent.owner.toLowerCase()}/${parent.slug}`);
+  }
+  lines.push('', '## Modified causes');
+  for (const modified of fields.modified) {
+    lines.push(
+      `- ${modified.owner.toLowerCase()}/${modified.slug} (from ${modified.parentOwner.toLowerCase()}/${modified.parentSlug})`,
+    );
+  }
+  lines.push('', '## Bridge cause', `- ${fields.bridge.owner.toLowerCase()}/${fields.bridge.slug}`);
+  lines.push('', '## Intended plank pairs');
+  for (const pair of fields.pairs) {
+    lines.push(`- ${pair.fromCid} → ${pair.toCid} (${pair.role})`);
+  }
+  return lines.join('\n');
+}
+
+export function buildSeedClusterDocument(fields: SeedBridgeClusterFields) {
+  const mediatorAddress = fields.mediatorAddress.toLowerCase();
+  return createDisplayableDocument({
+    format: 'markdown-restricted',
+    content: renderSeedClusterContent(fields),
+    extras: {
+      kind: BRIDGE_CLUSTER_KIND,
+      version: BRIDGE_CLUSTER_SCHEMA_VERSION,
+      mediatorName: fields.mediatorName.trim(),
+      mediatorNote: fields.mediatorNote.trim(),
+      mediatorAddress,
+      parents: fields.parents.map((parent) => ({
+        owner: parent.owner.toLowerCase(),
+        slug: parent.slug,
+      })),
+      modified: fields.modified.map((modified) => ({
+        owner: modified.owner.toLowerCase(),
+        slug: modified.slug,
+        parentOwner: modified.parentOwner.toLowerCase(),
+        parentSlug: modified.parentSlug,
+      })),
+      bridge: {
+        owner: fields.bridge.owner.toLowerCase(),
+        slug: fields.bridge.slug,
+      },
+      pairs: fields.pairs.map((pair) => ({ ...pair })),
     },
   });
 }

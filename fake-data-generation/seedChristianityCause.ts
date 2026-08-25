@@ -38,6 +38,7 @@ import { createSeedClients } from './seedRpc.js';
 import { parsePaymentTokenUnits } from './paymentTokenUnits.js';
 import { generateChristianContentScenario } from './contentFundingActions.js';
 import {
+  buildSeedClusterDocument,
   buildSeedRosterDocument,
   CAUSE_BOOKMARKS_REF,
   FUNDED_HARDHAT_DEV_KEYS,
@@ -111,6 +112,15 @@ export const SECULAR_CONSERVATIVE_CAUSE_TITLE = 'Secular conservatism';
 export const SECULAR_CONSERVATIVE_CAUSE_SUMMARY =
   'Secular conservatives, in their own words: abortion, markets, sex and marriage, and colorblind merit. Modified wordings live on the mediator cluster, not on this roster.';
 export const SECULAR_CONSERVATIVE_PLANKS = SECULAR_NATURAL_PLANKS;
+
+/** Mutable-ref slug for the published cluster document (Hardhat #8). */
+export const CHRISTIAN_SECULAR_CLUSTER_SLUG = 'christian-secular';
+export const CHRISTIAN_MODIFIED_CAUSE_SLUG = 'christian-secular-christianity-modified';
+export const SECULAR_MODIFIED_CAUSE_SLUG = 'christian-secular-secular-conservatism-modified';
+export const CHRISTIAN_SECULAR_BRIDGE_CAUSE_SLUG = 'christian-secular-bridge';
+
+export const CHRISTIAN_SECULAR_CLUSTER_NOTE =
+  'Mediator-authored modified wordings and shared planks. Natural camp boards stay as the camps wrote them. Scripture-in-every-language and colorblind merit are unique planks and are not in this cluster.';
 
 interface PersonaProject {
   id: string;
@@ -544,6 +554,9 @@ async function mergeBookmarks(): Promise<void> {
     { owner: SEED_CAUSE_OWNER_ADDRESS, slug: SEED_CAUSE_SLUG },
     { owner: SEED_CAUSE_OWNER_ADDRESS, slug: CHRISTIANITY_CAUSE_SLUG },
     { owner: SECULAR_CONSERVATIVE_OWNER_ADDRESS, slug: SECULAR_CONSERVATIVE_CAUSE_SLUG },
+    { owner: CHRISTIAN_MEDIATOR_ADDRESS, slug: CHRISTIAN_MODIFIED_CAUSE_SLUG },
+    { owner: CHRISTIAN_MEDIATOR_ADDRESS, slug: SECULAR_MODIFIED_CAUSE_SLUG },
+    { owner: CHRISTIAN_MEDIATOR_ADDRESS, slug: CHRISTIAN_SECULAR_BRIDGE_CAUSE_SLUG },
   ];
   const seen = new Set(existing.map((item) => `${item.owner.toLowerCase()}/${item.slug}`));
   const merged = [...existing];
@@ -574,16 +587,106 @@ export function christianityRosterFields(plankCids: string[]): SeedCauseRosterFi
   };
 }
 
-async function publishRoster(plankCids: string[]): Promise<string | null> {
+function clusterOwner(): `0x${string}` {
+  return CHRISTIAN_MEDIATOR_ADDRESS.toLowerCase() as `0x${string}`;
+}
+
+export function christianModifiedRosterFields(plankCids: string[]): SeedCauseRosterFields {
+  return {
+    title: 'Christianity (modified, mediator wording)',
+    summary:
+      'Mediator wording of practising-Christian planks that still imply the shared abortion, markets, and LGBT claims. Not an official revision of the Christianity cause.',
+    plankCids,
+    mediatorBlurb: '',
+    bridgeCluster: {
+      clusterOwner: clusterOwner(),
+      clusterSlug: CHRISTIAN_SECULAR_CLUSTER_SLUG,
+      role: 'modified',
+      parentOwner: SEED_CAUSE_OWNER_ADDRESS,
+      parentSlug: CHRISTIANITY_CAUSE_SLUG,
+    },
+  };
+}
+
+export function secularModifiedRosterFields(plankCids: string[]): SeedCauseRosterFields {
+  return {
+    title: 'Secular conservatism (modified, mediator wording)',
+    summary:
+      'Mediator wording of secular-conservative planks that still imply the shared abortion, markets, and LGBT claims. Not an official revision of the secular conservatism cause.',
+    plankCids,
+    mediatorBlurb: '',
+    bridgeCluster: {
+      clusterOwner: clusterOwner(),
+      clusterSlug: CHRISTIAN_SECULAR_CLUSTER_SLUG,
+      role: 'modified',
+      parentOwner: SECULAR_CONSERVATIVE_OWNER_ADDRESS,
+      parentSlug: SECULAR_CONSERVATIVE_CAUSE_SLUG,
+    },
+  };
+}
+
+export function christianSecularBridgeRosterFields(plankCids: string[]): SeedCauseRosterFields {
+  return {
+    title: 'Christian / secular shared ground',
+    summary:
+      'Bridge cause whose featured planks are implied by each modified wording. Unique camp planks (Scripture; colorblind merit) are not here.',
+    plankCids,
+    mediatorBlurb: '',
+    bridgeCluster: {
+      clusterOwner: clusterOwner(),
+      clusterSlug: CHRISTIAN_SECULAR_CLUSTER_SLUG,
+      role: 'bridge',
+    },
+  };
+}
+
+export function christianSecularClusterFields(cids: Map<string, IpfsCidV1>) {
+  const owner = clusterOwner();
+  const pairs = BLESSED_MODIFIED_TO_COMMONALITY.flatMap((pair) => {
+    const fromCid = cids.get(pair.from);
+    const toCid = cids.get(pair.to);
+    if (!fromCid || !toCid) return [];
+    return [{ fromCid, toCid, role: 'modified-to-bridge' as const }];
+  });
+  return {
+    mediatorName: CHRISTIAN_MEDIATOR_NAME,
+    mediatorNote: CHRISTIAN_SECULAR_CLUSTER_NOTE,
+    mediatorAddress: owner,
+    parents: [
+      { owner: SEED_CAUSE_OWNER_ADDRESS, slug: CHRISTIANITY_CAUSE_SLUG },
+      { owner: SECULAR_CONSERVATIVE_OWNER_ADDRESS, slug: SECULAR_CONSERVATIVE_CAUSE_SLUG },
+    ],
+    modified: [
+      {
+        owner,
+        slug: CHRISTIAN_MODIFIED_CAUSE_SLUG,
+        parentOwner: SEED_CAUSE_OWNER_ADDRESS,
+        parentSlug: CHRISTIANITY_CAUSE_SLUG,
+      },
+      {
+        owner,
+        slug: SECULAR_MODIFIED_CAUSE_SLUG,
+        parentOwner: SECULAR_CONSERVATIVE_OWNER_ADDRESS,
+        parentSlug: SECULAR_CONSERVATIVE_CAUSE_SLUG,
+      },
+    ],
+    bridge: { owner, slug: CHRISTIAN_SECULAR_BRIDGE_CAUSE_SLUG },
+    pairs,
+  };
+}
+
+async function publishDocumentAs(
+  publisherKey: `0x${string}`,
+  slug: string,
+  doc: ReturnType<typeof createDisplayableDocument>,
+): Promise<string | null> {
   const publishedData = CONTRACT_ADDRESSES.publishedData as `0x${string}` | undefined;
   const mutableRef = CONTRACT_ADDRESSES.mutableRefUpdater as `0x${string}` | undefined;
   if (!publishedData || !mutableRef) {
-    console.warn('PublishedData or MutableRefUpdater missing — skipping Christianity roster.');
+    console.warn('PublishedData or MutableRefUpdater missing — skipping', slug);
     return null;
   }
-  const owner = createClients(HARDHAT_PRIVATE_KEYS[0]!);
-  const fields = christianityRosterFields(plankCids);
-  const doc = buildSeedRosterDocument(fields);
+  const owner = createClients(publisherKey);
   const store = createDefaultDocumentStore(
     createSDKMachinery({ ipfsConfig: createIPFSConfigInNodeJSFromTheUsualEnvVars() }),
     {
@@ -595,14 +698,94 @@ async function publishRoster(plankCids: string[]): Promise<string | null> {
   await updateRef(
     owner as WriteClients,
     { address: mutableRef, abi: MutableRefUpdaterAbi },
-    CHRISTIANITY_CAUSE_SLUG,
+    slug,
     publication.cid,
   );
+  return publication.cid;
+}
+
+async function publishRoster(plankCids: string[]): Promise<string | null> {
+  const owner = createClients(HARDHAT_PRIVATE_KEYS[0]!);
+  const cid = await publishDocumentAs(
+    HARDHAT_PRIVATE_KEYS[0]!,
+    CHRISTIANITY_CAUSE_SLUG,
+    buildSeedRosterDocument(christianityRosterFields(plankCids)),
+  );
+  if (!cid) return null;
   await mergeBookmarks();
   console.log(
-    `  ✓ Cause ${CHRISTIANITY_CAUSE_SLUG} → ${publication.cid}\n  Open /cause/${owner.account}/${CHRISTIANITY_CAUSE_SLUG}`,
+    `  ✓ Cause ${CHRISTIANITY_CAUSE_SLUG} → ${cid}\n  Open /cause/${owner.account}/${CHRISTIANITY_CAUSE_SLUG}`,
   );
-  return publication.cid;
+  return cid;
+}
+
+function cidsFor(ids: readonly string[], cids: Map<string, IpfsCidV1>): IpfsCidV1[] {
+  return ids.map((id) => cids.get(id)).filter((cid): cid is IpfsCidV1 => Boolean(cid));
+}
+
+export async function publishChristianSecularBridgeCluster(
+  cids: Map<string, IpfsCidV1>,
+): Promise<{ clusterCid: string | null; rosterCids: string[] }> {
+  console.log('\n=== Publishing Christian × secular CauseStarter bridge cluster ===\n');
+  const christianModified = cidsFor(
+    ['abortion/modified-christian', 'markets/modified-christian', 'lgbt/modified-christian'],
+    cids,
+  );
+  const secularModified = cidsFor(
+    ['abortion/modified-secular', 'markets/modified-secular', 'lgbt/modified-secular'],
+    cids,
+  );
+  const bridgePlanks = cidsFor(
+    ['abortion/commonality', 'markets/commonality', 'lgbt/commonality'],
+    cids,
+  );
+  const rosterCids: string[] = [];
+  const christianModifiedCid = await publishDocumentAs(
+    CHRISTIAN_MEDIATOR_PRIVATE_KEY,
+    CHRISTIAN_MODIFIED_CAUSE_SLUG,
+    buildSeedRosterDocument(christianModifiedRosterFields(christianModified)),
+  );
+  if (christianModifiedCid) {
+    rosterCids.push(christianModifiedCid);
+    console.log(`  ✓ Modified Christianity ${CHRISTIAN_MODIFIED_CAUSE_SLUG} → ${christianModifiedCid}`);
+  }
+  const secularModifiedCid = await publishDocumentAs(
+    CHRISTIAN_MEDIATOR_PRIVATE_KEY,
+    SECULAR_MODIFIED_CAUSE_SLUG,
+    buildSeedRosterDocument(secularModifiedRosterFields(secularModified)),
+  );
+  if (secularModifiedCid) {
+    rosterCids.push(secularModifiedCid);
+    console.log(`  ✓ Modified secular ${SECULAR_MODIFIED_CAUSE_SLUG} → ${secularModifiedCid}`);
+  }
+  const bridgeRosterCid = await publishDocumentAs(
+    CHRISTIAN_MEDIATOR_PRIVATE_KEY,
+    CHRISTIAN_SECULAR_BRIDGE_CAUSE_SLUG,
+    buildSeedRosterDocument(christianSecularBridgeRosterFields(bridgePlanks)),
+  );
+  if (bridgeRosterCid) {
+    rosterCids.push(bridgeRosterCid);
+    console.log(`  ✓ Bridge cause ${CHRISTIAN_SECULAR_BRIDGE_CAUSE_SLUG} → ${bridgeRosterCid}`);
+  }
+
+  const clusterFields = christianSecularClusterFields(cids);
+  if (clusterFields.pairs.length !== BLESSED_MODIFIED_TO_COMMONALITY.length) {
+    console.warn(
+      `  Cluster has ${clusterFields.pairs.length}/${BLESSED_MODIFIED_TO_COMMONALITY.length} modified→CG pairs (missing CIDs).`,
+    );
+  }
+  const clusterCid = await publishDocumentAs(
+    CHRISTIAN_MEDIATOR_PRIVATE_KEY,
+    CHRISTIAN_SECULAR_CLUSTER_SLUG,
+    buildSeedClusterDocument(clusterFields),
+  );
+  await mergeBookmarks();
+  if (clusterCid) {
+    console.log(
+      `  ✓ Cluster ${CHRISTIAN_SECULAR_CLUSTER_SLUG} → ${clusterCid}\n  Open /bridge/${clusterOwner()}/${CHRISTIAN_SECULAR_CLUSTER_SLUG}`,
+    );
+  }
+  return { clusterCid, rosterCids };
 }
 
 export async function publishSeedChristianityCause(): Promise<{
@@ -657,6 +840,7 @@ export async function publishSeedChristianityCause(): Promise<{
   );
   const rosterCid = await publishRoster(christianPlankCids);
   await publishSeedSecularConservativeCause(plankMap);
+  await publishChristianSecularBridgeCluster(plankMap);
   return {
     slug: CHRISTIANITY_CAUSE_SLUG,
     rosterCid,
@@ -737,7 +921,11 @@ export async function publishSeedSecularConservativeCause(
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  publishSeedChristianityCause()
+  const clusterOnly = process.argv.includes('--cluster-only');
+  const run = clusterOnly
+    ? publishPlanks().then((cids) => publishChristianSecularBridgeCluster(cids))
+    : publishSeedChristianityCause();
+  run
     .then(() => process.exit(0))
     .catch((error) => {
       console.error(error);

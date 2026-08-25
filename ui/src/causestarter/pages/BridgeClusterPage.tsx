@@ -104,7 +104,10 @@ export function BridgeClusterPage() {
   const { address, isConnected } = useAccount()
   const writeClients = useWriteClients(address)
 
-  const routeRef = parseClusterRouteParams(params.owner, params.slugPart)
+  const routeRef = useMemo(
+    () => parseClusterRouteParams(params.owner, params.slugPart),
+    [params.owner, params.slugPart],
+  )
   const localDraftId = params.draftId && !params.owner ? params.draftId : undefined
 
   const [draft, setDraft] = useState<BridgeDraft | null>(null)
