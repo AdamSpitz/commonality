@@ -9,6 +9,11 @@ import { CauseShell } from './causestarter/shell/CauseShell'
 
 function DomainChrome({ children }: { children: ReactNode }) {
   const domain = getActiveDomain()
+
+  useEffect(() => {
+    document.title = domain.branding.name
+  }, [domain.branding.name])
+
   if (domain.useCauseShell) {
     return <CauseShell>{children}</CauseShell>
   }

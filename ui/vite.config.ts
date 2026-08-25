@@ -18,7 +18,7 @@ export default defineConfig(({ mode }) => {
   build: {
     outDir: `dist/${domain}`,
   },
-  plugins: [react(), runtimeConfigPlugin(domain, env), endUserDocsPlugin({ domain })],
+  plugins: [react(), htmlTitlePlugin(domain), runtimeConfigPlugin(domain, env), endUserDocsPlugin({ domain })],
   worker: {
     format: 'es',
   },
@@ -100,6 +100,29 @@ function sdkSourceAliases(): Record<string, string> {
   return Object.fromEntries(
     Object.entries(SDK_SOURCE_ENTRIES).map(([name, file]) => [`@commonality/sdk/${name}`, src(file)]),
   )
+}
+
+// Must match branding.name in ui/src/domains/*/manifest.tsx (Vite cannot import those TSX files here).
+const DOMAIN_TITLES: Record<string, string> = {
+  commonality: 'Commonality',
+  lazyGiving: 'LazyGiving',
+  alignment: 'Aligning',
+  tally: 'Tally',
+  'content-funding': 'Content Funding',
+  civility: 'Civility',
+  'common-sense-majority': 'Common Sense Majority',
+  conceptspace: 'Conceptspace',
+  causestarter: 'CauseStarter',
+}
+
+function htmlTitlePlugin(buildDomain: string): Plugin {
+  const title = DOMAIN_TITLES[buildDomain] ?? 'Commonality'
+  return {
+    name: 'commonality-html-title',
+    transformIndexHtml(html) {
+      return html.replace(/<title>[^<]*<\/title>/, `<title>${title}</title>`)
+    },
+  }
 }
 
 function runtimeConfigPlugin(buildDomain: string, env: Record<string, string>): Plugin {
