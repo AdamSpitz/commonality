@@ -14,6 +14,12 @@ vi.mock('./shared/routing/routing', () => ({
   getAppUrl: vi.fn(),
 }))
 
+vi.mock('./causestarter/shell/CauseShell', () => ({
+  CauseShell: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="cause-shell">{children}</div>
+  ),
+}))
+
 vi.mock('./shared/components/AppShell', () => ({
   AppShell: ({ branding, navigation, children }: { branding: { name: string }; navigation: { primaryNavigation: Array<{label: string; path: string}>; secondaryNavigation: Array<{label: string; path: string}>; footerText: string }; children: React.ReactNode }) => (
     <div data-testid="app-shell">
@@ -133,6 +139,28 @@ describe('App route composition', () => {
       render(React.createElement(App))
 
       expect(screen.getByText('Common Sense Majority')).toBeInTheDocument()
+    })
+
+    it('sets the document title from domain branding', async () => {
+      mockGetActiveDomain.mockReturnValue(fakeDomain('CauseStarter', [], 'footer'))
+
+      const { default: App } = await import('./App')
+      render(React.createElement(App))
+
+      expect(document.title).toBe('CauseStarter')
+    })
+
+    it('sets the document title when using CauseShell', async () => {
+      mockGetActiveDomain.mockReturnValue({
+        ...fakeDomain('CauseStarter', [], 'footer'),
+        useCauseShell: true,
+      })
+
+      const { default: App } = await import('./App')
+      render(React.createElement(App))
+
+      expect(screen.getByTestId('cause-shell')).toBeInTheDocument()
+      expect(document.title).toBe('CauseStarter')
     })
   })
 
