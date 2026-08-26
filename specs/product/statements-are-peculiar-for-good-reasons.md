@@ -12,6 +12,8 @@ So:
   - We have the [nudger/suggester](/docs/end-user/tally/suggestions-and-nudges.md) system, where we *don't* put words in people's mouths, but we do offer than a way to opt in to suggestions: "Since you signed S1, maybe you'd be willing to sign S2?"
   - And we have various [patterns](/docs/end-user/common-sense-majority/hidden-majority-patterns.md) that should be helpful in writing statements that play nicely with the implication attester and with the suggester system.
 
+One point that might help us clarify what the rules ought to be regarding implications vs suggestions is: if a human has signed S1 and would reasonably be annoyed at having S2 suggested to him as something he might want to explicitly sign, because "yes obviously I believe S2, I already signed S1", then S2 should be an implication rather than a suggestion. (Of course a human might be *unreasonably* annoyed, maybe because he doesn't realize that there are important differences that a different human might *not* consider obviously implied. So this is a judgment call. But still, that's roughly the standard we're aiming for: we don't want to piss people off by putting words in their mouth, but we also don't want to piss people off by requiring them to explicitly sign stuff that they obviously already agree with.)
+
 So, yeah, statements are:
   - plain natural language
   - meant to be something that normal people will be willing to both sign ("I support this") and attest to a project's alignment ("project P is aligned with this goal")
@@ -36,6 +38,22 @@ modified statements (mediator)   →  smallest change that is still signable *an
 ```
 
 Implication is for **already-true entailment**. Nudges are for **“you might also sign this.”** The mediator’s **modified** texts are the load-bearing layer that makes both honest. If you skip the modified layer and ask the attester to treat two natural camp slogans as implying a compromise, you are asking it to synthesize a belief the signer never wrote. That is the failure mode.
+
+## How to check a pair (writer loop)
+
+It is easier to *check* a pair than to draft it. Run both checks; neither is enough alone.
+
+**1. Attester (containment).** Conservative: S1 already contains S2, no new claim. A bless is necessary for an implication arrow. It is not sufficient (subset-by-concatenation can bless junk). Do **not** treat “the signer would be annoyed at a suggestion” as a reason for the attester to say yes — some people are unreasonably annoyed.
+
+**2. Routing (implication vs nudge).** Imagine a human who signed S1 is shown S2 as something they might want to *explicitly sign*.
+
+| If they would… | Then… |
+|---|---|
+| **Reasonably** be annoyed (“yes obviously, I already signed S1”) | The pair belongs on the **implication** path. Then the attester must still bless. If it refuses, improve **S1** so it actually contains S2. Do not fatten S2. |
+| **Not** be annoyed (S2 is a real extra: concession, limit, different emphasis, clearer reusable wording) | **Nudge**, not implication. If hasty readers still think S2 is the same claim, improve **S2** (and/or S1) so the delta is on the tin. |
+| Be **unreasonably** annoyed (they treat a real extra claim as already implied; another reasonable person would not) | Still **not** an implication. Do not mint the arrow to soothe them. |
+
+Typical triple: **natural → modified** is a nudge (extra belief content). **Modified → commonality** is an implication (they should already have said it). Full standard: the paragraph above in this file’s opening.
 
 The bilateral / conditional structure is why the attester’s job can be legitimate: the modified statement already contains both sides of the deal (with the signer’s priority); the commonality statement is the same contents without the priority. See [conditional support (design)](/docs/founder/csm/conditional-support-design.md).
 

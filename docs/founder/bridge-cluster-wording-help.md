@@ -56,7 +56,7 @@ cause-assist endpoints — proposals, never auto-applied, never a standing strat
 | `POST /draft-modified-plank` | One modified plank from parent texts + optional “must not concede” / complaint. Refuses empty parents. |
 | `POST /draft-stand-in-sliver` | Thin roster for a camp that has no published cause yet (title, summary, planks). Not a modified-plank call. |
 | `POST /draft-bridge-plank` | One shared plank from ≥2 sides (modified wording, or stand-in planks when modified is skipped); strip justifications |
-| `POST /critique-triple` | Objections and justification-leak warnings only — no rewrite |
+| `POST /critique-triple` | Objections (including implication-vs-nudge routing) and justification-leak warnings only — no rewrite |
 
 UI: `causestarter/src/components/BridgeClusterAssist.tsx`. Implementation: `cause-assist/src/bridgeClusterAssist.ts`.
 

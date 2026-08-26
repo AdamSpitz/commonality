@@ -35,7 +35,7 @@ See `src/statementGuidance.ts` and the Implication Attester evaluator prompt for
 | POST | `/draft-modified-plank` | `{ parentPlanks[], currentDraft?, sideLabel?, mustNotConcede?, complaint? }` | One modified-plank proposal for a human-authored bridge cluster. Not a chat turn. Refuses empty parents. |
 | POST | `/draft-stand-in-sliver` | `{ sideLabel, bullets?, mustNotCaricature?, complaint?, currentDraft? }` | Thin roster for a camp with no published cause. Not a modified-plank call. |
 | POST | `/draft-bridge-plank` | `{ modifiedSides[{ label?, planks[] }], currentDraft?, complaint? }` | One shared-platform plank from ≥2 modified sides. Strips justifications. |
-| POST | `/critique-triple` | `{ modifiedPlanks[], bridgePlank }` | Objections and justification-leak warnings only — no rewrite |
+| POST | `/critique-triple` | `{ modifiedPlanks[], bridgePlank }` | Objections (including implication-vs-nudge `routing:`), justification-leak warnings — no rewrite |
 | POST | `/check-implications` | `{ mainStatement, supportingStatements[] }` | Per-pair implies / confidence / reasoning |
 | POST | `/safety-check` | `{ items: [{ text, fieldLabel? }] }` | Per-item allow/deny + user-facing explanation |
 | POST | `/check-coherence` | `{ rosterCid, title, summary, planks[], mediatorBlurb? }` | Positive-only construction check for a would-be roster CID (preview; no chain write; may use heuristic without an API key) |

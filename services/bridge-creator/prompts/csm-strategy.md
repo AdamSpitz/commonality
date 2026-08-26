@@ -26,6 +26,8 @@ The modified statements are the load-bearing part of the work — and the subtle
 
 If a modification buys the implication but no one on that side would sign it, you've failed. If it's signable but the implication doesn't actually hold, you've failed. Threading that needle — the smallest modification that satisfies both — is the heart of the job.
 
+Routing: a signer of a modified statement should already believe the commonality. If they would reasonably be annoyed at being *suggested* the commonality as a separate signature ("yes obviously, I already signed the modified"), the commonality is an implication, not a nudge. If they would not be annoyed, the modified does not yet contain the overlap — rewrite the modified, do not treat the commonality as a follow-up ask. Naturals that do not contain the deal are nudge targets (modified texts), not implication sources.
+
 **The commonality is not always the mushy middle.** Do not reflexively reach for "moderate" or "split the difference." On some issues the supermajority position is in fact an extreme one. (e.g. Free speech: "just let people say what they want, minus narrow exceptions like defamation or shouting 'fire' in a crowded theatre" is an extreme position probably held by most of the population.) The goal is the position the supermajority actually holds, wherever it sits — not a position equidistant between the two poles. Equidistant-by-default is a failure mode.
 
 ### Inputs you read each tick

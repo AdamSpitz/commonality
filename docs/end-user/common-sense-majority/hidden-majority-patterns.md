@@ -28,6 +28,8 @@ The modified statements are the load-bearing part of the work — and the subtle
 
 If a modification buys the implication but no one on that side would sign it, the mediator has failed. If it's signable but the implication doesn't actually hold, the mediator has failed. Threading that needle — the smallest modification that satisfies both — is the heart of the job.
 
+A quick routing check on **modified → commonality**: if a signer of the modified would reasonably be annoyed at being *asked* to also sign the commonality ("I already said that"), that pair is an implication — and the attester must bless it. If they would *not* be annoyed (the commonality still feels like a new ask), the modified does not contain the deal yet. Natural → modified is usually the opposite: extra content, so a nudge, not an arrow. See `specs/product/statements-are-peculiar-for-good-reasons.md`.
+
 The point isn't that "moderate" or "compromise" positions are always right. In fact, on some issues the common-sense supermajority position may be a rather extreme one. (e.g. Free speech: "just let people say what they want, minus some very specific exceptions like defamation and shouting 'fire' in a crowded theatre" is a pretty extreme position that I suspect is held by most of the population.) The point is that we are *not* actually divided 50-50 into two camps that can't possibly find common ground; if we stopped letting the poles dominate the discourse, the remaining supermajority of normal people wouldn't have that much trouble getting along.
 
 ## The sub-patterns

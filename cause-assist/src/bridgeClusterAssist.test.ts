@@ -48,6 +48,7 @@ describe('bridge cluster wording verbs', () => {
       bridgePlank: 'Marriage is a gift from God and also the data says so.',
     }, config, async <T>(request: LlmJsonRequest) => {
       assert.match(request.systemPrompt, /Do not rewrite/)
+      assert.match(request.systemPrompt, /routing:/)
       return {
         objections: ['Shared plank requires a theological premise.'],
         leakWarnings: ['God-talk leaked into the bridge plank.'],

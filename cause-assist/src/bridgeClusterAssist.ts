@@ -144,9 +144,11 @@ export const critiqueTripleStrategy: StatementStrategy<
   name: 'cause-assist-critique-triple',
   systemPrompt: `You critique a proposed bridge triple. Do not rewrite. List objections a fair-minded person on each side would raise, and flag any justification leak into the shared plank (theology in a secular-signable claim, or reducing a faith claim to "studies show").
 
+Also apply the implication-vs-nudge routing test. For each modified plank → bridge plank: if a reasonable signer of the modified would be annoyed at being asked to explicitly sign the bridge ("I already said that"), the pair should be an implication (containment). If they would not be annoyed, the modified does not contain the shared claim yet — object. If they would be annoyed but a different reasonable person would see a real extra claim in the bridge, do not treat that as containment; object that the pair is a nudge (or that the wording hides the delta), not an implication. Unreasonable annoyance is not a reason to bless an arrow.
+
 ${MEDIATION_RULES}
 
-Return JSON only: {"objections":["..."],"leakWarnings":["..."]}. Empty arrays mean you found nothing load-bearing to flag.`,
+Return JSON only: {"objections":["..."],"leakWarnings":["..."]}. Empty arrays mean you found nothing load-bearing to flag. Prefix routing failures with "routing:" (e.g. "routing: modified does not contain the bridge; a signer would not find a separate signature redundant").`,
   renderInput: (input) => ({
     modified_planks: input.modifiedPlanks,
     bridge_plank: input.bridgePlank,
