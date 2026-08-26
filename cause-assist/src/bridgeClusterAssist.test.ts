@@ -2,12 +2,20 @@ import assert from 'node:assert/strict'
 import { describe, it } from 'mocha'
 import type { LlmJsonRequest } from '@commonality/attester-core'
 import { critiqueTriple, draftBridgePlank, draftModifiedPlank, draftStandInSliver } from './bridgeClusterAssist.js'
+import { BRIDGE_STATEMENT_GUIDANCE, STATEMENT_QUALITY_GUIDANCE } from './statementGuidance.js'
 import type { CauseAssistConfig } from './types.js'
 
 const config: CauseAssistConfig = {
   apiKey: 'key', apiBaseUrl: 'https://example.test/v1', suggestModel: 'model',
   safetyModel: 'model', implicationModel: 'model', coherenceModel: 'test', port: 0,
 }
+
+describe('statement guidance routing', () => {
+  it('keeps signer-annoyance routing on bridge drafts, not ordinary cause verbs', () => {
+    assert.doesNotMatch(STATEMENT_QUALITY_GUIDANCE, /annoyed at being asked/)
+    assert.match(BRIDGE_STATEMENT_GUIDANCE, /annoyed at being asked to also sign the shared plank/)
+  })
+})
 
 describe('bridge cluster wording verbs', () => {
   it('drafts a modified plank from parent texts without writing a strategy prompt', async () => {

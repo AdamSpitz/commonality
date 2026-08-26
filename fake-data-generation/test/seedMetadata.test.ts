@@ -45,6 +45,8 @@ import {
   secularModifiedRosterFields,
   christianSecularBridgeRosterFields,
   christianSecularClusterFields,
+  campOfAlignment,
+  pickAlignmentAttester,
 } from '../seedChristianityCause.js';
 import {
   BLESSED_MODIFIED_TO_COMMONALITY,
@@ -267,6 +269,19 @@ test('christian-secular seed cluster documents match CauseStarter extras', () =>
   assert.equal(clusterDoc.extras?.version, BRIDGE_CLUSTER_SCHEMA_VERSION);
   assert.equal(clusterDoc.extras?.mediatorAddress, CHRISTIAN_MEDIATOR_ADDRESS.toLowerCase());
   assert.match(clusterDoc.content, /Natural parents/);
+});
+
+test('alignment attesters follow the plank camp, not always Hardhat #0', () => {
+  const personas = [
+    { id: 'christian-organizer', hardhatIndex: 0, camp: 'christian' as const, takesModified: false, signsNaturals: [], aligns: true },
+    { id: 'secular-nudge-taker', hardhatIndex: 5, camp: 'secular' as const, takesModified: true, signsNaturals: [], aligns: true },
+    { id: 'secular-natural-only', hardhatIndex: 6, camp: 'secular' as const, takesModified: false, signsNaturals: [], aligns: true },
+  ];
+  assert.equal(campOfAlignment('scripture/natural-christian'), 'christian');
+  assert.equal(campOfAlignment('colorblind-merit/natural-secular'), 'secular');
+  assert.equal(pickAlignmentAttester(personas, 'scripture/natural-christian', 1)?.id, 'christian-organizer');
+  assert.equal(pickAlignmentAttester(personas, 'colorblind-merit/natural-secular', 6)?.id, 'secular-natural-only');
+  assert.equal(pickAlignmentAttester(personas, 'abortion/modified-secular', 3)?.id, 'secular-nudge-taker');
 });
 
 test('christian-secular bridge has parent→modified nudges and blessed modified→CG arrows', () => {

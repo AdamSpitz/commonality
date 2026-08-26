@@ -28,7 +28,7 @@ Tiny local seed (`./scripts/data.sh --seed`, i.e. `gen:tiny`) should show two Ca
 
 Each shared group has: `natural-christian`, `natural-secular`, `modified-christian`, `modified-secular`, `commonality`. Unique groups have a single natural.
 
-Modified texts **copy the commonality sentences** so the attester’s subset rule can fire. The attester **rejects** “concession as implication” when S2’s compromise is not already in S1 (`evaluator.ts`).
+Containment is a check after drafting, not a method. Do **not** paste commonality sentences into each modified so the attester’s subset rule fires. Draft the modified as that camp’s speech, then check whether it already contains the shared civic claim. The attester **rejects** “concession as implication” when S2’s compromise is not already in S1 (`evaluator.ts`).
 
 ## Work log
 
@@ -43,7 +43,7 @@ Modified texts **copy the commonality sentences** so the attester’s subset rul
 - [x] On-chain implications: local implication attester replays 6 blessed modified→CG arrows (`BLESSED_MODIFIED_TO_COMMONALITY`).
 - [x] CauseStarter click-through on the 2026-08-25 tiny seed (no reseed this pass).
 - [ ] Optional: align bridge-creator example anchors with these texts later; do not fork a second abortion triple in hidden-majority-patterns.
-- [x] CauseStarter **bridge cluster** under #8 (`christian-secular`): two modified rosters + bridge roster + cluster document. Tiny seed publishes it; `--cluster-only` republishes against an existing chain.
+- [x] CauseStarter **bridge cluster** under #8 (`christian-secular`): two modified rosters + bridge roster + cluster document. Tiny seed publishes it; `--cluster-only` resolves statement CIDs via IPFS (same content as an existing seed) and only republishes the cluster documents.
 - [x] Prospective-round content scenario: `Failed to find ProspectiveRoundCreated` was a call to a **no-bytecode** factory address left in `.env` after a chain that never deployed `ProspectiveContentRoundFactory` (empty-account txs succeed with no logs). Seed now skips when `getCode` is empty; SDK `createProspectiveRound` reports missing bytecode instead of a missing event. Local config sync requires `PROSPECTIVE_CONTENT_ROUND_FACTORY_ADDRESS`. 2026-08-25 tiny reseed: open YouTube round `0x147D1dB74c2878E08a6Ac648818421b3d77e90E3`; materialized Substack `0xEa26F3615fd3A84eB5dD24a00E7B4bEc06D63206` → `0xF8ADc47E258b9a56a8E0A717572dB3F1Cb1b4cc4`.
 
 ## Still open (resume here)
@@ -89,7 +89,7 @@ CauseStarter at `http://causestarter.localhost:8088/#/`. Hardhat picker works.
 
 **Unique-only (must not cross)**
 
-- Scripture natural board: Common Table, Scripture draft, Campus chaplaincy. Not on the secular cause board. Hardhat #5 (secular nudge-taker) fundable list has no scripture project.
+- Scripture natural board: Common Table, Scripture draft, Campus chaplaincy. Not on the secular cause board. Hardhat #5 (secular nudge-taker) fundable list has no scripture project. Seed buys/pledges are keyed by project `id` / plank id so secular accounts do not buy scripture-unique work.
 - Colorblind amicus: only on the secular unique plank / secular cause. Not on Christianity.
 
 **Persona dashboards**

@@ -151,6 +151,26 @@ function loadPersonaProjects(): PersonaProject[] {
 
 export const CHRISTIANITY_PROJECTS = loadPersonaProjects();
 
+export function campOfAlignment(alignmentId: string): 'christian' | 'secular' {
+  const statementId = alignmentId.split('/')[1] ?? alignmentId;
+  return statementId.includes('secular') ? 'secular' : 'christian';
+}
+
+export function pickAlignmentAttester(
+  personas: readonly Persona[],
+  alignmentId: string,
+  projectOwnerIndex: number,
+): Persona | undefined {
+  const camp = campOfAlignment(alignmentId);
+  const aligners = personas.filter((persona) => persona.aligns);
+  const campAligners = aligners.filter((persona) => persona.camp === camp);
+  return (
+    campAligners.find((persona) => persona.hardhatIndex === projectOwnerIndex)
+    ?? campAligners[0]
+    ?? aligners[0]
+  );
+}
+
 function createClients(privateKey: `0x${string}`) {
   return createSeedClients(privateKey, RPC_URL);
 }
@@ -187,6 +207,7 @@ async function publishStatementSet(
   domain: string,
   publisherKey: `0x${string}`,
   cids: Map<string, IpfsCidV1>,
+  publishOnChain: boolean,
 ): Promise<void> {
   const publishedData = CONTRACT_ADDRESSES.publishedData as `0x${string}` | undefined;
   const owner = createClients(publisherKey);
@@ -198,19 +219,25 @@ async function publishStatementSet(
       domain,
       plank.id,
       'simple',
-      { clients: owner as WriteClients, publishedDataAddress: publishedData },
+      publishOnChain && publishedData
+        ? { clients: owner as WriteClients, publishedDataAddress: publishedData }
+        : {},
     );
     cids.set(plank.id, cid);
-    console.log(`  Published ${domain} ${plank.id} → ${cid}`);
+    console.log(`  ${publishOnChain ? 'Published' : 'Resolved'} ${domain} ${plank.id} → ${cid}`);
   }
 }
 
-async function publishPlanks(): Promise<Map<string, IpfsCidV1>> {
+async function resolvePlankCids(publishOnChain: boolean): Promise<Map<string, IpfsCidV1>> {
   const cids = new Map<string, IpfsCidV1>();
-  await publishStatementSet(CHRISTIANITY_PLANKS, 'christianity', HARDHAT_PRIVATE_KEYS[0]!, cids);
-  await publishStatementSet(SECULAR_CONSERVATIVE_PLANKS, 'secular-conservatism', SECULAR_CONSERVATIVE_OWNER_KEY, cids);
-  await publishStatementSet(MEDIATOR_STATEMENTS, 'christian-secular-bridge', CHRISTIAN_MEDIATOR_PRIVATE_KEY, cids);
+  await publishStatementSet(CHRISTIANITY_PLANKS, 'christianity', HARDHAT_PRIVATE_KEYS[0]!, cids, publishOnChain);
+  await publishStatementSet(SECULAR_CONSERVATIVE_PLANKS, 'secular-conservatism', SECULAR_CONSERVATIVE_OWNER_KEY, cids, publishOnChain);
+  await publishStatementSet(MEDIATOR_STATEMENTS, 'christian-secular-bridge', CHRISTIAN_MEDIATOR_PRIVATE_KEY, cids, publishOnChain);
   return cids;
+}
+
+async function publishPlanks(): Promise<Map<string, IpfsCidV1>> {
+  return resolvePlankCids(true);
 }
 
 async function publishMediatorNudges(cids: Map<string, IpfsCidV1>): Promise<void> {
@@ -339,6 +366,7 @@ async function signPlanks(cids: Map<string, IpfsCidV1>): Promise<void> {
 }
 
 interface CreatedChristianProject {
+  id: string;
   name: string;
   plankId: string;
   assuranceContract: `0x${string}`;
@@ -412,6 +440,7 @@ async function createProjects(statementCids: Map<string, IpfsCidV1>): Promise<Cr
       },
     );
     created.push({
+      id: template.id,
       name: template.name,
       plankId: template.alignments[0] ?? template.id,
       assuranceContract: projectDetails.assuranceContractAddress,
@@ -422,7 +451,7 @@ async function createProjects(statementCids: Map<string, IpfsCidV1>): Promise<Cr
     console.log(`  ✓ Project ${template.name} → ${projectDetails.assuranceContractAddress}`);
 
     const alignment = CONTRACT_ADDRESSES.alignmentAttestations as `0x${string}` | undefined;
-    const aligners = loadPersonaFile().personas.filter((persona) => persona.aligns);
+    const personas = loadPersonaFile().personas;
     if (alignment) {
       for (const alignmentId of template.alignments) {
         const statementCid = statementCids.get(alignmentId);
@@ -430,7 +459,7 @@ async function createProjects(statementCids: Map<string, IpfsCidV1>): Promise<Cr
           console.warn(`  Missing CID for alignment ${alignmentId}`);
           continue;
         }
-        const attesterPersona = aligners[0];
+        const attesterPersona = pickAlignmentAttester(personas, alignmentId, template.ownerIndex);
         const attesterKey = attesterPersona
           ? FUNDED_HARDHAT_DEV_KEYS[attesterPersona.hardhatIndex]
           : FUNDED_HARDHAT_DEV_KEYS[0];
@@ -455,16 +484,24 @@ async function buyAndPledge(projects: CreatedChristianProject[], plankCids: Map<
   if (!paymentToken) return;
 
   const buys = [
-    { accountIndex: 4, projectIndex: 0, count: 6 },
-    { accountIndex: 5, projectIndex: 0, count: 3 },
-    { accountIndex: 6, projectIndex: 1, count: 4 },
-    { accountIndex: 4, projectIndex: 2, count: 2 },
-    { accountIndex: 1, projectIndex: 1, count: 5 },
+    { accountIndex: 4, projectId: 'parish-warming', count: 6 },
+    { accountIndex: 5, projectId: 'colorblind-admissions', count: 3 },
+    { accountIndex: 6, projectId: 'colorblind-admissions', count: 4 },
+    { accountIndex: 4, projectId: 'apprenticeship-fund', count: 2 },
+    { accountIndex: 1, projectId: 'parish-warming', count: 5 },
   ];
+  const personas = loadPersonaFile().personas;
   for (const buy of buys) {
-    const project = projects[buy.projectIndex];
+    const project = projects.find((candidate) => candidate.id === buy.projectId);
+    const buyer = personas.find((persona) => persona.hardhatIndex === buy.accountIndex);
+    const template = CHRISTIANITY_PROJECTS.find((candidate) => candidate.id === buy.projectId);
     const key = FUNDED_HARDHAT_DEV_KEYS[buy.accountIndex];
-    if (!project || !key) continue;
+    if (!project || !key || !buyer || !template) continue;
+    const camps = new Set(template.alignments.map(campOfAlignment));
+    if (!camps.has(buyer.camp) && camps.size === 1) {
+      console.warn(`  Skipping buy: HH#${buy.accountIndex} (${buyer.camp}) on unique ${project.name}`);
+      continue;
+    }
     await fundPaymentToken(privateKeyToAccount(key).address, parsePaymentTokenUnits('2000'));
     const clients = createClients(key);
     const price = BigInt(project.prices[0]!);
@@ -489,21 +526,22 @@ async function buyAndPledge(projects: CreatedChristianProject[], plankCids: Map<
   const recurringPledges = CONTRACT_ADDRESSES.recurringPledges as `0x${string}` | undefined;
   const notes = CONTRACT_ADDRESSES.delegatableNotes as `0x${string}` | undefined;
   const scripture = plankCids.get('scripture/natural-christian');
-  const marketsModified = plankCids.get('markets/modified-christian');
   if (!recurringPledges || !notes || !scripture) {
     console.warn('Recurring pledges not configured — skipping Christianity monthly pledges.');
     return;
   }
 
+  const colorblind = plankCids.get('colorblind-merit/natural-secular');
+  const marketsModifiedSecular = plankCids.get('markets/modified-secular');
   const pledges = [
     { accountIndex: 4, cid: scripture, amount: '20' },
-    { accountIndex: 5, cid: marketsModified ?? scripture, amount: '8' },
-    { accountIndex: 6, cid: scripture, amount: '12' },
+    { accountIndex: 5, cid: marketsModifiedSecular ?? colorblind, amount: '8' },
+    { accountIndex: 6, cid: colorblind, amount: '12' },
   ];
   const delegateTo = privateKeyToAccount(FUNDED_HARDHAT_DEV_KEYS[0]!).address;
   for (const pledge of pledges) {
     const key = FUNDED_HARDHAT_DEV_KEYS[pledge.accountIndex];
-    if (!key) continue;
+    if (!key || !pledge.cid) continue;
     const clients = createClients(key);
     const amount = parsePaymentTokenUnits(pledge.amount);
     try {
@@ -923,7 +961,7 @@ export async function publishSeedSecularConservativeCause(
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const clusterOnly = process.argv.includes('--cluster-only');
   const run = clusterOnly
-    ? publishPlanks().then((cids) => publishChristianSecularBridgeCluster(cids))
+    ? resolvePlankCids(false).then((cids) => publishChristianSecularBridgeCluster(cids))
     : publishSeedChristianityCause();
   run
     .then(() => process.exit(0))

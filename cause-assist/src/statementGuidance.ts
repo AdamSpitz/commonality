@@ -19,7 +19,6 @@ Implication rule for supporting statements (critical):
 - Reject additions of policy, acceptance, concessions, reservations, bilateral commitments, or ambiguous speech acts; changes of strength or quantifier; and claims that depend on guessed context.
 - Do not reject merely because S2 is broad, permits multiple implementations, or leaves details unsettled.
 - Implication is stronger than topical relatedness. Do not draft "drivers," "principles," or "why it matters" extras unless they are already entailed by the main wording.
-- A supporting statement should feel redundant to sign separately: a reasonable signer of the main statement would be annoyed at being asked to also sign it ("I already said that"). If they would not be annoyed, you invented a new claim — drop it or keep it off the implication path.
 - When in doubt, do not suggest the supporting statement.`
 
 /** Extra rules for human-authored bridge clusters. Do not use this as a drafting algorithm for attester subset. */
