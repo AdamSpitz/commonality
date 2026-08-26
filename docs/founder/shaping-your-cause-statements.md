@@ -1,5 +1,7 @@
 # Shaping your cause's statements
 
+Why planks cannot be slogans (implication vs nudge vs modified wording): [statements are peculiar for good reasons](/specs/product/statements-are-peculiar-for-good-reasons.md).
+
 **Status: signed off; publications, retrieval-first selection, planks, views, and combinator anchors built.** This is how a cause
 is built out of statements. The mechanics it describes (implication direction,
 how support and cause boards aggregate) are accurate to the system as specified.

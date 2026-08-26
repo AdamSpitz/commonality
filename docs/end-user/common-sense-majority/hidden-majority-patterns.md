@@ -1,5 +1,7 @@
 # Hidden-majority patterns
 
+Why the wording has to be this peculiar — implication vs nudge vs modified statements — is indexed in the repo at `specs/product/statements-are-peculiar-for-good-reasons.md`. This page is the catalog of *shapes*.
+
 The [central idea behind Common Sense Majority](./index.md) is that on many polarized issues the two loud "sides" are both minorities, and there's a common-sense supermajority that nobody can currently see. The [implication graph](/docs/end-user/tally/statements-and-implication-graph.md) and the [mediator](./mediator.md) are how we make these hidden majorities visible. This page catalogs the recurring shapes they take.
 
 (Note: the stuff on this page isn't just an explanation for readers — it's the working instructions the [mediator](./mediator.md) operates from. The various patterns are written into its [strategy prompt](https://github.com/AdamSpitz/commonality/blob/master/services/bridge-creator/prompts/csm-strategy.md), which is open for anyone to read: you can see exactly how it's told to find bridges, or run your own version instead.)
@@ -25,6 +27,8 @@ The modified statements are the load-bearing part of the work — and the subtle
 2. Someone on that side would still be willing to sign it.
 
 If a modification buys the implication but no one on that side would sign it, the mediator has failed. If it's signable but the implication doesn't actually hold, the mediator has failed. Threading that needle — the smallest modification that satisfies both — is the heart of the job.
+
+A quick routing check on **modified → commonality**: if a signer of the modified would reasonably be annoyed at being *asked* to also sign the commonality ("I already said that"), that pair is an implication — and the attester must bless it. If they would *not* be annoyed (the commonality still feels like a new ask), the modified does not contain the deal yet. Natural → modified is usually the opposite: extra content, so a nudge, not an arrow. See `specs/product/statements-are-peculiar-for-good-reasons.md`.
 
 The point isn't that "moderate" or "compromise" positions are always right. In fact, on some issues the common-sense supermajority position may be a rather extreme one. (e.g. Free speech: "just let people say what they want, minus some very specific exceptions like defamation and shouting 'fire' in a crowded theatre" is a pretty extreme position that I suspect is held by most of the population.) The point is that we are *not* actually divided 50-50 into two camps that can't possibly find common ground; if we stopped letting the poles dominate the discourse, the remaining supermajority of normal people wouldn't have that much trouble getting along.
 

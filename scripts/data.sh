@@ -6,7 +6,7 @@
 #   ./scripts/data.sh --wipe                    # Wipe data directory (stops services first)
 #   ./scripts/data.sh --seed                    # Tiny dataset (default; fast local UI)
 #   ./scripts/stop-wipe-restart.sh --seed       # Wipe + start + seed in one go
-#   ./scripts/data.sh --seed=tiny               # Tiny dataset (5 users, 1 round, capped statements/actions)
+#   ./scripts/data.sh --seed=tiny               # Tiny dataset (5 users, 1 round, no random universe statements)
 #   ./scripts/data.sh --seed=small              # Small dataset (10 users, 3 rounds)
 #   ./scripts/data.sh --seed=medium             # Medium dataset (50 users, 5 rounds)
 #   ./scripts/data.sh --seed=demo               # Seed-content demo dataset plus Alignment Explorer/nudge fixtures

@@ -15,6 +15,9 @@ import {
   seedMixedContentAlignmentCanonicalIds,
 } from '../contentFundingActions.js';
 import {
+  BRIDGE_CLUSTER_KIND,
+  BRIDGE_CLUSTER_SCHEMA_VERSION,
+  buildSeedClusterDocument,
   buildSeedRosterDocument,
   CAUSE_BOOKMARKS_SCHEMA_VERSION,
   ROSTER_KIND,
@@ -34,7 +37,21 @@ import {
   CHRISTIAN_MEDIATOR_ADDRESS,
   CHRISTIAN_MEDIATOR_NAME,
   christianityRosterFields,
+  CHRISTIAN_SECULAR_CLUSTER_SLUG,
+  CHRISTIAN_MODIFIED_CAUSE_SLUG,
+  SECULAR_MODIFIED_CAUSE_SLUG,
+  CHRISTIAN_SECULAR_BRIDGE_CAUSE_SLUG,
+  christianModifiedRosterFields,
+  secularModifiedRosterFields,
+  christianSecularBridgeRosterFields,
+  christianSecularClusterFields,
+  campOfAlignment,
+  pickAlignmentAttester,
 } from '../seedChristianityCause.js';
+import {
+  BLESSED_MODIFIED_TO_COMMONALITY,
+  NATURAL_TO_MODIFIED_NUDGES,
+} from '../christianSecularBridge.js';
 import { seedChristianContentAlignmentCanonicalIds } from '../contentFundingActions.js';
 import { createStatementDocumentFromSeed, flattenSeedStatements, loadSeedCollections } from '../seed-content-format.js';
 
@@ -172,14 +189,17 @@ test('seed cause roster is a CauseStarter document owned by Hardhat #0', () => {
 });
 
 test('christianity seed roster includes the example mediator and distinct planks', () => {
-  const plankCids = ['bafkreiplank1', 'bafkreiplank2', 'bafkreiplank3'];
+  const plankCids = ['bafkreiplank1', 'bafkreiplank2', 'bafkreiplank3', 'bafkreiplank4'];
   const fields = christianityRosterFields(plankCids);
   const doc = buildSeedRosterDocument(fields);
   assert.equal(CHRISTIANITY_CAUSE_SLUG, 'christianity');
   assert.equal(fields.title, 'Christianity');
-  assert.equal(CHRISTIANITY_PLANKS.length, 3);
-  assert.equal(CHRISTIANITY_PROJECTS.length, 3);
+  assert.equal(CHRISTIANITY_PLANKS.length, 4);
+  assert.equal(CHRISTIANITY_PROJECTS.length, 10);
   assert.ok(CHRISTIANITY_PROJECTS.some((project) => project.kind === 'campus-ministry'));
+  assert.ok(CHRISTIANITY_PROJECTS.some((project) => project.alignments.includes('abortion/modified-christian')));
+  assert.ok(CHRISTIANITY_PROJECTS.some((project) => project.alignments.includes('scripture/natural-christian')));
+  assert.ok(CHRISTIANITY_PROJECTS.some((project) => project.alignments.includes('colorblind-merit/natural-secular')));
   assert.match(fields.mediatorBlurb, /secular-conservative/i);
   assert.equal(fields.mediator?.name, CHRISTIAN_MEDIATOR_NAME);
   assert.equal(fields.mediator?.address.toLowerCase(), CHRISTIAN_MEDIATOR_ADDRESS.toLowerCase());
@@ -190,10 +210,89 @@ test('christianity seed roster includes the example mediator and distinct planks
 });
 
 test('secular-conservative seed roster is a distinct founder cause', () => {
-  const plankCids = ['bafkreiplankA', 'bafkreiplankB'];
+  const plankCids = ['bafkreiplankA', 'bafkreiplankB', 'bafkreiplankC', 'bafkreiplankD'];
   const fields = secularConservativeRosterFields(plankCids);
   assert.equal(SECULAR_CONSERVATIVE_CAUSE_SLUG, 'secular-conservatism');
   assert.equal(fields.title, 'Secular conservatism');
-  assert.equal(SECULAR_CONSERVATIVE_PLANKS.length, 2);
+  assert.equal(SECULAR_CONSERVATIVE_PLANKS.length, 4);
   assert.equal(fields.mediatorBlurb, '');
+});
+
+test('christian-secular seed cluster documents match CauseStarter extras', () => {
+  const modifiedCids = ['bafymc1', 'bafymc2', 'bafymc3'];
+  const modified = christianModifiedRosterFields(modifiedCids);
+  const modifiedDoc = buildSeedRosterDocument(modified);
+  assert.equal(modified.bridgeCluster?.role, 'modified');
+  assert.equal(modified.bridgeCluster?.clusterSlug, CHRISTIAN_SECULAR_CLUSTER_SLUG);
+  assert.equal(modified.bridgeCluster?.parentSlug, CHRISTIANITY_CAUSE_SLUG);
+  assert.equal(modifiedDoc.extras?.kind, ROSTER_KIND);
+  assert.deepEqual(modifiedDoc.extras?.bridgeCluster, {
+    clusterOwner: CHRISTIAN_MEDIATOR_ADDRESS.toLowerCase(),
+    clusterSlug: CHRISTIAN_SECULAR_CLUSTER_SLUG,
+    role: 'modified',
+    parentOwner: SEED_CAUSE_OWNER_ADDRESS.toLowerCase(),
+    parentSlug: CHRISTIANITY_CAUSE_SLUG,
+  });
+
+  const secularModified = secularModifiedRosterFields(['bafyms1']);
+  assert.equal(secularModified.bridgeCluster?.parentSlug, SECULAR_CONSERVATIVE_CAUSE_SLUG);
+  assert.equal(SECULAR_MODIFIED_CAUSE_SLUG, 'christian-secular-secular-conservatism-modified');
+
+  const bridge = christianSecularBridgeRosterFields(['bafycg1']);
+  const bridgeDoc = buildSeedRosterDocument(bridge);
+  assert.equal(bridge.bridgeCluster?.role, 'bridge');
+  assert.equal(bridge.bridgeCluster?.parentSlug, undefined);
+  assert.deepEqual(bridgeDoc.extras?.bridgeCluster, {
+    clusterOwner: CHRISTIAN_MEDIATOR_ADDRESS.toLowerCase(),
+    clusterSlug: CHRISTIAN_SECULAR_CLUSTER_SLUG,
+    role: 'bridge',
+  });
+  assert.equal(CHRISTIAN_MODIFIED_CAUSE_SLUG.length <= 64, true);
+  assert.equal(CHRISTIAN_SECULAR_BRIDGE_CAUSE_SLUG, 'christian-secular-bridge');
+
+  const cids = new Map<string, `b${string}`>([
+    ['abortion/modified-christian', 'bafymcab'],
+    ['abortion/commonality', 'bafycgab'],
+    ['abortion/modified-secular', 'bafymsab'],
+    ['markets/modified-christian', 'bafymcmc'],
+    ['markets/commonality', 'bafycgmc'],
+    ['markets/modified-secular', 'bafymsmc'],
+    ['lgbt/modified-christian', 'bafymclg'],
+    ['lgbt/commonality', 'bafycglg'],
+    ['lgbt/modified-secular', 'bafymslg'],
+  ]);
+  const cluster = christianSecularClusterFields(cids);
+  assert.equal(cluster.pairs.length, 6);
+  assert.ok(cluster.pairs.every((pair) => pair.role === 'modified-to-bridge'));
+  const clusterDoc = buildSeedClusterDocument(cluster);
+  assert.equal(clusterDoc.extras?.kind, BRIDGE_CLUSTER_KIND);
+  assert.equal(clusterDoc.extras?.version, BRIDGE_CLUSTER_SCHEMA_VERSION);
+  assert.equal(clusterDoc.extras?.mediatorAddress, CHRISTIAN_MEDIATOR_ADDRESS.toLowerCase());
+  assert.match(clusterDoc.content, /Natural parents/);
+});
+
+test('alignment attesters follow the plank camp, not always Hardhat #0', () => {
+  const personas = [
+    { id: 'christian-organizer', hardhatIndex: 0, camp: 'christian' as const, takesModified: false, signsNaturals: [], aligns: true },
+    { id: 'secular-nudge-taker', hardhatIndex: 5, camp: 'secular' as const, takesModified: true, signsNaturals: [], aligns: true },
+    { id: 'secular-natural-only', hardhatIndex: 6, camp: 'secular' as const, takesModified: false, signsNaturals: [], aligns: true },
+  ];
+  assert.equal(campOfAlignment('scripture/natural-christian'), 'christian');
+  assert.equal(campOfAlignment('colorblind-merit/natural-secular'), 'secular');
+  assert.equal(pickAlignmentAttester(personas, 'scripture/natural-christian', 1)?.id, 'christian-organizer');
+  assert.equal(pickAlignmentAttester(personas, 'colorblind-merit/natural-secular', 6)?.id, 'secular-natural-only');
+  assert.equal(pickAlignmentAttester(personas, 'abortion/modified-secular', 3)?.id, 'secular-nudge-taker');
+});
+
+test('christian-secular bridge has parent→modified nudges and blessed modified→CG arrows', () => {
+  assert.equal(NATURAL_TO_MODIFIED_NUDGES.length, 6);
+  assert.equal(BLESSED_MODIFIED_TO_COMMONALITY.length, 6);
+  for (const pair of NATURAL_TO_MODIFIED_NUDGES) {
+    assert.match(pair.target, /\/natural-/);
+    assert.match(pair.suggested, /\/modified-/);
+  }
+  for (const pair of BLESSED_MODIFIED_TO_COMMONALITY) {
+    assert.match(pair.from, /\/modified-/);
+    assert.match(pair.to, /\/commonality$/);
+  }
 });

@@ -203,18 +203,18 @@ The framework is general: any nudger can plug in whatever heuristics or AI promp
 
 ### 1. Implication-graph nudger
 
-The simple case: watch the implication graph for statements that are implied by (or imply) statements the user has signed, filtered to those with more supporters. "You signed S1, and S2 is more popular and implies S1 — maybe you'd like to sign S2 too."
+The simple case: watch the implication graph for statements that are implied by (or imply) statements the user has signed, filtered to those with more supporters. "You signed S1, and S2 is more popular and implies S1 — maybe you'd like to sign S2 too." That is suggesting a **parent** (or a clearer reusable wording), not asking them to also sign a **weaker S2 that S1 already contains**. The latter is an implication job: if a reasonable signer of S1 would be annoyed at being asked to sign S2 because they already said it, do **not** nudge — attest S1 → S2 instead (when the attester blesses). Routing test: [statements are peculiar](../../../product/statements-are-peculiar-for-good-reasons.md).
 
 This nudger can also do a closely related job: help users move from graph-poor statements to graph-usable ones. If a statement is too ambiguous or context-dependent to connect safely via implication attestations, the nudger may publish a clarification nudge suggesting a clearer statement that captures the likely intended meaning in a way that can participate in the graph.
 
-This is still a nudge, not an implication. The claim is not "S1 logically implies S2"; it is "if S2 is what you meant, it may be a better statement to sign because it is clearer and more reusable."
+This is still a nudge, not an implication. The claim is not "S1 logically implies S2"; it is "if S2 is what you meant, it may be a better statement to sign because it is clearer and more reusable," or "here is a more popular statement that implies yours." Do not use this channel to collect a second signature on an obvious subset of S1.
 
 This is essentially what `getStatementSuggestions` ([sdk/src/subsystems/conceptspace/queries.ts:754](../../../../sdk/src/subsystems/conceptspace/queries.ts)) and the `StatementSuggestions` component ([ui/src/conceptspace/components/StatementSuggestions.tsx](../../../../ui/src/conceptspace/components/StatementSuggestions.tsx)) already do — but currently embedded in the SDK/UI rather than running as an off-chain service. This strategy can be extracted into a proper nudger service and serve as the reference implementation.
 
 The implication-graph nudger runs as a background worker: it scans all statements periodically, generates nudges for each, and publishes them as `nudge-batch` publications.
 
 Two common sub-modes:
-- **Direct graph nudge** — suggest an already-connected statement related by existing implication edges.
+- **Direct graph nudge** — suggest an already-connected statement that is *not* an obvious subset of what they signed (typically a more popular parent that implies their statement, or a sibling they might also mean).
 - **Clarification nudge** — suggest a clearer, more context-explicit statement when the original one is too ambiguous to connect safely.
 
 When possible, the nudger should prefer an already-existing, well-supported clear statement over synthesizing a new one. Synthesizing a fresh statement is appropriate only when there is no good existing statement to point at.

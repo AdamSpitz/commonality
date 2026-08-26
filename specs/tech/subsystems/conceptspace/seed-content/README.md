@@ -2,6 +2,8 @@
 
 This document covers our thinking about *why* we need seed content, *what kind* to create, and *how* to do it.
 
+Wording is not free-form slogans: see [why statements are peculiar](/specs/product/statements-are-peculiar-for-good-reasons.md). Curated JSON that does not pass the implication attester (modified → commonality) is not done. Default `./scripts/data.sh --seed` (**tiny**) publishes the Christianity × secular-conservatism CauseStarter cluster plus local-food, not a random `universe.json` slice.
+
 See this directory for concrete examples.
 
 The formal machine-readable source now lives in [`fake-data-generation/seed-content/`](/fake-data-generation/seed-content/). Use the scripts documented in [`fake-data-generation/README.md`](/fake-data-generation/README.md) to:
@@ -60,8 +62,9 @@ When populating the system pre-launch:
 1. **Convert** each seed statement into a displayable document (markdown-restricted format, appropriate extras)
 2. **Upload** to IPFS
 3. **Have a seed signer account** sign each one (so signer counts are at least 1)
-4. **Run the implication attester** on pre-generated implication link pairs (see [hidden-majority.md](./hidden-majority.md) for the specific links)
-5. The Aligning/Fundable Project Explorer AI can then use these as starting points for cause exploration
+4. **Run the implication attester** on pre-generated implication link pairs (see [hidden-majority.md](./hidden-majority.md) for the specific links). Designed-yes pairs must bless; designed-no must refuse. A bless is not enough.
+5. **Routing check** (implication vs nudge): for each designed implication, a reasonable signer of S1 should find a *suggestion* to also sign S2 annoying ("I already said that"). If they would not, S1 does not contain S2 yet — rewrite S1, do not ship it as a nudge. For designed *nudge* pairs (e.g. natural → modified), the opposite: S2 must be a real extra so a separate signature is fair. Unreasonable annoyance does not mint an arrow. Loop: generate → attester yes/no → routing check. Details: [why statements are peculiar](/specs/product/statements-are-peculiar-for-good-reasons.md).
+6. The Aligning/Fundable Project Explorer AI can then use these as starting points for cause exploration
 
 The fake-data system in `universe.json` uses a different set of statements optimized for testing mechanics. The formal seed-content JSON can now be converted into the same shape, so the simulations can gradually move toward these more realistic statements without hand-copying them.
 

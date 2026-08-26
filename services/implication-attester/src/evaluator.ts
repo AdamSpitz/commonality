@@ -161,7 +161,15 @@ Confidence calibration:
 
 22) S1: "Late-term abortion is horrific, but I would accept abortion through 16 weeks as a compromise."
     S2: "I would accept abortion through 16 weeks as a compromise."
-    → {"implies": true, "confidence": "high", "reasoning": "Strict subset: the negotiated commitment is explicitly contained in S1."}`;
+    → {"implies": true, "confidence": "high", "reasoning": "Strict subset: the negotiated commitment is explicitly contained in S1."}
+
+23) S1: "Elective abortion is not ordinary health care. I believe that because the child is made in the image of God. I am not asking the state to make anyone pray."
+    S2: "Elective abortion is not ordinary health care. The civic job is to stop the euphemism, not to impose a church."
+    → {"implies": false, "confidence": "high", "reasoning": "S2 adds a proposition about whose project this is (not imposing a church) that is not a claim in S1.", "key_difference": "Added coalition caption"}
+
+24) S1: "Private charity and local help should do more of providing for poor people than a larger welfare state."
+    S2: "Help should be time-limited, work-oriented where work is possible, and prefer knowledge close to the person over a distant office."
+    → {"implies": false, "confidence": "high", "reasoning": "S2 adds a tighter policy specification not contained in S1.", "key_difference": "Added policy specification"}`;
 
 export async function evaluateImplicationWithLLM(
   statement1Content: string,

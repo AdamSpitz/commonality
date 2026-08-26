@@ -1,0 +1,155 @@
+{
+  "notes": [
+    "Hand-authored tiny-seed personas. hardhatIndex is FUNDED_HARDHAT_DEV_KEYS index.",
+    "#8 is the mediator (does not sign camp planks as a believer). #9 is the secular founder.",
+    "takesModified: also sign the matching modified-* statements. Never auto-sign the other camp's modified text."
+  ],
+  "projects": [
+    {
+      "id": "scripture-translation",
+      "name": "New-language Scripture draft",
+      "description": "Pay two translators to finish a first draft of the Gospels in a language that currently has no published Scripture.",
+      "kind": "scripture",
+      "ownerIndex": 1,
+      "alignments": ["scripture/natural-christian"]
+    },
+    {
+      "id": "parish-warming",
+      "name": "Parish winter warming centre",
+      "description": "Keep a church hall open overnight through the cold months: cots, a kitchen, and a volunteer rota neighbouring congregations can share.",
+      "kind": "local-ministry",
+      "ownerIndex": 1,
+      "alignments": ["markets/natural-christian"]
+    },
+    {
+      "id": "campus-chaplaincy",
+      "name": "Campus chaplaincy at State U",
+      "description": "Fund a chaplain and a student hospitality budget at a large secular university.",
+      "kind": "campus-ministry",
+      "ownerIndex": 2,
+      "alignments": ["scripture/natural-christian"]
+    },
+    {
+      "id": "first-trimester-clinic",
+      "name": "Crisis pregnancy help, not an abortuary",
+      "description": "A clinic that offers ultrasounds, material help, and genuine alternatives to abortion. It does not treat abortion as health care.",
+      "kind": "abortion-bridge",
+      "ownerIndex": 2,
+      "alignments": ["abortion/modified-christian"]
+    },
+    {
+      "id": "late-term-ban-brief",
+      "name": "Elective-abortion restriction brief",
+      "description": "A short public brief arguing that elective abortion is not health care and that life-of-the-mother exceptions are not a license for an undo button.",
+      "kind": "abortion-bridge",
+      "ownerIndex": 3,
+      "alignments": ["abortion/modified-secular"]
+    },
+    {
+      "id": "apprenticeship-fund",
+      "name": "Trade apprenticeship match fund",
+      "description": "Match private donations that put people into paid trades training instead of expanding a welfare caseload.",
+      "kind": "markets-bridge",
+      "ownerIndex": 3,
+      "alignments": ["markets/modified-christian"]
+    },
+    {
+      "id": "local-charity-audit",
+      "name": "Local charity effectiveness audit",
+      "description": "Publish outcome numbers for city charities that actually get people into work, without arguing about theology.",
+      "kind": "markets-bridge",
+      "ownerIndex": 4,
+      "alignments": ["markets/modified-secular"]
+    },
+    {
+      "id": "minors-transition-pause",
+      "name": "Keep schools and libraries off the pipeline",
+      "description": "Parent-education and school-board work against Drag Queen Story Hour, exhibitionist Pride events around kids, and treating gender-distressed minors as a medical-transition pipeline.",
+      "kind": "lgbt-bridge",
+      "ownerIndex": 5,
+      "alignments": ["lgbt/modified-christian", "lgbt/modified-secular"]
+    },
+    {
+      "id": "church-marriage-prep",
+      "name": "Parish marriage-prep course",
+      "description": "A church-run course on Christian marriage. Not a civil-policy project.",
+      "kind": "lgbt-natural",
+      "ownerIndex": 2,
+      "alignments": ["lgbt/natural-christian"]
+    },
+    {
+      "id": "colorblind-admissions",
+      "name": "Colorblind admissions amicus",
+      "description": "Legal research arguing public universities should not award or penalize applicants for ancestry.",
+      "kind": "secular-unique",
+      "ownerIndex": 6,
+      "alignments": ["colorblind-merit/natural-secular"]
+    }
+  ],
+  "personas": [
+    {
+      "id": "christian-organizer",
+      "hardhatIndex": 0,
+      "camp": "christian",
+      "takesModified": false,
+      "signsNaturals": ["abortion/natural-christian", "markets/natural-christian", "lgbt/natural-christian", "scripture/natural-christian"],
+      "aligns": true
+    },
+    {
+      "id": "christian-nudge-taker",
+      "hardhatIndex": 1,
+      "camp": "christian",
+      "takesModified": true,
+      "signsNaturals": ["abortion/natural-christian", "markets/natural-christian", "lgbt/natural-christian", "scripture/natural-christian"],
+      "aligns": true
+    },
+    {
+      "id": "christian-natural-only",
+      "hardhatIndex": 2,
+      "camp": "christian",
+      "takesModified": false,
+      "signsNaturals": ["abortion/natural-christian", "lgbt/natural-christian", "scripture/natural-christian"],
+      "aligns": false
+    },
+    {
+      "id": "christian-markets-modified",
+      "hardhatIndex": 4,
+      "camp": "christian",
+      "takesModified": true,
+      "signsNaturals": ["markets/natural-christian", "scripture/natural-christian"],
+      "aligns": false
+    },
+    {
+      "id": "secular-founder",
+      "hardhatIndex": 9,
+      "camp": "secular",
+      "takesModified": false,
+      "signsNaturals": ["abortion/natural-secular", "markets/natural-secular", "lgbt/natural-secular", "colorblind-merit/natural-secular"],
+      "aligns": false
+    },
+    {
+      "id": "secular-nudge-taker",
+      "hardhatIndex": 5,
+      "camp": "secular",
+      "takesModified": true,
+      "signsNaturals": ["abortion/natural-secular", "markets/natural-secular", "lgbt/natural-secular", "colorblind-merit/natural-secular"],
+      "aligns": true
+    },
+    {
+      "id": "secular-natural-only",
+      "hardhatIndex": 6,
+      "camp": "secular",
+      "takesModified": false,
+      "signsNaturals": ["abortion/natural-secular", "colorblind-merit/natural-secular"],
+      "aligns": true
+    },
+    {
+      "id": "secular-lgbt-modified",
+      "hardhatIndex": 3,
+      "camp": "secular",
+      "takesModified": true,
+      "signsNaturals": ["lgbt/natural-secular", "markets/natural-secular"],
+      "aligns": true
+    }
+  ]
+}

@@ -871,6 +871,15 @@ export async function generateProspectiveContentRoundScenarios(
     console.warn('  Prospective content round factory not configured — skipping prospective/materialized rounds.');
     return;
   }
+  {
+    const factoryCode = await createClients(users[2].privateKey).publicClient.getCode({ address: factory });
+    if (!factoryCode || factoryCode === '0x') {
+      console.warn(
+        `  Prospective content round factory ${factory} has no bytecode — skipping prospective/materialized rounds. Redeploy with ./scripts/deploy-contracts.sh localhost.`,
+      );
+      return;
+    }
+  }
   if (users.length < 4) {
     console.warn('  Need at least 4 users for prospective content rounds — skipping.');
     return;

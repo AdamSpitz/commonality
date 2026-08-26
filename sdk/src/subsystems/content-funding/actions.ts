@@ -306,8 +306,19 @@ export async function createProspectiveRound(
     account: clients.walletClient.account!,
   });
   const receipt = await clients.publicClient.waitForTransactionReceipt({ hash });
+  if (receipt.status !== 'success') {
+    throw new Error(`createProspectiveRound reverted (tx ${hash})`);
+  }
   const [event] = parseEventLogs({ abi: ProspectiveContentRoundFactoryAbi, eventName: 'ProspectiveRoundCreated', logs: receipt.logs });
-  if (!event) throw new Error('Failed to find ProspectiveRoundCreated event in transaction receipt');
+  if (!event) {
+    const code = await clients.publicClient.getCode({ address: factoryAddress });
+    if (!code || code === '0x') {
+      throw new Error(
+        `No ProspectiveContentRoundFactory bytecode at ${factoryAddress}. Redeploy contracts (./scripts/deploy-contracts.sh localhost) so PROSPECTIVE_CONTENT_ROUND_FACTORY_ADDRESS is live.`,
+      );
+    }
+    throw new Error('Failed to find ProspectiveRoundCreated event in transaction receipt');
+  }
   return { hash, roundAddress: event.args.round, receiptTokenAddress: event.args.receiptToken, conditionAddress: event.args.condition };
 }
 

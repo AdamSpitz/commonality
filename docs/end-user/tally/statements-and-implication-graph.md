@@ -28,11 +28,11 @@ On polarized issues, we expect statements to cluster into a recurring structure:
 
 - **Pole statements** — the loud, extreme positions that define the "two sides" in public discourse
 - **Normal-people-from-each-side statements** — what most people on each side actually think, more nuanced than the poles
-- **A commonality statement** — the position that both normal-people statements imply, which turns out to be a supermajority position that nobody knew existed
+- **A commonality statement** — the overlap both *modified* (mediator-authored) statements imply. Ordinary “normal-people” wording often does *not* imply it yet; that is why the mediator exists.
 
-The implication graph is what connects these layers. Two people signing different "normal-people" statements in their own words don't need to know about each other — the system discovers that their statements both imply the same commonality. That commonality statement's supporter count then reveals the hidden majority: far more people agree on this than anyone expected, because the political system was structured to make them invisible to each other.
+The implication graph is what connects these layers. Two people signing different statements in their own words don't need to know about each other. When the wording is already close enough, attesters can draw arrows. When it is not, a mediator suggests **modified** texts that a person on that side might still sign, and that *do* imply the commonality. The commonality statement's supporter count (direct + indirect) is what can reveal a hidden majority.
 
-For a detailed look at the different shapes these patterns take, see the [common-sense majority walkthrough](../shared/use-case-walkthroughs/common-sense-majority.md).
+Shapes and the modified-layer needle: [hidden-majority patterns](../common-sense-majority/hidden-majority-patterns.md). Why the wording is finicky is documented in the repository at `specs/product/statements-are-peculiar-for-good-reasons.md`. User-facing walkthrough: [common-sense majority](../shared/use-case-walkthroughs/common-sense-majority.md).
 
 ## Cross-partisan discovery
 
