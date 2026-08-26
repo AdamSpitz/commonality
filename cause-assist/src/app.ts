@@ -213,6 +213,10 @@ export function createCauseAssistApp(config: CauseAssistConfig): express.Express
         invalidRequest(res, `complaint must be a valid statement when provided`)
         return
       }
+      if (body.intendedBridge !== undefined && !validStatement(body.intendedBridge)) {
+        invalidRequest(res, `intendedBridge must be a valid statement when provided`)
+        return
+      }
       res.json(await draftModifiedPlank(body, config))
     } catch (error) { next(error) }
   })
@@ -312,6 +316,14 @@ export function createCauseAssistApp(config: CauseAssistConfig): express.Express
       }
       if (!validStatement(body.bridgePlank)) {
         invalidRequest(res, `bridgePlank is required and must be at most ${MAX_STATEMENT_LENGTH} characters`)
+        return
+      }
+      if (body.parentPlanks !== undefined && (
+        !Array.isArray(body.parentPlanks)
+        || body.parentPlanks.length > MAX_EXISTING_STATEMENTS
+        || body.parentPlanks.some((item) => !validStatement(item))
+      )) {
+        invalidRequest(res, `parentPlanks must be 0–${MAX_EXISTING_STATEMENTS} valid statements when provided`)
         return
       }
       res.json(await critiqueTriple(body, config))

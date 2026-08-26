@@ -15,10 +15,13 @@ describe('bridge cluster wording verbs', () => {
       parentPlanks: ['Marriage is a covenant and children are a blessing.'],
       sideLabel: 'practising Christians',
       mustNotConcede: 'Do not reduce this to outcome data.',
+      intendedBridge: 'It should be easier to marry and raise children.',
     }, config, async <T>(request: LlmJsonRequest) => {
       assert.match(request.systemPrompt, /human remains the publisher/i)
       assert.doesNotMatch(request.systemPrompt, /strategy prompt you should write/i)
+      assert.match(request.systemPrompt, /Containment is a check after drafting/i)
       assert.match(request.userPrompt, /must_not_concede/)
+      assert.match(request.userPrompt, /intended_bridge/)
       return { plank: 'Marriage and children are among the best things God gives us, and I want family formation to be a normal, achievable thing.', rationale: 'Keeps covenant language.', warnings: [] } as T
     })
     assert.equal(result.source, 'llm')
@@ -33,6 +36,7 @@ describe('bridge cluster wording verbs', () => {
       ],
     }, config, async <T>(request: LlmJsonRequest) => {
       assert.match(request.systemPrompt, /justifications/i)
+      assert.match(request.systemPrompt, /coalition caption/i)
       return { plank: 'It should be easier than it currently is for people to marry and raise children.', rationale: 'Conclusion only.', warnings: [] } as T
     })
     assert.equal(result.source, 'llm')
@@ -46,9 +50,12 @@ describe('bridge cluster wording verbs', () => {
         'Kids do better with two committed parents.',
       ],
       bridgePlank: 'Marriage is a gift from God and also the data says so.',
+      parentPlanks: ['Marriage is a covenant.', 'Kids do better with two parents.'],
     }, config, async <T>(request: LlmJsonRequest) => {
       assert.match(request.systemPrompt, /Do not rewrite/)
       assert.match(request.systemPrompt, /routing:/)
+      assert.match(request.systemPrompt, /shape:/)
+      assert.match(request.userPrompt, /parent_planks/)
       return {
         objections: ['Shared plank requires a theological premise.'],
         leakWarnings: ['God-talk leaked into the bridge plank.'],

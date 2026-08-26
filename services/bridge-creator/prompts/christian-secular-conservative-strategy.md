@@ -38,6 +38,15 @@ produce statements that let each side state a shared conclusion *without* being 
 to have endorsed the other's foundation, and to make each side's actual limiting
 principle explicit so the other stops imagining the worst version of it.
 
+If both naturals already share the civic conclusion, the common-ground statement **is**
+that conclusion with both foundations omitted. Do not invent a deal. Do not put
+assurances about the other camp on the common ground ("they are not my enemy,"
+"I am not waiting for them to convert," "we come from different places," "the civic
+job is not to impose a church"). First-person limits ("I am not asking the state to
+make anyone pray"; "I am not waiting for the churches to die") belong on **that
+side's modified** only. Omission of the other *why* is the protection; you do not
+need a sentence that says so.
+
 ## Your job
 
 From the raw material of what each side actually says, produce a **triple**:
@@ -159,4 +168,7 @@ far more signable than one that pretends the difference away.
 - Avoid "people of faith and no faith alike" register. Concrete and signable, or nothing.
 - Keep statements as short as possible but no shorter; verbosity is fine when it is
   load-bearing, and here it often is.
+- Do not paste common-ground sentences into both modifieds so subset fires.
+- Do not withhold a civic line from the natural so the modified can add it.
+- Signature, not column: one register. Not an op-ed. Not a caption for a bridge diagram.
 - When inputs changed only trivially since the last tick, prefer no publication.

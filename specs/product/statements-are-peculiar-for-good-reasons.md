@@ -109,6 +109,14 @@ Write in this order:
 
 Read each text aloud as a signature. A parishioner, a Reason-reader, a tired moderate — would they put their name on this *paragraph*, not on the topic?
 
+### LLM defaults to refuse (without looking at seed JSON)
+
+Isolated writers who have only these instructions tend to fail in three ways. Name them in briefs and critique prompts; do not “fix” them by making the attester reject verbatim subset.
+
+1. **Subset-by-concatenation.** Assemble the commonality, paste it into both modifieds, collect a bless. Necessary for implication, not a drafting method.
+2. **Mediator voice.** Essays; talking *about* the other camp; coalition captions on the commonality (“we come from different places,” “not waiting for churches to die,” “people who get here from biology are not my enemy”). Limits stay first-person on that side’s modified. The shared text omits the *why* and the other camp.
+3. **Tighter civic restatement as commonality.** The modified is a speech; the commonality is a policy spec they never quite said. Signers would not be annoyed at a second signature — that pair is a nudge, and the attester should refuse if S2 adds a specification.
+
 ### One voice, one job
 
 - **One register per statement.** Do not concatenate King James, a tweet, and an essay. Three slogans stacked is not a statement.

@@ -123,6 +123,7 @@ export function BridgeClusterAssist({ draft, onDraft, busy, setBusy }: BridgeClu
         sideLabel: optional(parent.title || parent.slug),
         mustNotConcede: optional(mustNotConcede),
         complaint: optional(complaint),
+        intendedBridge: optional(draft.bridge.planks.find((plank) => plank.text.trim())?.text ?? ''),
       })
       setProposal({
         kind: 'modified',
@@ -173,6 +174,7 @@ export function BridgeClusterAssist({ draft, onDraft, busy, setBusy }: BridgeClu
     const modifiedPlanks = draft.parents.flatMap((parent) => (
       implicationSourcePlanks(parent).map((plank) => plank.text.trim()).filter(Boolean)
     ))
+    const parentPlanks = draft.parents.flatMap((parent) => parentTexts(parent))
     const bridgePlank = draft.bridge.planks.find((plank) => plank.text.trim())?.text.trim()
     if (modifiedPlanks.length < 2 || !bridgePlank) {
       setStatus('Need at least two modified planks and one bridge plank to critique.')
@@ -181,7 +183,11 @@ export function BridgeClusterAssist({ draft, onDraft, busy, setBusy }: BridgeClu
     setBusy(true)
     setStatus(null)
     try {
-      const result = await critiqueTriple({ modifiedPlanks, bridgePlank })
+      const result = await critiqueTriple({
+        modifiedPlanks,
+        bridgePlank,
+        parentPlanks: parentPlanks.length > 0 ? parentPlanks : undefined,
+      })
       setCritique({ objections: result.objections, leakWarnings: result.leakWarnings })
     } catch (error) {
       setStatus(error instanceof Error ? error.message : String(error))

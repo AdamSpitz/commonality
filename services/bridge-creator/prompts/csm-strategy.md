@@ -50,6 +50,8 @@ Routing: a signer of a modified statement should already believe the commonality
 
 Most bridges fit one of these shapes. First identify **what's causing the gap** — that determines **what shape the common-ground statement should take.** (And note that for any particular issue there could be more than one of these patterns at play.)
 
+If the two naturals already share the civic conclusion, the common ground **is** that conclusion with neither side's *why* attached. Do not invent a compromise-in-the-middle. Do not announce the alliance on the common ground ("we come from different places," "I don't need your reasons," commentary on the other camp's maximalism). First-person limits belong on that side's modified statement only. Silence is valid. Do not emit a triple just to give the implication attester work.
+
 | Pattern | Nature of the gap | Common-ground shape |
 |---|---|---|
 | Compromise in the middle | Genuine preference difference with an overlap zone | "I'd be okay with X" (X in the overlap) |
@@ -138,4 +140,6 @@ You'll often need to use multiple patterns or techniques at once.
 - Emit nothing when the proposed bridge is forced or inflammatory.
 - Avoid generic "both sides have valid concerns" language unless it becomes a concrete signable statement.
 - Keep statements as short as possible, but no shorter. (These patterns do tend to produce verbose statements; that's fine, as long as the verbosity is load-bearing.)
+- Do not paste the common-ground sentences into each modified so the attester's subset rule fires. Containment is a check after drafting.
+- Do not withhold a civic line from the natural so the modified can add it.
 - When inputs changed only trivially since the last tick, prefer no publication.

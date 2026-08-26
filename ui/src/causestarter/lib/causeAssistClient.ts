@@ -189,6 +189,7 @@ export async function draftModifiedPlank(input: {
   sideLabel?: string
   mustNotConcede?: string
   complaint?: string
+  intendedBridge?: string
 }): Promise<DraftModifiedPlankResponse> {
   return postJson<DraftModifiedPlankResponse>('/draft-modified-plank', input)
 }
@@ -204,6 +205,7 @@ export async function draftBridgePlank(input: {
 export async function critiqueTriple(input: {
   modifiedPlanks: string[]
   bridgePlank: string
+  parentPlanks?: string[]
 }): Promise<CritiqueTripleResponse> {
   return postJson<CritiqueTripleResponse>('/critique-triple', input)
 }

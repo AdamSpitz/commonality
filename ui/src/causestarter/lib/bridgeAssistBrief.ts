@@ -8,11 +8,11 @@ export const FAMILY_FORMATION_EXAMPLE = {
   parentChristianSliver: 'Marriage and children are a covenant and a blessing.',
   parentSecularSliver: 'Stable two-parent households have better measured outcomes; birth rates are a civilizational problem.',
   modifiedChristian:
-    'Marriage and children are among the best things God gives us, and I want to live in a country where forming a family is a normal, achievable thing rather than a luxury. I\'d rather have that be easy for everyone than argue about whose reasons for wanting it are the right ones.',
+    'Marriage and children are among the best things God gives us, and I want to live in a country where forming a family is a normal, achievable thing rather than a luxury.',
   modifiedSecular:
-    'I\'m not religious, but the data on this isn\'t close: kids do better with two committed parents, and a country that has stopped forming families is storing up a problem it can\'t buy its way out of. I don\'t need a theological reason to think making family formation affordable and normal should be a priority.',
+    'I\'m not religious, but the data on this isn\'t close: kids do better with two committed parents, and a country that has stopped forming families is storing up a problem it can\'t buy its way out of.',
   bridge:
-    'It should be easier than it currently is for people to marry and raise children — housing, cost, and working hours included. We come to this from different places, and neither of us needs the other\'s reasons to agree that a society where family formation has become impractical for ordinary people has a problem worth fixing.',
+    'It should be easier than it currently is for people to marry and raise children — housing, cost, and working hours included.',
 } as const
 
 export interface BridgeClusterPatch {
@@ -61,10 +61,16 @@ export function buildBridgeAssistBrief(draft: BridgeDraft): string {
       'Each modified plank must still sound like that camp and keep that camp\'s reasons.',
       'The bridge plank is a shared conclusion. It must not require either side\'s justification (no theology a secular signer must affirm; no reduction of faith to "studies show").',
       'Implication is plank-to-plank and must be obvious: anyone who signs the modified wording is already committed to the bridge wording.',
+      'Containment is a check, not a method: do not paste the bridge sentences into each modified so subset fires.',
+      'Parents are how that camp talks. Do not withhold a civic line from the parent so the modified can add it.',
+      'The shared plank must not narrate the coalition (no "we come from different places," no commentary on whose reasons). First-person limits stay on that side\'s modified.',
+      'If both sides already share the civic conclusion, the bridge is that conclusion with both whys omitted. Do not invent a deal.',
       'Silence is allowed. If the only bridge deletes a real conviction, return notes saying so and omit those planks.',
       'Return only the JSON object specified below. No markdown around it.',
     ],
     formatExample: FAMILY_FORMATION_EXAMPLE,
+    formatExampleNotes:
+      'Reasons kept on each modified; shared plank is the civic conclusion only. Do not copy a coalition narrator onto the bridge.',
     currentDraft: {
       mediatorName: draft.mediatorName.trim(),
       mediatorNote: draft.mediatorNote.trim(),

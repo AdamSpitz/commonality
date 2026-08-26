@@ -41,8 +41,8 @@ Two assistance layers. The **draft is the conversation memory**. Each turn is �
 **Copy brief for your assistant** on `/bridge/new` copies a constrained packet:
 
 - verbatim parent planks and the current modified / bridge drafts
-- the attester bar and cluster rules (thinner sliver, keep each side’s reasons, shared plank owns neither *why*, silence is allowed, do not invent arrows, do not write a strategy prompt)
-- the Christian / secular family-formation triple labeled as a **format example only**
+- the attester bar and cluster rules (thinner sliver, keep each side’s reasons, shared plank owns neither *why*, no coalition narrator, do not paste-glue for subset, silence is allowed, do not invent arrows, do not write a strategy prompt)
+- the Christian / secular family-formation triple labeled as a **format example only** (civic conclusion only; do not copy a “we come from different places” closer)
 - a required return schema: `commonality.bridge-cluster-patch.v1`
 
 They paste into Claude / ChatGPT / Grok, paste JSON back, **Apply pasted patch**, then review. We never see the chat. Code: `causestarter/src/lib/bridgeAssistBrief.ts`.
@@ -53,10 +53,10 @@ cause-assist endpoints — proposals, never auto-applied, never a standing strat
 
 | Verb | Purpose |
 |---|---|
-| `POST /draft-modified-plank` | One modified plank from parent texts + optional “must not concede” / complaint. Refuses empty parents. |
+| `POST /draft-modified-plank` | One modified plank from parent texts + optional “must not concede” / complaint / intended bridge. Refuses empty parents. |
 | `POST /draft-stand-in-sliver` | Thin roster for a camp that has no published cause yet (title, summary, planks). Not a modified-plank call. |
-| `POST /draft-bridge-plank` | One shared plank from ≥2 sides (modified wording, or stand-in planks when modified is skipped); strip justifications |
-| `POST /critique-triple` | Objections (including implication-vs-nudge routing) and justification-leak warnings only — no rewrite |
+| `POST /draft-bridge-plank` | One shared plank from ≥2 sides (modified wording, or stand-in planks when modified is skipped); strip justifications and coalition captions |
+| `POST /critique-triple` | Objections (`routing:`, `shape:`) and justification-leak warnings only — no rewrite. Optional parent texts. |
 
 UI: `causestarter/src/components/BridgeClusterAssist.tsx`. Implementation: `cause-assist/src/bridgeClusterAssist.ts`.
 

@@ -68,6 +68,8 @@ export interface DraftModifiedPlankRequest {
   mustNotConcede?: string
   /** Organizer complaint about the current draft, if any. */
   complaint?: string
+  /** Optional intended shared plank — check containment; do not paste it into the modified. */
+  intendedBridge?: string
 }
 
 export interface DraftModifiedPlankResponse {
@@ -113,6 +115,8 @@ export interface DraftBridgePlankResponse {
 export interface CritiqueTripleRequest {
   modifiedPlanks: string[]
   bridgePlank: string
+  /** Parent/natural texts when known — needed to catch withhold-from-natural. */
+  parentPlanks?: string[]
 }
 
 export interface CritiqueTripleResponse {
