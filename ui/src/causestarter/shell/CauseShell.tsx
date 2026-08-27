@@ -17,7 +17,7 @@ import MenuBookOutlinedIcon from '@mui/icons-material/MenuBookOutlined'
 import GitHubIcon from '@mui/icons-material/GitHub'
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { WalletButton } from '../components/WalletButton'
+import { WalletButton } from '../../shared/components/WalletButton'
 
 const GITHUB_REPO_URL = 'https://github.com/AdamSpitz/commonality'
 
@@ -145,7 +145,7 @@ export function CauseShell({ children }: CauseShellProps) {
           >
             <SettingsOutlinedIcon fontSize="small" />
           </IconButton>
-          <WalletButton />
+          <WalletButton localHardhatAccounts />
         </Toolbar>
       </AppBar>
 
@@ -163,7 +163,6 @@ export function CauseShell({ children }: CauseShellProps) {
 
       {!isDesktop && (
         <Paper
-          className="cs-safe-bottom"
           elevation={8}
           sx={{
             position: 'fixed',
@@ -174,6 +173,7 @@ export function CauseShell({ children }: CauseShellProps) {
             borderTop: '1px solid',
             borderColor: 'divider',
             zIndex: (t) => t.zIndex.appBar,
+            pb: 'env(safe-area-inset-bottom, 0px)',
           }}
         >
           <BottomNavigation

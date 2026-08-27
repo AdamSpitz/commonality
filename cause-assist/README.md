@@ -46,12 +46,12 @@ Without an API key, the suggester uses conservative local templates, implication
 
 | Env | Default | Notes |
 | --- | --- | --- |
-| `XAI_API_KEY` | — | xAI key — set in repo-root `.env.secrets`, then `./scripts/setup-env.sh` |
-| `OPENROUTER_API_KEY` | — | Legacy fallback if no xAI/Grok key; pairs with OpenRouter base URL + `x-ai/grok-4.5` model defaults |
-| `CAUSE_ASSIST_API_BASE_URL` | `https://api.x.ai/v1` (or OpenRouter when only `OPENROUTER_API_KEY` is set) | OpenAI-compatible base URL |
-| `CAUSE_ASSIST_SUGGEST_MODEL` | `grok-4.5` (or `x-ai/grok-4.5` for OpenRouter-only) | Suggester model id |
+| `OPENROUTER_API_KEY` | — | Preferred LLM key; pairs with OpenRouter + `deepseek/deepseek-v4-flash-0731` |
+| `XAI_API_KEY` | — | Fallback only when OpenRouter is not configured |
+| `CAUSE_ASSIST_API_BASE_URL` | `https://openrouter.ai/api/v1` when OpenRouter is used | OpenAI-compatible base URL |
+| `CAUSE_ASSIST_SUGGEST_MODEL` | production OpenRouter model (`deepseek/deepseek-v4-flash-0731`) | Suggester model id |
 | `CAUSE_ASSIST_COHERENCE_MODEL` | same as safety/suggest | Roster coherence model (own slot so it is not generation's model by accident) |
-| `CAUSE_ASSIST_SAFETY_MODEL` | `grok-4.5` (or `x-ai/grok-4.5` for OpenRouter-only) | Safety filter model id |
+| `CAUSE_ASSIST_SAFETY_MODEL` | production OpenRouter model | Safety filter model id |
 | `CAUSE_ASSIST_IMPLICATION_MODEL` | same as suggest model | Implication check model id |
 | `CAUSE_ASSIST_COHERENCE_ATTESTER_ADDRESS` | — | Public worker address exposed by `/health`; the HTTP process does not receive its private key |
 | `PORT` / `CAUSE_ASSIST_PORT` | `3002` | HTTP port |

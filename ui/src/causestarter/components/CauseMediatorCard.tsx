@@ -1,14 +1,10 @@
-import { useState } from 'react'
 import { Button, Paper, Stack, Typography } from '@mui/material'
 import CheckIcon from '@mui/icons-material/Check'
 import { Link as RouterLink } from 'react-router-dom'
 import {
-  addTrustedNudger,
   getMediatorOptInPath,
-  isTrustedNudger,
-  loadTrustedNudgers,
   serviceMediatorFromCause,
-  removeTrustedNudger,
+  useMediatorOptIn,
 } from '@ui/shared'
 import type { CauseMediator } from '../lib/causeStore'
 
@@ -35,13 +31,7 @@ export function CauseMediatorCard({ mediator, detailPath }: {
   detailPath?: string
 }) {
   const entry = serviceMediatorFromCause(mediator)
-  const [nudgers, setNudgers] = useState(loadTrustedNudgers)
-  const optedIn = isTrustedNudger(mediator.address, nudgers)
-
-  const toggle = () => {
-    if (!entry) return
-    setNudgers(optedIn ? removeTrustedNudger(mediator.address) : addTrustedNudger(entry))
-  }
+  const { optedIn, toggle, canToggle } = useMediatorOptIn(mediator.address, entry)
 
   return (
     <Paper
@@ -68,7 +58,7 @@ export function CauseMediatorCard({ mediator, detailPath }: {
         <Button
           variant={optedIn ? 'outlined' : 'contained'}
           size="small"
-          disabled={!entry}
+          disabled={!canToggle}
           onClick={toggle}
           startIcon={optedIn ? <CheckIcon /> : undefined}
           aria-pressed={optedIn}

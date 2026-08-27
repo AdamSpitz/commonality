@@ -33,6 +33,7 @@ vi.mock('@ui/fundingportals', () => ({
 
 vi.mock('@ui/shared', () => ({
   TrustNetworkRefreshIndicator: () => null,
+  HeaderInfoTip: () => null,
 }))
 
 vi.mock('./AlignmentTrustGate', () => ({

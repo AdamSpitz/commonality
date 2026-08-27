@@ -93,11 +93,11 @@ Generated files are split into two directories to make their lifecycle explicit:
 
 ## Formal Seed Content
 
-Statement *shape* (modified vs natural vs commonality, what the implication attester will bless) is documented in [`specs/product/statements-are-peculiar-for-good-reasons.md`](../specs/product/statements-are-peculiar-for-good-reasons.md). Working plan for the Christianity × secular-conservatism tiny seed: [`christian-secular-tiny-seed.md`](./christian-secular-tiny-seed.md). `gen:tiny` does **not** publish the random 12-statement `universe.json` slice; CauseStarter Christianity + secular-conservatism (and local-food) are the tiny story.
+Statement *shape* (modified vs natural vs commonality, what the implication attester will bless) is documented in [`specs/product/statements-are-peculiar-for-good-reasons.md`](../specs/product/statements-are-peculiar-for-good-reasons.md). How to **generate** viable seed / cause-assist text without hand-wordsmithing: [`statement-generation.md`](./statement-generation.md). Working plan for the Christianity × secular-conservatism tiny seed: [`christian-secular-tiny-seed.md`](./christian-secular-tiny-seed.md). `gen:tiny` does **not** publish the random 12-statement `universe.json` slice; CauseStarter Christianity + secular-conservatism (and local-food) are the tiny story.
 
 The curated seed statements for the real system now live in `seed-content/*.json` using a small formal schema:
 
-- one JSON file per seed-content purpose (`fundable-projects`, `hidden-majority`, `meta`, `content-funding`)
+- one JSON file per seed-content purpose (`fundable-projects`, `hidden-majority`, `meta`, `content-funding`, `simple-causes`, `christian-secular-bridge`)
 - collection-level and group-level notes so the rationale from the specs is not lost
 - per-statement IDs, optional roles (for example `commonality`, `normal-left`, `pole-right`), and optional `createdDate` when a seed statement needs a stable well-known CID
 
@@ -107,7 +107,8 @@ Two scripts sit on top of that source:
 - `npm run gen:seed:markdown` rewrites `../specs/tech/subsystems/conceptspace/seed-content/*.md` so the prose docs stay aligned with the JSON source of truth
 - `npm run gen:seed:statements` writes `output/seed-statements.json`, which contains real Conceptspace `DisplayableDocument` objects ready for inspection or publication
 - `npm run gen:seed:upload` publishes those statement documents (PublishedData when configured, legacy IPFS fallback otherwise) and writes the resulting CIDs to `output/seed-statements.uploads.json`
-- `npm run gen:seed:implications` evaluates ordered S1→S2 pairs from the seed-content corpus with the real implication-attester prompt and writes the decisions to `data/seed-implication-evaluations.<scope>.json`
+- `npm run gen:seed:implications` evaluates ordered S1→S2 pairs from the seed-content corpus with the real implication-attester prompt and writes the decisions to `data/seed-implication-evaluations.<scope>.json`. Resume keeps pairs whose saved prompt fingerprint already matches; stale fingerprints are re-evaluated. Empty LLM responses are retried. Use `--no-resume` only when you intend to drop the saved file.
+- `npm run gen:seed:simple-causes-implications` live-checks designed-no nested-place pairs in `seed-content/simple-causes.json` (Grey → Ontario is not implication)
 - `npm run gen:seed:worker-outputs` regenerates checked-in local-dev Alignment Explorer/nudge/implication-finder fixtures in `data/seed-worker-outputs.json`
 - `npm run test:seed:worker-outputs` checks that those seed worker fixtures still match the current seed content and deterministic generator
 - `npm run test:seed:implication-regression` checks that the saved implication-decision corpus still matches the current statement IDs and statement text
@@ -296,7 +297,7 @@ The generative testing suite now supports intelligent implication evaluation usi
 
 ### Features
 
-- **LLM Evaluation**: Uses Claude 3.5 Haiku (or other models) to evaluate whether S1 implies S2
+- **LLM Evaluation**: Uses `DEV_OPENROUTER_MODEL` (default DeepSeek V4 Flash; independent of production `OPENROUTER_MODEL`) to evaluate whether S1 implies S2
 - **Attester Integration**: Different attester types apply their thresholds and biases to LLM results
 - **Batch Processing**: Evaluate multiple implication pairs efficiently
 - **Cost Estimation**: Built-in tools to estimate API costs before running large batches
@@ -307,7 +308,7 @@ Set your OpenRouter API key as an environment variable:
 
 ```bash
 export OPENROUTER_API_KEY=sk-or-your-key-here
-export OPENROUTER_MODEL=anthropic/claude-3.5-haiku  # Optional, defaults to haiku
+export DEV_OPENROUTER_MODEL=deepseek/deepseek-v4-flash-0731  # Optional; laptop scripts only (not production services)
 ```
 
 Get an API key at: https://openrouter.ai/keys

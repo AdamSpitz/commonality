@@ -180,6 +180,8 @@ Read these; do not copy them into this file.
 
 **Tiny-seed work in progress:** [christian-secular-tiny-seed.md](/fake-data-generation/christian-secular-tiny-seed.md) — hand-worked Christianity × secular-conservatism cluster; live attester has blessed the designed modified→commonality pairs.
 
+**Generation process (bulk seed + cause-assist):** [statement-generation.md](/fake-data-generation/statement-generation.md) — curriculum, checker loop, gold-set rules. Draft exercises (not live seed until vetoed): [statement-generation-exercises/](/fake-data-generation/statement-generation-exercises/).
+
 ## What not to write
 
 - A single slogan meant to be both “what my side believes” and “the compromise.”

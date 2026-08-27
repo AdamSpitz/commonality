@@ -21,23 +21,10 @@
 import { readFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { parseEnvFile } from './lib/parse-env-file.mjs'
 
 const rootDir = join(dirname(fileURLToPath(import.meta.url)), '..')
 const networkEnvFile = process.argv[2] ?? join(rootDir, 'deployments', 'base-sepolia.env')
-
-function parseEnvFile(content) {
-  const result = {}
-  for (const line of content.split('\n')) {
-    const trimmed = line.trim()
-    if (!trimmed || trimmed.startsWith('#')) continue
-    const idx = trimmed.indexOf('=')
-    if (idx === -1) continue
-    const key = trimmed.slice(0, idx)
-    const value = trimmed.slice(idx + 1).replace(/^"(.*)"$/, '$1')
-    result[key] = value
-  }
-  return result
-}
 
 async function loadEnv(filePath) {
   try {

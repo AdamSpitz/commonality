@@ -19,7 +19,7 @@ vi.mock('@commonality/sdk/abis', () => ({
   MutableRefUpdaterAbi: [],
 }))
 
-vi.mock('./runtimeConfig', () => ({
+vi.mock('../../shared', () => ({
   getRuntimeConfigValue: () => undefined,
 }))
 

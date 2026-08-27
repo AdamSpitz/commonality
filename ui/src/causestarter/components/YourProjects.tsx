@@ -1,7 +1,7 @@
 import { Alert, Box, Button, CircularProgress, Stack, Typography } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
 import { ConnectWalletHint } from './ConnectWalletHint'
-import { HeaderInfoTip } from './HeaderInfoTip'
+import { HeaderInfoTip } from '../../shared'
 import { ProjectCard } from './ProjectCard'
 import { useUserProjects } from '../hooks/useUserProjects'
 

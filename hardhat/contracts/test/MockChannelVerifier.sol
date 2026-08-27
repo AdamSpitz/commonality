@@ -1,20 +1,7 @@
 //SPDX-License-Identifier: MIT
 pragma solidity 0.8.33;
 
-/**
- * @title IChannelVerifier
- * @notice Interface for verifying channel claim proofs
- */
-interface IChannelVerifier {
-    function verifyClaimProof(
-        bytes32 channelId,
-        address claimant,
-        bytes32 nonce,
-        uint256 deadline,
-        bytes32 proofHash,
-        bytes calldata verifierSignature
-    ) external view returns (bool);
-}
+import {IChannelVerifier} from "../content-funding/ChannelRegistry.sol";
 
 /**
  * @title MockChannelVerifier

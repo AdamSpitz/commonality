@@ -6,7 +6,7 @@ import { generateUsers, HARDHAT_PRIVATE_KEYS } from './generateUsers.js';
 import { FUNDED_HARDHAT_DEV_KEYS } from './seedCauseRoster.js';
 import { createSeedClients, createSeedPublicClient } from './seedRpc.js';
 import { generateStatements, publishGeneratedStatement, publishGeneratedStatements } from './generateStatements.js';
-import { generateAttestations, loadAttestations, hasAttestations } from './generateAttestations.js';
+import { loadAttestations, hasAttestations } from './generateAttestations.js';
 import { FundingAndDelegationActions, getSeedProjectAlignmentRef } from './fundingAndDelegationActions.js';
 import { AttackScenarios } from './attackScenarios.js';
 import { InvariantChecker } from './invariantChecker.js';
@@ -1482,8 +1482,5 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
       process.exit(1);
     });
 }
-
-// suppress unused imports warning for generateAttestations
-void generateAttestations;
 
 export { SimulationRunner };

@@ -3,6 +3,7 @@ import { base36, base36upper } from 'multiformats/bases/base36';
 import { base58btc } from 'multiformats/bases/base58';
 import { CID } from 'multiformats/cid';
 import type { IpfsCidV1 } from '../utils/cid-types.js';
+import { requireExactKeys, requireRecord, UNPAIRED_SURROGATE } from './validation.js';
 
 const RAW_CODEC = 0x55;
 const SHA2_256_CODE = 0x12;
@@ -10,7 +11,6 @@ const SHA2_256_SIZE = 32;
 const CANONICAL_DECIMAL = /^(0|[1-9][0-9]*)$/;
 const LOWERCASE_ADDRESS = /^0x[0-9a-f]{40}$/;
 const VISIBLE_ASCII_WITHOUT_COLON = /^[\x21-\x39\x3b-\x7e]+$/;
-const UNPAIRED_SURROGATE = /[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:^|[^\uD800-\uDBFF])[\uDC00-\uDFFF]/;
 
 const CID_DECODER = base32.decoder
   .or(base32upper.decoder)
@@ -71,25 +71,10 @@ export class PolicySubjectValidationError extends Error {
   }
 }
 
-function requireRecord(input: unknown): Record<string, unknown> {
-  if (typeof input !== 'object' || input === null || Array.isArray(input)) {
-    throw new PolicySubjectValidationError('Policy subject must be an object');
-  }
-  return input as Record<string, unknown>;
-}
-
-function requireExactKeys(record: Record<string, unknown>, expectedKeys: readonly string[]): void {
-  const expected = new Set(expectedKeys);
-  const unknown = Object.keys(record).filter((key) => !expected.has(key));
-  const missing = expectedKeys.filter((key) => !Object.hasOwn(record, key));
-
-  if (unknown.length > 0) {
-    throw new PolicySubjectValidationError(`Unknown policy subject field: ${unknown[0]}`);
-  }
-  if (missing.length > 0) {
-    throw new PolicySubjectValidationError(`Missing policy subject field: ${missing[0]}`);
-  }
-}
+const subjectUnknownField = (field: string) =>
+  new PolicySubjectValidationError(`Unknown policy subject field: ${field}`);
+const subjectMissingField = (field: string) =>
+  new PolicySubjectValidationError(`Missing policy subject field: ${field}`);
 
 function requireString(value: unknown, field: string): string {
   if (typeof value !== 'string') {
@@ -163,18 +148,18 @@ function canonicalizeChannel(value: string): string {
 
 /** Strictly validate a policy subject and return its canonical representation. */
 export function parsePolicySubject(input: unknown): CanonicalPolicySubject {
-  const record = requireRecord(input);
+  const record = requireRecord(input, () => new PolicySubjectValidationError('Policy subject must be an object'));
   const type = requireString(record.type, 'type');
 
   switch (type) {
     case 'cid':
-      requireExactKeys(record, ['type', 'value']);
+      requireExactKeys(record, ['type', 'value'], [], subjectUnknownField, subjectMissingField);
       return { type, value: canonicalizeCid(requireString(record.value, 'value')) };
     case 'address':
-      requireExactKeys(record, ['type', 'value', 'chainId']);
+      requireExactKeys(record, ['type', 'value', 'chainId'], [], subjectUnknownField, subjectMissingField);
       return canonicalizeAddress(record);
     case 'channel':
-      requireExactKeys(record, ['type', 'value']);
+      requireExactKeys(record, ['type', 'value'], [], subjectUnknownField, subjectMissingField);
       return { type, value: canonicalizeChannel(requireString(record.value, 'value')) };
     default:
       throw new PolicySubjectValidationError(`Unknown policy subject type: ${type}`);

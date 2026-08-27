@@ -19,7 +19,7 @@ import {
 import type { WriteClients } from '@commonality/sdk/utils'
 import { bookmarkCause, listCauses, publishedBookmarkIds, unbookmarkCause, type CauseDraft } from './causeStore'
 import { applyPlankTexts, loadPlankTexts, loadRosterDocument, resolveRosterCid } from './causeRoster'
-import { getRuntimeConfigValue } from './runtimeConfig'
+import { getRuntimeConfigValue } from '../../shared'
 
 export const CAUSE_BOOKMARKS_REF = 'bookmarked-causes'
 export const CAUSE_BOOKMARKS_SCHEMA_VERSION = 2 as const

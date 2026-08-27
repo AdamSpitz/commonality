@@ -6,7 +6,7 @@ import { Box, Button, Divider, Paper, Stack, Typography } from '@mui/material'
 import docModulesByRelativePath from 'virtual:end-user-docs'
 import { ToolCard } from '../components/ToolCard'
 import { SUPPORTING_TOOLS } from '../lib/tools'
-import { getDomainUrl, type DomainId } from '../lib/domainUrls'
+import { getDomainUrl, type DomainId } from '../../shared'
 
 const docModules: Record<string, string> = docModulesByRelativePath
 
@@ -83,7 +83,7 @@ function buildDocHref(internalPath: string): string {
   const home = docHomeDomain(internalPath)
   const route = normalizeDocsRoute(`/docs/${publicDocsRoute(internalPath)}`)
   if (home) {
-    return getDomainUrl(home as DomainId, route, route)
+    return getDomainUrl(home as DomainId, route, { fallbackHref: route })
   }
   return route
 }

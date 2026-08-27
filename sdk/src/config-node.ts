@@ -1,5 +1,5 @@
-import { IPFSConfig } from "./utils/ipfs.js";
-import { TwitterApiConfig } from "./utils/twitter.js";
+import { IPFSConfig } from './utils/ipfs.js';
+import { TwitterApiConfig } from './utils/twitter.js';
 
 export function createIPFSConfigInNodeJSFromTheUsualEnvVars(): IPFSConfig {
   return {

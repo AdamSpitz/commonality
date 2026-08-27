@@ -8,16 +8,28 @@ const { browseStatements, atomizeCause } = vi.hoisted(() => ({
   atomizeCause: vi.fn(),
 }))
 
-vi.mock('@commonality/sdk/conceptspace', () => ({
-  browseStatements,
-  getStatementWithContent: vi.fn(),
-}))
+vi.mock('@commonality/sdk/conceptspace', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@commonality/sdk/conceptspace')>()
+  return {
+    ...actual,
+    browseStatements,
+    getStatementWithContent: vi.fn(),
+  }
+})
 
 vi.mock('@commonality/sdk/nudger-publications', () => ({
   getCuratedCollections: vi.fn().mockResolvedValue([]),
 }))
 
 vi.mock('../lib/causeAssistClient', () => ({ atomizeCause }))
+
+vi.mock('../../shared', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../shared')>()
+  return {
+    ...actual,
+    useMachinery: () => ({}),
+  }
+})
 
 describe('StatementPicker', () => {
   beforeEach(() => {

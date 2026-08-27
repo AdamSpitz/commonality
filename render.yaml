@@ -26,15 +26,15 @@ services:
       - key: OPENROUTER_API_KEY
         sync: false  # Optional fallback secret
       - key: CAUSE_ASSIST_API_BASE_URL
-        value: https://api.x.ai/v1
+        value: https://openrouter.ai/api/v1
       - key: CAUSE_ASSIST_SUGGEST_MODEL
-        value: grok-4.5
+        value: deepseek/deepseek-v4-flash-0731
       - key: CAUSE_ASSIST_SAFETY_MODEL
-        value: grok-4.5
+        value: deepseek/deepseek-v4-flash-0731
       - key: CAUSE_ASSIST_IMPLICATION_MODEL
-        value: grok-4.5
+        value: deepseek/deepseek-v4-flash-0731
       - key: CAUSE_ASSIST_COHERENCE_MODEL
-        value: grok-4.5
+        value: deepseek/deepseek-v4-flash-0731
       - key: CAUSE_ASSIST_COHERENCE_ATTESTER_ADDRESS
         value: "0x39e477B6D9776244849eea9f79FC890ADB25cCbA"
     healthCheckPath: /health
@@ -68,8 +68,12 @@ services:
         sync: false  # Secret: worker only; never add to cause-assist
       - key: XAI_API_KEY
         sync: false  # Secret
+      - key: OPENROUTER_API_KEY
+        sync: false  # Secret
+      - key: CAUSE_ASSIST_API_BASE_URL
+        value: https://openrouter.ai/api/v1
       - key: CAUSE_ASSIST_COHERENCE_MODEL
-        value: grok-4.5
+        value: deepseek/deepseek-v4-flash-0731
       - key: CAUSE_ASSIST_IPFS_GATEWAY_URL
         value: https://ipfs.io/ipfs
       - key: EVENT_CACHE_URL
@@ -292,7 +296,7 @@ services:
       - key: OPENROUTER_API_KEY
         sync: false  # Secret
       - key: OPENROUTER_MODEL
-        value: anthropic/claude-3.5-haiku
+        value: deepseek/deepseek-v4-flash-0731
       - key: IPFS_API
         value: https://ipfs.io/api/v0
       - key: IPFS_GATEWAY
@@ -480,7 +484,7 @@ services:
       - key: OPENROUTER_API_KEY
         sync: false  # Secret
       - key: OPENROUTER_MODEL
-        value: anthropic/claude-3.5-haiku
+        value: deepseek/deepseek-v4-flash-0731
       - key: INDEXER_URL
         value: https://commonality-indexer.onrender.com
       - key: EVENT_CACHE_URL

@@ -1,6 +1,7 @@
 .DS_Store
 .envrc
 node_modules
+**/dist/
 .env
 .env.secrets
 .env.render
@@ -9,8 +10,6 @@ services/implication-attester/.env
 ui/.env
 integration-tests/.env.local
 typechain-types/
-services/implication-attester/dist
-published-data-ipfs-mirror/dist/
 hardhat/deployments/
 deployments/localhost.env
 deployments/localhost.contracts-manifest.json
@@ -35,10 +34,8 @@ tmp/
 
 
 # Local build outputs for new packages
-causestarter/dist/
 # Generated at container startup; local copies may contain environment-specific addresses.
 /causestarter/public/config.json
-cause-assist/dist/
 
 # pi subagent scratch artifacts
 .pi-subagents/

@@ -31,7 +31,7 @@ describe('config', () => {
     assert.strictEqual(config.intakeIntervalMs, 15 * 60 * 1000);
     assert.strictEqual(config.fullReviewIntervalMs, 6 * 60 * 60 * 1000);
     assert.strictEqual(config.pendingImportanceThreshold, 25);
-    assert.strictEqual(config.openRouterModel, 'anthropic/claude-3.5-haiku');
+    assert.strictEqual(config.openRouterModel, 'deepseek/deepseek-v4-flash-0731');
   });
 
   it('reads custom stream, interval, and trusted implication attesters from env', async () => {

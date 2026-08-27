@@ -47,8 +47,13 @@ import {
   type Address,
   type Hash,
 } from 'viem'
-import { getRuntimeConfigValue } from './runtimeConfig'
+import { getRuntimeConfigValue } from '../../shared'
 import type { CauseAnchor, CauseDraft, CauseMediator, CausePlank, RosterBridgeLink } from './causeStore'
+import {
+  parseBoardInclusionRules,
+  parsePlacePath,
+  type BoardInclusionRules,
+} from '../../fundingportals/components/geographicInclusion'
 import { publishedPlanks } from './causeStore'
 
 /** Structured payload stored in DisplayableDocument.extras. */
@@ -116,6 +121,8 @@ export interface RosterFields {
    * stay byte-identical to pre-field publications (ADR 0011).
    */
   contactUrl?: string
+  /** Factual view rules; initially only an optional geographic scope. */
+  inclusionRules?: BoardInclusionRules
 }
 
 export interface RosterExtras extends RosterFields {
@@ -270,6 +277,7 @@ export function rosterFieldsFromCause(cause: CauseDraft): RosterFields {
   const title = (cause.title?.trim() || firstText || 'Untitled cause').slice(0, MAX_TITLE_LENGTH)
   const anchors = parseAnchors(cause.anchors)
   const contactUrl = parseContactUrl(cause.contactUrl)
+  const projectAreaWithin = parsePlacePath(cause.projectAreaWithin)
   return {
     title,
     summary: (cause.summary?.trim() ?? '').slice(0, MAX_SUMMARY_LENGTH),
@@ -279,6 +287,7 @@ export function rosterFieldsFromCause(cause: CauseDraft): RosterFields {
     ...(cause.bridgeCluster ? { bridgeCluster: cause.bridgeCluster } : {}),
     ...(anchors ? { anchors } : {}),
     ...(contactUrl ? { contactUrl } : {}),
+    ...(projectAreaWithin ? { inclusionRules: { geographic: { within: projectAreaWithin } } } : {}),
   }
 }
 
@@ -329,6 +338,8 @@ export function buildRosterDocument(fields: RosterFields): DisplayableDocument {
   if (anchors) extras.anchors = anchors
   const contactUrl = parseContactUrl(fields.contactUrl)
   if (contactUrl) extras.contactUrl = contactUrl
+  const inclusionRules = parseBoardInclusionRules(fields.inclusionRules)
+  if (inclusionRules) extras.inclusionRules = inclusionRules
   return createDisplayableDocument({
     format: 'markdown-restricted',
     content: renderRosterContent(fields),
@@ -361,6 +372,7 @@ export function parseRosterDocument(doc: DisplayableDocument): RosterFields | nu
   const bridgeCluster = parseRosterBridgeLink(extras.bridgeCluster)
   const anchors = parseAnchors(extras.anchors)
   const contactUrl = parseContactUrl(extras.contactUrl)
+  const inclusionRules = parseBoardInclusionRules(extras.inclusionRules)
   return {
     title,
     summary,
@@ -370,6 +382,7 @@ export function parseRosterDocument(doc: DisplayableDocument): RosterFields | nu
     ...(bridgeCluster ? { bridgeCluster } : {}),
     ...(anchors ? { anchors } : {}),
     ...(contactUrl ? { contactUrl } : {}),
+    ...(inclusionRules ? { inclusionRules } : {}),
   }
 }
 

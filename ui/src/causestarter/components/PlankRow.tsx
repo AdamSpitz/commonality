@@ -15,7 +15,7 @@ import { SupportButton, type SupportSettledInfo } from './SupportButton'
 import { StatementSupportStats, type StatementSupportCounts } from './StatementSupportStats'
 import type { CausePlank } from '../lib/causeStore'
 import { readPlankText } from '../lib/causeRoster'
-import { useMachinery } from '../lib/useMachinery'
+import { useMachinery } from '../../shared'
 
 function looksLikeCid(text: string): boolean {
   const trimmed = text.trim()

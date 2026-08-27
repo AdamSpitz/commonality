@@ -18,7 +18,7 @@ vi.mock('../hooks/useCauseMonthlyPledges', () => ({
   useCauseMonthlyPledges: () => pledges,
 }))
 
-vi.mock('./WalletButton', () => ({
+vi.mock('../../shared/components/WalletButton', () => ({
   WalletButton: () => <button type="button">Connect</button>,
 }))
 

@@ -5,12 +5,15 @@ import { isAddress } from 'viem'
 import { TrustRegistryAbi } from '@commonality/sdk/abis'
 import { waitForIndexerToSyncToTxHash } from '@commonality/sdk/indexer-sync'
 import { setTrust } from '@commonality/sdk/subjectiv'
-import { notifySubjectivTrustNetworkInvalidated } from '@ui/shared'
+import {
+  getRuntimeConfigValue,
+  HARDHAT_DEV_ACCOUNTS,
+  isLocalDevHost,
+  notifySubjectivTrustNetworkInvalidated,
+  useMachinery,
+  useWriteClients,
+} from '@ui/shared'
 import { useAccount } from 'wagmi'
-import { HARDHAT_DEV_ACCOUNTS, isLocalDevHost } from '../lib/hardhatAccounts'
-import { getRuntimeConfigValue } from '../lib/runtimeConfig'
-import { useMachinery } from '../lib/useMachinery'
-import { useWriteClients } from '../lib/useWriteClients'
 
 function suggestedLocalTrustee(connected?: string): { address: `0x${string}`; label: string } | null {
   if (!isLocalDevHost() || !connected) return null

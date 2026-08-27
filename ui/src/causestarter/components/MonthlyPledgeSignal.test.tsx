@@ -12,11 +12,8 @@ vi.mock('@commonality/sdk/delegation', async () => {
   return { ...actual, getMonthlyPledgedByCauseForToken: vi.fn() }
 })
 
-vi.mock('../lib/useMachinery', () => ({
+vi.mock('@ui/shared', () => ({
   useMachinery: () => machinery,
-}))
-
-vi.mock('../lib/runtimeConfig', () => ({
   getRuntimeConfig: () => ({
     VITE_PAYMENT_TOKEN_SYMBOL: 'USDC',
     VITE_PAYMENT_TOKEN_DECIMALS: '6',

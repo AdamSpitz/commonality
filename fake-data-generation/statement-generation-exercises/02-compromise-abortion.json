@@ -1,0 +1,62 @@
+{
+  "format": "commonality-seed-content-v1",
+  "id": "statement-generation-exercise-02",
+  "title": "Exercise 2 — left/right compromise in the middle (abortion)",
+  "description": "One left/right gestational-cutoff triple using the canonical wording from docs/end-user/common-sense-majority/hidden-majority-patterns.md (mediator example). Not loaded by loadSeedCollections. Do not fork a second abortion text: if wording must change, change that page (and this copy) together.",
+  "notes": [
+    "Curriculum step 3 in statement-generation.md (real-gap bridges, one pattern). Curriculum step 2 (easy in-camp implication) is not this file.",
+    "Pattern: compromise in the middle. Overlap zone is a first-trimester / 12–16 week cutoff. Commonality is 'I'd be okay with it if…', not anyone's ideal.",
+    "This is not the Christian × secular civic-pair abortion cluster in seed-content/christian-secular-bridge.json (same-conclusion, different why).",
+    "This is not the older hidden-majority.json abortion group (naturals written as if they already contain the deal; no modified layer).",
+    "Loop: naturals as speech → modifieds as smallest extra belief → commonality last by omission of camp priority → attester + routing + /critique-triple. Human veto before seed-content."
+  ],
+  "groups": [
+    {
+      "id": "abortion-gestational-cutoff",
+      "title": "Abortion — first-trimester cutoff (canonical hidden-majority-patterns wording)",
+      "notes": [
+        "Gap: moderate left's primary concern is that each woman has the option of aborting; moderate right's primary concern is later-term abortions. Neither natural states a willingness to settle. Modifieds add that settlement.",
+        "Natural → modified is a nudge (extra deal). Modified → commonality should be implication (containment). Natural → commonality is designed no.",
+        "Texts copied from hidden-majority-patterns.md § How the mediator uses these patterns. Do not wordsmith here independently."
+      ],
+      "statements": [
+        {
+          "id": "natural-left",
+          "role": "natural-left",
+          "text": "I want abortion to be available so that women aren't forced into going through with a pregnancy they don't want."
+        },
+        {
+          "id": "natural-right",
+          "role": "natural-right",
+          "text": "Late-term abortion is horrific."
+        },
+        {
+          "id": "modified-left",
+          "role": "modified-left",
+          "text": "I want abortion to be available so that women aren't forced into going through with a pregnancy they don't want. I'd prefer abortion to be available throughout the whole pregnancy, but I don't mind forbidding abortions after maybe the first trimester or so — that would give women enough time to make a decision. I'd rather get this settled than keep fighting over it forever."
+        },
+        {
+          "id": "modified-right",
+          "role": "modified-right",
+          "text": "Late-term abortion is horrific. I'd still rather not see abortions early in the pregnancy, but I don't feel as strongly about it. Allowing abortion during the first 12-16 weeks and forbidding it after that isn't what I'd write if I were making the law alone, but I'd be okay with that cutoff if it meant we got this settled instead of fighting over it forever."
+        },
+        {
+          "id": "commonality",
+          "role": "commonality",
+          "text": "I'd be okay with it if abortion were allowed during the first 12-16 weeks, and forbidden after that. This isn't my ideal outcome, but I'd rather get this settled than keep fighting over it forever."
+        }
+      ],
+      "implicationNotes": [
+        "Designed yes: modified-left → commonality; modified-right → commonality.",
+        "Designed no: natural-left → commonality; natural-right → commonality; natural-left → modified-left; natural-right → modified-right; either modified → the other modified; commonality → either modified.",
+        "Routing: modified → commonality should annoy as 'I already said that'. Natural → modified should not (the cutoff/settlement is extra)."
+      ],
+      "loopNotes": [
+        "Human: pick pattern (done: compromise-in-the-middle, abortion, reuse canonical). Veto if gap is 'same conclusion, different metaphysics' — it is not; this is an overlap-zone deal.",
+        "Shape risk: commonality names 12-16 weeks while modified-left says 'first trimester or so'. If the attester refuses left → CG for that grain, thicken the modified, do not paste the week range into both modifieds to buy subset-by-concatenation.",
+        "2026-08-27 live attester (deepseek/deepseek-v3.2): modified-left → commonality yes/high; modified-right → commonality no/high (S2's 12–16 week cutoff not in S1). Thickened modified-right on hidden-majority-patterns.md (and this copy / bridge-creator.md) so the modified contains the cutoff without pasting the commonality paragraph.",
+        "Do not load into seed-content until Adam accepts after attester + critique-triple."
+      ]
+    }
+  ]
+}

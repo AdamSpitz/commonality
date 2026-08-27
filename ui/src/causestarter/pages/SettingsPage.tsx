@@ -1,6 +1,5 @@
 import { Box, Typography } from '@mui/material'
-import { DirectTrustSettingsSection } from '@ui/conceptspace/components/DirectTrustSettingsSection'
-import { NudgerSettingsSection } from '@ui/conceptspace/components/settings/NudgerSettingsSection'
+import { DirectTrustSettingsSection, NudgerSettingsSection } from '@ui/conceptspace'
 import {
   AlignmentFilterToggle,
   DiscoverySlider,

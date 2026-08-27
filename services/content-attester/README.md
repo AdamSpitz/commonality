@@ -35,7 +35,7 @@ ALIGNMENT_TOPIC_STATEMENT_CID=bafy...
 
 # OpenRouter
 OPENROUTER_API_KEY=sk-or-...
-OPENROUTER_MODEL=anthropic/claude-3.5-haiku
+OPENROUTER_MODEL=deepseek/deepseek-v4-flash-0731
 
 # Prompt/profile
 CONTENT_ATTESTER_NAME=noninflammatory-neutral

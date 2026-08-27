@@ -1,187 +1,35 @@
 /**
  * On-chain reads via viem public client.
  *
- * Phase 2 of the indexer redesign: the SDK now has direct on-chain read capabilities
- * in addition to indexer (GraphQL) queries and IPFS fetching.
+ * Direct on-chain reads in addition to event-cache queries and IPFS fetching.
  *
  * These functions require a `publicClient` in the machinery.
  */
 
-import { type Address, type PublicClient } from 'viem';
+import {
+  type Abi,
+  type Address,
+  type ContractFunctionName,
+  type PublicClient,
+  type ReadContractReturnType,
+} from 'viem';
 import { SDKMachinery } from '../machinery.js';
+import { BeliefStates } from '../subsystems/conceptspace/types.js';
 import type { Currency } from './currency.js';
+import {
+  AlignmentAttestationsAbi,
+  AssuranceContractAbi,
+  BeliefsAbi,
+  DelegatableNotesAbi,
+  ImplicationsAbi,
+  MutableRefUpdaterAbi,
+  ValueThresholdConditionAbi,
+} from '../abis.js';
+import { erc20MetadataAbi } from './erc20.js';
 
-const ValueThresholdConditionReadAbi = [
-  {
-    type: 'function',
-    name: 'threshold',
-    inputs: [],
-    outputs: [{ type: 'uint256' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    name: 'deadline',
-    inputs: [],
-    outputs: [{ type: 'uint256' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    name: 'hasSucceeded',
-    inputs: [],
-    outputs: [{ type: 'bool' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    name: 'hasFailed',
-    inputs: [],
-    outputs: [{ type: 'bool' }],
-    stateMutability: 'view',
-  },
-] as const;
-
-const DelegatableNotesNotesAbi = [
-  {
-    type: 'function',
-    name: 'notes',
-    inputs: [{ name: '', type: 'uint256' }],
-    outputs: [
-      { name: 'chainHash', type: 'bytes32' },
-      { name: 'amount', type: 'uint256' },
-      { name: 'token', type: 'address' },
-      { name: 'tokenType', type: 'uint8' },
-      { name: 'tokenId', type: 'uint256' },
-    ],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    name: 'nextNoteId',
-    inputs: [],
-    outputs: [{ type: 'uint256' }],
-    stateMutability: 'view',
-  },
-] as const;
-
-const BeliefsReadAbi = [
-  {
-    type: 'function',
-    name: 'getBelief',
-    inputs: [
-      { name: 'user', type: 'address' },
-      { name: 'statementId', type: 'bytes32' },
-    ],
-    outputs: [{ type: 'uint8' }],
-    stateMutability: 'view',
-  },
-] as const;
-
-const AlignmentAttestationsReadAbi = [
-  {
-    type: 'function',
-    name: 'hasAttestation',
-    inputs: [
-      { name: 'attester', type: 'address' },
-      { name: 'topicStatementId', type: 'bytes32' },
-      { name: 'subjectId', type: 'bytes32' },
-      { name: 'statementId', type: 'bytes32' },
-    ],
-    outputs: [{ type: 'bool' }],
-    stateMutability: 'view',
-  },
-] as const;
-
-const ImplicationsReadAbi = [
-  {
-    type: 'function',
-    name: 'hasAttestation',
-    inputs: [
-      { name: 'attester', type: 'address' },
-      { name: 'fromStatementCid', type: 'bytes32' },
-      { name: 'toStatementCid', type: 'bytes32' },
-    ],
-    outputs: [{ type: 'bool' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    name: 'getExplanation',
-    inputs: [
-      { name: 'attester', type: 'address' },
-      { name: 'fromStatementCid', type: 'bytes32' },
-      { name: 'toStatementCid', type: 'bytes32' },
-    ],
-    outputs: [{ type: 'bytes32' }],
-    stateMutability: 'view',
-  },
-] as const;
-
-const MutableRefUpdaterReadAbi = [
-  {
-    type: 'function',
-    name: 'getRef',
-    inputs: [
-      { name: 'owner', type: 'address' },
-      { name: 'name', type: 'string' },
-    ],
-    outputs: [{ type: 'string' }],
-    stateMutability: 'view',
-  },
-] as const;
-
-const AssuranceContractReadAbi = [
-  {
-    type: 'function',
-    name: 'getAssuranceContractProgress',
-    inputs: [],
-    outputs: [{ type: 'uint256' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    name: 'paymentToken',
-    inputs: [],
-    outputs: [{ type: 'address' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    name: 'outstandingReimbursementTotal',
-    inputs: [],
-    outputs: [{ type: 'uint256' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    name: 'reimbursableAmount',
-    inputs: [{ name: 'contributor', type: 'address' }],
-    outputs: [{ type: 'uint256' }],
-    stateMutability: 'view',
-  },
-] as const;
-
-const ERC20MetadataReadAbi = [
-  {
-    type: 'function',
-    name: 'symbol',
-    inputs: [],
-    outputs: [{ type: 'string' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    name: 'decimals',
-    inputs: [],
-    outputs: [{ type: 'uint8' }],
-    stateMutability: 'view',
-  },
-] as const;
-
-export const BELIEF_NO_OPINION = 0n;
-export const BELIEF_BELIEVES = 1n;
-export const BELIEF_DISBELIEVES = 2n;
+export const BELIEF_NO_OPINION = BigInt(BeliefStates.NO_OPINION);
+export const BELIEF_BELIEVES = BigInt(BeliefStates.BELIEVES);
+export const BELIEF_DISBELIEVES = BigInt(BeliefStates.DISBELIEVES);
 
 export type BeliefState = typeof BELIEF_NO_OPINION | typeof BELIEF_BELIEVES | typeof BELIEF_DISBELIEVES;
 
@@ -235,14 +83,25 @@ function requirePublicClient(machinery: SDKMachinery): PublicClient {
   return machinery.publicClient;
 }
 
+/** Narrow untyped `PublicClient.readContract` using a const ABI. */
+async function readView<
+  const abi extends Abi,
+  functionName extends ContractFunctionName<abi, 'pure' | 'view'>,
+>(
+  client: PublicClient,
+  params: {
+    address: Address;
+    abi: abi;
+    functionName: functionName;
+    args?: readonly unknown[];
+  },
+): Promise<ReadContractReturnType<abi, functionName>> {
+  return client.readContract(params as never) as Promise<ReadContractReturnType<abi, functionName>>;
+}
+
 /**
- * Read threshold and deadline from an ValueThresholdCondition contract.
- *
- * Falls back to 0n values if the contract does not implement the
- * threshold/deadline view functions (non-ValueThresholdCondition types).
- *
- * @param machinery SDK machinery with publicClient
- * @param conditionAddress Address of the condition contract
+ * Read threshold and deadline from a ValueThresholdCondition.
+ * Falls back to 0n if the contract does not implement those views.
  */
 export async function readConditionParams(
   machinery: SDKMachinery,
@@ -252,16 +111,14 @@ export async function readConditionParams(
 
   try {
     const [threshold, deadline] = await Promise.all([
-      // @ts-expect-error - viem type inference issue with generic Abi
-      client.readContract({
+      readView(client, {
         address: conditionAddress,
-        abi: ValueThresholdConditionReadAbi,
+        abi: ValueThresholdConditionAbi,
         functionName: 'threshold',
       }),
-      // @ts-expect-error - viem type inference issue with generic Abi
-      client.readContract({
+      readView(client, {
         address: conditionAddress,
-        abi: ValueThresholdConditionReadAbi,
+        abi: ValueThresholdConditionAbi,
         functionName: 'deadline',
       }),
     ]);
@@ -271,12 +128,7 @@ export async function readConditionParams(
   }
 }
 
-/**
- * Read the ETH balance of a project (AssuranceContract).
- *
- * @param machinery SDK machinery with publicClient
- * @param projectAddress Address of the AssuranceContract
- */
+/** Read the ETH balance of a project (AssuranceContract). */
 export async function readProjectETHBalance(
   machinery: SDKMachinery,
   projectAddress: Address,
@@ -285,11 +137,7 @@ export async function readProjectETHBalance(
   return client.getBalance({ address: projectAddress });
 }
 
-/**
- * Read ERC-20 token display metadata.
- *
- * Returns null if the token does not expose the standard ERC-20 metadata views.
- */
+/** ERC-20 symbol/decimals, or null if the token does not expose those views. */
 export async function readERC20Currency(
   machinery: SDKMachinery,
   tokenAddress: Address,
@@ -298,32 +146,27 @@ export async function readERC20Currency(
 
   try {
     const [symbol, decimals] = await Promise.all([
-      // @ts-expect-error - viem type inference issue with generic Abi
-      client.readContract({
+      readView(client, {
         address: tokenAddress,
-        abi: ERC20MetadataReadAbi,
+        abi: erc20MetadataAbi,
         functionName: 'symbol',
       }),
-      // @ts-expect-error - viem type inference issue with generic Abi
-      client.readContract({
+      readView(client, {
         address: tokenAddress,
-        abi: ERC20MetadataReadAbi,
+        abi: erc20MetadataAbi,
         functionName: 'decimals',
       }),
     ]);
 
-    return currencyForERC20(tokenAddress, symbol as string, Number(decimals));
+    return currencyForERC20(tokenAddress, symbol, Number(decimals));
   } catch {
     return null;
   }
 }
 
 /**
- * Read an assurance contract's ERC-20 settlement token and metadata.
- *
- * Returns null if the project contract or token does not expose the expected
- * views. MVP assurance contracts always settle in ERC-20 tokens, so callers can
- * use this to avoid hardcoding ETH in UI display.
+ * Assurance-contract ERC-20 settlement token and metadata, or null if the
+ * views are missing. MVP projects always settle in ERC-20.
  */
 export async function readProjectPaymentTokenInfo(
   machinery: SDKMachinery,
@@ -332,12 +175,11 @@ export async function readProjectPaymentTokenInfo(
   const client = requirePublicClient(machinery);
 
   try {
-    // @ts-expect-error - viem type inference issue with generic Abi
-    const tokenAddress = await client.readContract({
+    const tokenAddress = await readView(client, {
       address: projectAddress,
-      abi: AssuranceContractReadAbi,
+      abi: AssuranceContractAbi,
       functionName: 'paymentToken',
-    }) as Address;
+    });
 
     const currency = await readERC20Currency(machinery, tokenAddress);
     if (!currency) return null;
@@ -349,15 +191,8 @@ export async function readProjectPaymentTokenInfo(
 }
 
 /**
- * Read basic on-chain info for a note from DelegatableNotes contract.
- *
- * Note: this returns only the current slot data (chainHash, amount, token info).
- * For full note state including delegation chain and spent status, use the
- * SDK's fold functions (foldNote) which process the full event history.
- *
- * @param machinery SDK machinery with publicClient
- * @param noteContract Address of the DelegatableNotes contract
- * @param noteId The numeric note ID
+ * Current DelegatableNotes slot (chainHash, amount, token). For delegation
+ * chain and spent status, use foldNote on the event history.
  */
 export async function readNoteOnChainInfo(
   machinery: SDKMachinery,
@@ -367,10 +202,9 @@ export async function readNoteOnChainInfo(
   const client = requirePublicClient(machinery);
 
   try {
-    // @ts-expect-error - viem type inference issue with generic Abi
-    const result = await client.readContract({
+    const result = await readView(client, {
       address: noteContract,
-      abi: DelegatableNotesNotesAbi,
+      abi: DelegatableNotesAbi,
       functionName: 'notes',
       args: [noteId],
     });
@@ -387,15 +221,8 @@ export async function readNoteOnChainInfo(
 }
 
 /**
- * Read a user's belief about a statement from the Beliefs contract.
- *
- * Belief states: 0 = no opinion, 1 = believes, 2 = disbelieves.
- * Returns 0 (no opinion) if the user has not expressed a belief or if the call fails.
- *
- * @param machinery SDK machinery with publicClient
- * @param beliefsContract Address of the Beliefs contract
- * @param user Address of the user
- * @param statementId IPFS CID (bytes32) of the statement
+ * Belief about a statement: 0 = no opinion, 1 = believes, 2 = disbelieves.
+ * Returns 0 if unset or if the call fails.
  */
 export async function readBelief(
   machinery: SDKMachinery,
@@ -406,30 +233,21 @@ export async function readBelief(
   const client = requirePublicClient(machinery);
 
   try {
-    // @ts-expect-error - viem type inference issue with generic Abi
-    const belief = await client.readContract({
+    const belief = await readView(client, {
       address: beliefsContract,
-      abi: BeliefsReadAbi,
+      abi: BeliefsAbi,
       functionName: 'getBelief',
       args: [user, statementId],
     });
-    return belief as unknown as BeliefState;
+    return BigInt(belief) as BeliefState;
   } catch {
     return BELIEF_NO_OPINION;
   }
 }
 
 /**
- * Read whether an alignment attestation exists.
- *
- * Returns false if no attestation exists or if the call fails.
- *
- * @param machinery SDK machinery with publicClient
- * @param attestationsContract Address of the AlignmentAttestations contract
- * @param attester Address of the attester
- * @param topicStatementId IPFS CID (bytes32) of the topic statement
- * @param subjectId bytes32 subject identifier. For address subjects, use toSubjectId(address).
- * @param statementId IPFS CID (bytes32) of the alignment statement
+ * Whether an alignment attestation exists. False if missing or the call fails.
+ * `subjectId` is bytes32; for address subjects use toSubjectId(address).
  */
 export async function readHasAlignment(
   machinery: SDKMachinery,
@@ -442,30 +260,18 @@ export async function readHasAlignment(
   const client = requirePublicClient(machinery);
 
   try {
-    // @ts-expect-error - viem type inference issue with generic Abi
-    const result = await client.readContract({
+    return await readView(client, {
       address: attestationsContract,
-      abi: AlignmentAttestationsReadAbi,
+      abi: AlignmentAttestationsAbi,
       functionName: 'hasAttestation',
       args: [attester, topicStatementId, subjectId, statementId],
     });
-    return result as unknown as boolean;
   } catch {
     return false;
   }
 }
 
-/**
- * Read whether an implication attestation exists.
- *
- * Returns false if no implication exists or if the call fails.
- *
- * @param machinery SDK machinery with publicClient
- * @param implicationsContract Address of the Implications contract
- * @param attester Address of the attester
- * @param fromStatementCid IPFS CID (bytes32) of the source statement
- * @param toStatementCid IPFS CID (bytes32) of the target statement
- */
+/** Whether an implication attestation exists. False if missing or the call fails. */
 export async function readHasImplication(
   machinery: SDKMachinery,
   implicationsContract: Address,
@@ -476,30 +282,18 @@ export async function readHasImplication(
   const client = requirePublicClient(machinery);
 
   try {
-    // @ts-expect-error - viem type inference issue with generic Abi
-    const result = await client.readContract({
+    return await readView(client, {
       address: implicationsContract,
-      abi: ImplicationsReadAbi,
+      abi: ImplicationsAbi,
       functionName: 'hasAttestation',
       args: [attester, fromStatementCid, toStatementCid],
     });
-    return result as unknown as boolean;
   } catch {
     return false;
   }
 }
 
-/**
- * Read the explanation CID for an implication attestation.
- *
- * Returns null if no explanation exists or if the call fails.
- *
- * @param machinery SDK machinery with publicClient
- * @param implicationsContract Address of the Implications contract
- * @param attester Address of the attester
- * @param fromStatementCid IPFS CID (bytes32) of the source statement
- * @param toStatementCid IPFS CID (bytes32) of the target statement
- */
+/** Explanation CID for an implication, or null if missing/failed. */
 export async function readExplanation(
   machinery: SDKMachinery,
   implicationsContract: Address,
@@ -510,29 +304,18 @@ export async function readExplanation(
   const client = requirePublicClient(machinery);
 
   try {
-    // @ts-expect-error - viem type inference issue with generic Abi
-    const result = await client.readContract({
+    return await readView(client, {
       address: implicationsContract,
-      abi: ImplicationsReadAbi,
+      abi: ImplicationsAbi,
       functionName: 'getExplanation',
       args: [attester, fromStatementCid, toStatementCid],
     });
-    return result as `0x${string}`;
   } catch {
     return null;
   }
 }
 
-/**
- * Read the current ref value from a MutableRefUpdater contract.
- *
- * Returns null if the ref does not exist or if the call fails.
- *
- * @param machinery SDK machinery with publicClient
- * @param mutableRefUpdater Address of the MutableRefUpdater contract
- * @param owner Address of the ref owner
- * @param name Name of the ref
- */
+/** Current MutableRefUpdater value, or null if missing/failed. */
 export async function readMutableRef(
   machinery: SDKMachinery,
   mutableRefUpdater: Address,
@@ -542,25 +325,18 @@ export async function readMutableRef(
   const client = requirePublicClient(machinery);
 
   try {
-    // @ts-expect-error - viem type inference issue with generic Abi
-    const result = await client.readContract({
+    return await readView(client, {
       address: mutableRefUpdater,
-      abi: MutableRefUpdaterReadAbi,
+      abi: MutableRefUpdaterAbi,
       functionName: 'getRef',
       args: [owner, name],
     });
-    return result as string;
   } catch {
     return null;
   }
 }
 
-/**
- * Read the total received value (cumulative funding) from an AssuranceContract.
- *
- * @param machinery SDK machinery with publicClient
- * @param projectAddress Address of the AssuranceContract
- */
+/** Cumulative funding from an AssuranceContract; 0n if the call fails. */
 export async function readTotalReceivedValue(
   machinery: SDKMachinery,
   projectAddress: Address,
@@ -568,13 +344,11 @@ export async function readTotalReceivedValue(
   const client = requirePublicClient(machinery);
 
   try {
-    // @ts-expect-error - viem type inference issue with generic Abi
-    const result = await client.readContract({
+    return await readView(client, {
       address: projectAddress,
-      abi: AssuranceContractReadAbi,
+      abi: AssuranceContractAbi,
       functionName: 'getAssuranceContractProgress',
     });
-    return result as bigint;
   } catch {
     return 0n;
   }
@@ -586,13 +360,11 @@ export async function readOutstandingReimbursementTotal(
   projectAddress: Address,
 ): Promise<bigint> {
   const client = requirePublicClient(machinery);
-  // @ts-expect-error - viem type inference issue with generic PublicClient
-  const result = await client.readContract({
+  return readView(client, {
     address: projectAddress,
-    abi: AssuranceContractReadAbi,
+    abi: AssuranceContractAbi,
     functionName: 'outstandingReimbursementTotal',
   });
-  return result as bigint;
 }
 
 /** Read the reimbursement currently available for one contributor. */
@@ -602,14 +374,12 @@ export async function readReimbursableAmount(
   contributor: Address,
 ): Promise<bigint> {
   const client = requirePublicClient(machinery);
-  // @ts-expect-error - viem type inference issue with generic PublicClient
-  const result = await client.readContract({
+  return readView(client, {
     address: projectAddress,
-    abi: AssuranceContractReadAbi,
+    abi: AssuranceContractAbi,
     functionName: 'reimbursableAmount',
     args: [contributor],
   });
-  return result as bigint;
 }
 
 /**
@@ -632,13 +402,17 @@ export async function readProjectFundingSnapshots(
       | { kind: 'deadline'; projectAddress: Address }
     > = [];
 
-    const contracts = [];
+    const contracts: Array<{
+      address: Address;
+      abi: Abi;
+      functionName: string;
+    }> = [];
 
     for (const project of projects) {
       requests.push({ kind: 'totalReceived', projectAddress: project.projectAddress });
       contracts.push({
         address: project.projectAddress,
-        abi: AssuranceContractReadAbi,
+        abi: AssuranceContractAbi,
         functionName: 'getAssuranceContractProgress',
       });
 
@@ -646,21 +420,23 @@ export async function readProjectFundingSnapshots(
         requests.push({ kind: 'threshold', projectAddress: project.projectAddress });
         contracts.push({
           address: project.conditionAddress,
-          abi: ValueThresholdConditionReadAbi,
+          abi: ValueThresholdConditionAbi,
           functionName: 'threshold',
         });
 
         requests.push({ kind: 'deadline', projectAddress: project.projectAddress });
         contracts.push({
           address: project.conditionAddress,
-          abi: ValueThresholdConditionReadAbi,
+          abi: ValueThresholdConditionAbi,
           functionName: 'deadline',
         });
       }
     }
 
-    // @ts-expect-error - viem type inference struggles with mixed ABI multicalls
-    const results = await client.multicall({ allowFailure: true, contracts });
+    const results = await client.multicall({
+      allowFailure: true,
+      contracts,
+    } as never);
 
     const snapshots = new Map<string, ProjectFundingSnapshot>();
     for (const project of projects) {
@@ -705,12 +481,7 @@ export async function readProjectFundingSnapshots(
   }
 }
 
-/**
- * Read the condition status (hasSucceeded/hasFailed) from an ValueThresholdCondition contract.
- *
- * @param machinery SDK machinery with publicClient
- * @param conditionAddress Address of the condition contract
- */
+/** hasSucceeded/hasFailed from a ValueThresholdCondition. */
 export async function readConditionStatus(
   machinery: SDKMachinery,
   conditionAddress: Address,
@@ -719,36 +490,24 @@ export async function readConditionStatus(
 
   try {
     const [hasSucceeded, hasFailed] = await Promise.all([
-      // @ts-expect-error - viem type inference issue with generic Abi
-      client.readContract({
+      readView(client, {
         address: conditionAddress,
-        abi: ValueThresholdConditionReadAbi,
+        abi: ValueThresholdConditionAbi,
         functionName: 'hasSucceeded',
       }),
-      // @ts-expect-error - viem type inference issue with generic Abi
-      client.readContract({
+      readView(client, {
         address: conditionAddress,
-        abi: ValueThresholdConditionReadAbi,
+        abi: ValueThresholdConditionAbi,
         functionName: 'hasFailed',
       }),
     ]);
-    return {
-      hasSucceeded: hasSucceeded as unknown as boolean,
-      hasFailed: hasFailed as unknown as boolean,
-    };
+    return { hasSucceeded, hasFailed };
   } catch {
     return { hasSucceeded: false, hasFailed: false };
   }
 }
 
-/**
- * Read the next note ID counter from a DelegatableNotes contract.
- *
- * Returns 0n if the call fails.
- *
- * @param machinery SDK machinery with publicClient
- * @param noteContract Address of the DelegatableNotes contract
- */
+/** Next note ID on DelegatableNotes, or 0n if the call fails. */
 export async function readNextNoteId(
   machinery: SDKMachinery,
   noteContract: Address,
@@ -756,13 +515,11 @@ export async function readNextNoteId(
   const client = requirePublicClient(machinery);
 
   try {
-    // @ts-expect-error - viem type inference issue with generic Abi
-    const result = await client.readContract({
+    return await readView(client, {
       address: noteContract,
-      abi: DelegatableNotesNotesAbi,
+      abi: DelegatableNotesAbi,
       functionName: 'nextNoteId',
     });
-    return result as bigint;
   } catch {
     return 0n;
   }

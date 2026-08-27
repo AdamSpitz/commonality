@@ -23,7 +23,7 @@ import { ETH_CURRENCY, type Currency, type IpfsCidV1 } from '@commonality/sdk/ut
 import { selectAlignedContentContracts, useContentFundingState } from '@ui/content-funding'
 import { useTrustedContentAttesters } from '@ui/shared'
 import { mapWithConcurrency, PLANK_QUERY_CONCURRENCY } from '../lib/concurrency'
-import { useMachinery } from '../lib/useMachinery'
+import { useMachinery } from '../../shared'
 
 function contentAttestationsFingerprint(
   attestations: Map<string, { attested: boolean; statementCid: string; attester: string }[]>,

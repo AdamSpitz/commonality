@@ -24,8 +24,9 @@ The SDK provides two main interfaces:
 
 - **Event cache**: The indexer stores raw on-chain events in a single `events` table, served via `GET /api/events`. No business logic in the indexer.
 - **Fold functions**: Pure functions in each subsystem's `folds.ts` that reconstruct entity state from raw events (e.g., `foldProject()`, `foldStatementBeliefs()`, `foldDelegationState()`).
-- **Event decoder**: `eventDecoder.ts` uses viem's `decodeEventLog` to decode raw events from the cache into typed event objects.
-- **Chain reads**: `chain-reads.ts` provides functions for reading current on-chain state via contract view functions.
+- **Event decoder**: `eventDecoder.ts` re-exports per-subsystem decoders in `utils/event-decoders/`. Each decoder passes the contract ABI into viem's `decodeEventLog` (no name-only ABI scan).
+- **Chain reads**: `chain-reads.ts` provides functions for reading current on-chain state via contract view functions (generated ABIs from `src/abis.ts`, plus ERC-20 metadata from `utils/erc20.ts`).
+- **Conceptspace queries**: `subsystems/conceptspace/queries.ts` re-exports the split under `queries/`. Event-cache reads use `fetchEventsComplete` (page-split at the 10_000 cap) rather than treating a full page as a complete set.
 
 ## Usage
 
@@ -45,7 +46,7 @@ const machinery = createSDKMachinery({
   eventCacheUrl: 'http://localhost:42069',
   contractAddresses: { /* deployed addresses */ },
 });
-const clients = createWriteClients(privateKey, rpcUrl);
+const clients = createWriteClients(privateKey, rpcUrl); // optional 3rd arg: viem chain (default hardhat)
 
 // Perform actions
 const txHash = await believeStatement(clients, beliefsContract, statementCid);
@@ -61,12 +62,13 @@ const statement = await getStatement(machinery, statementId);
 
 One subpath per subsystem: `conceptspace`, `content-funding`, `delegation`,
 `displayable-documents`, `fundingportals`, `identity`, `lazy-giving`, `mutable-refs`,
-`nudger-publications`, `signer-profiles`, `subjectiv`. Plus the shared layers: `machinery`
-(SDK construction/config), `indexer-sync` (sync helpers), `policy-lists` (portable policy
-subject validation/canonicalization, strict root/list/resolved-bundle schemas, content-action
-extractors, and pure evaluation), `policy-lists/node` (the local-file resolver and atomic bundle
-activation helpers), `utils` (clients, IPFS, event decoding, currency, chain reads), `abis`
-(contract ABIs), and `node` (see below).
+`nudger-publications`, `published-data`, `signer-profiles`, `subjectiv`. Plus the shared
+layers: `machinery` (SDK construction/config), `indexer-sync` (sync helpers), `policy-lists`
+(portable policy subject validation/canonicalization, strict root/list/resolved-bundle
+schemas, content-action extractors, and pure evaluation), `policy-lists/node` (the
+local-file resolver and atomic bundle activation helpers), `utils` (clients, IPFS, event
+decoding, currency, chain reads), `testing` (Hardhat keys, fake CIDs, mock IPFS — tests
+and seed scripts only), `abis` (contract ABIs), and `node` (see below).
 
 ### Node.js helpers
 
@@ -86,7 +88,7 @@ const machinery = createSDKMachinery({
 When you perform blockchain actions (transactions), the indexer needs time to process the events and update its database. Use `waitForIndexerToSyncToBlockNumber()` or  `waitForIndexerToSyncToTxHash()` to ensure the indexer has caught up before querying:
 
 ```typescript
-import { waitForIndexerToSyncToTxHash, waitForIndexerToSyncToBlockNumber } from '@commonality/sdk';
+import { waitForIndexerToSyncToTxHash, waitForIndexerToSyncToBlockNumber } from '@commonality/sdk/indexer-sync';
 
 // Option 1: Wait for indexer to process a specific transaction (just a convenience wrapper around waitForIndexerToSyncToBlockNumber)
 const txHash = await someContractWrite();

@@ -1,3 +1,4 @@
+import { PRODUCTION_OPENROUTER_MODEL } from "@commonality/attester-core";
 import { readFileSync } from "node:fs";
 import type { BeatDefinition } from "./ingestion.js";
 import {
@@ -160,7 +161,7 @@ export function loadConfigFromEnv(
 		openRouterModel: readStringFrom(
 			["BEAT_MEMORY_OPENROUTER_MODEL", "OPENROUTER_MODEL"],
 			env,
-			"anthropic/claude-3-sonnet",
+			PRODUCTION_OPENROUTER_MODEL,
 		),
 		maxUntrustedChars: readNumberFrom(
 			["BEAT_MEMORY_MAX_UNTRUSTED_CHARS"],

@@ -43,7 +43,7 @@ This service implements the two-tier LLM architecture from the [explorer spec](.
 | `INDEXER_URL` | No | `http://localhost:3001` | Indexer URL |
 | `IPFS_API` | No | `http://localhost:5001` | IPFS API URL |
 | `IPFS_GATEWAY` | No | `http://localhost:8080` | IPFS gateway URL |
-| `OPENROUTER_MODEL` | No | `anthropic/claude-3.5-haiku` | LLM model |
+| `OPENROUTER_MODEL` | No | `deepseek/deepseek-v4-flash-0731` | LLM model |
 | `PORT` | No | `3004` | HTTP server port |
 | `EXPLORER_STREAM` | No | `fundable-project-explorer` | Stream identifier |
 | `CURATOR_INTERVAL_MS` | No | `21600000` (6h) | Backward-compatible full-review interval alias |

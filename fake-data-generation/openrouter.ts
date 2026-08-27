@@ -3,10 +3,11 @@
  * Used by the generative testing suite to evaluate whether S1 implies S2
  */
 
+import { readDevOpenRouterModel } from './devOpenRouter.js';
+
 const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
-// Default model - using deepseek for cost-effectiveness in testing
-const DEFAULT_MODEL = 'deepseek/deepseek-v3.2';
+const DEFAULT_MODEL = readDevOpenRouterModel();
 
 interface StatementLike {
   content?: { text?: string } | string;

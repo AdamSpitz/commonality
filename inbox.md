@@ -17,6 +17,12 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 ## Main list
 
+- **(Tell)** Production OpenRouter services (attesters, service-host, cause-assist, coherence-badge-worker) now default to `deepseek/deepseek-v4-flash-0731` via `PRODUCTION_OPENROUTER_MODEL`. Laptop scripts use the same id through a separate `DEV_OPENROUTER_MODEL` env / `fake-data-generation/devOpenRouter.ts`. Cause-assist prefers OpenRouter over xAI when both keys exist. Update Render dashboard if those env vars were set by hand.
+
+- **(Tell)** Statement-generation exercise 2: first attester pass refused modified-right → commonality (no cutoff). Thickened modified-right on [hidden-majority-patterns.md](docs/end-user/common-sense-majority/hidden-majority-patterns.md) (also bridge-creator + exercise JSON). Re-run: both modifieds → commonality yes/high; both naturals → commonality no/high. Still not in `seed-content/`; `/critique-triple` not run.
+
+- **(Tell)** Nested-place rollup is settled as board inclusion, not implication. Statement-generation gold set, cause-assist guidance, seed garden/roster, and the implication attester prompt now follow that (Grey County → Ontario is a worked reject). `seed-implication-evaluations` still has the old prompt fingerprint; a v4-flash refresh stalled on empty completions. Handoff: [continuity/2026-08-27-statement-generation.md](continuity/2026-08-27-statement-generation.md).
+
 - **(Tell)** Combinator statements are specified and implemented: canonical `all`/`any` over sorted plank CIDs (no title/date), CauseStarter view-strip promote, implication attester structural gate for pairwise arrows only. Ordinary `createStatement` no longer defaults `createdDate` into extras.
 
 - **(Tell)** Cause-board **Fully reimbursed** now means success-vouched *and* `outstandingUnreimbursedAmount === 0` (never-scouted successes omitted). It no longer reuses `AlignedProjectsList` with `statusFilterLock="succeeded"` (raised ≥ threshold). New SDK query: `getFullyReimbursedProjectsForCause`.

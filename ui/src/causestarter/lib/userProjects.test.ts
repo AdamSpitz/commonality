@@ -14,7 +14,7 @@ vi.mock('@commonality/sdk/lazy-giving', () => ({
   getUserCreatedProjects,
 }))
 
-vi.mock('@ui/lazy-giving/metadata', () => ({
+vi.mock('@ui/lazy-giving', () => ({
   readLazyGivingProjectMetadata,
 }))
 

@@ -30,10 +30,8 @@ vi.mock('@commonality/sdk/conceptspace', () => ({
 
 vi.mock('@ui/shared', () => ({
   useTrustedNudgers,
-}))
-
-vi.mock('../lib/useMachinery', () => ({
   useMachinery: () => machinery,
+  HeaderInfoTip: () => null,
 }))
 
 describe('YourNudgersAndNudges', () => {

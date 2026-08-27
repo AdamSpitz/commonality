@@ -86,7 +86,7 @@ export default defineConfig([
           // comment there for why the glob `group` form is avoided (can't
           // re-include children of an excluded `pages/` dir, and would also
           // match the unrelated `src/domains/lazy-giving/` directory).
-          regex: '(?:\.\./)+lazy-giving/(?!pages(?:/|$))',
+          regex: '(?:(?:\.\./)+|@ui/)lazy-giving/(?!pages(?:/|$))',
           message: 'Import lazy-giving through its public barrel ("…/lazy-giving"), not deep paths. pages/* are allowed as lazy route entry points. See docs/founder/standing-up-a-vertical.md.',
         }],
       }],
@@ -106,7 +106,7 @@ export default defineConfig([
           // in their own code-split chunks and which are the subpath half of the
           // public API. Same regex form as the content-funding/lazy-giving blocks
           // — see those comments for why the glob `group` form is avoided.
-          regex: '(?:\.\./)+fundingportals/(?!pages(?:/|$))',
+          regex: '(?:(?:\.\./)+|@ui/)fundingportals/(?!pages(?:/|$))',
           message: 'Import fundingportals through its public barrel ("…/fundingportals"), not deep paths. pages/* are allowed as lazy route entry points. See docs/founder/standing-up-a-vertical.md.',
         }],
       }],
@@ -128,7 +128,7 @@ export default defineConfig([
           // comments for why the glob `group` form is avoided (can't re-include
           // children of an excluded `pages/` dir, and would also match the
           // unrelated `src/domains/conceptspace/` directory).
-          regex: '(?:\.\./)+conceptspace/(?!pages(?:/|$))',
+          regex: '(?:(?:\.\./)+|@ui/)conceptspace/(?!pages(?:/|$))',
           message: 'Import conceptspace through its public barrel ("…/conceptspace"), not deep paths. pages/* are allowed as lazy route entry points. See docs/founder/standing-up-a-vertical.md.',
         }],
       }],
@@ -154,7 +154,7 @@ export default defineConfig([
           // every real consumer lives in a sibling/nested folder under `src/` and
           // reaches `src/content-funding` via `../`-relative paths, while the
           // domains wrapper is reached via `./content-funding/...`.
-          regex: '(?:\\.\\./)+content-funding/(?!pages(?:/|$))',
+          regex: '(?:(?:\\.\\./)+|@ui/)content-funding/(?!pages(?:/|$))',
           message: 'Import content-funding through its public barrel ("…/content-funding"), not deep paths. pages/* are allowed as lazy route entry points. See docs/founder/standing-up-a-vertical.md.',
         }],
       }],
@@ -188,8 +188,8 @@ export default defineConfig([
           // `ignores` so the module's own files can import their own internals;
           // the two test files that need a real module namespace for `vi.spyOn`
           // carry an inline `eslint-disable-next-line no-restricted-imports`.
-          regex: '(?:\\.{1,2}/)+shared/(?!components/AppShell(?:/|$)|components/WalletButton(?:/|$))',
-          message: 'Import shared through its public barrel ("…/shared"), not deep paths. (AppShell/WalletButton are allowed as heavy subpath entry points.) See docs/founder/standing-up-a-vertical.md.',
+          regex: '(?:(?:\\.{1,2}/)+|@ui/)shared/(?!components/AppShell(?:/|$)|components/WalletButton(?:/|$)|wallet(?:/|$))',
+          message: 'Import shared through its public barrel ("…/shared"), not deep paths. (AppShell/WalletButton/wallet are allowed as heavy subpath entry points.) See docs/founder/standing-up-a-vertical.md.',
         }],
       }],
     },

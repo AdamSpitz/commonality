@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { Alert, Box, Button, CircularProgress, Stack, Typography } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
 import { CauseCard } from './CauseCard'
-import { HeaderInfoTip } from './HeaderInfoTip'
+import { HeaderInfoTip } from '../../shared'
 import { createCausePath, isLive, type CauseDraft } from '../lib/causeStore'
 
 export function YourCauses({

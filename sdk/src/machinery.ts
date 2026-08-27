@@ -1,7 +1,7 @@
-import { IPFSConfig } from "./utils/ipfs.js";
-import { TwitterApiConfig } from "./utils/twitter.js";
-import { type PublicClient } from "viem";
-import type { ContentResolver } from "./subsystems/published-data/content-resolver.js";
+import { IPFSConfig } from './utils/ipfs.js';
+import { TwitterApiConfig } from './utils/twitter.js';
+import { type PublicClient } from 'viem';
+import type { ContentResolver } from './subsystems/published-data/content-resolver.js';
 
 /**
  * Configuration flags used when running the SDK in a test environment.

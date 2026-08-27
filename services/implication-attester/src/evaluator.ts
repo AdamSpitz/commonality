@@ -1,5 +1,6 @@
 import {
   OpenRouterInvalidJsonError,
+  PRODUCTION_OPENROUTER_MODEL,
   requestJsonCompletionWithUsage,
   type OpenRouterJsonRequest,
   type OpenRouterJsonCompletion,
@@ -43,8 +44,7 @@ Do NOT approve a pair merely because the statements are topically related, would
 - **Generalization.** S2 is strictly more general than S1; S1 is a specific instance of S2. Example: "Abortion should be legal in cases of rape or incest" → "Abortion should be legal in some cases".
 - **Clarification / rephrasing.** Same meaning, different wording. Rhetoric and urgency may be removed when the remaining proposition is unambiguously contained in S1. Example: "We must immediately repeal this outrageous municipal parking tax" → "The municipal parking tax should be repealed".
 - **Scope restriction.** A claim over every member of a class implies the same claim over a named subset. Example: "All abortions are morally wrong" → "Abortions after 16 weeks are morally wrong".
-- **Conjunction / intersection → genuine parent (one direction only).** A more specific statement can imply a semantically aligned parent that cleanly drops one constraint without changing the kind of claim being made. Example: "I'm interested in crypto in Ontario" implies "I'm interested in crypto" and implies "I'm interested in Ontario crypto-related projects or issues". It does NOT automatically imply a broader civic statement like "I care about improving Ontario".
-- **Narrower geography → broader geography (one direction only).** Town → county → province → country. Example: "I care about improving Grey County" → "I care about improving Ontario" → "I care about improving Canada".
+- **Conjunction / intersection → genuine parent (one direction only).** A more specific statement can imply a semantically aligned parent that cleanly drops one constraint without changing the kind of claim being made. Example: "I'm interested in crypto in Ontario" implies "I'm interested in crypto" and implies "I'm interested in Ontario crypto-related projects or issues". It does NOT automatically imply a broader civic statement like "I care about improving Ontario". Dropping a place constraint from a conjunction (crypto-in-Ontario → crypto) is this rule. It is not a geographic-hierarchy rollup.
 
 # What to reject
 
@@ -54,7 +54,8 @@ Do NOT approve a pair merely because the statements are topically related, would
 - **Either statement depends on unstated context.** If S1 or S2 is ambiguous, slogan-like, or underdetermined unless the reader guesses missing background context, reject. Do not infer that missing context yourself. Example: "I am pro-choice" is not clear enough by itself to safely ground implication attestations, because the topic is not explicit.
 - **S2 changes strength, modality, quantifier, or scope.** Reject changes like "some" → "most", "prefer" → "must", "is a concern" → "is a crisis", or adding universals/exceptions not already present in S1.
 - **Parent → conjunction (reverse of the conjunction rule).** "I'm interested in crypto" does NOT imply "I'm interested in crypto in Ontario". A general interest does not imply every specific instance of that interest.
-- **Broader geography → narrower geography (reverse of the hierarchy rule).** "I care about improving Canada" does NOT imply "I care about improving Ontario specifically".
+- **Narrower geography → broader geography.** Nested-place rollup is not belief implication. Wanting more of something in a nested place does not commit the signer to wanting more of it across a containing place. Example: "I want more CSA in Grey County, Ontario" does NOT imply "I want more CSA in Ontario". Likewise "I care about improving Grey County" does NOT imply "I care about improving Ontario". Geographic containment is a board-inclusion fact about projects, not a reason to count S1's signers as supporting S2.
+- **Broader geography → narrower geography.** "I care about improving Canada" does NOT imply "I care about improving Ontario specifically". Caring about the whole does not imply caring about any particular part.
 - **Concession, reservation, or negotiated commitment.** Reject when S2 adds acceptance, a reservation, a bilateral commitment, reduced urgency as a substantive position, or another proposition absent from S1. "Late-term abortion is horrific" does NOT imply "I would accept abortion through 16 weeks as a compromise." Removing rhetorical wording is acceptable only when a clearly asserted proposition remains unchanged.
 - **Slogan → explicit restatement when the slogan is not self-contained.** Do not turn a shorthand, tribe-marker, or catchphrase into a more explicit proposition unless that proposition is already unambiguously stated in the text itself.
 
@@ -64,7 +65,7 @@ Respond with a single JSON object and nothing else:
 {
   "implies": true | false,
   "confidence": "high" | "medium" | "low",
-  "reasoning": "2-4 sentences. Name the specific rule you applied (e.g., 'strict subset', 'generalization', 'conjunction → topical parent', 'reverse of hierarchy rule', 'S2 adds a policy claim').",
+  "reasoning": "2-4 sentences. Name the specific rule you applied (e.g., 'strict subset', 'generalization', 'conjunction → topical parent', 'nested-place is not implication', 'S2 adds a policy claim').",
   "key_difference": "If implies is false, a short phrase naming the substantive difference. Omit if implies is true."
 }
 
@@ -113,11 +114,11 @@ Confidence calibration:
 
 10) S1: "I care about improving Grey County"
     S2: "I care about improving Ontario"
-    → {"implies": true, "confidence": "high", "reasoning": "Narrower geography implies broader geography in the hierarchy rule."}
+    → {"implies": false, "confidence": "high", "reasoning": "Nested-place is not implication — caring about Grey County does not commit the signer to a province-wide civic claim. Geographic containment is board inclusion, not belief implication.", "key_difference": "Broader geographic scope not in S1"}
 
 11) S1: "I care about improving Canada"
     S2: "I care about improving Ontario"
-    → {"implies": false, "confidence": "high", "reasoning": "Reverse of the hierarchy rule — caring about the whole does not imply caring about any particular part.", "key_difference": "Adds geographic specificity not in S1"}
+    → {"implies": false, "confidence": "high", "reasoning": "Broader geography does not imply a particular nested place — caring about the whole does not imply caring about any particular part.", "key_difference": "Adds geographic specificity not in S1"}
 
 12) S1: "Abortion should usually remain legal"
     S2: "Abortion should always remain legal"
@@ -175,7 +176,7 @@ export async function evaluateImplicationWithLLM(
   statement1Content: string,
   statement2Content: string,
   apiKey: string,
-  model: string = 'anthropic/claude-3.5-haiku',
+  model: string = PRODUCTION_OPENROUTER_MODEL,
   requestJsonCompletionFn: RequestJsonCompletionFn = requestJsonCompletionWithUsage
 ): Promise<LlmEvaluationResult> {
   let result: Record<string, unknown>;

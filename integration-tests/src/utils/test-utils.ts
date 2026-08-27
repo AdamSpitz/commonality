@@ -7,7 +7,8 @@
  */
 
 import { createWriteClients, type WriteClients } from '@commonality/sdk/utils';
-import { TEST_PRIVATE_KEYS } from '@commonality/sdk/utils';
+import { TEST_PRIVATE_KEYS } from '@commonality/sdk/testing';
+
 import { keccak256, toHex } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 

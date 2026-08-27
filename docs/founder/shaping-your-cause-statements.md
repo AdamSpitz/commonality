@@ -77,6 +77,11 @@ Three facts from the substrate:
    projects attested as aligned with any S2 *such that S2 implies S*. A
    statement's board is populated by its **inbound** arrows.
    ([aligning](/specs/tech/subsystems/aligning/README.md))
+   A published board may also add a modest **geographic inclusion** rule
+   (`within` a place path, matched against project relevant areas). Nested-place
+   projects join that view as a fact about location, not because
+   `more X in Grey County` implies `more X in Ontario`.
+   ([belief implication vs board inclusion](/specs/product/belief-implication-board-inclusion-and-discovery.md))
 
 3. **Implications are not transitive.** S1→S2 and S2→S3 does not give S1→S3. Any
    structure deeper than two levels needs every pair attested directly.

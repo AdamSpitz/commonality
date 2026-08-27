@@ -4,6 +4,7 @@
  */
 
 import { evaluateImplicationWithLLM } from './openrouter.js';
+import { readDevOpenRouterModel } from './devOpenRouter.js';
 import type { Attester } from './types.js';
 import type { LLMEvaluationResult } from './openrouter.js';
 
@@ -44,7 +45,7 @@ async function evaluateImplicationWithAttester(
     statement1,
     statement2,
     apiKey,
-    'anthropic/claude-3.5-haiku'
+    readDevOpenRouterModel()
   );
 
   // Apply attester-specific adjustments
@@ -314,7 +315,7 @@ function estimateEvaluationCost(numEvaluations: number, costPerEvaluation = 0.00
     breakdown: {
       llmCalls: numEvaluations,
       estimatedTokensPerCall: 1200, // ~1000 input + ~200 output
-      model: 'anthropic/claude-3.5-haiku'
+      model: readDevOpenRouterModel()
     }
   };
 }

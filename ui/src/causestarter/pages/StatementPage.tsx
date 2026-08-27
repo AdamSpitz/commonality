@@ -25,7 +25,7 @@ import { CauseFundingSummary } from '../components/CauseFundingSummary'
 import { StarterNetworkFilterCopy } from '../components/StarterNetworkFilterNotice'
 import { useViewCounts } from '../hooks/useViewCounts'
 import { createCausePath } from '../lib/causeStore'
-import { useMachinery } from '../lib/useMachinery'
+import { useMachinery } from '../../shared'
 
 function documentText(doc: DisplayableDocument | null | undefined): string | null {
   if (!doc) return null

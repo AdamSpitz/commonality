@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { SupportingTool } from '../lib/tools'
 import { loadToolExamples, type ToolExample } from '../lib/toolExamples'
-import { useMachinery } from '../lib/useMachinery'
+import { useMachinery } from '../../shared'
 
 const cache = new Map<string, ToolExample[]>()
 

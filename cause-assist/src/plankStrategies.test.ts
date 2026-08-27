@@ -13,6 +13,10 @@ describe('plank-first strategies', () => {
   it('atomizes a rough bundle without imposing main-to-supporting implications', async () => {
     const result = await atomizeCause({ description: 'local resilience', count: 2 }, config, async <T>(request: LlmJsonRequest) => {
       assert.match(request.systemPrompt, /coalition unbundling/i)
+      assert.match(request.systemPrompt, /Want more of the thing, do not classify it/)
+      assert.match(request.systemPrompt, /Do not write "I want people who do X to get paid"/)
+      assert.match(request.systemPrompt, /Prefer earmark grain/)
+      assert.match(request.systemPrompt, /board inclusion rule/)
       assert.doesNotMatch(request.userPrompt, /mainStatement/)
       return { planks: [
         { text: 'Our neighborhood should maintain a shared emergency food pantry.', rationale: 'food resilience' },

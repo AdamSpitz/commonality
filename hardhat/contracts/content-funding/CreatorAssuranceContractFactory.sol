@@ -7,7 +7,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {CreatorAssuranceContract, ICreatorAssuranceContract} from "./CreatorAssuranceContract.sol";
 import {ContentRegistry} from "./ContentRegistry.sol";
-import {ChannelRegistry} from "./ChannelRegistry.sol";
+import {ChannelRegistry, IChannelRegistry} from "./ChannelRegistry.sol";
 import {ChannelEscrow} from "./ChannelEscrow.sol";
 import {PremintingERC1155} from "../utils/PremintingERC1155.sol";
 import {PremintingERC1155Factory} from "../individual-projects/ProjectFactory.sol";
@@ -37,16 +37,6 @@ error ThirdPartyDeadlineTooLong(uint256 deadline, uint256 maxDeadline);
 error InvalidThirdPartyMaxDuration();
 error InvalidProspectiveRoundFactory();
 error OnlyProspectiveRoundFactory();
-
-/**
- * @title IChannelRegistry
- * @notice Interface for the channel registry used by the factory
- */
-interface IChannelRegistry {
-    function channelOwner(bytes32 channelId) external view returns (address);
-    function isVerified(bytes32 channelId) external view returns (bool);
-    function isCreatorControlled(bytes32 channelId) external view returns (bool);
-}
 
 /**
  * @title IContentRegistry

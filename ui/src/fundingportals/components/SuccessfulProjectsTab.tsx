@@ -5,6 +5,7 @@ import { SuccessfulProjectsList } from './SuccessfulProjectsList'
 import { DISCOVERY_LEVEL_MAX_HOPS } from './discoveryLevels'
 import { useDiscoveryLevel } from '../hooks/useDiscoveryLevel'
 import type { ProjectLinkMode } from './AlignedProjectCard'
+import type { BoardInclusionRules } from './geographicInclusion'
 
 /**
  * The Successful tab on the cause board, filtered by the persisted discovery
@@ -21,12 +22,14 @@ export function SuccessfulProjectsTab({
   trustedImplicationAttesters,
   projectLinks = 'lazyGiving',
   reimbursement = 'outstanding',
+  inclusionRules,
 }: {
   statementCid: string
   statementCids?: string[]
   trustedImplicationAttesters?: Iterable<string>
   projectLinks?: ProjectLinkMode
   reimbursement?: 'outstanding' | 'reimbursed'
+  inclusionRules?: BoardInclusionRules
 }) {
   const { address } = useAccount()
   const [discoveryLevel] = useDiscoveryLevel()
@@ -57,6 +60,7 @@ export function SuccessfulProjectsTab({
         trustWeights={activeTrustWeights}
         projectLinks={projectLinks}
         reimbursement={reimbursement}
+        inclusionRules={inclusionRules}
       />
     </Box>
   )

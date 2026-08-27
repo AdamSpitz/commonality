@@ -2,7 +2,7 @@
 
 This document covers our thinking about *why* we need seed content, *what kind* to create, and *how* to do it.
 
-Wording is not free-form slogans: see [why statements are peculiar](/specs/product/statements-are-peculiar-for-good-reasons.md). Curated JSON that does not pass the implication attester (modified → commonality) is not done. Default `./scripts/data.sh --seed` (**tiny**) publishes the Christianity × secular-conservatism CauseStarter cluster plus local-food, not a random `universe.json` slice.
+Wording is not free-form slogans: see [why statements are peculiar](/specs/product/statements-are-peculiar-for-good-reasons.md). How to generate more of them without hand-wordsmithing: [statement-generation.md](/fake-data-generation/statement-generation.md). Curated JSON that does not pass the implication attester (modified → commonality) is not done. Default `./scripts/data.sh --seed` (**tiny**) publishes the Christianity × secular-conservatism CauseStarter cluster plus local-food, not a random `universe.json` slice.
 
 See this directory for concrete examples.
 
@@ -34,6 +34,10 @@ We probably don't need hundreds of statements (although that's not out of the qu
 ## What to include
 
 See [content patterns](../content-patterns/README.md) for the kinds of content we expect and hope to see. The seed set should include:
+
+### Simple public-goods planks (no bridging)
+
+Signable independent wants for OSS and local food, including place grain (Grey County, Ontario-wide, unscoped). Nested-place rollup is board inclusion (project relevant areas + optional `within`), not implication. See [simple-causes.md](./simple-causes.md). Tiny seed still uses the explorer slogan for the garden project, now with a Grey County relevant area and an Ontario-scoped local-food roster.
 
 ### Top-level fundable-project interest areas
 

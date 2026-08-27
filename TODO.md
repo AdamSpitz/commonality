@@ -10,6 +10,20 @@ When an item from this page is done and no longer needs an LLM implementor's att
 
 ----
 
+- **(Tell)** Refresh `data/seed-implication-evaluations.original-variants.json`
+  against the current implication-attester prompt fingerprint. The prompt now
+  rejects nested-place geographic rollup (Grey County → Ontario is a worked
+  false); the checked-in corpus still has the old fingerprint, so
+  `test:seed:implication-regression` will fail until a dedicated pass re-evaluates
+  the 1870 original↔variant pairs. Do not restamp fingerprints without live
+  decisions, and do not paper over it in seed wording. A v4-flash pass stalled
+  on empty LLM completions — use a model that actually returns JSON. Resume
+  already skips only pairs with the current fingerprint. Personalized AI ranking
+  remains deferred per
+  [belief-implication-board-inclusion-and-discovery.md](specs/product/belief-implication-board-inclusion-and-discovery.md).
+
+- **(Ask)** Statement-generation exercise 2: abortion cutoff triple is in [`fake-data-generation/statement-generation-exercises/02-compromise-abortion.json`](fake-data-generation/statement-generation-exercises/02-compromise-abortion.json); modified-right was thickened after the attester refused the old text. Next: confirm attester blesses both modifieds, run `/critique-triple`, then Adam accept/reject before `seed-content/`.
+
 - **(Tell)** After folding CauseStarter into `ui/src/causestarter/`, leftover package
   glue still talks as if `causestarter/src` is the SPA: `causestarter/vite.config.ts`
   is unused, Compose/Docker docs mix `:8090` and `:5174`, and some verifier prompts
@@ -58,4 +72,3 @@ When an item from this page is done and no longer needs an LLM implementor's att
   the user has moved to another statement can paint stale content. Pre-existing, not
   new to the combinator work; the same pattern is worth a sweep across the other
   conceptspace pages. Found 2026-08-19.
-

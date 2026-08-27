@@ -12,7 +12,7 @@ import {
 import {
   loadRosterDocument, parseCauseRouteParams, resolveRosterCid,
 } from '../lib/causeRoster'
-import { useMachinery } from '../lib/useMachinery'
+import { useMachinery } from '../../shared'
 
 /**
  * Everything about one cause's mediator, so the cause page doesn't have to carry

@@ -1790,3 +1790,12 @@ end-user docs; **cause board** is the CauseStarter organizer publication
 ## 2026-08-20 — Anvil `--state` restart dump
 
 Local `hardhat-node` was coming back empty after `stack.restart-consistency` because Docker SIGTERM did not make Anvil dump `/data/state.json` (then a fresh deploy + trust wiring filled ~41 blocks with no seed). Fix: `scripts/anvil-docker-entrypoint.sh` maps SIGTERM→SIGINT, compose `--state-interval 15` and 60s grace, restart check records block height and SIGINTs Anvil before stop. Recreate `hardhat-node` to mount the wrapper.
+
+## 2026-08-27 — Statement generation process + exercise 1
+
+Process: [`fake-data-generation/statement-generation.md`](fake-data-generation/statement-generation.md). Fresh-instance handoff: [`continuity/2026-08-27-statement-generation.md`](continuity/2026-08-27-statement-generation.md).
+
+Exercise 1 (simple causes, no triples) gold set remains in `fake-data-generation/statement-generation-exercises/01-simple-causes.json`. Live copy: `fake-data-generation/seed-content/simple-causes.json`. Nested-place rollup is board inclusion, not implication (Ontario-wide planks are genuine wants; garden relevant areas + roster `within` Ontario). `loadSeedCollections` still does not read the exercises directory. Tiny seed still uses the explorer slogan for the garden project. Nested-place pairs are designed-no: `npm run gen:seed:simple-causes-implications`. Cause-assist `STATEMENT_QUALITY_GUIDANCE` includes: want the outcome (not “X is a public good”), do not plank payroll, earmark grain as a ladder (kind + place), do not emit geo implication parents. Rebuild Docker cause-assist to serve the new prompt.
+
+Do not train implication generation on Christianity × secular-conservatism. Next: curriculum exercise 2. The implication attester prompt now rejects nested-place geographic rollup (Grey County → Ontario is a worked reject, not an accept).
+

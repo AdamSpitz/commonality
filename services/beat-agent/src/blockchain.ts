@@ -2,7 +2,7 @@ import { AlignmentAttestationsAbi } from '@commonality/sdk/abis';
 import { hashCanonicalId } from '@commonality/sdk/content-funding';
 import { attestAlignment } from '@commonality/sdk/fundingportals';
 import { cidToBytes32, createWriteClients, type IpfsCidV1, type WriteClients } from '@commonality/sdk/utils';
-import { classifyBlockchainError } from '@commonality/attester-core';
+import { checkAttesterBalance, classifyBlockchainError } from '@commonality/attester-core';
 import type { BeatAgentExistingAttestation } from './types.js';
 
 export interface BeatAgentBlockchainConfig {
@@ -132,13 +132,9 @@ export async function checkBeatAgentBalance(config: BeatAgentBlockchainConfig): 
 }> {
   const { testClients } = getBeatAgentBlockchainClients(config);
   try {
-    const balance = await testClients.publicClient.getBalance({ address: testClients.account });
-    const minimumRequired = BigInt(1e16);
-    return {
-      balance,
-      hasSufficientFunds: balance >= minimumRequired,
-      minimumRequired,
-    };
+    return await checkAttesterBalance(
+      () => testClients.publicClient.getBalance({ address: testClients.account }),
+    );
   } catch (error) {
     throw classifyBlockchainError(error);
   }

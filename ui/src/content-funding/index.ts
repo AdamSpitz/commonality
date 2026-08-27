@@ -21,7 +21,11 @@ export { useContentFundingState } from './hooks/useContentFundingState'
 export type { ContentAttestationInfo } from './hooks/useContentFundingState'
 export {
   selectAlignedContentContracts,
+  selectAlignedContentItems,
+  contentItemPublicUrl,
+  contentChannelPath,
   type AlignedContentContract,
+  type AlignedContentItem,
 } from './selectAlignedContent'
 export { statementCidInSet, cidReferencesSameDigest } from './statementCidMatch'
 export {

@@ -25,7 +25,7 @@ import {
   placeholderPlanksFromCids,
   resolveRosterCid,
 } from '../lib/causeRoster'
-import { useMachinery } from '../lib/useMachinery'
+import { useMachinery } from '../../shared'
 
 function findLocalByStable(owner: string, slug: string): CauseDraft | undefined {
   const ownerLc = owner.toLowerCase()

@@ -64,7 +64,7 @@
     "deployment-manifest:build": "node scripts/deployment-manifest.mjs",
     "test": "verifier-run automated.test-full",
     "test:fast": "verifier-run automated.test-fast",
-    "deploy-local": "cd hardhat && npx hardhat run scripts/deploy-local.js --network localhost",
+    "deploy-local": "npm run deploy-local --workspace=hardhat",
     "integration-tests": "verifier-run automated.test-full-integration",
     "integration-tests:typecheck": "npm run --workspace=integration-tests typecheck",
     "integration-tests:test:harness": "verifier-run automated.integration-tests-harness",

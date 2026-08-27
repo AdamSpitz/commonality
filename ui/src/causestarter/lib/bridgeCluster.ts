@@ -16,7 +16,7 @@ import type { SDKMachinery } from '@commonality/sdk/machinery'
 import { getUserRef } from '@commonality/sdk/mutable-refs'
 import type { WriteClients } from '@commonality/sdk/utils'
 import { toHex } from 'viem'
-import { getRuntimeConfigValue } from './runtimeConfig'
+import { getRuntimeConfigValue } from '../../shared'
 import {
   parseCauseRouteParams,
   sendCallsPreferAtomic,

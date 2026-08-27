@@ -9,6 +9,7 @@ import { cidToBytes32, IpfsCidV1 } from '../../utils/cid-types.js';
 import { SDKMachinery } from '../../machinery.js';
 import { addToCreatedStatements } from '../mutable-refs/actions.js';
 import { publishData, type PublishedDataContract } from '../published-data/actions.js';
+import { BeliefStates } from './types.js';
 
 // ============================================================================
 // Conceptspace Actions
@@ -20,9 +21,7 @@ export interface BeliefsContract {
 }
 
 // Belief state constants
-export const NO_OPINION = 0;
-export const BELIEVES = 1;
-export const DISBELIEVES = 2;
+export const { NO_OPINION, BELIEVES, DISBELIEVES } = BeliefStates;
 
 /**
  * Express belief in a statement

@@ -288,6 +288,16 @@ describe('foldCache', () => {
     });
     await expect(loadBoardMetricsSnapshot(otherTrust!)).resolves.toBeNull();
     await expect(loadAlignedListSnapshot(metricsKey!)).resolves.toBeNull();
+
+    const scopedList = boardSnapshotCacheOptions(machinery as never, {
+      kind: 'aligned-list',
+      statementCids: ['QmA', 'QmB'],
+      implicationTrustKey: '0x1',
+      alignmentTrustKey: '0x2',
+      contentTrustKey: '0x3',
+      inclusionRulesKey: JSON.stringify({ geographic: { within: ['Ontario', 'Canada'] } }),
+    });
+    await expect(loadAlignedListSnapshot(scopedList!)).resolves.toBeNull();
   });
 
   it('returns null when foldVersion mismatches', async () => {

@@ -91,6 +91,8 @@ export interface CauseDraft {
    * Empty means do not ping this organizer. Not a Commonality inbox (ADR 0011).
    */
   contactUrl?: string
+  /** Optional specific-to-broad place path used to scope the fundable-projects view. */
+  projectAreaWithin?: string[]
   /**
    * Stable URL slug for the published roster ref `(owner, slug) → roster CID`.
    * Chosen once (or edited carefully) when the organizer first publishes a roster.

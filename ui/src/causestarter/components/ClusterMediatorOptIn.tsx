@@ -1,13 +1,9 @@
-import { useState } from 'react'
 import { Button, Paper, Stack, Typography } from '@mui/material'
 import CheckIcon from '@mui/icons-material/Check'
 import {
-  addTrustedNudger,
   getMediatorOptInPath,
-  isTrustedNudger,
-  loadTrustedNudgers,
   mediatorNudgerFromCause,
-  removeTrustedNudger,
+  useMediatorOptIn,
 } from '@ui/shared'
 import type { BridgeClusterFields } from '../lib/bridgeCluster'
 
@@ -37,13 +33,7 @@ export function ClusterMediatorOptIn({
   fields: Pick<BridgeClusterFields, 'mediatorAddress' | 'mediatorName' | 'mediatorNote'>
 }) {
   const entry = clusterMediatorEntry(fields)
-  const [nudgers, setNudgers] = useState(loadTrustedNudgers)
-  const optedIn = isTrustedNudger(fields.mediatorAddress, nudgers)
-
-  const toggle = () => {
-    if (!entry) return
-    setNudgers(optedIn ? removeTrustedNudger(fields.mediatorAddress) : addTrustedNudger(entry))
-  }
+  const { optedIn, toggle, canToggle } = useMediatorOptIn(fields.mediatorAddress, entry)
 
   return (
     <Paper
@@ -70,7 +60,7 @@ export function ClusterMediatorOptIn({
         <Button
           variant={optedIn ? 'outlined' : 'contained'}
           size="small"
-          disabled={!entry}
+          disabled={!canToggle}
           onClick={toggle}
           startIcon={optedIn ? <CheckIcon /> : undefined}
           aria-pressed={optedIn}

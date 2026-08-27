@@ -14,7 +14,7 @@ import { cidToBytes32, type WriteClients } from '@commonality/sdk/utils'
 import { toHex } from 'viem'
 import type { BridgeClusterFields, IntendedPair } from './bridgeCluster'
 import { sendCallsPreferAtomic } from './causeRoster'
-import { getRuntimeConfigValue } from './runtimeConfig'
+import { getRuntimeConfigValue } from '../../shared'
 
 export interface ParentToModifiedNudge {
   targetStatementCid: string

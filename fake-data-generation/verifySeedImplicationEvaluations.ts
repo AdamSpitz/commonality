@@ -12,6 +12,7 @@ import {
   type ImplicationEvaluationScope,
   type StoredSeedImplicationEvaluation,
 } from './seedImplicationEvaluations.js';
+import { readDevOpenRouterModel } from './devOpenRouter.js';
 
 interface CliOptions {
   scope: ImplicationEvaluationScope;
@@ -49,7 +50,7 @@ async function main(): Promise<void> {
       throw new Error('OPENROUTER_API_KEY environment variable not set');
     }
     const toCheck = options.limit === null ? saved : saved.slice(0, options.limit);
-    const model = options.model ?? toCheck[0]?.model ?? 'anthropic/claude-3.5-haiku';
+    const model = options.model ?? toCheck[0]?.model ?? readDevOpenRouterModel();
     for (const evaluation of toCheck) {
       const result = await evaluateImplicationWithLLM(
         evaluation.from.text,

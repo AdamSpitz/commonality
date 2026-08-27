@@ -78,6 +78,7 @@ test('the first seed LazyGiving project is a local public-goods storyline', asyn
   assert.equal(metadata.name, 'Riverside Community Garden');
   assert.equal(metadata.seedProjectKind, 'local-community');
   assert.equal(alignmentRef.groupId, 'local-community');
+  assert.deepEqual(metadata.relevantAreas, [['Grey County', 'Ontario', 'Canada']]);
 
   // The cause statement it aligns to must actually exist in the seed content.
   const records = flattenSeedStatements(await loadSeedCollections());
@@ -153,6 +154,26 @@ test('seed content contracts leave a mixed attested/unattested batch for the cau
   assert.notEqual(attested[0], 'twitter:uid:111111111:1000000000000000002');
 });
 
+test('simple-causes seed collection copies the accepted exercise-1 plank texts', async () => {
+  const records = flattenSeedStatements(await loadSeedCollections());
+  const grey = records.find((record) =>
+    record.collection.id === 'simple-causes'
+    && record.statement.id === 'csa-grey-county-ontario');
+  const ontario = records.find((record) =>
+    record.collection.id === 'simple-causes'
+    && record.statement.id === 'csa-ontario');
+  assert.ok(grey);
+  assert.ok(ontario);
+  assert.equal(grey.statement.text, 'I want more community-supported agriculture in Grey County, Ontario.');
+  assert.equal(ontario.statement.text, 'I want more community-supported agriculture in Ontario.');
+  assert.equal(ontario.statement.role, 'unique');
+  const marketsOntario = records.find((record) =>
+    record.collection.id === 'simple-causes'
+    && record.statement.id === 'farmers-markets-ontario');
+  assert.equal(marketsOntario?.statement.text, 'I want more farmers\' markets in Ontario.');
+  assert.equal(marketsOntario?.statement.role, 'unique');
+});
+
 test('local-food-systems seed ref matches the mapping keys used by tiny seed injection', async () => {
   const records = flattenSeedStatements(await loadSeedCollections());
   const plank = records.find((record) =>
@@ -171,6 +192,9 @@ test('seed cause roster is a CauseStarter document owned by Hardhat #0', () => {
   assert.equal(doc.extras?.kind, ROSTER_KIND);
   assert.equal(doc.extras?.version, ROSTER_SCHEMA_VERSION);
   assert.deepEqual(doc.extras?.plankCids, ['bafkreiplankcid']);
+  assert.deepEqual(doc.extras?.inclusionRules, {
+    geographic: { within: ['Ontario', 'Canada'] },
+  });
   assert.match(doc.content, /# Local food systems/);
   assert.equal(SEED_CAUSE_SLUG, 'local-food-systems');
   assert.equal(

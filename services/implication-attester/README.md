@@ -31,7 +31,7 @@ IMPLICATIONS_CONTRACT_ADDRESS=0x...  # Address of Implications contract
 
 # OpenRouter
 OPENROUTER_API_KEY=sk-or-...
-OPENROUTER_MODEL=anthropic/claude-3.5-haiku
+OPENROUTER_MODEL=deepseek/deepseek-v4-flash-0731
 
 # IPFS
 IPFS_API=http://localhost:5001

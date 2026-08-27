@@ -1,5 +1,6 @@
 import {
 	OpenRouterInvalidJsonError,
+	PRODUCTION_OPENROUTER_MODEL,
 	requestJsonCompletion,
 } from "@commonality/attester-core";
 import type {
@@ -41,7 +42,7 @@ export interface LlmObservationExtractorConfig {
 export function createLlmObservationExtractor(
 	config: LlmObservationExtractorConfig,
 ): BeatObservationExtractor {
-	const model = config.model ?? "anthropic/claude-3-sonnet";
+	const model = config.model ?? PRODUCTION_OPENROUTER_MODEL;
 
 	return {
 		extractObservations: async (item: BeatIngestedItem) => {
@@ -216,7 +217,7 @@ export interface LlmSourceManagementReportGeneratorConfig {
 export function createLlmPurposeSummarySnapshotGenerator(
 	config: LlmPurposeSummarySnapshotGeneratorConfig,
 ): BeatPurposeSummarySnapshotGenerator {
-	const model = config.model ?? "anthropic/claude-3-haiku";
+	const model = config.model ?? PRODUCTION_OPENROUTER_MODEL;
 	const maxObservationChars = config.maxObservationChars ?? 350;
 
 	return {
@@ -278,7 +279,7 @@ export function createLlmPurposeSummarySnapshotGenerator(
 export function createLlmSourceManagementReportGenerator(
 	config: LlmSourceManagementReportGeneratorConfig,
 ): BeatSourceManagementReportGenerator {
-	const model = config.model ?? "anthropic/claude-3-haiku";
+	const model = config.model ?? PRODUCTION_OPENROUTER_MODEL;
 	const maxObservationChars = config.maxObservationChars ?? 350;
 
 	return {
@@ -407,7 +408,7 @@ function truncate(text: string, maxChars: number): string {
 export function createLlmMemoryCompactor(
 	config: LlmMemoryCompactorConfig,
 ): BeatMemoryCompactor {
-	const model = config.model ?? "anthropic/claude-3-haiku";
+	const model = config.model ?? PRODUCTION_OPENROUTER_MODEL;
 	const maxObservationChars = config.maxObservationChars ?? 300;
 
 	return {

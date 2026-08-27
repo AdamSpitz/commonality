@@ -5,6 +5,7 @@
 import { type Address, type Hash, type Abi, parseEventLogs } from 'viem';
 import { type WriteClients } from '../../utils/ethereum.js';
 import { DelegatableNotesAbi } from '../../abis.js';
+import { approveERC20Spend } from '../../utils/erc20.js';
 
 // ============================================================================
 // Delegation Actions
@@ -25,19 +26,6 @@ export const TokenType = {
   ERC20: 0,
   ERC1155: 1,
 } as const;
-
-const erc20ApproveAbi = [
-  {
-    inputs: [
-      { name: 'spender', type: 'address' },
-      { name: 'amount', type: 'uint256' },
-    ],
-    name: 'approve',
-    outputs: [{ name: '', type: 'bool' }],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-] as const;
 
 async function extractCreatedNoteId(
   clients: WriteClients,
@@ -113,15 +101,7 @@ export async function depositERC20(
     amount: bigint;
   }
 ): Promise<{ hash: Hash; noteId: bigint }> {
-  const approvalHash = await clients.walletClient.writeContract({
-    address: params.token,
-    abi: erc20ApproveAbi,
-    functionName: 'approve',
-    args: [delegatableNotesContract.address, params.amount],
-    chain: clients.walletClient.chain,
-    account: clients.walletClient.account!,
-  });
-  await clients.publicClient.waitForTransactionReceipt({ hash: approvalHash });
+  await approveERC20Spend(clients, params.token, delegatableNotesContract.address, params.amount);
 
   const hash = await clients.walletClient.writeContract({
     address: delegatableNotesContract.address,
@@ -424,4 +404,3 @@ export async function claimNoteReimbursement(
 
   return extractCreatedNoteId(clients, hash);
 }
-

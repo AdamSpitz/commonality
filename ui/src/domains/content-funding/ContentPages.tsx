@@ -16,15 +16,26 @@ function getContentFundingContractPath(address: string): string {
   return contentContractPathForAddress(address)
 }
 
-export function ContentFundingCreatorsPage() {
+interface ContentFundingCreatorsPageProps {
+  learnMorePath?: string
+}
+
+export function ContentFundingCreatorsPage({
+  learnMorePath,
+}: ContentFundingCreatorsPageProps = {}) {
   return (
     <CreatorsLandingPage
       title="Content Funding"
       description="Fund creators and individual pieces of content people already value. Browse by platform, back work you care about, and let creators claim what contributors have pooled for them."
       secondaryDescription="Open a channel to see active contracts and escrowed funds, or create a new contract around content you want to reward."
       learnMoreLabel="Learn how content funding contracts work"
+      learnMorePath={learnMorePath}
     />
   )
+}
+
+export function CauseStarterContentFundingCreatorsPage() {
+  return <ContentFundingCreatorsPage learnMorePath="/content-funding/about" />
 }
 
 export function ContentFundingBrowsePage() {

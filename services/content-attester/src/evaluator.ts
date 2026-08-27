@@ -1,4 +1,4 @@
-import { OpenRouterInvalidJsonError, requestJsonCompletion, type OpenRouterJsonRequest } from '@commonality/attester-core';
+import { OpenRouterInvalidJsonError, PRODUCTION_OPENROUTER_MODEL, requestJsonCompletion, type OpenRouterJsonRequest } from '@commonality/attester-core';
 
 export type ContentAttesterDimensionScore = 'pass' | 'fail' | 'partial';
 
@@ -49,7 +49,7 @@ export async function evaluateContentWithLLM(
   try {
     result = await requestJsonCompletionFn<Record<string, unknown>>({
       apiKey: params.apiKey,
-      model: params.model ?? 'anthropic/claude-3.5-haiku',
+      model: params.model ?? PRODUCTION_OPENROUTER_MODEL,
       systemPrompt:
         'You are a careful content attester. Return valid JSON only. Be conservative and avoid false positives.',
       userPrompt: prompt,

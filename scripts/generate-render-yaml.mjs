@@ -14,30 +14,12 @@
 import { readFile, writeFile } from 'node:fs/promises'
 import { dirname, join, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { parseEnvFile } from './lib/parse-env-file.mjs'
 
 const rootDir = join(dirname(fileURLToPath(import.meta.url)), '..')
 const envFile = process.argv[2] ?? join(rootDir, 'deployments', 'base-sepolia.env')
 const templatePath = join(rootDir, 'render.yaml.template')
 const outputPath = join(rootDir, 'render.yaml')
-
-function parseEnvFile(content) {
-  const env = {}
-  for (const line of content.split('\n')) {
-    const trimmed = line.trim()
-    if (!trimmed || trimmed.startsWith('#')) continue
-    const eq = trimmed.indexOf('=')
-    if (eq === -1) continue
-    const key = trimmed.slice(0, eq).trim()
-    let value = trimmed.slice(eq + 1).trim()
-    // Strip surrounding quotes if present
-    if ((value.startsWith('"') && value.endsWith('"')) ||
-        (value.startsWith("'") && value.endsWith("'"))) {
-      value = value.slice(1, -1)
-    }
-    env[key] = value
-  }
-  return env
-}
 
 // Escape a value for use inside a YAML double-quoted string.
 function yamlDoubleQuoteEscape(value) {

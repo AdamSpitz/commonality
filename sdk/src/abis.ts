@@ -1,8 +1,8 @@
 /**
- * Centralized Contract ABIs for Integration Tests
+ * Public contract ABI entry for `@commonality/sdk/abis`.
  *
- * This file re-exports the SDK's local ABI files.
- * This keeps the SDK self-contained instead of relying on runtime files from the indexer.
+ * Re-exports the SDK's local ABI modules so consumers stay self-contained
+ * instead of reading runtime files from the indexer.
  */
 
 // Re-export ABIs from the SDK's local abis directory.
@@ -21,6 +21,7 @@ export { PremintingERC1155Abi } from '../abis/PremintingERC1155Abi.js';
 export { PremintingERC1155FactoryAbi } from '../abis/PremintingERC1155FactoryAbi.js';
 export { AssuranceContractFactoryAbi } from '../abis/AssuranceContractFactoryAbi.js';
 export { ValueThresholdConditionFactoryAbi } from '../abis/ValueThresholdConditionFactoryAbi.js';
+export { ValueThresholdConditionAbi } from '../abis/ValueThresholdConditionAbi.js';
 export { ContentRegistryAbi } from '../abis/ContentRegistryAbi.js';
 export { ChannelRegistryAbi } from '../abis/ChannelRegistryAbi.js';
 export { ChannelEscrowAbi } from '../abis/ChannelEscrowAbi.js';

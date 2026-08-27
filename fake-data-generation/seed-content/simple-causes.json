@@ -1,0 +1,135 @@
+{
+  "format": "commonality-seed-content-v1",
+  "id": "simple-causes",
+  "title": "Simple public-goods causes (no bridging)",
+  "description": "Signable independent planks for OSS and local food: outcome wants, earmark grain (kind + place). Copied from statement-generation-exercises/01-simple-causes.json after Adam accepted the texts (2026-08-27). Not a complete catalog of variation. No triples. Nested-place rollup is board inclusion, not implication.",
+  "notes": [
+    "Curriculum step 1. Process: fake-data-generation/statement-generation.md.",
+    "Want the outcome; do not classify it as a public good. Do not plank payroll.",
+    "Earmark grain is a ladder on more than one axis (kind of software / kind of food system / place).",
+    "Tiny seed still aligns Riverside Community Garden to fundable-projects/local-community/local-food-systems (explorer slogan). These planks are additional signable wants, not a silent replacement of that CID."
+  ],
+  "groups": [
+    {
+      "id": "open-source-maintenance",
+      "title": "Open-source software as a public good",
+      "notes": [
+        "General plank plus specific earmarks. No parent/child implication designed yet (a Linux want need not imply the generic OSS want unless we later check that).",
+        "Vendor-capture stays as a general governance want, not payroll."
+      ],
+      "statements": [
+        {
+          "id": "oss-libraries-kept-up",
+          "role": "unique",
+          "text": "I want widely used open-source libraries to stay maintained, documented, and patched for security problems.",
+          "notes": [
+            "Adam: fine for (a) general OSS support, (b) generic advocacy, (c) earmarked delegation to someone who follows many OSS projects."
+          ]
+        },
+        {
+          "id": "linux-kept-up",
+          "role": "unique",
+          "text": "I want Linux to stay maintained and usable as general-purpose open-source infrastructure."
+        },
+        {
+          "id": "linux-desktop-kept-up",
+          "role": "unique",
+          "text": "I want Linux desktop software to stay maintained and usable as a daily-driver operating system."
+        },
+        {
+          "id": "oss-llms-kept-up",
+          "role": "unique",
+          "text": "I want open-source large language models and the tooling around them to stay available to run and improve."
+        },
+        {
+          "id": "ethereum-clients-kept-up",
+          "role": "unique",
+          "text": "I want Ethereum's open-source protocol and client software to stay maintained."
+        },
+        {
+          "id": "ethereum-gaming-kept-up",
+          "role": "unique",
+          "text": "I want open-source infrastructure for Ethereum-based games to stay maintained and usable."
+        },
+        {
+          "id": "oss-not-single-vendor-capture",
+          "role": "unique",
+          "text": "I do not want critical maintenance of a widely used open-source project to depend on a single vendor that can capture control of the project."
+        }
+      ]
+    },
+    {
+      "id": "local-food-planks",
+      "title": "Local food systems (signable planks, not explorer slogans)",
+      "notes": [
+        "Mechanism grain (gardens, markets, CSA, farms, shorter chains) is the food analog of 'kind of software'. Place grain is often the useful earmark: CSA in Grey County, Ontario.",
+        "Ontario-wide CSA / farmers' market planks are genuine province-wide wants, not implication parents. County projects join an Ontario board via relevant areas + board `within`, not Grey → Ontario implication."
+      ],
+      "implicationNotes": [
+        "Designed no (nested place is not implication): csa-grey-county-ontario → csa-ontario; farmers-markets-grey-county-ontario → farmers-markets-ontario; csa-ontario → csa-grey-county-ontario; farmers-markets-ontario → farmers-markets-grey-county-ontario; community-supported-agriculture → csa-ontario; community-supported-agriculture → csa-grey-county-ontario; farmers-markets → farmers-markets-ontario; farmers-markets → farmers-markets-grey-county-ontario.",
+        "No designed-yes geo or place-dropped topical pairs. Topical conjunction remains a separate attester question; do not use it as nested-place rollup."
+      ],
+      "statements": [
+        {
+          "id": "neighborhood-growing",
+          "role": "unique",
+          "text": "I want more neighborhood and community growing of food — home gardens, shared plots, and community gardens."
+        },
+        {
+          "id": "farmers-markets",
+          "role": "unique",
+          "text": "I want more farmers' markets.",
+          "notes": [
+            "Unscoped topical want. The longer 'connect local growers' mechanism is a sibling unique."
+          ]
+        },
+        {
+          "id": "farmers-markets-direct-connect",
+          "role": "unique",
+          "text": "I want more farmers' markets that connect local growers directly with nearby buyers."
+        },
+        {
+          "id": "farmers-markets-ontario",
+          "role": "unique",
+          "text": "I want more farmers' markets in Ontario.",
+          "notes": [
+            "Province-wide want, parallel wording to the Grey County plank. Not a rollup parent."
+          ]
+        },
+        {
+          "id": "community-supported-agriculture",
+          "role": "unique",
+          "text": "I want more community-supported agriculture, where residents subscribe to shares from nearby farms."
+        },
+        {
+          "id": "csa-ontario",
+          "role": "unique",
+          "text": "I want more community-supported agriculture in Ontario.",
+          "notes": [
+            "Province-wide want. A Grey County CSA project appears on an Ontario-scoped board via relevant areas, not because this CID is an implication parent."
+          ]
+        },
+        {
+          "id": "csa-grey-county-ontario",
+          "role": "unique",
+          "text": "I want more community-supported agriculture in Grey County, Ontario."
+        },
+        {
+          "id": "farmers-markets-grey-county-ontario",
+          "role": "unique",
+          "text": "I want more farmers' markets in Grey County, Ontario."
+        },
+        {
+          "id": "working-local-farms",
+          "role": "unique",
+          "text": "I want working local farms to stay viable near where people live."
+        },
+        {
+          "id": "shorter-food-supply-chains",
+          "role": "unique",
+          "text": "I want more of what people eat to come from nearby producers rather than through long-distance distribution alone."
+        }
+      ]
+    }
+  ]
+}

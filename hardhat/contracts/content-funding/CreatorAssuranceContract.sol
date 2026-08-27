@@ -4,6 +4,7 @@ pragma solidity 0.8.33;
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {MultiERC1155AssuranceContract} from "../individual-projects/AssuranceContracts.sol";
+import {IChannelEscrow} from "./ChannelEscrow.sol";
 
 /**
  * @title ICreatorAssuranceContract
@@ -11,14 +12,6 @@ import {MultiERC1155AssuranceContract} from "../individual-projects/AssuranceCon
  */
 interface ICreatorAssuranceContract {
     function getContentIds() external view returns (uint256[] memory);
-}
-
-/**
- * @title IChannelEscrow
- * @notice Interface for depositing funds into channel escrow
- */
-interface IChannelEscrow {
-    function deposit(bytes32 channelId, uint256 amount) external;
 }
 
 error OnlyOwnerOrSelf();
