@@ -30,10 +30,10 @@ SDK export splits need a careful test pass.
 6. When a slice is done, delete its subsection from this plan (same rule as
    TODO.md: no completed clutter). If you used **Tell**, note it in inbox.md.
 
-## Suggested first slice
+## Suggested next session
 
-A single oversized-file split (Slice F). Skip leftover CauseStarter package
-glue — already on TODO.md.
+One remaining file from Slice F (not the whole list). Skip leftover
+CauseStarter package glue — already on TODO.md. `eventDecoder.ts` is done.
 
 ---
 
@@ -44,10 +44,13 @@ seams; do not rewrite behavior.
 
 SDK:
 
-- `sdk/src/utils/eventDecoder.ts` (~1377): ~30 copy-paste `decodeRawEventLog`
-  functions; linear scan by event **name** is fragile if two contracts share a
-  name. Split per subsystem; return `events.ts` types. `PublishedDataAbi` is
-  not on the shared decoder today.
+- `sdk/src/utils/eventDecoder.ts` — split 2026-08-27 into `utils/event-decoders/`
+  plus `decodeRawEvent.ts`. Callers still import `@commonality/sdk/utils`.
+  Each decoder passes a contract ABI (no name-only scan). Decoder return
+  shapes were left as-is: subsystem `events.ts` types often differ
+  (`refName` vs `name`, optional `topicStatementId`, missing `type`).
+  `PublishedDataAbi` stays off this decoder; published-data has its own
+  event-cache path. Do not re-open this file for the remaining Slice F work.
 - `sdk/src/utils/chain-reads.ts` (~770): hand-rolled view ABI fragments + ~20
   `@ts-expect-error`s. Use generated ABIs from `src/abis.ts`.
 - `sdk/src/subsystems/conceptspace/queries.ts` (~1240)
