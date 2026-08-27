@@ -33,7 +33,8 @@ SDK export splits need a careful test pass.
 ## Suggested next session
 
 One remaining file from Slice F (not the whole list). Skip leftover
-CauseStarter package glue — already on TODO.md. `eventDecoder.ts` is done.
+CauseStarter package glue — already on TODO.md. SDK query splits through
+content-funding are done; UI god-pages are next.
 
 ---
 
@@ -51,10 +52,21 @@ SDK:
   (`refName` vs `name`, optional `topicStatementId`, missing `type`).
   `PublishedDataAbi` stays off this decoder; published-data has its own
   event-cache path. Do not re-open this file for the remaining Slice F work.
-- `sdk/src/utils/chain-reads.ts` (~770): hand-rolled view ABI fragments + ~20
-  `@ts-expect-error`s. Use generated ABIs from `src/abis.ts`.
-- `sdk/src/subsystems/conceptspace/queries.ts` (~1240)
-- `sdk/src/subsystems/content-funding/queries.ts` (~1029)
+- `sdk/src/utils/chain-reads.ts` — 2026-08-27: generated ABIs from `src/abis.ts`
+  (added `ValueThresholdConditionAbi`; ERC-20 metadata stays in `utils/erc20.ts`).
+  One `readView` helper instead of per-call `@ts-expect-error`. Not split;
+  dropping the hand-rolled fragments put it under 600. Do not re-open this
+  file for the remaining Slice F work.
+- `sdk/src/subsystems/conceptspace/queries.ts` — split 2026-08-27 into
+  `queries/` (fetch, documents, statements, implications, indirect-support,
+  browse, composite). Barrel still re-exports from `queries.ts`. Fetches
+  use `fetchEventsComplete` instead of `limit: 10000` + throw-on-exact-cap
+  for global DirectSupport. Do not re-open this file for remaining Slice F.
+- `sdk/src/subsystems/content-funding/queries.ts` — split 2026-08-27 into
+  `queries/` (onchain, views, fetch-state, attestations). Barrel still
+  re-exports. Left attestation `limit: 100`/`500` alone — those are
+  topic-filtered, not the global DirectSupport trap. Do not re-open for
+  remaining Slice F.
 - `sdk/src/subsystems/displayable-documents/displayable-document.ts` (~700)
 - `sdk/src/subsystems/lazy-giving/actions.ts` (~612)
 

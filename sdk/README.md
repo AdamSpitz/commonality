@@ -25,7 +25,8 @@ The SDK provides two main interfaces:
 - **Event cache**: The indexer stores raw on-chain events in a single `events` table, served via `GET /api/events`. No business logic in the indexer.
 - **Fold functions**: Pure functions in each subsystem's `folds.ts` that reconstruct entity state from raw events (e.g., `foldProject()`, `foldStatementBeliefs()`, `foldDelegationState()`).
 - **Event decoder**: `eventDecoder.ts` re-exports per-subsystem decoders in `utils/event-decoders/`. Each decoder passes the contract ABI into viem's `decodeEventLog` (no name-only ABI scan).
-- **Chain reads**: `chain-reads.ts` provides functions for reading current on-chain state via contract view functions.
+- **Chain reads**: `chain-reads.ts` provides functions for reading current on-chain state via contract view functions (generated ABIs from `src/abis.ts`, plus ERC-20 metadata from `utils/erc20.ts`).
+- **Conceptspace queries**: `subsystems/conceptspace/queries.ts` re-exports the split under `queries/`. Event-cache reads use `fetchEventsComplete` (page-split at the 10_000 cap) rather than treating a full page as a complete set.
 
 ## Usage
 

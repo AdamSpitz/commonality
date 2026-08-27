@@ -1,6 +1,24 @@
 import type { Address, Hash } from 'viem';
 import type { WriteClients } from './ethereum.js';
 
+/** ERC-20 display metadata views. Not a Commonality contract ABI. */
+export const erc20MetadataAbi = [
+  {
+    type: 'function',
+    name: 'symbol',
+    inputs: [],
+    outputs: [{ type: 'string' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'decimals',
+    inputs: [],
+    outputs: [{ type: 'uint8' }],
+    stateMutability: 'view',
+  },
+] as const;
+
 export const erc20ApproveAbi = [
   {
     inputs: [
