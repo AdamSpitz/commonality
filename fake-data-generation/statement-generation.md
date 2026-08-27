@@ -164,5 +164,5 @@ failed the same checks.
 | # | Status | What |
 |---|---|---|
 | 1 | **In `seed-content/simple-causes.json`**. Gold set still in the exercises file. List not complete. Nested-place rollup is board inclusion (settled). | Simple causes: wants, earmark grain (kind + place). Ontario-wide planks are genuine wants, not implication parents. `npm run gen:seed:simple-causes-implications`. |
-| 2 | Not started | One left/right abortion or immigration triple through the full loop, compared to the patterns-page canonical wording. |
+| 2 | Draft in [`statement-generation-exercises/02-compromise-abortion.json`](./statement-generation-exercises/02-compromise-abortion.json). Canonical texts live on hidden-majority-patterns.md. Live attester (2026-08-27, deepseek-v3.2): first modified-right refused; after thickening both modifieds bless, naturals refuse. `/critique-triple` not run. Not in seed-content. | One left/right abortion compromise-in-the-middle triple. Do not fork wording. |
 | 3 | Not started | Gate cause-assist suggestions on the same checks. |

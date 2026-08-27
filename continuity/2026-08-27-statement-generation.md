@@ -38,7 +38,7 @@ Docker cause-assist may still serve the **old** prompt until that service is reb
 
 1. ~~Copy accepted planks into `seed-content/`~~ **done.**
 2. ~~Geographic rollup Ask~~ **settled** as board inclusion. Seed wording and cause-assist guidance updated. Leftover: live attester prompt still teaches narrower→broader geography; un-teach + refresh implication corpus separately.
-3. Curriculum **exercise 2**: one left/right compromise-in-the-middle triple using canonical hidden-majority-patterns wording (do not fork a second abortion text).
+3. Curriculum **exercise 2**: draft is [`statement-generation-exercises/02-compromise-abortion.json`](../fake-data-generation/statement-generation-exercises/02-compromise-abortion.json) (canonical patterns-page texts). **Not** in seed-content. Run attester + `/critique-triple`. Likely containment gap: modified-right vs 12–16 weeks. If wording changes, change hidden-majority-patterns.md too.
 4. **Exercise 3**: gate cause-assist suggestions on the same checks.
 
 Human role remains: pick topics/patterns, veto. Do not silently load exercises into the live corpus. Do not mint geo `any`s. Do not teach Grey → Ontario as implication.

@@ -25,7 +25,7 @@ When an item from this page is done and no longer needs an LLM implementor's att
   not paper over it in seed wording. Personalized AI ranking remains deferred
   per [belief-implication-board-inclusion-and-discovery.md](specs/product/belief-implication-board-inclusion-and-discovery.md).
 
-- **(Ask)** Statement-generation next: curriculum **exercise 2** — one left/right compromise-in-the-middle triple (canonical abortion or immigration wording from [hidden-majority-patterns](docs/end-user/common-sense-majority/hidden-majority-patterns.md); do not fork a second abortion text). Exercise 1 is in [`seed-content/simple-causes.json`](fake-data-generation/seed-content/simple-causes.json). Process: [statement-generation.md](fake-data-generation/statement-generation.md).
+- **(Ask)** Statement-generation exercise 2: abortion cutoff triple is in [`fake-data-generation/statement-generation-exercises/02-compromise-abortion.json`](fake-data-generation/statement-generation-exercises/02-compromise-abortion.json); modified-right was thickened after the attester refused the old text. Next: confirm attester blesses both modifieds, run `/critique-triple`, then Adam accept/reject before `seed-content/`.
 
 - **(Tell)** After folding CauseStarter into `ui/src/causestarter/`, leftover package
   glue still talks as if `causestarter/src` is the SPA: `causestarter/vite.config.ts`
