@@ -1,3 +1,5 @@
+import { PRODUCTION_OPENROUTER_MODEL } from './llm-models.js';
+
 export interface PaymentDetails {
   amount: string;
   amountUsd: string;
@@ -21,6 +23,7 @@ const pendingPayments = new Map<string, { details: PaymentDetails; expires: numb
 const PAYMENT_WINDOW_MS = 15 * 60 * 1000;
 
 const LLM_PRICING: Record<string, { inputPer1M: number; outputPer1M: number }> = {
+  [PRODUCTION_OPENROUTER_MODEL]: { inputPer1M: 0.06, outputPer1M: 0.12 },
   'anthropic/claude-3.5-haiku': { inputPer1M: 0.80, outputPer1M: 4.00 },
   'anthropic/claude-3-haiku': { inputPer1M: 0.25, outputPer1M: 1.25 },
   'anthropic/claude-3-sonnet': { inputPer1M: 3.00, outputPer1M: 15.00 },
@@ -36,7 +39,7 @@ export function calculatePaymentRequired(
   currentGasPriceWei: bigint,
   config: PaymentConfig
 ): PaymentDetails {
-  const modelPricing = LLM_PRICING[config.openRouterModel] || LLM_PRICING['anthropic/claude-3.5-haiku'];
+  const modelPricing = LLM_PRICING[config.openRouterModel] || LLM_PRICING[PRODUCTION_OPENROUTER_MODEL];
   const llmCostUsd =
     (config.estimatedInputTokens / 1_000_000) * modelPricing.inputPer1M +
     (config.estimatedOutputTokens / 1_000_000) * modelPricing.outputPer1M;

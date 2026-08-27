@@ -1,5 +1,6 @@
 import {
   OpenRouterInvalidJsonError,
+  PRODUCTION_OPENROUTER_MODEL,
   requestJsonCompletionWithUsage,
   type OpenRouterJsonRequest,
   type OpenRouterJsonCompletion,
@@ -175,7 +176,7 @@ export async function evaluateImplicationWithLLM(
   statement1Content: string,
   statement2Content: string,
   apiKey: string,
-  model: string = 'anthropic/claude-3.5-haiku',
+  model: string = PRODUCTION_OPENROUTER_MODEL,
   requestJsonCompletionFn: RequestJsonCompletionFn = requestJsonCompletionWithUsage
 ): Promise<LlmEvaluationResult> {
   let result: Record<string, unknown>;

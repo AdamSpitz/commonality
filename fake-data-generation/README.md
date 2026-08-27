@@ -297,7 +297,7 @@ The generative testing suite now supports intelligent implication evaluation usi
 
 ### Features
 
-- **LLM Evaluation**: Uses Claude 3.5 Haiku (or other models) to evaluate whether S1 implies S2
+- **LLM Evaluation**: Uses `DEV_OPENROUTER_MODEL` (default DeepSeek V4 Flash; independent of production `OPENROUTER_MODEL`) to evaluate whether S1 implies S2
 - **Attester Integration**: Different attester types apply their thresholds and biases to LLM results
 - **Batch Processing**: Evaluate multiple implication pairs efficiently
 - **Cost Estimation**: Built-in tools to estimate API costs before running large batches
@@ -308,7 +308,7 @@ Set your OpenRouter API key as an environment variable:
 
 ```bash
 export OPENROUTER_API_KEY=sk-or-your-key-here
-export OPENROUTER_MODEL=anthropic/claude-3.5-haiku  # Optional, defaults to haiku
+export DEV_OPENROUTER_MODEL=deepseek/deepseek-v4-flash-0731  # Optional; laptop scripts only (not production services)
 ```
 
 Get an API key at: https://openrouter.ai/keys

@@ -15,7 +15,7 @@ const testConfig: TestConfig = {
   ethereumPrivateKey: '0x' + '1'.repeat(64),
   ipfsApiUrl: 'http://localhost:5001',
   paymentAddress: '0x' + '3'.repeat(40),
-  openRouterModel: 'anthropic/claude-3.5-haiku',
+  openRouterModel: 'deepseek/deepseek-v4-flash-0731',
   estimatedInputTokens: 1000,
   estimatedOutputTokens: 200,
   serviceMarginPercent: 20,

@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import type { IpfsCidV1 } from "@commonality/sdk/utils";
-import type { IpfsConfig, PaymentConfig } from "@commonality/attester-core";
+import { PRODUCTION_OPENROUTER_MODEL, type IpfsConfig, type PaymentConfig } from "@commonality/attester-core";
 import type { BeatAgentConfidence } from "./types.js";
 
 export interface BeatAgentConfig {
@@ -128,7 +128,7 @@ export function loadConfigFromEnv(
 		openRouterModel: readStringFrom(
 			["BEAT_AGENT_OPENROUTER_MODEL", "OPENROUTER_MODEL"],
 			env,
-			"anthropic/claude-3-sonnet",
+			PRODUCTION_OPENROUTER_MODEL,
 		),
 		promptTemplate: readPromptTemplateFromEnv(env),
 		ipfsApiUrl: readStringFrom(

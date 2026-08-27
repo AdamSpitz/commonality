@@ -25,6 +25,7 @@ import fs from "fs/promises";
 import path from "path";
 import { fileURLToPath } from "url";
 import { loadSeedCollections, type SeedCollection, type SeedStatement, DEFAULT_SEED_CONTENT_DIR } from "./seed-content-format.js";
+import { readDevOpenRouterModel } from "./devOpenRouter.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -36,7 +37,7 @@ const USE_OPENROUTER = Boolean(process.env.OPENROUTER_API_KEY);
 const OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions";
 const ANTHROPIC_API_URL = "https://api.anthropic.com/v1/messages";
 const ANTHROPIC_MODEL = process.env.ANTHROPIC_MODEL ?? "claude-haiku-4-5-20251001";
-const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL ?? "deepseek/deepseek-v3.2";
+const OPENROUTER_MODEL = readDevOpenRouterModel();
 const DELAY_MS = 500;
 
 type SimilarityLevel = "close" | "medium" | "distant";

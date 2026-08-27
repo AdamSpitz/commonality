@@ -8,6 +8,7 @@ import fs from 'fs/promises';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { evaluateImplicationWithLLM } from './openrouter.js';
+import { readDevOpenRouterModel } from './devOpenRouter.js';
 import type { Statement } from './types.js';
 import { IpfsCidV1 } from '@commonality/sdk/utils';
 
@@ -151,7 +152,7 @@ async function generateAttestations(maxPairsPerDomain = 50): Promise<Attestation
     numAttestations: attestations.length,
     domains: Object.keys(statementsByDomain),
     estimatedCost: totalCost,
-    model: 'anthropic/claude-3.5-haiku'
+    model: readDevOpenRouterModel()
   };
 
   const metadataPath = join(__dirname, 'data', 'attestations.metadata.json');

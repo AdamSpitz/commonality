@@ -1,3 +1,4 @@
+import { PRODUCTION_OPENROUTER_MODEL } from '@commonality/attester-core';
 import type { LlmNudgerConfig } from '@commonality/nudger-core';
 import { parseTrustedContextSources, type TrustedContextSourceConfig } from './contextSources.js';
 import { loadMediatorConfigArtifact } from './mediatorConfig.js';
@@ -85,7 +86,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): BridgeCreatorC
     ipfsApiUrl: readString(env, ['BRIDGE_CREATOR_IPFS_API', 'IPFS_API'], 'http://localhost:5001'),
     ipfsGatewayUrl: readString(env, ['BRIDGE_CREATOR_IPFS_GATEWAY', 'IPFS_GATEWAY'], 'http://localhost:8080'),
     openRouterApiKey: requireFrom(env, 'OPENROUTER_API_KEY'),
-    openRouterModel: readString(env, ['BRIDGE_CREATOR_OPENROUTER_MODEL', 'OPENROUTER_MODEL'], 'anthropic/claude-3.5-haiku'),
+    openRouterModel: readString(env, ['BRIDGE_CREATOR_OPENROUTER_MODEL', 'OPENROUTER_MODEL'], PRODUCTION_OPENROUTER_MODEL),
     name: mediator?.name ?? readString(env, ['BRIDGE_CREATOR_NAME'], 'Bridge Creator'),
     description: mediator?.description ?? readString(env, ['BRIDGE_CREATOR_DESCRIPTION'], 'Creates bridge statements between two sides of a cause'),
     sourceType: readString(env, ['BRIDGE_CREATOR_SOURCE_TYPE'], 'bridge-creator'),

@@ -448,12 +448,11 @@ services:
       PORT: "3002"
       XAI_API_KEY: ${XAI_API_KEY:-}
       OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
-      # Keep overrides empty by default so config.ts can choose provider-appropriate defaults.
-      CAUSE_ASSIST_API_BASE_URL: ${CAUSE_ASSIST_API_BASE_URL:-}
-      CAUSE_ASSIST_SUGGEST_MODEL: ${CAUSE_ASSIST_SUGGEST_MODEL:-}
-      CAUSE_ASSIST_SAFETY_MODEL: ${CAUSE_ASSIST_SAFETY_MODEL:-}
-      CAUSE_ASSIST_IMPLICATION_MODEL: ${CAUSE_ASSIST_IMPLICATION_MODEL:-}
-      CAUSE_ASSIST_COHERENCE_MODEL: ${CAUSE_ASSIST_COHERENCE_MODEL:-}
+      CAUSE_ASSIST_API_BASE_URL: https://openrouter.ai/api/v1
+      CAUSE_ASSIST_SUGGEST_MODEL: deepseek/deepseek-v4-flash-0731
+      CAUSE_ASSIST_SAFETY_MODEL: deepseek/deepseek-v4-flash-0731
+      CAUSE_ASSIST_IMPLICATION_MODEL: deepseek/deepseek-v4-flash-0731
+      CAUSE_ASSIST_COHERENCE_MODEL: deepseek/deepseek-v4-flash-0731
       # Public identity only. The private key lives exclusively in coherence-badge-worker.
       CAUSE_ASSIST_COHERENCE_ATTESTER_ADDRESS: ${CAUSE_ASSIST_COHERENCE_ATTESTER_ADDRESS:-0xa0Ee7A142d267C1f36714E4a8F75612F20a79720}
     healthcheck:
@@ -494,8 +493,8 @@ services:
       CAUSE_ASSIST_COHERENCE_ATTESTER_PRIVATE_KEY: ${CAUSE_ASSIST_COHERENCE_ATTESTER_PRIVATE_KEY:-0x2a871d0798f97d79848a013d4936a73bf4cc922c825d33c1cf7073dff6d409c6}
       XAI_API_KEY: ${XAI_API_KEY:-}
       OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
-      CAUSE_ASSIST_API_BASE_URL: ${CAUSE_ASSIST_API_BASE_URL:-}
-      CAUSE_ASSIST_COHERENCE_MODEL: ${CAUSE_ASSIST_COHERENCE_MODEL:-}
+      CAUSE_ASSIST_API_BASE_URL: https://openrouter.ai/api/v1
+      CAUSE_ASSIST_COHERENCE_MODEL: deepseek/deepseek-v4-flash-0731
       CAUSE_ASSIST_IPFS_GATEWAY_URL: http://ipfs:8080/ipfs
       EVENT_CACHE_URL: http://indexer:42069
     volumes:
@@ -761,7 +760,7 @@ services:
       - SERVICE_HOST_PORT=3000
       - ETHEREUM_RPC_URL=http://hardhat-node:8545
       - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
-      - OPENROUTER_MODEL=anthropic/claude-3.5-haiku
+      - OPENROUTER_MODEL=deepseek/deepseek-v4-flash-0731
       - IPFS_API=http://ipfs:5001
       - IPFS_GATEWAY=http://ipfs:8080
       - IMPLICATION_ATTESTER_PRIVATE_KEY=${IMPLICATION_ATTESTER_PRIVATE_KEY:-0x47e179ec197488593b187f80a00eb0da91f1b9d0b13f8733639f19c30a34926a}
@@ -837,7 +836,7 @@ services:
       - IPFS_GATEWAY=http://ipfs:8080
       - IPFS_GATEWAY_URL=http://ipfs:8080
       - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
-      - OPENROUTER_MODEL=anthropic/claude-3.5-haiku
+      - OPENROUTER_MODEL=deepseek/deepseek-v4-flash-0731
       - NUDGE_PUBLICATIONS_CONTRACT_ADDRESS=${NUDGE_PUBLICATIONS_CONTRACT_ADDRESS:-}
       - PLATFORM_API_URL=http://platform-api-service:3000
       - CONTENT_FINDER_PLATFORM_API_URL=http://platform-api-service:3000

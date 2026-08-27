@@ -7,12 +7,13 @@ import {
   loadSeedCollections,
   type SeedStatementRecord,
 } from './seed-content-format.js';
+import { readDevOpenRouterModel } from './devOpenRouter.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 export const DEFAULT_IMPLICATION_SCOPE = 'original-variants';
-export const DEFAULT_MODEL = 'deepseek/deepseek-v3.2';
+export const DEFAULT_MODEL = readDevOpenRouterModel();
 
 export type ImplicationEvaluationScope = 'all' | 'collection' | 'group' | 'family' | 'original-variants';
 

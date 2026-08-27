@@ -8,7 +8,7 @@
  *
  * Environment variables:
  *   OPENROUTER_API_KEY - Required. Your OpenRouter API key.
- *   OPENROUTER_MODEL - Optional. Model to use (default: anthropic/claude-3.5-haiku)
+ *   DEV_OPENROUTER_MODEL - Optional. Model to use (default: deepseek/deepseek-v4-flash-0731)
  *
  * Example:
  *   OPENROUTER_API_KEY=sk-or-xxx npx tsx testOpenRouter.ts 3
@@ -22,10 +22,11 @@ import {
   estimateEvaluationCost
 } from './llmAttester.js';
 import { batchEvaluateImplications } from './openrouter.js';
+import { readDevOpenRouterModel } from './devOpenRouter.js';
 import type { Attester, Statement } from './types.js';
 
 const API_KEY = process.env.OPENROUTER_API_KEY ?? '';
-const MODEL = process.env.OPENROUTER_MODEL || 'anthropic/claude-3.5-haiku';
+const MODEL = readDevOpenRouterModel();
 
 async function testSingleEvaluation(): Promise<void> {
   console.log('=== Test 1: Single Implication Evaluation ===\n');

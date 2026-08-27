@@ -1,4 +1,5 @@
 import {
+  PRODUCTION_OPENROUTER_MODEL,
   type IpfsConfig,
   type PaymentConfig,
 } from '@commonality/attester-core';
@@ -78,7 +79,7 @@ export function loadConfigFromEnv(env: NodeJS.ProcessEnv = process.env): Atteste
     openRouterModel: readStringFrom(
       ['IMPLICATION_ATTESTER_OPENROUTER_MODEL', 'OPENROUTER_MODEL'],
       env,
-      'anthropic/claude-3.5-haiku',
+      PRODUCTION_OPENROUTER_MODEL,
     ),
     ipfsApiUrl: readStringFrom(
       ['IMPLICATION_ATTESTER_IPFS_API', 'IPFS_API'],

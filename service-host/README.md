@@ -65,7 +65,7 @@ Example:
         "indexerUrl": "http://indexer:42069",
         "ipfsApiUrl": "http://ipfs:5001",
         "ipfsGatewayUrl": "http://ipfs:8080",
-        "openRouterModel": "anthropic/claude-3.5-haiku",
+        "openRouterModel": "deepseek/deepseek-v4-flash-0731",
         "stream": "fundable-project-explorer",
         "curatorIntervalMs": 21600000,
         "name": "Fundable Project Explorer",
