@@ -16,13 +16,17 @@ When an item from this page is done and no longer needs an LLM implementor's att
   [causestarter/TODO.md](causestarter/TODO.md). After a slice, delete that
   subsection from the plan.
 
-- **(Tell)** The implication attester prompt still lists “narrower geography →
-  broader geography” as an accept rule (`evaluator.ts` example Grey County →
-  Ontario). Product and seed generation now treat nested-place rollup as board
-  inclusion, not implication. Un-teach that rule and refresh
-  `seed-implication-evaluations` (prompt fingerprint) in a dedicated pass; do
-  not paper over it in seed wording. Personalized AI ranking remains deferred
-  per [belief-implication-board-inclusion-and-discovery.md](specs/product/belief-implication-board-inclusion-and-discovery.md).
+- **(Tell)** Refresh `data/seed-implication-evaluations.original-variants.json`
+  against the current implication-attester prompt fingerprint. The prompt now
+  rejects nested-place geographic rollup (Grey County → Ontario is a worked
+  false); the checked-in corpus still has the old fingerprint, so
+  `test:seed:implication-regression` will fail until a dedicated pass re-evaluates
+  the 1870 original↔variant pairs. Do not restamp fingerprints without live
+  decisions, and do not paper over it in seed wording. A v4-flash pass stalled
+  on empty LLM completions — use a model that actually returns JSON. Resume
+  already skips only pairs with the current fingerprint. Personalized AI ranking
+  remains deferred per
+  [belief-implication-board-inclusion-and-discovery.md](specs/product/belief-implication-board-inclusion-and-discovery.md).
 
 - **(Ask)** Statement-generation exercise 2: abortion cutoff triple is in [`fake-data-generation/statement-generation-exercises/02-compromise-abortion.json`](fake-data-generation/statement-generation-exercises/02-compromise-abortion.json); modified-right was thickened after the attester refused the old text. Next: confirm attester blesses both modifieds, run `/critique-triple`, then Adam accept/reject before `seed-content/`.
 

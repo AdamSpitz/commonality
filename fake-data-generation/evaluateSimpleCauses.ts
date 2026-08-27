@@ -88,7 +88,7 @@ async function main(): Promise<void> {
     process.exit(1);
   }
   if (unexpectedNoBlessing) {
-    console.error('\nSTOP: attester blessed a nested-place pair designed to refuse. Nested geography is board inclusion, not implication. If this is Grey → Ontario, the leftover hierarchy rule in the attester prompt is the likely cause — do not "fix" it in seed wording.');
+    console.error('\nSTOP: attester blessed a nested-place pair designed to refuse. Nested geography is board inclusion, not implication. Do not "fix" it in seed wording.');
     process.exit(1);
   }
   console.log('\nAll designed simple-causes nested-place pairs matched expectations (all designed-no).');

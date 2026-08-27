@@ -1797,5 +1797,5 @@ Process: [`fake-data-generation/statement-generation.md`](fake-data-generation/s
 
 Exercise 1 (simple causes, no triples) gold set remains in `fake-data-generation/statement-generation-exercises/01-simple-causes.json`. Live copy: `fake-data-generation/seed-content/simple-causes.json`. Nested-place rollup is board inclusion, not implication (Ontario-wide planks are genuine wants; garden relevant areas + roster `within` Ontario). `loadSeedCollections` still does not read the exercises directory. Tiny seed still uses the explorer slogan for the garden project. Nested-place pairs are designed-no: `npm run gen:seed:simple-causes-implications`. Cause-assist `STATEMENT_QUALITY_GUIDANCE` includes: want the outcome (not “X is a public good”), do not plank payroll, earmark grain as a ladder (kind + place), do not emit geo implication parents. Rebuild Docker cause-assist to serve the new prompt.
 
-Do not train implication generation on Christianity × secular-conservatism. Next: curriculum exercise 2. Leftover: attester prompt still lists narrower geography → broader as an accept rule.
+Do not train implication generation on Christianity × secular-conservatism. Next: curriculum exercise 2. The implication attester prompt now rejects nested-place geographic rollup (Grey County → Ontario is a worked reject, not an accept).
 

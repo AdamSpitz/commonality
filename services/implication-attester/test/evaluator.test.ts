@@ -196,6 +196,20 @@ describe('evaluateImplicationWithLLM', () => {
     assert.ok(systemPrompt.includes('onjunction'), 'System prompt should include conjunction pattern guidance');
     assert.ok(systemPrompt.includes('Reverse') || systemPrompt.includes('reverse'), 'System prompt should clarify non-implications');
     assert.ok(/relatedness/i.test(systemPrompt), 'System prompt should distinguish implication from mere relatedness');
+    assert.ok(
+      /Nested-place rollup is not belief implication/i.test(systemPrompt),
+      'System prompt should reject nested-place geographic rollup as implication'
+    );
+    assert.ok(
+      !/Narrower geography → broader geography \(one direction only\)/.test(systemPrompt),
+      'System prompt must not list narrower→broader geography as an accept rule'
+    );
+    assert.ok(
+      systemPrompt.includes('"implies": false') &&
+        systemPrompt.includes('I care about improving Grey County') &&
+        systemPrompt.includes('I care about improving Ontario'),
+      'Worked Grey County → Ontario example must be a reject'
+    );
   });
 
   it('instructs the LLM to be conservative and describes confidence levels', async () => {

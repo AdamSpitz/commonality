@@ -125,11 +125,9 @@ Do **not**:
 Ontario-wide (or unscoped topical) planks stay when they are genuine
 wants. They are siblings of the county plank, not machines to pull nested
 projects onto a CID. Recheck script: `evaluateSimpleCauses.ts` (designed
-**no** for nested-place → containing-place and the reverse). The live
-attester prompt still contains a leftover “narrower geography → broader”
-accept rule; do not treat a bless of Grey → Ontario as gold. Un-teaching
-that rule needs a prompt change plus implication-corpus refresh, not seed
-wording.
+**no** for nested-place → containing-place and the reverse). The attester
+prompt rejects nested-place rollup; do not treat a bless of Grey → Ontario
+as gold, and do not paper over a bless by changing seed wording.
 
 ## Gold set
 
