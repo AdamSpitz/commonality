@@ -29,7 +29,7 @@ fi
 
 if [ ! -f "$DEPLOYMENT_FILE" ]; then
 	echo "Error: $DEPLOYMENT_FILE not found."
-	echo "Deploy contracts first: cd hardhat && npx hardhat run scripts/deploy.js --network $NETWORK"
+	echo "Deploy contracts first: ./scripts/deploy-contracts.sh $NETWORK"
 	exit 1
 fi
 
