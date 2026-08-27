@@ -10,7 +10,7 @@ vi.mock('./SupportButton', () => ({
 }))
 
 const machinery = vi.hoisted(() => ({}))
-vi.mock('../lib/useMachinery', () => ({
+vi.mock('@ui/shared', () => ({
   useMachinery: () => machinery,
 }))
 

@@ -8,7 +8,7 @@ import { getAllProjects } from '@commonality/sdk/lazy-giving'
 import { getProspectiveRounds } from '@commonality/sdk/content-funding'
 import type { IpfsCidV1 } from '@commonality/sdk/utils'
 import type { SupportingTool } from './tools'
-import { getDomainUrl } from './domainUrls'
+import { getDomainUrl } from '../../shared'
 
 export interface ToolExample {
   /** Primary line shown to the user. */
@@ -88,7 +88,7 @@ async function loadStatementImplicationExamples(
         examples.push({
           label: `${from} → ${to}`,
           detail: 'Connected implication · public statements',
-          href: getDomainUrl(domain, `/statement/${implication.toStatementCid}`, '#'),
+          href: getDomainUrl(domain, `/statement/${implication.toStatementCid}`, { fallbackHref: '#' }),
         })
       }
     } catch {
@@ -102,7 +102,7 @@ async function loadStatementImplicationExamples(
       examples.push({
         label: statementLabel(statement, statement.cid),
         detail: `${statement.believerCount} supporters`,
-        href: getDomainUrl(domain, `/statement/${statement.cid}`, '#'),
+        href: getDomainUrl(domain, `/statement/${statement.cid}`, { fallbackHref: '#' }),
       })
     }
   }
@@ -123,7 +123,7 @@ async function loadContentFundingExamples(
       return {
         label: `Content round ${short}`,
         detail: status,
-        href: internal ? '/content' : getDomainUrl(domain, '/', '#'),
+        href: internal ? '/content' : getDomainUrl(domain, '/', { fallbackHref: '#' }),
       }
     })
   }

@@ -7,14 +7,11 @@ const useTrustedSet = vi.fn()
 
 vi.mock('@ui/shared', () => ({
   useTrustedSet: (...args: unknown[]) => useTrustedSet(...args),
+  getRuntimeConfigValue: () => '0xstarter',
 }))
 
 vi.mock('wagmi', () => ({
   useAccount: () => ({ address: undefined, isConnected: false }),
-}))
-
-vi.mock('../lib/runtimeConfig', () => ({
-  getRuntimeConfigValue: () => '0xstarter',
 }))
 
 afterEach(() => {

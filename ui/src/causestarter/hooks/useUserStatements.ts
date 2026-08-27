@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useAccount } from 'wagmi'
 import { getUserBeliefs, type StatementListItem } from '@commonality/sdk/conceptspace'
-import { useMachinery } from '../lib/useMachinery'
+import { useMachinery } from '../../shared'
 
 /**
  * Statements the connected wallet has signed (direct belief).

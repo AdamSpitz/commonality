@@ -7,7 +7,7 @@
 
 import { parseEther } from 'viem'
 import type { WriteClients } from '@commonality/sdk/utils'
-import { getRuntimeConfigValue } from './runtimeConfig'
+import { getRuntimeConfigValue } from '../../shared'
 
 export interface AttesterPair {
   fromCid: string

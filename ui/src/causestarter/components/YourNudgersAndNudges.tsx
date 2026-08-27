@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { Alert, Box, Chip, CircularProgress, Paper, Stack, Typography } from '@mui/material'
-import { HeaderInfoTip } from './HeaderInfoTip'
 import { Link as RouterLink } from 'react-router-dom'
 import { getStatementWithContent } from '@commonality/sdk/conceptspace'
 import {
@@ -10,8 +9,7 @@ import {
   type NudgeBatchPublication,
 } from '@commonality/sdk/nudger-publications'
 import type { IpfsCidV1 } from '@commonality/sdk/utils'
-import { useTrustedNudgers, type TrustedNudgerEntry } from '@ui/shared'
-import { useMachinery } from '../lib/useMachinery'
+import { HeaderInfoTip, useMachinery, useTrustedNudgers, type TrustedNudgerEntry } from '@ui/shared'
 
 const MAX_NUDGES = 10
 

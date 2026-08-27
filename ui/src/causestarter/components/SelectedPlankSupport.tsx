@@ -6,9 +6,9 @@ import { BeliefStates, getUserBelief } from '@commonality/sdk/conceptspace'
 import { cidToBytes32, type IpfsCidV1 } from '@commonality/sdk/utils'
 import type { SDKMachinery } from '@commonality/sdk/machinery'
 import { mapWithConcurrency, PLANK_QUERY_CONCURRENCY } from '../lib/concurrency'
-import { getRuntimeConfigValue } from '../lib/runtimeConfig'
+import { getRuntimeConfigValue } from '../../shared'
 import { sendCallsPreferAtomic } from '../lib/causeRoster'
-import { useWriteClients } from '../lib/useWriteClients'
+import { useWriteClients } from '../../shared'
 import { ConnectWalletHint } from './ConnectWalletHint'
 
 interface SelectedPlank {

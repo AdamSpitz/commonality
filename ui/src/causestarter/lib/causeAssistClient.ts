@@ -1,4 +1,4 @@
-import { getRuntimeConfigValue } from './runtimeConfig'
+import { getRuntimeConfigValue } from '../../shared'
 
 export interface StatementSuggestion {
   text: string

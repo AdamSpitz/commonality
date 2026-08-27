@@ -66,7 +66,6 @@ describe('App route composition', () => {
       secondaryNavigation: [{ label: 'More', path: '/more' }],
       footerText,
     },
-    features: {},
     basePath: '/',
     routes: <div data-testid="domain-routes">Find common ground</div>,
     LandingPage: () => <div>Landing</div>,
@@ -153,7 +152,9 @@ describe('App route composition', () => {
     it('sets the document title when using CauseShell', async () => {
       mockGetActiveDomain.mockReturnValue({
         ...fakeDomain('CauseStarter', [], 'footer'),
-        useCauseShell: true,
+        Shell: ({ children }: { children: React.ReactNode }) => (
+          <div data-testid="cause-shell">{children}</div>
+        ),
       })
 
       const { default: App } = await import('./App')

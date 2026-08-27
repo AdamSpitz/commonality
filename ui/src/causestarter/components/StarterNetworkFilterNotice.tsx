@@ -1,8 +1,7 @@
 import { Link as RouterLink } from 'react-router-dom'
 import { Link, Typography } from '@mui/material'
 import { useAccount } from 'wagmi'
-import { useTrustedSet } from '@ui/shared'
-import { getRuntimeConfigValue } from '../lib/runtimeConfig'
+import { getRuntimeConfigValue, useTrustedSet } from '@ui/shared'
 
 /** True when CauseStarter is filtering vouches through the starter network. */
 export function useUsingStarterNetworkFilter(): boolean {

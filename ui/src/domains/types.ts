@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import type { ComponentType, ReactNode } from 'react'
 import type { LabeledLinkTarget } from '../shared'
 
 export interface DomainBranding {
@@ -14,26 +14,15 @@ export interface DomainShellConfig {
   footerText: string
 }
 
-export interface DomainFeatures {
-  conceptspace: boolean
-  lazyGiving: boolean
-  fundingportal: boolean
-  delegation: boolean
-  mutablerefs: boolean
-  contentFunding: boolean
-  docs: boolean
-}
-
 export interface DomainManifest {
   id: string
   branding: DomainBranding
   shell: DomainShellConfig
-  features: DomainFeatures
   basePath: string
   routes: ReactNode
   LandingPage?: () => ReactNode
-  /** CauseStarter keeps its own bottom-nav shell instead of AppShell. */
-  useCauseShell?: boolean
+  /** Optional domain-owned chrome; other domains use the shared AppShell. */
+  Shell?: ComponentType<{ children: ReactNode }>
 }
 
 // `DomainId` lives in `shared/routing/domainUrls` (cross-brand URL resolution is a cross-cutting

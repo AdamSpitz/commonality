@@ -22,17 +22,46 @@ function trustedAttesterSet(trustedAttesters?: Iterable<string>): Set<string> | 
   return set.size > 0 ? set : undefined
 }
 
+export interface AlignedContentItem {
+  canonicalId: string
+  contractAddress: string
+  channelCanonicalId: string | null
+  statementCids: string[]
+}
+
+function platformFromChannelId(channelId: string | null): string {
+  if (!channelId) return 'twitter'
+  if (channelId.startsWith('youtube:')) return 'youtube'
+  if (channelId.startsWith('substack:')) return 'substack'
+  return 'twitter'
+}
+
+export function contentItemPublicUrl(canonicalId: string): string | null {
+  const twitterMatch = /^twitter:uid:\d+:(\d+)$/.exec(canonicalId)
+  if (twitterMatch) return `https://x.com/i/web/status/${twitterMatch[1]}`
+  const youtubeMatch = /^youtube:channel:[^:]+:([A-Za-z0-9_-]{11})$/.exec(canonicalId)
+  if (youtubeMatch) return `https://www.youtube.com/watch?v=${youtubeMatch[1]}`
+  const substackMatch = /^substack:([a-z0-9-]+)\/([A-Za-z0-9-]+)$/.exec(canonicalId)
+  if (substackMatch) return `https://${substackMatch[1]}.substack.com/p/${substackMatch[2]}`
+  return null
+}
+
+export function contentChannelPath(channelCanonicalId: string | null): string | null {
+  if (!channelCanonicalId) return null
+  return `/content/${platformFromChannelId(channelCanonicalId)}/${encodeURIComponent(channelCanonicalId)}`
+}
+
 function alignedItemsForStatements(
   channels: readonly ChannelWithCanonicalId[],
   attestations: Map<string, ContentAttestationInfo[]>,
   statementCids: readonly string[],
   trustedAttesters?: Iterable<string>,
-): { contractAddress: string; statementCids: string[] }[] {
+): AlignedContentItem[] {
   const wanted = new Set(statementCids.filter(Boolean))
   if (wanted.size === 0) return []
   const trusted = trustedAttesterSet(trustedAttesters)
 
-  const rows: { contractAddress: string; statementCids: string[] }[] = []
+  const rows: AlignedContentItem[] = []
   const seen = new Set<string>()
 
   for (const channel of channels) {
@@ -49,13 +78,25 @@ function alignedItemsForStatements(
         if (seen.has(key)) continue
         seen.add(key)
         rows.push({
+          canonicalId: item.canonicalId,
           contractAddress: contract.contractAddress,
+          channelCanonicalId: channel.canonicalChannelId,
           statementCids: [...new Set(matches)],
         })
       }
     }
   }
   return rows
+}
+
+/** Content items with a current positive attestation to one of the cause statements. */
+export function selectAlignedContentItems(
+  channels: readonly ChannelWithCanonicalId[],
+  attestations: Map<string, ContentAttestationInfo[]>,
+  statementCids: readonly string[],
+  trustedAttesters?: Iterable<string>,
+): AlignedContentItem[] {
+  return alignedItemsForStatements(channels, attestations, statementCids, trustedAttesters)
 }
 
 /** One row per contract that contains at least one aligned content item. */

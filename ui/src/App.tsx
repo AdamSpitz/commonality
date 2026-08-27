@@ -5,7 +5,6 @@ import { CrossDomainUnavailablePage } from './shared'
 import { NotFoundPage } from './shared'
 import { getActiveDomain } from './domains'
 import { isHashRouting } from './shared'
-import { CauseShell } from './causestarter/shell/CauseShell'
 
 function DomainChrome({ children }: { children: ReactNode }) {
   const domain = getActiveDomain()
@@ -14,8 +13,9 @@ function DomainChrome({ children }: { children: ReactNode }) {
     document.title = domain.branding.name
   }, [domain.branding.name])
 
-  if (domain.useCauseShell) {
-    return <CauseShell>{children}</CauseShell>
+  if (domain.Shell) {
+    const Shell = domain.Shell
+    return <Shell>{children}</Shell>
   }
   return (
     <AppShell

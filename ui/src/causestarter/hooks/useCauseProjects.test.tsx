@@ -3,10 +3,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useCauseProjects } from './useCauseProjects'
 
 const mockMachinery = {}
-vi.mock('../lib/useMachinery', () => ({
-  useMachinery: () => mockMachinery,
-}))
-
 vi.mock('@commonality/sdk/fundingportals', () => ({
   getAllAlignedProjectsForCause: vi.fn(),
   foldAlignedProjectFunding: vi.fn(),
@@ -30,6 +26,7 @@ vi.mock('@ui/shared', async () => {
   const actual = await vi.importActual<typeof import('@ui/shared')>('@ui/shared')
   return {
     ...actual,
+    useMachinery: () => mockMachinery,
     useTrustedContentAttesters: () =>
       trustedContentState.addresses.map((address) => ({ address, kind: 'content-attester' as const })),
   }

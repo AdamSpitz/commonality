@@ -40,6 +40,7 @@ vi.mock('../hooks/useAlignmentTrust', () => ({
 
 vi.mock('@ui/shared', () => ({
   useTrustedAttesters: () => [],
+  HeaderInfoTip: () => null,
 }))
 
 vi.mock('../components/SupportButton', () => ({

@@ -32,7 +32,7 @@ function fakeDomain() {
       secondaryNavigation: [],
       footerText: 'footer',
     },
-    features: {},
+
     basePath: '/',
     routes: <Route path="/" element={<div>Home route</div>} />,
   }

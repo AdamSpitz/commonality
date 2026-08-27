@@ -32,17 +32,7 @@ import { getLinkKey, isCrossDomainLinkTarget, isExternalLinkTarget, type CrossDo
 import { resolveLinkHref } from '../routing/domainUrls'
 import { WalletButton } from './WalletButton'
 import { useThemeMode } from '../theme/themeMode'
-
-interface DomainBranding {
-  name: string
-  tagline: string
-}
-
-interface DomainShellConfig {
-  primaryNavigation: LabeledLinkTarget[]
-  secondaryNavigation: LabeledLinkTarget[]
-  footerText: string
-}
+import type { DomainBranding, DomainShellConfig } from '../../domains/types'
 
 interface AppShellProps {
   children: ReactNode

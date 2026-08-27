@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useAccount } from 'wagmi'
 import { hydrateProjectBookmarks } from '../lib/projectBookmarks'
 import { loadUserProjects, type UserProject } from '../lib/userProjects'
-import { useMachinery } from '../lib/useMachinery'
+import { useMachinery } from '../../shared'
 
 export function useUserProjects(): {
   projects: UserProject[]

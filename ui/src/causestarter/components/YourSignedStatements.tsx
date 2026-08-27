@@ -1,7 +1,7 @@
 import { Alert, Box, Button, CircularProgress, Stack, Typography } from '@mui/material'
 import { Link as RouterLink } from 'react-router-dom'
 import { ConnectWalletHint } from './ConnectWalletHint'
-import { HeaderInfoTip } from './HeaderInfoTip'
+import { HeaderInfoTip } from '../../shared'
 import { useUserStatements } from '../hooks/useUserStatements'
 
 const sectionHeadingSx = { fontWeight: 800, fontSize: { xs: '1.6rem', sm: '2rem' } }

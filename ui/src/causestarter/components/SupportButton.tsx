@@ -12,9 +12,7 @@ import {
 } from '@commonality/sdk/conceptspace'
 import type { IpfsCidV1 } from '@commonality/sdk/utils'
 import type { SDKMachinery } from '@commonality/sdk/machinery'
-import { useWriteClients } from '../lib/useWriteClients'
-import { useMachinery } from '../lib/useMachinery'
-import { getRuntimeConfigValue } from '../lib/runtimeConfig'
+import { getRuntimeConfigValue, useMachinery, useWriteClients } from '../../shared'
 import { ConnectWalletHint } from './ConnectWalletHint'
 
 export type SupportAction = 'support' | 'retract'

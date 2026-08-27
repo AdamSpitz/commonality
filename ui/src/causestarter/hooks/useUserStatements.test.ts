@@ -16,7 +16,7 @@ vi.mock('wagmi', () => ({
   useAccount,
 }))
 
-vi.mock('../lib/useMachinery', () => ({
+vi.mock('@ui/shared', () => ({
   useMachinery: () => machinery,
 }))
 

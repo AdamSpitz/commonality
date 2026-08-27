@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
-import { Box, Chip, Tooltip, type ChipProps } from '@mui/material'
+import { Box, Chip, IconButton, Tooltip, type ChipProps } from '@mui/material'
 
 /** Shared trailing-info-icon look. Change here to restyle every explainer chip/label. */
 export const INFO_HINT_ICON_SX = {
@@ -34,6 +34,27 @@ export function InfoChip({ title, label, ...chipProps }: InfoChipProps) {
           </Box>
         )}
       />
+    </Tooltip>
+  )
+}
+
+/** Icon-only header tip (section titles). Same circled-i as InfoChip/InfoLabel. */
+export function HeaderInfoTip({
+  title,
+  label,
+}: {
+  title: string
+  label: string
+}) {
+  return (
+    <Tooltip title={title}>
+      <IconButton
+        size="small"
+        aria-label={label}
+        sx={{ ml: 0.25, color: 'text.secondary' }}
+      >
+        <InfoOutlinedIcon fontSize="small" />
+      </IconButton>
     </Tooltip>
   )
 }

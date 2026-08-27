@@ -26,6 +26,7 @@ export {
   formatRelativeDeadline,
   type ProjectStatus,
 } from './utils'
+export { readLazyGivingProjectMetadata } from './metadata'
 
 // Note on pages: the route components (BrowseProjectsPage, CreateProjectPage,
 // ProjectDetailPage) are intentionally NOT re-exported here. Domain route

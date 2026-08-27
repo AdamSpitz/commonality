@@ -54,8 +54,7 @@ import {
   type CausePlank,
 } from '../lib/causeStore'
 import { publishPlank } from '../lib/publishPlank'
-import { useMachinery } from '../lib/useMachinery'
-import { useWriteClients } from '../lib/useWriteClients'
+import { useMachinery, useWriteClients } from '../../shared'
 import { ConnectWalletHint } from '../components/ConnectWalletHint'
 import { BridgeClusterAssist } from '../components/BridgeClusterAssist'
 import { ClusterMediatorOptIn } from '../components/ClusterMediatorOptIn'

@@ -55,8 +55,7 @@ import {
   rememberBookmarkRemoved,
 } from '../lib/causeBookmarks'
 import { publishPlank } from '../lib/publishPlank'
-import { useMachinery } from '../lib/useMachinery'
-import { useWriteClients } from '../lib/useWriteClients'
+import { useMachinery, useWriteClients } from '../../shared'
 import { useAlignmentTrust } from '../hooks/useAlignmentTrust'
 import { useCauseProjects } from '../hooks/useCauseProjects'
 import { useViewCounts } from '../hooks/useViewCounts'

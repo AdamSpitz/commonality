@@ -32,8 +32,12 @@ vi.mock('wagmi', async (importOriginal) => {
 })
 
 vi.mock('connectkit', () => ({
-  ConnectKitButton: () => <button type="button">Connect Wallet</button>,
+  ConnectKitButton: Object.assign(
+    () => <button type="button">Connect Wallet</button>,
+    { Custom: ({ children }: { children: (state: { isConnected: boolean; isConnecting: boolean; show?: () => void; truncatedAddress?: string; ensName?: string }) => React.ReactNode }) => children({ isConnected: false, isConnecting: false }) },
+  ),
   getDefaultConfig: () => ({}),
+  useModal: () => ({ setOpen: vi.fn(), open: false }),
 }))
 
 vi.mock('../../wagmi', () => ({ isPrivyEnabled: false }))

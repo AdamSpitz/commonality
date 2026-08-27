@@ -9,16 +9,13 @@
 // and may be moved/renamed freely. When this module becomes its own published
 // package, this file becomes the package root (`@commonality/conceptspace`).
 //
-// Eager surface (components used at import time). Today only one component
-// crosses the module boundary: `StatementRenderer` (rendered by the
-// fundingportals Alignment Explorer to draw a statement from its CID). The rest
-// of the component surface (CreateStatementForm, BeliefControls, SupportMetrics,
-// StatementSuggestions, the settings sections, …) and the utils are consumed
-// only by conceptspace's own pages/components, so they stay module-internal
-// until an external consumer actually needs one. Promote a symbol here only when
-// a real external caller appears.
+// Eager surface (components used at import time). External callers today:
+// `StatementRenderer` (fundingportals Alignment Explorer) and the settings
+// sections (CauseStarter SettingsPage). Other components stay module-internal.
 
 export { StatementRenderer } from './components/StatementRenderer'
+export { DirectTrustSettingsSection } from './components/DirectTrustSettingsSection'
+export { NudgerSettingsSection } from './components/settings/NudgerSettingsSection'
 
 // Note on pages: the route components (HomePage, BrowseStatementsPage,
 // StatementPage, UserProfilePage, SettingsPage) are intentionally NOT

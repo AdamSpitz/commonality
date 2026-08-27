@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useAccount } from 'wagmi'
 import { useTrustedSet } from '@ui/shared'
-import { getRuntimeConfigValue } from '../lib/runtimeConfig'
+import { getRuntimeConfigValue } from '../../shared'
 
 /**
  * Personal trust replaces the starter network. The starter root is only in

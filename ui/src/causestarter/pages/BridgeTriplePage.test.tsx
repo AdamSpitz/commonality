@@ -3,19 +3,24 @@ import { MemoryRouter } from 'react-router-dom'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { BridgeTriplePage } from './BridgeTriplePage'
 
-vi.mock('wagmi', () => ({
-  useAccount: () => ({ address: undefined, isConnected: false }),
-  useConnect: () => ({ connectAsync: vi.fn(), connectors: [], isPending: false }),
-  useDisconnect: () => ({ disconnectAsync: vi.fn() }),
-}))
+vi.mock('wagmi', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('wagmi')>()
+  return {
+    ...actual,
+    useAccount: () => ({ address: undefined, isConnected: false }),
+    useConnect: () => ({ connectAsync: vi.fn(), connectors: [], isPending: false }),
+    useDisconnect: () => ({ disconnectAsync: vi.fn() }),
+  }
+})
 
-vi.mock('../lib/useMachinery', () => ({
-  useMachinery: () => ({}),
-}))
-
-vi.mock('../lib/useWriteClients', () => ({
-  useWriteClients: () => null,
-}))
+vi.mock('@ui/shared', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@ui/shared')>()
+  return {
+    ...actual,
+    useMachinery: () => ({}),
+    useWriteClients: () => null,
+  }
+})
 
 describe('BridgeTriplePage', () => {
   afterEach(() => {

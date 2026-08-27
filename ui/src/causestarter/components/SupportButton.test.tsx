@@ -6,23 +6,25 @@ vi.mock('wagmi', () => ({
   useAccount: vi.fn(),
 }))
 
-vi.mock('../lib/useWriteClients', () => ({
+const mockMachinery = {}
+const { useWriteClients } = vi.hoisted(() => ({
   useWriteClients: vi.fn(),
 }))
 
-const mockMachinery = {}
-vi.mock('../lib/useMachinery', () => ({
-  useMachinery: vi.fn(() => mockMachinery),
-}))
+vi.mock('../../shared', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../shared')>()
+  return {
+    ...actual,
+    useWriteClients,
+    useMachinery: vi.fn(() => mockMachinery),
+    getRuntimeConfigValue: vi.fn((key: string) => {
+      if (key === 'VITE_BELIEFS_CONTRACT_ADDRESS') return '0x1111111111111111111111111111111111111111'
+      return undefined
+    }),
+  }
+})
 
-vi.mock('../lib/runtimeConfig', () => ({
-  getRuntimeConfigValue: vi.fn((key: string) => {
-    if (key === 'VITE_BELIEFS_CONTRACT_ADDRESS') return '0x1111111111111111111111111111111111111111'
-    return undefined
-  }),
-}))
-
-vi.mock('./WalletButton', () => ({
+vi.mock('../../shared/components/WalletButton', () => ({
   WalletButton: () => <button type="button">Connect Wallet</button>,
 }))
 
@@ -39,7 +41,6 @@ vi.mock('@commonality/sdk/conceptspace', async () => {
 })
 
 import { useAccount } from 'wagmi'
-import { useWriteClients } from '../lib/useWriteClients'
 import {
   BeliefStates,
   believeStatement,

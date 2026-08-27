@@ -1,5 +1,4 @@
-import type { DomainId } from './domainUrls'
-import { getDomainUrl } from './domainUrls'
+import { getDomainUrl, type DomainId } from '../../shared'
 /**
  * How an organizer grows a cause. This is a taxonomy for *tools*, not a field on a
  * cause — a cause is its planks, and every growth surface stays available.
@@ -82,7 +81,7 @@ export const SUPPORTING_TOOLS: SupportingTool[] = [
 
 export function toolHref(tool: SupportingTool): string {
   if (tool.internalPath) return tool.internalPath
-  return getDomainUrl(tool.domain, tool.path, '#')
+  return getDomainUrl(tool.domain, tool.path, { fallbackHref: '#' })
 }
 
 export function isInternalTool(tool: SupportingTool): boolean {

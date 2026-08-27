@@ -12,8 +12,7 @@ import {
   persistProjectBookmarks,
   unbookmarkProject,
 } from '../lib/projectBookmarks'
-import { useMachinery } from '../lib/useMachinery'
-import { useWriteClients } from '../lib/useWriteClients'
+import { useMachinery, useWriteClients } from '../../shared'
 
 export function ProjectBookmarkButton() {
   const { projectAddress } = useParams<{ projectAddress: string }>()

@@ -5,18 +5,15 @@ import { AlignmentTrustGate } from './AlignmentTrustGate'
 
 vi.mock('@ui/shared', () => ({
   notifySubjectivTrustNetworkInvalidated: vi.fn(),
+  useMachinery: () => ({ eventCacheUrl: 'http://localhost:42069' }),
+  useWriteClients: () => null,
+  getRuntimeConfigValue: () => undefined,
+  HARDHAT_DEV_ACCOUNTS: [],
+  isLocalDevHost: () => false,
 }))
 
 vi.mock('wagmi', () => ({
   useAccount: () => ({ address: undefined, isConnected: false }),
-}))
-
-vi.mock('../lib/useMachinery', () => ({
-  useMachinery: () => ({ eventCacheUrl: 'http://localhost:42069' }),
-}))
-
-vi.mock('../lib/useWriteClients', () => ({
-  useWriteClients: () => null,
 }))
 
 afterEach(cleanup)

@@ -2,8 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Box, CircularProgress, Paper, Typography } from '@mui/material'
 import { getMonthlyPledgedByCauseForToken } from '@commonality/sdk/delegation'
 import { formatUnits } from 'viem'
-import { useMachinery } from '../lib/useMachinery'
-import { getRuntimeConfig } from '../lib/runtimeConfig'
+import { getRuntimeConfig, useMachinery } from '../../shared'
 
 export function MonthlyPledgeSignal({ statementCids }: { statementCids: string[] }) {
   const machinery = useMachinery()

@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { ConnectWalletHint } from './ConnectWalletHint'
 
-vi.mock('./WalletButton', () => ({
+vi.mock('../../shared/components/WalletButton', () => ({
   WalletButton: () => <button type="button">Connect</button>,
 }))
 

@@ -20,7 +20,7 @@ import {
   type CauseDraft,
 } from '../lib/causeStore'
 import { ensureCombinatorPublished } from '../lib/publishCombinator'
-import { useWriteClients } from '../lib/useWriteClients'
+import { useWriteClients } from '../../shared'
 import {
   applyPlankTexts,
   loadPlankTexts,
@@ -29,7 +29,7 @@ import {
   placeholderPlanksFromCids,
   resolveRosterCid,
 } from '../lib/causeRoster'
-import { useMachinery } from '../lib/useMachinery'
+import { useMachinery } from '../../shared'
 
 function findLocalByStable(owner: string, slug: string): CauseDraft | undefined {
   const ownerLc = owner.toLowerCase()

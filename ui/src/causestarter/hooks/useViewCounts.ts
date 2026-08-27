@@ -15,7 +15,7 @@ import {
 } from '@commonality/sdk/conceptspace'
 import { invalidateBelieverSets, loadBelieverSets } from '../lib/believerSetsCache'
 import { mapWithConcurrency, PLANK_QUERY_CONCURRENCY } from '../lib/concurrency'
-import { useMachinery } from '../lib/useMachinery'
+import { useMachinery } from '../../shared'
 
 export interface UseViewCountsResult {
   /** Folded counts over `selectedCids`, or undefined until sets have loaded. */

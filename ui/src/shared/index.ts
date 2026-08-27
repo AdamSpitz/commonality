@@ -79,6 +79,7 @@ export { getCsmMediatorNudger, getTallyMediatorOptInPath } from './nudges/csmMed
 export { getMediatorOptInPath, mediatorNudgerFromCause, serviceMediatorFromCause } from './nudges/mediatorNudger'
 export type { CauseMediatorConfig } from './nudges/mediatorNudger'
 export { MediatorOptInBlock } from './nudges/MediatorOptInBlock'
+export { useMediatorOptIn } from './nudges/useMediatorOptIn'
 export { BridgeDisplayBlock, buildMediatorBridgeCards, fetchFeaturedMediatorAnchors, useMediatorAnchors } from './mediator/BridgeDisplayBlock'
 export type { BridgeLabels, MediatorBridgeAnchor, MediatorBridgeCard } from './mediator/BridgeDisplayBlock'
 
@@ -164,6 +165,11 @@ export type { TrustedNudgerEntry } from './hooks/useTrustedNudgers'
 
 export { useTrustedSet } from './hooks/useTrustedSet'
 export { useWriteClients } from './hooks/useWriteClients'
+export {
+  HARDHAT_DEV_ACCOUNTS,
+  isLocalDevHost,
+} from './wallet/hardhatAccounts'
+export type { HardhatDevAccount } from './wallet/hardhatAccounts'
 export { useIsWrongChain } from './hooks/useIsWrongChain'
 export { useResolvedAddress } from './hooks/useResolvedAddress'
 export type { ResolvedAddress } from './hooks/useResolvedAddress'
@@ -180,12 +186,13 @@ export type { ResolvedAddress } from './hooks/useResolvedAddress'
 // modules: external consumers (`App.tsx` for AppShell, `ConnectWalletPrompt`
 // for WalletButton) import them via deep paths allowed by the boundary rule.
 export { AddressDisplay } from './components/AddressDisplay'
-export { InfoChip, InfoLabel, INFO_HINT_ICON_SX } from './components/InfoChip'
+export { InfoChip, InfoLabel, HeaderInfoTip, INFO_HINT_ICON_SX } from './components/InfoChip'
 export { AddressPicker } from './components/AddressPicker'
 export type { AddressPickerProps, AddressPickerStatus } from './components/AddressPicker'
 export { CrossDomainUnavailablePage } from './components/CrossDomainUnavailablePage'
 export { NetworkSwitchPrompt } from './components/NetworkSwitchPrompt'
 export { StatementPicker } from './components/StatementPicker'
+export type { StatementPickerDraft, StatementPickerTelemetryEvent } from './components/StatementPicker'
 export { NotFoundPage } from './components/NotFoundPage'
 export { TrustNetworkRefreshIndicator } from './components/TrustNetworkRefreshIndicator'
 

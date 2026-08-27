@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useAccount } from 'wagmi'
 import { getStandingPledges } from '@commonality/sdk/delegation'
-import { useMachinery } from '../lib/useMachinery'
-import { getRuntimeConfig } from '../lib/runtimeConfig'
+import { getRuntimeConfig, useMachinery } from '../../shared'
 
 export interface CauseMonthlyPledges {
   loading: boolean

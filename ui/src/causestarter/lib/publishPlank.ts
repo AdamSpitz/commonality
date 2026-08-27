@@ -16,7 +16,7 @@ import { createStatement } from '@commonality/sdk/displayable-documents'
 import type { MutableRefUpdaterContract } from '@commonality/sdk/mutable-refs'
 import type { SDKMachinery } from '@commonality/sdk/machinery'
 import type { WriteClients } from '@commonality/sdk/utils'
-import { getRuntimeConfigValue } from './runtimeConfig'
+import { getRuntimeConfigValue } from '../../shared'
 
 interface PublishPlankArgs {
   machinery: SDKMachinery

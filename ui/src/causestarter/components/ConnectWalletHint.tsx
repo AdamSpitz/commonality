@@ -1,5 +1,5 @@
 import { Alert, Stack, Typography } from '@mui/material'
-import { WalletButton } from './WalletButton'
+import { WalletButton } from '../../shared/components/WalletButton'
 
 export function ConnectWalletHint({ children }: { children: string }) {
   return (
@@ -24,7 +24,7 @@ export function ConnectWalletHint({ children }: { children: string }) {
         flexWrap="wrap"
       >
         <Typography variant="body2">{children}</Typography>
-        <WalletButton dense testId="inline-wallet-connect" />
+        <WalletButton dense testId="inline-wallet-connect" localHardhatAccounts />
       </Stack>
     </Alert>
   )

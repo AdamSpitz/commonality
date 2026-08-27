@@ -2,8 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useAccount } from 'wagmi'
 import { listCauses, type CauseDraft } from '../lib/causeStore'
 import { syncCauseBookmarks } from '../lib/causeBookmarks'
-import { useMachinery } from '../lib/useMachinery'
-import { useWriteClients } from '../lib/useWriteClients'
+import { useMachinery, useWriteClients } from '../../shared'
 
 /**
  * Drafts and published keeps on this device, plus published keeps from the

@@ -18,7 +18,7 @@ import {
 import type { MutableRefUpdaterContract } from '@commonality/sdk/mutable-refs'
 import type { SDKMachinery } from '@commonality/sdk/machinery'
 import type { IpfsCidV1, WriteClients } from '@commonality/sdk/utils'
-import { getRuntimeConfigValue } from './runtimeConfig'
+import { getRuntimeConfigValue } from '../../shared'
 import { submitPairsToAttester, type SubmitPairsResult } from './implicationAttesterClient'
 
 export interface PromoteViewArgs {

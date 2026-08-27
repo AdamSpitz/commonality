@@ -17,8 +17,7 @@ import {
 import { publishNudgeBatch } from '../lib/bridgeNudges'
 import { formatPairSummary, submitPairsToAttester } from '../lib/implicationAttesterClient'
 import { publishPlank } from '../lib/publishPlank'
-import { useMachinery } from '../lib/useMachinery'
-import { useWriteClients } from '../lib/useWriteClients'
+import { useMachinery, useWriteClients } from '../../shared'
 
 function SideFields({
   title,

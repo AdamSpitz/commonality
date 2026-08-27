@@ -8,16 +8,20 @@ import type { IpfsCidV1 } from '@commonality/sdk/utils'
 vi.mock('wagmi', () => ({
   useAccount: vi.fn(() => ({ address: '0x1111111111111111111111111111111111111111', isConnected: true })),
 }))
-vi.mock('../lib/useWriteClients', () => ({ useWriteClients: vi.fn(() => ({ walletClient: {}, publicClient: {} })) }))
-vi.mock('../lib/runtimeConfig', () => ({
-  getRuntimeConfigValue: vi.fn(() => '0x2222222222222222222222222222222222222222'),
-}))
+vi.mock('../../shared', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../shared')>()
+  return {
+    ...actual,
+    useWriteClients: vi.fn(() => ({ walletClient: {}, publicClient: {} })),
+    getRuntimeConfigValue: vi.fn(() => '0x2222222222222222222222222222222222222222'),
+  }
+})
 vi.mock('../lib/causeRoster', () => ({ sendCallsPreferAtomic: vi.fn() }))
 vi.mock('@commonality/sdk/conceptspace', () => ({
   BeliefStates: { NO_OPINION: 0, BELIEVES: 1, DISBELIEVES: 2 },
   getUserBelief: vi.fn(),
 }))
-vi.mock('./WalletButton', () => ({ WalletButton: () => <button>Connect</button> }))
+vi.mock('./ConnectWalletHint', () => ({ ConnectWalletHint: () => <button>Connect</button> }))
 
 const BELIEVES = 1
 const NO_OPINION = 0

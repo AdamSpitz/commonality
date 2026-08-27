@@ -4,7 +4,7 @@ import { invalidateBelieverSets } from '../lib/believerSetsCache'
 import { useViewCounts } from './useViewCounts'
 
 const mockMachinery = {}
-vi.mock('../lib/useMachinery', () => ({
+vi.mock('@ui/shared', () => ({
   useMachinery: () => mockMachinery,
 }))
 

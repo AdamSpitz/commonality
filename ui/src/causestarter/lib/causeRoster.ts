@@ -47,7 +47,7 @@ import {
   type Address,
   type Hash,
 } from 'viem'
-import { getRuntimeConfigValue } from './runtimeConfig'
+import { getRuntimeConfigValue } from '../../shared'
 import type { CauseAnchor, CauseDraft, CauseMediator, CausePlank, RosterBridgeLink } from './causeStore'
 import {
   parseBoardInclusionRules,

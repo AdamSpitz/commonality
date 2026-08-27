@@ -25,6 +25,7 @@ const DOMAIN_FOLDERS: ReadonlySet<string> = new Set([
   'civility',
   'common-sense-majority',
   'conceptspace',
+  'causestarter',
 ])
 
 function currentDomain(): string {
@@ -55,7 +56,8 @@ function getDefaultDocPath(): string {
     domain === 'content-funding' ||
     domain === 'common-sense-majority' ||
     domain === 'lazyGiving' ||
-    domain === 'tally'
+    domain === 'tally' ||
+    domain === 'causestarter'
   ) {
     return domain
   }

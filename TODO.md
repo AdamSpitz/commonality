@@ -11,11 +11,10 @@ When an item from this page is done and no longer needs an LLM implementor's att
 ----
 
 - Work a slice of the [code-base cleanup plan](workflow/code-base-cleanup-plan.md):
-  dead surface, ABI/indexer sync, helper dedup, CauseStarter shared-runtime fold
-  (CS never loads `config.json` overlays), SDK export hygiene, or a single
-  oversized-file split. Do not boil the ocean; skip anything already on this
-  list, [inbox.md](inbox.md), or [causestarter/TODO.md](causestarter/TODO.md).
-  After a slice, delete that subsection from the plan.
+  SDK export hygiene or a single oversized-file split. Do not boil the ocean;
+  skip anything already on this list, [inbox.md](inbox.md), or
+  [causestarter/TODO.md](causestarter/TODO.md). After a slice, delete that
+  subsection from the plan.
 
 - **(Tell)** The implication attester prompt still lists “narrower geography →
   broader geography” as an accept rule (`evaluator.ts` example Grey County →

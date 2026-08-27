@@ -14,7 +14,7 @@ import {
   type MutableRefUpdaterContract,
 } from '@commonality/sdk/mutable-refs'
 import type { WriteClients } from '@commonality/sdk/utils'
-import { getRuntimeConfigValue } from './runtimeConfig'
+import { getRuntimeConfigValue } from '../../shared'
 
 export const PROJECT_BOOKMARKS_REF = 'bookmarked-projects'
 export const PROJECT_BOOKMARKS_SCHEMA_VERSION = 1 as const

@@ -14,8 +14,7 @@ turned into product/design work. Do not re-file work already on
 
 Autonomy: treat each slice as **Ask** unless Adam tags the TODO item higher.
 Dead-code deletes and ABI-list additions are the safest starting point; public
-SDK export splits and CauseStarter runtime fold need a careful test pass
-(CauseStarter config.json overlay is a real bug, not just style).
+SDK export splits need a careful test pass.
 
 ## How to work a slice
 
@@ -33,112 +32,8 @@ SDK export splits and CauseStarter runtime fold need a careful test pass
 
 ## Suggested first slice
 
-Dead deletes + ABI sync lists + belief/ERC-20/env helper dedup + CauseStarter
-`runtimeConfig` / `useMachinery` / `useWriteClients` fold + `@ui` lint. Mostly
-deletions and one-file consolidations, plus the CS `config.json` bug.
-
----
-
-## Slice D — CauseStarter still forks the shared UI (highest product impact)
-
-CauseStarter is the SPA in `ui/src/causestarter/`. `main.tsx` loads
-`shared/config/runtimeConfig.ts` (`loadRuntimeConfig('./config.json')`). CS
-pages/hooks still read a **second singleton that is never loaded from
-`config.json`**, so IPFS overlays (RPC, contracts, `VITE_EVENT_CACHE_URL`, …)
-do not apply to CS. That is a bug, not style.
-
-### Fold onto shared (do this first in the slice)
-
-Replace ~40 CS imports of `../lib/useMachinery|useWriteClients|runtimeConfig|domainUrls`:
-
-| CS copy | Shared original | Notes |
-| --- | --- | --- |
-| `ui/src/causestarter/lib/runtimeConfig.ts` | `ui/src/shared/config/runtimeConfig.ts` | CS missing `VITE_CAUSESTARTER_URL`, denylist, policy, fiat, extra contracts |
-| `ui/src/causestarter/lib/useMachinery.ts` | `ui/src/shared/hooks/useMachinery.ts` | CS skips `civilityPolicyGatewayConfig` |
-| `ui/src/causestarter/lib/useWriteClients.ts` | `ui/src/shared/hooks/useWriteClients.ts` | Byte-identical |
-| `ui/src/causestarter/lib/domainUrls.ts` | `ui/src/shared/routing/domainUrls.ts` | CS `DomainId` omits `causestarter`; used by CS `DocsPage.tsx` |
-
-Invert wagmi ↔ CauseStarter:
-
-- `ui/src/wagmi.ts` imports Hardhat helpers from
-  `ui/src/causestarter/lib/hardhatAccounts.ts` and `hardhatLocalConnector.ts`.
-  Move those under `shared/` (or `ui/src/`). Delete
-  `ui/src/causestarter/wagmi.ts` if still a re-export.
-
-One `WalletButton`: fold CS Hardhat account menu + ConnectKit (no Privy) into
-`ui/src/shared/components/WalletButton.tsx` so `CauseShell` does not need a
-CS-only button. CS also has no theme toggle (`useThemeMode`); AppShell already
-does.
-
-### Module boundaries
-
-- ESLint `no-restricted-imports` in `ui/eslint.config.js` only matches relative
-  `../module/` paths. `@ui/*` aliases let CauseStarter deep-import internals.
-  Forbid `@ui/<module>/…` except barrels and `pages/*`.
-- Promote symbols CS already consumes onto barrels, then import barrels only:
-  - Settings: `DirectTrustSettingsSection`, `NudgerSettingsSection` —
-    `conceptspace/index.ts` currently only exports `StatementRenderer`.
-  - `lazy-giving/index.ts` does not export `metadata` (CS `userProjects.ts` and
-    `content-funding/hooks/useContentFundingState.ts` deep-import it).
-  - `alignedContent.ts` deep-imports `@ui/content-funding/statementCidMatch`
-    even though that is already on the content-funding barrel.
-- Stop hardcoding CauseStarter in `ui/src/App.tsx` (`CauseShell`,
-  `domain.useCauseShell`). Put `Shell` on `domains/types.ts` /
-  `domains/causestarter/manifest.tsx` so App only knows manifests.
-
-### Accidental complexity / hosting
-
-- Fake code-splitting: `lazyRoute(() => import('…/DelegationPages'), …)` and
-  `ContentFundingPages` hit one module. Point CS routes at
-  `delegation/pages/*` and `domains/content-funding/ContentPages` the way
-  `domains/lazy-giving/manifest.tsx` does. Then delete the host barrels.
-- Delete no-op `ui/src/causestarter/pages/CreateProjectPage.tsx` (only
-  re-renders LazyGiving’s page). Keep `ProjectDetailPage.tsx` (bookmark +
-  `listPath`).
-- Parameterize DocsPage instead of forking CS vs `ui/src/docs/DocsPage.tsx`.
-  Shared DocsPage also omits `causestarter` from `DOMAIN_FOLDERS`.
-- One StatementPicker: shared vs CS (`components/StatementPicker.tsx` +
-  `lib/statementPicker.ts`). Same retrieve/rank/copy; CS adds cause-assist
-  drafts and analytics. Lift drafts behind an optional prop on the shared picker.
-  (Scale of the picker window is already in inbox — do not rebuild ranking here.)
-- Unify mediator opt-in: `shared/nudges/MediatorOptInBlock.tsx`,
-  `CauseMediatorCard.tsx`, `ClusterMediatorOptIn.tsx`. Keep CS compact layout;
-  share the store/toggle helper.
-- Dedup aligned-content selection: CS `lib/alignedContent.ts` copies
-  `content-funding/selectAlignedContent.ts` nested loops. Add item-level
-  selection (plus `contentItemPublicUrl` / `contentChannelPath`) to the
-  content-funding barrel.
-- Dedup Content Funding copy: CS `ContentFundingPages.tsx` reimplements
-  `ContentFundingCreatorsPage` with the same strings as
-  `domains/content-funding/ContentPages.tsx`, only changing `learnMorePath`.
-- Dead `features` flags: every `domains/*/manifest.tsx` fills `DomainFeatures`;
-  nothing reads `domain.features`. Delete the field or drive route inclusion.
-- Duplicate branding types: `AppShell.tsx` redeclares `DomainBranding` /
-  `DomainShellConfig` already in `domains/types.ts`.
-- `getDomainIdFromEnv` in `domains/index.ts` special-cases `civility` then lists
-  it again in the union. Collapse to `domainId in domainManifests`.
-- Bookmark stores `causeBookmarks.ts` vs `projectBookmarks.ts` share MutableRef
-  + localStorage shape with different schemas — tiny `refDocumentStore` helper.
-- `HeaderInfoTip` vs shared `InfoChip`/`InfoLabel`.
-- Do **not** merge CS `StatementPage` with conceptspace `StatementPage` (cause
-  board vs belief UI). Sharing `documentText` / combinator loading is optional
-  if you already touch those files.
-- Combinator operand loading / unguarded StatementPage writes are **already on
-  TODO.md** — do not re-file; the CS path in that item still says
-  `causestarter/src/pages/StatementPage.tsx` (should be `ui/src/causestarter/`).
-
-### Leftover package glue (already on TODO.md)
-
-Do not duplicate; when you are in this area you may also hit:
-
-- `causestarter/vite.config.ts` unused; Compose/Docker `:8090` vs Vite `:5174`.
-- `scripts/setup-env.sh` and `scripts/seed-causestarter-vite-env.py` still write
-  `causestarter/.env`; Vite reads `ui/.env`.
-- `scripts/docker-build-plan.mjs` still hashes `causestarter` for
-  `ui-ipfs-publisher-causestarter`.
-- `scripts/deploy-ui.sh` domain allow-list and
-  `cloudflare-ui-gateway/ui-gateway.mjs` `IPNS_BY_SUBDOMAIN` still omit
-  `causestarter` while `scripts/ui-domains.mjs` has it.
+SDK public API / compile hygiene (Slice E), or a single oversized-file split
+(Slice F). Skip leftover CauseStarter package glue — already on TODO.md.
 
 ---
 
