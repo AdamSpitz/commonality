@@ -135,7 +135,11 @@ export function SuccessfulProjectsList({
           : 'Projects shown here have trusted success attestations for this cause and still have early contributors waiting to be reimbursed. Donate to close the loop: refill scouts up to what they originally contributed so they can fund the next project.'}
       </Typography>
 
-      {projects.filter((project) => projectMatchesBoardRules(metadata[project.projectAddress]?.relevantAreas, inclusionRules)).length === 0 ? (
+      {projects.filter((project) => projectMatchesBoardRules(
+        metadata[project.projectAddress]?.relevantAreas,
+        inclusionRules,
+        Boolean(metadata[project.projectAddress]),
+      )).length === 0 ? (
         <Alert severity="info">
           {reimbursement === 'reimbursed'
             ? 'No success-vouched projects have been fully reimbursed yet.'
@@ -143,7 +147,11 @@ export function SuccessfulProjectsList({
         </Alert>
       ) : (
         <Stack spacing={2}>
-          {projects.filter((project) => projectMatchesBoardRules(metadata[project.projectAddress]?.relevantAreas, inclusionRules)).map((project) => {
+          {projects.filter((project) => projectMatchesBoardRules(
+            metadata[project.projectAddress]?.relevantAreas,
+            inclusionRules,
+            Boolean(metadata[project.projectAddress]),
+          )).map((project) => {
             const projectPath = projectPathForAddress(project.projectAddress)
             // Prefer search over document-hash for local hosts: HashRouter already
             // owns window.location.hash, so `#close-the-loop` is not a reliable fragment.

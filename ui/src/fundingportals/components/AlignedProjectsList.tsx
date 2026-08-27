@@ -150,6 +150,7 @@ export function AlignedProjectsList({
       implicationTrustKey,
       alignmentTrustKey,
       contentTrustKey,
+      inclusionRulesKey: JSON.stringify(inclusionRules ?? {}),
     })
 
     async function load() {
@@ -257,11 +258,16 @@ export function AlignedProjectsList({
     channels.length,
     contentAttestationsKey,
     contentTrustKey,
+    inclusionRules,
   ])
 
   const effectiveStatus = statusFilterLock ?? statusFilter
   const filtered = projects
-    .filter((p) => projectMatchesBoardRules(metadata[p.projectAddress]?.relevantAreas, inclusionRules))
+    .filter((p) => projectMatchesBoardRules(
+      metadata[p.projectAddress]?.relevantAreas,
+      inclusionRules,
+      Boolean(metadata[p.projectAddress]),
+    ))
     .filter(p => effectiveStatus === 'all' || getProjectStatus(p) === effectiveStatus)
     .filter(p => alignmentFilter === 'all' || p.alignmentType === alignmentFilter)
 

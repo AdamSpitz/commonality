@@ -35,6 +35,17 @@ describe('loadConfigFromEnv', () => {
     assert.equal(config.suggestModel, 'deepseek/deepseek-v4-flash-0731')
   })
 
+  it('uses the xAI key when an explicit xAI base is set even if both keys exist', () => {
+    const config = loadConfigFromEnv({
+      XAI_API_KEY: 'xai-test-key',
+      OPENROUTER_API_KEY: 'or-test-key',
+      CAUSE_ASSIST_API_BASE_URL: 'https://api.x.ai/v1',
+    })
+    assert.equal(config.apiKey, 'xai-test-key')
+    assert.equal(config.apiBaseUrl, 'https://api.x.ai/v1')
+    assert.equal(config.suggestModel, 'grok-4.5')
+  })
+
   it('honors explicit base URL even with only OpenRouter key', () => {
     const config = loadConfigFromEnv({
       OPENROUTER_API_KEY: 'or-test-key',

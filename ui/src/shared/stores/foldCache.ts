@@ -33,6 +33,7 @@ export interface BoardSnapshotKeyOptions {
   implicationTrustKey: string;
   alignmentTrustKey: string;
   contentTrustKey: string;
+  inclusionRulesKey?: string;
 }
 
 export interface BoardMetricsSnapshot {
@@ -85,6 +86,7 @@ function getBoardSnapshotCacheKey({
   implicationTrustKey,
   alignmentTrustKey,
   contentTrustKey,
+  inclusionRulesKey,
 }: BoardSnapshotKeyOptions): string {
   return [
     FOLD_CACHE_VERSION,
@@ -97,6 +99,7 @@ function getBoardSnapshotCacheKey({
     implicationTrustKey,
     alignmentTrustKey,
     contentTrustKey,
+    inclusionRulesKey ?? '',
   ].join('::');
 }
 

@@ -321,9 +321,13 @@ export function CauseBoard({
             const included = rulesForLoad?.geographic
               ? (await Promise.all(union.map(async (project) => {
                   const full = await getProject(machinery, project.projectAddress).catch(() => null)
-                  if (!full?.metadataCid) return null
+                  if (!full?.metadataCid) return project
                   const metadata = await readProjectMetadata(machinery, full.metadataCid as IpfsCidV1).catch(() => null)
-                  return projectMatchesBoardRules(metadata?.relevantAreas, rulesForLoad) ? project : null
+                  return projectMatchesBoardRules(
+                    metadata?.relevantAreas,
+                    rulesForLoad,
+                    Boolean(metadata),
+                  ) ? project : null
                 }))).filter((project): project is (typeof union)[number] => Boolean(project))
               : union
             return foldAlignedProjectFunding(
@@ -660,7 +664,7 @@ export function CauseBoard({
 
         <Box sx={{ p: 2 }}>
           {projectTab === 'aligned' && (
-      <AlignedProjectsList
+            <AlignedProjectsList
               statementCid={primaryCid ?? ''}
               statementCids={cids}
               trustedImplicationAttesters={activeTrustedImplicationAttesters}

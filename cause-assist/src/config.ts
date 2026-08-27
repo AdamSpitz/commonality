@@ -18,7 +18,7 @@ export function loadConfigFromEnv(env: NodeJS.ProcessEnv = process.env): CauseAs
   const openRouterKey = firstEnv(env, ['OPENROUTER_API_KEY'])
   const explicitBase = firstEnv(env, ['CAUSE_ASSIST_API_BASE_URL', 'XAI_API_BASE_URL'])
   const baseLooksOpenRouter = (explicitBase ?? '').includes('openrouter.ai')
-  const usingOpenRouter = baseLooksOpenRouter || Boolean(openRouterKey)
+  const usingOpenRouter = explicitBase ? baseLooksOpenRouter : Boolean(openRouterKey)
   const apiKey = usingOpenRouter ? (openRouterKey || xaiKey) : (xaiKey || openRouterKey)
   const apiBaseUrl =
     explicitBase ||

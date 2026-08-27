@@ -19,6 +19,10 @@ describe('geographic board inclusion', () => {
     expect(projectMatchesBoardRules(undefined, ontario)).toBe(false)
   })
 
+  it('keeps rows without a metadata document until geography can be evaluated', () => {
+    expect(projectMatchesBoardRules(undefined, ontario, false)).toBe(true)
+  })
+
   it('includes explicitly worldwide work and supports unscoped boards', () => {
     expect(projectMatchesBoardRules([['Worldwide']], ontario)).toBe(true)
     expect(projectMatchesBoardRules(undefined, undefined)).toBe(true)

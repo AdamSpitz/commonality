@@ -50,9 +50,13 @@ function endsWithPath(candidate: string[], scope: string[]): boolean {
 export function projectMatchesBoardRules(
   relevantAreas: readonly string[][] | undefined,
   rules: BoardInclusionRules | undefined,
+  metadataDocumentPresent = true,
 ): boolean {
   const scope = rules?.geographic?.within
   if (!scope) return true
+  // Rows with no project-metadata document (content-funding, still loading, fetch
+  // failed) are not "outside" the board; only a resolved document can exclude.
+  if (!metadataDocumentPresent) return true
   if (!relevantAreas?.length) return false
   return relevantAreas.some((area) =>
     area.length === 1 && normalizedPart(area[0]!) === 'worldwide'
