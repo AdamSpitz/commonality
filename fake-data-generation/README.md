@@ -93,7 +93,7 @@ Generated files are split into two directories to make their lifecycle explicit:
 
 ## Formal Seed Content
 
-Statement *shape* (modified vs natural vs commonality, what the implication attester will bless) is documented in [`specs/product/statements-are-peculiar-for-good-reasons.md`](../specs/product/statements-are-peculiar-for-good-reasons.md). Working plan for the Christianity × secular-conservatism tiny seed: [`christian-secular-tiny-seed.md`](./christian-secular-tiny-seed.md). `gen:tiny` does **not** publish the random 12-statement `universe.json` slice; CauseStarter Christianity + secular-conservatism (and local-food) are the tiny story.
+Statement *shape* (modified vs natural vs commonality, what the implication attester will bless) is documented in [`specs/product/statements-are-peculiar-for-good-reasons.md`](../specs/product/statements-are-peculiar-for-good-reasons.md). How to **generate** viable seed / cause-assist text without hand-wordsmithing: [`statement-generation.md`](./statement-generation.md). Working plan for the Christianity × secular-conservatism tiny seed: [`christian-secular-tiny-seed.md`](./christian-secular-tiny-seed.md). `gen:tiny` does **not** publish the random 12-statement `universe.json` slice; CauseStarter Christianity + secular-conservatism (and local-food) are the tiny story.
 
 The curated seed statements for the real system now live in `seed-content/*.json` using a small formal schema:
 

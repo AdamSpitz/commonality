@@ -10,6 +10,8 @@ When an item from this page is done and no longer needs an LLM implementor's att
 
 ----
 
+- **(Ask)** After Adam picks the next statement-generation step ([handoff](continuity/2026-08-27-statement-generation.md)): copy exercise 1 into `seed-content/` (do not load `statement-generation-exercises/` via `loadSeedCollections`) and/or run curriculum exercise 2 (left/right compromise triple). Process: [statement-generation.md](fake-data-generation/statement-generation.md).
+
 - **(Tell)** After folding CauseStarter into `ui/src/causestarter/`, leftover package
   glue still talks as if `causestarter/src` is the SPA: `causestarter/vite.config.ts`
   is unused, Compose/Docker docs mix `:8090` and `:5174`, and some verifier prompts

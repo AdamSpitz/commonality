@@ -1790,3 +1790,12 @@ end-user docs; **cause board** is the CauseStarter organizer publication
 ## 2026-08-20 — Anvil `--state` restart dump
 
 Local `hardhat-node` was coming back empty after `stack.restart-consistency` because Docker SIGTERM did not make Anvil dump `/data/state.json` (then a fresh deploy + trust wiring filled ~41 blocks with no seed). Fix: `scripts/anvil-docker-entrypoint.sh` maps SIGTERM→SIGINT, compose `--state-interval 15` and 60s grace, restart check records block height and SIGINTs Anvil before stop. Recreate `hardhat-node` to mount the wrapper.
+
+## 2026-08-27 — Statement generation process + exercise 1
+
+Process: [`fake-data-generation/statement-generation.md`](fake-data-generation/statement-generation.md). Fresh-instance handoff: [`continuity/2026-08-27-statement-generation.md`](continuity/2026-08-27-statement-generation.md).
+
+Exercise 1 (simple causes, no triples) is in `fake-data-generation/statement-generation-exercises/` — not loaded by `loadSeedCollections`. Adam accepted those texts as useful to sign / align projects with (list not complete). Cause-assist `STATEMENT_QUALITY_GUIDANCE` now includes: want the outcome (not “X is a public good”), do not plank payroll, earmark grain as a ladder (kind + place), geographic rollup via child→parent implication (not an any-combinator). Rebuild Docker cause-assist to serve the new prompt.
+
+Do not train implication generation on Christianity × secular-conservatism. Next Ask: promote to `seed-content/` vs curriculum exercise 2 (left/right compromise triple).
+

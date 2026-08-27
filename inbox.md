@@ -17,6 +17,8 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 ## Main list
 
+- **(Ask)** Statement-generation exercise 1 texts are accepted as useful ([01-simple-causes.json](fake-data-generation/statement-generation-exercises/01-simple-causes.json); process in [statement-generation.md](fake-data-generation/statement-generation.md)). Next: copy into `seed-content/` (tiny-seed CID churn) **or** start exercise 2 (left/right compromise triple). Handoff: [continuity/2026-08-27-statement-generation.md](continuity/2026-08-27-statement-generation.md).
+
 - **(Tell)** Combinator statements are specified and implemented: canonical `all`/`any` over sorted plank CIDs (no title/date), CauseStarter view-strip promote, implication attester structural gate for pairwise arrows only. Ordinary `createStatement` no longer defaults `createdDate` into extras.
 
 - **(Tell)** Cause-board **Fully reimbursed** now means success-vouched *and* `outstandingUnreimbursedAmount === 0` (never-scouted successes omitted). It no longer reuses `AlignedProjectsList` with `statusFilterLock="succeeded"` (raised ≥ threshold). New SDK query: `getFullyReimbursedProjectsForCause`.
