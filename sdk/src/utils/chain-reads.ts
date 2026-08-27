@@ -9,6 +9,7 @@
 
 import { type Address, type PublicClient } from 'viem';
 import { SDKMachinery } from '../machinery.js';
+import { BeliefStates } from '../subsystems/conceptspace/types.js';
 import type { Currency } from './currency.js';
 
 const ValueThresholdConditionReadAbi = [
@@ -179,9 +180,9 @@ const ERC20MetadataReadAbi = [
   },
 ] as const;
 
-export const BELIEF_NO_OPINION = 0n;
-export const BELIEF_BELIEVES = 1n;
-export const BELIEF_DISBELIEVES = 2n;
+export const BELIEF_NO_OPINION = BigInt(BeliefStates.NO_OPINION);
+export const BELIEF_BELIEVES = BigInt(BeliefStates.BELIEVES);
+export const BELIEF_DISBELIEVES = BigInt(BeliefStates.DISBELIEVES);
 
 export type BeliefState = typeof BELIEF_NO_OPINION | typeof BELIEF_BELIEVES | typeof BELIEF_DISBELIEVES;
 

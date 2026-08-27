@@ -3,6 +3,7 @@ import { promises as fs } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { getLocalStableUrl } from './ui-domains.mjs'
+import { parseEnvFile } from './lib/parse-env-file.mjs'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -55,27 +56,6 @@ const UI_ENV_ADDRESS_MAPPINGS = {
   CHANNEL_ESCROW_ADDRESS: 'VITE_CHANNEL_ESCROW_ADDRESS',
   CREATOR_CONTRACT_FACTORY_ADDRESS: 'VITE_CREATOR_CONTRACT_FACTORY_ADDRESS',
   PROSPECTIVE_CONTENT_ROUND_FACTORY_ADDRESS: 'VITE_PROSPECTIVE_CONTENT_ROUND_FACTORY_ADDRESS',
-}
-
-function parseEnvFile(content) {
-  const entries = {}
-
-  for (const rawLine of content.split('\n')) {
-    const line = rawLine.trim()
-    if (!line || line.startsWith('#')) continue
-
-    const separatorIndex = line.indexOf('=')
-    if (separatorIndex === -1) continue
-
-    const key = line.slice(0, separatorIndex).trim()
-    let value = line.slice(separatorIndex + 1).trim()
-    if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
-      value = value.slice(1, -1)
-    }
-    entries[key] = value
-  }
-
-  return entries
 }
 
 async function loadEnvFile(filePath) {

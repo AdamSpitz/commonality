@@ -1,4 +1,5 @@
 export * from './config.js';
+export * from './balance.js';
 export * from './errors.js';
 export * from './http.js';
 export * from './ipfs.js';

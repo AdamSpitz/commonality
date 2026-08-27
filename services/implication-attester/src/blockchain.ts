@@ -1,7 +1,7 @@
 import { ImplicationsAbi } from '@commonality/sdk/abis';
 import { attestImplication, type ImplicationsContract } from '@commonality/sdk/conceptspace';
 import { createWriteClients, type WriteClients, IpfsCidV1 } from '@commonality/sdk/utils';
-import { classifyBlockchainError } from '@commonality/attester-core';
+import { checkAttesterBalance as checkBalance, classifyBlockchainError } from '@commonality/attester-core';
 import type { AttesterConfig } from './config.js';
 
 export function getBlockchainClients(config: AttesterConfig): {
@@ -59,18 +59,7 @@ export async function checkAttesterBalance(config: AttesterConfig): Promise<{
   const { testClients } = getBlockchainClients(config);
   
   try {
-    const balance = await testClients.publicClient.getBalance({
-      address: testClients.account,
-    });
-
-    // Minimum required: 0.01 ETH for gas + buffer
-    const minimumRequired = BigInt(1e16); // 0.01 ETH
-    
-    return {
-      balance,
-      hasSufficientFunds: balance >= minimumRequired,
-      minimumRequired,
-    };
+    return await checkBalance(() => testClients.publicClient.getBalance({ address: testClients.account }));
   } catch (error) {
     throw classifyBlockchainError(error);
   }

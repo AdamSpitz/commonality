@@ -40,6 +40,7 @@ import {
   type GetStatementWithContentOptions,
   type IndirectSupportInfo,
   type GetUserIndirectSupportOptions,
+  BeliefStates,
 } from './types.js';
 import { type DisplayableDocument, createDefaultDocumentReader, type DocumentReadResult } from '../displayable-documents/displayable-document.js';
 import { IpfsCidV1, normalizeCidV1, cidToBytes32 } from '../../utils/cid-types.js';
@@ -371,9 +372,9 @@ async function computeIndirectSupport(
   const directBelieverIds = new Set<AnonymizedId>();
   for (const [user, state] of targetBeliefs.entries()) {
     const id = computeAnonymizedId(user as Address);
-    if (state === 2) {
+    if (state === BeliefStates.DISBELIEVES) {
       targetDisbelieverIds.add(id);
-    } else if (state === 1) {
+    } else if (state === BeliefStates.BELIEVES) {
       directBelieverIds.add(id);
     }
   }
@@ -855,9 +856,10 @@ export async function getAllStatements(
  * @param userAddress - Ethereum address of the user
  * @returns Array of statement list items the user believes
  */
-export async function getUserBeliefs(
+async function getUserStatementsByBeliefState(
   machinery: SDKMachinery,
-  userAddress: string
+  userAddress: string,
+  beliefState: number,
 ): Promise<StatementListItem[]> {
   const paddedUser = padAddressAsTopic(userAddress);
 
@@ -868,7 +870,7 @@ export async function getUserBeliefs(
 
   const userBeliefs = foldUserBeliefs(decodedEvents);
   const believedCids = userBeliefs
-    .filter(b => b.beliefState === 1)
+    .filter(b => b.beliefState === beliefState)
     .map(b => b.statementCid);
 
   if (believedCids.length === 0) return [];
@@ -894,6 +896,13 @@ export async function getUserBeliefs(
   return results.filter((item): item is StatementListItem => item !== null);
 }
 
+export async function getUserBeliefs(
+  machinery: SDKMachinery,
+  userAddress: string,
+): Promise<StatementListItem[]> {
+  return getUserStatementsByBeliefState(machinery, userAddress, BeliefStates.BELIEVES);
+}
+
 /**
  * Get all statements a user directly disbelieves (beliefState = 2).
  *
@@ -905,39 +914,7 @@ export async function getUserDisbeliefs(
   machinery: SDKMachinery,
   userAddress: string
 ): Promise<StatementListItem[]> {
-  const paddedUser = padAddressAsTopic(userAddress);
-
-  const decodedEvents = await fetchDecodedDirectSupportEvents(machinery, {
-    topic1: paddedUser,
-    limit: 10000,
-  });
-
-  const userBeliefs = foldUserBeliefs(decodedEvents);
-  const disbelievedCids = userBeliefs
-    .filter(b => b.beliefState === 2)
-    .map(b => b.statementCid);
-
-  if (disbelievedCids.length === 0) return [];
-
-  const results = await Promise.all(disbelievedCids.map(async cid => {
-    const [stmt, document] = await Promise.all([
-      getStatement(machinery, cid),
-      fetchStatementDocument(machinery, cid, 5000, [userAddress as Address]),
-    ]);
-    if (!stmt || document.status === 'retracted') return null;
-    const content = String(document.content?.content ?? '');
-    return {
-      id: stmt.id,
-      cid: stmt.cid,
-      statementType: stmt.statementType ?? '',
-      title: content ? content.split('\n')[0].slice(0, 200) : '',
-      excerpt: content ? content.slice(0, 200) : '',
-      believerCount: stmt.believerCount,
-      disbelieverCount: stmt.disbelieverCount,
-      createdAt: stmt.createdAt ?? '',
-    } as StatementListItem;
-  }));
-  return results.filter((item): item is StatementListItem => item !== null);
+  return getUserStatementsByBeliefState(machinery, userAddress, BeliefStates.DISBELIEVES);
 }
 
 /**
@@ -1198,7 +1175,7 @@ export async function getUserIndirectSupport(
 
   const indirectlySupportedCids = targetCids.filter((_, idx) => {
     const beliefState = beliefStates[idx];
-    return !beliefState || beliefState.beliefState === 0;
+    return !beliefState || beliefState.beliefState === BeliefStates.NO_OPINION;
   });
 
   if (indirectlySupportedCids.length === 0) {

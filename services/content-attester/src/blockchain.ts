@@ -2,7 +2,7 @@ import { AlignmentAttestationsAbi } from '@commonality/sdk/abis';
 import { hashCanonicalId } from '@commonality/sdk/content-funding';
 import { attestAlignment } from '@commonality/sdk/fundingportals';
 import { createWriteClients, type IpfsCidV1, type WriteClients } from '@commonality/sdk/utils';
-import { classifyBlockchainError } from '@commonality/attester-core';
+import { checkAttesterBalance as checkBalance, classifyBlockchainError } from '@commonality/attester-core';
 import type { ContentAttesterConfig } from './config.js';
 
 interface AlignmentAttestationsContract {
@@ -64,17 +64,7 @@ export async function checkAttesterBalance(config: ContentAttesterConfig): Promi
   const { testClients } = getBlockchainClients(config);
 
   try {
-    const balance = await testClients.publicClient.getBalance({
-      address: testClients.account,
-    });
-
-    const minimumRequired = BigInt(1e16);
-
-    return {
-      balance,
-      hasSufficientFunds: balance >= minimumRequired,
-      minimumRequired,
-    };
+    return await checkBalance(() => testClients.publicClient.getBalance({ address: testClients.account }));
   } catch (error) {
     throw classifyBlockchainError(error);
   }
