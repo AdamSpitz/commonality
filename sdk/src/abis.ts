@@ -1,8 +1,8 @@
 /**
- * Centralized Contract ABIs for Integration Tests
+ * Public contract ABI entry for `@commonality/sdk/abis`.
  *
- * This file re-exports the SDK's local ABI files.
- * This keeps the SDK self-contained instead of relying on runtime files from the indexer.
+ * Re-exports the SDK's local ABI modules so consumers stay self-contained
+ * instead of reading runtime files from the indexer.
  */
 
 // Re-export ABIs from the SDK's local abis directory.

@@ -24,6 +24,10 @@
       "types": "./dist/src/utils/index.d.ts",
       "default": "./dist/src/utils/index.js"
     },
+    "./testing": {
+      "types": "./dist/src/testing.d.ts",
+      "default": "./dist/src/testing.js"
+    },
     "./conceptspace": {
       "types": "./dist/src/subsystems/conceptspace/index.d.ts",
       "default": "./dist/src/subsystems/conceptspace/index.js"

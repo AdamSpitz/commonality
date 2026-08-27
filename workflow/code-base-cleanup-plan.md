@@ -32,42 +32,8 @@ SDK export splits need a careful test pass.
 
 ## Suggested first slice
 
-SDK public API / compile hygiene (Slice E), or a single oversized-file split
-(Slice F). Skip leftover CauseStarter package glue — already on TODO.md.
-
----
-
-## Slice E — SDK public API and compile hygiene
-
-- Narrow `@commonality/sdk/utils`: `sdk/src/utils/index.ts` exports production
-  plus test-only APIs (`TEST_PRIVATE_KEYS`, `fakeIpfsCidV1`, mock IPFS). Split
-  `./utils/test` (or `./testing`) so UI bundles do not see Hardhat keys.
-- `createWriteClients` in `sdk/src/utils/ethereum.ts` always uses
-  `viem/chains.hardhat`. Rename to `createHardhatWriteClients` or take a chain
-  argument.
-- Do not compile scripts/tests into the library program: `sdk/tsconfig.json`
-  has `"strict": false`, includes `scripts/**/*`, ships `dist/scripts/sync-abis.js`.
-  Point library tsconfig at `src/` + `abis/` only; run scripts with `tsx`.
-- Stale header on `sdk/src/abis.ts`: “Centralized Contract ABIs for Integration
-  Tests” — this is the public ABI entry.
-- SDK README says there is no flat barrel, then the indexer-sync example still
-  imports from `@commonality/sdk`. Use `@commonality/sdk/indexer-sync`. Drop
-  leftover GraphQL language in `chain-reads.ts`. Add TypeDoc entry points for
-  `published-data` and `policy-lists` in `sdk/typedoc.json`.
-- Retire `sdk/schema.graphql` (unused). `integration-tests/codegen.ts` still
-  points at it and comments “same source as sdk/codegen.ts”; there is no
-  `sdk/codegen.ts`.
-- Filename convention: most of `src/` is kebab-case; three public utils are
-  camelCase (`eventCacheClient.ts`, `eventDecoder.ts`, `chainIds.ts`).
-- Quote/semicolon: `machinery.ts` / `config-node.ts` use double quotes;
-  `conceptspace/statement-picker.ts` has no semicolons. Rest is single-quote +
-  semicolons.
-- ~50 copies of `account: clients.walletClient.account!` +
-  `waitForTransactionReceipt` across `actions.ts` files — a small
-  `writeAndWait` in `ethereum.ts` would remove most of it.
-- CID stack: hand-rolled codec in `sdk/src/utils/cid-types.ts`; policy-lists use
-  `multiformats`; indexer had a near-copy (delete in slice A). Longer-term,
-  one codec.
+A single oversized-file split (Slice F). Skip leftover CauseStarter package
+glue — already on TODO.md.
 
 ---
 

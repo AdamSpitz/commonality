@@ -4,8 +4,6 @@ export * from './erc20.js';
 export * from './eventCacheClient.js';
 export * from './eventDecoder.js';
 export * from './ipfs.js';
-export * from './mock-ipfs.js';
-export * from './test-helpers.js';
 export * from './chain-reads.js';
 export * from './chainIds.js';
 export * from './currency.js';

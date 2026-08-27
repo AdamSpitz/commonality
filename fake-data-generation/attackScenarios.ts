@@ -1,7 +1,8 @@
 import { parseEther } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { ProjectFactoryAbi } from '@commonality/sdk/abis';
-import { cidToBytes32, fakeIpfsCidV1, IpfsCidV1 } from '@commonality/sdk/utils';
+import { cidToBytes32, IpfsCidV1 } from '@commonality/sdk/utils';
+import { fakeIpfsCidV1 } from '@commonality/sdk/testing';
 import { loadEnv, RPC_URL } from './loadEnv.js';
 import { createSeedClients, createSeedPublicClient } from './seedRpc.js';
 import type { User, Statement, SimulationContracts } from './types.js';

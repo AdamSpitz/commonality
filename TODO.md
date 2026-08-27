@@ -11,8 +11,8 @@ When an item from this page is done and no longer needs an LLM implementor's att
 ----
 
 - Work a slice of the [code-base cleanup plan](workflow/code-base-cleanup-plan.md):
-  SDK export hygiene or a single oversized-file split. Do not boil the ocean;
-  skip anything already on this list, [inbox.md](inbox.md), or
+  a single oversized-file split (Slice F). Do not boil the ocean; skip
+  anything already on this list, [inbox.md](inbox.md), or
   [causestarter/TODO.md](causestarter/TODO.md). After a slice, delete that
   subsection from the plan.
 

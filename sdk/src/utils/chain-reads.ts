@@ -1,8 +1,7 @@
 /**
  * On-chain reads via viem public client.
  *
- * Phase 2 of the indexer redesign: the SDK now has direct on-chain read capabilities
- * in addition to indexer (GraphQL) queries and IPFS fetching.
+ * Direct on-chain reads in addition to event-cache queries and IPFS fetching.
  *
  * These functions require a `publicClient` in the machinery.
  */
