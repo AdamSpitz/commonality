@@ -48,14 +48,6 @@ export async function publishAttestation(
   }
 }
 
-export async function checkExistingAttestation(
-  _config: AttesterConfig,
-  _fromStatementCid: IpfsCidV1,
-  _toStatementCid: IpfsCidV1,
-): Promise<boolean> {
-  return false;
-}
-
 /**
  * Check if the attester has sufficient funds
  */

@@ -4,7 +4,7 @@ import { AppShell } from './shared/components/AppShell'
 import { CrossDomainUnavailablePage } from './shared'
 import { NotFoundPage } from './shared'
 import { getActiveDomain } from './domains'
-import { isHashRouting, loadDisplayDenylist } from './shared'
+import { isHashRouting } from './shared'
 import { CauseShell } from './causestarter/shell/CauseShell'
 
 function DomainChrome({ children }: { children: ReactNode }) {
@@ -30,10 +30,6 @@ function DomainChrome({ children }: { children: ReactNode }) {
 function App() {
   const Router = isHashRouting() ? HashRouter : BrowserRouter
   const domain = getActiveDomain()
-
-  useEffect(() => {
-    void loadDisplayDenylist()
-  }, [])
 
   return (
     <Router>

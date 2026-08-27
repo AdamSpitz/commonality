@@ -163,7 +163,6 @@ export function CauseShell({ children }: CauseShellProps) {
 
       {!isDesktop && (
         <Paper
-          className="cs-safe-bottom"
           elevation={8}
           sx={{
             position: 'fixed',
@@ -174,6 +173,7 @@ export function CauseShell({ children }: CauseShellProps) {
             borderTop: '1px solid',
             borderColor: 'divider',
             zIndex: (t) => t.zIndex.appBar,
+            pb: 'env(safe-area-inset-bottom, 0px)',
           }}
         >
           <BottomNavigation

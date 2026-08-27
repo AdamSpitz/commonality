@@ -14,11 +14,10 @@
  *   OPENROUTER_API_KEY=sk-or-xxx npx tsx testOpenRouter.ts 3
  */
 
-import { loadAttesters, ATTESTER_TYPES } from './generateAttesters.js';
+import { loadAttesters } from './generateAttesters.js';
 import { loadStatements } from './generateStatements.js';
 import {
   evaluateImplicationWithAttester,
-  batchAttesterEvaluations,
   validateOpenRouterSetup,
   estimateEvaluationCost
 } from './llmAttester.js';
@@ -27,10 +26,6 @@ import type { Attester, Statement } from './types.js';
 
 const API_KEY = process.env.OPENROUTER_API_KEY ?? '';
 const MODEL = process.env.OPENROUTER_MODEL || 'anthropic/claude-3.5-haiku';
-
-// suppress unused warnings
-void ATTESTER_TYPES;
-void batchAttesterEvaluations;
 
 async function testSingleEvaluation(): Promise<void> {
   console.log('=== Test 1: Single Implication Evaluation ===\n');

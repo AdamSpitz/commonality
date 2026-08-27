@@ -16,19 +16,6 @@ const __dirname = dirname(__filename);
  * Statements represent positions on various domains
  */
 
-function generatePositionKey(position: unknown): string {
-  if (typeof position === 'string') {
-    return position;
-  } else if (typeof position === 'object' && position !== null) {
-    // For spectrum types with multiple axes
-    return Object.entries(position as Record<string, string>)
-      .sort(([k1], [k2]) => k1.localeCompare(k2))
-      .map(([k, v]) => `${k}-${v}`)
-      .join('_');
-  }
-  return '';
-}
-
 interface StatementPublicationOptions {
   clients?: WriteClients;
   publishedDataAddress?: `0x${string}`;
@@ -311,9 +298,6 @@ async function loadStatements(): Promise<Statement[]> {
   const data = await fs.readFile(statementsPath, 'utf-8');
   return JSON.parse(data) as Statement[];
 }
-
-// suppress unused variable warning for generatePositionKey
-void generatePositionKey;
 
 // Run if called directly
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

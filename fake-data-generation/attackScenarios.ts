@@ -1,8 +1,8 @@
 import { parseEther } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
-import { BeliefsAbi, ImplicationsAbi, ProjectFactoryAbi, AssuranceContractAbi } from '@commonality/sdk/abis';
+import { ProjectFactoryAbi } from '@commonality/sdk/abis';
 import { cidToBytes32, fakeIpfsCidV1, IpfsCidV1 } from '@commonality/sdk/utils';
-import { loadEnv, CONTRACT_ADDRESSES, RPC_URL } from './loadEnv.js';
+import { loadEnv, RPC_URL } from './loadEnv.js';
 import { createSeedClients, createSeedPublicClient } from './seedRpc.js';
 import type { User, Statement, SimulationContracts } from './types.js';
 
@@ -24,9 +24,6 @@ const hardhat = {
 } as const;
 
 const BELIEVES = 1;
-
-// suppress unused import warning
-void CONTRACT_ADDRESSES;
 
 function createTestClients(privateKey: `0x${string}`, rpcUrl = RPC_URL) {
   return createSeedClients(privateKey, rpcUrl);
@@ -444,10 +441,5 @@ class AttackScenarios {
     return detectionResults;
   }
 }
-
-// suppress unused import warnings
-void BeliefsAbi;
-void ImplicationsAbi;
-void AssuranceContractAbi;
 
 export { AttackScenarios };

@@ -1,7 +1,6 @@
 import { zeroAddress } from 'viem';
-import { generateStatements } from './generateStatements.js';
 import { CONTRACT_ADDRESSES, loadEnv, RPC_URL } from './loadEnv.js';
-import { BeliefsAbi, ImplicationsAbi, AlignmentAttestationsAbi, ProjectFactoryAbi, AssuranceContractAbi, DelegatableNotesAbi, PublishedDataAbi } from '@commonality/sdk/abis';
+import { AssuranceContractAbi, PublishedDataAbi } from '@commonality/sdk/abis';
 import { type WriteClients } from '@commonality/sdk/utils';
 import { createIPFSConfigInNodeJSFromTheUsualEnvVars } from '@commonality/sdk/node';
 import { createSDKMachinery } from '@commonality/sdk/machinery';
@@ -13,11 +12,6 @@ import { parsePaymentTokenUnits } from './paymentTokenUnits.js';
 import { createSeedClients } from './seedRpc.js';
 
 loadEnv();
-
-// suppress unused import warnings
-void BeliefsAbi;
-void ImplicationsAbi;
-void AlignmentAttestationsAbi;
 
 /**
  * Funding and Delegation Actions for Generative Testing
@@ -651,11 +645,6 @@ class FundingAndDelegationActions {
     }
   }
 }
-
-// suppress unused import
-void generateStatements;
-void DelegatableNotesAbi;
-void ProjectFactoryAbi;
 
 export { FundingAndDelegationActions };
 export type { CreatedProject, NoteRecord, TokenRecord };

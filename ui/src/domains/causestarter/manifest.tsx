@@ -88,5 +88,3 @@ export const causestarterManifest: DomainManifest = {
   useCauseShell: true,
   LandingPage: WelcomePage,
 }
-
-export const causestarterRoutes: ReactNode = routes
