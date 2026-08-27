@@ -22,6 +22,7 @@ export interface RosterPublishPanelProps {
   title: string
   summary: string
   contactUrl: string
+  projectAreaWithin?: string
   slug: string
   previewCid: string | null
   coherence: CoherenceVerdict | null
@@ -38,6 +39,7 @@ export interface RosterPublishPanelProps {
   onTitleChange: (value: string) => void
   onSummaryChange: (value: string) => void
   onContactUrlChange: (value: string) => void
+  onProjectAreaWithinChange?: (value: string) => void
   onSlugChange: (value: string) => void
   onCheckCoherence: () => void
   onPublish: () => void
@@ -48,6 +50,7 @@ export function RosterPublishPanel({
   title,
   summary,
   contactUrl,
+  projectAreaWithin,
   slug,
   previewCid,
   coherence,
@@ -63,6 +66,7 @@ export function RosterPublishPanel({
   onTitleChange,
   onSummaryChange,
   onContactUrlChange,
+  onProjectAreaWithinChange,
   onSlugChange,
   onCheckCoherence,
   onPublish,
@@ -143,6 +147,17 @@ export function RosterPublishPanel({
         placeholder="https://… or mailto:you@example.com"
         helperText="A public pointer you already use. Empty means do not ping you. Commonality never sends the message."
         slotProps={{ htmlInput: { 'data-testid': 'roster-contact-url' } }}
+      />
+      <TextField
+        label="Project area filter (optional)"
+        value={projectAreaWithin ?? ''}
+        onChange={(event) => onProjectAreaWithinChange?.(event.target.value)}
+        fullWidth
+        size="small"
+        disabled={busy}
+        placeholder="Ontario, Canada"
+        helperText="Specific to broad, separated by commas. When set, Fundable Projects includes only projects whose declared relevant area is inside this place (plus Worldwide projects)."
+        slotProps={{ htmlInput: { 'data-testid': 'roster-project-area' } }}
       />
       <TextField
         label="URL slug"

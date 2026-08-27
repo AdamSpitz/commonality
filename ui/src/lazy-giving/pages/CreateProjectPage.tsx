@@ -80,6 +80,7 @@ export function CreateProjectPage() {
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [updatesUrl, setUpdatesUrl] = useState('')
+  const [relevantAreas, setRelevantAreas] = useState('')
   const [recipient, setRecipient] = useState<string | null>(null)
   const [threshold, setThreshold] = useState('')
   const [stopAtGoal, setStopAtGoal] = useState(true)
@@ -227,6 +228,12 @@ export function CreateProjectPage() {
       if (normalizedUpdatesUrl) {
         projectMeta.updatesUrl = normalizedUpdatesUrl
       }
+      const parsedRelevantAreas = relevantAreas.split('\n')
+        .map((line) => line.split(',').map((part) => part.trim()).filter(Boolean))
+        .filter((path) => path.length > 0)
+      if (parsedRelevantAreas.length > 0) {
+        projectMeta.relevantAreas = parsedRelevantAreas
+      }
       if (Object.keys(tokenMetadataCids).length > 0) {
         projectMeta.tokens = tokenMetadataCids
       }
@@ -343,6 +350,17 @@ export function CreateProjectPage() {
             type="url"
             placeholder="https://example.com/your-project-updates"
             helperText="Link to a channel you already run and moderate, such as a blog, X/Substack/YouTube/GitHub page, or Discord. We'll show it as the project's progress-updates link."
+          />
+
+          <TextField
+            label="Relevant areas (optional)"
+            value={relevantAreas}
+            onChange={(e) => setRelevantAreas(e.target.value)}
+            fullWidth
+            multiline
+            minRows={2}
+            placeholder={'Grey County, Ontario, Canada\nWaterloo Region, Ontario, Canada'}
+            helperText="One area per line, from specific to broad. Use Worldwide for broadly relevant work. Boards use this for approximate discovery—not as a verified address or strict eligibility claim."
           />
 
           <RecipientPicker

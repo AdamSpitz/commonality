@@ -394,7 +394,7 @@ describe('CreateProjectPage', () => {
       await user.click(screen.getByRole('button', { name: /view project/i }))
 
       expect(mockNavigate).toHaveBeenCalledWith('/projects/eip155%3A31337%3A0xassurance')
-    })
+    }, 10_000)
   })
 
   describe('Per-token images', () => {

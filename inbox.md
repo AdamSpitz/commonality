@@ -17,17 +17,6 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 ## Main list
 
-- **(Ask)** Separate belief implication, board inclusion, and personalized
-  project discovery. The nested-place problem suggests that a Durham project can
-  belong on an Ontario board without its Durham supporters being counted as
-  holding an Ontario-wide belief; the home-page union also cannot express
-  distance-versus-impact preferences. This seems like a direction we should
-  probably pursue, but the board/view model, project geography, and ranking seam
-  need more thought. Design note:
-  [belief-implication-board-inclusion-and-discovery.md](specs/product/belief-implication-board-inclusion-and-discovery.md).
-
-- **(Ask)** Nested-place boards (Grey CSA on an Ontario CSA board): implication vs attester vs no auto-rollup — **not decided**. Live attester is unstable on `more X in nested place` → `more X in parent place`. Seed dropped `more` on one parent as a workaround. Adam rejected `somewhere in REGION` (does not nest) and `any` over counties. Decide before copying that workaround as the generation rule. Notes: [statement-generation.md](fake-data-generation/statement-generation.md).
-
 - **(Tell)** Copied exercise-1 simple-cause planks into [`fake-data-generation/seed-content/simple-causes.json`](fake-data-generation/seed-content/simple-causes.json). Tiny-seed garden alignment still uses the explorer slogan. Recheck designed pairs: `npm run gen:seed:simple-causes-implications`. Next: geo-rollup Ask (above) or curriculum exercise 2. Handoff: [continuity/2026-08-27-statement-generation.md](continuity/2026-08-27-statement-generation.md).
 
 - **(Tell)** Combinator statements are specified and implemented: canonical `all`/`any` over sorted plank CIDs (no title/date), CauseStarter view-strip promote, implication attester structural gate for pairwise arrows only. Ordinary `createStatement` no longer defaults `createdDate` into extras.

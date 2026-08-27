@@ -130,6 +130,7 @@ export function CauseDetailPage({ editMode = false }: { editMode?: boolean }) {
   const [titleDraft, setTitleDraft] = useState('')
   const [summaryDraft, setSummaryDraft] = useState('')
   const [contactUrlDraft, setContactUrlDraft] = useState('')
+  const [projectAreaWithinDraft, setProjectAreaWithinDraft] = useState('')
   const [slugDraft, setSlugDraft] = useState('')
 
   // Operator attester address for badge trust display
@@ -213,6 +214,7 @@ export function CauseDetailPage({ editMode = false }: { editMode?: boolean }) {
           // Published identity wins: a follower has no local copy to fall back on.
           mediator: fields.mediator ?? local?.mediator,
           contactUrl: fields.contactUrl ?? local?.contactUrl,
+          projectAreaWithin: fields.inclusionRules?.geographic?.within ?? local?.projectAreaWithin,
           bridgeCluster: fields.bridgeCluster ?? local?.bridgeCluster,
           anchors: fields.anchors ?? local?.anchors,
           suggestionSeed: local?.suggestionSeed,
@@ -267,9 +269,10 @@ export function CauseDetailPage({ editMode = false }: { editMode?: boolean }) {
     setTitleDraft(cause?.title ?? '')
     setSummaryDraft(cause?.summary ?? '')
     setContactUrlDraft(cause?.contactUrl ?? '')
+    setProjectAreaWithinDraft(cause?.projectAreaWithin?.join(', ') ?? '')
     setSlugDraft(cause?.slug ?? '')
     setReviewsByPlankId({})
-  }, [cause?.id, cause?.title, cause?.summary, cause?.contactUrl, cause?.slug])
+  }, [cause?.id, cause?.title, cause?.summary, cause?.contactUrl, cause?.projectAreaWithin, cause?.slug])
 
   // Per-plank "added later" markers from ref history + prior roster docs.
   useEffect(() => {
@@ -444,8 +447,9 @@ export function CauseDetailPage({ editMode = false }: { editMode?: boolean }) {
       title: titleDraft,
       summary: summaryDraft,
       contactUrl: contactUrlDraft,
+      projectAreaWithin: projectAreaWithinDraft.split(',').map((part) => part.trim()).filter(Boolean),
     })
-  }, [cause, titleDraft, summaryDraft, contactUrlDraft])
+  }, [cause, titleDraft, summaryDraft, contactUrlDraft, projectAreaWithinDraft])
 
   const wouldBeCid = useMemo(
     () => (rosterPreviewFields && rosterPreviewFields.plankCids.length > 0
@@ -687,6 +691,7 @@ export function CauseDetailPage({ editMode = false }: { editMode?: boolean }) {
         title: titleDraft.trim() || undefined,
         summary: summaryDraft.trim() || undefined,
         contactUrl: contactUrlDraft.trim() || undefined,
+        projectAreaWithin: projectAreaWithinDraft.split(',').map((part) => part.trim()).filter(Boolean),
         slug,
       })
       if (!withFields) throw new Error('Cause draft missing on this device.')
@@ -963,6 +968,7 @@ export function CauseDetailPage({ editMode = false }: { editMode?: boolean }) {
             title={titleDraft}
             summary={summaryDraft}
             contactUrl={contactUrlDraft}
+            projectAreaWithin={projectAreaWithinDraft}
             slug={slugDraft}
             previewCid={wouldBeCid}
             coherence={coherence}
@@ -985,6 +991,10 @@ export function CauseDetailPage({ editMode = false }: { editMode?: boolean }) {
             }}
             onContactUrlChange={(value) => {
               setContactUrlDraft(value)
+              voidCoherence()
+            }}
+            onProjectAreaWithinChange={(value) => {
+              setProjectAreaWithinDraft(value)
               voidCoherence()
             }}
             onSlugChange={(value) => {
@@ -1154,6 +1164,11 @@ export function CauseDetailPage({ editMode = false }: { editMode?: boolean }) {
       ) : (
         <CauseBoard
           statementCids={publishedCids}
+          inclusionRules={isEditing
+            ? rosterPreviewFields?.inclusionRules
+            : (cause.projectAreaWithin?.length
+              ? { geographic: { within: cause.projectAreaWithin } }
+              : undefined)}
           trustedAlignmentAttesters={trustedAlignmentAttesters}
           embedded
           surfaceTitle="Fundable Projects"

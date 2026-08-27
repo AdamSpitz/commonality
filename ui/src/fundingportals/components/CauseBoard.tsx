@@ -17,6 +17,7 @@ import {
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
 import { getStatementWithContent } from '@commonality/sdk/conceptspace'
 import { getMonthlyPledgedByCause } from '@commonality/sdk/delegation'
+import { getProject } from '@commonality/sdk/lazy-giving'
 import {
   foldAlignedProjectFunding,
   getAllAlignedProjectsForCause,
@@ -45,6 +46,13 @@ import type { ProjectLinkMode } from './AlignedProjectCard'
 import { useKeepPaintedWhileRefreshing } from '../hooks/useKeepPaintedWhileRefreshing'
 import { resolveStatementCids } from './statementCids'
 import { unionAlignedFundingProjects } from './unionAlignedFundingProjects'
+import {
+  formatPlacePath,
+  parseBoardInclusionRules,
+  projectMatchesBoardRules,
+  type BoardInclusionRules,
+} from './geographicInclusion'
+import { readProjectMetadata } from './projectMetadata'
 
 /** In-app router link or external href for cause-board chrome. */
 export type CauseBoardNavLink =
@@ -97,6 +105,8 @@ export interface CauseBoardProps {
    * Full board lives at {@link preview.fullPageTo}.
    */
   preview?: { limit: number; fullPageTo: string }
+  /** Factual filters published by the host cause board. */
+  inclusionRules?: BoardInclusionRules
 }
 
 function defaultNavLinks(statementCid: string | undefined): CauseBoardNavLink[] {
@@ -150,12 +160,14 @@ export function CauseBoard({
   projectLinks = 'lazyGiving',
   trustedAlignmentAttesters,
   preview,
+  inclusionRules,
 }: CauseBoardProps) {
   const cids = useMemo(
     () => resolveStatementCids(statementCid, statementCids),
     [statementCid, statementCids],
   )
   const cidsKey = cids.join('\0')
+  const inclusionRulesKey = JSON.stringify(inclusionRules ?? {})
   const primaryCid = cids[0]
   const machinery = useMachinery()
   const { address } = useAccount()
@@ -233,7 +245,8 @@ export function CauseBoard({
     const attestersForLoad = trustedAttestersKey
       ? trustedAttestersKey.split(',')
       : undefined
-    const snapshotOptions = boardSnapshotCacheOptions(machinery, {
+    const rulesForLoad = parseBoardInclusionRules(JSON.parse(inclusionRulesKey))
+    const snapshotOptions = rulesForLoad?.geographic ? null : boardSnapshotCacheOptions(machinery, {
       kind: 'board-metrics',
       statementCids: loadCids,
       implicationTrustKey: trustedAttestersKey,
@@ -304,9 +317,18 @@ export function CauseBoard({
               loadCids,
               contentTrustKey ? contentTrustKey.split('\0') : undefined,
             )
+            const union = unionAlignedFundingProjects([...byAddress.values()], contentContracts)
+            const included = rulesForLoad?.geographic
+              ? (await Promise.all(union.map(async (project) => {
+                  const full = await getProject(machinery, project.projectAddress).catch(() => null)
+                  if (!full?.metadataCid) return null
+                  const metadata = await readProjectMetadata(machinery, full.metadataCid as IpfsCidV1).catch(() => null)
+                  return projectMatchesBoardRules(metadata?.relevantAreas, rulesForLoad) ? project : null
+                }))).filter((project): project is (typeof union)[number] => Boolean(project))
+              : union
             return foldAlignedProjectFunding(
               machinery,
-              unionAlignedFundingProjects([...byAddress.values()], contentContracts),
+              included,
             )
           })(),
         ])
@@ -387,6 +409,7 @@ export function CauseBoard({
     channels.length,
     contentAttestationsKey,
     contentTrustKey,
+    inclusionRulesKey,
   ])
 
   if (preview) {
@@ -402,6 +425,7 @@ export function CauseBoard({
           compact
           limit={preview.limit}
           fullPageTo={preview.fullPageTo}
+          inclusionRules={inclusionRules}
         />
       </Box>
     )
@@ -572,6 +596,13 @@ export function CauseBoard({
           </Stack>
 
           {headerExtra}
+          {inclusionRules?.geographic && (
+            <Alert severity="info" sx={{ mt: 1.5 }} data-testid="geographic-board-rule">
+              Scoped to projects declaring a relevant area within{' '}
+              {formatPlacePath(inclusionRules.geographic.within)}, plus projects marked Worldwide.
+              Relevant areas are approximate and not verified addresses.
+            </Alert>
+          )}
         </Box>
 
         {(refreshing || (address && trustedSetLoading && trustedAlignmentAttesters === undefined)) && (
@@ -629,13 +660,14 @@ export function CauseBoard({
 
         <Box sx={{ p: 2 }}>
           {projectTab === 'aligned' && (
-            <AlignedProjectsList
+      <AlignedProjectsList
               statementCid={primaryCid ?? ''}
               statementCids={cids}
               trustedImplicationAttesters={activeTrustedImplicationAttesters}
               trustedAlignmentAttesters={trustedAlignmentAttesters}
               projectLinks={projectLinks}
               embedded
+              inclusionRules={inclusionRules}
             />
           )}
           {projectTab === 'successful' && (
@@ -644,6 +676,7 @@ export function CauseBoard({
               statementCids={cids}
               trustedImplicationAttesters={activeTrustedImplicationAttesters}
               projectLinks={projectLinks}
+              inclusionRules={inclusionRules}
             />
           )}
           {projectTab === 'reimbursed' && (
@@ -653,6 +686,7 @@ export function CauseBoard({
               trustedImplicationAttesters={activeTrustedImplicationAttesters}
               projectLinks={projectLinks}
               reimbursement="reimbursed"
+              inclusionRules={inclusionRules}
             />
           )}
           {projectTab === 'failed' && (
@@ -664,6 +698,7 @@ export function CauseBoard({
               projectLinks={projectLinks}
               statusFilterLock="refunding"
               embedded
+              inclusionRules={inclusionRules}
             />
           )}
         </Box>

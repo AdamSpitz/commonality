@@ -15,6 +15,7 @@ import { resolveProjectNav, type ProjectLinkMode, type ProjectMetadata } from '.
 import { readProjectMetadata } from './projectMetadata'
 import { resolveStatementCids } from './statementCids'
 import { useKeepPaintedWhileRefreshing } from '../hooks/useKeepPaintedWhileRefreshing'
+import { projectMatchesBoardRules, type BoardInclusionRules } from './geographicInclusion'
 
 function shortAddress(address: string) {
   return `${address.slice(0, 6)}…${address.slice(-4)}`
@@ -34,6 +35,7 @@ export function SuccessfulProjectsList({
   trustWeights,
   projectLinks = 'lazyGiving',
   reimbursement = 'outstanding',
+  inclusionRules,
 }: {
   statementCid: string
   statementCids?: string[]
@@ -43,6 +45,7 @@ export function SuccessfulProjectsList({
   projectLinks?: ProjectLinkMode
   /** outstanding = close-the-loop queue; reimbursed = loop already closed. */
   reimbursement?: 'outstanding' | 'reimbursed'
+  inclusionRules?: BoardInclusionRules
 }) {
   const cids = resolveStatementCids(statementCid, statementCids)
   const cidsKey = cids.join('\0')
@@ -132,7 +135,7 @@ export function SuccessfulProjectsList({
           : 'Projects shown here have trusted success attestations for this cause and still have early contributors waiting to be reimbursed. Donate to close the loop: refill scouts up to what they originally contributed so they can fund the next project.'}
       </Typography>
 
-      {projects.length === 0 ? (
+      {projects.filter((project) => projectMatchesBoardRules(metadata[project.projectAddress]?.relevantAreas, inclusionRules)).length === 0 ? (
         <Alert severity="info">
           {reimbursement === 'reimbursed'
             ? 'No success-vouched projects have been fully reimbursed yet.'
@@ -140,7 +143,7 @@ export function SuccessfulProjectsList({
         </Alert>
       ) : (
         <Stack spacing={2}>
-          {projects.map((project) => {
+          {projects.filter((project) => projectMatchesBoardRules(metadata[project.projectAddress]?.relevantAreas, inclusionRules)).map((project) => {
             const projectPath = projectPathForAddress(project.projectAddress)
             // Prefer search over document-hash for local hosts: HashRouter already
             // owns window.location.hash, so `#close-the-loop` is not a reliable fragment.

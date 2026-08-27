@@ -17,7 +17,13 @@ When an item from this page is done and no longer needs an LLM implementor's att
   list, [inbox.md](inbox.md), or [causestarter/TODO.md](causestarter/TODO.md).
   After a slice, delete that subsection from the plan.
 
-- **(Ask)** Geographic rollup for nested places is **not settled**. Live attester flips on `more farmers' markets in Grey` → `more … in Ontario` (container vs throughout). Seed workaround (drop `more` on that parent) is not the protocol. Rejected: `somewhere in REGION` (does not nest); `any` over counties (closed set). Decide attester clarification vs refuse `more→more` geo vs other. Do not implement without asking. Notes: [statement-generation.md](fake-data-generation/statement-generation.md) Open section. Handoff: [continuity/2026-08-27-statement-generation.md](continuity/2026-08-27-statement-generation.md).
+- **(Trust)** Follow up on the accepted separation of belief implication, board
+  inclusion, and personalized discovery. Nested-place rollup is a factual board
+  rule, not a belief implication; do not teach the implication attester that
+  `more X in child place` implies `more X in parent place`. The deterministic
+  geographic-board slice is implemented. Later, only when project volume shows
+  the need, add inspectable dashboard preferences/ranking as staged in
+  [belief-implication-board-inclusion-and-discovery.md](specs/product/belief-implication-board-inclusion-and-discovery.md).
 
 - **(Ask)** Statement-generation next: curriculum **exercise 2** — one left/right compromise-in-the-middle triple (canonical abortion or immigration wording from [hidden-majority-patterns](docs/end-user/common-sense-majority/hidden-majority-patterns.md); do not fork a second abortion text). Exercise 1 is in [`seed-content/simple-causes.json`](fake-data-generation/seed-content/simple-causes.json). Process: [statement-generation.md](fake-data-generation/statement-generation.md).
 
@@ -69,4 +75,3 @@ When an item from this page is done and no longer needs an LLM implementor's att
   the user has moved to another statement can paint stale content. Pre-existing, not
   new to the combinator work; the same pattern is worth a sweep across the other
   conceptspace pages. Found 2026-08-19.
-

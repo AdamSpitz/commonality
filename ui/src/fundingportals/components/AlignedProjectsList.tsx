@@ -43,6 +43,7 @@ import { useAlignmentFilter } from '../hooks/useAlignmentFilter'
 import { readProjectMetadata } from './projectMetadata'
 import { resolveStatementCids } from './statementCids'
 import { useKeepPaintedWhileRefreshing } from '../hooks/useKeepPaintedWhileRefreshing'
+import { projectMatchesBoardRules, type BoardInclusionRules } from './geographicInclusion'
 
 type StatusFilter = 'all' | 'active' | 'succeeded' | 'refunding'
 type SortOption = 'latest' | 'deadline' | 'mostFunded' | 'closestToGoal'
@@ -78,6 +79,7 @@ export function AlignedProjectsList({
   compact = false,
   limit,
   fullPageTo,
+  inclusionRules,
 }: {
   statementCid: string
   statementCids?: string[]
@@ -94,6 +96,7 @@ export function AlignedProjectsList({
   limit?: number
   /** In-app path for “See all” when {@link compact} or {@link limit} is set. */
   fullPageTo?: string
+  inclusionRules?: BoardInclusionRules
 }) {
   const cids = resolveStatementCids(statementCid, statementCids)
   const cidsKey = cids.join('\0')
@@ -258,6 +261,7 @@ export function AlignedProjectsList({
 
   const effectiveStatus = statusFilterLock ?? statusFilter
   const filtered = projects
+    .filter((p) => projectMatchesBoardRules(metadata[p.projectAddress]?.relevantAreas, inclusionRules))
     .filter(p => effectiveStatus === 'all' || getProjectStatus(p) === effectiveStatus)
     .filter(p => alignmentFilter === 'all' || p.alignmentType === alignmentFilter)
 

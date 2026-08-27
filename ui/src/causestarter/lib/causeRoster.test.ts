@@ -123,6 +123,22 @@ describe('causeRoster', () => {
     expect(previewRosterCid(fields)).toBe(previewRosterCid(fields))
   })
 
+  it('round-trips a geographic fundable-projects rule', () => {
+    const fields = {
+      title: 'Ontario food systems',
+      summary: '',
+      plankCids: ['bafyplank1'],
+      mediatorBlurb: '',
+      inclusionRules: { geographic: { within: ['Ontario', 'Canada'] } },
+    }
+    const withoutRule = { ...fields, inclusionRules: undefined }
+
+    expect(parseRosterDocument(buildRosterDocument(fields))?.inclusionRules).toEqual({
+      geographic: { within: ['Ontario', 'Canada'] },
+    })
+    expect(previewRosterCid(fields)).not.toBe(previewRosterCid(withoutRule))
+  })
+
   it('omits bridge-cluster extras unless the roster is a modified or bridge cause', () => {
     const base = {
       title: 'Oak Street lights',

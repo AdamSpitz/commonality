@@ -33,6 +33,7 @@ import {
   CONTRACT_STATUS_TOOLTIPS,
 } from '../../content-funding'
 import { formatCurrencyProgress, InfoChip, projectPathForAddress } from '../../shared'
+import { formatPlacePath } from './geographicInclusion'
 
 export type AlignedProject = {
   projectAddress: string
@@ -43,7 +44,7 @@ export type AlignedProject = {
   deadline: string
 }
 
-export type ProjectMetadata = { name?: string; description?: string }
+export type ProjectMetadata = { name?: string; description?: string; relevantAreas?: string[][] }
 
 export type ContentFundingInfo = {
   channelCanonicalId: string | null
@@ -294,6 +295,15 @@ export function AlignedProjectCard({
             variant="outlined"
             title={formatRelativeDeadline(project.deadline) === 'Ended' ? DEADLINE_ENDED_TOOLTIP : DEADLINE_OPEN_TOOLTIP}
           />
+          {metadata?.relevantAreas?.map((area) => (
+            <InfoChip
+              key={area.join('\0')}
+              label={formatPlacePath(area)}
+              size="small"
+              variant="outlined"
+              title="Project creator's approximate relevant area; not a verified address or eligibility claim."
+            />
+          ))}
         </Stack>
 
         <AlignedProjectCardDetails
