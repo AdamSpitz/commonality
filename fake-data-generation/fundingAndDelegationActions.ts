@@ -65,7 +65,12 @@ interface SeedProjectMetadataTemplate {
   description: string;
   kind: string;
   alignmentRef: SeedProjectAlignmentRef;
+  /** Specific-to-broad place paths for geographic board matching. */
+  relevantAreas?: string[][];
 }
+
+/** Riverside garden: nested place for Ontario-scoped cause-board inclusion (not implication). */
+export const SEED_GARDEN_RELEVANT_AREAS: string[][] = [['Grey County', 'Ontario', 'Canada']];
 
 const PROJECT_SEED_METADATA: SeedProjectMetadataTemplate[] = [
   // Deliberately first so the deterministic funding/success seeding (which covers the
@@ -81,6 +86,7 @@ const PROJECT_SEED_METADATA: SeedProjectMetadataTemplate[] = [
       groupId: 'local-community',
       statementId: 'local-food-systems',
     },
+    relevantAreas: SEED_GARDEN_RELEVANT_AREAS,
   },
   {
     name: 'Bridge-Building Workshop Series',
@@ -146,6 +152,7 @@ export function getSeedProjectMetadata(projectIndex: number) {
     seedProjectIndex: projectIndex,
     seedProjectKind: template.kind,
     alignedStatementRefs: [template.alignmentRef],
+    ...(template.relevantAreas ? { relevantAreas: template.relevantAreas } : {}),
   };
 }
 

@@ -108,7 +108,7 @@ Two scripts sit on top of that source:
 - `npm run gen:seed:statements` writes `output/seed-statements.json`, which contains real Conceptspace `DisplayableDocument` objects ready for inspection or publication
 - `npm run gen:seed:upload` publishes those statement documents (PublishedData when configured, legacy IPFS fallback otherwise) and writes the resulting CIDs to `output/seed-statements.uploads.json`
 - `npm run gen:seed:implications` evaluates ordered S1→S2 pairs from the seed-content corpus with the real implication-attester prompt and writes the decisions to `data/seed-implication-evaluations.<scope>.json`
-- `npm run gen:seed:simple-causes-implications` live-checks designed Grey → Ontario / topical parent pairs in `seed-content/simple-causes.json`
+- `npm run gen:seed:simple-causes-implications` live-checks designed-no nested-place pairs in `seed-content/simple-causes.json` (Grey → Ontario is not implication)
 - `npm run gen:seed:worker-outputs` regenerates checked-in local-dev Alignment Explorer/nudge/implication-finder fixtures in `data/seed-worker-outputs.json`
 - `npm run test:seed:worker-outputs` checks that those seed worker fixtures still match the current seed content and deterministic generator
 - `npm run test:seed:implication-regression` checks that the saved implication-decision corpus still matches the current statement IDs and statement text

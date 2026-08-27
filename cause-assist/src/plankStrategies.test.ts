@@ -16,7 +16,7 @@ describe('plank-first strategies', () => {
       assert.match(request.systemPrompt, /Want more of the thing, do not classify it/)
       assert.match(request.systemPrompt, /Do not write "I want people who do X to get paid"/)
       assert.match(request.systemPrompt, /Prefer earmark grain/)
-      assert.match(request.systemPrompt, /Geographic rollup is ordinary implication/)
+      assert.match(request.systemPrompt, /board inclusion rule/)
       assert.doesNotMatch(request.userPrompt, /mainStatement/)
       return { planks: [
         { text: 'Our neighborhood should maintain a shared emergency food pantry.', rationale: 'food resilience' },

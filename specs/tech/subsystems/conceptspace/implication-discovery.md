@@ -61,13 +61,13 @@ The reverse implications do **NOT** hold:
 
 This is critical — without this guidance, the LLM might incorrectly create bidirectional implications, causing users interested in crypto generally to be shown crypto-in-Ontario projects they don't care about.
 
-### Geographic hierarchy implications (one-way)
+### Nested-place wants are not geographic hierarchy implications
 
-Statements at different geographic levels form a hierarchy (town → county → province → country):
-- "I care about improving Grey County" → "I care about improving Ontario"
-- "I care about improving Ontario" → "I care about improving Canada"
+Wanting more of a thing in a nested place does **not** imply wanting more of it in a containing place. “I want more CSA in Grey County, Ontario” does not imply “I want more CSA in Ontario.” Nested-place **projects** join a scoped board via relevant areas and optional `within`, not via this arrow. See [belief implication, board inclusion, and discovery](/specs/product/belief-implication-board-inclusion-and-discovery.md).
 
-The reverse does NOT hold — caring about Canada does not imply caring about any specific province.
+The live attester prompt still lists a leftover “narrower geography → broader geography” accept example (`I care about improving Grey County` → Ontario). Do not treat that as generation gold. Broader → narrower remains a reject.
+
+The reverse of a containing-place want also does NOT hold — caring about Ontario does not imply caring about Grey County specifically.
 
 ### Same-domain note for intersections
 

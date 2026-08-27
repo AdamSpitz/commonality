@@ -97,55 +97,39 @@ grain, including place when the cause is local. Do not treat “Linux” /
 “CSA” as the tightest allowed. Seed that is only category-level will look
 empty of places to put money.
 
-**Geographic (and topical) parents.** To put every “CSA in X, Ontario”
-project on one board, do **not** mint an `any` combinator over known
-counties (closed set; a new X never joins). Use the existing implication
-rule: the board for S lists projects aligned with any S2 that **implies**
-S. Emit the place-specific want *and* the weaker parents you want boards
-for:
+**Place-specific wants are signable planks, not board queries.** “I want
+more CSA in Grey County, Ontario” is a belief someone signs. “I want more
+CSA in Ontario” is a different belief, for people who actually hold a
+province-wide goal. Do not emit the second as a *parent role* so the first
+can roll up onto it.
 
-| Child (strong / nested) | Parent (weak / container) | Rule |
-|---|---|---|
-| CSA in Grey County, Ontario | CSA in Ontario | narrower geography → broader |
-| CSA in Grey County, Ontario | CSA (no place) | conjunction → topical parent |
-| CSA in Ontario | CSA (no place) | same |
+Nested-place **board** membership is a factual inclusion rule, not
+implication. A project publishes **relevant areas** (specific-to-broad
+paths such as `Grey County, Ontario, Canada`). A cause board may add
+optional `within` (for example `Ontario, Canada`). Matching is suffix
+containment; see
+[belief implication, board inclusion, and discovery](/specs/product/belief-implication-board-inclusion-and-discovery.md).
+Implication still fills boards when S2 genuinely implies S. Geography is
+the extra rule so a Grey CSA project can appear on an Ontario CSA **view**
+without counting Grey signers as Ontario-wide supporters.
 
-Wording: child names the nested place **and** the containing region
-(“Grey County, Ontario”). Parent is the same want with the nested place
-dropped — a location container (“in Ontario”), not “throughout Ontario”
-or “every county.” Designed-yes: child → parent. Designed-no: parent →
-child. Non-transitive: a Canada board needs Grey → Canada as its own
-edge. See
-[shaping your cause’s statements](/docs/founder/shaping-your-cause-statements.md)
-(inbound arrows populate the board) and the implication-attester
-hierarchy / conjunction rules.
+Do **not**:
 
-**Open (Ask — do not paper over in seed).** Live attester on
-`npm run gen:seed:simple-causes-implications`: CSA `more … in Grey` →
-`more … in Ontario` blesses; the same shape with farmers' markets
-**flips** (hierarchy vs “you did not commit to markets in the rest of
-the province”). Seed currently drops `more` on the farmers-market
-Ontario parent (`I want farmers' markets in Ontario`) so the check
-passes. That is a **workaround**, not the protocol.
+- Teach or gold-set `more X in nested place` → `more X in containing place`.
+- Drop `more` on a wide-place plank to buy a bless (the old farmers-market
+  workaround).
+- Prescribe `somewhere in REGION` as a parent-only dialect.
+- Mint an `any` combinator over known counties (closed set; a new X never
+  joins). `all` has the wrong arrows anyway.
 
-Discussed and **not** adopted:
-
-- Teach the attester that `in REGION` always means a container (unless
-  S2 says throughout / every). Might be right; not decided.
-- Make the attester *more* finicky and prescribe `somewhere in REGION`
-  (or drop `more` only on parents). Rejected: `somewhere` marks a *role*
-  (parent). Nested geography is a *path* — Grey is both child of Ontario
-  and parent of Chatsworth — so a parent-only dialect does not nest.
-  Sibling counties (Grey vs Durham) are two children of Ontario, not two
-  `somewhere`s on one plank.
-- `any` combinator over known counties. Closed set; new X never joins;
-  reminting is a new CID. `all` has the wrong arrows for boards
-  (outbound, not inbound). Do not use combinators for a location ladder.
-
-Until Adam picks: do not treat the farmers-market existence parent as
-the template to copy; do not change the attester prompt; do not mint
-geo `any`s. Recheck script: `evaluateSimpleCauses.ts`. Handoff:
-[`continuity/2026-08-27-statement-generation.md`](../continuity/2026-08-27-statement-generation.md).
+Ontario-wide (or unscoped topical) planks stay when they are genuine
+wants. They are siblings of the county plank, not machines to pull nested
+projects onto a CID. Recheck script: `evaluateSimpleCauses.ts` (designed
+**no** for nested-place → containing-place and the reverse). The live
+attester prompt still contains a leftover “narrower geography → broader”
+accept rule; do not treat a bless of Grey → Ontario as gold. Un-teaching
+that rule needs a prompt change plus implication-corpus refresh, not seed
+wording.
 
 ## Gold set
 
@@ -158,7 +142,7 @@ Gold for **simple-cause shape** is the current texts in
 for every variation). Live copy: [`seed-content/simple-causes.json`](./seed-content/simple-causes.json).
 `loadSeedCollections` still does not read the exercises directory.
 Tiny-seed uniques (scripture-in-every-language; colorblind merit) remain a
-style target for camp uniques. Designed Grey → Ontario / topical pairs:
+style target for camp uniques. Nested-place pairs are designed-no:
 `npm run gen:seed:simple-causes-implications`.
 
 ## Volume
@@ -179,6 +163,6 @@ failed the same checks.
 
 | # | Status | What |
 |---|---|---|
-| 1 | **In `seed-content/simple-causes.json`** (copied 2026-08-27). Gold set still in the exercises file. List not complete. **Geo rollup still open** (see Open section). | Simple causes: wants, earmark grain (kind + place), geographic parents. Designed Grey → Ontario pairs: `npm run gen:seed:simple-causes-implications`. Handoff: [`continuity/2026-08-27-statement-generation.md`](../continuity/2026-08-27-statement-generation.md). |
+| 1 | **In `seed-content/simple-causes.json`**. Gold set still in the exercises file. List not complete. Nested-place rollup is board inclusion (settled). | Simple causes: wants, earmark grain (kind + place). Ontario-wide planks are genuine wants, not implication parents. `npm run gen:seed:simple-causes-implications`. |
 | 2 | Not started | One left/right abortion or immigration triple through the full loop, compared to the patterns-page canonical wording. |
 | 3 | Not started | Gate cause-assist suggestions on the same checks. |

@@ -17,13 +17,13 @@ When an item from this page is done and no longer needs an LLM implementor's att
   list, [inbox.md](inbox.md), or [causestarter/TODO.md](causestarter/TODO.md).
   After a slice, delete that subsection from the plan.
 
-- **(Trust)** Follow up on the accepted separation of belief implication, board
-  inclusion, and personalized discovery. Nested-place rollup is a factual board
-  rule, not a belief implication; do not teach the implication attester that
-  `more X in child place` implies `more X in parent place`. The deterministic
-  geographic-board slice is implemented. Later, only when project volume shows
-  the need, add inspectable dashboard preferences/ranking as staged in
-  [belief-implication-board-inclusion-and-discovery.md](specs/product/belief-implication-board-inclusion-and-discovery.md).
+- **(Tell)** The implication attester prompt still lists “narrower geography →
+  broader geography” as an accept rule (`evaluator.ts` example Grey County →
+  Ontario). Product and seed generation now treat nested-place rollup as board
+  inclusion, not implication. Un-teach that rule and refresh
+  `seed-implication-evaluations` (prompt fingerprint) in a dedicated pass; do
+  not paper over it in seed wording. Personalized AI ranking remains deferred
+  per [belief-implication-board-inclusion-and-discovery.md](specs/product/belief-implication-board-inclusion-and-discovery.md).
 
 - **(Ask)** Statement-generation next: curriculum **exercise 2** — one left/right compromise-in-the-middle triple (canonical abortion or immigration wording from [hidden-majority-patterns](docs/end-user/common-sense-majority/hidden-majority-patterns.md); do not fork a second abortion text). Exercise 1 is in [`seed-content/simple-causes.json`](fake-data-generation/seed-content/simple-causes.json). Process: [statement-generation.md](fake-data-generation/statement-generation.md).
 

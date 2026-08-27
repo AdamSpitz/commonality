@@ -13,6 +13,8 @@ const config: CauseAssistConfig = {
 describe('statement guidance routing', () => {
   it('keeps signer-annoyance routing on bridge drafts, not ordinary cause verbs', () => {
     assert.doesNotMatch(STATEMENT_QUALITY_GUIDANCE, /annoyed at being asked/)
+    assert.doesNotMatch(STATEMENT_QUALITY_GUIDANCE, /must imply "I want more CSA in Ontario"/)
+    assert.match(STATEMENT_QUALITY_GUIDANCE, /board inclusion rule/)
     assert.match(BRIDGE_STATEMENT_GUIDANCE, /annoyed at being asked to also sign the shared plank/)
   })
 })

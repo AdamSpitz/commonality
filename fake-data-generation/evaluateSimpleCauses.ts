@@ -1,7 +1,7 @@
 /**
- * Live implication-attester pass over designed simple-causes geographic /
- * topical parent pairs. Exits 1 if a designed-yes pair is refused or a
- * designed-no pair is blessed.
+ * Live implication-attester pass over designed simple-causes nested-place
+ * pairs. Nested-place rollup is board inclusion, not implication: every pair
+ * here is designed-no. Exits 1 if the attester blesses one.
  *
  * Usage (from fake-data-generation/): npm run gen:seed:simple-causes-implications
  * Requires OPENROUTER_API_KEY.
@@ -27,16 +27,14 @@ interface DesignedPair {
 }
 
 const DESIGNED_PAIRS: DesignedPair[] = [
-  { fromId: 'csa-grey-county-ontario', toId: 'csa-ontario', expect: 'yes', note: 'narrower geography → location container' },
-  { fromId: 'csa-grey-county-ontario', toId: 'community-supported-agriculture', expect: 'yes', note: 'conjunction → topical parent' },
-  { fromId: 'csa-ontario', toId: 'community-supported-agriculture', expect: 'yes', note: 'place dropped → topical parent' },
-  { fromId: 'farmers-markets-grey-county-ontario', toId: 'farmers-markets-ontario', expect: 'yes', note: 'narrower geography → location container' },
-  { fromId: 'farmers-markets-grey-county-ontario', toId: 'farmers-markets', expect: 'yes', note: 'conjunction → topical parent' },
-  { fromId: 'farmers-markets-ontario', toId: 'farmers-markets', expect: 'yes', note: 'place dropped → topical parent' },
-  { fromId: 'csa-ontario', toId: 'csa-grey-county-ontario', expect: 'no', note: 'parent must not imply nested place' },
-  { fromId: 'community-supported-agriculture', toId: 'csa-ontario', expect: 'no', note: 'topical parent must not imply a province' },
-  { fromId: 'community-supported-agriculture', toId: 'csa-grey-county-ontario', expect: 'no', note: 'topical parent must not imply a county' },
-  { fromId: 'farmers-markets-ontario', toId: 'farmers-markets-grey-county-ontario', expect: 'no', note: 'parent must not imply nested place' },
+  { fromId: 'csa-grey-county-ontario', toId: 'csa-ontario', expect: 'no', note: 'nested-place want does not imply containing-place want' },
+  { fromId: 'farmers-markets-grey-county-ontario', toId: 'farmers-markets-ontario', expect: 'no', note: 'nested-place want does not imply containing-place want' },
+  { fromId: 'csa-ontario', toId: 'csa-grey-county-ontario', expect: 'no', note: 'wide-place want must not imply nested place' },
+  { fromId: 'farmers-markets-ontario', toId: 'farmers-markets-grey-county-ontario', expect: 'no', note: 'wide-place want must not imply nested place' },
+  { fromId: 'community-supported-agriculture', toId: 'csa-ontario', expect: 'no', note: 'unscoped topical want must not imply a province' },
+  { fromId: 'community-supported-agriculture', toId: 'csa-grey-county-ontario', expect: 'no', note: 'unscoped topical want must not imply a county' },
+  { fromId: 'farmers-markets', toId: 'farmers-markets-ontario', expect: 'no', note: 'unscoped topical want must not imply a province' },
+  { fromId: 'farmers-markets', toId: 'farmers-markets-grey-county-ontario', expect: 'no', note: 'unscoped topical want must not imply a county' },
 ];
 
 function uid(statementId: string): string {
@@ -86,14 +84,14 @@ async function main(): Promise<void> {
   }
 
   if (unexpectedYesRefusal) {
-    console.error('\nSTOP: attester refused a pair designed to bless. Parent wording may have picked up a universal.');
+    console.error('\nSTOP: attester refused a pair designed to bless.');
     process.exit(1);
   }
   if (unexpectedNoBlessing) {
-    console.error('\nSTOP: attester blessed a pair designed to refuse.');
+    console.error('\nSTOP: attester blessed a nested-place pair designed to refuse. Nested geography is board inclusion, not implication. If this is Grey → Ontario, the leftover hierarchy rule in the attester prompt is the likely cause — do not "fix" it in seed wording.');
     process.exit(1);
   }
-  console.log('\nAll designed simple-causes geographic/topical pairs matched expectations.');
+  console.log('\nAll designed simple-causes nested-place pairs matched expectations (all designed-no).');
 }
 
 main().catch((error) => {

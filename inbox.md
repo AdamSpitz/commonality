@@ -17,7 +17,7 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 ## Main list
 
-- **(Tell)** Copied exercise-1 simple-cause planks into [`fake-data-generation/seed-content/simple-causes.json`](fake-data-generation/seed-content/simple-causes.json). Tiny-seed garden alignment still uses the explorer slogan. Recheck designed pairs: `npm run gen:seed:simple-causes-implications`. Next: geo-rollup Ask (above) or curriculum exercise 2. Handoff: [continuity/2026-08-27-statement-generation.md](continuity/2026-08-27-statement-generation.md).
+- **(Tell)** Nested-place rollup is settled as board inclusion, not implication. Statement-generation gold set, cause-assist guidance, and seed garden/roster now follow that (Ontario-wide planks are genuine wants; garden has Grey County relevant areas; local-food roster has `within: Ontario, Canada`). Next curriculum item remains exercise 2. Leftover: attester prompt still teaches Grey → Ontario. Handoff: [continuity/2026-08-27-statement-generation.md](continuity/2026-08-27-statement-generation.md).
 
 - **(Tell)** Combinator statements are specified and implemented: canonical `all`/`any` over sorted plank CIDs (no title/date), CauseStarter view-strip promote, implication attester structural gate for pairwise arrows only. Ordinary `createStatement` no longer defaults `createdDate` into extras.
 

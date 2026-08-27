@@ -33,6 +33,8 @@ export const SEED_CAUSE_SLUG = 'local-food-systems';
 export const SEED_CAUSE_TITLE = 'Local food systems';
 export const SEED_CAUSE_SUMMARY =
   'Neighborhood growing, markets, and writing that helps people eat closer to home. Seed includes the Riverside Community Garden project and a mixed @civicbuilder content contract (1 of 2 posts attested).';
+/** Ontario-scoped fundable-projects view: Grey County garden matches by relevant area, not implication. */
+export const SEED_CAUSE_PROJECT_AREA_WITHIN = ['Ontario', 'Canada'] as const;
 export const SEED_CAUSE_MEDIATOR_BLURB = '';
 
 /** Hardhat #0 — connect as this account to see the bookmarked seed cause. */
@@ -75,6 +77,7 @@ export interface SeedCauseRosterFields {
   mediator?: SeedCauseMediator;
   /** Present on mediator-owned modified/bridge rosters, never on natural camp boards. */
   bridgeCluster?: SeedRosterBridgeLink;
+  inclusionRules?: { geographic: { within: string[] } };
 }
 
 export function seedCauseRosterFields(plankCid: string): SeedCauseRosterFields {
@@ -83,6 +86,7 @@ export function seedCauseRosterFields(plankCid: string): SeedCauseRosterFields {
     summary: SEED_CAUSE_SUMMARY,
     plankCids: [plankCid],
     mediatorBlurb: SEED_CAUSE_MEDIATOR_BLURB,
+    inclusionRules: { geographic: { within: [...SEED_CAUSE_PROJECT_AREA_WITHIN] } },
   };
 }
 
@@ -117,6 +121,7 @@ export function buildSeedRosterDocument(fields: SeedCauseRosterFields) {
       mediatorBlurb: fields.mediatorBlurb,
       ...(fields.mediator ? { mediator: fields.mediator } : {}),
       ...(fields.bridgeCluster ? { bridgeCluster: normalizeSeedBridgeCluster(fields.bridgeCluster) } : {}),
+      ...(fields.inclusionRules ? { inclusionRules: fields.inclusionRules } : {}),
     },
   });
 }

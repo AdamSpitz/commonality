@@ -1,6 +1,6 @@
 # Handoff — statement generation (2026-08-27)
 
-Next session: **Ask Adam** how geographic rollup should work (attester vs wording vs no auto-rollup) — see Open in [`statement-generation.md`](../fake-data-generation/statement-generation.md). Curriculum exercise 2 is also queued. Do not polish Christian/secular as the implication demo. Do not load `statement-generation-exercises/` via `loadSeedCollections`.
+Next session: curriculum **exercise 2** (one left/right compromise-in-the-middle triple). Nested-place rollup is **settled** as board inclusion, not implication. Do not polish Christian/secular as the implication demo. Do not load `statement-generation-exercises/` via `loadSeedCollections`.
 
 ## Suggested skills
 
@@ -26,19 +26,19 @@ Wrote the process doc. Ran exercise 1 (simple causes, **no triples**) through li
 | “I want maintainers paid” / unpaid nights | Paying is the system. Align projects with the work-product. |
 | Category-only OSS | Earmark grain is a **ladder** (OSS → Linux → Linux desktop). |
 | Food only by mechanism | Food also tightens by **place** (CSA in Grey County, Ontario). |
-| Closed `any` combinator over counties | Geographic rollup = child → parent implication; board of S is inbound arrows. Parent is a location **container** (“in Ontario”), not “throughout Ontario”. Non-transitive. |
+| Closed `any` combinator over counties | Nested-place rollup is board inclusion (relevant areas + `within`), not child → parent implication. |
 
 Adam (2026-08-27): those exercise-1 statements **feel viable** to sign and to attest project alignment against. The list is **not** claimed complete for every variation type.
 
-Later same day: copied into [`seed-content/simple-causes.json`](../fake-data-generation/seed-content/simple-causes.json). Tiny seed still uses the old local-food explorer slogan for Riverside Community Garden. `loadSeedCollections` does not read `statement-generation-exercises/`. Designed Grey → Ontario / topical pairs: `npm run gen:seed:simple-causes-implications` (`evaluateSimpleCauses.ts`).
+Later same day: copied into [`seed-content/simple-causes.json`](../fake-data-generation/seed-content/simple-causes.json). Same evening: product spec settled nested-place as board inclusion. Ontario farmers-market plank restored `more` (no longer a workaround parent). Garden seed publishes Grey County relevant areas; local-food roster publishes `within: Ontario, Canada`. Tiny seed still aligns the garden to the explorer slogan CID. `loadSeedCollections` does not read `statement-generation-exercises/`. Nested-place pairs are designed-no: `npm run gen:seed:simple-causes-implications`.
 
 Docker cause-assist may still serve the **old** prompt until that service is rebuilt; source guidance is updated.
 
-## Next work (Ask Adam which)
+## Next work
 
-1. ~~Copy accepted planks into `seed-content/`~~ **done.** Tiny-seed garden CID unchanged.
-2. Live Grey → Ontario pairs **ran**; **geographic containment is not settled.** Farmers-market Ontario parent dropped `more` as a workaround. Do not copy that as the nestable protocol. Do not add `somewhere in REGION`. Do not use `any` over counties. Options still open: attester prompt (`in REGION` = container unless throughout) vs consistently refuse `more-in-nested` → `more-in-parent` (no auto-rollup onto that CID) vs something else. Details in [`statement-generation.md`](../fake-data-generation/statement-generation.md) (Open section).
+1. ~~Copy accepted planks into `seed-content/`~~ **done.**
+2. ~~Geographic rollup Ask~~ **settled** as board inclusion. Seed wording and cause-assist guidance updated. Leftover: live attester prompt still teaches narrower→broader geography; un-teach + refresh implication corpus separately.
 3. Curriculum **exercise 2**: one left/right compromise-in-the-middle triple using canonical hidden-majority-patterns wording (do not fork a second abortion text).
 4. **Exercise 3**: gate cause-assist suggestions on the same checks.
 
-Human role remains: pick topics/patterns, veto. Do not silently load exercises into the live corpus. Do not “fix” geo rollup in the attester or with combinators without asking.
+Human role remains: pick topics/patterns, veto. Do not silently load exercises into the live corpus. Do not mint geo `any`s. Do not teach Grey → Ontario as implication.

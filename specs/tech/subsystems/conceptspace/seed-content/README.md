@@ -37,7 +37,7 @@ See [content patterns](../content-patterns/README.md) for the kinds of content w
 
 ### Simple public-goods planks (no bridging)
 
-Signable independent wants for OSS and local food, including geographic parents so county work can roll up onto a province board without an `any` combinator. See [simple-causes.md](./simple-causes.md). Tiny seed still uses the explorer slogan for the garden project.
+Signable independent wants for OSS and local food, including place grain (Grey County, Ontario-wide, unscoped). Nested-place rollup is board inclusion (project relevant areas + optional `within`), not implication. See [simple-causes.md](./simple-causes.md). Tiny seed still uses the explorer slogan for the garden project, now with a Grey County relevant area and an Ontario-scoped local-food roster.
 
 ### Top-level fundable-project interest areas
 

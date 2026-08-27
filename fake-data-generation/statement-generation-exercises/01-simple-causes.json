@@ -2,7 +2,7 @@
   "format": "commonality-seed-content-v1",
   "id": "statement-generation-exercise-01",
   "title": "Exercise 1 — simple causes, no bridging",
-  "description": "Simple-cause wants (OSS + local food), earmark grain, geographic parents. Adam 2026-08-27: statements feel viable to sign and to attest project alignment; list is not a complete catalog of variation. Gold set; live copy is seed-content/simple-causes.json. This file is not loaded by loadSeedCollections. No triples.",
+  "description": "Simple-cause wants (OSS + local food), earmark grain (kind + place). Adam 2026-08-27: statements feel viable to sign and to attest project alignment; list is not a complete catalog of variation. Gold set; live copy is seed-content/simple-causes.json. Nested-place rollup is board inclusion, not implication. This file is not loaded by loadSeedCollections. No triples.",
   "notes": [
     "Curriculum step 1: independent signable planks. Process: fake-data-generation/statement-generation.md.",
     "Adam 2026-08-26: do not assert 'X is a public good'; say you want more X.",
@@ -64,11 +64,11 @@
       "title": "Local food systems (signable planks, not explorer slogans)",
       "notes": [
         "Mechanism grain (gardens, markets, CSA, farms, shorter chains) is the food analog of 'kind of software'. Place grain is often the useful earmark: CSA in Grey County, Ontario. Kind-of-food (e.g. local dairy) is allowed the same way Linux desktop is.",
-        "Geographic parents: Ontario CSA / Ontario farmers' markets are location containers so county projects roll up onto those boards (inbound implication). Not an any-combinator over counties."
+        "Ontario-wide CSA / farmers' market planks are genuine province-wide wants, not implication parents. County projects join an Ontario board via relevant areas + board `within`."
       ],
       "implicationNotes": [
-        "Designed yes: csa-grey-county-ontario → csa-ontario (narrower geography); csa-grey-county-ontario → community-supported-agriculture (conjunction → topical parent); csa-ontario → community-supported-agriculture; farmers-markets-grey-county-ontario → farmers-markets-ontario; farmers-markets-grey-county-ontario → farmers-markets.",
-        "Designed no: csa-ontario → csa-grey-county-ontario; community-supported-agriculture → csa-ontario; community-supported-agriculture → csa-grey-county-ontario; farmers-markets-ontario → farmers-markets-grey-county-ontario. Canada CSA would need its own direct Grey → Canada edge (non-transitive)."
+        "Designed no (nested place is not implication): csa-grey-county-ontario → csa-ontario; farmers-markets-grey-county-ontario → farmers-markets-ontario; csa-ontario → csa-grey-county-ontario; farmers-markets-ontario → farmers-markets-grey-county-ontario; community-supported-agriculture → csa-ontario; community-supported-agriculture → csa-grey-county-ontario; farmers-markets → farmers-markets-ontario; farmers-markets → farmers-markets-grey-county-ontario.",
+        "No designed-yes geo or place-dropped topical pairs."
       ],
       "statements": [
         {
@@ -81,7 +81,7 @@
           "role": "unique",
           "text": "I want more farmers' markets.",
           "notes": [
-            "Topical parent. Mechanism wording lives on farmers-markets-direct-connect so Grey → this parent is only place dropped."
+            "Unscoped topical want. Mechanism wording lives on farmers-markets-direct-connect."
           ]
         },
         {
@@ -91,10 +91,10 @@
         },
         {
           "id": "farmers-markets-ontario",
-          "role": "geo-parent",
-          "text": "I want farmers' markets in Ontario.",
+          "role": "unique",
+          "text": "I want more farmers' markets in Ontario.",
           "notes": [
-            "WORKAROUND, not the nestable protocol. Geographic containment vs attester still Ask — see statement-generation.md Open section."
+            "Province-wide want, parallel wording to the Grey County plank. Not a rollup parent."
           ]
         },
         {
@@ -104,10 +104,10 @@
         },
         {
           "id": "csa-ontario",
-          "role": "geo-parent",
+          "role": "unique",
           "text": "I want more community-supported agriculture in Ontario.",
           "notes": [
-            "Location container. Board for this statement should show projects aligned with any nested place (e.g. Grey County) once those children imply this parent."
+            "Province-wide want. Nested-place projects join a scoped board via relevant areas, not implication."
           ]
         },
         {
