@@ -17,7 +17,9 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 ## Main list
 
-- **(Ask)** Statement-generation exercise 1 texts are accepted as useful ([01-simple-causes.json](fake-data-generation/statement-generation-exercises/01-simple-causes.json); process in [statement-generation.md](fake-data-generation/statement-generation.md)). Next: copy into `seed-content/` (tiny-seed CID churn) **or** start exercise 2 (left/right compromise triple). Handoff: [continuity/2026-08-27-statement-generation.md](continuity/2026-08-27-statement-generation.md).
+- **(Ask)** Nested-place boards (Grey CSA on an Ontario CSA board): implication vs attester vs no auto-rollup — **not decided**. Live attester is unstable on `more X in nested place` → `more X in parent place`. Seed dropped `more` on one parent as a workaround. Adam rejected `somewhere in REGION` (does not nest) and `any` over counties. Decide before copying that workaround as the generation rule. Notes: [statement-generation.md](fake-data-generation/statement-generation.md).
+
+- **(Tell)** Copied exercise-1 simple-cause planks into [`fake-data-generation/seed-content/simple-causes.json`](fake-data-generation/seed-content/simple-causes.json). Tiny-seed garden alignment still uses the explorer slogan. Recheck designed pairs: `npm run gen:seed:simple-causes-implications`. Next: geo-rollup Ask (above) or curriculum exercise 2. Handoff: [continuity/2026-08-27-statement-generation.md](continuity/2026-08-27-statement-generation.md).
 
 - **(Tell)** Combinator statements are specified and implemented: canonical `all`/`any` over sorted plank CIDs (no title/date), CauseStarter view-strip promote, implication attester structural gate for pairwise arrows only. Ordinary `createStatement` no longer defaults `createdDate` into extras.
 

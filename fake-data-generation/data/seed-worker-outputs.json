@@ -1,11 +1,130 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-05-29T17:07:09.093Z",
+  "generatedAt": "2026-08-27T11:28:36.187Z",
   "algorithm": "deterministic-seed-content-fixture-v1",
-  "seedContentFingerprint": "992084385a8236dfdbd704ad2619a8807ba9951c866f7763d4653cc2f05d03f2",
+  "seedContentFingerprint": "7638407d05647c6655970f84989e7d58ff35c2f258046c671b909cf9a4f158d5",
   "explorerCollection": {
     "stream": "fundable-project-explorer",
     "entries": [
+      {
+        "collectionId": "christian-secular-bridge",
+        "groupId": "abortion",
+        "statementId": "natural-christian",
+        "label": "An unborn child still has a soul. Taking that life is murder.",
+        "topicArea": "Christianity × secular conservatism (tiny seed)"
+      },
+      {
+        "collectionId": "christian-secular-bridge",
+        "groupId": "abortion",
+        "statementId": "natural-secular",
+        "label": "Abortion ends a child's life. Maybe rape and the mother's health are ...",
+        "topicArea": "Christianity × secular conservatism (tiny seed)"
+      },
+      {
+        "collectionId": "christian-secular-bridge",
+        "groupId": "abortion",
+        "statementId": "modified-christian",
+        "label": "An unborn child still has a soul, and taking that life is murder — th...",
+        "topicArea": "Christianity × secular conservatism (tiny seed)"
+      },
+      {
+        "collectionId": "christian-secular-bridge",
+        "groupId": "abortion",
+        "statementId": "modified-secular",
+        "label": "Abortion ends a child's life; what I see in the ordinary case is an u...",
+        "topicArea": "Christianity × secular conservatism (tiny seed)"
+      },
+      {
+        "collectionId": "christian-secular-bridge",
+        "groupId": "abortion",
+        "statementId": "commonality",
+        "label": "Elective abortion should not be treated as ordinary health care. A th...",
+        "topicArea": "Christianity × secular conservatism (tiny seed)"
+      },
+      {
+        "collectionId": "christian-secular-bridge",
+        "groupId": "markets",
+        "statementId": "natural-christian",
+        "label": "Caring for the poor is the church's work. A large welfare state often...",
+        "topicArea": "Christianity × secular conservatism (tiny seed)"
+      },
+      {
+        "collectionId": "christian-secular-bridge",
+        "groupId": "markets",
+        "statementId": "natural-secular",
+        "label": "Free markets create prosperity. A large welfare state traps people in...",
+        "topicArea": "Christianity × secular conservatism (tiny seed)"
+      },
+      {
+        "collectionId": "christian-secular-bridge",
+        "groupId": "markets",
+        "statementId": "modified-christian",
+        "label": "Caring for the poor is the church's work — neighbors, not clients of ...",
+        "topicArea": "Christianity × secular conservatism (tiny seed)"
+      },
+      {
+        "collectionId": "christian-secular-bridge",
+        "groupId": "markets",
+        "statementId": "modified-secular",
+        "label": "The dependence numbers and the growth numbers are enough for me. Mark...",
+        "topicArea": "Christianity × secular conservatism (tiny seed)"
+      },
+      {
+        "collectionId": "christian-secular-bridge",
+        "groupId": "markets",
+        "statementId": "commonality",
+        "label": "Markets generally let ordinary people earn a living and keep more of ...",
+        "topicArea": "Christianity × secular conservatism (tiny seed)"
+      },
+      {
+        "collectionId": "christian-secular-bridge",
+        "groupId": "lgbt",
+        "statementId": "natural-christian",
+        "label": "Scripture says marriage is between a man and a woman. Gay people are ...",
+        "topicArea": "Christianity × secular conservatism (tiny seed)"
+      },
+      {
+        "collectionId": "christian-secular-bridge",
+        "groupId": "lgbt",
+        "statementId": "natural-secular",
+        "label": "Gay adults should be able to marry; they're participating as best the...",
+        "topicArea": "Christianity × secular conservatism (tiny seed)"
+      },
+      {
+        "collectionId": "christian-secular-bridge",
+        "groupId": "lgbt",
+        "statementId": "modified-christian",
+        "label": "Scripture still says marriage is between a man and a woman, and I sti...",
+        "topicArea": "Christianity × secular conservatism (tiny seed)"
+      },
+      {
+        "collectionId": "christian-secular-bridge",
+        "groupId": "lgbt",
+        "statementId": "modified-secular",
+        "label": "Gay adults should be able to marry; they're participating as best the...",
+        "topicArea": "Christianity × secular conservatism (tiny seed)"
+      },
+      {
+        "collectionId": "christian-secular-bridge",
+        "groupId": "lgbt",
+        "statementId": "commonality",
+        "label": "Gay adults are not my enemies. Children should not be put in sexualiz...",
+        "topicArea": "Christianity × secular conservatism (tiny seed)"
+      },
+      {
+        "collectionId": "christian-secular-bridge",
+        "groupId": "scripture",
+        "statementId": "natural-christian",
+        "label": "Everyone should be able to read Scripture in their own language, incl...",
+        "topicArea": "Christianity × secular conservatism (tiny seed)"
+      },
+      {
+        "collectionId": "christian-secular-bridge",
+        "groupId": "colorblind-merit",
+        "statementId": "natural-secular",
+        "label": "The law should treat people as individuals, not as racial blocs. Hiri...",
+        "topicArea": "Christianity × secular conservatism (tiny seed)"
+      },
       {
         "collectionId": "content-funding",
         "groupId": "civility-topic",
@@ -166,130 +285,249 @@
         "statementId": "censorship-resistant-publishing",
         "label": "I am interested in furthering the cause of censorship-resistant publi...",
         "topicArea": "Fundable Projects"
-      },
-      {
-        "collectionId": "fundable-projects",
-        "groupId": "civil-liberties",
-        "statementId": "protect-from-surveillance",
-        "label": "I am interested in furthering the cause of protecting people from gov...",
-        "topicArea": "Fundable Projects"
-      },
-      {
-        "collectionId": "fundable-projects",
-        "groupId": "civil-liberties",
-        "statementId": "privacy-tools-for-ordinary-people",
-        "label": "I am interested in furthering the cause of online privacy tools that ...",
-        "topicArea": "Fundable Projects"
-      },
-      {
-        "collectionId": "fundable-projects",
-        "groupId": "civil-liberties",
-        "statementId": "decentralized-social-media-alternatives",
-        "label": "I am interested in furthering the cause of decentralized alternatives...",
-        "topicArea": "Fundable Projects"
-      },
-      {
-        "collectionId": "fundable-projects",
-        "groupId": "civil-liberties",
-        "statementId": "legal-defense-for-free-speech",
-        "label": "I am interested in furthering the cause of legal defense for free spe...",
-        "topicArea": "Fundable Projects"
-      },
-      {
-        "collectionId": "fundable-projects",
-        "groupId": "open-source-and-public-infrastructure",
-        "statementId": "open-source-public-infrastructure",
-        "label": "I am interested in furthering the cause of open-source software that ...",
-        "topicArea": "Fundable Projects"
-      },
-      {
-        "collectionId": "fundable-projects",
-        "groupId": "open-source-and-public-infrastructure",
-        "statementId": "fund-critical-maintainers",
-        "label": "I am interested in furthering the cause of sustainable funding for ma...",
-        "topicArea": "Fundable Projects"
-      },
-      {
-        "collectionId": "fundable-projects",
-        "groupId": "open-source-and-public-infrastructure",
-        "statementId": "decentralized-internet-infrastructure",
-        "label": "I am interested in furthering the cause of decentralized internet inf...",
-        "topicArea": "Fundable Projects"
-      },
-      {
-        "collectionId": "fundable-projects",
-        "groupId": "open-source-and-public-infrastructure",
-        "statementId": "open-standards-avoid-lock-in",
-        "label": "I am interested in furthering the cause of open standards that preven...",
-        "topicArea": "Fundable Projects"
-      },
-      {
-        "collectionId": "fundable-projects",
-        "groupId": "open-source-and-public-infrastructure",
-        "statementId": "open-source-security-tools",
-        "label": "I am interested in furthering the cause of open-source security tools.",
-        "topicArea": "Fundable Projects"
-      },
-      {
-        "collectionId": "fundable-projects",
-        "groupId": "scientific-research",
-        "statementId": "open-access-scientific-publishing",
-        "label": "I am interested in furthering the cause of open-access scientific pub...",
-        "topicArea": "Fundable Projects"
-      },
-      {
-        "collectionId": "fundable-projects",
-        "groupId": "scientific-research",
-        "statementId": "research-neglected-diseases",
-        "label": "I am interested in furthering the cause of research into diseases tha...",
-        "topicArea": "Fundable Projects"
-      },
-      {
-        "collectionId": "fundable-projects",
-        "groupId": "scientific-research",
-        "statementId": "independent-replication-studies",
-        "label": "I am interested in furthering the cause of independent replication st...",
-        "topicArea": "Fundable Projects"
-      },
-      {
-        "collectionId": "fundable-projects",
-        "groupId": "scientific-research",
-        "statementId": "conflict-free-scientific-research",
-        "label": "I am interested in furthering the cause of scientific research free f...",
-        "topicArea": "Fundable Projects"
-      },
-      {
-        "collectionId": "fundable-projects",
-        "groupId": "scientific-research",
-        "statementId": "longevity-and-healthspan",
-        "label": "I am interested in furthering the cause of longevity and healthspan r...",
-        "topicArea": "Fundable Projects"
-      },
-      {
-        "collectionId": "fundable-projects",
-        "groupId": "scientific-research",
-        "statementId": "chronic-disease-roots",
-        "label": "I am interested in furthering the cause of research into the roots of...",
-        "topicArea": "Fundable Projects"
-      },
-      {
-        "collectionId": "fundable-projects",
-        "groupId": "public-health",
-        "statementId": "mental-health-treatment-and-research",
-        "label": "I am interested in furthering the cause of mental health treatment an...",
-        "topicArea": "Fundable Projects"
-      },
-      {
-        "collectionId": "fundable-projects",
-        "groupId": "public-health",
-        "statementId": "evidence-based-addiction-treatment",
-        "label": "I am interested in furthering the cause of evidence-based drug addict...",
-        "topicArea": "Fundable Projects"
       }
     ]
   },
   "nudgeBatch": {
     "nudges": [
+      {
+        "target": {
+          "collectionId": "christian-secular-bridge",
+          "groupId": "abortion",
+          "statementId": "natural-christian"
+        },
+        "suggested": {
+          "collectionId": "christian-secular-bridge",
+          "groupId": "abortion",
+          "statementId": "natural-secular"
+        },
+        "reason": "Seeded local-dev suggestion: another statement in Abortion.",
+        "confidence": 0.6
+      },
+      {
+        "target": {
+          "collectionId": "christian-secular-bridge",
+          "groupId": "abortion",
+          "statementId": "natural-secular"
+        },
+        "suggested": {
+          "collectionId": "christian-secular-bridge",
+          "groupId": "abortion",
+          "statementId": "natural-christian"
+        },
+        "reason": "Seeded local-dev suggestion: another statement in Abortion.",
+        "confidence": 0.6
+      },
+      {
+        "target": {
+          "collectionId": "christian-secular-bridge",
+          "groupId": "abortion",
+          "statementId": "modified-christian"
+        },
+        "suggested": {
+          "collectionId": "christian-secular-bridge",
+          "groupId": "abortion",
+          "statementId": "natural-christian"
+        },
+        "reason": "Seeded local-dev suggestion: another statement in Abortion.",
+        "confidence": 0.6
+      },
+      {
+        "target": {
+          "collectionId": "christian-secular-bridge",
+          "groupId": "abortion",
+          "statementId": "modified-secular"
+        },
+        "suggested": {
+          "collectionId": "christian-secular-bridge",
+          "groupId": "abortion",
+          "statementId": "natural-christian"
+        },
+        "reason": "Seeded local-dev suggestion: another statement in Abortion.",
+        "confidence": 0.6
+      },
+      {
+        "target": {
+          "collectionId": "christian-secular-bridge",
+          "groupId": "abortion",
+          "statementId": "commonality"
+        },
+        "suggested": {
+          "collectionId": "christian-secular-bridge",
+          "groupId": "abortion",
+          "statementId": "natural-christian"
+        },
+        "reason": "Seeded local-dev suggestion: another statement in Abortion.",
+        "confidence": 0.6
+      },
+      {
+        "target": {
+          "collectionId": "christian-secular-bridge",
+          "groupId": "markets",
+          "statementId": "natural-christian"
+        },
+        "suggested": {
+          "collectionId": "christian-secular-bridge",
+          "groupId": "markets",
+          "statementId": "natural-secular"
+        },
+        "reason": "Seeded local-dev suggestion: another statement in Markets and provision for the poor.",
+        "confidence": 0.6
+      },
+      {
+        "target": {
+          "collectionId": "christian-secular-bridge",
+          "groupId": "markets",
+          "statementId": "natural-secular"
+        },
+        "suggested": {
+          "collectionId": "christian-secular-bridge",
+          "groupId": "markets",
+          "statementId": "natural-christian"
+        },
+        "reason": "Seeded local-dev suggestion: another statement in Markets and provision for the poor.",
+        "confidence": 0.6
+      },
+      {
+        "target": {
+          "collectionId": "christian-secular-bridge",
+          "groupId": "markets",
+          "statementId": "modified-christian"
+        },
+        "suggested": {
+          "collectionId": "christian-secular-bridge",
+          "groupId": "markets",
+          "statementId": "natural-christian"
+        },
+        "reason": "Seeded local-dev suggestion: another statement in Markets and provision for the poor.",
+        "confidence": 0.6
+      },
+      {
+        "target": {
+          "collectionId": "christian-secular-bridge",
+          "groupId": "markets",
+          "statementId": "modified-secular"
+        },
+        "suggested": {
+          "collectionId": "christian-secular-bridge",
+          "groupId": "markets",
+          "statementId": "natural-christian"
+        },
+        "reason": "Seeded local-dev suggestion: another statement in Markets and provision for the poor.",
+        "confidence": 0.6
+      },
+      {
+        "target": {
+          "collectionId": "christian-secular-bridge",
+          "groupId": "markets",
+          "statementId": "commonality"
+        },
+        "suggested": {
+          "collectionId": "christian-secular-bridge",
+          "groupId": "markets",
+          "statementId": "natural-christian"
+        },
+        "reason": "Seeded local-dev suggestion: another statement in Markets and provision for the poor.",
+        "confidence": 0.6
+      },
+      {
+        "target": {
+          "collectionId": "christian-secular-bridge",
+          "groupId": "lgbt",
+          "statementId": "natural-christian"
+        },
+        "suggested": {
+          "collectionId": "christian-secular-bridge",
+          "groupId": "lgbt",
+          "statementId": "natural-secular"
+        },
+        "reason": "Seeded local-dev suggestion: another statement in LGBT unbundling.",
+        "confidence": 0.6
+      },
+      {
+        "target": {
+          "collectionId": "christian-secular-bridge",
+          "groupId": "lgbt",
+          "statementId": "natural-secular"
+        },
+        "suggested": {
+          "collectionId": "christian-secular-bridge",
+          "groupId": "lgbt",
+          "statementId": "natural-christian"
+        },
+        "reason": "Seeded local-dev suggestion: another statement in LGBT unbundling.",
+        "confidence": 0.6
+      },
+      {
+        "target": {
+          "collectionId": "christian-secular-bridge",
+          "groupId": "lgbt",
+          "statementId": "modified-christian"
+        },
+        "suggested": {
+          "collectionId": "christian-secular-bridge",
+          "groupId": "lgbt",
+          "statementId": "natural-christian"
+        },
+        "reason": "Seeded local-dev suggestion: another statement in LGBT unbundling.",
+        "confidence": 0.6
+      },
+      {
+        "target": {
+          "collectionId": "christian-secular-bridge",
+          "groupId": "lgbt",
+          "statementId": "modified-secular"
+        },
+        "suggested": {
+          "collectionId": "christian-secular-bridge",
+          "groupId": "lgbt",
+          "statementId": "natural-christian"
+        },
+        "reason": "Seeded local-dev suggestion: another statement in LGBT unbundling.",
+        "confidence": 0.6
+      },
+      {
+        "target": {
+          "collectionId": "christian-secular-bridge",
+          "groupId": "lgbt",
+          "statementId": "commonality"
+        },
+        "suggested": {
+          "collectionId": "christian-secular-bridge",
+          "groupId": "lgbt",
+          "statementId": "natural-christian"
+        },
+        "reason": "Seeded local-dev suggestion: another statement in LGBT unbundling.",
+        "confidence": 0.6
+      },
+      {
+        "target": {
+          "collectionId": "christian-secular-bridge",
+          "groupId": "scripture",
+          "statementId": "natural-christian"
+        },
+        "suggested": {
+          "collectionId": "christian-secular-bridge",
+          "groupId": "abortion",
+          "statementId": "natural-secular"
+        },
+        "reason": "Seeded local-dev suggestion: another statement in Scripture available (Christian unique).",
+        "confidence": 0.6
+      },
+      {
+        "target": {
+          "collectionId": "christian-secular-bridge",
+          "groupId": "colorblind-merit",
+          "statementId": "natural-secular"
+        },
+        "suggested": {
+          "collectionId": "christian-secular-bridge",
+          "groupId": "abortion",
+          "statementId": "natural-christian"
+        },
+        "reason": "Seeded local-dev suggestion: another statement in Colorblind merit (secular unique).",
+        "confidence": 0.6
+      },
       {
         "target": {
           "collectionId": "content-funding",
@@ -401,235 +639,167 @@
         },
         "reason": "Seeded local-dev suggestion: another statement in Cross-partisan explanatory content.",
         "confidence": 0.6
-      },
-      {
-        "target": {
-          "collectionId": "fundable-projects",
-          "groupId": "finding-common-ground",
-          "statementId": "common-ground-across-divides"
-        },
-        "suggested": {
-          "collectionId": "fundable-projects",
-          "groupId": "finding-common-ground",
-          "statementId": "charitable-cross-partisan-content"
-        },
-        "reason": "Seeded local-dev suggestion: another statement in Finding common ground / depolarization.",
-        "confidence": 0.6
-      },
-      {
-        "target": {
-          "collectionId": "fundable-projects",
-          "groupId": "finding-common-ground",
-          "statementId": "charitable-cross-partisan-content"
-        },
-        "suggested": {
-          "collectionId": "fundable-projects",
-          "groupId": "finding-common-ground",
-          "statementId": "common-ground-across-divides"
-        },
-        "reason": "Seeded local-dev suggestion: another statement in Finding common ground / depolarization.",
-        "confidence": 0.6
-      },
-      {
-        "target": {
-          "collectionId": "fundable-projects",
-          "groupId": "finding-common-ground",
-          "statementId": "identify-political-agreement"
-        },
-        "suggested": {
-          "collectionId": "fundable-projects",
-          "groupId": "finding-common-ground",
-          "statementId": "common-ground-across-divides"
-        },
-        "reason": "Seeded local-dev suggestion: another statement in Finding common ground / depolarization.",
-        "confidence": 0.6
-      },
-      {
-        "target": {
-          "collectionId": "fundable-projects",
-          "groupId": "finding-common-ground",
-          "statementId": "reduce-tribal-polarization"
-        },
-        "suggested": {
-          "collectionId": "fundable-projects",
-          "groupId": "finding-common-ground",
-          "statementId": "common-ground-across-divides"
-        },
-        "reason": "Seeded local-dev suggestion: another statement in Finding common ground / depolarization.",
-        "confidence": 0.6
-      },
-      {
-        "target": {
-          "collectionId": "fundable-projects",
-          "groupId": "finding-common-ground",
-          "statementId": "inform-not-inflame"
-        },
-        "suggested": {
-          "collectionId": "fundable-projects",
-          "groupId": "finding-common-ground",
-          "statementId": "common-ground-across-divides"
-        },
-        "reason": "Seeded local-dev suggestion: another statement in Finding common ground / depolarization.",
-        "confidence": 0.6
-      },
-      {
-        "target": {
-          "collectionId": "fundable-projects",
-          "groupId": "government-accountability",
-          "statementId": "expose-corruption-and-waste"
-        },
-        "suggested": {
-          "collectionId": "fundable-projects",
-          "groupId": "government-accountability",
-          "statementId": "transparent-and-auditable-spending"
-        },
-        "reason": "Seeded local-dev suggestion: another statement in Government accountability and political reform.",
-        "confidence": 0.6
-      },
-      {
-        "target": {
-          "collectionId": "fundable-projects",
-          "groupId": "government-accountability",
-          "statementId": "transparent-and-auditable-spending"
-        },
-        "suggested": {
-          "collectionId": "fundable-projects",
-          "groupId": "government-accountability",
-          "statementId": "expose-corruption-and-waste"
-        },
-        "reason": "Seeded local-dev suggestion: another statement in Government accountability and political reform.",
-        "confidence": 0.6
-      },
-      {
-        "target": {
-          "collectionId": "fundable-projects",
-          "groupId": "government-accountability",
-          "statementId": "congressional-term-limits"
-        },
-        "suggested": {
-          "collectionId": "fundable-projects",
-          "groupId": "government-accountability",
-          "statementId": "expose-corruption-and-waste"
-        },
-        "reason": "Seeded local-dev suggestion: another statement in Government accountability and political reform.",
-        "confidence": 0.6
-      },
-      {
-        "target": {
-          "collectionId": "fundable-projects",
-          "groupId": "government-accountability",
-          "statementId": "money-out-of-politics"
-        },
-        "suggested": {
-          "collectionId": "fundable-projects",
-          "groupId": "government-accountability",
-          "statementId": "expose-corruption-and-waste"
-        },
-        "reason": "Seeded local-dev suggestion: another statement in Government accountability and political reform.",
-        "confidence": 0.6
-      },
-      {
-        "target": {
-          "collectionId": "fundable-projects",
-          "groupId": "government-accountability",
-          "statementId": "end-revolving-door"
-        },
-        "suggested": {
-          "collectionId": "fundable-projects",
-          "groupId": "government-accountability",
-          "statementId": "expose-corruption-and-waste"
-        },
-        "reason": "Seeded local-dev suggestion: another statement in Government accountability and political reform.",
-        "confidence": 0.6
-      },
-      {
-        "target": {
-          "collectionId": "fundable-projects",
-          "groupId": "government-accountability",
-          "statementId": "better-voting-systems"
-        },
-        "suggested": {
-          "collectionId": "fundable-projects",
-          "groupId": "government-accountability",
-          "statementId": "expose-corruption-and-waste"
-        },
-        "reason": "Seeded local-dev suggestion: another statement in Government accountability and political reform.",
-        "confidence": 0.6
-      },
-      {
-        "target": {
-          "collectionId": "fundable-projects",
-          "groupId": "government-accountability",
-          "statementId": "break-regulatory-capture"
-        },
-        "suggested": {
-          "collectionId": "fundable-projects",
-          "groupId": "government-accountability",
-          "statementId": "expose-corruption-and-waste"
-        },
-        "reason": "Seeded local-dev suggestion: another statement in Government accountability and political reform.",
-        "confidence": 0.6
-      },
-      {
-        "target": {
-          "collectionId": "fundable-projects",
-          "groupId": "civil-liberties",
-          "statementId": "free-speech-unpopular-speech"
-        },
-        "suggested": {
-          "collectionId": "fundable-projects",
-          "groupId": "civil-liberties",
-          "statementId": "censorship-resistant-publishing"
-        },
-        "reason": "Seeded local-dev suggestion: another statement in Civil liberties / free speech / digital rights.",
-        "confidence": 0.6
-      },
-      {
-        "target": {
-          "collectionId": "fundable-projects",
-          "groupId": "civil-liberties",
-          "statementId": "censorship-resistant-publishing"
-        },
-        "suggested": {
-          "collectionId": "fundable-projects",
-          "groupId": "civil-liberties",
-          "statementId": "free-speech-unpopular-speech"
-        },
-        "reason": "Seeded local-dev suggestion: another statement in Civil liberties / free speech / digital rights.",
-        "confidence": 0.6
-      },
-      {
-        "target": {
-          "collectionId": "fundable-projects",
-          "groupId": "civil-liberties",
-          "statementId": "protect-from-surveillance"
-        },
-        "suggested": {
-          "collectionId": "fundable-projects",
-          "groupId": "civil-liberties",
-          "statementId": "free-speech-unpopular-speech"
-        },
-        "reason": "Seeded local-dev suggestion: another statement in Civil liberties / free speech / digital rights.",
-        "confidence": 0.6
-      },
-      {
-        "target": {
-          "collectionId": "fundable-projects",
-          "groupId": "civil-liberties",
-          "statementId": "privacy-tools-for-ordinary-people"
-        },
-        "suggested": {
-          "collectionId": "fundable-projects",
-          "groupId": "civil-liberties",
-          "statementId": "free-speech-unpopular-speech"
-        },
-        "reason": "Seeded local-dev suggestion: another statement in Civil liberties / free speech / digital rights.",
-        "confidence": 0.6
       }
     ]
   },
   "implicationFinder": {
     "pairs": [
+      {
+        "from": {
+          "collectionId": "christian-secular-bridge",
+          "groupId": "abortion",
+          "statementId": "commonality"
+        },
+        "to": {
+          "collectionId": "christian-secular-bridge",
+          "groupId": "abortion",
+          "statementId": "modified-christian"
+        },
+        "reason": "Seeded implication-finder candidate from christian-secular-bridge/abortion."
+      },
+      {
+        "from": {
+          "collectionId": "christian-secular-bridge",
+          "groupId": "abortion",
+          "statementId": "modified-christian"
+        },
+        "to": {
+          "collectionId": "christian-secular-bridge",
+          "groupId": "abortion",
+          "statementId": "modified-secular"
+        },
+        "reason": "Seeded implication-finder candidate from christian-secular-bridge/abortion."
+      },
+      {
+        "from": {
+          "collectionId": "christian-secular-bridge",
+          "groupId": "abortion",
+          "statementId": "modified-secular"
+        },
+        "to": {
+          "collectionId": "christian-secular-bridge",
+          "groupId": "abortion",
+          "statementId": "natural-christian"
+        },
+        "reason": "Seeded implication-finder candidate from christian-secular-bridge/abortion."
+      },
+      {
+        "from": {
+          "collectionId": "christian-secular-bridge",
+          "groupId": "abortion",
+          "statementId": "natural-christian"
+        },
+        "to": {
+          "collectionId": "christian-secular-bridge",
+          "groupId": "abortion",
+          "statementId": "natural-secular"
+        },
+        "reason": "Seeded implication-finder candidate from christian-secular-bridge/abortion."
+      },
+      {
+        "from": {
+          "collectionId": "christian-secular-bridge",
+          "groupId": "lgbt",
+          "statementId": "commonality"
+        },
+        "to": {
+          "collectionId": "christian-secular-bridge",
+          "groupId": "lgbt",
+          "statementId": "modified-christian"
+        },
+        "reason": "Seeded implication-finder candidate from christian-secular-bridge/lgbt."
+      },
+      {
+        "from": {
+          "collectionId": "christian-secular-bridge",
+          "groupId": "lgbt",
+          "statementId": "modified-christian"
+        },
+        "to": {
+          "collectionId": "christian-secular-bridge",
+          "groupId": "lgbt",
+          "statementId": "modified-secular"
+        },
+        "reason": "Seeded implication-finder candidate from christian-secular-bridge/lgbt."
+      },
+      {
+        "from": {
+          "collectionId": "christian-secular-bridge",
+          "groupId": "lgbt",
+          "statementId": "modified-secular"
+        },
+        "to": {
+          "collectionId": "christian-secular-bridge",
+          "groupId": "lgbt",
+          "statementId": "natural-christian"
+        },
+        "reason": "Seeded implication-finder candidate from christian-secular-bridge/lgbt."
+      },
+      {
+        "from": {
+          "collectionId": "christian-secular-bridge",
+          "groupId": "lgbt",
+          "statementId": "natural-christian"
+        },
+        "to": {
+          "collectionId": "christian-secular-bridge",
+          "groupId": "lgbt",
+          "statementId": "natural-secular"
+        },
+        "reason": "Seeded implication-finder candidate from christian-secular-bridge/lgbt."
+      },
+      {
+        "from": {
+          "collectionId": "christian-secular-bridge",
+          "groupId": "markets",
+          "statementId": "commonality"
+        },
+        "to": {
+          "collectionId": "christian-secular-bridge",
+          "groupId": "markets",
+          "statementId": "modified-christian"
+        },
+        "reason": "Seeded implication-finder candidate from christian-secular-bridge/markets."
+      },
+      {
+        "from": {
+          "collectionId": "christian-secular-bridge",
+          "groupId": "markets",
+          "statementId": "modified-christian"
+        },
+        "to": {
+          "collectionId": "christian-secular-bridge",
+          "groupId": "markets",
+          "statementId": "modified-secular"
+        },
+        "reason": "Seeded implication-finder candidate from christian-secular-bridge/markets."
+      },
+      {
+        "from": {
+          "collectionId": "christian-secular-bridge",
+          "groupId": "markets",
+          "statementId": "modified-secular"
+        },
+        "to": {
+          "collectionId": "christian-secular-bridge",
+          "groupId": "markets",
+          "statementId": "natural-christian"
+        },
+        "reason": "Seeded implication-finder candidate from christian-secular-bridge/markets."
+      },
+      {
+        "from": {
+          "collectionId": "christian-secular-bridge",
+          "groupId": "markets",
+          "statementId": "natural-christian"
+        },
+        "to": {
+          "collectionId": "christian-secular-bridge",
+          "groupId": "markets",
+          "statementId": "natural-secular"
+        },
+        "reason": "Seeded implication-finder candidate from christian-secular-bridge/markets."
+      },
       {
         "from": {
           "collectionId": "content-funding",
@@ -993,162 +1163,6 @@
           "statementId": "cross-church-coordination"
         },
         "reason": "Seeded implication-finder candidate from fundable-projects/faith-civil-society-and-charitable-coordination."
-      },
-      {
-        "from": {
-          "collectionId": "fundable-projects",
-          "groupId": "faith-civil-society-and-charitable-coordination",
-          "statementId": "cross-church-coordination"
-        },
-        "to": {
-          "collectionId": "fundable-projects",
-          "groupId": "faith-civil-society-and-charitable-coordination",
-          "statementId": "faith-based-charitable-work"
-        },
-        "reason": "Seeded implication-finder candidate from fundable-projects/faith-civil-society-and-charitable-coordination."
-      },
-      {
-        "from": {
-          "collectionId": "fundable-projects",
-          "groupId": "faith-civil-society-and-charitable-coordination",
-          "statementId": "faith-based-charitable-work"
-        },
-        "to": {
-          "collectionId": "fundable-projects",
-          "groupId": "faith-civil-society-and-charitable-coordination",
-          "statementId": "religious-freedom"
-        },
-        "reason": "Seeded implication-finder candidate from fundable-projects/faith-civil-society-and-charitable-coordination."
-      },
-      {
-        "from": {
-          "collectionId": "fundable-projects",
-          "groupId": "finding-common-ground",
-          "statementId": "charitable-cross-partisan-content"
-        },
-        "to": {
-          "collectionId": "fundable-projects",
-          "groupId": "finding-common-ground",
-          "statementId": "common-ground-across-divides"
-        },
-        "reason": "Seeded implication-finder candidate from fundable-projects/finding-common-ground."
-      },
-      {
-        "from": {
-          "collectionId": "fundable-projects",
-          "groupId": "finding-common-ground",
-          "statementId": "common-ground-across-divides"
-        },
-        "to": {
-          "collectionId": "fundable-projects",
-          "groupId": "finding-common-ground",
-          "statementId": "identify-political-agreement"
-        },
-        "reason": "Seeded implication-finder candidate from fundable-projects/finding-common-ground."
-      },
-      {
-        "from": {
-          "collectionId": "fundable-projects",
-          "groupId": "finding-common-ground",
-          "statementId": "identify-political-agreement"
-        },
-        "to": {
-          "collectionId": "fundable-projects",
-          "groupId": "finding-common-ground",
-          "statementId": "inform-not-inflame"
-        },
-        "reason": "Seeded implication-finder candidate from fundable-projects/finding-common-ground."
-      },
-      {
-        "from": {
-          "collectionId": "fundable-projects",
-          "groupId": "finding-common-ground",
-          "statementId": "inform-not-inflame"
-        },
-        "to": {
-          "collectionId": "fundable-projects",
-          "groupId": "finding-common-ground",
-          "statementId": "reduce-tribal-polarization"
-        },
-        "reason": "Seeded implication-finder candidate from fundable-projects/finding-common-ground."
-      },
-      {
-        "from": {
-          "collectionId": "fundable-projects",
-          "groupId": "funding-infrastructure-itself",
-          "statementId": "better-infrastructure-for-public-goods"
-        },
-        "to": {
-          "collectionId": "fundable-projects",
-          "groupId": "funding-infrastructure-itself",
-          "statementId": "decentralized-philanthropy"
-        },
-        "reason": "Seeded implication-finder candidate from fundable-projects/funding-infrastructure-itself."
-      },
-      {
-        "from": {
-          "collectionId": "fundable-projects",
-          "groupId": "funding-infrastructure-itself",
-          "statementId": "decentralized-philanthropy"
-        },
-        "to": {
-          "collectionId": "fundable-projects",
-          "groupId": "funding-infrastructure-itself",
-          "statementId": "donation-transparency-and-accountability"
-        },
-        "reason": "Seeded implication-finder candidate from fundable-projects/funding-infrastructure-itself."
-      },
-      {
-        "from": {
-          "collectionId": "fundable-projects",
-          "groupId": "funding-infrastructure-itself",
-          "statementId": "donation-transparency-and-accountability"
-        },
-        "to": {
-          "collectionId": "fundable-projects",
-          "groupId": "funding-infrastructure-itself",
-          "statementId": "reduce-charitable-overhead"
-        },
-        "reason": "Seeded implication-finder candidate from fundable-projects/funding-infrastructure-itself."
-      },
-      {
-        "from": {
-          "collectionId": "fundable-projects",
-          "groupId": "funding-infrastructure-itself",
-          "statementId": "reduce-charitable-overhead"
-        },
-        "to": {
-          "collectionId": "fundable-projects",
-          "groupId": "funding-infrastructure-itself",
-          "statementId": "tools-for-collective-action-without-central-org"
-        },
-        "reason": "Seeded implication-finder candidate from fundable-projects/funding-infrastructure-itself."
-      },
-      {
-        "from": {
-          "collectionId": "fundable-projects",
-          "groupId": "government-accountability",
-          "statementId": "better-voting-systems"
-        },
-        "to": {
-          "collectionId": "fundable-projects",
-          "groupId": "government-accountability",
-          "statementId": "break-regulatory-capture"
-        },
-        "reason": "Seeded implication-finder candidate from fundable-projects/government-accountability."
-      },
-      {
-        "from": {
-          "collectionId": "fundable-projects",
-          "groupId": "government-accountability",
-          "statementId": "break-regulatory-capture"
-        },
-        "to": {
-          "collectionId": "fundable-projects",
-          "groupId": "government-accountability",
-          "statementId": "congressional-term-limits"
-        },
-        "reason": "Seeded implication-finder candidate from fundable-projects/government-accountability."
       }
     ]
   }

@@ -35,6 +35,10 @@ We probably don't need hundreds of statements (although that's not out of the qu
 
 See [content patterns](../content-patterns/README.md) for the kinds of content we expect and hope to see. The seed set should include:
 
+### Simple public-goods planks (no bridging)
+
+Signable independent wants for OSS and local food, including geographic parents so county work can roll up onto a province board without an `any` combinator. See [simple-causes.md](./simple-causes.md). Tiny seed still uses the explorer slogan for the garden project.
+
 ### Top-level fundable-project interest areas
 
 Entry points for the [fundable-project explorer](../explorer.md) (see [fundable projects seed content](./fundable-projects.md)).

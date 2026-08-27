@@ -10,7 +10,9 @@ When an item from this page is done and no longer needs an LLM implementor's att
 
 ----
 
-- **(Ask)** After Adam picks the next statement-generation step ([handoff](continuity/2026-08-27-statement-generation.md)): copy exercise 1 into `seed-content/` (do not load `statement-generation-exercises/` via `loadSeedCollections`) and/or run curriculum exercise 2 (left/right compromise triple). Process: [statement-generation.md](fake-data-generation/statement-generation.md).
+- **(Ask)** Geographic rollup for nested places is **not settled**. Live attester flips on `more farmers' markets in Grey` → `more … in Ontario` (container vs throughout). Seed workaround (drop `more` on that parent) is not the protocol. Rejected: `somewhere in REGION` (does not nest); `any` over counties (closed set). Decide attester clarification vs refuse `more→more` geo vs other. Do not implement without asking. Notes: [statement-generation.md](fake-data-generation/statement-generation.md) Open section. Handoff: [continuity/2026-08-27-statement-generation.md](continuity/2026-08-27-statement-generation.md).
+
+- **(Ask)** Statement-generation next: curriculum **exercise 2** — one left/right compromise-in-the-middle triple (canonical abortion or immigration wording from [hidden-majority-patterns](docs/end-user/common-sense-majority/hidden-majority-patterns.md); do not fork a second abortion text). Exercise 1 is in [`seed-content/simple-causes.json`](fake-data-generation/seed-content/simple-causes.json). Process: [statement-generation.md](fake-data-generation/statement-generation.md).
 
 - **(Tell)** After folding CauseStarter into `ui/src/causestarter/`, leftover package
   glue still talks as if `causestarter/src` is the SPA: `causestarter/vite.config.ts`

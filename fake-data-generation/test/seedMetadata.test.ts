@@ -153,6 +153,21 @@ test('seed content contracts leave a mixed attested/unattested batch for the cau
   assert.notEqual(attested[0], 'twitter:uid:111111111:1000000000000000002');
 });
 
+test('simple-causes seed collection copies the accepted exercise-1 plank texts', async () => {
+  const records = flattenSeedStatements(await loadSeedCollections());
+  const grey = records.find((record) =>
+    record.collection.id === 'simple-causes'
+    && record.statement.id === 'csa-grey-county-ontario');
+  const ontario = records.find((record) =>
+    record.collection.id === 'simple-causes'
+    && record.statement.id === 'csa-ontario');
+  assert.ok(grey);
+  assert.ok(ontario);
+  assert.equal(grey.statement.text, 'I want more community-supported agriculture in Grey County, Ontario.');
+  assert.equal(ontario.statement.text, 'I want more community-supported agriculture in Ontario.');
+  assert.equal(ontario.statement.role, 'geo-parent');
+});
+
 test('local-food-systems seed ref matches the mapping keys used by tiny seed injection', async () => {
   const records = flattenSeedStatements(await loadSeedCollections());
   const plank = records.find((record) =>

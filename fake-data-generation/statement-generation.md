@@ -115,11 +115,37 @@ Wording: child names the nested place **and** the containing region
 dropped — a location container (“in Ontario”), not “throughout Ontario”
 or “every county.” Designed-yes: child → parent. Designed-no: parent →
 child. Non-transitive: a Canada board needs Grey → Canada as its own
-edge. `/check-implications` those pairs; if the attester refuses, the
-parent picked up a universal. See
+edge. See
 [shaping your cause’s statements](/docs/founder/shaping-your-cause-statements.md)
 (inbound arrows populate the board) and the implication-attester
 hierarchy / conjunction rules.
+
+**Open (Ask — do not paper over in seed).** Live attester on
+`npm run gen:seed:simple-causes-implications`: CSA `more … in Grey` →
+`more … in Ontario` blesses; the same shape with farmers' markets
+**flips** (hierarchy vs “you did not commit to markets in the rest of
+the province”). Seed currently drops `more` on the farmers-market
+Ontario parent (`I want farmers' markets in Ontario`) so the check
+passes. That is a **workaround**, not the protocol.
+
+Discussed and **not** adopted:
+
+- Teach the attester that `in REGION` always means a container (unless
+  S2 says throughout / every). Might be right; not decided.
+- Make the attester *more* finicky and prescribe `somewhere in REGION`
+  (or drop `more` only on parents). Rejected: `somewhere` marks a *role*
+  (parent). Nested geography is a *path* — Grey is both child of Ontario
+  and parent of Chatsworth — so a parent-only dialect does not nest.
+  Sibling counties (Grey vs Durham) are two children of Ontario, not two
+  `somewhere`s on one plank.
+- `any` combinator over known counties. Closed set; new X never joins;
+  reminting is a new CID. `all` has the wrong arrows for boards
+  (outbound, not inbound). Do not use combinators for a location ladder.
+
+Until Adam picks: do not treat the farmers-market existence parent as
+the template to copy; do not change the attester prompt; do not mint
+geo `any`s. Recheck script: `evaluateSimpleCauses.ts`. Handoff:
+[`continuity/2026-08-27-statement-generation.md`](../continuity/2026-08-27-statement-generation.md).
 
 ## Gold set
 
@@ -129,9 +155,11 @@ generation that fails gold is a prompt/process bug, not “more seed.”
 Gold for **simple-cause shape** is the current texts in
 [`statement-generation-exercises/01-simple-causes.json`](./statement-generation-exercises/01-simple-causes.json)
 (Adam, 2026-08-27: viable to sign and to attest alignment; list not complete
-for every variation). They are **not** live `seed-content` until copied.
+for every variation). Live copy: [`seed-content/simple-causes.json`](./seed-content/simple-causes.json).
+`loadSeedCollections` still does not read the exercises directory.
 Tiny-seed uniques (scripture-in-every-language; colorblind merit) remain a
-style target for camp uniques.
+style target for camp uniques. Designed Grey → Ontario / topical pairs:
+`npm run gen:seed:simple-causes-implications`.
 
 ## Volume
 
@@ -151,6 +179,6 @@ failed the same checks.
 
 | # | Status | What |
 |---|---|---|
-| 1 | **Statements accepted as useful** (2026-08-27). Not in `seed-content`. List not complete. | Simple causes: wants, earmark grain (kind + place), geographic parents. [`statement-generation-exercises/01-simple-causes.json`](./statement-generation-exercises/01-simple-causes.json). Handoff: [`continuity/2026-08-27-statement-generation.md`](../continuity/2026-08-27-statement-generation.md). |
+| 1 | **In `seed-content/simple-causes.json`** (copied 2026-08-27). Gold set still in the exercises file. List not complete. **Geo rollup still open** (see Open section). | Simple causes: wants, earmark grain (kind + place), geographic parents. Designed Grey → Ontario pairs: `npm run gen:seed:simple-causes-implications`. Handoff: [`continuity/2026-08-27-statement-generation.md`](../continuity/2026-08-27-statement-generation.md). |
 | 2 | Not started | One left/right abortion or immigration triple through the full loop, compared to the patterns-page canonical wording. |
 | 3 | Not started | Gate cause-assist suggestions on the same checks. |

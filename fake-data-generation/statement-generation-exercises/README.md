@@ -6,4 +6,4 @@ Draft corpora for the loop in [`../statement-generation.md`](../statement-genera
 
 | File | Exercise |
 |---|---|
-| [`01-simple-causes.json`](./01-simple-causes.json) | OSS + local food. Adam 2026-08-27: statements themselves look useful. Not copied into `seed-content` yet. |
+| [`01-simple-causes.json`](./01-simple-causes.json) | OSS + local food. Gold-set texts. Live copy: [`../seed-content/simple-causes.json`](../seed-content/simple-causes.json). |

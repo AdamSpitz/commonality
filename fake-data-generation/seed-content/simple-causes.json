@@ -1,14 +1,13 @@
 {
   "format": "commonality-seed-content-v1",
-  "id": "statement-generation-exercise-01",
-  "title": "Exercise 1 — simple causes, no bridging",
-  "description": "Simple-cause wants (OSS + local food), earmark grain, geographic parents. Adam 2026-08-27: statements feel viable to sign and to attest project alignment; list is not a complete catalog of variation. Gold set; live copy is seed-content/simple-causes.json. This file is not loaded by loadSeedCollections. No triples.",
+  "id": "simple-causes",
+  "title": "Simple public-goods causes (no bridging)",
+  "description": "Signable independent planks for OSS and local food: outcome wants, earmark grain (kind + place), geographic parents. Copied from statement-generation-exercises/01-simple-causes.json after Adam accepted the texts (2026-08-27). Not a complete catalog of variation. No triples.",
   "notes": [
-    "Curriculum step 1: independent signable planks. Process: fake-data-generation/statement-generation.md.",
-    "Adam 2026-08-26: do not assert 'X is a public good'; say you want more X.",
-    "Adam 2026-08-26: do not write 'I want people who do X to get paid'. Paying is the system's job.",
-    "Adam 2026-08-26: earmark grain is a ladder on more than one axis. Software: kind (Linux desktop, Ethereum-based gaming). Food: kind of system *and* place ('I want more CSA in Grey County, Ontario').",
-    "Copied into seed-content/simple-causes.json. Tiny seed still aligns the garden project to the explorer slogan in fundable-projects.json."
+    "Curriculum step 1. Process: fake-data-generation/statement-generation.md.",
+    "Want the outcome; do not classify it as a public good. Do not plank payroll.",
+    "Earmark grain is a ladder on more than one axis (kind of software / kind of food system / place).",
+    "Tiny seed still aligns Riverside Community Garden to fundable-projects/local-community/local-food-systems (explorer slogan). These planks are additional signable wants, not a silent replacement of that CID."
   ],
   "groups": [
     {
@@ -63,11 +62,11 @@
       "id": "local-food-planks",
       "title": "Local food systems (signable planks, not explorer slogans)",
       "notes": [
-        "Mechanism grain (gardens, markets, CSA, farms, shorter chains) is the food analog of 'kind of software'. Place grain is often the useful earmark: CSA in Grey County, Ontario. Kind-of-food (e.g. local dairy) is allowed the same way Linux desktop is.",
+        "Mechanism grain (gardens, markets, CSA, farms, shorter chains) is the food analog of 'kind of software'. Place grain is often the useful earmark: CSA in Grey County, Ontario.",
         "Geographic parents: Ontario CSA / Ontario farmers' markets are location containers so county projects roll up onto those boards (inbound implication). Not an any-combinator over counties."
       ],
       "implicationNotes": [
-        "Designed yes: csa-grey-county-ontario → csa-ontario (narrower geography); csa-grey-county-ontario → community-supported-agriculture (conjunction → topical parent); csa-ontario → community-supported-agriculture; farmers-markets-grey-county-ontario → farmers-markets-ontario; farmers-markets-grey-county-ontario → farmers-markets.",
+        "Designed yes: csa-grey-county-ontario → csa-ontario (narrower geography); csa-grey-county-ontario → community-supported-agriculture (conjunction → topical parent); csa-ontario → community-supported-agriculture; farmers-markets-grey-county-ontario → farmers-markets-ontario; farmers-markets-grey-county-ontario → farmers-markets; farmers-markets-ontario → farmers-markets.",
         "Designed no: csa-ontario → csa-grey-county-ontario; community-supported-agriculture → csa-ontario; community-supported-agriculture → csa-grey-county-ontario; farmers-markets-ontario → farmers-markets-grey-county-ontario. Canada CSA would need its own direct Grey → Canada edge (non-transitive)."
       ],
       "statements": [
@@ -81,7 +80,7 @@
           "role": "unique",
           "text": "I want more farmers' markets.",
           "notes": [
-            "Topical parent. Mechanism wording lives on farmers-markets-direct-connect so Grey → this parent is only place dropped."
+            "Topical parent for place-specific farmers' market wants. The longer 'connect local growers' mechanism is a sibling unique, not this parent — Grey cannot imply extra mechanism."
           ]
         },
         {
@@ -94,7 +93,7 @@
           "role": "geo-parent",
           "text": "I want farmers' markets in Ontario.",
           "notes": [
-            "WORKAROUND, not the nestable protocol. Geographic containment vs attester still Ask — see statement-generation.md Open section."
+            "WORKAROUND, not the nestable protocol: dropped 'more' after live attester flipped on 'I want more farmers' markets in Ontario'. Geographic containment vs attester is still Ask — see statement-generation.md Open section. Do not copy this as the parent template."
           ]
         },
         {
