@@ -10,13 +10,6 @@ When an item from this page is done and no longer needs an LLM implementor's att
 
 ----
 
-- Keep working [code-base cleanup Slice F](workflow/code-base-cleanup-plan.md)
-  one oversized file per session (one PR per god-module). `eventDecoder.ts`
-  is already split — pick the next remaining file in that subsection. Do not
-  boil the ocean; skip anything already on this list, [inbox.md](inbox.md), or
-  [causestarter/TODO.md](causestarter/TODO.md). When Slice F has no remaining
-  files, delete that subsection from the plan and this item.
-
 - **(Tell)** Refresh `data/seed-implication-evaluations.original-variants.json`
   against the current implication-attester prompt fingerprint. The prompt now
   rejects nested-place geographic rollup (Grey County → Ontario is a worked
