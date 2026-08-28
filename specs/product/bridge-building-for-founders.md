@@ -124,7 +124,7 @@ Two components, parameterized by nudger address + service URL rather than by CSM
 - **Mediator opt-in block** — generalize `csmMediatorNudger.ts` to take name, description, and
   address from cause config, and produce the existing `?addNudger=…` deep link.
 
-In CauseStarter this becomes an entry in `SUPPORTING_TOOLS` (`causestarter/src/lib/tools.ts`)
+In CauseStarter this becomes an entry in `SUPPORTING_TOOLS` (`ui/src/causestarter/lib/tools.ts`)
 plus a field on the cause record pointing at the founder's mediator address and service URL.
 
 ### Tier 4 — The beat-agent dependency

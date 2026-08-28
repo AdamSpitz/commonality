@@ -1,6 +1,6 @@
 /**
  * Lift this tick's statement triples into a CauseStarter-compatible bridge cluster
- * when the mediator named parent causes. Same extras kinds as causestarter/src/lib/bridgeCluster.ts
+ * when the mediator named parent causes. Same extras kinds as ui/src/causestarter/lib/bridgeCluster.ts
  * and causeRoster.ts so /bridge/:owner/:slug can load them.
  */
 

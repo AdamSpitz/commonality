@@ -24,11 +24,6 @@ When an item from this page is done and no longer needs an LLM implementor's att
 
 - **(Ask)** Statement-generation exercise 2: abortion cutoff triple is in [`fake-data-generation/statement-generation-exercises/02-compromise-abortion.json`](fake-data-generation/statement-generation-exercises/02-compromise-abortion.json); modified-right was thickened after the attester refused the old text. Next: confirm attester blesses both modifieds, run `/critique-triple`, then Adam accept/reject before `seed-content/`.
 
-- **(Tell)** After folding CauseStarter into `ui/src/causestarter/`, leftover package
-  glue still talks as if `causestarter/src` is the SPA: `causestarter/vite.config.ts`
-  is unused, Compose/Docker docs mix `:8090` and `:5174`, and some verifier prompts
-  may still cite deleted paths. Sweep when touching local-dev docs.
-
 - Add a fresh-stack integration test for the alignment-trust bootstrap: publish
   an alignment vouch from a previously unknown wallet, observe the service's
   `TrustSet(..., 100)`, confirm a wallet with no personal graph sees that vouch

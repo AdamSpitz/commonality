@@ -34,8 +34,8 @@ A human tick is **republish**. An LLM tick is the existing synthesizer schedule.
 
 ## What is already true in code
 
-- Cluster publish records `mediatorAddress` (the connected wallet). See `causestarter/src/lib/bridgeCluster.ts`.
-- `publishParentToModifiedNudges` (`causestarter/src/lib/bridgeNudges.ts`) writes a `schemaVersion` 1 `nudge-batch` under that address onto `NudgePublications` — same path as the service.
+- Cluster publish records `mediatorAddress` (the connected wallet). See `ui/src/causestarter/lib/bridgeCluster.ts`.
+- `publishParentToModifiedNudges` (`ui/src/causestarter/lib/bridgeNudges.ts`) writes a `schemaVersion` 1 `nudge-batch` under that address onto `NudgePublications` — same path as the service.
 - The UI refuses to invent parent→modified pairs.
 - `CauseMediatorCard` / `mediatorNudgerFromCause` (`ui/src/shared/nudges/mediatorNudger.ts`) **refuse opt-in without `serviceUrl`**. That is the gap this spec closes for humans.
 - `TrustedNudgerEntry.serviceUrl` is already optional in the store (`ui/src/shared/hooks/useTrustedNudgers.ts`). `getMediatorOptInPath` already omits `nudgerServiceUrl` when absent. Tally Settings `?addNudger=` already keys on address.
@@ -51,7 +51,7 @@ When a slice is done, delete its bullet here (this spec’s list is the living b
 
 ### Slice 1 — Cluster opt-in (the original gap)
 
-- [x] On `/bridge/:owner/:slug` (`causestarter/src/pages/BridgeClusterPage.tsx`), add an opt-in control for `mediatorAddress` equivalent to `CauseMediatorCard`: toggle `addTrustedNudger` / `removeTrustedNudger` in the shared store. Do **not** require `serviceUrl`. Use a name/description from the cluster document (mediator label, title, or a short default). Copy: you are listening to **this mediator**, not bookmarking the page; later suggestions appear if they publish again. (`ClusterMediatorOptIn`)
+- [x] On `/bridge/:owner/:slug` (`ui/src/causestarter/pages/BridgeClusterPage.tsx`), add an opt-in control for `mediatorAddress` equivalent to `CauseMediatorCard`: toggle `addTrustedNudger` / `removeTrustedNudger` in the shared store. Do **not** require `serviceUrl`. Use a name/description from the cluster document (mediator label, title, or a short default). Copy: you are listening to **this mediator**, not bookmarking the page; later suggestions appear if they publish again. (`ClusterMediatorOptIn`)
 - [x] Reuse or extend `mediatorNudgerFromCause` so an address + name is enough (`serviceUrl` optional). `serviceMediatorFromCause` still requires a URL for attached-service cards. `CauseMediatorCard` uses the latter.
 - [x] Deep link: `clusterMediatorOptInPath` / `getMediatorOptInPath` omit `nudgerServiceUrl` when there is no service. `NudgerSettingsSection` already keys on `addNudger` and treats `nudgerServiceUrl` as optional.
 - [x] Tests: `mediatorNudger.test.ts`, `ClusterMediatorOptIn.test.tsx`, `CauseMediatorCard.test.tsx` (still disabled without URL).
