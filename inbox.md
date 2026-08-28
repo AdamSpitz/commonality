@@ -17,6 +17,8 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 ## Main list
 
+- **(Tell)** Combinator statement pages no longer wait on operand IPFS reads before painting. CauseStarter and Conceptspace `StatementPage`s show the combinator (CID fallbacks) immediately; operand bodies fill in as they resolve. Navigation-stale writes on the rest of Conceptspace's loader are still unguarded (separate TODO).
+
 - **(Tell)** Production OpenRouter services (attesters, service-host, cause-assist, coherence-badge-worker) now default to `deepseek/deepseek-v4-flash-0731` via `PRODUCTION_OPENROUTER_MODEL`. Laptop scripts use the same id through a separate `DEV_OPENROUTER_MODEL` env / `fake-data-generation/devOpenRouter.ts`. Cause-assist prefers OpenRouter over xAI when both keys exist. Update Render dashboard if those env vars were set by hand.
 
 - **(Tell)** Statement-generation exercise 2: first attester pass refused modified-right → commonality (no cutoff). Thickened modified-right on [hidden-majority-patterns.md](docs/end-user/common-sense-majority/hidden-majority-patterns.md) (also bridge-creator + exercise JSON). Re-run: both modifieds → commonality yes/high; both naturals → commonality no/high. Still not in `seed-content/`; `/critique-triple` not run.

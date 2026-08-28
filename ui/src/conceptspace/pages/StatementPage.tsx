@@ -72,22 +72,21 @@ export function StatementPage() {
       setContentStatus(result.contentStatus)
 
       const combinator = result.content ? parseCombinatorStatement(result.content) : null
+      setReferencedDocuments({})
       if (combinator) {
-        const operands: Record<string, DisplayableDocument | null> = {}
-        await Promise.all(combinator.operandCids.map(async (cid) => {
+        // Operand bodies fill in after the page paints; the renderer already
+        // falls back to the CID until each read resolves.
+        void Promise.all(combinator.operandCids.map(async (cid) => {
+          let body: DisplayableDocument | null = null
           try {
             const operand = await getStatementWithContent(machinery, cid as IpfsCidV1)
-            operands[cid] = operand?.content ?? null
+            body = operand?.content ?? null
           } catch {
-            operands[cid] = null
+            body = null
           }
+          if (loadToken !== loadTokenRef.current) return
+          setReferencedDocuments((prev) => ({ ...prev, [cid]: body }))
         }))
-        // Operand reads outlive a navigation; a late resolve must not paint one
-        // statement's operands onto another.
-        if (loadToken !== loadTokenRef.current) return
-        setReferencedDocuments(operands)
-      } else {
-        setReferencedDocuments({})
       }
 
       if (!result.content && result.statement.cid) {

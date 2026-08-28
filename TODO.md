@@ -56,15 +56,6 @@ When an item from this page is done and no longer needs an LLM implementor's att
 
 - Give the demo seed (`./scripts/data.sh --seed=demo`) more **local public-goods** coverage. One storyline now exists (see above), but rows A5 (federated regional) and E2 (nonprofit on the rails) in [use-cases.md](specs/product/use-cases.md) are still not demonstrable — and those are exactly the cases the strategy docs lean on hardest. Note also that the project-creation form ships "Community garden" / "Clean water" / "Learning circle" stock images that nothing in the seed uses. Found 2026-07-25 while verifying use-case statuses against the live UI.
 
-- Stop combinator operand reads from holding up the whole statement page. Both
-  `causestarter/src/pages/StatementPage.tsx` and
-  `ui/src/conceptspace/pages/StatementPage.tsx` fetch every operand body of a
-  combinator statement *before* clearing `loading`, so one slow IPFS read leaves the
-  reader staring at a spinner even though the statement's own content already
-  resolved. Paint the statement first and let the operand bodies fill in (they
-  already fall back to showing the CID), rather than blocking on `Promise.all`.
-  Found 2026-08-19 reviewing the combinator-statements branch.
-
 - Guard the rest of `ui/src/conceptspace/pages/StatementPage.tsx`'s loader against
   navigation. The operand fetch now checks a load token before writing, but the
   earlier `setStatement` / `setStatementContent` / `setContentStatus` / metrics /
