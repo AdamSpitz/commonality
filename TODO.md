@@ -56,10 +56,3 @@ When an item from this page is done and no longer needs an LLM implementor's att
 
 - Give the demo seed (`./scripts/data.sh --seed=demo`) more **local public-goods** coverage. One storyline now exists (see above), but rows A5 (federated regional) and E2 (nonprofit on the rails) in [use-cases.md](specs/product/use-cases.md) are still not demonstrable — and those are exactly the cases the strategy docs lean on hardest. Note also that the project-creation form ships "Community garden" / "Clean water" / "Learning circle" stock images that nothing in the seed uses. Found 2026-07-25 while verifying use-case statuses against the live UI.
 
-- Guard the rest of `ui/src/conceptspace/pages/StatementPage.tsx`'s loader against
-  navigation. The operand fetch now checks a load token before writing, but the
-  earlier `setStatement` / `setStatementContent` / `setContentStatus` / metrics /
-  `setUserBeliefState` writes are still unguarded, so a slow load that resolves after
-  the user has moved to another statement can paint stale content. Pre-existing, not
-  new to the combinator work; the same pattern is worth a sweep across the other
-  conceptspace pages. Found 2026-08-19.

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import {
   Box,
   Typography,
@@ -38,7 +38,14 @@ export function BrowseStatementsPage() {
 
   const machinery = useMachinery()
 
+  // Bumped on every load so a late async write can tell it has been superseded
+  // by a newer sort change.
+  const loadTokenRef = useRef(0)
+
   const loadStatements = useCallback(async (sort: SortOption) => {
+    const loadToken = loadTokenRef.current + 1
+    loadTokenRef.current = loadToken
+
     try {
       setLoading(true)
       setError(null)
@@ -46,9 +53,12 @@ export function BrowseStatementsPage() {
       const orderBy = sort === 'mostSupporters' ? 'believerCount' : 'createdAt'
       const statements = await browseStatements(machinery, { limit: 50, orderBy })
 
+      if (loadToken !== loadTokenRef.current) return
+
       setStatements(statements)
       setLoading(false)
     } catch (err) {
+      if (loadToken !== loadTokenRef.current) return
       console.error('Error loading statements:', err)
       setError(err instanceof Error ? err.message : 'Failed to load statements')
       setLoading(false)

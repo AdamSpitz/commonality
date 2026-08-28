@@ -33,7 +33,8 @@ export function StatementPage() {
   const [contentStatus, setContentStatus] = useState<StatementContentStatus>('unavailable')
   const [referencedDocuments, setReferencedDocuments] = useState<Record<string, DisplayableDocument | null>>({})
 
-  // Bumped on every load so a late operand read can tell it has been superseded.
+  // Bumped on every load so a late async write can tell it has been superseded
+  // by a newer navigation (e.g. the user moved to a different statement).
   const loadTokenRef = useRef(0)
 
   const machinery = useMachinery()
@@ -60,6 +61,8 @@ export function StatementPage() {
         includeMetrics: true,
         trustedAttesters,
       })
+
+      if (loadToken !== loadTokenRef.current) return
 
       if (!result) {
         setError('Statement not found')
@@ -104,11 +107,13 @@ export function StatementPage() {
 
       if (address) {
         const belief = await getUserBelief(machinery, address, statementCid)
+        if (loadToken !== loadTokenRef.current) return
         setUserBeliefState(belief?.beliefState ?? 0)
       }
 
       setLoading(false)
     } catch (err) {
+      if (loadToken !== loadTokenRef.current) return
       console.error('Error loading statement:', err)
       setError(err instanceof Error ? err.message : 'Failed to load statement')
       setLoading(false)
