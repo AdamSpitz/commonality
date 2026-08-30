@@ -117,7 +117,11 @@ export interface ContributorReimbursementState {
   projectAddress: string;
   contributor: string;
   currency: Currency;
+  /** Historical at-cost contribution basis after any amounts forgone/refunded. */
   earlyContribution: string;
+  /** Portion of the at-cost claim not yet converted into earned reimbursement. */
+  futureReimbursementClaim: string;
+  /** Earned, unwithdrawn reimbursement. */
   reimbursableAmount: string;
   withdrawnAmount: string;
   forgoneAmount: string;

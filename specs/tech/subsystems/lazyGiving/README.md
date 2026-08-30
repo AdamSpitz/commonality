@@ -13,7 +13,9 @@ Design decisions:
 
 ## Retroactive reimbursement
 
-LazyGiving projects do not deploy or use a secondary marketplace. Receipt transfers are disabled. Successful projects accept later donations through a pull-based, pro-rata reimbursement pool capped by each early contributor's original contribution. The generic `ERC1155SecondaryMarket` contract remains in the repository for legacy or non-LazyGiving uses, but it is not part of this product flow.
+LazyGiving projects do not deploy or use a secondary marketplace. Receipt transfers are disabled. Successful projects accept later donations through a pull-based, pro-rata reimbursement pool capped by each early contributor's original contribution. Scouts receive separate nontransferable ERC-20 future-reimbursement claim shares; recognition receipts do not carry the claim because normal donors receive the same receipts without reimbursement rights. Each later donation checkpoints value globally from future claims into reimbursement earned by the current claim holders. Forgoing burns only future claim, never reimbursement already earned. The global per-share accumulator keeps donations O(1); individual accounts settle lazily when they interact. The generic `ERC1155SecondaryMarket` contract remains in the repository for legacy or non-LazyGiving uses, but it is not part of this product flow.
+
+Claim-token transfers revert. Their transfer hook is checkpoint-aware only to preserve a technically coherent seam if counsel and a later product decision ever approve transferability; it does not change the reimbursement-only posture. See [ADR 0013](../../../decisions/0013-checkpointed-reimbursement-claim-tokens.md).
 
 ## SDK
 

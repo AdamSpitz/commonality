@@ -60,3 +60,4 @@ instance most needs answered and can't get anywhere else.
 | [0010](./0010-combinator-statements.md) | Combinator statements are the graph form of a promoted view | Accepted |
 | [0011](./0011-organizer-contact-is-pull.md) | Organizer contact is pull, not a message hub | Accepted |
 | [0012](./0012-mediator-is-an-address.md) | A mediator is an address; human and LLM are authors | Accepted |
+| [0013](./0013-checkpointed-reimbursement-claim-tokens.md) | Checkpointed reimbursement claim tokens | Accepted |

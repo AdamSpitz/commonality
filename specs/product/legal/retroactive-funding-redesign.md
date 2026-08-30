@@ -218,7 +218,7 @@ founder, and it drags every community UI into the regulated perimeter.
 ## Implementation status (Jul 2026)
 
 - **Done:** LazyGiving receipt transfers are disabled; its contribution actions no longer use the secondary market.
-- **Done:** assurance contracts implement capped `donateRetroactive`, pull-based pro-rata withdrawal, normal-donation/waiver, and reimbursement-forgoing paths. Donations stop at the outstanding reimbursable amount rather than overflowing to the project.
+- **Done:** assurance contracts implement capped `donateRetroactive`, pull-based pro-rata withdrawal, normal-donation/waiver, and reimbursement-forgoing paths. Nontransferable claim shares checkpoint later donations into reimbursement earned by the current holder; forgoing burns only the future claim. Donations stop at the outstanding reimbursable amount rather than overflowing to the project. This accounting refactor does not change the reimbursement-only legal posture; see [ADR 0013](../../decisions/0013-checkpointed-reimbursement-claim-tokens.md).
 - **Done:** SDK folds/actions and the LazyGiving UI expose outstanding reimbursement, withdrawal, forgoing, and “close the loop” donation flows.
 - **Done:** end-user LazyGiving and strategy documentation was rewritten around reimbursement and reputation.
 - **Residual:** generic secondary-market code and old resale language still exist elsewhere in the repository. They are not part of this LazyGiving flow, but stale specs must be corrected. *(Update 2026-08-05: the transferable content-item tokens named here were made non-transferable and the content-funding docs/specs/UI were scrubbed to match — see the rollout tracker's content-funding pass.)*

@@ -164,7 +164,7 @@ describe('ProjectDetailPage', () => {
     vi.mocked(getContributorReimbursementState).mockResolvedValue({
       projectAddress: mockProjectAddress, contributor: mockProjectAddress,
       currency: { kind: 'native', symbol: 'ETH', decimals: 18, tokenAddress: null, tokenType: 0 },
-      earlyContribution: '0', reimbursableAmount: '0', withdrawnAmount: '0', forgoneAmount: '0',
+      earlyContribution: '0', futureReimbursementClaim: '0', reimbursableAmount: '0', withdrawnAmount: '0', forgoneAmount: '0',
     })
     vi.mocked(approveERC1155ForOperator).mockResolvedValue('0xapprove' as any)
     mockAccount.address = undefined
