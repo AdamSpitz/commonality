@@ -103,6 +103,9 @@ export function UserProfilePage() {
 
   useEffect(() => {
     loadUserData()
+    return () => {
+      loadTokenRef.current += 1
+    }
   }, [loadUserData])
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {

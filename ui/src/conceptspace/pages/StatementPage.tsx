@@ -122,6 +122,9 @@ export function StatementPage() {
 
   useEffect(() => {
     loadStatementData()
+    return () => {
+      loadTokenRef.current += 1
+    }
   }, [loadStatementData])
 
   const handleBeliefChanged = useCallback(() => {

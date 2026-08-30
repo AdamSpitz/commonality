@@ -67,6 +67,9 @@ export function BrowseStatementsPage() {
 
   useEffect(() => {
     loadStatements(sortBy)
+    return () => {
+      loadTokenRef.current += 1
+    }
   }, [sortBy, loadStatements])
 
   const handleSortChange = (_: React.MouseEvent<HTMLElement>, newSort: SortOption | null) => {

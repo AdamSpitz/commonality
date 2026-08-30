@@ -10,6 +10,15 @@ When an item from this page is done and no longer needs an LLM implementor's att
 
 ----
 
+- Align `foldReimbursements` donation rounding with the contract’s per-share
+  accumulator (`accumulatedReimbursementPerClaimShare` / `mulDiv`). The fold
+  currently splits each donation with per-holder `claim * amount / outstanding`
+  integer division, then subtracts the full donation from `outstanding`, so UI
+  forgo/withdrawable caps can disagree with on-chain views by leftover wei.
+  Mirror the contract (scaled accumulator, or live view reads) and add a
+  remainder-aware test with two holders and a donation that does not divide
+  evenly. Found in review of `feature/combinator-operand-nonblocking-load`.
+
 - **(Tell)** Refresh `data/seed-implication-evaluations.original-variants.json`
   against the current implication-attester prompt fingerprint. The prompt now
   rejects nested-place geographic rollup (Grey County → Ontario is a worked
