@@ -22,8 +22,6 @@ When an item from this page is done and no longer needs an LLM implementor's att
   remains deferred per
   [belief-implication-board-inclusion-and-discovery.md](specs/product/belief-implication-board-inclusion-and-discovery.md).
 
-- **(Ask)** Statement-generation exercise 2: abortion cutoff triple is in [`fake-data-generation/statement-generation-exercises/02-compromise-abortion.json`](fake-data-generation/statement-generation-exercises/02-compromise-abortion.json); modified-right was thickened after the attester refused the old text. Next: confirm attester blesses both modifieds, run `/critique-triple`, then Adam accept/reject before `seed-content/`.
-
 - Add a fresh-stack integration test for the alignment-trust bootstrap: publish
   an alignment vouch from a previously unknown wallet, observe the service's
   `TrustSet(..., 100)`, confirm a wallet with no personal graph sees that vouch
@@ -50,4 +48,3 @@ When an item from this page is done and no longer needs an LLM implementor's att
 - Verify the new local public-goods demo-seed storyline against a live stack. `PROJECT_SEED_METADATA[0]` is now "Riverside Community Garden" (aligned to `fundable-projects`/`local-community`/`local-food-systems`), `DETERMINISTIC_SEED_PROJECT_ALIGNMENT_COUNT` is 6 so no existing storyline lost its alignment, and `gen:seed:local` runs 12 users to keep the success-attester pool satisfied. Unit tests pass, but the seed has still never been run end-to-end: `stack.fresh-seeded` now passes (2026-08-03) but it seeds `tiny`, not `demo`. Run `./scripts/data.sh --wipe && ./scripts/data.sh --seed=demo` and confirm in the UI that the garden project shows an alignment vouch, contributions, and a success attestation. Consider also regenerating `data/seed-worker-outputs.json` if the Explorer fixture should mention the new cause.
 
 - Give the demo seed (`./scripts/data.sh --seed=demo`) more **local public-goods** coverage. One storyline now exists (see above), but rows A5 (federated regional) and E2 (nonprofit on the rails) in [use-cases.md](specs/product/use-cases.md) are still not demonstrable — and those are exactly the cases the strategy docs lean on hardest. Note also that the project-creation form ships "Community garden" / "Clean water" / "Learning circle" stock images that nothing in the seed uses. Found 2026-07-25 while verifying use-case statuses against the live UI.
-

@@ -153,15 +153,23 @@ export const critiqueTripleStrategy: StatementStrategy<
 
 Also apply the implication-vs-nudge routing test. For each modified plank → bridge plank: if a reasonable signer of the modified would be annoyed at being asked to explicitly sign the bridge ("I already said that"), the pair should be an implication (containment). If they would not be annoyed, the modified does not contain the shared claim yet — object. If they would be annoyed but a different reasonable person would see a real extra claim in the bridge, do not treat that as containment; object that the pair is a nudge (or that the wording hides the delta), not an implication. Unreasonable annoyance is not a reason to bless an arrow.
 
+Containment is the intended modified → bridge relationship, not an objection. Each modified is supposed to contain its camp's reasons plus the thinner shared conclusion, while the bridge states only that shared conclusion. Never call a bridge "decorative" or object merely because either or both modifieds semantically contain or restate it; that is a successful triple. Object only when containment is absent, or when apparent containment was manufactured by copying the same shared sentence nearly verbatim into both modifieds. Different camp-specific prose that commits to the same conclusion is not subset-by-concatenation.
+
+A thinner bridge conclusion will normally be embedded in longer, camp-specific modified prose. Distilling that committed conclusion from the surrounding reasons is legitimate implication, not "selective quotation" or a nudge. Apply signer annoyance to what the signer substantively committed to, not whether the bridge appeared as a standalone sentence.
+
+For compromise-in-the-middle bridges, first-person willingness to accept a non-ideal policy and a desire to settle the dispute are substantive shared beliefs and may be signable parts of the bridge. Do not confuse those with a coalition caption. Coalition captions comment on the camps or their differing reasons (for example, "we come from different places"), rather than stating what the signer accepts or wants.
+
+Parent/natural → modified is intentionally a nudge, not an implication: the modified must add the proposed compromise while reaffirming that camp's parent position. Do not object because a parent does not already contain the compromise, and do not apply the signer-annoyance test from a parent directly to the bridge. Object only if the parent itself already contains the compromise (making the modified layer decorative), or if the modified adds the compromise without preserving/reaffirming its parent's position.
+
 Shape failures the attester will not catch (prefix with "shape:"):
-- Identical or near-identical shared sentences pasted into both modifieds so subset fires (subset-by-concatenation). A bless is necessary, not sufficient.
+- Identical or near-identical shared sentences pasted into both modifieds so subset fires (subset-by-concatenation). A bless is necessary, not sufficient. Semantic containment expressed in genuinely camp-specific prose is the desired shape and must not be flagged.
 - Shared plank still one camp's rant with the other camp's theology deleted, or a coalition caption ("we come from different places," commentary on whose reasons or maximalism).
 - Multi-register or too long to sign as a paragraph.
 - Parent/natural already contains the shared claim (triple decorative), or the modified introduces a civic program the parent never held without reaffirming the rest of the bundle (withhold-from-natural / belief jump).
 
 ${MEDIATION_RULES}
 
-Return JSON only: {"objections":["..."],"leakWarnings":["..."]}. Empty arrays mean you found nothing load-bearing to flag. Prefix routing failures with "routing:" and shape failures with "shape:".`,
+Return JSON only: {"objections":["..."],"leakWarnings":["..."]}. The arrays contain failures only, never successful-check commentary or affirmations. If an analysis concludes "this is intended," "not an objection," or "no failure found," omit it. Empty arrays mean you found nothing load-bearing to flag. Prefix routing failures with "routing:" and shape failures with "shape:".`,
   renderInput: (input) => ({
     modified_planks: input.modifiedPlanks,
     bridge_plank: input.bridgePlank,
@@ -169,8 +177,15 @@ Return JSON only: {"objections":["..."],"leakWarnings":["..."]}. Empty arrays me
   }),
   normalize: (value) => {
     const record = value && typeof value === 'object' ? value as Record<string, unknown> : {}
+    const actualObjections = stringList(record.objections).filter((objection) => {
+      const normalized = objection.toLowerCase()
+      return !normalized.includes('not an objection')
+        && !normalized.includes('no routing failure')
+        && !normalized.includes('no shape failure')
+        && !normalized.includes('no failure found')
+    })
     return {
-      objections: stringList(record.objections).slice(0, 12),
+      objections: actualObjections.slice(0, 12),
       leakWarnings: stringList(record.leakWarnings).slice(0, 8),
     }
   },

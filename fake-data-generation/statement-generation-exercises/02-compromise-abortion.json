@@ -2,7 +2,7 @@
   "format": "commonality-seed-content-v1",
   "id": "statement-generation-exercise-02",
   "title": "Exercise 2 — left/right compromise in the middle (abortion)",
-  "description": "One left/right gestational-cutoff triple using the canonical wording from docs/end-user/common-sense-majority/hidden-majority-patterns.md (mediator example). Not loaded by loadSeedCollections. Do not fork a second abortion text: if wording must change, change that page (and this copy) together.",
+  "description": "Gold copy of the accepted left/right gestational-cutoff triple using the canonical wording from docs/end-user/common-sense-majority/hidden-majority-patterns.md (mediator example). The live copy is seed-content/compromise-abortion.json; this exercises directory is not loaded by loadSeedCollections. Do not fork a second abortion text: if wording must change, change all three copies together.",
   "notes": [
     "Curriculum step 3 in statement-generation.md (real-gap bridges, one pattern). Curriculum step 2 (easy in-camp implication) is not this file.",
     "Pattern: compromise in the middle. Overlap zone is a first-trimester / 12–16 week cutoff. Commonality is 'I'd be okay with it if…', not anyone's ideal.",
@@ -33,7 +33,7 @@
         {
           "id": "modified-left",
           "role": "modified-left",
-          "text": "I want abortion to be available so that women aren't forced into going through with a pregnancy they don't want. I'd prefer abortion to be available throughout the whole pregnancy, but I don't mind forbidding abortions after maybe the first trimester or so — that would give women enough time to make a decision. I'd rather get this settled than keep fighting over it forever."
+          "text": "I want abortion to be available so that women aren't forced into going through with a pregnancy they don't want. I'd prefer abortion to be available throughout the whole pregnancy, but I'd be okay with a law that gave women 12-16 weeks to decide and prohibited abortion afterward. I'd rather get this settled than keep fighting over it forever."
         },
         {
           "id": "modified-right",
@@ -53,9 +53,10 @@
       ],
       "loopNotes": [
         "Human: pick pattern (done: compromise-in-the-middle, abortion, reuse canonical). Veto if gap is 'same conclusion, different metaphysics' — it is not; this is an overlap-zone deal.",
-        "Shape risk: commonality names 12-16 weeks while modified-left says 'first trimester or so'. If the attester refuses left → CG for that grain, thicken the modified, do not paste the week range into both modifieds to buy subset-by-concatenation.",
+        "Resolved shape risk: commonality names 12-16 weeks, so modified-left now commits to that range in camp-specific prose. Do not paste the commonality sentence into both modifieds to buy subset-by-concatenation.",
         "2026-08-27 live attester (deepseek/deepseek-v3.2): modified-left → commonality yes/high; modified-right → commonality no/high (S2's 12–16 week cutoff not in S1). Thickened modified-right on hidden-majority-patterns.md (and this copy / bridge-creator.md) so the modified contains the cutoff without pasting the commonality paragraph.",
-        "Do not load into seed-content until Adam accepts after attester + critique-triple."
+        "2026-08-28 live check (deepseek/deepseek-v3.2): both designed-yes modified → commonality arrows bless and all eight designed-no arrows refuse with high confidence. /critique-triple returns no objections or leak warnings after its routing contract was clarified and pass commentary was excluded from objections. The production-default deepseek-v4-flash-0731 request stalled without output, so it was not treated as a judgment.",
+        "Adam accepted the triple on 2026-08-30; live copy: seed-content/compromise-abortion.json."
       ]
     }
   ]

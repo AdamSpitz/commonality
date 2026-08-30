@@ -134,7 +134,7 @@ For example:
 
 The mediator looks at those and sees that they don't actually conflict, or at least not too much; people who sign one of the above two statements might be willing to compromise on an abortion cutoff at 12-16 weeks. So it synthesizes:
 
-- Modified moderate left: "I want abortion to be available so that women aren't forced into going through with a pregnancy they don't want. I'd prefer abortion to be available throughout the whole pregnancy, but I don't mind forbidding abortions after maybe the first trimester or so — that would give women enough time to make a decision. I'd rather get this settled than keep fighting over it forever."
+- Modified moderate left: "I want abortion to be available so that women aren't forced into going through with a pregnancy they don't want. I'd prefer abortion to be available throughout the whole pregnancy, but I'd be okay with a law that gave women 12-16 weeks to decide and prohibited abortion afterward. I'd rather get this settled than keep fighting over it forever."
 - Modified moderate right: "Late-term abortion is horrific. I'd still rather not see abortions early in the pregnancy, but I don't feel as strongly about it. Allowing abortion during the first 12-16 weeks and forbidding it after that isn't what I'd write if I were making the law alone, but I'd be okay with that cutoff if it meant we got this settled instead of fighting over it forever."
 - Common ground: "I'd be okay with it if abortion were allowed during the first 12-16 weeks, and forbidden after that. This isn't my ideal outcome, but I'd rather get this settled than keep fighting over it forever."
 
