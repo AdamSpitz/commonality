@@ -1,6 +1,15 @@
-# Generative Testing Suite
+# Fake data generation
 
-This directory contains scripts for generative testing of the Commonality smart contracts. The goal is to validate the system through automated simulation with randomly generated users and actions.
+**Standing plan (current state + next step):** [`PLAN.md`](./PLAN.md). Statement-writing process: [`statement-generation.md`](./statement-generation.md).
+
+This directory is **four jobs**, not one “generate fake data” switch:
+
+1. **Tiny local world** (`./scripts/data.sh --seed` / `npm run gen:tiny`) — a *small* mix of fake users, projects, signs, alignments, and a few well-shaped statements so UI and basic tests are not empty. Default local seed. Not a catalog for real users.
+2. **Demo fixtures** (`--seed=demo` / `gen:seed:local`) — formal `seed-content/` plus replayed Alignment explorer/nudge/finder outputs, still fake activity.
+3. **Real seed statements** (`seed-content/*.json`) — curated Conceptspace text for early users (findable causes). No fake users or projects in this job. Drafts sit in `statement-generation-exercises/` until a human accepts them.
+4. **Mass fake user activity** (`gen:small` / `gen:medium` / `gen:large`) — random users and actions to stress contracts and the indexer. `gen:large` is 100 users / 10 rounds; 1000+ is not built. Do not use this for UI narrative or statement quality.
+
+The rest of this README is the **generative simulation** (jobs 1, 2, 4): randomly generated users and on-chain actions. Job 3 is the JSON + attester loop, not `runSimulation`.
 
 ## Overview
 

@@ -1,6 +1,6 @@
 # Christianity × secular conservatism — tiny seed (working plan)
 
-Status: **in progress.** Update this file as work lands so a later session can resume without the chat.
+Status: **tiny CauseStarter story is seeded and walkable; implication exercise is still weak.** Remaining work for *all* fake/seed jobs (including next left/right topics) lives in [`PLAN.md`](./PLAN.md) — resume there, not by expanding this pairing.
 
 Canonical wording constraints: [statements are peculiar for good reasons](/specs/product/statements-are-peculiar-for-good-reasons.md). Mediator strategy already in repo: [`services/bridge-creator/config/christian-secular-conservative.example.json`](/services/bridge-creator/config/christian-secular-conservative.example.json) (family-formation / kids-and-tech / religious-liberty / moral-grounding). This seed **replaces** the thin CauseStarter Christianity planks, it does not add a second Christianity.
 

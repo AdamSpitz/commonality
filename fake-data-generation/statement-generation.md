@@ -41,10 +41,12 @@ Generate in this order. Do not skip ahead to mass triples.
 2. **Easy implication inside one camp.** Close / medium / distant variants
    (`gen:proliferation`). Locks the attester, not bridges.
 3. **Real-gap bridges, one hidden-majority pattern at a time.** Compromise in
-   the middle (canonical left/right abortion or immigration — reuse
+   the middle (canonical left/right abortion is accepted; next topics Adam
+   asked for: **LGBT, immigration, crime** — reuse
    [hidden-majority-patterns](/docs/end-user/common-sense-majority/hidden-majority-patterns.md),
    do not fork a second abortion wording); costly unbundling; fact-conditionals;
    different-problems-same-solution with first-person limits, not mediator-meta.
+   Remaining work: [`PLAN.md`](./PLAN.md).
 4. **Non-political public-goods bridges** only after 1–3 work. Copyleft vs
    permissive; replication vs novel discovery; privacy vs open data.
 
@@ -162,5 +164,6 @@ failed the same checks.
 | # | Status | What |
 |---|---|---|
 | 1 | **In `seed-content/simple-causes.json`**. Gold set still in the exercises file. List not complete. Nested-place rollup is board inclusion (settled). | Simple causes: wants, earmark grain (kind + place). Ontario-wide planks are genuine wants, not implication parents. `npm run gen:seed:simple-causes-implications`. |
-| 2 | **In [`seed-content/compromise-abortion.json`](./seed-content/compromise-abortion.json)** after Adam accepted it on 2026-08-30. Gold copy remains in the exercises file; canonical wording remains on hidden-majority-patterns.md. Live check (2026-08-28, deepseek-v3.2): both designed-yes arrows bless and all eight designed-no arrows refuse with high confidence; `/critique-triple` returns no objections or leak warnings. Production-default v4-flash stalled rather than returning JSON. | One left/right abortion compromise-in-the-middle triple. Do not fork wording. |
+| 2 | **In [`seed-content/compromise-abortion.json`](./seed-content/compromise-abortion.json)** after Adam accepted it on 2026-08-30. Gold copy remains in the exercises file; canonical wording remains on hidden-majority-patterns.md. Live check (2026-08-28, deepseek-v3.2): both designed-yes arrows bless and all eight designed-no arrows refuse with high confidence; `/critique-triple` returns no objections or leak warnings. Production-default v4-flash stalled rather than returning JSON. | One left/right abortion compromise-in-the-middle triple. Do not fork wording. Not yet the featured tiny-seed cluster. |
 | 3 | Not started | Gate cause-assist suggestions on the same checks. |
+| 4+ | Not started | Further left/right real-gap triples. Adam (2026-08-31): **LGBT, immigration, crime**. One topic per exercise file; accept into `seed-content/` only after human veto. |

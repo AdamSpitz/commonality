@@ -8,6 +8,12 @@ CauseStarter also keeps its own product/architecture backlog in [`causestarter/T
 
 When an item from this page is done and no longer needs an LLM implementor's attention, don't mark it "done", just delete it. I don't want this file to get cluttered with already-completed items.
 
+Fake data / seed content is a **standing plan**, not a pile of one-shots: read [`fake-data-generation/PLAN.md`](fake-data-generation/PLAN.md) and do the next unchecked item there (tiny UI world vs real statements vs stress traffic). Do not invent a parallel seed pipeline.
+
+----
+
+- **(Tell)** Next fake-data/seed-data step lives in [`fake-data-generation/PLAN.md`](fake-data-generation/PLAN.md). Current next: keep the Christianity/secular tiny boards and add a **real-gap** cluster (accepted abortion compromise is the candidate), then new left/right triples for **LGBT, immigration, crime** (Adam, 2026-08-31) via the statement-generation loop. Update the plan when a chunk lands.
+
 ----
 
 - Align `foldReimbursements` donation rounding with the contract’s per-share
