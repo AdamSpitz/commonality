@@ -14,7 +14,7 @@ what remains open is one bug, at the end.
 
 - **Planks** are the cause. `CauseDraft` is a list of `CausePlank`s, each
   published separately and each carrying its own CID
-  (`causestarter/src/lib/causeStore.ts`). There is no main statement, no goal
+  (`ui/src/causestarter/lib/causeStore.ts`). There is no main statement, no goal
   field, and no launch step — a cause is "live" once any plank is on chain.
 - **Views** are real. `getStatementBelieverSets` returns the deduped
   believer/indirect/disbeliever ID sets per plank, and `computeViewCounts` folds
@@ -476,7 +476,7 @@ domain-separation tag, a format version. Publishing through `PublishedData` make
 the bytes the bytes, and brings author attribution via `(publisher, cid)`,
 retraction semantics, and CID-first reads along with it. It is also what [ADR
 0004](/specs/decisions/0004-user-publishes-displayable-data.md) already requires
-for founder-authored content. `causestarter/src/lib/publishPlank.ts` does the
+for founder-authored content. `ui/src/causestarter/lib/publishPlank.ts` does the
 same move for plank text.
 
 **Stable ID — a mutable ref.** [`MutableRefUpdater`](/specs/tech/subsystems/mutable-refs/README.md)

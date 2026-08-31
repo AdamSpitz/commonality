@@ -32,11 +32,18 @@ vi.mock('@commonality/sdk/machinery', async () => {
 
 // Mock child components
 vi.mock('../components/StatementRenderer', () => ({
-  StatementRenderer: vi.fn(({ statementCid, content, error }) => (
+  StatementRenderer: vi.fn(({ statementCid, content, error, referencedDocuments }) => (
     <div data-testid="statement-renderer">
       StatementRenderer: {statementCid}
       {content && <div>Content present</div>}
       {error && <div>Error: {error}</div>}
+      {referencedDocuments && Object.keys(referencedDocuments).length > 0 && (
+        <div data-testid="referenced-documents">
+          {Object.entries(referencedDocuments).map(([cid, doc]) => (
+            <div key={cid}>{cid}:{(doc as { content?: string } | null)?.content ?? 'pending'}</div>
+          ))}
+        </div>
+      )}
     </div>
   )),
 }))
@@ -83,6 +90,7 @@ vi.mock('../../content-funding/components/ContentSubmissionForm', () => ({
 import { useParams } from 'react-router-dom'
 import { useAccount } from 'wagmi'
 import { getStatementWithContent, getUserBelief } from '@commonality/sdk/conceptspace'
+import { createCombinatorStatement } from '@commonality/sdk/displayable-documents'
 import { createSDKMachinery } from '@commonality/sdk/machinery'
 
 describe('StatementPage', () => {
@@ -645,6 +653,63 @@ describe('StatementPage', () => {
         expect(screen.queryByText('First error')).not.toBeInTheDocument()
         expect(screen.getByTestId('statement-renderer')).toBeInTheDocument()
       })
+    })
+  })
+
+  describe('Combinator operand loading', () => {
+    const operandA = 'bafyoperandaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+    const operandB = 'bafyoperandbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'
+
+    it('paints the combinator statement before operand bodies resolve', async () => {
+      const combinatorContent = createCombinatorStatement('all', [operandA, operandB])
+      vi.mocked(useParams).mockReturnValue({ statementCid: 'stmt123' })
+      vi.mocked(getStatementWithContent).mockImplementation(async (_machinery, cid) => {
+        if (String(cid) === 'stmt123') {
+          return {
+            statement: mockStatement,
+            content: combinatorContent,
+            contentStatus: 'active' as const,
+            metrics: undefined,
+          }
+        }
+        return new Promise(() => {})
+      })
+
+      render(<StatementPage />)
+
+      await waitFor(() => {
+        expect(screen.getByTestId('statement-renderer')).toBeInTheDocument()
+      })
+      expect(screen.queryByTestId('referenced-documents')).not.toBeInTheDocument()
+    })
+
+    it('fills operand bodies as they resolve', async () => {
+      const combinatorContent = createCombinatorStatement('all', [operandA, operandB])
+      vi.mocked(useParams).mockReturnValue({ statementCid: 'stmt123' })
+      vi.mocked(getStatementWithContent).mockImplementation(async (_machinery, cid) => {
+        if (String(cid) === 'stmt123') {
+          return {
+            statement: mockStatement,
+            content: combinatorContent,
+            contentStatus: 'active' as const,
+            metrics: undefined,
+          }
+        }
+        return {
+          statement: { ...mockStatement, cid: cid as `b${string}` },
+          content: { format: 'text/plain' as const, title: String(cid), content: `body of ${cid}` },
+          contentStatus: 'active' as const,
+          metrics: undefined,
+        }
+      })
+
+      render(<StatementPage />)
+
+      await waitFor(() => {
+        expect(screen.getByTestId('referenced-documents')).toBeInTheDocument()
+      })
+      expect(screen.getByTestId('referenced-documents').textContent).toContain(`body of ${operandA}`)
+      expect(screen.getByTestId('referenced-documents').textContent).toContain(`body of ${operandB}`)
     })
   })
 })

@@ -560,6 +560,7 @@ export async function getContributorReimbursementState(
     contributor: contributorAddress.toLowerCase(),
     currency: snapshot.project.currency,
     earlyContribution: '0',
+    futureReimbursementClaim: '0',
     reimbursableAmount: '0',
     withdrawnAmount: '0',
     forgoneAmount: '0',

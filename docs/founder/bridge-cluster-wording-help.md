@@ -45,7 +45,7 @@ Two assistance layers. The **draft is the conversation memory**. Each turn is �
 - the Christian / secular family-formation triple labeled as a **format example only** (civic conclusion only; do not copy a “we come from different places” closer)
 - a required return schema: `commonality.bridge-cluster-patch.v1`
 
-They paste into Claude / ChatGPT / Grok, paste JSON back, **Apply pasted patch**, then review. We never see the chat. Code: `causestarter/src/lib/bridgeAssistBrief.ts`.
+They paste into Claude / ChatGPT / Grok, paste JSON back, **Apply pasted patch**, then review. We never see the chat. Code: `ui/src/causestarter/lib/bridgeAssistBrief.ts`.
 
 ### 2. Hosted one-shot verbs (same class as plank sharpening)
 
@@ -58,7 +58,7 @@ cause-assist endpoints — proposals, never auto-applied, never a standing strat
 | `POST /draft-bridge-plank` | One shared plank from ≥2 sides (modified wording, or stand-in planks when modified is skipped); strip justifications and coalition captions |
 | `POST /critique-triple` | Objections (`routing:`, `shape:`) and justification-leak warnings only — no rewrite. Optional parent texts. |
 
-UI: `causestarter/src/components/BridgeClusterAssist.tsx`. Implementation: `cause-assist/src/bridgeClusterAssist.ts`.
+UI: `ui/src/causestarter/components/BridgeClusterAssist.tsx`. Implementation: `cause-assist/src/bridgeClusterAssist.ts`.
 
 A later **BYOK in-page chat** (their key, our system prompt, we hold no transcript) is an escape hatch if founders demand it. It is not v1.
 

@@ -62,7 +62,7 @@ Table of contributors sorted by net contribution (totalContributed - totalRefund
 Columns: address, total contributed, reimbursement preference, amount reimbursed, and amount outstanding.
 
 ### Forgo reimbursement
-An early contributor may permanently forgo any remaining reimbursement claim while retaining the non-transferable recognition receipt. This is the distinction between "Donate normally" and "Fund as a scout"; there is no token burn or investor conversion.
+An early contributor may permanently forgo any remaining reimbursement claim while retaining the non-transferable recognition receipt. This burns the separate nontransferable future-claim shares, not the recognition receipt, and does not affect reimbursement already earned. This is the distinction between "Donate normally" and "Fund as a scout"; it is not an investor conversion.
 
 ### Reimbursement history
 Shows later donations into the reimbursement pool and early-contributor withdrawals. It does not show token trades because LazyGiving receipts are non-transferable.

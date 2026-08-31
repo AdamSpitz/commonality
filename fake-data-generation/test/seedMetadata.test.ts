@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 import {
   CSM_MISSION_STATEMENT_CID,
@@ -172,6 +173,22 @@ test('simple-causes seed collection copies the accepted exercise-1 plank texts',
     && record.statement.id === 'farmers-markets-ontario');
   assert.equal(marketsOntario?.statement.text, 'I want more farmers\' markets in Ontario.');
   assert.equal(marketsOntario?.statement.role, 'unique');
+});
+
+test('compromise-abortion seed collection copies the accepted exercise-2 statement texts', async () => {
+  const exercise = JSON.parse(await readFile(
+    new URL('../statement-generation-exercises/02-compromise-abortion.json', import.meta.url),
+    'utf8',
+  )) as { groups: Array<{ statements: Array<{ id: string; role: string; text: string }> }> };
+  const accepted = exercise.groups[0]?.statements ?? [];
+  const live = flattenSeedStatements(await loadSeedCollections())
+    .filter((record) => record.collection.id === 'compromise-abortion')
+    .map((record) => record.statement);
+
+  assert.deepEqual(
+    live.map(({ id, role, text }) => ({ id, role, text })),
+    accepted.map(({ id, role, text }) => ({ id, role, text })),
+  );
 });
 
 test('local-food-systems seed ref matches the mapping keys used by tiny seed injection', async () => {

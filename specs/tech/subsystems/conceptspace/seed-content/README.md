@@ -49,6 +49,8 @@ It may also help to have high-level statements like "I care about education" tha
 
 The showcase statements demonstrating the system's ability to find consensus (see [hidden-majority.md](./hidden-majority.md)). Each includes pole positions, moderate positions, and a commonality statement.
 
+The accepted [abortion compromise-in-the-middle triple](./compromise-abortion.md) demonstrates the newer natural → modified nudge and modified → commonality implication shape with a specific 12–16 week settlement.
+
 ### Cross-cutting meta-statements
 
 Statements about the system itself or political epistemology — the meta-statements most directly aligned with Commonality's thesis (see [meta.md](./meta.md)).

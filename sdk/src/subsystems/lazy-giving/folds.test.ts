@@ -568,6 +568,7 @@ describe('foldReimbursements', () => {
       contributor: PARTICIPANT_A,
       currency: ETH_CURRENCY,
       earlyContribution: '600',
+      futureReimbursementClaim: '300',
       reimbursableAmount: '100',
       withdrawnAmount: '200',
       forgoneAmount: '0',
@@ -637,4 +638,3 @@ describe('foldProjectTokens', () => {
     assert.deepStrictEqual(events, copy);
   });
 });
-

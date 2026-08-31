@@ -29,6 +29,6 @@ Write the docs for humans (narrative, plain language). Then add a block to the d
 
 **User-facing docs live in:**
 - Role-based how-tos live on the site where the role is actually performed (e.g. `lazyGiving/get-your-project-funded.md`, `alignment/become-a-delegate.md`, `tally/express-what-you-care-about.md`). The cross-ecosystem index is in [docs/end-user/commonality/index.md](/docs/end-user/commonality/index.md) under "What can I do across the ecosystem?". Each role doc ends with an "On other sites" footer pointing at the cross-site connections.
-- CauseStarter’s in-app docs (`causestarter/src` `/docs/*`) bundle `docs/end-user/causestarter/`, `shared/`, and `commonality/`. The everyday pitch is [the-jobs.md](/docs/end-user/causestarter/the-jobs.md).
+- CauseStarter’s in-app docs (`ui/src/causestarter` `/docs/*`) bundle `docs/end-user/causestarter/`, `shared/`, and `commonality/`. The everyday pitch is [the-jobs.md](/docs/end-user/causestarter/the-jobs.md).
 - [docs/end-user/shared/use-case-walkthroughs/](/docs/end-user/shared/use-case-walkthroughs/README.md) — concrete scenarios
 - [docs/end-user/shared/key-ideas/](/docs/end-user/shared/key-ideas/README.md) — concept reference pages

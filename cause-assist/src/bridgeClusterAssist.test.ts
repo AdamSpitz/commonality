@@ -65,9 +65,19 @@ describe('bridge cluster wording verbs', () => {
       assert.match(request.systemPrompt, /Do not rewrite/)
       assert.match(request.systemPrompt, /routing:/)
       assert.match(request.systemPrompt, /shape:/)
+      assert.match(request.systemPrompt, /Containment is the intended modified → bridge relationship/)
+      assert.match(request.systemPrompt, /Never call a bridge "decorative"/)
+      assert.match(request.systemPrompt, /Semantic containment expressed in genuinely camp-specific prose is the desired shape/)
+      assert.match(request.systemPrompt, /Parent\/natural → modified is intentionally a nudge, not an implication/)
+      assert.match(request.systemPrompt, /Distilling that committed conclusion from the surrounding reasons is legitimate implication/)
+      assert.match(request.systemPrompt, /first-person willingness to accept a non-ideal policy/)
+      assert.match(request.systemPrompt, /arrays contain failures only/)
       assert.match(request.userPrompt, /parent_planks/)
       return {
-        objections: ['Shared plank requires a theological premise.'],
+        objections: [
+          'routing: This is the intended shape and is not an objection.',
+          'Shared plank requires a theological premise.',
+        ],
         leakWarnings: ['God-talk leaked into the bridge plank.'],
       } as T
     })

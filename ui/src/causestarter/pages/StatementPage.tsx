@@ -84,16 +84,22 @@ export function StatementPage() {
       setContent(result.content)
       const combinator = result.content ? parseCombinatorStatement(result.content) : null
       if (combinator) {
-        const operands = await Promise.all(combinator.operandCids.map(async (cid) => {
+        // Paint CID fallbacks immediately so the statement page is not held
+        // behind operand IPFS reads; fill each body as it arrives.
+        setOperandBodies(combinator.operandCids.map((cid) => ({ cid, text: cid })))
+        void Promise.all(combinator.operandCids.map(async (cid) => {
+          let text = cid
           try {
             const operand = await getStatementWithContent(machinery, cid as IpfsCidV1)
-            return { cid, text: documentText(operand?.content) || cid }
+            text = documentText(operand?.content) || cid
           } catch {
-            return { cid, text: cid }
+            text = cid
           }
+          if (cancelled()) return
+          setOperandBodies((prev) =>
+            prev.map((row) => (row.cid === cid ? { cid, text } : row)),
+          )
         }))
-        if (cancelled()) return
-        setOperandBodies(operands)
       } else {
         setOperandBodies([])
       }

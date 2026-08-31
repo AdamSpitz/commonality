@@ -10,6 +10,15 @@ When an item from this page is done and no longer needs an LLM implementor's att
 
 ----
 
+- Align `foldReimbursements` donation rounding with the contract’s per-share
+  accumulator (`accumulatedReimbursementPerClaimShare` / `mulDiv`). The fold
+  currently splits each donation with per-holder `claim * amount / outstanding`
+  integer division, then subtracts the full donation from `outstanding`, so UI
+  forgo/withdrawable caps can disagree with on-chain views by leftover wei.
+  Mirror the contract (scaled accumulator, or live view reads) and add a
+  remainder-aware test with two holders and a donation that does not divide
+  evenly. Found in review of `feature/combinator-operand-nonblocking-load`.
+
 - **(Tell)** Refresh `data/seed-implication-evaluations.original-variants.json`
   against the current implication-attester prompt fingerprint. The prompt now
   rejects nested-place geographic rollup (Grey County → Ontario is a worked
@@ -21,13 +30,6 @@ When an item from this page is done and no longer needs an LLM implementor's att
   already skips only pairs with the current fingerprint. Personalized AI ranking
   remains deferred per
   [belief-implication-board-inclusion-and-discovery.md](specs/product/belief-implication-board-inclusion-and-discovery.md).
-
-- **(Ask)** Statement-generation exercise 2: abortion cutoff triple is in [`fake-data-generation/statement-generation-exercises/02-compromise-abortion.json`](fake-data-generation/statement-generation-exercises/02-compromise-abortion.json); modified-right was thickened after the attester refused the old text. Next: confirm attester blesses both modifieds, run `/critique-triple`, then Adam accept/reject before `seed-content/`.
-
-- **(Tell)** After folding CauseStarter into `ui/src/causestarter/`, leftover package
-  glue still talks as if `causestarter/src` is the SPA: `causestarter/vite.config.ts`
-  is unused, Compose/Docker docs mix `:8090` and `:5174`, and some verifier prompts
-  may still cite deleted paths. Sweep when touching local-dev docs.
 
 - Add a fresh-stack integration test for the alignment-trust bootstrap: publish
   an alignment vouch from a previously unknown wallet, observe the service's
@@ -55,20 +57,3 @@ When an item from this page is done and no longer needs an LLM implementor's att
 - Verify the new local public-goods demo-seed storyline against a live stack. `PROJECT_SEED_METADATA[0]` is now "Riverside Community Garden" (aligned to `fundable-projects`/`local-community`/`local-food-systems`), `DETERMINISTIC_SEED_PROJECT_ALIGNMENT_COUNT` is 6 so no existing storyline lost its alignment, and `gen:seed:local` runs 12 users to keep the success-attester pool satisfied. Unit tests pass, but the seed has still never been run end-to-end: `stack.fresh-seeded` now passes (2026-08-03) but it seeds `tiny`, not `demo`. Run `./scripts/data.sh --wipe && ./scripts/data.sh --seed=demo` and confirm in the UI that the garden project shows an alignment vouch, contributions, and a success attestation. Consider also regenerating `data/seed-worker-outputs.json` if the Explorer fixture should mention the new cause.
 
 - Give the demo seed (`./scripts/data.sh --seed=demo`) more **local public-goods** coverage. One storyline now exists (see above), but rows A5 (federated regional) and E2 (nonprofit on the rails) in [use-cases.md](specs/product/use-cases.md) are still not demonstrable — and those are exactly the cases the strategy docs lean on hardest. Note also that the project-creation form ships "Community garden" / "Clean water" / "Learning circle" stock images that nothing in the seed uses. Found 2026-07-25 while verifying use-case statuses against the live UI.
-
-- Stop combinator operand reads from holding up the whole statement page. Both
-  `causestarter/src/pages/StatementPage.tsx` and
-  `ui/src/conceptspace/pages/StatementPage.tsx` fetch every operand body of a
-  combinator statement *before* clearing `loading`, so one slow IPFS read leaves the
-  reader staring at a spinner even though the statement's own content already
-  resolved. Paint the statement first and let the operand bodies fill in (they
-  already fall back to showing the CID), rather than blocking on `Promise.all`.
-  Found 2026-08-19 reviewing the combinator-statements branch.
-
-- Guard the rest of `ui/src/conceptspace/pages/StatementPage.tsx`'s loader against
-  navigation. The operand fetch now checks a load token before writing, but the
-  earlier `setStatement` / `setStatementContent` / `setContentStatus` / metrics /
-  `setUserBeliefState` writes are still unguarded, so a slow load that resolves after
-  the user has moved to another statement can paint stale content. Pre-existing, not
-  new to the combinator work; the same pattern is worth a sweep across the other
-  conceptspace pages. Found 2026-08-19.

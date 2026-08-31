@@ -261,7 +261,7 @@ See [`cause-assist/README.md`](../cause-assist/README.md). Bridge-cluster wordin
 - **Alignment is per statement.** The fundable-projects dashboard is inlined on
   the statement page (`/statement/:cid`) and, as a union of planks, on the
   cause page. `/statement/:cid/board` redirects to the statement.
-- **Cause store** (`src/lib/causeStore.ts`) keeps planks in `localStorage` so
+- **Cause store** (`ui/src/causestarter/lib/causeStore.ts`) keeps planks in `localStorage` so
   unpublished wording survives reloads.
 - On-chain actions reuse the same SDK functions the main UI uses
   (`createAndSignStatement`, `browseStatements`, `believeStatement`, …).

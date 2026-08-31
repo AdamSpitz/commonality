@@ -4,8 +4,8 @@
  * content contract).
  *
  * The roster document extras must stay isomorphic with
- * `causestarter/src/lib/causeRoster.ts` (`kind: causestarter.roster`, version 1).
- * Bookmarks use the same JSON as `causestarter/src/lib/causeBookmarks.ts`.
+ * `ui/src/causestarter/lib/causeRoster.ts` (`kind: causestarter.roster`, version 1).
+ * Bookmarks use the same JSON as `ui/src/causestarter/lib/causeBookmarks.ts`.
  */
 
 import { PublishedDataAbi, MutableRefUpdaterAbi } from '@commonality/sdk/abis';
