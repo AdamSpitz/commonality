@@ -1,20 +1,60 @@
 # CauseStarter
 
-You probably got to this website by clicking a link to a **cause board** that someone else posted or sent you.
+AAA - I'm trying to rewrite the CauseStarter docs. I've had a bit of success explaining this to a friend in person, now that the site has been simplified and reorganized. So I'm trying to write it up here. This first part is what I explained to my friend; it's simple enough that he seemed to get it.
 
-Someone collected a handful of **statements** — claims they actually mean, in words they are willing to stand behind — and published them together as a page. That page is a place where **projects that advance some of those claims can get crowdfunded**, without a foundation, a club, or everyone agreeing on every sentence.
 
-Look at **Fundable Projects**. That list is the centerpiece. A project shows up here because someone you (or people you trust) can take seriously has vouched that it advances *a* statement on this board. You do not have to like the whole mix. Alignment is to a statement, never to “the cause as a club.”
+A **cause board** is like a bulletin board of crowdfundable **projects**, for some causes you might believe in.
 
-Signing a statement is free and optional. It marks which claims you personally mean. It does not enroll you. You are not a member by being here. After you sign, CauseStarter **home** lists fundable projects on *those* statements — that is the returning-user loop, not this organizer’s page.
+Each project is something like: "We want to raise $1000 to do this particular piece of work by the end of the month." Like Kickstarter, if the project doesn't reach its goal, the contributors [get their money back](../lazyGiving/assurance-contracts.md). (So this is useful for things where you're like, "I'd be glad to contribute, say, $20, as long as enough other people do." Notice that this is the kind of thing for which our usual solution is either "government does it" or "some big charity org does it", both of which have their problems. So this is a third way to get projects like that funded.)
 
-If this mix of claims is not the overlap you want to fund, reuse the ones you like on a page of your own. That is later, and it is success, not a split to police.
+Two twists:
+  - If you (like most people) feel like, "There's just no way I'm going to actually watch this bulletin board and figure out which projects to contribute to," you can choose someone you trust and delegate the decisions to them. So this can be a very very easy fire-and-forget kind of system: if you want to be hands-off, just pledge $X/month to someone you trust and then forget about it. (It's transparent and revokable, though.)
+  - The fundable project board has two tabs: Not Yet Funded and Not Yet Reimbursed. If you (like most people) are uneasy about trying to figure out ahead of time which projects will be successful and aren't scams and so on, take a look at the Not Yet Reimbursed tab, where the idea is to find projects that have *already* been successful at producing real value; you can reimburse the early contributors, freeing up their money to go make early contributions to *other* projects.
+
+
+AAA - here's the end of my explanation to my friend. The rest is a combination of what we had here before and me trying to flesh it out a bit with some obvious FAQs.
+
+The point of the FAQs is that I feel like the point of the project is mostly "there's bulletin board of kickstarters, plus delegation and retroactive funding" and then the rest is addressing a bunch of objections. So I'm trying to structure the page that way.
+
+In particular, one important insight is that we've tried really hard to separate all the different roles: you can pledge money without having to direct it, you can direct money retroactively (much easier) without having to identify successful projects in advance, you can do some work without needing to know how to get in touch with a grant committee.
+
+
+
+
+
+
+"What's a cause?"
+
+Just a statement someone made, in normal language, about something they believe in.
+
+A cause board can have multiple causes on it.
+
+
+"What happens if I sign a statement?"
+
+The number of signers goes up by one, and your personal home page's fundable-projects board will (by default) show you projects aligned with that statement.
+
+(AAA Also implied statements.)
+
+
+"How does a project end up on the cause board?"
+
+It's vouched for by someone you trust, or someone trusted by someone you trust, etc., transitively.
+
+(So there's a bit of work involved in maintaining the trust graph, but the idea is to prevent spam or abuse.)
+
+
+"I don't like the combination of causes on this particular cause board."
+
+Make your own! You don't necessarily start from zero. People's signatures are attached to the individual cause statements, not the cause board. You can make a new board with a different combination of statements, and your board will show how many people have signed the statements you've chosen.
+
+
 
 ## What you can do here
 
-Pick the job you would already take. You do not have to do the others.
+There are lots of roles you can play within the ecosystem, and we've tried very hard to make them *separable* - you can do what you're inclined to do, and not do anything else.
 
-- **Pledge money to a cause.** Put up $X/month (or a one-shot amount). The pledge [refunds if the goal isn’t met](../lazyGiving/assurance-contracts.md), so you are not the sucker if nobody else shows up. If you do not want to pick projects, [hand the picking](../shared/key-ideas/delegation.md) to a person you already trust. Revoke anytime.
+- **Pledge money to a cause.** Put up $X/month (or a one-shot amount). If you don't want to pick projects, [delegate the picking](../shared/key-ideas/delegation.md) to a person you already trust. Revoke anytime.
 - **Direct money to a project** — yours, or other people’s if they have delegated decisions to you. That can be *initial* funding so the work can happen, or *reimbursement* of people who already paid for work that delivered. Directing well is a real contribution even if your own check is small.
 - **Start a project** if you have useful skills and a piece of work that advances one of these claims. You do not need a grant officer. Publish it, get an alignment vouch from someone a hop better-connected, and it can appear on every cause board that includes that statement — including this one.
 - **Vouch that a project is aligned** with a statement (or that it actually delivered). People who trust you will then see it. That is how work gets onto the fundable-projects list without a platform verdict.
@@ -23,6 +63,11 @@ Pick the job you would already take. You do not have to do the others.
 Organizers: **[Start a cause board](./start-a-cause.md)** if you want to publish a different mix. Everyone else: the jobs, and the extra work each one used to demand, are in **[Do the part you’d do anyway](./the-jobs.md)**.
 
 ## Why this isn’t lame
+
+Look, when I hear about some kind of "let's support a cause!" thing, I roll my eyes: maybe it's going to ask me to trust people I don't trust, or ask me to do a bunch of work I don't have time for
+
+
+
 
 Most “support a cause” products ask you to join something, trust a black box, or become a part-time grants officer. People bounce because the extra job is worse than the original impulse. CauseStarter is built so you can help *in the way you already wanted to* and skip the rest.
 
