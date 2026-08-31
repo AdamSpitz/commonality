@@ -25,3 +25,4 @@ Statements
 Expected implication links
 - Expect yes: modified-left → commonality; modified-right → commonality.
 - Expect no: natural-left → commonality; natural-right → commonality; natural-left → modified-left; natural-right → modified-right; either modified → the other modified; commonality → either modified.
+

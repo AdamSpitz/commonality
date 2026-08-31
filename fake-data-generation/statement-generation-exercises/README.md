@@ -7,4 +7,8 @@ Draft corpora for the loop in [`../statement-generation.md`](../statement-genera
 | File | Exercise |
 |---|---|
 | [`01-simple-causes.json`](./01-simple-causes.json) | OSS + local food. Gold-set texts. Live copy: [`../seed-content/simple-causes.json`](../seed-content/simple-causes.json). |
-| [`02-compromise-abortion.json`](./02-compromise-abortion.json) | One left/right compromise-in-the-middle triple. Canonical wording from hidden-majority-patterns.md. Awaiting human accept + attester/critique. |
+| [`02-compromise-abortion.json`](./02-compromise-abortion.json) | Left/right abortion compromise. **Accepted** into [`../seed-content/compromise-abortion.json`](../seed-content/compromise-abortion.json) (2026-08-30). Gold copy stays here. |
+| [`03-compromise-immigration.json`](./03-compromise-immigration.json) | Left/right immigration compromise. **Accepted** into [`../seed-content/compromise-immigration.json`](../seed-content/compromise-immigration.json) (2026-08-31). Gold copy stays here. |
+| [`04-crime-repeat-offenders.json`](./04-crime-repeat-offenders.json) | Left/right crime fact-conditional (repeat-offender concentration). **Accepted** into [`../seed-content/crime-repeat-offenders.json`](../seed-content/crime-repeat-offenders.json) (2026-08-31). Gold copy stays here. |
+| [`05-lgbt-schools.json`](./05-lgbt-schools.json) | Left/right LGBT schools fact-conditional. **Accepted** into [`../seed-content/lgbt-schools.json`](../seed-content/lgbt-schools.json) (2026-08-31). Gold copy stays here. |
+| Next (not drafted) | Left/right **LGB-vs-T coalition unbundling** if Adam still wants that seam after accepting (or vetoing) the schools cluster. See [`../PLAN.md`](../PLAN.md). |

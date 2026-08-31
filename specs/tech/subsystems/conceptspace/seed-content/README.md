@@ -2,6 +2,8 @@
 
 This document covers our thinking about *why* we need seed content, *what kind* to create, and *how* to do it.
 
+**This is job C: real Conceptspace statements** (findable causes for early users). It is not the tiny fake UI world, not demo worker fixtures, and not mass random user activity. Those other jobs, current state, and the next LLM step: [`fake-data-generation/PLAN.md`](/fake-data-generation/PLAN.md).
+
 Wording is not free-form slogans: see [why statements are peculiar](/specs/product/statements-are-peculiar-for-good-reasons.md). How to generate more of them without hand-wordsmithing: [statement-generation.md](/fake-data-generation/statement-generation.md). Curated JSON that does not pass the implication attester (modified → commonality) is not done. Default `./scripts/data.sh --seed` (**tiny**) publishes the Christianity × secular-conservatism CauseStarter cluster plus local-food, not a random `universe.json` slice.
 
 See this directory for concrete examples.
@@ -49,7 +51,7 @@ It may also help to have high-level statements like "I care about education" tha
 
 The showcase statements demonstrating the system's ability to find consensus (see [hidden-majority.md](./hidden-majority.md)). Each includes pole positions, moderate positions, and a commonality statement.
 
-The accepted [abortion compromise-in-the-middle triple](./compromise-abortion.md) demonstrates the newer natural → modified nudge and modified → commonality implication shape with a specific 12–16 week settlement.
+The accepted [abortion](./compromise-abortion.md) and [immigration](./compromise-immigration.md) compromise-in-the-middle triples, and the [crime / repeat-offender](./crime-repeat-offenders.md) and [LGBT / schools](./lgbt-schools.md) fact-conditional triples, demonstrate the newer natural → modified nudge and modified → commonality implication shape.
 
 ### Cross-cutting meta-statements
 
@@ -78,8 +80,14 @@ The fake-data system in `universe.json` uses a different set of statements optim
 
 ## Relationship to fake-data-generation
 
-The fake-data system uses statements optimized for testing system mechanics (spectrum positions, randomized signing, etc.). It's simulation data — short and generic.
+Do not collapse these:
 
-The seed content here is different: curated for real early users, focused on areas where fundable projects plausibly exist, and written to demonstrate the system's coalition-building power.
+| Kind | Purpose |
+|---|---|
+| Tiny / demo **on-chain seed** (`data.sh --seed`) | Fake users, projects, signs, a few statements so local UI and tests have shape |
+| **This catalog** (`seed-content/*.json`) | Real (or real-shaped) statements for discovery; no requirement to invent users or projects |
+| **Simulation** (`gen:medium` / `gen:large`) | Random actions for stress; statement text can be generic |
 
-After the real system launches, the fake-data system can be updated to use these statements (or a superset) for more realistic simulations.
+The simulation historically used short generic `universe.json` templates. Formal seed-content JSON can be converted into that shape (`gen:seed:universe`) so mechanics tests can reuse realistic texts without mixing the jobs. Tiny still does **not** publish a random universe slice.
+
+Living plan: [`fake-data-generation/PLAN.md`](/fake-data-generation/PLAN.md).

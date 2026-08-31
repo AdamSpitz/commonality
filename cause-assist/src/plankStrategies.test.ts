@@ -27,6 +27,17 @@ describe('plank-first strategies', () => {
     assert.equal(result.planks.length, 2)
   })
 
+  it('does not return atomize planks that fail seed quality checks', async () => {
+    const result = await atomizeCause({ description: 'open source', count: 2 }, config, async <T>() => ({
+      planks: [
+        { text: 'Open source is a public good.', rationale: 'taxonomy' },
+        { text: 'I want widely used library L to stay maintained.', rationale: 'want' },
+      ],
+    } as T))
+    assert.equal(result.planks.length, 1)
+    assert.match(result.planks[0].text, /library L/)
+  })
+
   it('sharpens against attestable and signable criteria', async () => {
     const result = await sharpenPlank({ plank: 'Better parks' }, config, async <T>(request: LlmJsonRequest) => {
       assert.match(request.systemPrompt, /Hedge explicitly/i)
@@ -35,6 +46,16 @@ describe('plank-first strategies', () => {
     assert.equal(result.source, 'llm')
     assert.match(result.plank, /parks/)
     assert.equal(result.warnings.length, 1)
+  })
+
+  it('withholds a sharpened plank that is still taxonomy', async () => {
+    const result = await sharpenPlank({ plank: 'Better parks' }, config, async <T>() => ({
+      plank: 'Parks are a worthwhile local public good.',
+      rationale: 'More specific.',
+      warnings: [],
+    } as T))
+    assert.equal(result.plank, 'Better parks')
+    assert.ok(result.warnings.some((warning) => /withheld/.test(warning)))
   })
 
   it('drafts a disjunctive anchor with verbatim planks and correct implication direction', () => {

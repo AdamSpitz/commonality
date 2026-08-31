@@ -28,14 +28,14 @@ See `src/statementGuidance.ts` and the Implication Attester evaluator prompt for
 | --- | --- | --- | --- |
 | GET | `/health` | — | Liveness + whether an API key is configured |
 | POST | `/suggest-statements` | `{ goal, existingStatements?, count? }` | 1–5 suggestions (filtered by implication check when LLM is on) |
-| POST | `/atomize` | `{ description, existingPlanks?, count? }` | Rough cause description → 1–5 independent candidate planks |
-| POST | `/sharpen-plank` | `{ plank, causeDescription? }` | Critique + optional reword against the attestable + signable bar (callers should treat `plank` as a suggestion, not auto-apply) |
+| POST | `/atomize` | `{ description, existingPlanks?, count? }` | Rough cause description → 1–5 independent candidate planks. Drops taxonomy / pay-the-work / slogan / heuristic-safety failures so they are never shown. |
+| POST | `/sharpen-plank` | `{ plank, causeDescription? }` | Critique + optional reword against the attestable + signable bar (callers should treat `plank` as a suggestion, not auto-apply). A reword that fails the same quality gate is withheld; the original plank is returned with warnings. |
 | POST | `/draft-anchor` | `{ planks[] }` | Deterministic disjunctive anchor with verbatim planks and plank→anchor check payloads |
 | POST | `/suggest-mediator-scaffold` | `{ foundingStatement, name? }` | Editable mediator identity, side labels, and complete starting anchor triples; never a strategy prompt |
 | POST | `/draft-modified-plank` | `{ parentPlanks[], currentDraft?, sideLabel?, mustNotConcede?, complaint?, intendedBridge? }` | One modified-plank proposal for a human-authored bridge cluster. Not a chat turn. Refuses empty parents. |
 | POST | `/draft-stand-in-sliver` | `{ sideLabel, bullets?, mustNotCaricature?, complaint?, currentDraft? }` | Thin roster for a camp with no published cause. Not a modified-plank call. |
 | POST | `/draft-bridge-plank` | `{ modifiedSides[{ label?, planks[] }], currentDraft?, complaint? }` | One shared-platform plank from ≥2 modified sides. Strips justifications and coalition captions. |
-| POST | `/critique-triple` | `{ modifiedPlanks[], bridgePlank, parentPlanks? }` | Objections (including `routing:` and `shape:`), justification-leak warnings — no rewrite |
+| POST | `/critique-triple` | `{ modifiedPlanks[], bridgePlank, parentPlanks? }` | Objections (including `routing:` and `shape:`), justification-leak warnings — no rewrite. Also runs the live implication attester on each modified→bridge pair and adds `routing: attester…` objections when a pair would not bless. |
 | POST | `/check-implications` | `{ mainStatement, supportingStatements[] }` | Per-pair implies / confidence / reasoning |
 | POST | `/safety-check` | `{ items: [{ text, fieldLabel? }] }` | Per-item allow/deny + user-facing explanation |
 | POST | `/check-coherence` | `{ rosterCid, title, summary, planks[], mediatorBlurb? }` | Positive-only construction check for a would-be roster CID (preview; no chain write; may use heuristic without an API key) |

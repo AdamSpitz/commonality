@@ -11,9 +11,25 @@ Each entry follows the same shape:
 
 [Full page](/docs/end-user/causestarter/index.md)
 
-- **What it is:** The newcomer briefing for a cause board. Almost everyone arrives via a circulated URL, not a catalog. A cause board is a published mix of independent statements; the centerpiece is **fundable projects** vouched as advancing *some* of those claims — not a club, not a charity, not a petition. Jobs: pledge (refundable, optionally delegated), direct funds (yours or others'), start a project, vouch alignment/success, optionally sign. After signing, CauseStarter **home** is a personal fundable-projects board. The pitch is ugh-removal: do only the part you'd do anyway; skip grant officers, black-box orgs, sucker-risk, manifesto-swallowing.
+- **What it is:** The spoken newcomer briefing. A cause board is a bulletin board of crowdfundable projects (Kickstarter-style refunds if the goal is missed), plus two twists: [delegate](shared/key-ideas/delegation.md) so you don't watch the board, and a **Not yet reimbursed** tab so you fund proven work instead of pitches. Almost everyone arrives via a circulated URL, not a catalog. Causes are ordinary-language statements; the board is a mix, not a club. Jobs are separable: pledge, direct, start, vouch, optionally sign. After signing, CauseStarter **home** is a personal fundable-projects board (including implied statements).
 - **When a user encounters it:** In-app `/docs`, or when they ask what this cause page is; returning users on CauseStarter `/`.
-- **What they might want help with:** What they can do without joining; how projects get on the list; pledging vs signing; when to start their own page vs using this one; finding “my” projects vs an organizer’s mix.
+- **What they might want help with:** What they can do without joining; how projects get on the list; pledging vs signing; when to start their own page vs using this one; finding “my” projects vs an organizer’s mix. Next objections: [faq.md](/docs/end-user/causestarter/faq.md). Eye-roll “support a cause” objections: [why-this-isnt-lame.md](/docs/end-user/causestarter/why-this-isnt-lame.md).
+
+## CauseStarter FAQ (objections, not a second tutorial)
+
+[Full page](/docs/end-user/causestarter/faq.md)
+
+- **What it is:** Short answers to the questions after the spoken pitch: what a cause/statement is, what signing does (including implied statements), how trust-filtered vouches populate the board, forking a mix, refunds, no grant officer, wording.
+- **When a user encounters it:** `/docs/faq`, or when they ask one of those questions after the landing briefing.
+- **What they might want help with:** Signing vs pledging; why a new board isn’t empty; why they see (or don’t see) a project; implication vs direct support.
+
+## Why this isn’t lame
+
+[Full page](/docs/end-user/causestarter/why-this-isnt-lame.md)
+
+- **What it is:** Objection-handling for people who roll their eyes at “support a cause”: no black-box charity, no sucker-risk, no pitch-betting, no manifesto, judgment as a job, wording fights don’t kill funding.
+- **When a user encounters it:** `/docs/why-this-isnt-lame`, or when they say this sounds like a movement/org they don’t want to join.
+- **What they might want help with:** Why delegation to a person isn’t charity; why retroactive funding is the easy path; why they can ignore three of five statements.
 
 ## Do the part you’d do anyway (jobs, not an org)
 

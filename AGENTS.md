@@ -17,3 +17,9 @@ Write temporary debug scripts to `tmp/` and clean them up when done.
 ## Diagnostics
 
 Avoid `lens_diagnostics mode=full` unless you specifically need a project-wide scan; it can hang or report stale cache noise. Prefer bounded `lsp_diagnostics` on touched files plus the relevant workspace typecheck/tests.
+
+## Branching and PRs
+
+Read `workflow/branching.md` before working with branches or creating PRs. Key points:
+- Always compare to `dev`, not `master`
+- Feature PRs target `dev`; `dev → master` is a separate release step

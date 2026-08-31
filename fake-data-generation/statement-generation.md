@@ -41,10 +41,12 @@ Generate in this order. Do not skip ahead to mass triples.
 2. **Easy implication inside one camp.** Close / medium / distant variants
    (`gen:proliferation`). Locks the attester, not bridges.
 3. **Real-gap bridges, one hidden-majority pattern at a time.** Compromise in
-   the middle (canonical left/right abortion or immigration — reuse
+   the middle (canonical left/right abortion and immigration are accepted, plus crime and LGBT-schools fact-conditionals;
+   remaining optional: LGB-vs-T unbundling — reuse
    [hidden-majority-patterns](/docs/end-user/common-sense-majority/hidden-majority-patterns.md),
-   do not fork a second abortion wording); costly unbundling; fact-conditionals;
+   do not fork a second wording of an accepted topic); costly unbundling; fact-conditionals;
    different-problems-same-solution with first-person limits, not mediator-meta.
+   Remaining work: [`PLAN.md`](./PLAN.md).
 4. **Non-political public-goods bridges** only after 1–3 work. Copyleft vs
    permissive; replication vs novel discovery; privacy vs open data.
 
@@ -153,14 +155,20 @@ attester + routing + “read aloud as a signature” without prose wordsmithing.
 ## Wiring to production
 
 Mass seed and user-facing cause-assist must share this pipeline so production
-cannot drift from what we bless in seed. Next engineering (not this exercise):
-refuse to show `/atomize` / `/sharpen-plank` / `/critique-triple` output that
-failed the same checks.
+cannot drift from what we bless in seed. **Gated (2026-08-31):** `/atomize`
+drops taxonomy / pay-the-work / slogan / heuristic-safety planks;
+`/sharpen-plank` withholds a reword that fails those checks; `/critique-triple`
+adds live-attester refusals on modified→bridge as `routing:` objections. See
+`cause-assist/src/statementQualityGate.ts`.
 
 ## Exercises
 
 | # | Status | What |
 |---|---|---|
 | 1 | **In `seed-content/simple-causes.json`**. Gold set still in the exercises file. List not complete. Nested-place rollup is board inclusion (settled). | Simple causes: wants, earmark grain (kind + place). Ontario-wide planks are genuine wants, not implication parents. `npm run gen:seed:simple-causes-implications`. |
-| 2 | **In [`seed-content/compromise-abortion.json`](./seed-content/compromise-abortion.json)** after Adam accepted it on 2026-08-30. Gold copy remains in the exercises file; canonical wording remains on hidden-majority-patterns.md. Live check (2026-08-28, deepseek-v3.2): both designed-yes arrows bless and all eight designed-no arrows refuse with high confidence; `/critique-triple` returns no objections or leak warnings. Production-default v4-flash stalled rather than returning JSON. | One left/right abortion compromise-in-the-middle triple. Do not fork wording. |
-| 3 | Not started | Gate cause-assist suggestions on the same checks. |
+| 2 | **In [`seed-content/compromise-abortion.json`](./seed-content/compromise-abortion.json)** after Adam accepted it on 2026-08-30. Gold copy remains in the exercises file; canonical wording remains on hidden-majority-patterns.md. Live check (2026-08-28, deepseek-v3.2): both designed-yes arrows bless and all eight designed-no arrows refuse with high confidence; `/critique-triple` returns no objections or leak warnings. Production-default v4-flash stalled rather than returning JSON. | One left/right abortion compromise-in-the-middle triple. Do not fork wording. Not yet the featured tiny-seed cluster. |
+| 3 | Done 2026-08-31 | Gate cause-assist suggestions on the same checks (`statementQualityGate.ts`). |
+| 4 | **In [`seed-content/compromise-immigration.json`](./seed-content/compromise-immigration.json)** after Adam accepted it on 2026-08-31. Gold copy remains in the exercises file; canonical wording remains on hidden-majority-patterns.md. Live attester (deepseek-v3.2): both designed-yes modified → commonality arrows bless and all eight designed-no arrows refuse with high confidence. | Left/right immigration compromise-in-the-middle triple. Do not fork wording. Not a tiny-seed cluster. |
+| 5 | **In [`seed-content/crime-repeat-offenders.json`](./seed-content/crime-repeat-offenders.json)** after Adam accepted it on 2026-08-31. Gold copy remains in the exercises file; canonical wording remains on hidden-majority-patterns.md. Live attester (deepseek-v3.2): both designed-yes modified → commonality arrows bless and all eight designed-no arrows refuse with high confidence. | Left/right crime fact-conditional (repeat-offender concentration). Do not fork wording. Not a tiny-seed cluster. |
+| 6 | **In [`seed-content/lgbt-schools.json`](./seed-content/lgbt-schools.json)** after Adam accepted it on 2026-08-31 (commonality wording is his clarification). Gold copy remains in the exercises file; canonical wording remains on hidden-majority-patterns.md. Live attester after the reword (deepseek-v3.2): both designed-yes arrows bless and all eight designed-no arrows refuse with high confidence. | Left/right LGBT schools fact-conditional. Not the Christian×secular unbundle. Do not fork wording. Not a tiny-seed cluster. |
+| 7+ | Not started | Optional later: LGB-vs-T coalition unbundling as its own exercise file. |

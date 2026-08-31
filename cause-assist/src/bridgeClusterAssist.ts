@@ -4,6 +4,7 @@ import {
 } from '@commonality/bridge-creator/strategy-engine'
 import type { RequestJsonCompletionFn } from '@commonality/attester-core'
 import { BRIDGE_STATEMENT_GUIDANCE, STATEMENT_QUALITY_GUIDANCE } from './statementGuidance.js'
+import { attesterRoutingObjections } from './statementQualityGate.js'
 import type {
   CauseAssistConfig,
   CritiqueTripleRequest,
@@ -264,8 +265,25 @@ export async function critiqueTriple(
       source: 'fallback',
     }
   }
+  const drafted = await runStatementStrategy(
+    critiqueTripleStrategy,
+    request,
+    engineConfig(config),
+    dependencies(requestFn),
+  )
+  const attesterObjections = await attesterRoutingObjections(
+    request.modifiedPlanks,
+    request.bridgePlank,
+    config,
+    requestFn,
+  )
+  const objections = [...drafted.objections]
+  for (const objection of attesterObjections) {
+    if (!objections.includes(objection)) objections.push(objection)
+  }
   return {
-    ...await runStatementStrategy(critiqueTripleStrategy, request, engineConfig(config), dependencies(requestFn)),
+    ...drafted,
+    objections: objections.slice(0, 12),
     source: 'llm',
   }
 }
