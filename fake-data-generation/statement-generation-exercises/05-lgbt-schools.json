@@ -1,0 +1,62 @@
+{
+  "format": "commonality-seed-content-v1",
+  "id": "statement-generation-exercise-05",
+  "title": "Exercise — left/right fact-conditional (LGBT / schools pushing)",
+  "description": "Gold copy of the accepted left/right same-values-different-beliefs triple. Canonical wording lives with hidden-majority-patterns.md and seed-content/lgbt-schools.json; this exercises directory is not loaded by loadSeedCollections. Commonality wording is Adam's 2026-08-31 clarification. Do not fork a second schools fact-conditional: if wording must change, change all three copies together.",
+  "notes": [
+    "Curriculum step 3 in statement-generation.md (real-gap bridges, one pattern). Abortion and immigration remain the canonical compromise-in-the-middle examples; crime remains the canonical repeat-offender fact-conditional.",
+    "Pattern: same values, different beliefs (fact-conditional). Shared value: if schools are actually pushing kids toward LGBT identities, that is wrong. Disputed fact: whether schools are doing that (right treats it as happening; left treats 'support' as not a push).",
+    "This is not the Christian×secular LGBT unbundle in seed-content/christian-secular-bridge.json, and not the LGB-vs-T coalition-unbundling sketch on hidden-majority-patterns.md (that seam can be a later cluster).",
+    "Loop: naturals as speech → modifieds as smallest extra belief → commonality last by omission of camp *why-the-fact* / camp extras → attester + routing + /critique-triple."
+  ],
+  "groups": [
+    {
+      "id": "lgbt-schools-pushing",
+      "title": "LGBT — if schools are pushing kids toward LGBT identities, that's wrong",
+      "notes": [
+        "Gap: moderate left's natural talk denies the push (support is not a push; calling it one is a smear). Moderate right's natural talk asserts the push and condemns it as obvious. Neither natural states the *if-true-then-wrong* deal that lets the left sign without conceding the fact.",
+        "Natural → modified is a nudge (left adds the conditional; right adds the conditional framing plus a camp extra). Modified → commonality should be implication (containment). Natural → commonality is designed no.",
+        "Do not paste the commonality paragraph into both modifieds."
+      ],
+      "statements": [
+        {
+          "id": "natural-left",
+          "role": "natural-left",
+          "text": "Schools aren't pushing kids toward LGBT identities. They're just being supportive of kids who already worked that out themselves. Calling that a push is a smear."
+        },
+        {
+          "id": "natural-right",
+          "role": "natural-right",
+          "text": "Schools are actively pushing kids toward LGBT identities. That's wrong. Stop it."
+        },
+        {
+          "id": "modified-left",
+          "role": "modified-left",
+          "text": "I don't think schools are pushing kids toward LGBT identities. They're being supportive of kids who already worked it out themselves, and calling that a push is a smear. But if it turned out schools really are pushing kids in that direction, that's wrong — of course they shouldn't be doing it. I still want to argue about what counts as support versus a push; I just wouldn't defend an actual push if that's what's happening."
+        },
+        {
+          "id": "modified-right",
+          "role": "modified-right",
+          "text": "Schools are actively pushing kids toward LGBT identities. That's wrong. I'd still rather we also stopped social transition at school without parents even in cases that look like 'just support,' but I don't feel as strongly about borderline support as about an actual push. I already think schools are pushing, so of course that's wrong. If they really weren't pushing, I wouldn't treat this as the same fight. We can argue about curriculum details another time; if schools are pushing kids toward LGBT identities, that's wrong."
+        },
+        {
+          "id": "commonality",
+          "role": "commonality",
+          "text": "If schools really are pushing kids toward LGBT identities, that's wrong. We can argue about what counts as 'supporting kids who are LGBT' versus 'pushing kids towards LGBT identities' another time, but to the extent that the latter is what's happening, that is not okay."
+        }
+      ],
+      "implicationNotes": [
+        "Designed yes: modified-left → commonality; modified-right → commonality.",
+        "Designed no: natural-left → commonality; natural-right → commonality; natural-left → modified-left; natural-right → modified-right; either modified → the other modified; commonality → either modified.",
+        "Routing: modified → commonality should annoy as 'I already said that'. Natural → modified should not (the if-true-then-wrong deal, and on the right the parent-bypass social-transition extra, are extra)."
+      ],
+      "loopNotes": [
+        "Human: pick pattern (done: same-values-different-beliefs, LGBT via schools pushing, not the Christian×secular unbundle, not LGB-vs-T unbundling). Veto if gap is 'same conclusion, different metaphysics' — it is not; the camps disagree on the fact.",
+        "Do not paste the commonality sentence into both modifieds to buy subset-by-concatenation.",
+        "2026-08-31 live attester (deepseek/deepseek-v3.2): both designed-yes modified → commonality arrows bless (high) and all eight designed-no arrows refuse (high), including after Adam's commonality reword.",
+        "2026-08-31 /critique-triple (same model, cause-assist module, pre-reword commonality): three objections in the same class as crime/immigration — (1) routing, treating modified-left's hypothetical as not containing the conditional; (2) routing, treating modified-right's 'I already think that's true, so of course that's wrong' as not containing the conditional; (3) shape, calling the deferral a coalition caption. Live attester already blessed both designed-yes arrows; not treated as a wording veto.",
+        "Adam accepted the triple on 2026-08-31; live copy: seed-content/lgbt-schools.json."
+      ]
+    }
+  ]
+}

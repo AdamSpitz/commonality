@@ -1,0 +1,53 @@
+{
+  "format": "commonality-seed-content-v1",
+  "id": "lgbt-schools",
+  "title": "LGBT — schools pushing (fact-conditional)",
+  "description": "Accepted left/right same-values-different-beliefs bridge triple. Copied from statement-generation-exercises/05-lgbt-schools.json after Adam accepted it on 2026-08-31 (commonality wording is Adam's clarification).",
+  "notes": [
+    "Curriculum step 3: a real-gap same-values-different-beliefs bridge. Process: fake-data-generation/statement-generation.md.",
+    "Naturals state each camp's talk without the if-true-then-wrong deal. Modifieds add that deal in camp-specific prose. Commonality is only the shared conditional plus deferring support-versus-push.",
+    "Not the Christian×secular LGBT unbundle, not LGB-vs-T coalition unbundling.",
+    "Live attester on 2026-08-31 with deepseek/deepseek-v3.2, including after Adam's commonality reword: both designed-yes arrows blessed and all eight designed-no arrows refused with high confidence."
+  ],
+  "groups": [
+    {
+      "id": "lgbt-schools-pushing",
+      "title": "LGBT — if schools are pushing kids toward LGBT identities, that's wrong",
+      "notes": [
+        "Gap: the moderate left's natural talk denies the push (support is not a push; calling it one is a smear). The moderate right's natural talk asserts the push and condemns it as obvious. Neither natural states the if-true-then-wrong deal that lets the left sign without conceding the fact.",
+        "Modified → commonality is implication containment. Natural → modified remains a nudge because the conditional deal (and on the right, a camp extra) is extra beliefs."
+      ],
+      "statements": [
+        {
+          "id": "natural-left",
+          "role": "natural-left",
+          "text": "Schools aren't pushing kids toward LGBT identities. They're just being supportive of kids who already worked that out themselves. Calling that a push is a smear."
+        },
+        {
+          "id": "natural-right",
+          "role": "natural-right",
+          "text": "Schools are actively pushing kids toward LGBT identities. That's wrong. Stop it."
+        },
+        {
+          "id": "modified-left",
+          "role": "modified-left",
+          "text": "I don't think schools are pushing kids toward LGBT identities. They're being supportive of kids who already worked it out themselves, and calling that a push is a smear. But if it turned out schools really are pushing kids in that direction, that's wrong — of course they shouldn't be doing it. I still want to argue about what counts as support versus a push; I just wouldn't defend an actual push if that's what's happening."
+        },
+        {
+          "id": "modified-right",
+          "role": "modified-right",
+          "text": "Schools are actively pushing kids toward LGBT identities. That's wrong. I'd still rather we also stopped social transition at school without parents even in cases that look like 'just support,' but I don't feel as strongly about borderline support as about an actual push. I already think schools are pushing, so of course that's wrong. If they really weren't pushing, I wouldn't treat this as the same fight. We can argue about curriculum details another time; if schools are pushing kids toward LGBT identities, that's wrong."
+        },
+        {
+          "id": "commonality",
+          "role": "commonality",
+          "text": "If schools really are pushing kids toward LGBT identities, that's wrong. We can argue about what counts as 'supporting kids who are LGBT' versus 'pushing kids towards LGBT identities' another time, but to the extent that the latter is what's happening, that is not okay."
+        }
+      ],
+      "implicationNotes": [
+        "Expect yes: modified-left → commonality; modified-right → commonality.",
+        "Expect no: natural-left → commonality; natural-right → commonality; natural-left → modified-left; natural-right → modified-right; either modified → the other modified; commonality → either modified."
+      ]
+    }
+  ]
+}

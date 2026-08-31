@@ -218,6 +218,22 @@ test('crime-repeat-offenders seed collection copies the accepted exercise-4 stat
   );
 });
 
+test('lgbt-schools seed collection copies the accepted exercise-5 statement texts', async () => {
+  const exercise = JSON.parse(await readFile(
+    new URL('../statement-generation-exercises/05-lgbt-schools.json', import.meta.url),
+    'utf8',
+  )) as { groups: Array<{ statements: Array<{ id: string; role: string; text: string }> }> };
+  const accepted = exercise.groups[0]?.statements ?? [];
+  const live = flattenSeedStatements(await loadSeedCollections())
+    .filter((record) => record.collection.id === 'lgbt-schools')
+    .map((record) => record.statement);
+
+  assert.deepEqual(
+    live.map(({ id, role, text }) => ({ id, role, text })),
+    accepted.map(({ id, role, text }) => ({ id, role, text })),
+  );
+});
+
 test('compromise-abortion seed collection copies the accepted exercise-2 statement texts', async () => {
   const exercise = JSON.parse(await readFile(
     new URL('../statement-generation-exercises/02-compromise-abortion.json', import.meta.url),

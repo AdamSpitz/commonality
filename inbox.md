@@ -21,9 +21,11 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 - **(Tell)** Production OpenRouter services (attesters, service-host, cause-assist, coherence-badge-worker) now default to `deepseek/deepseek-v4-flash-0731` via `PRODUCTION_OPENROUTER_MODEL`. Laptop scripts use the same id through a separate `DEV_OPENROUTER_MODEL` env / `fake-data-generation/devOpenRouter.ts`. Cause-assist prefers OpenRouter over xAI when both keys exist. Update Render dashboard if those env vars were set by hand.
 
-- **(Tell)** Crime left/right triple accepted into [`fake-data-generation/seed-content/crime-repeat-offenders.json`](fake-data-generation/seed-content/crime-repeat-offenders.json) (2026-08-31). LGBT still not drafted. Not a tiny-seed cluster.
+- **(Tell)** Crime left/right triple accepted into [`fake-data-generation/seed-content/crime-repeat-offenders.json`](fake-data-generation/seed-content/crime-repeat-offenders.json) (2026-08-31). Not a tiny-seed cluster.
 
-- **(Tell)** Fake/seed data now has a standing plan: [`fake-data-generation/PLAN.md`](fake-data-generation/PLAN.md) (tiny UI world vs real statements vs stress traffic). Adam asked for more left/right bridges on LGBT, immigration, crime — immigration and crime are accepted; LGBT remains.
+- **(Tell)** LGBT left/right **schools** fact-conditional accepted into [`fake-data-generation/seed-content/lgbt-schools.json`](fake-data-generation/seed-content/lgbt-schools.json) (2026-08-31). Adam's commonality reword still attester-clean. Not a tiny-seed cluster. LGB-vs-T unbundling not drafted.
+
+- **(Tell)** Fake/seed data now has a standing plan: [`fake-data-generation/PLAN.md`](fake-data-generation/PLAN.md) (tiny UI world vs real statements vs stress traffic). Adam asked for more left/right bridges on LGBT, immigration, crime — all four (plus abortion) are accepted.
 
 - **(Tell)** Nested-place rollup is settled as board inclusion, not implication. Statement-generation gold set, cause-assist guidance, seed garden/roster, and the implication attester prompt now follow that (Grey County → Ontario is a worked reject). `seed-implication-evaluations` still has the old prompt fingerprint; a v4-flash refresh stalled on empty completions. Handoff: [continuity/2026-08-27-statement-generation.md](continuity/2026-08-27-statement-generation.md).
 

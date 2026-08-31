@@ -106,7 +106,7 @@ Statement *shape* (modified vs natural vs commonality, what the implication atte
 
 The curated seed statements for the real system now live in `seed-content/*.json` using a small formal schema:
 
-- one JSON file per seed-content purpose (`fundable-projects`, `hidden-majority`, `meta`, `content-funding`, `simple-causes`, `christian-secular-bridge`, `compromise-abortion`, `compromise-immigration`, `crime-repeat-offenders`)
+- one JSON file per seed-content purpose (`fundable-projects`, `hidden-majority`, `meta`, `content-funding`, `simple-causes`, `christian-secular-bridge`, `compromise-abortion`, `compromise-immigration`, `crime-repeat-offenders`, `lgbt-schools`)
 - collection-level and group-level notes so the rationale from the specs is not lost
 - per-statement IDs, optional roles (for example `commonality`, `normal-left`, `pole-right`), and optional `createdDate` when a seed statement needs a stable well-known CID
 

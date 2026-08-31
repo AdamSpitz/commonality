@@ -41,8 +41,8 @@ Generate in this order. Do not skip ahead to mass triples.
 2. **Easy implication inside one camp.** Close / medium / distant variants
    (`gen:proliferation`). Locks the attester, not bridges.
 3. **Real-gap bridges, one hidden-majority pattern at a time.** Compromise in
-   the middle (canonical left/right abortion and immigration are accepted, plus the crime fact-conditional;
-   remaining Adam topics: **LGBT** — reuse
+   the middle (canonical left/right abortion and immigration are accepted, plus crime and LGBT-schools fact-conditionals;
+   remaining optional: LGB-vs-T unbundling — reuse
    [hidden-majority-patterns](/docs/end-user/common-sense-majority/hidden-majority-patterns.md),
    do not fork a second wording of an accepted topic); costly unbundling; fact-conditionals;
    different-problems-same-solution with first-person limits, not mediator-meta.
@@ -168,4 +168,5 @@ failed the same checks.
 | 3 | Not started | Gate cause-assist suggestions on the same checks. |
 | 4 | **In [`seed-content/compromise-immigration.json`](./seed-content/compromise-immigration.json)** after Adam accepted it on 2026-08-31. Gold copy remains in the exercises file; canonical wording remains on hidden-majority-patterns.md. Live attester (deepseek-v3.2): both designed-yes modified → commonality arrows bless and all eight designed-no arrows refuse with high confidence. | Left/right immigration compromise-in-the-middle triple. Do not fork wording. Not a tiny-seed cluster. |
 | 5 | **In [`seed-content/crime-repeat-offenders.json`](./seed-content/crime-repeat-offenders.json)** after Adam accepted it on 2026-08-31. Gold copy remains in the exercises file; canonical wording remains on hidden-majority-patterns.md. Live attester (deepseek-v3.2): both designed-yes modified → commonality arrows bless and all eight designed-no arrows refuse with high confidence. | Left/right crime fact-conditional (repeat-offender concentration). Do not fork wording. Not a tiny-seed cluster. |
-| 6+ | Not started | Remaining Adam topic: **LGBT**. One topic per exercise file; accept into `seed-content/` only after human veto. |
+| 6 | **In [`seed-content/lgbt-schools.json`](./seed-content/lgbt-schools.json)** after Adam accepted it on 2026-08-31 (commonality wording is his clarification). Gold copy remains in the exercises file; canonical wording remains on hidden-majority-patterns.md. Live attester after the reword (deepseek-v3.2): both designed-yes arrows bless and all eight designed-no arrows refuse with high confidence. | Left/right LGBT schools fact-conditional. Not the Christian×secular unbundle. Do not fork wording. Not a tiny-seed cluster. |
+| 7+ | Not started | Optional later: LGB-vs-T coalition unbundling as its own exercise file. Gate cause-assist is exercise 3. |

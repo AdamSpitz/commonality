@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-08-27T11:28:36.187Z",
+  "generatedAt": "2026-08-31T19:33:35.570Z",
   "algorithm": "deterministic-seed-content-fixture-v1",
-  "seedContentFingerprint": "7638407d05647c6655970f84989e7d58ff35c2f258046c671b909cf9a4f158d5",
+  "seedContentFingerprint": "0e9c078727fc6698a16dbb86691a2d7b34942b7075e5523474ad374ab00ed33d",
   "explorerCollection": {
     "stream": "fundable-project-explorer",
     "entries": [
@@ -126,6 +126,76 @@
         "topicArea": "Christianity × secular conservatism (tiny seed)"
       },
       {
+        "collectionId": "compromise-abortion",
+        "groupId": "abortion-gestational-cutoff",
+        "statementId": "natural-left",
+        "label": "I want abortion to be available so that women aren't forced into goin...",
+        "topicArea": "Abortion — compromise in the middle"
+      },
+      {
+        "collectionId": "compromise-abortion",
+        "groupId": "abortion-gestational-cutoff",
+        "statementId": "natural-right",
+        "label": "Late-term abortion is horrific.",
+        "topicArea": "Abortion — compromise in the middle"
+      },
+      {
+        "collectionId": "compromise-abortion",
+        "groupId": "abortion-gestational-cutoff",
+        "statementId": "modified-left",
+        "label": "I want abortion to be available so that women aren't forced into goin...",
+        "topicArea": "Abortion — compromise in the middle"
+      },
+      {
+        "collectionId": "compromise-abortion",
+        "groupId": "abortion-gestational-cutoff",
+        "statementId": "modified-right",
+        "label": "Late-term abortion is horrific. I'd still rather not see abortions ea...",
+        "topicArea": "Abortion — compromise in the middle"
+      },
+      {
+        "collectionId": "compromise-abortion",
+        "groupId": "abortion-gestational-cutoff",
+        "statementId": "commonality",
+        "label": "I'd be okay with it if abortion were allowed during the first 12-16 w...",
+        "topicArea": "Abortion — compromise in the middle"
+      },
+      {
+        "collectionId": "compromise-immigration",
+        "groupId": "immigration-criminal-priority-overlap",
+        "statementId": "natural-left",
+        "label": "People who are here illegally but otherwise keep their heads down and...",
+        "topicArea": "Immigration — compromise in the middle"
+      },
+      {
+        "collectionId": "compromise-immigration",
+        "groupId": "immigration-criminal-priority-overlap",
+        "statementId": "natural-right",
+        "label": "If you're here illegally you should be deported. Start with the ones ...",
+        "topicArea": "Immigration — compromise in the middle"
+      },
+      {
+        "collectionId": "compromise-immigration",
+        "groupId": "immigration-criminal-priority-overlap",
+        "statementId": "modified-left",
+        "label": "People who are here illegally but otherwise keep their heads down and...",
+        "topicArea": "Immigration — compromise in the middle"
+      },
+      {
+        "collectionId": "compromise-immigration",
+        "groupId": "immigration-criminal-priority-overlap",
+        "statementId": "modified-right",
+        "label": "If you're here illegally you should be deported. I'd still rather we ...",
+        "topicArea": "Immigration — compromise in the middle"
+      },
+      {
+        "collectionId": "compromise-immigration",
+        "groupId": "immigration-criminal-priority-overlap",
+        "statementId": "commonality",
+        "label": "I'd be okay with it if we deport people who are here illegally and ha...",
+        "topicArea": "Immigration — compromise in the middle"
+      },
+      {
         "collectionId": "content-funding",
         "groupId": "civility-topic",
         "statementId": "noninflammatory-civility-topic",
@@ -182,109 +252,39 @@
         "topicArea": "Content Funding"
       },
       {
-        "collectionId": "csm",
-        "groupId": "mission",
-        "statementId": "mission-statement",
-        "label": "I think most people who currently identify as left-wing or right-wing...",
-        "topicArea": "Common Sense Majority"
+        "collectionId": "crime-repeat-offenders",
+        "groupId": "crime-repeat-offender-concentration",
+        "statementId": "natural-left",
+        "label": "I'm not signing up for three-strikes laws. A lot of people cycling th...",
+        "topicArea": "Crime — repeat-offender concentration (fact-conditional)"
       },
       {
-        "collectionId": "fundable-projects",
-        "groupId": "finding-common-ground",
-        "statementId": "common-ground-across-divides",
-        "label": "I am interested in furthering the cause of helping people find common...",
-        "topicArea": "Fundable Projects"
+        "collectionId": "crime-repeat-offenders",
+        "groupId": "crime-repeat-offender-concentration",
+        "statementId": "natural-right",
+        "label": "A handful of repeat offenders do most of the violent crime. Stop catc...",
+        "topicArea": "Crime — repeat-offender concentration (fact-conditional)"
       },
       {
-        "collectionId": "fundable-projects",
-        "groupId": "finding-common-ground",
-        "statementId": "charitable-cross-partisan-content",
-        "label": "I am interested in furthering the cause of content that explains one ...",
-        "topicArea": "Fundable Projects"
+        "collectionId": "crime-repeat-offenders",
+        "groupId": "crime-repeat-offender-concentration",
+        "statementId": "modified-left",
+        "label": "I'm not signing up for three-strikes laws as a general program. I don...",
+        "topicArea": "Crime — repeat-offender concentration (fact-conditional)"
       },
       {
-        "collectionId": "fundable-projects",
-        "groupId": "finding-common-ground",
-        "statementId": "identify-political-agreement",
-        "label": "I am interested in furthering the cause of identifying where politica...",
-        "topicArea": "Fundable Projects"
+        "collectionId": "crime-repeat-offenders",
+        "groupId": "crime-repeat-offender-concentration",
+        "statementId": "modified-right",
+        "label": "A handful of repeat offenders do most of the violent crime. Stop catc...",
+        "topicArea": "Crime — repeat-offender concentration (fact-conditional)"
       },
       {
-        "collectionId": "fundable-projects",
-        "groupId": "finding-common-ground",
-        "statementId": "reduce-tribal-polarization",
-        "label": "I am interested in furthering the cause of reducing tribal polarizati...",
-        "topicArea": "Fundable Projects"
-      },
-      {
-        "collectionId": "fundable-projects",
-        "groupId": "finding-common-ground",
-        "statementId": "inform-not-inflame",
-        "label": "I am interested in furthering the cause of journalism that informs ra...",
-        "topicArea": "Fundable Projects"
-      },
-      {
-        "collectionId": "fundable-projects",
-        "groupId": "government-accountability",
-        "statementId": "expose-corruption-and-waste",
-        "label": "I am interested in furthering the cause of exposing government corrup...",
-        "topicArea": "Fundable Projects"
-      },
-      {
-        "collectionId": "fundable-projects",
-        "groupId": "government-accountability",
-        "statementId": "transparent-and-auditable-spending",
-        "label": "I am interested in furthering the cause of making government spending...",
-        "topicArea": "Fundable Projects"
-      },
-      {
-        "collectionId": "fundable-projects",
-        "groupId": "government-accountability",
-        "statementId": "congressional-term-limits",
-        "label": "I am interested in furthering the cause of congressional term limits.",
-        "topicArea": "Fundable Projects"
-      },
-      {
-        "collectionId": "fundable-projects",
-        "groupId": "government-accountability",
-        "statementId": "money-out-of-politics",
-        "label": "I am interested in furthering the cause of getting money out of polit...",
-        "topicArea": "Fundable Projects"
-      },
-      {
-        "collectionId": "fundable-projects",
-        "groupId": "government-accountability",
-        "statementId": "end-revolving-door",
-        "label": "I am interested in furthering the cause of ending the revolving door ...",
-        "topicArea": "Fundable Projects"
-      },
-      {
-        "collectionId": "fundable-projects",
-        "groupId": "government-accountability",
-        "statementId": "better-voting-systems",
-        "label": "I am interested in furthering the cause of better voting systems and ...",
-        "topicArea": "Fundable Projects"
-      },
-      {
-        "collectionId": "fundable-projects",
-        "groupId": "government-accountability",
-        "statementId": "break-regulatory-capture",
-        "label": "I am interested in furthering the cause of breaking up regulatory cap...",
-        "topicArea": "Fundable Projects"
-      },
-      {
-        "collectionId": "fundable-projects",
-        "groupId": "civil-liberties",
-        "statementId": "free-speech-unpopular-speech",
-        "label": "I am interested in furthering the cause of free speech, especially un...",
-        "topicArea": "Fundable Projects"
-      },
-      {
-        "collectionId": "fundable-projects",
-        "groupId": "civil-liberties",
-        "statementId": "censorship-resistant-publishing",
-        "label": "I am interested in furthering the cause of censorship-resistant publi...",
-        "topicArea": "Fundable Projects"
+        "collectionId": "crime-repeat-offenders",
+        "groupId": "crime-repeat-offender-concentration",
+        "statementId": "commonality",
+        "label": "If it's true that a relatively small number of repeat offenders do a ...",
+        "topicArea": "Crime — repeat-offender concentration (fact-conditional)"
       }
     ]
   },
@@ -530,114 +530,114 @@
       },
       {
         "target": {
-          "collectionId": "content-funding",
-          "groupId": "civility-topic",
-          "statementId": "noninflammatory-civility-topic"
+          "collectionId": "compromise-abortion",
+          "groupId": "abortion-gestational-cutoff",
+          "statementId": "natural-left"
         },
         "suggested": {
-          "collectionId": "content-funding",
-          "groupId": "right-to-left-translation",
-          "statementId": "lean-left-open-to-right-perspectives"
+          "collectionId": "compromise-abortion",
+          "groupId": "abortion-gestational-cutoff",
+          "statementId": "natural-right"
         },
-        "reason": "Seeded local-dev suggestion: another statement in Civility topic.",
+        "reason": "Seeded local-dev suggestion: another statement in Abortion — first-trimester cutoff.",
         "confidence": 0.6
       },
       {
         "target": {
-          "collectionId": "content-funding",
-          "groupId": "right-to-left-translation",
-          "statementId": "lean-left-open-to-right-perspectives"
+          "collectionId": "compromise-abortion",
+          "groupId": "abortion-gestational-cutoff",
+          "statementId": "natural-right"
         },
         "suggested": {
-          "collectionId": "content-funding",
-          "groupId": "right-to-left-translation",
-          "statementId": "lean-right-wants-charitable-right-explanations"
+          "collectionId": "compromise-abortion",
+          "groupId": "abortion-gestational-cutoff",
+          "statementId": "natural-left"
         },
-        "reason": "Seeded local-dev suggestion: another statement in Right-to-left translation.",
+        "reason": "Seeded local-dev suggestion: another statement in Abortion — first-trimester cutoff.",
         "confidence": 0.6
       },
       {
         "target": {
-          "collectionId": "content-funding",
-          "groupId": "right-to-left-translation",
-          "statementId": "lean-right-wants-charitable-right-explanations"
+          "collectionId": "compromise-abortion",
+          "groupId": "abortion-gestational-cutoff",
+          "statementId": "modified-left"
         },
         "suggested": {
-          "collectionId": "content-funding",
-          "groupId": "right-to-left-translation",
-          "statementId": "lean-left-open-to-right-perspectives"
+          "collectionId": "compromise-abortion",
+          "groupId": "abortion-gestational-cutoff",
+          "statementId": "natural-left"
         },
-        "reason": "Seeded local-dev suggestion: another statement in Right-to-left translation.",
+        "reason": "Seeded local-dev suggestion: another statement in Abortion — first-trimester cutoff.",
         "confidence": 0.6
       },
       {
         "target": {
-          "collectionId": "content-funding",
-          "groupId": "right-to-left-translation",
-          "statementId": "right-perspectives-noninflammatory"
+          "collectionId": "compromise-abortion",
+          "groupId": "abortion-gestational-cutoff",
+          "statementId": "modified-right"
         },
         "suggested": {
-          "collectionId": "content-funding",
-          "groupId": "right-to-left-translation",
-          "statementId": "lean-left-open-to-right-perspectives"
+          "collectionId": "compromise-abortion",
+          "groupId": "abortion-gestational-cutoff",
+          "statementId": "natural-left"
         },
-        "reason": "Seeded local-dev suggestion: another statement in Right-to-left translation.",
+        "reason": "Seeded local-dev suggestion: another statement in Abortion — first-trimester cutoff.",
         "confidence": 0.6
       },
       {
         "target": {
-          "collectionId": "content-funding",
-          "groupId": "left-to-right-translation",
-          "statementId": "lean-right-open-to-left-perspectives"
+          "collectionId": "compromise-abortion",
+          "groupId": "abortion-gestational-cutoff",
+          "statementId": "commonality"
         },
         "suggested": {
-          "collectionId": "content-funding",
-          "groupId": "left-to-right-translation",
-          "statementId": "lean-left-wants-charitable-left-explanations"
+          "collectionId": "compromise-abortion",
+          "groupId": "abortion-gestational-cutoff",
+          "statementId": "natural-left"
         },
-        "reason": "Seeded local-dev suggestion: another statement in Left-to-right translation.",
+        "reason": "Seeded local-dev suggestion: another statement in Abortion — first-trimester cutoff.",
         "confidence": 0.6
       },
       {
         "target": {
-          "collectionId": "content-funding",
-          "groupId": "left-to-right-translation",
-          "statementId": "lean-left-wants-charitable-left-explanations"
+          "collectionId": "compromise-immigration",
+          "groupId": "immigration-criminal-priority-overlap",
+          "statementId": "natural-left"
         },
         "suggested": {
-          "collectionId": "content-funding",
-          "groupId": "left-to-right-translation",
-          "statementId": "lean-right-open-to-left-perspectives"
+          "collectionId": "compromise-immigration",
+          "groupId": "immigration-criminal-priority-overlap",
+          "statementId": "natural-right"
         },
-        "reason": "Seeded local-dev suggestion: another statement in Left-to-right translation.",
+        "reason": "Seeded local-dev suggestion: another statement in Immigration — deport criminals; accept mixed outcomes for the peaceful.",
         "confidence": 0.6
       },
       {
         "target": {
-          "collectionId": "content-funding",
-          "groupId": "left-to-right-translation",
-          "statementId": "left-perspectives-noninflammatory"
+          "collectionId": "compromise-immigration",
+          "groupId": "immigration-criminal-priority-overlap",
+          "statementId": "natural-right"
         },
         "suggested": {
-          "collectionId": "content-funding",
-          "groupId": "left-to-right-translation",
-          "statementId": "lean-right-open-to-left-perspectives"
+          "collectionId": "compromise-immigration",
+          "groupId": "immigration-criminal-priority-overlap",
+          "statementId": "natural-left"
         },
-        "reason": "Seeded local-dev suggestion: another statement in Left-to-right translation.",
+        "reason": "Seeded local-dev suggestion: another statement in Immigration — deport criminals; accept mixed outcomes for the peaceful.",
         "confidence": 0.6
       },
       {
         "target": {
-          "collectionId": "content-funding",
-          "groupId": "cross-partisan-explanatory-content",
-          "statementId": "other-side-perspectives-without-anger"
+          "collectionId": "compromise-immigration",
+          "groupId": "immigration-criminal-priority-overlap",
+          "statementId": "modified-left"
         },
         "suggested": {
-          "collectionId": "content-funding",
-          "groupId": "civility-topic",
-          "statementId": "noninflammatory-civility-topic"
+          "collectionId": "compromise-immigration",
+          "groupId": "immigration-criminal-priority-overlap",
+          "statementId": "natural-left"
         },
-        "reason": "Seeded local-dev suggestion: another statement in Cross-partisan explanatory content.",
+        "reason": "Seeded local-dev suggestion: another statement in Immigration — deport criminals; accept mixed outcomes for the peaceful.",
         "confidence": 0.6
       }
     ]
@@ -802,6 +802,110 @@
       },
       {
         "from": {
+          "collectionId": "compromise-abortion",
+          "groupId": "abortion-gestational-cutoff",
+          "statementId": "commonality"
+        },
+        "to": {
+          "collectionId": "compromise-abortion",
+          "groupId": "abortion-gestational-cutoff",
+          "statementId": "modified-left"
+        },
+        "reason": "Seeded implication-finder candidate from compromise-abortion/abortion-gestational-cutoff."
+      },
+      {
+        "from": {
+          "collectionId": "compromise-abortion",
+          "groupId": "abortion-gestational-cutoff",
+          "statementId": "modified-left"
+        },
+        "to": {
+          "collectionId": "compromise-abortion",
+          "groupId": "abortion-gestational-cutoff",
+          "statementId": "modified-right"
+        },
+        "reason": "Seeded implication-finder candidate from compromise-abortion/abortion-gestational-cutoff."
+      },
+      {
+        "from": {
+          "collectionId": "compromise-abortion",
+          "groupId": "abortion-gestational-cutoff",
+          "statementId": "modified-right"
+        },
+        "to": {
+          "collectionId": "compromise-abortion",
+          "groupId": "abortion-gestational-cutoff",
+          "statementId": "natural-left"
+        },
+        "reason": "Seeded implication-finder candidate from compromise-abortion/abortion-gestational-cutoff."
+      },
+      {
+        "from": {
+          "collectionId": "compromise-abortion",
+          "groupId": "abortion-gestational-cutoff",
+          "statementId": "natural-left"
+        },
+        "to": {
+          "collectionId": "compromise-abortion",
+          "groupId": "abortion-gestational-cutoff",
+          "statementId": "natural-right"
+        },
+        "reason": "Seeded implication-finder candidate from compromise-abortion/abortion-gestational-cutoff."
+      },
+      {
+        "from": {
+          "collectionId": "compromise-immigration",
+          "groupId": "immigration-criminal-priority-overlap",
+          "statementId": "commonality"
+        },
+        "to": {
+          "collectionId": "compromise-immigration",
+          "groupId": "immigration-criminal-priority-overlap",
+          "statementId": "modified-left"
+        },
+        "reason": "Seeded implication-finder candidate from compromise-immigration/immigration-criminal-priority-overlap."
+      },
+      {
+        "from": {
+          "collectionId": "compromise-immigration",
+          "groupId": "immigration-criminal-priority-overlap",
+          "statementId": "modified-left"
+        },
+        "to": {
+          "collectionId": "compromise-immigration",
+          "groupId": "immigration-criminal-priority-overlap",
+          "statementId": "modified-right"
+        },
+        "reason": "Seeded implication-finder candidate from compromise-immigration/immigration-criminal-priority-overlap."
+      },
+      {
+        "from": {
+          "collectionId": "compromise-immigration",
+          "groupId": "immigration-criminal-priority-overlap",
+          "statementId": "modified-right"
+        },
+        "to": {
+          "collectionId": "compromise-immigration",
+          "groupId": "immigration-criminal-priority-overlap",
+          "statementId": "natural-left"
+        },
+        "reason": "Seeded implication-finder candidate from compromise-immigration/immigration-criminal-priority-overlap."
+      },
+      {
+        "from": {
+          "collectionId": "compromise-immigration",
+          "groupId": "immigration-criminal-priority-overlap",
+          "statementId": "natural-left"
+        },
+        "to": {
+          "collectionId": "compromise-immigration",
+          "groupId": "immigration-criminal-priority-overlap",
+          "statementId": "natural-right"
+        },
+        "reason": "Seeded implication-finder candidate from compromise-immigration/immigration-criminal-priority-overlap."
+      },
+      {
+        "from": {
           "collectionId": "content-funding",
           "groupId": "left-to-right-translation",
           "statementId": "lean-left-wants-charitable-left-explanations"
@@ -851,6 +955,58 @@
           "statementId": "right-perspectives-noninflammatory"
         },
         "reason": "Seeded implication-finder candidate from content-funding/right-to-left-translation."
+      },
+      {
+        "from": {
+          "collectionId": "crime-repeat-offenders",
+          "groupId": "crime-repeat-offender-concentration",
+          "statementId": "commonality"
+        },
+        "to": {
+          "collectionId": "crime-repeat-offenders",
+          "groupId": "crime-repeat-offender-concentration",
+          "statementId": "modified-left"
+        },
+        "reason": "Seeded implication-finder candidate from crime-repeat-offenders/crime-repeat-offender-concentration."
+      },
+      {
+        "from": {
+          "collectionId": "crime-repeat-offenders",
+          "groupId": "crime-repeat-offender-concentration",
+          "statementId": "modified-left"
+        },
+        "to": {
+          "collectionId": "crime-repeat-offenders",
+          "groupId": "crime-repeat-offender-concentration",
+          "statementId": "modified-right"
+        },
+        "reason": "Seeded implication-finder candidate from crime-repeat-offenders/crime-repeat-offender-concentration."
+      },
+      {
+        "from": {
+          "collectionId": "crime-repeat-offenders",
+          "groupId": "crime-repeat-offender-concentration",
+          "statementId": "modified-right"
+        },
+        "to": {
+          "collectionId": "crime-repeat-offenders",
+          "groupId": "crime-repeat-offender-concentration",
+          "statementId": "natural-left"
+        },
+        "reason": "Seeded implication-finder candidate from crime-repeat-offenders/crime-repeat-offender-concentration."
+      },
+      {
+        "from": {
+          "collectionId": "crime-repeat-offenders",
+          "groupId": "crime-repeat-offender-concentration",
+          "statementId": "natural-left"
+        },
+        "to": {
+          "collectionId": "crime-repeat-offenders",
+          "groupId": "crime-repeat-offender-concentration",
+          "statementId": "natural-right"
+        },
+        "reason": "Seeded implication-finder candidate from crime-repeat-offenders/crime-repeat-offender-concentration."
       },
       {
         "from": {
@@ -1007,162 +1163,6 @@
           "statementId": "individual-and-community-preparedness"
         },
         "reason": "Seeded implication-finder candidate from fundable-projects/defense-security-and-resilience."
-      },
-      {
-        "from": {
-          "collectionId": "fundable-projects",
-          "groupId": "defense-security-and-resilience",
-          "statementId": "individual-and-community-preparedness"
-        },
-        "to": {
-          "collectionId": "fundable-projects",
-          "groupId": "defense-security-and-resilience",
-          "statementId": "supply-chain-resilience"
-        },
-        "reason": "Seeded implication-finder candidate from fundable-projects/defense-security-and-resilience."
-      },
-      {
-        "from": {
-          "collectionId": "fundable-projects",
-          "groupId": "education",
-          "statementId": "classic-literature-and-history"
-        },
-        "to": {
-          "collectionId": "fundable-projects",
-          "groupId": "education",
-          "statementId": "educational-support-for-disadvantaged-kids"
-        },
-        "reason": "Seeded implication-finder candidate from fundable-projects/education."
-      },
-      {
-        "from": {
-          "collectionId": "fundable-projects",
-          "groupId": "education",
-          "statementId": "educational-support-for-disadvantaged-kids"
-        },
-        "to": {
-          "collectionId": "fundable-projects",
-          "groupId": "education",
-          "statementId": "homeschooling-resources"
-        },
-        "reason": "Seeded implication-finder candidate from fundable-projects/education."
-      },
-      {
-        "from": {
-          "collectionId": "fundable-projects",
-          "groupId": "education",
-          "statementId": "homeschooling-resources"
-        },
-        "to": {
-          "collectionId": "fundable-projects",
-          "groupId": "education",
-          "statementId": "learning-outcomes-research"
-        },
-        "reason": "Seeded implication-finder candidate from fundable-projects/education."
-      },
-      {
-        "from": {
-          "collectionId": "fundable-projects",
-          "groupId": "education",
-          "statementId": "learning-outcomes-research"
-        },
-        "to": {
-          "collectionId": "fundable-projects",
-          "groupId": "education",
-          "statementId": "school-alternatives"
-        },
-        "reason": "Seeded implication-finder candidate from fundable-projects/education."
-      },
-      {
-        "from": {
-          "collectionId": "fundable-projects",
-          "groupId": "education",
-          "statementId": "school-alternatives"
-        },
-        "to": {
-          "collectionId": "fundable-projects",
-          "groupId": "education",
-          "statementId": "vocational-training"
-        },
-        "reason": "Seeded implication-finder candidate from fundable-projects/education."
-      },
-      {
-        "from": {
-          "collectionId": "fundable-projects",
-          "groupId": "environment-and-sustainability",
-          "statementId": "clean-energy-research"
-        },
-        "to": {
-          "collectionId": "fundable-projects",
-          "groupId": "environment-and-sustainability",
-          "statementId": "conservation-of-local-natural-areas"
-        },
-        "reason": "Seeded implication-finder candidate from fundable-projects/environment-and-sustainability."
-      },
-      {
-        "from": {
-          "collectionId": "fundable-projects",
-          "groupId": "environment-and-sustainability",
-          "statementId": "conservation-of-local-natural-areas"
-        },
-        "to": {
-          "collectionId": "fundable-projects",
-          "groupId": "environment-and-sustainability",
-          "statementId": "independent-environmental-monitoring"
-        },
-        "reason": "Seeded implication-finder candidate from fundable-projects/environment-and-sustainability."
-      },
-      {
-        "from": {
-          "collectionId": "fundable-projects",
-          "groupId": "environment-and-sustainability",
-          "statementId": "independent-environmental-monitoring"
-        },
-        "to": {
-          "collectionId": "fundable-projects",
-          "groupId": "environment-and-sustainability",
-          "statementId": "reduce-industrial-food-dependence"
-        },
-        "reason": "Seeded implication-finder candidate from fundable-projects/environment-and-sustainability."
-      },
-      {
-        "from": {
-          "collectionId": "fundable-projects",
-          "groupId": "environment-and-sustainability",
-          "statementId": "reduce-industrial-food-dependence"
-        },
-        "to": {
-          "collectionId": "fundable-projects",
-          "groupId": "environment-and-sustainability",
-          "statementId": "sustainable-agriculture-research"
-        },
-        "reason": "Seeded implication-finder candidate from fundable-projects/environment-and-sustainability."
-      },
-      {
-        "from": {
-          "collectionId": "fundable-projects",
-          "groupId": "faith-civil-society-and-charitable-coordination",
-          "statementId": "civil-society-alternatives"
-        },
-        "to": {
-          "collectionId": "fundable-projects",
-          "groupId": "faith-civil-society-and-charitable-coordination",
-          "statementId": "community-coordination-without-bureaucracy"
-        },
-        "reason": "Seeded implication-finder candidate from fundable-projects/faith-civil-society-and-charitable-coordination."
-      },
-      {
-        "from": {
-          "collectionId": "fundable-projects",
-          "groupId": "faith-civil-society-and-charitable-coordination",
-          "statementId": "community-coordination-without-bureaucracy"
-        },
-        "to": {
-          "collectionId": "fundable-projects",
-          "groupId": "faith-civil-society-and-charitable-coordination",
-          "statementId": "cross-church-coordination"
-        },
-        "reason": "Seeded implication-finder candidate from fundable-projects/faith-civil-society-and-charitable-coordination."
       }
     ]
   }
