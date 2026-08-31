@@ -12,7 +12,7 @@ Fake data / seed content is a **standing plan**, not a pile of one-shots: read [
 
 ----
 
-- **(Tell)** Next fake-data/seed-data step lives in [`fake-data-generation/PLAN.md`](fake-data-generation/PLAN.md). Abortion, immigration, and crime triples are accepted; LGBT remains.
+- **(Tell)** Next fake-data/seed-data step lives in [`fake-data-generation/PLAN.md`](fake-data-generation/PLAN.md). Abortion, immigration, crime, and LGBT-schools triples are accepted; next is the demo-seed live UI pass.
 
 ----
 
