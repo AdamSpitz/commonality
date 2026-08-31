@@ -19,7 +19,7 @@ Tiny local seed (`./scripts/data.sh --seed`, i.e. `gen:tiny`) should show two Ca
   - Yes: each modified → its CG (containment / subset).
   - No (not a bug): natural → CG, pole → anything, MC → MS, unique → CG, CG → modified.
 - **~10 projects**, not 17. Shared alignments. One unique-only.
-- **Personas** as hand-authored JSON driving signs / creates / attests — do not grow random `universe.json` soup for this. Later make that the easy path for more clusters.
+- **Personas** as hand-authored JSON driving signs / creates / attests — do not grow random `universe.json` soup for this. Further clusters: add `data/tiny-clusters/<id>.json` (generic `seedTinyCluster.ts`); do not add an issue-named `.ts` module.
 - **This becomes tiny.** Drop random 12-statement universe slice from tiny once this cluster + personas exist. Until then, statements live in seed-content JSON and can be blessed without a full reseed.
 
 ## Statement source of truth
@@ -36,7 +36,7 @@ Containment is a check after drafting, not a method. Do **not** paste commonalit
 - [x] Author seed JSON (8 naturals + 3 triples).
 - [x] Rewrite seed JSON off subset-concatenation (2026-08-25): naturals as speech; modifieds keep *why* + limiting principle; commonality last. Live attester: all 6 designed **yes** blessed (high / subset); all 6 designed **no** refused. Script: `npm run gen:seed:christian-secular-implications`. CIDs changed — tiny reseed still needed for the running chain.
 - [x] Point `CHRISTIANITY_PLANKS` / `SECULAR_CONSERVATIVE_PLANKS` at the naturals; publish modified+CG as mediator (#8) statements.
-- [x] Persona JSON (`data/christian-secular-personas.json`) + driver in `seedChristianityCause.ts`: persona-based signs, 10 projects, mixed natural vs modified alignments, unique-only scripture + colorblind negatives.
+- [x] Persona + cluster JSON (`data/tiny-clusters/christian-secular.json`) + generic driver (`seedTinyCluster.ts`): persona-based signs, 10 projects, mixed natural vs modified alignments, unique-only scripture + colorblind negatives.
 - [x] Make `gen:tiny` skip the 12 random `universe.json` statements (`--statement-limit=0`; Christianity/secular + local-food still seed).
 - [x] `seedMetadata.test.ts` plank counts 4/4 and 10 projects. Common Table retargeted to `scripture/natural-christian`.
 - [x] Nudge batches: Hardhat #8 publishes 6 parent-natural → modified suggestions (`NATURAL_TO_MODIFIED_NUDGES`).
@@ -52,7 +52,9 @@ Optional: align bridge-creator example anchors later. Prospective-round seed is 
 
 **Generation process for later clusters (and LLM bulk seed):** [statement-generation.md](./statement-generation.md). Exercise 1 simple causes live in [seed-content/simple-causes.json](./seed-content/simple-causes.json). Not this pairing.
 
-**This pairing is a weak first exercise of the implication system (2026-08-25).** Christian × secular-conservative is a real alliance type (groups already close; they agree on the *policy*; they mistrust each other’s *why*). For that pattern the honest commonality *is* just the policy. That is why the prose kept collapsing: slogan-glue, then “I don’t need your reasons,” then “we come from different places,” then the policy twice. Nothing left to peculiar-ize. Fine as a CauseStarter demo of two nearby camps. **Bad as the tiny seed’s only test of modifieds, nudges, and the attester**, which exist to handle a deal one side would not write on their own (overlap-zone compromise, bilateral assurance, unbundling that costs something, a conditional on a fact fight). Locked topic list above mixed those jobs. Do not keep polishing this triple as if more wording will make it a compromise-in-the-middle. Next: either (a) keep Christianity / secular boards and add a *second* cluster that is actually a policy gap (canonical left/right abortion/immigration — reuse hidden-majority-patterns, do not fork a second abortion *wording*), or (b) replace the featured tiny-seed bridge with that gap and keep this pairing as optional later. Uniques (scripture, colorblind) stay useful either way.
+**This pairing is a weak first exercise of the implication system (2026-08-25).** Christian × secular-conservative is a real alliance type (groups already close; they agree on the *policy*; they mistrust each other’s *why*). For that pattern the honest commonality *is* just the policy. That is why the prose kept collapsing: slogan-glue, then “I don’t need your reasons,” then “we come from different places,” then the policy twice. Nothing left to peculiar-ize. Fine as a CauseStarter demo of two nearby camps. **Bad as the tiny seed’s only test of modifieds, nudges, and the attester**, which exist to handle a deal one side would not write on their own (overlap-zone compromise, bilateral assurance, unbundling that costs something, a conditional on a fact fight). Locked topic list above mixed those jobs. Do not keep polishing this triple as if more wording will make it a compromise-in-the-middle.
+
+**Option (a) landed 2026-08-31.** Christianity / secular boards stay. Tiny also publishes the accepted left/right abortion cluster (`data/tiny-clusters/compromise-abortion.json`, wording from `seed-content/compromise-abortion.json`). See [`PLAN.md`](./PLAN.md).
 
 **Prose rewrite (2026-08-25).** Draft-order rewrite, then drop coalition-narration. Commonality is the civic conclusion only. Live attester 6 yes / 6 no. CIDs change — tiny reseed still needed if this JSON is what you publish.
 
@@ -104,6 +106,6 @@ CauseStarter at `http://causestarter.localhost:8088/#/`. Hardhat picker works.
 ## Resume hints
 
 - Implication evaluator: `@commonality/implication-attester` `evaluateImplicationWithLLM`, needs `OPENROUTER_API_KEY`. Re-run: `npm run gen:seed:christian-secular-implications`.
-- Existing Christianity seed: `seedChristianityCause.ts`, `npm run gen:seed:christianity`.
+- Existing Christianity seed: `seedChristianityCause.ts`, `npm run gen:seed:christianity`. Tiny clusters: `data/tiny-clusters/*.json`.
 - Plank counts in tests: 4 Christian naturals, 4 secular naturals, 10 persona projects (`test/seedMetadata.test.ts`).
 - Content contract: `generateChristianContentScenario` aligned to `scripture/natural-christian`.

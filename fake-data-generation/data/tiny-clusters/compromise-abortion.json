@@ -1,0 +1,98 @@
+{
+  "format": "commonality-tiny-cluster-v1",
+  "id": "compromise-abortion",
+  "collectionId": "compromise-abortion",
+  "clusterSlug": "compromise-abortion",
+  "mediatorHardhatIndex": 8,
+  "mediatorName": "Left / right abortion mediator",
+  "mediatorNote": "Gestational-cutoff compromise. Camp boards hold naturals only. Modifieds and the shared settlement are mediator-authored. This is a real policy gap, not the Christian×secular same-conclusion pairing.",
+  "nudgeReason": "Mediator wording that keeps your concern and names the 12–16 week settlement.",
+  "parents": [
+    {
+      "id": "left",
+      "ownerHardhatIndex": 3,
+      "slug": "abortion-left",
+      "title": "Abortion access",
+      "summary": "People who want abortion available so women are not forced through a pregnancy they do not want. The 12–16 week settlement is not this board — it lives on the mediator cluster.",
+      "naturals": ["abortion-gestational-cutoff/natural-left"],
+      "modifiedSlug": "compromise-abortion-left-modified",
+      "modifiedTitle": "Abortion access (modified, mediator wording)",
+      "modifiedSummary": "Mediator wording that keeps the access concern and adds the 12–16 week settlement. Not an official revision of the access board.",
+      "modifieds": ["abortion-gestational-cutoff/modified-left"]
+    },
+    {
+      "id": "right",
+      "ownerHardhatIndex": 6,
+      "slug": "abortion-right",
+      "title": "Late-term abortion is horrific",
+      "summary": "People whose primary concern is later-term abortion. The 12–16 week settlement is not this board — it lives on the mediator cluster.",
+      "naturals": ["abortion-gestational-cutoff/natural-right"],
+      "modifiedSlug": "compromise-abortion-right-modified",
+      "modifiedTitle": "Late-term horror (modified, mediator wording)",
+      "modifiedSummary": "Mediator wording that keeps the late-term concern and adds the 12–16 week settlement. Not an official revision of the late-term board.",
+      "modifieds": ["abortion-gestational-cutoff/modified-right"]
+    }
+  ],
+  "bridge": {
+    "slug": "compromise-abortion-bridge",
+    "title": "Abortion — 12–16 week settlement",
+    "summary": "Bridge cause whose featured plank is implied by each modified wording: allow abortion in the first 12–16 weeks, forbid it afterward, and prefer settlement to endless fighting.",
+    "planks": ["abortion-gestational-cutoff/commonality"]
+  },
+  "personas": [
+    {
+      "id": "left-nudge-taker",
+      "hardhatIndex": 3,
+      "side": "left",
+      "takesModified": true,
+      "signsNaturals": ["abortion-gestational-cutoff/natural-left"],
+      "aligns": true
+    },
+    {
+      "id": "left-natural-only",
+      "hardhatIndex": 1,
+      "side": "left",
+      "takesModified": false,
+      "signsNaturals": ["abortion-gestational-cutoff/natural-left"],
+      "aligns": false
+    },
+    {
+      "id": "right-nudge-taker",
+      "hardhatIndex": 6,
+      "side": "right",
+      "takesModified": true,
+      "signsNaturals": ["abortion-gestational-cutoff/natural-right"],
+      "aligns": true
+    },
+    {
+      "id": "right-natural-only",
+      "hardhatIndex": 5,
+      "side": "right",
+      "takesModified": false,
+      "signsNaturals": ["abortion-gestational-cutoff/natural-right"],
+      "aligns": false
+    }
+  ],
+  "projects": [
+    {
+      "id": "first-trimester-access",
+      "name": "First-trimester decision clinic",
+      "description": "Keep a clinic open that can schedule an abortion within the first 12–16 weeks, with counseling that treats the cutoff as the settlement rather than a stepping stone.",
+      "kind": "abortion-compromise",
+      "ownerIndex": 3,
+      "alignments": ["abortion-gestational-cutoff/modified-left"]
+    },
+    {
+      "id": "late-term-cutoff-enforcement",
+      "name": "After-cutoff enforcement brief",
+      "description": "A short public brief arguing that once the 12–16 week settlement is law, later abortions are not an undo button. Not a total ban.",
+      "kind": "abortion-compromise",
+      "ownerIndex": 6,
+      "alignments": ["abortion-gestational-cutoff/modified-right"]
+    }
+  ],
+  "buys": [
+    { "accountIndex": 3, "projectId": "first-trimester-access", "count": 2 },
+    { "accountIndex": 6, "projectId": "late-term-cutoff-enforcement", "count": 2 }
+  ]
+}

@@ -1,0 +1,223 @@
+{
+  "format": "commonality-tiny-cluster-v1",
+  "id": "christian-secular",
+  "collectionId": "christian-secular-bridge",
+  "clusterSlug": "christian-secular",
+  "mediatorHardhatIndex": 8,
+  "mediatorName": "Christian / secular-conservative mediator",
+  "mediatorDescription": "Finds statements practising Christians and non-religious conservatives can both sign, without either side adopting the other’s reasons.",
+  "mediatorNote": "Mediator-authored modified wordings and shared planks. Natural camp boards stay as the camps wrote them. Scripture-in-every-language and colorblind merit are unique planks and are not in this cluster.",
+  "nudgeReason": "Mediator wording that keeps your reasons while naming the overlapping claim.",
+  "attachMediatorServiceUrlEnv": "SEED_CHRISTIAN_MEDIATOR_URL",
+  "attachMediatorDefaultUrl": "http://127.0.0.1:3011",
+  "parents": [
+    {
+      "id": "christianity",
+      "ownerHardhatIndex": 0,
+      "slug": "christianity",
+      "title": "Christianity",
+      "summary": "Practising Christians, in their own words: abortion, provision for the poor, sex and marriage, and making Scripture available. A mediator (Hardhat #8) publishes modified wordings toward secular conservatives; those modified texts are not these planks.",
+      "naturals": [
+        "abortion/natural-christian",
+        "markets/natural-christian",
+        "lgbt/natural-christian",
+        "scripture/natural-christian"
+      ],
+      "modifiedSlug": "christian-secular-christianity-modified",
+      "modifiedTitle": "Christianity (modified, mediator wording)",
+      "modifiedSummary": "Mediator wording of practising-Christian planks that still imply the shared abortion, markets, and LGBT claims. Not an official revision of the Christianity cause.",
+      "modifieds": [
+        "abortion/modified-christian",
+        "markets/modified-christian",
+        "lgbt/modified-christian"
+      ],
+      "attachMediator": true
+    },
+    {
+      "id": "secular-conservatism",
+      "ownerHardhatIndex": 9,
+      "slug": "secular-conservatism",
+      "title": "Secular conservatism",
+      "summary": "Secular conservatives, in their own words: abortion, markets, sex and marriage, and colorblind merit. Modified wordings live on the mediator cluster, not on this roster.",
+      "naturals": [
+        "abortion/natural-secular",
+        "markets/natural-secular",
+        "lgbt/natural-secular",
+        "colorblind-merit/natural-secular"
+      ],
+      "modifiedSlug": "christian-secular-secular-conservatism-modified",
+      "modifiedTitle": "Secular conservatism (modified, mediator wording)",
+      "modifiedSummary": "Mediator wording of secular-conservative planks that still imply the shared abortion, markets, and LGBT claims. Not an official revision of the secular conservatism cause.",
+      "modifieds": [
+        "abortion/modified-secular",
+        "markets/modified-secular",
+        "lgbt/modified-secular"
+      ]
+    }
+  ],
+  "bridge": {
+    "slug": "christian-secular-bridge",
+    "title": "Christian / secular shared ground",
+    "summary": "Bridge cause whose featured planks are implied by each modified wording. Unique camp planks (Scripture; colorblind merit) are not here.",
+    "planks": [
+      "abortion/commonality",
+      "markets/commonality",
+      "lgbt/commonality"
+    ]
+  },
+  "personas": [
+    {
+      "id": "christian-organizer",
+      "hardhatIndex": 0,
+      "side": "christian",
+      "takesModified": false,
+      "signsNaturals": ["abortion/natural-christian", "markets/natural-christian", "lgbt/natural-christian", "scripture/natural-christian"],
+      "aligns": true
+    },
+    {
+      "id": "christian-nudge-taker",
+      "hardhatIndex": 1,
+      "side": "christian",
+      "takesModified": true,
+      "signsNaturals": ["abortion/natural-christian", "markets/natural-christian", "lgbt/natural-christian", "scripture/natural-christian"],
+      "aligns": true
+    },
+    {
+      "id": "christian-natural-only",
+      "hardhatIndex": 2,
+      "side": "christian",
+      "takesModified": false,
+      "signsNaturals": ["abortion/natural-christian", "lgbt/natural-christian", "scripture/natural-christian"],
+      "aligns": false
+    },
+    {
+      "id": "christian-markets-modified",
+      "hardhatIndex": 4,
+      "side": "christian",
+      "takesModified": true,
+      "signsNaturals": ["markets/natural-christian", "scripture/natural-christian"],
+      "aligns": false
+    },
+    {
+      "id": "secular-founder",
+      "hardhatIndex": 9,
+      "side": "secular",
+      "takesModified": false,
+      "signsNaturals": ["abortion/natural-secular", "markets/natural-secular", "lgbt/natural-secular", "colorblind-merit/natural-secular"],
+      "aligns": false
+    },
+    {
+      "id": "secular-nudge-taker",
+      "hardhatIndex": 5,
+      "side": "secular",
+      "takesModified": true,
+      "signsNaturals": ["abortion/natural-secular", "markets/natural-secular", "lgbt/natural-secular", "colorblind-merit/natural-secular"],
+      "aligns": true
+    },
+    {
+      "id": "secular-natural-only",
+      "hardhatIndex": 6,
+      "side": "secular",
+      "takesModified": false,
+      "signsNaturals": ["abortion/natural-secular", "colorblind-merit/natural-secular"],
+      "aligns": true
+    },
+    {
+      "id": "secular-lgbt-modified",
+      "hardhatIndex": 3,
+      "side": "secular",
+      "takesModified": true,
+      "signsNaturals": ["lgbt/natural-secular", "markets/natural-secular"],
+      "aligns": true
+    }
+  ],
+  "projects": [
+    {
+      "id": "scripture-translation",
+      "name": "New-language Scripture draft",
+      "description": "Pay two translators to finish a first draft of the Gospels in a language that currently has no published Scripture.",
+      "kind": "scripture",
+      "ownerIndex": 1,
+      "alignments": ["scripture/natural-christian"]
+    },
+    {
+      "id": "parish-warming",
+      "name": "Parish winter warming centre",
+      "description": "Keep a church hall open overnight through the cold months: cots, a kitchen, and a volunteer rota neighbouring congregations can share.",
+      "kind": "local-ministry",
+      "ownerIndex": 1,
+      "alignments": ["markets/natural-christian"]
+    },
+    {
+      "id": "campus-chaplaincy",
+      "name": "Campus chaplaincy at State U",
+      "description": "Fund a chaplain and a student hospitality budget at a large secular university.",
+      "kind": "campus-ministry",
+      "ownerIndex": 2,
+      "alignments": ["scripture/natural-christian"]
+    },
+    {
+      "id": "first-trimester-clinic",
+      "name": "Crisis pregnancy help, not an abortuary",
+      "description": "A clinic that offers ultrasounds, material help, and genuine alternatives to abortion. It does not treat abortion as health care.",
+      "kind": "abortion-bridge",
+      "ownerIndex": 2,
+      "alignments": ["abortion/modified-christian"]
+    },
+    {
+      "id": "late-term-ban-brief",
+      "name": "Elective-abortion restriction brief",
+      "description": "A short public brief arguing that elective abortion is not health care and that life-of-the-mother exceptions are not a license for an undo button.",
+      "kind": "abortion-bridge",
+      "ownerIndex": 3,
+      "alignments": ["abortion/modified-secular"]
+    },
+    {
+      "id": "apprenticeship-fund",
+      "name": "Trade apprenticeship match fund",
+      "description": "Match private donations that put people into paid trades training instead of expanding a welfare caseload.",
+      "kind": "markets-bridge",
+      "ownerIndex": 3,
+      "alignments": ["markets/modified-christian"]
+    },
+    {
+      "id": "local-charity-audit",
+      "name": "Local charity effectiveness audit",
+      "description": "Publish outcome numbers for city charities that actually get people into work, without arguing about theology.",
+      "kind": "markets-bridge",
+      "ownerIndex": 4,
+      "alignments": ["markets/modified-secular"]
+    },
+    {
+      "id": "minors-transition-pause",
+      "name": "Keep schools and libraries off the pipeline",
+      "description": "Parent-education and school-board work against Drag Queen Story Hour, exhibitionist Pride events around kids, and treating gender-distressed minors as a medical-transition pipeline.",
+      "kind": "lgbt-bridge",
+      "ownerIndex": 5,
+      "alignments": ["lgbt/modified-christian", "lgbt/modified-secular"]
+    },
+    {
+      "id": "church-marriage-prep",
+      "name": "Parish marriage-prep course",
+      "description": "A church-run course on Christian marriage. Not a civil-policy project.",
+      "kind": "lgbt-natural",
+      "ownerIndex": 2,
+      "alignments": ["lgbt/natural-christian"]
+    },
+    {
+      "id": "colorblind-admissions",
+      "name": "Colorblind admissions amicus",
+      "description": "Legal research arguing public universities should not award or penalize applicants for ancestry.",
+      "kind": "secular-unique",
+      "ownerIndex": 6,
+      "alignments": ["colorblind-merit/natural-secular"]
+    }
+  ],
+  "buys": [
+    { "accountIndex": 4, "projectId": "parish-warming", "count": 6 },
+    { "accountIndex": 5, "projectId": "colorblind-admissions", "count": 3 },
+    { "accountIndex": 6, "projectId": "colorblind-admissions", "count": 4 },
+    { "accountIndex": 4, "projectId": "apprenticeship-fund", "count": 2 },
+    { "accountIndex": 1, "projectId": "parish-warming", "count": 5 }
+  ]
+}

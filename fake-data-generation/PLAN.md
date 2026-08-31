@@ -25,6 +25,8 @@ Job C is statements only. Jobs A/B/D create on-chain activity. Tiny (A) **does n
 - **Weak implication demo:** camps already share the civic conclusion; commonality is just the policy. Keep as “two nearby camps.” Do **not** polish that pairing into a fake middle-ground. Do **not** train generation on it.
 - Nudges exist on #8; subscriber dashboards of #0 do not show them (suggester strip follows #0).
 - Optional leftover: align `bridge-creator` example anchors with these texts.
+- **Second cluster (2026-08-31):** accepted abortion compromise is also published by tiny (`data/tiny-clusters/compromise-abortion.json`). Left parent `#3` `abortion-left`, right parent `#6` `abortion-right`, mediator `#8`. Christianity/secular boards unchanged.
+- **Generic cluster driver (2026-08-31):** tiny bridge clusters are JSON in `data/tiny-clusters/` plus `seedTinyCluster.ts`. Do not add `compromiseAbortion.ts`-style modules for new topics.
 
 ### B — Demo
 
@@ -38,7 +40,7 @@ Curriculum in [`statement-generation.md`](./statement-generation.md):
 |---|---|
 | 1. Simple public-goods causes | Gold + live `seed-content/simple-causes.json`. List not complete. Nested-place rollup is **board inclusion**, not implication |
 | 2. In-camp variants | `npm run gen:proliferation` exists (attester/finder test, not a user catalog) |
-| 3. Real-gap bridges | **One** accepted triple: abortion compromise (`seed-content/compromise-abortion.json`, 2026-08-30). **Not** yet the featured tiny-seed cluster |
+| 3. Real-gap bridges | **One** accepted triple: abortion compromise (`seed-content/compromise-abortion.json`, 2026-08-30). **Also** a tiny-seed cluster (parents + modifieds + CG, 2026-08-31). |
 | 4. Non-political public-goods bridges | Not started |
 | Gate cause-assist on the same checks | Exercise 3 **not started** |
 | Bulk hundreds of unique planks | Wait until step 1’s loop is trusted without wordsmithing. Do **not** mass-generate triples until more than one real-gap cluster survives attester + routing + read-aloud |
@@ -53,7 +55,7 @@ Checked-in `data/seed-implication-evaluations.original-variants.json` is **stale
 
 Do these in order unless Adam names a different one. Each item is a session-sized chunk.
 
-1. **[ ] Feature a real-gap cluster in tiny (or add a second cluster).** Keep Christianity/secular boards. Add (preferred) or replace-with the accepted **abortion compromise** cluster so tiny actually exercises modifieds / nudges / attester. Decision already framed in `christian-secular-tiny-seed.md` (option a vs b). Ask Adam only if swapping the featured bridge rather than adding.
+1. **[x] Feature a real-gap cluster in tiny (or add a second cluster).** Added the accepted **abortion compromise** cluster beside Christianity/secular boards (option a). Generic driver: `seedTinyCluster.ts` + `data/tiny-clusters/*.json`.
 2. **[ ] More left/right bridges — Adam (2026-08-31): LGBT, immigration, crime.** One topic per exercise file. Reuse [hidden-majority-patterns](/docs/end-user/common-sense-majority/hidden-majority-patterns.md); do not fork a second wording of a pattern that already has a canonical example. Loop: naturals as speech → modifieds → commonality last → live attester yes/no → routing → `/critique-triple`. Leave drafts in `statement-generation-exercises/` until Adam accepts into `seed-content/`. Suggested start: **immigration** (compromise-in-the-middle already sketched on that page), then crime (policing / rehabilitation conditionals), then LGBT (unbundling / schools-as-fact-conditional — do not copy the Christian×secular LGBT unbundle as if it were a left/right gap).
 3. **[ ] Gate cause-assist** (`/atomize`, `/sharpen-plank`, `/critique-triple`) so failed checks are not shown. Same pipeline as seed. Statement-generation exercise 3.
 4. **[ ] Demo-seed live UI pass** (`--seed=demo`) and thicken local public-goods if A5/E2 still invisible. Root TODO already has this.

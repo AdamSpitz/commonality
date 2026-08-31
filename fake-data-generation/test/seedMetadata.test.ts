@@ -48,11 +48,22 @@ import {
   christianSecularClusterFields,
   campOfAlignment,
   pickAlignmentAttester,
-} from '../seedChristianityCause.js';
-import {
   BLESSED_MODIFIED_TO_COMMONALITY,
   NATURAL_TO_MODIFIED_NUDGES,
-} from '../christianSecularBridge.js';
+} from '../seedChristianityCause.js';
+import {
+  clusterDocumentFields,
+  deriveImplications,
+  deriveNudges,
+  fundedAddress,
+  loadTinyClusterDefs,
+  modifiedRosterFields,
+  parentRosterFields,
+  pickAlignmentAttester as pickTinyAlignmentAttester,
+  requireParent,
+  requireTinyCluster,
+  sideOfAlignment,
+} from '../seedTinyCluster.js';
 import { seedChristianContentAlignmentCanonicalIds } from '../contentFundingActions.js';
 import { createStatementDocumentFromSeed, flattenSeedStatements, loadSeedCollections } from '../seed-content-format.js';
 
@@ -314,9 +325,9 @@ test('christian-secular seed cluster documents match CauseStarter extras', () =>
 
 test('alignment attesters follow the plank camp, not always Hardhat #0', () => {
   const personas = [
-    { id: 'christian-organizer', hardhatIndex: 0, camp: 'christian' as const, takesModified: false, signsNaturals: [], aligns: true },
-    { id: 'secular-nudge-taker', hardhatIndex: 5, camp: 'secular' as const, takesModified: true, signsNaturals: [], aligns: true },
-    { id: 'secular-natural-only', hardhatIndex: 6, camp: 'secular' as const, takesModified: false, signsNaturals: [], aligns: true },
+    { id: 'christian-organizer', hardhatIndex: 0, side: 'christian', takesModified: false, signsNaturals: [], aligns: true },
+    { id: 'secular-nudge-taker', hardhatIndex: 5, side: 'secular', takesModified: true, signsNaturals: [], aligns: true },
+    { id: 'secular-natural-only', hardhatIndex: 6, side: 'secular', takesModified: false, signsNaturals: [], aligns: true },
   ];
   assert.equal(campOfAlignment('scripture/natural-christian'), 'christian');
   assert.equal(campOfAlignment('colorblind-merit/natural-secular'), 'secular');
@@ -335,5 +346,72 @@ test('christian-secular bridge has parent→modified nudges and blessed modified
   for (const pair of BLESSED_MODIFIED_TO_COMMONALITY) {
     assert.match(pair.from, /\/modified-/);
     assert.match(pair.to, /\/commonality$/);
+  }
+});
+
+test('compromise-abortion tiny cluster is a second real-gap bridge, not a second Christianity', () => {
+  const def = requireTinyCluster('compromise-abortion');
+  const left = requireParent(def, 'left');
+  const right = requireParent(def, 'right');
+  assert.equal(def.projects.length, 2);
+  assert.equal(left.slug, 'abortion-left');
+  assert.equal(right.slug, 'abortion-right');
+  assert.equal(def.clusterSlug, 'compromise-abortion');
+  assert.equal(left.modifiedSlug.length <= 64, true);
+  assert.equal(right.modifiedSlug.length <= 64, true);
+  assert.notEqual(fundedAddress(left.ownerHardhatIndex), fundedAddress(right.ownerHardhatIndex));
+
+  const leftModified = modifiedRosterFields(def, left, ['bafyml']);
+  assert.equal(leftModified.bridgeCluster?.role, 'modified');
+  assert.equal(leftModified.bridgeCluster?.parentSlug, left.slug);
+  assert.equal(leftModified.bridgeCluster?.clusterSlug, def.clusterSlug);
+
+  const rightModified = modifiedRosterFields(def, right, ['bafymr']);
+  assert.equal(rightModified.bridgeCluster?.parentSlug, right.slug);
+
+  const bridge = parentRosterFields(def, left, ['bafycg']);
+  assert.equal(def.bridge.slug, 'compromise-abortion-bridge');
+  assert.equal(bridge.bridgeCluster?.role, undefined);
+
+  const cids = new Map<string, `b${string}`>([
+    ['abortion-gestational-cutoff/modified-left', 'bafyml'],
+    ['abortion-gestational-cutoff/modified-right', 'bafymr'],
+    ['abortion-gestational-cutoff/commonality', 'bafycg'],
+  ]);
+  const cluster = clusterDocumentFields(def, cids);
+  assert.equal(cluster.pairs.length, 2);
+  assert.ok(cluster.pairs.every((pair) => pair.role === 'modified-to-bridge'));
+  const clusterDoc = buildSeedClusterDocument(cluster);
+  assert.equal(clusterDoc.extras?.kind, BRIDGE_CLUSTER_KIND);
+  assert.match(clusterDoc.content, /Natural parents/);
+
+  assert.equal(deriveNudges(def).length, 2);
+  assert.equal(deriveImplications(def).length, 2);
+});
+
+test('compromise-abortion alignment attesters follow left/right poles', () => {
+  const personas = [
+    { id: 'left-nudge-taker', hardhatIndex: 3, side: 'left', takesModified: true, signsNaturals: [], aligns: true },
+    { id: 'right-nudge-taker', hardhatIndex: 6, side: 'right', takesModified: true, signsNaturals: [], aligns: true },
+  ];
+  assert.equal(sideOfAlignment('abortion-gestational-cutoff/modified-left'), 'left');
+  assert.equal(sideOfAlignment('abortion-gestational-cutoff/modified-right'), 'right');
+  assert.equal(
+    pickTinyAlignmentAttester(personas, 'abortion-gestational-cutoff/modified-left', 3)?.id,
+    'left-nudge-taker',
+  );
+  assert.equal(
+    pickTinyAlignmentAttester(personas, 'abortion-gestational-cutoff/modified-right', 6)?.id,
+    'right-nudge-taker',
+  );
+});
+
+test('tiny clusters load from JSON without issue-specific TypeScript modules', () => {
+  const ids = loadTinyClusterDefs().map((cluster) => cluster.id).sort();
+  assert.deepEqual(ids, ['christian-secular', 'compromise-abortion']);
+  for (const cluster of loadTinyClusterDefs()) {
+    assert.equal(cluster.format, 'commonality-tiny-cluster-v1');
+    assert.ok(deriveImplications(cluster).length > 0);
+    assert.ok(cluster.parents.every((parent) => parent.naturals.length > 0));
   }
 });

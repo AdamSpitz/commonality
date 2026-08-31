@@ -102,11 +102,11 @@ Generated files are split into two directories to make their lifecycle explicit:
 
 ## Formal Seed Content
 
-Statement *shape* (modified vs natural vs commonality, what the implication attester will bless) is documented in [`specs/product/statements-are-peculiar-for-good-reasons.md`](../specs/product/statements-are-peculiar-for-good-reasons.md). How to **generate** viable seed / cause-assist text without hand-wordsmithing: [`statement-generation.md`](./statement-generation.md). Working plan for the Christianity × secular-conservatism tiny seed: [`christian-secular-tiny-seed.md`](./christian-secular-tiny-seed.md). `gen:tiny` does **not** publish the random 12-statement `universe.json` slice; CauseStarter Christianity + secular-conservatism (and local-food) are the tiny story.
+Statement *shape* (modified vs natural vs commonality, what the implication attester will bless) is documented in [`specs/product/statements-are-peculiar-for-good-reasons.md`](../specs/product/statements-are-peculiar-for-good-reasons.md). How to **generate** viable seed / cause-assist text without hand-wordsmithing: [`statement-generation.md`](./statement-generation.md). Working plan for the Christianity × secular-conservatism tiny seed: [`christian-secular-tiny-seed.md`](./christian-secular-tiny-seed.md). Tiny **bridge clusters** (owners, slugs, personas, projects) are `data/tiny-clusters/*.json` published by [`seedTinyCluster.ts`](./seedTinyCluster.ts). `gen:tiny` does **not** publish the random 12-statement `universe.json` slice; CauseStarter Christianity + secular-conservatism + the abortion-compromise cluster (and local-food) are the tiny story.
 
 The curated seed statements for the real system now live in `seed-content/*.json` using a small formal schema:
 
-- one JSON file per seed-content purpose (`fundable-projects`, `hidden-majority`, `meta`, `content-funding`, `simple-causes`, `christian-secular-bridge`)
+- one JSON file per seed-content purpose (`fundable-projects`, `hidden-majority`, `meta`, `content-funding`, `simple-causes`, `christian-secular-bridge`, `compromise-abortion`)
 - collection-level and group-level notes so the rationale from the specs is not lost
 - per-statement IDs, optional roles (for example `commonality`, `normal-left`, `pole-right`), and optional `createdDate` when a seed statement needs a stable well-known CID
 
