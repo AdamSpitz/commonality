@@ -138,6 +138,14 @@ The mediator looks at those and sees that they don't actually conflict, or at le
 - Modified moderate right: "Late-term abortion is horrific. I'd still rather not see abortions early in the pregnancy, but I don't feel as strongly about it. Allowing abortion during the first 12-16 weeks and forbidding it after that isn't what I'd write if I were making the law alone, but I'd be okay with that cutoff if it meant we got this settled instead of fighting over it forever."
 - Common ground: "I'd be okay with it if abortion were allowed during the first 12-16 weeks, and forbidden after that. This isn't my ideal outcome, but I'd rather get this settled than keep fighting over it forever."
 
+Same pattern on **immigration** (mixed outcomes for peaceful unauthorized people). Accepted 2026-08-31; keep this page, `fake-data-generation/statement-generation-exercises/03-compromise-immigration.json`, and `fake-data-generation/seed-content/compromise-immigration.json` in lockstep.
+
+- Natural left: "People who are here illegally but otherwise keep their heads down and work shouldn't be hunted down. Deport the ones who commit other crimes."
+- Natural right: "If you're here illegally you should be deported. Start with the ones who've committed other crimes, then the rest."
+- Modified left: "People who are here illegally but otherwise keep their heads down and work shouldn't be hunted down. I'd prefer we only deport people here illegally who've also committed other crimes, and leave the peaceful ones alone. I can live with some peaceful ones getting deported as a side effect of actually deporting the ones who've committed other crimes, and I already accept that some peaceful ones stay. I'd rather get this settled than keep fighting over it forever."
+- Modified right: "If you're here illegally you should be deported. I'd still rather we deport the peaceful ones too, but I don't feel as strongly about them as about the ones who've committed other crimes. Deporting people who are here illegally and have committed other crimes, while accepting that some peaceful ones get deported and some don't, isn't what I'd write if I were making the law alone, but I'd be okay with that if it meant we got this settled instead of fighting over it forever."
+- Common ground: "I'd be okay with it if we deport people who are here illegally and have committed other crimes, even though that means some peaceful ones get deported too and some peaceful ones don't. This isn't my ideal outcome, but I'd rather get this settled than keep fighting over it forever."
+
 The implication attester can legitimately link modified → common-ground (those really do imply each other). The nudge system suggests to users that they might be willing to sign the modified version. The noninflammatory-content system lets people on one side point to the modified version for the other side with an attestation that it won't be inflammatory.
 
 

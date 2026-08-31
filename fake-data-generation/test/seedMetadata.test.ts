@@ -186,6 +186,22 @@ test('simple-causes seed collection copies the accepted exercise-1 plank texts',
   assert.equal(marketsOntario?.statement.role, 'unique');
 });
 
+test('compromise-immigration seed collection copies the accepted exercise-3 statement texts', async () => {
+  const exercise = JSON.parse(await readFile(
+    new URL('../statement-generation-exercises/03-compromise-immigration.json', import.meta.url),
+    'utf8',
+  )) as { groups: Array<{ statements: Array<{ id: string; role: string; text: string }> }> };
+  const accepted = exercise.groups[0]?.statements ?? [];
+  const live = flattenSeedStatements(await loadSeedCollections())
+    .filter((record) => record.collection.id === 'compromise-immigration')
+    .map((record) => record.statement);
+
+  assert.deepEqual(
+    live.map(({ id, role, text }) => ({ id, role, text })),
+    accepted.map(({ id, role, text }) => ({ id, role, text })),
+  );
+});
+
 test('compromise-abortion seed collection copies the accepted exercise-2 statement texts', async () => {
   const exercise = JSON.parse(await readFile(
     new URL('../statement-generation-exercises/02-compromise-abortion.json', import.meta.url),
