@@ -211,7 +211,10 @@ See [`cause-assist/README.md`](../cause-assist/README.md). Bridge-cluster wordin
 
 ## Design notes
 
-- **Landing pitch is jobs, not a movement lifecycle.** Hero and `/docs/the-jobs`
+- **Landing pitch is jobs, not a movement lifecycle.** `/docs`
+  (`docs/end-user/causestarter/index.md`) is the spoken briefing: bulletin board
+  of Kickstarters, plus delegation and retroactive funding; the rest of the
+  docs are objections and separable jobs. Hero and `/docs/the-jobs`
   (`docs/end-user/causestarter/the-jobs.md`) are the “do the part you’d do anyway”
   catalog. Do not restore Start → Grow → Deliver or “build a Movement.”
 - **In-app docs** (`/docs/*`) bundle `docs/end-user/causestarter/`, `shared/`,

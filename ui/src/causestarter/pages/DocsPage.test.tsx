@@ -28,6 +28,20 @@ describe('DocsPage', () => {
       'href',
       '/docs/start-a-cause',
     )
+    expect(screen.getByRole('link', { name: /Questions people actually ask/i })).toHaveAttribute(
+      'href',
+      '/docs/faq',
+    )
+  })
+
+  it('renders the FAQ', () => {
+    renderDocs('/docs/faq')
+    expect(screen.getByRole('heading', { name: /Questions people actually ask/i })).toBeInTheDocument()
+  })
+
+  it('renders the eye-roll objections page', () => {
+    renderDocs('/docs/why-this-isnt-lame')
+    expect(screen.getByRole('heading', { name: /Why this isn’t lame/i })).toBeInTheDocument()
   })
 
   it('renders the jobs catalog', () => {
