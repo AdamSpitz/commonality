@@ -41,8 +41,8 @@ Generate in this order. Do not skip ahead to mass triples.
 2. **Easy implication inside one camp.** Close / medium / distant variants
    (`gen:proliferation`). Locks the attester, not bridges.
 3. **Real-gap bridges, one hidden-majority pattern at a time.** Compromise in
-   the middle (canonical left/right abortion and immigration are accepted;
-   remaining Adam topics: **crime, LGBT** — reuse
+   the middle (canonical left/right abortion and immigration are accepted, plus the crime fact-conditional;
+   remaining Adam topics: **LGBT** — reuse
    [hidden-majority-patterns](/docs/end-user/common-sense-majority/hidden-majority-patterns.md),
    do not fork a second wording of an accepted topic); costly unbundling; fact-conditionals;
    different-problems-same-solution with first-person limits, not mediator-meta.
@@ -167,4 +167,5 @@ failed the same checks.
 | 2 | **In [`seed-content/compromise-abortion.json`](./seed-content/compromise-abortion.json)** after Adam accepted it on 2026-08-30. Gold copy remains in the exercises file; canonical wording remains on hidden-majority-patterns.md. Live check (2026-08-28, deepseek-v3.2): both designed-yes arrows bless and all eight designed-no arrows refuse with high confidence; `/critique-triple` returns no objections or leak warnings. Production-default v4-flash stalled rather than returning JSON. | One left/right abortion compromise-in-the-middle triple. Do not fork wording. Not yet the featured tiny-seed cluster. |
 | 3 | Not started | Gate cause-assist suggestions on the same checks. |
 | 4 | **In [`seed-content/compromise-immigration.json`](./seed-content/compromise-immigration.json)** after Adam accepted it on 2026-08-31. Gold copy remains in the exercises file; canonical wording remains on hidden-majority-patterns.md. Live attester (deepseek-v3.2): both designed-yes modified → commonality arrows bless and all eight designed-no arrows refuse with high confidence. | Left/right immigration compromise-in-the-middle triple. Do not fork wording. Not a tiny-seed cluster. |
-| 5+ | Not started | Further left/right real-gap triples. Remaining Adam topics: **crime**, **LGBT**. One topic per exercise file; accept into `seed-content/` only after human veto. |
+| 5 | **In [`seed-content/crime-repeat-offenders.json`](./seed-content/crime-repeat-offenders.json)** after Adam accepted it on 2026-08-31. Gold copy remains in the exercises file; canonical wording remains on hidden-majority-patterns.md. Live attester (deepseek-v3.2): both designed-yes modified → commonality arrows bless and all eight designed-no arrows refuse with high confidence. | Left/right crime fact-conditional (repeat-offender concentration). Do not fork wording. Not a tiny-seed cluster. |
+| 6+ | Not started | Remaining Adam topic: **LGBT**. One topic per exercise file; accept into `seed-content/` only after human veto. |

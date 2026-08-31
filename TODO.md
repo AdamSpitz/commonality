@@ -12,7 +12,7 @@ Fake data / seed content is a **standing plan**, not a pile of one-shots: read [
 
 ----
 
-- **(Tell)** Next fake-data/seed-data step lives in [`fake-data-generation/PLAN.md`](fake-data-generation/PLAN.md). Current next: keep the Christianity/secular tiny boards and add a **real-gap** cluster (accepted abortion compromise is the candidate), then new left/right triples for **LGBT, immigration, crime** (Adam, 2026-08-31) via the statement-generation loop. Update the plan when a chunk lands.
+- **(Tell)** Next fake-data/seed-data step lives in [`fake-data-generation/PLAN.md`](fake-data-generation/PLAN.md). Abortion, immigration, and crime triples are accepted; LGBT remains.
 
 ----
 

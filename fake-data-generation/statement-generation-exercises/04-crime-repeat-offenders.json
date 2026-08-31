@@ -1,0 +1,63 @@
+{
+  "format": "commonality-seed-content-v1",
+  "id": "statement-generation-exercise-04",
+  "title": "Exercise — left/right fact-conditional (crime / repeat offenders)",
+  "description": "Gold copy of the accepted left/right same-values-different-beliefs triple using the canonical wording from docs/end-user/common-sense-majority/hidden-majority-patterns.md. The live copy is seed-content/crime-repeat-offenders.json; this exercises directory is not loaded by loadSeedCollections. Do not fork a second repeat-offender concentration wording: if wording must change, change all three copies together.",
+  "notes": [
+    "Curriculum step 3 in statement-generation.md (real-gap bridges, one pattern). Abortion and immigration remain the canonical compromise-in-the-middle examples.",
+    "Pattern: same values, different beliefs (fact-conditional). Shared value: dangerous career violent criminals should not be cycling through catch-and-release. Disputed fact: whether a small number of repeat offenders actually account for a disproportionate share of violent crime (right treats this as familiar; left often does not).",
+    "Proposed overlap policy given the fact: keep those people off the streets (e.g. three-strikes-style laws for violent offenses). Racism, rehabilitation, and the rest of the justice-system fight are deferred, not settled.",
+    "This is not the policing 'no major controversy' cluster, not the rehabilitation-works conditional, and not the racism-in-the-justice-system conditional — those remain sketches on hidden-majority-patterns.md.",
+    "Loop: naturals as speech → modifieds as smallest extra belief → commonality last by omission of camp *why-the-fact* → attester + routing + /critique-triple."
+  ],
+  "groups": [
+    {
+      "id": "crime-repeat-offender-concentration",
+      "title": "Crime — if repeat offenders dominate violent crime, keep them off the streets",
+      "notes": [
+        "Gap: moderate left's natural talk is against three-strikes / more incarceration, and does not grant the concentration fact. Moderate right's natural talk asserts the fact and the incapacitation policy as obvious. Neither natural states the *if-true-then-priority* deal that lets the left sign without conceding the fact.",
+        "Natural → modified is a nudge (left adds the conditional; right adds the conditional framing plus deferring racism/rehab). Modified → commonality should be implication (containment). Natural → commonality is designed no.",
+        "Do not paste the commonality paragraph into both modifieds."
+      ],
+      "statements": [
+        {
+          "id": "natural-left",
+          "role": "natural-left",
+          "text": "I'm not signing up for three-strikes laws. A lot of people cycling through the system never got a fair shot, and locking more of them up doesn't fix poverty, addiction, or a stacked justice system."
+        },
+        {
+          "id": "natural-right",
+          "role": "natural-right",
+          "text": "A handful of repeat offenders do most of the violent crime. Stop catch-and-release. Three strikes, you're out."
+        },
+        {
+          "id": "modified-left",
+          "role": "modified-left",
+          "text": "I'm not signing up for three-strikes laws as a general program. I don't believe a small number of repeat offenders actually account for a disproportionate share of violent crime — poverty, addiction, and a stacked system explain more of it, as far as I can tell. But if it turned out that a relatively small number of career violent criminals really do a disproportionate amount of the violent crime, then of course we should focus on keeping those people off the streets, including with something like three-strikes for violent offenses. I still want to argue about racism and rehabilitation, just not as a reason to keep dangerous career criminals in the rotation if that's how the crime is concentrated; keeping them off the streets would be high priority in that case."
+        },
+        {
+          "id": "modified-right",
+          "role": "modified-right",
+          "text": "A handful of repeat offenders do most of the violent crime. Stop catch-and-release. I'd still rather we used three-strikes on repeat burglary and car theft too, not just violent offenses, but I don't feel as strongly about those as about the career violent ones. I already think a relatively small number of repeat offenders do a disproportionate amount of the violent crime, so of course we should focus on keeping those people off the streets, including with three-strikes for violent offenses. If that concentration weren't real, I wouldn't treat incapacitation as the main lever. We can argue about racism and rehabilitation another time; keeping dangerous career criminals off the streets is high priority."
+        },
+        {
+          "id": "commonality",
+          "role": "commonality",
+          "text": "If it's true that a relatively small number of repeat offenders do a disproportionate amount of the violent crime, we should focus on keeping those people off the streets, including with something like three-strikes laws for violent offenses. We can argue about racism and rehabilitation another time; keeping dangerous career criminals off the streets is high priority if that's how the crime is concentrated."
+        }
+      ],
+      "implicationNotes": [
+        "Designed yes: modified-left → commonality; modified-right → commonality.",
+        "Designed no: natural-left → commonality; natural-right → commonality; natural-left → modified-left; natural-right → modified-right; either modified → the other modified; commonality → either modified.",
+        "Routing: modified → commonality should annoy as 'I already said that'. Natural → modified should not (the if-true-then-priority deal, and on the right the deferral of the rest of the fight, are extra)."
+      ],
+      "loopNotes": [
+        "Human: pick pattern (done: same-values-different-beliefs, crime via repeat-offender concentration, not the rehab sketch). Veto if gap is 'same conclusion, different metaphysics' — it is not; the camps disagree on the fact.",
+        "Do not paste the commonality sentence into both modifieds to buy subset-by-concatenation.",
+        "2026-08-31 live attester (deepseek/deepseek-v3.2): both designed-yes modified → commonality arrows bless (high) and all eight designed-no arrows refuse (high). An earlier modified-right that only restated the conditional plus 'I already think that's true' made commonality → modified-right bless (FAIL); thickened with a camp extra (would still rather three-strikes on repeat burglary/car theft too, but feels less strongly than about career violent offenders).",
+        "2026-08-31 /critique-triple (same model, cause-assist module): three objections in the same class as immigration before the routing contract was treated as pass-commentary — (1) shape, calling 'we can argue about racism and rehabilitation another time' a coalition caption (it is a first-person deferral of the rest of the fight, which is part of the shared deal); (2) shape, multi-register (conditional plus that deferral); (3) routing, treating successful modified-right containment as a failure. Not treated as a wording veto.",
+        "Adam accepted the triple on 2026-08-31; live copy: seed-content/crime-repeat-offenders.json."
+      ]
+    }
+  ]
+}
