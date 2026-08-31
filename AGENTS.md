@@ -17,3 +17,12 @@ Write temporary debug scripts to `tmp/` and clean them up when done.
 ## Diagnostics
 
 Avoid `lens_diagnostics mode=full` unless you specifically need a project-wide scan; it can hang or report stale cache noise. Prefer bounded `lsp_diagnostics` on touched files plus the relevant workspace typecheck/tests.
+
+## PRs and branching
+
+**Always compare to `dev`, not `master`.** Feature branches merge into `dev` first, then `dev → master` is a separate release step. When reviewing a branch or creating a PR:
+- Use `git log dev..branch-name` (not `master..branch-name`) to count commits
+- Use `git diff dev..branch-name` (not `master..branch-name`) to see changed files
+- Target `dev` as the base branch for PRs (`gh pr create --base dev`)
+
+See `workflow/branching.md` for full details.
