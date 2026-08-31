@@ -62,6 +62,9 @@ describe('bridge cluster wording verbs', () => {
       bridgePlank: 'Marriage is a gift from God and also the data says so.',
       parentPlanks: ['Marriage is a covenant.', 'Kids do better with two parents.'],
     }, config, async <T>(request: LlmJsonRequest) => {
+      if (request.title === 'CauseAssist Implication Check') {
+        return { implies: true, confidence: 'high', reasoning: 'contained' } as T
+      }
       assert.match(request.systemPrompt, /Do not rewrite/)
       assert.match(request.systemPrompt, /routing:/)
       assert.match(request.systemPrompt, /shape:/)
@@ -84,6 +87,19 @@ describe('bridge cluster wording verbs', () => {
     assert.equal(result.source, 'llm')
     assert.equal(result.objections.length, 1)
     assert.equal(result.leakWarnings.length, 1)
+  })
+
+  it('surfaces attester refusals as critique objections', async () => {
+    const result = await critiqueTriple({
+      modifiedPlanks: ['Ban all abortion.', 'Permit abortion through birth.'],
+      bridgePlank: 'Legal elective abortion until 12–16 weeks.',
+    }, config, async <T>(request: LlmJsonRequest) => {
+      if (request.systemPrompt.includes('Do not rewrite')) {
+        return { objections: [], leakWarnings: [] } as T
+      }
+      return { implies: false, confidence: 'high', reasoning: 'compromise not contained' } as T
+    })
+    assert.ok(result.objections.some((item) => /^routing: attester/.test(item)))
   })
 
   it('drafts a stand-in sliver without treating it as a modified parent', async () => {

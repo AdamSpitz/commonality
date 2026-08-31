@@ -42,7 +42,7 @@ Curriculum in [`statement-generation.md`](./statement-generation.md):
 | 2. In-camp variants | `npm run gen:proliferation` exists (attester/finder test, not a user catalog) |
 | 3. Real-gap bridges | **Four** accepted triples: abortion (`seed-content/compromise-abortion.json`, 2026-08-30), immigration (`seed-content/compromise-immigration.json`, 2026-08-31), crime (`seed-content/crime-repeat-offenders.json`, 2026-08-31), and LGBT schools (`seed-content/lgbt-schools.json`, 2026-08-31). Abortion also has a tiny-seed cluster. |
 | 4. Non-political public-goods bridges | Not started |
-| Gate cause-assist on the same checks | Exercise 3 **not started** |
+| Gate cause-assist on the same checks | Exercise 3 **done 2026-08-31** |
 | Bulk hundreds of unique planks | Wait until step 1’s loop is trusted without wordsmithing. Do **not** mass-generate triples until more than one real-gap cluster survives attester + routing + read-aloud |
 
 Checked-in `data/seed-implication-evaluations.original-variants.json` is **stale** vs the nested-place prompt (root TODO).
@@ -57,7 +57,7 @@ Do these in order unless Adam names a different one. Each item is a session-size
 
 1. **[x] Feature a real-gap cluster in tiny (or add a second cluster).** Added the accepted **abortion compromise** cluster beside Christianity/secular boards (option a). Generic driver: `seedTinyCluster.ts` + `data/tiny-clusters/*.json`.
 2. **[x] More left/right bridges — remaining Adam topics done for abortion, immigration, crime, LGBT schools.** One topic per exercise file. Reuse [hidden-majority-patterns](/docs/end-user/common-sense-majority/hidden-majority-patterns.md); do not fork a second wording of a pattern that already has a canonical example. **LGBT schools accepted 2026-08-31** (`seed-content/lgbt-schools.json`, fact-conditional — not the Christian×secular unbundle). Optional later: LGB-vs-T coalition unbundling as a separate file.
-3. **[ ] Gate cause-assist** (`/atomize`, `/sharpen-plank`, `/critique-triple`) so failed checks are not shown. Same pipeline as seed. Statement-generation exercise 3.
+3. **[x] Gate cause-assist** (`/atomize`, `/sharpen-plank`, `/critique-triple`) so failed checks are not shown. Same pipeline as seed. Statement-generation exercise 3. Quality gate in `cause-assist/src/statementQualityGate.ts`.
 4. **[ ] Demo-seed live UI pass** (`--seed=demo`) and thicken local public-goods if A5/E2 still invisible. Root TODO already has this.
 5. **[ ] Refresh implication-evaluation corpus** after a model that returns JSON. Root TODO.
 6. **[ ] Volume of simple-cause uniques** (hundreds) only after (1)–(2) prove the loop. Then conceptspace seed, **no** fake users/projects.
