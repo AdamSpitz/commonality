@@ -161,11 +161,17 @@ async function main() {
     // Reuse when the manifest fingerprint matches, or (adopt mode) whenever a live
     // on-chain address exists — pinning it at the current fingerprint so later runs
     // treat it as unchanged.
-    if (codePresent && (fingerprintMatch || adoptExisting)) {
+    const claimedBy = oldAddress && ethers.isAddress(oldAddress)
+      ? Object.entries(addresses).find(([, addr]) => ethers.getAddress(addr) === ethers.getAddress(oldAddress))?.[0]
+      : undefined;
+    if (codePresent && (fingerprintMatch || adoptExisting) && !claimedBy) {
       addresses[name] = ethers.getAddress(oldAddress);
       manifest.contracts[name] = { contractName, address: addresses[name], fingerprint: fp, reused: true, constructorArgs: args, ...(fingerprintMatch ? {} : { adopted: true }) };
       console.log(`↻ ${name}: ${fingerprintMatch ? 'unchanged' : 'ADOPTED from env'}, reusing ${addresses[name]}`);
       return addresses[name];
+    }
+    if (claimedBy) {
+      console.log(`↻ ${name}: env ${keys[0]}=${oldAddress} is already ${claimedBy}; deploying a new ${contractName} instead`);
     }
     if (planOnly) {
       // Genuinely new (no live address to adopt): record the intent, deploy nothing.
