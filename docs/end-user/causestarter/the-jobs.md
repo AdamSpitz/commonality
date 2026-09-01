@@ -4,6 +4,11 @@ The core vision is simple: **people who agree should be able to cooperate on tha
 
 What used to block that was never a shortage of people who *cared*. It was a pile of extra jobs. “I’d be happy to do X, but ugh, Y.” CauseStarter and the rest of this substrate are mostly that ugh-removal kit. If you remember one thing, remember: **you only contribute the part you would contribute anyway.**
 
+Ordinarily a cause needs one organization capable of raising money, choosing a
+mission, finding talent, evaluating work, and maintaining everyone's trust. Here those
+capacities can come from different people. You do not have to become that organization;
+you only have to supply the part you have.
+
 ## Money
 
 **I’d be happy to contribute $X/month (as long as enough others do too), but…**
@@ -14,15 +19,29 @@ What used to block that was never a shortage of people who *cared*. It was a pil
 
 In CauseStarter this lives on a cause’s **Pledges** page and on **Delegation**.
 
-## Attention and judgment
+## Spot promising work
 
 **I’d be happy to watch for worthwhile projects, but…**
 
 - **…I don’t even know what projects are out there.** Sign the statements you mean. Your CauseStarter home is then a **fundable-projects board** of work vouched as advancing those claims — not a club you joined. You can also follow (or start) a cause board whose mix you want to watch. You do not need a special introduction.
-- **…I can’t tell whether this creator is a scammer or incompetent.** Be a delegate who mostly [funds proven work](../lazyGiving/retroactive-funding.md). You reimburse early contributors at cost after results, instead of betting on a pitch.
 - **…I can’t put that much of my *own* money on it.** Be an early funder who asks for reimbursement. If later donors close the loop, that giving budget can go to the next attempt. Your receipt is a track record, not a payout.
 
-The cause board’s **Fundable Projects** list (the fundable-projects board) is the watch surface on a circulated mix. After you sign, the same kind of list on **home** is your everyday watch surface. Trust settings (the gear) control whose vouches you see.
+The cause board’s **Fundable Projects** list (the fundable-projects board) is the watch surface on a circulated mix. After you sign, the same kind of list on **home** is your everyday watch surface. Trust settings (the gear) control whose vouches you see. Direct your own money, or become a delegate so other people can entrust funds to your judgment.
+
+## Recognize work that delivered
+
+**I’d be happy to help good completed work get recognized, but…**
+
+- **…I don't want to predict winners or detect scams from a pitch.** Don't. Follow the
+  **Not yet reimbursed** list and inspect results that already exist.
+- **…I don't have much money to contribute.** Vouch that a project actually delivered.
+  That helps people whose trust networks reach you discover it.
+- **…I can contribute money but still want evidence first.** Reimburse early
+  contributors at cost. You support a proven result and free their giving budget to
+  scout the next attempt.
+
+Prospective scouting, success evaluation, and reimbursement are separate jobs. You
+may do all three, but the system does not require it.
 
 ## Work
 
@@ -55,6 +74,11 @@ Cause boards have a **Bridges** section. Suggesters you opt into appear on Home.
 ## What this adds up to
 
 Project-doers can get money for worthwhile work. Donors can help financially without becoming grant officers or trusting a black-box charity. People with time or expertise can contribute those without writing a check. All of that information and money can move **without everyone agreeing on every idea or electing leaders.**
+
+It also means one exceptional contribution is enough. Someone with substantial money
+does not need to assemble a foundation; someone with exceptional judgment does not
+need to be wealthy; someone exceptionally good at execution does not need to become a
+fundraiser. CauseStarter connects those separate strengths around concrete work.
 
 That is why “there are *so* many of us — why can’t we get anything done?” was never a law of nature. It was coordination tax. This ecosystem is the claim that the tax was optional.
 

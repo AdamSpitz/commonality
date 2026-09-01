@@ -17,10 +17,29 @@ You are not recruiting people into an organization. You are publishing a place w
 
 - Signers who like *some* of the statements
 - Donors who will pledge and maybe delegate
+- Scouts who spot promising projects or direct initial funding
+- Evaluators who vouch for work that actually delivered
+- Later donors who reimburse the people who funded successful work early
 - Doers who publish projects and get an alignment vouch
+- Trusted connectors whose vouches put work in front of their network
 - Mediators who write bridges when wording does not line up
 
 If someone hates your combination of statements, they should start their own cause and reuse the overlapping planks. That is success, not a fork to suppress.
+
+## Bootstrap one role at a time
+
+Use whatever places your cause already gathers to find participants. CauseStarter does
+not build that audience for you. What it changes is the ask: a potential contributor
+does not need to join an organization or take responsibility for every part of it.
+
+Start with whichever capacity is available. Visible pledges attract builders. Visible
+projects give donors something concrete to fund. A trusted delegate makes hands-off
+giving credible. Successful work gives cautious donors something they can inspect
+before contributing. Each partial success makes the missing roles easier to recruit.
+
+The practical rule is: map the people who already have money, prospective judgment,
+retrospective judgment, execution ability, trust, or an audience; then make each one an
+ask that uses that capacity without demanding the others.
 
 ## Bridges
 

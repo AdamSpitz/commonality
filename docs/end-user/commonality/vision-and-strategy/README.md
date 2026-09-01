@@ -31,7 +31,7 @@ In the past we've needed government or big private charity orgs to do this kind 
 
 **"Okay, but why bother? We already have government and private charities for funding public goods."**
 
-Because [it's better](./why-its-better/README.md) in various important ways: better signal (doing what people actually want), preserves real commonality rather than polarizing, more effective (retroactive funding, crowdsourced project surfacing/evaluation), less need for coordination, no need to approach centralized gatekeepers, plus all the onchain benefits like transparency and trustlessness and censorship-resistance.
+Because [it's better](./why-its-better/README.md) in various important ways: better signal (doing what people actually want), preserves real commonality rather than polarizing, more effective (retroactive funding, crowdsourced project surfacing/evaluation), less need for coordination, no need to approach centralized gatekeepers, plus all the onchain benefits like transparency and trustlessness and censorship-resistance. In particular, it **[unbundles the organization](./why-its-better/unbundled-organization.md)**: money, judgment, trust, distribution, and skilled work can come from different people instead of needing to coincide in one institution.
 
 **"Even if it's better, getting people to switch is hard."**
 

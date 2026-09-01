@@ -13,7 +13,7 @@ Commonality is one of several connected sites:
 
 This site is for the funding side: pledging, delegating, getting projects funded, and the broader case for why a new approach is needed.
 
-**CauseStarter** is the organizer-facing front door: publish a cause (a set of signable statements) and let people attach only the jobs they would actually take. Start with [Do the part you’d do anyway](../causestarter/the-jobs.md).
+**CauseStarter** is the organizer-facing front door: publish a cause (a set of signable statements) and let people attach only the jobs they would actually take. Money, judgment, trust, distribution, and execution can come from different people instead of one all-purpose organization. Start with [Do the part you’d do anyway](../causestarter/the-jobs.md); organizers can [start a cause](../causestarter/start-a-cause.md) one role at a time.
 
 
 ## See it in action

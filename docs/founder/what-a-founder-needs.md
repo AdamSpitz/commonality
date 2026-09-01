@@ -55,7 +55,10 @@ works.
   under `docs/end-user/`.
 - **A distribution plan.** Explicitly his job, not the platform's — that's the whole
   premise of [ADR 0005](/specs/decisions/0005-founder-first-verticals.md). It is also
-  the only item here that no doc or tool in this repo does for him.
+  the only item here the platform cannot perform for him. The coordination playbook
+  after he reaches people — identify money, judgment, execution, trust, and audience;
+  recruit one role at a time — is [Activate a cause one role at a
+  time](./activating-a-cause.md).
 
 ## 3. Third-party accounts and infrastructure
 
