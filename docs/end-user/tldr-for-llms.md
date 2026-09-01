@@ -11,7 +11,7 @@ Each entry follows the same shape:
 
 [Full page](/docs/end-user/causestarter/index.md)
 
-- **What it is:** The spoken newcomer briefing. A cause board is a bulletin board of crowdfundable projects (Kickstarter-style refunds if the goal is missed), plus two twists: [delegate](shared/key-ideas/delegation.md) so you don't watch the board, and a **Not yet reimbursed** tab so you fund proven work instead of pitches. Almost everyone arrives via a circulated URL, not a catalog. Causes are ordinary-language statements; the board is a mix, not a club. Jobs are separable: pledge, direct, start, vouch, optionally sign. After signing, CauseStarter **home** is a personal fundable-projects board (including implied statements).
+- **What it is:** The spoken newcomer briefing. A cause board is a bulletin board of crowdfundable projects (Kickstarter-style refunds if the goal is missed), plus two twists: [delegate](shared/key-ideas/delegation.md) so you don't watch the board, and a **Not yet reimbursed** tab so you fund proven work instead of pitches. Almost everyone arrives via a circulated URL, not a catalog. Causes are ordinary-language statements; the board is a mix, not a club. Jobs are separable: pledge, scout/direct initial funding, recognize or reimburse proven work, start a project, vouch, optionally sign. Money, judgment, trust, distribution, and execution need not come from one organization. After signing, CauseStarter **home** is a personal fundable-projects board (including implied statements).
 - **When a user encounters it:** In-app `/docs`, or when they ask what this cause page is; returning users on CauseStarter `/`.
 - **What they might want help with:** What they can do without joining; how projects get on the list; pledging vs signing; when to start their own page vs using this one; finding “my” projects vs an organizer’s mix. Next objections: [faq.md](/docs/end-user/causestarter/faq.md). Eye-roll “support a cause” objections: [why-this-isnt-lame.md](/docs/end-user/causestarter/why-this-isnt-lame.md).
 
@@ -35,7 +35,7 @@ Each entry follows the same shape:
 
 [Full page](/docs/end-user/causestarter/the-jobs.md)
 
-- **What it is:** The everyday pitch for CauseStarter / Commonality. Cooperate on agreement; split the work into jobs people would already take (money, attention, work, wording); remove the extra job each role used to demand. Not “join a movement.”
+- **What it is:** The everyday pitch for CauseStarter / Commonality. Cooperate on agreement; split the work into jobs people would already take (money, prospective scouting, retrospective evaluation/reimbursement, work, trust, wording); remove the extra job each role used to demand. Not “join a movement.” It is the user-facing form of “unbundle the organization”: one exceptional contribution is enough; a capital holder need not supply mission and talent, and an expert need not be wealthy.
 - **When a user encounters it:** CauseStarter landing, empty states on cause/project/statement pages, `/docs/the-jobs`.
 - **What they might want help with:** Which job to take; why they don’t need a committee, grant officer, or matching manifesto; how delegation / refundable pledges / retroactive funding / bridges / reusing statements unblock the matching “ugh.”
 

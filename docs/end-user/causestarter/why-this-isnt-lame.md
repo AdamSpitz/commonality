@@ -14,6 +14,12 @@ Most “support a cause” products ask you to join something, trust a black box
 
 **Judgment is a first-class job, not a hobby bolted onto writing a check.** If you follow a field and can tell what helped, others can route money through you. You build a transparent track record. You do not incorporate a nonprofit. If you can’t put much of your *own* money on it, you can still be the person who spots the work and asks to be reimbursed later.
 
+**One exceptional strength is enough.** The usual alternative is an organization that
+somehow combines money, mission, trusted judgment, an audience, and people who can
+execute. Here those can be different people. A major donor need not invent a
+foundation. A domain expert need not be rich. A capable builder need not become a
+professional fundraiser. Each can bring the leverage they actually have.
+
 **Wording fights don’t have to kill the funding.** If someone else’s sentence is close but not quite yours, write your own. Implication and [bridges](../tally/suggestions-and-nudges.md) can still connect the two, so signers and projects are not stranded on a blank petition. You are cooperating on agreement, not recruiting members.
 
 That is the whole trick: money, work, and attention meet on the overlap. Nobody has to elect leaders. The extra jobs that used to make “there are so many of us — why can’t we get anything done?” feel like a law of nature were optional.

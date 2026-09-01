@@ -258,3 +258,35 @@ leftover: **cause page**); first rename today’s “cause board” (the project
 to **fundable-projects board**. A cause board can cover multiple causes.
 Reserve **dashboard** for the personal surface. Full write-up:
 [cause-page-not-a-club.md](./cause-page-not-a-club.md).
+
+---
+
+# 2026-09-01 — unbundle the organization
+
+The jobs story also answers the adoption question more sharply. CauseStarter does not
+create generic motivation or replace the social ecosystem around a cause. A founder
+uses X, newsletters, churches, professional networks, and so on to reach people who
+already care. CauseStarter changes what the founder can ask them to do.
+
+The conventional alternative requires one organization to combine money, mission,
+prospective judgment, retrospective evaluation, execution, trust, and distribution.
+CauseStarter lets those capacities come from different people. This matters especially
+for unusually large contributors: a major funder need not assemble a foundation, a
+domain expert need not be rich, and an exceptional builder need not become a
+fundraiser. One exceptional contribution is enough.
+
+That gives the founder a staged bootstrapping motion rather than an all-at-once org
+launch. Visible pledges attract projects; projects give funders somewhere concrete to
+put money; trusted delegates make hands-off giving credible; success vouches and
+completed work attract cautious retroactive donors. Each role that appears strengthens
+the pitch to the missing roles.
+
+Canonical homes:
+
+- Public strategic argument: [Unbundle the
+  organization](/docs/end-user/commonality/vision-and-strategy/why-its-better/unbundled-organization.md).
+- Participant-facing roles: [Do the part you'd do
+  anyway](/docs/end-user/causestarter/the-jobs.md).
+- Public organizer entry: [Start a cause](/docs/end-user/causestarter/start-a-cause.md).
+- Internal founder playbook: [Activate a cause one role at a
+  time](/docs/founder/activating-a-cause.md).

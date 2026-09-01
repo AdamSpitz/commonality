@@ -22,6 +22,14 @@ people who care about civil political media are not reached the same way as peop
 who want to fund local public goods — so distribution is the *vertical founder's*
 job, not the platform's.
 
+That does not leave the founder with the traditional job of assembling a complete
+cause organization. You still own distribution, policies, and the branded front
+end. Cause organizers on your vertical — which may include you — recruit money,
+prospective and retrospective judgment, execution, and trust one role at a time
+onto published boards. See **[Activate a cause one role at a
+time](./activating-a-cause.md)** for that organizer playbook; this page covers the
+product and operator setup.
+
 That makes the founder the platform's real customer. Everything below exists to
 make a founder's job easier. It also gives a sharp triage rule for platform work:
 

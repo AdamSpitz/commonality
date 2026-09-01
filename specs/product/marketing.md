@@ -14,6 +14,16 @@ But I'm not particularly interested in doing marketing to try to get end-users t
 
 The UI domain called Commonality is the one that's meant to be for those founders, to show them the vision and help them get their own verticals started.
 
+This boundary is not the claim that adoption takes care of itself. CauseStarter does
+not manufacture motivation or replace X, newsletters, churches, professional networks,
+or the other places where a cause already has attention. It gives a founder a better
+ask once he reaches those people: contribute money, prospective judgment,
+retrospective judgment, execution, trust, or distribution without also taking on the
+other jobs. The mechanism and flywheel are documented in [Unbundle the
+organization](/docs/end-user/commonality/vision-and-strategy/why-its-better/unbundled-organization.md)
+and the organizer playbook is [Activate a cause one role at a
+time](/docs/founder/activating-a-cause.md).
+
 Anyway, the point is that there's two kinds of marketing here:
   - Aimed at end-users of Civility or CSM.
   - Aimed at founders who might want to start a vertical.
@@ -24,6 +34,9 @@ Anyway, the point is that there's two kinds of marketing here:
 
 - Treat the pitch docs as recruiting material: [Christian pitch](/docs/founder/christian-pitch.md), [CSM founder docs](/docs/founder/csm/). These are examples of vertical positioning *and* recruiting collateral.
 - Build a founder-recruiting funnel: where do prospective vertical founders hear about Commonality, and what do they land on? (The [standing-up-a-vertical](/docs/founder/standing-up-a-vertical.md) guide is step one of that funnel.)
+- Give founders role-specific collateral they can send to capital holders, scouts,
+  success evaluators, builders, trusted connectors, and people with audiences. The
+  message is the useful job, not adoption of the generic substrate.
 
 ## Vertical GTM for Civility & CSM
 

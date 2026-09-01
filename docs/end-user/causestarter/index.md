@@ -29,10 +29,16 @@ More of the same shape — short answers to the next objections — is in **[Que
 We’ve tried very hard to split the work so you can do the part you’re inclined to do, and not do anything else:
 
 - **Pledge money** without having to pick projects. Put up $X/month (or a one-shot amount) and [delegate the picking](../shared/key-ideas/delegation.md) to a person you already trust. Revoke anytime.
-- **Direct money** — yours, or other people’s if they have delegated to you — without having to identify winners in advance. Directing can be *initial* funding so the work can happen, or *reimbursement* of people who already paid for work that delivered. Directing well is a real contribution even if your own check is small.
+- **Scout promising work** by directing initial funding — yours, or other people’s if they have delegated to you. Directing well is a real contribution even if your own check is small.
+- **Recognize proven work** without having to predict winners. Find projects that delivered, vouch for their success, or reimburse their early contributors at cost so that giving capacity can fund the next attempt.
 - **Start a project** if you have useful skills and a piece of work that advances one of these claims. You do not need a grant officer. Publish it, get an alignment vouch from someone a hop better-connected, and it can appear on every cause board that includes that statement.
 - **Vouch** that a project is aligned with a statement (or that it actually delivered). People who trust you will then see it. That is how work gets onto the list without a platform verdict.
 - **Sign a statement** you actually mean. Optional. Cheap. Useful: it feeds your home board and shows that more than one person cares about that exact claim.
+
+Money, judgment, trust, distribution, and skilled work do not have to arrive in one
+all-purpose organization. Different people can supply them separately. If you have an
+unusually large amount of *one* of those things, that is enough to be unusually useful;
+you do not also need the other four.
 
 The catalog of “I’d be happy to X, but ugh Y” is **[Do the part you’d do anyway](./the-jobs.md)**. Organizers who want a different mix: **[Start a cause board](./start-a-cause.md)**.
 
