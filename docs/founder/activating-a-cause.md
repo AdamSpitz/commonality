@@ -1,5 +1,12 @@
 # Activate a cause one role at a time
 
+This playbook is for **cause organizers**: people who publish a mix of statements
+and recruit jobs onto that board. A **vertical operator** (the founder who owns a
+branded front end, policies, and distribution) is a different role. One person may
+fill both, but they do not collapse. The operator still owns distribution; the
+organizer still recruits one useful contribution at a time. See
+[ADR 0009](/specs/decisions/0009-causes-are-publications-over-statements.md).
+
 CauseStarter does not create motivation or build an audience for a cause. Use the
 places where your people already gather: social media, professional networks, local
 groups, churches, newsletters, conferences, or existing organizations.
@@ -7,9 +14,11 @@ groups, churches, newsletters, conferences, or existing organizations.
 What CauseStarter gives you is a much easier answer to the next question: **how can
 those already-motivated people cooperate?**
 
-You do not have to recruit an organization that combines money, mission, judgment,
-talent, and distribution. Recruit one useful contribution at a time. The system makes
-those contributions visible and lets them connect.
+You do not have to recruit an organization that combines money, prospective
+judgment, retrospective judgment, execution, trust, and distribution. Choosing a
+mission is what publishing statements already does; it is not a sixth person to
+hire. Recruit one useful contribution at a time. The system makes those
+contributions visible and lets them connect.
 
 ## Start with the people you already know
 

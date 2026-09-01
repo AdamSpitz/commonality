@@ -4,10 +4,11 @@ The core vision is simple: **people who agree should be able to cooperate on tha
 
 What used to block that was never a shortage of people who *cared*. It was a pile of extra jobs. “I’d be happy to do X, but ugh, Y.” CauseStarter and the rest of this substrate are mostly that ugh-removal kit. If you remember one thing, remember: **you only contribute the part you would contribute anyway.**
 
-Ordinarily a cause needs one organization capable of raising money, choosing a
-mission, finding talent, evaluating work, and maintaining everyone's trust. Here those
-capacities can come from different people. You do not have to become that organization;
-you only have to supply the part you have.
+Ordinarily a cause needs one organization capable of raising money, judging work
+ahead of time and after the fact, executing it, remaining trusted, and reaching an
+audience. Here those capacities can come from different people. Choosing a mission is
+what publishing statements already does; it is not another person-job. You do not have
+to become that organization; you only have to supply the part you have.
 
 ## Money
 

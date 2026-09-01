@@ -1,13 +1,15 @@
 # Unbundle the organization
 
 People who care about a cause rarely lack motivation. What they usually lack is one
-organization that has all of the things needed to act: money, judgment, trusted
-connections, an audience, and people who can do the work.
+organization that has all of the things needed to act: money, prospective judgment,
+retrospective judgment, execution, trust, and distribution.
 
 That bundle is difficult to assemble. A conventional cause organization has to raise
-money, choose a mission, recruit talent, evaluate proposals, administer grants, and
-remain trusted enough to do all of those things on everyone else's behalf. A promising
-effort can stall because no one person has the whole combination.
+money, judge work before and after it happens, do the work, remain trusted, and
+reach an audience — and it usually treats “choosing a mission” as yet another
+department. A promising effort can stall because no one person has the whole
+combination. Here the mission is the published statements; the recruitable jobs
+are the capacities above.
 
 CauseStarter does not try to manufacture a following or replace the places where a
 cause already gathers. It does something narrower: **it lets different people supply

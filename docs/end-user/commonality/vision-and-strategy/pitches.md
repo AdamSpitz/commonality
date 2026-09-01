@@ -36,11 +36,12 @@ check."
 
 ## Cause organizers (people with a network)
 
-"You do not have to assemble money, mission, talent, judgment, and distribution in one
-new organization. Find the people who already care, then invite each to contribute the
-one capacity they have. Money attracts projects; projects attract money; trusted
-judgment makes both easier to use. Recruit one role at a time." See [Activate a cause
-one role at a time](../../causestarter/start-a-cause.md).
+"You do not have to assemble money, prospective and retrospective judgment,
+execution, trust, and distribution in one new organization. Find the people who
+already care, then invite each to contribute the one capacity they have. Money
+attracts projects; projects attract money; trusted judgment makes both easier to
+use. Recruit one role at a time." See [Start a
+cause](../../causestarter/start-a-cause.md).
 
 ## Scouts (people with foresight)
 
