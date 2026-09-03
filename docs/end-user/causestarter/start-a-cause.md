@@ -41,6 +41,11 @@ The practical rule is: map the people who already have money, prospective judgme
 retrospective judgment, execution ability, trust, or an audience; then make each one an
 ask that uses that capacity without demanding the others.
 
+Send a role-specific invitation instead of the whole system pitch: **[money,
+scouting, evaluation, execution, trust and reach, or organizing](./roles/index.md)**.
+Each page tells that person what they do *not* have to take on and how their yes makes
+the remaining roles easier to recruit.
+
 ## Bridges
 
 If another camp’s published cause is close but not implying yours, create a bridge from the cause board. You publish the cluster under *your* key. CauseStarter does not message the other organizer; the citation is public on their board if they look.
