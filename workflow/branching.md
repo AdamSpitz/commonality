@@ -65,48 +65,48 @@ Because `dev` is gated, promoting `dev → master` is a formality — everything
 6. **Release:** open a PR `dev → master` and merge it. The `pre-merge-commit`
    hook still runs the full test suite as the safety net. Render deploys `master`.
 
-### If `dev` and `master` have diverged
+### Releasing `dev` to `master`
 
-The normal release path is a GitHub PR from `dev` into `master`:
+The release path is a GitHub PR from `dev` into `master`:
 
 ```bash
 git fetch origin
 gh pr create --base master --head dev --title "Promote dev to master"
 ```
 
-Before opening/merging it, sanity-check that `master` is an ancestor of `dev`:
+GitHub's "Create a merge commit" always adds a merge commit **only on
+`master`**. That is normal. It does **not** mean the file trees diverged.
 
-```bash
-git merge-base --is-ancestor origin/master origin/dev
-```
+Do **not** treat `git merge-base --is-ancestor origin/master origin/dev` as the
+release health check. It fails after every GitHub merge-commit promotion even
+when `dev` and `master` have the same tree. Agents that "fixed" that by copying
+the `dev` tree onto a `master`-based snapshot commit made the graphs worse
+without changing the product.
 
-Exit code `0` means the PR is a normal fast-forward-style promotion. Exit code
-`1` means `origin/master` has commits that are not in `origin/dev`; a regular
-merge PR will try to reconcile the two histories, not simply make `master` equal
-`dev`.
-
-If the deliberate intent is **"make `master` exactly match the current `dev`
-tree"**, create a promotion branch based on `master` and replace its contents
-with `dev`:
+The invariant that matters is **trees**, not ancestry:
 
 ```bash
 git fetch origin
-git switch -c release/dev-to-master origin/master
-git restore --source=origin/dev --staged --worktree :/
-git commit -m "Promote dev to master"
-git push -u origin release/dev-to-master
-gh pr create --base master --head release/dev-to-master --title "Promote dev to master"
+# After a successful release, these should match:
+git diff --quiet origin/dev origin/master
+
+# Before a release, inspect unique *content* on master, not merge commits:
+git log --oneline origin/dev..origin/master
+git diff origin/dev origin/master
 ```
 
-Then verify the promotion branch's tree matches `dev`:
+If `git diff origin/dev origin/master` is empty, a normal `dev → master` merge
+PR is the right promotion. If master has real file changes that are not on
+`dev` (a hotfix that was never back-merged), merge `master` into `dev` first
+and land that through the usual feature PR + review gate. Then promote.
 
-```bash
-git diff --quiet origin/dev origin/release/dev-to-master
-```
+After every `dev → master` merge, **back-merge `master` into `dev`** with a
+feature PR so `master`'s merge commit is in `dev`'s history. That keeps the
+next promote a boring merge instead of a fake snapshot. Do not rewrite
+`master` to sit on a `dev` SHA.
 
-Only merge after the usual release checks pass. If your local `master` got messy
-while experimenting, reset it to the protected remote branch instead of pushing
-it:
+If your local `master` got messy while experimenting, reset it to the
+protected remote branch instead of pushing it:
 
 ```bash
 git switch master
