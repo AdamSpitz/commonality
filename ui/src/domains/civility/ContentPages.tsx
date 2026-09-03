@@ -18,7 +18,7 @@ export function NoninflammatoryCreatorsPage() {
   return (
     <CreatorsLandingPage
       title="Civility"
-      description="Fund creators who can explain one side to the other without contempt, ad hominem attacks, or tribal bait. Browse by platform, back work that lowers the temperature, and help creators collect what supporters have pooled."
+      description="Fund creators who can explain one side to the other without contempt, ad hominem attacks, or tribal bait. Browse by platform, back work that lowers the temperature, and help creators collect what contributors have pooled."
       secondaryDescription="Open a channel to see active contracts and funded content, or verify your own channel to start receiving support for bridge-building work."
       learnMoreLabel="Why this domain exists"
       learnMorePath="/about"
@@ -30,7 +30,7 @@ export function NoninflammatoryBrowsePage() {
   return (
     <BrowseCreatorsPage
       title="Browse Bridge-Building Creators"
-      description="Browse channels and content that aim to lower the temperature rather than farm engagement. See which creators are funded, what contracts are active, and how much supporters have pledged."
+      description="Browse channels and content that aim to lower the temperature rather than farm engagement. See which creators are funded, what contracts are active, and how much contributors have contributed."
     />
   )
 }
@@ -38,10 +38,10 @@ export function NoninflammatoryBrowsePage() {
 export function NoninflammatoryChannelPage() {
   return (
     <ChannelPage
-      campaignHeading="Civility Contracts"
-      createCampaignLabel="Create Civility Contract"
-      emptyCampaignState="No noninflammatory contracts exist for this channel yet."
-      unclaimedHeroDescription="Supporters have already pooled funds for content from this channel that helps people on opposite sides hear each other. If you are the creator, verify ownership to claim the escrow and manage future contracts."
+      contractsHeading="Civility Contracts"
+      createContractLabel="Create Civility Contract"
+      emptyContractsState="No noninflammatory contracts exist for this channel yet."
+      unclaimedHeroDescription="Contributors have already pooled funds for content from this channel that helps people on opposite sides hear each other. If you are the creator, verify ownership to claim the escrow and manage future contracts."
       shareHeading="Invite the creator in"
       shareDescription="If this creator is actually trying to build bridges, send them the claim link so they can verify the channel and start managing noninflammatory contracts directly."
       suggestedMessagePrefix="Hey! People have already pooled"
@@ -72,7 +72,7 @@ export function NoninflammatoryCreatorDashboardPage() {
   return (
     <CreatorDashboardPage
       title="Creator Dashboard"
-      description="Verify channels, withdraw escrowed balances, and manage noninflammatory contracts that supporters have opened around your content."
+      description="Verify channels, withdraw escrowed balances, and manage noninflammatory contracts that contributors have opened around your content."
       connectPrompt="Connect your wallet to manage your bridge-building content channels."
       emptyState="No eligible channels found yet. Verify a channel to start receiving support for noninflammatory work."
     />
@@ -94,7 +94,7 @@ export function NoninflammatoryContractPage() {
           Civility Contract
         </Typography>
         <Typography variant="body1" color="text.secondary">
-          See who pledged, what content is covered, and why it was submitted under the bridge-building standard. Creators can verify the channel here to claim pooled funds.
+          See who contributed, what content is covered, and why it was submitted under the bridge-building standard. Creators can verify the channel here to claim pooled funds.
         </Typography>
       </Paper>
       {loading ? (
@@ -229,7 +229,7 @@ export function NoninflammatoryAboutPage() {
             <Box>
               <Typography variant="subtitle2">Creators</Typography>
               <Typography variant="body2" color="text.secondary">
-                You write or produce content that steelmans the other side, avoids contempt, and invites engagement rather than defensiveness. There is a pool of money earmarked for exactly this — verify your channel and collect what supporters have already pooled.
+                You write or produce content that steelmans the other side, avoids contempt, and invites engagement rather than defensiveness. There is a pool of money earmarked for exactly this — verify your channel and collect what contributors have already pooled.
               </Typography>
             </Box>
             <Box>
@@ -275,7 +275,7 @@ export function NoninflammatoryAboutPage() {
             The whole thing, in one breath
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            "Sure — I'll put $10 a month toward making more noninflammatory content exist. I'll let my friend Andrew, who follows this stuff more closely than I do, make the actual picks." …and then never think about it again. From the other side, a creator looks at the cause board, sees a real pool of money earmarked for noninflammatory content, and thinks, "I could write some of that." Visible demand pulls supply into existence.
+            "Sure — I'll put $10 a month toward making more noninflammatory content exist. I'll let my friend Andrew, who follows this stuff more closely than I do, make the actual picks." …and then never think about it again. From the other side, a creator looks at the fundable-projects board, sees a real pool of money earmarked for noninflammatory content, and thinks, "I could write some of that." Visible demand pulls supply into existence.
           </Typography>
         </Paper>
         <Paper sx={{ p: 2 }}>
@@ -283,7 +283,7 @@ export function NoninflammatoryAboutPage() {
             How money and attestations flow
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            A supporter pledges funds into an escrow contract tied to a channel or content item. The creator verifies ownership to withdraw. Separately, AI evaluators assess whether content meets the noninflammatory standard — steelmanning, avoiding contempt, resisting tribal signaling — and publish attestations. Delegates and funders choose which evaluators they trust, so funding decisions can flow toward attested content automatically.
+            A contributor puts funds into an escrow contract tied to a channel or content item. The creator verifies ownership to withdraw. Separately, AI evaluators assess whether content meets the noninflammatory standard — steelmanning, avoiding contempt, resisting tribal signaling — and publish attestations. Delegates and contributors choose which evaluators they trust, so funding decisions can flow toward attested content automatically.
           </Typography>
         </Paper>
         <Paper sx={{ p: 2 }}>

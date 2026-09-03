@@ -6,6 +6,7 @@ import { type Address, type Hash, type Abi, parseEventLogs } from 'viem';
 import { type WriteClients } from '../../utils/ethereum.js';
 import { hashCanonicalId, parseContentFundingUrl } from './canonicalization.js';
 import { MaterializedContentTokensAbi, ProspectiveContentRoundFactoryAbi } from '../../abis.js';
+import { approveERC20Spend } from '../../utils/erc20.js';
 
 /** Contract instance for the CreatorAssuranceContractFactory. */
 export interface ContentFundingContract {
@@ -24,19 +25,6 @@ export interface ContentFundingContractDetails {
   /** Whether this contract was created by a third party (not the channel owner). */
   isThirdParty: boolean;
 }
-
-const erc20ApproveAbi = [
-  {
-    inputs: [
-      { name: 'spender', type: 'address' },
-      { name: 'amount', type: 'uint256' },
-    ],
-    name: 'approve',
-    outputs: [{ name: '', type: 'bool' }],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-] as const;
 
 const creatorAssuranceFactoryActionAbi = [
   {
@@ -123,23 +111,6 @@ const creatorAssuranceFactoryActionAbi = [
     ],
   },
 ] as const;
-
-async function approveERC20Spend(
-  clients: WriteClients,
-  token: Address,
-  spender: Address,
-  amount: bigint,
-): Promise<void> {
-  const approvalHash = await clients.walletClient.writeContract({
-    address: token,
-    abi: erc20ApproveAbi,
-    functionName: 'approve',
-    args: [spender, amount],
-    chain: clients.walletClient.chain,
-    account: clients.walletClient.account!,
-  });
-  await clients.publicClient.waitForTransactionReceipt({ hash: approvalHash });
-}
 
 /** Parameters for creating a new content-funding contract. */
 export interface CreateContentFundingContractParams {
@@ -306,8 +277,19 @@ export async function createProspectiveRound(
     account: clients.walletClient.account!,
   });
   const receipt = await clients.publicClient.waitForTransactionReceipt({ hash });
+  if (receipt.status !== 'success') {
+    throw new Error(`createProspectiveRound reverted (tx ${hash})`);
+  }
   const [event] = parseEventLogs({ abi: ProspectiveContentRoundFactoryAbi, eventName: 'ProspectiveRoundCreated', logs: receipt.logs });
-  if (!event) throw new Error('Failed to find ProspectiveRoundCreated event in transaction receipt');
+  if (!event) {
+    const code = await clients.publicClient.getCode({ address: factoryAddress });
+    if (!code || code === '0x') {
+      throw new Error(
+        `No ProspectiveContentRoundFactory bytecode at ${factoryAddress}. Redeploy contracts (./scripts/deploy-contracts.sh localhost) so PROSPECTIVE_CONTENT_ROUND_FACTORY_ADDRESS is live.`,
+      );
+    }
+    throw new Error('Failed to find ProspectiveRoundCreated event in transaction receipt');
+  }
   return { hash, roundAddress: event.args.round, receiptTokenAddress: event.args.receiptToken, conditionAddress: event.args.condition };
 }
 

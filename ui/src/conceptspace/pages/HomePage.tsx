@@ -25,8 +25,8 @@ const gettingStartedSteps = [
   {
     title: 'Learn about cause funding',
     description:
-      'Cause exploration lives on Alignment, where statements connect to cause boards and aligned projects.',
-    cta: 'Learn about portals',
+      'Cause exploration lives on Alignment, where statements connect to fundable-projects boards and aligned projects.',
+    cta: 'Learn about fundable-projects boards',
     to: '/docs/key-ideas/funding-portals',
   },
 ]
@@ -44,7 +44,7 @@ const roleCards: Array<{
   },
   {
     title: 'Fund a project',
-    description: 'Back a project with a refundable pledge if the goal is met.',
+    description: 'Back a project with a refundable contribution if the goal is met.',
     to: '/projects',
     domain: 'lazyGiving',
   },

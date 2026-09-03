@@ -16,6 +16,8 @@ import {
   saveBridgePublicationDedupState,
   summarizePublishedBridgeTriples,
 } from './dedup.js';
+import { planClusterFromTick, type TickClusterPlan } from './clusterFromTick.js';
+import { createNudgerSigner } from '@commonality/nudger-core';
 
 export type BridgeCreatorTickStatus = 'warming' | 'duplicate' | 'no_bridges' | 'published';
 
@@ -26,6 +28,7 @@ export interface BridgeCreatorTickResult {
   publication?: BridgePublicationResult;
   implicationTxHashes: string[];
   inputHash?: string;
+  clusterSlug?: string;
 }
 
 export interface BridgeCreatorRunnerDependencies {
@@ -40,6 +43,7 @@ export interface BridgeCreatorRunnerDependencies {
   loadProposalStore: typeof loadProposalStoreFile;
   markProposalsConsumed: typeof markProposalsConsumed;
   implicationSubmitter?: BridgeImplicationSubmitter;
+  publishTickCluster?: (plan: TickClusterPlan) => Promise<void>;
 }
 
 const defaultDependencies: BridgeCreatorRunnerDependencies = {
@@ -138,6 +142,27 @@ export async function runBridgeCreatorTick(
       )
     : [];
 
+  let clusterSlug: string | undefined;
+  if (config.parentCauses.length > 0 && dependencies.publishTickCluster) {
+    const mediatorAddress = createNudgerSigner(config).address as `0x${string}`;
+    const clusterPlan = planClusterFromTick({
+      mediatorName: config.name,
+      mediatorNote: config.description,
+      mediatorAddress,
+      clusterSlug: config.clusterSlug,
+      parentCauses: config.parentCauses,
+      triples: publishedTriples.map((published) => ({
+        sideACid: published.sideACid,
+        sideBCid: published.sideBCid,
+        commonGroundCid: published.commonGroundCid,
+      })),
+    });
+    if (clusterPlan) {
+      await dependencies.publishTickCluster(clusterPlan);
+      clusterSlug = clusterPlan.clusterSlug;
+    }
+  }
+
   dependencies.saveDedupState(config.publicationDedupStatePath, {
     lastInputHash: inputHash,
     lastPublicationSummary: summarizePublishedBridgeTriples(triples),
@@ -150,6 +175,7 @@ export async function runBridgeCreatorTick(
     publication,
     implicationTxHashes,
     inputHash,
+    clusterSlug,
   };
 }
 

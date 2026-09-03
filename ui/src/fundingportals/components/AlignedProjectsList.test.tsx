@@ -1,18 +1,21 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { AlignedProjectsList } from './AlignedProjectsList'
+import { DISCOVERY_LEVEL_STORAGE_KEY } from '../hooks/useDiscoveryLevel'
+import { ALIGNMENT_FILTER_STORAGE_KEY } from '../hooks/useAlignmentFilter'
 
 vi.mock('./projectMetadata', () => ({
   readProjectMetadata: vi.fn(),
 }))
 
 
-vi.mock('react-router-dom', () => ({
-  Link: vi.fn(({ to, children, ...props }: any) => (
-    <a href={to} {...props}>{children}</a>
-  )),
-}))
+vi.mock('react-router-dom', () => {
+  function Link({ to, children, ...props }: any) {
+    return <a href={to} {...props}>{children}</a>
+  }
+  return { Link, RouterLink: Link }
+})
 
 vi.mock('wagmi', () => ({
   useAccount: vi.fn(),
@@ -20,6 +23,10 @@ vi.mock('wagmi', () => ({
 
 vi.mock('../../shared/hooks/useTrustedSet', () => ({
   useTrustedSet: vi.fn(),
+}))
+
+vi.mock('../../shared/hooks/useTrustedContentAttesters', () => ({
+  useTrustedContentAttesters: vi.fn(() => []),
 }))
 
 vi.mock('../../shared/routing/domainUrls', async () => {
@@ -48,6 +55,18 @@ vi.mock('@commonality/sdk/lazy-giving', async () => {
   return {
     ...actual,
     getProject: vi.fn(),
+    getProjectFold: vi.fn(),
+  }
+})
+
+vi.mock('../../shared/stores/foldCache', async () => {
+  const actual = await vi.importActual<typeof import('../../shared/stores/foldCache')>(
+    '../../shared/stores/foldCache',
+  )
+  return {
+    ...actual,
+    loadAlignedListSnapshot: vi.fn(async () => null),
+    saveAlignedListSnapshot: vi.fn(async () => {}),
   }
 })
 
@@ -64,16 +83,31 @@ vi.mock('../../content-funding/hooks/useContentFundingState', () => ({
   useContentFundingState: vi.fn(() => ({
     state: null,
     channels: [],
+    contentAttestations: new Map(),
     loading: false,
   })),
 }))
+
+vi.mock('../../content-funding', async () => {
+  const actual = await vi.importActual<typeof import('../../content-funding')>('../../content-funding')
+  return {
+    ...actual,
+    useContentFundingState: vi.fn(() => ({
+      state: null,
+      channels: [],
+      contentAttestations: new Map(),
+      loading: false,
+    })),
+  }
+})
 
 import { getAllAlignedProjectsForCause } from '@commonality/sdk/fundingportals'
 import { getProject } from '@commonality/sdk/lazy-giving'
 import { createSDKMachinery } from '@commonality/sdk/machinery'
 import { readProjectMetadata } from './projectMetadata'
 import { useAccount } from 'wagmi'
-import { getDomainUrl, isDomainConfigured, useTrustedSet } from '../../shared'
+import { getDomainUrl, isDomainConfigured, loadAlignedListSnapshot, useTrustedSet } from '../../shared'
+import { useContentFundingState } from '../../content-funding'
 
 const mockMachinery = {} as any
 
@@ -117,6 +151,8 @@ function makeProject(overrides: {
 describe('AlignedProjectsList', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    window.localStorage.removeItem(DISCOVERY_LEVEL_STORAGE_KEY)
+    window.localStorage.removeItem(ALIGNMENT_FILTER_STORAGE_KEY)
     vi.mocked(createSDKMachinery).mockReturnValue(mockMachinery)
     vi.mocked(useAccount).mockReturnValue({ address: USER_ADDRESS } as any)
     vi.mocked(useTrustedSet).mockReturnValue({
@@ -126,6 +162,12 @@ describe('AlignedProjectsList', () => {
     } as any)
     vi.mocked(getProject).mockResolvedValue(null)
     vi.mocked(readProjectMetadata).mockResolvedValue(null)
+    vi.mocked(useContentFundingState).mockReturnValue({
+      state: null,
+      channels: [],
+      contentAttestations: new Map(),
+      loading: false,
+    } as any)
   })
 
   describe('Query arguments', () => {
@@ -146,7 +188,7 @@ describe('AlignedProjectsList', () => {
           mockMachinery,
           'QmTest',
           trustedImplicationAttesters,
-          new Set([TRUSTED_A])
+          new Set([TRUSTED_A, USER_ADDRESS])
         )
       })
     })
@@ -169,16 +211,16 @@ describe('AlignedProjectsList', () => {
           mockMachinery,
           'QmTest',
           trustedImplicationAttesters,
-          trustedAlignmentAttesters
+          new Set(['0x3333333333333333333333333333333333333333', USER_ADDRESS])
         )
       })
     })
 
     it('drops the alignment trust filter when discovery is set to Anyone', async () => {
+      window.localStorage.setItem(DISCOVERY_LEVEL_STORAGE_KEY, 'anyone')
       vi.mocked(getAllAlignedProjectsForCause).mockResolvedValue([])
 
       render(<AlignedProjectsList statementCid="QmTest" />)
-      fireEvent.change(await screen.findByRole('slider'), { target: { value: '2' } })
 
       await waitFor(() => {
         expect(getAllAlignedProjectsForCause).toHaveBeenLastCalledWith(
@@ -198,6 +240,29 @@ describe('AlignedProjectsList', () => {
       render(<AlignedProjectsList statementCid="QmTest" />)
 
       expect(screen.getByRole('progressbar')).toBeInTheDocument()
+    })
+
+    it('keeps the list painted while a trust-set identity refresh is in flight', async () => {
+      vi.mocked(getAllAlignedProjectsForCause).mockResolvedValue([])
+      vi.mocked(isDomainConfigured).mockReturnValue(true)
+      vi.mocked(getDomainUrl).mockReturnValue('http://lazygiving.localhost:8088/#/projects/new')
+
+      const { rerender } = render(<AlignedProjectsList statementCid="QmTest" />)
+
+      await waitFor(() => {
+        expect(screen.getByText(/No aligned projects yet/)).toBeInTheDocument()
+      })
+
+      vi.mocked(getAllAlignedProjectsForCause).mockReturnValue(new Promise(() => {}))
+      vi.mocked(useTrustedSet).mockReturnValue({
+        trustedSet: new Set([TRUSTED_A, USER_ADDRESS]),
+        trustWeights: undefined,
+        isLoading: true,
+      } as any)
+      rerender(<AlignedProjectsList statementCid="QmTest" />)
+
+      expect(screen.getByTestId('trust-network-refresh')).toBeInTheDocument()
+      expect(screen.getByText(/No aligned projects yet/)).toBeInTheDocument()
     })
   })
 
@@ -242,7 +307,7 @@ describe('AlignedProjectsList', () => {
       expect(screen.queryByRole('link', { name: 'Browse all projects' })).not.toBeInTheDocument()
     })
 
-    it('explains missing LazyGiving config instead of path-only create links', async () => {
+    it('creates locally when projectLinks is local', async () => {
       vi.mocked(getAllAlignedProjectsForCause).mockResolvedValue([])
       vi.mocked(isDomainConfigured).mockReturnValue(false)
 
@@ -251,8 +316,20 @@ describe('AlignedProjectsList', () => {
       await waitFor(() => {
         expect(screen.getByText(/No aligned projects yet/)).toBeInTheDocument()
       })
+      expect(screen.getByRole('link', { name: /Create a project/i })).toHaveAttribute('href', '/projects/new')
+    })
+
+    it('explains missing LazyGiving config instead of path-only create links', async () => {
+      vi.mocked(getAllAlignedProjectsForCause).mockResolvedValue([])
+      vi.mocked(isDomainConfigured).mockReturnValue(false)
+
+      render(<AlignedProjectsList statementCid="QmTest" />)
+
+      await waitFor(() => {
+        expect(screen.getByText(/No aligned projects yet/)).toBeInTheDocument()
+      })
       expect(screen.queryByRole('link', { name: /Create a project/i })).not.toBeInTheDocument()
-      expect(screen.getByText(/Project creation still happens on LazyGiving/i)).toBeInTheDocument()
+      expect(screen.getByText(/Configure VITE_LAZYGIVING_URL/i)).toBeInTheDocument()
     })
 
     it('shows "No projects match" message when all projects are filtered out', async () => {
@@ -287,9 +364,61 @@ describe('AlignedProjectsList', () => {
         expect(screen.getByRole('button', { name: 'Deadline' })).toBeInTheDocument()
         expect(screen.getByRole('button', { name: 'Most Funded' })).toBeInTheDocument()
         expect(screen.getByRole('button', { name: 'Closest to Goal' })).toBeInTheDocument()
-        expect(screen.getByRole('button', { name: 'Direct' })).toBeInTheDocument()
-        expect(screen.getByRole('button', { name: 'Indirect' })).toBeInTheDocument()
+        expect(screen.queryByRole('button', { name: 'Alignment' })).toBeNull()
+        expect(screen.queryByRole('button', { name: 'Direct only' })).toBeNull()
+        expect(screen.queryByRole('button', { name: 'Indirect' })).toBeNull()
       })
+    })
+
+    it('loads metadata for content-funding rows that are not in the aligned-project query', async () => {
+      const contentAddr = ADDR_C
+      vi.mocked(getAllAlignedProjectsForCause).mockResolvedValue([])
+      vi.mocked(getProject).mockResolvedValue({ metadataCid: 'content-meta' } as any)
+      vi.mocked(readProjectMetadata).mockResolvedValue({ name: 'Common Table creator content fund' })
+      const canonicalId = 'substack:commontable:warming-centre-dispatch'
+      vi.mocked(useContentFundingState).mockImplementation(() => ({
+        state: {} as any,
+        channels: [{
+          canonicalChannelId: 'substack:commontable',
+          channel: { channelId: '0xabc', owner: null, controlTakenAt: null, state: 'creator-controlled' },
+          escrow: { balance: 0n, totalDeposited: 0n, totalWithdrawn: 0n },
+          contentItems: [],
+          contracts: [{
+            contractAddress: contentAddr,
+            channelId: '0xabc',
+            creator: ADDR_A,
+            isThirdParty: false,
+            project: {
+              ...makeProject({ projectAddress: contentAddr }),
+            },
+            fundingProgress: null,
+            status: 'active',
+            contentItems: [{ canonicalId, subjectId: canonicalId }],
+          }],
+        }] as any,
+        contentAttestations: new Map([
+          [canonicalId, [{
+            canonicalId,
+            subjectId: canonicalId,
+            attested: true,
+            attester: TRUSTED_A,
+            statementCid: 'QmTest',
+          }]],
+        ]),
+        loading: false,
+        error: null,
+        projects: [],
+        channelDisplayMetadata: new Map(),
+        vetoedEvents: [],
+        machinery: {} as any,
+      }))
+
+      render(<AlignedProjectsList statementCid="QmTest" />)
+
+      await waitFor(() => {
+        expect(screen.getByText('Common Table creator content fund')).toBeInTheDocument()
+      })
+      expect(getProject).toHaveBeenCalledWith(mockMachinery, contentAddr)
     })
 
     it('shows project metadata name when available', async () => {
@@ -326,9 +455,8 @@ describe('AlignedProjectsList', () => {
       render(<AlignedProjectsList statementCid="QmTest" />)
 
       await waitFor(() => {
-        // "Direct" and "Indirect" appear in both filter buttons and alignment chips on cards
-        expect(screen.getAllByText('Direct').length).toBeGreaterThanOrEqual(2)
-        expect(screen.getAllByText('Indirect').length).toBeGreaterThanOrEqual(2)
+        expect(screen.getByText('Direct')).toBeInTheDocument()
+        expect(screen.getByText('Indirect')).toBeInTheDocument()
       })
     })
 
@@ -344,8 +472,8 @@ describe('AlignedProjectsList', () => {
       await waitFor(() => {
         expect(screen.getAllByText('Project 0xAAAAAA...')).toHaveLength(1)
       })
-      expect(screen.getAllByText('Direct').length).toBeGreaterThanOrEqual(2)
-      expect(screen.getAllByText('Indirect')).toHaveLength(1)
+      expect(screen.getByText('Direct')).toBeInTheDocument()
+      expect(screen.queryByText('Indirect')).toBeNull()
     })
   })
 
@@ -468,37 +596,14 @@ describe('AlignedProjectsList', () => {
       })
     })
 
-    it('shows only direct projects when "Direct" filter is selected', async () => {
+    it('shows only direct projects when the settings filter is Direct only', async () => {
+      window.localStorage.setItem(ALIGNMENT_FILTER_STORAGE_KEY, 'direct')
       setupDirectIndirectProjects()
       render(<AlignedProjectsList statementCid="QmTest" />)
-
-      await waitFor(() => {
-        expect(screen.getByText('Direct Project')).toBeInTheDocument()
-      })
-
-      const user = userEvent.setup()
-      await user.click(screen.getByRole('button', { name: 'Direct', pressed: false }))
 
       await waitFor(() => {
         expect(screen.getByText('Direct Project')).toBeInTheDocument()
         expect(screen.queryByText('Indirect Project')).not.toBeInTheDocument()
-      })
-    })
-
-    it('shows only indirect projects when "Indirect" filter is selected', async () => {
-      setupDirectIndirectProjects()
-      render(<AlignedProjectsList statementCid="QmTest" />)
-
-      await waitFor(() => {
-        expect(screen.getByText('Indirect Project')).toBeInTheDocument()
-      })
-
-      const user = userEvent.setup()
-      await user.click(screen.getByRole('button', { name: 'Indirect', pressed: false }))
-
-      await waitFor(() => {
-        expect(screen.queryByText('Direct Project')).not.toBeInTheDocument()
-        expect(screen.getByText('Indirect Project')).toBeInTheDocument()
       })
     })
   })
@@ -537,11 +642,11 @@ describe('AlignedProjectsList', () => {
       render(<AlignedProjectsList statementCid="QmTest" />)
 
       await waitFor(() => {
-        const headings = screen.getAllByRole('heading', { level: 2 })
+        const titles = screen.getAllByRole('link', { name: /Open project/i })
         // Gamma (deadline=300) first, Alpha (deadline=100) last
-        expect(headings[0]).toHaveTextContent('Project Gamma')
-        expect(headings[1]).toHaveTextContent('Project Beta')
-        expect(headings[2]).toHaveTextContent('Project Alpha')
+        expect(titles[0]).toHaveTextContent('Project Gamma')
+        expect(titles[1]).toHaveTextContent('Project Beta')
+        expect(titles[2]).toHaveTextContent('Project Alpha')
       })
     })
 
@@ -557,11 +662,11 @@ describe('AlignedProjectsList', () => {
       await user.click(screen.getByRole('button', { name: 'Deadline', pressed: false }))
 
       await waitFor(() => {
-        const headings = screen.getAllByRole('heading', { level: 2 })
+        const titles = screen.getAllByRole('link', { name: /Open project/i })
         // Alpha (deadline=100) first, Gamma (deadline=300) last
-        expect(headings[0]).toHaveTextContent('Project Alpha')
-        expect(headings[1]).toHaveTextContent('Project Beta')
-        expect(headings[2]).toHaveTextContent('Project Gamma')
+        expect(titles[0]).toHaveTextContent('Project Alpha')
+        expect(titles[1]).toHaveTextContent('Project Beta')
+        expect(titles[2]).toHaveTextContent('Project Gamma')
       })
     })
 
@@ -577,11 +682,11 @@ describe('AlignedProjectsList', () => {
       await user.click(screen.getByRole('button', { name: 'Most Funded', pressed: false }))
 
       await waitFor(() => {
-        const headings = screen.getAllByRole('heading', { level: 2 })
+        const titles = screen.getAllByRole('link', { name: /Open project/i })
         // Alpha (totalReceived=900) first, Gamma (totalReceived=100) last
-        expect(headings[0]).toHaveTextContent('Project Alpha')
-        expect(headings[1]).toHaveTextContent('Project Beta')
-        expect(headings[2]).toHaveTextContent('Project Gamma')
+        expect(titles[0]).toHaveTextContent('Project Alpha')
+        expect(titles[1]).toHaveTextContent('Project Beta')
+        expect(titles[2]).toHaveTextContent('Project Gamma')
       })
     })
 
@@ -597,11 +702,74 @@ describe('AlignedProjectsList', () => {
       await user.click(screen.getByRole('button', { name: 'Closest to Goal', pressed: false }))
 
       await waitFor(() => {
-        const headings = screen.getAllByRole('heading', { level: 2 })
+        const titles = screen.getAllByRole('link', { name: /Open project/i })
         // Alpha (90%) first, Gamma (10%) last
-        expect(headings[0]).toHaveTextContent('Project Alpha')
-        expect(headings[1]).toHaveTextContent('Project Beta')
-        expect(headings[2]).toHaveTextContent('Project Gamma')
+        expect(titles[0]).toHaveTextContent('Project Alpha')
+        expect(titles[1]).toHaveTextContent('Project Beta')
+        expect(titles[2]).toHaveTextContent('Project Gamma')
+      })
+    })
+  })
+
+  describe('Compact preview', () => {
+    it('hides sort/status chrome, caps the list, and links to the full page', async () => {
+      vi.mocked(getAllAlignedProjectsForCause).mockResolvedValue([
+        makeProject({ projectAddress: ADDR_A, deadline: FAR_FUTURE }),
+        makeProject({ projectAddress: ADDR_B, deadline: String(Number(FAR_FUTURE) - 10) }),
+        makeProject({ projectAddress: ADDR_C, deadline: String(Number(FAR_FUTURE) - 20) }),
+      ])
+
+      render(
+        <AlignedProjectsList
+          statementCid="QmTest"
+          compact
+          limit={2}
+          fullPageTo="/dashboard"
+        />,
+      )
+
+      await waitFor(() => {
+        expect(screen.getAllByRole('link', { name: /Open project/i }).length).toBe(2)
+      })
+      expect(screen.queryByRole('button', { name: 'Latest' })).toBeNull()
+      expect(screen.queryByRole('button', { name: 'Funding' })).toBeNull()
+      const seeAll = screen.getByTestId('aligned-projects-see-all')
+      expect(seeAll).toHaveAttribute('href', '/dashboard')
+      expect(seeAll).toHaveTextContent(/see all 3 projects/i)
+    })
+  })
+
+  describe('Cached snapshot', () => {
+    it('paints the last list immediately and shows a corner spinner until the live fold returns', async () => {
+      vi.mocked(createSDKMachinery).mockReturnValue({
+        eventCacheUrl: 'http://localhost:42069/api',
+        contractAddresses: {
+          assuranceContractFactory: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+        },
+      } as any)
+      vi.mocked(loadAlignedListSnapshot).mockResolvedValue({
+        snapshotVersion: 1,
+        projects: [makeProject({ projectAddress: ADDR_A })],
+        metadata: { [ADDR_A]: { name: 'Cached Garden' } },
+      })
+      let resolveLive: (value: ReturnType<typeof makeProject>[]) => void = () => {}
+      vi.mocked(getAllAlignedProjectsForCause).mockReturnValue(
+        new Promise((resolve) => {
+          resolveLive = resolve
+        }),
+      )
+
+      render(<AlignedProjectsList statementCid="QmTest" />)
+
+      expect(await screen.findByText('Cached Garden')).toBeInTheDocument()
+      expect(screen.getByTestId('trust-network-refresh')).toHaveAttribute(
+        'aria-label',
+        'Updating aligned projects from the latest events.',
+      )
+
+      resolveLive([makeProject({ projectAddress: ADDR_B })])
+      await waitFor(() => {
+        expect(screen.queryByText('Cached Garden')).toBeNull()
       })
     })
   })

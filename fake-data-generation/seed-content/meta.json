@@ -160,8 +160,8 @@
         }
       ],
       "implicationNotes": [
-        "Conjunction statements like these should be modeled as ordinary statements with direct implication links to their topical and geographic parents.",
-        "Because implications are non-transitive, useful geographic rollups need direct edges rather than chains."
+        "Conjunction statements like these should be modeled as ordinary statements with direct implication links to their topical parents when the conjunction rule actually holds. Nested-place *wants* (more X in Grey vs more X in Ontario) are board inclusion, not implication.",
+        "Do not mint geo any-combinators or treat containing-place wants as rollup parents."
       ]
     }
   ]

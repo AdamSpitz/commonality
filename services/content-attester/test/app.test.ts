@@ -10,7 +10,7 @@ const testConfig: ContentAttesterAppConfig = {
   ipfsApiUrl: 'http://localhost:5001',
   ipfsGatewayUrl: 'http://localhost:8080',
   paymentAddress: '0x' + '3'.repeat(40),
-  openRouterModel: 'anthropic/claude-3.5-haiku',
+  openRouterModel: 'deepseek/deepseek-v4-flash-0731',
   estimatedInputTokens: 2500,
   estimatedOutputTokens: 400,
   serviceMarginPercent: 20,

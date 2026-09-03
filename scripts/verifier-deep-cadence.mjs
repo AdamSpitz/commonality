@@ -1,6 +1,10 @@
 #!/usr/bin/env node
 
 import { spawn } from 'node:child_process'
+import {
+  isFailedCadenceResult,
+  shouldSkipLocalStackCadenceCheck,
+} from './lib/deep-cadence-local-stack.mjs'
 
 const args = new Set(process.argv.slice(2))
 const includeTestnet = args.has('--testnet') || args.has('--browser-testnet') || args.has('--mutating-testnet') || args.has('--full')
@@ -13,7 +17,9 @@ if (args.has('--help') || args.has('-h')) {
 Runs the guarded deep verifier checks that prove the product boots and reads back.
 Intended for a nightly/CI job, not for the cheap local development loop.
 
-By default this runs a destructive local rebuild followed by local health/E2E deep checks:
+By default this runs a destructive local rebuild followed by local health/E2E deep checks,
+one at a time. If a local-stack check fails, later local-stack checks are skipped so
+stack.restart-consistency cannot race stack.fresh-seeded or restart a half-wiped chain:
   - stack.fresh-seeded
   - operations.local-stack-health
   - stack.restart-consistency
@@ -145,15 +151,26 @@ function runCheck({ checkId, env = {} }) {
 }
 
 const results = []
+let localStackFailed = false
 for (const check of checks) {
-  results.push(await runCheck(check))
+  if (shouldSkipLocalStackCadenceCheck(check.checkId, localStackFailed)) {
+    console.error(`\n=== skipping ${check.checkId} (prior local-stack cadence check failed) ===`)
+    results.push({ checkId: check.checkId, code: 0, signal: null, status: 'skipped' })
+    continue
+  }
+  const result = await runCheck(check)
+  results.push(result)
+  if (shouldSkipLocalStackCadenceCheck(check.checkId, true) && isFailedCadenceResult(result)) {
+    localStackFailed = true
+  }
 }
 
-const failures = results.filter((result) => result.signal || result.status === 'fail' || result.status === 'error' || (result.code !== 0 && result.status !== 'uncertain'))
+const failures = results.filter((result) => isFailedCadenceResult(result))
 console.error('\n=== deep verifier cadence summary ===')
 for (const result of results) {
   const detail = result.signal ? `signal ${result.signal}` : `exit ${result.code}, status ${result.status ?? 'unknown'}`
-  console.error(`${failures.includes(result) ? 'FAIL' : 'PASS'} ${result.checkId} (${detail})`)
+  const label = result.status === 'skipped' ? 'SKIP' : (failures.includes(result) ? 'FAIL' : 'PASS')
+  console.error(`${label} ${result.checkId} (${detail})`)
 }
 
 if (failures.length > 0) {

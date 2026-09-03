@@ -22,7 +22,7 @@ const testConfig: BeatAgentAppConfig = {
   ipfsApiUrl: 'http://localhost:5001',
   ipfsGatewayUrl: 'http://localhost:8080',
   paymentAddress: `0x${'3'.repeat(40)}`,
-  openRouterModel: 'anthropic/claude-3-sonnet',
+  openRouterModel: 'deepseek/deepseek-v4-flash-0731',
   estimatedInputTokens: 3000,
   estimatedOutputTokens: 500,
   serviceMarginPercent: 20,

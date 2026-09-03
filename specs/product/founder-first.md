@@ -30,6 +30,7 @@ being the universal operator to whom every conduct element attaches) and product
 | Role/strategy statement for internal devs | [workflow/roles/founder.md](/workflow/roles/founder.md) |
 | What a founder needs: decisions, artifacts, accounts, obligations | [docs/founder/what-a-founder-needs.md](/docs/founder/what-a-founder-needs.md) |
 | "Now actually build one" guide for a founder | [docs/founder/standing-up-a-vertical.md](/docs/founder/standing-up-a-vertical.md) |
+| How a founder activates the cause after reaching its existing community | [docs/founder/activating-a-cause.md](/docs/founder/activating-a-cause.md) |
 | How a founder fills an empty cause board | [cause-taxonomy.md](./cause-taxonomy.md) |
 | What a cause is made of: planks, views, anchors; what cause-assist should suggest | [shaping-your-cause-statements.md](/docs/founder/shaping-your-cause-statements.md) |
 | Recruiting collateral / worked pitches | [christian-pitch.md](/docs/founder/christian-pitch.md), [docs/founder/csm/](/docs/founder/csm/) |
@@ -48,7 +49,9 @@ authoritative copy; this list is the map.
 
 - [ ] Build the founder-recruiting funnel: where do prospective founders hear about
       Commonality, and what do they land on? [standing-up-a-vertical](/docs/founder/standing-up-a-vertical.md)
-      is step one; the rest of the path is unspecified. (from [marketing.md](./marketing.md))
+      covers setup and [activating-a-cause](/docs/founder/activating-a-cause.md) covers
+      recruiting the cause's participants; the discovery and landing path remains
+      unspecified. (from [marketing.md](./marketing.md))
 - [ ] Improve the [Christian pitch](/docs/founder/christian-pitch.md) and write more
       pitches along those lines for other audiences. *(Adam — [inbox.md](/inbox.md))*
 - [ ] Have an AI generate a batch of imaginary founders and causes, as a breadth check on
@@ -59,6 +62,9 @@ authoritative copy; this list is the map.
 - [ ] Resolve the naming question: new site, or rename Commonality to something like
       "CauseStarter"? The umbrella brand currently names the substrate, not the founder
       product. *(Adam — [inbox.md](/inbox.md))*
+- [ ] Separate, copy-only: do not over-weight the organizer roster as “a cause”
+      you join; two-step noun change in [cause-page-not-a-club.md](./cause-page-not-a-club.md).
+      Does not settle the umbrella-vs-CauseStarter brand question.
 
 ### Make the founder's job easier (platform work)
 

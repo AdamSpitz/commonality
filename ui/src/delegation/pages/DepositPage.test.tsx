@@ -150,6 +150,13 @@ describe('DepositPage', () => {
       expect(screen.getByTestId('statement-picker-delegation')).toBeInTheDocument()
     })
 
+    it('says the earmark is public and not binding', () => {
+      render(<DepositPage />)
+
+      expect(screen.getByText(/not a binding restriction/i)).toBeInTheDocument()
+      expect(screen.getByText(/choosing a delegate is public/i)).toBeInTheDocument()
+    })
+
     it('shows Deposit submit button', () => {
       render(<DepositPage />)
 

@@ -48,15 +48,15 @@ The system's implication graph notices that these statements all point toward so
 
 ## Three roles, each genuinely easy
 
-### The passive supporter
+### The passive contributor
 
 You find a delegate you trust — someone who's good at curating thoughtful political writing. You pledge $10/month and let them decide where it goes. Done. You don't have to think about it again. You can check in whenever you want (everything is transparent), but you don't have to. And you can revoke your delegation at any time if you change your mind.
 
 ### The content creator
 
-You're a writer. You look at the cause board for this cause and see real money — pledged and available — from people who want exactly the kind of writing you want to do. You write a piece about immigration that makes the conservative case without painting progressives as naive or unpatriotic. You submit it to an AI evaluation service that assesses whether it meets the standard: does it steelman the opposing view? Does it avoid contempt? Could a reasonable person who disagrees engage with it without feeling attacked?
+You're a writer. You look at the fundable-projects board for this cause and see real money — pledged and available — from people who want exactly the kind of writing you want to do. You write a piece about immigration that makes the conservative case without painting progressives as naive or unpatriotic. You submit it to an AI evaluation service that assesses whether it meets the standard: does it steelman the opposing view? Does it avoid contempt? Could a reasonable person who disagrees engage with it without feeling attacked?
 
-It passes. The AI issues an attestation: this piece meets the standard. Donors whose cause boards are configured to trust this evaluator now see your piece. Some fund it directly; others have delegated their decisions to taste-makers who fund it on their behalf. Either way, money flows to you for doing exactly what you wanted to do.
+It passes. The AI issues an attestation: this piece meets the standard. Donors whose fundable-projects boards are configured to trust this evaluator now see your piece. Some fund it directly; others have delegated their decisions to taste-makers who fund it on their behalf. Either way, money flows to you for doing exactly what you wanted to do.
 
 ### The active reader / taste-maker
 
@@ -71,7 +71,7 @@ The writer submits it to an AI evaluator that's designed to assess content from 
 
 Now here's what happens:
 
-- Left-leaning donors who pledged to "constructive discourse" see it in their cause board — because the implication graph connected their statement to this content's cause.
+- Left-leaning donors who pledged to "constructive discourse" see it in their fundable-projects board — because the implication graph connected their statement to this content's cause.
 - Right-leaning donors who pledged to "content that doesn't paint us as villains" also see it — through a completely different path in the implication graph.
 - Both groups end up funding the same piece, without coordinating or even knowing about each other.
 

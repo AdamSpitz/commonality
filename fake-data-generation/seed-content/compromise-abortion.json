@@ -1,0 +1,52 @@
+{
+  "format": "commonality-seed-content-v1",
+  "id": "compromise-abortion",
+  "title": "Abortion — compromise in the middle",
+  "description": "Accepted left/right gestational-cutoff bridge triple. Copied from statement-generation-exercises/02-compromise-abortion.json after Adam accepted it on 2026-08-30.",
+  "notes": [
+    "Curriculum step 3: a real-gap compromise-in-the-middle bridge. Process: fake-data-generation/statement-generation.md.",
+    "Naturals state each camp's concern without the deal. Modifieds reaffirm that concern and add the smallest settlement each camp can sign. Commonality contains only the shared settlement.",
+    "Live check on 2026-08-28 with deepseek/deepseek-v3.2: both designed-yes arrows blessed and all eight designed-no arrows refused with high confidence; /critique-triple returned no objections or leak warnings."
+  ],
+  "groups": [
+    {
+      "id": "abortion-gestational-cutoff",
+      "title": "Abortion — first-trimester cutoff",
+      "notes": [
+        "Gap: the moderate left's primary concern is that each woman has the option of aborting; the moderate right's primary concern is later-term abortions. Neither natural states a willingness to settle.",
+        "Modified → commonality is implication containment. Natural → modified remains a nudge because the cutoff and settlement are extra beliefs."
+      ],
+      "statements": [
+        {
+          "id": "natural-left",
+          "role": "natural-left",
+          "text": "I want abortion to be available so that women aren't forced into going through with a pregnancy they don't want."
+        },
+        {
+          "id": "natural-right",
+          "role": "natural-right",
+          "text": "Late-term abortion is horrific."
+        },
+        {
+          "id": "modified-left",
+          "role": "modified-left",
+          "text": "I want abortion to be available so that women aren't forced into going through with a pregnancy they don't want. I'd prefer abortion to be available throughout the whole pregnancy, but I'd be okay with a law that gave women 12-16 weeks to decide and prohibited abortion afterward. I'd rather get this settled than keep fighting over it forever."
+        },
+        {
+          "id": "modified-right",
+          "role": "modified-right",
+          "text": "Late-term abortion is horrific. I'd still rather not see abortions early in the pregnancy, but I don't feel as strongly about it. Allowing abortion during the first 12-16 weeks and forbidding it after that isn't what I'd write if I were making the law alone, but I'd be okay with that cutoff if it meant we got this settled instead of fighting over it forever."
+        },
+        {
+          "id": "commonality",
+          "role": "commonality",
+          "text": "I'd be okay with it if abortion were allowed during the first 12-16 weeks, and forbidden after that. This isn't my ideal outcome, but I'd rather get this settled than keep fighting over it forever."
+        }
+      ],
+      "implicationNotes": [
+        "Expect yes: modified-left → commonality; modified-right → commonality.",
+        "Expect no: natural-left → commonality; natural-right → commonality; natural-left → modified-left; natural-right → modified-right; either modified → the other modified; commonality → either modified."
+      ]
+    }
+  ]
+}

@@ -7,6 +7,7 @@ import { contentFundingManifest } from './content-funding/manifest.tsx'
 import { civilityManifest } from './civility/manifest.tsx'
 import { commonSenseMajorityManifest } from './common-sense-majority/manifest.tsx'
 import { conceptspaceManifest } from './conceptspace/manifest.tsx'
+import { causestarterManifest } from './causestarter/manifest.tsx'
 
 export * from './types'
 
@@ -19,6 +20,7 @@ export const domainManifests: Record<DomainId, DomainManifest> = {
   civility: civilityManifest,
   'common-sense-majority': commonSenseMajorityManifest,
   conceptspace: conceptspaceManifest,
+  causestarter: causestarterManifest,
 }
 
 export function getDomainManifest(domainId: DomainId): DomainManifest {
@@ -32,20 +34,7 @@ export function getActiveDomain(): DomainManifest {
 
 function getDomainIdFromEnv(): DomainId {
   const envDomain = import.meta.env.VITE_DOMAIN
-  if (envDomain === 'civility') return 'civility'
-  if (envDomain === 'common-sense-majority') return 'common-sense-majority'
-  if (
-    envDomain === 'commonality' ||
-    envDomain === 'lazyGiving' ||
-    envDomain === 'alignment' ||
-    envDomain === 'tally' ||
-    envDomain === 'content-funding' ||
-    envDomain === 'civility' ||
-    envDomain === 'common-sense-majority' ||
-    envDomain === 'conceptspace'
-  ) {
-    return envDomain
-  }
+  if (envDomain in domainManifests) return envDomain as DomainId
   return 'commonality'
 }
 
@@ -57,3 +46,4 @@ export { contentFundingManifest }
 export { civilityManifest }
 export { commonSenseMajorityManifest }
 export { conceptspaceManifest }
+export { causestarterManifest }

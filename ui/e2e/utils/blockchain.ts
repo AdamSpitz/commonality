@@ -26,7 +26,8 @@ import { hashCanonicalId, verifyChannel } from '@commonality/sdk/content-funding
 import { createDefaultDocumentStore, createDisplayableDocument } from '@commonality/sdk/displayable-documents'
 import { createSDKMachinery, type SDKMachinery } from '@commonality/sdk/machinery'
 import { createWriteClients, type IpfsCidV1, type WriteClients } from '@commonality/sdk/utils'
-import { TEST_PRIVATE_KEYS } from '@commonality/sdk/utils'
+import { TEST_PRIVATE_KEYS } from '@commonality/sdk/testing';
+
 import { createPublicClient, http, keccak256, toBytes, type Hex } from 'viem'
 import { hardhat } from 'viem/chains'
 import { privateKeyToAccount } from 'viem/accounts'

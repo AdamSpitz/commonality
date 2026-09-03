@@ -298,7 +298,7 @@ export async function getNoteIntentAggregate(
     .sort((a, b) => Number(a.blockNumber - b.blockNumber) || a.logIndex - b.logIndex);
   const latest = foldNoteIntentAttestations(decodedIntents);
   if (!latest.some(attestation => attestation.intendedStatementId === statementId)) {
-    return { statementId, currencies: [], supporterCount: 0, noteCount: 0 };
+    return { statementId, currencies: [], contributorCount: 0, noteCount: 0 };
   }
 
   cached.delegation ??= fetchAllDelegationEventsComplete(machinery);
@@ -311,8 +311,8 @@ export async function getNoteIntentAggregate(
     ...(machinery.settlementTokenAddresses ?? []).map(address => address.toLowerCase()),
   ]);
   const chainId = machinery.defaultChainId ?? 31337;
-  const currencyGroups = new Map<string, { amount: bigint; supporters: Set<string> }>();
-  const allSupporters = new Set<string>();
+  const currencyGroups = new Map<string, { amount: bigint; contributors: Set<string> }>();
+  const allContributors = new Set<string>();
   let noteCount = 0;
 
   for (const attestation of latest) {
@@ -327,11 +327,11 @@ export async function getNoteIntentAggregate(
 
     const tokenAddress = note.token.toLowerCase();
     const key = `${chainId}:${tokenAddress}`;
-    const group = currencyGroups.get(key) ?? { amount: 0n, supporters: new Set<string>() };
+    const group = currencyGroups.get(key) ?? { amount: 0n, contributors: new Set<string>() };
     group.amount += BigInt(note.amount);
-    group.supporters.add(note.rootOwner.toLowerCase());
+    group.contributors.add(note.rootOwner.toLowerCase());
     currencyGroups.set(key, group);
-    allSupporters.add(note.rootOwner.toLowerCase());
+    allContributors.add(note.rootOwner.toLowerCase());
     noteCount += 1;
   }
 
@@ -341,9 +341,9 @@ export async function getNoteIntentAggregate(
       chainId,
       tokenAddress: key.slice(key.indexOf(':') + 1),
       amount: group.amount.toString(),
-      supporterCount: group.supporters.size,
+      contributorCount: group.contributors.size,
     })),
-    supporterCount: allSupporters.size,
+    contributorCount: allContributors.size,
     noteCount,
   };
 }

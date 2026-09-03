@@ -43,6 +43,8 @@ COPY turbo.json ./turbo.json
 RUN --mount=type=cache,target=/root/.npm HUSKY=0 npm ci --legacy-peer-deps
 
 COPY sdk ./sdk
+# In-app /docs bundles docs/end-user (endUserDocsPlugin).
+COPY docs ./docs
 # Cause board reuses ui/fundingportals (+ shared, lazy-giving, content-funding, delegation).
 COPY ui ./ui
 COPY causestarter ./causestarter
@@ -56,13 +58,13 @@ ENV VITE_WALLETCONNECT_PROJECT_ID=${VITE_WALLETCONNECT_PROJECT_ID}
 ENV HUSKY=0
 
 RUN npm run build --workspace=@commonality/sdk \
-  && npm run build --workspace=causestarter
+  && VITE_DOMAIN=causestarter npm run build --workspace=ui
 
 # ---------------------------------------------------------------------------
 FROM nginx:1.27-alpine AS runtime
 
 COPY causestarter/nginx.conf /etc/nginx/conf.d/default.conf
-COPY --from=builder /workspace/causestarter/dist /usr/share/nginx/html
+COPY --from=builder /workspace/ui/dist/causestarter /usr/share/nginx/html
 COPY causestarter/docker-entrypoint.d/30-indexer-upstream.sh /docker-entrypoint.d/30-indexer-upstream.sh
 COPY causestarter/docker-entrypoint.d/40-causestarter-config.sh /docker-entrypoint.d/40-causestarter-config.sh
 RUN chmod +x /docker-entrypoint.d/30-indexer-upstream.sh \

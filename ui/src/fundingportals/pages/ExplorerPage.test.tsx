@@ -296,14 +296,14 @@ describe('ExplorerPage', () => {
       expect(screen.queryByText(/Fits with statements/)).not.toBeInTheDocument()
     })
 
-    it('shows supporter counts for each entry', async () => {
+    it('shows signer counts for each entry', async () => {
       mockExplorerData()
 
       renderWithRouter(<ExplorerPage />)
 
       await waitFor(() => {
-        const supporterChips = screen.getAllByText(/supporters?/)
-        expect(supporterChips.length).toBeGreaterThan(0)
+        const signerChips = screen.getAllByText(/signers?/)
+        expect(signerChips.length).toBeGreaterThan(0)
       })
     })
 
@@ -318,13 +318,13 @@ describe('ExplorerPage', () => {
       })
     })
 
-    it('shows Open Cause Board links', async () => {
+    it('shows Open fundable-projects board links', async () => {
       mockExplorerData()
 
       renderWithRouter(<ExplorerPage />)
 
       await waitFor(() => {
-        const portalLinks = screen.getAllByRole('link', { name: 'Open Cause Board' })
+        const portalLinks = screen.getAllByRole('link', { name: 'Open fundable-projects board' })
         expect(portalLinks.length).toBeGreaterThan(0)
         expect(portalLinks[0]).toHaveAttribute('href', '/portal/bafyEntry1')
       })

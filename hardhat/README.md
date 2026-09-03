@@ -1,6 +1,6 @@
 # Commonality smart contracts
 
-This is a single hardhat project containing smart contracts for several logical subsystems: `statements/` (Beliefs, Implications), `individual-projects/` (assurance contracts and primary market), `marketplace/` (secondary market), `delegation/` (DelegatableNotes, NoteIntent), `alignment-attestations/`, and `utils/`. Someday it might make sense to split these into separate projects, but for now one project is simpler.
+This is a single hardhat project containing contracts for several logical subsystems: `statements/` (Beliefs, Implications), `individual-projects/` (assurance contracts and primary market), `content-funding/`, `delegation/` (DelegatableNotes, RecurringPledges, NoteIntent), `alignment-attestations/`, `published-data/`, `nudger/`, `subjectiv/`, and `utils/`. Someday it might make sense to split these into separate projects, but for now one project is simpler.
 
 ## Deployment/security notes
 
@@ -16,7 +16,6 @@ The Hardhat suite is intentionally broad enough to count as the project's routin
 - statements and belief graph: `Beliefs.test.js`, `Implications.test.js`, `TrustRegistry.test.js`, `MutableRefUpdater.test.js`
 - assurance/project funding: `AssuranceContracts.test.js`, `AssuranceContractProperties.test.js`, `PremintingERC1155.test.js`
 - content funding and creator/channel controls: `ContentFunding.test.js`, `ProspectiveContentFunding.test.js`, `ChannelVerifier.test.js`
-- secondary market: `ERC1155SecondaryMarket.js`, `ERC1155SecondaryMarket.edge.test.js`
 - delegation/notes/recurring pledges: `DelegatableNotes.*.test.js`, `NoteIntent.test.js`, `RecurringPledges.test.js`
 - alignment attestations: `AlignmentAttestations.test.js`
 - cross-cutting security regressions: `SecurityRegression.test.js`

@@ -18,7 +18,7 @@ const csmProductSignposts = [
   },
   {
     title: 'Fund ongoing causes on Aligning',
-    description: 'Aligning hosts cause boards for causes and cause-aligned projects; CSM uses it rather than embedding its board routes here.',
+    description: 'Aligning hosts fundable-projects boards for causes and cause-aligned projects; CSM uses it rather than embedding its board routes here.',
     href: getDomainUrl('alignment', '/', { fallbackHref: '#' }),
     cta: 'Go to Aligning',
   },

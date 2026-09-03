@@ -1,6 +1,6 @@
 export { ProjectHeader } from './ProjectHeader'
 export { BuyTokensSection } from './BuyTokensSection'
-export { PledgePreviewPanel } from './PledgePreviewPanel'
+export { ContributionPreviewPanel } from './ContributionPreviewPanel'
 export { RefundSection } from './RefundSection'
 export { WithdrawSection } from './WithdrawSection'
 export { ReimbursementSection } from './ReimbursementSection'

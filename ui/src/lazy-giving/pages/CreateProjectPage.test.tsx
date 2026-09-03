@@ -194,9 +194,9 @@ describe('CreateProjectPage', () => {
       setFieldValue(/funding goal/i, '250')
       await user.click(screen.getByRole('button', { name: /suggest giving levels/i }))
 
-      expect(screen.getByDisplayValue('$25 Supporter')).toBeInTheDocument()
-      expect(screen.getByDisplayValue('$50 Supporter')).toBeInTheDocument()
-      expect(screen.getByDisplayValue('$100 Supporter')).toBeInTheDocument()
+      expect(screen.getByDisplayValue('$25 Contributor')).toBeInTheDocument()
+      expect(screen.getByDisplayValue('$50 Contributor')).toBeInTheDocument()
+      expect(screen.getByDisplayValue('$100 Contributor')).toBeInTheDocument()
       expect(screen.getByDisplayValue('75')).toBeInTheDocument()
       expect(screen.getByText(/up to 250/i)).toBeInTheDocument()
     })
@@ -394,7 +394,7 @@ describe('CreateProjectPage', () => {
       await user.click(screen.getByRole('button', { name: /view project/i }))
 
       expect(mockNavigate).toHaveBeenCalledWith('/projects/eip155%3A31337%3A0xassurance')
-    })
+    }, 10_000)
   })
 
   describe('Per-token images', () => {

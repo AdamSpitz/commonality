@@ -5,7 +5,7 @@ import { onchainTable, index } from "ponder";
 // ============================================================================
 // This table stores raw events from all contracts for client-side folding.
 // No derived fields. No joins. One row per event, forever.
-// This is the foundation for Phase 4: SDK reads from events and folds locally.
+// The SDK reads these events and folds them locally.
 
 export const events = onchainTable(
   "events",
@@ -29,4 +29,3 @@ export const events = onchainTable(
     blockIdx: index().on(table.chainId, table.blockNumber),
   })
 );
-

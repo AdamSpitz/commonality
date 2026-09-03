@@ -203,7 +203,7 @@ export function foldContributionsFromEvents(
     const id = `${event.transactionHash}-${event.logIndex}`;
     contributions.push({
       id,
-      participant: event.participant,
+      contributor: event.participant,
       projectAddress: event.contractAddress,
       erc1155Address: event.erc1155Addr,
       tokenIds: JSON.stringify(event.ids.map((id) => id.toString())),
@@ -220,7 +220,7 @@ export function foldContributionsFromEvents(
     const id = `${event.transactionHash}-${event.logIndex}`;
     refunds.push({
       id,
-      participant: event.participant,
+      contributor: event.participant,
       projectAddress: event.contractAddress,
       erc1155Address: event.erc1155Addr,
       tokenIds: JSON.stringify(event.ids.map((id) => id.toString())),
@@ -254,9 +254,12 @@ export function foldReimbursements(
   fundingCurrency: Currency = ETH_CURRENCY,
 ): { project: ProjectReimbursementState; contributors: ContributorReimbursementState[] } {
   const contributions = new Map<string, bigint>();
+  const futureClaims = new Map<string, bigint>();
+  const withdrawable = new Map<string, bigint>();
   const withdrawn = new Map<string, bigint>();
   const forgone = new Map<string, bigint>();
   let totalRetroactiveDonations = 0n;
+  let outstanding = 0n;
 
   const add = (map: Map<string, bigint>, address: string, amount: bigint) => {
     const key = address.toLowerCase();
@@ -267,17 +270,50 @@ export function foldReimbursements(
     const tracked = contributions.get(key) ?? 0n;
     contributions.set(key, tracked > amount ? tracked - amount : 0n);
   };
+  const subtractClamped = (map: Map<string, bigint>, address: string, amount: bigint) => {
+    const key = address.toLowerCase();
+    const tracked = map.get(key) ?? 0n;
+    const reduction = tracked < amount ? tracked : amount;
+    map.set(key, tracked - reduction);
+    return reduction;
+  };
 
   for (const { type, event } of events) {
     switch (type) {
-      case 'bought': add(contributions, event.participant, event.totalCost); break;
+      case 'bought':
+        add(contributions, event.participant, event.totalCost);
+        add(futureClaims, event.participant, event.totalCost);
+        outstanding += event.totalCost;
+        break;
       // Match recordPrimaryRefund: the reimbursement basis may already have
       // been reduced by a forgo, while the full token value is still refunded.
-      case 'sold': subtractContributionClamped(event.participant, event.totalCost); break;
-      case 'retroactiveDonation': totalRetroactiveDonations += event.amount; break;
-      case 'reimbursementWithdrawn': add(withdrawn, event.contributor, event.amount); break;
+      case 'sold': {
+        subtractContributionClamped(event.participant, event.totalCost);
+        const reduction = subtractClamped(futureClaims, event.participant, event.totalCost);
+        outstanding -= reduction;
+        break;
+      }
+      case 'retroactiveDonation': {
+        const before = outstanding;
+        if (before > 0n) {
+          for (const [contributor, claim] of futureClaims) {
+            const earned = claim * event.amount / before;
+            futureClaims.set(contributor, claim - earned);
+            add(withdrawable, contributor, earned);
+          }
+        }
+        outstanding -= event.amount;
+        totalRetroactiveDonations += event.amount;
+        break;
+      }
+      case 'reimbursementWithdrawn':
+        subtractClamped(withdrawable, event.contributor, event.amount);
+        add(withdrawn, event.contributor, event.amount);
+        break;
       case 'reimbursementForgone':
         add(contributions, event.contributor, -event.amount);
+        subtractClamped(futureClaims, event.contributor, event.amount);
+        outstanding -= event.amount;
         add(forgone, event.contributor, event.amount);
         break;
     }
@@ -286,22 +322,20 @@ export function foldReimbursements(
   const totalEarlyContributions = [...contributions.values()].reduce((sum, value) => sum + value, 0n);
   const totalWithdrawn = [...withdrawn.values()].reduce((sum, value) => sum + value, 0n);
   const totalForgone = [...forgone.values()].reduce((sum, value) => sum + value, 0n);
-  const outstanding = totalEarlyContributions > totalRetroactiveDonations
-    ? totalEarlyContributions - totalRetroactiveDonations
-    : 0n;
-  const addresses = new Set([...contributions.keys(), ...withdrawn.keys(), ...forgone.keys()]);
+  const addresses = new Set([
+    ...contributions.keys(), ...futureClaims.keys(), ...withdrawable.keys(),
+    ...withdrawn.keys(), ...forgone.keys(),
+  ]);
   const contributors = [...addresses].map((contributor) => {
     const contribution = contributions.get(contributor) ?? 0n;
     const contributorWithdrawn = withdrawn.get(contributor) ?? 0n;
-    const accrued = totalEarlyContributions === 0n
-      ? 0n
-      : contribution * totalRetroactiveDonations / totalEarlyContributions;
-    const reimbursable = accrued > contributorWithdrawn ? accrued - contributorWithdrawn : 0n;
+    const reimbursable = withdrawable.get(contributor) ?? 0n;
     return {
       projectAddress,
       contributor,
       currency: fundingCurrency,
       earlyContribution: contribution.toString(),
+      futureReimbursementClaim: (futureClaims.get(contributor) ?? 0n).toString(),
       reimbursableAmount: reimbursable.toString(),
       withdrawnAmount: contributorWithdrawn.toString(),
       forgoneAmount: (forgone.get(contributor) ?? 0n).toString(),

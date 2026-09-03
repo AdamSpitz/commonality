@@ -11,6 +11,9 @@ if [ "${COMMONALITY_VERIFIER_ALLOW_RESTART:-}" != "1" ]; then
 fi
 
 cd "$(dirname "$0")/../../.."
+# shellcheck source=scripts/lib/local-stack-lock.sh
+. ./scripts/lib/local-stack-lock.sh
+acquire_local_stack_lock
 
 before_events=$(curl --silent --show-error --fail 'http://localhost:42069/api/events?limit=1' 2>&1) || {
   echo "Could not read indexed events before restart: $before_events" >&2
@@ -33,11 +36,43 @@ docker_compose() {
 export UID
 export GID=$(id -g)
 
+rpc_block_number() {
+  local hex
+  hex=$(curl --silent --show-error --fail -X POST -H "Content-Type: application/json" \
+    --data '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' \
+    http://localhost:8545 | sed -n 's/.*"result":"\([^"]*\)".*/\1/p')
+  [ -n "$hex" ] || return 1
+  printf '%d' "$((hex))"
+}
+
+before_block=$(rpc_block_number) || {
+  echo "Could not read eth_blockNumber before restart." >&2
+  exit 3
+}
+if [ "$before_block" -lt 1 ]; then
+  echo "Local chain was still at genesis before restart; seed the stack first." >&2
+  exit 3
+fi
+
 # Restart the already-deployed local stack without rerunning hardhat-deploy.
 # `scripts/services.sh --stop && --start` recreates the deploy container, which
 # deploys fresh contracts on the persisted chain and rewrites .env; the indexer
 # then watches the new addresses rather than the seeded events we are trying to
 # prove survived restart.
+#
+# Send SIGINT to Anvil first so `--state` dumps; `compose stop` alone is SIGTERM
+# and used to leave an empty chain (fresh deploy + trust wiring, no seed).
+docker_compose kill -s INT hardhat-node >/dev/null 2>&1 || true
+waited=0
+while [ "$waited" -lt 60 ]; do
+  running=$(docker inspect -f '{{.State.Running}}' commonality-hardhat-node 2>/dev/null || echo false)
+  if [ "$running" != "true" ]; then
+    break
+  fi
+  sleep 1
+  waited=$((waited + 1))
+done
+
 docker_compose stop ui-local-gateway indexer platform-api-service ipfs hardhat-node
 docker_compose up -d --no-deps hardhat-node ipfs platform-api-service indexer ui-local-gateway
 
@@ -91,6 +126,17 @@ if wait_for_indexed_event; then
   add_evidence post-restart-indexed-events pass "An indexed event remained visible after restart."
 else
   add_evidence post-restart-indexed-events fail "No indexed event was visible after restart before timeout."
+fi
+
+after_block=""
+if after_block=$(rpc_block_number); then
+  if [ "$after_block" -ge "$before_block" ]; then
+    add_evidence post-restart-block-number pass "Chain height after restart was ${after_block} (was ${before_block})."
+  else
+    add_evidence post-restart-block-number fail "Chain height dropped from ${before_block} to ${after_block}; Anvil did not reload --state."
+  fi
+else
+  add_evidence post-restart-block-number fail "Could not read eth_blockNumber after restart."
 fi
 
 probe rpc "Local Hardhat RPC answered after restart." "Local Hardhat RPC did not answer after restart." \

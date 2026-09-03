@@ -24,6 +24,10 @@
       "types": "./dist/src/utils/index.d.ts",
       "default": "./dist/src/utils/index.js"
     },
+    "./testing": {
+      "types": "./dist/src/testing.d.ts",
+      "default": "./dist/src/testing.js"
+    },
     "./conceptspace": {
       "types": "./dist/src/subsystems/conceptspace/index.d.ts",
       "default": "./dist/src/subsystems/conceptspace/index.js"
@@ -94,6 +98,7 @@
     "test": "mocha",
     "lint": "eslint .",
     "sync-abis": "tsx scripts/sync-abis.ts",
+    "check-abis": "tsx scripts/sync-abis.ts --check",
     "docs": "typedoc",
     "policy-lists:resolve": "tsx scripts/policy-lists-resolve.ts",
     "policy-lists:inspect": "tsx scripts/policy-lists-inspect.ts"
@@ -103,7 +108,6 @@
     "@types/node": "^20.10.0",
     "eslint": "^9.39.1",
     "mocha": "^10.8.2",
-    "ts-node": "^10.9.2",
     "tsx": "^4.21.0",
     "typedoc": "^0.28.19",
     "typescript": "^5.3.2",

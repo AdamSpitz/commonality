@@ -12,23 +12,30 @@
 
 import {
   createPublicClient,
-  createWalletClient,
-  http,
   keccak256,
+  parseEther,
   toBytes,
   type Hex,
 } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { ChannelRegistryAbi } from '../indexer/abis/ChannelRegistryAbi.js';
 import { CreatorAssuranceContractFactoryAbi } from '../indexer/abis/CreatorAssuranceContractFactoryAbi.js';
-import { AssuranceContractAbi, PublishedDataAbi } from '@commonality/sdk/abis';
-import { type WriteClients } from '@commonality/sdk/utils';
+import { AlignmentAttestationsAbi, AssuranceContractAbi, PublishedDataAbi } from '@commonality/sdk/abis';
+import {
+  addMaterializedContent,
+  createMaterializedContentTokens,
+  createProspectiveRound,
+  hashCanonicalId,
+} from '@commonality/sdk/content-funding';
+import { attestAlignment, PROJECT_ALIGNMENT_TOPIC, toSubjectId } from '@commonality/sdk/fundingportals';
+import { type IpfsCidV1, type WriteClients } from '@commonality/sdk/utils';
 import { createIPFSConfigInNodeJSFromTheUsualEnvVars } from '@commonality/sdk/node';
 import { createSDKMachinery } from '@commonality/sdk/machinery';
 import { createDefaultDocumentStore, createDisplayableDocument } from '@commonality/sdk/displayable-documents';
 import { RPC_URL } from './loadEnv.js';
 import type { User } from './types.js';
 import { parsePaymentTokenUnits } from './paymentTokenUnits.js';
+import { createSeedClients } from './seedRpc.js';
 
 const erc20ApproveAbi = [
   {
@@ -69,17 +76,7 @@ const HARDHAT_DEPLOYER_PRIVATE_KEY: Hex =
 // ---------------------------------------------------------------------------
 
 function createClients(privateKey: `0x${string}`) {
-  const account = privateKeyToAccount(privateKey);
-  const walletClient = createWalletClient({
-    account,
-    chain: hardhat,
-    transport: http(RPC_URL),
-  });
-  const publicClient = createPublicClient({
-    chain: hardhat,
-    transport: http(RPC_URL),
-  });
-  return { walletClient, publicClient, account: account.address };
+  return createSeedClients(privateKey, RPC_URL);
 }
 
 /** Compute the content-item ID the factory will use for a given canonical pair. */
@@ -105,8 +102,26 @@ function readableChannelName(channelCanonicalId: string): string {
     case 'twitter:uid:111111111': return '@civicbuilder';
     case 'youtube:channel:UCaaaaaaaaaaaaaaaaaaaaaaaa': return 'Practical Policy Lab';
     case 'substack:smartwriter': return 'Smart Writer';
+    case 'substack:commontable': return 'Common Table';
     default: return channelCanonicalId;
   }
+}
+
+/** Same plank the Riverside garden project aligns to — so a cause that includes
+ *  `local-food-systems` shows both the LazyGiving project and this content contract. */
+export const SEED_CONTENT_ALIGNMENT_REF = {
+  collectionId: 'fundable-projects',
+  groupId: 'local-community',
+  statementId: 'local-food-systems',
+} as const;
+
+const TWITTER_CHANNEL = 'twitter:uid:111111111';
+const TWITTER_SUFFIXES = ['1000000000000000001', '1000000000000000002'] as const;
+
+/** Canonical IDs that receive a seed content attestation. The Twitter contract
+ *  has two posts; only the first is attested so the cause board can show 1 of 2. */
+export function seedMixedContentAlignmentCanonicalIds(): string[] {
+  return [`${TWITTER_CHANNEL}:${TWITTER_SUFFIXES[0]}`];
 }
 
 export function buildContractMetadata(
@@ -421,6 +436,65 @@ async function getERC1155Address(
   }) as Promise<`0x${string}`>;
 }
 
+async function fundIfNeeded(
+  from: ReturnType<typeof createClients>,
+  to: `0x${string}`,
+  amount = parseEther('1'),
+) {
+  const balance = await from.publicClient.getBalance({ address: to });
+  if (balance >= parseEther('0.05')) return;
+  const hash = await from.walletClient.sendTransaction({
+    to,
+    value: amount,
+    chain: hardhat,
+    account: from.walletClient.account!,
+  });
+  await waitForTx(from.publicClient, hash);
+}
+
+async function attestContentToPlank(
+  attesterKey: Hex,
+  alignmentAttestations: `0x${string}`,
+  canonicalContentId: string,
+  statementCid: IpfsCidV1,
+) {
+  const clients = createClients(attesterKey);
+  const hash = await attestAlignment(
+    clients as WriteClients,
+    { address: alignmentAttestations, abi: AlignmentAttestationsAbi },
+    hashCanonicalId(canonicalContentId),
+    statementCid,
+    PROJECT_ALIGNMENT_TOPIC,
+  );
+  await clients.publicClient.waitForTransactionReceipt({ hash });
+  console.log(`  ✓ Content attested to plank: ${canonicalContentId}`);
+}
+
+/**
+ * Point the mixed Twitter batch at a cause plank. Idempotent.
+ *
+ * Call this *after* the CauseStarter roster CID is finalized. Creating
+ * contracts first (or retrying a half-seeded chain) can otherwise leave
+ * content vouches on an older statement CID than the published roster.
+ */
+export async function attestSeedMixedContentToPlank(
+  alignmentAttestations: `0x${string}`,
+  statementCid: IpfsCidV1,
+  attesterPrivateKey: Hex,
+): Promise<void> {
+  for (const canonicalId of seedMixedContentAlignmentCanonicalIds()) {
+    await attestContentToPlank(
+      attesterPrivateKey,
+      alignmentAttestations,
+      canonicalId,
+      statementCid,
+    );
+  }
+  console.log(
+    `  Mixed alignment: ${seedMixedContentAlignmentCanonicalIds().length} of ${TWITTER_SUFFIXES.length} posts attested to plank ${statementCid}.`,
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Main export
 // ---------------------------------------------------------------------------
@@ -429,7 +503,16 @@ export interface ContentFundingAddresses {
   channelRegistry: `0x${string}`;
   channelVerifier: `0x${string}`;
   creatorContractFactory: `0x${string}`;
+  prospectiveContentRoundFactory?: `0x${string}`;
   publishedData?: `0x${string}`;
+  alignmentAttestations?: `0x${string}`;
+}
+
+export interface ContentFundingAlignmentSeed {
+  statementCid: IpfsCidV1;
+  /** Defaults to `CONTENT_ATTESTER_PRIVATE_KEY` so the cause-board trust filter
+   *  (VITE_DEFAULT_TRUSTED_CONTENT_ATTESTERS) accepts the attestation. */
+  attesterPrivateKey?: Hex;
 }
 
 /**
@@ -439,6 +522,7 @@ export interface ContentFundingAddresses {
 export async function generateContentFundingScenarios(
   addresses: ContentFundingAddresses,
   users: User[],
+  alignment?: ContentFundingAlignmentSeed,
 ): Promise<void> {
   console.log('\n=== Generating Content-Funding Scenarios ===\n');
 
@@ -478,8 +562,8 @@ export async function generateContentFundingScenarios(
   // -------------------------------------------------------------------------
   console.log('--- Scenario 1: Unclaimed Twitter channel ---');
   {
-    const channelCanonicalId = 'twitter:uid:111111111';
-    const contentSuffixes = ['1000000000000000001', '1000000000000000002'];
+    const channelCanonicalId = TWITTER_CHANNEL;
+    const contentSuffixes = [...TWITTER_SUFFIXES];
     const supplies = [100n, 100n];
     const tokenPrice = parsePaymentTokenUnits('0.01');
     const prices = [tokenPrice, tokenPrice];
@@ -506,6 +590,21 @@ export async function generateContentFundingScenarios(
 
     await buyTokens(buyerAClients, contractAddress, erc1155, [firstContentId], [5n], [tokenPrice]);
     await buyTokens(buyerBClients, contractAddress, erc1155, [firstContentId, secondContentId], [3n, 2n], [tokenPrice, tokenPrice]);
+
+    const attesterKey = (alignment?.attesterPrivateKey
+      ?? process.env.CONTENT_ATTESTER_PRIVATE_KEY
+      ?? users[0]?.privateKey) as Hex | undefined;
+    if (alignment && addresses.alignmentAttestations && attesterKey) {
+      const attester = createClients(attesterKey);
+      await fundIfNeeded(fanClients, attester.account);
+      await attestSeedMixedContentToPlank(
+        addresses.alignmentAttestations,
+        alignment.statementCid,
+        attesterKey,
+      );
+    } else if (alignment) {
+      console.warn('  Alignment seed requested but no attester key is available — skipping content attestations.');
+    }
 
     console.log(`  Channel ${channelCanonicalId}: unclaimed, 1 contract, buyers have purchased tokens.\n`);
   }
@@ -633,5 +732,253 @@ export async function generateContentFundingScenarios(
     console.log(`  Channel ${channelCanonicalId}: creator-controlled, 1 creator + 1 vetoable third-party contract.\n`);
   }
 
+  await generateProspectiveContentRoundScenarios(addresses, users, alignment);
+
   console.log('=== Content-Funding Scenarios Complete ===\n');
+}
+
+const COMMON_TABLE_CHANNEL = 'substack:commontable';
+const COMMON_TABLE_SUFFIXES = ['warming-centre-dispatch', 'unattested-draft'] as const;
+
+/** Mixed attested/unattested essays for the Christianity cause board. */
+export function seedChristianContentAlignmentCanonicalIds(): string[] {
+  return [`${COMMON_TABLE_CHANNEL}:${COMMON_TABLE_SUFFIXES[0]}`];
+}
+
+/**
+ * A creator-owned Substack fund aligned to a Christianity plank.
+ * Uses a dedicated channel so it can be added to an already-seeded chain.
+ */
+export async function generateChristianContentScenario(
+  addresses: ContentFundingAddresses,
+  users: Array<{ privateKey: `0x${string}` }>,
+  alignment?: ContentFundingAlignmentSeed,
+): Promise<void> {
+  if (users.length < 5) {
+    console.warn('  Need at least 5 users for the Christianity content contract — skipping.');
+    return;
+  }
+  const creator = createClients(users[2]!.privateKey);
+  const buyer = createClients(users[4]!.privateKey);
+  const latestBlock = await creator.publicClient.getBlock();
+  const deadline = latestBlock.timestamp + 30n * 24n * 3600n;
+  const tokenPrice = parsePaymentTokenUnits('0.01');
+  const suffixes = [...COMMON_TABLE_SUFFIXES];
+
+  console.log('\n--- Christianity: Common Table essay fund ---');
+  try {
+    await verifyChannel(creator, addresses.channelRegistry, addresses.channelVerifier, COMMON_TABLE_CHANNEL);
+    await takeChannelControl(creator, addresses.channelRegistry, COMMON_TABLE_CHANNEL);
+  } catch (error) {
+    console.warn('  Common Table channel already verified (or verify failed):', error instanceof Error ? error.message : error);
+  }
+
+  const contractAddress = await createCreatorContract(creator, {
+    factoryAddress: addresses.creatorContractFactory,
+    channelCanonicalId: COMMON_TABLE_CHANNEL,
+    contentSuffixes: suffixes,
+    supplies: [100n, 100n],
+    prices: [tokenPrice, tokenPrice],
+    threshold: parsePaymentTokenUnits('1'),
+    deadlineSecs: deadline,
+    isThirdParty: false,
+    publishedDataAddress: addresses.publishedData,
+  });
+
+  const erc1155 = await getERC1155Address(buyer.publicClient, addresses.creatorContractFactory, contractAddress);
+  const contentId = computeContentId(COMMON_TABLE_CHANNEL, suffixes[0]);
+  await buyTokens(buyer, contractAddress, erc1155, [contentId], [4n], [tokenPrice]);
+
+  if (alignment && addresses.alignmentAttestations) {
+    const attesterKey = alignment.attesterPrivateKey
+      ?? (process.env.CONTENT_ATTESTER_PRIVATE_KEY as Hex | undefined)
+      ?? users[0]!.privateKey;
+    for (const canonicalId of seedChristianContentAlignmentCanonicalIds()) {
+      await attestContentToPlank(
+        attesterKey,
+        addresses.alignmentAttestations,
+        canonicalId,
+        alignment.statementCid,
+      );
+    }
+  }
+  console.log(`  ✓ Common Table content contract ${contractAddress} (1 of 2 posts attested)`);
+}
+
+export function buildProspectiveRoundMetadata(
+  channelCanonicalId: string,
+  kind: 'open' | 'materialized',
+) {
+  const name = kind === 'open'
+    ? `${readableChannelName(channelCanonicalId)} upcoming series`
+    : `${readableChannelName(channelCanonicalId)} fulfilled series`;
+  return {
+    name,
+    description: kind === 'open'
+      ? `Seed prospective content round (still open) for ${readableChannelName(channelCanonicalId)}.`
+      : `Seed prospective content round that already succeeded and materialized for ${readableChannelName(channelCanonicalId)}.`,
+    channelCanonicalId,
+    creatorDisplayName: readableChannelName(channelCanonicalId),
+    contractType: 'prospective-round',
+    roundStatus: kind,
+  };
+}
+
+async function publishProspectiveRoundMetadata(
+  clients: ReturnType<typeof createClients>,
+  publishedDataAddress: `0x${string}` | undefined,
+  channelCanonicalId: string,
+  kind: 'open' | 'materialized',
+): Promise<string> {
+  const ipfsConfig = createIPFSConfigInNodeJSFromTheUsualEnvVars();
+  const metadata = buildProspectiveRoundMetadata(channelCanonicalId, kind);
+  const store = createDefaultDocumentStore(createSDKMachinery({ ipfsConfig }), {
+    clients: clients as WriteClients,
+    ...(publishedDataAddress
+      ? { publishedDataContract: { address: publishedDataAddress, abi: PublishedDataAbi } }
+      : {}),
+  });
+  const publication = await store.publish(createDisplayableDocument({
+    format: 'markdown-restricted',
+    content: metadata.description,
+    extras: {
+      statementType: 'prospective-content-round-metadata',
+      ...metadata,
+    },
+  }));
+  return publication.cid;
+}
+
+const MATERIALIZED_SUBSTACK_SUFFIX = 'civic-garden-explainer';
+
+export function seedMaterializedContentCanonicalId(): string {
+  return `substack:smartwriter/${MATERIALIZED_SUBSTACK_SUFFIX}`;
+}
+
+/**
+ * Deterministic prospective / materialized rounds on already-verified seed channels.
+ * The open YouTube round is vouched as a project so CauseStarter lists it before
+ * any posts exist. The Substack round succeeds, materializes one post, and
+ * attests that post to the same local-food-systems plank.
+ */
+export async function generateProspectiveContentRoundScenarios(
+  addresses: ContentFundingAddresses,
+  users: User[],
+  alignment?: ContentFundingAlignmentSeed,
+): Promise<void> {
+  const factory = addresses.prospectiveContentRoundFactory;
+  if (!factory) {
+    console.warn('  Prospective content round factory not configured — skipping prospective/materialized rounds.');
+    return;
+  }
+  {
+    const factoryCode = await createClients(users[2].privateKey).publicClient.getCode({ address: factory });
+    if (!factoryCode || factoryCode === '0x') {
+      console.warn(
+        `  Prospective content round factory ${factory} has no bytecode — skipping prospective/materialized rounds. Redeploy with ./scripts/deploy-contracts.sh localhost.`,
+      );
+      return;
+    }
+  }
+  if (users.length < 4) {
+    console.warn('  Need at least 4 users for prospective content rounds — skipping.');
+    return;
+  }
+
+  const creatorUser = users[2];
+  const buyerA = users[3];
+  const creatorClients = createClients(creatorUser.privateKey);
+  const buyerAClients = createClients(buyerA.privateKey);
+  const latestBlock = await creatorClients.publicClient.getBlock();
+  const deadline = latestBlock.timestamp + 30n * 24n * 3600n;
+
+  console.log('--- Scenario 4: Open prospective YouTube round ---');
+  {
+    const channelCanonicalId = 'youtube:channel:UCaaaaaaaaaaaaaaaaaaaaaaaa';
+    const tokenPrice = parsePaymentTokenUnits('0.01');
+    const threshold = parsePaymentTokenUnits('10');
+    const metadataCid = await publishProspectiveRoundMetadata(
+      creatorClients,
+      addresses.publishedData,
+      channelCanonicalId,
+      'open',
+    );
+    const created = await createProspectiveRound(creatorClients as WriteClients, factory, {
+      channelCanonicalId,
+      tokenId: 0n,
+      supply: 200n,
+      price: tokenPrice,
+      threshold,
+      deadline,
+      metadataCid,
+      receiptMetadataUri: `ipfs://${metadataCid}`,
+      receiptContractUri: `ipfs://${metadataCid}`,
+    });
+    await buyTokens(buyerAClients, created.roundAddress, created.receiptTokenAddress, [0n], [2n], [tokenPrice]);
+    console.log(`  ✓ Open prospective round ${created.roundAddress} (below threshold, not materialized).`);
+
+    if (alignment && addresses.alignmentAttestations) {
+      const projectAttester = createClients(users[0].privateKey);
+      const hash = await attestAlignment(
+        projectAttester as WriteClients,
+        { address: addresses.alignmentAttestations, abi: AlignmentAttestationsAbi },
+        toSubjectId(created.roundAddress),
+        alignment.statementCid,
+        PROJECT_ALIGNMENT_TOPIC,
+      );
+      await projectAttester.publicClient.waitForTransactionReceipt({ hash });
+      console.log(`  ✓ Open prospective round vouched to local-food-systems: ${created.roundAddress}`);
+    }
+  }
+
+  console.log('--- Scenario 5: Materialized Substack prospective round ---');
+  {
+    const channelCanonicalId = 'substack:smartwriter';
+    const tokenPrice = parsePaymentTokenUnits('0.01');
+    const threshold = parsePaymentTokenUnits('0.05');
+    const metadataCid = await publishProspectiveRoundMetadata(
+      creatorClients,
+      addresses.publishedData,
+      channelCanonicalId,
+      'materialized',
+    );
+    const created = await createProspectiveRound(creatorClients as WriteClients, factory, {
+      channelCanonicalId,
+      tokenId: 0n,
+      supply: 100n,
+      price: tokenPrice,
+      threshold,
+      deadline,
+      metadataCid,
+      receiptMetadataUri: `ipfs://${metadataCid}`,
+      receiptContractUri: `ipfs://${metadataCid}`,
+    });
+    await buyTokens(buyerAClients, created.roundAddress, created.receiptTokenAddress, [0n], [6n], [tokenPrice]);
+    const materialized = await createMaterializedContentTokens(
+      creatorClients as WriteClients,
+      factory,
+      created.roundAddress,
+      `ipfs://${metadataCid}`,
+      `ipfs://${metadataCid}`,
+    );
+    await addMaterializedContent(
+      creatorClients as WriteClients,
+      materialized.tokenContract,
+      [MATERIALIZED_SUBSTACK_SUFFIX],
+    );
+    console.log(`  ✓ Materialized round ${created.roundAddress} → ${materialized.tokenContract} (+ ${MATERIALIZED_SUBSTACK_SUFFIX}).`);
+
+    const attesterKey = (alignment?.attesterPrivateKey
+      ?? process.env.CONTENT_ATTESTER_PRIVATE_KEY) as Hex | undefined;
+    if (alignment && addresses.alignmentAttestations && attesterKey) {
+      const attester = createClients(attesterKey);
+      await fundIfNeeded(creatorClients, attester.account);
+      await attestContentToPlank(
+        attesterKey,
+        addresses.alignmentAttestations,
+        seedMaterializedContentCanonicalId(),
+        alignment.statementCid,
+      );
+    }
+  }
 }

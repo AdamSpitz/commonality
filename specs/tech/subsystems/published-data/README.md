@@ -1,12 +1,12 @@
 # PublishedData
 
-Status: **implementation in progress** (Jul 2026). A utility subsystem generalizing the [self-published-statements](../conceptspace/self-published-statements.md) calldata design into a single publication contract + reader library that every content type can share. The shared contract, CID helpers, indexer/API ingestion, CID-first readers/stores, and primary displayable-document read paths are in place; remaining work is mostly rollout/ops. Motivation: [eliminating-ipfs.md](/specs/tech/eliminating-ipfs.md) (drop the IPFS dependency) and [statement-hosting.md](/specs/product/legal/statement-hosting.md) (the author, not us, is the publisher).
+Status: **core implementation in place** (browser writers cut over 2026-08-08). A utility subsystem generalizing the [self-published-statements](../conceptspace/self-published-statements.md) calldata design into a single publication contract + reader library that every content type can share. Remaining work is mostly ops (mirror deploy per environment) and deliberate legacy IPFS uses. Motivation: [eliminating-ipfs.md](/specs/tech/eliminating-ipfs.md) (drop the IPFS dependency) and [statement-hosting.md](/specs/product/legal/statement-hosting.md) (the author, not us, is the publisher).
 
-## Readiness note: design resolved except remaining cost benchmark (Jul 2026)
+## Readiness note: design resolved; cost benchmark settled (Jul 2026)
 
 The statement-hosting posture is directionally sound: drop the general-purpose Tally browser, make Tally an embedded signing module, move publication toward user-paid/user-signed calldata, and keep display/re-serving as curated, denylistable vertical policy. The core reasoning is that legal duties attach to the role we occupy, not merely to the technical ability to delete bytes; user self-publication shrinks our role in a way that operator-uploaded permanent storage would not.
 
-A Jul 2026 design-resolution pass settled the three conceptual questions that were blocking. The remaining cost benchmark can be answered before mainnet; it doesn't affect the data model or the legal posture.
+A Jul 2026 design-resolution pass settled the three conceptual questions that were blocking. The calldata vs event-content cost benchmark was answered the same month; it does not affect the data model or the legal posture.
 
 **Resolved:**
 
@@ -21,7 +21,7 @@ A Jul 2026 design-resolution pass settled the three conceptual questions that we
 
    The gas question that originally motivated emitting the bytes is settled and no longer load-bearing. Benchmark tooling lives at `npm run benchmark:published-data --workspace=hardhat` and now compares the production calldata-only contract against `PublishedDataEventContent`, a benchmark-only variant preserving the old event-content shape. Local Hardhat and Base Sepolia reruns in Jul 2026 showed the expected ~8 gas/log-byte premium at 1KB, and 0 `receipt.gasUsed` delta at 4KB/10KB despite thousands of extra log-data bytes — post-Pectra calldata-floor accounting means the extra LOG execution gas does not raise `receipt.gasUsed` once calldata dominates. See [workflow/published-data-benchmark-2026-07-19.md](/workflow/published-data-benchmark-2026-07-19.md). Dropping the event content is therefore free-to-slightly-cheaper; it was never a cost tradeoff.
 
-With the conceptual decisions recorded and the CID representation pinned, the remaining pre-mainnet technical work is the calldata/event byte benchmark. Treat this file as the accepted, largely-resolved design.
+With the conceptual decisions recorded, the CID representation pinned, and the byte-cost benchmark settled, treat this file as the accepted design. Remaining work is ops (mirror deploy per environment) and deliberate leftover IPFS uses, as in the status line above.
 
 ## The primitive
 

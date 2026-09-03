@@ -36,7 +36,7 @@ export function FundingPortalSummary({
   const [remainingToThreshold, setRemainingToThreshold] = useState<Awaited<ReturnType<typeof getTotalFundingForCause>>['remainingToThreshold']>([])
   const [totalUnreimbursed, setTotalUnreimbursed] = useState<Awaited<ReturnType<typeof getTotalFundingForCause>>['totalUnreimbursed']>([])
   const [earmarked, setEarmarked] = useState<Awaited<ReturnType<typeof getTotalFundingForCause>>['totalAvailableFromNotes']>([])
-  const [earmarkSupporters, setEarmarkSupporters] = useState(0)
+  const [earmarkContributors, setEarmarkContributors] = useState(0)
   const [monthlyPledged, setMonthlyPledged] = useState<bigint>(0n)
   const [projectCount, setProjectCount] = useState<number>(0)
   const [topProjects, setTopProjects] = useState<AlignedProject[]>([])
@@ -60,7 +60,7 @@ export function FundingPortalSummary({
         setRemainingToThreshold(fundingMetrics.remainingToThreshold)
         setTotalUnreimbursed(fundingMetrics.totalUnreimbursed)
         setEarmarked(fundingMetrics.totalAvailableFromNotes)
-        setEarmarkSupporters(fundingMetrics.noteSupporterCount ?? 0)
+        setEarmarkContributors(fundingMetrics.noteContributorCount ?? 0)
         setProjectCount(fundingMetrics.projectCount)
         const projectFundingCurrency = allProjects.find((project) => project.fundingCurrency)?.fundingCurrency
         setPortalCurrency(fundingMetrics.totalRaisedAcrossProjects[0]?.currency ?? projectFundingCurrency ?? getConfiguredPaymentCurrency() ?? DEFAULT_PAYMENT_CURRENCY)
@@ -105,7 +105,7 @@ export function FundingPortalSummary({
       } catch (err) {
         if (!cancelled) {
           console.error('Error loading cause board summary:', err)
-          setError(err instanceof Error ? err.message : 'Failed to load cause board summary')
+          setError(err instanceof Error ? err.message : 'Failed to load fundable-projects board summary')
         }
       } finally {
         if (!cancelled) setLoading(false)
@@ -134,14 +134,14 @@ export function FundingPortalSummary({
     <Box sx={{ mb: 3 }}>
       <Paper sx={{ p: 3 }}>
         <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-          <Typography variant="h6">Cause Board</Typography>
+          <Typography variant="h6">Fundable Projects</Typography>
           <Button
             component={RouterLink}
             to={`/portal/${statementCid}`}
             variant="outlined"
             size="small"
           >
-            View Cause Board
+            View fundable-projects board
           </Button>
         </Stack>
 
@@ -155,12 +155,12 @@ export function FundingPortalSummary({
             <Typography variant="h6">{formatCurrencyTotals(totalRaised, portalCurrency)}</Typography>
           </Box>
 
-          {earmarkSupporters > 0 && <Box>
+          {earmarkContributors > 0 && <Box>
             <Typography variant="caption" color="text.secondary" display="block">
               Revocable Earmarks
             </Typography>
             <Typography variant="h6">
-              {earmarkSupporters} supporter{earmarkSupporters === 1 ? '' : 's'} have earmarked {formatCurrencyTotals(earmarked, portalCurrency)}
+              {earmarkContributors} contributor{earmarkContributors === 1 ? '' : 's'} have earmarked {formatCurrencyTotals(earmarked, portalCurrency)}
             </Typography>
             <Typography variant="caption" color="text.secondary">Interest signal, not committed funding</Typography>
           </Box>}

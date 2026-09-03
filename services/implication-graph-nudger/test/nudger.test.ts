@@ -2,7 +2,8 @@ import assert from 'node:assert';
 import { encodeAbiParameters, encodeEventTopics, parseAbiParameters, type Address } from 'viem';
 import { createSDKMachinery } from '@commonality/sdk/machinery';
 import { BeliefsAbi, ImplicationsAbi, PublishedDataAbi } from '@commonality/sdk/abis';
-import { cidToBytes32, fakeIpfsCidV1, type RawEventFromCache } from '@commonality/sdk/utils';
+import { cidToBytes32, type RawEventFromCache } from '@commonality/sdk/utils';
+import { fakeIpfsCidV1 } from '@commonality/sdk/testing';
 import { computePublishedDataId, publishedDataIdToCid } from '@commonality/sdk/published-data';
 import { ImplicationGraphNudger } from '../src/nudger.js';
 

@@ -4,11 +4,11 @@ import {
   type CanonicalPolicySubject,
   type PolicySubjectKey,
 } from './subjects.js';
+import { requireExactKeys, requireRecord, UNPAIRED_SURROGATE } from './validation.js';
 
 export const LOCAL_POLICY_LIST_SCHEMA = 'commonality.policy-list-local/v1' as const;
 
 const MAX_REASON_UTF8_BYTES = 512;
-const UNPAIRED_SURROGATE = /[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:^|[^\uD800-\uDBFF])[\uDC00-\uDFFF]/;
 
 export interface PolicyListEntry {
   subject: CanonicalPolicySubject;
@@ -27,29 +27,10 @@ export class PolicyListDocumentValidationError extends Error {
   }
 }
 
-function requireRecord(input: unknown, description: string): Record<string, unknown> {
-  if (typeof input !== 'object' || input === null || Array.isArray(input)) {
-    throw new PolicyListDocumentValidationError(`${description} must be an object`);
-  }
-  return input as Record<string, unknown>;
-}
-
-function requireExactKeys(
-  record: Record<string, unknown>,
-  requiredKeys: readonly string[],
-  optionalKeys: readonly string[] = [],
-): void {
-  const allowed = new Set([...requiredKeys, ...optionalKeys]);
-  const unknown = Object.keys(record).filter((key) => !allowed.has(key));
-  const missing = requiredKeys.filter((key) => !Object.hasOwn(record, key));
-
-  if (unknown.length > 0) {
-    throw new PolicyListDocumentValidationError(`Unknown policy list field: ${unknown[0]}`);
-  }
-  if (missing.length > 0) {
-    throw new PolicyListDocumentValidationError(`Missing policy list field: ${missing[0]}`);
-  }
-}
+const documentUnknownField = (field: string) =>
+  new PolicyListDocumentValidationError(`Unknown policy list field: ${field}`);
+const documentMissingField = (field: string) =>
+  new PolicyListDocumentValidationError(`Missing policy list field: ${field}`);
 
 function parseReason(value: unknown): string {
   if (typeof value !== 'string') {
@@ -67,8 +48,9 @@ function parseReason(value: unknown): string {
 }
 
 function parseEntry(input: unknown, index: number): PolicyListEntry {
-  const record = requireRecord(input, `Policy list entry ${index}`);
-  requireExactKeys(record, ['subject'], ['reason']);
+  const description = `Policy list entry ${index}`;
+  const record = requireRecord(input, () => new PolicyListDocumentValidationError(`${description} must be an object`));
+  requireExactKeys(record, ['subject'], ['reason'], documentUnknownField, documentMissingField);
 
   let subject: CanonicalPolicySubject;
   try {
@@ -86,8 +68,8 @@ function parseEntry(input: unknown, index: number): PolicyListEntry {
 
 /** Strictly validate an already-decoded local policy-list document. */
 export function parseLocalPolicyListDocument(input: unknown): LocalPolicyListDocument {
-  const record = requireRecord(input, 'Local policy list document');
-  requireExactKeys(record, ['schema', 'entries']);
+  const record = requireRecord(input, () => new PolicyListDocumentValidationError('Local policy list document must be an object'));
+  requireExactKeys(record, ['schema', 'entries'], [], documentUnknownField, documentMissingField);
 
   if (record.schema !== LOCAL_POLICY_LIST_SCHEMA) {
     throw new PolicyListDocumentValidationError(

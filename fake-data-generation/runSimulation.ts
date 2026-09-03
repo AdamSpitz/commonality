@@ -1,16 +1,20 @@
-import { createPublicClient, createWalletClient, http, parseEther } from 'viem';
-import { privateKeyToAccount } from 'viem/accounts';
+import { parseEther } from 'viem';
 import fs from 'fs/promises';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { generateUsers, HARDHAT_PRIVATE_KEYS } from './generateUsers.js';
-import { generateStatements, publishGeneratedStatement } from './generateStatements.js';
-import { generateAttestations, loadAttestations, hasAttestations } from './generateAttestations.js';
+import { FUNDED_HARDHAT_DEV_KEYS } from './seedCauseRoster.js';
+import { createSeedClients, createSeedPublicClient } from './seedRpc.js';
+import { generateStatements, publishGeneratedStatement, publishGeneratedStatements } from './generateStatements.js';
+import { loadAttestations, hasAttestations } from './generateAttestations.js';
 import { FundingAndDelegationActions, getSeedProjectAlignmentRef } from './fundingAndDelegationActions.js';
 import { AttackScenarios } from './attackScenarios.js';
 import { InvariantChecker } from './invariantChecker.js';
 import { loadEnv, CONTRACT_ADDRESSES, RPC_URL } from './loadEnv.js';
-import { generateContentFundingScenarios } from './contentFundingActions.js';
+import { attestSeedMixedContentToPlank, generateContentFundingScenarios, SEED_CONTENT_ALIGNMENT_REF } from './contentFundingActions.js';
+import { publishSeedLocalFoodCause } from './seedCauseRoster.js';
+import { publishSeedChristianityCause } from './seedChristianityCause.js';
+import { publishSeedLeaderboardActivity } from './seedLeaderboardActivity.js';
 import { BeliefsAbi, ImplicationsAbi, AlignmentAttestationsAbi, ProjectFactoryAbi, AssuranceContractAbi, DelegatableNotesAbi, NudgePublicationsAbi } from '@commonality/sdk/abis';
 import { toSubjectId, PROJECT_ALIGNMENT_TOPIC } from '@commonality/sdk/fundingportals';
 import { cidToBytes32, type IpfsCidV1, type IPFSConfig, uploadToIPFS } from '@commonality/sdk/utils';
@@ -50,44 +54,12 @@ const paymentTokenFundingAbi = [
   },
 ] as const;
 
-const hardhat = {
-  id: 31337,
-  name: 'Hardhat',
-  network: 'hardhat',
-  nativeCurrency: {
-    name: 'Ether',
-    symbol: 'ETH',
-    decimals: 18,
-  },
-  rpcUrls: {
-    default: { http: ['http://localhost:8545'] },
-    public: { http: ['http://localhost:8545'] },
-  },
-} as const;
-
 const BELIEVES = 1;
 const DISBELIEVES = 2;
 
 
 function createTestClients(privateKey: `0x${string}`, rpcUrl = 'http://localhost:8545') {
-  const account = privateKeyToAccount(privateKey);
-
-  const walletClient = createWalletClient({
-    account,
-    chain: hardhat,
-    transport: http(rpcUrl),
-  });
-
-  const publicClient = createPublicClient({
-    chain: hardhat,
-    transport: http(rpcUrl),
-  });
-
-  return {
-    walletClient,
-    publicClient,
-    account: account.address,
-  };
+  return createSeedClients(privateKey, rpcUrl);
 }
 
 type TestClients = ReturnType<typeof createTestClients>;
@@ -380,42 +352,24 @@ class SimulationRunner {
   }
 
   async publishGeneratedStatements(ipfsConfig: IPFSConfig): Promise<void> {
-    let uploaded = 0;
-    let failed = 0;
-    const publisher = this.users[0] ? this.getClientsForUser(this.users[0]) : undefined;
     const publishedDataAddress = CONTRACT_ADDRESSES.publishedData as `0x${string}` | undefined;
-
-    for (const stmt of this.statements) {
-      try {
-        const cid: IpfsCidV1 = await publishGeneratedStatement(
-          ipfsConfig,
-          stmt.content,
-          stmt.domain,
-          stmt.position,
-          stmt.statementType,
-          { clients: publisher, publishedDataAddress },
-        );
-        stmt.cid = cid;
-        uploaded++;
-
-        if (uploaded % 10 === 0) {
-          console.log(`  Published ${uploaded}/${this.statements.length} statements...`);
-        }
-      } catch (err) {
-        const error = err as Error;
-        failed++;
-        console.error(`  Failed to publish statement: ${error.message}`);
-      }
-    }
+    const publisherKeys = (FUNDED_HARDHAT_DEV_KEYS.length > 0
+      ? FUNDED_HARDHAT_DEV_KEYS
+      : HARDHAT_PRIVATE_KEYS
+    ).slice(0, 8) as `0x${string}`[];
+    const publishers = publisherKeys.map((key) => createSeedClients(key, RPC_URL));
+    const { uploaded, failed } = await publishGeneratedStatements(
+      this.statements,
+      ipfsConfig,
+      publishers,
+      publishedDataAddress,
+    );
 
     console.log(`  Published ${uploaded} statements to ${publishedDataAddress ? 'PublishedData' : 'IPFS'} (${failed} failed)`);
   }
 
   async fundUsers(): Promise<void> {
-    const publicClient = createPublicClient({
-      chain: hardhat,
-      transport: http(RPC_URL)
-    });
+    const publicClient = createSeedPublicClient(RPC_URL);
 
     // Use Hardhat's pre-funded default account as funder (starts with 10,000 ETH)
     const funderClient = createTestClients(HARDHAT_PRIVATE_KEYS[0], RPC_URL);
@@ -533,6 +487,13 @@ class SimulationRunner {
   }
 
   async performAction(actionType: string, user: User): Promise<void> {
+    const needsStatements = actionType === 'setBelief'
+      || actionType === 'setBeliefsInBatch'
+      || actionType === 'attestImplication';
+    if (needsStatements && this.statements.length === 0) {
+      return;
+    }
+
     const clients = this.getClientsForUser(user);
     const publicClient = clients.publicClient;
 
@@ -1025,6 +986,64 @@ function requireSeedStatement(
   return statement;
 }
 
+/**
+ * Tiny/small/medium seeds load generated statements, not the curated seed
+ * universe, so local-food-systems is usually missing. Nightly wipe+reseed
+ * uses `--seed=tiny`; without this plank the CauseStarter cause has no
+ * aligned projects.
+ */
+async function ensureMappedSeedStatement(
+  simulation: SimulationRunner,
+  ref: SeedStatementRef,
+): Promise<IpfsCidV1 | undefined> {
+  const alreadyMapped = await mapSeedStatementsToUploadedCids(simulation.statements);
+  const existing = alreadyMapped.get(getSeedStatementRefKey(ref));
+  if (existing) return existing.cid;
+
+  const records = await loadOriginalSeedStatementRecords();
+  const record = records.find((candidate) =>
+    candidate.collection.id === ref.collectionId
+    && candidate.group.id === ref.groupId
+    && candidate.statement.id === ref.statementId
+  );
+  if (!record) {
+    console.warn(`Could not find curated seed statement ${getSeedStatementRefKey(ref)}.`);
+    return undefined;
+  }
+
+  const statement: Statement = {
+    domain: record.collection.id,
+    position: record.group.id,
+    statementType: 'simple',
+    content: {
+      text: record.statement.text,
+      domain: record.collection.id,
+      position: record.group.id,
+    },
+  };
+
+  const ipfsConfig = createIPFSConfigInNodeJSFromTheUsualEnvVars();
+  const publisher = simulation.users[0] ? simulation.getClientsForUser(simulation.users[0]) : undefined;
+  const publishedDataAddress = CONTRACT_ADDRESSES.publishedData as `0x${string}` | undefined;
+  try {
+    statement.cid = await publishGeneratedStatement(
+      ipfsConfig,
+      statement.content,
+      statement.domain,
+      statement.position,
+      statement.statementType,
+      { clients: publisher, publishedDataAddress },
+    );
+  } catch (error) {
+    console.warn(`Failed to publish curated seed statement ${getSeedStatementRefKey(ref)}.`, error);
+    return undefined;
+  }
+
+  simulation.statements.push(statement);
+  console.log(`  Published curated seed statement ${ref.statementId} → ${statement.cid}`);
+  return statement.cid;
+}
+
 async function publishSeedWorkerOutputs(simulation: SimulationRunner): Promise<void> {
   const nudgePublicationsAddress = process.env.NUDGE_PUBLICATIONS_CONTRACT_ADDRESS as `0x${string}` | undefined;
   if (!nudgePublicationsAddress) {
@@ -1176,7 +1195,13 @@ async function publishSeedProjectAlignments(simulation: SimulationRunner): Promi
 
   for (const project of simulation.fundingDelegation.createdProjects.slice(0, DETERMINISTIC_SEED_PROJECT_ALIGNMENT_COUNT)) {
     const alignmentRef = getSeedProjectAlignmentRef(project.seedProjectIndex);
-    const statement = requireSeedStatement(statementsByRef, alignmentRef, 'seed project alignment');
+    const statement = statementsByRef.get(getSeedStatementRefKey(alignmentRef));
+    if (!statement) {
+      console.warn(
+        `Skipping seed alignment for ${alignmentRef.statementId} — statement not in this seed.`,
+      );
+      continue;
+    }
     const hash = await attestAlignment(
       clients,
       simulation.contracts.alignmentAttestations,
@@ -1274,7 +1299,13 @@ async function publishSeedProjectSuccesses(simulation: SimulationRunner): Promis
 
     // Attest success from a small pool of distinct attesters (none are the project owner or buyer).
     const successRef = getSeedProjectAlignmentRef(project.seedProjectIndex);
-    const statement = requireSeedStatement(statementsByRef, successRef, 'seed project success');
+    const statement = statementsByRef.get(getSeedStatementRefKey(successRef));
+    if (!statement) {
+      console.warn(
+        `Skipping seed success attestations for ${successRef.statementId} — statement not in this seed.`,
+      );
+      continue;
+    }
     for (let a = 0; a < SEED_PROJECT_SUCCESS_ATTESTER_COUNT; a++) {
       const attester = simulation.users[attesterPoolStart + a];
       const clients = simulation.getClientsForUser(attester);
@@ -1297,6 +1328,37 @@ async function publishSeedProjectSuccesses(simulation: SimulationRunner): Promis
   }
 
   console.log(`Funded ${funded} seed projects and published ${published} deterministic seed project success attestations.`);
+}
+
+async function seedLeaderboardActivity(simulation: SimulationRunner, primaryStatementCid?: string): Promise<void> {
+  if (!simulation.fundingDelegation) {
+    console.warn('Funding/delegation actions not initialized — skipping leaderboard activity.');
+    return;
+  }
+
+  const statementsByRef = await mapSeedStatementsToUploadedCids(simulation.statements);
+  const extraCids: string[] = [];
+  for (let i = 0; i < DETERMINISTIC_SEED_PROJECT_ALIGNMENT_COUNT; i++) {
+    const ref = getSeedProjectAlignmentRef(i);
+    const statement = statementsByRef.get(getSeedStatementRefKey(ref));
+    if (statement?.cid && statement.cid !== primaryStatementCid) {
+      extraCids.push(statement.cid);
+    }
+  }
+  const statementCids = [
+    ...(primaryStatementCid ? [primaryStatementCid] : []),
+    ...extraCids,
+  ];
+
+  await publishSeedLeaderboardActivity({
+    projects: simulation.fundingDelegation.createdProjects.map((project) => ({
+      assuranceContract: project.assuranceContract,
+      erc1155: project.erc1155,
+      tokenIds: project.tokenIds,
+      prices: project.prices,
+    })),
+    statementCids,
+  });
 }
 
 // Main execution
@@ -1326,30 +1388,73 @@ async function main(): Promise<void> {
 
   if (publishSeedWorkerOutputsFlag) {
     await publishSeedWorkerOutputs(simulation);
-    await publishSeedProjectAlignments(simulation);
-    await publishSeedProjectSuccesses(simulation);
   }
+
+  // Always land the local-food-systems plank + alignments, including on
+  // `--seed=tiny` (nightly wipe). Worker-output publication remains optional.
+  const localFoodPlankCid = await ensureMappedSeedStatement(
+    simulation,
+    SEED_CONTENT_ALIGNMENT_REF,
+  );
+  if (!localFoodPlankCid) {
+    console.warn('Could not resolve seed local-food-systems plank.');
+  }
+
+  await publishSeedProjectAlignments(simulation);
+  await publishSeedProjectSuccesses(simulation);
+  await seedLeaderboardActivity(simulation, localFoodPlankCid);
 
   // Generate content-funding on-chain state (deterministic scenarios).
   const cfAddresses = {
     channelRegistry: CONTRACT_ADDRESSES.channelRegistry,
     channelVerifier: CONTRACT_ADDRESSES.channelVerifier,
     creatorContractFactory: CONTRACT_ADDRESSES.creatorContractFactory,
+    prospectiveContentRoundFactory: CONTRACT_ADDRESSES.prospectiveContentRoundFactory,
     publishedData: CONTRACT_ADDRESSES.publishedData,
+    alignmentAttestations: CONTRACT_ADDRESSES.alignmentAttestations,
   };
   if (cfAddresses.channelRegistry && cfAddresses.channelVerifier && cfAddresses.creatorContractFactory) {
-    await generateContentFundingScenarios(
-      cfAddresses as {
-        channelRegistry: `0x${string}`;
-        channelVerifier: `0x${string}`;
-        creatorContractFactory: `0x${string}`;
-        publishedData?: `0x${string}`;
-      },
-      simulation.users,
-    );
+    try {
+      await generateContentFundingScenarios(
+        cfAddresses as {
+          channelRegistry: `0x${string}`;
+          channelVerifier: `0x${string}`;
+          creatorContractFactory: `0x${string}`;
+          prospectiveContentRoundFactory?: `0x${string}`;
+          publishedData?: `0x${string}`;
+          alignmentAttestations?: `0x${string}`;
+        },
+        simulation.users,
+        localFoodPlankCid ? { statementCid: localFoodPlankCid } : undefined,
+      );
+    } catch (error) {
+      console.warn(
+        'Content-funding scenarios failed (often because this chain was already seeded). Continuing so the local-food cause still publishes.',
+        error,
+      );
+    }
   } else {
     console.warn('Content-funding addresses not configured — skipping content-funding scenarios.');
     console.warn('  (Set CHANNEL_REGISTRY_ADDRESS, CHANNEL_VERIFIER_ADDRESS, CREATOR_CONTRACT_FACTORY_ADDRESS in .env)');
+  }
+
+  if (localFoodPlankCid) {
+    await publishSeedLocalFoodCause(localFoodPlankCid);
+    await publishSeedChristianityCause();
+    const alignmentAttestations = CONTRACT_ADDRESSES.alignmentAttestations as `0x${string}` | undefined;
+    const contentAttesterKey = (process.env.CONTENT_ATTESTER_PRIVATE_KEY
+      ?? simulation.users[0]?.privateKey) as `0x${string}` | undefined;
+    if (alignmentAttestations && contentAttesterKey) {
+      try {
+        await attestSeedMixedContentToPlank(
+          alignmentAttestations,
+          localFoodPlankCid,
+          contentAttesterKey,
+        );
+      } catch (error) {
+        console.warn('Could not attach seed content contracts to the published local-food plank.', error);
+      }
+    }
   }
 
   // Run attack scenarios if requested
@@ -1357,16 +1462,12 @@ async function main(): Promise<void> {
     await simulation.runAttackScenarios();
   }
 
-  // Run invariant checks if requested
-  if (runInvariants) {
-    await simulation.runInvariantChecks();
-  }
-
-  // Always run invariant checks after simulation unless this is an intentionally tiny/dev seed.
-  if (!skipInvariants) {
-    await simulation.runInvariantChecks();
-  } else {
+  // Invariants are opt-out via --skip-invariants (tiny and small local seeds pass that).
+  // --invariants is accepted as an explicit request; it is the default when skip is absent.
+  if (skipInvariants && !runInvariants) {
     console.log('\nSkipping invariant checks (--skip-invariants).');
+  } else {
+    await simulation.runInvariantChecks();
   }
 
   await simulation.saveResults();
@@ -1381,8 +1482,5 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
       process.exit(1);
     });
 }
-
-// suppress unused imports warning for generateAttestations
-void generateAttestations;
 
 export { SimulationRunner };

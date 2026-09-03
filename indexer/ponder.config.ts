@@ -1,16 +1,16 @@
 import { createConfig, factory } from "ponder";
 import { http } from "viem";
+import { INDEXER_CHAIN_IDS, type IndexerChainName } from "./src/utils/chain";
 
 // Conceptspace ABIs
 import { BeliefsAbi } from "./abis/BeliefsAbi";
 import { ImplicationsAbi } from "./abis/ImplicationsAbi";
 
 // LazyGiving ABIs
-import {
-  AssuranceContractFactoryAbi,
-  PremintingERC1155FactoryAbi,
-} from "./abis/ProjectFactoriesAbi";
-import { MultiERC1155AssuranceContractAbi as AssuranceContractAbi } from "./abis/AssuranceContractAbi";
+import { AssuranceContractFactoryAbi } from "./abis/AssuranceContractFactoryAbi";
+import { PremintingERC1155FactoryAbi } from "./abis/PremintingERC1155FactoryAbi";
+import { ProjectFactoryAbi } from "./abis/ProjectFactoryAbi";
+import { AssuranceContractAbi } from "./abis/AssuranceContractAbi";
 import { PremintingERC1155Abi } from "./abis/PremintingERC1155Abi";
 
 // Delegation ABIs
@@ -23,6 +23,7 @@ import { AlignmentAttestationsAbi } from "./abis/AlignmentAttestationsAbi";
 
 // Subjectiv identity ABIs
 import { AccountAssertionsAbi } from "./abis/AccountAssertionsAbi";
+import { TrustRegistryAbi } from "./abis/TrustRegistryAbi";
 
 // Mutable Refs ABIs
 import { MutableRefUpdaterAbi } from "./abis/MutableRefUpdaterAbi";
@@ -41,8 +42,8 @@ import { CreatorAssuranceContractFactoryAbi } from "./abis/CreatorAssuranceContr
 import { ProspectiveContentRoundFactoryAbi } from "./abis/ProspectiveContentRoundFactoryAbi";
 import { MaterializedContentTokensAbi } from "./abis/MaterializedContentTokensAbi";
 
-const SUPPORTED_CHAINS = ["hardhat", "base-sepolia", "mainnet"] as const;
-type SupportedChain = (typeof SUPPORTED_CHAINS)[number];
+const SUPPORTED_CHAINS = Object.keys(INDEXER_CHAIN_IDS) as IndexerChainName[];
+type SupportedChain = IndexerChainName;
 type CreateConfigArgs = Parameters<typeof createConfig>[0];
 
 function getIndexerChain(): SupportedChain {
@@ -76,33 +77,21 @@ function getRpcTransport(url: string | undefined) {
     : undefined;
 }
 
-const prospectiveRoundCreatedEvent = {
-  type: "event",
-  name: "ProspectiveRoundCreated",
-  inputs: [
-    { name: "round", type: "address", indexed: true },
-    { name: "channelId", type: "bytes32", indexed: true },
-    { name: "receiptToken", type: "address", indexed: true },
-    { name: "receiptTokenId", type: "uint256", indexed: false },
-    { name: "condition", type: "address", indexed: false },
-  ],
-} as const;
-
-const prospectiveRoundMaterializedEvent = {
-  type: "event", name: "ProspectiveRoundMaterialized",
-  inputs: [{ name: "round", type: "address", indexed: true }, { name: "tokenContract", type: "address", indexed: true }],
-} as const;
-
-const creatorContractCreatedEvent = {
-  type: "event",
-  name: "CreatorContractCreated",
-  inputs: [
-    { name: "contractAddress", type: "address", indexed: true },
-    { name: "channelId", type: "bytes32", indexed: true },
-    { name: "creator", type: "address", indexed: true },
-    { name: "isThirdParty", type: "bool", indexed: false },
-  ],
-} as const;
+const assuranceContractCreatedEvent = AssuranceContractFactoryAbi.find(
+  (item) => item.type === "event" && item.name === "LazyGivingAssuranceContractCreated",
+)!;
+const erc1155ContractCreatedEvent = PremintingERC1155FactoryAbi.find(
+  (item) => item.type === "event" && item.name === "LazyGivingERC1155ContractCreated",
+)!;
+const prospectiveRoundCreatedEvent = ProspectiveContentRoundFactoryAbi.find(
+  (item) => item.type === "event" && item.name === "ProspectiveRoundCreated",
+)!;
+const prospectiveRoundMaterializedEvent = ProspectiveContentRoundFactoryAbi.find(
+  (item) => item.type === "event" && item.name === "ProspectiveRoundMaterialized",
+)!;
+const creatorContractCreatedEvent = CreatorAssuranceContractFactoryAbi.find(
+  (item) => item.type === "event" && item.name === "CreatorContractCreated",
+)!;
 
 type ContractDeployment = {
   address: `0x${string}`;
@@ -191,12 +180,22 @@ function factoryAddress(deployments: ContractDeployment[]) {
 const BELIEFS_DEPLOYMENTS = getDeployments("Beliefs", "BELIEFS_CONTRACT_ADDRESS", START_BLOCK);
 const IMPLICATIONS_DEPLOYMENTS = getDeployments("Implications", "IMPLICATIONS_CONTRACT_ADDRESS", START_BLOCK);
 const ASSURANCE_CONTRACT_FACTORY_DEPLOYMENTS = getDeployments("AssuranceContractFactory", "ASSURANCE_CONTRACT_FACTORY_ADDRESS", LAZYGIVING_START_BLOCK);
+const PROJECT_FACTORY_DEPLOYMENTS = getDeployments("ProjectFactory", "PROJECT_FACTORY_ADDRESS", LAZYGIVING_START_BLOCK);
 const ERC1155_FACTORY_DEPLOYMENTS = getDeployments("ERC1155Factory", "ERC1155_FACTORY_ADDRESS", LAZYGIVING_START_BLOCK);
-const DELEGATABLE_NOTES_DEPLOYMENTS = getDeployments("DelegatableNotes", "DELEGATABLE_NOTES_ADDRESS", DELEGATION_START_BLOCK);
+const DELEGATABLE_NOTES_DEPLOYMENTS = getDeployments(
+  "DelegatableNotes",
+  process.env.DELEGATABLE_NOTES_ADDRESS ? "DELEGATABLE_NOTES_ADDRESS" : "DELEGATABLE_NOTES_CONTRACT_ADDRESS",
+  DELEGATION_START_BLOCK,
+);
 const RECURRING_PLEDGES_DEPLOYMENTS = getDeployments("RecurringPledges", "RECURRING_PLEDGES_ADDRESS", DELEGATION_START_BLOCK);
 const NOTE_INTENT_DEPLOYMENTS = getDeployments("NoteIntent", "NOTE_INTENT_ADDRESS", DELEGATION_START_BLOCK);
-const ALIGNMENT_ATTESTATIONS_DEPLOYMENTS = getDeployments("AlignmentAttestations", "ALIGNMENT_ATTESTATIONS_ADDRESS", FUNDING_PORTAL_START_BLOCK);
+const ALIGNMENT_ATTESTATIONS_DEPLOYMENTS = getDeployments(
+  "AlignmentAttestations",
+  process.env.ALIGNMENT_ATTESTATIONS_ADDRESS ? "ALIGNMENT_ATTESTATIONS_ADDRESS" : "ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS",
+  FUNDING_PORTAL_START_BLOCK,
+);
 const ACCOUNT_ASSERTIONS_DEPLOYMENTS = getDeployments("AccountAssertions", "ACCOUNT_ASSERTIONS_ADDRESS", START_BLOCK);
+const TRUST_REGISTRY_DEPLOYMENTS = getDeployments("TrustRegistry", "TRUST_REGISTRY_ADDRESS", START_BLOCK);
 const MUTABLE_REF_UPDATER_DEPLOYMENTS = getDeployments("MutableRefUpdater", "MUTABLE_REF_UPDATER_ADDRESS", START_BLOCK);
 const NUDGE_PUBLICATIONS_DEPLOYMENTS = getDeployments("NudgePublications", "NUDGE_PUBLICATIONS_CONTRACT_ADDRESS", START_BLOCK);
 const PUBLISHED_DATA_DEPLOYMENTS = getDeployments("PublishedData", "PUBLISHED_DATA_CONTRACT_ADDRESS", PUBLISHED_DATA_START_BLOCK);
@@ -210,10 +209,6 @@ const ETH_GET_LOGS_BLOCK_RANGE = process.env.PONDER_ETH_GET_LOGS_BLOCK_RANGE
   ? Number(process.env.PONDER_ETH_GET_LOGS_BLOCK_RANGE)
   : undefined;
 
-function chainForContract(_contractName: string): SupportedChain {
-  return INDEXER_CHAIN;
-}
-
 const contracts = {
   // ========================================================================
   // CONCEPTSPACE INDEXER CONTRACTS
@@ -222,13 +217,13 @@ const contracts = {
   // Beliefs contract - tracks user beliefs about statements
   Beliefs: {
     abi: BeliefsAbi,
-    chain: chainForContract("default"),
+    chain: INDEXER_CHAIN,
     ...deploymentConfig(BELIEFS_DEPLOYMENTS, START_BLOCK),
   },
   // Implications contract - tracks implication attestations between statements
   Implications: {
     abi: ImplicationsAbi,
-    chain: chainForContract("default"),
+    chain: INDEXER_CHAIN,
     ...deploymentConfig(IMPLICATIONS_DEPLOYMENTS, START_BLOCK),
   },
 
@@ -241,14 +236,21 @@ const contracts = {
   // Factory contract for creating assurance contracts
   AssuranceContractFactory: {
     abi: AssuranceContractFactoryAbi,
-    chain: chainForContract("default"),
+    chain: INDEXER_CHAIN,
     ...deploymentConfig(ASSURANCE_CONTRACT_FACTORY_DEPLOYMENTS, LAZYGIVING_START_BLOCK),
+  },
+
+  // ProjectFactory emits ProjectCreated with an indexed creator topic
+  ProjectFactory: {
+    abi: ProjectFactoryAbi,
+    chain: INDEXER_CHAIN,
+    ...deploymentConfig(PROJECT_FACTORY_DEPLOYMENTS, LAZYGIVING_START_BLOCK),
   },
 
   // Factory contract for creating ERC1155 tokens
   ERC1155Factory: {
     abi: PremintingERC1155FactoryAbi,
-    chain: chainForContract("default"),
+    chain: INDEXER_CHAIN,
     ...deploymentConfig(ERC1155_FACTORY_DEPLOYMENTS, LAZYGIVING_START_BLOCK),
   },
 
@@ -257,30 +259,30 @@ const contracts = {
   // The factory() function returns addresses discovered from factory events
   AssuranceContract: {
     abi: AssuranceContractAbi,
-    chain: chainForContract("default"),
+    chain: INDEXER_CHAIN,
     address: factoryAddress(ASSURANCE_CONTRACT_FACTORY_DEPLOYMENTS)
       ? factory({
           ...factoryAddress(ASSURANCE_CONTRACT_FACTORY_DEPLOYMENTS)!,
-          event: AssuranceContractFactoryAbi[0], // LazyGivingAssuranceContractCreated
+          event: assuranceContractCreatedEvent,
           parameter: "assuranceContract",
         })
       : undefined,
-    startBlock: LAZYGIVING_START_BLOCK,
+    startBlock: deploymentStartBlock(ASSURANCE_CONTRACT_FACTORY_DEPLOYMENTS, LAZYGIVING_START_BLOCK),
   },
 
   // Dynamically indexed ERC1155 token contracts (created by factory)
   // Used to track token burns (transfers to zero address)
   PremintingERC1155: {
     abi: PremintingERC1155Abi,
-    chain: chainForContract("default"),
+    chain: INDEXER_CHAIN,
     address: factoryAddress(ERC1155_FACTORY_DEPLOYMENTS)
       ? factory({
           ...factoryAddress(ERC1155_FACTORY_DEPLOYMENTS)!,
-          event: PremintingERC1155FactoryAbi[0], // LazyGivingERC1155ContractCreated
+          event: erc1155ContractCreatedEvent,
           parameter: "erc1155",
         })
       : undefined,
-    startBlock: LAZYGIVING_START_BLOCK,
+    startBlock: deploymentStartBlock(ERC1155_FACTORY_DEPLOYMENTS, LAZYGIVING_START_BLOCK),
   },
 
   // ========================================================================
@@ -291,19 +293,19 @@ const contracts = {
 
   DelegatableNotes: {
     abi: DelegatableNotesAbi,
-    chain: chainForContract("default"),
+    chain: INDEXER_CHAIN,
     ...deploymentConfig(DELEGATABLE_NOTES_DEPLOYMENTS, DELEGATION_START_BLOCK),
   },
 
   RecurringPledges: {
     abi: RecurringPledgesAbi,
-    chain: chainForContract("default"),
+    chain: INDEXER_CHAIN,
     ...deploymentConfig(RECURRING_PLEDGES_DEPLOYMENTS, DELEGATION_START_BLOCK),
   },
 
   NoteIntent: {
     abi: NoteIntentAbi,
-    chain: chainForContract("default"),
+    chain: INDEXER_CHAIN,
     ...deploymentConfig(NOTE_INTENT_DEPLOYMENTS, DELEGATION_START_BLOCK),
   },
 
@@ -316,7 +318,7 @@ const contracts = {
 
   AlignmentAttestations: {
     abi: AlignmentAttestationsAbi,
-    chain: chainForContract("default"),
+    chain: INDEXER_CHAIN,
     ...deploymentConfig(ALIGNMENT_ATTESTATIONS_DEPLOYMENTS, FUNDING_PORTAL_START_BLOCK),
   },
 
@@ -329,8 +331,16 @@ const contracts = {
 
   AccountAssertions: {
     abi: AccountAssertionsAbi,
-    chain: chainForContract("default"),
+    chain: INDEXER_CHAIN,
     ...deploymentConfig(ACCOUNT_ASSERTIONS_DEPLOYMENTS, START_BLOCK),
+  },
+
+  // TrustRegistry — Subjectiv direct-trust edges. CauseStarter (and the
+  // alignment-trust bootstrap) fold TrustSet events client-side.
+  TrustRegistry: {
+    abi: TrustRegistryAbi,
+    chain: INDEXER_CHAIN,
+    ...deploymentConfig(TRUST_REGISTRY_DEPLOYMENTS, START_BLOCK),
   },
 
   // ========================================================================
@@ -342,7 +352,7 @@ const contracts = {
 
   MutableRefUpdater: {
     abi: MutableRefUpdaterAbi,
-    chain: chainForContract("default"),
+    chain: INDEXER_CHAIN,
     ...deploymentConfig(MUTABLE_REF_UPDATER_DEPLOYMENTS, START_BLOCK),
   },
 
@@ -352,7 +362,7 @@ const contracts = {
 
   NudgePublications: {
     abi: NudgePublicationsAbi,
-    chain: chainForContract("default"),
+    chain: INDEXER_CHAIN,
     ...deploymentConfig(NUDGE_PUBLICATIONS_DEPLOYMENTS, START_BLOCK),
   },
 
@@ -362,7 +372,7 @@ const contracts = {
 
   PublishedData: {
     abi: PublishedDataAbi,
-    chain: chainForContract("default"),
+    chain: INDEXER_CHAIN,
     ...deploymentConfig(PUBLISHED_DATA_DEPLOYMENTS, PUBLISHED_DATA_START_BLOCK),
   },
 
@@ -372,51 +382,51 @@ const contracts = {
   // Content Registry - tracks registered content items and their contracts
   ContentRegistry: {
     abi: ContentRegistryAbi,
-    chain: chainForContract("default"),
+    chain: INDEXER_CHAIN,
     ...deploymentConfig(CONTENT_REGISTRY_DEPLOYMENTS, CONTENT_FUNDING_START_BLOCK),
   },
 
   // Channel Registry - tracks channel verification and control states
   ChannelRegistry: {
     abi: ChannelRegistryAbi,
-    chain: chainForContract("default"),
+    chain: INDEXER_CHAIN,
     ...deploymentConfig(CHANNEL_REGISTRY_DEPLOYMENTS, CONTENT_FUNDING_START_BLOCK),
   },
 
   // Channel Escrow - holds funds for unclaimed channels
   ChannelEscrow: {
     abi: ChannelEscrowAbi,
-    chain: chainForContract("default"),
+    chain: INDEXER_CHAIN,
     ...deploymentConfig(CHANNEL_ESCROW_DEPLOYMENTS, CONTENT_FUNDING_START_BLOCK),
   },
 
   // Creator Assurance Contract Factory - creates content-funding contracts
   CreatorAssuranceContractFactory: {
     abi: CreatorAssuranceContractFactoryAbi,
-    chain: chainForContract("default"),
+    chain: INDEXER_CHAIN,
     ...deploymentConfig(CREATOR_CONTRACT_FACTORY_DEPLOYMENTS, CONTENT_FUNDING_START_BLOCK),
   },
 
   ProspectiveContentRoundFactory: {
     abi: ProspectiveContentRoundFactoryAbi,
-    chain: chainForContract("default"),
+    chain: INDEXER_CHAIN,
     ...deploymentConfig(PROSPECTIVE_FACTORY_DEPLOYMENTS, CONTENT_FUNDING_START_BLOCK),
   },
 
   MaterializedContentTokens: {
     abi: MaterializedContentTokensAbi,
-    chain: chainForContract("default"),
+    chain: INDEXER_CHAIN,
     address: factoryAddress(PROSPECTIVE_FACTORY_DEPLOYMENTS)
       ? factory({ ...factoryAddress(PROSPECTIVE_FACTORY_DEPLOYMENTS)!, event: prospectiveRoundMaterializedEvent, parameter: "tokenContract" })
       : undefined,
-    startBlock: CONTENT_FUNDING_START_BLOCK,
+    startBlock: deploymentStartBlock(PROSPECTIVE_FACTORY_DEPLOYMENTS, CONTENT_FUNDING_START_BLOCK),
   },
 
   // Prospective rounds use the same assurance-contract event surface as
   // creator contracts, so index them for the shared backing/details UI.
   ProspectiveContentAssuranceContract: {
     abi: AssuranceContractAbi,
-    chain: chainForContract("default"),
+    chain: INDEXER_CHAIN,
     address: factoryAddress(PROSPECTIVE_FACTORY_DEPLOYMENTS)
       ? factory({
           ...factoryAddress(PROSPECTIVE_FACTORY_DEPLOYMENTS)!,
@@ -424,13 +434,13 @@ const contracts = {
           parameter: "round",
         })
       : undefined,
-    startBlock: CONTENT_FUNDING_START_BLOCK,
+    startBlock: deploymentStartBlock(PROSPECTIVE_FACTORY_DEPLOYMENTS, CONTENT_FUNDING_START_BLOCK),
   },
 
   // Dynamically indexed creator assurance contracts (created by factory)
   CreatorAssuranceContract: {
     abi: AssuranceContractAbi,
-    chain: chainForContract("default"),
+    chain: INDEXER_CHAIN,
     address: factoryAddress(CREATOR_CONTRACT_FACTORY_DEPLOYMENTS)
       ? factory({
           ...factoryAddress(CREATOR_CONTRACT_FACTORY_DEPLOYMENTS)!,
@@ -438,7 +448,7 @@ const contracts = {
           parameter: "contractAddress",
         })
       : undefined,
-    startBlock: CONTENT_FUNDING_START_BLOCK,
+    startBlock: deploymentStartBlock(CREATOR_CONTRACT_FACTORY_DEPLOYMENTS, CONTENT_FUNDING_START_BLOCK),
   },
 } as const;
 
@@ -447,7 +457,7 @@ function getActiveChains() {
     case "hardhat":
       return {
         hardhat: {
-          id: 31337,
+          id: INDEXER_CHAIN_IDS.hardhat,
           rpc: getRpcTransport(process.env.PONDER_RPC_URL_31337 || "http://localhost:8545"),
           pollingInterval: 100, // Poll every 100ms for faster test execution (default is 1000ms)
         },
@@ -455,15 +465,15 @@ function getActiveChains() {
     case "base-sepolia":
       return {
         "base-sepolia": {
-          id: 84532,
+          id: INDEXER_CHAIN_IDS["base-sepolia"],
           rpc: getRpcTransport(process.env.PONDER_RPC_URL_84532),
-          ethGetLogsBlockRange: ETH_GET_LOGS_BLOCK_RANGE ?? 10,
+          ethGetLogsBlockRange: ETH_GET_LOGS_BLOCK_RANGE ?? 1000,
         },
       } as const;
     case "mainnet":
       return {
         mainnet: {
-          id: 1,
+          id: INDEXER_CHAIN_IDS.mainnet,
           rpc: getRpcTransport(process.env.PONDER_RPC_URL_1),
           ethGetLogsBlockRange: ETH_GET_LOGS_BLOCK_RANGE,
         },

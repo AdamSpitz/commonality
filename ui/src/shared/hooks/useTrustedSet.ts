@@ -49,7 +49,20 @@ export function useTrustedSet(address?: string, options: UseTrustedSetOptions = 
         return
       }
       const nextSet = new Set(result.trustedSet)
-      setTrustedSet(nextSet.size > 0 ? nextSet : undefined)
+      setTrustedSet((prev) => {
+        if (nextSet.size === 0) return undefined
+        if (prev && prev.size === nextSet.size) {
+          let same = true
+          for (const addr of nextSet) {
+            if (!prev.has(addr)) {
+              same = false
+              break
+            }
+          }
+          if (same) return prev
+        }
+        return nextSet
+      })
       setTrustWeights(toWeightMap(result.trustWeights))
     },
     [],

@@ -1,0 +1,42 @@
+{
+  "id": "review.founder-e2e.causestarter",
+  "description": "Founder-authored E2E LLM check of CauseStarter. The spec is Adam's own description of the landing page, Start Cause, cause-page roles, cause board, project page, and contributing — stored verbatim in checks/review/founder-e2e/causestarter.md and not rewritten. The model looks at the built surface and reports whether it more-or-less matches, plus independent user-judgment notes.",
+  "cost": "llm",
+  "trigger": {
+    "type": "manual"
+  },
+  "retention": {
+    "keep": 3,
+    "keepDays": 90
+  },
+  "command": [
+    "node",
+    "checks/review/founder-e2e.mjs"
+  ],
+  "inputs": [
+    {
+      "kind": "params",
+      "data": {
+        "commandTimeoutMs": 900000,
+        "taskKind": "big-picture-thinking",
+        "surface": "CauseStarter",
+        "founderBriefFile": "checks/review/founder-e2e/causestarter.md",
+        "startingPoints": [
+          "causestarter/README.md",
+          "ui/src/domains/causestarter/manifest.tsx",
+          "ui/src/causestarter/pages/HomePage.tsx",
+          "ui/src/causestarter/pages/StartCauseRedirect.tsx",
+          "ui/src/causestarter/pages/CauseDetailPage.tsx",
+          "ui/src/causestarter/pages/StatementPage.tsx",
+          "ui/src/causestarter/pages/ProjectDetailPage.tsx",
+          "ui/src/causestarter/pages/CausesPage.tsx",
+          "ui/src/causestarter/components/CauseViewStrip.tsx"
+        ]
+      }
+    }
+  ],
+  "timeoutMs": 930000,
+  "display": {
+    "preferredArtifact": "report.md"
+  }
+}

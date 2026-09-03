@@ -76,15 +76,30 @@ export { usePaymentTokenCurrency } from './currency/usePaymentTokenCurrency'
 // === nudges/ — dismissed-nudge store + CSM mediator nudger ===
 export { dismissNudge, getDismissedNudges } from './nudges/nudgeStore'
 export { getCsmMediatorNudger, getTallyMediatorOptInPath } from './nudges/csmMediatorNudger'
-export { getMediatorOptInPath, mediatorNudgerFromCause } from './nudges/mediatorNudger'
+export { getMediatorOptInPath, mediatorNudgerFromCause, serviceMediatorFromCause } from './nudges/mediatorNudger'
 export type { CauseMediatorConfig } from './nudges/mediatorNudger'
 export { MediatorOptInBlock } from './nudges/MediatorOptInBlock'
+export { useMediatorOptIn } from './nudges/useMediatorOptIn'
 export { BridgeDisplayBlock, buildMediatorBridgeCards, fetchFeaturedMediatorAnchors, useMediatorAnchors } from './mediator/BridgeDisplayBlock'
 export type { BridgeLabels, MediatorBridgeAnchor, MediatorBridgeCard } from './mediator/BridgeDisplayBlock'
 
 // === stores/ — client-side persistence (contacts; folded-state cache via hooks) ===
 export { addContact, getContacts } from './stores/contactStore'
 export type { ContactKind, SavedContact } from './stores/contactStore'
+export {
+  BOARD_SNAPSHOT_VERSION,
+  boardSnapshotCacheOptions,
+  loadAlignedListSnapshot,
+  loadBoardMetricsSnapshot,
+  saveAlignedListSnapshot,
+  saveBoardMetricsSnapshot,
+} from './stores/foldCache'
+export type {
+  AlignedListSnapshot,
+  BoardMetricsSnapshot,
+  BoardSnapshotKeyOptions,
+  BoardSnapshotKind,
+} from './stores/foldCache'
 
 // === trust/ — subjectiv trust network (computation + cache + worker live behind hooks) ===
 export { notifySubjectivTrustNetworkInvalidated } from './trust/subjectivTrust'
@@ -103,7 +118,7 @@ export {
 } from './hooks/useBeatAgentTrustPolicy'
 export type { BeatAgentTrustPolicy } from './hooks/useBeatAgentTrustPolicy'
 
-export { useCachedProject } from './hooks/useCachedProject'
+export { loadProjectWithCache, projectFoldCacheOptions, useCachedProject } from './hooks/useCachedProject'
 export { useCachedProjects } from './hooks/useCachedProjects'
 export { getEventCacheUrl, getIpfsApiUrl, useMachinery } from './hooks/useMachinery'
 export { useMutedNudgers } from './hooks/useMutedNudgers'
@@ -150,6 +165,11 @@ export type { TrustedNudgerEntry } from './hooks/useTrustedNudgers'
 
 export { useTrustedSet } from './hooks/useTrustedSet'
 export { useWriteClients } from './hooks/useWriteClients'
+export {
+  HARDHAT_DEV_ACCOUNTS,
+  isLocalDevHost,
+} from './wallet/hardhatAccounts'
+export type { HardhatDevAccount } from './wallet/hardhatAccounts'
 export { useIsWrongChain } from './hooks/useIsWrongChain'
 export { useResolvedAddress } from './hooks/useResolvedAddress'
 export type { ResolvedAddress } from './hooks/useResolvedAddress'
@@ -166,12 +186,15 @@ export type { ResolvedAddress } from './hooks/useResolvedAddress'
 // modules: external consumers (`App.tsx` for AppShell, `ConnectWalletPrompt`
 // for WalletButton) import them via deep paths allowed by the boundary rule.
 export { AddressDisplay } from './components/AddressDisplay'
+export { InfoChip, InfoLabel, HeaderInfoTip, INFO_HINT_ICON_SX } from './components/InfoChip'
 export { AddressPicker } from './components/AddressPicker'
 export type { AddressPickerProps, AddressPickerStatus } from './components/AddressPicker'
 export { CrossDomainUnavailablePage } from './components/CrossDomainUnavailablePage'
 export { NetworkSwitchPrompt } from './components/NetworkSwitchPrompt'
 export { StatementPicker } from './components/StatementPicker'
+export type { StatementPickerDraft, StatementPickerTelemetryEvent } from './components/StatementPicker'
 export { NotFoundPage } from './components/NotFoundPage'
+export { TrustNetworkRefreshIndicator } from './components/TrustNetworkRefreshIndicator'
 
 // === utils/ — small pure helpers ===
 export { truncateAddress } from './utils/address'

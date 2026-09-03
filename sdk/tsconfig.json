@@ -14,8 +14,8 @@
     "resolveJsonModule": true,
     "downlevelIteration": true,
     "noEmit": false,
-    "types": ["node", "mocha"]
+    "types": ["node"]
   },
-  "include": ["src/**/*", "abis/**/*", "scripts/**/*"],
+  "include": ["src/**/*", "abis/**/*"],
   "exclude": ["node_modules", "src/**/*.test.ts"]
 }

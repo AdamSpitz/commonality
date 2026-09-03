@@ -3,15 +3,19 @@ import type { SDKMachinery } from '@commonality/sdk/machinery'
 import { fetchFromIPFS, type IpfsCidV1 } from '@commonality/sdk/utils'
 import { displayPolicyFromDenylist, isCidDeniedByDisplayDenylist, loadDisplayDenylist } from '../../shared'
 import type { ProjectMetadata } from './AlignedProjectCard'
+import { parseRelevantAreas } from './geographicInclusion'
 
-function metadataFromFields(raw: { name?: unknown; title?: unknown; description?: unknown }, fallbackDescription?: string): ProjectMetadata | null {
+function metadataFromFields(raw: { name?: unknown; title?: unknown; description?: unknown; relevantAreas?: unknown }, fallbackDescription?: string): ProjectMetadata | null {
   const name = typeof raw.name === 'string'
     ? raw.name
     : typeof raw.title === 'string'
       ? raw.title
       : undefined
   const description = typeof raw.description === 'string' ? raw.description : fallbackDescription
-  return name || description ? { name, description } : null
+  const relevantAreas = parseRelevantAreas(raw.relevantAreas)
+  return name || description || relevantAreas
+    ? { name, description, ...(relevantAreas ? { relevantAreas } : {}) }
+    : null
 }
 
 function projectMetadataFromDocument(document: DisplayableDocument): ProjectMetadata | null {

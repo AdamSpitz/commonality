@@ -17,7 +17,7 @@ Early contributors make uncertain work possible. Their contributions mint non-tr
 
 Later donations enter a reimbursement waterfall. Each donation becomes available to early contributors pro-rata, and no contributor can receive more than they originally put in. There is no interest, premium, bonus, or profit. The whole story is: **get your money back and fund the next one.**
 
-An early contributor can also permanently forgo reimbursement. They keep their recognition receipt, but their contribution no longer counts as an outstanding claim.
+An early contributor can also permanently forgo future reimbursement. They keep their recognition receipt and any reimbursement already earned, but burn the separate nontransferable claim representing what they could still receive later.
 
 ## Why this creates a useful cycle
 

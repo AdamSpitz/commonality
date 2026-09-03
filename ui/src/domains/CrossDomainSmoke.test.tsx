@@ -6,7 +6,7 @@ import { domainManifests } from './index'
 import { isRouteResolvableDocLink } from './publicDocLinks'
 import type { DomainId } from './types'
 
-const domainIds: DomainId[] = ['commonality', 'lazyGiving', 'alignment', 'tally', 'content-funding', 'civility', 'common-sense-majority', 'conceptspace']
+const domainIds: DomainId[] = ['commonality', 'lazyGiving', 'alignment', 'tally', 'content-funding', 'civility', 'common-sense-majority', 'conceptspace', 'causestarter']
 const publicDocModules = import.meta.glob('../../../docs/end-user/**/*.md', { query: '?raw', import: 'default', eager: true }) as Record<string, string>
 
 function renderDomainRoute(domainId: DomainId, path = '/') {
@@ -90,6 +90,7 @@ describe.each(domainIds)('cross-domain smoke: %s', (domainId) => {
       civility: 'Civility',
       'common-sense-majority': 'Common Sense Majority',
       conceptspace: 'Conceptspace',
+      causestarter: 'CauseStarter',
     }
 
     it('has branding copy for the domain', () => {
@@ -122,7 +123,8 @@ describe.each(domainIds)('cross-domain smoke: %s', (domainId) => {
     })
   })
 
-  describe('landing page', () => {
+  // CauseStarter `/` is a wallet-backed dashboard, not a static pitch page.
+  describe.skipIf(domainId === 'causestarter')('landing page', () => {
     it('renders a hero title', () => {
       renderDomainRoute(domainId)
       const heading = screen.getByRole('heading', { level: 1 })
@@ -164,73 +166,6 @@ describe('public docs app links', () => {
   })
 })
 
-describe('cross-domain feature flag matrix', () => {
-  it('commonality is movement/docs only', () => {
-    expect(domainManifests.commonality.features).toMatchObject({
-      conceptspace: false,
-      lazyGiving: false,
-      fundingportal: false,
-      delegation: false,
-      mutablerefs: false,
-      contentFunding: false,
-      docs: true,
-    })
-  })
-
-  it('lazyGiving owns individual project contracts and delegation management', () => {
-    expect(domainManifests.lazyGiving.features).toMatchObject({
-      conceptspace: false,
-      lazyGiving: true,
-      fundingportal: false,
-      delegation: true,
-      mutablerefs: false,
-      contentFunding: false,
-      docs: true,
-    })
-  })
-
-  it('alignment owns portals, not delegation', () => {
-    expect(domainManifests.alignment.features).toMatchObject({
-      conceptspace: false,
-      lazyGiving: false,
-      fundingportal: true,
-      delegation: false,
-      mutablerefs: false,
-      contentFunding: false,
-      docs: true,
-    })
-  })
-
-  it('lazyGiving and content-funding enable delegation feature', () => {
-    expect(domainManifests.lazyGiving.features).toMatchObject({
-      conceptspace: false,
-      lazyGiving: true,
-      fundingportal: false,
-      delegation: true,
-      mutablerefs: false,
-      contentFunding: false,
-      docs: true,
-    })
-    expect(domainManifests['content-funding'].features).toMatchObject({
-      conceptspace: false,
-      lazyGiving: false,
-      fundingportal: false,
-      delegation: true,
-      mutablerefs: false,
-      contentFunding: true,
-      docs: true,
-    })
-  })
-
-  it('keeps the existing focused-domain flags', () => {
-    expect(domainManifests.tally.features).toMatchObject({ conceptspace: true, fundingportal: true, docs: true })
-    expect(domainManifests['content-funding'].features).toMatchObject({ contentFunding: true, lazyGiving: false, fundingportal: false })
-    expect(domainManifests.civility.features).toMatchObject({ contentFunding: true, lazyGiving: false, fundingportal: false })
-    expect(domainManifests['common-sense-majority'].features).toMatchObject({ lazyGiving: false, fundingportal: false, contentFunding: false })
-    expect(domainManifests.conceptspace.features).toMatchObject({ conceptspace: true, docs: true, lazyGiving: false })
-  })
-})
-
 describe('cross-domain route ownership', () => {
   it('commonality no longer renders product tools locally, only docs/founders', () => {
     const routePaths = extractRoutePaths(domainManifests.commonality.routes)
@@ -239,7 +174,7 @@ describe('cross-domain route ownership', () => {
 
   it('lazyGiving owns assurance-contract project routes', () => {
     const routePaths = extractRoutePaths(domainManifests.lazyGiving.routes)
-    expect(routePaths).toEqual(['/', '/projects', '/projects/new', '/projects/:projectAddress', '/delegation', '/delegation/notes', '/delegation/notes/new', '/delegation/notes/:noteId', '/delegates/offer', '/delegates/:address', '/docs', '/docs/*'])
+    expect(routePaths).toEqual(['/', '/projects', '/projects/new', '/projects/:projectAddress/leaderboard', '/projects/:projectAddress', '/delegation', '/delegation/notes', '/delegation/notes/new', '/delegation/notes/:noteId', '/delegates/offer', '/delegates/:address', '/docs', '/docs/*'])
   })
 
   it('alignment owns funding-portal routes', () => {

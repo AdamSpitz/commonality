@@ -1,4 +1,5 @@
 import {
+  PRODUCTION_OPENROUTER_MODEL,
   readNumberEnv,
   readStringEnv,
   requireEnv,
@@ -101,7 +102,7 @@ export function loadConfigFromEnv(env: NodeJS.ProcessEnv = process.env): Content
     openRouterModel: readStringFrom(
       ['CONTENT_ATTESTER_OPENROUTER_MODEL', 'OPENROUTER_MODEL'],
       env,
-      'anthropic/claude-3.5-haiku',
+      PRODUCTION_OPENROUTER_MODEL,
     ),
     ipfsApiUrl: readStringFrom(
       ['CONTENT_ATTESTER_IPFS_API', 'IPFS_API'],
@@ -177,7 +178,7 @@ export function loadConfig(): ContentAttesterConfig {
       process.env.ALIGNMENT_TOPIC_STATEMENT_CID,
     ) as IpfsCidV1,
     openRouterApiKey: requireEnv('OPENROUTER_API_KEY', process.env.OPENROUTER_API_KEY),
-    openRouterModel: readStringEnv('OPENROUTER_MODEL', 'anthropic/claude-3.5-haiku'),
+    openRouterModel: readStringEnv('OPENROUTER_MODEL', PRODUCTION_OPENROUTER_MODEL),
     ipfsApiUrl: readStringEnv('IPFS_API', 'http://localhost:5001'),
     ipfsGatewayUrl: readStringEnv('IPFS_GATEWAY', 'http://localhost:8080'),
     paymentAddress: requireEnv('X402_PAYMENT_ADDRESS', process.env.X402_PAYMENT_ADDRESS),

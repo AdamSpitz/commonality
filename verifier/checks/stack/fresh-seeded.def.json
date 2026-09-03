@@ -1,6 +1,6 @@
 {
   "id": "stack.fresh-seeded",
-  "description": "Release-candidate smoke: explicitly opt-in, wipe local dev data, restart services, seed a tiny dataset, and verify core local endpoints.",
+  "description": "Release-candidate smoke: explicitly opt-in, wipe local dev data, restart services, seed a tiny dataset, verify core local endpoints, and assert tiny-seed CauseStarter roster/bookmark refs exist on chain.",
   "trigger": { "type": "manual" },
   "retention": { "keep": 3, "keepDays": 30 },
   "command": ["node", "checks/stack/guarded-command-check.mjs"],

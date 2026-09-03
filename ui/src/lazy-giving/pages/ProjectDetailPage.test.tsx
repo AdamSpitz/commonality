@@ -32,8 +32,12 @@ vi.mock('wagmi', async (importOriginal) => {
 })
 
 vi.mock('connectkit', () => ({
-  ConnectKitButton: () => <button type="button">Connect Wallet</button>,
+  ConnectKitButton: Object.assign(
+    () => <button type="button">Connect Wallet</button>,
+    { Custom: ({ children }: { children: (state: { isConnected: boolean; isConnecting: boolean; show?: () => void; truncatedAddress?: string; ensName?: string }) => React.ReactNode }) => children({ isConnected: false, isConnecting: false }) },
+  ),
   getDefaultConfig: () => ({}),
+  useModal: () => ({ setOpen: vi.fn(), open: false }),
 }))
 
 vi.mock('../../wagmi', () => ({ isPrivyEnabled: false }))
@@ -114,7 +118,7 @@ function makeToken(overrides: Record<string, any> = {}) {
 function makeContribution(overrides: Record<string, any> = {}) {
   return {
     id: 'contrib-1',
-    participant: '0x1111111111111111111111111111111111111111',
+    contributor: '0x1111111111111111111111111111111111111111',
     projectAddress: mockProjectAddress,
     erc1155Address: '0xaaaa',
     tokenIds: '["1"]',
@@ -130,7 +134,7 @@ function makeContribution(overrides: Record<string, any> = {}) {
 function makeRefund(overrides: Record<string, any> = {}) {
   return {
     id: 'refund-1',
-    participant: '0x1111111111111111111111111111111111111111',
+    contributor: '0x1111111111111111111111111111111111111111',
     projectAddress: mockProjectAddress,
     erc1155Address: '0xaaaa',
     tokenIds: '["1"]',
@@ -160,7 +164,7 @@ describe('ProjectDetailPage', () => {
     vi.mocked(getContributorReimbursementState).mockResolvedValue({
       projectAddress: mockProjectAddress, contributor: mockProjectAddress,
       currency: { kind: 'native', symbol: 'ETH', decimals: 18, tokenAddress: null, tokenType: 0 },
-      earlyContribution: '0', reimbursableAmount: '0', withdrawnAmount: '0', forgoneAmount: '0',
+      earlyContribution: '0', futureReimbursementClaim: '0', reimbursableAmount: '0', withdrawnAmount: '0', forgoneAmount: '0',
     })
     vi.mocked(approveERC1155ForOperator).mockResolvedValue('0xapprove' as any)
     mockAccount.address = undefined
@@ -196,10 +200,10 @@ describe('ProjectDetailPage', () => {
     it('uses host listPath/listLabel for not-found recovery', async () => {
       vi.mocked(getProject).mockResolvedValue(null)
 
-      render(<ProjectDetailPage listPath="/momentum" listLabel="Back to momentum" />)
+      render(<ProjectDetailPage listPath="/causes" listLabel="Back to causes" />)
 
       await waitFor(() => {
-        expect(screen.getByRole('link', { name: 'Back to momentum' })).toHaveAttribute('href', '/momentum')
+        expect(screen.getByRole('link', { name: 'Back to causes' })).toHaveAttribute('href', '/causes')
       })
     })
 
@@ -237,6 +241,8 @@ describe('ProjectDetailPage', () => {
       await waitFor(() => {
         expect(screen.getByRole('heading', { name: 'My Cool Project' })).toBeInTheDocument()
       })
+      expect(screen.getByText('Project')).toBeInTheDocument()
+      expect(screen.queryByText('Content project')).not.toBeInTheDocument()
     })
 
     it('displays truncated address when no metadata available', async () => {
@@ -366,6 +372,19 @@ describe('ProjectDetailPage', () => {
       // ...but not the interactive amount field or Give button.
       expect(screen.queryByLabelText(/Give amount/)).not.toBeInTheDocument()
       expect(screen.queryByRole('button', { name: 'Give' })).not.toBeInTheDocument()
+    })
+
+    it('does not dump keccak-sized token ids into the giving-option preview', async () => {
+      const hashedId = '87739086037786759560689438963022693410722013717555310084692160401297514418011'
+      vi.mocked(getProject).mockResolvedValue(makeProject() as any)
+      vi.mocked(getProjectTokens).mockResolvedValue([makeToken({ tokenId: hashedId })] as any)
+
+      render(<ProjectDetailPage />)
+
+      await waitFor(() => {
+        expect(screen.getByText('Giving option 1')).toBeInTheDocument()
+      })
+      expect(screen.queryByText(hashedId)).not.toBeInTheDocument()
     })
 
     it('shows the card on-ramp sign-in CTA for disconnected visitors on USDC projects', async () => {
@@ -656,7 +675,7 @@ describe('ProjectDetailPage', () => {
       mockAccount.address = userAddr
       mockAccount.isConnected = true
       vi.mocked(getProject).mockResolvedValue(refundingProject() as any)
-      vi.mocked(getProjectContributions).mockResolvedValue([makeContribution({ participant: userAddr })] as any)
+      vi.mocked(getProjectContributions).mockResolvedValue([makeContribution({ contributor: userAddr })] as any)
 
       render(<ProjectDetailPage />)
 
@@ -671,7 +690,7 @@ describe('ProjectDetailPage', () => {
       mockAccount.address = userAddr
       mockAccount.isConnected = true
       vi.mocked(getProject).mockResolvedValue(makeProject() as any)
-      vi.mocked(getProjectContributions).mockResolvedValue([makeContribution({ participant: userAddr })] as any)
+      vi.mocked(getProjectContributions).mockResolvedValue([makeContribution({ contributor: userAddr })] as any)
 
       render(<ProjectDetailPage />)
 
@@ -700,10 +719,10 @@ describe('ProjectDetailPage', () => {
       mockAccount.isConnected = true
       vi.mocked(getProject).mockResolvedValue(refundingProject() as any)
       vi.mocked(getProjectContributions).mockResolvedValue([
-        makeContribution({ participant: userAddr, tokenIds: '["1"]', tokenCounts: '["5"]' }),
+        makeContribution({ contributor: userAddr, tokenIds: '["1"]', tokenCounts: '["5"]' }),
       ] as any)
       vi.mocked(getProjectRefunds).mockResolvedValue([
-        makeRefund({ participant: userAddr, tokenIds: '["1"]', tokenCounts: '["3"]' }),
+        makeRefund({ contributor: userAddr, tokenIds: '["1"]', tokenCounts: '["3"]' }),
       ] as any)
 
       render(<ProjectDetailPage />)
@@ -719,10 +738,10 @@ describe('ProjectDetailPage', () => {
       mockAccount.isConnected = true
       vi.mocked(getProject).mockResolvedValue(refundingProject() as any)
       vi.mocked(getProjectContributions).mockResolvedValue([
-        makeContribution({ participant: userAddr, tokenIds: '["1"]', tokenCounts: '["5"]' }),
+        makeContribution({ contributor: userAddr, tokenIds: '["1"]', tokenCounts: '["5"]' }),
       ] as any)
       vi.mocked(getProjectRefunds).mockResolvedValue([
-        makeRefund({ participant: userAddr, tokenIds: '["1"]', tokenCounts: '["5"]' }),
+        makeRefund({ contributor: userAddr, tokenIds: '["1"]', tokenCounts: '["5"]' }),
       ] as any)
 
       render(<ProjectDetailPage />)
@@ -739,7 +758,7 @@ describe('ProjectDetailPage', () => {
       mockAccount.isConnected = true
       mockWalletClient.data = {} as any
       vi.mocked(getProject).mockResolvedValue(refundingProject() as any)
-      vi.mocked(getProjectContributions).mockResolvedValue([makeContribution({ participant: userAddr })] as any)
+      vi.mocked(getProjectContributions).mockResolvedValue([makeContribution({ contributor: userAddr })] as any)
       vi.mocked(refundProjectTokens).mockResolvedValue('0xhash' as any)
 
       render(<ProjectDetailPage />)
@@ -771,7 +790,7 @@ describe('ProjectDetailPage', () => {
       mockAccount.isConnected = true
       mockWalletClient.data = {} as any
       vi.mocked(getProject).mockResolvedValue(refundingProject() as any)
-      vi.mocked(getProjectContributions).mockResolvedValue([makeContribution({ participant: userAddr })] as any)
+      vi.mocked(getProjectContributions).mockResolvedValue([makeContribution({ contributor: userAddr })] as any)
       vi.mocked(refundProjectTokens).mockResolvedValue('0xhash' as any)
 
       render(<ProjectDetailPage />)
@@ -794,7 +813,7 @@ describe('ProjectDetailPage', () => {
       mockAccount.isConnected = true
       mockWalletClient.data = {} as any
       vi.mocked(getProject).mockResolvedValue(refundingProject() as any)
-      vi.mocked(getProjectContributions).mockResolvedValue([makeContribution({ participant: userAddr })] as any)
+      vi.mocked(getProjectContributions).mockResolvedValue([makeContribution({ contributor: userAddr })] as any)
       vi.mocked(refundProjectTokens).mockRejectedValue(new Error('Transaction reverted'))
 
       render(<ProjectDetailPage />)
@@ -930,11 +949,11 @@ describe('ProjectDetailPage', () => {
       vi.mocked(getProject).mockResolvedValue(makeProject() as any)
       vi.mocked(getProjectContributions).mockResolvedValue([
         makeContribution({
-          participant: '0xaaaa111111111111111111111111111111111111',
+          contributor: '0xaaaa111111111111111111111111111111111111',
           totalCost: '1000000000000000000',
         }),
         makeContribution({
-          participant: '0xbbbb111111111111111111111111111111111111',
+          contributor: '0xbbbb111111111111111111111111111111111111',
           totalCost: '500000000000000000',
         }),
       ] as any)
@@ -942,13 +961,17 @@ describe('ProjectDetailPage', () => {
       render(<ProjectDetailPage />)
 
       await waitFor(() => {
-        expect(screen.getByText('Contributor Leaderboard')).toBeInTheDocument()
+        expect(screen.getByText('Already Contributed')).toBeInTheDocument()
         expect(screen.getByText('0xaaaa...1111')).toBeInTheDocument()
         expect(screen.getByText('0xbbbb...1111')).toBeInTheDocument()
+        expect(screen.getByRole('link', { name: 'Show more' })).toHaveAttribute(
+          'href',
+          `/projects/${mockProjectAddress}/leaderboard`,
+        )
       })
     })
 
-    it('does not show leaderboard when no contributions', async () => {
+    it('still shows the leaderboard preview when no contributions', async () => {
       vi.mocked(getProject).mockResolvedValue(makeProject() as any)
 
       render(<ProjectDetailPage />)
@@ -956,18 +979,19 @@ describe('ProjectDetailPage', () => {
       await waitFor(() => {
         expect(screen.getByText(/ETH raised/)).toBeInTheDocument()
       })
-      expect(screen.queryByText('Contributor Leaderboard')).not.toBeInTheDocument()
+      expect(screen.getByText('Already Contributed')).toBeInTheDocument()
+      expect(screen.getByText('No contributions yet.')).toBeInTheDocument()
     })
 
     it('sorts contributors by net contribution descending', async () => {
       vi.mocked(getProject).mockResolvedValue(makeProject() as any)
       vi.mocked(getProjectContributions).mockResolvedValue([
         makeContribution({
-          participant: '0xaaaa111111111111111111111111111111111111',
+          contributor: '0xaaaa111111111111111111111111111111111111',
           totalCost: '500000000000000000', // 0.5 ETH
         }),
         makeContribution({
-          participant: '0xbbbb111111111111111111111111111111111111',
+          contributor: '0xbbbb111111111111111111111111111111111111',
           totalCost: '1000000000000000000', // 1 ETH
         }),
       ] as any)
@@ -986,13 +1010,13 @@ describe('ProjectDetailPage', () => {
       vi.mocked(getProject).mockResolvedValue(makeProject() as any)
       vi.mocked(getProjectContributions).mockResolvedValue([
         makeContribution({
-          participant: '0xaaaa111111111111111111111111111111111111',
+          contributor: '0xaaaa111111111111111111111111111111111111',
           totalCost: '1000000000000000000', // 1 ETH
         }),
       ] as any)
       vi.mocked(getProjectRefunds).mockResolvedValue([
         makeRefund({
-          participant: '0xaaaa111111111111111111111111111111111111',
+          contributor: '0xaaaa111111111111111111111111111111111111',
           totalRefund: '300000000000000000', // 0.3 ETH
         }),
       ] as any)
@@ -1000,7 +1024,7 @@ describe('ProjectDetailPage', () => {
       render(<ProjectDetailPage />)
 
       await waitFor(() => {
-        expect(screen.getByText('Contributor Leaderboard')).toBeInTheDocument()
+        expect(screen.getByText('Already Contributed')).toBeInTheDocument()
         // Net should be 0.7 ETH
         expect(screen.getByText('0.7 ETH')).toBeInTheDocument()
       })
@@ -1010,13 +1034,13 @@ describe('ProjectDetailPage', () => {
       vi.mocked(getProject).mockResolvedValue(makeProject() as any)
       vi.mocked(getProjectContributions).mockResolvedValue([
         makeContribution({
-          participant: '0xaaaa111111111111111111111111111111111111',
+          contributor: '0xaaaa111111111111111111111111111111111111',
           totalCost: '500000000000000000',
         }),
       ] as any)
       vi.mocked(getProjectRefunds).mockResolvedValue([
         makeRefund({
-          participant: '0xaaaa111111111111111111111111111111111111',
+          contributor: '0xaaaa111111111111111111111111111111111111',
           totalRefund: '500000000000000000',
         }),
       ] as any)
@@ -1026,7 +1050,9 @@ describe('ProjectDetailPage', () => {
       await waitFor(() => {
         expect(screen.getByText(/ETH raised/)).toBeInTheDocument()
       })
-      expect(screen.queryByText('Contributor Leaderboard')).not.toBeInTheDocument()
+      expect(screen.getByText('Already Contributed')).toBeInTheDocument()
+      expect(screen.getByText('No contributions yet.')).toBeInTheDocument()
+      expect(screen.queryByText('0xaaaa...1111')).not.toBeInTheDocument()
     })
   })
 })

@@ -190,7 +190,7 @@ describe('FundingPortalSummary', () => {
       render(<FundingPortalSummary statementCid="QmTest" />)
 
       await waitFor(() => {
-        expect(screen.getByText('Failed to load cause board summary')).toBeInTheDocument()
+        expect(screen.getByText('Failed to load fundable-projects board summary')).toBeInTheDocument()
       })
     })
   })
@@ -201,19 +201,19 @@ describe('FundingPortalSummary', () => {
       vi.mocked(getAllAlignedProjectsForCause).mockResolvedValue([])
     })
 
-    it('shows "Cause Board" heading', async () => {
+    it('shows "Fundable Projects" heading', async () => {
       render(<FundingPortalSummary statementCid="QmTest" />)
 
       await waitFor(() => {
-        expect(screen.getByText('Cause Board')).toBeInTheDocument()
+        expect(screen.getByText('Fundable Projects')).toBeInTheDocument()
       })
     })
 
-    it('shows "View Cause Board" button linking to /portal/:statementCid', async () => {
+    it('shows "View fundable-projects board" button linking to /portal/:statementCid', async () => {
       render(<FundingPortalSummary statementCid="QmMyCid" />)
 
       await waitFor(() => {
-        const link = screen.getByRole('link', { name: 'View Cause Board' })
+        const link = screen.getByRole('link', { name: 'View fundable-projects board' })
         expect(link).toHaveAttribute('href', '/portal/QmMyCid')
       })
     })
@@ -316,7 +316,7 @@ describe('FundingPortalSummary', () => {
       render(<FundingPortalSummary statementCid="QmTest" />)
 
       await waitFor(() => {
-        expect(screen.getByText('Cause Board')).toBeInTheDocument()
+        expect(screen.getByText('Fundable Projects')).toBeInTheDocument()
       })
       expect(screen.queryByText('Top Projects by Funding Progress')).not.toBeInTheDocument()
     })
@@ -473,11 +473,11 @@ describe('FundingPortalSummary', () => {
       render(<FundingPortalSummary statementCid="QmTest" />)
 
       await waitFor(() => {
-        const headings = screen.getAllByRole('heading', { level: 2 })
+        const titles = screen.getAllByRole('link', { name: /Open project/i })
         // Alpha (90%) first, Gamma (10%) last
-        expect(headings[0]).toHaveTextContent('Project Alpha')
-        expect(headings[1]).toHaveTextContent('Project Beta')
-        expect(headings[2]).toHaveTextContent('Project Gamma')
+        expect(titles[0]).toHaveTextContent('Project Alpha')
+        expect(titles[1]).toHaveTextContent('Project Beta')
+        expect(titles[2]).toHaveTextContent('Project Gamma')
       })
     })
 

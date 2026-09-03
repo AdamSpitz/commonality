@@ -8,6 +8,7 @@ LLM-backed helpers for CauseStarter, defaulting to **Grok 4.5** via the xAI API:
 4. **Legacy statement suggester** — preserve the main → supporting workflow for existing causes.
 5. **Implication check and safety filter** — verify arrows and apply operational acceptable-use rules.
 6. **Coherence check + worker attestation helpers** — construction-only roster judgment (planks match summary, no riders); separate prompt and model config from generation. The trusted [`coherence-badge-worker`](../coherence-badge-worker/) imports the binding/judgment helpers and writes positive-only badges as the **CauseStarter site operator** (`msg.sender`), never the founder.
+7. **Bridge-cluster wording verbs** — one-shot `draft-modified-plank`, `draft-stand-in-sliver`, `draft-bridge-plank`, and `critique-triple`. These help a human author a cluster; they are not a chat and they never write a standing strategy prompt. Product intent: [`docs/founder/bridge-cluster-wording-help.md`](../docs/founder/bridge-cluster-wording-help.md), [`docs/founder/the-other-cause.md`](../docs/founder/the-other-cause.md).
 
 The three plank-first capabilities run as cause-assist-owned strategies on the shared bridge-creator statement engine. They share execution machinery and pattern techniques with bridge creation, but never its mediation strategy prompt.
 
@@ -27,10 +28,14 @@ See `src/statementGuidance.ts` and the Implication Attester evaluator prompt for
 | --- | --- | --- | --- |
 | GET | `/health` | — | Liveness + whether an API key is configured |
 | POST | `/suggest-statements` | `{ goal, existingStatements?, count? }` | 1–5 suggestions (filtered by implication check when LLM is on) |
-| POST | `/atomize` | `{ description, existingPlanks?, count? }` | Rough cause description → 1–5 independent candidate planks |
-| POST | `/sharpen-plank` | `{ plank, causeDescription? }` | Critique + optional reword against the attestable + signable bar (callers should treat `plank` as a suggestion, not auto-apply) |
+| POST | `/atomize` | `{ description, existingPlanks?, count? }` | Rough cause description → 1–5 independent candidate planks. Drops taxonomy / pay-the-work / slogan / heuristic-safety failures so they are never shown. |
+| POST | `/sharpen-plank` | `{ plank, causeDescription? }` | Critique + optional reword against the attestable + signable bar (callers should treat `plank` as a suggestion, not auto-apply). A reword that fails the same quality gate is withheld; the original plank is returned with warnings. |
 | POST | `/draft-anchor` | `{ planks[] }` | Deterministic disjunctive anchor with verbatim planks and plank→anchor check payloads |
 | POST | `/suggest-mediator-scaffold` | `{ foundingStatement, name? }` | Editable mediator identity, side labels, and complete starting anchor triples; never a strategy prompt |
+| POST | `/draft-modified-plank` | `{ parentPlanks[], currentDraft?, sideLabel?, mustNotConcede?, complaint?, intendedBridge? }` | One modified-plank proposal for a human-authored bridge cluster. Not a chat turn. Refuses empty parents. |
+| POST | `/draft-stand-in-sliver` | `{ sideLabel, bullets?, mustNotCaricature?, complaint?, currentDraft? }` | Thin roster for a camp with no published cause. Not a modified-plank call. |
+| POST | `/draft-bridge-plank` | `{ modifiedSides[{ label?, planks[] }], currentDraft?, complaint? }` | One shared-platform plank from ≥2 modified sides. Strips justifications and coalition captions. |
+| POST | `/critique-triple` | `{ modifiedPlanks[], bridgePlank, parentPlanks? }` | Objections (including `routing:` and `shape:`), justification-leak warnings — no rewrite. Also runs the live implication attester on each modified→bridge pair and adds `routing: attester…` objections when a pair would not bless. |
 | POST | `/check-implications` | `{ mainStatement, supportingStatements[] }` | Per-pair implies / confidence / reasoning |
 | POST | `/safety-check` | `{ items: [{ text, fieldLabel? }] }` | Per-item allow/deny + user-facing explanation |
 | POST | `/check-coherence` | `{ rosterCid, title, summary, planks[], mediatorBlurb? }` | Positive-only construction check for a would-be roster CID (preview; no chain write; may use heuristic without an API key) |
@@ -41,12 +46,12 @@ Without an API key, the suggester uses conservative local templates, implication
 
 | Env | Default | Notes |
 | --- | --- | --- |
-| `XAI_API_KEY` | — | xAI key — set in repo-root `.env.secrets`, then `./scripts/setup-env.sh` |
-| `OPENROUTER_API_KEY` | — | Legacy fallback if no xAI/Grok key; pairs with OpenRouter base URL + `x-ai/grok-4.5` model defaults |
-| `CAUSE_ASSIST_API_BASE_URL` | `https://api.x.ai/v1` (or OpenRouter when only `OPENROUTER_API_KEY` is set) | OpenAI-compatible base URL |
-| `CAUSE_ASSIST_SUGGEST_MODEL` | `grok-4.5` (or `x-ai/grok-4.5` for OpenRouter-only) | Suggester model id |
+| `OPENROUTER_API_KEY` | — | Preferred LLM key; pairs with OpenRouter + `deepseek/deepseek-v4-flash-0731` |
+| `XAI_API_KEY` | — | Fallback only when OpenRouter is not configured |
+| `CAUSE_ASSIST_API_BASE_URL` | `https://openrouter.ai/api/v1` when OpenRouter is used | OpenAI-compatible base URL |
+| `CAUSE_ASSIST_SUGGEST_MODEL` | production OpenRouter model (`deepseek/deepseek-v4-flash-0731`) | Suggester model id |
 | `CAUSE_ASSIST_COHERENCE_MODEL` | same as safety/suggest | Roster coherence model (own slot so it is not generation's model by accident) |
-| `CAUSE_ASSIST_SAFETY_MODEL` | `grok-4.5` (or `x-ai/grok-4.5` for OpenRouter-only) | Safety filter model id |
+| `CAUSE_ASSIST_SAFETY_MODEL` | production OpenRouter model | Safety filter model id |
 | `CAUSE_ASSIST_IMPLICATION_MODEL` | same as suggest model | Implication check model id |
 | `CAUSE_ASSIST_COHERENCE_ATTESTER_ADDRESS` | — | Public worker address exposed by `/health`; the HTTP process does not receive its private key |
 | `PORT` / `CAUSE_ASSIST_PORT` | `3002` | HTTP port |

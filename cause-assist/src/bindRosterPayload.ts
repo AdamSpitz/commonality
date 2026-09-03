@@ -7,7 +7,7 @@
  */
 
 import type { CoherenceCheckRequest } from './coherenceCheck.js'
-import { previewRosterCid, type RosterFields } from './rosterDocument.js'
+import { previewRosterCid, type RosterFields, type RosterMediator } from './rosterDocument.js'
 
 export type BindRosterFailureReason = 'roster_mismatch' | 'roster_unavailable'
 
@@ -23,6 +23,7 @@ export interface BoundAttestRequest {
   summary: string
   plankCids: string[]
   mediatorBlurb?: string
+  mediator?: RosterMediator
 }
 
 export async function bindRosterPayload(
@@ -34,6 +35,7 @@ export async function bindRosterPayload(
     summary: request.summary,
     plankCids: [...request.plankCids],
     mediatorBlurb: request.mediatorBlurb ?? '',
+    ...(request.mediator ? { mediator: request.mediator } : {}),
   }
 
   let expectedCid: string

@@ -9,8 +9,12 @@ export const STATEMENT_QUALITY_GUIDANCE = `What a statement is (Commonality / Ca
 - Aim for determinate meaning, not exhaustive detail. A broad proposition may leave implementation open and still be clear. Reject wording only when sincere readers could assign materially different propositions to it.
 - Statements must be self-contained. Do not use slogans, tribe-markers, or shorthand that needs unstated background context (e.g. reject "I am pro-choice" as not clear enough by itself).
 - Prefer concrete, signable claims over marketing fluff, mission slogans, or vague aspirations.
+- Want more of the thing, do not classify it. Write "I want more neighborhood gardens" / "I want widely used library L to stay maintained and well-documented" — not "X is a public good", "X is a worthwhile local public good", or "material support is a legitimate way to keep X available." A signer is saying they want the outcome; a project attests it is aligned with that want. Taxonomy ("this is a public good") is our language, not theirs.
+- Do not write "I want people who do X to get paid" / unpaid nights-and-weekends / "material support for maintainers." Paying the work is what Commonality is for. A funding project aligns with the desired work-product ("I want this library maintained and documented"), not with a meta-claim that labor should be compensated.
+- Prefer earmark grain, not only a category. Grain is a ladder on more than one axis, and the useful axis depends on the cause. Software: kind of software (OSS → Linux → Linux desktop; Ethereum → Ethereum-based gaming; a named library). Food: kind of system (gardens, CSA, farmers' markets) *and* place ("I want more CSA in Grey County, Ontario"). Place is often the fire-and-forget earmark for local public goods. A general want is still fine for showing general support, advocacy, or delegating a monthly amount to someone who then picks projects. When atomizing a broad cause, propose the general plank *and* several more-specific wants at more than one grain and, where the cause is local, at least one place-specialized want. Do not stop at the category, and do not treat "Linux" / "CSA" as the most specific you may go.
+- Place-specialized wants are ordinary signable planks. "I want more CSA in Grey County, Ontario" does not imply "I want more CSA in Ontario" and should not be minted so that implication can fill a province board. Nested-place project discovery is a board inclusion rule (project relevant-area paths plus optional board "within"), not belief implication. A province-wide want is a different statement, for people who actually hold that goal. Do not emit weaker geo "parents" for rollup, drop "more" to buy a bless, use "somewhere in REGION" as a parent dialect, or mint an any-combinator over known counties.
 - Statements are public and permanent. Do not invent illegal, fraudulent, hateful, doxxing, sanctions-evading, or election-campaign-fundraising content. No personal contact details or private identifiers.
-- Prefer 1–2 sentences per statement.
+- Prefer 1–2 sentences per statement. This bar is for ordinary cause planks and uniques. Modified/bridge wording may be longer when the extra words are load-bearing — see bridge guidance if this task is mediation.
 
 Implication rule for supporting statements (critical):
 - The main statement (S1) must logically imply each supporting statement (S2).
@@ -20,3 +24,14 @@ Implication rule for supporting statements (critical):
 - Do not reject merely because S2 is broad, permits multiple implementations, or leaves details unsettled.
 - Implication is stronger than topical relatedness. Do not draft "drivers," "principles," or "why it matters" extras unless they are already entailed by the main wording.
 - When in doubt, do not suggest the supporting statement.`
+
+/** Extra rules for human-authored bridge clusters. Do not use this as a drafting algorithm for attester subset. */
+export const BRIDGE_STATEMENT_GUIDANCE = `Modified and shared (bridge) planks:
+- Signature, not column: one register, one speech act, short enough that a real person would sign the paragraph. Not an op-ed. Not three slogans stacked.
+- Name the gap first. If both camps already share the civic conclusion, the shared plank is that conclusion with both *whys* omitted. Do not invent a compromise, a deal, or a narrator to make the implication system look busy.
+- Containment is a check after drafting, not a method. Do not paste the shared sentences into each modified so the attester's subset rule fires.
+- Parents/naturals are how that camp talks. Do not withhold a civic line from the parent so the modified can "add" it. If the parent already contains the shared claim, say so in warnings (the triple may be decorative).
+- If the shared claim is not in the parent, that extra is a real ask. Warn. Do not disguise a belief jump as a small edit. Unbundling must reaffirm the rest of that camp's bundle.
+- First-person limits belong on that side's modified ("I am not asking the state to make anyone pray"). Do not put coalition captions on the shared plank — not "we come from different places," "I don't need your reasons," "people who get here from biology are not my enemy," or "the civic job is not to impose a church / wait for religion to disappear."
+- The shared plank must not require either side's justification (no theology a secular signer must affirm; no reducing faith to "studies show"). Also strip commentary on whose project this is.
+- Routing: a reasonable signer of the modified should be annoyed at being asked to also sign the shared plank ("I already said that"). If they would not, the modified does not contain it — thicken the modified or keep it a nudge. Do not fatten the shared plank.`

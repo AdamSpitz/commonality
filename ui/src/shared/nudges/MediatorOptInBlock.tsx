@@ -1,7 +1,7 @@
-import { useState } from 'react'
 import { Alert, Button, Chip, FormControlLabel, Paper, Stack, Switch, Typography } from '@mui/material'
-import { addTrustedNudger, isTrustedNudger, loadTrustedNudgers, removeTrustedNudger, type TrustedNudgerEntry } from '../hooks/useTrustedNudgers'
+import type { TrustedNudgerEntry } from '../hooks/useTrustedNudgers'
 import { getMediatorOptInPath } from './mediatorNudger'
+import { useMediatorOptIn } from './useMediatorOptIn'
 
 export function MediatorOptInBlock({
   mediator,
@@ -12,10 +12,8 @@ export function MediatorOptInBlock({
   tallyUrl: (path: string) => string
   heading?: string
 }) {
-  const [trustedNudgers, setTrustedNudgers] = useState(loadTrustedNudgers)
+  const { optedIn, toggle } = useMediatorOptIn(mediator?.address ?? '', mediator)
   if (!mediator) return <Alert severity="info">This cause has not configured a mediator yet.</Alert>
-  const optedIn = isTrustedNudger(mediator.address, trustedNudgers)
-  const toggle = () => setTrustedNudgers(optedIn ? removeTrustedNudger(mediator.address) : addTrustedNudger(mediator))
   return <Paper component="section" aria-label={heading} sx={{ p: 2.5, borderRadius: 3 }}>
     <Stack spacing={1.5}>
       <Stack direction="row" justifyContent="space-between" alignItems="center">

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import {
   Box,
   Typography,
@@ -62,11 +62,18 @@ export function UserProfilePage() {
   const machinery = useMachinery()
   const trustedAttesters = useTrustedAttesters()
 
+  // Bumped on every load so a late async write can tell it has been superseded
+  // by a newer navigation (e.g. the user moved to a different profile).
+  const loadTokenRef = useRef(0)
+
   const loadUserData = useCallback(async () => {
     if (!displayAddress) {
       setLoading(false)
       return
     }
+
+    const loadToken = loadTokenRef.current + 1
+    loadTokenRef.current = loadToken
 
     try {
       setLoading(true)
@@ -80,11 +87,14 @@ export function UserProfilePage() {
         }),
       ])
 
+      if (loadToken !== loadTokenRef.current) return
+
       setBeliefs(userBeliefs)
       setDisbeliefs(userDisbeliefs)
       setIndirectSupport(userIndirectSupport)
       setLoading(false)
     } catch (err) {
+      if (loadToken !== loadTokenRef.current) return
       console.error('Error loading user data:', err)
       setError(err instanceof Error ? err.message : 'Failed to load user data')
       setLoading(false)
@@ -93,6 +103,9 @@ export function UserProfilePage() {
 
   useEffect(() => {
     loadUserData()
+    return () => {
+      loadTokenRef.current += 1
+    }
   }, [loadUserData])
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {

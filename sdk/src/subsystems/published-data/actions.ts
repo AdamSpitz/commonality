@@ -14,6 +14,11 @@ export interface PublishDataResult {
   txHash: Hash;
 }
 
+export interface PublishDataOptions {
+  waitForReceipt?: boolean;
+  nonce?: number;
+}
+
 /**
  * Publish raw bytes through PublishedData and return both canonical identifiers.
  *
@@ -24,6 +29,7 @@ export async function publishData(
   clients: WriteClients,
   publishedDataContract: PublishedDataContract,
   content: Uint8Array,
+  options: PublishDataOptions = {},
 ): Promise<PublishDataResult> {
   const dataId = computePublishedDataId(content);
   const cid = publishedDataIdToCid(dataId);
@@ -34,8 +40,11 @@ export async function publishData(
     args: [toHex(content)],
     chain: clients.walletClient.chain,
     account: clients.walletClient.account!,
+    ...(options.nonce !== undefined ? { nonce: options.nonce } : {}),
   });
 
-  await clients.publicClient.waitForTransactionReceipt({ hash: txHash });
+  if (options.waitForReceipt !== false) {
+    await clients.publicClient.waitForTransactionReceipt({ hash: txHash });
+  }
   return { dataId, cid, txHash };
 }

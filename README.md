@@ -3,6 +3,7 @@
 Commonality is a system for decentralized crowdfunding of public goods: people can fund projects aligned with shared values without needing a central organization to coordinate them. See [What is Commonality?](./specs/README.md#what-is-commonality) for the product overview.
 
   - [AI continuity notes](./CONTINUITY.md)
+  - [Fake / seed data plan](./fake-data-generation/PLAN.md) — tiny local world vs real Conceptspace statements vs mass fake activity; **next step for a fresh LLM**
   - [To-do list](./TODO.md) — where LLMs file new one-shot tasks. Tag each with its [autonomy tier](./workflow/task-tiers.md) (Ask / Tell / Trust); untagged means Ask.
   - [Task autonomy tiers](./workflow/task-tiers.md): how much latitude an LLM has to act without Adam — **Ask** before, **Tell** after, **Trust** entirely.
   - [Needs attention](./inbox.md) — Adam's inbox: Ask items awaiting a ruling, and Tell items reported after the fact.
@@ -11,7 +12,8 @@ Commonality is a system for decentralized crowdfunding of public goods: people c
   - [High-level project status](./workflow/project-status.md) AKA what milestone are we currently heading for: never deployed to mainnet yet, just did first testnet deployment, see also [MVP](./specs/product/mvp.md)
   - Product boundaries between the eight sites: [product UI domains](./specs/product/ui-domains.md).
   - Technical domain composition and live route ownership: [technical UI domains](./specs/tech/ui-domains.md) and the actual domain manifests under [`ui/src/domains/`](./ui/src/domains/).
-  - **CauseStarter** ([`causestarter/`](./causestarter/), backlog [`causestarter/TODO.md`](./causestarter/TODO.md)): founder-first core domain (eventual primary entry; Tally / LazyGiving / etc. de-emphasized as tools). Included in `./scripts/services.sh --start` and `./scripts/deploy-causestarter.sh`. LLM helpers: [`cause-assist/`](./cause-assist/).
+  - **CauseStarter** (SPA in [`ui/src/causestarter/`](./ui/src/causestarter/), `VITE_DOMAIN=causestarter`; glue/backlog [`causestarter/`](./causestarter/), [`causestarter/TODO.md`](./causestarter/TODO.md)): founder-first core domain (eventual primary entry; Tally / LazyGiving / etc. de-emphasized as tools). Included in `./scripts/services.sh --start` and `./scripts/deploy-causestarter.sh`. Local start currently publishes **only** the CauseStarter IPFS bundle (`LOCAL_UI_DOMAINS`; restore all UIs with `LOCAL_UI_DOMAINS=all` — see [local development](./workflow/local-development.md)). LLM helpers: [`cause-assist/`](./cause-assist/).
+  - [Glossary](./specs/glossary.md) — the project's ubiquitous language. Read before naming anything; it also lists the known terminology drift.
   - [Architecture Decision Records](./specs/decisions/README.md) — immutable log of *why* consequential decisions were made (and what was rejected). Grep before reversing something that looks wrong.
   - [Role-based guidance](./workflow/roles/README.md) on what docs to read:
     - [founder](./workflow/roles/founder.md)
@@ -21,4 +23,4 @@ Commonality is a system for decentralized crowdfunding of public goods: people c
     - [end-user documentation writer](./specs/user-docs.md)
     - [end user](./workflow/roles/end-user.md)
   - [Reviews](./workflow/reviews/README.md)
-  - [Marketing](/specs/product/marketing.md)
+  - [Marketing](./specs/product/marketing.md)

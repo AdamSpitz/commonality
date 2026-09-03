@@ -10,7 +10,7 @@ export function StatementFundingPortalPage() {
   const { statementCid } = useParams<{ statementCid: string }>()
 
   if (!statementCid) {
-    return <Alert severity="error">Missing statement for this cause board.</Alert>
+    return <Alert severity="error">Missing statement for this fundable-projects board.</Alert>
   }
 
   return <CauseBoard statementCid={statementCid} />

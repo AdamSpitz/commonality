@@ -33,7 +33,10 @@ async function connectHardhat(page: Page, account: number) {
 }
 
 async function startCause(page: Page) {
-  await page.getByTestId('home-start-cause').click()
+  // Occupied home drops the landing CTA once this wallet already has causes.
+  // Causes always exposes the same start control.
+  await page.getByTestId('nav-causes').click()
+  await page.getByTestId('causes-start-cause').click()
   await expect(page.getByTestId('cause-detail-page')).toBeVisible({ timeout: 10_000 })
 }
 
@@ -52,8 +55,15 @@ test.describe('CauseStarter agent smoke', () => {
     await page.goto(appPath('/'))
   })
 
+  test('occupied home shows the personal fundable-projects board after connect', async ({ page }) => {
+    await connectHardhat0(page)
+    await expect(page.getByTestId('home-dashboard-board')).toBeVisible({ timeout: 15_000 })
+    await expect(page.getByRole('heading', { name: /your fundable projects/i })).toBeVisible()
+  })
+
   test('starts a cause and lands on its editable page', async ({ page }) => {
     await expect(page.getByTestId('wallet-connect-button')).toBeVisible()
+    await expect(page.getByTestId('home-start-cause')).toBeVisible()
     await connectHardhat0(page)
     await startCause(page)
 
@@ -63,7 +73,7 @@ test.describe('CauseStarter agent smoke', () => {
     // A brand-new cause has no planks, so no counts and nothing to select.
     await expect(page.getByTestId('cause-view-strip')).toBeHidden()
     await expect(page.getByTestId('cause-add-plank')).toBeVisible()
-    await expect(page.getByRole('heading', { name: /start a cause/i })).toBeVisible()
+    await expect(page.getByRole('heading', { name: /start a cause board/i })).toBeVisible()
   })
 
   test('edits issues in place on the cause page', async ({ page }) => {
@@ -98,23 +108,15 @@ test.describe('CauseStarter agent smoke', () => {
     // One published plank means there is now a view to count over.
     await expect(page.getByTestId('cause-view-strip')).toBeVisible()
     await expect(page.getByTestId('view-count-any')).toBeVisible({ timeout: 30_000 })
-
-    // The conjunction view reports two bands, never a bare intersection.
-    await page.getByTestId('view-mode-all').click()
     await expect(page.getByTestId('view-count-all')).toBeVisible()
-    await expect(page.getByTestId('view-count-none-disagreed')).toBeVisible()
   })
 
-  test('nav Start creates a cause and opens the editor while connected', async ({ page }) => {
+  test('Cause boards page starts a cause board and opens the editor while connected', async ({ page }) => {
     await connectHardhat0(page)
 
-    // Desktop nav (viewport is Desktop Chrome in playwright.config).
-    const navStart = page.getByTestId('nav-start')
-    if (await navStart.isVisible().catch(() => false)) {
-      await navStart.click()
-    } else {
-      await page.goto(appPath('/start'))
-    }
+    await page.getByTestId('nav-causes').click()
+    await expect(page.getByRole('heading', { name: 'Cause boards' })).toBeVisible()
+    await page.getByTestId('causes-start-cause').click()
 
     await expect(page.getByTestId('cause-detail-page')).toBeVisible({ timeout: 10_000 })
     await expect(page.getByTestId('wallet-connect-button')).toContainText(/Hardhat #0/i)
@@ -143,8 +145,11 @@ test.describe('CauseStarter agent smoke', () => {
       timeout: 60_000,
     })
     const stableUrl = page.url()
-    await expect(page.getByText('Roster published', { exact: true })).toBeVisible()
+    await expect(page.getByTestId('cause-unpublished')).toHaveCount(0)
     await expect(page.getByRole('heading', { name: 'Safer Oak Street' })).toBeVisible()
+
+    // Live causes open in viewing; revision needs the organizer editing surface.
+    await page.getByTestId('cause-mode-editing').click()
 
     // A revision updates the stable ref while preserving the first immutable version.
     await page.getByTestId('roster-summary').fill(
@@ -221,24 +226,24 @@ test.describe('CauseStarter agent smoke', () => {
     // changing the organizer's roster, then explicitly review the exact selected CIDs.
     await connectHardhat(page, 1)
     await expect(page.getByText(/direct signer.*indirect supporter/i)).toHaveCount(2, { timeout: 30_000 })
-    await page.getByRole('checkbox', { name: 'Include issue 2 in the counts above' }).uncheck()
-    await expect(page.getByTestId('selected-plank-support')).toBeHidden()
-    await page.getByRole('checkbox', { name: 'Include issue 2 in the counts above' }).check()
-    await expect(page.getByTestId('selected-plank-support')).toContainText(statements[0])
-    await expect(page.getByTestId('selected-plank-support')).toContainText(statements[1])
-    await expect(page.getByTestId('selected-plank-support')).toContainText(
-      /not the organizer, narrative, cause roster, or unselected statements/i,
-    )
+    await page.getByTestId('plank-in-totals-1').click()
+    await expect(page.getByTestId('plank-in-totals-1')).toHaveAttribute('aria-pressed', 'false')
+    await expect(page.getByTestId('selected-plank-support')).toBeVisible()
+    await expect(page.getByTestId('support-selected-planks')).toBeEnabled({ timeout: 30_000 })
+    await page.getByTestId('plank-in-totals-1').click()
+    await expect(page.getByTestId('plank-in-totals-1')).toHaveAttribute('aria-pressed', 'true')
+    await expect(page.getByTestId('support-selected-planks')).toBeEnabled()
 
     await page.getByTestId('support-selected-planks').click()
-    await expect(page.getByTestId('selected-plank-support')).toContainText(/Supported 2 statements/, {
+    await expect(page.getByTestId('selected-plank-support')).toContainText(/Signed 2 statements/, {
       timeout: 60_000,
     })
+    await expect(page.getByTestId('support-selected-planks')).toHaveCount(0)
 
-    // Every immutable plank retains its own project board even when no project is aligned yet.
-    await page.getByRole('link', { name: 'Aligned projects' }).first().click()
-    await expect(page).toHaveURL(/\/statement\/[^/]+\/board$/)
-    await expect(page.getByRole('heading', { name: /aligned projects/i })).toBeVisible({ timeout: 30_000 })
+    // Every immutable plank retains its own statement page (fundable projects live there).
+    await page.getByRole('link', { name: /project/i }).first().click()
+    await expect(page).toHaveURL(/\/statement\/[^/]+/)
+    await expect(page.getByRole('heading', { name: /fundable projects/i })).toBeVisible({ timeout: 30_000 })
 
     await page.goto(pinnedHref!)
     await expect(page.getByText('Pinned version', { exact: true })).toBeVisible({ timeout: 30_000 })

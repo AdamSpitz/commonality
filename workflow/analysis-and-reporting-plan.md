@@ -1,5 +1,7 @@
 # Commonality — Analysis & Reporting Plan
 
+**Dated snapshot (2026-07).** This is the brief that produced [`scale-launch-analysis/`](./scale-launch-analysis/README.md). It is not live project status — use [project-status.md](./project-status.md) and the verifier for that.
+
 **Engagement posture:** Independent technical + legal (US/Canada) counsel-ready diligence for scale launch  
 **Repo:** [github.com/AdamSpitz/commonality](https://github.com/AdamSpitz/commonality) (`dev` branch; latest commits already include substantial in-repo legal work)  
 **Current phase (repo self-assessment):** MVP implemented in code; **no mainnet**; testnet stabilization / MVP validation  
@@ -67,7 +69,7 @@ The project has unusually strong self-documentation. Analysis will **treat these
 | Scale | `specs/tech/scalability.md` |
 | Security | `specs/tech/security.md`, `workflow/security-recoverability.md`, Slither + Hardhat suite |
 | Legal map | `specs/product/legal/*` (14 risk files + control audit) |
-| Product reframe | `workflow/donation-first-reframe-plan-2026-06-22.md`, `specs/product/legal/retroactive-funding-redesign.md` |
+| Product reframe | historical `workflow/donation-first-reframe-plan-2026-06-22.md` (deleted; git history), `specs/product/legal/retroactive-funding-redesign.md` |
 | Ops | `workflow/deployment.md`, verifier, Render/Cloudflare/IPNS deploy scripts |
 
 **Critical observation for the plan:** recent git history (`legal-analysis` PR) means legal thinking is advanced *on paper*. Launch risk is whether **code + UX copy + marketing + operator control** still contradict the intended legal posture—especially retroactive-funding “scout profit” language still present in end-user documentation (e.g. TL;DR for LLMs).

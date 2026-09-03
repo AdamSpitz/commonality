@@ -1,5 +1,6 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { DISCOVERY_LEVEL_STORAGE_KEY } from '../hooks/useDiscoveryLevel'
 
 vi.mock('wagmi', () => ({
   useAccount: vi.fn(),
@@ -25,6 +26,7 @@ const TRUSTED_B = '0xBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB'
 describe('SuccessfulProjectsTab', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    window.localStorage.removeItem(DISCOVERY_LEVEL_STORAGE_KEY)
     vi.mocked(useAccount).mockReturnValue({ address: USER_ADDRESS } as any)
     vi.mocked(useTrustedSet).mockReturnValue({
       trustedSet: new Set([TRUSTED_A, TRUSTED_B]),
@@ -33,10 +35,10 @@ describe('SuccessfulProjectsTab', () => {
     } as any)
   })
 
-  it('renders the discovery slider defaulting to "My network" and filters by the trusted set', async () => {
+  it('defaults discovery to "My network" and filters by the trusted set', async () => {
     render(<SuccessfulProjectsTab statementCid="bafyCause" trustedImplicationAttesters={new Set(['0ximpl'])} />)
 
-    expect(screen.getByRole('slider')).toHaveValue('0')
+    expect(screen.queryByRole('slider')).toBeNull()
     await waitFor(() => {
       expect(useTrustedSet).toHaveBeenCalledWith(USER_ADDRESS, { maxHops: 1 })
     })
@@ -51,9 +53,8 @@ describe('SuccessfulProjectsTab', () => {
   })
 
   it('loosens to +1 hop, re-running useTrustedSet with maxHops 2', () => {
+    window.localStorage.setItem(DISCOVERY_LEVEL_STORAGE_KEY, 'one-hop')
     render(<SuccessfulProjectsTab statementCid="bafyCause" />)
-
-    fireEvent.change(screen.getByRole('slider'), { target: { value: '1' } })
 
     expect(useTrustedSet).toHaveBeenLastCalledWith(USER_ADDRESS, { maxHops: 2 })
     // Still passes the trusted set/weights while the filter is active.
@@ -66,9 +67,8 @@ describe('SuccessfulProjectsTab', () => {
   })
 
   it('drops the trust filter entirely on "Anyone"', () => {
+    window.localStorage.setItem(DISCOVERY_LEVEL_STORAGE_KEY, 'anyone')
     render(<SuccessfulProjectsTab statementCid="bafyCause" />)
-
-    fireEvent.change(screen.getByRole('slider'), { target: { value: '2' } })
 
     // Anyone does not recompute with a hop limit — it passes undefined filters.
     expect(vi.mocked(SuccessfulProjectsList).mock.calls.at(-1)?.[0]).toEqual(
@@ -79,13 +79,13 @@ describe('SuccessfulProjectsTab', () => {
     )
   })
 
-  it('disables the slider when the viewer is not signed in', () => {
+  it('does not show the discovery slider on the board', () => {
     vi.mocked(useAccount).mockReturnValue({ address: undefined } as any)
 
     render(<SuccessfulProjectsTab statementCid="bafyCause" />)
 
-    expect(screen.getByRole('slider')).toBeDisabled()
-    expect(screen.getByText(/Sign in and build a trust network/i)).toBeInTheDocument()
+    expect(screen.queryByRole('slider')).toBeNull()
+    expect(screen.queryByText(/Sign in and build a trust network/i)).toBeNull()
   })
 
   it('shows a trust-network progress alert while loading', async () => {
@@ -97,7 +97,7 @@ describe('SuccessfulProjectsTab', () => {
 
     render(<SuccessfulProjectsTab statementCid="bafyCause" />)
 
-    expect(await screen.findByText(/Success vouches are currently filtered using 1 account/i)).toBeInTheDocument()
+    expect(await screen.findByLabelText(/Success vouches are currently filtered using 1 account/i)).toBeInTheDocument()
   })
 
   it('shows the pre-network progress alert before any trusted accounts are known', async () => {
@@ -109,6 +109,6 @@ describe('SuccessfulProjectsTab', () => {
 
     render(<SuccessfulProjectsTab statementCid="bafyCause" />)
 
-    expect(await screen.findByText(/Until any trusted accounts are found, success vouches are not filtered/i)).toBeInTheDocument()
+    expect(await screen.findByLabelText(/Until any trusted accounts are found, success vouches are not filtered/i)).toBeInTheDocument()
   })
 })

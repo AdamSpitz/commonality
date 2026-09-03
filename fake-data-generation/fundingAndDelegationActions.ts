@@ -1,8 +1,6 @@
-import { createPublicClient, createWalletClient, http, zeroAddress } from 'viem';
-import { privateKeyToAccount } from 'viem/accounts';
-import { generateStatements } from './generateStatements.js';
+import { zeroAddress } from 'viem';
 import { CONTRACT_ADDRESSES, loadEnv, RPC_URL } from './loadEnv.js';
-import { BeliefsAbi, ImplicationsAbi, AlignmentAttestationsAbi, ProjectFactoryAbi, AssuranceContractAbi, DelegatableNotesAbi, PublishedDataAbi } from '@commonality/sdk/abis';
+import { AssuranceContractAbi, PublishedDataAbi } from '@commonality/sdk/abis';
 import { type WriteClients } from '@commonality/sdk/utils';
 import { createIPFSConfigInNodeJSFromTheUsualEnvVars } from '@commonality/sdk/node';
 import { createSDKMachinery } from '@commonality/sdk/machinery';
@@ -11,28 +9,9 @@ import { depositETH as sdkDepositETH, delegateNote as sdkDelegateNote, revokeNot
 import { createProject as sdkCreateProject, buyProjectTokens, withdrawProjectFunds as sdkWithdrawProjectFunds } from '@commonality/sdk/lazy-giving';
 import type { User, Statement, SimulationContracts } from './types.js';
 import { parsePaymentTokenUnits } from './paymentTokenUnits.js';
+import { createSeedClients } from './seedRpc.js';
 
 loadEnv();
-
-// suppress unused import warnings
-void BeliefsAbi;
-void ImplicationsAbi;
-void AlignmentAttestationsAbi;
-
-const hardhat = {
-  id: 31337,
-  name: 'Hardhat',
-  network: 'hardhat',
-  nativeCurrency: {
-    name: 'Ether',
-    symbol: 'ETH',
-    decimals: 18,
-  },
-  rpcUrls: {
-    default: { http: ['http://localhost:8545'] },
-    public: { http: ['http://localhost:8545'] },
-  },
-} as const;
 
 /**
  * Funding and Delegation Actions for Generative Testing
@@ -86,7 +65,12 @@ interface SeedProjectMetadataTemplate {
   description: string;
   kind: string;
   alignmentRef: SeedProjectAlignmentRef;
+  /** Specific-to-broad place paths for geographic board matching. */
+  relevantAreas?: string[][];
 }
+
+/** Riverside garden: nested place for Ontario-scoped cause-board inclusion (not implication). */
+export const SEED_GARDEN_RELEVANT_AREAS: string[][] = [['Grey County', 'Ontario', 'Canada']];
 
 const PROJECT_SEED_METADATA: SeedProjectMetadataTemplate[] = [
   // Deliberately first so the deterministic funding/success seeding (which covers the
@@ -102,6 +86,7 @@ const PROJECT_SEED_METADATA: SeedProjectMetadataTemplate[] = [
       groupId: 'local-community',
       statementId: 'local-food-systems',
     },
+    relevantAreas: SEED_GARDEN_RELEVANT_AREAS,
   },
   {
     name: 'Bridge-Building Workshop Series',
@@ -167,6 +152,7 @@ export function getSeedProjectMetadata(projectIndex: number) {
     seedProjectIndex: projectIndex,
     seedProjectKind: template.kind,
     alignedStatementRefs: [template.alignmentRef],
+    ...(template.relevantAreas ? { relevantAreas: template.relevantAreas } : {}),
   };
 }
 
@@ -194,24 +180,7 @@ class FundingAndDelegationActions {
   }
 
   createClientsForUser(user: User) {
-    const account = privateKeyToAccount(user.privateKey);
-
-    const walletClient = createWalletClient({
-      account,
-      chain: hardhat,
-      transport: http(this.rpcUrl),
-    });
-
-    const publicClient = createPublicClient({
-      chain: hardhat,
-      transport: http(this.rpcUrl),
-    });
-
-    return {
-      walletClient,
-      publicClient,
-      account: account.address,
-    };
+    return createSeedClients(user.privateKey, this.rpcUrl);
   }
 
   getWalletForUser(user: User) {
@@ -683,11 +652,6 @@ class FundingAndDelegationActions {
     }
   }
 }
-
-// suppress unused import
-void generateStatements;
-void DelegatableNotesAbi;
-void ProjectFactoryAbi;
 
 export { FundingAndDelegationActions };
 export type { CreatedProject, NoteRecord, TokenRecord };

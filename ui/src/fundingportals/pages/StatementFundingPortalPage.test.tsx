@@ -35,7 +35,8 @@ vi.mock('@commonality/sdk/fundingportals', async () => {
   const actual = await vi.importActual('@commonality/sdk/fundingportals')
   return {
     ...actual,
-    getTotalFundingForCause: vi.fn(),
+    getAllAlignedProjectsForCause: vi.fn(),
+    foldAlignedProjectFunding: vi.fn(),
   }
 })
 
@@ -50,6 +51,23 @@ vi.mock('../../shared/hooks/useTrustedSet', () => ({
 vi.mock('../../shared/hooks/useTrustedAttesters', () => ({
   useTrustedAttesters: vi.fn(),
 }))
+
+vi.mock('../../shared/hooks/useTrustedContentAttesters', () => ({
+  useTrustedContentAttesters: vi.fn(() => []),
+}))
+
+vi.mock('../../content-funding', async () => {
+  const actual = await vi.importActual<typeof import('../../content-funding')>('../../content-funding')
+  return {
+    ...actual,
+    useContentFundingState: vi.fn(() => ({
+      state: null,
+      channels: [],
+      contentAttestations: new Map(),
+      loading: false,
+    })),
+  }
+})
 
 
 vi.mock('../components/AlignedProjectsList', () => ({
@@ -77,7 +95,7 @@ import { useParams } from 'react-router-dom'
 import { useAccount } from 'wagmi'
 import { getStatementWithContent } from '@commonality/sdk/conceptspace'
 import { getMonthlyPledgedByCause } from '@commonality/sdk/delegation'
-import { getTotalFundingForCause } from '@commonality/sdk/fundingportals'
+import { foldAlignedProjectFunding, getAllAlignedProjectsForCause } from '@commonality/sdk/fundingportals'
 import { useMachinery } from '../../shared'
 import { useTrustedSet } from '../../shared'
 import { useTrustedAttesters } from '../../shared'
@@ -117,13 +135,12 @@ describe('StatementFundingPortalPage', () => {
         content: '# Subjectiv Cause',
       },
     } as any)
-    vi.mocked(getTotalFundingForCause).mockResolvedValue({
+    vi.mocked(getAllAlignedProjectsForCause).mockResolvedValue([])
+    vi.mocked(foldAlignedProjectFunding).mockResolvedValue({
       totalRaisedAcrossProjects: [{ amount: 2000000000000000000n, currency: { kind: 'native', symbol: 'ETH', decimals: 18, tokenAddress: null, tokenType: 0 } }],
-      totalAvailableFromNotes: [],
       remainingToThreshold: [],
       totalUnreimbursed: [],
       projectCount: 4,
-      noteCount: 0,
     })
     vi.mocked(getMonthlyPledgedByCause).mockResolvedValue(new Map([[STATEMENT_CID, 12340000n]]))
   })
@@ -140,15 +157,16 @@ describe('StatementFundingPortalPage', () => {
     render(<StatementFundingPortalPage />)
 
     await waitFor(() => {
-      expect(screen.getByText('Cause Board')).toBeInTheDocument()
+      expect(screen.getByText('Subjectiv Cause')).toBeInTheDocument()
     })
 
-    expect(getTotalFundingForCause).toHaveBeenCalledWith(
+    expect(getAllAlignedProjectsForCause).toHaveBeenCalledWith(
       mockMachinery,
       STATEMENT_CID,
-      trustedImplicationAttesters,
-      trustedSet
+      [TRUSTED_IMPLICATION_ATTESTER, OTHER_TRUSTED_IMPLICATION_ATTESTER].map((a) => a.toLowerCase()).sort(),
+      new Set([TRUSTED_ADDRESS, OTHER_TRUSTED_ADDRESS].map((a) => a.toLowerCase())),
     )
+    expect(foldAlignedProjectFunding).toHaveBeenCalled()
 
     const alignedProjectsProps = vi.mocked(AlignedProjectsList).mock.calls[0]?.[0]
     expect(alignedProjectsProps).toEqual(
@@ -163,14 +181,14 @@ describe('StatementFundingPortalPage', () => {
     render(<StatementFundingPortalPage />)
 
     await waitFor(() => {
-      expect(screen.getByText('Cause Board')).toBeInTheDocument()
+      expect(screen.getByText('Subjectiv Cause')).toBeInTheDocument()
     })
 
-    expect(getTotalFundingForCause).toHaveBeenCalledWith(
+    expect(getAllAlignedProjectsForCause).toHaveBeenCalledWith(
       mockMachinery,
       STATEMENT_CID,
       undefined,
-      expect.any(Set)
+      expect.any(Set),
     )
   })
 
@@ -184,8 +202,8 @@ describe('StatementFundingPortalPage', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText(
-          'Refreshing your trust network. This portal is currently filtered using 2 accounts in your network. Results may still change as more are discovered.'
+        screen.getByLabelText(
+          'Refreshing your trust network. This fundable-projects board is currently filtered using 2 accounts in your network. Results may still change as more are discovered.'
         )
       ).toBeInTheDocument()
     })
@@ -201,8 +219,8 @@ describe('StatementFundingPortalPage', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText(
-          'Refreshing your trust network. Until any trusted accounts are found, this portal still shows all project endorsements.'
+        screen.getByLabelText(
+          'Refreshing your trust network. Until any trusted accounts are found, this fundable-projects board still shows all project vouches.'
         )
       ).toBeInTheDocument()
     })
@@ -212,11 +230,11 @@ describe('StatementFundingPortalPage', () => {
     render(<StatementFundingPortalPage />)
 
     await waitFor(() => {
-      expect(screen.getByText('Ongoing Monthly Pledges')).toBeInTheDocument()
+      expect(screen.getByText('Monthly pledges')).toBeInTheDocument()
     })
 
     expect(getMonthlyPledgedByCause).toHaveBeenCalledWith(mockMachinery)
-    expect(screen.getByText('12.34 USDZZZ/month')).toBeInTheDocument()
+    expect(screen.getByText('12.34 USDZZZ/mo')).toBeInTheDocument()
   })
 
   it('skips monthly pledge loading when the recurring pledge contract is not configured', async () => {
@@ -226,14 +244,14 @@ describe('StatementFundingPortalPage', () => {
     render(<StatementFundingPortalPage />)
 
     await waitFor(() => {
-      expect(screen.getByText('Ongoing Monthly Pledges')).toBeInTheDocument()
+      expect(screen.getByText('Monthly pledges')).toBeInTheDocument()
     })
 
     expect(getMonthlyPledgedByCause).not.toHaveBeenCalled()
-    expect(screen.getByText('0 USDZZZ/month')).toBeInTheDocument()
+    expect(screen.getByText('0 USDZZZ/mo')).toBeInTheDocument()
   })
 
-  it('renders the Successful tab with the discovery slider when the Successful view is selected', async () => {
+  it('renders the Successful tab when the Successful view is selected', async () => {
     const userEvent = (await import('@testing-library/user-event')).default
     const user = userEvent.setup()
     const trustedImplicationAttesters = [TRUSTED_IMPLICATION_ATTESTER]
@@ -242,10 +260,10 @@ describe('StatementFundingPortalPage', () => {
     render(<StatementFundingPortalPage />)
 
     await waitFor(() => {
-      expect(screen.getByText('Cause Board')).toBeInTheDocument()
+      expect(screen.getByText('Subjectiv Cause')).toBeInTheDocument()
     })
 
-    await user.click(screen.getByRole('tab', { name: 'Successful' }))
+    await user.click(screen.getByRole('tab', { name: 'Not yet reimbursed' }))
 
     expect(await screen.findByText('Successful Projects Tab')).toBeInTheDocument()
     expect(vi.mocked(SuccessfulProjectsTab).mock.calls[0]?.[0]).toEqual(
@@ -254,5 +272,30 @@ describe('StatementFundingPortalPage', () => {
         trustedImplicationAttesters,
       }),
     )
+  })
+
+  it('renders the Fully reimbursed tab from the success-vouch query, not the raised-enough status filter', async () => {
+    const userEvent = (await import('@testing-library/user-event')).default
+    const user = userEvent.setup()
+    const trustedImplicationAttesters = [TRUSTED_IMPLICATION_ATTESTER]
+    vi.mocked(useTrustedAttesters).mockReturnValue(trustedImplicationAttesters)
+
+    render(<StatementFundingPortalPage />)
+
+    await waitFor(() => {
+      expect(screen.getByText('Subjectiv Cause')).toBeInTheDocument()
+    })
+
+    await user.click(screen.getByRole('tab', { name: 'Fully reimbursed' }))
+
+    expect(await screen.findByText('Successful Projects Tab')).toBeInTheDocument()
+    expect(vi.mocked(SuccessfulProjectsTab).mock.calls.at(-1)?.[0]).toEqual(
+      expect.objectContaining({
+        statementCid: STATEMENT_CID,
+        trustedImplicationAttesters,
+        reimbursement: 'reimbursed',
+      }),
+    )
+    expect(vi.mocked(AlignedProjectsList).mock.calls.every((call) => call[0].statusFilterLock !== 'succeeded')).toBe(true)
   })
 })

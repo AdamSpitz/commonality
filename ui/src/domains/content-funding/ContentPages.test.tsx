@@ -45,16 +45,16 @@ vi.mock('../../content-funding/pages/BrowseCreatorsPage', () => ({
 
 vi.mock('../../content-funding/pages/ChannelPage', () => ({
   ChannelPage: vi.fn(({
-    campaignHeading,
-    createCampaignLabel,
-    emptyCampaignState,
+    contractsHeading,
+    createContractLabel,
+    emptyContractsState,
     unclaimedHeroDescription,
     shareDescription,
   }: any) => (
     <div>
-      <h1>{campaignHeading}</h1>
-      <p data-testid="create-label">{createCampaignLabel}</p>
-      <p data-testid="empty-state">{emptyCampaignState}</p>
+      <h1>{contractsHeading}</h1>
+      <p data-testid="create-label">{createContractLabel}</p>
+      <p data-testid="empty-state">{emptyContractsState}</p>
       <p data-testid="unclaimed">{unclaimedHeroDescription}</p>
       <p data-testid="share">{shareDescription}</p>
     </div>
@@ -151,7 +151,7 @@ describe('Content Funding branded surfaces', () => {
 
       expect(screen.getByRole('heading', { name: /content funding/i })).toBeInTheDocument()
       expect(
-        screen.getByText(/Browse by platform, back work you care about, and let creators claim what supporters have pooled for them/i),
+        screen.getByText(/Browse by platform, back work you care about, and let creators claim what contributors have pooled for them/i),
       ).toBeInTheDocument()
     })
 
@@ -328,7 +328,7 @@ describe('Content Funding branded surfaces', () => {
 
       expect(screen.getByRole('heading', { name: /what you can do here/i })).toBeInTheDocument()
       expect(screen.getByText(/browse creators by platform/i)).toBeInTheDocument()
-      expect(screen.getByText(/pledge funds that stay in escrow/i)).toBeInTheDocument()
+      expect(screen.getByText(/contribute funds that stay in escrow/i)).toBeInTheDocument()
     })
 
     it('includes "How money flows" section', () => {
@@ -386,7 +386,7 @@ describe('Content Funding branded surfaces', () => {
       )
 
       expect(
-        screen.getByText(/See who pledged, what content is covered, and where the escrow stands/i),
+        screen.getByText(/See who contributed, what content is covered, and where the escrow stands/i),
       ).toBeInTheDocument()
     })
 

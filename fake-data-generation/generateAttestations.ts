@@ -8,7 +8,8 @@ import fs from 'fs/promises';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { evaluateImplicationWithLLM } from './openrouter.js';
-import type { Statement, Attester } from './types.js';
+import { readDevOpenRouterModel } from './devOpenRouter.js';
+import type { Statement } from './types.js';
 import { IpfsCidV1 } from '@commonality/sdk/utils';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -52,22 +53,6 @@ async function generateAttestations(maxPairsPerDomain = 50): Promise<Attestation
     console.error('Error: statements.json not found. Run generateStatements.ts first.');
     process.exit(1);
   }
-
-  // Load attesters
-  let attesters: Attester[] = [];
-  const attestersPath = join(__dirname, 'data', 'attesters.json');
-  try {
-    const data = await fs.readFile(attestersPath, 'utf-8');
-    attesters = JSON.parse(data) as Attester[];
-    console.log(`Loaded ${attesters.length} attesters`);
-  } catch {
-    console.log('No attesters.json found, using generated attesters');
-    const { generateAttesters } = await import('./generateAttesters.js');
-    attesters = await generateAttesters(10);
-  }
-
-  // suppress unused variable warning
-  void attesters;
 
   // Group statements by domain
   const statementsByDomain: Record<string, Statement[]> = {};
@@ -167,7 +152,7 @@ async function generateAttestations(maxPairsPerDomain = 50): Promise<Attestation
     numAttestations: attestations.length,
     domains: Object.keys(statementsByDomain),
     estimatedCost: totalCost,
-    model: 'anthropic/claude-3.5-haiku'
+    model: readDevOpenRouterModel()
   };
 
   const metadataPath = join(__dirname, 'data', 'attestations.metadata.json');

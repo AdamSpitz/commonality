@@ -147,6 +147,11 @@
     },
     {
       "kind": "check",
+      "id": "review.founder-e2e.causestarter",
+      "role": "leaf"
+    },
+    {
+      "kind": "check",
       "id": "review.security.contracts",
       "role": "leaf"
     }

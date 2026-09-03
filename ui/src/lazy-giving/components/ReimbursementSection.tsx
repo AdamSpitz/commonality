@@ -24,8 +24,8 @@ export function ReimbursementSection({ project, projectState, contributorState, 
   const currency = projectState.currency
   const outstanding = BigInt(projectState.outstandingReimbursement)
   const reimbursable = BigInt(contributorState?.reimbursableAmount ?? '0')
-  const remainingClaim = BigInt(contributorState?.earlyContribution ?? '0')
-  const maxForgo = remainingClaim < outstanding ? remainingClaim : outstanding
+  const remainingClaim = BigInt(contributorState?.futureReimbursementClaim ?? '0')
+  const maxForgo = remainingClaim
   const contract: AssuranceContract = { address: project.id as `0x${string}`, abi: AssuranceContractAbi }
 
   const run = async (kind: 'donate' | 'withdraw' | 'forgo', action: () => Promise<unknown>, message: string) => {
@@ -77,13 +77,13 @@ export function ReimbursementSection({ project, projectState, contributorState, 
       {contributorState && remainingClaim > 0n && (
         <Stack spacing={1} sx={{ mt: 2, pt: 2, borderTop: '1px solid', borderColor: 'divider' }}>
           <Typography variant="h6">Your scout reimbursement</Typography>
-          <Typography variant="body2">Available now: {formatCurrencyAmount(reimbursable, currency)} · Remaining basis: {formatCurrencyAmount(remainingClaim, currency)}</Typography>
+          <Typography variant="body2">Available now: {formatCurrencyAmount(reimbursable, currency)} · Future claim: {formatCurrencyAmount(remainingClaim, currency)}</Typography>
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
             <Button variant="outlined" onClick={() => writeClients && run('withdraw', () => withdrawReimbursement(writeClients, contract), 'Reimbursement withdrawn.')} disabled={!writeClients || reimbursable === 0n || pending !== null}>Withdraw reimbursement</Button>
             <TextField label={`Amount to forgo (${currency.symbol})`} value={forgoAmount} onChange={(event) => setForgoAmount(event.target.value)} size="small" disabled={maxForgo === 0n} />
             <Button color="inherit" onClick={handleForgo} disabled={!writeClients || pending !== null || !forgoAmount || maxForgo === 0n}>Forgo reimbursement</Button>
           </Stack>
-          <Typography variant="caption" color="text.secondary">Forgoing is permanent and does not remove your recognition receipt.</Typography>
+          <Typography variant="caption" color="text.secondary">Forgoing burns only your future claim. Reimbursement already earned and your recognition receipt are unchanged.</Typography>
         </Stack>
       )}
       {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}

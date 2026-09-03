@@ -1,6 +1,7 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { normalizeAnchorStoreFile, type BridgeAnchorRecord } from './anchors.js';
 import { parseTrustedContextSources, type TrustedContextSourceConfig } from './contextSources.js';
+import type { ParentCauseRef } from './clusterFromTick.js';
 
 /** Provisional for one revision, pending the first live founder rehearsal. */
 export const MEDIATOR_CONFIG_SCHEMA_VERSION = 'provisional-v1' as const;
@@ -16,6 +17,9 @@ export interface MediatorConfigArtifact {
   anchors: BridgeAnchorRecord[];
   context_sources: TrustedContextSourceConfig[];
   signer_private_key_env: string;
+  /** When set, a tick may also publish a cause-cluster under this signer. */
+  parent_causes: ParentCauseRef[];
+  cluster_slug?: string;
 }
 
 export function loadMediatorConfigArtifact(path: string, env: NodeJS.ProcessEnv = process.env): MediatorConfigArtifact {
@@ -41,6 +45,10 @@ export function loadMediatorConfigArtifact(path: string, env: NodeJS.ProcessEnv 
     anchors: normalizeAnchorStoreFile({ anchors: value.anchors }).anchors,
     context_sources: contextSources,
     signer_private_key_env: requireString(value.signer_private_key_env, 'signer_private_key_env'),
+    parent_causes: parseParentCauses(value.parent_causes),
+    cluster_slug: typeof value.cluster_slug === 'string' && value.cluster_slug.trim()
+      ? value.cluster_slug.trim()
+      : undefined,
   };
   if (!env[artifact.signer_private_key_env]) {
     throw new Error(`Missing mediator signer secret environment variable: ${artifact.signer_private_key_env}`);
@@ -78,7 +86,27 @@ export function scaffoldMediatorConfig(foundingStatement: string, name = 'REPLAC
     anchors: [],
     context_sources: [],
     signer_private_key_env: 'BRIDGE_CREATOR_PRIVATE_KEY',
+    parent_causes: [],
   };
+}
+
+function parseParentCauses(value: unknown): ParentCauseRef[] {
+  if (value === undefined) return [];
+  if (!Array.isArray(value)) throw new Error('Mediator config parent_causes must be an array');
+  return value.map((entry, index) => {
+    if (!entry || typeof entry !== 'object') throw new Error(`parent_causes[${index}] must be an object`);
+    const record = entry as Record<string, unknown>;
+    const owner = requireString(record.owner, `parent_causes[${index}].owner`);
+    if (!/^0x[0-9a-fA-F]{40}$/.test(owner)) {
+      throw new Error(`parent_causes[${index}].owner must be a 0x-prefixed address`);
+    }
+    const slug = requireString(record.slug, `parent_causes[${index}].slug`);
+    const side = requireString(record.side, `parent_causes[${index}].side`);
+    if (side !== 'side_a' && side !== 'side_b') {
+      throw new Error(`parent_causes[${index}].side must be side_a or side_b`);
+    }
+    return { owner: owner.toLowerCase() as `0x${string}`, slug, side };
+  });
 }
 
 function requireFounderPrompt(value: unknown): string {

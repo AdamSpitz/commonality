@@ -58,12 +58,12 @@ export function CommonalityForOrganizationsPage() {
       spotlights={[
         {
           label: 'You do not have to switch anything',
-          text: 'The first useful step is to hardcode your org as the only trusted attester for your own cause board. Your process is unchanged — you are simply recording "this project fits our mission" in public. Everything past that point is a dial you control, not a switch someone else flips.',
+          text: 'The first useful step is to hardcode your org as the only trusted attester for your own fundable-projects board. Your process is unchanged — you are simply recording "this project fits our mission" in public. Everything past that point is a dial you control, not a switch someone else flips.',
         },
       ]}
       heroActions={[
         { label: 'Read the case for established orgs', path: '/docs/vision-and-strategy/ease-of-adoption/for-established-orgs' },
-        { label: 'Browse cause boards', href: getDomainUrl('alignment', '/', { fallbackHref: '#' }), variant: 'outlined' },
+        { label: 'Browse fundable-projects boards', href: getDomainUrl('alignment', '/', { fallbackHref: '#' }), variant: 'outlined' },
       ]}
       sections={sections}
     >

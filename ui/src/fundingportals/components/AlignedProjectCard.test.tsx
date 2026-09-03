@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { AlignedProjectCard, type AlignedProject } from './AlignedProjectCard'
 
@@ -119,6 +119,57 @@ describe('AlignedProjectCard', () => {
       expect(screen.getByText('Project 0xAAAAAA...')).toBeInTheDocument()
     })
 
+    it('uses the content-funding channel name when project metadata has no title', () => {
+      vi.mocked(useContentFundingState).mockReturnValue({
+        state: {} as any,
+        channels: [makeChannelEntry({ canonicalChannelId: 'substack:commontable' })],
+        loading: false,
+        error: null,
+        projects: [],
+        contentAttestations: new Map(),
+        channelDisplayMetadata: new Map([
+          ['substack:commontable', { displayName: 'Common Table creator content fund' }],
+        ]),
+        vetoedEvents: [],
+        machinery: {} as any,
+      })
+
+      render(
+        <AlignedProjectCard
+          project={makeProject()}
+          metadata={undefined}
+        />,
+      )
+
+      expect(screen.getByRole('link', { name: /Common Table creator content fund/ })).toBeInTheDocument()
+      expect(screen.queryByText('Project 0xAAAAAA...')).not.toBeInTheDocument()
+    })
+
+    it('prefers published metadata name over the channel name', () => {
+      vi.mocked(useContentFundingState).mockReturnValue({
+        state: {} as any,
+        channels: [makeChannelEntry({ canonicalChannelId: 'substack:commontable' })],
+        loading: false,
+        error: null,
+        projects: [],
+        contentAttestations: new Map(),
+        channelDisplayMetadata: new Map([
+          ['substack:commontable', { displayName: 'Common Table creator content fund' }],
+        ]),
+        vetoedEvents: [],
+        machinery: {} as any,
+      })
+
+      render(
+        <AlignedProjectCard
+          project={makeProject()}
+          metadata={{ name: 'Essay fund round 1' }}
+        />,
+      )
+
+      expect(screen.getByText('Essay fund round 1')).toBeInTheDocument()
+    })
+
     it('links to project detail page', () => {
       render(
         <AlignedProjectCard
@@ -141,13 +192,13 @@ describe('AlignedProjectCard', () => {
         />,
       )
 
-      expect(screen.getByText('Fund this project')).toBeInTheDocument()
-      expect(screen.getByText(/Pledge, refund, and withdraw here/i)).toBeInTheDocument()
+      expect(screen.queryByText('Fund this project')).not.toBeInTheDocument()
+      expect(screen.queryByText(/Contribute, refund, and withdraw here/i)).not.toBeInTheDocument()
       const fundLink = screen.getByRole('link', { name: /Open project: Local Hosted Project/i })
       // Local mode must use in-app route path (RouterLink), not a full-page external href.
       expect(fundLink).toHaveAttribute('href', `/projects/eip155%3A31337%3A${PROJECT_ADDR}`)
-      // Vouch also stays in-router for HashRouter hosts (CauseStarter Docker).
-      const vouchLink = screen.getByRole('link', { name: /Vouch for this project/i })
+      fireEvent.click(screen.getByTestId('alignment-chip'))
+      const vouchLink = screen.getByRole('menuitem', { name: /Vouch for this project/i })
       expect(vouchLink).toHaveAttribute('href', `/projects/eip155%3A31337%3A${PROJECT_ADDR}`)
     })
   })
@@ -183,7 +234,7 @@ describe('AlignedProjectCard', () => {
         />,
       )
 
-      expect(screen.getByText(/Direct alignment: someone vouched that this project serves this cause/i)).toBeInTheDocument()
+      expect(screen.queryByText(/Direct alignment: someone vouched that this project serves this cause/i)).not.toBeInTheDocument()
       expect(screen.getByLabelText(/Direct alignment: someone vouched/i)).toBeInTheDocument()
 
       rerender(
@@ -193,7 +244,7 @@ describe('AlignedProjectCard', () => {
         />,
       )
 
-      expect(screen.getByText(/Indirect alignment: this project is connected through implication links/i)).toBeInTheDocument()
+      expect(screen.queryByText(/Indirect alignment: this project is connected through implication links/i)).not.toBeInTheDocument()
       expect(screen.getByLabelText(/Indirect alignment: this project is connected/i)).toBeInTheDocument()
     })
   })
@@ -337,6 +388,32 @@ describe('AlignedProjectCard', () => {
       expect(screen.getByText('Fan-created')).toBeInTheDocument()
     })
 
+    it('keeps the content-funding badge in compact mode but drops the channel details block', () => {
+      vi.mocked(useContentFundingState).mockReturnValue({
+        state: {} as any,
+        channels: [makeChannelEntry({ canonicalChannelId: 'twitter:user:alice' })],
+        loading: false,
+        error: null,
+        projects: [],
+        contentAttestations: new Map(),
+        channelDisplayMetadata: new Map(),
+        vetoedEvents: [],
+        machinery: {} as any,
+      })
+
+      render(
+        <AlignedProjectCard
+          project={makeProject()}
+          metadata={undefined}
+          compact
+        />,
+      )
+
+      expect(screen.getByText('Content Funding')).toBeInTheDocument()
+      expect(screen.queryByText('Channel Status')).not.toBeInTheDocument()
+      expect(screen.queryByText('Content Items')).not.toBeInTheDocument()
+    })
+
     it('shows channel display name for Twitter channels', () => {
       vi.mocked(useContentFundingState).mockReturnValue({
         state: {} as any,
@@ -357,7 +434,7 @@ describe('AlignedProjectCard', () => {
         />,
       )
 
-      expect(screen.getByText('@alice')).toBeInTheDocument()
+      expect(screen.getAllByText('@alice').length).toBeGreaterThan(0)
     })
 
     it('shows channel display name for YouTube channels', () => {
@@ -380,7 +457,7 @@ describe('AlignedProjectCard', () => {
         />,
       )
 
-      expect(screen.getByText('UC123456')).toBeInTheDocument()
+      expect(screen.getAllByText('UC123456').length).toBeGreaterThan(0)
     })
 
     it('shows channel display name for Substack channels', () => {
@@ -403,7 +480,7 @@ describe('AlignedProjectCard', () => {
         />,
       )
 
-      expect(screen.getByText('alice.substack.com')).toBeInTheDocument()
+      expect(screen.getAllByText('alice.substack.com').length).toBeGreaterThan(0)
     })
 
     it('shows content item count when greater than zero', () => {

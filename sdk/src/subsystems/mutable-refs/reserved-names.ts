@@ -3,5 +3,7 @@ export const RESERVED_REF_NAMES: ReadonlySet<string> = new Set([
   'created-statements',
   'favorites',
   'bookmarks',
+  'bookmarked-causes',
+  'bookmarked-projects',
   'draft-post',
 ]);

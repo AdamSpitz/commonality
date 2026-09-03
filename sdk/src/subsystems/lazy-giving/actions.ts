@@ -10,6 +10,7 @@ import {
   AssuranceContractFactoryAbi
 } from '../../abis.js';
 import { IpfsCidV1 } from '../../utils/cid-types.js';
+import { approveERC20Spend, erc20ApproveAbi } from '../../utils/erc20.js';
 
 // ============================================================================
 // LazyGiving Actions
@@ -79,29 +80,6 @@ export function enhanceCreateProjectError(err: unknown, factoryAddress?: Address
   return enhanced;
 }
 
-const erc20ApproveAbi = [
-  {
-    inputs: [
-      { name: 'spender', type: 'address' },
-      { name: 'amount', type: 'uint256' },
-    ],
-    name: 'approve',
-    outputs: [{ name: '', type: 'bool' }],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    inputs: [
-      { name: 'owner', type: 'address' },
-      { name: 'spender', type: 'address' },
-    ],
-    name: 'allowance',
-    outputs: [{ name: '', type: 'uint256' }],
-    stateMutability: 'view',
-    type: 'function',
-  },
-] as const;
-
 const paymentTokenGetterAbi = [
   {
     inputs: [],
@@ -128,22 +106,14 @@ async function hasSufficientERC20Allowance(
   return currentAllowance >= amount;
 }
 
-async function approveERC20Spend(
+async function ensureERC20Allowance(
   clients: WriteClients,
   token: Address,
   spender: Address,
   amount: bigint,
 ): Promise<void> {
   if (await hasSufficientERC20Allowance(clients, token, spender, amount)) return;
-  const approvalHash = await clients.walletClient.writeContract({
-    address: token,
-    abi: erc20ApproveAbi,
-    functionName: 'approve',
-    args: [spender, amount],
-    chain: clients.walletClient.chain,
-    account: clients.walletClient.account!,
-  });
-  await clients.publicClient.waitForTransactionReceipt({ hash: approvalHash });
+  await approveERC20Spend(clients, token, spender, amount);
 }
 
 async function sendAtomicContractCalls(
@@ -197,7 +167,7 @@ async function sendAtomicContractCalls(
  * @param params.owner - Owner of the token contract
  * @param params.recipient - Address that will receive funds if project succeeds
  * @param params.threshold - Minimum funding amount required for project success
- * @param params.deadline - Unix timestamp deadline for the funding campaign
+ * @param params.deadline - Unix timestamp deadline for the funding round
  * @param params.projectMetadataCid - IPFS CID for project metadata
  * @param params.tokenIds - Token IDs to create
  * @param params.tokenCounts - Supply for each token ID
@@ -438,7 +408,7 @@ export async function donateNormally(
     functionName: 'paymentToken',
   }) as Address;
 
-  await approveERC20Spend(clients, paymentToken, assuranceContract.address, params.totalCost);
+  await ensureERC20Allowance(clients, paymentToken, assuranceContract.address, params.totalCost);
 
   const hash = await clients.walletClient.writeContract({
     address: assuranceContract.address,
@@ -470,7 +440,7 @@ export async function donateRetroactive(
     functionName: 'paymentToken',
   }) as Address;
 
-  await approveERC20Spend(clients, paymentToken, assuranceContract.address, amount);
+  await ensureERC20Allowance(clients, paymentToken, assuranceContract.address, amount);
 
   const hash = await clients.walletClient.writeContract({
     address: assuranceContract.address,

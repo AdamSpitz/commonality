@@ -11,19 +11,15 @@
     "test:verbose": "VERBOSE_TESTS=true mocha --reporter spec",
     "test:watch": "mocha --watch 'src/**/*.test.ts'",
     "typecheck": "tsc --noEmit",
-    "build": "npm run codegen && tsc",
-    "clean": "rm -rf dist src/generated",
-    "lint": "eslint .",
-    "codegen": "graphql-codegen --config codegen.ts"
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "lint": "eslint ."
   },
   "devDependencies": {
-    "@graphql-codegen/cli": "^6.1.2",
-    "@graphql-codegen/client-preset": "^5.2.3",
     "@types/mocha": "^10.0.6",
     "@types/node": "^20.10.0",
     "dotenv": "^17.2.3",
     "eslint": "^9.39.1",
-    "graphql": "^16.12.0",
     "mocha": "^10.2.0",
     "tsx": "^4.7.0",
     "typescript": "^5.3.2",

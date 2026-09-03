@@ -1,6 +1,8 @@
 # Shaping your cause's statements
 
-**Status: signed off; publications, retrieval-first selection, planks, and views built; anchors not.** This is how a cause
+Why planks cannot be slogans (implication vs nudge vs modified wording): [statements are peculiar for good reasons](/specs/product/statements-are-peculiar-for-good-reasons.md).
+
+**Status: signed off; publications, retrieval-first selection, planks, views, and combinator anchors built.** This is how a cause
 is built out of statements. The mechanics it describes (implication direction,
 how support and cause boards aggregate) are accurate to the system as specified.
 The architecture it proposes — **planks, views, and anchors** — was signed off by
@@ -12,7 +14,7 @@ what remains open is one bug, at the end.
 
 - **Planks** are the cause. `CauseDraft` is a list of `CausePlank`s, each
   published separately and each carrying its own CID
-  (`causestarter/src/lib/causeStore.ts`). There is no main statement, no goal
+  (`ui/src/causestarter/lib/causeStore.ts`). There is no main statement, no goal
   field, and no launch step — a cause is "live" once any plank is on chain.
 - **Views** are real. `getStatementBelieverSets` returns the deduped
   believer/indirect/disbeliever ID sets per plank, and `computeViewCounts` folds
@@ -25,9 +27,12 @@ what remains open is one bug, at the end.
   editing the roster, and only upward; the fewest-signed count moves the other
   way, so the pair is not. See
   [§ Band 2 is never shown alone](#band-2-is-never-shown-alone-pair-it-with-the-weakest-link).
-- **Anchors are not built.** No promotion action exists yet, which is consistent
-  with [§ Promotion](#promotion): it is a later move, taken once a combination
-  has proven itself.
+- **Anchors are combinator statements.** Combinators are minted from the action
+  that needs them: the funding page publishes an `all` combinator when earmarking
+  a selected bundle (and reuses the CID if it already exists). Implication
+  arrows for that node are a later graph job and do not block the pledge.
+  There is no generic cause-page promote. See
+  [combinator-statements.md](/specs/tech/subsystems/conceptspace/combinator-statements.md).
 - **The roster is a publication.** Organizer-authored display text (title, summary,
   ordered plank CIDs, mediator blurb) is published through `PublishedData`; its
   CID is the version ID. A `MutableRef` `(founder, slug) → CID` is the stable ID
@@ -72,6 +77,11 @@ Three facts from the substrate:
    projects attested as aligned with any S2 *such that S2 implies S*. A
    statement's board is populated by its **inbound** arrows.
    ([aligning](/specs/tech/subsystems/aligning/README.md))
+   A published board may also add a modest **geographic inclusion** rule
+   (`within` a place path, matched against project relevant areas). Nested-place
+   projects join that view as a fact about location, not because
+   `more X in Grey County` implies `more X in Ontario`.
+   ([belief implication vs board inclusion](/specs/product/belief-implication-board-inclusion-and-discovery.md))
 
 3. **Implications are not transitive.** S1→S2 and S2→S3 does not give S1→S3. Any
    structure deeper than two levels needs every pair attested directly.
@@ -189,13 +199,82 @@ So the three layers:
   Usually a disjunction (to collect its planks) or a conjunction (to distribute
   to them).
 
-What you lose in a view, and only this: nobody can **sign** the combination,
-**earmark** funds to it, or **align a project with** it. Those three need a real
-statement with a real CID. Everything else — counts, boards, filtering,
-comparison — a view does fine.
+A view is enough for **display**. Counts, the cause's fundable-project list
+(union of its planks), filtering, and comparison do not need an anchor. The
+cause website is the views layer. Do not treat "the combination isn't a CID
+yet" as a reason to delay shipping views, and do not treat alignment as a
+reason to rush anchors.
 
 "One main statement" is therefore just the default promoted view, not a structural
 requirement.
+
+### What an anchor is actually for (2026-08-18)
+
+An earlier cut of this section said a view cannot sign, earmark, or **align**
+the combination, as if those three were the same kind of gap. Alignment is not.
+
+**Alignment stays on planks.** The cause board is already the union of plank
+boards (`useCauseProjects` / `getAllAlignedProjectsForCause`). A project
+vouched for on any selected plank appears on the cause page, deduped, with
+`viaPlankCids` naming which sentence someone actually attested. Attesting the
+same project to all six planks so it "covers the combination" is usually a lie
+in several directions and pollutes boards the project does not further.
+Attesting it to a conjunctive anchor is worse: that statement has almost no
+inbound arrows, so the project sits on one empty manifesto board and nowhere
+else. See [§ Align low, aggregate high](#align-low-aggregate-high).
+
+What a view still cannot do — and why you eventually promote:
+
+| Want | Need an anchor? |
+|---|---|
+| Show "N signed all / any of these" on the cause page | No — view (if people signed the planks) |
+| Show projects that further any selected plank | No — union of plank boards |
+| Put one project on every plank's board | No, and usually shouldn't |
+| Earmark "this money may further any of these" | **Yes** — conjunctive (`all`) combinator: you endorse every conjunct, so a delegate may spend on work that furthers any of them. CauseStarter's funding page mints that node if needed, then opens the pledge form against it. Do **not** use `any` for this job: signing a disjunction does not mean you endorse both spend targets. |
+| Sign the *name* / the alliance in one step | **Yes** — one CID, one signature |
+| Have Tally, a vertical, a nudge, or any other surface treat the cause as a statement | **Yes** — they take a CID, not a CauseStarter roster URL |
+| Let wholehearted people sign once and count on every plank | **Yes** — conjunctive anchor, outbound arrows |
+| Let plank-signers count toward a public "this cause" number that isn't just this SPA's set-math | **Yes** — disjunctive anchor, inbound arrows |
+
+The signing job is not "N signed all 6," which a view already reports when
+people really did sign each plank. It is for people who will sign a *name*
+("I'm in this coalition") or a *weak platform* ("at least one of these")
+without walking six issues — and for putting those people into other
+statements' signer sets, which views never do. If you assume everyone who
+cares will click through and sign every plank, this is mostly aesthetic. The
+reason we unbundle is that they will not.
+
+The load-bearing reasons to build anchors, then, are **money to the bundle**
+and **identity that lives in the graph**. A CauseStarter roster is an
+organizer document. Everything else in the system is statement-shaped. Until
+the combination is a statement, it is not a node other people can imply,
+disbelieve, earmark to, or build a board on without opening the cause page.
+
+Encoding for that node:
+[combinator-statements.md](/specs/tech/subsystems/conceptspace/combinator-statements.md)
+(`all` / `any` over referenced CIDs, canonical bytes, no founder title). Why:
+[ADR 0010](/specs/decisions/0010-combinator-statements.md).
+
+### Which operator to mint, and from which action (2026-08-19)
+
+Do not mint combinators from a generic "promote" as if both operators were
+the same product. Each operator has a job; mint it from the action that
+needs that job.
+
+| Operator | Job | Mint from | Do not mint from |
+|---|---|---|---|
+| `all` | Money that may further *any conjunct you endorse* | Earmark / pledge on the funding page (built). Optional: a wholehearted signer who wants one signature to count on every plank. | Project alignment. Bridge clusters. "Pick a side." |
+| `any` | A public alliance node: plank signers count toward one CID via inbound arrows; people can sign the coalition without walking every plank | Surfaces that need a *name* other tools can treat as a statement (Tally, a vertical, a public "this cause" counter that is not this SPA's set-math). A plausible later home is **after** a bridge cluster has named the two camps — the `any` is the coalition, not the compromise. | Earmark. Alignment. Auto-minting on every view-strip selection. |
+
+Bridge-building is not an automatic `any`. A cluster already records intended
+plank pairs and optional parent→modified nudges. An `any(camp A, camp B)`
+would say "at least one of these is enough," which is a coalition claim, not
+the mediator's wording. Mint that only if a later product step wants a
+coalition CID (shared board, shared Tally question), not as a side effect of
+paying the implication attester.
+
+There is no generic cause-page promote control. Combinators are created from
+the action that needs them (today: conjunction earmark).
 
 ### Conjunction views need two bands, or they lie
 
@@ -286,8 +365,13 @@ propagates up every arrow that plank has: it appears in every view containing th
 plank, and on any disjunctive anchor the plank feeds. Attaching at the plank level
 costs nothing and buys reach.
 
-The same logic applies to earmarked notes. Earmark to the plank; let the views and
-anchors aggregate.
+Earmark the same way **when the donor means a particular plank.** Let views
+union those notes for display. The exception — and it is a reason to promote —
+is a donor who is genuinely fine with the money furthering *any* of the
+selected planks. That intent is not "six notes" and not a view; it needs the
+combination as a statement (almost always a disjunction that names the list).
+`NoteIntent` is currently dormant in the product UI; see the caveat at the end
+of this doc.
 
 ### Promotion
 
@@ -392,7 +476,7 @@ domain-separation tag, a format version. Publishing through `PublishedData` make
 the bytes the bytes, and brings author attribution via `(publisher, cid)`,
 retraction semantics, and CID-first reads along with it. It is also what [ADR
 0004](/specs/decisions/0004-user-publishes-displayable-data.md) already requires
-for founder-authored content. `causestarter/src/lib/publishPlank.ts` does the
+for founder-authored content. `ui/src/causestarter/lib/publishPlank.ts` does the
 same move for plank text.
 
 **Stable ID — a mutable ref.** [`MutableRefUpdater`](/specs/tech/subsystems/mutable-refs/README.md)
@@ -444,6 +528,11 @@ badge**, per ADR 0008. A badge withholdable on grounds of distaste is an
 endorsement, and an endorsement needs the admission machinery that ADR
 deliberately does not have.
 
+The CauseStarter cause page still *names the absence* when a published roster
+has no operator badge ("No coherence badge"), so visitors can see that the
+check did not land. That is UI disclosure, not an on-chain negative
+attestation, and it must not be phrased as "this cause is incoherent."
+
 Two implementation notes:
 
 - **Not the same call as generation.** cause-assist's atomize/sharpen and the
@@ -472,8 +561,9 @@ Three rules:
    awkward — a warning dialog, a greyed button, scolding copy — admission has
    been rebuilt inside the client, and ADR 0008's central claim is that nothing
    is reviewed before it renders. *"Publish anyway" is a peer of "Publish"*: same
-   prominence, no friction. The consequence of declining is that the page renders
-   without a badge, which is the default state for everything anyway.
+   prominence, no friction. The consequence of declining is that the published
+   page has no positive badge (the default). The cause page may still *say* that
+   no badge was published, without turning Publish anyway into a scold.
 2. **The two-step goes on the roster save, not on plank publish.** A plank is a
    statement — immutable, and already pre-flighted by `checkSafety`. Coherence is
    not a property one plank has. Keeping them separate also lets a founder

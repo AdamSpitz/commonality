@@ -1,0 +1,14 @@
+{
+  "id": "testnet.alignment-trust",
+  "description": "Guarded mutating Base Sepolia check: publishes an alignment vouch, waits for the CauseStarter bootstrap root to trust its attester directly, and verifies the denylist canary remains excluded.",
+  "trigger": { "type": "manual" },
+  "retention": { "keep": 5, "keepDays": 30 },
+  "command": ["node", "checks/testnet/alignment-trust.mjs"],
+  "inputs": [
+    { "kind": "file", "path": "environments/testnet.json", "as": "testnetConfig" },
+    { "kind": "file", "path": "../deployments/base-sepolia.env", "as": "deploymentConfig" },
+    { "kind": "file", "path": "../scripts/setup-env.sh", "as": "uiConfigGenerator" },
+    { "kind": "params", "data": { "guardPolicy": "Requires testnet smoke and mutation opt-ins, the verifier private key, the bootstrap root env, and spends Base Sepolia gas." } }
+  ],
+  "timeoutMs": 240000
+}

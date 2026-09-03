@@ -1,6 +1,8 @@
+import { PRODUCTION_OPENROUTER_MODEL } from '@commonality/attester-core';
 import type { LlmNudgerConfig } from '@commonality/nudger-core';
 import { parseTrustedContextSources, type TrustedContextSourceConfig } from './contextSources.js';
 import { loadMediatorConfigArtifact } from './mediatorConfig.js';
+import type { ParentCauseRef } from './clusterFromTick.js';
 
 export interface BridgeCreatorConfig extends LlmNudgerConfig {
   trustedContextSources: TrustedContextSourceConfig[];
@@ -18,6 +20,9 @@ export interface BridgeCreatorConfig extends LlmNudgerConfig {
   implicationsContractAddress?: `0x${string}`;
   /** Optional PublishedData contract for bridge-created conceptspace statements. */
   publishedDataContractAddress?: `0x${string}`;
+  mutableRefUpdaterContractAddress?: `0x${string}`;
+  parentCauses: ParentCauseRef[];
+  clusterSlug?: string;
   contact?: string;
   corsOrigins: string[];
   // External bridge-proposal API (POST /propose-bridge), paid via x402.
@@ -81,7 +86,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): BridgeCreatorC
     ipfsApiUrl: readString(env, ['BRIDGE_CREATOR_IPFS_API', 'IPFS_API'], 'http://localhost:5001'),
     ipfsGatewayUrl: readString(env, ['BRIDGE_CREATOR_IPFS_GATEWAY', 'IPFS_GATEWAY'], 'http://localhost:8080'),
     openRouterApiKey: requireFrom(env, 'OPENROUTER_API_KEY'),
-    openRouterModel: readString(env, ['BRIDGE_CREATOR_OPENROUTER_MODEL', 'OPENROUTER_MODEL'], 'anthropic/claude-3.5-haiku'),
+    openRouterModel: readString(env, ['BRIDGE_CREATOR_OPENROUTER_MODEL', 'OPENROUTER_MODEL'], PRODUCTION_OPENROUTER_MODEL),
     name: mediator?.name ?? readString(env, ['BRIDGE_CREATOR_NAME'], 'Bridge Creator'),
     description: mediator?.description ?? readString(env, ['BRIDGE_CREATOR_DESCRIPTION'], 'Creates bridge statements between two sides of a cause'),
     sourceType: readString(env, ['BRIDGE_CREATOR_SOURCE_TYPE'], 'bridge-creator'),
@@ -112,6 +117,9 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): BridgeCreatorC
     anchorReflectionOutcomeSummaryPath: env.BRIDGE_CREATOR_ANCHOR_REFLECTION_OUTCOME_SUMMARY_PATH || undefined,
     implicationsContractAddress: readOptionalAddress(env.IMPLICATIONS_CONTRACT_ADDRESS),
     publishedDataContractAddress: readOptionalAddress(env.PUBLISHED_DATA_CONTRACT_ADDRESS),
+    mutableRefUpdaterContractAddress: readOptionalAddress(env.MUTABLE_REF_UPDATER_CONTRACT_ADDRESS),
+    parentCauses: mediator?.parent_causes ?? [],
+    clusterSlug: mediator?.cluster_slug,
     contact: env.BRIDGE_CREATOR_CONTACT || undefined,
     corsOrigins: parseCorsOrigins(env.BRIDGE_CREATOR_CORS_ORIGINS),
     proposalStorePath: readString(env, ['BRIDGE_CREATOR_PROPOSAL_STORE_PATH'], 'services/bridge-creator/data/proposals.json'),

@@ -8,29 +8,51 @@ import {
   CircularProgress,
   Alert,
   Stack,
-  Divider,
   Button,
   Tabs,
   Tab,
+  Tooltip,
+  IconButton,
 } from '@mui/material'
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
 import { getStatementWithContent } from '@commonality/sdk/conceptspace'
 import { getMonthlyPledgedByCause } from '@commonality/sdk/delegation'
-import { getTotalFundingForCause } from '@commonality/sdk/fundingportals'
+import { getProject } from '@commonality/sdk/lazy-giving'
+import {
+  foldAlignedProjectFunding,
+  getAllAlignedProjectsForCause,
+} from '@commonality/sdk/fundingportals'
 import type { IpfsCidV1 } from '@commonality/sdk/utils'
 import { useMachinery } from '../../shared'
 import {
   DEFAULT_PAYMENT_CURRENCY,
+  boardSnapshotCacheOptions,
   formatCurrencyAmount,
   formatCurrencyTotals,
   getConfiguredPaymentCurrency,
   getDomainUrl,
+  loadBoardMetricsSnapshot,
+  saveBoardMetricsSnapshot,
   useTrustedSet,
   useTrustedAttesters,
+  useTrustedContentAttesters,
+  TrustNetworkRefreshIndicator,
 } from '../../shared'
+import { selectAlignedContentContracts, useContentFundingState } from '../../content-funding'
 import { AlignedProjectsList } from './AlignedProjectsList'
 import { SuccessfulProjectsTab } from './SuccessfulProjectsTab'
 import { AttestAlignmentForm } from './AttestAlignmentForm'
 import type { ProjectLinkMode } from './AlignedProjectCard'
+import { useKeepPaintedWhileRefreshing } from '../hooks/useKeepPaintedWhileRefreshing'
+import { resolveStatementCids } from './statementCids'
+import { unionAlignedFundingProjects } from './unionAlignedFundingProjects'
+import {
+  formatPlacePath,
+  parseBoardInclusionRules,
+  projectMatchesBoardRules,
+  type BoardInclusionRules,
+} from './geographicInclusion'
+import { readProjectMetadata } from './projectMetadata'
 
 /** In-app router link or external href for cause-board chrome. */
 export type CauseBoardNavLink =
@@ -38,26 +60,57 @@ export type CauseBoardNavLink =
   | { label: string; href: string; variant?: 'text' | 'outlined' | 'contained' }
 
 export interface CauseBoardProps {
-  statementCid: string
+  statementCid?: string
+  /** Union several statements (a cause's published planks). Deduped by project. */
+  statementCids?: string[]
   /** Prefer this title over the statement document title (e.g. local cause name). */
   preferredTitle?: string
   /** Prefer this summary over the statement excerpt. */
   preferredSummary?: string
   /**
+   * Drop standalone page chrome (statement title, default nav) and use
+   * {@link surfaceTitle} as the section heading — for inlining on a cause
+   * or statement page.
+   */
+  embedded?: boolean
+  /** Section heading when {@link embedded} is true. */
+  surfaceTitle?: string
+  /**
    * Header navigation. When omitted, uses Aligning defaults
    * (back to Tally statement + leaderboard under `/portal/...`).
    */
   navLinks?: CauseBoardNavLink[]
+  /**
+   * Extra create/action buttons rendered with “Start project” at the bottom
+   * of the metrics paper (e.g. Start content contract).
+   */
+  actionLinks?: CauseBoardNavLink[]
   /** Optional extra content under the header metrics (host chrome). */
   headerExtra?: ReactNode
+  /** Tooltip on the Projects metric — host-specific explanation of what the count means. */
+  projectsHelp?: ReactNode
   /**
    * Where aligned/successful project detail links resolve.
    * CauseStarter hosts project detail locally; Aligning deep-links to LazyGiving.
    */
   projectLinks?: ProjectLinkMode
+  /**
+   * When set, alignment queries use this attester set instead of the viewer's
+   * personal trust graph. CauseStarter passes personal-or-starter so the list
+   * matches plank counts and the starter-network notice.
+   */
+  trustedAlignmentAttesters?: Iterable<string>
+  /**
+   * Home teaser: skip metrics/tabs, cap the aligned list, compact cards.
+   * Full board lives at {@link preview.fullPageTo}.
+   */
+  preview?: { limit: number; fullPageTo: string }
+  /** Factual filters published by the host cause board. */
+  inclusionRules?: BoardInclusionRules
 }
 
-function defaultNavLinks(statementCid: string): CauseBoardNavLink[] {
+function defaultNavLinks(statementCid: string | undefined): CauseBoardNavLink[] {
+  if (!statementCid) return []
   return [
     {
       label: '← Back to Statement on Tally',
@@ -95,12 +148,27 @@ function NavLinkButton({ link }: { link: CauseBoardNavLink }) {
  */
 export function CauseBoard({
   statementCid,
+  statementCids,
   preferredTitle,
   preferredSummary,
+  embedded = false,
+  surfaceTitle = 'Fundable Projects',
   navLinks,
+  actionLinks,
   headerExtra,
+  projectsHelp,
   projectLinks = 'lazyGiving',
+  trustedAlignmentAttesters,
+  preview,
+  inclusionRules,
 }: CauseBoardProps) {
+  const cids = useMemo(
+    () => resolveStatementCids(statementCid, statementCids),
+    [statementCid, statementCids],
+  )
+  const cidsKey = cids.join('\0')
+  const inclusionRulesKey = JSON.stringify(inclusionRules ?? {})
+  const primaryCid = cids[0]
   const machinery = useMachinery()
   const { address } = useAccount()
   const trustedImplicationAttesters = useTrustedAttesters()
@@ -108,15 +176,24 @@ export function CauseBoard({
     trustedImplicationAttesters.length > 0 ? trustedImplicationAttesters : undefined
   const { trustedSet, isLoading: trustedSetLoading } = useTrustedSet(address)
 
+  const alignmentOverrideKey = useMemo(() => {
+    if (trustedAlignmentAttesters === undefined) return null
+    return [...trustedAlignmentAttesters]
+      .map((entry) => entry.toLowerCase())
+      .sort()
+      .join(',')
+  }, [trustedAlignmentAttesters])
+
   // Stabilize effect deps: useTrustedSet replaces the Set on progressive updates.
   // Membership serialization avoids full board reloads when only the Set identity changes.
   const trustedSetKey = useMemo(() => {
+    if (alignmentOverrideKey !== null) return alignmentOverrideKey
     if (!trustedSet || trustedSet.size === 0) return ''
     return Array.from(trustedSet)
       .map((a) => a.toLowerCase())
       .sort()
       .join(',')
-  }, [trustedSet])
+  }, [alignmentOverrideKey, trustedSet])
   const trustedAttestersKey = useMemo(
     () =>
       (activeTrustedImplicationAttesters ?? [])
@@ -130,54 +207,153 @@ export function CauseBoard({
   const [error, setError] = useState<string | null>(null)
   const [title, setTitle] = useState<string | null>(null)
   const [summary, setSummary] = useState<string | null>(null)
+  const { channels, contentAttestations } = useContentFundingState()
+  const trustedContentAttesters = useTrustedContentAttesters()
+  const contentTrustKey = trustedContentAttesters
+    .map((entry) => entry.address.toLowerCase())
+    .sort()
+    .join('\0')
+  const contentAttestationsKey = [...contentAttestations.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([id, list]) =>
+      `${id}:${list.map((row) => `${row.attested ? 1 : 0}:${row.statementCid}:${row.attester.toLowerCase()}`).sort().join(',')}`,
+    )
+    .join('|')
   const [totalRaised, setTotalRaised] = useState<
-    Awaited<ReturnType<typeof getTotalFundingForCause>>['totalRaisedAcrossProjects']
+    Awaited<ReturnType<typeof foldAlignedProjectFunding>>['totalRaisedAcrossProjects']
   >([])
   const [remainingToThreshold, setRemainingToThreshold] = useState<
-    Awaited<ReturnType<typeof getTotalFundingForCause>>['remainingToThreshold']
+    Awaited<ReturnType<typeof foldAlignedProjectFunding>>['remainingToThreshold']
   >([])
   const [totalUnreimbursed, setTotalUnreimbursed] = useState<
-    Awaited<ReturnType<typeof getTotalFundingForCause>>['totalUnreimbursed']
+    Awaited<ReturnType<typeof foldAlignedProjectFunding>>['totalUnreimbursed']
   >([])
   const [monthlyPledged, setMonthlyPledged] = useState<bigint>(0n)
   const [projectCount, setProjectCount] = useState<number>(0)
-  const [projectTab, setProjectTab] = useState<'aligned' | 'successful'>('aligned')
+  const [projectTab, setProjectTab] = useState<
+    'aligned' | 'successful' | 'reimbursed' | 'failed'
+  >('aligned')
+  const [refreshing, setRefreshing] = useState(false)
+  const keepPainted = useKeepPaintedWhileRefreshing()
 
   useEffect(() => {
-    const cid = statementCid
+    const loadCids = cidsKey ? cidsKey.split('\0') : []
     let cancelled = false
-    const trustedSetForLoad: Set<string> | undefined = trustedSetKey
-      ? new Set(trustedSetKey.split(','))
-      : undefined
+    const trustedSetForLoad: Set<string> | undefined = alignmentOverrideKey !== null
+      ? new Set(alignmentOverrideKey ? alignmentOverrideKey.split(',') : [])
+      : (trustedSetKey ? new Set(trustedSetKey.split(',')) : undefined)
     const attestersForLoad = trustedAttestersKey
       ? trustedAttestersKey.split(',')
       : undefined
+    const rulesForLoad = parseBoardInclusionRules(JSON.parse(inclusionRulesKey))
+    const snapshotOptions = rulesForLoad?.geographic ? null : boardSnapshotCacheOptions(machinery, {
+      kind: 'board-metrics',
+      statementCids: loadCids,
+      implicationTrustKey: trustedAttestersKey,
+      alignmentTrustKey: trustedSetKey,
+      contentTrustKey,
+    })
 
     async function load() {
-      setLoading(true)
+      if (preview) {
+        setLoading(false)
+        setError(null)
+        return
+      }
+      if (loadCids.length === 0) {
+        setLoading(false)
+        setError('No statement specified.')
+        return
+      }
+      const cached = snapshotOptions
+        ? await loadBoardMetricsSnapshot(snapshotOptions)
+        : null
+      if (cancelled) return
+      if (cached) {
+        setTitle(cached.title)
+        setSummary(cached.summary)
+        setTotalRaised(cached.totalRaised as typeof totalRaised)
+        setRemainingToThreshold(cached.remainingToThreshold as typeof remainingToThreshold)
+        setTotalUnreimbursed(cached.totalUnreimbursed as typeof totalUnreimbursed)
+        setMonthlyPledged(BigInt(cached.monthlyPledged || '0'))
+        setProjectCount(cached.projectCount)
+        keepPainted.markResolved()
+        setLoading(false)
+        setRefreshing(true)
+      } else {
+        keepPainted.beginLoad(setLoading)
+        setRefreshing(false)
+      }
       setError(null)
       try {
+        const cid = loadCids[0]!
         const [stmtResult, fundingMetrics] = await Promise.all([
-          getStatementWithContent(machinery, cid as IpfsCidV1),
-          getTotalFundingForCause(
-            machinery,
-            cid as IpfsCidV1,
-            attestersForLoad,
-            trustedSetForLoad,
-          ),
+          embedded
+            ? Promise.resolve(null)
+            : getStatementWithContent(machinery, cid as IpfsCidV1),
+          (async () => {
+            const perPlank = await Promise.all(
+              loadCids.map((plankCid) =>
+                getAllAlignedProjectsForCause(
+                  machinery,
+                  plankCid as IpfsCidV1,
+                  attestersForLoad,
+                  trustedSetForLoad,
+                ),
+              ),
+            )
+            const byAddress = new Map<string, (typeof perPlank)[number][number]>()
+            for (const aligned of perPlank) {
+              for (const project of aligned) {
+                const existing = byAddress.get(project.projectAddress.toLowerCase())
+                if (!existing || (existing.alignmentType === 'indirect' && project.alignmentType === 'direct')) {
+                  byAddress.set(project.projectAddress.toLowerCase(), project)
+                }
+              }
+            }
+            const contentContracts = selectAlignedContentContracts(
+              channels,
+              contentAttestations,
+              loadCids,
+              contentTrustKey ? contentTrustKey.split('\0') : undefined,
+            )
+            const union = unionAlignedFundingProjects([...byAddress.values()], contentContracts)
+            const included = rulesForLoad?.geographic
+              ? (await Promise.all(union.map(async (project) => {
+                  const full = await getProject(machinery, project.projectAddress).catch(() => null)
+                  if (!full?.metadataCid) return project
+                  const metadata = await readProjectMetadata(machinery, full.metadataCid as IpfsCidV1).catch(() => null)
+                  return projectMatchesBoardRules(
+                    metadata?.relevantAreas,
+                    rulesForLoad,
+                    Boolean(metadata),
+                  ) ? project : null
+                }))).filter((project): project is (typeof union)[number] => Boolean(project))
+              : union
+            return foldAlignedProjectFunding(
+              machinery,
+              included,
+            )
+          })(),
         ])
 
         if (cancelled) return
 
-        if (stmtResult) {
-          const t =
+        const nextTitle = stmtResult
+          ? (
             stmtResult.statement.title ??
             (stmtResult.content?.content
               ? stmtResult.content.content.split('\n')[0].replace(/^#+\s*/, '').trim()
               : null) ??
             `Statement ${cid.slice(0, 12)}...`
-          setTitle(t)
-          setSummary(stmtResult.statement.excerpt ?? null)
+          )
+          : (cached?.title ?? null)
+        const nextSummary = stmtResult
+          ? (stmtResult.statement.excerpt ?? null)
+          : (cached?.summary ?? null)
+        if (stmtResult) {
+          setTitle(nextTitle)
+          setSummary(nextSummary)
         }
 
         setTotalRaised(fundingMetrics.totalRaisedAcrossProjects)
@@ -189,14 +365,36 @@ export function CauseBoard({
           ? await getMonthlyPledgedByCause(machinery)
           : new Map<string, bigint>()
         if (cancelled) return
-        setMonthlyPledged(monthlyTotals.get(cid) ?? 0n)
+        let monthly = 0n
+        for (const plankCid of loadCids) {
+          monthly += monthlyTotals.get(plankCid) ?? 0n
+        }
+        setMonthlyPledged(monthly)
+
+        if (snapshotOptions) {
+          await saveBoardMetricsSnapshot(snapshotOptions, {
+            title: nextTitle,
+            summary: nextSummary,
+            totalRaised: fundingMetrics.totalRaisedAcrossProjects,
+            remainingToThreshold: fundingMetrics.remainingToThreshold,
+            totalUnreimbursed: fundingMetrics.totalUnreimbursed,
+            monthlyPledged: monthly.toString(),
+            projectCount: fundingMetrics.projectCount,
+          })
+        }
       } catch (err) {
         if (!cancelled) {
           console.error('Error loading cause board:', err)
-          setError(err instanceof Error ? err.message : 'Failed to load cause board')
+          if (!cached) {
+            setError(err instanceof Error ? err.message : 'Failed to load fundable-projects board')
+          }
         }
       } finally {
-        if (!cancelled) setLoading(false)
+        if (!cancelled) {
+          keepPainted.markResolved()
+          setLoading(false)
+          setRefreshing(false)
+        }
       }
     }
 
@@ -204,7 +402,38 @@ export function CauseBoard({
     return () => {
       cancelled = true
     }
-  }, [machinery, statementCid, trustedAttestersKey, trustedSetKey])
+  }, [
+    machinery,
+    cidsKey,
+    embedded,
+    preview,
+    trustedAttestersKey,
+    trustedSetKey,
+    alignmentOverrideKey,
+    channels.length,
+    contentAttestationsKey,
+    contentTrustKey,
+    inclusionRulesKey,
+  ])
+
+  if (preview) {
+    return (
+      <Box id="fundable-projects" data-testid="fundable-projects">
+        <AlignedProjectsList
+          statementCid={primaryCid ?? ''}
+          statementCids={cids}
+          trustedImplicationAttesters={activeTrustedImplicationAttesters}
+          trustedAlignmentAttesters={trustedAlignmentAttesters}
+          projectLinks={projectLinks}
+          embedded
+          compact
+          limit={preview.limit}
+          fullPageTo={preview.fullPageTo}
+          inclusionRules={inclusionRules}
+        />
+      </Box>
+    )
+  }
 
   if (loading) {
     return (
@@ -220,117 +449,266 @@ export function CauseBoard({
 
   const displayTitle = preferredTitle?.trim() || title
   const displaySummary = preferredSummary?.trim() || summary
-  const links = navLinks ?? defaultNavLinks(statementCid)
+  const links = navLinks ?? (embedded ? [] : defaultNavLinks(primaryCid))
+
+  const metricSx = { minWidth: 0 }
 
   return (
-    <Box>
-      <Paper sx={{ p: 3, mb: 3 }}>
-        {links.length > 0 && (
-          <Stack direction="row" spacing={1} sx={{ mb: 2 }} flexWrap="wrap" useFlexGap>
-            {links.map((link) => (
-              <NavLinkButton key={link.label} link={link} />
-            ))}
+    <Box id="fundable-projects" data-testid="fundable-projects">
+      <Paper
+        sx={{
+          mb: 3,
+          overflow: 'hidden',
+          position: 'relative',
+        }}
+      >
+        <Box sx={{ px: 2, pt: 1.5, pb: 1.25 }}>
+          {links.length > 0 && (
+            <Stack direction="row" spacing={1} sx={{ mb: 1 }} flexWrap="wrap" useFlexGap>
+              {links.map((link) => (
+                <NavLinkButton key={link.label} link={link} />
+              ))}
+            </Stack>
+          )}
+
+          <Stack
+            direction={{ xs: 'column', sm: 'row' }}
+            spacing={1}
+            alignItems={{ xs: 'flex-start', sm: 'center' }}
+            justifyContent="space-between"
+            sx={{ mb: 1 }}
+          >
+            {embedded ? (
+              <Typography variant="subtitle1" component="h2" sx={{ fontWeight: 700 }}>
+                {surfaceTitle}
+              </Typography>
+            ) : (
+              <Box>
+                <Typography
+                  variant="overline"
+                  sx={{ letterSpacing: '0.14em', fontWeight: 700, color: 'primary.main', display: 'block', lineHeight: 1.2 }}
+                >
+                  Statement
+                </Typography>
+                {displayTitle && (
+                  <Typography variant="subtitle1" component="h1" sx={{ fontWeight: 600 }}>
+                    {displayTitle}
+                  </Typography>
+                )}
+                {displaySummary && (
+                  <Typography variant="body2" color="text.secondary">
+                    {displaySummary}
+                  </Typography>
+                )}
+              </Box>
+            )}
+
+            {(primaryCid || (actionLinks && actionLinks.length > 0)) && (
+              <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                {primaryCid && (
+                  <NavLinkButton
+                    link={
+                      projectLinks === 'local'
+                        ? {
+                            label: 'Start project',
+                            to: `/projects/new?statement=${encodeURIComponent(primaryCid)}`,
+                            variant: 'contained',
+                          }
+                        : {
+                            label: 'Start project',
+                            href: getDomainUrl('lazyGiving', `/projects/new?statement=${encodeURIComponent(primaryCid)}`, {
+                              fallbackHref: `/projects/new?statement=${encodeURIComponent(primaryCid)}`,
+                            }),
+                            variant: 'contained',
+                          }
+                    }
+                  />
+                )}
+                {(actionLinks ?? []).map((link) => (
+                  <NavLinkButton key={link.label} link={link} />
+                ))}
+              </Stack>
+            )}
           </Stack>
+
+          <Stack direction="row" spacing={2.5} flexWrap="wrap" useFlexGap sx={{ rowGap: 0.75 }}>
+            <Box sx={metricSx}>
+              <Typography variant="caption" color="text.secondary" display="block" sx={{ lineHeight: 1.2 }}>
+                Raised
+              </Typography>
+              <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                {formatCurrencyTotals(totalRaised)}
+              </Typography>
+            </Box>
+
+            <Box sx={metricSx}>
+              <Typography variant="caption" color="text.secondary" display="block" sx={{ lineHeight: 1.2 }}>
+                Still needed
+              </Typography>
+              <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                {formatCurrencyTotals(remainingToThreshold)}
+              </Typography>
+            </Box>
+
+            <Box sx={metricSx}>
+              <Typography variant="caption" color="text.secondary" display="block" sx={{ lineHeight: 1.2 }}>
+                Unreimbursed
+              </Typography>
+              <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                {formatCurrencyTotals(totalUnreimbursed)}
+              </Typography>
+            </Box>
+
+            <Box sx={metricSx}>
+              <Typography variant="caption" color="text.secondary" display="block" sx={{ lineHeight: 1.2 }}>
+                Monthly pledges
+              </Typography>
+              <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                {formatCurrencyAmount(
+                  monthlyPledged,
+                  getConfiguredPaymentCurrency() ?? DEFAULT_PAYMENT_CURRENCY,
+                )}
+                /mo
+              </Typography>
+            </Box>
+
+            <Box sx={metricSx}>
+              <Stack direction="row" alignItems="center" spacing={0.25}>
+                <Typography variant="caption" color="text.secondary" sx={{ lineHeight: 1.2 }}>
+                  Projects
+                </Typography>
+                {projectsHelp && (
+                  <Tooltip
+                    title={projectsHelp}
+                    slotProps={{ tooltip: { sx: { maxWidth: 360 } } }}
+                  >
+                    <IconButton
+                      size="small"
+                      aria-label="About projects on this board"
+                      data-testid="projects-help"
+                      sx={{ p: 0.25, color: 'text.secondary' }}
+                    >
+                      <InfoOutlinedIcon sx={{ fontSize: 16 }} />
+                    </IconButton>
+                  </Tooltip>
+                )}
+              </Stack>
+              <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                {projectCount}
+              </Typography>
+            </Box>
+          </Stack>
+
+          {headerExtra}
+          {inclusionRules?.geographic && (
+            <Alert severity="info" sx={{ mt: 1.5 }} data-testid="geographic-board-rule">
+              Scoped to projects declaring a relevant area within{' '}
+              {formatPlacePath(inclusionRules.geographic.within)}, plus projects marked Worldwide.
+              Relevant areas are approximate and not verified addresses.
+            </Alert>
+          )}
+        </Box>
+
+        {(refreshing || (address && trustedSetLoading && trustedAlignmentAttesters === undefined)) && (
+          <TrustNetworkRefreshIndicator
+            title={
+              address && trustedSetLoading && trustedAlignmentAttesters === undefined
+                ? (
+                  trustedSet
+                    ? `Refreshing your trust network. This fundable-projects board is currently filtered using ${trustedSet.size} account${trustedSet.size !== 1 ? 's' : ''} in your network. Results may still change as more are discovered.`
+                    : 'Refreshing your trust network. Until any trusted accounts are found, this fundable-projects board still shows all project vouches.'
+                )
+                : 'Updating this fundable-projects board from the latest events.'
+            }
+          />
         )}
 
-        <Typography variant="h4" component="h1" gutterBottom>
-          Cause Board
-        </Typography>
-
-        {displayTitle && (
-          <Typography variant="h5" gutterBottom>
-            {displayTitle}
-          </Typography>
-        )}
-
-        {displaySummary && (
-          <Typography variant="body1" color="text.secondary" gutterBottom>
-            {displaySummary}
-          </Typography>
-        )}
-
-        <Divider sx={{ my: 2 }} />
-
-        <Stack direction="row" spacing={4} flexWrap="wrap" useFlexGap>
-          <Box>
-            <Typography variant="caption" color="text.secondary" display="block">
-              Total Funding Raised
-            </Typography>
-            <Typography variant="h6">{formatCurrencyTotals(totalRaised)}</Typography>
-          </Box>
-
-          <Box>
-            <Typography variant="caption" color="text.secondary" display="block">
-              Still Needed (Open Projects)
-            </Typography>
-            <Typography variant="h6">{formatCurrencyTotals(remainingToThreshold)}</Typography>
-          </Box>
-
-          <Box>
-            <Typography variant="caption" color="text.secondary" display="block">
-              Unreimbursed (Succeeded)
-            </Typography>
-            <Typography variant="h6">{formatCurrencyTotals(totalUnreimbursed)}</Typography>
-          </Box>
-
-          <Box>
-            <Typography variant="caption" color="text.secondary" display="block">
-              Ongoing Monthly Pledges
-            </Typography>
-            <Typography variant="h6">
-              {formatCurrencyAmount(
-                monthlyPledged,
-                getConfiguredPaymentCurrency() ?? DEFAULT_PAYMENT_CURRENCY,
-              )}
-              /month
-            </Typography>
-          </Box>
-
-          <Box>
-            <Typography variant="caption" color="text.secondary" display="block">
-              Projects
-            </Typography>
-            <Typography variant="h6">{projectCount}</Typography>
-          </Box>
-        </Stack>
-
-        {headerExtra}
-      </Paper>
-
-      {address && trustedSetLoading && (
-        <Alert severity="info" sx={{ mb: 2 }}>
-          {trustedSet
-            ? `Refreshing your trust network. This portal is currently filtered using ${trustedSet.size} account${trustedSet.size !== 1 ? 's' : ''} in your network. Results may still change as more are discovered.`
-            : 'Refreshing your trust network. Until any trusted accounts are found, this portal still shows all project endorsements.'}
-        </Alert>
-      )}
-
-      <Paper sx={{ mb: 3 }}>
         <Tabs
           value={projectTab}
-          onChange={(_, value: 'aligned' | 'successful') => setProjectTab(value)}
-          aria-label="Cause board project views"
+          onChange={(_, value: 'aligned' | 'successful' | 'reimbursed' | 'failed') =>
+            setProjectTab(value)
+          }
+          aria-label="Fundable-projects board views"
+          variant="scrollable"
+          allowScrollButtonsMobile
+          sx={{
+            borderTop: 1,
+            borderBottom: 1,
+            borderColor: 'divider',
+            minHeight: 40,
+            '& .MuiTab-root': { minHeight: 40, py: 0.75, textTransform: 'none' },
+          }}
         >
-          <Tab value="aligned" label="Aligned" />
-          <Tab value="successful" label="Successful" />
+          <Tab
+            value="aligned"
+            label="Not yet funded"
+            id="cause-board-tab-aligned"
+          />
+          <Tab
+            value="successful"
+            label="Not yet reimbursed"
+            id="cause-board-tab-successful"
+          />
+          <Tab
+            value="reimbursed"
+            label="Fully reimbursed"
+            id="cause-board-tab-reimbursed"
+          />
+          <Tab
+            value="failed"
+            label="Failed"
+            id="cause-board-tab-failed"
+            sx={{ opacity: 0.75 }}
+          />
         </Tabs>
+
+        <Box sx={{ p: 2 }}>
+          {projectTab === 'aligned' && (
+            <AlignedProjectsList
+              statementCid={primaryCid ?? ''}
+              statementCids={cids}
+              trustedImplicationAttesters={activeTrustedImplicationAttesters}
+              trustedAlignmentAttesters={trustedAlignmentAttesters}
+              projectLinks={projectLinks}
+              embedded
+              inclusionRules={inclusionRules}
+            />
+          )}
+          {projectTab === 'successful' && (
+            <SuccessfulProjectsTab
+              statementCid={primaryCid ?? ''}
+              statementCids={cids}
+              trustedImplicationAttesters={activeTrustedImplicationAttesters}
+              projectLinks={projectLinks}
+              inclusionRules={inclusionRules}
+            />
+          )}
+          {projectTab === 'reimbursed' && (
+            <SuccessfulProjectsTab
+              statementCid={primaryCid ?? ''}
+              statementCids={cids}
+              trustedImplicationAttesters={activeTrustedImplicationAttesters}
+              projectLinks={projectLinks}
+              reimbursement="reimbursed"
+              inclusionRules={inclusionRules}
+            />
+          )}
+          {projectTab === 'failed' && (
+            <AlignedProjectsList
+              statementCid={primaryCid ?? ''}
+              statementCids={cids}
+              trustedImplicationAttesters={activeTrustedImplicationAttesters}
+              trustedAlignmentAttesters={trustedAlignmentAttesters}
+              projectLinks={projectLinks}
+              statusFilterLock="refunding"
+              embedded
+              inclusionRules={inclusionRules}
+            />
+          )}
+        </Box>
       </Paper>
 
-      {projectTab === 'aligned' ? (
-        <AlignedProjectsList
-          statementCid={statementCid}
-          trustedImplicationAttesters={activeTrustedImplicationAttesters}
-          projectLinks={projectLinks}
-        />
-      ) : (
-        <SuccessfulProjectsTab
-          statementCid={statementCid}
-          trustedImplicationAttesters={activeTrustedImplicationAttesters}
-          projectLinks={projectLinks}
-        />
-      )}
-
-      <AttestAlignmentForm statementCid={statementCid} />
+      {cids.length === 1 && primaryCid && <AttestAlignmentForm statementCid={primaryCid} />}
     </Box>
   )
 }

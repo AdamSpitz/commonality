@@ -5,6 +5,7 @@ import {
 } from '@commonality/bridge-creator/strategy-engine'
 import type { RequestJsonCompletionFn } from '@commonality/attester-core'
 import { STATEMENT_QUALITY_GUIDANCE } from './statementGuidance.js'
+import { filterSignablePlanks, gateSharpenedPlank } from './statementQualityGate.js'
 import type {
   AtomizeRequest, AtomizeResponse, CauseAssistConfig, PlankDraft,
   SharpenPlankRequest, SharpenPlankResponse,
@@ -65,12 +66,14 @@ export async function atomizeCause(request: AtomizeRequest, config: CauseAssistC
   const count = Math.min(5, Math.max(1, Math.floor(request.count ?? 4)))
   if (!config.apiKey) return { planks: [], source: 'fallback' }
   const planks = await runStatementStrategy(atomizeStrategy, { ...request, count }, engineConfig(config), dependencies(requestFn))
-  return { planks: planks.slice(0, count), source: 'llm' }
+  return { planks: filterSignablePlanks(planks).slice(0, count), source: 'llm' }
 }
 
 export async function sharpenPlank(request: SharpenPlankRequest, config: CauseAssistConfig, requestFn?: RequestJsonCompletionFn): Promise<SharpenPlankResponse> {
   if (!config.apiKey) return { plank: request.plank.trim(), rationale: 'No language model is configured; wording was left unchanged.', warnings: ['Automated attestability review is unavailable.'], source: 'fallback' }
-  return { ...await runStatementStrategy(sharpenStrategy, request, engineConfig(config), dependencies(requestFn)), source: 'llm' }
+  const drafted = await runStatementStrategy(sharpenStrategy, request, engineConfig(config), dependencies(requestFn))
+  const gated = gateSharpenedPlank(request.plank, drafted.plank, drafted.warnings)
+  return { ...drafted, plank: gated.plank, warnings: gated.warnings, source: 'llm' }
 }
 
 export function draftDisjunctiveAnchor(planks: string[]) {

@@ -16,7 +16,8 @@ import DeleteIcon from '@mui/icons-material/Delete'
 import { useAccount } from 'wagmi'
 import { addMaterializedContent, claimMaterializedContent, createMaterializedContentTokens, getMaterializedClaimStates, getMaterializedContentOnchain, getProspectiveRoundOnchainState, hashCanonicalId, parseContentFundingUrl, type MaterializedContentClaimState } from '@commonality/sdk/content-funding'
 import { getChannelDisplayLabels } from '../channelDisplay'
-import { useMachinery, useWriteClients } from '../../shared'
+import { useMachinery, useWriteClients, InfoChip } from '../../shared'
+import { CONTENT_ITEM_CHIP_TOOLTIPS } from '../chipTooltips'
 import { usePlatformApi } from '../hooks/usePlatformApi'
 
 interface MaterializedContentRow {
@@ -168,7 +169,7 @@ export function MaterializeFutureContentPage() {
         Materialize future content
       </Typography>
       <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-        Attach published posts, videos, or articles to a funded future-content round so original backers can claim their content tokens.
+        Attach published posts, videos, or articles to a funded future-content round so original contributors can claim their content tokens.
       </Typography>
 
       <Paper sx={{ p: 3, mb: 3 }}>
@@ -176,7 +177,7 @@ export function MaterializeFutureContentPage() {
           <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
             <Chip label={platform ?? 'content'} size="small" />
             <Chip label={displayLabels.primary || canonicalChannelId} size="small" variant="outlined" />
-            <Chip label="Future-content round" color="secondary" size="small" />
+            <InfoChip label="Future-content round" color="secondary" size="small" title={CONTENT_ITEM_CHIP_TOOLTIPS.futureContent} />
           </Stack>
           <Box>
             <Typography variant="caption" color="text.secondary">Round address</Typography>

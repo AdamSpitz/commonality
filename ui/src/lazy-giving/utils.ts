@@ -27,6 +27,19 @@ export const STATUS_LABELS: Record<ProjectStatus, string> = {
   refunding: 'Refunding',
 }
 
+/** Short explanations for the status chip (and its info icon). */
+export const STATUS_TOOLTIPS: Record<ProjectStatus, string> = {
+  active: 'Still raising. The minimum has not been met yet, and the deadline has not passed.',
+  succeeded: 'The project met its minimum — or has none. The recipient can withdraw contributed funds.',
+  refunding: 'The deadline passed without meeting the minimum. Contributors can reclaim their funds.',
+}
+
+export const DEADLINE_ENDED_TOOLTIP =
+  'The fundraising deadline has passed. New contributions are not accepted.'
+
+export const DEADLINE_OPEN_TOOLTIP =
+  'Time remaining until the fundraising deadline. After that, new contributions are not accepted.'
+
 export function formatRelativeDeadline(deadlineStr: string): string {
   const deadline = Number(deadlineStr)
   const now = Math.floor(Date.now() / 1000)
@@ -54,7 +67,7 @@ export function computeUserTokenBalance(
   const held = new Map<string, bigint>()
 
   for (const c of contributions) {
-    if (c.participant.toLowerCase() !== userAddr) continue
+    if (c.contributor.toLowerCase() !== userAddr) continue
     const ids: string[] = JSON.parse(c.tokenIds)
     const counts: string[] = JSON.parse(c.tokenCounts)
     for (let i = 0; i < ids.length; i++) {
@@ -64,7 +77,7 @@ export function computeUserTokenBalance(
   }
 
   for (const r of refunds) {
-    if (r.participant.toLowerCase() !== userAddr) continue
+    if (r.contributor.toLowerCase() !== userAddr) continue
     const ids: string[] = JSON.parse(r.tokenIds)
     const counts: string[] = JSON.parse(r.tokenCounts)
     for (let i = 0; i < ids.length; i++) {
@@ -78,18 +91,34 @@ export function computeUserTokenBalance(
     .map(([tokenId, count]) => ({ tokenId, count }))
 }
 
+/** Sequential ERC-1155 IDs stay short; content-funding IDs are keccak hashes. */
+const SMALL_TOKEN_ID = /^\d{1,6}$/
+
+/** Human label for a giving option. Never dumps a 256-bit token id into the UI. */
+export function givingOptionLabel(
+  tokenId: string,
+  options: { name?: string; index?: number; kind?: 'giving' | 'reward' } = {},
+): string {
+  const name = options.name?.trim()
+  if (name) return name
+  const kind = options.kind === 'reward' ? 'Reward' : 'Giving option'
+  if (SMALL_TOKEN_ID.test(tokenId)) return `${kind} #${tokenId}`
+  if (options.index !== undefined) return `${kind} ${options.index + 1}`
+  return kind
+}
+
 export function computeContributorStats(contributions: Contribution[], refunds: Refund[]) {
   const stats = new Map<string, { contributed: bigint; refunded: bigint; currency: Contribution['currency'] | Refund['currency'] }>()
 
   for (const c of contributions) {
-    const addr = c.participant.toLowerCase()
+    const addr = c.contributor.toLowerCase()
     const entry = stats.get(addr) ?? { contributed: 0n, refunded: 0n, currency: c.currency }
     entry.contributed += BigInt(c.totalCost)
     stats.set(addr, entry)
   }
 
   for (const r of refunds) {
-    const addr = r.participant.toLowerCase()
+    const addr = r.contributor.toLowerCase()
     const entry = stats.get(addr) ?? { contributed: 0n, refunded: 0n, currency: r.currency }
     entry.refunded += BigInt(r.totalRefund)
     stats.set(addr, entry)

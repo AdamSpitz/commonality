@@ -29,15 +29,15 @@ services:
       - key: OPENROUTER_API_KEY
         sync: false  # Optional fallback secret
       - key: CAUSE_ASSIST_API_BASE_URL
-        value: https://api.x.ai/v1
+        value: https://openrouter.ai/api/v1
       - key: CAUSE_ASSIST_SUGGEST_MODEL
-        value: grok-4.5
+        value: deepseek/deepseek-v4-flash-0731
       - key: CAUSE_ASSIST_SAFETY_MODEL
-        value: grok-4.5
+        value: deepseek/deepseek-v4-flash-0731
       - key: CAUSE_ASSIST_IMPLICATION_MODEL
-        value: grok-4.5
+        value: deepseek/deepseek-v4-flash-0731
       - key: CAUSE_ASSIST_COHERENCE_MODEL
-        value: grok-4.5
+        value: deepseek/deepseek-v4-flash-0731
       - key: CAUSE_ASSIST_COHERENCE_ATTESTER_ADDRESS
         value: "${CAUSE_ASSIST_COHERENCE_ATTESTER_ADDRESS}"
     healthCheckPath: /health
@@ -71,8 +71,12 @@ services:
         sync: false  # Secret: worker only; never add to cause-assist
       - key: XAI_API_KEY
         sync: false  # Secret
+      - key: OPENROUTER_API_KEY
+        sync: false  # Secret
+      - key: CAUSE_ASSIST_API_BASE_URL
+        value: https://openrouter.ai/api/v1
       - key: CAUSE_ASSIST_COHERENCE_MODEL
-        value: grok-4.5
+        value: deepseek/deepseek-v4-flash-0731
       - key: CAUSE_ASSIST_IPFS_GATEWAY_URL
         value: https://ipfs.io/ipfs
       - key: EVENT_CACHE_URL
@@ -87,6 +91,52 @@ services:
         value: "10000"
     disk:
       name: commonality-coherence-badge-worker-state
+      mountPath: /data
+      sizeGB: 1
+    autoDeploy: true
+    plan: starter
+
+  # CauseStarter's shipped one-hop trust root. The durable disk holds the scan
+  # cursor plus operator-edited pause and denylist controls.
+  - type: worker
+    name: commonality-alignment-trust-bootstrap
+    env: docker
+    rootDir: .
+    dockerContext: .
+    dockerfilePath: alignment-trust-bootstrap/Dockerfile
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: RPC_URL
+        sync: false  # Secret: Base Sepolia RPC provider URL
+      - key: CHAIN_ID
+        value: "84532"
+      - key: ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS
+        value: "${ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS}"
+      - key: TRUST_REGISTRY_ADDRESS
+        value: "${TRUST_REGISTRY_ADDRESS}"
+      - key: ALIGNMENT_TRUST_BOOTSTRAP_PRIVATE_KEY
+        sync: false  # Secret: dedicated funded hot wallet
+      - key: START_BLOCK
+        value: "${START_BLOCK}"
+      - key: STATE_FILE
+        value: /data/alignment-trust-bootstrap.base-sepolia.json
+      - key: DENYLIST_FILE
+        value: /data/denylist.txt
+      - key: PAUSE_FILE
+        value: /data/PAUSED
+      - key: CONFIRMATIONS
+        value: "12"
+      - key: BLOCK_RANGE
+        value: "1000"
+      - key: POLL_INTERVAL_MS
+        value: "10000"
+      - key: BATCH_SIZE
+        value: "50"
+      - key: MAX_ADMISSIONS_PER_POLL
+        value: "100"
+    disk:
+      name: commonality-alignment-trust-bootstrap-state
       mountPath: /data
       sizeGB: 1
     autoDeploy: true
@@ -138,6 +188,8 @@ services:
         sync: false  # from-env: ACCOUNT_ASSERTIONS_ADDRESS
       - key: ASSURANCE_CONTRACT_FACTORY_ADDRESS
         sync: false  # from-env: ASSURANCE_CONTRACT_FACTORY_ADDRESS
+      - key: PROJECT_FACTORY_ADDRESS
+        sync: false  # from-env: PROJECT_FACTORY_ADDRESS
       - key: ERC1155_FACTORY_ADDRESS
         sync: false  # from-env: ERC1155_FACTORY_ADDRESS
       - key: DELEGATABLE_NOTES_ADDRESS
@@ -247,7 +299,7 @@ services:
       - key: OPENROUTER_API_KEY
         sync: false  # Secret
       - key: OPENROUTER_MODEL
-        value: anthropic/claude-3.5-haiku
+        value: deepseek/deepseek-v4-flash-0731
       - key: IPFS_API
         value: https://ipfs.io/api/v0
       - key: IPFS_GATEWAY
@@ -435,7 +487,7 @@ services:
       - key: OPENROUTER_API_KEY
         sync: false  # Secret
       - key: OPENROUTER_MODEL
-        value: anthropic/claude-3.5-haiku
+        value: deepseek/deepseek-v4-flash-0731
       - key: INDEXER_URL
         value: https://commonality-indexer.onrender.com
       - key: EVENT_CACHE_URL

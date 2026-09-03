@@ -12,6 +12,8 @@ First, a scoping question worth answering head-on: we already *have* governments
 
   - **[Openness](./openness.md):** Anyone can publish projects, statements, attestations. Filtering happens through social signals rather than gatekeepers. If you care more about the cause than about control, this is strictly better. And there are many public-good projects that *aren't* getting funded by our current system of centralized gatekeepers; the openness of Commonality lets us simply bypass those systems.
 
+  - **[Unbundling the organization](./unbundled-organization.md):** Money, judgment, trust, distribution, and execution do not have to arrive in one foundation or leadership team. Each person can supply the one scarce contribution they have, and every visible contribution helps recruit the missing roles.
+
   - **Transparency and trustlessness:** Everything is onchain and auditable. No need to trust a charity's annual report or a government's budget numbers. The blockchain *is* the report.
 
   - **Censorship resistance:** No bank accounts to freeze, no platform to deplatform, no organization to shut down. See [hard-to-stop](../hard-to-stop/censorship-resistance.md). This is also what makes [credible threats](../hard-to-stop/credible-threat.md) possible — the backup plan can't be squashed.

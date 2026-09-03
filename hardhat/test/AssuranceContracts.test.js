@@ -666,7 +666,7 @@ describe("MultiERC1155AssuranceContract", function () {
       expect(await assuranceContract.reimbursableAmount(bob.address)).to.equal(ethers.parseEther("6.0"));
     });
 
-    it("redistributes already-received retro money pro-rata to the remaining contributors", async function () {
+    it("checkpoints earned reimbursement before burning the remaining future claim", async function () {
       await approveAndBuy(assuranceContract, alice, tokenAddr, [1], [4], ethers.parseEther("4.0"));
       await approveAndBuy(assuranceContract, bob, tokenAddr, [1], [6], ethers.parseEther("6.0"));
 
@@ -674,12 +674,18 @@ describe("MultiERC1155AssuranceContract", function () {
       expect(await assuranceContract.reimbursableAmount(alice.address)).to.equal(ethers.parseEther("2.0"));
       expect(await assuranceContract.reimbursableAmount(bob.address)).to.equal(ethers.parseEther("3.0"));
 
-      // Alice forgoes her full contribution; the 5 already in redistributes to Bob.
-      await assuranceContract.connect(alice).forgoReimbursement(ethers.parseEther("4.0"));
-      expect(await assuranceContract.reimbursableAmount(alice.address)).to.equal(0);
-      expect(await assuranceContract.reimbursableAmount(bob.address)).to.equal(ethers.parseEther("5.0"));
-      // Bob is never reimbursed above his own cost of 6.
-      expect(await assuranceContract.outstandingReimbursementTotal()).to.equal(ethers.parseEther("1.0"));
+      // Alice has earned 2 and can burn only her remaining future claim of 2.
+      await assuranceContract.connect(alice).forgoReimbursement(ethers.parseEther("2.0"));
+      expect(await assuranceContract.reimbursableAmount(alice.address)).to.equal(ethers.parseEther("2.0"));
+      expect(await assuranceContract.reimbursableAmount(bob.address)).to.equal(ethers.parseEther("3.0"));
+      expect(await assuranceContract.futureReimbursementClaims(alice.address)).to.equal(0);
+      expect(await assuranceContract.futureReimbursementClaims(bob.address)).to.equal(ethers.parseEther("3.0"));
+      expect(await assuranceContract.outstandingReimbursementTotal()).to.equal(ethers.parseEther("3.0"));
+
+      // Only Bob holds the future claim, while Alice keeps the 2 already earned.
+      await donateRetro(charlie, ethers.parseEther("3.0"));
+      expect(await assuranceContract.reimbursableAmount(alice.address)).to.equal(ethers.parseEther("2.0"));
+      expect(await assuranceContract.reimbursableAmount(bob.address)).to.equal(ethers.parseEther("6.0"));
     });
 
     it("caps forgo at the outstanding reimbursement total (T - R)", async function () {
@@ -689,8 +695,8 @@ describe("MultiERC1155AssuranceContract", function () {
       await donateRetro(charlie, ethers.parseEther("8.0")); // outstanding now 2
       await expect(assuranceContract.connect(alice).forgoReimbursement(ethers.parseEther("3.0")))
         .to.be.revertedWithCustomError(assuranceContract, "ForgoAmountExceedsAllowed");
-      // Exactly the outstanding amount is allowed.
-      await expect(assuranceContract.connect(alice).forgoReimbursement(ethers.parseEther("2.0")))
+      // Alice owns 40% of the remaining 2, so only 0.8 is hers to forgo.
+      await expect(assuranceContract.connect(alice).forgoReimbursement(ethers.parseEther("0.8")))
         .to.emit(assuranceContract, "ReimbursementForgone");
     });
 
@@ -704,14 +710,24 @@ describe("MultiERC1155AssuranceContract", function () {
         .to.be.revertedWithCustomError(assuranceContract, "ForgoAmountExceedsAllowed");
     });
 
-    it("won't let a contributor forgo below what they already withdrew", async function () {
+    it("lets a contributor withdraw earned reimbursement and separately burn a future claim", async function () {
       await approveAndBuy(assuranceContract, alice, tokenAddr, [1], [4], ethers.parseEther("4.0"));
       await approveAndBuy(assuranceContract, bob, tokenAddr, [1], [6], ethers.parseEther("6.0"));
 
       await donateRetro(charlie, ethers.parseEther("5.0"));
       await assuranceContract.connect(alice).withdrawReimbursement(); // withdraws 2, earned == withdrawn
       await expect(assuranceContract.connect(alice).forgoReimbursement(ethers.parseEther("1.0")))
-        .to.be.revertedWithCustomError(assuranceContract, "ForgoWouldStrandWithdrawnReimbursement");
+        .to.emit(assuranceContract, "ReimbursementForgone");
+      expect(await assuranceContract.reimbursementsWithdrawn(alice.address)).to.equal(ethers.parseEther("2.0"));
+      expect(await assuranceContract.futureReimbursementClaims(alice.address)).to.equal(ethers.parseEther("1.0"));
+    });
+
+    it("keeps future reimbursement claim tokens nontransferable", async function () {
+      await approveAndBuy(assuranceContract, alice, tokenAddr, [1], [4], ethers.parseEther("4.0"));
+
+      expect(await assuranceContract.balanceOf(alice.address)).to.equal(ethers.parseEther("4.0"));
+      await expect(assuranceContract.connect(alice).transfer(bob.address, 1n))
+        .to.be.revertedWithCustomError(assuranceContract, "NonTransferableReimbursementClaim");
     });
 
     it("still refunds a forgoer if the project later fails (clamped, no underflow)", async function () {

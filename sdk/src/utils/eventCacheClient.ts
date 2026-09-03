@@ -1,4 +1,4 @@
-import { SDKMachinery, getContractAddressesForChain, type ContractAddresses } from '../machinery.js';
+import { SDKMachinery } from '../machinery.js';
 
 /**
  * A raw blockchain event as returned by the event cache API.
@@ -204,31 +204,6 @@ export async function fetchEventsComplete(
   };
 
   return fetchRange(fromBlock, endBlock);
-}
-
-/**
- * Get the configured contract addresses from SDK machinery.
- *
- * @param machinery - SDK machinery instance
- * @returns Contract addresses, or undefined if not configured
- */
-export function getContractAddresses(
-  machinery: SDKMachinery,
-  chainId: number = machinery.defaultChainId ?? 31337,
-): ContractAddresses | undefined {
-  return getContractAddressesForChain(machinery, chainId);
-}
-
-/**
- * Check whether the event cache is available and usable.
- *
- * Returns true only if both `eventCacheUrl` and `contractAddresses` are configured.
- *
- * @param machinery - SDK machinery instance
- * @returns True if event-cache queries can be made
- */
-export function isEventCacheAvailable(machinery: SDKMachinery): boolean {
-  return machinery.eventCacheUrl != null && !!machinery.contractAddresses;
 }
 
 // ============================================================================

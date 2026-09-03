@@ -28,19 +28,33 @@ function register(ponderEventName: string) {
 // CONCEPTSPACE: Beliefs + Implications
 register("Beliefs:DirectSupport");
 register("Implications:ImplicationAttestation");
+register("Implications:ImplicationRevoked");
 
 // LAZYGIVING: Factory + AssuranceContract + non-transferable ERC1155 receipts
 register("AssuranceContractFactory:LazyGivingAssuranceContractCreated");
+register("ProjectFactory:ProjectCreated");
 register("ERC1155Factory:LazyGivingERC1155ContractCreated");
-register("AssuranceContract:AssuranceContractInitialized");
-register("AssuranceContract:ContractMetadataUpdated");
-register("AssuranceContract:ERC1155Offered");
-register("AssuranceContract:ERC1155Bought");
-register("AssuranceContract:ERC1155Sold");
-register("AssuranceContract:AssuranceContractWithdrawal");
-register("AssuranceContract:RetroactiveDonationReceived");
-register("AssuranceContract:ReimbursementWithdrawn");
-register("AssuranceContract:ReimbursementForgone");
+const assuranceContractEvents = [
+  "AssuranceContractInitialized",
+  "ContractMetadataUpdated",
+  "ERC1155Offered",
+  "ERC1155Bought",
+  "ERC1155Sold",
+  "AssuranceContractWithdrawal",
+  "RetroactiveDonationReceived",
+  "ReimbursementWithdrawn",
+  "ReimbursementForgone",
+] as const;
+
+for (const contractName of [
+  "AssuranceContract",
+  "CreatorAssuranceContract",
+  "ProspectiveContentAssuranceContract",
+] as const) {
+  for (const eventName of assuranceContractEvents) {
+    register(`${contractName}:${eventName}`);
+  }
+}
 register("PremintingERC1155:TransferSingle");
 register("PremintingERC1155:TransferBatch");
 
@@ -61,10 +75,13 @@ register("RecurringPledges:StandingPledgeCancelled");
 
 // FUNDING PORTAL: AlignmentAttestations
 register("AlignmentAttestations:AlignmentAttestation");
+register("AlignmentAttestations:AlignmentRevoked");
 register("AlignmentAttestations:SuccessAttestation");
+register("AlignmentAttestations:SuccessRevoked");
 
-// SUBJECTIV IDENTITY: AccountAssertions (tier-0/1 proof-of-personhood self-declarations)
+// SUBJECTIV IDENTITY: AccountAssertions + TrustRegistry
 register("AccountAssertions:AccountAssertionSet");
+register("TrustRegistry:TrustSet");
 
 // MUTABLE REFS
 register("MutableRefUpdater:RefUpdated");
@@ -89,21 +106,3 @@ register("ProspectiveContentRoundFactory:ProspectiveRoundCreated");
 register("ProspectiveContentRoundFactory:ProspectiveRoundMaterialized");
 register("MaterializedContentTokens:ContentMaterialized");
 register("MaterializedContentTokens:ContentTokenClaimed");
-register("CreatorAssuranceContract:AssuranceContractInitialized");
-register("CreatorAssuranceContract:ContractMetadataUpdated");
-register("CreatorAssuranceContract:ERC1155Offered");
-register("CreatorAssuranceContract:ERC1155Bought");
-register("CreatorAssuranceContract:ERC1155Sold");
-register("CreatorAssuranceContract:AssuranceContractWithdrawal");
-register("CreatorAssuranceContract:RetroactiveDonationReceived");
-register("CreatorAssuranceContract:ReimbursementWithdrawn");
-register("CreatorAssuranceContract:ReimbursementForgone");
-register("ProspectiveContentAssuranceContract:AssuranceContractInitialized");
-register("ProspectiveContentAssuranceContract:ContractMetadataUpdated");
-register("ProspectiveContentAssuranceContract:ERC1155Offered");
-register("ProspectiveContentAssuranceContract:ERC1155Bought");
-register("ProspectiveContentAssuranceContract:ERC1155Sold");
-register("ProspectiveContentAssuranceContract:AssuranceContractWithdrawal");
-register("ProspectiveContentAssuranceContract:RetroactiveDonationReceived");
-register("ProspectiveContentAssuranceContract:ReimbursementWithdrawn");
-register("ProspectiveContentAssuranceContract:ReimbursementForgone");

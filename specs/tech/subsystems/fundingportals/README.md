@@ -1,10 +1,13 @@
-# Cause boards / funding portals
+# Fundable-projects boards / funding portals
 
-A cause board (historically called a funding portal in code and older docs) is a statement-anchored view that helps donors fund projects aligned with a cause.
+A **fundable-projects board** (historically a funding portal in code, then
+briefly called a cause board) is a statement-anchored list of aligned work
+donors might fund. **Cause board** now means the organizer publication; see
+[cause-page-not-a-club.md](../../../product/cause-page-not-a-club.md).
 
 ## Current status
 
-The implementation still uses the `fundingportal` package/path name in several places, but user-facing copy should prefer **cause board**. Treat `fundingportal` as a technical/internal name until the code paths are renamed.
+The implementation still uses the `fundingportal` package/path name in several places. Treat `fundingportal` as a technical/internal name until the code paths are renamed.
 
 ## Product role
 
@@ -17,7 +20,7 @@ The implementation still uses the `fundingportal` package/path name in several p
 
 - UI components: `ui/src/fundingportals/`
 - Product boundary: `specs/product/ui-domains.md` under **Aligning — cause-based funding**
-- Related tests: `ui/test-plan.md` under **Cause board**
+- Related tests: `ui/test-plan.md` under **Fundable-projects board**
 
 ## Naming note
 

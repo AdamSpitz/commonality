@@ -9,10 +9,9 @@
 // Rationale and the decision to keep these non-blocking:
 // specs/decisions/0002-code-quality-metrics.md
 //
-// Each workspace's eslint.config.js spreads `...codeMetrics` into its
-// defineConfig array (near the top, so workspace-specific rules can still
-// override). Import path is always '../eslint.metrics.mjs' since every
-// workspace sits one directory below the repo root.
+// Each workspace's eslint.config.js spreads `...codeMetrics` into its config
+// array near the top, so workspace-specific rules can still override it. The
+// relative import path depends on the workspace's depth below the repo root.
 export default [
   {
     // Generated output must not pollute the advisory signal. Keep this shared so

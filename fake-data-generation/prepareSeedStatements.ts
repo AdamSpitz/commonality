@@ -9,31 +9,15 @@ import {
   publishSeedStatementDocument,
 } from './seed-content-format.js';
 import { createIPFSConfigInNodeJSFromTheUsualEnvVars } from '@commonality/sdk/node';
-import { createPublicClient, createWalletClient, http, type Hex } from 'viem';
-import { privateKeyToAccount } from 'viem/accounts';
+import { type Hex } from 'viem';
 import { CONTRACT_ADDRESSES, RPC_URL, loadEnv } from './loadEnv.js';
-
-const hardhat = {
-  id: 31337,
-  name: 'Hardhat',
-  network: 'hardhat',
-  nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
-  rpcUrls: {
-    default: { http: ['http://localhost:8545'] },
-    public: { http: ['http://localhost:8545'] },
-  },
-} as const;
+import { createSeedClients } from './seedRpc.js';
 
 const DEFAULT_SEED_PUBLISHER_PRIVATE_KEY: Hex =
   '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80';
 
 function createPublishedDataClients(privateKey: Hex) {
-  const account = privateKeyToAccount(privateKey);
-  return {
-    walletClient: createWalletClient({ account, chain: hardhat, transport: http(RPC_URL) }),
-    publicClient: createPublicClient({ chain: hardhat, transport: http(RPC_URL) }),
-    account: account.address,
-  };
+  return createSeedClients(privateKey, RPC_URL);
 }
 
 function parseArgs(args: string[]): { outputPath: string; upload: boolean } {

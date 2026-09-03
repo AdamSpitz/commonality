@@ -82,6 +82,7 @@ if [ "$WITH_MUTATION" = "1" ]; then
 		echo "         testnet.onchain-to-indexer will error. Source it from .env.secrets first." >&2
 	fi
 	LEAVES+=(testnet.onchain-to-indexer)
+	LEAVES+=(testnet.alignment-trust)
 fi
 
 cd "$ROOT"

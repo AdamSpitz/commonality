@@ -7,13 +7,53 @@ Each entry follows the same shape:
 - **When a user encounters it** — UI surfaces or moments in the user's flow where this concept becomes load-bearing.
 - **What they might want help with** — typical assistant tasks around this concept.
 
+## CauseStarter (you landed on a cause page)
+
+[Full page](/docs/end-user/causestarter/index.md)
+
+- **What it is:** The spoken newcomer briefing. A cause board is a bulletin board of crowdfundable projects (Kickstarter-style refunds if the goal is missed), plus two twists: [delegate](shared/key-ideas/delegation.md) so you don't watch the board, and a **Not yet reimbursed** tab so you fund proven work instead of pitches. Almost everyone arrives via a circulated URL, not a catalog. Causes are ordinary-language statements; the board is a mix, not a club. Jobs are separable: pledge, scout/direct initial funding, recognize or reimburse proven work, start a project, vouch, optionally sign. Money, judgment, trust, distribution, and execution need not come from one organization. After signing, CauseStarter **home** is a personal fundable-projects board (including implied statements).
+- **When a user encounters it:** In-app `/docs`, or when they ask what this cause page is; returning users on CauseStarter `/`.
+- **What they might want help with:** What they can do without joining; how projects get on the list; pledging vs signing; when to start their own page vs using this one; finding “my” projects vs an organizer’s mix. Next objections: [faq.md](/docs/end-user/causestarter/faq.md). Eye-roll “support a cause” objections: [why-this-isnt-lame.md](/docs/end-user/causestarter/why-this-isnt-lame.md).
+
+## CauseStarter FAQ (objections, not a second tutorial)
+
+[Full page](/docs/end-user/causestarter/faq.md)
+
+- **What it is:** Short answers to the questions after the spoken pitch: what a cause/statement is, what signing does (including implied statements), how trust-filtered vouches populate the board, forking a mix, refunds, no grant officer, wording.
+- **When a user encounters it:** `/docs/faq`, or when they ask one of those questions after the landing briefing.
+- **What they might want help with:** Signing vs pledging; why a new board isn’t empty; why they see (or don’t see) a project; implication vs direct support.
+
+## Why this isn’t lame
+
+[Full page](/docs/end-user/causestarter/why-this-isnt-lame.md)
+
+- **What it is:** Objection-handling for people who roll their eyes at “support a cause”: no black-box charity, no sucker-risk, no pitch-betting, no manifesto, judgment as a job, wording fights don’t kill funding.
+- **When a user encounters it:** `/docs/why-this-isnt-lame`, or when they say this sounds like a movement/org they don’t want to join.
+- **What they might want help with:** Why delegation to a person isn’t charity; why retroactive funding is the easy path; why they can ignore three of five statements.
+
+## Do the part you’d do anyway (jobs, not an org)
+
+[Full page](/docs/end-user/causestarter/the-jobs.md)
+
+- **What it is:** The everyday pitch for CauseStarter / Commonality. Cooperate on agreement; split the work into jobs people would already take (money, prospective scouting, retrospective evaluation/reimbursement, work, trust, wording); remove the extra job each role used to demand. Not “join a movement.” It is the user-facing form of “unbundle the organization”: one exceptional contribution is enough; a capital holder need not supply mission and talent, and an expert need not be wealthy.
+- **When a user encounters it:** CauseStarter landing, empty states on cause/project/statement pages, `/docs/the-jobs`.
+- **What they might want help with:** Which job to take; why they don’t need a committee, grant officer, or matching manifesto; how delegation / refundable pledges / retroactive funding / bridges / reusing statements unblock the matching “ugh.”
+
+## CauseStarter role guides (choose one capacity)
+
+[Role guide hub](/docs/end-user/causestarter/roles/index.md)
+
+- **What it is:** Sendable landing pages for six independently recruitable capacities: capital, prospective scouting/allocation, retrospective evaluation, execution, trust/distribution, and organizing. Each page explicitly says which other jobs the person does not have to accept and explains how their contribution makes those jobs easier to recruit. A whale can provide capital without founding an organization; an expert can supply judgment without being wealthy; a builder can execute without owning fundraising.
+- **When a user encounters it:** `/docs/roles`, from the CauseStarter pitch, jobs catalog, FAQ, or start-a-cause guide; especially when an organizer is making a narrow ask of a prospective participant.
+- **What they might want help with:** Choosing the smallest honest role; sending the matching guide; explaining the flywheel from pledges to projects to vouches to reimbursement; separating alignment judgment, prospective selection, and retrospective success evaluation.
+
 ## Statements and the implication graph
 
 [Full page](/docs/end-user/tally/statements-and-implication-graph.md)
 
 - **What it is:** Users express what they care about by signing statements (free-text). The implication graph is a system of "S1 implies S2" relationships (generated by AI services) that connects related statements automatically. Together, these form the backbone of how supply (projects) meets demand (donors) without centralized coordination.
-- **When a user encounters it:** When signing a statement, when viewing a cause board, when seeing supporter counts, when understanding why a particular project appeared in their feed.
-- **What they might want help with:** Writing or finding a statement that expresses what they care about; understanding why certain projects show up in their cause board; understanding the supporter count on a statement page.
+- **When a user encounters it:** When signing a statement, when viewing a fundable-projects board, when seeing supporter counts, when understanding why a particular project appeared in their feed.
+- **What they might want help with:** Writing or finding a statement that expresses what they care about; understanding why certain projects show up in their fundable-projects board; understanding the supporter count on a statement page.
 
 ## Assurance contracts
 
@@ -43,8 +83,8 @@ Each entry follows the same shape:
 
 [Full page](/docs/end-user/alignment/successful-projects.md)
 
-- **What it is:** A second attestation type on Aligning, parallel to alignment vouches. An *alignment* vouch says a project is *trying* to serve a cause; a *success* vouch says it *delivered*. Both anchor to the same cause statement and ride the same trust graph + implication propagation. The **Successful projects** view on a cause board shows projects that (a) the viewer's trust network has vouched as successful and (b) still have donation receipts outstanding — a call-to-action queue for retroactive funders, not an official "this succeeded" pronouncement. It is the primary surface for donors who want to support proven work without predicting winners or detecting scams in advance.
-- **When a user encounters it:** When viewing a cause board's Successful tab; when deciding which proven projects' early contributors to reimburse; when vouching that a project delivered (the mirror of vouching for alignment); when reading a "vouched successful" section on a LazyGiving project page.
+- **What it is:** A second attestation type on Aligning, parallel to alignment vouches. An *alignment* vouch says a project is *trying* to serve a cause; a *success* vouch says it *delivered*. Both anchor to the same cause statement and ride the same trust graph + implication propagation. The **Successful projects** view on a fundable-projects board shows projects that (a) the viewer's trust network has vouched as successful and (b) still have donation receipts outstanding — a call-to-action queue for retroactive funders, not an official "this succeeded" pronouncement. It is the primary surface for donors who want to support proven work without predicting winners or detecting scams in advance.
+- **When a user encounters it:** When viewing a fundable-projects board's Successful tab; when deciding which proven projects' early contributors to reimburse; when vouching that a project delivered (the mirror of vouching for alignment); when reading a "vouched successful" section on a LazyGiving project page.
 - **What they might want help with:** Understanding the difference between aligned and successful; understanding that the page reflects others' vouches (trust-filtered), not a platform verdict; finding proven projects with outstanding reimbursements to fund; donating to close a project's reimbursement loop; posting a success vouch for a project they believe delivered; registering disagreement with a vouch ("I don't agree this delivered") by downgrading trust in whoever vouched — the consequence of a bad success vouch is reputational, not financial.
 
 ## Credible threats
@@ -59,8 +99,8 @@ Each entry follows the same shape:
 
 [Full page](/docs/end-user/content-funding/content-funding.md)
 
-- **What it is:** LazyGiving (assurance contracts) pointed at social-media content. A creator groups pieces of content (tweets, YouTube videos, Substack posts) into a contract with a funding goal; supporters pledge toward the items they value; funds release only if the goal is met, else everyone is refunded. A content contract *is* a LazyGiving project. Creators claim their channel by posting a verification code from the account; third parties can start a contract for an unclaimed channel, but funds wait for the creator. Via Aligning, cause pools (optionally using AI evaluators) can fund whole *kinds* of content — the engine behind funding noninflammatory/insightful/etc. content.
-- **When a user encounters it:** When pledging toward a specific piece of content; when grouping content into a contract and setting a goal; when claiming a channel as a creator; when browsing a content-focused cause board.
+- **What it is:** LazyGiving (assurance contracts) pointed at social-media content. A creator groups pieces of content (tweets, YouTube videos, Substack posts) into a contract with a funding goal; contributors contribute toward the items they value; funds release only if the goal is met, else everyone is refunded. A content contract *is* a LazyGiving project. Creators claim their channel by posting a verification code from the account; third parties can start a contract for an unclaimed channel, but funds wait for the creator. Via Aligning, cause pools (optionally using AI evaluators) can fund whole *kinds* of content — the engine behind funding noninflammatory/insightful/etc. content.
+- **When a user encounters it:** When pledging toward a specific piece of content; when grouping content into a contract and setting a goal; when claiming a channel as a creator; when browsing a content-focused fundable-projects board.
 - **What they might want help with:** Claiming their channel; setting up a contract and funding goal; understanding the pledge-and-refund mechanism; finding content to fund; understanding how cause pools fund kinds of content.
 
 ## Trust networks
@@ -68,7 +108,7 @@ Each entry follows the same shape:
 [Full page](shared/key-ideas/trust-networks.md)
 
 - **What it is:** Each user chooses who they trust. The system follows trust transitively (if you trust A and A trusts B, you see B's endorsements). This is how the system filters noise and surfaces relevant information without central gatekeepers.
-- **When a user encounters it:** When choosing who to trust in settings; when seeing project endorsements in their cause board; when understanding why certain projects or content appear (or don't appear) in their feed.
+- **When a user encounters it:** When choosing who to trust in settings; when seeing project endorsements in their fundable-projects board; when understanding why certain projects or content appear (or don't appear) in their feed.
 - **What they might want help with:** Setting up their trust network; understanding why they're seeing (or not seeing) certain endorsements; understanding how trust chains work; using **Downtrust** to register disagreement with a vouch (alignment *or* success) by decreasing/zeroing trust in whoever made it — a first-class action aimed at the voucher, the symmetric counterpart to vouching.
 
 ## How actions compound

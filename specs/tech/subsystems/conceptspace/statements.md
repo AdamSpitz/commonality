@@ -4,4 +4,6 @@ A statement is the basic Conceptspace object: a short, content-addressed claim t
 
 Statements intentionally avoid structured metadata in the core protocol. Meaning comes from the text itself plus attestations, implications, nudges, and the surrounding UI context.
 
+The one exception is [combinator statements](combinator-statements.md): a closed `all` / `any` over other statement CIDs, so a promoted conjunction or disjunction is a deterministic graph node rather than a slogan the LLM attester has to interpret. Why: [ADR 0010](/specs/decisions/0010-combinator-statements.md).
+
 Statement content is identified by its CID. New statement publication routes through the shared [PublishedData subsystem](../published-data/README.md): authors self-publish the statement bytes in calldata, and readers use the CID-first document seam with legacy IPFS fallback only for pre-migration data. The legal motivation is in [statement-hosting.md](/specs/product/legal/statement-hosting.md).

@@ -11,7 +11,7 @@
 import { type Address, type Hash } from 'viem';
 import { uploadToIPFS, fetchFromIPFS, IPFSConfig } from '../../utils/ipfs.js';
 import { type WriteClients } from '../../utils/ethereum.js';
-import { publishData, readData, computePublishedDataId, publishedDataCidToId, publishedDataIdToCid, createEventCacheCidResolver, createPublishedDataApiCidResolver, type DisplayPolicy, type CidResolution, type PublishedDataCache, type PublishedDataContract, type PublishedDataId, type PublishedDataReadResult, type PublishedDataCid } from '../published-data/index.js';
+import { publishData, readData, computePublishedDataId, publishedDataCidToId, publishedDataIdToCid, createEventCacheCidResolver, createPublishedDataApiCidResolver, type DisplayPolicy, type CidResolution, type PublishedDataCache, type PublishedDataContract, type PublishedDataId, type PublishedDataReadResult, type PublishedDataCid, type PublishDataOptions } from '../published-data/index.js';
 import type { SDKMachinery } from '../../machinery.js';
 import { IpfsCidV1 } from '../../utils/cid-types.js';
 
@@ -329,7 +329,11 @@ export interface CreateStatementOptions {
   /** Optional topic/category hint for indexers */
   topic?: string;
 
-  /** When the statement was authored (defaults to now) */
+  /**
+   * Optional publication date in extras. Omitted unless the caller passes it
+   * (seed statements that need a frozen CID). Do not default to now: a timestamp
+   * in the claim mints a unique CID per publish of the same prose.
+   */
   createdDate?: string;
 
   /** References to other documents */
@@ -343,7 +347,7 @@ export interface CreateStatementOptions {
  * Creates a conceptspace statement as a displayable document.
  *
  * This is a convenience function that pre-populates extras with
- * the conceptspace-specific fields (statementType, topic, createdDate).
+ * the conceptspace-specific fields (statementType, optional topic/createdDate).
  */
 export function createStatement(options: CreateStatementOptions): DisplayableDocument {
   const extras: Record<string, unknown> = {
@@ -355,7 +359,9 @@ export function createStatement(options: CreateStatementOptions): DisplayableDoc
     extras.topic = options.topic;
   }
 
-  extras.createdDate = options.createdDate || new Date().toISOString();
+  if (options.createdDate) {
+    extras.createdDate = options.createdDate;
+  }
 
   return createDisplayableDocument({
     format: 'markdown-restricted',
@@ -431,13 +437,14 @@ export async function publishDocumentToPublishedData(
   clients: WriteClients,
   publishedDataContract: PublishedDataContract,
   doc: DisplayableDocument,
+  options: PublishDataOptions = {},
 ): Promise<PublishedDocumentResult> {
   const validation = validateDisplayableDocument(doc);
   if (!validation.valid) {
     throw new Error(`Invalid displayable document: ${validation.errors.join(', ')}`);
   }
 
-  return publishData(clients, publishedDataContract, canonicalDocumentBytes(doc));
+  return publishData(clients, publishedDataContract, canonicalDocumentBytes(doc), options);
 }
 
 /**
@@ -499,8 +506,11 @@ export interface PublishedDataDocumentStoreOptions extends PublishedDataDocument
   publishedDataContract: PublishedDataContract;
 }
 
+/** How long the default reader waits on a missing CID at the legacy IPFS gateway. */
+export const LEGACY_IPFS_FALLBACK_TIMEOUT_MS = 1500
+
 export interface DefaultDocumentReaderOptions {
-  /** Timeout for the legacy IPFS fallback reader. */
+  /** Timeout for the legacy IPFS fallback reader. Defaults to {@link LEGACY_IPFS_FALLBACK_TIMEOUT_MS}. */
   readTimeout?: number;
 }
 
@@ -566,7 +576,9 @@ export function createDefaultDocumentReader(
   options: DefaultDocumentReaderOptions = {},
 ): DocumentReader {
   const publishedDataReader = machinery.eventCacheUrl ? createPublishedDataApiDocumentReader({ machinery }) : null;
-  const ipfsReader = createIpfsDocumentStore(machinery.ipfsConfig, { readTimeout: options.readTimeout });
+  const ipfsReader = createIpfsDocumentStore(machinery.ipfsConfig, {
+    readTimeout: options.readTimeout ?? LEGACY_IPFS_FALLBACK_TIMEOUT_MS,
+  });
 
   return {
     async read(cid, policy) {
@@ -603,7 +615,9 @@ export function createDefaultDocumentStore(
         publishedDataContract: options.publishedDataContract,
         machinery,
       })
-    : createIpfsDocumentStore(machinery.ipfsConfig, { readTimeout: options.readTimeout });
+    : createIpfsDocumentStore(machinery.ipfsConfig, {
+        readTimeout: options.readTimeout ?? LEGACY_IPFS_FALLBACK_TIMEOUT_MS,
+      });
   const reader = createDefaultDocumentReader(machinery, options);
 
   return {

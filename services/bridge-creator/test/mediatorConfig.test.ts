@@ -18,6 +18,7 @@ describe('mediator config artifact', () => {
     const loaded = loadMediatorConfigArtifact(path, { HOUSING_MEDIATOR_KEY: '0xsecret' });
     assert.deepStrictEqual(loaded.labels, { side_a: 'homeowners', side_b: 'renters' });
     assert.strictEqual(loaded.context_sources[0]?.serviceUrl, 'https://beat.example');
+    assert.deepStrictEqual(loaded.parent_causes, []);
   });
 
   it('scaffolds blanks rather than shipping a strategy opinion', () => {
@@ -33,5 +34,20 @@ describe('mediator config artifact', () => {
     assert.throws(() => loadMediatorConfigArtifact(path, { HOUSING_MEDIATOR_KEY: 'x' }), /founder-written/);
     writeFileSync(path, JSON.stringify(validArtifact));
     assert.throws(() => loadMediatorConfigArtifact(path, {}), /signer secret environment variable/);
+  });
+
+  it('loads optional parent causes for cluster publication', () => {
+    const path = join(mkdtempSync(join(tmpdir(), 'mediator-')), 'config.json');
+    writeFileSync(path, JSON.stringify({
+      ...validArtifact,
+      cluster_slug: 'housing-bridge',
+      parent_causes: [
+        { owner: '0x1111111111111111111111111111111111111111', slug: 'homeowners', side: 'side_a' },
+        { owner: '0x2222222222222222222222222222222222222222', slug: 'renters', side: 'side_b' },
+      ],
+    }));
+    const loaded = loadMediatorConfigArtifact(path, { HOUSING_MEDIATOR_KEY: '0xsecret' });
+    assert.strictEqual(loaded.cluster_slug, 'housing-bridge');
+    assert.strictEqual(loaded.parent_causes[0]?.slug, 'homeowners');
   });
 });

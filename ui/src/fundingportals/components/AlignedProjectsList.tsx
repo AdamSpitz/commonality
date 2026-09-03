@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
+import { Link as RouterLink } from 'react-router-dom'
 import { useAccount } from 'wagmi'
 import {
   Box,
@@ -14,8 +15,21 @@ import {
 import SortIcon from '@mui/icons-material/Sort'
 import { getAllAlignedProjectsForCause } from '@commonality/sdk/fundingportals'
 import { getProject } from '@commonality/sdk/lazy-giving'
-import { type IpfsCidV1 } from '@commonality/sdk/utils'
-import { getDomainUrl, isDomainConfigured, useMachinery, useTrustedSet } from '../../shared'
+import { ETH_CURRENCY, type IpfsCidV1 } from '@commonality/sdk/utils'
+import {
+  boardSnapshotCacheOptions,
+  getDomainUrl,
+  isDomainConfigured,
+  loadAlignedListSnapshot,
+  loadProjectWithCache,
+  projectFoldCacheOptions,
+  saveAlignedListSnapshot,
+  useMachinery,
+  useTrustedContentAttesters,
+  useTrustedSet,
+  TrustNetworkRefreshIndicator,
+} from '../../shared'
+import { selectAlignedContentContracts, useContentFundingState } from '../../content-funding'
 import { getProjectStatus } from '../../lazy-giving'
 import {
   AlignedProjectCard,
@@ -23,13 +37,22 @@ import {
   type ProjectLinkMode,
   type ProjectMetadata,
 } from './AlignedProjectCard'
-import { DiscoverySlider } from './DiscoverySlider'
-import { DISCOVERY_LEVEL_MAX_HOPS, type DiscoveryLevel } from './discoveryLevels'
+import { DISCOVERY_LEVEL_MAX_HOPS } from './discoveryLevels'
+import { useDiscoveryLevel } from '../hooks/useDiscoveryLevel'
+import { useAlignmentFilter } from '../hooks/useAlignmentFilter'
 import { readProjectMetadata } from './projectMetadata'
+import { resolveStatementCids } from './statementCids'
+import { useKeepPaintedWhileRefreshing } from '../hooks/useKeepPaintedWhileRefreshing'
+import { projectMatchesBoardRules, type BoardInclusionRules } from './geographicInclusion'
 
 type StatusFilter = 'all' | 'active' | 'succeeded' | 'refunding'
-type AlignmentFilter = 'all' | 'direct' | 'indirect'
 type SortOption = 'latest' | 'deadline' | 'mostFunded' | 'closestToGoal'
+
+const STATUS_HEADINGS: Record<Exclude<StatusFilter, 'all'>, string> = {
+  active: 'Projects still raising',
+  succeeded: 'Succeeded projects',
+  refunding: 'Failed projects',
+}
 
 function dedupeProjectsForDisplay(projects: AlignedProject[]): AlignedProject[] {
   const byAddress = new Map<string, AlignedProject>()
@@ -47,51 +70,150 @@ function dedupeProjectsForDisplay(projects: AlignedProject[]): AlignedProject[] 
 
 export function AlignedProjectsList({
   statementCid,
+  statementCids,
   trustedImplicationAttesters,
   trustedAlignmentAttesters,
   projectLinks = 'lazyGiving',
+  statusFilterLock,
+  embedded = false,
+  compact = false,
+  limit,
+  fullPageTo,
+  inclusionRules,
 }: {
   statementCid: string
+  statementCids?: string[]
   trustedImplicationAttesters?: Iterable<string>
   trustedAlignmentAttesters?: Iterable<string>
   projectLinks?: ProjectLinkMode
+  /** When set, only this status is shown and the status toggles are hidden. */
+  statusFilterLock?: Exclude<StatusFilter, 'all'>
+  /** Flatten heading/paper chrome when nested in the cause-board card. */
+  embedded?: boolean
+  /** Teaser density: hide sort/status chrome and shrink cards. */
+  compact?: boolean
+  /** Cap how many cards to show (home preview). */
+  limit?: number
+  /** In-app path for “See all” when {@link compact} or {@link limit} is set. */
+  fullPageTo?: string
+  inclusionRules?: BoardInclusionRules
 }) {
+  const cids = resolveStatementCids(statementCid, statementCids)
+  const cidsKey = cids.join('\0')
   const machinery = useMachinery()
   const { address } = useAccount()
-  const [discoveryLevel, setDiscoveryLevel] = useState<DiscoveryLevel>('network')
+  const { channels, contentAttestations } = useContentFundingState()
+  const trustedContentAttesters = useTrustedContentAttesters()
+  const contentTrustKey = trustedContentAttesters
+    .map((entry) => entry.address.toLowerCase())
+    .sort()
+    .join('\0')
+  const contentAttestationsKey = [...contentAttestations.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([id, list]) => `${id}:${list.map((row) => `${row.attested ? 1 : 0}:${row.statementCid}:${row.attester.toLowerCase()}`).sort().join(',')}`)
+    .join('|')
+  const [discoveryLevel] = useDiscoveryLevel()
+  const [alignmentFilter] = useAlignmentFilter()
   const maxHops = DISCOVERY_LEVEL_MAX_HOPS[discoveryLevel]
   const { trustedSet, isLoading: trustedSetLoading } = useTrustedSet(address, { maxHops })
-  const activeTrustedAlignmentAttesters = trustedAlignmentAttesters ?? (discoveryLevel === 'anyone' ? undefined : trustedSet)
+  const activeTrustedAlignmentAttesters = useMemo(() => {
+    const base = trustedAlignmentAttesters ?? (discoveryLevel === 'anyone' ? undefined : trustedSet)
+    if (!address || !base) return base
+    const next = new Set([...base].map((entry) => entry.toLowerCase()))
+    next.add(address.toLowerCase())
+    return next
+  }, [trustedAlignmentAttesters, trustedSet, discoveryLevel, address])
+  const implicationTrustKey = useMemo(() => {
+    if (!trustedImplicationAttesters) return ''
+    return [...trustedImplicationAttesters].map((a) => a.toLowerCase()).sort().join(',')
+  }, [trustedImplicationAttesters])
+  const alignmentTrustKey = useMemo(() => {
+    if (!activeTrustedAlignmentAttesters) return ''
+    return [...activeTrustedAlignmentAttesters].map((a) => a.toLowerCase()).sort().join(',')
+  }, [activeTrustedAlignmentAttesters])
 
   const [projects, setProjects] = useState<AlignedProject[]>([])
   const [metadata, setMetadata] = useState<Record<string, ProjectMetadata>>({})
   const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [sortBy, setSortBy] = useState<SortOption>('latest')
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
-  const [alignmentFilter, setAlignmentFilter] = useState<AlignmentFilter>('all')
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>(statusFilterLock ?? 'all')
+  const keepPainted = useKeepPaintedWhileRefreshing()
 
   useEffect(() => {
     let cancelled = false
+    const loadCids = cidsKey ? cidsKey.split('\0').filter(Boolean) : []
+    const snapshotOptions = boardSnapshotCacheOptions(machinery, {
+      kind: 'aligned-list',
+      statementCids: loadCids,
+      implicationTrustKey,
+      alignmentTrustKey,
+      contentTrustKey,
+      inclusionRulesKey: JSON.stringify(inclusionRules ?? {}),
+    })
 
     async function load() {
-      setLoading(true)
+      const cached = snapshotOptions
+        ? await loadAlignedListSnapshot(snapshotOptions)
+        : null
+      if (cancelled) return
+      if (cached) {
+        setProjects(cached.projects as AlignedProject[])
+        setMetadata(cached.metadata as Record<string, ProjectMetadata>)
+        keepPainted.markResolved()
+        setLoading(false)
+        setRefreshing(true)
+      } else {
+        keepPainted.beginLoad(setLoading)
+        setRefreshing(false)
+      }
       setError(null)
       try {
-        const aligned = await getAllAlignedProjectsForCause(
-          machinery,
-          statementCid as IpfsCidV1,
-          trustedImplicationAttesters,
-          activeTrustedAlignmentAttesters
+        const implicationForLoad = implicationTrustKey
+          ? implicationTrustKey.split(',')
+          : undefined
+        const alignmentForLoad = alignmentTrustKey
+          ? new Set(alignmentTrustKey.split(','))
+          : undefined
+        const perPlank = await Promise.all(
+          loadCids.map((cid) =>
+            getAllAlignedProjectsForCause(
+              machinery,
+              cid as IpfsCidV1,
+              implicationForLoad,
+              alignmentForLoad,
+            ),
+          ),
         )
+        const aligned = perPlank.flat()
         if (cancelled) return
 
-        setProjects(dedupeProjectsForDisplay(aligned))
+        const contentRows = selectAlignedContentContracts(
+          channels,
+          contentAttestations,
+          loadCids,
+          contentTrustKey ? contentTrustKey.split('\0') : undefined,
+        ).map((contract) => ({
+          projectAddress: contract.contractAddress,
+          alignmentType: 'direct' as const,
+          fundingCurrency: contract.fundingCurrency ?? ETH_CURRENCY,
+          totalReceived: contract.totalReceived,
+          threshold: contract.threshold,
+          deadline: contract.deadline,
+        }))
 
-        // Read project display metadata through the CID-first migration seam.
+        const displayed = dedupeProjectsForDisplay([...aligned, ...contentRows])
+        setProjects(displayed)
+
+        // Load metadata for every displayed row, including content-funding
+        // contracts that never appear in the aligned-project query.
+        const projectCacheOptions = projectFoldCacheOptions(machinery)
         const metadataEntries = await Promise.all(
-          aligned.map(async (p) => {
-            const fullProject = await getProject(machinery, p.projectAddress).catch(() => null)
+          displayed.map(async (p) => {
+            const fullProject = projectCacheOptions
+              ? await loadProjectWithCache(machinery, p.projectAddress, projectCacheOptions).catch(() => null)
+              : await getProject(machinery, p.projectAddress).catch(() => null)
             if (!fullProject?.metadataCid) return [p.projectAddress, null] as const
             const data = await readProjectMetadata(machinery, fullProject.metadataCid as IpfsCidV1).catch(() => null)
             return [p.projectAddress, data] as const
@@ -104,22 +226,49 @@ export function AlignedProjectsList({
           if (data) newMetadata[addr] = data
         }
         setMetadata(newMetadata)
+        if (snapshotOptions) {
+          await saveAlignedListSnapshot(snapshotOptions, {
+            projects: displayed,
+            metadata: newMetadata,
+          })
+        }
       } catch (err) {
         if (!cancelled) {
           console.error('Error loading aligned projects:', err)
-          setError(err instanceof Error ? err.message : 'Failed to load aligned projects')
+          if (!cached) {
+            setError(err instanceof Error ? err.message : 'Failed to load aligned projects')
+          }
         }
       } finally {
-        if (!cancelled) setLoading(false)
+        if (!cancelled) {
+          keepPainted.markResolved()
+          setLoading(false)
+          setRefreshing(false)
+        }
       }
     }
 
     load()
     return () => { cancelled = true }
-  }, [machinery, statementCid, trustedImplicationAttesters, activeTrustedAlignmentAttesters])
+  }, [
+    machinery,
+    cidsKey,
+    implicationTrustKey,
+    alignmentTrustKey,
+    channels.length,
+    contentAttestationsKey,
+    contentTrustKey,
+    inclusionRules,
+  ])
 
+  const effectiveStatus = statusFilterLock ?? statusFilter
   const filtered = projects
-    .filter(p => statusFilter === 'all' || getProjectStatus(p) === statusFilter)
+    .filter((p) => projectMatchesBoardRules(
+      metadata[p.projectAddress]?.relevantAreas,
+      inclusionRules,
+      Boolean(metadata[p.projectAddress]),
+    ))
+    .filter(p => effectiveStatus === 'all' || getProjectStatus(p) === effectiveStatus)
     .filter(p => alignmentFilter === 'all' || p.alignmentType === alignmentFilter)
 
   const sorted = [...filtered].sort((a, b) => {
@@ -142,6 +291,8 @@ export function AlignedProjectsList({
         return Number(b.deadline) - Number(a.deadline)
     }
   })
+  const visible = limit != null ? sorted.slice(0, limit) : sorted
+  const hiddenCount = limit != null ? Math.max(0, sorted.length - limit) : 0
 
   if (loading) {
     return (
@@ -156,27 +307,36 @@ export function AlignedProjectsList({
   }
 
   return (
-    <Box>
-      <Typography variant="h5" gutterBottom>
-        Aligned Projects
-      </Typography>
-
-      <DiscoverySlider
-        value={discoveryLevel}
-        onChange={setDiscoveryLevel}
-        disabled={!address || trustedAlignmentAttesters !== undefined}
-        voucherLabel="alignment vouches"
-      />
-
-      {address && trustedSetLoading && trustedAlignmentAttesters === undefined && (
-        <Alert severity="info" sx={{ mb: 2 }}>
-          {trustedSet
-            ? `Refreshing your trust network. Alignment vouches are currently filtered using ${trustedSet.size} account${trustedSet.size !== 1 ? 's' : ''} in your network. Results may still change as more are discovered.`
-            : 'Refreshing your trust network. Until any trusted accounts are found, alignment vouches are not filtered.'}
-        </Alert>
+    <Box sx={{ position: 'relative' }}>
+      {!embedded && (
+        <Typography variant="h5" gutterBottom>
+          {statusFilterLock ? STATUS_HEADINGS[statusFilterLock] : 'Aligned Projects'}
+        </Typography>
       )}
 
-      <Paper sx={{ p: 2, mb: 3 }}>
+      {(refreshing || (address && trustedSetLoading && trustedAlignmentAttesters === undefined)) && (
+        <TrustNetworkRefreshIndicator
+          title={
+            address && trustedSetLoading && trustedAlignmentAttesters === undefined
+              ? (
+                trustedSet
+                  ? `Refreshing your trust network. Alignment vouches are currently filtered using ${trustedSet.size} account${trustedSet.size !== 1 ? 's' : ''} in your network. Results may still change as more are discovered.`
+                  : 'Refreshing your trust network. Until any trusted accounts are found, alignment vouches are not filtered.'
+              )
+              : 'Updating aligned projects from the latest events.'
+          }
+        />
+      )}
+
+      {!compact && (
+      <Paper
+        elevation={embedded ? 0 : 1}
+        sx={{
+          p: embedded ? 0 : 2,
+          mb: embedded ? 1.5 : 3,
+          bgcolor: embedded ? 'transparent' : undefined,
+        }}
+      >
         <Stack spacing={2}>
           <Stack direction="row" alignItems="center" spacing={2}>
             <SortIcon fontSize="small" color="action" />
@@ -194,6 +354,7 @@ export function AlignedProjectsList({
             </ToggleButtonGroup>
           </Stack>
 
+          {!statusFilterLock && (
           <Stack direction="row" alignItems="center" spacing={2}>
             <Typography variant="body2" color="text.secondary">Status:</Typography>
             <ToggleButtonGroup
@@ -208,64 +369,75 @@ export function AlignedProjectsList({
               <ToggleButton value="refunding">Refunding</ToggleButton>
             </ToggleButtonGroup>
           </Stack>
-
-          <Stack direction="row" alignItems="center" spacing={2}>
-            <Typography variant="body2" color="text.secondary">Alignment:</Typography>
-            <ToggleButtonGroup
-              value={alignmentFilter}
-              exclusive
-              onChange={(_, v) => v && setAlignmentFilter(v)}
-              size="small"
-            >
-              <ToggleButton value="all">All</ToggleButton>
-              <ToggleButton value="direct">Direct</ToggleButton>
-              <ToggleButton value="indirect">Indirect</ToggleButton>
-            </ToggleButtonGroup>
-          </Stack>
+          )}
         </Stack>
       </Paper>
+      )}
 
       {sorted.length === 0 ? (
         <Paper sx={{ p: 3, textAlign: 'center' }}>
           <Typography variant="body1" color="text.secondary">
             {projects.length === 0
-              ? 'No aligned projects yet. Create one for this cause to get started.'
+              ? (fullPageTo
+                ? 'No aligned projects on the statements you have signed yet.'
+                : 'No aligned projects yet. Create one for this cause to get started.')
               : 'No projects match the current filters.'}
           </Typography>
           {projects.length === 0 && (
-            isDomainConfigured('lazyGiving') ? (
+            projectLinks === 'local' ? (
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} justifyContent="center" sx={{ mt: 2 }}>
+                <Button
+                  component={RouterLink}
+                  to="/projects/new"
+                  variant="contained"
+                >
+                  Create a project
+                </Button>
+              </Stack>
+            ) : isDomainConfigured('lazyGiving') ? (
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} justifyContent="center" sx={{ mt: 2 }}>
                 <Button
                   component="a"
-                  // Create still lives on LazyGiving (no path-only fallback).
                   href={getDomainUrl('lazyGiving', '/projects/new')}
                   variant="contained"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  {projectLinks === 'local' ? 'Create a project on LazyGiving' : 'Create a project'}
+                  Create a project
                 </Button>
               </Stack>
             ) : (
               <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-                {projectLinks === 'local'
-                  ? 'Project creation still happens on LazyGiving once its domain URL is configured.'
-                  : 'Configure VITE_LAZYGIVING_URL to create a project for this cause.'}
+                Configure VITE_LAZYGIVING_URL to create a project for this cause.
               </Typography>
             )
           )}
         </Paper>
       ) : (
-        <Stack spacing={2}>
-          {sorted.map((project) => (
+        <Stack spacing={compact ? 1 : 2}>
+          {visible.map((project) => (
             <AlignedProjectCard
               key={project.projectAddress}
               project={project}
               metadata={metadata[project.projectAddress]}
               causeCid={statementCid}
               projectLinks={projectLinks}
+              compact={compact}
             />
           ))}
+          {fullPageTo && (compact || hiddenCount > 0) && (
+            <Button
+              component={RouterLink}
+              to={fullPageTo}
+              variant="text"
+              sx={{ textTransform: 'none', alignSelf: 'flex-start', px: 0 }}
+              data-testid="aligned-projects-see-all"
+            >
+              {hiddenCount > 0
+                ? `See all ${sorted.length} projects`
+                : 'See all fundable projects'}
+            </Button>
+          )}
         </Stack>
       )}
     </Box>
