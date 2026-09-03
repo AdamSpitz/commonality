@@ -421,7 +421,11 @@ async function main() {
   await fs.mkdir(join(root, 'deployments'), { recursive: true });
   await updateEnvFile(networkEnvPath, addressEntries);
   await fs.writeFile(manifestPath, JSON.stringify(manifest, null, 2));
-  if (!isLocal) await fs.writeFile(join(process.cwd(), 'deployments', `${network}-${Date.now()}.json`), JSON.stringify({ ...manifest, contracts: Object.fromEntries(Object.entries(manifest.contracts).map(([k, v]) => [k, v.address])) }, null, 2));
+  if (!isLocal) {
+    const deploymentHistoryDir = join(process.cwd(), 'deployments');
+    await fs.mkdir(deploymentHistoryDir, { recursive: true });
+    await fs.writeFile(join(deploymentHistoryDir, `${network}-${Date.now()}.json`), JSON.stringify({ ...manifest, contracts: Object.fromEntries(Object.entries(manifest.contracts).map(([k, v]) => [k, v.address])) }, null, 2));
+  }
 
   await updateEnvFile(join(root, '.env'), isLocal ? { ...addressEntries, IPFS_API: 'http://localhost:5001', IPFS_GATEWAY: 'http://localhost:8080/ipfs', EVENT_CACHE_URL: 'http://localhost:42069', VERIFIER_PRIVATE_KEY: '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80', LOCAL_SEED_NUDGER_ADDRESS } : addressEntries);
   await updateEnvFile(join(root, 'integration-tests', '.env.local'), isLocal ? { ...addressEntries, IPFS_API: 'http://localhost:5001', IPFS_GATEWAY: 'http://localhost:8080/ipfs', EVENT_CACHE_URL: 'http://localhost:42069', VERIFIER_PRIVATE_KEY: '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80', LOCAL_SEED_NUDGER_ADDRESS } : addressEntries);
