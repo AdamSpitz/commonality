@@ -60,6 +60,8 @@ describe('HomePage landing', () => {
     )
     expect(screen.getByTestId('home-dashboard')).toBeInTheDocument()
     expect(screen.getByTestId('home-dashboard-board')).toBeInTheDocument()
+    expect(screen.getByTestId('home-dashboard-causes')).toBeInTheDocument()
+    expect(screen.getByTestId('home-dashboard-activity')).toBeInTheDocument()
     expect(screen.queryByTestId('home-landing')).toBeNull()
   })
 })

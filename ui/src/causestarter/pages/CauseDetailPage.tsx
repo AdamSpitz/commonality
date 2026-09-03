@@ -59,6 +59,7 @@ import { useMachinery, useWriteClients } from '../../shared'
 import { useAlignmentTrust } from '../hooks/useAlignmentTrust'
 import { useCauseProjects } from '../hooks/useCauseProjects'
 import { useViewCounts } from '../hooks/useViewCounts'
+import { CauseBoardLayout } from '../shell/CauseBoardLayout'
 
 function safetyState(verdict: {
   allowed: boolean
@@ -746,8 +747,8 @@ export function CauseDetailPage({ editMode = false }: { editMode?: boolean }) {
     })
   }
 
-  return (
-    <Stack spacing={2.5} data-testid="cause-detail-page">
+  const chrome = (canEdit && !isFreshDraft) || (canEdit && !isEditing) ? (
+    <Stack spacing={2.5}>
       {canEdit && !isFreshDraft && (
         <ToggleButtonGroup
           exclusive
@@ -773,7 +774,14 @@ export function CauseDetailPage({ editMode = false }: { editMode?: boolean }) {
           hidden until you switch to Editing.
         </Alert>
       )}
+    </Stack>
+  ) : null
 
+  return (
+    <>
+    <CauseBoardLayout
+      chrome={chrome}
+      header={(
       <Box>
         {!cause.rosterCid && (
           <InfoChip
@@ -920,8 +928,8 @@ export function CauseDetailPage({ editMode = false }: { editMode?: boolean }) {
           </Alert>
         ) : null}
       </Box>
-
-      {!isFreshDraft && displaySummary?.trim() && (
+      )}
+      description={!isFreshDraft && displaySummary?.trim() ? (
         <Paper
           elevation={0}
           sx={{ p: { xs: 2, sm: 2.5 }, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}
@@ -937,8 +945,9 @@ export function CauseDetailPage({ editMode = false }: { editMode?: boolean }) {
             {displaySummary}
           </Typography>
         </Paper>
-      )}
-
+      ) : null}
+      alerts={(
+        <Stack spacing={2.5}>
       {routeRef?.versionCid && stable && (
         <Alert severity="info" sx={{ borderRadius: 2 }}>
           Viewing a pinned version.
@@ -957,11 +966,12 @@ export function CauseDetailPage({ editMode = false }: { editMode?: boolean }) {
       {publishedCids.length > 0 && (trustError || alignmentTrustUnavailable) && (
         <AlignmentTrustGate error={trustError} />
       )}
-      {publishedCids.length > 0 && (
-        <CauseFundingSummary statementCids={publishedCids} href={causeFundingPath(cause)} />
+        </Stack>
       )}
-
-      {isEditing && !cause.id.startsWith('remote:') && (
+      funding={publishedCids.length > 0 ? (
+        <CauseFundingSummary statementCids={publishedCids} href={causeFundingPath(cause)} />
+      ) : null}
+      publish={isEditing && !cause.id.startsWith('remote:') ? (
         <Paper elevation={0} sx={{ p: { xs: 2, sm: 2.5 }, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
           <RosterPublishPanel
             title={titleDraft}
@@ -1005,8 +1015,8 @@ export function CauseDetailPage({ editMode = false }: { editMode?: boolean }) {
             onPublishAnyway={() => void handlePublishRoster()}
           />
         </Paper>
-      )}
-
+      ) : null}
+      statements={(
       <Paper elevation={0} sx={{ p: { xs: 2, sm: 2.5 }, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
         <Typography variant="h6" sx={{ fontWeight: 700, mb: 1.5 }}>Statements</Typography>
 
@@ -1150,7 +1160,9 @@ export function CauseDetailPage({ editMode = false }: { editMode?: boolean }) {
 
         {error && <Alert severity="error" sx={{ mt: 2, borderRadius: 2 }}>{error}</Alert>}
       </Paper>
-
+      )}
+      rest={(
+        <Stack spacing={2.5}>
       {publishedCids.length === 0 ? (
         <Paper elevation={0} sx={{ p: { xs: 2, sm: 2.5 }, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
           <Typography variant="h6" sx={{ fontWeight: 700 }} gutterBottom>Fundable Projects</Typography>
@@ -1245,6 +1257,9 @@ export function CauseDetailPage({ editMode = false }: { editMode?: boolean }) {
           Open share URL
         </Button>
       )}
+        </Stack>
+      )}
+    />
 
       <Snackbar
         open={shareCopiedOpen}
@@ -1273,7 +1288,7 @@ export function CauseDetailPage({ editMode = false }: { editMode?: boolean }) {
         safety={dialogSafety}
         onClose={() => setDialogSafety(null)}
       />
-    </Stack>
+    </>
   )
 }
 
