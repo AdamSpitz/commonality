@@ -24,15 +24,13 @@ git add && git commit && git push              # Push to trigger Render
 
 ### After (Automated)
 ```bash
-# Just merge to master:
-git merge feature/my-change master
-git push
+# Merge the reviewed dev -> master release PR.
+gh pr create --base master --head dev --title "Promote dev to master"
 
 # Everything else happens automatically:
 # ✅ Contracts deployed to Base Sepolia
-# ✅ UI published to IPFS/IPNS
-# ✅ Render services updated
-# ✅ All addresses synchronized
+# ✅ A deployment-metadata PR is opened when addresses change
+# ✅ UI and Render consume the addresses after that PR is released
 ```
 
 ---
@@ -62,7 +60,8 @@ Merge to master
        │         │        └─ Regenerate render.yaml
        │         └─ No  → Skip
        │
-       ├─→ Check: Did UI files change OR contracts deployed?
+       ├─→ If deployment metadata changed, open a PR into dev
+       ├─→ On the later metadata release, deploy the UI with committed addresses
        │         ├─ Yes → Build all 8 UI domains
        │         │        ├─ Upload to IPFS via Pinata
        │         │        └─ Update IPNS records
@@ -114,11 +113,8 @@ If you don't have these yet, see `workflow/github-secrets-guide.md`.
 After running the setup script:
 
 ```bash
-# Make a small change
-echo "// test" >> README.md
-git add README.md
-git commit -m "Test automated deployment"
-git push origin master
+# Release an actual reviewed change through the protected branch workflow.
+gh pr create --base master --head dev --title "Promote dev to master"
 ```
 
 Then watch:
@@ -133,7 +129,7 @@ Then watch:
 ### Contracts (if changed)
 - All smart contracts to Base Sepolia
 - Updates `deployments/base-sepolia.env` with new addresses
-- Commits updated addresses back to master
+- Opens a PR into `dev` for updated addresses and `render.yaml`
 
 ### UI (if changed)
 All 8 domains to IPFS/IPNS:

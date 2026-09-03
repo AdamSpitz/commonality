@@ -122,19 +122,19 @@ jobs:
         run: |
           echo "## CI Check Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          
+
           LINT_STATUS="${{ needs.lint-and-build.result }}"
           TEST_STATUS="${{ needs.test-fast.result }}"
           CONTRACT_STATUS="${{ needs.hardhat-test.result }}"
           UI_STATUS="${{ needs.ui-vitest.result }}"
-          
+
           echo "| Check | Status |" >> $GITHUB_STEP_SUMMARY
           echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
           echo "| Lint & Build | $([ "$LINT_STATUS" = "success" ] && echo "✅" || echo "❌") $LINT_STATUS |" >> $GITHUB_STEP_SUMMARY
           echo "| Fast Tests | $([ "$TEST_STATUS" = "success" ] && echo "✅" || echo "❌") $TEST_STATUS |" >> $GITHUB_STEP_SUMMARY
           echo "| Contract Tests | $([ "$CONTRACT_STATUS" = "success" ] && echo "✅" || echo "❌") $CONTRACT_STATUS |" >> $GITHUB_STEP_SUMMARY
           echo "| UI Tests | $([ "$UI_STATUS" = "success" ] && echo "✅" || echo "❌") $UI_STATUS |" >> $GITHUB_STEP_SUMMARY
-          
+
           echo "" >> $GITHUB_STEP_SUMMARY
           if [ "$LINT_STATUS" = "success" ] && [ "$TEST_STATUS" = "success" ] && [ "$CONTRACT_STATUS" = "success" ] && [ "$UI_STATUS" = "success" ]; then
             echo "**All checks passed! ✅**" >> $GITHUB_STEP_SUMMARY

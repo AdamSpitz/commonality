@@ -38,6 +38,7 @@ Add these secrets (see `.github/DEPLOYMENT_SECRETS.md` for details):
 - `DEPLOYER_PRIVATE_KEY`
 - `BASE_SEPOLIA_RPC_URL`
 - `CONTRACT_ADMIN_ADDRESS`
+- `CONTRACT_ADMIN_PRIVATE_KEY`
 
 **UI Deployment:**
 - `PINATA_JWT`
@@ -59,14 +60,10 @@ Log into Render dashboard and verify:
 
 ### 3. Test the Setup
 
-Make a small change and merge to master to trigger the deployment workflow:
+Use the next reviewed `dev` → `master` release PR to trigger the deployment workflow:
 
 ```bash
-# Example test
-echo "// test" >> README.md
-git add README.md
-git commit -m "Test CI/CD deployment"
-git push origin master
+gh pr create --base master --head dev --title "Promote dev to master"
 ```
 
 Watch the Actions tab: https://github.com/AdamSpitz/commonality/actions
@@ -94,8 +91,8 @@ PR created → CI workflow runs → Lint + Build + Tests
 Merge to master → Deploy workflow runs
                 → Check if contracts changed → Deploy if yes
                 → Check if UI changed → Deploy if yes
-                → Update render.yaml → Commit back to master
-                → Render auto-deploys from master
+                → Update render.yaml → Open metadata PR into dev
+                → Release metadata to master → Render and UI deploy
 ```
 
 ### Smart Skipping:
@@ -107,12 +104,12 @@ Merge to master → Deploy workflow runs
 
 ## Benefits
 
-✅ **Automated quality gates** - Catches issues before they reach master  
-✅ **Consistent deployments** - Same process every time, no manual errors  
-✅ **Fast feedback** - CI runs in ~5-10 minutes on PRs  
-✅ **Cost efficient** - Only deploys what changed  
-✅ **Audit trail** - All deployments logged in GitHub Actions  
-✅ **Team collaboration** - Everyone sees same testnet state  
+✅ **Automated quality gates** - Catches issues before they reach master
+✅ **Consistent deployments** - Same process every time, no manual errors
+✅ **Fast feedback** - CI runs in ~5-10 minutes on PRs
+✅ **Cost efficient** - Only deploys what changed
+✅ **Audit trail** - All deployments logged in GitHub Actions
+✅ **Team collaboration** - Everyone sees same testnet state
 
 ---
 

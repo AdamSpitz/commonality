@@ -10,6 +10,7 @@ on:
 # Permissions needed for deployment and committing updated addresses
 permissions:
   contents: write
+  pull-requests: write
   statuses: write
 
 jobs:
@@ -19,6 +20,7 @@ jobs:
     timeout-minutes: 15
     outputs:
       contracts-changed: ${{ steps.check-changes.outputs.contracts_changed }}
+      deployment-updated: ${{ steps.prepare-update.outputs.deployment_updated }}
 
     steps:
       - name: Checkout code
@@ -36,7 +38,7 @@ jobs:
             # First commit to master, assume contracts need deployment
             CONTRACTS_CHANGED="force-deploy"
           fi
-          
+
           if [ -n "$CONTRACTS_CHANGED" ]; then
             echo "contracts_changed=true" >> $GITHUB_OUTPUT
             echo "✅ Contract changes detected"
@@ -66,6 +68,7 @@ jobs:
         if: steps.check-changes.outputs.contracts_changed == 'true'
         env:
           DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
+          CONTRACT_ADMIN_PRIVATE_KEY: ${{ secrets.CONTRACT_ADMIN_PRIVATE_KEY }}
           BASE_SEPOLIA_RPC_URL: ${{ secrets.BASE_SEPOLIA_RPC_URL }}
           CONTRACT_ADMIN_ADDRESS: ${{ secrets.CONTRACT_ADMIN_ADDRESS }}
         run: |
@@ -76,22 +79,31 @@ jobs:
         run: |
           node scripts/generate-render-yaml.mjs deployments/base-sepolia.env
 
-      - name: Commit and push updated addresses + render.yaml
+      - name: Check for deployment metadata updates
+        id: prepare-update
         if: steps.check-changes.outputs.contracts_changed == 'true'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
-          
-          if git diff --quiet deployments/base-sepolia.env && git diff --quiet render.yaml; then
-            echo "No changes to commit"
-            exit 0
+          if git diff --quiet -- deployments/base-sepolia.env deployments/base-sepolia.contracts-manifest.json render.yaml; then
+            echo "deployment_updated=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "deployment_updated=true" >> "$GITHUB_OUTPUT"
           fi
-          
-          git add deployments/base-sepolia.env render.yaml
-          git commit -m "Update contract addresses and render.yaml after testnet deployment [skip ci]"
-          git push
+
+      # master is protected. Feed newly deployed addresses back through the
+      # normal dev -> master release path instead of trying to bypass it.
+      - name: Open deployment metadata PR
+        if: steps.prepare-update.outputs.deployment_updated == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          branch="automation/testnet-deployment-${GITHUB_SHA::12}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$branch"
+          git add deployments/base-sepolia.env deployments/base-sepolia.contracts-manifest.json render.yaml
+          git commit -m "Record Base Sepolia deployment for ${GITHUB_SHA::12}"
+          git push --set-upstream origin "$branch"
+          gh pr create --base dev --head "$branch" --title "Record Base Sepolia deployment" --body "Records the contract addresses and Render configuration produced while deploying \`${GITHUB_SHA}\`. After this PR reaches master through the normal release flow, the UI workflow will publish bundles built with these addresses."
 
   deploy-ui:
     name: Deploy UI
@@ -108,16 +120,21 @@ jobs:
       - name: Check if UI-related files changed
         id: check-changes
         run: |
-          # Check if UI files changed or if contracts were just deployed
+          # A contract deployment with new metadata must first travel through a
+          # protected PR. Publishing now would build against stale addresses.
+          if [ "${{ needs.deploy-contracts.outputs.deployment-updated }}" = "true" ]; then
+            echo "ui_changed=false" >> "$GITHUB_OUTPUT"
+            echo "Contract metadata PR required before UI publication"
+            exit 0
+          fi
+
           if git rev-parse HEAD^ >/dev/null 2>&1; then
-            UI_CHANGED=$(git diff --name-only HEAD^ HEAD | grep -E '^(ui|sdk/docs|hardhat/docs)/' || true)
-            CONTRACTS_CHANGED=$(git diff --name-only HEAD^ HEAD | grep -E '^(hardhat|contracts)/' || true)
+            UI_CHANGED=$(git diff --name-only HEAD^ HEAD | grep -E '^(ui|sdk/docs|hardhat/docs)/|^deployments/base-sepolia\.(env|contracts-manifest\.json)$|^render\.yaml$' || true)
           else
             UI_CHANGED="first-commit"
-            CONTRACTS_CHANGED=""
           fi
-          
-          if [ -n "$UI_CHANGED" ] || [ -n "$CONTRACTS_CHANGED" ]; then
+
+          if [ -n "$UI_CHANGED" ]; then
             echo "ui_changed=true" >> $GITHUB_OUTPUT
             echo "✅ UI deployment needed"
           else
@@ -139,23 +156,22 @@ jobs:
       - name: Deploy all UI domains to IPFS/IPNS
         if: steps.check-changes.outputs.ui_changed == 'true'
         env:
-          PINATA_JWT: ${{ secrets.PINATA_JWT }}
           COMMONALITY_OPERATOR_SECRETS_FILE: /tmp/operator.env
+          PINATA_JWT: ${{ secrets.PINATA_JWT }}
+          IPNS_PRIVATE_KEY_TESTNET_COMMONALITY: ${{ secrets.IPNS_PRIVATE_KEY_TESTNET_COMMONALITY }}
+          IPNS_PRIVATE_KEY_TESTNET_LAZYGIVING: ${{ secrets.IPNS_PRIVATE_KEY_TESTNET_LAZYGIVING }}
+          IPNS_PRIVATE_KEY_TESTNET_ALIGNMENT: ${{ secrets.IPNS_PRIVATE_KEY_TESTNET_ALIGNMENT }}
+          IPNS_PRIVATE_KEY_TESTNET_TALLY: ${{ secrets.IPNS_PRIVATE_KEY_TESTNET_TALLY }}
+          IPNS_PRIVATE_KEY_TESTNET_CONTENT_FUNDING: ${{ secrets.IPNS_PRIVATE_KEY_TESTNET_CONTENT_FUNDING }}
+          IPNS_PRIVATE_KEY_TESTNET_CIVILITY: ${{ secrets.IPNS_PRIVATE_KEY_TESTNET_CIVILITY }}
+          IPNS_PRIVATE_KEY_TESTNET_COMMON_SENSE_MAJORITY: ${{ secrets.IPNS_PRIVATE_KEY_TESTNET_COMMON_SENSE_MAJORITY }}
+          IPNS_PRIVATE_KEY_TESTNET_CONCEPTSPACE: ${{ secrets.IPNS_PRIVATE_KEY_TESTNET_CONCEPTSPACE }}
         run: |
-          # Create operator secrets file from GitHub secrets
-          cat > /tmp/operator.env <<EOF
-          PINATA_JWT=${{ secrets.PINATA_JWT }}
-          IPNS_PRIVATE_KEY_TESTNET_COMMONALITY=${{ secrets.IPNS_PRIVATE_KEY_TESTNET_COMMONALITY }}
-          IPNS_PRIVATE_KEY_TESTNET_LAZYGIVING=${{ secrets.IPNS_PRIVATE_KEY_TESTNET_LAZYGIVING }}
-          IPNS_PRIVATE_KEY_TESTNET_ALIGNMENT=${{ secrets.IPNS_PRIVATE_KEY_TESTNET_ALIGNMENT }}
-          IPNS_PRIVATE_KEY_TESTNET_TALLY=${{ secrets.IPNS_PRIVATE_KEY_TESTNET_TALLY }}
-          IPNS_PRIVATE_KEY_TESTNET_CONTENT_FUNDING=${{ secrets.IPNS_PRIVATE_KEY_TESTNET_CONTENT_FUNDING }}
-          IPNS_PRIVATE_KEY_TESTNET_CIVILITY=${{ secrets.IPNS_PRIVATE_KEY_TESTNET_CIVILITY }}
-          IPNS_PRIVATE_KEY_TESTNET_COMMON_SENSE_MAJORITY=${{ secrets.IPNS_PRIVATE_KEY_TESTNET_COMMON_SENSE_MAJORITY }}
-          IPNS_PRIVATE_KEY_TESTNET_CONCEPTSPACE=${{ secrets.IPNS_PRIVATE_KEY_TESTNET_CONCEPTSPACE }}
-          EOF
-          
-          # Run the deployment script
+          touch "$COMMONALITY_OPERATOR_SECRETS_FILE"
+          for name in PINATA_JWT IPNS_PRIVATE_KEY_TESTNET_COMMONALITY IPNS_PRIVATE_KEY_TESTNET_LAZYGIVING IPNS_PRIVATE_KEY_TESTNET_ALIGNMENT IPNS_PRIVATE_KEY_TESTNET_TALLY IPNS_PRIVATE_KEY_TESTNET_CONTENT_FUNDING IPNS_PRIVATE_KEY_TESTNET_CIVILITY IPNS_PRIVATE_KEY_TESTNET_COMMON_SENSE_MAJORITY IPNS_PRIVATE_KEY_TESTNET_CONCEPTSPACE; do
+            printf '%s=%s\n' "$name" "${!name}" >> "$COMMONALITY_OPERATOR_SECRETS_FILE"
+          done
+          chmod 600 "$COMMONALITY_OPERATOR_SECRETS_FILE"
           ./scripts/deploy-testnet.sh
 
   summary:
@@ -173,10 +189,10 @@ jobs:
           echo "**Branch**: master" >> $GITHUB_STEP_SUMMARY
           echo "**Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          
+
           CONTRACTS_STATUS="${{ needs.deploy-contracts.result }}"
           UI_STATUS="${{ needs.deploy-ui.result }}"
-          
+
           echo "### Contract Deployment: $CONTRACTS_STATUS" >> $GITHUB_STEP_SUMMARY
           if [ "$CONTRACTS_STATUS" = "success" ]; then
             echo "- ✅ Contracts deployed to Base Sepolia" >> $GITHUB_STEP_SUMMARY
@@ -186,7 +202,7 @@ jobs:
           else
             echo "- ❌ Failed" >> $GITHUB_STEP_SUMMARY
           fi
-          
+
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### UI Deployment: $UI_STATUS" >> $GITHUB_STEP_SUMMARY
           if [ "$UI_STATUS" = "success" ]; then
@@ -197,7 +213,7 @@ jobs:
           else
             echo "- ❌ Failed" >> $GITHUB_STEP_SUMMARY
           fi
-          
+
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Next Steps" >> $GITHUB_STEP_SUMMARY
           echo "1. **Render** will auto-deploy services from master branch (check Render dashboard)" >> $GITHUB_STEP_SUMMARY

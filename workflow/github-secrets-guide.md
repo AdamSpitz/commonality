@@ -29,6 +29,7 @@ deployments/operator-addresses.env    # Public addresses (committed to repo)
 | `DEPLOYER_PRIVATE_KEY` | `operator.env` | Pays gas for contract deployments |
 | `BASE_SEPOLIA_RPC_URL` | `.env.secrets` | RPC endpoint for Base Sepolia |
 | `CONTRACT_ADMIN_ADDRESS` | `operator-addresses.env` | Receives contract ownership |
+| `CONTRACT_ADMIN_PRIVATE_KEY` | `operator.env` | Accepts pending testnet ownership transfers |
 | `PINATA_JWT` | `operator.env` | IPFS upload authentication |
 | `IPNS_PRIVATE_KEY_TESTNET_*` | `operator.env` | IPNS keys for 8 UI domains |
 
@@ -131,11 +132,7 @@ After setting secrets, verify they're correct:
 # List all secrets (doesn't show values)
 gh secret list
 
-# Test by triggering a deployment
-echo "// test" >> README.md
-git add README.md
-git commit -m "Test CI/CD"
-git push origin master
+# Test with the next reviewed dev -> master release PR.
 ```
 
 Watch the Actions tab: https://github.com/AdamSpitz/commonality/actions

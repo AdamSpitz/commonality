@@ -23,6 +23,11 @@ These secrets must be configured in your GitHub repository settings:
 - **Source**: From `deployments/operator-addresses.env`
 - **Important**: Must be different from DEPLOYER_ADDRESS
 
+### `CONTRACT_ADMIN_PRIVATE_KEY`
+- **Purpose**: Accepts pending `Ownable2Step` transfers after deployment
+- **Source**: Operator secrets file
+- **Security**: Configure this only in a protected GitHub environment; it controls testnet admin ownership
+
 ## UI Deployment Secrets
 
 ### `PINATA_JWT`

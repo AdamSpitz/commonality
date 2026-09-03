@@ -30,9 +30,9 @@ Commonality uses GitHub Actions for automated testing and deployment.
 2. Deploys to Base Sepolia testnet
 3. Updates `deployments/base-sepolia.env` with new addresses
 4. Regenerates `render.yaml` with updated addresses
-5. Commits and pushes the updated files back to master
+5. Opens a PR into `dev` for updated deployment metadata; protected branches are never pushed directly
 
-#### UI Deployment (if UI files changed or contracts were deployed)
+#### UI Deployment (if UI files or committed deployment metadata changed)
 1. Builds all 8 UI domains
 2. Uploads each to IPFS via Pinata
 3. Publishes new IPNS records for each domain
@@ -40,7 +40,7 @@ Commonality uses GitHub Actions for automated testing and deployment.
 
 **Smart skipping**: The workflow checks if relevant files changed and skips deployment steps if nothing changed.
 
-**Render integration**: Since `render.yaml` has `autoDeploy: true`, Render will automatically redeploy services when master is updated.
+**Two-phase contract releases**: A contract-changing release deploys contracts and opens a metadata PR. Once that PR follows the normal `dev` → `master` path, Render and the UI deployment consume the committed addresses.
 
 ---
 
@@ -77,6 +77,7 @@ See [DEPLOYMENT_SECRETS.md](./DEPLOYMENT_SECRETS.md) for the full list of secret
 - [ ] `DEPLOYER_PRIVATE_KEY` - Wallet for paying gas
 - [ ] `BASE_SEPOLIA_RPC_URL` - RPC endpoint
 - [ ] `CONTRACT_ADMIN_ADDRESS` - Admin wallet address
+- [ ] `CONTRACT_ADMIN_PRIVATE_KEY` - Testnet admin wallet key
 - [ ] `PINATA_JWT` - IPFS upload token
 - [ ] `IPNS_PRIVATE_KEY_TESTNET_*` - 8 keys for UI domains
 

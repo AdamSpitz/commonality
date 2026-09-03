@@ -63,40 +63,41 @@ set_secret() {
   local key="$1"
   local value
   value=$(get_value "$key")
-  
+
   if [ -z "$value" ]; then
     echo "⚠️  Skipping $key (not found)"
     return 1
   fi
-  
+
   echo "  Setting $key..."
   echo "$value" | gh secret set "$key"
   echo "  ✅ $key set"
 }
 
 echo "Setting contract deployment secrets..."
-set_secret DEPLOYER_PRIVATE_KEY || true
-set_secret BASE_SEPOLIA_RPC_URL || true
-set_secret CONTRACT_ADMIN_ADDRESS || true
+set_secret DEPLOYER_PRIVATE_KEY
+set_secret CONTRACT_ADMIN_PRIVATE_KEY
+set_secret BASE_SEPOLIA_RPC_URL
+set_secret CONTRACT_ADMIN_ADDRESS
 
 echo ""
 echo "Setting UI deployment secrets..."
-set_secret PINATA_JWT || true
+set_secret PINATA_JWT
 
 echo ""
 echo "Setting IPNS keys..."
-set_secret IPNS_PRIVATE_KEY_TESTNET_COMMONALITY || true
-set_secret IPNS_PRIVATE_KEY_TESTNET_LAZYGIVING || true
-set_secret IPNS_PRIVATE_KEY_TESTNET_ALIGNMENT || true
-set_secret IPNS_PRIVATE_KEY_TESTNET_TALLY || true
-set_secret IPNS_PRIVATE_KEY_TESTNET_CONTENT_FUNDING || true
-set_secret IPNS_PRIVATE_KEY_TESTNET_CIVILITY || true
-set_secret IPNS_PRIVATE_KEY_TESTNET_COMMON_SENSE_MAJORITY || true
-set_secret IPNS_PRIVATE_KEY_TESTNET_CONCEPTSPACE || true
+set_secret IPNS_PRIVATE_KEY_TESTNET_COMMONALITY
+set_secret IPNS_PRIVATE_KEY_TESTNET_LAZYGIVING
+set_secret IPNS_PRIVATE_KEY_TESTNET_ALIGNMENT
+set_secret IPNS_PRIVATE_KEY_TESTNET_TALLY
+set_secret IPNS_PRIVATE_KEY_TESTNET_CONTENT_FUNDING
+set_secret IPNS_PRIVATE_KEY_TESTNET_CIVILITY
+set_secret IPNS_PRIVATE_KEY_TESTNET_COMMON_SENSE_MAJORITY
+set_secret IPNS_PRIVATE_KEY_TESTNET_CONCEPTSPACE
 
 echo ""
 echo "═══════════════════════════════════════════════════════════════"
-echo "  ✅ All available secrets have been set!"
+echo "  ✅ All required secrets have been set!"
 echo "═══════════════════════════════════════════════════════════════"
 echo ""
 echo "Next steps:"
