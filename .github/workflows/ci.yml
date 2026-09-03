@@ -69,7 +69,7 @@ jobs:
         run: npm run build --workspace=@commonality/sdk
 
       - name: Run fast tests
-        run: npm run test:fast
+        run: npm run test:fast:raw
 
   hardhat-test:
     name: Contract Tests
