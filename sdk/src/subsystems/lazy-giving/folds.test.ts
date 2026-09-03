@@ -395,7 +395,7 @@ describe('foldContributionsFromEvents', () => {
     assert.strictEqual(result.refunds.length, 0);
     const c = result.contributions[0]!;
     assert.strictEqual(c.id, `${TX_HASH_2}-0`);
-    assert.strictEqual(c.participant, PARTICIPANT_A);
+    assert.strictEqual(c.contributor, PARTICIPANT_A);
     assert.strictEqual(c.projectAddress, PROJECT_ADDR);
     assert.strictEqual(c.erc1155Address, ERC1155);
     assert.strictEqual(c.totalCost, '100000000000000000');
@@ -413,7 +413,7 @@ describe('foldContributionsFromEvents', () => {
     assert.strictEqual(result.refunds.length, 1);
     const r = result.refunds[0]!;
     assert.strictEqual(r.id, `${TX_HASH_3}-0`);
-    assert.strictEqual(r.participant, PARTICIPANT_A);
+    assert.strictEqual(r.contributor, PARTICIPANT_A);
     assert.strictEqual(r.projectAddress, PROJECT_ADDR);
     assert.strictEqual(r.erc1155Address, ERC1155);
     assert.strictEqual(r.totalRefund, '100000000000000000');
@@ -568,6 +568,7 @@ describe('foldReimbursements', () => {
       contributor: PARTICIPANT_A,
       currency: ETH_CURRENCY,
       earlyContribution: '600',
+      futureReimbursementClaim: '300',
       reimbursableAmount: '100',
       withdrawnAmount: '200',
       forgoneAmount: '0',
@@ -637,4 +638,3 @@ describe('foldProjectTokens', () => {
     assert.deepStrictEqual(events, copy);
   });
 });
-

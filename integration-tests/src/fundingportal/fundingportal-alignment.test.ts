@@ -13,13 +13,13 @@ import { AlignmentAttestationsAbi, ProjectFactoryAbi } from '@commonality/sdk/ab
 import { createStatement, publishDocument } from '@commonality/sdk/displayable-documents';
 import { type AlignmentAttestationsContract, PROJECT_ALIGNMENT_TOPIC, toSubjectId } from '@commonality/sdk/fundingportals';
 import type { ProjectFactoryContract } from '@commonality/sdk/lazy-giving';
-import { uploadToIPFS, fakeIpfsCidV1 } from '@commonality/sdk/utils';
+import { uploadToIPFS } from '@commonality/sdk/utils';
+import { fakeIpfsCidV1 } from '@commonality/sdk/testing';
 import { getAlignedSubjects, getSubjectStatements, getAlignmentsByAttester } from '@commonality/sdk/fundingportals';
 import { testLog, createIsolatedWriteClients } from '../utils/setup.js';
 import { attestAlignmentChecked, attestAlignmentsBatchChecked } from '../actions/alignment-actions-checked.js';
 import { createProjectChecked } from '../actions/funding-actions-checked.js';
 import { ActionTestingMachinery, createActionTestingMachinery } from '../actions/action-machinery.js';
-
 
 describe('Funding Portal - Alignment Attestations', () => {
   const RPC_URL = process.env.RPC_URL || 'http://localhost:8545';

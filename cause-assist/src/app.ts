@@ -6,6 +6,7 @@ import { checkSafety } from './safetyFilter.js'
 import { checkImplications } from './implicationCheck.js'
 import { atomizeCause, draftDisjunctiveAnchor, sharpenPlank } from './plankStrategies.js'
 import { suggestMediatorScaffold } from './mediatorScaffold.js'
+import { critiqueTriple, draftBridgePlank, draftModifiedPlank, draftStandInSliver } from './bridgeClusterAssist.js'
 import { checkCoherence } from './coherenceCheck.js'
 import {
   getCoherenceAttesterAddress,
@@ -20,6 +21,10 @@ import type {
   SharpenPlankRequest,
   SuggestStatementsRequest,
   SuggestMediatorScaffoldRequest,
+  CritiqueTripleRequest,
+  DraftBridgePlankRequest,
+  DraftModifiedPlankRequest,
+  DraftStandInSliverRequest,
 } from './types.js'
 
 const MAX_STATEMENT_LENGTH = 2_000
@@ -65,6 +70,10 @@ export function createCauseAssistApp(config: CauseAssistConfig): express.Express
       '/sharpen-plank',
       '/draft-anchor',
       '/suggest-mediator-scaffold',
+      '/draft-modified-plank',
+      '/draft-stand-in-sliver',
+      '/draft-bridge-plank',
+      '/critique-triple',
       '/check-implications',
       '/safety-check',
       '/check-coherence',
@@ -173,6 +182,151 @@ export function createCauseAssistApp(config: CauseAssistConfig): express.Express
         return
       }
       res.json(await suggestMediatorScaffold(body, config))
+    } catch (error) { next(error) }
+  })
+
+  app.post('/draft-modified-plank', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const body = req.body as DraftModifiedPlankRequest
+      if (
+        !Array.isArray(body?.parentPlanks)
+        || body.parentPlanks.length < 1
+        || body.parentPlanks.length > MAX_EXISTING_STATEMENTS
+        || body.parentPlanks.some((item) => !validStatement(item))
+      ) {
+        invalidRequest(res, `parentPlanks must contain 1–${MAX_EXISTING_STATEMENTS} valid statements`)
+        return
+      }
+      if (body.currentDraft !== undefined && !validStatement(body.currentDraft)) {
+        invalidRequest(res, `currentDraft must be a valid statement when provided`)
+        return
+      }
+      if (body.sideLabel !== undefined && (typeof body.sideLabel !== 'string' || body.sideLabel.length > MAX_FIELD_LABEL_LENGTH)) {
+        invalidRequest(res, `sideLabel must be at most ${MAX_FIELD_LABEL_LENGTH} characters`)
+        return
+      }
+      if (body.mustNotConcede !== undefined && !validStatement(body.mustNotConcede)) {
+        invalidRequest(res, `mustNotConcede must be a valid statement when provided`)
+        return
+      }
+      if (body.complaint !== undefined && !validStatement(body.complaint)) {
+        invalidRequest(res, `complaint must be a valid statement when provided`)
+        return
+      }
+      if (body.intendedBridge !== undefined && !validStatement(body.intendedBridge)) {
+        invalidRequest(res, `intendedBridge must be a valid statement when provided`)
+        return
+      }
+      res.json(await draftModifiedPlank(body, config))
+    } catch (error) { next(error) }
+  })
+
+  app.post('/draft-stand-in-sliver', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const body = req.body as DraftStandInSliverRequest
+      if (!validStatement(body?.sideLabel) || body.sideLabel.length > MAX_FIELD_LABEL_LENGTH) {
+        invalidRequest(res, `sideLabel must be a non-empty label of at most ${MAX_FIELD_LABEL_LENGTH} characters`)
+        return
+      }
+      if (body.bullets !== undefined && (
+        !Array.isArray(body.bullets)
+        || body.bullets.length > MAX_EXISTING_STATEMENTS
+        || body.bullets.some((item) => !validStatement(item))
+      )) {
+        invalidRequest(res, `bullets must be 0–${MAX_EXISTING_STATEMENTS} valid statements when provided`)
+        return
+      }
+      if (body.mustNotCaricature !== undefined && !validStatement(body.mustNotCaricature)) {
+        invalidRequest(res, 'mustNotCaricature must be a valid statement when provided')
+        return
+      }
+      if (body.complaint !== undefined && !validStatement(body.complaint)) {
+        invalidRequest(res, 'complaint must be a valid statement when provided')
+        return
+      }
+      const draft = body.currentDraft
+      if (draft !== undefined) {
+        if (!draft || typeof draft !== 'object') {
+          invalidRequest(res, 'currentDraft must be an object when provided')
+          return
+        }
+        if (draft.title !== undefined && (typeof draft.title !== 'string' || draft.title.length > MAX_FIELD_LABEL_LENGTH)) {
+          invalidRequest(res, `currentDraft.title must be at most ${MAX_FIELD_LABEL_LENGTH} characters`)
+          return
+        }
+        if (draft.summary !== undefined && (typeof draft.summary !== 'string' || draft.summary.length > MAX_STATEMENT_LENGTH)) {
+          invalidRequest(res, 'currentDraft.summary is too long')
+          return
+        }
+        if (draft.planks !== undefined && (
+          !Array.isArray(draft.planks)
+          || draft.planks.length > MAX_EXISTING_STATEMENTS
+          || draft.planks.some((item) => item !== '' && !validStatement(item))
+        )) {
+          invalidRequest(res, 'currentDraft.planks must be valid statements when provided')
+          return
+        }
+      }
+      res.json(await draftStandInSliver(body, config))
+    } catch (error) { next(error) }
+  })
+
+  app.post('/draft-bridge-plank', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const body = req.body as DraftBridgePlankRequest
+      if (
+        !Array.isArray(body?.modifiedSides)
+        || body.modifiedSides.length < 2
+        || body.modifiedSides.length > 6
+        || body.modifiedSides.some((side) => (
+          !side
+          || (side.label !== undefined && (typeof side.label !== 'string' || side.label.length > MAX_FIELD_LABEL_LENGTH))
+          || !Array.isArray(side.planks)
+          || side.planks.length < 1
+          || side.planks.length > MAX_EXISTING_STATEMENTS
+          || side.planks.some((item) => !validStatement(item))
+        ))
+      ) {
+        invalidRequest(res, 'modifiedSides must be 2–6 sides, each with 1–20 valid planks')
+        return
+      }
+      if (body.currentDraft !== undefined && !validStatement(body.currentDraft)) {
+        invalidRequest(res, `currentDraft must be a valid statement when provided`)
+        return
+      }
+      if (body.complaint !== undefined && !validStatement(body.complaint)) {
+        invalidRequest(res, `complaint must be a valid statement when provided`)
+        return
+      }
+      res.json(await draftBridgePlank(body, config))
+    } catch (error) { next(error) }
+  })
+
+  app.post('/critique-triple', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const body = req.body as CritiqueTripleRequest
+      if (
+        !Array.isArray(body?.modifiedPlanks)
+        || body.modifiedPlanks.length < 2
+        || body.modifiedPlanks.length > MAX_EXISTING_STATEMENTS
+        || body.modifiedPlanks.some((item) => !validStatement(item))
+      ) {
+        invalidRequest(res, `modifiedPlanks must contain 2–${MAX_EXISTING_STATEMENTS} valid statements`)
+        return
+      }
+      if (!validStatement(body.bridgePlank)) {
+        invalidRequest(res, `bridgePlank is required and must be at most ${MAX_STATEMENT_LENGTH} characters`)
+        return
+      }
+      if (body.parentPlanks !== undefined && (
+        !Array.isArray(body.parentPlanks)
+        || body.parentPlanks.length > MAX_EXISTING_STATEMENTS
+        || body.parentPlanks.some((item) => !validStatement(item))
+      )) {
+        invalidRequest(res, `parentPlanks must be 0–${MAX_EXISTING_STATEMENTS} valid statements when provided`)
+        return
+      }
+      res.json(await critiqueTriple(body, config))
     } catch (error) { next(error) }
   })
 

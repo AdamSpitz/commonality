@@ -1,6 +1,6 @@
 // REFACTOR-WANTED: this file is large (~830 lines). It mixes several
 // concerns that could be extracted (form sections, validation, and the submit/transaction flow). Left intact for now — please split
-// it up when next doing substantial work here. See workflow/reviews/ui-deep-dive-2026-06-25.md (issue #3).
+// it up when next doing substantial work here.
 import { useState, useMemo, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
@@ -13,7 +13,6 @@ import {
   Alert,
   CircularProgress,
   IconButton,
-  Chip,
   Divider,
   RadioGroup,
   FormControlLabel,
@@ -32,7 +31,8 @@ import { getChannelDisplayLabels } from '../channelDisplay'
 import { useContentFundingState } from '../hooks/useContentFundingState'
 import { usePlatformApi } from '../hooks/usePlatformApi'
 import { getAppUrl } from '../../shared'
-import { DEFAULT_PAYMENT_CURRENCY, formatCurrencyAmount, getConfiguredPaymentCurrency } from '../../shared'
+import { DEFAULT_PAYMENT_CURRENCY, formatCurrencyAmount, getConfiguredPaymentCurrency, InfoChip } from '../../shared'
+import { CHANNEL_STATE_TOOLTIPS } from '../chipTooltips'
 import { usePaymentTokenCurrency } from '../../shared'
 import { projectPathForAddress } from '../../shared'
 import { useWriteClients } from '../../shared'
@@ -579,9 +579,10 @@ export function CreateContractPage({
 
       <Paper sx={{ p: 2, mb: 2 }}>
         <Stack direction="row" spacing={2} alignItems="center">
-          <Chip
+          <InfoChip
             label={overview.channel.state === 'unclaimed' ? 'Unclaimed' : overview.channel.state === 'verified' ? 'Verified' : 'Creator-Controlled'}
             color={overview.channel.state === 'creator-controlled' ? 'success' : overview.channel.state === 'verified' ? 'warning' : 'default'}
+            title={CHANNEL_STATE_TOOLTIPS[overview.channel.state] ?? 'Status of this channel.'}
           />
           <Typography variant="body2" color="text.secondary">
             {canonicalChannelId}
@@ -697,7 +698,7 @@ export function CreateContractPage({
                 Future-content promise
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                Describe the future chunk of work. Backers receive non-transferable receipts now, then claim per-content-item recognition tokens after you publish and materialize the actual items. Both are permanent recognition, not tradeable.
+                Describe the future chunk of work. Contributors receive non-transferable receipts now, then claim per-content-item recognition tokens after you publish and materialize the actual items. Both are permanent recognition, not tradeable.
               </Typography>
               <Stack spacing={2}>
                 <TextField

@@ -6,6 +6,7 @@ import { ChannelPage } from './ChannelPage'
 vi.mock('react-router-dom', () => ({
   useParams: vi.fn(),
   useNavigate: vi.fn(),
+  useSearchParams: vi.fn(() => [new URLSearchParams(), vi.fn()]),
   Link: ({ children, to, ...props }: { children: React.ReactNode; to: string }) => (
     <a href={to} {...props}>{children}</a>
   ),
@@ -31,7 +32,7 @@ vi.mock('@commonality/sdk/content-funding', async () => {
   }
 })
 
-import { useParams } from 'react-router-dom'
+import { useParams, useSearchParams } from 'react-router-dom'
 import { useAccount } from 'wagmi'
 import { getChannelOverview, getProspectiveRounds } from '@commonality/sdk/content-funding'
 import { useContentFundingState } from '../hooks/useContentFundingState'
@@ -64,6 +65,7 @@ describe('ChannelPage', () => {
     vi.clearAllMocks()
     window.localStorage.clear()
     vi.mocked(useParams).mockReturnValue({ platform: 'twitter', channelId: 'twitter%3Auid%3A12345%3A18347' })
+    vi.mocked(useSearchParams).mockReturnValue([new URLSearchParams(), vi.fn()] as never)
     vi.mocked(useAccount).mockReturnValue({ address: undefined, isConnected: false } as any)
     vi.mocked(getProspectiveRounds).mockResolvedValue([])
     vi.mocked(getChannelOverview).mockReturnValue({
@@ -128,28 +130,28 @@ describe('ChannelPage', () => {
     expect(screen.getByRole('link', { name: 'Browse creators' })).toHaveAttribute('href', '/content')
   })
 
-  it('shows custom campaign heading', () => {
+  it('shows custom contracts heading', () => {
     mockContentFundingState({ loading: false, state: null })
 
-    render(<ChannelPage campaignHeading="Support Campaigns" />)
+    render(<ChannelPage contractsHeading="Support Contracts" />)
 
-    expect(screen.queryByText('Support Campaigns')).not.toBeInTheDocument()
+    expect(screen.queryByText('Support Contracts')).not.toBeInTheDocument()
   })
 
-  it('shows custom create campaign label', () => {
+  it('shows custom create contract label', () => {
     mockContentFundingState({ loading: false, state: null })
 
-    render(<ChannelPage createCampaignLabel="Start Campaign" />)
+    render(<ChannelPage createContractLabel="Start Contract" />)
 
-    expect(screen.queryByText('Start Campaign')).not.toBeInTheDocument()
+    expect(screen.queryByText('Start Contract')).not.toBeInTheDocument()
   })
 
-  it('shows custom empty campaign state', () => {
+  it('shows custom empty contracts state', () => {
     mockContentFundingState({ loading: false, state: null })
 
-    render(<ChannelPage emptyCampaignState="No campaigns yet" />)
+    render(<ChannelPage emptyContractsState="No contracts yet" />)
 
-    expect(screen.queryByText('No campaigns yet')).not.toBeInTheDocument()
+    expect(screen.queryByText('No contracts yet')).not.toBeInTheDocument()
   })
 
   it('shows custom unclaimed hero description', () => {
@@ -217,6 +219,24 @@ describe('ChannelPage', () => {
     expect(screen.getByText('Waiting to be claimed')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Claim these funds' })).toBeInTheDocument()
     expect(screen.getByText(/verify your identity and withdraw these funds/i)).toBeInTheDocument()
+  })
+
+  it('offers a channel claim action for unclaimed channels without escrow', () => {
+    mockContentFundingState({ loading: false, state: {} })
+
+    render(<ChannelPage />)
+
+    expect(screen.getByRole('button', { name: 'Claim this channel' })).toBeInTheDocument()
+  })
+
+  it('opens the claim flow when the claim query param is set', () => {
+    vi.mocked(useSearchParams).mockReturnValue([new URLSearchParams('claim=1'), vi.fn()] as never)
+    mockContentFundingState({ loading: false, state: {} })
+
+    render(<ChannelPage />)
+
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    expect(screen.getByText(/connect your wallet/i)).toBeInTheDocument()
   })
 
   it('does not invite claim takeover after the channel is creator-controlled', () => {
@@ -366,7 +386,7 @@ describe('ChannelPage', () => {
 
     render(<ChannelPage />)
 
-    expect(screen.getByText(/Your supporters have pooled 0\.11 ETH/)).toBeInTheDocument()
-    expect(screen.queryByText(/Your supporters have pooled 0 ETH/)).not.toBeInTheDocument()
+    expect(screen.getByText(/Your contributors have pooled 0\.11 ETH/)).toBeInTheDocument()
+    expect(screen.queryByText(/Your contributors have pooled 0 ETH/)).not.toBeInTheDocument()
   })
 })

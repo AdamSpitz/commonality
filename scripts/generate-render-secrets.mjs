@@ -21,23 +21,10 @@
 import { readFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { parseEnvFile } from './lib/parse-env-file.mjs'
 
 const rootDir = join(dirname(fileURLToPath(import.meta.url)), '..')
 const networkEnvFile = process.argv[2] ?? join(rootDir, 'deployments', 'base-sepolia.env')
-
-function parseEnvFile(content) {
-  const result = {}
-  for (const line of content.split('\n')) {
-    const trimmed = line.trim()
-    if (!trimmed || trimmed.startsWith('#')) continue
-    const idx = trimmed.indexOf('=')
-    if (idx === -1) continue
-    const key = trimmed.slice(0, idx)
-    const value = trimmed.slice(idx + 1).replace(/^"(.*)"$/, '$1')
-    result[key] = value
-  }
-  return result
-}
 
 async function loadEnv(filePath) {
   try {
@@ -90,6 +77,11 @@ const services = {
     ['VERIFIER_PRIVATE_KEY', get('VERIFIER_PRIVATE_KEY')],
     ['X_API_BEARER_TOKEN', get('X_API_BEARER_TOKEN')],
     ['YOUTUBE_API_KEY', get('YOUTUBE_API_KEY')],
+  ]),
+
+  'commonality-alignment-trust-bootstrap': () => block([
+    ['RPC_URL', get('BASE_SEPOLIA_RPC_URL')],
+    ['ALIGNMENT_TRUST_BOOTSTRAP_PRIVATE_KEY', get('ALIGNMENT_TRUST_BOOTSTRAP_PRIVATE_KEY')],
   ]),
 
   'commonality-service-host-workers': () => block([

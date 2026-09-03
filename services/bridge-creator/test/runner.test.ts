@@ -36,6 +36,7 @@ function createConfig(): BridgeCreatorConfig {
     proposalEstimatedOutputTokens: 300,
     rateLimitWindowMs: 60_000,
     rateLimitMaxRequests: 10,
+    parentCauses: [],
   };
 }
 
@@ -229,5 +230,49 @@ describe('runBridgeCreatorTick', () => {
     }));
 
     assert.notStrictEqual(withProposals.inputHash, withoutProposals.inputHash);
+  });
+
+  it('publishes a cause-cluster plan when parent causes are configured', async () => {
+    const plans: unknown[] = [];
+    const result = await runBridgeCreatorTick({} as SDKMachinery, {
+      ...createConfig(),
+      name: 'Ada Mediator',
+      clusterSlug: 'housing-bridge',
+      parentCauses: [
+        { owner: '0x1111111111111111111111111111111111111111', slug: 'left-camp', side: 'side_a' },
+        { owner: '0x2222222222222222222222222222222222222222', slug: 'right-camp', side: 'side_b' },
+      ],
+    }, createDependencies({
+      publishTickCluster: async (plan) => {
+        plans.push(plan.clusterSlug);
+      },
+    }));
+
+    assert.strictEqual(result.status, 'published');
+    assert.strictEqual(result.clusterSlug, 'housing-bridge');
+    assert.deepStrictEqual(plans, ['housing-bridge']);
+  });
+
+  it('does not persist dedup if cluster publication throws', async () => {
+    let saved = false;
+    await assert.rejects(
+      () => runBridgeCreatorTick({} as SDKMachinery, {
+        ...createConfig(),
+        clusterSlug: 'housing-bridge',
+        parentCauses: [
+          { owner: '0x1111111111111111111111111111111111111111', slug: 'left-camp', side: 'side_a' },
+          { owner: '0x2222222222222222222222222222222222222222', slug: 'right-camp', side: 'side_b' },
+        ],
+      }, createDependencies({
+        publishTickCluster: async () => {
+          throw new Error('cluster write failed');
+        },
+        saveDedupState: () => {
+          saved = true;
+        },
+      })),
+      /cluster write failed/,
+    );
+    assert.strictEqual(saved, false);
   });
 });

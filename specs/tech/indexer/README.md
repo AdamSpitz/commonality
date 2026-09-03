@@ -69,13 +69,15 @@ All contract event emitters share the single event cache, including Conceptspace
 
 ## Fold Versioning and Upgrades
 
-### Current state: accumulators exist, storage doesn't
+### Current state: per-project accumulators are stored in the browser; most queries still fold from scratch
 
 The fold functions are designed for resumable folding. `foldProject` and `foldContributionsFromEvents` accept an optional `initialAccumulator` parameter and return the updated accumulator alongside the result. The intent is: store the accumulator + the block number it's current through, then on the next query fetch only new events and pass the saved accumulator in.
 
-**However, no code currently stores or retrieves these accumulators.** The query layer (`getProject`, etc.) always folds from scratch. The resumable-fold infrastructure is there but unconnected.
+The UI persists **per-project** accumulators in IndexedDB (`ui/src/shared/stores/foldCache.ts`) and `loadProjectWithCache` resumes from that cursor when present. Cause-board pages also persist the last successful **view snapshot** (metrics + aligned-project rows) so a reload can paint immediately while a live fold revalidates.
 
-For now this is fine — folds are fast and entities are small. It becomes worth wiring up if fold latency becomes noticeable (e.g. a project with tens of thousands of contributions).
+The default query helpers (`getProject`, `getAllAlignedProjectsForCause`, etc.) still fold from scratch unless a caller passes an accumulator. Alignment/implication walks are **not** resumable yet; that waits until entities are large enough that from-scratch folds hurt.
+
+For now this is fine at expected MVP scale. Wire more fold types into storage if fold latency becomes noticeable (e.g. a project with tens of thousands of contributions).
 
 ### If/when we store accumulators: versioning is required
 
@@ -107,7 +109,7 @@ The only case where raw event interpretation changes is if a contract's ABI chan
 
 | Change | Impact | Action needed |
 |--------|--------|---------------|
-| Fold logic fix (no accumulator shape change) | None while accumulators aren't stored | Once stored: bump `foldVersion` |
+| Fold logic fix (no accumulator shape change) | Stored project accumulators invalid | Bump `foldVersion`; clients discard and re-fold |
 | Accumulator shape change | Stored accumulators invalid | Bump `foldVersion`; clients discard and re-fold |
 | New event type added to contract | None for old clients | Deploy new SDK to handle new events |
 | Event ABI breaking change | Raw events misinterpreted | Update decoder; rebuild event cache if needed |

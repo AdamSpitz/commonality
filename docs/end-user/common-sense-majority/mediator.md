@@ -1,5 +1,7 @@
 # CSM mediator
 
+Why the suggested texts are worded the way they are: see `specs/product/statements-are-peculiar-for-good-reasons.md` in the repository.
+
 The Common Sense Majority mediator is an opinionated bridge-creator service. It looks for statements that people on opposing sides could plausibly sign without feeling misrepresented, then publishes those suggested bridges as nudges.
 
 It is not a neutral authority and it does not speak for users. Users choose whether to trust a mediator, inspect its prompt and history, and sign or ignore any suggested statement.
@@ -15,4 +17,4 @@ Polarized systems reward statements that distinguish tribes. CSM needs infrastru
 - Clients can subscribe to or ignore it.
 - Signing remains a user action; the mediator can suggest wording but cannot create durable support on anyone's behalf.
 
-The mechanism-level product spec lives in the repository at `specs/product/bridge-creator.md`.
+The mechanism-level product spec lives in the repository at `specs/product/bridge-creator.md`. When the sides are already published as causes, the same idea is meant to appear as ordinary cause pages — see `specs/product/bridge-causes.md`.

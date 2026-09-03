@@ -3,6 +3,7 @@ pragma solidity 0.8.33;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {IChannelRegistry} from "./ChannelRegistry.sol";
 
 error InvalidRegistryAddress();
 error InvalidPaymentTokenAddress();
@@ -10,15 +11,6 @@ error MustSendTokens();
 error ChannelNotVerified();
 error OnlyChannelOwner();
 error NoBalance();
-
-/**
- * @title IChannelRegistry
- * @notice Interface for the channel registry used by the escrow
- */
-interface IChannelRegistry {
-    function channelOwner(bytes32 channelId) external view returns (address);
-    function isVerified(bytes32 channelId) external view returns (bool);
-}
 
 /**
  * @title IChannelEscrow

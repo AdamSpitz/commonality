@@ -24,24 +24,28 @@ const ABIS_DIR = join(INDEXER_ROOT, "abis");
 const CONTRACTS_TO_SYNC: Record<string, { artifactPath: string; outputFile: string } | null> = {
   Beliefs: { artifactPath: "statements/Beliefs.sol/Beliefs.json", outputFile: "BeliefsAbi.ts" },
   Implications: { artifactPath: "statements/Implications.sol/Implications.json", outputFile: "ImplicationsAbi.ts" },
+  PublishedData: { artifactPath: "published-data/PublishedData.sol/PublishedData.json", outputFile: "PublishedDataAbi.ts" },
   AlignmentAttestations: { artifactPath: "alignment-attestations/AlignmentAttestations.sol/AlignmentAttestations.json", outputFile: "AlignmentAttestationsAbi.ts" },
   AccountAssertions: { artifactPath: "subjectiv/AccountAssertions.sol/AccountAssertions.json", outputFile: "AccountAssertionsAbi.ts" },
+  TrustRegistry: { artifactPath: "subjectiv/TrustRegistry.sol/TrustRegistry.json", outputFile: "TrustRegistryAbi.ts" },
   DelegatableNotes: { artifactPath: "delegation/DelegatableNotes.sol/DelegatableNotes.json", outputFile: "DelegatableNotesAbi.ts" },
+  RecurringPledges: { artifactPath: "delegation/RecurringPledges.sol/RecurringPledges.json", outputFile: "RecurringPledgesAbi.ts" },
   NoteIntent: { artifactPath: "delegation/NoteIntent.sol/NoteIntent.json", outputFile: "NoteIntentAbi.ts" },
   MutableRefUpdater: { artifactPath: "utils/MutableRefUpdater.sol/MutableRefUpdater.json", outputFile: "MutableRefUpdaterAbi.ts" },
   NudgePublications: { artifactPath: "nudger/NudgePublications.sol/NudgePublications.json", outputFile: "NudgePublicationsAbi.ts" },
   PremintingERC1155: { artifactPath: "utils/PremintingERC1155.sol/PremintingERC1155.json", outputFile: "PremintingERC1155Abi.ts" },
-  // MultiERC1155AssuranceContract combines AssuranceContract + ERC1155PrimaryMarket + ContractMetadata events
-  MultiERC1155AssuranceContract: { artifactPath: "individual-projects/AssuranceContracts.sol/MultiERC1155AssuranceContract.json", outputFile: "AssuranceContractAbi.ts" },
+  // MultiERC1155AssuranceContract combines AssuranceContract + ERC1155PrimaryMarket + ContractMetadata events.
+  AssuranceContract: { artifactPath: "individual-projects/AssuranceContracts.sol/MultiERC1155AssuranceContract.json", outputFile: "AssuranceContractAbi.ts" },
   ProjectFactory: { artifactPath: "individual-projects/ProjectFactory.sol/ProjectFactory.json", outputFile: "ProjectFactoryAbi.ts" },
+  PremintingERC1155Factory: { artifactPath: "individual-projects/ProjectFactory.sol/PremintingERC1155Factory.json", outputFile: "PremintingERC1155FactoryAbi.ts" },
+  AssuranceContractFactory: { artifactPath: "individual-projects/ProjectFactory.sol/AssuranceContractFactory.json", outputFile: "AssuranceContractFactoryAbi.ts" },
+  ValueThresholdConditionFactory: { artifactPath: "individual-projects/ProjectFactory.sol/ValueThresholdConditionFactory.json", outputFile: "ValueThresholdConditionFactoryAbi.ts" },
   ContentRegistry: { artifactPath: "content-funding/ContentRegistry.sol/ContentRegistry.json", outputFile: "ContentRegistryAbi.ts" },
   ChannelRegistry: { artifactPath: "content-funding/ChannelRegistry.sol/ChannelRegistry.json", outputFile: "ChannelRegistryAbi.ts" },
   ChannelEscrow: { artifactPath: "content-funding/ChannelEscrow.sol/ChannelEscrow.json", outputFile: "ChannelEscrowAbi.ts" },
   CreatorAssuranceContractFactory: { artifactPath: "content-funding/CreatorAssuranceContractFactory.sol/CreatorAssuranceContractFactory.json", outputFile: "CreatorAssuranceContractFactoryAbi.ts" },
   ProspectiveContentRoundFactory: { artifactPath: "content-funding/ProspectiveContentRoundFactory.sol/ProspectiveContentRoundFactory.json", outputFile: "ProspectiveContentRoundFactoryAbi.ts" },
   MaterializedContentTokens: { artifactPath: "content-funding/MaterializedContentTokens.sol/MaterializedContentTokens.json", outputFile: "MaterializedContentTokensAbi.ts" },
-  // Factory ABIs are manually maintained
-  ProjectFactories: null,
 };
 
 function main() {

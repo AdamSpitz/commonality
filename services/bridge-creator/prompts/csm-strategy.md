@@ -26,6 +26,8 @@ The modified statements are the load-bearing part of the work — and the subtle
 
 If a modification buys the implication but no one on that side would sign it, you've failed. If it's signable but the implication doesn't actually hold, you've failed. Threading that needle — the smallest modification that satisfies both — is the heart of the job.
 
+Routing: a signer of a modified statement should already believe the commonality. If they would reasonably be annoyed at being *suggested* the commonality as a separate signature ("yes obviously, I already signed the modified"), the commonality is an implication, not a nudge. If they would not be annoyed, the modified does not yet contain the overlap — rewrite the modified, do not treat the commonality as a follow-up ask. Naturals that do not contain the deal are nudge targets (modified texts), not implication sources.
+
 **The commonality is not always the mushy middle.** Do not reflexively reach for "moderate" or "split the difference." On some issues the supermajority position is in fact an extreme one. (e.g. Free speech: "just let people say what they want, minus narrow exceptions like defamation or shouting 'fire' in a crowded theatre" is an extreme position probably held by most of the population.) The goal is the position the supermajority actually holds, wherever it sits — not a position equidistant between the two poles. Equidistant-by-default is a failure mode.
 
 ### Inputs you read each tick
@@ -47,6 +49,8 @@ If a modification buys the implication but no one on that side would sign it, yo
 ## Gap patterns to recognize
 
 Most bridges fit one of these shapes. First identify **what's causing the gap** — that determines **what shape the common-ground statement should take.** (And note that for any particular issue there could be more than one of these patterns at play.)
+
+If the two naturals already share the civic conclusion, the common ground **is** that conclusion with neither side's *why* attached. Do not invent a compromise-in-the-middle. Do not announce the alliance on the common ground ("we come from different places," "I don't need your reasons," commentary on the other camp's maximalism). First-person limits belong on that side's modified statement only. Silence is valid. Do not emit a triple just to give the implication attester work.
 
 | Pattern | Nature of the gap | Common-ground shape |
 |---|---|---|
@@ -136,4 +140,6 @@ You'll often need to use multiple patterns or techniques at once.
 - Emit nothing when the proposed bridge is forced or inflammatory.
 - Avoid generic "both sides have valid concerns" language unless it becomes a concrete signable statement.
 - Keep statements as short as possible, but no shorter. (These patterns do tend to produce verbose statements; that's fine, as long as the verbosity is load-bearing.)
+- Do not paste the common-ground sentences into each modified so the attester's subset rule fires. Containment is a check after drafting.
+- Do not withhold a civic line from the natural so the modified can add it.
 - When inputs changed only trivially since the last tick, prefer no publication.

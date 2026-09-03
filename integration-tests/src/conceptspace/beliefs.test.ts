@@ -11,11 +11,11 @@
  * which automatically checks state transition properties and invariants.
  */
 
+import { fakeIpfsCidV1 } from '@commonality/sdk/testing';
 import assert from 'assert';
 import { BeliefsAbi } from '@commonality/sdk/abis';
 import type { BeliefsContract } from '@commonality/sdk/conceptspace';
 import { createStatement } from '@commonality/sdk/displayable-documents';
-import { fakeIpfsCidV1 } from '@commonality/sdk/utils';
 import { testLog, createIsolatedWriteClients } from '../utils/setup.js';
 import { getStatementWithContent } from '@commonality/sdk/conceptspace';
 import {

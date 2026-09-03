@@ -122,6 +122,16 @@
       "skipPolicyBeforeMandatory": "May be skipped during ordinary development because the intended check mutates deployed testnet state with a verifier-funded transaction."
     },
     {
+      "checkId": "testnet.alignment-trust",
+      "mandatoryBy": "release-candidate",
+      "maxAgeDays": 7,
+      "optInEnv": [
+        "COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE",
+        "COMMONALITY_VERIFIER_ENABLE_TESTNET_MUTATION"
+      ],
+      "skipPolicyBeforeMandatory": "May be skipped during ordinary development because it publishes a verifier-funded alignment attestation and waits for the deployed bootstrap worker."
+    },
+    {
       "checkId": "testnet.policy-enforcement",
       "mandatoryBy": "release-candidate",
       "maxAgeDays": 7,

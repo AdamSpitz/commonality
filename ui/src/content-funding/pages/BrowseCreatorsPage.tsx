@@ -10,7 +10,6 @@ import {
   Card,
   CardContent,
   CardActionArea,
-  Chip,
   Stack,
   ToggleButtonGroup,
   ToggleButton,
@@ -27,7 +26,8 @@ import { useContentFundingState } from '../hooks/useContentFundingState'
 import type { ChannelWithCanonicalId } from '@commonality/sdk/content-funding'
 import type { Currency } from '@commonality/sdk/utils'
 import type { ChannelState } from '@commonality/sdk/content-funding'
-import { formatCurrencyAmount } from '../../shared'
+import { formatCurrencyAmount, InfoChip } from '../../shared'
+import { CHANNEL_STATE_TOOLTIPS } from '../chipTooltips'
 
 type SortOption = 'mostFunded' | 'mostContracts' | 'newestActivity'
 type StatusFilter = 'all' | ChannelState
@@ -110,7 +110,7 @@ interface BrowseCreatorsPageProps {
 
 export function BrowseCreatorsPage({
   title = 'Creators',
-  description = 'Any piece of content with a URL can be funded here — pledge toward the tweets, videos, and posts you want to reward, refunded if the goal isn\'t met. Browse by platform to find creators whose work you value. If you\'re a creator, claim your channel to receive funds directly.',
+  description = 'Any piece of content with a URL can be funded here — contribute toward the tweets, videos, and posts you want to reward, refunded if the goal isn\'t met. Browse by platform to find creators whose work you value. If you\'re a creator, claim your channel to receive funds directly.',
 }: BrowseCreatorsPageProps) {
   const { platform } = useParams<{ platform: string }>()
   const navigate = useNavigate()
@@ -278,10 +278,11 @@ export function BrowseCreatorsPage({
                         )}
                       </Box>
                       <Stack direction="row" spacing={1} sx={{ ml: 1, flexShrink: 0 }}>
-                        <Chip
+                        <InfoChip
                           label={STATE_LABELS[state]}
                           color={STATE_COLORS[state]}
                           size="small"
+                          title={CHANNEL_STATE_TOOLTIPS[state] ?? 'Status of this channel.'}
                         />
                       </Stack>
                     </Box>

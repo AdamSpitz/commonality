@@ -1,9 +1,9 @@
+import { PRODUCTION_OPENROUTER_MODEL } from '@commonality/attester-core'
 import type { CauseAssistConfig } from './types.js'
 
 const DEFAULT_XAI_BASE_URL = 'https://api.x.ai/v1'
 const DEFAULT_OPENROUTER_BASE_URL = 'https://openrouter.ai/api/v1'
-const DEFAULT_MODEL = 'grok-4.5'
-const DEFAULT_OPENROUTER_MODEL = 'x-ai/grok-4.5'
+const DEFAULT_XAI_MODEL = 'grok-4.5'
 
 function firstEnv(env: NodeJS.ProcessEnv, keys: string[]): string | undefined {
   for (const key of keys) {
@@ -15,17 +15,16 @@ function firstEnv(env: NodeJS.ProcessEnv, keys: string[]): string | undefined {
 
 export function loadConfigFromEnv(env: NodeJS.ProcessEnv = process.env): CauseAssistConfig {
   const xaiKey = firstEnv(env, ['XAI_API_KEY'])
-  // Legacy fallback if someone still only has OpenRouter configured.
   const openRouterKey = firstEnv(env, ['OPENROUTER_API_KEY'])
-  const apiKey = xaiKey || openRouterKey
-  const usingOpenRouterOnly = !xaiKey && Boolean(openRouterKey)
-
   const explicitBase = firstEnv(env, ['CAUSE_ASSIST_API_BASE_URL', 'XAI_API_BASE_URL'])
+  const baseLooksOpenRouter = (explicitBase ?? '').includes('openrouter.ai')
+  const usingOpenRouter = explicitBase ? baseLooksOpenRouter : Boolean(openRouterKey)
+  const apiKey = usingOpenRouter ? (openRouterKey || xaiKey) : (xaiKey || openRouterKey)
   const apiBaseUrl =
     explicitBase ||
-    (usingOpenRouterOnly ? DEFAULT_OPENROUTER_BASE_URL : DEFAULT_XAI_BASE_URL)
+    (usingOpenRouter ? DEFAULT_OPENROUTER_BASE_URL : DEFAULT_XAI_BASE_URL)
 
-  const defaultModel = usingOpenRouterOnly ? DEFAULT_OPENROUTER_MODEL : DEFAULT_MODEL
+  const defaultModel = usingOpenRouter ? PRODUCTION_OPENROUTER_MODEL : DEFAULT_XAI_MODEL
 
   return {
     apiKey,

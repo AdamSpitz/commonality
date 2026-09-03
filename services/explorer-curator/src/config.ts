@@ -1,3 +1,4 @@
+import { PRODUCTION_OPENROUTER_MODEL } from '@commonality/attester-core';
 import type { LlmNudgerConfig } from '@commonality/nudger-core';
 
 export interface ExplorerCuratorConfig extends LlmNudgerConfig {
@@ -53,7 +54,7 @@ export function loadConfigFromEnv(env: NodeJS.ProcessEnv = process.env): Explore
     ipfsApiUrl: readString(['EXPLORER_CURATOR_IPFS_API', 'IPFS_API'], 'http://localhost:5001'),
     ipfsGatewayUrl: readString(['EXPLORER_CURATOR_IPFS_GATEWAY', 'IPFS_GATEWAY'], 'http://localhost:8080'),
     openRouterApiKey: requireFrom('OPENROUTER_API_KEY'),
-    openRouterModel: readString(['EXPLORER_CURATOR_OPENROUTER_MODEL', 'OPENROUTER_MODEL'], 'anthropic/claude-3.5-haiku'),
+    openRouterModel: readString(['EXPLORER_CURATOR_OPENROUTER_MODEL', 'OPENROUTER_MODEL'], PRODUCTION_OPENROUTER_MODEL),
     name: readString(['EXPLORER_CURATOR_NAME'], 'Fundable Project Explorer'),
     description: readString(['EXPLORER_CURATOR_DESCRIPTION'], 'Curates a map of fundable project areas and personalizes suggestions'),
     sourceType: readString(['EXPLORER_CURATOR_SOURCE_TYPE'], 'explorer-curator'),
@@ -106,7 +107,7 @@ export function loadConfig(): ExplorerCuratorConfig {
     ipfsApiUrl: readStringEnv('IPFS_API', 'http://localhost:5001'),
     ipfsGatewayUrl: readStringEnv('IPFS_GATEWAY', 'http://localhost:8080'),
     openRouterApiKey: requireEnv('OPENROUTER_API_KEY', process.env.OPENROUTER_API_KEY),
-    openRouterModel: readStringEnv('OPENROUTER_MODEL', 'anthropic/claude-3.5-haiku'),
+    openRouterModel: readStringEnv('OPENROUTER_MODEL', PRODUCTION_OPENROUTER_MODEL),
     name: readStringEnv('NUDGER_NAME', 'Fundable Project Explorer'),
     description: readStringEnv('NUDGER_DESCRIPTION', 'Curates a map of fundable project areas and personalizes suggestions'),
     sourceType: readStringEnv('NUDGER_SOURCE_TYPE', 'explorer-curator'),

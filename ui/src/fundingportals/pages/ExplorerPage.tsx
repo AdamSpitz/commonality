@@ -255,7 +255,7 @@ export function ExplorerPage() {
         </Typography>
         <Paper sx={{ p: 3, textAlign: 'center' }}>
           <Typography variant="body1" color="text.secondary" gutterBottom>
-            No curated cause collection is available yet, but you can still discover causes without configuring anything: browse public cause statements on Tally, open a statement you care about, then use its cause board link to continue.
+            No curated cause collection is available yet, but you can still discover causes without configuring anything: browse public cause statements on Tally, open a statement you care about, then use its fundable-projects board link to continue.
           </Typography>
           <Typography variant="body2" color="text.secondary">
             If you want a personalized explorer later, add a trusted explorer nudger in Tally's trust settings.
@@ -319,7 +319,7 @@ export function ExplorerPage() {
                       {entry.label}
                     </Typography>
                     <Chip
-                      label={`${entry.believerCount} supporter${entry.believerCount !== 1 ? 's' : ''}`}
+                      label={`${entry.believerCount} signer${entry.believerCount !== 1 ? 's' : ''}`}
                       color="primary"
                       size="small"
                       sx={{ ml: 1 }}
@@ -371,7 +371,7 @@ export function ExplorerPage() {
                     component={RouterLink}
                     to={`/portal/${entry.cid}`}
                   >
-                    Open Cause Board
+                    Open fundable-projects board
                   </Button>
                 </CardActions>
               </Card>

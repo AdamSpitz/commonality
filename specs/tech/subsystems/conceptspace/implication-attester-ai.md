@@ -9,7 +9,8 @@ AI recommendations for implementation approach:
   - Hold an Ethereum private key to sign transactions. (Just use an environment variable for now.)
   - Use the "sdk" code (in the top level of this repo) for reading statements, making attestations, etc. (If there are any user actions or queries that aren't already part of the sdk code, we can add them to the sdk code.)
   - Single endpoint: POST /evaluate-implication. Accepts two statement IDs, fetches their content from IPFS, evaluates whether S1 -> S2, publishes an ImplicationAttestation event (using our sdk code) recording its decision, and produces a return structure containing both a boolean indicating its overall decision and also a written explanation for why or why not. (Record the explanation in IPFS, and include its CID in the onchain attestation event.) Oh, make the return structure include the transaction hash too, so it's easy for the caller to see for himself.
-  - Use an LLM (use OpenRouter, at least at first, so we can try different models; we can switch to directly calling whichever specific API later if we want to) to do the evaluation.
+  - Use an LLM (use OpenRouter, at least at first, so we can try different models; we can switch to directly calling whichever specific API later if we want to) to do the evaluation. Canonical [combinator statements](combinator-statements.md) are a closed exception: a structural gate on the same attester identity publishes conjunction-elimination / disjunction-introduction arrows without asking the model.
+
   - Require ETH payments via x402 standard flow.
     - Cost-plus pricing: (estimated_gas_cost + llm_cost) * 1.20 margin
     - Recalculate every 5 minutes based on current gas prices

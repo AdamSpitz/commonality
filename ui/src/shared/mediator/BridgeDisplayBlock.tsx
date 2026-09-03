@@ -95,7 +95,14 @@ export function useMediatorAnchors(options: {
     setLoading(true)
     void fetchFeaturedMediatorAnchors(serviceUrl)
       .then((next) => { if (!cancelled) { setAnchors(next); setWarning(undefined) } })
-      .catch(() => { if (!cancelled) { setAnchors(fallbackAnchors); setWarning('Live mediator bridges are unavailable; showing the bundled reference set.') } })
+      .catch(() => { if (!cancelled) {
+        setAnchors(fallbackAnchors)
+        // Only claim a fallback when one exists: a caller with no bundled set
+        // shows an empty list, and saying otherwise would misreport it.
+        setWarning(fallbackAnchors.length > 0
+          ? 'Live mediator bridges are unavailable; showing the bundled reference set.'
+          : 'Live mediator bridges are unavailable right now.')
+      } })
       .finally(() => { if (!cancelled) setLoading(false) })
     return () => { cancelled = true }
   }, [serviceUrl, fallbackAnchors])

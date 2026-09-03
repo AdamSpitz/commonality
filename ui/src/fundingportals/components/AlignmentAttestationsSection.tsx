@@ -6,7 +6,6 @@ import {
   CircularProgress,
   Alert,
   Stack,
-  Chip,
   Divider,
   Button,
   Dialog,
@@ -20,7 +19,7 @@ import { getStatement } from '@commonality/sdk/conceptspace'
 import { getSubjectStatements, attestAlignment, attestSuccess, getSubjectSuccessStatements, toSubjectId, PROJECT_ALIGNMENT_TOPIC, type AlignmentAttestation, type SuccessAttestation } from '@commonality/sdk/fundingportals'
 import { waitForIndexerToSyncToTxHash } from '@commonality/sdk/indexer-sync'
 import type { IpfsCidV1 } from '@commonality/sdk/utils'
-import { StatementPicker, truncateAddress, useMachinery, useWriteClients } from '../../shared'
+import { InfoChip, StatementPicker, truncateAddress, useMachinery, useWriteClients } from '../../shared'
 import { getAlignmentContract } from './alignmentContract'
 
 type AlignmentWithTitle = AlignmentAttestation & { statementTitle?: string }
@@ -143,7 +142,7 @@ export function AlignmentAttestationsSection({ projectAddress, initialStatementC
     <Box sx={{ mb: 3 }}>
       <Paper sx={{ p: 3 }}>
         <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-          <Typography variant="h6">Project Endorsements</Typography>
+          <Typography variant="h6">Project Vouches</Typography>
           {isConnected ? (
             <Stack direction="row" spacing={1}>
               <Button variant="outlined" size="small" onClick={() => handleOpenDialog('alignment')}>
@@ -200,7 +199,14 @@ export function AlignmentAttestationsSection({ projectAddress, initialStatementC
                     Vouched by: {truncateAddress(a.attester)}
                   </Typography>
                 </Box>
-                <Chip label="Direct" size="small" color="primary" variant="outlined" aria-label="Direct endorsement: a person vouched this project serves this cause, not an implication-derived link." />
+                <InfoChip
+                  label="Direct"
+                  size="small"
+                  color="primary"
+                  variant="outlined"
+                  title="A person vouched that this project serves this cause — not an implication-derived link."
+                  aria-label="Direct vouch: a person vouched this project serves this cause, not an implication-derived link."
+                />
               </Box>
             ))}
           </Stack>
@@ -224,7 +230,13 @@ export function AlignmentAttestationsSection({ projectAddress, initialStatementC
                     Success vouched by: {truncateAddress(a.attester)}
                   </Typography>
                 </Box>
-                <Chip label="Delivered" size="small" color="success" variant="outlined" />
+                <InfoChip
+                  label="Delivered"
+                  size="small"
+                  color="success"
+                  variant="outlined"
+                  title="Someone attested that this project delivered real value aligned with that cause."
+                />
               </Box>
             ))}
           </Stack>

@@ -8,29 +8,57 @@ CauseStarter also keeps its own product/architecture backlog in [`causestarter/T
 
 When an item from this page is done and no longer needs an LLM implementor's attention, don't mark it "done", just delete it. I don't want this file to get cluttered with already-completed items.
 
+Fake data / seed content is a **standing plan**, not a pile of one-shots: read [`fake-data-generation/PLAN.md`](fake-data-generation/PLAN.md) and do the next unchecked item there (tiny UI world vs real statements vs stress traffic). Do not invent a parallel seed pipeline.
+
 ----
 
-- [ ] **(Tell)** Finish the accepted causes-as-publications rollout. The retrieval-first
-  CauseStarter authoring flow, deterministic approval, versioned publications/draft
-  compatibility, cause-first page, derived views, aligned-project union, recurring-pledge
-  signal, statement-scoped one-time/monthly delegation entry points, organizer
-  create/publish/revise/share browser journey, visitor journey, and frozen
-  published-cause/local-draft regression corpus, donor-scope picker, and versioned public
-  delegate-offering publication/picker are implemented. Remaining: validate the complete
-  journey with non-expert users. Work through the open
-  items in [the implementation plan](specs/product/causes-as-publications-implementation-plan.md);
-  product semantics are in [the living spec](specs/product/causes-as-publications.md), with
-  frozen rationale in [ADR 0009](specs/decisions/0009-causes-are-publications-over-statements.md).
+- **(Tell)** Next fake-data/seed-data step lives in [`fake-data-generation/PLAN.md`](fake-data-generation/PLAN.md). Abortion, immigration, crime, and LGBT-schools triples are accepted; next is the demo-seed live UI pass.
+
+----
+
+- Align `foldReimbursements` donation rounding with the contract’s per-share
+  accumulator (`accumulatedReimbursementPerClaimShare` / `mulDiv`). The fold
+  currently splits each donation with per-holder `claim * amount / outstanding`
+  integer division, then subtracts the full donation from `outstanding`, so UI
+  forgo/withdrawable caps can disagree with on-chain views by leftover wei.
+  Mirror the contract (scaled accumulator, or live view reads) and add a
+  remainder-aware test with two holders and a donation that does not divide
+  evenly. Found in review of `feature/combinator-operand-nonblocking-load`.
+
+- **(Tell)** Refresh `data/seed-implication-evaluations.original-variants.json`
+  against the current implication-attester prompt fingerprint. The prompt now
+  rejects nested-place geographic rollup (Grey County → Ontario is a worked
+  false); the checked-in corpus still has the old fingerprint, so
+  `test:seed:implication-regression` will fail until a dedicated pass re-evaluates
+  the 1870 original↔variant pairs. Do not restamp fingerprints without live
+  decisions, and do not paper over it in seed wording. A v4-flash pass stalled
+  on empty LLM completions — use a model that actually returns JSON. Resume
+  already skips only pairs with the current fingerprint. Personalized AI ranking
+  remains deferred per
+  [belief-implication-board-inclusion-and-discovery.md](specs/product/belief-implication-board-inclusion-and-discovery.md).
+
+- Add a fresh-stack integration test for the alignment-trust bootstrap: publish
+  an alignment vouch from a previously unknown wallet, observe the service's
+  `TrustSet(..., 100)`, confirm a wallet with no personal graph sees that vouch
+  through CauseStarter's one-hop fallback, then add the attester to the denylist
+  and confirm `TrustSet(..., 0)` removes it. Also cover that any personal direct
+  trust mapping replaces rather than merges with the shipped fallback.
+
+- **(Tell)** Glossary follow-ups. [`specs/glossary.md`](specs/glossary.md) is now the
+  ubiquitous-language reference; Adam ruled on support/sign/pledge/contributor 2026-08-14
+  and those sweeps are done. Part 2 §6 lists what's left, none of it urgent: **earmark**
+  is used ~35 times and defined nowhere (define it or fold it into "contribution to a
+  cause"); `Project.marketplaceAddress` may be dead since receipts went non-transferable;
+  and the contract directory names (`individual-projects/` = LazyGiving, `statements/` =
+  Conceptspace, `alignment-attestations/` = fundingportals) don't match their subsystem
+  names, which breaks the four-layer isomorphism. Add new terms to the glossary as they
+  appear rather than letting drift re-accumulate.
 
 - Fix the three failing funding-portal integration tests. `automated.test-full-integration` fails (exit 3, 101 passing / 3 failing) because cause-level aggregation reads back `0n` where seeded contributions should appear: "total funding raised across all aligned projects for a cause" expects `800000n` (`integration-tests/src/fundingportal/fundingportal-aggregated-metrics.test.ts:219`), and the leaderboard tests expect `3000000n` and `2000000n` (`fundingportal-leaderboards.test.ts:221` and `:346`). All three get `0n`, so suspect one shared cause: contributions not being attributed to the cause in the aggregation query/indexer rather than three separate bugs. This is the only red under `automated.test-full` — SDK, Hardhat, and UI legs pass.
 
 - Fix the canonical Playwright user journeys (`stack.user-journeys`, exit 1). The content-funding flow reverts in `verifyChannel` with `InvalidVerifierSignature()` (custom error `0x0574e985`) when creating a channel and landing on the creators page, and retries hit the same error. Either the signer/verifier key the E2E harness uses no longer matches the deployed `ChannelRegistry` verifier, or the signed payload's shape/domain changed.
 
-
-
 - [ ] **(Tell)** Measure whether the proposed planks/views model can fold `DirectSupport` events per plank client-side at approximately 10⁵ signers, or whether it needs a server-side fold. This is currently an unmeasured assertion in [shaping-your-cause-statements.md](docs/founder/shaping-your-cause-statements.md). Report the setup, timings, memory/browser behavior, and conclusion; do not build the server-side path yet.
-
-- [ ] **(Tell)** Test whether the real implication-attester prompt blesses representative plank→disjunctive-anchor arrows. This is currently a logical argument rather than an observed result in [shaping-your-cause-statements.md](docs/founder/shaping-your-cause-statements.md). Report accepted/rejected cases and reasoning; do not build anchor tooling yet.
 
 - Verify the new local public-goods demo-seed storyline against a live stack. `PROJECT_SEED_METADATA[0]` is now "Riverside Community Garden" (aligned to `fundable-projects`/`local-community`/`local-food-systems`), `DETERMINISTIC_SEED_PROJECT_ALIGNMENT_COUNT` is 6 so no existing storyline lost its alignment, and `gen:seed:local` runs 12 users to keep the success-attester pool satisfied. Unit tests pass, but the seed has still never been run end-to-end: `stack.fresh-seeded` now passes (2026-08-03) but it seeds `tiny`, not `demo`. Run `./scripts/data.sh --wipe && ./scripts/data.sh --seed=demo` and confirm in the UI that the garden project shows an alignment vouch, contributions, and a success attestation. Consider also regenerating `data/seed-worker-outputs.json` if the Explorer fixture should mention the new cause.
 

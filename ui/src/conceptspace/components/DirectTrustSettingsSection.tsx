@@ -23,10 +23,13 @@ import { isAddress } from 'viem'
 import { TrustRegistryAbi } from '@commonality/sdk/abis'
 import { waitForIndexerToSyncToTxHash } from '@commonality/sdk/indexer-sync'
 import { getDirectTrustMapping, setTrust } from '@commonality/sdk/subjectiv'
-import { useMachinery } from '../../shared'
-import { useWriteClients } from '../../shared'
-import { useTrustedSet } from '../../shared'
-import { notifySubjectivTrustNetworkInvalidated } from '../../shared'
+import {
+  notifySubjectivTrustNetworkInvalidated,
+  TrustNetworkRefreshIndicator,
+  useMachinery,
+  useTrustedSet,
+  useWriteClients,
+} from '../../shared'
 
 function normalizeEntries(entries: Map<string, number>) {
   return Array.from(entries.entries())
@@ -34,7 +37,13 @@ function normalizeEntries(entries: Map<string, number>) {
     .sort((a, b) => b.score - a.score || a.trustee.localeCompare(b.trustee))
 }
 
-export function DirectTrustSettingsSection() {
+export function DirectTrustSettingsSection({
+  emptyTrustMessage = 'No direct trust scores yet. Until you add some, project pages will show all project vouches.',
+  refreshingEmptyMessage = 'Refreshing your trust network. Until any trusted accounts are found, project pages still show all project vouches.',
+}: {
+  emptyTrustMessage?: string
+  refreshingEmptyMessage?: string
+} = {}) {
   const machinery = useMachinery()
   const { address, isConnected } = useAccount()
   const writeClients = useWriteClients(address)
@@ -177,14 +186,14 @@ export function DirectTrustSettingsSection() {
       </Typography>
 
       <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-        Project endorsements are filtered through your personal trust network rather than
+        Project vouches are filtered through your personal trust network rather than
         a single approved source. Add trust scores here, and project pages will
         follow those trust links and filter based on the accounts discovered so far.
       </Typography>
 
       {!isConnected ? (
         <Alert severity="info">
-          Connect your wallet to manage trust scores for filtering project endorsements.
+          Connect your wallet to manage trust scores for filtering project vouches.
         </Alert>
       ) : (
         <>
@@ -251,8 +260,7 @@ export function DirectTrustSettingsSection() {
             </Box>
           ) : entries.length === 0 ? (
             <Typography variant="body2" color="text.secondary" sx={{ py: 2, textAlign: 'center' }}>
-              No direct trust scores yet. Until you add some, project pages will show
-              all project endorsements.
+              {emptyTrustMessage}
             </Typography>
           ) : (
             <List>
@@ -286,17 +294,22 @@ export function DirectTrustSettingsSection() {
             {entries.length} direct trust score{entries.length !== 1 ? 's' : ''} configured
           </Typography>
 
-          {trustedSetLoading ? (
-            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-              {trustedSet
-                ? `Refreshing your trust network. Currently using ${trustedSet.size} account${trustedSet.size !== 1 ? 's' : ''} in your network.`
-                : 'Refreshing your trust network. Until any trusted accounts are found, project pages still show all project endorsements.'}
-            </Typography>
-          ) : trustedSet ? (
-            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-              Current network size: {trustedSet.size} account{trustedSet.size !== 1 ? 's' : ''}
-            </Typography>
-          ) : null}
+          <Box sx={{ position: 'relative', mt: 1, minHeight: trustedSet || trustedSetLoading ? 20 : 0 }}>
+            {trustedSetLoading && (
+              <TrustNetworkRefreshIndicator
+                title={
+                  trustedSet
+                    ? `Refreshing your trust network. Currently using ${trustedSet.size} account${trustedSet.size !== 1 ? 's' : ''} in your network.`
+                    : refreshingEmptyMessage
+                }
+              />
+            )}
+            {trustedSet ? (
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', pr: 4 }}>
+                Current network size: {trustedSet.size} account{trustedSet.size !== 1 ? 's' : ''}
+              </Typography>
+            ) : null}
+          </Box>
         </>
       )}
     </Paper>

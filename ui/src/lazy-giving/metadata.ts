@@ -14,6 +14,7 @@ export type ProjectMetadata = {
   creatorDisplayName?: string
   channelDisplayName?: string
   channelHandle?: string
+  relevantAreas?: string[][]
 }
 export type TokenMetadata = { name?: string; image?: string; description?: string }
 
@@ -35,6 +36,14 @@ function stringRecordField(value: unknown): Record<string, string> | undefined {
   return entries.length > 0 ? Object.fromEntries(entries) : undefined
 }
 
+function relevantAreasField(value: unknown): string[][] | undefined {
+  if (!Array.isArray(value)) return undefined
+  const paths = value.map((path) => Array.isArray(path)
+    ? path.filter((part): part is string => typeof part === 'string').map((part) => part.trim()).filter(Boolean)
+    : []).filter((path) => path.length > 0)
+  return paths.length > 0 ? paths : undefined
+}
+
 export function projectMetadataFromDocument(document: DisplayableDocument): ProjectMetadata {
   const extras = document.extras ?? {}
   return {
@@ -47,6 +56,7 @@ export function projectMetadataFromDocument(document: DisplayableDocument): Proj
     creatorDisplayName: stringField(extras.creatorDisplayName),
     channelDisplayName: stringField(extras.channelDisplayName),
     channelHandle: stringField(extras.channelHandle),
+    relevantAreas: relevantAreasField(extras.relevantAreas),
   }
 }
 

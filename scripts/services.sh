@@ -17,6 +17,8 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=lib/timing.sh
+. "$SCRIPT_DIR/lib/timing.sh"
 DATA_DIR="${COMMONALITY_DATA_DIR:-./data}"
 UI_IPFS_ARTIFACT_DIR="./data/ui-ipfs"
 cd "$SCRIPT_DIR/.."
@@ -51,6 +53,33 @@ show_usage() {
     echo "  Gateway: http://causestarter.localhost:8088/#/"
     echo "  App:     http://localhost:8090/  (cause-assist on :3002)"
     echo "  Rebuild: ./scripts/deploy-causestarter.sh"
+    echo ""
+    echo "LOCAL_UI_DOMAINS (temporary): default is causestarter only."
+    echo "  Restore every IPFS SPA: LOCAL_UI_DOMAINS=all $0 --start"
+    echo "  See workflow/local-development.md"
+}
+
+# Which UI IPFS publishers to run on --start. Default: CauseStarter only.
+# LOCAL_UI_DOMAINS=all restores the eight legacy domains + CauseStarter.
+# Comma/space list also works, e.g. LOCAL_UI_DOMAINS=causestarter,tally
+load_local_ui_domains_from_env_file() {
+    if [ -n "${LOCAL_UI_DOMAINS:-}" ] || [ ! -f .env ]; then
+        return 0
+    fi
+    local line value
+    line="$(grep -E '^[[:space:]]*LOCAL_UI_DOMAINS=' .env | tail -n 1 || true)"
+    [ -n "$line" ] || return 0
+    value="${line#*=}"
+    value="${value%\"}"
+    value="${value#\"}"
+    value="${value%\'}"
+    value="${value#\'}"
+    export LOCAL_UI_DOMAINS="$value"
+}
+
+local_publish_domains() {
+    load_local_ui_domains_from_env_file
+    node "$SCRIPT_DIR/ui-domains.mjs" list-local-publish
 }
 
 resolve_path_allow_missing() {
@@ -113,7 +142,8 @@ check_existing_containers() {
 
 print_spa_urls() {
     local found=false
-    for domain in commonality lazyGiving alignment tally content-funding civility common-sense-majority conceptspace causestarter; do
+    local domain
+    for domain in $(local_publish_domains); do
         local stable_file="$UI_IPFS_ARTIFACT_DIR/$domain/stable-url.txt"
         local spa_file="$UI_IPFS_ARTIFACT_DIR/$domain/spa-url.txt"
         if [ -f "$stable_file" ]; then
@@ -136,7 +166,7 @@ wait_for_spa_gateway() {
     echo "Waiting for the local IPFS gateway to serve all domain SPAs..."
     local max_attempts=30
 
-    for domain in commonality lazyGiving alignment tally content-funding civility common-sense-majority conceptspace causestarter; do
+    for domain in $(local_publish_domains); do
         local spa_file="$UI_IPFS_ARTIFACT_DIR/$domain/spa-url.txt"
         [ -f "$spa_file" ] || continue
 
@@ -195,10 +225,12 @@ wait_for_ui_ipfs_publisher() {
 
 publish_ui_domains_to_ipfs() {
     echo "Publishing domain UI builds to IPFS one at a time..."
+    echo "  LOCAL_UI_DOMAINS=$(local_publish_domains | tr '\n' ' ')"
 
     # Building all domain SPAs concurrently can exhaust Docker Desktop memory and
     # kill Vite with exit code 137. Build/publish sequentially for reliability.
-    for domain in commonality lazyGiving alignment tally content-funding civility common-sense-majority conceptspace causestarter; do
+    local domain
+    for domain in $(local_publish_domains); do
         echo "  $domain: building and publishing..."
         docker_compose up -d --no-deps --force-recreate "ui-ipfs-publisher-${domain}"
         wait_for_ui_ipfs_publisher "$domain"
@@ -251,6 +283,7 @@ map_causestarter_contract_env() {
     export VITE_ERC1155_FACTORY_ADDRESS="${VITE_ERC1155_FACTORY_ADDRESS:-${ERC1155_FACTORY_ADDRESS:-}}"
     export VITE_ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS="${VITE_ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS:-${ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS:-${ALIGNMENT_ATTESTATIONS_ADDRESS:-}}}"
     export VITE_TRUST_REGISTRY_CONTRACT_ADDRESS="${VITE_TRUST_REGISTRY_CONTRACT_ADDRESS:-${TRUST_REGISTRY_ADDRESS:-}}"
+    export VITE_DEFAULT_ALIGNMENT_TRUST_ROOT="${VITE_DEFAULT_ALIGNMENT_TRUST_ROOT:-0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f}"
     export VITE_NUDGE_PUBLICATIONS_CONTRACT_ADDRESS="${VITE_NUDGE_PUBLICATIONS_CONTRACT_ADDRESS:-${NUDGE_PUBLICATIONS_CONTRACT_ADDRESS:-}}"
     export VITE_PUBLISHED_DATA_CONTRACT_ADDRESS="${VITE_PUBLISHED_DATA_CONTRACT_ADDRESS:-${PUBLISHED_DATA_CONTRACT_ADDRESS:-}}"
     export VITE_PROJECT_FACTORY_CONTRACT_ADDRESS="${VITE_PROJECT_FACTORY_CONTRACT_ADDRESS:-${PROJECT_FACTORY_ADDRESS:-}}"
@@ -280,36 +313,30 @@ start_services() {
         published-data-ipfs-mirror
         indexer
         platform-api-service
-        ui-ipfs-publisher-commonality
-        ui-ipfs-publisher-lazyGiving
-        ui-ipfs-publisher-alignment
-        ui-ipfs-publisher-tally
-        ui-ipfs-publisher-content-funding
-        ui-ipfs-publisher-civility
-        ui-ipfs-publisher-common-sense-majority
-        ui-ipfs-publisher-conceptspace
-        ui-ipfs-publisher-causestarter
         cause-assist
+        alignment-trust-bootstrap
         causestarter
+        christian-bridge-creator
+        service-host-attesters
     )
+    local domain
+    for domain in $(local_publish_domains); do
+        buildable_services+=("ui-ipfs-publisher-${domain}")
+    done
     local -a services_to_build=()
 
+    timing_begin
     "$SCRIPT_DIR/check-prerequisites.sh"
     check_existing_containers
     clear_stale_ponder_for_fresh_chain
-    echo "Starting services with data directory: $DATA_DIR"
+    echo "[$(date +%T)] Starting services with data directory: $DATA_DIR"
     # Pre-create data directories owned by the current user so containers
     # don't create them as root.
     mkdir -p "$DATA_DIR/hardhat" "$DATA_DIR/ipfs" "$DATA_DIR/published-data-ipfs-mirror" "$DATA_DIR/ponder" \
-        "$UI_IPFS_ARTIFACT_DIR/commonality" \
-        "$UI_IPFS_ARTIFACT_DIR/lazyGiving" \
-        "$UI_IPFS_ARTIFACT_DIR/alignment" \
-        "$UI_IPFS_ARTIFACT_DIR/tally" \
-        "$UI_IPFS_ARTIFACT_DIR/content-funding" \
-        "$UI_IPFS_ARTIFACT_DIR/civility" \
-        "$UI_IPFS_ARTIFACT_DIR/common-sense-majority" \
-        "$UI_IPFS_ARTIFACT_DIR/conceptspace" \
-        "$UI_IPFS_ARTIFACT_DIR/causestarter"
+        "$DATA_DIR/alignment-trust-bootstrap"
+    for domain in $(local_publish_domains); do
+        mkdir -p "$UI_IPFS_ARTIFACT_DIR/$domain"
+    done
     # The UI publisher bind-mounts these files so it reads contract addresses
     # written by hardhat-deploy at runtime instead of stale values baked into
     # the Docker image. Ensure clean checkouts have files to mount.
@@ -324,17 +351,23 @@ start_services() {
         services_to_build+=("$line")
     done < <(node "$SCRIPT_DIR/docker-build-plan.mjs" list "${buildable_services[@]}")
     if [ "${#services_to_build[@]}" -gt 0 ]; then
-        echo "Rebuilding Docker images whose declared inputs changed:"
+        echo "[$(date +%T)] Rebuilding Docker images whose declared inputs changed:"
         printf '  %s\n' "${services_to_build[@]}"
         docker_compose build "${services_to_build[@]}"
         node "$SCRIPT_DIR/docker-build-plan.mjs" record "${services_to_build[@]}"
+        echo "[$(date +%T)] Docker image rebuild finished."
     else
-        echo "Reusing existing Docker images; no declared build inputs changed."
+        echo "[$(date +%T)] Reusing existing Docker images; no declared build inputs changed."
     fi
+    timing_mark docker_images
+    echo "[$(date +%T)] Starting core services (hardhat, ipfs, indexer, api)..."
     docker_compose up -d --remove-orphans "${core_services[@]}"
+    timing_mark core_services
+    echo "[$(date +%T)] Publishing UI domains to IPFS..."
     publish_ui_domains_to_ipfs
     docker_compose up -d --no-deps --force-recreate ui-local-gateway
     wait_for_local_ui_gateway
+    timing_mark ui_ipfs
 
     # CauseStarter SPA + cause-assist (core founder surface on :8090).
     # localhost.env matches hardhat-deploy --network localhost; live .env files win.
@@ -343,11 +376,37 @@ start_services() {
     load_env_file_if_present ui/.env
     load_env_file_if_present causestarter/.env
     map_causestarter_contract_env
-    docker_compose up -d --force-recreate cause-assist causestarter
+    # service-host-attesters must start after the env files above are sourced:
+    # it needs IMPLICATIONS_CONTRACT_ADDRESS from deployments/localhost.env, and
+    # compose reads that from this shell. The bridge-cluster editor's "submit
+    # pairs to attester" step talks to it on :3006.
+    echo "[$(date +%T)] Starting CauseStarter SPA, cause-assist, attesters, workers..."
+    docker_compose up -d --force-recreate \
+        cause-assist alignment-trust-bootstrap causestarter christian-bridge-creator \
+        service-host-attesters
+    timing_mark causestarter
+
+    # Compose auto-loads the root .env, so once generate-wallets.mjs has run the
+    # services sign with generated keys that hold no ETH on a fresh local chain.
+    # Without this they boot "degraded" and every on-chain write fails.
+    echo "Funding local service signer wallets..."
+    if ! node "$SCRIPT_DIR/fund-local-service-wallets.mjs"; then
+        echo "Warning: could not fund service signer wallets. Attesters may report"
+        echo "'degraded' and fail on-chain writes until you run:"
+        echo "  node scripts/fund-local-service-wallets.mjs"
+    fi
+
+    echo "Recording local Hardhat-account trust (CauseStarter starter network)..."
+    if ! node "$SCRIPT_DIR/seed-local-alignment-trust.mjs"; then
+        echo "Warning: could not seed local alignment trust. CauseStarter project lists may stay gated until you run:"
+        echo "  node scripts/seed-local-alignment-trust.mjs"
+    fi
+    timing_mark alignment_trust
 
     echo ""
     echo "Services started. Use 'docker compose logs -f' to view logs."
     echo "Platform API service health: http://localhost:3001/health"
+    echo "Attesters (implication + content) health: http://localhost:3006/health"
     echo "CauseStarter: http://localhost:${CAUSESTARTER_PORT:-8090}/  (gateway: http://causestarter.localhost:8088/#/)"
 
     # Fail fast on env / on-chain / SPA config drift (PublishedData missing, stale ProjectFactory ABI, …).
@@ -358,6 +417,8 @@ start_services() {
         echo "Services are up, but contract addresses or ABIs are inconsistent — fix before using the stack."
         exit 1
     fi
+    timing_mark config_sync
+    timing_summary
 }
 
 stop_services() {

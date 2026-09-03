@@ -19,9 +19,11 @@ import {
   fetchEvents,
   fetchLazyGivingProjectEvents,
   fetchAllBoughtEvents,
+  padAddressAsTopic,
 } from '../../utils/eventCacheClient.js';
 import {
   decodeLazyGivingAssuranceContractCreatedEvent,
+  decodeProjectCreatedEvent,
   decodeCreatorContractCreatedEvent,
   decodeAssuranceContractInitializedEvent,
   decodeContractMetadataUpdatedEvent,
@@ -126,6 +128,51 @@ async function readSettlementCurrency(
 // LazyGiving Queries
 // ============================================================================
 
+export interface ProjectFoldResult {
+  project: Project;
+  accumulator: ProjectAccumulator;
+}
+
+/**
+ * Fold a project and return the resumable accumulator alongside the view model.
+ *
+ * Pass `initialAccumulator` / `blockNumber_gte` to continue from a saved cursor
+ * instead of replaying every event.
+ */
+export async function getProjectFold(
+  machinery: SDKMachinery,
+  assuranceContractAddress: string,
+  options?: {
+    initialAccumulator?: ProjectAccumulator;
+    blockNumber_gte?: string;
+  }
+): Promise<ProjectFoldResult | null> {
+  const projectEvents = await fetchAndDecodeProjectEvents(machinery, assuranceContractAddress, {
+    blockNumber_gte: options?.blockNumber_gte,
+  });
+  const fundingCurrency = await readSettlementCurrency(machinery, assuranceContractAddress);
+  const { project: partial, accumulator } = foldProject(
+    projectEvents,
+    options?.initialAccumulator,
+    fundingCurrency,
+  );
+  if (!partial) return null;
+
+  let threshold = '0';
+  let deadline = '0';
+  if (machinery.publicClient && partial.conditionAddress) {
+    try {
+      const params = await readConditionParams(machinery, partial.conditionAddress as `0x${string}`);
+      threshold = params.threshold.toString();
+      deadline = params.deadline.toString();
+    } catch {
+      // publicClient not configured or read failed — leave as '0'
+    }
+  }
+
+  return { project: { ...partial, threshold, deadline }, accumulator };
+}
+
 /**
  * Get a crowdfunding project by its assurance contract address.
  *
@@ -147,26 +194,8 @@ export async function getProject(
     blockNumber_gte?: string;
   }
 ): Promise<Project | null> {
-  const projectEvents = await fetchAndDecodeProjectEvents(machinery, assuranceContractAddress, {
-    blockNumber_gte: options?.blockNumber_gte,
-  });
-  const fundingCurrency = await readSettlementCurrency(machinery, assuranceContractAddress);
-  const { project: partial } = foldProject(projectEvents, options?.initialAccumulator, fundingCurrency);
-  if (!partial) return null;
-
-  let threshold = '0';
-  let deadline = '0';
-  if (machinery.publicClient && partial.conditionAddress) {
-    try {
-      const params = await readConditionParams(machinery, partial.conditionAddress as `0x${string}`);
-      threshold = params.threshold.toString();
-      deadline = params.deadline.toString();
-    } catch {
-      // publicClient not configured or read failed — leave as '0'
-    }
-  }
-
-  return { ...partial, threshold, deadline };
+  const folded = await getProjectFold(machinery, assuranceContractAddress, options);
+  return folded?.project ?? null;
 }
 
 /**
@@ -408,6 +437,29 @@ export async function getProjectContributions(
 }
 
 /**
+ * Get assurance-contract addresses of LazyGiving projects created by a wallet.
+ *
+ * Filters indexed `ProjectFactory.ProjectCreated` by creator (topic1). Does not
+ * walk `eth_getLogs` from block 0.
+ */
+export async function getUserCreatedProjects(
+  machinery: SDKMachinery,
+  userAddress: string
+): Promise<string[]> {
+  const rawEvents = await fetchEvents(machinery, {
+    eventName: 'ProjectCreated',
+    topic1: padAddressAsTopic(userAddress),
+    limit: 10000,
+  });
+  const addresses = [];
+  for (const raw of rawEvents) {
+    const decoded = decodeProjectCreatedEvent(raw);
+    if (decoded) addresses.push(decoded.assuranceContract.toLowerCase());
+  }
+  return Array.from(new Set(addresses));
+}
+
+/**
  * Get all contributions made by a specific user across all projects.
  *
  * @param machinery - SDK machinery with event cache configuration
@@ -508,6 +560,7 @@ export async function getContributorReimbursementState(
     contributor: contributorAddress.toLowerCase(),
     currency: snapshot.project.currency,
     earlyContribution: '0',
+    futureReimbursementClaim: '0',
     reimbursableAmount: '0',
     withdrawnAmount: '0',
     forgoneAmount: '0',

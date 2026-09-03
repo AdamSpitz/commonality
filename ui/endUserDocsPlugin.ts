@@ -22,8 +22,10 @@ interface EndUserDocsPluginOptions {
 
 function foldersForDomain(domain: string): string[] {
   // `shared/` renders in-context on every site; `commonality/` is the vision
-  // site and bundles vision + shared only.
-  if (domain === 'commonality') return ['shared', 'commonality']
+  // site and bundles vision + shared only. CauseStarter is the founder lens:
+  // it also ships the vision tree so in-app /docs can open those pages.
+  if (domain === 'commonality') return ['shared', 'commonality', 'causestarter']
+  if (domain === 'causestarter') return ['shared', 'causestarter', 'commonality']
   return ['shared', domain]
 }
 

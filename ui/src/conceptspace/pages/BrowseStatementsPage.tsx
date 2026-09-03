@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import {
   Box,
   Typography,
@@ -38,7 +38,14 @@ export function BrowseStatementsPage() {
 
   const machinery = useMachinery()
 
+  // Bumped on every load so a late async write can tell it has been superseded
+  // by a newer sort change.
+  const loadTokenRef = useRef(0)
+
   const loadStatements = useCallback(async (sort: SortOption) => {
+    const loadToken = loadTokenRef.current + 1
+    loadTokenRef.current = loadToken
+
     try {
       setLoading(true)
       setError(null)
@@ -46,9 +53,12 @@ export function BrowseStatementsPage() {
       const orderBy = sort === 'mostSupporters' ? 'believerCount' : 'createdAt'
       const statements = await browseStatements(machinery, { limit: 50, orderBy })
 
+      if (loadToken !== loadTokenRef.current) return
+
       setStatements(statements)
       setLoading(false)
     } catch (err) {
+      if (loadToken !== loadTokenRef.current) return
       console.error('Error loading statements:', err)
       setError(err instanceof Error ? err.message : 'Failed to load statements')
       setLoading(false)
@@ -57,6 +67,9 @@ export function BrowseStatementsPage() {
 
   useEffect(() => {
     loadStatements(sortBy)
+    return () => {
+      loadTokenRef.current += 1
+    }
   }, [sortBy, loadStatements])
 
   const handleSortChange = (_: React.MouseEvent<HTMLElement>, newSort: SortOption | null) => {
@@ -81,7 +94,7 @@ export function BrowseStatementsPage() {
       </Typography>
 
       <Typography variant="body1" color="text.secondary" sx={{ mb: 1, maxWidth: 680 }}>
-        A statement is a plain-English belief or value that anyone can sign. The system automatically connects related statements — even when worded differently — so people who care about the same things find each other without having to coordinate. Statements are also the entry point to cause boards for aligned projects and content.
+        A statement is a plain-English belief or value that anyone can sign. The system automatically connects related statements — even when worded differently — so people who care about the same things find each other without having to coordinate. Statements are also the entry point to fundable-projects boards for aligned projects and content.
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 3, maxWidth: 680 }}>
         The supporter chips below count direct signatures on each statement. Open a statement to see indirect support inferred through trusted implication sources.

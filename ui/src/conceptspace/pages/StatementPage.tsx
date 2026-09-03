@@ -1,9 +1,9 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { Box, Typography, CircularProgress, Alert } from '@mui/material'
 import { useParams } from 'react-router-dom'
 import { useAccount } from 'wagmi'
 import { getStatementWithContent, getUserBelief, type Statement, type StatementContentStatus } from '@commonality/sdk/conceptspace'
-import type { DisplayableDocument } from '@commonality/sdk/displayable-documents'
+import { parseCombinatorStatement, type DisplayableDocument } from '@commonality/sdk/displayable-documents'
 import type { TieredHeadCount } from '@commonality/sdk/identity'
 import type { IpfsCidV1 } from '@commonality/sdk/utils'
 import { useMachinery } from '../../shared'
@@ -31,6 +31,11 @@ export function StatementPage() {
   const [error, setError] = useState<string | null>(null)
   const [contentError, setContentError] = useState<string | null>(null)
   const [contentStatus, setContentStatus] = useState<StatementContentStatus>('unavailable')
+  const [referencedDocuments, setReferencedDocuments] = useState<Record<string, DisplayableDocument | null>>({})
+
+  // Bumped on every load so a late async write can tell it has been superseded
+  // by a newer navigation (e.g. the user moved to a different statement).
+  const loadTokenRef = useRef(0)
 
   const machinery = useMachinery()
   const trustedAttesters = useTrustedAttesters()
@@ -44,6 +49,9 @@ export function StatementPage() {
       return
     }
 
+    const loadToken = loadTokenRef.current + 1
+    loadTokenRef.current = loadToken
+
     try {
       setLoading(true)
       setError(null)
@@ -54,6 +62,8 @@ export function StatementPage() {
         trustedAttesters,
       })
 
+      if (loadToken !== loadTokenRef.current) return
+
       if (!result) {
         setError('Statement not found')
         setLoading(false)
@@ -63,6 +73,24 @@ export function StatementPage() {
       setStatement(result.statement)
       setStatementContent(result.content)
       setContentStatus(result.contentStatus)
+
+      const combinator = result.content ? parseCombinatorStatement(result.content) : null
+      setReferencedDocuments({})
+      if (combinator) {
+        // Operand bodies fill in after the page paints; the renderer already
+        // falls back to the CID until each read resolves.
+        void Promise.all(combinator.operandCids.map(async (cid) => {
+          let body: DisplayableDocument | null = null
+          try {
+            const operand = await getStatementWithContent(machinery, cid as IpfsCidV1)
+            body = operand?.content ?? null
+          } catch {
+            body = null
+          }
+          if (loadToken !== loadTokenRef.current) return
+          setReferencedDocuments((prev) => ({ ...prev, [cid]: body }))
+        }))
+      }
 
       if (!result.content && result.statement.cid) {
         setContentError(
@@ -79,11 +107,13 @@ export function StatementPage() {
 
       if (address) {
         const belief = await getUserBelief(machinery, address, statementCid)
+        if (loadToken !== loadTokenRef.current) return
         setUserBeliefState(belief?.beliefState ?? 0)
       }
 
       setLoading(false)
     } catch (err) {
+      if (loadToken !== loadTokenRef.current) return
       console.error('Error loading statement:', err)
       setError(err instanceof Error ? err.message : 'Failed to load statement')
       setLoading(false)
@@ -92,6 +122,9 @@ export function StatementPage() {
 
   useEffect(() => {
     loadStatementData()
+    return () => {
+      loadTokenRef.current += 1
+    }
   }, [loadStatementData])
 
   const handleBeliefChanged = useCallback(() => {
@@ -140,6 +173,7 @@ export function StatementPage() {
         content={statementContent}
         error={contentError}
         unavailableSeverity={contentStatus === 'retracted' ? 'warning' : 'error'}
+        referencedDocuments={referencedDocuments}
       />
 
       {/* Support Metrics */}

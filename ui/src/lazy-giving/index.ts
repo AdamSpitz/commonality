@@ -20,9 +20,13 @@ export {
   getProjectStatus,
   STATUS_COLORS,
   STATUS_LABELS,
+  STATUS_TOOLTIPS,
+  DEADLINE_ENDED_TOOLTIP,
+  DEADLINE_OPEN_TOOLTIP,
   formatRelativeDeadline,
   type ProjectStatus,
 } from './utils'
+export { readLazyGivingProjectMetadata } from './metadata'
 
 // Note on pages: the route components (BrowseProjectsPage, CreateProjectPage,
 // ProjectDetailPage) are intentionally NOT re-exported here. Domain route

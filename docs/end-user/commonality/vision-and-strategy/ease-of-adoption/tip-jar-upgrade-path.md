@@ -10,7 +10,7 @@ An unconditional donation can use Commonality without becoming a financial produ
 
 - a durable record of who contributed, how much, and when;
 - meaningful leaderboard recognition for early support;
-- a portable contribution history that can participate in Commonality's cause boards and trust system.
+- a portable contribution history that can participate in Commonality's fundable-projects boards and trust system.
 
 A donor who wants no possible reimbursement can choose **Donate normally**. They keep the recognition receipt but permanently forgo the reimbursement claim.
 
@@ -34,7 +34,7 @@ Compared with a plain tip jar, receipt-backed donations provide:
 - **No financial design required.** Start with ordinary donations and recognition receipts.
 - **A gradual project path.** Add assurance thresholds only when a defined piece of future work needs enough support to proceed.
 - **Access to skilled scouts.** Delegates and early contributors can identify promising work, build public track records, and recycle reimbursed giving budgets into new projects.
-- **Connection to Commonality.** Work can appear on cause boards, receive delegated funding, and benefit from alignment and success attestations.
+- **Connection to Commonality.** Work can appear on fundable-projects boards, receive delegated funding, and benefit from alignment and success attestations.
 
 ## Subscriptions
 

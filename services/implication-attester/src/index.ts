@@ -16,9 +16,15 @@ import {
   validatePayment,
 } from '@commonality/attester-core';
 import { getIpfsConfig, getPaymentConfig, loadConfig, type AttesterConfig } from './config.js';
-import { evaluateImplicationWithLLM } from './evaluator.js';
+import { evaluateImplicationWithLLM, type LlmEvaluationResult } from './evaluator.js';
 import { publishAttestation, getBlockchainClients, checkAttesterBalance, getAttesterAddress } from './blockchain.js';
 import { IpfsCidV1, normalizeCidV1 } from '@commonality/sdk/utils';
+import {
+  combinatorImplicationReasoning,
+  deterministicCombinatorEvaluation,
+  parseJsonObject,
+  statementTextForLlm,
+} from './combinator-gate.js';
 export type { AttesterConfig } from './config.js';
 export { loadConfigFromEnv } from './config.js';
 
@@ -68,6 +74,37 @@ interface BatchEvaluationResponse {
   totalProcessingTime: number;
 }
 
+async function evaluateFetchedPair(
+  fromStatementCid: IpfsCidV1,
+  fromRaw: string,
+  toStatementCid: IpfsCidV1,
+  toRaw: string,
+  config: AttesterConfig,
+): Promise<LlmEvaluationResult> {
+  const deterministic = deterministicCombinatorEvaluation(
+    fromStatementCid,
+    fromRaw,
+    toStatementCid,
+    toRaw,
+  );
+  if (deterministic) {
+    return {
+      implies: true,
+      confidence: 'high',
+      reasoning: combinatorImplicationReasoning(deterministic.rule),
+      usage: null,
+    };
+  }
+  const fromDoc = parseJsonObject(fromRaw);
+  const toDoc = parseJsonObject(toRaw);
+  return evaluateImplicationWithLLM(
+    statementTextForLlm(fromRaw, fromDoc),
+    statementTextForLlm(toRaw, toDoc),
+    config.openRouterApiKey,
+    config.openRouterModel,
+  );
+}
+
 async function processSingleEvaluation(
   fromStatementCid: IpfsCidV1,
   toStatementCid: IpfsCidV1,
@@ -104,17 +141,12 @@ async function processSingleEvaluation(
       };
     }
 
-    const statement1 = JSON.parse(statement1Content);
-    const statement2 = JSON.parse(statement2Content);
-
-    const s1Text = statement1.content?.text || statement1.text || statement1Content;
-    const s2Text = statement2.content?.text || statement2.text || statement2Content;
-
-    const evaluation = await evaluateImplicationWithLLM(
-      s1Text,
-      s2Text,
-      config.openRouterApiKey,
-      config.openRouterModel
+    const evaluation = await evaluateFetchedPair(
+      fromStatementCid,
+      statement1Content,
+      toStatementCid,
+      statement2Content,
+      config,
     );
 
     if (!evaluation.implies || evaluation.confidence === 'low') {
@@ -279,17 +311,12 @@ export function createImplicationAttesterApp(config: AttesterConfig) {
         return;
       }
 
-      const statement1 = JSON.parse(statement1Content);
-      const statement2 = JSON.parse(statement2Content);
-
-      const s1Text = statement1.content?.text || statement1.text || statement1Content;
-      const s2Text = statement2.content?.text || statement2.text || statement2Content;
-
-      const evaluation = await evaluateImplicationWithLLM(
-        s1Text,
-        s2Text,
-        config.openRouterApiKey,
-        config.openRouterModel,
+      const evaluation = await evaluateFetchedPair(
+        fromStatementCid,
+        statement1Content,
+        toStatementCid,
+        statement2Content,
+        config,
       );
 
       if (!evaluation.implies || evaluation.confidence === 'low') {

@@ -1,0 +1,53 @@
+{
+  "format": "commonality-seed-content-v1",
+  "id": "crime-repeat-offenders",
+  "title": "Crime — repeat-offender concentration (fact-conditional)",
+  "description": "Accepted left/right same-values-different-beliefs bridge triple. Copied from statement-generation-exercises/04-crime-repeat-offenders.json after Adam accepted it on 2026-08-31.",
+  "notes": [
+    "Curriculum step 3: a real-gap same-values-different-beliefs bridge. Process: fake-data-generation/statement-generation.md.",
+    "Naturals state each camp's talk without the if-true-then-priority deal. Modifieds add that deal in camp-specific prose. Commonality is only the shared conditional plus deferring the rest of the justice-system fight.",
+    "Not the rehabilitation-works sketch, not policing 'no major controversy', and not the racism-in-the-justice-system conditional on hidden-majority-patterns.md.",
+    "Live attester on 2026-08-31 with deepseek/deepseek-v3.2: both designed-yes arrows blessed and all eight designed-no arrows refused with high confidence."
+  ],
+  "groups": [
+    {
+      "id": "crime-repeat-offender-concentration",
+      "title": "Crime — if repeat offenders dominate violent crime, keep them off the streets",
+      "notes": [
+        "Gap: the moderate left's natural talk is against three-strikes / more incarceration and does not grant the concentration fact. The moderate right's natural talk asserts the fact and the incapacitation policy as obvious. Neither natural states the if-true-then-priority deal that lets the left sign without conceding the fact.",
+        "Modified → commonality is implication containment. Natural → modified remains a nudge because the conditional deal (and on the right, a camp extra plus deferring racism/rehab) is extra beliefs."
+      ],
+      "statements": [
+        {
+          "id": "natural-left",
+          "role": "natural-left",
+          "text": "I'm not signing up for three-strikes laws. A lot of people cycling through the system never got a fair shot, and locking more of them up doesn't fix poverty, addiction, or a stacked justice system."
+        },
+        {
+          "id": "natural-right",
+          "role": "natural-right",
+          "text": "A handful of repeat offenders do most of the violent crime. Stop catch-and-release. Three strikes, you're out."
+        },
+        {
+          "id": "modified-left",
+          "role": "modified-left",
+          "text": "I'm not signing up for three-strikes laws as a general program. I don't believe a small number of repeat offenders actually account for a disproportionate share of violent crime — poverty, addiction, and a stacked system explain more of it, as far as I can tell. But if it turned out that a relatively small number of career violent criminals really do a disproportionate amount of the violent crime, then of course we should focus on keeping those people off the streets, including with something like three-strikes for violent offenses. I still want to argue about racism and rehabilitation, just not as a reason to keep dangerous career criminals in the rotation if that's how the crime is concentrated; keeping them off the streets would be high priority in that case."
+        },
+        {
+          "id": "modified-right",
+          "role": "modified-right",
+          "text": "A handful of repeat offenders do most of the violent crime. Stop catch-and-release. I'd still rather we used three-strikes on repeat burglary and car theft too, not just violent offenses, but I don't feel as strongly about those as about the career violent ones. I already think a relatively small number of repeat offenders do a disproportionate amount of the violent crime, so of course we should focus on keeping those people off the streets, including with three-strikes for violent offenses. If that concentration weren't real, I wouldn't treat incapacitation as the main lever. We can argue about racism and rehabilitation another time; keeping dangerous career criminals off the streets is high priority."
+        },
+        {
+          "id": "commonality",
+          "role": "commonality",
+          "text": "If it's true that a relatively small number of repeat offenders do a disproportionate amount of the violent crime, we should focus on keeping those people off the streets, including with something like three-strikes laws for violent offenses. We can argue about racism and rehabilitation another time; keeping dangerous career criminals off the streets is high priority if that's how the crime is concentrated."
+        }
+      ],
+      "implicationNotes": [
+        "Expect yes: modified-left → commonality; modified-right → commonality.",
+        "Expect no: natural-left → commonality; natural-right → commonality; natural-left → modified-left; natural-right → modified-right; either modified → the other modified; commonality → either modified."
+      ]
+    }
+  ]
+}

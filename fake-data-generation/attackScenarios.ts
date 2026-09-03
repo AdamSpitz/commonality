@@ -1,8 +1,10 @@
-import { createPublicClient, createWalletClient, http, parseEther } from 'viem';
+import { parseEther } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
-import { BeliefsAbi, ImplicationsAbi, ProjectFactoryAbi, AssuranceContractAbi } from '@commonality/sdk/abis';
-import { cidToBytes32, fakeIpfsCidV1, IpfsCidV1 } from '@commonality/sdk/utils';
-import { loadEnv, CONTRACT_ADDRESSES, RPC_URL } from './loadEnv.js';
+import { ProjectFactoryAbi } from '@commonality/sdk/abis';
+import { cidToBytes32, IpfsCidV1 } from '@commonality/sdk/utils';
+import { fakeIpfsCidV1 } from '@commonality/sdk/testing';
+import { loadEnv, RPC_URL } from './loadEnv.js';
+import { createSeedClients, createSeedPublicClient } from './seedRpc.js';
 import type { User, Statement, SimulationContracts } from './types.js';
 
 loadEnv();
@@ -24,28 +26,8 @@ const hardhat = {
 
 const BELIEVES = 1;
 
-// suppress unused import warning
-void CONTRACT_ADDRESSES;
-
 function createTestClients(privateKey: `0x${string}`, rpcUrl = RPC_URL) {
-  const account = privateKeyToAccount(privateKey);
-
-  const walletClient = createWalletClient({
-    account,
-    chain: hardhat,
-    transport: http(rpcUrl),
-  });
-
-  const publicClient = createPublicClient({
-    chain: hardhat,
-    transport: http(rpcUrl),
-  });
-
-  return {
-    walletClient,
-    publicClient,
-    account: account.address,
-  };
+  return createSeedClients(privateKey, rpcUrl);
 }
 
 async function believeStatement(
@@ -141,10 +123,7 @@ class AttackScenarios {
     console.log(`\n  Creating ${count} Sybil identities...`);
     const clients = this.getClientsForUser(this.users[0]);
 
-    const publicClient = createPublicClient({
-      chain: hardhat,
-      transport: http(RPC_URL)
-    });
+    const publicClient = createSeedPublicClient(RPC_URL);
 
     const sybilWallets: SybilWallet[] = [];
     const fundAmount = parseEther('0.01');
@@ -463,10 +442,5 @@ class AttackScenarios {
     return detectionResults;
   }
 }
-
-// suppress unused import warnings
-void BeliefsAbi;
-void ImplicationsAbi;
-void AssuranceContractAbi;
 
 export { AttackScenarios };

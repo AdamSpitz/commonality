@@ -1,6 +1,6 @@
 # Policy lists: subscribable policy blocklists
 
-Status: **proposed; local foundation substantially implemented, Civility starter-profile integration next** (Aug 2026). Design for generalizing the existing per-UI display denylist into interoperable, subscribable, verifiable lists. The machinery remains generic shared SDK/operator infrastructure; Civility is the first complete reference integration, not a source of vertical-specific policy semantics. Do not treat the SDK foundation as active enforcement until Civility passes the cross-surface stopping gate in the [implementation plan](./implementation-plan.md).
+Status: **starter-profile operational gate passed on testnet** (2026-08-14). Shared SDK/operator machinery plus deployed Civility/gateway enforcement of the pinned example bundle are live. Remaining work is coverage holes, deferred subscription automation, and later verticals — see the [implementation plan](./implementation-plan.md). Design for generalizing the existing per-UI display denylist into interoperable, subscribable, verifiable lists. The machinery remains generic shared SDK/operator infrastructure; Civility is the first complete reference integration, not a source of vertical-specific policy semantics.
 
 What this is, stated precisely so nobody plans around a stronger claim:
 

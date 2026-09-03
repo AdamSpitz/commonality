@@ -1,13 +1,16 @@
 # CauseStarter
 
-Organizer-first reference lens for the Commonality substrate. Where the main
-[`ui/`](../ui/) package is organized as multi-domain product sites (Commonality,
-Civility, CSM, LazyGiving, …), **CauseStarter** is a single app organized around
-the cause-starter job:
+Organizer-first reference lens for the Commonality substrate. The SPA source
+lives in [`ui/src/causestarter/`](../ui/src/causestarter/) and is built as
+`VITE_DOMAIN=causestarter` (`npm run causestarter:dev` → Vite on **:5174**).
+This directory keeps Docker/nginx, Playwright, and the product backlog.
+
+Where the other `ui/` domains are focused tool sites (Commonality, Civility,
+CSM, LazyGiving, …), **CauseStarter** is organized around the cause-starter job:
 
 1. **Organize a cause** — retrieve, review, and select the independent, signable statements it is made of
 2. **Enroll people** — supporters (signers), volunteers, and collaborators
-3. **Build momentum** — funding portals, assurance contracts, content funding
+3. **Fund the work** — cause boards, assurance contracts, content funding
 4. **Use the rest as tools** — Commonality thesis, Civility, CSM, Tally, etc. are
    supporting features, not equal top-level entry points
 
@@ -41,7 +44,7 @@ as main `CreateStatementForm`), not browser → Kubo API upload.
 
 1. Start (or leave running) the local stack: `./scripts/services.sh --start` (or at least hardhat + indexer + **cause-assist** + gateway).  
    `cause-assist` is a Compose service (loopback **:3002**). You do **not** need a separate `npm run cause-assist:*` process for normal UI work.
-2. Seed `causestarter/.env` from the running Docker SPA config (contract addresses + tool domain URLs):
+2. Seed `ui/.env` (and optionally overlay `causestarter/.env`) from the running Docker SPA config (contract addresses + tool domain URLs). Vite HMR on :5174 reads `ui/.env`. IPFS/local publish merges `ui/.env` then `causestarter/.env`, then root contract-address mappings:
 
    ```bash
    python3 scripts/seed-causestarter-vite-env.py
@@ -54,11 +57,33 @@ as main `CreateStatementForm`), not browser → Kubo API upload.
 
    ```bash
    npm run causestarter:dev
+   # VITE_DOMAIN=causestarter in the ui package, port 5174
    ```
 
    Or from this package: `npm run dev`.
 
 Dev server: **http://localhost:5174** (main `ui` stays on 5173).
+
+### Local trust network (project lists)
+
+Project lists on a cause are filtered by a **Subjectiv trust graph**: vouches
+that “this project advances that issue” only count from accepted wallets. A
+viewer who has named anyone on-chain uses their personal transitive graph. A
+viewer without personal trust uses the direct trustees of the configured
+`VITE_DEFAULT_ALIGNMENT_TRUST_ROOT`; this intentionally does not traverse the
+attesters' own trust edges. The shipped local root is maintained by
+[`alignment-trust-bootstrap`](../alignment-trust-bootstrap/README.md), which
+admits observed attesters and supports operator revocation for spam response.
+That trust relationship is not an attestation of the cause itself.
+
+`./scripts/data.sh --seed` (any size) records that graph for Hardhat `#0`–`#9`
+via `scripts/seed-local-alignment-trust.mjs`. The indexer must capture
+`TrustRegistry:TrustSet` for CauseStarter to see those edges. After a wipe, the
+usual `services.sh --start` then `data.sh --seed` is enough.
+
+To re-run only the trust edges: `node scripts/seed-local-alignment-trust.mjs`.
+The cause-page disclosure identifies the starter network, and **Trust settings**
+(gear icon) lets any connected wallet replace it by naming its own trustees.
 
 Vite proxies `/api` → indexer and `/api/cause-assist` → **Docker** `cause-assist` on `http://127.0.0.1:3002`. Tool cards still open the other domains at `*.localhost:8088`.
 
@@ -87,6 +112,28 @@ VITE_WALLETCONNECT_PROJECT_ID=your_project_id
 Vite bakes `VITE_*` into the bundle at build time, so change the id → rebuild/redeploy.
 
 For local hardhat (chain id `31337`), switch your wallet to that network after connecting (RPC `http://127.0.0.1:8545`), or use the built-in Hardhat #0–#9 local connectors.
+
+After `./scripts/data.sh --seed`, connect as **Hardhat #0** (or any of `#0`–`#9`).
+The landing page should include the seeded **Local food systems** cause
+(`/cause/0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266/local-food-systems`), whose
+board lists the Riverside garden project and the mixed `@civicbuilder` content
+contract, and a **Christianity** cause
+(`/cause/0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266/christianity`) with the
+Christian / secular-conservative mediator, three LazyGiving projects, monthly
+pledges, and a mixed Common Table essay contract. Seed also publishes a
+**secular conservatism** cause under Hardhat #9 so the bridge editor can load
+a real other parent (or you can still write a stand-in).
+
+To add only the Christianity storyline onto an already-seeded local chain:
+
+```bash
+npm run gen:seed:christianity --workspace=fake-data-generation
+```
+
+Featured mediator bridges come from the `christian-bridge-creator` Compose
+service on port 3011 (`./scripts/services.sh --start` brings it up). The
+roster still publishes without it; the mediator card then shows the service
+as unavailable.
 
 ## Local stack (core domain)
 
@@ -160,10 +207,19 @@ docker compose stop cause-assist
 npm run cause-assist:dev
 ```
 
-See [`cause-assist/README.md`](../cause-assist/README.md).
+See [`cause-assist/README.md`](../cause-assist/README.md). Bridge-cluster wording help (brief export + one-shot verbs, no chat): [`docs/founder/bridge-cluster-wording-help.md`](../docs/founder/bridge-cluster-wording-help.md).
 
 ## Design notes
 
+- **Landing pitch is jobs, not a movement lifecycle.** `/docs`
+  (`docs/end-user/causestarter/index.md`) is the spoken briefing: bulletin board
+  of Kickstarters, plus delegation and retroactive funding; the rest of the
+  docs are objections and separable jobs. Hero and `/docs/the-jobs`
+  (`docs/end-user/causestarter/the-jobs.md`) are the “do the part you’d do anyway”
+  catalog. Do not restore Start → Grow → Deliver or “build a Movement.”
+- **In-app docs** (`/docs/*`) bundle `docs/end-user/causestarter/`, `shared/`,
+  and `commonality/` via `endUserDocsPlugin`. Keep markdown links relative so
+  they resolve in that viewer.
 - **CauseStarter is a lens, not a directory** ([ADR 0008](../specs/decisions/0008-operated-surfaces-are-lenses.md)).
   It authors no discovery: no search, browse, ranking, featuring, or leaderboards.
   A cause is reached at `/cause/:causeId` through a link its organizer circulates.
@@ -175,9 +231,28 @@ See [`cause-assist/README.md`](../cause-assist/README.md).
   aggregation, not just rendering.
 - **A cause is a set of planks**, not a main statement with supporters. Each
   plank is published separately and carries its own CID; a cause is "live" once
-  any plank is on chain, and there is no launch step. The cause page is the
-  organizer's editor *and* the visitor's view — see
+  any plank is on chain, and there is no launch step. The visitor's view is
+  `/cause/…` and the organizer's editor is `/cause/…/edit` — separate URLs, not a
+  mode flag, so the browser's back button leaves the editor the way a reader
+  expects. See
   [shaping-your-cause-statements.md](../docs/founder/shaping-your-cause-statements.md).
+- **Bridges are linked, not inlined.** The editor's *Bridges* section lists the
+  clusters that quote this cause as compact links to their own pages, offers
+  *Create a bridge* (`/bridge/new` — human-authored, no service needed), and keeps
+  the standalone bridge-creator instance one quiet link deeper at
+  `/cause/…/mediator`. The visitor's page shows the same rows, published clusters
+  only, with no authoring affordances. An attached mediator is one compact row on
+  both pages — name, opt-in toggle, link out. What it *proposes* lives on
+  `/cause/…/mediator` (`BridgeDisplayBlock`), never inlined into the cause. See
+  [bridge-causes.md](../specs/product/bridge-causes.md). Commonality does not
+  notify the quoted organizer ([ADR 0011](../specs/decisions/0011-organizer-contact-is-pull.md)):
+  citations are public on the cause page; optional `contactUrl` is a pointer they
+  already use, not an inbox.
+- **A pasted link is the parent picker.** Since there is no directory to search,
+  the bridge editor takes the link the other organizer circulated and pulls
+  `owner`/`slug` out of it (`parseCauseLink`) — full URL, hash-routed URL, bare
+  path, or `0xowner/slug`, tolerating `@versionCid` and trailing page segments.
+  It refuses anything ambiguous rather than guessing at an owner.
 - **Retrieval first; organizer approval is deterministic.** Start gathers ordinary-language
   intent, searches published statements before asking cause-assist for new drafts, and exposes
   rejection/correction and manual-writing paths. Suggestions enter the same page-level review
@@ -186,9 +261,10 @@ See [`cause-assist/README.md`](../cause-assist/README.md).
   over the planks: a union count, and a conjunction shown as **two bands**
   (signed-all, plus signed-some-disagreed-with-none). Never render a bare
   intersection — `noOpinion` is the default, so it collapses on silence.
-- **Alignment is per statement.** Boards live at `/statement/:cid/board`; a
-  cause page shows the union of its planks' boards, deduped by project.
-- **Cause store** (`src/lib/causeStore.ts`) keeps planks in `localStorage` so
+- **Alignment is per statement.** The fundable-projects dashboard is inlined on
+  the statement page (`/statement/:cid`) and, as a union of planks, on the
+  cause page. `/statement/:cid/board` redirects to the statement.
+- **Cause store** (`ui/src/causestarter/lib/causeStore.ts`) keeps planks in `localStorage` so
   unpublished wording survives reloads.
 - On-chain actions reuse the same SDK functions the main UI uses
   (`createAndSignStatement`, `browseStatements`, `believeStatement`, …).
@@ -227,9 +303,13 @@ Then **restart Grok** so MCP tools load.
 | `wallet-account-menu` | Hardhat account picker (localhost only) |
 | `wallet-hardhat-0` … `wallet-hardhat-9` | Pick Hardhat account |
 | `wallet-disconnect` | Disconnect |
-| `home-start-cause` | Home CTA → create a draft and open the cause editor |
+| `home-start-cause` | Home / `/welcome` CTA → create a draft and open the cause editor |
+| `home-dashboard` | Occupied home (connected wallet and/or cause boards on this device) |
+| `home-dashboard-board` | Occupied-home teaser of the personal fundable-projects board |
+| `home-dashboard-see-all` | Occupied home → `/dashboard` (full personal list) |
+| `personal-dashboard-page` | Full personal fundable-projects board at `/dashboard` |
 | `nav-start` | Desktop/mobile nav “Start” → same (creates a new draft) |
-| `cause-detail-page` | Cause page root (where all editing happens; brand-new drafts show “Start a cause” coach copy here) |
+| `cause-detail-page` | Cause page root (where all editing happens; brand-new drafts show “Start a cause board” coach copy here) |
 | `issue-guidance` | Static coach copy for what an issue is |
 | `cause-add-plank` | Add an issue |
 | `plank-text-N` | Nth issue's editable text (drafts only) |
@@ -238,9 +318,10 @@ Then **restart Grok** so MCP tools load.
 | `plank-review-N` | Feedback panel for the Nth draft |
 | `plank-use-example-N` | Explicitly adopt the example rewording into the field |
 | `plank-row-draft` / `plank-row-published` | Issue rows by state |
-| `cause-view-strip` | Union / conjunction counts over selected issues |
-| `view-mode-any` / `view-mode-all` | Switch view |
+| `cause-view-strip` | Union / conjunction counts over selected statements |
+| `plank-in-totals-N` | Include/exclude the Nth statement from those totals (view only) |
 | `view-count-any` / `view-count-all` / `view-count-none-disagreed` | The counts themselves |
+| `cause-keep-on-device` / `cause-remove-from-device` | Bookmark / remove a published cause you do not organize |
 
 On **localhost**, Connect only lists Hardhat accounts (no MetaMask). Use **Hardhat #0** for funded local txs.
 
@@ -265,7 +346,7 @@ CAUSESTARTER_BASE_URL=http://localhost:5174 CAUSESTARTER_HASH_ROUTING=0 \
 ### Example agent prompt
 
 > Use the browser. Open http://localhost:8090/, click Connect, choose Hardhat #0,  
-> click “Start a cause”, describe the cause, click Continue, then add and publish
+> click “Start a cause board”, describe the cause, click Continue, then add and publish
 > issues on the cause page.
 
 This package stays thinner than `ui/` (no multi-domain matrix, no Privy). Product posture:

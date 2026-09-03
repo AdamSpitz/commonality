@@ -1,6 +1,6 @@
 // REFACTOR-WANTED: this file is large (~950 lines). It mixes several
 // concerns that could be extracted (list/table rows, create-ref form, and per-ref edit dialogs). Left intact for now — please split
-// it up when next doing substantial work here. See workflow/reviews/ui-deep-dive-2026-06-25.md (issue #3).
+// it up when next doing substantial work here.
 import { useState, useEffect } from 'react'
 import {
   Box,

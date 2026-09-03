@@ -5,6 +5,7 @@ import {
   AssuranceContractAbi,
   ImplicationsAbi,
   NudgePublicationsAbi,
+  ProjectFactoryAbi,
 } from '../abis.js';
 import type { RawEventFromCache } from './eventCacheClient.js';
 import {
@@ -12,6 +13,7 @@ import {
   decodeContractMetadataUpdatedEvent,
   decodeImplicationRevokedEvent,
   decodeNudgesPublishedEvent,
+  decodeProjectCreatedEvent,
   decodeSuccessRevokedEvent,
 } from './eventDecoder.js';
 import { fakeIpfsCidV1 } from './test-helpers.js';
@@ -89,6 +91,42 @@ describe('eventDecoder', () => {
 
       const decoded = decodeContractMetadataUpdatedEvent(raw);
       assert.strictEqual(decoded, null);
+    });
+  });
+
+  describe('decodeProjectCreatedEvent', () => {
+    it('roundtrips ProjectCreated including indexed creator and assuranceContract', () => {
+      const creator = '0x1111111111111111111111111111111111111111' as const;
+      const token = '0x2222222222222222222222222222222222222222' as const;
+      const assuranceContract = '0x3333333333333333333333333333333333333333' as const;
+      const condition = '0x4444444444444444444444444444444444444444' as const;
+      const topics = encodeEventTopics({
+        abi: ProjectFactoryAbi,
+        eventName: 'ProjectCreated',
+        args: { creator, token, assuranceContract },
+      }) as readonly `0x${string}`[];
+      const data = encodeAbiParameters([{ type: 'address' }], [condition]);
+      const raw: RawEventFromCache = {
+        id: 'pc-1',
+        contractAddress: CONTRACT_ADDR,
+        eventName: 'ProjectCreated',
+        blockNumber: '100',
+        blockTimestamp: '1700000000',
+        transactionHash: TX_HASH,
+        logIndex: 0,
+        topic0: topics[0] ?? null,
+        topic1: topics[1] ?? null,
+        topic2: topics[2] ?? null,
+        topic3: topics[3] ?? null,
+        data,
+      };
+
+      const decoded = decodeProjectCreatedEvent(raw);
+      assert.ok(decoded);
+      assert.strictEqual(decoded.creator.toLowerCase(), creator);
+      assert.strictEqual(decoded.token.toLowerCase(), token);
+      assert.strictEqual(decoded.assuranceContract.toLowerCase(), assuranceContract);
+      assert.strictEqual(decoded.condition.toLowerCase(), condition);
     });
   });
 

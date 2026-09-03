@@ -1,0 +1,31 @@
+{
+  "name": "@commonality/alignment-trust-bootstrap",
+  "version": "0.1.0",
+  "description": "Bootstrap trust-root watcher for project-alignment attesters",
+  "type": "module",
+  "main": "dist/src/index.js",
+  "scripts": {
+    "dev": "tsx src/index.ts",
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "typecheck": "tsc --noEmit",
+    "pretest": "npm run build",
+    "test": "mocha \"dist/test/**/*.test.js\"",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@commonality/sdk": "1.0.0",
+    "viem": "2.54.3"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^20.10.0",
+    "eslint": "^9.39.1",
+    "globals": "^16.5.0",
+    "mocha": "^10.8.2",
+    "tsx": "^4.21.0",
+    "typescript": "^5.3.2",
+    "typescript-eslint": "^8.46.4"
+  }
+}

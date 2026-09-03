@@ -28,7 +28,7 @@ const sections = [
 
 const verticals = [
   ['LazyGiving', 'Individual assurance contracts for public-goods projects.', 'lazyGiving'],
-  ['Aligning', 'Ongoing cause funding through portals and alignment attestations.', 'alignment'],
+  ['Aligning', 'Ongoing cause funding through fundable-projects boards and alignment attestations.', 'alignment'],
   ['Delegation', 'Donor-delegate relationships and transparent delegate track records.', 'lazyGiving'],
   ['Tally', 'Statement signing and indirect support counts.', 'tally'],
   ['Content Funding', 'Funding contracts for content and creators.', 'content-funding'],

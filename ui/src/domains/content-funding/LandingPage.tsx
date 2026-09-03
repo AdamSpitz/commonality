@@ -9,7 +9,7 @@ const sections = [
   {
     title: "What stops people from gaming it?",
     description:
-      "Attesters — the people (or AI services) who judge whether content qualifies — build a public track record. If an attester consistently approves junk, donors stop trusting them and route their pledges through someone else. Reputation is the enforcement mechanism.",
+      "Attesters — the people (or AI services) who judge whether content qualifies — build a public track record. If an attester consistently approves junk, contributors stop trusting them and route their funding through someone else. Reputation is the enforcement mechanism.",
   },
   {
     title: "Why not just ads — or paywalls, government, or Patreon?",
@@ -31,15 +31,15 @@ export function ContentFundingLandingPage() {
       spotlights={[
         {
           label: 'Reward a post you loved',
-          text: "Read a thread, watched a video, or read an essay that genuinely helped you? Put money behind it, not just a like. Supporters pool funds on the piece and the creator claims them — even a creator who's never heard of us yet.",
+          text: "Read a thread, watched a video, or read an essay that genuinely helped you? Put money behind it, not just a like. Contributors pool funds on the piece and the creator claims them — even a creator who's never heard of us yet.",
         },
         {
           label: "Commission a creator's next chapter",
-          text: "Pledge toward a creator's next month of work as an assurance contract: you only pay if enough others pledge too, and you're refunded if the goal isn't met. The creator gets a guarantee before they start, and nobody risks anything.",
+          text: "Contribute toward a creator's next month of work as an assurance contract: you only pay if enough others contribute too, and you're refunded if the goal isn't met. The creator gets a guarantee before they start, and nobody risks anything.",
         },
         {
           label: 'Fund a whole kind of content',
-          text: "Pledge toward a type of content you want more of — like writing that informs rather than inflames — and let it fund qualifying work, old or new. Powered by cause pools on Aligning; the Civility vertical is built this way.",
+          text: "Contribute toward a type of content you want more of — like writing that informs rather than inflames — and let it fund qualifying work, old or new. Powered by cause pools on Aligning; the Civility vertical is built this way.",
         },
       ]}
       sections={sections}

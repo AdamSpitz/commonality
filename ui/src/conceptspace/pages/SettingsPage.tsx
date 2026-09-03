@@ -1,4 +1,10 @@
 import { Box, Typography, Alert } from '@mui/material'
+import {
+  AlignmentFilterToggle,
+  DiscoverySlider,
+  useAlignmentFilter,
+  useDiscoveryLevel,
+} from '../../fundingportals'
 import { DirectTrustSettingsSection } from '../components/DirectTrustSettingsSection'
 import { LinkedSocialAccountsSection } from '../components/settings/LinkedSocialAccountsSection'
 import { NudgerSettingsSection } from '../components/settings/NudgerSettingsSection'
@@ -7,6 +13,9 @@ import { TrustedContentAttestersSection } from '../components/settings/TrustedCo
 import { TrustedStatementSourcesSection } from '../components/settings/TrustedStatementSourcesSection'
 
 export function SettingsPage() {
+  const [discoveryLevel, setDiscoveryLevel] = useDiscoveryLevel()
+  const [alignmentFilter, setAlignmentFilter] = useAlignmentFilter()
+
   return (
     <Box>
       <Typography variant="h4" component="h1" gutterBottom>
@@ -17,6 +26,15 @@ export function SettingsPage() {
         Most new users can ignore this page at first. It is for customizing whose
         attestations and trust relationships you want the app to rely on.
       </Alert>
+
+      <Box sx={{ mt: 3 }}>
+        <DiscoverySlider
+          value={discoveryLevel}
+          onChange={setDiscoveryLevel}
+          voucherLabel="project vouches"
+        />
+        <AlignmentFilterToggle value={alignmentFilter} onChange={setAlignmentFilter} />
+      </Box>
 
       <LinkedSocialAccountsSection />
       <SingleAccountAssertionSection />

@@ -4,7 +4,7 @@ We already have governments and charities funding public goods. The world is not
 
 Building a vertical and need concrete examples rather than categories? These seven
 are the *gate*; `specs/product/cause-taxonomy.md` is the
-generator that turns them into a populated cause board.
+generator that turns them into a populated fundable-projects board.
 
 ## The kinds it's better for
 

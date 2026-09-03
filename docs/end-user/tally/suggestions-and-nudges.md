@@ -2,7 +2,7 @@
 
 Tally can suggest statements you might want to consider. For example: if you signed a very specific statement, it might suggest a clearer or more widely used statement nearby in the implication graph.
 
-These suggestions are called **nudges**. They are meant to help you discover statements you might already believe — not to pressure you into agreeing.
+These suggestions are called **nudges**. They are meant to help you discover statements you might also want to sign — a clearer wording, a related claim, or a modified text that goes a step further — not to restate something you already obviously signed, and not to pressure you into agreeing. If S2 is already contained in S1, that connection should be an [implication](./statements-and-implication-graph.md), not a nudge. (Why that split is finicky: `specs/product/statements-are-peculiar-for-good-reasons.md`.)
 
 ## What a nudge is
 
@@ -29,4 +29,4 @@ The important rule is: **your signature is yours.** A suggestion does not count 
 
 ## Why suggestions are useful
 
-Tally lets people write statements in their own words. That freedom is valuable, but it can make the graph feel fragmented: many people may believe nearly the same thing without using the same sentence. Suggestions help you find nearby wording, broader claims, or related statements that make your position more visible without forcing you to compromise on what you originally wrote.
+Tally lets people write statements in their own words. That freedom is valuable, but it can make the graph feel fragmented: many people may believe nearly the same thing without using the same sentence. Suggestions help you find nearby wording, broader claims, or related statements that make your position more visible without forcing you to compromise on what you originally wrote. They should not ask you to separately sign a weaker claim that your original statement already contained.

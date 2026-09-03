@@ -124,7 +124,7 @@ Two components, parameterized by nudger address + service URL rather than by CSM
 - **Mediator opt-in block** — generalize `csmMediatorNudger.ts` to take name, description, and
   address from cause config, and produce the existing `?addNudger=…` deep link.
 
-In CauseStarter this becomes an entry in `SUPPORTING_TOOLS` (`causestarter/src/lib/tools.ts`)
+In CauseStarter this becomes an entry in `SUPPORTING_TOOLS` (`ui/src/causestarter/lib/tools.ts`)
 plus a field on the cause record pointing at the founder's mediator address and service URL.
 
 ### Tier 4 — The beat-agent dependency
@@ -175,7 +175,9 @@ Founder docs last, once both tracks have landed: a "mediator for your cause" gui
   [ui-operator-posture.md](./ui-operator-posture.md) for why that boundary matters.
 - **A mediator registry or marketplace.** Opt-in is per-nudger via deep link today; that's
   enough until there are more than a handful.
-- **Cross-cause bridge federation.** `POST /propose-bridge` already lets one cause's mediator
-  suggest bridges to another's. That's the whole federation story for now.
+- **Cross-cause bridge federation as a service mesh.** `POST /propose-bridge` already lets one
+  cause's mediator suggest wording to another's. The durable join when parents are causes is a
+  [bridge cluster](./bridge-causes.md) (modified causes + bridge cause), which a human can
+  author without running this service.
 - **More than two sides.** A cause with three real factions can run multiple mediators or
   multiple anchor clusters. Generalizing the role model to N sides buys nothing yet.

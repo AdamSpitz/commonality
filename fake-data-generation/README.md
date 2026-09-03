@@ -1,6 +1,15 @@
-# Generative Testing Suite
+# Fake data generation
 
-This directory contains scripts for generative testing of the Commonality smart contracts. The goal is to validate the system through automated simulation with randomly generated users and actions.
+**Standing plan (current state + next step):** [`PLAN.md`](./PLAN.md). Statement-writing process: [`statement-generation.md`](./statement-generation.md).
+
+This directory is **four jobs**, not one “generate fake data” switch:
+
+1. **Tiny local world** (`./scripts/data.sh --seed` / `npm run gen:tiny`) — a *small* mix of fake users, projects, signs, alignments, and a few well-shaped statements so UI and basic tests are not empty. Default local seed. Not a catalog for real users.
+2. **Demo fixtures** (`--seed=demo` / `gen:seed:local`) — formal `seed-content/` plus replayed Alignment explorer/nudge/finder outputs, still fake activity.
+3. **Real seed statements** (`seed-content/*.json`) — curated Conceptspace text for early users (findable causes). No fake users or projects in this job. Drafts sit in `statement-generation-exercises/` until a human accepts them.
+4. **Mass fake user activity** (`gen:small` / `gen:medium` / `gen:large`) — random users and actions to stress contracts and the indexer. `gen:large` is 100 users / 10 rounds; 1000+ is not built. Do not use this for UI narrative or statement quality.
+
+The rest of this README is the **generative simulation** (jobs 1, 2, 4): randomly generated users and on-chain actions. Job 3 is the JSON + attester loop, not `runSimulation`.
 
 ## Overview
 
@@ -33,8 +42,11 @@ npm install
 npm run gen:simulate
 
 # Or with custom parameters
-npm run gen:tiny        # 5 users, 1 round, 12 statements, capped actions, no invariant pass
-npm run gen:small       # 10 users, 3 rounds
+npm run gen:tiny        # 5 users, 1 round, no random universe statements, capped actions, no invariant pass
+npm run gen:seed:christian-secular-implications  # live attester on the tiny-bridge designed pairs
+                        # Always publishes the Local food systems + Christianity CauseStarter rosters (nightly wipe uses this).
+                        # This is what `./scripts/data.sh --seed` runs by default.
+npm run gen:small       # 10 users, 3 rounds, no invariant pass (pass `--invariants` to run them)
 npm run gen:seed:local  # 12 users, 3 rounds, formal seed content, Alignment Explorer/nudge fixtures
 npm run gen:medium      # 50 users, 5 rounds
 npm run gen:large       # 100 users, 10 rounds
@@ -90,9 +102,11 @@ Generated files are split into two directories to make their lifecycle explicit:
 
 ## Formal Seed Content
 
+Statement *shape* (modified vs natural vs commonality, what the implication attester will bless) is documented in [`specs/product/statements-are-peculiar-for-good-reasons.md`](../specs/product/statements-are-peculiar-for-good-reasons.md). How to **generate** viable seed / cause-assist text without hand-wordsmithing: [`statement-generation.md`](./statement-generation.md). Working plan for the Christianity × secular-conservatism tiny seed: [`christian-secular-tiny-seed.md`](./christian-secular-tiny-seed.md). Tiny **bridge clusters** (owners, slugs, personas, projects) are `data/tiny-clusters/*.json` published by [`seedTinyCluster.ts`](./seedTinyCluster.ts). `gen:tiny` does **not** publish the random 12-statement `universe.json` slice; CauseStarter Christianity + secular-conservatism + the abortion-compromise cluster (and local-food) are the tiny story.
+
 The curated seed statements for the real system now live in `seed-content/*.json` using a small formal schema:
 
-- one JSON file per seed-content purpose (`fundable-projects`, `hidden-majority`, `meta`, `content-funding`)
+- one JSON file per seed-content purpose (`fundable-projects`, `hidden-majority`, `meta`, `content-funding`, `simple-causes`, `christian-secular-bridge`, `compromise-abortion`, `compromise-immigration`, `crime-repeat-offenders`, `lgbt-schools`)
 - collection-level and group-level notes so the rationale from the specs is not lost
 - per-statement IDs, optional roles (for example `commonality`, `normal-left`, `pole-right`), and optional `createdDate` when a seed statement needs a stable well-known CID
 
@@ -102,7 +116,8 @@ Two scripts sit on top of that source:
 - `npm run gen:seed:markdown` rewrites `../specs/tech/subsystems/conceptspace/seed-content/*.md` so the prose docs stay aligned with the JSON source of truth
 - `npm run gen:seed:statements` writes `output/seed-statements.json`, which contains real Conceptspace `DisplayableDocument` objects ready for inspection or publication
 - `npm run gen:seed:upload` publishes those statement documents (PublishedData when configured, legacy IPFS fallback otherwise) and writes the resulting CIDs to `output/seed-statements.uploads.json`
-- `npm run gen:seed:implications` evaluates ordered S1→S2 pairs from the seed-content corpus with the real implication-attester prompt and writes the decisions to `data/seed-implication-evaluations.<scope>.json`
+- `npm run gen:seed:implications` evaluates ordered S1→S2 pairs from the seed-content corpus with the real implication-attester prompt and writes the decisions to `data/seed-implication-evaluations.<scope>.json`. Resume keeps pairs whose saved prompt fingerprint already matches; stale fingerprints are re-evaluated. Empty LLM responses are retried. Use `--no-resume` only when you intend to drop the saved file.
+- `npm run gen:seed:simple-causes-implications` live-checks designed-no nested-place pairs in `seed-content/simple-causes.json` (Grey → Ontario is not implication)
 - `npm run gen:seed:worker-outputs` regenerates checked-in local-dev Alignment Explorer/nudge/implication-finder fixtures in `data/seed-worker-outputs.json`
 - `npm run test:seed:worker-outputs` checks that those seed worker fixtures still match the current seed content and deterministic generator
 - `npm run test:seed:implication-regression` checks that the saved implication-decision corpus still matches the current statement IDs and statement text
@@ -129,7 +144,7 @@ npm run gen:proliferation
 
 ### Pre-generated Seed Worker Outputs
 
-`./scripts/data.sh --seed=demo` replays checked-in worker outputs from `data/seed-worker-outputs.json` after publishing the formal seed-content universe. This gives local dev an Alignment `/explore` Fundable Project Explorer collection, statement nudges, a small implication graph, and deterministic project↔statement alignment attestations without running continuous AI workers or making live LLM calls. One deterministic seed project per `PROJECT_SEED_METADATA` template is created and aligned; project 0 is a local public-goods storyline (Riverside Community Garden) and is also the first project the funding/success seeding covers, so the local-community use cases are demonstrable in the UI. Tally intentionally has no `/explore` route yet.
+`./scripts/data.sh --seed=demo` replays checked-in worker outputs from `data/seed-worker-outputs.json` after publishing the formal seed-content universe. This gives local dev an Alignment `/explore` Fundable Project Explorer collection, statement nudges, a small implication graph, and deterministic project↔statement alignment attestations without running continuous AI workers or making live LLM calls. One deterministic seed project per `PROJECT_SEED_METADATA` template is created and aligned; project 0 is a local public-goods storyline (Riverside Community Garden) and is also the first project the funding/success seeding covers, so the local-community use cases are demonstrable in the UI. After alignments, Hardhat accounts #1–#5 buy receipt tokens on those projects and open monthly standing pledges against the seed statements, so statement/cause leaderboards and the pledges card are populated without extra setup. Tally intentionally has no `/explore` route yet.
 
 Regenerate the fixture when the formal seed content changes:
 
@@ -215,7 +230,7 @@ Each attester has:
 
 ### Simulation Actions
 
-For fast UI/review setup from the repository root, prefer `./scripts/data.sh --seed=tiny`. It intentionally reuses only a cut-down slice of the fake universe while still leaving enough data for representative statement/project/content-funding pages.
+For fast UI/review setup from the repository root, `./scripts/data.sh --seed` is tiny. It intentionally reuses only a cut-down slice of the fake universe while still leaving enough data for representative statement/project/content-funding pages. Statement publish is parallel across Hardhat wallets and waits for receipts in a batch (see `publishGeneratedStatements` in `generateStatements.ts`).
 
 The simulation performs these actions:
 
@@ -235,6 +250,49 @@ The simulation performs these actions:
 - `delegateNote` - Delegate note ownership to another user (4% weight)
 - `revokeDelegation` - Revoke a delegation and reclaim note ownership (2% weight)
 
+### Content-funding scenarios
+
+After the random rounds, `generateContentFundingScenarios` deploys a few
+deterministic channels/contracts. The unclaimed Twitter (`@civicbuilder`)
+contract has two posts; only
+`twitter:uid:111111111:1000000000000000001` is attested to the same
+`local-food-systems` plank as the Riverside Community Garden project, signed
+by `CONTENT_ATTESTER_PRIVATE_KEY` so CauseStarter's trusted-content filter
+accepts it. A cause that publishes that plank should show one content-contract
+row with “1 of 2 posts attested”.
+
+The same seed then creates two prospective content rounds:
+
+- an **open** YouTube future-content round (below threshold, not materialized),
+  vouched as a project to `local-food-systems` so CauseStarter lists it before
+  any posts exist
+- a **successful and materialized** Substack round with one fulfilled post
+  (`substack:smartwriter/civic-garden-explainer`) attested to the same plank
+
+The same seed publishes CauseStarter rosters at
+`/cause/0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266/local-food-systems` and
+`/cause/0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266/christianity`
+(Hardhat #0) and writes `bookmarked-causes` for Hardhat `#0`–`#9`, so any of
+those accounts sees both causes on the landing page after connect. The
+Christianity roster includes the Christian / secular-conservative mediator
+identity (`http://127.0.0.1:3011` by default; override with
+`SEED_CHRISTIAN_MEDIATOR_URL`), three LazyGiving projects, monthly pledges, and
+a mixed Common Table essay contract.
+
+To add only that Christianity storyline onto an already-seeded chain:
+
+```bash
+npm run gen:seed:christianity
+```
+
+Featured bridges come from the `christian-bridge-creator` Compose service on
+port 3011 (started by `./scripts/services.sh --start`).
+
+Every seed size (including `tiny`, which the nightly wipe runs) injects that
+`local-food-systems` plank if the random statement set does not already include
+it, then publishes the garden alignment and both rosters. Full Explorer/nudge worker
+outputs still require `gen:seed:local` / `--publish-seed-worker-outputs`.
+
 ## Metrics Collected
 
 - **Gas usage** - mean, median, p95, max per action type
@@ -248,7 +306,7 @@ The generative testing suite now supports intelligent implication evaluation usi
 
 ### Features
 
-- **LLM Evaluation**: Uses Claude 3.5 Haiku (or other models) to evaluate whether S1 implies S2
+- **LLM Evaluation**: Uses `DEV_OPENROUTER_MODEL` (default DeepSeek V4 Flash; independent of production `OPENROUTER_MODEL`) to evaluate whether S1 implies S2
 - **Attester Integration**: Different attester types apply their thresholds and biases to LLM results
 - **Batch Processing**: Evaluate multiple implication pairs efficiently
 - **Cost Estimation**: Built-in tools to estimate API costs before running large batches
@@ -259,7 +317,7 @@ Set your OpenRouter API key as an environment variable:
 
 ```bash
 export OPENROUTER_API_KEY=sk-or-your-key-here
-export OPENROUTER_MODEL=anthropic/claude-3.5-haiku  # Optional, defaults to haiku
+export DEV_OPENROUTER_MODEL=deepseek/deepseek-v4-flash-0731  # Optional; laptop scripts only (not production services)
 ```
 
 Get an API key at: https://openrouter.ai/keys

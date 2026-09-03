@@ -1,7 +1,7 @@
+import { clearMockIPFS } from '@commonality/sdk/testing';
 import assert from 'node:assert';
 import { fetchDocument } from '@commonality/sdk/displayable-documents';
 import type { SDKMachinery } from '@commonality/sdk/machinery';
-import { clearMockIPFS } from '@commonality/sdk/utils';
 import { publishBridgeStatement } from '../src/statementPublisher.js';
 
 describe('publishBridgeStatement', () => {

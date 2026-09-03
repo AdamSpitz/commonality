@@ -1,6 +1,8 @@
 # Bridge creator
 
-This file describes the mechanism. For the vision behind it — why the CSM bridge creator is best understood as a *mediator*, why it's deliberately opinionated rather than neutral, and what incentive structure it creates for users — see [the CSM mediator doc](/docs/end-user/common-sense-majority/mediator.md).
+Statement wording constraints (why modified texts are verbose, what the attester will actually bless) are indexed in [statements are peculiar for good reasons](./statements-are-peculiar-for-good-reasons.md). This file describes the mechanism. For the vision behind it — why the CSM bridge creator is best understood as a *mediator*, why it's deliberately opinionated rather than neutral, and what incentive structure it creates for users — see [the CSM mediator doc](/docs/end-user/common-sense-majority/mediator.md).
+
+When the parents are already causes, the same triple can be published as ordinary causes (natural / modified / bridge). That presentation, and the requirement that a *human* can author it without an LLM loop, is [bridge-causes.md](./bridge-causes.md). Listeners subscribe to the **signer address**, whether a human or this process is authoring ([ADR 0012](../decisions/0012-mediator-is-an-address.md), [bridge-cluster-as-nudger.md](./bridge-cluster-as-nudger.md)). This file remains the statement-level engine and the LLM runtime.
 
 ## What it does
 
@@ -71,8 +73,8 @@ To make the kind of judgment the bridge-creator makes concrete:
 
 The bridge-creator has a common-ground anchor in its set: "I'd be okay with it if abortion were allowed during the first 12-16 weeks, and forbidden after that. I'd rather get this settled than keep fighting over it forever." It notices the above statements don't actually conflict with that anchor, so it synthesizes:
 
-- Modified-left: "I want abortion to be available so that women aren't forced into going through with a pregnancy they don't want. I'd prefer abortion to be available throughout the whole pregnancy, but I don't mind forbidding abortions after maybe the first trimester or so — that would give women enough time to make a decision. I'd rather get this settled than keep fighting over it forever."
-- Modified-right: "Late-term abortion is horrific. I'd still rather not see abortions early in the pregnancy, but I don't feel as strongly about it. I'd rather get this settled than keep fighting over it forever."
+- Modified-left: "I want abortion to be available so that women aren't forced into going through with a pregnancy they don't want. I'd prefer abortion to be available throughout the whole pregnancy, but I'd be okay with a law that gave women 12-16 weeks to decide and prohibited abortion afterward. I'd rather get this settled than keep fighting over it forever."
+- Modified-right: "Late-term abortion is horrific. I'd still rather not see abortions early in the pregnancy, but I don't feel as strongly about it. Allowing abortion during the first 12-16 weeks and forbidding it after that isn't what I'd write if I were making the law alone, but I'd be okay with that cutoff if it meant we got this settled instead of fighting over it forever."
 - Common ground: the anchor itself.
 
 The implication attester can legitimately link modified → common-ground (those really do imply each other). The nudge system suggests to users that they might be willing to sign the modified version. The noninflammatory-content system lets people on one side point to the modified version for the other side with an attestation that it won't be inflammatory.

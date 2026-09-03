@@ -4,8 +4,6 @@
 # mailto, and SPA-only routes are ignored via .markdown-link-check.json.
 # Run from anywhere.
 #
-# specs/chats is deliberately excluded — it holds raw transcripts, not
-# maintained prose, and its links are not expected to resolve.
 set -euo pipefail
 
 ROOT="$(git rev-parse --show-toplevel)"

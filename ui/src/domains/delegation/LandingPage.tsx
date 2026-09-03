@@ -14,7 +14,7 @@ const sections = [
   {
     title: 'What kinds of decisions can be delegated?',
     description:
-      'Currently: funding decisions for crowdfunded projects — making early pledges and helping repay early backers after a project succeeds. You set a budget; your delegate decides which projects are worth backing within that budget.',
+      'Currently: funding decisions for crowdfunded projects — making early contributions and helping repay early contributors after a project succeeds. You set a budget; your delegate decides which projects are worth backing within that budget.',
   },
 ]
 

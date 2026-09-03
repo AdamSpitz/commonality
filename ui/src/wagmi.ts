@@ -6,6 +6,8 @@ import { isAddress } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
 import type { MockParameters } from 'wagmi/connectors'
 import { isPrivySmartWalletEnabled } from './privy/config'
+import { HARDHAT_DEV_ACCOUNTS, isLocalDevHost } from './shared/wallet/hardhatAccounts'
+import { hardhatLocalConnector } from './shared/wallet/hardhatLocalConnector'
 
 export const walletConnectProjectId = import.meta.env.VITE_WALLETCONNECT_PROJECT_ID || ''
 export const isE2E = import.meta.env.VITE_E2E === 'true'
@@ -13,7 +15,17 @@ export const privyAppId = import.meta.env.VITE_PRIVY_APP_ID?.trim() || ''
 export const privyClientId = import.meta.env.VITE_PRIVY_CLIENT_ID?.trim() || undefined
 export const privySmartWalletBundlerUrl = import.meta.env.VITE_PRIVY_SMART_WALLET_BUNDLER_URL?.trim() || ''
 export const privySmartWalletPaymasterUrl = import.meta.env.VITE_PRIVY_SMART_WALLET_PAYMASTER_URL?.trim() || undefined
-export const isPrivyEnabled = !isE2E && privyAppId.length > 0
+/**
+ * Local Docker / vite: unlocked Hardhat accounts instead of browser wallets.
+ *
+ * Takes precedence over `VITE_E2E`. The ui package's `.env` sets `VITE_E2E=true`
+ * for Playwright, but that would otherwise install only the mock connector and
+ * leave the CauseStarter Hardhat account menu disabled. Playwright tests that
+ * need a specific account still call `window._setupTestWallet`.
+ */
+export const useLocalHardhatWallets = isLocalDevHost()
+
+export const isPrivyEnabled = !isE2E && !useLocalHardhatWallets && privyAppId.length > 0
 export { isPrivySmartWalletEnabled }
 
 const mainnetRpcUrl = import.meta.env.VITE_MAINNET_RPC_URL || 'https://ethereum-rpc.publicnode.com'
@@ -61,15 +73,29 @@ export function createMockConfig(
   })
 }
 
-export const config = isE2E
-  ? createMockConfig()
-  : createConfig(
-    getDefaultConfig({
-      chains: wagmiChains,
-      transports: wagmiTransports,
-      walletConnectProjectId,
-      appName: 'Commonality',
-      appDescription: 'Fund projects and content around shared values',
-      appUrl: 'https://commonality.app',
-    }),
-  )
+function buildLocalHardhatConfig() {
+  return createConfig({
+    chains: [hardhat],
+    transports: {
+      [hardhat.id]: http(hardhatRpcUrl),
+    },
+    connectors: HARDHAT_DEV_ACCOUNTS.map((account) => hardhatLocalConnector(account)),
+    multiInjectedProviderDiscovery: false,
+    ssr: false,
+  })
+}
+
+export const config = useLocalHardhatWallets
+  ? buildLocalHardhatConfig()
+  : isE2E
+    ? createMockConfig()
+    : createConfig(
+      getDefaultConfig({
+        chains: wagmiChains,
+        transports: wagmiTransports,
+        walletConnectProjectId,
+        appName: 'Commonality',
+        appDescription: 'Fund projects and content around shared values',
+        appUrl: 'https://commonality.app',
+      }),
+    )

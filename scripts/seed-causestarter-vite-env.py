@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Seed causestarter/.env from the running Docker SPA config.json for Vite HMR.
+"""Seed ui/.env and causestarter/.env from Docker CauseStarter config.json.
 
 Requires CauseStarter Docker on http://localhost:8090 (or CAUSESTARTER_CONFIG_URL).
 Keeps the compose backends; only the SPA host switches to Vite (:5174).
@@ -13,7 +13,7 @@ import urllib.request
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-OUT = ROOT / "causestarter" / ".env"
+OUTS = (ROOT / "ui" / ".env", ROOT / "causestarter" / ".env")
 CONFIG_URL = os.environ.get("CAUSESTARTER_CONFIG_URL", "http://localhost:8090/config.json")
 
 PREFERRED = [
@@ -32,6 +32,7 @@ PREFERRED = [
     "VITE_ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS",
     "VITE_MUTABLE_REF_UPDATER_CONTRACT_ADDRESS",
     "VITE_TRUST_REGISTRY_CONTRACT_ADDRESS",
+    "VITE_DEFAULT_ALIGNMENT_TRUST_ROOT",
     "VITE_NUDGE_PUBLICATIONS_CONTRACT_ADDRESS",
     "VITE_DEFAULT_NUDGERS",
     "VITE_PUBLISHED_DATA_CONTRACT_ADDRESS",
@@ -101,8 +102,10 @@ def main() -> int:
     if wc:
         lines.append(f"VITE_WALLETCONNECT_PROJECT_ID={wc}")
 
-    OUT.write_text("\n".join(lines) + "\n")
-    print(f"Wrote {OUT}")
+    text = "\n".join(lines) + "\n"
+    for out in OUTS:
+        out.write_text(text)
+        print(f"Wrote {out}")
     return 0
 
 

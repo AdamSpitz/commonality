@@ -8,6 +8,8 @@ export interface SemanticCorpusCase {
     | 'concession'
     | 'reservation'
     | 'negotiated-compromise'
+    | 'coalition-caption'
+    | 'tighter-restatement'
   statement1: string
   statement2: string
   implies: boolean
@@ -81,5 +83,17 @@ export const semanticImplicationCorpus: readonly SemanticCorpusCase[] = [
     statement1: 'Late-term abortion is horrific, but I would accept abortion through 16 weeks as a compromise.',
     statement2: 'I would accept abortion through 16 weeks as a compromise.',
     rationale: 'The target is an explicit subset of the source claims.',
+  },
+  {
+    id: 'coalition-caption-is-an-added-claim', category: 'coalition-caption', implies: false,
+    statement1: 'Elective abortion is not ordinary health care. I believe that because the child is made in the image of God. I am not asking the state to make anyone pray.',
+    statement2: 'Elective abortion is not ordinary health care. The civic job is to stop the euphemism, not to impose a church.',
+    rationale: 'Commentary on whose civic job this is is an extra proposition, not a rephrasing of the health-care claim.',
+  },
+  {
+    id: 'tighter-policy-spec-is-not-subset', category: 'tighter-restatement', implies: false,
+    statement1: 'Private charity and local help should do more of providing for poor people than a larger welfare state.',
+    statement2: 'Help should be time-limited, work-oriented where work is possible, and prefer knowledge close to the person over a distant office.',
+    rationale: 'A more specific institutional design is an added claim, not a subset of the source.',
   },
 ]

@@ -14,6 +14,7 @@ import type {
   StandingPledgeCancelledEvent,
 } from './events.js';
 import type { StandingPledge } from './types.js';
+import { approveERC20Spend } from '../../utils/erc20.js';
 
 export interface RecurringPledgesContract {
   address: Address;
@@ -28,19 +29,6 @@ export type RecurringPledgeEvent =
 function contractScopedId(contractAddress: `0x${string}`, id: bigint | string): string {
   return `${contractAddress.toLowerCase()}:${id.toString()}`;
 }
-
-const erc20ApproveAbi = [
-  {
-    inputs: [
-      { name: 'spender', type: 'address' },
-      { name: 'amount', type: 'uint256' },
-    ],
-    name: 'approve',
-    outputs: [{ name: '', type: 'bool' }],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-] as const;
 
 export function foldStandingPledges(events: RecurringPledgeEvent[]): Map<string, StandingPledge> {
   const pledges = new Map<string, StandingPledge>();
@@ -218,16 +206,7 @@ export async function approveRecurringPledgeToken(
   clients: WriteClients,
   params: { token: Address; delegatableNotes: Address; amount: bigint },
 ): Promise<Hash> {
-  const hash = await clients.walletClient.writeContract({
-    address: params.token,
-    abi: erc20ApproveAbi,
-    functionName: 'approve',
-    args: [params.delegatableNotes, params.amount],
-    chain: clients.walletClient.chain,
-    account: clients.walletClient.account!,
-  });
-  await clients.publicClient.waitForTransactionReceipt({ hash });
-  return hash;
+  return approveERC20Spend(clients, params.token, params.delegatableNotes, params.amount);
 }
 
 export async function createStandingPledge(

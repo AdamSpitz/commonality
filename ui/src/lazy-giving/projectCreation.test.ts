@@ -12,7 +12,7 @@ describe('project creation token capacity helpers', () => {
   it('sums capacity across multiple token types without floating point rounding', () => {
     const summary = summarizeProjectTokenCapacity([
       { tokenId: '0', supply: '3', price: '0.10', name: 'Small gift' },
-      { tokenId: '1', supply: '2', price: '1.25', name: 'Supporter' },
+      { tokenId: '1', supply: '2', price: '1.25', name: 'Contributor' },
       { tokenId: '2', supply: '10', price: '0.05' },
     ], 6)
 
@@ -66,9 +66,9 @@ describe('project creation token capacity helpers', () => {
 
     expect(suggested).toMatchObject([
       { tokenId: '0', supply: '75', price: '1', name: '$1 Donation' },
-      { tokenId: '1', supply: '1', price: '25', name: '$25 Supporter' },
-      { tokenId: '2', supply: '1', price: '50', name: '$50 Supporter' },
-      { tokenId: '3', supply: '1', price: '100', name: '$100 Supporter' },
+      { tokenId: '1', supply: '1', price: '25', name: '$25 Contributor' },
+      { tokenId: '2', supply: '1', price: '50', name: '$50 Contributor' },
+      { tokenId: '3', supply: '1', price: '100', name: '$100 Contributor' },
     ])
     expect(summarizeProjectTokenCapacity(suggested, 6).totalCapacity).toBe(250_000_000n)
   })
@@ -80,8 +80,8 @@ describe('project creation token capacity helpers', () => {
 
     expect(suggested).toMatchObject([
       { tokenId: '0', supply: '25', price: '1', name: '$1 Donation' },
-      { tokenId: '1', supply: '1', price: '25', name: '$25 Supporter' },
-      { tokenId: '2', supply: '1', price: '50', name: '$50 Supporter' },
+      { tokenId: '1', supply: '1', price: '25', name: '$25 Contributor' },
+      { tokenId: '2', supply: '1', price: '50', name: '$50 Contributor' },
     ])
     expect(summarizeProjectTokenCapacity(suggested, 6).totalCapacity).toBe(100_000_000n)
   })

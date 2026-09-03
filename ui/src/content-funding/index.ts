@@ -19,6 +19,20 @@ export { ContentFundingProjectSection } from './components/ContentFundingProject
 export { useClaimFlow } from './hooks/useClaimFlow'
 export { useContentFundingState } from './hooks/useContentFundingState'
 export type { ContentAttestationInfo } from './hooks/useContentFundingState'
+export {
+  selectAlignedContentContracts,
+  selectAlignedContentItems,
+  contentItemPublicUrl,
+  contentChannelPath,
+  type AlignedContentContract,
+  type AlignedContentItem,
+} from './selectAlignedContent'
+export { statementCidInSet, cidReferencesSameDigest } from './statementCidMatch'
+export {
+  FAN_CREATED_TOOLTIP,
+  CONTENT_FUNDING_BADGE_TOOLTIP,
+  CONTRACT_STATUS_TOOLTIPS,
+} from './chipTooltips'
 
 export {
   getChannelDisplayLabels,

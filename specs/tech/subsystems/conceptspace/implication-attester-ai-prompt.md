@@ -7,8 +7,8 @@ The stable guidance (role, rules, examples, output format) lives in the **system
 ## Design goals
 
 - **Conservative by default.** These attestations are permanent and on-chain. A false positive puts claims in someone's mouth that they didn't endorse; a false negative just means the pair gets attested later (or never). So: when in doubt, reject.
-- **Rule-based, not vibes-based.** The prompt names specific rules (subset, generalization, conjunction → parent, hierarchy, etc.) and asks the model to cite the rule it applied. This makes decisions inspectable and makes the reasoning on IPFS actually useful.
-- **Examples cover the common failure modes.** Added policy claims, changed framing, vague targets, reversed directionality on conjunctions and geographic hierarchy, softened/hedged rewordings.
+- **Rule-based, not vibes-based.** The prompt names specific rules (subset, generalization, conjunction → parent, nested-place reject, etc.) and asks the model to cite the rule it applied. This makes decisions inspectable and makes the reasoning on IPFS actually useful.
+- **Examples cover the common failure modes.** Added policy claims, changed framing, vague targets, reversed conjunctions, nested-place geographic rollup, softened/hedged rewordings.
 - **Statements must stand on their own well enough for attestation.** If a pair only makes sense after guessing unstated topic context, the prompt should reject it rather than infer what the author probably meant.
 - **Relatedness is not enough.** Being in the same topic area, serving the same cause board, or sounding like a useful parent category is not sufficient. The signer of S1 must already be committed to S2.
 - **No structured metadata.** Per [statements.md](statements.md), the system deliberately does not put machine-readable semantic structure in statements — the LLM reads English and applies the rules. So the prompt works on plain statement text.
@@ -40,8 +40,7 @@ Do NOT approve a pair merely because the statements are topically related, would
 - Subset of claims.
 - Generalization (S1 is a specific instance of S2).
 - Clarification / rephrasing with same meaning and framing.
-- Conjunction / intersection → genuine parent (one direction only).
-- Narrower geography → broader geography (one direction only).
+- Conjunction / intersection → genuine parent (one direction only). Dropping a place constraint from a conjunction is this rule, not a geographic-hierarchy rollup.
 
 # What to reject
 
@@ -51,7 +50,8 @@ Do NOT approve a pair merely because the statements are topically related, would
 - Either statement depends on unstated context or topic knowledge that is not explicit in the statement text itself.
 - S2 changes strength, modality, quantifier, or scope.
 - Parent → conjunction (reverse of the conjunction rule).
-- Broader geography → narrower geography (reverse of the hierarchy rule).
+- Narrower geography → broader geography (nested-place rollup is board inclusion, not belief implication).
+- Broader geography → narrower geography.
 - Softened, hedged, or "bridge" rewording of a stronger claim.
 - Slogan → explicit restatement when the slogan is not self-contained.
 
@@ -96,8 +96,8 @@ Respond with the JSON object specified in your instructions. Nothing else.
 7. Conjunction → topical parent → ACCEPT
 8. Parent → conjunction (reversed) → REJECT
 9. Related-but-not-entailed geographic/civic parent → REJECT
-10. Narrower → broader geography → ACCEPT
-11. Broader → narrower geography (reversed) → REJECT
+10. Narrower → broader geography (nested-place civic rollup) → REJECT
+11. Broader → narrower geography → REJECT
 12. Stronger quantifier/modality in S2 → REJECT
 
 ## Attestable clarity

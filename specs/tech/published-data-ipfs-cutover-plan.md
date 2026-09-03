@@ -14,7 +14,7 @@ The existing `published-data-ipfs-mirror` implements the intended write side: it
 
 | Flow | Path | Notes |
 | --- | --- | --- |
-| Cause launch statements | `causestarter/src/pages/StartCausePage.tsx` | Requires `VITE_PUBLISHED_DATA_CONTRACT_ADDRESS` |
+| Cause launch statements | `ui/src/causestarter/pages/StartCausePage.tsx` | Requires `VITE_PUBLISHED_DATA_CONTRACT_ADDRESS` |
 | Conceptspace create | `ui/src/conceptspace/components/CreateStatementForm.tsx` | Requires PublishedData (hard fail if missing) |
 | LazyGiving project/token metadata | `ui/src/lazy-giving/pages/CreateProjectPage.tsx` | Requires PublishedData; images are CID-only (no upload) |
 | Content-funding metadata | `ui/src/content-funding/pages/CreateContractPage.tsx` | Requires PublishedData |

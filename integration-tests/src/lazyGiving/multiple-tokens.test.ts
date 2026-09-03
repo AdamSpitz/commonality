@@ -168,7 +168,7 @@ describe('LazyGiving Multiple Token Types Tests', () => {
 
     // Verify first contribution (Buyer1, Bronze)
     const contrib1 = contributions.find(c =>
-      c.participant.toLowerCase() === buyer1Clients.account.toLowerCase() &&
+      c.contributor.toLowerCase() === buyer1Clients.account.toLowerCase() &&
       c.tokenIds === JSON.stringify(['0'])
     );
     assert.ok(contrib1, 'First Buyer1 contribution not found');
@@ -177,7 +177,7 @@ describe('LazyGiving Multiple Token Types Tests', () => {
 
     // Verify second contribution (Buyer2, Silver)
     const contrib2 = contributions.find(c =>
-      c.participant.toLowerCase() === buyer2Clients.account.toLowerCase()
+      c.contributor.toLowerCase() === buyer2Clients.account.toLowerCase()
     );
     assert.ok(contrib2, 'Buyer2 contribution not found');
     assert.strictEqual(contrib2.totalCost, parseUnits('0.15', 6).toString(), 'Second contribution cost');
@@ -186,7 +186,7 @@ describe('LazyGiving Multiple Token Types Tests', () => {
 
     // Verify third contribution (Buyer1, Gold + Bronze)
     const contrib3 = contributions.find(c =>
-      c.participant.toLowerCase() === buyer1Clients.account.toLowerCase() &&
+      c.contributor.toLowerCase() === buyer1Clients.account.toLowerCase() &&
       c.tokenIds.includes('2')
     );
     assert.ok(contrib3, 'Second Buyer1 contribution not found');

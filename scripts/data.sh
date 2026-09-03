@@ -4,14 +4,18 @@
 #
 # Usage:
 #   ./scripts/data.sh --wipe                    # Wipe data directory (stops services first)
-#   ./scripts/data.sh --seed                    # Populate with fake data (services must be running)
-#   ./scripts/data.sh --seed=tiny               # Tiny dataset (5 users, 1 round, capped statements/actions)
+#   ./scripts/data.sh --seed                    # Tiny dataset (default; fast local UI)
+#   ./scripts/stop-wipe-restart.sh --seed       # Wipe + start + seed in one go
+#   ./scripts/data.sh --seed=tiny               # Tiny dataset (5 users, 1 round, no random universe statements)
 #   ./scripts/data.sh --seed=small              # Small dataset (10 users, 3 rounds)
 #   ./scripts/data.sh --seed=medium             # Medium dataset (50 users, 5 rounds)
 #   ./scripts/data.sh --seed=demo               # Seed-content demo dataset plus Alignment Explorer/nudge fixtures
 #   ./scripts/data.sh --seed --use-hardhat-accounts   # Use hardhat accounts for first 20 users
 #   ./scripts/data.sh --seed --debug-ipfs             # Show CIDs and content uploaded to IPFS
 #   ./scripts/data.sh --seed --allow-seed-on-existing-data  # Intentionally add seed data on top of existing data
+#
+# Every --seed also wires Hardhat #0–#9 to trust each other on TrustRegistry
+# (CauseStarter project lists for the local wallet picker).
 #
 # Data is stored in ./data/ by default:
 #   ./data/
@@ -25,6 +29,8 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=lib/timing.sh
+. "$SCRIPT_DIR/lib/timing.sh"
 DATA_DIR="${COMMONALITY_DATA_DIR:-./data}"
 cd "$SCRIPT_DIR/.."
 
@@ -39,8 +45,9 @@ show_usage() {
     echo "Options:"
     echo "  --wipe              Wipe data directory (stops services first)"
     echo "  --seed[=SIZE]       Populate with fake data (services must be running)"
-    echo "                        SIZE: tiny, small (default), medium, large, demo"
+    echo "                        SIZE: tiny (default), small, medium, large, demo"
     echo "                        demo uses formal seed content and publishes Alignment Explorer/nudge fixtures"
+    echo "                        Also records local Hardhat-account trust (CauseStarter project lists)"
     echo "  --use-hardhat-accounts  Use hardhat accounts instead of random wallets (for first 20 users)"
     echo "  --debug-ipfs        Show CIDs and content being uploaded to IPFS"
     echo "  --allow-seed-on-existing-data"
@@ -52,6 +59,7 @@ show_usage() {
 }
 
 wipe_data() {
+    timing_begin
     echo "Wiping data directory: $DATA_DIR"
 
     # Stop containers first to release file handles
@@ -69,6 +77,8 @@ wipe_data() {
     # don't create them as root.
     mkdir -p "$DATA_DIR/hardhat" "$DATA_DIR/ipfs" "$DATA_DIR/ponder"
     echo "Data wiped. (Services were stopped — run ./scripts/services.sh --start to restart.)"
+    timing_mark wipe
+    timing_summary
 }
 
 require_services_running() {
@@ -79,20 +89,32 @@ require_services_running() {
     fi
 }
 
+# True when the events-cache JSON has at least one item.
+indexer_events_nonempty() {
+    echo "$1" | grep -q '"items":\[{'
+}
+
+# --start always writes TrustSet (Hardhat #0–#9 starter network) after deploy.
+# That is not a previous fake-data seed. Refuse only when user-content events exist.
 error_if_indexer_already_has_data_unless_allowed() {
     local allow_existing_data="$1"
-    local response
-    response=$(curl -s "http://localhost:42069/api/events?limit=1" 2>/dev/null || true)
-    if echo "$response" | grep -q '"items":\[{' ; then
+    local support projects published
+    support=$(curl -s "http://localhost:42069/api/events?eventName=DirectSupport&limit=1" 2>/dev/null || true)
+    projects=$(curl -s "http://localhost:42069/api/events?eventName=ProjectCreated&limit=1" 2>/dev/null || true)
+    published=$(curl -s "http://localhost:42069/api/events?eventName=DataPublished&limit=1" 2>/dev/null || true)
+    if indexer_events_nonempty "$support" \
+        || indexer_events_nonempty "$projects" \
+        || indexer_events_nonempty "$published"; then
         echo ""
         if [ "$allow_existing_data" = "true" ]; then
-            echo "Warning: the Ponder indexer already has event data."
+            echo "Warning: the indexer already has seed-like events (signatures, projects, or published data)."
             echo "Proceeding because --allow-seed-on-existing-data was passed."
         else
-            echo "Error: the Ponder indexer already has event data."
-            echo "Seeding again would add more data on top of the current local chain, and if the chain was reset without clearing Ponder it can produce a blank or stale UI."
-            echo "For a clean demo seed, run './scripts/data.sh --wipe', then './scripts/services.sh --start', then seed again."
-            echo "If you really want to add new seed data on top of the existing data, pass --allow-seed-on-existing-data."
+            echo "Error: the indexer already has seed-like events (signatures, projects, or published data)."
+            echo "Seeding again would add more data on top of the current local chain."
+            echo "For a clean seed: './scripts/data.sh --wipe' then './scripts/services.sh --start' then './scripts/data.sh --seed'"
+            echo "(or './scripts/stop-wipe-restart.sh --seed')."
+            echo "To add another seed on top of existing data, pass --allow-seed-on-existing-data."
             echo ""
             exit 1
         fi
@@ -125,16 +147,18 @@ wait_for_indexer() {
 }
 
 seed_data() {
-    local size="${1:-small}"
+    local size="${1:-tiny}"
     local extra_args="${2:-}"
     local allow_existing_data="${3:-false}"
 
+    timing_begin
     "$SCRIPT_DIR/check-prerequisites.sh"
     require_services_running
 
     echo "Generating fake data (size: $size)..."
 
     wait_for_indexer
+    timing_mark wait_indexer
     error_if_indexer_already_has_data_unless_allowed "$allow_existing_data"
 
     # Give it a moment to stabilize
@@ -180,7 +204,14 @@ seed_data() {
     esac
 
     echo "================================"
+    timing_mark generate
+    echo "Recording local Hardhat-account trust (CauseStarter project lists)..."
+    cd "$SCRIPT_DIR/.."
+    node "$SCRIPT_DIR/seed-local-alignment-trust.mjs"
+    echo "================================"
     echo "Done! The indexer is now catching up with the new blockchain data."
+    timing_mark alignment_trust
+    timing_summary
 }
 
 case "${1:-}" in
@@ -188,7 +219,7 @@ case "${1:-}" in
         wipe_data
         ;;
     --seed|--seed=*)
-        size="small"
+        size="tiny"
         extra_args=""
         allow_existing_data="false"
 

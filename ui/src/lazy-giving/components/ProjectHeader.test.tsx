@@ -27,6 +27,23 @@ describe('ProjectHeader', () => {
     vi.useRealTimers()
   })
 
+  it('renders a Project page eyebrow above the title', () => {
+    const project = makeProject()
+    const metadata = { name: 'My Cool Project', description: 'A great project' }
+    render(<ProjectHeader project={project} metadata={metadata} />)
+    expect(screen.getByText('Project')).toBeInTheDocument()
+    expect(screen.queryByText('Content project')).not.toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'My Cool Project' })).toBeInTheDocument()
+  })
+
+  it('renders a Content project eyebrow for content-funding contracts', () => {
+    const project = makeProject()
+    const metadata = { name: 'My Cool Project' }
+    render(<ProjectHeader project={project} metadata={metadata} kind="content-project" />)
+    expect(screen.getByText('Content project')).toBeInTheDocument()
+    expect(screen.queryByText('Project')).not.toBeInTheDocument()
+  })
+
   it('renders project name from metadata', () => {
     const project = makeProject()
     const metadata = { name: 'My Cool Project', description: 'A great project' }
@@ -124,9 +141,10 @@ describe('ProjectHeader', () => {
     expect(screen.getByText('100%')).toBeInTheDocument()
   })
 
-  it('labels threshold-zero projects as having no minimum', () => {
+  it('labels threshold-zero projects as having no minimum once', () => {
     const project = makeProject({ threshold: '0', totalReceived: '0' })
     render(<ProjectHeader project={project} metadata={null} />)
-    expect(screen.getAllByText(/No minimum/).length).toBeGreaterThan(0)
+    expect(screen.getAllByText('No minimum')).toHaveLength(1)
+    expect(screen.getByText('0 ETH raised')).toBeInTheDocument()
   })
 })

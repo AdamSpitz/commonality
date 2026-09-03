@@ -9,6 +9,7 @@ const routes: ReactNode = (
     <Route path="/" element={<LazyGivingLandingPage />} />
     <Route path="/projects" element={lazyRoute(() => import('../../lazy-giving/pages/BrowseProjectsPage'), 'BrowseProjectsPage')} />
     <Route path="/projects/new" element={lazyRoute(() => import('../../lazy-giving/pages/CreateProjectPage'), 'CreateProjectPage')} />
+    <Route path="/projects/:projectAddress/leaderboard" element={lazyRoute(() => import('../../lazy-giving/pages/ProjectDetailPage'), 'ProjectLeaderboardPage')} />
     <Route path="/projects/:projectAddress" element={lazyRoute(() => import('../../lazy-giving/pages/ProjectDetailPage'), 'ProjectDetailPage')} />
     <Route path="/delegation" element={<Navigate to="/delegation/notes" replace />} />
     <Route path="/delegation/notes" element={lazyRoute(() => import('../../delegation/pages/MyNotesPage'), 'MyNotesPage')} />
@@ -35,16 +36,7 @@ export const lazyGivingManifest: DomainManifest = {
       { label: 'Delegation', path: '/delegation/notes' }
     ],
     secondaryNavigation: [],
-    footerText: 'LazyGiving helps people create and fund individual public-goods projects with pledge-and-refund assurance contracts.',
-  },
-  features: {
-    conceptspace: false,
-    lazyGiving: true,
-    fundingportal: false,
-    delegation: true,
-    mutablerefs: false,
-    contentFunding: false,
-    docs: true,
+    footerText: 'LazyGiving helps people create and fund individual public-goods projects with fund-and-refund assurance contracts.',
   },
   basePath: '/',
   routes,

@@ -2,7 +2,7 @@
 /**
  * Syncs ABI files from Hardhat compiled artifacts to the SDK.
  *
- * Usage: npm run sync-abis
+ * Usage: npm run sync-abis [-- --check]
  *
  * This script:
  * 1. Runs `npm run build` in the hardhat directory to compile contracts
@@ -28,6 +28,7 @@ const CONTRACTS_TO_SYNC: Record<string, { artifactPath: string; outputFile: stri
   AccountAssertions: { artifactPath: "subjectiv/AccountAssertions.sol/AccountAssertions.json", outputFile: "AccountAssertionsAbi.ts" },
   AlignmentAttestations: { artifactPath: "alignment-attestations/AlignmentAttestations.sol/AlignmentAttestations.json", outputFile: "AlignmentAttestationsAbi.ts" },
   DelegatableNotes: { artifactPath: "delegation/DelegatableNotes.sol/DelegatableNotes.json", outputFile: "DelegatableNotesAbi.ts" },
+  RecurringPledges: { artifactPath: "delegation/RecurringPledges.sol/RecurringPledges.json", outputFile: "RecurringPledgesAbi.ts" },
   NoteIntent: { artifactPath: "delegation/NoteIntent.sol/NoteIntent.json", outputFile: "NoteIntentAbi.ts" },
   MutableRefUpdater: { artifactPath: "utils/MutableRefUpdater.sol/MutableRefUpdater.json", outputFile: "MutableRefUpdaterAbi.ts" },
   PremintingERC1155: { artifactPath: "utils/PremintingERC1155.sol/PremintingERC1155.json", outputFile: "PremintingERC1155Abi.ts" },
@@ -36,16 +37,21 @@ const CONTRACTS_TO_SYNC: Record<string, { artifactPath: string; outputFile: stri
   PremintingERC1155Factory: { artifactPath: "individual-projects/ProjectFactory.sol/PremintingERC1155Factory.json", outputFile: "PremintingERC1155FactoryAbi.ts" },
   AssuranceContractFactory: { artifactPath: "individual-projects/ProjectFactory.sol/AssuranceContractFactory.json", outputFile: "AssuranceContractFactoryAbi.ts" },
   ValueThresholdConditionFactory: { artifactPath: "individual-projects/ProjectFactory.sol/ValueThresholdConditionFactory.json", outputFile: "ValueThresholdConditionFactoryAbi.ts" },
+  ValueThresholdCondition: { artifactPath: "individual-projects/ValueThresholdCondition.sol/ValueThresholdCondition.json", outputFile: "ValueThresholdConditionAbi.ts" },
   ContentRegistry: { artifactPath: "content-funding/ContentRegistry.sol/ContentRegistry.json", outputFile: "ContentRegistryAbi.ts" },
   ChannelRegistry: { artifactPath: "content-funding/ChannelRegistry.sol/ChannelRegistry.json", outputFile: "ChannelRegistryAbi.ts" },
   ChannelEscrow: { artifactPath: "content-funding/ChannelEscrow.sol/ChannelEscrow.json", outputFile: "ChannelEscrowAbi.ts" },
   CreatorAssuranceContractFactory: { artifactPath: "content-funding/CreatorAssuranceContractFactory.sol/CreatorAssuranceContractFactory.json", outputFile: "CreatorAssuranceContractFactoryAbi.ts" },
   ProspectiveContentRoundFactory: { artifactPath: "content-funding/ProspectiveContentRoundFactory.sol/ProspectiveContentRoundFactory.json", outputFile: "ProspectiveContentRoundFactoryAbi.ts" },
   MaterializedContentTokens: { artifactPath: "content-funding/MaterializedContentTokens.sol/MaterializedContentTokens.json", outputFile: "MaterializedContentTokensAbi.ts" },
+  NudgePublications: { artifactPath: "nudger/NudgePublications.sol/NudgePublications.json", outputFile: "NudgePublicationsAbi.ts" },
 };
 
 function main() {
-  console.log("Syncing ABIs from Hardhat artifacts to SDK...\n");
+  const checkOnly = process.argv.includes("--check");
+  let failed = false;
+
+  console.log(`${checkOnly ? "Checking" : "Syncing"} ABIs against Hardhat artifacts...\n`);
 
   console.log("Step 1: Compiling contracts...");
   try {
@@ -70,6 +76,7 @@ function main() {
 
     if (!existsSync(fullPath)) {
       console.error(`  ✗ ${contractName}: Artifact not found at ${fullPath}`);
+      failed = true;
       continue;
     }
 
@@ -84,14 +91,29 @@ export const ${contractName}Abi = ${JSON.stringify(abi, null, 2)} as const;
 `;
 
       const outputPath = join(ABIS_DIR, entry.outputFile);
-      writeFileSync(outputPath, tsContent);
-      console.log(`  ✓ ${entry.outputFile}`);
+      if (checkOnly) {
+        if (!existsSync(outputPath) || readFileSync(outputPath, "utf-8") !== tsContent) {
+          console.error(`  ✗ ${entry.outputFile}: out of date (run npm run sync-abis)`);
+          failed = true;
+        } else {
+          console.log(`  ✓ ${entry.outputFile}`);
+        }
+      } else {
+        writeFileSync(outputPath, tsContent);
+        console.log(`  ✓ ${entry.outputFile}`);
+      }
     } catch (error) {
       console.error(`  ✗ ${contractName}: ${error}`);
+      failed = true;
     }
   }
 
-  console.log("\nDone! ABIs synced successfully.");
+  if (failed) {
+    process.exitCode = 1;
+    return;
+  }
+
+  console.log(`\nDone! ABIs ${checkOnly ? "are current" : "synced successfully"}.`);
 }
 
 main();

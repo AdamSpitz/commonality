@@ -12,6 +12,7 @@ import {
   readPublishedDocument,
   createIpfsDocumentStore,
   createDefaultDocumentReader,
+  LEGACY_IPFS_FALLBACK_TIMEOUT_MS,
   createPublishedDataApiDocumentReader,
   createPublishedDataDocumentStore,
   type CidResolver,
@@ -538,7 +539,7 @@ describe('createStatement', () => {
     assert.strictEqual(doc.content, 'I believe in clean energy.');
     assert.ok(doc.extras);
     assert.strictEqual(doc.extras!.statementType, 'statement');
-    assert.ok(doc.extras!.createdDate);
+    assert.strictEqual(doc.extras!.createdDate, undefined);
   });
 
   it('includes topic when provided', () => {
@@ -808,6 +809,41 @@ describe('DocumentStore adapters', () => {
     try {
       const reader = createDefaultDocumentReader(createSDKMachinery({ ...machinery, eventCacheUrl: 'http://indexer.test' }));
       assert.deepEqual(await reader.read(cid), { status: 'active', document: doc });
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  it('fails a hanging IPFS fallback quickly instead of waiting the gateway out', async () => {
+    clearMockIPFS();
+    const originalFetch = globalThis.fetch;
+    let ipfsWaitedMs = 0;
+    globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (url.includes('/api/published-data')) {
+        return new Response(JSON.stringify({ status: 'not-published' }), { status: 404 });
+      }
+      const started = Date.now();
+      await new Promise((_, reject) => {
+        const timer = setTimeout(() => reject(new DOMException('signal timed out', 'TimeoutError')), 30_000);
+        init?.signal?.addEventListener('abort', () => {
+          ipfsWaitedMs = Date.now() - started;
+          clearTimeout(timer);
+          reject(init.signal?.reason ?? new DOMException('Aborted', 'AbortError'));
+        });
+      });
+      return new Response('unreachable');
+    }) as typeof fetch;
+
+    try {
+      const reader = createDefaultDocumentReader(createSDKMachinery({
+        ...machinery,
+        eventCacheUrl: 'http://indexer.test',
+        ipfsConfig: { gatewayUrl: 'http://ipfs.test/ipfs' },
+      }));
+      const result = await reader.read(fakeIpfsCidV1(7));
+      assert.equal(result.status, 'not-published');
+      assert.ok(ipfsWaitedMs <= LEGACY_IPFS_FALLBACK_TIMEOUT_MS + 250);
     } finally {
       globalThis.fetch = originalFetch;
     }

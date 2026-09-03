@@ -17,21 +17,39 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 ## Main list
 
-- **(Tell)** Policy-list starter-profile *ops* gate is already live; no redeploy was needed. `testnet.policy-enforcement` passed 2026-08-14: Civility `config.json` has `VITE_POLICY_BUNDLE_URL`, the GitHub-hosted artifact is `commonality.policy-bundle/v1` digest `0x5bc37be2…ee0b`, and `/policy-content/<blocked fixture CID>` returns 451 / `content_refused_by_policy` / `current` with matching digest. Removed the stale 2026-08-02 TODO item. Remaining plan items (deeper surface coverage, deferred unpinned following, CSM) are unchanged.
+- **(Tell)** Combinator statement pages no longer wait on operand IPFS reads before painting. CauseStarter and Conceptspace `StatementPage`s show the combinator (CID fallbacks) immediately; operand bodies fill in as they resolve. Navigation-stale writes on the rest of Conceptspace's loader are still unguarded (separate TODO).
 
-- **(Tell)** Finished the LLM-doable sponsored-gas rollout ops. Batch wiring (`cef4af18`) was already on `master`/`dev`; live `/sponsored-gas/paymaster` rejects standalone approvals as designed. Deployed LazyGiving testnet UI to IPFS `QmSh2hAPbeV9TCiHRvbYvoXyxbv4tTBpeQnvkQBBXnjttw` (IPNS seq 13). Created/enrolled project `0x0b34E11c5A014C77b3b61E9e8b94609D8598FF93` to deployer `0xFC0054CAA8417b946666a0093521B57efC5e5E4a` and funded that creator tank with 0.002 ETH (`fundTank` `0x9b7dbe0f30e3a1957c7b9b98071c0ebf871ae7d9c4ad4e4c86cf0167a87c393e`). Remaining work is only the Privy OTP live trace + cap tuning below.
+- **(Tell)** Production OpenRouter services (attesters, service-host, cause-assist, coherence-badge-worker) now default to `deepseek/deepseek-v4-flash-0731` via `PRODUCTION_OPENROUTER_MODEL`. Laptop scripts use the same id through a separate `DEV_OPENROUTER_MODEL` env / `fake-data-generation/devOpenRouter.ts`. Cause-assist prefers OpenRouter over xAI when both keys exist. Update Render dashboard if those env vars were set by hand.
+
+- **(Tell)** Crime left/right triple accepted into [`fake-data-generation/seed-content/crime-repeat-offenders.json`](fake-data-generation/seed-content/crime-repeat-offenders.json) (2026-08-31). Not a tiny-seed cluster.
+
+- **(Tell)** LGBT left/right **schools** fact-conditional accepted into [`fake-data-generation/seed-content/lgbt-schools.json`](fake-data-generation/seed-content/lgbt-schools.json) (2026-08-31). Adam's commonality reword still attester-clean. Not a tiny-seed cluster. LGB-vs-T unbundling not drafted.
+
+- **(Tell)** Fake/seed data now has a standing plan: [`fake-data-generation/PLAN.md`](fake-data-generation/PLAN.md) (tiny UI world vs real statements vs stress traffic). Adam asked for more left/right bridges on LGBT, immigration, crime — all four (plus abortion) are accepted.
+
+- **(Tell)** Nested-place rollup is settled as board inclusion, not implication. Statement-generation gold set, cause-assist guidance, seed garden/roster, and the implication attester prompt now follow that (Grey County → Ontario is a worked reject). `seed-implication-evaluations` still has the old prompt fingerprint; a v4-flash refresh stalled on empty completions. Handoff: [continuity/2026-08-27-statement-generation.md](continuity/2026-08-27-statement-generation.md).
+
+- **(Tell)** Combinator statements are specified and implemented: canonical `all`/`any` over sorted plank CIDs (no title/date), CauseStarter view-strip promote, implication attester structural gate for pairwise arrows only. Ordinary `createStatement` no longer defaults `createdDate` into extras.
+
+- **(Tell)** Cause-board **Fully reimbursed** now means success-vouched *and* `outstandingUnreimbursedAmount === 0` (never-scouted successes omitted). It no longer reuses `AlignedProjectsList` with `statusFilterLock="succeeded"` (raised ≥ threshold). New SDK query: `getFullyReimbursedProjectsForCause`.
+
+- **(Tell)** Indexed `ProjectFactory.ProjectCreated` in the event cache and switched CauseStarter’s “projects you created” list to `getUserCreatedProjects` (creator-filtered by topic1). No more `eth_getLogs` from block 0. Hosted indexer needs `PROJECT_FACTORY_ADDRESS` (added in `render.yaml`; also in the deployment-manifest builder). Existing stacks must reindex that contract to populate the new events.
 
 ### Security/recoverability human actions
 
 - Replace/scopedown external account tokens: Cloudflare scoped DNS token instead of global key; Render/Pinata scoped as narrowly as possible; OpenRouter spend limit.
 
+- Before deploying the CauseStarter alignment-trust bootstrap outside local Hardhat, run `node scripts/generate-wallets.mjs`, fund `ALIGNMENT_TRUST_BOOTSTRAP_ADDRESS`, install the worker's generated Render secret block, and add the configured denylist canary to its persistent disk. Never deploy the checked-in local Hardhat key; see the worker README runbook.
+
+- **(Tell)** Personal dashboard spec + first slice: [personal-dashboard.md](specs/product/personal-dashboard.md). CauseStarter home (connected) heroes the fundable-projects union over signed statements. Not an unpublished cause board. Stars/subsets deferred.
+
 ### Docs / UI copy
+
+- **(Tell)** Applied [cause-page-not-a-club.md](specs/product/cause-page-not-a-club.md) copy sweep: glossary two-step rename, end-user docs, Aligning/fundable-projects UI strings, CauseStarter high-traffic docs + organizer publish copy. Leftover “cause page” in comments, `/cause/:owner/:slug` and `fundingportal*` identifiers, and incidental “funding portal” docs still lag.
 
 - Decide whether to act on the fresh landing-copy positioning findings. The Civility grievance-first hero was reviewed and is fine; the verifier rubric was corrected so CSM’s recognition-register rule is not imposed on every vertical. Remaining findings are elsewhere: the umbrella Commonality landing still recruits generic end users despite the founder-first strategy, CSM front-loads the mediator toggle and uses “the other side’s bullshit,” Aligning repeats its main tradeoff several times, and Tally’s “Sign once, counted forever” headline presents a future goal as current capability.
 
 ### Features that I'm realizing would make a big difference
-
-- **(Tell)** Restored NoteIntent under the settled exact-note/root-owner semantics and fixed revoke reconstruction. The SDK now tracks immutable roots plus true birth cursors, preserves cleared intent, uses a complete cached block-bisecting aggregate with configured-contract/token and lifecycle filters, and no longer does N `getNote` folds. One-time deposits can optionally earmark; active fungible note details let only the root change/clear; Cause Board shows the restrained supporter-first, per-currency signal. Contract/SDK/UI targeted tests and builds pass. The full integration verifier timed out at its 15-minute ceiling; a scoped rerun reached 4 passing/1 pending/3 failures, with one NoteIntent timeout and two pre-existing indexer/funding-portal failures (`last seen block: 0` / fetch failure), so live-stack verification should be rerun once indexer stability is restored. Branch: `feature/restore-note-intent`.
 
 - Bridge-creator package is done; remaining work (CSM beat-agent stand-up, Civility-agent context source adapter, feeding signing outcomes into anchor reflection, and end-to-end rehearsal) is enumerated in [`bridge-creator-csm-next-steps.md`](workflow/bridge-creator-csm-next-steps.md). Mostly LLM-doable; the rehearsal pass needs your judgment.
 
@@ -47,27 +65,15 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 ### The founder-first pivot ("causelets")
 
-The strategy itself is now written down: [ADR 0005](specs/decisions/0005-founder-first-verticals.md)
-freezes the decision and its revisit triggers, and [specs/product/founder-first.md](specs/product/founder-first.md)
-is the living spec with the full backlog. What's left here is only the part that needs *your* judgment.
-
-- New site, or potential rename of Commonality: "CauseStarter"? (The ADR deliberately
-  froze the strategy and not the brand, so this is still fully open.)
-  - In fact, let's make this the main UI.
-  - Let's merge in Sam's "ui2" thing - maybe *that* should be the main CauseStarter UI? For now let's just pull in the changes it made to the core stuff, and keep it as "ui2".
-
 - Improve the [pitch for Christians](docs/founder/christian-pitch.md). Come up with other ones along those lines.
-
-- Have an AI generate a bunch of imaginary founders and causes and so on, as a way of pressure-testing the founder-facing model.
 
 ### Stuff I want to think through
 
-- Let's figure out how to make clear that the cause page (owned by its founder, and editable) isn't the same as the underlying statements. If a user signs some statements, those statements are the ones that he signed; they're immutable, and even if the cause-founder modifies which statements he shows on his site (which is his right to do - he's the one operating the site, so he needs to have control over which statements it shows, including being able to change his mind later), the user's signature is only on the statements he actually signed, and the cause page itself won't show the user's signature on the cause's new statements (unless the implication attester says it's okay) (or unless the cause site is dishonest).
+- What's the difference between seed data and example data for testing? I think I may have been using the seed data mechanism for test data, which is probably not what I want.
 
-- How to eliminate CauseStarter’s reliance on browser `localStorage` for cause drafts / founder progress (`causestarter/src/lib/causeStore.ts`). Today drafts are origin-scoped (so Vite `:5174` vs Docker `:8090` don’t share them) and vanish across devices/clears. Worth thinking through durable alternatives (on-chain draft, IPFS + pointer, account-linked backend, etc.) without re-centralizing or making launch heavier.
+- Ultimately we want vertical founders to host their own vertical-specific services like mediators, but can we have a middle ground where we can run it for them on our infrastructure (modulo blocklist concerns) until/unless they decide to host it themselves?
 
-- Asking the cause founder to make statements is going to be a problem because the idea of statements is not obvious. (Need to not be vague or ambiguous, etc.)
-  - **(Tell)** Partial pass done: CauseStarter “start a cause” copy reframes main vs supporting statements as signable beliefs with main→supporting implication; cause-assist suggester prompt + new `/check-implications` (Implication Attester system prompt) verify pairs; wizard blocks medium/high non-implies. Still product-sensitive — review wording and whether hard-block is right.
+- How to eliminate CauseStarter’s reliance on browser `localStorage` for cause drafts / founder progress (`ui/src/causestarter/lib/causeStore.ts`). Today drafts are origin-scoped (so Vite `:5174` vs Docker `:8090` don’t share them) and vanish across devices/clears. Worth thinking through durable alternatives (on-chain draft, IPFS + pointer, account-linked backend, etc.) without re-centralizing or making launch heavier.
 
 - Now that have (or at least are close to having) a proper testnet setup, can we start creating an ecosystem of simulated fake users of various types? (We can use LLMs to run the ones that need more intelligence, though ideally they'll mostly be made of conventional code, to avoid burning too many LLM tokens.)
   - Cause founder: cares a lot about some cause, comes across CauseStarter, tries actually forking the repo and making a new cause, etc.
@@ -93,6 +99,10 @@ is the living spec with the full backlog. What's left here is only the part that
 - **Revisit the prospective-round claim/entitlement model — it confused me, which is a bad sign.** Entitlement is the *current* receipt balance while `claimedAmount` is permanent, so an account can have claimed more than it now holds, and burning receipts silently reduces future claims with nothing recording what was given up. The specific questions (snapshot vs. live balance, whether unclaimed capacity survives a burn, per-item vs. per-round claiming) are written up under [materialization.md § Open question](specs/tech/subsystems/content-funding/materialization.md#open-question-is-the-claim-model-too-confusing).
 
 - It's time to switch over to GitHub Issues, now that Sam is creating some.
+
+- **Indexer-side believer-set aggregate — the last unfixed CauseStarter scale ceiling.** A scalability pass over the CauseStarter UI turned up four per-plank query fan-outs; all four are now concurrency-capped, and believer sets are cached across mounts (`ui/src/causestarter/lib/concurrency.ts`, `ui/src/causestarter/lib/believerSetsCache.ts`). What's left can't be fixed in the UI: `getStatementBelieverSets` ships full anonymized-ID *sets* to the browser, so a plank with 100k believers downloads 100k IDs to render one number, and the SDK's `limit: 10000` per-fetch ceiling truncates *silently* into a plausible-looking wrong count. The remedy and its constraints are already worked out in [shaping-your-cause-statements.md § Scale: the fold is fine, the transport isn't](docs/founder/shaping-your-cause-statements.md#scale-the-fold-is-fine-the-transport-isnt) — including why band 1 must stay exact if sketches are ever used. Needs indexer + SDK work, not UI work.
+
+- **`StatementPicker` searches a top-100-by-popularity window.** `ui/src/causestarter/components/StatementPicker.tsx` calls `browseStatements({ limit: 100, orderBy: 'believerCount' })` and ranks locally. As the corpus grows, the right statement to reuse increasingly falls outside that window, so the picker degrades in *suggestion quality* rather than in speed — silently, and in exactly the direction that pushes organizers to write duplicate planks instead of reusing existing ones. Wants server-side relevance ranking.
 
 ## Before mainnet
 

@@ -1770,3 +1770,32 @@ which are worth checking first if this is repeated:
 - Each moved package's `eslint.config.js` imports the root `eslint.metrics.mjs`
   relatively and needed `../../`. `npm run lint-precommit` does **not** cover
   these packages, so only a full `npx turbo run lint` surfaces it.
+
+## 2026-08-18 — Local start publishes CauseStarter IPFS only
+
+Temporary, reversible: `./scripts/services.sh --start` and `./scripts/deploy-causestarter.sh` no longer build/publish the eight legacy `ui` domain SPAs by default. Default `LOCAL_UI_DOMAINS` is `causestarter`. Restore with `LOCAL_UI_DOMAINS=all`. Source of truth: `scripts/ui-domains.mjs` (`resolveLocalPublishDomains`). Docs: `workflow/local-development.md`, `.env.example`, `README.md`. CauseStarter on `:8090` is unchanged.
+
+## 2026-08-18 — Faster local seed
+
+`./scripts/data.sh --seed` now defaults to **tiny** (was small). `gen:small` and `gen:tiny` both pass `--skip-invariants`. Statement publish reuses one document store (or parallel PublishedData writes across Hardhat wallets, receipts awaited in a batch). Seed RPC clients poll every 50ms. See `fake-data-generation/generateStatements.ts`, `fake-data-generation/seedRpc.ts`, `scripts/data.sh`.
+
+## 2026-08-24 — Cause board is the organizer publication, not the project list
+
+Copy sweep of [cause-page-not-a-club.md](specs/product/cause-page-not-a-club.md):
+the Aligning/project list is now **fundable-projects board** in UI copy and
+end-user docs; **cause board** is the CauseStarter organizer publication
+(leftover “cause page” left in comments). Routes still `/portal/:cid` and
+`/cause/:owner/:slug`; identifiers `fundingportal*` lag.
+
+## 2026-08-20 — Anvil `--state` restart dump
+
+Local `hardhat-node` was coming back empty after `stack.restart-consistency` because Docker SIGTERM did not make Anvil dump `/data/state.json` (then a fresh deploy + trust wiring filled ~41 blocks with no seed). Fix: `scripts/anvil-docker-entrypoint.sh` maps SIGTERM→SIGINT, compose `--state-interval 15` and 60s grace, restart check records block height and SIGINTs Anvil before stop. Recreate `hardhat-node` to mount the wrapper.
+
+## 2026-08-27 — Statement generation process + exercise 1
+
+Process: [`fake-data-generation/statement-generation.md`](fake-data-generation/statement-generation.md). Fresh-instance handoff: [`continuity/2026-08-27-statement-generation.md`](continuity/2026-08-27-statement-generation.md).
+
+Exercise 1 (simple causes, no triples) gold set remains in `fake-data-generation/statement-generation-exercises/01-simple-causes.json`. Live copy: `fake-data-generation/seed-content/simple-causes.json`. Nested-place rollup is board inclusion, not implication (Ontario-wide planks are genuine wants; garden relevant areas + roster `within` Ontario). `loadSeedCollections` still does not read the exercises directory. Tiny seed still uses the explorer slogan for the garden project. Nested-place pairs are designed-no: `npm run gen:seed:simple-causes-implications`. Cause-assist `STATEMENT_QUALITY_GUIDANCE` includes: want the outcome (not “X is a public good”), do not plank payroll, earmark grain as a ladder (kind + place), do not emit geo implication parents. Rebuild Docker cause-assist to serve the new prompt.
+
+Do not train implication generation on Christianity × secular-conservatism. Next: curriculum exercise 2. The implication attester prompt now rejects nested-place geographic rollup (Grey County → Ontario is a worked reject, not an accept).
+

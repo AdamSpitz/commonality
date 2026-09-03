@@ -65,9 +65,11 @@ async function main(): Promise<void> {
     }
   }
   console.log(`Loaded ${existing.size} cached evaluation(s) from ${options.outputPath}`);
-  const cachedSelectedPairs = selectedPairs.filter((pair) => existing.has(pair.pairId)).length;
+  const isFreshCache = (cached: StoredSeedImplicationEvaluation | undefined): boolean =>
+    cached !== undefined && cached.promptFingerprint === promptFingerprint;
+  const cachedSelectedPairs = selectedPairs.filter((pair) => isFreshCache(existing.get(pair.pairId))).length;
   console.log(
-    `Resume status: ${cachedSelectedPairs}/${selectedPairs.length} selected pair(s) already saved, ` +
+    `Resume status: ${cachedSelectedPairs}/${selectedPairs.length} selected pair(s) already saved with current prompt, ` +
     `${selectedPairs.length - cachedSelectedPairs} remaining to evaluate`
   );
 
@@ -88,7 +90,7 @@ async function main(): Promise<void> {
     cacheWriteTokens: 0,
   };
   let lastUsage: OpenRouterUsage | null = null;
-  const remainingPairs = selectedPairs.filter((pair) => !existing.has(pair.pairId));
+  const remainingPairs = selectedPairs.filter((pair) => !isFreshCache(existing.get(pair.pairId)));
   if (remainingPairs.length > 0) {
     console.log(`Starting live evaluation at pair ${cachedSelectedPairs + 1}/${selectedPairs.length}: ${remainingPairs[0]!.pairId}`);
   }
@@ -122,7 +124,7 @@ async function main(): Promise<void> {
         nextPairIndex += 1;
         const pair = remainingPairs[currentIndex]!;
 
-        const result = await evaluateImplicationWithLLM(
+        const result = await evaluateImplicationWithRetries(
           pair.from.text,
           pair.to.text,
           apiKey,
@@ -290,6 +292,29 @@ function readEnumArg<T extends string>(args: string[], flag: string, values: rea
     throw new Error(`Invalid value for ${flag}: ${raw}`);
   }
   return raw as T;
+}
+
+async function evaluateImplicationWithRetries(
+  statement1Content: string,
+  statement2Content: string,
+  apiKey: string,
+  model: string,
+  attempts = 5
+): Promise<Awaited<ReturnType<typeof evaluateImplicationWithLLM>>> {
+  let lastError: unknown;
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    try {
+      return await evaluateImplicationWithLLM(statement1Content, statement2Content, apiKey, model);
+    } catch (error) {
+      lastError = error;
+      const message = error instanceof Error ? error.message : String(error);
+      console.error(`Attempt ${attempt}/${attempts} failed: ${message}`);
+      if (attempt < attempts) {
+        await sleep(1000 * attempt);
+      }
+    }
+  }
+  throw lastError;
 }
 
 function sleep(ms: number): Promise<void> {

@@ -10,6 +10,8 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=lib/timing.sh
+. "$SCRIPT_DIR/lib/timing.sh"
 
 show_usage() {
     echo "Usage: $0 [--seed[=SIZE] [SEED_OPTIONS...]]"
@@ -42,22 +44,30 @@ esac
 
 seed_args=("$@")
 
+timing_begin
 echo "=== Stopping services ==="
 "$SCRIPT_DIR/services.sh" --stop
+timing_mark stop
 
 echo ""
 echo "=== Wiping data ==="
 "$SCRIPT_DIR/data.sh" --wipe
+timing_mark wipe
 
 echo ""
 echo "=== Starting services ==="
 "$SCRIPT_DIR/services.sh" --start
+timing_mark start
 
 if [ "${#seed_args[@]}" -gt 0 ]; then
     echo ""
     echo "=== Seeding data ==="
+    # --start writes TrustSet bootstrap only; data.sh --seed allows that and
+    # refuses only if signatures/projects/published-data already exist.
     "$SCRIPT_DIR/data.sh" "${seed_args[@]}"
+    timing_mark seed
 fi
 
 echo ""
 echo "Done. Services are running with a clean data directory."
+timing_summary

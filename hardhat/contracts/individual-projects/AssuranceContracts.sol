@@ -3,7 +3,9 @@ pragma solidity 0.8.33;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {ContractMetadata} from "../utils/ContractMetadata.sol";
 import {ERC1155PrimaryMarket} from "./ERC1155PrimaryMarket.sol";
 import {AssuranceContract} from "./AssuranceContract.sol";
@@ -17,7 +19,7 @@ error InvalidERC1155Address();
 error NoReimbursementAvailable();
 error RetroactiveDonationExceedsOutstandingReimbursement();
 error ForgoAmountExceedsAllowed();
-error ForgoWouldStrandWithdrawnReimbursement();
+error NonTransferableReimbursementClaim();
 
 /**
  * @title MultiERC1155AssuranceContract
@@ -32,7 +34,8 @@ contract MultiERC1155AssuranceContract is
     Ownable,
     ContractMetadata,
     AssuranceContract,
-    ERC1155PrimaryMarket
+    ERC1155PrimaryMarket,
+    ERC20
 {
     using SafeERC20 for IERC20;
 
@@ -44,11 +47,21 @@ contract MultiERC1155AssuranceContract is
 
     uint256 private _totalReceivedValue = 0;
 
+    // Legacy contribution-basis views retained for indexers and project totals.
+    // The live future claim is exposed by futureReimbursementClaims().
     uint256 public totalEarlyContributions;
     uint256 public totalRetroReceived;
     uint256 public totalReimbursementsWithdrawn;
     mapping(address => uint256) public earlyContributions;
     mapping(address => uint256) public reimbursementsWithdrawn;
+
+    // Claims are represented as shares so a reimbursement can consume every
+    // holder's claim pro rata without iterating over all holders. Account state
+    // is checkpointed lazily when that account next interacts.
+    uint256 private constant REIMBURSEMENT_PER_SHARE_SCALE = 1e36;
+    uint256 public accumulatedReimbursementPerClaimShare;
+    mapping(address => uint256) private _reimbursementPerShareCheckpoint;
+    mapping(address => uint256) private _withdrawableReimbursements;
 
     event RetroactiveDonationReceived(address indexed donor, uint256 amount);
     event ReimbursementWithdrawn(address indexed contributor, uint256 amount);
@@ -68,7 +81,9 @@ contract MultiERC1155AssuranceContract is
         address _paymentToken,
         address _erc1155Addr,
         string memory projectMetadataCid
-    ) Ownable(owner) AssuranceContract(recipient, _paymentToken) {
+    ) Ownable(owner)
+      AssuranceContract(recipient, _paymentToken)
+      ERC20("Commonality Future Reimbursement Claim", "CFRC") {
         if (_erc1155Addr == address(0)) revert InvalidERC1155Address();
         erc1155Addr = _erc1155Addr;
         // no reason to validate the CID, plus we can't really anyway
@@ -140,9 +155,28 @@ contract MultiERC1155AssuranceContract is
     }
 
     function reimbursableAmount(address contributor) public view returns (uint256) {
-        if (totalEarlyContributions == 0) return 0;
-        uint256 earned = earlyContributions[contributor] * totalRetroReceived / totalEarlyContributions;
-        return earned - reimbursementsWithdrawn[contributor];
+        return withdrawableReimbursements(contributor);
+    }
+
+    /** @notice The caller's remaining, not-yet-earned at-cost claim. */
+    function futureReimbursementClaims(address contributor) public view returns (uint256) {
+        uint256 totalShares = totalSupply();
+        if (totalShares == 0) return 0;
+        return Math.mulDiv(
+            balanceOf(contributor),
+            outstandingReimbursementTotal(),
+            totalShares
+        );
+    }
+
+    /** @notice Reimbursement already earned by an account and available to withdraw. */
+    function withdrawableReimbursements(address contributor) public view returns (uint256) {
+        uint256 newlyEarned = Math.mulDiv(
+            balanceOf(contributor),
+            accumulatedReimbursementPerClaimShare - _reimbursementPerShareCheckpoint[contributor],
+            REIMBURSEMENT_PER_SHARE_SCALE
+        );
+        return _withdrawableReimbursements[contributor] + newlyEarned;
     }
 
     /**
@@ -159,6 +193,14 @@ contract MultiERC1155AssuranceContract is
     function donateRetroactive(uint256 amount) external nonReentrant {
         requireAssuranceContractHasSucceeded();
         if (amount > outstandingReimbursementTotal()) revert RetroactiveDonationExceedsOutstandingReimbursement();
+        if (amount == 0 || totalSupply() == 0) {
+            revert RetroactiveDonationExceedsOutstandingReimbursement();
+        }
+        accumulatedReimbursementPerClaimShare += Math.mulDiv(
+            amount,
+            REIMBURSEMENT_PER_SHARE_SCALE,
+            totalSupply()
+        );
         totalRetroReceived += amount;
         IERC20(paymentToken).safeTransferFrom(msg.sender, address(this), amount);
         emit RetroactiveDonationReceived(msg.sender, amount);
@@ -182,7 +224,11 @@ contract MultiERC1155AssuranceContract is
     }
 
     function _withdrawReimbursement(address recipientAddress, uint256 amount) internal {
-        if (amount == 0) revert NoReimbursementAvailable();
+        _checkpointReimbursement(msg.sender);
+        if (amount == 0 || amount > _withdrawableReimbursements[msg.sender]) {
+            revert NoReimbursementAvailable();
+        }
+        _withdrawableReimbursements[msg.sender] -= amount;
         reimbursementsWithdrawn[msg.sender] += amount;
         totalReimbursementsWithdrawn += amount;
         IERC20(paymentToken).safeTransfer(recipientAddress, amount);
@@ -193,16 +239,11 @@ contract MultiERC1155AssuranceContract is
      * @notice Permanently give up part (or all) of your reimbursement claim,
      *         turning that portion of your early contribution into a pure,
      *         non-recoverable donation to the project.
-     * @dev The dual of {donateRetroactive}: that raises the numerator
-     *      (`totalRetroReceived`), this lowers the denominator
-     *      (`totalEarlyContributions`), so any retro money already received
-     *      redistributes pro-rata to the remaining contributors. `amount` is
-     *      capped at `outstandingReimbursementTotal()` (= T - R) so T can never
-     *      drop below R — which simultaneously keeps that subtraction from
-     *      underflowing and keeps every other contributor's reimbursement at or
-     *      below cost. A contributor who has already withdrawn part of their
-     *      reimbursement may only forgo down to the point where their remaining
-     *      earned claim still covers what they withdrew.
+     * @dev Reimbursement already earned is checkpointed first and remains
+     *      withdrawable by this contributor. Only claim shares representing the
+     *      requested amount of future reimbursement are burned. The global
+     *      contribution basis falls by the same amount, preserving the at-cost
+     *      cap without reallocating previously earned money.
      *
      *      This is the after-the-fact route. To contribute without ever taking
      *      a claim in the first place, see {donateNormallyERC1155}, which
@@ -252,28 +293,40 @@ contract MultiERC1155AssuranceContract is
     }
 
     function _forgoReimbursement(address contributorAddress, uint256 amount) internal {
-        uint256 contribution = earlyContributions[contributorAddress];
-        if (amount == 0 || amount > contribution || amount > outstandingReimbursementTotal()) {
+        _checkpointReimbursement(contributorAddress);
+        uint256 claim = futureReimbursementClaims(contributorAddress);
+        if (amount == 0 || amount > claim) {
             revert ForgoAmountExceedsAllowed();
         }
 
-        uint256 withdrawn = reimbursementsWithdrawn[contributorAddress];
-        if (withdrawn > 0) {
-            // Post-forgo earned must still cover what was already withdrawn, or
-            // reimbursableAmount() would underflow for this contributor.
-            uint256 newContribution = contribution - amount;
-            uint256 newTotal = totalEarlyContributions - amount; // >= totalRetroReceived > 0 here
-            if (newContribution * totalRetroReceived / newTotal < withdrawn) {
-                revert ForgoWouldStrandWithdrawnReimbursement();
-            }
-        }
-
-        earlyContributions[contributorAddress] = contribution - amount;
+        uint256 holderShares = balanceOf(contributorAddress);
+        uint256 sharesToBurn = amount == claim
+            ? holderShares
+            : Math.mulDiv(
+                amount,
+                totalSupply(),
+                outstandingReimbursementTotal(),
+                Math.Rounding.Ceil
+            );
+        if (sharesToBurn > holderShares) revert ForgoAmountExceedsAllowed();
+        _burn(contributorAddress, sharesToBurn);
+        earlyContributions[contributorAddress] -= amount;
         totalEarlyContributions -= amount;
         emit ReimbursementForgone(contributorAddress, amount);
     }
 
     function recordPrimaryPurchase(address buyer, uint256 value) internal override {
+        _checkpointReimbursement(buyer);
+        uint256 outstanding = outstandingReimbursementTotal();
+        uint256 newShares = totalSupply() == 0 || outstanding == 0
+            ? value
+            : Math.mulDiv(
+                value,
+                totalSupply(),
+                outstanding,
+                Math.Rounding.Ceil
+            );
+        _mint(buyer, newShares);
         earlyContributions[buyer] += value;
         totalEarlyContributions += value;
     }
@@ -287,8 +340,43 @@ contract MultiERC1155AssuranceContract is
         // refunds require failure, donateRetroactive requires success.)
         uint256 tracked = earlyContributions[holder];
         uint256 reduction = value < tracked ? value : tracked;
-        earlyContributions[holder] = tracked - reduction;
-        totalEarlyContributions -= reduction;
+        if (reduction > 0) _forgoReimbursement(holder, reduction);
+    }
+
+    function _checkpointReimbursement(address contributor) internal {
+        uint256 checkpoint = _reimbursementPerShareCheckpoint[contributor];
+        uint256 current = accumulatedReimbursementPerClaimShare;
+        if (current != checkpoint) {
+            _withdrawableReimbursements[contributor] += Math.mulDiv(
+                balanceOf(contributor),
+                current - checkpoint,
+                REIMBURSEMENT_PER_SHARE_SCALE
+            );
+            _reimbursementPerShareCheckpoint[contributor] = current;
+        }
+    }
+
+    /** @notice ERC-20 claim-share balance, named for reimbursement-domain callers. */
+    function futureReimbursementClaimShares(address contributor) external view returns (uint256) {
+        return balanceOf(contributor);
+    }
+
+    function totalFutureReimbursementClaimShares() external view returns (uint256) {
+        return totalSupply();
+    }
+
+    /**
+     * @dev Checkpointing is deliberately transfer-ready, but holder-to-holder
+     *      movement remains prohibited by the accepted reimbursement-only legal
+     *      posture. Removing the revert requires a separate legal/product decision.
+     */
+    function _update(address from, address to, uint256 value) internal override {
+        if (from != address(0)) _checkpointReimbursement(from);
+        if (to != address(0) && to != from) _checkpointReimbursement(to);
+        if (from != address(0) && to != address(0)) {
+            revert NonTransferableReimbursementClaim();
+        }
+        super._update(from, to, value);
     }
 
     function withdrawableRecipientBalance() internal view override returns (uint256) {

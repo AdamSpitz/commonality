@@ -123,7 +123,7 @@ is driving:
 | GitHub branch protection on `master` & `dev` | No direct pushes, no force-push/delete, PR required, conversations must resolve. `enforce_admins` is on, so it applies to you too. | No — server-side |
 | `.husky/pre-commit` guard | Refuses commits while `HEAD` is `master`/`dev` | `--no-verify` / escape hatch |
 | `.husky/pre-push` guard | Refuses pushing local `master`/`dev` | `--no-verify` / escape hatch |
-| `.claude/hooks/block-protected-branch.sh` | Makes *Claude Code* self-correct onto a feature branch gracefully instead of erroring | Claude-only sugar |
+| `.claude/hooks/block-protected-branch.sh` | Makes Claude Code / Grok self-correct onto a feature branch instead of erroring. Matches `git commit` / `git push` / `git merge` as subcommands only (not `merge-base`, not the word "merge" in a description). | Agent sugar; husky still enforces |
 
 Escape hatch for a genuine hotfix commit (still can't push to protected branch
 on GitHub): `ALLOW_PROTECTED_COMMIT=1 git commit ...`

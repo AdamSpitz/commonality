@@ -167,6 +167,7 @@ describe('implication semantic boundary corpus', () => {
     for (const category of [
       'logical-weakening', 'named-scope-restriction', 'rhetoric-removal',
       'ambiguous-target', 'concession', 'reservation', 'negotiated-compromise',
+      'coalition-caption', 'tighter-restatement',
     ]) assert.ok(categories.has(category as never), `missing semantic corpus category: ${category}`);
 
     assert.ok(semanticImplicationCorpus.some((entry) => entry.implies), 'corpus needs accepted arrows');

@@ -21,7 +21,7 @@ export interface Project {
   fundingCurrency: Currency;
   /** Minimum funding amount (in wei) required for success. */
   threshold: string;
-  /** Unix timestamp deadline for the funding campaign. */
+  /** Unix timestamp deadline for the funding round. */
   deadline: string;
   /** Cumulative amount received (in wei), net of refunds. */
   totalReceived: string;
@@ -51,12 +51,12 @@ export interface ProjectToken {
   createdAt: string;
 }
 
-/** A token purchase (contribution) to a project's assurance contract. */
+/** A contribution to a project's assurance contract, made by buying receipt tokens. */
 export interface Contribution {
   /** Unique ID derived from transactionHash-logIndex. */
   id: string;
-  /** Address of the buyer. */
-  participant: string;
+  /** Address of the contributor. */
+  contributor: string;
   /** Assurance contract address of the project. */
   projectAddress: string;
   /** Address of the ERC-1155 token contract. */
@@ -80,8 +80,8 @@ export interface Contribution {
 export interface Refund {
   /** Unique ID derived from transactionHash-logIndex. */
   id: string;
-  /** Address of the refund recipient. */
-  participant: string;
+  /** Address of the contributor being refunded. */
+  contributor: string;
   /** Assurance contract address of the project. */
   projectAddress: string;
   /** Address of the ERC-1155 token contract. */
@@ -117,7 +117,11 @@ export interface ContributorReimbursementState {
   projectAddress: string;
   contributor: string;
   currency: Currency;
+  /** Historical at-cost contribution basis after any amounts forgone/refunded. */
   earlyContribution: string;
+  /** Portion of the at-cost claim not yet converted into earned reimbursement. */
+  futureReimbursementClaim: string;
+  /** Earned, unwithdrawn reimbursement. */
   reimbursableAmount: string;
   withdrawnAmount: string;
   forgoneAmount: string;

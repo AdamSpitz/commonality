@@ -195,7 +195,7 @@ describe('BuyTokensSection', () => {
           tokenImages={tokenImages}
         />
       )
-      const img = screen.getByAltText('Reward option #2')
+      const img = screen.getByAltText('Reward #2')
       expect(img).toBeInTheDocument()
       expect(img).toHaveAttribute('src', 'ipfs://bafyimage123')
     })
@@ -220,8 +220,8 @@ describe('BuyTokensSection', () => {
           tokenImages={tokenImages}
         />
       )
-      expect(screen.getByAltText('Reward option #2')).toHaveAttribute('src', 'ipfs://bafyimage2')
-      expect(screen.getByAltText('Reward option #3')).toHaveAttribute('src', 'ipfs://bafyimage3')
+      expect(screen.getByAltText('Reward #2')).toHaveAttribute('src', 'ipfs://bafyimage2')
+      expect(screen.getByAltText('Reward #3')).toHaveAttribute('src', 'ipfs://bafyimage3')
     })
   })
 

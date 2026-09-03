@@ -95,7 +95,14 @@ Run the full chain: Civility agent → CSM agent → bridge-creator emitting nud
 
 ## Founder mediator artifact (provisional)
 
-Set `BRIDGE_CREATOR_MEDIATOR_CONFIG_PATH` to a `provisional-v1` JSON artifact containing the founder-facing knobs: identity, founding statement, `side_a`/`side_b` labels, founder-written strategy prompt, anchors, context sources, and the **name** of the signer-secret environment variable. `config/csm.example.json` is the annotated real CSM example. It contains no signer secret.
+Set `BRIDGE_CREATOR_MEDIATOR_CONFIG_PATH` to a `provisional-v1` JSON artifact containing the founder-facing knobs: identity, founding statement, `side_a`/`side_b` labels, founder-written strategy prompt, anchors, context sources, and the **name** of the signer-secret environment variable. Neither example contains a signer secret.
+
+Two worked examples ship in `config/`:
+
+- **`csm.example.json`** — the real CSM instance (`left` / `right`). Anchors are curated `hidden-majority` statements.
+- **`christian-secular-conservative.example.json`** — a founder-operated mediator bridging *practising Christians* and *secular conservatives*, written to prove the artifact is not left/right-shaped. Its strategy prompt is kept readable at [`prompts/christian-secular-conservative-strategy.md`](prompts/christian-secular-conservative-strategy.md) and inlined into the artifact's `strategy_prompt`.
+
+The second example is instructive because its gap has a different character: the two sides usually **already agree on the conclusion** and mistrust each other's *reasons*, so its prompt leans on "different reasons, same conclusion" and on explicit limiting-principle assurances rather than on middle-ground compromise. It also names four topics where the disagreement is real and instructs the synthesizer to emit a conditional or nothing at all.
 
 Create a blank artifact with `npm run scaffold --workspace=@commonality/bridge-creator -- --founding-statement "..." --output ../../mediator.json`. The scaffold deliberately provides no default mediation strategy: the founder must replace the strategy-prompt blank and curate anchors. See [the founder guide](../../docs/founder/mediator-for-your-cause.md).
 
@@ -111,7 +118,7 @@ This schema is explicitly provisional for one revision pending a live rehearsal.
 | `BRIDGE_CREATOR_INDEXER_URL` / `INDEXER_URL` | No | `http://localhost:3001` | URL of the Ponder event cache |
 | `BRIDGE_CREATOR_IPFS_API` / `IPFS_API` | No | `http://localhost:5001` | IPFS API URL |
 | `BRIDGE_CREATOR_IPFS_GATEWAY` / `IPFS_GATEWAY` | No | `http://localhost:8080` | IPFS gateway URL |
-| `BRIDGE_CREATOR_OPENROUTER_MODEL` / `OPENROUTER_MODEL` | No | `anthropic/claude-3.5-haiku` | Model to use |
+| `BRIDGE_CREATOR_OPENROUTER_MODEL` / `OPENROUTER_MODEL` | No | `deepseek/deepseek-v4-flash-0731` | Model to use |
 | `BRIDGE_CREATOR_NAME` | No | `Bridge Creator` | Display name for nudger metadata |
 | `BRIDGE_CREATOR_DESCRIPTION` | No | `Creates synthesized bridge statements from moderate positions` | Description for nudger metadata |
 | `BRIDGE_CREATOR_SOURCE_TYPE` | No | `bridge-creator` | Source type for nudge messages |

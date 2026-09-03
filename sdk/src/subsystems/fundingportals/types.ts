@@ -107,13 +107,13 @@ export interface CauseFundingMetrics {
   /** Number of notes aligned to this cause. */
   noteCount: number;
   /** Distinct root owners whose currently-live notes are earmarked for this exact cause. */
-  noteSupporterCount?: number;
+  noteContributorCount?: number;
 }
 
-/** Aggregated contribution statistics for a single participant across projects. */
+/** Aggregated contribution statistics for a single contributor across projects. */
 export interface ContributorStats {
   /** Ethereum address of the contributor. */
-  participant: string;
+  contributor: string;
   /** Total amount contributed across all projects, grouped by currency. */
   totalContributed: CurrencyAmountBigInt[];
   /** Total amount refunded across all projects, grouped by currency. */
