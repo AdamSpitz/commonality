@@ -35,6 +35,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Build SDK dependency
+        run: npm run build --workspace=@commonality/sdk
+
       - name: Run linter
         run: npm run lint
 
@@ -61,6 +64,9 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Build SDK dependency
+        run: npm run build --workspace=@commonality/sdk
 
       - name: Run fast tests
         run: npm run test:fast
@@ -110,6 +116,9 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Build SDK dependency
+        run: npm run build --workspace=@commonality/sdk
 
       - name: Run UI vitest
         run: npm run ui:test:vitest
