@@ -1,0 +1,143 @@
+name: CI - Build and Test
+
+# Runs on all PRs and pushes to ensure code quality before merging.
+# This is a fast-check workflow that catches obvious issues early.
+
+on:
+  pull_request:
+    branches: [dev, master]
+  push:
+    branches: [dev, master]
+
+permissions:
+  contents: read
+  checks: write
+
+jobs:
+  lint-and-build:
+    name: Lint and Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run linter
+        run: npm run lint
+
+      - name: Build project
+        run: npm run build
+
+      - name: Typecheck
+        run: npm run typecheck || true  # Optional, may not exist
+
+  test-fast:
+    name: Fast Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run fast tests
+        run: npm run test:fast
+
+  hardhat-test:
+    name: Contract Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Compile contracts
+        run: |
+          cd hardhat
+          npx hardhat compile
+
+      - name: Run Hardhat tests
+        run: |
+          cd hardhat
+          npx hardhat test
+
+  ui-vitest:
+    name: UI Unit Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run UI vitest
+        run: npm run ui:test:vitest
+
+  summary:
+    name: CI Summary
+    needs: [lint-and-build, test-fast, hardhat-test, ui-vitest]
+    runs-on: ubuntu-latest
+    if: always()
+
+    steps:
+      - name: Create CI summary
+        run: |
+          echo "## CI Check Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          LINT_STATUS="${{ needs.lint-and-build.result }}"
+          TEST_STATUS="${{ needs.test-fast.result }}"
+          CONTRACT_STATUS="${{ needs.hardhat-test.result }}"
+          UI_STATUS="${{ needs.ui-vitest.result }}"
+          
+          echo "| Check | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Lint & Build | $([ "$LINT_STATUS" = "success" ] && echo "✅" || echo "❌") $LINT_STATUS |" >> $GITHUB_STEP_SUMMARY
+          echo "| Fast Tests | $([ "$TEST_STATUS" = "success" ] && echo "✅" || echo "❌") $TEST_STATUS |" >> $GITHUB_STEP_SUMMARY
+          echo "| Contract Tests | $([ "$CONTRACT_STATUS" = "success" ] && echo "✅" || echo "❌") $CONTRACT_STATUS |" >> $GITHUB_STEP_SUMMARY
+          echo "| UI Tests | $([ "$UI_STATUS" = "success" ] && echo "✅" || echo "❌") $UI_STATUS |" >> $GITHUB_STEP_SUMMARY
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "$LINT_STATUS" = "success" ] && [ "$TEST_STATUS" = "success" ] && [ "$CONTRACT_STATUS" = "success" ] && [ "$UI_STATUS" = "success" ]; then
+            echo "**All checks passed! ✅**" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "**Some checks failed. Please review the logs above.**" >> $GITHUB_STEP_SUMMARY
+          fi

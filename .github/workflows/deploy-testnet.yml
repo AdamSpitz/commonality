@@ -1,0 +1,209 @@
+name: Deploy to Testnet
+
+# Full testnet deployment pipeline triggered on merge to master.
+# Deploys contracts to Base Sepolia, updates render.yaml, and deploys UI to IPFS/IPNS.
+
+on:
+  push:
+    branches: [master]
+
+# Permissions needed for deployment and committing updated addresses
+permissions:
+  contents: write
+  statuses: write
+
+jobs:
+  deploy-contracts:
+    name: Deploy Contracts
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      contracts-changed: ${{ steps.check-changes.outputs.contracts_changed }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check if contract-related files changed
+        id: check-changes
+        run: |
+          # Check if this is the first push to master or if contract files changed
+          if git rev-parse HEAD^ >/dev/null 2>&1; then
+            CONTRACTS_CHANGED=$(git diff --name-only HEAD^ HEAD | grep -E '^(hardhat|contracts|sdk/packages/hardhat)/' || true)
+          else
+            # First commit to master, assume contracts need deployment
+            CONTRACTS_CHANGED="force-deploy"
+          fi
+          
+          if [ -n "$CONTRACTS_CHANGED" ]; then
+            echo "contracts_changed=true" >> $GITHUB_OUTPUT
+            echo "✅ Contract changes detected"
+          else
+            echo "contracts_changed=false" >> $GITHUB_OUTPUT
+            echo "ℹ️ No contract changes, skipping deployment"
+          fi
+
+      - name: Setup Node.js
+        if: steps.check-changes.outputs.contracts_changed == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        if: steps.check-changes.outputs.contracts_changed == 'true'
+        run: npm ci
+
+      - name: Build Hardhat project
+        if: steps.check-changes.outputs.contracts_changed == 'true'
+        run: |
+          cd hardhat
+          npx hardhat compile
+
+      - name: Deploy contracts to Base Sepolia
+        if: steps.check-changes.outputs.contracts_changed == 'true'
+        env:
+          DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
+          BASE_SEPOLIA_RPC_URL: ${{ secrets.BASE_SEPOLIA_RPC_URL }}
+          CONTRACT_ADMIN_ADDRESS: ${{ secrets.CONTRACT_ADMIN_ADDRESS }}
+        run: |
+          ./scripts/deploy-contracts.sh base-sepolia
+
+      - name: Regenerate render.yaml
+        if: steps.check-changes.outputs.contracts_changed == 'true'
+        run: |
+          node scripts/generate-render-yaml.mjs deployments/base-sepolia.env
+
+      - name: Commit and push updated addresses + render.yaml
+        if: steps.check-changes.outputs.contracts_changed == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          
+          if git diff --quiet deployments/base-sepolia.env && git diff --quiet render.yaml; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          
+          git add deployments/base-sepolia.env render.yaml
+          git commit -m "Update contract addresses and render.yaml after testnet deployment [skip ci]"
+          git push
+
+  deploy-ui:
+    name: Deploy UI
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    needs: deploy-contracts
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check if UI-related files changed
+        id: check-changes
+        run: |
+          # Check if UI files changed or if contracts were just deployed
+          if git rev-parse HEAD^ >/dev/null 2>&1; then
+            UI_CHANGED=$(git diff --name-only HEAD^ HEAD | grep -E '^(ui|sdk/docs|hardhat/docs)/' || true)
+            CONTRACTS_CHANGED=$(git diff --name-only HEAD^ HEAD | grep -E '^(hardhat|contracts)/' || true)
+          else
+            UI_CHANGED="first-commit"
+            CONTRACTS_CHANGED=""
+          fi
+          
+          if [ -n "$UI_CHANGED" ] || [ -n "$CONTRACTS_CHANGED" ]; then
+            echo "ui_changed=true" >> $GITHUB_OUTPUT
+            echo "✅ UI deployment needed"
+          else
+            echo "ui_changed=false" >> $GITHUB_OUTPUT
+            echo "ℹ️ No UI changes, skipping deployment"
+          fi
+
+      - name: Setup Node.js
+        if: steps.check-changes.outputs.ui_changed == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        if: steps.check-changes.outputs.ui_changed == 'true'
+        run: npm ci
+
+      - name: Deploy all UI domains to IPFS/IPNS
+        if: steps.check-changes.outputs.ui_changed == 'true'
+        env:
+          PINATA_JWT: ${{ secrets.PINATA_JWT }}
+          COMMONALITY_OPERATOR_SECRETS_FILE: /tmp/operator.env
+        run: |
+          # Create operator secrets file from GitHub secrets
+          cat > /tmp/operator.env <<EOF
+          PINATA_JWT=${{ secrets.PINATA_JWT }}
+          IPNS_PRIVATE_KEY_TESTNET_COMMONALITY=${{ secrets.IPNS_PRIVATE_KEY_TESTNET_COMMONALITY }}
+          IPNS_PRIVATE_KEY_TESTNET_LAZYGIVING=${{ secrets.IPNS_PRIVATE_KEY_TESTNET_LAZYGIVING }}
+          IPNS_PRIVATE_KEY_TESTNET_ALIGNMENT=${{ secrets.IPNS_PRIVATE_KEY_TESTNET_ALIGNMENT }}
+          IPNS_PRIVATE_KEY_TESTNET_TALLY=${{ secrets.IPNS_PRIVATE_KEY_TESTNET_TALLY }}
+          IPNS_PRIVATE_KEY_TESTNET_CONTENT_FUNDING=${{ secrets.IPNS_PRIVATE_KEY_TESTNET_CONTENT_FUNDING }}
+          IPNS_PRIVATE_KEY_TESTNET_CIVILITY=${{ secrets.IPNS_PRIVATE_KEY_TESTNET_CIVILITY }}
+          IPNS_PRIVATE_KEY_TESTNET_COMMON_SENSE_MAJORITY=${{ secrets.IPNS_PRIVATE_KEY_TESTNET_COMMON_SENSE_MAJORITY }}
+          IPNS_PRIVATE_KEY_TESTNET_CONCEPTSPACE=${{ secrets.IPNS_PRIVATE_KEY_TESTNET_CONCEPTSPACE }}
+          EOF
+          
+          # Run the deployment script
+          ./scripts/deploy-testnet.sh
+
+  summary:
+    name: Deployment Summary
+    needs: [deploy-contracts, deploy-ui]
+    runs-on: ubuntu-latest
+    if: always()
+
+    steps:
+      - name: Create deployment summary
+        run: |
+          echo "## Testnet Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Network**: Base Sepolia" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch**: master" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          CONTRACTS_STATUS="${{ needs.deploy-contracts.result }}"
+          UI_STATUS="${{ needs.deploy-ui.result }}"
+          
+          echo "### Contract Deployment: $CONTRACTS_STATUS" >> $GITHUB_STEP_SUMMARY
+          if [ "$CONTRACTS_STATUS" = "success" ]; then
+            echo "- ✅ Contracts deployed to Base Sepolia" >> $GITHUB_STEP_SUMMARY
+            echo "- ✅ render.yaml updated with new addresses" >> $GITHUB_STEP_SUMMARY
+          elif [ "$CONTRACTS_STATUS" = "skipped" ]; then
+            echo "- ℹ️ Skipped (no contract changes)" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- ❌ Failed" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### UI Deployment: $UI_STATUS" >> $GITHUB_STEP_SUMMARY
+          if [ "$UI_STATUS" = "success" ]; then
+            echo "- ✅ All UI domains published to IPFS" >> $GITHUB_STEP_SUMMARY
+            echo "- ✅ IPNS records updated" >> $GITHUB_STEP_SUMMARY
+          elif [ "$UI_STATUS" = "skipped" ]; then
+            echo "- ℹ️ Skipped (no UI changes)" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- ❌ Failed" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Next Steps" >> $GITHUB_STEP_SUMMARY
+          echo "1. **Render** will auto-deploy services from master branch (check Render dashboard)" >> $GITHUB_STEP_SUMMARY
+          echo "2. **Gateway caches** may serve previous CIDs for a few minutes" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Access URLs" >> $GITHUB_STEP_SUMMARY
+          echo "- https://commonality.testnet.commonality.works" >> $GITHUB_STEP_SUMMARY
+          echo "- https://aligning.works" >> $GITHUB_STEP_SUMMARY
+          echo "- https://lazygiving.testnet.commonality.works" >> $GITHUB_STEP_SUMMARY
