@@ -13,6 +13,9 @@ permissions:
   contents: read
   checks: write
 
+env:
+  VERIFIER_WORKSPACE: verifier
+
 jobs:
   lint-and-build:
     name: Lint and Build

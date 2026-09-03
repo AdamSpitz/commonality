@@ -62,7 +62,7 @@ get_value() {
 set_secret() {
   local key="$1"
   local value
-  value=$(get_value "$key")
+  value=$(get_value "$key" || true)
 
   if [ -z "$value" ]; then
     echo "⚠️  Skipping $key (not found)"
