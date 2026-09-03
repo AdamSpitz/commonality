@@ -12,6 +12,10 @@ on:
         description: Force contract deployment even if no contract files changed
         type: boolean
         default: false
+      force_ui:
+        description: Force UI publication even if no UI files changed
+        type: boolean
+        default: false
 
 # Permissions needed for deployment and committing updated addresses
 permissions:
@@ -137,8 +141,10 @@ jobs:
             exit 0
           fi
 
-          if git rev-parse HEAD^ >/dev/null 2>&1; then
-            UI_CHANGED=$(git diff --name-only HEAD^ HEAD | grep -E '^(ui|sdk/docs|hardhat/docs)/|^deployments/base-sepolia\.(env|contracts-manifest\.json)$|^render\.yaml$' || true)
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.force_ui }}" = "true" ]; then
+            UI_CHANGED="force-deploy"
+          elif git rev-parse HEAD^ >/dev/null 2>&1; then
+            UI_CHANGED=$(git diff --name-only HEAD^ HEAD | grep -E '^(ui|sdk/docs|hardhat/docs)/|^deployments/base-sepolia\.(env|contracts-manifest\.json)$|^render\.yaml$|^scripts/(setup-env|deploy-testnet)\.sh$' || true)
           else
             UI_CHANGED="first-commit"
           fi
