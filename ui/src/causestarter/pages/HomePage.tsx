@@ -20,6 +20,7 @@ export function HomePage() {
         <YourCauses
           causes={causes}
           loading={loading}
+          compact
           headingComponent="h2"
           footer={(
             <>

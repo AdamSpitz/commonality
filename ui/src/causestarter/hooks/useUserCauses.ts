@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useAccount } from 'wagmi'
-import { listCauses, type CauseDraft } from '../lib/causeStore'
-import { syncCauseBookmarks } from '../lib/causeBookmarks'
+import { listCauses, unbookmarkCause, type CauseDraft } from '../lib/causeStore'
+import {
+  persistCauseBookmarks, rememberBookmarkRemoved, syncCauseBookmarks,
+} from '../lib/causeBookmarks'
 import { useMachinery, useWriteClients } from '../../shared'
 
 /**
@@ -12,6 +14,7 @@ export function useUserCauses(): {
   causes: CauseDraft[]
   loading: boolean
   refresh: () => void
+  removeBookmark: (cause: CauseDraft) => void
 } {
   const machinery = useMachinery()
   const { address } = useAccount()
@@ -22,6 +25,19 @@ export function useUserCauses(): {
   const [tick, setTick] = useState(0)
 
   const refresh = useCallback(() => setTick((n) => n + 1), [])
+
+  const removeBookmark = useCallback((cause: CauseDraft) => {
+    if (cause.founderAddress && cause.slug) {
+      rememberBookmarkRemoved({ owner: cause.founderAddress, slug: cause.slug })
+    }
+    unbookmarkCause(cause)
+    setCauses((current) => current.filter((row) => row.id !== cause.id))
+    if (address && writeClients) {
+      void persistCauseBookmarks(machinery, address, writeClients).catch((error) => {
+        console.warn('Could not update wallet cause bookmarks', error)
+      })
+    }
+  }, [address, machinery, writeClients])
 
   useEffect(() => {
     let cancelled = false
@@ -54,5 +70,5 @@ export function useUserCauses(): {
     // clients object identity (it is recreated every render).
   }, [machinery, address, writeReady, tick])
 
-  return { causes, loading, refresh }
+  return { causes, loading, refresh, removeBookmark }
 }
