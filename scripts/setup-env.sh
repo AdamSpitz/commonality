@@ -33,10 +33,11 @@ if [ ! -f "$DEPLOYMENT_FILE" ]; then
 	exit 1
 fi
 
+# CI does not have the gitignored wallets file. Public operator addresses are
+# already recorded in deployments/<network>.env after a contract deploy.
 if [ ! -f "$WALLETS_FILE" ] && [ "$NETWORK" != "localhost" ]; then
-	echo "Error: $WALLETS_FILE not found."
-	echo "Generate deployment wallets first: node scripts/generate-wallets.mjs"
-	exit 1
+	echo "Warning: $WALLETS_FILE not found; continuing with $DEPLOYMENT_FILE only."
+	echo "Generate local wallets with: node scripts/generate-wallets.mjs"
 fi
 
 # --- Load env files into associative array. Later files override earlier files. ---
