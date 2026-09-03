@@ -2,7 +2,7 @@
   "network": "base-sepolia",
   "deployer": "0xFC0054CAA8417b946666a0093521B57efC5e5E4a",
   "contractAdmin": "0xAf4919660180Bff3D47c9A63230Fb437F8C9a0B5",
-  "updatedAt": "2026-08-05T19:07:52.803Z",
+  "updatedAt": "2026-09-03T21:59:35.693Z",
   "contracts": {
     "Beliefs": {
       "contractName": "Beliefs",
@@ -41,10 +41,12 @@
     },
     "NoteIntent": {
       "contractName": "NoteIntent",
-      "address": "0x92846A3B1A17F08ba7481Cff693fefb1C880Bb2d",
-      "fingerprint": "4e58126673e61a87c6b303bb3f2a90804a24a321360e9529c2802e8bdb19d683",
-      "reused": true,
-      "constructorArgs": []
+      "address": "0x8665DD3Fc75240D99066A768C227aA5Cf5179E2a",
+      "fingerprint": "0d09cec153ff7935e09f9a3fdef18604c55202cbf0af8da54cf8a3596e8db0c5",
+      "reused": false,
+      "constructorArgs": [],
+      "blockNumber": 46352245,
+      "tx": "0x194800c5bf86c3a552a6cf84751b97f50b57a1fd605ab7ab3773fd48db779027"
     },
     "MutableRefUpdater": {
       "contractName": "MutableRefUpdater",
@@ -55,52 +57,52 @@
     },
     "AssuranceContractFactory": {
       "contractName": "AssuranceContractFactory",
-      "address": "0x01163293b1Fa49Acb7276C242438FDd34ad8Ca48",
-      "fingerprint": "1b8b950759ce9b940236581ffb944be425d793770c432df2b4167d48b0bc533d",
+      "address": "0x8028C5575089f21e9C6C56f78749BCa22b964Cb2",
+      "fingerprint": "1401a71f791b49e70d6db2a99b7c9aa6a0599ad530bfeabc01af229579372568",
       "reused": false,
       "constructorArgs": [],
-      "blockNumber": 45094294,
-      "tx": "0x7943ebf8af5467f7d156001bf0cdceed42f6ff2334f9857a93dd9856b3f2044f"
+      "blockNumber": 46352245,
+      "tx": "0xebae0b671d47d4e147196f64ad60bda466344d8202257a9dc7a3a70d1776ec44"
     },
     "PremintingERC1155Factory": {
       "contractName": "PremintingERC1155Factory",
-      "address": "0x6384Bb3Df1cbbd2da785e84909eB6F205d404eaD",
-      "fingerprint": "83b266b382ea27a096e6f9c84b54a8522cd3e36d4deb9d3306b3a589aa308e43",
+      "address": "0x65dB7FD2009341bDB5ACCC5E7cE02a0e1493Dfe8",
+      "fingerprint": "ec0c5feb1f2ddd3eb30ee05c4729c9e21890d50e5caa438d5f93654db290010b",
       "reused": false,
       "constructorArgs": [],
-      "blockNumber": 45094294,
-      "tx": "0x6926bfdbc2ed9f4120ffd05be281b973a0b1c6e7b201e267b51efb14a6965b50"
+      "blockNumber": 46352246,
+      "tx": "0x65084c0828caeab93cff7b854a845d74579f4c8c7d54b52649fa0dd9dbb90516"
     },
     "DelegatableNotes": {
       "contractName": "DelegatableNotes",
-      "address": "0xCf6dF027d3db5876791d4f200cFD2bf4da8e0F2a",
-      "fingerprint": "a9c4616121daa76fda2b14fbb5229876a418e8647480bd85658aaae590e7c9ea",
+      "address": "0xD43b1b8AD24EaDc21AC419180b9FfB700FB62Ba6",
+      "fingerprint": "dd91f3f7d4ccd966ccc7a195c0921d7962801e9f0947053c3d31ddc793b4e901",
       "reused": false,
       "constructorArgs": [
-        "0x01163293b1Fa49Acb7276C242438FDd34ad8Ca48"
+        "0x8028C5575089f21e9C6C56f78749BCa22b964Cb2"
       ],
-      "blockNumber": 45094294,
-      "tx": "0x8c0a0ecb321d2863e16827c1fcd9ebcfc45f2cce6bc610c6f23bc7fe2616b3f8"
+      "blockNumber": 46352247,
+      "tx": "0x8d87e361f7e7b1a1e46ceafdae2d3e4cf15e9e60a2da4c65ecffffbfac107b57"
     },
     "RecurringPledges": {
       "contractName": "RecurringPledges",
-      "address": "0x91a8FcfB698BCd0642857C22196057ab2568D62b",
-      "fingerprint": "2c406819b588dbfcce59d53348f2fbcbd55cde8a251088bbaa74484386713f4f",
+      "address": "0x215e3Db0A81eE92d2E79666caC726411632a1a62",
+      "fingerprint": "59b5d953dde9dff48a41178f614c2e1cc67fdfbdab384712d5a391aaa83512c2",
       "reused": false,
       "constructorArgs": [
-        "0xCf6dF027d3db5876791d4f200cFD2bf4da8e0F2a"
+        "0xD43b1b8AD24EaDc21AC419180b9FfB700FB62Ba6"
       ],
-      "blockNumber": 45094295,
-      "tx": "0x09543dbd90f196229513ab223dec3ed8635f9183c20df3072292abcdd54c5f50"
+      "blockNumber": 46352247,
+      "tx": "0xaf067ca8536e57ed8204275dfb0c63ed7e5519ee0e2e036edf50a893842a7650"
     },
     "ValueThresholdConditionFactory": {
       "contractName": "ValueThresholdConditionFactory",
-      "address": "0xE9949576b13d698c1235a9637a83dB377CF56dAD",
-      "fingerprint": "d8ee22fe6f0c2f925286edd5117e39267304c7a500926a281f5fa72652f16e66",
+      "address": "0x7ab6E30e014a661Cc552B6ba0080F7e63ff12769",
+      "fingerprint": "9bc3b678a4af017d290d8f1c2e226f5bda9f7da3339a8f906b9082d4691da459",
       "reused": false,
       "constructorArgs": [],
-      "blockNumber": 45094297,
-      "tx": "0xbb231822cbcf0ff1ca75457cecbd1e9e0793746ff226b20f033479a827255a2e"
+      "blockNumber": 46352248,
+      "tx": "0x27cd6dced3f864b111d17e8aeed19c2fec3a2cbb708c7b3513eb9106702b67d6"
     },
     "FreeERC20": {
       "contractName": "FreeERC20",
@@ -115,98 +117,98 @@
     },
     "ChannelVerifier": {
       "contractName": "ChannelVerifier",
-      "address": "0xEaA379F32E30315392ABA50B7E64325F590B5185",
-      "fingerprint": "4b876b31ed20a333d6f50a57b728a7e00167be53f8b8df97e07384896452044d",
+      "address": "0x89597b2d9198aA401Ba54a884180546c03AD756a",
+      "fingerprint": "53a26fe75780397635fb0600c6d99f2f0d6df15493ca3045d10a8003a882310e",
       "reused": false,
       "constructorArgs": [
-        "0xE486308621c38D85fBaA2b00FB25b062b7a44903"
+        "0xFC0054CAA8417b946666a0093521B57efC5e5E4a"
       ],
-      "blockNumber": 45094298,
-      "tx": "0xa14f44e8412cc09743984f6540e508898a2c3334b018296c3099662539ccaab9"
+      "blockNumber": 46352249,
+      "tx": "0x56cc94a67dbc8aa7fb897148bff95b58b2e2baa663f5977468eda1d8814c925f"
     },
     "ContentRegistry": {
       "contractName": "ContentRegistry",
-      "address": "0xD454AFFfC426740E2993281dC7bA012AF7B7F0B6",
-      "fingerprint": "743e4896e94ee86936c02c150c96d546dcb11ab76ad0872408b062bfc0fbf1d1",
+      "address": "0x09786e4F2423b92FA2af4C82A49ff9d3394E6759",
+      "fingerprint": "04f831c65b9599c46e437d8f0ab858b1f5dc2a540dee3c9b9135842e795e3363",
       "reused": false,
       "constructorArgs": [],
-      "blockNumber": 45094299,
-      "tx": "0x82ca26039bb2f4047c4f2ca166db243838321db17673ca3ecdcee711b7d55676"
+      "blockNumber": 46352249,
+      "tx": "0xda94e95f1cd994786edf82aa4fedce0d79b2c593b398dcfba300f3d69357b1b0"
     },
     "ChannelRegistry": {
       "contractName": "ChannelRegistry",
-      "address": "0xCF45744241F5E5daD7b35Cd098b9cE10592c3CdD",
-      "fingerprint": "272ca43868d7038b682548a7955f62c8156089cfd78ddb4cee7c1b60f28455f4",
+      "address": "0x751DD0d32cBC4DbAB51491305a710ca0ef581002",
+      "fingerprint": "7cee05a3421f4d0c0dee081926786c424baba938f27986b3663cfdc4ab63ebca",
       "reused": false,
       "constructorArgs": [
-        "0xEaA379F32E30315392ABA50B7E64325F590B5185"
+        "0x89597b2d9198aA401Ba54a884180546c03AD756a"
       ],
-      "blockNumber": 45094299,
-      "tx": "0x9e0f360c730088218ec034cafe7f04f8b01de605911ff75d782e2a6b1ce1847f"
+      "blockNumber": 46352250,
+      "tx": "0x3befa55f3043cffdff403a82ef95dffa3bec817696b4ee93681f9712b9fb3bbb"
     },
     "ChannelEscrow": {
       "contractName": "ChannelEscrow",
-      "address": "0xA5A32B2d87200C110ee532d1dad57A781f5326E1",
-      "fingerprint": "b9bbbd5dac4c8e6d59f2419d2c21432d77cd3589981f26ac6fb4190fb3f03bbc",
+      "address": "0x30758d0b85CB9c98aFE4E9c23F5ADe70A0EeF7A0",
+      "fingerprint": "f1f042dadb10c5e2dc2c4436cec2e1cac4395f4de69744156dded8ca581e8e44",
       "reused": false,
       "constructorArgs": [
-        "0xCF45744241F5E5daD7b35Cd098b9cE10592c3CdD",
+        "0x751DD0d32cBC4DbAB51491305a710ca0ef581002",
         "0x35849b41E015FBa6Eba4002444C2984333B5dE38"
       ],
-      "blockNumber": 45094300,
-      "tx": "0xacab6c5f0c0d3fffc01d16189587ac22d1a833209d7fa0f2bdcb4181b443b1f0"
+      "blockNumber": 46352251,
+      "tx": "0x6f3f5b1ed2e250756b5c5742282cc88accb19f36c01614db6888a7a163fce80c"
     },
     "CreatorAssuranceContractFactory": {
       "contractName": "CreatorAssuranceContractFactory",
-      "address": "0xCb9eB5F39fd0BeaF47C88947D4A5FB0C47520100",
-      "fingerprint": "bb7000d3dd096be83a0b45928fbfe97cbf460145002c891bfd1cc1ac6d7dea92",
+      "address": "0xC079f714228233A2b2dD6fB67451034a70819466",
+      "fingerprint": "47a00da5dcefcc0a2b47a6144b24d4f8c575879fc2d8789be04575b8d4375479",
       "reused": false,
       "constructorArgs": [
-        "0xD454AFFfC426740E2993281dC7bA012AF7B7F0B6",
-        "0xCF45744241F5E5daD7b35Cd098b9cE10592c3CdD",
-        "0xA5A32B2d87200C110ee532d1dad57A781f5326E1",
-        "0x6384Bb3Df1cbbd2da785e84909eB6F205d404eaD",
-        "0xE9949576b13d698c1235a9637a83dB377CF56dAD",
+        "0x09786e4F2423b92FA2af4C82A49ff9d3394E6759",
+        "0x751DD0d32cBC4DbAB51491305a710ca0ef581002",
+        "0x30758d0b85CB9c98aFE4E9c23F5ADe70A0EeF7A0",
+        "0x65dB7FD2009341bDB5ACCC5E7cE02a0e1493Dfe8",
+        "0x7ab6E30e014a661Cc552B6ba0080F7e63ff12769",
         "0x35849b41E015FBa6Eba4002444C2984333B5dE38",
         ":"
       ],
-      "blockNumber": 45094301,
-      "tx": "0x28c576750bb3a1305a9f3a54685b666e218b2041c6e0702e2b6f8a893b33d03d"
+      "blockNumber": 46352252,
+      "tx": "0x883aa0c23ad53af4f0c79f346303c619c9608714365ad0a690c656fb49170bf1"
     },
     "ProspectiveRoundDeploymentHelper": {
       "contractName": "ProspectiveRoundDeploymentHelper",
-      "address": "0xBf3f47Cce58D032dc7a35B2b1d83C4E2e3C88Dfc",
-      "fingerprint": "b4df0feaf5eb9b9d15fa6688c825b6dd6958a1a71ab9f40ce690d1c5ad342f9a",
+      "address": "0xC6f873948E49DBe2bF96295716be571A73a2a8f1",
+      "fingerprint": "0586e451211aba1a2d6c4e59b6ff92b35ac4f9e95aa77ef01588c3c07f56d8a5",
       "reused": false,
       "constructorArgs": [],
-      "blockNumber": 45094302,
-      "tx": "0x107302cddd7ddf1d00bb238fd7b2be33263636d8a4f68a6565a9706df121053b"
+      "blockNumber": 46352253,
+      "tx": "0x2fd3b46947ee279db20f1dbf0915b73ed3644640d62a347d5a69360137c8f437"
     },
     "MaterializedContentDeploymentHelper": {
       "contractName": "MaterializedContentDeploymentHelper",
-      "address": "0x98B836a5836264b04F5c1deF72b92a68588Be47f",
-      "fingerprint": "4bcbe5a3753e63ee061d6468bcf306aee34fde0c698cd8097e8d8f25da3746d5",
+      "address": "0xD55b9B1672188340f2D70F4624ddA35200e9A2Fe",
+      "fingerprint": "2c23a78475d3607edf2038e44fde1f7e0566c5807748b19cbf70ee7e278a182e",
       "reused": false,
       "constructorArgs": [],
-      "blockNumber": 45094303,
-      "tx": "0x59e96b97ceafcce3d03fff5dbe7b1f7eaf640c3b86f4930aaf8b907c17f3c6e3"
+      "blockNumber": 46352254,
+      "tx": "0xdded63e4d34b538c0b1d9dfb5707a1b13cb7c60426f18446108f32865421801c"
     },
     "ProspectiveContentRoundFactory": {
       "contractName": "ProspectiveContentRoundFactory",
-      "address": "0xb3E2721E6B33b3242F56F2952672aB944Ae60444",
-      "fingerprint": "d1e21d3b59edbac2e06b29d43e621e26fc79853d568b74de311efbda05f543ee",
+      "address": "0x87965136DB0051214F1BB5E725787dA68C62d2F6",
+      "fingerprint": "36cd81599b83a6f7172c0adf6ffdb60a40246b86de03c573cd34cd9e008aff37",
       "reused": false,
       "constructorArgs": [
-        "0xCF45744241F5E5daD7b35Cd098b9cE10592c3CdD",
-        "0xD454AFFfC426740E2993281dC7bA012AF7B7F0B6",
-        "0xE9949576b13d698c1235a9637a83dB377CF56dAD",
+        "0x751DD0d32cBC4DbAB51491305a710ca0ef581002",
+        "0x09786e4F2423b92FA2af4C82A49ff9d3394E6759",
+        "0x7ab6E30e014a661Cc552B6ba0080F7e63ff12769",
         "0x35849b41E015FBa6Eba4002444C2984333B5dE38",
-        "0xCb9eB5F39fd0BeaF47C88947D4A5FB0C47520100",
-        "0xBf3f47Cce58D032dc7a35B2b1d83C4E2e3C88Dfc",
-        "0x98B836a5836264b04F5c1deF72b92a68588Be47f"
+        "0xC079f714228233A2b2dD6fB67451034a70819466",
+        "0xC6f873948E49DBe2bF96295716be571A73a2a8f1",
+        "0xD55b9B1672188340f2D70F4624ddA35200e9A2Fe"
       ],
-      "blockNumber": 45094304,
-      "tx": "0xb8db176079034dd5e63635a0217cfd6c405e5f5f93f1e2b2e95b7b6401e96740"
+      "blockNumber": 46352255,
+      "tx": "0x12e75c20e8b92bc787c17cb779a34b6835ff0c7b2b9a1e74676f260936f7d99e"
     },
     "NudgePublications": {
       "contractName": "NudgePublications",
@@ -219,23 +221,21 @@
       "contractName": "PublishedData",
       "address": "0xee860Bb27652a3Be968bf6D351ee0eBb9d995eD3",
       "fingerprint": "ee0bbe10fa6d22ac3bcabaa3b530376368354a57bde34472272def03410a3207",
-      "reused": false,
-      "constructorArgs": [],
-      "blockNumber": 45094307,
-      "tx": "0xd21b7b311570077b96ce7f1c6b652ab43cf702434d3cf67c517f5317f58332a0"
+      "reused": true,
+      "constructorArgs": []
     },
     "ProjectFactory": {
       "contractName": "ProjectFactory",
-      "address": "0x08Ff21013752D50eD30a5f93B1F78607CaF48e10",
-      "fingerprint": "08044f0bf6158fff37872809d01dda3c30ae584a0ed657846b2bb249d8e49d3f",
+      "address": "0x19455B64944882c15121EA9B88Da8A40b17efED7",
+      "fingerprint": "92e8af209e79363b4b742d7c7cb12946e65d74f68bf31bb5bc09f97202a3ac3c",
       "reused": false,
       "constructorArgs": [
-        "0x6384Bb3Df1cbbd2da785e84909eB6F205d404eaD",
-        "0x01163293b1Fa49Acb7276C242438FDd34ad8Ca48",
-        "0xE9949576b13d698c1235a9637a83dB377CF56dAD"
+        "0x65dB7FD2009341bDB5ACCC5E7cE02a0e1493Dfe8",
+        "0x8028C5575089f21e9C6C56f78749BCa22b964Cb2",
+        "0x7ab6E30e014a661Cc552B6ba0080F7e63ff12769"
       ],
-      "blockNumber": 45094308,
-      "tx": "0x42e6051b50742c8e9bdba3664158ac5b25ff996d95804001b9dcc8f21b4a7726"
+      "blockNumber": 46352258,
+      "tx": "0xafd53469694b30692fd8a7473285604103b22f275d1a1a149b0ce9b87b476d33"
     },
     "SponsoredGasEntryPoint": {
       "contractName": "ExternalEntryPoint",
