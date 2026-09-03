@@ -6,6 +6,12 @@ name: Deploy to Testnet
 on:
   push:
     branches: [master]
+  workflow_dispatch:
+    inputs:
+      force_contracts:
+        description: Force contract deployment even if no contract files changed
+        type: boolean
+        default: false
 
 # Permissions needed for deployment and committing updated addresses
 permissions:
@@ -31,8 +37,11 @@ jobs:
       - name: Check if contract-related files changed
         id: check-changes
         run: |
-          # Check if this is the first push to master or if contract files changed
-          if git rev-parse HEAD^ >/dev/null 2>&1; then
+          # Manual dispatch can force a redeploy after a failed metadata commit.
+          # Boolean workflow_dispatch inputs are the strings "true" / "false".
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.force_contracts }}" = "true" ]; then
+            CONTRACTS_CHANGED="force-deploy"
+          elif git rev-parse HEAD^ >/dev/null 2>&1; then
             CONTRACTS_CHANGED=$(git diff --name-only HEAD^ HEAD | grep -E '^(hardhat|contracts|sdk/packages/hardhat)/' || true)
           else
             # First commit to master, assume contracts need deployment
@@ -101,7 +110,7 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git switch -c "$branch"
           git add deployments/base-sepolia.env deployments/base-sepolia.contracts-manifest.json render.yaml
-          git commit -m "Record Base Sepolia deployment for ${GITHUB_SHA::12}"
+          HUSKY=0 git commit -m "Record Base Sepolia deployment for ${GITHUB_SHA::12}"
           git push --set-upstream origin "$branch"
           gh pr create --base dev --head "$branch" --title "Record Base Sepolia deployment" --body "Records the contract addresses and Render configuration produced while deploying \`${GITHUB_SHA}\`. After this PR reaches master through the normal release flow, the UI workflow will publish bundles built with these addresses."
 
