@@ -37,6 +37,11 @@ NETWORK="base-sepolia"
 echo "Deploying testnet UI bundles for: $DOMAINS"
 echo ""
 
+# `npm ci` does not emit SDK dist; ui `build:ipfs` imports `@commonality/sdk/*`.
+echo "Building SDK..."
+(cd "$ROOT" && npm run build --workspace=@commonality/sdk)
+echo ""
+
 env_var_for_domain() {
   (cd "$ROOT" && node -e "const m=require('./deployments/testnet-names.json'); const d=m.domains.find(d => d.slug === process.argv[1] || d.legacySlug === process.argv[1]); if (!d) process.exit(1); console.log(d.envVar)" "$1")
 }
