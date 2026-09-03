@@ -39,6 +39,14 @@ Each entry follows the same shape:
 - **When a user encounters it:** CauseStarter landing, empty states on cause/project/statement pages, `/docs/the-jobs`.
 - **What they might want help with:** Which job to take; why they don’t need a committee, grant officer, or matching manifesto; how delegation / refundable pledges / retroactive funding / bridges / reusing statements unblock the matching “ugh.”
 
+## CauseStarter role guides (choose one capacity)
+
+[Role guide hub](/docs/end-user/causestarter/roles/index.md)
+
+- **What it is:** Sendable landing pages for six independently recruitable capacities: capital, prospective scouting/allocation, retrospective evaluation, execution, trust/distribution, and organizing. Each page explicitly says which other jobs the person does not have to accept and explains how their contribution makes those jobs easier to recruit. A whale can provide capital without founding an organization; an expert can supply judgment without being wealthy; a builder can execute without owning fundraising.
+- **When a user encounters it:** `/docs/roles`, from the CauseStarter pitch, jobs catalog, FAQ, or start-a-cause guide; especially when an organizer is making a narrow ask of a prospective participant.
+- **What they might want help with:** Choosing the smallest honest role; sending the matching guide; explaining the flywheel from pledges to projects to vouches to reimbursement; separating alignment judgment, prospective selection, and retrospective success evaluation.
+
 ## Statements and the implication graph
 
 [Full page](/docs/end-user/tally/statements-and-implication-graph.md)

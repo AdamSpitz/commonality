@@ -18,6 +18,7 @@ For founders, this turns adoption into a staged bootstrapping problem rather tha
 all-at-once institution-building problem. Visible money attracts projects; visible
 projects attract money; trusted judgment makes both easier to use. See [Unbundle the
 organization](./why-its-better/unbundled-organization.md) and [Start a
-cause](../../causestarter/start-a-cause.md). The operator playbook after you reach
-people is [Activate a cause one role at a
-time](/docs/founder/activating-a-cause.md).
+cause](../../causestarter/start-a-cause.md). The public recruiting guide is [Organize
+a cause without building an all-purpose
+organization](../../causestarter/roles/organize.md). Repository maintainers also
+have the operator playbook in `docs/founder/activating-a-cause.md`.

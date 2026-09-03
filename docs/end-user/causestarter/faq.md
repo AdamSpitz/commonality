@@ -50,4 +50,7 @@ Nobody, collectively. Write the sentence you mean. If someone else’s sentence 
 
 ## Where do I actually do each job?
 
-[Do the part you’d do anyway](./the-jobs.md) is the catalog. The short version is still [the landing page](./index.md).
+[Choose the part you can provide](./roles/index.md) has a focused page for each role,
+including what that person can leave to others and how their contribution attracts
+the missing capacities. [Do the part you’d do anyway](./the-jobs.md) is the combined
+catalog. The short version is still [the landing page](./index.md).

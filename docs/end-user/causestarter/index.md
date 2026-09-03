@@ -40,7 +40,11 @@ all-purpose organization. Different people can supply them separately. If you ha
 unusually large amount of *one* of those things, that is enough to be unusually useful;
 you do not also need the other four.
 
-The catalog of “I’d be happy to X, but ugh Y” is **[Do the part you’d do anyway](./the-jobs.md)**. Organizers who want a different mix: **[Start a cause board](./start-a-cause.md)**.
+Choose a dedicated guide for **[money, scouting, evaluation, execution, trust and
+reach, or organizing](./roles/index.md)**. Each explains what you can leave to other
+people and how your contribution helps recruit them. The obstacle-by-obstacle
+catalog is **[Do the part you’d do anyway](./the-jobs.md)**. Organizers who want a
+different mix: **[Start a cause board](./start-a-cause.md)**.
 
 ## If “support a cause” still makes you roll your eyes
 

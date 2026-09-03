@@ -83,4 +83,11 @@ fundraiser. CauseStarter connects those separate strengths around concrete work.
 
 That is why “there are *so* many of us — why can’t we get anything done?” was never a law of nature. It was coordination tax. This ecosystem is the claim that the tax was optional.
 
-The spoken pitch (bulletin board, two twists, separable jobs) is **[CauseStarter](./index.md)**. The eye-roll objections are **[Why this isn’t lame](./why-this-isnt-lame.md)**. For the longer argument (late aggregation, organic coalitions, why it is hard to stop), see [Why Commonality?](../commonality/vision-and-strategy/README.md). Role-by-role one-liners also live in [pitches](../commonality/vision-and-strategy/pitches.md).
+For a page you can send directly to a prospective funder, scout, evaluator, builder,
+connector, or organizer, **[choose the capacity they can provide](./roles/index.md)**.
+The spoken pitch (bulletin board, two twists, separable jobs) is
+**[CauseStarter](./index.md)**. The eye-roll objections are **[Why this isn't
+lame](./why-this-isnt-lame.md)**. For the longer argument (late aggregation,
+organic coalitions, why it is hard to stop), see [Why
+Commonality?](../commonality/vision-and-strategy/README.md). Role-by-role one-liners
+also live in [pitches](../commonality/vision-and-strategy/pitches.md).

@@ -51,6 +51,21 @@ describe('DocsPage', () => {
     expect(screen.getByText('Work')).toBeInTheDocument()
   })
 
+  it('renders the role guide hub and resolves nested role links', () => {
+    renderDocs('/docs/roles')
+    expect(screen.getByRole('heading', { name: /Choose the part you can provide/i })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /I can provide money/i })).toHaveAttribute(
+      'href',
+      '/docs/roles/fund',
+    )
+  })
+
+  it('renders a nested role guide', () => {
+    renderDocs('/docs/roles/fund')
+    expect(screen.getByRole('heading', { name: /Provide money without running the cause/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /How your money recruits the other roles/i })).toBeInTheDocument()
+  })
+
   it('opens vision-and-strategy from the bundled commonality tree', () => {
     renderDocs('/docs/vision-and-strategy')
     expect(screen.getByRole('heading', { name: /Why Commonality/i })).toBeInTheDocument()
