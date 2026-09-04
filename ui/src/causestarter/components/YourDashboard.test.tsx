@@ -3,10 +3,13 @@ import { MemoryRouter } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { YourDashboard } from './YourDashboard'
 
-const { useUserStatements, useAlignmentTrust } = vi.hoisted(() => ({
+const { useUserStatements, useAlignmentTrust, useAccount } = vi.hoisted(() => ({
   useUserStatements: vi.fn(),
   useAlignmentTrust: vi.fn(),
+  useAccount: vi.fn(),
 }))
+
+vi.mock('wagmi', () => ({ useAccount }))
 
 vi.mock('../hooks/useUserStatements', () => ({
   useUserStatements,
@@ -52,6 +55,8 @@ describe('YourDashboard', () => {
   afterEach(cleanup)
 
   beforeEach(() => {
+    window.localStorage.clear()
+    useAccount.mockReturnValue({ address: '0xabc' })
     useAlignmentTrust.mockReturnValue({
       trustedAlignmentAttesters: new Set<string>(),
       alignmentTrustUnavailable: false,
@@ -61,6 +66,7 @@ describe('YourDashboard', () => {
   })
 
   it('asks to connect when there is no wallet', () => {
+    useAccount.mockReturnValue({ address: undefined })
     useUserStatements.mockReturnValue({
       statements: [],
       loading: false,
@@ -77,7 +83,7 @@ describe('YourDashboard', () => {
     expect(screen.queryByTestId('fundable-projects')).toBeNull()
   })
 
-  it('shows an empty state when the wallet has not signed anything', () => {
+  it('shows board setup when no personal board has been configured', () => {
     useUserStatements.mockReturnValue({
       statements: [],
       loading: false,
@@ -90,11 +96,12 @@ describe('YourDashboard', () => {
         <YourDashboard />
       </MemoryRouter>,
     )
-    expect(screen.getByTestId('home-dashboard-empty')).toBeInTheDocument()
+    expect(screen.getByTestId('funding-board-setup')).toBeInTheDocument()
     expect(screen.queryByTestId('fundable-projects')).toBeNull()
   })
 
-  it('unions signed statement CIDs into the fundable-projects board', () => {
+  it('uses explicitly selected statement CIDs for the fundable-projects board', () => {
+    window.localStorage.setItem('causestarter.personal-funding-board.v1:0xabc', JSON.stringify({ statementCids: ['bafy2'] }))
     useUserStatements.mockReturnValue({
       statements: [
         { cid: 'bafy1' },
@@ -110,11 +117,12 @@ describe('YourDashboard', () => {
         <YourDashboard />
       </MemoryRouter>,
     )
-    expect(screen.getByTestId('fundable-projects')).toHaveTextContent('preview:3:/dashboard:bafy1,bafy2')
+    expect(screen.getByTestId('fundable-projects')).toHaveTextContent('preview:3:/dashboard:bafy2')
     expect(screen.queryByTestId('home-dashboard-see-all')).toBeNull()
   })
 
   it('renders the uncapped board on the dedicated page', () => {
+    window.localStorage.setItem('causestarter.personal-funding-board.v1:0xabc', JSON.stringify({ statementCids: ['bafy1'] }))
     useUserStatements.mockReturnValue({
       statements: [{ cid: 'bafy1' }],
       loading: false,

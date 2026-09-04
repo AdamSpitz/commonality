@@ -1,4 +1,6 @@
-import { Alert, Box, Button, CircularProgress, Stack, Typography } from '@mui/material'
+import { Alert, Box, Button, Checkbox, CircularProgress, FormControlLabel, Paper, Stack, TextField, Typography } from '@mui/material'
+import { useEffect, useState } from 'react'
+import { useAccount } from 'wagmi'
 import { CauseBoard } from '@ui/fundingportals'
 import { TrustNetworkRefreshIndicator } from '@ui/shared'
 import { AlignmentTrustGate } from './AlignmentTrustGate'
@@ -7,6 +9,7 @@ import { HeaderInfoTip } from '../../shared'
 import { StarterNetworkFilterCopy } from './StarterNetworkFilterNotice'
 import { useAlignmentTrust } from '../hooks/useAlignmentTrust'
 import { useUserStatements } from '../hooks/useUserStatements'
+import { readPersonalFundingBoard, writePersonalFundingBoard, type PersonalFundingBoard } from '../lib/personalFundingBoard'
 
 const sectionHeadingSx = { fontWeight: 800, fontSize: { xs: '1.6rem', sm: '2rem' } }
 
@@ -19,13 +22,41 @@ export function YourDashboard({
   layout?: 'preview' | 'page'
 }) {
   const { statements, loading, connected, error, refresh } = useUserStatements()
+  const { address } = useAccount()
+  const [board, setBoard] = useState<PersonalFundingBoard | null>(() => readPersonalFundingBoard(address))
+  const [editing, setEditing] = useState(false)
+  const [selectedCids, setSelectedCids] = useState<string[]>([])
+  const [geography, setGeography] = useState('')
   const {
     trustedAlignmentAttesters,
     alignmentTrustUnavailable,
     showInitialTrustLoad,
     trustError,
   } = useAlignmentTrust()
-  const statementCids = statements.map((row) => row.cid).filter(Boolean)
+  const statementCids = board?.statementCids ?? []
+
+  useEffect(() => {
+    const next = readPersonalFundingBoard(address)
+    setBoard(next)
+    setSelectedCids(next?.statementCids ?? [])
+    setGeography(next?.geographicWithin?.join(', ') ?? '')
+  }, [address])
+
+  const beginSetup = (startWithSigned = false) => {
+    const cids = startWithSigned ? statements.map((statement) => statement.cid) : board?.statementCids ?? []
+    setSelectedCids(cids)
+    setGeography(board?.geographicWithin?.join(', ') ?? '')
+    setEditing(true)
+  }
+
+  const saveBoard = () => {
+    if (!address) return
+    const geographicWithin = geography.split(',').map((part) => part.trim()).filter(Boolean)
+    const next = { statementCids: selectedCids, ...(geographicWithin.length ? { geographicWithin } : {}) }
+    writePersonalFundingBoard(address, next)
+    setBoard(next)
+    setEditing(false)
+  }
 
   const preview = layout === 'preview'
   const headingId = preview ? 'home-dashboard-board' : 'personal-dashboard-page'
@@ -37,10 +68,53 @@ export function YourDashboard({
           Fundable projects
         </Typography>
         <HeaderInfoTip
-          title="Projects vouched for as advancing statements this wallet has signed."
+          title="Projects vouched for as advancing the statements explicitly included in this personal board."
           label="About your fundable-projects board"
         />
       </Stack>
+
+      {connected && !loading && !error && !editing && board && (
+        <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }} data-testid="funding-board-parameters">
+          <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" gap={1.5}>
+            <Box>
+              <Typography variant="subtitle2" sx={{ fontWeight: 750 }}>Board parameters</Typography>
+              <Typography variant="body2" color="text.secondary">
+                {statementCids.length === 1 ? '1 statement' : `${statementCids.length} statements`}
+                {board.geographicWithin?.length ? ` · ${board.geographicWithin.join(', ')}` : ' · Anywhere'}
+              </Typography>
+            </Box>
+            <Button onClick={() => beginSetup()} sx={{ alignSelf: { sm: 'center' } }}>Edit board</Button>
+          </Stack>
+        </Paper>
+      )}
+
+      {connected && !loading && !error && (editing || !board) && (
+        <Paper variant="outlined" sx={{ p: { xs: 2, sm: 2.5 }, borderRadius: 2 }} data-testid="funding-board-setup">
+          <Typography variant="h6" component="h2" sx={{ fontWeight: 750 }}>Set up your funding board</Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, mb: 2 }}>
+            Choose the statements and place that define which projects you want to consider. Signing remains independent.
+          </Typography>
+          {statements.length === 0 ? (
+            <Alert severity="info">You have no signed statements to start from. Sign a statement first; adding arbitrary statements comes in a later board-editor slice.</Alert>
+          ) : (
+            <Stack spacing={0.5} sx={{ mb: 2 }}>
+              {statements.map((statement) => (
+                <FormControlLabel
+                  key={statement.cid}
+                  control={<Checkbox checked={selectedCids.includes(statement.cid)} onChange={(_, checked) => setSelectedCids((current) => checked ? [...new Set([...current, statement.cid])] : current.filter((cid) => cid !== statement.cid))} />}
+                  label={statement.title?.trim() || 'Untitled statement'}
+                />
+              ))}
+            </Stack>
+          )}
+          <TextField fullWidth size="small" label="Geographic scope (optional)" value={geography} onChange={(event) => setGeography(event.target.value)} helperText="Specific to broad, separated by commas — for example Toronto, Ontario, Canada." />
+          <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
+            {!board && statements.length > 0 && <Button variant="outlined" onClick={() => beginSetup(true)}>Use all signed statements</Button>}
+            <Button variant="contained" onClick={saveBoard} disabled={selectedCids.length === 0}>Save board</Button>
+            {board && <Button onClick={() => setEditing(false)}>Cancel</Button>}
+          </Stack>
+        </Paper>
+      )}
 
       {!connected && (
         <ConnectWalletHint>
@@ -66,10 +140,9 @@ export function YourDashboard({
         </Alert>
       )}
 
-      {connected && !loading && !error && statementCids.length === 0 && (
+      {connected && !loading && !error && board && statementCids.length === 0 && (
         <Alert severity="info" sx={{ borderRadius: 2 }} data-testid="home-dashboard-empty">
-          Sign a statement from a cause board or a statement page. This list is the union of
-          work vouched as advancing those claims — it is not a private cause.
+          Add at least one statement to this board to see relevant projects.
         </Alert>
       )}
 
@@ -86,6 +159,7 @@ export function YourDashboard({
           <CauseBoard
             statementCids={statementCids}
             trustedAlignmentAttesters={trustedAlignmentAttesters}
+            inclusionRules={board?.geographicWithin?.length ? { geographic: { within: board.geographicWithin } } : undefined}
             embedded
             surfaceTitle="Fundable Projects"
             projectLinks="local"

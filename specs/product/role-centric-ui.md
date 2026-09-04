@@ -1,8 +1,10 @@
 # Role-centric UI
 
-**Status:** Direction accepted; Sign/Fund lenses, home inbox grouping, and workspace chrome implemented 2026-09-04.
+**Status:** Direction accepted. Sign/Fund lenses and workspace chrome were implemented
+2026-09-04. The home role launcher, Donate workspace, and device-local explicit
+personal funding-board configuration supersede the earlier home inbox grouping.
 
-## Origin notes
+## Original rambling motivation for this
 
 - CauseStarter may not be exactly the final iteration of the UI; we're circling closer to something good but we may not be there yet. What does the next iteration look like?
   - The *current* iteration came about from the "founder-first" pivot, where we thought we were going to be aiming to attract cause-founders. Which is still sort-of right.
@@ -12,6 +14,8 @@
   - Okay, let's try that. Make a list of roles, and then we'll talk about how to give each of them a specialized UI.
   - lol, RPG character classes? No, but might be fun to have the main landing page contain a list of the roles, with descriptions of what their job is, or kind of person might want to do each.
     - Yeah, without being cutesy about it, gamification might actually be useful. Show stats on your profile page, maybe give badges for having completed various kinds of tasks, etc.
+
+## Summary
 
 Commonality should remain one site with shared cause and personal context, but its
 default paths should be organized around the job a person is doing. Object pages
@@ -47,24 +51,59 @@ and organize in one session.
 
 ## Information architecture
 
-Do not present every role as an equal top-level destination. Group daily work into a
-small number of workspaces:
+Do not present every underlying protocol role as an equal top-level destination.
+Group related roles into a small number of user-facing workspaces:
 
 1. **Sign** — signer activity and mediator suggestions presented to signers.
-2. **Fund** — contribution, scout funding, retroactive donation, and recurring pledges.
-3. **Direct funds** — delegation in both directions.
+2. **Donate** — standing pledges, deposited notes, delegation to someone else, reclaim
+   controls, and a history of what the person's money accomplished. This is the
+   hands-off money role: put money in, choose its scope and delegate, then leave the
+   allocation work to someone trusted.
+3. **Fund** — actively choose proposed, promising, or delivered projects and direct
+   money. Contribution, scout funding, retroactive donation, and acting as a delegate
+   are different mechanisms inside this active allocation job.
 4. **Evaluate** — alignment and success attestations.
 5. **Organize** — projects, cause boards, mediation, and channel claims.
 
 Vertical building belongs in a founder area, documentation, or operator console rather
 than ordinary daily navigation.
 
-The personal dashboard remains the returning-user home. Occupied home is a compact
-cross-role inbox: Fund (fundable-projects teaser), Sign (signed-statement count and
-nudges), and Organize (cause boards and a few bookmarked projects). Each section
-leads to its specialized workspace; the home page does not perform every job inline.
-Contributions needing attention, delegated money, and pending judgments stay later
-until those events have a real attention list rather than empty stubs.
+The home page is a compact role launcher, not a miniature version of every workspace.
+It shows one card per established workspace. Each card answers:
+
+1. What can I do here?
+2. What is my current state?
+3. What is the most natural next action?
+
+For an empty role, the card gives a short explanation and an entry action. Once the
+person has activity, that explanation gives way to a terse summary or useful next
+step: signed-statement count for Sign; monthly pledge and available-funds status for
+Donate; configured scope and newly eligible work for Fund; cause-board/project count
+for Organize. Evaluate should not appear until it has a real workspace.
+
+Cards have equal semantic status but need not have equal visual urgency. The most
+actionable current state may lead; passive or empty roles remain compact. The home
+page does not render project lists, statement objects, delegation controls, or cause
+boards inline.
+
+## Sign and funding-board independence
+
+Signing means "I agree with this statement." It must not silently configure what the
+person is considering funding. A person may sign solely to express a belief, explore
+implications, write better wording, or build bridges.
+
+The personal fundable-projects board is therefore an explicitly configured personal
+view with its own parameters:
+
+- included statements;
+- optional geographic scope;
+- later, project stage/funding mode and other eligibility filters;
+- the source of money available to direct, when relevant.
+
+Signing and board setup should cooperate without being coupled. Useful bridges are
+"Add this statement to my funding board," "Start with statements I've signed," and
+"You signed related statements that are not included." Signing, retracting a
+signature, or editing the board never silently performs one of the other operations.
 
 ## Interaction rules
 
@@ -101,17 +140,19 @@ several links without unexpectedly changing jobs. If it only adds navigation wit
 reducing cognitive load, improve progressive disclosure on the existing object page
 instead of multiplying workspaces.
 
-## Home inbox (second slice)
+## Superseded: home inbox (second slice)
 
-Occupied CauseStarter home (`/`) groups existing teasers by job instead of stacking
+This was implemented as an intermediate step. Occupied CauseStarter home (`/`)
+grouped existing teasers by job instead of stacking
 every object list at equal weight:
 
 - **Fund** → `/dashboard` (fundable-projects union; still the hero)
 - **Sign** → `/statements` (count + suggesters, not the full statement objects)
 - **Organize** → `/causes` (compact cause boards + a short bookmarked-project teaser)
 
-Empty welcome is unchanged. Do not add placeholder sections for jobs that have no
-data yet (Direct funds, Evaluate).
+The role-card launcher above supersedes this composition. In particular, Donate is
+now a first-class workspace and the home page no longer embeds the Fundable Projects
+board as its hero.
 
 ## Workspace chrome (third slice)
 
@@ -128,10 +169,52 @@ Give each daily workspace a job label without turning it into a brand:
 Still no Direct funds / Evaluate top-level nav. Workspace choice is still
 link-driven only (not persisted).
 
+## Donate workspace (fourth slice)
+
+`/donate` is for the person who wants to pledge money and then mostly forget about it.
+Order the page by the questions that person is most likely to ask:
+
+1. **Monthly giving** — amount per month, cause/scope, delegate, last execution, and
+   pause/cancel controls.
+2. **Money in the system** — active notes the person created, with amount, earmark,
+   current delegate, and reclaim/revoke-delegation controls.
+3. **What my money did** — allocations and permanent contribution receipts, with the
+   project and relevant transaction/outcome information.
+
+Funds delegated *to* this person belong primarily in Fund, because allocating them is
+active judgment work. Donate may mention them only as a handoff link. Conversely,
+Donate includes a quiet escape hatch: "Want to choose projects yourself? Go to Fund."
+
+Prefer plain user language. The workspace label is **Donate**; **standing pledge**,
+**note**, and **receipt** remain the precise underlying terms where detail is useful.
+Use **reclaim** when money has returned to the person's control; use **revoke
+delegation** only when that is the actual operation.
+
+### Implementation slices
+
+1. Promote the existing standing-pledge and note-management surfaces into `/donate`,
+   with the hierarchy and role copy above; keep legacy delegation URLs compatible.
+2. Add allocation/receipt history once note-spend events can be presented with project
+   metadata as a coherent personal feed. Do not invent an empty receipt stub merely
+   to make the page look complete.
+3. Move the "funds entrusted to me" allocation path into Fund when the board can select
+   an available note as its money source.
+
+## Explicit personal funding board (fifth slice, first pass implemented)
+
+Replace `/dashboard`'s implicit signed-statement union with a saved personal board
+definition. Existing users may be offered a one-time "start with my signed statements"
+action, but signed statements are not a live synchronization source. Show the active
+statement and geographic parameters above the project lists and provide an obvious
+Edit action. The first pass is wallet-scoped in device storage and selects from signed
+statements; publishing/synchronizing the definition and adding arbitrary statements
+are later persistence/editor slices.
+
 ## Later questions
 
 - Whether the workspace choice should persist across sessions or only through links.
 - Whether Fund needs visible submodes (Proposed, Promising, Delivered) or filters suffice.
 - Which dashboard events deserve attention badges rather than passive sections.
-- Whether Direct funds, Evaluate, and Organize earn top-level navigation after Sign/Fund
-  is tested with real tasks.
+- Whether Evaluate earns top-level navigation after it has been tested with real tasks.
+- Whether Donate should summarize receipt history by project, allocation, or standing
+  pledge once the underlying event history is available.

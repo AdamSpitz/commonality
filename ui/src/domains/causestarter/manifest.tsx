@@ -9,6 +9,7 @@ const routes: ReactNode = (
   <>
     <Route path="/" element={lazyRoute(() => import('../../causestarter/pages/HomePage'), 'HomePage')} />
     <Route path="/dashboard" element={lazyRoute(() => import('../../causestarter/pages/PersonalDashboardPage'), 'PersonalDashboardPage')} />
+    <Route path="/donate" element={lazyRoute(() => import('../../delegation/pages/MyNotesPage'), 'DonatePage')} />
     <Route path="/welcome" element={lazyRoute(() => import('../../causestarter/pages/WelcomePage'), 'WelcomePage')} />
     <Route path="/start" element={lazyRoute(() => import('../../causestarter/pages/StartCauseRedirect'), 'StartCauseRedirect')} />
     <Route path="/bridge/new" element={lazyRoute(() => import('../../causestarter/pages/StartBridgeRedirect'), 'StartBridgeRedirect')} />
@@ -67,8 +68,9 @@ export const causestarterManifest: DomainManifest = {
   },
   shell: {
     primaryNavigation: [
-      { label: 'Cause boards', path: '/causes' },
+      { label: 'Organize', path: '/causes' },
       { label: 'Sign', path: '/statements' },
+      { label: 'Donate', path: '/donate' },
       { label: 'Fund', path: '/dashboard' },
       { label: 'Docs', path: '/docs' },
     ],

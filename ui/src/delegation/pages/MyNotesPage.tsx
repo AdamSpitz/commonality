@@ -33,19 +33,26 @@ import { useWriteClients } from '../../shared'
 import { formatCurrencyAmount, getCurrencyForNote } from '../../shared'
 import { formatNoteAmount, isDelegate, truncateAddress, isEthNote, noteDetailPath, noteScopedKey } from '../utils'
 
-function SummaryCards({ ownedNotes, depositedNotes, standingPledges }: { ownedNotes: Note[]; depositedNotes: Note[]; standingPledges: StandingPledge[] }) {
+function SummaryCards({ ownedNotes, depositedNotes, standingPledges, experience = 'delegation' }: { ownedNotes: Note[]; depositedNotes: Note[]; standingPledges: StandingPledge[]; experience?: 'delegation' | 'donate' }) {
   const totalFunds = ownedNotes.reduce((sum, n) => sum + BigInt(n.amount), 0n)
   const activeCount = ownedNotes.length
   const actingAsDelegate = ownedNotes.filter(n => isDelegate(n)).length
   const depositedAndDelegated = depositedNotes.filter(n => isDelegate(n)).length
 
-  const cards = [
+  const delegationCards = [
     { label: 'Total Funds', value: `${formatEther(totalFunds)} ETH` },
     { label: 'Active Funds', value: String(activeCount) },
     { label: 'Acting as Delegate', value: String(actingAsDelegate) },
     { label: 'Active Monthly Pledges', value: String(standingPledges.length) },
     { label: 'Created & Delegated', value: String(depositedAndDelegated) },
   ]
+  const activeDeposits = depositedNotes.filter(n => n.active)
+  const donateCards = [
+    { label: 'Monthly Pledges', value: String(standingPledges.length) },
+    { label: 'Active Funds', value: String(activeDeposits.length) },
+    { label: 'Delegated', value: String(activeDeposits.filter(n => isDelegate(n)).length) },
+  ]
+  const cards = experience === 'donate' ? donateCards : delegationCards
 
   return (
     <Stack direction="row" spacing={2} sx={{ mb: 3, flexWrap: 'wrap' }}>
@@ -298,7 +305,7 @@ function StandingPledgeCard({
   )
 }
 
-export function MyNotesPage() {
+export function MyNotesPage({ experience = 'delegation' }: { experience?: 'delegation' | 'donate' } = {}) {
   const { address } = useAccount()
   const writeClients = useWriteClients(address)
   const machinery = useMachinery()
@@ -314,6 +321,7 @@ export function MyNotesPage() {
 
   const [delegateDialogOpen, setDelegateDialogOpen] = useState(false)
   const [delegateTarget, setDelegateTarget] = useState<Note | null>(null)
+  const isDonate = experience === 'donate'
 
   const getClients = () => {
     if (!writeClients || !address) return null
@@ -447,11 +455,13 @@ export function MyNotesPage() {
     return (
       <Box>
         <Typography variant="h4" component="h1" gutterBottom>
-          My Delegated Funds
+          {isDonate ? 'Donate' : 'My Delegated Funds'}
         </Typography>
         <Paper sx={{ p: 4, textAlign: 'center' }}>
           <Typography variant="body1" color="text.secondary">
-            Connect your wallet to view and manage your delegated funds.
+            {isDonate
+              ? 'Connect your wallet to set up monthly giving and manage money you have delegated.'
+              : 'Connect your wallet to view and manage your delegated funds.'}
           </Typography>
         </Paper>
       </Box>
@@ -462,17 +472,16 @@ export function MyNotesPage() {
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
         <Typography variant="h4" component="h1">
-          My Delegated Funds
+          {isDonate ? 'Donate' : 'My Delegated Funds'}
         </Typography>
         <Button variant="contained" component={RouterLink} to="/delegation/notes/new">
-          Add Funds
+          {isDonate ? 'Set up a donation' : 'Add Funds'}
         </Button>
       </Box>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-        <Link component={RouterLink} to="/docs/key-ideas/delegation">
-          How delegation works
-        </Link>
-        {' — hand off your donation decisions to someone you trust.'}
+        {isDonate
+          ? 'Set aside money for a cause and hand the project-by-project decisions to someone you trust.'
+          : <><Link component={RouterLink} to="/docs/key-ideas/delegation">How delegation works</Link>{' — hand off your donation decisions to someone you trust.'}</>}
       </Typography>
 
       {actionError && (
@@ -501,38 +510,32 @@ export function MyNotesPage() {
 
       {!loading && !error && (
         <>
-          <SummaryCards ownedNotes={ownedNotes} depositedNotes={depositedNotes} standingPledges={standingPledges} />
+          <SummaryCards ownedNotes={ownedNotes} depositedNotes={depositedNotes} standingPledges={standingPledges} experience={experience} />
+
+          {!isDonate && <>
+            <Typography variant="h5" component="h2" gutterBottom sx={{ mt: 3 }}>Funds I Control</Typography>
+            {ownedNotes.length === 0 ? (
+              <Paper sx={{ p: 3, textAlign: 'center', mb: 3 }}>
+                <Typography variant="body1" color="text.secondary">
+                  You don't control any funds yet. Add funds to create one, or ask someone to delegate to you.
+                </Typography>
+              </Paper>
+            ) : (
+              <Stack spacing={2} sx={{ mb: 3 }}>
+                {ownedNotes.map((note) => (
+                  <NoteCard key={noteScopedKey(note)} note={note} showDelegatedFrom showDelegate onDelegate={handleDelegate} />
+                ))}
+              </Stack>
+            )}
+          </>}
 
           <Typography variant="h5" component="h2" gutterBottom sx={{ mt: 3 }}>
-            Funds I Control
-          </Typography>
-          {ownedNotes.length === 0 ? (
-            <Paper sx={{ p: 3, textAlign: 'center', mb: 3 }}>
-              <Typography variant="body1" color="text.secondary">
-                You don't control any funds yet. Add funds to create one, or ask someone to delegate to you.
-              </Typography>
-            </Paper>
-          ) : (
-            <Stack spacing={2} sx={{ mb: 3 }}>
-              {ownedNotes.map((note) => (
-                <NoteCard
-                  key={noteScopedKey(note)}
-                  note={note}
-                  showDelegatedFrom
-                  showDelegate
-                  onDelegate={handleDelegate}
-                />
-              ))}
-            </Stack>
-          )}
-
-          <Typography variant="h5" component="h2" gutterBottom sx={{ mt: 3 }}>
-            Monthly Pledges
+            {isDonate ? 'Monthly giving' : 'Monthly Pledges'}
           </Typography>
           {standingPledges.length === 0 ? (
             <Paper sx={{ p: 3, textAlign: 'center', mb: 3 }}>
               <Typography variant="body1" color="text.secondary">
-                You don't have any active monthly pledges yet.
+                You don't have any active monthly pledges yet. Set an amount, a cause, and a delegate to make your giving automatic.
               </Typography>
             </Paper>
           ) : (
@@ -550,12 +553,14 @@ export function MyNotesPage() {
           )}
 
           <Typography variant="h5" component="h2" gutterBottom sx={{ mt: 3 }}>
-            Funds I Created
+            {isDonate ? 'Money in the system' : 'Funds I Created'}
           </Typography>
           {depositedNotes.length === 0 ? (
             <Paper sx={{ p: 3, textAlign: 'center' }}>
               <Typography variant="body1" color="text.secondary">
-                You haven't created any delegated funds yet.
+                {isDonate
+                  ? "You don't have any active funds in the system yet."
+                  : "You haven't created any delegated funds yet."}
               </Typography>
             </Paper>
           ) : (
@@ -573,6 +578,16 @@ export function MyNotesPage() {
               ))}
             </Stack>
           )}
+
+          {isDonate && (
+            <Paper variant="outlined" sx={{ mt: 4, p: 2.5, borderRadius: 2 }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>Want to direct the money yourself?</Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, mb: 1 }}>
+                Fund is the active workspace for reviewing projects and deciding where money goes.
+              </Typography>
+              <Button component={RouterLink} to="/dashboard" sx={{ px: 0 }}>Go to Fund</Button>
+            </Paper>
+          )}
         </>
       )}
 
@@ -584,4 +599,8 @@ export function MyNotesPage() {
       />
     </Box>
   )
+}
+
+export function DonatePage() {
+  return <MyNotesPage experience="donate" />
 }

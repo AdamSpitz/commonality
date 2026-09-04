@@ -1,7 +1,10 @@
 # Personal dashboard (projects on statements you signed)
 
-**Status: first slice specified and implemented 2026-08-24** (home teaser +
-`/dashboard` full list). Starring / named subsets remain out of scope.
+**Status: superseded in part 2026-09-04.** The signed-statement union and home teaser
+below describe the first implementation. The accepted current direction is an
+explicitly configured personal board at `/dashboard` and role cards on home; see
+[role-centric-ui.md](./role-centric-ui.md). This file remains as history for why the
+personal board is distinct from an organizer's cause board.
 This is the surface reserved by [cause-page-not-a-club.md](./cause-page-not-a-club.md)
 under the names **dashboard** / **my board**. It does **not** reverse
 [ADR 0005](../decisions/0005-founder-first-verticals.md) or
@@ -11,7 +14,14 @@ Related: [composability.md](./composability.md) (the *portfolio* of reserved
 capital is a different object — do not conflate), [the jobs](/docs/end-user/causestarter/the-jobs.md),
 glossary **Cause board** / **Dashboard**.
 
-## What it is
+## What it is now
+
+An explicitly configured personal **fundable-projects board**. Included statements
+and optional filters such as geography belong to the board definition; signing a
+statement does not silently add it. The first explicit-definition implementation is
+wallet-scoped in device storage. It is personal chrome, not a shared publication.
+
+## Original derived-board model (superseded)
 
 A derived **fundable-projects board**: the union of projects vouched as
 advancing any statement the connected wallet has signed. Same list component
@@ -39,7 +49,7 @@ cause. Not a publication.
   Optional later filters (pin/hide) may use a wallet MutableRef in the same
   family as `bookmarked-causes`.
 
-## First slice (build this)
+## Historical first slice (implemented, then superseded)
 
 1. CauseStarter **home**, when the wallet is connected **or** this device
    already has cause boards: an inbox headed **Your work**. Hero is still a
