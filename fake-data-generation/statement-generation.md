@@ -103,7 +103,10 @@ empty of places to put money.
 more CSA in Grey County, Ontario” is a belief someone signs. “I want more
 CSA in Ontario” is a different belief, for people who actually hold a
 province-wide goal. Do not emit the second as a *parent role* so the first
-can roll up onto it.
+can roll up onto it. If the plank is
+about a particular place (or building, park, watershed, school), name it so
+a stranger can tell which one. “More parks in Springfield” is not
+determinate. Unscoped wants stay unscoped.
 
 Nested-place **board** membership is a factual inclusion rule, not
 implication. A project publishes **relevant areas** (specific-to-broad

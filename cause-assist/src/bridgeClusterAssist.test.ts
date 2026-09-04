@@ -15,6 +15,7 @@ describe('statement guidance routing', () => {
     assert.doesNotMatch(STATEMENT_QUALITY_GUIDANCE, /annoyed at being asked/)
     assert.doesNotMatch(STATEMENT_QUALITY_GUIDANCE, /must imply "I want more CSA in Ontario"/)
     assert.match(STATEMENT_QUALITY_GUIDANCE, /board inclusion rule/)
+    assert.match(STATEMENT_QUALITY_GUIDANCE, /Springfield/)
     assert.match(BRIDGE_STATEMENT_GUIDANCE, /annoyed at being asked to also sign the shared plank/)
   })
 })
