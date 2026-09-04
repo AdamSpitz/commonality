@@ -14,8 +14,8 @@ export function ProjectDetailPage() {
         <ProjectBookmarkButton />
       </Stack>
       <LazyGivingProjectDetailPage
-        listPath="/"
-        listLabel="Back to home"
+        listPath="/dashboard"
+        listLabel="Back to Fund"
       />
     </Stack>
   )

@@ -53,7 +53,7 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 ### Role-centric UI
 
-- Direction and first slices: [role-centric-ui.md](specs/product/role-centric-ui.md). Sign/Fund statement lenses and occupied-home job grouping are in. Remaining: whether workspace choice persists; Fund submodes vs filters; attention badges; whether Direct funds / Evaluate / Organize earn top-level nav; light gamification (stats/badges) without turning roles into brands.
+- Direction and slices: [role-centric-ui.md](specs/product/role-centric-ui.md). Sign/Fund lenses, occupied-home inbox, and workspace chrome (Sign/Fund/Organize labels; project detail returns to Fund; landing jobs open those workspaces) are in. Remaining: whether workspace choice persists; Fund submodes vs filters; attention badges; whether Direct funds / Evaluate earn top-level nav; light gamification (stats/badges) without turning roles into brands.
 
 
 ### The founder-first pivot ("causelets")

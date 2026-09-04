@@ -72,6 +72,7 @@ describe('StatementsPage', () => {
         <StatementsPage />
       </MemoryRouter>,
     )
+    expect(screen.getByTestId('statements-page')).toHaveAttribute('data-workspace', 'sign')
     expect(screen.getAllByTestId('signed-statement')).toHaveLength(2)
     expect(screen.getByText('Local food')).toHaveAttribute('href', '/statement/bafy1?mode=sign')
     expect(screen.getByText('Clean water for all')).toBeInTheDocument()

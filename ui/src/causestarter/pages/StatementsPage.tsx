@@ -34,8 +34,14 @@ export function StatementsPage() {
   )
 
   return (
-    <Stack spacing={3} data-testid="statements-page">
+    <Stack spacing={3} data-testid="statements-page" data-workspace="sign">
       <Box>
+        <Typography
+          variant="overline"
+          sx={{ letterSpacing: '0.14em', fontWeight: 700, color: 'primary.main' }}
+        >
+          Sign
+        </Typography>
         <Stack direction="row" alignItems="center">
           <Typography variant="h4" component="h1" sx={{ fontWeight: 800, fontSize: { xs: '1.6rem', sm: '2rem' } }}>
             Signed statements

@@ -1,6 +1,6 @@
 # Role-centric UI
 
-**Status:** Direction accepted; Sign/Fund lenses and home inbox grouping implemented 2026-09-04.
+**Status:** Direction accepted; Sign/Fund lenses, home inbox grouping, and workspace chrome implemented 2026-09-04.
 
 ## Origin notes
 
@@ -112,6 +112,21 @@ every object list at equal weight:
 
 Empty welcome is unchanged. Do not add placeholder sections for jobs that have no
 data yet (Direct funds, Evaluate).
+
+## Workspace chrome (third slice)
+
+Give each daily workspace a job label without turning it into a brand:
+
+- `/statements` overline **Sign**
+- `/dashboard` overline **Fund**, plus one sentence that this is the signed-statement
+  project union
+- `/causes` overline **Organize**
+- Project detail opened from Fund returns to `/dashboard` (`Back to Fund`), not home
+- Empty-home job cards link into those workspaces (Money/Attention → Fund,
+  Work → Organize, Wording → Sign)
+
+Still no Direct funds / Evaluate top-level nav. Workspace choice is still
+link-driven only (not persisted).
 
 ## Later questions
 

@@ -2,6 +2,14 @@
 
 Append new entries to the end of the file.
 
+## 2026-09-04 — Role-centric workspace chrome
+
+Continued [role-centric-ui.md](specs/product/role-centric-ui.md) after the home inbox.
+Sign / Fund / Organize pages now carry a job overline. Project detail backs to
+`/dashboard` instead of home. Empty-home CrowdJobs cards open those workspaces.
+Did not persist workspace choice, add Fund submodes, or add Direct funds / Evaluate
+nav.
+
 ## 2026-09-04 — Role-centric home inbox
 
 Continued [role-centric-ui.md](specs/product/role-centric-ui.md) after the Sign/Fund
