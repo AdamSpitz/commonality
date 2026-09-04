@@ -1,12 +1,13 @@
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { YourDashboard } from './YourDashboard'
 
-const { useUserStatements, useAlignmentTrust, useAccount } = vi.hoisted(() => ({
+const { useUserStatements, useAlignmentTrust, useAccount, getStatementWithContent } = vi.hoisted(() => ({
   useUserStatements: vi.fn(),
   useAlignmentTrust: vi.fn(),
   useAccount: vi.fn(),
+  getStatementWithContent: vi.fn(),
 }))
 
 vi.mock('wagmi', () => ({ useAccount }))
@@ -18,6 +19,8 @@ vi.mock('../hooks/useUserStatements', () => ({
 vi.mock('../hooks/useAlignmentTrust', () => ({
   useAlignmentTrust,
 }))
+
+vi.mock('@commonality/sdk/conceptspace', () => ({ getStatementWithContent }))
 
 vi.mock('@ui/fundingportals', () => ({
   CauseBoard: ({
@@ -37,6 +40,7 @@ vi.mock('@ui/fundingportals', () => ({
 vi.mock('@ui/shared', () => ({
   TrustNetworkRefreshIndicator: () => null,
   HeaderInfoTip: () => null,
+  useMachinery: () => ({}),
 }))
 
 vi.mock('./AlignmentTrustGate', () => ({
@@ -63,6 +67,35 @@ describe('YourDashboard', () => {
       showInitialTrustLoad: false,
       trustError: null,
     })
+    getStatementWithContent.mockResolvedValue({ cid: 'bafyarbitrary' })
+  })
+
+  it('adds an unsigned published statement to the personal board', async () => {
+    useUserStatements.mockReturnValue({
+      statements: [], loading: false, connected: true, error: null, refresh: vi.fn(),
+    })
+    render(<MemoryRouter><YourDashboard /></MemoryRouter>)
+
+    fireEvent.change(screen.getByLabelText('Add a statement by CID'), { target: { value: 'bafyarbitrary' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Add statement' }))
+
+    await waitFor(() => expect(getStatementWithContent).toHaveBeenCalledWith({}, 'bafyarbitrary'))
+    expect(screen.getByTestId('funding-board-selected-statements')).toHaveTextContent('bafyarbitrary')
+    fireEvent.click(screen.getByRole('button', { name: 'Save board' }))
+    expect(JSON.parse(window.localStorage.getItem('causestarter.personal-funding-board.v1:0xabc')!)).toEqual({ statementCids: ['bafyarbitrary'] })
+  })
+
+  it('keeps unsigned board statements visible and removable while editing', () => {
+    window.localStorage.setItem('causestarter.personal-funding-board.v1:0xabc', JSON.stringify({ statementCids: ['bafyunsigned'] }))
+    useUserStatements.mockReturnValue({
+      statements: [{ cid: 'bafysigned', title: 'Signed statement' }], loading: false, connected: true, error: null, refresh: vi.fn(),
+    })
+    render(<MemoryRouter><YourDashboard /></MemoryRouter>)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Edit board' }))
+    expect(screen.getByTestId('funding-board-selected-statements')).toHaveTextContent('bafyunsigned')
+    fireEvent.click(screen.getByTestId('CancelIcon'))
+    expect(screen.queryByTestId('funding-board-selected-statements')).not.toBeInTheDocument()
   })
 
   it('asks to connect when there is no wallet', () => {

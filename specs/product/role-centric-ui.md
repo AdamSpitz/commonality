@@ -198,7 +198,8 @@ link-driven only (not persisted).
 Order the page by the questions that person is most likely to ask:
 
 1. **Monthly giving** — amount per month, cause/scope, delegate, last execution, and
-   pause/cancel controls.
+   cancellation controls. The current contract has no reversible pause state; adding
+   pause/resume requires an explicit contract and event-model extension.
 2. **Money in the system** — active notes the person created, with amount, earmark,
    current delegate, and reclaim/revoke-delegation controls.
 3. **What my money did** — allocations and permanent contribution receipts, with the
@@ -221,8 +222,10 @@ delegation** only when that is the actual operation.
    into one row per allocation transaction, attributes delegated spending to the root
    donor, groups rows by project, and folds refund/reimbursement state into the original
    row rather than presenting raw lifecycle events as separate donations.
-3. Move the "funds entrusted to me" allocation path into Fund when the board can select
-   an available note as its money source.
+3. **Implemented as a workspace handoff:** Fund lists active money sources controlled
+   by the wallet, identifies funds entrusted by another donor, and project pages select
+   an eligible note for the allocation transaction. A later refinement may preserve a
+   board-level preferred money source across project navigation.
 
 ## Explicit personal funding board (fifth slice, first pass implemented)
 
@@ -230,9 +233,9 @@ Replace `/dashboard`'s implicit signed-statement union with a saved personal boa
 definition. Existing users may be offered a one-time "start with my signed statements"
 action, but signed statements are not a live synchronization source. Show the active
 statement and geographic parameters above the project lists and provide an obvious
-Edit action. The first pass is wallet-scoped in device storage and selects from signed
-statements; publishing/synchronizing the definition and adding arbitrary statements
-are later persistence/editor slices.
+Edit action. The first pass is wallet-scoped in device storage. The editor can select
+signed statements or add any published statement by CID; publishing/synchronizing the
+definition remains a later persistence slice.
 
 ## Later questions
 

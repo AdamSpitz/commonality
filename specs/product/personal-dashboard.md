@@ -1,6 +1,6 @@
 # Personal funding board
 
-**Status: current model implemented in a first pass 2026-09-04.** The accepted
+**Status: current model and arbitrary-statement editor implemented 2026-09-04.** The accepted
 direction is an explicitly configured personal board at `/dashboard` and role cards
 on home; see [role-centric-ui.md](./role-centric-ui.md). The signed-statement union
 and home teaser below describe the superseded first implementation and remain as

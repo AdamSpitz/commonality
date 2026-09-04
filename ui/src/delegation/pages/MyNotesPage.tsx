@@ -266,43 +266,69 @@ function StandingPledgeCard({
   onCancel: (pledge: StandingPledge) => void
   actionLoading: boolean
 }) {
+  const [confirmingCancellation, setConfirmingCancellation] = useState(false)
+
   return (
-    <Card>
-      <CardContent>
-        <Stack spacing={1}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2, alignItems: 'flex-start' }}>
-            <Box>
-              <Typography variant="subtitle1">Monthly pledge #{pledge.id}</Typography>
-              <Typography variant="h6">{formatStandingPledgeAmount(pledge)}</Typography>
+    <>
+      <Card>
+        <CardContent>
+          <Stack spacing={1}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2, alignItems: 'flex-start' }}>
+              <Box>
+                <Typography variant="subtitle1">Monthly pledge #{pledge.id}</Typography>
+                <Typography variant="h6">{formatStandingPledgeAmount(pledge)}</Typography>
+              </Box>
+              <Chip label="Auto-pull" color="success" size="small" />
             </Box>
-            <Chip label="Auto-pull" color="success" size="small" />
-          </Box>
-          <Typography variant="body2" color="text.secondary">
-            Delegated to {truncateAddress(pledge.delegateTo)}
+            <Typography variant="body2" color="text.secondary">
+              Delegated to {truncateAddress(pledge.delegateTo)}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Cause:{' '}
+              <Link href={getDomainUrl('tally', `/statement/${pledge.causeRef}`)}>
+                {causeTitle ?? 'Untitled cause'}
+              </Link>
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Last executed: {pledge.lastExecuted === '0' ? 'not yet' : formatPledgeDate(pledge.lastExecuted)}
+            </Typography>
+            <Box>
+              <Button
+                size="small"
+                variant="outlined"
+                color="warning"
+                disabled={actionLoading}
+                onClick={() => setConfirmingCancellation(true)}
+              >
+                Cancel monthly pledge
+              </Button>
+            </Box>
+          </Stack>
+        </CardContent>
+      </Card>
+      <Dialog open={confirmingCancellation} onClose={() => setConfirmingCancellation(false)}>
+        <DialogTitle>Cancel this monthly pledge?</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Automatic monthly giving will stop. Funds already created by earlier executions are unaffected. This pledge cannot be resumed; you would need to create a new one.
           </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Cause:{' '}
-            <Link href={getDomainUrl('tally', `/statement/${pledge.causeRef}`)}>
-              {causeTitle ?? 'Untitled cause'}
-            </Link>
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Last executed: {pledge.lastExecuted === '0' ? 'not yet' : formatPledgeDate(pledge.lastExecuted)}
-          </Typography>
-          <Box>
-            <Button
-              size="small"
-              variant="outlined"
-              color="warning"
-              disabled={actionLoading}
-              onClick={() => onCancel(pledge)}
-            >
-              Cancel monthly pledge
-            </Button>
-          </Box>
-        </Stack>
-      </CardContent>
-    </Card>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setConfirmingCancellation(false)}>Keep pledge</Button>
+          <Button
+            color="warning"
+            variant="contained"
+            disabled={actionLoading}
+            onClick={() => {
+              setConfirmingCancellation(false)
+              onCancel(pledge)
+            }}
+          >
+            Confirm cancellation
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </>
   )
 }
 

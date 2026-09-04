@@ -1,5 +1,6 @@
 import { Box, Stack, Typography } from '@mui/material'
 import { YourDashboard } from '../components/YourDashboard'
+import { FundMoneySources } from '../components/FundMoneySources'
 
 export function PersonalDashboardPage() {
   return (
@@ -16,6 +17,7 @@ export function PersonalDashboardPage() {
           statements and filters you choose; signing a statement does not change it.
         </Typography>
       </Box>
+      <FundMoneySources />
       <YourDashboard layout="page" />
     </Stack>
   )

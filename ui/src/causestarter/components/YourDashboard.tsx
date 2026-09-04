@@ -1,8 +1,10 @@
-import { Alert, Box, Button, Checkbox, CircularProgress, FormControlLabel, Paper, Stack, TextField, Typography } from '@mui/material'
+import { Alert, Box, Button, Checkbox, Chip, CircularProgress, FormControlLabel, Paper, Stack, TextField, Typography } from '@mui/material'
 import { useEffect, useState } from 'react'
 import { useAccount } from 'wagmi'
+import { getStatementWithContent } from '@commonality/sdk/conceptspace'
+import type { IpfsCidV1 } from '@commonality/sdk/utils'
 import { CauseBoard } from '@ui/fundingportals'
-import { TrustNetworkRefreshIndicator } from '@ui/shared'
+import { TrustNetworkRefreshIndicator, useMachinery } from '@ui/shared'
 import { AlignmentTrustGate } from './AlignmentTrustGate'
 import { ConnectWalletHint } from './ConnectWalletHint'
 import { HeaderInfoTip } from '../../shared'
@@ -23,10 +25,14 @@ export function YourDashboard({
 }) {
   const { statements, loading, connected, error, refresh } = useUserStatements()
   const { address } = useAccount()
+  const machinery = useMachinery()
   const [board, setBoard] = useState<PersonalFundingBoard | null>(() => readPersonalFundingBoard(address))
   const [editing, setEditing] = useState(false)
   const [selectedCids, setSelectedCids] = useState<string[]>([])
   const [geography, setGeography] = useState('')
+  const [statementCid, setStatementCid] = useState('')
+  const [statementCidError, setStatementCidError] = useState<string | null>(null)
+  const [addingStatement, setAddingStatement] = useState(false)
   const {
     trustedAlignmentAttesters,
     alignmentTrustUnavailable,
@@ -56,6 +62,23 @@ export function YourDashboard({
     writePersonalFundingBoard(address, next)
     setBoard(next)
     setEditing(false)
+  }
+
+  const addStatement = async () => {
+    const cid = statementCid.trim()
+    if (!cid || selectedCids.includes(cid)) return
+    setAddingStatement(true)
+    setStatementCidError(null)
+    try {
+      const statement = await getStatementWithContent(machinery, cid as IpfsCidV1)
+      if (!statement) throw new Error('Statement not found')
+      setSelectedCids((current) => [...current, cid])
+      setStatementCid('')
+    } catch (cause) {
+      setStatementCidError(cause instanceof Error ? cause.message : 'Could not load that statement')
+    } finally {
+      setAddingStatement(false)
+    }
   }
 
   const preview = layout === 'preview'
@@ -94,10 +117,24 @@ export function YourDashboard({
           <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, mb: 2 }}>
             Choose the statements and place that define which projects you want to consider. Signing remains independent.
           </Typography>
-          {statements.length === 0 ? (
-            <Alert severity="info">You have no signed statements to start from. Sign a statement first; adding arbitrary statements comes in a later board-editor slice.</Alert>
-          ) : (
+          {selectedCids.length > 0 && (
+            <Stack direction="row" flexWrap="wrap" useFlexGap gap={1} sx={{ mb: 2 }} data-testid="funding-board-selected-statements">
+              {selectedCids.map((cid) => {
+                const signed = statements.find((statement) => statement.cid === cid)
+                return (
+                  <Chip
+                    key={cid}
+                    label={signed?.title?.trim() || cid}
+                    title={cid}
+                    onDelete={() => setSelectedCids((current) => current.filter((selected) => selected !== cid))}
+                  />
+                )
+              })}
+            </Stack>
+          )}
+          {statements.length > 0 && (
             <Stack spacing={0.5} sx={{ mb: 2 }}>
+              <Typography variant="subtitle2">Statements you've signed</Typography>
               {statements.map((statement) => (
                 <FormControlLabel
                   key={statement.cid}
@@ -107,6 +144,25 @@ export function YourDashboard({
               ))}
             </Stack>
           )}
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ mb: 2 }} alignItems={{ sm: 'flex-start' }}>
+            <TextField
+              fullWidth
+              size="small"
+              label="Add a statement by CID"
+              value={statementCid}
+              onChange={(event) => { setStatementCid(event.target.value); setStatementCidError(null) }}
+              error={Boolean(statementCidError)}
+              helperText={statementCidError ?? 'Use any published statement, whether or not you signed it.'}
+            />
+            <Button
+              variant="outlined"
+              onClick={() => void addStatement()}
+              disabled={!statementCid.trim() || selectedCids.includes(statementCid.trim()) || addingStatement}
+              sx={{ minWidth: 120 }}
+            >
+              {addingStatement ? <CircularProgress size={18} /> : 'Add statement'}
+            </Button>
+          </Stack>
           <TextField fullWidth size="small" label="Geographic scope (optional)" value={geography} onChange={(event) => setGeography(event.target.value)} helperText="Specific to broad, separated by commas — for example Toronto, Ontario, Canada." />
           <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
             {!board && statements.length > 0 && <Button variant="outlined" onClick={() => beginSetup(true)}>Use all signed statements</Button>}

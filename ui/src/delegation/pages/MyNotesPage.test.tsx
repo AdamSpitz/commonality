@@ -628,6 +628,9 @@ describe('MyNotesPage', () => {
         expect(screen.getByRole('button', { name: /cancel monthly pledge/i })).toBeInTheDocument()
       })
       fireEvent.click(screen.getByRole('button', { name: /cancel monthly pledge/i }))
+      expect(cancelStandingPledge).not.toHaveBeenCalled()
+      expect(screen.getByText(/cannot be resumed/i)).toBeInTheDocument()
+      fireEvent.click(screen.getByRole('button', { name: /confirm cancellation/i }))
 
       await waitFor(() => {
         expect(cancelStandingPledge).toHaveBeenCalledWith(
@@ -649,10 +652,25 @@ describe('MyNotesPage', () => {
       await waitFor(() => {
         fireEvent.click(screen.getByRole('button', { name: /cancel monthly pledge/i }))
       })
+      fireEvent.click(screen.getByRole('button', { name: /confirm cancellation/i }))
 
       await waitFor(() => {
         expect(screen.getByText('Cancel reverted')).toBeInTheDocument()
       })
+    })
+
+    it('keeps the pledge when cancellation is dismissed', async () => {
+      vi.mocked(getNotesByOwner).mockResolvedValue([])
+      vi.mocked(getNotesByRoot).mockResolvedValue([])
+      vi.mocked(getActiveStandingPledgesByUser).mockResolvedValue([makeStandingPledge()] as any)
+
+      render(<MyNotesPage />)
+
+      fireEvent.click(await screen.findByRole('button', { name: /cancel monthly pledge/i }))
+      fireEvent.click(screen.getByRole('button', { name: /keep pledge/i }))
+
+      expect(cancelStandingPledge).not.toHaveBeenCalled()
+      await waitFor(() => expect(screen.queryByText(/cannot be resumed/i)).not.toBeInTheDocument())
     })
   })
 
