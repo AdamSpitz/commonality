@@ -1,8 +1,9 @@
 # Role-centric UI
 
 **Status:** Direction accepted. Sign/Fund lenses and workspace chrome were implemented
-2026-09-04. The home role launcher, Donate workspace, and device-local explicit
-personal funding-board configuration supersede the earlier home inbox grouping.
+2026-09-04. The home role launcher, Donate workspace (including a first donor-attributed
+allocation/receipt feed), and device-local explicit personal funding-board configuration
+supersede the earlier home inbox grouping.
 
 ## Original rambling motivation for this
 
@@ -216,9 +217,10 @@ delegation** only when that is the actual operation.
 
 1. Promote the existing standing-pledge and note-management surfaces into `/donate`,
    with the hierarchy and role copy above; keep legacy delegation URLs compatible.
-2. Add allocation/receipt history once note-spend events can be presented with project
-   metadata as a coherent personal feed. Do not invent an empty receipt stub merely
-   to make the page look complete.
+2. **Implemented in a first pass:** allocation/receipt history folds note-spend events
+   into one row per allocation transaction, attributes delegated spending to the root
+   donor, groups rows by project, and folds refund/reimbursement state into the original
+   row rather than presenting raw lifecycle events as separate donations.
 3. Move the "funds entrusted to me" allocation path into Fund when the board can select
    an available note as its money source.
 

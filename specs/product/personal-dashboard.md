@@ -1,10 +1,10 @@
-# Personal dashboard (projects on statements you signed)
+# Personal funding board
 
-**Status: superseded in part 2026-09-04.** The signed-statement union and home teaser
-below describe the first implementation. The accepted current direction is an
-explicitly configured personal board at `/dashboard` and role cards on home; see
-[role-centric-ui.md](./role-centric-ui.md). This file remains as history for why the
-personal board is distinct from an organizer's cause board.
+**Status: current model implemented in a first pass 2026-09-04.** The accepted
+direction is an explicitly configured personal board at `/dashboard` and role cards
+on home; see [role-centric-ui.md](./role-centric-ui.md). The signed-statement union
+and home teaser below describe the superseded first implementation and remain as
+history for why the personal board is distinct from an organizer's cause board.
 This is the surface reserved by [cause-page-not-a-club.md](./cause-page-not-a-club.md)
 under the names **dashboard** / **my board**. It does **not** reverse
 [ADR 0005](../decisions/0005-founder-first-verticals.md) or
@@ -81,10 +81,10 @@ cause. Not a publication.
 
 | | Cause board | Dashboard |
 |---|---|---|
-| Author | Organizer | Derived from wallet signatures |
+| Author | Organizer | The wallet user |
 | Job | Circulate a mix; acquire attention | Return and watch work you already claimed |
-| Storage | Roster `(owner, slug)` + CID | None (query). Filters later optional |
-| Visibility | Public URL | Reconstructable from public signatures; treat as personal chrome, not a secret |
+| Storage | Roster `(owner, slug)` + CID | Wallet-scoped device storage in the first pass; synchronization later |
+| Visibility | Public URL | Device-local personal chrome in the first pass; not a privacy product |
 
 Founder-first still holds: organizers are the customer for distribution.
 Signers stop treating the organizer URL as home.

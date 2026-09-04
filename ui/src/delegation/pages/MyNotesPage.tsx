@@ -26,12 +26,13 @@ import { useAccount } from 'wagmi'
 import { formatEther, parseEther } from 'viem'
 import { DelegatableNotesAbi, RecurringPledgesAbi } from '@commonality/sdk/abis'
 import { getStatement } from '@commonality/sdk/conceptspace'
-import { getNotesByOwner, getNotesByRoot, getDelegationChain, delegateNote, revokeNote, reclaimFunds, getActiveStandingPledgesByUser, cancelStandingPledge, type Note, type StandingPledge, type DelegatableNotesContract, type RecurringPledgesContract } from '@commonality/sdk/delegation'
+import { getNotesByOwner, getNotesByRoot, getDelegationChain, getDonationActivityByRoot, delegateNote, revokeNote, reclaimFunds, getActiveStandingPledgesByUser, cancelStandingPledge, type DonationActivity, type Note, type StandingPledge, type DelegatableNotesContract, type RecurringPledgesContract } from '@commonality/sdk/delegation'
 import type { Currency, IpfsCidV1 } from '@commonality/sdk/utils'
 import { getDomainUrl, useMachinery } from '../../shared'
 import { useWriteClients } from '../../shared'
 import { formatCurrencyAmount, getCurrencyForNote } from '../../shared'
 import { formatNoteAmount, isDelegate, truncateAddress, isEthNote, noteDetailPath, noteScopedKey } from '../utils'
+import { readLazyGivingProjectMetadata } from '../../lazy-giving/metadata'
 
 function SummaryCards({ ownedNotes, depositedNotes, standingPledges, experience = 'delegation' }: { ownedNotes: Note[]; depositedNotes: Note[]; standingPledges: StandingPledge[]; experience?: 'delegation' | 'donate' }) {
   const totalFunds = ownedNotes.reduce((sum, n) => sum + BigInt(n.amount), 0n)
@@ -305,6 +306,59 @@ function StandingPledgeCard({
   )
 }
 
+function DonationActivityFeed({ activities, projectTitles, causeTitles }: {
+  activities: DonationActivity[]
+  projectTitles: Record<string, string>
+  causeTitles: Record<string, string>
+}) {
+  const groups = new Map<string, DonationActivity[]>()
+  for (const activity of activities) {
+    const key = activity.projectAddress?.toLowerCase() ?? activity.receiptContract.toLowerCase()
+    groups.set(key, [...(groups.get(key) ?? []), activity])
+  }
+
+  return (
+    <Stack spacing={2}>
+      {[...groups.entries()].map(([key, rows]) => {
+        const projectAddress = rows[0].projectAddress
+        const title = projectTitles[key] ?? (projectAddress ? `Project ${truncateAddress(projectAddress)}` : `Receipt contract ${truncateAddress(rows[0].receiptContract)}`)
+        return (
+          <Paper variant="outlined" sx={{ p: 2.5, borderRadius: 2 }} key={key}>
+            <Typography variant="h6" component="h3" sx={{ fontWeight: 750 }}>
+              {projectAddress ? <Link component={RouterLink} to={`/projects/${projectAddress}`}>{title}</Link> : title}
+            </Typography>
+            <Stack spacing={2} divider={<Box sx={{ borderTop: 1, borderColor: 'divider' }} />} sx={{ mt: 1.5 }}>
+              {rows.map((activity) => (
+                <Box key={activity.id}>
+                  <Stack direction="row" justifyContent="space-between" alignItems="flex-start" gap={2}>
+                    <Box>
+                      <Typography sx={{ fontWeight: 700 }}>{formatCurrencyAmount(activity.amount, activity.currency)}</Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Directed by {truncateAddress(activity.directedBy)} · {formatPledgeDate(activity.createdAt)}
+                      </Typography>
+                    </Box>
+                    <Chip label={activity.status} size="small" color={activity.status === 'refunded' ? 'warning' : activity.status === 'reimbursed' ? 'success' : 'default'} />
+                  </Stack>
+                  {activity.intendedStatementIds.length > 0 && (
+                    <Typography variant="body2" color="text.secondary" sx={{ mt: 0.75 }}>
+                      Scope: {activity.intendedStatementIds.map(id => causeTitles[id] ?? id).join(', ')}
+                    </Typography>
+                  )}
+                  {BigInt(activity.reimbursedAmount) > 0n && (
+                    <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                      Reimbursed: {formatCurrencyAmount(activity.reimbursedAmount, activity.currency)}
+                    </Typography>
+                  )}
+                </Box>
+              ))}
+            </Stack>
+          </Paper>
+        )
+      })}
+    </Stack>
+  )
+}
+
 export function MyNotesPage({ experience = 'delegation' }: { experience?: 'delegation' | 'donate' } = {}) {
   const { address } = useAccount()
   const writeClients = useWriteClients(address)
@@ -313,9 +367,12 @@ export function MyNotesPage({ experience = 'delegation' }: { experience?: 'deleg
   const [ownedNotes, setOwnedNotes] = useState<Note[]>([])
   const [depositedNotes, setDepositedNotes] = useState<Note[]>([])
   const [standingPledges, setStandingPledges] = useState<StandingPledge[]>([])
+  const [donationActivity, setDonationActivity] = useState<DonationActivity[]>([])
   const [causeTitles, setCauseTitles] = useState<Record<string, string>>({})
+  const [projectTitles, setProjectTitles] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [activityError, setActivityError] = useState<string | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
   const [actionLoading, setActionLoading] = useState(false)
 
@@ -333,17 +390,32 @@ export function MyNotesPage({ experience = 'delegation' }: { experience?: 'deleg
     try {
       setLoading(true)
       setError(null)
+      setActivityError(null)
       const recurringPledgesContract = getRecurringPledgesContract()
-      const [owned, deposited, activePledges] = await Promise.all([
+      const [owned, deposited, activePledges, activity] = await Promise.all([
         getNotesByOwner(machinery, address),
         getNotesByRoot(machinery, address),
         recurringPledgesContract ? getActiveStandingPledgesByUser(machinery, address) : Promise.resolve([]),
+        isDonate
+          ? getDonationActivityByRoot(machinery, address).catch((activityLoadError) => {
+              console.error('Error loading donation activity:', activityLoadError)
+              setActivityError('Donation history is temporarily unavailable.')
+              return []
+            })
+          : Promise.resolve([]),
       ])
       setOwnedNotes(owned.filter(n => n.active))
       setDepositedNotes(deposited.filter(n => n.active))
       setStandingPledges(activePledges)
+      setDonationActivity(activity)
+      const projectEntries = await Promise.all(activity.map(async (row) => {
+        if (!row.projectMetadataCid) return [row.projectAddress?.toLowerCase() ?? row.receiptContract.toLowerCase(), undefined] as const
+        const metadata = await readLazyGivingProjectMetadata(machinery, row.projectMetadataCid as IpfsCidV1).catch(() => null)
+        return [row.projectAddress?.toLowerCase() ?? row.receiptContract.toLowerCase(), metadata?.name?.trim()] as const
+      }))
+      setProjectTitles(Object.fromEntries(projectEntries.filter((entry): entry is readonly [string, string] => Boolean(entry[1]))))
       const causeEntries = await Promise.all(
-        [...new Set(activePledges.map((pledge) => pledge.causeRef))].map(async (causeRef) => {
+        [...new Set([...activePledges.map((pledge) => pledge.causeRef), ...activity.flatMap((row) => row.intendedStatementIds)])].map(async (causeRef) => {
           const statement = await getStatement(machinery, causeRef as IpfsCidV1).catch(() => null)
           return [causeRef, statement?.title?.trim() || 'Untitled cause'] as const
         }),
@@ -355,7 +427,7 @@ export function MyNotesPage({ experience = 'delegation' }: { experience?: 'deleg
     } finally {
       setLoading(false)
     }
-  }, [address, machinery])
+  }, [address, machinery, isDonate])
 
   useEffect(() => {
     loadNotes()
@@ -577,6 +649,23 @@ export function MyNotesPage({ experience = 'delegation' }: { experience?: 'deleg
                 />
               ))}
             </Stack>
+          )}
+
+          {isDonate && (
+            <Box sx={{ mt: 4 }}>
+              <Typography variant="h5" component="h2" gutterBottom>What my money did</Typography>
+              {activityError ? (
+                <Alert severity="warning">{activityError}</Alert>
+              ) : donationActivity.length === 0 ? (
+                <Paper sx={{ p: 3, textAlign: 'center' }}>
+                  <Typography color="text.secondary">
+                    No project allocations from your funds yet. When you or a delegate funds a project, its receipt will appear here.
+                  </Typography>
+                </Paper>
+              ) : (
+                <DonationActivityFeed activities={donationActivity} projectTitles={projectTitles} causeTitles={causeTitles} />
+              )}
+            </Box>
           )}
 
           {isDonate && (

@@ -9,6 +9,8 @@ import {
   type DelegationChainLinkWithNote,
   type NoteEvent,
   type NoteIntentAggregate,
+  type DonationActivity,
+  type StandingPledge,
 } from './types.js';
 import type { NoteIntentAttestedEvent } from './events.js';
 import { SDKMachinery } from '../../machinery.js';
@@ -26,6 +28,8 @@ import {
   decodeNoteIntentAttestedEvent,
 } from '../../utils/eventDecoder.js';
 import { foldDelegationState, foldNote, foldNoteIntentAttestations, uniqueNotes, type DelegationEvent } from './folds.js';
+import { getAllProjects, type Project } from '../lazy-giving/index.js';
+import { getStandingPledges } from './recurring-pledges.js';
 
 function decodeDelegationEvents(rawEvents: Awaited<ReturnType<typeof fetchAllDelegationEvents>>): DelegationEvent[] {
   const events: DelegationEvent[] = [];
@@ -82,6 +86,124 @@ function decodeDelegationEvents(rawEvents: Awaited<ReturnType<typeof fetchAllDel
     const bn = Number(a.event.blockNumber - b.event.blockNumber);
     return bn !== 0 ? bn : a.event.logIndex - b.event.logIndex;
   });
+}
+
+function atOrBefore(event: { blockNumber: bigint; logIndex: number }, boundary: { blockNumber: bigint; logIndex: number }) {
+  return event.blockNumber < boundary.blockNumber
+    || (event.blockNumber === boundary.blockNumber && event.logIndex <= boundary.logIndex);
+}
+
+/**
+ * Project allocations attributable to a root depositor, folded from note lineage.
+ * One record represents one purchase transaction; subsequent receipt lifecycle
+ * events update its status instead of becoming duplicate activity rows.
+ */
+export function foldDonationActivityByRoot(
+  rootAddress: string,
+  events: DelegationEvent[],
+  intentEvents: NoteIntentAttestedEvent[],
+  projects: Project[],
+  standingPledges: StandingPledge[] = [],
+): DonationActivity[] {
+  const root = rootAddress.toLowerCase();
+  const { notes } = foldDelegationState(events);
+  const noteFor = (contract: string, id: bigint) => notes.get(`${contract.toLowerCase()}:${id}`);
+  const projectByReceipt = new Map(projects.map(project => [project.erc1155Address.toLowerCase(), project]));
+  const purchases = events.filter((event): event is Extract<DelegationEvent, { type: 'erc1155Purchased' }> => event.type === 'erc1155Purchased');
+
+  return purchases.flatMap(({ event: purchase }) => {
+    const contract = purchase.contractAddress.toLowerCase();
+    const rootedInputs = purchase.inputNoteIds.filter(id => noteFor(contract, id)?.rootOwner.toLowerCase() === root);
+    if (rootedInputs.length === 0) return [];
+    const rootedInputSet = new Set(rootedInputs.map(String));
+    const allInputsRootedHere = rootedInputs.length === purchase.inputNoteIds.length;
+    const consumedAmount = events
+      .filter((entry): entry is Extract<DelegationEvent, { type: 'noteConsumed' }> => entry.type === 'noteConsumed')
+      .filter(({ event }) => event.contractAddress.toLowerCase() === contract
+        && event.transactionHash.toLowerCase() === purchase.transactionHash.toLowerCase()
+        && rootedInputSet.has(event.noteId.toString()))
+      .reduce((sum, { event }) => sum + event.amountConsumed, 0n);
+    const receiptNoteIds = purchase.outputNoteIds
+      .filter(id => noteFor(contract, id)?.rootOwner.toLowerCase() === root)
+      .map(String);
+    const receiptSet = new Set(receiptNoteIds);
+    const refunds = events.filter((entry): entry is Extract<DelegationEvent, { type: 'refundedIntoNote' }> =>
+      entry.type === 'refundedIntoNote'
+      && entry.event.contractAddress.toLowerCase() === contract
+      && receiptSet.has(entry.event.inputNoteId.toString()));
+    const reimbursements = events.filter((entry): entry is Extract<DelegationEvent, { type: 'reimbursementClaimedIntoNote' }> =>
+      entry.type === 'reimbursementClaimedIntoNote'
+      && entry.event.contractAddress.toLowerCase() === contract
+      && receiptSet.has(entry.event.receiptNoteId.toString()));
+    const intents = foldNoteIntentAttestations(intentEvents.filter(intent =>
+      intent.noteContract.toLowerCase() === contract
+      && rootedInputSet.has(intent.noteId.toString())
+      && atOrBefore(intent, purchase),
+    ));
+    const inputNotes = rootedInputs.map(id => noteFor(contract, id)).filter((note): note is Note => Boolean(note));
+    const sourceNoteIds = new Set(rootedInputs.map(String));
+    for (const inputId of rootedInputs) {
+      let note = noteFor(contract, inputId);
+      while (note?.parentNoteId && !sourceNoteIds.has(note.parentNoteId)) {
+        sourceNoteIds.add(note.parentNoteId);
+        note = noteFor(contract, BigInt(note.parentNoteId));
+      }
+    }
+    const pledgeIds = standingPledges
+      .filter(pledge => pledge.rootOwner.toLowerCase() === root
+        && pledge.executedNoteIds.some(id => sourceNoteIds.has(id)))
+      .map(pledge => `${pledge.contractAddress.toLowerCase()}:${pledge.id}`);
+    const reimbursedAmount = reimbursements.reduce((sum, entry) => sum + entry.event.amount, 0n);
+    const status = refunds.length > 0 ? 'refunded' : reimbursements.length > 0 ? 'reimbursed' : 'receipt active';
+    const project = projectByReceipt.get(purchase.erc1155Contract.toLowerCase());
+
+    return [{
+      id: `${contract}:${purchase.transactionHash.toLowerCase()}:${purchase.logIndex}:${root}`,
+      transactionHash: purchase.transactionHash,
+      createdAt: purchase.blockTimestamp.toString(),
+      blockNumber: purchase.blockNumber.toString(),
+      directedBy: purchase.buyer,
+      amount: (consumedAmount || (allInputsRootedHere ? purchase.totalCost : 0n)).toString(),
+      currency: project?.fundingCurrency ?? {
+        kind: inputNotes[0]?.token === '0x0000000000000000000000000000000000000000' ? 'native' : 'erc20',
+        symbol: inputNotes[0]?.token === '0x0000000000000000000000000000000000000000' ? 'ETH' : 'tokens',
+        decimals: 18,
+        tokenAddress: inputNotes[0]?.token === '0x0000000000000000000000000000000000000000' ? null : inputNotes[0]?.token ?? null,
+        tokenType: 0,
+      },
+      projectAddress: project?.id ?? null,
+      ...(project?.metadataCid ? { projectMetadataCid: project.metadataCid } : {}),
+      receiptContract: purchase.erc1155Contract,
+      receiptNoteIds,
+      inputNoteIds: rootedInputs.map(String),
+      intendedStatementIds: [...new Set(intents.map(intent => intent.intendedStatementId).filter((id): id is string => Boolean(id)))],
+      standingPledgeIds: pledgeIds,
+      status,
+      reimbursedAmount: reimbursedAmount.toString(),
+    } satisfies DonationActivity];
+  }).sort((a, b) => Number(BigInt(b.blockNumber) - BigInt(a.blockNumber)));
+}
+
+export async function getDonationActivityByRoot(
+  machinery: SDKMachinery,
+  rootAddress: string,
+): Promise<DonationActivity[]> {
+  const [delegationRaw, intentRaw, projects, standingPledges] = await Promise.all([
+    fetchAllDelegationEvents(machinery),
+    fetchAllNoteIntentEvents(machinery),
+    getAllProjects(machinery),
+    machinery.contractAddresses?.recurringPledges ? getStandingPledges(machinery) : Promise.resolve([]),
+  ]);
+  const intentEvents = intentRaw
+    .map(decodeNoteIntentAttestedEvent)
+    .filter((event): event is NoteIntentAttestedEvent => event !== null);
+  return foldDonationActivityByRoot(
+    rootAddress,
+    decodeDelegationEvents(delegationRaw),
+    intentEvents,
+    projects,
+    standingPledges,
+  );
 }
 
 // ============================================================================

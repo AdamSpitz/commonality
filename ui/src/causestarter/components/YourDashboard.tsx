@@ -118,7 +118,7 @@ export function YourDashboard({
 
       {!connected && (
         <ConnectWalletHint>
-          Connect a wallet to see fundable projects vouched for as advancing statements you have signed.
+          Connect a wallet to configure your personal funding board and see its fundable projects.
         </ConnectWalletHint>
       )}
 
@@ -172,8 +172,8 @@ export function YourDashboard({
               preview ? undefined : (
               <Stack spacing={1}>
                 <Typography variant="body2">
-                  Union of projects vouched as advancing any statement you signed. Alignment
-                  attaches to a statement, never to a cause board as a club.
+                  Union of projects vouched as advancing any statement included in this board.
+                  Alignment attaches to a statement, never to a cause board as a club.
                 </Typography>
                 <StarterNetworkFilterCopy />
               </Stack>

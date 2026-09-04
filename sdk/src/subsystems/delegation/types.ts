@@ -1,4 +1,6 @@
 
+import type { Currency } from '../../utils/currency.js';
+
 /**
  * A delegatable note — a token of value that can be delegated through
  * a chain of addresses before being spent on a project purchase.
@@ -121,4 +123,26 @@ export interface NoteEvent {
   noteContract: string;
   transactionHash: string;
   data: string | null; // JSON with { inputNoteIds, outputNoteIds, erc1155Contract, ... }
+}
+
+export type DonationActivityStatus = 'receipt active' | 'refunded' | 'reimbursed';
+
+/** One project allocation made from notes rooted in a donor's wallet. */
+export interface DonationActivity {
+  id: string;
+  transactionHash: string;
+  createdAt: string;
+  blockNumber: string;
+  directedBy: string;
+  amount: string;
+  currency: Currency;
+  projectAddress: string | null;
+  projectMetadataCid?: string;
+  receiptContract: string;
+  receiptNoteIds: string[];
+  inputNoteIds: string[];
+  intendedStatementIds: string[];
+  standingPledgeIds: string[];
+  status: DonationActivityStatus;
+  reimbursedAmount: string;
 }
