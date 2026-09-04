@@ -18,6 +18,7 @@ import GitHubIcon from '@mui/icons-material/GitHub'
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { WalletButton } from '../../shared/components/WalletButton'
+import { containerMaxWidth, pageWidthForPath } from './pageWidth'
 
 const GITHUB_REPO_URL = 'https://github.com/AdamSpitz/commonality'
 
@@ -50,6 +51,8 @@ export function CauseShell({ children }: CauseShellProps) {
   const theme = useTheme()
   const isDesktop = useMediaQuery(theme.breakpoints.up('md'))
   const current = activeNavPath(location.pathname)
+  const pageWidth = pageWidthForPath(location.pathname)
+  const maxWidth = containerMaxWidth(pageWidth, isDesktop)
 
   return (
     <Box
@@ -72,7 +75,7 @@ export function CauseShell({ children }: CauseShellProps) {
             t.palette.mode === 'light' ? 'rgba(255,252,247,0.88)' : 'rgba(10,16,24,0.88)',
         }}
       >
-        <Toolbar sx={{ gap: 1, minHeight: { xs: 56, sm: 64 }, px: { xs: 1.5, sm: 2 } }}>
+        <Toolbar sx={{ gap: 1, minHeight: { xs: 56, sm: 64 }, px: { xs: 1.5, sm: 2, md: 3 } }}>
           <Box
             component={Link}
             to="/"
@@ -156,7 +159,11 @@ export function CauseShell({ children }: CauseShellProps) {
           pb: { xs: 'calc(72px + env(safe-area-inset-bottom, 0px))', md: 4 },
         }}
       >
-        <Container maxWidth="sm" sx={{ pt: { xs: 2, sm: 3 }, px: { xs: 1.75, sm: 2 } }}>
+        <Container
+          maxWidth={maxWidth}
+          data-page-width={pageWidth}
+          sx={{ pt: { xs: 2, sm: 3 }, px: { xs: 1.75, sm: 2, md: 3 } }}
+        >
           {children}
         </Container>
       </Box>

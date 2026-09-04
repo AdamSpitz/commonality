@@ -22,7 +22,7 @@ gaps: [`TODO.md`](./TODO.md).
 Same substrate as `ui/`:
 
 - React 19 + TypeScript + Vite
-- Material UI (mobile-first shell with bottom navigation)
+- Material UI (one SPA: phone column + bottom nav, desktop workspace width + top nav; same pages)
 - viem / wagmi / ConnectKit
 - `@commonality/sdk` for chain actions and indexer queries
 
