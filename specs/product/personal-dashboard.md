@@ -42,11 +42,11 @@ cause. Not a publication.
 ## First slice (build this)
 
 1. CauseStarter **home**, when the wallet is connected **or** this device
-   already has cause boards: hero is a **teaser** of the personal
-   fundable-projects board (a few compact rows). Organizer drafts and
-   bookmarks stay below (existing **Cause boards** section). First-visit
+   already has cause boards: an inbox headed **Your work**. Hero is still a
+   **teaser** of the personal fundable-projects board (a few compact rows),
+   labeled Fund. Sign and Organize teasers sit below and link out. First-visit
    **Welcome** remains when disconnected and there are no local/bookmarked
-   boards.
+   boards. See [role-centric-ui.md](./role-centric-ui.md).
 2. Reuse `CauseBoard` with `statementCids` = this wallet’s direct beliefs.
    Same starter-network / personal trust filter as other CauseStarter lists.
    Home passes `preview` (compact cards, cap, no metrics/tabs). Content

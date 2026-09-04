@@ -1,13 +1,20 @@
 import { Alert, Box, Button, CircularProgress, Stack, Typography } from '@mui/material'
-import { useNavigate } from 'react-router-dom'
+import { Link as RouterLink, useNavigate } from 'react-router-dom'
 import { ConnectWalletHint } from './ConnectWalletHint'
 import { HeaderInfoTip } from '../../shared'
 import { ProjectCard } from './ProjectCard'
 import { useUserProjects } from '../hooks/useUserProjects'
 
-export function YourProjects() {
+const HOME_PREVIEW_LIMIT = 3
+
+export function YourProjects({
+  compact = false,
+}: {
+  compact?: boolean
+}) {
   const navigate = useNavigate()
   const { projects, loading, connected } = useUserProjects()
+  const shown = compact ? projects.slice(0, HOME_PREVIEW_LIMIT) : projects
 
   return (
     <Stack spacing={1.5} data-testid="home-projects">
@@ -68,12 +75,22 @@ export function YourProjects() {
         </Alert>
       )}
 
-      {projects.length > 0 && (
+      {shown.length > 0 && (
         <Stack spacing={0.75}>
-          {projects.map((project) => (
+          {shown.map((project) => (
             <ProjectCard key={project.project.id} project={project} />
           ))}
         </Stack>
+      )}
+
+      {compact && projects.length > shown.length && (
+        <Button
+          component={RouterLink}
+          to="/dashboard"
+          sx={{ alignSelf: 'flex-start', textTransform: 'none' }}
+        >
+          See fundable work
+        </Button>
       )}
     </Stack>
   )

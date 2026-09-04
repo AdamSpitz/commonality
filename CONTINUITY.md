@@ -2,6 +2,14 @@
 
 Append new entries to the end of the file.
 
+## 2026-09-04 — Role-centric home inbox
+
+Continued [role-centric-ui.md](specs/product/role-centric-ui.md) after the Sign/Fund
+statement-mode slice. Occupied CauseStarter home is now a job inbox (Fund / Sign /
+Organize teasers linking to `/dashboard`, `/statements`, `/causes`). Bookmarked
+projects on home are capped. Did not stub Direct funds or Evaluate. Trimmed the
+long inbox brainstorm to a pointer at the spec.
+
 ## 2026-08-14 — Policy-list testnet enforcement already live
 
 The TODO claimed deployed Civility still lacked `VITE_POLICY_BUNDLE_URL` and that the gateway was unconfigured (2026-08-02 snapshot). Live probe + `verifier-run testnet.policy-enforcement` now pass without any publish/redeploy:

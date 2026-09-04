@@ -32,6 +32,32 @@ describe('YourProjects', () => {
     expect(screen.getByText(/No projects yet/)).toBeInTheDocument()
   })
 
+  it('caps the home teaser instead of listing every bookmarked project', () => {
+    useUserProjects.mockReturnValue({
+      connected: true,
+      loading: false,
+      projects: [1, 2, 3, 4].map((n) => ({
+        title: `Project ${n}`,
+        relations: ['created'],
+        project: {
+          id: `0x${String(n).padStart(40, '0')}`,
+          totalReceived: '0',
+          threshold: '100',
+          deadline: '9999999999',
+        },
+      })),
+    })
+    render(
+      <MemoryRouter>
+        <YourProjects compact />
+      </MemoryRouter>,
+    )
+    expect(screen.getByText('Project 1')).toBeInTheDocument()
+    expect(screen.getByText('Project 3')).toBeInTheDocument()
+    expect(screen.queryByText('Project 4')).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'See fundable work' })).toHaveAttribute('href', '/dashboard')
+  })
+
   it('lists related projects with funding status and Owner, not Created', () => {
     useUserProjects.mockReturnValue({
       connected: true,

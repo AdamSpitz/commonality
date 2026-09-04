@@ -32,6 +32,10 @@ vi.mock('../components/YourNudgersAndNudges', () => ({
   YourNudgersAndNudges: () => null,
 }))
 
+vi.mock('../components/YourCauses', () => ({
+  YourCauses: () => <div data-testid="home-causes-mock" />,
+}))
+
 describe('HomePage landing', () => {
   afterEach(cleanup)
 
@@ -59,9 +63,12 @@ describe('HomePage landing', () => {
       </MemoryRouter>,
     )
     expect(screen.getByTestId('home-dashboard')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Your work' })).toBeInTheDocument()
     expect(screen.getByTestId('home-dashboard-board')).toBeInTheDocument()
+    expect(screen.getByTestId('home-inbox-fund')).toBeInTheDocument()
+    expect(screen.getByTestId('home-inbox-sign')).toBeInTheDocument()
+    expect(screen.getByTestId('home-inbox-organize')).toBeInTheDocument()
     expect(screen.getByTestId('home-dashboard-causes')).toBeInTheDocument()
-    expect(screen.getByTestId('home-dashboard-activity')).toBeInTheDocument()
     expect(screen.queryByTestId('home-landing')).toBeNull()
   })
 })

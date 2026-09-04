@@ -33,7 +33,7 @@ export function YourDashboard({
   return (
     <Stack spacing={1.5} data-testid={headingId}>
       <Stack direction="row" alignItems="center" flexWrap="wrap" useFlexGap spacing={1}>
-        <Typography variant="h4" component="h1" sx={sectionHeadingSx}>
+        <Typography variant="h4" component={preview ? 'h2' : 'h1'} sx={sectionHeadingSx}>
           Fundable projects
         </Typography>
         <HeaderInfoTip
