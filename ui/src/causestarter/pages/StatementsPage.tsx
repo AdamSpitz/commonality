@@ -88,7 +88,7 @@ export function StatementsPage() {
         >
           <Typography
             component={RouterLink}
-            to={`/statement/${statement.cid}`}
+            to={`/statement/${statement.cid}?mode=sign`}
             variant="subtitle1"
             sx={{ fontWeight: 700, color: 'inherit', textDecoration: 'none' }}
           >

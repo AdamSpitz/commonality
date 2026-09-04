@@ -107,7 +107,7 @@ describe('YourNudgersAndNudges', () => {
     expect(screen.getByText('Neighbors already signed this.')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Fund sidewalk repairs on Oak Street.' })).toHaveAttribute(
       'href',
-      '/statement/bafysuggested',
+      '/statement/bafysuggested?mode=sign',
     )
   })
 })

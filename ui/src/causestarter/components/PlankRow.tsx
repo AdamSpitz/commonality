@@ -136,7 +136,7 @@ export function PlankRow({
               <Tooltip title="Open this statement">
                 <IconButton
                   component={RouterLink}
-                  to={`/statement/${plank.cid}`}
+                  to={`/statement/${plank.cid}?mode=sign`}
                   size="small"
                   aria-label="Open this statement"
                   sx={{ mt: -0.5, mr: -0.5, color: 'text.secondary' }}

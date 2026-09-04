@@ -154,7 +154,7 @@ export function YourNudgersAndNudges() {
             </Typography>
             <Typography
               component={RouterLink}
-              to={`/statement/${nudge.suggestedStatementCid}`}
+              to={`/statement/${nudge.suggestedStatementCid}?mode=sign`}
               variant="subtitle2"
               sx={{ display: 'block', mt: 0.5, fontWeight: 700, color: 'inherit', textDecoration: 'none' }}
             >

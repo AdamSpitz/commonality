@@ -73,16 +73,16 @@ describe('StatementsPage', () => {
       </MemoryRouter>,
     )
     expect(screen.getAllByTestId('signed-statement')).toHaveLength(2)
-    expect(screen.getByText('Local food')).toHaveAttribute('href', '/statement/bafy1')
+    expect(screen.getByText('Local food')).toHaveAttribute('href', '/statement/bafy1?mode=sign')
     expect(screen.getByText('Clean water for all')).toBeInTheDocument()
     expect(screen.getByText(/3 · 2 direct · 1 indirect/)).toBeInTheDocument()
     expect(screen.getByRole('link', { name: '4 projects' })).toHaveAttribute(
       'href',
-      '/statement/bafy1?section=fundable-projects',
+      '/statement/bafy1?mode=fund',
     )
     expect(screen.getByRole('link', { name: 'Projects' })).toHaveAttribute(
       'href',
-      '/statement/bafy2?section=fundable-projects',
+      '/statement/bafy2?mode=fund',
     )
   })
 })

@@ -68,6 +68,8 @@ export const causestarterManifest: DomainManifest = {
   shell: {
     primaryNavigation: [
       { label: 'Cause boards', path: '/causes' },
+      { label: 'Sign', path: '/statements' },
+      { label: 'Fund', path: '/dashboard' },
       { label: 'Docs', path: '/docs' },
     ],
     secondaryNavigation: [

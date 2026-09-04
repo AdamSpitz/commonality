@@ -5,5 +5,5 @@ export function StatementBoardRedirect() {
   const { statementCid } = useParams<{ statementCid: string }>()
   if (!statementCid) return <Navigate to="/" replace />
   // Query param, not a hash: HashRouter already owns location.hash on IPFS builds.
-  return <Navigate to={`/statement/${statementCid}?section=fundable-projects`} replace />
+  return <Navigate to={`/statement/${statementCid}?mode=fund`} replace />
 }

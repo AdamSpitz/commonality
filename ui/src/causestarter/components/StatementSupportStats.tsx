@@ -40,7 +40,7 @@ export function StatementSupportStats({
       {' · '}
       <Box
         component={RouterLink}
-        to={`/statement/${statementCid}?section=fundable-projects`}
+        to={`/statement/${statementCid}?mode=fund`}
         sx={{ color: 'inherit', textDecoration: 'underline', textUnderlineOffset: 2 }}
       >
         {projectCount > 0

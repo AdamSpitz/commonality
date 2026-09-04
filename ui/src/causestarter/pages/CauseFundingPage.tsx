@@ -299,7 +299,7 @@ export function CauseFundingPage() {
                       <Box sx={{ minWidth: 0 }}>
                         <Typography
                           component={RouterLink}
-                          to={`/statement/${plank.cid}`}
+                          to={`/statement/${plank.cid}?mode=fund`}
                           variant="body2"
                           sx={{
                             color: 'text.primary',

@@ -13,6 +13,8 @@ import {
   useTheme,
 } from '@mui/material'
 import FlagOutlinedIcon from '@mui/icons-material/FlagOutlined'
+import HowToRegOutlinedIcon from '@mui/icons-material/HowToRegOutlined'
+import VolunteerActivismOutlinedIcon from '@mui/icons-material/VolunteerActivismOutlined'
 import MenuBookOutlinedIcon from '@mui/icons-material/MenuBookOutlined'
 import GitHubIcon from '@mui/icons-material/GitHub'
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined'
@@ -24,17 +26,21 @@ const GITHUB_REPO_URL = 'https://github.com/AdamSpitz/commonality'
 
 const navItems = [
   { label: 'Cause boards', path: '/causes', testId: 'nav-causes', icon: <FlagOutlinedIcon /> },
+  { label: 'Sign', path: '/statements', testId: 'nav-sign', icon: <HowToRegOutlinedIcon /> },
+  { label: 'Fund', path: '/dashboard', testId: 'nav-fund', icon: <VolunteerActivismOutlinedIcon /> },
   { label: 'Docs', path: '/docs', testId: 'nav-docs', icon: <MenuBookOutlinedIcon /> },
 ] as const
 
-function activeNavPath(pathname: string): string {
+function activeNavPath(pathname: string, search: string): string {
   const match = navItems.find((item) => pathname === item.path || pathname.startsWith(`${item.path}/`))
   if (match) return match.path
+  if (pathname.startsWith('/statement')) {
+    return new URLSearchParams(search).get('mode') === 'fund' ? '/dashboard' : '/statements'
+  }
+  if (pathname.startsWith('/projects')) return '/dashboard'
   if (
     pathname.startsWith('/cause')
     || pathname.startsWith('/bridge')
-    || pathname.startsWith('/statement')
-    || pathname.startsWith('/projects')
   ) {
     return '/causes'
   }
@@ -50,7 +56,7 @@ export function CauseShell({ children }: CauseShellProps) {
   const navigate = useNavigate()
   const theme = useTheme()
   const isDesktop = useMediaQuery(theme.breakpoints.up('md'))
-  const current = activeNavPath(location.pathname)
+  const current = activeNavPath(location.pathname, location.search)
   const pageWidth = pageWidthForPath(location.pathname)
   const maxWidth = containerMaxWidth(pageWidth, isDesktop)
 

@@ -36,9 +36,28 @@ function documentText(doc: DisplayableDocument | null | undefined): string | nul
   return null
 }
 
+type StatementMode = 'sign' | 'fund' | 'all'
+
+function statementMode(searchParams: URLSearchParams): StatementMode {
+  const mode = searchParams.get('mode')
+  if (mode === 'sign' || mode === 'fund') return mode
+  // Keep old fundable-project links focused instead of silently expanding them.
+  if (searchParams.get('section') === 'fundable-projects') return 'fund'
+  return 'all'
+}
+
+function statementModePath(statementCid: string, mode: StatementMode): string {
+  return mode === 'all'
+    ? `/statement/${statementCid}`
+    : `/statement/${statementCid}?mode=${mode}`
+}
+
 export function StatementPage() {
   const { statementCid } = useParams<{ statementCid: string }>()
   const [searchParams] = useSearchParams()
+  const mode = statementMode(searchParams)
+  const showSigning = mode !== 'fund'
+  const showFunding = mode !== 'sign'
   const navigate = useNavigate()
   const machinery = useMachinery()
   const trustedImplicationAttesters = useTrustedAttesters()
@@ -109,12 +128,12 @@ export function StatementPage() {
     } finally {
       if (!cancelled()) setLoading(false)
     }
-  }, [machinery, statementCid])
+  }, [machinery, setContent, setError, setLoading, setOperandBodies, setStatement, statementCid])
 
   useEffect(() => {
-    if (loading || searchParams.get('section') !== 'fundable-projects') return
+    if (loading || mode !== 'fund' || searchParams.get('section') !== 'fundable-projects') return
     document.getElementById('fundable-projects')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  }, [loading, searchParams, statementCid])
+  }, [loading, mode, searchParams, statementCid])
 
   useEffect(() => {
     let cancelled = false
@@ -185,6 +204,39 @@ export function StatementPage() {
   return (
     <Stack spacing={2.5}>
       <Box>
+        {mode !== 'all' && (
+          <Stack
+            direction="row"
+            spacing={1}
+            alignItems="center"
+            justifyContent="space-between"
+            sx={{ mb: 1.5 }}
+            data-testid="statement-mode"
+          >
+            <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+              {mode === 'sign' ? 'Signing view' : 'Funding view'}
+            </Typography>
+            <Stack direction="row" spacing={0.5}>
+              <Button
+                component={RouterLink}
+                to={statementModePath(statementCid as string, mode === 'sign' ? 'fund' : 'sign')}
+                size="small"
+                sx={{ textTransform: 'none' }}
+              >
+                {mode === 'sign' ? 'Fund work' : 'Sign statement'}
+              </Button>
+              <Button
+                component={RouterLink}
+                to={statementModePath(statementCid as string, 'all')}
+                size="small"
+                color="inherit"
+                sx={{ textTransform: 'none' }}
+              >
+                Full view
+              </Button>
+            </Stack>
+          </Stack>
+        )}
         <Typography
           variant="overline"
           sx={{ letterSpacing: '0.14em', fontWeight: 700, color: 'primary.main', display: 'block' }}
@@ -227,7 +279,7 @@ export function StatementPage() {
                   </Typography>
                   <Link
                     component={RouterLink}
-                    to={`/statement/${operand.cid}`}
+                    to={statementModePath(operand.cid, mode)}
                     variant="caption"
                     underline="hover"
                   >
@@ -237,7 +289,7 @@ export function StatementPage() {
               ))}
             </Stack>
           )}
-          <Stack
+          {showSigning && <Stack
             direction="row"
             spacing={0.75}
             alignItems="center"
@@ -320,14 +372,14 @@ export function StatementPage() {
                 </>
               )}
             </Typography>
-          </Stack>
+          </Stack>}
         </Stack>
       </Paper>
       </Box>
 
-      <CauseFundingSummary statementCids={[statementCid as string]} />
+      {showFunding && <CauseFundingSummary statementCids={[statementCid as string]} />}
 
-      <CauseBoard
+      {showFunding && <CauseBoard
         statementCid={statementCid}
         trustedAlignmentAttesters={trustedAlignmentAttesters}
         embedded
@@ -344,16 +396,16 @@ export function StatementPage() {
             <StarterNetworkFilterCopy />
           </Stack>
         }
-      />
+      />}
 
-      <CauseLeaderboard
+      {showFunding && <CauseLeaderboard
         statementCid={statementCid as string}
         embedded
         limit={3}
         fullPageTo={`/statement/${statementCid}/board/leaderboard`}
-      />
+      />}
 
-      <Paper
+      {mode === 'all' && <Paper
         elevation={0}
         sx={{ p: 2, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}
       >
@@ -370,7 +422,7 @@ export function StatementPage() {
         >
           Start a related cause
         </Button>
-      </Paper>
+      </Paper>}
 
       <Snackbar
         open={cidCopiedOpen}
