@@ -122,7 +122,7 @@ describe('YourDashboard', () => {
     expect(screen.queryByTestId('fundable-projects')).toBeNull()
   })
 
-  it('shows board setup when no personal board has been configured', () => {
+  it('shows board setup when no personal board has been configured and nothing is signed', () => {
     useUserStatements.mockReturnValue({
       statements: [],
       loading: false,
@@ -137,6 +137,28 @@ describe('YourDashboard', () => {
     )
     expect(screen.getByTestId('funding-board-setup')).toBeInTheDocument()
     expect(screen.queryByTestId('fundable-projects')).toBeNull()
+  })
+
+  it('defaults the board to all signed statements until one is saved', () => {
+    useUserStatements.mockReturnValue({
+      statements: [
+        { cid: 'bafy1' },
+        { cid: 'bafy2' },
+      ],
+      loading: false,
+      connected: true,
+      error: null,
+      refresh: vi.fn(),
+    })
+    render(
+      <MemoryRouter>
+        <YourDashboard />
+      </MemoryRouter>,
+    )
+    expect(screen.queryByTestId('funding-board-setup')).toBeNull()
+    expect(screen.getByText(/2 signed statements \(default\)/)).toBeInTheDocument()
+    expect(screen.getByTestId('fundable-projects')).toHaveTextContent('preview:3:/dashboard:bafy1,bafy2')
+    expect(screen.queryByRole('button', { name: 'Use all signed statements' })).toBeNull()
   })
 
   it('uses explicitly selected statement CIDs for the fundable-projects board', () => {

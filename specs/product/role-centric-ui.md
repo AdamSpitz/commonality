@@ -130,10 +130,13 @@ view with its own parameters:
 - later, project stage/funding mode and other eligibility filters;
 - the source of money available to direct, when relevant.
 
-Signing and board setup should cooperate without being coupled. Useful bridges are
-"Add this statement to my funding board," "Start with statements I've signed," and
-"You signed related statements that are not included." Signing, retracting a
-signature, or editing the board never silently performs one of the other operations.
+Signing and board setup should cooperate without being coupled. Until a board is
+saved, Fund uses all signed statements as the default view. After a board is saved,
+signatures are not a live synchronization source. Useful bridges are
+"Add this statement to my funding board," "Edit board" (which can include signed
+statements), and "You signed related statements that are not included." Signing,
+retracting a signature, or editing the board never silently performs one of the other
+operations once an explicit board exists.
 
 ## Interaction rules
 
@@ -240,14 +243,18 @@ delegation** only when that is the actual operation.
 ## Explicit personal funding board (fifth slice implemented)
 
 Replace `/dashboard`'s implicit signed-statement union with a saved personal board
-definition. Existing users may be offered a one-time "start with my signed statements"
-action, but signed statements are not a live synchronization source. Show the active
-statement and geographic parameters above the project lists and provide an obvious
-Edit action. The editor can select signed statements or add any published statement by
-CID. Its local copy can be synchronized as public JSON in the wallet-owned
+definition. Until the person saves an explicit board, Fund defaults to all currently
+signed statements (live, no extra confirmation). Saving a board freezes that
+definition; later signatures are not added unless the person edits the board. Show the
+active statement and geographic parameters above the project lists and provide an
+obvious Edit action. The editor can select signed statements or add any published
+statement by CID. Its local copy can be synchronized as public JSON in the wallet-owned
 `personal-funding-board` MutableRef. Device/wallet conflicts require an explicit choice;
 they are never silently resolved by last writer. Signing views also offer an explicit
 "Add to my funding board" action that does not alter signing state.
+
+Money available to direct on Fund is a collapsed summary by default (active-fund and
+entrusted counts). Expanding it lists individual notes and the preferred-fund control.
 
 ## Work workspace (sixth slice implemented)
 

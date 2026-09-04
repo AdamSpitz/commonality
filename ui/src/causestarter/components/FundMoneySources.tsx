@@ -1,4 +1,5 @@
-import { Alert, Button, Chip, CircularProgress, Paper, Stack, Typography } from '@mui/material'
+import { Accordion, AccordionDetails, AccordionSummary, Alert, Button, Chip, CircularProgress, Paper, Stack, Typography } from '@mui/material'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { useEffect, useState } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
 import { useAccount } from 'wagmi'
@@ -82,35 +83,39 @@ export function FundMoneySources() {
         </Typography>
       )}
       {!loading && !error && notes.length > 0 && (
-        <>
-          <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
-            <Chip label={`${notes.length} active ${notes.length === 1 ? 'fund' : 'funds'}`} size="small" />
-            {entrustedCount > 0 && <Chip label={`${entrustedCount} entrusted to you`} color="info" size="small" />}
-          </Stack>
-          <Stack spacing={1} sx={{ mt: 1.5 }}>
-            {notes.map((note) => (
-              <Stack key={noteScopedKey(note)} direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ sm: 'center' }} gap={1}>
-                <Typography variant="body2">
-                  Fund #{note.id} · {formatNoteAmount(note)}{isDelegate(note) ? ` · Entrusted by ${truncateAddress(note.rootOwner)}` : ' · Your fund'}
-                </Typography>
-                <Stack direction="row" spacing={1}>
-                  <Button
-                    size="small"
-                    variant={preferredKey === noteScopedKey(note) ? 'contained' : 'text'}
-                    disabled={!hasBoard || preferredKey === noteScopedKey(note)}
-                    onClick={() => prefer(note)}
-                  >
-                    {preferredKey === noteScopedKey(note) ? 'Preferred' : 'Use by default'}
-                  </Button>
-                  <Button component={RouterLink} to={noteDetailPath(note)} size="small">View fund</Button>
+        <Accordion disableGutters elevation={0} slotProps={{ transition: { unmountOnExit: true } }} sx={{ mt: 1.5, '&:before': { display: 'none' }, bgcolor: 'transparent' }}>
+          <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ px: 0, minHeight: 40 }}>
+            <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+              <Chip label={`${notes.length} active ${notes.length === 1 ? 'fund' : 'funds'}`} size="small" />
+              {entrustedCount > 0 && <Chip label={`${entrustedCount} entrusted to you`} color="info" size="small" />}
+            </Stack>
+          </AccordionSummary>
+          <AccordionDetails sx={{ px: 0, pt: 0 }}>
+            <Stack spacing={1}>
+              {notes.map((note) => (
+                <Stack key={noteScopedKey(note)} direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ sm: 'center' }} gap={1}>
+                  <Typography variant="body2">
+                    Fund #{note.id} · {formatNoteAmount(note)}{isDelegate(note) ? ` · Entrusted by ${truncateAddress(note.rootOwner)}` : ' · Your fund'}
+                  </Typography>
+                  <Stack direction="row" spacing={1}>
+                    <Button
+                      size="small"
+                      variant={preferredKey === noteScopedKey(note) ? 'contained' : 'text'}
+                      disabled={!hasBoard || preferredKey === noteScopedKey(note)}
+                      onClick={() => prefer(note)}
+                    >
+                      {preferredKey === noteScopedKey(note) ? 'Preferred' : 'Use by default'}
+                    </Button>
+                    <Button component={RouterLink} to={noteDetailPath(note)} size="small">View fund</Button>
+                  </Stack>
                 </Stack>
-              </Stack>
-            ))}
-          </Stack>
-          {!hasBoard && (
-            <Typography variant="caption" color="text.secondary">Set up your funding board before choosing a default fund.</Typography>
-          )}
-        </>
+              ))}
+            </Stack>
+            {!hasBoard && (
+              <Typography variant="caption" color="text.secondary">Set up your funding board before choosing a default fund.</Typography>
+            )}
+          </AccordionDetails>
+        </Accordion>
       )}
     </Paper>
   )

@@ -42,6 +42,7 @@ describe('FundMoneySources', () => {
     getNotesByOwner.mockResolvedValue([note()])
     render(<MemoryRouter><FundMoneySources /></MemoryRouter>)
 
+    fireEvent.click(await screen.findByText('1 active fund'))
     fireEvent.click(await screen.findByRole('button', { name: 'Use by default' }))
 
     expect(screen.getByRole('button', { name: 'Preferred' })).toBeDisabled()
@@ -65,6 +66,8 @@ describe('FundMoneySources', () => {
 
     await waitFor(() => expect(screen.getByText('2 active funds')).toBeInTheDocument())
     expect(screen.getByText('1 entrusted to you')).toBeInTheDocument()
+    expect(screen.queryByText(/Fund #1/)).not.toBeInTheDocument()
+    fireEvent.click(screen.getByText('2 active funds'))
     expect(screen.getByText(/Fund #1.*Your fund/)).toBeInTheDocument()
     expect(screen.getByText(/Fund #2.*Entrusted by/)).toBeInTheDocument()
     expect(screen.queryByText(/Fund #3/)).not.toBeInTheDocument()

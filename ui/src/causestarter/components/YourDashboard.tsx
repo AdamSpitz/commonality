@@ -51,7 +51,10 @@ export function YourDashboard({
     showInitialTrustLoad,
     trustError,
   } = useAlignmentTrust()
-  const statementCids = board?.statementCids ?? []
+  const signedCids = statements.map((statement) => statement.cid)
+  const usingSignedDefault = !board && signedCids.length > 0
+  const effectiveBoard = board ?? (usingSignedDefault ? { statementCids: signedCids } : null)
+  const statementCids = effectiveBoard?.statementCids ?? []
 
   useEffect(() => {
     const next = readPersonalFundingBoard(address)
@@ -84,9 +87,8 @@ export function YourDashboard({
     return () => { cancelled = true }
   }, [address, machinery])
 
-  const beginSetup = (startWithSigned = false) => {
-    const cids = startWithSigned ? statements.map((statement) => statement.cid) : board?.statementCids ?? []
-    setSelectedCids(cids)
+  const beginSetup = () => {
+    setSelectedCids(board?.statementCids ?? signedCids)
     setGeography(board?.geographicWithin?.join(', ') ?? '')
     setEditing(true)
   }
@@ -94,7 +96,11 @@ export function YourDashboard({
   const saveBoard = () => {
     if (!address) return
     const geographicWithin = geography.split(',').map((part) => part.trim()).filter(Boolean)
-    const next = { statementCids: selectedCids, ...(geographicWithin.length ? { geographicWithin } : {}) }
+    const next = {
+      statementCids: selectedCids,
+      ...(geographicWithin.length ? { geographicWithin } : {}),
+      ...(board?.preferredMoneySource ? { preferredMoneySource: board.preferredMoneySource } : {}),
+    }
     writePersonalFundingBoard(address, next)
     setBoard(next)
     setEditing(false)
@@ -157,14 +163,16 @@ export function YourDashboard({
         />
       </Stack>
 
-      {connected && !loading && !error && !editing && board && (
+      {connected && !loading && !error && !editing && effectiveBoard && (
         <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }} data-testid="funding-board-parameters">
           <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" gap={1.5}>
             <Box>
               <Typography variant="subtitle2" sx={{ fontWeight: 750 }}>Board parameters</Typography>
               <Typography variant="body2" color="text.secondary">
-                {statementCids.length === 1 ? '1 statement' : `${statementCids.length} statements`}
-                {board.geographicWithin?.length ? ` · ${board.geographicWithin.join(', ')}` : ' · Anywhere'}
+                {usingSignedDefault
+                  ? `${statementCids.length === 1 ? '1 signed statement' : `${statementCids.length} signed statements`} (default)`
+                  : `${statementCids.length === 1 ? '1 statement' : `${statementCids.length} statements`}`}
+                {effectiveBoard.geographicWithin?.length ? ` · ${effectiveBoard.geographicWithin.join(', ')}` : ' · Anywhere'}
               </Typography>
             </Box>
             <Button onClick={() => beginSetup()} sx={{ alignSelf: { sm: 'center' } }}>Edit board</Button>
@@ -208,7 +216,7 @@ export function YourDashboard({
 
       {syncError && <Alert severity="warning" onClose={() => setSyncError(null)}>{syncError}</Alert>}
 
-      {connected && !loading && !error && (editing || !board) && (
+      {connected && !loading && !error && (editing || !effectiveBoard) && (
         <Paper variant="outlined" sx={{ p: { xs: 2, sm: 2.5 }, borderRadius: 2 }} data-testid="funding-board-setup">
           <Typography variant="h6" component="h2" sx={{ fontWeight: 750 }}>Set up your funding board</Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, mb: 2 }}>
@@ -262,9 +270,8 @@ export function YourDashboard({
           </Stack>
           <TextField fullWidth size="small" label="Geographic scope (optional)" value={geography} onChange={(event) => setGeography(event.target.value)} helperText="Specific to broad, separated by commas — for example Toronto, Ontario, Canada." />
           <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
-            {!board && statements.length > 0 && <Button variant="outlined" onClick={() => beginSetup(true)}>Use all signed statements</Button>}
             <Button variant="contained" onClick={saveBoard} disabled={selectedCids.length === 0}>Save board</Button>
-            {board && <Button onClick={() => setEditing(false)}>Cancel</Button>}
+            {effectiveBoard && <Button onClick={() => setEditing(false)}>Cancel</Button>}
           </Stack>
         </Paper>
       )}
@@ -312,7 +319,7 @@ export function YourDashboard({
           <CauseBoard
             statementCids={statementCids}
             trustedAlignmentAttesters={trustedAlignmentAttesters}
-            inclusionRules={board?.geographicWithin?.length ? { geographic: { within: board.geographicWithin } } : undefined}
+            inclusionRules={effectiveBoard?.geographicWithin?.length ? { geographic: { within: effectiveBoard.geographicWithin } } : undefined}
             embedded
             surfaceTitle="Fundable Projects"
             projectLinks="local"

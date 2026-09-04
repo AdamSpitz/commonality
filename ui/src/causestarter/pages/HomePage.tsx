@@ -89,8 +89,10 @@ export function HomePage() {
           loading={isConnected && statementsLoading}
           summary={fundingBoard
             ? <Typography variant="body2" sx={{ fontWeight: 700 }}>{countLabel(fundingBoard.statementCids.length, 'statement')} in your board{fundingBoard.geographicWithin?.length ? ` · ${fundingBoard.geographicWithin.join(', ')}` : ''}</Typography>
-            : <Typography variant="body2" color="text.secondary">Set the scope of your personal funding board.</Typography>}
-          action={fundingBoard ? 'Review projects' : 'Set up your funding board'}
+            : statements.length > 0
+              ? <Typography variant="body2" sx={{ fontWeight: 700 }}>{countLabel(statements.length, 'signed statement')} (default board)</Typography>
+              : <Typography variant="body2" color="text.secondary">Set the scope of your personal funding board.</Typography>}
+          action={fundingBoard || statements.length > 0 ? 'Review projects' : 'Set up your funding board'}
         />
         <RoleCard
           title="Work"

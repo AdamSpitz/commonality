@@ -44,6 +44,6 @@ describe('HomePage role launcher', () => {
     renderHome({ connected: true, statements: 3, pledges: 1, notes: 2 })
     expect(screen.getByText('3 signed statements')).toBeInTheDocument()
     expect(screen.getByText('1 monthly pledge · 2 active funds')).toBeInTheDocument()
-    expect(screen.getByText('Set the scope of your personal funding board.')).toBeInTheDocument()
+    expect(screen.getByText('3 signed statements (default board)')).toBeInTheDocument()
   })
 })

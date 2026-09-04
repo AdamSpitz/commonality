@@ -19,8 +19,9 @@ export function PersonalDashboardPage() {
           Fund
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, maxWidth: 560 }}>
-          Help proposed work reach its threshold. Your personal board uses the
-          statements and filters you choose; signing a statement does not change it.
+          Help proposed work reach its threshold. Until you save a board, this uses
+          every statement you have signed. After you save one, signing no longer
+          changes it.
         </Typography>
       </Box>
       <FundMoneySources />
