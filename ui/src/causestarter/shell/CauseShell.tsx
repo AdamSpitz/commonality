@@ -13,6 +13,7 @@ import {
   useTheme,
 } from '@mui/material'
 import FlagOutlinedIcon from '@mui/icons-material/FlagOutlined'
+import HandymanOutlinedIcon from '@mui/icons-material/HandymanOutlined'
 import HowToRegOutlinedIcon from '@mui/icons-material/HowToRegOutlined'
 import VolunteerActivismOutlinedIcon from '@mui/icons-material/VolunteerActivismOutlined'
 import SavingsOutlinedIcon from '@mui/icons-material/SavingsOutlined'
@@ -27,6 +28,7 @@ const GITHUB_REPO_URL = 'https://github.com/AdamSpitz/commonality'
 
 const navItems = [
   { label: 'Organize', path: '/causes', testId: 'nav-causes', icon: <FlagOutlinedIcon /> },
+  { label: 'Work', path: '/work', testId: 'nav-work', icon: <HandymanOutlinedIcon /> },
   { label: 'Sign', path: '/statements', testId: 'nav-sign', icon: <HowToRegOutlinedIcon /> },
   { label: 'Donate', path: '/donate', testId: 'nav-donate', icon: <SavingsOutlinedIcon /> },
   { label: 'Fund', path: '/dashboard', testId: 'nav-fund', icon: <VolunteerActivismOutlinedIcon /> },
@@ -39,7 +41,11 @@ function activeNavPath(pathname: string, search: string): string {
   if (pathname.startsWith('/statement')) {
     return new URLSearchParams(search).get('mode') === 'fund' ? '/dashboard' : '/statements'
   }
-  if (pathname.startsWith('/projects')) return '/dashboard'
+  if (pathname.startsWith('/projects')) {
+    return new URLSearchParams(search).get('mode') === 'work' || pathname.startsWith('/projects/new')
+      ? '/work'
+      : '/dashboard'
+  }
   if (pathname.startsWith('/delegation')) return '/donate'
   if (
     pathname.startsWith('/cause')

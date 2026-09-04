@@ -17,6 +17,7 @@ const routes: ReactNode = (
     <Route path="/bridge/:owner/:slugPart" element={lazyRoute(() => import('../../causestarter/pages/BridgeClusterPage'), 'BridgeClusterPage')} />
     <Route path="/bridge/:draftId" element={lazyRoute(() => import('../../causestarter/pages/BridgeClusterPage'), 'BridgeClusterPage')} />
     <Route path="/causes" element={lazyRoute(() => import('../../causestarter/pages/CausesPage'), 'CausesPage')} />
+    <Route path="/work" element={lazyRoute(() => import('../../causestarter/pages/WorkPage'), 'WorkPage')} />
     <Route path="/statements" element={lazyRoute(() => import('../../causestarter/pages/StatementsPage'), 'StatementsPage')} />
     <Route path="/delegation" element={<Navigate to="/delegation/notes" replace />} />
     <Route path="/delegation/notes" element={lazyRoute(() => import('../../delegation/pages/MyNotesPage'), 'MyNotesPage')} />
@@ -69,6 +70,7 @@ export const causestarterManifest: DomainManifest = {
   shell: {
     primaryNavigation: [
       { label: 'Organize', path: '/causes' },
+      { label: 'Work', path: '/work' },
       { label: 'Sign', path: '/statements' },
       { label: 'Donate', path: '/donate' },
       { label: 'Fund', path: '/dashboard' },

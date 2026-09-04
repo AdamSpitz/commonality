@@ -21,5 +21,7 @@ describe('CausesPage', () => {
     expect(screen.getByTestId('organize-workspace')).toBeInTheDocument()
     expect(screen.getByText('Organize')).toBeInTheDocument()
     expect(screen.getByTestId('your-causes')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Go to Work' })).toHaveAttribute('href', '/work')
   })
 })
+

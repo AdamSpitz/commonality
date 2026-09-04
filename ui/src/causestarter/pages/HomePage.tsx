@@ -93,14 +93,24 @@ export function HomePage() {
           action={fundingBoard ? 'Review projects' : 'Set up your funding board'}
         />
         <RoleCard
+          title="Work"
+          to="/work"
+          description="Create a project, follow the ones you started, and keep a shared bookmark list of work you care about."
+          loading={isConnected && projectsLoading}
+          summary={createdProjects > 0
+            ? <Typography variant="body2" sx={{ fontWeight: 700 }}>{countLabel(createdProjects, 'created project')}</Typography>
+            : <Typography variant="body2" color="text.secondary">Publish a piece of work people can fund.</Typography>}
+          action={createdProjects > 0 ? 'Continue your work' : 'Start a project'}
+        />
+        <RoleCard
           title="Organize"
           to="/causes"
-          description="Create and manage projects, publish cause boards, and help people coordinate around shared work."
-          loading={causesLoading || (isConnected && projectsLoading)}
-          summary={causes.length > 0 || createdProjects > 0
-            ? <Typography variant="body2" sx={{ fontWeight: 700 }}>{countLabel(causes.length, 'cause board')} · {countLabel(createdProjects, 'created project')}</Typography>
-            : <Typography variant="body2" color="text.secondary">Turn a useful idea into something other people can join.</Typography>}
-          action={causes.length > 0 || createdProjects > 0 ? 'Continue organizing' : 'Start organizing'}
+          description="Publish cause boards and help people coordinate around shared statements."
+          loading={causesLoading}
+          summary={causes.length > 0
+            ? <Typography variant="body2" sx={{ fontWeight: 700 }}>{countLabel(causes.length, 'cause board')}</Typography>
+            : <Typography variant="body2" color="text.secondary">Turn a useful mix of statements into a board people can share.</Typography>}
+          action={causes.length > 0 ? 'Continue organizing' : 'Start organizing'}
         />
       </Box>
     </Stack>

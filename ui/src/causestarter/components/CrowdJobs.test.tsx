@@ -12,7 +12,7 @@ describe('CrowdJobs', () => {
     )
     expect(screen.getByTestId('crowd-job-workspace-money')).toHaveAttribute('href', '/dashboard')
     expect(screen.getByTestId('crowd-job-workspace-attention')).toHaveAttribute('href', '/dashboard')
-    expect(screen.getByTestId('crowd-job-workspace-work')).toHaveAttribute('href', '/causes')
+    expect(screen.getByTestId('crowd-job-workspace-work')).toHaveAttribute('href', '/work')
     expect(screen.getByTestId('crowd-job-workspace-wording')).toHaveAttribute('href', '/statements')
   })
 })

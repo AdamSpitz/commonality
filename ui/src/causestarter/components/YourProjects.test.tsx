@@ -1,81 +1,78 @@
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { YourProjects } from './YourProjects'
+import type { UserProject } from '../lib/userProjects'
 
-const { useUserProjects } = vi.hoisted(() => ({
-  useUserProjects: vi.fn(),
-}))
-
-vi.mock('../hooks/useUserProjects', () => ({
-  useUserProjects,
-}))
-
-vi.mock('./ConnectWalletHint', () => ({
-  ConnectWalletHint: ({ children }: { children: string }) => <div>{children}</div>,
-}))
+const sample = (n: number): UserProject => ({
+  title: `Project ${n}`,
+  relations: ['created'],
+  project: {
+    id: `0x${String(n).padStart(40, '0')}`,
+    totalReceived: '0',
+    threshold: '100',
+    deadline: '9999999999',
+  } as UserProject['project'],
+})
 
 describe('YourProjects', () => {
-  beforeEach(() => {
-    vi.clearAllMocks()
-  })
-
   it('shows create and an empty connected state', () => {
-    useUserProjects.mockReturnValue({ projects: [], loading: false, connected: true })
     render(
       <MemoryRouter>
-        <YourProjects />
+        <YourProjects
+          heading="Your projects"
+          empty="No projects yet."
+          projects={[]}
+          loading={false}
+          connected
+          showCreate
+        />
       </MemoryRouter>,
     )
-    expect(screen.getByRole('heading', { name: 'Bookmarked projects' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Your projects' })).toBeInTheDocument()
     expect(screen.getByTestId('home-create-project')).toBeInTheDocument()
     expect(screen.getByText(/No projects yet/)).toBeInTheDocument()
   })
 
-  it('caps the home teaser instead of listing every bookmarked project', () => {
-    useUserProjects.mockReturnValue({
-      connected: true,
-      loading: false,
-      projects: [1, 2, 3, 4].map((n) => ({
-        title: `Project ${n}`,
-        relations: ['created'],
-        project: {
-          id: `0x${String(n).padStart(40, '0')}`,
-          totalReceived: '0',
-          threshold: '100',
-          deadline: '9999999999',
-        },
-      })),
-    })
+  it('caps the teaser instead of listing every project', () => {
     render(
       <MemoryRouter>
-        <YourProjects compact />
+        <YourProjects
+          compact
+          heading="Your projects"
+          empty=""
+          projects={[1, 2, 3, 4].map(sample)}
+          loading={false}
+          connected
+          mode="work"
+        />
       </MemoryRouter>,
     )
     expect(screen.getByText('Project 1')).toBeInTheDocument()
     expect(screen.getByText('Project 3')).toBeInTheDocument()
     expect(screen.queryByText('Project 4')).not.toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'See fundable work' })).toHaveAttribute('href', '/dashboard')
+    expect(screen.getByRole('link', { name: 'See all' })).toHaveAttribute('href', '/work')
   })
 
   it('lists related projects with funding status and Owner, not Created', () => {
-    useUserProjects.mockReturnValue({
-      connected: true,
-      loading: false,
-      projects: [{
-        title: 'Garden beds',
-        relations: ['created', 'contributed'],
-        project: {
-          id: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
-          totalReceived: '100',
-          threshold: '100',
-          deadline: '9999999999',
-        },
-      }],
-    })
     render(
       <MemoryRouter>
-        <YourProjects />
+        <YourProjects
+          heading="Your projects"
+          empty=""
+          projects={[{
+            title: 'Garden beds',
+            relations: ['created', 'contributed'],
+            project: {
+              id: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+              totalReceived: '100',
+              threshold: '100',
+              deadline: '9999999999',
+            } as UserProject['project'],
+          }]}
+          loading={false}
+          connected
+        />
       </MemoryRouter>,
     )
     expect(screen.getByText('Garden beds')).toBeInTheDocument()

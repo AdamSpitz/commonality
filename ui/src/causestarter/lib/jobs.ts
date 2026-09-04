@@ -41,8 +41,8 @@ export const CROWD_JOBS: CrowdJob[] = [
     ugh: 'I can’t self-fund, and I don’t know a grant officer.',
     soYou: 'Publish it. A friend one hop better-connected can vouch that it advances a statement people already watch.',
     docsHash: 'work',
-    workspacePath: '/causes',
-    workspaceLabel: 'Open Organize',
+    workspacePath: '/work',
+    workspaceLabel: 'Open Work',
   },
   {
     id: 'wording',

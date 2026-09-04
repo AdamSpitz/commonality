@@ -9,7 +9,7 @@ describe('jobs catalog', () => {
     expect(CROWD_JOBS.map((job) => [job.id, job.workspacePath])).toEqual([
       ['money', '/dashboard'],
       ['attention', '/dashboard'],
-      ['work', '/causes'],
+      ['work', '/work'],
       ['wording', '/statements'],
     ])
   })

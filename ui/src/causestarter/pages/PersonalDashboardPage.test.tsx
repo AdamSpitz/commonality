@@ -11,6 +11,10 @@ vi.mock('../components/FundMoneySources', () => ({
   FundMoneySources: () => <div data-testid="fund-money-sources" />,
 }))
 
+vi.mock('../hooks/useUserProjects', () => ({
+  useUserProjects: () => ({ projects: [], loading: false, connected: true }),
+}))
+
 describe('PersonalDashboardPage', () => {
   it('labels the page as the Fund workspace', () => {
     render(
@@ -22,5 +26,8 @@ describe('PersonalDashboardPage', () => {
     expect(screen.getByText('Fund')).toBeInTheDocument()
     expect(screen.getByTestId('fund-money-sources')).toBeInTheDocument()
     expect(screen.getByTestId('personal-dashboard-page')).toBeInTheDocument()
+    expect(screen.getByTestId('fund-bookmarked-projects')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Go to Work' })).toHaveAttribute('href', '/work')
   })
 })
+

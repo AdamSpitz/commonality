@@ -29,12 +29,13 @@ function renderHome({ connected = false, statements = 0, pledges = 0, notes = 0 
 describe('HomePage role launcher', () => {
   afterEach(cleanup)
 
-  it('gives every visitor the four focused role cards', () => {
+  it('gives every visitor the focused role cards', () => {
     renderHome()
     expect(screen.getByRole('heading', { name: 'What would you like to do?' })).toBeInTheDocument()
     expect(screen.getByTestId('home-role-sign')).toHaveAttribute('href', '/statements')
     expect(screen.getByTestId('home-role-donate')).toHaveAttribute('href', '/donate')
     expect(screen.getByTestId('home-role-fund')).toHaveAttribute('href', '/dashboard')
+    expect(screen.getByTestId('home-role-work')).toHaveAttribute('href', '/work')
     expect(screen.getByTestId('home-role-organize')).toHaveAttribute('href', '/causes')
     expect(screen.getByText('Signing does not commit money.', { exact: false })).toBeInTheDocument()
   })

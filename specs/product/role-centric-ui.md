@@ -1,9 +1,9 @@
 # Role-centric UI
 
-**Status:** Direction accepted. Sign/Fund lenses and workspace chrome were implemented
-2026-09-04. The home role launcher, Donate workspace (including a first donor-attributed
-allocation/receipt feed), and device-local explicit personal funding-board configuration
-supersede the earlier home inbox grouping.
+**Status:** Direction accepted. Sign/Fund lenses, workspace chrome, Donate, explicit
+personal funding boards, and the Work workspace (create/created/bookmarks) were
+implemented 2026-09-04. The home role launcher supersedes the earlier home inbox
+grouping.
 
 ## Original rambling motivation for this
 
@@ -84,9 +84,15 @@ Group related roles into a small number of user-facing workspaces:
    allocation work to someone trusted.
 3. **Fund** — actively choose proposed, promising, or delivered projects and direct
    money. Contribution, scout funding, retroactive donation, and acting as a delegate
-   are different mechanisms inside this active allocation job.
-4. **Evaluate** — alignment and success attestations.
-5. **Organize** — projects, cause boards, mediation, and channel claims.
+   are different mechanisms inside this active allocation job. Fund also shows the
+   shared bookmarked-projects list (same list as Work).
+4. **Work** — create a project and manage the projects this wallet created. The
+   official on-chain project roles besides creator and funder are payout recipient
+   (may differ from the creator) and, later, alignment/success attester (Evaluate).
+   Bookmarks are a device/wallet list shared with Fund, not a protocol role.
+5. **Evaluate** — alignment and success attestations.
+6. **Organize** — cause boards, mediation, and channel claims. Project creation
+   lives in Work; Organize links there.
 
 Vertical building belongs in a founder area, documentation, or operator console rather
 than ordinary daily navigation.
@@ -101,8 +107,9 @@ It shows one card per established workspace. Each card answers:
 For an empty role, the card gives a short explanation and an entry action. Once the
 person has activity, that explanation gives way to a terse summary or useful next
 step: signed-statement count for Sign; monthly pledge and available-funds status for
-Donate; configured scope and newly eligible work for Fund; cause-board/project count
-for Organize. Evaluate should not appear until it has a real workspace.
+Donate; configured scope and newly eligible work for Fund; created-project count for
+Work; cause-board count for Organize. Evaluate should not appear until it has a real
+workspace.
 
 Cards have equal semantic status but need not have equal visual urgency. The most
 actionable current state may lead; passive or empty roles remain compact. The home
@@ -185,9 +192,11 @@ Give each daily workspace a job label without turning it into a brand:
 - `/dashboard` overline **Fund**, plus one sentence that this is the signed-statement
   project union
 - `/causes` overline **Organize**
-- Project detail opened from Fund returns to `/dashboard` (`Back to Fund`), not home
+- `/work` overline **Work**
+- Project detail opened from Fund returns to `/dashboard` (`Back to Fund`); from
+  Work (`?mode=work`) it returns to `/work`
 - Empty-home job cards link into those workspaces (Money/Attention → Fund,
-  Work → Organize, Wording → Sign)
+  Work job → `/work`, Wording → Sign)
 
 Still no Direct funds / Evaluate top-level nav. Workspace choice is still
 link-driven only (not persisted).
@@ -239,6 +248,23 @@ CID. Its local copy can be synchronized as public JSON in the wallet-owned
 `personal-funding-board` MutableRef. Device/wallet conflicts require an explicit choice;
 they are never silently resolved by last writer. Signing views also offer an explicit
 "Add to my funding board" action that does not alter signing state.
+
+## Work workspace (sixth slice implemented)
+
+`/work` is for the person who would do a piece of work:
+
+1. **Create a project.**
+2. **Projects this wallet created** — the creator/owner relation from
+   `ProjectCreated`.
+3. **Bookmarked projects** — the same wallet/device list as Fund
+   (`bookmarked-projects`). Do not keep separate per-role bookmark lists.
+
+Organize no longer hosts project creation; it links to Work. Fund does not create
+projects; it links to Work and still shows the shared bookmark list.
+
+The official protocol roles on a project besides creator and funder are payout
+recipient (can be a different address) and, later, alignment/success attester
+(Evaluate). Bookmarks are not a protocol role.
 
 ## Later questions
 
