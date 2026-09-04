@@ -21,6 +21,10 @@ vi.mock('../hooks/useAlignmentTrust', () => ({
 }))
 
 vi.mock('@commonality/sdk/conceptspace', () => ({ getStatementWithContent }))
+vi.mock('@commonality/sdk/mutable-refs', () => ({
+  getUserRef: vi.fn().mockResolvedValue(null),
+  updateRef: vi.fn(),
+}))
 
 vi.mock('@ui/fundingportals', () => ({
   CauseBoard: ({
@@ -41,6 +45,8 @@ vi.mock('@ui/shared', () => ({
   TrustNetworkRefreshIndicator: () => null,
   HeaderInfoTip: () => null,
   useMachinery: () => ({}),
+  useWriteClients: () => null,
+  getRuntimeConfigValue: () => undefined,
 }))
 
 vi.mock('./AlignmentTrustGate', () => ({
@@ -82,7 +88,7 @@ describe('YourDashboard', () => {
     await waitFor(() => expect(getStatementWithContent).toHaveBeenCalledWith({}, 'bafyarbitrary'))
     expect(screen.getByTestId('funding-board-selected-statements')).toHaveTextContent('bafyarbitrary')
     fireEvent.click(screen.getByRole('button', { name: 'Save board' }))
-    expect(JSON.parse(window.localStorage.getItem('causestarter.personal-funding-board.v1:0xabc')!)).toEqual({ statementCids: ['bafyarbitrary'] })
+    expect(JSON.parse(window.localStorage.getItem('causestarter.personal-funding-board.v1:0xabc')!)).toEqual({ version: 1, statementCids: ['bafyarbitrary'] })
   })
 
   it('keeps unsigned board statements visible and removable while editing', () => {

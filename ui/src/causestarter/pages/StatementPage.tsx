@@ -11,6 +11,7 @@ import {
   Typography,
 } from '@mui/material'
 import { Link as RouterLink, useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { useAccount } from 'wagmi'
 import { getStatementWithContent, type Statement } from '@commonality/sdk/conceptspace'
 import {
   parseCombinatorStatement,
@@ -25,6 +26,10 @@ import { CauseFundingSummary } from '../components/CauseFundingSummary'
 import { StarterNetworkFilterCopy } from '../components/StarterNetworkFilterNotice'
 import { useViewCounts } from '../hooks/useViewCounts'
 import { createCausePath } from '../lib/causeStore'
+import {
+  readPersonalFundingBoard,
+  writePersonalFundingBoard,
+} from '../lib/personalFundingBoard'
 import { useMachinery } from '../../shared'
 
 function documentText(doc: DisplayableDocument | null | undefined): string | null {
@@ -59,6 +64,7 @@ export function StatementPage() {
   const showSigning = mode !== 'fund'
   const showFunding = mode !== 'sign'
   const navigate = useNavigate()
+  const { address } = useAccount()
   const machinery = useMachinery()
   const trustedImplicationAttesters = useTrustedAttesters()
   const { trustedAlignmentAttesters } = useAlignmentTrust()
@@ -82,6 +88,28 @@ export function StatementPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [cidCopiedOpen, setCidCopiedOpen] = useState(false)
+  const [addedToFundingBoardOpen, setAddedToFundingBoardOpen] = useState(false)
+  const [isInFundingBoard, setIsInFundingBoard] = useState(false)
+
+  useEffect(() => {
+    const board = readPersonalFundingBoard(address)
+    setIsInFundingBoard(Boolean(statementCid && board?.statementCids.includes(statementCid)))
+  }, [address, statementCid])
+
+  const addToFundingBoard = () => {
+    if (!address || !statementCid) return
+    const current = readPersonalFundingBoard(address)
+    if (current?.statementCids.includes(statementCid)) {
+      setIsInFundingBoard(true)
+      return
+    }
+    writePersonalFundingBoard(address, {
+      ...current,
+      statementCids: [...(current?.statementCids ?? []), statementCid],
+    })
+    setIsInFundingBoard(true)
+    setAddedToFundingBoardOpen(true)
+  }
 
   // Operand reads outlive a navigation, so every write past an await is guarded:
   // a late resolve must not paint one statement's operands onto another.
@@ -340,6 +368,26 @@ export function StatementPage() {
             })()
           }}
             />
+            {address ? (
+              <Button
+                size="small"
+                variant="outlined"
+                disabled={isInFundingBoard}
+                onClick={addToFundingBoard}
+                sx={{ textTransform: 'none' }}
+              >
+                {isInFundingBoard ? 'Included in my funding board' : 'Add to my funding board'}
+              </Button>
+            ) : (
+              <Button
+                size="small"
+                component={RouterLink}
+                to="/dashboard"
+                sx={{ textTransform: 'none' }}
+              >
+                Add to my funding board
+              </Button>
+            )}
             <Typography variant="caption" color="text.secondary">
               {supportCaption}{createdLabel}
               {statementCid && (
@@ -429,6 +477,12 @@ export function StatementPage() {
         autoHideDuration={2500}
         onClose={() => setCidCopiedOpen(false)}
         message="CID copied"
+      />
+      <Snackbar
+        open={addedToFundingBoardOpen}
+        autoHideDuration={3500}
+        onClose={() => setAddedToFundingBoardOpen(false)}
+        message="Added to your funding board. Signing remains unchanged."
       />
     </Stack>
   )

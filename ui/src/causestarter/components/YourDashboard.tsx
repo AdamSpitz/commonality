@@ -4,14 +4,21 @@ import { useAccount } from 'wagmi'
 import { getStatementWithContent } from '@commonality/sdk/conceptspace'
 import type { IpfsCidV1 } from '@commonality/sdk/utils'
 import { CauseBoard } from '@ui/fundingportals'
-import { TrustNetworkRefreshIndicator, useMachinery } from '@ui/shared'
+import { TrustNetworkRefreshIndicator, useMachinery, useWriteClients } from '@ui/shared'
 import { AlignmentTrustGate } from './AlignmentTrustGate'
 import { ConnectWalletHint } from './ConnectWalletHint'
 import { HeaderInfoTip } from '../../shared'
 import { StarterNetworkFilterCopy } from './StarterNetworkFilterNotice'
 import { useAlignmentTrust } from '../hooks/useAlignmentTrust'
 import { useUserStatements } from '../hooks/useUserStatements'
-import { readPersonalFundingBoard, writePersonalFundingBoard, type PersonalFundingBoard } from '../lib/personalFundingBoard'
+import {
+  persistPersonalFundingBoard,
+  readPersonalFundingBoard,
+  readRemotePersonalFundingBoard,
+  serializePersonalFundingBoard,
+  writePersonalFundingBoard,
+  type PersonalFundingBoard,
+} from '../lib/personalFundingBoard'
 
 const sectionHeadingSx = { fontWeight: 800, fontSize: { xs: '1.6rem', sm: '2rem' } }
 
@@ -25,6 +32,7 @@ export function YourDashboard({
 }) {
   const { statements, loading, connected, error, refresh } = useUserStatements()
   const { address } = useAccount()
+  const writeClients = useWriteClients(address)
   const machinery = useMachinery()
   const [board, setBoard] = useState<PersonalFundingBoard | null>(() => readPersonalFundingBoard(address))
   const [editing, setEditing] = useState(false)
@@ -33,6 +41,10 @@ export function YourDashboard({
   const [statementCid, setStatementCid] = useState('')
   const [statementCidError, setStatementCidError] = useState<string | null>(null)
   const [addingStatement, setAddingStatement] = useState(false)
+  const [remoteBoard, setRemoteBoard] = useState<PersonalFundingBoard | null>(null)
+  const [syncing, setSyncing] = useState(false)
+  const [syncError, setSyncError] = useState<string | null>(null)
+  const [synced, setSynced] = useState(false)
   const {
     trustedAlignmentAttesters,
     alignmentTrustUnavailable,
@@ -48,6 +60,30 @@ export function YourDashboard({
     setGeography(next?.geographicWithin?.join(', ') ?? '')
   }, [address])
 
+  useEffect(() => {
+    let cancelled = false
+    if (!address) return
+    void readRemotePersonalFundingBoard(machinery, address)
+      .then((remote) => {
+        if (cancelled) return
+        const local = readPersonalFundingBoard(address)
+        setRemoteBoard(remote)
+        if (!local && remote) {
+          writePersonalFundingBoard(address, remote)
+          setBoard(remote)
+          setSelectedCids(remote.statementCids)
+          setGeography(remote.geographicWithin?.join(', ') ?? '')
+          setSynced(true)
+        } else {
+          setSynced(Boolean(local && remote && serializePersonalFundingBoard(local) === serializePersonalFundingBoard(remote)))
+        }
+      })
+      .catch((cause) => {
+        if (!cancelled) setSyncError(cause instanceof Error ? cause.message : 'Could not read the wallet copy')
+      })
+    return () => { cancelled = true }
+  }, [address, machinery])
+
   const beginSetup = (startWithSigned = false) => {
     const cids = startWithSigned ? statements.map((statement) => statement.cid) : board?.statementCids ?? []
     setSelectedCids(cids)
@@ -62,6 +98,31 @@ export function YourDashboard({
     writePersonalFundingBoard(address, next)
     setBoard(next)
     setEditing(false)
+    setSynced(false)
+  }
+
+  const syncBoard = async () => {
+    if (!board || !writeClients) return
+    setSyncing(true)
+    setSyncError(null)
+    try {
+      await persistPersonalFundingBoard(writeClients, board)
+      setRemoteBoard(board)
+      setSynced(true)
+    } catch (cause) {
+      setSyncError(cause instanceof Error ? cause.message : 'Could not sync the board')
+    } finally {
+      setSyncing(false)
+    }
+  }
+
+  const useWalletBoard = () => {
+    if (!address || !remoteBoard) return
+    writePersonalFundingBoard(address, remoteBoard)
+    setBoard(remoteBoard)
+    setSelectedCids(remoteBoard.statementCids)
+    setGeography(remoteBoard.geographicWithin?.join(', ') ?? '')
+    setSynced(true)
   }
 
   const addStatement = async () => {
@@ -110,6 +171,42 @@ export function YourDashboard({
           </Stack>
         </Paper>
       )}
+
+      {connected && board && remoteBoard && !synced && (
+        <Alert severity="warning" data-testid="funding-board-conflict">
+          This device and your wallet have different funding boards. Use the wallet copy, or review this device's board and sync it to replace the wallet copy.
+          <Typography variant="body2" sx={{ mt: 1 }}>
+            This device: {board.statementCids.length} statements · {board.geographicWithin?.join(', ') || 'Anywhere'}
+          </Typography>
+          <Typography variant="body2">
+            Wallet copy: {remoteBoard.statementCids.length} statements · {remoteBoard.geographicWithin?.join(', ') || 'Anywhere'}
+          </Typography>
+          <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
+            <Button size="small" onClick={useWalletBoard}>Use wallet copy</Button>
+            <Button size="small" variant="outlined" onClick={() => void syncBoard()} disabled={!writeClients || syncing}>
+              Keep this device and sync
+            </Button>
+          </Stack>
+        </Alert>
+      )}
+
+      {connected && board && (!remoteBoard || synced) && (
+        <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
+          <Typography variant="subtitle2" sx={{ fontWeight: 750 }}>Use this board on other devices</Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+            {synced
+              ? 'This public board definition is linked to your wallet.'
+              : 'Syncing publicly associates this board’s statements, filters, and preferred fund with your wallet.'}
+          </Typography>
+          {!synced && (
+            <Button sx={{ mt: 1 }} variant="outlined" onClick={() => void syncBoard()} disabled={!writeClients || syncing}>
+              {syncing ? 'Syncing…' : 'Sync across devices'}
+            </Button>
+          )}
+        </Paper>
+      )}
+
+      {syncError && <Alert severity="warning" onClose={() => setSyncError(null)}>{syncError}</Alert>}
 
       {connected && !loading && !error && (editing || !board) && (
         <Paper variant="outlined" sx={{ p: { xs: 2, sm: 2.5 }, borderRadius: 2 }} data-testid="funding-board-setup">

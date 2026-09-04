@@ -224,18 +224,21 @@ delegation** only when that is the actual operation.
    row rather than presenting raw lifecycle events as separate donations.
 3. **Implemented as a workspace handoff:** Fund lists active money sources controlled
    by the wallet, identifies funds entrusted by another donor, and project pages select
-   an eligible note for the allocation transaction. A later refinement may preserve a
-   board-level preferred money source across project navigation.
+   an eligible note for the allocation transaction. Fund now preserves an optional
+   board-level preferred money source across project navigation, falls back explicitly
+   when it is ineligible, and remembers manual selection for the browser session.
 
-## Explicit personal funding board (fifth slice, first pass implemented)
+## Explicit personal funding board (fifth slice implemented)
 
 Replace `/dashboard`'s implicit signed-statement union with a saved personal board
 definition. Existing users may be offered a one-time "start with my signed statements"
 action, but signed statements are not a live synchronization source. Show the active
 statement and geographic parameters above the project lists and provide an obvious
-Edit action. The first pass is wallet-scoped in device storage. The editor can select
-signed statements or add any published statement by CID; publishing/synchronizing the
-definition remains a later persistence slice.
+Edit action. The editor can select signed statements or add any published statement by
+CID. Its local copy can be synchronized as public JSON in the wallet-owned
+`personal-funding-board` MutableRef. Device/wallet conflicts require an explicit choice;
+they are never silently resolved by last writer. Signing views also offer an explicit
+"Add to my funding board" action that does not alter signing state.
 
 ## Later questions
 

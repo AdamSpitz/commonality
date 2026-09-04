@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { FundMoneySources } from './FundMoneySources'
@@ -15,6 +15,7 @@ vi.mock('@ui/shared', () => ({
   useMachinery: () => machinery,
   getCurrencyForNote: () => ({ symbol: 'ETH', decimals: 18 }),
   formatCurrencyAmount: () => '1 ETH',
+  truncateAddress: (address: string) => `${address.slice(0, 6)}…${address.slice(-4)}`,
 }))
 
 const note = (overrides: Record<string, unknown> = {}) => ({
@@ -29,7 +30,29 @@ const note = (overrides: Record<string, unknown> = {}) => ({
 describe('FundMoneySources', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    window.localStorage.clear()
     useAccount.mockReturnValue({ address: '0x1111111111111111111111111111111111111111' })
+  })
+
+  it('stores a board-level preferred fund', async () => {
+    window.localStorage.setItem(
+      'causestarter.personal-funding-board.v1:0x1111111111111111111111111111111111111111',
+      JSON.stringify({ version: 1, statementCids: ['bafy1'] }),
+    )
+    getNotesByOwner.mockResolvedValue([note()])
+    render(<MemoryRouter><FundMoneySources /></MemoryRouter>)
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Use by default' }))
+
+    expect(screen.getByRole('button', { name: 'Preferred' })).toBeDisabled()
+    expect(JSON.parse(window.localStorage.getItem(
+      'causestarter.personal-funding-board.v1:0x1111111111111111111111111111111111111111',
+    )!)).toMatchObject({
+      preferredMoneySource: {
+        noteContract: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+        noteId: '1',
+      },
+    })
   })
 
   it('shows active personal and entrusted funds in Fund', async () => {
@@ -43,7 +66,7 @@ describe('FundMoneySources', () => {
     await waitFor(() => expect(screen.getByText('2 active funds')).toBeInTheDocument())
     expect(screen.getByText('1 entrusted to you')).toBeInTheDocument()
     expect(screen.getByText(/Fund #1.*Your fund/)).toBeInTheDocument()
-    expect(screen.getByText(/Fund #2.*Entrusted to you/)).toBeInTheDocument()
+    expect(screen.getByText(/Fund #2.*Entrusted by/)).toBeInTheDocument()
     expect(screen.queryByText(/Fund #3/)).not.toBeInTheDocument()
   })
 

@@ -1,6 +1,6 @@
 # Personal funding board
 
-**Status: current model and arbitrary-statement editor implemented 2026-09-04.** The accepted
+**Status: current model, arbitrary-statement editor, and wallet synchronization implemented 2026-09-04.** The accepted
 direction is an explicitly configured personal board at `/dashboard` and role cards
 on home; see [role-centric-ui.md](./role-centric-ui.md). The signed-statement union
 and home teaser below describe the superseded first implementation and remain as
@@ -16,10 +16,11 @@ glossary **Cause board** / **Dashboard**.
 
 ## What it is now
 
-An explicitly configured personal **fundable-projects board**. Included statements
-and optional filters such as geography belong to the board definition; signing a
-statement does not silently add it. The first explicit-definition implementation is
-wallet-scoped in device storage. It is personal chrome, not a shared publication.
+An explicitly configured personal **fundable-projects board**. Included statements,
+optional filters such as geography, and an optional preferred money source belong to
+the board definition; signing a statement does not silently add it. It is cached on the
+device and can be synchronized publicly through the wallet's
+`personal-funding-board` MutableRef. It is personal chrome, not a shared publication.
 
 ## Original derived-board model (superseded)
 

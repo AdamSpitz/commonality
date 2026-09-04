@@ -11,8 +11,8 @@ import { useMachinery } from '../../shared'
 import { useWriteClients } from '../../shared'
 import { formatCurrencyAmount } from '../../shared'
 import { getDomainUrl } from '../../shared'
-import { humanizeTxError } from '../../shared'
-import { noteScopedKey } from '../../delegation'
+import { humanizeTxError, truncateAddress } from '../../shared'
+import { isDelegate, noteScopedKey } from '../../delegation'
 import { parseUnits } from 'viem'
 import { allocatePurchaseAmount } from '../purchaseAllocation'
 import { ContributionNotificationEmail } from './ContributionNotificationEmail'
@@ -28,6 +28,7 @@ interface BuyTokensSectionProps {
   onProjectRefresh: () => void | Promise<void>
   tokenImages?: Record<string, string>
   tokenLabels?: Record<string, string>
+  preferredMoneySourceKey?: string
 }
 
 function getDelegatableNotesContract(address?: string) {
@@ -36,7 +37,7 @@ function getDelegatableNotesContract(address?: string) {
   return { address: addr as `0x${string}`, abi: DelegatableNotesAbi }
 }
 
-export function BuyTokensSection({ project, tokens, address, onProjectRefresh, tokenImages = {}, tokenLabels = {} }: BuyTokensSectionProps) {
+export function BuyTokensSection({ project, tokens, address, onProjectRefresh, tokenImages = {}, tokenLabels = {}, preferredMoneySourceKey }: BuyTokensSectionProps) {
   const writeClients = useWriteClients(address)
   const machinery = useMachinery()
 
@@ -58,11 +59,12 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
   const [onrampBalanceRaw, setOnrampBalanceRaw] = useState<bigint | null>(null)
 
   // "Fund with delegatable note" state
-  const [useNote, setUseNote] = useState(false)
+  const [useNote, setUseNote] = useState(Boolean(preferredMoneySourceKey))
   const [notes, setNotes] = useState<Note[]>([])
   const [notesLoading, setNotesLoading] = useState(false)
   const [selectedNoteId, setSelectedNoteId] = useState<string>('')
   const [noteQuantities, setNoteQuantities] = useState<Record<string, string>>({})
+  const [moneySourceNotice, setMoneySourceNotice] = useState<string | null>(null)
 
   const delegatableNotesEnabled = !!getDelegatableNotesContract()
   const fundingCurrency = useMemo(() => project.fundingCurrency ?? ETH_CURRENCY, [project.fundingCurrency])
@@ -87,6 +89,17 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
         n.token.toLowerCase() === settlementToken.toLowerCase()
       )
       setNotes(settlementNotes)
+      const sessionKey = address ? window.sessionStorage.getItem(`causestarter.last-money-source:${address.toLowerCase()}`) : null
+      const wantedKey = preferredMoneySourceKey ?? sessionKey
+      const preferred = wantedKey ? settlementNotes.find((note) => noteScopedKey(note) === wantedKey) : undefined
+      if (preferred) {
+        setSelectedNoteId(noteScopedKey(preferred))
+        setMoneySourceNotice(preferredMoneySourceKey
+          ? `Using your funding board’s preferred fund #${preferred.id}.`
+          : `Using fund #${preferred.id}, selected earlier in this session.`)
+      } else if (preferredMoneySourceKey) {
+        setMoneySourceNotice('Your funding board’s preferred fund is not eligible for this project’s currency. Choose another fund.')
+      }
     } catch (err) {
       console.error('Error loading notes:', err)
     } finally {
@@ -404,6 +417,7 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
       <Stack spacing={2}>
         {useNote ? (
           <>
+            {!notesLoading && moneySourceNotice && <Alert severity={selectedNoteId ? 'info' : 'warning'}>{moneySourceNotice}</Alert>}
             {notesLoading ? (
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <CircularProgress size={16} />
@@ -420,16 +434,19 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
                   <Select
                     value={selectedNoteId}
                     label="Select note to spend"
-                    onChange={(e) => setSelectedNoteId(e.target.value)}
+                    onChange={(e) => {
+                      setSelectedNoteId(e.target.value)
+                      if (address) window.sessionStorage.setItem(`causestarter.last-money-source:${address.toLowerCase()}`, e.target.value)
+                      setMoneySourceNotice(null)
+                    }}
                   >
                     {notes.map(note => (
                       <MenuItem key={noteScopedKey(note)} value={noteScopedKey(note)}>
-                        Note #{note.id} — {formatCurrencyAmount(note.amount, fundingCurrency)}
+                        Fund #{note.id} — {formatCurrencyAmount(note.amount, fundingCurrency)} — {isDelegate(note) ? `entrusted by ${truncateAddress(note.rootOwner)}` : 'your fund'}
                       </MenuItem>
                     ))}
                   </Select>
                 </FormControl>
-
                 {tokens.map((token, index) => {
                   const label = givingOptionLabel(token.tokenId, { name: tokenLabels[token.tokenId], index })
                   return (

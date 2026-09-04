@@ -4,7 +4,8 @@ import { Link as RouterLink } from 'react-router-dom'
 import { useAccount } from 'wagmi'
 import { getNotesByOwner, type Note } from '@commonality/sdk/delegation'
 import { formatNoteAmount, isDelegate, noteDetailPath, noteScopedKey } from '@ui/delegation'
-import { useMachinery } from '@ui/shared'
+import { truncateAddress, useMachinery } from '@ui/shared'
+import { readPersonalFundingBoard, writePersonalFundingBoard } from '../lib/personalFundingBoard'
 
 export function FundMoneySources() {
   const { address } = useAccount()
@@ -12,6 +13,17 @@ export function FundMoneySources() {
   const [notes, setNotes] = useState<Note[]>([])
   const [loading, setLoading] = useState(Boolean(address))
   const [error, setError] = useState<string | null>(null)
+  const [preferredKey, setPreferredKey] = useState<string | null>(null)
+
+  useEffect(() => {
+    const refresh = () => {
+      const source = readPersonalFundingBoard(address)?.preferredMoneySource
+      setPreferredKey(source ? `${source.noteContract.toLowerCase()}:${source.noteId}` : null)
+    }
+    refresh()
+    window.addEventListener('causestarter:personal-funding-board', refresh)
+    return () => window.removeEventListener('causestarter:personal-funding-board', refresh)
+  }, [address])
 
   useEffect(() => {
     let cancelled = false
@@ -43,6 +55,17 @@ export function FundMoneySources() {
   if (!address) return null
 
   const entrustedCount = notes.filter(isDelegate).length
+  const hasBoard = Boolean(readPersonalFundingBoard(address))
+
+  const prefer = (note: Note) => {
+    if (!address) return
+    const board = readPersonalFundingBoard(address)
+    if (!board) return
+    writePersonalFundingBoard(address, {
+      ...board,
+      preferredMoneySource: { noteContract: note.contractAddress, noteId: note.id },
+    })
+  }
 
   return (
     <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }} data-testid="fund-money-sources">
@@ -68,12 +91,25 @@ export function FundMoneySources() {
             {notes.map((note) => (
               <Stack key={noteScopedKey(note)} direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ sm: 'center' }} gap={1}>
                 <Typography variant="body2">
-                  Fund #{note.id} · {formatNoteAmount(note)}{isDelegate(note) ? ' · Entrusted to you' : ' · Your fund'}
+                  Fund #{note.id} · {formatNoteAmount(note)}{isDelegate(note) ? ` · Entrusted by ${truncateAddress(note.rootOwner)}` : ' · Your fund'}
                 </Typography>
-                <Button component={RouterLink} to={noteDetailPath(note)} size="small">View fund</Button>
+                <Stack direction="row" spacing={1}>
+                  <Button
+                    size="small"
+                    variant={preferredKey === noteScopedKey(note) ? 'contained' : 'text'}
+                    disabled={!hasBoard || preferredKey === noteScopedKey(note)}
+                    onClick={() => prefer(note)}
+                  >
+                    {preferredKey === noteScopedKey(note) ? 'Preferred' : 'Use by default'}
+                  </Button>
+                  <Button component={RouterLink} to={noteDetailPath(note)} size="small">View fund</Button>
+                </Stack>
               </Stack>
             ))}
           </Stack>
+          {!hasBoard && (
+            <Typography variant="caption" color="text.secondary">Set up your funding board before choosing a default fund.</Typography>
+          )}
         </>
       )}
     </Paper>

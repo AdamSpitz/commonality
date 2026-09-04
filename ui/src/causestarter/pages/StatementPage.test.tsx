@@ -1,10 +1,15 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createCombinatorStatement } from '@commonality/sdk/displayable-documents'
 import { StatementPage } from './StatementPage'
 
 const getStatementWithContent = vi.fn()
+let connectedAddress: `0x${string}` | undefined = '0x1234567890123456789012345678901234567890'
+
+vi.mock('wagmi', () => ({
+  useAccount: () => ({ address: connectedAddress }),
+}))
 
 vi.mock('@commonality/sdk/conceptspace', () => ({
   getStatementWithContent: (...args: unknown[]) => getStatementWithContent(...args),
@@ -50,6 +55,8 @@ describe('StatementPage combinator operands', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
+    window.localStorage.clear()
+    connectedAddress = '0x1234567890123456789012345678901234567890'
   })
 
   function renderPage(entry = '/statement/stmt123') {
@@ -105,6 +112,24 @@ describe('StatementPage combinator operands', () => {
       'href',
       `/statement/${operandA}?mode=sign`,
     )
+  })
+
+  it('adds the statement to the personal funding board without signing it', async () => {
+    getStatementWithContent.mockResolvedValue({
+      statement: { cid: 'stmt123', believerCount: 1, title: 'Statement' },
+      content: { content: 'Fund local work' },
+    })
+
+    renderPage('/statement/stmt123?mode=sign')
+
+    const addButton = await screen.findByRole('button', { name: 'Add to my funding board' })
+    fireEvent.click(addButton)
+
+    expect(screen.getByRole('button', { name: 'Included in my funding board' })).toBeDisabled()
+    expect(screen.getByText('Added to your funding board. Signing remains unchanged.')).toBeInTheDocument()
+    expect(JSON.parse(window.localStorage.getItem(
+      'causestarter.personal-funding-board.v1:0x1234567890123456789012345678901234567890',
+    ) ?? 'null')).toEqual({ version: 1, statementCids: ['stmt123'] })
   })
 
   it('keeps funding view focused and offers the complete view', async () => {
