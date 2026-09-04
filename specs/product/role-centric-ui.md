@@ -15,6 +15,28 @@ personal funding-board configuration supersede the earlier home inbox grouping.
   - lol, RPG character classes? No, but might be fun to have the main landing page contain a list of the roles, with descriptions of what their job is, or kind of person might want to do each.
     - Yeah, without being cutesy about it, gamification might actually be useful. Show stats on your profile page, maybe give badges for having completed various kinds of tasks, etc.
 
+## A second ramble
+
+We want all the different role-specific pages; once a user has navigated into one, it should be fairly streamlined, optimized for that role. But the home page kinda needs to be for all the roles.
+
+Okay, so maybe make the home page more streamlined, in a different way? Streamline it by making it a fairly simple list of "cards" (or whatever), one for each role. Each one can (if empty) show a short blurb describing what the user can do there, or (if the user has already performed some activity in that role) show a short summary of what the user has done or could do next.
+
+I feel like I need more specifics. Lemme think through various roles.
+  - Sign:
+    - There are multiple different reasons for signing statements, which is maybe a problem that we should fix.
+      - Maybe the user is the kind of person who just wants to sign things and maybe build bridges or whatever (creating new statements worth signing, exploring possible alliances, etc.), rather than doing anything money-related.
+      - But also, signing statements is (currently) used in determining what statements show up on your Fundable Projects board. So maybe the user is signing statements for the purpose of going over to the Fund role and doing that.
+        - Maybe the thing to do here is to let the user explicitly specify the statements he wants to use for his personal Fundable Projects board? (We've already just recently shifted over to this notion that the board itself needs to be more explicitly defined as a thing of its own, e.g. with a geographic filter. So it feels natural now to say that the board should be an explicitly-defined thing with its own parameters, rather than "use whatever statements the user has signed over in the Signing role.)
+  - Donate:
+    - I would really like to have a role for "I just want to pledge some money and then forget about it."
+    - Most prominent should be "here's how much money I'm recurringly pledging per month, earmarked for which cause, delegated to whom."
+    - Then "here's how much of my money is actively in the system right now in the form of delegatable notes (with earmark and delegate and a "revoke delegation" button for each)."
+    - Then down below that should be a list of what's been done with his money: what donation-receipts he's got (with info about each).
+    - (And there can be a link over to the Fund UI, saying something like "if you want to actually direct this money yourself, go here. But the whole point of this role-centric UI is that that's not the primary thing we expect the user to do on this page; he's pledging money, maybe he wants to see what's been done with it, but he doesn't want to be particularly active in directing it.)
+  - Fund:
+    - This is the old Fundable Projects board, where we show the parameters of the board (what statements it's for, filters, etc.), and then a list of projects. Actually, multiple lists of projects: Not Yet Funded, Not Yet Reimbursed, etc. (Later maybe we'll split the Fund UI into more-specific ones for retroactive funding versus early funding. For now don't bother.)
+
+
 ## Summary
 
 Commonality should remain one site with shared cause and personal context, but its
