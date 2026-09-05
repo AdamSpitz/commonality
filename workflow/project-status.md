@@ -4,7 +4,7 @@ Commonality has **not deployed to mainnet yet**. The current phase is **testnet 
 
 The implemented MVP scope matches [the MVP document](../specs/product/mvp.md): Conceptspace, LazyGiving, Delegation, Aligning, Content Funding, Subjectiv trust filtering, Mutable Refs, and the eight branded UI domain builds are represented in the app. Product boundaries for the eight sites are tracked in [UI domain boundaries](../specs/product/ui-domains.md); the technical build/source layout is tracked in [technical UI domains](../specs/tech/ui-domains.md).
 
-Near-term work is operational rather than broad feature discovery:
+Near-term work is operational rather than broad feature discovery. The ordered plan for making testnet a **shared two-person lab** (Adam and Sam) is [`testnet-working-plan.md`](./testnet-working-plan.md) — do the next unchecked item there; do not treat mass fake activity as part of that job.
 
 - deploy and verify the latest contracts/services on testnet;
 - validate recurring pledges, account assertions, indexer redeploys, and other already-built paths against the live stack;
