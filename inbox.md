@@ -41,7 +41,7 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 ### Testnet indexer (shared lab)
 
-- **(Ask)** Only if indexer catch-up still 429s after `PONDER_ETH_GET_LOGS_BLOCK_RANGE=10000`: Alchemy is already PAYG (10k CU/s; $20 / 44.4M CU monthly cap, ~9M left). Do not raise the $20 cap until a 10k (or 1000) log range has been tried. Frozen `_meta` **46349669** was from 10-block windows, not a missing PAYG plan. Details: [testnet-working-plan.md](workflow/testnet-working-plan.md) item 2.
+- **(Ask / in progress)** Raise Alchemy **monthly usage limit** a little (~$5–10) **after** indexer deploy `53417ecc` (10k `eth_getLogs`) is live. Already PAYG; $20 / 44.4M CU cap was exceeded (44.50M) by the old range-10 backfill. Not a plan upgrade. Handoff: [continuity/2026-09-05-testnet-indexer-10k-and-alchemy-cap.md](continuity/2026-09-05-testnet-indexer-10k-and-alchemy-cap.md).
 
 ### Testing/verification improvements
 
