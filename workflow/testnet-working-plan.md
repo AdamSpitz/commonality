@@ -26,13 +26,19 @@ It does **not** mean: public launch, mainnet, 10⁴ fake users, or a nightly mut
 
 Do not push `gen:large` (today: 100 users; 1000+ not built) at Sepolia. The indexer is still catching up / lag-failing; a load generator would trash the lab you still need to read.
 
-## Current state (2026-09-05, indexer catch-up)
+## Current state (2026-09-05, read-only smoke)
+
+Full `./scripts/verifier-testnet.sh` (~16:46 UTC): `dns`/`http`/`rpc`/`indexer`/`app-shell`/`contracts`/`policy-enforcement` **pass**; `sponsored-gas` advisory **pass**; **`app-config` fail** (idle official implication attester). Indexer `_meta` **46429250**, lag **0**.
+
+`app-config` reports 0 `ImplicationAttestation`s from `VITE_DEFAULT_TRUSTED_ATTESTERS` `0x021b3C…`. That is the shipped default; filtering to it is the product. Empty official graph → zeros is correct, not a wrong-chain config bug. **Do not mint a dummy attestation to green the check.** **Do not treat this fail as “the lab is down.”** The wrapper still exits 1 until the official attester actually runs (or the check is later made advisory). Item 3’s lab surfaces (sites, RPC, indexer, shells, contracts) are up.
+
+**Wallets funded 2026-09-05** from operator deployer `0xFC0054…`: implication attester, content attester, beat agent each **0.005 ETH** (block 46430751). Verifier still 0.
+
+Unchanged for later items: `website-journeys` 180s timeout (06:24, item 4); `onchain-to-indexer` skipped by policy; `published-data` stale pass (2026-07-20); `alignment-trust` missing.
 
 **Item 2 done.** `npx verifier-run testnet.indexer` **pass** (~16:42 UTC): GraphQL `_meta` **46429137**, lag **0**, maxLag 300. Live deploy `dep-dae48qgou94c73976610` commit `53417ecc`, env range **10000**, Alchemy RPC. Adam raised monthly usage limit to **$30**.
 
 Earlier the same day: 502 crash loop (public prune) then HTTP 200 with lag fail; 10k deploy `dep-dae448m7bikc7380vo6g` **update_failed** on $20 CU cap; service suspended; resume + redeploy after the $30 raise. Do not re-diagnose 502 unless GraphQL 502s again. Do not point RPC at `sepolia.base.org`.
-
-**Still open for item 3 (full read-only smoke):** last full `./scripts/verifier-testnet.sh` (~15:07 UTC) had `testnet.app-config` fail (1 trust root with no publications — likely lag then). Re-run the wrapper. Unchanged: `website-journeys` 180s timeout (06:24); `onchain-to-indexer` skipped by policy; `published-data` stale pass (2026-07-20); `alignment-trust` missing.
 
 **Crash loop — fixed, do not redo**
 
@@ -74,10 +80,11 @@ From testnet-prep / inbox — stop and Ask if you hit them:
 
 - Cloudflare zone / DNSLink / `services.testnet.commonality.works` gateway (UIs already work via the UI gateway; this is leftover naming/ops).
 - 2-of-3 Safe for contract-admin.
-- Fund/enable `COMMONALITY_TESTNET_VERIFIER_PRIVATE_KEY` and, when Adam says so, `COMMONALITY_VERIFIER_NIGHTLY_ALLOW_TESTNET_MUTATION=1`.
+- Fund/enable `COMMONALITY_TESTNET_VERIFIER_PRIVATE_KEY` (`VERIFIER_ADDRESS` is also 0 ETH / nonce 0) and, when Adam says so, `COMMONALITY_VERIFIER_NIGHTLY_ALLOW_TESTNET_MUTATION=1`.
 - Sponsored-gas live UI walk: [sponsored-gas-live-trace.md](./sponsored-gas-live-trace.md).
 - Alignment-trust bootstrap: generate wallets, fund `ALIGNMENT_TRUST_BOOTSTRAP_ADDRESS`, Render secrets, denylist canary — never the checked-in local key.
-- Alchemy (or other archive RPC) **CUPS / plan**: indexer backfill is rate-limited; GraphQL stays up. See inbox Ask.
+- Alchemy (or other archive RPC) **CUPS / plan**: indexer is at head on Alchemy after the $30 monthly cap; do not re-open unless lag/502 returns.
+- Implication attester / content attester / beat agent funded (0.005 ETH each). `VERIFIER_ADDRESS` still unfunded.
 
 ## Next
 
@@ -87,7 +94,7 @@ Do these in order unless Adam names a different one. Each item is a session-size
 
 2. **[x] (Tell) Make the Render indexer stay up / catch up.** Crash loop done. 10k live `dep-dae48qgou94c73976610` / `53417ecc` after $30 Alchemy cap. `testnet.indexer` **pass** 46429137 lag 0 (~16:42 UTC).
 
-3. **[ ] (Tell) Get read-only testnet smoke boring.** `testnet.dns`, `http`, `rpc`, `indexer`, `app-shell`, `app-config`, `contracts` all pass on one `./scripts/verifier-testnet.sh` run. Retry once on IPFS/Cloudflare aborts before treating a site as broken. If a site is still dead, follow [deployment.md](./deployment.md) / `./scripts/deploy-testnet.sh` only for that domain — do not republish all eight “for luck.”
+3. **[x] (Tell) Get read-only testnet smoke boring.** 2026-09-05 ~16:46 UTC: `dns`/`http`/`rpc`/`indexer`/`app-shell`/`contracts` pass. `app-config` still fails because the official attester has never published; Adam: that is an idle default, not a lab blocker — do not dummy-attest to clear it. Wrapper exit 1 is that canary. Retry once on IPFS/Cloudflare aborts before treating a site as broken. If a site is still dead, follow [deployment.md](./deployment.md) / `./scripts/deploy-testnet.sh` only for that domain — do not republish all eight “for luck.”
 
 4. **[ ] (Tell) Browser journeys on the happy paths.** `./scripts/verifier-testnet.sh --browser`. If `testnet.website-journeys` times out, narrow: which URL, console 404/500 vs hang vs indexer. Fix the deployed cause (stale chunk, metadata 500, missing CORS origin) rather than raising the timeout. Known historical noise: LazyGiving `/#/projects` resource 500s.
 
