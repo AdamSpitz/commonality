@@ -39,6 +39,8 @@ export type ProjectDetailPageProps = {
    * project. Default `detail` embeds a top-three preview.
    */
   variant?: 'detail' | 'leaderboard'
+  /** CauseStarter may carry a board-level preferred delegatable note into allocation. */
+  preferredMoneySourceKey?: string
 }
 
 export function ProjectLeaderboardPage() {
@@ -49,6 +51,7 @@ export function ProjectDetailPage({
   listPath = '/projects',
   listLabel = 'Back to projects',
   variant = 'detail',
+  preferredMoneySourceKey,
 }: ProjectDetailPageProps = {}) {
   const { projectAddress } = useParams<{ projectAddress: string }>()
   const [searchParams] = useSearchParams()
@@ -386,6 +389,7 @@ export function ProjectDetailPage({
           onProjectRefresh={handleRefresh}
           tokenImages={tokenImages}
           tokenLabels={tokenLabels}
+          preferredMoneySourceKey={preferredMoneySourceKey}
         />
       )}
 

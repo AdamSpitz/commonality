@@ -26,26 +26,34 @@ import { useAccount } from 'wagmi'
 import { formatEther, parseEther } from 'viem'
 import { DelegatableNotesAbi, RecurringPledgesAbi } from '@commonality/sdk/abis'
 import { getStatement } from '@commonality/sdk/conceptspace'
-import { getNotesByOwner, getNotesByRoot, getDelegationChain, delegateNote, revokeNote, reclaimFunds, getActiveStandingPledgesByUser, cancelStandingPledge, type Note, type StandingPledge, type DelegatableNotesContract, type RecurringPledgesContract } from '@commonality/sdk/delegation'
+import { getNotesByOwner, getNotesByRoot, getDelegationChain, getDonationActivityByRoot, delegateNote, revokeNote, reclaimFunds, getActiveStandingPledgesByUser, cancelStandingPledge, type DonationActivity, type Note, type StandingPledge, type DelegatableNotesContract, type RecurringPledgesContract } from '@commonality/sdk/delegation'
 import type { Currency, IpfsCidV1 } from '@commonality/sdk/utils'
 import { getDomainUrl, useMachinery } from '../../shared'
 import { useWriteClients } from '../../shared'
 import { formatCurrencyAmount, getCurrencyForNote } from '../../shared'
 import { formatNoteAmount, isDelegate, truncateAddress, isEthNote, noteDetailPath, noteScopedKey } from '../utils'
+import { readLazyGivingProjectMetadata } from '../../lazy-giving/metadata'
 
-function SummaryCards({ ownedNotes, depositedNotes, standingPledges }: { ownedNotes: Note[]; depositedNotes: Note[]; standingPledges: StandingPledge[] }) {
+function SummaryCards({ ownedNotes, depositedNotes, standingPledges, experience = 'delegation' }: { ownedNotes: Note[]; depositedNotes: Note[]; standingPledges: StandingPledge[]; experience?: 'delegation' | 'donate' }) {
   const totalFunds = ownedNotes.reduce((sum, n) => sum + BigInt(n.amount), 0n)
   const activeCount = ownedNotes.length
   const actingAsDelegate = ownedNotes.filter(n => isDelegate(n)).length
   const depositedAndDelegated = depositedNotes.filter(n => isDelegate(n)).length
 
-  const cards = [
+  const delegationCards = [
     { label: 'Total Funds', value: `${formatEther(totalFunds)} ETH` },
     { label: 'Active Funds', value: String(activeCount) },
     { label: 'Acting as Delegate', value: String(actingAsDelegate) },
     { label: 'Active Monthly Pledges', value: String(standingPledges.length) },
     { label: 'Created & Delegated', value: String(depositedAndDelegated) },
   ]
+  const activeDeposits = depositedNotes.filter(n => n.active)
+  const donateCards = [
+    { label: 'Monthly Pledges', value: String(standingPledges.length) },
+    { label: 'Active Funds', value: String(activeDeposits.length) },
+    { label: 'Delegated', value: String(activeDeposits.filter(n => isDelegate(n)).length) },
+  ]
+  const cards = experience === 'donate' ? donateCards : delegationCards
 
   return (
     <Stack direction="row" spacing={2} sx={{ mb: 3, flexWrap: 'wrap' }}>
@@ -258,47 +266,126 @@ function StandingPledgeCard({
   onCancel: (pledge: StandingPledge) => void
   actionLoading: boolean
 }) {
+  const [confirmingCancellation, setConfirmingCancellation] = useState(false)
+
   return (
-    <Card>
-      <CardContent>
-        <Stack spacing={1}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2, alignItems: 'flex-start' }}>
-            <Box>
-              <Typography variant="subtitle1">Monthly pledge #{pledge.id}</Typography>
-              <Typography variant="h6">{formatStandingPledgeAmount(pledge)}</Typography>
+    <>
+      <Card>
+        <CardContent>
+          <Stack spacing={1}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2, alignItems: 'flex-start' }}>
+              <Box>
+                <Typography variant="subtitle1">Monthly pledge #{pledge.id}</Typography>
+                <Typography variant="h6">{formatStandingPledgeAmount(pledge)}</Typography>
+              </Box>
+              <Chip label="Auto-pull" color="success" size="small" />
             </Box>
-            <Chip label="Auto-pull" color="success" size="small" />
-          </Box>
-          <Typography variant="body2" color="text.secondary">
-            Delegated to {truncateAddress(pledge.delegateTo)}
+            <Typography variant="body2" color="text.secondary">
+              Delegated to {truncateAddress(pledge.delegateTo)}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Cause:{' '}
+              <Link href={getDomainUrl('tally', `/statement/${pledge.causeRef}`)}>
+                {causeTitle ?? 'Untitled cause'}
+              </Link>
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Last executed: {pledge.lastExecuted === '0' ? 'not yet' : formatPledgeDate(pledge.lastExecuted)}
+            </Typography>
+            <Box>
+              <Button
+                size="small"
+                variant="outlined"
+                color="warning"
+                disabled={actionLoading}
+                onClick={() => setConfirmingCancellation(true)}
+              >
+                Cancel monthly pledge
+              </Button>
+            </Box>
+          </Stack>
+        </CardContent>
+      </Card>
+      <Dialog open={confirmingCancellation} onClose={() => setConfirmingCancellation(false)}>
+        <DialogTitle>Cancel this monthly pledge?</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Automatic monthly giving will stop. Funds already created by earlier executions are unaffected. This pledge cannot be resumed; you would need to create a new one.
           </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Cause:{' '}
-            <Link href={getDomainUrl('tally', `/statement/${pledge.causeRef}`)}>
-              {causeTitle ?? 'Untitled cause'}
-            </Link>
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Last executed: {pledge.lastExecuted === '0' ? 'not yet' : formatPledgeDate(pledge.lastExecuted)}
-          </Typography>
-          <Box>
-            <Button
-              size="small"
-              variant="outlined"
-              color="warning"
-              disabled={actionLoading}
-              onClick={() => onCancel(pledge)}
-            >
-              Cancel monthly pledge
-            </Button>
-          </Box>
-        </Stack>
-      </CardContent>
-    </Card>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setConfirmingCancellation(false)}>Keep pledge</Button>
+          <Button
+            color="warning"
+            variant="contained"
+            disabled={actionLoading}
+            onClick={() => {
+              setConfirmingCancellation(false)
+              onCancel(pledge)
+            }}
+          >
+            Confirm cancellation
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </>
   )
 }
 
-export function MyNotesPage() {
+function DonationActivityFeed({ activities, projectTitles, causeTitles }: {
+  activities: DonationActivity[]
+  projectTitles: Record<string, string>
+  causeTitles: Record<string, string>
+}) {
+  const groups = new Map<string, DonationActivity[]>()
+  for (const activity of activities) {
+    const key = activity.projectAddress?.toLowerCase() ?? activity.receiptContract.toLowerCase()
+    groups.set(key, [...(groups.get(key) ?? []), activity])
+  }
+
+  return (
+    <Stack spacing={2}>
+      {[...groups.entries()].map(([key, rows]) => {
+        const projectAddress = rows[0].projectAddress
+        const title = projectTitles[key] ?? (projectAddress ? `Project ${truncateAddress(projectAddress)}` : `Receipt contract ${truncateAddress(rows[0].receiptContract)}`)
+        return (
+          <Paper variant="outlined" sx={{ p: 2.5, borderRadius: 2 }} key={key}>
+            <Typography variant="h6" component="h3" sx={{ fontWeight: 750 }}>
+              {projectAddress ? <Link component={RouterLink} to={`/projects/${projectAddress}`}>{title}</Link> : title}
+            </Typography>
+            <Stack spacing={2} divider={<Box sx={{ borderTop: 1, borderColor: 'divider' }} />} sx={{ mt: 1.5 }}>
+              {rows.map((activity) => (
+                <Box key={activity.id}>
+                  <Stack direction="row" justifyContent="space-between" alignItems="flex-start" gap={2}>
+                    <Box>
+                      <Typography sx={{ fontWeight: 700 }}>{formatCurrencyAmount(activity.amount, activity.currency)}</Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Directed by {truncateAddress(activity.directedBy)} · {formatPledgeDate(activity.createdAt)}
+                      </Typography>
+                    </Box>
+                    <Chip label={activity.status} size="small" color={activity.status === 'refunded' ? 'warning' : activity.status === 'reimbursed' ? 'success' : 'default'} />
+                  </Stack>
+                  {activity.intendedStatementIds.length > 0 && (
+                    <Typography variant="body2" color="text.secondary" sx={{ mt: 0.75 }}>
+                      Scope: {activity.intendedStatementIds.map(id => causeTitles[id] ?? id).join(', ')}
+                    </Typography>
+                  )}
+                  {BigInt(activity.reimbursedAmount) > 0n && (
+                    <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                      Reimbursed: {formatCurrencyAmount(activity.reimbursedAmount, activity.currency)}
+                    </Typography>
+                  )}
+                </Box>
+              ))}
+            </Stack>
+          </Paper>
+        )
+      })}
+    </Stack>
+  )
+}
+
+export function MyNotesPage({ experience = 'delegation' }: { experience?: 'delegation' | 'donate' } = {}) {
   const { address } = useAccount()
   const writeClients = useWriteClients(address)
   const machinery = useMachinery()
@@ -306,14 +393,18 @@ export function MyNotesPage() {
   const [ownedNotes, setOwnedNotes] = useState<Note[]>([])
   const [depositedNotes, setDepositedNotes] = useState<Note[]>([])
   const [standingPledges, setStandingPledges] = useState<StandingPledge[]>([])
+  const [donationActivity, setDonationActivity] = useState<DonationActivity[]>([])
   const [causeTitles, setCauseTitles] = useState<Record<string, string>>({})
+  const [projectTitles, setProjectTitles] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [activityError, setActivityError] = useState<string | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
   const [actionLoading, setActionLoading] = useState(false)
 
   const [delegateDialogOpen, setDelegateDialogOpen] = useState(false)
   const [delegateTarget, setDelegateTarget] = useState<Note | null>(null)
+  const isDonate = experience === 'donate'
 
   const getClients = () => {
     if (!writeClients || !address) return null
@@ -325,17 +416,32 @@ export function MyNotesPage() {
     try {
       setLoading(true)
       setError(null)
+      setActivityError(null)
       const recurringPledgesContract = getRecurringPledgesContract()
-      const [owned, deposited, activePledges] = await Promise.all([
+      const [owned, deposited, activePledges, activity] = await Promise.all([
         getNotesByOwner(machinery, address),
         getNotesByRoot(machinery, address),
         recurringPledgesContract ? getActiveStandingPledgesByUser(machinery, address) : Promise.resolve([]),
+        isDonate
+          ? getDonationActivityByRoot(machinery, address).catch((activityLoadError) => {
+              console.error('Error loading donation activity:', activityLoadError)
+              setActivityError('Donation history is temporarily unavailable.')
+              return []
+            })
+          : Promise.resolve([]),
       ])
       setOwnedNotes(owned.filter(n => n.active))
       setDepositedNotes(deposited.filter(n => n.active))
       setStandingPledges(activePledges)
+      setDonationActivity(activity)
+      const projectEntries = await Promise.all(activity.map(async (row) => {
+        if (!row.projectMetadataCid) return [row.projectAddress?.toLowerCase() ?? row.receiptContract.toLowerCase(), undefined] as const
+        const metadata = await readLazyGivingProjectMetadata(machinery, row.projectMetadataCid as IpfsCidV1).catch(() => null)
+        return [row.projectAddress?.toLowerCase() ?? row.receiptContract.toLowerCase(), metadata?.name?.trim()] as const
+      }))
+      setProjectTitles(Object.fromEntries(projectEntries.filter((entry): entry is readonly [string, string] => Boolean(entry[1]))))
       const causeEntries = await Promise.all(
-        [...new Set(activePledges.map((pledge) => pledge.causeRef))].map(async (causeRef) => {
+        [...new Set([...activePledges.map((pledge) => pledge.causeRef), ...activity.flatMap((row) => row.intendedStatementIds)])].map(async (causeRef) => {
           const statement = await getStatement(machinery, causeRef as IpfsCidV1).catch(() => null)
           return [causeRef, statement?.title?.trim() || 'Untitled cause'] as const
         }),
@@ -347,7 +453,7 @@ export function MyNotesPage() {
     } finally {
       setLoading(false)
     }
-  }, [address, machinery])
+  }, [address, machinery, isDonate])
 
   useEffect(() => {
     loadNotes()
@@ -447,11 +553,13 @@ export function MyNotesPage() {
     return (
       <Box>
         <Typography variant="h4" component="h1" gutterBottom>
-          My Delegated Funds
+          {isDonate ? 'Donate' : 'My Delegated Funds'}
         </Typography>
         <Paper sx={{ p: 4, textAlign: 'center' }}>
           <Typography variant="body1" color="text.secondary">
-            Connect your wallet to view and manage your delegated funds.
+            {isDonate
+              ? 'Connect your wallet to set up monthly giving and manage money you have delegated.'
+              : 'Connect your wallet to view and manage your delegated funds.'}
           </Typography>
         </Paper>
       </Box>
@@ -462,17 +570,16 @@ export function MyNotesPage() {
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
         <Typography variant="h4" component="h1">
-          My Delegated Funds
+          {isDonate ? 'Donate' : 'My Delegated Funds'}
         </Typography>
         <Button variant="contained" component={RouterLink} to="/delegation/notes/new">
-          Add Funds
+          {isDonate ? 'Set up a donation' : 'Add Funds'}
         </Button>
       </Box>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-        <Link component={RouterLink} to="/docs/key-ideas/delegation">
-          How delegation works
-        </Link>
-        {' — hand off your donation decisions to someone you trust.'}
+        {isDonate
+          ? 'Set aside money for a cause and hand the project-by-project decisions to someone you trust.'
+          : <><Link component={RouterLink} to="/docs/key-ideas/delegation">How delegation works</Link>{' — hand off your donation decisions to someone you trust.'}</>}
       </Typography>
 
       {actionError && (
@@ -501,38 +608,32 @@ export function MyNotesPage() {
 
       {!loading && !error && (
         <>
-          <SummaryCards ownedNotes={ownedNotes} depositedNotes={depositedNotes} standingPledges={standingPledges} />
+          <SummaryCards ownedNotes={ownedNotes} depositedNotes={depositedNotes} standingPledges={standingPledges} experience={experience} />
+
+          {!isDonate && <>
+            <Typography variant="h5" component="h2" gutterBottom sx={{ mt: 3 }}>Funds I Control</Typography>
+            {ownedNotes.length === 0 ? (
+              <Paper sx={{ p: 3, textAlign: 'center', mb: 3 }}>
+                <Typography variant="body1" color="text.secondary">
+                  You don't control any funds yet. Add funds to create one, or ask someone to delegate to you.
+                </Typography>
+              </Paper>
+            ) : (
+              <Stack spacing={2} sx={{ mb: 3 }}>
+                {ownedNotes.map((note) => (
+                  <NoteCard key={noteScopedKey(note)} note={note} showDelegatedFrom showDelegate onDelegate={handleDelegate} />
+                ))}
+              </Stack>
+            )}
+          </>}
 
           <Typography variant="h5" component="h2" gutterBottom sx={{ mt: 3 }}>
-            Funds I Control
-          </Typography>
-          {ownedNotes.length === 0 ? (
-            <Paper sx={{ p: 3, textAlign: 'center', mb: 3 }}>
-              <Typography variant="body1" color="text.secondary">
-                You don't control any funds yet. Add funds to create one, or ask someone to delegate to you.
-              </Typography>
-            </Paper>
-          ) : (
-            <Stack spacing={2} sx={{ mb: 3 }}>
-              {ownedNotes.map((note) => (
-                <NoteCard
-                  key={noteScopedKey(note)}
-                  note={note}
-                  showDelegatedFrom
-                  showDelegate
-                  onDelegate={handleDelegate}
-                />
-              ))}
-            </Stack>
-          )}
-
-          <Typography variant="h5" component="h2" gutterBottom sx={{ mt: 3 }}>
-            Monthly Pledges
+            {isDonate ? 'Monthly giving' : 'Monthly Pledges'}
           </Typography>
           {standingPledges.length === 0 ? (
             <Paper sx={{ p: 3, textAlign: 'center', mb: 3 }}>
               <Typography variant="body1" color="text.secondary">
-                You don't have any active monthly pledges yet.
+                You don't have any active monthly pledges yet. Set an amount, a cause, and a delegate to make your giving automatic.
               </Typography>
             </Paper>
           ) : (
@@ -550,12 +651,14 @@ export function MyNotesPage() {
           )}
 
           <Typography variant="h5" component="h2" gutterBottom sx={{ mt: 3 }}>
-            Funds I Created
+            {isDonate ? 'Money in the system' : 'Funds I Created'}
           </Typography>
           {depositedNotes.length === 0 ? (
             <Paper sx={{ p: 3, textAlign: 'center' }}>
               <Typography variant="body1" color="text.secondary">
-                You haven't created any delegated funds yet.
+                {isDonate
+                  ? "You don't have any active funds in the system yet."
+                  : "You haven't created any delegated funds yet."}
               </Typography>
             </Paper>
           ) : (
@@ -573,6 +676,33 @@ export function MyNotesPage() {
               ))}
             </Stack>
           )}
+
+          {isDonate && (
+            <Box sx={{ mt: 4 }}>
+              <Typography variant="h5" component="h2" gutterBottom>What my money did</Typography>
+              {activityError ? (
+                <Alert severity="warning">{activityError}</Alert>
+              ) : donationActivity.length === 0 ? (
+                <Paper sx={{ p: 3, textAlign: 'center' }}>
+                  <Typography color="text.secondary">
+                    No project allocations from your funds yet. When you or a delegate funds a project, its receipt will appear here.
+                  </Typography>
+                </Paper>
+              ) : (
+                <DonationActivityFeed activities={donationActivity} projectTitles={projectTitles} causeTitles={causeTitles} />
+              )}
+            </Box>
+          )}
+
+          {isDonate && (
+            <Paper variant="outlined" sx={{ mt: 4, p: 2.5, borderRadius: 2 }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>Want to direct the money yourself?</Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, mb: 1 }}>
+                Fund is the active workspace for reviewing projects and deciding where money goes.
+              </Typography>
+              <Button component={RouterLink} to="/dashboard" sx={{ px: 0 }}>Go to Fund</Button>
+            </Paper>
+          )}
         </>
       )}
 
@@ -584,4 +714,8 @@ export function MyNotesPage() {
       />
     </Box>
   )
+}
+
+export function DonatePage() {
+  return <MyNotesPage experience="donate" />
 }

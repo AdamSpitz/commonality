@@ -43,8 +43,6 @@ open **if they stay listed here**.
 - [ ] No Privy path / full parity with main `ui` wallet story yet.
 - [ ] Product: how CauseStarter ranks vs other domains in nav/marketing once it’s “the main thing.”
 - [x] **Copy:** two-step rename in [cause-page-not-a-club.md](/specs/product/cause-page-not-a-club.md) — fundable-projects board first, then organizer **cause board**. Identifiers and leftover “cause page” still lag.
-- [ ] **Personal dashboard** ([personal-dashboard.md](/specs/product/personal-dashboard.md)): home hero = fundable-projects union over signed statements (first slice shipped). Do **not** reuse unpublished cause-board drafts. Starring / named subsets / MutableRef filters stay deferred.
-
 ## Architecture
 
 - [x] Fold CauseStarter into the real domain/shell model (`VITE_DOMAIN=causestarter` in `ui/`). Docker/e2e glue still lives in this directory.

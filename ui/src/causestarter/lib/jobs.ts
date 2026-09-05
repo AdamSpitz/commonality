@@ -7,6 +7,9 @@ export interface CrowdJob {
   ugh: string
   soYou: string
   docsHash: string
+  /** Daily workspace this job usually starts in (not a separate site). */
+  workspacePath: string
+  workspaceLabel: string
 }
 
 /** The four jobs the landing and in-product tips keep repeating. */
@@ -18,6 +21,8 @@ export const CROWD_JOBS: CrowdJob[] = [
     ugh: 'I will not read every project, and I do not trust a big org with a black box.',
     soYou: 'Pledge with a refund if the threshold is missed. Hand the picking to a person you already trust.',
     docsHash: 'money',
+    workspacePath: '/dashboard',
+    workspaceLabel: 'Open Fund',
   },
   {
     id: 'attention',
@@ -26,6 +31,8 @@ export const CROWD_JOBS: CrowdJob[] = [
     ugh: 'I don’t know what’s out there, who’s a scam, or how to float early bets.',
     soYou: 'Follow statements you mean. Fund proven work, or fund early and ask to be reimbursed at cost.',
     docsHash: 'attention-and-judgment',
+    workspacePath: '/dashboard',
+    workspaceLabel: 'Open Fund',
   },
   {
     id: 'work',
@@ -34,6 +41,8 @@ export const CROWD_JOBS: CrowdJob[] = [
     ugh: 'I can’t self-fund, and I don’t know a grant officer.',
     soYou: 'Publish it. A friend one hop better-connected can vouch that it advances a statement people already watch.',
     docsHash: 'work',
+    workspacePath: '/work',
+    workspaceLabel: 'Open Work',
   },
   {
     id: 'wording',
@@ -42,6 +51,8 @@ export const CROWD_JOBS: CrowdJob[] = [
     ugh: 'Not in those words — and my words will have zero signers.',
     soYou: 'Write yours. Similar signatures can still count. A bridge can invite people whose statement does not yet imply yours.',
     docsHash: 'wording',
+    workspacePath: '/statements',
+    workspaceLabel: 'Open Sign',
   },
 ]
 

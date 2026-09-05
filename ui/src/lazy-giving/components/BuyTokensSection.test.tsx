@@ -148,12 +148,14 @@ describe('BuyTokensSection', () => {
     project?: any
     tokens?: any[]
     address?: string | undefined
+    preferredMoneySourceKey?: string
   } = {}) {
     const props = {
       project: overrides.project ?? makeProject(),
       tokens: overrides.tokens ?? [makeToken()],
       address: Object.prototype.hasOwnProperty.call(overrides, 'address') ? overrides.address : USER_ADDR,
       onProjectRefresh,
+      preferredMoneySourceKey: overrides.preferredMoneySourceKey,
     }
     return render(<BuyTokensSection {...props} />)
   }
@@ -584,6 +586,45 @@ describe('BuyTokensSection', () => {
   describe('Note purchase mode', () => {
     beforeEach(() => {
       vi.stubEnv('VITE_DELEGATABLE_NOTES_CONTRACT_ADDRESS', CONTRACT_ADDR)
+    })
+
+    it('automatically selects an eligible funding-board preference', async () => {
+      vi.mocked(getNotesByOwner).mockResolvedValue([makeNote()])
+      renderSection({ preferredMoneySourceKey: `${CONTRACT_ADDR}:${'42'}` })
+
+      await waitFor(() => expect(screen.getByRole('combobox')).toHaveTextContent('Fund #42'))
+      expect(screen.getByText(/Using your funding board’s preferred fund #42/)).toBeInTheDocument()
+    })
+
+    it('selects a preferred fund that arrives after mount', async () => {
+      vi.mocked(getNotesByOwner).mockResolvedValue([makeNote()])
+      const project = makeProject()
+      const tokens = [makeToken()]
+      const { rerender } = render(
+        <BuyTokensSection project={project} tokens={tokens} address={USER_ADDR} onProjectRefresh={onProjectRefresh} />,
+      )
+
+      expect(screen.queryByRole('combobox')).not.toBeInTheDocument()
+
+      rerender(
+        <BuyTokensSection
+          project={project}
+          tokens={tokens}
+          address={USER_ADDR}
+          onProjectRefresh={onProjectRefresh}
+          preferredMoneySourceKey={`${CONTRACT_ADDR}:42`}
+        />,
+      )
+
+      await waitFor(() => expect(screen.getByRole('combobox')).toHaveTextContent('Fund #42'))
+      expect(screen.getByText(/Using your funding board’s preferred fund #42/)).toBeInTheDocument()
+    })
+
+    it('explains when the preferred fund is not eligible for the project currency', async () => {
+      vi.mocked(getNotesByOwner).mockResolvedValue([makeNote({ token: '0x000000000000000000000000000000000000dead' })])
+      renderSection({ preferredMoneySourceKey: `${CONTRACT_ADDR}:42` })
+
+      expect(await screen.findByText(/preferred fund is not eligible/)).toBeInTheDocument()
     })
 
     it('shows loading spinner while fetching notes', async () => {

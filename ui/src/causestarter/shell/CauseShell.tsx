@@ -13,6 +13,10 @@ import {
   useTheme,
 } from '@mui/material'
 import FlagOutlinedIcon from '@mui/icons-material/FlagOutlined'
+import HandymanOutlinedIcon from '@mui/icons-material/HandymanOutlined'
+import HowToRegOutlinedIcon from '@mui/icons-material/HowToRegOutlined'
+import VolunteerActivismOutlinedIcon from '@mui/icons-material/VolunteerActivismOutlined'
+import SavingsOutlinedIcon from '@mui/icons-material/SavingsOutlined'
 import MenuBookOutlinedIcon from '@mui/icons-material/MenuBookOutlined'
 import GitHubIcon from '@mui/icons-material/GitHub'
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined'
@@ -23,18 +27,29 @@ import { containerMaxWidth, pageWidthForPath } from './pageWidth'
 const GITHUB_REPO_URL = 'https://github.com/AdamSpitz/commonality'
 
 const navItems = [
-  { label: 'Cause boards', path: '/causes', testId: 'nav-causes', icon: <FlagOutlinedIcon /> },
+  { label: 'Organize', path: '/causes', testId: 'nav-causes', icon: <FlagOutlinedIcon /> },
+  { label: 'Work', path: '/work', testId: 'nav-work', icon: <HandymanOutlinedIcon /> },
+  { label: 'Sign', path: '/statements', testId: 'nav-sign', icon: <HowToRegOutlinedIcon /> },
+  { label: 'Donate', path: '/donate', testId: 'nav-donate', icon: <SavingsOutlinedIcon /> },
+  { label: 'Fund', path: '/dashboard', testId: 'nav-fund', icon: <VolunteerActivismOutlinedIcon /> },
   { label: 'Docs', path: '/docs', testId: 'nav-docs', icon: <MenuBookOutlinedIcon /> },
 ] as const
 
-function activeNavPath(pathname: string): string {
+function activeNavPath(pathname: string, search: string): string {
   const match = navItems.find((item) => pathname === item.path || pathname.startsWith(`${item.path}/`))
   if (match) return match.path
+  if (pathname.startsWith('/statement')) {
+    return new URLSearchParams(search).get('mode') === 'fund' ? '/dashboard' : '/statements'
+  }
+  if (pathname.startsWith('/projects')) {
+    return new URLSearchParams(search).get('mode') === 'work' || pathname.startsWith('/projects/new')
+      ? '/work'
+      : '/dashboard'
+  }
+  if (pathname.startsWith('/delegation')) return '/donate'
   if (
     pathname.startsWith('/cause')
     || pathname.startsWith('/bridge')
-    || pathname.startsWith('/statement')
-    || pathname.startsWith('/projects')
   ) {
     return '/causes'
   }
@@ -50,7 +65,7 @@ export function CauseShell({ children }: CauseShellProps) {
   const navigate = useNavigate()
   const theme = useTheme()
   const isDesktop = useMediaQuery(theme.breakpoints.up('md'))
-  const current = activeNavPath(location.pathname)
+  const current = activeNavPath(location.pathname, location.search)
   const pageWidth = pageWidthForPath(location.pathname)
   const maxWidth = containerMaxWidth(pageWidth, isDesktop)
 
@@ -212,16 +227,6 @@ export function CauseShell({ children }: CauseShellProps) {
                 data-testid={item.testId}
               />
             ))}
-            <BottomNavigationAction
-              label="GitHub"
-              value="github-repo"
-              icon={<GitHubIcon />}
-              component="a"
-              href={GITHUB_REPO_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Open the GitHub repository"
-            />
           </BottomNavigation>
         </Paper>
       )}

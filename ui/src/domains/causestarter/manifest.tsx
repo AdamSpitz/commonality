@@ -9,6 +9,7 @@ const routes: ReactNode = (
   <>
     <Route path="/" element={lazyRoute(() => import('../../causestarter/pages/HomePage'), 'HomePage')} />
     <Route path="/dashboard" element={lazyRoute(() => import('../../causestarter/pages/PersonalDashboardPage'), 'PersonalDashboardPage')} />
+    <Route path="/donate" element={lazyRoute(() => import('../../delegation/pages/MyNotesPage'), 'DonatePage')} />
     <Route path="/welcome" element={lazyRoute(() => import('../../causestarter/pages/WelcomePage'), 'WelcomePage')} />
     <Route path="/start" element={lazyRoute(() => import('../../causestarter/pages/StartCauseRedirect'), 'StartCauseRedirect')} />
     <Route path="/bridge/new" element={lazyRoute(() => import('../../causestarter/pages/StartBridgeRedirect'), 'StartBridgeRedirect')} />
@@ -16,6 +17,7 @@ const routes: ReactNode = (
     <Route path="/bridge/:owner/:slugPart" element={lazyRoute(() => import('../../causestarter/pages/BridgeClusterPage'), 'BridgeClusterPage')} />
     <Route path="/bridge/:draftId" element={lazyRoute(() => import('../../causestarter/pages/BridgeClusterPage'), 'BridgeClusterPage')} />
     <Route path="/causes" element={lazyRoute(() => import('../../causestarter/pages/CausesPage'), 'CausesPage')} />
+    <Route path="/work" element={lazyRoute(() => import('../../causestarter/pages/WorkPage'), 'WorkPage')} />
     <Route path="/statements" element={lazyRoute(() => import('../../causestarter/pages/StatementsPage'), 'StatementsPage')} />
     <Route path="/delegation" element={<Navigate to="/delegation/notes" replace />} />
     <Route path="/delegation/notes" element={lazyRoute(() => import('../../delegation/pages/MyNotesPage'), 'MyNotesPage')} />
@@ -67,7 +69,11 @@ export const causestarterManifest: DomainManifest = {
   },
   shell: {
     primaryNavigation: [
-      { label: 'Cause boards', path: '/causes' },
+      { label: 'Organize', path: '/causes' },
+      { label: 'Work', path: '/work' },
+      { label: 'Sign', path: '/statements' },
+      { label: 'Donate', path: '/donate' },
+      { label: 'Fund', path: '/dashboard' },
       { label: 'Docs', path: '/docs' },
     ],
     secondaryNavigation: [

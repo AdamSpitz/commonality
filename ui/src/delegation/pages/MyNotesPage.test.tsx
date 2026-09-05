@@ -26,6 +26,7 @@ vi.mock('@commonality/sdk/delegation', async () => {
     revokeNote: vi.fn(),
     reclaimFunds: vi.fn(),
     getActiveStandingPledgesByUser: vi.fn(),
+    getDonationActivityByRoot: vi.fn(),
     cancelStandingPledge: vi.fn(),
   }
 })
@@ -47,7 +48,7 @@ vi.mock('@commonality/sdk/machinery', async () => {
 })
 
 import { useAccount, useWalletClient, usePublicClient } from 'wagmi'
-import { getNotesByOwner, getNotesByRoot, getDelegationChain, delegateNote, revokeNote, reclaimFunds, getActiveStandingPledgesByUser, cancelStandingPledge } from '@commonality/sdk/delegation'
+import { getNotesByOwner, getNotesByRoot, getDelegationChain, getDonationActivityByRoot, delegateNote, revokeNote, reclaimFunds, getActiveStandingPledgesByUser, cancelStandingPledge } from '@commonality/sdk/delegation'
 import { createSDKMachinery } from '@commonality/sdk/machinery'
 import { getStatement } from '@commonality/sdk/conceptspace'
 import { getDomainUrl } from '../../shared'
@@ -100,6 +101,7 @@ describe('MyNotesPage', () => {
     vi.unstubAllEnvs()
     vi.mocked(createSDKMachinery).mockReturnValue(mockMachinery)
     vi.mocked(getActiveStandingPledgesByUser).mockResolvedValue([])
+    vi.mocked(getDonationActivityByRoot).mockResolvedValue([])
     vi.mocked(getStatement).mockResolvedValue(null)
   })
 
@@ -229,6 +231,37 @@ describe('MyNotesPage', () => {
         expect(screen.queryByText(/Cause reference:/i)).not.toBeInTheDocument()
         const activePledgesCard = screen.getByText('Active Monthly Pledges').closest('div')
         expect(activePledgesCard).toHaveTextContent('1')
+      })
+    })
+
+    it('shows donor-attributed project allocation history in Donate', async () => {
+      vi.mocked(getNotesByOwner).mockResolvedValue([])
+      vi.mocked(getNotesByRoot).mockResolvedValue([])
+      vi.mocked(getDonationActivityByRoot).mockResolvedValue([{
+        id: 'allocation-1',
+        transactionHash: '0xabc',
+        createdAt: '1700000000',
+        blockNumber: '100',
+        directedBy: '0x2222222222222222222222222222222222222222',
+        amount: '1000000000000000000',
+        currency: { kind: 'native', symbol: 'ETH', decimals: 18, tokenAddress: null, tokenType: 0 },
+        projectAddress: '0x3333333333333333333333333333333333333333',
+        receiptContract: '0x4444444444444444444444444444444444444444',
+        receiptNoteIds: ['2'],
+        inputNoteIds: ['1'],
+        intendedStatementIds: [],
+        standingPledgeIds: [],
+        status: 'receipt active',
+        reimbursedAmount: '0',
+      }])
+
+      render(<MyNotesPage experience="donate" />)
+
+      await waitFor(() => {
+        expect(screen.getByText('What my money did')).toBeInTheDocument()
+        expect(screen.getByText('1 ETH')).toBeInTheDocument()
+        expect(screen.getByText(/Directed by 0x2222...2222/)).toBeInTheDocument()
+        expect(screen.getByText('receipt active')).toBeInTheDocument()
       })
     })
 
@@ -595,6 +628,9 @@ describe('MyNotesPage', () => {
         expect(screen.getByRole('button', { name: /cancel monthly pledge/i })).toBeInTheDocument()
       })
       fireEvent.click(screen.getByRole('button', { name: /cancel monthly pledge/i }))
+      expect(cancelStandingPledge).not.toHaveBeenCalled()
+      expect(screen.getByText(/cannot be resumed/i)).toBeInTheDocument()
+      fireEvent.click(screen.getByRole('button', { name: /confirm cancellation/i }))
 
       await waitFor(() => {
         expect(cancelStandingPledge).toHaveBeenCalledWith(
@@ -616,10 +652,25 @@ describe('MyNotesPage', () => {
       await waitFor(() => {
         fireEvent.click(screen.getByRole('button', { name: /cancel monthly pledge/i }))
       })
+      fireEvent.click(screen.getByRole('button', { name: /confirm cancellation/i }))
 
       await waitFor(() => {
         expect(screen.getByText('Cancel reverted')).toBeInTheDocument()
       })
+    })
+
+    it('keeps the pledge when cancellation is dismissed', async () => {
+      vi.mocked(getNotesByOwner).mockResolvedValue([])
+      vi.mocked(getNotesByRoot).mockResolvedValue([])
+      vi.mocked(getActiveStandingPledgesByUser).mockResolvedValue([makeStandingPledge()] as any)
+
+      render(<MyNotesPage />)
+
+      fireEvent.click(await screen.findByRole('button', { name: /cancel monthly pledge/i }))
+      fireEvent.click(screen.getByRole('button', { name: /keep pledge/i }))
+
+      expect(cancelStandingPledge).not.toHaveBeenCalled()
+      await waitFor(() => expect(screen.queryByText(/cannot be resumed/i)).not.toBeInTheDocument())
     })
   })
 

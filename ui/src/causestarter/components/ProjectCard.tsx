@@ -21,13 +21,15 @@ const RELATION_TOOLTIP: Record<ProjectRelation, string> = {
   bookmarked: 'You bookmarked this project.',
 }
 
-export function ProjectCard({ project }: { project: UserProject }) {
+export function ProjectCard({ project, mode }: { project: UserProject; mode?: 'work' | 'fund' }) {
   const status = getProjectStatus(project.project)
+  const path = projectPathForAddress(project.project.id)
+  const to = mode ? `${path}?mode=${mode}` : path
 
   return (
     <Paper
       component={RouterLink}
-      to={projectPathForAddress(project.project.id)}
+      to={to}
       elevation={0}
       data-testid="home-project"
       sx={{

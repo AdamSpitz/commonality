@@ -1,16 +1,42 @@
 import { Alert, Box, Button, CircularProgress, Stack, Typography } from '@mui/material'
-import { useNavigate } from 'react-router-dom'
+import { Link as RouterLink, useNavigate } from 'react-router-dom'
 import { ConnectWalletHint } from './ConnectWalletHint'
 import { HeaderInfoTip } from '../../shared'
 import { ProjectCard } from './ProjectCard'
-import { useUserProjects } from '../hooks/useUserProjects'
+import type { UserProject } from '../lib/userProjects'
 
-export function YourProjects() {
+const HOME_PREVIEW_LIMIT = 3
+
+export function YourProjects({
+  compact = false,
+  heading,
+  empty,
+  projects,
+  loading,
+  connected,
+  showCreate = false,
+  mode,
+  testId = 'home-projects',
+  connectHint = 'Connect a wallet to see projects you created or contributed to.',
+  about = 'Projects this wallet created, plus any you bookmarked. Bookmarks follow the wallet when connected and are shared with Fund.',
+}: {
+  compact?: boolean
+  heading: string
+  empty: string
+  projects: UserProject[]
+  loading: boolean
+  connected: boolean
+  showCreate?: boolean
+  mode?: 'work' | 'fund'
+  testId?: string
+  connectHint?: string
+  about?: string
+}) {
   const navigate = useNavigate()
-  const { projects, loading, connected } = useUserProjects()
+  const shown = compact ? projects.slice(0, HOME_PREVIEW_LIMIT) : projects
 
   return (
-    <Stack spacing={1.5} data-testid="home-projects">
+    <Stack spacing={1.5} data-testid={testId}>
       <Box
         sx={{
           display: 'flex',
@@ -21,34 +47,36 @@ export function YourProjects() {
       >
         <Stack direction="row" alignItems="center" sx={{ minWidth: 0 }}>
           <Typography variant="h4" component="h2" sx={{ fontWeight: 800, fontSize: { xs: '1.6rem', sm: '2rem' } }}>
-            Bookmarked projects
+            {heading}
           </Typography>
           <HeaderInfoTip
-            title="Projects this wallet created or contributed to, plus any you bookmarked. Bookmarks follow the wallet when connected."
-            label="About your projects"
+            title={about}
+            label={`About ${heading.toLowerCase()}`}
           />
         </Stack>
-        <Button
-          variant="outlined"
-          data-testid="home-create-project"
-          sx={{
-            minHeight: 40,
-            px: 1.75,
-            borderRadius: 999,
-            textTransform: 'none',
-            fontWeight: 700,
-            whiteSpace: 'nowrap',
-            flexShrink: 0,
-            mt: 0.35,
-          }}
-          onClick={() => navigate('/projects/new')}
-        >
-          Create Project
-        </Button>
+        {showCreate && (
+          <Button
+            variant="outlined"
+            data-testid="home-create-project"
+            sx={{
+              minHeight: 40,
+              px: 1.75,
+              borderRadius: 999,
+              textTransform: 'none',
+              fontWeight: 700,
+              whiteSpace: 'nowrap',
+              flexShrink: 0,
+              mt: 0.35,
+            }}
+            onClick={() => navigate('/projects/new')}
+          >
+            Create Project
+          </Button>
+        )}
       </Box>
 
       {!connected && projects.length === 0 && (
-        <ConnectWalletHint>Connect a wallet to see projects you created or contributed to.</ConnectWalletHint>
+        <ConnectWalletHint>{connectHint}</ConnectWalletHint>
       )}
 
       {loading && projects.length === 0 && connected && (
@@ -62,18 +90,26 @@ export function YourProjects() {
 
       {connected && !loading && projects.length === 0 && (
         <Alert severity="info" sx={{ borderRadius: 2 }}>
-          No projects yet. If you would do the work but cannot self-fund, create one
-          and ask a better-connected friend for an alignment vouch — no grant officer.
-          Contribute or bookmark if your job is money or attention instead.
+          {empty}
         </Alert>
       )}
 
-      {projects.length > 0 && (
+      {shown.length > 0 && (
         <Stack spacing={0.75}>
-          {projects.map((project) => (
-            <ProjectCard key={project.project.id} project={project} />
+          {shown.map((project) => (
+            <ProjectCard key={project.project.id} project={project} mode={mode} />
           ))}
         </Stack>
+      )}
+
+      {compact && projects.length > shown.length && (
+        <Button
+          component={RouterLink}
+          to={mode === 'work' ? '/work' : '/dashboard'}
+          sx={{ alignSelf: 'flex-start', textTransform: 'none' }}
+        >
+          See all
+        </Button>
       )}
     </Stack>
   )

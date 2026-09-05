@@ -6,5 +6,11 @@ describe('jobs catalog', () => {
     expect(CROWD_JOBS.map((job) => job.id)).toEqual(['money', 'attention', 'work', 'wording'])
     expect(jobsDocHref()).toBe('/docs/the-jobs')
     expect(jobsDocHref(CROWD_JOBS[0])).toBe('/docs/the-jobs#money')
+    expect(CROWD_JOBS.map((job) => [job.id, job.workspacePath])).toEqual([
+      ['money', '/dashboard'],
+      ['attention', '/dashboard'],
+      ['work', '/work'],
+      ['wording', '/statements'],
+    ])
   })
 })

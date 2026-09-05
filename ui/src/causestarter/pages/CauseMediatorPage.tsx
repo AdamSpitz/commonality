@@ -120,7 +120,7 @@ export function CauseMediatorPage() {
           <BridgeDisplayBlock
             serviceUrl={mediator.serviceUrl}
             labels={{ sideA: 'One side', sideB: 'The other side' }}
-            statementHref={(anchor) => (anchor.tally_cid ? `/statement/${anchor.tally_cid}` : '#')}
+            statementHref={(anchor) => (anchor.tally_cid ? `/statement/${anchor.tally_cid}?mode=sign` : '#')}
             title="What it currently proposes"
             description="Featured bridges published by this mediator. Each is a statement you can read in full and sign, or ignore."
           />

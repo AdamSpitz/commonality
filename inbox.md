@@ -17,24 +17,6 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 ## Main list
 
-- **(Tell)** Combinator statement pages no longer wait on operand IPFS reads before painting. CauseStarter and Conceptspace `StatementPage`s show the combinator (CID fallbacks) immediately; operand bodies fill in as they resolve. Navigation-stale writes on the rest of Conceptspace's loader are still unguarded (separate TODO).
-
-- **(Tell)** Production OpenRouter services (attesters, service-host, cause-assist, coherence-badge-worker) now default to `deepseek/deepseek-v4-flash-0731` via `PRODUCTION_OPENROUTER_MODEL`. Laptop scripts use the same id through a separate `DEV_OPENROUTER_MODEL` env / `fake-data-generation/devOpenRouter.ts`. Cause-assist prefers OpenRouter over xAI when both keys exist. Update Render dashboard if those env vars were set by hand.
-
-- **(Tell)** Crime left/right triple accepted into [`fake-data-generation/seed-content/crime-repeat-offenders.json`](fake-data-generation/seed-content/crime-repeat-offenders.json) (2026-08-31). Not a tiny-seed cluster.
-
-- **(Tell)** LGBT left/right **schools** fact-conditional accepted into [`fake-data-generation/seed-content/lgbt-schools.json`](fake-data-generation/seed-content/lgbt-schools.json) (2026-08-31). Adam's commonality reword still attester-clean. Not a tiny-seed cluster. LGB-vs-T unbundling not drafted.
-
-- **(Tell)** Fake/seed data now has a standing plan: [`fake-data-generation/PLAN.md`](fake-data-generation/PLAN.md) (tiny UI world vs real statements vs stress traffic). Adam asked for more left/right bridges on LGBT, immigration, crime — all four (plus abortion) are accepted.
-
-- **(Tell)** Nested-place rollup is settled as board inclusion, not implication. Statement-generation gold set, cause-assist guidance, seed garden/roster, and the implication attester prompt now follow that (Grey County → Ontario is a worked reject). `seed-implication-evaluations` still has the old prompt fingerprint; a v4-flash refresh stalled on empty completions. Handoff: [continuity/2026-08-27-statement-generation.md](continuity/2026-08-27-statement-generation.md).
-
-- **(Tell)** Combinator statements are specified and implemented: canonical `all`/`any` over sorted plank CIDs (no title/date), CauseStarter view-strip promote, implication attester structural gate for pairwise arrows only. Ordinary `createStatement` no longer defaults `createdDate` into extras.
-
-- **(Tell)** Cause-board **Fully reimbursed** now means success-vouched *and* `outstandingUnreimbursedAmount === 0` (never-scouted successes omitted). It no longer reuses `AlignedProjectsList` with `statusFilterLock="succeeded"` (raised ≥ threshold). New SDK query: `getFullyReimbursedProjectsForCause`.
-
-- **(Tell)** Indexed `ProjectFactory.ProjectCreated` in the event cache and switched CauseStarter’s “projects you created” list to `getUserCreatedProjects` (creator-filtered by topic1). No more `eth_getLogs` from block 0. Hosted indexer needs `PROJECT_FACTORY_ADDRESS` (added in `render.yaml`; also in the deployment-manifest builder). Existing stacks must reindex that contract to populate the new events.
-
 ### Security/recoverability human actions
 
 - Replace/scopedown external account tokens: Cloudflare scoped DNS token instead of global key; Render/Pinata scoped as narrowly as possible; OpenRouter spend limit.
@@ -62,6 +44,17 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 - **Sponsored gas — human finish:** tank + UI are ready. Sign into [lazygiving.testnet.commonality.works](https://lazygiving.testnet.commonality.works) with Privy email OTP, contribute on enrolled project [`0x0b34E11c5A014C77b3b61E9e8b94609D8598FF93`](https://lazygiving.testnet.commonality.works/#/projects/0x0b34E11c5A014C77b3b61E9e8b94609D8598FF93) (high threshold, ~30-day deadline so it will fail rather than succeed), then refund after that deadline. Capture the UserOp calldata / gas overhead and retune placeholder caps. Steps: [sponsored-gas-live-trace.md](workflow/sponsored-gas-live-trace.md).
 
 - Provision/fund the live-testnet verifier wallet (`COMMONALITY_TESTNET_VERIFIER_PRIVATE_KEY`) and, once it is safe to spend gas nightly, set `COMMONALITY_VERIFIER_NIGHTLY_ALLOW_TESTNET_MUTATION=1` in the deployment shell so `testnet.onchain-to-indexer` joins the retained deep cadence. Until this is done, `testnet.environment` will remain skipped-by-policy/uncertain for release-candidate claims. See `verifier/PLAN.md` P0/P1 item 1.
+
+### Admin
+
+- Does it make sense to have some sort of "admin mode"? (Do we already?) What kinds of facilities should it have? (To some extent it might not make sense to have things like "delete the DB" or "delete this data from the DB", because a lot of the data is onchain and so we can't really delete it. What *does* make sense? Redeploying the contracts, restarting the indexer from scratch, stuff like that?)
+
+- In the fake-data-generation stuff we've got a bunch of code for generating mass amounts of data - e.g. we'll want to stress-test the system's scalability and UI and so on. And soon we're going to want to generate lots of (real) statements for fleshing out the space of "here's what you might want to do in this system". Do we at least have clear APIs for doing bulk-ingest?
+
+### Role-centric UI
+
+- Direction and slices: [role-centric-ui.md](specs/product/role-centric-ui.md). Sign/Fund lenses, occupied-home inbox, and workspace chrome (Sign/Fund/Organize labels; project detail returns to Fund; landing jobs open those workspaces) are in. Remaining: whether workspace choice persists; Fund submodes vs filters; attention badges; whether Direct funds / Evaluate earn top-level nav; light gamification (stats/badges) without turning roles into brands.
+
 
 ### The founder-first pivot ("causelets")
 

@@ -3,65 +3,47 @@ import { MemoryRouter } from 'react-router-dom'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { HomePage } from './HomePage'
 
-const { useUserCauses, useAccount } = vi.hoisted(() => ({
-  useUserCauses: vi.fn(),
+const mocks = vi.hoisted(() => ({
   useAccount: vi.fn(),
+  useUserCauses: vi.fn(),
+  useUserProjects: vi.fn(),
+  useUserStatements: vi.fn(),
+  useDonationSummary: vi.fn(),
 }))
 
-vi.mock('../hooks/useUserCauses', () => ({
-  useUserCauses,
-}))
+vi.mock('wagmi', () => ({ useAccount: mocks.useAccount }))
+vi.mock('../hooks/useUserCauses', () => ({ useUserCauses: mocks.useUserCauses }))
+vi.mock('../hooks/useUserProjects', () => ({ useUserProjects: mocks.useUserProjects }))
+vi.mock('../hooks/useUserStatements', () => ({ useUserStatements: mocks.useUserStatements }))
+vi.mock('../hooks/useDonationSummary', () => ({ useDonationSummary: mocks.useDonationSummary }))
 
-vi.mock('wagmi', () => ({
-  useAccount,
-}))
+function renderHome({ connected = false, statements = 0, pledges = 0, notes = 0 } = {}) {
+  mocks.useAccount.mockReturnValue({ isConnected: connected, address: connected ? '0xabc' : undefined })
+  mocks.useUserCauses.mockReturnValue({ causes: [], loading: false })
+  mocks.useUserProjects.mockReturnValue({ projects: [], loading: false })
+  mocks.useUserStatements.mockReturnValue({ statements: Array.from({ length: statements }, (_, index) => ({ cid: `cid-${index}` })), loading: false })
+  mocks.useDonationSummary.mockReturnValue({ activePledgeCount: pledges, activeNoteCount: notes, delegatedNoteCount: notes, loading: false })
+  render(<MemoryRouter><HomePage /></MemoryRouter>)
+}
 
-vi.mock('../components/YourDashboard', () => ({
-  YourDashboard: () => <div data-testid="home-dashboard-board" />,
-}))
-
-vi.mock('../components/YourProjects', () => ({
-  YourProjects: () => null,
-}))
-
-vi.mock('../components/YourSignedStatements', () => ({
-  YourSignedStatements: () => null,
-}))
-
-vi.mock('../components/YourNudgersAndNudges', () => ({
-  YourNudgersAndNudges: () => null,
-}))
-
-describe('HomePage landing', () => {
+describe('HomePage role launcher', () => {
   afterEach(cleanup)
 
-  it('leads with jobs, not Start → Grow → Deliver', () => {
-    useUserCauses.mockReturnValue({ causes: [], loading: false })
-    useAccount.mockReturnValue({ isConnected: false })
-    render(
-      <MemoryRouter>
-        <HomePage />
-      </MemoryRouter>,
-    )
-    expect(screen.getByTestId('home-landing')).toBeInTheDocument()
-    expect(screen.getByText(/there are enough of us/i)).toBeInTheDocument()
-    expect(screen.getByTestId('crowd-jobs')).toBeInTheDocument()
-    expect(screen.queryByText(/change the world/i)).toBeNull()
-    expect(screen.queryByTestId('home-dashboard-board')).toBeNull()
+  it('gives every visitor the focused role cards', () => {
+    renderHome()
+    expect(screen.getByRole('heading', { name: 'What would you like to do?' })).toBeInTheDocument()
+    expect(screen.getByTestId('home-role-sign')).toHaveAttribute('href', '/statements')
+    expect(screen.getByTestId('home-role-donate')).toHaveAttribute('href', '/donate')
+    expect(screen.getByTestId('home-role-fund')).toHaveAttribute('href', '/dashboard')
+    expect(screen.getByTestId('home-role-work')).toHaveAttribute('href', '/work')
+    expect(screen.getByTestId('home-role-organize')).toHaveAttribute('href', '/causes')
+    expect(screen.getByText('Signing does not commit money.', { exact: false })).toBeInTheDocument()
   })
 
-  it('puts the personal fundable-projects board first when the wallet is connected', () => {
-    useUserCauses.mockReturnValue({ causes: [], loading: false })
-    useAccount.mockReturnValue({ isConnected: true, address: '0xabc' })
-    render(
-      <MemoryRouter>
-        <HomePage />
-      </MemoryRouter>,
-    )
-    expect(screen.getByTestId('home-dashboard')).toBeInTheDocument()
-    expect(screen.getByTestId('home-dashboard-board')).toBeInTheDocument()
-    expect(screen.getByTestId('home-dashboard-causes')).toBeInTheDocument()
-    expect(screen.getByTestId('home-dashboard-activity')).toBeInTheDocument()
-    expect(screen.queryByTestId('home-landing')).toBeNull()
+  it('replaces blurbs with compact activity summaries', () => {
+    renderHome({ connected: true, statements: 3, pledges: 1, notes: 2 })
+    expect(screen.getByText('3 signed statements')).toBeInTheDocument()
+    expect(screen.getByText('1 monthly pledge · 2 active funds')).toBeInTheDocument()
+    expect(screen.getByText('3 signed statements (default board)')).toBeInTheDocument()
   })
 })

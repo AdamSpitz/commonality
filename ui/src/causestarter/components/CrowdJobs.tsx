@@ -29,6 +29,15 @@ export function CrowdJobs() {
           <Typography variant="body2" sx={{ mt: 0.75 }}>
             So: {job.soYou}
           </Typography>
+          <Button
+            component={RouterLink}
+            to={job.workspacePath}
+            size="small"
+            sx={{ mt: 1, textTransform: 'none', fontWeight: 700, px: 0 }}
+            data-testid={`crowd-job-workspace-${job.id}`}
+          >
+            {job.workspaceLabel}
+          </Button>
         </Paper>
       ))}
       <Box>

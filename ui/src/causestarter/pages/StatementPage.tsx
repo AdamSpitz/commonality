@@ -11,6 +11,7 @@ import {
   Typography,
 } from '@mui/material'
 import { Link as RouterLink, useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { useAccount } from 'wagmi'
 import { getStatementWithContent, type Statement } from '@commonality/sdk/conceptspace'
 import {
   parseCombinatorStatement,
@@ -23,8 +24,13 @@ import { useAlignmentTrust } from '../hooks/useAlignmentTrust'
 import { SupportButton } from '../components/SupportButton'
 import { CauseFundingSummary } from '../components/CauseFundingSummary'
 import { StarterNetworkFilterCopy } from '../components/StarterNetworkFilterNotice'
+import { useUserStatements } from '../hooks/useUserStatements'
 import { useViewCounts } from '../hooks/useViewCounts'
 import { createCausePath } from '../lib/causeStore'
+import {
+  readPersonalFundingBoard,
+  writePersonalFundingBoard,
+} from '../lib/personalFundingBoard'
 import { useMachinery } from '../../shared'
 
 function documentText(doc: DisplayableDocument | null | undefined): string | null {
@@ -36,10 +42,30 @@ function documentText(doc: DisplayableDocument | null | undefined): string | nul
   return null
 }
 
+type StatementMode = 'sign' | 'fund' | 'all'
+
+function statementMode(searchParams: URLSearchParams): StatementMode {
+  const mode = searchParams.get('mode')
+  if (mode === 'sign' || mode === 'fund') return mode
+  // Keep old fundable-project links focused instead of silently expanding them.
+  if (searchParams.get('section') === 'fundable-projects') return 'fund'
+  return 'all'
+}
+
+function statementModePath(statementCid: string, mode: StatementMode): string {
+  return mode === 'all'
+    ? `/statement/${statementCid}`
+    : `/statement/${statementCid}?mode=${mode}`
+}
+
 export function StatementPage() {
   const { statementCid } = useParams<{ statementCid: string }>()
   const [searchParams] = useSearchParams()
+  const mode = statementMode(searchParams)
+  const showSigning = mode !== 'fund'
+  const showFunding = mode !== 'sign'
   const navigate = useNavigate()
+  const { address } = useAccount()
   const machinery = useMachinery()
   const trustedImplicationAttesters = useTrustedAttesters()
   const { trustedAlignmentAttesters } = useAlignmentTrust()
@@ -63,6 +89,33 @@ export function StatementPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [cidCopiedOpen, setCidCopiedOpen] = useState(false)
+  const [addedToFundingBoardOpen, setAddedToFundingBoardOpen] = useState(false)
+  const [isInFundingBoard, setIsInFundingBoard] = useState(false)
+  const { statements: signedStatements } = useUserStatements()
+  const signedCids = signedStatements.map((row) => row.cid)
+  const signedCidKey = signedCids.join(',')
+
+  useEffect(() => {
+    const board = readPersonalFundingBoard(address)
+    const cids = board?.statementCids ?? signedCidKey.split(',').filter(Boolean)
+    setIsInFundingBoard(Boolean(statementCid && cids.includes(statementCid)))
+  }, [address, statementCid, signedCidKey])
+
+  const addToFundingBoard = () => {
+    if (!address || !statementCid) return
+    const current = readPersonalFundingBoard(address)
+    const seed = current?.statementCids ?? signedCids
+    if (seed.includes(statementCid) && current) {
+      setIsInFundingBoard(true)
+      return
+    }
+    writePersonalFundingBoard(address, {
+      ...current,
+      statementCids: [...new Set([...seed, statementCid])],
+    })
+    setIsInFundingBoard(true)
+    setAddedToFundingBoardOpen(true)
+  }
 
   // Operand reads outlive a navigation, so every write past an await is guarded:
   // a late resolve must not paint one statement's operands onto another.
@@ -109,12 +162,12 @@ export function StatementPage() {
     } finally {
       if (!cancelled()) setLoading(false)
     }
-  }, [machinery, statementCid])
+  }, [machinery, setContent, setError, setLoading, setOperandBodies, setStatement, statementCid])
 
   useEffect(() => {
-    if (loading || searchParams.get('section') !== 'fundable-projects') return
+    if (loading || mode !== 'fund' || searchParams.get('section') !== 'fundable-projects') return
     document.getElementById('fundable-projects')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  }, [loading, searchParams, statementCid])
+  }, [loading, mode, searchParams, statementCid])
 
   useEffect(() => {
     let cancelled = false
@@ -185,6 +238,39 @@ export function StatementPage() {
   return (
     <Stack spacing={2.5}>
       <Box>
+        {mode !== 'all' && (
+          <Stack
+            direction="row"
+            spacing={1}
+            alignItems="center"
+            justifyContent="space-between"
+            sx={{ mb: 1.5 }}
+            data-testid="statement-mode"
+          >
+            <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+              {mode === 'sign' ? 'Signing view' : 'Funding view'}
+            </Typography>
+            <Stack direction="row" spacing={0.5}>
+              <Button
+                component={RouterLink}
+                to={statementModePath(statementCid as string, mode === 'sign' ? 'fund' : 'sign')}
+                size="small"
+                sx={{ textTransform: 'none' }}
+              >
+                {mode === 'sign' ? 'Fund work' : 'Sign statement'}
+              </Button>
+              <Button
+                component={RouterLink}
+                to={statementModePath(statementCid as string, 'all')}
+                size="small"
+                color="inherit"
+                sx={{ textTransform: 'none' }}
+              >
+                Full view
+              </Button>
+            </Stack>
+          </Stack>
+        )}
         <Typography
           variant="overline"
           sx={{ letterSpacing: '0.14em', fontWeight: 700, color: 'primary.main', display: 'block' }}
@@ -227,7 +313,7 @@ export function StatementPage() {
                   </Typography>
                   <Link
                     component={RouterLink}
-                    to={`/statement/${operand.cid}`}
+                    to={statementModePath(operand.cid, mode)}
                     variant="caption"
                     underline="hover"
                   >
@@ -237,7 +323,7 @@ export function StatementPage() {
               ))}
             </Stack>
           )}
-          <Stack
+          {showSigning && <Stack
             direction="row"
             spacing={0.75}
             alignItems="center"
@@ -288,6 +374,26 @@ export function StatementPage() {
             })()
           }}
             />
+            {address ? (
+              <Button
+                size="small"
+                variant="outlined"
+                disabled={isInFundingBoard}
+                onClick={addToFundingBoard}
+                sx={{ textTransform: 'none' }}
+              >
+                {isInFundingBoard ? 'Included in my funding board' : 'Add to my funding board'}
+              </Button>
+            ) : (
+              <Button
+                size="small"
+                component={RouterLink}
+                to="/dashboard"
+                sx={{ textTransform: 'none' }}
+              >
+                Add to my funding board
+              </Button>
+            )}
             <Typography variant="caption" color="text.secondary">
               {supportCaption}{createdLabel}
               {statementCid && (
@@ -320,14 +426,14 @@ export function StatementPage() {
                 </>
               )}
             </Typography>
-          </Stack>
+          </Stack>}
         </Stack>
       </Paper>
       </Box>
 
-      <CauseFundingSummary statementCids={[statementCid as string]} />
+      {showFunding && <CauseFundingSummary statementCids={[statementCid as string]} />}
 
-      <CauseBoard
+      {showFunding && <CauseBoard
         statementCid={statementCid}
         trustedAlignmentAttesters={trustedAlignmentAttesters}
         embedded
@@ -344,16 +450,16 @@ export function StatementPage() {
             <StarterNetworkFilterCopy />
           </Stack>
         }
-      />
+      />}
 
-      <CauseLeaderboard
+      {showFunding && <CauseLeaderboard
         statementCid={statementCid as string}
         embedded
         limit={3}
         fullPageTo={`/statement/${statementCid}/board/leaderboard`}
-      />
+      />}
 
-      <Paper
+      {mode === 'all' && <Paper
         elevation={0}
         sx={{ p: 2, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}
       >
@@ -370,13 +476,19 @@ export function StatementPage() {
         >
           Start a related cause
         </Button>
-      </Paper>
+      </Paper>}
 
       <Snackbar
         open={cidCopiedOpen}
         autoHideDuration={2500}
         onClose={() => setCidCopiedOpen(false)}
         message="CID copied"
+      />
+      <Snackbar
+        open={addedToFundingBoardOpen}
+        autoHideDuration={3500}
+        onClose={() => setAddedToFundingBoardOpen(false)}
+        message="Added to your funding board. Signing remains unchanged."
       />
     </Stack>
   )

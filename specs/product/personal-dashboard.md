@@ -1,7 +1,10 @@
-# Personal dashboard (projects on statements you signed)
+# Personal funding board
 
-**Status: first slice specified and implemented 2026-08-24** (home teaser +
-`/dashboard` full list). Starring / named subsets remain out of scope.
+**Status: current model, arbitrary-statement editor, and wallet synchronization implemented 2026-09-04.** The accepted
+direction is an explicitly configured personal board at `/dashboard` and role cards
+on home; see [role-centric-ui.md](./role-centric-ui.md). The signed-statement union
+and home teaser below describe the superseded first implementation and remain as
+history for why the personal board is distinct from an organizer's cause board.
 This is the surface reserved by [cause-page-not-a-club.md](./cause-page-not-a-club.md)
 under the names **dashboard** / **my board**. It does **not** reverse
 [ADR 0005](../decisions/0005-founder-first-verticals.md) or
@@ -11,7 +14,15 @@ Related: [composability.md](./composability.md) (the *portfolio* of reserved
 capital is a different object — do not conflate), [the jobs](/docs/end-user/causestarter/the-jobs.md),
 glossary **Cause board** / **Dashboard**.
 
-## What it is
+## What it is now
+
+An explicitly configured personal **fundable-projects board**. Included statements,
+optional filters such as geography, and an optional preferred money source belong to
+the board definition; signing a statement does not silently add it. It is cached on the
+device and can be synchronized publicly through the wallet's
+`personal-funding-board` MutableRef. It is personal chrome, not a shared publication.
+
+## Original derived-board model (superseded)
 
 A derived **fundable-projects board**: the union of projects vouched as
 advancing any statement the connected wallet has signed. Same list component
@@ -39,14 +50,14 @@ cause. Not a publication.
   Optional later filters (pin/hide) may use a wallet MutableRef in the same
   family as `bookmarked-causes`.
 
-## First slice (build this)
+## Historical first slice (implemented, then superseded)
 
 1. CauseStarter **home**, when the wallet is connected **or** this device
-   already has cause boards: hero is a **teaser** of the personal
-   fundable-projects board (a few compact rows). Organizer drafts and
-   bookmarks stay below (existing **Cause boards** section). First-visit
+   already has cause boards: an inbox headed **Your work**. Hero is still a
+   **teaser** of the personal fundable-projects board (a few compact rows),
+   labeled Fund. Sign and Organize teasers sit below and link out. First-visit
    **Welcome** remains when disconnected and there are no local/bookmarked
-   boards.
+   boards. See [role-centric-ui.md](./role-centric-ui.md).
 2. Reuse `CauseBoard` with `statementCids` = this wallet’s direct beliefs.
    Same starter-network / personal trust filter as other CauseStarter lists.
    Home passes `preview` (compact cards, cap, no metrics/tabs). Content
@@ -71,10 +82,10 @@ cause. Not a publication.
 
 | | Cause board | Dashboard |
 |---|---|---|
-| Author | Organizer | Derived from wallet signatures |
+| Author | Organizer | The wallet user |
 | Job | Circulate a mix; acquire attention | Return and watch work you already claimed |
-| Storage | Roster `(owner, slug)` + CID | None (query). Filters later optional |
-| Visibility | Public URL | Reconstructable from public signatures; treat as personal chrome, not a secret |
+| Storage | Roster `(owner, slug)` + CID | Wallet-scoped device storage in the first pass; synchronization later |
+| Visibility | Public URL | Device-local personal chrome in the first pass; not a privacy product |
 
 Founder-first still holds: organizers are the customer for distribution.
 Signers stop treating the organizer URL as home.

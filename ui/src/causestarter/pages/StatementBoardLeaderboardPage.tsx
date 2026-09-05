@@ -20,7 +20,7 @@ export function StatementBoardLeaderboardPage() {
   return (
     <CauseLeaderboard
       statementCid={statementCid}
-      backLink={{ label: '← Back to statement', to: `/statement/${statementCid}` }}
+      backLink={{ label: '← Back to statement', to: `/statement/${statementCid}?mode=fund` }}
     />
   )
 }
