@@ -41,7 +41,7 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 ### Testnet indexer (shared lab)
 
-- **(Ask / in progress)** Raise Alchemy **monthly usage limit** a little (~$5–10) **after** indexer deploy `53417ecc` (10k `eth_getLogs`) is live. Already PAYG; $20 / 44.4M CU cap was exceeded (44.50M) by the old range-10 backfill. Not a plan upgrade. Handoff: [continuity/2026-09-05-testnet-indexer-10k-and-alchemy-cap.md](continuity/2026-09-05-testnet-indexer-10k-and-alchemy-cap.md).
+- **(Tell)** Testnet indexer catch-up: you raised Alchemy monthly usage limit to $30. Resumed `commonality-indexer`, canceled accidental `master` resume deploy, live API deploy `dep-dae48qgou94c73976610` on `53417ecc` (range 10000). `testnet.indexer` **pass** (block 46429137, lag 0). Working-plan item 2 done.
 
 ### Testing/verification improvements
 

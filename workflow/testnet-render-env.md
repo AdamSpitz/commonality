@@ -1,6 +1,10 @@
 # Testnet Render environment values
 
-Copy these non-secret values into Render `sync: false` fields when the dashboard asks for them. Secrets/private keys still come from `.env.secrets` and `deployments/operator-addresses.env`.
+Copy these non-secret values into Render `sync: false` fields when the dashboard asks for them. Secrets/private keys still come from `.env.secrets` and `deployments/operator-addresses.env`. For Render *API* operations (logs, env updates, restart) source gitignored `.env.render` (`RENDER_API_KEY`). See [deployment.md](./deployment.md).
+
+## Indexer (`commonality-indexer`)
+
+`PONDER_RPC_URL_84532` is `sync: false`. Paste the Alchemy (or other archive-capable) Base Sepolia URL from `.env` / `BASE_SEPOLIA_RPC_URL`. `scripts/generate-render-secrets.mjs` emits this block. Public `https://sepolia.base.org` prunes below ~45_000_000 and will crash the indexer while `START_BLOCK` is 42768673. After changing the URL, trigger a deploy (`deploy_only` is enough), not only a restart. See [deployment.md](./deployment.md#indexer-on-render).
 
 ## PublishedData IPFS mirror (`commonality-published-data-ipfs-mirror`)
 

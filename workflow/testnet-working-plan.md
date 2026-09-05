@@ -26,16 +26,13 @@ It does **not** mean: public launch, mainnet, 10⁴ fake users, or a nightly mut
 
 Do not push `gen:large` (today: 100 users; 1000+ not built) at Sepolia. The indexer is still catching up / lag-failing; a load generator would trash the lab you still need to read.
 
-## Current state (2026-09-05, end of session)
+## Current state (2026-09-05, indexer catch-up)
 
-Two verifier runs the same day. Morning/early: indexer **502 crash loop**. After env+deploy: GraphQL **stays 200**, but `testnet.indexer` still **fail** on lag. Do not re-diagnose the 502 unless GraphQL 502s again.
+**Item 2 done.** `npx verifier-run testnet.indexer` **pass** (~16:42 UTC): GraphQL `_meta` **46429137**, lag **0**, maxLag 300. Live deploy `dep-dae48qgou94c73976610` commit `53417ecc`, env range **10000**, Alchemy RPC. Adam raised monthly usage limit to **$30**.
 
-**Latest `./scripts/verifier-testnet.sh` (read-only, ~15:07 UTC, after Alchemy RPC deploy)**
+Earlier the same day: 502 crash loop (public prune) then HTTP 200 with lag fail; 10k deploy `dep-dae448m7bikc7380vo6g` **update_failed** on $20 CU cap; service suspended; resume + redeploy after the $30 raise. Do not re-diagnose 502 unless GraphQL 502s again. Do not point RPC at `sepolia.base.org`.
 
-- Pass: `testnet.dns`, `http` (12 URLs including indexer GraphQL), `rpc` (84532 at **46426264**), `app-shell` (8), `contracts` (19), `policy-enforcement`, advisory `sponsored-gas`.
-- Fail: `testnet.indexer` — GraphQL `_meta` **usable** at block **46349669**, lag **76596** > `maxLagBlocks` 300 (`verifier/environments/testnet.json`).
-- Fail: `testnet.app-config` — config/scripts OK; **1 trust root with no publications** on 84532 (`VITE_DEFAULT_TRUSTED_ATTESTERS` `0x021b3C90931CAdDa12C0dCaB0407A622d717b02C`). Treat as likely lag / backfill, not a missing UI bundle, until `_meta` is near head.
-- Unchanged: `website-journeys` 180s timeout (06:24, not re-run); `onchain-to-indexer` skipped by policy; `published-data` stale pass (2026-07-20); `alignment-trust` missing.
+**Still open for item 3 (full read-only smoke):** last full `./scripts/verifier-testnet.sh` (~15:07 UTC) had `testnet.app-config` fail (1 trust root with no publications — likely lag then). Re-run the wrapper. Unchanged: `website-journeys` 180s timeout (06:24); `onchain-to-indexer` skipped by policy; `published-data` stale pass (2026-07-20); `alignment-trust` missing.
 
 **Crash loop — fixed, do not redo**
 
@@ -54,8 +51,9 @@ Two verifier runs the same day. Morning/early: indexer **502 crash loop**. After
 - **2026-09-05 ~15:27 UTC diagnosis:** still Alchemy (`base-sepolia.g.alchemy.com`), not public prune. Logs are almost all `eth_getLogs` **compute units per second** errors; hostname **`custom_transport`**; `_meta` still **46349669**. Cause: `ponder.config.ts` wrapped the RPC in viem `http()`, so Ponder used `retryCount: 0` and did not apply its own rate limiter. Fix committed `7afa8c1d` (pass URL string when body-size cap is unset/`0`). Live deploy **`dep-dae3bsv40ujc73dktq6g`** from that commit (API, not master autoDeploy).
 - **Watcher result (~15:55 UTC):** deploy **live**; hostname now Alchemy (not `custom_transport`); `_meta` **still 46349669**; progress still **79.7%**; CUPS errors continue. Account is already **PAYG** (10k CU/s; peak ~11.6k). Monthly usage limit is a **$20 / 44.4M CU** cap (35.5M used). Do not raise that cap yet.
 - **Next lever:** live `PONDER_ETH_GET_LOGS_BLOCK_RANGE` was **10** even though this key accepts 10k-block `eth_getLogs`. Blueprint + Render PUT to **10000**. Commit `53417ecc` adds a one-shot log `[commonality-indexer] eth_getLogs failed because the RPC rejected the block range or response size` (then drop to 1000, then 10). Deploy **`dep-dae448m7bikc7380vo6g`** was still **building** when the $20 CU cap blew.
-- **Alchemy $20 cap blown (~16:25 UTC):** dashboard **44.50M / 44.44M CU** while the **range-10** process (`7afa8c1d`) was still live. Retries cost CU; `_meta` did not move. Unstick: (1) 10k deploy **live** on `53417ecc`, (2) Adam raises the monthly usage limit a little (~$5–10, not a new plan), (3) watch `_meta` / `testnet.indexer`. Do not raise the cap while range 10 is still the live indexer. Handoff: [../continuity/2026-09-05-testnet-indexer-10k-and-alchemy-cap.md](../continuity/2026-09-05-testnet-indexer-10k-and-alchemy-cap.md).
-- Success for item 2: `testnet.indexer` **pass** (lag ≤ 300), not merely HTTP 200.
+- **Alchemy $20 cap blown (~16:25 UTC):** dashboard **44.50M / 44.44M CU** while the **range-10** process (`7afa8c1d`) was still live. Retries cost CU; `_meta` did not move.
+- **2026-09-05 later:** 10k deploy **`dep-dae448m7bikc7380vo6g`** finished **`update_failed`** (~16:26 UTC). Logs: Ponder diagnostic `eth_chainId` → Alchemy 429 monthly capacity. Env range is already **10000**; RPC still Alchemy. Latest listed live deploy remains **`dep-dae3bsv40ujc73dktq6g`** (`7afa8c1d`). GraphQL **502**. Indexer **suspended** via API so range-10 retries stop. Cannot boot 10k until the spend fuse is lifted (`eth_chainId` is blocked too). Unstick: (1) Adam raises monthly usage limit ~$5–10, (2) resume + POST deploy `commitId=53417ecc`, (3) watch `_meta` / `testnet.indexer`. Handoff: [../continuity/2026-09-05-testnet-indexer-10k-and-alchemy-cap.md](../continuity/2026-09-05-testnet-indexer-10k-and-alchemy-cap.md).
+- Success for item 2: `testnet.indexer` **pass** (lag ≤ 300), not merely HTTP 200. **Met** 2026-09-05 ~16:42 UTC.
 
 **Render API (this machine)**
 
@@ -87,7 +85,7 @@ Do these in order unless Adam names a different one. Each item is a session-size
 
 1. **[x] (Tell) Re-probe and write what is actually down.** 2026-09-05 morning run: 502 crash loop. Afternoon run after RPC fix: HTTP pass, indexer fail on lag. Snapshot in Current state.
 
-2. **[ ] (Tell) Make the Render indexer stay up / catch up.** Crash loop is **done** (public RPC prune). Transport/CUPS retries improved (`7afa8c1d`). Remaining: catch-up at range **10000** (was 10). `_meta` was 46349669 / 79.7%. Do **not** rewrite Ponder. Do **not** bump `START_BLOCK` / schema without Ask. Do **not** point RPC back at `sepolia.base.org`. If logs show the `[commonality-indexer] eth_getLogs failed because the RPC rejected the block range` hint, drop range to 1000 then 10. Success: `testnet.indexer` passes (lag ≤ 300) on `./scripts/verifier-testnet.sh`. Then item 3.
+2. **[x] (Tell) Make the Render indexer stay up / catch up.** Crash loop done. 10k live `dep-dae48qgou94c73976610` / `53417ecc` after $30 Alchemy cap. `testnet.indexer` **pass** 46429137 lag 0 (~16:42 UTC).
 
 3. **[ ] (Tell) Get read-only testnet smoke boring.** `testnet.dns`, `http`, `rpc`, `indexer`, `app-shell`, `app-config`, `contracts` all pass on one `./scripts/verifier-testnet.sh` run. Retry once on IPFS/Cloudflare aborts before treating a site as broken. If a site is still dead, follow [deployment.md](./deployment.md) / `./scripts/deploy-testnet.sh` only for that domain — do not republish all eight “for luck.”
 

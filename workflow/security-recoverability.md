@@ -45,7 +45,7 @@ services consume) and `grep` over the scripts.
 | Bucket | Secrets | Proper home |
 |---|---|---|
 | **Service secrets** — needed by the running app | Agent wallet keys (implication-attester, content-attester, beat-agent, implication-graph-nudger, bridge-creator, explorer-curator, recurring-pledge-scheduler), `VERIFIER_PRIVATE_KEY`, `OPENROUTER_API_KEY`, `YOUTUBE_API_KEY`, `X_API_BEARER_TOKEN`, RPC URLs | Render dashboard (`sync: false` entries). Local copies fine — these are rotatable, low-stakes hot keys with small balances. |
-| **Operator secrets** — only for occasional maintenance/setup, never consumed by deployed services | `DEPLOYER_PRIVATE_KEY`, `ENS_OWNER_PRIVATE_KEY`, all 11 `IPNS_PRIVATE_KEY_*`, `PINATA_JWT`, `CLOUDFLARE_API_KEY`, `RENDER_API_KEY` | Outside the repo tree (e.g. `~/.secrets/commonality/`), sourced on demand by the scripts that need them. ENS owner key (and mainnet contract-admin key) fully cold — hardware wallet / separate machine. |
+| **Operator secrets** — only for occasional maintenance/setup, never consumed by deployed services | `DEPLOYER_PRIVATE_KEY`, `ENS_OWNER_PRIVATE_KEY`, all 11 `IPNS_PRIVATE_KEY_*`, `PINATA_JWT`, `CLOUDFLARE_API_KEY`, `RENDER_API_KEY` | Outside committed git: `~/.secrets/commonality/operator.env` for wallet/IPNS/Pinata/Cloudflare; **`.env.render`** (repo root, gitignored) for `RENDER_API_KEY`. Sourced on demand by the scripts that need them. ENS owner key (and mainnet contract-admin key) fully cold — hardware wallet / separate machine. |
 
 Key facts:
 
