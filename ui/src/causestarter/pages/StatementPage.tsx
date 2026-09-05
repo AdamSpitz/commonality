@@ -24,6 +24,7 @@ import { useAlignmentTrust } from '../hooks/useAlignmentTrust'
 import { SupportButton } from '../components/SupportButton'
 import { CauseFundingSummary } from '../components/CauseFundingSummary'
 import { StarterNetworkFilterCopy } from '../components/StarterNetworkFilterNotice'
+import { useUserStatements } from '../hooks/useUserStatements'
 import { useViewCounts } from '../hooks/useViewCounts'
 import { createCausePath } from '../lib/causeStore'
 import {
@@ -90,22 +91,27 @@ export function StatementPage() {
   const [cidCopiedOpen, setCidCopiedOpen] = useState(false)
   const [addedToFundingBoardOpen, setAddedToFundingBoardOpen] = useState(false)
   const [isInFundingBoard, setIsInFundingBoard] = useState(false)
+  const { statements: signedStatements } = useUserStatements()
+  const signedCids = signedStatements.map((row) => row.cid)
+  const signedCidKey = signedCids.join(',')
 
   useEffect(() => {
     const board = readPersonalFundingBoard(address)
-    setIsInFundingBoard(Boolean(statementCid && board?.statementCids.includes(statementCid)))
-  }, [address, statementCid])
+    const cids = board?.statementCids ?? signedCidKey.split(',').filter(Boolean)
+    setIsInFundingBoard(Boolean(statementCid && cids.includes(statementCid)))
+  }, [address, statementCid, signedCidKey])
 
   const addToFundingBoard = () => {
     if (!address || !statementCid) return
     const current = readPersonalFundingBoard(address)
-    if (current?.statementCids.includes(statementCid)) {
+    const seed = current?.statementCids ?? signedCids
+    if (seed.includes(statementCid) && current) {
       setIsInFundingBoard(true)
       return
     }
     writePersonalFundingBoard(address, {
       ...current,
-      statementCids: [...(current?.statementCids ?? []), statementCid],
+      statementCids: [...new Set([...seed, statementCid])],
     })
     setIsInFundingBoard(true)
     setAddedToFundingBoardOpen(true)

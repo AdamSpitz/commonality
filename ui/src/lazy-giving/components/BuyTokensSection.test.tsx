@@ -596,6 +596,30 @@ describe('BuyTokensSection', () => {
       expect(screen.getByText(/Using your funding board’s preferred fund #42/)).toBeInTheDocument()
     })
 
+    it('selects a preferred fund that arrives after mount', async () => {
+      vi.mocked(getNotesByOwner).mockResolvedValue([makeNote()])
+      const project = makeProject()
+      const tokens = [makeToken()]
+      const { rerender } = render(
+        <BuyTokensSection project={project} tokens={tokens} address={USER_ADDR} onProjectRefresh={onProjectRefresh} />,
+      )
+
+      expect(screen.queryByRole('combobox')).not.toBeInTheDocument()
+
+      rerender(
+        <BuyTokensSection
+          project={project}
+          tokens={tokens}
+          address={USER_ADDR}
+          onProjectRefresh={onProjectRefresh}
+          preferredMoneySourceKey={`${CONTRACT_ADDR}:42`}
+        />,
+      )
+
+      await waitFor(() => expect(screen.getByRole('combobox')).toHaveTextContent('Fund #42'))
+      expect(screen.getByText(/Using your funding board’s preferred fund #42/)).toBeInTheDocument()
+    })
+
     it('explains when the preferred fund is not eligible for the project currency', async () => {
       vi.mocked(getNotesByOwner).mockResolvedValue([makeNote({ token: '0x000000000000000000000000000000000000dead' })])
       renderSection({ preferredMoneySourceKey: `${CONTRACT_ADDR}:42` })

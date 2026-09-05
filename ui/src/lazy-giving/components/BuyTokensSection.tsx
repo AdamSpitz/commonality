@@ -70,11 +70,15 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
   const fundingCurrency = useMemo(() => project.fundingCurrency ?? ETH_CURRENCY, [project.fundingCurrency])
 
   useEffect(() => {
-    if (useNote && address && notes.length === 0) {
-      loadNotes()
+    if (preferredMoneySourceKey) setUseNote(true)
+  }, [preferredMoneySourceKey])
+
+  useEffect(() => {
+    if (useNote && address) {
+      void loadNotes()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [useNote, address])
+  }, [useNote, address, preferredMoneySourceKey])
 
   const loadNotes = async () => {
     if (!address) return

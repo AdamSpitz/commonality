@@ -6,6 +6,7 @@ import { StatementPage } from './StatementPage'
 
 const getStatementWithContent = vi.fn()
 let connectedAddress: `0x${string}` | undefined = '0x1234567890123456789012345678901234567890'
+let signedBeliefs: Array<{ cid: string }> = []
 
 vi.mock('wagmi', () => ({
   useAccount: () => ({ address: connectedAddress }),
@@ -22,6 +23,16 @@ vi.mock('@ui/shared', () => ({
 
 vi.mock('../hooks/useAlignmentTrust', () => ({
   useAlignmentTrust: () => ({ trustedAlignmentAttesters: new Set() }),
+}))
+
+vi.mock('../hooks/useUserStatements', () => ({
+  useUserStatements: () => ({
+    statements: signedBeliefs,
+    loading: false,
+    connected: Boolean(connectedAddress),
+    error: null,
+    refresh: vi.fn(),
+  }),
 }))
 
 vi.mock('../hooks/useViewCounts', () => ({
@@ -57,6 +68,7 @@ describe('StatementPage combinator operands', () => {
     vi.clearAllMocks()
     window.localStorage.clear()
     connectedAddress = '0x1234567890123456789012345678901234567890'
+    signedBeliefs = []
   })
 
   function renderPage(entry = '/statement/stmt123') {
@@ -130,6 +142,25 @@ describe('StatementPage combinator operands', () => {
     expect(JSON.parse(window.localStorage.getItem(
       'causestarter.personal-funding-board.v1:0x1234567890123456789012345678901234567890',
     ) ?? 'null')).toEqual({ version: 1, statementCids: ['stmt123'] })
+  })
+
+  it('seeds the first funding-board write from signed statements', async () => {
+    signedBeliefs = [{ cid: 'signed-a' }, { cid: 'signed-b' }]
+    getStatementWithContent.mockResolvedValue({
+      statement: { cid: 'stmt123', believerCount: 1, title: 'Statement' },
+      content: { content: 'Fund local work' },
+    })
+
+    renderPage('/statement/stmt123?mode=sign')
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Add to my funding board' }))
+
+    expect(JSON.parse(window.localStorage.getItem(
+      'causestarter.personal-funding-board.v1:0x1234567890123456789012345678901234567890',
+    ) ?? 'null')).toEqual({
+      version: 1,
+      statementCids: ['signed-a', 'signed-b', 'stmt123'],
+    })
   })
 
   it('keeps funding view focused and offers the complete view', async () => {
