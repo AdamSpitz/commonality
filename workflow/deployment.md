@@ -75,7 +75,9 @@ Put operator-only values in `~/.secrets/commonality/operator.env`:
 - Optional Cloudflare DNS automation: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ZONE_ID`
 - Optional Render automation: `RENDER_API_KEY`
 
-`.env.secrets`, `~/.secrets/commonality/operator.env`, and `deployments/operator-addresses.env` are gitignored/untracked secret material. Never commit secrets.
+`RENDER_API_KEY` for script/API work lives in the gitignored repo-root **`.env.render`** (one line: `RENDER_API_KEY=...`). That is the file to source for Render CLI-less API calls (indexer logs, env, restart). You may also put the same key in `~/.secrets/commonality/operator.env`; do not put it in `.env.secrets` (service runtime). `.env.render` is listed in `.gitignore`.
+
+`.env.secrets`, `.env.render`, `~/.secrets/commonality/operator.env`, and `deployments/operator-addresses.env` are gitignored/untracked secret material. Never commit secrets.
 
 ### 2. Fund Base Sepolia operational wallets
 
@@ -415,7 +417,7 @@ The Render blueprint now includes both the `commonality-indexer` web service and
 Set these indexer env vars in the Render dashboard:
 
 - `PONDER_CHAIN`: `base-sepolia` for testnet or `mainnet` for production
-- `PONDER_RPC_URL_84532` or `PONDER_RPC_URL_1`: RPC URL for the selected chain
+- `PONDER_RPC_URL_84532` or `PONDER_RPC_URL_1`: RPC URL for the selected chain. **Do not use `https://sepolia.base.org`.** That public endpoint prunes history (as of 2026-09 earliest block ~45_000_000); with `START_BLOCK=42768673` Ponder retries `eth_getBlockByNumber` until the process exits 75 and Render 502s. Use the Alchemy (or other archive-capable) URL from `.env` / `BASE_SEPOLIA_RPC_URL`. Set it on the service (`sync: false`) via dashboard or `PUT /v1/services/{id}/env-vars/PONDER_RPC_URL_84532` using `RENDER_API_KEY` from `.env.render`, then **deploy** (`deployMode=deploy_only`) so the running container picks it up — a restart alone may keep the old env. Pass the URL through as a string (the default when `PONDER_RPC_MAX_RESPONSE_BODY_SIZE` is unset or `0`). Wrapping it in a viem `http()` transport makes Ponder treat the provider as `custom_transport` with `retryCount: 0`, which turns Alchemy “compute units per second” errors into a stalled backfill.
 - `START_BLOCK`: block where the deployed contracts start emitting relevant events
 - All contract addresses from `deployments/<network>.env`
 

@@ -68,13 +68,24 @@ function parseMaxResponseBodySize(value: string | undefined): number | false | u
   return parsed;
 }
 
+/**
+ * Prefer a raw RPC URL string so Ponder uses its own HTTP client and rate
+ * limiter. A viem `http()` transport is tagged `custom_transport` and is
+ * constructed with `retryCount: 0`, which turns Alchemy CUPS 429s into a
+ * retry storm and stalls Base Sepolia backfill.
+ *
+ * Only wrap in viem `http()` when we need a non-default max response body size.
+ */
 function getRpcTransport(url: string | undefined) {
-  return url
-    ? http(url, {
-        timeout: 10_000,
-        maxResponseBodySize: parseMaxResponseBodySize(process.env.PONDER_RPC_MAX_RESPONSE_BODY_SIZE),
-      })
-    : undefined;
+  if (!url) return undefined;
+  const maxResponseBodySize = parseMaxResponseBodySize(process.env.PONDER_RPC_MAX_RESPONSE_BODY_SIZE);
+  if (maxResponseBodySize === undefined || maxResponseBodySize === false) {
+    return url;
+  }
+  return http(url, {
+    timeout: 10_000,
+    maxResponseBodySize,
+  });
 }
 
 const assuranceContractCreatedEvent = AssuranceContractFactoryAbi.find(
