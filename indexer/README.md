@@ -45,7 +45,7 @@ For Render or other hosted environments:
 - On Render, set `CHOKIDAR_USEPOLLING=true`. Ponder 0.15 builds through Vite even in
   start mode, and Render's native file-watcher limit can otherwise abort startup with
   `EMFILE: too many open files, watch '/app'`.
-- Keep `PONDER_ETH_GET_LOGS_BLOCK_RANGE` large enough for catch-up. Base Sepolia produces blocks quickly; a tiny range such as `10` makes a million-block historical sync require roughly 100k `eth_getLogs` batches. The Render blueprint defaults to `1000`; lower it only if the RPC provider rejects larger ranges.
+- Keep `PONDER_ETH_GET_LOGS_BLOCK_RANGE` large enough for catch-up. The Render blueprint defaults to `10000`. A tiny range such as `10` makes a million-block historical sync require hundreds of thousands of `eth_getLogs` batches and will blow Alchemy CUPS. If the provider rejects the window, the process logs a one-shot `[commonality-indexer] eth_getLogs failed because the RPC rejected the block range or response size` line with the env to change; lower to `1000` then `10`.
 
 Contract deployments can still be configured with the legacy one-env-var-per-contract
 addresses plus subsystem start blocks, but the indexer also accepts an

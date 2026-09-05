@@ -1,5 +1,6 @@
 import { createConfig, factory } from "ponder";
 import { http } from "viem";
+import { installEthGetLogsRangeGuard } from "./src/rpc/ethGetLogsRangeGuard";
 import { INDEXER_CHAIN_IDS, type IndexerChainName } from "./src/utils/chain";
 
 // Conceptspace ABIs
@@ -478,7 +479,7 @@ function getActiveChains() {
         "base-sepolia": {
           id: INDEXER_CHAIN_IDS["base-sepolia"],
           rpc: getRpcTransport(process.env.PONDER_RPC_URL_84532),
-          ethGetLogsBlockRange: ETH_GET_LOGS_BLOCK_RANGE ?? 1000,
+          ethGetLogsBlockRange: ETH_GET_LOGS_BLOCK_RANGE ?? 10000,
         },
       } as const;
     case "mainnet":
@@ -493,6 +494,14 @@ function getActiveChains() {
 }
 
 const chains = getActiveChains() as unknown as CreateConfigArgs["chains"];
+
+if (INDEXER_CHAIN !== "hardhat") {
+  const configuredRange =
+    INDEXER_CHAIN === "base-sepolia"
+      ? (ETH_GET_LOGS_BLOCK_RANGE ?? 10000)
+      : ETH_GET_LOGS_BLOCK_RANGE;
+  installEthGetLogsRangeGuard({ configuredRange });
+}
 
 export default createConfig({
   database:

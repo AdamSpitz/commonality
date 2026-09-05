@@ -24,28 +24,50 @@ It does **not** mean: public launch, mainnet, 10⁴ fake users, or a nightly mut
 | **2. Local world / seed** | Tiny or demo data on Hardhat so the UI has something to look at | Testnet history. Stress traffic | [../fake-data-generation/PLAN.md](../fake-data-generation/PLAN.md) jobs A–C |
 | **3. Mass fake activity** | Many random users/actions to stress contracts and indexer | Shared lab. Real statements | Same PLAN.md job D. **Stay local** until job 1 is boring |
 
-Do not push `gen:large` (today: 100 users; 1000+ not built) at Sepolia. The indexer already 502s at idle; a load generator would trash the lab you still need to read.
+Do not push `gen:large` (today: 100 users; 1000+ not built) at Sepolia. The indexer is still catching up / lag-failing; a load generator would trash the lab you still need to read.
 
-## Current state (2026-09-04 snapshot)
+## Current state (2026-09-05, end of session)
 
-Re-probe with `./scripts/verifier-testnet.sh` (and `--browser` when you care about journeys). Do not treat this snapshot as live truth.
+Two verifier runs the same day. Morning/early: indexer **502 crash loop**. After env+deploy: GraphQL **stays 200**, but `testnet.indexer` still **fail** on lag. Do not re-diagnose the 502 unless GraphQL 502s again.
 
-**Already in place**
+**Latest `./scripts/verifier-testnet.sh` (read-only, ~15:07 UTC, after Alchemy RPC deploy)**
 
-- Contracts on Base Sepolia; `testnet.contracts` saw bytecode for 19 configured addresses (`deployments/base-sepolia.env`).
-- Eight UIs at `https://<slug>.testnet.commonality.works` via Cloudflare UI gateway + Pinata IPNS.
-- DNS/TLS, app shells, app-config (no localhost), RPC, platform-api / attesters / workers health, sponsored-gas ERC-7677 config: passing on that run.
-- Operator accounts/keys mostly done ([testnet-prep.md](../testnet-prep.md)): wallets, Render, Pinata, Privy, Pimlico, RPC, onramp.
-- Proven once, then allowed to go stale: Civility policy enforcement (2026-08-14), funded `PublishedData` round-trip (2026-07-20), Privy embedded-wallet login, AccountAssertions on live Tally.
+- Pass: `testnet.dns`, `http` (12 URLs including indexer GraphQL), `rpc` (84532 at **46426264**), `app-shell` (8), `contracts` (19), `policy-enforcement`, advisory `sponsored-gas`.
+- Fail: `testnet.indexer` — GraphQL `_meta` **usable** at block **46349669**, lag **76596** > `maxLagBlocks` 300 (`verifier/environments/testnet.json`).
+- Fail: `testnet.app-config` — config/scripts OK; **1 trust root with no publications** on 84532 (`VITE_DEFAULT_TRUSTED_ATTESTERS` `0x021b3C90931CAdDa12C0dCaB0407A622d717b02C`). Treat as likely lag / backfill, not a missing UI bundle, until `_meta` is near head.
+- Unchanged: `website-journeys` 180s timeout (06:24, not re-run); `onchain-to-indexer` skipped by policy; `published-data` stale pass (2026-07-20); `alignment-trust` missing.
 
-**Not working / not in the lab yet**
+**Crash loop — fixed, do not redo**
 
-- `testnet.environment` **fail**: indexer GraphQL **502**; `content-funding` and `conceptspace` HTTP aborted; `testnet.website-journeys` killed at 180s.
-- `testnet.onchain-to-indexer` skipped by policy (mutation opt-in + funded verifier wallet). Nightly cadence therefore cannot claim write→index.
-- CauseStarter is the intended front door locally (`LOCAL_UI_DOMAINS` default) but is **not** in `deployments/testnet-names.json` / verifier `expectedHosts`.
-- Alignment-trust bootstrap must not ship the local Hardhat key; live testnet stand-up is still a human+ops item ([inbox.md](../inbox.md)).
-- Local journeys that will bite you on testnet: `stack.user-journeys` (`InvalidVerifierSignature` on channel create); funding-portal aggregation tests reading `0n`.
-- CauseStarter scale ceiling (believer-set transport) is real but **out of scope** until the lab is up. See inbox; do not “fix scale” as part of this plan.
+- Render service `commonality-indexer` `srv-d8ctfd6k1jcs73a71d2g`, owner `tea-d8croucp3tds73el9abg`, plan standard, not suspended.
+- Events: `server_failed` every ~6 min, `nonZeroExit: 75`, then `server_available`.
+- Logs: `URL: https://sepolia.base.org` + `pruned history unavailable: requested 42768673, earliest available 45000000`.
+- Cause: dashboard `PONDER_RPC_URL_84532` was public Base Sepolia (pruned). `START_BLOCK` in `deployments/base-sepolia.env` / Render is **42768673**.
+- Fix applied live (API, not git push to master): set `PONDER_RPC_URL_84532` to Alchemy `BASE_SEPOLIA_RPC_URL` from repo `.env` (probed: that URL **does** return block 42768673). **Restart did not pick up the new env.** `POST .../deploys` with `{"deployMode":"deploy_only"}` did (`dep-dae2vin40ujc73djb6j0` then `dep-dae334on74is73c6iev0`).
+- Also set live `PONDER_ETH_GET_LOGS_BLOCK_RANGE=10` (matches [deployment.md](./deployment.md); template had 1000). Regenerated `render.yaml` from `render.yaml.template` on this branch — **Render autoDeploy tracks master**, so the live 10 is from the API PUT, not from this commit until it lands on master.
+
+**Backfill — still the job**
+
+- After Alchemy deploy, logs: `Started returning 200 responses endpoint=/health`, `Started backfill indexing chain=base-sepolia block_range=[45684953,46426208]`, `Started fetching backfill JSON-RPC data ... cached_block=42768672 cache_rate=0.0%`.
+- Then stuck: `Updated backfill indexing progress progress=79.7%` on a 5s cadence for **tens of minutes**, `_meta` frozen at **46349669**. GraphQL did not 502 during that window.
+- 79.7% ≈ cursor near 45.68M as a fraction of START→head; that matches the backfill window start. `_meta` may not move until Ponder checkpoints. Do not treat frozen `_meta` as “still on public RPC” unless logs again say `sepolia.base.org` / `pruned history`.
+- **2026-09-05 ~15:27 UTC diagnosis:** still Alchemy (`base-sepolia.g.alchemy.com`), not public prune. Logs are almost all `eth_getLogs` **compute units per second** errors; hostname **`custom_transport`**; `_meta` still **46349669**. Cause: `ponder.config.ts` wrapped the RPC in viem `http()`, so Ponder used `retryCount: 0` and did not apply its own rate limiter. Fix committed `7afa8c1d` (pass URL string when body-size cap is unset/`0`). Live deploy **`dep-dae3bsv40ujc73dktq6g`** from that commit (API, not master autoDeploy).
+- **Watcher result (~15:55 UTC):** deploy **live**; hostname now Alchemy (not `custom_transport`); `_meta` **still 46349669**; progress still **79.7%**; CUPS errors continue. Account is already **PAYG** (10k CU/s; peak ~11.6k). Monthly usage limit is a **$20 / 44.4M CU** cap (35.5M used). Do not raise that cap yet.
+- **Next lever:** live `PONDER_ETH_GET_LOGS_BLOCK_RANGE` was **10** even though this key accepts 10k-block `eth_getLogs`. Blueprint + Render set to **10000**. Indexer logs a one-shot `[commonality-indexer] eth_getLogs failed because the RPC rejected the block range or response size` hint if Alchemy rejects the window (then drop to 1000, then 10). Do not bump `START_BLOCK`. Item 2 is not done until `testnet.indexer` passes.
+- Success for item 2: `testnet.indexer` **pass** (lag ≤ 300), not merely HTTP 200.
+
+**Render API (this machine)**
+
+- Key is **`.env.render`** (`RENDER_API_KEY=`), gitignored. Not in `~/.secrets/commonality/operator.env`. Documented in [deployment.md](./deployment.md), [testnet-render-env.md](./testnet-render-env.md).
+- `GET /v1/logs` needs `ownerId` + `resource` (service id). Env list: `GET /v1/services/{id}/env-vars`. Single var: `PUT /v1/services/{id}/env-vars/{KEY}` `{"value":"..."}`. Env change needs **deploy_only**, not only restart.
+- Ad-hoc scripts in `tmp/render-indexer-*.sh` and `tmp/watch-indexer-*.sh` — disposable; do not commit.
+
+**Not in the lab yet (unchanged)**
+
+- CauseStarter not in `deployments/testnet-names.json` / verifier `expectedHosts`.
+- Alignment-trust bootstrap must not ship the local Hardhat key.
+- Local journeys that will bite on testnet: `stack.user-journeys` (`InvalidVerifierSignature` on channel create); funding-portal aggregation `0n`.
+- CauseStarter scale ceiling out of scope until the lab is up.
 
 **Human leftovers (do not paper over)**
 
@@ -56,14 +78,15 @@ From testnet-prep / inbox — stop and Ask if you hit them:
 - Fund/enable `COMMONALITY_TESTNET_VERIFIER_PRIVATE_KEY` and, when Adam says so, `COMMONALITY_VERIFIER_NIGHTLY_ALLOW_TESTNET_MUTATION=1`.
 - Sponsored-gas live UI walk: [sponsored-gas-live-trace.md](./sponsored-gas-live-trace.md).
 - Alignment-trust bootstrap: generate wallets, fund `ALIGNMENT_TRUST_BOOTSTRAP_ADDRESS`, Render secrets, denylist canary — never the checked-in local key.
+- Alchemy (or other archive RPC) **CUPS / plan**: indexer backfill is rate-limited; GraphQL stays up. See inbox Ask.
 
 ## Next
 
 Do these in order unless Adam names a different one. Each item is a session-sized chunk. Tag is the [autonomy tier](./task-tiers.md) for that slice.
 
-1. **[ ] (Tell) Re-probe and write what is actually down.** Run `./scripts/verifier-testnet.sh` (add `--browser` if you have time). Record the live `testnet.http` / `testnet.indexer` / service health in this file’s “Current state” (replace the 2026-09-04 snapshot). If the indexer is 200 and near head, skip to item 3. If it is 502, do item 2. Do not “fix” flaky IPFS timeouts until you know they still fail after a retry.
+1. **[x] (Tell) Re-probe and write what is actually down.** 2026-09-05 morning run: 502 crash loop. Afternoon run after RPC fix: HTTP pass, indexer fail on lag. Snapshot in Current state.
 
-2. **[ ] (Tell) Make the Render indexer stay up.** `https://commonality-indexer.onrender.com/graphql` 502 with `x-render-routing: dynamic-paid-error` is the shared-read bottleneck. Use [deployment.md](./deployment.md) (Indexer on Render) and Render logs: crash loop, OOM, unpaid instance, bad `RPC_URL` / start block, disk. Fix env or redeploy; do not rewrite Ponder “to be safer.” Success: `_meta` returns a usable block number and `testnet.indexer` passes. Update this file.
+2. **[ ] (Tell) Make the Render indexer stay up / catch up.** Crash loop is **done** (public RPC prune). Transport/CUPS retries improved (`7afa8c1d`). Remaining: catch-up at range **10000** (was 10). `_meta` was 46349669 / 79.7%. Do **not** rewrite Ponder. Do **not** bump `START_BLOCK` / schema without Ask. Do **not** point RPC back at `sepolia.base.org`. If logs show the `[commonality-indexer] eth_getLogs failed because the RPC rejected the block range` hint, drop range to 1000 then 10. Success: `testnet.indexer` passes (lag ≤ 300) on `./scripts/verifier-testnet.sh`. Then item 3.
 
 3. **[ ] (Tell) Get read-only testnet smoke boring.** `testnet.dns`, `http`, `rpc`, `indexer`, `app-shell`, `app-config`, `contracts` all pass on one `./scripts/verifier-testnet.sh` run. Retry once on IPFS/Cloudflare aborts before treating a site as broken. If a site is still dead, follow [deployment.md](./deployment.md) / `./scripts/deploy-testnet.sh` only for that domain — do not republish all eight “for luck.”
 
@@ -92,13 +115,14 @@ Stop after item 6 unless Adam asks for 7–8. **Do not start job 3 (mass activit
 
 - Compare branches to `dev`. See [branching.md](./branching.md).
 - Prefer `./scripts/verifier-testnet.sh` over ad-hoc curls; it loads secrets and opt-ins.
+- Render API: `set -a; source .env.render; set +a`. Never print the key. Never commit `.env.render`.
 - Wipe local data if you need a local repro; do not wipe or redeploy testnet contracts without Ask.
 - Human custody (keys, faucets, Render billing, Safe, Privy dashboard): stop and put a short note in [../inbox.md](../inbox.md).
 - When a Next item is done, check it off, update Current state, and leave the next unchecked item obvious.
 
 ## Pointers
 
-- [deployment.md](./deployment.md) — contracts, Render, `deploy-testnet.sh`, indexer.
+- [deployment.md](./deployment.md) — contracts, Render, `deploy-testnet.sh`, indexer. Render API key: gitignored `.env.render`.
 - [testnet-prep.md](../testnet-prep.md) — human checklist.
 - [testnet-render-env.md](./testnet-render-env.md) — CORS and Render `sync: false`.
 - [commonality-works-setup.md](./commonality-works-setup.md) — DNS / Cloudflare.

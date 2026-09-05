@@ -39,6 +39,10 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 - [ ] **(Adam)** Create the 2-of-3 Safe for the contract-admin role (hardware wallet + phone + offline backup) and record its address in `deployments/operator-addresses.env`. Only remaining human step from the 2026-07-27 governance decision; all the contract/ops work behind it is queued in [security-recoverability.md](workflow/security-recoverability.md#decision-adam-2026-07-27) and blocked on the Safe existing.
 
+### Testnet indexer (shared lab)
+
+- **(Ask)** Only if indexer catch-up still 429s after `PONDER_ETH_GET_LOGS_BLOCK_RANGE=10000`: Alchemy is already PAYG (10k CU/s; $20 / 44.4M CU monthly cap, ~9M left). Do not raise the $20 cap until a 10k (or 1000) log range has been tried. Frozen `_meta` **46349669** was from 10-block windows, not a missing PAYG plan. Details: [testnet-working-plan.md](workflow/testnet-working-plan.md) item 2.
+
 ### Testing/verification improvements
 
 - **Sponsored gas — human finish:** tank + UI are ready. Sign into [lazygiving.testnet.commonality.works](https://lazygiving.testnet.commonality.works) with Privy email OTP, contribute on enrolled project [`0x0b34E11c5A014C77b3b61E9e8b94609D8598FF93`](https://lazygiving.testnet.commonality.works/#/projects/0x0b34E11c5A014C77b3b61E9e8b94609D8598FF93) (high threshold, ~30-day deadline so it will fail rather than succeed), then refund after that deadline. Capture the UserOp calldata / gas overhead and retune placeholder caps. Steps: [sponsored-gas-live-trace.md](workflow/sponsored-gas-live-trace.md).
