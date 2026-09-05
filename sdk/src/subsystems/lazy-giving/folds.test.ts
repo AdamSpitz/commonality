@@ -232,6 +232,16 @@ describe('foldProject', () => {
     assert.strictEqual(result.metadataCid, METADATA_CID);
   });
 
+  it('drops metadata references that are not IPFS CIDs', () => {
+    const events: ProjectEvent[] = [
+      { type: 'created', event: makeCreatedEvent() },
+      { type: 'metadataUpdated', event: makeMetadataUpdatedEvent({ uri: 'sponsored-gas-live-trace' }) },
+    ];
+    const { project: result } = foldProject(events);
+    assert.ok(result !== null);
+    assert.strictEqual(result.metadataCid, undefined);
+  });
+
   it('normalizes ipfs:// metadata references with query strings', () => {
     const events: ProjectEvent[] = [
       { type: 'created', event: makeCreatedEvent() },

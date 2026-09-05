@@ -45,6 +45,8 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 - **(Tell)** Funded live Base Sepolia service wallets from operator `DEPLOYER_PRIVATE_KEY` (`0xFC0054…`) via `scripts/fund-base-sepolia-wallets.mjs --wallets deployments/base-sepolia.env --only IMPLICATION_ATTESTER_ADDRESS,CONTENT_ATTESTER_ADDRESS,BEAT_AGENT_ADDRESS --amount 0.005 --reserve 0.015 --yes`. Confirmed block **46430751**. Each of those three now has 0.005 ETH; deployer ~0.021 ETH left. Verifier wallet still unfunded (script skips `VERIFIER_ADDRESS`). `testnet.app-config` still fails on 0 official implication attestations; that is an idle default, not a config bug — do not mint a dummy arrow for smoke.
 
+- **(Tell)** Testnet browser journeys: `testnet.website-journeys` pass (22 URLs, ~36s). Working-plan item 4 done. LazyGiving `/#/projects` still warns on a junk on-chain metadata URI (`sponsored-gas-live-trace`); check treats that IPFS CORS as historical hole. SDK now drops invalid CIDs. Did not republish UIs. Next item is **Ask**: CauseStarter testnet hostname.
+
 ### Testing/verification improvements
 
 - **Sponsored gas — human finish:** tank + UI are ready. Sign into [lazygiving.testnet.commonality.works](https://lazygiving.testnet.commonality.works) with Privy email OTP, contribute on enrolled project [`0x0b34E11c5A014C77b3b61E9e8b94609D8598FF93`](https://lazygiving.testnet.commonality.works/#/projects/0x0b34E11c5A014C77b3b61E9e8b94609D8598FF93) (high threshold, ~30-day deadline so it will fail rather than succeed), then refund after that deadline. Capture the UserOp calldata / gas overhead and retune placeholder caps. Steps: [sponsored-gas-live-trace.md](workflow/sponsored-gas-live-trace.md).

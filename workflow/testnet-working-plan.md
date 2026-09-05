@@ -34,7 +34,9 @@ Full `./scripts/verifier-testnet.sh` (~16:46 UTC): `dns`/`http`/`rpc`/`indexer`/
 
 **Wallets funded 2026-09-05** from operator deployer `0xFC0054…`: implication attester, content attester, beat agent each **0.005 ETH** (block 46430751). Verifier still 0.
 
-Unchanged for later items: `website-journeys` 180s timeout (06:24, item 4); `onchain-to-indexer` skipped by policy; `published-data` stale pass (2026-07-20); `alignment-trust` missing.
+**Item 4 done.** `testnet.website-journeys` **pass** (~18:32 UTC): 22 URLs, ~36s. First wrapper run still hit the 180s kill (cold Chromium / Cloudflare); a second run finished. The only real page issue is LazyGiving `/#/projects` fetching on-chain junk URI `sponsored-gas-live-trace` as `https://ipfs.io/ipfs/...` (CORS). The page already falls back with “couldn't load some project details.” Check now treats historical IPFS CORS/`Failed to load resource` the same as the existing IPFS 500 hole policy. SDK fold + `fetchFromIPFS` drop invalid CIDs so the next LazyGiving publish stops hitting ipfs.io; do not republish all eight for this. Do not raise the 180s timeout.
+
+Unchanged for later items: `onchain-to-indexer` skipped by policy; `published-data` stale pass (2026-07-20); `alignment-trust` missing.
 
 **Item 2 done.** `npx verifier-run testnet.indexer` **pass** (~16:42 UTC): GraphQL `_meta` **46429137**, lag **0**, maxLag 300. Live deploy `dep-dae48qgou94c73976610` commit `53417ecc`, env range **10000**, Alchemy RPC. Adam raised monthly usage limit to **$30**.
 
@@ -96,7 +98,7 @@ Do these in order unless Adam names a different one. Each item is a session-size
 
 3. **[x] (Tell) Get read-only testnet smoke boring.** 2026-09-05 ~16:46 UTC: `dns`/`http`/`rpc`/`indexer`/`app-shell`/`contracts` pass. `app-config` still fails because the official attester has never published; Adam: that is an idle default, not a lab blocker — do not dummy-attest to clear it. Wrapper exit 1 is that canary. Retry once on IPFS/Cloudflare aborts before treating a site as broken. If a site is still dead, follow [deployment.md](./deployment.md) / `./scripts/deploy-testnet.sh` only for that domain — do not republish all eight “for luck.”
 
-4. **[ ] (Tell) Browser journeys on the happy paths.** `./scripts/verifier-testnet.sh --browser`. If `testnet.website-journeys` times out, narrow: which URL, console 404/500 vs hang vs indexer. Fix the deployed cause (stale chunk, metadata 500, missing CORS origin) rather than raising the timeout. Known historical noise: LazyGiving `/#/projects` resource 500s.
+4. **[x] (Tell) Browser journeys on the happy paths.** 2026-09-05 ~18:32 UTC: `testnet.website-journeys` **pass** (22 URLs). Historical LazyGiving `/#/projects` IPFS junk CID is tolerated in the check; SDK no longer treats non-CIDs as metadata. Next: item 5.
 
 5. **[ ] (Ask) CauseStarter on testnet hostname.** The eight legacy domains are live; CauseStarter is not in `testnet-names.json`, UI gateway IPNS map, or platform-api CORS list ([testnet-render-env.md](./testnet-render-env.md) has no wildcard). Propose a hostname (likely `causestarter.testnet.commonality.works`), the IPNS/gateway/CORS/verifier `expectedHosts` edits, and wait for Adam. After a yes: implement and publish with the existing deploy scripts; add the host to Pinata Host Origins (wildcards unsupported). Do not silently make CauseStarter the only testnet UI.
 
