@@ -45,7 +45,9 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 - **(Tell)** Funded live Base Sepolia service wallets from operator `DEPLOYER_PRIVATE_KEY` (`0xFC0054…`) via `scripts/fund-base-sepolia-wallets.mjs --wallets deployments/base-sepolia.env --only IMPLICATION_ATTESTER_ADDRESS,CONTENT_ATTESTER_ADDRESS,BEAT_AGENT_ADDRESS --amount 0.005 --reserve 0.015 --yes`. Confirmed block **46430751**. Each of those three now has 0.005 ETH; deployer ~0.021 ETH left. Verifier wallet still unfunded (script skips `VERIFIER_ADDRESS`). `testnet.app-config` still fails on 0 official implication attestations; that is an idle default, not a config bug — do not mint a dummy arrow for smoke.
 
-- **(Tell)** Testnet browser journeys: `testnet.website-journeys` pass (22 URLs, ~36s). Working-plan item 4 done. LazyGiving `/#/projects` still warns on a junk on-chain metadata URI (`sponsored-gas-live-trace`); check treats that IPFS CORS as historical hole. SDK now drops invalid CIDs. Did not republish UIs. Next item is **Ask**: CauseStarter testnet hostname.
+- **(Tell)** Testnet browser journeys: `testnet.website-journeys` pass (22 URLs, ~36s). Working-plan item 4 done. LazyGiving `/#/projects` still warns on a junk on-chain metadata URI (`sponsored-gas-live-trace`); check treats that IPFS CORS as historical hole. SDK now drops invalid CIDs. Did not republish UIs.
+
+- **(Tell)** CauseStarter testnet hostname **approved**: `causestarter.testnet.commonality.works`. Item 5 in [testnet-working-plan.md](workflow/testnet-working-plan.md) is now Tell with the file/ops checklist. Next LLM: implement that item; do not invent a ninth product or drop the eight live UIs. Pinata Host Origins is dashboard-only.
 
 ### Testing/verification improvements
 

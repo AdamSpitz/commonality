@@ -71,7 +71,7 @@ Earlier the same day: 502 crash loop (public prune) then HTTP 200 with lag fail;
 
 **Not in the lab yet (unchanged)**
 
-- CauseStarter not in `deployments/testnet-names.json` / verifier `expectedHosts`.
+- CauseStarter not live yet; **hostname approved** as `causestarter.testnet.commonality.works` (item 5, next).
 - Alignment-trust bootstrap must not ship the local Hardhat key.
 - Local journeys that will bite on testnet: `stack.user-journeys` (`InvalidVerifierSignature` on channel create); funding-portal aggregation `0n`.
 - CauseStarter scale ceiling out of scope until the lab is up.
@@ -98,9 +98,32 @@ Do these in order unless Adam names a different one. Each item is a session-size
 
 3. **[x] (Tell) Get read-only testnet smoke boring.** 2026-09-05 ~16:46 UTC: `dns`/`http`/`rpc`/`indexer`/`app-shell`/`contracts` pass. `app-config` still fails because the official attester has never published; Adam: that is an idle default, not a lab blocker — do not dummy-attest to clear it. Wrapper exit 1 is that canary. Retry once on IPFS/Cloudflare aborts before treating a site as broken. If a site is still dead, follow [deployment.md](./deployment.md) / `./scripts/deploy-testnet.sh` only for that domain — do not republish all eight “for luck.”
 
-4. **[x] (Tell) Browser journeys on the happy paths.** 2026-09-05 ~18:32 UTC: `testnet.website-journeys` **pass** (22 URLs). Historical LazyGiving `/#/projects` IPFS junk CID is tolerated in the check; SDK no longer treats non-CIDs as metadata. Next: item 5.
+4. **[x] (Tell) Browser journeys on the happy paths.** 2026-09-05 ~18:32 UTC: `testnet.website-journeys` **pass** (22 URLs). Historical LazyGiving `/#/projects` IPFS junk CID is tolerated in the check; SDK no longer treats non-CIDs as metadata.
 
-5. **[ ] (Ask) CauseStarter on testnet hostname.** The eight legacy domains are live; CauseStarter is not in `testnet-names.json`, UI gateway IPNS map, or platform-api CORS list ([testnet-render-env.md](./testnet-render-env.md) has no wildcard). Propose a hostname (likely `causestarter.testnet.commonality.works`), the IPNS/gateway/CORS/verifier `expectedHosts` edits, and wait for Adam. After a yes: implement and publish with the existing deploy scripts; add the host to Pinata Host Origins (wildcards unsupported). Do not silently make CauseStarter the only testnet UI.
+5. **[ ] (Tell) CauseStarter on testnet hostname.** **Adam 2026-09-05: yes.** Hostname is **`causestarter.testnet.commonality.works`**. Implement and publish; do **not** replace or decommission the eight live sites; do **not** spend ENS / eth.limo gas.
+
+   **Done when:** `https://causestarter.testnet.commonality.works` loads over HTTPS (same Worker path as the others), platform-api CORS allows that origin, and `./scripts/verifier-testnet.sh --browser` includes it (dns/http/app-shell/journeys). Pinata Host Origins is a dashboard step — if you cannot add it, note in inbox and keep going (Worker uses `gateway.pinata.cloud` + key, dedicated-gateway origins are leftover).
+
+   **Repo edits (keep lists in sync; grep `conceptspace` as the previous last domain):**
+   - `deployments/testnet-names.json` — add `{ "slug": "causestarter", "envVar": "IPNS_PRIVATE_KEY_TESTNET_CAUSESTARTER" }`.
+   - `./scripts/setup-testnet-naming.sh` (no `--ens`) so the operator secrets file gets the new key and `deployments/testnet-ipns.env` gets the public name. Idempotent; do not invent a key by hand.
+   - `cloudflare-ui-gateway/ui-gateway.mjs` `IPNS_BY_SUBDOMAIN`: `causestarter: 'IPNS_CAUSESTARTER'`.
+   - `cloudflare-ui-gateway/wrangler.testnet.toml`: route `causestarter.testnet.commonality.works/*` and `[vars] IPNS_CAUSESTARTER = "<name from testnet-ipns.env>"`.
+   - `cloudflare-ui-gateway/README.md` table + “eight UIs” wording.
+   - `scripts/generate-render-yaml.mjs` `domainSlugs` + `domainUrlVars` (`VITE_CAUSESTARTER_URL`); regenerate `render.yaml` if that is how CORS is emitted.
+   - `workflow/testnet-render-env.md` `CORS_ALLOWED_ORIGINS` — append `https://causestarter.testnet.commonality.works` (parser has **no** `*.testnet` wildcard). Live Render `commonality-platform-api`: PUT that env and **deploy_only** (restart does not pick env).
+   - `verifier/environments/testnet.json`: `expectedHosts`, `appUrls`, and `websiteJourneys` (paths at least `"/"` and `"/#/"`).
+   - `scripts/deploy-testnet.sh` already reads slugs from `testnet-names.json`. `deploy_slug_for_domain` should keep slug `causestarter` (that is `VITE_DOMAIN`). Do not map it to a legacy camelCase name.
+   - Tests that hardcode the eight-subdomain map (`cloudflare-ui-gateway/ui-gateway.test.mjs` and similar) — extend, don’t special-case CauseStarter as the only host.
+
+   **Ops (existing scripts, not a new program):**
+   1. DNS: `./scripts/setup-testnet-naming.sh --dns` (or one proxied CNAME for `causestarter.testnet` like the other eight). Wildcard cert `*.testnet.commonality.works` already covers TLS.
+   2. `npx wrangler deploy -c cloudflare-ui-gateway/wrangler.testnet.toml` after the route/IPNS var land.
+   3. Publish **only** CauseStarter: `DOMAINS=causestarter ./scripts/deploy-testnet.sh` (needs `PINATA_JWT` + the new IPNS key in operator secrets). Do not republish all eight for luck.
+   4. Pinata dashboard → Access Controls → Host Origins: add `https://causestarter.testnet.commonality.works` (Picnic plan: no wildcards). Human if you lack dashboard access.
+   5. Smoke: `curl` 200, then `./scripts/verifier-testnet.sh --browser`. If journeys fail, narrow like item 4 — do not raise the 180s timeout.
+
+   Stop if you hit Cloudflare zone login, Pinata billing, or missing `CLOUDFLARE_API_TOKEN` / `PINATA_JWT` — inbox, don’t paper over.
 
 6. **[ ] (Tell) Two-person write path, one mutation canary.** After Adam funds the verifier wallet (or an equivalent test wallet): `./scripts/verifier-testnet.sh --mutation` so `testnet.onchain-to-indexer` (and published-data if still gated) is a fresh pass. Then walk, or script, a **minimal** shared loop: wallet A publishes or signs something wallet B can see on the live UI after index. Prefer CauseStarter if item 5 shipped; otherwise Tally sign + LazyGiving project list. Do not seed thousands of txs. File any “we cannot see each other’s stuff” bug here as a new Next item, not as a silent workaround.
 
