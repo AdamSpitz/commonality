@@ -11,6 +11,7 @@ routes = [
   { pattern = "civility.testnet.commonality.works/*", zone_name = "commonality.works" },
   { pattern = "common-sense-majority.testnet.commonality.works/*", zone_name = "commonality.works" },
   { pattern = "conceptspace.testnet.commonality.works/*", zone_name = "commonality.works" },
+  { pattern = "causestarter.testnet.commonality.works/*", zone_name = "commonality.works" },
 ]
 
 [[kv_namespaces]]
@@ -27,3 +28,4 @@ IPNS_CONTENT_FUNDING = "k51qzi5uqu5dhs0gm5bpwcvhpwbf2owzeyzxtw7z0z2bxp6ofgvwfg4a
 IPNS_CIVILITY = "k51qzi5uqu5dhgz78ohaapa2smas1zov4v2z2m2qymf8iny3ol10t3csnpja27"
 IPNS_COMMON_SENSE_MAJORITY = "k51qzi5uqu5dihr9y1wyezno0gsemnkhd42g750dmcky06aimty47aobfjzdms"
 IPNS_CONCEPTSPACE = "k51qzi5uqu5dm14sc2ig40xkr800wll03zxxjqch4tdu5i5cum5q7nza40mdjg"
+IPNS_CAUSESTARTER = "k51qzi5uqu5di42gbxhcknni1iccmpo4kyw8yuc5cphvetuuemf1mobwppxd2d"

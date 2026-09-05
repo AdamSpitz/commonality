@@ -69,9 +69,11 @@ Earlier the same day: 502 crash loop (public prune) then HTTP 200 with lag fail;
 - `GET /v1/logs` needs `ownerId` + `resource` (service id). Env list: `GET /v1/services/{id}/env-vars`. Single var: `PUT /v1/services/{id}/env-vars/{KEY}` `{"value":"..."}`. Env change needs **deploy_only**, not only restart.
 - Ad-hoc scripts in `tmp/render-indexer-*.sh` and `tmp/watch-indexer-*.sh` — disposable; do not commit.
 
+**Item 5 in progress (2026-09-05).** Repo lists + Worker map + verifier journeys + CORS docs/render.yaml include CauseStarter. IPNS key generated (operator secrets). Published **only** CauseStarter: CID `QmRBAj9Wrsr9k7Kj5fu5AeqE2xWwagbCiMZmd4s6S7dvFp`, IPNS `k51qzi5uqu5di42gbxhcknni1iccmpo4kyw8yuc5cphvetuuemf1mobwppxd2d`. Live platform-api `CORS_ALLOWED_ORIGINS` PUT + `deploy_only` `dep-dae6860n74is73cicis0`. **Blocked:** no `CLOUDFLARE_API_TOKEN`/`CLOUDFLARE_ZONE_ID` in operator secrets; `wrangler whoami` expired. Pinata Host Origins not added (no dashboard). Inbox. Do not spend ENS.
+
 **Not in the lab yet (unchanged)**
 
-- CauseStarter not live yet; **hostname approved** as `causestarter.testnet.commonality.works` (item 5, next).
+- CauseStarter hostname approved but not serving yet (item 5, Cloudflare/Pinata).
 - Alignment-trust bootstrap must not ship the local Hardhat key.
 - Local journeys that will bite on testnet: `stack.user-journeys` (`InvalidVerifierSignature` on channel create); funding-portal aggregation `0n`.
 - CauseStarter scale ceiling out of scope until the lab is up.
@@ -101,6 +103,8 @@ Do these in order unless Adam names a different one. Each item is a session-size
 4. **[x] (Tell) Browser journeys on the happy paths.** 2026-09-05 ~18:32 UTC: `testnet.website-journeys` **pass** (22 URLs). Historical LazyGiving `/#/projects` IPFS junk CID is tolerated in the check; SDK no longer treats non-CIDs as metadata.
 
 5. **[ ] (Tell) CauseStarter on testnet hostname.** **Adam 2026-09-05: yes.** Hostname is **`causestarter.testnet.commonality.works`**. Implement and publish; do **not** replace or decommission the eight live sites; do **not** spend ENS / eth.limo gas.
+
+   **Repo + IPFS/IPNS + Render CORS: done 2026-09-05.** Remaining: Cloudflare DNS + Worker deploy + Pinata Host Origins (inbox). After those, curl 200 then `./scripts/verifier-testnet.sh --browser`.
 
    **Done when:** `https://causestarter.testnet.commonality.works` loads over HTTPS (same Worker path as the others), platform-api CORS allows that origin, and `./scripts/verifier-testnet.sh --browser` includes it (dns/http/app-shell/journeys). Pinata Host Origins is a dashboard step — if you cannot add it, note in inbox and keep going (Worker uses `gateway.pinata.cloud` + key, dedicated-gateway origins are leftover).
 

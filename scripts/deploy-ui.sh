@@ -21,7 +21,7 @@ source "$ROOT/scripts/lib/secrets.sh"
 if [ -z "$NETWORK" ]; then
   echo "Usage: $0 <network> [domain]"
   echo "  network: base-sepolia, mainnet"
-  echo "  domain: commonality, lazyGiving, alignment, tally, content-funding, civility, common-sense-majority, conceptspace"
+  echo "  domain: commonality, lazyGiving, alignment, tally, content-funding, civility, common-sense-majority, conceptspace, causestarter"
   exit 1
 fi
 
@@ -41,11 +41,11 @@ case "$DOMAIN" in
   csm)
     DOMAIN="common-sense-majority"
     ;;
-  commonality|lazyGiving|alignment|tally|content-funding|civility|common-sense-majority|conceptspace)
+  commonality|lazyGiving|alignment|tally|content-funding|civility|common-sense-majority|conceptspace|causestarter)
     ;;
   *)
     echo "Error: unknown UI domain '$DOMAIN'."
-    echo "Expected one of: commonality, lazyGiving, alignment, tally, content-funding, civility, common-sense-majority, conceptspace."
+    echo "Expected one of: commonality, lazyGiving, alignment, tally, content-funding, civility, common-sense-majority, conceptspace, causestarter."
     exit 1
     ;;
 esac

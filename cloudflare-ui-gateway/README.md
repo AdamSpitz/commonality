@@ -1,6 +1,6 @@
 # Cloudflare UI gateway
 
-Serves the eight Commonality UI apps (`*.testnet.commonality.works`) via a Cloudflare Worker that proxies IPFS content from Pinata.
+Serves the Commonality UI apps (`*.testnet.commonality.works`), including CauseStarter, via a Cloudflare Worker that proxies IPFS content from Pinata.
 
 ## Why a Worker instead of plain DNSLink
 
@@ -29,6 +29,7 @@ The browser URL stays `alignment.testnet.commonality.works` throughout.
 | `civility.testnet.commonality.works` | `IPNS_CIVILITY` |
 | `common-sense-majority.testnet.commonality.works` | `IPNS_COMMON_SENSE_MAJORITY` |
 | `conceptspace.testnet.commonality.works` | `IPNS_CONCEPTSPACE` |
+| `causestarter.testnet.commonality.works` | `IPNS_CAUSESTARTER` |
 
 IPNS key values are in `wrangler.testnet.toml` (sourced from `deployments/testnet-ipns.env`).
 
@@ -36,7 +37,7 @@ IPNS key values are in `wrangler.testnet.toml` (sourced from `deployments/testne
 
 Prerequisites:
 1. `commonality.works` zone is active in Cloudflare.
-2. All 8 UI subdomains have proxied CNAMEs in Cloudflare DNS (target doesn't matter — the Worker intercepts).
+2. All UI subdomains have proxied CNAMEs in Cloudflare DNS (target doesn't matter — the Worker intercepts).
 3. An Advanced Certificate covers `*.testnet.commonality.works` (Cloudflare SSL/TLS → Edge Certificates).
 4. The `CID_CACHE` KV namespace binding is present in the Wrangler config.
 5. Pinata gateway key is in `.env.secrets` as `PINATA_GATEWAY_KEY`.
@@ -64,6 +65,6 @@ After publishing a new UI build (`scripts/deploy-ui.sh`), run `w3name` publish t
 
 ## Pinata Access Controls
 
-The Pinata dedicated gateway (`brown-racial-sailfish-957.mypinata.cloud`) has all 8 `*.testnet.commonality.works` hostnames listed under Access Controls → Host Origins. If you add a new UI subdomain, add it there too. (Wildcards are not supported on the Picnic plan.)
+The Pinata dedicated gateway (`brown-racial-sailfish-957.mypinata.cloud`) has the `*.testnet.commonality.works` hostnames listed under Access Controls → Host Origins. If you add a new UI subdomain, add it there too. (Wildcards are not supported on the Picnic plan.)
 
 The public Pinata gateway (`gateway.pinata.cloud`) used by the Worker does not require host origin configuration — it uses the gateway key header instead. Pinata's public gateway may still rate-limit or refuse HTML responses, so the Worker falls back to public CID gateways and caches successful responses at Cloudflare.

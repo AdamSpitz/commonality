@@ -17,6 +17,8 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 ## Main list
 
+- **(Ask)** CauseStarter testnet hostname is blocked on Cloudflare + Pinata dashboard. Repo + IPNS are ready (`feature/causestarter-testnet-hostname`; CID `QmRBAj9Wrsr9k7Kj5fu5AeqE2xWwagbCiMZmd4s6S7dvFp`; IPNS `k51qzi5uqu5di42gbxhcknni1iccmpo4kyw8yuc5cphvetuuemf1mobwppxd2d`). Need `CLOUDFLARE_API_TOKEN` + `CLOUDFLARE_ZONE_ID` (or `wrangler login`), one proxied CNAME `causestarter.testnet` like the other UIs, `npx wrangler deploy -c cloudflare-ui-gateway/wrangler.testnet.toml`, and Pinata Access Controls → Host Origins `https://causestarter.testnet.commonality.works`. Platform-api CORS already includes that origin (`dep-dae6860n74is73cicis0`).
+
 ### Security/recoverability human actions
 
 - Replace/scopedown external account tokens: Cloudflare scoped DNS token instead of global key; Render/Pinata scoped as narrowly as possible; OpenRouter spend limit.

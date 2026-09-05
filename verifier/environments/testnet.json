@@ -18,7 +18,8 @@
     "content-funding.testnet.commonality.works",
     "civility.testnet.commonality.works",
     "common-sense-majority.testnet.commonality.works",
-    "conceptspace.testnet.commonality.works"
+    "conceptspace.testnet.commonality.works",
+    "causestarter.testnet.commonality.works"
   ],
   "appUrls": [
     "https://commonality.testnet.commonality.works",
@@ -28,7 +29,8 @@
     "https://content-funding.testnet.commonality.works",
     "https://civility.testnet.commonality.works",
     "https://common-sense-majority.testnet.commonality.works",
-    "https://conceptspace.testnet.commonality.works"
+    "https://conceptspace.testnet.commonality.works",
+    "https://causestarter.testnet.commonality.works"
   ],
   "websiteJourneys": [
     { "url": "https://commonality.testnet.commonality.works", "paths": ["/", "/#/", "/#/docs", "/#/founders"] },
@@ -38,7 +40,8 @@
     { "url": "https://content-funding.testnet.commonality.works", "paths": ["/", "/#/", "/#/content"] },
     { "url": "https://civility.testnet.commonality.works", "paths": ["/", "/#/"] },
     { "url": "https://common-sense-majority.testnet.commonality.works", "paths": ["/", "/#/"] },
-    { "url": "https://conceptspace.testnet.commonality.works", "paths": ["/", "/#/"] }
+    { "url": "https://conceptspace.testnet.commonality.works", "paths": ["/", "/#/"] },
+    { "url": "https://causestarter.testnet.commonality.works", "paths": ["/", "/#/"] }
   ],
   "policyEnforcement": {
     "civilityAppUrl": "https://civility.testnet.commonality.works",

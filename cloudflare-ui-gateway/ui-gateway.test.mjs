@@ -166,3 +166,31 @@ test('falls back to index.html for browser navigation routes', async () => {
     'https://gateway.pinata.cloud/ipfs/bafy-spa-cid/index.html',
   ])
 })
+
+test('resolves the causestarter subdomain like the other UI hosts', async () => {
+  const fetches = []
+  globalThis.caches = undefined
+  globalThis.fetch = async (request) => {
+    const url = typeof request === 'string' ? request : request.url
+    fetches.push(url)
+    if (url.startsWith('https://name.web3.storage/name/')) {
+      return Response.json({ value: '/ipfs/bafy-causestarter-cid' })
+    }
+    assert.equal(url, 'https://gateway.pinata.cloud/ipfs/bafy-causestarter-cid/')
+    return new Response('<html>causestarter</html>', { status: 200 })
+  }
+
+  const response = await proxyUiRequest(
+    new Request('https://causestarter.testnet.commonality.works/', {
+      headers: { Accept: 'text/html' },
+    }),
+    {
+      IPNS_CAUSESTARTER: 'k51-test-causestarter',
+      PINATA_GATEWAY_ORIGIN: 'https://gateway.pinata.cloud',
+    },
+  )
+
+  assert.equal(response.status, 200)
+  assert.equal(await response.text(), '<html>causestarter</html>')
+  assert.equal(fetches[0], 'https://name.web3.storage/name/k51-test-causestarter')
+})
