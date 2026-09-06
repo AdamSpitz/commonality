@@ -28,6 +28,12 @@ function publishedDataUrl(config, { dataId, chainId, contractAddress }) {
   return url.toString();
 }
 
+function publicationsFromPayload(payload) {
+  if (Array.isArray(payload?.publications)) return payload.publications;
+  if (payload?.publication) return [payload.publication];
+  return [];
+}
+
 async function fetchPublication(config, expected) {
   const probe = await fetchText(publishedDataUrl(config, expected), { maxBodyChars: 12000 });
   if (!probe.ok) return { ok: false, probe, payload: null };
@@ -45,14 +51,22 @@ async function waitForPublishedData(config, expected) {
   const attempts = [];
   while (Date.now() <= deadline) {
     const probe = await fetchPublication(config, expected);
-    const publication = probe.payload?.publication;
-    attempts.push({ ok: probe.ok, status: probe.probe?.status, apiStatus: probe.payload?.status, transactionHash: publication?.transactionHash, error: probe.error });
-    if (
-      probe.payload?.status === "active" &&
-      probe.payload?.data?.toLowerCase() === expected.contentHex.toLowerCase() &&
-      publication?.transactionHash?.toLowerCase() === expected.transactionHash.toLowerCase()
-    ) {
-      return { ok: true, payload: probe.payload, attempts };
+    const publications = publicationsFromPayload(probe.payload);
+    const match = publications.find((item) => item.transactionHash?.toLowerCase() === expected.transactionHash.toLowerCase());
+    const livePublishers = Array.isArray(probe.payload?.livePublishers) ? probe.payload.livePublishers : [];
+    attempts.push({
+      ok: probe.ok,
+      status: probe.probe?.status,
+      apiStatus: probe.payload?.status,
+      transactionHash: match?.transactionHash,
+      publicationCount: publications.length,
+      error: probe.error
+    });
+    // CID-first indexer route is a pointer index: status + publications[].transactionHash.
+    // It does not echo the published bytes (`data`); the client fetches those from chain.
+    const publisherSeen = livePublishers.some((addr) => addr?.toLowerCase() === expected.publisher.toLowerCase());
+    if (probe.payload?.status === "active" && match && publisherSeen) {
+      return { ok: true, payload: probe.payload, match, attempts };
     }
     await new Promise((resolve) => setTimeout(resolve, pollMs));
   }
@@ -91,8 +105,15 @@ emit(async () => {
   const dataId = viem.sha256(contentHex);
   const hash = await walletClient.writeContract({ address: contractAddress, abi: PUBLISHED_DATA_ABI, functionName: "publishData", args: [contentHex] });
   const receipt = await publicClient.waitForTransactionReceipt({ hash, timeout: 60000 });
-  const indexed = await waitForPublishedData(config, { dataId, contentHex, contractAddress, chainId: config.chainId, transactionHash: hash });
+  const indexed = await waitForPublishedData(config, {
+    dataId,
+    contentHex,
+    contractAddress,
+    chainId: config.chainId,
+    transactionHash: hash,
+    publisher: account.address
+  });
   const findings = { transactionHash: hash, receipt: { blockNumber: receipt.blockNumber?.toString(), status: receipt.status }, contractAddress, publisher: account.address, dataId, indexed };
-  if (!indexed.ok) return fail("PublishedData transaction was included, but the deployed indexer PublishedData API did not expose the active bytes before timeout.", { findings });
-  return pass("Verifier-funded PublishedData publication was included and read back through the deployed indexer PublishedData API.", { findings });
+  if (!indexed.ok) return fail("PublishedData transaction was included, but the deployed CID-first PublishedData API did not list it as an active publication before timeout.", { findings });
+  return pass("Verifier-funded PublishedData publication was included and observed as an active CID-first pointer on the deployed indexer.", { findings });
 });

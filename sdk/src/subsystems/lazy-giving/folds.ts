@@ -40,8 +40,9 @@ function cidFromMetadataReference(reference: string | undefined): string | undef
   try {
     return normalizeIpfsMetadataReference(reference);
   } catch {
-    const trimmed = reference.trim();
-    return trimmed || undefined;
+    // On-chain garbage (filenames, docs titles) is not a CID. Leave metadata
+    // unset so the UI does not fetch `https://ipfs.io/ipfs/<junk>`.
+    return undefined;
   }
 }
 

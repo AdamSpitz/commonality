@@ -8,6 +8,7 @@ This file should contain only items that need human custody, external accounts, 
 
 - [x] Run `node scripts/generate-wallets.mjs`; save the printed secret block in your password manager.
 - [x] Fund only `DEPLOYER_ADDRESS` in `deployments/operator-addresses.env` with Base Sepolia ETH from a faucet. The Coinbase Developer Platform faucet's `0.1 ETH` daily allowance should be plenty for testnet deployment plus many transactions. (See https://docs.base.org/base-chain/network-information/network-faucets for faucets.) (I ended up using Alchemy's faucet.)
+- [x] **Fund live service wallets** in `deployments/base-sepolia.env` (not the localhost operator-addresses copies). 2026-09-05: deployer `0xFC0054…` sent 0.005 ETH each to `IMPLICATION_ATTESTER_ADDRESS` `0x021b3C…`, `CONTENT_ATTESTER_ADDRESS` `0x12F892…`, `BEAT_AGENT_ADDRESS` `0xC1ACe6…` (block 46430751). Mutation canary `COMMONALITY_TESTNET_VERIFIER_ADDRESS` `0x6295d57…` already funded (item 6). **`VERIFIER_ADDRESS` `0xE486…` is the channel claim signer** — `fund-base-sepolia-wallets.mjs` excludes it; 0 ETH is expected. Do not fund it for the shared lab.
 
 ## External services and secrets
 

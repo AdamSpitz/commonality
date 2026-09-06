@@ -119,7 +119,7 @@
     "lint:raw": "turbo run lint",
     "build:raw": "turbo run build",
     "test:raw": "npm run sdk:test:raw && npm run hardhat:test:raw && npm run integration-tests:raw && npm run ui:test:raw",
-    "test:fast:raw": "npm run check:docs-inventory && node --test scripts/lib/deep-cadence-local-stack.test.mjs && npm run sdk:test:raw && npm run hardhat:test:raw && npm run integration-tests:test:harness:raw && npm run ui:test:vitest:raw",
+    "test:fast:raw": "npm run check:docs-inventory && node --test scripts/lib/deep-cadence-local-stack.test.mjs && npm run sdk:test:raw && npm run hardhat:test:raw && npm run integration-tests:test:harness:raw && npm run ui:test:vitest:raw && npm run test --workspace=commonality-indexer",
     "integration-tests:raw": "./scripts/run-integration-tests.sh",
     "integration-tests:test:harness:raw": "npm run test:harness --workspace=integration-tests",
     "sdk:test:raw": "npm run test --workspace=sdk",

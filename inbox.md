@@ -39,11 +39,29 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 - [ ] **(Adam)** Create the 2-of-3 Safe for the contract-admin role (hardware wallet + phone + offline backup) and record its address in `deployments/operator-addresses.env`. Only remaining human step from the 2026-07-27 governance decision; all the contract/ops work behind it is queued in [security-recoverability.md](workflow/security-recoverability.md#decision-adam-2026-07-27) and blocked on the Safe existing.
 
+### Testnet indexer (shared lab)
+
+Standing index: [`workflow/testnet-working-plan.md`](workflow/testnet-working-plan.md). Operator checklist: [`testnet-prep.md`](testnet-prep.md). The two-person lab is up through item 6. Remaining **your** clicks (none of these are “the lab is down”):
+
+- **Alignment-trust bootstrap (needed for CauseStarter’s shipped trust graph, not for sites/indexer).** Same as the Security item above: dedicated wallet from `generate-wallets.mjs`, fund `ALIGNMENT_TRUST_BOOTSTRAP_ADDRESS`, Render secret, denylist canary on the worker disk. Never Hardhat #8. Details: [`alignment-trust-bootstrap/README.md`](alignment-trust-bootstrap/README.md).
+
+- **Pinata Host Origins:** add `https://causestarter.testnet.commonality.works` (Picnic: no wildcards). Worker path already serves the UI; this is only dedicated-gateway CORS.
+
+- **Sponsored-gas live UI walk** — see Testing below.
+
+- **[ ] (Ask) Nightly mutation flag** — after a few quiet days, set `COMMONALITY_VERIFIER_NIGHTLY_ALLOW_TESTNET_MUTATION=1` in the cadence shell (working-plan item 8). Do not set it yet.
+
+- **Cloudflare leftovers** (UIs already work via `*.testnet.commonality.works`): zone/DNSLink and `services.testnet.commonality.works` gateway. Unchecked boxes in [`testnet-prep.md`](testnet-prep.md).
+
+- **Do not fund `VERIFIER_ADDRESS` `0xE486…` for the lab.** That is the content-funding **channel claim signer** (`VERIFIER_PRIVATE_KEY` / `CHANNEL_VERIFIER_TRUSTED_SIGNER_ADDRESS`). It signs off-chain; `fund-base-sepolia-wallets.mjs` skips it. Zero ETH is expected. The mutation canary is `COMMONALITY_TESTNET_VERIFIER_*` `0x6295d57…` (already funded; item 6 used it). `InvalidVerifierSignature` on channel create is code ([`TODO.md`](TODO.md) / working-plan item 7), not gas. `app-config` fail on 0 official implication attestations is an idle default — do not dummy-attest.
+
+
+
 ### Testing/verification improvements
 
 - **Sponsored gas — human finish:** tank + UI are ready. Sign into [lazygiving.testnet.commonality.works](https://lazygiving.testnet.commonality.works) with Privy email OTP, contribute on enrolled project [`0x0b34E11c5A014C77b3b61E9e8b94609D8598FF93`](https://lazygiving.testnet.commonality.works/#/projects/0x0b34E11c5A014C77b3b61E9e8b94609D8598FF93) (high threshold, ~30-day deadline so it will fail rather than succeed), then refund after that deadline. Capture the UserOp calldata / gas overhead and retune placeholder caps. Steps: [sponsored-gas-live-trace.md](workflow/sponsored-gas-live-trace.md).
 
-- Provision/fund the live-testnet verifier wallet (`COMMONALITY_TESTNET_VERIFIER_PRIVATE_KEY`) and, once it is safe to spend gas nightly, set `COMMONALITY_VERIFIER_NIGHTLY_ALLOW_TESTNET_MUTATION=1` in the deployment shell so `testnet.onchain-to-indexer` joins the retained deep cadence. Until this is done, `testnet.environment` will remain skipped-by-policy/uncertain for release-candidate claims. See `verifier/PLAN.md` P0/P1 item 1.
+
 
 ### Admin
 

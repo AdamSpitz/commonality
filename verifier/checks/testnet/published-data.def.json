@@ -1,6 +1,6 @@
 {
   "id": "testnet.published-data",
-  "description": "Guarded mutating deployed testnet journey: publishes verifier-owned bytes through PublishedData, waits for inclusion, and asserts the deployed indexer PublishedData API serves the active bytes by CID/dataId.",
+  "description": "Guarded mutating deployed testnet journey: publishes verifier-owned bytes through PublishedData, waits for inclusion, and asserts the deployed CID-first PublishedData API lists the tx as an active publication pointer.",
   "trigger": { "type": "manual" },
   "retention": { "keep": 5, "keepDays": 30 },
   "command": ["node", "checks/testnet/published-data.mjs"],

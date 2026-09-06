@@ -40,6 +40,7 @@ const domainSlugs = [
   'civility',
   'common-sense-majority',
   'conceptspace',
+  'causestarter',
 ]
 
 const domainUrlVars = [
@@ -51,6 +52,7 @@ const domainUrlVars = [
   'VITE_CIVILITY_URL',
   'VITE_COMMON_SENSE_MAJORITY_URL',
   'VITE_CONCEPTSPACE_URL',
+  'VITE_CAUSESTARTER_URL',
 ]
 
 function uiDomainOrigin(slug, rootDomain, environmentLabel, scheme = 'https') {

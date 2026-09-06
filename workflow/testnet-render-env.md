@@ -1,6 +1,10 @@
 # Testnet Render environment values
 
-Copy these non-secret values into Render `sync: false` fields when the dashboard asks for them. Secrets/private keys still come from `.env.secrets` and `deployments/operator-addresses.env`.
+Copy these non-secret values into Render `sync: false` fields when the dashboard asks for them. Secrets/private keys still come from `.env.secrets` and `deployments/operator-addresses.env`. For Render *API* operations (logs, env updates, restart) source gitignored `.env.render` (`RENDER_API_KEY`). See [deployment.md](./deployment.md).
+
+## Indexer (`commonality-indexer`)
+
+`PONDER_RPC_URL_84532` is `sync: false`. Paste the Alchemy (or other archive-capable) Base Sepolia URL from `.env` / `BASE_SEPOLIA_RPC_URL`. `scripts/generate-render-secrets.mjs` emits this block. Public `https://sepolia.base.org` prunes below ~45_000_000 and will crash the indexer while `START_BLOCK` is 42768673. After changing the URL, trigger a deploy (`deploy_only` is enough), not only a restart. See [deployment.md](./deployment.md#indexer-on-render).
 
 ## PublishedData IPFS mirror (`commonality-published-data-ipfs-mirror`)
 
@@ -17,7 +21,7 @@ After deploy, confirm the worker logs show chain ID `84532`, then check that `/d
 ## Platform API (`commonality-platform-api`)
 
 ```env
-CORS_ALLOWED_ORIGINS=https://commonality.testnet.commonality.works,https://lazygiving.testnet.commonality.works,https://alignment.testnet.commonality.works,https://tally.testnet.commonality.works,https://content-funding.testnet.commonality.works,https://civility.testnet.commonality.works,https://common-sense-majority.testnet.commonality.works,https://conceptspace.testnet.commonality.works,https://commonality.testnet.commonality.eth.limo,https://lazygiving.testnet.commonality.eth.limo,https://alignment.testnet.commonality.eth.limo,https://tally.testnet.commonality.eth.limo,https://content-funding.testnet.commonality.eth.limo,https://civility.testnet.commonality.eth.limo,https://common-sense-majority.testnet.commonality.eth.limo,https://conceptspace.testnet.commonality.eth.limo
+CORS_ALLOWED_ORIGINS=https://commonality.testnet.commonality.works,https://lazygiving.testnet.commonality.works,https://alignment.testnet.commonality.works,https://tally.testnet.commonality.works,https://content-funding.testnet.commonality.works,https://civility.testnet.commonality.works,https://common-sense-majority.testnet.commonality.works,https://conceptspace.testnet.commonality.works,https://causestarter.testnet.commonality.works,https://commonality.testnet.commonality.eth.limo,https://lazygiving.testnet.commonality.eth.limo,https://alignment.testnet.commonality.eth.limo,https://tally.testnet.commonality.eth.limo,https://content-funding.testnet.commonality.eth.limo,https://civility.testnet.commonality.eth.limo,https://common-sense-majority.testnet.commonality.eth.limo,https://conceptspace.testnet.commonality.eth.limo,https://causestarter.testnet.commonality.eth.limo
 CLAIM_PAGE_BASE_URL=https://content-funding.testnet.commonality.works/#/claim
 ```
 
@@ -81,6 +85,6 @@ These have been written to `.env.secrets` for `scripts/setup-env.sh` and `script
 ```env
 EVENT_CACHE_URL=https://commonality-indexer.onrender.com
 PLATFORM_API_URL=https://commonality-platform-api.onrender.com
-CORS_ALLOWED_ORIGINS=https://commonality.testnet.commonality.works,https://lazygiving.testnet.commonality.works,https://alignment.testnet.commonality.works,https://tally.testnet.commonality.works,https://content-funding.testnet.commonality.works,https://civility.testnet.commonality.works,https://common-sense-majority.testnet.commonality.works,https://conceptspace.testnet.commonality.works,https://commonality.testnet.commonality.eth.limo,https://lazygiving.testnet.commonality.eth.limo,https://alignment.testnet.commonality.eth.limo,https://tally.testnet.commonality.eth.limo,https://content-funding.testnet.commonality.eth.limo,https://civility.testnet.commonality.eth.limo,https://common-sense-majority.testnet.commonality.eth.limo,https://conceptspace.testnet.commonality.eth.limo
+CORS_ALLOWED_ORIGINS=https://commonality.testnet.commonality.works,https://lazygiving.testnet.commonality.works,https://alignment.testnet.commonality.works,https://tally.testnet.commonality.works,https://content-funding.testnet.commonality.works,https://civility.testnet.commonality.works,https://common-sense-majority.testnet.commonality.works,https://conceptspace.testnet.commonality.works,https://causestarter.testnet.commonality.works,https://commonality.testnet.commonality.eth.limo,https://lazygiving.testnet.commonality.eth.limo,https://alignment.testnet.commonality.eth.limo,https://tally.testnet.commonality.eth.limo,https://content-funding.testnet.commonality.eth.limo,https://civility.testnet.commonality.eth.limo,https://common-sense-majority.testnet.commonality.eth.limo,https://conceptspace.testnet.commonality.eth.limo,https://causestarter.testnet.commonality.eth.limo
 CLAIM_PAGE_BASE_URL=https://content-funding.testnet.commonality.works/#/claim
 ```

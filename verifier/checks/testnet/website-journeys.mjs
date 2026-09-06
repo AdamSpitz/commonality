@@ -3,17 +3,25 @@ import { readTestnetConfig, requireOptIn } from "./lib.mjs";
 
 const MAX_CONSOLE_ERRORS = 0;
 
+function isHistoricalIpfsMetadataUrl(url) {
+  // Some older on-chain testnet projects point at IPFS metadata that is no longer
+  // retrievable (or was never a CID). The UI handles that by showing fallback
+  // project cards plus an inline warning; don't fail the whole deployed shell
+  // smoke on those historical data holes. Real app crashes still fail via page
+  // errors, obvious failure text, short body, or unrelated console errors.
+  return /\/(api\/)?(ipfs|documents?)\//i.test(url) || /[?&](cid|metadataCid)=/i.test(url);
+}
+
 function isNonFatalResourceResponse(response) {
   const status = response.status();
   if (status < 500) return false;
-  const url = response.url();
-  // Some older on-chain testnet projects point at IPFS metadata that is no longer
-  // retrievable through the deployed indexer/gateway. The UI handles that by
-  // showing fallback project cards plus an inline warning; don't fail the whole
-  // deployed shell smoke on those historical data holes. Real app crashes still
-  // fail via page errors, obvious failure text, short body, or non-resource
-  // console errors.
-  return /\/(api\/)?(ipfs|documents?)\//i.test(url) || /[?&](cid|metadataCid)=/i.test(url);
+  return isHistoricalIpfsMetadataUrl(response.url());
+}
+
+function isNonFatalConsoleError(text) {
+  if (!/Failed to load resource:|CORS policy|Access to fetch at /i.test(text)) return false;
+  const urls = text.match(/https?:\/\/[^\s'"]+/g) ?? [];
+  return urls.some((url) => isHistoricalIpfsMetadataUrl(url));
 }
 
 async function loadPlaywright() {
@@ -76,9 +84,13 @@ async function probeApp(page, url) {
     const visibleLinks = await page.locator("a:visible").count().catch(() => 0);
     const visibleButtons = await page.locator("button:visible").count().catch(() => 0);
     const obviousFailureText = /application error|failed to load ui runtime config|vite|cannot find module|not found/i.test(bodyText);
-    const genericResourceConsoleErrors = consoleErrors.filter((text) => /Failed to load resource:/i.test(text));
-    const blockingConsoleErrors = consoleErrors.filter((text) => !/Failed to load resource:/i.test(text));
-    const toleratedResourceConsoleErrors = Math.min(genericResourceConsoleErrors.length, nonFatalResourceErrors.length);
+    const historicalIpfsConsoleErrors = consoleErrors.filter((text) => isNonFatalConsoleError(text));
+    const genericResourceConsoleErrors = consoleErrors.filter((text) => /Failed to load resource:/i.test(text) && !isNonFatalConsoleError(text));
+    const blockingConsoleErrors = consoleErrors.filter((text) => !/Failed to load resource:/i.test(text) && !isNonFatalConsoleError(text));
+    const toleratedResourceConsoleErrors = Math.min(
+      genericResourceConsoleErrors.length,
+      nonFatalResourceErrors.length + historicalIpfsConsoleErrors.length,
+    );
     const effectiveConsoleErrorCount = blockingConsoleErrors.length + Math.max(0, genericResourceConsoleErrors.length - toleratedResourceConsoleErrors);
     return {
       url,

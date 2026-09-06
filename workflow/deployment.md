@@ -75,7 +75,9 @@ Put operator-only values in `~/.secrets/commonality/operator.env`:
 - Optional Cloudflare DNS automation: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ZONE_ID`
 - Optional Render automation: `RENDER_API_KEY`
 
-`.env.secrets`, `~/.secrets/commonality/operator.env`, and `deployments/operator-addresses.env` are gitignored/untracked secret material. Never commit secrets.
+`RENDER_API_KEY` for script/API work lives in the gitignored repo-root **`.env.render`** (one line: `RENDER_API_KEY=...`). That is the file to source for Render CLI-less API calls (indexer logs, env, restart). You may also put the same key in `~/.secrets/commonality/operator.env`; do not put it in `.env.secrets` (service runtime). `.env.render` is listed in `.gitignore`.
+
+`.env.secrets`, `.env.render`, `~/.secrets/commonality/operator.env`, and `deployments/operator-addresses.env` are gitignored/untracked secret material. Never commit secrets.
 
 ### 2. Fund Base Sepolia operational wallets
 
@@ -415,7 +417,7 @@ The Render blueprint now includes both the `commonality-indexer` web service and
 Set these indexer env vars in the Render dashboard:
 
 - `PONDER_CHAIN`: `base-sepolia` for testnet or `mainnet` for production
-- `PONDER_RPC_URL_84532` or `PONDER_RPC_URL_1`: RPC URL for the selected chain
+- `PONDER_RPC_URL_84532` or `PONDER_RPC_URL_1`: RPC URL for the selected chain. **Do not use `https://sepolia.base.org`.** That public endpoint prunes history (as of 2026-09 earliest block ~45_000_000); with `START_BLOCK=42768673` Ponder retries `eth_getBlockByNumber` until the process exits 75 and Render 502s. Use the Alchemy (or other archive-capable) URL from `.env` / `BASE_SEPOLIA_RPC_URL`. Set it on the service (`sync: false`) via dashboard or `PUT /v1/services/{id}/env-vars/PONDER_RPC_URL_84532` using `RENDER_API_KEY` from `.env.render`, then **deploy** (`deployMode=deploy_only`) so the running container picks it up — a restart alone may keep the old env. Pass the URL through as a string (the default when `PONDER_RPC_MAX_RESPONSE_BODY_SIZE` is unset or `0`). Wrapping it in a viem `http()` transport makes Ponder treat the provider as `custom_transport` with `retryCount: 0`, which turns Alchemy “compute units per second” errors into a stalled backfill.
 - `START_BLOCK`: block where the deployed contracts start emitting relevant events
 - All contract addresses from `deployments/<network>.env`
 
@@ -425,7 +427,7 @@ The blueprint already wires:
 - `DATABASE_URL` from the managed Postgres database
 - `DATABASE_SCHEMA=commonality_base_sepolia_v4` for the current Base Sepolia deployment. Use a fresh schema only when intentionally abandoning stale indexed data; otherwise keep the schema stable.
 - `PONDER_EXPERIMENTAL_DB=platform` so normal Render redeploys of a changed Ponder build can reuse the same production schema instead of failing with "previously used by a different Ponder app".
-- `PONDER_ETH_GET_LOGS_BLOCK_RANGE=10` for Base Sepolia because the current Alchemy free-tier RPC rejects wider `eth_getLogs` ranges. If the RPC plan is upgraded, raising this value can make historical backfill faster.
+- `PONDER_ETH_GET_LOGS_BLOCK_RANGE=10000` for Base Sepolia on the current Alchemy PAYG key (wider windows cut catch-up `eth_getLogs` count by ~1000× vs a 10-block free-tier cap). If logs show `[commonality-indexer] eth_getLogs failed because the RPC rejected the block range or response size`, lower it to `1000` then `10`, PUT the Render env, and **deploy** (not restart only). The indexer wraps `fetch` to print that hint once; do not switch the RPC to a viem `http()` transport to “see errors” — that breaks Ponder’s rate limiter.
 - For the first Render rehearsal, `START_BLOCK` is intentionally near the current chain head to avoid free-tier RPC rate limits during backfill. If you need older testnet events, lower `START_BLOCK` and switch to a fresh Ponder schema (or drop the existing schema) after upgrading RPC capacity.
 - The indexer declares a small persistent disk even though it does not store application data there. This is an intentional Render workaround, not indexer storage: Render disables zero-downtime/rolling deploys for services with disks, which gives Ponder the stop-before-start deployment behavior it needs for the exclusive `DATABASE_SCHEMA` lock. Do not remove this disk just because `/data` appears unused unless the indexer has moved to a cleaner singleton-writer deployment model.
 

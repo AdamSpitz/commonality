@@ -11,6 +11,7 @@
     "serve": "ponder serve",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit && npm run check-abis",
+    "test": "node --import tsx --test src/rpc/ethGetLogsRangeGuard.test.ts",
     "build": "tsc",
     "check-abis": "tsx scripts/sync-abis.ts --check",
     "clean": "rm -rf .ponder",

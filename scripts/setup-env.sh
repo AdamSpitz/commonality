@@ -58,8 +58,8 @@ load_env_file "$DEPLOYMENT_FILE"
 load_env_file "$WALLETS_FILE"
 load_env_file "$SECRETS_FILE"
 
-DOMAIN_SLUGS=(commonality lazygiving alignment tally content-funding civility common-sense-majority conceptspace)
-DOMAIN_URL_VARS=(VITE_COMMONALITY_URL VITE_LAZYGIVING_URL VITE_ALIGNMENT_URL VITE_TALLY_URL VITE_CONTENT_FUNDING_URL VITE_CIVILITY_URL VITE_COMMON_SENSE_MAJORITY_URL VITE_CONCEPTSPACE_URL)
+DOMAIN_SLUGS=(commonality lazygiving alignment tally content-funding civility common-sense-majority conceptspace causestarter)
+DOMAIN_URL_VARS=(VITE_COMMONALITY_URL VITE_LAZYGIVING_URL VITE_ALIGNMENT_URL VITE_TALLY_URL VITE_CONTENT_FUNDING_URL VITE_CIVILITY_URL VITE_COMMON_SENSE_MAJORITY_URL VITE_CONCEPTSPACE_URL VITE_CAUSESTARTER_URL)
 
 set_if_missing() {
 	local key="$1"

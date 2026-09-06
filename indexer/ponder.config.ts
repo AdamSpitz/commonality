@@ -1,5 +1,6 @@
 import { createConfig, factory } from "ponder";
 import { http } from "viem";
+import { installEthGetLogsRangeGuard } from "./src/rpc/ethGetLogsRangeGuard";
 import { INDEXER_CHAIN_IDS, type IndexerChainName } from "./src/utils/chain";
 
 // Conceptspace ABIs
@@ -68,13 +69,24 @@ function parseMaxResponseBodySize(value: string | undefined): number | false | u
   return parsed;
 }
 
+/**
+ * Prefer a raw RPC URL string so Ponder uses its own HTTP client and rate
+ * limiter. A viem `http()` transport is tagged `custom_transport` and is
+ * constructed with `retryCount: 0`, which turns Alchemy CUPS 429s into a
+ * retry storm and stalls Base Sepolia backfill.
+ *
+ * Only wrap in viem `http()` when we need a non-default max response body size.
+ */
 function getRpcTransport(url: string | undefined) {
-  return url
-    ? http(url, {
-        timeout: 10_000,
-        maxResponseBodySize: parseMaxResponseBodySize(process.env.PONDER_RPC_MAX_RESPONSE_BODY_SIZE),
-      })
-    : undefined;
+  if (!url) return undefined;
+  const maxResponseBodySize = parseMaxResponseBodySize(process.env.PONDER_RPC_MAX_RESPONSE_BODY_SIZE);
+  if (maxResponseBodySize === undefined || maxResponseBodySize === false) {
+    return url;
+  }
+  return http(url, {
+    timeout: 10_000,
+    maxResponseBodySize,
+  });
 }
 
 const assuranceContractCreatedEvent = AssuranceContractFactoryAbi.find(
@@ -467,7 +479,7 @@ function getActiveChains() {
         "base-sepolia": {
           id: INDEXER_CHAIN_IDS["base-sepolia"],
           rpc: getRpcTransport(process.env.PONDER_RPC_URL_84532),
-          ethGetLogsBlockRange: ETH_GET_LOGS_BLOCK_RANGE ?? 1000,
+          ethGetLogsBlockRange: ETH_GET_LOGS_BLOCK_RANGE ?? 10000,
         },
       } as const;
     case "mainnet":
@@ -482,6 +494,14 @@ function getActiveChains() {
 }
 
 const chains = getActiveChains() as unknown as CreateConfigArgs["chains"];
+
+if (INDEXER_CHAIN !== "hardhat") {
+  const configuredRange =
+    INDEXER_CHAIN === "base-sepolia"
+      ? (ETH_GET_LOGS_BLOCK_RANGE ?? 10000)
+      : ETH_GET_LOGS_BLOCK_RANGE;
+  installEthGetLogsRangeGuard({ configuredRange });
+}
 
 export default createConfig({
   database:

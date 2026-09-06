@@ -31,6 +31,12 @@ export async function fetchFromIPFS(
     return fetchFromMockIPFS(cid);
   }
 
+  try {
+    normalizeCidV1(cid);
+  } catch {
+    return null;
+  }
+
   if (!ipfsConfig.gatewayUrl) {
     throw new Error('IPFS fetch requires gatewayUrl to be configured in IPFSConfig');
   }

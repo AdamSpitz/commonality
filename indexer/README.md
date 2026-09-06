@@ -39,13 +39,13 @@ For local Docker development, the indexer defaults to `PONDER_CHAIN=hardhat` and
 For Render or other hosted environments:
 
 - Set `PONDER_CHAIN` to `base-sepolia` or `mainnet`.
-- Provide the matching RPC URL as `PONDER_RPC_URL_84532` or `PONDER_RPC_URL_1`.
+- Provide the matching RPC URL as `PONDER_RPC_URL_84532` or `PONDER_RPC_URL_1`. Leave `PONDER_RPC_MAX_RESPONSE_BODY_SIZE` unset or `0` so the config passes a URL string into Ponder (its rate limiter). A viem `http()` wrapper is only used when a positive body-size cap is set; that path is `custom_transport` and retries poorly against Alchemy CUPS limits.
 - Set `DATABASE_URL` and `DATABASE_SCHEMA` for Postgres-backed sync state.
 - Run with `PONDER_SCRIPT=start` so the container uses `ponder start` instead of dev mode.
 - On Render, set `CHOKIDAR_USEPOLLING=true`. Ponder 0.15 builds through Vite even in
   start mode, and Render's native file-watcher limit can otherwise abort startup with
   `EMFILE: too many open files, watch '/app'`.
-- Keep `PONDER_ETH_GET_LOGS_BLOCK_RANGE` large enough for catch-up. Base Sepolia produces blocks quickly; a tiny range such as `10` makes a million-block historical sync require roughly 100k `eth_getLogs` batches. The Render blueprint defaults to `1000`; lower it only if the RPC provider rejects larger ranges.
+- Keep `PONDER_ETH_GET_LOGS_BLOCK_RANGE` large enough for catch-up. The Render blueprint defaults to `10000`. A tiny range such as `10` makes a million-block historical sync require hundreds of thousands of `eth_getLogs` batches and will blow Alchemy CUPS. If the provider rejects the window, the process logs a one-shot `[commonality-indexer] eth_getLogs failed because the RPC rejected the block range or response size` line with the env to change; lower to `1000` then `10`.
 
 Contract deployments can still be configured with the legacy one-env-var-per-contract
 addresses plus subsystem start blocks, but the indexer also accepts an
