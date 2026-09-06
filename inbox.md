@@ -41,11 +41,19 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 ### Testnet indexer (shared lab)
 
-- **(Tell)** Testnet indexer catch-up: you raised Alchemy monthly usage limit to $30. Resumed `commonality-indexer`, canceled accidental `master` resume deploy, live API deploy `dep-dae48qgou94c73976610` on `53417ecc` (range 10000). `testnet.indexer` **pass** (block 46429137, lag 0). Working-plan item 2 done.
+Standing index: [`workflow/testnet-working-plan.md`](workflow/testnet-working-plan.md). Operator checklist: [`testnet-prep.md`](testnet-prep.md). The two-person lab is up through item 6. Remaining **your** clicks (none of these are “the lab is down”):
 
-- **(Tell)** Funded live Base Sepolia service wallets from operator `DEPLOYER_PRIVATE_KEY` (`0xFC0054…`) via `scripts/fund-base-sepolia-wallets.mjs --wallets deployments/base-sepolia.env --only IMPLICATION_ATTESTER_ADDRESS,CONTENT_ATTESTER_ADDRESS,BEAT_AGENT_ADDRESS --amount 0.005 --reserve 0.015 --yes`. Confirmed block **46430751**. Each of those three now has 0.005 ETH; deployer ~0.021 ETH left. Verifier wallet still unfunded (script skips `VERIFIER_ADDRESS`). `testnet.app-config` still fails on 0 official implication attestations; that is an idle default, not a config bug — do not mint a dummy arrow for smoke.
+- **Alignment-trust bootstrap (needed for CauseStarter’s shipped trust graph, not for sites/indexer).** Same as the Security item above: dedicated wallet from `generate-wallets.mjs`, fund `ALIGNMENT_TRUST_BOOTSTRAP_ADDRESS`, Render secret, denylist canary on the worker disk. Never Hardhat #8. Details: [`alignment-trust-bootstrap/README.md`](alignment-trust-bootstrap/README.md).
 
-- **(Tell)** Testnet browser journeys: `testnet.website-journeys` pass (22 URLs, ~36s). Working-plan item 4 done. LazyGiving `/#/projects` still warns on a junk on-chain metadata URI (`sponsored-gas-live-trace`); check treats that IPFS CORS as historical hole. SDK now drops invalid CIDs. Did not republish UIs.
+- **Pinata Host Origins:** add `https://causestarter.testnet.commonality.works` (Picnic: no wildcards). Worker path already serves the UI; this is only dedicated-gateway CORS.
+
+- **Sponsored-gas live UI walk** — see Testing below.
+
+- **[ ] (Ask) Nightly mutation flag** — after a few quiet days, set `COMMONALITY_VERIFIER_NIGHTLY_ALLOW_TESTNET_MUTATION=1` in the cadence shell (working-plan item 8). Do not set it yet.
+
+- **Cloudflare leftovers** (UIs already work via `*.testnet.commonality.works`): zone/DNSLink and `services.testnet.commonality.works` gateway. Unchecked boxes in [`testnet-prep.md`](testnet-prep.md).
+
+- **Do not fund `VERIFIER_ADDRESS` `0xE486…` for the lab.** That is the content-funding **channel claim signer** (`VERIFIER_PRIVATE_KEY` / `CHANNEL_VERIFIER_TRUSTED_SIGNER_ADDRESS`). It signs off-chain; `fund-base-sepolia-wallets.mjs` skips it. Zero ETH is expected. The mutation canary is `COMMONALITY_TESTNET_VERIFIER_*` `0x6295d57…` (already funded; item 6 used it). `InvalidVerifierSignature` on channel create is code ([`TODO.md`](TODO.md) / working-plan item 7), not gas. `app-config` fail on 0 official implication attestations is an idle default — do not dummy-attest.
 
 
 
@@ -53,9 +61,7 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 - **Sponsored gas — human finish:** tank + UI are ready. Sign into [lazygiving.testnet.commonality.works](https://lazygiving.testnet.commonality.works) with Privy email OTP, contribute on enrolled project [`0x0b34E11c5A014C77b3b61E9e8b94609D8598FF93`](https://lazygiving.testnet.commonality.works/#/projects/0x0b34E11c5A014C77b3b61E9e8b94609D8598FF93) (high threshold, ~30-day deadline so it will fail rather than succeed), then refund after that deadline. Capture the UserOp calldata / gas overhead and retune placeholder caps. Steps: [sponsored-gas-live-trace.md](workflow/sponsored-gas-live-trace.md).
 
-- **(Tell)** Testnet item 6: mutation canary `0x6295d57…` was already funded. `testnet.onchain-to-indexer` pass (`0x9d669f0f…`). `testnet.published-data` now matches CID-first `publications[]`; pass (`0x3e56aab7…`). CauseStarter config uses that indexer. Live `VERIFIER_ADDRESS` `0xE486…` still 0 ETH. Do not set `COMMONALITY_VERIFIER_NIGHTLY_ALLOW_TESTNET_MUTATION` (item 8 Ask). `alignment-trust` still needs a dedicated bootstrap wallet — never Hardhat #8.
 
-- **(Tell)** CauseStarter hostname item 5 is live (`causestarter.testnet.commonality.works`). Pinata Host Origins dashboard add is still leftover if dedicated-gateway CORS is needed.
 
 ### Admin
 

@@ -16,7 +16,7 @@ Getting **testnet to a two-person shared lab** is also a standing plan, not a pi
 
 - **(Tell)** Next fake-data/seed-data step lives in [`fake-data-generation/PLAN.md`](fake-data-generation/PLAN.md). Abortion, immigration, crime, and LGBT-schools triples are accepted; next is the demo-seed live UI pass.
 
-- **(Tell)** Next testnet-lab step lives in [`workflow/testnet-working-plan.md`](workflow/testnet-working-plan.md). Shared lab for Adam and Sam (sites + indexer + a write path); not scale load and not mainnet. First slice is re-probe live smoke and fix the indexer if it is still 502.
+- **(Tell)** Next testnet-lab step lives in [`workflow/testnet-working-plan.md`](workflow/testnet-working-plan.md). Shared lab (sites + indexer + a write path) is up through item 6. Next unchecked is item 7 (`InvalidVerifierSignature` / funding-portal `0n`) — only if Adam asks; item 8 is Ask (nightly mutation flag). Human leftovers: [`inbox.md`](inbox.md) and [`testnet-prep.md`](testnet-prep.md). Do not mix with mass fake activity or mainnet.
 
 ----
 
