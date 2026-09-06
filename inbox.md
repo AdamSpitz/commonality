@@ -47,13 +47,15 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 - **(Tell)** Testnet browser journeys: `testnet.website-journeys` pass (22 URLs, ~36s). Working-plan item 4 done. LazyGiving `/#/projects` still warns on a junk on-chain metadata URI (`sponsored-gas-live-trace`); check treats that IPFS CORS as historical hole. SDK now drops invalid CIDs. Did not republish UIs.
 
-- **(Tell)** CauseStarter testnet hostname **approved**: `causestarter.testnet.commonality.works`. Item 5 in [testnet-working-plan.md](workflow/testnet-working-plan.md) is now Tell with the file/ops checklist. Next LLM: implement that item; do not invent a ninth product or drop the eight live UIs. Pinata Host Origins is dashboard-only.
+
 
 ### Testing/verification improvements
 
 - **Sponsored gas — human finish:** tank + UI are ready. Sign into [lazygiving.testnet.commonality.works](https://lazygiving.testnet.commonality.works) with Privy email OTP, contribute on enrolled project [`0x0b34E11c5A014C77b3b61E9e8b94609D8598FF93`](https://lazygiving.testnet.commonality.works/#/projects/0x0b34E11c5A014C77b3b61E9e8b94609D8598FF93) (high threshold, ~30-day deadline so it will fail rather than succeed), then refund after that deadline. Capture the UserOp calldata / gas overhead and retune placeholder caps. Steps: [sponsored-gas-live-trace.md](workflow/sponsored-gas-live-trace.md).
 
-- Provision/fund the live-testnet verifier wallet (`COMMONALITY_TESTNET_VERIFIER_PRIVATE_KEY`) and, once it is safe to spend gas nightly, set `COMMONALITY_VERIFIER_NIGHTLY_ALLOW_TESTNET_MUTATION=1` in the deployment shell so `testnet.onchain-to-indexer` joins the retained deep cadence. Until this is done, `testnet.environment` will remain skipped-by-policy/uncertain for release-candidate claims. See `verifier/PLAN.md` P0/P1 item 1.
+- **(Tell)** Testnet item 6: mutation canary `0x6295d57…` was already funded. `testnet.onchain-to-indexer` pass (`0x9d669f0f…`). `testnet.published-data` now matches CID-first `publications[]`; pass (`0x3e56aab7…`). CauseStarter config uses that indexer. Live `VERIFIER_ADDRESS` `0xE486…` still 0 ETH. Do not set `COMMONALITY_VERIFIER_NIGHTLY_ALLOW_TESTNET_MUTATION` (item 8 Ask). `alignment-trust` still needs a dedicated bootstrap wallet — never Hardhat #8.
+
+- **(Tell)** CauseStarter hostname item 5 is live (`causestarter.testnet.commonality.works`). Pinata Host Origins dashboard add is still leftover if dedicated-gateway CORS is needed.
 
 ### Admin
 

@@ -36,7 +36,7 @@ Full `./scripts/verifier-testnet.sh` (~16:46 UTC): `dns`/`http`/`rpc`/`indexer`/
 
 **Item 4 done.** `testnet.website-journeys` **pass** (~18:32 UTC): 22 URLs, ~36s. First wrapper run still hit the 180s kill (cold Chromium / Cloudflare); a second run finished. The only real page issue is LazyGiving `/#/projects` fetching on-chain junk URI `sponsored-gas-live-trace` as `https://ipfs.io/ipfs/...` (CORS). The page already falls back with “couldn't load some project details.” Check now treats historical IPFS CORS/`Failed to load resource` the same as the existing IPFS 500 hole policy. SDK fold + `fetchFromIPFS` drop invalid CIDs so the next LazyGiving publish stops hitting ipfs.io; do not republish all eight for this. Do not raise the 180s timeout.
 
-Unchanged for later items: `onchain-to-indexer` skipped by policy; `published-data` stale pass (2026-07-20); `alignment-trust` missing.
+**Item 6 done (2026-09-06 ~01:00 UTC).** Mutation canary `COMMONALITY_TESTNET_VERIFIER_ADDRESS` `0x6295d57…` already had ~0.005 ETH (nonce 9); that is **not** live `VERIFIER_ADDRESS` `0xE486…` (still 0 ETH). `testnet.onchain-to-indexer` **pass** tx `0x9d669f0f…` block **46443918**. First `testnet.published-data` tx `0x0346d1b8…` **was indexed** but the check still expected the old `{ publication, data }` body; CID-first `/api/published-data/:dataId` returns `publications[]` pointers and no bytes. Check updated; second run **pass** tx `0x3e56aab7…` block **46444037** dataId `0x76da20b3…`. Wrapper `--mutation` now includes `published-data`. Observer-B readback (CauseStarter `config.json` event cache): same CID **active**, same AlignmentAttestation in `/api/events`. `testnet.alignment-trust` still **error** (no `VITE_DEFAULT_ALIGNMENT_TRUST_ROOT` / denylist — do not ship Hardhat #8). `app-config` still fail on idle official attester. Do not enable nightly mutation (item 8).
 
 **Item 2 done.** `npx verifier-run testnet.indexer` **pass** (~16:42 UTC): GraphQL `_meta` **46429137**, lag **0**, maxLag 300. Live deploy `dep-dae48qgou94c73976610` commit `53417ecc`, env range **10000**, Alchemy RPC. Adam raised monthly usage limit to **$30**.
 
@@ -83,7 +83,7 @@ From testnet-prep / inbox — stop and Ask if you hit them:
 
 - Cloudflare zone / DNSLink / `services.testnet.commonality.works` gateway (UIs already work via the UI gateway; this is leftover naming/ops).
 - 2-of-3 Safe for contract-admin.
-- Fund/enable `COMMONALITY_TESTNET_VERIFIER_PRIVATE_KEY` (`VERIFIER_ADDRESS` is also 0 ETH / nonce 0) and, when Adam says so, `COMMONALITY_VERIFIER_NIGHTLY_ALLOW_TESTNET_MUTATION=1`.
+- `COMMONALITY_TESTNET_VERIFIER_PRIVATE_KEY` canary is funded and used for item 6. Live `VERIFIER_ADDRESS` (`0xE486…`) is still 0 ETH. Nightly flag is item 8 — Ask, do not set.
 - Sponsored-gas live UI walk: [sponsored-gas-live-trace.md](./sponsored-gas-live-trace.md).
 - Alignment-trust bootstrap: generate wallets, fund `ALIGNMENT_TRUST_BOOTSTRAP_ADDRESS`, Render secrets, denylist canary — never the checked-in local key.
 - Alchemy (or other archive RPC) **CUPS / plan**: indexer is at head on Alchemy after the $30 monthly cap; do not re-open unless lag/502 returns.
@@ -126,7 +126,7 @@ Do these in order unless Adam names a different one. Each item is a session-size
 
    Stop if you hit Cloudflare zone login, Pinata billing, or missing `CLOUDFLARE_API_TOKEN` / `PINATA_JWT` — inbox, don’t paper over.
 
-6. **[ ] (Tell) Two-person write path, one mutation canary.** After Adam funds the verifier wallet (or an equivalent test wallet): `./scripts/verifier-testnet.sh --mutation` so `testnet.onchain-to-indexer` (and published-data if still gated) is a fresh pass. Then walk, or script, a **minimal** shared loop: wallet A publishes or signs something wallet B can see on the live UI after index. Prefer CauseStarter if item 5 shipped; otherwise Tally sign + LazyGiving project list. Do not seed thousands of txs. File any “we cannot see each other’s stuff” bug here as a new Next item, not as a silent workaround.
+6. **[x] (Tell) Two-person write path, one mutation canary.** 2026-09-06: `onchain-to-indexer` + `published-data` fresh pass from `0x6295d57…`. CauseStarter config points at the same indexer; a second client sees both the attestation and the CID-first publication. No “cannot see each other’s stuff” bug on that path. Alignment-trust bootstrap still missing (human leftover). Wrapper `--mutation` still exits 1 because of `app-config` + `alignment-trust`.
 
 7. **[ ] (Tell) Unblock the journeys that will fail as soon as someone tries them.** Only after the lab is up: `InvalidVerifierSignature` on content-funding channel create (`stack.user-journeys`); funding-portal aggregation `0n` (root TODO). Fix against local stack first, then re-check the matching testnet surface if that feature is in the two-person loop.
 
