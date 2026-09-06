@@ -104,7 +104,7 @@ Do these in order unless Adam names a different one. Each item is a session-size
 
 5. **[ ] (Tell) CauseStarter on testnet hostname.** **Adam 2026-09-05: yes.** Hostname is **`causestarter.testnet.commonality.works`**. Implement and publish; do **not** replace or decommission the eight live sites; do **not** spend ENS / eth.limo gas.
 
-   **Repo + IPFS/IPNS + Render CORS: done 2026-09-05.** Remaining: Cloudflare DNS + Worker deploy + Pinata Host Origins (inbox). After those, curl 200 then `./scripts/verifier-testnet.sh --browser`.
+   **Repo + IPFS/IPNS + Render CORS + Worker deploy: done 2026-09-05.** `wrangler login` unblocked `npx wrangler deploy`; route is on the Worker. Remaining: DNS CNAME (OAuth has no DNS write) + Pinata Host Origins (inbox). Then curl 200 and `./scripts/verifier-testnet.sh --browser`.
 
    **Done when:** `https://causestarter.testnet.commonality.works` loads over HTTPS (same Worker path as the others), platform-api CORS allows that origin, and `./scripts/verifier-testnet.sh --browser` includes it (dns/http/app-shell/journeys). Pinata Host Origins is a dashboard step — if you cannot add it, note in inbox and keep going (Worker uses `gateway.pinata.cloud` + key, dedicated-gateway origins are leftover).
 
