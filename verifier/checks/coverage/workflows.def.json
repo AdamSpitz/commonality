@@ -1,6 +1,6 @@
 {
   "id": "coverage.workflows",
-  "description": "Verify key UI workflows have explicit workflow-clarity review coverage, objective smoke/regression backing checks, and existing bounded surface files.",
+  "description": "Verify the in-scope UI workflow inventory (CauseStarter, Civility, Common Sense Majority) maps each required workflow to a workflow-clarity check, objective smoke, and existing surface files.",
   "trigger": { "type": "cron", "everyMinutes": 720 },
   "retention": { "keep": 10, "keepDays": 30 },
   "command": ["node", "checks/coverage/workflows.mjs"],

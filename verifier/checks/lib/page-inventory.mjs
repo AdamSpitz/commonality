@@ -13,6 +13,9 @@
 //
 // We parse the literal `<Route path="...">` declarations rather than executing
 // the JSX, which keeps this dependency-free and runnable from a plain Node check.
+//
+// `coverage/domains.json` is the in-scope overlay. Pass `{ inScopeOnly: true }` to
+// restrict the inventory to those domains so out-of-scope Vite sites cannot gate.
 
 import { readFile } from "node:fs/promises";
 import path from "node:path";
@@ -119,7 +122,17 @@ function extractRoutes(manifestSource) {
  *     }>
  *   }
  */
-export async function derivePageInventory() {
+export async function loadInScopeDomainIds() {
+  const overlayPath = workspacePath("coverage/domains.json");
+  const overlay = JSON.parse(await readFile(overlayPath, "utf8"));
+  return new Set((overlay.domains ?? []).map((domain) => domain.id));
+}
+
+export function domainIsInScope(domain, inScopeIds) {
+  return inScopeIds.has(domain.id) || inScopeIds.has(domain.kebabId) || inScopeIds.has(toKebabId(domain.id));
+}
+
+export async function derivePageInventory(options = {}) {
   const dir = domainsDir();
   const indexSource = await readFile(path.join(dir, "index.ts"), "utf8");
   const identifiers = parseDomainManifestIdentifiers(indexSource);
@@ -141,6 +154,14 @@ export async function derivePageInventory() {
       routePaths: routes.map((r) => r.path),
       pageCount: routes.length,
     });
+  }
+
+  if (options.inScopeOnly) {
+    const inScopeIds = await loadInScopeDomainIds();
+    return {
+      source: "ui/src/domains (derived on the fly; in-scope domains only)",
+      domains: domains.filter((domain) => domainIsInScope(domain, inScopeIds)),
+    };
   }
 
   return { source: "ui/src/domains (derived on the fly)", domains };

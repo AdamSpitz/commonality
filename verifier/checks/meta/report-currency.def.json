@@ -122,17 +122,12 @@
     },
     {
       "kind": "check",
-      "id": "review.workflow-clarity",
+      "id": "review.workflow-clarity.causestarter",
       "role": "leaf"
     },
     {
       "kind": "check",
-      "id": "review.workflow-clarity.lazy-giving",
-      "role": "leaf"
-    },
-    {
-      "kind": "check",
-      "id": "review.workflow-clarity.content-funding",
+      "id": "review.workflow-clarity.civility",
       "role": "leaf"
     },
     {

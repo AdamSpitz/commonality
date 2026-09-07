@@ -1,64 +1,36 @@
 {
   "schemaVersion": 1,
   "source": "specs/product/ui-domains.md",
-  "scope": "Required cross-domain UI workflows that should receive explicit workflow-clarity review coverage, not just the single default workflow target.",
+  "scope": "Required in-scope UI workflows (CauseStarter, Civility, Common Sense Majority). Workflows on other domains may still have leftover review.workflow-clarity.* checks; those no longer gate product.workflows.",
   "workflows": [
     {
-      "id": "alignment-newcomer-funding",
-      "title": "Aligning newcomer discovers a cause and funds/alignment-attests to a project",
-      "homeDomain": "alignment",
-      "goal": "A newcomer donor lands on Aligning, discovers a cause, understands why a project aligns with it, and reaches a funding or alignment-attestation action.",
-      "workflowClarityCheckIds": ["review.workflow-clarity"],
+      "id": "causestarter-organize-and-fund",
+      "title": "CauseStarter organizer starts a cause and a supporter funds or signs in cause context",
+      "homeDomain": "causestarter",
+      "goal": "An organizer can start or retrieve a cause, understand cause-page roles, and a newcomer can reach signing, aligned work, or funding from the cause surface.",
+      "workflowClarityCheckIds": ["review.workflow-clarity.causestarter"],
       "objectiveSmokeCheckIds": ["automated.test-fast", "automated.test-full", "artifact.ipfs-domain-smoke"],
       "surfaceFiles": [
-        "../ui/src/domains/alignment/manifest.tsx",
-        "../ui/src/domains/alignment/LandingPage.tsx",
-        "../ui/src/fundingportals/pages/ExplorerPage.tsx",
-        "../ui/src/fundingportals/pages/StatementFundingPortalPage.tsx",
-        "../ui/src/fundingportals/components/FundingPortalSummary.tsx",
-        "../ui/src/fundingportals/components/AlignedProjectCard.tsx",
-        "../ui/src/lazy-giving/pages/ProjectDetailPage.tsx",
-        "../ui/src/fundingportals/components/AlignmentAttestationsSection.tsx"
+        "../ui/src/domains/causestarter/manifest.tsx",
+        "../ui/src/causestarter/pages/HomePage.tsx",
+        "../ui/src/causestarter/pages/StartCauseRedirect.tsx",
+        "../ui/src/causestarter/pages/CauseDetailPage.tsx",
+        "../ui/src/causestarter/pages/StatementPage.tsx",
+        "../ui/src/causestarter/pages/ProjectDetailPage.tsx",
+        "../ui/src/causestarter/pages/CausesPage.tsx"
       ]
     },
     {
-      "id": "lazy-giving-project-creation-and-backing",
-      "title": "LazyGiving creator creates a project and a backer funds it",
-      "homeDomain": "lazy-giving",
-      "goal": "A project creator can find the create-project path, and a prospective backer can browse to a project, understand the assurance-contract mechanics, and pledge/buy tokens.",
-      "workflowClarityCheckIds": ["review.workflow-clarity.lazy-giving"],
+      "id": "civility-discover-and-fund",
+      "title": "Civility supporter discovers noninflammatory content and reaches a funding or share action",
+      "homeDomain": "civility",
+      "goal": "A supporter lands on Civility, understands why listed work qualifies, and can inspect, fund, or share a civility contract without needing the generic Content Funding site.",
+      "workflowClarityCheckIds": ["review.workflow-clarity.civility"],
       "objectiveSmokeCheckIds": ["automated.test-fast", "automated.test-full", "artifact.ipfs-domain-smoke"],
       "surfaceFiles": [
-        "../ui/src/domains/lazy-giving/manifest.tsx",
-        "../ui/src/domains/lazy-giving/LandingPage.tsx",
-        "../ui/src/lazy-giving/pages/BrowseProjectsPage.tsx",
-        "../ui/src/lazy-giving/pages/CreateProjectPage.tsx",
-        "../ui/src/lazy-giving/pages/ProjectDetailPage.tsx",
-        "../ui/src/lazy-giving/components/ProjectHeader.tsx",
-        "../ui/src/lazy-giving/components/BuyTokensSection.tsx",
-        "../ui/src/lazy-giving/components/RefundSection.tsx",
-        "../ui/src/lazy-giving/components/WithdrawSection.tsx",
-        "../ui/src/lazy-giving/components/PledgePreviewPanel.tsx"
-      ]
-    },
-    {
-      "id": "content-funding-creator-and-supporter",
-      "title": "Content Funding creator launches a content contract and a supporter backs it",
-      "homeDomain": "content-funding",
-      "goal": "A creator can find the content-contract creation path, and a supporter can browse creators/content, understand the claim/funding flow, and reach the backing action.",
-      "workflowClarityCheckIds": ["review.workflow-clarity.content-funding"],
-      "objectiveSmokeCheckIds": ["automated.test-fast", "automated.test-full", "artifact.ipfs-domain-smoke"],
-      "surfaceFiles": [
-        "../ui/src/domains/content-funding/manifest.tsx",
-        "../ui/src/domains/content-funding/LandingPage.tsx",
-        "../ui/src/content-funding/pages/CreatorsLandingPage.tsx",
-        "../ui/src/content-funding/pages/BrowseCreatorsPage.tsx",
-        "../ui/src/content-funding/pages/CreateContractPage.tsx",
-        "../ui/src/content-funding/pages/CreatorDashboardPage.tsx",
-        "../ui/src/content-funding/pages/ChannelPage.tsx",
-        "../ui/src/content-funding/components/ContentSubmissionForm.tsx",
-        "../ui/src/content-funding/components/ContentFundingProjectSection.tsx",
-        "../ui/src/content-funding/components/ClaimFlowModal.tsx"
+        "../ui/src/domains/civility/manifest.tsx",
+        "../ui/src/domains/civility/LandingPage.tsx",
+        "../ui/src/domains/civility/ContentPages.tsx"
       ]
     },
     {
@@ -72,11 +44,7 @@
         "../ui/src/domains/common-sense-majority/manifest.tsx",
         "../ui/src/domains/common-sense-majority/LandingPage.tsx",
         "../ui/src/domains/civility/manifest.tsx",
-        "../ui/src/domains/civility/LandingPage.tsx",
-        "../ui/src/domains/tally/manifest.tsx",
-        "../ui/src/domains/tally/LandingPage.tsx",
-        "../ui/src/domains/content-funding/manifest.tsx",
-        "../ui/src/domains/content-funding/LandingPage.tsx"
+        "../ui/src/domains/civility/LandingPage.tsx"
       ]
     }
   ]

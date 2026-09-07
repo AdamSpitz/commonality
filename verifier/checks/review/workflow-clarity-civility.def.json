@@ -1,0 +1,39 @@
+{
+  "id": "review.workflow-clarity.civility",
+  "description": "Standing gating LLM-judgment leaf: judges whether Civility exposes a clear path to discover noninflammatory content and fund or share it.",
+  "cost": "llm",
+  "trigger": {
+    "type": "manual"
+  },
+  "retention": {
+    "keep": 3,
+    "keepDays": 90
+  },
+  "command": [
+    "node",
+    "checks/review/workflow-clarity.mjs"
+  ],
+  "inputs": [
+    {
+      "kind": "params",
+      "data": {
+        "commandTimeoutMs": 600000,
+        "maxFileChars": 60000,
+        "taskKind": "big-picture-thinking",
+        "targetWorkflow": {
+          "domain": "civility",
+          "goal": "A supporter lands on Civility, understands why listed work qualifies, and can inspect, fund, or share a civility contract.",
+          "surfaceFiles": [
+            "../ui/src/domains/civility/manifest.tsx",
+            "../ui/src/domains/civility/LandingPage.tsx",
+            "../ui/src/domains/civility/ContentPages.tsx"
+          ]
+        }
+      }
+    }
+  ],
+  "timeoutMs": 630000,
+  "display": {
+    "preferredArtifact": "report.md"
+  }
+}

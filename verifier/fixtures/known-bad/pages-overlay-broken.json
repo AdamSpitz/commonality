@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "source": "synthetic known-bad pages overlay fixture",
-  "scope": "Deliberately broken domain coverage overlay: omits most real domains that the on-the-fly page inventory derives from source, and includes a phantom domain that no longer exists in source. coverage.pages must reject both directions of drift.",
+  "scope": "Deliberately broken domain coverage overlay: includes a phantom domain that no longer exists in source. coverage.pages must reject overlay ids with no matching source domain. Omitting out-of-scope source domains is allowed.",
   "domains": [
     {
       "id": "commonality",

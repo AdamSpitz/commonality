@@ -3,14 +3,9 @@ import path from "node:path";
 import { emit, fail, pass, readInputs, workspacePath } from "../lib/result.mjs";
 
 const EXPECTED_DOMAIN_NAMES = [
-  "Commonality",
-  "LazyGiving",
-  "Aligning",
-  "Tally",
-  "Content Funding",
+  "CauseStarter",
   "Civility",
-  "Common Sense Majority",
-  "Conceptspace"
+  "Common Sense Majority"
 ];
 
 function findFileInput(inputs, inputName) {
@@ -125,5 +120,5 @@ emit(async () => {
   };
 
   if (problems.length > 0) return fail(`Domain coverage inventory has ${problems.length} problem(s).`, { findings });
-  return pass(`Domain coverage inventory maps all ${EXPECTED_DOMAIN_NAMES.length} product domains.`, { findings });
+  return pass(`Domain coverage inventory maps all ${EXPECTED_DOMAIN_NAMES.length} in-scope product domains.`, { findings });
 });

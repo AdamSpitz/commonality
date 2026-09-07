@@ -1,0 +1,43 @@
+{
+  "id": "review.workflow-clarity.causestarter",
+  "description": "Standing gating LLM-judgment leaf: judges whether CauseStarter exposes a clear path to start or retrieve a cause and then sign, fund, or inspect work in cause context.",
+  "cost": "llm",
+  "trigger": {
+    "type": "manual"
+  },
+  "retention": {
+    "keep": 3,
+    "keepDays": 90
+  },
+  "command": [
+    "node",
+    "checks/review/workflow-clarity.mjs"
+  ],
+  "inputs": [
+    {
+      "kind": "params",
+      "data": {
+        "commandTimeoutMs": 600000,
+        "maxFileChars": 60000,
+        "taskKind": "big-picture-thinking",
+        "targetWorkflow": {
+          "domain": "causestarter",
+          "goal": "An organizer can start or retrieve a cause, understand cause-page roles, and a newcomer can reach signing, aligned work, or funding from the cause surface.",
+          "surfaceFiles": [
+            "../ui/src/domains/causestarter/manifest.tsx",
+            "../ui/src/causestarter/pages/HomePage.tsx",
+            "../ui/src/causestarter/pages/StartCauseRedirect.tsx",
+            "../ui/src/causestarter/pages/CauseDetailPage.tsx",
+            "../ui/src/causestarter/pages/StatementPage.tsx",
+            "../ui/src/causestarter/pages/ProjectDetailPage.tsx",
+            "../ui/src/causestarter/pages/CausesPage.tsx"
+          ]
+        }
+      }
+    }
+  ],
+  "timeoutMs": 630000,
+  "display": {
+    "preferredArtifact": "report.md"
+  }
+}

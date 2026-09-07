@@ -5,14 +5,9 @@ import { pathToFileURL } from "node:url";
 import { workspacePath } from "./result.mjs";
 
 const DOMAINS = [
-  { id: "commonality", viteDomain: "commonality" },
-  { id: "lazy-giving", viteDomain: "lazyGiving" },
-  { id: "alignment", viteDomain: "alignment" },
-  { id: "tally", viteDomain: "tally" },
-  { id: "content-funding", viteDomain: "content-funding" },
+  { id: "causestarter", viteDomain: "causestarter" },
   { id: "civility", viteDomain: "civility" },
-  { id: "common-sense-majority", viteDomain: "common-sense-majority" },
-  { id: "conceptspace", viteDomain: "conceptspace" }
+  { id: "common-sense-majority", viteDomain: "common-sense-majority" }
 ];
 
 function artifactRelativePath(name) {

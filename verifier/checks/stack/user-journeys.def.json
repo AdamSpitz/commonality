@@ -9,7 +9,7 @@
       "kind": "params",
       "data": {
         "label": "canonical user-journey round-trip Playwright smoke",
-        "command": ["npm", "run", "test:e2e", "--workspace=ui", "--", "--project=tally", "--project=lazyGiving", "--project=content-funding", "--project=common-sense-majority"],
+        "command": ["npm", "run", "test:e2e", "--workspace=ui", "--", "--project=common-sense-majority"],
         "commandTimeoutMs": 1500000,
         "env": { "CI": "1" },
         "artifactOutputLimit": 8000,

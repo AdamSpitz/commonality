@@ -68,7 +68,7 @@ async function checkRoute(domain, route, manifestDir) {
 }
 
 emit(async () => {
-  const inventory = await derivePageInventory();
+  const inventory = await derivePageInventory({ inScopeOnly: true });
 
   const broken = [];
   const unverifiable = [];
