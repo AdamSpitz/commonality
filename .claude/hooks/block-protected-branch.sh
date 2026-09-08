@@ -25,9 +25,9 @@ fi
 branch=$(git -C "${CLAUDE_PROJECT_DIR:-.}" symbolic-ref --short HEAD 2>/dev/null || true)
 case "$branch" in
   master|dev)
-    echo "Blocked: '$branch' is a protected branch. Do not commit/push/merge directly onto it." >&2
-    echo "Start a feature branch first (git switch -c feature/...), move the work there, and open a PR." >&2
-    echo "master and dev only advance via a reviewed GitHub PR." >&2
+    echo "Blocked: '$branch' is a protected branch. Do not commit/merge directly onto it." >&2
+    echo "Start a feature branch first (git switch -c feature/...), move the work there, and open a PR into dev." >&2
+    echo "Release is a fast-forward: scripts/promote-dev-to-master.sh" >&2
     exit 2
     ;;
 esac

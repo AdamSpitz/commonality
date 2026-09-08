@@ -24,8 +24,8 @@ git add && git commit && git push              # Push to trigger Render
 
 ### After (Automated)
 ```bash
-# Merge the reviewed dev -> master release PR.
-gh pr create --base master --head dev --title "Promote dev to master"
+# Fast-forward master to current reviewed dev.
+scripts/promote-dev-to-master.sh
 
 # Everything else happens automatically:
 # ✅ Contracts deployed to Base Sepolia
@@ -113,8 +113,8 @@ If you don't have these yet, see `workflow/github-secrets-guide.md`.
 After running the setup script:
 
 ```bash
-# Release an actual reviewed change through the protected branch workflow.
-gh pr create --base master --head dev --title "Promote dev to master"
+# Release reviewed dev by fast-forwarding master.
+scripts/promote-dev-to-master.sh
 ```
 
 Then watch:

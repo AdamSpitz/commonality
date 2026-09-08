@@ -25,7 +25,7 @@ The project has a verifier workspace in [`/verifier`](/verifier/README.md). If a
 
 The project `.envrc` sets `VERIFIER_WORKSPACE=verifier` so `--workspace` is automatic from the repo root.
 
-**Branch structure:** See [workflow/branching.md](/workflow/branching.md). Briefly: work on feature branches; commits directly on `dev` or `master` are blocked by hooks. Feature-branch commits run the quick suite, and merges into `master` are gated by the full suite.
+**Branch structure:** See [workflow/branching.md](/workflow/branching.md). Briefly: work on feature branches; commits directly on `dev` or `master` are blocked by hooks. Feature-branch commits run the quick suite. Release is a fast-forward of `master` to `dev` (`scripts/promote-dev-to-master.sh`).
 
 ## LSP (Language Server Protocol)
 

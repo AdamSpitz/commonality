@@ -22,4 +22,4 @@ Avoid `lens_diagnostics mode=full` unless you specifically need a project-wide s
 
 Read `workflow/branching.md` before working with branches or creating PRs. Key points:
 - Always compare to `dev`, not `master`
-- Feature PRs target `dev`; `dev → master` is a separate release step
+- Feature PRs target `dev`; release is `scripts/promote-dev-to-master.sh` (fast-forward `master` to `dev`), not a GitHub PR

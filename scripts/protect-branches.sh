@@ -2,7 +2,7 @@
 set -euo pipefail
 REPO="AdamSpitz/commonality"
 
-# Force the PR flow: no direct pushes to master/dev, no force-pushes/deletes,
+# Force the PR flow on `dev`: no direct pushes, no force-pushes/deletes,
 # require the PR to be up to date, and require conversations resolved.
 # required_approving_review_count is 0 because this is a solo account (you
 # can't approve your own PR); the review discipline is ENFORCED by the
@@ -10,35 +10,23 @@ REPO="AdamSpitz/commonality"
 # workflow/review-gate.md), plus required_conversation_resolution which blocks
 # merge until every posted finding is resolved.
 #
-# Review receipts are required on BOTH `dev` and `master`: a PR must carry a
-# receipt for its head commit. The one exemption is a dev -> master release,
-# which is a rubber-stamp of content already reviewed on the way into dev.
-# Hotfix branches may still go straight into master — they just need a receipt,
-# so nothing reaches the release branch unreviewed.
+# `master` is the release pointer. It does NOT require a pull request: release
+# is a fast-forward push of current `origin/dev` onto `master` (see
+# scripts/promote-dev-to-master.sh). Force-push and delete stay off, so GitHub
+# will reject anything that is not a fast-forward. There is no review-received
+# check on `master`; content was already reviewed on the way into `dev`.
 #
-# `strict` (require the PR branch to be up to date with the base) is on for dev
-# and OFF for master. Promoting dev -> master leaves a merge commit on master
-# that dev lacks, so a strict master would demand a back-merge into dev before
-# every single release.
-for BRANCH in master dev; do
-  echo "=== Protecting $BRANCH ==="
+# Hotfix branches should still land on `dev` (review gate) and then be
+# promoted. A leftover PR into `master` is optional paper trail, not required.
 
-  if [ "$BRANCH" = "dev" ]; then
-    REQUIRED_STATUS_CHECKS='{
+echo "=== Protecting dev ==="
+gh api -X PUT "repos/$REPO/branches/dev/protection" \
+  --input - <<'JSON'
+{
+  "required_status_checks": {
     "strict": true,
     "contexts": ["review-received"]
-  }'
-  else
-    REQUIRED_STATUS_CHECKS='{
-    "strict": false,
-    "contexts": ["review-received"]
-  }'
-  fi
-
-  gh api -X PUT "repos/$REPO/branches/$BRANCH/protection" \
-    --input - <<JSON
-{
-  "required_status_checks": $REQUIRED_STATUS_CHECKS,
+  },
   "enforce_admins": true,
   "required_pull_request_reviews": {
     "required_approving_review_count": 0,
@@ -52,5 +40,20 @@ for BRANCH in master dev; do
   "required_linear_history": false
 }
 JSON
-  echo "  ok"
-done
+echo "  ok"
+
+echo "=== Protecting master (FF push allowed; no PR required) ==="
+gh api -X PUT "repos/$REPO/branches/master/protection" \
+  --input - <<'JSON'
+{
+  "required_status_checks": null,
+  "enforce_admins": true,
+  "required_pull_request_reviews": null,
+  "restrictions": null,
+  "required_conversation_resolution": false,
+  "allow_force_pushes": false,
+  "allow_deletions": false,
+  "required_linear_history": false
+}
+JSON
+echo "  ok"
