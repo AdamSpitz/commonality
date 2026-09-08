@@ -1,6 +1,6 @@
 // coverage.pages — assert the (transiently derived) UI page inventory is sound
-// and that every domain that exists in the app source also has a coverage story
-// in the curated overlay (coverage/domains.json).
+// for in-scope overlay domains. Source-only domains may exist without an overlay
+// entry; overlay ids must still exist in source.
 //
 // The page list itself is NOT a committed artifact: it is derived on the fly from
 // ui/src/domains via derivePageInventory(). This check both validates the

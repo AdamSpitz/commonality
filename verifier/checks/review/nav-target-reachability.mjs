@@ -113,7 +113,8 @@ async function main() {
   let targetsChecked = 0;
 
   for (const file of files) {
-    if (!inScopePathRe.test(file.replaceAll("\\", "/"))) continue;
+    // Shared modules (fundingportals, components, …) are imported by out-of-scope
+    // domains too; scanning them would fail on dead targets those domains still use.
     const source = await readFile(file, "utf8");
     for (const re of TARGET_RES) {
       re.lastIndex = 0;
