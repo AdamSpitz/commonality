@@ -167,6 +167,15 @@ export function HomePage() {
           />
         </Box>
       </Box>
+
+      <Button
+        component={RouterLink}
+        to="/profile"
+        data-testid="home-profile-link"
+        sx={{ alignSelf: 'flex-start', px: 0, textTransform: 'none', fontWeight: 700 }}
+      >
+        See what you’ve done
+      </Button>
     </Stack>
   )
 }

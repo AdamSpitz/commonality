@@ -9,6 +9,7 @@ const routes: ReactNode = (
   <>
     <Route path="/" element={lazyRoute(() => import('../../causestarter/pages/HomePage'), 'HomePage')} />
     <Route path="/dashboard" element={lazyRoute(() => import('../../causestarter/pages/PersonalDashboardPage'), 'PersonalDashboardPage')} />
+    <Route path="/profile" element={lazyRoute(() => import('../../causestarter/pages/ProfilePage'), 'ProfilePage')} />
     <Route path="/donate" element={lazyRoute(() => import('../../delegation/pages/MyNotesPage'), 'DonatePage')} />
     <Route path="/welcome" element={<Navigate to="/" replace />} />
     <Route path="/start" element={lazyRoute(() => import('../../causestarter/pages/StartCauseRedirect'), 'StartCauseRedirect')} />
@@ -77,6 +78,7 @@ export const causestarterManifest: DomainManifest = {
       { label: 'Docs', path: '/docs' },
     ],
     secondaryNavigation: [
+      { label: 'Profile', path: '/profile' },
       { label: 'Settings', path: '/settings' },
     ],
     footerText: 'CauseStarter is a lens: it renders a cause you already have a link to. It does not rank or directory causes.',

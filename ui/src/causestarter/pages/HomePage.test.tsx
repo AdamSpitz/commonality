@@ -42,6 +42,7 @@ describe('HomePage landing', () => {
     expect(screen.getByTestId('home-role-fund')).toHaveAttribute('href', '/dashboard')
     expect(screen.getByTestId('home-role-work')).toHaveAttribute('href', '/work')
     expect(screen.getByTestId('home-role-organize')).toHaveAttribute('href', '/causes')
+    expect(screen.getByTestId('home-profile-link')).toHaveAttribute('href', '/profile')
     expect(screen.getByText('Signing does not commit money.', { exact: false })).toBeInTheDocument()
   })
 
