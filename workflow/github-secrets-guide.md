@@ -132,7 +132,7 @@ After setting secrets, verify they're correct:
 # List all secrets (doesn't show values)
 gh secret list
 
-# Test with the next reviewed dev -> master release PR.
+# Test with the next reviewed promote: scripts/promote-dev-to-master.sh
 ```
 
 Watch the Actions tab: https://github.com/AdamSpitz/commonality/actions

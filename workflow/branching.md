@@ -19,7 +19,8 @@ gh pr merge --auto --merge            # 6. queue merge; do NOT wait for GitHub A
   refuses and tells you to branch — that's the safety net, not an error to fight.
 - **Feature PRs target `dev`.** GitHub's default branch is `dev`, so a plain
   `gh pr create` (or telling an LLM "make a PR") bases onto `dev` automatically.
-  You only ever target `master` for a deliberate `dev → master` release.
+  Do not open a PR into `master` to release — fast-forward `master` to `dev`
+  (see below).
 - **The review is a manual step** you trigger before merging — decide when the
   branch is ready, run `/code-review`, address findings, then queue auto-merge.
 - **Do not sit on GitHub Actions.** Lint / build / UI / contract jobs on the PR
@@ -29,22 +30,26 @@ gh pr merge --auto --merge            # 6. queue merge; do NOT wait for GitHub A
 
 ## Overview
 
-All work happens on **feature branches**. The two long-lived branches are never
-committed to directly — they only advance by merging a **reviewed GitHub PR**.
+All work happens on **feature branches**. You never commit on `dev` or `master`.
 
 - **`feature/*`** (also `fix/*`, `chore/*`) — where you actually work
-- **`dev`** — integration branch; the review gate lives here
-- **`master`** — release branch, auto-deploys to Render. End-user documentation
+- **`dev`** — integration branch; the review gate lives here; advances only by
+  merging a **reviewed GitHub PR**
+- **`master`** — release pointer, auto-deploys to Render. End-user documentation
   links source files at `master` on purpose: it is the code the deployed sites
-  are running, even though `dev` is GitHub's default branch.
+  are running, even though `dev` is GitHub's default branch. `master` advances
+  only by **fast-forwarding to the current `dev` tip** — same commit SHA, no
+  extra merge commit.
 
 ```
-feature/x ──▶ PR ──▶ /code-review ──▶ merge to dev ──▶ PR ──▶ merge to master ──▶ Render deploys
-              (the mandatory review gate)                (rubber-stamp: dev is already reviewed)
+feature/x ──▶ PR ──▶ /code-review ──▶ merge to dev ──▶ fast-forward master to dev ──▶ Render deploys
+              (the mandatory review gate)
 ```
 
 Because `dev` is gated, promoting `dev → master` is a formality — everything in
-`dev` was already reviewed on the way in.
+`dev` was already reviewed on the way in. GitHub's "Create a merge commit" is
+`--no-ff` and would leave a commit only on `master`; we do not use a PR for
+this step.
 
 ## The flow
 
@@ -76,8 +81,11 @@ Because `dev` is gated, promoting `dev → master` is a formality — everything
    Auto-merge lands the PR as soon as `review-received` is green, threads are
    resolved, and the branch is up to date with `dev` (`strict` is on). Then
    delete the branch when GitHub does (or after it lands).
-6. **Release:** open a PR `dev → master` and merge it. The `pre-merge-commit`
-   hook still runs the full test suite as the safety net. Render deploys `master`.
+6. **Release:** fast-forward `master` to `dev`:
+   ```bash
+   scripts/promote-dev-to-master.sh
+   ```
+   Render deploys `master`. No GitHub PR, no back-merge.
 
 ### Don't wait on CI
 
@@ -105,46 +113,36 @@ review + `post-review.sh` again before auto-merge can fire.
 
 ### Releasing `dev` to `master`
 
-The release path is a GitHub PR from `dev` into `master`:
+`master` is a pointer. Release means move it to the same commit as `dev`:
+
+```bash
+scripts/promote-dev-to-master.sh
+```
+
+That is `git push origin origin/dev:refs/heads/master` after a fetch. GitHub
+branch protection on `master` does **not** require a PR. Force-push is off, so
+the push succeeds only when it is a fast-forward (`origin/master` is already an
+ancestor of `origin/dev`). After a successful promote, the SHAs match:
 
 ```bash
 git fetch origin
-gh pr create --base master --head dev --title "Promote dev to master"
+test "$(git rev-parse origin/dev)" = "$(git rev-parse origin/master)"
 ```
 
-GitHub's "Create a merge commit" always adds a merge commit **only on
-`master`**. That is normal. It does **not** mean the file trees diverged.
+If `origin/master` has unique *file* changes (a hotfix that never went through
+`dev`), land those on `dev` with the usual feature PR + review gate first. Then
+promote. Do not open a `dev → master` GitHub PR — that creates a merge commit
+only on `master` and breaks the next fast-forward.
 
-Do **not** treat `git merge-base --is-ancestor origin/master origin/dev` as the
-release health check. It fails after every GitHub merge-commit promotion even
-when `dev` and `master` have the same tree. Agents that "fixed" that by copying
-the `dev` tree onto a `master`-based snapshot commit made the graphs worse
-without changing the product.
-
-The invariant that matters is **trees**, not ancestry:
-
-```bash
-git fetch origin
-# After a successful release, these should match:
-git diff --quiet origin/dev origin/master
-
-# Before a release, inspect unique *content* on master, not merge commits:
-git log --oneline origin/dev..origin/master
-git diff origin/dev origin/master
-```
-
-If `git diff origin/dev origin/master` is empty, a normal `dev → master` merge
-PR is the right promotion. If master has real file changes that are not on
-`dev` (a hotfix that was never back-merged), merge `master` into `dev` first
-and land that through the usual feature PR + review gate. Then promote.
-
-After every `dev → master` merge, **back-merge `master` into `dev`** with a
-feature PR so `master`'s merge commit is in `dev`'s history. That keeps the
-next promote a boring merge instead of a fake snapshot. Do not rewrite
-`master` to sit on a `dev` SHA.
+**Catch-up from the old merge-commit workflow:** if the trees already match
+(`git diff --quiet origin/dev origin/master`) but `master` is not an ancestor
+of `dev`, that leftover merge commit has to be dropped once. Temporarily allow
+force-push on `master`, run
+`scripts/promote-dev-to-master.sh --reset-master-to-dev`, then re-run
+`scripts/protect-branches.sh` so force-push is off again.
 
 If your local `master` got messy while experimenting, reset it to the
-protected remote branch instead of pushing it:
+remote instead of pushing it:
 
 ```bash
 git switch master
@@ -158,9 +156,10 @@ is driving:
 
 | Layer | What it does | Bypassable? |
 |-------|--------------|-------------|
-| GitHub branch protection on `master` & `dev` | No direct pushes, no force-push/delete, PR required, conversations must resolve. `enforce_admins` is on, so it applies to you too. | No — server-side |
+| GitHub branch protection on `dev` | No direct pushes, no force-push/delete, PR required, `review-received`, conversations must resolve. `enforce_admins` is on. | No — server-side |
+| GitHub branch protection on `master` | No force-push/delete. PR **not** required. Direct fast-forward to `dev` is how release works. | No — server-side |
 | `.husky/pre-commit` guard | Refuses commits while `HEAD` is `master`/`dev` | `--no-verify` / escape hatch |
-| `.husky/pre-push` guard | Refuses pushing local `master`/`dev` | `--no-verify` / escape hatch |
+| `.husky/pre-push` guard | Refuses pushing `origin/dev`. `origin/master` only if the new SHA is current `origin/dev` and the update is a fast-forward. | `--no-verify` / escape hatch |
 | `.claude/hooks/block-protected-branch.sh` | Makes Claude Code / Grok self-correct onto a feature branch instead of erroring. Matches `git commit` / `git push` / `git merge` as subcommands only (not `merge-base`, not the word "merge" in a description). | Agent sugar; husky still enforces |
 
 Escape hatch for a genuine hotfix commit (still can't push to protected branch
@@ -189,20 +188,22 @@ its own PR — the `review-received` check is what does the enforcing. The full
 protocol (so other agents can post receipts) is in
 [`review-gate.md`](review-gate.md).
 
-`master` is **not** gated by the `review-received` check: a `dev → master`
-release is a rubber-stamp of content already reviewed on the way into `dev`. The
-full test suite still runs — the `pre-merge-commit` hook executes
-`automated.test-full` on every merge into `master` and aborts on failure.
+`master` is **not** gated by `review-received` and does not require a PR: a
+`dev → master` promote is a fast-forward of content already reviewed on the way
+into `dev`. The `pre-merge-commit` hook still runs `automated.test-full` if
+someone merges into a local `master` checkout; the normal promote path does not
+create a merge commit, so that hook does not run.
 
 ## Hook reference
 
 - **pre-commit** (every commit, any branch): branch guard, then lint + build +
   `verifier-run automated.test-fast`. Skipped if only `.txt/.md/.gitignore`
   changed.
-- **pre-push** (every push): branch guard against pushing local `master`/`dev`.
-- **pre-merge-commit** (merging into `master`): clean-tree check +
-  `verifier-run automated.test-full` (Docker/Playwright E2E, ~3 min). Aborts the
-  merge on failure.
+- **pre-push** (every push): refuse `origin/dev`; allow `origin/master` only as
+  a fast-forward to current `origin/dev`.
+- **pre-merge-commit** (merging into a local `master` checkout): clean-tree
+  check + `verifier-run automated.test-full` (Docker/Playwright E2E, ~3 min).
+  Aborts that merge on failure. Not used by `scripts/promote-dev-to-master.sh`.
 
 ## Notes
 

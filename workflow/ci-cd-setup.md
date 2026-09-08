@@ -60,10 +60,10 @@ Log into Render dashboard and verify:
 
 ### 3. Test the Setup
 
-Use the next reviewed `dev` → `master` release PR to trigger the deployment workflow:
+Use the next reviewed `dev` → `master` fast-forward to trigger the deployment workflow:
 
 ```bash
-gh pr create --base master --head dev --title "Promote dev to master"
+scripts/promote-dev-to-master.sh
 ```
 
 Watch the Actions tab: https://github.com/AdamSpitz/commonality/actions

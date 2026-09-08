@@ -2,7 +2,7 @@
 
 ## Coding
 
-**Branch structure:** See [workflow/branching.md](/workflow/branching.md). Briefly: work on feature branches; commits directly on `dev` or `master` are blocked by hooks. Feature-branch commits run the quick suite, and merges into `master` are gated by the full suite.
+**Branch structure:** See [workflow/branching.md](/workflow/branching.md). Briefly: work on feature branches; commits directly on `dev` or `master` are blocked by hooks. Feature-branch commits run the quick suite. Release is `scripts/promote-dev-to-master.sh`.
 
 ## Building
 

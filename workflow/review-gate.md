@@ -12,25 +12,17 @@ another agent, or a human — whatever you like — without touching CI.
 | A review actually ran on **this commit** | `review-received` status check (`scripts/review-gate.mjs`) | posting a **receipt** (below) |
 | Every **finding** is dealt with | GitHub `required_conversation_resolution` | posting findings as review threads and resolving them |
 
-## Why `master` is gated too
+## Why this is a `dev` gate, not a `master` gate
 
-`review-received` is required on `master` as well as `dev`, with **one
-exemption**: a `dev -> master` release carries no fresh receipt, because its
-content already passed the gate on the way into `dev`. Re-reviewing it would be
-pure ceremony. (The lookup couldn't recognise those earlier reviews anyway — it
-is per-PR and keyed to the head sha, and merging into `dev` mints a new merge
-commit whose sha never carried a receipt.)
+`review-received` is required to merge into **`dev`**. `master` is a release
+pointer: it fast-forwards to the current `dev` tip with no PR
+(`scripts/promote-dev-to-master.sh`). Re-reviewing that would be ceremony.
 
-Every other PR into `master` — **a hotfix branch, say** — is treated exactly like
-a PR into `dev`: it needs a receipt for its head commit. Without this, a feature
-branch could merge straight into the release branch having been reviewed nowhere
-at all, which is what happened with #86 and #87.
-
-Note what this deliberately does **not** do: it doesn't force hotfixes to travel
-through `dev`. Requiring that would mean a one-line production fix could only
-ship by promoting all of `dev`, unreleased work included. Branch off `master`,
-fix, review, merge — the fast path stays open. Just remember to back-merge into
-`dev` afterwards, or the two will drift.
+If someone still opens a PR into `master`, the referee treats a `dev -> master`
+head as already reviewed and any other head (a leftover hotfix PR) like a `dev`
+PR: it needs a receipt. That does **not** replace landing the fix on `dev` and
+promoting; GitHub no longer requires a PR to update `master`. Local pre-push
+will reject a `master` push whose SHA is not current `origin/dev`.
 
 Neither half runs an LLM in CI. The referee is a ~100-line script with no API
 key; it only inspects the PR's existing reviews.
