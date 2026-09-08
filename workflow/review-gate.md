@@ -85,9 +85,10 @@ they exist, are hard-blocked by conversation resolution.
 - Reviewer receipts / findings: `scripts/post-review.sh`, `/code-review`.
 - The referee logic: `scripts/review-gate.mjs`.
 - The CI trigger: `.github/workflows/review-gate.yml`.
-- Branch protection (marks `review-received` **required** on both `dev` and
-  `master`): `scripts/protect-branches.sh` — re-run after changing it.
+- Branch protection (`review-received` **required** on `dev` only; `master` is
+  a fast-forward of `dev`): `scripts/protect-branches.sh` — re-run after
+  changing it.
 
 Note that `.github/workflows/review-gate.yml` checks the referee out from the
-**default branch**, not the PR head, so a change to `scripts/review-gate.mjs`
-only takes effect once it reaches `master`.
+**default branch** (`dev`), not the PR head, so a change to
+`scripts/review-gate.mjs` only takes effect once it reaches `dev`.

@@ -13,10 +13,11 @@
 
 ## Checklist
 
-- [ ] Tests pass (`pre-commit` fast tests green; full suite runs on `dev → master`)
-- [ ] Targeting the right base branch (`dev` for features; `master` only for releases)
+- [ ] Tests pass (`pre-commit` fast tests green)
+- [ ] Targeting `dev` (feature PRs never target `master`)
 
 <!--
-Workflow: feature branch → PR into dev → review + receipt → merge → (later) dev → master.
+Workflow: feature branch → PR into dev → review + receipt → merge.
+Release (later): scripts/promote-dev-to-master.sh (fast-forward master to dev).
 See workflow/branching.md and workflow/review-gate.md.
 -->
