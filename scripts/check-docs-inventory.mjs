@@ -123,6 +123,7 @@ function assertDocumentedPackagePathsExist() {
     'ui/README.md',
     'indexer/README.md',
     'integration-tests/README.md',
+    'mcp/README.md',
   ]
 
   for (const file of durablePackageDocs) {

@@ -52,6 +52,10 @@ Most products with that pitch ask you to join something, trust a black box, or b
 
 You do not need the longer [vision and strategy](../commonality/vision-and-strategy/README.md) notes to use a cause board. They are there if you want the civilizational argument.
 
+## For assistants and developers
+
+The UI is a lens, not the protocol. **[CauseStarter API map (for LLMs)](./for-llms.md)** maps jobs (sign, publish, pledge, vouch, IPFS, attesters) onto SDK imports and helper HTTP services. Generated **[SDK API docs](/api-docs/sdk/)** and **[contract docs](/api-docs/contracts/index.md)** are the signature reference (`npm run build:docs`). A stdio MCP server lives in the `mcp/` package.
+
 ## See it as a story
 
 - [A neighborhood throws a block party](../shared/use-case-walkthroughs/block-party.md)

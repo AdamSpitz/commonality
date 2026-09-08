@@ -1,4 +1,5 @@
-import { mkdirSync, writeFileSync } from 'node:fs'
+import { cpSync, createReadStream, existsSync, mkdirSync, statSync, writeFileSync } from 'node:fs'
+import type { IncomingMessage, ServerResponse } from 'node:http'
 import path from 'node:path'
 import { defineConfig, loadEnv, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
@@ -18,7 +19,7 @@ export default defineConfig(({ mode }) => {
   build: {
     outDir: `dist/${domain}`,
   },
-  plugins: [react(), htmlTitlePlugin(domain), runtimeConfigPlugin(domain, env), endUserDocsPlugin({ domain })],
+  plugins: [react(), htmlTitlePlugin(domain), runtimeConfigPlugin(domain, env), endUserDocsPlugin({ domain }), apiDocsStaticPlugin(domain)],
   worker: {
     format: 'es',
   },
@@ -113,6 +114,64 @@ const DOMAIN_TITLES: Record<string, string> = {
   'common-sense-majority': 'Common Sense Majority',
   conceptspace: 'Conceptspace',
   causestarter: 'CauseStarter',
+}
+
+function sendStaticFile(root: string, urlPath: string, res: ServerResponse, next: () => void) {
+  const rel = decodeURIComponent((urlPath.split('?')[0] ?? '/')).replace(/\\/g, '/')
+  const candidate = path.resolve(root, rel === '/' ? 'index.html' : rel.replace(/^\//, ''))
+  const relative = path.relative(root, candidate)
+  if (relative.startsWith('..') || path.isAbsolute(relative)) {
+    next()
+    return
+  }
+  let file = candidate
+  if (existsSync(file) && statSync(file).isDirectory()) {
+    file = path.join(file, 'index.html')
+  }
+  if (!existsSync(file) || !statSync(file).isFile()) {
+    next()
+    return
+  }
+  const ext = path.extname(file)
+  const types: Record<string, string> = {
+    '.html': 'text/html; charset=utf-8',
+    '.css': 'text/css; charset=utf-8',
+    '.js': 'text/javascript; charset=utf-8',
+    '.json': 'application/json; charset=utf-8',
+    '.md': 'text/markdown; charset=utf-8',
+    '.svg': 'image/svg+xml',
+  }
+  res.setHeader('Content-Type', types[ext] ?? 'application/octet-stream')
+  createReadStream(file).pipe(res)
+}
+
+function apiDocsStaticPlugin(buildDomain: string): Plugin {
+  const sdkDocs = path.resolve(process.cwd(), '../sdk/docs/api')
+  const hardhatDocs = path.resolve(process.cwd(), '../hardhat/docs')
+  const mount = (root: string) =>
+    (req: IncomingMessage, res: ServerResponse, next: () => void) => {
+      if (!existsSync(root)) {
+        next()
+        return
+      }
+      sendStaticFile(root, req.url ?? '/', res, next)
+    }
+  return {
+    name: 'commonality-api-docs-static',
+    configureServer(server) {
+      server.middlewares.use('/api-docs/sdk', mount(sdkDocs))
+      server.middlewares.use('/api-docs/contracts', mount(hardhatDocs))
+    },
+    closeBundle() {
+      const outDir = path.resolve(process.cwd(), 'dist', buildDomain, 'api-docs')
+      if (existsSync(sdkDocs)) {
+        cpSync(sdkDocs, path.join(outDir, 'sdk'), { recursive: true })
+      }
+      if (existsSync(hardhatDocs)) {
+        cpSync(hardhatDocs, path.join(outDir, 'contracts'), { recursive: true })
+      }
+    },
+  }
 }
 
 function htmlTitlePlugin(buildDomain: string): Plugin {

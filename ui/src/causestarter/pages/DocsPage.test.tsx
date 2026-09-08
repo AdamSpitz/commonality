@@ -32,6 +32,17 @@ describe('DocsPage', () => {
       'href',
       '/docs/faq',
     )
+    expect(screen.getByRole('link', { name: /CauseStarter API map \(for LLMs\)/i })).toHaveAttribute(
+      'href',
+      '/docs/for-llms',
+    )
+    expect(screen.getByRole('link', { name: /SDK API docs/i })).toHaveAttribute('href', '/api-docs/sdk/')
+  })
+
+  it('renders the LLM API map', () => {
+    renderDocs('/docs/for-llms')
+    expect(screen.getByRole('heading', { name: /CauseStarter API map/i })).toBeInTheDocument()
+    expect(screen.getByText(/fetchFromIPFS/i)).toBeInTheDocument()
   })
 
   it('renders the FAQ', () => {

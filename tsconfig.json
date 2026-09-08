@@ -27,7 +27,8 @@
     "integration-tests/src/**/*.ts",
     "ui/src/**/*.ts",
     "ui/src/**/*.tsx",
-    "cause-assist/src/**/*.ts"
+    "cause-assist/src/**/*.ts",
+    "mcp/src/**/*.ts"
   ],
   "exclude": ["node_modules", "dist", ".turbo"]
 }

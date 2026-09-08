@@ -1,0 +1,35 @@
+{
+  "name": "@commonality/mcp",
+  "version": "0.1.0",
+  "description": "Stdio MCP server for Commonality SDK reads, IPFS, and helper HTTP services",
+  "type": "module",
+  "bin": {
+    "commonality-mcp": "./dist/index.js"
+  },
+  "scripts": {
+    "prebuild": "npm run build --workspace=@commonality/sdk",
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "pretypecheck": "npm run build --workspace=@commonality/sdk",
+    "typecheck": "tsc --noEmit",
+    "mcp": "tsx src/index.ts",
+    "start": "node dist/index.js",
+    "test": "npm run build && mocha \"dist/**/*.test.js\"",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@commonality/sdk": "1.0.0",
+    "@modelcontextprotocol/sdk": "^1.25.1",
+    "viem": "2.54.3",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^20.10.0",
+    "eslint": "^9.39.1",
+    "mocha": "^10.8.2",
+    "tsx": "^4.21.0",
+    "typescript": "^5.3.2",
+    "typescript-eslint": "^8.46.4"
+  }
+}

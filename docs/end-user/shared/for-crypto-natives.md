@@ -39,8 +39,9 @@ The SDK also fetches IPFS content directly from a gateway, so statement content 
 
 The SDK and smart contract documentation is auto-generated:
 
-- **SDK API docs** ([sdk/docs/api/](https://github.com/AdamSpitz/commonality/tree/master/sdk/docs/api)) — TypeScript SDK reference, auto-generated via typedoc from the SDK source.
-- **Contract docs** ([hardhat/docs/](https://github.com/AdamSpitz/commonality/tree/master/hardhat/docs)) — Solidity contract reference, auto-generated via solc doc.
+- **SDK API docs** ([sdk/docs/api/](https://github.com/AdamSpitz/commonality/tree/master/sdk/docs/api) or [/api-docs/sdk/](/api-docs/sdk/) on a deployed UI) — TypeScript SDK reference, auto-generated via typedoc from the SDK source. IPFS fetch/upload is in `@commonality/sdk/utils` (`fetchFromIPFS`, `uploadToIPFS`).
+- **Contract docs** ([hardhat/docs/](https://github.com/AdamSpitz/commonality/tree/master/hardhat/docs) or [/api-docs/contracts/index.md](/api-docs/contracts/index.md)) — Solidity contract reference, auto-generated via solc doc.
+- **CauseStarter job map for agents** ([causestarter/for-llms.md](../causestarter/for-llms.md)) — which SDK subpath or HTTP service (attesters, cause-assist, nudgers) to use; not a second TypeDoc.
 
 Run `npm run build:docs` to regenerate these.
 
