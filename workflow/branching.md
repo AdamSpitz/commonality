@@ -134,13 +134,6 @@ If `origin/master` has unique *file* changes (a hotfix that never went through
 promote. Do not open a `dev → master` GitHub PR — that creates a merge commit
 only on `master` and breaks the next fast-forward.
 
-**Catch-up from the old merge-commit workflow:** if the trees already match
-(`git diff --quiet origin/dev origin/master`) but `master` is not an ancestor
-of `dev`, that leftover merge commit has to be dropped once. Temporarily allow
-force-push on `master`, run
-`scripts/promote-dev-to-master.sh --reset-master-to-dev`, then re-run
-`scripts/protect-branches.sh` so force-push is off again.
-
 If your local `master` got messy while experimenting, reset it to the
 remote instead of pushing it:
 
