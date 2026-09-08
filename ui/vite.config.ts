@@ -119,7 +119,8 @@ const DOMAIN_TITLES: Record<string, string> = {
 function sendStaticFile(root: string, urlPath: string, res: ServerResponse, next: () => void) {
   const rel = decodeURIComponent((urlPath.split('?')[0] ?? '/')).replace(/\\/g, '/')
   const candidate = path.resolve(root, rel === '/' ? 'index.html' : rel.replace(/^\//, ''))
-  if (!candidate.startsWith(root)) {
+  const relative = path.relative(root, candidate)
+  if (relative.startsWith('..') || path.isAbsolute(relative)) {
     next()
     return
   }
