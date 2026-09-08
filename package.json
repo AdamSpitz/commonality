@@ -17,6 +17,7 @@
     "alignment-trust-bootstrap",
     "fake-data-generation",
     "cause-assist",
+    "mcp",
     "ui",
     "causestarter"
   ],
@@ -45,6 +46,9 @@
     "cause-assist:start": "npm run start --workspace=@commonality/cause-assist",
     "cause-assist:test": "npm run test --workspace=@commonality/cause-assist",
     "cause-assist:typecheck": "npm run typecheck --workspace=@commonality/cause-assist",
+    "mcp": "npm run mcp --workspace=@commonality/mcp",
+    "mcp:test": "npm run test --workspace=@commonality/mcp",
+    "mcp:typecheck": "npm run typecheck --workspace=@commonality/mcp",
     "coherence-badge-worker:test": "npm run test --workspace=@commonality/coherence-badge-worker",
     "alignment-trust-bootstrap:test": "npm run test --workspace=@commonality/alignment-trust-bootstrap",
     "causestarter:typecheck": "npm run typecheck --workspace=ui",

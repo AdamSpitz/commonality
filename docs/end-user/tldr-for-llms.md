@@ -7,6 +7,14 @@ Each entry follows the same shape:
 - **When a user encounters it** — UI surfaces or moments in the user's flow where this concept becomes load-bearing.
 - **What they might want help with** — typical assistant tasks around this concept.
 
+## CauseStarter API map (jobs → SDK / HTTP)
+
+[Full page](/docs/end-user/causestarter/for-llms.md)
+
+- **What it is:** Task index for agents: which `@commonality/sdk` subpath (including IPFS upload/fetch) and which HTTP services (cause-assist, implication attester, nudgers) implement each job. Points at generated TypeDoc under `/api-docs/sdk/` rather than restating signatures. Documents the repo MCP (`mcp/`).
+- **When a user encounters it:** `/docs/for-llms`, or when an assistant is about to call the protocol instead of driving the UI.
+- **What they might want help with:** Uploading a statement to IPFS; signing; reading a cause ref; talking to an attester without treating it as platform truth.
+
 ## CauseStarter (you landed on a cause page)
 
 [Full page](/docs/end-user/causestarter/index.md)

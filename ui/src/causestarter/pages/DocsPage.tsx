@@ -167,9 +167,9 @@ export function DocsPage() {
     ),
     a: ({ href, children }) => {
       const resolved = href ? resolveHref(href, pathForRelativeLinks) : '#'
-      if (/^https?:\/\//.test(resolved)) {
+      if (/^https?:\/\//.test(resolved) || resolved.startsWith('/api-docs')) {
         return (
-          <a href={resolved} target="_blank" rel="noopener noreferrer">
+          <a href={resolved} {...(/^https?:\/\//.test(resolved) ? { target: '_blank', rel: 'noopener noreferrer' } : {})}>
             {children}
           </a>
         )

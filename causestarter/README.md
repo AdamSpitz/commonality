@@ -219,7 +219,9 @@ See [`cause-assist/README.md`](../cause-assist/README.md). Bridge-cluster wordin
   catalog. Do not restore Start → Grow → Deliver or “build a Movement.”
 - **In-app docs** (`/docs/*`) bundle `docs/end-user/causestarter/`, `shared/`,
   and `commonality/` via `endUserDocsPlugin`. Keep markdown links relative so
-  they resolve in that viewer.
+  they resolve in that viewer. Agent/protocol index: `/docs/for-llms`. Generated
+  SDK/contract docs: `/api-docs/sdk/` and `/api-docs/contracts/` (Vite serves
+  them in dev; `npm run build:docs` regenerates). Stdio MCP: `mcp/`.
 - **CauseStarter is a lens, not a directory** ([ADR 0008](../specs/decisions/0008-operated-surfaces-are-lenses.md)).
   It authors no discovery: no search, browse, ranking, featuring, or leaderboards.
   A cause is reached at `/cause/:causeId` through a link its organizer circulates.
@@ -291,6 +293,8 @@ startup_timeout_sec = 90
 
 Register once with: `grok mcp add playwright -- npx -y @playwright/mcp@latest`  
 Then **restart Grok** so MCP tools load.
+
+Protocol reads (SDK / IPFS / attesters), not the browser: [`mcp/README.md`](../mcp/README.md) (`npm run mcp`).
 
 3. Chromium for Playwright tests (repo root):  
    `npx playwright install chromium`
