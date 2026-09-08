@@ -81,7 +81,7 @@ function pickChecks(candidates) {
       console.log("\nChecks the commits since last time may have invalidated:");
       candidates.forEach((c, i) => {
         const mark = selected.has(i) ? "[x]" : "[ ]";
-        console.log(`  ${mark} ${i + 1}. ${c.checkId}  (${c.severity ?? "?"})`);
+        console.log(`  ${mark} ${i + 1}. ${c.checkId}  (${c.severity ?? "?"}${c.checkId?.startsWith("review.") || c.checkId?.startsWith("meta.llm") ? " — LLM, not selected; subscription spend" : ""})`);
         if (c.reason) console.log(`         ${c.reason}`);
       });
       console.log("\nType a number to toggle it; press Enter on a blank line to re-run the selected ones (Enter now = skip all).");
@@ -141,7 +141,7 @@ async function main() {
   // 3. Refresh the dashboard rollup and its narrative — both are `root` now.
   //    root memoizes the narrative internally, so this is free (no model call)
   //    when the child statuses and milestone are unchanged.
-  runCheck("root");
+  runCheck("root", { COMMONALITY_VERIFIER_ALLOW_LLM: "1" });
 
   // 4. Show the human-readable report.
   await catStateOfProject();

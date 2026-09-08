@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { parseJsonObject, parsePiJsonStream, resolveDefaultLlmCommand } from "./llm-judgment.mjs";
+import { coerceSubscriptionModel, getLlmResponse, parseJsonObject, parsePiJsonStream, resolveDefaultLlmCommand } from "./llm-judgment.mjs";
 
 test("resolveDefaultLlmCommand uses an explicit installed pi path without relying on PATH", () => {
   assert.equal(resolveDefaultLlmCommand({ PI_CODING_AGENT_BIN: "/bin/sh" }), "/bin/sh");
@@ -93,4 +93,47 @@ test("parsePiJsonStream falls back to raw text when the stream carries no usable
   const { text, usage } = parsePiJsonStream("not json at all");
   assert.equal(text, "not json at all");
   assert.equal(usage, null);
+});
+
+test("coerceSubscriptionModel keeps xai and opencode-go pins", () => {
+  assert.equal(coerceSubscriptionModel("xai/grok-4.6"), "xai/grok-4.6");
+  assert.equal(coerceSubscriptionModel("opencode-go/qwen3.8-max"), "opencode-go/qwen3.8-max");
+});
+
+test("coerceSubscriptionModel rewrites OpenRouter onto the workspace default", () => {
+  assert.equal(coerceSubscriptionModel("openrouter/deepseek/deepseek-v4-pro"), "xai/grok-4.6");
+});
+
+test("coerceSubscriptionModel honors COMMONALITY_VERIFIER_LLM_PROVIDER", () => {
+  assert.equal(
+    coerceSubscriptionModel("xai/grok-4.6", { COMMONALITY_VERIFIER_LLM_PROVIDER: "opencode-go" }),
+    "opencode-go/grok-4.6"
+  );
+});
+
+test("getLlmResponse uses a chat-session envelope instead of spawning pi", async () => {
+  const previous = process.env.COMMONALITY_VERIFIER_LLM_RESPONSE;
+  process.env.COMMONALITY_VERIFIER_LLM_RESPONSE = '{"status":"pass","summary":"from chat","reportMarkdown":"# ok"}';
+  try {
+    const result = await getLlmResponse("unused prompt", {}, "prompt.md", "openrouter/should-not-matter");
+    assert.equal(result.usage.model, "chat-session");
+    assert.match(result.text, /from chat/);
+  } finally {
+    if (previous === undefined) delete process.env.COMMONALITY_VERIFIER_LLM_RESPONSE;
+    else process.env.COMMONALITY_VERIFIER_LLM_RESPONSE = previous;
+  }
+});
+
+test("getLlmResponse dump-prompt refuses to call a model", async () => {
+  const previous = process.env.COMMONALITY_VERIFIER_DUMP_PROMPT;
+  process.env.COMMONALITY_VERIFIER_DUMP_PROMPT = "1";
+  try {
+    await assert.rejects(
+      () => getLlmResponse("prompt", {}, "prompt.md", "xai/grok-4.6"),
+      /DUMP_PROMPT/
+    );
+  } finally {
+    if (previous === undefined) delete process.env.COMMONALITY_VERIFIER_DUMP_PROMPT;
+    else process.env.COMMONALITY_VERIFIER_DUMP_PROMPT = previous;
+  }
 });

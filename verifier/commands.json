@@ -1,6 +1,11 @@
 {
   "commands": [
     {
+      "name": "List / record LLM-judgment checks (this chat)",
+      "description": "Standing LLM 'human tester' leaves are manual. Prefer recording a verdict from the current chat (`npm run verifier:llm -- <id> --dump-prompt` then `--response-file`) instead of spawning pi/OpenRouter.",
+      "command": ["npm", "run", "verifier:llm", "--", "--list"]
+    },
+    {
       "name": "Go — top-level report",
       "description": "The single idempotent top-level report. Checks currency (free when no commits landed), offers to re-run checks invalidated by recent commits, refreshes `root`, and prints the narrative. The dashboard you want to live in day-to-day.",
       "command": ["npm", "run", "verifier:go"]
