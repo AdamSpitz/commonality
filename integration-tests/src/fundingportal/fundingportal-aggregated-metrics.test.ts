@@ -19,6 +19,7 @@ import { ImplicationsAbi, ProjectFactoryAbi, AssuranceContractAbi, AlignmentAtte
 import { getTotalFundingForCause, getAllAlignedProjectsForCause } from '@commonality/sdk/fundingportals';
 import { parseUnits, type Address } from 'viem';
 import { testLog, createIsolatedWriteClients } from '../utils/setup.js';
+import { amountInPaymentToken } from '../utils/payment-token-amount.js';
 import { attestImplicationChecked } from '../actions/implication-actions-checked.js';
 import { buyProjectTokensChecked, createProjectChecked } from '../actions/funding-actions-checked.js';
 import { attestAlignmentChecked } from '../actions/alignment-actions-checked.js';
@@ -31,7 +32,10 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
   // Contract addresses
   const IMPLICATIONS_ADDRESS = process.env.IMPLICATIONS_CONTRACT_ADDRESS as Address;
   const PROJECT_FACTORY_ADDRESS = process.env.PROJECT_FACTORY_ADDRESS as Address;
-  const ALIGNMENT_ATTESTATIONS_ADDRESS = process.env.ALIGNMENT_ATTESTATIONS_ADDRESS as Address;
+  const ALIGNMENT_ATTESTATIONS_ADDRESS = (
+    process.env.PROJECT_ALIGNMENT_CONTRACT_ADDRESS ||
+    process.env.ALIGNMENT_ATTESTATIONS_ADDRESS
+  ) as Address;
   const DELEGATABLE_NOTES_ADDRESS = process.env.DELEGATABLE_NOTES_CONTRACT_ADDRESS as Address;
 
   // Test suite name for unique account derivation
@@ -213,13 +217,13 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
     // Should have both projects
     assert.strictEqual(metrics.projectCount, 2, 'Should have 2 projects aligned (1 direct, 1 indirect)');
 
-    // Total should be 0.5 + 0.3 = 0.8 ETH
+    // Total should be 0.5 + 0.3 = 0.8 of the settlement token (USDZZZ, 6 decimals)
     const expectedTotal = parseUnits('0.8', 6);
-    const ethTotal = metrics.totalRaisedAcrossProjects.find((entry) => entry.currency.symbol === 'ETH')?.amount ?? 0n;
+    const raisedTotal = amountInPaymentToken(metrics.totalRaisedAcrossProjects);
     assert.strictEqual(
-      ethTotal,
+      raisedTotal,
       expectedTotal,
-      'Total funding should be 0.8 ETH'
+      `Total funding should be 0.8 ${process.env.PAYMENT_TOKEN_SYMBOL || 'USDZZZ'}`
     );
 
     testLog('  Test passed!');
@@ -286,11 +290,10 @@ describe('Funding Portal Aggregated Metrics Tests (E2)', () => {
 
     // Verify our specific notes exist by checking the total includes at least our 1.5 ETH
     const expectedMinimum = parseUnits('1.5', 6);
-    const ethTotal = metrics.totalAvailableFromNotes
-      .find((entry) => entry.currency.symbol === 'ETH')?.amount ?? 0n;
+    const notesTotal = amountInPaymentToken(metrics.totalAvailableFromNotes);
     assert(
-      ethTotal >= expectedMinimum,
-      `Total available should be at least 1.5 ETH, got ${formattedTotals}`
+      notesTotal >= expectedMinimum,
+      `Total available should be at least 1.5 ${process.env.PAYMENT_TOKEN_SYMBOL || 'USDZZZ'}, got ${formattedTotals}`
     );
 
     testLog('  Test passed!');

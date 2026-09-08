@@ -55,7 +55,27 @@ load_env_file() {
 }
 
 load_env_file "$DEPLOYMENT_FILE"
-load_env_file "$WALLETS_FILE"
+# Local: operator-addresses is the identity source (Hardhat keys).
+# Testnet/mainnet: deployments/<network>.env is the chain of record for public
+# attester/nudger/assist URLs. operator-addresses.env is often a leftover local
+# generate-wallets.mjs dump and must not clobber Sepolia identities.
+load_env_file_fill_missing() {
+	local file="$1"
+	[ -f "$file" ] || return 0
+	while IFS= read -r line; do
+		[[ "$line" =~ ^#.*$ || -z "$line" ]] && continue
+		key="${line%%=*}"
+		value="${line#*=}"
+		if [ -z "${VARS[$key]+x}" ] || [ -z "${VARS[$key]}" ]; then
+			VARS["$key"]="$value"
+		fi
+	done <"$file"
+}
+if [ "$NETWORK" = "localhost" ]; then
+	load_env_file "$WALLETS_FILE"
+else
+	load_env_file_fill_missing "$WALLETS_FILE"
+fi
 load_env_file "$SECRETS_FILE"
 
 DOMAIN_SLUGS=(commonality lazygiving alignment tally content-funding civility common-sense-majority conceptspace causestarter)
@@ -137,6 +157,8 @@ base-sepolia)
 	VARS[IPFS_GATEWAY]="${VARS[IPFS_GATEWAY]:-https://ipfs.io/ipfs}"
 	VARS[EVENT_CACHE_URL]="${VARS[EVENT_CACHE_URL]:-https://commonality-indexer.onrender.com}"
 	VARS[PLATFORM_API_URL]="${VARS[PLATFORM_API_URL]:-https://commonality-platform-api.onrender.com}"
+	VARS[VITE_CAUSE_ASSIST_URL]="${VARS[VITE_CAUSE_ASSIST_URL]:-https://commonality-cause-assist.onrender.com}"
+	VARS[VITE_IMPLICATION_ATTESTER_URL]="${VARS[VITE_IMPLICATION_ATTESTER_URL]:-https://commonality-service-host-attesters.onrender.com/implication-attester}"
 	VARS[BASE_SEPOLIA_PAYMASTER_URL]="${VARS[BASE_SEPOLIA_PAYMASTER_URL]:-${VARS[PLATFORM_API_URL]}/sponsored-gas/paymaster}"
 	;;
 mainnet)
@@ -193,7 +215,7 @@ ROOT_VARS=(
 	COINBASE_CDP_API_KEY_ID COINBASE_CDP_API_KEY_SECRET BASE_RPC_URL
 	ONRAMP_RATE_LIMIT_WINDOW_MS ONRAMP_RATE_LIMIT_MAX_REQUESTS
 	CORS_ALLOWED_ORIGINS CLAIM_PAGE_BASE_URL PLATFORM_API_URL VITE_ENABLE_CHANNEL_METADATA_LOOKUP
-	VITE_CAUSE_ASSIST_URL
+	VITE_CAUSE_ASSIST_URL VITE_IMPLICATION_ATTESTER_URL
 	BASE_SEPOLIA_RPC_URL MAINNET_RPC_URL ETHEREUM_RPC_URL
 	BELIEFS_CONTRACT_ADDRESS IMPLICATIONS_CONTRACT_ADDRESS
 	TRUST_REGISTRY_ADDRESS NUDGE_PUBLICATIONS_CONTRACT_ADDRESS PUBLISHED_DATA_CONTRACT_ADDRESS PUBLISHED_DATA_START_BLOCK
@@ -273,6 +295,7 @@ echo "  wrote $ROOT/integration-tests/.env.local"
 	echo "VITE_PROSPECTIVE_CONTENT_ROUND_FACTORY_ADDRESS=${VARS[PROSPECTIVE_CONTENT_ROUND_FACTORY_ADDRESS]:-}"
 	echo "VITE_PLATFORM_API_URL=${VARS[PLATFORM_API_URL]:-}"
 	echo "VITE_CAUSE_ASSIST_URL=${VARS[VITE_CAUSE_ASSIST_URL]:-}"
+	echo "VITE_IMPLICATION_ATTESTER_URL=${VARS[VITE_IMPLICATION_ATTESTER_URL]:-}"
 	echo "VITE_ENABLE_CHANNEL_METADATA_LOOKUP=${VARS[VITE_ENABLE_CHANNEL_METADATA_LOOKUP]:-}"
 	echo "VITE_DEFAULT_TRUSTED_ATTESTERS=${VARS[VITE_DEFAULT_TRUSTED_ATTESTERS]:-}"
 	echo "VITE_DEFAULT_TRUSTED_CONTENT_ATTESTERS=${VARS[VITE_DEFAULT_TRUSTED_CONTENT_ATTESTERS]:-}"

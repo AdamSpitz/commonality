@@ -16,7 +16,7 @@ Getting **testnet to a two-person shared lab** is also a standing plan, not a pi
 
 - **(Tell)** Next fake-data/seed-data step lives in [`fake-data-generation/PLAN.md`](fake-data-generation/PLAN.md). Abortion, immigration, crime, and LGBT-schools triples are accepted; next is the demo-seed live UI pass.
 
-- **(Tell)** Next testnet-lab step lives in [`workflow/testnet-working-plan.md`](workflow/testnet-working-plan.md). Shared lab (sites + indexer + a write path) is up through item 6. Next unchecked is item 7 (`InvalidVerifierSignature` / funding-portal `0n`) — only if Adam asks; item 8 is Ask (nightly mutation flag). Human leftovers: [`inbox.md`](inbox.md) and [`testnet-prep.md`](testnet-prep.md). Do not mix with mass fake activity or mainnet.
+- **(Tell)** Next testnet-lab step lives in [`workflow/testnet-working-plan.md`](workflow/testnet-working-plan.md). Shared lab is up through item 8. Next unchecked is item 9 (Ask: nightly mutation flag). Human leftovers: [`inbox.md`](inbox.md) and [`testnet-prep.md`](testnet-prep.md). Do not mix with mass fake activity or mainnet.
 
 ----
 
@@ -57,10 +57,6 @@ Getting **testnet to a two-person shared lab** is also a standing plan, not a pi
   Conceptspace, `alignment-attestations/` = fundingportals) don't match their subsystem
   names, which breaks the four-layer isomorphism. Add new terms to the glossary as they
   appear rather than letting drift re-accumulate.
-
-- Fix the three failing funding-portal integration tests. `automated.test-full-integration` fails (exit 3, 101 passing / 3 failing) because cause-level aggregation reads back `0n` where seeded contributions should appear: "total funding raised across all aligned projects for a cause" expects `800000n` (`integration-tests/src/fundingportal/fundingportal-aggregated-metrics.test.ts:219`), and the leaderboard tests expect `3000000n` and `2000000n` (`fundingportal-leaderboards.test.ts:221` and `:346`). All three get `0n`, so suspect one shared cause: contributions not being attributed to the cause in the aggregation query/indexer rather than three separate bugs. This is the only red under `automated.test-full` — SDK, Hardhat, and UI legs pass.
-
-- Fix the canonical Playwright user journeys (`stack.user-journeys`, exit 1). The content-funding flow reverts in `verifyChannel` with `InvalidVerifierSignature()` (custom error `0x0574e985`) when creating a channel and landing on the creators page, and retries hit the same error. Either the signer/verifier key the E2E harness uses no longer matches the deployed `ChannelRegistry` verifier, or the signed payload's shape/domain changed.
 
 - [ ] **(Tell)** Measure whether the proposed planks/views model can fold `DirectSupport` events per plank client-side at approximately 10⁵ signers, or whether it needs a server-side fold. This is currently an unmeasured assertion in [shaping-your-cause-statements.md](docs/founder/shaping-your-cause-statements.md). Report the setup, timings, memory/browser behavior, and conclusion; do not build the server-side path yet.
 

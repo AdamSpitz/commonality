@@ -306,13 +306,15 @@ export async function verifyE2EChannelOwnership(
     )
   }
 
-  const verifierPrivateKey =
-    (process.env.VERIFIER_PRIVATE_KEY as Hex | undefined) ??
-    (envVars.VERIFIER_PRIVATE_KEY as Hex | undefined) ??
-    DEFAULT_LOCAL_VERIFIER_PRIVATE_KEY
-  const chainId = 31337
+  // Local ChannelVerifier is deployed with Hardhat account #0 as trustedVerifier
+  // (deploy-incremental.js `isLocal` branch). Root `.env` VERIFIER_PRIVATE_KEY is
+  // the generated operator signer used on Sepolia; using it here recovers the
+  // wrong address and reverts InvalidVerifierSignature.
+  const verifierPrivateKey = DEFAULT_LOCAL_VERIFIER_PRIVATE_KEY
+  const chainId = await clients.publicClient.getChainId()
+  const latestBlock = await clients.publicClient.getBlock()
   const channelId = hashCanonicalId(channelCanonicalId)
-  const deadline = BigInt(Math.floor(Date.now() / 1000) + 3600)
+  const deadline = latestBlock.timestamp + 3600n
   const nonce = keccak256(toBytes(`e2e-${channelCanonicalId}-${Date.now()}`))
   const proofHash = keccak256(toBytes(`e2e-public-proof:${channelCanonicalId}:${nonce}`))
   const signature = await signChannelClaimProof(
