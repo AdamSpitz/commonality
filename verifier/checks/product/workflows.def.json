@@ -16,17 +16,12 @@
   "inputs": [
     {
       "kind": "check",
-      "id": "review.workflow-clarity",
+      "id": "review.workflow-clarity.causestarter",
       "role": "product-judgment"
     },
     {
       "kind": "check",
-      "id": "review.workflow-clarity.lazy-giving",
-      "role": "product-judgment"
-    },
-    {
-      "kind": "check",
-      "id": "review.workflow-clarity.content-funding",
+      "id": "review.workflow-clarity.civility",
       "role": "product-judgment"
     },
     {

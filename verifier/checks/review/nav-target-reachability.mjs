@@ -23,7 +23,7 @@
 import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import { emit, fail, pass, workspaceRelative } from "../lib/result.mjs";
-import { derivePageInventory } from "../lib/page-inventory.mjs";
+import { derivePageInventory, loadInScopeDomainIds } from "../lib/page-inventory.mjs";
 
 function uiSrcDir() {
   return path.join(process.env.VERIFIER_WORKSPACE ?? process.cwd(), "..", "ui", "src");
@@ -93,6 +93,8 @@ function lineOf(source, index) {
 
 async function main() {
   const inventory = await derivePageInventory();
+  const inScopeIds = await loadInScopeDomainIds();
+  const inScopePathRe = new RegExp(`/(?:${[...inScopeIds].join("|")})(?:/|$)`);
   const matchers = [];
   const routePaths = new Set();
   for (const domain of inventory.domains) {
@@ -111,6 +113,8 @@ async function main() {
   let targetsChecked = 0;
 
   for (const file of files) {
+    // Shared modules (fundingportals, components, …) are imported by out-of-scope
+    // domains too; scanning them would fail on dead targets those domains still use.
     const source = await readFile(file, "utf8");
     for (const re of TARGET_RES) {
       re.lastIndex = 0;

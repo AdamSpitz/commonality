@@ -1,6 +1,6 @@
 {
   "id": "coverage.pages",
-  "description": "Derive the UI page inventory on the fly from app source and reconcile it with the curated domain coverage overlay; no committed page list to maintain.",
+  "description": "Derive the UI page inventory on the fly from app source and confirm every in-scope coverage overlay domain still exists. Out-of-scope Vite domains may exist in source without an overlay entry.",
   "trigger": { "type": "cron", "everyMinutes": 720 },
   "retention": { "keep": 10, "keepDays": 30 },
   "command": ["node", "checks/coverage/pages.mjs"],

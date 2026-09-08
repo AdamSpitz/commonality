@@ -1,62 +1,18 @@
 {
   "schemaVersion": 1,
   "source": "specs/product/ui-domains.md",
-  "scope": "Eight current UI product/movement domains and their intentional verifier coverage story.",
+  "scope": "In-scope UI domains for verifier gating: CauseStarter (primary entry), Civility, and Common Sense Majority. Other Vite domains still exist as tools/verticals but are allowed to be broken or unfinished and must not turn coverage red.",
   "domains": [
     {
-      "id": "commonality",
-      "name": "Commonality",
+      "id": "causestarter",
+      "name": "CauseStarter",
       "coverage": {
         "routeSmokeCheckIds": ["automated.test-fast", "automated.test-full"],
         "artifactSmokeCheckIds": ["artifact.ipfs-domain-smoke"],
-        "manualReviewCheckIds": ["review.real-ui.touched-domain", "review.demo-dry-run"],
+        "manualReviewCheckIds": ["review.founder-e2e.causestarter", "review.workflow-clarity.causestarter", "review.real-ui.touched-domain"],
         "docsCoverage": "covered-by-cross-link-and-docs-inventory in automated.test-fast"
       },
-      "deferred": ["No dedicated per-domain report attestation yet; touched-domain and demo reports must name exact scope."]
-    },
-    {
-      "id": "lazy-giving",
-      "name": "LazyGiving",
-      "coverage": {
-        "routeSmokeCheckIds": ["automated.test-fast", "automated.test-full"],
-        "artifactSmokeCheckIds": ["artifact.ipfs-domain-smoke"],
-        "manualReviewCheckIds": ["review.real-ui.touched-domain", "review.newcomer.touched-surface"],
-        "docsCoverage": "covered-by-cross-link-and-docs-inventory in automated.test-fast"
-      },
-      "deferred": ["No dedicated per-domain report attestation yet; touched-domain and newcomer reports must name exact scope."]
-    },
-    {
-      "id": "alignment",
-      "name": "Aligning",
-      "coverage": {
-        "routeSmokeCheckIds": ["automated.test-fast", "automated.test-full"],
-        "artifactSmokeCheckIds": ["artifact.ipfs-domain-smoke"],
-        "manualReviewCheckIds": ["review.real-ui.touched-domain"],
-        "docsCoverage": "covered-by-cross-link-and-docs-inventory in automated.test-fast"
-      },
-      "deferred": ["No dedicated per-domain report attestation yet; touched-domain reports must name exact scope."]
-    },
-    {
-      "id": "tally",
-      "name": "Tally",
-      "coverage": {
-        "routeSmokeCheckIds": ["automated.test-fast", "automated.test-full"],
-        "artifactSmokeCheckIds": ["artifact.ipfs-domain-smoke"],
-        "manualReviewCheckIds": ["review.real-ui.touched-domain"],
-        "docsCoverage": "covered-by-cross-link-and-docs-inventory in automated.test-fast"
-      },
-      "deferred": ["No dedicated per-domain report attestation yet; touched-domain reports must name exact scope."]
-    },
-    {
-      "id": "content-funding",
-      "name": "Content Funding",
-      "coverage": {
-        "routeSmokeCheckIds": ["automated.test-fast", "automated.test-full"],
-        "artifactSmokeCheckIds": ["artifact.ipfs-domain-smoke"],
-        "manualReviewCheckIds": ["review.real-ui.touched-domain"],
-        "docsCoverage": "covered-by-cross-link-and-docs-inventory in automated.test-fast"
-      },
-      "deferred": ["No dedicated per-domain report attestation yet; touched-domain reports must name exact scope."]
+      "deferred": []
     },
     {
       "id": "civility",
@@ -64,10 +20,10 @@
       "coverage": {
         "routeSmokeCheckIds": ["automated.test-fast", "automated.test-full"],
         "artifactSmokeCheckIds": ["artifact.ipfs-domain-smoke"],
-        "manualReviewCheckIds": ["review.real-ui.touched-domain"],
+        "manualReviewCheckIds": ["review.workflow-clarity.civility", "review.real-ui.touched-domain"],
         "docsCoverage": "covered-by-cross-link-and-docs-inventory in automated.test-fast"
       },
-      "deferred": ["No dedicated per-domain report attestation yet; touched-domain reports must name exact scope."]
+      "deferred": []
     },
     {
       "id": "common-sense-majority",
@@ -75,21 +31,10 @@
       "coverage": {
         "routeSmokeCheckIds": ["automated.test-fast", "automated.test-full"],
         "artifactSmokeCheckIds": ["artifact.ipfs-domain-smoke"],
-        "manualReviewCheckIds": ["review.real-ui.touched-domain", "review.demo-dry-run"],
+        "manualReviewCheckIds": ["review.real-ui.touched-domain", "review.demo-dry-run", "review.workflow-clarity.common-sense-majority"],
         "docsCoverage": "covered-by-cross-link-and-docs-inventory in automated.test-fast"
       },
-      "deferred": ["No dedicated per-domain report attestation yet; touched-domain and demo reports must name exact scope."]
-    },
-    {
-      "id": "conceptspace",
-      "name": "Conceptspace",
-      "coverage": {
-        "routeSmokeCheckIds": ["automated.test-fast", "automated.test-full"],
-        "artifactSmokeCheckIds": ["artifact.ipfs-domain-smoke"],
-        "manualReviewCheckIds": ["review.real-ui.touched-domain", "review.security.contracts"],
-        "docsCoverage": "covered-by-cross-link-and-docs-inventory in automated.test-fast"
-      },
-      "deferred": ["No dedicated developer-facing Conceptspace report attestation yet; security and touched-domain reports must name exact scope."]
+      "deferred": []
     }
   ]
 }

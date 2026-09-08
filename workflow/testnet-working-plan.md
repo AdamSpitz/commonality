@@ -36,7 +36,12 @@ Full `./scripts/verifier-testnet.sh` (~16:46 UTC): `dns`/`http`/`rpc`/`indexer`/
 
 **Item 4 done.** `testnet.website-journeys` **pass** (~18:32 UTC): 22 URLs, ~36s. First wrapper run still hit the 180s kill (cold Chromium / Cloudflare); a second run finished. The only real page issue is LazyGiving `/#/projects` fetching on-chain junk URI `sponsored-gas-live-trace` as `https://ipfs.io/ipfs/...` (CORS). The page already falls back with “couldn't load some project details.” Check now treats historical IPFS CORS/`Failed to load resource` the same as the existing IPFS 500 hole policy. SDK fold + `fetchFromIPFS` drop invalid CIDs so the next LazyGiving publish stops hitting ipfs.io; do not republish all eight for this. Do not raise the 180s timeout.
 
-**Item 6 done (2026-09-06 ~01:00 UTC).** Mutation canary `COMMONALITY_TESTNET_VERIFIER_ADDRESS` `0x6295d57…` already had ~0.005 ETH (nonce 9); that is **not** live `VERIFIER_ADDRESS` `0xE486…` (still 0 ETH). `testnet.onchain-to-indexer` **pass** tx `0x9d669f0f…` block **46443918**. First `testnet.published-data` tx `0x0346d1b8…` **was indexed** but the check still expected the old `{ publication, data }` body; CID-first `/api/published-data/:dataId` returns `publications[]` pointers and no bytes. Check updated; second run **pass** tx `0x3e56aab7…` block **46444037** dataId `0x76da20b3…`. Wrapper `--mutation` now includes `published-data`. Observer-B readback (CauseStarter `config.json` event cache): same CID **active**, same AlignmentAttestation in `/api/events`. `testnet.alignment-trust` still **error** (no `VITE_DEFAULT_ALIGNMENT_TRUST_ROOT` / denylist — do not ship Hardhat #8). `app-config` still fail on idle official attester. Do not enable nightly mutation (item 8).
+**Item 8 done (2026-09-08).** Local blockers were assertion/harness, not indexer:
+
+- Funding-portal `0n`: cause aggregation already folds FreeERC20 `USDZZZ` (6 decimals). The three red integration tests looked up `currency.symbol === 'ETH'` and coalesced to `0n`. They now read the settlement token (`amountInPaymentToken`). Harness unit test pass. Live mocha against this machine’s stack died on IPFS API `410 Gone` before the assertions — do not treat that as a remaining fold bug.
+- `InvalidVerifierSignature` on `stack.user-journeys`: E2E `verifyE2EChannelOwnership` preferred `VERIFIER_PRIVATE_KEY` from the environment (generated Sepolia operator signer). Local `ChannelVerifier` is deployed with Hardhat account #0 as `trustedVerifier`. Harness now always signs with that deployer key and uses chain time for the deadline. Content-funding channel create is not in the two-person testnet loop (testnet signer is the off-chain `VERIFIER_PRIVATE_KEY` matching `CHANNEL_VERIFIER_TRUSTED_SIGNER_ADDRESS`); no Sepolia republish.
+
+**Item 6 done (2026-09-06 ~01:00 UTC).** Mutation canary `COMMONALITY_TESTNET_VERIFIER_ADDRESS` `0x6295d57…` already had ~0.005 ETH (nonce 9); that is **not** live `VERIFIER_ADDRESS` `0xE486…` (still 0 ETH). `testnet.onchain-to-indexer` **pass** tx `0x9d669f0f…` block **46443918**. First `testnet.published-data` tx `0x0346d1b8…` **was indexed** but the check still expected the old `{ publication, data }` body; CID-first `/api/published-data/:dataId` returns `publications[]` pointers and no bytes. Check updated; second run **pass** tx `0x3e56aab7…` block **46444037** dataId `0x76da20b3…`. Wrapper `--mutation` now includes `published-data`. Observer-B readback (CauseStarter `config.json` event cache): same CID **active**, same AlignmentAttestation in `/api/events`. `testnet.alignment-trust` still **error** (no `VITE_DEFAULT_ALIGNMENT_TRUST_ROOT` / denylist — do not ship Hardhat #8). `app-config` still fail on idle official attester. Do not enable nightly mutation (item 9).
 
 **Item 2 done.** `npx verifier-run testnet.indexer` **pass** (~16:42 UTC): GraphQL `_meta` **46429137**, lag **0**, maxLag 300. Live deploy `dep-dae48qgou94c73976610` commit `53417ecc`, env range **10000**, Alchemy RPC. Adam raised monthly usage limit to **$30**.
 
@@ -71,10 +76,12 @@ Earlier the same day: 502 crash loop (public prune) then HTTP 200 with lag fail;
 
 **Item 5 done (2026-09-06 ~00:49 UTC).** Adam added a proxied CNAME `causestarter.testnet` → `brown-racial-sailfish-957.mypinata.cloud` (same as the other UIs). `https://causestarter.testnet.commonality.works` HTTP 200, title CauseStarter, CID `QmRBAj9Wrsr9k7Kj5fu5AeqE2xWwagbCiMZmd4s6S7dvFp`. `testnet.dns` **9 hosts pass** (TLS `*.testnet.commonality.works`). `testnet.http` 13 URLs pass. `testnet.app-shell` 9 URLs pass. `testnet.website-journeys` **pass** 24 URLs (~39s) on retry; first run failed CauseStarter `/` with empty body (cold lazy chunk), `/#/` already rendered. Do not raise the 180s timeout. Pinata dedicated-gateway Host Origins still a leftover dashboard add if CORS to that host is needed; Worker path is serving.
 
+**CauseStarter AI wiring (2026-09-07):** IPFS `buildRuntimeConfig` now emits `VITE_CAUSE_ASSIST_URL` and `VITE_IMPLICATION_ATTESTER_URL`. `setup-env.sh` no longer lets `operator-addresses.env` overwrite Sepolia public identities. Live republish is item 7.
+
 **Not in the lab yet (unchanged)**
 
 - Alignment-trust bootstrap must not ship the local Hardhat key.
-- Local journeys that will bite on testnet: `stack.user-journeys` (`InvalidVerifierSignature` on channel create); funding-portal aggregation `0n`.
+- Local journeys that will bite on testnet: none of the item-8 pair left as product bugs. Remaining human leftovers below.
 - CauseStarter scale ceiling out of scope until the lab is up.
 
 **Human leftovers (do not paper over)**
@@ -83,7 +90,7 @@ From testnet-prep / inbox — stop and Ask if you hit them:
 
 - Cloudflare zone / DNSLink / `services.testnet.commonality.works` gateway (UIs already work via the UI gateway; this is leftover naming/ops).
 - 2-of-3 Safe for contract-admin.
-- `COMMONALITY_TESTNET_VERIFIER_PRIVATE_KEY` canary is funded and used for item 6. Live `VERIFIER_ADDRESS` (`0xE486…`) is still 0 ETH. Nightly flag is item 8 — Ask, do not set.
+- `COMMONALITY_TESTNET_VERIFIER_PRIVATE_KEY` canary is funded and used for item 6. Live `VERIFIER_ADDRESS` (`0xE486…`) is still 0 ETH. Nightly flag is item 9 — Ask, do not set.
 - Sponsored-gas live UI walk: [sponsored-gas-live-trace.md](./sponsored-gas-live-trace.md).
 - Alignment-trust bootstrap: generate wallets, fund `ALIGNMENT_TRUST_BOOTSTRAP_ADDRESS`, Render secrets, denylist canary — never the checked-in local key.
 - Alchemy (or other archive RPC) **CUPS / plan**: indexer is at head on Alchemy after the $30 monthly cap; do not re-open unless lag/502 returns.
@@ -128,11 +135,13 @@ Do these in order unless Adam names a different one. Each item is a session-size
 
 6. **[x] (Tell) Two-person write path, one mutation canary.** 2026-09-06: `onchain-to-indexer` + `published-data` fresh pass from `0x6295d57…`. CauseStarter config points at the same indexer; a second client sees both the attestation and the CID-first publication. No “cannot see each other’s stuff” bug on that path. Alignment-trust bootstrap still missing (human leftover). Wrapper `--mutation` still exits 1 because of `app-config` + `alignment-trust`.
 
-7. **[ ] (Tell) Unblock the journeys that will fail as soon as someone tries them.** Only after the lab is up: `InvalidVerifierSignature` on content-funding channel create (`stack.user-journeys`); funding-portal aggregation `0n` (root TODO). Fix against local stack first, then re-check the matching testnet surface if that feature is in the two-person loop.
+7. **[x] (Tell) CauseStarter HTTP AI on the IPFS bundle.** 2026-09-07: CID `QmVCS23i3j6KqM7YECwiKvGNdAQMf8n6dasdr6R8RvA2Uv`. Live `config.json` has `VITE_CAUSE_ASSIST_URL=https://commonality-cause-assist.onrender.com`, `VITE_IMPLICATION_ATTESTER_URL=https://commonality-service-host-attesters.onrender.com/implication-attester`, trusted attester `0x021b3C…`. Do not dummy-attest. Do not start beat-finder without Ask. Human leftover: try suggest/atomize in the browser (CORS reflects Origin).
 
-8. **[ ] (Ask) Nightly mutation flag.** When read-only smoke is green for a few days and item 6 has a fresh pass, ask Adam to set `COMMONALITY_VERIFIER_NIGHTLY_ALLOW_TESTNET_MUTATION=1` in the cadence shell. Do not enable it yourself.
+8. **[x] (Tell) Unblock the journeys that will fail as soon as someone tries them.** 2026-09-08: ETH-vs-USDZZZ test lookups and E2E verifier-key mixup. See Current state. Do not dummy-attest; do not fund live `VERIFIER_ADDRESS`.
 
-Stop after item 6 unless Adam asks for 7–8. **Do not start job 3 (mass activity on testnet).**
+9. **[ ] (Ask) Nightly mutation flag.** When read-only smoke is green for a few days and item 6 has a fresh pass, ask Adam to set `COMMONALITY_VERIFIER_NIGHTLY_ALLOW_TESTNET_MUTATION=1` in the cadence shell. Do not enable it yourself.
+
+Item 9 is Ask — stop here unless Adam names something else. **Do not start job 3 (mass activity on testnet).** Scale drills stay local (`gen:medium` / `gen:large`).
 
 ## Explicitly out of scope
 

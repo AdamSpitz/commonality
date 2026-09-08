@@ -58,11 +58,9 @@ Acceptance criteria:
 **Why it matters:** the existing `stack.user-journeys` path proves some write → index → UI readback behavior, but launch confidence needs journeys that resemble actual first-use moments.
 
 Done: `stack.user-journeys` now includes the named journeys.
-- **Newcomer donor funding** is covered by `ui/e2e/lazyGiving-flow.spec.ts`: it creates a project, buys tokens, waits for the indexer to sync to the purchase tx, starts from `/projects`, opens the discovered project, and asserts the rendered funding total matches the SDK/indexer readback.
-- **Common Sense Majority movement-to-action** is covered by the new `common-sense-majority` Playwright project: it starts on the CSM landing page, opts into the mediator, verifies the local opt-in state, follows the Tally nudger setup action, and asserts Tally persists/renders the mediator.
-- Existing `tally`, `lazyGiving`, and `content-funding` specs assert domain-specific outcomes rather than generic page rendering.
+- **Common Sense Majority movement-to-action** is covered by the `common-sense-majority` Playwright project: it starts on the CSM landing page, opts into the mediator, verifies the local opt-in state, follows the Tally nudger setup action, and asserts Tally persists/renders the mediator.
 
-Remaining: no known P1 user-journey coverage gaps. Add more journeys here only when a concrete first-use launch path emerges that is not already covered by the canonical `stack.user-journeys` projects.
+Remaining: add CauseStarter and Civility Playwright journey projects when those first-use paths are stable enough to gate. Leftover `tally` / `lazyGiving` / `content-funding` specs still exist but are out of verifier gating scope.
 
 ### 3. Keep dependency-audit allowlist current
 

@@ -1,8 +1,9 @@
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
+import { loadInScopeDomainIds } from "./page-inventory.mjs";
 import { workspacePath } from "./result.mjs";
 
-const LANDING_FILE = "LandingPage.tsx";
+const LANDING_FILES = ["LandingPage.tsx", "HomePage.tsx"];
 const STRING_LITERAL = /(['"`])((?:\\.|(?!\1)[\s\S])*?)\1/g;
 const HUMAN_TEXT_KEYS = new Set(["title", "description", "cta", "eyebrow", "label", "text"]);
 
@@ -51,17 +52,33 @@ function extractFallbackStrings(source, keyedText) {
 
 export async function collectLandingCopySnapshot() {
   const domainsDir = workspacePath("..", "ui", "src", "domains");
+  const inScopeIds = await loadInScopeDomainIds();
   const entries = await readdir(domainsDir, { withFileTypes: true });
   const domains = [];
 
   for (const entry of entries) {
     if (!entry.isDirectory()) continue;
-    const file = path.join(domainsDir, entry.name, LANDING_FILE);
-    let source;
-    try {
-      source = await readFile(file, "utf8");
-    } catch {
-      continue;
+    if (!inScopeIds.has(entry.name)) continue;
+    let file = null;
+    let source = null;
+    for (const landingFile of LANDING_FILES) {
+      const candidate = path.join(domainsDir, entry.name, landingFile);
+      try {
+        source = await readFile(candidate, "utf8");
+        file = candidate;
+        break;
+      } catch {
+        /* try next landing filename */
+      }
+    }
+    if (!file || source == null) {
+      const homePage = path.join(workspacePath("..", "ui", "src", entry.name, "pages", "HomePage.tsx"));
+      try {
+        source = await readFile(homePage, "utf8");
+        file = homePage;
+      } catch {
+        continue;
+      }
     }
     const keyed = extractKeyedStrings(source);
     domains.push({

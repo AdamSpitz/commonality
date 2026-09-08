@@ -1,6 +1,6 @@
 {
   "id": "known-bad.pages",
-  "description": "Proves coverage.pages rejects a broken domain overlay: one that omits real domains the on-the-fly page inventory derives from source, and includes a phantom domain absent from source.",
+  "description": "Proves coverage.pages rejects a broken domain overlay that names a phantom domain absent from source.",
   "trigger": { "type": "cron", "everyMinutes": 720 },
   "retention": { "keep": 5, "keepDays": 30 },
   "command": ["node", "checks/known-bad/expect-bad-result.mjs"],

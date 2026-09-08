@@ -15,6 +15,7 @@ import { uploadToIPFS } from '@commonality/sdk/utils';
 import { getTopContributorsForCause, getUserContributionRankForCause } from '@commonality/sdk/fundingportals';
 import { parseUnits, type Address } from 'viem';
 import { testLog, createIsolatedWriteClients } from '../utils/setup.js';
+import { amountInPaymentToken } from '../utils/payment-token-amount.js';
 import { buyProjectTokensChecked, createProjectChecked } from '../actions/funding-actions-checked.js';
 import { attestAlignmentChecked } from '../actions/alignment-actions-checked.js';
 import { ActionTestingMachinery, createActionTestingMachinery } from '../actions/action-machinery.js';
@@ -218,7 +219,7 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
       contributor1Clients.account.toLowerCase(),
       'Rank 1 should be Contributor 1'
     );
-    assert.strictEqual(rank1.netContribution.find((entry) => entry.currency.symbol === 'ETH')?.amount ?? 0n, parseUnits('3.0', 6), 'Rank 1 should have 3 ETH');
+    assert.strictEqual(amountInPaymentToken(rank1.netContribution), parseUnits('3.0', 6), 'Rank 1 should have 3 of the settlement token');
     assert.strictEqual(rank1.projectsContributedTo, 2, 'Rank 1 should have contributed to 2 projects');
     assert.strictEqual(rank1.contributionCount, 2, 'Rank 1 should have 2 contributions');
 
@@ -228,7 +229,7 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
       contributor2Clients.account.toLowerCase(),
       'Rank 2 should be Contributor 2'
     );
-    assert.strictEqual(rank2.netContribution.find((entry) => entry.currency.symbol === 'ETH')?.amount ?? 0n, parseUnits('1.5', 6), 'Rank 2 should have 1.5 ETH');
+    assert.strictEqual(amountInPaymentToken(rank2.netContribution), parseUnits('1.5', 6), 'Rank 2 should have 1.5 of the settlement token');
     assert.strictEqual(rank2.projectsContributedTo, 1, 'Rank 2 should have contributed to 1 project');
 
     // Rank 3 should be contributor 3 (0.5 ETH)
@@ -237,7 +238,7 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
       contributor3Clients.account.toLowerCase(),
       'Rank 3 should be Contributor 3'
     );
-    assert.strictEqual(rank3.netContribution.find((entry) => entry.currency.symbol === 'ETH')?.amount ?? 0n, parseUnits('0.5', 6), 'Rank 3 should have 0.5 ETH');
+    assert.strictEqual(amountInPaymentToken(rank3.netContribution), parseUnits('0.5', 6), 'Rank 3 should have 0.5 of the settlement token');
 
     testLog('  Test passed!');
   });
@@ -343,7 +344,7 @@ describe('Funding Portal Contributor Leaderboards Tests (E3)', () => {
     assert.strictEqual(rankResult!.rank, 2, 'Contributor 2 should be rank 2');
     assert.strictEqual(rankResult!.totalContributors, 3, 'Should have 3 total contributors');
     assert.ok(rankResult!.stats, 'Should have stats');
-    assert.strictEqual(rankResult!.stats!.netContribution.find((entry) => entry.currency.symbol === 'ETH')?.amount ?? 0n, parseUnits('2.0', 6), 'Net contribution should be 2 ETH');
+    assert.strictEqual(amountInPaymentToken(rankResult!.stats!.netContribution), parseUnits('2.0', 6), 'Net contribution should be 2 of the settlement token');
 
     testLog(`  Rank: ${rankResult!.rank} of ${rankResult!.totalContributors}`);
     testLog(`  Net contribution: ${rankResult!.stats!.netContribution}`);

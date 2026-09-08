@@ -99,7 +99,7 @@ export function extractHumanCopy(source) {
  * @returns {Promise<{ inventory: object, pages: Array<{ domain: string, routePath: string, file: string|null, copy: Array<{text:string,line:number,kind:string}> }> }>}
  */
 export async function collectPageCopy() {
-  const inventory = await derivePageInventory();
+  const inventory = await derivePageInventory({ inScopeOnly: true });
   const pages = [];
   const rootRel = (p) => path.relative(workspacePath(".."), p);
 

@@ -122,7 +122,7 @@ ${renderPages(pages)}`;
 
 emit(async () => {
   const params = mergedParams(readInputs());
-  const inventory = await derivePageInventory();
+  const inventory = await derivePageInventory({ inScopeOnly: true });
   const selection = selectPages(inventory, params);
   const selected = selection.pages;
   const maxFileChars = Number(params.maxFileChars ?? 25000);

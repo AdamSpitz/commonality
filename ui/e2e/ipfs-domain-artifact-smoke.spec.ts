@@ -12,14 +12,9 @@ type DomainSmoke = {
 }
 
 const domains: DomainSmoke[] = [
-  { slug: 'commonality', hostname: 'commonality.localhost', brand: 'Commonality', visibleBrand: /Commonality/i, deepLinks: ['/docs', '/founders', '/participate'], wrongDomainRoute: '/projects' },
-  { slug: 'lazyGiving', hostname: 'lazygiving.localhost', brand: 'LazyGiving', visibleBrand: /LazyGiving/i, deepLinks: ['/projects', '/projects/new', '/delegation/notes'], wrongDomainRoute: '/statement/bafkreihdwdcefgh4dqkjv67uzcmw7ojee6xedzdetojuzjevtenxquvyku' },
-  { slug: 'alignment', hostname: 'alignment.localhost', brand: 'Alignment', visibleBrand: /Align(?:ment|ing)/i, deepLinks: ['/explore'], wrongDomainRoute: '/content' },
-  { slug: 'tally', hostname: 'tally.localhost', brand: 'Tally', visibleBrand: /Tally/i, deepLinks: ['/statements', '/profile'], wrongDomainRoute: '/projects' },
-  { slug: 'content-funding', hostname: 'content-funding.localhost', brand: 'Content Funding', visibleBrand: /Content Funding/i, deepLinks: ['/content', '/content/dashboard'], wrongDomainRoute: '/statement/bafkreihdwdcefgh4dqkjv67uzcmw7ojee6xedzdetojuzjevtenxquvyku' },
+  { slug: 'causestarter', hostname: 'causestarter.localhost', brand: 'CauseStarter', visibleBrand: /CauseStarter/i, deepLinks: ['/causes', '/docs'], wrongDomainRoute: '/founders' },
   { slug: 'civility', hostname: 'civility.localhost', brand: 'Civility', visibleBrand: /Civility/i, deepLinks: ['/criteria', '/content'], wrongDomainRoute: '/projects' },
   { slug: 'common-sense-majority', hostname: 'common-sense-majority.localhost', brand: 'Common Sense Majority', visibleBrand: /Common Sense Majority/i, deepLinks: ['/about', '/organize', '/popular-statements'], wrongDomainRoute: '/projects' },
-  { slug: 'conceptspace', hostname: 'conceptspace.localhost', brand: 'Conceptspace', visibleBrand: /Conceptspace/i, deepLinks: ['/explore', '/docs'], wrongDomainRoute: '/projects' },
 ]
 
 test.describe('IPFS domain artifacts', () => {

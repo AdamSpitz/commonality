@@ -1,6 +1,6 @@
 {
   "id": "coverage.domains",
-  "description": "Verify every current UI domain has an intentional smoke/review/docs coverage story.",
+  "description": "Verify every in-scope UI domain (CauseStarter, Civility, Common Sense Majority) has an intentional smoke/review/docs coverage story. Other Vite domains are out of scope.",
   "trigger": { "type": "cron", "everyMinutes": 720 },
   "retention": { "keep": 10, "keepDays": 30 },
   "command": ["node", "checks/coverage/domains.mjs"],

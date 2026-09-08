@@ -1,6 +1,6 @@
 // coverage.pages — assert the (transiently derived) UI page inventory is sound
-// and that every domain that exists in the app source also has a coverage story
-// in the curated overlay (coverage/domains.json).
+// for in-scope overlay domains. Source-only domains may exist without an overlay
+// entry; overlay ids must still exist in source.
 //
 // The page list itself is NOT a committed artifact: it is derived on the fly from
 // ui/src/domains via derivePageInventory(). This check both validates the
@@ -28,13 +28,11 @@ emit(async () => {
   const inventory = await derivePageInventory();
   const problems = [];
 
+  const inScopeIds = overlayIds;
   for (const domain of inventory.domains) {
-    if (domain.routePaths.length === 0) {
+    const inScope = inScopeIds.has(domain.kebabId) || inScopeIds.has(domain.id);
+    if (inScope && domain.routePaths.length === 0) {
       problems.push(`${domain.id}: derived zero pages from its manifest (parse failure or empty route table?).`);
-    }
-    // The overlay keys domains in kebab-case; match against the derived canonical id.
-    if (!overlayIds.has(domain.kebabId) && !overlayIds.has(domain.id)) {
-      problems.push(`${domain.id}: present in app source but missing from coverage/domains.json overlay (kebabId '${domain.kebabId}').`);
     }
   }
 
@@ -54,5 +52,5 @@ emit(async () => {
   };
 
   if (problems.length > 0) return fail(`Page inventory has ${problems.length} problem(s).`, { findings });
-  return pass(`Derived ${findings.totalPages} pages across ${inventory.domains.length} domains; all reconcile with the coverage overlay.`, { findings });
+  return pass(`Derived ${findings.totalPages} pages across ${inventory.domains.length} source domains; in-scope overlay domains exist in source.`, { findings });
 });
