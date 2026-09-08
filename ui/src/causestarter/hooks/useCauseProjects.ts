@@ -83,7 +83,10 @@ export function useCauseProjects(
   } = useContentFundingState()
   const trustedContentAttesters = useTrustedContentAttesters()
   const unmaterializedProspective = useUnmaterializedProspectiveRoundAddresses()
-  const unmaterializedKey = unmaterializedProspective.slice().sort().join('\0')
+  const unmaterializedReady = unmaterializedProspective !== undefined
+  const unmaterializedKey = unmaterializedReady
+    ? unmaterializedProspective.slice().sort().join('\0')
+    : null
   const contentTrustKey = trustedContentAttesters
     .map((entry) => entry.address.toLowerCase())
     .sort()
@@ -172,13 +175,15 @@ export function useCauseProjects(
           }
         }
 
-        const contentContracts = selectAlignedContentContracts(
-          channels,
-          contentAttestations,
-          cids,
-          contentTrustKey ? contentTrustKey.split('\0') : undefined,
-          unmaterializedKey ? unmaterializedKey.split('\0') : undefined,
-        )
+        const contentContracts = unmaterializedReady
+          ? selectAlignedContentContracts(
+              channels,
+              contentAttestations,
+              cids,
+              contentTrustKey ? contentTrustKey.split('\0') : undefined,
+              unmaterializedKey ? unmaterializedKey.split('\0') : [],
+            )
+          : []
         for (const contract of contentContracts) {
           const key = contract.contractAddress.toLowerCase()
           const existing = byAddress.get(key)
@@ -241,6 +246,7 @@ export function useCauseProjects(
     contentAttestationsKey,
     contentTrustKey,
     contentLoading,
+    unmaterializedReady,
     unmaterializedKey,
   ])
 

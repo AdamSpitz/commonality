@@ -213,7 +213,10 @@ export function CauseBoard({
   const [summary, setSummary] = useState<string | null>(null)
   const { channels, contentAttestations } = useContentFundingState()
   const unmaterializedProspective = useUnmaterializedProspectiveRoundAddresses()
-  const unmaterializedKey = unmaterializedProspective.slice().sort().join('\0')
+  const unmaterializedReady = unmaterializedProspective !== undefined
+  const unmaterializedKey = unmaterializedReady
+    ? unmaterializedProspective.slice().sort().join('\0')
+    : null
   const trustedContentAttesters = useTrustedContentAttesters()
   const contentTrustKey = trustedContentAttesters
     .map((entry) => entry.address.toLowerCase())
@@ -317,13 +320,15 @@ export function CauseBoard({
                 }
               }
             }
-            const contentContracts = selectAlignedContentContracts(
-              channels,
-              contentAttestations,
-              loadCids,
-              contentTrustKey ? contentTrustKey.split('\0') : undefined,
-              unmaterializedKey ? unmaterializedKey.split('\0') : undefined,
-            )
+            const contentContracts = unmaterializedReady
+              ? selectAlignedContentContracts(
+                  channels,
+                  contentAttestations,
+                  loadCids,
+                  contentTrustKey ? contentTrustKey.split('\0') : undefined,
+                  unmaterializedKey ? unmaterializedKey.split('\0') : [],
+                )
+              : []
             const union = unionAlignedFundingProjects([...byAddress.values()], contentContracts)
             const included = rulesForLoad?.geographic
               ? (await Promise.all(union.map(async (project) => {
@@ -421,6 +426,7 @@ export function CauseBoard({
     contentAttestationsKey,
     contentTrustKey,
     inclusionRulesKey,
+    unmaterializedReady,
     unmaterializedKey,
   ])
 

@@ -45,8 +45,19 @@ describe('useUnmaterializedProspectiveRoundAddresses', () => {
 
   it('returns only rounds that have not materialized', async () => {
     const { result } = renderHook(() => useUnmaterializedProspectiveRoundAddresses())
+    expect(result.current).toBeUndefined()
     await waitFor(() => {
       expect(result.current).toEqual(['0x1111111111111111111111111111111111111111'])
     })
+  })
+
+  it('stays undefined when the query fails so consumers fail closed', async () => {
+    vi.mocked(getProspectiveRounds).mockRejectedValueOnce(new Error('rpc down'))
+    const { result } = renderHook(() => useUnmaterializedProspectiveRoundAddresses())
+    expect(result.current).toBeUndefined()
+    await waitFor(() => {
+      expect(getProspectiveRounds).toHaveBeenCalled()
+    })
+    expect(result.current).toBeUndefined()
   })
 })

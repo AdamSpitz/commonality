@@ -108,7 +108,10 @@ export function AlignedProjectsList({
   const { address } = useAccount()
   const { channels, contentAttestations } = useContentFundingState()
   const unmaterializedProspective = useUnmaterializedProspectiveRoundAddresses()
-  const unmaterializedKey = unmaterializedProspective.slice().sort().join('\0')
+  const unmaterializedReady = unmaterializedProspective !== undefined
+  const unmaterializedKey = unmaterializedReady
+    ? unmaterializedProspective.slice().sort().join('\0')
+    : null
   const trustedContentAttesters = useTrustedContentAttesters()
   const contentTrustKey = trustedContentAttesters
     .map((entry) => entry.address.toLowerCase())
@@ -195,13 +198,15 @@ export function AlignedProjectsList({
         const aligned = perPlank.flat()
         if (cancelled) return
 
-        const contentRows = selectAlignedContentContracts(
-          channels,
-          contentAttestations,
-          loadCids,
-          contentTrustKey ? contentTrustKey.split('\0') : undefined,
-          unmaterializedKey ? unmaterializedKey.split('\0') : undefined,
-        ).map((contract) => ({
+        const contentRows = (unmaterializedReady
+          ? selectAlignedContentContracts(
+              channels,
+              contentAttestations,
+              loadCids,
+              contentTrustKey ? contentTrustKey.split('\0') : undefined,
+              unmaterializedKey ? unmaterializedKey.split('\0') : [],
+            )
+          : []).map((contract) => ({
           projectAddress: contract.contractAddress,
           alignmentType: 'direct' as const,
           fundingCurrency: contract.fundingCurrency ?? ETH_CURRENCY,
@@ -266,6 +271,7 @@ export function AlignedProjectsList({
     contentAttestationsKey,
     contentTrustKey,
     inclusionRules,
+    unmaterializedReady,
     unmaterializedKey,
   ])
 
