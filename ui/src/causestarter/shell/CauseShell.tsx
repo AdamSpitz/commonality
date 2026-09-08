@@ -19,6 +19,7 @@ import VolunteerActivismOutlinedIcon from '@mui/icons-material/VolunteerActivism
 import SavingsOutlinedIcon from '@mui/icons-material/SavingsOutlined'
 import MenuBookOutlinedIcon from '@mui/icons-material/MenuBookOutlined'
 import GitHubIcon from '@mui/icons-material/GitHub'
+import PersonOutlinedIcon from '@mui/icons-material/PersonOutlined'
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { WalletButton } from '../../shared/components/WalletButton'
@@ -155,6 +156,15 @@ export function CauseShell({ children }: CauseShellProps) {
             </IconButton>
           )}
 
+          <IconButton
+            component={Link}
+            to="/profile"
+            aria-label="Profile"
+            size="small"
+            data-testid="nav-profile"
+          >
+            <PersonOutlinedIcon fontSize="small" />
+          </IconButton>
           <IconButton
             component={Link}
             to="/settings"
