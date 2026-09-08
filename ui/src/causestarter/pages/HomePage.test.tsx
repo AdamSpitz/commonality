@@ -26,11 +26,16 @@ function renderHome({ connected = false, statements = 0, pledges = 0, notes = 0 
   render(<MemoryRouter><HomePage /></MemoryRouter>)
 }
 
-describe('HomePage role launcher', () => {
+describe('HomePage landing', () => {
   afterEach(cleanup)
 
-  it('gives every visitor the focused role cards', () => {
+  it('explains the product to a first-time visitor and still offers the role cards', () => {
     renderHome()
+    expect(screen.getByTestId('home-landing')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'There are enough of us. We just couldn’t work together.' })).toBeInTheDocument()
+    expect(screen.getByText('A cause board is a bulletin of crowdfundable projects', { exact: false })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Start a cause board' })).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Read the short version' })).toHaveAttribute('href', '/docs')
     expect(screen.getByRole('heading', { name: 'What would you like to do?' })).toBeInTheDocument()
     expect(screen.getByTestId('home-role-sign')).toHaveAttribute('href', '/statements')
     expect(screen.getByTestId('home-role-donate')).toHaveAttribute('href', '/donate')

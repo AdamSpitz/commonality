@@ -303,8 +303,8 @@ Then **restart Grok** so MCP tools load.
 | `wallet-account-menu` | Hardhat account picker (localhost only) |
 | `wallet-hardhat-0` … `wallet-hardhat-9` | Pick Hardhat account |
 | `wallet-disconnect` | Disconnect |
-| `home-start-cause` | Home / `/welcome` CTA → create a draft and open the cause editor |
-| `home-dashboard` | Occupied home (connected wallet and/or cause boards on this device) |
+| `home-landing` | Root landing (first-visit pitch plus role cards) |
+| `home-dashboard` | Role-card grid on the home landing |
 | `home-dashboard-board` | Occupied-home teaser of the personal fundable-projects board |
 | `home-dashboard-see-all` | Occupied home → `/dashboard` (full personal list) |
 | `personal-dashboard-page` | Full personal fundable-projects board at `/dashboard` |

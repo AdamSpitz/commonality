@@ -55,15 +55,16 @@ test.describe('CauseStarter agent smoke', () => {
     await page.goto(appPath('/'))
   })
 
-  test('occupied home shows the personal fundable-projects board after connect', async ({ page }) => {
+  test('personal fundable-projects board lives under Fund after connect', async ({ page }) => {
     await connectHardhat0(page)
+    await page.getByTestId('nav-fund').click()
     await expect(page.getByTestId('home-dashboard-board')).toBeVisible({ timeout: 15_000 })
     await expect(page.getByRole('heading', { name: /your fundable projects/i })).toBeVisible()
   })
 
   test('starts a cause and lands on its editable page', async ({ page }) => {
     await expect(page.getByTestId('wallet-connect-button')).toBeVisible()
-    await expect(page.getByTestId('home-start-cause')).toBeVisible()
+    await expect(page.getByTestId('home-landing')).toBeVisible()
     await connectHardhat0(page)
     await startCause(page)
 
