@@ -31,7 +31,7 @@ import { RosterHistory } from '../components/RosterHistory'
 import { RosterPublishPanel } from '../components/RosterPublishPanel'
 import { SafetyRejectionDialog } from '../components/SafetyRejectionDialog'
 import {
-  bookmarkCause, causeEditPath, causeFundingPath, causeLeaderboardPath, causeMediatorPath,
+  bookmarkCause, causeContentBoardPath, causeEditPath, causeFundingPath, causeLeaderboardPath, causeMediatorPath,
   causePath, causeTitle,
   findCauseByStable, getCause, isCauseBookmarked, isLive, markPlankPublished,
   markRosterPublished, newPlank, publishedPlanks, realPlanks,
@@ -1188,6 +1188,11 @@ export function CauseDetailPage({ editMode = false }: { editMode?: boolean }) {
             {
               label: 'Start content contract',
               to: '/content/new',
+              variant: 'outlined',
+            },
+            {
+              label: 'Attested posts',
+              to: causeContentBoardPath(cause),
               variant: 'outlined',
             },
           ]}

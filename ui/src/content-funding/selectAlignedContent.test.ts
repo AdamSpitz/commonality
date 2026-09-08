@@ -82,6 +82,25 @@ describe('selectAlignedContentContracts', () => {
     expect(rows).toHaveLength(1)
   })
 
+  it('omits excluded addresses so unmaterialized prospective rounds stay off the post-attestation path', () => {
+    const rows = selectAlignedContentContracts(
+      [channel()],
+      new Map([
+        ['twitter:uid:1:111', [{
+          canonicalId: 'twitter:uid:1:111',
+          subjectId: 'x',
+          attested: true,
+          attester: '0x1',
+          statementCid: STATEMENT,
+        }]],
+      ]),
+      [STATEMENT],
+      undefined,
+      ['0xABC'],
+    )
+    expect(rows).toEqual([])
+  })
+
   it('treats an empty trust set as unfiltered', () => {
     const rows = selectAlignedContentContracts(
       [channel()],
