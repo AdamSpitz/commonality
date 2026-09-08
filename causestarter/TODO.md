@@ -11,7 +11,7 @@ open **if they stay listed here**.
 
 - [x] **Cluster-page mediator opt-in** and **statement-level triples** (`/bridge/triple`) — [ADR 0012](/specs/decisions/0012-mediator-is-an-address.md).
 
-- [ ] **Content contracts on the cause board — leftover after first slice.**
+- [x] **Content contracts on the cause board — leftover after first slice.**
   Product rule (settled): list the *contract* (not individual posts) on the
   cause project list when any post in that contract has a current positive
   content attestation to a published plank. Dedup by address with vouched

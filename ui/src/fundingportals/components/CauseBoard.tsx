@@ -38,7 +38,11 @@ import {
   useTrustedContentAttesters,
   TrustNetworkRefreshIndicator,
 } from '../../shared'
-import { selectAlignedContentContracts, useContentFundingState } from '../../content-funding'
+import {
+  selectAlignedContentContracts,
+  useContentFundingState,
+  useUnmaterializedProspectiveRoundAddresses,
+} from '../../content-funding'
 import { AlignedProjectsList } from './AlignedProjectsList'
 import { SuccessfulProjectsTab } from './SuccessfulProjectsTab'
 import { AttestAlignmentForm } from './AttestAlignmentForm'
@@ -208,6 +212,8 @@ export function CauseBoard({
   const [title, setTitle] = useState<string | null>(null)
   const [summary, setSummary] = useState<string | null>(null)
   const { channels, contentAttestations } = useContentFundingState()
+  const unmaterializedProspective = useUnmaterializedProspectiveRoundAddresses()
+  const unmaterializedKey = unmaterializedProspective.slice().sort().join('\0')
   const trustedContentAttesters = useTrustedContentAttesters()
   const contentTrustKey = trustedContentAttesters
     .map((entry) => entry.address.toLowerCase())
@@ -316,6 +322,7 @@ export function CauseBoard({
               contentAttestations,
               loadCids,
               contentTrustKey ? contentTrustKey.split('\0') : undefined,
+              unmaterializedKey ? unmaterializedKey.split('\0') : undefined,
             )
             const union = unionAlignedFundingProjects([...byAddress.values()], contentContracts)
             const included = rulesForLoad?.geographic
@@ -414,6 +421,7 @@ export function CauseBoard({
     contentAttestationsKey,
     contentTrustKey,
     inclusionRulesKey,
+    unmaterializedKey,
   ])
 
   if (preview) {

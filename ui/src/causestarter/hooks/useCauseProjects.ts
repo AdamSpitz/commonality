@@ -20,7 +20,11 @@ import {
   type AlignedProjectFundingTotals,
 } from '@commonality/sdk/fundingportals'
 import { ETH_CURRENCY, type Currency, type IpfsCidV1 } from '@commonality/sdk/utils'
-import { selectAlignedContentContracts, useContentFundingState } from '@ui/content-funding'
+import {
+  selectAlignedContentContracts,
+  useContentFundingState,
+  useUnmaterializedProspectiveRoundAddresses,
+} from '@ui/content-funding'
 import { useTrustedContentAttesters } from '@ui/shared'
 import { mapWithConcurrency, PLANK_QUERY_CONCURRENCY } from '../lib/concurrency'
 import { useMachinery } from '../../shared'
@@ -78,6 +82,8 @@ export function useCauseProjects(
     loading: contentLoading,
   } = useContentFundingState()
   const trustedContentAttesters = useTrustedContentAttesters()
+  const unmaterializedProspective = useUnmaterializedProspectiveRoundAddresses()
+  const unmaterializedKey = unmaterializedProspective.slice().sort().join('\0')
   const contentTrustKey = trustedContentAttesters
     .map((entry) => entry.address.toLowerCase())
     .sort()
@@ -171,6 +177,7 @@ export function useCauseProjects(
           contentAttestations,
           cids,
           contentTrustKey ? contentTrustKey.split('\0') : undefined,
+          unmaterializedKey ? unmaterializedKey.split('\0') : undefined,
         )
         for (const contract of contentContracts) {
           const key = contract.contractAddress.toLowerCase()
@@ -234,6 +241,7 @@ export function useCauseProjects(
     contentAttestationsKey,
     contentTrustKey,
     contentLoading,
+    unmaterializedKey,
   ])
 
   const countByPlankCid = useMemo(() => {

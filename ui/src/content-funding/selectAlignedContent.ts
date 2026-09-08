@@ -105,12 +105,17 @@ export function selectAlignedContentContracts(
   attestations: Map<string, ContentAttestationInfo[]>,
   statementCids: readonly string[],
   trustedAttesters?: Iterable<string>,
+  excludeAddresses?: Iterable<string>,
 ): AlignedContentContract[] {
+  const excluded = new Set(
+    [...(excludeAddresses ?? [])].map((address) => address.toLowerCase()).filter(Boolean),
+  )
   const items = alignedItemsForStatements(channels, attestations, statementCids, trustedAttesters)
   const byAddress = new Map<string, AlignedContentContract>()
 
   for (const item of items) {
     const key = item.contractAddress.toLowerCase()
+    if (excluded.has(key)) continue
     const existing = byAddress.get(key)
     if (existing) {
       existing.alignedItemCount += 1

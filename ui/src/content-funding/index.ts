@@ -18,6 +18,7 @@ export { ContentFundingProjectSection } from './components/ContentFundingProject
 
 export { useClaimFlow } from './hooks/useClaimFlow'
 export { useContentFundingState } from './hooks/useContentFundingState'
+export { useUnmaterializedProspectiveRoundAddresses } from './hooks/useUnmaterializedProspectiveRoundAddresses'
 export type { ContentAttestationInfo } from './hooks/useContentFundingState'
 export {
   selectAlignedContentContracts,

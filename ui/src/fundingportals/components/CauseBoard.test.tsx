@@ -75,6 +75,7 @@ vi.mock('../../content-funding', async () => {
       contentAttestations: new Map(),
       loading: false,
     })),
+    useUnmaterializedProspectiveRoundAddresses: () => [],
   }
 })
 

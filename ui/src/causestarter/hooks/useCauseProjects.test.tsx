@@ -18,6 +18,7 @@ vi.mock('@ui/content-funding', async () => {
   return {
     ...actual,
     useContentFundingState: () => contentState,
+    useUnmaterializedProspectiveRoundAddresses: () => [],
   }
 })
 

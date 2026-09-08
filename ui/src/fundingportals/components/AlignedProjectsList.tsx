@@ -29,7 +29,11 @@ import {
   useTrustedSet,
   TrustNetworkRefreshIndicator,
 } from '../../shared'
-import { selectAlignedContentContracts, useContentFundingState } from '../../content-funding'
+import {
+  selectAlignedContentContracts,
+  useContentFundingState,
+  useUnmaterializedProspectiveRoundAddresses,
+} from '../../content-funding'
 import { getProjectStatus } from '../../lazy-giving'
 import {
   AlignedProjectCard,
@@ -103,6 +107,8 @@ export function AlignedProjectsList({
   const machinery = useMachinery()
   const { address } = useAccount()
   const { channels, contentAttestations } = useContentFundingState()
+  const unmaterializedProspective = useUnmaterializedProspectiveRoundAddresses()
+  const unmaterializedKey = unmaterializedProspective.slice().sort().join('\0')
   const trustedContentAttesters = useTrustedContentAttesters()
   const contentTrustKey = trustedContentAttesters
     .map((entry) => entry.address.toLowerCase())
@@ -194,6 +200,7 @@ export function AlignedProjectsList({
           contentAttestations,
           loadCids,
           contentTrustKey ? contentTrustKey.split('\0') : undefined,
+          unmaterializedKey ? unmaterializedKey.split('\0') : undefined,
         ).map((contract) => ({
           projectAddress: contract.contractAddress,
           alignmentType: 'direct' as const,
@@ -259,6 +266,7 @@ export function AlignedProjectsList({
     contentAttestationsKey,
     contentTrustKey,
     inclusionRules,
+    unmaterializedKey,
   ])
 
   const effectiveStatus = statusFilterLock ?? statusFilter
