@@ -2,6 +2,7 @@
 
 Commonality is a system for decentralized crowdfunding of public goods: people can fund projects aligned with shared values without needing a central organization to coordinate them. See [What is Commonality?](./specs/README.md#what-is-commonality) for the product overview.
 
+  - [Current focus](./focus.md) — the one or two kinds of work we are concentrating on right now (not a to-do list)
   - [AI continuity notes](./CONTINUITY.md)
   - [Fake / seed data plan](./fake-data-generation/PLAN.md) — tiny local world vs real Conceptspace statements vs mass fake activity; **next step for a fresh LLM**
   - [To-do list](./TODO.md) — where LLMs file new one-shot tasks. Tag each with its [autonomy tier](./workflow/task-tiers.md) (Ask / Tell / Trust); untagged means Ask.
