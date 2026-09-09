@@ -276,11 +276,19 @@ See [`cause-assist/README.md`](../cause-assist/README.md). Bridge-cluster wordin
 
 ## Agent / browser automation
 
-Grok (or any agent) can drive CauseStarter in a real browser.
+Grok (or any agent) can drive CauseStarter in a real browser. **Do not skip this and curl HTML** — the SPA shell is empty until Chromium runs the JS.
+
+Two layers (they are not substitutes):
+
+| Layer | What it is | When to use |
+|---|---|---|
+| **`dev-browser` CLI** | Already on this machine. Playwright pages in a daemon Chromium. Skill: `browser-driving`. | Always available even with no MCP. Two instances: `dev-browser --browser lab-a` and `--browser lab-b`. |
+| **Playwright MCP** (`@playwright/mcp`) | MCP tools Grok can `search_tool` / `use_tool` without being told a CLI exists. | Install so a *fresh* chat sees browser tools in its tool list. One server is enough — do not also add Chrome DevTools MCP. |
+| **Protocol MCP** (`mcp/`) | SDK reads/writes. Not a browser. | Indexer / statements / attesters. |
 
 ### Prerequisites
 
-1. Local stack + SPA: `./scripts/deploy-causestarter.sh` → http://localhost:8090/
+1. Local stack + SPA: `./scripts/deploy-causestarter.sh` → http://localhost:8090/ (or live `https://causestarter.testnet.commonality.works`).
 2. Playwright MCP in Grok (`~/.grok/config.toml`):
 
 ```toml
@@ -298,6 +306,18 @@ Protocol reads (SDK / IPFS / attesters), not the browser: [`mcp/README.md`](../m
 
 3. Chromium for Playwright tests (repo root):  
    `npx playwright install chromium`
+
+### Signing in (local vs testnet)
+
+Most tests should use **ordinary Ethereum keypairs**, not Privy emails.
+
+- Local UI: Hardhat picker (`wallet-hardhat-0` … `9`). Two browsers pick `#0` and `#1`.
+- Scripts / verifier / protocol MCP: a funded Base Sepolia key (`COMMONALITY_TESTNET_VERIFIER_PRIVATE_KEY`, `MCP_PRIVATE_KEY`). Generate with `cast wallet new` (or viem); fund; never commit the key.
+- Live UI without Sign In: two observer browsers + those keypair writes still prove a shared on-chain world.
+
+**Privy** is only the *product* login on deployed UIs (`VITE_PRIVY_APP_ID` set). One or two throwaway email users are enough to cover that path. Privy’s modal also lists MetaMask / WalletConnect (`detected_wallets`), so a human can import a testnet keypair into a real browser wallet and connect — that is still a normal account, just presented through Privy. Headless Chromium has no MetaMask; do not build a farm of email OTP users for ordinary journeys.
+
+The local “injected wallet harness” (`ui/e2e/fixtures/wallet.ts`, `window._setupTestWallet`) is wagmi’s mock connector pretending a private key is MetaMask. Localhost only. Do not point the well-known Hardhat keys at Sepolia.
 
 ### Stable selectors (`data-testid`)
 

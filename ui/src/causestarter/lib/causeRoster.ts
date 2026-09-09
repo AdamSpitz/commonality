@@ -171,6 +171,7 @@ export function normalizeSlug(raw: string): string {
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
     .slice(0, MAX_SLUG_LENGTH)
+    .replace(/-+$/g, '')
 }
 
 export function validateSlug(slug: string): string | null {

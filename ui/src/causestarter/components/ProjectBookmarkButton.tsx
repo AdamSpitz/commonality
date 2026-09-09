@@ -38,8 +38,10 @@ export function ProjectBookmarkButton() {
     if (!address) return
     const next = kept ? unbookmarkProject(address) : bookmarkProject(address)
     setKept(next.includes(address.toLowerCase()))
-    if (writeClients) void persistProjectBookmarks(writeClients).catch(() => undefined)
-  }, [address, kept, writeClients])
+    if (writeClients && wallet) {
+      void persistProjectBookmarks(machinery, wallet, writeClients).catch(() => undefined)
+    }
+  }, [address, kept, machinery, wallet, writeClients])
 
   if (!address) return null
 

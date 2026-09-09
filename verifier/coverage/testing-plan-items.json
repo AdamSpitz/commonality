@@ -163,6 +163,7 @@
         "stack.restart-consistency",
         "artifact.ipfs-domain-smoke",
         "testnet.environment",
+        "review.testnet-two-person-lab",
         "coverage.guarded-check-policy"
       ],
       "owner": "engineering",
