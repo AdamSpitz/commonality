@@ -1,5 +1,5 @@
 import { spawn, execFileSync } from "node:child_process";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { truncate, workspacePath, writeTextArtifact } from "./result.mjs";
 
@@ -120,24 +120,82 @@ function escapeRawControlCharsInStrings(text) {
   return output;
 }
 
-// Resolve the model the judgment should use, in priority order:
-//   1. explicit override env var (options.modelEnvVar),
-//   2. explicit params.model,
-//   3. pi-model-router <taskKind> (params.taskKind, else options.defaultTaskKind).
-// Returns null only if routing fails and no explicit model was given, in which
-// case the underlying command falls back to its own default model.
-export function resolveModel(params, { modelEnvVar, defaultTaskKind }) {
-  const explicit = (modelEnvVar && process.env[modelEnvVar]) || params.model;
-  if (explicit) return explicit;
+function loadLlmRouting() {
+  const routingPath = workspacePath("llm-routing.json");
+  try {
+    return JSON.parse(readFileSync(routingPath, "utf8"));
+  } catch {
+    return {
+      allowedProviders: ["xai", "opencode-go"],
+      default: "xai/grok-4.6",
+      byTaskKind: {}
+    };
+  }
+}
 
+function providerOf(model) {
+  if (!model || typeof model !== "string") return null;
+  const slash = model.indexOf("/");
+  return slash === -1 ? null : model.slice(0, slash).toLowerCase();
+}
+
+// Subscription-only providers. OpenRouter (and other pay-per-token gateways)
+// are rewritten to the workspace default so a stale router table cannot bill.
+export function coerceSubscriptionModel(model, env = process.env) {
+  const routing = loadLlmRouting();
+  const allowed = new Set(routing.allowedProviders ?? ["xai", "opencode-go"]);
+  const fallback = routing.default ?? "xai/grok-4.6";
+  const preferredProvider = (env.COMMONALITY_VERIFIER_LLM_PROVIDER ?? "").trim().toLowerCase();
+
+  if (preferredProvider && allowed.has(preferredProvider)) {
+    const source = providerOf(model) && allowed.has(providerOf(model)) ? model : fallback;
+    const rest = source.includes("/") ? source.slice(source.indexOf("/") + 1) : source;
+    const coerced = `${preferredProvider}/${rest}`;
+    if (providerOf(model) && providerOf(model) !== preferredProvider) {
+      console.error(`verifier LLM: using ${coerced} (COMMONALITY_VERIFIER_LLM_PROVIDER=${preferredProvider}; was ${model})`);
+    }
+    return coerced;
+  }
+
+  if (!model) return fallback;
+  const provider = providerOf(model);
+  if (provider && allowed.has(provider)) return model;
+  console.error(`verifier LLM: refusing pay-per-token/non-subscription model ${model}; using ${fallback}`);
+  return fallback;
+}
+
+// Resolve the model the judgment should use, in priority order:
+//   1. COMMONALITY_VERIFIER_LLM_MODEL (workspace-wide pin),
+//   2. explicit override env var (options.modelEnvVar),
+//   3. explicit params.model,
+//   4. verifier/llm-routing.json by taskKind,
+//   5. pi-model-router <taskKind> (params.taskKind, else options.defaultTaskKind),
+// then coerce onto xai / opencode-go so OpenRouter never gets the call.
+export function resolveModel(params, { modelEnvVar, defaultTaskKind }) {
+  const routing = loadLlmRouting();
   const taskKind = params.taskKind ?? defaultTaskKind;
+  const explicit = process.env.COMMONALITY_VERIFIER_LLM_MODEL
+    || (modelEnvVar && process.env[modelEnvVar])
+    || params.model
+    || routing.byTaskKind?.[taskKind];
+  if (explicit) return coerceSubscriptionModel(explicit);
+
   const router = process.env.COMMONALITY_VERIFIER_MODEL_ROUTER ?? "pi-model-router";
   try {
-    return execFileSync(router, [taskKind], { encoding: "utf8" }).trim() || null;
+    const routed = execFileSync(router, [taskKind], { encoding: "utf8" }).trim() || null;
+    return coerceSubscriptionModel(routed);
   } catch {
-    // Router unavailable or unknown task-kind: let the command pick its default.
-    return null;
+    return coerceSubscriptionModel(routing.default ?? "xai/grok-4.6");
   }
+}
+
+function sessionSuppliedResponse() {
+  if (process.env.COMMONALITY_VERIFIER_LLM_RESPONSE) {
+    return process.env.COMMONALITY_VERIFIER_LLM_RESPONSE;
+  }
+  const file = process.env.COMMONALITY_VERIFIER_LLM_RESPONSE_FILE;
+  if (file) return readFileSync(file, "utf8");
+  return null;
 }
 
 export function resolveDefaultLlmCommand(env = process.env) {
@@ -263,6 +321,18 @@ export function parsePiJsonStream(stdout) {
 // canned response; options.commandEnvVar names the env var that overrides the
 // command (default "pi").
 export async function getLlmResponse(prompt, params, promptArtifactPath, model, { fixtureEnvVar, commandEnvVar, explore = false } = {}) {
+  if (process.env.COMMONALITY_VERIFIER_DUMP_PROMPT === "1") {
+    throw new Error("COMMONALITY_VERIFIER_DUMP_PROMPT: prompt already written as prompt.md; not calling a model.");
+  }
+
+  const sessionText = sessionSuppliedResponse();
+  if (sessionText) {
+    return {
+      text: sessionText,
+      usage: { model: "chat-session", totalTokens: 0, costUsd: 0, source: "COMMONALITY_VERIFIER_LLM_RESPONSE" }
+    };
+  }
+
   if (fixtureEnvVar && process.env[fixtureEnvVar]) {
     return { text: process.env[fixtureEnvVar], usage: null };
   }
@@ -270,6 +340,7 @@ export async function getLlmResponse(prompt, params, promptArtifactPath, model, 
   const command = params.command
     ?? (commandEnvVar && process.env[commandEnvVar])
     ?? resolveDefaultLlmCommand();
+  model = coerceSubscriptionModel(model);
   const usesCustomArgs = Array.isArray(params.args);
   // A check opts into exploration; params.explore === false force-disables it.
   const useExplore = explore && !usesCustomArgs && params.explore !== false;

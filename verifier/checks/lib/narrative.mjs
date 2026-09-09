@@ -16,10 +16,13 @@ import { getLlmResponse, parseJsonObject, resolveModel, validateJudgmentResponse
 
 const DEFAULT_TASK_KIND = "clear-communication";
 const DEGRADED_REPORT_HEADING = "# Report unavailable";
+const SKIPPED_NARRATIVE_HEADING = "# Report narrative not refreshed";
 
 export function isReusableNarrativeResult(prior, markdown) {
   return !prior?.findings?.narrative?.error
-    && !markdown.trimStart().startsWith(DEGRADED_REPORT_HEADING);
+    && !prior?.findings?.narrative?.skippedLlm
+    && !markdown.trimStart().startsWith(DEGRADED_REPORT_HEADING)
+    && !markdown.trimStart().startsWith(SKIPPED_NARRATIVE_HEADING);
 }
 
 export function minutesSince(timestamp) {

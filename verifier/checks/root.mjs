@@ -85,6 +85,7 @@ async function latestPriorResult() {
 // forward into this run's artifact dir (so retention pruning the old run can't
 // orphan it) and return the narrative shape generateNarrative would have.
 async function reusePriorNarrative(prior) {
+  if (!prior) return null;
   const reportArtifact = (prior.artifacts ?? []).find(
     (a) => a.name === "report.md" || (a.path ?? "").endsWith("report.md")
   );
@@ -133,6 +134,23 @@ emit(async () => {
   if (prior?.findings?.narrative?.fingerprint === print) {
     narrative = await reusePriorNarrative(prior);
   }
+  const allowNarrativeLlm = process.env.COMMONALITY_VERIFIER_ALLOW_LLM === "1"
+    || process.env.COMMONALITY_VERIFIER_DUMP_PROMPT === "1"
+    || Boolean(process.env.COMMONALITY_VERIFIER_LLM_RESPONSE)
+    || Boolean(process.env.COMMONALITY_VERIFIER_LLM_RESPONSE_FILE)
+    || Boolean(process.env.COMMONALITY_VERIFIER_ROOT_REPORT_FIXTURE_RESPONSE);
+
+  if (!narrative && !allowNarrativeLlm) {
+    narrative = await reusePriorNarrative(prior);
+    if (narrative) {
+      narrative.stale = true;
+    } else {
+      const skipped = `# Report narrative not refreshed\n\nThe rollup status is **${status}**. The LLM narrative was not regenerated (subscription spend is opt-in). Re-run with \`COMMONALITY_VERIFIER_ALLOW_LLM=1\` (or \`npm run verifier:go\` / \`npm run verifier:root\`), or record a chat-session result via \`npm run verifier:llm -- root --response-file …\`.\n\nThe dashboard rollup below is unaffected; drill into the tree for per-check detail.`;
+      const skippedArtifact = await writeTextArtifact("report.md", skipped, "text/markdown", "Rollup-only root: narrative LLM skipped because COMMONALITY_VERIFIER_ALLOW_LLM was not set.");
+      narrative = { summary: null, priorities: [], model: null, skippedLlm: true, artifacts: [skippedArtifact] };
+    }
+  }
+
   if (!narrative) {
     try {
       // Pass advisory leaves too so the report can mention report-currency /
@@ -160,8 +178,12 @@ emit(async () => {
       ? { advisoryPolicy: "Advisory children inform the narrative but never affect rollup status.", advisoryCounts: statusCounts(advisoryWorkers), advisoryChildren: advisoryWorkers.map(childSummary) }
       : {}),
     narrative: {
-      fingerprint: print,
+      fingerprint: (narrative.skippedLlm || narrative.stale)
+        ? (prior?.findings?.narrative?.fingerprint ?? null)
+        : print,
       memoized: Boolean(narrative.memoized),
+      skippedLlm: Boolean(narrative.skippedLlm),
+      stale: Boolean(narrative.stale),
       model: narrative.model ?? null,
       priorities: narrative.priorities ?? [],
       ...(narrativeError ? { error: narrativeError } : {})

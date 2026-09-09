@@ -30,12 +30,43 @@ To browse the dashboard interactively: `npm run verifier:tree`. It opens on the 
 | Refresh one facet while working in it | `npm run verifier:{functionality,docs,product,security}` |
 | Run the due-only scheduler (long-running) | `npm run verifier:run` |
 | Force any one check | `verifier-run <checkId>` |
+| List LLM-judgment checks / record a chat-session verdict | `npm run verifier:llm -- --list` / `npm run verifier:llm -- <id> --response-file verdict.json` |
 
 The project `.envrc` sets `VERIFIER_WORKSPACE=verifier`, so no `--workspace` flag is needed from the repo root. From elsewhere, pass `--workspace <path>` or set `VERIFIER_WORKSPACE`.
 
+## Run an LLM-judgment check from this chat
+
+If Adam says “run `review.landing-compelling`” (or any other `cost: "llm"` check) **in a coding chat**, he means **you** do the review in this session and **record it as a real verifier Result**. Do **not** `verifier-run` the check in a way that spawns `pi` (that used to go through OpenRouter and bill per token). Do **not** wait for the scheduler; these leaves are `trigger: manual`.
+
+Procedure:
+
+1. `npm run verifier:llm -- --list` if you need the check id.
+2. `npm run verifier:llm -- <checkId> --dump-prompt` — writes `prompt.md` (and any snapshots). The stored check Result is an **error**, not a verdict. The helper itself exits 0 when that dump path ran as intended.
+3. Read the dumped prompt. Follow it: brief yourself from the repo README as instructed, inspect the scoped surface, write the JSON envelope the prompt specifies (`status`, `summary`, `reportMarkdown`, `findings`, `filesRead`, …).
+4. Save that JSON to a file and record it:
+   `npm run verifier:llm -- <checkId> --response-file /tmp/verdict.json`
+5. That run is a real stored Result: supervisors, `verifier-tree`, and `verifier:go` treat it the same as a `pi` run. Status is still derived from finding severities; you cannot talk a high finding into a pass.
+
+Only use `verifier-run <checkId>` / `COMMONALITY_VERIFIER_ALLOW_LLM=1` when Adam explicitly wants a **separate** `pi` process (subscription `xai` / `opencode-go` only — see `llm-routing.json`). Prefer the chat-session path above.
+
 ### Refresh cost (so you don't fire an expensive check by accident)
 
-Expensive (LLM/agent) checks are marked declaratively with `"cost": "llm"` in their `*.def.json`. The harness reads that field so cost awareness is **baked into the tools you actually use**, not a script you have to remember:
+Expensive (LLM/agent) checks are marked declaratively with `"cost": "llm"` in their `*.def.json`. There are 20 defs with `"cost": "llm"` (`npm run verifier:llm -- --list`): standing `review.*` “acts like a human tester” leaves, two meta reviewers, `meta.report-currency`, the `root` narrative, and the `known-bad.report` fixture (that last one never calls a live model). **They do not auto-run.** Review/meta leaves are `trigger: manual`. `meta.report-currency` is manual (only `verifier:go` / an explicit `verifier-run` fires it). `root` may still fold on input change, but its **narrative model call is opt-in** (`COMMONALITY_VERIFIER_ALLOW_LLM=1`, which `verifier:go` and `verifier:root` set). The scheduler therefore cannot burn tokens on human-tester leaves.
+
+They spend against Adam's **subscription** providers only (`xai/grok-4.6` by default, or `opencode-go/…` via `COMMONALITY_VERIFIER_LLM_PROVIDER=opencode-go`). `verifier/llm-routing.json` is the pin; OpenRouter and other pay-per-token gateways are rewritten away before `pi` is spawned.
+
+To have the LLM you are already chatting with do the review (and have it count as a real stored Result): dump the prompt, write the JSON envelope the prompt asks for, then record it — no second `pi` process, no OpenRouter:
+
+```sh
+npm run verifier:llm -- --list
+npm run verifier:llm -- review.landing-compelling --dump-prompt
+# write the JSON envelope to /tmp/verdict.json, then:
+npm run verifier:llm -- review.landing-compelling --response-file /tmp/verdict.json
+```
+
+`COMMONALITY_VERIFIER_LLM_RESPONSE` / `_FILE` is the same mechanism if you skip the helper. The check still runs its deterministic setup (copy snapshots, etc.) and still maps findings to status; only the model spawn is replaced.
+
+The harness reads the `cost` field so cost awareness is **baked into the tools you actually use**, not a script you have to remember:
 
 - **verifier-tree** shows an amber `$` badge next to LLM checks, and pressing `r` (rerun) on one asks `y/N` before spending.
 - **`verifier-run`**, on an interactive terminal, prompts before running an LLM check. Piped/automated runs and the scheduler never prompt (so nothing hangs); pass `--yes` / `VERIFIER_YES=1` to skip it deliberately.

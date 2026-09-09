@@ -1,0 +1,13 @@
+{
+  "comment": "Verifier LLM leaves spend against Adam's subscription providers only. Never OpenRouter (pay-per-token). Override with COMMONALITY_VERIFIER_LLM_MODEL=opencode-go/<model> or COMMONALITY_VERIFIER_LLM_PROVIDER=opencode-go.",
+  "allowedProviders": ["xai", "opencode-go"],
+  "default": "xai/grok-4.6",
+  "byTaskKind": {
+    "big-picture-thinking": "xai/grok-4.6",
+    "clear-communication": "xai/grok-4.6",
+    "easy": "xai/grok-4.6",
+    "complex-coding": "xai/grok-4.6",
+    "normal-coding": "xai/grok-4.6",
+    "easy-coding": "xai/grok-4.6"
+  }
+}
