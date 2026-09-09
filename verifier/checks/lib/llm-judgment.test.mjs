@@ -111,6 +111,15 @@ test("coerceSubscriptionModel honors COMMONALITY_VERIFIER_LLM_PROVIDER", () => {
   );
 });
 
+test("coerceSubscriptionModel does not keep OpenRouter path tails under a provider override", () => {
+  assert.equal(
+    coerceSubscriptionModel("openrouter/deepseek/deepseek-v4-pro", {
+      COMMONALITY_VERIFIER_LLM_PROVIDER: "opencode-go"
+    }),
+    "opencode-go/grok-4.6"
+  );
+});
+
 test("getLlmResponse uses a chat-session envelope instead of spawning pi", async () => {
   const previous = process.env.COMMONALITY_VERIFIER_LLM_RESPONSE;
   process.env.COMMONALITY_VERIFIER_LLM_RESPONSE = '{"status":"pass","summary":"from chat","reportMarkdown":"# ok"}';

@@ -148,7 +148,8 @@ export function coerceSubscriptionModel(model, env = process.env) {
   const preferredProvider = (env.COMMONALITY_VERIFIER_LLM_PROVIDER ?? "").trim().toLowerCase();
 
   if (preferredProvider && allowed.has(preferredProvider)) {
-    const rest = model && model.includes("/") ? model.slice(model.indexOf("/") + 1) : (fallback.includes("/") ? fallback.slice(fallback.indexOf("/") + 1) : fallback);
+    const source = providerOf(model) && allowed.has(providerOf(model)) ? model : fallback;
+    const rest = source.includes("/") ? source.slice(source.indexOf("/") + 1) : source;
     const coerced = `${preferredProvider}/${rest}`;
     if (providerOf(model) && providerOf(model) !== preferredProvider) {
       console.error(`verifier LLM: using ${coerced} (COMMONALITY_VERIFIER_LLM_PROVIDER=${preferredProvider}; was ${model})`);

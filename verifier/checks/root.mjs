@@ -135,6 +135,7 @@ emit(async () => {
     narrative = await reusePriorNarrative(prior);
   }
   const allowNarrativeLlm = process.env.COMMONALITY_VERIFIER_ALLOW_LLM === "1"
+    || process.env.COMMONALITY_VERIFIER_DUMP_PROMPT === "1"
     || Boolean(process.env.COMMONALITY_VERIFIER_LLM_RESPONSE)
     || Boolean(process.env.COMMONALITY_VERIFIER_LLM_RESPONSE_FILE)
     || Boolean(process.env.COMMONALITY_VERIFIER_ROOT_REPORT_FIXTURE_RESPONSE);

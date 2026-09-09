@@ -41,7 +41,7 @@ If Adam says “run `review.landing-compelling`” (or any other `cost: "llm"` c
 Procedure:
 
 1. `npm run verifier:llm -- --list` if you need the check id.
-2. `npm run verifier:llm -- <checkId> --dump-prompt` — writes `prompt.md` (and any snapshots) and **exits as an error**. That dump is **not** a verdict.
+2. `npm run verifier:llm -- <checkId> --dump-prompt` — writes `prompt.md` (and any snapshots). The stored check Result is an **error**, not a verdict. The helper itself exits 0 when that dump path ran as intended.
 3. Read the dumped prompt. Follow it: brief yourself from the repo README as instructed, inspect the scoped surface, write the JSON envelope the prompt specifies (`status`, `summary`, `reportMarkdown`, `findings`, `filesRead`, …).
 4. Save that JSON to a file and record it:
    `npm run verifier:llm -- <checkId> --response-file /tmp/verdict.json`
