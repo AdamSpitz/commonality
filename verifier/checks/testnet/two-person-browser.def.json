@@ -1,0 +1,17 @@
+{
+  "id": "testnet.two-person-browser",
+  "description": "Two independent Chromium contexts on live CauseStarter: shared deployed config, cause-assist atomize from the page origin, optional lab-A signed write observed by B.",
+  "trigger": { "type": "manual" },
+  "retention": { "keep": 5, "keepDays": 30 },
+  "command": ["node", "checks/testnet/two-person-browser.mjs"],
+  "inputs": [
+    { "kind": "file", "path": "environments/testnet.json", "as": "testnetConfig" },
+    {
+      "kind": "params",
+      "data": {
+        "guardPolicy": "Requires COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE=1 and COMMONALITY_VERIFIER_ENABLE_TESTNET_BROWSER_JOURNEYS=1. Signed write requires COMMONALITY_VERIFIER_ENABLE_TESTNET_MUTATION=1 plus COMMONALITY_TESTNET_LAB_A_PRIVATE_KEY."
+      }
+    }
+  ],
+  "timeoutMs": 240000
+}

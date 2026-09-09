@@ -4,7 +4,10 @@
 // This script writes service hot keys to .env.secrets, operator-only keys to
 // ~/.secrets/commonality/operator.env, and public addresses/default-trust config
 // to deployments/operator-addresses.env (gitignored).
+// operator-addresses.env is derived from those keys (not a second secret store).
 // Save the printed secret block in your password manager too.
+// Re-running without --force fills any missing roles (including lab A/B) and
+// leaves existing keys/addresses alone.
 
 import { randomBytes } from 'node:crypto'
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
@@ -84,6 +87,16 @@ const roles = [
     label: 'Testnet verifier mutating canary',
     privateKeyEnvKey: 'COMMONALITY_TESTNET_VERIFIER_PRIVATE_KEY',
     addressEnvKey: 'COMMONALITY_TESTNET_VERIFIER_ADDRESS',
+  },
+  {
+    label: 'Testnet lab wallet A (two-person browser/SDK)',
+    privateKeyEnvKey: 'COMMONALITY_TESTNET_LAB_A_PRIVATE_KEY',
+    addressEnvKey: 'COMMONALITY_TESTNET_LAB_A_ADDRESS',
+  },
+  {
+    label: 'Testnet lab wallet B (two-person browser/SDK)',
+    privateKeyEnvKey: 'COMMONALITY_TESTNET_LAB_B_PRIVATE_KEY',
+    addressEnvKey: 'COMMONALITY_TESTNET_LAB_B_ADDRESS',
   },
 ]
 

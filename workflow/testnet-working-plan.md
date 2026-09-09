@@ -141,7 +141,7 @@ Do these in order unless Adam names a different one. Each item is a session-size
 
 9. **[ ] (Ask) Nightly mutation flag.** When read-only smoke is green for a few days and item 6 has a fresh pass, ask Adam to set `COMMONALITY_VERIFIER_NIGHTLY_ALLOW_TESTNET_MUTATION=1` in the cadence shell. Do not enable it yourself.
 
-10. **[x] (Tell) Two-person lab LLM overlay.** `review.testnet-two-person-lab` added 2026-09-09. First chat-session run: two HTTP clients see the same CauseStarter shell/config and indexer `_meta`; **uncertain** (no injected wallets). Re-run from a browser-capable session when you want a signed walk. `npm run verifier:llm -- review.testnet-two-person-lab --dump-prompt` then `--response-file`.
+10. **[x] (Tell) Two-person lab LLM overlay.** 2026-09-09 browser re-run: two Chromium contexts share live CauseStarter config; lab A/B wallets are generate-wallets roles (`COMMONALITY_TESTNET_LAB_A_*` / `_B_*`); lab A `attestAlignment` `0x4764d91e…` indexed. Deterministic `testnet.two-person-browser` is on `--browser`. Live cause-assist `/health` showed OpenRouter URL + DeepSeek while only `XAI_API_KEY` was filled — 401. Headless still cannot Privy-connect.
 
 Item 9 is Ask — do not enable nightly mutation yourself. Item 10 is the LLM overlay so Adam/Sam are not the first two clients. **Do not start job 3 (mass activity on testnet).** Scale drills stay local (`gen:medium` / `gen:large`).
 

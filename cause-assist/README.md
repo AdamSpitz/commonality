@@ -47,7 +47,7 @@ Without an API key, the suggester uses conservative local templates, implication
 | Env | Default | Notes |
 | --- | --- | --- |
 | `OPENROUTER_API_KEY` | — | Preferred LLM key; pairs with OpenRouter + `deepseek/deepseek-v4-flash-0731` |
-| `XAI_API_KEY` | — | Fallback only when OpenRouter is not configured |
+| `XAI_API_KEY` | — | Used when `OPENROUTER_API_KEY` is unset. Do not pin `CAUSE_ASSIST_API_BASE_URL` to OpenRouter unless the OpenRouter key is also set. |
 | `CAUSE_ASSIST_API_BASE_URL` | `https://openrouter.ai/api/v1` when OpenRouter is used | OpenAI-compatible base URL |
 | `CAUSE_ASSIST_SUGGEST_MODEL` | production OpenRouter model (`deepseek/deepseek-v4-flash-0731`) | Suggester model id |
 | `CAUSE_ASSIST_COHERENCE_MODEL` | same as safety/suggest | Roster coherence model (own slot so it is not generation's model by accident) |

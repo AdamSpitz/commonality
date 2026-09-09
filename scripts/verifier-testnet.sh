@@ -73,6 +73,7 @@ LEAVES=(
 if [ "$WITH_BROWSER" = "1" ]; then
 	export COMMONALITY_VERIFIER_ENABLE_TESTNET_BROWSER_JOURNEYS=1
 	LEAVES+=(testnet.website-journeys)
+	LEAVES+=(testnet.two-person-browser)
 fi
 
 if [ "$WITH_MUTATION" = "1" ]; then

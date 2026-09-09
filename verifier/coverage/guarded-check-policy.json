@@ -149,6 +149,16 @@
         "COMMONALITY_VERIFIER_ENABLE_TESTNET_BROWSER_JOURNEYS"
       ],
       "skipPolicyBeforeMandatory": "May be skipped during ordinary development because browser journeys against the deployed site are slower and may eventually drive wallet/testnet state."
+    },
+    {
+      "checkId": "testnet.two-person-browser",
+      "mandatoryBy": "release-candidate",
+      "maxAgeDays": 7,
+      "optInEnv": [
+        "COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE",
+        "COMMONALITY_VERIFIER_ENABLE_TESTNET_BROWSER_JOURNEYS"
+      ],
+      "skipPolicyBeforeMandatory": "May be skipped during ordinary development because it drives two Chromium contexts against live CauseStarter and may submit a lab-wallet attestation when mutation is also enabled."
     }
   ]
 }

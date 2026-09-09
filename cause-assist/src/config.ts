@@ -18,25 +18,39 @@ export function loadConfigFromEnv(env: NodeJS.ProcessEnv = process.env): CauseAs
   const openRouterKey = firstEnv(env, ['OPENROUTER_API_KEY'])
   const explicitBase = firstEnv(env, ['CAUSE_ASSIST_API_BASE_URL', 'XAI_API_BASE_URL'])
   const baseLooksOpenRouter = (explicitBase ?? '').includes('openrouter.ai')
-  const usingOpenRouter = explicitBase ? baseLooksOpenRouter : Boolean(openRouterKey)
-  const apiKey = usingOpenRouter ? (openRouterKey || xaiKey) : (xaiKey || openRouterKey)
-  const apiBaseUrl =
-    explicitBase ||
-    (usingOpenRouter ? DEFAULT_OPENROUTER_BASE_URL : DEFAULT_XAI_BASE_URL)
+  // An OpenRouter URL in env is not enough: Render's blueprint used to pin
+  // that URL while only XAI_API_KEY was filled, which sent an xAI key to
+  // OpenRouter (401). Prefer OpenRouter only when its key is actually present.
+  const usingOpenRouter = Boolean(openRouterKey) && (!explicitBase || baseLooksOpenRouter)
+  const apiKey = usingOpenRouter ? openRouterKey : (xaiKey || openRouterKey)
+  const apiBaseUrl = usingOpenRouter
+    ? (baseLooksOpenRouter ? explicitBase! : DEFAULT_OPENROUTER_BASE_URL)
+    : (explicitBase && !baseLooksOpenRouter ? explicitBase : DEFAULT_XAI_BASE_URL)
 
   const defaultModel = usingOpenRouter ? PRODUCTION_OPENROUTER_MODEL : DEFAULT_XAI_MODEL
+  const looksLikeOpenRouterModel = (value: string | undefined) => Boolean(value?.includes('/'))
+  const modelFromEnv = (keys: string[]) => {
+    const value = firstEnv(env, keys)
+    if (!value) return defaultModel
+    if (!usingOpenRouter && looksLikeOpenRouterModel(value)) return defaultModel
+    return value
+  }
 
   return {
     apiKey,
     apiBaseUrl,
-    suggestModel: firstEnv(env, ['CAUSE_ASSIST_SUGGEST_MODEL', 'CAUSE_ASSIST_MODEL']) || defaultModel,
-    safetyModel: firstEnv(env, ['CAUSE_ASSIST_SAFETY_MODEL', 'CAUSE_ASSIST_MODEL']) || defaultModel,
-    implicationModel:
-      firstEnv(env, ['CAUSE_ASSIST_IMPLICATION_MODEL', 'CAUSE_ASSIST_SUGGEST_MODEL', 'CAUSE_ASSIST_MODEL'])
-      || defaultModel,
-    coherenceModel:
-      firstEnv(env, ['CAUSE_ASSIST_COHERENCE_MODEL', 'CAUSE_ASSIST_SAFETY_MODEL', 'CAUSE_ASSIST_MODEL'])
-      || defaultModel,
+    suggestModel: modelFromEnv(['CAUSE_ASSIST_SUGGEST_MODEL', 'CAUSE_ASSIST_MODEL']),
+    safetyModel: modelFromEnv(['CAUSE_ASSIST_SAFETY_MODEL', 'CAUSE_ASSIST_MODEL']),
+    implicationModel: modelFromEnv([
+      'CAUSE_ASSIST_IMPLICATION_MODEL',
+      'CAUSE_ASSIST_SUGGEST_MODEL',
+      'CAUSE_ASSIST_MODEL',
+    ]),
+    coherenceModel: modelFromEnv([
+      'CAUSE_ASSIST_COHERENCE_MODEL',
+      'CAUSE_ASSIST_SAFETY_MODEL',
+      'CAUSE_ASSIST_MODEL',
+    ]),
     port: Number(env.PORT || env.CAUSE_ASSIST_PORT || 3002),
     ethereumPrivateKey: firstEnv(env, [
       'CAUSE_ASSIST_COHERENCE_ATTESTER_PRIVATE_KEY',

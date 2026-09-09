@@ -46,6 +46,23 @@ describe('loadConfigFromEnv', () => {
     assert.equal(config.suggestModel, 'grok-4.5')
   })
 
+  it('does not send an xAI key to OpenRouter when the blueprint pinned an OpenRouter URL', () => {
+    const config = loadConfigFromEnv({
+      XAI_API_KEY: 'xai-test-key',
+      CAUSE_ASSIST_API_BASE_URL: 'https://openrouter.ai/api/v1',
+      CAUSE_ASSIST_SUGGEST_MODEL: 'deepseek/deepseek-v4-flash-0731',
+      CAUSE_ASSIST_SAFETY_MODEL: 'deepseek/deepseek-v4-flash-0731',
+      CAUSE_ASSIST_IMPLICATION_MODEL: 'deepseek/deepseek-v4-flash-0731',
+      CAUSE_ASSIST_COHERENCE_MODEL: 'deepseek/deepseek-v4-flash-0731',
+    })
+    assert.equal(config.apiKey, 'xai-test-key')
+    assert.equal(config.apiBaseUrl, 'https://api.x.ai/v1')
+    assert.equal(config.suggestModel, 'grok-4.5')
+    assert.equal(config.safetyModel, 'grok-4.5')
+    assert.equal(config.implicationModel, 'grok-4.5')
+    assert.equal(config.coherenceModel, 'grok-4.5')
+  })
+
   it('honors explicit base URL even with only OpenRouter key', () => {
     const config = loadConfigFromEnv({
       OPENROUTER_API_KEY: 'or-test-key',
