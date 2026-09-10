@@ -13,7 +13,8 @@ export type ContentFundingCanonicalizationErrorCode =
   | 'invalid_substack_url'
   | 'unsupported_substack_custom_domain'
   | 'invalid_channel_id'
-  | 'invalid_content_suffix';
+  | 'invalid_content_suffix'
+  | 'invalid_domain_redirect';
 
 /**
  * Error thrown when a content-funding URL or canonical ID cannot be parsed.
@@ -370,6 +371,36 @@ export function normalizeDnsBeneficiary(input: string): string {
     );
   }
   return registrableDomain;
+}
+
+/**
+ * Registrable domain of an HTTPS URL, or null if the URL is not a usable public
+ * HTTPS location. `www` and apex collapse to the same registrable name.
+ */
+export function registrableHttpsDomain(url: string): string | null {
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== 'https:' || parsed.username || parsed.password) {
+      return null;
+    }
+    return getDomain(parsed.hostname, { allowPrivateDomains: false });
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Refuse a fetch that landed on a different registrable domain than the
+ * beneficiary being named. Same-domain hops (including `www`) are allowed.
+ */
+export function assertDnsRedirectStaysOnDomain(finalUrl: string, expectedDomain: string): void {
+  const finalDomain = registrableHttpsDomain(finalUrl);
+  if (finalDomain !== expectedDomain) {
+    throw new ContentFundingCanonicalizationError(
+      'invalid_domain_redirect',
+      `Website redirected to a different registrable domain (${finalUrl})`,
+    );
+  }
 }
 
 /**

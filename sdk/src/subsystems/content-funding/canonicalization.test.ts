@@ -7,6 +7,8 @@ import {
   hashCanonicalId,
   hashBeneficiaryId,
   normalizeDnsBeneficiary,
+  registrableHttpsDomain,
+  assertDnsRedirectStaysOnDomain,
   parseCanonicalChannelId,
   parseContentFundingUrl,
   parseSubstackPostUrl,
@@ -125,6 +127,19 @@ describe('content-funding canonicalization', () => {
       assert.throws(() => normalizeDnsBeneficiary('https://example.org/project'));
       assert.throws(() => normalizeDnsBeneficiary('http://example.org'));
       assert.throws(() => normalizeDnsBeneficiary('org'));
+    });
+
+    it('treats www and apex HTTPS hops as the same registrable domain', () => {
+      assert.strictEqual(registrableHttpsDomain('https://www.example.org/path'), 'example.org');
+      assert.strictEqual(registrableHttpsDomain('https://example.org/'), 'example.org');
+      assert.strictEqual(registrableHttpsDomain('http://example.org/'), null);
+      assertDnsRedirectStaysOnDomain('https://www.example.org/', 'example.org');
+      assert.throws(
+        () => assertDnsRedirectStaysOnDomain('https://attacker.example/', 'example.org'),
+        (error: unknown) =>
+          error instanceof ContentFundingCanonicalizationError &&
+          error.code === 'invalid_domain_redirect',
+      );
     });
 
     it('builds and hashes generic claimable-beneficiary IDs', () => {

@@ -3,7 +3,7 @@ import { Alert, Button, Paper, Stack, TextField, Typography } from '@mui/materia
 import { useAccount, usePublicClient } from 'wagmi'
 import { isAddress } from 'viem'
 import { BeneficiaryEscrowAbi, BeneficiaryRegistryAbi } from '@commonality/sdk/abis'
-import { hashBeneficiaryId, rotatePayoutAddress, type ChannelState } from '@commonality/sdk/content-funding'
+import { hashBeneficiaryId, rotatePayoutAddress, type BeneficiaryState } from '@commonality/sdk/content-funding'
 import { ClaimFlowModal } from '../../content-funding'
 import { getRuntimeConfigValue, humanizeTxError, useWriteClients } from '../../shared'
 
@@ -11,7 +11,7 @@ type WebsiteClaimSectionProps = {
   domain: string
 }
 
-function channelStateFromUint(value: number): ChannelState {
+function beneficiaryStateFromUint(value: number): BeneficiaryState {
   if (value >= 2) return 'beneficiary-controlled'
   if (value === 1) return 'verified'
   return 'unclaimed'
@@ -23,7 +23,7 @@ export function WebsiteClaimSection({ domain }: WebsiteClaimSectionProps) {
   const writeClients = useWriteClients(address)
   const [claimOpen, setClaimOpen] = useState(false)
   const [escrowBalance, setEscrowBalance] = useState(0n)
-  const [channelState, setChannelState] = useState<ChannelState>('unclaimed')
+  const [beneficiaryState, setBeneficiaryState] = useState<BeneficiaryState>('unclaimed')
   const [payoutAddress, setPayoutAddress] = useState<string | null>(null)
   const [newPayoutAddress, setNewPayoutAddress] = useState('')
   const [rotating, setRotating] = useState(false)
@@ -61,7 +61,7 @@ export function WebsiteClaimSection({ domain }: WebsiteClaimSectionProps) {
           args: [beneficiaryId],
         }) as Promise<string>,
       ])
-      setChannelState(channelStateFromUint(Number(state)))
+      setBeneficiaryState(beneficiaryStateFromUint(Number(state)))
       setEscrowBalance(balance)
       setPayoutAddress(Number(state) > 0 ? payout : null)
       if (Number(state) > 0) {
@@ -94,7 +94,7 @@ export function WebsiteClaimSection({ domain }: WebsiteClaimSectionProps) {
     address
     && payoutAddress
     && address.toLowerCase() === payoutAddress.toLowerCase()
-    && channelState !== 'unclaimed'
+    && beneficiaryState !== 'unclaimed'
     && writeClients
     && registryAddress,
   )
@@ -188,7 +188,7 @@ export function WebsiteClaimSection({ domain }: WebsiteClaimSectionProps) {
           handle={domain}
           claimantAddress={address}
           escrowBalance={escrowBalance}
-          channelState={channelState}
+          channelState={beneficiaryState}
           includeTakeControl={false}
           withdrawableAt={withdrawableAt}
           withdrawLocked={withdrawLocked}

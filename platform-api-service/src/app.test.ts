@@ -204,6 +204,37 @@ describe('createApp routes', () => {
     }
   });
 
+  it('forwards resolve/website-beneficiary requests to the service', async () => {
+    const seen: string[] = [];
+    const server = await startTestServer({
+      service: createStubService({
+        resolveWebsiteBeneficiary: async (domain) => {
+          seen.push(domain);
+          return {
+            namespace: 'dns',
+            canonicalIdentifier: 'example.org',
+            reachable: true,
+          };
+        },
+      }),
+    });
+
+    try {
+      const response = await postJson(`${server.baseUrl}/resolve/website-beneficiary`, {
+        domain: 'https://www.example.org/',
+      });
+      assert.strictEqual(response.status, 200);
+      assert.deepStrictEqual(await response.json(), {
+        namespace: 'dns',
+        canonicalIdentifier: 'example.org',
+        reachable: true,
+      });
+      assert.deepStrictEqual(seen, ['https://www.example.org/']);
+    } finally {
+      await server.close();
+    }
+  });
+
   it('forwards resolve/content requests to the service', async () => {
     const seenRequests: string[] = [];
     const url = 'https://x.com/alice/status/18347';
@@ -559,6 +590,13 @@ describe('createApp routes', () => {
         message: 'Missing required fields: platform, handle',
       });
 
+      const resolveWebsiteResponse = await postJson(`${server.baseUrl}/resolve/website-beneficiary`, {});
+      assert.strictEqual(resolveWebsiteResponse.status, 400);
+      assert.deepStrictEqual(await resolveWebsiteResponse.json(), {
+        error: 'invalid_request',
+        message: 'Missing required field: domain',
+      });
+
       const resolveContentResponse = await postJson(`${server.baseUrl}/resolve/content`, {});
       assert.strictEqual(resolveContentResponse.status, 400);
       assert.deepStrictEqual(await resolveContentResponse.json(), {
@@ -822,6 +860,7 @@ function postJson(url: string, body: unknown): Promise<Response> {
 
 function createStubService(overrides: Partial<{
   resolveChannel: (platform: string, handle: string) => ReturnType<PlatformApiService['resolveChannel']>;
+  resolveWebsiteBeneficiary: (input: string) => ReturnType<PlatformApiService['resolveWebsiteBeneficiary']>;
   resolveContent: (url: string) => ReturnType<PlatformApiService['resolveContent']>;
   getLocalContentContext: (
     request: Parameters<PlatformApiService['getLocalContentContext']>[0],
@@ -854,6 +893,11 @@ function createStubService(overrides: Partial<{
       channelId: 'twitter:uid:12345678',
       handle: '@alice',
       displayName: 'Alice',
+    })),
+    resolveWebsiteBeneficiary: overrides.resolveWebsiteBeneficiary ?? (async (domain) => ({
+      namespace: 'dns' as const,
+      canonicalIdentifier: domain,
+      reachable: true,
     })),
     resolveContent: overrides.resolveContent ?? (async () => ({
       platform: 'twitter',

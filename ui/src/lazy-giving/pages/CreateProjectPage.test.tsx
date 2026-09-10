@@ -65,6 +65,18 @@ vi.mock('@commonality/sdk/displayable-documents', async () => {
   }
 })
 
+const mockResolveWebsiteBeneficiary = vi.fn()
+
+vi.mock('../../content-funding', async () => {
+  const actual = await vi.importActual('../../content-funding') as Record<string, unknown>
+  return {
+    ...actual,
+    usePlatformApi: () => ({
+      resolveWebsiteBeneficiary: mockResolveWebsiteBeneficiary,
+    }),
+  }
+})
+
 import { createProject } from '@commonality/sdk/lazy-giving'
 
 describe('CreateProjectPage', () => {
@@ -74,6 +86,12 @@ describe('CreateProjectPage', () => {
     mockAccount.address = '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266'
     mockDocumentStorePublish.mockReset()
     mockDocumentStorePublish.mockResolvedValue({ cid: 'bafyprojectmeta', dataId: '0x0', txHash: '0x0' })
+    mockResolveWebsiteBeneficiary.mockReset()
+    mockResolveWebsiteBeneficiary.mockResolvedValue({
+      namespace: 'dns',
+      canonicalIdentifier: 'example.org',
+      reachable: true,
+    })
     // Set required env var for contract address
     import.meta.env.VITE_PROJECT_FACTORY_CONTRACT_ADDRESS = '0x1234567890abcdef1234567890abcdef12345678'
 
@@ -413,6 +431,27 @@ describe('CreateProjectPage', () => {
           beneficiary: { namespace: 'dns', canonicalIdentifier: 'example.org' },
         }),
       }))
+      expect(mockResolveWebsiteBeneficiary).toHaveBeenCalledWith('https://www.Example.org/')
+    })
+
+    it('refuses a website beneficiary that redirects to another domain', async () => {
+      mockResolveWebsiteBeneficiary.mockRejectedValue({
+        code: 'invalid_domain_redirect',
+        message: 'Website redirected to a different registrable domain',
+      })
+
+      render(<CreateProjectPage />)
+      const user = userEvent.setup()
+      fillForm()
+      await user.click(screen.getByLabelText(/controller of a website/i))
+      setFieldValue(/beneficiary website/i, 'example.org')
+
+      await submitAndConfirm(user)
+
+      await waitFor(() => {
+        expect(screen.getByText(/redirected to a different domain/i)).toBeInTheDocument()
+      })
+      expect(createProject).not.toHaveBeenCalled()
     })
 
     it('shows success message and View Project button after creation', async () => {

@@ -19,6 +19,12 @@ interface PlatformApiError {
   message: string
 }
 
+interface ResolvedWebsiteBeneficiary {
+  namespace: 'dns'
+  canonicalIdentifier: string
+  reachable: boolean
+}
+
 interface ContentSubmission {
   contentUrl: string
   statementCid: string
@@ -79,8 +85,16 @@ function isContentSubmission(value: unknown): value is ContentSubmission {
   return true
 }
 
-interface UsePlatformApiResult {
+function isResolvedWebsiteBeneficiary(value: unknown): value is ResolvedWebsiteBeneficiary {
+  return isRecord(value) &&
+    value.namespace === 'dns' &&
+    typeof value.canonicalIdentifier === 'string' &&
+    typeof value.reachable === 'boolean'
+}
+
+export interface UsePlatformApiResult {
   resolveChannel: (platform: string, handle: string) => Promise<ResolvedChannel>
+  resolveWebsiteBeneficiary: (domain: string) => Promise<ResolvedWebsiteBeneficiary>
   resolveContent: (url: string) => Promise<ResolvedContent>
   submitContentSubmission: (submission: ContentSubmission) => Promise<ContentSubmission>
   isLoading: boolean
@@ -112,8 +126,17 @@ export function usePlatformApi(): UsePlatformApiResult {
 
   const handleResponse = useCallback(async <T>(response: Response): Promise<T> => {
     if (!response.ok) {
-      const body = await response.json().catch(() => ({ code: 'unknown', message: response.statusText }))
-      throw { code: body.code || 'unknown', message: body.message || response.statusText }
+      const body = await response.json().catch(() => ({ code: 'unknown', message: response.statusText })) as {
+        code?: unknown
+        error?: unknown
+        message?: unknown
+      }
+      const code = typeof body.code === 'string'
+        ? body.code
+        : typeof body.error === 'string'
+          ? body.error
+          : 'unknown'
+      throw { code, message: typeof body.message === 'string' ? body.message : response.statusText }
     }
     return response.json()
   }, [])
@@ -129,6 +152,26 @@ export function usePlatformApi(): UsePlatformApiResult {
       })
       const result = await handleResponse<unknown>(response)
       return requirePlatformApiResponse(result, isResolvedChannel, 'channel response')
+    } catch (err) {
+      const error = normalizePlatformApiError(err)
+      safeSetError(error)
+      throw error
+    } finally {
+      safeSetIsLoading(false)
+    }
+  }, [getBaseUrl, handleResponse, safeSetError, safeSetIsLoading])
+
+  const resolveWebsiteBeneficiary = useCallback(async (domain: string): Promise<ResolvedWebsiteBeneficiary> => {
+    safeSetIsLoading(true)
+    safeSetError(null)
+    try {
+      const response = await fetch(`${getBaseUrl()}/resolve/website-beneficiary`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ domain }),
+      })
+      const result = await handleResponse<unknown>(response)
+      return requirePlatformApiResponse(result, isResolvedWebsiteBeneficiary, 'website beneficiary response')
     } catch (err) {
       const error = normalizePlatformApiError(err)
       safeSetError(error)
@@ -184,5 +227,5 @@ export function usePlatformApi(): UsePlatformApiResult {
     safeSetError(null)
   }, [safeSetError])
 
-  return { resolveChannel, resolveContent, submitContentSubmission, isLoading, error, clearError }
+  return { resolveChannel, resolveWebsiteBeneficiary, resolveContent, submitContentSubmission, isLoading, error, clearError }
 }

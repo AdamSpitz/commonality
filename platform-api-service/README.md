@@ -176,6 +176,28 @@ Response:
 }
 ```
 
+### `POST /resolve/website-beneficiary`
+
+Normalizes a website identity for project creation. Apex and `www` are the same
+beneficiary. A live homepage may hop within that registrable domain; a hop to a
+different registrable domain is refused (`invalid_domain_redirect`). An
+unreachable site is still accepted (`reachable: false`) because create-time
+only refuses observed redirects.
+
+```json
+{
+  "domain": "https://www.example.org/"
+}
+```
+
+```json
+{
+  "namespace": "dns",
+  "canonicalIdentifier": "example.org",
+  "reachable": true
+}
+```
+
 ### `POST /resolve/content`
 
 Request:

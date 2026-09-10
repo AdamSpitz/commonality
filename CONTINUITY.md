@@ -1969,3 +1969,18 @@ content occupancy still keyed as channels (intentional).
 
 Still needed: remaining historical Channel* snippets in channel-claiming.md
 proof structs; content occupancy still keyed as channels (intentional).
+
+## 2026-09-10 — Create-time website redirect check
+
+- SDK `registrableHttpsDomain` / `assertDnsRedirectStaysOnDomain` refuse a
+  fetch that lands on a different registrable domain; `www` and apex stay one
+  name.
+- Platform API `POST /resolve/website-beneficiary` follows the homepage.
+  Cross-domain hops return `invalid_domain_redirect`; unreachable sites return
+  `reachable: false` and still canonicalize.
+- LazyGiving create-project calls that endpoint before publish. Observed
+  redirects block creation; API/network outages do not.
+- Website claim UI uses `BeneficiaryState` instead of the ChannelState alias.
+
+Still needed: remaining historical Channel* snippets in channel-claiming.md;
+content occupancy still keyed as channels (intentional).

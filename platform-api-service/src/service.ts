@@ -1,8 +1,8 @@
 import { randomBytes } from 'crypto';
 import { resolveTxt } from 'node:dns/promises';
-import { buildCanonicalBeneficiaryId, buildCanonicalChannelId, buildCanonicalContentId, hashCanonicalId, normalizeDnsBeneficiary as normalizeDnsBeneficiaryInput, parseContentFundingUrl, type ParsedContentFundingUrl } from '@commonality/sdk/content-funding';
+import { assertDnsRedirectStaysOnDomain, buildCanonicalBeneficiaryId, buildCanonicalChannelId, buildCanonicalContentId, ContentFundingCanonicalizationError, hashCanonicalId, normalizeDnsBeneficiary as normalizeDnsBeneficiaryInput, parseContentFundingUrl, type ParsedContentFundingUrl } from '@commonality/sdk/content-funding';
 import type { IpfsCidV1 } from '@commonality/sdk/utils';
-import { getDomain } from 'tldts';
+
 import {
   createPublicClient,
   createWalletClient,
@@ -119,6 +119,49 @@ export class PlatformApiService {
       'invalid_request',
       'resolve/channel currently supports only twitter and youtube',
     );
+  }
+
+  async resolveWebsiteBeneficiary(input: string): Promise<{
+    namespace: 'dns';
+    canonicalIdentifier: string;
+    reachable: boolean;
+  }> {
+    const canonicalIdentifier = normalizeDnsBeneficiary(input);
+    const reachable = await this.assertHomepageStaysOnDomain(canonicalIdentifier);
+    return {
+      namespace: 'dns',
+      canonicalIdentifier,
+      reachable,
+    };
+  }
+
+  private async assertHomepageStaysOnDomain(canonicalIdentifier: string): Promise<boolean> {
+    const startUrl = `https://${canonicalIdentifier}/`;
+    let response: Response;
+    try {
+      response = await this.fetchImpl(startUrl, {
+        method: 'GET',
+        redirect: 'follow',
+        headers: { accept: 'text/html' },
+      });
+    } catch {
+      return false;
+    }
+
+    const finalUrl = response.url || startUrl;
+    try {
+      assertDnsRedirectStaysOnDomain(finalUrl, canonicalIdentifier);
+    } catch (error) {
+      throw this.redirectHttpError(error);
+    }
+    return true;
+  }
+
+  private redirectHttpError(error: unknown): unknown {
+    if (error instanceof ContentFundingCanonicalizationError && error.code === 'invalid_domain_redirect') {
+      return new HttpError(400, 'invalid_domain_redirect', error.message);
+    }
+    return error;
   }
 
   async resolveContent(url: string): Promise<ResolvedContent> {
@@ -680,17 +723,10 @@ export class PlatformApiService {
     }
 
     const finalUrl = response.url || proofUrl;
-    let finalDomain: string | null = null;
     try {
-      const parsedFinalUrl = new URL(finalUrl);
-      if (parsedFinalUrl.protocol === 'https:' && !parsedFinalUrl.username && !parsedFinalUrl.password) {
-        finalDomain = getDomain(parsedFinalUrl.hostname, { allowPrivateDomains: false });
-      }
-    } catch {
-      // Handled by the redirect-domain error below.
-    }
-    if (finalDomain !== challenge.handle) {
-      throw new HttpError(400, 'invalid_domain_redirect', 'Domain claim redirected to a different registrable domain');
+      assertDnsRedirectStaysOnDomain(finalUrl, challenge.handle);
+    } catch (error) {
+      throw this.redirectHttpError(error);
     }
 
     let artifact: unknown;

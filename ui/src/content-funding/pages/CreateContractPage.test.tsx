@@ -167,6 +167,7 @@ describe('CreateContractPage', () => {
     })
     vi.mocked(usePlatformApi).mockReturnValue({
       resolveChannel: vi.fn(),
+      resolveWebsiteBeneficiary: vi.fn(),
       resolveContent,
       submitContentSubmission: vi.fn(),
       isLoading: false,

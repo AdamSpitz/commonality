@@ -39,6 +39,7 @@ import { usePaymentTokenCurrency } from '../../shared'
 import { projectPathForAddress } from '../../shared'
 import { useWriteClients } from '../../shared'
 import { RecipientPicker } from '../components/RecipientPicker'
+import { usePlatformApi } from '../../content-funding'
 import { WalletButton } from '../../shared/components/WalletButton'
 import { formatCurrencyAmount, formatTokenCapacityPreviewRows, hasOneUnitDonationOption, suggestGivingLevels, summarizeProjectTokenCapacity } from '../projectCreation'
 
@@ -77,6 +78,7 @@ export function CreateProjectPage() {
   const publicClient = usePublicClient()
   const writeClients = useWriteClients(address)
   const machinery = useMachinery()
+  const { resolveWebsiteBeneficiary } = usePlatformApi()
 
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
@@ -253,6 +255,24 @@ export function CreateProjectPage() {
         ? normalizeDnsBeneficiary(beneficiaryDomain)
         : null
       if (canonicalBeneficiaryDomain) {
+        try {
+          const resolved = await resolveWebsiteBeneficiary(beneficiaryDomain)
+          if (resolved.canonicalIdentifier !== canonicalBeneficiaryDomain) {
+            throw new Error(`Beneficiary website resolved to ${resolved.canonicalIdentifier}, not ${canonicalBeneficiaryDomain}`)
+          }
+        } catch (cause) {
+          const code = cause && typeof cause === 'object' && 'code' in cause
+            ? String((cause as { code: unknown }).code)
+            : undefined
+          if (code === 'invalid_domain_redirect') {
+            throw new Error('That website redirected to a different domain. Name the registrable domain people actually control.')
+          }
+          if (cause instanceof Error && cause.message.includes('resolved to')) {
+            throw cause
+          }
+          // Network or API outages must not brick creation; only observed
+          // cross-domain redirects are refused.
+        }
         projectMeta.beneficiary = {
           namespace: 'dns',
           canonicalIdentifier: canonicalBeneficiaryDomain,
@@ -409,7 +429,7 @@ export function CreateProjectPage() {
                 value={beneficiaryDomain}
                 onChange={(event) => setBeneficiaryDomain(event.target.value)}
                 placeholder="example.org"
-                helperText="Use the organization's apex website, without a path. example.org and www.example.org identify the same beneficiary."
+                helperText="Use the organization's apex website, without a path. example.org and www.example.org identify the same beneficiary. A site that redirects to a different domain is refused."
                 fullWidth
                 required
               />

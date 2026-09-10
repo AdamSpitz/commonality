@@ -625,6 +625,51 @@ describe('PlatformApiService', () => {
     }
   });
 
+  it('resolves a website beneficiary and refuses create-time cross-domain redirects', async () => {
+    const service = createService({
+      fetch: async (input) => {
+        const url = String(input);
+        const response = new Response('', { status: 200 });
+        Object.defineProperty(response, 'url', {
+          value: url.includes('example.org')
+            ? 'https://www.example.org/'
+            : 'https://attacker.example/',
+        });
+        return response;
+      },
+    });
+
+    const resolved = await service.resolveWebsiteBeneficiary('https://www.Example.org/');
+    assert.deepStrictEqual(resolved, {
+      namespace: 'dns',
+      canonicalIdentifier: 'example.org',
+      reachable: true,
+    });
+
+    await assert.rejects(
+      () => service.resolveWebsiteBeneficiary('redcross.org'),
+      (error: unknown) =>
+        error instanceof HttpError &&
+        error.status === 400 &&
+        error.code === 'invalid_domain_redirect',
+    );
+  });
+
+  it('treats an unreachable website as unconfirmed rather than a redirect', async () => {
+    const service = createService({
+      fetch: async () => {
+        throw new Error('network down');
+      },
+    });
+
+    const resolved = await service.resolveWebsiteBeneficiary('example.org');
+    assert.deepStrictEqual(resolved, {
+      namespace: 'dns',
+      canonicalIdentifier: 'example.org',
+      reachable: false,
+    });
+  });
+
   it('rejects domain claims redirected outside the claimed registrable domain', async () => {
     let publishedDocument = '';
     const service = createService({

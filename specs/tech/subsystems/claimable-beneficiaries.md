@@ -120,4 +120,7 @@ and exposes `beneficiaryState` / `isBeneficiaryControlled` rather than
 channel-creator language. The current payout wallet can call
 `rotatePayoutAddress`; the indexer and website claim UI fold/surface that
 rotation. Identity proof without the current wallet's authorization still
-cannot redirect established funds.
+cannot redirect established funds. Project creation asks the platform API to
+follow the website homepage; a hop to a different registrable domain is
+refused (`invalid_domain_redirect`). Apex and `www` still identify the same
+beneficiary. An unreachable site does not block creation.
