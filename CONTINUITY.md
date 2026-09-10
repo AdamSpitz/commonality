@@ -2009,3 +2009,14 @@ domain-controlled chip); content occupancy still keyed as channels.
 
 Still needed: claim-state chips on browse/cause/CauseStarter cards (needs a
 fold, not a per-card RPC); content occupancy still keyed as channels.
+
+## 2026-09-10 — Folded claim state on project cards
+
+- `useBeneficiaryClaimStates` folds `BeneficiaryRegistry` events once from
+  the event cache. Browse and CauseStarter lists use that map; cause-board
+  cards reuse the existing content-funding fold.
+- Cards chip Unclaimed / Domain-controlled / Beneficiary-controlled and
+  switch `WebsiteBeneficiaryMark` copy. Missing fold entries stay unclaimed.
+
+Still needed: remaining Channel* types in platform-api; content occupancy
+still keyed as channels (intentional).

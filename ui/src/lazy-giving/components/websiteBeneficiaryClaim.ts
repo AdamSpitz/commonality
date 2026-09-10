@@ -1,4 +1,4 @@
-import type { BeneficiaryState } from '@commonality/sdk/content-funding'
+import { hashBeneficiaryId, type BeneficiaryState } from '@commonality/sdk/content-funding'
 
 export function beneficiaryStateFromUint(value: number): BeneficiaryState {
   if (value >= 2) return 'beneficiary-controlled'
@@ -25,4 +25,14 @@ export const WEBSITE_CLAIM_STATE_TOOLTIPS: Record<BeneficiaryState, string> = {
     'Someone proved they can write this domain and bound a payout address. Escrow enforces domain control — not charity status, legal-entity identity, or tax deductibility.',
   'beneficiary-controlled':
     'The verified domain controller has taken exclusive control of this identity. New projects about it can only be created by that payout wallet.',
+}
+
+/** Unclaimed identities have no registry events, so missing map entries are unclaimed. */
+export function claimStateForDnsDomain(
+  channels: Map<string, { state: BeneficiaryState }> | undefined,
+  domain: string | undefined,
+): BeneficiaryState {
+  if (!domain) return 'unclaimed'
+  const id = hashBeneficiaryId('dns', domain)
+  return channels?.get(id)?.state ?? channels?.get(id.toLowerCase())?.state ?? 'unclaimed'
 }

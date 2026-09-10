@@ -26,6 +26,12 @@ import { getRuntimeConfigValue, loadDisplayDenylist } from '../../shared'
 import { projectPathForAddress } from '../../shared'
 import { readLazyGivingProjectMetadata, type ProjectMetadata } from '../metadata'
 import { dnsBeneficiaryDomain, WebsiteBeneficiaryMark } from '../components/WebsiteBeneficiaryMark'
+import { useBeneficiaryClaimStates } from '../hooks/useBeneficiaryClaimStates'
+import {
+  claimStateForDnsDomain,
+  WEBSITE_CLAIM_STATE_COLORS,
+  WEBSITE_CLAIM_STATE_LABELS,
+} from '../components/websiteBeneficiaryClaim'
 
 type StatusFilter = 'all' | 'active' | 'succeeded' | 'refunding'
 
@@ -64,6 +70,7 @@ export function BrowseProjectsPage() {
     sortBy: field,
     sortDirection: direction,
   })
+  const beneficiaryClaimStates = useBeneficiaryClaimStates()
 
   useEffect(() => {
     setProjects(cachedProjects)
@@ -218,6 +225,7 @@ export function BrowseProjectsPage() {
             const status = getProjectStatus(project)
             const meta = metadata[project.id]
             const websiteDomain = dnsBeneficiaryDomain(meta?.beneficiary)
+            const websiteClaimState = claimStateForDnsDomain(beneficiaryClaimStates, websiteDomain)
             const hasMinimum = BigInt(project.threshold) > 0n
             const progressPercent = hasMinimum ? Math.min(project.fundingProgress * 100, 100) : 0
 
@@ -232,11 +240,18 @@ export function BrowseProjectsPage() {
                         </Typography>
                         {websiteDomain && (
                           <Box sx={{ mt: 0.5 }}>
-                            <WebsiteBeneficiaryMark domain={websiteDomain} />
+                            <WebsiteBeneficiaryMark domain={websiteDomain} claimState={websiteClaimState} />
                           </Box>
                         )}
                       </Box>
                       <Stack direction="row" spacing={1} sx={{ ml: 1 }}>
+                        {websiteDomain && (
+                          <Chip
+                            label={WEBSITE_CLAIM_STATE_LABELS[websiteClaimState]}
+                            color={WEBSITE_CLAIM_STATE_COLORS[websiteClaimState]}
+                            size="small"
+                          />
+                        )}
                         <Chip
                           label={STATUS_LABELS[status]}
                           color={STATUS_COLORS[status]}

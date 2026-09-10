@@ -6,7 +6,14 @@ import {
   STATUS_TOOLTIPS,
 } from '@ui/lazy-giving'
 import { InfoChip, projectPathForAddress } from '@ui/shared'
-import { WebsiteBeneficiaryMark } from '@ui/lazy-giving'
+import type { BeneficiaryState } from '@commonality/sdk/content-funding'
+import {
+  claimStateForDnsDomain,
+  WebsiteBeneficiaryMark,
+  WEBSITE_CLAIM_STATE_COLORS,
+  WEBSITE_CLAIM_STATE_LABELS,
+  WEBSITE_CLAIM_STATE_TOOLTIPS,
+} from '@ui/lazy-giving'
 import { Link as RouterLink } from 'react-router-dom'
 import type { ProjectRelation, UserProject } from '../lib/userProjects'
 
@@ -22,10 +29,19 @@ const RELATION_TOOLTIP: Record<ProjectRelation, string> = {
   bookmarked: 'You bookmarked this project.',
 }
 
-export function ProjectCard({ project, mode }: { project: UserProject; mode?: 'work' | 'fund' }) {
+export function ProjectCard({
+  project,
+  mode,
+  claimStates,
+}: {
+  project: UserProject
+  mode?: 'work' | 'fund'
+  claimStates?: Map<string, { state: BeneficiaryState }>
+}) {
   const status = getProjectStatus(project.project)
   const path = projectPathForAddress(project.project.id)
   const to = mode ? `${path}?mode=${mode}` : path
+  const websiteClaimState = claimStateForDnsDomain(claimStates, project.websiteDomain)
 
   return (
     <Paper
@@ -57,7 +73,7 @@ export function ProjectCard({ project, mode }: { project: UserProject; mode?: 'w
           </Typography>
           {project.websiteDomain && (
             <Box sx={{ mt: 0.25 }}>
-              <WebsiteBeneficiaryMark domain={project.websiteDomain} />
+              <WebsiteBeneficiaryMark domain={project.websiteDomain} claimState={websiteClaimState} />
             </Box>
           )}
         </Box>
@@ -70,6 +86,14 @@ export function ProjectCard({ project, mode }: { project: UserProject; mode?: 'w
           justifyContent="flex-end"
           sx={{ flexShrink: 0 }}
         >
+          {project.websiteDomain && (
+            <InfoChip
+              size="small"
+              label={WEBSITE_CLAIM_STATE_LABELS[websiteClaimState]}
+              color={WEBSITE_CLAIM_STATE_COLORS[websiteClaimState]}
+              title={WEBSITE_CLAIM_STATE_TOOLTIPS[websiteClaimState]}
+            />
+          )}
           <InfoChip
             size="small"
             label={STATUS_LABELS[status]}

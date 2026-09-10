@@ -26,6 +26,13 @@ export {
 } from './utils'
 export { readLazyGivingProjectMetadata } from './metadata'
 export { dnsBeneficiaryDomain, WebsiteBeneficiaryMark } from './components/WebsiteBeneficiaryMark'
+export {
+  claimStateForDnsDomain,
+  WEBSITE_CLAIM_STATE_COLORS,
+  WEBSITE_CLAIM_STATE_LABELS,
+  WEBSITE_CLAIM_STATE_TOOLTIPS,
+} from './components/websiteBeneficiaryClaim'
+export { useBeneficiaryClaimStates } from './hooks/useBeneficiaryClaimStates'
 
 // Note on pages: the route components (BrowseProjectsPage, CreateProjectPage,
 // ProjectDetailPage) are intentionally NOT re-exported here. Domain route

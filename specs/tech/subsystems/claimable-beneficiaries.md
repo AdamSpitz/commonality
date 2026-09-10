@@ -127,4 +127,6 @@ beneficiary. An unreachable site does not block creation.
 Project surfaces render the exact canonical domain at the same visual weight as
 the raised amount and do not truncate or fold lookalikes. The project header
 reads on-chain `beneficiaryState` and chips Unclaimed / Domain-controlled /
-Beneficiary-controlled.
+Beneficiary-controlled. Browse, cause-board, and CauseStarter project cards
+fold the same `BeneficiaryRegistry` events (not per-card RPC) and chip that
+claim state next to funding status.

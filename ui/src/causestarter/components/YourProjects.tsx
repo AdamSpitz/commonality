@@ -4,6 +4,7 @@ import { ConnectWalletHint } from './ConnectWalletHint'
 import { HeaderInfoTip } from '../../shared'
 import { ProjectCard } from './ProjectCard'
 import type { UserProject } from '../lib/userProjects'
+import { useBeneficiaryClaimStates } from '@ui/lazy-giving'
 
 const HOME_PREVIEW_LIMIT = 3
 
@@ -34,6 +35,7 @@ export function YourProjects({
 }) {
   const navigate = useNavigate()
   const shown = compact ? projects.slice(0, HOME_PREVIEW_LIMIT) : projects
+  const claimStates = useBeneficiaryClaimStates()
 
   return (
     <Stack spacing={1.5} data-testid={testId}>
@@ -97,7 +99,7 @@ export function YourProjects({
       {shown.length > 0 && (
         <Stack spacing={0.75}>
           {shown.map((project) => (
-            <ProjectCard key={project.project.id} project={project} mode={mode} />
+            <ProjectCard key={project.project.id} project={project} mode={mode} claimStates={claimStates} />
           ))}
         </Stack>
       )}

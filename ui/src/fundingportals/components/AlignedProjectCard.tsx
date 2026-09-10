@@ -33,7 +33,14 @@ import {
   CONTRACT_STATUS_TOOLTIPS,
 } from '../../content-funding'
 import { formatCurrencyProgress, InfoChip, projectPathForAddress } from '../../shared'
-import { dnsBeneficiaryDomain, WebsiteBeneficiaryMark } from '../../lazy-giving'
+import {
+  claimStateForDnsDomain,
+  dnsBeneficiaryDomain,
+  WebsiteBeneficiaryMark,
+  WEBSITE_CLAIM_STATE_COLORS,
+  WEBSITE_CLAIM_STATE_LABELS,
+  WEBSITE_CLAIM_STATE_TOOLTIPS,
+} from '../../lazy-giving'
 import { formatPlacePath } from './geographicInclusion'
 
 export type AlignedProject = {
@@ -61,11 +68,11 @@ export type ContentFundingInfo = {
   channelDisplayMetadata?: ChannelDisplayMetadata
 }
 
-function useContentFundingInfo(projectAddress: string): ContentFundingInfo | null {
-  const { state, channels, channelDisplayMetadata = new Map() } = useContentFundingState()
-
-  if (!state) return null
-
+function contentFundingInfoForProject(
+  projectAddress: string,
+  channels: ReturnType<typeof useContentFundingState>['channels'],
+  channelDisplayMetadata: NonNullable<ReturnType<typeof useContentFundingState>['channelDisplayMetadata']>,
+): ContentFundingInfo | null {
   const projectAddressLower = projectAddress.toLowerCase()
 
   for (const channel of channels) {
@@ -226,7 +233,14 @@ export function AlignedProjectCard({
     : 0
   const progressPercent = Math.min(fundingProgress, 100)
 
-  const contentFundingInfo = useContentFundingInfo(project.projectAddress)
+  const {
+    state: contentFundingState,
+    channels,
+    channelDisplayMetadata = new Map(),
+  } = useContentFundingState()
+  const contentFundingInfo = contentFundingState
+    ? contentFundingInfoForProject(project.projectAddress, channels, channelDisplayMetadata)
+    : null
 
   const projectPath = projectPathForAddress(project.projectAddress)
   const causeParam = causeCid ? `?causeCid=${encodeURIComponent(causeCid)}` : ''
@@ -244,6 +258,10 @@ export function AlignedProjectCard({
     channelLabels?.primary,
   )
   const websiteDomain = dnsBeneficiaryDomain(metadata?.beneficiary)
+  const websiteClaimState = claimStateForDnsDomain(
+    contentFundingState?.beneficiaryRegistry?.channels,
+    websiteDomain,
+  )
   const openAriaLabel =
     projectLinks === 'local'
       ? `Open project: ${titleText}`
@@ -311,9 +329,17 @@ export function AlignedProjectCard({
               title="Project creator's approximate relevant area; not a verified address or eligibility claim."
             />
           ))}
+          {websiteDomain && (
+            <InfoChip
+              label={WEBSITE_CLAIM_STATE_LABELS[websiteClaimState]}
+              color={WEBSITE_CLAIM_STATE_COLORS[websiteClaimState]}
+              size="small"
+              title={WEBSITE_CLAIM_STATE_TOOLTIPS[websiteClaimState]}
+            />
+          )}
         </Stack>
 
-        {websiteDomain && <WebsiteBeneficiaryMark domain={websiteDomain} />}
+        {websiteDomain && <WebsiteBeneficiaryMark domain={websiteDomain} claimState={websiteClaimState} />}
 
         <AlignedProjectCardDetails
           project={project}
