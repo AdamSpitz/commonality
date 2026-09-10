@@ -15,7 +15,7 @@ The platform-dependent work is:
 1. Resolve creator handles to stable channel IDs
 2. Resolve content URLs to canonical content IDs and validate ownership
 3. Fetch local context around a content URL for contextual/beat-agent evaluation
-4. Issue and confirm Twitter-based channel-claim verification challenges
+4. Issue and confirm social-channel and website beneficiary verification challenges
 5. Accept and serve queued content-attester submissions
 
 ## Current scope
@@ -71,7 +71,8 @@ All configuration is via environment variables.
 
 - `VERIFIER_PRIVATE_KEY` optional, required for `POST /verify/confirm`
 - `ETHEREUM_RPC_URL` optional, required only if on-chain submission is enabled
-- `BENEFICIARY_REGISTRY_ADDRESS` optional, required only if on-chain submission is enabled
+- `BENEFICIARY_REGISTRY_ADDRESS` optional, required for domain challenges and on-chain submission
+- `CHAIN_ID` required for signing proofs and domain challenges
 - `SUBMIT_VERIFICATION_TX` default `false`
 
 ### Coinbase Onramp / USDC arrival detection
@@ -237,11 +238,17 @@ Twitter/X currently fills the target, replied-to parent, quoted post, and author
 
 ### `POST /verify/challenge`
 
-Currently supports `platform: "twitter"`, `"youtube"`, and `"substack"`.
+Supports `platform: "twitter"`, `"youtube"`, `"substack"`, and `"dns"`. For `dns`,
+`handle` may be an apex domain or its `https://www.` URL. The response's
+`verificationPostTemplate` is the exact JSON document to publish at
+`https://<domain>/.well-known/commonality-claim.json`; it binds the domain, claimant,
+chain, registry, nonce, and expiry. Subdomains and path-scoped identities are rejected.
 
 ### `POST /verify/confirm`
 
-Confirms the verification post, signs the proof, and optionally submits the on-chain transaction if configured.
+Confirms the verification post or well-known domain document, signs the proof, and
+optionally submits the on-chain transaction if configured. A domain claim may redirect
+within the same registrable domain, but not to a different one.
 
 ### `GET /content-submission`
 

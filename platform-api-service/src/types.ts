@@ -2,7 +2,7 @@ import type { ContentFundingPlatform } from '@commonality/sdk/content-funding';
 import type { Address, Hex } from 'viem';
 
 export interface ResolvedChannel {
-  platform: ContentFundingPlatform;
+  platform: ContentFundingPlatform | 'dns';
   channelId: string;
   handle?: string;
   displayName?: string;
@@ -54,7 +54,7 @@ export interface VerificationPostMatch {
 }
 
 export interface PendingVerificationChallenge {
-  platform: 'twitter' | 'youtube' | 'substack';
+  platform: 'twitter' | 'youtube' | 'substack' | 'dns';
   channelId: string;
   claimantAddress: Address;
   nonce: Hex;

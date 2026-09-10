@@ -1838,3 +1838,22 @@ Do not train implication generation on Christianity × secular-conservatism. Nex
   retaining the channel-specific control/veto API for its later extraction.
 - Regenerated SDK/indexer ABIs. Hardhat (including the full 453-test suite),
   platform-api (76 tests), SDK (537 tests), and affected typechecks passed.
+
+## 2026-09-10 — HTTPS domain beneficiary claims
+
+Continued the fund-now / claim-later focus with the first non-content identity proof.
+Platform API verification now accepts `platform: "dns"`, canonicalizes apex and `www`
+inputs to `dns:<registrable-domain>`, rejects public-suffix/subdomain/path identities,
+and returns an exact JSON document for
+`/.well-known/commonality-claim.json`. Confirmation verifies that the document binds
+the domain, claimant, chain, registry, nonce, and expiry before signing the existing
+beneficiary proof. Redirects to another registrable domain are rejected. Added `tldts`
+as a direct dependency, service tests, health reporting, and API docs.
+
+Checks: platform API typecheck/test/lint (lint has warning-level size and complexity
+findings) and root `npm run test:fast` pass.
+
+Still needed before focus item 1 is complete: separate content-only control/veto state
+from `BeneficiaryRegistry`; add namespace-specific verifier/waiting-period policy;
+wire generic LazyGiving project creation and beneficiary UI to `dns:` identities; and
+exercise the full claim/fund/withdraw flow.

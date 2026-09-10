@@ -1,6 +1,7 @@
 import { randomBytes } from 'crypto';
-import { buildCanonicalChannelId, buildCanonicalContentId, hashCanonicalId, parseContentFundingUrl, type ParsedContentFundingUrl } from '@commonality/sdk/content-funding';
+import { buildCanonicalBeneficiaryId, buildCanonicalChannelId, buildCanonicalContentId, hashCanonicalId, parseContentFundingUrl, type ParsedContentFundingUrl } from '@commonality/sdk/content-funding';
 import type { IpfsCidV1 } from '@commonality/sdk/utils';
+import { getDomain } from 'tldts';
 import {
   createPublicClient,
   createWalletClient,
@@ -232,12 +233,13 @@ export class PlatformApiService {
     if (
       request.platform !== 'twitter' &&
       request.platform !== 'youtube' &&
-      request.platform !== 'substack'
+      request.platform !== 'substack' &&
+      request.platform !== 'dns'
     ) {
       throw new HttpError(
         400,
         'invalid_request',
-        'verify/challenge currently supports only twitter, youtube, and substack',
+        'verify/challenge currently supports only twitter, youtube, substack, and dns',
       );
     }
 
@@ -245,9 +247,19 @@ export class PlatformApiService {
       throw new HttpError(400, 'invalid_request', `Invalid claimant address: ${request.claimantAddress}`);
     }
 
+    if (request.platform === 'dns' && (!this.deps.config.chainId || !this.deps.config.beneficiaryRegistryAddress)) {
+      throw new HttpError(
+        503,
+        'service_unavailable',
+        'Domain verification requires CHAIN_ID and BENEFICIARY_REGISTRY_ADDRESS',
+      );
+    }
+
     const channel = request.platform === 'substack'
       ? resolveSubstackPublication(request.handle)
-      : await this.resolveChannel(request.platform, request.handle);
+      : request.platform === 'dns'
+        ? resolveDnsBeneficiary(request.handle)
+        : await this.resolveChannel(request.platform, request.handle);
 
     if ((this.deps.config.blockedChannelIds ?? []).includes(channel.channelId)) {
       throw new HttpError(403, 'blocked_identity', 'This platform identity cannot claim funds through Commonality.');
@@ -274,13 +286,22 @@ export class PlatformApiService {
         this.deps.config.claimPageBaseUrl,
         channel.channelId,
       );
-    } else {
+    } else if (request.platform === 'substack') {
       verificationPostTemplate = buildSubstackPostTemplate(
         this.deps.config.commonalityTwitterHandle,
         challengeCode,
         this.deps.config.claimPageBaseUrl,
         channel.channelId,
       );
+    } else {
+      verificationPostTemplate = buildDnsClaimDocument({
+        canonicalDomain: channel.handle!,
+        claimant: request.claimantAddress as Address,
+        chainId: this.deps.config.chainId!,
+        registryAddress: this.deps.config.beneficiaryRegistryAddress!,
+        nonce,
+        expiry: deadline,
+      });
     }
 
     this.challengeCache.set(nonce, {
@@ -339,7 +360,9 @@ export class PlatformApiService {
           ? 'Verification tweet not found yet; try again after posting the tweet'
           : challenge.platform === 'youtube'
             ? 'Verification video not found yet; try again after adding the challenge to your video description'
-            : 'Verification post not found yet; try again after publishing the Substack post and waiting for the RSS feed to update',
+            : challenge.platform === 'substack'
+              ? 'Verification post not found yet; try again after publishing the Substack post and waiting for the RSS feed to update'
+              : `Domain claim not found yet; publish it at https://${challenge.handle}/.well-known/commonality-claim.json`,
       );
     }
 
@@ -413,6 +436,10 @@ export class PlatformApiService {
         substack: {
           resolveConfigured: true,
           verifyConfigured: true,
+        },
+        dns: {
+          resolveConfigured: true,
+          verifyConfigured: Boolean(this.deps.config.chainId && this.deps.config.beneficiaryRegistryAddress),
         },
       },
       verification: {
@@ -527,8 +554,8 @@ export class PlatformApiService {
     return await walletClient.writeContract(simulation.request);
   }
 
-  private getChallengeTtlSeconds(platform: 'twitter' | 'youtube' | 'substack'): number {
-    if (platform === 'substack') {
+  private getChallengeTtlSeconds(platform: PendingVerificationChallenge['platform']): number {
+    if (platform === 'substack' || platform === 'dns') {
       return Math.max(this.deps.config.challengeTtlSeconds, 3600);
     }
 
@@ -544,6 +571,8 @@ export class PlatformApiService {
         return `https://www.youtube.com/watch?v=${postId}`;
       case 'substack':
         return postId;
+      case 'dns':
+        return `https://${handle}/.well-known/commonality-claim.json`;
     }
   }
 
@@ -566,11 +595,71 @@ export class PlatformApiService {
       );
     }
 
-    return await this.findSubstackVerificationPost({
-      publication: parseSubstackPublicationFromChannelId(challenge.channelId),
-      challengeCode: challenge.challengeCode,
-      issuedAfterMs: challenge.createdAtMs,
-    });
+    if (challenge.platform === 'substack') {
+      return await this.findSubstackVerificationPost({
+        publication: parseSubstackPublicationFromChannelId(challenge.channelId),
+        challengeCode: challenge.challengeCode,
+        issuedAfterMs: challenge.createdAtMs,
+      });
+    }
+
+    return await this.findDnsClaimDocument(challenge);
+  }
+
+  private async findDnsClaimDocument(
+    challenge: PendingVerificationChallenge,
+  ): Promise<VerificationPostMatch | null> {
+    const proofUrl = `https://${challenge.handle}/.well-known/commonality-claim.json`;
+    let response: Response;
+    try {
+      response = await this.fetchImpl(proofUrl, { headers: { accept: 'application/json' } });
+    } catch {
+      throw new HttpError(502, 'domain_claim_unavailable', `Domain claim lookup failed for ${challenge.handle}`);
+    }
+
+    if (response.status === 404) return null;
+    if (!response.ok) {
+      throw new HttpError(
+        502,
+        'domain_claim_unavailable',
+        `Domain claim lookup failed for ${challenge.handle}: HTTP ${response.status}`,
+      );
+    }
+
+    const finalUrl = response.url || proofUrl;
+    let finalDomain: string | null = null;
+    try {
+      const parsedFinalUrl = new URL(finalUrl);
+      if (parsedFinalUrl.protocol === 'https:' && !parsedFinalUrl.username && !parsedFinalUrl.password) {
+        finalDomain = getDomain(parsedFinalUrl.hostname, { allowPrivateDomains: false });
+      }
+    } catch {
+      // Handled by the redirect-domain error below.
+    }
+    if (finalDomain !== challenge.handle) {
+      throw new HttpError(400, 'invalid_domain_redirect', 'Domain claim redirected to a different registrable domain');
+    }
+
+    let artifact: unknown;
+    try {
+      artifact = await response.json();
+    } catch {
+      throw new HttpError(400, 'invalid_domain_claim', 'Domain claim must be valid JSON');
+    }
+
+    const expected = {
+      canonicalDomain: challenge.handle,
+      claimant: challenge.claimantAddress.toLowerCase(),
+      chainId: this.deps.config.chainId!,
+      registryAddress: this.deps.config.beneficiaryRegistryAddress!.toLowerCase(),
+      nonce: challenge.nonce.toLowerCase(),
+      expiry: challenge.deadline,
+    };
+    if (!matchesDnsClaimDocument(artifact, expected)) {
+      throw new HttpError(400, 'invalid_domain_claim', 'Domain claim does not match the pending challenge');
+    }
+
+    return { id: finalUrl, publicUrl: finalUrl, text: JSON.stringify(artifact) };
   }
 
   private async findSubstackVerificationPost(
@@ -677,6 +766,63 @@ function buildSubstackPostTemplate(
     ? ` ${claimPageBaseUrl}/channels/${encodeURIComponent(channelId)}`
     : '';
   return `Claiming my funded content on ${commonalityHandle}${claimLink} #commonality-${challengeCode}`;
+}
+
+interface DnsClaimDocument {
+  canonicalDomain: string;
+  claimant: string;
+  chainId: number;
+  registryAddress: string;
+  nonce: string;
+  expiry: number;
+}
+
+function buildDnsClaimDocument(document: DnsClaimDocument): string {
+  return `${JSON.stringify(document, null, 2)}\n`;
+}
+
+function matchesDnsClaimDocument(value: unknown, expected: DnsClaimDocument): boolean {
+  if (!value || typeof value !== 'object') return false;
+  const candidate = value as Record<string, unknown>;
+  return candidate.canonicalDomain === expected.canonicalDomain
+    && typeof candidate.claimant === 'string'
+    && candidate.claimant.toLowerCase() === expected.claimant
+    && candidate.chainId === expected.chainId
+    && typeof candidate.registryAddress === 'string'
+    && candidate.registryAddress.toLowerCase() === expected.registryAddress
+    && typeof candidate.nonce === 'string'
+    && candidate.nonce.toLowerCase() === expected.nonce
+    && candidate.expiry === expected.expiry;
+}
+
+function resolveDnsBeneficiary(input: string): ResolvedChannel {
+  const domain = normalizeDnsBeneficiary(input);
+  return {
+    platform: 'dns',
+    channelId: buildCanonicalBeneficiaryId('dns', domain),
+    handle: domain,
+    displayName: domain,
+  };
+}
+
+function normalizeDnsBeneficiary(input: string): string {
+  const trimmed = input.trim();
+  let hostname: string;
+  try {
+    const url = new URL(trimmed.includes('://') ? trimmed : `https://${trimmed}`);
+    if (url.protocol !== 'https:' || url.username || url.password || url.port || url.search || url.hash || (url.pathname !== '/' && url.pathname !== '')) {
+      throw new Error('invalid domain URL');
+    }
+    hostname = url.hostname.replace(/^www\./i, '').replace(/\.$/, '').toLowerCase();
+  } catch {
+    throw new HttpError(400, 'invalid_request', `Invalid beneficiary domain: ${input}`);
+  }
+
+  const registrableDomain = getDomain(hostname, { allowPrivateDomains: false });
+  if (!registrableDomain || registrableDomain !== hostname) {
+    throw new HttpError(400, 'invalid_request', `Beneficiary must be a registrable domain: ${input}`);
+  }
+  return registrableDomain;
 }
 
 function resolveSubstackPublication(handle: string): ResolvedChannel {

@@ -394,7 +394,7 @@ describe('PlatformApiService', () => {
         error instanceof HttpError &&
         error.status === 400 &&
         error.code === 'invalid_request' &&
-        error.message === 'verify/challenge currently supports only twitter, youtube, and substack',
+        error.message === 'verify/challenge currently supports only twitter, youtube, substack, and dns',
     );
 
     await assert.rejects(
@@ -512,6 +512,90 @@ describe('PlatformApiService', () => {
     assert.strictEqual(challenge.displayName, 'example');
     assert.ok(challenge.verificationPostTemplate.includes('#commonality-abc123def456'));
     assert.strictEqual(challenge.deadline, 1_700_003_600);
+  });
+
+  it('creates and confirms a domain-control challenge from the well-known document', async () => {
+    let publishedDocument = '';
+    const service = createService({
+      now: () => 1_700_000_000_000,
+      createChallengeCode: () => 'abc123def456',
+      configOverrides: {
+        beneficiaryRegistryAddress: '0x9876543210987654321098765432109876543210',
+      },
+      fetch: async (input) => {
+        assert.strictEqual(String(input), 'https://example.org/.well-known/commonality-claim.json');
+        return new Response(publishedDocument, {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        });
+      },
+    });
+
+    const challenge = await service.createVerificationChallenge({
+      platform: 'dns',
+      handle: 'https://www.Example.org/',
+      claimantAddress: '0x1234567890123456789012345678901234567890',
+    });
+
+    assert.strictEqual(challenge.channelId, 'dns:example.org');
+    assert.strictEqual(challenge.handle, 'example.org');
+    publishedDocument = challenge.verificationPostTemplate;
+
+    const confirmed = await service.confirmVerification({ nonce: challenge.nonce });
+    assert.strictEqual(confirmed.proof.channelId, 'dns:example.org');
+    assert.strictEqual(
+      confirmed.observedPostId,
+      'https://example.org/.well-known/commonality-claim.json',
+    );
+  });
+
+  it('rejects non-registrable and path-scoped domain beneficiaries', async () => {
+    const service = createService({
+      configOverrides: {
+        beneficiaryRegistryAddress: '0x9876543210987654321098765432109876543210',
+      },
+    });
+
+    for (const handle of ['co.uk', 'https://example.org/a-project']) {
+      await assert.rejects(
+        () => service.createVerificationChallenge({
+          platform: 'dns',
+          handle,
+          claimantAddress: '0x1234567890123456789012345678901234567890',
+        }),
+        (error: unknown) => error instanceof HttpError && error.status === 400,
+      );
+    }
+  });
+
+  it('rejects domain claims redirected outside the claimed registrable domain', async () => {
+    let publishedDocument = '';
+    const service = createService({
+      configOverrides: {
+        beneficiaryRegistryAddress: '0x9876543210987654321098765432109876543210',
+      },
+      fetch: async () => {
+        const response = new Response(publishedDocument, { status: 200 });
+        Object.defineProperty(response, 'url', {
+          value: 'https://attacker.example/.well-known/commonality-claim.json',
+        });
+        return response;
+      },
+    });
+    const challenge = await service.createVerificationChallenge({
+      platform: 'dns',
+      handle: 'example.org',
+      claimantAddress: '0x1234567890123456789012345678901234567890',
+    });
+    publishedDocument = challenge.verificationPostTemplate;
+
+    await assert.rejects(
+      () => service.confirmVerification({ nonce: challenge.nonce }),
+      (error: unknown) =>
+        error instanceof HttpError &&
+        error.status === 400 &&
+        error.code === 'invalid_domain_redirect',
+    );
   });
 
   it('queues and lists content submissions', async () => {
