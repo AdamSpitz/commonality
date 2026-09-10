@@ -7,7 +7,7 @@ import { FUNDED_HARDHAT_DEV_KEYS } from './seedCauseRoster.js';
 import { createSeedClients, createSeedPublicClient } from './seedRpc.js';
 import { generateStatements, publishGeneratedStatement, publishGeneratedStatements } from './generateStatements.js';
 import { loadAttestations, hasAttestations } from './generateAttestations.js';
-import { FundingAndDelegationActions, getSeedProjectAlignmentRef } from './fundingAndDelegationActions.js';
+import { FundingAndDelegationActions, getSeedProjectAlignmentRef, SEED_PROJECT_TEMPLATE_COUNT } from './fundingAndDelegationActions.js';
 import { AttackScenarios } from './attackScenarios.js';
 import { InvariantChecker } from './invariantChecker.js';
 import { loadEnv, CONTRACT_ADDRESSES, RPC_URL } from './loadEnv.js';
@@ -1157,7 +1157,7 @@ async function publishSeedWorkerOutputs(simulation: SimulationRunner): Promise<v
 
 // One per PROJECT_SEED_METADATA template, so every seeded storyline (including the
 // local public-goods one) gets a deterministic alignment attestation.
-const DETERMINISTIC_SEED_PROJECT_ALIGNMENT_COUNT = 6;
+const DETERMINISTIC_SEED_PROJECT_ALIGNMENT_COUNT = SEED_PROJECT_TEMPLATE_COUNT;
 
 async function publishSeedProjectAlignments(simulation: SimulationRunner): Promise<void> {
   if (!simulation.contracts.alignmentAttestations) {

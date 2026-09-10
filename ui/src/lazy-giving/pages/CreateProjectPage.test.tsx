@@ -157,6 +157,7 @@ describe('CreateProjectPage', () => {
 
       expect(screen.getByLabelText(/beneficiary website/i)).toBeInTheDocument()
       expect(screen.getByText(/not affiliated with the website/i)).toBeInTheDocument()
+      expect(screen.getByText(/not tax-deductible/i)).toBeInTheDocument()
       expect(screen.queryByLabelText(/send to my account/i)).not.toBeInTheDocument()
     })
 

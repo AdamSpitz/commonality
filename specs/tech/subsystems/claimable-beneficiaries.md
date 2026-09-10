@@ -136,3 +136,7 @@ that lock as a separate step after verify/withdraw. Platform API challenge and
 confirm payloads name `beneficiaryId` (canonical string; hashed on-chain).
 `BLOCKED_CHANNEL_IDS` also gates website resolve so a blocked `dns:` identity
 cannot be named at project creation.
+The tiny/demo seed includes an unclaimed `dns:example.org` project
+("Friends of Example.org") so browse/cards can show the website identity
+without a live claim. Create-project copy states contributions are not
+tax-deductible and do not certify charity status.

@@ -459,7 +459,7 @@ export function CreateProjectPage() {
                 required
               />
               <Alert severity="warning">
-                This project is not affiliated with the website unless its controller has already claimed it. If unclaimed, successful funds stay in protocol escrow until the controller proves domain control; you cannot withdraw them.
+                This project is not affiliated with the website unless its controller has already claimed it. If unclaimed, successful funds stay in protocol escrow until the controller proves domain control; you cannot withdraw them. Contributions are not tax-deductible gifts and do not certify charity or legal-entity identity.
               </Alert>
             </Stack>
           )}

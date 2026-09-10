@@ -2046,3 +2046,16 @@ still keyed as channels (intentional).
 
 Still needed: content occupancy still keyed as channels (intentional);
 platform-api `ResolvedChannel` is occupancy, not the claim primitive.
+
+## 2026-09-10 — Seed unclaimed website beneficiary; tax copy
+
+- Tiny/demo seed now creates a seventh LazyGiving project, "Friends of
+  Example.org", via the beneficiary factory path (`dns:example.org`,
+  unclaimed). Metadata carries the dns identity so browse/cards chip
+  Unclaimed without a live claim.
+- Create-project website mode says contributions are not tax-deductible
+  and do not certify charity/legal-entity identity.
+
+Focus item 1 (fund-now / claim-later contracts + website MVP UI) is
+functionally in place. Remaining work is live-stack exercise, occupancy
+Channel* names (intentional), and deferred recovery/KYC/scouting.
