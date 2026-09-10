@@ -1,4 +1,5 @@
 import { randomBytes } from 'crypto';
+import { resolveTxt } from 'node:dns/promises';
 import { buildCanonicalBeneficiaryId, buildCanonicalChannelId, buildCanonicalContentId, hashCanonicalId, normalizeDnsBeneficiary as normalizeDnsBeneficiaryInput, parseContentFundingUrl, type ParsedContentFundingUrl } from '@commonality/sdk/content-funding';
 import type { IpfsCidV1 } from '@commonality/sdk/utils';
 import { getDomain } from 'tldts';
@@ -71,6 +72,7 @@ export interface PlatformApiServiceDependencies {
   now?: () => number;
   createChallengeCode?: () => string;
   fetch?: typeof fetch;
+  lookupTxt?: (name: string) => Promise<string[]>;
 }
 
 export class PlatformApiService {
@@ -80,6 +82,7 @@ export class PlatformApiService {
   private readonly now: () => number;
   private readonly createChallengeCode: () => string;
   private readonly fetchImpl: typeof fetch;
+  private readonly lookupTxt: (name: string) => Promise<string[]>;
 
   constructor(private readonly deps: PlatformApiServiceDependencies) {
     this.contentCache = new MemoryCache(deps.config.contentCacheTtlSeconds * 1000);
@@ -87,6 +90,7 @@ export class PlatformApiService {
     this.now = deps.now ?? (() => Date.now());
     this.createChallengeCode = deps.createChallengeCode ?? (() => randomBytes(6).toString('hex'));
     this.fetchImpl = deps.fetch ?? fetch;
+    this.lookupTxt = deps.lookupTxt ?? lookupDnsTxt;
   }
 
   async resolveChannel(platform: string, handle: string): Promise<ResolvedChannel> {
@@ -377,7 +381,7 @@ export class PlatformApiService {
             ? 'Verification video not found yet; try again after adding the challenge to your video description'
             : challenge.platform === 'substack'
               ? 'Verification post not found yet; try again after publishing the Substack post and waiting for the RSS feed to update'
-              : `Domain claim not found yet; publish it at https://${challenge.handle}/.well-known/commonality-claim.json`,
+              : `Domain claim not found yet; publish it at https://${challenge.handle}/.well-known/commonality-claim.json or as a TXT record at _commonality.${challenge.handle}`,
       );
     }
 
@@ -636,7 +640,26 @@ export class PlatformApiService {
     return await this.findDnsClaimDocument(challenge);
   }
 
+  private expectedDnsClaim(challenge: PendingVerificationChallenge): DnsClaimDocument {
+    return {
+      canonicalDomain: challenge.handle,
+      claimant: challenge.claimantAddress.toLowerCase(),
+      chainId: this.deps.config.chainId!,
+      registryAddress: this.deps.config.beneficiaryRegistryAddress!.toLowerCase(),
+      nonce: challenge.nonce.toLowerCase(),
+      expiry: challenge.deadline,
+    };
+  }
+
   private async findDnsClaimDocument(
+    challenge: PendingVerificationChallenge,
+  ): Promise<VerificationPostMatch | null> {
+    const httpsResult = await this.findHttpsDnsClaimDocument(challenge);
+    if (httpsResult) return httpsResult;
+    return await this.findTxtDnsClaimDocument(challenge);
+  }
+
+  private async findHttpsDnsClaimDocument(
     challenge: PendingVerificationChallenge,
   ): Promise<VerificationPostMatch | null> {
     const proofUrl = `https://${challenge.handle}/.well-known/commonality-claim.json`;
@@ -644,7 +667,7 @@ export class PlatformApiService {
     try {
       response = await this.fetchImpl(proofUrl, { headers: { accept: 'application/json' } });
     } catch {
-      throw new HttpError(502, 'domain_claim_unavailable', `Domain claim lookup failed for ${challenge.handle}`);
+      return null;
     }
 
     if (response.status === 404) return null;
@@ -677,19 +700,41 @@ export class PlatformApiService {
       throw new HttpError(400, 'invalid_domain_claim', 'Domain claim must be valid JSON');
     }
 
-    const expected = {
-      canonicalDomain: challenge.handle,
-      claimant: challenge.claimantAddress.toLowerCase(),
-      chainId: this.deps.config.chainId!,
-      registryAddress: this.deps.config.beneficiaryRegistryAddress!.toLowerCase(),
-      nonce: challenge.nonce.toLowerCase(),
-      expiry: challenge.deadline,
-    };
-    if (!matchesDnsClaimDocument(artifact, expected)) {
+    if (!matchesDnsClaimDocument(artifact, this.expectedDnsClaim(challenge))) {
       throw new HttpError(400, 'invalid_domain_claim', 'Domain claim does not match the pending challenge');
     }
 
     return { id: finalUrl, publicUrl: finalUrl, text: JSON.stringify(artifact) };
+  }
+
+  private async findTxtDnsClaimDocument(
+    challenge: PendingVerificationChallenge,
+  ): Promise<VerificationPostMatch | null> {
+    const txtName = `_commonality.${challenge.handle}`;
+    let records: string[];
+    try {
+      records = await this.lookupTxt(txtName);
+    } catch {
+      throw new HttpError(502, 'domain_claim_unavailable', `Domain TXT claim lookup failed for ${txtName}`);
+    }
+
+    if (records.length === 0) return null;
+
+    const expected = this.expectedDnsClaim(challenge);
+    for (const record of records) {
+      let artifact: unknown;
+      try {
+        artifact = JSON.parse(record);
+      } catch {
+        continue;
+      }
+      if (matchesDnsClaimDocument(artifact, expected)) {
+        const publicUrl = `dns-txt:${txtName}`;
+        return { id: publicUrl, publicUrl, text: record };
+      }
+    }
+
+    throw new HttpError(400, 'invalid_domain_claim', 'Domain TXT claim does not match the pending challenge');
   }
 
   private async findSubstackVerificationPost(
@@ -809,6 +854,19 @@ interface DnsClaimDocument {
 
 function buildDnsClaimDocument(document: DnsClaimDocument): string {
   return `${JSON.stringify(document, null, 2)}\n`;
+}
+
+async function lookupDnsTxt(name: string): Promise<string[]> {
+  try {
+    const records = await resolveTxt(name);
+    return records.map((chunks) => chunks.join(''));
+  } catch (error) {
+    const code = error && typeof error === 'object' && 'code' in error ? String((error as { code: unknown }).code) : '';
+    if (code === 'ENOTFOUND' || code === 'ENODATA' || code === 'ENONAME') {
+      return [];
+    }
+    throw error;
+  }
 }
 
 function matchesDnsClaimDocument(value: unknown, expected: DnsClaimDocument): boolean {

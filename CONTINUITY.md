@@ -1910,3 +1910,18 @@ Checks: Hardhat ContentFunding, ProjectFactory, ProspectiveContentFunding,
 and SecurityRegression tests pass.
 
 Still needed: DNS TXT alternate proof; docs that still say ChannelRegistry.
+
+## 2026-09-10 — DNS TXT alternate claim proof
+
+- Platform API DNS confirmation tries HTTPS
+  `/.well-known/commonality-claim.json` first, then `_commonality.<domain>` TXT
+  with the same JSON body. A live well-known document still wins; a wrong
+  HTTPS document does not fall through to TXT.
+- Proof hash for TXT uses `dns-txt:_commonality.<domain>`.
+- Claim UI copy (LazyGiving website section and content-funding claim modal)
+  mentions the TXT alternate.
+- Operator docs (`workflow/deployment.md`, `workflow/security-recoverability.md`)
+  now name `BeneficiaryRegistry` / `BeneficiaryVerifier` for admin transfer.
+
+Still needed: remaining Channel* copy in older specs; identity-control
+function still named `takeChannelControl`.

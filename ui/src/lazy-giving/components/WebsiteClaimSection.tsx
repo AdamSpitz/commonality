@@ -85,8 +85,9 @@ export function WebsiteClaimSection({ domain }: WebsiteClaimSectionProps) {
         </Typography>
         <Typography variant="h6">{domain}</Typography>
         <Typography color="text.secondary">
-          Publish https://{domain}/.well-known/commonality-claim.json to bind a payout wallet.
-          The first claim is publicly visible before escrow can be withdrawn.
+          Publish https://{domain}/.well-known/commonality-claim.json, or the same JSON as a TXT
+          record at _commonality.{domain}, to bind a payout wallet. The first claim is publicly
+          visible before escrow can be withdrawn.
         </Typography>
         {loadError && <Alert severity="warning">{loadError}</Alert>}
         {isConnected ? (

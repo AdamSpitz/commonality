@@ -111,7 +111,8 @@ The browser explicitly labels third-party website projects as not affiliated and
 the canonical beneficiary identity in published project metadata. DNS claims use
 `verifyNamespacedBeneficiary` so a namespace waiting period (7 days at deploy) locks
 first withdrawal until the public proof can be noticed. Project pages surface the
-website identity and a claim flow for `/.well-known/commonality-claim.json`.
+website identity and a claim flow for `/.well-known/commonality-claim.json`, with
+`_commonality.<domain>` TXT as the alternate when the well-known document is missing.
 Content veto, veto-window duration, and third-party success gating live on
 `CreatorAssuranceVeto` (one per content factory); the shared registry only
 records identity control (`takeChannelControl` / `controlTakenAt`).

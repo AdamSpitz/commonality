@@ -122,7 +122,7 @@ export function ClaimFlowModal({
           : platform === 'youtube'
             ? 'Verification failed. Please make sure the challenge text is in your video description.'
             : platform === 'dns'
-              ? 'Verification failed. Please publish the JSON document at /.well-known/commonality-claim.json.'
+              ? 'Verification failed. Please publish the JSON at /.well-known/commonality-claim.json or as a TXT record at _commonality.<domain>.'
               : 'Verification failed. Please make sure you have published the post and the RSS feed has updated.'
         setConfirmError(platformMessage)
         return
@@ -264,7 +264,7 @@ export function ClaimFlowModal({
                     : platform === 'youtube'
                       ? 'Add the following to your video description to verify your identity:'
                       : platform === 'dns'
-                        ? `Publish this JSON at https://${handle}/.well-known/commonality-claim.json`
+                        ? `Publish this JSON at https://${handle}/.well-known/commonality-claim.json, or as a TXT record at _commonality.${handle}`
                         : 'Publish the following post on your Substack to verify your identity:'}
                 </Alert>
                 <TextField
@@ -325,7 +325,7 @@ export function ClaimFlowModal({
                     {platform === 'youtube'
                       ? 'After adding the text above to your video description, click the button below. The system will search for your video with the challenge code.'
                       : platform === 'dns'
-                        ? 'After the JSON is publicly reachable at that URL, confirm below. The first claim waits a public period before funds can be withdrawn.'
+                        ? 'After the JSON is publicly reachable at the well-known URL or as a _commonality TXT record, confirm below. The first claim waits a public period before funds can be withdrawn.'
                         : 'After publishing the post, click the button below. The system will search the RSS feed for the challenge code. Note that the RSS feed may take several minutes to update.'}
                   </Typography>
                 )}

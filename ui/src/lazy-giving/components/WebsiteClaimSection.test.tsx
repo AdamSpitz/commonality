@@ -44,5 +44,6 @@ describe('WebsiteClaimSection', () => {
     expect(screen.getByText('Claim this website')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /claim example.org/i })).toBeInTheDocument()
     expect(screen.getByText(/well-known\/commonality-claim.json/)).toBeInTheDocument()
+    expect(screen.getByText(/_commonality.example.org/)).toBeInTheDocument()
   })
 })

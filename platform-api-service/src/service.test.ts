@@ -549,6 +549,63 @@ describe('PlatformApiService', () => {
     );
   });
 
+  it('confirms a domain-control challenge from a TXT record when well-known is missing', async () => {
+    let publishedDocument = '';
+    const service = createService({
+      configOverrides: {
+        beneficiaryRegistryAddress: '0x9876543210987654321098765432109876543210',
+      },
+      fetch: async () => new Response('', { status: 404 }),
+      lookupTxt: async (name) => {
+        assert.strictEqual(name, '_commonality.example.org');
+        return [publishedDocument.trim()];
+      },
+    });
+
+    const challenge = await service.createVerificationChallenge({
+      platform: 'dns',
+      handle: 'example.org',
+      claimantAddress: '0x1234567890123456789012345678901234567890',
+    });
+    publishedDocument = challenge.verificationPostTemplate;
+
+    const confirmed = await service.confirmVerification({ nonce: challenge.nonce });
+    assert.strictEqual(confirmed.proof.channelId, 'dns:example.org');
+    assert.strictEqual(confirmed.observedPostId, 'dns-txt:_commonality.example.org');
+  });
+
+  it('prefers the well-known document over TXT', async () => {
+    let publishedDocument = '';
+    let txtLookups = 0;
+    const service = createService({
+      configOverrides: {
+        beneficiaryRegistryAddress: '0x9876543210987654321098765432109876543210',
+      },
+      fetch: async () => new Response(publishedDocument, {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      }),
+      lookupTxt: async () => {
+        txtLookups += 1;
+        return [];
+      },
+    });
+
+    const challenge = await service.createVerificationChallenge({
+      platform: 'dns',
+      handle: 'example.org',
+      claimantAddress: '0x1234567890123456789012345678901234567890',
+    });
+    publishedDocument = challenge.verificationPostTemplate;
+
+    const confirmed = await service.confirmVerification({ nonce: challenge.nonce });
+    assert.strictEqual(
+      confirmed.observedPostId,
+      'https://example.org/.well-known/commonality-claim.json',
+    );
+    assert.strictEqual(txtLookups, 0);
+  });
+
   it('rejects non-registrable and path-scoped domain beneficiaries', async () => {
     const service = createService({
       configOverrides: {
@@ -780,6 +837,7 @@ function createService(overrides: Partial<{
   createChallengeCode: () => string;
   now: () => number;
   fetch: typeof fetch;
+  lookupTxt: (name: string) => Promise<string[]>;
 }> = {}) {
   const config: PlatformApiServiceConfig = {
     port: 3001,
@@ -822,6 +880,7 @@ function createService(overrides: Partial<{
     createChallengeCode: overrides.createChallengeCode,
     now: overrides.now,
     fetch: overrides.fetch,
+    lookupTxt: overrides.lookupTxt,
   });
 }
 
