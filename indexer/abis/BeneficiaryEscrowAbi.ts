@@ -24,6 +24,17 @@ export const BeneficiaryEscrowAbi = [
     "type": "error"
   },
   {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "withdrawableAt",
+        "type": "uint256"
+      }
+    ],
+    "name": "ClaimWaitingPeriodNotElapsed",
+    "type": "error"
+  },
+  {
     "inputs": [],
     "name": "InvalidPaymentTokenAddress",
     "type": "error"

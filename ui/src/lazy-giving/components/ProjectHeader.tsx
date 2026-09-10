@@ -13,7 +13,12 @@ import {
 } from '../utils'
 import { truncateAddress, formatCurrencyRaised, InfoChip, InfoLabel } from '../../shared'
 
-type ProjectMetadata = { name?: string; description?: string; updatesUrl?: string }
+type ProjectMetadata = {
+  name?: string
+  description?: string
+  updatesUrl?: string
+  beneficiary?: { namespace?: string; canonicalIdentifier?: string }
+}
 
 interface ProjectHeaderProps {
   project: Project
@@ -38,6 +43,9 @@ export function ProjectHeader({ project, metadata, kind = 'project' }: ProjectHe
 
   const deadlineLabel = formatRelativeDeadline(project.deadline)
   const deadlineEnded = deadlineLabel === 'Ended'
+  const websiteBeneficiary = metadata?.beneficiary?.namespace === 'dns'
+    ? metadata.beneficiary.canonicalIdentifier
+    : undefined
 
   return (
     <Box sx={{ mb: 3 }}>
@@ -66,6 +74,16 @@ export function ProjectHeader({ project, metadata, kind = 'project' }: ProjectHe
               </Link>
             </Typography>
           )}
+          {websiteBeneficiary ? (
+            <Box sx={{ mt: 1 }}>
+              <Typography variant="h5" component="p" sx={{ fontWeight: 700, letterSpacing: '-0.02em' }}>
+                {websiteBeneficiary}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Fan-created project. Not affiliated. Successful funds go to escrow for whoever proves control of this website.
+              </Typography>
+            </Box>
+          ) : (
           <Stack direction="row" spacing={0.5} alignItems="center">
             <Typography variant="body2" color="text.secondary">
               Recipient: {truncateAddress(project.recipient)}
@@ -76,6 +94,7 @@ export function ProjectHeader({ project, metadata, kind = 'project' }: ProjectHe
               </IconButton>
             </Tooltip>
           </Stack>
+          )}
         </Box>
         <Stack direction="row" spacing={1}>
           <InfoChip

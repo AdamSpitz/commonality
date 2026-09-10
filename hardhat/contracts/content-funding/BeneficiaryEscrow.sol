@@ -11,6 +11,7 @@ error MustSendTokens();
 error BeneficiaryNotVerified();
 error OnlyBeneficiaryPayoutAddress();
 error NoBalance();
+error ClaimWaitingPeriodNotElapsed(uint256 withdrawableAt);
 
 /**
  * @title IBeneficiaryEscrow
@@ -97,6 +98,10 @@ contract BeneficiaryEscrow is IBeneficiaryEscrow {
         }
         if (msg.sender != IBeneficiaryRegistry(beneficiaryRegistry).payoutAddress(beneficiaryId)) {
             revert OnlyBeneficiaryPayoutAddress();
+        }
+        uint256 withdrawableAt = IBeneficiaryRegistry(beneficiaryRegistry).claimWithdrawableAt(beneficiaryId);
+        if (block.timestamp < withdrawableAt) {
+            revert ClaimWaitingPeriodNotElapsed(withdrawableAt);
         }
 
         uint256 amount = _balances[beneficiaryId];

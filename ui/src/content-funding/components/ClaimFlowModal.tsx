@@ -34,9 +34,12 @@ interface ClaimFlowModalProps {
   escrowBalance: bigint
   channelState: ChannelState
   onSuccess?: () => void
+  /** Content channels can take creator control. Website beneficiaries do not. */
+  includeTakeControl?: boolean
+  /** Unix seconds; shown when withdraw is still locked. */
+  withdrawableAt?: number
+  withdrawLocked?: boolean
 }
-
-const steps = ['Connect Wallet', 'Verify Identity', 'Withdraw Funds', 'Take Control']
 
 export function ClaimFlowModal({
   open,
@@ -49,7 +52,13 @@ export function ClaimFlowModal({
   escrowBalance,
   channelState,
   onSuccess,
+  includeTakeControl = true,
+  withdrawableAt,
+  withdrawLocked = false,
 }: ClaimFlowModalProps) {
+  const steps = includeTakeControl
+    ? ['Connect Wallet', 'Verify Identity', 'Withdraw Funds', 'Take Control']
+    : ['Connect Wallet', 'Verify Identity', 'Withdraw Funds']
   const { isConnected } = useAccount()
   const writeClients = useWriteClients(claimantAddress)
   const { getChallenge, confirmVerification, loading: apiLoading, error: apiError, clearError } = useClaimFlow()
@@ -70,7 +79,7 @@ export function ClaimFlowModal({
   const isVerified = channelState === 'verified'
   const isCreatorControlled = channelState === 'creator-controlled'
   const showWithdrawStep = isVerified || isCreatorControlled
-  const showTakeControlStep = isVerified
+  const showTakeControlStep = isVerified && includeTakeControl
 
   useEffect(() => {
     if (open) {
@@ -112,7 +121,9 @@ export function ClaimFlowModal({
           ? 'Verification failed. Please make sure you have tweeted the challenge.'
           : platform === 'youtube'
             ? 'Verification failed. Please make sure the challenge text is in your video description.'
-            : 'Verification failed. Please make sure you have published the post and the RSS feed has updated.'
+            : platform === 'dns'
+              ? 'Verification failed. Please publish the JSON document at /.well-known/commonality-claim.json.'
+              : 'Verification failed. Please make sure you have published the post and the RSS feed has updated.'
         setConfirmError(platformMessage)
         return
       }
@@ -227,7 +238,9 @@ export function ClaimFlowModal({
                   Verify your identity
                 </Typography>
                 <Typography color="text.secondary" sx={{ mb: 3 }}>
-                  Verify that you own the &quot;{channelDisplayName}&quot; account by posting a verification tweet.
+                  {platform === 'dns'
+                    ? `Prove control of ${channelDisplayName} by publishing a claim document the world can fetch.`
+                    : `Verify that you own the "${channelDisplayName}" account by posting a verification tweet.`}
                 </Typography>
                 <Button
                   variant="contained"
@@ -235,7 +248,7 @@ export function ClaimFlowModal({
                   disabled={apiLoading}
                   startIcon={apiLoading ? <CircularProgress size={20} /> : undefined}
                 >
-                  Get Verification Tweet
+                  {platform === 'dns' ? 'Get claim document' : 'Get Verification Tweet'}
                 </Button>
                 {apiError && (
                   <Alert severity="error" sx={{ mt: 2 }}>
@@ -250,10 +263,12 @@ export function ClaimFlowModal({
                     ? 'Tweet the following to verify your identity:'
                     : platform === 'youtube'
                       ? 'Add the following to your video description to verify your identity:'
-                      : 'Publish the following post on your Substack to verify your identity:'}
+                      : platform === 'dns'
+                        ? `Publish this JSON at https://${handle}/.well-known/commonality-claim.json`
+                        : 'Publish the following post on your Substack to verify your identity:'}
                 </Alert>
                 <TextField
-                  label={platform === 'twitter' ? 'Tweet text' : platform === 'youtube' ? 'Video description text' : 'Post content'}
+                  label={platform === 'twitter' ? 'Tweet text' : platform === 'youtube' ? 'Video description text' : platform === 'dns' ? 'Claim document' : 'Post content'}
                   value={challenge.verificationPostTemplate}
                   multiline
                   rows={3}
@@ -278,6 +293,15 @@ export function ClaimFlowModal({
                   >
                     Open YouTube Studio
                   </Button>
+                ) : platform === 'dns' ? (
+                  <Button
+                    variant="outlined"
+                    href={`https://${handle}/.well-known/commonality-claim.json`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Open well-known URL
+                  </Button>
                 ) : (
                   <Button
                     variant="outlined"
@@ -300,7 +324,9 @@ export function ClaimFlowModal({
                   <Typography color="text.secondary" sx={{ mt: 2 }}>
                     {platform === 'youtube'
                       ? 'After adding the text above to your video description, click the button below. The system will search for your video with the challenge code.'
-                      : 'After publishing the post, click the button below. The system will search the RSS feed for the challenge code. Note that the RSS feed may take several minutes to update.'}
+                      : platform === 'dns'
+                        ? 'After the JSON is publicly reachable at that URL, confirm below. The first claim waits a public period before funds can be withdrawn.'
+                        : 'After publishing the post, click the button below. The system will search the RSS feed for the challenge code. Note that the RSS feed may take several minutes to update.'}
                   </Typography>
                 )}
                 <Button
@@ -308,7 +334,7 @@ export function ClaimFlowModal({
                   onClick={handleConfirmVerification}
                   disabled={platform === 'twitter' ? (!tweetUrl || confirmLoading) : confirmLoading}
                 >
-                  {confirmLoading ? <CircularProgress size={24} /> : platform === 'twitter' ? 'I Tweeted It' : platform === 'youtube' ? 'I Added It' : 'I Published It'}
+                  {confirmLoading ? <CircularProgress size={24} /> : platform === 'twitter' ? 'I Tweeted It' : platform === 'youtube' ? 'I Added It' : platform === 'dns' ? 'I published the claim' : 'I Published It'}
                 </Button>
                 {confirmError && (
                   <Alert severity="error">
@@ -339,12 +365,17 @@ export function ClaimFlowModal({
                 <Typography variant="h5" color="primary" sx={{ mb: 3 }}>
                   {formatEther(escrowBalance)} ETH
                 </Typography>
+                {withdrawLocked && withdrawableAt !== undefined && (
+                  <Alert severity="info" sx={{ mb: 2, textAlign: 'left' }}>
+                    This identity has a public waiting period. Withdrawal opens {new Date(withdrawableAt * 1000).toLocaleString()}.
+                  </Alert>
+                )}
                 <Button
                   variant="contained"
                   color="warning"
                   size="large"
                   onClick={handleWithdraw}
-                  disabled={withdrawing || escrowBalance === 0n}
+                  disabled={withdrawing || escrowBalance === 0n || withdrawLocked}
                 >
                   {withdrawing ? 'Withdrawing...' : 'Withdraw to Wallet'}
                 </Button>

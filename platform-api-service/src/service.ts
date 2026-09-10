@@ -46,6 +46,21 @@ const beneficiaryRegistryAbi = [
     ],
     outputs: [],
   },
+  {
+    type: 'function',
+    name: 'verifyNamespacedBeneficiary',
+    stateMutability: 'nonpayable',
+    inputs: [
+      { name: 'namespace', type: 'string' },
+      { name: 'canonicalIdentifier', type: 'string' },
+      { name: 'claimant', type: 'address' },
+      { name: 'nonce', type: 'bytes32' },
+      { name: 'deadline', type: 'uint256' },
+      { name: 'proofHash', type: 'bytes32' },
+      { name: 'verifierSignature', type: 'bytes' },
+    ],
+    outputs: [],
+  },
 ] as const;
 
 export interface PlatformApiServiceDependencies {
@@ -387,6 +402,8 @@ export class PlatformApiService {
       deadline: challenge.deadline,
       proofHash,
       verifierSignature,
+      platform: challenge.platform,
+      handle: challenge.handle,
     });
 
     this.challengeCache.delete(request.nonce);
@@ -510,6 +527,8 @@ export class PlatformApiService {
     deadline: number;
     proofHash: Hex;
     verifierSignature: Hex;
+    platform?: PendingVerificationChallenge['platform'];
+    handle?: string;
   }): Promise<Hex | undefined> {
     if (!this.deps.config.submitVerificationTx) {
       return undefined;
@@ -536,18 +555,29 @@ export class PlatformApiService {
       transport: http(this.deps.config.ethereumRpcUrl),
     });
 
+    const isDns = proof.platform === 'dns' && Boolean(proof.handle);
     const simulation = await publicClient.simulateContract({
       address: this.deps.config.beneficiaryRegistryAddress,
       abi: beneficiaryRegistryAbi,
-      functionName: 'verifyBeneficiary',
-      args: [
-        hashCanonicalId(proof.channelId),
-        proof.claimant,
-        proof.nonce,
-        BigInt(proof.deadline),
-        proof.proofHash,
-        proof.verifierSignature,
-      ],
+      functionName: isDns ? 'verifyNamespacedBeneficiary' : 'verifyBeneficiary',
+      args: isDns
+        ? [
+            'dns',
+            proof.handle!,
+            proof.claimant,
+            proof.nonce,
+            BigInt(proof.deadline),
+            proof.proofHash,
+            proof.verifierSignature,
+          ]
+        : [
+            hashCanonicalId(proof.channelId),
+            proof.claimant,
+            proof.nonce,
+            BigInt(proof.deadline),
+            proof.proofHash,
+            proof.verifierSignature,
+          ],
       account,
     });
 

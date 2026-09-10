@@ -249,6 +249,11 @@ async function main() {
   if (freshlyDeployed.has('BeneficiaryRegistry') || freshlyDeployed.has('CreatorAssuranceContractFactory')) {
     const c = await ownerCapable(await ethers.getContractAt('BeneficiaryRegistry', addresses.BeneficiaryRegistry));
     if (!(await c.authorizedFactories(addresses.CreatorAssuranceContractFactory))) await (await c.setFactoryAuthorization(addresses.CreatorAssuranceContractFactory, true)).wait();
+    const dnsNamespace = ethers.keccak256(ethers.toUtf8Bytes('dns'));
+    const dnsWaitingPeriod = 7n * 24n * 60n * 60n;
+    if ((await c.namespaceClaimWaitingPeriod(dnsNamespace)) !== dnsWaitingPeriod) {
+      await (await c.setNamespaceClaimWaitingPeriod(dnsNamespace, dnsWaitingPeriod)).wait();
+    }
   }
   if (freshlyDeployed.has('DelegatableNotes') || freshlyDeployed.has('CreatorAssuranceContractFactory')) {
     const d = await ownerCapable(await ethers.getContractAt('DelegatableNotes', addresses.DelegatableNotes));

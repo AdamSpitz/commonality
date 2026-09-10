@@ -364,6 +364,55 @@ describe("ContentFunding", function () {
         .to.be.revertedWithCustomError(beneficiaryRegistry, "InvalidNewPayoutAddress");
     });
 
+    it("Should apply a namespace waiting period before first escrow withdrawal", async function () {
+      await mockVerifier.setValid(true);
+      const waitingPeriod = 7 * 24 * 60 * 60;
+      const namespaceHash = ethers.keccak256(ethers.toUtf8Bytes("dns"));
+      await expect(beneficiaryRegistry.setNamespaceClaimWaitingPeriod(namespaceHash, waitingPeriod))
+        .to.emit(beneficiaryRegistry, "NamespaceClaimWaitingPeriodUpdated")
+        .withArgs(namespaceHash, waitingPeriod);
+
+      await beneficiaryRegistry.verifyNamespacedBeneficiary(
+        "dns",
+        "example.org",
+        alice.address,
+        nonce,
+        deadline,
+        proofHash,
+        verifierSignature
+      );
+
+      const beneficiaryId = ethers.keccak256(ethers.toUtf8Bytes("dns:example.org"));
+      expect(beneficiaryId).to.equal(channelIdFromCanonical("dns:example.org"));
+      expect(await beneficiaryRegistry.isVerified(beneficiaryId)).to.be.true;
+      const verifiedBlock = await ethers.provider.getBlock("latest");
+      expect(await beneficiaryRegistry.claimWithdrawableAt(beneficiaryId)).to.equal(
+        BigInt(verifiedBlock.timestamp) + BigInt(waitingPeriod)
+      );
+
+      const depositAmount = ethers.parseEther("1.0");
+      await depositIntoEscrow(alice, beneficiaryId, depositAmount);
+      await expect(beneficiaryEscrow.connect(alice).withdraw(beneficiaryId))
+        .to.be.revertedWithCustomError(beneficiaryEscrow, "ClaimWaitingPeriodNotElapsed");
+
+      await ethers.provider.send("evm_increaseTime", [waitingPeriod]);
+      await ethers.provider.send("evm_mine", []);
+      await expect(beneficiaryEscrow.connect(alice).withdraw(beneficiaryId))
+        .to.emit(beneficiaryEscrow, "Withdrawn")
+        .withArgs(beneficiaryId, alice.address, depositAmount);
+    });
+
+    it("Should keep the content verify path immediately withdrawable", async function () {
+      await mockVerifier.setValid(true);
+      await beneficiaryRegistry.setNamespaceClaimWaitingPeriod(
+        ethers.keccak256(ethers.toUtf8Bytes("dns")),
+        7 * 24 * 60 * 60
+      );
+      await beneficiaryRegistry.verifyBeneficiary(channelId, alice.address, nonce, deadline, proofHash, verifierSignature);
+      const verifiedBlock = await ethers.provider.getBlock("latest");
+      expect(await beneficiaryRegistry.claimWithdrawableAt(channelId)).to.equal(verifiedBlock.timestamp);
+    });
+
     it("Should take channel control after verification", async function () {
       await mockVerifier.setValid(true);
       await beneficiaryRegistry.verifyBeneficiary(channelId, alice.address, nonce, deadline, proofHash, verifierSignature);

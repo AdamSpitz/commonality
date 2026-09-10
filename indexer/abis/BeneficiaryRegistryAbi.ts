@@ -86,6 +86,11 @@ export const BeneficiaryRegistryAbi = [
   },
   {
     "inputs": [],
+    "name": "InvalidBeneficiaryIdentity",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "InvalidClaimant",
     "type": "error"
   },
@@ -316,6 +321,25 @@ export const BeneficiaryRegistryAbi = [
     "inputs": [
       {
         "indexed": true,
+        "internalType": "bytes32",
+        "name": "namespaceHash",
+        "type": "bytes32"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "period",
+        "type": "uint256"
+      }
+    ],
+    "name": "NamespaceClaimWaitingPeriodUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
         "internalType": "address",
         "name": "previousOwner",
         "type": "address"
@@ -524,6 +548,25 @@ export const BeneficiaryRegistryAbi = [
   {
     "inputs": [
       {
+        "internalType": "bytes32",
+        "name": "beneficiaryId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "claimWithdrawableAt",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "uint256",
         "name": "",
         "type": "uint256"
@@ -618,6 +661,25 @@ export const BeneficiaryRegistryAbi = [
         "internalType": "bool",
         "name": "",
         "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "namespaceHash",
+        "type": "bytes32"
+      }
+    ],
+    "name": "namespaceClaimWaitingPeriod",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "period",
+        "type": "uint256"
       }
     ],
     "stateMutability": "view",
@@ -734,6 +796,24 @@ export const BeneficiaryRegistryAbi = [
   {
     "inputs": [
       {
+        "internalType": "bytes32",
+        "name": "namespaceHash",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "uint256",
+        "name": "period",
+        "type": "uint256"
+      }
+    ],
+    "name": "setNamespaceClaimWaitingPeriod",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "address",
         "name": "_verifier",
         "type": "address"
@@ -830,6 +910,49 @@ export const BeneficiaryRegistryAbi = [
       }
     ],
     "name": "verifyBeneficiary",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "namespace",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "canonicalIdentifier",
+        "type": "string"
+      },
+      {
+        "internalType": "address",
+        "name": "claimant",
+        "type": "address"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "nonce",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "uint256",
+        "name": "deadline",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "proofHash",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes",
+        "name": "verifierSignature",
+        "type": "bytes"
+      }
+    ],
+    "name": "verifyNamespacedBeneficiary",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

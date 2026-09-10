@@ -108,4 +108,7 @@ accept a beneficiary-targeted creation path for canonical `dns:` identities. The
 factory resolves verified beneficiaries directly and gives unclaimed beneficiaries a
 dedicated assurance contract whose successful withdrawal deposits into shared escrow.
 The browser explicitly labels third-party website projects as not affiliated and stores
-the canonical beneficiary identity in published project metadata.
+the canonical beneficiary identity in published project metadata. DNS claims use
+`verifyNamespacedBeneficiary` so a namespace waiting period (7 days at deploy) locks
+first withdrawal until the public proof can be noticed. Project pages surface the
+website identity and a claim flow for `/.well-known/commonality-claim.json`.

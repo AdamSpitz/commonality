@@ -1880,3 +1880,15 @@ exercise the full claim/fund/withdraw flow.
   verifier, preventing the create and claim paths from accepting different identities.
 - Focused SDK canonicalization and UI creation tests pass. The full UI build and
   pre-commit suite remain to run with the commit.
+
+## 2026-09-10 — DNS claim waiting period and website claim UI
+
+- `BeneficiaryRegistry` snapshots a per-namespace waiting period on
+  `verifyNamespacedBeneficiary`. DNS is configured to 7 days at deploy; the
+  existing `verifyBeneficiary` path stays immediately withdrawable for content.
+- `BeneficiaryEscrow.withdraw` reverts until `claimWithdrawableAt`.
+- Platform API DNS confirmation submits the namespaced verify call.
+- LazyGiving project pages show the website identity and a claim section that
+  walks through publishing `/.well-known/commonality-claim.json`.
+
+Still needed: extract content veto/control from the shared registry.

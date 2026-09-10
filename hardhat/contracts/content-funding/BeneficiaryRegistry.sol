@@ -29,6 +29,8 @@ error VerifierAlreadyRevoked();
 error InvalidFactoryAddress();
 error InvalidVetoWindowDuration();
 error VetoWindowDurationCannotDecrease();
+error InvalidBeneficiaryIdentity();
+error ClaimWaitingPeriodNotElapsed(uint256 withdrawableAt);
 
 /**
  * @title IBeneficiaryVerifier
@@ -73,6 +75,7 @@ interface IBeneficiaryRegistry {
     function setVetoWindowDuration(uint256 duration) external;
     function isVerified(bytes32 channelId) external view returns (bool);
     function isCreatorControlled(bytes32 channelId) external view returns (bool);
+    function claimWithdrawableAt(bytes32 beneficiaryId) external view returns (uint256);
 }
 
 /**
@@ -113,6 +116,9 @@ contract BeneficiaryRegistry is IBeneficiaryRegistry, Guardable {
     mapping(bytes32 beneficiaryId => address payout) private _payoutAddresses;
     mapping(bytes32 channelId => ChannelState) private _channelStates;
     mapping(bytes32 nonce => bool) private _usedNonces;
+    mapping(bytes32 namespaceHash => uint256 period) public namespaceClaimWaitingPeriod;
+    mapping(bytes32 beneficiaryId => uint256 timestamp) private _verifiedAt;
+    mapping(bytes32 beneficiaryId => uint256 period) private _appliedClaimWaitingPeriod;
 
     /// @notice The verifier contract used to validate channel claim proofs (zero once revoked)
     address public verifier;
@@ -193,6 +199,13 @@ contract BeneficiaryRegistry is IBeneficiaryRegistry, Guardable {
     event VetoWindowDurationUpdated(uint256 oldDuration, uint256 newDuration);
 
     /**
+     * @notice Emitted when a namespace's first-claim waiting period is updated
+     * @param namespaceHash keccak256 of the namespace string (for example "dns")
+     * @param period Seconds that must elapse after verification before first withdrawal
+     */
+    event NamespaceClaimWaitingPeriodUpdated(bytes32 indexed namespaceHash, uint256 period);
+
+    /**
      * @notice Initializes the channel registry with a verifier contract
      * @param _verifier The address of the IBeneficiaryVerifier contract
      */
@@ -235,6 +248,29 @@ contract BeneficiaryRegistry is IBeneficiaryRegistry, Guardable {
      */
     function isCreatorControlled(bytes32 channelId) external view returns (bool) {
         return _channelStates[channelId] == ChannelState.CreatorControlled;
+    }
+
+    /**
+     * @notice Earliest timestamp at which escrow for this beneficiary may be withdrawn
+     * @dev Reverts if the beneficiary is still unclaimed. Content namespaces default to
+     *      verification time (zero waiting period).
+     */
+    function claimWithdrawableAt(bytes32 beneficiaryId) external view returns (uint256) {
+        if (_channelStates[beneficiaryId] == ChannelState.Unclaimed) {
+            revert BeneficiaryNotVerified(beneficiaryId);
+        }
+        return _verifiedAt[beneficiaryId] + _appliedClaimWaitingPeriod[beneficiaryId];
+    }
+
+    /**
+     * @notice Configure the first-claim waiting period for a namespace
+     * @dev `namespaceHash` is keccak256 of the UTF-8 namespace string (e.g. "dns").
+     *      0 means withdrawable immediately after verification (social MVP).
+     */
+    function setNamespaceClaimWaitingPeriod(bytes32 namespaceHash, uint256 period) external onlyOwner {
+        if (namespaceHash == bytes32(0)) revert InvalidBeneficiaryIdentity();
+        namespaceClaimWaitingPeriod[namespaceHash] = period;
+        emit NamespaceClaimWaitingPeriodUpdated(namespaceHash, period);
     }
 
     /**
@@ -337,6 +373,48 @@ contract BeneficiaryRegistry is IBeneficiaryRegistry, Guardable {
         bytes32 proofHash,
         bytes calldata verifierSignature
     ) external {
+        _verifyBeneficiary(beneficiaryId, claimant, nonce, deadline, proofHash, verifierSignature, 0);
+    }
+
+    /**
+     * @notice Verify a namespaced beneficiary and apply that namespace's waiting period
+     * @dev `beneficiaryId` is keccak256 of `namespace:canonicalIdentifier`. DNS uses a
+     *      non-zero waiting period so the public proof can be noticed before first withdrawal.
+     */
+    function verifyNamespacedBeneficiary(
+        string calldata namespace,
+        string calldata canonicalIdentifier,
+        address claimant,
+        bytes32 nonce,
+        uint256 deadline,
+        bytes32 proofHash,
+        bytes calldata verifierSignature
+    ) external {
+        if (bytes(namespace).length == 0 || bytes(canonicalIdentifier).length == 0) {
+            revert InvalidBeneficiaryIdentity();
+        }
+        bytes32 beneficiaryId = keccak256(bytes(string.concat(namespace, ":", canonicalIdentifier)));
+        uint256 waitingPeriod = namespaceClaimWaitingPeriod[keccak256(bytes(namespace))];
+        _verifyBeneficiary(
+            beneficiaryId,
+            claimant,
+            nonce,
+            deadline,
+            proofHash,
+            verifierSignature,
+            waitingPeriod
+        );
+    }
+
+    function _verifyBeneficiary(
+        bytes32 beneficiaryId,
+        address claimant,
+        bytes32 nonce,
+        uint256 deadline,
+        bytes32 proofHash,
+        bytes calldata verifierSignature,
+        uint256 waitingPeriod
+    ) private {
         if (_channelStates[beneficiaryId] >= ChannelState.Verified) {
             revert BeneficiaryAlreadyVerified(beneficiaryId);
         }
@@ -359,6 +437,8 @@ contract BeneficiaryRegistry is IBeneficiaryRegistry, Guardable {
         _usedNonces[nonce] = true;
         _payoutAddresses[beneficiaryId] = claimant;
         _channelStates[beneficiaryId] = ChannelState.Verified;
+        _verifiedAt[beneficiaryId] = block.timestamp;
+        _appliedClaimWaitingPeriod[beneficiaryId] = waitingPeriod;
 
         emit BeneficiaryVerified(beneficiaryId, claimant);
         emit BeneficiaryProofAnchored(beneficiaryId, claimant, proofHash);

@@ -4,6 +4,11 @@ import type { PolicyContentItem, PolicyEvaluationResult, PolicyEvaluator } from 
 import { fetchFromIPFS, type IpfsCidV1 } from '@commonality/sdk/utils'
 import { displayPolicyFromDenylist, isCidDeniedByDisplayDenylist, loadDisplayDenylist, type DisplayDenylist } from '../shared'
 
+export type ProjectBeneficiary = {
+  namespace?: string
+  canonicalIdentifier?: string
+}
+
 export type ProjectMetadata = {
   name?: string
   description?: string
@@ -15,6 +20,7 @@ export type ProjectMetadata = {
   channelDisplayName?: string
   channelHandle?: string
   relevantAreas?: string[][]
+  beneficiary?: ProjectBeneficiary
 }
 export type TokenMetadata = { name?: string; image?: string; description?: string }
 
@@ -34,6 +40,15 @@ function stringRecordField(value: unknown): Record<string, string> | undefined {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined
   const entries = Object.entries(value).filter((entry): entry is [string, string] => typeof entry[1] === 'string')
   return entries.length > 0 ? Object.fromEntries(entries) : undefined
+}
+
+function beneficiaryField(value: unknown): ProjectBeneficiary | undefined {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined
+  const record = value as Record<string, unknown>
+  const namespace = stringField(record.namespace)
+  const canonicalIdentifier = stringField(record.canonicalIdentifier)
+  if (!namespace && !canonicalIdentifier) return undefined
+  return { namespace, canonicalIdentifier }
 }
 
 function relevantAreasField(value: unknown): string[][] | undefined {
@@ -57,6 +72,7 @@ export function projectMetadataFromDocument(document: DisplayableDocument): Proj
     channelDisplayName: stringField(extras.channelDisplayName),
     channelHandle: stringField(extras.channelHandle),
     relevantAreas: relevantAreasField(extras.relevantAreas),
+    beneficiary: beneficiaryField(extras.beneficiary),
   }
 }
 

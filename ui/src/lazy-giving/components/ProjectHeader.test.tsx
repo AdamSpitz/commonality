@@ -44,6 +44,18 @@ describe('ProjectHeader', () => {
     expect(screen.queryByText('Project')).not.toBeInTheDocument()
   })
 
+  it('shows a website beneficiary as the recipient identity', () => {
+    const project = makeProject()
+    const metadata = {
+      name: 'Help the garden',
+      beneficiary: { namespace: 'dns', canonicalIdentifier: 'example.org' },
+    }
+    render(<ProjectHeader project={project} metadata={metadata} />)
+    expect(screen.getByText('example.org')).toBeInTheDocument()
+    expect(screen.getByText(/not affiliated/i)).toBeInTheDocument()
+    expect(screen.queryByText(/Recipient:/)).not.toBeInTheDocument()
+  })
+
   it('renders project name from metadata', () => {
     const project = makeProject()
     const metadata = { name: 'My Cool Project', description: 'A great project' }

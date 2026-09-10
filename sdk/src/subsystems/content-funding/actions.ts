@@ -478,3 +478,40 @@ export async function verifyBeneficiary(
 
   return { hash };
 }
+
+/**
+ * Verify a namespaced beneficiary (for example `dns` + `example.org`) so the
+ * registry can apply that namespace's first-claim waiting period.
+ */
+export async function verifyNamespacedBeneficiary(
+  clients: WriteClients,
+  registryContract: { address: Address; abi: Abi },
+  namespace: string,
+  canonicalIdentifier: string,
+  claimant: Address,
+  nonce: `0x${string}`,
+  deadline: bigint,
+  proofHash: `0x${string}`,
+  verifierSignature: `0x${string}`,
+): Promise<{ hash: Hash }> {
+  const hash = await clients.walletClient.writeContract({
+    address: registryContract.address,
+    abi: registryContract.abi,
+    functionName: 'verifyNamespacedBeneficiary',
+    args: [
+      namespace,
+      canonicalIdentifier,
+      claimant,
+      nonce,
+      BigInt(deadline),
+      proofHash,
+      verifierSignature,
+    ],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
+  });
+
+  await clients.publicClient.waitForTransactionReceipt({ hash });
+
+  return { hash };
+}
