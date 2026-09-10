@@ -58,7 +58,7 @@ The core belief-and-money layer is honestly protocol-shaped:
 
 ### Does the trustless channel-claiming plan change the story?
 
-The [trust trajectory](/specs/tech/subsystems/content-funding/channel-claiming.md#the-trust-trajectory-why-we-are-not-stuck-with-a-central-verifier) is real architecture (pluggable `IChannelVerifier`, per-platform deployments), not hand-waving. Assessment of how much it changes the legal picture:
+The [trust trajectory](/specs/tech/subsystems/content-funding/channel-claiming.md#the-trust-trajectory-why-we-are-not-stuck-with-a-central-verifier) is real architecture (pluggable `IBeneficiaryVerifier`, per-platform deployments), not hand-waving. Assessment of how much it changes the legal picture:
 
 - **What it changes eventually: a lot.** At the end state — ENS/DID and zkTLS verifiers, per-deployment client-chosen trust — the identity oracle stops existing, and content funding's worst platform feature (a discretionary, money-gating verification service) becomes protocol-shaped. Finding #1 above would be downgraded from "structurally a platform" to "history."
 - **What it changes today: something, but less.** The usual affordance-vs-fact rule applies ([operator-posture.md](operator-posture.md)): the trajectory is explicitly unscheduled and demand-gated, so at the moment of scrutiny we are still the sole verifier. What *does* count today is step 1 of the trajectory: proofs are public and permanent, so verification is auditable rather than blind trust — that converts "trust us" into "misbehavior is detectable," which is good-procedures evidence even while centralized. (The gap the spec itself notes: on-chain `verifyChannel` checks only our signature, not the underlying public proof, so detection is after-the-fact.)

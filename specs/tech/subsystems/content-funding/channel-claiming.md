@@ -110,12 +110,12 @@ Channel verification uses a **pluggable verifier interface**, but the proof form
 At the protocol level, a successful verification should be based on a short-lived authorization over a canonical channel ID:
 
 ```solidity
-struct ChannelClaimProof {
-    string channelId;        // canonical form, e.g. "twitter:uid:44196397"
-    address claimant;        // address that will own the channel
+struct BeneficiaryClaimProof {
+    string channelId;        // canonical form, e.g. "twitter:uid:44196397" or "dns:example.org"
+    address claimant;        // payout address to bind
     bytes32 nonce;           // backend-issued challenge nonce
     uint256 deadline;        // expiry for replay resistance
-    bytes32 proofHash;       // hash of the durable public proof reference (tweet/RSS URL)
+    bytes32 proofHash;       // hash of the durable public proof reference (tweet/RSS/well-known/TXT)
     bytes verifierSignature; // signature from trusted verifier
 }
 ```
@@ -123,13 +123,14 @@ struct ChannelClaimProof {
 And the registry should expose a proof-carrying verification entrypoint, e.g.:
 
 ```solidity
-function verifyChannel(ChannelClaimProof calldata proof) external;
+function verifyBeneficiary(BeneficiaryClaimProof calldata proof) external;
+function verifyNamespacedBeneficiary(bytes32 namespace, BeneficiaryClaimProof calldata proof) external;
 ```
 
 The registry verifies:
 
 - `channelId` is canonical
-- `claimant` is the address that will become channel owner
+- `claimant` is the address that will become the bound payout address
 - `nonce` has not already been used
 - `deadline` has not passed
 - `proofHash` is non-zero and anchors the public proof artifact the backend checked
@@ -140,12 +141,12 @@ This keeps the contract-side rule crisp even if we later support multiple verifi
 The verifier implementation can still be pluggable:
 
 ```solidity
-interface IChannelVerifier {
-    function verifyClaimProof(ChannelClaimProof calldata proof) external view returns (bool);
+interface IBeneficiaryVerifier {
+    function verifyClaimProof(BeneficiaryClaimProof calldata proof) external view returns (bool);
 }
 ```
 
-The channel registry contract delegates all verification to an `IChannelVerifier` implementation. This means the verification method can be upgraded or extended without redeploying the registry — swap the verifier address, and the same contract supports new platforms or stronger proof methods.
+The shared `BeneficiaryRegistry` delegates all verification to an `IBeneficiaryVerifier` implementation. This means the verification method can be upgraded or extended without redeploying the registry — swap the verifier address, and the same contract supports new platforms or stronger proof methods.
 
 Taking channel control (state 2 → state 3) is a separate on-chain call that only the verified address can make:
 
@@ -157,7 +158,7 @@ This is a simple authorization check — only the address registered as the chan
 
 ### MVP: tweet-based verification
 
-The first verifier implementation uses **tweet-based proof of ownership**. The creator tweets a short challenge string, and a trusted backend confirms the tweet exists and came from the correct account before signing a `ChannelClaimProof`.
+The first verifier implementation uses **tweet-based proof of ownership**. The creator tweets a short challenge string, and a trusted backend confirms the tweet exists and came from the correct account before signing a `BeneficiaryClaimProof`.
 
 The creator's experience:
 
@@ -194,7 +195,7 @@ ENS verification becomes worth adding when: (a) there are creators actively requ
 
 ### Future: TLSNotary / zkTLS-based verification
 
-ENS- and DID-based verification only help on platforms with a native on-chain/decentralized identity to anchor to. That leaves the legacy platforms that make up most creators — X, Substack, YouTube — without a trustless option. **TLSNotary / zkTLS** (e.g. Reclaim Protocol) fills exactly that gap: the creator proves the contents of an authenticated TLS session against the platform (e.g. "I am logged in and this account-settings page shows handle @foo"), producing a proof anyone can verify, with **no trusted backend doing the signing**. The same `IChannelVerifier` interface accepts it — the verifier implementation checks the zk/TLS proof instead of a backend signature.
+ENS- and DID-based verification only help on platforms with a native on-chain/decentralized identity to anchor to. That leaves the legacy platforms that make up most creators — X, Substack, YouTube — without a trustless option. **TLSNotary / zkTLS** (e.g. Reclaim Protocol) fills exactly that gap: the creator proves the contents of an authenticated TLS session against the platform (e.g. "I am logged in and this account-settings page shows handle @foo"), producing a proof anyone can verify, with **no trusted backend doing the signing**. The same `IBeneficiaryVerifier` interface accepts it — the verifier implementation checks the zk/TLS proof instead of a backend signature.
 
 Caveats to weigh before building: the schemes are still maturing; proof generation is heavy; some designs rely on a semi-trusted notary (though it never sees plaintext); and the per-platform page parsing is brittle and breaks when platforms change their markup. So it's the **generalized fallback for platforms lacking native crypto identity**, complementary to ENS/DID rather than a replacement.
 
@@ -205,18 +206,18 @@ The trusted backend in the MVP is a deliberate bootstrap, not a permanent depend
 1. **Today — publicly auditable, not blind trust.** The proof artifacts are public and permanent (the tweet, the Substack RSS post). The backend is *not* the source of truth; anyone can independently re-verify that a signed claim corresponds to a real public ownership proof, so a dishonest verifier is *detectable*. (Gap: the on-chain `verifyChannel` checks only the signature, not the underlying public proof, so detection is after-the-fact, not on-chain prevention.)
 2. **Next — remove the backend where a native identity exists.** ENS-based (and DID-based for Bluesky/AT-Proto) verification is fully on-chain and needs no trusted signer.
 3. **Next — remove the backend everywhere else.** TLSNotary/zkTLS extends trustless verification to legacy platforms with no native crypto identity.
-4. **End state — decentralized choice of verifier.** Per-platform `ChannelRegistry` deployments where *anyone* can deploy a contract set and clients/UI decide which deployments to trust (see [Future: additional platforms](#future-additional-platforms)). Canonical ownership becomes per-deployment; trust lives at the client level rather than in one admin-appointed verifier.
+4. **End state — decentralized choice of verifier.** Shared `BeneficiaryRegistry` plus per-platform content deployments where *anyone* can deploy a contract set and clients/UI decide which deployments to trust (see [Future: additional platforms](#future-additional-platforms)). Canonical ownership becomes per-deployment; trust lives at the client level rather than in one admin-appointed verifier.
 
-Each step shrinks what the central verifier can do until the `setVerifier` lever stops being a meaningful trust concentration point. None of these is scheduled — they are gated on creator demand or the backend becoming a real trust/bottleneck concern — but the architecture (pluggable `IChannelVerifier`, per-platform deployments) is already built to accommodate them.
+Each step shrinks what the central verifier can do until the `setVerifier` lever stops being a meaningful trust concentration point. None of these is scheduled — they are gated on creator demand or the backend becoming a real trust/bottleneck concern — but the architecture (pluggable `IBeneficiaryVerifier`, shared beneficiary registry, per-platform content deployments) is already built to accommodate them.
 
 #### Near-term posture: cheap wins now, trustless verifier demand-gated (Jul 2026)
 
-Adam's decision after weighing feasibility: **do not prioritize building an actual trustless verifier right now.** The reasoning is that the mainstream claim flow (tweet / Substack-RSS) stays backend-dependent regardless of what we ship, because the only path that generalizes to legacy platforms is zkTLS, which is still maturing (see [above](#future-tlsnotary--zktls-based-verification)). And a fully on-chain ENS verifier has two blockers that make it serve only a rounding-error of creators: (a) channel IDs are keyed by numeric UID (`twitter:uid:…`) while ENS stores the *handle*, with no on-chain handle→UID resolution; and (b) ENS text records live on Ethereum mainnet, so unless the `ChannelRegistry` is deployed on mainnet, the contract can't read them without CCIP-read (which reintroduces a semi-trusted gateway). The pluggable `IChannelVerifier` architecture is fully ready to accept a trustless verifier the day one is worth building — the block is on the verification tech, not our contracts.
+Adam's decision after weighing feasibility: **do not prioritize building an actual trustless verifier right now.** The reasoning is that the mainstream claim flow (tweet / Substack-RSS) stays backend-dependent regardless of what we ship, because the only path that generalizes to legacy platforms is zkTLS, which is still maturing (see [above](#future-tlsnotary--zktls-based-verification)). And a fully on-chain ENS verifier has two blockers that make it serve only a rounding-error of creators: (a) channel IDs are keyed by numeric UID (`twitter:uid:…`) while ENS stores the *handle*, with no on-chain handle→UID resolution; and (b) ENS text records live on Ethereum mainnet, so unless the `BeneficiaryRegistry` is deployed on mainnet, the contract can't read them without CCIP-read (which reintroduces a semi-trusted gateway). The pluggable `IBeneficiaryVerifier` architecture is fully ready to accept a trustless verifier the day one is worth building — the block is on the verification tech, not our contracts.
 
 So the near-term channel-claiming work — which shrinks the legal risk *without* removing the backend — is:
 
-1. **Timelock + multisig the owner / `setTrustedVerifier` levers** (this is the owner-key triage the [legal re-rank](/specs/product/legal/README.md#re-rank-after-the-control-audit-jul-2026) pairs with the trustless-verifier assumption). Removes the "one key can silently swap the source of truth" objection. **Decided 2026-07-27:** 48-hour timelock behind a 2-of-3 Safe, with an immediate revoke path so emergency signer rotation isn't gated on the delay — see [security-recoverability.md](/workflow/security-recoverability.md#decision-adam-2026-07-27). The contract half is done: a guardian (appointed by the owner, so appointment is timelocked) can call `ChannelVerifier.revokeTrustedVerifier` / `ChannelRegistry.revokeVerifier` immediately, halting new claims without touching already-verified channels, while installing a verifier stays owner-only. The timelock and Safe themselves are still to be deployed.
-2. **On-chain proof-hash anchoring for detectability.** Implemented in `ChannelRegistry.verifyChannel`: the verifier-signed typed data includes a non-zero `proofHash`, and the registry emits `ChannelProofAnchored(channelId, owner, proofHash)`. The hash is over the durable public proof reference (tweet / RSS post URL), so anyone can independently re-verify — converting "trust us" into "publicly auditable," which is most of the legal benefit at a fraction of the cost.
+1. **Timelock + multisig the owner / `setTrustedVerifier` levers** (this is the owner-key triage the [legal re-rank](/specs/product/legal/README.md#re-rank-after-the-control-audit-jul-2026) pairs with the trustless-verifier assumption). Removes the "one key can silently swap the source of truth" objection. **Decided 2026-07-27:** 48-hour timelock behind a 2-of-3 Safe, with an immediate revoke path so emergency signer rotation isn't gated on the delay — see [security-recoverability.md](/workflow/security-recoverability.md#decision-adam-2026-07-27). The contract half is done: a guardian (appointed by the owner, so appointment is timelocked) can call `BeneficiaryVerifier.revokeTrustedVerifier` / `BeneficiaryRegistry.revokeVerifier` immediately, halting new claims without touching already-verified channels, while installing a verifier stays owner-only. The timelock and Safe themselves are still to be deployed.
+2. **On-chain proof-hash anchoring for detectability.** Implemented in `BeneficiaryRegistry.verifyBeneficiary`: the verifier-signed typed data includes a non-zero `proofHash`, and the registry emits `BeneficiaryProofAnchored`. The hash is over the durable public proof reference (tweet / RSS post URL), so anyone can independently re-verify — converting "trust us" into "publicly auditable," which is most of the legal benefit at a fraction of the cost.
 3. **Sanctions screening at the platform-identity level, at claim/display time.** The escrow accumulates funds for a *named person* before any wallet exists; screening must happen at platform-identity resolution, not just wallet creation. The platform API must reject `/verify/challenge` before wallet-dependent work if a resolved identity is blocked, and claim/display pages must surface that status rather than inviting a wallet connection.
 4. **"Created by a fan; @creator is not affiliated" framing** on claim/display pages — implemented in the shared channel page copy for unclaimed channels; addresses the unconsented-creator-publicity item in the re-rank.
 
@@ -251,11 +252,11 @@ No API keys needed. No rate limits to worry about. The RSS feed is a simple HTTP
 
 ### Future: additional platforms
 
-Each platform gets its own ChannelRegistry deployment with a platform-appropriate verifier (see [per-platform deployment](README.md#per-platform-deployment)). A Bluesky ChannelRegistry might use DID-based proof. The `IChannelVerifier` interface stays the same, but each platform's ChannelRegistry is a separate contract with its own verifier implementation.
+Identity and escrow live on the shared `BeneficiaryRegistry` / `BeneficiaryEscrow`. Content occupancy stays per-platform (`ContentRegistry` + factory) with a platform-appropriate verifier (see [per-platform deployment](README.md#per-platform-deployment)). A Bluesky content set might use DID-based proof. The `IBeneficiaryVerifier` interface stays the same.
 
 Anyone can deploy a new platform's contract set. The UI decides which deployments to trust.
 
-Generalizing this escrow-until-claim pattern past social platforms is [fund-now-claim-later.md](/specs/product/fund-now-claim-later.md) (product) and [claimable-beneficiaries.md](../claimable-beneficiaries.md) (tech). No users yet: refactor `ChannelRegistry` / `ChannelEscrow` onto that primitive rather than wrapping them. Org identities must not inherit content-item occupancy or creator veto.
+Generalizing this escrow-until-claim pattern past social platforms is [fund-now-claim-later.md](/specs/product/fund-now-claim-later.md) (product) and [claimable-beneficiaries.md](../claimable-beneficiaries.md) (tech). That refactor is the current [focus](/focus.md): content channels already sit on the shared beneficiary primitive. Org identities must not inherit content-item occupancy or creator veto.
 
 ## Creator onboarding
 

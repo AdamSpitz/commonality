@@ -6,6 +6,7 @@ import {
   STATUS_TOOLTIPS,
 } from '@ui/lazy-giving'
 import { InfoChip, projectPathForAddress } from '@ui/shared'
+import { WebsiteBeneficiaryMark } from '@ui/lazy-giving'
 import { Link as RouterLink } from 'react-router-dom'
 import type { ProjectRelation, UserProject } from '../lib/userProjects'
 
@@ -54,6 +55,11 @@ export function ProjectCard({ project, mode }: { project: UserProject; mode?: 'w
           <Typography variant="subtitle1" noWrap sx={{ fontWeight: 700, lineHeight: 1.3 }}>
             {project.title}
           </Typography>
+          {project.websiteDomain && (
+            <Box sx={{ mt: 0.25 }}>
+              <WebsiteBeneficiaryMark domain={project.websiteDomain} />
+            </Box>
+          )}
         </Box>
         <Stack
           direction="row"

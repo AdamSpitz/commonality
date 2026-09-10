@@ -51,8 +51,9 @@ describe('ProjectHeader', () => {
       beneficiary: { namespace: 'dns', canonicalIdentifier: 'example.org' },
     }
     render(<ProjectHeader project={project} metadata={metadata} />)
-    expect(screen.getByText('example.org')).toBeInTheDocument()
-    expect(screen.getByText(/not affiliated/i)).toBeInTheDocument()
+    expect(screen.getByTestId('website-beneficiary-domain')).toHaveTextContent('example.org')
+    expect(screen.getByText(/domain control is the only identity/i)).toBeInTheDocument()
+    expect(screen.getByText('0.5 of 1 ETH raised')).toBeInTheDocument()
     expect(screen.queryByText(/Recipient:/)).not.toBeInTheDocument()
   })
 

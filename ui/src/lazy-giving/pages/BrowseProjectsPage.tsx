@@ -25,6 +25,7 @@ import { getProjectStatus, STATUS_COLORS, STATUS_LABELS, formatRelativeDeadline 
 import { getRuntimeConfigValue, loadDisplayDenylist } from '../../shared'
 import { projectPathForAddress } from '../../shared'
 import { readLazyGivingProjectMetadata, type ProjectMetadata } from '../metadata'
+import { dnsBeneficiaryDomain, WebsiteBeneficiaryMark } from '../components/WebsiteBeneficiaryMark'
 
 type StatusFilter = 'all' | 'active' | 'succeeded' | 'refunding'
 
@@ -216,6 +217,7 @@ export function BrowseProjectsPage() {
           {filteredProjects.map((project) => {
             const status = getProjectStatus(project)
             const meta = metadata[project.id]
+            const websiteDomain = dnsBeneficiaryDomain(meta?.beneficiary)
             const hasMinimum = BigInt(project.threshold) > 0n
             const progressPercent = hasMinimum ? Math.min(project.fundingProgress * 100, 100) : 0
 
@@ -224,9 +226,16 @@ export function BrowseProjectsPage() {
                 <CardActionArea component={RouterLink} to={projectPathForAddress(project.id)}>
                   <CardContent>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
-                      <Typography variant="h6" component="h2" sx={{ flexGrow: 1 }}>
-                        {meta?.name || `Project ${project.id.slice(0, 8)}...`}
-                      </Typography>
+                      <Box sx={{ flexGrow: 1, minWidth: 0, pr: 1 }}>
+                        <Typography variant="h6" component="h2">
+                          {meta?.name || `Project ${project.id.slice(0, 8)}...`}
+                        </Typography>
+                        {websiteDomain && (
+                          <Box sx={{ mt: 0.5 }}>
+                            <WebsiteBeneficiaryMark domain={websiteDomain} />
+                          </Box>
+                        )}
+                      </Box>
                       <Stack direction="row" spacing={1} sx={{ ml: 1 }}>
                         <Chip
                           label={STATUS_LABELS[status]}

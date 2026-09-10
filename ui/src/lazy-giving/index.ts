@@ -9,12 +9,10 @@
 // freely. When this module becomes its own published package, this file becomes
 // the package root (`@commonality/lazy-giving`).
 //
-// Eager surface (utils used at import time). The project-status helpers are
-// shared with `fundingportals`, which renders aligned-project cards on cause
-// boards; the component surface (BuyTokensSection, ProjectHeader, Leaderboard,
-// …) is module-internal today — those are only consumed by lazy-giving's own
-// pages/landing, so they are not part of the public contract yet. Promote a
-// component here only when an external consumer actually needs it.
+// Eager surface (utils used at import time). The project-status helpers and
+// website-beneficiary mark are shared with `fundingportals` and CauseStarter
+// project cards. Other components (BuyTokensSection, ProjectHeader, Leaderboard)
+// stay module-internal until an external consumer needs them.
 
 export {
   getProjectStatus,
@@ -27,6 +25,7 @@ export {
   type ProjectStatus,
 } from './utils'
 export { readLazyGivingProjectMetadata } from './metadata'
+export { dnsBeneficiaryDomain, WebsiteBeneficiaryMark } from './components/WebsiteBeneficiaryMark'
 
 // Note on pages: the route components (BrowseProjectsPage, CreateProjectPage,
 // ProjectDetailPage) are intentionally NOT re-exported here. Domain route

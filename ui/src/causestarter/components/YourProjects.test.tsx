@@ -62,6 +62,7 @@ describe('YourProjects', () => {
           empty=""
           projects={[{
             title: 'Garden beds',
+            websiteDomain: 'example.org',
             relations: ['created', 'contributed'],
             project: {
               id: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
@@ -76,6 +77,7 @@ describe('YourProjects', () => {
       </MemoryRouter>,
     )
     expect(screen.getByText('Garden beds')).toBeInTheDocument()
+    expect(screen.getByTestId('website-beneficiary-domain')).toHaveTextContent('example.org')
     expect(screen.getByText('Succeeded')).toBeInTheDocument()
     expect(screen.getByText('Owner')).toBeInTheDocument()
     expect(screen.getByText('Contributed')).toBeInTheDocument()

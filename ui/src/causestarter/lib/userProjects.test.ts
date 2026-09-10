@@ -16,6 +16,8 @@ vi.mock('@commonality/sdk/lazy-giving', () => ({
 
 vi.mock('@ui/lazy-giving', () => ({
   readLazyGivingProjectMetadata,
+  dnsBeneficiaryDomain: (beneficiary?: { namespace?: string; canonicalIdentifier?: string }) =>
+    beneficiary?.namespace === 'dns' ? beneficiary.canonicalIdentifier : undefined,
 }))
 
 const USER = '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
@@ -34,7 +36,10 @@ describe('loadUserProjects', () => {
       deadline: '1',
       totalReceived: '0',
     })
-    readLazyGivingProjectMetadata.mockResolvedValue({ name: 'Garden beds' })
+    readLazyGivingProjectMetadata.mockResolvedValue({
+      name: 'Garden beds',
+      beneficiary: { namespace: 'dns', canonicalIdentifier: 'example.org' },
+    })
   })
 
   it('includes contributed projects', async () => {
@@ -43,6 +48,7 @@ describe('loadUserProjects', () => {
     const rows = await loadUserProjects(machinery as never, USER)
     expect(rows).toHaveLength(1)
     expect(rows[0]?.title).toBe('Garden beds')
+    expect(rows[0]?.websiteDomain).toBe('example.org')
     expect(rows[0]?.relations).toEqual(['contributed'])
   })
 

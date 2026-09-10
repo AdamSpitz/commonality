@@ -33,6 +33,7 @@ import {
   CONTRACT_STATUS_TOOLTIPS,
 } from '../../content-funding'
 import { formatCurrencyProgress, InfoChip, projectPathForAddress } from '../../shared'
+import { dnsBeneficiaryDomain, WebsiteBeneficiaryMark } from '../../lazy-giving'
 import { formatPlacePath } from './geographicInclusion'
 
 export type AlignedProject = {
@@ -44,7 +45,12 @@ export type AlignedProject = {
   deadline: string
 }
 
-export type ProjectMetadata = { name?: string; description?: string; relevantAreas?: string[][] }
+export type ProjectMetadata = {
+  name?: string
+  description?: string
+  relevantAreas?: string[][]
+  beneficiary?: { namespace?: string; canonicalIdentifier?: string }
+}
 
 export type ContentFundingInfo = {
   channelCanonicalId: string | null
@@ -237,6 +243,7 @@ export function AlignedProjectCard({
     metadata,
     channelLabels?.primary,
   )
+  const websiteDomain = dnsBeneficiaryDomain(metadata?.beneficiary)
   const openAriaLabel =
     projectLinks === 'local'
       ? `Open project: ${titleText}`
@@ -305,6 +312,8 @@ export function AlignedProjectCard({
             />
           ))}
         </Stack>
+
+        {websiteDomain && <WebsiteBeneficiaryMark domain={websiteDomain} />}
 
         <AlignedProjectCardDetails
           project={project}

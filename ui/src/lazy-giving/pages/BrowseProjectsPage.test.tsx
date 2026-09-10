@@ -197,6 +197,25 @@ describe('BrowseProjectsPage', () => {
       })
     })
 
+    it('shows the website beneficiary domain on cards without collapsing it', async () => {
+      vi.spyOn(cachedProjectsModule, 'useCachedProjects').mockReturnValue({
+        projects: [makeProject({ id: '0x1111', metadataCid: 'cid1' })] as any,
+        loading: false,
+        error: null,
+        reload: vi.fn(),
+      })
+      vi.mocked(fetchFromIPFS).mockResolvedValue({
+        name: 'Garden fund',
+        beneficiary: { namespace: 'dns', canonicalIdentifier: 'еxample.org' },
+      })
+
+      render(<BrowseProjectsPage />)
+
+      await waitFor(() => {
+        expect(screen.getByTestId('website-beneficiary-domain')).toHaveTextContent('еxample.org')
+      })
+    })
+
     it('displays truncated address when no metadata available', async () => {
       vi.mocked(fetchFromIPFS).mockResolvedValue(null)
       vi.mocked(getProject).mockResolvedValue(makeProject({ metadataCid: undefined }) as any)

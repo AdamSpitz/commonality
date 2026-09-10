@@ -12,6 +12,7 @@ import {
   formatRelativeDeadline,
 } from '../utils'
 import { truncateAddress, formatCurrencyRaised, InfoChip, InfoLabel } from '../../shared'
+import { dnsBeneficiaryDomain, WebsiteBeneficiaryMark } from './WebsiteBeneficiaryMark'
 
 type ProjectMetadata = {
   name?: string
@@ -43,9 +44,7 @@ export function ProjectHeader({ project, metadata, kind = 'project' }: ProjectHe
 
   const deadlineLabel = formatRelativeDeadline(project.deadline)
   const deadlineEnded = deadlineLabel === 'Ended'
-  const websiteBeneficiary = metadata?.beneficiary?.namespace === 'dns'
-    ? metadata.beneficiary.canonicalIdentifier
-    : undefined
+  const websiteBeneficiary = dnsBeneficiaryDomain(metadata?.beneficiary)
 
   return (
     <Box sx={{ mb: 3 }}>
@@ -76,12 +75,7 @@ export function ProjectHeader({ project, metadata, kind = 'project' }: ProjectHe
           )}
           {websiteBeneficiary ? (
             <Box sx={{ mt: 1 }}>
-              <Typography variant="h5" component="p" sx={{ fontWeight: 700, letterSpacing: '-0.02em' }}>
-                {websiteBeneficiary}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Fan-created project. Not affiliated. Successful funds go to escrow for whoever proves control of this website.
-              </Typography>
+              <WebsiteBeneficiaryMark domain={websiteBeneficiary} size="hero" />
             </Box>
           ) : (
           <Stack direction="row" spacing={0.5} alignItems="center">
@@ -112,7 +106,7 @@ export function ProjectHeader({ project, metadata, kind = 'project' }: ProjectHe
 
       <Box sx={{ mt: 2 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-          <Typography variant="body1">
+          <Typography variant={websiteBeneficiary ? 'h4' : 'body1'} component="p" sx={websiteBeneficiary ? { fontWeight: 700 } : undefined}>
             {formatCurrencyRaised(project.totalReceived, project.threshold, project.fundingCurrency)}
           </Typography>
           {hasMinimum ? (

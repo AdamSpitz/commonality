@@ -21,7 +21,7 @@ A project names a **claimable beneficiary** (namespace + canonical id): a tweet 
 
 Content-specific rules (one contract per tweet, creator veto) stay content-funding features. They are not part of being a beneficiary.
 
-MVP identity for orgs is **domain control**, not incorporation. Contributors who mean the Red Cross type `redcross.org`. The UI shows the registrable domain as large as the dollar amount and does not collapse lookalikes. Apex and `www` are one name; path-only "sites" are rejected; a create-time redirect to another registrable domain is refused.
+MVP identity for orgs is **domain control**, not incorporation. Contributors who mean the Red Cross type `redcross.org`. The UI shows the registrable domain as large as the dollar amount and does not collapse lookalikes (exact canonical string, monospace, no ellipsis — on the project header, browse cards, cause-board cards, and CauseStarter project cards). Apex and `www` are one name; path-only "sites" are rejected; a create-time redirect to another registrable domain is refused.
 
 Proof is publishing a challenge the world can still fetch: HTTPS `/.well-known/commonality-claim.json` first (what donors see), DNS TXT as an alternate for orgs that can edit DNS but not the CMS. That proves control of `example.org`. It does not prove 501(c)(3) status, board authorization, or tax deductibility.
 

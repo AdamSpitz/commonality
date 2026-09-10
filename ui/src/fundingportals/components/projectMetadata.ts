@@ -5,7 +5,16 @@ import { displayPolicyFromDenylist, isCidDeniedByDisplayDenylist, loadDisplayDen
 import type { ProjectMetadata } from './AlignedProjectCard'
 import { parseRelevantAreas } from './geographicInclusion'
 
-function metadataFromFields(raw: { name?: unknown; title?: unknown; description?: unknown; relevantAreas?: unknown }, fallbackDescription?: string): ProjectMetadata | null {
+function beneficiaryFromFields(raw: { beneficiary?: unknown }): ProjectMetadata['beneficiary'] {
+  if (!raw.beneficiary || typeof raw.beneficiary !== 'object' || Array.isArray(raw.beneficiary)) return undefined
+  const record = raw.beneficiary as Record<string, unknown>
+  const namespace = typeof record.namespace === 'string' ? record.namespace : undefined
+  const canonicalIdentifier = typeof record.canonicalIdentifier === 'string' ? record.canonicalIdentifier : undefined
+  if (!namespace && !canonicalIdentifier) return undefined
+  return { namespace, canonicalIdentifier }
+}
+
+function metadataFromFields(raw: { name?: unknown; title?: unknown; description?: unknown; relevantAreas?: unknown; beneficiary?: unknown }, fallbackDescription?: string): ProjectMetadata | null {
   const name = typeof raw.name === 'string'
     ? raw.name
     : typeof raw.title === 'string'
@@ -13,8 +22,9 @@ function metadataFromFields(raw: { name?: unknown; title?: unknown; description?
       : undefined
   const description = typeof raw.description === 'string' ? raw.description : fallbackDescription
   const relevantAreas = parseRelevantAreas(raw.relevantAreas)
-  return name || description || relevantAreas
-    ? { name, description, ...(relevantAreas ? { relevantAreas } : {}) }
+  const beneficiary = beneficiaryFromFields(raw)
+  return name || description || relevantAreas || beneficiary
+    ? { name, description, ...(relevantAreas ? { relevantAreas } : {}), ...(beneficiary ? { beneficiary } : {}) }
     : null
 }
 

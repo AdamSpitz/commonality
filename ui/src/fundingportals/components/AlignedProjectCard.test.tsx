@@ -108,6 +108,20 @@ describe('AlignedProjectCard', () => {
       expect(screen.getByText('My Awesome Project')).toBeInTheDocument()
     })
 
+    it('shows a website beneficiary domain without collapsing lookalikes', () => {
+      render(
+        <AlignedProjectCard
+          project={makeProject()}
+          metadata={{
+            name: 'Garden fund',
+            beneficiary: { namespace: 'dns', canonicalIdentifier: 'еxample.org' },
+          }}
+        />,
+      )
+
+      expect(screen.getByTestId('website-beneficiary-domain')).toHaveTextContent('еxample.org')
+    })
+
     it('shows truncated address when no metadata available', () => {
       render(
         <AlignedProjectCard

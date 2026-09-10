@@ -1984,3 +1984,17 @@ proof structs; content occupancy still keyed as channels (intentional).
 
 Still needed: remaining historical Channel* snippets in channel-claiming.md;
 content occupancy still keyed as channels (intentional).
+
+## 2026-09-10 — Website domain as large as the amount
+
+- Shared `WebsiteBeneficiaryMark` renders the exact canonical dns identifier
+  in monospace, no ellipsis, with bidi isolate so lookalikes cannot collapse
+  into a familiar name.
+- Project header matches domain size to the raised amount and states that
+  escrow enforces domain control, not charity/legal-entity identity.
+- Browse cards, cause-board aligned cards, and CauseStarter project cards
+  show the same mark. Funding-portal metadata now folds `beneficiary`.
+- channel-claiming.md proof/verifier names now match BeneficiaryRegistry.
+
+Still needed: on-chain claim state in the header (unclaimed vs
+domain-controlled chip); content occupancy still keyed as channels.
