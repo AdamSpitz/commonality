@@ -33,6 +33,7 @@ const CONTRACTS_TO_SYNC: Record<string, { artifactPath: string; outputFile: stri
   MutableRefUpdater: { artifactPath: "utils/MutableRefUpdater.sol/MutableRefUpdater.json", outputFile: "MutableRefUpdaterAbi.ts" },
   PremintingERC1155: { artifactPath: "utils/PremintingERC1155.sol/PremintingERC1155.json", outputFile: "PremintingERC1155Abi.ts" },
   MultiERC1155AssuranceContract: { artifactPath: "individual-projects/AssuranceContracts.sol/MultiERC1155AssuranceContract.json", outputFile: "AssuranceContractAbi.ts" },
+  BeneficiaryAssuranceContract: { artifactPath: "individual-projects/BeneficiaryAssuranceContract.sol/BeneficiaryAssuranceContract.json", outputFile: "BeneficiaryAssuranceContractAbi.ts" },
   ProjectFactory: { artifactPath: "individual-projects/ProjectFactory.sol/ProjectFactory.json", outputFile: "ProjectFactoryAbi.ts" },
   PremintingERC1155Factory: { artifactPath: "individual-projects/ProjectFactory.sol/PremintingERC1155Factory.json", outputFile: "PremintingERC1155FactoryAbi.ts" },
   AssuranceContractFactory: { artifactPath: "individual-projects/ProjectFactory.sol/AssuranceContractFactory.json", outputFile: "AssuranceContractFactoryAbi.ts" },

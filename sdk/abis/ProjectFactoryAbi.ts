@@ -18,10 +18,30 @@ export const ProjectFactoryAbi = [
         "internalType": "address",
         "name": "conditionFactory",
         "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_beneficiaryRegistry",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_beneficiaryEscrow",
+        "type": "address"
       }
     ],
     "stateMutability": "nonpayable",
     "type": "constructor"
+  },
+  {
+    "inputs": [],
+    "name": "BeneficiaryEscrowRegistryMismatch",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "BeneficiaryPaymentTokenMismatch",
+    "type": "error"
   },
   {
     "inputs": [],
@@ -134,6 +154,32 @@ export const ProjectFactoryAbi = [
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "beneficiaryEscrow",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "beneficiaryRegistry",
+    "outputs": [
+      {
+        "internalType": "contract IProjectBeneficiaryRegistry",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "string",
@@ -192,6 +238,80 @@ export const ProjectFactoryAbi = [
       }
     ],
     "name": "createERC1155AndAssuranceContract",
+    "outputs": [
+      {
+        "internalType": "contract IERC1155",
+        "name": "",
+        "type": "address"
+      },
+      {
+        "internalType": "contract AssuranceContract",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "metadataURI",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "contractURI",
+        "type": "string"
+      },
+      {
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "beneficiaryId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "address",
+        "name": "paymentToken",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "threshold",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "deadline",
+        "type": "uint256"
+      },
+      {
+        "internalType": "string",
+        "name": "projectMetadataCid",
+        "type": "string"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "ids",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "counts",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "prices",
+        "type": "uint256[]"
+      }
+    ],
+    "name": "createERC1155AndAssuranceContractForBeneficiary",
     "outputs": [
       {
         "internalType": "contract IERC1155",

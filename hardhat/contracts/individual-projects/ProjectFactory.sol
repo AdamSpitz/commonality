@@ -8,6 +8,17 @@ import {AssuranceContract} from "./AssuranceContract.sol";
 import {MultiERC1155AssuranceContract} from "./AssuranceContracts.sol";
 import {IAssuranceCondition} from "./IAssuranceCondition.sol";
 import {ValueThresholdCondition} from "./ValueThresholdCondition.sol";
+import {BeneficiaryAssuranceContract} from "./BeneficiaryAssuranceContract.sol";
+
+interface IProjectBeneficiaryRegistry {
+  function isVerified(bytes32 beneficiaryId) external view returns (bool);
+  function payoutAddress(bytes32 beneficiaryId) external view returns (address);
+}
+
+interface IProjectBeneficiaryEscrow {
+  function beneficiaryRegistry() external view returns (address);
+  function paymentToken() external view returns (address);
+}
 
 error InvalidOwnerAddress();
 error InvalidRecipientAddress();
@@ -17,6 +28,8 @@ error InvalidDeadline();
 error EmptyTokenList();
 error TokenArrayLengthMismatch();
 error ZeroPrice();
+error BeneficiaryPaymentTokenMismatch();
+error BeneficiaryEscrowRegistryMismatch();
 
 /**
  * @title PremintingERC1155Factory
@@ -68,6 +81,24 @@ contract AssuranceContractFactory {
     emit LazyGivingAssuranceContractCreated(address(ac));
     return ac;
   }
+
+  function createBeneficiaryAssuranceContract(
+    address owner,
+    address recipient,
+    address paymentToken,
+    address erc1155Addr,
+    string memory projectMetadataCid,
+    bytes32 beneficiaryId,
+    bool recipientIsEscrow
+  ) public returns (BeneficiaryAssuranceContract) {
+    BeneficiaryAssuranceContract ac = new BeneficiaryAssuranceContract(
+      owner, recipient, paymentToken, erc1155Addr, projectMetadataCid, beneficiaryId, recipientIsEscrow
+    );
+    isDeployedAssurance[address(ac)] = true;
+    isDeployedPrimaryMarket[address(ac)] = true;
+    emit LazyGivingAssuranceContractCreated(address(ac));
+    return ac;
+  }
 }
 
 /**
@@ -113,6 +144,8 @@ contract ProjectFactory {
   PremintingERC1155Factory public immutable _premintingERC1155Factory;
   AssuranceContractFactory public immutable _assuranceFactory;
   ValueThresholdConditionFactory public immutable _conditionFactory;
+  IProjectBeneficiaryRegistry public immutable beneficiaryRegistry;
+  address public immutable beneficiaryEscrow;
 
   /**
    * @notice Emitted once per createERC1155...() call, tying together the three
@@ -128,14 +161,23 @@ contract ProjectFactory {
   constructor(
     address erc1155Factory,
     address assuranceFactory,
-    address conditionFactory
+    address conditionFactory,
+    address _beneficiaryRegistry,
+    address _beneficiaryEscrow
   ) {
     if (erc1155Factory == address(0)) revert InvalidFactoryAddress();
     if (assuranceFactory == address(0)) revert InvalidFactoryAddress();
     if (conditionFactory == address(0)) revert InvalidFactoryAddress();
+    if (_beneficiaryRegistry == address(0)) revert InvalidFactoryAddress();
+    if (_beneficiaryEscrow == address(0)) revert InvalidFactoryAddress();
     _premintingERC1155Factory = PremintingERC1155Factory(erc1155Factory);
     _assuranceFactory = AssuranceContractFactory(assuranceFactory);
     _conditionFactory = ValueThresholdConditionFactory(conditionFactory);
+    beneficiaryRegistry = IProjectBeneficiaryRegistry(_beneficiaryRegistry);
+    beneficiaryEscrow = _beneficiaryEscrow;
+    if (IProjectBeneficiaryEscrow(_beneficiaryEscrow).beneficiaryRegistry() != _beneficiaryRegistry) {
+      revert BeneficiaryEscrowRegistryMismatch();
+    }
   }
 
   struct CreateProjectParams {
@@ -198,6 +240,56 @@ contract ProjectFactory {
   }
 
   /**
+   * @notice Creates a threshold project for a claimable beneficiary.
+   * @dev Verified beneficiaries receive funds directly. Unclaimed beneficiaries
+   *      receive them through BeneficiaryEscrow after project success.
+   */
+  function createERC1155AndAssuranceContractForBeneficiary(
+    string memory metadataURI,
+    string memory contractURI,
+    address owner,
+    bytes32 beneficiaryId,
+    address paymentToken,
+    uint256 threshold,
+    uint256 deadline,
+    string memory projectMetadataCid,
+    uint256[] memory ids,
+    uint256[] memory counts,
+    uint256[] memory prices
+  ) public returns (IERC1155, AssuranceContract) {
+    if (beneficiaryId == bytes32(0)) revert InvalidRecipientAddress();
+    if (paymentToken != IProjectBeneficiaryEscrow(beneficiaryEscrow).paymentToken()) {
+      revert BeneficiaryPaymentTokenMismatch();
+    }
+    if (threshold == 0) revert InvalidThreshold();
+    if (deadline <= block.timestamp) revert InvalidDeadline();
+
+    bool verified = beneficiaryRegistry.isVerified(beneficiaryId);
+    address recipient = verified ? beneficiaryRegistry.payoutAddress(beneficiaryId) : beneficiaryEscrow;
+    CreateProjectParams memory params = CreateProjectParams({
+      metadataURI: metadataURI,
+      contractURI: contractURI,
+      owner: owner,
+      recipient: recipient,
+      paymentToken: paymentToken,
+      projectMetadataCid: projectMetadataCid,
+      ids: ids,
+      counts: counts,
+      prices: prices
+    });
+
+    _validateProjectParams(params);
+    PremintingERC1155 t = _deployToken(params);
+    BeneficiaryAssuranceContract ac = _assuranceFactory.createBeneficiaryAssuranceContract(
+      address(this), recipient, paymentToken, address(t), projectMetadataCid, beneficiaryId, !verified
+    );
+    ValueThresholdCondition condition = _conditionFactory.createCondition(address(ac), threshold, deadline);
+    _wireUpAndFinalize(t, ac, IAssuranceCondition(address(condition)), params);
+    emit ProjectCreated(msg.sender, address(t), address(ac), address(condition));
+    return (t, ac);
+  }
+
+  /**
    * @notice Creates a project with a custom IAssuranceCondition (for non-threshold conditions)
    * @dev The condition must already be deployed and reference the assurance contract if needed.
    */
@@ -238,15 +330,8 @@ contract ProjectFactory {
     private
     returns (PremintingERC1155, MultiERC1155AssuranceContract)
   {
-    if (params.owner == address(0)) revert InvalidOwnerAddress();
-    if (params.recipient == address(0)) revert InvalidRecipientAddress();
-    _validateTokenArrays(params.ids, params.counts, params.prices);
-
-    PremintingERC1155 t = _premintingERC1155Factory.createPremintingERC1155(
-      address(this),
-      params.metadataURI,
-      params.contractURI
-    );
+    _validateProjectParams(params);
+    PremintingERC1155 t = _deployToken(params);
 
     MultiERC1155AssuranceContract ac = _assuranceFactory.createAssuranceContract(
       address(this),
@@ -257,6 +342,18 @@ contract ProjectFactory {
     );
 
     return (t, ac);
+  }
+
+  function _validateProjectParams(CreateProjectParams memory params) private pure {
+    if (params.owner == address(0)) revert InvalidOwnerAddress();
+    if (params.recipient == address(0)) revert InvalidRecipientAddress();
+    _validateTokenArrays(params.ids, params.counts, params.prices);
+  }
+
+  function _deployToken(CreateProjectParams memory params) private returns (PremintingERC1155) {
+    return _premintingERC1155Factory.createPremintingERC1155(
+      address(this), params.metadataURI, params.contractURI
+    );
   }
 
   function _wireUpAndFinalize(

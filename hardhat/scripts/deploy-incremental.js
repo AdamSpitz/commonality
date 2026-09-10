@@ -262,7 +262,7 @@ async function main() {
   }
   await deployOrReuse('NudgePublications', 'NudgePublications');
   await deployOrReuse('PublishedData', 'PublishedData');
-  await deployOrReuse('ProjectFactory', 'ProjectFactory', [addresses.PremintingERC1155Factory, addresses.AssuranceContractFactory, addresses.ValueThresholdConditionFactory]);
+  await deployOrReuse('ProjectFactory', 'ProjectFactory', [addresses.PremintingERC1155Factory, addresses.AssuranceContractFactory, addresses.ValueThresholdConditionFactory, addresses.BeneficiaryRegistry, addresses.BeneficiaryEscrow]);
 
   if (isLocal) {
     await deployOrReuse('SponsoredGasEntryPoint', 'MockEntryPoint');

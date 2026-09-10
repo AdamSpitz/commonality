@@ -1857,3 +1857,15 @@ Still needed before focus item 1 is complete: separate content-only control/veto
 from `BeneficiaryRegistry`; add namespace-specific verifier/waiting-period policy;
 wire generic LazyGiving project creation and beneficiary UI to `dns:` identities; and
 exercise the full claim/fund/withdraw flow.
+
+## 2026-09-10 — LazyGiving beneficiary contract and SDK seam
+
+- Added a beneficiary-targeted ProjectFactory entrypoint. Verified identities resolve
+  to their payout address; unclaimed identities resolve to the shared escrow.
+- Added a LazyGiving beneficiary assurance subtype that deposits successful proceeds
+  into BeneficiaryEscrow under its beneficiary ID, while preserving the ordinary
+  direct-address project path.
+- The SDK `createProject` action now accepts exactly one of `recipient` or
+  `beneficiaryId` and selects the matching factory entrypoint.
+- Added a contract test covering create, fund, successful escrow deposit, later claim,
+  and beneficiary withdrawal. The browser beneficiary picker remains next.

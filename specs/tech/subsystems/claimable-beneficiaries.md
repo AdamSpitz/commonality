@@ -102,3 +102,8 @@ Do not implement claim generations yet. If later required, balances should be ke
 ## When implementing
 
 This is the current [focus](/focus.md). Implementation order: rename/refactor `Channel*` in Hardhat, SDK, Ponder folds, and UI in one pass; add `dns` verifier + well-known check to platform-api; point LazyGiving project creation at a beneficiary picker. Do not leave a shim `ChannelRegistry` that only wraps `BeneficiaryRegistry` unless a deploy already has live escrow — there isn't one that matters.
+
+Implemented so far: ProjectFactory and the LazyGiving SDK accept a beneficiary-targeted
+creation path. The factory resolves verified beneficiaries directly and gives unclaimed
+beneficiaries a dedicated assurance contract whose successful withdrawal deposits into
+the shared escrow. The browser beneficiary picker is still to do.
