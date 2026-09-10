@@ -524,6 +524,19 @@ export const MaterializedContentTokensAbi = [
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "beneficiaryRegistry",
+    "outputs": [
+      {
+        "internalType": "contract BeneficiaryRegistry",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "address",
@@ -590,19 +603,6 @@ export const MaterializedContentTokensAbi = [
         "internalType": "bytes32",
         "name": "",
         "type": "bytes32"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "beneficiaryRegistry",
-    "outputs": [
-      {
-        "internalType": "contract BeneficiaryRegistry",
-        "name": "",
-        "type": "address"
       }
     ],
     "stateMutability": "view",

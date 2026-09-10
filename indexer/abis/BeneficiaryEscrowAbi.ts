@@ -20,7 +20,7 @@ export const BeneficiaryEscrowAbi = [
   },
   {
     "inputs": [],
-    "name": "ChannelNotVerified",
+    "name": "BeneficiaryNotVerified",
     "type": "error"
   },
   {
@@ -45,7 +45,7 @@ export const BeneficiaryEscrowAbi = [
   },
   {
     "inputs": [],
-    "name": "OnlyChannelOwner",
+    "name": "OnlyBeneficiaryPayoutAddress",
     "type": "error"
   },
   {
@@ -65,7 +65,7 @@ export const BeneficiaryEscrowAbi = [
       {
         "indexed": true,
         "internalType": "bytes32",
-        "name": "channelId",
+        "name": "beneficiaryId",
         "type": "bytes32"
       },
       {
@@ -90,7 +90,7 @@ export const BeneficiaryEscrowAbi = [
       {
         "indexed": true,
         "internalType": "bytes32",
-        "name": "channelId",
+        "name": "beneficiaryId",
         "type": "bytes32"
       },
       {
@@ -113,7 +113,7 @@ export const BeneficiaryEscrowAbi = [
     "inputs": [
       {
         "internalType": "bytes32",
-        "name": "channelId",
+        "name": "beneficiaryId",
         "type": "bytes32"
       }
     ],
@@ -145,7 +145,7 @@ export const BeneficiaryEscrowAbi = [
     "inputs": [
       {
         "internalType": "bytes32",
-        "name": "channelId",
+        "name": "beneficiaryId",
         "type": "bytes32"
       },
       {
@@ -176,7 +176,7 @@ export const BeneficiaryEscrowAbi = [
     "inputs": [
       {
         "internalType": "bytes32",
-        "name": "channelId",
+        "name": "beneficiaryId",
         "type": "bytes32"
       }
     ],

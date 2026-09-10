@@ -2,8 +2,10 @@ import assert from 'assert';
 import {
   ContentFundingCanonicalizationError,
   buildCanonicalChannelId,
+  buildCanonicalBeneficiaryId,
   buildCanonicalContentId,
   hashCanonicalId,
+  hashBeneficiaryId,
   parseCanonicalChannelId,
   parseContentFundingUrl,
   parseSubstackPostUrl,
@@ -115,6 +117,26 @@ describe('content-funding canonicalization', () => {
   });
 
   describe('canonical IDs', () => {
+    it('builds and hashes generic claimable-beneficiary IDs', () => {
+      assert.strictEqual(buildCanonicalBeneficiaryId('DNS', 'example.org'), 'dns:example.org');
+      assert.strictEqual(
+        hashBeneficiaryId('dns', 'example.org'),
+        hashCanonicalId('dns:example.org'),
+      );
+      assert.throws(
+        () => buildCanonicalBeneficiaryId('not a namespace', 'example.org'),
+        (error: unknown) =>
+          error instanceof ContentFundingCanonicalizationError &&
+          error.code === 'invalid_channel_id',
+      );
+      assert.throws(
+        () => buildCanonicalBeneficiaryId('dns', ' example.org'),
+        (error: unknown) =>
+          error instanceof ContentFundingCanonicalizationError &&
+          error.code === 'invalid_channel_id',
+      );
+    });
+
     it('builds and parses canonical channel IDs', () => {
       assert.strictEqual(buildCanonicalChannelId('twitter', '12345678'), 'twitter:uid:12345678');
       assert.strictEqual(

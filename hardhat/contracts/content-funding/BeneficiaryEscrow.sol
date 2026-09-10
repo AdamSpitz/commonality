@@ -8,26 +8,26 @@ import {IBeneficiaryRegistry} from "./BeneficiaryRegistry.sol";
 error InvalidRegistryAddress();
 error InvalidPaymentTokenAddress();
 error MustSendTokens();
-error ChannelNotVerified();
-error OnlyChannelOwner();
+error BeneficiaryNotVerified();
+error OnlyBeneficiaryPayoutAddress();
 error NoBalance();
 
 /**
  * @title IBeneficiaryEscrow
- * @notice Interface for the channel escrow contract
+ * @notice Interface for beneficiary escrow
  */
 interface IBeneficiaryEscrow {
-    function deposit(bytes32 channelId, uint256 amount) external;
-    function withdraw(bytes32 channelId) external;
-    function balance(bytes32 channelId) external view returns (uint256);
+    function deposit(bytes32 beneficiaryId, uint256 amount) external;
+    function withdraw(bytes32 beneficiaryId) external;
+    function balance(bytes32 beneficiaryId) external view returns (uint256);
 }
 
 /**
  * @title BeneficiaryEscrow
- * @notice Holds settlement tokens in escrow per channel until the channel owner is verified and withdraws
- * @dev Funds are deposited by channel ID. Only the verified channel owner can withdraw.
- *      Used for channels that are unclaimed at the time funds are sent, so the creator
- *      can claim them later after verification.
+ * @notice Holds settlement tokens until a beneficiary binds a payout address and withdraws
+ * @dev Funds are keyed by beneficiary ID. Only the registry's payout address can withdraw.
+ *      Used for public identities that are unclaimed when funds are sent, so their
+ *      controller can claim them later after verification.
  *
  *      Token assumptions: The paymentToken must be a standard ERC-20 token with:
  *      - No transfer fees or callbacks
@@ -40,31 +40,31 @@ interface IBeneficiaryEscrow {
 contract BeneficiaryEscrow is IBeneficiaryEscrow {
     using SafeERC20 for IERC20;
 
-    mapping(bytes32 channelId => uint256 amount) private _balances;
+    mapping(bytes32 beneficiaryId => uint256 amount) private _balances;
 
-    /// @notice The channel registry contract used to verify channel ownership
+    /// @notice The registry used to resolve the beneficiary payout address
     address public beneficiaryRegistry;
     /// @notice The ERC-20 token held in escrow
     address public immutable paymentToken;
 
     /**
-     * @notice Emitted when ETH is deposited into escrow for a channel
-     * @param channelId The channel the deposit is for
-     * @param from The address that deposited the ETH
-     * @param amount The amount of ETH deposited
+     * @notice Emitted when settlement tokens are deposited for a beneficiary
+     * @param beneficiaryId The beneficiary the deposit is for
+     * @param from The address that deposited the tokens
+     * @param amount The amount deposited
      */
-    event Deposited(bytes32 indexed channelId, address indexed from, uint256 amount);
+    event Deposited(bytes32 indexed beneficiaryId, address indexed from, uint256 amount);
 
     /**
-     * @notice Emitted when the verified channel owner withdraws escrowed funds
-     * @param channelId The channel the withdrawal is from
-     * @param to The address that received the ETH
-     * @param amount The amount of ETH withdrawn
+     * @notice Emitted when the beneficiary payout address withdraws escrowed funds
+     * @param beneficiaryId The beneficiary the withdrawal is from
+     * @param to The payout address that received the tokens
+     * @param amount The amount withdrawn
      */
-    event Withdrawn(bytes32 indexed channelId, address indexed to, uint256 amount);
+    event Withdrawn(bytes32 indexed beneficiaryId, address indexed to, uint256 amount);
 
     /**
-     * @notice Initializes the escrow with a channel registry address and settlement token
+     * @notice Initializes the escrow with a beneficiary registry and settlement token
      * @param _beneficiaryRegistry The address of the BeneficiaryRegistry contract
      * @param _paymentToken The ERC-20 token held in escrow
      */
@@ -76,42 +76,44 @@ contract BeneficiaryEscrow is IBeneficiaryEscrow {
     }
 
     /**
-     * @notice Deposit settlement tokens into escrow for a specific channel
-     * @param channelId The channel to deposit funds for
+     * @notice Deposit settlement tokens into escrow for a beneficiary
+     * @param beneficiaryId The beneficiary to deposit funds for
      * @param amount The amount of tokens to deposit
      */
-    function deposit(bytes32 channelId, uint256 amount) external {
+    function deposit(bytes32 beneficiaryId, uint256 amount) external {
         if (amount == 0) revert MustSendTokens();
-        _balances[channelId] += amount;
+        _balances[beneficiaryId] += amount;
         IERC20(paymentToken).safeTransferFrom(msg.sender, address(this), amount);
-        emit Deposited(channelId, msg.sender, amount);
+        emit Deposited(beneficiaryId, msg.sender, amount);
     }
 
     /**
-     * @notice Withdraw all escrowed settlement tokens for a channel (only verified channel owner)
-     * @param channelId The channel to withdraw funds from
+     * @notice Withdraw all escrowed tokens for a beneficiary
+     * @param beneficiaryId The beneficiary to withdraw funds for
      */
-    function withdraw(bytes32 channelId) external {
-        if (!IBeneficiaryRegistry(beneficiaryRegistry).isVerified(channelId)) revert ChannelNotVerified();
-        if (msg.sender != IBeneficiaryRegistry(beneficiaryRegistry).channelOwner(channelId)) {
-            revert OnlyChannelOwner();
+    function withdraw(bytes32 beneficiaryId) external {
+        if (!IBeneficiaryRegistry(beneficiaryRegistry).isVerified(beneficiaryId)) {
+            revert BeneficiaryNotVerified();
+        }
+        if (msg.sender != IBeneficiaryRegistry(beneficiaryRegistry).channelOwner(beneficiaryId)) {
+            revert OnlyBeneficiaryPayoutAddress();
         }
 
-        uint256 amount = _balances[channelId];
+        uint256 amount = _balances[beneficiaryId];
         if (amount == 0) revert NoBalance();
 
-        delete _balances[channelId];
-        emit Withdrawn(channelId, msg.sender, amount);
+        delete _balances[beneficiaryId];
+        emit Withdrawn(beneficiaryId, msg.sender, amount);
 
         IERC20(paymentToken).safeTransfer(msg.sender, amount);
     }
 
     /**
-     * @notice Returns the escrowed balance for a channel
-     * @param channelId The channel to query
+     * @notice Returns the escrowed balance for a beneficiary
+     * @param beneficiaryId The beneficiary to query
      * @return The amount of settlement-token value held in escrow
      */
-    function balance(bytes32 channelId) external view returns (uint256) {
-        return _balances[channelId];
+    function balance(bytes32 beneficiaryId) external view returns (uint256) {
+        return _balances[beneficiaryId];
     }
 }

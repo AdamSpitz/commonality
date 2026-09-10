@@ -1815,3 +1815,13 @@ Exercise 1 (simple causes, no triples) gold set remains in `fake-data-generation
 
 Do not train implication generation on Christianity × secular-conservatism. Next: curriculum exercise 2. The implication attester prompt now rejects nested-place geographic rollup (Grey County → Ontario is a worked reject, not an accept).
 
+## 2026-09-10 — Claimable-beneficiary identifier and escrow seam
+
+- Added generic SDK helpers to build and hash namespaced beneficiary IDs; existing
+  Twitter, YouTube, and Substack channel IDs now go through that primitive.
+- Made `BeneficiaryEscrow`'s ABI parameter names, errors, events, storage, and docs
+  beneficiary-native. It still resolves the payout address through the registry's
+  transitional `channelOwner` API; renaming/generalizing that registry surface is
+  the next contract-layer step.
+- Regenerated SDK and indexer ABIs. Focused SDK and Hardhat tests plus SDK/indexer
+  typechecks passed.

@@ -284,7 +284,7 @@ export function buildCanonicalChannelId(
           `Twitter channel IDs must use numeric user IDs: ${stableId}`,
         );
       }
-      return `twitter:uid:${stableId}`;
+      return buildCanonicalBeneficiaryId('twitter', `uid:${stableId}`);
     case 'youtube':
       if (!YOUTUBE_CHANNEL_ID_PATTERN.test(stableId)) {
         throw new ContentFundingCanonicalizationError(
@@ -292,7 +292,7 @@ export function buildCanonicalChannelId(
           `YouTube channel IDs must use UC-prefixed channel IDs: ${stableId}`,
         );
       }
-      return `youtube:channel:${stableId}`;
+      return buildCanonicalBeneficiaryId('youtube', `channel:${stableId}`);
     case 'substack': {
       const normalizedPublication = stableId.trim().toLowerCase();
       if (!SUBSTACK_PUBLICATION_PATTERN.test(normalizedPublication)) {
@@ -301,9 +301,43 @@ export function buildCanonicalChannelId(
           `Substack channel IDs must use publication slugs: ${stableId}`,
         );
       }
-      return `substack:${normalizedPublication}`;
+      return buildCanonicalBeneficiaryId('substack', normalizedPublication);
     }
   }
+}
+
+/**
+ * Build the canonical string whose hash identifies a claimable beneficiary.
+ *
+ * The namespace selects the identity system and verifier; the canonical
+ * identifier is namespace-specific (for example `uid:44196397` or
+ * `example.org`). Keeping this primitive independent of content channels lets
+ * projects target websites and future public identities through the same
+ * registry and escrow.
+ */
+export function buildCanonicalBeneficiaryId(
+  namespace: string,
+  canonicalIdentifier: string,
+): string {
+  const normalizedNamespace = namespace.trim().toLowerCase();
+  if (!/^[a-z][a-z0-9-]*$/.test(normalizedNamespace)) {
+    throw new ContentFundingCanonicalizationError(
+      'invalid_channel_id',
+      `Invalid beneficiary namespace: ${namespace}`,
+    );
+  }
+  if (canonicalIdentifier.length === 0 || canonicalIdentifier !== canonicalIdentifier.trim()) {
+    throw new ContentFundingCanonicalizationError(
+      'invalid_channel_id',
+      `Invalid canonical beneficiary identifier: ${canonicalIdentifier}`,
+    );
+  }
+  return `${normalizedNamespace}:${canonicalIdentifier}`;
+}
+
+/** Hash a namespaced canonical beneficiary identifier for on-chain storage. */
+export function hashBeneficiaryId(namespace: string, canonicalIdentifier: string): Hex {
+  return hashCanonicalId(buildCanonicalBeneficiaryId(namespace, canonicalIdentifier));
 }
 
 /**

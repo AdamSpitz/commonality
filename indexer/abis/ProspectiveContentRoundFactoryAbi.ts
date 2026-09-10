@@ -202,6 +202,19 @@ export const ProspectiveContentRoundFactoryAbi = [
     "type": "event"
   },
   {
+    "inputs": [],
+    "name": "beneficiaryRegistry",
+    "outputs": [
+      {
+        "internalType": "contract BeneficiaryRegistry",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "address",
@@ -215,19 +228,6 @@ export const ProspectiveContentRoundFactoryAbi = [
         "internalType": "bytes32",
         "name": "",
         "type": "bytes32"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "beneficiaryRegistry",
-    "outputs": [
-      {
-        "internalType": "contract BeneficiaryRegistry",
-        "name": "",
-        "type": "address"
       }
     ],
     "stateMutability": "view",

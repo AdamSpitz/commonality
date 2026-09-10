@@ -607,7 +607,7 @@ describe("ContentFunding", function () {
 
     it("Should revert withdraw when channel not verified", async function () {
       await expect(beneficiaryEscrow.withdraw(channelId))
-        .to.be.revertedWithCustomError(beneficiaryEscrow, "ChannelNotVerified");
+        .to.be.revertedWithCustomError(beneficiaryEscrow, "BeneficiaryNotVerified");
     });
 
     it("Should revert withdraw when not channel owner", async function () {
@@ -624,7 +624,7 @@ describe("ContentFunding", function () {
       await depositIntoEscrow(bob, channelId, ethers.parseEther("1.0"));
 
       await expect(beneficiaryEscrow.connect(alice).withdraw(channelId))
-        .to.be.revertedWithCustomError(beneficiaryEscrow, "OnlyChannelOwner");
+        .to.be.revertedWithCustomError(beneficiaryEscrow, "OnlyBeneficiaryPayoutAddress");
     });
 
     it("Should revert withdraw when no balance", async function () {
@@ -658,7 +658,7 @@ describe("ContentFunding", function () {
       await beneficiaryRegistry.connect(alice).rotateChannelOwner(channelId, bob.address);
 
       await expect(beneficiaryEscrow.connect(alice).withdraw(channelId))
-        .to.be.revertedWithCustomError(beneficiaryEscrow, "OnlyChannelOwner");
+        .to.be.revertedWithCustomError(beneficiaryEscrow, "OnlyBeneficiaryPayoutAddress");
       await expect(beneficiaryEscrow.connect(bob).withdraw(channelId))
         .to.emit(beneficiaryEscrow, "Withdrawn")
         .withArgs(channelId, bob.address, depositAmount);
