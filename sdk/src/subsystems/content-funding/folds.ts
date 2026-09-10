@@ -94,7 +94,7 @@ export function foldContentRegistry(
   return { items };
 }
 
-/** Lifecycle state of a channel in the ChannelRegistry. */
+/** Lifecycle state of a channel in the BeneficiaryRegistry. */
 export type ChannelState = 'unclaimed' | 'verified' | 'creator-controlled';
 
 /** Current state of a channel (creator account) in the registry. */
@@ -109,8 +109,8 @@ export interface ChannelInfo {
   controlTakenAt: bigint | null;
 }
 
-/** Folded state of the ChannelRegistry contract. */
-export interface ChannelRegistryState {
+/** Folded state of the BeneficiaryRegistry contract. */
+export interface BeneficiaryRegistryState {
   /** Map from channelId (bytes32) to ChannelInfo. */
   channels: Map<string, ChannelInfo>;
 }
@@ -123,7 +123,7 @@ export interface ChannelRegistryState {
  */
 export function foldChannelState(
   events: (ChannelVerifiedEvent | ChannelControlTakenEvent)[],
-): ChannelRegistryState {
+): BeneficiaryRegistryState {
   const channels = new Map<string, ChannelInfo>();
 
   for (const event of events) {
@@ -147,8 +147,8 @@ export function foldChannelState(
   return { channels };
 }
 
-/** Folded state of the ChannelEscrow contract. */
-export interface ChannelEscrowState {
+/** Folded state of the BeneficiaryEscrow contract. */
+export interface BeneficiaryEscrowState {
   /** Map from channelId (bytes32) to balance tracking. */
   balances: Map<string, { balance: bigint; totalDeposited: bigint; totalWithdrawn: bigint }>;
 }
@@ -159,7 +159,7 @@ export interface ChannelEscrowState {
  * Deposits increase balance; withdrawals decrease it. Both are tracked
  * cumulatively for reporting.
  */
-export function foldChannelEscrow(events: (DepositedEvent | WithdrawnEvent)[]): ChannelEscrowState {
+export function foldBeneficiaryEscrow(events: (DepositedEvent | WithdrawnEvent)[]): BeneficiaryEscrowState {
   const balances = new Map<string, { balance: bigint; totalDeposited: bigint; totalWithdrawn: bigint }>();
 
   for (const event of events) {
@@ -219,8 +219,8 @@ export function foldCreatorContracts(events: CreatorContractCreatedEvent[]): Cre
 /** Combined folded state across all four content-funding contracts. */
 export interface ContentFundingState {
   contentRegistry: ContentRegistryState;
-  channelRegistry: ChannelRegistryState;
-  channelEscrow: ChannelEscrowState;
+  beneficiaryRegistry: BeneficiaryRegistryState;
+  beneficiaryEscrow: BeneficiaryEscrowState;
   creatorContracts: CreatorContractsState;
 }
 
@@ -228,21 +228,21 @@ export interface ContentFundingState {
  * Fold events from all four content-funding contracts into a single state object.
  *
  * @param contentRegistryEvents - ContentItemRegistered and ContentItemReleased events
- * @param channelRegistryEvents - ChannelVerified and ChannelControlTaken events
- * @param channelEscrowEvents - Deposited and Withdrawn events
+ * @param beneficiaryRegistryEvents - ChannelVerified and ChannelControlTaken events
+ * @param beneficiaryEscrowEvents - Deposited and Withdrawn events
  * @param creatorContractEvents - CreatorContractCreated events
  * @returns Combined ContentFundingState
  */
 export function foldAllContentFundingEvents(
   contentRegistryEvents: (ContentItemRegisteredEvent | ContentItemReleasedEvent)[],
-  channelRegistryEvents: (ChannelVerifiedEvent | ChannelControlTakenEvent)[],
-  channelEscrowEvents: (DepositedEvent | WithdrawnEvent)[],
+  beneficiaryRegistryEvents: (ChannelVerifiedEvent | ChannelControlTakenEvent)[],
+  beneficiaryEscrowEvents: (DepositedEvent | WithdrawnEvent)[],
   creatorContractEvents: CreatorContractCreatedEvent[],
 ): ContentFundingState {
   return {
     contentRegistry: foldContentRegistry(contentRegistryEvents),
-    channelRegistry: foldChannelState(channelRegistryEvents),
-    channelEscrow: foldChannelEscrow(channelEscrowEvents),
+    beneficiaryRegistry: foldChannelState(beneficiaryRegistryEvents),
+    beneficiaryEscrow: foldBeneficiaryEscrow(beneficiaryEscrowEvents),
     creatorContracts: foldCreatorContracts(creatorContractEvents),
   };
 }

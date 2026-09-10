@@ -93,7 +93,7 @@ function makeState(overrides?: {
 
   return {
     contentRegistry: { items },
-    channelRegistry: {
+    beneficiaryRegistry: {
       channels: new Map([
         [channelHash, {
           channelId: channelHash,
@@ -103,7 +103,7 @@ function makeState(overrides?: {
         }],
       ]),
     },
-    channelEscrow: { balances: new Map() },
+    beneficiaryEscrow: { balances: new Map() },
     creatorContracts: { contracts: new Map() },
   }
 }

@@ -17,8 +17,8 @@ vi.mock('@commonality/sdk/abis', async () => {
   const actual = await vi.importActual<typeof import('@commonality/sdk/abis')>('@commonality/sdk/abis')
   return {
     ...actual,
-    ChannelEscrowAbi: [],
-    ChannelRegistryAbi: [],
+    BeneficiaryEscrowAbi: [],
+    BeneficiaryRegistryAbi: [],
   }
 })
 

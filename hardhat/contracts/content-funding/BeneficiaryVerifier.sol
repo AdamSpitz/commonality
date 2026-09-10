@@ -4,25 +4,25 @@ pragma solidity 0.8.33;
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {EIP712} from "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
-import {IChannelVerifier} from "./ChannelRegistry.sol";
+import {IBeneficiaryVerifier} from "./BeneficiaryRegistry.sol";
 import {Guardable} from "../utils/Guardable.sol";
 
 error InvalidTrustedVerifierAddress();
 error TrustedVerifierAlreadyRevoked();
 
 /**
- * @title ChannelVerifier
+ * @title BeneficiaryVerifier
  * @notice Verifies channel-claim proofs signed by a trusted off-chain verifier (the Platform API Service)
  * @dev Uses EIP-712 typed-data signatures. The trusted off-chain signer signs:
  *
  *        ChannelClaim(bytes32 channelId,address claimant,bytes32 nonce,uint256 deadline,bytes32 proofHash)
  *
- *      with the EIP-712 domain ("ChannelVerifier", "1", chainId, address(this)). The
+ *      with the EIP-712 domain ("BeneficiaryVerifier", "1", chainId, address(this)). The
  *      domain binds signatures to this specific deployment on this specific chain,
  *      preventing cross-chain or cross-deployment replay even if the same trusted
  *      signer key is reused.
  */
-contract ChannelVerifier is IChannelVerifier, Guardable, EIP712 {
+contract BeneficiaryVerifier is IBeneficiaryVerifier, Guardable, EIP712 {
     bytes32 public constant CHANNEL_CLAIM_TYPEHASH =
         keccak256("ChannelClaim(bytes32 channelId,address claimant,bytes32 nonce,uint256 deadline,bytes32 proofHash)");
 
@@ -49,7 +49,7 @@ contract ChannelVerifier is IChannelVerifier, Guardable, EIP712 {
      */
     constructor(address _trustedVerifier)
         Ownable(msg.sender)
-        EIP712("ChannelVerifier", "1")
+        EIP712("BeneficiaryVerifier", "1")
     {
         if (_trustedVerifier == address(0)) revert InvalidTrustedVerifierAddress();
         trustedVerifier = _trustedVerifier;

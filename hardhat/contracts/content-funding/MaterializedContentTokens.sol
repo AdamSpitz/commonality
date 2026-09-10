@@ -8,7 +8,7 @@ import {ERC1155Burnable} from "@openzeppelin/contracts/token/ERC1155/extensions/
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {ERC7572} from "../utils/ERC7572.sol";
 import {ContentRegistry} from "./ContentRegistry.sol";
-import {ChannelRegistry} from "./ChannelRegistry.sol";
+import {BeneficiaryRegistry} from "./BeneficiaryRegistry.sol";
 
 error NoProspectiveBalance();
 error ContentTokenAlreadyClaimed(uint256 contentId, address account);
@@ -23,7 +23,7 @@ contract MaterializedContentTokens is Ownable, ERC1155, ERC1155Burnable, ERC7572
     IERC1155 public immutable prospectiveToken;
     uint256 public immutable prospectiveTokenId;
     ContentRegistry public immutable contentRegistry;
-    ChannelRegistry public immutable channelRegistry;
+    BeneficiaryRegistry public immutable beneficiaryRegistry;
     address public immutable sourceProspectiveContract;
     bytes32 public immutable channelId;
     string public channelCanonicalId;
@@ -42,7 +42,7 @@ contract MaterializedContentTokens is Ownable, ERC1155, ERC1155Burnable, ERC7572
         address _prospectiveToken,
         uint256 _prospectiveTokenId,
         address _contentRegistry,
-        address _channelRegistry,
+        address _beneficiaryRegistry,
         address _sourceProspectiveContract,
         bytes32 _channelId,
         string memory _channelCanonicalId,
@@ -53,7 +53,7 @@ contract MaterializedContentTokens is Ownable, ERC1155, ERC1155Burnable, ERC7572
         prospectiveToken = IERC1155(_prospectiveToken);
         prospectiveTokenId = _prospectiveTokenId;
         contentRegistry = ContentRegistry(_contentRegistry);
-        channelRegistry = ChannelRegistry(_channelRegistry);
+        beneficiaryRegistry = BeneficiaryRegistry(_beneficiaryRegistry);
         sourceProspectiveContract = _sourceProspectiveContract;
         channelId = _channelId;
         channelCanonicalId = _channelCanonicalId;
@@ -61,7 +61,7 @@ contract MaterializedContentTokens is Ownable, ERC1155, ERC1155Burnable, ERC7572
     }
 
     modifier onlyCurrentChannelOwner() {
-        if (msg.sender != channelRegistry.channelOwner(channelId)) revert OnlyCurrentChannelOwner(msg.sender);
+        if (msg.sender != beneficiaryRegistry.channelOwner(channelId)) revert OnlyCurrentChannelOwner(msg.sender);
         _;
     }
 

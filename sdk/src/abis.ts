@@ -23,8 +23,8 @@ export { AssuranceContractFactoryAbi } from '../abis/AssuranceContractFactoryAbi
 export { ValueThresholdConditionFactoryAbi } from '../abis/ValueThresholdConditionFactoryAbi.js';
 export { ValueThresholdConditionAbi } from '../abis/ValueThresholdConditionAbi.js';
 export { ContentRegistryAbi } from '../abis/ContentRegistryAbi.js';
-export { ChannelRegistryAbi } from '../abis/ChannelRegistryAbi.js';
-export { ChannelEscrowAbi } from '../abis/ChannelEscrowAbi.js';
+export { BeneficiaryRegistryAbi } from '../abis/BeneficiaryRegistryAbi.js';
+export { BeneficiaryEscrowAbi } from '../abis/BeneficiaryEscrowAbi.js';
 export { CreatorAssuranceContractFactoryAbi } from '../abis/CreatorAssuranceContractFactoryAbi.js';
 export { ProspectiveContentRoundFactoryAbi } from '../abis/ProspectiveContentRoundFactoryAbi.js';
 export { MaterializedContentTokensAbi } from '../abis/MaterializedContentTokensAbi.js';

@@ -12,7 +12,7 @@ async function fixture({ verified = true, creatorCaller = true, threshold = 10n 
   const payment = await Payment.deploy(owner.address, "Payment", "PAY", "ipfs://pay");
   await payment.mint(alice.address, 100n);
 
-  const Channels = await ethers.getContractFactory("ProspectiveChannelRegistryHarness");
+  const Channels = await ethers.getContractFactory("ProspectiveBeneficiaryRegistryHarness");
   const channels = await Channels.deploy();
   await channels.setChannel(channelId, creator.address, verified);
   const Registry = await ethers.getContractFactory("ContentRegistry");

@@ -608,8 +608,8 @@ describe('getStatementSupportingContent', () => {
 
   const ALIGNMENT = '0xaaaa0000000000000000000000000000000000aa' as const;
   const CONTENT_REGISTRY = '0xcccc0000000000000000000000000000000000cc' as const;
-  const CHANNEL_REGISTRY = '0xdddd0000000000000000000000000000000000dd' as const;
-  const CHANNEL_ESCROW = '0xeeee0000000000000000000000000000000000ee' as const;
+  const BENEFICIARY_REGISTRY = '0xdddd0000000000000000000000000000000000dd' as const;
+  const BENEFICIARY_ESCROW = '0xeeee0000000000000000000000000000000000ee' as const;
   const CREATOR_FACTORY = '0xffff0000000000000000000000000000000000ff' as const;
   const ATTESTER = '0x1111111111111111111111111111111111111111' as const;
   const OTHER_ATTESTER = '0x2222222222222222222222222222222222222222' as const;
@@ -690,8 +690,8 @@ describe('getStatementSupportingContent', () => {
         mutableRefUpdater: '0x0000000000000000000000000000000000000000',
         trustRegistry: '0x0000000000000000000000000000000000000000',
         contentRegistry: CONTENT_REGISTRY,
-        channelRegistry: CHANNEL_REGISTRY,
-        channelEscrow: CHANNEL_ESCROW,
+        beneficiaryRegistry: BENEFICIARY_REGISTRY,
+        beneficiaryEscrow: BENEFICIARY_ESCROW,
         creatorContractFactory: CREATOR_FACTORY,
       },
     });

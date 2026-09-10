@@ -20,7 +20,7 @@ import { formatCurrencyAmount, InfoChip } from '../../shared'
 import { CHANNEL_STATE_TOOLTIPS, CONTRACT_STATUS_TOOLTIPS } from '../chipTooltips'
 import { getVetoableContracts, hashCanonicalId, type ChannelWithCanonicalId, type ChannelState } from '@commonality/sdk/content-funding'
 import { ETH_CURRENCY, type Currency } from '@commonality/sdk/utils'
-import { ChannelRegistryAbi, ChannelEscrowAbi } from '@commonality/sdk/abis'
+import { BeneficiaryRegistryAbi, BeneficiaryEscrowAbi } from '@commonality/sdk/abis'
 import { withdrawFromEscrow, takeChannelControl, vetoContract } from '@commonality/sdk/content-funding'
 import { getChannelDisplayLabels, type ChannelDisplayMetadata } from '../channelDisplay'
 import { useContentFundingState } from '../hooks/useContentFundingState'
@@ -282,7 +282,7 @@ export function CreatorDashboardPage({
   const handleWithdraw = async (channel: ChannelWithCanonicalId) => {
     if (!writeClients || !address || !channel.canonicalChannelId) return
 
-    const escrowAddress = import.meta.env.VITE_CHANNEL_ESCROW_ADDRESS
+    const escrowAddress = import.meta.env.VITE_BENEFICIARY_ESCROW_ADDRESS
     const channelId = channel.canonicalChannelId
 
     if (!escrowAddress) {
@@ -298,7 +298,7 @@ export function CreatorDashboardPage({
 
       const escrowContract = {
         address: escrowAddress as `0x${string}`,
-        abi: ChannelEscrowAbi,
+        abi: BeneficiaryEscrowAbi,
       }
 
       await withdrawFromEscrow(clients, escrowContract, hashCanonicalId(channelId))
@@ -313,7 +313,7 @@ export function CreatorDashboardPage({
   const handleTakeControl = async (channel: ChannelWithCanonicalId) => {
     if (!writeClients || !address || !channel.canonicalChannelId) return
 
-    const registryAddress = import.meta.env.VITE_CHANNEL_REGISTRY_ADDRESS
+    const registryAddress = import.meta.env.VITE_BENEFICIARY_REGISTRY_ADDRESS
 
     if (!registryAddress) {
       setTakeControlError('Channel registry not configured')
@@ -328,7 +328,7 @@ export function CreatorDashboardPage({
 
       const registryContract = {
         address: registryAddress as `0x${string}`,
-        abi: ChannelRegistryAbi,
+        abi: BeneficiaryRegistryAbi,
       }
 
       await takeChannelControl(clients, registryContract, hashCanonicalId(channel.canonicalChannelId))
@@ -343,7 +343,7 @@ export function CreatorDashboardPage({
   const handleVeto = async (channel: ChannelWithCanonicalId, contractAddress: string) => {
     if (!writeClients || !address || !channel.canonicalChannelId) return
 
-    const registryAddress = import.meta.env.VITE_CHANNEL_REGISTRY_ADDRESS
+    const registryAddress = import.meta.env.VITE_BENEFICIARY_REGISTRY_ADDRESS
 
     if (!registryAddress) {
       setVetoError('Channel registry not configured')
@@ -358,7 +358,7 @@ export function CreatorDashboardPage({
 
       const registryContract = {
         address: registryAddress as `0x${string}`,
-        abi: ChannelRegistryAbi,
+        abi: BeneficiaryRegistryAbi,
       }
 
       await vetoContract(clients, registryContract, contractAddress as `0x${string}`)

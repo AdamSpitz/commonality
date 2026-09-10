@@ -1,13 +1,13 @@
 //SPDX-License-Identifier: MIT
 pragma solidity 0.8.33;
 
-import {IChannelVerifier} from "../content-funding/ChannelRegistry.sol";
+import {IBeneficiaryVerifier} from "../content-funding/BeneficiaryRegistry.sol";
 
 /**
- * @title MockChannelVerifier
+ * @title MockBeneficiaryVerifier
  * @notice Test-only mock channel verifier that returns a configurable result
  */
-contract MockChannelVerifier is IChannelVerifier {
+contract MockBeneficiaryVerifier is IBeneficiaryVerifier {
     bool private _isValid;
 
     /**
@@ -18,7 +18,7 @@ contract MockChannelVerifier is IChannelVerifier {
         _isValid = valid;
     }
 
-    /// @inheritdoc IChannelVerifier
+    /// @inheritdoc IBeneficiaryVerifier
     function verifyClaimProof(
         bytes32,
         address,

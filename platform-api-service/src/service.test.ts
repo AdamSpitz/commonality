@@ -21,7 +21,7 @@ import type {
 
 const verifierPrivateKey = '0x59c6995e998f97a5a0044966f0945388cf9af40f3c81d1dc0f1d5d5d9ecf594f' as const;
 const verifierAddress = privateKeyToAccount(verifierPrivateKey).address;
-const testChannelVerifierAddress = '0x000000000000000000000000000000000000c0de' as const;
+const testBeneficiaryVerifierAddress = '0x000000000000000000000000000000000000c0de' as const;
 const testChainId = 31337;
 const VALID_STATEMENT_CID = 'bafybeidagx4zc6phhtjng6f3sjzlicqm2ssq4eb6wskinjtuvkt275fmpy' as const;
 
@@ -464,10 +464,10 @@ describe('PlatformApiService', () => {
 
     const recovered = await recoverTypedDataAddress({
       domain: {
-        name: 'ChannelVerifier',
+        name: 'BeneficiaryVerifier',
         version: '1',
         chainId: testChainId,
-        verifyingContract: testChannelVerifierAddress,
+        verifyingContract: testBeneficiaryVerifierAddress,
       },
       types: {
         ChannelClaim: [
@@ -683,7 +683,7 @@ describe('PlatformApiService', () => {
         error instanceof HttpError &&
         error.status === 503 &&
         error.code === 'service_unavailable' &&
-        error.message === 'Verification confirmation is unavailable because VERIFIER_PRIVATE_KEY, CHANNEL_VERIFIER_ADDRESS, and CHAIN_ID must all be set',
+        error.message === 'Verification confirmation is unavailable because VERIFIER_PRIVATE_KEY, BENEFICIARY_VERIFIER_ADDRESS, and CHAIN_ID must all be set',
     );
   });
 });
@@ -709,8 +709,8 @@ function createService(overrides: Partial<{
     youtubeApiBaseUrl: 'https://www.googleapis.com/youtube/v3',
     verifierPrivateKey,
     ethereumRpcUrl: undefined,
-    channelRegistryAddress: undefined,
-    channelVerifierAddress: testChannelVerifierAddress,
+    beneficiaryRegistryAddress: undefined,
+    beneficiaryVerifierAddress: testBeneficiaryVerifierAddress,
     chainId: testChainId,
     submitVerificationTx: false,
     challengeTtlSeconds: 1800,

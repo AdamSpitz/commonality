@@ -31,10 +31,10 @@ error InvalidVetoWindowDuration();
 error VetoWindowDurationCannotDecrease();
 
 /**
- * @title IChannelVerifier
+ * @title IBeneficiaryVerifier
  * @notice Interface for verifying channel ownership claim proofs
  */
-interface IChannelVerifier {
+interface IBeneficiaryVerifier {
     function verifyClaimProof(
         bytes32 channelId,
         address claimant,
@@ -46,10 +46,10 @@ interface IChannelVerifier {
 }
 
 /**
- * @title IChannelRegistry
+ * @title IBeneficiaryRegistry
  * @notice Interface for the channel registry
  */
-interface IChannelRegistry {
+interface IBeneficiaryRegistry {
     function channelOwner(bytes32 channelId) external view returns (address);
     function channelState(bytes32 channelId) external view returns (uint8);
     function verifier() external view returns (address);
@@ -87,14 +87,14 @@ interface ICreatorAssuranceContractFactory {
 }
 
 /**
- * @title ChannelRegistry
+ * @title BeneficiaryRegistry
  * @notice Tracks channel ownership and verification state for the content funding system
  * @dev Channels progress through three states: Unclaimed -> Verified -> CreatorControlled.
  *      Verification requires a signed proof from an off-chain verifier (the Platform API Service).
  *      Once creator-controlled, the channel owner can veto third-party assurance contracts
  *      within a time window.
  */
-contract ChannelRegistry is IChannelRegistry, Guardable {
+contract BeneficiaryRegistry is IBeneficiaryRegistry, Guardable {
     uint256 public constant MIN_VETO_WINDOW_DURATION = 1 days;
     uint256 public constant MAX_VETO_WINDOW_DURATION = 365 days;
 
@@ -186,7 +186,7 @@ contract ChannelRegistry is IChannelRegistry, Guardable {
 
     /**
      * @notice Initializes the channel registry with a verifier contract
-     * @param _verifier The address of the IChannelVerifier contract
+     * @param _verifier The address of the IBeneficiaryVerifier contract
      */
     constructor(address _verifier) Ownable(msg.sender) {
         if (_verifier == address(0)) revert InvalidVerifierAddress();
@@ -245,7 +245,7 @@ contract ChannelRegistry is IChannelRegistry, Guardable {
      * @notice Immediately stop trusting the current verifier contract
      * @dev Callable by the owner *or* the guardian, so it does not have to wait on the
      *      timelock that gates `setVerifier`. This is the registry-level counterpart to
-     *      `ChannelVerifier.revokeTrustedVerifier`: use it when the verifier *contract*
+     *      `BeneficiaryVerifier.revokeTrustedVerifier`: use it when the verifier *contract*
      *      itself is compromised or misbehaving, rather than just its signing key.
      *      It only reduces power — `verifyChannel` reverts until the owner installs a
      *      replacement, while every other flow (taking control, vetoes, escrow
@@ -338,7 +338,7 @@ contract ChannelRegistry is IChannelRegistry, Guardable {
         if (proofHash == bytes32(0)) revert InvalidProofHash();
         if (verifier == address(0)) revert NoVerifierConfigured();
 
-        bool validProof = IChannelVerifier(verifier).verifyClaimProof(
+        bool validProof = IBeneficiaryVerifier(verifier).verifyClaimProof(
             channelId,
             claimant,
             nonce,

@@ -18,7 +18,7 @@ import {
 import { useAccount } from 'wagmi'
 import { formatEther } from 'viem'
 import { useClaimFlow } from '../hooks/useClaimFlow'
-import { ChannelEscrowAbi, ChannelRegistryAbi } from '@commonality/sdk/abis'
+import { BeneficiaryEscrowAbi, BeneficiaryRegistryAbi } from '@commonality/sdk/abis'
 import { withdrawFromEscrow, takeChannelControl, hashCanonicalId } from '@commonality/sdk/content-funding'
 import type { ChannelState } from '@commonality/sdk/content-funding'
 import { useWriteClients } from '../../shared'
@@ -135,7 +135,7 @@ export function ClaimFlowModal({
   const handleWithdraw = async () => {
     if (!writeClients || !channelId) return
 
-    const escrowAddress = import.meta.env.VITE_CHANNEL_ESCROW_ADDRESS
+    const escrowAddress = import.meta.env.VITE_BENEFICIARY_ESCROW_ADDRESS
     if (!escrowAddress) {
       setWithdrawError('Channel escrow not configured')
       return
@@ -149,7 +149,7 @@ export function ClaimFlowModal({
 
       const escrowContract = {
         address: escrowAddress as `0x${string}`,
-        abi: ChannelEscrowAbi,
+        abi: BeneficiaryEscrowAbi,
       }
 
       const result = await withdrawFromEscrow(clients, escrowContract, hashCanonicalId(channelId))
@@ -165,7 +165,7 @@ export function ClaimFlowModal({
   const handleTakeControl = async () => {
     if (!writeClients || !channelId) return
 
-    const registryAddress = import.meta.env.VITE_CHANNEL_REGISTRY_ADDRESS
+    const registryAddress = import.meta.env.VITE_BENEFICIARY_REGISTRY_ADDRESS
     if (!registryAddress) {
       setTakeControlError('Channel registry not configured')
       return
@@ -179,7 +179,7 @@ export function ClaimFlowModal({
 
       const registryContract = {
         address: registryAddress as `0x${string}`,
-        abi: ChannelRegistryAbi,
+        abi: BeneficiaryRegistryAbi,
       }
 
       const result = await takeChannelControl(clients, registryContract, hashCanonicalId(channelId))

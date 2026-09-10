@@ -201,9 +201,9 @@ services:
         value: "45094307"
       - key: CONTENT_REGISTRY_ADDRESS
         value: "0x09786e4F2423b92FA2af4C82A49ff9d3394E6759"
-      - key: CHANNEL_REGISTRY_ADDRESS
+      - key: BENEFICIARY_REGISTRY_ADDRESS
         value: "0x751DD0d32cBC4DbAB51491305a710ca0ef581002"
-      - key: CHANNEL_ESCROW_ADDRESS
+      - key: BENEFICIARY_ESCROW_ADDRESS
         value: "0x30758d0b85CB9c98aFE4E9c23F5ADe70A0EeF7A0"
       - key: CREATOR_CONTRACT_FACTORY_ADDRESS
         value: "0xC079f714228233A2b2dD6fB67451034a70819466"
@@ -443,9 +443,9 @@ services:
         sync: false  # Secret: Coinbase Onramp session-token API key id
       - key: COINBASE_CDP_API_KEY_SECRET
         sync: false  # Secret: Coinbase Onramp session-token private key
-      - key: CHANNEL_REGISTRY_ADDRESS
+      - key: BENEFICIARY_REGISTRY_ADDRESS
         value: "0x751DD0d32cBC4DbAB51491305a710ca0ef581002"
-      - key: CHANNEL_VERIFIER_ADDRESS
+      - key: BENEFICIARY_VERIFIER_ADDRESS
         value: "0x89597b2d9198aA401Ba54a884180546c03AD756a"
       - key: CREATOR_GAS_TANK_ADDRESS
         value: "0x7F74e2Ad6A7A8947386513A59060F2eBD40a3B04"

@@ -61,7 +61,7 @@ const roles = [
   {
     label: 'Channel verifier signer',
     privateKeyEnvKey: 'VERIFIER_PRIVATE_KEY',
-    addressEnvKey: 'CHANNEL_VERIFIER_TRUSTED_SIGNER_ADDRESS',
+    addressEnvKey: 'BENEFICIARY_VERIFIER_TRUSTED_SIGNER_ADDRESS',
   },
   {
     label: 'Implication graph nudger',

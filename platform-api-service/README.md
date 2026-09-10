@@ -26,16 +26,16 @@ This workspace implements the service described in [the spec](../specs/tech/subs
 - strict shared canonicalization via `@commonality/sdk`
 - in-memory caches for channel resolution, content lookups, and pending verification challenges
 - Twitter/X and YouTube resolution clients built on plain `fetch`
-- optional on-chain submission for `ChannelRegistry.verifyChannel(...)`
+- optional on-chain submission for `BeneficiaryRegistry.verifyChannel(...)`
 
 ## Verification model
 
-The repo's current content-funding contracts include a real signature-verifying `ChannelVerifier` contract. `ChannelRegistry` still trusts a verifier contract, not a verifier EOA directly, and that verifier contract in turn trusts a specific signer address.
+The repo's current content-funding contracts include a real signature-verifying `BeneficiaryVerifier` contract. `BeneficiaryRegistry` still trusts a verifier contract, not a verifier EOA directly, and that verifier contract in turn trusts a specific signer address.
 
 That means:
 
-- `POST /verify/confirm` signs the exact proof payload that the on-chain `ChannelVerifier` checks
-- `POST /verify/confirm` can optionally submit `verifyChannel(...)` if `ETHEREUM_RPC_URL`, `CHANNEL_REGISTRY_ADDRESS`, and `SUBMIT_VERIFICATION_TX=true` are configured
+- `POST /verify/confirm` signs the exact proof payload that the on-chain `BeneficiaryVerifier` checks
+- `POST /verify/confirm` can optionally submit `verifyChannel(...)` if `ETHEREUM_RPC_URL`, `BENEFICIARY_REGISTRY_ADDRESS`, and `SUBMIT_VERIFICATION_TX=true` are configured
 - end-to-end verification works on the local deployment as long as `VERIFIER_PRIVATE_KEY` corresponds to the verifier contract's configured `trustedVerifier`
 
 ## Configuration
@@ -71,7 +71,7 @@ All configuration is via environment variables.
 
 - `VERIFIER_PRIVATE_KEY` optional, required for `POST /verify/confirm`
 - `ETHEREUM_RPC_URL` optional, required only if on-chain submission is enabled
-- `CHANNEL_REGISTRY_ADDRESS` optional, required only if on-chain submission is enabled
+- `BENEFICIARY_REGISTRY_ADDRESS` optional, required only if on-chain submission is enabled
 - `SUBMIT_VERIFICATION_TX` default `false`
 
 ### Coinbase Onramp / USDC arrival detection

@@ -1,12 +1,12 @@
 // Auto-generated from hardhat/contracts - DO NOT EDIT MANUALLY
 // Run `npm run sync-abis` to regenerate
 
-export const ChannelEscrowAbi = [
+export const BeneficiaryEscrowAbi = [
   {
     "inputs": [
       {
         "internalType": "address",
-        "name": "_channelRegistry",
+        "name": "_beneficiaryRegistry",
         "type": "address"
       },
       {
@@ -130,7 +130,7 @@ export const ChannelEscrowAbi = [
   },
   {
     "inputs": [],
-    "name": "channelRegistry",
+    "name": "beneficiaryRegistry",
     "outputs": [
       {
         "internalType": "address",

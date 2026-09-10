@@ -69,8 +69,8 @@ export function loadConfigFromEnv(env: NodeJS.ProcessEnv = process.env): Recurri
       trustRegistry: requireStringFrom(env, ['TRUST_REGISTRY_ADDRESS']) as `0x${string}`,
       nudgePublications: readOptionalStringFrom(env, ['NUDGE_PUBLICATIONS_CONTRACT_ADDRESS']) as `0x${string}` | undefined,
       contentRegistry: readOptionalStringFrom(env, ['CONTENT_REGISTRY_ADDRESS']) as `0x${string}` | undefined,
-      channelRegistry: readOptionalStringFrom(env, ['CHANNEL_REGISTRY_ADDRESS']) as `0x${string}` | undefined,
-      channelEscrow: readOptionalStringFrom(env, ['CHANNEL_ESCROW_ADDRESS']) as `0x${string}` | undefined,
+      beneficiaryRegistry: readOptionalStringFrom(env, ['BENEFICIARY_REGISTRY_ADDRESS']) as `0x${string}` | undefined,
+      beneficiaryEscrow: readOptionalStringFrom(env, ['BENEFICIARY_ESCROW_ADDRESS']) as `0x${string}` | undefined,
       creatorContractFactory: readOptionalStringFrom(env, ['CREATOR_CONTRACT_FACTORY_ADDRESS']) as `0x${string}` | undefined,
     },
   };

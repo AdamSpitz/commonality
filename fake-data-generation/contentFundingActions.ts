@@ -18,7 +18,7 @@ import {
   type Hex,
 } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
-import { ChannelRegistryAbi } from '../indexer/abis/ChannelRegistryAbi.js';
+import { BeneficiaryRegistryAbi } from '../indexer/abis/BeneficiaryRegistryAbi.js';
 import { CreatorAssuranceContractFactoryAbi } from '../indexer/abis/CreatorAssuranceContractFactoryAbi.js';
 import { AlignmentAttestationsAbi, AssuranceContractAbi, PublishedDataAbi } from '@commonality/sdk/abis';
 import {
@@ -67,7 +67,7 @@ const hardhat = {
 
 // Well-known Hardhat account #0 private key — used as the trusted verifier
 // in local deployments. The deploy script sets this address as the
-// ChannelVerifier's trustedVerifier.
+// BeneficiaryVerifier's trustedVerifier.
 const HARDHAT_DEPLOYER_PRIVATE_KEY: Hex =
   '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80';
 
@@ -172,11 +172,11 @@ async function publishContractMetadata(
 
 /**
  * Sign a channel-claim proof as EIP-712 typed data, matching the on-chain
- * ChannelVerifier contract's domain.
+ * BeneficiaryVerifier contract's domain.
  */
 async function signClaimProof(
   verifierPrivateKey: Hex,
-  channelVerifierAddress: `0x${string}`,
+  beneficiaryVerifierAddress: `0x${string}`,
   chainId: number,
   channelId: Hex,
   claimant: `0x${string}`,
@@ -187,10 +187,10 @@ async function signClaimProof(
   const verifierAccount = privateKeyToAccount(verifierPrivateKey);
   return verifierAccount.signTypedData({
     domain: {
-      name: 'ChannelVerifier',
+      name: 'BeneficiaryVerifier',
       version: '1',
       chainId,
-      verifyingContract: channelVerifierAddress,
+      verifyingContract: beneficiaryVerifierAddress,
     },
     types: {
       ChannelClaim: [
@@ -234,7 +234,7 @@ async function verifyChannel(
 
   const hash = await clients.walletClient.writeContract({
     address: registryAddress,
-    abi: ChannelRegistryAbi,
+    abi: BeneficiaryRegistryAbi,
     functionName: 'verifyChannel',
     args: [chId, clients.account, nonce, deadline, proofHash, signature],
     chain: hardhat,
@@ -253,7 +253,7 @@ async function takeChannelControl(
   const chId = channelIdBytes(channelCanonicalId);
   const hash = await clients.walletClient.writeContract({
     address: registryAddress,
-    abi: ChannelRegistryAbi,
+    abi: BeneficiaryRegistryAbi,
     functionName: 'takeChannelControl',
     args: [chId],
     chain: hardhat,
@@ -500,8 +500,8 @@ export async function attestSeedMixedContentToPlank(
 // ---------------------------------------------------------------------------
 
 export interface ContentFundingAddresses {
-  channelRegistry: `0x${string}`;
-  channelVerifier: `0x${string}`;
+  beneficiaryRegistry: `0x${string}`;
+  beneficiaryVerifier: `0x${string}`;
   creatorContractFactory: `0x${string}`;
   prospectiveContentRoundFactory?: `0x${string}`;
   publishedData?: `0x${string}`;
@@ -531,7 +531,7 @@ export async function generateContentFundingScenarios(
     return;
   }
 
-  const { channelRegistry, channelVerifier, creatorContractFactory, publishedData } = addresses;
+  const { beneficiaryRegistry, beneficiaryVerifier, creatorContractFactory, publishedData } = addresses;
 
   // Assign roles. Use later users so they don't clash with the primary hardhat
   // account (index 0) used as the funder in the main simulation.
@@ -558,7 +558,7 @@ export async function generateContentFundingScenarios(
   // -------------------------------------------------------------------------
   // Scenario 1: Unclaimed Twitter channel
   //   A fan creates a third-party contract for a creator who hasn't claimed yet.
-  //   Funds are routed to the ChannelEscrow.
+  //   Funds are routed to the BeneficiaryEscrow.
   // -------------------------------------------------------------------------
   console.log('--- Scenario 1: Unclaimed Twitter channel ---');
   {
@@ -623,7 +623,7 @@ export async function generateContentFundingScenarios(
     const prices = [tokenPrice];
     const threshold = parsePaymentTokenUnits('0.5');
 
-    await verifyChannel(creatorClients, channelRegistry, channelVerifier, channelCanonicalId);
+    await verifyChannel(creatorClients, beneficiaryRegistry, beneficiaryVerifier, channelCanonicalId);
 
     const contractAddress = await createCreatorContract(creatorClients, {
       factoryAddress: creatorContractFactory,
@@ -677,7 +677,7 @@ export async function generateContentFundingScenarios(
     const thirdPartyThreshold = parsePaymentTokenUnits('0.5');
 
     // Step 1: Verify the channel — it's now Verified (not CreatorControlled).
-    await verifyChannel(creatorClients, channelRegistry, channelVerifier, channelCanonicalId);
+    await verifyChannel(creatorClients, beneficiaryRegistry, beneficiaryVerifier, channelCanonicalId);
 
     // Step 2: Fan creates a third-party contract while channel is still Verified.
     const thirdPartyContract = await createCreatorContract(fanClients, {
@@ -727,7 +727,7 @@ export async function generateContentFundingScenarios(
 
     // Step 4: Creator takes control — starts the 7-day veto window for the
     // third-party contract created above.
-    await takeChannelControl(creatorClients, channelRegistry, channelCanonicalId);
+    await takeChannelControl(creatorClients, beneficiaryRegistry, channelCanonicalId);
 
     console.log(`  Channel ${channelCanonicalId}: creator-controlled, 1 creator + 1 vetoable third-party contract.\n`);
   }
@@ -767,8 +767,8 @@ export async function generateChristianContentScenario(
 
   console.log('\n--- Christianity: Common Table essay fund ---');
   try {
-    await verifyChannel(creator, addresses.channelRegistry, addresses.channelVerifier, COMMON_TABLE_CHANNEL);
-    await takeChannelControl(creator, addresses.channelRegistry, COMMON_TABLE_CHANNEL);
+    await verifyChannel(creator, addresses.beneficiaryRegistry, addresses.beneficiaryVerifier, COMMON_TABLE_CHANNEL);
+    await takeChannelControl(creator, addresses.beneficiaryRegistry, COMMON_TABLE_CHANNEL);
   } catch (error) {
     console.warn('  Common Table channel already verified (or verify failed):', error instanceof Error ? error.message : error);
   }

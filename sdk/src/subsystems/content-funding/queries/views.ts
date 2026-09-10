@@ -1,7 +1,7 @@
 import type { Project } from '../../lazy-giving/types.js';
 import type { ContractVetoedEvent } from '../events.js';
 import type {
-  ChannelEscrowState,
+  BeneficiaryEscrowState,
   ChannelInfo,
   ContentFundingState,
   ContentItem,
@@ -235,10 +235,10 @@ function getDefaultChannelInfo(channelId: string): ChannelInfo {
 }
 
 function getEscrowEntry(
-  channelEscrow: ChannelEscrowState,
+  beneficiaryEscrow: BeneficiaryEscrowState,
   channelId: string,
 ): { balance: bigint; totalDeposited: bigint; totalWithdrawn: bigint } {
-  return channelEscrow.balances.get(channelId) ?? {
+  return beneficiaryEscrow.balances.get(channelId) ?? {
     balance: 0n,
     totalDeposited: 0n,
     totalWithdrawn: 0n,
@@ -288,8 +288,8 @@ export function getChannelOverview(
   const contentItems = contracts.flatMap((contract) => contract.contentItems);
 
   return {
-    channel: state.channelRegistry.channels.get(channelId) ?? getDefaultChannelInfo(channelId),
-    escrow: getEscrowEntry(state.channelEscrow, channelId),
+    channel: state.beneficiaryRegistry.channels.get(channelId) ?? getDefaultChannelInfo(channelId),
+    escrow: getEscrowEntry(state.beneficiaryEscrow, channelId),
     contracts,
     contentItems,
   };
@@ -361,7 +361,7 @@ export function getVetoableContracts(
   channelId: string,
   options: ContentFundingQueryOptions = {},
 ): ContentFundingContractSummary[] {
-  const channel = state.channelRegistry.channels.get(channelId);
+  const channel = state.beneficiaryRegistry.channels.get(channelId);
   if (!channel || channel.state !== 'creator-controlled' || channel.controlTakenAt === null) {
     return [];
   }
@@ -426,8 +426,8 @@ export function getOwnerForCanonicalChannelId(
   state: ContentFundingState,
   canonicalChannelId: string,
 ): string | null {
-  const channel = state.channelRegistry.channels.get(hashCanonicalId(canonicalChannelId))
-    ?? state.channelRegistry.channels.get(canonicalChannelId);
+  const channel = state.beneficiaryRegistry.channels.get(hashCanonicalId(canonicalChannelId))
+    ?? state.beneficiaryRegistry.channels.get(canonicalChannelId);
   return channel?.owner ?? null;
 }
 
@@ -444,7 +444,7 @@ export interface ChannelWithCanonicalId extends ChannelOverview {
 /**
  * Return an overview for every channel that appears in the state.
  *
- * Discovers channels from the channelRegistry, creator contracts, and content items.
+ * Discovers channels from the beneficiaryRegistry, creator contracts, and content items.
  * Each overview includes the human-readable canonical channel ID when available.
  *
  * @param state - Pre-folded ContentFundingState
@@ -456,7 +456,7 @@ export function getAllChannelOverviews(
   options: ContentFundingQueryOptions = {},
 ): ChannelWithCanonicalId[] {
   const channelIds = new Set<string>();
-  for (const channelId of state.channelRegistry.channels.keys()) {
+  for (const channelId of state.beneficiaryRegistry.channels.keys()) {
     channelIds.add(channelId);
   }
   for (const contract of state.creatorContracts.contracts.values()) {

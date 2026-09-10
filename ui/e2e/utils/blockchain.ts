@@ -21,7 +21,7 @@ if (!process.env.IPFS_API) {
   process.env.IPFS_API = 'http://localhost:5001'
 }
 
-import { ChannelRegistryAbi, PublishedDataAbi } from '@commonality/sdk/abis'
+import { BeneficiaryRegistryAbi, PublishedDataAbi } from '@commonality/sdk/abis'
 import { hashCanonicalId, verifyChannel } from '@commonality/sdk/content-funding'
 import { createDefaultDocumentStore, createDisplayableDocument } from '@commonality/sdk/displayable-documents'
 import { createSDKMachinery, type SDKMachinery } from '@commonality/sdk/machinery'
@@ -109,8 +109,8 @@ export function createE2EMachinery(rpcUrl = 'http://localhost:8545'): SDKMachine
       nudgePublications: (envVars.VITE_NUDGE_PUBLICATIONS_CONTRACT_ADDRESS || process.env.VITE_NUDGE_PUBLICATIONS_CONTRACT_ADDRESS) as `0x${string}` | undefined,
       publishedData: addresses.publishedDataAddress,
       contentRegistry: addresses.contentRegistryAddress,
-      channelRegistry: addresses.channelRegistryAddress,
-      channelEscrow: addresses.channelEscrowAddress,
+      beneficiaryRegistry: addresses.beneficiaryRegistryAddress,
+      beneficiaryEscrow: addresses.beneficiaryEscrowAddress,
       creatorContractFactory: addresses.creatorContractFactoryAddress,
     },
     defaultChainId: 31337,
@@ -208,15 +208,15 @@ export function getContractAddresses() {
   const contentRegistryAddress =
     envVars.VITE_CONTENT_REGISTRY_ADDRESS ||
     process.env.VITE_CONTENT_REGISTRY_ADDRESS
-  const channelRegistryAddress =
-    envVars.VITE_CHANNEL_REGISTRY_ADDRESS ||
-    process.env.VITE_CHANNEL_REGISTRY_ADDRESS
-  const channelVerifierAddress =
-    envVars.VITE_CHANNEL_VERIFIER_ADDRESS ||
-    process.env.VITE_CHANNEL_VERIFIER_ADDRESS
-  const channelEscrowAddress =
-    envVars.VITE_CHANNEL_ESCROW_ADDRESS ||
-    process.env.VITE_CHANNEL_ESCROW_ADDRESS
+  const beneficiaryRegistryAddress =
+    envVars.VITE_BENEFICIARY_REGISTRY_ADDRESS ||
+    process.env.VITE_BENEFICIARY_REGISTRY_ADDRESS
+  const beneficiaryVerifierAddress =
+    envVars.VITE_BENEFICIARY_VERIFIER_ADDRESS ||
+    process.env.VITE_BENEFICIARY_VERIFIER_ADDRESS
+  const beneficiaryEscrowAddress =
+    envVars.VITE_BENEFICIARY_ESCROW_ADDRESS ||
+    process.env.VITE_BENEFICIARY_ESCROW_ADDRESS
   const creatorContractFactoryAddress =
     envVars.VITE_CREATOR_CONTRACT_FACTORY_ADDRESS ||
     process.env.VITE_CREATOR_CONTRACT_FACTORY_ADDRESS
@@ -248,9 +248,9 @@ export function getContractAddresses() {
     paymentTokenAddress: paymentTokenAddress as `0x${string}` | undefined,
     trustRegistryAddress: trustRegistryAddress as `0x${string}` | undefined,
     contentRegistryAddress: contentRegistryAddress as `0x${string}` | undefined,
-    channelRegistryAddress: channelRegistryAddress as `0x${string}` | undefined,
-    channelVerifierAddress: channelVerifierAddress as `0x${string}` | undefined,
-    channelEscrowAddress: channelEscrowAddress as `0x${string}` | undefined,
+    beneficiaryRegistryAddress: beneficiaryRegistryAddress as `0x${string}` | undefined,
+    beneficiaryVerifierAddress: beneficiaryVerifierAddress as `0x${string}` | undefined,
+    beneficiaryEscrowAddress: beneficiaryEscrowAddress as `0x${string}` | undefined,
     creatorContractFactoryAddress: creatorContractFactoryAddress as `0x${string}` | undefined,
     publishedDataAddress: publishedDataAddress as `0x${string}` | undefined,
     graphqlUrl,
@@ -259,7 +259,7 @@ export function getContractAddresses() {
 
 async function signChannelClaimProof(
   verifierPrivateKey: Hex,
-  channelVerifierAddress: `0x${string}`,
+  beneficiaryVerifierAddress: `0x${string}`,
   chainId: number,
   channelId: `0x${string}`,
   claimant: `0x${string}`,
@@ -270,10 +270,10 @@ async function signChannelClaimProof(
   const verifierAccount = privateKeyToAccount(verifierPrivateKey)
   return verifierAccount.signTypedData({
     domain: {
-      name: 'ChannelVerifier',
+      name: 'BeneficiaryVerifier',
       version: '1',
       chainId,
-      verifyingContract: channelVerifierAddress,
+      verifyingContract: beneficiaryVerifierAddress,
     },
     types: {
       ChannelClaim: [
@@ -293,20 +293,20 @@ export async function verifyE2EChannelOwnership(
   clients: WriteClients,
   channelCanonicalId: string,
 ): Promise<void> {
-  const { channelRegistryAddress, channelVerifierAddress } = getContractAddresses()
+  const { beneficiaryRegistryAddress, beneficiaryVerifierAddress } = getContractAddresses()
 
-  if (!channelRegistryAddress) {
+  if (!beneficiaryRegistryAddress) {
     throw new Error(
-      'Channel registry address not set in ui/.env. Expected VITE_CHANNEL_REGISTRY_ADDRESS.'
+      'Channel registry address not set in ui/.env. Expected VITE_BENEFICIARY_REGISTRY_ADDRESS.'
     )
   }
-  if (!channelVerifierAddress) {
+  if (!beneficiaryVerifierAddress) {
     throw new Error(
-      'Channel verifier address not set in ui/.env. Expected VITE_CHANNEL_VERIFIER_ADDRESS.'
+      'Channel verifier address not set in ui/.env. Expected VITE_BENEFICIARY_VERIFIER_ADDRESS.'
     )
   }
 
-  // Local ChannelVerifier is deployed with Hardhat account #0 as trustedVerifier
+  // Local BeneficiaryVerifier is deployed with Hardhat account #0 as trustedVerifier
   // (deploy-incremental.js `isLocal` branch). Root `.env` VERIFIER_PRIVATE_KEY is
   // the generated operator signer used on Sepolia; using it here recovers the
   // wrong address and reverts InvalidVerifierSignature.
@@ -319,7 +319,7 @@ export async function verifyE2EChannelOwnership(
   const proofHash = keccak256(toBytes(`e2e-public-proof:${channelCanonicalId}:${nonce}`))
   const signature = await signChannelClaimProof(
     verifierPrivateKey,
-    channelVerifierAddress,
+    beneficiaryVerifierAddress,
     chainId,
     channelId,
     clients.account,
@@ -330,7 +330,7 @@ export async function verifyE2EChannelOwnership(
 
   await verifyChannel(
     clients,
-    { address: channelRegistryAddress, abi: ChannelRegistryAbi },
+    { address: beneficiaryRegistryAddress, abi: BeneficiaryRegistryAbi },
     channelId,
     clients.account,
     nonce,

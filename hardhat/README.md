@@ -15,7 +15,7 @@ The Hardhat suite is intentionally broad enough to count as the project's routin
 
 - statements and belief graph: `Beliefs.test.js`, `Implications.test.js`, `TrustRegistry.test.js`, `MutableRefUpdater.test.js`
 - assurance/project funding: `AssuranceContracts.test.js`, `AssuranceContractProperties.test.js`, `PremintingERC1155.test.js`
-- content funding and creator/channel controls: `ContentFunding.test.js`, `ProspectiveContentFunding.test.js`, `ChannelVerifier.test.js`
+- content funding and creator/channel controls: `ContentFunding.test.js`, `ProspectiveContentFunding.test.js`, `BeneficiaryVerifier.test.js`
 - delegation/notes/recurring pledges: `DelegatableNotes.*.test.js`, `NoteIntent.test.js`, `RecurringPledges.test.js`
 - alignment attestations: `AlignmentAttestations.test.js`
 - cross-cutting security regressions: `SecurityRegression.test.js`

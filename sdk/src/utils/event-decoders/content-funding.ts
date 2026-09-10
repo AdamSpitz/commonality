@@ -1,6 +1,6 @@
 import {
-  ChannelEscrowAbi,
-  ChannelRegistryAbi,
+  BeneficiaryEscrowAbi,
+  BeneficiaryRegistryAbi,
   ContentRegistryAbi,
   CreatorAssuranceContractFactoryAbi,
   MaterializedContentTokensAbi,
@@ -63,7 +63,7 @@ export function decodeChannelVerifiedEvent(
   logIndex: number;
 } | null {
   if (rawEvent.eventName !== 'ChannelVerified') return null;
-  const args = decodeRawEventArgs(rawEvent, ChannelRegistryAbi);
+  const args = decodeRawEventArgs(rawEvent, BeneficiaryRegistryAbi);
   if (!args) return null;
   return {
     channelId: args.channelId as string,
@@ -84,7 +84,7 @@ export function decodeChannelControlTakenEvent(
   logIndex: number;
 } | null {
   if (rawEvent.eventName !== 'ChannelControlTaken') return null;
-  const args = decodeRawEventArgs(rawEvent, ChannelRegistryAbi);
+  const args = decodeRawEventArgs(rawEvent, BeneficiaryRegistryAbi);
   if (!args) return null;
   return {
     channelId: args.channelId as string,
@@ -104,7 +104,7 @@ export function decodeContractVetoedEvent(
   logIndex: number;
 } | null {
   if (rawEvent.eventName !== 'ContractVetoed') return null;
-  const args = decodeRawEventArgs(rawEvent, ChannelRegistryAbi);
+  const args = decodeRawEventArgs(rawEvent, BeneficiaryRegistryAbi);
   if (!args) return null;
   return {
     channelId: args.channelId as string,
@@ -125,7 +125,7 @@ export function decodeDepositedEvent(
   logIndex: number;
 } | null {
   if (rawEvent.eventName !== 'Deposited') return null;
-  const args = decodeRawEventArgs(rawEvent, ChannelEscrowAbi);
+  const args = decodeRawEventArgs(rawEvent, BeneficiaryEscrowAbi);
   if (!args) return null;
   return {
     channelId: args.channelId as string,
@@ -148,7 +148,7 @@ export function decodeWithdrawnEvent(
   logIndex: number;
 } | null {
   if (rawEvent.eventName !== 'Withdrawn') return null;
-  const args = decodeRawEventArgs(rawEvent, ChannelEscrowAbi);
+  const args = decodeRawEventArgs(rawEvent, BeneficiaryEscrowAbi);
   if (!args) return null;
   return {
     channelId: args.channelId as string,

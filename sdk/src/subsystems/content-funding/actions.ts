@@ -347,7 +347,7 @@ export async function getThirdPartyMinPurchase(
  * successful content-funding contracts.
  *
  * @param clients - Wallet and public clients for blockchain interaction
- * @param escrowContract - The ChannelEscrow contract instance
+ * @param escrowContract - The BeneficiaryEscrow contract instance
  * @param channelId - Bytes32 channel ID to withdraw from
  * @returns Transaction hash
  */
@@ -378,7 +378,7 @@ export async function withdrawFromEscrow(
  * third-party contracts created for their channel.
  *
  * @param clients - Wallet and public clients for blockchain interaction
- * @param registryContract - The ChannelRegistry contract instance
+ * @param registryContract - The BeneficiaryRegistry contract instance
  * @param channelId - Bytes32 channel ID to take control of
  * @returns Transaction hash
  */
@@ -408,7 +408,7 @@ export async function takeChannelControl(
  * taking control. Vetoed contracts are marked as invalid.
  *
  * @param clients - Wallet and public clients for blockchain interaction
- * @param registryContract - The ChannelRegistry contract instance
+ * @param registryContract - The BeneficiaryRegistry contract instance
  * @param contractAddress - Address of the contract to veto
  * @returns Transaction hash
  */
@@ -439,7 +439,7 @@ export async function vetoContract(
  * on-chain to register the channel.
  *
  * @param clients - Wallet and public clients for blockchain interaction
- * @param registryContract - The ChannelRegistry contract instance
+ * @param registryContract - The BeneficiaryRegistry contract instance
  * @param channelId - Bytes32 channel ID to verify
  * @param claimant - Address claiming ownership of the channel
  * @param nonce - Random nonce to prevent replay attacks

@@ -13,8 +13,8 @@ import hre from 'hardhat';
 const { ethers } = hre;
 
 const OWNABLE_2_STEP_CONTRACTS = [
-  ['ChannelVerifier', 'CHANNEL_VERIFIER_ADDRESS'],
-  ['ChannelRegistry', 'CHANNEL_REGISTRY_ADDRESS'],
+  ['BeneficiaryVerifier', 'BENEFICIARY_VERIFIER_ADDRESS'],
+  ['BeneficiaryRegistry', 'BENEFICIARY_REGISTRY_ADDRESS'],
 ];
 
 function requireEnv(key) {

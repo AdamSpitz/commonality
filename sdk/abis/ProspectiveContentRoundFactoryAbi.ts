@@ -222,10 +222,10 @@ export const ProspectiveContentRoundFactoryAbi = [
   },
   {
     "inputs": [],
-    "name": "channelRegistry",
+    "name": "beneficiaryRegistry",
     "outputs": [
       {
-        "internalType": "contract ChannelRegistry",
+        "internalType": "contract BeneficiaryRegistry",
         "name": "",
         "type": "address"
       }

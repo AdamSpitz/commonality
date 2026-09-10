@@ -30,7 +30,7 @@ import type {
   YouTubeClientLike,
 } from './types.js';
 
-const channelRegistryAbi = [
+const beneficiaryRegistryAbi = [
   {
     type: 'function',
     name: 'verifyChannel',
@@ -314,13 +314,13 @@ export class PlatformApiService {
 
     if (
       !this.deps.config.verifierPrivateKey ||
-      !this.deps.config.channelVerifierAddress ||
+      !this.deps.config.beneficiaryVerifierAddress ||
       !this.deps.config.chainId
     ) {
       throw new HttpError(
         503,
         'service_unavailable',
-        'Verification confirmation is unavailable because VERIFIER_PRIVATE_KEY, CHANNEL_VERIFIER_ADDRESS, and CHAIN_ID must all be set',
+        'Verification confirmation is unavailable because VERIFIER_PRIVATE_KEY, BENEFICIARY_VERIFIER_ADDRESS, and CHAIN_ID must all be set',
       );
     }
 
@@ -348,7 +348,7 @@ export class PlatformApiService {
 
     const verifierSignature = await signClaimProof(
       this.deps.config.verifierPrivateKey,
-      this.deps.config.channelVerifierAddress,
+      this.deps.config.beneficiaryVerifierAddress,
       this.deps.config.chainId,
       challenge.channelId,
       challenge.claimantAddress,
@@ -418,7 +418,7 @@ export class PlatformApiService {
       verification: {
         canSignProofs: Boolean(this.deps.config.verifierPrivateKey),
         submitVerificationTx: this.deps.config.submitVerificationTx,
-        channelRegistryConfigured: Boolean(this.deps.config.channelRegistryAddress),
+        beneficiaryRegistryConfigured: Boolean(this.deps.config.beneficiaryRegistryAddress),
         ethereumRpcConfigured: Boolean(this.deps.config.ethereumRpcUrl),
       },
       contentSubmissions: {
@@ -491,12 +491,12 @@ export class PlatformApiService {
     if (
       !this.deps.config.verifierPrivateKey ||
       !this.deps.config.ethereumRpcUrl ||
-      !this.deps.config.channelRegistryAddress
+      !this.deps.config.beneficiaryRegistryAddress
     ) {
       throw new HttpError(
         503,
         'service_unavailable',
-        'On-chain verification submission requires VERIFIER_PRIVATE_KEY, ETHEREUM_RPC_URL, and CHANNEL_REGISTRY_ADDRESS',
+        'On-chain verification submission requires VERIFIER_PRIVATE_KEY, ETHEREUM_RPC_URL, and BENEFICIARY_REGISTRY_ADDRESS',
       );
     }
 
@@ -510,8 +510,8 @@ export class PlatformApiService {
     });
 
     const simulation = await publicClient.simulateContract({
-      address: this.deps.config.channelRegistryAddress,
-      abi: channelRegistryAbi,
+      address: this.deps.config.beneficiaryRegistryAddress,
+      abi: beneficiaryRegistryAbi,
       functionName: 'verifyChannel',
       args: [
         hashCanonicalId(proof.channelId),
@@ -608,7 +608,7 @@ export class PlatformApiService {
 
 export async function signClaimProof(
   verifierPrivateKey: Hex,
-  channelVerifierAddress: Address,
+  beneficiaryVerifierAddress: Address,
   chainId: number,
   channelId: string,
   claimant: Address,
@@ -619,10 +619,10 @@ export async function signClaimProof(
   const account = privateKeyToAccount(verifierPrivateKey);
   return await account.signTypedData({
     domain: {
-      name: 'ChannelVerifier',
+      name: 'BeneficiaryVerifier',
       version: '1',
       chainId,
-      verifyingContract: channelVerifierAddress,
+      verifyingContract: beneficiaryVerifierAddress,
     },
     types: {
       ChannelClaim: [

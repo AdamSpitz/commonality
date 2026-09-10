@@ -55,8 +55,8 @@ export async function fetchAndFoldContentFundingState(
   }
 
   const contentRegistryEvents: (ContentItemRegisteredEvent | ContentItemReleasedEvent)[] = [];
-  const channelRegistryEvents: (ChannelVerifiedEvent | ChannelControlTakenEvent)[] = [];
-  const channelEscrowEvents: (DepositedEvent | WithdrawnEvent)[] = [];
+  const beneficiaryRegistryEvents: (ChannelVerifiedEvent | ChannelControlTakenEvent)[] = [];
+  const beneficiaryEscrowEvents: (DepositedEvent | WithdrawnEvent)[] = [];
   const creatorContractEvents: CreatorContractCreatedEvent[] = [];
   const contractVetoedEvents: ContractVetoedEvent[] = [];
 
@@ -74,12 +74,12 @@ export async function fetchAndFoldContentFundingState(
       }
       case 'ChannelVerified': {
         const d = decodeChannelVerifiedEvent(raw);
-        if (d) channelRegistryEvents.push({ type: 'ChannelVerified', ...d });
+        if (d) beneficiaryRegistryEvents.push({ type: 'ChannelVerified', ...d });
         break;
       }
       case 'ChannelControlTaken': {
         const d = decodeChannelControlTakenEvent(raw);
-        if (d) channelRegistryEvents.push({ type: 'ChannelControlTaken', ...d });
+        if (d) beneficiaryRegistryEvents.push({ type: 'ChannelControlTaken', ...d });
         break;
       }
       case 'ContractVetoed': {
@@ -89,12 +89,12 @@ export async function fetchAndFoldContentFundingState(
       }
       case 'Deposited': {
         const d = decodeDepositedEvent(raw);
-        if (d) channelEscrowEvents.push({ type: 'Deposited', ...d });
+        if (d) beneficiaryEscrowEvents.push({ type: 'Deposited', ...d });
         break;
       }
       case 'Withdrawn': {
         const d = decodeWithdrawnEvent(raw);
-        if (d) channelEscrowEvents.push({ type: 'Withdrawn', ...d });
+        if (d) beneficiaryEscrowEvents.push({ type: 'Withdrawn', ...d });
         break;
       }
       case 'CreatorContractCreated': {
@@ -107,8 +107,8 @@ export async function fetchAndFoldContentFundingState(
 
   const state = foldAllContentFundingEvents(
     sortedByBlockOrder(contentRegistryEvents),
-    sortedByBlockOrder(channelRegistryEvents),
-    sortedByBlockOrder(channelEscrowEvents),
+    sortedByBlockOrder(beneficiaryRegistryEvents),
+    sortedByBlockOrder(beneficiaryEscrowEvents),
     sortedByBlockOrder(creatorContractEvents),
   );
 

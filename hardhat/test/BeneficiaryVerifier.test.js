@@ -2,7 +2,7 @@ import { expect } from "chai";
 import hre from "hardhat";
 const { ethers } = hre;
 
-describe("ChannelVerifier", function () {
+describe("BeneficiaryVerifier", function () {
   let verifier;
   let owner, trustedSigner, alice, bob, guardian;
 
@@ -14,7 +14,7 @@ describe("ChannelVerifier", function () {
     const verifyingContract = await verifierContract.getAddress();
     const { chainId } = await ethers.provider.getNetwork();
     const domain = {
-      name: "ChannelVerifier",
+      name: "BeneficiaryVerifier",
       version: "1",
       chainId,
       verifyingContract,
@@ -40,8 +40,8 @@ describe("ChannelVerifier", function () {
   beforeEach(async function () {
     [owner, trustedSigner, alice, bob, guardian] = await ethers.getSigners();
 
-    const ChannelVerifier = await ethers.getContractFactory("ChannelVerifier");
-    verifier = await ChannelVerifier.deploy(trustedSigner.address);
+    const BeneficiaryVerifier = await ethers.getContractFactory("BeneficiaryVerifier");
+    verifier = await BeneficiaryVerifier.deploy(trustedSigner.address);
   });
 
   describe("Deployment", function () {
@@ -50,8 +50,8 @@ describe("ChannelVerifier", function () {
     });
 
     it("Should revert on zero address", async function () {
-      const ChannelVerifier = await ethers.getContractFactory("ChannelVerifier");
-      await expect(ChannelVerifier.deploy(ethers.ZeroAddress))
+      const BeneficiaryVerifier = await ethers.getContractFactory("BeneficiaryVerifier");
+      await expect(BeneficiaryVerifier.deploy(ethers.ZeroAddress))
         .to.be.revertedWithCustomError(verifier, "InvalidTrustedVerifierAddress");
     });
   });
@@ -131,28 +131,28 @@ describe("ChannelVerifier", function () {
     });
   });
 
-  describe("Integration with ChannelRegistry", function () {
+  describe("Integration with BeneficiaryRegistry", function () {
     it("Should allow channel verification with a real signed proof", async function () {
-      const ChannelRegistry = await ethers.getContractFactory("ChannelRegistry");
-      const channelRegistry = await ChannelRegistry.deploy(await verifier.getAddress());
+      const BeneficiaryRegistry = await ethers.getContractFactory("BeneficiaryRegistry");
+      const beneficiaryRegistry = await BeneficiaryRegistry.deploy(await verifier.getAddress());
 
       const latestBlock = await ethers.provider.getBlock("latest");
       const deadline = latestBlock.timestamp + 3600;
 
       const signature = await signClaimProof(trustedSigner, verifier, channelId, alice.address, nonce, deadline);
 
-      await expect(channelRegistry.verifyChannel(channelId, alice.address, nonce, deadline, proofHash, signature))
-        .to.emit(channelRegistry, "ChannelVerified")
+      await expect(beneficiaryRegistry.verifyChannel(channelId, alice.address, nonce, deadline, proofHash, signature))
+        .to.emit(beneficiaryRegistry, "ChannelVerified")
         .withArgs(channelId, alice.address)
-        .and.to.emit(channelRegistry, "ChannelProofAnchored")
+        .and.to.emit(beneficiaryRegistry, "ChannelProofAnchored")
         .withArgs(channelId, alice.address, proofHash);
 
-      expect(await channelRegistry.channelOwner(channelId)).to.equal(alice.address);
+      expect(await beneficiaryRegistry.channelOwner(channelId)).to.equal(alice.address);
     });
 
     it("Should reject channel verification with a forged signature", async function () {
-      const ChannelRegistry = await ethers.getContractFactory("ChannelRegistry");
-      const channelRegistry = await ChannelRegistry.deploy(await verifier.getAddress());
+      const BeneficiaryRegistry = await ethers.getContractFactory("BeneficiaryRegistry");
+      const beneficiaryRegistry = await BeneficiaryRegistry.deploy(await verifier.getAddress());
 
       const latestBlock = await ethers.provider.getBlock("latest");
       const deadline = latestBlock.timestamp + 3600;
@@ -160,8 +160,8 @@ describe("ChannelVerifier", function () {
       // bob is not the trusted verifier
       const forgedSignature = await signClaimProof(bob, verifier, channelId, alice.address, nonce, deadline);
 
-      await expect(channelRegistry.verifyChannel(channelId, alice.address, nonce, deadline, proofHash, forgedSignature))
-        .to.be.revertedWithCustomError(channelRegistry, "InvalidVerifierSignature");
+      await expect(beneficiaryRegistry.verifyChannel(channelId, alice.address, nonce, deadline, proofHash, forgedSignature))
+        .to.be.revertedWithCustomError(beneficiaryRegistry, "InvalidVerifierSignature");
     });
   });
 
@@ -286,12 +286,12 @@ describe("ChannelVerifier", function () {
   });
 
   describe("Emergency revocation — registry level", function () {
-    let channelRegistry;
+    let beneficiaryRegistry;
 
     beforeEach(async function () {
-      const ChannelRegistry = await ethers.getContractFactory("ChannelRegistry");
-      channelRegistry = await ChannelRegistry.deploy(await verifier.getAddress());
-      await channelRegistry.setGuardian(guardian.address);
+      const BeneficiaryRegistry = await ethers.getContractFactory("BeneficiaryRegistry");
+      beneficiaryRegistry = await BeneficiaryRegistry.deploy(await verifier.getAddress());
+      await beneficiaryRegistry.setGuardian(guardian.address);
       await verifier.setGuardian(guardian.address);
     });
 
@@ -300,12 +300,12 @@ describe("ChannelVerifier", function () {
       const deadline = latestBlock.timestamp + 3600;
       const signature = await signClaimProof(trustedSigner, verifier, channelId, alice.address, nonce, deadline);
 
-      await expect(channelRegistry.connect(guardian).revokeVerifier())
-        .to.emit(channelRegistry, "VerifierRevoked")
+      await expect(beneficiaryRegistry.connect(guardian).revokeVerifier())
+        .to.emit(beneficiaryRegistry, "VerifierRevoked")
         .withArgs(await verifier.getAddress(), guardian.address);
 
-      await expect(channelRegistry.verifyChannel(channelId, alice.address, nonce, deadline, proofHash, signature))
-        .to.be.revertedWithCustomError(channelRegistry, "NoVerifierConfigured");
+      await expect(beneficiaryRegistry.verifyChannel(channelId, alice.address, nonce, deadline, proofHash, signature))
+        .to.be.revertedWithCustomError(beneficiaryRegistry, "NoVerifierConfigured");
     });
 
     it("Should halt new verification when the signer key is revoked at the verifier", async function () {
@@ -315,42 +315,42 @@ describe("ChannelVerifier", function () {
 
       await verifier.connect(guardian).revokeTrustedVerifier();
 
-      await expect(channelRegistry.verifyChannel(channelId, alice.address, nonce, deadline, proofHash, signature))
-        .to.be.revertedWithCustomError(channelRegistry, "InvalidVerifierSignature");
+      await expect(beneficiaryRegistry.verifyChannel(channelId, alice.address, nonce, deadline, proofHash, signature))
+        .to.be.revertedWithCustomError(beneficiaryRegistry, "InvalidVerifierSignature");
     });
 
     it("Should not disturb channels already verified before the revocation", async function () {
       const latestBlock = await ethers.provider.getBlock("latest");
       const deadline = latestBlock.timestamp + 3600;
       const signature = await signClaimProof(trustedSigner, verifier, channelId, alice.address, nonce, deadline);
-      await channelRegistry.verifyChannel(channelId, alice.address, nonce, deadline, proofHash, signature);
+      await beneficiaryRegistry.verifyChannel(channelId, alice.address, nonce, deadline, proofHash, signature);
 
-      await channelRegistry.connect(guardian).revokeVerifier();
+      await beneficiaryRegistry.connect(guardian).revokeVerifier();
 
       // Fails closed for new claims, but the existing owner keeps every downstream power.
-      await expect(channelRegistry.connect(alice).takeChannelControl(channelId))
-        .to.emit(channelRegistry, "ChannelControlTaken")
+      await expect(beneficiaryRegistry.connect(alice).takeChannelControl(channelId))
+        .to.emit(beneficiaryRegistry, "ChannelControlTaken")
         .withArgs(channelId, alice.address);
-      expect(await channelRegistry.channelOwner(channelId)).to.equal(alice.address);
-      expect(await channelRegistry.isCreatorControlled(channelId)).to.be.true;
+      expect(await beneficiaryRegistry.channelOwner(channelId)).to.equal(alice.address);
+      expect(await beneficiaryRegistry.isCreatorControlled(channelId)).to.be.true;
     });
 
     it("Should let the owner reinstall a verifier after revocation", async function () {
-      await channelRegistry.connect(guardian).revokeVerifier();
-      await channelRegistry.setVerifier(await verifier.getAddress());
+      await beneficiaryRegistry.connect(guardian).revokeVerifier();
+      await beneficiaryRegistry.setVerifier(await verifier.getAddress());
 
       const latestBlock = await ethers.provider.getBlock("latest");
       const deadline = latestBlock.timestamp + 3600;
       const signature = await signClaimProof(trustedSigner, verifier, channelId, alice.address, nonce, deadline);
 
-      await expect(channelRegistry.verifyChannel(channelId, alice.address, nonce, deadline, proofHash, signature))
-        .to.emit(channelRegistry, "ChannelVerified")
+      await expect(beneficiaryRegistry.verifyChannel(channelId, alice.address, nonce, deadline, proofHash, signature))
+        .to.emit(beneficiaryRegistry, "ChannelVerified")
         .withArgs(channelId, alice.address);
     });
 
     it("Should reject revocation from anyone else", async function () {
-      await expect(channelRegistry.connect(alice).revokeVerifier())
-        .to.be.revertedWithCustomError(channelRegistry, "OnlyOwnerOrGuardian");
+      await expect(beneficiaryRegistry.connect(alice).revokeVerifier())
+        .to.be.revertedWithCustomError(beneficiaryRegistry, "OnlyOwnerOrGuardian");
     });
   });
 });

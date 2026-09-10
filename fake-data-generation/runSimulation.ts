@@ -1406,19 +1406,19 @@ async function main(): Promise<void> {
 
   // Generate content-funding on-chain state (deterministic scenarios).
   const cfAddresses = {
-    channelRegistry: CONTRACT_ADDRESSES.channelRegistry,
-    channelVerifier: CONTRACT_ADDRESSES.channelVerifier,
+    beneficiaryRegistry: CONTRACT_ADDRESSES.beneficiaryRegistry,
+    beneficiaryVerifier: CONTRACT_ADDRESSES.beneficiaryVerifier,
     creatorContractFactory: CONTRACT_ADDRESSES.creatorContractFactory,
     prospectiveContentRoundFactory: CONTRACT_ADDRESSES.prospectiveContentRoundFactory,
     publishedData: CONTRACT_ADDRESSES.publishedData,
     alignmentAttestations: CONTRACT_ADDRESSES.alignmentAttestations,
   };
-  if (cfAddresses.channelRegistry && cfAddresses.channelVerifier && cfAddresses.creatorContractFactory) {
+  if (cfAddresses.beneficiaryRegistry && cfAddresses.beneficiaryVerifier && cfAddresses.creatorContractFactory) {
     try {
       await generateContentFundingScenarios(
         cfAddresses as {
-          channelRegistry: `0x${string}`;
-          channelVerifier: `0x${string}`;
+          beneficiaryRegistry: `0x${string}`;
+          beneficiaryVerifier: `0x${string}`;
           creatorContractFactory: `0x${string}`;
           prospectiveContentRoundFactory?: `0x${string}`;
           publishedData?: `0x${string}`;
@@ -1435,7 +1435,7 @@ async function main(): Promise<void> {
     }
   } else {
     console.warn('Content-funding addresses not configured — skipping content-funding scenarios.');
-    console.warn('  (Set CHANNEL_REGISTRY_ADDRESS, CHANNEL_VERIFIER_ADDRESS, CREATOR_CONTRACT_FACTORY_ADDRESS in .env)');
+    console.warn('  (Set BENEFICIARY_REGISTRY_ADDRESS, BENEFICIARY_VERIFIER_ADDRESS, CREATOR_CONTRACT_FACTORY_ADDRESS in .env)');
   }
 
   if (localFoodPlankCid) {

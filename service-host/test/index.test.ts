@@ -586,8 +586,8 @@ describe("service host", () => {
 				trustRegistry: "0xtrust",
 				nudgePublications: undefined,
 				contentRegistry: undefined,
-				channelRegistry: undefined,
-				channelEscrow: undefined,
+				beneficiaryRegistry: undefined,
+				beneficiaryEscrow: undefined,
 				creatorContractFactory: undefined,
 			},
 		});

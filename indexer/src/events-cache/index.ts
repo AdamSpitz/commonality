@@ -96,11 +96,11 @@ register("PublishedData:DataRetracted");
 // CONTENT FUNDING
 register("ContentRegistry:ContentItemRegistered");
 register("ContentRegistry:ContentItemReleased");
-register("ChannelRegistry:ChannelVerified");
-register("ChannelRegistry:ChannelControlTaken");
-register("ChannelRegistry:ContractVetoed");
-register("ChannelEscrow:Deposited");
-register("ChannelEscrow:Withdrawn");
+register("BeneficiaryRegistry:ChannelVerified");
+register("BeneficiaryRegistry:ChannelControlTaken");
+register("BeneficiaryRegistry:ContractVetoed");
+register("BeneficiaryEscrow:Deposited");
+register("BeneficiaryEscrow:Withdrawn");
 register("CreatorAssuranceContractFactory:CreatorContractCreated");
 register("ProspectiveContentRoundFactory:ProspectiveRoundCreated");
 register("ProspectiveContentRoundFactory:ProspectiveRoundMaterialized");

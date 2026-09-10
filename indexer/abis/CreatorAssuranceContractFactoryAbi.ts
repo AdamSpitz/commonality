@@ -11,12 +11,12 @@ export const CreatorAssuranceContractFactoryAbi = [
       },
       {
         "internalType": "address",
-        "name": "_channelRegistry",
+        "name": "_beneficiaryRegistry",
         "type": "address"
       },
       {
         "internalType": "address",
-        "name": "_channelEscrow",
+        "name": "_beneficiaryEscrow",
         "type": "address"
       },
       {
@@ -404,10 +404,10 @@ export const CreatorAssuranceContractFactoryAbi = [
   },
   {
     "inputs": [],
-    "name": "channelEscrow",
+    "name": "beneficiaryEscrow",
     "outputs": [
       {
-        "internalType": "contract ChannelEscrow",
+        "internalType": "contract BeneficiaryEscrow",
         "name": "",
         "type": "address"
       }
@@ -436,10 +436,10 @@ export const CreatorAssuranceContractFactoryAbi = [
   },
   {
     "inputs": [],
-    "name": "channelRegistry",
+    "name": "beneficiaryRegistry",
     "outputs": [
       {
-        "internalType": "contract ChannelRegistry",
+        "internalType": "contract BeneficiaryRegistry",
         "name": "",
         "type": "address"
       }

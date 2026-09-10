@@ -26,7 +26,7 @@ export const MaterializedContentTokensAbi = [
       },
       {
         "internalType": "address",
-        "name": "_channelRegistry",
+        "name": "_beneficiaryRegistry",
         "type": "address"
       },
       {
@@ -597,10 +597,10 @@ export const MaterializedContentTokensAbi = [
   },
   {
     "inputs": [],
-    "name": "channelRegistry",
+    "name": "beneficiaryRegistry",
     "outputs": [
       {
-        "internalType": "contract ChannelRegistry",
+        "internalType": "contract BeneficiaryRegistry",
         "name": "",
         "type": "address"
       }

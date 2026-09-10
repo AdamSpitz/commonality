@@ -14,8 +14,8 @@ export interface PlatformApiServiceConfig {
   youtubeApiBaseUrl: string;
   verifierPrivateKey?: Hex;
   ethereumRpcUrl?: string;
-  channelRegistryAddress?: Address;
-  channelVerifierAddress?: Address;
+  beneficiaryRegistryAddress?: Address;
+  beneficiaryVerifierAddress?: Address;
   chainId?: number;
   submitVerificationTx: boolean;
   challengeTtlSeconds: number;
@@ -67,8 +67,8 @@ export function loadConfig(): PlatformApiServiceConfig {
     ),
     verifierPrivateKey: normalizeOptionalHex32('VERIFIER_PRIVATE_KEY', process.env.VERIFIER_PRIVATE_KEY),
     ethereumRpcUrl: normalizeOptionalUrl(process.env.ETHEREUM_RPC_URL),
-    channelRegistryAddress: normalizeOptionalAddress(process.env.CHANNEL_REGISTRY_ADDRESS),
-    channelVerifierAddress: normalizeOptionalAddress(process.env.CHANNEL_VERIFIER_ADDRESS),
+    beneficiaryRegistryAddress: normalizeOptionalAddress(process.env.BENEFICIARY_REGISTRY_ADDRESS),
+    beneficiaryVerifierAddress: normalizeOptionalAddress(process.env.BENEFICIARY_VERIFIER_ADDRESS),
     chainId: normalizeOptionalChainId(process.env.CHAIN_ID),
     submitVerificationTx: parseBoolean(process.env.SUBMIT_VERIFICATION_TX, false),
     challengeTtlSeconds: parseInteger('CHALLENGE_TTL_SECONDS', process.env.CHALLENGE_TTL_SECONDS, 1800),

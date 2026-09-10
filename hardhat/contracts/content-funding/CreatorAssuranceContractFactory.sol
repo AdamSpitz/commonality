@@ -7,8 +7,8 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {CreatorAssuranceContract, ICreatorAssuranceContract} from "./CreatorAssuranceContract.sol";
 import {ContentRegistry} from "./ContentRegistry.sol";
-import {ChannelRegistry, IChannelRegistry} from "./ChannelRegistry.sol";
-import {ChannelEscrow} from "./ChannelEscrow.sol";
+import {BeneficiaryRegistry, IBeneficiaryRegistry} from "./BeneficiaryRegistry.sol";
+import {BeneficiaryEscrow} from "./BeneficiaryEscrow.sol";
 import {PremintingERC1155} from "../utils/PremintingERC1155.sol";
 import {PremintingERC1155Factory} from "../individual-projects/ProjectFactory.sol";
 import {ValueThresholdCondition} from "../individual-projects/ValueThresholdCondition.sol";
@@ -121,9 +121,9 @@ contract CreatorAssuranceContractFactory is Ownable2Step {
     /// @notice The content registry for tracking content-to-contract mappings
     ContentRegistry public contentRegistry;
     /// @notice The channel registry for checking channel ownership and state
-    ChannelRegistry public channelRegistry;
+    BeneficiaryRegistry public beneficiaryRegistry;
     /// @notice The escrow contract for unclaimed channels
-    ChannelEscrow public channelEscrow;
+    BeneficiaryEscrow public beneficiaryEscrow;
 
     /// @notice Factory for creating ERC1155 token contracts
     PremintingERC1155Factory public immutable erc1155Factory;
@@ -150,14 +150,14 @@ contract CreatorAssuranceContractFactory is Ownable2Step {
     uint256 public thirdPartyMinPurchase = 1;
 
     /// @notice Maximum duration from creation to deadline for third-party contracts.
-    /// @dev Defaults to the ChannelRegistry's default veto window (7 days) to reduce cheap squatting.
+    /// @dev Defaults to the BeneficiaryRegistry's default veto window (7 days) to reduce cheap squatting.
     uint256 public thirdPartyMaxDuration = 7 days;
 
     /**
      * @notice Initializes the factory with all required dependency addresses
      * @param _contentRegistry The content registry contract
-     * @param _channelRegistry The channel registry contract
-     * @param _channelEscrow The channel escrow contract
+     * @param _beneficiaryRegistry The channel registry contract
+     * @param _beneficiaryEscrow The channel escrow contract
      * @param _erc1155Factory The ERC1155 token factory
      * @param _conditionFactory The ETH threshold condition factory
      * @param _paymentToken The ERC-20 token used to settle all MVP content-funding contracts
@@ -165,8 +165,8 @@ contract CreatorAssuranceContractFactory is Ownable2Step {
      */
     constructor(
         address _contentRegistry,
-        address _channelRegistry,
-        address _channelEscrow,
+        address _beneficiaryRegistry,
+        address _beneficiaryEscrow,
         address _erc1155Factory,
         address _conditionFactory,
         address _paymentToken,
@@ -175,8 +175,8 @@ contract CreatorAssuranceContractFactory is Ownable2Step {
         if (bytes(_contentIdSeparator).length != 1) revert InvalidContentIdSeparator();
         if (_paymentToken == address(0)) revert InvalidPaymentTokenAddress();
         contentRegistry = ContentRegistry(_contentRegistry);
-        channelRegistry = ChannelRegistry(_channelRegistry);
-        channelEscrow = ChannelEscrow(_channelEscrow);
+        beneficiaryRegistry = BeneficiaryRegistry(_beneficiaryRegistry);
+        beneficiaryEscrow = BeneficiaryEscrow(_beneficiaryEscrow);
         erc1155Factory = PremintingERC1155Factory(_erc1155Factory);
         conditionFactory = ValueThresholdConditionFactory(_conditionFactory);
         paymentToken = _paymentToken;
@@ -296,9 +296,9 @@ contract CreatorAssuranceContractFactory is Ownable2Step {
     function _validateCreatorContract(
         bytes32 channelId
     ) private view returns (ChannelCreationContext memory channel) {
-        channel.verified = channelRegistry.isVerified(channelId);
+        channel.verified = beneficiaryRegistry.isVerified(channelId);
         channel.channelOwner = channel.verified
-            ? channelRegistry.channelOwner(channelId)
+            ? beneficiaryRegistry.channelOwner(channelId)
             : address(0);
 
         if (!channel.verified) {
@@ -314,10 +314,10 @@ contract CreatorAssuranceContractFactory is Ownable2Step {
         CreateContractParams calldata params,
         uint256 initialPurchaseValue
     ) private view returns (ChannelCreationContext memory channel) {
-        channel.verified = channelRegistry.isVerified(params.channelId);
-        bool creatorControlled = channelRegistry.isCreatorControlled(params.channelId);
+        channel.verified = beneficiaryRegistry.isVerified(params.channelId);
+        bool creatorControlled = beneficiaryRegistry.isCreatorControlled(params.channelId);
         channel.channelOwner = channel.verified
-            ? channelRegistry.channelOwner(params.channelId)
+            ? beneficiaryRegistry.channelOwner(params.channelId)
             : address(0);
 
         if (creatorControlled) {
@@ -336,7 +336,7 @@ contract CreatorAssuranceContractFactory is Ownable2Step {
         if (params.threshold <= initialPurchaseValue) {
             revert ThresholdMustExceedInitialPurchase();
         }
-        channel.recipient = channel.verified ? channel.channelOwner : address(channelEscrow);
+        channel.recipient = channel.verified ? channel.channelOwner : address(beneficiaryEscrow);
     }
 
     function _deployContract(
@@ -375,8 +375,8 @@ contract CreatorAssuranceContractFactory is Ownable2Step {
             );
             CancellableCondition cancellableCondition = new CancellableCondition(
                 address(baseCondition),
-                address(channelRegistry),
-                address(channelRegistry),
+                address(beneficiaryRegistry),
+                address(beneficiaryRegistry),
                 params.channelId
             );
             conditionAddress = address(cancellableCondition);
@@ -426,7 +426,7 @@ contract CreatorAssuranceContractFactory is Ownable2Step {
 
     /**
      * @notice Release content IDs from the registry when a contract's condition has failed
-     * @dev Called by the ChannelRegistry during veto, or can be called by anyone after failure.
+     * @dev Called by the BeneficiaryRegistry during veto, or can be called by anyone after failure.
      *      Releases all content IDs associated with the contract back to unregistered state.
      * @param contractAddress The address of the failed creator assurance contract
      */

@@ -3,7 +3,7 @@ pragma solidity 0.8.33;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {IChannelRegistry} from "./ChannelRegistry.sol";
+import {IBeneficiaryRegistry} from "./BeneficiaryRegistry.sol";
 
 error InvalidRegistryAddress();
 error InvalidPaymentTokenAddress();
@@ -13,17 +13,17 @@ error OnlyChannelOwner();
 error NoBalance();
 
 /**
- * @title IChannelEscrow
+ * @title IBeneficiaryEscrow
  * @notice Interface for the channel escrow contract
  */
-interface IChannelEscrow {
+interface IBeneficiaryEscrow {
     function deposit(bytes32 channelId, uint256 amount) external;
     function withdraw(bytes32 channelId) external;
     function balance(bytes32 channelId) external view returns (uint256);
 }
 
 /**
- * @title ChannelEscrow
+ * @title BeneficiaryEscrow
  * @notice Holds settlement tokens in escrow per channel until the channel owner is verified and withdraws
  * @dev Funds are deposited by channel ID. Only the verified channel owner can withdraw.
  *      Used for channels that are unclaimed at the time funds are sent, so the creator
@@ -37,13 +37,13 @@ interface IChannelEscrow {
  *      This contract uses SafeERC20 for all token transfers to handle non-standard
  *      tokens that may not return boolean success values.
  */
-contract ChannelEscrow is IChannelEscrow {
+contract BeneficiaryEscrow is IBeneficiaryEscrow {
     using SafeERC20 for IERC20;
 
     mapping(bytes32 channelId => uint256 amount) private _balances;
 
     /// @notice The channel registry contract used to verify channel ownership
-    address public channelRegistry;
+    address public beneficiaryRegistry;
     /// @notice The ERC-20 token held in escrow
     address public immutable paymentToken;
 
@@ -65,13 +65,13 @@ contract ChannelEscrow is IChannelEscrow {
 
     /**
      * @notice Initializes the escrow with a channel registry address and settlement token
-     * @param _channelRegistry The address of the ChannelRegistry contract
+     * @param _beneficiaryRegistry The address of the BeneficiaryRegistry contract
      * @param _paymentToken The ERC-20 token held in escrow
      */
-    constructor(address _channelRegistry, address _paymentToken) {
-        if (_channelRegistry == address(0)) revert InvalidRegistryAddress();
+    constructor(address _beneficiaryRegistry, address _paymentToken) {
+        if (_beneficiaryRegistry == address(0)) revert InvalidRegistryAddress();
         if (_paymentToken == address(0)) revert InvalidPaymentTokenAddress();
-        channelRegistry = _channelRegistry;
+        beneficiaryRegistry = _beneficiaryRegistry;
         paymentToken = _paymentToken;
     }
 
@@ -92,8 +92,8 @@ contract ChannelEscrow is IChannelEscrow {
      * @param channelId The channel to withdraw funds from
      */
     function withdraw(bytes32 channelId) external {
-        if (!IChannelRegistry(channelRegistry).isVerified(channelId)) revert ChannelNotVerified();
-        if (msg.sender != IChannelRegistry(channelRegistry).channelOwner(channelId)) {
+        if (!IBeneficiaryRegistry(beneficiaryRegistry).isVerified(channelId)) revert ChannelNotVerified();
+        if (msg.sender != IBeneficiaryRegistry(beneficiaryRegistry).channelOwner(channelId)) {
             revert OnlyChannelOwner();
         }
 

@@ -68,7 +68,7 @@ async function createContentFundingContract({
 }
 
 describe("ContentFunding", function () {
-  let contentRegistry, channelRegistry, channelEscrow;
+  let contentRegistry, beneficiaryRegistry, beneficiaryEscrow;
   let factory, erc1155Factory, conditionFactory;
   let paymentToken;
   let mockVerifier;
@@ -77,14 +77,14 @@ describe("ContentFunding", function () {
   beforeEach(async function () {
     [owner, recipient, alice, bob, charlie, thirdParty] = await ethers.getSigners();
 
-    const MockVerifier = await ethers.getContractFactory("MockChannelVerifier");
+    const MockVerifier = await ethers.getContractFactory("MockBeneficiaryVerifier");
     mockVerifier = await MockVerifier.deploy();
 
     const ContentRegistry = await ethers.getContractFactory("ContentRegistry");
     contentRegistry = await ContentRegistry.deploy();
 
-    const ChannelRegistry = await ethers.getContractFactory("ChannelRegistry");
-    channelRegistry = await ChannelRegistry.deploy(await mockVerifier.getAddress());
+    const BeneficiaryRegistry = await ethers.getContractFactory("BeneficiaryRegistry");
+    beneficiaryRegistry = await BeneficiaryRegistry.deploy(await mockVerifier.getAddress());
 
     const PremintingERC20 = await ethers.getContractFactory("PremintingERC20");
     paymentToken = await PremintingERC20.deploy(
@@ -97,9 +97,9 @@ describe("ContentFunding", function () {
       await paymentToken.connect(owner).mint(signer.address, ethers.parseEther("1000"));
     }
 
-    const ChannelEscrow = await ethers.getContractFactory("ChannelEscrow");
-    channelEscrow = await ChannelEscrow.deploy(
-      await channelRegistry.getAddress(),
+    const BeneficiaryEscrow = await ethers.getContractFactory("BeneficiaryEscrow");
+    beneficiaryEscrow = await BeneficiaryEscrow.deploy(
+      await beneficiaryRegistry.getAddress(),
       await paymentToken.getAddress()
     );
 
@@ -112,8 +112,8 @@ describe("ContentFunding", function () {
     const CreatorAssuranceContractFactory = await ethers.getContractFactory("CreatorAssuranceContractFactory");
     factory = await CreatorAssuranceContractFactory.deploy(
       await contentRegistry.getAddress(),
-      await channelRegistry.getAddress(),
-      await channelEscrow.getAddress(),
+      await beneficiaryRegistry.getAddress(),
+      await beneficiaryEscrow.getAddress(),
       await erc1155Factory.getAddress(),
       await conditionFactory.getAddress(),
       await paymentToken.getAddress(),
@@ -123,7 +123,7 @@ describe("ContentFunding", function () {
     // Transfer ContentRegistry ownership to factory so it can register/release content
     await contentRegistry.connect(owner).transferOwnership(await factory.getAddress());
 
-    await channelRegistry.connect(owner).setFactoryAuthorization(await factory.getAddress(), true);
+    await beneficiaryRegistry.connect(owner).setFactoryAuthorization(await factory.getAddress(), true);
   });
 
   async function approveAssuranceSpend(signer, assuranceContract, amount) {
@@ -131,8 +131,8 @@ describe("ContentFunding", function () {
   }
 
   async function depositIntoEscrow(signer, channelId, amount) {
-    await paymentToken.connect(signer).approve(await channelEscrow.getAddress(), amount);
-    return channelEscrow.connect(signer).deposit(channelId, amount);
+    await paymentToken.connect(signer).approve(await beneficiaryEscrow.getAddress(), amount);
+    return beneficiaryEscrow.connect(signer).deposit(channelId, amount);
   }
 
   describe("ContentRegistry", function () {
@@ -152,7 +152,7 @@ describe("ContentFunding", function () {
       const latestBlock = await ethers.provider.getBlock("latest");
       const deadline = latestBlock.timestamp + 86400;
 
-      await channelRegistry.verifyChannel(
+      await beneficiaryRegistry.verifyChannel(
         channelId,
         owner.address,
         ethers.id("nonce-1"),
@@ -206,7 +206,7 @@ describe("ContentFunding", function () {
       const latestBlock = await ethers.provider.getBlock("latest");
       const deadline = latestBlock.timestamp + 86400;
 
-      await channelRegistry.verifyChannel(
+      await beneficiaryRegistry.verifyChannel(
         duplicateChannelId,
         owner.address,
         ethers.id("nonce-1"),
@@ -243,7 +243,7 @@ describe("ContentFunding", function () {
     });
   });
 
-  describe("ChannelRegistry", function () {
+  describe("BeneficiaryRegistry", function () {
     let channelId;
     let nonce, deadline;
     let verifierSignature;
@@ -266,196 +266,196 @@ describe("ContentFunding", function () {
     it("Should verify channel successfully", async function () {
       await mockVerifier.setValid(true);
 
-      await expect(channelRegistry.verifyChannel(channelId, alice.address, nonce, deadline, proofHash, verifierSignature))
-        .to.emit(channelRegistry, "ChannelVerified")
+      await expect(beneficiaryRegistry.verifyChannel(channelId, alice.address, nonce, deadline, proofHash, verifierSignature))
+        .to.emit(beneficiaryRegistry, "ChannelVerified")
         .withArgs(channelId, alice.address);
 
-      expect(await channelRegistry.channelOwner(channelId)).to.equal(alice.address);
-      expect(await channelRegistry.isVerified(channelId)).to.be.true;
-      expect(await channelRegistry.channelState(channelId)).to.equal(1);
+      expect(await beneficiaryRegistry.channelOwner(channelId)).to.equal(alice.address);
+      expect(await beneficiaryRegistry.isVerified(channelId)).to.be.true;
+      expect(await beneficiaryRegistry.channelState(channelId)).to.equal(1);
     });
 
     it("Should reject zero-address claimants", async function () {
       await mockVerifier.setValid(true);
 
-      await expect(channelRegistry.verifyChannel(channelId, ethers.ZeroAddress, nonce, deadline, proofHash, verifierSignature))
-        .to.be.revertedWithCustomError(channelRegistry, "InvalidClaimant");
+      await expect(beneficiaryRegistry.verifyChannel(channelId, ethers.ZeroAddress, nonce, deadline, proofHash, verifierSignature))
+        .to.be.revertedWithCustomError(beneficiaryRegistry, "InvalidClaimant");
     });
 
     it("Should allow only monotonic veto window lengthening", async function () {
-      const initialDuration = await channelRegistry.vetoWindowDuration();
+      const initialDuration = await beneficiaryRegistry.vetoWindowDuration();
       const longerDuration = initialDuration + 1n;
 
-      await expect(channelRegistry.setVetoWindowDuration(longerDuration))
-        .to.emit(channelRegistry, "VetoWindowDurationUpdated")
+      await expect(beneficiaryRegistry.setVetoWindowDuration(longerDuration))
+        .to.emit(beneficiaryRegistry, "VetoWindowDurationUpdated")
         .withArgs(initialDuration, longerDuration);
 
-      await expect(channelRegistry.setVetoWindowDuration(initialDuration))
-        .to.be.revertedWithCustomError(channelRegistry, "VetoWindowDurationCannotDecrease");
+      await expect(beneficiaryRegistry.setVetoWindowDuration(initialDuration))
+        .to.be.revertedWithCustomError(beneficiaryRegistry, "VetoWindowDurationCannotDecrease");
 
-      expect(await channelRegistry.vetoWindowDuration()).to.equal(longerDuration);
+      expect(await beneficiaryRegistry.vetoWindowDuration()).to.equal(longerDuration);
     });
 
     it("Should revert when verifying already verified channel", async function () {
       await mockVerifier.setValid(true);
-      await channelRegistry.verifyChannel(channelId, alice.address, nonce, deadline, proofHash, verifierSignature);
+      await beneficiaryRegistry.verifyChannel(channelId, alice.address, nonce, deadline, proofHash, verifierSignature);
 
       const nonce2 = ethers.id("nonce-2");
-      await expect(channelRegistry.verifyChannel(channelId, alice.address, nonce2, deadline, proofHash, verifierSignature))
-        .to.be.revertedWithCustomError(channelRegistry, "ChannelAlreadyVerified")
+      await expect(beneficiaryRegistry.verifyChannel(channelId, alice.address, nonce2, deadline, proofHash, verifierSignature))
+        .to.be.revertedWithCustomError(beneficiaryRegistry, "ChannelAlreadyVerified")
         .withArgs(channelId);
     });
 
     it("Should revert when using expired deadline", async function () {
       const expiredDeadline = Math.floor(Date.now() / 1000) - 3600;
 
-      await expect(channelRegistry.verifyChannel(channelId, alice.address, nonce, expiredDeadline, proofHash, verifierSignature))
-        .to.be.revertedWithCustomError(channelRegistry, "ProofExpired");
+      await expect(beneficiaryRegistry.verifyChannel(channelId, alice.address, nonce, expiredDeadline, proofHash, verifierSignature))
+        .to.be.revertedWithCustomError(beneficiaryRegistry, "ProofExpired");
     });
 
     it("Should revert when verifier signature is invalid", async function () {
       const invalidSig = "0x12345678";
 
-      await expect(channelRegistry.verifyChannel(channelId, alice.address, nonce, deadline, proofHash, invalidSig))
-        .to.be.revertedWithCustomError(channelRegistry, "InvalidVerifierSignature");
+      await expect(beneficiaryRegistry.verifyChannel(channelId, alice.address, nonce, deadline, proofHash, invalidSig))
+        .to.be.revertedWithCustomError(beneficiaryRegistry, "InvalidVerifierSignature");
     });
 
     it("Should revert when reusing a nonce", async function () {
       await mockVerifier.setValid(true);
-      await channelRegistry.verifyChannel(channelId, alice.address, nonce, deadline, proofHash, verifierSignature);
+      await beneficiaryRegistry.verifyChannel(channelId, alice.address, nonce, deadline, proofHash, verifierSignature);
 
       // Try to use the same nonce for a different channel
       const channelId2 = ethers.id("test-channel-2");
-      await expect(channelRegistry.verifyChannel(channelId2, alice.address, nonce, deadline, proofHash, verifierSignature))
-        .to.be.revertedWithCustomError(channelRegistry, "InvalidNonce");
+      await expect(beneficiaryRegistry.verifyChannel(channelId2, alice.address, nonce, deadline, proofHash, verifierSignature))
+        .to.be.revertedWithCustomError(beneficiaryRegistry, "InvalidNonce");
     });
 
     it("Should allow only the verified owner to rotate the payout address", async function () {
       await mockVerifier.setValid(true);
-      await channelRegistry.verifyChannel(channelId, alice.address, nonce, deadline, proofHash, verifierSignature);
+      await beneficiaryRegistry.verifyChannel(channelId, alice.address, nonce, deadline, proofHash, verifierSignature);
 
-      await expect(channelRegistry.connect(alice).rotateChannelOwner(channelId, bob.address))
-        .to.emit(channelRegistry, "ChannelOwnerRotated")
+      await expect(beneficiaryRegistry.connect(alice).rotateChannelOwner(channelId, bob.address))
+        .to.emit(beneficiaryRegistry, "ChannelOwnerRotated")
         .withArgs(channelId, alice.address, bob.address);
 
-      expect(await channelRegistry.channelOwner(channelId)).to.equal(bob.address);
-      expect(await channelRegistry.channelState(channelId)).to.equal(1);
+      expect(await beneficiaryRegistry.channelOwner(channelId)).to.equal(bob.address);
+      expect(await beneficiaryRegistry.channelState(channelId)).to.equal(1);
     });
 
     it("Should not allow a verifier, administrator, or unrelated wallet to rotate an established owner", async function () {
       await mockVerifier.setValid(true);
-      await channelRegistry.verifyChannel(channelId, alice.address, nonce, deadline, proofHash, verifierSignature);
+      await beneficiaryRegistry.verifyChannel(channelId, alice.address, nonce, deadline, proofHash, verifierSignature);
 
-      await expect(channelRegistry.connect(owner).rotateChannelOwner(channelId, bob.address))
-        .to.be.revertedWithCustomError(channelRegistry, "OnlyChannelOwnerCanRotate");
-      await expect(channelRegistry.connect(bob).rotateChannelOwner(channelId, bob.address))
-        .to.be.revertedWithCustomError(channelRegistry, "OnlyChannelOwnerCanRotate");
-      expect(await channelRegistry.channelOwner(channelId)).to.equal(alice.address);
+      await expect(beneficiaryRegistry.connect(owner).rotateChannelOwner(channelId, bob.address))
+        .to.be.revertedWithCustomError(beneficiaryRegistry, "OnlyChannelOwnerCanRotate");
+      await expect(beneficiaryRegistry.connect(bob).rotateChannelOwner(channelId, bob.address))
+        .to.be.revertedWithCustomError(beneficiaryRegistry, "OnlyChannelOwnerCanRotate");
+      expect(await beneficiaryRegistry.channelOwner(channelId)).to.equal(alice.address);
     });
 
     it("Should reject payout rotation before verification or to the zero address", async function () {
-      await expect(channelRegistry.connect(alice).rotateChannelOwner(channelId, bob.address))
-        .to.be.revertedWithCustomError(channelRegistry, "ChannelNotVerified")
+      await expect(beneficiaryRegistry.connect(alice).rotateChannelOwner(channelId, bob.address))
+        .to.be.revertedWithCustomError(beneficiaryRegistry, "ChannelNotVerified")
         .withArgs(channelId);
 
       await mockVerifier.setValid(true);
-      await channelRegistry.verifyChannel(channelId, alice.address, nonce, deadline, proofHash, verifierSignature);
-      await expect(channelRegistry.connect(alice).rotateChannelOwner(channelId, ethers.ZeroAddress))
-        .to.be.revertedWithCustomError(channelRegistry, "InvalidNewChannelOwner");
+      await beneficiaryRegistry.verifyChannel(channelId, alice.address, nonce, deadline, proofHash, verifierSignature);
+      await expect(beneficiaryRegistry.connect(alice).rotateChannelOwner(channelId, ethers.ZeroAddress))
+        .to.be.revertedWithCustomError(beneficiaryRegistry, "InvalidNewChannelOwner");
     });
 
     it("Should take channel control after verification", async function () {
       await mockVerifier.setValid(true);
-      await channelRegistry.verifyChannel(channelId, alice.address, nonce, deadline, proofHash, verifierSignature);
+      await beneficiaryRegistry.verifyChannel(channelId, alice.address, nonce, deadline, proofHash, verifierSignature);
 
-      await expect(channelRegistry.connect(alice).takeChannelControl(channelId))
-        .to.emit(channelRegistry, "ChannelControlTaken")
+      await expect(beneficiaryRegistry.connect(alice).takeChannelControl(channelId))
+        .to.emit(beneficiaryRegistry, "ChannelControlTaken")
         .withArgs(channelId, alice.address);
 
-      expect(await channelRegistry.isCreatorControlled(channelId)).to.be.true;
-      expect(await channelRegistry.channelState(channelId)).to.equal(2);
+      expect(await beneficiaryRegistry.isCreatorControlled(channelId)).to.be.true;
+      expect(await beneficiaryRegistry.channelState(channelId)).to.equal(2);
     });
 
     it("Should revert takeChannelControl when channel not verified", async function () {
-      await expect(channelRegistry.connect(alice).takeChannelControl(channelId))
-        .to.be.revertedWithCustomError(channelRegistry, "ChannelNotVerified")
+      await expect(beneficiaryRegistry.connect(alice).takeChannelControl(channelId))
+        .to.be.revertedWithCustomError(beneficiaryRegistry, "ChannelNotVerified")
         .withArgs(channelId);
     });
 
     it("Should revert takeChannelControl when not channel owner", async function () {
       await mockVerifier.setValid(true);
-      await channelRegistry.verifyChannel(channelId, alice.address, nonce, deadline, proofHash, verifierSignature);
+      await beneficiaryRegistry.verifyChannel(channelId, alice.address, nonce, deadline, proofHash, verifierSignature);
 
-      await expect(channelRegistry.connect(bob).takeChannelControl(channelId))
-        .to.be.revertedWithCustomError(channelRegistry, "OnlyChannelOwnerCanTakeControl");
+      await expect(beneficiaryRegistry.connect(bob).takeChannelControl(channelId))
+        .to.be.revertedWithCustomError(beneficiaryRegistry, "OnlyChannelOwnerCanTakeControl");
     });
 
     it("Should revert takeChannelControl when already creator controlled", async function () {
       await mockVerifier.setValid(true);
-      await channelRegistry.verifyChannel(channelId, alice.address, nonce, deadline, proofHash, verifierSignature);
-      await channelRegistry.connect(alice).takeChannelControl(channelId);
+      await beneficiaryRegistry.verifyChannel(channelId, alice.address, nonce, deadline, proofHash, verifierSignature);
+      await beneficiaryRegistry.connect(alice).takeChannelControl(channelId);
 
-      await expect(channelRegistry.connect(alice).takeChannelControl(channelId))
-        .to.be.revertedWithCustomError(channelRegistry, "ChannelAlreadyCreatorControlled")
+      await expect(beneficiaryRegistry.connect(alice).takeChannelControl(channelId))
+        .to.be.revertedWithCustomError(beneficiaryRegistry, "ChannelAlreadyCreatorControlled")
         .withArgs(channelId);
     });
 
     it("Should update verifier (owner only)", async function () {
       const newVerifier = bob;
 
-      await expect(channelRegistry.connect(owner).setVerifier(await newVerifier.getAddress()))
-        .to.emit(channelRegistry, "VerifierUpdated")
+      await expect(beneficiaryRegistry.connect(owner).setVerifier(await newVerifier.getAddress()))
+        .to.emit(beneficiaryRegistry, "VerifierUpdated")
         .withArgs(await mockVerifier.getAddress(), await newVerifier.getAddress());
 
-      expect(await channelRegistry.verifier()).to.equal(await newVerifier.getAddress());
+      expect(await beneficiaryRegistry.verifier()).to.equal(await newVerifier.getAddress());
     });
 
     it("Should revert setVerifier from non-owner", async function () {
-      await expect(channelRegistry.connect(alice).setVerifier(await bob.getAddress()))
-        .to.be.revertedWithCustomError(channelRegistry, "OwnableUnauthorizedAccount");
+      await expect(beneficiaryRegistry.connect(alice).setVerifier(await bob.getAddress()))
+        .to.be.revertedWithCustomError(beneficiaryRegistry, "OwnableUnauthorizedAccount");
     });
 
     it("Should revert when setting invalid verifier address", async function () {
-      await expect(channelRegistry.setVerifier(ethers.ZeroAddress))
-        .to.be.revertedWithCustomError(channelRegistry, "InvalidVerifierAddress");
+      await expect(beneficiaryRegistry.setVerifier(ethers.ZeroAddress))
+        .to.be.revertedWithCustomError(beneficiaryRegistry, "InvalidVerifierAddress");
     });
 
     it("Should authorize multiple factory generations", async function () {
       const CreatorAssuranceContractFactory = await ethers.getContractFactory("CreatorAssuranceContractFactory");
       const newFactory = await CreatorAssuranceContractFactory.deploy(
         await contentRegistry.getAddress(),
-        await channelRegistry.getAddress(),
-        await channelEscrow.getAddress(),
+        await beneficiaryRegistry.getAddress(),
+        await beneficiaryEscrow.getAddress(),
         await erc1155Factory.getAddress(),
         await conditionFactory.getAddress(),
         await paymentToken.getAddress(),
         ":"
       );
 
-      await expect(channelRegistry.connect(owner).setFactoryAuthorization(await newFactory.getAddress(), true))
-        .to.emit(channelRegistry, "FactoryAuthorizationSet")
+      await expect(beneficiaryRegistry.connect(owner).setFactoryAuthorization(await newFactory.getAddress(), true))
+        .to.emit(beneficiaryRegistry, "FactoryAuthorizationSet")
         .withArgs(await newFactory.getAddress(), true);
 
-      expect(await channelRegistry.factoryCount()).to.equal(2);
-      expect(await channelRegistry.isAuthorizedFactory(await factory.getAddress())).to.equal(true);
-      expect(await channelRegistry.isAuthorizedFactory(await newFactory.getAddress())).to.equal(true);
+      expect(await beneficiaryRegistry.factoryCount()).to.equal(2);
+      expect(await beneficiaryRegistry.isAuthorizedFactory(await factory.getAddress())).to.equal(true);
+      expect(await beneficiaryRegistry.isAuthorizedFactory(await newFactory.getAddress())).to.equal(true);
 
-      await channelRegistry.connect(owner).setFactoryAuthorization(await newFactory.getAddress(), false);
-      expect(await channelRegistry.isAuthorizedFactory(await newFactory.getAddress())).to.equal(false);
+      await beneficiaryRegistry.connect(owner).setFactoryAuthorization(await newFactory.getAddress(), false);
+      expect(await beneficiaryRegistry.isAuthorizedFactory(await newFactory.getAddress())).to.equal(false);
     });
 
     it("Should revert setFactoryAuthorization from non-owner", async function () {
-      await expect(channelRegistry.connect(alice).setFactoryAuthorization(await bob.getAddress(), true))
-        .to.be.revertedWithCustomError(channelRegistry, "OwnableUnauthorizedAccount");
+      await expect(beneficiaryRegistry.connect(alice).setFactoryAuthorization(await bob.getAddress(), true))
+        .to.be.revertedWithCustomError(beneficiaryRegistry, "OwnableUnauthorizedAccount");
     });
 
     it("Should revert when setting invalid factory address", async function () {
-      await expect(channelRegistry.setFactoryAuthorization(ethers.ZeroAddress, true))
-        .to.be.revertedWithCustomError(channelRegistry, "InvalidFactoryAddress");
+      await expect(beneficiaryRegistry.setFactoryAuthorization(ethers.ZeroAddress, true))
+        .to.be.revertedWithCustomError(beneficiaryRegistry, "InvalidFactoryAddress");
     });
   });
 
-  describe("ChannelEscrow", function () {
+  describe("BeneficiaryEscrow", function () {
     let channelId;
 
     beforeEach(async function () {
@@ -466,22 +466,22 @@ describe("ContentFunding", function () {
       const depositAmount = ethers.parseEther("1.0");
 
       await expect(depositIntoEscrow(alice, channelId, depositAmount))
-        .to.emit(channelEscrow, "Deposited")
+        .to.emit(beneficiaryEscrow, "Deposited")
         .withArgs(channelId, await alice.getAddress(), depositAmount);
 
-      expect(await channelEscrow.balance(channelId)).to.equal(depositAmount);
+      expect(await beneficiaryEscrow.balance(channelId)).to.equal(depositAmount);
     });
 
     it("Should revert when depositing zero tokens", async function () {
-      await expect(channelEscrow.deposit(channelId, 0))
-        .to.be.revertedWithCustomError(channelEscrow, "MustSendTokens");
+      await expect(beneficiaryEscrow.deposit(channelId, 0))
+        .to.be.revertedWithCustomError(beneficiaryEscrow, "MustSendTokens");
     });
 
     it("Should withdraw settlement tokens successfully", async function () {
       const depositAmount = ethers.parseEther("2.0");
 
       await mockVerifier.setValid(true);
-      await channelRegistry.verifyChannel(
+      await beneficiaryRegistry.verifyChannel(
         channelId,
         bob.address,
         ethers.id("nonce-1"),
@@ -492,11 +492,11 @@ describe("ContentFunding", function () {
 
       await depositIntoEscrow(bob, channelId, depositAmount);
 
-      await expect(channelEscrow.connect(bob).withdraw(channelId))
-        .to.emit(channelEscrow, "Withdrawn")
+      await expect(beneficiaryEscrow.connect(bob).withdraw(channelId))
+        .to.emit(beneficiaryEscrow, "Withdrawn")
         .withArgs(channelId, await bob.getAddress(), depositAmount);
 
-      expect(await channelEscrow.balance(channelId)).to.equal(0);
+      expect(await beneficiaryEscrow.balance(channelId)).to.equal(0);
     });
 
     it("Should allow cumulative escrow withdrawal after multiple deposits for the same channel", async function () {
@@ -560,7 +560,7 @@ describe("ContentFunding", function () {
       );
 
       await mockVerifier.setValid(true);
-      await channelRegistry.verifyChannel(
+      await beneficiaryRegistry.verifyChannel(
         escrowedChannelId,
         alice.address,
         ethers.id("nonce-cumulative-success-gate"),
@@ -585,8 +585,8 @@ describe("ContentFunding", function () {
         "0x"
       );
 
-      await channelRegistry.connect(alice).takeChannelControl(escrowedChannelId);
-      const vetoWindowDuration = await channelRegistry.vetoWindowDuration();
+      await beneficiaryRegistry.connect(alice).takeChannelControl(escrowedChannelId);
+      const vetoWindowDuration = await beneficiaryRegistry.vetoWindowDuration();
       await ethers.provider.send("evm_increaseTime", [Number(vetoWindowDuration) + 1]);
       await ethers.provider.send("evm_mine");
 
@@ -594,25 +594,25 @@ describe("ContentFunding", function () {
       await secondContract.withdrawToEscrow();
 
       const totalEscrowBalance = (firstDepositAmount + secondDepositAmount) * 2n;
-      expect(await channelEscrow.balance(escrowedChannelId)).to.equal(totalEscrowBalance);
+      expect(await beneficiaryEscrow.balance(escrowedChannelId)).to.equal(totalEscrowBalance);
 
       await mockVerifier.setValid(true);
 
-      await expect(channelEscrow.connect(alice).withdraw(escrowedChannelId))
-        .to.emit(channelEscrow, "Withdrawn")
+      await expect(beneficiaryEscrow.connect(alice).withdraw(escrowedChannelId))
+        .to.emit(beneficiaryEscrow, "Withdrawn")
         .withArgs(escrowedChannelId, await alice.getAddress(), totalEscrowBalance);
 
-      expect(await channelEscrow.balance(escrowedChannelId)).to.equal(0);
+      expect(await beneficiaryEscrow.balance(escrowedChannelId)).to.equal(0);
     });
 
     it("Should revert withdraw when channel not verified", async function () {
-      await expect(channelEscrow.withdraw(channelId))
-        .to.be.revertedWithCustomError(channelEscrow, "ChannelNotVerified");
+      await expect(beneficiaryEscrow.withdraw(channelId))
+        .to.be.revertedWithCustomError(beneficiaryEscrow, "ChannelNotVerified");
     });
 
     it("Should revert withdraw when not channel owner", async function () {
       await mockVerifier.setValid(true);
-      await channelRegistry.verifyChannel(
+      await beneficiaryRegistry.verifyChannel(
         channelId,
         bob.address,
         ethers.id("nonce-1"),
@@ -623,13 +623,13 @@ describe("ContentFunding", function () {
 
       await depositIntoEscrow(bob, channelId, ethers.parseEther("1.0"));
 
-      await expect(channelEscrow.connect(alice).withdraw(channelId))
-        .to.be.revertedWithCustomError(channelEscrow, "OnlyChannelOwner");
+      await expect(beneficiaryEscrow.connect(alice).withdraw(channelId))
+        .to.be.revertedWithCustomError(beneficiaryEscrow, "OnlyChannelOwner");
     });
 
     it("Should revert withdraw when no balance", async function () {
       await mockVerifier.setValid(true);
-      await channelRegistry.verifyChannel(
+      await beneficiaryRegistry.verifyChannel(
         channelId,
         bob.address,
         ethers.id("nonce-1"),
@@ -638,15 +638,15 @@ describe("ContentFunding", function () {
         "0x"
       );
 
-      await expect(channelEscrow.connect(bob).withdraw(channelId))
-        .to.be.revertedWithCustomError(channelEscrow, "NoBalance");
+      await expect(beneficiaryEscrow.connect(bob).withdraw(channelId))
+        .to.be.revertedWithCustomError(beneficiaryEscrow, "NoBalance");
     });
 
     it("Should pay existing escrow to an owner-authorized replacement address", async function () {
       const depositAmount = ethers.parseEther("1.0");
       await depositIntoEscrow(owner, channelId, depositAmount);
       await mockVerifier.setValid(true);
-      await channelRegistry.verifyChannel(
+      await beneficiaryRegistry.verifyChannel(
         channelId,
         alice.address,
         ethers.id("nonce-owner-rotation"),
@@ -655,12 +655,12 @@ describe("ContentFunding", function () {
         "0x"
       );
 
-      await channelRegistry.connect(alice).rotateChannelOwner(channelId, bob.address);
+      await beneficiaryRegistry.connect(alice).rotateChannelOwner(channelId, bob.address);
 
-      await expect(channelEscrow.connect(alice).withdraw(channelId))
-        .to.be.revertedWithCustomError(channelEscrow, "OnlyChannelOwner");
-      await expect(channelEscrow.connect(bob).withdraw(channelId))
-        .to.emit(channelEscrow, "Withdrawn")
+      await expect(beneficiaryEscrow.connect(alice).withdraw(channelId))
+        .to.be.revertedWithCustomError(beneficiaryEscrow, "OnlyChannelOwner");
+      await expect(beneficiaryEscrow.connect(bob).withdraw(channelId))
+        .to.emit(beneficiaryEscrow, "Withdrawn")
         .withArgs(channelId, bob.address, depositAmount);
     });
   });
@@ -685,7 +685,7 @@ describe("ContentFunding", function () {
       erc1155ContractUri = "ipfs://QmERC1155Contract";
 
       await mockVerifier.setValid(true);
-      await channelRegistry.verifyChannel(
+      await beneficiaryRegistry.verifyChannel(
         channelId,
         owner.address,
         ethers.id("nonce-1"),
@@ -797,7 +797,7 @@ describe("ContentFunding", function () {
     });
 
     it("Should create creator contract successfully on CreatorControlled channel", async function () {
-      await channelRegistry.connect(owner).takeChannelControl(channelId);
+      await beneficiaryRegistry.connect(owner).takeChannelControl(channelId);
 
       const controlledContentSuffixes = ["2101", "2102"];
       const controlledContentIds = contentIdsFromSuffixes(channelCanonicalId, controlledContentSuffixes);
@@ -921,7 +921,7 @@ describe("ContentFunding", function () {
       expect(await factory.isThirdPartyCreated(contractAddress)).to.be.true;
       expect(await erc1155.balanceOf(owner.address, contentIds[0])).to.equal(1);
       expect(await createdContract.getAssuranceContractProgress()).to.equal(purchaseAmount);
-      expect(await channelEscrow.balance(channelId)).to.equal(0);
+      expect(await beneficiaryEscrow.balance(channelId)).to.equal(0);
     });
 
     it("Should create third-party contract on Unclaimed channel without upfront escrow deposit", async function () {
@@ -957,7 +957,7 @@ describe("ContentFunding", function () {
       const erc1155 = await ethers.getContractAt("PremintingERC1155", erc1155Address);
 
       // Creation fee now buys tokens instead of depositing to escrow.
-      expect(await channelEscrow.balance(unclaimedChannel)).to.equal(0);
+      expect(await beneficiaryEscrow.balance(unclaimedChannel)).to.equal(0);
       expect(await factory.isThirdPartyCreated(contractAddress)).to.be.true;
       expect(await erc1155.balanceOf(thirdParty.address, unclaimedContentIds[0])).to.equal(1);
 
@@ -994,7 +994,7 @@ describe("ContentFunding", function () {
       const createdContract = await ethers.getContractAt("CreatorAssuranceContract", contractAddress);
 
       await mockVerifier.setValid(true);
-      await channelRegistry.verifyChannel(
+      await beneficiaryRegistry.verifyChannel(
         unclaimedChannel,
         alice.address,
         ethers.id("nonce-unclaimed-success-gate"),
@@ -1011,14 +1011,14 @@ describe("ContentFunding", function () {
         "0x"
       );
 
-      await channelRegistry.connect(alice).takeChannelControl(unclaimedChannel);
-      const vetoWindowDuration = await channelRegistry.vetoWindowDuration();
+      await beneficiaryRegistry.connect(alice).takeChannelControl(unclaimedChannel);
+      const vetoWindowDuration = await beneficiaryRegistry.vetoWindowDuration();
       await ethers.provider.send("evm_increaseTime", [Number(vetoWindowDuration) + 1]);
       await ethers.provider.send("evm_mine");
 
       await createdContract.withdrawToEscrow();
 
-      expect(await channelEscrow.balance(unclaimedChannel)).to.equal(purchaseAmount * 2n);
+      expect(await beneficiaryEscrow.balance(unclaimedChannel)).to.equal(purchaseAmount * 2n);
     });
 
     it("Should revert withdrawToEscrow when contract recipient is not escrow", async function () {
@@ -1047,7 +1047,7 @@ describe("ContentFunding", function () {
     });
 
     it("Should revert third-party contract on CreatorControlled channel", async function () {
-      await channelRegistry.connect(owner).takeChannelControl(channelId);
+      await beneficiaryRegistry.connect(owner).takeChannelControl(channelId);
 
       await expect(createContentFundingContract({
         factory,
@@ -1160,7 +1160,7 @@ describe("ContentFunding", function () {
       const latestBlock = await ethers.provider.getBlock("latest");
       const deadline = latestBlock.timestamp + 86400;
 
-      await channelRegistry.verifyChannel(
+      await beneficiaryRegistry.verifyChannel(
         channelIdFromCanonical(channelCanonicalId),
         alice.address,
         ethers.id("nonce-threshold-test"),
@@ -1329,7 +1329,7 @@ describe("ContentFunding", function () {
     });
 
     it("Should authorize the deployed factory", async function () {
-      expect(await channelRegistry.isAuthorizedFactory(await factory.getAddress())).to.equal(true);
+      expect(await beneficiaryRegistry.isAuthorizedFactory(await factory.getAddress())).to.equal(true);
     });
   });
 
@@ -1344,7 +1344,7 @@ describe("ContentFunding", function () {
       contentIds = contentIdsFromSuffixes(channelCanonicalId, contentSuffixes);
 
       await mockVerifier.setValid(true);
-      await channelRegistry.verifyChannel(
+      await beneficiaryRegistry.verifyChannel(
         channelId,
         owner.address,
         ethers.id("nonce-1"),
@@ -1418,7 +1418,7 @@ describe("ContentFunding", function () {
       const deadline = latestBlock.timestamp + 86400;
 
       // Verify channel
-      await channelRegistry.verifyChannel(
+      await beneficiaryRegistry.verifyChannel(
         channelId,
         alice.address,
         ethers.id("nonce-veto-1"),
@@ -1472,10 +1472,10 @@ describe("ContentFunding", function () {
         .to.be.revertedWithCustomError(thirdPartyContract, "ConditionNotMet");
 
       // Creator takes channel control
-      await channelRegistry.connect(alice).takeChannelControl(channelId);
+      await beneficiaryRegistry.connect(alice).takeChannelControl(channelId);
 
       // Creator vetoes the third-party contract
-      await channelRegistry.connect(alice).vetoContract(thirdPartyContractAddr);
+      await beneficiaryRegistry.connect(alice).vetoContract(thirdPartyContractAddr);
 
       // Verify the condition is cancelled
       expect(await condition.isCancelled()).to.be.true;
@@ -1494,7 +1494,7 @@ describe("ContentFunding", function () {
       const latestBlock = await ethers.provider.getBlock("latest");
       const deadline = latestBlock.timestamp + 86400;
 
-      await channelRegistry.verifyChannel(
+      await beneficiaryRegistry.verifyChannel(
         channelId,
         alice.address,
         ethers.id("nonce-veto-expired"),
@@ -1527,14 +1527,14 @@ describe("ContentFunding", function () {
       const conditionAddress = await factory.contractCondition(thirdPartyContractAddr);
       const condition = await ethers.getContractAt("CancellableCondition", conditionAddress);
 
-      await channelRegistry.connect(alice).takeChannelControl(channelId);
+      await beneficiaryRegistry.connect(alice).takeChannelControl(channelId);
 
-      const vetoWindowDuration = await channelRegistry.vetoWindowDuration();
+      const vetoWindowDuration = await beneficiaryRegistry.vetoWindowDuration();
       await ethers.provider.send("evm_increaseTime", [Number(vetoWindowDuration) + 1]);
       await ethers.provider.send("evm_mine");
 
-      await expect(channelRegistry.connect(alice).vetoContract(thirdPartyContractAddr))
-        .to.be.revertedWithCustomError(channelRegistry, "VetoWindowExpired");
+      await expect(beneficiaryRegistry.connect(alice).vetoContract(thirdPartyContractAddr))
+        .to.be.revertedWithCustomError(beneficiaryRegistry, "VetoWindowExpired");
 
       expect(await condition.isCancelled()).to.be.false;
       expect(await contentRegistry.isRegistered(contentId)).to.be.true;
@@ -1549,7 +1549,7 @@ describe("ContentFunding", function () {
       const vetoedContentSuffix = "7301";
       const vetoedContentId = contentIdFromParts(channelCanonicalId, vetoedContentSuffix);
 
-      await channelRegistry.verifyChannel(
+      await beneficiaryRegistry.verifyChannel(
         channelId,
         alice.address,
         ethers.id("nonce-veto-r1"),
@@ -1580,8 +1580,8 @@ describe("ContentFunding", function () {
       const event = receipt.logs.find((log) => log.fragment?.name === "CreatorContractCreated");
       const thirdPartyContractAddr = event.args.contractAddress;
 
-      await channelRegistry.connect(alice).takeChannelControl(channelId);
-      await channelRegistry.connect(alice).vetoContract(thirdPartyContractAddr);
+      await beneficiaryRegistry.connect(alice).takeChannelControl(channelId);
+      await beneficiaryRegistry.connect(alice).vetoContract(thirdPartyContractAddr);
 
       expect(await contentRegistry.isRegistered(vetoedContentId)).to.be.false;
 
@@ -1609,7 +1609,7 @@ describe("ContentFunding", function () {
       const latestBlock = await ethers.provider.getBlock("latest");
       const deadline = latestBlock.timestamp + 86400;
 
-      await channelRegistry.verifyChannel(channelId, alice.address, ethers.id("nonce-v2"), deadline, proofHash, "0x");
+      await beneficiaryRegistry.verifyChannel(channelId, alice.address, ethers.id("nonce-v2"), deadline, proofHash, "0x");
 
       const tx = await createContentFundingContract({
         factory,
@@ -1632,10 +1632,10 @@ describe("ContentFunding", function () {
       const event = receipt.logs.find((log) => log.fragment?.name === "CreatorContractCreated");
       const addr = event.args.contractAddress;
 
-      await channelRegistry.connect(alice).takeChannelControl(channelId);
+      await beneficiaryRegistry.connect(alice).takeChannelControl(channelId);
 
-      await expect(channelRegistry.connect(bob).vetoContract(addr))
-        .to.be.revertedWithCustomError(channelRegistry, "OnlyChannelOwnerCanVeto");
+      await expect(beneficiaryRegistry.connect(bob).vetoContract(addr))
+        .to.be.revertedWithCustomError(beneficiaryRegistry, "OnlyChannelOwnerCanVeto");
     });
 
     it("Should revert veto on non-third-party contract", async function () {
@@ -1645,7 +1645,7 @@ describe("ContentFunding", function () {
       const latestBlock = await ethers.provider.getBlock("latest");
       const deadline = latestBlock.timestamp + 86400;
 
-      await channelRegistry.verifyChannel(channelId, alice.address, ethers.id("nonce-v3"), deadline, proofHash, "0x");
+      await beneficiaryRegistry.verifyChannel(channelId, alice.address, ethers.id("nonce-v3"), deadline, proofHash, "0x");
 
       // Creator creates their own contract (not third-party)
       const tx = await createContentFundingContract({
@@ -1666,10 +1666,10 @@ describe("ContentFunding", function () {
       const event = receipt.logs.find((log) => log.fragment?.name === "CreatorContractCreated");
       const addr = event.args.contractAddress;
 
-      await channelRegistry.connect(alice).takeChannelControl(channelId);
+      await beneficiaryRegistry.connect(alice).takeChannelControl(channelId);
 
-      await expect(channelRegistry.connect(alice).vetoContract(addr))
-        .to.be.revertedWithCustomError(channelRegistry, "ContractNotThirdParty");
+      await expect(beneficiaryRegistry.connect(alice).vetoContract(addr))
+        .to.be.revertedWithCustomError(beneficiaryRegistry, "ContractNotThirdParty");
     });
   });
 
@@ -1682,7 +1682,7 @@ describe("ContentFunding", function () {
       // Use a short deadline so we can make it fail after creation.
       const deadline = latestBlock.timestamp + 10;
 
-      await channelRegistry.verifyChannel(channelId, owner.address, ethers.id("nonce-r1"), deadline, proofHash, "0x");
+      await beneficiaryRegistry.verifyChannel(channelId, owner.address, ethers.id("nonce-r1"), deadline, proofHash, "0x");
 
       const releaseContentSuffixes = ["6001", "6002"];
       const releaseContentIds = contentIdsFromSuffixes(channelCanonicalId, releaseContentSuffixes);
@@ -1727,7 +1727,7 @@ describe("ContentFunding", function () {
       const latestBlock = await ethers.provider.getBlock("latest");
       const deadline = latestBlock.timestamp + 86400;
 
-      await channelRegistry.verifyChannel(channelId, owner.address, ethers.id("nonce-r2"), deadline, proofHash, "0x");
+      await beneficiaryRegistry.verifyChannel(channelId, owner.address, ethers.id("nonce-r2"), deadline, proofHash, "0x");
 
       const tx = await createContentFundingContract({
         factory,
@@ -1775,7 +1775,7 @@ describe("ContentFunding", function () {
     });
 
     it("Should complete full creator contract flow", async function () {
-      await channelRegistry.verifyChannel(
+      await beneficiaryRegistry.verifyChannel(
         channelId,
         owner.address,
         ethers.id("nonce-1"),
@@ -1809,7 +1809,7 @@ describe("ContentFunding", function () {
 
     it("Should handle third-party contract with veto flow", async function () {
       // Verify and take control of owner's channel
-      await channelRegistry.verifyChannel(
+      await beneficiaryRegistry.verifyChannel(
         channelId,
         owner.address,
         ethers.id("nonce-1"),
@@ -1817,12 +1817,12 @@ describe("ContentFunding", function () {
         proofHash,
         "0x"
       );
-      await channelRegistry.connect(owner).takeChannelControl(channelId);
+      await beneficiaryRegistry.connect(owner).takeChannelControl(channelId);
 
       // Create a third-party contract on a different verified channel
       const thirdPartyChannelCanonicalId = "twitter:uid:third-party-channel";
       const thirdPartyChannelId = channelIdFromCanonical(thirdPartyChannelCanonicalId);
-      await channelRegistry.verifyChannel(
+      await beneficiaryRegistry.verifyChannel(
         thirdPartyChannelId,
         charlie.address,
         ethers.id("nonce-2"),
@@ -1854,12 +1854,12 @@ describe("ContentFunding", function () {
       const event = receipt.logs.find((log) => log.fragment?.name === "CreatorContractCreated");
       const thirdPartyContract = event.args.contractAddress;
 
-      expect(await channelEscrow.balance(thirdPartyChannelId)).to.equal(0);
+      expect(await beneficiaryEscrow.balance(thirdPartyChannelId)).to.equal(0);
       expect(await factory.isThirdPartyCreated(thirdPartyContract)).to.be.true;
 
       // Charlie takes control and vetoes
-      await channelRegistry.connect(charlie).takeChannelControl(thirdPartyChannelId);
-      await channelRegistry.connect(charlie).vetoContract(thirdPartyContract);
+      await beneficiaryRegistry.connect(charlie).takeChannelControl(thirdPartyChannelId);
+      await beneficiaryRegistry.connect(charlie).vetoContract(thirdPartyContract);
 
       // Verify the condition is cancelled
       const conditionAddr = await factory.contractCondition(thirdPartyContract);
