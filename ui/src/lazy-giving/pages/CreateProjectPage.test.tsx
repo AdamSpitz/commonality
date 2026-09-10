@@ -2,6 +2,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { CreateProjectPage } from './CreateProjectPage'
+import { hashBeneficiaryId } from '@commonality/sdk/content-funding'
 
 const mockNavigate = vi.fn()
 
@@ -123,6 +124,17 @@ describe('CreateProjectPage', () => {
       expect(screen.getByLabelText(/send to my account/i)).toBeInTheDocument()
       expect(screen.getByLabelText(/pick from a saved contact/i)).toBeInTheDocument()
       expect(screen.getByLabelText(/enter an ethereum address/i)).toBeInTheDocument()
+    })
+
+    it('offers an unaffiliated website beneficiary mode', async () => {
+      render(<CreateProjectPage />)
+      const user = userEvent.setup()
+
+      await user.click(screen.getByLabelText(/controller of a website/i))
+
+      expect(screen.getByLabelText(/beneficiary website/i)).toBeInTheDocument()
+      expect(screen.getByText(/not affiliated with the website/i)).toBeInTheDocument()
+      expect(screen.queryByLabelText(/send to my account/i)).not.toBeInTheDocument()
     })
 
     it('displays initial donation option row with a $1 default', () => {
@@ -272,6 +284,23 @@ describe('CreateProjectPage', () => {
       expect(screen.getByText(/updates link must be an http\(s\) url/i)).toBeInTheDocument()
       expect(mockDocumentStorePublish).not.toHaveBeenCalled()
     })
+
+    it('rejects a website path instead of silently changing the beneficiary', async () => {
+      render(<CreateProjectPage />)
+      const user = userEvent.setup()
+
+      setFieldValue(/project name/i, 'Test Project')
+      setFieldValue(/funding goal/i, '10')
+      setFieldValue(/deadline/i, futureDeadlineValue())
+      setFieldValue(/supply/i, '100')
+      await user.click(screen.getByLabelText(/controller of a website/i))
+      setFieldValue(/beneficiary website/i, 'https://example.org/about')
+
+      await user.click(screen.getByRole('button', { name: /create project/i }))
+
+      expect(screen.getByText(/invalid beneficiary domain/i)).toBeInTheDocument()
+      expect(mockDocumentStorePublish).not.toHaveBeenCalled()
+    })
   })
 
   describe('Successful submission', () => {
@@ -347,6 +376,43 @@ describe('CreateProjectPage', () => {
         }))
         expect(createProject).toHaveBeenCalled()
       })
+    })
+
+    it('creates for the canonical website beneficiary instead of a wallet', async () => {
+      vi.mocked(createProject).mockResolvedValue({
+        hash: '0xhash',
+        projectDetails: {
+          tokenAddress: '0xtoken',
+          marketplaceAddress: '0xmarket',
+          assuranceContractAddress: '0xassurance',
+        },
+      } as any)
+
+      render(<CreateProjectPage />)
+      const user = userEvent.setup()
+      fillForm()
+      await user.click(screen.getByLabelText(/controller of a website/i))
+      setFieldValue(/beneficiary website/i, 'https://www.Example.org/')
+
+      await submitAndConfirm(user)
+
+      await waitFor(() => expect(createProject).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.anything(),
+        expect.objectContaining({
+          beneficiaryId: hashBeneficiaryId('dns', 'example.org'),
+        }),
+      ))
+      expect(createProject).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.anything(),
+        expect.not.objectContaining({ recipient: expect.anything() }),
+      )
+      expect(mockDocumentStorePublish).toHaveBeenCalledWith(expect.objectContaining({
+        extras: expect.objectContaining({
+          beneficiary: { namespace: 'dns', canonicalIdentifier: 'example.org' },
+        }),
+      }))
     })
 
     it('shows success message and View Project button after creation', async () => {

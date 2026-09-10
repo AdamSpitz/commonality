@@ -6,6 +6,7 @@ import {
   buildCanonicalContentId,
   hashCanonicalId,
   hashBeneficiaryId,
+  normalizeDnsBeneficiary,
   parseCanonicalChannelId,
   parseContentFundingUrl,
   parseSubstackPostUrl,
@@ -117,6 +118,15 @@ describe('content-funding canonicalization', () => {
   });
 
   describe('canonical IDs', () => {
+    it('normalizes only apex HTTPS website beneficiaries', () => {
+      assert.strictEqual(normalizeDnsBeneficiary('Example.ORG'), 'example.org');
+      assert.strictEqual(normalizeDnsBeneficiary('https://www.example.org/'), 'example.org');
+      assert.throws(() => normalizeDnsBeneficiary('https://projects.example.org'));
+      assert.throws(() => normalizeDnsBeneficiary('https://example.org/project'));
+      assert.throws(() => normalizeDnsBeneficiary('http://example.org'));
+      assert.throws(() => normalizeDnsBeneficiary('org'));
+    });
+
     it('builds and hashes generic claimable-beneficiary IDs', () => {
       assert.strictEqual(buildCanonicalBeneficiaryId('DNS', 'example.org'), 'dns:example.org');
       assert.strictEqual(

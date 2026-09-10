@@ -1869,3 +1869,14 @@ exercise the full claim/fund/withdraw flow.
   `beneficiaryId` and selects the matching factory entrypoint.
 - Added a contract test covering create, fund, successful escrow deposit, later claim,
   and beneficiary withdrawal. The browser beneficiary picker remains next.
+
+## 2026-09-10 — LazyGiving website beneficiary creation UI
+
+- Added wallet-versus-website payout modes to the LazyGiving project form. Website
+  projects accept only an apex HTTPS identity, normalize `www`, visibly disclose the
+  not-affiliated/claim-later escrow behavior, and call the beneficiary factory path.
+- Published project metadata now records the canonical `dns` beneficiary identity.
+- Moved DNS beneficiary input normalization into the SDK and reused it in the platform
+  verifier, preventing the create and claim paths from accepting different identities.
+- Focused SDK canonicalization and UI creation tests pass. The full UI build and
+  pre-commit suite remain to run with the commit.

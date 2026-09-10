@@ -1,4 +1,5 @@
 import { keccak256, stringToBytes, type Hex } from 'viem';
+import { getDomain } from 'tldts';
 
 /** Supported content platforms for the content-funding subsystem. */
 export type ContentFundingPlatform = 'twitter' | 'youtube' | 'substack';
@@ -338,6 +339,37 @@ export function buildCanonicalBeneficiaryId(
 /** Hash a namespaced canonical beneficiary identifier for on-chain storage. */
 export function hashBeneficiaryId(namespace: string, canonicalIdentifier: string): Hex {
   return hashCanonicalId(buildCanonicalBeneficiaryId(namespace, canonicalIdentifier));
+}
+
+/**
+ * Normalize the website identity accepted by the DNS beneficiary verifier.
+ * Apex domains and their `www` spelling identify the same beneficiary; paths,
+ * subdomains, public suffixes, and non-HTTPS URLs are deliberately rejected.
+ */
+export function normalizeDnsBeneficiary(input: string): string {
+  const trimmed = input.trim();
+  let hostname: string;
+  try {
+    const url = new URL(trimmed.includes('://') ? trimmed : `https://${trimmed}`);
+    if (url.protocol !== 'https:' || url.username || url.password || url.port || url.search || url.hash || (url.pathname !== '/' && url.pathname !== '')) {
+      throw new Error('invalid domain URL');
+    }
+    hostname = url.hostname.replace(/^www\./i, '').replace(/\.$/, '').toLowerCase();
+  } catch {
+    throw new ContentFundingCanonicalizationError(
+      'invalid_channel_id',
+      `Invalid beneficiary domain: ${input}`,
+    );
+  }
+
+  const registrableDomain = getDomain(hostname, { allowPrivateDomains: false });
+  if (!registrableDomain || registrableDomain !== hostname) {
+    throw new ContentFundingCanonicalizationError(
+      'invalid_channel_id',
+      `Beneficiary must be a registrable domain: ${input}`,
+    );
+  }
+  return registrableDomain;
 }
 
 /**

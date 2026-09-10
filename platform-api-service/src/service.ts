@@ -1,5 +1,5 @@
 import { randomBytes } from 'crypto';
-import { buildCanonicalBeneficiaryId, buildCanonicalChannelId, buildCanonicalContentId, hashCanonicalId, parseContentFundingUrl, type ParsedContentFundingUrl } from '@commonality/sdk/content-funding';
+import { buildCanonicalBeneficiaryId, buildCanonicalChannelId, buildCanonicalContentId, hashCanonicalId, normalizeDnsBeneficiary as normalizeDnsBeneficiaryInput, parseContentFundingUrl, type ParsedContentFundingUrl } from '@commonality/sdk/content-funding';
 import type { IpfsCidV1 } from '@commonality/sdk/utils';
 import { getDomain } from 'tldts';
 import {
@@ -806,23 +806,15 @@ function resolveDnsBeneficiary(input: string): ResolvedChannel {
 }
 
 function normalizeDnsBeneficiary(input: string): string {
-  const trimmed = input.trim();
-  let hostname: string;
   try {
-    const url = new URL(trimmed.includes('://') ? trimmed : `https://${trimmed}`);
-    if (url.protocol !== 'https:' || url.username || url.password || url.port || url.search || url.hash || (url.pathname !== '/' && url.pathname !== '')) {
-      throw new Error('invalid domain URL');
-    }
-    hostname = url.hostname.replace(/^www\./i, '').replace(/\.$/, '').toLowerCase();
-  } catch {
-    throw new HttpError(400, 'invalid_request', `Invalid beneficiary domain: ${input}`);
+    return normalizeDnsBeneficiaryInput(input);
+  } catch (cause) {
+    throw new HttpError(
+      400,
+      'invalid_request',
+      cause instanceof Error ? cause.message : `Invalid beneficiary domain: ${input}`,
+    );
   }
-
-  const registrableDomain = getDomain(hostname, { allowPrivateDomains: false });
-  if (!registrableDomain || registrableDomain !== hostname) {
-    throw new HttpError(400, 'invalid_request', `Beneficiary must be a registrable domain: ${input}`);
-  }
-  return registrableDomain;
 }
 
 function resolveSubstackPublication(handle: string): ResolvedChannel {
