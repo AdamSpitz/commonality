@@ -64,8 +64,8 @@ What a compromised key could actually do onchain:
 - **Permissionless (no owner powers at all):** Beliefs, Implications,
   alignment-attestations, nudger, subjectiv, marketplace contracts.
 - **No direct drain anywhere.** `AssuranceContract.withdraw()` pays only the
-  designated recipient; `ChannelEscrow.withdraw()` pays only the verified
-  channel owner (`ChannelEscrow.sol:102`). No `selfdestruct`, no
+  designated recipient; `BeneficiaryEscrow.withdraw()` pays only the verified
+  payout address. No `selfdestruct`, no
   upgradeability, no pause.
 - **One indirect drain path:** the deployer owns `BeneficiaryVerifier`, and
   `setTrustedVerifier()` (`BeneficiaryVerifier.sol:55`) is `onlyOwner`. A

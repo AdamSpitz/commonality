@@ -417,35 +417,35 @@ describe("ContentFunding", function () {
       await mockVerifier.setValid(true);
       await beneficiaryRegistry.verifyBeneficiary(channelId, alice.address, nonce, deadline, proofHash, verifierSignature);
 
-      await expect(beneficiaryRegistry.connect(alice).takeChannelControl(channelId))
-        .to.emit(beneficiaryRegistry, "ChannelControlTaken")
+      await expect(beneficiaryRegistry.connect(alice).takeBeneficiaryControl(channelId))
+        .to.emit(beneficiaryRegistry, "BeneficiaryControlTaken")
         .withArgs(channelId, alice.address);
 
       expect(await beneficiaryRegistry.isCreatorControlled(channelId)).to.be.true;
       expect(await beneficiaryRegistry.channelState(channelId)).to.equal(2);
     });
 
-    it("Should revert takeChannelControl when channel not verified", async function () {
-      await expect(beneficiaryRegistry.connect(alice).takeChannelControl(channelId))
+    it("Should revert takeBeneficiaryControl when channel not verified", async function () {
+      await expect(beneficiaryRegistry.connect(alice).takeBeneficiaryControl(channelId))
         .to.be.revertedWithCustomError(beneficiaryRegistry, "BeneficiaryNotVerified")
         .withArgs(channelId);
     });
 
-    it("Should revert takeChannelControl when not channel owner", async function () {
+    it("Should revert takeBeneficiaryControl when not channel owner", async function () {
       await mockVerifier.setValid(true);
       await beneficiaryRegistry.verifyBeneficiary(channelId, alice.address, nonce, deadline, proofHash, verifierSignature);
 
-      await expect(beneficiaryRegistry.connect(bob).takeChannelControl(channelId))
-        .to.be.revertedWithCustomError(beneficiaryRegistry, "OnlyChannelOwnerCanTakeControl");
+      await expect(beneficiaryRegistry.connect(bob).takeBeneficiaryControl(channelId))
+        .to.be.revertedWithCustomError(beneficiaryRegistry, "OnlyPayoutAddressCanTakeControl");
     });
 
-    it("Should revert takeChannelControl when already creator controlled", async function () {
+    it("Should revert takeBeneficiaryControl when already creator controlled", async function () {
       await mockVerifier.setValid(true);
       await beneficiaryRegistry.verifyBeneficiary(channelId, alice.address, nonce, deadline, proofHash, verifierSignature);
-      await beneficiaryRegistry.connect(alice).takeChannelControl(channelId);
+      await beneficiaryRegistry.connect(alice).takeBeneficiaryControl(channelId);
 
-      await expect(beneficiaryRegistry.connect(alice).takeChannelControl(channelId))
-        .to.be.revertedWithCustomError(beneficiaryRegistry, "ChannelAlreadyCreatorControlled")
+      await expect(beneficiaryRegistry.connect(alice).takeBeneficiaryControl(channelId))
+        .to.be.revertedWithCustomError(beneficiaryRegistry, "BeneficiaryAlreadyControlled")
         .withArgs(channelId);
     });
 
@@ -601,7 +601,7 @@ describe("ContentFunding", function () {
         "0x"
       );
 
-      await beneficiaryRegistry.connect(alice).takeChannelControl(escrowedChannelId);
+      await beneficiaryRegistry.connect(alice).takeBeneficiaryControl(escrowedChannelId);
       const vetoWindowDuration = await contentVeto.vetoWindowDuration();
       await ethers.provider.send("evm_increaseTime", [Number(vetoWindowDuration) + 1]);
       await ethers.provider.send("evm_mine");
@@ -813,7 +813,7 @@ describe("ContentFunding", function () {
     });
 
     it("Should create creator contract successfully on CreatorControlled channel", async function () {
-      await beneficiaryRegistry.connect(owner).takeChannelControl(channelId);
+      await beneficiaryRegistry.connect(owner).takeBeneficiaryControl(channelId);
 
       const controlledContentSuffixes = ["2101", "2102"];
       const controlledContentIds = contentIdsFromSuffixes(channelCanonicalId, controlledContentSuffixes);
@@ -1027,7 +1027,7 @@ describe("ContentFunding", function () {
         "0x"
       );
 
-      await beneficiaryRegistry.connect(alice).takeChannelControl(unclaimedChannel);
+      await beneficiaryRegistry.connect(alice).takeBeneficiaryControl(unclaimedChannel);
       const vetoWindowDuration = await contentVeto.vetoWindowDuration();
       await ethers.provider.send("evm_increaseTime", [Number(vetoWindowDuration) + 1]);
       await ethers.provider.send("evm_mine");
@@ -1063,7 +1063,7 @@ describe("ContentFunding", function () {
     });
 
     it("Should revert third-party contract on CreatorControlled channel", async function () {
-      await beneficiaryRegistry.connect(owner).takeChannelControl(channelId);
+      await beneficiaryRegistry.connect(owner).takeBeneficiaryControl(channelId);
 
       await expect(createContentFundingContract({
         factory,
@@ -1489,7 +1489,7 @@ describe("ContentFunding", function () {
         .to.be.revertedWithCustomError(thirdPartyContract, "ConditionNotMet");
 
       // Creator takes channel control
-      await beneficiaryRegistry.connect(alice).takeChannelControl(channelId);
+      await beneficiaryRegistry.connect(alice).takeBeneficiaryControl(channelId);
 
       // Creator vetoes the third-party contract
       await contentVeto.connect(alice).vetoContract(thirdPartyContractAddr);
@@ -1544,7 +1544,7 @@ describe("ContentFunding", function () {
       const conditionAddress = await factory.contractCondition(thirdPartyContractAddr);
       const condition = await ethers.getContractAt("CancellableCondition", conditionAddress);
 
-      await beneficiaryRegistry.connect(alice).takeChannelControl(channelId);
+      await beneficiaryRegistry.connect(alice).takeBeneficiaryControl(channelId);
 
       const vetoWindowDuration = await contentVeto.vetoWindowDuration();
       await ethers.provider.send("evm_increaseTime", [Number(vetoWindowDuration) + 1]);
@@ -1597,7 +1597,7 @@ describe("ContentFunding", function () {
       const event = receipt.logs.find((log) => log.fragment?.name === "CreatorContractCreated");
       const thirdPartyContractAddr = event.args.contractAddress;
 
-      await beneficiaryRegistry.connect(alice).takeChannelControl(channelId);
+      await beneficiaryRegistry.connect(alice).takeBeneficiaryControl(channelId);
       await contentVeto.connect(alice).vetoContract(thirdPartyContractAddr);
 
       expect(await contentRegistry.isRegistered(vetoedContentId)).to.be.false;
@@ -1649,7 +1649,7 @@ describe("ContentFunding", function () {
       const event = receipt.logs.find((log) => log.fragment?.name === "CreatorContractCreated");
       const addr = event.args.contractAddress;
 
-      await beneficiaryRegistry.connect(alice).takeChannelControl(channelId);
+      await beneficiaryRegistry.connect(alice).takeBeneficiaryControl(channelId);
 
       await expect(contentVeto.connect(bob).vetoContract(addr))
         .to.be.revertedWithCustomError(contentVeto, "OnlyChannelOwnerCanVeto");
@@ -1683,7 +1683,7 @@ describe("ContentFunding", function () {
       const event = receipt.logs.find((log) => log.fragment?.name === "CreatorContractCreated");
       const addr = event.args.contractAddress;
 
-      await beneficiaryRegistry.connect(alice).takeChannelControl(channelId);
+      await beneficiaryRegistry.connect(alice).takeBeneficiaryControl(channelId);
 
       await expect(contentVeto.connect(alice).vetoContract(addr))
         .to.be.revertedWithCustomError(contentVeto, "ContractNotThirdParty");
@@ -1834,7 +1834,7 @@ describe("ContentFunding", function () {
         proofHash,
         "0x"
       );
-      await beneficiaryRegistry.connect(owner).takeChannelControl(channelId);
+      await beneficiaryRegistry.connect(owner).takeBeneficiaryControl(channelId);
 
       // Create a third-party contract on a different verified channel
       const thirdPartyChannelCanonicalId = "twitter:uid:third-party-channel";
@@ -1875,7 +1875,7 @@ describe("ContentFunding", function () {
       expect(await factory.isThirdPartyCreated(thirdPartyContract)).to.be.true;
 
       // Charlie takes control and vetoes
-      await beneficiaryRegistry.connect(charlie).takeChannelControl(thirdPartyChannelId);
+      await beneficiaryRegistry.connect(charlie).takeBeneficiaryControl(thirdPartyChannelId);
       await contentVeto.connect(charlie).vetoContract(thirdPartyContract);
 
       // Verify the condition is cancelled

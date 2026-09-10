@@ -25,9 +25,9 @@ A subsystem for retroactively funding individual pieces of content via creator-l
 
 ## Per-platform deployment
 
-The four new smart contracts — ContentRegistry, ChannelRegistry, ChannelEscrow, and CreatorAssuranceContractFactory — are deployed as a **set per platform**. Twitter gets one set, YouTube gets another, Substack gets another.
+Identity and escrow are now shared: one `BeneficiaryRegistry` + `BeneficiaryEscrow` for all namespaces (`x`, `youtube`, `substack`, `dns`). Content occupancy stays per-platform (`ContentRegistry` + `CreatorAssuranceContractFactory` + `CreatorAssuranceVeto`). Twitter, YouTube, and Substack each still get their own content registry/factory pair.
 
-**Open question: do we need four separate contracts?** The ChannelRegistry and ChannelEscrow are tightly coupled (escrow reads from the registry on every withdrawal; veto lives on the registry but affects contracts created by the factory). A two-contract split — ChannelRegistry+Escrow and ContentRegistry+Factory — would reduce deployment surface, eliminate cross-contract calls, and simplify the UI config. The four-contract version works fine; whether to consolidate is worth revisiting during implementation when the right boundaries become obvious.
+**Open question (mostly settled):** registry+escrow wanted to be shared so LazyGiving can pay `dns:example.org` without a second escrow; content uniqueness still wants per-platform registries. See [claimable-beneficiaries.md](../claimable-beneficiaries.md).
 
 This keeps the system open: anyone can deploy a new set of contracts for a new platform (Bluesky, Mastodon, whatever) without needing permission or coordination. The contracts themselves don't privilege any particular platform — the question of "which platform deployments are the legitimate ones" is pushed upward into **UI configuration**.
 
@@ -35,7 +35,7 @@ The UI maintains a list of known platform contract sets. Assurance contracts cre
 
 ### Why per-platform
 
-1. **Channel verification is platform-specific.** Twitter uses tweet-based proof, YouTube might use video descriptions, Bluesky could use DID-based proof. Separate ChannelRegistry contracts per platform keep verification logic clean.
+1. **Channel verification is platform-specific.** Twitter uses tweet-based proof, YouTube might use video descriptions, Bluesky could use DID-based proof. Verifiers stay per-namespace; the shared registry dispatches `namespace → verifier`. Content uniqueness still wants a per-platform `ContentRegistry`.
 
 2. **Independent namespace governance.** If the ContentRegistry were shared across platforms, the first person to deploy Bluesky contracts would start claiming content IDs in that namespace, blocking anyone else's competing Bluesky deployment. Per-platform registries mean competing deployments each have their own content-item space — the UI decides which to trust.
 

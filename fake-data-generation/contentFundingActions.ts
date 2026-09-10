@@ -245,7 +245,7 @@ async function verifyBeneficiary(
 }
 
 /** Take creator control of a verified channel. */
-async function takeChannelControl(
+async function takeBeneficiaryControl(
   clients: ReturnType<typeof createClients>,
   registryAddress: `0x${string}`,
   channelCanonicalId: string,
@@ -254,7 +254,7 @@ async function takeChannelControl(
   const hash = await clients.walletClient.writeContract({
     address: registryAddress,
     abi: BeneficiaryRegistryAbi,
-    functionName: 'takeChannelControl',
+    functionName: 'takeBeneficiaryControl',
     args: [chId],
     chain: hardhat,
     account: clients.walletClient.account!,
@@ -657,7 +657,7 @@ export async function generateContentFundingScenarios(
   //
   //   Note: third-party contracts may only be created on Unclaimed or Verified
   //   channels, not on CreatorControlled ones — so the fan must act before the
-  //   creator calls takeChannelControl().
+  //   creator calls takeBeneficiaryControl().
   // -------------------------------------------------------------------------
   console.log('--- Scenario 3: Creator-controlled Substack channel ---');
   {
@@ -727,7 +727,7 @@ export async function generateContentFundingScenarios(
 
     // Step 4: Creator takes control — starts the 7-day veto window for the
     // third-party contract created above.
-    await takeChannelControl(creatorClients, beneficiaryRegistry, channelCanonicalId);
+    await takeBeneficiaryControl(creatorClients, beneficiaryRegistry, channelCanonicalId);
 
     console.log(`  Channel ${channelCanonicalId}: creator-controlled, 1 creator + 1 vetoable third-party contract.\n`);
   }
@@ -768,7 +768,7 @@ export async function generateChristianContentScenario(
   console.log('\n--- Christianity: Common Table essay fund ---');
   try {
     await verifyBeneficiary(creator, addresses.beneficiaryRegistry, addresses.beneficiaryVerifier, COMMON_TABLE_CHANNEL);
-    await takeChannelControl(creator, addresses.beneficiaryRegistry, COMMON_TABLE_CHANNEL);
+    await takeBeneficiaryControl(creator, addresses.beneficiaryRegistry, COMMON_TABLE_CHANNEL);
   } catch (error) {
     console.warn('  Common Table channel already verified (or verify failed):', error instanceof Error ? error.message : error);
   }

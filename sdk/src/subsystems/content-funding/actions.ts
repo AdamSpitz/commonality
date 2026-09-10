@@ -371,27 +371,27 @@ export async function withdrawFromEscrow(
 }
 
 /**
- * Take control of a verified channel.
+ * Take identity control of a verified beneficiary.
  *
- * After a channel is verified, the verified owner can "take control" to
- * enable the veto window — a period during which they can veto any
- * third-party contracts created for their channel.
+ * After a beneficiary is verified, the verified payout address can take
+ * control so new projects about that identity may be restricted. Content
+ * factories may start a veto window from that timestamp.
  *
  * @param clients - Wallet and public clients for blockchain interaction
  * @param registryContract - The BeneficiaryRegistry contract instance
- * @param channelId - Bytes32 channel ID to take control of
+ * @param beneficiaryId - Bytes32 beneficiary ID to take control of
  * @returns Transaction hash
  */
-export async function takeChannelControl(
+export async function takeBeneficiaryControl(
   clients: WriteClients,
   registryContract: { address: Address; abi: Abi },
-  channelId: string,
+  beneficiaryId: string,
 ): Promise<{ hash: Hash }> {
   const hash = await clients.walletClient.writeContract({
     address: registryContract.address,
     abi: registryContract.abi,
-    functionName: 'takeChannelControl',
-    args: [channelId as `0x${string}`],
+    functionName: 'takeBeneficiaryControl',
+    args: [beneficiaryId as `0x${string}`],
     chain: clients.walletClient.chain,
     account: clients.walletClient.account!,
   });

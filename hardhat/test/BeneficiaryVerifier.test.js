@@ -328,8 +328,8 @@ describe("BeneficiaryVerifier", function () {
       await beneficiaryRegistry.connect(guardian).revokeVerifier();
 
       // Fails closed for new claims, but the existing owner keeps every downstream power.
-      await expect(beneficiaryRegistry.connect(alice).takeChannelControl(channelId))
-        .to.emit(beneficiaryRegistry, "ChannelControlTaken")
+      await expect(beneficiaryRegistry.connect(alice).takeBeneficiaryControl(channelId))
+        .to.emit(beneficiaryRegistry, "BeneficiaryControlTaken")
         .withArgs(channelId, alice.address);
       expect(await beneficiaryRegistry.payoutAddress(channelId)).to.equal(alice.address);
       expect(await beneficiaryRegistry.isCreatorControlled(channelId)).to.be.true;

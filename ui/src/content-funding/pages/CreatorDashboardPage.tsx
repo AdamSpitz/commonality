@@ -21,7 +21,7 @@ import { CHANNEL_STATE_TOOLTIPS, CONTRACT_STATUS_TOOLTIPS } from '../chipTooltip
 import { getVetoableContracts, hashCanonicalId, type ChannelWithCanonicalId, type ChannelState } from '@commonality/sdk/content-funding'
 import { ETH_CURRENCY, type Currency } from '@commonality/sdk/utils'
 import { BeneficiaryRegistryAbi, BeneficiaryEscrowAbi, CreatorAssuranceVetoAbi } from '@commonality/sdk/abis'
-import { withdrawFromEscrow, takeChannelControl, vetoContract } from '@commonality/sdk/content-funding'
+import { withdrawFromEscrow, takeBeneficiaryControl, vetoContract } from '@commonality/sdk/content-funding'
 import { getChannelDisplayLabels, type ChannelDisplayMetadata } from '../channelDisplay'
 import { useContentFundingState } from '../hooks/useContentFundingState'
 import { useWriteClients } from '../../shared'
@@ -331,7 +331,7 @@ export function CreatorDashboardPage({
         abi: BeneficiaryRegistryAbi,
       }
 
-      await takeChannelControl(clients, registryContract, hashCanonicalId(channel.canonicalChannelId))
+      await takeBeneficiaryControl(clients, registryContract, hashCanonicalId(channel.canonicalChannelId))
       window.location.reload()
     } catch (err) {
       setTakeControlError(err instanceof Error ? err.message : 'Failed to take control')

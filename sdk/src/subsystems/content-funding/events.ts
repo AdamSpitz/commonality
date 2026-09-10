@@ -18,9 +18,9 @@ export interface BeneficiaryVerifiedEvent extends RawEvent {
   payoutAddress: `0x${string}`;
 }
 
-export interface ChannelControlTakenEvent extends RawEvent {
-  type: 'ChannelControlTaken';
-  channelId: string;
+export interface BeneficiaryControlTakenEvent extends RawEvent {
+  type: 'BeneficiaryControlTaken';
+  beneficiaryId: string;
   owner: `0x${string}`;
 }
 
@@ -76,7 +76,7 @@ export type ContentFundingEvent =
   | ContentItemRegisteredEvent
   | ContentItemReleasedEvent
   | BeneficiaryVerifiedEvent
-  | ChannelControlTakenEvent
+  | BeneficiaryControlTakenEvent
   | ContractVetoedEvent
   | DepositedEvent
   | WithdrawnEvent
@@ -90,7 +90,7 @@ export type ContentFundingEventNames =
   | 'ContentItemRegistered'
   | 'ContentItemReleased'
   | 'BeneficiaryVerified'
-  | 'ChannelControlTaken'
+  | 'BeneficiaryControlTaken'
   | 'ContractVetoed'
   | 'Deposited'
   | 'Withdrawn'

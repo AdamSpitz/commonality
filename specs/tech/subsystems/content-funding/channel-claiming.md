@@ -148,7 +148,7 @@ The channel registry contract delegates all verification to an `IChannelVerifier
 Taking channel control (state 2 → state 3) is a separate on-chain call that only the verified address can make:
 
 ```solidity
-function takeChannelControl(string calldata channelId) external;
+function takeBeneficiaryControl(bytes32 beneficiaryId) external;
 ```
 
 This is a simple authorization check — only the address registered as the channel's verified owner can call it.

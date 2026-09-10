@@ -1925,3 +1925,19 @@ Still needed: DNS TXT alternate proof; docs that still say ChannelRegistry.
 
 Still needed: remaining Channel* copy in older specs; identity-control
 function still named `takeChannelControl`.
+
+## 2026-09-10 — Beneficiary-native identity control
+
+- Renamed `takeChannelControl` / `ChannelControlTaken` to
+  `takeBeneficiaryControl` / `BeneficiaryControlTaken` on the shared registry,
+  SDK, indexer event cache, seed, and claim UI.
+- Matching errors: `BeneficiaryAlreadyControlled`,
+  `OnlyPayoutAddressCanTakeControl`.
+- Swept live-contract names in content-funding / versioning / multi-chain /
+  crypto-native / platform-API specs so they say BeneficiaryRegistry/Escrow
+  instead of ChannelRegistry/Escrow. Historical scale-launch reports left as
+  snapshots.
+
+Still needed: leftover ChannelState / channelState / isCreatorControlled
+language on the registry; content-funding fold still talks about "channels"
+for tweet occupancy (that's fine); Channel* types in platform-api TS.

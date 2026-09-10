@@ -2,7 +2,7 @@ import type {
   ContentItemRegisteredEvent,
   ContentItemReleasedEvent,
   BeneficiaryVerifiedEvent,
-  ChannelControlTakenEvent,
+  BeneficiaryControlTakenEvent,
   ContractVetoedEvent,
   DepositedEvent,
   WithdrawnEvent,
@@ -16,7 +16,7 @@ import {
   decodeContentItemRegisteredEvent,
   decodeContentItemReleasedEvent,
   decodeBeneficiaryVerifiedEvent,
-  decodeChannelControlTakenEvent,
+  decodeBeneficiaryControlTakenEvent,
   decodeContractVetoedEvent,
   decodeDepositedEvent,
   decodeWithdrawnEvent,
@@ -55,7 +55,7 @@ export async function fetchAndFoldContentFundingState(
   }
 
   const contentRegistryEvents: (ContentItemRegisteredEvent | ContentItemReleasedEvent)[] = [];
-  const beneficiaryRegistryEvents: (BeneficiaryVerifiedEvent | ChannelControlTakenEvent)[] = [];
+  const beneficiaryRegistryEvents: (BeneficiaryVerifiedEvent | BeneficiaryControlTakenEvent)[] = [];
   const beneficiaryEscrowEvents: (DepositedEvent | WithdrawnEvent)[] = [];
   const creatorContractEvents: CreatorContractCreatedEvent[] = [];
   const contractVetoedEvents: ContractVetoedEvent[] = [];
@@ -77,9 +77,9 @@ export async function fetchAndFoldContentFundingState(
         if (d) beneficiaryRegistryEvents.push({ type: 'BeneficiaryVerified', ...d });
         break;
       }
-      case 'ChannelControlTaken': {
-        const d = decodeChannelControlTakenEvent(raw);
-        if (d) beneficiaryRegistryEvents.push({ type: 'ChannelControlTaken', ...d });
+      case 'BeneficiaryControlTaken': {
+        const d = decodeBeneficiaryControlTakenEvent(raw);
+        if (d) beneficiaryRegistryEvents.push({ type: 'BeneficiaryControlTaken', ...d });
         break;
       }
       case 'ContractVetoed': {

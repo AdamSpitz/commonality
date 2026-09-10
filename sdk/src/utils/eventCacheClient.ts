@@ -470,7 +470,7 @@ export async function fetchAllContentFundingEvents(
     'ContentItemRegistered',
     'ContentItemReleased',
     'BeneficiaryVerified',
-    'ChannelControlTaken',
+    'BeneficiaryControlTaken',
     'ContractVetoed',
     'Deposited',
     'Withdrawn',

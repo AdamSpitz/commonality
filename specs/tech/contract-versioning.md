@@ -71,13 +71,13 @@ The constraints are the **cross-contract couplings**, not the factories themselv
   Its `Ownable` levers (factory authorization, `recurringPledgeRegistry`) are the
   system's main trust concentration point; needs a governance/timelock story before
   mainnet independent of versioning.
-- **`ChannelEscrow`** — holds funds keyed by `channelId` for channels whose owners
-  haven't shown up yet, so at migration time nobody is authorized to move most of its
+- **`BeneficiaryEscrow`** — holds funds keyed by `beneficiaryId` for identities whose
+  owners haven't shown up yet, so at migration time nobody is authorized to move most of its
   balance. A v2 implies v1 stays live and indexed indefinitely. `paymentToken` is
   immutable (see payment-token axis below).
-- **`ChannelRegistry`** — verification/control state is re-creatable (creators
+- **`BeneficiaryRegistry`** — verification/control state is re-creatable (claimants
   re-verify on v2 with a fresh signature) but it's an "everyone re-onboards" event,
-  and live veto windows pin it.
+  and live content veto windows pin it.
 - **`ContentRegistry`** — contentId→contract claims are re-registerable, but the
   one-contract-per-content-item uniqueness (anti-squatting) only holds within one
   registry. Version in lockstep with `CreatorAssuranceContractFactory`.
@@ -99,8 +99,8 @@ Content-funding tokens that are in repo but not yet wired/indexed:
   generation; existing collections keep serving claims and burns under their original
   rules.
 
-Deployed but not Ponder-indexed: `TrustRegistry`, `ChannelVerifier` (the latter is
-stateless — nonces live in ChannelRegistry — and replaceable via `setVerifier`, so
+Deployed but not Ponder-indexed: `TrustRegistry`, `BeneficiaryVerifier` (the latter is
+stateless — nonces live in BeneficiaryRegistry — and replaceable via `setVerifier`, so
 it's effectively Class 1).
 
 ## Cross-cutting version axes
@@ -129,7 +129,7 @@ it's effectively Class 1).
    an additional address (Ponder supports address lists / multiple sources per
    logical contract).
 3. Wire authorizations: add v2 to the relevant allowlists (DelegatableNotes primary/
-   secondary factories, ContentRegistry registrars, ChannelRegistry factories).
+   secondary factories, ContentRegistry registrars).
 4. Folds/UI merge v1+v2 (latest-write-wins by block for Class 1; address-namespaced
    ids for Class 2/3).
 5. UI stops offering v1 for new writes; exit paths and indexing for v1 stay on
@@ -141,9 +141,9 @@ it's effectively Class 1).
 1. **Indexer/SDK, no redeploys:** namespace fold/UI keys by contract address; move
    indexer config from one-env-var-per-contract to a per-chain manifest with address
    lists and per-address start blocks (`deployments/*.env` is halfway there).
-2. **Contract changes while still testnet-only:** ✅ `ChannelRegistry` now uses a
-   plural authorized factory set; ✅ `DelegatableNotes` secondary-market factories
-   are pluggable like primary ones. Still decide the governance story for the
-   `Ownable` levers on DelegatableNotes / ChannelRegistry / ContentRegistry.
+2. **Contract changes while still testnet-only:** ✅ `DelegatableNotes` secondary-market factories
+   are pluggable like primary ones. Content veto no longer lives on the shared registry.
+   Still decide the governance story for the
+   `Ownable` levers on DelegatableNotes / BeneficiaryRegistry / ContentRegistry.
 3. **Process:** check new/changed contracts against this doc in review, especially
    event-shape stability.

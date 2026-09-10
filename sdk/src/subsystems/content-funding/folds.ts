@@ -2,7 +2,7 @@ import type {
   ContentItemRegisteredEvent,
   ContentItemReleasedEvent,
   BeneficiaryVerifiedEvent,
-  ChannelControlTakenEvent,
+  BeneficiaryControlTakenEvent,
   DepositedEvent,
   WithdrawnEvent,
   CreatorContractCreatedEvent,
@@ -116,13 +116,13 @@ export interface BeneficiaryRegistryState {
 }
 
 /**
- * Fold BeneficiaryVerified and ChannelControlTaken events into registry state.
+ * Fold BeneficiaryVerified and BeneficiaryControlTaken events into registry state.
  *
- * Verified events register a channel with an owner. ControlTaken events
- * transition to 'creator-controlled' and record the timestamp.
+ * Verified events register a beneficiary with a payout address. ControlTaken
+ * events transition to 'creator-controlled' and record the timestamp.
  */
 export function foldChannelState(
-  events: (BeneficiaryVerifiedEvent | ChannelControlTakenEvent)[],
+  events: (BeneficiaryVerifiedEvent | BeneficiaryControlTakenEvent)[],
 ): BeneficiaryRegistryState {
   const channels = new Map<string, ChannelInfo>();
 
@@ -134,8 +134,8 @@ export function foldChannelState(
         state: 'verified',
         controlTakenAt: null,
       });
-    } else if (event.type === 'ChannelControlTaken') {
-      const existing = channels.get(event.channelId);
+    } else if (event.type === 'BeneficiaryControlTaken') {
+      const existing = channels.get(event.beneficiaryId);
       if (existing) {
         existing.state = 'creator-controlled';
         existing.owner = event.owner;
@@ -228,14 +228,14 @@ export interface ContentFundingState {
  * Fold events from all four content-funding contracts into a single state object.
  *
  * @param contentRegistryEvents - ContentItemRegistered and ContentItemReleased events
- * @param beneficiaryRegistryEvents - BeneficiaryVerified and ChannelControlTaken events
+ * @param beneficiaryRegistryEvents - BeneficiaryVerified and BeneficiaryControlTaken events
  * @param beneficiaryEscrowEvents - Deposited and Withdrawn events
  * @param creatorContractEvents - CreatorContractCreated events
  * @returns Combined ContentFundingState
  */
 export function foldAllContentFundingEvents(
   contentRegistryEvents: (ContentItemRegisteredEvent | ContentItemReleasedEvent)[],
-  beneficiaryRegistryEvents: (BeneficiaryVerifiedEvent | ChannelControlTakenEvent)[],
+  beneficiaryRegistryEvents: (BeneficiaryVerifiedEvent | BeneficiaryControlTakenEvent)[],
   beneficiaryEscrowEvents: (DepositedEvent | WithdrawnEvent)[],
   creatorContractEvents: CreatorContractCreatedEvent[],
 ): ContentFundingState {

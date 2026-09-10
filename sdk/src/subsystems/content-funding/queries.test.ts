@@ -1,7 +1,7 @@
 import assert from 'assert';
 import { encodeAbiParameters, encodeEventTopics } from 'viem';
 import type {
-  ChannelControlTakenEvent,
+  BeneficiaryControlTakenEvent,
   BeneficiaryVerifiedEvent,
   ContentItemRegisteredEvent,
   ContractVetoedEvent,
@@ -73,11 +73,11 @@ function makeVerifiedEvent(overrides: Partial<BeneficiaryVerifiedEvent> = {}): B
   };
 }
 
-function makeControlTakenEvent(overrides: Partial<ChannelControlTakenEvent> = {}): ChannelControlTakenEvent {
+function makeControlTakenEvent(overrides: Partial<BeneficiaryControlTakenEvent> = {}): BeneficiaryControlTakenEvent {
   return {
-    type: 'ChannelControlTaken',
+    type: 'BeneficiaryControlTaken',
     contractAddress: '0x9999999999999999999999999999999999999998',
-    channelId: CHANNEL_A,
+    beneficiaryId: CHANNEL_A,
     owner: OWNER_A,
     blockNumber: 120n,
     blockTimestamp: 1200n,

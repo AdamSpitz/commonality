@@ -400,14 +400,14 @@ const contracts = {
     ...deploymentConfig(CONTENT_REGISTRY_DEPLOYMENTS, CONTENT_FUNDING_START_BLOCK),
   },
 
-  // Channel Registry - tracks channel verification and control states
+  // Shared beneficiary identity / payout registry
   BeneficiaryRegistry: {
     abi: BeneficiaryRegistryAbi,
     chain: INDEXER_CHAIN,
     ...deploymentConfig(BENEFICIARY_REGISTRY_DEPLOYMENTS, CONTENT_FUNDING_START_BLOCK),
   },
 
-  // Channel Escrow - holds funds for unclaimed channels
+  // Shared escrow for unclaimed beneficiaries
   BeneficiaryEscrow: {
     abi: BeneficiaryEscrowAbi,
     chain: INDEXER_CHAIN,

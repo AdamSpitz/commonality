@@ -6,11 +6,10 @@ import {Guardable} from "../utils/Guardable.sol";
 
 error BeneficiaryAlreadyVerified(bytes32 beneficiaryId);
 error BeneficiaryNotVerified(bytes32 beneficiaryId);
-error ChannelAlreadyCreatorControlled(bytes32 channelId);
-error ChannelNotCreatorControlled(bytes32 channelId);
+error BeneficiaryAlreadyControlled(bytes32 beneficiaryId);
 error InvalidClaimant();
 error InvalidNewPayoutAddress();
-error OnlyChannelOwnerCanTakeControl();
+error OnlyPayoutAddressCanTakeControl();
 error OnlyPayoutAddressCanRotate();
 error InvalidNonce();
 error ProofExpired();
@@ -53,7 +52,7 @@ interface IBeneficiaryRegistry {
         bytes32 proofHash,
         bytes calldata verifierSignature
     ) external;
-    function takeChannelControl(bytes32 channelId) external;
+    function takeBeneficiaryControl(bytes32 beneficiaryId) external;
     function rotatePayoutAddress(bytes32 beneficiaryId, address newPayoutAddress) external;
     function setVerifier(address verifier) external;
     function revokeVerifier() external;
@@ -115,11 +114,11 @@ contract BeneficiaryRegistry is IBeneficiaryRegistry, Guardable {
     );
 
     /**
-     * @notice Emitted when a channel owner takes full control
-     * @param channelId The channel
-     * @param owner The owner who took control
+     * @notice Emitted when a verified payout address takes identity control
+     * @param beneficiaryId The identity
+     * @param owner The payout address that took control
      */
-    event ChannelControlTaken(bytes32 indexed channelId, address indexed owner);
+    event BeneficiaryControlTaken(bytes32 indexed beneficiaryId, address indexed owner);
 
     /**
      * @notice Emitted when the verified owner authorizes a replacement payout address
@@ -373,23 +372,23 @@ contract BeneficiaryRegistry is IBeneficiaryRegistry, Guardable {
      * @dev Transitions from Verified to CreatorControlled. Only the verified payout
      *      address can call this. Content factories may start a veto window from
      *      `controlTakenAt`.
-     * @param channelId The identity to take control of
+     * @param beneficiaryId The identity to take control of
      */
-    function takeChannelControl(bytes32 channelId) external {
-        if (_channelStates[channelId] == ChannelState.Unclaimed) {
-            revert BeneficiaryNotVerified(channelId);
+    function takeBeneficiaryControl(bytes32 beneficiaryId) external {
+        if (_channelStates[beneficiaryId] == ChannelState.Unclaimed) {
+            revert BeneficiaryNotVerified(beneficiaryId);
         }
-        if (_channelStates[channelId] == ChannelState.CreatorControlled) {
-            revert ChannelAlreadyCreatorControlled(channelId);
+        if (_channelStates[beneficiaryId] == ChannelState.CreatorControlled) {
+            revert BeneficiaryAlreadyControlled(beneficiaryId);
         }
         address caller = _msgSender();
-        if (caller != _payoutAddresses[channelId]) {
-            revert OnlyChannelOwnerCanTakeControl();
+        if (caller != _payoutAddresses[beneficiaryId]) {
+            revert OnlyPayoutAddressCanTakeControl();
         }
 
-        _channelStates[channelId] = ChannelState.CreatorControlled;
-        _controlTakenAt[channelId] = block.timestamp;
+        _channelStates[beneficiaryId] = ChannelState.CreatorControlled;
+        _controlTakenAt[beneficiaryId] = block.timestamp;
 
-        emit ChannelControlTaken(channelId, caller);
+        emit BeneficiaryControlTaken(beneficiaryId, caller);
     }
 }

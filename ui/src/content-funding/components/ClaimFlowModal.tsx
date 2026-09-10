@@ -19,7 +19,7 @@ import { useAccount } from 'wagmi'
 import { formatEther } from 'viem'
 import { useClaimFlow } from '../hooks/useClaimFlow'
 import { BeneficiaryEscrowAbi, BeneficiaryRegistryAbi } from '@commonality/sdk/abis'
-import { withdrawFromEscrow, takeChannelControl, hashCanonicalId } from '@commonality/sdk/content-funding'
+import { withdrawFromEscrow, takeBeneficiaryControl, hashCanonicalId } from '@commonality/sdk/content-funding'
 import type { ChannelState } from '@commonality/sdk/content-funding'
 import { useWriteClients } from '../../shared'
 
@@ -193,7 +193,7 @@ export function ClaimFlowModal({
         abi: BeneficiaryRegistryAbi,
       }
 
-      const result = await takeChannelControl(clients, registryContract, hashCanonicalId(channelId))
+      const result = await takeBeneficiaryControl(clients, registryContract, hashCanonicalId(channelId))
       setTakeControlTxHash(result.hash)
       setActiveStep(4)
     } catch (err) {

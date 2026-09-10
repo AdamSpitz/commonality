@@ -97,7 +97,7 @@ register("PublishedData:DataRetracted");
 register("ContentRegistry:ContentItemRegistered");
 register("ContentRegistry:ContentItemReleased");
 register("BeneficiaryRegistry:BeneficiaryVerified");
-register("BeneficiaryRegistry:ChannelControlTaken");
+register("BeneficiaryRegistry:BeneficiaryControlTaken");
 register("CreatorAssuranceVeto:ContractVetoed");
 register("BeneficiaryEscrow:Deposited");
 register("BeneficiaryEscrow:Withdrawn");

@@ -149,7 +149,7 @@ Express service, same as the [content attesters](content-attesters.md). Deployed
 ### Ethereum key management
 
 The service holds an Ethereum private key for two purposes:
-1. Signing `ChannelClaimProof`s (the on-chain `ChannelRegistry` trusts this key as a verifier)
+1. Signing beneficiary claim proofs (the on-chain `BeneficiaryRegistry` trusts this key as a verifier)
 2. Submitting verification transactions on behalf of creators (paying gas)
 
 This is the same trust model as the [implication attester](../conceptspace/implication-attester-ai.md) — a service with an Ethereum key that signs attestations. The key should be funded with enough ETH to cover gas for channel verifications (which are infrequent and cheap).
@@ -181,7 +181,7 @@ Never guess or fabricate a resolution. This aligns with the [canonicalization pr
 
 ### Public proof hash anchoring
 
-When `/verify/confirm` finds a valid public proof, it must compute `proofHash = keccak256(utf8Bytes(publicProofUrl))` over the durable public artifact URL (tweet/status URL, Substack post URL, or equivalent), include that `proofHash` in the EIP-712 `ChannelClaim`, and submit it to `ChannelRegistry.verifyChannel`. The registry emits `ChannelProofAnchored`, allowing third parties to compare the on-chain hash with the public proof URL and detect a dishonest verifier.
+When `/verify/confirm` finds a valid public proof, it must compute `proofHash = keccak256(utf8Bytes(publicProofUrl))` over the durable public artifact URL (tweet/status URL, Substack post URL, well-known URL, or DNS TXT locator), include that `proofHash` in the EIP-712 `BeneficiaryClaim`, and submit it to `BeneficiaryRegistry.verifyBeneficiary` (or `verifyNamespacedBeneficiary` for DNS). The registry emits `BeneficiaryProofAnchored`, allowing third parties to compare the on-chain hash with the public proof URL and detect a dishonest verifier.
 
 ## What this service is NOT
 

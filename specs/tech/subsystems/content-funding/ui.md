@@ -118,7 +118,7 @@ After verification: channel transitions to Verified, and the creator can withdra
 ### Step 4: Take control (optional, separate action)
 
 - Explained as: "Want to control future contracts for your content? Only you will be able to create new funding rounds."
-- "Take control" button — calls `takeChannelControl` on the channel registry
+- "Take control" button — calls `takeBeneficiaryControl` on `BeneficiaryRegistry`
 - After taking control: show the [veto interface](#creator-veto-interface) if there are vetoable contracts
 
 

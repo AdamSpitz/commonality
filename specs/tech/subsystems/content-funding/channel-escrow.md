@@ -2,9 +2,7 @@
 
 A holding contract that receives funds on behalf of creators who haven't verified their identity yet. Simple by design: it maps channel IDs to balances and releases funds to whoever successfully verifies that channel.
 
-Intended extraction (no live users to keep compatible): this contract and `ChannelRegistry` should become the general [claimable-beneficiaries](../claimable-beneficiaries.md) registry+escrow; content-funding keeps occupancy and veto elsewhere.
-
-Each platform deployment has its own ChannelEscrow paired with its own ChannelRegistry (see [per-platform deployment](README.md#per-platform-deployment)). The escrow reads the verified owner from its paired ChannelRegistry.
+This is now the shared `BeneficiaryEscrow` in [claimable-beneficiaries](../claimable-beneficiaries.md). Content occupancy and veto stay on the per-platform factory / `CreatorAssuranceVeto`. One escrow serves all namespaces; it reads the verified payout address from `BeneficiaryRegistry`.
 
 ## Why a separate contract
 

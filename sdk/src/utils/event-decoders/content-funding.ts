@@ -73,10 +73,10 @@ export function decodeBeneficiaryVerifiedEvent(
   };
 }
 
-export function decodeChannelControlTakenEvent(
+export function decodeBeneficiaryControlTakenEvent(
   rawEvent: RawEventFromCache,
 ): {
-  channelId: string;
+  beneficiaryId: string;
   owner: `0x${string}`;
   contractAddress: `0x${string}`;
   blockNumber: bigint;
@@ -84,11 +84,11 @@ export function decodeChannelControlTakenEvent(
   transactionHash: `0x${string}`;
   logIndex: number;
 } | null {
-  if (rawEvent.eventName !== 'ChannelControlTaken') return null;
+  if (rawEvent.eventName !== 'BeneficiaryControlTaken') return null;
   const args = decodeRawEventArgs(rawEvent, BeneficiaryRegistryAbi);
   if (!args) return null;
   return {
-    channelId: args.channelId as string,
+    beneficiaryId: args.beneficiaryId as string,
     owner: args.owner as `0x${string}`,
     ...decodedLogMeta(rawEvent),
   };
