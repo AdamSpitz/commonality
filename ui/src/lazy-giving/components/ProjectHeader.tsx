@@ -12,6 +12,7 @@ import {
   formatRelativeDeadline,
 } from '../utils'
 import { truncateAddress, formatCurrencyRaised, InfoChip, InfoLabel } from '../../shared'
+import { WebsiteBeneficiaryClaimChip } from './WebsiteBeneficiaryClaimChip'
 import { dnsBeneficiaryDomain, WebsiteBeneficiaryMark } from './WebsiteBeneficiaryMark'
 
 type ProjectMetadata = {
@@ -90,7 +91,8 @@ export function ProjectHeader({ project, metadata, kind = 'project' }: ProjectHe
           </Stack>
           )}
         </Box>
-        <Stack direction="row" spacing={1}>
+        <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+          {websiteBeneficiary && <WebsiteBeneficiaryClaimChip domain={websiteBeneficiary} />}
           <InfoChip
             title={STATUS_TOOLTIPS[status]}
             label={STATUS_LABELS[status]}

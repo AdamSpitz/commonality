@@ -1,4 +1,5 @@
 import { Box, Typography } from '@mui/material'
+import type { BeneficiaryState } from '@commonality/sdk/content-funding'
 
 /** Exact registrable domain; never truncate or visually fold lookalikes. */
 const domainSx = {
@@ -19,12 +20,21 @@ export function dnsBeneficiaryDomain(beneficiary?: {
   return id || undefined
 }
 
+function cardCaption(claimState?: BeneficiaryState): string {
+  if (claimState === 'verified' || claimState === 'beneficiary-controlled') {
+    return 'Domain-controlled. Escrow pays the bound wallet, not a certified charity.'
+  }
+  return 'For the controller of this website. Not affiliated unless they claim it.'
+}
+
 export function WebsiteBeneficiaryMark({
   domain,
   size = 'card',
+  claimState,
 }: {
   domain: string
   size?: 'card' | 'hero'
+  claimState?: BeneficiaryState
 }) {
   return (
     <Box sx={{ minWidth: 0 }}>
@@ -39,7 +49,7 @@ export function WebsiteBeneficiaryMark({
       <Typography variant={size === 'hero' ? 'body2' : 'caption'} color="text.secondary">
         {size === 'hero'
           ? 'Funds reserved for the controller of this website. Domain control is the only identity escrow can enforce — not charity status, legal-entity identity, or tax deductibility.'
-          : 'For the controller of this website. Not affiliated unless they claim it.'}
+          : cardCaption(claimState)}
       </Typography>
     </Box>
   )

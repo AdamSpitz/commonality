@@ -1998,3 +1998,14 @@ content occupancy still keyed as channels (intentional).
 
 Still needed: on-chain claim state in the header (unclaimed vs
 domain-controlled chip); content occupancy still keyed as channels.
+
+## 2026-09-10 — Website claim-state chip on project header
+
+- Project header reads `beneficiaryState` and chips Unclaimed /
+  Domain-controlled / Beneficiary-controlled next to funding status.
+- Card copy on `WebsiteBeneficiaryMark` can switch once a claim state is
+  known; browse/cause cards still default to not-affiliated until they fold
+  on-chain state.
+
+Still needed: claim-state chips on browse/cause/CauseStarter cards (needs a
+fold, not a per-card RPC); content occupancy still keyed as channels.

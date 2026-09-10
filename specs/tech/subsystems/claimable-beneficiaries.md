@@ -125,4 +125,6 @@ follow the website homepage; a hop to a different registrable domain is
 refused (`invalid_domain_redirect`). Apex and `www` still identify the same
 beneficiary. An unreachable site does not block creation.
 Project surfaces render the exact canonical domain at the same visual weight as
-the raised amount and do not truncate or fold lookalikes.
+the raised amount and do not truncate or fold lookalikes. The project header
+reads on-chain `beneficiaryState` and chips Unclaimed / Domain-controlled /
+Beneficiary-controlled.

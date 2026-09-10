@@ -6,15 +6,10 @@ import { BeneficiaryEscrowAbi, BeneficiaryRegistryAbi } from '@commonality/sdk/a
 import { hashBeneficiaryId, rotatePayoutAddress, type BeneficiaryState } from '@commonality/sdk/content-funding'
 import { ClaimFlowModal } from '../../content-funding'
 import { getRuntimeConfigValue, humanizeTxError, useWriteClients } from '../../shared'
+import { beneficiaryStateFromUint } from './websiteBeneficiaryClaim'
 
 type WebsiteClaimSectionProps = {
   domain: string
-}
-
-function beneficiaryStateFromUint(value: number): BeneficiaryState {
-  if (value >= 2) return 'beneficiary-controlled'
-  if (value === 1) return 'verified'
-  return 'unclaimed'
 }
 
 export function WebsiteClaimSection({ domain }: WebsiteClaimSectionProps) {

@@ -2,6 +2,14 @@ import { render, screen } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { ProjectHeader } from './ProjectHeader'
 
+vi.mock('wagmi', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('wagmi')>()
+  return {
+    ...actual,
+    usePublicClient: () => undefined,
+  }
+})
+
 function makeProject(overrides: Record<string, any> = {}): any {
   const now = Math.floor(Date.now() / 1000)
   return {
