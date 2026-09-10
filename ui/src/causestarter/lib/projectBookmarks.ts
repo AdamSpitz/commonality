@@ -240,7 +240,7 @@ export async function persistProjectBookmarks(
 ): Promise<void> {
   const contract = mutableRefContract()
   if (!contract) return
-  const ref = await getUserRef(machinery, address, PROJECT_BOOKMARKS_REF).catch(() => null)
+  const ref = await getUserRef(machinery, address, PROJECT_BOOKMARKS_REF)
   const remote = ref?.value != null ? parseProjectBookmarkDocument(ref.value) : null
   const merged = mergeProjectBookmarkDocuments(remote, readLocalDocument())
   writeLocalDocument(merged)

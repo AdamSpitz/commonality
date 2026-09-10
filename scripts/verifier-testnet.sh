@@ -82,6 +82,10 @@ if [ "$WITH_MUTATION" = "1" ]; then
 		echo "Warning: --mutation set but COMMONALITY_TESTNET_VERIFIER_PRIVATE_KEY is not in the environment;" >&2
 		echo "         testnet.onchain-to-indexer will error. Source it from .env.secrets first." >&2
 	fi
+	if [ "$WITH_BROWSER" = "1" ] && [ -z "${COMMONALITY_TESTNET_LAB_A_PRIVATE_KEY:-}" ]; then
+		echo "Warning: --browser --mutation set but COMMONALITY_TESTNET_LAB_A_PRIVATE_KEY is not in the environment;" >&2
+		echo "         testnet.two-person-browser will go uncertain. Source it from .env.secrets first." >&2
+	fi
 	LEAVES+=(testnet.onchain-to-indexer)
 	LEAVES+=(testnet.published-data)
 	LEAVES+=(testnet.alignment-trust)

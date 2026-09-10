@@ -107,6 +107,13 @@ describe('projectBookmarks', () => {
     expect(written.projects.map((row) => row.address).sort()).toEqual([OTHER, ADDR].sort())
   })
 
+  it('does not persist when the remote read fails', async () => {
+    bookmarkProject(ADDR, '2026-05-01T00:00:00.000Z')
+    getUserRef.mockRejectedValue(new Error('rpc down'))
+    await expect(persistProjectBookmarks({} as never, ADDR, {} as never)).rejects.toThrow('rpc down')
+    expect(updateRef).not.toHaveBeenCalled()
+  })
+
   it('copies a nonempty chain ref onto a device with no local list', async () => {
     getUserRef.mockResolvedValue({
       value: `{"version":1,"projects":["${ADDR}"]}`,

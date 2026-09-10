@@ -18,9 +18,7 @@ export function loadConfigFromEnv(env: NodeJS.ProcessEnv = process.env): CauseAs
   const openRouterKey = firstEnv(env, ['OPENROUTER_API_KEY'])
   const explicitBase = firstEnv(env, ['CAUSE_ASSIST_API_BASE_URL', 'XAI_API_BASE_URL'])
   const baseLooksOpenRouter = (explicitBase ?? '').includes('openrouter.ai')
-  // An OpenRouter URL in env is not enough: Render's blueprint used to pin
-  // that URL while only XAI_API_KEY was filled, which sent an xAI key to
-  // OpenRouter (401). Prefer OpenRouter only when its key is actually present.
+  // Prefer OpenRouter only when OPENROUTER_API_KEY is set; a base URL is not enough.
   const usingOpenRouter = Boolean(openRouterKey) && (!explicitBase || baseLooksOpenRouter)
   const apiKey = usingOpenRouter ? openRouterKey : (xaiKey || openRouterKey)
   const apiBaseUrl = usingOpenRouter
