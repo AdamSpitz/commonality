@@ -181,7 +181,7 @@ Never guess or fabricate a resolution. This aligns with the [canonicalization pr
 
 ### Public proof hash anchoring
 
-When `/verify/confirm` finds a valid public proof, it must compute `proofHash = keccak256(utf8Bytes(publicProofUrl))` over the durable public artifact URL (tweet/status URL, Substack post URL, well-known URL, or DNS TXT locator), include that `proofHash` in the EIP-712 `BeneficiaryClaim`, and submit it to `BeneficiaryRegistry.verifyBeneficiary` (or `verifyNamespacedBeneficiary` for DNS). The registry emits `BeneficiaryProofAnchored`, allowing third parties to compare the on-chain hash with the public proof URL and detect a dishonest verifier.
+When `/verify/confirm` finds a valid public proof, it must compute `proofHash = keccak256(utf8Bytes(publicProofUrl))` over the durable public artifact URL (tweet/status URL, Substack post URL, well-known URL, or DNS TXT locator), include that `proofHash` and the applicable `namespaceHash` in the EIP-712 `BeneficiaryClaim`, and submit it to `BeneficiaryRegistry.verifyBeneficiary` (or `verifyNamespacedBeneficiary` for DNS). Generic/social claims sign a zero namespace hash; DNS signs `keccak256("dns")`, preventing the signature from being replayed through the generic entrypoint to skip namespace policy. The registry emits `BeneficiaryProofAnchored`, allowing third parties to compare the on-chain hash with the public proof URL and detect a dishonest verifier.
 
 ## What this service is NOT
 

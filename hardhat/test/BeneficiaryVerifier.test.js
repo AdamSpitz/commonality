@@ -10,7 +10,7 @@ describe("BeneficiaryVerifier", function () {
   const nonce = ethers.id("test-nonce-1");
   const proofHash = ethers.id("https://x.com/alice/status/123");
 
-  async function signClaimProof(signer, verifierContract, _channelId, _claimant, _nonce, _deadline, _proofHash = proofHash) {
+  async function signClaimProof(signer, verifierContract, _channelId, _claimant, _nonce, _deadline, _proofHash = proofHash, _namespaceHash = ethers.ZeroHash) {
     const verifyingContract = await verifierContract.getAddress();
     const { chainId } = await ethers.provider.getNetwork();
     const domain = {
@@ -22,6 +22,7 @@ describe("BeneficiaryVerifier", function () {
     const types = {
       BeneficiaryClaim: [
         { name: "beneficiaryId", type: "bytes32" },
+        { name: "namespaceHash", type: "bytes32" },
         { name: "claimant", type: "address" },
         { name: "nonce", type: "bytes32" },
         { name: "deadline", type: "uint256" },
@@ -30,6 +31,7 @@ describe("BeneficiaryVerifier", function () {
     };
     return signer.signTypedData(domain, types, {
       beneficiaryId: _channelId,
+      namespaceHash: _namespaceHash,
       claimant: _claimant,
       nonce: _nonce,
       deadline: _deadline,
@@ -63,7 +65,7 @@ describe("BeneficiaryVerifier", function () {
 
       const signature = await signClaimProof(trustedSigner, verifier, channelId, alice.address, nonce, deadline);
 
-      const result = await verifier.verifyClaimProof(channelId, alice.address, nonce, deadline, proofHash, signature);
+      const result = await verifier.verifyClaimProof(channelId, ethers.ZeroHash, alice.address, nonce, deadline, proofHash, signature);
       expect(result).to.be.true;
     });
 
@@ -73,7 +75,7 @@ describe("BeneficiaryVerifier", function () {
 
       const signature = await signClaimProof(bob, verifier, channelId, alice.address, nonce, deadline);
 
-      const result = await verifier.verifyClaimProof(channelId, alice.address, nonce, deadline, proofHash, signature);
+      const result = await verifier.verifyClaimProof(channelId, ethers.ZeroHash, alice.address, nonce, deadline, proofHash, signature);
       expect(result).to.be.false;
     });
 
@@ -84,8 +86,24 @@ describe("BeneficiaryVerifier", function () {
       const signature = await signClaimProof(trustedSigner, verifier, channelId, alice.address, nonce, deadline);
 
       const wrongChannelId = ethers.id("twitter:uid:99999999");
-      const result = await verifier.verifyClaimProof(wrongChannelId, alice.address, nonce, deadline, proofHash, signature);
+      const result = await verifier.verifyClaimProof(wrongChannelId, ethers.ZeroHash, alice.address, nonce, deadline, proofHash, signature);
       expect(result).to.be.false;
+    });
+
+    it("Should return false when namespaceHash is tampered", async function () {
+      const latestBlock = await ethers.provider.getBlock("latest");
+      const deadline = latestBlock.timestamp + 3600;
+      const dnsNamespaceHash = ethers.id("dns");
+      const signature = await signClaimProof(
+        trustedSigner, verifier, channelId, alice.address, nonce, deadline, proofHash, dnsNamespaceHash,
+      );
+
+      expect(await verifier.verifyClaimProof(
+        channelId, ethers.ZeroHash, alice.address, nonce, deadline, proofHash, signature,
+      )).to.be.false;
+      expect(await verifier.verifyClaimProof(
+        channelId, dnsNamespaceHash, alice.address, nonce, deadline, proofHash, signature,
+      )).to.be.true;
     });
 
     it("Should return false when claimant is tampered", async function () {
@@ -94,7 +112,7 @@ describe("BeneficiaryVerifier", function () {
 
       const signature = await signClaimProof(trustedSigner, verifier, channelId, alice.address, nonce, deadline);
 
-      const result = await verifier.verifyClaimProof(channelId, bob.address, nonce, deadline, proofHash, signature);
+      const result = await verifier.verifyClaimProof(channelId, ethers.ZeroHash, bob.address, nonce, deadline, proofHash, signature);
       expect(result).to.be.false;
     });
 
@@ -105,7 +123,7 @@ describe("BeneficiaryVerifier", function () {
       const signature = await signClaimProof(trustedSigner, verifier, channelId, alice.address, nonce, deadline);
 
       const wrongNonce = ethers.id("wrong-nonce");
-      const result = await verifier.verifyClaimProof(channelId, alice.address, wrongNonce, deadline, proofHash, signature);
+      const result = await verifier.verifyClaimProof(channelId, ethers.ZeroHash, alice.address, wrongNonce, deadline, proofHash, signature);
       expect(result).to.be.false;
     });
 
@@ -115,7 +133,7 @@ describe("BeneficiaryVerifier", function () {
 
       const signature = await signClaimProof(trustedSigner, verifier, channelId, alice.address, nonce, deadline);
 
-      const result = await verifier.verifyClaimProof(channelId, alice.address, nonce, deadline + 1, proofHash, signature);
+      const result = await verifier.verifyClaimProof(channelId, ethers.ZeroHash, alice.address, nonce, deadline + 1, proofHash, signature);
       expect(result).to.be.false;
     });
 
@@ -126,12 +144,34 @@ describe("BeneficiaryVerifier", function () {
       const signature = await signClaimProof(trustedSigner, verifier, channelId, alice.address, nonce, deadline);
 
       const wrongProofHash = ethers.id("https://x.com/alice/status/999");
-      const result = await verifier.verifyClaimProof(channelId, alice.address, nonce, deadline, wrongProofHash, signature);
+      const result = await verifier.verifyClaimProof(channelId, ethers.ZeroHash, alice.address, nonce, deadline, wrongProofHash, signature);
       expect(result).to.be.false;
     });
   });
 
   describe("Integration with BeneficiaryRegistry", function () {
+    it("Does not let a DNS claim bypass its namespace waiting period through the generic entrypoint", async function () {
+      const BeneficiaryRegistry = await ethers.getContractFactory("BeneficiaryRegistry");
+      const beneficiaryRegistry = await BeneficiaryRegistry.deploy(await verifier.getAddress());
+      const dnsNamespaceHash = ethers.id("dns");
+      const dnsBeneficiaryId = ethers.id("dns:example.org");
+      await beneficiaryRegistry.setNamespaceClaimWaitingPeriod(dnsNamespaceHash, 7 * 24 * 60 * 60);
+      const deadline = (await ethers.provider.getBlock("latest")).timestamp + 3600;
+      const signature = await signClaimProof(
+        trustedSigner, verifier, dnsBeneficiaryId, alice.address, nonce, deadline, proofHash, dnsNamespaceHash,
+      );
+
+      await expect(beneficiaryRegistry.verifyBeneficiary(
+        dnsBeneficiaryId, alice.address, nonce, deadline, proofHash, signature,
+      )).to.be.revertedWithCustomError(beneficiaryRegistry, "InvalidVerifierSignature");
+      await beneficiaryRegistry.verifyNamespacedBeneficiary(
+        "dns", "example.org", alice.address, nonce, deadline, proofHash, signature,
+      );
+      expect(await beneficiaryRegistry.claimWithdrawableAt(dnsBeneficiaryId)).to.be.greaterThan(
+        BigInt((await ethers.provider.getBlock("latest")).timestamp),
+      );
+    });
+
     it("Should allow channel verification with a real signed proof", async function () {
       const BeneficiaryRegistry = await ethers.getContractFactory("BeneficiaryRegistry");
       const beneficiaryRegistry = await BeneficiaryRegistry.deploy(await verifier.getAddress());
@@ -192,11 +232,11 @@ describe("BeneficiaryVerifier", function () {
 
       // Old verifier's signature should now fail
       const oldSig = await signClaimProof(trustedSigner, verifier, channelId, alice.address, nonce, deadline);
-      expect(await verifier.verifyClaimProof(channelId, alice.address, nonce, deadline, proofHash, oldSig)).to.be.false;
+      expect(await verifier.verifyClaimProof(channelId, ethers.ZeroHash, alice.address, nonce, deadline, proofHash, oldSig)).to.be.false;
 
       // New verifier's signature should succeed
       const newSig = await signClaimProof(bob, verifier, channelId, alice.address, nonce, deadline);
-      expect(await verifier.verifyClaimProof(channelId, alice.address, nonce, deadline, proofHash, newSig)).to.be.true;
+      expect(await verifier.verifyClaimProof(channelId, ethers.ZeroHash, alice.address, nonce, deadline, proofHash, newSig)).to.be.true;
     });
   });
 
@@ -259,11 +299,11 @@ describe("BeneficiaryVerifier", function () {
       const deadline = latestBlock.timestamp + 3600;
       const signature = await signClaimProof(trustedSigner, verifier, channelId, alice.address, nonce, deadline);
 
-      expect(await verifier.verifyClaimProof(channelId, alice.address, nonce, deadline, proofHash, signature)).to.be.true;
+      expect(await verifier.verifyClaimProof(channelId, ethers.ZeroHash, alice.address, nonce, deadline, proofHash, signature)).to.be.true;
 
       await verifier.revokeTrustedVerifier();
 
-      expect(await verifier.verifyClaimProof(channelId, alice.address, nonce, deadline, proofHash, signature)).to.be.false;
+      expect(await verifier.verifyClaimProof(channelId, ethers.ZeroHash, alice.address, nonce, deadline, proofHash, signature)).to.be.false;
     });
 
     it("Should not let the guardian install a verifier — revocation only reduces power", async function () {
@@ -281,7 +321,7 @@ describe("BeneficiaryVerifier", function () {
       const deadline = latestBlock.timestamp + 3600;
       const signature = await signClaimProof(bob, verifier, channelId, alice.address, nonce, deadline);
 
-      expect(await verifier.verifyClaimProof(channelId, alice.address, nonce, deadline, proofHash, signature)).to.be.true;
+      expect(await verifier.verifyClaimProof(channelId, ethers.ZeroHash, alice.address, nonce, deadline, proofHash, signature)).to.be.true;
     });
   });
 

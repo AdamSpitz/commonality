@@ -15,7 +15,7 @@ error TrustedVerifierAlreadyRevoked();
  * @notice Verifies beneficiary-claim proofs signed by a trusted off-chain verifier (the Platform API Service)
  * @dev Uses EIP-712 typed-data signatures. The trusted off-chain signer signs:
  *
- *        BeneficiaryClaim(bytes32 beneficiaryId,address claimant,bytes32 nonce,uint256 deadline,bytes32 proofHash)
+ *        BeneficiaryClaim(bytes32 beneficiaryId,bytes32 namespaceHash,address claimant,bytes32 nonce,uint256 deadline,bytes32 proofHash)
  *
  *      with the EIP-712 domain ("BeneficiaryVerifier", "1", chainId, address(this)). The
  *      domain binds signatures to this specific deployment on this specific chain,
@@ -24,7 +24,7 @@ error TrustedVerifierAlreadyRevoked();
  */
 contract BeneficiaryVerifier is IBeneficiaryVerifier, Guardable, EIP712 {
     bytes32 public constant BENEFICIARY_CLAIM_TYPEHASH = keccak256(
-        "BeneficiaryClaim(bytes32 beneficiaryId,address claimant,bytes32 nonce,uint256 deadline,bytes32 proofHash)"
+        "BeneficiaryClaim(bytes32 beneficiaryId,bytes32 namespaceHash,address claimant,bytes32 nonce,uint256 deadline,bytes32 proofHash)"
     );
 
     /// @notice The address of the trusted off-chain verifier (zero once revoked)
@@ -95,6 +95,7 @@ contract BeneficiaryVerifier is IBeneficiaryVerifier, Guardable, EIP712 {
      */
     function verifyClaimProof(
         bytes32 beneficiaryId,
+        bytes32 namespaceHash,
         address claimant,
         bytes32 nonce,
         uint256 deadline,
@@ -106,7 +107,7 @@ contract BeneficiaryVerifier is IBeneficiaryVerifier, Guardable, EIP712 {
         if (trustedVerifier == address(0)) return false;
 
         bytes32 structHash = keccak256(
-            abi.encode(BENEFICIARY_CLAIM_TYPEHASH, beneficiaryId, claimant, nonce, deadline, proofHash)
+            abi.encode(BENEFICIARY_CLAIM_TYPEHASH, beneficiaryId, namespaceHash, claimant, nonce, deadline, proofHash)
         );
         bytes32 digest = _hashTypedDataV4(structHash);
         address recovered = ECDSA.recover(digest, verifierSignature);

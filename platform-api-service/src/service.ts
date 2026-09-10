@@ -439,6 +439,7 @@ export class PlatformApiService {
       challenge.nonce,
       challenge.deadline,
       proofHash,
+      challenge.platform === 'dns' ? keccak256(stringToBytes('dns')) : undefined,
     );
 
     const txHash = await this.submitVerificationTxIfConfigured({
@@ -820,6 +821,7 @@ export async function signClaimProof(
   nonce: Hex,
   deadline: number,
   proofHash: Hex,
+  namespaceHash: Hex = `0x${'00'.repeat(32)}`,
 ): Promise<Hex> {
   const account = privateKeyToAccount(verifierPrivateKey);
   return await account.signTypedData({
@@ -832,6 +834,7 @@ export async function signClaimProof(
     types: {
       BeneficiaryClaim: [
         { name: 'beneficiaryId', type: 'bytes32' },
+        { name: 'namespaceHash', type: 'bytes32' },
         { name: 'claimant', type: 'address' },
         { name: 'nonce', type: 'bytes32' },
         { name: 'deadline', type: 'uint256' },
@@ -841,6 +844,7 @@ export async function signClaimProof(
     primaryType: 'BeneficiaryClaim',
     message: {
       beneficiaryId: hashCanonicalId(canonicalBeneficiaryId),
+      namespaceHash,
       claimant,
       nonce,
       deadline: BigInt(deadline),

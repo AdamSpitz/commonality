@@ -21,6 +21,7 @@ contract MockBeneficiaryVerifier is IBeneficiaryVerifier {
     /// @inheritdoc IBeneficiaryVerifier
     function verifyClaimProof(
         bytes32,
+        bytes32,
         address,
         bytes32,
         uint256,

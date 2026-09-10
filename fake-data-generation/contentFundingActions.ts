@@ -195,6 +195,7 @@ async function signClaimProof(
     types: {
       BeneficiaryClaim: [
         { name: 'beneficiaryId', type: 'bytes32' },
+        { name: 'namespaceHash', type: 'bytes32' },
         { name: 'claimant', type: 'address' },
         { name: 'nonce', type: 'bytes32' },
         { name: 'deadline', type: 'uint256' },
@@ -202,7 +203,7 @@ async function signClaimProof(
       ],
     },
     primaryType: 'BeneficiaryClaim',
-    message: { beneficiaryId: channelId, claimant, nonce, deadline, proofHash },
+    message: { beneficiaryId: channelId, namespaceHash: `0x${'00'.repeat(32)}`, claimant, nonce, deadline, proofHash },
   });
 }
 

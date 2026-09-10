@@ -48,6 +48,7 @@ Generalize `ChannelClaimProof`:
 ```text
 namespace
 canonicalIdentifier
+namespaceHash       // signed policy binding; zero only for generic/social claims
 claimant            // payout address to bind
 nonce
 deadline

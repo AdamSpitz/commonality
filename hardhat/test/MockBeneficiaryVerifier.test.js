@@ -19,6 +19,7 @@ describe("MockBeneficiaryVerifier", function () {
       expect(
         await mockVerifier.verifyClaimProof(
           ethers.id("test-channel"),
+          ethers.ZeroHash,
           claimant.address,
           ethers.id("nonce-1"),
           (await ethers.provider.getBlock("latest")).timestamp + 86400,

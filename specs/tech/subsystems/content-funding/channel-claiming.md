@@ -112,6 +112,7 @@ At the protocol level, a successful verification should be based on a short-live
 ```solidity
 struct BeneficiaryClaimProof {
     string channelId;        // canonical form, e.g. "twitter:uid:44196397" or "dns:example.org"
+    bytes32 namespaceHash;   // zero for generic claims; keccak256(namespace) when namespace policy applies
     address claimant;        // payout address to bind
     bytes32 nonce;           // backend-issued challenge nonce
     uint256 deadline;        // expiry for replay resistance
@@ -134,7 +135,7 @@ The registry verifies:
 - `nonce` has not already been used
 - `deadline` has not passed
 - `proofHash` is non-zero and anchors the public proof artifact the backend checked
-- `verifierSignature` is valid for the exact `(channelId, claimant, nonce, deadline, proofHash)` payload
+- `verifierSignature` is valid for the exact `(channelId, namespaceHash, claimant, nonce, deadline, proofHash)` payload. Binding `namespaceHash` prevents a namespaced proof from being replayed through the generic entrypoint to bypass its waiting period.
 
 This keeps the contract-side rule crisp even if we later support multiple verification methods behind the same interface.
 

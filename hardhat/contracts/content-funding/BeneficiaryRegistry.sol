@@ -28,6 +28,7 @@ error ClaimWaitingPeriodNotElapsed(uint256 withdrawableAt);
 interface IBeneficiaryVerifier {
     function verifyClaimProof(
         bytes32 beneficiaryId,
+        bytes32 namespaceHash,
         address claimant,
         bytes32 nonce,
         uint256 deadline,
@@ -275,7 +276,7 @@ contract BeneficiaryRegistry is IBeneficiaryRegistry, Guardable {
         bytes32 proofHash,
         bytes calldata verifierSignature
     ) external {
-        _verifyBeneficiary(beneficiaryId, claimant, nonce, deadline, proofHash, verifierSignature, 0);
+        _verifyBeneficiary(beneficiaryId, bytes32(0), claimant, nonce, deadline, proofHash, verifierSignature, 0);
     }
 
     /**
@@ -299,6 +300,7 @@ contract BeneficiaryRegistry is IBeneficiaryRegistry, Guardable {
         uint256 waitingPeriod = namespaceClaimWaitingPeriod[keccak256(bytes(namespace))];
         _verifyBeneficiary(
             beneficiaryId,
+            keccak256(bytes(namespace)),
             claimant,
             nonce,
             deadline,
@@ -310,6 +312,7 @@ contract BeneficiaryRegistry is IBeneficiaryRegistry, Guardable {
 
     function _verifyBeneficiary(
         bytes32 beneficiaryId,
+        bytes32 namespaceHash,
         address claimant,
         bytes32 nonce,
         uint256 deadline,
@@ -328,6 +331,7 @@ contract BeneficiaryRegistry is IBeneficiaryRegistry, Guardable {
 
         bool validProof = IBeneficiaryVerifier(verifier).verifyClaimProof(
             beneficiaryId,
+            namespaceHash,
             claimant,
             nonce,
             deadline,

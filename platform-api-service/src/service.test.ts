@@ -486,6 +486,7 @@ describe('PlatformApiService', () => {
       types: {
         BeneficiaryClaim: [
           { name: 'beneficiaryId', type: 'bytes32' },
+          { name: 'namespaceHash', type: 'bytes32' },
           { name: 'claimant', type: 'address' },
           { name: 'nonce', type: 'bytes32' },
           { name: 'deadline', type: 'uint256' },
@@ -495,6 +496,7 @@ describe('PlatformApiService', () => {
       primaryType: 'BeneficiaryClaim',
       message: {
         beneficiaryId: hashCanonicalId(confirmed.proof.beneficiaryId),
+        namespaceHash: `0x${'00'.repeat(32)}`,
         claimant: confirmed.proof.claimant,
         nonce: confirmed.proof.nonce,
         deadline: BigInt(confirmed.proof.deadline),
