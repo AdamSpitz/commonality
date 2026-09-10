@@ -2,6 +2,8 @@
 
 Rules for who can create assurance contracts for a creator's content, how creators verify their identity, and how they take ownership of their channel.
 
+Identity, payout binding, and escrow now live on the shared `BeneficiaryRegistry` / `BeneficiaryEscrow` ([claimable-beneficiaries.md](../claimable-beneficiaries.md)). Content occupancy and creator veto stay content-only (`ContentRegistry` + `CreatorAssuranceVeto`). Historical names in the rest of this page still say “channel”; they mean the same beneficiary identity plus tweet-specific occupancy.
+
 ## The problem
 
 We want *others* to be able to fund a creator's work even if the creator doesn't know anything about this system yet. That's the viral "someone offered money for your tweet" moment. But since we only allow one contract per content item (enforced by the [content registry](content-registry.md)) and there are prices and thresholds attached, there's a real opportunity cost if someone else creates a contract with terms the creator doesn't like.
@@ -352,20 +354,20 @@ The veto uses the existing `CancellableCondition` contract — a thin wrapper ar
 
 - Third-party-created contracts use a `CancellableCondition` wrapping the normal `EthThresholdCondition`. Creator-created contracts use the threshold condition directly (no cancellation possible).
 - The **factory** records `(contractAddress → channelId, isThirdParty)` at creation time. It already knows both values.
-- The **ChannelRegistry** — which already manages channel states and verified owners — gains a `vetoContract` function. This is channel governance, and the ChannelRegistry is the channel governance contract, so no separate veto-controller contract is needed.
+- Each content factory deploys a `CreatorAssuranceVeto` module. Identity control (`takeBeneficiaryControl` / `controlTakenAt`) lives on `BeneficiaryRegistry`; veto does not.
 
 ```solidity
 function vetoContract(address contractAddress) external;
 ```
 
-The ChannelRegistry allows the veto only if all of the following are true:
+`CreatorAssuranceVeto` allows the veto only if all of the following are true:
   - the caller is the verified owner of the relevant channel
   - the channel is in state 3 (creator-controlled)
   - the target contract is marked as third-party-created for that channel (checked via the factory)
   - the veto window has not expired (`block.timestamp <= controlTakenAt + vetoWindow`)
   - the contract has not already succeeded
 
-When the ChannelRegistry approves the veto, it calls `cancel()` on the contract's `CancellableCondition`. From there, normal assurance contract mechanics take over:
+When the veto module approves, it calls `cancel()` on the contract's `CancellableCondition`. From there, normal assurance contract mechanics take over:
 
 - `hasSucceeded()` returns `false` forever; `hasFailed()` returns `true` forever
 - The assurance contract's "buying allowed" check rejects purchases (since the condition has failed)
@@ -374,4 +376,4 @@ When the ChannelRegistry approves the veto, it calls `cancel()` on the contract'
 
 The veto window is bounded. After it expires, remaining pre-control contracts proceed as normal — the creator had their chance. This keeps the system predictable for token holders: if you buy tokens in a third-party contract, the creator might cancel it if they take control soon, but there's a known deadline after which your position is safe.
 
-**The mental model:** veto is not a special side door in the assurance contract. It is one more way for the contract's condition to become permanently failed, using infrastructure (`CancellableCondition`) that already exists for this purpose, administered by the channel governance contract (`ChannelRegistry`).
+**The mental model:** veto is not a special side door in the assurance contract. It is one more way for the contract's condition to become permanently failed, using infrastructure (`CancellableCondition`) that already exists for this purpose, administered by the content-only veto module — not the shared beneficiary registry.

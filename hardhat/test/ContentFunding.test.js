@@ -449,6 +449,36 @@ describe("ContentFunding", function () {
         .withArgs(channelId);
     });
 
+    it("Should rotate payout address when the current payout address authorizes it", async function () {
+      await mockVerifier.setValid(true);
+      await beneficiaryRegistry.verifyBeneficiary(channelId, alice.address, nonce, deadline, proofHash, verifierSignature);
+
+      await expect(beneficiaryRegistry.connect(alice).rotatePayoutAddress(channelId, bob.address))
+        .to.emit(beneficiaryRegistry, "PayoutAddressRotated")
+        .withArgs(channelId, alice.address, bob.address);
+
+      expect(await beneficiaryRegistry.payoutAddress(channelId)).to.equal(bob.address);
+      await expect(beneficiaryRegistry.connect(alice).takeBeneficiaryControl(channelId))
+        .to.be.revertedWithCustomError(beneficiaryRegistry, "OnlyPayoutAddressCanTakeControl");
+      await expect(beneficiaryRegistry.connect(bob).takeBeneficiaryControl(channelId))
+        .to.emit(beneficiaryRegistry, "BeneficiaryControlTaken")
+        .withArgs(channelId, bob.address);
+    });
+
+    it("Should revert rotatePayoutAddress from a non-payout wallet", async function () {
+      await mockVerifier.setValid(true);
+      await beneficiaryRegistry.verifyBeneficiary(channelId, alice.address, nonce, deadline, proofHash, verifierSignature);
+
+      await expect(beneficiaryRegistry.connect(bob).rotatePayoutAddress(channelId, bob.address))
+        .to.be.revertedWithCustomError(beneficiaryRegistry, "OnlyPayoutAddressCanRotate");
+    });
+
+    it("Should revert rotatePayoutAddress before verification", async function () {
+      await expect(beneficiaryRegistry.connect(alice).rotatePayoutAddress(channelId, bob.address))
+        .to.be.revertedWithCustomError(beneficiaryRegistry, "BeneficiaryNotVerified")
+        .withArgs(channelId);
+    });
+
     it("Should update verifier (owner only)", async function () {
       const newVerifier = bob;
 

@@ -3,6 +3,7 @@ import { encodeAbiParameters, encodeEventTopics } from 'viem';
 import type {
   BeneficiaryControlTakenEvent,
   BeneficiaryVerifiedEvent,
+  PayoutAddressRotatedEvent,
   ContentItemRegisteredEvent,
   ContractVetoedEvent,
   CreatorContractCreatedEvent,
@@ -81,6 +82,21 @@ function makeControlTakenEvent(overrides: Partial<BeneficiaryControlTakenEvent> 
     owner: OWNER_A,
     blockNumber: 120n,
     blockTimestamp: 1200n,
+    transactionHash: TX_HASH,
+    logIndex: 1,
+    ...overrides,
+  };
+}
+
+function makePayoutRotatedEvent(overrides: Partial<PayoutAddressRotatedEvent> = {}): PayoutAddressRotatedEvent {
+  return {
+    type: 'PayoutAddressRotated',
+    contractAddress: '0x9999999999999999999999999999999999999998',
+    beneficiaryId: CHANNEL_A,
+    oldPayoutAddress: OWNER_A,
+    newPayoutAddress: OWNER_C,
+    blockNumber: 110n,
+    blockTimestamp: 1100n,
     transactionHash: TX_HASH,
     logIndex: 1,
     ...overrides,
@@ -347,6 +363,26 @@ describe('content-funding query helpers', () => {
     assert.strictEqual(getOwnerForCanonicalChannelId(state, CHANNEL_A), OWNER_A);
     assert.strictEqual(getOwnerForCanonicalChannelId(state, CHANNEL_B), OWNER_B);
     assert.strictEqual(getOwnerForCanonicalChannelId(state, 'twitter:uid:missing'), null);
+  });
+
+  it('updates the folded payout address after rotation', () => {
+    const rotated = foldAllContentFundingEvents(
+      [],
+      [
+        makeVerifiedEvent({
+          beneficiaryId: CHANNEL_B,
+          payoutAddress: OWNER_B,
+        }),
+        makePayoutRotatedEvent({
+          beneficiaryId: CHANNEL_B,
+          oldPayoutAddress: OWNER_B,
+          newPayoutAddress: OWNER_C,
+        }),
+      ],
+      [],
+      [],
+    );
+    assert.strictEqual(getOwnerForCanonicalChannelId(rotated, CHANNEL_B), OWNER_C);
   });
 
   it('builds a channel overview from folded state', () => {

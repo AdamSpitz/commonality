@@ -1956,3 +1956,16 @@ for tweet occupancy (that's fine); Channel* types in platform-api TS.
 
 Still needed: remaining Channel* copy in older content-funding specs;
 content occupancy still keyed as channels (intentional).
+
+## 2026-09-10 — Payout rotation for claimed beneficiaries
+
+- Hardhat tests cover `rotatePayoutAddress` (current payout only; unverified
+  reverts; rotated wallet is who can take control).
+- SDK folds `PayoutAddressRotated` into beneficiary owner, decodes/fetches the
+  event, and exposes `rotatePayoutAddress`. Indexer event cache registers it.
+- Website claim UI lets the current payout wallet set a replacement address.
+- Content-funding specs (escrow interface, veto admin, platform API proof name)
+  now describe Beneficiary* / CreatorAssuranceVeto.
+
+Still needed: remaining historical Channel* snippets in channel-claiming.md
+proof structs; content occupancy still keyed as channels (intentional).

@@ -3,6 +3,7 @@ import type {
   ContentItemReleasedEvent,
   BeneficiaryVerifiedEvent,
   BeneficiaryControlTakenEvent,
+  PayoutAddressRotatedEvent,
   ContractVetoedEvent,
   DepositedEvent,
   WithdrawnEvent,
@@ -17,6 +18,7 @@ import {
   decodeContentItemReleasedEvent,
   decodeBeneficiaryVerifiedEvent,
   decodeBeneficiaryControlTakenEvent,
+  decodePayoutAddressRotatedEvent,
   decodeContractVetoedEvent,
   decodeDepositedEvent,
   decodeWithdrawnEvent,
@@ -55,7 +57,7 @@ export async function fetchAndFoldContentFundingState(
   }
 
   const contentRegistryEvents: (ContentItemRegisteredEvent | ContentItemReleasedEvent)[] = [];
-  const beneficiaryRegistryEvents: (BeneficiaryVerifiedEvent | BeneficiaryControlTakenEvent)[] = [];
+  const beneficiaryRegistryEvents: (BeneficiaryVerifiedEvent | BeneficiaryControlTakenEvent | PayoutAddressRotatedEvent)[] = [];
   const beneficiaryEscrowEvents: (DepositedEvent | WithdrawnEvent)[] = [];
   const creatorContractEvents: CreatorContractCreatedEvent[] = [];
   const contractVetoedEvents: ContractVetoedEvent[] = [];
@@ -80,6 +82,11 @@ export async function fetchAndFoldContentFundingState(
       case 'BeneficiaryControlTaken': {
         const d = decodeBeneficiaryControlTakenEvent(raw);
         if (d) beneficiaryRegistryEvents.push({ type: 'BeneficiaryControlTaken', ...d });
+        break;
+      }
+      case 'PayoutAddressRotated': {
+        const d = decodePayoutAddressRotatedEvent(raw);
+        if (d) beneficiaryRegistryEvents.push({ type: 'PayoutAddressRotated', ...d });
         break;
       }
       case 'ContractVetoed': {

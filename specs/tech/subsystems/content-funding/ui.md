@@ -46,7 +46,7 @@ The public-facing page for a creator's funded content on a specific platform. Th
 - Platform badge
 - Channel state badge
 - **Total funding raised** across all contracts
-- **Escrowed balance** (from `foldChannelEscrow`) — shown prominently if > 0, since this is money waiting for the creator
+- **Escrowed balance** (from `foldBeneficiaryEscrow`) — shown prominently if > 0, since this is money waiting for the creator
 - Verified owner address (if verified)
 
 ### Above-the-fold for unclaimed channels

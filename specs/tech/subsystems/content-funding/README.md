@@ -50,14 +50,14 @@ The UI maintains a list of known platform contract sets. Assurance contracts cre
       "factory": "0xabc...",
       "registry": "0x123...",
       "escrow": "0x456...",
-      "channelRegistry": "0x789...",
+      "beneficiaryRegistry": "0x789...",
       "validUntil": 1720000000
     },
     {
       "factory": "0xdef...",
       "registry": "0x...",
       "escrow": "0x...",
-      "channelRegistry": "0x...",
+      "beneficiaryRegistry": "0x...",
       "validFrom": 1720000000
     }
   ]

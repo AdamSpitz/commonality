@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Alert, Button, Paper, Stack, Typography } from '@mui/material'
+import { Alert, Button, Paper, Stack, TextField, Typography } from '@mui/material'
 import { useAccount, usePublicClient } from 'wagmi'
+import { isAddress } from 'viem'
 import { BeneficiaryEscrowAbi, BeneficiaryRegistryAbi } from '@commonality/sdk/abis'
-import { hashBeneficiaryId, type ChannelState } from '@commonality/sdk/content-funding'
+import { hashBeneficiaryId, rotatePayoutAddress, type ChannelState } from '@commonality/sdk/content-funding'
 import { ClaimFlowModal } from '../../content-funding'
-import { getRuntimeConfigValue } from '../../shared'
+import { getRuntimeConfigValue, humanizeTxError, useWriteClients } from '../../shared'
 
 type WebsiteClaimSectionProps = {
   domain: string
@@ -19,9 +20,15 @@ function channelStateFromUint(value: number): ChannelState {
 export function WebsiteClaimSection({ domain }: WebsiteClaimSectionProps) {
   const { address, isConnected } = useAccount()
   const publicClient = usePublicClient()
+  const writeClients = useWriteClients(address)
   const [claimOpen, setClaimOpen] = useState(false)
   const [escrowBalance, setEscrowBalance] = useState(0n)
   const [channelState, setChannelState] = useState<ChannelState>('unclaimed')
+  const [payoutAddress, setPayoutAddress] = useState<string | null>(null)
+  const [newPayoutAddress, setNewPayoutAddress] = useState('')
+  const [rotating, setRotating] = useState(false)
+  const [rotateError, setRotateError] = useState<string | null>(null)
+  const [rotateSuccess, setRotateSuccess] = useState<string | null>(null)
   const [withdrawableAt, setWithdrawableAt] = useState<number | undefined>(undefined)
   const [withdrawLocked, setWithdrawLocked] = useState(false)
   const [loadError, setLoadError] = useState<string | null>(null)
@@ -34,7 +41,7 @@ export function WebsiteClaimSection({ domain }: WebsiteClaimSectionProps) {
     if (!publicClient || !registryAddress || !escrowAddress) return
     try {
       setLoadError(null)
-      const [state, balance] = await Promise.all([
+      const [state, balance, payout] = await Promise.all([
         publicClient.readContract({
           address: registryAddress,
           abi: BeneficiaryRegistryAbi,
@@ -47,9 +54,16 @@ export function WebsiteClaimSection({ domain }: WebsiteClaimSectionProps) {
           functionName: 'balance',
           args: [beneficiaryId],
         }) as Promise<bigint>,
+        publicClient.readContract({
+          address: registryAddress,
+          abi: BeneficiaryRegistryAbi,
+          functionName: 'payoutAddress',
+          args: [beneficiaryId],
+        }) as Promise<string>,
       ])
       setChannelState(channelStateFromUint(Number(state)))
       setEscrowBalance(balance)
+      setPayoutAddress(Number(state) > 0 ? payout : null)
       if (Number(state) > 0) {
         const at = await publicClient.readContract({
           address: registryAddress,
@@ -63,6 +77,7 @@ export function WebsiteClaimSection({ domain }: WebsiteClaimSectionProps) {
       } else {
         setWithdrawableAt(undefined)
         setWithdrawLocked(false)
+        setPayoutAddress(null)
       }
     } catch (err) {
       setLoadError(err instanceof Error ? err.message : 'Could not load beneficiary claim state')
@@ -74,6 +89,42 @@ export function WebsiteClaimSection({ domain }: WebsiteClaimSectionProps) {
     // Reload on identity/client change; reload closes over those values.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [publicClient, registryAddress, escrowAddress, beneficiaryId])
+
+  const canRotate = Boolean(
+    address
+    && payoutAddress
+    && address.toLowerCase() === payoutAddress.toLowerCase()
+    && channelState !== 'unclaimed'
+    && writeClients
+    && registryAddress,
+  )
+
+  const handleRotate = async () => {
+    if (!writeClients || !registryAddress) return
+    const next = newPayoutAddress.trim()
+    if (!isAddress(next)) {
+      setRotateError('Enter a valid Ethereum address')
+      return
+    }
+    try {
+      setRotating(true)
+      setRotateError(null)
+      setRotateSuccess(null)
+      await rotatePayoutAddress(
+        writeClients,
+        { address: registryAddress, abi: BeneficiaryRegistryAbi },
+        beneficiaryId,
+        next,
+      )
+      setRotateSuccess(`Payout address updated to ${next}`)
+      setNewPayoutAddress('')
+      await reload()
+    } catch (err) {
+      setRotateError(humanizeTxError(err, 'Could not rotate payout address'))
+    } finally {
+      setRotating(false)
+    }
+  }
 
   if (!registryAddress || !escrowAddress) return null
 
@@ -90,12 +141,41 @@ export function WebsiteClaimSection({ domain }: WebsiteClaimSectionProps) {
           visible before escrow can be withdrawn.
         </Typography>
         {loadError && <Alert severity="warning">{loadError}</Alert>}
+        {payoutAddress && (
+          <Typography color="text.secondary">
+            Current payout wallet: {payoutAddress}
+          </Typography>
+        )}
         {isConnected ? (
           <Button variant="contained" onClick={() => setClaimOpen(true)}>
             Claim {domain}
           </Button>
         ) : (
           <Alert severity="info">Connect a wallet to start the claim.</Alert>
+        )}
+        {canRotate && (
+          <Stack spacing={1}>
+            <Typography variant="subtitle2">Rotate payout address</Typography>
+            <Typography variant="body2" color="text.secondary">
+              Only this wallet can authorize a replacement. A new website proof
+              cannot redirect established funds by itself.
+            </Typography>
+            <TextField
+              label="New payout address"
+              value={newPayoutAddress}
+              onChange={(event) => setNewPayoutAddress(event.target.value)}
+              size="small"
+            />
+            <Button
+              variant="outlined"
+              onClick={() => { void handleRotate() }}
+              disabled={rotating}
+            >
+              {rotating ? 'Updating…' : 'Update payout address'}
+            </Button>
+            {rotateError && <Alert severity="error">{rotateError}</Alert>}
+            {rotateSuccess && <Alert severity="success">{rotateSuccess}</Alert>}
+          </Stack>
         )}
       </Stack>
       {address && (

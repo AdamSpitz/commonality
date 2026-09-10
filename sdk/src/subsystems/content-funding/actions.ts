@@ -402,6 +402,30 @@ export async function takeBeneficiaryControl(
 }
 
 /**
+ * Replace the verified payout address. Only the current payout wallet may
+ * authorize the replacement; a later identity proof alone cannot.
+ */
+export async function rotatePayoutAddress(
+  clients: WriteClients,
+  registryContract: { address: Address; abi: Abi },
+  beneficiaryId: string,
+  newPayoutAddress: Address,
+): Promise<{ hash: Hash }> {
+  const hash = await clients.walletClient.writeContract({
+    address: registryContract.address,
+    abi: registryContract.abi,
+    functionName: 'rotatePayoutAddress',
+    args: [beneficiaryId as `0x${string}`, newPayoutAddress],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
+  });
+
+  await clients.publicClient.waitForTransactionReceipt({ hash });
+
+  return { hash };
+}
+
+/**
  * Veto a third-party content-funding contract.
  *
  * Only available to the channel owner within the veto window after

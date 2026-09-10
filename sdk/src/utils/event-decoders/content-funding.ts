@@ -94,6 +94,29 @@ export function decodeBeneficiaryControlTakenEvent(
   };
 }
 
+export function decodePayoutAddressRotatedEvent(
+  rawEvent: RawEventFromCache,
+): {
+  beneficiaryId: string;
+  oldPayoutAddress: `0x${string}`;
+  newPayoutAddress: `0x${string}`;
+  contractAddress: `0x${string}`;
+  blockNumber: bigint;
+  blockTimestamp: bigint;
+  transactionHash: `0x${string}`;
+  logIndex: number;
+} | null {
+  if (rawEvent.eventName !== 'PayoutAddressRotated') return null;
+  const args = decodeRawEventArgs(rawEvent, BeneficiaryRegistryAbi);
+  if (!args) return null;
+  return {
+    beneficiaryId: args.beneficiaryId as string,
+    oldPayoutAddress: args.oldPayoutAddress as `0x${string}`,
+    newPayoutAddress: args.newPayoutAddress as `0x${string}`,
+    ...decodedLogMeta(rawEvent),
+  };
+}
+
 export function decodeContractVetoedEvent(
   rawEvent: RawEventFromCache,
 ): {

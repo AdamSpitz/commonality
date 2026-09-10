@@ -66,7 +66,7 @@ export interface PendingVerificationChallenge {
   verificationPostTemplate: string;
 }
 
-export interface ChannelClaimProof {
+export interface BeneficiaryClaimProof {
   channelId: string;
   claimant: Address;
   nonce: Hex;
@@ -75,8 +75,11 @@ export interface ChannelClaimProof {
   verifierSignature: Hex;
 }
 
+/** @deprecated Use BeneficiaryClaimProof. */
+export type ChannelClaimProof = BeneficiaryClaimProof;
+
 export interface VerificationConfirmation {
-  proof: ChannelClaimProof;
+  proof: BeneficiaryClaimProof;
   txHash?: Hex;
   observedPostId?: string;
 }

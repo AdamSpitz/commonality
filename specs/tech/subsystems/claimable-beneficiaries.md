@@ -117,4 +117,7 @@ Content veto, veto-window duration, and third-party success gating live on
 `CreatorAssuranceVeto` (one per content factory); the shared registry only
 records identity control (`takeBeneficiaryControl` / `controlTakenAt`)
 and exposes `beneficiaryState` / `isBeneficiaryControlled` rather than
-channel-creator language.
+channel-creator language. The current payout wallet can call
+`rotatePayoutAddress`; the indexer and website claim UI fold/surface that
+rotation. Identity proof without the current wallet's authorization still
+cannot redirect established funds.

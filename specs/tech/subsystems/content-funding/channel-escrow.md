@@ -15,40 +15,38 @@ In the current contract implementation, successful contracts created while a cha
 ## Interface
 
 ```solidity
-interface IChannelEscrow {
-    /// @notice Deposit funds for a channel. Called by successful assurance contracts.
-    /// @param channelId The canonical channel ID hash (keccak256 of e.g. "twitter:uid:44196397")
-    function deposit(bytes32 channelId) external payable;
+interface IBeneficiaryEscrow {
+    /// @notice Deposit funds for a beneficiary. Called by successful assurance contracts.
+    /// @param beneficiaryId keccak256 of (namespace, canonical identifier)
+    function deposit(bytes32 beneficiaryId) external payable;
 
-    /// @notice Withdraw all escrowed funds for a channel. Only callable by the verified owner.
-    /// @param channelId The canonical channel ID hash
-    function withdraw(bytes32 channelId) external;
+    /// @notice Withdraw all escrowed funds. Only the registry's current payout address.
+    function withdraw(bytes32 beneficiaryId) external;
 
-    /// @notice Check the escrowed balance for a channel.
-    /// @param channelId The canonical channel ID hash
-    function balance(bytes32 channelId) external view returns (uint256);
+    /// @notice Check the escrowed balance for a beneficiary.
+    function balance(bytes32 beneficiaryId) external view returns (uint256);
 }
 ```
 
 ## Storage
 
 ```
-mapping(bytes32 channelId => uint256 amount)
+mapping(bytes32 beneficiaryId => uint256 amount)
 ```
 
 That's it. The escrow doesn't need to know about content items, assurance contracts, or token mechanics. It just holds ETH keyed by channel ID.
 
 ## Authorization
 
-The escrow needs to know who the verified owner of a channel is. It reads this from the channel registry (the same contract that handles channel state transitions in [channel-claiming.md](channel-claiming.md)). `withdraw` checks that `msg.sender` is the verified address for that channel ID.
+The escrow needs to know who the verified payout address is. It reads this from `BeneficiaryRegistry` (see [claimable-beneficiaries.md](../claimable-beneficiaries.md) and [channel-claiming.md](channel-claiming.md)). `withdraw` checks that `msg.sender` is the current payout address, and that any namespace claim waiting period has elapsed.
 
 The escrow does **not** restrict who can call `deposit`. Any contract or address can deposit funds for any channel. This keeps the interface between assurance contracts and the escrow minimal — the assurance contract just sends ETH to `deposit(channelId)` when it succeeds.
 
 ## Events
 
 ```solidity
-event Deposited(bytes32 indexed channelId, address indexed from, uint256 amount);
-event Withdrawn(bytes32 indexed channelId, address indexed to, uint256 amount);
+event Deposited(bytes32 indexed beneficiaryId, address indexed from, uint256 amount);
+event Withdrawn(bytes32 indexed beneficiaryId, address indexed to, uint256 amount);
 ```
 
 ## What it doesn't do
@@ -61,9 +59,9 @@ event Withdrawn(bytes32 indexed channelId, address indexed to, uint256 amount);
 ## Relationship to other contracts
 
 ```
-AssuranceContract (succeeds) ──deposit(channelId)──→ ChannelEscrow
-                                                          │
-Creator (verified) ──withdraw(channelId)──────────────────┘
-                                                          │
-ChannelEscrow ──reads verified owner from──→ ChannelRegistry
+AssuranceContract (succeeds) ──deposit(beneficiaryId)──→ BeneficiaryEscrow
+                                                               │
+Verified payout ──withdraw(beneficiaryId)──────────────────────┘
+                                                               │
+BeneficiaryEscrow ──reads payout address from──→ BeneficiaryRegistry
 ```

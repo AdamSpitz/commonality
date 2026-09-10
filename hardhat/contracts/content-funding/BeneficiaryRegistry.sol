@@ -23,7 +23,7 @@ error ClaimWaitingPeriodNotElapsed(uint256 withdrawableAt);
 
 /**
  * @title IBeneficiaryVerifier
- * @notice Interface for verifying channel ownership claim proofs
+ * @notice Interface for verifying beneficiary identity claim proofs
  */
 interface IBeneficiaryVerifier {
     function verifyClaimProof(
