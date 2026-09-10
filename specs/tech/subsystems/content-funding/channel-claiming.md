@@ -253,6 +253,8 @@ Each platform gets its own ChannelRegistry deployment with a platform-appropriat
 
 Anyone can deploy a new platform's contract set. The UI decides which deployments to trust.
 
+Generalizing this escrow-until-claim pattern past social platforms is [fund-now-claim-later.md](/specs/product/fund-now-claim-later.md) (product) and [claimable-beneficiaries.md](../claimable-beneficiaries.md) (tech). No users yet: refactor `ChannelRegistry` / `ChannelEscrow` onto that primitive rather than wrapping them. Org identities must not inherit content-item occupancy or creator veto.
+
 ## Creator onboarding
 
 The user-facing source of truth for this story is [Get your content funded](/docs/end-user/content-funding/get-your-content-funded.md). Keep this section focused on the technical/product rules behind that experience; do not maintain a second full copy of the creator-facing copy here.

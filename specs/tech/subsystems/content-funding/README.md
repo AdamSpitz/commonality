@@ -11,8 +11,8 @@ A subsystem for retroactively funding individual pieces of content via creator-l
 - **[Content registry](content-registry.md)** — On-chain mapping ensuring each content item appears in at most one *active* assurance contract.
 - **[Creator contracts](creator-contracts.md)** — Creator-level assurance contracts using ERC-1155 token types for individual content items.
 - **[Materialization](materialization.md)** — accepted channel-bound design for turning a successful future-content round into concrete recognition tokens.
-- **[Channel claiming](channel-claiming.md)** — Rules for who can create contracts for a creator's content, and how creators take ownership.
-- **[Channel escrow](channel-escrow.md)** — Holding contract that receives funds for unclaimed channels and releases them when the creator verifies.
+- **[Channel claiming](channel-claiming.md)** — Rules for who can create contracts for a creator's content, and how creators take ownership. Intended to sit on the general [claimable-beneficiaries](../claimable-beneficiaries.md) primitive (refactor in place; no users to keep compatible).
+- **[Channel escrow](channel-escrow.md)** — Holding contract that receives funds for unclaimed channels and releases them when the creator verifies. Same intended extraction.
 - **[Content attesters](content-attesters.md)** — AI services that evaluate content quality and publish attestations. General framework; specific attester criteria are per-use-case.
 - **[Platform API service](platform-api-service.md)** — Backend service that resolves platform handles/URLs to stable channel IDs, validates content ownership, and handles channel verification (tweet-based proof).
 - **[Indexer](indexer.md)** — Data architecture: event cache integration, SDK fold functions, notification service.

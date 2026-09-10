@@ -4,6 +4,8 @@ The point isn't "charities are bad and we should replace them." It's that charit
 
 The friendliest on-ramp of all is [matching funds](../credible-solution/matching-funds.md): something every org already understands and feels good about, and a low-threat way to shift the needle from big-org funding toward crowdfunding.
 
+A different on-ramp, for orgs that have not heard of us yet: a third party can pool money against the org's **website** (or other controllable public name) until someone who controls that name claims it. See [claiming-an-org.md](./claiming-an-org.md) and [fund-now-claim-later.md](/specs/product/fund-now-claim-later.md). That is not "trust the third party to forward a PayPal donation," and it is not money flowing through us.
+
 ## What a charity already has (and what it doesn't love)
 
 A charity already has a cause, donors who trust it, and expertise in evaluating projects. What it *doesn't* love dealing with: organizational overhead (staff, offices, compliance, fundraising operations), donor skepticism about where money goes, and the difficulty of convincing new donors that this charity specifically is worth trusting.

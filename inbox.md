@@ -33,6 +33,8 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 ### Features that I'm realizing would make a big difference
 
+- Fund-now / claim-later is now the [focus](focus.md) (replaced testnet-usable + CauseStarter UI). Product [fund-now-claim-later.md](specs/product/fund-now-claim-later.md), tech [claimable-beneficiaries.md](specs/tech/subsystems/claimable-beneficiaries.md).
+
 - Bridge-creator package is done; remaining work (CSM beat-agent stand-up, Civility-agent context source adapter, feeding signing outcomes into anchor reflection, and end-to-end rehearsal) is enumerated in [`bridge-creator-csm-next-steps.md`](workflow/bridge-creator-csm-next-steps.md). Mostly LLM-doable; the rehearsal pass needs your judgment.
 
 - [ ] **(Ask)** Claim links for wallet-less donors: decide hosted vs. self-hosted Linkdrop relay (see [bridges.md](specs/tech/bridges.md#the-one-real-open-decision-hosted-vs-self-hosted-relay) for the full evaluation — Linkdrop SDK V3 is already the settled choice over a custom `TradFiBridgeEscrow`). Needs a small spike to confirm the relay self-hosts cleanly and check the per-claim fee/gas model.

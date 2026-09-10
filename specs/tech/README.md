@@ -43,6 +43,7 @@ Core product subsystems:
 - [subsystems/delegation/](subsystems/delegation/README.md)
 - [subsystems/aligning/](subsystems/aligning/README.md)
 - [subsystems/content-funding/](subsystems/content-funding/README.md)
+- [subsystems/claimable-beneficiaries.md](subsystems/claimable-beneficiaries.md) — extract channel claim/escrow into a general beneficiary primitive (content channels refactor onto it; websites next). Current [focus](/focus.md).
 - [subsystems/subjectiv/](subsystems/subjectiv/README.md)
 - [subsystems/mutable-refs/](subsystems/mutable-refs/README.md)
 

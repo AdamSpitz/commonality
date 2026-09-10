@@ -2,16 +2,10 @@
 
 High-level work we are actually concentrating on right now. Not a to-do list — those live in [TODO.md](./TODO.md), [causestarter/TODO.md](./causestarter/TODO.md), and the [testnet working plan](./workflow/testnet-working-plan.md). At most three items. Keep this file current.
 
-## 1. Make testnet usable
+## 1. Fund now, beneficiary claims later
 
-The MVP is implemented in code; the live testnet stack is not yet a credible shared lab. Goal: Adam and Sam can use the deployed testnet without fighting ops, config, or broken paths.
+Generalize unclaimed-channel escrow so a third party can pool money for a public identity (MVP: a website; also today's X/YouTube/Substack channels) before the beneficiary is on the system. The third party cannot take the funds; we are not the intermediary.
 
-Ordered work is in [`workflow/testnet-working-plan.md`](./workflow/testnet-working-plan.md). Do the next unchecked item there. Mass fake activity is **not** part of this focus.
+Refactor existing `ChannelRegistry` / `ChannelEscrow` onto this primitive (no users to keep compatible). Content occupancy and creator veto stay content-only.
 
-Related: [project status](./workflow/project-status.md), [MVP](./specs/product/mvp.md), verifier reports.
-
-## 2. Finish the CauseStarter UI
-
-CauseStarter is the founder-first surface and the intended primary entry. Goal: it is complete enough as a product UI that remaining items are known leftovers, not “the app isn’t there yet.”
-
-Backlog: [`causestarter/TODO.md`](./causestarter/TODO.md). Product/tech domain notes: [product UI domains](./specs/product/ui-domains.md), [technical UI domains](./specs/tech/ui-domains.md).
+Product: [`specs/product/fund-now-claim-later.md`](./specs/product/fund-now-claim-later.md). Tech: [`specs/tech/subsystems/claimable-beneficiaries.md`](./specs/tech/subsystems/claimable-beneficiaries.md). Adoption story: [`claiming-an-org.md`](./docs/end-user/commonality/vision-and-strategy/ease-of-adoption/claiming-an-org.md).
