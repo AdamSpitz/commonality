@@ -65,6 +65,13 @@ describe('causeRoster', () => {
     expect(validateSlug('')).toMatch(/slug/i)
   })
 
+  it('does not leave a trailing hyphen after 64-char truncation', () => {
+    const slug = normalizeSlug(`${'a'.repeat(60)}-modified`)
+    expect(slug.endsWith('-')).toBe(false)
+    expect(slug.length).toBeLessThanOrEqual(64)
+    expect(validateSlug(slug)).toBeNull()
+  })
+
   it('builds roster fields from all founder-authored display text', () => {
     const cause = draft({
       title: 'Oak Street lights',

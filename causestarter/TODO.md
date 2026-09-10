@@ -7,7 +7,7 @@ open **if they stay listed here**.
 
 ## Product / UX
 
-- [ ] `normalizeSlug` slices to 64 *after* stripping hyphens, so a cut on a hyphen can fail `validateSlug`. Bridge-creator `slugifyCluster` now strips again after slice; align CauseStarter if organizers hit 64-char slugs.
+- [x] `normalizeSlug` strips a trailing hyphen after the 64-char slice (same as bridge-creator `slugifyCluster`).
 
 - [x] **Cluster-page mediator opt-in** and **statement-level triples** (`/bridge/triple`) — [ADR 0012](/specs/decisions/0012-mediator-is-an-address.md).
 
@@ -38,7 +38,7 @@ open **if they stay listed here**.
 - [ ] Safety filter is MVP/heuristic + LLM policy text — not legal-grade; version/align with operator/legal specs later.
 - [ ] Unpublished draft state still in `localStorage` only — multi-device recovery of *drafts* later (published rosters are on chain; published *bookmarks* follow the wallet `bookmarked-causes` ref).
 - [ ] Cause bookmarks: `bookmarked-causes` is a public wallet `updateRef`; the only user-facing warning is the Causes list-page disclaimer. Keep/remove, reconnect hydrate, and tombstoned union-sync (a later keep can restore) are in place; Playwright covers keep/remove + reconnect.
-- [ ] **Project bookmarks are last-local-wins.** `bookmarked-projects` hydrates only when this device has no local key, then `persist` writes the local list over the wallet ref. A second device that bookmarked in between is clobbered. An in-flight hydrate no longer overwrites a click that landed during `getUserRef`. Reuse cause-bookmark keep/removed tombstones (or merge-before-write) before this is more than a personal list.
+- [x] **Project bookmarks merge with tombstones.** `bookmarked-projects` v2 is keep/removed with stamps; hydrate always merges with the wallet ref; persist merge-before-write (no last-local-wins clobber).
 - [ ] Statement `bookmarks` ref is still reserved infrastructure only — no CauseStarter (or main `ui`) surface for remembering a statement without signing it.
 - [ ] No Privy path / full parity with main `ui` wallet story yet.
 - [ ] Product: how CauseStarter ranks vs other domains in nav/marketing once it’s “the main thing.”

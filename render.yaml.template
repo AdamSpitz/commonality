@@ -25,19 +25,13 @@ services:
       - key: PORT
         value: 3002
       - key: XAI_API_KEY
-        sync: false  # Secret
+        sync: false  # Secret; used when OPENROUTER_API_KEY is unset
       - key: OPENROUTER_API_KEY
-        sync: false  # Optional fallback secret
-      - key: CAUSE_ASSIST_API_BASE_URL
-        value: https://openrouter.ai/api/v1
-      - key: CAUSE_ASSIST_SUGGEST_MODEL
-        value: deepseek/deepseek-v4-flash-0731
-      - key: CAUSE_ASSIST_SAFETY_MODEL
-        value: deepseek/deepseek-v4-flash-0731
-      - key: CAUSE_ASSIST_IMPLICATION_MODEL
-        value: deepseek/deepseek-v4-flash-0731
-      - key: CAUSE_ASSIST_COHERENCE_MODEL
-        value: deepseek/deepseek-v4-flash-0731
+        sync: false  # Preferred: cheap deepseek/deepseek-v4-flash-0731
+      # Do not pin CAUSE_ASSIST_API_BASE_URL or CAUSE_ASSIST_*_MODEL here.
+      # loadConfigFromEnv picks OpenRouter+flash when OPENROUTER_API_KEY is set,
+      # otherwise xAI + grok-4.5. Pinning OpenRouter's URL with only XAI_API_KEY
+      # caused live 401s (xAI credential sent to OpenRouter).
       - key: CAUSE_ASSIST_COHERENCE_ATTESTER_ADDRESS
         value: "${CAUSE_ASSIST_COHERENCE_ATTESTER_ADDRESS}"
     healthCheckPath: /health

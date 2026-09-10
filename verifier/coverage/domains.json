@@ -9,7 +9,7 @@
       "coverage": {
         "routeSmokeCheckIds": ["automated.test-fast", "automated.test-full"],
         "artifactSmokeCheckIds": ["artifact.ipfs-domain-smoke"],
-        "manualReviewCheckIds": ["review.founder-e2e.causestarter", "review.workflow-clarity.causestarter", "review.real-ui.touched-domain"],
+        "manualReviewCheckIds": ["review.founder-e2e.causestarter", "review.workflow-clarity.causestarter", "review.real-ui.touched-domain", "review.testnet-two-person-lab"],
         "docsCoverage": "covered-by-cross-link-and-docs-inventory in automated.test-fast"
       },
       "deferred": []

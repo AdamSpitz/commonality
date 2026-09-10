@@ -87,6 +87,13 @@ const browserTestnetChecks = [
       COMMONALITY_VERIFIER_ENABLE_TESTNET_BROWSER_JOURNEYS: '1',
     },
   },
+  {
+    checkId: 'testnet.two-person-browser',
+    env: {
+      COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE: '1',
+      COMMONALITY_VERIFIER_ENABLE_TESTNET_BROWSER_JOURNEYS: '1',
+    },
+  },
 ]
 
 const mutatingTestnetChecks = [

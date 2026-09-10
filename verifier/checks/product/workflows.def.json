@@ -35,6 +35,11 @@
       "role": "product-judgment"
     },
     {
+      "kind": "check",
+      "id": "review.testnet-two-person-lab",
+      "role": "product-judgment"
+    },
+    {
       "kind": "params",
       "data": {
         "label": "product.workflows",
