@@ -2,7 +2,7 @@ import assert from 'assert';
 import { encodeAbiParameters, encodeEventTopics } from 'viem';
 import type {
   ChannelControlTakenEvent,
-  ChannelVerifiedEvent,
+  BeneficiaryVerifiedEvent,
   ContentItemRegisteredEvent,
   ContractVetoedEvent,
   CreatorContractCreatedEvent,
@@ -59,12 +59,12 @@ function makeRegisteredEvent(overrides: Partial<ContentItemRegisteredEvent> = {}
   };
 }
 
-function makeVerifiedEvent(overrides: Partial<ChannelVerifiedEvent> = {}): ChannelVerifiedEvent {
+function makeVerifiedEvent(overrides: Partial<BeneficiaryVerifiedEvent> = {}): BeneficiaryVerifiedEvent {
   return {
-    type: 'ChannelVerified',
+    type: 'BeneficiaryVerified',
     contractAddress: '0x9999999999999999999999999999999999999998',
-    channelId: CHANNEL_A,
-    owner: OWNER_A,
+    beneficiaryId: CHANNEL_A,
+    payoutAddress: OWNER_A,
     blockNumber: 90n,
     blockTimestamp: 900n,
     transactionHash: TX_HASH,
@@ -242,8 +242,8 @@ describe('content-funding query helpers', () => {
       makeVerifiedEvent(),
       makeControlTakenEvent(),
       makeVerifiedEvent({
-        channelId: CHANNEL_B,
-        owner: '0x2222222222222222222222222222222222222222',
+        beneficiaryId: CHANNEL_B,
+        payoutAddress: '0x2222222222222222222222222222222222222222',
         blockNumber: 95n,
         blockTimestamp: 950n,
         logIndex: 2,
@@ -422,8 +422,8 @@ describe('content-funding query helpers', () => {
       ],
       [
         makeVerifiedEvent({
-          channelId: substackChannelId,
-          owner: OWNER_A,
+          beneficiaryId: substackChannelId,
+          payoutAddress: OWNER_A,
         }),
       ],
       [],
@@ -454,8 +454,8 @@ describe('content-funding query helpers', () => {
       ],
       [
         makeVerifiedEvent({
-          channelId: '0xfeed',
-          owner: OWNER_A,
+          beneficiaryId: '0xfeed',
+          payoutAddress: OWNER_A,
         }),
       ],
       [],

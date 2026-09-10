@@ -51,23 +51,23 @@ export function decodeContentItemReleasedEvent(
   };
 }
 
-export function decodeChannelVerifiedEvent(
+export function decodeBeneficiaryVerifiedEvent(
   rawEvent: RawEventFromCache,
 ): {
-  channelId: string;
-  owner: `0x${string}`;
+  beneficiaryId: string;
+  payoutAddress: `0x${string}`;
   contractAddress: `0x${string}`;
   blockNumber: bigint;
   blockTimestamp: bigint;
   transactionHash: `0x${string}`;
   logIndex: number;
 } | null {
-  if (rawEvent.eventName !== 'ChannelVerified') return null;
+  if (rawEvent.eventName !== 'BeneficiaryVerified') return null;
   const args = decodeRawEventArgs(rawEvent, BeneficiaryRegistryAbi);
   if (!args) return null;
   return {
-    channelId: args.channelId as string,
-    owner: args.owner as `0x${string}`,
+    beneficiaryId: args.beneficiaryId as string,
+    payoutAddress: args.payoutAddress as `0x${string}`,
     ...decodedLogMeta(rawEvent),
   };
 }

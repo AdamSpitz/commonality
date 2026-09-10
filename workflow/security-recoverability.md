@@ -142,7 +142,7 @@ Rationale and consequences:
   (`ChannelVerifier.sol:56`), so the verifier cannot even be nulled out in a
   hurry. See the to-do items below.
 - **Why M-of-N verifier signers can wait.** On-chain proof-hash anchoring
-  (`ChannelRegistry.verifyChannel` emits `ChannelProofAnchored`) already
+  (`BeneficiaryRegistry.verifyBeneficiary` emits `BeneficiaryProofAnchored`) already
   converts "trust us" into "publicly auditable," which is most of the benefit;
   and the real exit for this trust concentration is the ENS/zkTLS trajectory,
   not more signers on a lever that is meant to shrink. Adding it now would
@@ -203,9 +203,9 @@ hands (hardware, dashboards, account access) and should just be surfaced in
       decision above. Implemented as `contracts/utils/Guardable.sol`: an
       optional guardian role, appointed by the owner (so appointment is itself
       timelocked), that can call the new `ChannelVerifier.revokeTrustedVerifier`
-      and `ChannelRegistry.revokeVerifier` immediately. Installing a verifier
+      and `BeneficiaryRegistry.revokeVerifier` immediately. Installing a verifier
       stays `onlyOwner` and therefore delayed. Revocation fails closed —
-      `verifyClaimProof` returns false, `verifyChannel` reverts
+      `verifyClaimProof` returns false, `verifyBeneficiary` reverts
       `NoVerifierConfigured` — while already-verified channels keep every
       downstream power (control, veto, escrow withdrawal), which is covered by
       test. A compromised guardian can therefore only cause a denial of service

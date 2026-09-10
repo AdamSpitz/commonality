@@ -193,21 +193,21 @@ async function signClaimProof(
       verifyingContract: beneficiaryVerifierAddress,
     },
     types: {
-      ChannelClaim: [
-        { name: 'channelId', type: 'bytes32' },
+      BeneficiaryClaim: [
+        { name: 'beneficiaryId', type: 'bytes32' },
         { name: 'claimant', type: 'address' },
         { name: 'nonce', type: 'bytes32' },
         { name: 'deadline', type: 'uint256' },
         { name: 'proofHash', type: 'bytes32' },
       ],
     },
-    primaryType: 'ChannelClaim',
-    message: { channelId, claimant, nonce, deadline, proofHash },
+    primaryType: 'BeneficiaryClaim',
+    message: { beneficiaryId: channelId, claimant, nonce, deadline, proofHash },
   });
 }
 
 /** Verify a channel so that a user becomes its on-chain owner. */
-async function verifyChannel(
+async function verifyBeneficiary(
   clients: ReturnType<typeof createClients>,
   registryAddress: `0x${string}`,
   verifierAddress: `0x${string}`,
@@ -235,7 +235,7 @@ async function verifyChannel(
   const hash = await clients.walletClient.writeContract({
     address: registryAddress,
     abi: BeneficiaryRegistryAbi,
-    functionName: 'verifyChannel',
+    functionName: 'verifyBeneficiary',
     args: [chId, clients.account, nonce, deadline, proofHash, signature],
     chain: hardhat,
     account: clients.walletClient.account!,
@@ -623,7 +623,7 @@ export async function generateContentFundingScenarios(
     const prices = [tokenPrice];
     const threshold = parsePaymentTokenUnits('0.5');
 
-    await verifyChannel(creatorClients, beneficiaryRegistry, beneficiaryVerifier, channelCanonicalId);
+    await verifyBeneficiary(creatorClients, beneficiaryRegistry, beneficiaryVerifier, channelCanonicalId);
 
     const contractAddress = await createCreatorContract(creatorClients, {
       factoryAddress: creatorContractFactory,
@@ -677,7 +677,7 @@ export async function generateContentFundingScenarios(
     const thirdPartyThreshold = parsePaymentTokenUnits('0.5');
 
     // Step 1: Verify the channel — it's now Verified (not CreatorControlled).
-    await verifyChannel(creatorClients, beneficiaryRegistry, beneficiaryVerifier, channelCanonicalId);
+    await verifyBeneficiary(creatorClients, beneficiaryRegistry, beneficiaryVerifier, channelCanonicalId);
 
     // Step 2: Fan creates a third-party contract while channel is still Verified.
     const thirdPartyContract = await createCreatorContract(fanClients, {
@@ -767,7 +767,7 @@ export async function generateChristianContentScenario(
 
   console.log('\n--- Christianity: Common Table essay fund ---');
   try {
-    await verifyChannel(creator, addresses.beneficiaryRegistry, addresses.beneficiaryVerifier, COMMON_TABLE_CHANNEL);
+    await verifyBeneficiary(creator, addresses.beneficiaryRegistry, addresses.beneficiaryVerifier, COMMON_TABLE_CHANNEL);
     await takeChannelControl(creator, addresses.beneficiaryRegistry, COMMON_TABLE_CHANNEL);
   } catch (error) {
     console.warn('  Common Table channel already verified (or verify failed):', error instanceof Error ? error.message : error);

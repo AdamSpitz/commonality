@@ -33,10 +33,10 @@ import type {
 const beneficiaryRegistryAbi = [
   {
     type: 'function',
-    name: 'verifyChannel',
+    name: 'verifyBeneficiary',
     stateMutability: 'nonpayable',
     inputs: [
-      { name: 'channelId', type: 'bytes32' },
+      { name: 'beneficiaryId', type: 'bytes32' },
       { name: 'claimant', type: 'address' },
       { name: 'nonce', type: 'bytes32' },
       { name: 'deadline', type: 'uint256' },
@@ -512,7 +512,7 @@ export class PlatformApiService {
     const simulation = await publicClient.simulateContract({
       address: this.deps.config.beneficiaryRegistryAddress,
       abi: beneficiaryRegistryAbi,
-      functionName: 'verifyChannel',
+      functionName: 'verifyBeneficiary',
       args: [
         hashCanonicalId(proof.channelId),
         proof.claimant,
@@ -625,17 +625,17 @@ export async function signClaimProof(
       verifyingContract: beneficiaryVerifierAddress,
     },
     types: {
-      ChannelClaim: [
-        { name: 'channelId', type: 'bytes32' },
+      BeneficiaryClaim: [
+        { name: 'beneficiaryId', type: 'bytes32' },
         { name: 'claimant', type: 'address' },
         { name: 'nonce', type: 'bytes32' },
         { name: 'deadline', type: 'uint256' },
         { name: 'proofHash', type: 'bytes32' },
       ],
     },
-    primaryType: 'ChannelClaim',
+    primaryType: 'BeneficiaryClaim',
     message: {
-      channelId: hashCanonicalId(channelId),
+      beneficiaryId: hashCanonicalId(channelId),
       claimant,
       nonce,
       deadline: BigInt(deadline),

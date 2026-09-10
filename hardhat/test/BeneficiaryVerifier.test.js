@@ -20,8 +20,8 @@ describe("BeneficiaryVerifier", function () {
       verifyingContract,
     };
     const types = {
-      ChannelClaim: [
-        { name: "channelId", type: "bytes32" },
+      BeneficiaryClaim: [
+        { name: "beneficiaryId", type: "bytes32" },
         { name: "claimant", type: "address" },
         { name: "nonce", type: "bytes32" },
         { name: "deadline", type: "uint256" },
@@ -29,7 +29,7 @@ describe("BeneficiaryVerifier", function () {
       ],
     };
     return signer.signTypedData(domain, types, {
-      channelId: _channelId,
+      beneficiaryId: _channelId,
       claimant: _claimant,
       nonce: _nonce,
       deadline: _deadline,
@@ -141,13 +141,13 @@ describe("BeneficiaryVerifier", function () {
 
       const signature = await signClaimProof(trustedSigner, verifier, channelId, alice.address, nonce, deadline);
 
-      await expect(beneficiaryRegistry.verifyChannel(channelId, alice.address, nonce, deadline, proofHash, signature))
-        .to.emit(beneficiaryRegistry, "ChannelVerified")
+      await expect(beneficiaryRegistry.verifyBeneficiary(channelId, alice.address, nonce, deadline, proofHash, signature))
+        .to.emit(beneficiaryRegistry, "BeneficiaryVerified")
         .withArgs(channelId, alice.address)
-        .and.to.emit(beneficiaryRegistry, "ChannelProofAnchored")
+        .and.to.emit(beneficiaryRegistry, "BeneficiaryProofAnchored")
         .withArgs(channelId, alice.address, proofHash);
 
-      expect(await beneficiaryRegistry.channelOwner(channelId)).to.equal(alice.address);
+      expect(await beneficiaryRegistry.payoutAddress(channelId)).to.equal(alice.address);
     });
 
     it("Should reject channel verification with a forged signature", async function () {
@@ -160,7 +160,7 @@ describe("BeneficiaryVerifier", function () {
       // bob is not the trusted verifier
       const forgedSignature = await signClaimProof(bob, verifier, channelId, alice.address, nonce, deadline);
 
-      await expect(beneficiaryRegistry.verifyChannel(channelId, alice.address, nonce, deadline, proofHash, forgedSignature))
+      await expect(beneficiaryRegistry.verifyBeneficiary(channelId, alice.address, nonce, deadline, proofHash, forgedSignature))
         .to.be.revertedWithCustomError(beneficiaryRegistry, "InvalidVerifierSignature");
     });
   });
@@ -304,7 +304,7 @@ describe("BeneficiaryVerifier", function () {
         .to.emit(beneficiaryRegistry, "VerifierRevoked")
         .withArgs(await verifier.getAddress(), guardian.address);
 
-      await expect(beneficiaryRegistry.verifyChannel(channelId, alice.address, nonce, deadline, proofHash, signature))
+      await expect(beneficiaryRegistry.verifyBeneficiary(channelId, alice.address, nonce, deadline, proofHash, signature))
         .to.be.revertedWithCustomError(beneficiaryRegistry, "NoVerifierConfigured");
     });
 
@@ -315,7 +315,7 @@ describe("BeneficiaryVerifier", function () {
 
       await verifier.connect(guardian).revokeTrustedVerifier();
 
-      await expect(beneficiaryRegistry.verifyChannel(channelId, alice.address, nonce, deadline, proofHash, signature))
+      await expect(beneficiaryRegistry.verifyBeneficiary(channelId, alice.address, nonce, deadline, proofHash, signature))
         .to.be.revertedWithCustomError(beneficiaryRegistry, "InvalidVerifierSignature");
     });
 
@@ -323,7 +323,7 @@ describe("BeneficiaryVerifier", function () {
       const latestBlock = await ethers.provider.getBlock("latest");
       const deadline = latestBlock.timestamp + 3600;
       const signature = await signClaimProof(trustedSigner, verifier, channelId, alice.address, nonce, deadline);
-      await beneficiaryRegistry.verifyChannel(channelId, alice.address, nonce, deadline, proofHash, signature);
+      await beneficiaryRegistry.verifyBeneficiary(channelId, alice.address, nonce, deadline, proofHash, signature);
 
       await beneficiaryRegistry.connect(guardian).revokeVerifier();
 
@@ -331,7 +331,7 @@ describe("BeneficiaryVerifier", function () {
       await expect(beneficiaryRegistry.connect(alice).takeChannelControl(channelId))
         .to.emit(beneficiaryRegistry, "ChannelControlTaken")
         .withArgs(channelId, alice.address);
-      expect(await beneficiaryRegistry.channelOwner(channelId)).to.equal(alice.address);
+      expect(await beneficiaryRegistry.payoutAddress(channelId)).to.equal(alice.address);
       expect(await beneficiaryRegistry.isCreatorControlled(channelId)).to.be.true;
     });
 
@@ -343,8 +343,8 @@ describe("BeneficiaryVerifier", function () {
       const deadline = latestBlock.timestamp + 3600;
       const signature = await signClaimProof(trustedSigner, verifier, channelId, alice.address, nonce, deadline);
 
-      await expect(beneficiaryRegistry.verifyChannel(channelId, alice.address, nonce, deadline, proofHash, signature))
-        .to.emit(beneficiaryRegistry, "ChannelVerified")
+      await expect(beneficiaryRegistry.verifyBeneficiary(channelId, alice.address, nonce, deadline, proofHash, signature))
+        .to.emit(beneficiaryRegistry, "BeneficiaryVerified")
         .withArgs(channelId, alice.address);
     });
 

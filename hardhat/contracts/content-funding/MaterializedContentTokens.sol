@@ -61,7 +61,7 @@ contract MaterializedContentTokens is Ownable, ERC1155, ERC1155Burnable, ERC7572
     }
 
     modifier onlyCurrentChannelOwner() {
-        if (msg.sender != beneficiaryRegistry.channelOwner(channelId)) revert OnlyCurrentChannelOwner(msg.sender);
+        if (msg.sender != beneficiaryRegistry.payoutAddress(channelId)) revert OnlyCurrentChannelOwner(msg.sender);
         _;
     }
 

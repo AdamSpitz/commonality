@@ -22,7 +22,7 @@ if (!process.env.IPFS_API) {
 }
 
 import { BeneficiaryRegistryAbi, PublishedDataAbi } from '@commonality/sdk/abis'
-import { hashCanonicalId, verifyChannel } from '@commonality/sdk/content-funding'
+import { hashCanonicalId, verifyBeneficiary } from '@commonality/sdk/content-funding'
 import { createDefaultDocumentStore, createDisplayableDocument } from '@commonality/sdk/displayable-documents'
 import { createSDKMachinery, type SDKMachinery } from '@commonality/sdk/machinery'
 import { createWriteClients, type IpfsCidV1, type WriteClients } from '@commonality/sdk/utils'
@@ -257,7 +257,7 @@ export function getContractAddresses() {
   }
 }
 
-async function signChannelClaimProof(
+async function signBeneficiaryClaimProof(
   verifierPrivateKey: Hex,
   beneficiaryVerifierAddress: `0x${string}`,
   chainId: number,
@@ -276,16 +276,16 @@ async function signChannelClaimProof(
       verifyingContract: beneficiaryVerifierAddress,
     },
     types: {
-      ChannelClaim: [
-        { name: 'channelId', type: 'bytes32' },
+      BeneficiaryClaim: [
+        { name: 'beneficiaryId', type: 'bytes32' },
         { name: 'claimant', type: 'address' },
         { name: 'nonce', type: 'bytes32' },
         { name: 'deadline', type: 'uint256' },
         { name: 'proofHash', type: 'bytes32' },
       ],
     },
-    primaryType: 'ChannelClaim',
-    message: { channelId, claimant, nonce, deadline, proofHash },
+    primaryType: 'BeneficiaryClaim',
+    message: { beneficiaryId: channelId, claimant, nonce, deadline, proofHash },
   })
 }
 
@@ -317,7 +317,7 @@ export async function verifyE2EChannelOwnership(
   const deadline = latestBlock.timestamp + 3600n
   const nonce = keccak256(toBytes(`e2e-${channelCanonicalId}-${Date.now()}`))
   const proofHash = keccak256(toBytes(`e2e-public-proof:${channelCanonicalId}:${nonce}`))
-  const signature = await signChannelClaimProof(
+  const signature = await signBeneficiaryClaimProof(
     verifierPrivateKey,
     beneficiaryVerifierAddress,
     chainId,
@@ -328,7 +328,7 @@ export async function verifyE2EChannelOwnership(
     proofHash
   )
 
-  await verifyChannel(
+  await verifyBeneficiary(
     clients,
     { address: beneficiaryRegistryAddress, abi: BeneficiaryRegistryAbi },
     channelId,

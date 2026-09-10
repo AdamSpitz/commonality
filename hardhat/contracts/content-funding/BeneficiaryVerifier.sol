@@ -12,10 +12,10 @@ error TrustedVerifierAlreadyRevoked();
 
 /**
  * @title BeneficiaryVerifier
- * @notice Verifies channel-claim proofs signed by a trusted off-chain verifier (the Platform API Service)
+ * @notice Verifies beneficiary-claim proofs signed by a trusted off-chain verifier (the Platform API Service)
  * @dev Uses EIP-712 typed-data signatures. The trusted off-chain signer signs:
  *
- *        ChannelClaim(bytes32 channelId,address claimant,bytes32 nonce,uint256 deadline,bytes32 proofHash)
+ *        BeneficiaryClaim(bytes32 beneficiaryId,address claimant,bytes32 nonce,uint256 deadline,bytes32 proofHash)
  *
  *      with the EIP-712 domain ("BeneficiaryVerifier", "1", chainId, address(this)). The
  *      domain binds signatures to this specific deployment on this specific chain,
@@ -23,8 +23,9 @@ error TrustedVerifierAlreadyRevoked();
  *      signer key is reused.
  */
 contract BeneficiaryVerifier is IBeneficiaryVerifier, Guardable, EIP712 {
-    bytes32 public constant CHANNEL_CLAIM_TYPEHASH =
-        keccak256("ChannelClaim(bytes32 channelId,address claimant,bytes32 nonce,uint256 deadline,bytes32 proofHash)");
+    bytes32 public constant BENEFICIARY_CLAIM_TYPEHASH = keccak256(
+        "BeneficiaryClaim(bytes32 beneficiaryId,address claimant,bytes32 nonce,uint256 deadline,bytes32 proofHash)"
+    );
 
     /// @notice The address of the trusted off-chain verifier (zero once revoked)
     address public trustedVerifier;
@@ -83,8 +84,8 @@ contract BeneficiaryVerifier is IBeneficiaryVerifier, Guardable, EIP712 {
     }
 
     /**
-     * @notice Verify a channel claim proof by recovering the signer from the signature
-     * @param channelId The channel being claimed
+     * @notice Verify a beneficiary claim proof by recovering the signer from the signature
+     * @param beneficiaryId The beneficiary being claimed
      * @param claimant The address claiming ownership
      * @param nonce A unique nonce to prevent replay attacks
      * @param deadline The unix timestamp after which the proof expires
@@ -93,7 +94,7 @@ contract BeneficiaryVerifier is IBeneficiaryVerifier, Guardable, EIP712 {
      * @return True if the signature was produced by the trusted verifier
      */
     function verifyClaimProof(
-        bytes32 channelId,
+        bytes32 beneficiaryId,
         address claimant,
         bytes32 nonce,
         uint256 deadline,
@@ -105,7 +106,7 @@ contract BeneficiaryVerifier is IBeneficiaryVerifier, Guardable, EIP712 {
         if (trustedVerifier == address(0)) return false;
 
         bytes32 structHash = keccak256(
-            abi.encode(CHANNEL_CLAIM_TYPEHASH, channelId, claimant, nonce, deadline, proofHash)
+            abi.encode(BENEFICIARY_CLAIM_TYPEHASH, beneficiaryId, claimant, nonce, deadline, proofHash)
         );
         bytes32 digest = _hashTypedDataV4(structHash);
         address recovered = ECDSA.recover(digest, verifierSignature);

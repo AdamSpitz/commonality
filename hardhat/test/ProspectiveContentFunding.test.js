@@ -58,7 +58,7 @@ describe("Prospective content funding", function () {
     const zeroChannelParams = [...unverified.params];
     zeroChannelParams[0] = ethers.ZeroHash;
     await expect(unverified.factory.connect(unverified.creator).createProspectiveRound(zeroChannelParams)).to.be.revertedWithCustomError(unverified.factory, "InvalidChannelId");
-    await expect(unverified.factory.connect(unverified.creator).createProspectiveRound(unverified.params)).to.be.revertedWithCustomError(unverified.factory, "ChannelNotVerified");
+    await expect(unverified.factory.connect(unverified.creator).createProspectiveRound(unverified.params)).to.be.revertedWithCustomError(unverified.factory, "BeneficiaryNotVerified");
     const outsider = await fixture({ creatorCaller: false });
     await expect(outsider.factory.connect(outsider.bob).createProspectiveRound(outsider.params)).to.be.revertedWithCustomError(outsider.factory, "OnlyCurrentChannelOwner");
     const valid = await fixture();

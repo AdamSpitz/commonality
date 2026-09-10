@@ -17,6 +17,28 @@ export const BeneficiaryRegistryAbi = [
     "inputs": [
       {
         "internalType": "bytes32",
+        "name": "beneficiaryId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "BeneficiaryAlreadyVerified",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "beneficiaryId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "BeneficiaryNotVerified",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
         "name": "channelId",
         "type": "bytes32"
       }
@@ -32,29 +54,7 @@ export const BeneficiaryRegistryAbi = [
         "type": "bytes32"
       }
     ],
-    "name": "ChannelAlreadyVerified",
-    "type": "error"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "channelId",
-        "type": "bytes32"
-      }
-    ],
     "name": "ChannelNotCreatorControlled",
-    "type": "error"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "channelId",
-        "type": "bytes32"
-      }
-    ],
-    "name": "ChannelNotVerified",
     "type": "error"
   },
   {
@@ -96,7 +96,7 @@ export const BeneficiaryRegistryAbi = [
   },
   {
     "inputs": [],
-    "name": "InvalidNewChannelOwner",
+    "name": "InvalidNewPayoutAddress",
     "type": "error"
   },
   {
@@ -131,11 +131,6 @@ export const BeneficiaryRegistryAbi = [
   },
   {
     "inputs": [],
-    "name": "OnlyChannelOwnerCanRotate",
-    "type": "error"
-  },
-  {
-    "inputs": [],
     "name": "OnlyChannelOwnerCanTakeControl",
     "type": "error"
   },
@@ -147,6 +142,11 @@ export const BeneficiaryRegistryAbi = [
   {
     "inputs": [],
     "name": "OnlyOwnerOrGuardian",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "OnlyPayoutAddressCanRotate",
     "type": "error"
   },
   {
@@ -197,6 +197,50 @@ export const BeneficiaryRegistryAbi = [
       {
         "indexed": true,
         "internalType": "bytes32",
+        "name": "beneficiaryId",
+        "type": "bytes32"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "payoutAddress",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "proofHash",
+        "type": "bytes32"
+      }
+    ],
+    "name": "BeneficiaryProofAnchored",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "beneficiaryId",
+        "type": "bytes32"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "payoutAddress",
+        "type": "address"
+      }
+    ],
+    "name": "BeneficiaryVerified",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "bytes32",
         "name": "channelId",
         "type": "bytes32"
       },
@@ -208,75 +252,6 @@ export const BeneficiaryRegistryAbi = [
       }
     ],
     "name": "ChannelControlTaken",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "bytes32",
-        "name": "channelId",
-        "type": "bytes32"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "oldOwner",
-        "type": "address"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "newOwner",
-        "type": "address"
-      }
-    ],
-    "name": "ChannelOwnerRotated",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "bytes32",
-        "name": "channelId",
-        "type": "bytes32"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "owner",
-        "type": "address"
-      },
-      {
-        "indexed": true,
-        "internalType": "bytes32",
-        "name": "proofHash",
-        "type": "bytes32"
-      }
-    ],
-    "name": "ChannelProofAnchored",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "bytes32",
-        "name": "channelId",
-        "type": "bytes32"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "owner",
-        "type": "address"
-      }
-    ],
-    "name": "ChannelVerified",
     "type": "event"
   },
   {
@@ -372,6 +347,31 @@ export const BeneficiaryRegistryAbi = [
       }
     ],
     "name": "OwnershipTransferred",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "beneficiaryId",
+        "type": "bytes32"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "oldPayoutAddress",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "newPayoutAddress",
+        "type": "address"
+      }
+    ],
+    "name": "PayoutAddressRotated",
     "type": "event"
   },
   {
@@ -497,25 +497,6 @@ export const BeneficiaryRegistryAbi = [
         "internalType": "bool",
         "name": "",
         "type": "bool"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "channelId",
-        "type": "bytes32"
-      }
-    ],
-    "name": "channelOwner",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
       }
     ],
     "stateMutability": "view",
@@ -656,6 +637,25 @@ export const BeneficiaryRegistryAbi = [
     "type": "function"
   },
   {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "beneficiaryId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "payoutAddress",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [],
     "name": "pendingOwner",
     "outputs": [
@@ -686,16 +686,16 @@ export const BeneficiaryRegistryAbi = [
     "inputs": [
       {
         "internalType": "bytes32",
-        "name": "channelId",
+        "name": "beneficiaryId",
         "type": "bytes32"
       },
       {
         "internalType": "address",
-        "name": "newOwner",
+        "name": "newPayoutAddress",
         "type": "address"
       }
     ],
-    "name": "rotateChannelOwner",
+    "name": "rotatePayoutAddress",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -800,7 +800,7 @@ export const BeneficiaryRegistryAbi = [
     "inputs": [
       {
         "internalType": "bytes32",
-        "name": "channelId",
+        "name": "beneficiaryId",
         "type": "bytes32"
       },
       {
@@ -829,7 +829,7 @@ export const BeneficiaryRegistryAbi = [
         "type": "bytes"
       }
     ],
-    "name": "verifyChannel",
+    "name": "verifyBeneficiary",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

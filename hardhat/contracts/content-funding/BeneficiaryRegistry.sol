@@ -5,14 +5,14 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {ICancellableCondition} from "../individual-projects/CancellableCondition.sol";
 import {Guardable} from "../utils/Guardable.sol";
 
-error ChannelAlreadyVerified(bytes32 channelId);
-error ChannelNotVerified(bytes32 channelId);
+error BeneficiaryAlreadyVerified(bytes32 beneficiaryId);
+error BeneficiaryNotVerified(bytes32 beneficiaryId);
 error ChannelAlreadyCreatorControlled(bytes32 channelId);
 error ChannelNotCreatorControlled(bytes32 channelId);
 error InvalidClaimant();
-error InvalidNewChannelOwner();
+error InvalidNewPayoutAddress();
 error OnlyChannelOwnerCanTakeControl();
-error OnlyChannelOwnerCanRotate();
+error OnlyPayoutAddressCanRotate();
 error OnlyChannelOwnerCanVeto();
 error InvalidNonce();
 error ProofExpired();
@@ -36,7 +36,7 @@ error VetoWindowDurationCannotDecrease();
  */
 interface IBeneficiaryVerifier {
     function verifyClaimProof(
-        bytes32 channelId,
+        bytes32 beneficiaryId,
         address claimant,
         bytes32 nonce,
         uint256 deadline,
@@ -47,16 +47,16 @@ interface IBeneficiaryVerifier {
 
 /**
  * @title IBeneficiaryRegistry
- * @notice Interface for the channel registry
+ * @notice Interface for the shared beneficiary registry
  */
 interface IBeneficiaryRegistry {
-    function channelOwner(bytes32 channelId) external view returns (address);
+    function payoutAddress(bytes32 beneficiaryId) external view returns (address);
     function channelState(bytes32 channelId) external view returns (uint8);
     function verifier() external view returns (address);
     function vetoWindowDuration() external view returns (uint256);
     function canThirdPartyContractSucceed(bytes32 channelId) external view returns (bool);
-    function verifyChannel(
-        bytes32 channelId,
+    function verifyBeneficiary(
+        bytes32 beneficiaryId,
         address claimant,
         bytes32 nonce,
         uint256 deadline,
@@ -64,7 +64,7 @@ interface IBeneficiaryRegistry {
         bytes calldata verifierSignature
     ) external;
     function takeChannelControl(bytes32 channelId) external;
-    function rotateChannelOwner(bytes32 channelId, address newOwner) external;
+    function rotatePayoutAddress(bytes32 beneficiaryId, address newPayoutAddress) external;
     function vetoContract(address contractAddress) external;
     function setVerifier(address verifier) external;
     function revokeVerifier() external;
@@ -88,7 +88,7 @@ interface ICreatorAssuranceContractFactory {
 
 /**
  * @title BeneficiaryRegistry
- * @notice Tracks channel ownership and verification state for the content funding system
+ * @notice Tracks beneficiary payout and verification state for shared funding flows
  * @dev Channels progress through three states: Unclaimed -> Verified -> CreatorControlled.
  *      Verification requires a signed proof from an off-chain verifier (the Platform API Service).
  *      Once creator-controlled, the channel owner can veto third-party assurance contracts
@@ -110,7 +110,7 @@ contract BeneficiaryRegistry is IBeneficiaryRegistry, Guardable {
         CreatorControlled
     }
 
-    mapping(bytes32 channelId => address owner) private _channelOwners;
+    mapping(bytes32 beneficiaryId => address payout) private _payoutAddresses;
     mapping(bytes32 channelId => ChannelState) private _channelStates;
     mapping(bytes32 nonce => bool) private _usedNonces;
 
@@ -125,18 +125,22 @@ contract BeneficiaryRegistry is IBeneficiaryRegistry, Guardable {
     mapping(bytes32 channelId => uint256 controlTakenAt) private _controlTakenAt;
 
     /**
-     * @notice Emitted when a channel's ownership is verified
-     * @param channelId The verified channel
-     * @param owner The verified owner address
+     * @notice Emitted when a beneficiary's payout address is verified
+     * @param beneficiaryId The verified beneficiary
+     * @param payoutAddress The address bound to receive beneficiary funds
      */
-    event ChannelVerified(bytes32 indexed channelId, address indexed owner);
+    event BeneficiaryVerified(bytes32 indexed beneficiaryId, address indexed payoutAddress);
 
     /**
-     * @notice Emitted with the hash of the public proof artifact used for channel verification.
+     * @notice Emitted with the hash of the public proof artifact used for beneficiary verification.
      * @dev The hash should be over the durable public proof reference (for example a tweet URL
      *      or Substack post URL), so anyone can independently re-check verifier honesty.
      */
-    event ChannelProofAnchored(bytes32 indexed channelId, address indexed owner, bytes32 indexed proofHash);
+    event BeneficiaryProofAnchored(
+        bytes32 indexed beneficiaryId,
+        address indexed payoutAddress,
+        bytes32 indexed proofHash
+    );
 
     /**
      * @notice Emitted when a channel owner takes full control
@@ -149,7 +153,11 @@ contract BeneficiaryRegistry is IBeneficiaryRegistry, Guardable {
      * @notice Emitted when the verified owner authorizes a replacement payout address
      * @dev Identity proof alone cannot rotate an already-verified channel.
      */
-    event ChannelOwnerRotated(bytes32 indexed channelId, address indexed oldOwner, address indexed newOwner);
+    event PayoutAddressRotated(
+        bytes32 indexed beneficiaryId,
+        address indexed oldPayoutAddress,
+        address indexed newPayoutAddress
+    );
 
     /**
      * @notice Emitted when a channel owner vetoes a third-party contract
@@ -194,12 +202,12 @@ contract BeneficiaryRegistry is IBeneficiaryRegistry, Guardable {
     }
 
     /**
-     * @notice Returns the owner of a channel
-     * @param channelId The channel to query
-     * @return The owner address (zero if unclaimed)
+     * @notice Returns the payout address bound to a beneficiary
+     * @param beneficiaryId The beneficiary to query
+     * @return The payout address (zero if unclaimed)
      */
-    function channelOwner(bytes32 channelId) external view returns (address) {
-        return _channelOwners[channelId];
+    function payoutAddress(bytes32 beneficiaryId) external view returns (address) {
+        return _payoutAddresses[beneficiaryId];
     }
 
     /**
@@ -247,7 +255,7 @@ contract BeneficiaryRegistry is IBeneficiaryRegistry, Guardable {
      *      timelock that gates `setVerifier`. This is the registry-level counterpart to
      *      `BeneficiaryVerifier.revokeTrustedVerifier`: use it when the verifier *contract*
      *      itself is compromised or misbehaving, rather than just its signing key.
-     *      It only reduces power — `verifyChannel` reverts until the owner installs a
+     *      It only reduces power — `verifyBeneficiary` reverts until the owner installs a
      *      replacement, while every other flow (taking control, vetoes, escrow
      *      withdrawals by already-verified owners) is untouched.
      */
@@ -311,26 +319,26 @@ contract BeneficiaryRegistry is IBeneficiaryRegistry, Guardable {
     }
 
     /**
-     * @notice Verify channel ownership using a signed proof from the off-chain verifier
-     * @dev Transitions the channel from Unclaimed to Verified. Can only be called once per channel.
+     * @notice Verify a beneficiary using a signed proof from the off-chain verifier
+     * @dev Transitions the beneficiary from Unclaimed to Verified. Can only be called once per beneficiary.
      *      The proof must be signed by the trusted verifier and not expired.
-     * @param channelId The channel to verify
-     * @param claimant The address claiming ownership of the channel
+     * @param beneficiaryId The beneficiary to verify
+     * @param claimant The payout address claiming control of the beneficiary
      * @param nonce A unique nonce to prevent replay attacks
      * @param deadline The unix timestamp after which the proof expires
      * @param proofHash Hash of the durable public proof reference (tweet/RSS URL) checked by the verifier
      * @param verifierSignature The signature from the off-chain verifier
      */
-    function verifyChannel(
-        bytes32 channelId,
+    function verifyBeneficiary(
+        bytes32 beneficiaryId,
         address claimant,
         bytes32 nonce,
         uint256 deadline,
         bytes32 proofHash,
         bytes calldata verifierSignature
     ) external {
-        if (_channelStates[channelId] >= ChannelState.Verified) {
-            revert ChannelAlreadyVerified(channelId);
+        if (_channelStates[beneficiaryId] >= ChannelState.Verified) {
+            revert BeneficiaryAlreadyVerified(beneficiaryId);
         }
         if (claimant == address(0)) revert InvalidClaimant();
         if (_usedNonces[nonce]) revert InvalidNonce();
@@ -339,7 +347,7 @@ contract BeneficiaryRegistry is IBeneficiaryRegistry, Guardable {
         if (verifier == address(0)) revert NoVerifierConfigured();
 
         bool validProof = IBeneficiaryVerifier(verifier).verifyClaimProof(
-            channelId,
+            beneficiaryId,
             claimant,
             nonce,
             deadline,
@@ -349,32 +357,32 @@ contract BeneficiaryRegistry is IBeneficiaryRegistry, Guardable {
         if (!validProof) revert InvalidVerifierSignature();
 
         _usedNonces[nonce] = true;
-        _channelOwners[channelId] = claimant;
-        _channelStates[channelId] = ChannelState.Verified;
+        _payoutAddresses[beneficiaryId] = claimant;
+        _channelStates[beneficiaryId] = ChannelState.Verified;
 
-        emit ChannelVerified(channelId, claimant);
-        emit ChannelProofAnchored(channelId, claimant, proofHash);
+        emit BeneficiaryVerified(beneficiaryId, claimant);
+        emit BeneficiaryProofAnchored(beneficiaryId, claimant, proofHash);
     }
 
     /**
-     * @notice Replace the verified owner with a new payout address.
-     * @dev Only the current owner may rotate. This deliberately provides no verifier-
+     * @notice Replace the beneficiary's verified payout address.
+     * @dev Only the current payout address may rotate. This deliberately provides no verifier-
      *      or administrator-driven recovery path: a new identity proof alone must not
      *      redirect funds already associated with an established owner.
-     * @param channelId The verified channel whose owner is changing
-     * @param newOwner The replacement owner and escrow payout address
+     * @param beneficiaryId The verified beneficiary whose payout address is changing
+     * @param newPayoutAddress The replacement escrow payout address
      */
-    function rotateChannelOwner(bytes32 channelId, address newOwner) external {
-        if (_channelStates[channelId] == ChannelState.Unclaimed) {
-            revert ChannelNotVerified(channelId);
+    function rotatePayoutAddress(bytes32 beneficiaryId, address newPayoutAddress) external {
+        if (_channelStates[beneficiaryId] == ChannelState.Unclaimed) {
+            revert BeneficiaryNotVerified(beneficiaryId);
         }
-        if (newOwner == address(0)) revert InvalidNewChannelOwner();
+        if (newPayoutAddress == address(0)) revert InvalidNewPayoutAddress();
 
-        address currentOwner = _channelOwners[channelId];
-        if (_msgSender() != currentOwner) revert OnlyChannelOwnerCanRotate();
+        address currentPayoutAddress = _payoutAddresses[beneficiaryId];
+        if (_msgSender() != currentPayoutAddress) revert OnlyPayoutAddressCanRotate();
 
-        _channelOwners[channelId] = newOwner;
-        emit ChannelOwnerRotated(channelId, currentOwner, newOwner);
+        _payoutAddresses[beneficiaryId] = newPayoutAddress;
+        emit PayoutAddressRotated(beneficiaryId, currentPayoutAddress, newPayoutAddress);
     }
 
     /**
@@ -385,13 +393,13 @@ contract BeneficiaryRegistry is IBeneficiaryRegistry, Guardable {
      */
     function takeChannelControl(bytes32 channelId) external {
         if (_channelStates[channelId] == ChannelState.Unclaimed) {
-            revert ChannelNotVerified(channelId);
+            revert BeneficiaryNotVerified(channelId);
         }
         if (_channelStates[channelId] == ChannelState.CreatorControlled) {
             revert ChannelAlreadyCreatorControlled(channelId);
         }
         address caller = _msgSender();
-        if (caller != _channelOwners[channelId]) {
+        if (caller != _payoutAddresses[channelId]) {
             revert OnlyChannelOwnerCanTakeControl();
         }
 
@@ -417,7 +425,7 @@ contract BeneficiaryRegistry is IBeneficiaryRegistry, Guardable {
         if (_channelStates[channelId] != ChannelState.CreatorControlled) {
             revert ChannelNotCreatorControlled(channelId);
         }
-        if (_msgSender() != _channelOwners[channelId]) revert OnlyChannelOwnerCanVeto();
+        if (_msgSender() != _payoutAddresses[channelId]) revert OnlyChannelOwnerCanVeto();
 
         if (!ICreatorAssuranceContractFactory(contractFactory).isThirdPartyCreated(contractAddress)) {
             revert ContractNotThirdParty(channelId, contractAddress);

@@ -54,6 +54,17 @@ export const CreatorAssuranceContractFactoryAbi = [
         "internalType": "bytes32",
         "name": "channelId",
         "type": "bytes32"
+      }
+    ],
+    "name": "BeneficiaryNotVerifiedOrControlled",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "channelId",
+        "type": "bytes32"
       },
       {
         "internalType": "bytes32",
@@ -73,17 +84,6 @@ export const CreatorAssuranceContractFactoryAbi = [
       }
     ],
     "name": "ChannelCreatorControlled",
-    "type": "error"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "channelId",
-        "type": "bytes32"
-      }
-    ],
-    "name": "ChannelNotVerifiedOrControlled",
     "type": "error"
   },
   {

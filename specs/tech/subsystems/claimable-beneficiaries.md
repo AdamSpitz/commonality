@@ -62,7 +62,7 @@ DNS MVP artifacts (product chose HTTPS first, TXT alternate):
 
 JSON / TXT body must include canonical domain, claimant address, chain id, registry address, nonce, expiry — so a copied file cannot be replayed against another deployment.
 
-Platform API `/verify/challenge` + `/verify/confirm` grows a namespace switch (fetch well-known / TXT in addition to tweet / RSS). Same `proofHash` anchoring and `ChannelProofAnchored`-style event (rename to `BeneficiaryProofAnchored`).
+Platform API `/verify/challenge` + `/verify/confirm` grows a namespace switch (fetch well-known / TXT in addition to tweet / RSS). The shared registry anchors the same `proofHash` in `BeneficiaryProofAnchored`.
 
 ## States
 

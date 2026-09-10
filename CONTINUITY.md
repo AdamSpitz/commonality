@@ -1825,3 +1825,16 @@ Do not train implication generation on Christianity × secular-conservatism. Nex
   the next contract-layer step.
 - Regenerated SDK and indexer ABIs. Focused SDK and Hardhat tests plus SDK/indexer
   typechecks passed.
+
+## 2026-09-10 — Beneficiary-native claim and payout registry surface
+
+- Renamed the shared registry claim/payout API from channel ownership language to
+  `verifyBeneficiary`, `payoutAddress`, and `rotatePayoutAddress`, with matching
+  beneficiary-native errors and events.
+- Changed the verifier's EIP-712 payload to
+  `BeneficiaryClaim(bytes32 beneficiaryId, ...)`; platform-api, seed, test, and
+  browser signer paths now produce that exact payload.
+- Updated content-funding callers to consume the beneficiary payout seam while
+  retaining the channel-specific control/veto API for its later extraction.
+- Regenerated SDK/indexer ABIs. Hardhat (including the full 453-test suite),
+  platform-api (76 tests), SDK (537 tests), and affected typechecks passed.

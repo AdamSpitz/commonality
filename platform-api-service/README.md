@@ -26,7 +26,7 @@ This workspace implements the service described in [the spec](../specs/tech/subs
 - strict shared canonicalization via `@commonality/sdk`
 - in-memory caches for channel resolution, content lookups, and pending verification challenges
 - Twitter/X and YouTube resolution clients built on plain `fetch`
-- optional on-chain submission for `BeneficiaryRegistry.verifyChannel(...)`
+- optional on-chain submission for `BeneficiaryRegistry.verifyBeneficiary(...)`
 
 ## Verification model
 
@@ -35,7 +35,7 @@ The repo's current content-funding contracts include a real signature-verifying 
 That means:
 
 - `POST /verify/confirm` signs the exact proof payload that the on-chain `BeneficiaryVerifier` checks
-- `POST /verify/confirm` can optionally submit `verifyChannel(...)` if `ETHEREUM_RPC_URL`, `BENEFICIARY_REGISTRY_ADDRESS`, and `SUBMIT_VERIFICATION_TX=true` are configured
+- `POST /verify/confirm` can optionally submit `verifyBeneficiary(...)` if `ETHEREUM_RPC_URL`, `BENEFICIARY_REGISTRY_ADDRESS`, and `SUBMIT_VERIFICATION_TX=true` are configured
 - end-to-end verification works on the local deployment as long as `VERIFIER_PRIVATE_KEY` corresponds to the verifier contract's configured `trustedVerifier`
 
 ## Configuration

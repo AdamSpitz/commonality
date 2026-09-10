@@ -21,7 +21,7 @@ error InvalidChannelId();
 error InvalidContentIdSeparator();
 error InvalidPaymentTokenAddress();
 error ChannelCanonicalIdMismatch(bytes32 channelId, bytes32 canonicalChannelIdHash);
-error ChannelNotVerifiedOrControlled(bytes32 channelId);
+error BeneficiaryNotVerifiedOrControlled(bytes32 channelId);
 error ChannelCreatorControlled(bytes32 channelId);
 error InsufficientThirdPartyPurchase();
 error ContentAlreadyRegisteredForContract(uint256 contentId);
@@ -298,11 +298,11 @@ contract CreatorAssuranceContractFactory is Ownable2Step {
     ) private view returns (ChannelCreationContext memory channel) {
         channel.verified = beneficiaryRegistry.isVerified(channelId);
         channel.channelOwner = channel.verified
-            ? beneficiaryRegistry.channelOwner(channelId)
+            ? beneficiaryRegistry.payoutAddress(channelId)
             : address(0);
 
         if (!channel.verified) {
-            revert ChannelNotVerifiedOrControlled(channelId);
+            revert BeneficiaryNotVerifiedOrControlled(channelId);
         }
         if (msg.sender != channel.channelOwner) {
             revert OnlyChannelOwnerCanCreateCreatorContract(channelId);
@@ -317,7 +317,7 @@ contract CreatorAssuranceContractFactory is Ownable2Step {
         channel.verified = beneficiaryRegistry.isVerified(params.channelId);
         bool creatorControlled = beneficiaryRegistry.isCreatorControlled(params.channelId);
         channel.channelOwner = channel.verified
-            ? beneficiaryRegistry.channelOwner(params.channelId)
+            ? beneficiaryRegistry.payoutAddress(params.channelId)
             : address(0);
 
         if (creatorControlled) {

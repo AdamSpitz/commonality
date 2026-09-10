@@ -13,7 +13,7 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol
 
 error InvalidChannelId();
 error ChannelCanonicalIdMismatch(bytes32 channelId, bytes32 canonicalHash);
-error ChannelNotVerified(bytes32 channelId);
+error BeneficiaryNotVerified(bytes32 channelId);
 error OnlyCurrentChannelOwner(bytes32 channelId);
 error InvalidFundingTerms();
 error InvalidReceiptTerms();
@@ -156,7 +156,7 @@ contract ProspectiveContentRoundFactory is ReentrancyGuard {
     }
 
     function _requireChannelOwner(bytes32 channelId) private view {
-        if (!beneficiaryRegistry.isVerified(channelId)) revert ChannelNotVerified(channelId);
-        if (msg.sender != beneficiaryRegistry.channelOwner(channelId)) revert OnlyCurrentChannelOwner(channelId);
+        if (!beneficiaryRegistry.isVerified(channelId)) revert BeneficiaryNotVerified(channelId);
+        if (msg.sender != beneficiaryRegistry.payoutAddress(channelId)) revert OnlyCurrentChannelOwner(channelId);
     }
 }

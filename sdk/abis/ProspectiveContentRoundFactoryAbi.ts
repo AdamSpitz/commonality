@@ -49,14 +49,9 @@ export const ProspectiveContentRoundFactoryAbi = [
         "internalType": "bytes32",
         "name": "channelId",
         "type": "bytes32"
-      },
-      {
-        "internalType": "bytes32",
-        "name": "canonicalHash",
-        "type": "bytes32"
       }
     ],
-    "name": "ChannelCanonicalIdMismatch",
+    "name": "BeneficiaryNotVerified",
     "type": "error"
   },
   {
@@ -65,9 +60,14 @@ export const ProspectiveContentRoundFactoryAbi = [
         "internalType": "bytes32",
         "name": "channelId",
         "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "canonicalHash",
+        "type": "bytes32"
       }
     ],
-    "name": "ChannelNotVerified",
+    "name": "ChannelCanonicalIdMismatch",
     "type": "error"
   },
   {

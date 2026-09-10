@@ -469,7 +469,7 @@ export async function fetchAllContentFundingEvents(
   const eventNames = [
     'ContentItemRegistered',
     'ContentItemReleased',
-    'ChannelVerified',
+    'BeneficiaryVerified',
     'ChannelControlTaken',
     'ContractVetoed',
     'Deposited',

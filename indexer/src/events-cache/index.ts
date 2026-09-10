@@ -96,7 +96,7 @@ register("PublishedData:DataRetracted");
 // CONTENT FUNDING
 register("ContentRegistry:ContentItemRegistered");
 register("ContentRegistry:ContentItemReleased");
-register("BeneficiaryRegistry:ChannelVerified");
+register("BeneficiaryRegistry:BeneficiaryVerified");
 register("BeneficiaryRegistry:ChannelControlTaken");
 register("BeneficiaryRegistry:ContractVetoed");
 register("BeneficiaryEscrow:Deposited");

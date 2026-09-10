@@ -95,7 +95,7 @@ contract BeneficiaryEscrow is IBeneficiaryEscrow {
         if (!IBeneficiaryRegistry(beneficiaryRegistry).isVerified(beneficiaryId)) {
             revert BeneficiaryNotVerified();
         }
-        if (msg.sender != IBeneficiaryRegistry(beneficiaryRegistry).channelOwner(beneficiaryId)) {
+        if (msg.sender != IBeneficiaryRegistry(beneficiaryRegistry).payoutAddress(beneficiaryId)) {
             revert OnlyBeneficiaryPayoutAddress();
         }
 

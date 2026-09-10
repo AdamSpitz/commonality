@@ -448,7 +448,7 @@ export async function vetoContract(
  * @param verifierSignature - EIP-712 signature from the trusted verifier
  * @returns Transaction hash
  */
-export async function verifyChannel(
+export async function verifyBeneficiary(
   clients: WriteClients,
   registryContract: { address: Address; abi: Abi },
   channelId: string,
@@ -461,7 +461,7 @@ export async function verifyChannel(
   const hash = await clients.walletClient.writeContract({
     address: registryContract.address,
     abi: registryContract.abi,
-    functionName: 'verifyChannel',
+    functionName: 'verifyBeneficiary',
     args: [
       channelId as `0x${string}`,
       claimant,

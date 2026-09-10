@@ -470,17 +470,17 @@ describe('PlatformApiService', () => {
         verifyingContract: testBeneficiaryVerifierAddress,
       },
       types: {
-        ChannelClaim: [
-          { name: 'channelId', type: 'bytes32' },
+        BeneficiaryClaim: [
+          { name: 'beneficiaryId', type: 'bytes32' },
           { name: 'claimant', type: 'address' },
           { name: 'nonce', type: 'bytes32' },
           { name: 'deadline', type: 'uint256' },
           { name: 'proofHash', type: 'bytes32' },
         ],
       },
-      primaryType: 'ChannelClaim',
+      primaryType: 'BeneficiaryClaim',
       message: {
-        channelId: hashCanonicalId(confirmed.proof.channelId),
+        beneficiaryId: hashCanonicalId(confirmed.proof.channelId),
         claimant: confirmed.proof.claimant,
         nonce: confirmed.proof.nonce,
         deadline: BigInt(confirmed.proof.deadline),
