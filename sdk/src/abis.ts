@@ -27,6 +27,7 @@ export { ContentRegistryAbi } from '../abis/ContentRegistryAbi.js';
 export { BeneficiaryRegistryAbi } from '../abis/BeneficiaryRegistryAbi.js';
 export { BeneficiaryEscrowAbi } from '../abis/BeneficiaryEscrowAbi.js';
 export { CreatorAssuranceContractFactoryAbi } from '../abis/CreatorAssuranceContractFactoryAbi.js';
+export { CreatorAssuranceVetoAbi } from '../abis/CreatorAssuranceVetoAbi.js';
 export { ProspectiveContentRoundFactoryAbi } from '../abis/ProspectiveContentRoundFactoryAbi.js';
 export { MaterializedContentTokensAbi } from '../abis/MaterializedContentTokensAbi.js';
 export { NudgePublicationsAbi } from '../abis/NudgePublicationsAbi.js';

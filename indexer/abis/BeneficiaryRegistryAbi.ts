@@ -47,44 +47,6 @@ export const BeneficiaryRegistryAbi = [
     "type": "error"
   },
   {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "channelId",
-        "type": "bytes32"
-      }
-    ],
-    "name": "ChannelNotCreatorControlled",
-    "type": "error"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "contractAddress",
-        "type": "address"
-      }
-    ],
-    "name": "ContractNotCreatedByFactory",
-    "type": "error"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "channelId",
-        "type": "bytes32"
-      },
-      {
-        "internalType": "address",
-        "name": "contractAddress",
-        "type": "address"
-      }
-    ],
-    "name": "ContractNotThirdParty",
-    "type": "error"
-  },
-  {
     "inputs": [],
     "name": "InvalidBeneficiaryIdentity",
     "type": "error"
@@ -92,11 +54,6 @@ export const BeneficiaryRegistryAbi = [
   {
     "inputs": [],
     "name": "InvalidClaimant",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "InvalidFactoryAddress",
     "type": "error"
   },
   {
@@ -126,22 +83,12 @@ export const BeneficiaryRegistryAbi = [
   },
   {
     "inputs": [],
-    "name": "InvalidVetoWindowDuration",
-    "type": "error"
-  },
-  {
-    "inputs": [],
     "name": "NoVerifierConfigured",
     "type": "error"
   },
   {
     "inputs": [],
     "name": "OnlyChannelOwnerCanTakeControl",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "OnlyChannelOwnerCanVeto",
     "type": "error"
   },
   {
@@ -184,16 +131,6 @@ export const BeneficiaryRegistryAbi = [
   {
     "inputs": [],
     "name": "VerifierAlreadyRevoked",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "VetoWindowDurationCannotDecrease",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "VetoWindowExpired",
     "type": "error"
   },
   {
@@ -257,44 +194,6 @@ export const BeneficiaryRegistryAbi = [
       }
     ],
     "name": "ChannelControlTaken",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "bytes32",
-        "name": "channelId",
-        "type": "bytes32"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "contractAddress",
-        "type": "address"
-      }
-    ],
-    "name": "ContractVetoed",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "factory",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "bool",
-        "name": "authorized",
-        "type": "bool"
-      }
-    ],
-    "name": "FactoryAuthorizationSet",
     "type": "event"
   },
   {
@@ -437,93 +336,10 @@ export const BeneficiaryRegistryAbi = [
     "type": "event"
   },
   {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "oldDuration",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "newDuration",
-        "type": "uint256"
-      }
-    ],
-    "name": "VetoWindowDurationUpdated",
-    "type": "event"
-  },
-  {
-    "inputs": [],
-    "name": "MAX_VETO_WINDOW_DURATION",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "MIN_VETO_WINDOW_DURATION",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
     "inputs": [],
     "name": "acceptOwnership",
     "outputs": [],
     "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "name": "authorizedFactories",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "channelId",
-        "type": "bytes32"
-      }
-    ],
-    "name": "canThirdPartyContractSucceed",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -567,25 +383,12 @@ export const BeneficiaryRegistryAbi = [
   {
     "inputs": [
       {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
+        "internalType": "bytes32",
+        "name": "channelId",
+        "type": "bytes32"
       }
     ],
-    "name": "factories",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "factoryCount",
+    "name": "controlTakenAt",
     "outputs": [
       {
         "internalType": "uint256",
@@ -604,25 +407,6 @@ export const BeneficiaryRegistryAbi = [
         "internalType": "address",
         "name": "",
         "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "_factory",
-        "type": "address"
-      }
-    ],
-    "name": "isAuthorizedFactory",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
       }
     ],
     "stateMutability": "view",
@@ -766,24 +550,6 @@ export const BeneficiaryRegistryAbi = [
     "inputs": [
       {
         "internalType": "address",
-        "name": "_factory",
-        "type": "address"
-      },
-      {
-        "internalType": "bool",
-        "name": "authorized",
-        "type": "bool"
-      }
-    ],
-    "name": "setFactoryAuthorization",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
         "name": "_guardian",
         "type": "address"
       }
@@ -820,19 +586,6 @@ export const BeneficiaryRegistryAbi = [
       }
     ],
     "name": "setVerifier",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "_duration",
-        "type": "uint256"
-      }
-    ],
-    "name": "setVetoWindowDuration",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -955,32 +708,6 @@ export const BeneficiaryRegistryAbi = [
     "name": "verifyNamespacedBeneficiary",
     "outputs": [],
     "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "contractAddress",
-        "type": "address"
-      }
-    ],
-    "name": "vetoContract",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "vetoWindowDuration",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
     "type": "function"
   }
 ] as const;

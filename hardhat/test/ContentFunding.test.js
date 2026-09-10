@@ -69,7 +69,7 @@ async function createContentFundingContract({
 
 describe("ContentFunding", function () {
   let contentRegistry, beneficiaryRegistry, beneficiaryEscrow;
-  let factory, erc1155Factory, conditionFactory;
+  let factory, contentVeto, erc1155Factory, conditionFactory;
   let paymentToken;
   let mockVerifier;
   let owner, recipient, alice, bob, charlie, thirdParty;
@@ -120,10 +120,10 @@ describe("ContentFunding", function () {
       ":"
     );
 
+    contentVeto = await ethers.getContractAt("CreatorAssuranceVeto", await factory.contentVeto());
+
     // Transfer ContentRegistry ownership to factory so it can register/release content
     await contentRegistry.connect(owner).transferOwnership(await factory.getAddress());
-
-    await beneficiaryRegistry.connect(owner).setFactoryAuthorization(await factory.getAddress(), true);
   });
 
   async function approveAssuranceSpend(signer, assuranceContract, amount) {
@@ -282,18 +282,18 @@ describe("ContentFunding", function () {
         .to.be.revertedWithCustomError(beneficiaryRegistry, "InvalidClaimant");
     });
 
-    it("Should allow only monotonic veto window lengthening", async function () {
-      const initialDuration = await beneficiaryRegistry.vetoWindowDuration();
+    it("Should allow only monotonic veto window lengthening on the content factory", async function () {
+      const initialDuration = await contentVeto.vetoWindowDuration();
       const longerDuration = initialDuration + 1n;
 
-      await expect(beneficiaryRegistry.setVetoWindowDuration(longerDuration))
-        .to.emit(beneficiaryRegistry, "VetoWindowDurationUpdated")
+      await expect(contentVeto.setVetoWindowDuration(longerDuration))
+        .to.emit(contentVeto, "VetoWindowDurationUpdated")
         .withArgs(initialDuration, longerDuration);
 
-      await expect(beneficiaryRegistry.setVetoWindowDuration(initialDuration))
-        .to.be.revertedWithCustomError(beneficiaryRegistry, "VetoWindowDurationCannotDecrease");
+      await expect(contentVeto.setVetoWindowDuration(initialDuration))
+        .to.be.revertedWithCustomError(contentVeto, "VetoWindowDurationCannotDecrease");
 
-      expect(await beneficiaryRegistry.vetoWindowDuration()).to.equal(longerDuration);
+      expect(await contentVeto.vetoWindowDuration()).to.equal(longerDuration);
     });
 
     it("Should revert when verifying already verified channel", async function () {
@@ -469,39 +469,6 @@ describe("ContentFunding", function () {
         .to.be.revertedWithCustomError(beneficiaryRegistry, "InvalidVerifierAddress");
     });
 
-    it("Should authorize multiple factory generations", async function () {
-      const CreatorAssuranceContractFactory = await ethers.getContractFactory("CreatorAssuranceContractFactory");
-      const newFactory = await CreatorAssuranceContractFactory.deploy(
-        await contentRegistry.getAddress(),
-        await beneficiaryRegistry.getAddress(),
-        await beneficiaryEscrow.getAddress(),
-        await erc1155Factory.getAddress(),
-        await conditionFactory.getAddress(),
-        await paymentToken.getAddress(),
-        ":"
-      );
-
-      await expect(beneficiaryRegistry.connect(owner).setFactoryAuthorization(await newFactory.getAddress(), true))
-        .to.emit(beneficiaryRegistry, "FactoryAuthorizationSet")
-        .withArgs(await newFactory.getAddress(), true);
-
-      expect(await beneficiaryRegistry.factoryCount()).to.equal(2);
-      expect(await beneficiaryRegistry.isAuthorizedFactory(await factory.getAddress())).to.equal(true);
-      expect(await beneficiaryRegistry.isAuthorizedFactory(await newFactory.getAddress())).to.equal(true);
-
-      await beneficiaryRegistry.connect(owner).setFactoryAuthorization(await newFactory.getAddress(), false);
-      expect(await beneficiaryRegistry.isAuthorizedFactory(await newFactory.getAddress())).to.equal(false);
-    });
-
-    it("Should revert setFactoryAuthorization from non-owner", async function () {
-      await expect(beneficiaryRegistry.connect(alice).setFactoryAuthorization(await bob.getAddress(), true))
-        .to.be.revertedWithCustomError(beneficiaryRegistry, "OwnableUnauthorizedAccount");
-    });
-
-    it("Should revert when setting invalid factory address", async function () {
-      await expect(beneficiaryRegistry.setFactoryAuthorization(ethers.ZeroAddress, true))
-        .to.be.revertedWithCustomError(beneficiaryRegistry, "InvalidFactoryAddress");
-    });
   });
 
   describe("BeneficiaryEscrow", function () {
@@ -635,7 +602,7 @@ describe("ContentFunding", function () {
       );
 
       await beneficiaryRegistry.connect(alice).takeChannelControl(escrowedChannelId);
-      const vetoWindowDuration = await beneficiaryRegistry.vetoWindowDuration();
+      const vetoWindowDuration = await contentVeto.vetoWindowDuration();
       await ethers.provider.send("evm_increaseTime", [Number(vetoWindowDuration) + 1]);
       await ethers.provider.send("evm_mine");
 
@@ -1061,7 +1028,7 @@ describe("ContentFunding", function () {
       );
 
       await beneficiaryRegistry.connect(alice).takeChannelControl(unclaimedChannel);
-      const vetoWindowDuration = await beneficiaryRegistry.vetoWindowDuration();
+      const vetoWindowDuration = await contentVeto.vetoWindowDuration();
       await ethers.provider.send("evm_increaseTime", [Number(vetoWindowDuration) + 1]);
       await ethers.provider.send("evm_mine");
 
@@ -1377,8 +1344,9 @@ describe("ContentFunding", function () {
         .to.be.revertedWithCustomError(factory, "OwnableUnauthorizedAccount");
     });
 
-    it("Should authorize the deployed factory", async function () {
-      expect(await beneficiaryRegistry.isAuthorizedFactory(await factory.getAddress())).to.equal(true);
+    it("Should deploy a content veto module owned by the factory owner", async function () {
+      expect(await contentVeto.factory()).to.equal(await factory.getAddress());
+      expect(await contentVeto.owner()).to.equal(owner.address);
     });
   });
 
@@ -1524,7 +1492,7 @@ describe("ContentFunding", function () {
       await beneficiaryRegistry.connect(alice).takeChannelControl(channelId);
 
       // Creator vetoes the third-party contract
-      await beneficiaryRegistry.connect(alice).vetoContract(thirdPartyContractAddr);
+      await contentVeto.connect(alice).vetoContract(thirdPartyContractAddr);
 
       // Verify the condition is cancelled
       expect(await condition.isCancelled()).to.be.true;
@@ -1578,12 +1546,12 @@ describe("ContentFunding", function () {
 
       await beneficiaryRegistry.connect(alice).takeChannelControl(channelId);
 
-      const vetoWindowDuration = await beneficiaryRegistry.vetoWindowDuration();
+      const vetoWindowDuration = await contentVeto.vetoWindowDuration();
       await ethers.provider.send("evm_increaseTime", [Number(vetoWindowDuration) + 1]);
       await ethers.provider.send("evm_mine");
 
-      await expect(beneficiaryRegistry.connect(alice).vetoContract(thirdPartyContractAddr))
-        .to.be.revertedWithCustomError(beneficiaryRegistry, "VetoWindowExpired");
+      await expect(contentVeto.connect(alice).vetoContract(thirdPartyContractAddr))
+        .to.be.revertedWithCustomError(contentVeto, "VetoWindowExpired");
 
       expect(await condition.isCancelled()).to.be.false;
       expect(await contentRegistry.isRegistered(contentId)).to.be.true;
@@ -1630,7 +1598,7 @@ describe("ContentFunding", function () {
       const thirdPartyContractAddr = event.args.contractAddress;
 
       await beneficiaryRegistry.connect(alice).takeChannelControl(channelId);
-      await beneficiaryRegistry.connect(alice).vetoContract(thirdPartyContractAddr);
+      await contentVeto.connect(alice).vetoContract(thirdPartyContractAddr);
 
       expect(await contentRegistry.isRegistered(vetoedContentId)).to.be.false;
 
@@ -1683,8 +1651,8 @@ describe("ContentFunding", function () {
 
       await beneficiaryRegistry.connect(alice).takeChannelControl(channelId);
 
-      await expect(beneficiaryRegistry.connect(bob).vetoContract(addr))
-        .to.be.revertedWithCustomError(beneficiaryRegistry, "OnlyChannelOwnerCanVeto");
+      await expect(contentVeto.connect(bob).vetoContract(addr))
+        .to.be.revertedWithCustomError(contentVeto, "OnlyChannelOwnerCanVeto");
     });
 
     it("Should revert veto on non-third-party contract", async function () {
@@ -1717,8 +1685,8 @@ describe("ContentFunding", function () {
 
       await beneficiaryRegistry.connect(alice).takeChannelControl(channelId);
 
-      await expect(beneficiaryRegistry.connect(alice).vetoContract(addr))
-        .to.be.revertedWithCustomError(beneficiaryRegistry, "ContractNotThirdParty");
+      await expect(contentVeto.connect(alice).vetoContract(addr))
+        .to.be.revertedWithCustomError(contentVeto, "ContractNotThirdParty");
     });
   });
 
@@ -1908,7 +1876,7 @@ describe("ContentFunding", function () {
 
       // Charlie takes control and vetoes
       await beneficiaryRegistry.connect(charlie).takeChannelControl(thirdPartyChannelId);
-      await beneficiaryRegistry.connect(charlie).vetoContract(thirdPartyContract);
+      await contentVeto.connect(charlie).vetoContract(thirdPartyContract);
 
       // Verify the condition is cancelled
       const conditionAddr = await factory.contractCondition(thirdPartyContract);

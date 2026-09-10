@@ -408,18 +408,18 @@ export async function takeChannelControl(
  * taking control. Vetoed contracts are marked as invalid.
  *
  * @param clients - Wallet and public clients for blockchain interaction
- * @param registryContract - The BeneficiaryRegistry contract instance
+ * @param factoryContract - The CreatorAssuranceContractFactory instance
  * @param contractAddress - Address of the contract to veto
  * @returns Transaction hash
  */
 export async function vetoContract(
   clients: WriteClients,
-  registryContract: { address: Address; abi: Abi },
+  factoryContract: { address: Address; abi: Abi },
   contractAddress: Address,
 ): Promise<{ hash: Hash }> {
   const hash = await clients.walletClient.writeContract({
-    address: registryContract.address,
-    abi: registryContract.abi,
+    address: factoryContract.address,
+    abi: factoryContract.abi,
     functionName: 'vetoContract',
     args: [contractAddress],
     chain: clients.walletClient.chain,

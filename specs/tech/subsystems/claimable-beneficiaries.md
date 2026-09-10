@@ -112,3 +112,6 @@ the canonical beneficiary identity in published project metadata. DNS claims use
 `verifyNamespacedBeneficiary` so a namespace waiting period (7 days at deploy) locks
 first withdrawal until the public proof can be noticed. Project pages surface the
 website identity and a claim flow for `/.well-known/commonality-claim.json`.
+Content veto, veto-window duration, and third-party success gating live on
+`CreatorAssuranceVeto` (one per content factory); the shared registry only
+records identity control (`takeChannelControl` / `controlTakenAt`).

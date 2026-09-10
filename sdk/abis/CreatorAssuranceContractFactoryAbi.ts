@@ -487,6 +487,19 @@ export const CreatorAssuranceContractFactoryAbi = [
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "contentVeto",
+    "outputs": [
+      {
+        "internalType": "contract CreatorAssuranceVeto",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "address",

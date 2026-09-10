@@ -20,7 +20,7 @@ import { formatCurrencyAmount, InfoChip } from '../../shared'
 import { CHANNEL_STATE_TOOLTIPS, CONTRACT_STATUS_TOOLTIPS } from '../chipTooltips'
 import { getVetoableContracts, hashCanonicalId, type ChannelWithCanonicalId, type ChannelState } from '@commonality/sdk/content-funding'
 import { ETH_CURRENCY, type Currency } from '@commonality/sdk/utils'
-import { BeneficiaryRegistryAbi, BeneficiaryEscrowAbi } from '@commonality/sdk/abis'
+import { BeneficiaryRegistryAbi, BeneficiaryEscrowAbi, CreatorAssuranceVetoAbi } from '@commonality/sdk/abis'
 import { withdrawFromEscrow, takeChannelControl, vetoContract } from '@commonality/sdk/content-funding'
 import { getChannelDisplayLabels, type ChannelDisplayMetadata } from '../channelDisplay'
 import { useContentFundingState } from '../hooks/useContentFundingState'
@@ -343,10 +343,10 @@ export function CreatorDashboardPage({
   const handleVeto = async (channel: ChannelWithCanonicalId, contractAddress: string) => {
     if (!writeClients || !address || !channel.canonicalChannelId) return
 
-    const registryAddress = import.meta.env.VITE_BENEFICIARY_REGISTRY_ADDRESS
+    const vetoAddress = import.meta.env.VITE_CREATOR_ASSURANCE_VETO_ADDRESS
 
-    if (!registryAddress) {
-      setVetoError('Channel registry not configured')
+    if (!vetoAddress) {
+      setVetoError('Content veto module not configured')
       return
     }
 
@@ -356,12 +356,12 @@ export function CreatorDashboardPage({
 
       const clients = writeClients!
 
-      const registryContract = {
-        address: registryAddress as `0x${string}`,
-        abi: BeneficiaryRegistryAbi,
+      const vetoContractInstance = {
+        address: vetoAddress as `0x${string}`,
+        abi: CreatorAssuranceVetoAbi,
       }
 
-      await vetoContract(clients, registryContract, contractAddress as `0x${string}`)
+      await vetoContract(clients, vetoContractInstance, contractAddress as `0x${string}`)
       window.location.reload()
     } catch (err) {
       setVetoError(err instanceof Error ? err.message : 'Failed to veto contract')

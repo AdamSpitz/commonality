@@ -56,9 +56,9 @@ The constraints are the **cross-contract couplings**, not the factories themselv
 |---|---|---|
 | `DelegatableNotes` → primary market factories | mutable **list** (`setPrimaryMarketFactoryAuthorization`) | ✅ already designed for versions |
 | `DelegatableNotes` → secondary market factories | mutable **list** (`setSecondaryMarketFactoryAuthorization`) | ✅ v2 marketplace factories can be authorized alongside v1 |
-| `ChannelRegistry` → creator assurance contract factories | mutable **set** (`setFactoryAuthorization`) | ✅ `vetoContract` resolves the factory that created the target contract, so generations can coexist |
+| Content factory → `CreatorAssuranceVeto` | immutable per factory (`contentVeto`) | ✅ each factory generation deploys its own veto module; no shared factory-auth set |
 | `ContentRegistry.isRegistrar` | mutable **set** | ✅ authorize the v2 factory alongside v1 |
-| `CancellableCondition.successGate` → ChannelRegistry | immutable per-condition | OK (conditions die with their project), but it pins ChannelRegistry while any third-party veto window is live |
+| `CancellableCondition.successGate` → `CreatorAssuranceVeto` | immutable per-condition | OK (conditions die with their project); pins that factory's veto module while a third-party window is live |
 
 ### Class 3 — Long-lived value-holding singletons: the genuinely hard ones
 

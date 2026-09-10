@@ -98,7 +98,7 @@ register("ContentRegistry:ContentItemRegistered");
 register("ContentRegistry:ContentItemReleased");
 register("BeneficiaryRegistry:BeneficiaryVerified");
 register("BeneficiaryRegistry:ChannelControlTaken");
-register("BeneficiaryRegistry:ContractVetoed");
+register("CreatorAssuranceVeto:ContractVetoed");
 register("BeneficiaryEscrow:Deposited");
 register("BeneficiaryEscrow:Withdrawn");
 register("CreatorAssuranceContractFactory:CreatorContractCreated");

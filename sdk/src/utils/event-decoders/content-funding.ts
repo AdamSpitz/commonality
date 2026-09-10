@@ -3,6 +3,7 @@ import {
   BeneficiaryRegistryAbi,
   ContentRegistryAbi,
   CreatorAssuranceContractFactoryAbi,
+  CreatorAssuranceVetoAbi,
   MaterializedContentTokensAbi,
   ProspectiveContentRoundFactoryAbi,
 } from '../../abis.js';
@@ -104,7 +105,7 @@ export function decodeContractVetoedEvent(
   logIndex: number;
 } | null {
   if (rawEvent.eventName !== 'ContractVetoed') return null;
-  const args = decodeRawEventArgs(rawEvent, BeneficiaryRegistryAbi);
+  const args = decodeRawEventArgs(rawEvent, CreatorAssuranceVetoAbi);
   if (!args) return null;
   return {
     channelId: args.channelId as string,

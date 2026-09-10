@@ -1892,3 +1892,21 @@ exercise the full claim/fund/withdraw flow.
   walks through publishing `/.well-known/commonality-claim.json`.
 
 Still needed: extract content veto/control from the shared registry.
+
+## 2026-09-10 — Content veto extracted from BeneficiaryRegistry
+
+- Removed factory authorization, veto window, `vetoContract`, and
+  `canThirdPartyContractSucceed` from `BeneficiaryRegistry`.
+- Each `CreatorAssuranceContractFactory` deploys a `CreatorAssuranceVeto`
+  module that owns content-only veto and third-party success gating.
+  Cancellable conditions now cancel/succeed through that module.
+- Identity control (`takeChannelControl` / `controlTakenAt`) stays on the
+  shared registry so website beneficiaries can still become
+  beneficiary-controlled without inheriting tweet veto machinery.
+- SDK, indexer event cache, creator dashboard veto, and deploy env now
+  target `CreatorAssuranceVeto`.
+
+Checks: Hardhat ContentFunding, ProjectFactory, ProspectiveContentFunding,
+and SecurityRegression tests pass.
+
+Still needed: DNS TXT alternate proof; docs that still say ChannelRegistry.

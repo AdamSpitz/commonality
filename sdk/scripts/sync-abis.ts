@@ -43,6 +43,7 @@ const CONTRACTS_TO_SYNC: Record<string, { artifactPath: string; outputFile: stri
   BeneficiaryRegistry: { artifactPath: "content-funding/BeneficiaryRegistry.sol/BeneficiaryRegistry.json", outputFile: "BeneficiaryRegistryAbi.ts" },
   BeneficiaryEscrow: { artifactPath: "content-funding/BeneficiaryEscrow.sol/BeneficiaryEscrow.json", outputFile: "BeneficiaryEscrowAbi.ts" },
   CreatorAssuranceContractFactory: { artifactPath: "content-funding/CreatorAssuranceContractFactory.sol/CreatorAssuranceContractFactory.json", outputFile: "CreatorAssuranceContractFactoryAbi.ts" },
+  CreatorAssuranceVeto: { artifactPath: "content-funding/CreatorAssuranceVeto.sol/CreatorAssuranceVeto.json", outputFile: "CreatorAssuranceVetoAbi.ts" },
   ProspectiveContentRoundFactory: { artifactPath: "content-funding/ProspectiveContentRoundFactory.sol/ProspectiveContentRoundFactory.json", outputFile: "ProspectiveContentRoundFactoryAbi.ts" },
   MaterializedContentTokens: { artifactPath: "content-funding/MaterializedContentTokens.sol/MaterializedContentTokens.json", outputFile: "MaterializedContentTokensAbi.ts" },
   NudgePublications: { artifactPath: "nudger/NudgePublications.sol/NudgePublications.json", outputFile: "NudgePublicationsAbi.ts" },

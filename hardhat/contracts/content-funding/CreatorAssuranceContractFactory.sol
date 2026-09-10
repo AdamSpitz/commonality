@@ -7,7 +7,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {CreatorAssuranceContract, ICreatorAssuranceContract} from "./CreatorAssuranceContract.sol";
 import {ContentRegistry} from "./ContentRegistry.sol";
-import {BeneficiaryRegistry, IBeneficiaryRegistry} from "./BeneficiaryRegistry.sol";
+import {BeneficiaryRegistry} from "./BeneficiaryRegistry.sol";
 import {BeneficiaryEscrow} from "./BeneficiaryEscrow.sol";
 import {PremintingERC1155} from "../utils/PremintingERC1155.sol";
 import {PremintingERC1155Factory} from "../individual-projects/ProjectFactory.sol";
@@ -15,6 +15,7 @@ import {ValueThresholdCondition} from "../individual-projects/ValueThresholdCond
 import {ValueThresholdConditionFactory} from "../individual-projects/ProjectFactory.sol";
 import {CancellableCondition} from "../individual-projects/CancellableCondition.sol";
 import {IAssuranceCondition} from "../individual-projects/IAssuranceCondition.sol";
+import {CreatorAssuranceVeto} from "./CreatorAssuranceVeto.sol";
 
 error ArrayLengthMismatch();
 error InvalidChannelId();
@@ -150,8 +151,11 @@ contract CreatorAssuranceContractFactory is Ownable2Step {
     uint256 public thirdPartyMinPurchase = 1;
 
     /// @notice Maximum duration from creation to deadline for third-party contracts.
-    /// @dev Defaults to the BeneficiaryRegistry's default veto window (7 days) to reduce cheap squatting.
+    /// @dev Defaults to 7 days to reduce cheap squatting.
     uint256 public thirdPartyMaxDuration = 7 days;
+
+    /// @notice Content-only veto/success-gate module for third-party contracts
+    CreatorAssuranceVeto public immutable contentVeto;
 
     /**
      * @notice Initializes the factory with all required dependency addresses
@@ -181,6 +185,7 @@ contract CreatorAssuranceContractFactory is Ownable2Step {
         conditionFactory = ValueThresholdConditionFactory(_conditionFactory);
         paymentToken = _paymentToken;
         contentIdSeparator = _contentIdSeparator;
+        contentVeto = new CreatorAssuranceVeto(address(this), _beneficiaryRegistry, msg.sender);
     }
 
     /**
@@ -375,8 +380,8 @@ contract CreatorAssuranceContractFactory is Ownable2Step {
             );
             CancellableCondition cancellableCondition = new CancellableCondition(
                 address(baseCondition),
-                address(beneficiaryRegistry),
-                address(beneficiaryRegistry),
+                address(contentVeto),
+                address(contentVeto),
                 params.channelId
             );
             conditionAddress = address(cancellableCondition);
@@ -426,7 +431,7 @@ contract CreatorAssuranceContractFactory is Ownable2Step {
 
     /**
      * @notice Release content IDs from the registry when a contract's condition has failed
-     * @dev Called by the BeneficiaryRegistry during veto, or can be called by anyone after failure.
+     * @dev Called by this factory during veto, or by anyone after the condition has failed.
      *      Releases all content IDs associated with the contract back to unregistered state.
      * @param contractAddress The address of the failed creator assurance contract
      */

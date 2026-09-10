@@ -2,7 +2,6 @@
 pragma solidity 0.8.33;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {ICancellableCondition} from "../individual-projects/CancellableCondition.sol";
 import {Guardable} from "../utils/Guardable.sol";
 
 error BeneficiaryAlreadyVerified(bytes32 beneficiaryId);
@@ -13,22 +12,13 @@ error InvalidClaimant();
 error InvalidNewPayoutAddress();
 error OnlyChannelOwnerCanTakeControl();
 error OnlyPayoutAddressCanRotate();
-error OnlyChannelOwnerCanVeto();
 error InvalidNonce();
 error ProofExpired();
 error InvalidVerifierSignature();
 error InvalidProofHash();
-error VetoWindowExpired();
-error ContractNotThirdParty(bytes32 channelId, address contractAddress);
-error ContractAlreadySucceeded(address contractAddress);
-error ContractNotCreatedByFactory(address contractAddress);
-error OnlyFactoryCanRegister();
 error InvalidVerifierAddress();
 error NoVerifierConfigured();
 error VerifierAlreadyRevoked();
-error InvalidFactoryAddress();
-error InvalidVetoWindowDuration();
-error VetoWindowDurationCannotDecrease();
 error InvalidBeneficiaryIdentity();
 error ClaimWaitingPeriodNotElapsed(uint256 withdrawableAt);
 
@@ -55,8 +45,6 @@ interface IBeneficiaryRegistry {
     function payoutAddress(bytes32 beneficiaryId) external view returns (address);
     function channelState(bytes32 channelId) external view returns (uint8);
     function verifier() external view returns (address);
-    function vetoWindowDuration() external view returns (uint256);
-    function canThirdPartyContractSucceed(bytes32 channelId) external view returns (bool);
     function verifyBeneficiary(
         bytes32 beneficiaryId,
         address claimant,
@@ -67,39 +55,22 @@ interface IBeneficiaryRegistry {
     ) external;
     function takeChannelControl(bytes32 channelId) external;
     function rotatePayoutAddress(bytes32 beneficiaryId, address newPayoutAddress) external;
-    function vetoContract(address contractAddress) external;
     function setVerifier(address verifier) external;
     function revokeVerifier() external;
-    function setFactoryAuthorization(address factory, bool authorized) external;
-    function isAuthorizedFactory(address factory) external view returns (bool);
-    function setVetoWindowDuration(uint256 duration) external;
     function isVerified(bytes32 channelId) external view returns (bool);
     function isCreatorControlled(bytes32 channelId) external view returns (bool);
+    function controlTakenAt(bytes32 channelId) external view returns (uint256);
     function claimWithdrawableAt(bytes32 beneficiaryId) external view returns (uint256);
-}
-
-/**
- * @title ICreatorAssuranceContractFactory
- * @notice Interface for querying creator assurance contract factory state
- */
-interface ICreatorAssuranceContractFactory {
-    function channelIdByContract(address contractAddress) external view returns (bytes32);
-    function isThirdPartyCreated(address contractAddress) external view returns (bool);
-    function contractCondition(address contractAddress) external view returns (address);
-    function releaseContentOnFailure(address contractAddress) external;
 }
 
 /**
  * @title BeneficiaryRegistry
  * @notice Tracks beneficiary payout and verification state for shared funding flows
- * @dev Channels progress through three states: Unclaimed -> Verified -> CreatorControlled.
+ * @dev Identities progress through Unclaimed -> Verified -> CreatorControlled.
  *      Verification requires a signed proof from an off-chain verifier (the Platform API Service).
- *      Once creator-controlled, the channel owner can veto third-party assurance contracts
- *      within a time window.
+ *      Content-only veto and occupancy live on the content factory, not here.
  */
 contract BeneficiaryRegistry is IBeneficiaryRegistry, Guardable {
-    uint256 public constant MIN_VETO_WINDOW_DURATION = 1 days;
-    uint256 public constant MAX_VETO_WINDOW_DURATION = 365 days;
 
     /**
      * @notice Channel lifecycle states
@@ -122,13 +93,8 @@ contract BeneficiaryRegistry is IBeneficiaryRegistry, Guardable {
 
     /// @notice The verifier contract used to validate channel claim proofs (zero once revoked)
     address public verifier;
-    mapping(address => bool) public authorizedFactories;
-    address[] public factories;
-    mapping(address => bool) private knownFactories;
-    /// @notice Duration of the veto window after a creator takes channel control (default: 7 days)
-    uint256 public vetoWindowDuration = 7 days;
 
-    mapping(bytes32 channelId => uint256 controlTakenAt) private _controlTakenAt;
+    mapping(bytes32 channelId => uint256 timestamp) private _controlTakenAt;
 
     /**
      * @notice Emitted when a beneficiary's payout address is verified
@@ -166,13 +132,6 @@ contract BeneficiaryRegistry is IBeneficiaryRegistry, Guardable {
     );
 
     /**
-     * @notice Emitted when a channel owner vetoes a third-party contract
-     * @param channelId The channel
-     * @param contractAddress The vetoed contract address
-     */
-    event ContractVetoed(bytes32 indexed channelId, address indexed contractAddress);
-
-    /**
      * @notice Emitted when the verifier contract is updated
      * @param oldVerifier The previous verifier address
      * @param newVerifier The new verifier address
@@ -185,18 +144,6 @@ contract BeneficiaryRegistry is IBeneficiaryRegistry, Guardable {
      * @param revokedBy The owner or guardian that called the revocation
      */
     event VerifierRevoked(address indexed revokedVerifier, address indexed revokedBy);
-
-    /**
-     * @notice Emitted when a creator assurance contract factory is authorized/deauthorized.
-     */
-    event FactoryAuthorizationSet(address indexed factory, bool authorized);
-
-    /**
-     * @notice Emitted when the veto window duration is updated
-     * @param oldDuration The previous duration in seconds
-     * @param newDuration The new duration in seconds
-     */
-    event VetoWindowDurationUpdated(uint256 oldDuration, uint256 newDuration);
 
     /**
      * @notice Emitted when a namespace's first-claim waiting period is updated
@@ -251,6 +198,14 @@ contract BeneficiaryRegistry is IBeneficiaryRegistry, Guardable {
     }
 
     /**
+     * @notice Timestamp when the verified owner took identity control (zero if not yet)
+     * @dev Content factories use this to start their own veto windows.
+     */
+    function controlTakenAt(bytes32 channelId) external view returns (uint256) {
+        return _controlTakenAt[channelId];
+    }
+
+    /**
      * @notice Earliest timestamp at which escrow for this beneficiary may be withdrawn
      * @dev Reverts if the beneficiary is still unclaimed. Content namespaces default to
      *      verification time (zero waiting period).
@@ -292,66 +247,14 @@ contract BeneficiaryRegistry is IBeneficiaryRegistry, Guardable {
      *      `BeneficiaryVerifier.revokeTrustedVerifier`: use it when the verifier *contract*
      *      itself is compromised or misbehaving, rather than just its signing key.
      *      It only reduces power — `verifyBeneficiary` reverts until the owner installs a
-     *      replacement, while every other flow (taking control, vetoes, escrow
-     *      withdrawals by already-verified owners) is untouched.
+     *      replacement, while every other flow (taking control, escrow withdrawals by
+     *      already-verified owners) is untouched.
      */
     function revokeVerifier() external onlyOwnerOrGuardian {
         address oldVerifier = verifier;
         if (oldVerifier == address(0)) revert VerifierAlreadyRevoked();
         verifier = address(0);
         emit VerifierRevoked(oldVerifier, _msgSender());
-    }
-
-    function setFactoryAuthorization(address _factory, bool authorized) external onlyOwner {
-        _setFactoryAuthorization(_factory, authorized);
-    }
-
-    function factoryCount() external view returns (uint256) {
-        return factories.length;
-    }
-
-    function isAuthorizedFactory(address _factory) external view returns (bool) {
-        return authorizedFactories[_factory];
-    }
-
-    function _setFactoryAuthorization(address _factory, bool authorized) private {
-        if (_factory == address(0)) revert InvalidFactoryAddress();
-        if (authorizedFactories[_factory] == authorized) return;
-        authorizedFactories[_factory] = authorized;
-        if (!knownFactories[_factory]) {
-            knownFactories[_factory] = true;
-            factories.push(_factory);
-        }
-        emit FactoryAuthorizationSet(_factory, authorized);
-    }
-
-    /**
-     * @notice Update the veto window duration
-     * @dev Only callable by the contract owner. Bounded between MIN and MAX to prevent
-     *      footguns (e.g., zero window or absurdly long lockouts). The duration may only
-     *      be lengthened, never shortened, so in-flight veto windows cannot be expired early.
-     * @param _duration The new veto window in seconds
-     */
-    function setVetoWindowDuration(uint256 _duration) external onlyOwner {
-        if (_duration < MIN_VETO_WINDOW_DURATION || _duration > MAX_VETO_WINDOW_DURATION) {
-            revert InvalidVetoWindowDuration();
-        }
-        uint256 oldDuration = vetoWindowDuration;
-        if (_duration < oldDuration) revert VetoWindowDurationCannotDecrease();
-        vetoWindowDuration = _duration;
-        emit VetoWindowDurationUpdated(oldDuration, _duration);
-    }
-
-    /**
-     * @notice Returns true once a third-party contract for this channel may become successful.
-     * @dev Third-party contracts stay vetoable until the creator has verified ownership,
-     *      taken control, and the veto window has elapsed. This prevents an unwanted
-     *      contract from becoming irrevocably successful before the creator has a practical
-     *      chance to veto it.
-     */
-    function canThirdPartyContractSucceed(bytes32 channelId) external view returns (bool) {
-        if (_channelStates[channelId] != ChannelState.CreatorControlled) return false;
-        return block.timestamp > _controlTakenAt[channelId] + vetoWindowDuration;
     }
 
     /**
@@ -466,10 +369,11 @@ contract BeneficiaryRegistry is IBeneficiaryRegistry, Guardable {
     }
 
     /**
-     * @notice Take full control of a verified channel
-     * @dev Transitions the channel from Verified to CreatorControlled.
-     *      Only the verified channel owner can call this. Starts the veto window.
-     * @param channelId The channel to take control of
+     * @notice Take full control of a verified identity
+     * @dev Transitions from Verified to CreatorControlled. Only the verified payout
+     *      address can call this. Content factories may start a veto window from
+     *      `controlTakenAt`.
+     * @param channelId The identity to take control of
      */
     function takeChannelControl(bytes32 channelId) external {
         if (_channelStates[channelId] == ChannelState.Unclaimed) {
@@ -487,50 +391,5 @@ contract BeneficiaryRegistry is IBeneficiaryRegistry, Guardable {
         _controlTakenAt[channelId] = block.timestamp;
 
         emit ChannelControlTaken(channelId, caller);
-    }
-
-    /**
-     * @notice Veto a third-party assurance contract within the veto window
-     * @dev Only callable by the creator-controlled channel owner. Cancels the contract's
-     *      condition and releases the associated content IDs. Must be called within
-     *      the veto window period after taking channel control.
-     * @param contractAddress The address of the third-party assurance contract to veto
-     */
-    function vetoContract(address contractAddress) external {
-        address contractFactory = _factoryForContract(contractAddress);
-        if (contractFactory == address(0)) revert ContractNotCreatedByFactory(contractAddress);
-
-        bytes32 channelId = ICreatorAssuranceContractFactory(contractFactory).channelIdByContract(contractAddress);
-
-        if (_channelStates[channelId] != ChannelState.CreatorControlled) {
-            revert ChannelNotCreatorControlled(channelId);
-        }
-        if (_msgSender() != _payoutAddresses[channelId]) revert OnlyChannelOwnerCanVeto();
-
-        if (!ICreatorAssuranceContractFactory(contractFactory).isThirdPartyCreated(contractAddress)) {
-            revert ContractNotThirdParty(channelId, contractAddress);
-        }
-
-        uint256 controlTaken = _controlTakenAt[channelId];
-        if (block.timestamp > controlTaken + vetoWindowDuration) revert VetoWindowExpired();
-
-        address conditionAddress = ICreatorAssuranceContractFactory(contractFactory).contractCondition(contractAddress);
-        if (conditionAddress == address(0)) revert ContractNotCreatedByFactory(contractAddress);
-
-        ICancellableCondition(conditionAddress).cancel();
-        ICreatorAssuranceContractFactory(contractFactory).releaseContentOnFailure(contractAddress);
-
-        emit ContractVetoed(channelId, contractAddress);
-    }
-
-    function _factoryForContract(address contractAddress) private view returns (address) {
-        for (uint256 i = 0; i < factories.length; i++) {
-            address candidate = factories[i];
-            if (!authorizedFactories[candidate]) continue;
-            if (ICreatorAssuranceContractFactory(candidate).channelIdByContract(contractAddress) != bytes32(0)) {
-                return candidate;
-            }
-        }
-        return address(0);
     }
 }
