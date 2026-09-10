@@ -115,4 +115,6 @@ website identity and a claim flow for `/.well-known/commonality-claim.json`, wit
 `_commonality.<domain>` TXT as the alternate when the well-known document is missing.
 Content veto, veto-window duration, and third-party success gating live on
 `CreatorAssuranceVeto` (one per content factory); the shared registry only
-records identity control (`takeBeneficiaryControl` / `controlTakenAt`).
+records identity control (`takeBeneficiaryControl` / `controlTakenAt`)
+and exposes `beneficiaryState` / `isBeneficiaryControlled` rather than
+channel-creator language.

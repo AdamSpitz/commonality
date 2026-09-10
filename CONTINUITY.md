@@ -1941,3 +1941,18 @@ function still named `takeChannelControl`.
 Still needed: leftover ChannelState / channelState / isCreatorControlled
 language on the registry; content-funding fold still talks about "channels"
 for tweet occupancy (that's fine); Channel* types in platform-api TS.
+
+## 2026-09-10 — Beneficiary-native registry state API
+
+- Renamed `ChannelState` / `channelState` / `isCreatorControlled` on
+  `BeneficiaryRegistry` to `BeneficiaryState` / `beneficiaryState` /
+  `isBeneficiaryControlled`. Enum value `CreatorControlled` is now
+  `BeneficiaryControlled`.
+- SDK fold uses `BeneficiaryState` (`'beneficiary-controlled'`) and
+  `foldBeneficiaryState`. Content UI still shows "Creator-Controlled" for
+  tweet occupancy.
+- ABI copies, Hardhat tests, factory/veto callers, and website claim
+  `functionName` updated.
+
+Still needed: remaining Channel* copy in older content-funding specs;
+content occupancy still keyed as channels (intentional).

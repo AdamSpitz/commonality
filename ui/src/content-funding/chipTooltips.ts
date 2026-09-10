@@ -9,7 +9,7 @@ export const CONTENT_FUNDING_BADGE_TOOLTIP =
 export const CHANNEL_STATE_TOOLTIPS: Record<string, string> = {
   unclaimed: 'This channel has not been claimed yet. If you are the creator, you can verify ownership and collect any funds waiting for you.',
   verified: 'The creator has verified they own this channel.',
-  'creator-controlled': 'The verified creator controls this channel and its contracts.',
+  'beneficiary-controlled': 'The verified creator controls this channel and its contracts.',
 }
 
 export const CONTRACT_STATUS_TOOLTIPS: Record<string, string> = {

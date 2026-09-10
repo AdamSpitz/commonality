@@ -160,7 +160,7 @@ describe('ContentFundingProjectSection', () => {
 
   it('shows creator-controlled channel status', () => {
     mockContentFundingState({
-      channels: [mockChannel(projectAddress, { state: 'creator-controlled' })],
+      channels: [mockChannel(projectAddress, { state: 'beneficiary-controlled' })],
     })
 
     render(<ContentFundingProjectSection projectAddress={projectAddress} />)

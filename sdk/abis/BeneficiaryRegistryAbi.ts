@@ -346,11 +346,11 @@ export const BeneficiaryRegistryAbi = [
     "inputs": [
       {
         "internalType": "bytes32",
-        "name": "channelId",
+        "name": "beneficiaryId",
         "type": "bytes32"
       }
     ],
-    "name": "channelState",
+    "name": "beneficiaryState",
     "outputs": [
       {
         "internalType": "uint8",
@@ -384,7 +384,7 @@ export const BeneficiaryRegistryAbi = [
     "inputs": [
       {
         "internalType": "bytes32",
-        "name": "channelId",
+        "name": "beneficiaryId",
         "type": "bytes32"
       }
     ],
@@ -416,11 +416,11 @@ export const BeneficiaryRegistryAbi = [
     "inputs": [
       {
         "internalType": "bytes32",
-        "name": "channelId",
+        "name": "beneficiaryId",
         "type": "bytes32"
       }
     ],
-    "name": "isCreatorControlled",
+    "name": "isBeneficiaryControlled",
     "outputs": [
       {
         "internalType": "bool",
@@ -435,7 +435,7 @@ export const BeneficiaryRegistryAbi = [
     "inputs": [
       {
         "internalType": "bytes32",
-        "name": "channelId",
+        "name": "beneficiaryId",
         "type": "bytes32"
       }
     ],

@@ -702,7 +702,7 @@ describe('ClaimFlowModal', () => {
   it('does not show withdraw step for creator-controlled channel', () => {
     vi.mocked(useAccount).mockReturnValue({ isConnected: true } as any)
 
-    render(<ClaimFlowModal {...defaultProps} channelState="creator-controlled" />)
+    render(<ClaimFlowModal {...defaultProps} channelState="beneficiary-controlled" />)
 
     expect(screen.getByText('Verify your identity')).toBeInTheDocument()
   })

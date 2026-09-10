@@ -29,13 +29,13 @@ import { useWriteClients } from '../../shared'
 const STATE_LABELS: Record<ChannelState, string> = {
   unclaimed: 'Unclaimed',
   verified: 'Verified',
-  'creator-controlled': 'Creator-Controlled',
+  'beneficiary-controlled': 'Creator-Controlled',
 }
 
 const STATE_COLORS: Record<ChannelState, 'default' | 'warning' | 'success'> = {
   unclaimed: 'default',
   verified: 'warning',
-  'creator-controlled': 'success',
+  'beneficiary-controlled': 'success',
 }
 
 function getTotalFunding(channel: ChannelWithCanonicalId): bigint {
@@ -142,7 +142,7 @@ function ChannelCard({ channel, state, projects, onWithdraw, onTakeControl, onVe
           </Box>
         )}
 
-        {(channel.channel.state === 'verified' || channel.channel.state === 'creator-controlled') && hasEscrowBalance && (
+        {(channel.channel.state === 'verified' || channel.channel.state === 'beneficiary-controlled') && hasEscrowBalance && (
           <Box sx={{ mb: 2 }}>
             <Button
               variant="contained"

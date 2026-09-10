@@ -62,7 +62,7 @@ import { useContentFundingState } from '../hooks/useContentFundingState'
 import { usePlatformApi } from '../hooks/usePlatformApi'
 
 function makeState(overrides?: {
-  channelState?: 'unclaimed' | 'verified' | 'creator-controlled'
+  channelState?: 'unclaimed' | 'verified' | 'beneficiary-controlled'
   owner?: string | null
   registeredCanonicalIds?: string[]
   scopedOnlyRegisteredCanonicalIds?: string[]

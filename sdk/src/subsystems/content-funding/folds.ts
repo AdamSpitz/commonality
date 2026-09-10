@@ -94,8 +94,10 @@ export function foldContentRegistry(
   return { items };
 }
 
-/** Lifecycle state of a channel in the BeneficiaryRegistry. */
-export type ChannelState = 'unclaimed' | 'verified' | 'creator-controlled';
+/** Lifecycle state of an identity in the BeneficiaryRegistry. */
+export type BeneficiaryState = 'unclaimed' | 'verified' | 'beneficiary-controlled';
+/** @deprecated Use BeneficiaryState. Content UI still uses this name. */
+export type ChannelState = BeneficiaryState;
 
 /** Current state of a channel (creator account) in the registry. */
 export interface ChannelInfo {
@@ -104,7 +106,7 @@ export interface ChannelInfo {
   /** Ethereum address of the verified owner, or null if unclaimed. */
   owner: string | null;
   /** Current lifecycle state. */
-  state: ChannelState;
+  state: BeneficiaryState;
   /** Block timestamp when the owner took control, or null. */
   controlTakenAt: bigint | null;
 }
@@ -119,9 +121,9 @@ export interface BeneficiaryRegistryState {
  * Fold BeneficiaryVerified and BeneficiaryControlTaken events into registry state.
  *
  * Verified events register a beneficiary with a payout address. ControlTaken
- * events transition to 'creator-controlled' and record the timestamp.
+ * events transition to 'beneficiary-controlled' and record the timestamp.
  */
-export function foldChannelState(
+export function foldBeneficiaryState(
   events: (BeneficiaryVerifiedEvent | BeneficiaryControlTakenEvent)[],
 ): BeneficiaryRegistryState {
   const channels = new Map<string, ChannelInfo>();
@@ -137,7 +139,7 @@ export function foldChannelState(
     } else if (event.type === 'BeneficiaryControlTaken') {
       const existing = channels.get(event.beneficiaryId);
       if (existing) {
-        existing.state = 'creator-controlled';
+        existing.state = 'beneficiary-controlled';
         existing.owner = event.owner;
         existing.controlTakenAt = event.blockTimestamp;
       }
@@ -146,6 +148,9 @@ export function foldChannelState(
 
   return { channels };
 }
+
+/** @deprecated Use foldBeneficiaryState. */
+export const foldChannelState = foldBeneficiaryState;
 
 /** Folded state of the BeneficiaryEscrow contract. */
 export interface BeneficiaryEscrowState {
@@ -241,7 +246,7 @@ export function foldAllContentFundingEvents(
 ): ContentFundingState {
   return {
     contentRegistry: foldContentRegistry(contentRegistryEvents),
-    beneficiaryRegistry: foldChannelState(beneficiaryRegistryEvents),
+    beneficiaryRegistry: foldBeneficiaryState(beneficiaryRegistryEvents),
     beneficiaryEscrow: foldBeneficiaryEscrow(beneficiaryEscrowEvents),
     creatorContracts: foldCreatorContracts(creatorContractEvents),
   };

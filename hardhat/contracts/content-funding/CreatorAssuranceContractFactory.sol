@@ -320,7 +320,7 @@ contract CreatorAssuranceContractFactory is Ownable2Step {
         uint256 initialPurchaseValue
     ) private view returns (ChannelCreationContext memory channel) {
         channel.verified = beneficiaryRegistry.isVerified(params.channelId);
-        bool creatorControlled = beneficiaryRegistry.isCreatorControlled(params.channelId);
+        bool creatorControlled = beneficiaryRegistry.isBeneficiaryControlled(params.channelId);
         channel.channelOwner = channel.verified
             ? beneficiaryRegistry.payoutAddress(params.channelId)
             : address(0);

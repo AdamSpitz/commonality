@@ -332,7 +332,7 @@ describe("BeneficiaryVerifier", function () {
         .to.emit(beneficiaryRegistry, "BeneficiaryControlTaken")
         .withArgs(channelId, alice.address);
       expect(await beneficiaryRegistry.payoutAddress(channelId)).to.equal(alice.address);
-      expect(await beneficiaryRegistry.isCreatorControlled(channelId)).to.be.true;
+      expect(await beneficiaryRegistry.isBeneficiaryControlled(channelId)).to.be.true;
     });
 
     it("Should let the owner reinstall a verifier after revocation", async function () {

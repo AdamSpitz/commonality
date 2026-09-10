@@ -48,7 +48,7 @@ export type ProjectMetadata = { name?: string; description?: string; relevantAre
 
 export type ContentFundingInfo = {
   channelCanonicalId: string | null
-  channelState: 'unclaimed' | 'verified' | 'creator-controlled'
+  channelState: 'unclaimed' | 'verified' | 'beneficiary-controlled'
   isThirdParty: boolean
   contractStatus: 'active' | 'successful' | 'failed' | 'vetoed' | 'unknown'
   contentItemCount: number
@@ -110,7 +110,7 @@ function ContentFundingCardDetails({ info }: { info: ContentFundingInfo }) {
   const channelStateLabels: Record<string, string> = {
     unclaimed: 'Unclaimed',
     verified: 'Verified',
-    'creator-controlled': 'Creator-Controlled',
+    'beneficiary-controlled': 'Creator-Controlled',
   }
 
   const contractStatusLabels: Record<string, string> = {

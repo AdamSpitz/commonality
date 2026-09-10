@@ -44,7 +44,7 @@ const CONTRACT_STATUS_COLORS: Record<string, 'default' | 'primary' | 'success' |
 const STATE_LABELS: Record<string, string> = {
   unclaimed: 'Unclaimed',
   verified: 'Verified',
-  'creator-controlled': 'Creator-Controlled',
+  'beneficiary-controlled': 'Creator-Controlled',
 }
 
 function getContentUrl(canonicalId: string): string | null {

@@ -77,7 +77,7 @@ export function ClaimFlowModal({
   const [takeControlTxHash, setTakeControlTxHash] = useState<string | null>(null)
 
   const isVerified = channelState === 'verified'
-  const isCreatorControlled = channelState === 'creator-controlled'
+  const isCreatorControlled = channelState === 'beneficiary-controlled'
   const showWithdrawStep = isVerified || isCreatorControlled
   const showTakeControlStep = isVerified && includeTakeControl
 

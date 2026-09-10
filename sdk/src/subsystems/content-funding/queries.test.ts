@@ -356,7 +356,7 @@ describe('content-funding query helpers', () => {
       now: 1500n,
     });
 
-    assert.strictEqual(overview.channel.state, 'creator-controlled');
+    assert.strictEqual(overview.channel.state, 'beneficiary-controlled');
     assert.strictEqual(overview.channel.controlTakenAt, 1200n);
     assert.strictEqual(overview.escrow.balance, 25n);
     assert.strictEqual(overview.escrow.totalDeposited, 25n);

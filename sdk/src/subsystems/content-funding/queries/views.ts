@@ -362,7 +362,7 @@ export function getVetoableContracts(
   options: ContentFundingQueryOptions = {},
 ): ContentFundingContractSummary[] {
   const channel = state.beneficiaryRegistry.channels.get(channelId);
-  if (!channel || channel.state !== 'creator-controlled' || channel.controlTakenAt === null) {
+  if (!channel || channel.state !== 'beneficiary-controlled' || channel.controlTakenAt === null) {
     return [];
   }
 

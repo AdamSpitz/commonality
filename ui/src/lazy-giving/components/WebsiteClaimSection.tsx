@@ -11,7 +11,7 @@ type WebsiteClaimSectionProps = {
 }
 
 function channelStateFromUint(value: number): ChannelState {
-  if (value >= 2) return 'creator-controlled'
+  if (value >= 2) return 'beneficiary-controlled'
   if (value === 1) return 'verified'
   return 'unclaimed'
 }
@@ -38,7 +38,7 @@ export function WebsiteClaimSection({ domain }: WebsiteClaimSectionProps) {
         publicClient.readContract({
           address: registryAddress,
           abi: BeneficiaryRegistryAbi,
-          functionName: 'channelState',
+          functionName: 'beneficiaryState',
           args: [beneficiaryId],
         }) as Promise<number>,
         publicClient.readContract({

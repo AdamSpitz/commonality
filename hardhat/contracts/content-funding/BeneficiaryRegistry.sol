@@ -42,7 +42,7 @@ interface IBeneficiaryVerifier {
  */
 interface IBeneficiaryRegistry {
     function payoutAddress(bytes32 beneficiaryId) external view returns (address);
-    function channelState(bytes32 channelId) external view returns (uint8);
+    function beneficiaryState(bytes32 beneficiaryId) external view returns (uint8);
     function verifier() external view returns (address);
     function verifyBeneficiary(
         bytes32 beneficiaryId,
@@ -56,35 +56,35 @@ interface IBeneficiaryRegistry {
     function rotatePayoutAddress(bytes32 beneficiaryId, address newPayoutAddress) external;
     function setVerifier(address verifier) external;
     function revokeVerifier() external;
-    function isVerified(bytes32 channelId) external view returns (bool);
-    function isCreatorControlled(bytes32 channelId) external view returns (bool);
-    function controlTakenAt(bytes32 channelId) external view returns (uint256);
+    function isVerified(bytes32 beneficiaryId) external view returns (bool);
+    function isBeneficiaryControlled(bytes32 beneficiaryId) external view returns (bool);
+    function controlTakenAt(bytes32 beneficiaryId) external view returns (uint256);
     function claimWithdrawableAt(bytes32 beneficiaryId) external view returns (uint256);
 }
 
 /**
  * @title BeneficiaryRegistry
  * @notice Tracks beneficiary payout and verification state for shared funding flows
- * @dev Identities progress through Unclaimed -> Verified -> CreatorControlled.
+ * @dev Identities progress through Unclaimed -> Verified -> BeneficiaryControlled.
  *      Verification requires a signed proof from an off-chain verifier (the Platform API Service).
  *      Content-only veto and occupancy live on the content factory, not here.
  */
 contract BeneficiaryRegistry is IBeneficiaryRegistry, Guardable {
 
     /**
-     * @notice Channel lifecycle states
+     * @notice Beneficiary lifecycle states
      * @dev Unclaimed: no owner verified yet
-     *      Verified: owner proven via off-chain signature, third parties can still create contracts
-     *      CreatorControlled: owner has taken full control, can veto third-party contracts
+     *      Verified: owner proven via off-chain signature, third parties can still create projects
+     *      BeneficiaryControlled: owner has taken identity control
      */
-    enum ChannelState {
+    enum BeneficiaryState {
         Unclaimed,
         Verified,
-        CreatorControlled
+        BeneficiaryControlled
     }
 
     mapping(bytes32 beneficiaryId => address payout) private _payoutAddresses;
-    mapping(bytes32 channelId => ChannelState) private _channelStates;
+    mapping(bytes32 beneficiaryId => BeneficiaryState) private _beneficiaryStates;
     mapping(bytes32 nonce => bool) private _usedNonces;
     mapping(bytes32 namespaceHash => uint256 period) public namespaceClaimWaitingPeriod;
     mapping(bytes32 beneficiaryId => uint256 timestamp) private _verifiedAt;
@@ -93,7 +93,7 @@ contract BeneficiaryRegistry is IBeneficiaryRegistry, Guardable {
     /// @notice The verifier contract used to validate channel claim proofs (zero once revoked)
     address public verifier;
 
-    mapping(bytes32 channelId => uint256 timestamp) private _controlTakenAt;
+    mapping(bytes32 beneficiaryId => uint256 timestamp) private _controlTakenAt;
 
     /**
      * @notice Emitted when a beneficiary's payout address is verified
@@ -170,38 +170,38 @@ contract BeneficiaryRegistry is IBeneficiaryRegistry, Guardable {
     }
 
     /**
-     * @notice Returns the current state of a channel as a uint8
-     * @param channelId The channel to query
-     * @return The channel state (0=Unclaimed, 1=Verified, 2=CreatorControlled)
+     * @notice Returns the current state of a beneficiary as a uint8
+     * @param beneficiaryId The identity to query
+     * @return The state (0=Unclaimed, 1=Verified, 2=BeneficiaryControlled)
      */
-    function channelState(bytes32 channelId) external view returns (uint8) {
-        return uint8(_channelStates[channelId]);
+    function beneficiaryState(bytes32 beneficiaryId) external view returns (uint8) {
+        return uint8(_beneficiaryStates[beneficiaryId]);
     }
 
     /**
-     * @notice Check if a channel has been verified (Verified or CreatorControlled)
-     * @param channelId The channel to check
-     * @return True if the channel is at least Verified
+     * @notice Check if a beneficiary has been verified (Verified or BeneficiaryControlled)
+     * @param beneficiaryId The identity to check
+     * @return True if the beneficiary is at least Verified
      */
-    function isVerified(bytes32 channelId) external view returns (bool) {
-        return _channelStates[channelId] >= ChannelState.Verified;
+    function isVerified(bytes32 beneficiaryId) external view returns (bool) {
+        return _beneficiaryStates[beneficiaryId] >= BeneficiaryState.Verified;
     }
 
     /**
-     * @notice Check if a channel is in the CreatorControlled state
-     * @param channelId The channel to check
-     * @return True if the channel is CreatorControlled
+     * @notice Check if a beneficiary is in the BeneficiaryControlled state
+     * @param beneficiaryId The identity to check
+     * @return True if identity control has been taken
      */
-    function isCreatorControlled(bytes32 channelId) external view returns (bool) {
-        return _channelStates[channelId] == ChannelState.CreatorControlled;
+    function isBeneficiaryControlled(bytes32 beneficiaryId) external view returns (bool) {
+        return _beneficiaryStates[beneficiaryId] == BeneficiaryState.BeneficiaryControlled;
     }
 
     /**
      * @notice Timestamp when the verified owner took identity control (zero if not yet)
      * @dev Content factories use this to start their own veto windows.
      */
-    function controlTakenAt(bytes32 channelId) external view returns (uint256) {
-        return _controlTakenAt[channelId];
+    function controlTakenAt(bytes32 beneficiaryId) external view returns (uint256) {
+        return _controlTakenAt[beneficiaryId];
     }
 
     /**
@@ -210,7 +210,7 @@ contract BeneficiaryRegistry is IBeneficiaryRegistry, Guardable {
      *      verification time (zero waiting period).
      */
     function claimWithdrawableAt(bytes32 beneficiaryId) external view returns (uint256) {
-        if (_channelStates[beneficiaryId] == ChannelState.Unclaimed) {
+        if (_beneficiaryStates[beneficiaryId] == BeneficiaryState.Unclaimed) {
             revert BeneficiaryNotVerified(beneficiaryId);
         }
         return _verifiedAt[beneficiaryId] + _appliedClaimWaitingPeriod[beneficiaryId];
@@ -317,7 +317,7 @@ contract BeneficiaryRegistry is IBeneficiaryRegistry, Guardable {
         bytes calldata verifierSignature,
         uint256 waitingPeriod
     ) private {
-        if (_channelStates[beneficiaryId] >= ChannelState.Verified) {
+        if (_beneficiaryStates[beneficiaryId] >= BeneficiaryState.Verified) {
             revert BeneficiaryAlreadyVerified(beneficiaryId);
         }
         if (claimant == address(0)) revert InvalidClaimant();
@@ -338,7 +338,7 @@ contract BeneficiaryRegistry is IBeneficiaryRegistry, Guardable {
 
         _usedNonces[nonce] = true;
         _payoutAddresses[beneficiaryId] = claimant;
-        _channelStates[beneficiaryId] = ChannelState.Verified;
+        _beneficiaryStates[beneficiaryId] = BeneficiaryState.Verified;
         _verifiedAt[beneficiaryId] = block.timestamp;
         _appliedClaimWaitingPeriod[beneficiaryId] = waitingPeriod;
 
@@ -355,7 +355,7 @@ contract BeneficiaryRegistry is IBeneficiaryRegistry, Guardable {
      * @param newPayoutAddress The replacement escrow payout address
      */
     function rotatePayoutAddress(bytes32 beneficiaryId, address newPayoutAddress) external {
-        if (_channelStates[beneficiaryId] == ChannelState.Unclaimed) {
+        if (_beneficiaryStates[beneficiaryId] == BeneficiaryState.Unclaimed) {
             revert BeneficiaryNotVerified(beneficiaryId);
         }
         if (newPayoutAddress == address(0)) revert InvalidNewPayoutAddress();
@@ -369,16 +369,16 @@ contract BeneficiaryRegistry is IBeneficiaryRegistry, Guardable {
 
     /**
      * @notice Take full control of a verified identity
-     * @dev Transitions from Verified to CreatorControlled. Only the verified payout
+     * @dev Transitions from Verified to BeneficiaryControlled. Only the verified payout
      *      address can call this. Content factories may start a veto window from
      *      `controlTakenAt`.
      * @param beneficiaryId The identity to take control of
      */
     function takeBeneficiaryControl(bytes32 beneficiaryId) external {
-        if (_channelStates[beneficiaryId] == ChannelState.Unclaimed) {
+        if (_beneficiaryStates[beneficiaryId] == BeneficiaryState.Unclaimed) {
             revert BeneficiaryNotVerified(beneficiaryId);
         }
-        if (_channelStates[beneficiaryId] == ChannelState.CreatorControlled) {
+        if (_beneficiaryStates[beneficiaryId] == BeneficiaryState.BeneficiaryControlled) {
             revert BeneficiaryAlreadyControlled(beneficiaryId);
         }
         address caller = _msgSender();
@@ -386,7 +386,7 @@ contract BeneficiaryRegistry is IBeneficiaryRegistry, Guardable {
             revert OnlyPayoutAddressCanTakeControl();
         }
 
-        _channelStates[beneficiaryId] = ChannelState.CreatorControlled;
+        _beneficiaryStates[beneficiaryId] = BeneficiaryState.BeneficiaryControlled;
         _controlTakenAt[beneficiaryId] = block.timestamp;
 
         emit BeneficiaryControlTaken(beneficiaryId, caller);

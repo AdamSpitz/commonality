@@ -272,7 +272,7 @@ describe("ContentFunding", function () {
 
       expect(await beneficiaryRegistry.payoutAddress(channelId)).to.equal(alice.address);
       expect(await beneficiaryRegistry.isVerified(channelId)).to.be.true;
-      expect(await beneficiaryRegistry.channelState(channelId)).to.equal(1);
+      expect(await beneficiaryRegistry.beneficiaryState(channelId)).to.equal(1);
     });
 
     it("Should reject zero-address claimants", async function () {
@@ -339,7 +339,7 @@ describe("ContentFunding", function () {
         .withArgs(channelId, alice.address, bob.address);
 
       expect(await beneficiaryRegistry.payoutAddress(channelId)).to.equal(bob.address);
-      expect(await beneficiaryRegistry.channelState(channelId)).to.equal(1);
+      expect(await beneficiaryRegistry.beneficiaryState(channelId)).to.equal(1);
     });
 
     it("Should not allow a verifier, administrator, or unrelated wallet to rotate an established owner", async function () {
@@ -421,8 +421,8 @@ describe("ContentFunding", function () {
         .to.emit(beneficiaryRegistry, "BeneficiaryControlTaken")
         .withArgs(channelId, alice.address);
 
-      expect(await beneficiaryRegistry.isCreatorControlled(channelId)).to.be.true;
-      expect(await beneficiaryRegistry.channelState(channelId)).to.equal(2);
+      expect(await beneficiaryRegistry.isBeneficiaryControlled(channelId)).to.be.true;
+      expect(await beneficiaryRegistry.beneficiaryState(channelId)).to.equal(2);
     });
 
     it("Should revert takeBeneficiaryControl when channel not verified", async function () {

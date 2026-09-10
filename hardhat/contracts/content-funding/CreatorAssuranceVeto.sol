@@ -55,14 +55,14 @@ contract CreatorAssuranceVeto is Ownable {
     }
 
     function canThirdPartyContractSucceed(bytes32 channelId) external view returns (bool) {
-        if (!beneficiaryRegistry.isCreatorControlled(channelId)) return false;
+        if (!beneficiaryRegistry.isBeneficiaryControlled(channelId)) return false;
         return block.timestamp > beneficiaryRegistry.controlTakenAt(channelId) + vetoWindowDuration;
     }
 
     function vetoContract(address contractAddress) external {
         bytes32 channelId = factory.channelIdByContract(contractAddress);
         if (channelId == bytes32(0)) revert ContractNotCreatedByFactory(contractAddress);
-        if (!beneficiaryRegistry.isCreatorControlled(channelId)) {
+        if (!beneficiaryRegistry.isBeneficiaryControlled(channelId)) {
             revert ChannelNotCreatorControlled(channelId);
         }
         if (msg.sender != beneficiaryRegistry.payoutAddress(channelId)) revert OnlyChannelOwnerCanVeto();
