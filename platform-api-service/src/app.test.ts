@@ -495,7 +495,7 @@ describe('createApp routes', () => {
           return {
             nonce: '0x1111111111111111111111111111111111111111111111111111111111111111' as Hex,
             challengeCode: 'challenge',
-            channelId: 'twitter:uid:12345678',
+            beneficiaryId: 'twitter:uid:12345678',
             handle: request.handle,
             displayName: 'Alice',
             verificationPostTemplate: 'Claiming',
@@ -516,7 +516,7 @@ describe('createApp routes', () => {
       assert.deepStrictEqual(await response.json(), {
         nonce: '0x1111111111111111111111111111111111111111111111111111111111111111',
         challengeCode: 'challenge',
-        channelId: 'twitter:uid:12345678',
+        beneficiaryId: 'twitter:uid:12345678',
         handle: '@alice',
         displayName: 'Alice',
         verificationPostTemplate: 'Claiming',
@@ -543,7 +543,7 @@ describe('createApp routes', () => {
           seenRequests.push(request);
           return {
             proof: {
-              channelId: 'twitter:uid:12345678',
+              beneficiaryId: 'twitter:uid:12345678',
               claimant: '0x1234567890123456789012345678901234567890' as Address,
               nonce: request.nonce as Hex,
               deadline: 1_700_000_000,
@@ -562,7 +562,7 @@ describe('createApp routes', () => {
       assert.strictEqual(response.status, 200);
       assert.deepStrictEqual(await response.json(), {
         proof: {
-          channelId: 'twitter:uid:12345678',
+          beneficiaryId: 'twitter:uid:12345678',
           claimant: '0x1234567890123456789012345678901234567890',
           nonce,
           deadline: 1_700_000_000,
@@ -934,7 +934,7 @@ function createStubService(overrides: Partial<{
     createVerificationChallenge: overrides.createVerificationChallenge ?? (async () => ({
       nonce: '0x1111111111111111111111111111111111111111111111111111111111111111' as Hex,
       challengeCode: 'challenge',
-      channelId: 'twitter:uid:12345678',
+      beneficiaryId: 'twitter:uid:12345678',
       handle: '@alice',
       displayName: 'Alice',
       verificationPostTemplate: 'Claiming',
@@ -942,7 +942,7 @@ function createStubService(overrides: Partial<{
     })),
     confirmVerification: overrides.confirmVerification ?? (async () => ({
       proof: {
-        channelId: 'twitter:uid:12345678',
+        beneficiaryId: 'twitter:uid:12345678',
         claimant: '0x1234567890123456789012345678901234567890' as Address,
         nonce: '0x1111111111111111111111111111111111111111111111111111111111111111' as Hex,
         deadline: 1_700_000_000,

@@ -182,7 +182,8 @@ Normalizes a website identity for project creation. Apex and `www` are the same
 beneficiary. A live homepage may hop within that registrable domain; a hop to a
 different registrable domain is refused (`invalid_domain_redirect`). An
 unreachable site is still accepted (`reachable: false`) because create-time
-only refuses observed redirects.
+only refuses observed redirects. Identities listed in `BLOCKED_CHANNEL_IDS`
+(`dns:example.org`) return `403 blocked_identity`.
 
 ```json
 {
@@ -261,16 +262,19 @@ Twitter/X currently fills the target, replied-to parent, quoted post, and author
 ### `POST /verify/challenge`
 
 Supports `platform: "twitter"`, `"youtube"`, `"substack"`, and `"dns"`. For `dns`,
-`handle` may be an apex domain or its `https://www.` URL. The response's
+`handle` may be an apex domain or its `https://www.` URL. The response identifies the
+canonical `beneficiaryId` (`dns:example.org`, `twitter:uid:…`). The
 `verificationPostTemplate` is the exact JSON document to publish at
 `https://<domain>/.well-known/commonality-claim.json`; it binds the domain, claimant,
 chain, registry, nonce, and expiry. Subdomains and path-scoped identities are rejected.
+`BLOCKED_CHANNEL_IDS` identities return `403 blocked_identity`.
 
 ### `POST /verify/confirm`
 
 Confirms the verification post or well-known domain document, signs the proof, and
-optionally submits the on-chain transaction if configured. A domain claim may redirect
-within the same registrable domain, but not to a different one.
+optionally submits the on-chain transaction if configured. The signed proof's
+`beneficiaryId` is the canonical identity string (hashed on-chain). A domain claim
+may redirect within the same registrable domain, but not to a different one.
 
 ### `GET /content-submission`
 

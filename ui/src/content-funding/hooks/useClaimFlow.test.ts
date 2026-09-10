@@ -25,7 +25,7 @@ describe('useClaimFlow', () => {
       const mockResponse = {
         nonce: 'abc123',
         verificationPostTemplate: 'I verify @handle',
-        channelId: 'twitter:123',
+        beneficiaryId: 'twitter:123',
         handle: 'testuser',
         displayName: 'Test User',
       }
@@ -62,7 +62,7 @@ describe('useClaimFlow', () => {
                     Promise.resolve({
                       nonce: 'abc',
                       verificationPostTemplate: '',
-                      channelId: 'x',
+                      beneficiaryId: 'x',
                     }),
                 } as Response),
               50,
@@ -164,7 +164,7 @@ describe('useClaimFlow', () => {
           Promise.resolve({
             nonce: 'abc',
             verificationPostTemplate: '',
-            channelId: 'x',
+            beneficiaryId: 'x',
           }),
       } as Response)
 
@@ -197,7 +197,7 @@ describe('useClaimFlow', () => {
             Promise.resolve({
               nonce: 'abc',
               verificationPostTemplate: '',
-              channelId: 'x',
+              beneficiaryId: 'x',
             }),
         } as Response)
 
@@ -223,7 +223,7 @@ describe('useClaimFlow', () => {
     it('confirms verification successfully', async () => {
       const mockResponse = {
         proof: {
-          channelId: 'twitter:123',
+          beneficiaryId: 'twitter:123',
           claimant: '0xabc',
           nonce: 'abc123',
           deadline: '2026-01-01',
@@ -305,7 +305,7 @@ describe('useClaimFlow', () => {
         ok: true,
         json: () =>
           Promise.resolve({
-            proof: { channelId: 'x', claimant: '0x', nonce: 'abc', deadline: 'd', proofHash: '0xproof', verifierSignature: 's' },
+            proof: { beneficiaryId: 'x', claimant: '0x', nonce: 'abc', deadline: 'd', proofHash: '0xproof', verifierSignature: 's' },
             observedPostId: 'p',
           }),
       } as Response)
@@ -359,7 +359,7 @@ describe('useClaimFlow', () => {
           Promise.resolve({
             nonce: 'abc',
             verificationPostTemplate: '',
-            channelId: 'x',
+            beneficiaryId: 'x',
           }),
       } as Response)
 
@@ -382,7 +382,7 @@ describe('useClaimFlow', () => {
           Promise.resolve({
             nonce: 'abc',
             verificationPostTemplate: '',
-            channelId: 'x',
+            beneficiaryId: 'x',
           }),
       } as Response)
 

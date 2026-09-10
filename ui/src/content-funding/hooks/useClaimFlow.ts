@@ -5,14 +5,14 @@ const getBaseUrl = () => import.meta.env.VITE_PLATFORM_API_URL || 'http://localh
 export interface ClaimChallengeResponse {
   nonce: string
   verificationPostTemplate: string
-  channelId: string
+  beneficiaryId: string
   handle?: string
   displayName?: string
 }
 
 export interface VerifyConfirmResponse {
   proof: {
-    channelId: string
+    beneficiaryId: string
     claimant: string
     nonce: string
     deadline: string

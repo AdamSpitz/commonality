@@ -2034,3 +2034,15 @@ still keyed as channels (intentional).
 
 Still needed: remaining Channel* types in platform-api; content occupancy
 still keyed as channels (intentional).
+
+## 2026-09-10 — Platform API claim proofs use beneficiaryId
+
+- `/verify/challenge` and `/verify/confirm` return `beneficiaryId` instead of
+  `channelId`. `ChannelClaimProof` alias is gone. Content resolve/occupancy
+  still uses `channelId`.
+- `BLOCKED_CHANNEL_IDS` now also rejects `dns:` identities on
+  `/resolve/website-beneficiary`. Create-project surfaces `blocked_identity`.
+- Env name stays `BLOCKED_CHANNEL_IDS` (policy-lists v1).
+
+Still needed: content occupancy still keyed as channels (intentional);
+platform-api `ResolvedChannel` is occupancy, not the claim primitive.

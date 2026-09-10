@@ -429,6 +429,20 @@ describe('PlatformApiService', () => {
     );
   });
 
+  it('rejects a blocked website identity at resolve time', async () => {
+    const service = createService({
+      configOverrides: { blockedChannelIds: ['dns:example.org'] },
+    });
+
+    await assert.rejects(
+      () => service.resolveWebsiteBeneficiary('https://www.example.org/'),
+      (error: unknown) =>
+        error instanceof HttpError &&
+        error.status === 403 &&
+        error.code === 'blocked_identity',
+    );
+  });
+
   it('creates a verification challenge and signs a recoverable proof', async () => {
     let observedChallengeCode = '';
     const twitterClient = createTwitterClient({
@@ -459,7 +473,7 @@ describe('PlatformApiService', () => {
     const confirmed = await service.confirmVerification({ nonce: challenge.nonce });
     assert.strictEqual(observedChallengeCode, 'abc123def456');
     assert.strictEqual(confirmed.observedPostId, 'tweet-1');
-    assert.strictEqual(confirmed.proof.channelId, 'twitter:uid:12345678');
+    assert.strictEqual(confirmed.proof.beneficiaryId, 'twitter:uid:12345678');
     assert.strictEqual(confirmed.proof.claimant, '0x1234567890123456789012345678901234567890');
 
     const recovered = await recoverTypedDataAddress({
@@ -480,7 +494,7 @@ describe('PlatformApiService', () => {
       },
       primaryType: 'BeneficiaryClaim',
       message: {
-        beneficiaryId: hashCanonicalId(confirmed.proof.channelId),
+        beneficiaryId: hashCanonicalId(confirmed.proof.beneficiaryId),
         claimant: confirmed.proof.claimant,
         nonce: confirmed.proof.nonce,
         deadline: BigInt(confirmed.proof.deadline),
@@ -507,7 +521,7 @@ describe('PlatformApiService', () => {
       claimantAddress: '0x1234567890123456789012345678901234567890',
     });
 
-    assert.strictEqual(challenge.channelId, 'substack:example');
+    assert.strictEqual(challenge.beneficiaryId, 'substack:example');
     assert.strictEqual(challenge.handle, 'example');
     assert.strictEqual(challenge.displayName, 'example');
     assert.ok(challenge.verificationPostTemplate.includes('#commonality-abc123def456'));
@@ -537,12 +551,12 @@ describe('PlatformApiService', () => {
       claimantAddress: '0x1234567890123456789012345678901234567890',
     });
 
-    assert.strictEqual(challenge.channelId, 'dns:example.org');
+    assert.strictEqual(challenge.beneficiaryId, 'dns:example.org');
     assert.strictEqual(challenge.handle, 'example.org');
     publishedDocument = challenge.verificationPostTemplate;
 
     const confirmed = await service.confirmVerification({ nonce: challenge.nonce });
-    assert.strictEqual(confirmed.proof.channelId, 'dns:example.org');
+    assert.strictEqual(confirmed.proof.beneficiaryId, 'dns:example.org');
     assert.strictEqual(
       confirmed.observedPostId,
       'https://example.org/.well-known/commonality-claim.json',
@@ -570,7 +584,7 @@ describe('PlatformApiService', () => {
     publishedDocument = challenge.verificationPostTemplate;
 
     const confirmed = await service.confirmVerification({ nonce: challenge.nonce });
-    assert.strictEqual(confirmed.proof.channelId, 'dns:example.org');
+    assert.strictEqual(confirmed.proof.beneficiaryId, 'dns:example.org');
     assert.strictEqual(confirmed.observedPostId, 'dns-txt:_commonality.example.org');
   });
 
@@ -792,7 +806,7 @@ describe('PlatformApiService', () => {
     const confirmed = await service.confirmVerification({ nonce: challenge.nonce });
     assert.deepStrictEqual(observedUrls, ['https://example.substack.com/feed']);
     assert.strictEqual(confirmed.observedPostId, 'post-1');
-    assert.strictEqual(confirmed.proof.channelId, 'substack:example');
+    assert.strictEqual(confirmed.proof.beneficiaryId, 'substack:example');
   });
 
   it('returns a clear error when the verification post is not found', async () => {

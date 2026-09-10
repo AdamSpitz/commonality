@@ -64,7 +64,7 @@ export function ClaimFlowModal({
   const { getChallenge, confirmVerification, loading: apiLoading, error: apiError, clearError } = useClaimFlow()
 
   const [activeStep, setActiveStep] = useState(0)
-  const [challenge, setChallenge] = useState<{ nonce: string; verificationPostTemplate: string; channelId: string; handle?: string; displayName?: string } | null>(null)
+  const [challenge, setChallenge] = useState<{ nonce: string; verificationPostTemplate: string; beneficiaryId: string; handle?: string; displayName?: string } | null>(null)
   const [tweetUrl, setTweetUrl] = useState('')
   const [confirmLoading, setConfirmLoading] = useState(false)
   const [confirmError, setConfirmError] = useState<string | null>(null)

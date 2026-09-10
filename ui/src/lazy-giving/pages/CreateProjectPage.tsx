@@ -267,6 +267,9 @@ export function CreateProjectPage() {
           if (code === 'invalid_domain_redirect') {
             throw new Error('That website redirected to a different domain. Name the registrable domain people actually control.')
           }
+          if (code === 'blocked_identity') {
+            throw new Error('This website cannot be used as a project beneficiary.')
+          }
           if (cause instanceof Error && cause.message.includes('resolved to')) {
             throw cause
           }

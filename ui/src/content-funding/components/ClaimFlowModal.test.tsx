@@ -58,7 +58,7 @@ function setupChallengeMocks(overrides: {
   const getChallenge = vi.fn().mockResolvedValue(overrides.getChallengeResult ?? {
     nonce: 'abc123',
     verificationPostTemplate: 'Verify: abc123',
-    channelId: 'twitter:uid:123:456',
+    beneficiaryId: 'twitter:uid:123:456',
   })
   const confirmVerification = vi.fn().mockResolvedValue(overrides.confirmVerificationResult ?? null)
   vi.mocked(useClaimFlow).mockReturnValue({

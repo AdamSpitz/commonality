@@ -460,6 +460,26 @@ describe('CreateProjectPage', () => {
       expect(createProject).not.toHaveBeenCalled()
     })
 
+    it('refuses a blocked website identity', async () => {
+      mockResolveWebsiteBeneficiary.mockRejectedValue({
+        code: 'blocked_identity',
+        message: 'This public identity cannot be used through Commonality.',
+      })
+
+      render(<CreateProjectPage />)
+      const user = userEvent.setup()
+      fillForm()
+      await user.click(screen.getByLabelText(/controller of a website/i))
+      setFieldValue(/beneficiary website/i, 'example.org')
+
+      await submitAndConfirm(user)
+
+      await waitFor(() => {
+        expect(screen.getByText(/cannot be used as a project beneficiary/i)).toBeInTheDocument()
+      })
+      expect(createProject).not.toHaveBeenCalled()
+    })
+
     it('refuses a website beneficiary that redirects to another domain', async () => {
       mockResolveWebsiteBeneficiary.mockRejectedValue({
         code: 'invalid_domain_redirect',

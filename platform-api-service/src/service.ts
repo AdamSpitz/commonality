@@ -127,6 +127,7 @@ export class PlatformApiService {
     reachable: boolean;
   }> {
     const canonicalIdentifier = normalizeDnsBeneficiary(input);
+    this.assertIdentityNotBlocked(buildCanonicalBeneficiaryId('dns', canonicalIdentifier));
     const reachable = await this.assertHomepageStaysOnDomain(canonicalIdentifier);
     return {
       namespace: 'dns',
@@ -286,7 +287,7 @@ export class PlatformApiService {
   }): Promise<{
     nonce: Hex;
     challengeCode: string;
-    channelId: string;
+    beneficiaryId: string;
     handle?: string;
     displayName?: string;
     verificationPostTemplate: string;
@@ -323,9 +324,7 @@ export class PlatformApiService {
         ? resolveDnsBeneficiary(request.handle)
         : await this.resolveChannel(request.platform, request.handle);
 
-    if ((this.deps.config.blockedChannelIds ?? []).includes(channel.channelId)) {
-      throw new HttpError(403, 'blocked_identity', 'This platform identity cannot claim funds through Commonality.');
-    }
+    this.assertIdentityNotBlocked(channel.channelId);
 
     const challengeCode = this.createChallengeCode();
     const nonce = keccak256(
@@ -368,7 +367,7 @@ export class PlatformApiService {
 
     this.challengeCache.set(nonce, {
       platform: request.platform,
-      channelId: channel.channelId,
+      beneficiaryId: channel.channelId,
       claimantAddress: request.claimantAddress as Address,
       nonce,
       challengeCode,
@@ -382,7 +381,7 @@ export class PlatformApiService {
     return {
       nonce,
       challengeCode,
-      channelId: channel.channelId,
+      beneficiaryId: channel.channelId,
       handle: channel.handle,
       displayName: channel.displayName,
       verificationPostTemplate,
@@ -435,7 +434,7 @@ export class PlatformApiService {
       this.deps.config.verifierPrivateKey,
       this.deps.config.beneficiaryVerifierAddress,
       this.deps.config.chainId,
-      challenge.channelId,
+      challenge.beneficiaryId,
       challenge.claimantAddress,
       challenge.nonce,
       challenge.deadline,
@@ -443,7 +442,7 @@ export class PlatformApiService {
     );
 
     const txHash = await this.submitVerificationTxIfConfigured({
-      channelId: challenge.channelId,
+      beneficiaryId: challenge.beneficiaryId,
       claimant: challenge.claimantAddress,
       nonce: challenge.nonce,
       deadline: challenge.deadline,
@@ -457,7 +456,7 @@ export class PlatformApiService {
 
     return {
       proof: {
-        channelId: challenge.channelId,
+        beneficiaryId: challenge.beneficiaryId,
         claimant: challenge.claimantAddress,
         nonce: challenge.nonce,
         deadline: challenge.deadline,
@@ -567,8 +566,14 @@ export class PlatformApiService {
     }
   }
 
+  private assertIdentityNotBlocked(beneficiaryId: string): void {
+    if ((this.deps.config.blockedChannelIds ?? []).includes(beneficiaryId)) {
+      throw new HttpError(403, 'blocked_identity', 'This public identity cannot be used through Commonality.');
+    }
+  }
+
   private async submitVerificationTxIfConfigured(proof: {
-    channelId: string;
+    beneficiaryId: string;
     claimant: Address;
     nonce: Hex;
     deadline: number;
@@ -618,7 +623,7 @@ export class PlatformApiService {
             proof.verifierSignature,
           ]
         : [
-            hashCanonicalId(proof.channelId),
+            hashCanonicalId(proof.beneficiaryId),
             proof.claimant,
             proof.nonce,
             BigInt(proof.deadline),
@@ -658,7 +663,7 @@ export class PlatformApiService {
   ): Promise<VerificationPostMatch | null> {
     if (challenge.platform === 'twitter') {
       return await this.deps.twitterClient.findVerificationPost(
-        challenge.channelId,
+        challenge.beneficiaryId,
         challenge.challengeCode,
         challenge.createdAtMs,
       );
@@ -666,7 +671,7 @@ export class PlatformApiService {
 
     if (challenge.platform === 'youtube') {
       return await this.deps.youtubeClient.findVerificationPost(
-        challenge.channelId,
+        challenge.beneficiaryId,
         challenge.challengeCode,
         challenge.createdAtMs,
       );
@@ -674,7 +679,7 @@ export class PlatformApiService {
 
     if (challenge.platform === 'substack') {
       return await this.findSubstackVerificationPost({
-        publication: parseSubstackPublicationFromChannelId(challenge.channelId),
+        publication: parseSubstackPublicationFromChannelId(challenge.beneficiaryId),
         challengeCode: challenge.challengeCode,
         issuedAfterMs: challenge.createdAtMs,
       });
@@ -810,7 +815,7 @@ export async function signClaimProof(
   verifierPrivateKey: Hex,
   beneficiaryVerifierAddress: Address,
   chainId: number,
-  channelId: string,
+  canonicalBeneficiaryId: string,
   claimant: Address,
   nonce: Hex,
   deadline: number,
@@ -835,7 +840,7 @@ export async function signClaimProof(
     },
     primaryType: 'BeneficiaryClaim',
     message: {
-      beneficiaryId: hashCanonicalId(channelId),
+      beneficiaryId: hashCanonicalId(canonicalBeneficiaryId),
       claimant,
       nonce,
       deadline: BigInt(deadline),

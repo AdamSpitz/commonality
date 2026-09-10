@@ -55,7 +55,7 @@ export interface VerificationPostMatch {
 
 export interface PendingVerificationChallenge {
   platform: 'twitter' | 'youtube' | 'substack' | 'dns';
-  channelId: string;
+  beneficiaryId: string;
   claimantAddress: Address;
   nonce: Hex;
   challengeCode: string;
@@ -67,16 +67,13 @@ export interface PendingVerificationChallenge {
 }
 
 export interface BeneficiaryClaimProof {
-  channelId: string;
+  beneficiaryId: string;
   claimant: Address;
   nonce: Hex;
   deadline: number;
   proofHash: Hex;
   verifierSignature: Hex;
 }
-
-/** @deprecated Use BeneficiaryClaimProof. */
-export type ChannelClaimProof = BeneficiaryClaimProof;
 
 export interface VerificationConfirmation {
   proof: BeneficiaryClaimProof;
