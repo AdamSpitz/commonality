@@ -12,16 +12,23 @@ export interface ContentItemReleasedEvent extends RawEvent {
   contentId: bigint;
 }
 
-export interface ChannelVerifiedEvent extends RawEvent {
-  type: 'ChannelVerified';
-  channelId: string;
+export interface BeneficiaryVerifiedEvent extends RawEvent {
+  type: 'BeneficiaryVerified';
+  beneficiaryId: string;
+  payoutAddress: `0x${string}`;
+}
+
+export interface BeneficiaryControlTakenEvent extends RawEvent {
+  type: 'BeneficiaryControlTaken';
+  beneficiaryId: string;
   owner: `0x${string}`;
 }
 
-export interface ChannelControlTakenEvent extends RawEvent {
-  type: 'ChannelControlTaken';
-  channelId: string;
-  owner: `0x${string}`;
+export interface PayoutAddressRotatedEvent extends RawEvent {
+  type: 'PayoutAddressRotated';
+  beneficiaryId: string;
+  oldPayoutAddress: `0x${string}`;
+  newPayoutAddress: `0x${string}`;
 }
 
 export interface ContractVetoedEvent extends RawEvent {
@@ -75,8 +82,9 @@ export type ProspectiveContentEvent =
 export type ContentFundingEvent =
   | ContentItemRegisteredEvent
   | ContentItemReleasedEvent
-  | ChannelVerifiedEvent
-  | ChannelControlTakenEvent
+  | BeneficiaryVerifiedEvent
+  | BeneficiaryControlTakenEvent
+  | PayoutAddressRotatedEvent
   | ContractVetoedEvent
   | DepositedEvent
   | WithdrawnEvent
@@ -89,8 +97,9 @@ export type ContentFundingEvent =
 export type ContentFundingEventNames =
   | 'ContentItemRegistered'
   | 'ContentItemReleased'
-  | 'ChannelVerified'
-  | 'ChannelControlTaken'
+  | 'BeneficiaryVerified'
+  | 'BeneficiaryControlTaken'
+  | 'PayoutAddressRotated'
   | 'ContractVetoed'
   | 'Deposited'
   | 'Withdrawn'

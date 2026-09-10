@@ -108,7 +108,7 @@ function mergeEnv(...maps) {
 
 function collectTargets(walletEntries, funderAddress, only = []) {
   const excludedKeys = new Set([
-    'CHANNEL_VERIFIER_TRUSTED_SIGNER_ADDRESS',
+    'BENEFICIARY_VERIFIER_TRUSTED_SIGNER_ADDRESS',
     'VERIFIER_ADDRESS',
   ])
   const onlyKeys = new Set(only.filter((value) => !isAddress(value)))

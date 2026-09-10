@@ -15,8 +15,10 @@
 export { ContentAttestationSummary } from './components/ContentAttestationSummary'
 export { ContentSubmissionForm } from './components/ContentSubmissionForm'
 export { ContentFundingProjectSection } from './components/ContentFundingProjectSection'
+export { ClaimFlowModal } from './components/ClaimFlowModal'
 
 export { useClaimFlow } from './hooks/useClaimFlow'
+export { usePlatformApi, type UsePlatformApiResult } from './hooks/usePlatformApi'
 export { useContentFundingState } from './hooks/useContentFundingState'
 export { useUnmaterializedProspectiveRoundAddresses } from './hooks/useUnmaterializedProspectiveRoundAddresses'
 export type { ContentAttestationInfo } from './hooks/useContentFundingState'

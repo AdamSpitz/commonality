@@ -15,7 +15,7 @@ The platform-dependent work is:
 1. Resolve creator handles to stable channel IDs
 2. Resolve content URLs to canonical content IDs and validate ownership
 3. Fetch local context around a content URL for contextual/beat-agent evaluation
-4. Issue and confirm Twitter-based channel-claim verification challenges
+4. Issue and confirm social-channel and website beneficiary verification challenges
 5. Accept and serve queued content-attester submissions
 
 ## Current scope
@@ -26,16 +26,16 @@ This workspace implements the service described in [the spec](../specs/tech/subs
 - strict shared canonicalization via `@commonality/sdk`
 - in-memory caches for channel resolution, content lookups, and pending verification challenges
 - Twitter/X and YouTube resolution clients built on plain `fetch`
-- optional on-chain submission for `ChannelRegistry.verifyChannel(...)`
+- optional on-chain submission for `BeneficiaryRegistry.verifyBeneficiary(...)`
 
 ## Verification model
 
-The repo's current content-funding contracts include a real signature-verifying `ChannelVerifier` contract. `ChannelRegistry` still trusts a verifier contract, not a verifier EOA directly, and that verifier contract in turn trusts a specific signer address.
+The repo's current content-funding contracts include a real signature-verifying `BeneficiaryVerifier` contract. `BeneficiaryRegistry` still trusts a verifier contract, not a verifier EOA directly, and that verifier contract in turn trusts a specific signer address.
 
 That means:
 
-- `POST /verify/confirm` signs the exact proof payload that the on-chain `ChannelVerifier` checks
-- `POST /verify/confirm` can optionally submit `verifyChannel(...)` if `ETHEREUM_RPC_URL`, `CHANNEL_REGISTRY_ADDRESS`, and `SUBMIT_VERIFICATION_TX=true` are configured
+- `POST /verify/confirm` signs the exact proof payload that the on-chain `BeneficiaryVerifier` checks
+- `POST /verify/confirm` can optionally submit `verifyBeneficiary(...)` if `ETHEREUM_RPC_URL`, `BENEFICIARY_REGISTRY_ADDRESS`, and `SUBMIT_VERIFICATION_TX=true` are configured
 - end-to-end verification works on the local deployment as long as `VERIFIER_PRIVATE_KEY` corresponds to the verifier contract's configured `trustedVerifier`
 
 ## Configuration
@@ -71,7 +71,8 @@ All configuration is via environment variables.
 
 - `VERIFIER_PRIVATE_KEY` optional, required for `POST /verify/confirm`
 - `ETHEREUM_RPC_URL` optional, required only if on-chain submission is enabled
-- `CHANNEL_REGISTRY_ADDRESS` optional, required only if on-chain submission is enabled
+- `BENEFICIARY_REGISTRY_ADDRESS` optional, required for domain challenges and on-chain submission
+- `CHAIN_ID` required for signing proofs and domain challenges
 - `SUBMIT_VERIFICATION_TX` default `false`
 
 ### Coinbase Onramp / USDC arrival detection
@@ -175,6 +176,29 @@ Response:
 }
 ```
 
+### `POST /resolve/website-beneficiary`
+
+Normalizes a website identity for project creation. Apex and `www` are the same
+beneficiary. A live homepage may hop within that registrable domain; a hop to a
+different registrable domain is refused (`invalid_domain_redirect`). An
+unreachable site is still accepted (`reachable: false`) because create-time
+only refuses observed redirects. Identities listed in `BLOCKED_CHANNEL_IDS`
+(`dns:example.org`) return `403 blocked_identity`.
+
+```json
+{
+  "domain": "https://www.example.org/"
+}
+```
+
+```json
+{
+  "namespace": "dns",
+  "canonicalIdentifier": "example.org",
+  "reachable": true
+}
+```
+
 ### `POST /resolve/content`
 
 Request:
@@ -237,11 +261,20 @@ Twitter/X currently fills the target, replied-to parent, quoted post, and author
 
 ### `POST /verify/challenge`
 
-Currently supports `platform: "twitter"`, `"youtube"`, and `"substack"`.
+Supports `platform: "twitter"`, `"youtube"`, `"substack"`, and `"dns"`. For `dns`,
+`handle` may be an apex domain or its `https://www.` URL. The response identifies the
+canonical `beneficiaryId` (`dns:example.org`, `twitter:uid:…`). The
+`verificationPostTemplate` is the exact JSON document to publish at
+`https://<domain>/.well-known/commonality-claim.json`; it binds the domain, claimant,
+chain, registry, nonce, and expiry. Subdomains and path-scoped identities are rejected.
+`BLOCKED_CHANNEL_IDS` identities return `403 blocked_identity`.
 
 ### `POST /verify/confirm`
 
-Confirms the verification post, signs the proof, and optionally submits the on-chain transaction if configured.
+Confirms the verification post or well-known domain document, signs the proof, and
+optionally submits the on-chain transaction if configured. The signed proof's
+`beneficiaryId` is the canonical identity string (hashed on-chain). A domain claim
+may redirect within the same registrable domain, but not to a different one.
 
 ### `GET /content-submission`
 

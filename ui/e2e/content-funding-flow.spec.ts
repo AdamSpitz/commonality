@@ -1,5 +1,5 @@
-import { AssuranceContractAbi, ChannelRegistryAbi, CreatorAssuranceContractFactoryAbi, DelegatableNotesAbi } from '@commonality/sdk/abis'
-import { buildCanonicalChannelId, createContentFundingContract, getThirdPartyMinPurchase, hashCanonicalId, takeChannelControl } from '@commonality/sdk/content-funding'
+import { AssuranceContractAbi, BeneficiaryRegistryAbi, CreatorAssuranceContractFactoryAbi, DelegatableNotesAbi } from '@commonality/sdk/abis'
+import { buildCanonicalChannelId, createContentFundingContract, getThirdPartyMinPurchase, hashCanonicalId, takeBeneficiaryControl } from '@commonality/sdk/content-funding'
 import { depositERC20, purchaseFromPrimaryMarketWithNotes } from '@commonality/sdk/delegation'
 import { waitForIndexerToSyncToTxHash } from '@commonality/sdk/indexer-sync'
 import { parseUnits, keccak256, stringToBytes } from 'viem'
@@ -90,15 +90,15 @@ test.describe('Content Funding Flow', () => {
   test('full creator/supporter loop: third-party contract → claim → dashboard → withdraw', async ({ page, wallet }) => {
     const {
       creatorContractFactoryAddress,
-      channelRegistryAddress,
+      beneficiaryRegistryAddress,
       delegatableNotesAddress,
       paymentTokenAddress,
     } = getContractAddresses()
 
-    if (!creatorContractFactoryAddress || !channelRegistryAddress) {
+    if (!creatorContractFactoryAddress || !beneficiaryRegistryAddress) {
       throw new Error(
         'Content-funding contract addresses not set in ui/.env. ' +
-          'Expected VITE_CREATOR_CONTRACT_FACTORY_ADDRESS and VITE_CHANNEL_REGISTRY_ADDRESS.'
+          'Expected VITE_CREATOR_CONTRACT_FACTORY_ADDRESS and VITE_BENEFICIARY_REGISTRY_ADDRESS.'
       )
     }
     if (!delegatableNotesAddress || !paymentTokenAddress) {
@@ -121,7 +121,7 @@ test.describe('Content Funding Flow', () => {
     const account1Clients = createE2EWriteClients('ACCOUNT_1')
 
     const factoryContract = { address: creatorContractFactoryAddress, abi: CreatorAssuranceContractFactoryAbi }
-    const registryContract = { address: channelRegistryAddress, abi: ChannelRegistryAbi }
+    const registryContract = { address: beneficiaryRegistryAddress, abi: BeneficiaryRegistryAbi }
     const notesContract = { address: delegatableNotesAddress, abi: DelegatableNotesAbi }
 
     // =========================================================================
@@ -188,7 +188,7 @@ test.describe('Content Funding Flow', () => {
     // Step 4: ACCOUNT_0 takes control of the channel (enables veto window)
     // =========================================================================
     console.log('\n=== STEP 4: TAKING CHANNEL CONTROL ===')
-    const { hash: controlHash } = await takeChannelControl(
+    const { hash: controlHash } = await takeBeneficiaryControl(
       account0Clients,
       registryContract,
       hashCanonicalId(channelCanonicalId),

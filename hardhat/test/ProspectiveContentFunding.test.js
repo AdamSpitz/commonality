@@ -12,7 +12,7 @@ async function fixture({ verified = true, creatorCaller = true, threshold = 10n 
   const payment = await Payment.deploy(owner.address, "Payment", "PAY", "ipfs://pay");
   await payment.mint(alice.address, 100n);
 
-  const Channels = await ethers.getContractFactory("ProspectiveChannelRegistryHarness");
+  const Channels = await ethers.getContractFactory("ProspectiveBeneficiaryRegistryHarness");
   const channels = await Channels.deploy();
   await channels.setChannel(channelId, creator.address, verified);
   const Registry = await ethers.getContractFactory("ContentRegistry");
@@ -58,7 +58,7 @@ describe("Prospective content funding", function () {
     const zeroChannelParams = [...unverified.params];
     zeroChannelParams[0] = ethers.ZeroHash;
     await expect(unverified.factory.connect(unverified.creator).createProspectiveRound(zeroChannelParams)).to.be.revertedWithCustomError(unverified.factory, "InvalidChannelId");
-    await expect(unverified.factory.connect(unverified.creator).createProspectiveRound(unverified.params)).to.be.revertedWithCustomError(unverified.factory, "ChannelNotVerified");
+    await expect(unverified.factory.connect(unverified.creator).createProspectiveRound(unverified.params)).to.be.revertedWithCustomError(unverified.factory, "BeneficiaryNotVerified");
     const outsider = await fixture({ creatorCaller: false });
     await expect(outsider.factory.connect(outsider.bob).createProspectiveRound(outsider.params)).to.be.revertedWithCustomError(outsider.factory, "OnlyCurrentChannelOwner");
     const valid = await fixture();

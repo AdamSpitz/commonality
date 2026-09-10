@@ -244,7 +244,7 @@ describe('ChannelPage', () => {
       channel: {
         channelId: '0xchannel',
         owner: '0x1111111111111111111111111111111111111111',
-        state: 'creator-controlled',
+        state: 'beneficiary-controlled',
         controlTakenAt: 123n,
       },
       escrow: {

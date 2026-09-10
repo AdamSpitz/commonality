@@ -33,6 +33,14 @@ import {
   CONTRACT_STATUS_TOOLTIPS,
 } from '../../content-funding'
 import { formatCurrencyProgress, InfoChip, projectPathForAddress } from '../../shared'
+import {
+  claimStateForDnsDomain,
+  dnsBeneficiaryDomain,
+  WebsiteBeneficiaryMark,
+  WEBSITE_CLAIM_STATE_COLORS,
+  WEBSITE_CLAIM_STATE_LABELS,
+  WEBSITE_CLAIM_STATE_TOOLTIPS,
+} from '../../lazy-giving'
 import { formatPlacePath } from './geographicInclusion'
 
 export type AlignedProject = {
@@ -44,22 +52,27 @@ export type AlignedProject = {
   deadline: string
 }
 
-export type ProjectMetadata = { name?: string; description?: string; relevantAreas?: string[][] }
+export type ProjectMetadata = {
+  name?: string
+  description?: string
+  relevantAreas?: string[][]
+  beneficiary?: { namespace?: string; canonicalIdentifier?: string }
+}
 
 export type ContentFundingInfo = {
   channelCanonicalId: string | null
-  channelState: 'unclaimed' | 'verified' | 'creator-controlled'
+  channelState: 'unclaimed' | 'verified' | 'beneficiary-controlled'
   isThirdParty: boolean
   contractStatus: 'active' | 'successful' | 'failed' | 'vetoed' | 'unknown'
   contentItemCount: number
   channelDisplayMetadata?: ChannelDisplayMetadata
 }
 
-function useContentFundingInfo(projectAddress: string): ContentFundingInfo | null {
-  const { state, channels, channelDisplayMetadata = new Map() } = useContentFundingState()
-
-  if (!state) return null
-
+function contentFundingInfoForProject(
+  projectAddress: string,
+  channels: ReturnType<typeof useContentFundingState>['channels'],
+  channelDisplayMetadata: NonNullable<ReturnType<typeof useContentFundingState>['channelDisplayMetadata']>,
+): ContentFundingInfo | null {
   const projectAddressLower = projectAddress.toLowerCase()
 
   for (const channel of channels) {
@@ -110,7 +123,7 @@ function ContentFundingCardDetails({ info }: { info: ContentFundingInfo }) {
   const channelStateLabels: Record<string, string> = {
     unclaimed: 'Unclaimed',
     verified: 'Verified',
-    'creator-controlled': 'Creator-Controlled',
+    'beneficiary-controlled': 'Creator-Controlled',
   }
 
   const contractStatusLabels: Record<string, string> = {
@@ -220,7 +233,14 @@ export function AlignedProjectCard({
     : 0
   const progressPercent = Math.min(fundingProgress, 100)
 
-  const contentFundingInfo = useContentFundingInfo(project.projectAddress)
+  const {
+    state: contentFundingState,
+    channels,
+    channelDisplayMetadata = new Map(),
+  } = useContentFundingState()
+  const contentFundingInfo = contentFundingState
+    ? contentFundingInfoForProject(project.projectAddress, channels, channelDisplayMetadata)
+    : null
 
   const projectPath = projectPathForAddress(project.projectAddress)
   const causeParam = causeCid ? `?causeCid=${encodeURIComponent(causeCid)}` : ''
@@ -236,6 +256,11 @@ export function AlignedProjectCard({
     project.projectAddress,
     metadata,
     channelLabels?.primary,
+  )
+  const websiteDomain = dnsBeneficiaryDomain(metadata?.beneficiary)
+  const websiteClaimState = claimStateForDnsDomain(
+    contentFundingState?.beneficiaryRegistry?.channels,
+    websiteDomain,
   )
   const openAriaLabel =
     projectLinks === 'local'
@@ -304,7 +329,17 @@ export function AlignedProjectCard({
               title="Project creator's approximate relevant area; not a verified address or eligibility claim."
             />
           ))}
+          {websiteDomain && (
+            <InfoChip
+              label={WEBSITE_CLAIM_STATE_LABELS[websiteClaimState]}
+              color={WEBSITE_CLAIM_STATE_COLORS[websiteClaimState]}
+              size="small"
+              title={WEBSITE_CLAIM_STATE_TOOLTIPS[websiteClaimState]}
+            />
+          )}
         </Stack>
+
+        {websiteDomain && <WebsiteBeneficiaryMark domain={websiteDomain} claimState={websiteClaimState} />}
 
         <AlignedProjectCardDetails
           project={project}

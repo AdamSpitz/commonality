@@ -64,7 +64,7 @@ Not much. The actual new infrastructure is:
 - A factory check against the registry at creation time
 - [Channel claiming](channel-claiming.md) logic
 
-These four contracts (ContentRegistry, ChannelRegistry, ChannelEscrow, CreatorAssuranceContractFactory) are deployed as a [per-platform set](README.md#per-platform-deployment). The factory, registry, escrow, and channel-claiming contracts for Twitter are separate deployments from the YouTube ones, etc.
+`ContentRegistry`, `CreatorAssuranceContractFactory`, and `CreatorAssuranceVeto` are still a [per-platform set](README.md#per-platform-deployment). `BeneficiaryRegistry` and `BeneficiaryEscrow` are shared across platforms.
 
 The ERC-1155 structure, threshold/deadline mechanics, escrow, reimbursement waterfall, and delegation all come from LazyGiving unchanged.
 

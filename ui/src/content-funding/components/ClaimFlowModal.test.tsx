@@ -17,8 +17,8 @@ vi.mock('@commonality/sdk/abis', async () => {
   const actual = await vi.importActual<typeof import('@commonality/sdk/abis')>('@commonality/sdk/abis')
   return {
     ...actual,
-    ChannelEscrowAbi: [],
-    ChannelRegistryAbi: [],
+    BeneficiaryEscrowAbi: [],
+    BeneficiaryRegistryAbi: [],
   }
 })
 
@@ -27,14 +27,14 @@ vi.mock('@commonality/sdk/content-funding', async () => {
   return {
     ...actual,
     withdrawFromEscrow: vi.fn(),
-    takeChannelControl: vi.fn(),
+    takeBeneficiaryControl: vi.fn(),
     hashCanonicalId: vi.fn((id: string) => id),
   }
 })
 
 import { useAccount, useWalletClient, usePublicClient } from 'wagmi'
 import { useClaimFlow } from '../hooks/useClaimFlow'
-import { withdrawFromEscrow, takeChannelControl } from '@commonality/sdk/content-funding'
+import { withdrawFromEscrow, takeBeneficiaryControl } from '@commonality/sdk/content-funding'
 
 const defaultProps = {
   open: true,
@@ -58,7 +58,7 @@ function setupChallengeMocks(overrides: {
   const getChallenge = vi.fn().mockResolvedValue(overrides.getChallengeResult ?? {
     nonce: 'abc123',
     verificationPostTemplate: 'Verify: abc123',
-    channelId: 'twitter:uid:123:456',
+    beneficiaryId: 'twitter:uid:123:456',
   })
   const confirmVerification = vi.fn().mockResolvedValue(overrides.confirmVerificationResult ?? null)
   vi.mocked(useClaimFlow).mockReturnValue({
@@ -552,7 +552,7 @@ describe('ClaimFlowModal', () => {
     })
   })
 
-  it('calls takeChannelControl when clicking take control button', async () => {
+  it('explains website take-control as locking third-party project creation', async () => {
     setupChallengeMocks({ confirmVerificationResult: { txHash: '0xtxhash' } })
     vi.mocked(useWalletClient).mockReturnValue({
       data: { account: { address: '0xuser' } },
@@ -560,7 +560,43 @@ describe('ClaimFlowModal', () => {
     vi.mocked(usePublicClient).mockReturnValue({} as any)
     vi.mocked(useAccount).mockReturnValue({ isConnected: true } as any)
     vi.mocked(withdrawFromEscrow).mockResolvedValue({ hash: '0xwithdraw' })
-    vi.mocked(takeChannelControl).mockResolvedValue({ hash: '0xtakecontrol' })
+
+    const user = userEvent.setup()
+    render(
+      <ClaimFlowModal
+        {...defaultProps}
+        channelDisplayName="example.org"
+        channelId="dns:example.org"
+        platform="dns"
+        handle="example.org"
+        channelState="verified"
+      />,
+    )
+
+    await user.click(screen.getByRole('button', { name: 'Get claim document' }))
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'I published the claim' })).toBeInTheDocument()
+    })
+    await user.click(screen.getByRole('button', { name: 'I published the claim' }))
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Withdraw to Wallet' })).toBeInTheDocument()
+    })
+    await user.click(screen.getByRole('button', { name: 'Withdraw to Wallet' }))
+
+    await waitFor(() => {
+      expect(screen.getByText(/only this payout wallet can create new projects about this website/i)).toBeInTheDocument()
+    })
+  })
+
+  it('calls takeBeneficiaryControl when clicking take control button', async () => {
+    setupChallengeMocks({ confirmVerificationResult: { txHash: '0xtxhash' } })
+    vi.mocked(useWalletClient).mockReturnValue({
+      data: { account: { address: '0xuser' } },
+    } as any)
+    vi.mocked(usePublicClient).mockReturnValue({} as any)
+    vi.mocked(useAccount).mockReturnValue({ isConnected: true } as any)
+    vi.mocked(withdrawFromEscrow).mockResolvedValue({ hash: '0xwithdraw' })
+    vi.mocked(takeBeneficiaryControl).mockResolvedValue({ hash: '0xtakecontrol' })
 
     const user = userEvent.setup()
     render(<ClaimFlowModal {...defaultProps} channelState="verified" />)
@@ -587,11 +623,11 @@ describe('ClaimFlowModal', () => {
     await user.click(screen.getByRole('button', { name: 'Take Control' }))
 
     await waitFor(() => {
-      expect(takeChannelControl).toHaveBeenCalled()
+      expect(takeBeneficiaryControl).toHaveBeenCalled()
     })
   })
 
-  it('shows take control error when takeChannelControl fails', async () => {
+  it('shows take control error when takeBeneficiaryControl fails', async () => {
     setupChallengeMocks({ confirmVerificationResult: { txHash: '0xtxhash' } })
     vi.mocked(useWalletClient).mockReturnValue({
       data: { account: { address: '0xuser' } },
@@ -599,7 +635,7 @@ describe('ClaimFlowModal', () => {
     vi.mocked(usePublicClient).mockReturnValue({} as any)
     vi.mocked(useAccount).mockReturnValue({ isConnected: true } as any)
     vi.mocked(withdrawFromEscrow).mockResolvedValue({ hash: '0xwithdraw' })
-    vi.mocked(takeChannelControl).mockRejectedValue(new Error('Take control failed'))
+    vi.mocked(takeBeneficiaryControl).mockRejectedValue(new Error('Take control failed'))
 
     const user = userEvent.setup()
     render(<ClaimFlowModal {...defaultProps} channelState="verified" />)
@@ -638,7 +674,7 @@ describe('ClaimFlowModal', () => {
     vi.mocked(usePublicClient).mockReturnValue({} as any)
     vi.mocked(useAccount).mockReturnValue({ isConnected: true } as any)
     vi.mocked(withdrawFromEscrow).mockResolvedValue({ hash: '0xwithdraw' })
-    vi.mocked(takeChannelControl).mockResolvedValue({ hash: '0xtakecontrol' })
+    vi.mocked(takeBeneficiaryControl).mockResolvedValue({ hash: '0xtakecontrol' })
 
     const user = userEvent.setup()
     render(<ClaimFlowModal {...defaultProps} channelState="verified" />)
@@ -702,7 +738,7 @@ describe('ClaimFlowModal', () => {
   it('does not show withdraw step for creator-controlled channel', () => {
     vi.mocked(useAccount).mockReturnValue({ isConnected: true } as any)
 
-    render(<ClaimFlowModal {...defaultProps} channelState="creator-controlled" />)
+    render(<ClaimFlowModal {...defaultProps} channelState="beneficiary-controlled" />)
 
     expect(screen.getByText('Verify your identity')).toBeInTheDocument()
   })

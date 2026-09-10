@@ -39,13 +39,13 @@ import { getTrustedContentAttestationMatches } from '../components/trustedConten
 const STATE_LABELS: Record<ChannelState, string> = {
   unclaimed: 'Unclaimed',
   verified: 'Verified',
-  'creator-controlled': 'Creator-Controlled',
+  'beneficiary-controlled': 'Creator-Controlled',
 }
 
 const STATE_COLORS: Record<ChannelState, 'default' | 'warning' | 'success'> = {
   unclaimed: 'default',
   verified: 'warning',
-  'creator-controlled': 'success',
+  'beneficiary-controlled': 'success',
 }
 
 const CONTRACT_STATUS_LABELS: Record<string, string> = {

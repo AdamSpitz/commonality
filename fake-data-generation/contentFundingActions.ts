@@ -18,7 +18,7 @@ import {
   type Hex,
 } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
-import { ChannelRegistryAbi } from '../indexer/abis/ChannelRegistryAbi.js';
+import { BeneficiaryRegistryAbi } from '../indexer/abis/BeneficiaryRegistryAbi.js';
 import { CreatorAssuranceContractFactoryAbi } from '../indexer/abis/CreatorAssuranceContractFactoryAbi.js';
 import { AlignmentAttestationsAbi, AssuranceContractAbi, PublishedDataAbi } from '@commonality/sdk/abis';
 import {
@@ -67,7 +67,7 @@ const hardhat = {
 
 // Well-known Hardhat account #0 private key — used as the trusted verifier
 // in local deployments. The deploy script sets this address as the
-// ChannelVerifier's trustedVerifier.
+// BeneficiaryVerifier's trustedVerifier.
 const HARDHAT_DEPLOYER_PRIVATE_KEY: Hex =
   '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80';
 
@@ -172,11 +172,11 @@ async function publishContractMetadata(
 
 /**
  * Sign a channel-claim proof as EIP-712 typed data, matching the on-chain
- * ChannelVerifier contract's domain.
+ * BeneficiaryVerifier contract's domain.
  */
 async function signClaimProof(
   verifierPrivateKey: Hex,
-  channelVerifierAddress: `0x${string}`,
+  beneficiaryVerifierAddress: `0x${string}`,
   chainId: number,
   channelId: Hex,
   claimant: `0x${string}`,
@@ -187,27 +187,28 @@ async function signClaimProof(
   const verifierAccount = privateKeyToAccount(verifierPrivateKey);
   return verifierAccount.signTypedData({
     domain: {
-      name: 'ChannelVerifier',
+      name: 'BeneficiaryVerifier',
       version: '1',
       chainId,
-      verifyingContract: channelVerifierAddress,
+      verifyingContract: beneficiaryVerifierAddress,
     },
     types: {
-      ChannelClaim: [
-        { name: 'channelId', type: 'bytes32' },
+      BeneficiaryClaim: [
+        { name: 'beneficiaryId', type: 'bytes32' },
+        { name: 'namespaceHash', type: 'bytes32' },
         { name: 'claimant', type: 'address' },
         { name: 'nonce', type: 'bytes32' },
         { name: 'deadline', type: 'uint256' },
         { name: 'proofHash', type: 'bytes32' },
       ],
     },
-    primaryType: 'ChannelClaim',
-    message: { channelId, claimant, nonce, deadline, proofHash },
+    primaryType: 'BeneficiaryClaim',
+    message: { beneficiaryId: channelId, namespaceHash: `0x${'00'.repeat(32)}`, claimant, nonce, deadline, proofHash },
   });
 }
 
 /** Verify a channel so that a user becomes its on-chain owner. */
-async function verifyChannel(
+async function verifyBeneficiary(
   clients: ReturnType<typeof createClients>,
   registryAddress: `0x${string}`,
   verifierAddress: `0x${string}`,
@@ -234,8 +235,8 @@ async function verifyChannel(
 
   const hash = await clients.walletClient.writeContract({
     address: registryAddress,
-    abi: ChannelRegistryAbi,
-    functionName: 'verifyChannel',
+    abi: BeneficiaryRegistryAbi,
+    functionName: 'verifyBeneficiary',
     args: [chId, clients.account, nonce, deadline, proofHash, signature],
     chain: hardhat,
     account: clients.walletClient.account!,
@@ -245,7 +246,7 @@ async function verifyChannel(
 }
 
 /** Take creator control of a verified channel. */
-async function takeChannelControl(
+async function takeBeneficiaryControl(
   clients: ReturnType<typeof createClients>,
   registryAddress: `0x${string}`,
   channelCanonicalId: string,
@@ -253,8 +254,8 @@ async function takeChannelControl(
   const chId = channelIdBytes(channelCanonicalId);
   const hash = await clients.walletClient.writeContract({
     address: registryAddress,
-    abi: ChannelRegistryAbi,
-    functionName: 'takeChannelControl',
+    abi: BeneficiaryRegistryAbi,
+    functionName: 'takeBeneficiaryControl',
     args: [chId],
     chain: hardhat,
     account: clients.walletClient.account!,
@@ -500,8 +501,8 @@ export async function attestSeedMixedContentToPlank(
 // ---------------------------------------------------------------------------
 
 export interface ContentFundingAddresses {
-  channelRegistry: `0x${string}`;
-  channelVerifier: `0x${string}`;
+  beneficiaryRegistry: `0x${string}`;
+  beneficiaryVerifier: `0x${string}`;
   creatorContractFactory: `0x${string}`;
   prospectiveContentRoundFactory?: `0x${string}`;
   publishedData?: `0x${string}`;
@@ -531,7 +532,7 @@ export async function generateContentFundingScenarios(
     return;
   }
 
-  const { channelRegistry, channelVerifier, creatorContractFactory, publishedData } = addresses;
+  const { beneficiaryRegistry, beneficiaryVerifier, creatorContractFactory, publishedData } = addresses;
 
   // Assign roles. Use later users so they don't clash with the primary hardhat
   // account (index 0) used as the funder in the main simulation.
@@ -558,7 +559,7 @@ export async function generateContentFundingScenarios(
   // -------------------------------------------------------------------------
   // Scenario 1: Unclaimed Twitter channel
   //   A fan creates a third-party contract for a creator who hasn't claimed yet.
-  //   Funds are routed to the ChannelEscrow.
+  //   Funds are routed to the BeneficiaryEscrow.
   // -------------------------------------------------------------------------
   console.log('--- Scenario 1: Unclaimed Twitter channel ---');
   {
@@ -623,7 +624,7 @@ export async function generateContentFundingScenarios(
     const prices = [tokenPrice];
     const threshold = parsePaymentTokenUnits('0.5');
 
-    await verifyChannel(creatorClients, channelRegistry, channelVerifier, channelCanonicalId);
+    await verifyBeneficiary(creatorClients, beneficiaryRegistry, beneficiaryVerifier, channelCanonicalId);
 
     const contractAddress = await createCreatorContract(creatorClients, {
       factoryAddress: creatorContractFactory,
@@ -657,7 +658,7 @@ export async function generateContentFundingScenarios(
   //
   //   Note: third-party contracts may only be created on Unclaimed or Verified
   //   channels, not on CreatorControlled ones — so the fan must act before the
-  //   creator calls takeChannelControl().
+  //   creator calls takeBeneficiaryControl().
   // -------------------------------------------------------------------------
   console.log('--- Scenario 3: Creator-controlled Substack channel ---');
   {
@@ -677,7 +678,7 @@ export async function generateContentFundingScenarios(
     const thirdPartyThreshold = parsePaymentTokenUnits('0.5');
 
     // Step 1: Verify the channel — it's now Verified (not CreatorControlled).
-    await verifyChannel(creatorClients, channelRegistry, channelVerifier, channelCanonicalId);
+    await verifyBeneficiary(creatorClients, beneficiaryRegistry, beneficiaryVerifier, channelCanonicalId);
 
     // Step 2: Fan creates a third-party contract while channel is still Verified.
     const thirdPartyContract = await createCreatorContract(fanClients, {
@@ -727,7 +728,7 @@ export async function generateContentFundingScenarios(
 
     // Step 4: Creator takes control — starts the 7-day veto window for the
     // third-party contract created above.
-    await takeChannelControl(creatorClients, channelRegistry, channelCanonicalId);
+    await takeBeneficiaryControl(creatorClients, beneficiaryRegistry, channelCanonicalId);
 
     console.log(`  Channel ${channelCanonicalId}: creator-controlled, 1 creator + 1 vetoable third-party contract.\n`);
   }
@@ -767,8 +768,8 @@ export async function generateChristianContentScenario(
 
   console.log('\n--- Christianity: Common Table essay fund ---');
   try {
-    await verifyChannel(creator, addresses.channelRegistry, addresses.channelVerifier, COMMON_TABLE_CHANNEL);
-    await takeChannelControl(creator, addresses.channelRegistry, COMMON_TABLE_CHANNEL);
+    await verifyBeneficiary(creator, addresses.beneficiaryRegistry, addresses.beneficiaryVerifier, COMMON_TABLE_CHANNEL);
+    await takeBeneficiaryControl(creator, addresses.beneficiaryRegistry, COMMON_TABLE_CHANNEL);
   } catch (error) {
     console.warn('  Common Table channel already verified (or verify failed):', error instanceof Error ? error.message : error);
   }

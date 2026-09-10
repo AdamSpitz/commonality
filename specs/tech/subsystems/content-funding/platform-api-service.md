@@ -8,7 +8,7 @@ Three things, all built on the same platform API credentials:
 
 1. **Channel prefix resolution** — resolve a platform handle or content URL to the stable channel ID needed for [content ID construction](canonicalization.md#content-ids-embed-channel-ids). Called by the UI during contract creation.
 2. **Content validation** — verify that a piece of content exists and was authored by the claimed channel. Called by the UI during contract creation to catch mismatches before on-chain submission.
-3. **Channel verification** — the [tweet-based proof flow](channel-claiming.md#mvp-tweet-based-verification) for channel claiming. Issue challenges, check the platform for the proof, sign `ChannelClaimProof`s.
+3. **Channel verification** — the [tweet-based proof flow](channel-claiming.md#mvp-tweet-based-verification) for channel claiming, plus DNS well-known / TXT for website beneficiaries. Issue challenges, check the platform for the proof, sign `BeneficiaryClaimProof`s.
 
 ## Endpoints
 
@@ -67,7 +67,7 @@ Resolves the handle to a stable ID (reusing `/resolve/channel` internally), gene
 
 ### `POST /verify/confirm`
 
-Check that the verification post was published and sign a `ChannelClaimProof`.
+Check that the verification post was published and sign a `BeneficiaryClaimProof`.
 
 ```
 Request:  { nonce: "abc123..." }
@@ -80,7 +80,7 @@ The service:
    - **Twitter:** searches the user's recent tweets (Twitter recent search API or user timeline)
    - **YouTube:** checks the specified video's description via the YouTube Data API
    - **Substack:** fetches `https://<publication>.substack.com/feed` and searches RSS entries for the nonce
-3. If found, signs the `ChannelClaimProof` with the service's Ethereum key
+3. If found, signs the `BeneficiaryClaimProof` with the service's Ethereum key
 4. Submits the on-chain verification transaction on the creator's behalf (the service pays gas — this is user acquisition spend)
 5. Returns the proof (and optionally the tx hash)
 
@@ -143,13 +143,13 @@ Express service, same as the [content attesters](content-attesters.md). Deployed
 
 - **Runtime:** Node.js + Express
 - **Platform SDKs:** Twitter API v2 client, Google APIs Node.js client (for YouTube)
-- **Ethereum:** ethers.js for signing `ChannelClaimProof`s and submitting verification transactions
+- **Ethereum:** ethers.js for signing `BeneficiaryClaimProof`s and submitting verification transactions
 - **Cache:** In-process Map for the MVP, backed by a persistent store (SQLite or the existing Postgres) if the service restarts frequently enough for cold-cache costs to matter
 
 ### Ethereum key management
 
 The service holds an Ethereum private key for two purposes:
-1. Signing `ChannelClaimProof`s (the on-chain `ChannelRegistry` trusts this key as a verifier)
+1. Signing beneficiary claim proofs (the on-chain `BeneficiaryRegistry` trusts this key as a verifier)
 2. Submitting verification transactions on behalf of creators (paying gas)
 
 This is the same trust model as the [implication attester](../conceptspace/implication-attester-ai.md) — a service with an Ethereum key that signs attestations. The key should be funded with enough ETH to cover gas for channel verifications (which are infrequent and cheap).
@@ -181,7 +181,7 @@ Never guess or fabricate a resolution. This aligns with the [canonicalization pr
 
 ### Public proof hash anchoring
 
-When `/verify/confirm` finds a valid public proof, it must compute `proofHash = keccak256(utf8Bytes(publicProofUrl))` over the durable public artifact URL (tweet/status URL, Substack post URL, or equivalent), include that `proofHash` in the EIP-712 `ChannelClaim`, and submit it to `ChannelRegistry.verifyChannel`. The registry emits `ChannelProofAnchored`, allowing third parties to compare the on-chain hash with the public proof URL and detect a dishonest verifier.
+When `/verify/confirm` finds a valid public proof, it must compute `proofHash = keccak256(utf8Bytes(publicProofUrl))` over the durable public artifact URL (tweet/status URL, Substack post URL, well-known URL, or DNS TXT locator), include that `proofHash` and the applicable `namespaceHash` in the EIP-712 `BeneficiaryClaim`, and submit it to `BeneficiaryRegistry.verifyBeneficiary` (or `verifyNamespacedBeneficiary` for DNS). Generic/social claims sign a zero namespace hash; DNS signs `keccak256("dns")`, preventing the signature from being replayed through the generic entrypoint to skip namespace policy. The registry emits `BeneficiaryProofAnchored`, allowing third parties to compare the on-chain hash with the public proof URL and detect a dishonest verifier.
 
 ## What this service is NOT
 

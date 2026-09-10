@@ -452,7 +452,7 @@ export async function fetchAllSoldEvents(
 
 /**
  * Fetch all content-funding events across every indexed version of the relevant
- * contracts: ContentRegistry, ChannelRegistry, ChannelEscrow, and
+ * contracts: ContentRegistry, BeneficiaryRegistry, BeneficiaryEscrow, and
  * CreatorAssuranceContractFactory.
  *
  * Returns a flat array of raw events ready for decoding and folding.
@@ -469,8 +469,9 @@ export async function fetchAllContentFundingEvents(
   const eventNames = [
     'ContentItemRegistered',
     'ContentItemReleased',
-    'ChannelVerified',
-    'ChannelControlTaken',
+    'BeneficiaryVerified',
+    'BeneficiaryControlTaken',
+    'PayoutAddressRotated',
     'ContractVetoed',
     'Deposited',
     'Withdrawn',

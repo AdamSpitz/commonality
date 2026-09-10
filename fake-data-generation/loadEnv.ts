@@ -42,8 +42,8 @@ export const CONTRACT_ADDRESSES = {
   mutableRefUpdater: process.env.MUTABLE_REF_UPDATER_CONTRACT_ADDRESS || process.env.MUTABLE_REF_UPDATER_ADDRESS,
   alignmentAttestations: process.env.ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS || process.env.ALIGNMENT_ATTESTATIONS_ADDRESS,
   // Content-funding contracts
-  channelVerifier: process.env.CHANNEL_VERIFIER_ADDRESS,
-  channelRegistry: process.env.CHANNEL_REGISTRY_ADDRESS,
+  beneficiaryVerifier: process.env.BENEFICIARY_VERIFIER_ADDRESS,
+  beneficiaryRegistry: process.env.BENEFICIARY_REGISTRY_ADDRESS,
   creatorContractFactory: process.env.CREATOR_CONTRACT_FACTORY_ADDRESS,
   prospectiveContentRoundFactory: process.env.PROSPECTIVE_CONTENT_ROUND_FACTORY_ADDRESS,
   publishedData: process.env.PUBLISHED_DATA_CONTRACT_ADDRESS,

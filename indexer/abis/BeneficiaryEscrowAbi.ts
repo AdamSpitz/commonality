@@ -1,12 +1,12 @@
 // Auto-generated from hardhat/contracts - DO NOT EDIT MANUALLY
 // Run `npm run sync-abis` to regenerate
 
-export const ChannelEscrowAbi = [
+export const BeneficiaryEscrowAbi = [
   {
     "inputs": [
       {
         "internalType": "address",
-        "name": "_channelRegistry",
+        "name": "_beneficiaryRegistry",
         "type": "address"
       },
       {
@@ -20,7 +20,18 @@ export const ChannelEscrowAbi = [
   },
   {
     "inputs": [],
-    "name": "ChannelNotVerified",
+    "name": "BeneficiaryNotVerified",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "withdrawableAt",
+        "type": "uint256"
+      }
+    ],
+    "name": "ClaimWaitingPeriodNotElapsed",
     "type": "error"
   },
   {
@@ -45,7 +56,7 @@ export const ChannelEscrowAbi = [
   },
   {
     "inputs": [],
-    "name": "OnlyChannelOwner",
+    "name": "OnlyBeneficiaryPayoutAddress",
     "type": "error"
   },
   {
@@ -65,7 +76,7 @@ export const ChannelEscrowAbi = [
       {
         "indexed": true,
         "internalType": "bytes32",
-        "name": "channelId",
+        "name": "beneficiaryId",
         "type": "bytes32"
       },
       {
@@ -90,7 +101,7 @@ export const ChannelEscrowAbi = [
       {
         "indexed": true,
         "internalType": "bytes32",
-        "name": "channelId",
+        "name": "beneficiaryId",
         "type": "bytes32"
       },
       {
@@ -113,7 +124,7 @@ export const ChannelEscrowAbi = [
     "inputs": [
       {
         "internalType": "bytes32",
-        "name": "channelId",
+        "name": "beneficiaryId",
         "type": "bytes32"
       }
     ],
@@ -130,7 +141,7 @@ export const ChannelEscrowAbi = [
   },
   {
     "inputs": [],
-    "name": "channelRegistry",
+    "name": "beneficiaryRegistry",
     "outputs": [
       {
         "internalType": "address",
@@ -145,7 +156,7 @@ export const ChannelEscrowAbi = [
     "inputs": [
       {
         "internalType": "bytes32",
-        "name": "channelId",
+        "name": "beneficiaryId",
         "type": "bytes32"
       },
       {
@@ -176,7 +187,7 @@ export const ChannelEscrowAbi = [
     "inputs": [
       {
         "internalType": "bytes32",
-        "name": "channelId",
+        "name": "beneficiaryId",
         "type": "bytes32"
       }
     ],

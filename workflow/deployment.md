@@ -143,9 +143,9 @@ Contract deployment is incremental. `./scripts/deploy-contracts.sh <net>` runs `
 
 If a dependency changes, downstream contracts whose constructor arguments contain that address are redeployed too. This is conservative rather than magical: contracts are not upgradeable, and the script will not mutate an already-deployed contract into a new implementation. Commit both `deployments/<net>.env` and `deployments/<net>.contracts-manifest.json` after a non-local deployment so the next operator/machine can make the same incremental decision.
 
-For non-local deployments, `CONTRACT_ADMIN_ADDRESS` must be set in `deployments/operator-addresses.env` before running deploy (it must be distinct from `DEPLOYER_ADDRESS`; the deployer holds gas money only). The deploy script initiates admin transfer for `ChannelVerifier` and `ChannelRegistry` using `Ownable2Step`, transfers `DelegatableNotes` ownership directly, then automatically runs the admin-acceptance helper only when a deployment left pending admin transfers.
+For non-local deployments, `CONTRACT_ADMIN_ADDRESS` must be set in `deployments/operator-addresses.env` before running deploy (it must be distinct from `DEPLOYER_ADDRESS`; the deployer holds gas money only). The deploy script initiates admin transfer for `BeneficiaryVerifier` and `BeneficiaryRegistry` using `Ownable2Step`, transfers `DelegatableNotes` ownership directly, then automatically runs the admin-acceptance helper only when a deployment left pending admin transfers.
 
-That helper reads `CONTRACT_ADMIN_PRIVATE_KEY` from the operator secrets file, calls `ChannelVerifier.acceptOwnership()` and `ChannelRegistry.acceptOwnership()` after verifying the key matches `CONTRACT_ADMIN_ADDRESS`, and verifies `DelegatableNotes.owner()` already equals the admin address. If you ever need to repair or re-run just the acceptance step, it is idempotent:
+That helper reads `CONTRACT_ADMIN_PRIVATE_KEY` from the operator secrets file, calls `BeneficiaryVerifier.acceptOwnership()` and `BeneficiaryRegistry.acceptOwnership()` after verifying the key matches `CONTRACT_ADMIN_ADDRESS`, and verifies `DelegatableNotes.owner()` already equals the admin address. If you ever need to repair or re-run just the acceptance step, it is idempotent:
 
 ```bash
 ./scripts/accept-admin-ownership.sh base-sepolia
@@ -157,7 +157,7 @@ After deploying content-funding contracts, explicitly configure economics before
 
 - **Base Sepolia testnet intentionally uses the project-owned faucetable dev token (`USDZZZ`)** so testers can be funded freely. This is a deliberate testnet-only exception, not a production precedent.
 - **Mainnet/production MVP uses USDC.** Use only a vetted standard ERC-20 settlement token (no fee-on-transfer/rebasing/callback tokens). Mainnet must not use a project-owned mintable test token.
-- Ensure admin ownership is on Adam's cold admin key or Safe multisig before inviting funds: `ChannelVerifier.owner()`, `ChannelRegistry.owner()`, and `DelegatableNotes.owner()` should all equal `CONTRACT_ADMIN_ADDRESS`.
+- Ensure admin ownership is on Adam's cold admin key or Safe multisig before inviting funds: `BeneficiaryVerifier.owner()`, `BeneficiaryRegistry.owner()`, and `DelegatableNotes.owner()` should all equal `CONTRACT_ADMIN_ADDRESS`.
 - Set `CreatorAssuranceContractFactory.thirdPartyMinPurchase` to a meaningful minimum in settlement-token units.
 - Keep `thirdPartyMaxDuration` bounded (default 7 days, matching the default channel veto window) unless there is a deliberate anti-squatting reason to change it.
 

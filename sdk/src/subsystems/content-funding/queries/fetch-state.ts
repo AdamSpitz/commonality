@@ -1,8 +1,9 @@
 import type {
   ContentItemRegisteredEvent,
   ContentItemReleasedEvent,
-  ChannelVerifiedEvent,
-  ChannelControlTakenEvent,
+  BeneficiaryVerifiedEvent,
+  BeneficiaryControlTakenEvent,
+  PayoutAddressRotatedEvent,
   ContractVetoedEvent,
   DepositedEvent,
   WithdrawnEvent,
@@ -15,8 +16,9 @@ import { fetchAllContentFundingEvents } from '../../../utils/eventCacheClient.js
 import {
   decodeContentItemRegisteredEvent,
   decodeContentItemReleasedEvent,
-  decodeChannelVerifiedEvent,
-  decodeChannelControlTakenEvent,
+  decodeBeneficiaryVerifiedEvent,
+  decodeBeneficiaryControlTakenEvent,
+  decodePayoutAddressRotatedEvent,
   decodeContractVetoedEvent,
   decodeDepositedEvent,
   decodeWithdrawnEvent,
@@ -55,8 +57,8 @@ export async function fetchAndFoldContentFundingState(
   }
 
   const contentRegistryEvents: (ContentItemRegisteredEvent | ContentItemReleasedEvent)[] = [];
-  const channelRegistryEvents: (ChannelVerifiedEvent | ChannelControlTakenEvent)[] = [];
-  const channelEscrowEvents: (DepositedEvent | WithdrawnEvent)[] = [];
+  const beneficiaryRegistryEvents: (BeneficiaryVerifiedEvent | BeneficiaryControlTakenEvent | PayoutAddressRotatedEvent)[] = [];
+  const beneficiaryEscrowEvents: (DepositedEvent | WithdrawnEvent)[] = [];
   const creatorContractEvents: CreatorContractCreatedEvent[] = [];
   const contractVetoedEvents: ContractVetoedEvent[] = [];
 
@@ -72,14 +74,19 @@ export async function fetchAndFoldContentFundingState(
         if (d) contentRegistryEvents.push({ type: 'ContentItemReleased', contentId: d.contentId, contractAddress: d.contractAddress, blockNumber: d.blockNumber, blockTimestamp: d.blockTimestamp, transactionHash: d.transactionHash, logIndex: d.logIndex });
         break;
       }
-      case 'ChannelVerified': {
-        const d = decodeChannelVerifiedEvent(raw);
-        if (d) channelRegistryEvents.push({ type: 'ChannelVerified', ...d });
+      case 'BeneficiaryVerified': {
+        const d = decodeBeneficiaryVerifiedEvent(raw);
+        if (d) beneficiaryRegistryEvents.push({ type: 'BeneficiaryVerified', ...d });
         break;
       }
-      case 'ChannelControlTaken': {
-        const d = decodeChannelControlTakenEvent(raw);
-        if (d) channelRegistryEvents.push({ type: 'ChannelControlTaken', ...d });
+      case 'BeneficiaryControlTaken': {
+        const d = decodeBeneficiaryControlTakenEvent(raw);
+        if (d) beneficiaryRegistryEvents.push({ type: 'BeneficiaryControlTaken', ...d });
+        break;
+      }
+      case 'PayoutAddressRotated': {
+        const d = decodePayoutAddressRotatedEvent(raw);
+        if (d) beneficiaryRegistryEvents.push({ type: 'PayoutAddressRotated', ...d });
         break;
       }
       case 'ContractVetoed': {
@@ -89,12 +96,12 @@ export async function fetchAndFoldContentFundingState(
       }
       case 'Deposited': {
         const d = decodeDepositedEvent(raw);
-        if (d) channelEscrowEvents.push({ type: 'Deposited', ...d });
+        if (d) beneficiaryEscrowEvents.push({ type: 'Deposited', ...d });
         break;
       }
       case 'Withdrawn': {
         const d = decodeWithdrawnEvent(raw);
-        if (d) channelEscrowEvents.push({ type: 'Withdrawn', ...d });
+        if (d) beneficiaryEscrowEvents.push({ type: 'Withdrawn', ...d });
         break;
       }
       case 'CreatorContractCreated': {
@@ -107,8 +114,8 @@ export async function fetchAndFoldContentFundingState(
 
   const state = foldAllContentFundingEvents(
     sortedByBlockOrder(contentRegistryEvents),
-    sortedByBlockOrder(channelRegistryEvents),
-    sortedByBlockOrder(channelEscrowEvents),
+    sortedByBlockOrder(beneficiaryRegistryEvents),
+    sortedByBlockOrder(beneficiaryEscrowEvents),
     sortedByBlockOrder(creatorContractEvents),
   );
 

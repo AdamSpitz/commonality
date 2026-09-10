@@ -21,7 +21,7 @@ import type {
 
 const verifierPrivateKey = '0x59c6995e998f97a5a0044966f0945388cf9af40f3c81d1dc0f1d5d5d9ecf594f' as const;
 const verifierAddress = privateKeyToAccount(verifierPrivateKey).address;
-const testChannelVerifierAddress = '0x000000000000000000000000000000000000c0de' as const;
+const testBeneficiaryVerifierAddress = '0x000000000000000000000000000000000000c0de' as const;
 const testChainId = 31337;
 const VALID_STATEMENT_CID = 'bafybeidagx4zc6phhtjng6f3sjzlicqm2ssq4eb6wskinjtuvkt275fmpy' as const;
 
@@ -394,7 +394,7 @@ describe('PlatformApiService', () => {
         error instanceof HttpError &&
         error.status === 400 &&
         error.code === 'invalid_request' &&
-        error.message === 'verify/challenge currently supports only twitter, youtube, and substack',
+        error.message === 'verify/challenge currently supports only twitter, youtube, substack, and dns',
     );
 
     await assert.rejects(
@@ -422,6 +422,20 @@ describe('PlatformApiService', () => {
         handle: '@alice',
         claimantAddress: '0x1234567890123456789012345678901234567890',
       }),
+      (error: unknown) =>
+        error instanceof HttpError &&
+        error.status === 403 &&
+        error.code === 'blocked_identity',
+    );
+  });
+
+  it('rejects a blocked website identity at resolve time', async () => {
+    const service = createService({
+      configOverrides: { blockedChannelIds: ['dns:example.org'] },
+    });
+
+    await assert.rejects(
+      () => service.resolveWebsiteBeneficiary('https://www.example.org/'),
       (error: unknown) =>
         error instanceof HttpError &&
         error.status === 403 &&
@@ -459,28 +473,30 @@ describe('PlatformApiService', () => {
     const confirmed = await service.confirmVerification({ nonce: challenge.nonce });
     assert.strictEqual(observedChallengeCode, 'abc123def456');
     assert.strictEqual(confirmed.observedPostId, 'tweet-1');
-    assert.strictEqual(confirmed.proof.channelId, 'twitter:uid:12345678');
+    assert.strictEqual(confirmed.proof.beneficiaryId, 'twitter:uid:12345678');
     assert.strictEqual(confirmed.proof.claimant, '0x1234567890123456789012345678901234567890');
 
     const recovered = await recoverTypedDataAddress({
       domain: {
-        name: 'ChannelVerifier',
+        name: 'BeneficiaryVerifier',
         version: '1',
         chainId: testChainId,
-        verifyingContract: testChannelVerifierAddress,
+        verifyingContract: testBeneficiaryVerifierAddress,
       },
       types: {
-        ChannelClaim: [
-          { name: 'channelId', type: 'bytes32' },
+        BeneficiaryClaim: [
+          { name: 'beneficiaryId', type: 'bytes32' },
+          { name: 'namespaceHash', type: 'bytes32' },
           { name: 'claimant', type: 'address' },
           { name: 'nonce', type: 'bytes32' },
           { name: 'deadline', type: 'uint256' },
           { name: 'proofHash', type: 'bytes32' },
         ],
       },
-      primaryType: 'ChannelClaim',
+      primaryType: 'BeneficiaryClaim',
       message: {
-        channelId: hashCanonicalId(confirmed.proof.channelId),
+        beneficiaryId: hashCanonicalId(confirmed.proof.beneficiaryId),
+        namespaceHash: `0x${'00'.repeat(32)}`,
         claimant: confirmed.proof.claimant,
         nonce: confirmed.proof.nonce,
         deadline: BigInt(confirmed.proof.deadline),
@@ -507,11 +523,197 @@ describe('PlatformApiService', () => {
       claimantAddress: '0x1234567890123456789012345678901234567890',
     });
 
-    assert.strictEqual(challenge.channelId, 'substack:example');
+    assert.strictEqual(challenge.beneficiaryId, 'substack:example');
     assert.strictEqual(challenge.handle, 'example');
     assert.strictEqual(challenge.displayName, 'example');
     assert.ok(challenge.verificationPostTemplate.includes('#commonality-abc123def456'));
     assert.strictEqual(challenge.deadline, 1_700_003_600);
+  });
+
+  it('creates and confirms a domain-control challenge from the well-known document', async () => {
+    let publishedDocument = '';
+    const service = createService({
+      now: () => 1_700_000_000_000,
+      createChallengeCode: () => 'abc123def456',
+      configOverrides: {
+        beneficiaryRegistryAddress: '0x9876543210987654321098765432109876543210',
+      },
+      fetch: async (input) => {
+        assert.strictEqual(String(input), 'https://example.org/.well-known/commonality-claim.json');
+        return new Response(publishedDocument, {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        });
+      },
+    });
+
+    const challenge = await service.createVerificationChallenge({
+      platform: 'dns',
+      handle: 'https://www.Example.org/',
+      claimantAddress: '0x1234567890123456789012345678901234567890',
+    });
+
+    assert.strictEqual(challenge.beneficiaryId, 'dns:example.org');
+    assert.strictEqual(challenge.handle, 'example.org');
+    publishedDocument = challenge.verificationPostTemplate;
+
+    const confirmed = await service.confirmVerification({ nonce: challenge.nonce });
+    assert.strictEqual(confirmed.proof.beneficiaryId, 'dns:example.org');
+    assert.strictEqual(
+      confirmed.observedPostId,
+      'https://example.org/.well-known/commonality-claim.json',
+    );
+  });
+
+  it('confirms a domain-control challenge from a TXT record when well-known is missing', async () => {
+    let publishedDocument = '';
+    const service = createService({
+      configOverrides: {
+        beneficiaryRegistryAddress: '0x9876543210987654321098765432109876543210',
+      },
+      fetch: async () => new Response('', { status: 404 }),
+      lookupTxt: async (name) => {
+        assert.strictEqual(name, '_commonality.example.org');
+        return [publishedDocument.trim()];
+      },
+    });
+
+    const challenge = await service.createVerificationChallenge({
+      platform: 'dns',
+      handle: 'example.org',
+      claimantAddress: '0x1234567890123456789012345678901234567890',
+    });
+    publishedDocument = challenge.verificationPostTemplate;
+
+    const confirmed = await service.confirmVerification({ nonce: challenge.nonce });
+    assert.strictEqual(confirmed.proof.beneficiaryId, 'dns:example.org');
+    assert.strictEqual(confirmed.observedPostId, 'dns-txt:_commonality.example.org');
+  });
+
+  it('prefers the well-known document over TXT', async () => {
+    let publishedDocument = '';
+    let txtLookups = 0;
+    const service = createService({
+      configOverrides: {
+        beneficiaryRegistryAddress: '0x9876543210987654321098765432109876543210',
+      },
+      fetch: async () => new Response(publishedDocument, {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      }),
+      lookupTxt: async () => {
+        txtLookups += 1;
+        return [];
+      },
+    });
+
+    const challenge = await service.createVerificationChallenge({
+      platform: 'dns',
+      handle: 'example.org',
+      claimantAddress: '0x1234567890123456789012345678901234567890',
+    });
+    publishedDocument = challenge.verificationPostTemplate;
+
+    const confirmed = await service.confirmVerification({ nonce: challenge.nonce });
+    assert.strictEqual(
+      confirmed.observedPostId,
+      'https://example.org/.well-known/commonality-claim.json',
+    );
+    assert.strictEqual(txtLookups, 0);
+  });
+
+  it('rejects non-registrable and path-scoped domain beneficiaries', async () => {
+    const service = createService({
+      configOverrides: {
+        beneficiaryRegistryAddress: '0x9876543210987654321098765432109876543210',
+      },
+    });
+
+    for (const handle of ['co.uk', 'https://example.org/a-project']) {
+      await assert.rejects(
+        () => service.createVerificationChallenge({
+          platform: 'dns',
+          handle,
+          claimantAddress: '0x1234567890123456789012345678901234567890',
+        }),
+        (error: unknown) => error instanceof HttpError && error.status === 400,
+      );
+    }
+  });
+
+  it('resolves a website beneficiary and refuses create-time cross-domain redirects', async () => {
+    const service = createService({
+      fetch: async (input) => {
+        const url = String(input);
+        const response = new Response('', { status: 200 });
+        Object.defineProperty(response, 'url', {
+          value: url.includes('example.org')
+            ? 'https://www.example.org/'
+            : 'https://attacker.example/',
+        });
+        return response;
+      },
+    });
+
+    const resolved = await service.resolveWebsiteBeneficiary('https://www.Example.org/');
+    assert.deepStrictEqual(resolved, {
+      namespace: 'dns',
+      canonicalIdentifier: 'example.org',
+      reachable: true,
+    });
+
+    await assert.rejects(
+      () => service.resolveWebsiteBeneficiary('redcross.org'),
+      (error: unknown) =>
+        error instanceof HttpError &&
+        error.status === 400 &&
+        error.code === 'invalid_domain_redirect',
+    );
+  });
+
+  it('treats an unreachable website as unconfirmed rather than a redirect', async () => {
+    const service = createService({
+      fetch: async () => {
+        throw new Error('network down');
+      },
+    });
+
+    const resolved = await service.resolveWebsiteBeneficiary('example.org');
+    assert.deepStrictEqual(resolved, {
+      namespace: 'dns',
+      canonicalIdentifier: 'example.org',
+      reachable: false,
+    });
+  });
+
+  it('rejects domain claims redirected outside the claimed registrable domain', async () => {
+    let publishedDocument = '';
+    const service = createService({
+      configOverrides: {
+        beneficiaryRegistryAddress: '0x9876543210987654321098765432109876543210',
+      },
+      fetch: async () => {
+        const response = new Response(publishedDocument, { status: 200 });
+        Object.defineProperty(response, 'url', {
+          value: 'https://attacker.example/.well-known/commonality-claim.json',
+        });
+        return response;
+      },
+    });
+    const challenge = await service.createVerificationChallenge({
+      platform: 'dns',
+      handle: 'example.org',
+      claimantAddress: '0x1234567890123456789012345678901234567890',
+    });
+    publishedDocument = challenge.verificationPostTemplate;
+
+    await assert.rejects(
+      () => service.confirmVerification({ nonce: challenge.nonce }),
+      (error: unknown) =>
+        error instanceof HttpError &&
+        error.status === 400 &&
+        error.code === 'invalid_domain_redirect',
+    );
   });
 
   it('queues and lists content submissions', async () => {
@@ -606,7 +808,7 @@ describe('PlatformApiService', () => {
     const confirmed = await service.confirmVerification({ nonce: challenge.nonce });
     assert.deepStrictEqual(observedUrls, ['https://example.substack.com/feed']);
     assert.strictEqual(confirmed.observedPostId, 'post-1');
-    assert.strictEqual(confirmed.proof.channelId, 'substack:example');
+    assert.strictEqual(confirmed.proof.beneficiaryId, 'substack:example');
   });
 
   it('returns a clear error when the verification post is not found', async () => {
@@ -683,7 +885,7 @@ describe('PlatformApiService', () => {
         error instanceof HttpError &&
         error.status === 503 &&
         error.code === 'service_unavailable' &&
-        error.message === 'Verification confirmation is unavailable because VERIFIER_PRIVATE_KEY, CHANNEL_VERIFIER_ADDRESS, and CHAIN_ID must all be set',
+        error.message === 'Verification confirmation is unavailable because VERIFIER_PRIVATE_KEY, BENEFICIARY_VERIFIER_ADDRESS, and CHAIN_ID must all be set',
     );
   });
 });
@@ -696,6 +898,7 @@ function createService(overrides: Partial<{
   createChallengeCode: () => string;
   now: () => number;
   fetch: typeof fetch;
+  lookupTxt: (name: string) => Promise<string[]>;
 }> = {}) {
   const config: PlatformApiServiceConfig = {
     port: 3001,
@@ -709,8 +912,8 @@ function createService(overrides: Partial<{
     youtubeApiBaseUrl: 'https://www.googleapis.com/youtube/v3',
     verifierPrivateKey,
     ethereumRpcUrl: undefined,
-    channelRegistryAddress: undefined,
-    channelVerifierAddress: testChannelVerifierAddress,
+    beneficiaryRegistryAddress: undefined,
+    beneficiaryVerifierAddress: testBeneficiaryVerifierAddress,
     chainId: testChainId,
     submitVerificationTx: false,
     challengeTtlSeconds: 1800,
@@ -738,6 +941,7 @@ function createService(overrides: Partial<{
     createChallengeCode: overrides.createChallengeCode,
     now: overrides.now,
     fetch: overrides.fetch,
+    lookupTxt: overrides.lookupTxt,
   });
 }
 

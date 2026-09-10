@@ -347,7 +347,7 @@ export async function getThirdPartyMinPurchase(
  * successful content-funding contracts.
  *
  * @param clients - Wallet and public clients for blockchain interaction
- * @param escrowContract - The ChannelEscrow contract instance
+ * @param escrowContract - The BeneficiaryEscrow contract instance
  * @param channelId - Bytes32 channel ID to withdraw from
  * @returns Transaction hash
  */
@@ -371,27 +371,51 @@ export async function withdrawFromEscrow(
 }
 
 /**
- * Take control of a verified channel.
+ * Take identity control of a verified beneficiary.
  *
- * After a channel is verified, the verified owner can "take control" to
- * enable the veto window — a period during which they can veto any
- * third-party contracts created for their channel.
+ * After a beneficiary is verified, the verified payout address can take
+ * control so new projects about that identity may be restricted. Content
+ * factories may start a veto window from that timestamp.
  *
  * @param clients - Wallet and public clients for blockchain interaction
- * @param registryContract - The ChannelRegistry contract instance
- * @param channelId - Bytes32 channel ID to take control of
+ * @param registryContract - The BeneficiaryRegistry contract instance
+ * @param beneficiaryId - Bytes32 beneficiary ID to take control of
  * @returns Transaction hash
  */
-export async function takeChannelControl(
+export async function takeBeneficiaryControl(
   clients: WriteClients,
   registryContract: { address: Address; abi: Abi },
-  channelId: string,
+  beneficiaryId: string,
 ): Promise<{ hash: Hash }> {
   const hash = await clients.walletClient.writeContract({
     address: registryContract.address,
     abi: registryContract.abi,
-    functionName: 'takeChannelControl',
-    args: [channelId as `0x${string}`],
+    functionName: 'takeBeneficiaryControl',
+    args: [beneficiaryId as `0x${string}`],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
+  });
+
+  await clients.publicClient.waitForTransactionReceipt({ hash });
+
+  return { hash };
+}
+
+/**
+ * Replace the verified payout address. Only the current payout wallet may
+ * authorize the replacement; a later identity proof alone cannot.
+ */
+export async function rotatePayoutAddress(
+  clients: WriteClients,
+  registryContract: { address: Address; abi: Abi },
+  beneficiaryId: string,
+  newPayoutAddress: Address,
+): Promise<{ hash: Hash }> {
+  const hash = await clients.walletClient.writeContract({
+    address: registryContract.address,
+    abi: registryContract.abi,
+    functionName: 'rotatePayoutAddress',
+    args: [beneficiaryId as `0x${string}`, newPayoutAddress],
     chain: clients.walletClient.chain,
     account: clients.walletClient.account!,
   });
@@ -408,18 +432,18 @@ export async function takeChannelControl(
  * taking control. Vetoed contracts are marked as invalid.
  *
  * @param clients - Wallet and public clients for blockchain interaction
- * @param registryContract - The ChannelRegistry contract instance
+ * @param factoryContract - The CreatorAssuranceContractFactory instance
  * @param contractAddress - Address of the contract to veto
  * @returns Transaction hash
  */
 export async function vetoContract(
   clients: WriteClients,
-  registryContract: { address: Address; abi: Abi },
+  factoryContract: { address: Address; abi: Abi },
   contractAddress: Address,
 ): Promise<{ hash: Hash }> {
   const hash = await clients.walletClient.writeContract({
-    address: registryContract.address,
-    abi: registryContract.abi,
+    address: factoryContract.address,
+    abi: factoryContract.abi,
     functionName: 'vetoContract',
     args: [contractAddress],
     chain: clients.walletClient.chain,
@@ -439,7 +463,7 @@ export async function vetoContract(
  * on-chain to register the channel.
  *
  * @param clients - Wallet and public clients for blockchain interaction
- * @param registryContract - The ChannelRegistry contract instance
+ * @param registryContract - The BeneficiaryRegistry contract instance
  * @param channelId - Bytes32 channel ID to verify
  * @param claimant - Address claiming ownership of the channel
  * @param nonce - Random nonce to prevent replay attacks
@@ -448,7 +472,7 @@ export async function vetoContract(
  * @param verifierSignature - EIP-712 signature from the trusted verifier
  * @returns Transaction hash
  */
-export async function verifyChannel(
+export async function verifyBeneficiary(
   clients: WriteClients,
   registryContract: { address: Address; abi: Abi },
   channelId: string,
@@ -461,9 +485,46 @@ export async function verifyChannel(
   const hash = await clients.walletClient.writeContract({
     address: registryContract.address,
     abi: registryContract.abi,
-    functionName: 'verifyChannel',
+    functionName: 'verifyBeneficiary',
     args: [
       channelId as `0x${string}`,
+      claimant,
+      nonce,
+      BigInt(deadline),
+      proofHash,
+      verifierSignature,
+    ],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
+  });
+
+  await clients.publicClient.waitForTransactionReceipt({ hash });
+
+  return { hash };
+}
+
+/**
+ * Verify a namespaced beneficiary (for example `dns` + `example.org`) so the
+ * registry can apply that namespace's first-claim waiting period.
+ */
+export async function verifyNamespacedBeneficiary(
+  clients: WriteClients,
+  registryContract: { address: Address; abi: Abi },
+  namespace: string,
+  canonicalIdentifier: string,
+  claimant: Address,
+  nonce: `0x${string}`,
+  deadline: bigint,
+  proofHash: `0x${string}`,
+  verifierSignature: `0x${string}`,
+): Promise<{ hash: Hash }> {
+  const hash = await clients.walletClient.writeContract({
+    address: registryContract.address,
+    abi: registryContract.abi,
+    functionName: 'verifyNamespacedBeneficiary',
+    args: [
+      namespace,
+      canonicalIdentifier,
       claimant,
       nonce,
       BigInt(deadline),

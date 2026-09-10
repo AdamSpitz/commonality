@@ -1,4 +1,5 @@
 import { keccak256, stringToBytes, type Hex } from 'viem';
+import { getDomain } from 'tldts';
 
 /** Supported content platforms for the content-funding subsystem. */
 export type ContentFundingPlatform = 'twitter' | 'youtube' | 'substack';
@@ -12,7 +13,8 @@ export type ContentFundingCanonicalizationErrorCode =
   | 'invalid_substack_url'
   | 'unsupported_substack_custom_domain'
   | 'invalid_channel_id'
-  | 'invalid_content_suffix';
+  | 'invalid_content_suffix'
+  | 'invalid_domain_redirect';
 
 /**
  * Error thrown when a content-funding URL or canonical ID cannot be parsed.
@@ -284,7 +286,7 @@ export function buildCanonicalChannelId(
           `Twitter channel IDs must use numeric user IDs: ${stableId}`,
         );
       }
-      return `twitter:uid:${stableId}`;
+      return buildCanonicalBeneficiaryId('twitter', `uid:${stableId}`);
     case 'youtube':
       if (!YOUTUBE_CHANNEL_ID_PATTERN.test(stableId)) {
         throw new ContentFundingCanonicalizationError(
@@ -292,7 +294,7 @@ export function buildCanonicalChannelId(
           `YouTube channel IDs must use UC-prefixed channel IDs: ${stableId}`,
         );
       }
-      return `youtube:channel:${stableId}`;
+      return buildCanonicalBeneficiaryId('youtube', `channel:${stableId}`);
     case 'substack': {
       const normalizedPublication = stableId.trim().toLowerCase();
       if (!SUBSTACK_PUBLICATION_PATTERN.test(normalizedPublication)) {
@@ -301,8 +303,103 @@ export function buildCanonicalChannelId(
           `Substack channel IDs must use publication slugs: ${stableId}`,
         );
       }
-      return `substack:${normalizedPublication}`;
+      return buildCanonicalBeneficiaryId('substack', normalizedPublication);
     }
+  }
+}
+
+/**
+ * Build the canonical string whose hash identifies a claimable beneficiary.
+ *
+ * The namespace selects the identity system and verifier; the canonical
+ * identifier is namespace-specific (for example `uid:44196397` or
+ * `example.org`). Keeping this primitive independent of content channels lets
+ * projects target websites and future public identities through the same
+ * registry and escrow.
+ */
+export function buildCanonicalBeneficiaryId(
+  namespace: string,
+  canonicalIdentifier: string,
+): string {
+  const normalizedNamespace = namespace.trim().toLowerCase();
+  if (!/^[a-z][a-z0-9-]*$/.test(normalizedNamespace)) {
+    throw new ContentFundingCanonicalizationError(
+      'invalid_channel_id',
+      `Invalid beneficiary namespace: ${namespace}`,
+    );
+  }
+  if (canonicalIdentifier.length === 0 || canonicalIdentifier !== canonicalIdentifier.trim()) {
+    throw new ContentFundingCanonicalizationError(
+      'invalid_channel_id',
+      `Invalid canonical beneficiary identifier: ${canonicalIdentifier}`,
+    );
+  }
+  return `${normalizedNamespace}:${canonicalIdentifier}`;
+}
+
+/** Hash a namespaced canonical beneficiary identifier for on-chain storage. */
+export function hashBeneficiaryId(namespace: string, canonicalIdentifier: string): Hex {
+  return hashCanonicalId(buildCanonicalBeneficiaryId(namespace, canonicalIdentifier));
+}
+
+/**
+ * Normalize the website identity accepted by the DNS beneficiary verifier.
+ * Apex domains and their `www` spelling identify the same beneficiary; paths,
+ * subdomains, public suffixes, and non-HTTPS URLs are deliberately rejected.
+ */
+export function normalizeDnsBeneficiary(input: string): string {
+  const trimmed = input.trim();
+  let hostname: string;
+  try {
+    const url = new URL(trimmed.includes('://') ? trimmed : `https://${trimmed}`);
+    if (url.protocol !== 'https:' || url.username || url.password || url.port || url.search || url.hash || (url.pathname !== '/' && url.pathname !== '')) {
+      throw new Error('invalid domain URL');
+    }
+    hostname = url.hostname.replace(/^www\./i, '').replace(/\.$/, '').toLowerCase();
+  } catch {
+    throw new ContentFundingCanonicalizationError(
+      'invalid_channel_id',
+      `Invalid beneficiary domain: ${input}`,
+    );
+  }
+
+  const registrableDomain = getDomain(hostname, { allowPrivateDomains: false });
+  if (!registrableDomain || registrableDomain !== hostname) {
+    throw new ContentFundingCanonicalizationError(
+      'invalid_channel_id',
+      `Beneficiary must be a registrable domain: ${input}`,
+    );
+  }
+  return registrableDomain;
+}
+
+/**
+ * Registrable domain of an HTTPS URL, or null if the URL is not a usable public
+ * HTTPS location. `www` and apex collapse to the same registrable name.
+ */
+export function registrableHttpsDomain(url: string): string | null {
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== 'https:' || parsed.username || parsed.password) {
+      return null;
+    }
+    return getDomain(parsed.hostname, { allowPrivateDomains: false });
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Refuse a fetch that landed on a different registrable domain than the
+ * beneficiary being named. Same-domain hops (including `www`) are allowed.
+ */
+export function assertDnsRedirectStaysOnDomain(finalUrl: string, expectedDomain: string): void {
+  const finalDomain = registrableHttpsDomain(finalUrl);
+  if (finalDomain !== expectedDomain) {
+    throw new ContentFundingCanonicalizationError(
+      'invalid_domain_redirect',
+      `Website redirected to a different registrable domain (${finalUrl})`,
+    );
   }
 }
 

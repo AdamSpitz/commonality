@@ -12,8 +12,15 @@ import {
   formatRelativeDeadline,
 } from '../utils'
 import { truncateAddress, formatCurrencyRaised, InfoChip, InfoLabel } from '../../shared'
+import { WebsiteBeneficiaryClaimChip } from './WebsiteBeneficiaryClaimChip'
+import { dnsBeneficiaryDomain, WebsiteBeneficiaryMark } from './WebsiteBeneficiaryMark'
 
-type ProjectMetadata = { name?: string; description?: string; updatesUrl?: string }
+type ProjectMetadata = {
+  name?: string
+  description?: string
+  updatesUrl?: string
+  beneficiary?: { namespace?: string; canonicalIdentifier?: string }
+}
 
 interface ProjectHeaderProps {
   project: Project
@@ -38,6 +45,7 @@ export function ProjectHeader({ project, metadata, kind = 'project' }: ProjectHe
 
   const deadlineLabel = formatRelativeDeadline(project.deadline)
   const deadlineEnded = deadlineLabel === 'Ended'
+  const websiteBeneficiary = dnsBeneficiaryDomain(metadata?.beneficiary)
 
   return (
     <Box sx={{ mb: 3 }}>
@@ -66,6 +74,11 @@ export function ProjectHeader({ project, metadata, kind = 'project' }: ProjectHe
               </Link>
             </Typography>
           )}
+          {websiteBeneficiary ? (
+            <Box sx={{ mt: 1 }}>
+              <WebsiteBeneficiaryMark domain={websiteBeneficiary} size="hero" />
+            </Box>
+          ) : (
           <Stack direction="row" spacing={0.5} alignItems="center">
             <Typography variant="body2" color="text.secondary">
               Recipient: {truncateAddress(project.recipient)}
@@ -76,8 +89,10 @@ export function ProjectHeader({ project, metadata, kind = 'project' }: ProjectHe
               </IconButton>
             </Tooltip>
           </Stack>
+          )}
         </Box>
-        <Stack direction="row" spacing={1}>
+        <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+          {websiteBeneficiary && <WebsiteBeneficiaryClaimChip domain={websiteBeneficiary} />}
           <InfoChip
             title={STATUS_TOOLTIPS[status]}
             label={STATUS_LABELS[status]}
@@ -93,7 +108,7 @@ export function ProjectHeader({ project, metadata, kind = 'project' }: ProjectHe
 
       <Box sx={{ mt: 2 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-          <Typography variant="body1">
+          <Typography variant={websiteBeneficiary ? 'h4' : 'body1'} component="p" sx={websiteBeneficiary ? { fontWeight: 700 } : undefined}>
             {formatCurrencyRaised(project.totalReceived, project.threshold, project.fundingCurrency)}
           </Typography>
           {hasMinimum ? (

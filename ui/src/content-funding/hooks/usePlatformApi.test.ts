@@ -176,6 +176,58 @@ describe('usePlatformApi', () => {
     })
   })
 
+  describe('resolveWebsiteBeneficiary', () => {
+    it('posts the domain and returns the canonical identity', async () => {
+      const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({
+          namespace: 'dns',
+          canonicalIdentifier: 'example.org',
+          reachable: true,
+        }),
+      } as Response)
+
+      const { result } = renderHook(() => usePlatformApi())
+      let resolved: { namespace: string; canonicalIdentifier: string; reachable: boolean } | undefined
+      await act(async () => {
+        resolved = await result.current.resolveWebsiteBeneficiary('https://www.example.org/')
+      })
+
+      expect(resolved).toEqual({
+        namespace: 'dns',
+        canonicalIdentifier: 'example.org',
+        reachable: true,
+      })
+      expect(fetchSpy).toHaveBeenCalledWith(
+        expect.stringContaining('/resolve/website-beneficiary'),
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify({ domain: 'https://www.example.org/' }),
+        }),
+      )
+    })
+
+    it('surfaces invalid_domain_redirect from the platform API', async () => {
+      vi.spyOn(global, 'fetch').mockResolvedValueOnce({
+        ok: false,
+        status: 400,
+        statusText: 'Bad Request',
+        json: () => Promise.resolve({
+          error: 'invalid_domain_redirect',
+          message: 'Website redirected to a different registrable domain',
+        }),
+      } as Response)
+
+      const { result } = renderHook(() => usePlatformApi())
+      await act(async () => {
+        await expect(result.current.resolveWebsiteBeneficiary('example.org')).rejects.toEqual({
+          code: 'invalid_domain_redirect',
+          message: 'Website redirected to a different registrable domain',
+        })
+      })
+    })
+  })
+
   describe('resolveContent', () => {
     it('resolves content successfully', async () => {
       const mockResponse = {

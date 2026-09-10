@@ -2,8 +2,13 @@ import assert from 'assert';
 import {
   ContentFundingCanonicalizationError,
   buildCanonicalChannelId,
+  buildCanonicalBeneficiaryId,
   buildCanonicalContentId,
   hashCanonicalId,
+  hashBeneficiaryId,
+  normalizeDnsBeneficiary,
+  registrableHttpsDomain,
+  assertDnsRedirectStaysOnDomain,
   parseCanonicalChannelId,
   parseContentFundingUrl,
   parseSubstackPostUrl,
@@ -115,6 +120,48 @@ describe('content-funding canonicalization', () => {
   });
 
   describe('canonical IDs', () => {
+    it('normalizes only apex HTTPS website beneficiaries', () => {
+      assert.strictEqual(normalizeDnsBeneficiary('Example.ORG'), 'example.org');
+      assert.strictEqual(normalizeDnsBeneficiary('https://www.example.org/'), 'example.org');
+      assert.throws(() => normalizeDnsBeneficiary('https://projects.example.org'));
+      assert.throws(() => normalizeDnsBeneficiary('https://example.org/project'));
+      assert.throws(() => normalizeDnsBeneficiary('http://example.org'));
+      assert.throws(() => normalizeDnsBeneficiary('org'));
+    });
+
+    it('treats www and apex HTTPS hops as the same registrable domain', () => {
+      assert.strictEqual(registrableHttpsDomain('https://www.example.org/path'), 'example.org');
+      assert.strictEqual(registrableHttpsDomain('https://example.org/'), 'example.org');
+      assert.strictEqual(registrableHttpsDomain('http://example.org/'), null);
+      assertDnsRedirectStaysOnDomain('https://www.example.org/', 'example.org');
+      assert.throws(
+        () => assertDnsRedirectStaysOnDomain('https://attacker.example/', 'example.org'),
+        (error: unknown) =>
+          error instanceof ContentFundingCanonicalizationError &&
+          error.code === 'invalid_domain_redirect',
+      );
+    });
+
+    it('builds and hashes generic claimable-beneficiary IDs', () => {
+      assert.strictEqual(buildCanonicalBeneficiaryId('DNS', 'example.org'), 'dns:example.org');
+      assert.strictEqual(
+        hashBeneficiaryId('dns', 'example.org'),
+        hashCanonicalId('dns:example.org'),
+      );
+      assert.throws(
+        () => buildCanonicalBeneficiaryId('not a namespace', 'example.org'),
+        (error: unknown) =>
+          error instanceof ContentFundingCanonicalizationError &&
+          error.code === 'invalid_channel_id',
+      );
+      assert.throws(
+        () => buildCanonicalBeneficiaryId('dns', ' example.org'),
+        (error: unknown) =>
+          error instanceof ContentFundingCanonicalizationError &&
+          error.code === 'invalid_channel_id',
+      );
+    });
+
     it('builds and parses canonical channel IDs', () => {
       assert.strictEqual(buildCanonicalChannelId('twitter', '12345678'), 'twitter:uid:12345678');
       assert.strictEqual(

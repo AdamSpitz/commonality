@@ -6,6 +6,7 @@ import { createIPFSConfigInNodeJSFromTheUsualEnvVars } from '@commonality/sdk/no
 import { createSDKMachinery } from '@commonality/sdk/machinery';
 import { createDefaultDocumentStore, createDisplayableDocument } from '@commonality/sdk/displayable-documents';
 import { depositETH as sdkDepositETH, delegateNote as sdkDelegateNote, revokeNote as sdkRevokeNote, reclaimFunds as sdkReclaimFunds, purchaseFromPrimaryMarketWithNotes } from '@commonality/sdk/delegation';
+import { hashBeneficiaryId } from '@commonality/sdk/content-funding';
 import { createProject as sdkCreateProject, buyProjectTokens, withdrawProjectFunds as sdkWithdrawProjectFunds } from '@commonality/sdk/lazy-giving';
 import type { User, Statement, SimulationContracts } from './types.js';
 import { parsePaymentTokenUnits } from './paymentTokenUnits.js';
@@ -67,6 +68,8 @@ interface SeedProjectMetadataTemplate {
   alignmentRef: SeedProjectAlignmentRef;
   /** Specific-to-broad place paths for geographic board matching. */
   relevantAreas?: string[][];
+  /** Unclaimed website identity; creator cannot withdraw. */
+  beneficiary?: { namespace: 'dns'; canonicalIdentifier: string };
 }
 
 /** Riverside garden: nested place for Ontario-scoped cause-board inclusion (not implication). */
@@ -138,7 +141,20 @@ const PROJECT_SEED_METADATA: SeedProjectMetadataTemplate[] = [
       statementId: 'mental-health-treatment-and-research',
     },
   },
+  {
+    name: 'Friends of Example.org',
+    description: 'A third-party project pooling funds for whoever later proves control of example.org. Not affiliated with the site; successful funds sit in protocol escrow until that controller claims them. This is not a tax-deductible gift and does not certify charity status.',
+    kind: 'claimable-website',
+    alignmentRef: {
+      collectionId: 'fundable-projects',
+      groupId: 'local-community',
+      statementId: 'local-food-systems',
+    },
+    beneficiary: { namespace: 'dns', canonicalIdentifier: 'example.org' },
+  },
 ];
+
+export const SEED_PROJECT_TEMPLATE_COUNT = PROJECT_SEED_METADATA.length;
 
 export function getSeedProjectAlignmentRef(projectIndex: number): SeedProjectAlignmentRef {
   return PROJECT_SEED_METADATA[projectIndex % PROJECT_SEED_METADATA.length].alignmentRef;
@@ -153,6 +169,7 @@ export function getSeedProjectMetadata(projectIndex: number) {
     seedProjectKind: template.kind,
     alignedStatementRefs: [template.alignmentRef],
     ...(template.relevantAreas ? { relevantAreas: template.relevantAreas } : {}),
+    ...(template.beneficiary ? { beneficiary: template.beneficiary } : {}),
   };
 }
 
@@ -283,22 +300,31 @@ class FundingAndDelegationActions {
     }
 
     try {
+      const beneficiary = seedProjectMetadata.beneficiary;
+      const createParams = {
+        metadataURI: `ipfs://${projectMetadataCid}/`,
+        contractURI: `ipfs://${projectMetadataCid}`,
+        owner: user.address,
+        paymentToken,
+        threshold,
+        deadline,
+        projectMetadataCid,
+        tokenIds,
+        tokenCounts: maxSupplies,
+        tokenPrices: prices,
+      } as const;
       const { hash, projectDetails } = await sdkCreateProject(
         clients,
         { address: this.contracts.projectFactory.address!, abi: this.contracts.projectFactory.abi },
-        {
-          metadataURI: `ipfs://${projectMetadataCid}/`,
-          contractURI: `ipfs://${projectMetadataCid}`,
-          owner: user.address,
-          recipient: user.address,
-          paymentToken,
-          threshold,
-          deadline,
-          projectMetadataCid,
-          tokenIds,
-          tokenCounts: maxSupplies,
-          tokenPrices: prices
-        }
+        beneficiary
+          ? {
+              ...createParams,
+              beneficiaryId: hashBeneficiaryId(beneficiary.namespace, beneficiary.canonicalIdentifier),
+            }
+          : {
+              ...createParams,
+              recipient: user.address,
+            },
       );
 
       const receipt = await clients.publicClient.waitForTransactionReceipt({ hash });

@@ -3,8 +3,8 @@ import { envValue, readEnvFile, readTestnetConfig, requireOptIn, rpcCall } from 
 
 const OWNER_SELECTOR = "0x8da5cb5b";
 const OWNER_KEYS = [
-  ["ChannelVerifier", "CHANNEL_VERIFIER_ADDRESS"],
-  ["ChannelRegistry", "CHANNEL_REGISTRY_ADDRESS"],
+  ["BeneficiaryVerifier", "BENEFICIARY_VERIFIER_ADDRESS"],
+  ["BeneficiaryRegistry", "BENEFICIARY_REGISTRY_ADDRESS"],
   ["DelegatableNotes", "DELEGATABLE_NOTES_CONTRACT_ADDRESS"]
 ];
 

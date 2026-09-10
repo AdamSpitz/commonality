@@ -1815,3 +1815,247 @@ Exercise 1 (simple causes, no triples) gold set remains in `fake-data-generation
 
 Do not train implication generation on Christianity × secular-conservatism. Next: curriculum exercise 2. The implication attester prompt now rejects nested-place geographic rollup (Grey County → Ontario is a worked reject, not an accept).
 
+## 2026-09-10 — Claimable-beneficiary identifier and escrow seam
+
+- Added generic SDK helpers to build and hash namespaced beneficiary IDs; existing
+  Twitter, YouTube, and Substack channel IDs now go through that primitive.
+- Made `BeneficiaryEscrow`'s ABI parameter names, errors, events, storage, and docs
+  beneficiary-native. It still resolves the payout address through the registry's
+  transitional `channelOwner` API; renaming/generalizing that registry surface is
+  the next contract-layer step.
+- Regenerated SDK and indexer ABIs. Focused SDK and Hardhat tests plus SDK/indexer
+  typechecks passed.
+
+## 2026-09-10 — Beneficiary-native claim and payout registry surface
+
+- Renamed the shared registry claim/payout API from channel ownership language to
+  `verifyBeneficiary`, `payoutAddress`, and `rotatePayoutAddress`, with matching
+  beneficiary-native errors and events.
+- Changed the verifier's EIP-712 payload to
+  `BeneficiaryClaim(bytes32 beneficiaryId, ...)`; platform-api, seed, test, and
+  browser signer paths now produce that exact payload.
+- Updated content-funding callers to consume the beneficiary payout seam while
+  retaining the channel-specific control/veto API for its later extraction.
+- Regenerated SDK/indexer ABIs. Hardhat (including the full 453-test suite),
+  platform-api (76 tests), SDK (537 tests), and affected typechecks passed.
+
+## 2026-09-10 — HTTPS domain beneficiary claims
+
+Continued the fund-now / claim-later focus with the first non-content identity proof.
+Platform API verification now accepts `platform: "dns"`, canonicalizes apex and `www`
+inputs to `dns:<registrable-domain>`, rejects public-suffix/subdomain/path identities,
+and returns an exact JSON document for
+`/.well-known/commonality-claim.json`. Confirmation verifies that the document binds
+the domain, claimant, chain, registry, nonce, and expiry before signing the existing
+beneficiary proof. Redirects to another registrable domain are rejected. Added `tldts`
+as a direct dependency, service tests, health reporting, and API docs.
+
+Checks: platform API typecheck/test/lint (lint has warning-level size and complexity
+findings) and root `npm run test:fast` pass.
+
+Still needed before focus item 1 is complete: separate content-only control/veto state
+from `BeneficiaryRegistry`; add namespace-specific verifier/waiting-period policy;
+wire generic LazyGiving project creation and beneficiary UI to `dns:` identities; and
+exercise the full claim/fund/withdraw flow.
+
+## 2026-09-10 — LazyGiving beneficiary contract and SDK seam
+
+- Added a beneficiary-targeted ProjectFactory entrypoint. Verified identities resolve
+  to their payout address; unclaimed identities resolve to the shared escrow.
+- Added a LazyGiving beneficiary assurance subtype that deposits successful proceeds
+  into BeneficiaryEscrow under its beneficiary ID, while preserving the ordinary
+  direct-address project path.
+- The SDK `createProject` action now accepts exactly one of `recipient` or
+  `beneficiaryId` and selects the matching factory entrypoint.
+- Added a contract test covering create, fund, successful escrow deposit, later claim,
+  and beneficiary withdrawal. The browser beneficiary picker remains next.
+
+## 2026-09-10 — LazyGiving website beneficiary creation UI
+
+- Added wallet-versus-website payout modes to the LazyGiving project form. Website
+  projects accept only an apex HTTPS identity, normalize `www`, visibly disclose the
+  not-affiliated/claim-later escrow behavior, and call the beneficiary factory path.
+- Published project metadata now records the canonical `dns` beneficiary identity.
+- Moved DNS beneficiary input normalization into the SDK and reused it in the platform
+  verifier, preventing the create and claim paths from accepting different identities.
+- Focused SDK canonicalization and UI creation tests pass. The full UI build and
+  pre-commit suite remain to run with the commit.
+
+## 2026-09-10 — DNS claim waiting period and website claim UI
+
+- `BeneficiaryRegistry` snapshots a per-namespace waiting period on
+  `verifyNamespacedBeneficiary`. DNS is configured to 7 days at deploy; the
+  existing `verifyBeneficiary` path stays immediately withdrawable for content.
+- `BeneficiaryEscrow.withdraw` reverts until `claimWithdrawableAt`.
+- Platform API DNS confirmation submits the namespaced verify call.
+- LazyGiving project pages show the website identity and a claim section that
+  walks through publishing `/.well-known/commonality-claim.json`.
+
+Still needed: extract content veto/control from the shared registry.
+
+## 2026-09-10 — Content veto extracted from BeneficiaryRegistry
+
+- Removed factory authorization, veto window, `vetoContract`, and
+  `canThirdPartyContractSucceed` from `BeneficiaryRegistry`.
+- Each `CreatorAssuranceContractFactory` deploys a `CreatorAssuranceVeto`
+  module that owns content-only veto and third-party success gating.
+  Cancellable conditions now cancel/succeed through that module.
+- Identity control (`takeChannelControl` / `controlTakenAt`) stays on the
+  shared registry so website beneficiaries can still become
+  beneficiary-controlled without inheriting tweet veto machinery.
+- SDK, indexer event cache, creator dashboard veto, and deploy env now
+  target `CreatorAssuranceVeto`.
+
+Checks: Hardhat ContentFunding, ProjectFactory, ProspectiveContentFunding,
+and SecurityRegression tests pass.
+
+Still needed: DNS TXT alternate proof; docs that still say ChannelRegistry.
+
+## 2026-09-10 — DNS TXT alternate claim proof
+
+- Platform API DNS confirmation tries HTTPS
+  `/.well-known/commonality-claim.json` first, then `_commonality.<domain>` TXT
+  with the same JSON body. A live well-known document still wins; a wrong
+  HTTPS document does not fall through to TXT.
+- Proof hash for TXT uses `dns-txt:_commonality.<domain>`.
+- Claim UI copy (LazyGiving website section and content-funding claim modal)
+  mentions the TXT alternate.
+- Operator docs (`workflow/deployment.md`, `workflow/security-recoverability.md`)
+  now name `BeneficiaryRegistry` / `BeneficiaryVerifier` for admin transfer.
+
+Still needed: remaining Channel* copy in older specs; identity-control
+function still named `takeChannelControl`.
+
+## 2026-09-10 — Beneficiary-native identity control
+
+- Renamed `takeChannelControl` / `ChannelControlTaken` to
+  `takeBeneficiaryControl` / `BeneficiaryControlTaken` on the shared registry,
+  SDK, indexer event cache, seed, and claim UI.
+- Matching errors: `BeneficiaryAlreadyControlled`,
+  `OnlyPayoutAddressCanTakeControl`.
+- Swept live-contract names in content-funding / versioning / multi-chain /
+  crypto-native / platform-API specs so they say BeneficiaryRegistry/Escrow
+  instead of ChannelRegistry/Escrow. Historical scale-launch reports left as
+  snapshots.
+
+Still needed: leftover ChannelState / channelState / isCreatorControlled
+language on the registry; content-funding fold still talks about "channels"
+for tweet occupancy (that's fine); Channel* types in platform-api TS.
+
+## 2026-09-10 — Beneficiary-native registry state API
+
+- Renamed `ChannelState` / `channelState` / `isCreatorControlled` on
+  `BeneficiaryRegistry` to `BeneficiaryState` / `beneficiaryState` /
+  `isBeneficiaryControlled`. Enum value `CreatorControlled` is now
+  `BeneficiaryControlled`.
+- SDK fold uses `BeneficiaryState` (`'beneficiary-controlled'`) and
+  `foldBeneficiaryState`. Content UI still shows "Creator-Controlled" for
+  tweet occupancy.
+- ABI copies, Hardhat tests, factory/veto callers, and website claim
+  `functionName` updated.
+
+Still needed: remaining Channel* copy in older content-funding specs;
+content occupancy still keyed as channels (intentional).
+
+## 2026-09-10 — Payout rotation for claimed beneficiaries
+
+- Hardhat tests cover `rotatePayoutAddress` (current payout only; unverified
+  reverts; rotated wallet is who can take control).
+- SDK folds `PayoutAddressRotated` into beneficiary owner, decodes/fetches the
+  event, and exposes `rotatePayoutAddress`. Indexer event cache registers it.
+- Website claim UI lets the current payout wallet set a replacement address.
+- Content-funding specs (escrow interface, veto admin, platform API proof name)
+  now describe Beneficiary* / CreatorAssuranceVeto.
+
+Still needed: remaining historical Channel* snippets in channel-claiming.md
+proof structs; content occupancy still keyed as channels (intentional).
+
+## 2026-09-10 — Create-time website redirect check
+
+- SDK `registrableHttpsDomain` / `assertDnsRedirectStaysOnDomain` refuse a
+  fetch that lands on a different registrable domain; `www` and apex stay one
+  name.
+- Platform API `POST /resolve/website-beneficiary` follows the homepage.
+  Cross-domain hops return `invalid_domain_redirect`; unreachable sites return
+  `reachable: false` and still canonicalize.
+- LazyGiving create-project calls that endpoint before publish. Observed
+  redirects block creation; API/network outages do not.
+- Website claim UI uses `BeneficiaryState` instead of the ChannelState alias.
+
+Still needed: remaining historical Channel* snippets in channel-claiming.md;
+content occupancy still keyed as channels (intentional).
+
+## 2026-09-10 — Website domain as large as the amount
+
+- Shared `WebsiteBeneficiaryMark` renders the exact canonical dns identifier
+  in monospace, no ellipsis, with bidi isolate so lookalikes cannot collapse
+  into a familiar name.
+- Project header matches domain size to the raised amount and states that
+  escrow enforces domain control, not charity/legal-entity identity.
+- Browse cards, cause-board aligned cards, and CauseStarter project cards
+  show the same mark. Funding-portal metadata now folds `beneficiary`.
+- channel-claiming.md proof/verifier names now match BeneficiaryRegistry.
+
+Still needed: on-chain claim state in the header (unclaimed vs
+domain-controlled chip); content occupancy still keyed as channels.
+
+## 2026-09-10 — Website claim-state chip on project header
+
+- Project header reads `beneficiaryState` and chips Unclaimed /
+  Domain-controlled / Beneficiary-controlled next to funding status.
+- Card copy on `WebsiteBeneficiaryMark` can switch once a claim state is
+  known; browse/cause cards still default to not-affiliated until they fold
+  on-chain state.
+
+Still needed: claim-state chips on browse/cause/CauseStarter cards (needs a
+fold, not a per-card RPC); content occupancy still keyed as channels.
+
+## 2026-09-10 — Folded claim state on project cards
+
+- `useBeneficiaryClaimStates` folds `BeneficiaryRegistry` events once from
+  the event cache. Browse and CauseStarter lists use that map; cause-board
+  cards reuse the existing content-funding fold.
+- Cards chip Unclaimed / Domain-controlled / Beneficiary-controlled and
+  switch `WebsiteBeneficiaryMark` copy. Missing fold entries stay unclaimed.
+
+Still needed: remaining Channel* types in platform-api; content occupancy
+still keyed as channels (intentional).
+
+## 2026-09-10 — Beneficiary-controlled LazyGiving creation
+
+- `ProjectFactory.createERC1155AndAssuranceContractForBeneficiary` reverts
+  `OnlyPayoutAddressCanCreateForControlledBeneficiary` when the identity is
+  beneficiary-controlled and `msg.sender` is not the payout wallet. Verified
+  but not-controlled identities stay open to third-party projects.
+- Website claim flow now includes the take-control step (copy: only this
+  payout wallet can create new projects about the site).
+- Create-project form reads `isBeneficiaryControlled` and blocks other
+  wallets before sending the tx.
+
+Still needed: remaining Channel* types in platform-api; content occupancy
+still keyed as channels (intentional).
+
+## 2026-09-10 — Platform API claim proofs use beneficiaryId
+
+- `/verify/challenge` and `/verify/confirm` return `beneficiaryId` instead of
+  `channelId`. `ChannelClaimProof` alias is gone. Content resolve/occupancy
+  still uses `channelId`.
+- `BLOCKED_CHANNEL_IDS` now also rejects `dns:` identities on
+  `/resolve/website-beneficiary`. Create-project surfaces `blocked_identity`.
+- Env name stays `BLOCKED_CHANNEL_IDS` (policy-lists v1).
+
+Still needed: content occupancy still keyed as channels (intentional);
+platform-api `ResolvedChannel` is occupancy, not the claim primitive.
+
+## 2026-09-10 — Seed unclaimed website beneficiary; tax copy
+
+- Tiny/demo seed now creates a seventh LazyGiving project, "Friends of
+  Example.org", via the beneficiary factory path (`dns:example.org`,
+  unclaimed). Metadata carries the dns identity so browse/cards chip
+  Unclaimed without a live claim.
+- Create-project website mode says contributions are not tax-deductible
+  and do not certify charity/legal-entity identity.
+
+Focus item 1 (fund-now / claim-later contracts + website MVP UI) is
+functionally in place. Remaining work is live-stack exercise, occupancy
+Channel* names (intentional), and deferred recovery/KYC/scouting.

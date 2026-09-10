@@ -2,6 +2,14 @@ import { render, screen } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { ProjectHeader } from './ProjectHeader'
 
+vi.mock('wagmi', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('wagmi')>()
+  return {
+    ...actual,
+    usePublicClient: () => undefined,
+  }
+})
+
 function makeProject(overrides: Record<string, any> = {}): any {
   const now = Math.floor(Date.now() / 1000)
   return {
@@ -42,6 +50,19 @@ describe('ProjectHeader', () => {
     render(<ProjectHeader project={project} metadata={metadata} kind="content-project" />)
     expect(screen.getByText('Content project')).toBeInTheDocument()
     expect(screen.queryByText('Project')).not.toBeInTheDocument()
+  })
+
+  it('shows a website beneficiary as the recipient identity', () => {
+    const project = makeProject()
+    const metadata = {
+      name: 'Help the garden',
+      beneficiary: { namespace: 'dns', canonicalIdentifier: 'example.org' },
+    }
+    render(<ProjectHeader project={project} metadata={metadata} />)
+    expect(screen.getByTestId('website-beneficiary-domain')).toHaveTextContent('example.org')
+    expect(screen.getByText(/domain control is the only identity/i)).toBeInTheDocument()
+    expect(screen.getByText('0.5 of 1 ETH raised')).toBeInTheDocument()
+    expect(screen.queryByText(/Recipient:/)).not.toBeInTheDocument()
   })
 
   it('renders project name from metadata', () => {

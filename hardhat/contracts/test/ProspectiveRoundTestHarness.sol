@@ -3,10 +3,10 @@ pragma solidity 0.8.33;
 
 import {ContentRegistry} from "../content-funding/ContentRegistry.sol";
 
-contract ProspectiveChannelRegistryHarness {
-    mapping(bytes32 => address) public channelOwner;
+contract ProspectiveBeneficiaryRegistryHarness {
+    mapping(bytes32 => address) public payoutAddress;
     mapping(bytes32 => bool) public isVerified;
-    function setChannel(bytes32 id, address owner, bool verified) external { channelOwner[id] = owner; isVerified[id] = verified; }
+    function setChannel(bytes32 id, address payout, bool verified) external { payoutAddress[id] = payout; isVerified[id] = verified; }
 }
 
 contract RegistrarAuthorityHarness {

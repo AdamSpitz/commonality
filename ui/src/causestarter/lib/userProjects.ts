@@ -1,7 +1,7 @@
 import { getProject, getUserContributions, getUserCreatedProjects, type Project } from '@commonality/sdk/lazy-giving'
 import type { SDKMachinery } from '@commonality/sdk/machinery'
 import { loadProjectWithCache, projectFoldCacheOptions } from '@ui/shared'
-import { readLazyGivingProjectMetadata } from '@ui/lazy-giving'
+import { dnsBeneficiaryDomain, readLazyGivingProjectMetadata } from '@ui/lazy-giving'
 import type { IpfsCidV1 } from '@commonality/sdk/utils'
 import { mapWithConcurrency, PLANK_QUERY_CONCURRENCY } from './concurrency'
 import { listProjectBookmarks } from './projectBookmarks'
@@ -12,6 +12,7 @@ export interface UserProject {
   project: Project
   title: string
   relations: ProjectRelation[]
+  websiteDomain?: string
 }
 
 function normalizeAddress(value: string): string | null {
@@ -69,12 +70,14 @@ export async function loadUserProjects(
     )
     if (!project) return null
     let name: string | undefined
+    let websiteDomain: string | undefined
     if (project.metadataCid) {
       const metadata = await readLazyGivingProjectMetadata(
         machinery,
         project.metadataCid as IpfsCidV1,
       ).catch(() => null)
       name = metadata?.name
+      websiteDomain = dnsBeneficiaryDomain(metadata?.beneficiary)
     }
     const relations: ProjectRelation[] = []
     if (created.has(id)) relations.push('created')
@@ -84,6 +87,7 @@ export async function loadUserProjects(
       project,
       title: projectTitle(project, name),
       relations,
+      ...(websiteDomain ? { websiteDomain } : {}),
     } satisfies UserProject
   })
 

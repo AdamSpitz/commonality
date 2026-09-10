@@ -7,7 +7,7 @@ import { FUNDED_HARDHAT_DEV_KEYS } from './seedCauseRoster.js';
 import { createSeedClients, createSeedPublicClient } from './seedRpc.js';
 import { generateStatements, publishGeneratedStatement, publishGeneratedStatements } from './generateStatements.js';
 import { loadAttestations, hasAttestations } from './generateAttestations.js';
-import { FundingAndDelegationActions, getSeedProjectAlignmentRef } from './fundingAndDelegationActions.js';
+import { FundingAndDelegationActions, getSeedProjectAlignmentRef, SEED_PROJECT_TEMPLATE_COUNT } from './fundingAndDelegationActions.js';
 import { AttackScenarios } from './attackScenarios.js';
 import { InvariantChecker } from './invariantChecker.js';
 import { loadEnv, CONTRACT_ADDRESSES, RPC_URL } from './loadEnv.js';
@@ -1157,7 +1157,7 @@ async function publishSeedWorkerOutputs(simulation: SimulationRunner): Promise<v
 
 // One per PROJECT_SEED_METADATA template, so every seeded storyline (including the
 // local public-goods one) gets a deterministic alignment attestation.
-const DETERMINISTIC_SEED_PROJECT_ALIGNMENT_COUNT = 6;
+const DETERMINISTIC_SEED_PROJECT_ALIGNMENT_COUNT = SEED_PROJECT_TEMPLATE_COUNT;
 
 async function publishSeedProjectAlignments(simulation: SimulationRunner): Promise<void> {
   if (!simulation.contracts.alignmentAttestations) {
@@ -1406,19 +1406,19 @@ async function main(): Promise<void> {
 
   // Generate content-funding on-chain state (deterministic scenarios).
   const cfAddresses = {
-    channelRegistry: CONTRACT_ADDRESSES.channelRegistry,
-    channelVerifier: CONTRACT_ADDRESSES.channelVerifier,
+    beneficiaryRegistry: CONTRACT_ADDRESSES.beneficiaryRegistry,
+    beneficiaryVerifier: CONTRACT_ADDRESSES.beneficiaryVerifier,
     creatorContractFactory: CONTRACT_ADDRESSES.creatorContractFactory,
     prospectiveContentRoundFactory: CONTRACT_ADDRESSES.prospectiveContentRoundFactory,
     publishedData: CONTRACT_ADDRESSES.publishedData,
     alignmentAttestations: CONTRACT_ADDRESSES.alignmentAttestations,
   };
-  if (cfAddresses.channelRegistry && cfAddresses.channelVerifier && cfAddresses.creatorContractFactory) {
+  if (cfAddresses.beneficiaryRegistry && cfAddresses.beneficiaryVerifier && cfAddresses.creatorContractFactory) {
     try {
       await generateContentFundingScenarios(
         cfAddresses as {
-          channelRegistry: `0x${string}`;
-          channelVerifier: `0x${string}`;
+          beneficiaryRegistry: `0x${string}`;
+          beneficiaryVerifier: `0x${string}`;
           creatorContractFactory: `0x${string}`;
           prospectiveContentRoundFactory?: `0x${string}`;
           publishedData?: `0x${string}`;
@@ -1435,7 +1435,7 @@ async function main(): Promise<void> {
     }
   } else {
     console.warn('Content-funding addresses not configured — skipping content-funding scenarios.');
-    console.warn('  (Set CHANNEL_REGISTRY_ADDRESS, CHANNEL_VERIFIER_ADDRESS, CREATOR_CONTRACT_FACTORY_ADDRESS in .env)');
+    console.warn('  (Set BENEFICIARY_REGISTRY_ADDRESS, BENEFICIARY_VERIFIER_ADDRESS, CREATOR_CONTRACT_FACTORY_ADDRESS in .env)');
   }
 
   if (localFoodPlankCid) {

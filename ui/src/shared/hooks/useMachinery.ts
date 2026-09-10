@@ -90,8 +90,8 @@ export function useMachinery(): SDKMachinery {
       nudgePublications: getRuntimeConfigValue('VITE_NUDGE_PUBLICATIONS_CONTRACT_ADDRESS') as `0x${string}` | undefined,
       publishedData: getRuntimeConfigValue('VITE_PUBLISHED_DATA_CONTRACT_ADDRESS') as `0x${string}` | undefined,
       contentRegistry: getRuntimeConfigValue('VITE_CONTENT_REGISTRY_ADDRESS') as `0x${string}` | undefined,
-      channelRegistry: getRuntimeConfigValue('VITE_CHANNEL_REGISTRY_ADDRESS') as `0x${string}` | undefined,
-      channelEscrow: getRuntimeConfigValue('VITE_CHANNEL_ESCROW_ADDRESS') as `0x${string}` | undefined,
+      beneficiaryRegistry: getRuntimeConfigValue('VITE_BENEFICIARY_REGISTRY_ADDRESS') as `0x${string}` | undefined,
+      beneficiaryEscrow: getRuntimeConfigValue('VITE_BENEFICIARY_ESCROW_ADDRESS') as `0x${string}` | undefined,
       creatorContractFactory: getRuntimeConfigValue('VITE_CREATOR_CONTRACT_FACTORY_ADDRESS') as `0x${string}` | undefined,
       prospectiveContentRoundFactory: getRuntimeConfigValue('VITE_PROSPECTIVE_CONTENT_ROUND_FACTORY_ADDRESS') as `0x${string}` | undefined,
     }

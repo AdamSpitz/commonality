@@ -76,6 +76,19 @@ export function createApp(
     res.json(await service.resolveChannel(platform, handle));
   }));
 
+  app.post('/resolve/website-beneficiary', resolveLimiter, handleRoute(async (req: Request, res: Response) => {
+    const { domain } = req.body as { domain?: string };
+    if (typeof domain !== 'string') {
+      res.status(400).json({
+        error: 'invalid_request',
+        message: 'Missing required field: domain',
+      });
+      return;
+    }
+
+    res.json(await service.resolveWebsiteBeneficiary(domain));
+  }));
+
   app.post('/resolve/content', resolveLimiter, handleRoute(async (req: Request, res: Response) => {
     const { url } = req.body as { url?: string };
     if (typeof url !== 'string') {

@@ -24,6 +24,8 @@ Every aspect of the system is designed so that getting started is trivial and sc
 
   - **[For established orgs](./for-established-orgs.md):** Charities can use Commonality as an operational backend, starting as sole attester and gradually opening up. See also the [donor-project tension](./donor-project-tension.md) for how sole donors can gradually open to co-funders.
 
+  - **[Claiming an org](./claiming-an-org.md):** Third parties can pool money for a named org *before* the org has heard of us, keyed to the org's website (repo design: `specs/product/fund-now-claim-later.md`). The third party cannot take the funds.
+
   - **[For new orgs](./for-new-orgs.md):** Skip the "form an organization" step entirely. Users trust the infrastructure even if they don't know who you are.
 
   - **[Tip jar upgrade path](./tip-jar-upgrade-path.md):** Unconditional donations keep the same simple UX while gaining non-transferable recognition receipts, assurance protection, and an optional path to at-cost reimbursement after success.

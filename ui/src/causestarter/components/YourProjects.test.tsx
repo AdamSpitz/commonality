@@ -1,8 +1,23 @@
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { YourProjects } from './YourProjects'
 import type { UserProject } from '../lib/userProjects'
+
+vi.mock('@commonality/sdk/content-funding', async () => {
+  const actual = await vi.importActual('@commonality/sdk/content-funding')
+  return {
+    ...actual,
+    fetchAndFoldContentFundingState: vi.fn().mockResolvedValue({
+      state: { beneficiaryRegistry: { channels: new Map() } },
+      vetoedEvents: [],
+    }),
+  }
+})
+
+vi.mock('../../shared/hooks/useMachinery', () => ({
+  useMachinery: () => ({}),
+}))
 
 const sample = (n: number): UserProject => ({
   title: `Project ${n}`,
@@ -62,6 +77,7 @@ describe('YourProjects', () => {
           empty=""
           projects={[{
             title: 'Garden beds',
+            websiteDomain: 'example.org',
             relations: ['created', 'contributed'],
             project: {
               id: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
@@ -76,6 +92,8 @@ describe('YourProjects', () => {
       </MemoryRouter>,
     )
     expect(screen.getByText('Garden beds')).toBeInTheDocument()
+    expect(screen.getByTestId('website-beneficiary-domain')).toHaveTextContent('example.org')
+    expect(screen.getByText('Unclaimed')).toBeInTheDocument()
     expect(screen.getByText('Succeeded')).toBeInTheDocument()
     expect(screen.getByText('Owner')).toBeInTheDocument()
     expect(screen.getByText('Contributed')).toBeInTheDocument()

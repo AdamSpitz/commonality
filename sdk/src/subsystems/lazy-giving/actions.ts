@@ -7,7 +7,8 @@ import { type WriteClients } from '../../utils/ethereum.js';
 import {
   PremintingERC1155Abi,
   PremintingERC1155FactoryAbi,
-  AssuranceContractFactoryAbi
+  AssuranceContractFactoryAbi,
+  BeneficiaryAssuranceContractAbi,
 } from '../../abis.js';
 import { IpfsCidV1 } from '../../utils/cid-types.js';
 import { approveERC20Spend, erc20ApproveAbi } from '../../utils/erc20.js';
@@ -35,6 +36,8 @@ export interface ProjectDetails {
 /** Current ProjectFactory create entrypoint (post secondary-market removal). */
 const PROJECT_FACTORY_CREATE_FN =
   'createERC1155AndAssuranceContract' as const;
+const PROJECT_FACTORY_CREATE_FOR_BENEFICIARY_FN =
+  'createERC1155AndAssuranceContractForBeneficiary' as const;
 
 /**
  * Enrich empty/opaque createProject reverts with a redeploy hint when the
@@ -197,7 +200,6 @@ export async function createProject(
     metadataURI: string;
     contractURI: string;
     owner: Address;
-    recipient: Address;
     paymentToken?: Address;
     threshold: bigint;
     deadline: bigint;
@@ -207,11 +209,35 @@ export async function createProject(
     tokenPrices: bigint[];
     /** Optional per-token ERC-1155 metadata URIs. When present, each URI is installed after deployment so uri(id) resolves standard metadata. */
     tokenMetadataURIs?: string[];
-  }
+  } & (
+    | { /** Direct payout recipient. */ recipient: Address; beneficiaryId?: never }
+    | { /** Claimable beneficiary; payout or escrow is resolved on-chain. */ beneficiaryId: `0x${string}`; recipient?: never }
+  )
 ): Promise<{ hash: Hash; projectDetails: ProjectDetails }> {
   if (!params.paymentToken) {
     throw new Error('createProject requires a paymentToken address');
   }
+  if (!!params.recipient === !!params.beneficiaryId) {
+    throw new Error('createProject requires exactly one of recipient or beneficiaryId');
+  }
+
+  const functionName = params.beneficiaryId
+    ? PROJECT_FACTORY_CREATE_FOR_BENEFICIARY_FN
+    : PROJECT_FACTORY_CREATE_FN;
+  const recipientOrBeneficiary = params.beneficiaryId ?? params.recipient!;
+  const createArgs = [
+    params.metadataURI,
+    params.contractURI,
+    params.owner,
+    recipientOrBeneficiary,
+    params.paymentToken,
+    params.threshold,
+    params.deadline,
+    params.projectMetadataCid,
+    params.tokenIds,
+    params.tokenCounts,
+    params.tokenPrices,
+  ] as const;
 
   // Only wrap factory simulate/write with the legacy-ABI redeploy hint.
   // setTokenURI / log-parse failures must not look like a ProjectFactory ABI mismatch.
@@ -221,40 +247,16 @@ export async function createProject(
     await clients.publicClient.simulateContract({
       address: projectFactoryContract.address,
       abi: projectFactoryContract.abi,
-      functionName: PROJECT_FACTORY_CREATE_FN,
-      args: [
-        params.metadataURI,
-        params.contractURI,
-        params.owner,
-        params.recipient,
-        params.paymentToken,
-        params.threshold,
-        params.deadline,
-        params.projectMetadataCid,
-        params.tokenIds,
-        params.tokenCounts,
-        params.tokenPrices,
-      ],
+      functionName,
+      args: createArgs,
       account: clients.walletClient.account!,
     });
 
     hash = await clients.walletClient.writeContract({
       address: projectFactoryContract.address,
       abi: projectFactoryContract.abi,
-      functionName: PROJECT_FACTORY_CREATE_FN,
-      args: [
-        params.metadataURI,
-        params.contractURI,
-        params.owner,
-        params.recipient,
-        params.paymentToken,
-        params.threshold,
-        params.deadline,
-        params.projectMetadataCid,
-        params.tokenIds,
-        params.tokenCounts,
-        params.tokenPrices,
-      ],
+      functionName,
+      args: createArgs,
       chain: clients.walletClient.chain,
       account: clients.walletClient.account!,
     });
@@ -312,6 +314,22 @@ export async function createProject(
       assuranceContractAddress,
     },
   };
+}
+
+/** Deposit a successful unclaimed-beneficiary project's proceeds into shared escrow. */
+export async function withdrawBeneficiaryProjectToEscrow(
+  clients: WriteClients,
+  assuranceContractAddress: Address,
+): Promise<Hash> {
+  const hash = await clients.walletClient.writeContract({
+    address: assuranceContractAddress,
+    abi: BeneficiaryAssuranceContractAbi,
+    functionName: 'withdrawToBeneficiaryEscrow',
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
+  });
+  await clients.publicClient.waitForTransactionReceipt({ hash });
+  return hash;
 }
 
 /**

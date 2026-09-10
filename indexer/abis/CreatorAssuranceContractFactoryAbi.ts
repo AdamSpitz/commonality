@@ -11,12 +11,12 @@ export const CreatorAssuranceContractFactoryAbi = [
       },
       {
         "internalType": "address",
-        "name": "_channelRegistry",
+        "name": "_beneficiaryRegistry",
         "type": "address"
       },
       {
         "internalType": "address",
-        "name": "_channelEscrow",
+        "name": "_beneficiaryEscrow",
         "type": "address"
       },
       {
@@ -54,6 +54,17 @@ export const CreatorAssuranceContractFactoryAbi = [
         "internalType": "bytes32",
         "name": "channelId",
         "type": "bytes32"
+      }
+    ],
+    "name": "BeneficiaryNotVerifiedOrControlled",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "channelId",
+        "type": "bytes32"
       },
       {
         "internalType": "bytes32",
@@ -73,17 +84,6 @@ export const CreatorAssuranceContractFactoryAbi = [
       }
     ],
     "name": "ChannelCreatorControlled",
-    "type": "error"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "channelId",
-        "type": "bytes32"
-      }
-    ],
-    "name": "ChannelNotVerifiedOrControlled",
     "type": "error"
   },
   {
@@ -404,10 +404,23 @@ export const CreatorAssuranceContractFactoryAbi = [
   },
   {
     "inputs": [],
-    "name": "channelEscrow",
+    "name": "beneficiaryEscrow",
     "outputs": [
       {
-        "internalType": "contract ChannelEscrow",
+        "internalType": "contract BeneficiaryEscrow",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "beneficiaryRegistry",
+    "outputs": [
+      {
+        "internalType": "contract BeneficiaryRegistry",
         "name": "",
         "type": "address"
       }
@@ -429,19 +442,6 @@ export const CreatorAssuranceContractFactoryAbi = [
         "internalType": "bytes32",
         "name": "",
         "type": "bytes32"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "channelRegistry",
-    "outputs": [
-      {
-        "internalType": "contract ChannelRegistry",
-        "name": "",
-        "type": "address"
       }
     ],
     "stateMutability": "view",
@@ -479,6 +479,19 @@ export const CreatorAssuranceContractFactoryAbi = [
     "outputs": [
       {
         "internalType": "contract ContentRegistry",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "contentVeto",
+    "outputs": [
+      {
+        "internalType": "contract CreatorAssuranceVeto",
         "name": "",
         "type": "address"
       }

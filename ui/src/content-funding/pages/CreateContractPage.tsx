@@ -560,7 +560,7 @@ export function CreateContractPage({
     )
   }
 
-  const isCreatorControlled = overview.channel.state === 'creator-controlled'
+  const isCreatorControlled = overview.channel.state === 'beneficiary-controlled'
   const canCreate = !isCreatorControlled || overview.channel.owner?.toLowerCase() === address?.toLowerCase()
 
   const displayLabels = getChannelDisplayLabels(canonicalChannelId, channelDisplayMetadata.get(canonicalChannelId))
@@ -581,7 +581,7 @@ export function CreateContractPage({
         <Stack direction="row" spacing={2} alignItems="center">
           <InfoChip
             label={overview.channel.state === 'unclaimed' ? 'Unclaimed' : overview.channel.state === 'verified' ? 'Verified' : 'Creator-Controlled'}
-            color={overview.channel.state === 'creator-controlled' ? 'success' : overview.channel.state === 'verified' ? 'warning' : 'default'}
+            color={overview.channel.state === 'beneficiary-controlled' ? 'success' : overview.channel.state === 'verified' ? 'warning' : 'default'}
             title={CHANNEL_STATE_TOOLTIPS[overview.channel.state] ?? 'Status of this channel.'}
           />
           <Typography variant="body2" color="text.secondary">
@@ -804,7 +804,7 @@ export function CreateContractPage({
                 {verifiedAlert}
               </Alert>
             )}
-            {overview.channel.state === 'creator-controlled' && canCreate && (
+            {overview.channel.state === 'beneficiary-controlled' && canCreate && (
               <Alert severity="success">
                 {creatorControlledAlert}
               </Alert>

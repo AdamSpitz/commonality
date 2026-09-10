@@ -95,7 +95,7 @@ export async function getUserSocialData(
   } = {},
 ): Promise<UserSocialData | null> {
   const data = await fetchAddressSocialData(_machinery.twitterApiConfig, address);
-  const verifiedAssociation = await resolveTwitterAssociationViaChannelRegistry(
+  const verifiedAssociation = await resolveTwitterAssociationViaBeneficiaryRegistry(
     _machinery,
     address,
     options.twitterHandleHint ?? data.twitterHandle,
@@ -157,7 +157,7 @@ async function resolveTwitterChannelAssociation(
   return typeof resolved.channelId === 'string' ? resolved : null;
 }
 
-async function resolveTwitterAssociationViaChannelRegistry(
+async function resolveTwitterAssociationViaBeneficiaryRegistry(
   machinery: SDKMachinery,
   address: string,
   handleHint?: string,

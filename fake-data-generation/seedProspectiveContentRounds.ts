@@ -35,15 +35,15 @@ async function main() {
   const users = JSON.parse(fs.readFileSync(path.join(here, 'data/users.json'), 'utf8')) as User[];
   const factory = CONTRACT_ADDRESSES.prospectiveContentRoundFactory as `0x${string}` | undefined;
   if (!factory) throw new Error('PROSPECTIVE_CONTENT_ROUND_FACTORY_ADDRESS is not set');
-  if (!CONTRACT_ADDRESSES.channelRegistry || !CONTRACT_ADDRESSES.channelVerifier) {
+  if (!CONTRACT_ADDRESSES.beneficiaryRegistry || !CONTRACT_ADDRESSES.beneficiaryVerifier) {
     throw new Error('Channel registry/verifier addresses are not set');
   }
 
   const statementCid = await resolveLocalFoodPlankCid();
   await generateProspectiveContentRoundScenarios(
     {
-      channelRegistry: CONTRACT_ADDRESSES.channelRegistry as `0x${string}`,
-      channelVerifier: CONTRACT_ADDRESSES.channelVerifier as `0x${string}`,
+      beneficiaryRegistry: CONTRACT_ADDRESSES.beneficiaryRegistry as `0x${string}`,
+      beneficiaryVerifier: CONTRACT_ADDRESSES.beneficiaryVerifier as `0x${string}`,
       creatorContractFactory: CONTRACT_ADDRESSES.creatorContractFactory as `0x${string}`,
       prospectiveContentRoundFactory: factory,
       publishedData: CONTRACT_ADDRESSES.publishedData as `0x${string}` | undefined,

@@ -58,6 +58,55 @@ export const AssuranceContractFactoryAbi = [
     "inputs": [
       {
         "internalType": "address",
+        "name": "owner",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "recipient",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "paymentToken",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "erc1155Addr",
+        "type": "address"
+      },
+      {
+        "internalType": "string",
+        "name": "projectMetadataCid",
+        "type": "string"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "beneficiaryId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bool",
+        "name": "recipientIsEscrow",
+        "type": "bool"
+      }
+    ],
+    "name": "createBeneficiaryAssuranceContract",
+    "outputs": [
+      {
+        "internalType": "contract BeneficiaryAssuranceContract",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
         "name": "",
         "type": "address"
       }

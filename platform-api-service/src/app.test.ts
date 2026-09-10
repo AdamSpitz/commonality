@@ -204,6 +204,37 @@ describe('createApp routes', () => {
     }
   });
 
+  it('forwards resolve/website-beneficiary requests to the service', async () => {
+    const seen: string[] = [];
+    const server = await startTestServer({
+      service: createStubService({
+        resolveWebsiteBeneficiary: async (domain) => {
+          seen.push(domain);
+          return {
+            namespace: 'dns',
+            canonicalIdentifier: 'example.org',
+            reachable: true,
+          };
+        },
+      }),
+    });
+
+    try {
+      const response = await postJson(`${server.baseUrl}/resolve/website-beneficiary`, {
+        domain: 'https://www.example.org/',
+      });
+      assert.strictEqual(response.status, 200);
+      assert.deepStrictEqual(await response.json(), {
+        namespace: 'dns',
+        canonicalIdentifier: 'example.org',
+        reachable: true,
+      });
+      assert.deepStrictEqual(seen, ['https://www.example.org/']);
+    } finally {
+      await server.close();
+    }
+  });
+
   it('forwards resolve/content requests to the service', async () => {
     const seenRequests: string[] = [];
     const url = 'https://x.com/alice/status/18347';
@@ -464,7 +495,7 @@ describe('createApp routes', () => {
           return {
             nonce: '0x1111111111111111111111111111111111111111111111111111111111111111' as Hex,
             challengeCode: 'challenge',
-            channelId: 'twitter:uid:12345678',
+            beneficiaryId: 'twitter:uid:12345678',
             handle: request.handle,
             displayName: 'Alice',
             verificationPostTemplate: 'Claiming',
@@ -485,7 +516,7 @@ describe('createApp routes', () => {
       assert.deepStrictEqual(await response.json(), {
         nonce: '0x1111111111111111111111111111111111111111111111111111111111111111',
         challengeCode: 'challenge',
-        channelId: 'twitter:uid:12345678',
+        beneficiaryId: 'twitter:uid:12345678',
         handle: '@alice',
         displayName: 'Alice',
         verificationPostTemplate: 'Claiming',
@@ -512,7 +543,7 @@ describe('createApp routes', () => {
           seenRequests.push(request);
           return {
             proof: {
-              channelId: 'twitter:uid:12345678',
+              beneficiaryId: 'twitter:uid:12345678',
               claimant: '0x1234567890123456789012345678901234567890' as Address,
               nonce: request.nonce as Hex,
               deadline: 1_700_000_000,
@@ -531,7 +562,7 @@ describe('createApp routes', () => {
       assert.strictEqual(response.status, 200);
       assert.deepStrictEqual(await response.json(), {
         proof: {
-          channelId: 'twitter:uid:12345678',
+          beneficiaryId: 'twitter:uid:12345678',
           claimant: '0x1234567890123456789012345678901234567890',
           nonce,
           deadline: 1_700_000_000,
@@ -557,6 +588,13 @@ describe('createApp routes', () => {
       assert.deepStrictEqual(await resolveChannelResponse.json(), {
         error: 'invalid_request',
         message: 'Missing required fields: platform, handle',
+      });
+
+      const resolveWebsiteResponse = await postJson(`${server.baseUrl}/resolve/website-beneficiary`, {});
+      assert.strictEqual(resolveWebsiteResponse.status, 400);
+      assert.deepStrictEqual(await resolveWebsiteResponse.json(), {
+        error: 'invalid_request',
+        message: 'Missing required field: domain',
       });
 
       const resolveContentResponse = await postJson(`${server.baseUrl}/resolve/content`, {});
@@ -731,8 +769,8 @@ async function startTestServer(options: {
     youtubeApiBaseUrl: 'https://www.googleapis.com/youtube/v3',
     verifierPrivateKey: undefined,
     ethereumRpcUrl: undefined,
-    channelRegistryAddress: undefined,
-    channelVerifierAddress: undefined,
+    beneficiaryRegistryAddress: undefined,
+    beneficiaryVerifierAddress: undefined,
     chainId: undefined,
     submitVerificationTx: false,
     challengeTtlSeconds: 1800,
@@ -822,6 +860,7 @@ function postJson(url: string, body: unknown): Promise<Response> {
 
 function createStubService(overrides: Partial<{
   resolveChannel: (platform: string, handle: string) => ReturnType<PlatformApiService['resolveChannel']>;
+  resolveWebsiteBeneficiary: (input: string) => ReturnType<PlatformApiService['resolveWebsiteBeneficiary']>;
   resolveContent: (url: string) => ReturnType<PlatformApiService['resolveContent']>;
   getLocalContentContext: (
     request: Parameters<PlatformApiService['getLocalContentContext']>[0],
@@ -854,6 +893,11 @@ function createStubService(overrides: Partial<{
       channelId: 'twitter:uid:12345678',
       handle: '@alice',
       displayName: 'Alice',
+    })),
+    resolveWebsiteBeneficiary: overrides.resolveWebsiteBeneficiary ?? (async (domain) => ({
+      namespace: 'dns' as const,
+      canonicalIdentifier: domain,
+      reachable: true,
     })),
     resolveContent: overrides.resolveContent ?? (async () => ({
       platform: 'twitter',
@@ -890,7 +934,7 @@ function createStubService(overrides: Partial<{
     createVerificationChallenge: overrides.createVerificationChallenge ?? (async () => ({
       nonce: '0x1111111111111111111111111111111111111111111111111111111111111111' as Hex,
       challengeCode: 'challenge',
-      channelId: 'twitter:uid:12345678',
+      beneficiaryId: 'twitter:uid:12345678',
       handle: '@alice',
       displayName: 'Alice',
       verificationPostTemplate: 'Claiming',
@@ -898,7 +942,7 @@ function createStubService(overrides: Partial<{
     })),
     confirmVerification: overrides.confirmVerification ?? (async () => ({
       proof: {
-        channelId: 'twitter:uid:12345678',
+        beneficiaryId: 'twitter:uid:12345678',
         claimant: '0x1234567890123456789012345678901234567890' as Address,
         nonce: '0x1111111111111111111111111111111111111111111111111111111111111111' as Hex,
         deadline: 1_700_000_000,

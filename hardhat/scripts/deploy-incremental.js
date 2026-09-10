@@ -20,11 +20,12 @@ const ADDRESS_KEYS = {
   RecurringPledges: ['RECURRING_PLEDGES_CONTRACT_ADDRESS', 'RECURRING_PLEDGES_ADDRESS'],
   ValueThresholdConditionFactory: ['ETH_THRESHOLD_CONDITION_FACTORY_ADDRESS'],
   FreeERC20: ['PAYMENT_TOKEN_ADDRESS'],
-  ChannelVerifier: ['CHANNEL_VERIFIER_ADDRESS'],
+  BeneficiaryVerifier: ['BENEFICIARY_VERIFIER_ADDRESS'],
   ContentRegistry: ['CONTENT_REGISTRY_ADDRESS'],
-  ChannelRegistry: ['CHANNEL_REGISTRY_ADDRESS'],
-  ChannelEscrow: ['CHANNEL_ESCROW_ADDRESS'],
+  BeneficiaryRegistry: ['BENEFICIARY_REGISTRY_ADDRESS'],
+  BeneficiaryEscrow: ['BENEFICIARY_ESCROW_ADDRESS'],
   CreatorAssuranceContractFactory: ['CREATOR_CONTRACT_FACTORY_ADDRESS'],
+  CreatorAssuranceVeto: ['CREATOR_ASSURANCE_VETO_ADDRESS'],
   ProspectiveRoundDeploymentHelper: ['PROSPECTIVE_ROUND_DEPLOYMENT_HELPER_ADDRESS'],
   MaterializedContentDeploymentHelper: ['MATERIALIZED_CONTENT_DEPLOYMENT_HELPER_ADDRESS'],
   ProspectiveContentRoundFactory: ['PROSPECTIVE_CONTENT_ROUND_FACTORY_ADDRESS'],
@@ -214,8 +215,8 @@ async function main() {
   await deployOrReuse('FreeERC20', 'FreeERC20', ['Test USD', 'USDZZZ', 6], { after: async (token) => {
     for (const signer of await ethers.getSigners()) await (await token.mintTo(signer.address, ethers.parseUnits('1000000', 6))).wait();
   }});
-  const trusted = isLocal ? deployer.address : (process.env.CHANNEL_VERIFIER_TRUSTED_SIGNER_ADDRESS || deployer.address);
-  await deployOrReuse('ChannelVerifier', 'ChannelVerifier', [trusted]);
+  const trusted = isLocal ? deployer.address : (process.env.BENEFICIARY_VERIFIER_TRUSTED_SIGNER_ADDRESS || deployer.address);
+  await deployOrReuse('BeneficiaryVerifier', 'BeneficiaryVerifier', [trusted]);
   await deployOrReuse('ContentRegistry', 'ContentRegistry', [], {
     // ContentRegistry ownership is handed to CreatorAssuranceContractFactory.
     // If the future factory's implementation inputs change, redeploy the
@@ -228,13 +229,22 @@ async function main() {
       addresses.FreeERC20,
     ],
   });
-  await deployOrReuse('ChannelRegistry', 'ChannelRegistry', [addresses.ChannelVerifier]);
-  await deployOrReuse('ChannelEscrow', 'ChannelEscrow', [addresses.ChannelRegistry, addresses.FreeERC20]);
-  await deployOrReuse('CreatorAssuranceContractFactory', 'CreatorAssuranceContractFactory', [addresses.ContentRegistry, addresses.ChannelRegistry, addresses.ChannelEscrow, addresses.PremintingERC1155Factory, addresses.ValueThresholdConditionFactory, addresses.FreeERC20, ':']);
+  await deployOrReuse('BeneficiaryRegistry', 'BeneficiaryRegistry', [addresses.BeneficiaryVerifier]);
+  await deployOrReuse('BeneficiaryEscrow', 'BeneficiaryEscrow', [addresses.BeneficiaryRegistry, addresses.FreeERC20]);
+  await deployOrReuse('CreatorAssuranceContractFactory', 'CreatorAssuranceContractFactory', [addresses.ContentRegistry, addresses.BeneficiaryRegistry, addresses.BeneficiaryEscrow, addresses.PremintingERC1155Factory, addresses.ValueThresholdConditionFactory, addresses.FreeERC20, ':']);
+  if (addresses.CreatorAssuranceContractFactory) {
+    const factory = await ethers.getContractAt('CreatorAssuranceContractFactory', addresses.CreatorAssuranceContractFactory);
+    addresses.CreatorAssuranceVeto = await factory.contentVeto();
+    manifest.contracts.CreatorAssuranceVeto = {
+      contractName: 'CreatorAssuranceVeto',
+      address: addresses.CreatorAssuranceVeto,
+      reused: !freshlyDeployed.has('CreatorAssuranceContractFactory'),
+    };
+  }
   await deployOrReuse('ProspectiveRoundDeploymentHelper', 'ProspectiveRoundDeploymentHelper');
   await deployOrReuse('MaterializedContentDeploymentHelper', 'MaterializedContentDeploymentHelper');
   await deployOrReuse('ProspectiveContentRoundFactory', 'ProspectiveContentRoundFactory', [
-    addresses.ChannelRegistry,
+    addresses.BeneficiaryRegistry,
     addresses.ContentRegistry,
     addresses.ValueThresholdConditionFactory,
     addresses.FreeERC20,
@@ -246,9 +256,13 @@ async function main() {
     const c = await ethers.getContractAt('ContentRegistry', addresses.ContentRegistry);
     if (ethers.getAddress(await c.owner()) !== addresses.CreatorAssuranceContractFactory) await (await c.transferOwnership(addresses.CreatorAssuranceContractFactory)).wait();
   }
-  if (freshlyDeployed.has('ChannelRegistry') || freshlyDeployed.has('CreatorAssuranceContractFactory')) {
-    const c = await ownerCapable(await ethers.getContractAt('ChannelRegistry', addresses.ChannelRegistry));
-    if (!(await c.authorizedFactories(addresses.CreatorAssuranceContractFactory))) await (await c.setFactoryAuthorization(addresses.CreatorAssuranceContractFactory, true)).wait();
+  if (freshlyDeployed.has('BeneficiaryRegistry')) {
+    const c = await ownerCapable(await ethers.getContractAt('BeneficiaryRegistry', addresses.BeneficiaryRegistry));
+    const dnsNamespace = ethers.keccak256(ethers.toUtf8Bytes('dns'));
+    const dnsWaitingPeriod = 7n * 24n * 60n * 60n;
+    if ((await c.namespaceClaimWaitingPeriod(dnsNamespace)) !== dnsWaitingPeriod) {
+      await (await c.setNamespaceClaimWaitingPeriod(dnsNamespace, dnsWaitingPeriod)).wait();
+    }
   }
   if (freshlyDeployed.has('DelegatableNotes') || freshlyDeployed.has('CreatorAssuranceContractFactory')) {
     const d = await ownerCapable(await ethers.getContractAt('DelegatableNotes', addresses.DelegatableNotes));
@@ -262,7 +276,7 @@ async function main() {
   }
   await deployOrReuse('NudgePublications', 'NudgePublications');
   await deployOrReuse('PublishedData', 'PublishedData');
-  await deployOrReuse('ProjectFactory', 'ProjectFactory', [addresses.PremintingERC1155Factory, addresses.AssuranceContractFactory, addresses.ValueThresholdConditionFactory]);
+  await deployOrReuse('ProjectFactory', 'ProjectFactory', [addresses.PremintingERC1155Factory, addresses.AssuranceContractFactory, addresses.ValueThresholdConditionFactory, addresses.BeneficiaryRegistry, addresses.BeneficiaryEscrow]);
 
   if (isLocal) {
     await deployOrReuse('SponsoredGasEntryPoint', 'MockEntryPoint');
@@ -342,7 +356,7 @@ async function main() {
 
   let needsAdminAcceptance = false;
   if (!isLocal && !planOnly) {
-    for (const name of ['ChannelVerifier', 'ChannelRegistry']) {
+    for (const name of ['BeneficiaryVerifier', 'BeneficiaryRegistry']) {
       const c = await ethers.getContractAt(name, addresses[name]);
       if (ethers.getAddress(await c.owner()) !== contractAdminAddress) {
         const pending = ethers.getAddress(await c.pendingOwner());
@@ -392,12 +406,13 @@ async function main() {
     PROJECT_FACTORY_ADDRESS: addresses.ProjectFactory,
     DEPLOYER_ADDRESS: deployer.address,
     CONTRACT_ADMIN_ADDRESS: contractAdminAddress,
-    CHANNEL_VERIFIER_ADDRESS: addresses.ChannelVerifier,
-    CHANNEL_VERIFIER_TRUSTED_SIGNER_ADDRESS: trusted,
+    BENEFICIARY_VERIFIER_ADDRESS: addresses.BeneficiaryVerifier,
+    BENEFICIARY_VERIFIER_TRUSTED_SIGNER_ADDRESS: trusted,
     CONTENT_REGISTRY_ADDRESS: addresses.ContentRegistry,
-    CHANNEL_REGISTRY_ADDRESS: addresses.ChannelRegistry,
-    CHANNEL_ESCROW_ADDRESS: addresses.ChannelEscrow,
+    BENEFICIARY_REGISTRY_ADDRESS: addresses.BeneficiaryRegistry,
+    BENEFICIARY_ESCROW_ADDRESS: addresses.BeneficiaryEscrow,
     CREATOR_CONTRACT_FACTORY_ADDRESS: addresses.CreatorAssuranceContractFactory,
+    ...(addresses.CreatorAssuranceVeto ? { CREATOR_ASSURANCE_VETO_ADDRESS: addresses.CreatorAssuranceVeto } : {}),
     PROSPECTIVE_ROUND_DEPLOYMENT_HELPER_ADDRESS: addresses.ProspectiveRoundDeploymentHelper,
     MATERIALIZED_CONTENT_DEPLOYMENT_HELPER_ADDRESS: addresses.MaterializedContentDeploymentHelper,
     PROSPECTIVE_CONTENT_ROUND_FACTORY_ADDRESS: addresses.ProspectiveContentRoundFactory,
@@ -436,8 +451,8 @@ async function main() {
     VITE_ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS: addresses.AlignmentAttestations, VITE_TRUST_REGISTRY_CONTRACT_ADDRESS: addresses.TrustRegistry, VITE_NUDGE_PUBLICATIONS_CONTRACT_ADDRESS: addresses.NudgePublications,
     VITE_PUBLISHED_DATA_CONTRACT_ADDRESS: addresses.PublishedData,
     VITE_ACCOUNT_ASSERTIONS_CONTRACT_ADDRESS: addresses.AccountAssertions,
-    VITE_CONTENT_REGISTRY_ADDRESS: addresses.ContentRegistry, VITE_CHANNEL_REGISTRY_ADDRESS: addresses.ChannelRegistry, VITE_CHANNEL_VERIFIER_ADDRESS: addresses.ChannelVerifier,
-    VITE_CHANNEL_ESCROW_ADDRESS: addresses.ChannelEscrow, VITE_CREATOR_CONTRACT_FACTORY_ADDRESS: addresses.CreatorAssuranceContractFactory, VITE_PROJECT_FACTORY_CONTRACT_ADDRESS: addresses.ProjectFactory,
+    VITE_CONTENT_REGISTRY_ADDRESS: addresses.ContentRegistry, VITE_BENEFICIARY_REGISTRY_ADDRESS: addresses.BeneficiaryRegistry, VITE_BENEFICIARY_VERIFIER_ADDRESS: addresses.BeneficiaryVerifier,
+    VITE_BENEFICIARY_ESCROW_ADDRESS: addresses.BeneficiaryEscrow, VITE_CREATOR_CONTRACT_FACTORY_ADDRESS: addresses.CreatorAssuranceContractFactory, ...(addresses.CreatorAssuranceVeto ? { VITE_CREATOR_ASSURANCE_VETO_ADDRESS: addresses.CreatorAssuranceVeto } : {}), VITE_PROJECT_FACTORY_CONTRACT_ADDRESS: addresses.ProjectFactory,
     VITE_PROSPECTIVE_CONTENT_ROUND_FACTORY_ADDRESS: addresses.ProspectiveContentRoundFactory,
     VITE_CREATOR_GAS_TANK_ADDRESS: addresses.CreatorGasTank, VITE_SPONSORED_GAS_ENTRY_POINT_ADDRESS: addresses.SponsoredGasEntryPoint,
     ...(addresses.GasTankFunder ? { VITE_GAS_TANK_FUNDER_ADDRESS: addresses.GasTankFunder } : {}),

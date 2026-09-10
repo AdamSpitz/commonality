@@ -62,7 +62,7 @@ import { useContentFundingState } from '../hooks/useContentFundingState'
 import { usePlatformApi } from '../hooks/usePlatformApi'
 
 function makeState(overrides?: {
-  channelState?: 'unclaimed' | 'verified' | 'creator-controlled'
+  channelState?: 'unclaimed' | 'verified' | 'beneficiary-controlled'
   owner?: string | null
   registeredCanonicalIds?: string[]
   scopedOnlyRegisteredCanonicalIds?: string[]
@@ -93,7 +93,7 @@ function makeState(overrides?: {
 
   return {
     contentRegistry: { items },
-    channelRegistry: {
+    beneficiaryRegistry: {
       channels: new Map([
         [channelHash, {
           channelId: channelHash,
@@ -103,7 +103,7 @@ function makeState(overrides?: {
         }],
       ]),
     },
-    channelEscrow: { balances: new Map() },
+    beneficiaryEscrow: { balances: new Map() },
     creatorContracts: { contracts: new Map() },
   }
 }
@@ -167,6 +167,7 @@ describe('CreateContractPage', () => {
     })
     vi.mocked(usePlatformApi).mockReturnValue({
       resolveChannel: vi.fn(),
+      resolveWebsiteBeneficiary: vi.fn(),
       resolveContent,
       submitContentSubmission: vi.fn(),
       isLoading: false,

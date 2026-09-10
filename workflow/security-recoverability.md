@@ -64,15 +64,15 @@ What a compromised key could actually do onchain:
 - **Permissionless (no owner powers at all):** Beliefs, Implications,
   alignment-attestations, nudger, subjectiv, marketplace contracts.
 - **No direct drain anywhere.** `AssuranceContract.withdraw()` pays only the
-  designated recipient; `ChannelEscrow.withdraw()` pays only the verified
-  channel owner (`ChannelEscrow.sol:102`). No `selfdestruct`, no
+  designated recipient; `BeneficiaryEscrow.withdraw()` pays only the verified
+  payout address. No `selfdestruct`, no
   upgradeability, no pause.
-- **One indirect drain path:** the deployer owns `ChannelVerifier`, and
-  `setTrustedVerifier()` (`ChannelVerifier.sol:55`) is `onlyOwner`. A
-  compromised owner installs an attacker verifier → forges channel-ownership
+- **One indirect drain path:** the deployer owns `BeneficiaryVerifier`, and
+  `setTrustedVerifier()` (`BeneficiaryVerifier.sol:55`) is `onlyOwner`. A
+  compromised owner installs an attacker verifier → forges beneficiary-ownership
   verifications → withdraws *other users'* escrowed funds from
-  `ChannelEscrow`. Related owner powers in the same trust-root family:
-  `ChannelRegistry.setVerifier()/setFactoryAuthorization()/setVetoWindowDuration()`,
+  `BeneficiaryEscrow`. Related owner powers in the same trust-root family:
+  `BeneficiaryRegistry.setVerifier()`,
   `DelegatableNotes.setPrimaryMarketFactoryAuthorization()/setSecondaryMarketFactoryAuthorization()/setRecurringPledgeRegistry()`,
   `ProspectiveContentTokens.setPrimaryMarket()`. (`ContentRegistry`'s
   ownership is already transferred to the factory at deploy time,
@@ -99,9 +99,9 @@ above). Two cheap levers are being **eliminated outright**: the set-once
 `setVetoWindowDuration`. That leaves the genuinely-governed surface:
 
 - The **factory-authorization set** (`setFactoryAuthorization` on
-  `ChannelRegistry`/`DelegatableNotes`) — keep only if we want in-place
+  `DelegatableNotes`) — keep only if we want in-place
   upgradeability vs. redeploy-for-v2.
-- **`setVerifier`/`setTrustedVerifier`** on `ChannelRegistry`/`ChannelVerifier`.
+- **`setVerifier`/`setTrustedVerifier`** on `BeneficiaryRegistry`/`BeneficiaryVerifier`.
   This lever is irreducible by refactor (it exists for mandatory key
   rotation), but its long-term *exit* is the trustless-verification
   trajectory documented in
@@ -142,7 +142,7 @@ Rationale and consequences:
   (`ChannelVerifier.sol:56`), so the verifier cannot even be nulled out in a
   hurry. See the to-do items below.
 - **Why M-of-N verifier signers can wait.** On-chain proof-hash anchoring
-  (`ChannelRegistry.verifyChannel` emits `ChannelProofAnchored`) already
+  (`BeneficiaryRegistry.verifyBeneficiary` emits `BeneficiaryProofAnchored`) already
   converts "trust us" into "publicly auditable," which is most of the benefit;
   and the real exit for this trust concentration is the ENS/zkTLS trajectory,
   not more signers on a lever that is meant to shrink. Adding it now would
@@ -180,8 +180,8 @@ hands (hardware, dashboards, account access) and should just be surfaced in
 - [x] (Ask) Add a post-deploy step to `hardhat/scripts/deploy.js` that
       transfers ownership of deployed admin-controlled contracts to a configurable
       `CONTRACT_ADMIN_ADDRESS`, distinct from the deployer. The script now
-      initiates `Ownable2Step` transfer for `ChannelVerifier` and
-      `ChannelRegistry`, and directly transfers `DelegatableNotes` ownership.
+      initiates `Ownable2Step` transfer for `BeneficiaryVerifier` and
+      `BeneficiaryRegistry`, and directly transfers `DelegatableNotes` ownership.
       `ProspectiveContentTokens` are per-project tokens, not deployed by this
       script; the current test payment token is `FreeERC20` and has no owner.
 - [x] (Tell) Add `hardhat/scripts/accept-admin-ownership.js` so Adam can run the
@@ -192,7 +192,7 @@ hands (hardware, dashboards, account access) and should just be surfaced in
       ```
       Keys are read automatically from the operator secrets file. The helper
       verifies that `CONTRACT_ADMIN_PRIVATE_KEY` derives `CONTRACT_ADMIN_ADDRESS`,
-      calls `ChannelVerifier.acceptOwnership()` and `ChannelRegistry.acceptOwnership()`,
+      calls `BeneficiaryVerifier.acceptOwnership()` and `BeneficiaryRegistry.acceptOwnership()`,
       and verifies `DelegatableNotes.owner()` already equals the admin address.
       The admin account needs a little network ETH for gas.
 - [ ] **(Adam)** Add the new admin address to `deployments/operator-addresses.env`
@@ -203,10 +203,10 @@ hands (hardware, dashboards, account access) and should just be surfaced in
       decision above. Implemented as `contracts/utils/Guardable.sol`: an
       optional guardian role, appointed by the owner (so appointment is itself
       timelocked), that can call the new `ChannelVerifier.revokeTrustedVerifier`
-      and `ChannelRegistry.revokeVerifier` immediately. Installing a verifier
+      and `BeneficiaryRegistry.revokeVerifier` immediately. Installing a verifier
       stays `onlyOwner` and therefore delayed. Revocation fails closed —
-      `verifyClaimProof` returns false, `verifyChannel` reverts
-      `NoVerifierConfigured` — while already-verified channels keep every
+      `verifyClaimProof` returns false, `verifyBeneficiary` reverts
+      `NoVerifierConfigured` — while already-verified beneficiaries keep every
       downstream power (control, veto, escrow withdrawal), which is covered by
       test. A compromised guardian can therefore only cause a denial of service
       lasting one timelock delay; it can never redirect trust.
@@ -240,7 +240,7 @@ hands (hardware, dashboards, account access) and should just be surfaced in
 
 - [x] (Ask) Add gating verifier checks for: (a) drift in the trusted-attester
       /nudger lists in `deployments/<network>.env` vs. a recorded baseline;
-      (b) onchain owner of `ChannelVerifier`/`ChannelRegistry`/
+      (b) onchain owner of `BeneficiaryVerifier`/`BeneficiaryRegistry`/
       `DelegatableNotes` still equals the expected admin address;
       (c) new entries in `package-lock.json` dependencies since last review.
       Implemented as `security.trust-roots`, `security.onchain-owners`, and

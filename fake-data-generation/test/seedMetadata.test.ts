@@ -7,7 +7,7 @@ import {
   CSM_MISSION_STATEMENT_TEXT,
 } from '../../sdk/src/subsystems/conceptspace/constants.js';
 import { publishedDataCidForDocument } from '../../sdk/src/subsystems/displayable-documents/displayable-document.js';
-import { getSeedProjectAlignmentRef, getSeedProjectMetadata } from '../fundingAndDelegationActions.js';
+import { getSeedProjectAlignmentRef, getSeedProjectMetadata, SEED_PROJECT_TEMPLATE_COUNT } from '../fundingAndDelegationActions.js';
 import {
   buildContractMetadata,
   buildProspectiveRoundMetadata,
@@ -101,10 +101,20 @@ test('the first seed LazyGiving project is a local public-goods storyline', asyn
   assert.ok(aligned, `seed content has no statement for ${JSON.stringify(alignmentRef)}`);
 });
 
+test('the last seed LazyGiving project is an unclaimed website beneficiary', () => {
+  const index = SEED_PROJECT_TEMPLATE_COUNT - 1;
+  const metadata = getSeedProjectMetadata(index);
+  assert.equal(metadata.name, 'Friends of Example.org');
+  assert.equal(metadata.seedProjectKind, 'claimable-website');
+  assert.deepEqual(metadata.beneficiary, { namespace: 'dns', canonicalIdentifier: 'example.org' });
+  assert.match(metadata.description, /not affiliated/i);
+  assert.match(metadata.description, /not a tax-deductible gift/i);
+});
+
 test('every seed project alignment ref resolves to a seed statement', async () => {
   const records = flattenSeedStatements(await loadSeedCollections());
 
-  for (let index = 0; index < 6; index++) {
+  for (let index = 0; index < SEED_PROJECT_TEMPLATE_COUNT; index++) {
     const ref = getSeedProjectAlignmentRef(index);
     const match = records.find((record) =>
       record.collection.id === ref.collectionId &&

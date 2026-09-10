@@ -1,7 +1,7 @@
 // Auto-generated from hardhat/contracts - DO NOT EDIT MANUALLY
 // Run `npm run sync-abis` to regenerate
 
-export const ChannelRegistryAbi = [
+export const BeneficiaryRegistryAbi = [
   {
     "inputs": [
       {
@@ -17,71 +17,38 @@ export const ChannelRegistryAbi = [
     "inputs": [
       {
         "internalType": "bytes32",
-        "name": "channelId",
+        "name": "beneficiaryId",
         "type": "bytes32"
       }
     ],
-    "name": "ChannelAlreadyCreatorControlled",
+    "name": "BeneficiaryAlreadyControlled",
     "type": "error"
   },
   {
     "inputs": [
       {
         "internalType": "bytes32",
-        "name": "channelId",
+        "name": "beneficiaryId",
         "type": "bytes32"
       }
     ],
-    "name": "ChannelAlreadyVerified",
+    "name": "BeneficiaryAlreadyVerified",
     "type": "error"
   },
   {
     "inputs": [
       {
         "internalType": "bytes32",
-        "name": "channelId",
+        "name": "beneficiaryId",
         "type": "bytes32"
       }
     ],
-    "name": "ChannelNotCreatorControlled",
+    "name": "BeneficiaryNotVerified",
     "type": "error"
   },
   {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "channelId",
-        "type": "bytes32"
-      }
-    ],
-    "name": "ChannelNotVerified",
-    "type": "error"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "contractAddress",
-        "type": "address"
-      }
-    ],
-    "name": "ContractNotCreatedByFactory",
-    "type": "error"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "channelId",
-        "type": "bytes32"
-      },
-      {
-        "internalType": "address",
-        "name": "contractAddress",
-        "type": "address"
-      }
-    ],
-    "name": "ContractNotThirdParty",
+    "inputs": [],
+    "name": "InvalidBeneficiaryIdentity",
     "type": "error"
   },
   {
@@ -91,7 +58,7 @@ export const ChannelRegistryAbi = [
   },
   {
     "inputs": [],
-    "name": "InvalidFactoryAddress",
+    "name": "InvalidNewPayoutAddress",
     "type": "error"
   },
   {
@@ -116,27 +83,22 @@ export const ChannelRegistryAbi = [
   },
   {
     "inputs": [],
-    "name": "InvalidVetoWindowDuration",
-    "type": "error"
-  },
-  {
-    "inputs": [],
     "name": "NoVerifierConfigured",
     "type": "error"
   },
   {
     "inputs": [],
-    "name": "OnlyChannelOwnerCanTakeControl",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "OnlyChannelOwnerCanVeto",
-    "type": "error"
-  },
-  {
-    "inputs": [],
     "name": "OnlyOwnerOrGuardian",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "OnlyPayoutAddressCanRotate",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "OnlyPayoutAddressCanTakeControl",
     "type": "error"
   },
   {
@@ -172,22 +134,12 @@ export const ChannelRegistryAbi = [
     "type": "error"
   },
   {
-    "inputs": [],
-    "name": "VetoWindowDurationCannotDecrease",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "VetoWindowExpired",
-    "type": "error"
-  },
-  {
     "anonymous": false,
     "inputs": [
       {
         "indexed": true,
         "internalType": "bytes32",
-        "name": "channelId",
+        "name": "beneficiaryId",
         "type": "bytes32"
       },
       {
@@ -197,7 +149,7 @@ export const ChannelRegistryAbi = [
         "type": "address"
       }
     ],
-    "name": "ChannelControlTaken",
+    "name": "BeneficiaryControlTaken",
     "type": "event"
   },
   {
@@ -206,13 +158,13 @@ export const ChannelRegistryAbi = [
       {
         "indexed": true,
         "internalType": "bytes32",
-        "name": "channelId",
+        "name": "beneficiaryId",
         "type": "bytes32"
       },
       {
         "indexed": true,
         "internalType": "address",
-        "name": "owner",
+        "name": "payoutAddress",
         "type": "address"
       },
       {
@@ -222,7 +174,7 @@ export const ChannelRegistryAbi = [
         "type": "bytes32"
       }
     ],
-    "name": "ChannelProofAnchored",
+    "name": "BeneficiaryProofAnchored",
     "type": "event"
   },
   {
@@ -231,55 +183,17 @@ export const ChannelRegistryAbi = [
       {
         "indexed": true,
         "internalType": "bytes32",
-        "name": "channelId",
+        "name": "beneficiaryId",
         "type": "bytes32"
       },
       {
         "indexed": true,
         "internalType": "address",
-        "name": "owner",
+        "name": "payoutAddress",
         "type": "address"
       }
     ],
-    "name": "ChannelVerified",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "bytes32",
-        "name": "channelId",
-        "type": "bytes32"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "contractAddress",
-        "type": "address"
-      }
-    ],
-    "name": "ContractVetoed",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "factory",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "bool",
-        "name": "authorized",
-        "type": "bool"
-      }
-    ],
-    "name": "FactoryAuthorizationSet",
+    "name": "BeneficiaryVerified",
     "type": "event"
   },
   {
@@ -299,6 +213,25 @@ export const ChannelRegistryAbi = [
       }
     ],
     "name": "GuardianUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "namespaceHash",
+        "type": "bytes32"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "period",
+        "type": "uint256"
+      }
+    ],
+    "name": "NamespaceClaimWaitingPeriodUpdated",
     "type": "event"
   },
   {
@@ -344,6 +277,31 @@ export const ChannelRegistryAbi = [
     "inputs": [
       {
         "indexed": true,
+        "internalType": "bytes32",
+        "name": "beneficiaryId",
+        "type": "bytes32"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "oldPayoutAddress",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "newPayoutAddress",
+        "type": "address"
+      }
+    ],
+    "name": "PayoutAddressRotated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
         "internalType": "address",
         "name": "revokedVerifier",
         "type": "address"
@@ -378,51 +336,6 @@ export const ChannelRegistryAbi = [
     "type": "event"
   },
   {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "oldDuration",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "newDuration",
-        "type": "uint256"
-      }
-    ],
-    "name": "VetoWindowDurationUpdated",
-    "type": "event"
-  },
-  {
-    "inputs": [],
-    "name": "MAX_VETO_WINDOW_DURATION",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "MIN_VETO_WINDOW_DURATION",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
     "inputs": [],
     "name": "acceptOwnership",
     "outputs": [],
@@ -432,69 +345,12 @@ export const ChannelRegistryAbi = [
   {
     "inputs": [
       {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "name": "authorizedFactories",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
         "internalType": "bytes32",
-        "name": "channelId",
+        "name": "beneficiaryId",
         "type": "bytes32"
       }
     ],
-    "name": "canThirdPartyContractSucceed",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "channelId",
-        "type": "bytes32"
-      }
-    ],
-    "name": "channelOwner",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "channelId",
-        "type": "bytes32"
-      }
-    ],
-    "name": "channelState",
+    "name": "beneficiaryState",
     "outputs": [
       {
         "internalType": "uint8",
@@ -508,25 +364,31 @@ export const ChannelRegistryAbi = [
   {
     "inputs": [
       {
+        "internalType": "bytes32",
+        "name": "beneficiaryId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "claimWithdrawableAt",
+    "outputs": [
+      {
         "internalType": "uint256",
         "name": "",
         "type": "uint256"
-      }
-    ],
-    "name": "factories",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
       }
     ],
     "stateMutability": "view",
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "factoryCount",
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "beneficiaryId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "controlTakenAt",
     "outputs": [
       {
         "internalType": "uint256",
@@ -553,31 +415,12 @@ export const ChannelRegistryAbi = [
   {
     "inputs": [
       {
-        "internalType": "address",
-        "name": "_factory",
-        "type": "address"
-      }
-    ],
-    "name": "isAuthorizedFactory",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
         "internalType": "bytes32",
-        "name": "channelId",
+        "name": "beneficiaryId",
         "type": "bytes32"
       }
     ],
-    "name": "isCreatorControlled",
+    "name": "isBeneficiaryControlled",
     "outputs": [
       {
         "internalType": "bool",
@@ -592,7 +435,7 @@ export const ChannelRegistryAbi = [
     "inputs": [
       {
         "internalType": "bytes32",
-        "name": "channelId",
+        "name": "beneficiaryId",
         "type": "bytes32"
       }
     ],
@@ -608,8 +451,46 @@ export const ChannelRegistryAbi = [
     "type": "function"
   },
   {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "namespaceHash",
+        "type": "bytes32"
+      }
+    ],
+    "name": "namespaceClaimWaitingPeriod",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "period",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [],
     "name": "owner",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "beneficiaryId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "payoutAddress",
     "outputs": [
       {
         "internalType": "address",
@@ -650,17 +531,17 @@ export const ChannelRegistryAbi = [
   {
     "inputs": [
       {
-        "internalType": "address",
-        "name": "_factory",
-        "type": "address"
+        "internalType": "bytes32",
+        "name": "beneficiaryId",
+        "type": "bytes32"
       },
       {
-        "internalType": "bool",
-        "name": "authorized",
-        "type": "bool"
+        "internalType": "address",
+        "name": "newPayoutAddress",
+        "type": "address"
       }
     ],
-    "name": "setFactoryAuthorization",
+    "name": "rotatePayoutAddress",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -681,6 +562,24 @@ export const ChannelRegistryAbi = [
   {
     "inputs": [
       {
+        "internalType": "bytes32",
+        "name": "namespaceHash",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "uint256",
+        "name": "period",
+        "type": "uint256"
+      }
+    ],
+    "name": "setNamespaceClaimWaitingPeriod",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "address",
         "name": "_verifier",
         "type": "address"
@@ -694,25 +593,12 @@ export const ChannelRegistryAbi = [
   {
     "inputs": [
       {
-        "internalType": "uint256",
-        "name": "_duration",
-        "type": "uint256"
-      }
-    ],
-    "name": "setVetoWindowDuration",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
         "internalType": "bytes32",
-        "name": "channelId",
+        "name": "beneficiaryId",
         "type": "bytes32"
       }
     ],
-    "name": "takeChannelControl",
+    "name": "takeBeneficiaryControl",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -747,7 +633,7 @@ export const ChannelRegistryAbi = [
     "inputs": [
       {
         "internalType": "bytes32",
-        "name": "channelId",
+        "name": "beneficiaryId",
         "type": "bytes32"
       },
       {
@@ -776,7 +662,7 @@ export const ChannelRegistryAbi = [
         "type": "bytes"
       }
     ],
-    "name": "verifyChannel",
+    "name": "verifyBeneficiary",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -784,27 +670,44 @@ export const ChannelRegistryAbi = [
   {
     "inputs": [
       {
+        "internalType": "string",
+        "name": "namespace",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "canonicalIdentifier",
+        "type": "string"
+      },
+      {
         "internalType": "address",
-        "name": "contractAddress",
+        "name": "claimant",
         "type": "address"
-      }
-    ],
-    "name": "vetoContract",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "vetoWindowDuration",
-    "outputs": [
+      },
+      {
+        "internalType": "bytes32",
+        "name": "nonce",
+        "type": "bytes32"
+      },
       {
         "internalType": "uint256",
-        "name": "",
+        "name": "deadline",
         "type": "uint256"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "proofHash",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes",
+        "name": "verifierSignature",
+        "type": "bytes"
       }
     ],
-    "stateMutability": "view",
+    "name": "verifyNamespacedBeneficiary",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   }
 ] as const;

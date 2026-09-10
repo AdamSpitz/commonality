@@ -1,8 +1,9 @@
 import assert from 'assert';
 import { encodeAbiParameters, encodeEventTopics } from 'viem';
 import type {
-  ChannelControlTakenEvent,
-  ChannelVerifiedEvent,
+  BeneficiaryControlTakenEvent,
+  BeneficiaryVerifiedEvent,
+  PayoutAddressRotatedEvent,
   ContentItemRegisteredEvent,
   ContractVetoedEvent,
   CreatorContractCreatedEvent,
@@ -59,12 +60,12 @@ function makeRegisteredEvent(overrides: Partial<ContentItemRegisteredEvent> = {}
   };
 }
 
-function makeVerifiedEvent(overrides: Partial<ChannelVerifiedEvent> = {}): ChannelVerifiedEvent {
+function makeVerifiedEvent(overrides: Partial<BeneficiaryVerifiedEvent> = {}): BeneficiaryVerifiedEvent {
   return {
-    type: 'ChannelVerified',
+    type: 'BeneficiaryVerified',
     contractAddress: '0x9999999999999999999999999999999999999998',
-    channelId: CHANNEL_A,
-    owner: OWNER_A,
+    beneficiaryId: CHANNEL_A,
+    payoutAddress: OWNER_A,
     blockNumber: 90n,
     blockTimestamp: 900n,
     transactionHash: TX_HASH,
@@ -73,14 +74,29 @@ function makeVerifiedEvent(overrides: Partial<ChannelVerifiedEvent> = {}): Chann
   };
 }
 
-function makeControlTakenEvent(overrides: Partial<ChannelControlTakenEvent> = {}): ChannelControlTakenEvent {
+function makeControlTakenEvent(overrides: Partial<BeneficiaryControlTakenEvent> = {}): BeneficiaryControlTakenEvent {
   return {
-    type: 'ChannelControlTaken',
+    type: 'BeneficiaryControlTaken',
     contractAddress: '0x9999999999999999999999999999999999999998',
-    channelId: CHANNEL_A,
+    beneficiaryId: CHANNEL_A,
     owner: OWNER_A,
     blockNumber: 120n,
     blockTimestamp: 1200n,
+    transactionHash: TX_HASH,
+    logIndex: 1,
+    ...overrides,
+  };
+}
+
+function makePayoutRotatedEvent(overrides: Partial<PayoutAddressRotatedEvent> = {}): PayoutAddressRotatedEvent {
+  return {
+    type: 'PayoutAddressRotated',
+    contractAddress: '0x9999999999999999999999999999999999999998',
+    beneficiaryId: CHANNEL_A,
+    oldPayoutAddress: OWNER_A,
+    newPayoutAddress: OWNER_C,
+    blockNumber: 110n,
+    blockTimestamp: 1100n,
     transactionHash: TX_HASH,
     logIndex: 1,
     ...overrides,
@@ -242,8 +258,8 @@ describe('content-funding query helpers', () => {
       makeVerifiedEvent(),
       makeControlTakenEvent(),
       makeVerifiedEvent({
-        channelId: CHANNEL_B,
-        owner: '0x2222222222222222222222222222222222222222',
+        beneficiaryId: CHANNEL_B,
+        payoutAddress: '0x2222222222222222222222222222222222222222',
         blockNumber: 95n,
         blockTimestamp: 950n,
         logIndex: 2,
@@ -349,6 +365,26 @@ describe('content-funding query helpers', () => {
     assert.strictEqual(getOwnerForCanonicalChannelId(state, 'twitter:uid:missing'), null);
   });
 
+  it('updates the folded payout address after rotation', () => {
+    const rotated = foldAllContentFundingEvents(
+      [],
+      [
+        makeVerifiedEvent({
+          beneficiaryId: CHANNEL_B,
+          payoutAddress: OWNER_B,
+        }),
+        makePayoutRotatedEvent({
+          beneficiaryId: CHANNEL_B,
+          oldPayoutAddress: OWNER_B,
+          newPayoutAddress: OWNER_C,
+        }),
+      ],
+      [],
+      [],
+    );
+    assert.strictEqual(getOwnerForCanonicalChannelId(rotated, CHANNEL_B), OWNER_C);
+  });
+
   it('builds a channel overview from folded state', () => {
     const overview = getChannelOverview(state, CHANNEL_A, {
       projects,
@@ -356,7 +392,7 @@ describe('content-funding query helpers', () => {
       now: 1500n,
     });
 
-    assert.strictEqual(overview.channel.state, 'creator-controlled');
+    assert.strictEqual(overview.channel.state, 'beneficiary-controlled');
     assert.strictEqual(overview.channel.controlTakenAt, 1200n);
     assert.strictEqual(overview.escrow.balance, 25n);
     assert.strictEqual(overview.escrow.totalDeposited, 25n);
@@ -422,8 +458,8 @@ describe('content-funding query helpers', () => {
       ],
       [
         makeVerifiedEvent({
-          channelId: substackChannelId,
-          owner: OWNER_A,
+          beneficiaryId: substackChannelId,
+          payoutAddress: OWNER_A,
         }),
       ],
       [],
@@ -454,8 +490,8 @@ describe('content-funding query helpers', () => {
       ],
       [
         makeVerifiedEvent({
-          channelId: '0xfeed',
-          owner: OWNER_A,
+          beneficiaryId: '0xfeed',
+          payoutAddress: OWNER_A,
         }),
       ],
       [],
@@ -608,8 +644,8 @@ describe('getStatementSupportingContent', () => {
 
   const ALIGNMENT = '0xaaaa0000000000000000000000000000000000aa' as const;
   const CONTENT_REGISTRY = '0xcccc0000000000000000000000000000000000cc' as const;
-  const CHANNEL_REGISTRY = '0xdddd0000000000000000000000000000000000dd' as const;
-  const CHANNEL_ESCROW = '0xeeee0000000000000000000000000000000000ee' as const;
+  const BENEFICIARY_REGISTRY = '0xdddd0000000000000000000000000000000000dd' as const;
+  const BENEFICIARY_ESCROW = '0xeeee0000000000000000000000000000000000ee' as const;
   const CREATOR_FACTORY = '0xffff0000000000000000000000000000000000ff' as const;
   const ATTESTER = '0x1111111111111111111111111111111111111111' as const;
   const OTHER_ATTESTER = '0x2222222222222222222222222222222222222222' as const;
@@ -690,8 +726,8 @@ describe('getStatementSupportingContent', () => {
         mutableRefUpdater: '0x0000000000000000000000000000000000000000',
         trustRegistry: '0x0000000000000000000000000000000000000000',
         contentRegistry: CONTENT_REGISTRY,
-        channelRegistry: CHANNEL_REGISTRY,
-        channelEscrow: CHANNEL_ESCROW,
+        beneficiaryRegistry: BENEFICIARY_REGISTRY,
+        beneficiaryEscrow: BENEFICIARY_ESCROW,
         creatorContractFactory: CREATOR_FACTORY,
       },
     });

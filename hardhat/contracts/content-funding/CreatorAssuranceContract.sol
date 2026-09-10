@@ -4,7 +4,7 @@ pragma solidity 0.8.33;
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {MultiERC1155AssuranceContract} from "../individual-projects/AssuranceContracts.sol";
-import {IChannelEscrow} from "./ChannelEscrow.sol";
+import {IBeneficiaryEscrow} from "./BeneficiaryEscrow.sol";
 
 /**
  * @title ICreatorAssuranceContract
@@ -23,7 +23,7 @@ error RecipientNotEscrow();
  * @title CreatorAssuranceContract
  * @notice Assurance contract for content creators, linking token sales to specific content items
  * @dev Extends MultiERC1155AssuranceContract with channel and content tracking.
- *      Can optionally route successful withdrawals through a ChannelEscrow contract
+ *      Can optionally route successful withdrawals through a BeneficiaryEscrow contract
  *      (for unclaimed channels where the creator hasn't verified yet).
  */
 contract CreatorAssuranceContract is MultiERC1155AssuranceContract, ICreatorAssuranceContract {
@@ -35,7 +35,7 @@ contract CreatorAssuranceContract is MultiERC1155AssuranceContract, ICreatorAssu
     uint256[] public contentIds;
     /// @notice Whether content IDs have been initialized (one-time set)
     bool public contentIdsInitialized;
-    /// @notice Whether the recipient is a ChannelEscrow (true for unclaimed channels)
+    /// @notice Whether the recipient is a BeneficiaryEscrow (true for unclaimed channels)
     bool public immutable recipientIsEscrow;
 
     /**
@@ -50,7 +50,7 @@ contract CreatorAssuranceContract is MultiERC1155AssuranceContract, ICreatorAssu
      * @param recipient The address that receives funds on success (either channel owner or escrow)
      * @param projectMetadataCid The IPFS CID containing project metadata
      * @param _channelId The channel ID this contract is associated with
-     * @param _recipientIsEscrow Whether the recipient is a ChannelEscrow contract
+     * @param _recipientIsEscrow Whether the recipient is a BeneficiaryEscrow contract
      */
     constructor(
         address owner,
@@ -97,7 +97,7 @@ contract CreatorAssuranceContract is MultiERC1155AssuranceContract, ICreatorAssu
     }
 
     /**
-     * @notice Withdraw funds to the ChannelEscrow contract (for unclaimed channels)
+     * @notice Withdraw funds to the BeneficiaryEscrow contract (for unclaimed channels)
      * @dev Only callable when the recipient is an escrow and the project has succeeded.
      *      Deposits the funds into the escrow keyed by channelId so the creator can
      *      claim them after verifying channel ownership.
@@ -108,7 +108,7 @@ contract CreatorAssuranceContract is MultiERC1155AssuranceContract, ICreatorAssu
         uint256 value = IERC20(paymentToken).balanceOf(address(this));
         emit AssuranceContractWithdrawal(_recipient, value);
         IERC20(paymentToken).forceApprove(_recipient, value);
-        IChannelEscrow(_recipient).deposit(channelId, value);
+        IBeneficiaryEscrow(_recipient).deposit(channelId, value);
         IERC20(paymentToken).forceApprove(_recipient, 0);
     }
 }

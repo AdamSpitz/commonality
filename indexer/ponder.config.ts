@@ -37,9 +37,10 @@ import { PublishedDataAbi } from "./abis/PublishedDataAbi";
 
 // Content Funding ABIs
 import { ContentRegistryAbi } from "./abis/ContentRegistryAbi";
-import { ChannelRegistryAbi } from "./abis/ChannelRegistryAbi";
-import { ChannelEscrowAbi } from "./abis/ChannelEscrowAbi";
+import { BeneficiaryRegistryAbi } from "./abis/BeneficiaryRegistryAbi";
+import { BeneficiaryEscrowAbi } from "./abis/BeneficiaryEscrowAbi";
 import { CreatorAssuranceContractFactoryAbi } from "./abis/CreatorAssuranceContractFactoryAbi";
+import { CreatorAssuranceVetoAbi } from "./abis/CreatorAssuranceVetoAbi";
 import { ProspectiveContentRoundFactoryAbi } from "./abis/ProspectiveContentRoundFactoryAbi";
 import { MaterializedContentTokensAbi } from "./abis/MaterializedContentTokensAbi";
 
@@ -212,9 +213,10 @@ const MUTABLE_REF_UPDATER_DEPLOYMENTS = getDeployments("MutableRefUpdater", "MUT
 const NUDGE_PUBLICATIONS_DEPLOYMENTS = getDeployments("NudgePublications", "NUDGE_PUBLICATIONS_CONTRACT_ADDRESS", START_BLOCK);
 const PUBLISHED_DATA_DEPLOYMENTS = getDeployments("PublishedData", "PUBLISHED_DATA_CONTRACT_ADDRESS", PUBLISHED_DATA_START_BLOCK);
 const CONTENT_REGISTRY_DEPLOYMENTS = getDeployments("ContentRegistry", "CONTENT_REGISTRY_ADDRESS", CONTENT_FUNDING_START_BLOCK);
-const CHANNEL_REGISTRY_DEPLOYMENTS = getDeployments("ChannelRegistry", "CHANNEL_REGISTRY_ADDRESS", CONTENT_FUNDING_START_BLOCK);
-const CHANNEL_ESCROW_DEPLOYMENTS = getDeployments("ChannelEscrow", "CHANNEL_ESCROW_ADDRESS", CONTENT_FUNDING_START_BLOCK);
+const BENEFICIARY_REGISTRY_DEPLOYMENTS = getDeployments("BeneficiaryRegistry", "BENEFICIARY_REGISTRY_ADDRESS", CONTENT_FUNDING_START_BLOCK);
+const BENEFICIARY_ESCROW_DEPLOYMENTS = getDeployments("BeneficiaryEscrow", "BENEFICIARY_ESCROW_ADDRESS", CONTENT_FUNDING_START_BLOCK);
 const CREATOR_CONTRACT_FACTORY_DEPLOYMENTS = getDeployments("CreatorAssuranceContractFactory", "CREATOR_CONTRACT_FACTORY_ADDRESS", CONTENT_FUNDING_START_BLOCK);
+const CREATOR_ASSURANCE_VETO_DEPLOYMENTS = getDeployments("CreatorAssuranceVeto", "CREATOR_ASSURANCE_VETO_ADDRESS", CONTENT_FUNDING_START_BLOCK);
 const PROSPECTIVE_FACTORY_DEPLOYMENTS = getDeployments("ProspectiveContentRoundFactory", "PROSPECTIVE_CONTENT_ROUND_FACTORY_ADDRESS", CONTENT_FUNDING_START_BLOCK);
 
 const ETH_GET_LOGS_BLOCK_RANGE = process.env.PONDER_ETH_GET_LOGS_BLOCK_RANGE
@@ -398,18 +400,18 @@ const contracts = {
     ...deploymentConfig(CONTENT_REGISTRY_DEPLOYMENTS, CONTENT_FUNDING_START_BLOCK),
   },
 
-  // Channel Registry - tracks channel verification and control states
-  ChannelRegistry: {
-    abi: ChannelRegistryAbi,
+  // Shared beneficiary identity / payout registry
+  BeneficiaryRegistry: {
+    abi: BeneficiaryRegistryAbi,
     chain: INDEXER_CHAIN,
-    ...deploymentConfig(CHANNEL_REGISTRY_DEPLOYMENTS, CONTENT_FUNDING_START_BLOCK),
+    ...deploymentConfig(BENEFICIARY_REGISTRY_DEPLOYMENTS, CONTENT_FUNDING_START_BLOCK),
   },
 
-  // Channel Escrow - holds funds for unclaimed channels
-  ChannelEscrow: {
-    abi: ChannelEscrowAbi,
+  // Shared escrow for unclaimed beneficiaries
+  BeneficiaryEscrow: {
+    abi: BeneficiaryEscrowAbi,
     chain: INDEXER_CHAIN,
-    ...deploymentConfig(CHANNEL_ESCROW_DEPLOYMENTS, CONTENT_FUNDING_START_BLOCK),
+    ...deploymentConfig(BENEFICIARY_ESCROW_DEPLOYMENTS, CONTENT_FUNDING_START_BLOCK),
   },
 
   // Creator Assurance Contract Factory - creates content-funding contracts
@@ -417,6 +419,12 @@ const contracts = {
     abi: CreatorAssuranceContractFactoryAbi,
     chain: INDEXER_CHAIN,
     ...deploymentConfig(CREATOR_CONTRACT_FACTORY_DEPLOYMENTS, CONTENT_FUNDING_START_BLOCK),
+  },
+
+  CreatorAssuranceVeto: {
+    abi: CreatorAssuranceVetoAbi,
+    chain: INDEXER_CHAIN,
+    ...deploymentConfig(CREATOR_ASSURANCE_VETO_DEPLOYMENTS, CONTENT_FUNDING_START_BLOCK),
   },
 
   ProspectiveContentRoundFactory: {

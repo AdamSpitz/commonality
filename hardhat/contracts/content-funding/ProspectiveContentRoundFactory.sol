@@ -4,7 +4,7 @@ pragma solidity 0.8.33;
 import {ProspectiveContentTokens} from "./ProspectiveContentTokens.sol";
 import {ProspectiveContentAssuranceContract} from "./ProspectiveContentAssuranceContract.sol";
 import {MaterializedContentTokens} from "./MaterializedContentTokens.sol";
-import {ChannelRegistry} from "./ChannelRegistry.sol";
+import {BeneficiaryRegistry} from "./BeneficiaryRegistry.sol";
 import {ContentRegistry} from "./ContentRegistry.sol";
 import {ValueThresholdConditionFactory} from "../individual-projects/ProjectFactory.sol";
 import {ValueThresholdCondition} from "../individual-projects/ValueThresholdCondition.sol";
@@ -13,7 +13,7 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol
 
 error InvalidChannelId();
 error ChannelCanonicalIdMismatch(bytes32 channelId, bytes32 canonicalHash);
-error ChannelNotVerified(bytes32 channelId);
+error BeneficiaryNotVerified(bytes32 channelId);
 error OnlyCurrentChannelOwner(bytes32 channelId);
 error InvalidFundingTerms();
 error InvalidReceiptTerms();
@@ -56,7 +56,7 @@ contract ProspectiveContentRoundFactory is ReentrancyGuard {
         string receiptContractUri;
     }
 
-    ChannelRegistry public immutable channelRegistry;
+    BeneficiaryRegistry public immutable beneficiaryRegistry;
     ContentRegistry public immutable contentRegistry;
     ValueThresholdConditionFactory public immutable conditionFactory;
     address public immutable paymentToken;
@@ -76,7 +76,7 @@ contract ProspectiveContentRoundFactory is ReentrancyGuard {
     event ProspectiveRoundMaterialized(address indexed round, address indexed tokenContract);
 
     constructor(address channels, address contents, address conditions, address settlementToken, address authority, address roundHelper, address materializedHelper) {
-        channelRegistry = ChannelRegistry(channels);
+        beneficiaryRegistry = BeneficiaryRegistry(channels);
         contentRegistry = ContentRegistry(contents);
         conditionFactory = ValueThresholdConditionFactory(conditions);
         paymentToken = settlementToken;
@@ -130,7 +130,7 @@ contract ProspectiveContentRoundFactory is ReentrancyGuard {
 
         MaterializedContentTokens token = materializedDeploymentHelper.deploy(
             msg.sender, receiptTokenByRound[round], receiptTokenIdByRound[round], address(contentRegistry),
-            address(channelRegistry), round, channelId, _channelCanonicalIdByRound[round], _contentIdSeparatorByRound[round],
+            address(beneficiaryRegistry), round, channelId, _channelCanonicalIdByRound[round], _contentIdSeparatorByRound[round],
             metadataUri, contractUri
         );
         materializedTokenByRound[round] = address(token);
@@ -156,7 +156,7 @@ contract ProspectiveContentRoundFactory is ReentrancyGuard {
     }
 
     function _requireChannelOwner(bytes32 channelId) private view {
-        if (!channelRegistry.isVerified(channelId)) revert ChannelNotVerified(channelId);
-        if (msg.sender != channelRegistry.channelOwner(channelId)) revert OnlyCurrentChannelOwner(channelId);
+        if (!beneficiaryRegistry.isVerified(channelId)) revert BeneficiaryNotVerified(channelId);
+        if (msg.sender != beneficiaryRegistry.payoutAddress(channelId)) revert OnlyCurrentChannelOwner(channelId);
     }
 }

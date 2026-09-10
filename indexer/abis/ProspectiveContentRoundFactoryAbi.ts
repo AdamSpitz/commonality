@@ -49,14 +49,9 @@ export const ProspectiveContentRoundFactoryAbi = [
         "internalType": "bytes32",
         "name": "channelId",
         "type": "bytes32"
-      },
-      {
-        "internalType": "bytes32",
-        "name": "canonicalHash",
-        "type": "bytes32"
       }
     ],
-    "name": "ChannelCanonicalIdMismatch",
+    "name": "BeneficiaryNotVerified",
     "type": "error"
   },
   {
@@ -65,9 +60,14 @@ export const ProspectiveContentRoundFactoryAbi = [
         "internalType": "bytes32",
         "name": "channelId",
         "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "canonicalHash",
+        "type": "bytes32"
       }
     ],
-    "name": "ChannelNotVerified",
+    "name": "ChannelCanonicalIdMismatch",
     "type": "error"
   },
   {
@@ -202,6 +202,19 @@ export const ProspectiveContentRoundFactoryAbi = [
     "type": "event"
   },
   {
+    "inputs": [],
+    "name": "beneficiaryRegistry",
+    "outputs": [
+      {
+        "internalType": "contract BeneficiaryRegistry",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "address",
@@ -215,19 +228,6 @@ export const ProspectiveContentRoundFactoryAbi = [
         "internalType": "bytes32",
         "name": "",
         "type": "bytes32"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "channelRegistry",
-    "outputs": [
-      {
-        "internalType": "contract ChannelRegistry",
-        "name": "",
-        "type": "address"
       }
     ],
     "stateMutability": "view",

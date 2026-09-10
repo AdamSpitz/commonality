@@ -22,6 +22,7 @@ vi.mock('../../lazy-giving/utils', async () => {
 
 import { useContentFundingState } from '../../content-funding'
 import { getProjectStatus } from '../../lazy-giving'
+import { hashBeneficiaryId } from '@commonality/sdk/content-funding'
 
 const NOW_SECS = Math.floor(Date.now() / 1000)
 const FAR_FUTURE = String(NOW_SECS + 86400 * 365 * 10)
@@ -106,6 +107,52 @@ describe('AlignedProjectCard', () => {
       )
 
       expect(screen.getByText('My Awesome Project')).toBeInTheDocument()
+    })
+
+    it('chips folded website claim state from the shared registry', () => {
+      vi.mocked(useContentFundingState).mockReturnValue({
+        state: {
+          beneficiaryRegistry: {
+            channels: new Map([
+              [hashBeneficiaryId('dns', 'example.org'), { state: 'beneficiary-controlled' }],
+            ]),
+          },
+        } as any,
+        channels: [],
+        loading: false,
+        error: null,
+        projects: [],
+        contentAttestations: new Map(),
+        channelDisplayMetadata: new Map(),
+        vetoedEvents: [],
+        machinery: {} as any,
+      })
+
+      render(
+        <AlignedProjectCard
+          project={makeProject()}
+          metadata={{
+            name: 'Garden fund',
+            beneficiary: { namespace: 'dns', canonicalIdentifier: 'example.org' },
+          }}
+        />,
+      )
+
+      expect(screen.getByText('Beneficiary-controlled')).toBeInTheDocument()
+    })
+
+    it('shows a website beneficiary domain without collapsing lookalikes', () => {
+      render(
+        <AlignedProjectCard
+          project={makeProject()}
+          metadata={{
+            name: 'Garden fund',
+            beneficiary: { namespace: 'dns', canonicalIdentifier: 'еxample.org' },
+          }}
+        />,
+      )
+
+      expect(screen.getByTestId('website-beneficiary-domain')).toHaveTextContent('еxample.org')
     })
 
     it('shows truncated address when no metadata available', () => {

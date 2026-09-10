@@ -1,8 +1,9 @@
 import {
-  ChannelEscrowAbi,
-  ChannelRegistryAbi,
+  BeneficiaryEscrowAbi,
+  BeneficiaryRegistryAbi,
   ContentRegistryAbi,
   CreatorAssuranceContractFactoryAbi,
+  CreatorAssuranceVetoAbi,
   MaterializedContentTokensAbi,
   ProspectiveContentRoundFactoryAbi,
 } from '../../abis.js';
@@ -51,10 +52,31 @@ export function decodeContentItemReleasedEvent(
   };
 }
 
-export function decodeChannelVerifiedEvent(
+export function decodeBeneficiaryVerifiedEvent(
   rawEvent: RawEventFromCache,
 ): {
-  channelId: string;
+  beneficiaryId: string;
+  payoutAddress: `0x${string}`;
+  contractAddress: `0x${string}`;
+  blockNumber: bigint;
+  blockTimestamp: bigint;
+  transactionHash: `0x${string}`;
+  logIndex: number;
+} | null {
+  if (rawEvent.eventName !== 'BeneficiaryVerified') return null;
+  const args = decodeRawEventArgs(rawEvent, BeneficiaryRegistryAbi);
+  if (!args) return null;
+  return {
+    beneficiaryId: args.beneficiaryId as string,
+    payoutAddress: args.payoutAddress as `0x${string}`,
+    ...decodedLogMeta(rawEvent),
+  };
+}
+
+export function decodeBeneficiaryControlTakenEvent(
+  rawEvent: RawEventFromCache,
+): {
+  beneficiaryId: string;
   owner: `0x${string}`;
   contractAddress: `0x${string}`;
   blockNumber: bigint;
@@ -62,33 +84,35 @@ export function decodeChannelVerifiedEvent(
   transactionHash: `0x${string}`;
   logIndex: number;
 } | null {
-  if (rawEvent.eventName !== 'ChannelVerified') return null;
-  const args = decodeRawEventArgs(rawEvent, ChannelRegistryAbi);
+  if (rawEvent.eventName !== 'BeneficiaryControlTaken') return null;
+  const args = decodeRawEventArgs(rawEvent, BeneficiaryRegistryAbi);
   if (!args) return null;
   return {
-    channelId: args.channelId as string,
+    beneficiaryId: args.beneficiaryId as string,
     owner: args.owner as `0x${string}`,
     ...decodedLogMeta(rawEvent),
   };
 }
 
-export function decodeChannelControlTakenEvent(
+export function decodePayoutAddressRotatedEvent(
   rawEvent: RawEventFromCache,
 ): {
-  channelId: string;
-  owner: `0x${string}`;
+  beneficiaryId: string;
+  oldPayoutAddress: `0x${string}`;
+  newPayoutAddress: `0x${string}`;
   contractAddress: `0x${string}`;
   blockNumber: bigint;
   blockTimestamp: bigint;
   transactionHash: `0x${string}`;
   logIndex: number;
 } | null {
-  if (rawEvent.eventName !== 'ChannelControlTaken') return null;
-  const args = decodeRawEventArgs(rawEvent, ChannelRegistryAbi);
+  if (rawEvent.eventName !== 'PayoutAddressRotated') return null;
+  const args = decodeRawEventArgs(rawEvent, BeneficiaryRegistryAbi);
   if (!args) return null;
   return {
-    channelId: args.channelId as string,
-    owner: args.owner as `0x${string}`,
+    beneficiaryId: args.beneficiaryId as string,
+    oldPayoutAddress: args.oldPayoutAddress as `0x${string}`,
+    newPayoutAddress: args.newPayoutAddress as `0x${string}`,
     ...decodedLogMeta(rawEvent),
   };
 }
@@ -104,7 +128,7 @@ export function decodeContractVetoedEvent(
   logIndex: number;
 } | null {
   if (rawEvent.eventName !== 'ContractVetoed') return null;
-  const args = decodeRawEventArgs(rawEvent, ChannelRegistryAbi);
+  const args = decodeRawEventArgs(rawEvent, CreatorAssuranceVetoAbi);
   if (!args) return null;
   return {
     channelId: args.channelId as string,
@@ -125,7 +149,7 @@ export function decodeDepositedEvent(
   logIndex: number;
 } | null {
   if (rawEvent.eventName !== 'Deposited') return null;
-  const args = decodeRawEventArgs(rawEvent, ChannelEscrowAbi);
+  const args = decodeRawEventArgs(rawEvent, BeneficiaryEscrowAbi);
   if (!args) return null;
   return {
     channelId: args.channelId as string,
@@ -148,7 +172,7 @@ export function decodeWithdrawnEvent(
   logIndex: number;
 } | null {
   if (rawEvent.eventName !== 'Withdrawn') return null;
-  const args = decodeRawEventArgs(rawEvent, ChannelEscrowAbi);
+  const args = decodeRawEventArgs(rawEvent, BeneficiaryEscrowAbi);
   if (!args) return null;
   return {
     channelId: args.channelId as string,

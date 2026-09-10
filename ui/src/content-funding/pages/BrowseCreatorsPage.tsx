@@ -41,13 +41,13 @@ const PLATFORM_LABELS: Record<ContentFundingPlatform, string> = {
 const STATE_LABELS: Record<ChannelState, string> = {
   unclaimed: 'Unclaimed',
   verified: 'Verified',
-  'creator-controlled': 'Creator-Controlled',
+  'beneficiary-controlled': 'Creator-Controlled',
 }
 
 const STATE_COLORS: Record<ChannelState, 'default' | 'warning' | 'success'> = {
   unclaimed: 'default',
   verified: 'warning',
-  'creator-controlled': 'success',
+  'beneficiary-controlled': 'success',
 }
 
 function getTotalFunding(channel: ChannelWithCanonicalId): bigint {
@@ -205,7 +205,7 @@ export function BrowseCreatorsPage({
               <ToggleButton value="all">All</ToggleButton>
               <ToggleButton value="unclaimed">Unclaimed</ToggleButton>
               <ToggleButton value="verified">Verified</ToggleButton>
-              <ToggleButton value="creator-controlled">Creator-Controlled</ToggleButton>
+              <ToggleButton value="beneficiary-controlled">Creator-Controlled</ToggleButton>
             </ToggleButtonGroup>
           </Stack>
         </Stack>

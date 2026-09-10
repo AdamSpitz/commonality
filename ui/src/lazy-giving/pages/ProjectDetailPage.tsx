@@ -13,6 +13,7 @@ import {
   WithdrawSection,
   ReimbursementSection,
   Leaderboard,
+  WebsiteClaimSection,
 } from '../components'
 import { getProjectStatus, computeUserTokenBalance } from '../utils'
 import { getEventCacheUrl, useMachinery } from '../../shared'
@@ -441,6 +442,10 @@ export function ProjectDetailPage({
           address={address}
           onRefresh={handleRefresh}
         />
+      )}
+
+      {metadata?.beneficiary?.namespace === 'dns' && metadata.beneficiary.canonicalIdentifier && (
+        <WebsiteClaimSection domain={metadata.beneficiary.canonicalIdentifier} />
       )}
 
       <Leaderboard

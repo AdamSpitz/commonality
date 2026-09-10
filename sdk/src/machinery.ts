@@ -51,10 +51,10 @@ export interface ContractAddresses {
   nudgePublications?: `0x${string}`;
   /** ContentRegistry.sol -- registers content for the content-funding subsystem. */
   contentRegistry?: `0x${string}`;
-  /** ChannelRegistry.sol -- registers funding channels. */
-  channelRegistry?: `0x${string}`;
-  /** ChannelEscrow.sol -- holds escrowed funds for channels. */
-  channelEscrow?: `0x${string}`;
+  /** BeneficiaryRegistry.sol -- registers funding channels. */
+  beneficiaryRegistry?: `0x${string}`;
+  /** BeneficiaryEscrow.sol -- holds escrowed funds for channels. */
+  beneficiaryEscrow?: `0x${string}`;
   /** Factory that deploys per-creator assurance contracts. */
   creatorContractFactory?: `0x${string}`;
   /** Factory for channel-bound future-content rounds. */

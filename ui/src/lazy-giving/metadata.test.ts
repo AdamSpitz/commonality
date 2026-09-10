@@ -72,6 +72,22 @@ describe('LazyGiving metadata readers', () => {
     expect(fetchFromIPFS).not.toHaveBeenCalled()
   })
 
+  it('reads a dns beneficiary identity from project extras', async () => {
+    const document: DisplayableDocument = {
+      format: 'markdown-restricted',
+      content: 'Pooled funds for the website.',
+      extras: {
+        name: 'Help example.org',
+        beneficiary: { namespace: 'dns', canonicalIdentifier: 'example.org' },
+      },
+    }
+    mockRead({ status: 'active', document })
+
+    await expect(readLazyGivingProjectMetadata(machinery, cid, { deniedCids: [], honoredRetractors: [] })).resolves.toMatchObject({
+      beneficiary: { namespace: 'dns', canonicalIdentifier: 'example.org' },
+    })
+  })
+
   it('suppresses legacy IPFS JSON when PublishedData reports a retraction', async () => {
     const retractedDocument: DisplayableDocument = { format: 'markdown-restricted', content: 'Retracted' }
     mockRead({ status: 'retracted', retractedDocument })

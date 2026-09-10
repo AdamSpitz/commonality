@@ -204,10 +204,10 @@ services:
         sync: false  # from-env: PUBLISHED_DATA_START_BLOCK
       - key: CONTENT_REGISTRY_ADDRESS
         sync: false  # from-env: CONTENT_REGISTRY_ADDRESS
-      - key: CHANNEL_REGISTRY_ADDRESS
-        sync: false  # from-env: CHANNEL_REGISTRY_ADDRESS
-      - key: CHANNEL_ESCROW_ADDRESS
-        sync: false  # from-env: CHANNEL_ESCROW_ADDRESS
+      - key: BENEFICIARY_REGISTRY_ADDRESS
+        sync: false  # from-env: BENEFICIARY_REGISTRY_ADDRESS
+      - key: BENEFICIARY_ESCROW_ADDRESS
+        sync: false  # from-env: BENEFICIARY_ESCROW_ADDRESS
       - key: CREATOR_CONTRACT_FACTORY_ADDRESS
         sync: false  # from-env: CREATOR_CONTRACT_FACTORY_ADDRESS
     healthCheckPath: /graphql
@@ -446,10 +446,10 @@ services:
         sync: false  # Secret: Coinbase Onramp session-token API key id
       - key: COINBASE_CDP_API_KEY_SECRET
         sync: false  # Secret: Coinbase Onramp session-token private key
-      - key: CHANNEL_REGISTRY_ADDRESS
-        sync: false  # from-env: CHANNEL_REGISTRY_ADDRESS
-      - key: CHANNEL_VERIFIER_ADDRESS
-        sync: false  # from-env: CHANNEL_VERIFIER_ADDRESS
+      - key: BENEFICIARY_REGISTRY_ADDRESS
+        sync: false  # from-env: BENEFICIARY_REGISTRY_ADDRESS
+      - key: BENEFICIARY_VERIFIER_ADDRESS
+        sync: false  # from-env: BENEFICIARY_VERIFIER_ADDRESS
       - key: CREATOR_GAS_TANK_ADDRESS
         sync: false  # from-env: CREATOR_GAS_TANK_ADDRESS
       - key: CHAIN_ID

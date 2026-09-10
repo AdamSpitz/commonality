@@ -46,7 +46,7 @@ The public-facing page for a creator's funded content on a specific platform. Th
 - Platform badge
 - Channel state badge
 - **Total funding raised** across all contracts
-- **Escrowed balance** (from `foldChannelEscrow`) — shown prominently if > 0, since this is money waiting for the creator
+- **Escrowed balance** (from `foldBeneficiaryEscrow`) — shown prominently if > 0, since this is money waiting for the creator
 - Verified owner address (if verified)
 
 ### Above-the-fold for unclaimed channels
@@ -118,7 +118,7 @@ After verification: channel transitions to Verified, and the creator can withdra
 ### Step 4: Take control (optional, separate action)
 
 - Explained as: "Want to control future contracts for your content? Only you will be able to create new funding rounds."
-- "Take control" button — calls `takeChannelControl` on the channel registry
+- "Take control" button — calls `takeBeneficiaryControl` on `BeneficiaryRegistry`
 - After taking control: show the [veto interface](#creator-veto-interface) if there are vetoable contracts
 
 

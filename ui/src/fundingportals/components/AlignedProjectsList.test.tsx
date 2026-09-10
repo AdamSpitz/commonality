@@ -381,7 +381,7 @@ describe('AlignedProjectsList', () => {
         state: {} as any,
         channels: [{
           canonicalChannelId: 'substack:commontable',
-          channel: { channelId: '0xabc', owner: null, controlTakenAt: null, state: 'creator-controlled' },
+          channel: { channelId: '0xabc', owner: null, controlTakenAt: null, state: 'beneficiary-controlled' },
           escrow: { balance: 0n, totalDeposited: 0n, totalWithdrawn: 0n },
           contentItems: [],
           contracts: [{

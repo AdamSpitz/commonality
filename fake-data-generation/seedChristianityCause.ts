@@ -213,15 +213,15 @@ async function seedChristianPledges(plankCids: Map<string, IpfsCidV1>): Promise<
 async function seedChristianContent(plankMap: Map<string, IpfsCidV1>): Promise<void> {
   const scripture = plankMap.get('scripture/natural-christian');
   const cfAddresses = {
-    channelRegistry: CONTRACT_ADDRESSES.channelRegistry,
-    channelVerifier: CONTRACT_ADDRESSES.channelVerifier,
+    beneficiaryRegistry: CONTRACT_ADDRESSES.beneficiaryRegistry,
+    beneficiaryVerifier: CONTRACT_ADDRESSES.beneficiaryVerifier,
     creatorContractFactory: CONTRACT_ADDRESSES.creatorContractFactory,
     publishedData: CONTRACT_ADDRESSES.publishedData,
     alignmentAttestations: CONTRACT_ADDRESSES.alignmentAttestations,
   };
   if (
-    !cfAddresses.channelRegistry
-    || !cfAddresses.channelVerifier
+    !cfAddresses.beneficiaryRegistry
+    || !cfAddresses.beneficiaryVerifier
     || !cfAddresses.creatorContractFactory
     || !scripture
   ) {
@@ -230,8 +230,8 @@ async function seedChristianContent(plankMap: Map<string, IpfsCidV1>): Promise<v
   try {
     await generateChristianContentScenario(
       {
-        channelRegistry: cfAddresses.channelRegistry as `0x${string}`,
-        channelVerifier: cfAddresses.channelVerifier as `0x${string}`,
+        beneficiaryRegistry: cfAddresses.beneficiaryRegistry as `0x${string}`,
+        beneficiaryVerifier: cfAddresses.beneficiaryVerifier as `0x${string}`,
         creatorContractFactory: cfAddresses.creatorContractFactory as `0x${string}`,
         publishedData: cfAddresses.publishedData as `0x${string}` | undefined,
         alignmentAttestations: cfAddresses.alignmentAttestations as `0x${string}` | undefined,

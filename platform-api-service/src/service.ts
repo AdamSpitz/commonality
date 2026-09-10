@@ -1,6 +1,8 @@
 import { randomBytes } from 'crypto';
-import { buildCanonicalChannelId, buildCanonicalContentId, hashCanonicalId, parseContentFundingUrl, type ParsedContentFundingUrl } from '@commonality/sdk/content-funding';
+import { resolveTxt } from 'node:dns/promises';
+import { assertDnsRedirectStaysOnDomain, buildCanonicalBeneficiaryId, buildCanonicalChannelId, buildCanonicalContentId, ContentFundingCanonicalizationError, hashCanonicalId, normalizeDnsBeneficiary as normalizeDnsBeneficiaryInput, parseContentFundingUrl, type ParsedContentFundingUrl } from '@commonality/sdk/content-funding';
 import type { IpfsCidV1 } from '@commonality/sdk/utils';
+
 import {
   createPublicClient,
   createWalletClient,
@@ -30,13 +32,28 @@ import type {
   YouTubeClientLike,
 } from './types.js';
 
-const channelRegistryAbi = [
+const beneficiaryRegistryAbi = [
   {
     type: 'function',
-    name: 'verifyChannel',
+    name: 'verifyBeneficiary',
     stateMutability: 'nonpayable',
     inputs: [
-      { name: 'channelId', type: 'bytes32' },
+      { name: 'beneficiaryId', type: 'bytes32' },
+      { name: 'claimant', type: 'address' },
+      { name: 'nonce', type: 'bytes32' },
+      { name: 'deadline', type: 'uint256' },
+      { name: 'proofHash', type: 'bytes32' },
+      { name: 'verifierSignature', type: 'bytes' },
+    ],
+    outputs: [],
+  },
+  {
+    type: 'function',
+    name: 'verifyNamespacedBeneficiary',
+    stateMutability: 'nonpayable',
+    inputs: [
+      { name: 'namespace', type: 'string' },
+      { name: 'canonicalIdentifier', type: 'string' },
       { name: 'claimant', type: 'address' },
       { name: 'nonce', type: 'bytes32' },
       { name: 'deadline', type: 'uint256' },
@@ -55,6 +72,7 @@ export interface PlatformApiServiceDependencies {
   now?: () => number;
   createChallengeCode?: () => string;
   fetch?: typeof fetch;
+  lookupTxt?: (name: string) => Promise<string[]>;
 }
 
 export class PlatformApiService {
@@ -64,6 +82,7 @@ export class PlatformApiService {
   private readonly now: () => number;
   private readonly createChallengeCode: () => string;
   private readonly fetchImpl: typeof fetch;
+  private readonly lookupTxt: (name: string) => Promise<string[]>;
 
   constructor(private readonly deps: PlatformApiServiceDependencies) {
     this.contentCache = new MemoryCache(deps.config.contentCacheTtlSeconds * 1000);
@@ -71,6 +90,7 @@ export class PlatformApiService {
     this.now = deps.now ?? (() => Date.now());
     this.createChallengeCode = deps.createChallengeCode ?? (() => randomBytes(6).toString('hex'));
     this.fetchImpl = deps.fetch ?? fetch;
+    this.lookupTxt = deps.lookupTxt ?? lookupDnsTxt;
   }
 
   async resolveChannel(platform: string, handle: string): Promise<ResolvedChannel> {
@@ -99,6 +119,50 @@ export class PlatformApiService {
       'invalid_request',
       'resolve/channel currently supports only twitter and youtube',
     );
+  }
+
+  async resolveWebsiteBeneficiary(input: string): Promise<{
+    namespace: 'dns';
+    canonicalIdentifier: string;
+    reachable: boolean;
+  }> {
+    const canonicalIdentifier = normalizeDnsBeneficiary(input);
+    this.assertIdentityNotBlocked(buildCanonicalBeneficiaryId('dns', canonicalIdentifier));
+    const reachable = await this.assertHomepageStaysOnDomain(canonicalIdentifier);
+    return {
+      namespace: 'dns',
+      canonicalIdentifier,
+      reachable,
+    };
+  }
+
+  private async assertHomepageStaysOnDomain(canonicalIdentifier: string): Promise<boolean> {
+    const startUrl = `https://${canonicalIdentifier}/`;
+    let response: Response;
+    try {
+      response = await this.fetchImpl(startUrl, {
+        method: 'GET',
+        redirect: 'follow',
+        headers: { accept: 'text/html' },
+      });
+    } catch {
+      return false;
+    }
+
+    const finalUrl = response.url || startUrl;
+    try {
+      assertDnsRedirectStaysOnDomain(finalUrl, canonicalIdentifier);
+    } catch (error) {
+      throw this.redirectHttpError(error);
+    }
+    return true;
+  }
+
+  private redirectHttpError(error: unknown): unknown {
+    if (error instanceof ContentFundingCanonicalizationError && error.code === 'invalid_domain_redirect') {
+      return new HttpError(400, 'invalid_domain_redirect', error.message);
+    }
+    return error;
   }
 
   async resolveContent(url: string): Promise<ResolvedContent> {
@@ -223,7 +287,7 @@ export class PlatformApiService {
   }): Promise<{
     nonce: Hex;
     challengeCode: string;
-    channelId: string;
+    beneficiaryId: string;
     handle?: string;
     displayName?: string;
     verificationPostTemplate: string;
@@ -232,12 +296,13 @@ export class PlatformApiService {
     if (
       request.platform !== 'twitter' &&
       request.platform !== 'youtube' &&
-      request.platform !== 'substack'
+      request.platform !== 'substack' &&
+      request.platform !== 'dns'
     ) {
       throw new HttpError(
         400,
         'invalid_request',
-        'verify/challenge currently supports only twitter, youtube, and substack',
+        'verify/challenge currently supports only twitter, youtube, substack, and dns',
       );
     }
 
@@ -245,13 +310,21 @@ export class PlatformApiService {
       throw new HttpError(400, 'invalid_request', `Invalid claimant address: ${request.claimantAddress}`);
     }
 
+    if (request.platform === 'dns' && (!this.deps.config.chainId || !this.deps.config.beneficiaryRegistryAddress)) {
+      throw new HttpError(
+        503,
+        'service_unavailable',
+        'Domain verification requires CHAIN_ID and BENEFICIARY_REGISTRY_ADDRESS',
+      );
+    }
+
     const channel = request.platform === 'substack'
       ? resolveSubstackPublication(request.handle)
-      : await this.resolveChannel(request.platform, request.handle);
+      : request.platform === 'dns'
+        ? resolveDnsBeneficiary(request.handle)
+        : await this.resolveChannel(request.platform, request.handle);
 
-    if ((this.deps.config.blockedChannelIds ?? []).includes(channel.channelId)) {
-      throw new HttpError(403, 'blocked_identity', 'This platform identity cannot claim funds through Commonality.');
-    }
+    this.assertIdentityNotBlocked(channel.channelId);
 
     const challengeCode = this.createChallengeCode();
     const nonce = keccak256(
@@ -274,18 +347,27 @@ export class PlatformApiService {
         this.deps.config.claimPageBaseUrl,
         channel.channelId,
       );
-    } else {
+    } else if (request.platform === 'substack') {
       verificationPostTemplate = buildSubstackPostTemplate(
         this.deps.config.commonalityTwitterHandle,
         challengeCode,
         this.deps.config.claimPageBaseUrl,
         channel.channelId,
       );
+    } else {
+      verificationPostTemplate = buildDnsClaimDocument({
+        canonicalDomain: channel.handle!,
+        claimant: request.claimantAddress as Address,
+        chainId: this.deps.config.chainId!,
+        registryAddress: this.deps.config.beneficiaryRegistryAddress!,
+        nonce,
+        expiry: deadline,
+      });
     }
 
     this.challengeCache.set(nonce, {
       platform: request.platform,
-      channelId: channel.channelId,
+      beneficiaryId: channel.channelId,
       claimantAddress: request.claimantAddress as Address,
       nonce,
       challengeCode,
@@ -299,7 +381,7 @@ export class PlatformApiService {
     return {
       nonce,
       challengeCode,
-      channelId: channel.channelId,
+      beneficiaryId: channel.channelId,
       handle: channel.handle,
       displayName: channel.displayName,
       verificationPostTemplate,
@@ -314,13 +396,13 @@ export class PlatformApiService {
 
     if (
       !this.deps.config.verifierPrivateKey ||
-      !this.deps.config.channelVerifierAddress ||
+      !this.deps.config.beneficiaryVerifierAddress ||
       !this.deps.config.chainId
     ) {
       throw new HttpError(
         503,
         'service_unavailable',
-        'Verification confirmation is unavailable because VERIFIER_PRIVATE_KEY, CHANNEL_VERIFIER_ADDRESS, and CHAIN_ID must all be set',
+        'Verification confirmation is unavailable because VERIFIER_PRIVATE_KEY, BENEFICIARY_VERIFIER_ADDRESS, and CHAIN_ID must all be set',
       );
     }
 
@@ -339,7 +421,9 @@ export class PlatformApiService {
           ? 'Verification tweet not found yet; try again after posting the tweet'
           : challenge.platform === 'youtube'
             ? 'Verification video not found yet; try again after adding the challenge to your video description'
-            : 'Verification post not found yet; try again after publishing the Substack post and waiting for the RSS feed to update',
+            : challenge.platform === 'substack'
+              ? 'Verification post not found yet; try again after publishing the Substack post and waiting for the RSS feed to update'
+              : `Domain claim not found yet; publish it at https://${challenge.handle}/.well-known/commonality-claim.json or as a TXT record at _commonality.${challenge.handle}`,
       );
     }
 
@@ -348,29 +432,32 @@ export class PlatformApiService {
 
     const verifierSignature = await signClaimProof(
       this.deps.config.verifierPrivateKey,
-      this.deps.config.channelVerifierAddress,
+      this.deps.config.beneficiaryVerifierAddress,
       this.deps.config.chainId,
-      challenge.channelId,
+      challenge.beneficiaryId,
       challenge.claimantAddress,
       challenge.nonce,
       challenge.deadline,
       proofHash,
+      challenge.platform === 'dns' ? keccak256(stringToBytes('dns')) : undefined,
     );
 
     const txHash = await this.submitVerificationTxIfConfigured({
-      channelId: challenge.channelId,
+      beneficiaryId: challenge.beneficiaryId,
       claimant: challenge.claimantAddress,
       nonce: challenge.nonce,
       deadline: challenge.deadline,
       proofHash,
       verifierSignature,
+      platform: challenge.platform,
+      handle: challenge.handle,
     });
 
     this.challengeCache.delete(request.nonce);
 
     return {
       proof: {
-        channelId: challenge.channelId,
+        beneficiaryId: challenge.beneficiaryId,
         claimant: challenge.claimantAddress,
         nonce: challenge.nonce,
         deadline: challenge.deadline,
@@ -414,11 +501,15 @@ export class PlatformApiService {
           resolveConfigured: true,
           verifyConfigured: true,
         },
+        dns: {
+          resolveConfigured: true,
+          verifyConfigured: Boolean(this.deps.config.chainId && this.deps.config.beneficiaryRegistryAddress),
+        },
       },
       verification: {
         canSignProofs: Boolean(this.deps.config.verifierPrivateKey),
         submitVerificationTx: this.deps.config.submitVerificationTx,
-        channelRegistryConfigured: Boolean(this.deps.config.channelRegistryAddress),
+        beneficiaryRegistryConfigured: Boolean(this.deps.config.beneficiaryRegistryAddress),
         ethereumRpcConfigured: Boolean(this.deps.config.ethereumRpcUrl),
       },
       contentSubmissions: {
@@ -476,13 +567,21 @@ export class PlatformApiService {
     }
   }
 
+  private assertIdentityNotBlocked(beneficiaryId: string): void {
+    if ((this.deps.config.blockedChannelIds ?? []).includes(beneficiaryId)) {
+      throw new HttpError(403, 'blocked_identity', 'This public identity cannot be used through Commonality.');
+    }
+  }
+
   private async submitVerificationTxIfConfigured(proof: {
-    channelId: string;
+    beneficiaryId: string;
     claimant: Address;
     nonce: Hex;
     deadline: number;
     proofHash: Hex;
     verifierSignature: Hex;
+    platform?: PendingVerificationChallenge['platform'];
+    handle?: string;
   }): Promise<Hex | undefined> {
     if (!this.deps.config.submitVerificationTx) {
       return undefined;
@@ -491,12 +590,12 @@ export class PlatformApiService {
     if (
       !this.deps.config.verifierPrivateKey ||
       !this.deps.config.ethereumRpcUrl ||
-      !this.deps.config.channelRegistryAddress
+      !this.deps.config.beneficiaryRegistryAddress
     ) {
       throw new HttpError(
         503,
         'service_unavailable',
-        'On-chain verification submission requires VERIFIER_PRIVATE_KEY, ETHEREUM_RPC_URL, and CHANNEL_REGISTRY_ADDRESS',
+        'On-chain verification submission requires VERIFIER_PRIVATE_KEY, ETHEREUM_RPC_URL, and BENEFICIARY_REGISTRY_ADDRESS',
       );
     }
 
@@ -509,26 +608,37 @@ export class PlatformApiService {
       transport: http(this.deps.config.ethereumRpcUrl),
     });
 
+    const isDns = proof.platform === 'dns' && Boolean(proof.handle);
     const simulation = await publicClient.simulateContract({
-      address: this.deps.config.channelRegistryAddress,
-      abi: channelRegistryAbi,
-      functionName: 'verifyChannel',
-      args: [
-        hashCanonicalId(proof.channelId),
-        proof.claimant,
-        proof.nonce,
-        BigInt(proof.deadline),
-        proof.proofHash,
-        proof.verifierSignature,
-      ],
+      address: this.deps.config.beneficiaryRegistryAddress,
+      abi: beneficiaryRegistryAbi,
+      functionName: isDns ? 'verifyNamespacedBeneficiary' : 'verifyBeneficiary',
+      args: isDns
+        ? [
+            'dns',
+            proof.handle!,
+            proof.claimant,
+            proof.nonce,
+            BigInt(proof.deadline),
+            proof.proofHash,
+            proof.verifierSignature,
+          ]
+        : [
+            hashCanonicalId(proof.beneficiaryId),
+            proof.claimant,
+            proof.nonce,
+            BigInt(proof.deadline),
+            proof.proofHash,
+            proof.verifierSignature,
+          ],
       account,
     });
 
     return await walletClient.writeContract(simulation.request);
   }
 
-  private getChallengeTtlSeconds(platform: 'twitter' | 'youtube' | 'substack'): number {
-    if (platform === 'substack') {
+  private getChallengeTtlSeconds(platform: PendingVerificationChallenge['platform']): number {
+    if (platform === 'substack' || platform === 'dns') {
       return Math.max(this.deps.config.challengeTtlSeconds, 3600);
     }
 
@@ -544,6 +654,8 @@ export class PlatformApiService {
         return `https://www.youtube.com/watch?v=${postId}`;
       case 'substack':
         return postId;
+      case 'dns':
+        return `https://${handle}/.well-known/commonality-claim.json`;
     }
   }
 
@@ -552,7 +664,7 @@ export class PlatformApiService {
   ): Promise<VerificationPostMatch | null> {
     if (challenge.platform === 'twitter') {
       return await this.deps.twitterClient.findVerificationPost(
-        challenge.channelId,
+        challenge.beneficiaryId,
         challenge.challengeCode,
         challenge.createdAtMs,
       );
@@ -560,17 +672,111 @@ export class PlatformApiService {
 
     if (challenge.platform === 'youtube') {
       return await this.deps.youtubeClient.findVerificationPost(
-        challenge.channelId,
+        challenge.beneficiaryId,
         challenge.challengeCode,
         challenge.createdAtMs,
       );
     }
 
-    return await this.findSubstackVerificationPost({
-      publication: parseSubstackPublicationFromChannelId(challenge.channelId),
-      challengeCode: challenge.challengeCode,
-      issuedAfterMs: challenge.createdAtMs,
-    });
+    if (challenge.platform === 'substack') {
+      return await this.findSubstackVerificationPost({
+        publication: parseSubstackPublicationFromChannelId(challenge.beneficiaryId),
+        challengeCode: challenge.challengeCode,
+        issuedAfterMs: challenge.createdAtMs,
+      });
+    }
+
+    return await this.findDnsClaimDocument(challenge);
+  }
+
+  private expectedDnsClaim(challenge: PendingVerificationChallenge): DnsClaimDocument {
+    return {
+      canonicalDomain: challenge.handle,
+      claimant: challenge.claimantAddress.toLowerCase(),
+      chainId: this.deps.config.chainId!,
+      registryAddress: this.deps.config.beneficiaryRegistryAddress!.toLowerCase(),
+      nonce: challenge.nonce.toLowerCase(),
+      expiry: challenge.deadline,
+    };
+  }
+
+  private async findDnsClaimDocument(
+    challenge: PendingVerificationChallenge,
+  ): Promise<VerificationPostMatch | null> {
+    const httpsResult = await this.findHttpsDnsClaimDocument(challenge);
+    if (httpsResult) return httpsResult;
+    return await this.findTxtDnsClaimDocument(challenge);
+  }
+
+  private async findHttpsDnsClaimDocument(
+    challenge: PendingVerificationChallenge,
+  ): Promise<VerificationPostMatch | null> {
+    const proofUrl = `https://${challenge.handle}/.well-known/commonality-claim.json`;
+    let response: Response;
+    try {
+      response = await this.fetchImpl(proofUrl, { headers: { accept: 'application/json' } });
+    } catch {
+      return null;
+    }
+
+    if (response.status === 404) return null;
+    if (!response.ok) {
+      throw new HttpError(
+        502,
+        'domain_claim_unavailable',
+        `Domain claim lookup failed for ${challenge.handle}: HTTP ${response.status}`,
+      );
+    }
+
+    const finalUrl = response.url || proofUrl;
+    try {
+      assertDnsRedirectStaysOnDomain(finalUrl, challenge.handle);
+    } catch (error) {
+      throw this.redirectHttpError(error);
+    }
+
+    let artifact: unknown;
+    try {
+      artifact = await response.json();
+    } catch {
+      throw new HttpError(400, 'invalid_domain_claim', 'Domain claim must be valid JSON');
+    }
+
+    if (!matchesDnsClaimDocument(artifact, this.expectedDnsClaim(challenge))) {
+      throw new HttpError(400, 'invalid_domain_claim', 'Domain claim does not match the pending challenge');
+    }
+
+    return { id: finalUrl, publicUrl: finalUrl, text: JSON.stringify(artifact) };
+  }
+
+  private async findTxtDnsClaimDocument(
+    challenge: PendingVerificationChallenge,
+  ): Promise<VerificationPostMatch | null> {
+    const txtName = `_commonality.${challenge.handle}`;
+    let records: string[];
+    try {
+      records = await this.lookupTxt(txtName);
+    } catch {
+      throw new HttpError(502, 'domain_claim_unavailable', `Domain TXT claim lookup failed for ${txtName}`);
+    }
+
+    if (records.length === 0) return null;
+
+    const expected = this.expectedDnsClaim(challenge);
+    for (const record of records) {
+      let artifact: unknown;
+      try {
+        artifact = JSON.parse(record);
+      } catch {
+        continue;
+      }
+      if (matchesDnsClaimDocument(artifact, expected)) {
+        const publicUrl = `dns-txt:${txtName}`;
+        return { id: publicUrl, publicUrl, text: record };
+      }
+    }
+
+    throw new HttpError(400, 'invalid_domain_claim', 'Domain TXT claim does not match the pending challenge');
   }
 
   private async findSubstackVerificationPost(
@@ -608,34 +814,37 @@ export class PlatformApiService {
 
 export async function signClaimProof(
   verifierPrivateKey: Hex,
-  channelVerifierAddress: Address,
+  beneficiaryVerifierAddress: Address,
   chainId: number,
-  channelId: string,
+  canonicalBeneficiaryId: string,
   claimant: Address,
   nonce: Hex,
   deadline: number,
   proofHash: Hex,
+  namespaceHash: Hex = `0x${'00'.repeat(32)}`,
 ): Promise<Hex> {
   const account = privateKeyToAccount(verifierPrivateKey);
   return await account.signTypedData({
     domain: {
-      name: 'ChannelVerifier',
+      name: 'BeneficiaryVerifier',
       version: '1',
       chainId,
-      verifyingContract: channelVerifierAddress,
+      verifyingContract: beneficiaryVerifierAddress,
     },
     types: {
-      ChannelClaim: [
-        { name: 'channelId', type: 'bytes32' },
+      BeneficiaryClaim: [
+        { name: 'beneficiaryId', type: 'bytes32' },
+        { name: 'namespaceHash', type: 'bytes32' },
         { name: 'claimant', type: 'address' },
         { name: 'nonce', type: 'bytes32' },
         { name: 'deadline', type: 'uint256' },
         { name: 'proofHash', type: 'bytes32' },
       ],
     },
-    primaryType: 'ChannelClaim',
+    primaryType: 'BeneficiaryClaim',
     message: {
-      channelId: hashCanonicalId(channelId),
+      beneficiaryId: hashCanonicalId(canonicalBeneficiaryId),
+      namespaceHash,
       claimant,
       nonce,
       deadline: BigInt(deadline),
@@ -677,6 +886,68 @@ function buildSubstackPostTemplate(
     ? ` ${claimPageBaseUrl}/channels/${encodeURIComponent(channelId)}`
     : '';
   return `Claiming my funded content on ${commonalityHandle}${claimLink} #commonality-${challengeCode}`;
+}
+
+interface DnsClaimDocument {
+  canonicalDomain: string;
+  claimant: string;
+  chainId: number;
+  registryAddress: string;
+  nonce: string;
+  expiry: number;
+}
+
+function buildDnsClaimDocument(document: DnsClaimDocument): string {
+  return `${JSON.stringify(document, null, 2)}\n`;
+}
+
+async function lookupDnsTxt(name: string): Promise<string[]> {
+  try {
+    const records = await resolveTxt(name);
+    return records.map((chunks) => chunks.join(''));
+  } catch (error) {
+    const code = error && typeof error === 'object' && 'code' in error ? String((error as { code: unknown }).code) : '';
+    if (code === 'ENOTFOUND' || code === 'ENODATA' || code === 'ENONAME') {
+      return [];
+    }
+    throw error;
+  }
+}
+
+function matchesDnsClaimDocument(value: unknown, expected: DnsClaimDocument): boolean {
+  if (!value || typeof value !== 'object') return false;
+  const candidate = value as Record<string, unknown>;
+  return candidate.canonicalDomain === expected.canonicalDomain
+    && typeof candidate.claimant === 'string'
+    && candidate.claimant.toLowerCase() === expected.claimant
+    && candidate.chainId === expected.chainId
+    && typeof candidate.registryAddress === 'string'
+    && candidate.registryAddress.toLowerCase() === expected.registryAddress
+    && typeof candidate.nonce === 'string'
+    && candidate.nonce.toLowerCase() === expected.nonce
+    && candidate.expiry === expected.expiry;
+}
+
+function resolveDnsBeneficiary(input: string): ResolvedChannel {
+  const domain = normalizeDnsBeneficiary(input);
+  return {
+    platform: 'dns',
+    channelId: buildCanonicalBeneficiaryId('dns', domain),
+    handle: domain,
+    displayName: domain,
+  };
+}
+
+function normalizeDnsBeneficiary(input: string): string {
+  try {
+    return normalizeDnsBeneficiaryInput(input);
+  } catch (cause) {
+    throw new HttpError(
+      400,
+      'invalid_request',
+      cause instanceof Error ? cause.message : `Invalid beneficiary domain: ${input}`,
+    );
+  }
 }
 
 function resolveSubstackPublication(handle: string): ResolvedChannel {

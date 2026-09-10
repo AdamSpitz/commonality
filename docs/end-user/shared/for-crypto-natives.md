@@ -18,7 +18,7 @@ The system is built from several independent contracts rather than one monolithi
 - **TrustRegistry** (subjectiv) — Maps addresses to trust relationships. Used by the UI to determine which attesters a user considers authoritative.
 - **LazyGiving** / **AssuranceContracts** — Project assurance contracts. Funds are held in escrow; released when the threshold is met, refunded if not. Contributions mint non-transferable ERC-1155 recognition receipts. After a successful project, later donations reimburse early contributors pro-rata at cost through the contract's capped reimbursement waterfall.
 - **DelegatableNotes** / **NoteIntent** — The delegation layer. Notes represent earmarked funds with a designated delegate; NoteIntent records where a delegate has directed a note's funds.
-- **ContentRegistry** / **ChannelRegistry** / **ChannelEscrow** / **CreatorAssuranceContract** — The content-funding layer. Channels are registered by platform (YouTube, Twitter/X, Substack); channel claiming is verified via ChannelVerifier. Content assurance contracts handle per-piece funding.
+- **ContentRegistry** / **BeneficiaryRegistry** / **BeneficiaryEscrow** / **CreatorAssuranceContract** — The content-funding layer. Public identities (YouTube, Twitter/X, Substack, websites) are claimed via BeneficiaryVerifier; unclaimed funds sit in BeneficiaryEscrow. Content assurance contracts handle per-piece funding.
 - **MutableRefUpdater** — General-purpose on-chain mutable references (used for things like pointing to current IPFS content for a project).
 
 ## IPFS

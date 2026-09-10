@@ -1,6 +1,6 @@
 {
   "id": "security.onchain-owners",
-  "description": "Gating check: ChannelVerifier, ChannelRegistry, and DelegatableNotes owners still equal CONTRACT_ADMIN_ADDRESS.",
+  "description": "Gating check: BeneficiaryVerifier, BeneficiaryRegistry, and DelegatableNotes owners still equal CONTRACT_ADMIN_ADDRESS.",
   "trigger": { "type": "manual" },
   "retention": { "keep": 5, "keepDays": 30 },
   "command": ["node", "checks/security/onchain-owners.mjs"],

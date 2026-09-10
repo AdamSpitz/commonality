@@ -4,27 +4,28 @@ pragma solidity 0.8.33;
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {EIP712} from "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
-import {IChannelVerifier} from "./ChannelRegistry.sol";
+import {IBeneficiaryVerifier} from "./BeneficiaryRegistry.sol";
 import {Guardable} from "../utils/Guardable.sol";
 
 error InvalidTrustedVerifierAddress();
 error TrustedVerifierAlreadyRevoked();
 
 /**
- * @title ChannelVerifier
- * @notice Verifies channel-claim proofs signed by a trusted off-chain verifier (the Platform API Service)
+ * @title BeneficiaryVerifier
+ * @notice Verifies beneficiary-claim proofs signed by a trusted off-chain verifier (the Platform API Service)
  * @dev Uses EIP-712 typed-data signatures. The trusted off-chain signer signs:
  *
- *        ChannelClaim(bytes32 channelId,address claimant,bytes32 nonce,uint256 deadline,bytes32 proofHash)
+ *        BeneficiaryClaim(bytes32 beneficiaryId,bytes32 namespaceHash,address claimant,bytes32 nonce,uint256 deadline,bytes32 proofHash)
  *
- *      with the EIP-712 domain ("ChannelVerifier", "1", chainId, address(this)). The
+ *      with the EIP-712 domain ("BeneficiaryVerifier", "1", chainId, address(this)). The
  *      domain binds signatures to this specific deployment on this specific chain,
  *      preventing cross-chain or cross-deployment replay even if the same trusted
  *      signer key is reused.
  */
-contract ChannelVerifier is IChannelVerifier, Guardable, EIP712 {
-    bytes32 public constant CHANNEL_CLAIM_TYPEHASH =
-        keccak256("ChannelClaim(bytes32 channelId,address claimant,bytes32 nonce,uint256 deadline,bytes32 proofHash)");
+contract BeneficiaryVerifier is IBeneficiaryVerifier, Guardable, EIP712 {
+    bytes32 public constant BENEFICIARY_CLAIM_TYPEHASH = keccak256(
+        "BeneficiaryClaim(bytes32 beneficiaryId,bytes32 namespaceHash,address claimant,bytes32 nonce,uint256 deadline,bytes32 proofHash)"
+    );
 
     /// @notice The address of the trusted off-chain verifier (zero once revoked)
     address public trustedVerifier;
@@ -49,7 +50,7 @@ contract ChannelVerifier is IChannelVerifier, Guardable, EIP712 {
      */
     constructor(address _trustedVerifier)
         Ownable(msg.sender)
-        EIP712("ChannelVerifier", "1")
+        EIP712("BeneficiaryVerifier", "1")
     {
         if (_trustedVerifier == address(0)) revert InvalidTrustedVerifierAddress();
         trustedVerifier = _trustedVerifier;
@@ -83,8 +84,8 @@ contract ChannelVerifier is IChannelVerifier, Guardable, EIP712 {
     }
 
     /**
-     * @notice Verify a channel claim proof by recovering the signer from the signature
-     * @param channelId The channel being claimed
+     * @notice Verify a beneficiary claim proof by recovering the signer from the signature
+     * @param beneficiaryId The beneficiary being claimed
      * @param claimant The address claiming ownership
      * @param nonce A unique nonce to prevent replay attacks
      * @param deadline The unix timestamp after which the proof expires
@@ -93,7 +94,8 @@ contract ChannelVerifier is IChannelVerifier, Guardable, EIP712 {
      * @return True if the signature was produced by the trusted verifier
      */
     function verifyClaimProof(
-        bytes32 channelId,
+        bytes32 beneficiaryId,
+        bytes32 namespaceHash,
         address claimant,
         bytes32 nonce,
         uint256 deadline,
@@ -105,7 +107,7 @@ contract ChannelVerifier is IChannelVerifier, Guardable, EIP712 {
         if (trustedVerifier == address(0)) return false;
 
         bytes32 structHash = keccak256(
-            abi.encode(CHANNEL_CLAIM_TYPEHASH, channelId, claimant, nonce, deadline, proofHash)
+            abi.encode(BENEFICIARY_CLAIM_TYPEHASH, beneficiaryId, namespaceHash, claimant, nonce, deadline, proofHash)
         );
         bytes32 digest = _hashTypedDataV4(structHash);
         address recovered = ECDSA.recover(digest, verifierSignature);

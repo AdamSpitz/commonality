@@ -3,13 +3,13 @@ import hre from "hardhat";
 
 const { ethers } = hre;
 
-describe("MockChannelVerifier", function () {
+describe("MockBeneficiaryVerifier", function () {
   let mockVerifier;
   let claimant;
 
   beforeEach(async function () {
     [, claimant] = await ethers.getSigners();
-    mockVerifier = await ethers.deployContract("MockChannelVerifier");
+    mockVerifier = await ethers.deployContract("MockBeneficiaryVerifier");
   });
 
   for (const valid of [true, false]) {
@@ -19,6 +19,7 @@ describe("MockChannelVerifier", function () {
       expect(
         await mockVerifier.verifyClaimProof(
           ethers.id("test-channel"),
+          ethers.ZeroHash,
           claimant.address,
           ethers.id("nonce-1"),
           (await ethers.provider.getBlock("latest")).timestamp + 86400,

@@ -20,8 +20,8 @@ import { formatCurrencyAmount, InfoChip } from '../../shared'
 import { CHANNEL_STATE_TOOLTIPS, CONTRACT_STATUS_TOOLTIPS } from '../chipTooltips'
 import { getVetoableContracts, hashCanonicalId, type ChannelWithCanonicalId, type ChannelState } from '@commonality/sdk/content-funding'
 import { ETH_CURRENCY, type Currency } from '@commonality/sdk/utils'
-import { ChannelRegistryAbi, ChannelEscrowAbi } from '@commonality/sdk/abis'
-import { withdrawFromEscrow, takeChannelControl, vetoContract } from '@commonality/sdk/content-funding'
+import { BeneficiaryRegistryAbi, BeneficiaryEscrowAbi, CreatorAssuranceVetoAbi } from '@commonality/sdk/abis'
+import { withdrawFromEscrow, takeBeneficiaryControl, vetoContract } from '@commonality/sdk/content-funding'
 import { getChannelDisplayLabels, type ChannelDisplayMetadata } from '../channelDisplay'
 import { useContentFundingState } from '../hooks/useContentFundingState'
 import { useWriteClients } from '../../shared'
@@ -29,13 +29,13 @@ import { useWriteClients } from '../../shared'
 const STATE_LABELS: Record<ChannelState, string> = {
   unclaimed: 'Unclaimed',
   verified: 'Verified',
-  'creator-controlled': 'Creator-Controlled',
+  'beneficiary-controlled': 'Creator-Controlled',
 }
 
 const STATE_COLORS: Record<ChannelState, 'default' | 'warning' | 'success'> = {
   unclaimed: 'default',
   verified: 'warning',
-  'creator-controlled': 'success',
+  'beneficiary-controlled': 'success',
 }
 
 function getTotalFunding(channel: ChannelWithCanonicalId): bigint {
@@ -142,7 +142,7 @@ function ChannelCard({ channel, state, projects, onWithdraw, onTakeControl, onVe
           </Box>
         )}
 
-        {(channel.channel.state === 'verified' || channel.channel.state === 'creator-controlled') && hasEscrowBalance && (
+        {(channel.channel.state === 'verified' || channel.channel.state === 'beneficiary-controlled') && hasEscrowBalance && (
           <Box sx={{ mb: 2 }}>
             <Button
               variant="contained"
@@ -282,7 +282,7 @@ export function CreatorDashboardPage({
   const handleWithdraw = async (channel: ChannelWithCanonicalId) => {
     if (!writeClients || !address || !channel.canonicalChannelId) return
 
-    const escrowAddress = import.meta.env.VITE_CHANNEL_ESCROW_ADDRESS
+    const escrowAddress = import.meta.env.VITE_BENEFICIARY_ESCROW_ADDRESS
     const channelId = channel.canonicalChannelId
 
     if (!escrowAddress) {
@@ -298,7 +298,7 @@ export function CreatorDashboardPage({
 
       const escrowContract = {
         address: escrowAddress as `0x${string}`,
-        abi: ChannelEscrowAbi,
+        abi: BeneficiaryEscrowAbi,
       }
 
       await withdrawFromEscrow(clients, escrowContract, hashCanonicalId(channelId))
@@ -313,7 +313,7 @@ export function CreatorDashboardPage({
   const handleTakeControl = async (channel: ChannelWithCanonicalId) => {
     if (!writeClients || !address || !channel.canonicalChannelId) return
 
-    const registryAddress = import.meta.env.VITE_CHANNEL_REGISTRY_ADDRESS
+    const registryAddress = import.meta.env.VITE_BENEFICIARY_REGISTRY_ADDRESS
 
     if (!registryAddress) {
       setTakeControlError('Channel registry not configured')
@@ -328,10 +328,10 @@ export function CreatorDashboardPage({
 
       const registryContract = {
         address: registryAddress as `0x${string}`,
-        abi: ChannelRegistryAbi,
+        abi: BeneficiaryRegistryAbi,
       }
 
-      await takeChannelControl(clients, registryContract, hashCanonicalId(channel.canonicalChannelId))
+      await takeBeneficiaryControl(clients, registryContract, hashCanonicalId(channel.canonicalChannelId))
       window.location.reload()
     } catch (err) {
       setTakeControlError(err instanceof Error ? err.message : 'Failed to take control')
@@ -343,10 +343,10 @@ export function CreatorDashboardPage({
   const handleVeto = async (channel: ChannelWithCanonicalId, contractAddress: string) => {
     if (!writeClients || !address || !channel.canonicalChannelId) return
 
-    const registryAddress = import.meta.env.VITE_CHANNEL_REGISTRY_ADDRESS
+    const vetoAddress = import.meta.env.VITE_CREATOR_ASSURANCE_VETO_ADDRESS
 
-    if (!registryAddress) {
-      setVetoError('Channel registry not configured')
+    if (!vetoAddress) {
+      setVetoError('Content veto module not configured')
       return
     }
 
@@ -356,12 +356,12 @@ export function CreatorDashboardPage({
 
       const clients = writeClients!
 
-      const registryContract = {
-        address: registryAddress as `0x${string}`,
-        abi: ChannelRegistryAbi,
+      const vetoContractInstance = {
+        address: vetoAddress as `0x${string}`,
+        abi: CreatorAssuranceVetoAbi,
       }
 
-      await vetoContract(clients, registryContract, contractAddress as `0x${string}`)
+      await vetoContract(clients, vetoContractInstance, contractAddress as `0x${string}`)
       window.location.reload()
     } catch (err) {
       setVetoError(err instanceof Error ? err.message : 'Failed to veto contract')

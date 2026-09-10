@@ -28,8 +28,9 @@ import DeleteIcon from '@mui/icons-material/Delete'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { useNavigate } from 'react-router-dom'
 import { useAccount, usePublicClient } from 'wagmi'
-import { ProjectFactoryAbi, PublishedDataAbi } from '@commonality/sdk/abis'
+import { BeneficiaryRegistryAbi, ProjectFactoryAbi, PublishedDataAbi } from '@commonality/sdk/abis'
 import { createProject, type ProjectFactoryContract } from '@commonality/sdk/lazy-giving'
+import { hashBeneficiaryId, normalizeDnsBeneficiary } from '@commonality/sdk/content-funding'
 import { createDefaultDocumentStore, createDisplayableDocument } from '@commonality/sdk/displayable-documents'
 import { isValidCidV1 } from '@commonality/sdk/utils'
 import { parseUnits } from 'viem'
@@ -38,6 +39,7 @@ import { usePaymentTokenCurrency } from '../../shared'
 import { projectPathForAddress } from '../../shared'
 import { useWriteClients } from '../../shared'
 import { RecipientPicker } from '../components/RecipientPicker'
+import { usePlatformApi } from '../../content-funding'
 import { WalletButton } from '../../shared/components/WalletButton'
 import { formatCurrencyAmount, formatTokenCapacityPreviewRows, hasOneUnitDonationOption, suggestGivingLevels, summarizeProjectTokenCapacity } from '../projectCreation'
 
@@ -76,12 +78,15 @@ export function CreateProjectPage() {
   const publicClient = usePublicClient()
   const writeClients = useWriteClients(address)
   const machinery = useMachinery()
+  const { resolveWebsiteBeneficiary } = usePlatformApi()
 
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [updatesUrl, setUpdatesUrl] = useState('')
   const [relevantAreas, setRelevantAreas] = useState('')
   const [recipient, setRecipient] = useState<string | null>(null)
+  const [recipientKind, setRecipientKind] = useState<'wallet' | 'website'>('wallet')
+  const [beneficiaryDomain, setBeneficiaryDomain] = useState('')
   const [threshold, setThreshold] = useState('')
   const [stopAtGoal, setStopAtGoal] = useState(true)
   const [deadline, setDeadline] = useState('')
@@ -127,6 +132,15 @@ export function CreateProjectPage() {
     if (!name.trim()) return 'Project name is required'
     if (!threshold || parseFloat(threshold) <= 0) return 'Funding goal must be positive'
     if (!deadline) return 'Deadline is required'
+
+    if (recipientKind === 'website') {
+      if (!beneficiaryDomain.trim()) return 'Beneficiary website is required'
+      try {
+        normalizeDnsBeneficiary(beneficiaryDomain)
+      } catch (cause) {
+        return cause instanceof Error ? cause.message : 'Beneficiary website is invalid'
+      }
+    }
 
     const normalizedUpdatesUrl = updatesUrl.trim()
     if (normalizedUpdatesUrl) {
@@ -237,6 +251,58 @@ export function CreateProjectPage() {
       if (Object.keys(tokenMetadataCids).length > 0) {
         projectMeta.tokens = tokenMetadataCids
       }
+      const canonicalBeneficiaryDomain = recipientKind === 'website'
+        ? normalizeDnsBeneficiary(beneficiaryDomain)
+        : null
+      if (canonicalBeneficiaryDomain) {
+        try {
+          const resolved = await resolveWebsiteBeneficiary(beneficiaryDomain)
+          if (resolved.canonicalIdentifier !== canonicalBeneficiaryDomain) {
+            throw new Error(`Beneficiary website resolved to ${resolved.canonicalIdentifier}, not ${canonicalBeneficiaryDomain}`)
+          }
+        } catch (cause) {
+          const code = cause && typeof cause === 'object' && 'code' in cause
+            ? String((cause as { code: unknown }).code)
+            : undefined
+          if (code === 'invalid_domain_redirect') {
+            throw new Error('That website redirected to a different domain. Name the registrable domain people actually control.')
+          }
+          if (code === 'blocked_identity') {
+            throw new Error('This website cannot be used as a project beneficiary.')
+          }
+          if (cause instanceof Error && cause.message.includes('resolved to')) {
+            throw cause
+          }
+          // Network or API outages must not brick creation; only observed
+          // cross-domain redirects are refused.
+        }
+        const registryAddress = import.meta.env.VITE_BENEFICIARY_REGISTRY_ADDRESS as `0x${string}` | undefined
+        if (registryAddress && publicClient) {
+          const controlled = await publicClient.readContract({
+            address: registryAddress,
+            abi: BeneficiaryRegistryAbi,
+            functionName: 'isBeneficiaryControlled',
+            args: [hashBeneficiaryId('dns', canonicalBeneficiaryDomain)],
+          }) as boolean
+          if (controlled) {
+            const payout = await publicClient.readContract({
+              address: registryAddress,
+              abi: BeneficiaryRegistryAbi,
+              functionName: 'payoutAddress',
+              args: [hashBeneficiaryId('dns', canonicalBeneficiaryDomain)],
+            }) as string
+            if (!address || payout.toLowerCase() !== address.toLowerCase()) {
+              throw new Error(
+                'This website has taken beneficiary control. Only its payout wallet can create new projects about it.',
+              )
+            }
+          }
+        }
+        projectMeta.beneficiary = {
+          namespace: 'dns',
+          canonicalIdentifier: canonicalBeneficiaryDomain,
+        }
+      }
 
       const metadataPublication = await documentStore.publish(createDisplayableDocument({
         format: 'markdown-restricted',
@@ -261,8 +327,6 @@ export function CreateProjectPage() {
         abi: ProjectFactoryAbi,
       }
 
-      const recipientAddress = (recipient || address) as `0x${string}`
-
       const tokenMetadataURIs = tokenTypes.map(token => {
         const tokenName = token.name.trim() || `${name.trim()} contribution receipt #${token.tokenId}`
         const imageCid = token.imageCid.trim()
@@ -277,11 +341,14 @@ export function CreateProjectPage() {
         description: description.trim() || `Contribution receipt for ${name.trim()}`,
       })
 
+      const payoutTarget = canonicalBeneficiaryDomain
+        ? { beneficiaryId: hashBeneficiaryId('dns', canonicalBeneficiaryDomain) }
+        : { recipient: (recipient || address) as `0x${string}` }
       const { projectDetails } = await createProject(clients, projectFactoryContract, {
         metadataURI: erc1155MetadataUri,
         contractURI: erc1155MetadataUri,
         owner: address,
-        recipient: recipientAddress,
+        ...payoutTarget,
         paymentToken: paymentTokenAddress as `0x${string}`,
         threshold: parsePaymentAmount(threshold),
         deadline: BigInt(deadlineTimestamp),
@@ -363,10 +430,39 @@ export function CreateProjectPage() {
             helperText="One area per line, from specific to broad. Use Worldwide for broadly relevant work. Boards use this for approximate discovery—not as a verified address or strict eligibility claim."
           />
 
-          <RecipientPicker
-            address={address}
-            onChange={(addr) => setRecipient(addr)}
-          />
+          <FormControl>
+            <FormLabel id="recipient-kind-label">Who receives the funds?</FormLabel>
+            <RadioGroup
+              aria-labelledby="recipient-kind-label"
+              value={recipientKind}
+              onChange={(event) => setRecipientKind(event.target.value as 'wallet' | 'website')}
+            >
+              <FormControlLabel value="wallet" control={<Radio />} label="A wallet" />
+              <FormControlLabel value="website" control={<Radio />} label="The controller of a website" />
+            </RadioGroup>
+          </FormControl>
+
+          {recipientKind === 'wallet' ? (
+            <RecipientPicker
+              address={address}
+              onChange={(addr) => setRecipient(addr)}
+            />
+          ) : (
+            <Stack spacing={1}>
+              <TextField
+                label="Beneficiary website"
+                value={beneficiaryDomain}
+                onChange={(event) => setBeneficiaryDomain(event.target.value)}
+                placeholder="example.org"
+                helperText="Use the organization's apex website, without a path. example.org and www.example.org identify the same beneficiary. A site that redirects to a different domain is refused."
+                fullWidth
+                required
+              />
+              <Alert severity="warning">
+                This project is not affiliated with the website unless its controller has already claimed it. If unclaimed, successful funds stay in protocol escrow until the controller proves domain control; you cannot withdraw them. Contributions are not tax-deductible gifts and do not certify charity or legal-entity identity.
+              </Alert>
+            </Stack>
+          )}
 
           <TextField
             label={`Funding goal (${paymentSymbol})`}

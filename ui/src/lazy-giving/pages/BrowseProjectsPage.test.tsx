@@ -41,9 +41,18 @@ vi.mock('@commonality/sdk/utils', async () => {
   }
 })
 
+vi.mock('@commonality/sdk/content-funding', async () => {
+  const actual = await vi.importActual('@commonality/sdk/content-funding')
+  return {
+    ...actual,
+    fetchAndFoldContentFundingState: vi.fn(),
+  }
+})
+
 import { getAllProjectAddresses, getProject } from '@commonality/sdk/lazy-giving'
 import { createSDKMachinery } from '@commonality/sdk/machinery'
 import { fetchFromIPFS } from '@commonality/sdk/utils'
+import { fetchAndFoldContentFundingState, hashBeneficiaryId } from '@commonality/sdk/content-funding'
 
 const mockMachinery = {} as any
 
@@ -75,6 +84,10 @@ describe('BrowseProjectsPage', () => {
     ] as any)
     vi.mocked(getProject).mockResolvedValue(makeProject() as any)
     vi.mocked(fetchFromIPFS).mockResolvedValue(null)
+    vi.mocked(fetchAndFoldContentFundingState).mockResolvedValue({
+      state: { beneficiaryRegistry: { channels: new Map() } },
+      vetoedEvents: [],
+    } as any)
   })
 
   describe('Loading state', () => {
@@ -194,6 +207,55 @@ describe('BrowseProjectsPage', () => {
       await waitFor(() => {
         expect(screen.getByText('Alpha Project')).toBeInTheDocument()
         expect(screen.getByText('Beta Project')).toBeInTheDocument()
+      })
+    })
+
+    it('chips folded website claim state on cards', async () => {
+      vi.spyOn(cachedProjectsModule, 'useCachedProjects').mockReturnValue({
+        projects: [makeProject({ id: '0x1111', metadataCid: 'cid1' })] as any,
+        loading: false,
+        error: null,
+        reload: vi.fn(),
+      })
+      vi.mocked(fetchFromIPFS).mockResolvedValue({
+        name: 'Garden fund',
+        beneficiary: { namespace: 'dns', canonicalIdentifier: 'example.org' },
+      })
+      vi.mocked(fetchAndFoldContentFundingState).mockResolvedValue({
+        state: {
+          beneficiaryRegistry: {
+            channels: new Map([
+              [hashBeneficiaryId('dns', 'example.org'), { state: 'verified' }],
+            ]),
+          },
+        },
+        vetoedEvents: [],
+      } as any)
+
+      render(<BrowseProjectsPage />)
+
+      await waitFor(() => {
+        expect(screen.getByText('Domain-controlled')).toBeInTheDocument()
+        expect(screen.getByText(/escrow pays the bound wallet/i)).toBeInTheDocument()
+      })
+    })
+
+    it('shows the website beneficiary domain on cards without collapsing it', async () => {
+      vi.spyOn(cachedProjectsModule, 'useCachedProjects').mockReturnValue({
+        projects: [makeProject({ id: '0x1111', metadataCid: 'cid1' })] as any,
+        loading: false,
+        error: null,
+        reload: vi.fn(),
+      })
+      vi.mocked(fetchFromIPFS).mockResolvedValue({
+        name: 'Garden fund',
+        beneficiary: { namespace: 'dns', canonicalIdentifier: 'еxample.org' },
+      })
+
+      render(<BrowseProjectsPage />)
+
+      await waitFor(() => {
+        expect(screen.getByTestId('website-beneficiary-domain')).toHaveTextContent('еxample.org')
       })
     })
 
