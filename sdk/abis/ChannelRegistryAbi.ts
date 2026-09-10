@@ -96,6 +96,11 @@ export const ChannelRegistryAbi = [
   },
   {
     "inputs": [],
+    "name": "InvalidNewChannelOwner",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "InvalidNonce",
     "type": "error"
   },
@@ -122,6 +127,11 @@ export const ChannelRegistryAbi = [
   {
     "inputs": [],
     "name": "NoVerifierConfigured",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "OnlyChannelOwnerCanRotate",
     "type": "error"
   },
   {
@@ -198,6 +208,31 @@ export const ChannelRegistryAbi = [
       }
     ],
     "name": "ChannelControlTaken",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "channelId",
+        "type": "bytes32"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "oldOwner",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "newOwner",
+        "type": "address"
+      }
+    ],
+    "name": "ChannelOwnerRotated",
     "type": "event"
   },
   {
@@ -643,6 +678,24 @@ export const ChannelRegistryAbi = [
   {
     "inputs": [],
     "name": "revokeVerifier",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "channelId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "address",
+        "name": "newOwner",
+        "type": "address"
+      }
+    ],
+    "name": "rotateChannelOwner",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

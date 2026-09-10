@@ -10,7 +10,9 @@ error ChannelNotVerified(bytes32 channelId);
 error ChannelAlreadyCreatorControlled(bytes32 channelId);
 error ChannelNotCreatorControlled(bytes32 channelId);
 error InvalidClaimant();
+error InvalidNewChannelOwner();
 error OnlyChannelOwnerCanTakeControl();
+error OnlyChannelOwnerCanRotate();
 error OnlyChannelOwnerCanVeto();
 error InvalidNonce();
 error ProofExpired();
@@ -62,6 +64,7 @@ interface IChannelRegistry {
         bytes calldata verifierSignature
     ) external;
     function takeChannelControl(bytes32 channelId) external;
+    function rotateChannelOwner(bytes32 channelId, address newOwner) external;
     function vetoContract(address contractAddress) external;
     function setVerifier(address verifier) external;
     function revokeVerifier() external;
@@ -141,6 +144,12 @@ contract ChannelRegistry is IChannelRegistry, Guardable {
      * @param owner The owner who took control
      */
     event ChannelControlTaken(bytes32 indexed channelId, address indexed owner);
+
+    /**
+     * @notice Emitted when the verified owner authorizes a replacement payout address
+     * @dev Identity proof alone cannot rotate an already-verified channel.
+     */
+    event ChannelOwnerRotated(bytes32 indexed channelId, address indexed oldOwner, address indexed newOwner);
 
     /**
      * @notice Emitted when a channel owner vetoes a third-party contract
@@ -345,6 +354,27 @@ contract ChannelRegistry is IChannelRegistry, Guardable {
 
         emit ChannelVerified(channelId, claimant);
         emit ChannelProofAnchored(channelId, claimant, proofHash);
+    }
+
+    /**
+     * @notice Replace the verified owner with a new payout address.
+     * @dev Only the current owner may rotate. This deliberately provides no verifier-
+     *      or administrator-driven recovery path: a new identity proof alone must not
+     *      redirect funds already associated with an established owner.
+     * @param channelId The verified channel whose owner is changing
+     * @param newOwner The replacement owner and escrow payout address
+     */
+    function rotateChannelOwner(bytes32 channelId, address newOwner) external {
+        if (_channelStates[channelId] == ChannelState.Unclaimed) {
+            revert ChannelNotVerified(channelId);
+        }
+        if (newOwner == address(0)) revert InvalidNewChannelOwner();
+
+        address currentOwner = _channelOwners[channelId];
+        if (_msgSender() != currentOwner) revert OnlyChannelOwnerCanRotate();
+
+        _channelOwners[channelId] = newOwner;
+        emit ChannelOwnerRotated(channelId, currentOwner, newOwner);
     }
 
     /**

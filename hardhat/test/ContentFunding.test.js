@@ -330,6 +330,40 @@ describe("ContentFunding", function () {
         .to.be.revertedWithCustomError(channelRegistry, "InvalidNonce");
     });
 
+    it("Should allow only the verified owner to rotate the payout address", async function () {
+      await mockVerifier.setValid(true);
+      await channelRegistry.verifyChannel(channelId, alice.address, nonce, deadline, proofHash, verifierSignature);
+
+      await expect(channelRegistry.connect(alice).rotateChannelOwner(channelId, bob.address))
+        .to.emit(channelRegistry, "ChannelOwnerRotated")
+        .withArgs(channelId, alice.address, bob.address);
+
+      expect(await channelRegistry.channelOwner(channelId)).to.equal(bob.address);
+      expect(await channelRegistry.channelState(channelId)).to.equal(1);
+    });
+
+    it("Should not allow a verifier, administrator, or unrelated wallet to rotate an established owner", async function () {
+      await mockVerifier.setValid(true);
+      await channelRegistry.verifyChannel(channelId, alice.address, nonce, deadline, proofHash, verifierSignature);
+
+      await expect(channelRegistry.connect(owner).rotateChannelOwner(channelId, bob.address))
+        .to.be.revertedWithCustomError(channelRegistry, "OnlyChannelOwnerCanRotate");
+      await expect(channelRegistry.connect(bob).rotateChannelOwner(channelId, bob.address))
+        .to.be.revertedWithCustomError(channelRegistry, "OnlyChannelOwnerCanRotate");
+      expect(await channelRegistry.channelOwner(channelId)).to.equal(alice.address);
+    });
+
+    it("Should reject payout rotation before verification or to the zero address", async function () {
+      await expect(channelRegistry.connect(alice).rotateChannelOwner(channelId, bob.address))
+        .to.be.revertedWithCustomError(channelRegistry, "ChannelNotVerified")
+        .withArgs(channelId);
+
+      await mockVerifier.setValid(true);
+      await channelRegistry.verifyChannel(channelId, alice.address, nonce, deadline, proofHash, verifierSignature);
+      await expect(channelRegistry.connect(alice).rotateChannelOwner(channelId, ethers.ZeroAddress))
+        .to.be.revertedWithCustomError(channelRegistry, "InvalidNewChannelOwner");
+    });
+
     it("Should take channel control after verification", async function () {
       await mockVerifier.setValid(true);
       await channelRegistry.verifyChannel(channelId, alice.address, nonce, deadline, proofHash, verifierSignature);
@@ -606,6 +640,28 @@ describe("ContentFunding", function () {
 
       await expect(channelEscrow.connect(bob).withdraw(channelId))
         .to.be.revertedWithCustomError(channelEscrow, "NoBalance");
+    });
+
+    it("Should pay existing escrow to an owner-authorized replacement address", async function () {
+      const depositAmount = ethers.parseEther("1.0");
+      await depositIntoEscrow(owner, channelId, depositAmount);
+      await mockVerifier.setValid(true);
+      await channelRegistry.verifyChannel(
+        channelId,
+        alice.address,
+        ethers.id("nonce-owner-rotation"),
+        (await ethers.provider.getBlock("latest")).timestamp + 86400,
+        proofHash,
+        "0x"
+      );
+
+      await channelRegistry.connect(alice).rotateChannelOwner(channelId, bob.address);
+
+      await expect(channelEscrow.connect(alice).withdraw(channelId))
+        .to.be.revertedWithCustomError(channelEscrow, "OnlyChannelOwner");
+      await expect(channelEscrow.connect(bob).withdraw(channelId))
+        .to.emit(channelEscrow, "Withdrawn")
+        .withArgs(channelId, bob.address, depositAmount);
     });
   });
 

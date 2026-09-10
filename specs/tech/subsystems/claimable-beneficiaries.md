@@ -29,7 +29,7 @@ Replace `ChannelRegistry` + `ChannelEscrow` + `IChannelVerifier` / `ChannelClaim
 
 | Piece | Role |
 |---|---|
-| `BeneficiaryRegistry` | State per `beneficiaryId`: unclaimed / verified / beneficiary-controlled; bound payout address; proof-hash anchoring; nonce/deadline replay rules |
+| `BeneficiaryRegistry` | State per `beneficiaryId`: unclaimed / verified / beneficiary-controlled; bound payout address; proof-hash anchoring; nonce/deadline replay rules; owner-authorized payout rotation |
 | `BeneficiaryEscrow` | ETH (later stablecoin) balances keyed by `beneficiaryId`; `withdraw` only to the registry's current payout address |
 | `IBeneficiaryVerifier` | `verifyClaimProof(proof) returns (bool)` — one implementation per namespace (tweet, RSS, well-known HTTPS, later zkTLS / DNSSEC) |
 
@@ -81,9 +81,17 @@ Content veto and occupancy: not in this contract.
 Namespace config (or per-id override) rather than hardcoded charity-only forks:
 
 - **Claim waiting period** before first `withdraw` after a new proof (0 for social MVP; non-zero for `dns` / large balances).
-- **Re-bind payout address** via a fresh proof; old address must not remain a withdraw key.
+- **Re-bind payout address** only with authorization from the current payout address; a namespace may additionally require a fresh identity proof. A fresh identity proof alone must not replace an established payout address.
 - **Unclaimed timeout:** escrow is not a timeout clock. Timeouts live on the *project* (assurance deadline → contributor refund). Do not add "sweep to protocol" on the escrow.
-- **Loss of control:** do not make domain transfer inherit past escrow. Sketch: verification records `proofHash` + time; a later conflicting proof or an explicit `freeze` from the current owner (or a new successful proof after wait) is the rotation path. Do not auto-credit a domain buyer. Exact freeze/challenge rules TBD when implementing `dns`.
+- **Loss of control:** MVP recovery is intentionally absent. After the first claim, neither a later conflicting proof nor current domain control can redirect established funds without the current payout wallet. The UI may stop new activity for a disputed or stale identity, but neither the verifier nor an administrator chooses a replacement owner.
+
+### MVP claim and rotation rules
+
+The first valid claim proposes the initial payout address. For namespaces with a non-zero waiting period, escrow remains locked until that period has elapsed; the claim itself must be publicly visible during the wait. The first finalized claimant receives the balance accumulated while the identity was unclaimed. This cannot distinguish an original organization from a purchaser who acquired the domain before its first-ever claim, so the product must disclose that limitation rather than implying legal-entity continuity.
+
+Once claimed, payout rotation requires the current payout address to authorize the replacement. Namespace policy may also require a fresh proof of identity control, but that proof is an additional check, never a substitute for the current wallet's authorization. A lost wallet or uncooperative domain transfer can leave the beneficiary stuck in the MVP. This is the deliberately conservative failure mode: unavailable functionality rather than misdirected money.
+
+Do not implement claim generations yet. If later required, balances should be keyed by `(beneficiaryId, generation)`, and identity-only recovery should affect future deposits without inheriting earlier generations. That extension is demand-gated on real domain transfers, long-lived escrow, or materially large balances.
 
 ## Callers
 

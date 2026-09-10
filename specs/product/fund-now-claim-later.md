@@ -42,8 +42,8 @@ Stablecoin in escrow → org claims to own wallet/multisig → independent KYC/o
 
 ## Policy (charities make these more visible than tweets)
 
-- **Domain expiry or transfer.** A later purchaser of the domain should not silently inherit *past* escrow. "Buyer of the domain gets the pile" is the wrong default.
-- **Wallet rotation.** The org must be able to bind a new payout address with a new proof. The old address must not remain a withdrawal key.
+- **Domain expiry or transfer.** For the MVP, the first controller to complete a claim after the public waiting period receives the unclaimed escrow. After that first claim, control of the public identity alone can never replace the established payout address or inherit its funds. An uncooperative domain transfer may therefore leave the identifier unusable until a later recovery design exists; stranding functionality is safer than redirecting money. The UI may freeze new activity when ownership is disputed, but Commonality does not adjudicate a winner.
+- **Wallet rotation.** The current payout wallet may authorize a new payout address (and namespaces may additionally require a fresh identity proof). Identity proof without authorization from the current payout wallet is not a recovery mechanism in the MVP. Lost-wallet recovery, domain-transfer recovery, and claim-generation accounting are deferred until real use demands them.
 - **Compromise.** Stolen domain or wallet can produce a bad claim. For org-scale balances, a **public waiting period** between proof publication and first withdrawal so the real org can notice a rogue webmaster. Content-scale tips may use a zero wait.
 - **Unclaimed money.** Project deadline, then refund contributors. Do not trap funds forever. Do not roll into another project or to us.
 - **Unauthorized employee claim.** We do not run a dispute court. Waiting period + public proof is the mitigation.
@@ -57,3 +57,7 @@ This is the current [focus](/focus.md). The invitation is the same viral loop as
 > People have already pooled $X for the controller of your website. Publish this record to claim it — and, if you like the rails, keep using them.
 
 That complements [for-established-orgs.md](/docs/end-user/commonality/vision-and-strategy/ease-of-adoption/for-established-orgs.md): constituency demonstrates demand *before* the org decides to adopt. GitHub orgs / npm scopes are the same primitive for the [OSS tip-jar gap](use-cases.md).
+
+## Deferred recovery model
+
+If real usage requires recovery without the current payout wallet, the likely extension is claim generations: current identity control starts a new generation for future deposits without transferring established generations. Do not build that machinery for the MVP. It becomes warranted for long-lived accumulating escrow, meaningful domain transfers, or materially large balances. Any future recovery design must preserve the invariant that a new identity proof alone cannot retroactively redirect established funds.
