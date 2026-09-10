@@ -17,7 +17,10 @@ const mockAccount = {
   isConnected: true,
 }
 const mockWalletClient = { data: { writeContract: vi.fn() } }
-const mockPublicClient = { waitForTransactionReceipt: vi.fn() }
+const mockPublicClient = {
+  waitForTransactionReceipt: vi.fn(),
+  readContract: vi.fn(),
+}
 
 vi.mock('wagmi', () => ({
   useAccount: () => mockAccount,
@@ -94,6 +97,8 @@ describe('CreateProjectPage', () => {
     })
     // Set required env var for contract address
     import.meta.env.VITE_PROJECT_FACTORY_CONTRACT_ADDRESS = '0x1234567890abcdef1234567890abcdef12345678'
+    import.meta.env.VITE_BENEFICIARY_REGISTRY_ADDRESS = '0x2222222222222222222222222222222222222222'
+    mockPublicClient.readContract.mockResolvedValue(false)
 
   })
 
@@ -432,6 +437,27 @@ describe('CreateProjectPage', () => {
         }),
       }))
       expect(mockResolveWebsiteBeneficiary).toHaveBeenCalledWith('https://www.Example.org/')
+    })
+
+    it('refuses a website that has taken beneficiary control unless this wallet is payout', async () => {
+      mockPublicClient.readContract.mockImplementation(async ({ functionName }: { functionName: string }) => {
+        if (functionName === 'isBeneficiaryControlled') return true
+        if (functionName === 'payoutAddress') return '0x9999999999999999999999999999999999999999'
+        return false
+      })
+
+      render(<CreateProjectPage />)
+      const user = userEvent.setup()
+      fillForm()
+      await user.click(screen.getByLabelText(/controller of a website/i))
+      setFieldValue(/beneficiary website/i, 'example.org')
+
+      await submitAndConfirm(user)
+
+      await waitFor(() => {
+        expect(screen.getByText(/taken beneficiary control/i)).toBeInTheDocument()
+      })
+      expect(createProject).not.toHaveBeenCalled()
     })
 
     it('refuses a website beneficiary that redirects to another domain', async () => {

@@ -34,7 +34,7 @@ interface ClaimFlowModalProps {
   escrowBalance: bigint
   channelState: ChannelState
   onSuccess?: () => void
-  /** Content channels can take creator control. Website beneficiaries do not. */
+  /** After verify, the payout wallet may lock further third-party projects. */
   includeTakeControl?: boolean
   /** Unix seconds; shown when withdraw is still locked. */
   withdrawableAt?: number
@@ -178,7 +178,7 @@ export function ClaimFlowModal({
 
     const registryAddress = import.meta.env.VITE_BENEFICIARY_REGISTRY_ADDRESS
     if (!registryAddress) {
-      setTakeControlError('Channel registry not configured')
+      setTakeControlError('Beneficiary registry not configured')
       return
     }
 
@@ -425,7 +425,9 @@ export function ClaimFlowModal({
                   Take Control
                 </Typography>
                 <Typography color="text.secondary" sx={{ mb: 2 }}>
-                  Take control to manage future funding contracts for your content. Only you will be able to create new rounds.
+                  {platform === 'dns'
+                    ? 'Take control so only this payout wallet can create new projects about this website. Third parties can still fund existing ones.'
+                    : 'Take control to manage future funding contracts for your content. Only you will be able to create new rounds.'}
                 </Typography>
                 <Button
                   variant="contained"

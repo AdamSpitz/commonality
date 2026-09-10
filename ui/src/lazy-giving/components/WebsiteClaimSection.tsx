@@ -184,7 +184,7 @@ export function WebsiteClaimSection({ domain }: WebsiteClaimSectionProps) {
           claimantAddress={address}
           escrowBalance={escrowBalance}
           channelState={beneficiaryState}
-          includeTakeControl={false}
+          includeTakeControl
           withdrawableAt={withdrawableAt}
           withdrawLocked={withdrawLocked}
           onSuccess={() => { void reload() }}

@@ -153,4 +153,51 @@ describe('ProjectFactory', function () {
       args[0], args[1], args[2], ethers.keccak256(ethers.toUtf8Bytes('dns:example.org')), ...args.slice(4),
     )).to.be.revertedWithCustomError(projectFactory, 'BeneficiaryPaymentTokenMismatch');
   });
+
+  it('lets anyone create for a verified but not-controlled beneficiary', async function () {
+    const [creator, owner] = await ethers.getSigners();
+    const { projectFactory, beneficiaryRegistry, verifier, beneficiaryPaymentToken: paymentToken } = await deployProjectFactory();
+    const deadline = BigInt((await ethers.provider.getBlock('latest')).timestamp + 3600);
+    const beneficiaryId = ethers.keccak256(ethers.toUtf8Bytes('dns:example.org'));
+    await verifier.setValid(true);
+    await beneficiaryRegistry.verifyBeneficiary(
+      beneficiaryId,
+      owner.address,
+      ethers.keccak256(ethers.toUtf8Bytes('verified-not-controlled')),
+      deadline,
+      ethers.keccak256(ethers.toUtf8Bytes('https://example.org/.well-known/commonality-claim.json')),
+      '0x',
+    );
+
+    const args = defaultProjectParams(owner.address, ethers.ZeroAddress, paymentToken.target, deadline);
+    await expect(projectFactory.connect(creator).createERC1155AndAssuranceContractForBeneficiary(
+      args[0], args[1], args[2], beneficiaryId, ...args.slice(4),
+    )).to.emit(projectFactory, 'ProjectCreated');
+  });
+
+  it('blocks third-party creation once the beneficiary has taken control', async function () {
+    const [creator, owner] = await ethers.getSigners();
+    const { projectFactory, beneficiaryRegistry, verifier, beneficiaryPaymentToken: paymentToken } = await deployProjectFactory();
+    const deadline = BigInt((await ethers.provider.getBlock('latest')).timestamp + 3600);
+    const beneficiaryId = ethers.keccak256(ethers.toUtf8Bytes('dns:example.org'));
+    await verifier.setValid(true);
+    await beneficiaryRegistry.verifyBeneficiary(
+      beneficiaryId,
+      owner.address,
+      ethers.keccak256(ethers.toUtf8Bytes('controlled-claim')),
+      deadline,
+      ethers.keccak256(ethers.toUtf8Bytes('https://example.org/.well-known/commonality-claim.json')),
+      '0x',
+    );
+    await beneficiaryRegistry.connect(owner).takeBeneficiaryControl(beneficiaryId);
+
+    const args = defaultProjectParams(owner.address, ethers.ZeroAddress, paymentToken.target, deadline);
+    await expect(projectFactory.connect(creator).createERC1155AndAssuranceContractForBeneficiary(
+      args[0], args[1], args[2], beneficiaryId, ...args.slice(4),
+    )).to.be.revertedWithCustomError(projectFactory, 'OnlyPayoutAddressCanCreateForControlledBeneficiary');
+
+    await expect(projectFactory.connect(owner).createERC1155AndAssuranceContractForBeneficiary(
+      args[0], args[1], args[2], beneficiaryId, ...args.slice(4),
+    )).to.emit(projectFactory, 'ProjectCreated');
+  });
 });

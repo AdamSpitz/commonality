@@ -75,6 +75,11 @@ export const ProjectFactoryAbi = [
   },
   {
     "inputs": [],
+    "name": "OnlyPayoutAddressCanCreateForControlledBeneficiary",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "TokenArrayLengthMismatch",
     "type": "error"
   },

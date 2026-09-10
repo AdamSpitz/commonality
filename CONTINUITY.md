@@ -2020,3 +2020,17 @@ fold, not a per-card RPC); content occupancy still keyed as channels.
 
 Still needed: remaining Channel* types in platform-api; content occupancy
 still keyed as channels (intentional).
+
+## 2026-09-10 — Beneficiary-controlled LazyGiving creation
+
+- `ProjectFactory.createERC1155AndAssuranceContractForBeneficiary` reverts
+  `OnlyPayoutAddressCanCreateForControlledBeneficiary` when the identity is
+  beneficiary-controlled and `msg.sender` is not the payout wallet. Verified
+  but not-controlled identities stay open to third-party projects.
+- Website claim flow now includes the take-control step (copy: only this
+  payout wallet can create new projects about the site).
+- Create-project form reads `isBeneficiaryControlled` and blocks other
+  wallets before sending the tx.
+
+Still needed: remaining Channel* types in platform-api; content occupancy
+still keyed as channels (intentional).

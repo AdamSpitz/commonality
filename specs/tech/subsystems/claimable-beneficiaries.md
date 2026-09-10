@@ -129,4 +129,7 @@ the raised amount and do not truncate or fold lookalikes. The project header
 reads on-chain `beneficiaryState` and chips Unclaimed / Domain-controlled /
 Beneficiary-controlled. Browse, cause-board, and CauseStarter project cards
 fold the same `BeneficiaryRegistry` events (not per-card RPC) and chip that
-claim state next to funding status.
+claim state next to funding status. Once the payout wallet calls
+`takeBeneficiaryControl`, LazyGiving's factory (and the create-project form)
+refuse third-party projects about that identity; the website claim flow offers
+that lock as a separate step after verify/withdraw.

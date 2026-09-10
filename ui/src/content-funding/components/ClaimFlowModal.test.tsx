@@ -552,6 +552,42 @@ describe('ClaimFlowModal', () => {
     })
   })
 
+  it('explains website take-control as locking third-party project creation', async () => {
+    setupChallengeMocks({ confirmVerificationResult: { txHash: '0xtxhash' } })
+    vi.mocked(useWalletClient).mockReturnValue({
+      data: { account: { address: '0xuser' } },
+    } as any)
+    vi.mocked(usePublicClient).mockReturnValue({} as any)
+    vi.mocked(useAccount).mockReturnValue({ isConnected: true } as any)
+    vi.mocked(withdrawFromEscrow).mockResolvedValue({ hash: '0xwithdraw' })
+
+    const user = userEvent.setup()
+    render(
+      <ClaimFlowModal
+        {...defaultProps}
+        channelDisplayName="example.org"
+        channelId="dns:example.org"
+        platform="dns"
+        handle="example.org"
+        channelState="verified"
+      />,
+    )
+
+    await user.click(screen.getByRole('button', { name: 'Get claim document' }))
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'I published the claim' })).toBeInTheDocument()
+    })
+    await user.click(screen.getByRole('button', { name: 'I published the claim' }))
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Withdraw to Wallet' })).toBeInTheDocument()
+    })
+    await user.click(screen.getByRole('button', { name: 'Withdraw to Wallet' }))
+
+    await waitFor(() => {
+      expect(screen.getByText(/only this payout wallet can create new projects about this website/i)).toBeInTheDocument()
+    })
+  })
+
   it('calls takeBeneficiaryControl when clicking take control button', async () => {
     setupChallengeMocks({ confirmVerificationResult: { txHash: '0xtxhash' } })
     vi.mocked(useWalletClient).mockReturnValue({

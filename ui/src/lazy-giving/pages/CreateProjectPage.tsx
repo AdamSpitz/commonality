@@ -28,7 +28,7 @@ import DeleteIcon from '@mui/icons-material/Delete'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { useNavigate } from 'react-router-dom'
 import { useAccount, usePublicClient } from 'wagmi'
-import { ProjectFactoryAbi, PublishedDataAbi } from '@commonality/sdk/abis'
+import { BeneficiaryRegistryAbi, ProjectFactoryAbi, PublishedDataAbi } from '@commonality/sdk/abis'
 import { createProject, type ProjectFactoryContract } from '@commonality/sdk/lazy-giving'
 import { hashBeneficiaryId, normalizeDnsBeneficiary } from '@commonality/sdk/content-funding'
 import { createDefaultDocumentStore, createDisplayableDocument } from '@commonality/sdk/displayable-documents'
@@ -272,6 +272,28 @@ export function CreateProjectPage() {
           }
           // Network or API outages must not brick creation; only observed
           // cross-domain redirects are refused.
+        }
+        const registryAddress = import.meta.env.VITE_BENEFICIARY_REGISTRY_ADDRESS as `0x${string}` | undefined
+        if (registryAddress && publicClient) {
+          const controlled = await publicClient.readContract({
+            address: registryAddress,
+            abi: BeneficiaryRegistryAbi,
+            functionName: 'isBeneficiaryControlled',
+            args: [hashBeneficiaryId('dns', canonicalBeneficiaryDomain)],
+          }) as boolean
+          if (controlled) {
+            const payout = await publicClient.readContract({
+              address: registryAddress,
+              abi: BeneficiaryRegistryAbi,
+              functionName: 'payoutAddress',
+              args: [hashBeneficiaryId('dns', canonicalBeneficiaryDomain)],
+            }) as string
+            if (!address || payout.toLowerCase() !== address.toLowerCase()) {
+              throw new Error(
+                'This website has taken beneficiary control. Only its payout wallet can create new projects about it.',
+              )
+            }
+          }
         }
         projectMeta.beneficiary = {
           namespace: 'dns',

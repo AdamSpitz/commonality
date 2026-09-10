@@ -12,6 +12,7 @@ import {BeneficiaryAssuranceContract} from "./BeneficiaryAssuranceContract.sol";
 
 interface IProjectBeneficiaryRegistry {
   function isVerified(bytes32 beneficiaryId) external view returns (bool);
+  function isBeneficiaryControlled(bytes32 beneficiaryId) external view returns (bool);
   function payoutAddress(bytes32 beneficiaryId) external view returns (address);
 }
 
@@ -30,6 +31,7 @@ error TokenArrayLengthMismatch();
 error ZeroPrice();
 error BeneficiaryPaymentTokenMismatch();
 error BeneficiaryEscrowRegistryMismatch();
+error OnlyPayoutAddressCanCreateForControlledBeneficiary();
 
 /**
  * @title PremintingERC1155Factory
@@ -265,7 +267,11 @@ contract ProjectFactory {
     if (deadline <= block.timestamp) revert InvalidDeadline();
 
     bool verified = beneficiaryRegistry.isVerified(beneficiaryId);
-    address recipient = verified ? beneficiaryRegistry.payoutAddress(beneficiaryId) : beneficiaryEscrow;
+    address payout = beneficiaryRegistry.payoutAddress(beneficiaryId);
+    if (beneficiaryRegistry.isBeneficiaryControlled(beneficiaryId) && msg.sender != payout) {
+      revert OnlyPayoutAddressCanCreateForControlledBeneficiary();
+    }
+    address recipient = verified ? payout : beneficiaryEscrow;
     CreateProjectParams memory params = CreateProjectParams({
       metadataURI: metadataURI,
       contractURI: contractURI,
