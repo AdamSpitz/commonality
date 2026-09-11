@@ -1,8 +1,8 @@
 # Claimable beneficiaries (tech)
 
-Product: [fund-now-claim-later.md](/specs/product/fund-now-claim-later.md). Today's content-only ancestor: [channel-claiming.md](content-funding/channel-claiming.md), [channel-escrow.md](content-funding/channel-escrow.md). Consequence for aligning (next focus, after this primitive): [alignment-scouting.md](/specs/product/alignment-scouting.md).
+Product: [fund-now-claim-later.md](/specs/product/fund-now-claim-later.md). Today's content-only ancestor: [channel-claiming.md](content-funding/channel-claiming.md), [channel-escrow.md](content-funding/channel-escrow.md). Current product consequence: [third-party project proposals and alignment](/specs/product/third-party-project-proposals-and-alignment.md).
 
-Status: current [focus](/focus.md). No users, no mainnet: **refactor the existing content-channel contracts onto this primitive** rather than wrapping them or keeping a parallel `ChannelRegistry` / `ChannelEscrow`. Names and ABIs may change.
+Status: complete enough to support the current [focus](/focus.md). No users, no mainnet: continue to **refactor the existing content-channel contracts onto this primitive** rather than wrapping them or keeping a parallel `ChannelRegistry` / `ChannelEscrow`. Names and ABIs may change.
 
 ## What to extract
 
