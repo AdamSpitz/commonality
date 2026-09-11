@@ -49,7 +49,6 @@ import { resolveStatementCids } from './statementCids'
 import { useKeepPaintedWhileRefreshing } from '../hooks/useKeepPaintedWhileRefreshing'
 import { projectMatchesBoardRules, type BoardInclusionRules } from './geographicInclusion'
 
-
 type StatusFilter = 'all' | 'active' | 'succeeded' | 'refunding'
 type SortOption = 'latest' | 'deadline' | 'mostFunded' | 'closestToGoal'
 
