@@ -125,7 +125,7 @@ function validateActionRules(manifest: CampaignManifestV1): void {
 }
 
 function validateArtifactLayout(manifest: CampaignManifestV1): void {
-  const requiredArtifacts = ['manifest', 'statementCatalog', 'assignments', 'walletAddresses', 'walletSecrets', 'actionPlan', 'executionState', 'fundingLedger', 'reconciliation', 'browserObservations', 'summary'];
+  const requiredArtifacts = ['manifest', 'statementCatalog', 'assignments', 'walletAddresses', 'walletSecrets', 'actionPlan', 'executionState', 'runtimeBindings', 'fundingLedger', 'reconciliation', 'browserObservations', 'summary'];
   for (const artifact of requiredArtifacts) {
     if (!manifest.artifactLayout[artifact]) throw new Error(`artifactLayout.${artifact} is required`);
   }

@@ -110,6 +110,7 @@
     "walletSecrets": "../secrets/medium-realistic-v1.wallets.json",
     "actionPlan": "plan/actions.json",
     "executionState": "execution/actions.jsonl",
+    "runtimeBindings": "execution/runtime-bindings.json",
     "fundingLedger": "execution/funding-ledger.json",
     "reconciliation": "reports/reconciliation.json",
     "browserObservations": "reports/browser-observations.json",
