@@ -17,7 +17,7 @@ Campaign execution uses the explicit environment boundary in `campaignEnvironmen
 
 The reusable runner in `campaignExecutor.ts` consumes a frozen action plan through a chain adapter. It atomically persists planned/submitted/mined/failed state and transaction hashes, resumes submitted transactions by receipt lookup, respects action prerequisites, and enforces bounded concurrency, pacing, classified retries, a transaction cap, and a native-token budget. No CLI or real contract adapter is exposed yet: this layer is deliberately tested against a local fake chain before the campaign behavior and contract bindings are added.
 
-`campaignReconciler.ts` provides the matching transaction-to-indexer boundary. A concrete contract/indexer adapter supplies raw entity matches and SDK-derived checks for every mined action; the reusable reconciler detects omissions, duplicates, and derived-state mismatches, polls through a bounded settling window, records chain-head lag and indexing latency, and atomically writes machine-readable JSON plus a concise operator summary.
+`campaignReconciler.ts` provides the matching transaction-to-indexer boundary. `campaignIndexerAdapter.ts` binds every campaign action type to its real raw Ponder event(s), reads chain/indexer heads, and delegates derived truth to an explicit SDK-check provider. The reusable reconciler detects omissions, duplicates, and derived-state mismatches, polls through a bounded settling window, records chain-head lag and indexing latency, and atomically writes machine-readable JSON plus a concise operator summary. The remaining binding work is to define the runtime ID/address/CID artifact produced by execution and implement the SDK-check provider over it before exercising the deep local stack.
 
 ## Overview
 
