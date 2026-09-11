@@ -2131,3 +2131,14 @@ retry, restrict/reopen, disavow).
   beneficiary-controlled. Claiming is not endorsement.
 
 Still needed: live-flow tests.
+
+## 2026-09-11 — Live-flow coverage for third-party proposals
+
+- Playwright `lazyGiving-flow`: website-beneficiary create via SDK, browse
+  and detail show community-created copy, `/projects/new?beneficiary=`
+  suggests reuse, payout-wallet disavow hides browse/reuse and warns on
+  the project page.
+
+The product focus is now covered in UI unit tests, user docs, and this
+live-flow. Remaining polish is exercising it on a running stack / testnet,
+not more protocol surface.

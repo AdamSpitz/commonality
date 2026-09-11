@@ -1,11 +1,21 @@
 import { test, expect } from './fixtures/wallet'
-import { createE2EMachinery, createE2EWriteClients, getContractAddresses, publishE2EDisplayableMetadata } from './utils/blockchain'
-import { waitForProject } from './utils/indexer'
+import {
+  createE2EMachinery,
+  createE2EWriteClients,
+  getContractAddresses,
+  publishE2EDisplayableMetadata,
+  verifyE2EChannelOwnership,
+} from './utils/blockchain'
+import { waitForProject, waitForProjectDisavowed } from './utils/indexer'
 import { expectTextVisibleEventually } from './utils/visibility'
-import { AssuranceContractAbi, ProjectFactoryAbi } from '@commonality/sdk/abis'
+import { AssuranceContractAbi, BeneficiaryRegistryAbi, ProjectFactoryAbi } from '@commonality/sdk/abis'
+import { disavowProject, hashBeneficiaryId } from '@commonality/sdk/content-funding'
 import { createProject, buyProjectTokens, getProject, type ProjectFactoryContract, type AssuranceContract } from '@commonality/sdk/lazy-giving'
 import { waitForIndexerToSyncToTxHash } from '@commonality/sdk/indexer-sync'
 import { formatUnits, parseUnits } from 'viem'
+
+const COMMUNITY_CREATED_NOTICE =
+  'Community-created; not affiliated with or endorsed by the beneficiary.'
 
 function formatIndexedFundingRaised(project: NonNullable<Awaited<ReturnType<typeof getProject>>>): string {
   const current = BigInt(project.totalReceived)
@@ -182,5 +192,108 @@ test.describe('LazyGiving Flow', () => {
       timeout: 20000,
     })
     console.log('Funding progress verified:', expectedFundingProgress)
+  })
+
+  test('website-beneficiary proposal: reuse, community-created copy, then disavow', async ({
+    page,
+    wallet,
+  }) => {
+    const { graphqlUrl, projectFactoryAddress, paymentTokenAddress, beneficiaryRegistryAddress } =
+      getContractAddresses()
+
+    if (!projectFactoryAddress || !paymentTokenAddress || !beneficiaryRegistryAddress) {
+      throw new Error(
+        'Expected VITE_PROJECT_FACTORY_CONTRACT_ADDRESS, VITE_PAYMENT_TOKEN_ADDRESS, and VITE_BENEFICIARY_REGISTRY_ADDRESS.'
+      )
+    }
+
+    const proposer = createE2EWriteClients('ACCOUNT_0')
+    const payoutWallet = createE2EWriteClients('ACCOUNT_1')
+    const domain = `e2e${Date.now()}.org`
+    const projectName = `E2E Third-Party Proposal ${Date.now()}`
+    const projectFactoryContract: ProjectFactoryContract = {
+      address: projectFactoryAddress,
+      abi: ProjectFactoryAbi,
+    }
+    const registryContract = { address: beneficiaryRegistryAddress, abi: BeneficiaryRegistryAbi }
+
+    const projectMetadataCid = await publishE2EDisplayableMetadata(proposer, {
+      name: projectName,
+      description: 'Unaffiliated proposal for a website beneficiary',
+      statementType: 'lazy-giving-project-metadata',
+      beneficiary: { namespace: 'dns', canonicalIdentifier: domain },
+    })
+
+    const { hash: createHash, projectDetails } = await createProject(proposer, projectFactoryContract, {
+      metadataURI: `ipfs://${projectMetadataCid}/`,
+      contractURI: `ipfs://${projectMetadataCid}`,
+      owner: proposer.account,
+      beneficiaryId: hashBeneficiaryId('dns', domain),
+      paymentToken: paymentTokenAddress,
+      threshold: parseUnits('10', 6),
+      deadline: BigInt(Math.floor(Date.now() / 1000) + 86400 * 30),
+      projectMetadataCid,
+      tokenIds: [0n],
+      tokenCounts: [100n],
+      tokenPrices: [parseUnits('0.1', 6)],
+    })
+    await waitForIndexerToSyncToTxHash(
+      createE2EMachinery(),
+      proposer.publicClient,
+      createHash,
+      60_000,
+    )
+    await waitForProject(graphqlUrl, projectDetails.assuranceContractAddress)
+
+    await page.goto('/projects')
+    await wallet.connect('ACCOUNT_0')
+    await expectTextVisibleEventually(page, projectName)
+    await expect(page.getByText(COMMUNITY_CREATED_NOTICE).first()).toBeVisible()
+
+    await page.getByText(projectName).click()
+    await expect(page.getByText(COMMUNITY_CREATED_NOTICE).first()).toBeVisible()
+
+    await page.goto(`/projects/new?beneficiary=${encodeURIComponent(domain)}`)
+    await expect(page.getByRole('heading', { name: 'Propose a project' })).toBeVisible()
+    await expect(page.getByTestId('existing-beneficiary-projects')).toBeVisible({ timeout: 30_000 })
+    await expect(page.getByRole('link', { name: projectName })).toBeVisible()
+    await expect(page.getByText(COMMUNITY_CREATED_NOTICE).first()).toBeVisible()
+
+    await verifyE2EChannelOwnership(payoutWallet, `dns:${domain}`)
+    const { hash: disavowHash } = await disavowProject(
+      payoutWallet,
+      registryContract,
+      hashBeneficiaryId('dns', domain),
+      projectDetails.assuranceContractAddress,
+    )
+    await waitForIndexerToSyncToTxHash(
+      createE2EMachinery(),
+      payoutWallet.publicClient,
+      disavowHash,
+      60_000,
+    )
+    await waitForProjectDisavowed(graphqlUrl, projectDetails.assuranceContractAddress)
+
+    await page.goto('/projects')
+    await expectTextVisibleEventually(
+      page,
+      /Show \d+ project(?:s)? disavowed by the named beneficiary/,
+    )
+    await expect(page.getByText(projectName)).toHaveCount(0)
+
+    await page.goto(`/projects/new?beneficiary=${encodeURIComponent(domain)}`)
+    await expect(page.getByRole('heading', { name: 'Propose a project' })).toBeVisible()
+    await expect(page.getByTestId('existing-beneficiary-projects-loading')).toHaveCount(0, {
+      timeout: 30_000,
+    })
+    await expect(page.getByTestId('existing-beneficiary-projects')).toHaveCount(0)
+
+    await page.goto(
+      `/projects/${encodeURIComponent(`eip155:31337:${projectDetails.assuranceContractAddress}`)}`,
+    )
+    await expectTextVisibleEventually(page, projectName)
+    await expect(
+      page.getByText('The named beneficiary has disavowed this project', { exact: false }),
+    ).toBeVisible()
   })
 })

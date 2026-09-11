@@ -124,6 +124,27 @@ export async function waitForProject(
 }
 
 /**
+ * Wait for BeneficiaryRegistry:ProjectDisavowed for a project address (topic2).
+ */
+export async function waitForProjectDisavowed(
+  indexerUrl: string,
+  projectAddress: string,
+  maxAttempts = 60,
+  intervalMs = 500
+): Promise<boolean> {
+  const baseUrl = new URL(indexerUrl).origin
+  const paddedAddress = `0x${'0'.repeat(24)}${projectAddress.toLowerCase().replace(/^0x/, '')}`
+  const found = await pollUntil(
+    () => fetchHasItems(`${baseUrl}/api/events?eventName=ProjectDisavowed&topic2=${paddedAddress}&limit=1`),
+    maxAttempts,
+    intervalMs
+  )
+  if (found) console.log(`Project disavowal found`)
+  else console.warn(`ProjectDisavowed for ${projectAddress} not found after ${maxAttempts} attempts`)
+  return found
+}
+
+/**
  * Wait for statement to be indexed.
  *
  * The correct order is:
