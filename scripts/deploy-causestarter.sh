@@ -122,7 +122,10 @@ if ! docker info >/dev/null 2>&1; then
   exit 1
 fi
 
-# localhost.env matches hardhat-deploy --network localhost; live .env files win.
+"$ROOT/scripts/setup-env.sh" localhost
+"$ROOT/scripts/check-local-config-sync.sh" --env-only
+
+# All live files now belong to the same localhost profile.
 load_env_file "$ROOT/deployments/localhost.env"
 load_env_file "$ROOT/.env"
 load_env_file "$ROOT/ui/.env"

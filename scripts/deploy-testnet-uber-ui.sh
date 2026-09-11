@@ -126,6 +126,11 @@ json_app_entry() {
 
 echo "Setting up environment for $NETWORK..."
 "$ROOT/scripts/setup-env.sh" "$NETWORK"
+restore_local_profile() {
+  echo "Restoring the localhost environment profile..."
+  "$ROOT/scripts/setup-env.sh" localhost
+}
+trap restore_local_profile EXIT
 
 EVENT_CACHE_URL=$(grep -E '^VITE_EVENT_CACHE_URL=' "$ROOT/ui/.env" | tail -1 | cut -d= -f2-)
 if [ -z "$EVENT_CACHE_URL" ]; then

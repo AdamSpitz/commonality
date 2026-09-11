@@ -64,6 +64,11 @@ fi
 # --- Set up environment for the target network ---
 echo "Setting up environment for $NETWORK..."
 "$ROOT/scripts/setup-env.sh" "$NETWORK"
+restore_local_profile() {
+  echo "Restoring the localhost environment profile..."
+  "$ROOT/scripts/setup-env.sh" localhost
+}
+trap restore_local_profile EXIT
 
 # The IPFS bundle cannot rely on a dev-server proxy. The event cache URL is
 # baked into the Vite build and must point at the deployed indexer.

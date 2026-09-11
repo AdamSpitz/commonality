@@ -26,6 +26,11 @@ After building, you can run:
 
 That's it. This uses Docker Compose to start a local Hardhat blockchain, deploys the smart contracts, starts IPFS, the Ponder indexer, and the platform API service, then publishes the selected UI domain SPA(s) to the local IPFS gateway.
 
+`services.sh --start` first regenerates and activates the complete `localhost`
+profile (chain 31337, local RPC/indexer, and local contracts), so a prior
+testnet UI build cannot leak Base Sepolia settings into the local stack.
+Generated snapshots live under gitignored `.generated-env/<network>/`.
+
 **Which UI bundles get built:** local start currently publishes **CauseStarter only**. The eight legacy `ui` domains (commonality, lazyGiving, alignment, tally, content-funding, civility, common-sense-majority, conceptspace) each run a full Docker Vite build sequentially and were a major part of `--start` time. This is a temporary, reversible default — the compose services and source trees are still there.
 
 - Default: `LOCAL_UI_DOMAINS=causestarter` (implicit)

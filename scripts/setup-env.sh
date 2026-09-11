@@ -54,11 +54,10 @@ load_env_file() {
 	done <"$file"
 }
 
-load_env_file "$DEPLOYMENT_FILE"
-# Local: operator-addresses is the identity source (Hardhat keys).
-# Testnet/mainnet: deployments/<network>.env is the chain of record for public
-# attester/nudger/assist URLs. operator-addresses.env is often a leftover local
-# generate-wallets.mjs dump and must not clobber Sepolia identities.
+# Secrets provide credentials and optional service settings. Public values from
+# the selected deployment are loaded last so stale cross-chain values cannot
+# override the selected chain's contract addresses.
+load_env_file "$SECRETS_FILE"
 load_env_file_fill_missing() {
 	local file="$1"
 	[ -f "$file" ] || return 0
@@ -76,7 +75,7 @@ if [ "$NETWORK" = "localhost" ]; then
 else
 	load_env_file_fill_missing "$WALLETS_FILE"
 fi
-load_env_file "$SECRETS_FILE"
+load_env_file "$DEPLOYMENT_FILE"
 
 DOMAIN_SLUGS=(commonality lazygiving alignment tally content-funding civility common-sense-majority conceptspace causestarter)
 DOMAIN_URL_VARS=(VITE_COMMONALITY_URL VITE_LAZYGIVING_URL VITE_ALIGNMENT_URL VITE_TALLY_URL VITE_CONTENT_FUNDING_URL VITE_CIVILITY_URL VITE_COMMON_SENSE_MAJORITY_URL VITE_CONCEPTSPACE_URL VITE_CAUSESTARTER_URL)
@@ -142,17 +141,22 @@ case "$NETWORK" in
 localhost)
 	VARS[COMMONALITY_ENVIRONMENT]="local"
 	VARS[CHAIN_ID]="31337"
-	VARS[ETHEREUM_RPC_URL]="${VARS[ETHEREUM_RPC_URL]:-http://localhost:8545}"
-	VARS[IPFS_API]="${VARS[IPFS_API]:-http://localhost:5001}"
-	VARS[IPFS_GATEWAY]="${VARS[IPFS_GATEWAY]:-http://localhost:8080/ipfs}"
-	VARS[EVENT_CACHE_URL]="${VARS[EVENT_CACHE_URL]:-http://localhost:42069}"
-	VARS[PLATFORM_API_URL]="${VARS[PLATFORM_API_URL]:-http://localhost:3001}"
+	VARS[ETHEREUM_RPC_URL]="http://127.0.0.1:8545"
+	VARS[IPFS_API]="http://localhost:5001"
+	VARS[IPFS_GATEWAY]="http://localhost:8080/ipfs"
+	VARS[EVENT_CACHE_URL]="http://localhost:42069"
+	VARS[UI_EVENT_CACHE_URL]=""
+	VARS[PLATFORM_API_URL]="http://localhost:3001"
+	VARS[VITE_DEFAULT_TRUSTED_ATTESTERS]=""
+	VARS[VITE_DEFAULT_TRUSTED_CONTENT_ATTESTERS]=""
+	VARS[VITE_DEFAULT_TRUSTED_BEAT_AGENTS]=""
+	VARS[VITE_DEFAULT_NUDGERS]=""
 	;;
 base-sepolia)
 	VARS[COMMONALITY_ENVIRONMENT]="testnet"
 	VARS[CHAIN_ID]="84532"
 	VARS[BASE_SEPOLIA_RPC_URL]="${VARS[BASE_SEPOLIA_RPC_URL]:-https://sepolia.base.org}"
-	VARS[ETHEREUM_RPC_URL]="${VARS[ETHEREUM_RPC_URL]:-${VARS[BASE_SEPOLIA_RPC_URL]}}"
+	VARS[ETHEREUM_RPC_URL]="${VARS[BASE_SEPOLIA_RPC_URL]}"
 	VARS[IPFS_API]="${VARS[IPFS_API]:-https://ipfs.io/api/v0}"
 	VARS[IPFS_GATEWAY]="${VARS[IPFS_GATEWAY]:-https://ipfs.io/ipfs}"
 	VARS[EVENT_CACHE_URL]="${VARS[EVENT_CACHE_URL]:-https://commonality-indexer.onrender.com}"
@@ -165,7 +169,7 @@ mainnet)
 	VARS[COMMONALITY_ENVIRONMENT]="mainnet"
 	VARS[CHAIN_ID]="1"
 	VARS[MAINNET_RPC_URL]="${VARS[MAINNET_RPC_URL]:-https://eth.llamarpc.com}"
-	VARS[ETHEREUM_RPC_URL]="${VARS[ETHEREUM_RPC_URL]:-${VARS[MAINNET_RPC_URL]}}"
+	VARS[ETHEREUM_RPC_URL]="${VARS[MAINNET_RPC_URL]}"
 	VARS[IPFS_API]="${VARS[IPFS_API]:-https://ipfs.io/api/v0}"
 	VARS[IPFS_GATEWAY]="${VARS[IPFS_GATEWAY]:-https://ipfs.io/ipfs}"
 	VARS[BASE_PAYMASTER_URL]="${VARS[BASE_PAYMASTER_URL]:-${VARS[PLATFORM_API_URL]:-}/sponsored-gas/paymaster}"
@@ -175,6 +179,16 @@ mainnet)
 	exit 1
 	;;
 esac
+
+if [ "$NETWORK" != "localhost" ]; then
+	for key in ETHEREUM_RPC_URL EVENT_CACHE_URL PLATFORM_API_URL IPFS_GATEWAY; do
+		value="${VARS[$key]:-}"
+		if [[ "$value" =~ ^https?://(localhost|127\.0\.0\.1)(:|/|$) ]]; then
+			echo "Error: refusing mixed $NETWORK profile: $key points at $value" >&2
+			exit 1
+		fi
+	done
+fi
 
 populate_ui_domain_urls
 
@@ -267,7 +281,11 @@ echo "  wrote $ROOT/integration-tests/.env.local"
 		echo "VITE_PRIVY_SMART_WALLET_BUNDLER_URL=${VARS[BASE_SEPOLIA_BUNDLER_URL]:-}"
 		echo "VITE_PRIVY_SMART_WALLET_PAYMASTER_URL=${VARS[BASE_SEPOLIA_PAYMASTER_URL]:-}"
 	fi
-	echo "VITE_EVENT_CACHE_URL=${VARS[EVENT_CACHE_URL]:-}"
+	if [ -n "${VARS[UI_EVENT_CACHE_URL]+x}" ]; then
+		echo "VITE_EVENT_CACHE_URL=${VARS[UI_EVENT_CACHE_URL]}"
+	else
+		echo "VITE_EVENT_CACHE_URL=${VARS[EVENT_CACHE_URL]:-}"
+	fi
 	echo "VITE_DISPLAY_DENYLIST_URL=${VARS[DISPLAY_DENYLIST_URL]:-}"
 	echo "VITE_POLICY_BUNDLE_URL=${VARS[POLICY_BUNDLE_URL]:-}"
 	echo "VITE_ETH_RPC_URL=${VARS[ETHEREUM_RPC_URL]:-}"
@@ -322,6 +340,14 @@ echo "  wrote $ROOT/ui/.env"
 # deployment configuration as the domain UIs.
 cp "$ROOT/ui/.env" "$ROOT/causestarter/.env"
 echo "  wrote $ROOT/causestarter/.env"
+
+PROFILE_DIR="$ROOT/.generated-env/$NETWORK"
+mkdir -p "$PROFILE_DIR"
+cp "$ROOT/.env" "$PROFILE_DIR/root.env"
+cp "$ROOT/integration-tests/.env.local" "$PROFILE_DIR/integration-tests.env.local"
+cp "$ROOT/ui/.env" "$PROFILE_DIR/ui.env"
+cp "$ROOT/causestarter/.env" "$PROFILE_DIR/causestarter.env"
+echo "  saved complete profile $PROFILE_DIR"
 
 echo ""
 echo "Done! Environment configured for network: $NETWORK"
