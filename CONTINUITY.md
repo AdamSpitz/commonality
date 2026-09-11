@@ -2147,3 +2147,7 @@ not more protocol surface.
 
 Removed the item from `focus.md`. Spec status is closed. Deferred: indexed
 beneficiary lookup and bulk/bot UX.
+
+## 2026-09-11 — Campaign reconciliation talks to the local stack
+
+Item 6 of the medium-realistic campaign: indexer adapter paginates with `fetchEventsComplete` and collapses alternative proving events so ordinary vs retroactive funding is one write. `npm run gen:campaign:reconcile -- --probe` reads live chain/indexer heads. Without `--probe` it reconciles from plan + execution + runtime-bindings. A live adapter test exercises raw lookup plus an SDK belief fold against Ponder. Campaign execution adapter is still required before mined campaign txs exist to close item 6.

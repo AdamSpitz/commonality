@@ -2,7 +2,10 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 import type { CampaignManifestV1 } from '../campaignSchema.js';
-import { buildCampaignPlan, validatePlannedActions } from '../campaignPlanner.js';
+import { mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
+import { buildCampaignPlan, loadCampaignPlan, validatePlannedActions, writePlanArtifacts } from '../campaignPlanner.js';
 
 async function loadManifest(): Promise<CampaignManifestV1> {
   return JSON.parse(await readFile(new URL('../campaigns/medium-realistic-v1.json', import.meta.url), 'utf8')) as CampaignManifestV1;
@@ -85,4 +88,16 @@ test('validation rejects an action whose prerequisite points forward', async () 
   const manifest = await loadManifest(); const plan = await buildCampaignPlan(manifest); const invalid = structuredClone(plan.actions);
   invalid[0].dependsOn = [invalid[1].id];
   assert.throws(() => validatePlannedActions(manifest, plan.statements, plan.users, plan.projects, invalid), /impossible dependency/);
+});
+
+test('written planning artifacts reload into the same campaign plan', async () => {
+  const manifest = await loadManifest();
+  const plan = await buildCampaignPlan(manifest);
+  const directory = await mkdtemp(path.join(tmpdir(), 'campaign-plan-'));
+  try {
+    await writePlanArtifacts(manifest, plan, directory);
+    assert.deepEqual(await loadCampaignPlan(manifest, directory), plan);
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
 });

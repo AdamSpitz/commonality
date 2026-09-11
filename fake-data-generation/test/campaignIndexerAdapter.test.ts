@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createCampaignIndexerAdapter, CAMPAIGN_ACTION_EVENTS } from '../campaignIndexerAdapter.js';
+import { createCampaignIndexerAdapter, CAMPAIGN_ACTION_EVENTS, collapseIndexedMatches } from '../campaignIndexerAdapter.js';
 import type { PlannedAction } from '../campaignPlanner.js';
 
 const TX = `0x${'a'.repeat(64)}` as const;
@@ -36,12 +36,22 @@ test('adapter reads chain/indexer heads and matches only the action transaction'
     assert.equal(await adapter.getChainHead(), 43n);
     assert.equal(await adapter.getIndexerHead(), 41n);
     const matches = await adapter.findIndexedAction(action, TX);
-    assert.equal(matches.length, 2);
-    assert.deepEqual(matches.map((match) => match.eventId).sort(), ['ERC1155Bought:ERC1155Bought-wanted', 'RetroactiveDonationReceived:RetroactiveDonationReceived-wanted']);
+    assert.equal(matches.length, 1);
+    assert.ok(matches[0].eventId.endsWith('-wanted'));
     assert.deepEqual(await adapter.getDerivedChecks(action), [{ name: 'SDK project funding', expected: 10, actual: 10 }]);
     assert.ok(requested.some((url) => url.includes('eventName=ERC1155Bought')));
     assert.ok(requested.some((url) => url.includes('eventName=RetroactiveDonationReceived')));
+    assert.ok(requested.some((url) => url.includes('limit=10000')));
   } finally { globalThis.fetch = originalFetch; }
+});
+
+test('alternative proving events collapse; same-name logs stay duplicates', () => {
+  const event = (eventName: string, id: string) => ({
+    id, contractAddress: '0x1', eventName, blockNumber: '1', blockTimestamp: '1', transactionHash: TX, logIndex: 0,
+    topic0: null, topic1: null, topic2: null, topic3: null, data: '0x',
+  });
+  assert.equal(collapseIndexedMatches([event('ERC1155Bought', 'a'), event('RetroactiveDonationReceived', 'b')]).length, 1);
+  assert.equal(collapseIndexedMatches([event('ERC1155Bought', 'a'), event('ERC1155Bought', 'b')]).length, 2);
 });
 
 test('adapter fails closed when indexer status omits the configured chain', async () => {

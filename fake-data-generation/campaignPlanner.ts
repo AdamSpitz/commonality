@@ -286,7 +286,29 @@ export function validatePlannedActions(manifest: CampaignManifestV1, statements:
   if (new Set(users.map((user) => user.walletSlot)).size !== users.length) throw new Error('planned wallet slots must be unique');
 }
 
-async function writePlanArtifacts(manifest: CampaignManifestV1, plan: CampaignPlan, outputDirectory: string): Promise<void> {
+export async function loadCampaignPlan(manifest: CampaignManifestV1, outputDirectory: string): Promise<CampaignPlan> {
+  const readJson = async (relativePath: string): Promise<Record<string, unknown>> =>
+    JSON.parse(await readFile(path.join(outputDirectory, relativePath), 'utf8')) as Record<string, unknown>;
+  const statementCatalog = await readJson(manifest.artifactLayout.statementCatalog);
+  const assignments = await readJson(manifest.artifactLayout.assignments);
+  const actionPlan = await readJson(manifest.artifactLayout.actionPlan);
+  const plan: CampaignPlan = {
+    version: CAMPAIGN_PLAN_VERSION,
+    campaignId: manifest.campaign.id,
+    deterministicSeed: manifest.campaign.deterministicSeed,
+    manifestFingerprint: String(actionPlan.manifestFingerprint),
+    statements: statementCatalog.statements as CampaignPlan['statements'],
+    users: assignments.users as CampaignPlan['users'],
+    projects: assignments.projects as CampaignPlan['projects'],
+    actions: actionPlan.actions as CampaignPlan['actions'],
+    estimate: actionPlan.estimate as CampaignPlan['estimate'],
+  };
+  if (plan.campaignId !== actionPlan.campaignId) throw new Error('action-plan campaign ID does not match the manifest');
+  validatePlannedActions(manifest, plan.statements, plan.users, plan.projects, plan.actions);
+  return plan;
+}
+
+export async function writePlanArtifacts(manifest: CampaignManifestV1, plan: CampaignPlan, outputDirectory: string): Promise<void> {
   const writeJson = async (relativePath: string, value: JsonValue | object): Promise<void> => { const target = path.join(outputDirectory, relativePath); await mkdir(path.dirname(target), { recursive: true }); await writeFile(target, `${JSON.stringify(value, null, 2)}\n`); };
   await writeJson(manifest.artifactLayout.manifest, manifest);
   await writeJson(manifest.artifactLayout.statementCatalog, { version: plan.version, campaignId: plan.campaignId, statements: plan.statements });

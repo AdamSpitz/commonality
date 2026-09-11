@@ -1,6 +1,6 @@
 import type { PublicClient } from 'viem';
 import type { SDKMachinery } from '@commonality/sdk/machinery';
-import { chainStatusKeyForChainId, fetchEvents, type RawEventFromCache } from '@commonality/sdk/utils';
+import { chainStatusKeyForChainId, fetchEventsComplete, type RawEventFromCache } from '@commonality/sdk/utils';
 import type { CampaignActionType } from './campaignSchema.js';
 import type { PlannedAction } from './campaignPlanner.js';
 import type { CampaignReconciliationAdapter, DerivedCheck, IndexedActionMatch } from './campaignReconciler.js';
@@ -53,6 +53,23 @@ function toMatch(event: RawEventFromCache): IndexedActionMatch {
 }
 
 /**
+ * Alternative proving events (e.g. ordinary vs retroactive funding) count as
+ * one indexed write. Duplicates of the same event name remain visible.
+ */
+export function collapseIndexedMatches(events: readonly RawEventFromCache[]): IndexedActionMatch[] {
+  const byName = new Map<string, RawEventFromCache[]>();
+  for (const event of events) {
+    const group = byName.get(event.eventName) ?? [];
+    group.push(event);
+    byName.set(event.eventName, group);
+  }
+  for (const group of byName.values()) {
+    if (group.length > 1) return group.map(toMatch);
+  }
+  return events[0] ? [toMatch(events[0])] : [];
+}
+
+/**
  * Bind campaign reconciliation to the real Ponder event cache and SDK fold seam.
  * Event-cache results are filtered by transaction hash because the public API
  * deliberately exposes no transactionHash query parameter.
@@ -68,9 +85,9 @@ export function createCampaignIndexerAdapter(input: {
     getIndexerHead: () => getIndexerHead(input.machinery),
     async findIndexedAction(action, transactionHash) {
       const eventGroups = await Promise.all(CAMPAIGN_ACTION_EVENTS[action.type].map((eventName) =>
-        fetchEvents(input.machinery, { eventName, limit: 1000 })));
+        fetchEventsComplete(input.machinery, { eventName })));
       const target = transactionHash.toLowerCase();
-      return eventGroups.flat().filter((event) => event.transactionHash.toLowerCase() === target).map(toMatch);
+      return collapseIndexedMatches(eventGroups.flat().filter((event) => event.transactionHash.toLowerCase() === target));
     },
     getDerivedChecks: (action) => input.derivedChecks.getDerivedChecks(action),
   };
