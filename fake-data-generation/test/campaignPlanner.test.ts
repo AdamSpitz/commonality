@@ -31,8 +31,53 @@ test('all implication actions use accepted bridge-role pairs', async () => {
   const plan = await buildCampaignPlan(await loadManifest()); const statements = new Map(plan.statements.map((statement) => [statement.id, statement]));
   for (const action of plan.actions.filter((item) => item.type === 'attest-implication')) {
     assert.equal(action.implication?.evidence, 'accepted-bridge-role-pair');
+    assert.ok(plan.users.find((user) => user.id === action.actorUserId)!.causeIds.includes(action.causeId!));
     assert.match(statements.get(action.implication!.fromStatementId)!.role!, /^modified-(left|right)$/);
     assert.equal(statements.get(action.implication!.toStatementId)!.role, 'commonality');
+  }
+});
+
+test('behavior histories are cause-aware and carry executable intent', async () => {
+  const plan = await buildCampaignPlan(await loadManifest());
+  const users = new Map(plan.users.map((user) => [user.id, user]));
+  const projects = new Map(plan.projects.map((project) => [project.id, project]));
+  const actions = new Map(plan.actions.map((action) => [action.id, action]));
+
+  for (const action of plan.actions.filter((item) => item.type === 'set-belief')) {
+    assert.ok(users.get(action.actorUserId!)!.causeIds.includes(action.causeId!));
+    assert.ok(action.belief === 'believe' || action.belief === 'disbelieve');
+  }
+  assert.ok(plan.actions.some((action) => action.type === 'set-belief' && action.dependsOn.some((id) => actions.get(id)?.type === 'set-belief')), 'expected belief changes');
+
+  for (const action of plan.actions.filter((item) => item.type === 'attest-alignment')) {
+    assert.ok(users.get(action.actorUserId!)!.causeIds.includes(action.causeId!));
+    assert.ok(projects.get(action.projectId!)!.statementIds.includes(action.statementId!));
+    assert.equal(action.alignment, 'supports-described-outcome');
+  }
+  assert.ok(plan.projects.every((project) => project.title.length > 20 && project.outcome.length > 20));
+  for (const action of plan.actions.filter((item) => item.type === 'fund-project')) {
+    assert.ok(users.get(action.actorUserId!)!.causeIds.includes(action.causeId!));
+    assert.ok(action.amount! > 0);
+  }
+  const fundingCounts = plan.projects.map((project) => plan.actions.filter((action) => action.type === 'fund-project' && action.projectId === project.id).length);
+  assert.ok(fundingCounts.some((count) => count === 0), 'expected deliberately unfunded projects');
+  assert.ok(Math.max(...fundingCounts) >= Math.max(10, Math.min(...fundingCounts.filter((count) => count > 0)) * 3), 'expected skewed project popularity');
+  assert.ok(new Set(plan.actions.filter((item) => item.type === 'fund-project').map((item) => item.amount)).size > 10, 'expected uneven funding amounts');
+  assert.equal(plan.estimate.estimatedPaymentTokenUnits, plan.actions.filter((item) => item.type === 'fund-project').reduce((sum, item) => sum + item.amount!, 0));
+});
+
+test('delegations follow a shared-cause trust graph and revocations follow delegations', async () => {
+  const plan = await buildCampaignPlan(await loadManifest());
+  const users = new Map(plan.users.map((user) => [user.id, user]));
+  const actions = new Map(plan.actions.map((action) => [action.id, action]));
+  for (const action of plan.actions.filter((item) => item.type === 'delegate-note')) {
+    const owner = users.get(action.actorUserId!)!; const delegate = users.get(action.delegateUserId!)!;
+    assert.ok(delegate.roles.includes('delegate'));
+    assert.deepEqual(action.delegationBasis!.sharedCauseIds, delegate.causeIds.filter((causeId) => owner.causeIds.includes(causeId)).sort());
+    assert.ok(action.amount! > 0);
+  }
+  for (const action of plan.actions.filter((item) => item.type === 'revoke-delegation')) {
+    assert.ok(action.dependsOn.some((id) => actions.get(id)?.type === 'delegate-note'));
   }
 });
 
