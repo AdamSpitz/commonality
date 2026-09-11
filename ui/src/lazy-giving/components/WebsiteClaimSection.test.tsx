@@ -40,6 +40,7 @@ vi.mock('@commonality/sdk/content-funding', async (importOriginal) => {
   return {
     ...actual,
     rotatePayoutAddress: vi.fn().mockResolvedValue({ hash: '0xrotate' }),
+    releaseBeneficiaryControl: vi.fn().mockResolvedValue({ hash: '0xrelease' }),
   }
 })
 
@@ -84,5 +85,37 @@ describe('WebsiteClaimSection', () => {
     await waitFor(() => {
       expect(rotatePayoutAddress).toHaveBeenCalled()
     })
+  })
+
+  it('lets the current payout wallet reopen third-party proposals', async () => {
+    const { releaseBeneficiaryControl } = await import('@commonality/sdk/content-funding')
+    readContract.mockImplementation(async ({ functionName }: { functionName: string }) => {
+      if (functionName === 'beneficiaryState') return 2n
+      if (functionName === 'balance') return 0n
+      if (functionName === 'payoutAddress') return mockAccount.address
+      if (functionName === 'claimWithdrawableAt') return 0n
+      return 0n
+    })
+
+    render(<WebsiteClaimSection domain="example.org" />)
+    expect(await screen.findByRole('button', { name: /reopen third-party proposals/i })).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: /reopen third-party proposals/i }))
+    await waitFor(() => {
+      expect(releaseBeneficiaryControl).toHaveBeenCalled()
+    })
+  })
+
+  it('does not offer reopen when the identity is only verified', async () => {
+    readContract.mockImplementation(async ({ functionName }: { functionName: string }) => {
+      if (functionName === 'beneficiaryState') return 1n
+      if (functionName === 'balance') return 0n
+      if (functionName === 'payoutAddress') return mockAccount.address
+      if (functionName === 'claimWithdrawableAt') return 0n
+      return 0n
+    })
+
+    render(<WebsiteClaimSection domain="example.org" />)
+    expect(await screen.findByText(/Current payout wallet/)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /reopen third-party proposals/i })).not.toBeInTheDocument()
   })
 })

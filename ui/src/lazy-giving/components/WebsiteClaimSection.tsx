@@ -3,7 +3,12 @@ import { Alert, Button, Paper, Stack, TextField, Typography } from '@mui/materia
 import { useAccount, usePublicClient } from 'wagmi'
 import { isAddress } from 'viem'
 import { BeneficiaryEscrowAbi, BeneficiaryRegistryAbi } from '@commonality/sdk/abis'
-import { hashBeneficiaryId, rotatePayoutAddress, type BeneficiaryState } from '@commonality/sdk/content-funding'
+import {
+  hashBeneficiaryId,
+  releaseBeneficiaryControl,
+  rotatePayoutAddress,
+  type BeneficiaryState,
+} from '@commonality/sdk/content-funding'
 import { ClaimFlowModal } from '../../content-funding'
 import { getRuntimeConfigValue, humanizeTxError, useWriteClients } from '../../shared'
 import { beneficiaryStateFromUint } from './websiteBeneficiaryClaim'
@@ -24,6 +29,9 @@ export function WebsiteClaimSection({ domain }: WebsiteClaimSectionProps) {
   const [rotating, setRotating] = useState(false)
   const [rotateError, setRotateError] = useState<string | null>(null)
   const [rotateSuccess, setRotateSuccess] = useState<string | null>(null)
+  const [releasing, setReleasing] = useState(false)
+  const [releaseError, setReleaseError] = useState<string | null>(null)
+  const [releaseSuccess, setReleaseSuccess] = useState<string | null>(null)
   const [withdrawableAt, setWithdrawableAt] = useState<number | undefined>(undefined)
   const [withdrawLocked, setWithdrawLocked] = useState(false)
   const [loadError, setLoadError] = useState<string | null>(null)
@@ -85,11 +93,22 @@ export function WebsiteClaimSection({ domain }: WebsiteClaimSectionProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [publicClient, registryAddress, escrowAddress, beneficiaryId])
 
-  const canRotate = Boolean(
+  const isPayoutWallet = Boolean(
     address
     && payoutAddress
-    && address.toLowerCase() === payoutAddress.toLowerCase()
+    && address.toLowerCase() === payoutAddress.toLowerCase(),
+  )
+
+  const canRotate = Boolean(
+    isPayoutWallet
     && beneficiaryState !== 'unclaimed'
+    && writeClients
+    && registryAddress,
+  )
+
+  const canRelease = Boolean(
+    isPayoutWallet
+    && beneficiaryState === 'beneficiary-controlled'
     && writeClients
     && registryAddress,
   )
@@ -121,6 +140,26 @@ export function WebsiteClaimSection({ domain }: WebsiteClaimSectionProps) {
     }
   }
 
+  const handleRelease = async () => {
+    if (!writeClients || !registryAddress) return
+    try {
+      setReleasing(true)
+      setReleaseError(null)
+      setReleaseSuccess(null)
+      await releaseBeneficiaryControl(
+        writeClients,
+        { address: registryAddress, abi: BeneficiaryRegistryAbi },
+        beneficiaryId,
+      )
+      setReleaseSuccess('Third-party proposals are open again. Existing projects are unchanged.')
+      await reload()
+    } catch (err) {
+      setReleaseError(humanizeTxError(err, 'Could not reopen third-party proposals'))
+    } finally {
+      setReleasing(false)
+    }
+  }
+
   if (!registryAddress || !escrowAddress) return null
 
   return (
@@ -147,6 +186,25 @@ export function WebsiteClaimSection({ domain }: WebsiteClaimSectionProps) {
           </Button>
         ) : (
           <Alert severity="info">Connect a wallet to start the claim.</Alert>
+        )}
+        {canRelease && (
+          <Stack spacing={1}>
+            <Typography variant="subtitle2">Third-party proposals</Typography>
+            <Typography variant="body2" color="text.secondary">
+              Future project creation is restricted to this payout wallet. Existing
+              projects keep their original authorship and escrow. Reopening does not
+              endorse those projects.
+            </Typography>
+            <Button
+              variant="outlined"
+              onClick={() => { void handleRelease() }}
+              disabled={releasing}
+            >
+              {releasing ? 'Reopening…' : 'Reopen third-party proposals'}
+            </Button>
+            {releaseError && <Alert severity="error">{releaseError}</Alert>}
+            {releaseSuccess && <Alert severity="success">{releaseSuccess}</Alert>}
+          </Stack>
         )}
         {canRotate && (
           <Stack spacing={1}>

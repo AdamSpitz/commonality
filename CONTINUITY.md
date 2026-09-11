@@ -2092,5 +2092,12 @@ tests of the live flow.
   not a rejection of Commonality. Claiming-an-org docs mention the lock
   is reversible.
 
-Still needed: UI to actually call release (reopen), project-specific
-disavowal, live-flow tests.
+## 2026-09-11 — Reopen third-party proposals in the website claim UI
+
+- When the identity is beneficiary-controlled, the current payout wallet
+  sees **Reopen third-party proposals** on `WebsiteClaimSection` and it
+  calls `releaseBeneficiaryControl`. Copy states existing projects are
+  unchanged and reopening is not an endorsement.
+
+Still needed: project-specific disavowal, product docs for the full
+proposal flow, live-flow tests.

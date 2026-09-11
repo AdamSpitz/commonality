@@ -24,7 +24,7 @@ export const WEBSITE_CLAIM_STATE_TOOLTIPS: Record<BeneficiaryState, string> = {
   verified:
     'Someone proved they can write this domain and bound a payout address. Escrow enforces domain control — not charity status, legal-entity identity, or tax deductibility.',
   'beneficiary-controlled':
-    'The verified domain controller has taken exclusive control of this identity. New projects about it can only be created by that payout wallet.',
+    'The verified domain controller has restricted future project creation to this payout wallet. Existing projects keep their original authorship. That wallet can reopen third-party proposals later.',
 }
 
 /** Unclaimed identities have no registry events, so missing map entries are unclaimed. */

@@ -135,7 +135,8 @@ claim state next to funding status. Once the payout wallet calls
 refuse third-party projects about that identity; the website claim flow offers
 that lock as a separate step after verify/withdraw, worded **Restrict future
 project creation to us**. The current payout wallet can later call
-`releaseBeneficiaryControl` to return the identity to Verified. Neither
+`releaseBeneficiaryControl` from the project page (Reopen third-party
+proposals) to return the identity to Verified. Neither
 transition edits existing projects. Platform API challenge and
 confirm payloads name `beneficiaryId` (canonical string; hashed on-chain).
 `BLOCKED_CHANNEL_IDS` also gates website resolve so a blocked `dns:` identity
