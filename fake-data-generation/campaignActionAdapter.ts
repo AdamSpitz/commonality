@@ -26,7 +26,7 @@ import type { CampaignRuntimeBindings } from './campaignRuntimeBindings.js';
 import { writeRuntimeBindings } from './campaignRuntimeBindings.js';
 import { buildSeedRosterDocument } from './seedCauseRoster.js';
 import { createSeedClients } from './seedRpc.js';
-import { getPaymentTokenDecimals } from './paymentTokenUnits.js';
+import { campaignFundProjectCost, getPaymentTokenDecimals } from './paymentTokenUnits.js';
 
 const GAS_UNITS: Record<PlannedAction['type'], bigint> = {
   'publish-statement': 180_000n, 'create-cause': 120_000n, 'set-belief': 90_000n,
@@ -188,7 +188,7 @@ export function createLiveCampaignActionWriter(input: {
         token = folded.erc1155Address as Address;
         projectTokens.set(action.projectId!, token);
       }
-      return { hash: await buyProjectTokens(clients, { address: assurance, abi: AssuranceContractAbi }, { buyer: clients.account, tokenAddress: token, tokenIds: [3n], tokenCounts: [1n], totalCost: parseUnits('0.01', decimals) }) };
+      return { hash: await buyProjectTokens(clients, { address: assurance, abi: AssuranceContractAbi }, { buyer: clients.account, tokenAddress: token, tokenIds: [3n], tokenCounts: [1n], totalCost: campaignFundProjectCost() }) };
     },
     async 'deposit-note'(action, clients) {
       const { hash, noteId } = await depositETH(clients, notesContract, { amount: noteAmount(action) });

@@ -1,9 +1,9 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { parseEther, parseUnits, type Address, type Hex } from 'viem';
+import { parseEther, type Address, type Hex } from 'viem';
 import type { CampaignContracts, CampaignEnvironment, CampaignWalletBinding } from './campaignEnvironment.js';
 import type { CampaignPlan, PlannedAction } from './campaignPlanner.js';
-import { getPaymentTokenDecimals } from './paymentTokenUnits.js';
+import { campaignFundProjectCost } from './paymentTokenUnits.js';
 import { createSeedClients } from './seedRpc.js';
 
 const GAS_UNITS: Record<PlannedAction['type'], bigint> = {
@@ -14,7 +14,7 @@ const GAS_UNITS: Record<PlannedAction['type'], bigint> = {
 
 const DEFAULT_GAS_PRICE = 1_000_000_000n;
 const NATIVE_BUFFER_WEI = parseEther('0.05');
-const FUND_PROJECT_TOKEN = '0.01';
+
 
 export const PAYMENT_TOKEN_FUNDING_ABI = [
   {
@@ -85,8 +85,7 @@ export function computeCampaignFundingNeeds(plan: CampaignPlan, wallets: readonl
   for (const wallet of wallets) {
     bySlot.set(wallet.walletSlot, { walletSlot: wallet.walletSlot, address: wallet.address, nativeWei: NATIVE_BUFFER_WEI, paymentTokenUnits: 0n });
   }
-  const decimals = getPaymentTokenDecimals();
-  const fundCost = parseUnits(FUND_PROJECT_TOKEN, decimals);
+  const fundCost = campaignFundProjectCost();
   for (const action of plan.actions) {
     const user = action.actorUserId ? users.get(action.actorUserId) : undefined;
     if (!user) continue;

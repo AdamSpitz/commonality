@@ -10,6 +10,7 @@ import type { CampaignDerivedCheckProvider } from './campaignIndexerAdapter.js';
 import type { CampaignPlan, PlannedAction } from './campaignPlanner.js';
 import { validateRuntimeBindings, type CampaignRuntimeBindings } from './campaignRuntimeBindings.js';
 import type { DerivedCheck } from './campaignReconciler.js';
+import { campaignFundProjectCost } from './paymentTokenUnits.js';
 
 /** Injectable SDK query surface, primarily to make the expected-state logic testable. */
 export interface CampaignSdkQueries {
@@ -58,11 +59,12 @@ export function createCampaignSdkDerivedCheckProvider(input: {
   const queries = input.queries ?? realSdkQueries(input.machinery);
   const latestBelief = new Map<string, PlannedAction>();
   const latestNoteAction = new Map<string, PlannedAction>();
-  const fundingByProject = new Map<string, number>();
+  const fundingByProject = new Map<string, bigint>();
+  const fundCost = campaignFundProjectCost();
   for (const action of plan.actions) {
     if (action.type === 'set-belief') latestBelief.set(`${action.actorUserId}/${action.statementId}`, action);
     if (action.noteId) latestNoteAction.set(action.noteId, action);
-    if (action.type === 'fund-project') fundingByProject.set(action.projectId!, (fundingByProject.get(action.projectId!) ?? 0) + action.amount!);
+    if (action.type === 'fund-project') fundingByProject.set(action.projectId!, (fundingByProject.get(action.projectId!) ?? 0n) + fundCost);
   }
 
   const user = (id: string | null | undefined): Address => bindings.users[id!];
@@ -97,13 +99,13 @@ export function createCampaignSdkDerivedCheckProvider(input: {
           return [check('SDK active project alignment', true, await queries.hasAlignment(user(action.actorUserId), project(action.projectId), statement(action.statementId)))];
         case 'fund-project': {
           const folded = await queries.getProject(project(action.projectId));
-          return [check('SDK final project funding', String(fundingByProject.get(action.projectId!) ?? 0), folded?.totalReceived ?? null)];
+          return [check('SDK final project funding', (fundingByProject.get(action.projectId!) ?? 0n).toString(), folded?.totalReceived ?? null)];
         }
         case 'deposit-note':
         case 'delegate-note':
         case 'revoke-delegation': {
           const binding = bindings.notes[action.noteId!];
-          const folded = await queries.getNote(`${binding.contractAddress}:${binding.noteId}`);
+          const folded = await queries.getNote(`${binding.contractAddress.toLowerCase()}:${binding.noteId}`);
           const final = latestNoteAction.get(action.noteId!)!;
           const expectedOwner = final.type === 'delegate-note' ? user(final.delegateUserId) : user(final.actorUserId);
           const rootOwner = user(plan.actions.find((item) => item.type === 'deposit-note' && item.noteId === action.noteId)!.actorUserId);

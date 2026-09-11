@@ -2155,3 +2155,7 @@ Item 6 of the medium-realistic campaign: indexer adapter paginates with `fetchEv
 ## 2026-09-11 — Local campaign wallet provisioning
 
 Item 7 of the medium-realistic campaign: `campaignProvisioning.ts` funds generated wallets before `gen:campaign:execute`. Local mode transfers ETH from the Hardhat funder and payment tokens (mint fallback). Remote stays transfer-only and refuses Hardhat keys. `--skip-provision` exists for already-funded reruns. Live smoke on the local stack wrote `execution/funding-ledger.json` for all 100 slots. Full 100-user execute/reconcile/UI inspection is still open.
+
+## 2026-09-11 — Full local 100-user campaign execute + reconcile
+
+Ran `gen:campaign:execute --mode local --concurrency 4 --skip-provision`: 1932 mined, 0 failed, ~196s. First reconcile mismatched all fund-project and note SDK folds. Fixes: derived funding checks now use `campaignFundProjectCost()` (0.01 token per buy, matching the adapter) instead of planner persona amounts; note lookups lowercase the bound contract address. Re-reconcile: 1932/1932 verified, indexer lag 0. CauseStarter UI on this host still talks to Base Sepolia (`chainId=84532`), so browser inspection of campaign boards is blocked until the UI points at 31337. Notes: `fake-data-generation/campaigns/medium-realistic-v1-local-run.md`. Plan item 7 remains open for that UI pass.

@@ -40,12 +40,13 @@ test('SDK provider checks final folded state through runtime bindings', async ()
     getProject: async (projectAddress) => {
       calls.push(projectAddress);
       const projectId = Object.entries(bindings.projects).find(([, value]) => value === projectAddress)![0];
-      const total = plan.actions.filter((item) => item.type === 'fund-project' && item.projectId === projectId).reduce((sum, item) => sum + item.amount!, 0);
-      return { id: projectAddress, erc1155Address: address(999), marketplaceAddress: null, recipient: address(998), fundingCurrency: { chainId: 31337, tokenAddress: address(997), symbol: 'TEST', decimals: 0 }, threshold: '1', deadline: '1', totalReceived: String(total), conditionAddress: null };
+      const { campaignFundProjectCost } = await import('../paymentTokenUnits.js');
+      const count = plan.actions.filter((item) => item.type === 'fund-project' && item.projectId === projectId).length;
+      return { id: projectAddress, erc1155Address: address(999), marketplaceAddress: null, recipient: address(998), fundingCurrency: { chainId: 31337, tokenAddress: address(997), symbol: 'TEST', decimals: 0 }, threshold: '1', deadline: '1', totalReceived: (campaignFundProjectCost() * BigInt(count)).toString(), conditionAddress: null };
     },
     hasAlignment: async () => true,
     getNote: async (scopedId) => {
-      const bindingEntry = Object.entries(bindings.notes).find(([, value]) => `${value.contractAddress}:${value.noteId}` === scopedId)!;
+      const bindingEntry = Object.entries(bindings.notes).find(([, value]) => `${value.contractAddress.toLowerCase()}:${value.noteId}` === scopedId)!;
       const deposit = plan.actions.find((item) => item.type === 'deposit-note' && item.noteId === bindingEntry[0])!;
       const final = plan.actions.filter((item) => item.noteId === bindingEntry[0]).at(-1)!;
       const owner = final.type === 'delegate-note' ? bindings.users[final.delegateUserId!] : bindings.users[final.actorUserId!];
@@ -59,6 +60,54 @@ test('SDK provider checks final folded state through runtime bindings', async ()
     assert.ok(checks.every((item) => item.expected === item.actual), `${action.id} ${action.type} did not match`);
   }
   assert.ok(calls.length > 0);
+});
+
+test('SDK note lookup lowercases the bound contract address', async () => {
+  const manifest = JSON.parse(await readFile(new URL('../campaigns/medium-realistic-v1.json', import.meta.url), 'utf8')) as CampaignManifestV1;
+  const plan = await buildCampaignPlan(manifest);
+  const deposit = plan.actions.find((item) => item.type === 'deposit-note')!;
+  const mixed = '0x8A791620dd6260079BF849Dc5567aDC3F2FdC318' as Address;
+  const bindings: CampaignRuntimeBindings = {
+    version: CAMPAIGN_RUNTIME_BINDINGS_VERSION,
+    campaignId: plan.campaignId,
+    manifestFingerprint: plan.manifestFingerprint,
+    updatedAt: new Date(0).toISOString(),
+    users: Object.fromEntries(plan.users.map((item, index) => [item.id, address(index + 1)])),
+    statements: Object.fromEntries(plan.statements.map((item) => [item.id, fakeIpfsCidV1(item.id)])),
+    causes: Object.fromEntries([...new Set(plan.statements.map((item) => item.causeId))].map((id, index) => [id, { owner: address(index + 201), refName: `cause-${id}`, rosterCid: fakeIpfsCidV1(`roster-${id}`) }])),
+    projects: Object.fromEntries(plan.projects.map((item, index) => [item.id, address(index + 301)])),
+    notes: Object.fromEntries([...new Set(plan.actions.flatMap((item) => item.noteId ? [item.noteId] : []))].map((id, index) => [id, { contractAddress: mixed, noteId: String(index + 1) }])),
+  };
+  const seen: string[] = [];
+  const queries = {
+    getUserBelief: async () => 1,
+    hasImplication: async () => true,
+    getRefsByName: async () => [],
+    getProject: async () => null,
+    hasAlignment: async () => true,
+    getNote: async (id) => {
+      seen.push(id);
+      return {
+        id: bindings.notes[deposit.noteId!].noteId,
+        contractAddress: mixed,
+        chainHash: '0x',
+        amount: '1',
+        token: address(996),
+        tokenType: 0,
+        tokenId: '0',
+        owner: bindings.users[deposit.actorUserId!],
+        rootOwner: bindings.users[deposit.actorUserId!],
+        active: true,
+        createdAt: '0',
+        createdAtBlock: '1',
+        updatedAt: '0',
+      };
+    },
+  } satisfies CampaignSdkQueries;
+  const provider = createCampaignSdkDerivedCheckProvider({ machinery: { ipfsConfig: {}, twitterApiConfig: {}, testConfig: {} }, plan, bindings, queries });
+  const checks = await provider.getDerivedChecks(deposit);
+  assert.equal(seen[0], `${mixed.toLowerCase()}:${bindings.notes[deposit.noteId!].noteId}`);
+  assert.equal(checks[0].actual, true);
 });
 
 test('SDK provider exposes a derived mismatch instead of hiding it', async () => {
