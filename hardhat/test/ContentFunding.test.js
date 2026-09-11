@@ -449,6 +449,43 @@ describe("ContentFunding", function () {
         .withArgs(channelId);
     });
 
+    it("Should release beneficiary control back to verified", async function () {
+      await mockVerifier.setValid(true);
+      await beneficiaryRegistry.verifyBeneficiary(channelId, alice.address, nonce, deadline, proofHash, verifierSignature);
+      await beneficiaryRegistry.connect(alice).takeBeneficiaryControl(channelId);
+
+      await expect(beneficiaryRegistry.connect(alice).releaseBeneficiaryControl(channelId))
+        .to.emit(beneficiaryRegistry, "BeneficiaryControlReleased")
+        .withArgs(channelId, alice.address);
+
+      expect(await beneficiaryRegistry.isBeneficiaryControlled(channelId)).to.be.false;
+      expect(await beneficiaryRegistry.isVerified(channelId)).to.be.true;
+      expect(await beneficiaryRegistry.beneficiaryState(channelId)).to.equal(1);
+      expect(await beneficiaryRegistry.controlTakenAt(channelId)).to.equal(0);
+
+      await expect(beneficiaryRegistry.connect(alice).takeBeneficiaryControl(channelId))
+        .to.emit(beneficiaryRegistry, "BeneficiaryControlTaken")
+        .withArgs(channelId, alice.address);
+    });
+
+    it("Should revert releaseBeneficiaryControl when not controlled", async function () {
+      await mockVerifier.setValid(true);
+      await beneficiaryRegistry.verifyBeneficiary(channelId, alice.address, nonce, deadline, proofHash, verifierSignature);
+
+      await expect(beneficiaryRegistry.connect(alice).releaseBeneficiaryControl(channelId))
+        .to.be.revertedWithCustomError(beneficiaryRegistry, "BeneficiaryNotControlled")
+        .withArgs(channelId);
+    });
+
+    it("Should revert releaseBeneficiaryControl when not the payout address", async function () {
+      await mockVerifier.setValid(true);
+      await beneficiaryRegistry.verifyBeneficiary(channelId, alice.address, nonce, deadline, proofHash, verifierSignature);
+      await beneficiaryRegistry.connect(alice).takeBeneficiaryControl(channelId);
+
+      await expect(beneficiaryRegistry.connect(bob).releaseBeneficiaryControl(channelId))
+        .to.be.revertedWithCustomError(beneficiaryRegistry, "OnlyPayoutAddressCanReleaseControl");
+    });
+
     it("Should rotate payout address when the current payout address authorizes it", async function () {
       await mockVerifier.setValid(true);
       await beneficiaryRegistry.verifyBeneficiary(channelId, alice.address, nonce, deadline, proofHash, verifierSignature);

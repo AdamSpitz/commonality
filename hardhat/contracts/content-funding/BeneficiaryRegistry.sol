@@ -10,6 +10,8 @@ error BeneficiaryAlreadyControlled(bytes32 beneficiaryId);
 error InvalidClaimant();
 error InvalidNewPayoutAddress();
 error OnlyPayoutAddressCanTakeControl();
+error OnlyPayoutAddressCanReleaseControl();
+error BeneficiaryNotControlled(bytes32 beneficiaryId);
 error OnlyPayoutAddressCanRotate();
 error InvalidNonce();
 error ProofExpired();
@@ -54,6 +56,7 @@ interface IBeneficiaryRegistry {
         bytes calldata verifierSignature
     ) external;
     function takeBeneficiaryControl(bytes32 beneficiaryId) external;
+    function releaseBeneficiaryControl(bytes32 beneficiaryId) external;
     function rotatePayoutAddress(bytes32 beneficiaryId, address newPayoutAddress) external;
     function setVerifier(address verifier) external;
     function revokeVerifier() external;
@@ -76,7 +79,8 @@ contract BeneficiaryRegistry is IBeneficiaryRegistry, Guardable {
      * @notice Beneficiary lifecycle states
      * @dev Unclaimed: no owner verified yet
      *      Verified: owner proven via off-chain signature, third parties can still create projects
-     *      BeneficiaryControlled: owner has taken identity control
+     *      BeneficiaryControlled: only the payout wallet may create new projects about this identity.
+     *      Control is reversible: the current payout wallet may return to Verified.
      */
     enum BeneficiaryState {
         Unclaimed,
@@ -120,6 +124,13 @@ contract BeneficiaryRegistry is IBeneficiaryRegistry, Guardable {
      * @param owner The payout address that took control
      */
     event BeneficiaryControlTaken(bytes32 indexed beneficiaryId, address indexed owner);
+
+    /**
+     * @notice Emitted when the payout wallet reopens third-party project creation
+     * @param beneficiaryId The identity
+     * @param owner The payout address that released control
+     */
+    event BeneficiaryControlReleased(bytes32 indexed beneficiaryId, address indexed owner);
 
     /**
      * @notice Emitted when the verified owner authorizes a replacement payout address
@@ -394,5 +405,26 @@ contract BeneficiaryRegistry is IBeneficiaryRegistry, Guardable {
         _controlTakenAt[beneficiaryId] = block.timestamp;
 
         emit BeneficiaryControlTaken(beneficiaryId, caller);
+    }
+
+    /**
+     * @notice Reopen third-party project creation for a controlled identity
+     * @dev Transitions from BeneficiaryControlled back to Verified. Existing
+     *      projects are unchanged. Only the current payout address can call this.
+     * @param beneficiaryId The identity to reopen
+     */
+    function releaseBeneficiaryControl(bytes32 beneficiaryId) external {
+        if (_beneficiaryStates[beneficiaryId] != BeneficiaryState.BeneficiaryControlled) {
+            revert BeneficiaryNotControlled(beneficiaryId);
+        }
+        address caller = _msgSender();
+        if (caller != _payoutAddresses[beneficiaryId]) {
+            revert OnlyPayoutAddressCanReleaseControl();
+        }
+
+        _beneficiaryStates[beneficiaryId] = BeneficiaryState.Verified;
+        _controlTakenAt[beneficiaryId] = 0;
+
+        emit BeneficiaryControlReleased(beneficiaryId, caller);
     }
 }

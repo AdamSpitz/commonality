@@ -94,6 +94,27 @@ export function decodeBeneficiaryControlTakenEvent(
   };
 }
 
+export function decodeBeneficiaryControlReleasedEvent(
+  rawEvent: RawEventFromCache,
+): {
+  beneficiaryId: string;
+  owner: `0x${string}`;
+  contractAddress: `0x${string}`;
+  blockNumber: bigint;
+  blockTimestamp: bigint;
+  transactionHash: `0x${string}`;
+  logIndex: number;
+} | null {
+  if (rawEvent.eventName !== 'BeneficiaryControlReleased') return null;
+  const args = decodeRawEventArgs(rawEvent, BeneficiaryRegistryAbi);
+  if (!args) return null;
+  return {
+    beneficiaryId: args.beneficiaryId as string,
+    owner: args.owner as `0x${string}`,
+    ...decodedLogMeta(rawEvent),
+  };
+}
+
 export function decodePayoutAddressRotatedEvent(
   rawEvent: RawEventFromCache,
 ): {

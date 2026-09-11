@@ -2082,3 +2082,15 @@ tests of the live flow.
 
 Still needed: beneficiary-control / disavowal UI copy pass, product docs,
 tests of the live flow.
+
+## 2026-09-11 — Reversible beneficiary control
+
+- `releaseBeneficiaryControl` returns BeneficiaryControlled → Verified.
+  Only the current payout wallet. Existing projects unchanged. Fold and
+  indexer cache the `BeneficiaryControlReleased` event.
+- Website claim step copy is **Restrict future project creation to us**,
+  not a rejection of Commonality. Claiming-an-org docs mention the lock
+  is reversible.
+
+Still needed: UI to actually call release (reopen), project-specific
+disavowal, live-flow tests.

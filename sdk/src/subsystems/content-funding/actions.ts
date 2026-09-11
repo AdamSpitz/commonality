@@ -402,6 +402,31 @@ export async function takeBeneficiaryControl(
 }
 
 /**
+ * Reopen third-party project creation for a controlled beneficiary.
+ *
+ * The current payout wallet returns the identity from BeneficiaryControlled
+ * to Verified. Existing projects are unchanged.
+ */
+export async function releaseBeneficiaryControl(
+  clients: WriteClients,
+  registryContract: { address: Address; abi: Abi },
+  beneficiaryId: string,
+): Promise<{ hash: Hash }> {
+  const hash = await clients.walletClient.writeContract({
+    address: registryContract.address,
+    abi: registryContract.abi,
+    functionName: 'releaseBeneficiaryControl',
+    args: [beneficiaryId as `0x${string}`],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
+  });
+
+  await clients.publicClient.waitForTransactionReceipt({ hash });
+
+  return { hash };
+}
+
+/**
  * Replace the verified payout address. Only the current payout wallet may
  * authorize the replacement; a later identity proof alone cannot.
  */

@@ -43,6 +43,17 @@ export const BeneficiaryRegistryAbi = [
         "type": "bytes32"
       }
     ],
+    "name": "BeneficiaryNotControlled",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "beneficiaryId",
+        "type": "bytes32"
+      }
+    ],
     "name": "BeneficiaryNotVerified",
     "type": "error"
   },
@@ -93,6 +104,11 @@ export const BeneficiaryRegistryAbi = [
   },
   {
     "inputs": [],
+    "name": "OnlyPayoutAddressCanReleaseControl",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "OnlyPayoutAddressCanRotate",
     "type": "error"
   },
@@ -132,6 +148,25 @@ export const BeneficiaryRegistryAbi = [
     "inputs": [],
     "name": "VerifierAlreadyRevoked",
     "type": "error"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "beneficiaryId",
+        "type": "bytes32"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
+      }
+    ],
+    "name": "BeneficiaryControlReleased",
+    "type": "event"
   },
   {
     "anonymous": false,
@@ -512,6 +547,19 @@ export const BeneficiaryRegistryAbi = [
       }
     ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "beneficiaryId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "releaseBeneficiaryControl",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {

@@ -133,7 +133,10 @@ fold the same `BeneficiaryRegistry` events (not per-card RPC) and chip that
 claim state next to funding status. Once the payout wallet calls
 `takeBeneficiaryControl`, LazyGiving's factory (and the create-project form)
 refuse third-party projects about that identity; the website claim flow offers
-that lock as a separate step after verify/withdraw. Platform API challenge and
+that lock as a separate step after verify/withdraw, worded **Restrict future
+project creation to us**. The current payout wallet can later call
+`releaseBeneficiaryControl` to return the identity to Verified. Neither
+transition edits existing projects. Platform API challenge and
 confirm payloads name `beneficiaryId` (canonical string; hashed on-chain).
 `BLOCKED_CHANNEL_IDS` also gates website resolve so a blocked `dns:` identity
 cannot be named at project creation.

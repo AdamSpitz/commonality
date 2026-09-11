@@ -422,11 +422,11 @@ export function ClaimFlowModal({
             {showTakeControlStep ? (
               <>
                 <Typography variant="h6" gutterBottom>
-                  Take Control
+                  {platform === 'dns' ? 'Restrict future project creation' : 'Take Control'}
                 </Typography>
                 <Typography color="text.secondary" sx={{ mb: 2 }}>
                   {platform === 'dns'
-                    ? 'Take control so only this payout wallet can create new projects about this website. Third parties can still fund existing ones.'
+                    ? 'Restrict future project creation to us. Only this payout wallet will be able to propose new projects about this website. Existing projects keep their original authorship and escrow. You can reopen third-party proposals later.'
                     : 'Take control to manage future funding contracts for your content. Only you will be able to create new rounds.'}
                 </Typography>
                 <Button
@@ -435,7 +435,13 @@ export function ClaimFlowModal({
                   onClick={handleTakeControl}
                   disabled={takingControl}
                 >
-                  {takingControl ? 'Taking Control...' : 'Take Control'}
+                  {takingControl
+                    ? platform === 'dns'
+                      ? 'Restricting...'
+                      : 'Taking Control...'
+                    : platform === 'dns'
+                      ? 'Restrict future project creation to us'
+                      : 'Take Control'}
                 </Button>
                 {takeControlError && (
                   <Alert severity="error" sx={{ mt: 2 }}>

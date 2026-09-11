@@ -98,6 +98,7 @@ register("ContentRegistry:ContentItemRegistered");
 register("ContentRegistry:ContentItemReleased");
 register("BeneficiaryRegistry:BeneficiaryVerified");
 register("BeneficiaryRegistry:BeneficiaryControlTaken");
+register("BeneficiaryRegistry:BeneficiaryControlReleased");
 register("BeneficiaryRegistry:PayoutAddressRotated");
 register("CreatorAssuranceVeto:ContractVetoed");
 register("BeneficiaryEscrow:Deposited");

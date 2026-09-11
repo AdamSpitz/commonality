@@ -3,6 +3,7 @@ import type {
   ContentItemReleasedEvent,
   BeneficiaryVerifiedEvent,
   BeneficiaryControlTakenEvent,
+  BeneficiaryControlReleasedEvent,
   PayoutAddressRotatedEvent,
   DepositedEvent,
   WithdrawnEvent,
@@ -119,15 +120,16 @@ export interface BeneficiaryRegistryState {
 }
 
 /**
- * Fold BeneficiaryVerified, PayoutAddressRotated, and BeneficiaryControlTaken
- * events into registry state.
+ * Fold BeneficiaryVerified, PayoutAddressRotated, ControlTaken, and
+ * ControlReleased events into registry state.
  *
  * Verified events register a beneficiary with a payout address. Rotation
  * updates that address. ControlTaken events transition to
- * 'beneficiary-controlled' and record the timestamp.
+ * 'beneficiary-controlled' and record the timestamp. ControlReleased
+ * returns the identity to verified without changing the payout address.
  */
 export function foldBeneficiaryState(
-  events: (BeneficiaryVerifiedEvent | BeneficiaryControlTakenEvent | PayoutAddressRotatedEvent)[],
+  events: (BeneficiaryVerifiedEvent | BeneficiaryControlTakenEvent | BeneficiaryControlReleasedEvent | PayoutAddressRotatedEvent)[],
 ): BeneficiaryRegistryState {
   const channels = new Map<string, ChannelInfo>();
 
@@ -150,6 +152,13 @@ export function foldBeneficiaryState(
         existing.state = 'beneficiary-controlled';
         existing.owner = event.owner;
         existing.controlTakenAt = event.blockTimestamp;
+      }
+    } else if (event.type === 'BeneficiaryControlReleased') {
+      const existing = channels.get(event.beneficiaryId);
+      if (existing) {
+        existing.state = 'verified';
+        existing.owner = event.owner;
+        existing.controlTakenAt = null;
       }
     }
   }
@@ -241,14 +250,14 @@ export interface ContentFundingState {
  * Fold events from all four content-funding contracts into a single state object.
  *
  * @param contentRegistryEvents - ContentItemRegistered and ContentItemReleased events
- * @param beneficiaryRegistryEvents - BeneficiaryVerified, PayoutAddressRotated, and BeneficiaryControlTaken events
+ * @param beneficiaryRegistryEvents - BeneficiaryVerified, rotation, control taken/released events
  * @param beneficiaryEscrowEvents - Deposited and Withdrawn events
  * @param creatorContractEvents - CreatorContractCreated events
  * @returns Combined ContentFundingState
  */
 export function foldAllContentFundingEvents(
   contentRegistryEvents: (ContentItemRegisteredEvent | ContentItemReleasedEvent)[],
-  beneficiaryRegistryEvents: (BeneficiaryVerifiedEvent | BeneficiaryControlTakenEvent | PayoutAddressRotatedEvent)[],
+  beneficiaryRegistryEvents: (BeneficiaryVerifiedEvent | BeneficiaryControlTakenEvent | BeneficiaryControlReleasedEvent | PayoutAddressRotatedEvent)[],
   beneficiaryEscrowEvents: (DepositedEvent | WithdrawnEvent)[],
   creatorContractEvents: CreatorContractCreatedEvent[],
 ): ContentFundingState {

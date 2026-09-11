@@ -2,6 +2,7 @@ import assert from 'assert';
 import { encodeAbiParameters, encodeEventTopics } from 'viem';
 import type {
   BeneficiaryControlTakenEvent,
+  BeneficiaryControlReleasedEvent,
   BeneficiaryVerifiedEvent,
   PayoutAddressRotatedEvent,
   ContentItemRegisteredEvent,
@@ -84,6 +85,20 @@ function makeControlTakenEvent(overrides: Partial<BeneficiaryControlTakenEvent> 
     blockTimestamp: 1200n,
     transactionHash: TX_HASH,
     logIndex: 1,
+    ...overrides,
+  };
+}
+
+function makeControlReleasedEvent(overrides: Partial<BeneficiaryControlReleasedEvent> = {}): BeneficiaryControlReleasedEvent {
+  return {
+    type: 'BeneficiaryControlReleased',
+    contractAddress: '0x9999999999999999999999999999999999999998',
+    beneficiaryId: CHANNEL_A,
+    owner: OWNER_A,
+    blockNumber: 130n,
+    blockTimestamp: 1300n,
+    transactionHash: TX_HASH,
+    logIndex: 2,
     ...overrides,
   };
 }
@@ -398,6 +413,25 @@ describe('content-funding query helpers', () => {
     assert.strictEqual(overview.escrow.totalDeposited, 25n);
     assert.strictEqual(overview.contracts.length, 3);
     assert.deepStrictEqual(overview.contentItems.map((item) => item.contentId.toString()), ['1', '2', '3']);
+  });
+
+  it('returns a released identity to verified', () => {
+    const released = foldAllContentFundingEvents(
+      [],
+      [
+        makeVerifiedEvent(),
+        makeControlTakenEvent(),
+        makeControlReleasedEvent(),
+      ],
+      [],
+      [],
+    );
+    const overview = getChannelOverview(released, CHANNEL_A, {
+      projects,
+      now: 1500n,
+    });
+    assert.strictEqual(overview.channel.state, 'verified');
+    assert.strictEqual(overview.channel.controlTakenAt, null);
   });
 
   it('returns content-item status with the linked contract summary', () => {
