@@ -20,6 +20,46 @@ Getting **testnet to a two-person shared lab** is also a standing plan, not a pi
 
 ----
 
+- Stop mixing localhost and Base Sepolia in the generated env files so a laptop
+  can run a complete local stack **and** publish a complete testnet UI without
+  one clobbering the other. This is not “one SPA talks to both chains.” Live
+  Render testnet already has its own env; the bug is this checkout’s generated
+  `.env` / `ui/.env` / `causestarter/.env`.
+
+  **What went wrong (2026-09-11, medium-realistic local campaign):** those files
+  were last written by `scripts/setup-env.sh base-sepolia` (`CHAIN_ID=84532`,
+  `VITE_EVENT_CACHE_URL=https://commonality-indexer.onrender.com`) but carried
+  Hardhat contract addresses and a localhost IPFS gateway. `scripts/services.sh
+  --start` loads `deployments/localhost.env` then lets the live env files win
+  (`map_causestarter_contract_env` keeps an already-set `VITE_CHAIN_ID`).
+  CauseStarter Docker writes `config.json` from that mix
+  (`causestarter/docker-entrypoint.d/40-causestarter-config.sh`). The local UI
+  gateway (`scripts/local-ui-gateway.mjs`) only proxies `/api` when the bundle
+  **omits** `VITE_EVENT_CACHE_URL`; a baked Render URL bypasses it. Vite on
+  `:5174` and `http://causestarter.localhost:8088/` then requested chain 84532
+  and showed “Failed to fetch” (CORS) while the campaign had populated chain
+  31337. Same class of bug as
+  [chain-scoped-trust-config.md](docs/dev/chain-scoped-trust-config.md).
+
+  **Do this:**
+  1. Keep localhost vs Base Sepolia as two complete generated profiles. Do not
+     overlay a later file from a different chain onto an earlier one.
+  2. `./scripts/services.sh --start` must **activate localhost**: chain 31337,
+     `http://127.0.0.1:8545`, local indexer (or omit `VITE_EVENT_CACHE_URL` so
+     `:8088` can proxy). Refuse to start if chain id, RPC, indexer URL, and
+     contract bytecode disagree.
+  3. Testnet publish (`setup-env.sh base-sepolia` plus `deploy-ui` /
+     `deploy-causestarter`) must not leave the laptop stuck on the testnet
+     profile — generate into a per-network dir or temp tree, or restore
+     localhost after the publish.
+  4. Add a cheap consistency check (start and/or verifier) so a mixed profile
+     fails loudly instead of rendering empty.
+
+  Context: [medium-realistic-v1-local-run.md](fake-data-generation/campaigns/medium-realistic-v1-local-run.md),
+  `scripts/setup-env.sh`, `scripts/services.sh` (`map_causestarter_contract_env`),
+  `workflow/local-development.md`, `workflow/deployment.md`. Do not invent a
+  runtime chain switcher in the SPA.
+
 - Align `foldReimbursements` donation rounding with the contract’s per-share
   accumulator (`accumulatedReimbursementPerClaimShare` / `mulDiv`). The fold
   currently splits each donation with per-holder `claim * amount / outstanding`
