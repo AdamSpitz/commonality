@@ -1,0 +1,118 @@
+{
+  "schema": "commonality-testnet-campaign-v1",
+  "campaign": {
+    "id": "medium-realistic-v1",
+    "label": "Medium realistic campaign v1",
+    "syntheticDataLabel": "SYNTHETIC TESTNET CAMPAIGN — NOT REAL USERS OR ADOPTION",
+    "userCount": 100,
+    "deterministicSeed": "commonality-medium-realistic-v1-2026-09-11",
+    "randomAlgorithm": "xoshiro128**"
+  },
+  "sourcePolicy": {
+    "kind": "accepted-seed-content-only",
+    "fingerprintAlgorithm": "sha256",
+    "excludeCollections": ["proliferation"]
+  },
+  "causes": [
+    { "id": "open-source", "title": "Open-source public infrastructure", "activityTier": "large", "membershipWeight": 16, "statementRefs": [
+      { "collectionId": "fundable-projects", "groupId": "open-source-and-public-infrastructure", "statementId": "open-source-public-infrastructure" },
+      { "collectionId": "fundable-projects", "groupId": "open-source-and-public-infrastructure", "statementId": "fund-critical-maintainers" },
+      { "collectionId": "simple-causes", "groupId": "open-source-maintenance", "statementId": "oss-libraries-kept-up" },
+      { "collectionId": "simple-causes", "groupId": "open-source-maintenance", "statementId": "linux-kept-up" },
+      { "collectionId": "simple-causes", "groupId": "open-source-maintenance", "statementId": "oss-not-single-vendor-capture" }
+    ]},
+    { "id": "local-food", "title": "Local food systems", "activityTier": "large", "membershipWeight": 15, "statementRefs": [
+      { "collectionId": "simple-causes", "groupId": "local-food-planks", "statementId": "neighborhood-growing" },
+      { "collectionId": "simple-causes", "groupId": "local-food-planks", "statementId": "farmers-markets-direct-connect" },
+      { "collectionId": "simple-causes", "groupId": "local-food-planks", "statementId": "community-supported-agriculture" },
+      { "collectionId": "simple-causes", "groupId": "local-food-planks", "statementId": "working-local-farms" },
+      { "collectionId": "simple-causes", "groupId": "local-food-planks", "statementId": "shorter-food-supply-chains" }
+    ]},
+    { "id": "open-science", "title": "Open and trustworthy science", "activityTier": "large", "membershipWeight": 14, "statementRefs": [
+      { "collectionId": "fundable-projects", "groupId": "scientific-research", "statementId": "open-access-scientific-publishing" },
+      { "collectionId": "fundable-projects", "groupId": "scientific-research", "statementId": "research-neglected-diseases" },
+      { "collectionId": "fundable-projects", "groupId": "scientific-research", "statementId": "independent-replication-studies" },
+      { "collectionId": "fundable-projects", "groupId": "scientific-research", "statementId": "conflict-free-scientific-research" }
+    ]},
+    { "id": "education", "title": "Education and literacy", "activityTier": "medium", "membershipWeight": 12, "statementRefs": [
+      { "collectionId": "fundable-projects", "groupId": "education", "statementId": "vocational-training" },
+      { "collectionId": "fundable-projects", "groupId": "education", "statementId": "educational-support-for-disadvantaged-kids" },
+      { "collectionId": "fundable-projects", "groupId": "education", "statementId": "learning-outcomes-research" },
+      { "collectionId": "fundable-projects", "groupId": "education", "statementId": "classic-literature-and-history" }
+    ]},
+    { "id": "environment", "title": "Environmental resilience", "activityTier": "medium", "membershipWeight": 11, "statementRefs": [
+      { "collectionId": "fundable-projects", "groupId": "environment-and-sustainability", "statementId": "clean-energy-research" },
+      { "collectionId": "fundable-projects", "groupId": "environment-and-sustainability", "statementId": "independent-environmental-monitoring" },
+      { "collectionId": "fundable-projects", "groupId": "environment-and-sustainability", "statementId": "conservation-of-local-natural-areas" },
+      { "collectionId": "fundable-projects", "groupId": "environment-and-sustainability", "statementId": "sustainable-agriculture-research" }
+    ]},
+    { "id": "digital-rights", "title": "Digital rights and civic infrastructure", "activityTier": "medium", "membershipWeight": 10, "statementRefs": [
+      { "collectionId": "fundable-projects", "groupId": "civil-liberties", "statementId": "censorship-resistant-publishing" },
+      { "collectionId": "fundable-projects", "groupId": "civil-liberties", "statementId": "protect-from-surveillance" },
+      { "collectionId": "fundable-projects", "groupId": "civil-liberties", "statementId": "privacy-tools-for-ordinary-people" },
+      { "collectionId": "fundable-projects", "groupId": "civil-liberties", "statementId": "decentralized-social-media-alternatives" }
+    ]},
+    { "id": "abortion-common-ground", "title": "Abortion common ground", "activityTier": "small", "membershipWeight": 7, "statementRefs": [
+      { "collectionId": "compromise-abortion", "groupId": "abortion-gestational-cutoff", "statementId": "natural-left" },
+      { "collectionId": "compromise-abortion", "groupId": "abortion-gestational-cutoff", "statementId": "natural-right" },
+      { "collectionId": "compromise-abortion", "groupId": "abortion-gestational-cutoff", "statementId": "modified-left" },
+      { "collectionId": "compromise-abortion", "groupId": "abortion-gestational-cutoff", "statementId": "modified-right" },
+      { "collectionId": "compromise-abortion", "groupId": "abortion-gestational-cutoff", "statementId": "commonality" }
+    ]},
+    { "id": "immigration-common-ground", "title": "Immigration common ground", "activityTier": "small", "membershipWeight": 6, "statementRefs": [
+      { "collectionId": "compromise-immigration", "groupId": "immigration-criminal-priority-overlap", "statementId": "natural-left" },
+      { "collectionId": "compromise-immigration", "groupId": "immigration-criminal-priority-overlap", "statementId": "natural-right" },
+      { "collectionId": "compromise-immigration", "groupId": "immigration-criminal-priority-overlap", "statementId": "modified-left" },
+      { "collectionId": "compromise-immigration", "groupId": "immigration-criminal-priority-overlap", "statementId": "modified-right" },
+      { "collectionId": "compromise-immigration", "groupId": "immigration-criminal-priority-overlap", "statementId": "commonality" }
+    ]},
+    { "id": "violent-crime-common-ground", "title": "Violent crime common ground", "activityTier": "small", "membershipWeight": 5, "statementRefs": [
+      { "collectionId": "crime-repeat-offenders", "groupId": "crime-repeat-offender-concentration", "statementId": "natural-left" },
+      { "collectionId": "crime-repeat-offenders", "groupId": "crime-repeat-offender-concentration", "statementId": "natural-right" },
+      { "collectionId": "crime-repeat-offenders", "groupId": "crime-repeat-offender-concentration", "statementId": "modified-left" },
+      { "collectionId": "crime-repeat-offenders", "groupId": "crime-repeat-offender-concentration", "statementId": "modified-right" },
+      { "collectionId": "crime-repeat-offenders", "groupId": "crime-repeat-offender-concentration", "statementId": "commonality" }
+    ]},
+    { "id": "schools-common-ground", "title": "Schools and LGBT common ground", "activityTier": "small", "membershipWeight": 4, "statementRefs": [
+      { "collectionId": "lgbt-schools", "groupId": "lgbt-schools-pushing", "statementId": "natural-left" },
+      { "collectionId": "lgbt-schools", "groupId": "lgbt-schools-pushing", "statementId": "natural-right" },
+      { "collectionId": "lgbt-schools", "groupId": "lgbt-schools-pushing", "statementId": "modified-left" },
+      { "collectionId": "lgbt-schools", "groupId": "lgbt-schools-pushing", "statementId": "modified-right" },
+      { "collectionId": "lgbt-schools", "groupId": "lgbt-schools-pushing", "statementId": "commonality" }
+    ]}
+  ],
+  "personas": [
+    { "id": "quiet-neighbor", "count": 24, "roles": ["lurker", "supporter"], "causesPerUser": { "min": 1, "max": 2 }, "activityWeight": 0.25, "inactivityRate": 0.35, "fundingWeight": 0.5 },
+    { "id": "regular-supporter", "count": 30, "roles": ["supporter"], "causesPerUser": { "min": 1, "max": 3 }, "activityWeight": 1, "inactivityRate": 0.08, "fundingWeight": 1 },
+    { "id": "community-organizer", "count": 14, "roles": ["cause-founder", "supporter"], "causesPerUser": { "min": 2, "max": 3 }, "activityWeight": 2, "inactivityRate": 0, "fundingWeight": 1.2 },
+    { "id": "project-builder", "count": 14, "roles": ["project-founder", "supporter"], "causesPerUser": { "min": 1, "max": 2 }, "activityWeight": 1.7, "inactivityRate": 0.03, "fundingWeight": 0.8 },
+    { "id": "trusted-delegate", "count": 8, "roles": ["delegate", "supporter"], "causesPerUser": { "min": 2, "max": 3 }, "activityWeight": 2.2, "inactivityRate": 0, "fundingWeight": 1.4 },
+    { "id": "bridge-mediator", "count": 6, "roles": ["attester", "mediator"], "causesPerUser": { "min": 2, "max": 3 }, "activityWeight": 2.4, "inactivityRate": 0, "fundingWeight": 0.6 },
+    { "id": "power-user", "count": 4, "roles": ["power-user", "supporter", "delegate"], "causesPerUser": { "min": 3, "max": 3 }, "activityWeight": 4, "inactivityRate": 0, "fundingWeight": 2.5 }
+  ],
+  "actionRules": [
+    { "type": "publish-statement", "prerequisites": [], "targetCount": { "min": 46, "max": 46 } },
+    { "type": "create-cause", "prerequisites": ["publish-statement"], "targetCount": { "min": 10, "max": 10 } },
+    { "type": "set-belief", "prerequisites": ["publish-statement"], "targetCount": { "min": 350, "max": 650 } },
+    { "type": "attest-implication", "prerequisites": ["publish-statement"], "targetCount": { "min": 20, "max": 50 } },
+    { "type": "create-project", "prerequisites": ["create-cause"], "targetCount": { "min": 18, "max": 26 } },
+    { "type": "attest-alignment", "prerequisites": ["create-project", "publish-statement"], "targetCount": { "min": 30, "max": 65 } },
+    { "type": "fund-project", "prerequisites": ["create-project", "attest-alignment"], "targetCount": { "min": 350, "max": 900 } },
+    { "type": "deposit-note", "prerequisites": [], "targetCount": { "min": 120, "max": 260 } },
+    { "type": "delegate-note", "prerequisites": ["deposit-note"], "targetCount": { "min": 80, "max": 200 } },
+    { "type": "revoke-delegation", "prerequisites": ["delegate-note"], "targetCount": { "min": 10, "max": 35 } }
+  ],
+  "artifactLayout": {
+    "manifest": "manifest.json",
+    "statementCatalog": "plan/statements.json",
+    "assignments": "plan/assignments.json",
+    "walletAddresses": "plan/wallet-addresses.json",
+    "walletSecrets": "../secrets/medium-realistic-v1.wallets.json",
+    "actionPlan": "plan/actions.json",
+    "executionState": "execution/actions.jsonl",
+    "fundingLedger": "execution/funding-ledger.json",
+    "reconciliation": "reports/reconciliation.json",
+    "browserObservations": "reports/browser-observations.json",
+    "summary": "reports/summary.md"
+  }
+}
