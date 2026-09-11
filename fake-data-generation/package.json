@@ -20,6 +20,7 @@
     "gen:campaign:plan": "tsx campaignPlanner.ts",
     "gen:campaign:execute": "tsx campaignExecute.ts",
     "gen:campaign:reconcile": "tsx campaignReconcile.ts",
+    "gen:campaign:canary-preflight": "tsx campaignCanary.ts",
     "gen:attesters": "tsx generateAttesters.ts",
     "gen:attestations": "tsx generateAttestations.ts",
     "gen:simulate": "tsx runSimulation.ts",

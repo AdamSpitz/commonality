@@ -2163,3 +2163,7 @@ Ran `gen:campaign:execute --mode local --concurrency 4 --skip-provision`: 1932 m
 ## 2026-09-11 — Local campaign CauseStarter UI inspection
 
 Plan item 7 closed. Restarted a 6-day-old `causestarter:dev` so Vite baked `VITE_CHAIN_ID=31337` instead of Base Sepolia. Schools and open-source boards, a bridge statement, and a funded project (eip155:31337) render from the local indexer. Notes page needs a connected wallet. Empty `VITE_DEFAULT_ALIGNMENT_TRUST_ROOT` shows the “no starter vouching network” banner. Details: `fake-data-generation/campaigns/medium-realistic-v1-local-run.md`. Next: remote canary preflight (plan item 8).
+
+## 2026-09-11 — Remote canary preflight (no mutation)
+
+Plan item 8 closed. `campaignCanary.ts` + `npm run gen:campaign:canary-preflight` slice the medium-realistic plan to 10 users (plus extra actors required by prerequisites), estimate ETH/token needs and paced duration, probe chain bytecode and indexer lag, and write `reports/remote-canary-preflight.{json,md}`. Shared-lab health, official implication path, `verifier-testnet.sh`, and the budget/window remain `needs-adam`. Does not send transactions. Next: item 9 only after Adam approves that proposal.
