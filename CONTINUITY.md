@@ -2070,5 +2070,15 @@ Channel* names (intentional), and deferred recovery/KYC/scouting.
 - Cause boards' empty state is **Propose a project for this cause** with
   `?statement=`.
 
-Still needed: resumable multi-attest, beneficiary-control / disavowal UI copy
-pass, product docs, tests of the live flow.
+Still needed: beneficiary-control / disavowal UI copy pass, product docs,
+tests of the live flow.
+
+## 2026-09-11 — Resumable multi-statement alignment attest
+
+- Project vouch dialog queues one or more statements (pre-seeded from
+  `?causeCid=`), submits each pair separately, skips already-onchain
+  `(attester, statement, project)` attestations, and lets a failed row retry.
+- Onchain `readHasAlignment` is the idempotent pre-check.
+
+Still needed: beneficiary-control / disavowal UI copy pass, product docs,
+tests of the live flow.
