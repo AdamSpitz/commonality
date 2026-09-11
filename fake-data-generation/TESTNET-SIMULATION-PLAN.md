@@ -186,6 +186,14 @@ Do these in order unless Adam names a different item. Keep each item small enoug
 7. **[x] Run and inspect the full 100-user campaign locally.** Local execute mined all 1932 actions in ~196s (concurrency 4); after harness fixes, reconciliation is 1932/1932 with lag 0. CauseStarter on Vite `:5174` (chain 31337, indexer via `/api` → `:42069`) shows campaign boards, statements, and funded projects. See [`campaigns/medium-realistic-v1-local-run.md`](./campaigns/medium-realistic-v1-local-run.md). A Vite process started against a previous testnet env will keep hitting Base Sepolia until it is restarted.
 8. **[x] Prepare the remote canary.** [`campaignCanary.ts`](./campaignCanary.ts) slices the frozen plan to 10 users plus dependency actors, estimates native/token funding and paced duration, and writes a read-only proposal (`reports/remote-canary-preflight.{json,md}`). `npm run gen:campaign:canary-preflight` checks remote chain ID/bytecode and indexer lag, refuses `--confirm-remote-mutation`, documents secrets layout/retention and the synthetic label, and leaves shared-lab, official implication path, verifier-testnet, and budget-window items as `needs-adam`. It does not send transactions.
 9. **[ ] Run 10 users on testnet and reconcile.** Stop on unexplained discrepancies. Demonstrate safe resume and confirm the populated pages are readable before expanding.
+
+   **Status (2026-09-11):** Preflight completed successfully. All technical gates pass. Proposal at `output/campaigns/medium-realistic-v1/reports/remote-canary-preflight.{json,md}`. Awaiting Adam's approval on four "needs-adam" items:
+   - shared-lab-readiness (core infra working; some non-critical verifier checks still fail)
+   - official-implication-path (confirm implication/trust relationships are populated for chosen statements)
+   - read-only-verifier (run immediately before execution)
+   - budget-and-window (approve ~0.97 ETH budget and testnet window)
+   
+   Once approved: execute with `RPC_URL=<alchemy> EVENT_CACHE_URL=https://commonality-indexer.onrender.com npm run gen:campaign:execute -- --mode remote --confirm-remote-mutation`
 10. **[ ] Run staged 25-user then 100-user campaigns.** Re-run health/preflight and reconcile after each phase. Do not automatically advance after a failed or materially surprising phase.
 11. **[ ] Publish the campaign report and follow-up decisions.** Record product findings, operational limits, indexing correctness/latency, gas/provider costs, and the explicitly unsupported scalability claims. Move concrete fixes to the appropriate backlog or a new focus; do not let this plan become a permanent catch-all.
 
