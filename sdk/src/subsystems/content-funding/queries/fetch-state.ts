@@ -4,6 +4,8 @@ import type {
   BeneficiaryVerifiedEvent,
   BeneficiaryControlTakenEvent,
   BeneficiaryControlReleasedEvent,
+  ProjectDisavowedEvent,
+  ProjectDisavowalWithdrawnEvent,
   PayoutAddressRotatedEvent,
   ContractVetoedEvent,
   DepositedEvent,
@@ -20,6 +22,8 @@ import {
   decodeBeneficiaryVerifiedEvent,
   decodeBeneficiaryControlTakenEvent,
   decodeBeneficiaryControlReleasedEvent,
+  decodeProjectDisavowedEvent,
+  decodeProjectDisavowalWithdrawnEvent,
   decodePayoutAddressRotatedEvent,
   decodeContractVetoedEvent,
   decodeDepositedEvent,
@@ -59,7 +63,7 @@ export async function fetchAndFoldContentFundingState(
   }
 
   const contentRegistryEvents: (ContentItemRegisteredEvent | ContentItemReleasedEvent)[] = [];
-  const beneficiaryRegistryEvents: (BeneficiaryVerifiedEvent | BeneficiaryControlTakenEvent | BeneficiaryControlReleasedEvent | PayoutAddressRotatedEvent)[] = [];
+  const beneficiaryRegistryEvents: (BeneficiaryVerifiedEvent | BeneficiaryControlTakenEvent | BeneficiaryControlReleasedEvent | PayoutAddressRotatedEvent | ProjectDisavowedEvent | ProjectDisavowalWithdrawnEvent)[] = [];
   const beneficiaryEscrowEvents: (DepositedEvent | WithdrawnEvent)[] = [];
   const creatorContractEvents: CreatorContractCreatedEvent[] = [];
   const contractVetoedEvents: ContractVetoedEvent[] = [];
@@ -89,6 +93,16 @@ export async function fetchAndFoldContentFundingState(
       case 'BeneficiaryControlReleased': {
         const d = decodeBeneficiaryControlReleasedEvent(raw);
         if (d) beneficiaryRegistryEvents.push({ type: 'BeneficiaryControlReleased', ...d });
+        break;
+      }
+      case 'ProjectDisavowed': {
+        const d = decodeProjectDisavowedEvent(raw);
+        if (d) beneficiaryRegistryEvents.push({ type: 'ProjectDisavowed', ...d });
+        break;
+      }
+      case 'ProjectDisavowalWithdrawn': {
+        const d = decodeProjectDisavowalWithdrawnEvent(raw);
+        if (d) beneficiaryRegistryEvents.push({ type: 'ProjectDisavowalWithdrawn', ...d });
         break;
       }
       case 'PayoutAddressRotated': {

@@ -4,6 +4,8 @@ import type {
   BeneficiaryVerifiedEvent,
   BeneficiaryControlTakenEvent,
   BeneficiaryControlReleasedEvent,
+  ProjectDisavowedEvent,
+  ProjectDisavowalWithdrawnEvent,
   PayoutAddressRotatedEvent,
   DepositedEvent,
   WithdrawnEvent,
@@ -117,6 +119,8 @@ export interface ChannelInfo {
 export interface BeneficiaryRegistryState {
   /** Map from channelId (bytes32) to ChannelInfo. */
   channels: Map<string, ChannelInfo>;
+  /** Lowercased project addresses currently disavowed by their beneficiary. */
+  disavowedProjects: Set<string>;
 }
 
 /**
@@ -129,9 +133,10 @@ export interface BeneficiaryRegistryState {
  * returns the identity to verified without changing the payout address.
  */
 export function foldBeneficiaryState(
-  events: (BeneficiaryVerifiedEvent | BeneficiaryControlTakenEvent | BeneficiaryControlReleasedEvent | PayoutAddressRotatedEvent)[],
+  events: (BeneficiaryVerifiedEvent | BeneficiaryControlTakenEvent | BeneficiaryControlReleasedEvent | PayoutAddressRotatedEvent | ProjectDisavowedEvent | ProjectDisavowalWithdrawnEvent)[],
 ): BeneficiaryRegistryState {
   const channels = new Map<string, ChannelInfo>();
+  const disavowedProjects = new Set<string>();
 
   for (const event of events) {
     if (event.type === 'BeneficiaryVerified') {
@@ -160,10 +165,21 @@ export function foldBeneficiaryState(
         existing.owner = event.owner;
         existing.controlTakenAt = null;
       }
+    } else if (event.type === 'ProjectDisavowed') {
+      disavowedProjects.add(event.project.toLowerCase());
+    } else if (event.type === 'ProjectDisavowalWithdrawn') {
+      disavowedProjects.delete(event.project.toLowerCase());
     }
   }
 
-  return { channels };
+  return { channels, disavowedProjects };
+}
+
+export function isProjectDisavowed(
+  state: BeneficiaryRegistryState | Pick<BeneficiaryRegistryState, 'disavowedProjects'>,
+  projectAddress: string,
+): boolean {
+  return state.disavowedProjects.has(projectAddress.toLowerCase());
 }
 
 /** @deprecated Use foldBeneficiaryState. */
@@ -257,7 +273,7 @@ export interface ContentFundingState {
  */
 export function foldAllContentFundingEvents(
   contentRegistryEvents: (ContentItemRegisteredEvent | ContentItemReleasedEvent)[],
-  beneficiaryRegistryEvents: (BeneficiaryVerifiedEvent | BeneficiaryControlTakenEvent | BeneficiaryControlReleasedEvent | PayoutAddressRotatedEvent)[],
+  beneficiaryRegistryEvents: (BeneficiaryVerifiedEvent | BeneficiaryControlTakenEvent | BeneficiaryControlReleasedEvent | PayoutAddressRotatedEvent | ProjectDisavowedEvent | ProjectDisavowalWithdrawnEvent)[],
   beneficiaryEscrowEvents: (DepositedEvent | WithdrawnEvent)[],
   creatorContractEvents: CreatorContractCreatedEvent[],
 ): ContentFundingState {

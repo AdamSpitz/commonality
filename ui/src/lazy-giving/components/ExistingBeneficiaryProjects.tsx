@@ -2,6 +2,7 @@ import { Alert, Button, CircularProgress, Stack, Typography } from '@mui/materia
 import { Link as RouterLink } from 'react-router-dom'
 import { projectPathForAddress } from '../../shared'
 import { useExistingBeneficiaryProjects } from '../hooks/useExistingBeneficiaryProjects'
+import { useProjectDisavowals } from '../hooks/useProjectDisavowals'
 import type { BeneficiaryProjectMatch } from '../projectsForBeneficiary'
 
 function projectLabel(match: BeneficiaryProjectMatch): string {
@@ -10,6 +11,8 @@ function projectLabel(match: BeneficiaryProjectMatch): string {
 
 export function ExistingBeneficiaryProjects({ domain }: { domain: string }) {
   const { loading, matches, canonical } = useExistingBeneficiaryProjects(domain)
+  const disavowedProjects = useProjectDisavowals()
+  const reusable = matches.filter((match) => !disavowedProjects.has(match.id.toLowerCase()))
   if (!canonical) return null
   if (loading) {
     return (
@@ -21,7 +24,7 @@ export function ExistingBeneficiaryProjects({ domain }: { domain: string }) {
       </Stack>
     )
   }
-  if (matches.length === 0) return null
+  if (reusable.length === 0) return null
   return (
     <Alert severity="info" data-testid="existing-beneficiary-projects">
       <Typography variant="body2" sx={{ mb: 1 }}>
@@ -30,7 +33,7 @@ export function ExistingBeneficiaryProjects({ domain }: { domain: string }) {
         allowed when the framing, conditions, or stewardship actually differ.
       </Typography>
       <Stack spacing={1}>
-        {matches.map((match) => (
+        {reusable.map((match) => (
           <Stack key={match.id} spacing={0.25}>
             <Button
               component={RouterLink}

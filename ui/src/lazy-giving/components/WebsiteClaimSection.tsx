@@ -4,9 +4,11 @@ import { useAccount, usePublicClient } from 'wagmi'
 import { isAddress } from 'viem'
 import { BeneficiaryEscrowAbi, BeneficiaryRegistryAbi } from '@commonality/sdk/abis'
 import {
+  disavowProject,
   hashBeneficiaryId,
   releaseBeneficiaryControl,
   rotatePayoutAddress,
+  withdrawProjectDisavowal,
   type BeneficiaryState,
 } from '@commonality/sdk/content-funding'
 import { ClaimFlowModal } from '../../content-funding'
@@ -15,9 +17,11 @@ import { beneficiaryStateFromUint } from './websiteBeneficiaryClaim'
 
 type WebsiteClaimSectionProps = {
   domain: string
+  /** When set, the payout wallet can disavow this particular project. */
+  projectAddress?: `0x${string}`
 }
 
-export function WebsiteClaimSection({ domain }: WebsiteClaimSectionProps) {
+export function WebsiteClaimSection({ domain, projectAddress }: WebsiteClaimSectionProps) {
   const { address, isConnected } = useAccount()
   const publicClient = usePublicClient()
   const writeClients = useWriteClients(address)
@@ -32,6 +36,10 @@ export function WebsiteClaimSection({ domain }: WebsiteClaimSectionProps) {
   const [releasing, setReleasing] = useState(false)
   const [releaseError, setReleaseError] = useState<string | null>(null)
   const [releaseSuccess, setReleaseSuccess] = useState<string | null>(null)
+  const [projectDisavowed, setProjectDisavowed] = useState(false)
+  const [disavowing, setDisavowing] = useState(false)
+  const [disavowError, setDisavowError] = useState<string | null>(null)
+  const [disavowSuccess, setDisavowSuccess] = useState<string | null>(null)
   const [withdrawableAt, setWithdrawableAt] = useState<number | undefined>(undefined)
   const [withdrawLocked, setWithdrawLocked] = useState(false)
   const [loadError, setLoadError] = useState<string | null>(null)
@@ -67,6 +75,17 @@ export function WebsiteClaimSection({ domain }: WebsiteClaimSectionProps) {
       setBeneficiaryState(beneficiaryStateFromUint(Number(state)))
       setEscrowBalance(balance)
       setPayoutAddress(Number(state) > 0 ? payout : null)
+      if (projectAddress) {
+        const disavowed = await publicClient.readContract({
+          address: registryAddress,
+          abi: BeneficiaryRegistryAbi,
+          functionName: 'isProjectDisavowed',
+          args: [beneficiaryId, projectAddress],
+        }) as boolean
+        setProjectDisavowed(Boolean(disavowed))
+      } else {
+        setProjectDisavowed(false)
+      }
       if (Number(state) > 0) {
         const at = await publicClient.readContract({
           address: registryAddress,
@@ -91,7 +110,7 @@ export function WebsiteClaimSection({ domain }: WebsiteClaimSectionProps) {
     void reload()
     // Reload on identity/client change; reload closes over those values.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [publicClient, registryAddress, escrowAddress, beneficiaryId])
+  }, [publicClient, registryAddress, escrowAddress, beneficiaryId, projectAddress])
 
   const isPayoutWallet = Boolean(
     address
@@ -111,6 +130,14 @@ export function WebsiteClaimSection({ domain }: WebsiteClaimSectionProps) {
     && beneficiaryState === 'beneficiary-controlled'
     && writeClients
     && registryAddress,
+  )
+
+  const canDisavow = Boolean(
+    isPayoutWallet
+    && beneficiaryState !== 'unclaimed'
+    && writeClients
+    && registryAddress
+    && projectAddress,
   )
 
   const handleRotate = async () => {
@@ -137,6 +164,37 @@ export function WebsiteClaimSection({ domain }: WebsiteClaimSectionProps) {
       setRotateError(humanizeTxError(err, 'Could not rotate payout address'))
     } finally {
       setRotating(false)
+    }
+  }
+
+  const handleDisavowToggle = async () => {
+    if (!writeClients || !registryAddress || !projectAddress) return
+    try {
+      setDisavowing(true)
+      setDisavowError(null)
+      setDisavowSuccess(null)
+      if (projectDisavowed) {
+        await withdrawProjectDisavowal(
+          writeClients,
+          { address: registryAddress, abi: BeneficiaryRegistryAbi },
+          beneficiaryId,
+          projectAddress,
+        )
+        setDisavowSuccess('Disavowal withdrawn. That is not an endorsement of this project.')
+      } else {
+        await disavowProject(
+          writeClients,
+          { address: registryAddress, abi: BeneficiaryRegistryAbi },
+          beneficiaryId,
+          projectAddress,
+        )
+        setDisavowSuccess('This project is disavowed. Escrow and authorship are unchanged.')
+      }
+      await reload()
+    } catch (err) {
+      setDisavowError(humanizeTxError(err, 'Could not update project disavowal'))
+    } finally {
+      setDisavowing(false)
     }
   }
 
@@ -204,6 +262,30 @@ export function WebsiteClaimSection({ domain }: WebsiteClaimSectionProps) {
             </Button>
             {releaseError && <Alert severity="error">{releaseError}</Alert>}
             {releaseSuccess && <Alert severity="success">{releaseSuccess}</Alert>}
+          </Stack>
+        )}
+        {canDisavow && (
+          <Stack spacing={1}>
+            <Typography variant="subtitle2">This project</Typography>
+            <Typography variant="body2" color="text.secondary">
+              Disavowal tells people this proposal is not yours. It does not
+              cancel the contract, rewrite authorship, or change escrow.
+              Withdrawing a disavowal is not an endorsement.
+            </Typography>
+            <Button
+              variant="outlined"
+              color={projectDisavowed ? 'inherit' : 'warning'}
+              onClick={() => { void handleDisavowToggle() }}
+              disabled={disavowing}
+            >
+              {disavowing
+                ? 'Updating…'
+                : projectDisavowed
+                  ? 'Withdraw disavowal of this project'
+                  : 'Disavow this project'}
+            </Button>
+            {disavowError && <Alert severity="error">{disavowError}</Alert>}
+            {disavowSuccess && <Alert severity="success">{disavowSuccess}</Alert>}
           </Stack>
         )}
         {canRotate && (

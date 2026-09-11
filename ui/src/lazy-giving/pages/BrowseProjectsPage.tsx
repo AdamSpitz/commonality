@@ -27,6 +27,7 @@ import { projectPathForAddress } from '../../shared'
 import { readLazyGivingProjectMetadata, type ProjectMetadata } from '../metadata'
 import { dnsBeneficiaryDomain, WebsiteBeneficiaryMark } from '../components/WebsiteBeneficiaryMark'
 import { useBeneficiaryClaimStates } from '../hooks/useBeneficiaryClaimStates'
+import { useProjectDisavowals } from '../hooks/useProjectDisavowals'
 import {
   claimStateForDnsDomain,
   WEBSITE_CLAIM_STATE_COLORS,
@@ -71,6 +72,8 @@ export function BrowseProjectsPage() {
     sortDirection: direction,
   })
   const beneficiaryClaimStates = useBeneficiaryClaimStates()
+  const disavowedProjects = useProjectDisavowals()
+  const [showDisavowed, setShowDisavowed] = useState(false)
 
   useEffect(() => {
     setProjects(cachedProjects)
@@ -118,9 +121,11 @@ export function BrowseProjectsPage() {
     if (newFilter !== null) setStatusFilter(newFilter)
   }
 
-  const filteredProjects = statusFilter === 'all'
+  const filteredProjects = (statusFilter === 'all'
     ? projects
     : projects.filter(p => getProjectStatus(p) === statusFilter)
+  ).filter((project) => showDisavowed || !disavowedProjects.has(project.id.toLowerCase()))
+  const hiddenDisavowedCount = projects.filter((project) => disavowedProjects.has(project.id.toLowerCase())).length
 
   return (
     <Box>
@@ -169,6 +174,17 @@ export function BrowseProjectsPage() {
               <ToggleButton value="refunding">Refunding</ToggleButton>
             </ToggleButtonGroup>
           </Stack>
+          {hiddenDisavowedCount > 0 && (
+            <Button
+              size="small"
+              onClick={() => setShowDisavowed((value) => !value)}
+              sx={{ alignSelf: 'flex-start', textTransform: 'none' }}
+            >
+              {showDisavowed
+                ? 'Hide beneficiary-disavowed projects'
+                : `Show ${hiddenDisavowedCount} project${hiddenDisavowedCount === 1 ? '' : 's'} disavowed by the named beneficiary`}
+            </Button>
+          )}
         </Stack>
       </Paper>
 
@@ -251,6 +267,9 @@ export function BrowseProjectsPage() {
                             color={WEBSITE_CLAIM_STATE_COLORS[websiteClaimState]}
                             size="small"
                           />
+                        )}
+                        {disavowedProjects.has(project.id.toLowerCase()) && (
+                          <Chip label="Disavowed" color="warning" size="small" />
                         )}
                         <Chip
                           label={STATUS_LABELS[status]}

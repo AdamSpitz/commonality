@@ -13,6 +13,11 @@ error OnlyPayoutAddressCanTakeControl();
 error OnlyPayoutAddressCanReleaseControl();
 error BeneficiaryNotControlled(bytes32 beneficiaryId);
 error OnlyPayoutAddressCanRotate();
+error OnlyPayoutAddressCanDisavowProject();
+error InvalidProjectAddress();
+error ProjectNotForBeneficiary(bytes32 beneficiaryId, address project);
+error ProjectAlreadyDisavowed(bytes32 beneficiaryId, address project);
+error ProjectNotDisavowed(bytes32 beneficiaryId, address project);
 error InvalidNonce();
 error ProofExpired();
 error InvalidVerifierSignature();
@@ -62,8 +67,15 @@ interface IBeneficiaryRegistry {
     function revokeVerifier() external;
     function isVerified(bytes32 beneficiaryId) external view returns (bool);
     function isBeneficiaryControlled(bytes32 beneficiaryId) external view returns (bool);
+    function isProjectDisavowed(bytes32 beneficiaryId, address project) external view returns (bool);
+    function disavowProject(bytes32 beneficiaryId, address project) external;
+    function withdrawProjectDisavowal(bytes32 beneficiaryId, address project) external;
     function controlTakenAt(bytes32 beneficiaryId) external view returns (uint256);
     function claimWithdrawableAt(bytes32 beneficiaryId) external view returns (uint256);
+}
+
+interface IBeneficiaryBoundProject {
+    function beneficiaryId() external view returns (bytes32);
 }
 
 /**
@@ -99,6 +111,7 @@ contract BeneficiaryRegistry is IBeneficiaryRegistry, Guardable {
     address public verifier;
 
     mapping(bytes32 beneficiaryId => uint256 timestamp) private _controlTakenAt;
+    mapping(bytes32 beneficiaryId => mapping(address project => bool disavowed)) private _projectDisavowed;
 
     /**
      * @notice Emitted when a beneficiary's payout address is verified
@@ -131,6 +144,25 @@ contract BeneficiaryRegistry is IBeneficiaryRegistry, Guardable {
      * @param owner The payout address that released control
      */
     event BeneficiaryControlReleased(bytes32 indexed beneficiaryId, address indexed owner);
+
+    /**
+     * @notice The payout wallet disavows a particular project about this identity.
+     * @dev Does not cancel the contract, rewrite authorship, or change escrow.
+     */
+    event ProjectDisavowed(
+        bytes32 indexed beneficiaryId,
+        address indexed project,
+        address indexed owner
+    );
+
+    /**
+     * @notice The payout wallet withdraws a prior project disavowal.
+     */
+    event ProjectDisavowalWithdrawn(
+        bytes32 indexed beneficiaryId,
+        address indexed project,
+        address indexed owner
+    );
 
     /**
      * @notice Emitted when the verified owner authorizes a replacement payout address
@@ -426,5 +458,56 @@ contract BeneficiaryRegistry is IBeneficiaryRegistry, Guardable {
         _controlTakenAt[beneficiaryId] = 0;
 
         emit BeneficiaryControlReleased(beneficiaryId, caller);
+    }
+
+    /**
+     * @notice Whether the payout wallet currently disavows this project.
+     */
+    function isProjectDisavowed(bytes32 beneficiaryId, address project) external view returns (bool) {
+        return _projectDisavowed[beneficiaryId][project];
+    }
+
+    /**
+     * @notice Disavow a project about this identity.
+     * @dev Only the current payout wallet of a verified identity. The project
+     *      must report this beneficiaryId. Existing escrow and authorship are unchanged.
+     */
+    function disavowProject(bytes32 beneficiaryId, address project) external {
+        _requirePayoutCanActOnProject(beneficiaryId, project);
+        if (_projectDisavowed[beneficiaryId][project]) {
+            revert ProjectAlreadyDisavowed(beneficiaryId, project);
+        }
+        _projectDisavowed[beneficiaryId][project] = true;
+        emit ProjectDisavowed(beneficiaryId, project, _msgSender());
+    }
+
+    /**
+     * @notice Withdraw a prior disavowal of a project.
+     * @dev Does not constitute endorsement. Only the current payout wallet.
+     */
+    function withdrawProjectDisavowal(bytes32 beneficiaryId, address project) external {
+        _requirePayoutCanActOnProject(beneficiaryId, project);
+        if (!_projectDisavowed[beneficiaryId][project]) {
+            revert ProjectNotDisavowed(beneficiaryId, project);
+        }
+        _projectDisavowed[beneficiaryId][project] = false;
+        emit ProjectDisavowalWithdrawn(beneficiaryId, project, _msgSender());
+    }
+
+    function _requirePayoutCanActOnProject(bytes32 beneficiaryId, address project) private view {
+        if (_beneficiaryStates[beneficiaryId] == BeneficiaryState.Unclaimed) {
+            revert BeneficiaryNotVerified(beneficiaryId);
+        }
+        if (project == address(0)) revert InvalidProjectAddress();
+        if (_msgSender() != _payoutAddresses[beneficiaryId]) {
+            revert OnlyPayoutAddressCanDisavowProject();
+        }
+        try IBeneficiaryBoundProject(project).beneficiaryId() returns (bytes32 boundId) {
+            if (boundId != beneficiaryId) {
+                revert ProjectNotForBeneficiary(beneficiaryId, project);
+            }
+        } catch {
+            revert ProjectNotForBeneficiary(beneficiaryId, project);
+        }
     }
 }

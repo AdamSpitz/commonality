@@ -41,6 +41,8 @@ vi.mock('@commonality/sdk/content-funding', async (importOriginal) => {
     ...actual,
     rotatePayoutAddress: vi.fn().mockResolvedValue({ hash: '0xrotate' }),
     releaseBeneficiaryControl: vi.fn().mockResolvedValue({ hash: '0xrelease' }),
+    disavowProject: vi.fn().mockResolvedValue({ hash: '0xdisavow' }),
+    withdrawProjectDisavowal: vi.fn().mockResolvedValue({ hash: '0xwithdraw' }),
   }
 })
 
@@ -56,6 +58,7 @@ describe('WebsiteClaimSection', () => {
       if (functionName === 'balance') return 0n
       if (functionName === 'payoutAddress') return '0x0000000000000000000000000000000000000000'
       if (functionName === 'claimWithdrawableAt') return 0n
+      if (functionName === 'isProjectDisavowed') return false
       return 0n
     })
   })
@@ -117,5 +120,29 @@ describe('WebsiteClaimSection', () => {
     render(<WebsiteClaimSection domain="example.org" />)
     expect(await screen.findByText(/Current payout wallet/)).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /reopen third-party proposals/i })).not.toBeInTheDocument()
+  })
+
+  it('lets the current payout wallet disavow this project', async () => {
+    const { disavowProject } = await import('@commonality/sdk/content-funding')
+    readContract.mockImplementation(async ({ functionName }: { functionName: string }) => {
+      if (functionName === 'beneficiaryState') return 1n
+      if (functionName === 'balance') return 0n
+      if (functionName === 'payoutAddress') return mockAccount.address
+      if (functionName === 'claimWithdrawableAt') return 0n
+      if (functionName === 'isProjectDisavowed') return false
+      return 0n
+    })
+
+    render(
+      <WebsiteClaimSection
+        domain="example.org"
+        projectAddress="0x5555555555555555555555555555555555555555"
+      />,
+    )
+    expect(await screen.findByRole('button', { name: /disavow this project/i })).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: /disavow this project/i }))
+    await waitFor(() => {
+      expect(disavowProject).toHaveBeenCalled()
+    })
   })
 })

@@ -9,6 +9,10 @@ vi.mock('../hooks/useExistingBeneficiaryProjects', () => ({
   useExistingBeneficiaryProjects: (...args: unknown[]) => useExistingBeneficiaryProjects(...args),
 }))
 
+vi.mock('../hooks/useProjectDisavowals', () => ({
+  useProjectDisavowals: () => new Set<string>(),
+}))
+
 describe('ExistingBeneficiaryProjects', () => {
   beforeEach(() => {
     useExistingBeneficiaryProjects.mockReset()

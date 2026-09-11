@@ -2101,3 +2101,14 @@ tests of the live flow.
 
 Still needed: project-specific disavowal, product docs for the full
 proposal flow, live-flow tests.
+
+## 2026-09-11 — Project-specific disavowal
+
+- `BeneficiaryRegistry.disavowProject` / `withdrawProjectDisavowal` for the
+  current payout wallet of a verified identity. The project must report the
+  same `beneficiaryId()`. Events fold into `disavowedProjects`.
+- Browse hides disavowed projects unless expanded; reuse suggestions skip
+  them; the project page shows a warning. Claim UI offers **Disavow this
+  project**. Escrow and authorship are unchanged.
+
+Still needed: product docs for the full proposal flow, live-flow tests.

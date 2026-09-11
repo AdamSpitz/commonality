@@ -99,6 +99,8 @@ register("ContentRegistry:ContentItemReleased");
 register("BeneficiaryRegistry:BeneficiaryVerified");
 register("BeneficiaryRegistry:BeneficiaryControlTaken");
 register("BeneficiaryRegistry:BeneficiaryControlReleased");
+register("BeneficiaryRegistry:ProjectDisavowed");
+register("BeneficiaryRegistry:ProjectDisavowalWithdrawn");
 register("BeneficiaryRegistry:PayoutAddressRotated");
 register("CreatorAssuranceVeto:ContractVetoed");
 register("BeneficiaryEscrow:Deposited");

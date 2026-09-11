@@ -24,3 +24,5 @@ A domain is the name donors already type. DNS + HTTPS is the world's existing cl
 The claim page / letter is the creator claim page with different nouns: **"People pooled $X because they like the work at example.org. Publish this one file to receive it."** After that, the [dial](./dial-not-switch.md) is available. If they never claim, contributors get the money back and we never had it.
 
 Claiming the site proves control of the name. It does **not** mean the org wrote the project copy, and it does not stop other people from proposing new projects about the same site. The payout wallet can separately **restrict future project creation to us**. That lock is reversible: the same wallet can reopen third-party proposals later. Neither action rewrites existing projects' authorship or escrow.
+
+The payout wallet can also **disavow a particular project**. Discovery and reuse prompts stop promoting that project, and the project page shows the disavowal. Disavowal does not cancel the contract, change escrow, or rewrite who wrote the copy. Withdrawing a disavowal is not an endorsement.

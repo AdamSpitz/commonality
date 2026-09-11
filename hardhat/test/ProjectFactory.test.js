@@ -200,4 +200,51 @@ describe('ProjectFactory', function () {
       args[0], args[1], args[2], beneficiaryId, ...args.slice(4),
     )).to.emit(projectFactory, 'ProjectCreated');
   });
+
+  it('lets the payout wallet disavow and later withdraw disavowal of a beneficiary project', async function () {
+    const [creator, owner, other] = await ethers.getSigners();
+    const { projectFactory, beneficiaryRegistry, verifier, beneficiaryPaymentToken: paymentToken } = await deployProjectFactory();
+    const deadline = BigInt((await ethers.provider.getBlock('latest')).timestamp + 3600);
+    const beneficiaryId = ethers.keccak256(ethers.toUtf8Bytes('dns:example.org'));
+    await verifier.setValid(true);
+    await beneficiaryRegistry.verifyBeneficiary(
+      beneficiaryId,
+      owner.address,
+      ethers.keccak256(ethers.toUtf8Bytes('disavow-claim')),
+      deadline,
+      ethers.keccak256(ethers.toUtf8Bytes('https://example.org/.well-known/commonality-claim.json')),
+      '0x',
+    );
+
+    const args = defaultProjectParams(owner.address, ethers.ZeroAddress, paymentToken.target, deadline);
+    const tx = await projectFactory.connect(creator).createERC1155AndAssuranceContractForBeneficiary(
+      args[0], args[1], args[2], beneficiaryId, ...args.slice(4),
+    );
+    const receipt = await tx.wait();
+    const event = receipt.logs.map(log => { try { return projectFactory.interface.parseLog(log); } catch { return null; } })
+      .find(log => log?.name === 'ProjectCreated');
+    const project = event.args.assuranceContract;
+
+    await expect(beneficiaryRegistry.connect(other).disavowProject(beneficiaryId, project))
+      .to.be.revertedWithCustomError(beneficiaryRegistry, 'OnlyPayoutAddressCanDisavowProject');
+    await expect(beneficiaryRegistry.connect(owner).disavowProject(beneficiaryId, ethers.ZeroAddress))
+      .to.be.revertedWithCustomError(beneficiaryRegistry, 'InvalidProjectAddress');
+    await expect(beneficiaryRegistry.connect(owner).disavowProject(beneficiaryId, paymentToken.target))
+      .to.be.revertedWithCustomError(beneficiaryRegistry, 'ProjectNotForBeneficiary')
+      .withArgs(beneficiaryId, paymentToken.target);
+
+    await expect(beneficiaryRegistry.connect(owner).disavowProject(beneficiaryId, project))
+      .to.emit(beneficiaryRegistry, 'ProjectDisavowed')
+      .withArgs(beneficiaryId, project, owner.address);
+    expect(await beneficiaryRegistry.isProjectDisavowed(beneficiaryId, project)).to.equal(true);
+
+    await expect(beneficiaryRegistry.connect(owner).disavowProject(beneficiaryId, project))
+      .to.be.revertedWithCustomError(beneficiaryRegistry, 'ProjectAlreadyDisavowed')
+      .withArgs(beneficiaryId, project);
+
+    await expect(beneficiaryRegistry.connect(owner).withdrawProjectDisavowal(beneficiaryId, project))
+      .to.emit(beneficiaryRegistry, 'ProjectDisavowalWithdrawn')
+      .withArgs(beneficiaryId, project, owner.address);
+    expect(await beneficiaryRegistry.isProjectDisavowed(beneficiaryId, project)).to.equal(false);
+  });
 });

@@ -34,6 +34,7 @@ export {
   WEBSITE_CLAIM_STATE_TOOLTIPS,
 } from './components/websiteBeneficiaryClaim'
 export { useBeneficiaryClaimStates } from './hooks/useBeneficiaryClaimStates'
+export { useProjectDisavowals } from './hooks/useProjectDisavowals'
 
 // Note on pages: the route components (BrowseProjectsPage, CreateProjectPage,
 // ProjectDetailPage) are intentionally NOT re-exported here. Domain route

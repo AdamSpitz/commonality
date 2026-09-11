@@ -472,6 +472,8 @@ export async function fetchAllContentFundingEvents(
     'BeneficiaryVerified',
     'BeneficiaryControlTaken',
     'BeneficiaryControlReleased',
+    'ProjectDisavowed',
+    'ProjectDisavowalWithdrawn',
     'PayoutAddressRotated',
     'ContractVetoed',
     'Deposited',

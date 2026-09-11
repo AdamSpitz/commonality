@@ -415,6 +415,52 @@ describe('content-funding query helpers', () => {
     assert.deepStrictEqual(overview.contentItems.map((item) => item.contentId.toString()), ['1', '2', '3']);
   });
 
+  it('folds project disavowal and withdrawal', () => {
+    const folded = foldAllContentFundingEvents(
+      [],
+      [
+        makeVerifiedEvent(),
+        {
+          type: 'ProjectDisavowed',
+          contractAddress: '0x9999999999999999999999999999999999999998',
+          beneficiaryId: CHANNEL_A,
+          project: CONTRACT_A,
+          owner: OWNER_A,
+          blockNumber: 140n,
+          blockTimestamp: 1400n,
+          transactionHash: TX_HASH,
+          logIndex: 3,
+        },
+        {
+          type: 'ProjectDisavowalWithdrawn',
+          contractAddress: '0x9999999999999999999999999999999999999998',
+          beneficiaryId: CHANNEL_A,
+          project: CONTRACT_A,
+          owner: OWNER_A,
+          blockNumber: 141n,
+          blockTimestamp: 1410n,
+          transactionHash: TX_HASH,
+          logIndex: 4,
+        },
+        {
+          type: 'ProjectDisavowed',
+          contractAddress: '0x9999999999999999999999999999999999999998',
+          beneficiaryId: CHANNEL_A,
+          project: CONTRACT_B,
+          owner: OWNER_A,
+          blockNumber: 142n,
+          blockTimestamp: 1420n,
+          transactionHash: TX_HASH,
+          logIndex: 5,
+        },
+      ],
+      [],
+      [],
+    );
+    assert.strictEqual(folded.beneficiaryRegistry.disavowedProjects.has(CONTRACT_A), false);
+    assert.strictEqual(folded.beneficiaryRegistry.disavowedProjects.has(CONTRACT_B), true);
+  });
+
   it('returns a released identity to verified', () => {
     const released = foldAllContentFundingEvents(
       [],

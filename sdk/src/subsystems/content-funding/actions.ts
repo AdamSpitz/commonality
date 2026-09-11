@@ -427,6 +427,55 @@ export async function releaseBeneficiaryControl(
 }
 
 /**
+ * Disavow a particular project about this identity.
+ *
+ * Only the current payout wallet. Does not cancel the contract, rewrite
+ * authorship, or change escrow.
+ */
+export async function disavowProject(
+  clients: WriteClients,
+  registryContract: { address: Address; abi: Abi },
+  beneficiaryId: string,
+  project: Address,
+): Promise<{ hash: Hash }> {
+  const hash = await clients.walletClient.writeContract({
+    address: registryContract.address,
+    abi: registryContract.abi,
+    functionName: 'disavowProject',
+    args: [beneficiaryId as `0x${string}`, project],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
+  });
+
+  await clients.publicClient.waitForTransactionReceipt({ hash });
+
+  return { hash };
+}
+
+/**
+ * Withdraw a prior project disavowal. Not an endorsement.
+ */
+export async function withdrawProjectDisavowal(
+  clients: WriteClients,
+  registryContract: { address: Address; abi: Abi },
+  beneficiaryId: string,
+  project: Address,
+): Promise<{ hash: Hash }> {
+  const hash = await clients.walletClient.writeContract({
+    address: registryContract.address,
+    abi: registryContract.abi,
+    functionName: 'withdrawProjectDisavowal',
+    args: [beneficiaryId as `0x${string}`, project],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
+  });
+
+  await clients.publicClient.waitForTransactionReceipt({ hash });
+
+  return { hash };
+}
+
+/**
  * Replace the verified payout address. Only the current payout wallet may
  * authorize the replacement; a later identity proof alone cannot.
  */

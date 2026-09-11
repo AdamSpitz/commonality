@@ -137,7 +137,11 @@ that lock as a separate step after verify/withdraw, worded **Restrict future
 project creation to us**. The current payout wallet can later call
 `releaseBeneficiaryControl` from the project page (Reopen third-party
 proposals) to return the identity to Verified. Neither
-transition edits existing projects. Platform API challenge and
+transition edits existing projects. The payout wallet can separately
+`disavowProject` / `withdrawProjectDisavowal` for a project whose
+`beneficiaryId()` matches. Disavowal is folded from registry events, hidden
+from browse/reuse by default, and shown on the project page; it does not
+cancel escrow or authorship. Platform API challenge and
 confirm payloads name `beneficiaryId` (canonical string; hashed on-chain).
 `BLOCKED_CHANNEL_IDS` also gates website resolve so a blocked `dns:` identity
 cannot be named at project creation.
