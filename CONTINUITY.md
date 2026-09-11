@@ -2142,3 +2142,8 @@ Still needed: live-flow tests.
 The product focus is now covered in UI unit tests, user docs, and this
 live-flow. Remaining polish is exercising it on a running stack / testnet,
 not more protocol surface.
+
+## 2026-09-11 — Closed third-party proposals focus
+
+Removed the item from `focus.md`. Spec status is closed. Deferred: indexed
+beneficiary lookup and bulk/bot UX.

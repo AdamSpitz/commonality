@@ -1,6 +1,6 @@
 # Third-party project proposals and alignment
 
-Status: current [focus](/focus.md), now that the [claimable-beneficiary primitive](/specs/tech/subsystems/claimable-beneficiaries.md) is complete enough to build on. Product context: [fund-now-claim-later.md](/specs/product/fund-now-claim-later.md). Trust filter: [Subjectiv](/specs/tech/subsystems/subjectiv/README.md). Adoption story: [claiming-an-org.md](/docs/end-user/commonality/vision-and-strategy/ease-of-adoption/claiming-an-org.md).
+Status: closed as a [focus](/focus.md) item. Built on the [claimable-beneficiary primitive](/specs/tech/subsystems/claimable-beneficiaries.md). Product context: [fund-now-claim-later.md](/specs/product/fund-now-claim-later.md). Trust filter: [Subjectiv](/specs/tech/subsystems/subjectiv/README.md). Adoption story: [claiming-an-org.md](/docs/end-user/commonality/vision-and-strategy/ease-of-adoption/claiming-an-org.md).
 
 This is the product consequence of letting third parties pool money for public identities that are not on Commonality yet. It is not an implementation plan.
 
