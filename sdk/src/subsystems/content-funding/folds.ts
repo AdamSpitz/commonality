@@ -3,6 +3,9 @@ import type {
   ContentItemReleasedEvent,
   BeneficiaryVerifiedEvent,
   BeneficiaryControlTakenEvent,
+  BeneficiaryControlReleasedEvent,
+  ProjectDisavowedEvent,
+  ProjectDisavowalWithdrawnEvent,
   PayoutAddressRotatedEvent,
   DepositedEvent,
   WithdrawnEvent,
@@ -116,20 +119,24 @@ export interface ChannelInfo {
 export interface BeneficiaryRegistryState {
   /** Map from channelId (bytes32) to ChannelInfo. */
   channels: Map<string, ChannelInfo>;
+  /** Lowercased project addresses currently disavowed by their beneficiary. */
+  disavowedProjects: Set<string>;
 }
 
 /**
- * Fold BeneficiaryVerified, PayoutAddressRotated, and BeneficiaryControlTaken
- * events into registry state.
+ * Fold BeneficiaryVerified, PayoutAddressRotated, ControlTaken, and
+ * ControlReleased events into registry state.
  *
  * Verified events register a beneficiary with a payout address. Rotation
  * updates that address. ControlTaken events transition to
- * 'beneficiary-controlled' and record the timestamp.
+ * 'beneficiary-controlled' and record the timestamp. ControlReleased
+ * returns the identity to verified without changing the payout address.
  */
 export function foldBeneficiaryState(
-  events: (BeneficiaryVerifiedEvent | BeneficiaryControlTakenEvent | PayoutAddressRotatedEvent)[],
+  events: (BeneficiaryVerifiedEvent | BeneficiaryControlTakenEvent | BeneficiaryControlReleasedEvent | PayoutAddressRotatedEvent | ProjectDisavowedEvent | ProjectDisavowalWithdrawnEvent)[],
 ): BeneficiaryRegistryState {
   const channels = new Map<string, ChannelInfo>();
+  const disavowedProjects = new Set<string>();
 
   for (const event of events) {
     if (event.type === 'BeneficiaryVerified') {
@@ -151,10 +158,28 @@ export function foldBeneficiaryState(
         existing.owner = event.owner;
         existing.controlTakenAt = event.blockTimestamp;
       }
+    } else if (event.type === 'BeneficiaryControlReleased') {
+      const existing = channels.get(event.beneficiaryId);
+      if (existing) {
+        existing.state = 'verified';
+        existing.owner = event.owner;
+        existing.controlTakenAt = null;
+      }
+    } else if (event.type === 'ProjectDisavowed') {
+      disavowedProjects.add(event.project.toLowerCase());
+    } else if (event.type === 'ProjectDisavowalWithdrawn') {
+      disavowedProjects.delete(event.project.toLowerCase());
     }
   }
 
-  return { channels };
+  return { channels, disavowedProjects };
+}
+
+export function isProjectDisavowed(
+  state: BeneficiaryRegistryState | Pick<BeneficiaryRegistryState, 'disavowedProjects'>,
+  projectAddress: string,
+): boolean {
+  return state.disavowedProjects.has(projectAddress.toLowerCase());
 }
 
 /** @deprecated Use foldBeneficiaryState. */
@@ -241,14 +266,14 @@ export interface ContentFundingState {
  * Fold events from all four content-funding contracts into a single state object.
  *
  * @param contentRegistryEvents - ContentItemRegistered and ContentItemReleased events
- * @param beneficiaryRegistryEvents - BeneficiaryVerified, PayoutAddressRotated, and BeneficiaryControlTaken events
+ * @param beneficiaryRegistryEvents - BeneficiaryVerified, rotation, control taken/released events
  * @param beneficiaryEscrowEvents - Deposited and Withdrawn events
  * @param creatorContractEvents - CreatorContractCreated events
  * @returns Combined ContentFundingState
  */
 export function foldAllContentFundingEvents(
   contentRegistryEvents: (ContentItemRegisteredEvent | ContentItemReleasedEvent)[],
-  beneficiaryRegistryEvents: (BeneficiaryVerifiedEvent | BeneficiaryControlTakenEvent | PayoutAddressRotatedEvent)[],
+  beneficiaryRegistryEvents: (BeneficiaryVerifiedEvent | BeneficiaryControlTakenEvent | BeneficiaryControlReleasedEvent | PayoutAddressRotatedEvent | ProjectDisavowedEvent | ProjectDisavowalWithdrawnEvent)[],
   beneficiaryEscrowEvents: (DepositedEvent | WithdrawnEvent)[],
   creatorContractEvents: CreatorContractCreatedEvent[],
 ): ContentFundingState {

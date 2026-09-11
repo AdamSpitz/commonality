@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { hashBeneficiaryId, type BeneficiaryState } from '@commonality/sdk/content-funding'
-import { claimStateForDnsDomain } from './websiteBeneficiaryClaim'
+import { claimStateForDnsDomain, COMMUNITY_CREATED_NOTICE, WEBSITE_CLAIM_STATE_TOOLTIPS } from './websiteBeneficiaryClaim'
 
 describe('claimStateForDnsDomain', () => {
   it('treats missing fold entries as unclaimed', () => {
@@ -14,5 +14,13 @@ describe('claimStateForDnsDomain', () => {
     ])
     expect(claimStateForDnsDomain(channels, 'example.org')).toBe('verified')
     expect(claimStateForDnsDomain(channels, 'other.org')).toBe('unclaimed')
+  })
+})
+
+describe('community-created notice', () => {
+  it('stays on claim-state tooltips after verification', () => {
+    expect(WEBSITE_CLAIM_STATE_TOOLTIPS.unclaimed).toContain(COMMUNITY_CREATED_NOTICE)
+    expect(WEBSITE_CLAIM_STATE_TOOLTIPS.verified).toContain(COMMUNITY_CREATED_NOTICE)
+    expect(WEBSITE_CLAIM_STATE_TOOLTIPS['beneficiary-controlled']).toContain(COMMUNITY_CREATED_NOTICE)
   })
 })

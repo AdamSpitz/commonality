@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   Box,
   Typography,
@@ -26,7 +26,7 @@ import {
 import AddIcon from '@mui/icons-material/Add'
 import DeleteIcon from '@mui/icons-material/Delete'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAccount, usePublicClient } from 'wagmi'
 import { BeneficiaryRegistryAbi, ProjectFactoryAbi, PublishedDataAbi } from '@commonality/sdk/abis'
 import { createProject, type ProjectFactoryContract } from '@commonality/sdk/lazy-giving'
@@ -42,6 +42,9 @@ import { RecipientPicker } from '../components/RecipientPicker'
 import { usePlatformApi } from '../../content-funding'
 import { WalletButton } from '../../shared/components/WalletButton'
 import { formatCurrencyAmount, formatTokenCapacityPreviewRows, hasOneUnitDonationOption, suggestGivingLevels, summarizeProjectTokenCapacity } from '../projectCreation'
+import { ExistingBeneficiaryProjects } from '../components/ExistingBeneficiaryProjects'
+import { COMMUNITY_CREATED_NOTICE } from '../components/websiteBeneficiaryClaim'
+import { canonicalDnsOrNull } from '../projectsForBeneficiary'
 
 interface TokenTypeRow {
   tokenId: string
@@ -74,6 +77,8 @@ const STOCK_TOKEN_IMAGES = [
 
 export function CreateProjectPage() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const statementCid = searchParams.get('statement')
   const { address, isConnected } = useAccount()
   const publicClient = usePublicClient()
   const writeClients = useWriteClients(address)
@@ -85,8 +90,10 @@ export function CreateProjectPage() {
   const [updatesUrl, setUpdatesUrl] = useState('')
   const [relevantAreas, setRelevantAreas] = useState('')
   const [recipient, setRecipient] = useState<string | null>(null)
-  const [recipientKind, setRecipientKind] = useState<'wallet' | 'website'>('wallet')
-  const [beneficiaryDomain, setBeneficiaryDomain] = useState('')
+  const [recipientKind, setRecipientKind] = useState<'wallet' | 'website'>(
+    searchParams.get('beneficiary') ? 'website' : 'wallet',
+  )
+  const [beneficiaryDomain, setBeneficiaryDomain] = useState(searchParams.get('beneficiary') ?? '')
   const [threshold, setThreshold] = useState('')
   const [stopAtGoal, setStopAtGoal] = useState(true)
   const [deadline, setDeadline] = useState('')
@@ -104,6 +111,15 @@ export function CreateProjectPage() {
   const tokenCapacitySummary = summarizeProjectTokenCapacity(tokenTypes, paymentCurrency.decimals)
   const tokenCapacityPreviewRows = formatTokenCapacityPreviewRows(tokenTypes, paymentCurrency.decimals, paymentSymbol)
   const hasSmallDonationOption = hasOneUnitDonationOption(tokenTypes, paymentCurrency.decimals)
+
+  useEffect(() => {
+    const preset = searchParams.get('beneficiary')
+    if (!preset) return
+    const canonical = canonicalDnsOrNull(preset)
+    if (!canonical) return
+    setRecipientKind('website')
+    setBeneficiaryDomain(canonical)
+  }, [searchParams])
 
   const parsePaymentAmount = (value: string) => {
     return parseUnits(value, paymentCurrency.decimals)
@@ -373,7 +389,7 @@ export function CreateProjectPage() {
     return (
       <Box>
         <Typography variant="h4" component="h1" gutterBottom>
-          Create Project
+          Propose a project
         </Typography>
         <Alert severity="info" sx={{ mb: 2 }}>Connect your wallet to create a project. Once connected, you'll stay on this page to finish setup.</Alert>
         <WalletButton />
@@ -384,13 +400,16 @@ export function CreateProjectPage() {
   return (
     <Box>
       <Typography variant="h4" component="h1" gutterBottom>
-        Create Project
+        Propose a project
       </Typography>
 
       <Paper sx={{ p: 3, mb: 3 }}>
         <Stack spacing={3}>
           <Alert severity="info">
             Set a dollar funding goal and deadline, then add visible giving options for contributors. Behind the scenes, each giving option still creates a receipt-token type; contributors' payments count toward the goal and are refundable if the goal is not reached.
+            {statementCid
+              ? ' After the project is created you can attest that it is aligned with the statement you started from — alignment is a claim about this project, not about every activity of the beneficiary.'
+              : ''}
           </Alert>
           <TextField
             label="Project Name"
@@ -459,8 +478,9 @@ export function CreateProjectPage() {
                 required
               />
               <Alert severity="warning">
-                This project is not affiliated with the website unless its controller has already claimed it. If unclaimed, successful funds stay in protocol escrow until the controller proves domain control; you cannot withdraw them. Contributions are not tax-deductible gifts and do not certify charity or legal-entity identity.
+                {COMMUNITY_CREATED_NOTICE} Claiming the website later does not change that. If unclaimed, successful funds stay in protocol escrow until the controller proves domain control; you cannot withdraw them. Contributions are not tax-deductible gifts and do not certify charity or legal-entity identity.
               </Alert>
+              <ExistingBeneficiaryProjects domain={beneficiaryDomain} />
             </Stack>
           )}
 
@@ -665,10 +685,14 @@ export function CreateProjectPage() {
               {createdProjectAddress && (
                 <Button
                   size="small"
-                  onClick={() => navigate(projectPathForAddress(createdProjectAddress))}
+                  onClick={() => navigate(
+                    statementCid
+                      ? `${projectPathForAddress(createdProjectAddress)}?causeCid=${encodeURIComponent(statementCid)}`
+                      : projectPathForAddress(createdProjectAddress),
+                  )}
                   sx={{ ml: 1 }}
                 >
-                  View Project
+                  {statementCid ? 'View project and attest alignment' : 'View Project'}
                 </Button>
               )}
             </Alert>

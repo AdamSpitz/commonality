@@ -63,6 +63,14 @@ Each entry follows the same shape:
 - **When a user encounters it:** When signing a statement, when viewing a fundable-projects board, when seeing supporter counts, when understanding why a particular project appeared in their feed.
 - **What they might want help with:** Writing or finding a statement that expresses what they care about; understanding why certain projects show up in their fundable-projects board; understanding the supporter count on a statement page.
 
+## Propose a project for an organization
+
+[Full page](/docs/end-user/lazyGiving/propose-a-project.md)
+
+- **What it is:** A third party opens an unaffiliated funding project whose payout is the controller of a public identity (MVP: a website). Alignment is per project/statement, never “the org aligns with the cause.” The proposer cannot take the money.
+- **When a user encounters it:** **Propose a project** (`/projects/new`, optional `?beneficiary=`), **Propose a project for this cause** (`?statement=`), reuse suggestions for existing projects, community-created / not-affiliated copy, beneficiary restrict/reopen/disavow on the claim UI.
+- **What they might want help with:** Choosing reuse vs a new project; retrying a failed create or attest; explaining that claiming or withdrawing is not endorsement; restricting future proposals or disavowing one project without rewriting escrow.
+
 ## Assurance contracts
 
 [Full page](/docs/end-user/lazyGiving/assurance-contracts.md)

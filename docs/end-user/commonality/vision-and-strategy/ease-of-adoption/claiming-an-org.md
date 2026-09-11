@@ -6,7 +6,9 @@ Someone who is *not* the org can start a project whose payout is "this money is 
 
 This is an on-ramp for [established orgs](./for-established-orgs.md) that are not willing yet. It is not a substitute for the org eventually [using the rails](./rails.md).
 
-Status: current project focus (`focus.md`).
+Status: website MVP can be claimed; third-party proposals, reversible
+beneficiary control, and project-specific disavowal are in the product.
+User how-to: [Propose a project for an organization](../../../lazyGiving/propose-a-project.md).
 
 ## Why not "I'll donate it via PayPal"
 
@@ -21,3 +23,7 @@ There is no clean global primary key for a legal entity that you can post a sign
 A domain is the name donors already type. DNS + HTTPS is the world's existing claim system. The enforceable sentence is "funds reserved for the controller of `example.org`," not "funds legally reserved for Example Charity, Inc." Legal-entity IDs (EIN, charity-commission number) are layered later, and only when a verifier still has a writable proof (e.g. the official registry lists that domain). The assurance levels are defined in `specs/product/fund-now-claim-later.md`.
 
 The claim page / letter is the creator claim page with different nouns: **"People pooled $X because they like the work at example.org. Publish this one file to receive it."** After that, the [dial](./dial-not-switch.md) is available. If they never claim, contributors get the money back and we never had it.
+
+Claiming the site proves control of the name. It does **not** mean the org wrote the project copy, and it does not stop other people from proposing new projects about the same site. The payout wallet can separately **restrict future project creation to us**. That lock is reversible: the same wallet can reopen third-party proposals later. Neither action rewrites existing projects' authorship or escrow.
+
+The payout wallet can also **disavow a particular project**. Discovery and reuse prompts stop promoting that project, and the project page shows the disavowal. Disavowal does not cancel the contract, change escrow, or rewrite who wrote the copy. Withdrawing a disavowal is not an endorsement.

@@ -23,6 +23,7 @@ It all runs onchain, so no company owns the ledger: your pledges, your refunds, 
 
 - **[Fund something you care about](fund-something.md)** — Pledge toward a project (or fund one retroactively, after it's already delivered). Your money is refunded if a prospective goal isn't met.
 - **[Get your project funded](get-your-project-funded.md)** — Set up an assurance contract. No gatekeepers, no applications.
+- **[Propose a project for an organization](propose-a-project.md)** — Pool money for a website that has not claimed yet. You write the copy; they claim later.
 
 ## Key ideas
 

@@ -24,6 +24,26 @@ export interface BeneficiaryControlTakenEvent extends RawEvent {
   owner: `0x${string}`;
 }
 
+export interface BeneficiaryControlReleasedEvent extends RawEvent {
+  type: 'BeneficiaryControlReleased';
+  beneficiaryId: string;
+  owner: `0x${string}`;
+}
+
+export interface ProjectDisavowedEvent extends RawEvent {
+  type: 'ProjectDisavowed';
+  beneficiaryId: string;
+  project: `0x${string}`;
+  owner: `0x${string}`;
+}
+
+export interface ProjectDisavowalWithdrawnEvent extends RawEvent {
+  type: 'ProjectDisavowalWithdrawn';
+  beneficiaryId: string;
+  project: `0x${string}`;
+  owner: `0x${string}`;
+}
+
 export interface PayoutAddressRotatedEvent extends RawEvent {
   type: 'PayoutAddressRotated';
   beneficiaryId: string;
@@ -84,6 +104,9 @@ export type ContentFundingEvent =
   | ContentItemReleasedEvent
   | BeneficiaryVerifiedEvent
   | BeneficiaryControlTakenEvent
+  | BeneficiaryControlReleasedEvent
+  | ProjectDisavowedEvent
+  | ProjectDisavowalWithdrawnEvent
   | PayoutAddressRotatedEvent
   | ContractVetoedEvent
   | DepositedEvent
@@ -99,6 +122,9 @@ export type ContentFundingEventNames =
   | 'ContentItemReleased'
   | 'BeneficiaryVerified'
   | 'BeneficiaryControlTaken'
+  | 'BeneficiaryControlReleased'
+  | 'ProjectDisavowed'
+  | 'ProjectDisavowalWithdrawn'
   | 'PayoutAddressRotated'
   | 'ContractVetoed'
   | 'Deposited'

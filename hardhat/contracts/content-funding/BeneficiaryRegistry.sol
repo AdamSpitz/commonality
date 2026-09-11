@@ -10,7 +10,14 @@ error BeneficiaryAlreadyControlled(bytes32 beneficiaryId);
 error InvalidClaimant();
 error InvalidNewPayoutAddress();
 error OnlyPayoutAddressCanTakeControl();
+error OnlyPayoutAddressCanReleaseControl();
+error BeneficiaryNotControlled(bytes32 beneficiaryId);
 error OnlyPayoutAddressCanRotate();
+error OnlyPayoutAddressCanDisavowProject();
+error InvalidProjectAddress();
+error ProjectNotForBeneficiary(bytes32 beneficiaryId, address project);
+error ProjectAlreadyDisavowed(bytes32 beneficiaryId, address project);
+error ProjectNotDisavowed(bytes32 beneficiaryId, address project);
 error InvalidNonce();
 error ProofExpired();
 error InvalidVerifierSignature();
@@ -54,13 +61,21 @@ interface IBeneficiaryRegistry {
         bytes calldata verifierSignature
     ) external;
     function takeBeneficiaryControl(bytes32 beneficiaryId) external;
+    function releaseBeneficiaryControl(bytes32 beneficiaryId) external;
     function rotatePayoutAddress(bytes32 beneficiaryId, address newPayoutAddress) external;
     function setVerifier(address verifier) external;
     function revokeVerifier() external;
     function isVerified(bytes32 beneficiaryId) external view returns (bool);
     function isBeneficiaryControlled(bytes32 beneficiaryId) external view returns (bool);
+    function isProjectDisavowed(bytes32 beneficiaryId, address project) external view returns (bool);
+    function disavowProject(bytes32 beneficiaryId, address project) external;
+    function withdrawProjectDisavowal(bytes32 beneficiaryId, address project) external;
     function controlTakenAt(bytes32 beneficiaryId) external view returns (uint256);
     function claimWithdrawableAt(bytes32 beneficiaryId) external view returns (uint256);
+}
+
+interface IBeneficiaryBoundProject {
+    function beneficiaryId() external view returns (bytes32);
 }
 
 /**
@@ -76,7 +91,8 @@ contract BeneficiaryRegistry is IBeneficiaryRegistry, Guardable {
      * @notice Beneficiary lifecycle states
      * @dev Unclaimed: no owner verified yet
      *      Verified: owner proven via off-chain signature, third parties can still create projects
-     *      BeneficiaryControlled: owner has taken identity control
+     *      BeneficiaryControlled: only the payout wallet may create new projects about this identity.
+     *      Control is reversible: the current payout wallet may return to Verified.
      */
     enum BeneficiaryState {
         Unclaimed,
@@ -95,6 +111,7 @@ contract BeneficiaryRegistry is IBeneficiaryRegistry, Guardable {
     address public verifier;
 
     mapping(bytes32 beneficiaryId => uint256 timestamp) private _controlTakenAt;
+    mapping(bytes32 beneficiaryId => mapping(address project => bool disavowed)) private _projectDisavowed;
 
     /**
      * @notice Emitted when a beneficiary's payout address is verified
@@ -120,6 +137,32 @@ contract BeneficiaryRegistry is IBeneficiaryRegistry, Guardable {
      * @param owner The payout address that took control
      */
     event BeneficiaryControlTaken(bytes32 indexed beneficiaryId, address indexed owner);
+
+    /**
+     * @notice Emitted when the payout wallet reopens third-party project creation
+     * @param beneficiaryId The identity
+     * @param owner The payout address that released control
+     */
+    event BeneficiaryControlReleased(bytes32 indexed beneficiaryId, address indexed owner);
+
+    /**
+     * @notice The payout wallet disavows a particular project about this identity.
+     * @dev Does not cancel the contract, rewrite authorship, or change escrow.
+     */
+    event ProjectDisavowed(
+        bytes32 indexed beneficiaryId,
+        address indexed project,
+        address indexed owner
+    );
+
+    /**
+     * @notice The payout wallet withdraws a prior project disavowal.
+     */
+    event ProjectDisavowalWithdrawn(
+        bytes32 indexed beneficiaryId,
+        address indexed project,
+        address indexed owner
+    );
 
     /**
      * @notice Emitted when the verified owner authorizes a replacement payout address
@@ -394,5 +437,77 @@ contract BeneficiaryRegistry is IBeneficiaryRegistry, Guardable {
         _controlTakenAt[beneficiaryId] = block.timestamp;
 
         emit BeneficiaryControlTaken(beneficiaryId, caller);
+    }
+
+    /**
+     * @notice Reopen third-party project creation for a controlled identity
+     * @dev Transitions from BeneficiaryControlled back to Verified. Existing
+     *      projects are unchanged. Only the current payout address can call this.
+     * @param beneficiaryId The identity to reopen
+     */
+    function releaseBeneficiaryControl(bytes32 beneficiaryId) external {
+        if (_beneficiaryStates[beneficiaryId] != BeneficiaryState.BeneficiaryControlled) {
+            revert BeneficiaryNotControlled(beneficiaryId);
+        }
+        address caller = _msgSender();
+        if (caller != _payoutAddresses[beneficiaryId]) {
+            revert OnlyPayoutAddressCanReleaseControl();
+        }
+
+        _beneficiaryStates[beneficiaryId] = BeneficiaryState.Verified;
+        _controlTakenAt[beneficiaryId] = 0;
+
+        emit BeneficiaryControlReleased(beneficiaryId, caller);
+    }
+
+    /**
+     * @notice Whether the payout wallet currently disavows this project.
+     */
+    function isProjectDisavowed(bytes32 beneficiaryId, address project) external view returns (bool) {
+        return _projectDisavowed[beneficiaryId][project];
+    }
+
+    /**
+     * @notice Disavow a project about this identity.
+     * @dev Only the current payout wallet of a verified identity. The project
+     *      must report this beneficiaryId. Existing escrow and authorship are unchanged.
+     */
+    function disavowProject(bytes32 beneficiaryId, address project) external {
+        _requirePayoutCanActOnProject(beneficiaryId, project);
+        if (_projectDisavowed[beneficiaryId][project]) {
+            revert ProjectAlreadyDisavowed(beneficiaryId, project);
+        }
+        _projectDisavowed[beneficiaryId][project] = true;
+        emit ProjectDisavowed(beneficiaryId, project, _msgSender());
+    }
+
+    /**
+     * @notice Withdraw a prior disavowal of a project.
+     * @dev Does not constitute endorsement. Only the current payout wallet.
+     */
+    function withdrawProjectDisavowal(bytes32 beneficiaryId, address project) external {
+        _requirePayoutCanActOnProject(beneficiaryId, project);
+        if (!_projectDisavowed[beneficiaryId][project]) {
+            revert ProjectNotDisavowed(beneficiaryId, project);
+        }
+        _projectDisavowed[beneficiaryId][project] = false;
+        emit ProjectDisavowalWithdrawn(beneficiaryId, project, _msgSender());
+    }
+
+    function _requirePayoutCanActOnProject(bytes32 beneficiaryId, address project) private view {
+        if (_beneficiaryStates[beneficiaryId] == BeneficiaryState.Unclaimed) {
+            revert BeneficiaryNotVerified(beneficiaryId);
+        }
+        if (project == address(0)) revert InvalidProjectAddress();
+        if (_msgSender() != _payoutAddresses[beneficiaryId]) {
+            revert OnlyPayoutAddressCanDisavowProject();
+        }
+        try IBeneficiaryBoundProject(project).beneficiaryId() returns (bytes32 boundId) {
+            if (boundId != beneficiaryId) {
+                revert ProjectNotForBeneficiary(beneficiaryId, project);
+            }
+        } catch {
+            revert ProjectNotForBeneficiary(beneficiaryId, project);
+        }
     }
 }

@@ -2059,3 +2059,91 @@ platform-api `ResolvedChannel` is occupancy, not the claim primitive.
 Focus item 1 (fund-now / claim-later contracts + website MVP UI) is
 functionally in place. Remaining work is live-stack exercise, occupancy
 Channel* names (intentional), and deferred recovery/KYC/scouting.
+
+## 2026-09-11 — Third-party proposal reuse and cause entry
+
+- Create-project is titled **Propose a project**. `?beneficiary=` opens website
+  mode; `?statement=` keeps the cause CID for a later alignment attest.
+- Advisory lookup lists existing projects whose metadata `beneficiary` matches
+  the canonical dns id (not display text) and suggests reuse without blocking a
+  new proposal.
+- Cause boards' empty state is **Propose a project for this cause** with
+  `?statement=`.
+
+Still needed: beneficiary-control / disavowal UI copy pass, product docs,
+tests of the live flow.
+
+## 2026-09-11 — Resumable multi-statement alignment attest
+
+- Project vouch dialog queues one or more statements (pre-seeded from
+  `?causeCid=`), submits each pair separately, skips already-onchain
+  `(attester, statement, project)` attestations, and lets a failed row retry.
+- Onchain `readHasAlignment` is the idempotent pre-check.
+
+Still needed: beneficiary-control / disavowal UI copy pass, product docs,
+tests of the live flow.
+
+## 2026-09-11 — Reversible beneficiary control
+
+- `releaseBeneficiaryControl` returns BeneficiaryControlled → Verified.
+  Only the current payout wallet. Existing projects unchanged. Fold and
+  indexer cache the `BeneficiaryControlReleased` event.
+- Website claim step copy is **Restrict future project creation to us**,
+  not a rejection of Commonality. Claiming-an-org docs mention the lock
+  is reversible.
+
+## 2026-09-11 — Reopen third-party proposals in the website claim UI
+
+- When the identity is beneficiary-controlled, the current payout wallet
+  sees **Reopen third-party proposals** on `WebsiteClaimSection` and it
+  calls `releaseBeneficiaryControl`. Copy states existing projects are
+  unchanged and reopening is not an endorsement.
+
+Still needed: project-specific disavowal, product docs for the full
+proposal flow, live-flow tests.
+
+## 2026-09-11 — Project-specific disavowal
+
+- `BeneficiaryRegistry.disavowProject` / `withdrawProjectDisavowal` for the
+  current payout wallet of a verified identity. The project must report the
+  same `beneficiaryId()`. Events fold into `disavowedProjects`.
+- Browse hides disavowed projects unless expanded; reuse suggestions skip
+  them; the project page shows a warning. Claim UI offers **Disavow this
+  project**. Escrow and authorship are unchanged.
+
+Still needed: product docs for the full proposal flow, live-flow tests.
+
+## 2026-09-11 — Product docs for third-party proposals
+
+- User how-to: `docs/end-user/lazyGiving/propose-a-project.md` (two entry
+  points, reuse vs create, resumable attest, not-affiliated copy, control
+  and disavowal). Linked from LazyGiving/Commonality indexes, get-your-
+  project-funded, claiming-an-org, CauseStarter jobs/build, help-connect-
+  things, tldr-for-llms.
+
+Still needed: live-flow tests (UI unit tests already cover reuse, vouch
+retry, restrict/reopen, disavow).
+
+## 2026-09-11 — Unaffiliated copy after claim
+
+- `COMMUNITY_CREATED_NOTICE` is on create-project, project cards/header, and
+  claim-state tooltips even after the beneficiary is verified or
+  beneficiary-controlled. Claiming is not endorsement.
+
+Still needed: live-flow tests.
+
+## 2026-09-11 — Live-flow coverage for third-party proposals
+
+- Playwright `lazyGiving-flow`: website-beneficiary create via SDK, browse
+  and detail show community-created copy, `/projects/new?beneficiary=`
+  suggests reuse, payout-wallet disavow hides browse/reuse and warns on
+  the project page.
+
+The product focus is now covered in UI unit tests, user docs, and this
+live-flow. Remaining polish is exercising it on a running stack / testnet,
+not more protocol surface.
+
+## 2026-09-11 — Closed third-party proposals focus
+
+Removed the item from `focus.md`. Spec status is closed. Deferred: indexed
+beneficiary lookup and bulk/bot UX.

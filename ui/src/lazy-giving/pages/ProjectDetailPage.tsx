@@ -15,6 +15,7 @@ import {
   Leaderboard,
   WebsiteClaimSection,
 } from '../components'
+import { useProjectDisavowals } from '../hooks/useProjectDisavowals'
 import { getProjectStatus, computeUserTokenBalance } from '../utils'
 import { getEventCacheUrl, useMachinery } from '../../shared'
 import { useCachedProject } from '../../shared'
@@ -63,6 +64,7 @@ export function ProjectDetailPage({
     searchParams.get('closeTheLoop') === '1'
     || (typeof window !== 'undefined' && window.location.hash === '#close-the-loop')
   const { address, isConnected } = useAccount()
+  const disavowedProjects = useProjectDisavowals()
   const machinery = useMachinery()
   const machineryDefaultChainId = (machinery as { defaultChainId?: number }).defaultChainId
   const parsedProjectRef = useMemo(
@@ -376,6 +378,14 @@ export function ProjectDetailPage({
     <Box>
       <ProjectHeader project={project} metadata={metadata} kind={headerKind} />
 
+      {projectContractAddress && disavowedProjects.has(projectContractAddress.toLowerCase()) && (
+        <Alert severity="warning" sx={{ mb: 3 }}>
+          The named beneficiary has disavowed this project. It is still onchain:
+          authorship, funding conditions, and escrow are unchanged. Discovery
+          surfaces stop promoting it.
+        </Alert>
+      )}
+
       {metadataWarning && (
         <Alert severity="warning" sx={{ mb: 3 }}>
           {metadataWarning}
@@ -445,7 +455,10 @@ export function ProjectDetailPage({
       )}
 
       {metadata?.beneficiary?.namespace === 'dns' && metadata.beneficiary.canonicalIdentifier && (
-        <WebsiteClaimSection domain={metadata.beneficiary.canonicalIdentifier} />
+        <WebsiteClaimSection
+          domain={metadata.beneficiary.canonicalIdentifier}
+          projectAddress={projectContractAddress ? projectContractAddress as `0x${string}` : undefined}
+        />
       )}
 
       <Leaderboard

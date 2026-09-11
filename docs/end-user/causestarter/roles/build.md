@@ -31,9 +31,11 @@ all the other spokes.
 
 ## Start here
 
-Use **Start project** from a cause board, or open `/projects/new`. Describe the
-deliverable, amount, and deadline, then ask someone trusted by the relevant
-community to vouch that the project aligns with one of its statements. The fuller
+Use **Propose a project for this cause** from a cause board, or open `/projects/new`.
+Describe the deliverable, amount, and deadline, then optionally attest alignment
+yourself or ask someone trusted by the relevant community to vouch. The fuller
 walkthrough is **[Get your project funded](../../lazyGiving/get-your-project-funded.md)**.
+If the funds should go to an org that has not claimed yet, see
+**[Propose a project for an organization](../../lazyGiving/propose-a-project.md)**.
 
 See all the **[separable roles](./index.md)**.

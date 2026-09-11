@@ -43,6 +43,17 @@ export const BeneficiaryRegistryAbi = [
         "type": "bytes32"
       }
     ],
+    "name": "BeneficiaryNotControlled",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "beneficiaryId",
+        "type": "bytes32"
+      }
+    ],
     "name": "BeneficiaryNotVerified",
     "type": "error"
   },
@@ -68,6 +79,11 @@ export const BeneficiaryRegistryAbi = [
   },
   {
     "inputs": [],
+    "name": "InvalidProjectAddress",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "InvalidProofHash",
     "type": "error"
   },
@@ -89,6 +105,16 @@ export const BeneficiaryRegistryAbi = [
   {
     "inputs": [],
     "name": "OnlyOwnerOrGuardian",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "OnlyPayoutAddressCanDisavowProject",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "OnlyPayoutAddressCanReleaseControl",
     "type": "error"
   },
   {
@@ -124,6 +150,54 @@ export const BeneficiaryRegistryAbi = [
     "type": "error"
   },
   {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "beneficiaryId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "address",
+        "name": "project",
+        "type": "address"
+      }
+    ],
+    "name": "ProjectAlreadyDisavowed",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "beneficiaryId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "address",
+        "name": "project",
+        "type": "address"
+      }
+    ],
+    "name": "ProjectNotDisavowed",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "beneficiaryId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "address",
+        "name": "project",
+        "type": "address"
+      }
+    ],
+    "name": "ProjectNotForBeneficiary",
+    "type": "error"
+  },
+  {
     "inputs": [],
     "name": "ProofExpired",
     "type": "error"
@@ -132,6 +206,25 @@ export const BeneficiaryRegistryAbi = [
     "inputs": [],
     "name": "VerifierAlreadyRevoked",
     "type": "error"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "beneficiaryId",
+        "type": "bytes32"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
+      }
+    ],
+    "name": "BeneficiaryControlReleased",
+    "type": "event"
   },
   {
     "anonymous": false,
@@ -302,6 +395,56 @@ export const BeneficiaryRegistryAbi = [
     "inputs": [
       {
         "indexed": true,
+        "internalType": "bytes32",
+        "name": "beneficiaryId",
+        "type": "bytes32"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "project",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
+      }
+    ],
+    "name": "ProjectDisavowalWithdrawn",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "beneficiaryId",
+        "type": "bytes32"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "project",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
+      }
+    ],
+    "name": "ProjectDisavowed",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
         "internalType": "address",
         "name": "revokedVerifier",
         "type": "address"
@@ -400,6 +543,24 @@ export const BeneficiaryRegistryAbi = [
     "type": "function"
   },
   {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "beneficiaryId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "address",
+        "name": "project",
+        "type": "address"
+      }
+    ],
+    "name": "disavowProject",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
     "inputs": [],
     "name": "guardian",
     "outputs": [
@@ -421,6 +582,30 @@ export const BeneficiaryRegistryAbi = [
       }
     ],
     "name": "isBeneficiaryControlled",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "beneficiaryId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "address",
+        "name": "project",
+        "type": "address"
+      }
+    ],
+    "name": "isProjectDisavowed",
     "outputs": [
       {
         "internalType": "bool",
@@ -512,6 +697,19 @@ export const BeneficiaryRegistryAbi = [
       }
     ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "beneficiaryId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "releaseBeneficiaryControl",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -706,6 +904,24 @@ export const BeneficiaryRegistryAbi = [
       }
     ],
     "name": "verifyNamespacedBeneficiary",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "beneficiaryId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "address",
+        "name": "project",
+        "type": "address"
+      }
+    ],
+    "name": "withdrawProjectDisavowal",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

@@ -102,6 +102,7 @@ function makeState(overrides?: {
           controlTakenAt: null,
         }],
       ]),
+      disavowedProjects: new Set(),
     },
     beneficiaryEscrow: { balances: new Map() },
     creatorContracts: { contracts: new Map() },

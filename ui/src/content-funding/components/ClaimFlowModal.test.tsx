@@ -584,7 +584,10 @@ describe('ClaimFlowModal', () => {
     await user.click(screen.getByRole('button', { name: 'Withdraw to Wallet' }))
 
     await waitFor(() => {
-      expect(screen.getByText(/only this payout wallet can create new projects about this website/i)).toBeInTheDocument()
+      expect(
+        screen.getByRole('button', { name: 'Restrict future project creation to us' }),
+      ).toBeInTheDocument()
+      expect(screen.getByText(/Existing projects keep their original authorship/i)).toBeInTheDocument()
     })
   })
 

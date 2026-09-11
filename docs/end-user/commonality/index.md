@@ -48,6 +48,7 @@ Each role's how-to lives on the site where you'd actually do it.
 **On [LazyGiving](../lazyGiving/index.md):**
 - **[Fund something you care about](../lazyGiving/fund-something.md)** — Find a project and pledge toward it. Your money is refunded if the goal isn't met.
 - **[Get your project funded](../lazyGiving/get-your-project-funded.md)** — Set up an assurance contract. No gatekeepers, no applications.
+- **[Propose a project for an organization](../lazyGiving/propose-a-project.md)** — Start a clearly unaffiliated project whose payout is the controller of a public name.
 
 **On [Aligning](../alignment/index.md):**
 - **[Pledge funds to a cause](../alignment/pledge-to-a-cause.md)** — Pledge monthly, delegate to someone you trust, and let them decide where it goes. Revocable anytime.

@@ -32,7 +32,9 @@ After you've delivered, your project remains open for **retroactive funding**. D
 
 ## Getting started
 
-Open **Browse Projects** on LazyGiving and click "Create a project." Write a clear mission statement — plain language, not pitch-deck language. Say what the project will accomplish and why it matters.
+Open **Browse Projects** on LazyGiving and click **Propose a project** (some screens still say Create a project; it is the same form). Write a clear mission statement — plain language, not pitch-deck language. Say what the project will accomplish and why it matters.
+
+If the money should go to an organization that is not on Commonality yet, use the website-beneficiary path instead of paying yourself. See **[Propose a project for an organization](propose-a-project.md)**.
 
 Think about which causes your project serves. Browse existing statements on Tally and see which ones your work implies. The more precisely your mission statement connects to things people have already said they care about, the more discoverable you'll be to donors who never read individual project pages.
 

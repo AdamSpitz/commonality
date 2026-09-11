@@ -1,8 +1,8 @@
 # Claimable beneficiaries (tech)
 
-Product: [fund-now-claim-later.md](/specs/product/fund-now-claim-later.md). Today's content-only ancestor: [channel-claiming.md](content-funding/channel-claiming.md), [channel-escrow.md](content-funding/channel-escrow.md). Consequence for aligning (next focus, after this primitive): [alignment-scouting.md](/specs/product/alignment-scouting.md).
+Product: [fund-now-claim-later.md](/specs/product/fund-now-claim-later.md). Today's content-only ancestor: [channel-claiming.md](content-funding/channel-claiming.md), [channel-escrow.md](content-funding/channel-escrow.md). Current product consequence: [third-party project proposals and alignment](/specs/product/third-party-project-proposals-and-alignment.md).
 
-Status: current [focus](/focus.md). No users, no mainnet: **refactor the existing content-channel contracts onto this primitive** rather than wrapping them or keeping a parallel `ChannelRegistry` / `ChannelEscrow`. Names and ABIs may change.
+Status: complete enough to support the current [focus](/focus.md). No users, no mainnet: continue to **refactor the existing content-channel contracts onto this primitive** rather than wrapping them or keeping a parallel `ChannelRegistry` / `ChannelEscrow`. Names and ABIs may change.
 
 ## What to extract
 
@@ -133,7 +133,15 @@ fold the same `BeneficiaryRegistry` events (not per-card RPC) and chip that
 claim state next to funding status. Once the payout wallet calls
 `takeBeneficiaryControl`, LazyGiving's factory (and the create-project form)
 refuse third-party projects about that identity; the website claim flow offers
-that lock as a separate step after verify/withdraw. Platform API challenge and
+that lock as a separate step after verify/withdraw, worded **Restrict future
+project creation to us**. The current payout wallet can later call
+`releaseBeneficiaryControl` from the project page (Reopen third-party
+proposals) to return the identity to Verified. Neither
+transition edits existing projects. The payout wallet can separately
+`disavowProject` / `withdrawProjectDisavowal` for a project whose
+`beneficiaryId()` matches. Disavowal is folded from registry events, hidden
+from browse/reuse by default, and shown on the project page; it does not
+cancel escrow or authorship. Platform API challenge and
 confirm payloads name `beneficiaryId` (canonical string; hashed on-chain).
 `BLOCKED_CHANNEL_IDS` also gates website resolve so a blocked `dns:` identity
 cannot be named at project creation.

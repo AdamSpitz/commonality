@@ -1,6 +1,6 @@
 # Fund now, beneficiary claims later
 
-Status: current [focus](/focus.md). Strategy: [claiming-an-org.md](/docs/end-user/commonality/vision-and-strategy/ease-of-adoption/claiming-an-org.md). Tech (contracts, proof, refactor of `Channel*`): [claimable-beneficiaries.md](/specs/tech/subsystems/claimable-beneficiaries.md).
+Status: complete enough to support the current [focus](/focus.md). Strategy: [claiming-an-org.md](/docs/end-user/commonality/vision-and-strategy/ease-of-adoption/claiming-an-org.md). Tech (contracts, proof, refactor of `Channel*`): [claimable-beneficiaries.md](/specs/tech/subsystems/claimable-beneficiaries.md).
 
 **The primitive:** anyone can create a project whose beneficiary is a public identity nobody on our system has claimed yet. Successful funds go to escrow keyed to that identity. The project creator cannot withdraw. Commonality cannot withdraw. Whoever later proves control of that identity binds a payout address and takes the money.
 
@@ -52,7 +52,7 @@ Stablecoin in escrow → org claims to own wallet/multisig → independent KYC/o
 
 ## When to build
 
-This is the current [focus](/focus.md). The invitation is the same viral loop as funded tweets:
+This primitive supports the current [focus](/focus.md). The invitation is the same viral loop as funded tweets:
 
 > People have already pooled $X for the controller of your website. Publish this record to claim it — and, if you like the rails, keep using them.
 

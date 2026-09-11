@@ -24,7 +24,11 @@ vi.mock('../../shared', async () => {
         role="combobox"
         aria-label="Statement"
         disabled={disabled}
-        onChange={(event) => onSelect({ cid: event.target.value, text: event.target.value, source: 'existing' })}
+        onKeyDown={(event) => {
+          if (event.key !== 'Enter') return
+          const cid = (event.target as HTMLInputElement).value
+          onSelect({ cid, text: cid, source: 'existing' })
+        }}
       />
     ),
   }
@@ -47,6 +51,15 @@ vi.mock('@commonality/sdk/fundingportals', async () => {
     getSubjectSuccessStatements: vi.fn(),
     attestAlignment: vi.fn(),
     attestSuccess: vi.fn(),
+  }
+})
+
+vi.mock('@commonality/sdk/utils', async () => {
+  const actual = await vi.importActual<typeof import('@commonality/sdk/utils')>('@commonality/sdk/utils')
+  return {
+    ...actual,
+    readHasAlignment: vi.fn(),
+    cidToBytes32: vi.fn(() => `0x${'11'.repeat(32)}`),
   }
 })
 
@@ -74,6 +87,7 @@ import { useAccount, useWalletClient, usePublicClient } from 'wagmi'
 import { getStatement, getAllStatements } from '@commonality/sdk/conceptspace'
 import { getSubjectStatements, getSubjectSuccessStatements, attestAlignment, attestSuccess, PROJECT_ALIGNMENT_TOPIC } from '@commonality/sdk/fundingportals'
 import { waitForIndexerToSyncToTxHash } from '@commonality/sdk/indexer-sync'
+import { readHasAlignment } from '@commonality/sdk/utils'
 import { createSDKMachinery } from '@commonality/sdk/machinery'
 import { getAlignmentContract } from './alignmentContract'
 
@@ -112,6 +126,7 @@ describe('AlignmentAttestationsSection', () => {
     vi.mocked(getStatement).mockResolvedValue(null)
     vi.mocked(getSubjectSuccessStatements).mockResolvedValue([])
     vi.mocked(getAllStatements).mockResolvedValue([])
+    vi.mocked(readHasAlignment).mockResolvedValue(false)
   })
 
   describe('Loading state', () => {
@@ -362,7 +377,7 @@ describe('AlignmentAttestationsSection', () => {
       await waitFor(() => screen.getByRole('combobox'))
       await user.type(screen.getByRole('combobox'), 'QmTestCid')
       await user.keyboard('{Enter}')
-      await user.click(screen.getByRole('button', { name: /submit vouch/i }))
+      await user.click(screen.getByRole('button', { name: /confirm alignment attestations/i }))
 
       await waitFor(() => {
         expect(screen.getByText(/wallet not connected/i)).toBeInTheDocument()
@@ -377,7 +392,7 @@ describe('AlignmentAttestationsSection', () => {
       await waitFor(() => screen.getByRole('combobox'))
       await user.type(screen.getByRole('combobox'), 'QmTestCid')
       await user.keyboard('{Enter}')
-      await user.click(screen.getByRole('button', { name: /submit vouch/i }))
+      await user.click(screen.getByRole('button', { name: /confirm alignment attestations/i }))
 
       await waitFor(() => {
         expect(screen.getByText(/contract not configured/i)).toBeInTheDocument()
@@ -392,7 +407,7 @@ describe('AlignmentAttestationsSection', () => {
       await waitFor(() => screen.getByRole('combobox'))
       await user.type(screen.getByRole('combobox'), 'QmTestCid')
       await user.keyboard('{Enter}')
-      await user.click(screen.getByRole('button', { name: /submit vouch/i }))
+      await user.click(screen.getByRole('button', { name: /confirm alignment attestations/i }))
 
       await waitFor(() => {
         expect(screen.getByText('Vouch submitted successfully!')).toBeInTheDocument()
@@ -407,7 +422,7 @@ describe('AlignmentAttestationsSection', () => {
       await waitFor(() => screen.getByRole('combobox'))
       await user.type(screen.getByRole('combobox'), 'QmTestCid')
       await user.keyboard('{Enter}')
-      await user.click(screen.getByRole('button', { name: /submit vouch/i }))
+      await user.click(screen.getByRole('button', { name: /confirm alignment attestations/i }))
 
       await waitFor(() => expect(attestAlignment).toHaveBeenCalled())
       expect(attestAlignment).toHaveBeenCalledWith(
@@ -458,7 +473,7 @@ describe('AlignmentAttestationsSection', () => {
       await waitFor(() => screen.getByRole('combobox'))
       await user.type(screen.getByRole('combobox'), 'QmTestCid')
       await user.keyboard('{Enter}')
-      await user.click(screen.getByRole('button', { name: /submit vouch/i }))
+      await user.click(screen.getByRole('button', { name: /confirm alignment attestations/i }))
 
       await waitFor(() => {
         expect(screen.getByText('Transaction reverted')).toBeInTheDocument()
@@ -473,13 +488,39 @@ describe('AlignmentAttestationsSection', () => {
       await waitFor(() => screen.getByRole('combobox'))
       await user.type(screen.getByRole('combobox'), 'QmTestCid')
       await user.keyboard('{Enter}')
-      await user.click(screen.getByRole('button', { name: /submit vouch/i }))
+      await user.click(screen.getByRole('button', { name: /confirm alignment attestations/i }))
 
       await waitFor(() => {
         expect(screen.getByText('Vouch submitted successfully!')).toBeInTheDocument()
       })
       // getSubjectStatements called: once on mount + once after successful attestation (refreshKey++)
       expect(getSubjectStatements).toHaveBeenCalledTimes(2)
+    })
+
+    it('skips onchain submit when the attester already attested that pair', async () => {
+      vi.mocked(getAllStatements).mockResolvedValue([])
+      vi.mocked(readHasAlignment).mockResolvedValue(true)
+
+      const user = await openDialog()
+      await waitFor(() => screen.getByRole('combobox'))
+      await user.type(screen.getByRole('combobox'), 'QmTestCid')
+      await user.keyboard('{Enter}')
+      await user.click(screen.getByRole('button', { name: /confirm alignment attestations/i }))
+
+      await waitFor(() => {
+        expect(screen.getByText('Already attested')).toBeInTheDocument()
+      })
+      expect(attestAlignment).not.toHaveBeenCalled()
+    })
+
+    it('queues the cause statement from the project URL', async () => {
+      vi.mocked(getAllStatements).mockResolvedValue([])
+      const user = userEvent.setup()
+      render(<AlignmentAttestationsSection projectAddress={PROJECT_ADDR} initialStatementCid="QmFromCause" />)
+      await waitFor(() => screen.getByText('No alignment attestations yet.'))
+      await user.click(screen.getByRole('button', { name: /vouch for this project/i }))
+      expect(await screen.findByText('Statement QmFromCause...')).toBeInTheDocument()
+      expect(screen.getByText('Pending')).toBeInTheDocument()
     })
   })
 })

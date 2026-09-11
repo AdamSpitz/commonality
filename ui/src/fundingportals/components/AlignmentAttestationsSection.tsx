@@ -8,6 +8,7 @@ import {
   Stack,
   Divider,
   Button,
+  Chip,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -18,12 +19,21 @@ import { useAccount } from 'wagmi'
 import { getStatement } from '@commonality/sdk/conceptspace'
 import { getSubjectStatements, attestAlignment, attestSuccess, getSubjectSuccessStatements, toSubjectId, PROJECT_ALIGNMENT_TOPIC, type AlignmentAttestation, type SuccessAttestation } from '@commonality/sdk/fundingportals'
 import { waitForIndexerToSyncToTxHash } from '@commonality/sdk/indexer-sync'
-import type { IpfsCidV1 } from '@commonality/sdk/utils'
+import { cidToBytes32, readHasAlignment, type IpfsCidV1 } from '@commonality/sdk/utils'
 import { InfoChip, StatementPicker, truncateAddress, useMachinery, useWriteClients } from '../../shared'
 import { getAlignmentContract } from './alignmentContract'
 
 type AlignmentWithTitle = AlignmentAttestation & { statementTitle?: string }
 type SuccessWithTitle = SuccessAttestation & { statementTitle?: string }
+
+type QueueStatus = 'queued' | 'already' | 'submitting' | 'done' | 'failed'
+
+interface AlignmentQueueItem {
+  cid: string
+  label?: string
+  status: QueueStatus
+  error?: string
+}
 
 interface Props {
   projectAddress: string
@@ -44,6 +54,7 @@ export function AlignmentAttestationsSection({ projectAddress, initialStatementC
   const [dialogOpen, setDialogOpen] = useState(false)
   const [attestationKind, setAttestationKind] = useState<'alignment' | 'success'>('alignment')
   const [selectedStatementCid, setSelectedStatementCid] = useState('')
+  const [alignmentQueue, setAlignmentQueue] = useState<AlignmentQueueItem[]>([])
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [submitSuccess, setSubmitSuccess] = useState(false)
@@ -95,13 +106,108 @@ export function AlignmentAttestationsSection({ projectAddress, initialStatementC
     setSubmitError(null)
     setSubmitSuccess(false)
     setSelectedStatementCid(initialStatementCid ?? '')
+    setAlignmentQueue(
+      kind === 'alignment' && initialStatementCid
+        ? [{ cid: initialStatementCid, status: 'queued' }]
+        : [],
+    )
   }
 
   const getClients = () => writeClients
 
   const statementCid = selectedStatementCid
 
+  const addToAlignmentQueue = (cid: string, label?: string) => {
+    setSelectedStatementCid(cid)
+    setAlignmentQueue((current) => {
+      if (current.some((item) => item.cid === cid)) return current
+      return [...current, { cid, label, status: 'queued' }]
+    })
+  }
+
+  const updateQueueItem = (cid: string, patch: Partial<AlignmentQueueItem>) => {
+    setAlignmentQueue((current) =>
+      current.map((item) => (item.cid === cid ? { ...item, ...patch } : item)),
+    )
+  }
+
+  const submitAlignmentCid = async (cid: string) => {
+    const clients = getClients()
+    const contract = getAlignmentContract()
+    if (!clients || !contract || !address) {
+      throw new Error('Wallet not connected or contract not configured (VITE_ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS)')
+    }
+    const subjectId = toSubjectId(projectAddress as `0x${string}`)
+    const already = await readHasAlignment(
+      machinery,
+      contract.address,
+      address,
+      cidToBytes32(PROJECT_ALIGNMENT_TOPIC),
+      subjectId,
+      cidToBytes32(cid),
+    )
+    if (already) {
+      updateQueueItem(cid, { status: 'already', error: undefined })
+      return
+    }
+    updateQueueItem(cid, { status: 'submitting', error: undefined })
+    const txHash = await attestAlignment(
+      clients,
+      contract,
+      subjectId,
+      cid as IpfsCidV1,
+      PROJECT_ALIGNMENT_TOPIC,
+    )
+    await waitForIndexerToSyncToTxHash(machinery, clients.publicClient, txHash)
+    updateQueueItem(cid, { status: 'done' })
+  }
+
+  const handleSubmitAlignments = async (cids: string[]) => {
+    const clients = getClients()
+    const contract = getAlignmentContract()
+    if (!clients || !contract) {
+      setSubmitError('Wallet not connected or contract not configured (VITE_ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS)')
+      return
+    }
+    if (cids.length === 0) {
+      setSubmitError('Please select at least one statement')
+      return
+    }
+
+    setSubmitting(true)
+    setSubmitError(null)
+    let anyDone = false
+    try {
+      for (const cid of cids) {
+        try {
+          await submitAlignmentCid(cid)
+          anyDone = true
+        } catch (err) {
+          console.error('Attestation failed:', err)
+          updateQueueItem(cid, {
+            status: 'failed',
+            error: err instanceof Error ? err.message : 'Failed to attest alignment',
+          })
+        }
+      }
+      if (anyDone) {
+        setSubmitSuccess(true)
+        setRefreshKey(k => k + 1)
+      }
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
   const handleSubmit = async () => {
+    if (attestationKind === 'alignment') {
+      const pending = alignmentQueue
+        .filter((item) => item.status === 'queued' || item.status === 'failed')
+        .map((item) => item.cid)
+      await handleSubmitAlignments(pending)
+      return
+    }
+
     const clients = getClients()
     const contract = getAlignmentContract()
 
@@ -119,7 +225,7 @@ export function AlignmentAttestationsSection({ projectAddress, initialStatementC
     setSubmitError(null)
 
     try {
-      const txHash = await (attestationKind === 'success' ? attestSuccess : attestAlignment)(
+      const txHash = await attestSuccess(
         clients,
         contract,
         toSubjectId(projectAddress as `0x${string}`),
@@ -132,7 +238,7 @@ export function AlignmentAttestationsSection({ projectAddress, initialStatementC
       setRefreshKey(k => k + 1)
     } catch (err) {
       console.error('Attestation failed:', err)
-      setSubmitError(err instanceof Error ? err.message : `Failed to attest ${attestationKind}`)
+      setSubmitError(err instanceof Error ? err.message : 'Failed to attest success')
     } finally {
       setSubmitting(false)
     }
@@ -247,7 +353,10 @@ export function AlignmentAttestationsSection({ projectAddress, initialStatementC
         <DialogTitle>{attestationKind === 'success' ? 'Attest Project Success' : 'Vouch for This Project'}</DialogTitle>
         <DialogContent>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2, mt: 1 }}>
-            {attestationKind === 'success' ? 'Attest that this project delivered real value aligned with a cause.' : 'Vouch that this project serves a particular cause.'}{initialStatementCid ? ' The cause you came from has been pre-selected.' : ''}
+            {attestationKind === 'success'
+              ? 'Attest that this project delivered real value aligned with a cause.'
+              : 'Vouch that this project serves one or more statements. Each pair is a separate attestation about this project, not about every activity of the beneficiary. You can skip a statement, retry a failed one, and already-onchain vouches are not submitted again.'}
+            {attestationKind === 'alignment' && initialStatementCid ? ' The cause you came from has been added to the list.' : ''}
           </Typography>
 
           {submitSuccess && (
@@ -267,11 +376,73 @@ export function AlignmentAttestationsSection({ projectAddress, initialStatementC
               Selected immutable statement CID: {initialStatementCid}
             </Alert>
           )}
+          {attestationKind === 'alignment' && alignmentQueue.length > 0 && (
+            <Stack spacing={1} sx={{ mb: 2 }}>
+              {alignmentQueue.map((item) => (
+                <Box
+                  key={item.cid}
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: 1,
+                    p: 1,
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    borderRadius: 1,
+                  }}
+                >
+                  <Box>
+                    <Typography variant="body2">
+                      {item.label || `Statement ${item.cid.slice(0, 12)}...`}
+                    </Typography>
+                    {item.error && (
+                      <Typography variant="caption" color="error">{item.error}</Typography>
+                    )}
+                  </Box>
+                  <Stack direction="row" spacing={1} alignItems="center">
+                    <Chip
+                      size="small"
+                      label={
+                        item.status === 'queued' ? 'Pending'
+                          : item.status === 'already' ? 'Already attested'
+                            : item.status === 'submitting' ? 'Submitting'
+                              : item.status === 'done' ? 'Completed'
+                                : 'Failed'
+                      }
+                      color={
+                        item.status === 'done' || item.status === 'already' ? 'success'
+                          : item.status === 'failed' ? 'error'
+                            : item.status === 'submitting' ? 'info'
+                              : 'default'
+                      }
+                    />
+                    {item.status === 'failed' && (
+                      <Button
+                        size="small"
+                        disabled={submitting}
+                        onClick={() => void handleSubmitAlignments([item.cid])}
+                      >
+                        Retry
+                      </Button>
+                    )}
+                  </Stack>
+                </Box>
+              ))}
+            </Stack>
+          )}
           <StatementPicker
             intent="alignment"
             selectedCid={statementCid}
+            excludeCids={attestationKind === 'alignment' ? alignmentQueue.map((item) => item.cid) : []}
             disabled={submitting}
-            onSelect={(selection) => setSelectedStatementCid(selection.cid)}
+            onSelect={(selection) => {
+              if (attestationKind === 'alignment') {
+                addToAlignmentQueue(selection.cid, selection.text)
+              } else {
+                setSelectedStatementCid(selection.cid)
+              }
+            }}
             onNoneFit={() => window.open('/#/', '_blank', 'noopener,noreferrer')}
           />
           {statementCid && (
@@ -289,9 +460,16 @@ export function AlignmentAttestationsSection({ projectAddress, initialStatementC
           <Button
             variant="contained"
             onClick={handleSubmit}
-            disabled={submitting || !statementCid}
+            disabled={
+              submitting
+              || (attestationKind === 'success' ? !statementCid : alignmentQueue.every((item) => item.status !== 'queued' && item.status !== 'failed'))
+            }
           >
-            {submitting ? 'Submitting...' : attestationKind === 'success' ? 'Submit Success Attestation' : 'Submit Vouch'}
+            {submitting
+              ? 'Submitting...'
+              : attestationKind === 'success'
+                ? 'Submit Success Attestation'
+                : 'Confirm alignment attestations'}
           </Button>
         </DialogActions>
       </Dialog>

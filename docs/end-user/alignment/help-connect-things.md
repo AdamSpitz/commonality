@@ -32,6 +32,8 @@ Hitting Downtrust updates your trust graph: the voucher (and the chain that prop
 
 ## Getting started
 
+If you are also the person who opened the project, you can attest one or more statements as part of [proposing it](../lazyGiving/propose-a-project.md). Self-attestation is ordinary input; other people's trust graphs decide whether it counts.
+
 Start in Aligning for the portal and attester view. Look for the alignment attestation option on a cause page, or visit a specific LazyGiving project or Content Funding content page if you're vouching for a single item. Think about which causes the work genuinely serves — be honest, since your reputation as an attester depends on reliability — and submit the attestation.
 
 In your settings, you can see who trusts you and who you've vouched for. If you want to grow your reach as an attester, publish your reasoning publicly — explain why you made particular attestations. That transparency is what builds trust.
