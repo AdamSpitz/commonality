@@ -11,6 +11,8 @@ This directory is **four jobs**, not one “generate fake data” switch:
 
 The rest of this README is the **generative simulation** (jobs 1, 2, 4): randomly generated users and on-chain actions. Job 3 is the JSON + attester loop, not `runSimulation`.
 
+The medium realistic campaign has a separate planning-only command: `npm run gen:campaign:plan`. It deterministically writes the selected statement catalog, unprovisioned wallet slots, persona/cause/project assignments, complete prerequisite-linked action graph, and gas/payment-token estimate under `output/campaigns/medium-realistic-v1/`. A later provisioning step binds public addresses to those slots; planning neither creates private keys nor connects to a chain.
+
 ## Overview
 
 The generative testing suite consists of:
