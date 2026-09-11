@@ -15,6 +15,8 @@ The medium realistic campaign has a separate planning-only command: `npm run gen
 
 Campaign execution uses the explicit environment boundary in `campaignEnvironment.ts`. Local mode is pinned to Hardhat chain 31337 and may use the legacy deploy/Hardhat-wallet/free-mint conveniences. Remote mode requires a committed deployment env manifest, an explicit non-Hardhat chain ID, existing bytecode at every required address, generated campaign wallets, and transfer-only payment-token provisioning. Deployment and provisioning adapters are validated against those policies before they can run; remote execution must also carry a separate mutation-confirmation flag when it is added. The existing `gen:tiny`/`gen:small`/`gen:medium`/`gen:large` commands remain local-only legacy simulation paths and are not remote campaign commands.
 
+The reusable runner in `campaignExecutor.ts` consumes a frozen action plan through a chain adapter. It atomically persists planned/submitted/mined/failed state and transaction hashes, resumes submitted transactions by receipt lookup, respects action prerequisites, and enforces bounded concurrency, pacing, classified retries, a transaction cap, and a native-token budget. No CLI or real contract adapter is exposed yet: this layer is deliberately tested against a local fake chain before the campaign behavior and contract bindings are added.
+
 ## Overview
 
 The generative testing suite consists of:
