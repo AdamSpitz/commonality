@@ -195,6 +195,27 @@ function checkViteMirror(rootEnv, viteEnv, label) {
   }
 }
 
+function checkLocalIdentity(env, label, { vite = false } = {}) {
+  const chainId = vite ? env.VITE_CHAIN_ID : env.CHAIN_ID;
+  const rpcUrl = vite ? env.VITE_ETH_RPC_URL : env.ETHEREUM_RPC_URL;
+  const eventCacheUrl = vite ? env.VITE_EVENT_CACHE_URL : env.EVENT_CACHE_URL;
+
+  if (chainId !== '31337') errors.push(`${label}: expected local chain id 31337, got ${chainId || '(missing)'}`);
+  if (env.COMMONALITY_ENVIRONMENT !== 'local') {
+    errors.push(`${label}: expected COMMONALITY_ENVIRONMENT=local, got ${env.COMMONALITY_ENVIRONMENT || '(missing)'}`);
+  }
+  if (!/^http:\/\/(127\.0\.0\.1|localhost):8545\/?$/.test(rpcUrl || '')) {
+    errors.push(`${label}: expected localhost RPC on port 8545, got ${rpcUrl || '(missing)'}`);
+  }
+  if (vite) {
+    if (eventCacheUrl && !/^http:\/\/(127\.0\.0\.1|localhost):42069\/?$/.test(eventCacheUrl)) {
+      errors.push(`${label}: VITE_EVENT_CACHE_URL points off-laptop (${eventCacheUrl}); leave it empty for the local proxy`);
+    }
+  } else if (!/^http:\/\/(127\.0\.0\.1|localhost):42069\/?$/.test(eventCacheUrl || '')) {
+    errors.push(`${label}: expected local EVENT_CACHE_URL on port 42069, got ${eventCacheUrl || '(missing)'}`);
+  }
+}
+
 function checkRuntimeAgainstDeploy(name, config, deployEnv) {
   for (const [rootKey, viteKey] of Object.entries(ROOT_TO_VITE)) {
     if (!REQUIRED_ROOT_KEYS.includes(rootKey) && rootKey !== 'NUDGE_PUBLICATIONS_CONTRACT_ADDRESS') {
@@ -225,6 +246,17 @@ async function checkChain(rpcUrl, deployEnv) {
     return;
   }
   notes.push(`RPC ${rpcUrl} ok (block ${Number.parseInt(blockNumber, 16)})`);
+
+  try {
+    const actualChainId = Number.parseInt(await rpc(rpcUrl, 'eth_chainId'), 16);
+    if (actualChainId !== 31337) {
+      errors.push(`RPC ${rpcUrl} reports chain ${actualChainId}, expected local chain 31337`);
+      return;
+    }
+  } catch (err) {
+    errors.push(`Could not read chain id from ${rpcUrl}: ${err.message}`);
+    return;
+  }
 
   for (const key of REQUIRED_ROOT_KEYS) {
     const address = deployEnv[key];
@@ -306,6 +338,7 @@ async function main() {
 
   if (rootEnv) {
     log(`  loaded ${path.relative(ROOT, rootEnvPath)}`);
+    checkLocalIdentity(rootEnv, '.env');
     // Root .env should mirror deploy addresses when present.
     if (localhostEnv) {
       for (const key of REQUIRED_ROOT_KEYS) {
@@ -325,12 +358,14 @@ async function main() {
 
   if (uiEnv) {
     log(`  loaded ${path.relative(ROOT, uiEnvPath)}`);
+    checkLocalIdentity(uiEnv, 'ui/.env', { vite: true });
     checkViteMirror(deployEnv, uiEnv, 'ui/.env');
   } else {
     warnings.push('ui/.env missing — UI IPFS publisher may bake empty contract addresses');
   }
 
   if (causestarterEnv) {
+    checkLocalIdentity(causestarterEnv, 'causestarter/.env', { vite: true });
     // Optional package env; only check drift if it sets addresses.
     const hasAny = Object.values(ROOT_TO_VITE).some((k) => causestarterEnv[k]);
     if (hasAny) {

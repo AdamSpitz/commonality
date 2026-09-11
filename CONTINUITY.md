@@ -2147,3 +2147,23 @@ not more protocol surface.
 
 Removed the item from `focus.md`. Spec status is closed. Deferred: indexed
 beneficiary lookup and bulk/bot UX.
+
+## 2026-09-11 — Campaign reconciliation talks to the local stack
+
+Item 6 of the medium-realistic campaign: indexer adapter paginates with `fetchEventsComplete` and collapses alternative proving events so ordinary vs retroactive funding is one write. `npm run gen:campaign:reconcile -- --probe` reads live chain/indexer heads. Without `--probe` it reconciles from plan + execution + runtime-bindings. A live adapter test exercises raw lookup plus an SDK belief fold against Ponder. Campaign execution adapter is still required before mined campaign txs exist to close item 6.
+
+## 2026-09-11 — Local campaign wallet provisioning
+
+Item 7 of the medium-realistic campaign: `campaignProvisioning.ts` funds generated wallets before `gen:campaign:execute`. Local mode transfers ETH from the Hardhat funder and payment tokens (mint fallback). Remote stays transfer-only and refuses Hardhat keys. `--skip-provision` exists for already-funded reruns. Live smoke on the local stack wrote `execution/funding-ledger.json` for all 100 slots. Full 100-user execute/reconcile/UI inspection is still open.
+
+## 2026-09-11 — Full local 100-user campaign execute + reconcile
+
+Ran `gen:campaign:execute --mode local --concurrency 4 --skip-provision`: 1932 mined, 0 failed, ~196s. First reconcile mismatched all fund-project and note SDK folds. Fixes: derived funding checks now use `campaignFundProjectCost()` (0.01 token per buy, matching the adapter) instead of planner persona amounts; note lookups lowercase the bound contract address. Re-reconcile: 1932/1932 verified, indexer lag 0.
+
+## 2026-09-11 — Local campaign CauseStarter UI inspection
+
+Plan item 7 closed. Restarted a 6-day-old `causestarter:dev` so Vite baked `VITE_CHAIN_ID=31337` instead of Base Sepolia. Schools and open-source boards, a bridge statement, and a funded project (eip155:31337) render from the local indexer. Notes page needs a connected wallet. Empty `VITE_DEFAULT_ALIGNMENT_TRUST_ROOT` shows the “no starter vouching network” banner. Details: `fake-data-generation/campaigns/medium-realistic-v1-local-run.md`. Next: remote canary preflight (plan item 8).
+
+## 2026-09-11 — Remote canary preflight (no mutation)
+
+Plan item 8 closed. `campaignCanary.ts` + `npm run gen:campaign:canary-preflight` slice the medium-realistic plan to 10 users (plus extra actors required by prerequisites), estimate ETH/token needs and paced duration, probe chain bytecode and indexer lag, and write `reports/remote-canary-preflight.{json,md}`. Shared-lab health, official implication path, `verifier-testnet.sh`, and the budget/window remain `needs-adam`. Does not send transactions. Next: item 9 only after Adam approves that proposal.

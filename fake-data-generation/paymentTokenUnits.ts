@@ -17,3 +17,10 @@ export function getPaymentTokenDecimals(): number {
 export function parsePaymentTokenUnits(value: string): bigint {
   return parseUnits(value, getPaymentTokenDecimals());
 }
+
+/** Each campaign fund-project write currently buys this payment-token amount. */
+export const CAMPAIGN_FUND_PROJECT_TOKEN = '0.01';
+
+export function campaignFundProjectCost(): bigint {
+  return parsePaymentTokenUnits(CAMPAIGN_FUND_PROJECT_TOKEN);
+}

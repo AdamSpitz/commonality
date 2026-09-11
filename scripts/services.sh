@@ -326,6 +326,9 @@ start_services() {
     local -a services_to_build=()
 
     timing_begin
+    echo "[$(date +%T)] Activating the complete localhost environment profile..."
+    "$SCRIPT_DIR/setup-env.sh" localhost
+    "$SCRIPT_DIR/check-local-config-sync.sh" --env-only
     "$SCRIPT_DIR/check-prerequisites.sh"
     check_existing_containers
     clear_stale_ponder_for_fresh_chain

@@ -221,6 +221,11 @@ Run `./scripts/setup-env.sh base-sepolia` after wallet generation. It publishes
 the chain-scoped `VITE_DEFAULT_ALIGNMENT_TRUST_ROOT` derived from the dedicated
 bootstrap key into both the domain UI and CauseStarter Vite configuration.
 
+Each generated network is also snapshotted under gitignored
+`.generated-env/<network>/`. UI publish scripts activate the requested network
+only for their build/upload and restore the complete localhost profile on exit,
+including failed publishes.
+
 The IPFS UI cannot use the local Vite proxy, so this URL is written into `ui/.env` by `scripts/setup-env.sh` and emitted into each domain's runtime `config.json` by the Vite build. `scripts/deploy-ui.sh` will stop early if `VITE_EVENT_CACHE_URL` is missing.
 
 #### How the naming layer works (testnet)

@@ -40,7 +40,7 @@ import { ContentRegistryAbi } from "./abis/ContentRegistryAbi";
 import { BeneficiaryRegistryAbi } from "./abis/BeneficiaryRegistryAbi";
 import { BeneficiaryEscrowAbi } from "./abis/BeneficiaryEscrowAbi";
 import { CreatorAssuranceContractFactoryAbi } from "./abis/CreatorAssuranceContractFactoryAbi";
-import { CreatorAssuranceVetoAbi } from "./abis/CreatorAssuranceVetoAbi";
+// import { CreatorAssuranceVetoAbi } from "./abis/CreatorAssuranceVetoAbi"; // TODO: Uncomment after redeploying contracts
 import { ProspectiveContentRoundFactoryAbi } from "./abis/ProspectiveContentRoundFactoryAbi";
 import { MaterializedContentTokensAbi } from "./abis/MaterializedContentTokensAbi";
 
@@ -216,7 +216,7 @@ const CONTENT_REGISTRY_DEPLOYMENTS = getDeployments("ContentRegistry", "CONTENT_
 const BENEFICIARY_REGISTRY_DEPLOYMENTS = getDeployments("BeneficiaryRegistry", "BENEFICIARY_REGISTRY_ADDRESS", CONTENT_FUNDING_START_BLOCK);
 const BENEFICIARY_ESCROW_DEPLOYMENTS = getDeployments("BeneficiaryEscrow", "BENEFICIARY_ESCROW_ADDRESS", CONTENT_FUNDING_START_BLOCK);
 const CREATOR_CONTRACT_FACTORY_DEPLOYMENTS = getDeployments("CreatorAssuranceContractFactory", "CREATOR_CONTRACT_FACTORY_ADDRESS", CONTENT_FUNDING_START_BLOCK);
-const CREATOR_ASSURANCE_VETO_DEPLOYMENTS = getDeployments("CreatorAssuranceVeto", "CREATOR_ASSURANCE_VETO_ADDRESS", CONTENT_FUNDING_START_BLOCK);
+// const CREATOR_ASSURANCE_VETO_DEPLOYMENTS = getDeployments("CreatorAssuranceVeto", "CREATOR_ASSURANCE_VETO_ADDRESS", CONTENT_FUNDING_START_BLOCK); // TODO: Uncomment after redeploying contracts
 const PROSPECTIVE_FACTORY_DEPLOYMENTS = getDeployments("ProspectiveContentRoundFactory", "PROSPECTIVE_CONTENT_ROUND_FACTORY_ADDRESS", CONTENT_FUNDING_START_BLOCK);
 
 const ETH_GET_LOGS_BLOCK_RANGE = process.env.PONDER_ETH_GET_LOGS_BLOCK_RANGE
@@ -421,11 +421,13 @@ const contracts = {
     ...deploymentConfig(CREATOR_CONTRACT_FACTORY_DEPLOYMENTS, CONTENT_FUNDING_START_BLOCK),
   },
 
-  CreatorAssuranceVeto: {
-    abi: CreatorAssuranceVetoAbi,
-    chain: INDEXER_CHAIN,
-    ...deploymentConfig(CREATOR_ASSURANCE_VETO_DEPLOYMENTS, CONTENT_FUNDING_START_BLOCK),
-  },
+  // TODO: CreatorAssuranceVeto not yet deployed to Base Sepolia (extracted Sep 10)
+  // Uncomment after redeploying contracts
+  // CreatorAssuranceVeto: {
+  //   abi: CreatorAssuranceVetoAbi,
+  //   chain: INDEXER_CHAIN,
+  //   ...deploymentConfig(CREATOR_ASSURANCE_VETO_DEPLOYMENTS, CONTENT_FUNDING_START_BLOCK),
+  // },
 
   ProspectiveContentRoundFactory: {
     abi: ProspectiveContentRoundFactoryAbi,
