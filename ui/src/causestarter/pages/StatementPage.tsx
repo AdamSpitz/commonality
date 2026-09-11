@@ -443,9 +443,10 @@ export function StatementPage() {
           <Stack spacing={1}>
             <Typography variant="body2">
               Projects vouched as advancing this statement — not a cause as a whole.
-              Do the work? Publish a project and get an alignment vouch; you do not need
-              a foundation intro. Only want to judge? Fund proven work, or fund early and
-              ask to be reimbursed at cost.
+              Do the work? Propose a project for this cause and attest alignment; you do
+              not need a foundation intro. Alignment is about that project, not every
+              activity of its beneficiary. Only want to judge? Fund proven work, or fund
+              early and ask to be reimbursed at cost.
             </Typography>
             <StarterNetworkFilterCopy />
           </Stack>

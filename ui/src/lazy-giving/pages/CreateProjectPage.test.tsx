@@ -9,6 +9,7 @@ const mockNavigate = vi.fn()
 // Mock react-router-dom
 vi.mock('react-router-dom', () => ({
   useNavigate: () => mockNavigate,
+  useSearchParams: () => [new URLSearchParams(), vi.fn()],
 }))
 
 // Mock wagmi
@@ -70,6 +71,10 @@ vi.mock('@commonality/sdk/displayable-documents', async () => {
 
 const mockResolveWebsiteBeneficiary = vi.fn()
 
+vi.mock('../hooks/useExistingBeneficiaryProjects', () => ({
+  useExistingBeneficiaryProjects: () => ({ loading: false, matches: [], canonical: null }),
+}))
+
 vi.mock('../../content-funding', async () => {
   const actual = await vi.importActual('../../content-funding') as Record<string, unknown>
   return {
@@ -126,7 +131,7 @@ describe('CreateProjectPage', () => {
     it('displays the page heading', () => {
       render(<CreateProjectPage />)
 
-      expect(screen.getByRole('heading', { name: 'Create Project' })).toBeInTheDocument()
+      expect(screen.getByRole('heading', { name: 'Propose a project' })).toBeInTheDocument()
     })
 
     it('displays all form fields', () => {

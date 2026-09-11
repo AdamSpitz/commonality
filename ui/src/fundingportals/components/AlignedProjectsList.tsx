@@ -34,7 +34,7 @@ import {
   useContentFundingState,
   useUnmaterializedProspectiveRoundAddresses,
 } from '../../content-funding'
-import { getProjectStatus } from '../../lazy-giving'
+import { getProjectStatus, proposeProjectPath } from '../../lazy-giving'
 import {
   AlignedProjectCard,
   type AlignedProject,
@@ -48,6 +48,7 @@ import { readProjectMetadata } from './projectMetadata'
 import { resolveStatementCids } from './statementCids'
 import { useKeepPaintedWhileRefreshing } from '../hooks/useKeepPaintedWhileRefreshing'
 import { projectMatchesBoardRules, type BoardInclusionRules } from './geographicInclusion'
+
 
 type StatusFilter = 'all' | 'active' | 'succeeded' | 'refunding'
 type SortOption = 'latest' | 'deadline' | 'mostFunded' | 'closestToGoal'
@@ -402,22 +403,22 @@ export function AlignedProjectsList({
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} justifyContent="center" sx={{ mt: 2 }}>
                 <Button
                   component={RouterLink}
-                  to="/projects/new"
+                  to={proposeProjectPath({ statementCid: statementCid ?? statementCids?.[0] })}
                   variant="contained"
                 >
-                  Create a project
+                  Propose a project for this cause
                 </Button>
               </Stack>
             ) : isDomainConfigured('lazyGiving') ? (
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} justifyContent="center" sx={{ mt: 2 }}>
                 <Button
                   component="a"
-                  href={getDomainUrl('lazyGiving', '/projects/new')}
+                  href={getDomainUrl('lazyGiving', proposeProjectPath({ statementCid: statementCid ?? statementCids?.[0] }))}
                   variant="contained"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  Create a project
+                  Propose a project for this cause
                 </Button>
               </Stack>
             ) : (

@@ -2059,3 +2059,16 @@ platform-api `ResolvedChannel` is occupancy, not the claim primitive.
 Focus item 1 (fund-now / claim-later contracts + website MVP UI) is
 functionally in place. Remaining work is live-stack exercise, occupancy
 Channel* names (intentional), and deferred recovery/KYC/scouting.
+
+## 2026-09-11 — Third-party proposal reuse and cause entry
+
+- Create-project is titled **Propose a project**. `?beneficiary=` opens website
+  mode; `?statement=` keeps the cause CID for a later alignment attest.
+- Advisory lookup lists existing projects whose metadata `beneficiary` matches
+  the canonical dns id (not display text) and suggests reuse without blocking a
+  new proposal.
+- Cause boards' empty state is **Propose a project for this cause** with
+  `?statement=`.
+
+Still needed: resumable multi-attest, beneficiary-control / disavowal UI copy
+pass, product docs, tests of the live flow.

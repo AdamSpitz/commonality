@@ -301,7 +301,7 @@ describe('AlignedProjectsList', () => {
       await waitFor(() => {
         expect(screen.getByText(/No aligned projects yet/)).toBeInTheDocument()
       })
-      expect(screen.getByRole('link', { name: 'Create a project' })).toHaveAttribute(
+      expect(screen.getByRole('link', { name: 'Propose a project for this cause' })).toHaveAttribute(
         'href',
         'http://lazygiving.localhost:8088/#/projects/new',
       )
@@ -317,7 +317,10 @@ describe('AlignedProjectsList', () => {
       await waitFor(() => {
         expect(screen.getByText(/No aligned projects yet/)).toBeInTheDocument()
       })
-      expect(screen.getByRole('link', { name: /Create a project/i })).toHaveAttribute('href', '/projects/new')
+      expect(screen.getByRole('link', { name: /Propose a project for this cause/i })).toHaveAttribute(
+        'href',
+        '/projects/new?statement=QmTest',
+      )
     })
 
     it('explains missing LazyGiving config instead of path-only create links', async () => {

@@ -25,6 +25,7 @@ export {
   type ProjectStatus,
 } from './utils'
 export { readLazyGivingProjectMetadata } from './metadata'
+export { proposeProjectPath } from './projectsForBeneficiary'
 export { dnsBeneficiaryDomain, WebsiteBeneficiaryMark } from './components/WebsiteBeneficiaryMark'
 export {
   claimStateForDnsDomain,
