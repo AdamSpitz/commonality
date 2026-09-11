@@ -11,6 +11,7 @@ export interface CampaignReceipt {
   status: 'success' | 'reverted';
   gasUsed: bigint;
   effectiveGasPrice: bigint;
+  blockNumber?: bigint;
 }
 
 export interface CampaignExecutionAdapter {
@@ -25,6 +26,9 @@ export interface CampaignActionExecution {
   status: CampaignActionStatus;
   attempts: number;
   transactionHash?: Hex;
+  submittedAt?: string;
+  minedAt?: string;
+  blockNumber?: string;
   gasUsed?: string;
   nativeCost?: string;
   failure?: { category: string; message: string };
@@ -139,6 +143,7 @@ export async function executeCampaignPlan(input: {
       const transactionHash = await adapter.submit(action);
       lastSubmissionAt = Date.now();
       record.status = 'submitted'; record.transactionHash = transactionHash; record.nativeCost = estimate.toString();
+      record.submittedAt = now().toISOString();
       transactionCount += 1; reservedNativeCost += estimate;
       await save();
     } finally { release(); }
@@ -157,6 +162,8 @@ export async function executeCampaignPlan(input: {
           const actualCost = receipt.gasUsed * receipt.effectiveGasPrice;
           reservedNativeCost += actualCost - previousCost;
           record.gasUsed = receipt.gasUsed.toString(); record.nativeCost = actualCost.toString();
+          record.minedAt = now().toISOString();
+          if (receipt.blockNumber !== undefined) record.blockNumber = receipt.blockNumber.toString();
           record.status = receipt.status === 'success' ? 'mined' : 'failed';
           if (receipt.status === 'reverted') record.failure = { category: 'contract-revert', message: 'transaction reverted' };
           await save();
