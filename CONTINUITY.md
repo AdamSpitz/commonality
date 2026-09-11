@@ -2158,4 +2158,8 @@ Item 7 of the medium-realistic campaign: `campaignProvisioning.ts` funds generat
 
 ## 2026-09-11 — Full local 100-user campaign execute + reconcile
 
-Ran `gen:campaign:execute --mode local --concurrency 4 --skip-provision`: 1932 mined, 0 failed, ~196s. First reconcile mismatched all fund-project and note SDK folds. Fixes: derived funding checks now use `campaignFundProjectCost()` (0.01 token per buy, matching the adapter) instead of planner persona amounts; note lookups lowercase the bound contract address. Re-reconcile: 1932/1932 verified, indexer lag 0. CauseStarter UI on this host still talks to Base Sepolia (`chainId=84532`), so browser inspection of campaign boards is blocked until the UI points at 31337. Notes: `fake-data-generation/campaigns/medium-realistic-v1-local-run.md`. Plan item 7 remains open for that UI pass.
+Ran `gen:campaign:execute --mode local --concurrency 4 --skip-provision`: 1932 mined, 0 failed, ~196s. First reconcile mismatched all fund-project and note SDK folds. Fixes: derived funding checks now use `campaignFundProjectCost()` (0.01 token per buy, matching the adapter) instead of planner persona amounts; note lookups lowercase the bound contract address. Re-reconcile: 1932/1932 verified, indexer lag 0.
+
+## 2026-09-11 — Local campaign CauseStarter UI inspection
+
+Plan item 7 closed. Restarted a 6-day-old `causestarter:dev` so Vite baked `VITE_CHAIN_ID=31337` instead of Base Sepolia. Schools and open-source boards, a bridge statement, and a funded project (eip155:31337) render from the local indexer. Notes page needs a connected wallet. Empty `VITE_DEFAULT_ALIGNMENT_TRUST_ROOT` shows the “no starter vouching network” banner. Details: `fake-data-generation/campaigns/medium-realistic-v1-local-run.md`. Next: remote canary preflight (plan item 8).

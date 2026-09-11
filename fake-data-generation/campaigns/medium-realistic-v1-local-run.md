@@ -20,15 +20,33 @@ First pass reported `derived-mismatch` for every `fund-project` and note action 
 
 After those harness fixes, `npm run gen:campaign:reconcile` reported **1932/1932 verified**, no missing/duplicate indexed events.
 
-## UI inspection
+## UI inspection (2026-09-11, Vite `:5174` after restart)
 
 CauseStarter has no global cause directory; campaign boards are reachable only by organizer URL:
 
-`/cause/<owner>/<refName>` from `execution/runtime-bindings.json` (example: schools-common-ground owner `0x29Aad1ae4EC538790a3231c62d84d6840685D613`, ref `campaign-medium-realistic-v1-schools-common-ground`).
+`/cause/<owner>/<refName>` from `execution/runtime-bindings.json`. Vite uses path routing (`http://localhost:5174/cause/...`). The IPFS bundle still uses hash routing (`http://causestarter.localhost:8088/#/cause/...`).
 
-On this machine the Vite app (`:5174`) and the published IPFS bundle (`http://causestarter.localhost:8088/#/`) both requested `chainId=84532` at `https://commonality-indexer.onrender.com`. Cause pages showed “Failed to fetch” (CORS). That is the root `.env` / `causestarter/.env` pointing at Base Sepolia, not a campaign indexing omission. Re-inspect after pointing the UI at chain 31337 and `http://localhost:42069`.
+A Vite process that had been running since 2026-09-05 still served a Base Sepolia `import.meta.env` (`chainId=84532`, `https://commonality-indexer.onrender.com`). Cause pages showed “Failed to fetch” (CORS). `ui/.env` already had `VITE_CHAIN_ID=31337`; restarting `npm run causestarter:dev` picked it up. Event cache with empty `VITE_EVENT_CACHE_URL` uses `window.location.origin` and Vite’s `/api` proxy to `http://localhost:42069`.
 
-## Still open for plan item 7
+Representative pages (no wallet connected):
 
-- Browser pass against a local-chain UI (cause board, a funded project, a statement, a note/delegate path).
-- Optional: make `fund-project` writes use planned persona amounts (would require a wipe/re-execute so totals stay reconcilable).
+| Surface | URL | What showed |
+|---|---|---|
+| Schools cause board | `/cause/0x29Aad1ae4EC538790a3231c62d84d6840685D613/campaign-medium-realistic-v1-schools-common-ground` | SYNTHETIC TESTNET CAMPAIGN label; 5 statements with mixed 0–8 support; 4 funding projects; raised **3.09 / 8** USDZZZ; organizer checksum |
+| Open-source cause board | `/cause/0x29Aad1ae4EC538790a3231c62d84d6840685D613/campaign-medium-realistic-v1-open-source` | Uneven vs schools: 21 signed at least one, 2 signed all; 1 project **0.47 / 2** USDZZZ |
+| Bridge statement | `/statement/bafkreihzjxdzmdf7jeaqwkfz5c6agjaqimsd7h6ozrlsux6eilazdpklzu?mode=sign` | Full accepted text; **8 · 4 direct · 7 indirect** |
+| Funded project | `/projects/eip155%3A31337%3A0x9bd03768a7dcc129555de410ff8e85528a4f88b5` | **1.15 / 2** USDZZZ, 29d left, contributor table, two statement vouches, giving options 0.1 / 0.05 / 0.01 |
+| Delegated funds | `/delegation/notes` | Connect-wallet empty state (expected without a campaign wallet in the browser) |
+
+Product / ops observations (not indexer omissions):
+
+- Boards are labelled synthetic; titles are slug-like (`schools-common-ground`) and project cards repeat long statement text.
+- `VITE_DEFAULT_ALIGNMENT_TRUST_ROOT` is empty in the local generated profile, so the cause page warns that the starter vouching network is unavailable. Projects still listed (direct vouches on the cards).
+- Coherence badge stayed “not confirmed”.
+- Cause-assist on `:3002` was down; Vite logged `/health` 500s. Did not block reads.
+- Notes/delegations are not inspectable without connecting a campaign wallet.
+
+## Still optional after item 7
+
+- Make `fund-project` writes use planned persona amounts (would require a wipe/re-execute so totals stay reconcilable).
+- Connect a campaign wallet to walk a note/delegate path in the UI.

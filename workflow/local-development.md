@@ -30,6 +30,9 @@ That's it. This uses Docker Compose to start a local Hardhat blockchain, deploys
 profile (chain 31337, local RPC/indexer, and local contracts), so a prior
 testnet UI build cannot leak Base Sepolia settings into the local stack.
 Generated snapshots live under gitignored `.generated-env/<network>/`.
+Restart `npm run causestarter:dev` after that switch: Vite bakes `VITE_*` at
+process start, so a leftover server will keep calling the previous network
+(for example Base Sepolia indexer from a localhost profile).
 
 **Which UI bundles get built:** local start currently publishes **CauseStarter only**. The eight legacy `ui` domains (commonality, lazyGiving, alignment, tally, content-funding, civility, common-sense-majority, conceptspace) each run a full Docker Vite build sequentially and were a major part of `--start` time. This is a temporary, reversible default — the compose services and source trees are still there.
 
