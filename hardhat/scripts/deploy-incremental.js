@@ -233,13 +233,31 @@ async function main() {
   await deployOrReuse('BeneficiaryEscrow', 'BeneficiaryEscrow', [addresses.BeneficiaryRegistry, addresses.FreeERC20]);
   await deployOrReuse('CreatorAssuranceContractFactory', 'CreatorAssuranceContractFactory', [addresses.ContentRegistry, addresses.BeneficiaryRegistry, addresses.BeneficiaryEscrow, addresses.PremintingERC1155Factory, addresses.ValueThresholdConditionFactory, addresses.FreeERC20, ':']);
   if (addresses.CreatorAssuranceContractFactory) {
-    const factory = await ethers.getContractAt('CreatorAssuranceContractFactory', addresses.CreatorAssuranceContractFactory);
-    addresses.CreatorAssuranceVeto = await factory.contentVeto();
-    manifest.contracts.CreatorAssuranceVeto = {
-      contractName: 'CreatorAssuranceVeto',
-      address: addresses.CreatorAssuranceVeto,
-      reused: !freshlyDeployed.has('CreatorAssuranceContractFactory'),
-    };
+    try {
+      const factory = await ethers.getContractAt('CreatorAssuranceContractFactory', addresses.CreatorAssuranceContractFactory);
+      addresses.CreatorAssuranceVeto = await factory.contentVeto();
+    } catch (err) {
+      // Fallback: manually query using raw call with correct function selector
+      console.log('Warning: contentVeto() call failed, trying manual query...');
+      const provider = ethers.provider;
+      const result = await provider.call({
+        to: addresses.CreatorAssuranceContractFactory,
+        data: '0x49e689d5' // contentVeto() selector
+      });
+      if (result && result !== '0x') {
+        addresses.CreatorAssuranceVeto = ethers.getAddress('0x' + result.slice(-40));
+        console.log(`Successfully queried CreatorAssuranceVeto: ${addresses.CreatorAssuranceVeto}`);
+      } else {
+        console.error('Failed to query CreatorAssuranceVeto address');
+      }
+    }
+    if (addresses.CreatorAssuranceVeto) {
+      manifest.contracts.CreatorAssuranceVeto = {
+        contractName: 'CreatorAssuranceVeto',
+        address: addresses.CreatorAssuranceVeto,
+        reused: !freshlyDeployed.has('CreatorAssuranceContractFactory'),
+      };
+    }
   }
   await deployOrReuse('ProspectiveRoundDeploymentHelper', 'ProspectiveRoundDeploymentHelper');
   await deployOrReuse('MaterializedContentDeploymentHelper', 'MaterializedContentDeploymentHelper');
