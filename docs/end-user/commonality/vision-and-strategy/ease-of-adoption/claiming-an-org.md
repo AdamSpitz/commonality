@@ -6,8 +6,9 @@ Someone who is *not* the org can start a project whose payout is "this money is 
 
 This is an on-ramp for [established orgs](./for-established-orgs.md) that are not willing yet. It is not a substitute for the org eventually [using the rails](./rails.md).
 
-Status: website MVP is live enough to claim; third-party proposals and
-reversible beneficiary control are the current focus.
+Status: website MVP can be claimed; third-party proposals, reversible
+beneficiary control, and project-specific disavowal are in the product.
+User how-to: [Propose a project for an organization](../../../lazyGiving/propose-a-project.md).
 
 ## Why not "I'll donate it via PayPal"
 

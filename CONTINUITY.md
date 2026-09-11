@@ -2112,3 +2112,14 @@ proposal flow, live-flow tests.
   project**. Escrow and authorship are unchanged.
 
 Still needed: product docs for the full proposal flow, live-flow tests.
+
+## 2026-09-11 — Product docs for third-party proposals
+
+- User how-to: `docs/end-user/lazyGiving/propose-a-project.md` (two entry
+  points, reuse vs create, resumable attest, not-affiliated copy, control
+  and disavowal). Linked from LazyGiving/Commonality indexes, get-your-
+  project-funded, claiming-an-org, CauseStarter jobs/build, help-connect-
+  things, tldr-for-llms.
+
+Still needed: live-flow tests (UI unit tests already cover reuse, vouch
+retry, restrict/reopen, disavow).

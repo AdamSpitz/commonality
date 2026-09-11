@@ -51,7 +51,7 @@ may do all three, but the system does not require it.
 - **…I can’t afford to pay for it myself.** Publish the project and let others pledge. Funds release if the threshold is met; otherwise everyone is refunded.
 - **…I don’t even know who to go to for funding.** You do not need a grant officer. Post the project, talk to a friend who is a bit better-connected in the trust graph, and get an **alignment** vouch onto a statement people already watch. The project then shows up on those cause boards.
 
-Start from **Start project** on a cause board, or from `/projects/new`. Occupied home is a watch list, not the create form.
+Start from **Propose a project for this cause** on a cause board, or from `/projects/new`. Occupied home is a watch list, not the create form. If the payout should belong to an organization that is not here yet, [propose for their website](../lazyGiving/propose-a-project.md).
 
 ## Wording
 
