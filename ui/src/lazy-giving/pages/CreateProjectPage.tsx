@@ -43,6 +43,7 @@ import { usePlatformApi } from '../../content-funding'
 import { WalletButton } from '../../shared/components/WalletButton'
 import { formatCurrencyAmount, formatTokenCapacityPreviewRows, hasOneUnitDonationOption, suggestGivingLevels, summarizeProjectTokenCapacity } from '../projectCreation'
 import { ExistingBeneficiaryProjects } from '../components/ExistingBeneficiaryProjects'
+import { COMMUNITY_CREATED_NOTICE } from '../components/websiteBeneficiaryClaim'
 import { canonicalDnsOrNull } from '../projectsForBeneficiary'
 
 interface TokenTypeRow {
@@ -477,7 +478,7 @@ export function CreateProjectPage() {
                 required
               />
               <Alert severity="warning">
-                This project is not affiliated with the website unless its controller has already claimed it. If unclaimed, successful funds stay in protocol escrow until the controller proves domain control; you cannot withdraw them. Contributions are not tax-deductible gifts and do not certify charity or legal-entity identity.
+                {COMMUNITY_CREATED_NOTICE} Claiming the website later does not change that. If unclaimed, successful funds stay in protocol escrow until the controller proves domain control; you cannot withdraw them. Contributions are not tax-deductible gifts and do not certify charity or legal-entity identity.
               </Alert>
               <ExistingBeneficiaryProjects domain={beneficiaryDomain} />
             </Stack>

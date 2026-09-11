@@ -22,6 +22,7 @@ describe('WebsiteBeneficiaryMark', () => {
     expect(screen.getByTestId('website-beneficiary-domain')).toHaveTextContent(
       'very-long-sub.example-organization.org',
     )
+    expect(screen.getByText(/community-created; not affiliated with or endorsed by the beneficiary/i)).toBeInTheDocument()
     expect(screen.getByText(/domain control is the only identity/i)).toBeInTheDocument()
   })
 
@@ -30,9 +31,9 @@ describe('WebsiteBeneficiaryMark', () => {
     expect(screen.getByTestId('website-beneficiary-domain')).toHaveTextContent('еxample.org')
   })
 
-  it('uses domain-controlled card copy once claimed', () => {
+  it('keeps the unaffiliated notice after the domain is claimed', () => {
     render(<WebsiteBeneficiaryMark domain="example.org" claimState="verified" />)
+    expect(screen.getByText(/community-created; not affiliated with or endorsed by the beneficiary/i)).toBeInTheDocument()
     expect(screen.getByText(/domain-controlled/i)).toBeInTheDocument()
-    expect(screen.queryByText(/not affiliated/i)).not.toBeInTheDocument()
   })
 })

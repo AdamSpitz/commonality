@@ -18,13 +18,17 @@ export const WEBSITE_CLAIM_STATE_COLORS: Record<BeneficiaryState, 'default' | 'w
   'beneficiary-controlled': 'success',
 }
 
+/** Shown on every third-party website-beneficiary surface, including after a claim. */
+export const COMMUNITY_CREATED_NOTICE =
+  'Community-created; not affiliated with or endorsed by the beneficiary.'
+
 export const WEBSITE_CLAIM_STATE_TOOLTIPS: Record<BeneficiaryState, string> = {
   unclaimed:
-    'Nobody has proven control of this website yet. Successful funds stay in protocol escrow until the controller claims them. This project is not affiliated with the site.',
+    `${COMMUNITY_CREATED_NOTICE} Nobody has proven control of this website yet. Successful funds stay in protocol escrow until the controller claims them.`,
   verified:
-    'Someone proved they can write this domain and bound a payout address. Escrow enforces domain control — not charity status, legal-entity identity, or tax deductibility.',
+    `${COMMUNITY_CREATED_NOTICE} Someone proved they can write this domain and bound a payout address. Claiming and withdrawing are not endorsement. Escrow enforces domain control — not charity status, legal-entity identity, or tax deductibility.`,
   'beneficiary-controlled':
-    'The verified domain controller has restricted future project creation to this payout wallet. Existing projects keep their original authorship. That wallet can reopen third-party proposals later.',
+    `${COMMUNITY_CREATED_NOTICE} The verified domain controller has restricted future project creation to this payout wallet. Existing projects keep their original authorship. That wallet can reopen third-party proposals later.`,
 }
 
 /** Unclaimed identities have no registry events, so missing map entries are unclaimed. */

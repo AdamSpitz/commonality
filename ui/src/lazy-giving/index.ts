@@ -29,6 +29,7 @@ export { proposeProjectPath } from './projectsForBeneficiary'
 export { dnsBeneficiaryDomain, WebsiteBeneficiaryMark } from './components/WebsiteBeneficiaryMark'
 export {
   claimStateForDnsDomain,
+  COMMUNITY_CREATED_NOTICE,
   WEBSITE_CLAIM_STATE_COLORS,
   WEBSITE_CLAIM_STATE_LABELS,
   WEBSITE_CLAIM_STATE_TOOLTIPS,

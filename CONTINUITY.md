@@ -2123,3 +2123,11 @@ Still needed: product docs for the full proposal flow, live-flow tests.
 
 Still needed: live-flow tests (UI unit tests already cover reuse, vouch
 retry, restrict/reopen, disavow).
+
+## 2026-09-11 — Unaffiliated copy after claim
+
+- `COMMUNITY_CREATED_NOTICE` is on create-project, project cards/header, and
+  claim-state tooltips even after the beneficiary is verified or
+  beneficiary-controlled. Claiming is not endorsement.
+
+Still needed: live-flow tests.

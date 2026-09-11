@@ -161,7 +161,7 @@ describe('CreateProjectPage', () => {
       await user.click(screen.getByLabelText(/controller of a website/i))
 
       expect(screen.getByLabelText(/beneficiary website/i)).toBeInTheDocument()
-      expect(screen.getByText(/not affiliated with the website/i)).toBeInTheDocument()
+      expect(screen.getByText(/community-created; not affiliated with or endorsed by the beneficiary/i)).toBeInTheDocument()
       expect(screen.getByText(/not tax-deductible/i)).toBeInTheDocument()
       expect(screen.queryByLabelText(/send to my account/i)).not.toBeInTheDocument()
     })
