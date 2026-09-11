@@ -2151,3 +2151,7 @@ beneficiary lookup and bulk/bot UX.
 ## 2026-09-11 — Campaign reconciliation talks to the local stack
 
 Item 6 of the medium-realistic campaign: indexer adapter paginates with `fetchEventsComplete` and collapses alternative proving events so ordinary vs retroactive funding is one write. `npm run gen:campaign:reconcile -- --probe` reads live chain/indexer heads. Without `--probe` it reconciles from plan + execution + runtime-bindings. A live adapter test exercises raw lookup plus an SDK belief fold against Ponder. Campaign execution adapter is still required before mined campaign txs exist to close item 6.
+
+## 2026-09-11 — Local campaign wallet provisioning
+
+Item 7 of the medium-realistic campaign: `campaignProvisioning.ts` funds generated wallets before `gen:campaign:execute`. Local mode transfers ETH from the Hardhat funder and payment tokens (mint fallback). Remote stays transfer-only and refuses Hardhat keys. `--skip-provision` exists for already-funded reruns. Live smoke on the local stack wrote `execution/funding-ledger.json` for all 100 slots. Full 100-user execute/reconcile/UI inspection is still open.

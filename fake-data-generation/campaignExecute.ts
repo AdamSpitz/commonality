@@ -13,6 +13,7 @@ import {
 import { createCampaignContractAdapter, createLiveCampaignActionWriter, createReceiptLookup, persistCampaignBindings } from './campaignActionAdapter.js';
 import { executeCampaignPlan } from './campaignExecutor.js';
 import { loadCampaignPlan } from './campaignPlanner.js';
+import { createLiveCampaignFundingChain, provisionCampaignWallets } from './campaignProvisioning.js';
 import { createEmptyRuntimeBindings, loadRuntimeBindings } from './campaignRuntimeBindings.js';
 import type { CampaignManifestV1 } from './campaignSchema.js';
 import { FUNDED_HARDHAT_DEV_KEYS } from './seedCauseRoster.js';
@@ -79,6 +80,25 @@ async function main(): Promise<void> {
   const secretsPath = path.join(outputDirectory, manifest.artifactLayout.walletSecrets);
   const wallets = await loadOrCreateWallets(plan.users, secretsPath, environment.mode === 'local');
   validateCampaignWallets(environment, wallets, HARDHAT_PRIVATE_KEYS);
+  await writeFile(path.join(outputDirectory, manifest.artifactLayout.walletAddresses), `${JSON.stringify({
+    version: plan.version, campaignId: plan.campaignId,
+    wallets: plan.users.map((user) => {
+      const wallet = wallets.find((item) => item.walletSlot === user.walletSlot);
+      return { userId: user.id, walletSlot: user.walletSlot, address: wallet?.address ?? null, status: wallet ? 'provisioned' : 'unprovisioned' };
+    }),
+  }, null, 2)}\n`);
+  const funder = wallets.find((wallet) => wallet.source === 'hardhat') ?? wallets[0];
+  if (!funder) throw new Error('campaign has no funder wallet');
+  const skipProvision = parseFlag('--skip-provision');
+  if (!skipProvision) {
+    await provisionCampaignWallets({
+      environment,
+      plan,
+      wallets,
+      chain: createLiveCampaignFundingChain({ funderPrivateKey: funder.privateKey, contracts: environment.contracts }),
+      ledgerPath: path.join(outputDirectory, manifest.artifactLayout.fundingLedger),
+    });
+  }
   const publisher = wallets[0];
   const bindingsPath = path.join(outputDirectory, manifest.artifactLayout.runtimeBindings ?? 'execution/runtime-bindings.json');
   let bindings;
