@@ -13,7 +13,8 @@ The IPNS names are w3name keys (Protocol Labs). Public gateways like `ipfs.io` c
 3. Calls `https://name.web3.storage/name/{ipns-key}` → gets `/ipfs/{cid}`.
 4. Caches the IPNS→CID mapping in Cloudflare KV for 5 minutes.
 5. Fetches `/ipfs/{cid}/some/path` from the configured gateways. Pinata is tried first, with public CID gateways (`ipfs.io`, `w3s.link`) as fallbacks.
-6. Caches successful immutable CID responses in Cloudflare's Cache API and returns them under the original browser URL.
+6. Paths under `/test-data/` resolve `IPNS_TEST_DATA` instead of the UI bundle, so the encrypted registry is same-origin.
+7. Caches successful immutable CID responses in Cloudflare's Cache API and returns them under the original browser URL.
 
 The browser URL stays `alignment.testnet.commonality.works` throughout.
 
@@ -30,6 +31,7 @@ The browser URL stays `alignment.testnet.commonality.works` throughout.
 | `common-sense-majority.testnet.commonality.works` | `IPNS_COMMON_SENSE_MAJORITY` |
 | `conceptspace.testnet.commonality.works` | `IPNS_CONCEPTSPACE` |
 | `causestarter.testnet.commonality.works` | `IPNS_CAUSESTARTER` |
+| `*.testnet.commonality.works/test-data/*` | `IPNS_TEST_DATA` |
 
 IPNS key values are in `wrangler.testnet.toml` (sourced from `deployments/testnet-ipns.env`).
 

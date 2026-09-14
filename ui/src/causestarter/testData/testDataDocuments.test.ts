@@ -33,5 +33,7 @@ describe('test-data capability documents', () => {
   it('resolves immutable run links beside the registry', () => {
     expect(resolveRunUrl('https://example.test/ipns/name/test-data/registry.enc.json', 'runs/one/run.enc.json'))
       .toBe('https://example.test/ipns/name/test-data/runs/one/run.enc.json')
+    expect(resolveRunUrl('/test-data/registry.enc.json', 'runs/one/run.enc.json'))
+      .toBe('/test-data/runs/one/run.enc.json')
   })
 })

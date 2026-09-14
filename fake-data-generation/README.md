@@ -120,8 +120,9 @@ disposable fake user from that run.
 
 For Base Sepolia, `./scripts/setup-testnet-naming.sh` creates
 `IPNS_PRIVATE_KEY_TESTNET_TEST_DATA` (operator secrets) and
-`IPNS_NAME_TESTNET_TEST_DATA` (`deployments/testnet-ipns.env`). The stable registry
-URL lives in `deployments/base-sepolia.env` as `VITE_TEST_DATA_REGISTRY_URL`. Run
+`IPNS_NAME_TESTNET_TEST_DATA` (`deployments/testnet-ipns.env`). The browser loads
+the registry same-origin at `/test-data/registry.enc.json` (the UI Worker resolves
+the test-data IPNS). Run
 `npm run gen:test-data:publish` (or `./scripts/generate-testnet-data.sh --yes`) to
 pin encrypted artifacts and advance that IPNS name, then republish CauseStarter
 (`DOMAINS=causestarter ./scripts/deploy-testnet.sh`) and bookmark the printed

@@ -216,6 +216,39 @@ test('skips a hanging public gateway instead of waiting until the Worker 504s', 
   ])
 })
 
+test('serves /test-data from the dedicated test-data IPNS name', async () => {
+  const fetches = []
+  globalThis.caches = undefined
+  globalThis.fetch = async (input) => {
+    const url = typeof input === 'string' ? input : input.url
+    fetches.push(url)
+    if (url === 'https://name.web3.storage/name/k51-test-data') {
+      return Response.json({ value: '/ipfs/bafy-test-data-cid' })
+    }
+    if (url.startsWith('https://name.web3.storage/name/')) {
+      throw new Error(`resolved UI IPNS instead of test-data: ${url}`)
+    }
+    assert.equal(url, 'https://ipfs-origin.testnet.commonality.works/ipfs/bafy-test-data-cid/registry.enc.json')
+    return new Response('{"schema":"commonality-test-data-encrypted-v1"}', {
+      status: 200,
+      headers: { 'content-type': 'application/json' },
+    })
+  }
+
+  const response = await proxyUiRequest(
+    new Request('https://causestarter.testnet.commonality.works/test-data/registry.enc.json'),
+    {
+      IPNS_CAUSESTARTER: 'k51-test-causestarter',
+      IPNS_TEST_DATA: 'k51-test-data',
+      PINATA_GATEWAY_ORIGIN: 'https://ipfs-origin.testnet.commonality.works',
+      PINATA_GATEWAY_KEY: 'secret',
+    },
+  )
+
+  assert.equal(response.status, 200)
+  assert.equal(fetches[0], 'https://name.web3.storage/name/k51-test-data')
+})
+
 test('sends the Pinata gateway token to a custom-domain origin', async () => {
   const seen = []
   globalThis.caches = undefined

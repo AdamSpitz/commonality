@@ -81,7 +81,13 @@ export async function decryptTestData<T>(document: EncryptedTestDataDocument, ca
 }
 
 export async function fetchEncryptedTestData<T>(url: string, capability: string): Promise<T> {
-  const response = await fetch(url, { cache: 'no-store' })
+  let response: Response
+  try {
+    response = await fetch(url, { cache: 'no-store' })
+  } catch (reason) {
+    const detail = reason instanceof Error ? reason.message : String(reason)
+    throw new Error(`Could not load test data from ${url}: ${detail}`)
+  }
   if (!response.ok) throw new Error(`Could not load test data (HTTP ${response.status}).`)
   return decryptTestData<T>(await response.json() as EncryptedTestDataDocument, capability)
 }
@@ -95,9 +101,12 @@ export function testDataEnvironment(): 'local' | 'testnet' | 'disabled' {
 export function testDataRegistryUrl(): string | undefined {
   const configured = getRuntimeConfig().VITE_TEST_DATA_REGISTRY_URL
   if (configured) return configured
-  return testDataEnvironment() === 'local' ? '/test-data/registry.enc.json' : undefined
+  if (testDataEnvironment() === 'disabled') return undefined
+  return '/test-data/registry.enc.json'
 }
 
 export function resolveRunUrl(registryUrl: string, href: string): string {
-  return new URL(href, registryUrl).toString()
+  const absolute = /^https?:\/\//i.test(registryUrl)
+  const resolved = new URL(href, absolute ? registryUrl : `https://placeholder.local${registryUrl}`)
+  return absolute ? resolved.toString() : `${resolved.pathname}${resolved.search}`
 }

@@ -38,9 +38,11 @@ export async function proxyUiRequest(request, env, ctx = undefined) {
     return new Response(`Unknown UI subdomain: ${subdomain}`, { status: 404 })
   }
 
-  const ipnsName = env[ipnsKey]
+  const servingTestData = requestUrl.pathname === '/test-data' || requestUrl.pathname.startsWith('/test-data/')
+  const resolvedIpnsKey = servingTestData ? 'IPNS_TEST_DATA' : ipnsKey
+  const ipnsName = env[resolvedIpnsKey]
   if (!ipnsName) {
-    return new Response(`Worker misconfigured: missing binding ${ipnsKey}`, { status: 500 })
+    return new Response(`Worker misconfigured: missing binding ${resolvedIpnsKey}`, { status: 500 })
   }
 
   const gatewayOrigins = getGatewayOrigins(env)
@@ -55,7 +57,10 @@ export async function proxyUiRequest(request, env, ctx = undefined) {
     return new Response(`Failed to resolve IPNS name: ${err.message}`, { status: 502 })
   }
 
-  const upstreamUrls = gatewayOrigins.map((origin) => buildUpstreamUrl(origin, cid, requestUrl))
+  const upstreamPath = servingTestData
+    ? (requestUrl.pathname.slice('/test-data'.length) || '/')
+    : requestUrl.pathname
+  const upstreamUrls = gatewayOrigins.map((origin) => buildUpstreamUrl(origin, cid, requestUrl, upstreamPath))
   return fetchThroughEdgeCache({ request, requestUrl, upstreamUrls, env, ctx })
 }
 
@@ -104,8 +109,8 @@ function parseIpfsPathCid(value) {
   return match?.[1]
 }
 
-function buildUpstreamUrl(gatewayOrigin, cid, requestUrl) {
-  const upstreamUrl = new URL(`${gatewayOrigin}/ipfs/${cid}${requestUrl.pathname}`)
+function buildUpstreamUrl(gatewayOrigin, cid, requestUrl, pathname = requestUrl.pathname) {
+  const upstreamUrl = new URL(`${gatewayOrigin}/ipfs/${cid}${pathname}`)
   upstreamUrl.search = requestUrl.search
   return upstreamUrl
 }

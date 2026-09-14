@@ -29,8 +29,5 @@ test('base-sepolia.env has live Render AI URLs', () => {
     env,
     /VITE_IMPLICATION_ATTESTER_URL=https:\/\/commonality-service-host-attesters\.onrender\.com\/implication-attester/,
   )
-  assert.match(
-    env,
-    /VITE_TEST_DATA_REGISTRY_URL=https:\/\/gateway\.pinata\.cloud\/ipns\/k51qzi5uqu5dkhj0daffcoz3sr8kas6ym86w3sz93n9mw7e5wi79glbl930jlc\/test-data\/registry\.enc\.json/,
-  )
+  assert.match(env, /VITE_TEST_DATA_REGISTRY_URL=\/test-data\/registry\.enc\.json/)
 })
