@@ -200,7 +200,9 @@ async function fetchFromGateway({ request, requestUrl, upstreamUrl, env, forceGe
   const range = request.headers.get('Range')
   if (range) upstreamHeaders.set('Range', range)
   upstreamHeaders.set('X-Commonality-Forwarded-Host', requestUrl.host)
-  if (env.PINATA_GATEWAY_KEY && fetchUrl.hostname.endsWith('pinata.cloud')) {
+  const pinataOriginHost = env.PINATA_GATEWAY_ORIGIN ? new URL(env.PINATA_GATEWAY_ORIGIN).hostname : ''
+  const isPinataGateway = fetchUrl.hostname.endsWith('pinata.cloud') || fetchUrl.hostname === pinataOriginHost
+  if (env.PINATA_GATEWAY_KEY && isPinataGateway) {
     upstreamHeaders.set('x-pinata-gateway-token', env.PINATA_GATEWAY_KEY)
     // Dedicated-gateway Host Origins match browser sites, not the mypinata host.
     upstreamHeaders.set('Origin', requestUrl.origin)

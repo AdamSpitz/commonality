@@ -216,6 +216,39 @@ test('skips a hanging public gateway instead of waiting until the Worker 504s', 
   ])
 })
 
+test('sends the Pinata gateway token to a custom-domain origin', async () => {
+  const seen = []
+  globalThis.caches = undefined
+  globalThis.fetch = async (input, init) => {
+    const url = typeof input === 'string' ? input : input.url
+    const headers = init?.headers ?? input.headers
+    seen.push({ url, token: headers?.get?.('x-pinata-gateway-token') ?? null })
+    if (url.startsWith('https://name.web3.storage/name/')) {
+      return Response.json({ value: '/ipfs/bafy-custom-cid' })
+    }
+    if (url === 'https://ipfs-origin.testnet.commonality.works/ipfs/bafy-custom-cid/') {
+      assert.equal(headers.get('x-pinata-gateway-token'), 'secret')
+      return new Response('<html>custom</html>', { status: 200 })
+    }
+    throw new Error(`unexpected fetch: ${url}`)
+  }
+
+  const response = await proxyUiRequest(
+    new Request('https://causestarter.testnet.commonality.works/', {
+      headers: { Accept: 'text/html' },
+    }),
+    {
+      IPNS_CAUSESTARTER: 'k51-test-custom-domain',
+      PINATA_GATEWAY_ORIGIN: 'https://ipfs-origin.testnet.commonality.works',
+      PINATA_GATEWAY_KEY: 'secret',
+    },
+  )
+
+  assert.equal(response.status, 200)
+  assert.equal(await response.text(), '<html>custom</html>')
+  assert.equal(seen[1].token, 'secret')
+})
+
 test('resolves the causestarter subdomain like the other UI hosts', async () => {
   const fetches = []
   globalThis.caches = undefined

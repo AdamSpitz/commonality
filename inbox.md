@@ -17,9 +17,6 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 ## Main list
 
-- **(Ask)** Testnet UIs 504/429 after the CauseStarter IPNS publish: Pinata refuses HTML on both the public gateway and `*.mypinata.cloud` until a custom domain exists. Need a DNS-only CNAME (e.g. `ipfs-origin.testnet.commonality.works` → `brown-racial-sailfish-957.mypinata.cloud`) and a Pinata custom-domain add; this machine has no `CLOUDFLARE_API_TOKEN` in operator secrets. See `cloudflare-ui-gateway/README.md` Pinata Access Controls.
-
-
 
 ### Security/recoverability human actions
 
