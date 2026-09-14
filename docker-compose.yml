@@ -614,6 +614,7 @@ services:
       - ./scripts/local-ui-gateway.mjs:/workspace/scripts/local-ui-gateway.mjs:ro
       - ./scripts/ui-domains.mjs:/workspace/scripts/ui-domains.mjs:ro
       - ./data/ui-ipfs:/workspace/data/ui-ipfs:ro
+      - ./fake-data-generation/output:/workspace/fake-data-generation/output:ro
     depends_on:
       ipfs:
         condition: service_healthy
@@ -640,6 +641,7 @@ services:
       - UI_IPFS_ARTIFACT_ROOT=/workspace/data/ui-ipfs
       - UI_IPFS_GATEWAY_INTERNAL=http://ipfs:8080/ipfs
       - UI_INDEXER_INTERNAL=http://indexer:42069
+      - TEST_DATA_ARTIFACT_ROOT=/workspace/fake-data-generation/output/test-data
     ports:
       - "8088:8088"
     networks:

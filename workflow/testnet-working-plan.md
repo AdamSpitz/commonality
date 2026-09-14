@@ -22,9 +22,14 @@ It does **not** mean: public launch, mainnet, 10⁴ fake users, or a nightly mut
 |---|---|---|---|
 | **1. Shared two-person lab** | Live Base Sepolia + Render + IPFS UIs that two people can actually use | Scale test. Mainnet. A populated demo narrative | This file |
 | **2. Local world / seed** | Tiny or demo data on Hardhat so the UI has something to look at | Testnet history. Stress traffic | [../fake-data-generation/PLAN.md](../fake-data-generation/PLAN.md) jobs A–C |
-| **3. Mass fake activity** | Many random users/actions to stress contracts and indexer | Shared lab. Real statements | Same PLAN.md job D. **Stay local** until job 1 is boring |
+| **3. Mass fake activity** | Many random users/actions to stress contracts and indexer | Shared lab. Real statements | Same PLAN.md job D. **Stays local** |
+| **4. Bounded demo batch** | Five disposable users and a capped, inspectable run | A load test or permanent identity set | `scripts/generate-testnet-data.sh`; encrypted admin registry in CauseStarter |
 
 Do not push `gen:large` (today: 100 users; 1000+ not built) at Sepolia. The indexer is still catching up / lag-failing; a load generator would trash the lab you still need to read.
+
+The bounded demo-batch workflow is a separate operation: it hard-caps users, rounds,
+and actions, generates new disposable keys for every run, and records the results in an
+encrypted capability-gated registry. It does not relax the prohibition on mass activity.
 
 ## Current state (2026-09-05, read-only smoke)
 

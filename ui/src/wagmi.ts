@@ -8,6 +8,7 @@ import type { MockParameters } from 'wagmi/connectors'
 import { isPrivySmartWalletEnabled } from './privy/config'
 import { HARDHAT_DEV_ACCOUNTS, isLocalDevHost } from './shared/wallet/hardhatAccounts'
 import { hardhatLocalConnector } from './shared/wallet/hardhatLocalConnector'
+import { testDataWalletConnector } from './shared/wallet/testDataWalletConnector'
 
 export const walletConnectProjectId = import.meta.env.VITE_WALLETCONNECT_PROJECT_ID || ''
 export const isE2E = import.meta.env.VITE_E2E === 'true'
@@ -54,7 +55,7 @@ export const wagmiTransports = {
  */
 export function createMockConfig(
   addressOrPkey: `0x${string}` = '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266',
-  features?: MockParameters['features']
+  features?: MockParameters['features'],
 ) {
   // Convert private key to account if needed
   const account = isAddress(addressOrPkey)
@@ -71,6 +72,24 @@ export function createMockConfig(
     // browser checks and can emit console errors unrelated to the app under test.
     connectors: [mock({ accounts: [address], features })],
   })
+}
+
+export function createTestDataConfig(privateKey: `0x${string}`, chainId: number, label: string) {
+  if (chainId === baseSepolia.id) {
+    return createConfig({
+      chains: [baseSepolia, mainnet, hardhat],
+      transports: wagmiTransports,
+      connectors: [testDataWalletConnector(privateKey, label)],
+    })
+  }
+  if (chainId === hardhat.id) {
+    return createConfig({
+      chains: [hardhat, mainnet, baseSepolia],
+      transports: wagmiTransports,
+      connectors: [testDataWalletConnector(privateKey, label)],
+    })
+  }
+  throw new Error(`Unsupported test-data chain ${chainId}.`)
 }
 
 function buildLocalHardhatConfig() {

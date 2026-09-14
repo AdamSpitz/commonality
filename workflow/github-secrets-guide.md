@@ -31,7 +31,7 @@ deployments/operator-addresses.env    # Public addresses (committed to repo)
 | `CONTRACT_ADMIN_ADDRESS` | `operator-addresses.env` | Receives contract ownership |
 | `CONTRACT_ADMIN_PRIVATE_KEY` | `operator.env` | Accepts pending testnet ownership transfers |
 | `PINATA_JWT` | `operator.env` | IPFS upload authentication |
-| `IPNS_PRIVATE_KEY_TESTNET_*` | `operator.env` | IPNS keys for 8 UI domains |
+| `IPNS_PRIVATE_KEY_TESTNET_*` | `operator.env` | IPNS keys for UI domains plus extra names such as `TEST_DATA` |
 
 ### How Scripts Find Secrets
 

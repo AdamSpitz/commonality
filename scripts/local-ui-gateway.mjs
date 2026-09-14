@@ -7,6 +7,7 @@ const port = Number(process.env.PORT || 8088)
 const artifactRoot = process.env.UI_IPFS_ARTIFACT_ROOT || path.resolve('data', 'ui-ipfs')
 const ipfsGatewayBaseUrl = (process.env.UI_IPFS_GATEWAY_INTERNAL || 'http://localhost:8080/ipfs').replace(/\/$/, '')
 const indexerBaseUrl = (process.env.UI_INDEXER_INTERNAL || 'http://localhost:42069').replace(/\/$/, '')
+const testDataRoot = process.env.TEST_DATA_ARTIFACT_ROOT || path.resolve('fake-data-generation', 'output', 'test-data')
 
 // The IPFS bundles ship a config.json without VITE_EVENT_CACHE_URL, so the SDK
 // falls back to the page origin and issues same-origin requests. Forward those
@@ -49,17 +50,50 @@ async function renderAdminPage() {
   const note = domains.length < uiDomains.length
     ? `<p>Only published bundles are listed. Restore the rest with <code>LOCAL_UI_DOMAINS=all</code> (see workflow/local-development.md).</p>`
     : ''
+  let testDataLink = ''
+  try {
+    const capability = (await fs.readFile(path.join(testDataRoot, '.admin-capability'), 'utf8')).trim()
+    testDataLink = `<p><a href="http://causestarter.localhost:${port}/#/admin/test-data?key=${encodeURIComponent(capability)}">Browse generated test-data runs</a></p>`
+  } catch {
+    testDataLink = '<p>No generated test-data runs yet. Run <code>./scripts/data.sh --seed</code> first.</p>'
+  }
   return `<!doctype html>
 <html>
   <head><meta charset="utf-8"><title>Commonality local UI admin</title></head>
   <body>
     <h1>Commonality local UI admin</h1>
     <p>Bookmark this page to jump to any of the stable local IPFS UI bundles.</p>
+    ${testDataLink}
     ${note}
     <ul>${links}</ul>
   </body>
 </html>
 `
+}
+
+async function serveTestData(req, res, pathname) {
+  const relativePath = pathname.slice('/test-data/'.length)
+  const resolved = path.resolve(testDataRoot, relativePath)
+  if (!resolved.startsWith(`${path.resolve(testDataRoot)}${path.sep}`)) {
+    res.writeHead(400, { 'content-type': 'text/plain; charset=utf-8' })
+    res.end('Invalid test-data path.\n')
+    return
+  }
+  try {
+    const body = await fs.readFile(resolved)
+    res.writeHead(200, {
+      'content-type': 'application/json; charset=utf-8',
+      'cache-control': 'no-store',
+    })
+    res.end(body)
+  } catch (error) {
+    if (error?.code === 'ENOENT') {
+      res.writeHead(404, { 'content-type': 'text/plain; charset=utf-8' })
+      res.end('Test-data artifact not found.\n')
+      return
+    }
+    throw error
+  }
 }
 
 async function forward(req, res, targetUrl, { noStore = false } = {}) {
@@ -125,7 +159,12 @@ const server = createServer(async (req, res) => {
     }
 
     const domain = resolveDomainFromHost(req.headers.host)
-    if (domain && isIndexerPath(requestUrlFor(req, domain).pathname)) {
+    const pathname = requestUrlFor(req, domain || 'causestarter').pathname
+    if (domain && pathname.startsWith('/test-data/')) {
+      await serveTestData(req, res, pathname)
+      return
+    }
+    if (domain && isIndexerPath(pathname)) {
       await proxyToIndexer(req, res, domain)
       return
     }

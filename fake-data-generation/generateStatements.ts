@@ -180,6 +180,7 @@ export const uploadStatementToIPFS = publishGeneratedStatement;
 interface GenerateStatementsOptions extends StatementPublicationOptions {
   limit?: number;
   universePath?: string;
+  deferPublication?: boolean;
 }
 
 async function generateStatements(ipfsConfig: IPFSConfig, options: GenerateStatementsOptions = {}): Promise<Statement[]> {
@@ -209,7 +210,9 @@ async function generateStatements(ipfsConfig: IPFSConfig, options: GenerateState
         };
 
         __idCounter++;
-        const cid = await publishGeneratedStatement(ipfsConfig, content, domain, positionKey, 'simple', publishOptions);
+        const cid = options.deferPublication
+          ? undefined
+          : await publishGeneratedStatement(ipfsConfig, content, domain, positionKey, 'simple', publishOptions);
         const statement: Statement = {
           domain,
           position: positionKey,

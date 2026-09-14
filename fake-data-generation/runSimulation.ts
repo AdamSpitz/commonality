@@ -30,6 +30,7 @@ import {
   type SeedStatementRef,
 } from './seedWorkerOutputs.js';
 import { parsePaymentTokenUnits } from './paymentTokenUnits.js';
+import { writeTestDataRun } from './testDataArtifacts.js';
 
 const paymentTokenFundingAbi = [
   {
@@ -170,9 +171,12 @@ const __dirname = dirname(__filename);
  */
 
 interface SimulationRunnerOptions {
+  numUsers?: number;
+  numRounds?: number;
   statementLimit?: number;
   maxActionsPerUserPerRound?: number;
   universePath?: string;
+  testnetRun?: boolean;
 }
 
 class SimulationRunner {
@@ -225,6 +229,7 @@ class SimulationRunner {
     // Generate or load users
     console.log('\nGenerating users...');
     try {
+      if (this.options.testnetRun) throw new Error('Testnet runs always use fresh disposable users');
       const usersPath = join(__dirname, 'data', 'users.json');
       const data = await fs.readFile(usersPath, 'utf-8');
       this.users = JSON.parse(data) as User[];
@@ -248,6 +253,7 @@ class SimulationRunner {
     // Generate or load statements
     console.log('\nGenerating statements...');
     try {
+      if (this.options.testnetRun) throw new Error('Testnet runs generate a fresh bounded statement set');
       if (this.options.universePath) {
         throw new Error('Regenerating statements from explicit universe path');
       }
@@ -263,11 +269,16 @@ class SimulationRunner {
       this.statements = await generateStatements(ipfsConfig, {
         limit: this.options.statementLimit,
         universePath: this.options.universePath,
+        deferPublication: this.options.testnetRun,
       });
     }
 
-    // Publish generated statements. When PublishedData is configured, publish calldata-backed
-    // documents through the CID-first store; otherwise keep the local IPFS fallback.
+    if (this.options.testnetRun) {
+      console.log('\nFunding disposable testnet user accounts...');
+      await this.fundUsers();
+    }
+
+    // Publish generated statements. Testnet users need gas before this step.
     console.log(`\nPublishing statements to ${CONTRACT_ADDRESSES.publishedData ? 'PublishedData' : 'IPFS'}...`);
     await this.publishGeneratedStatements(ipfsConfig);
 
@@ -282,8 +293,10 @@ class SimulationRunner {
     }
 
     // Fund users with ETH
-    console.log('\nFunding user accounts...');
-    await this.fundUsers();
+    if (!this.options.testnetRun) {
+      console.log('\nFunding user accounts...');
+      await this.fundUsers();
+    }
 
     // Initialize funding and delegation actions
     console.log('\nInitializing funding and delegation actions...');
@@ -353,7 +366,9 @@ class SimulationRunner {
 
   async publishGeneratedStatements(ipfsConfig: IPFSConfig): Promise<void> {
     const publishedDataAddress = CONTRACT_ADDRESSES.publishedData as `0x${string}` | undefined;
-    const publisherKeys = (FUNDED_HARDHAT_DEV_KEYS.length > 0
+    const publisherKeys = (this.options.testnetRun
+      ? this.users.map((user) => user.privateKey)
+      : FUNDED_HARDHAT_DEV_KEYS.length > 0
       ? FUNDED_HARDHAT_DEV_KEYS
       : HARDHAT_PRIVATE_KEYS
     ).slice(0, 8) as `0x${string}`[];
@@ -371,8 +386,11 @@ class SimulationRunner {
   async fundUsers(): Promise<void> {
     const publicClient = createSeedPublicClient(RPC_URL);
 
-    // Use Hardhat's pre-funded default account as funder (starts with 10,000 ETH)
-    const funderClient = createTestClients(HARDHAT_PRIVATE_KEYS[0], RPC_URL);
+    const funderKey = this.options.testnetRun
+      ? process.env.TEST_DATA_FUNDER_PRIVATE_KEY as `0x${string}` | undefined
+      : HARDHAT_PRIVATE_KEYS[0];
+    if (!funderKey) throw new Error('TEST_DATA_FUNDER_PRIVATE_KEY is required for a Base Sepolia test-data run.');
+    const funderClient = createTestClients(funderKey, RPC_URL);
 
     const paymentTokenAddress = process.env.PAYMENT_TOKEN_ADDRESS as `0x${string}` | undefined;
     const paymentTokenAmount = parsePaymentTokenUnits('1000');
@@ -383,10 +401,9 @@ class SimulationRunner {
     for (let i = 0; i < this.users.length; i++) {
       const user = this.users[i];
 
-      const baseAmount = parseEther('1');
-      const wealthAmount = parseEther(user.wealth.toString());
-      const gasBuffer = parseEther('0.5');
-      const totalAmount = baseAmount + wealthAmount + gasBuffer;
+      const totalAmount = this.options.testnetRun
+        ? parseEther(process.env.TEST_DATA_USER_ETH ?? '0.0005')
+        : parseEther('1') + parseEther(user.wealth.toString()) + parseEther('0.5');
 
       try {
         const hash = await funderClient.walletClient.sendTransaction({
@@ -845,6 +862,26 @@ class SimulationRunner {
 
     const metricsPath = join(__dirname, 'output', 'metrics.json');
     await fs.writeFile(metricsPath, JSON.stringify(metricsReport, bigIntReplacer, 2));
+
+    const chainId = Number(process.env.CHAIN_ID ?? process.env.VITE_CHAIN_ID ?? '31337');
+    const network = chainId === 31337 ? 'local' : chainId === 84532 ? 'testnet' : undefined;
+    if (!network) {
+      throw new Error(`Test-data artifacts are disabled for unsupported chain ${chainId}. Mainnet is never allowed.`);
+    }
+    await writeTestDataRun({
+      network,
+      chainId,
+      gitCommit: process.env.RENDER_GIT_COMMIT ?? process.env.GIT_COMMIT,
+      parameters: { ...this.options },
+      entities: {
+        statements: this.statements,
+        projects: this.fundingDelegation?.createdProjects ?? [],
+        contracts: Object.fromEntries(Object.entries(this.contracts).map(([name, contract]) => [name, contract?.address])),
+      },
+      users: this.users.map((user) => ({ ...user, label: `Fake user ${user.id + 1}` })),
+      actions: this.actions,
+      metrics: metricsReport,
+    });
 
     console.log('Results Summary:');
     console.log(`  Total actions: ${metricsReport.totalActions}`);
@@ -1375,11 +1412,15 @@ async function main(): Promise<void> {
   const maxActionsArg = args.find(a => a.startsWith('--max-actions-per-user='));
   const universeArg = args.find(a => a.startsWith('--universe='));
   const publishSeedWorkerOutputsFlag = args.includes('--publish-seed-worker-outputs');
+  const testnetRun = args.includes('--testnet-run');
   const statementLimit = statementLimitArg ? parseInt(statementLimitArg.split('=')[1]) : undefined;
   const maxActionsPerUserPerRound = maxActionsArg ? parseInt(maxActionsArg.split('=')[1]) : undefined;
   const universePath = universeArg ? universeArg.split('=')[1] : undefined;
 
-  const simulation = new SimulationRunner({ statementLimit, maxActionsPerUserPerRound, universePath });
+  if (testnetRun && (Number(process.env.CHAIN_ID) !== 84532 || numUsers > 10 || numRounds > 2 || (maxActionsPerUserPerRound ?? 99) > 3)) {
+    throw new Error('Base Sepolia test-data runs require CHAIN_ID=84532, at most 10 users, 2 rounds, and --max-actions-per-user=3 or less.');
+  }
+  const simulation = new SimulationRunner({ numUsers, numRounds, statementLimit, maxActionsPerUserPerRound, universePath, testnetRun });
   simulation.usePreGeneratedAttestations = usePreGenerated;
   simulation.useHardhatAccounts = useHardhatAccounts;
 
@@ -1390,6 +1431,7 @@ async function main(): Promise<void> {
     await publishSeedWorkerOutputs(simulation);
   }
 
+  if (!testnetRun) {
   // Always land the local-food-systems plank + alignments, including on
   // `--seed=tiny` (nightly wipe). Worker-output publication remains optional.
   const localFoodPlankCid = await ensureMappedSeedStatement(
@@ -1455,6 +1497,7 @@ async function main(): Promise<void> {
         console.warn('Could not attach seed content contracts to the published local-food plank.', error);
       }
     }
+  }
   }
 
   // Run attack scenarios if requested

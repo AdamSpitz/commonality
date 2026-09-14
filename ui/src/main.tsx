@@ -2,17 +2,18 @@ import { StrictMode, Suspense, lazy, useState, useCallback, useEffect, useMemo }
 import { createRoot } from 'react-dom/client'
 import { Box, CircularProgress, CssBaseline, ThemeProvider, createTheme } from '@mui/material'
 import type { PaletteMode, Theme } from '@mui/material'
-import { WagmiProvider } from 'wagmi'
+import { WagmiProvider, useAccount, useConnect } from 'wagmi'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ConnectKitProvider } from 'connectkit'
 import {
   config,
   createMockConfig,
+  createTestDataConfig,
   isPrivyEnabled,
 } from './wagmi'
 import './index.css'
 import App from './App.tsx'
-import { loadActivePolicyBundle, loadDisplayDenylist, loadRuntimeConfig } from './shared'
+import { getRuntimeConfig, loadActivePolicyBundle, loadDisplayDenylist, loadRuntimeConfig } from './shared'
 import { installStaleBuildRecovery } from './shared'
 import { ThemeModeContext } from './shared'
 
@@ -143,13 +144,32 @@ installStaleBuildRecovery()
 // Global type declaration for E2E test helper
 declare global {
   interface Window {
-    _setupTestWallet: typeof createMockConfig
+    _setupTestWallet: (
+      addressOrPkey: `0x${string}`,
+      features?: Parameters<typeof createMockConfig>[1],
+    ) => ReturnType<typeof createMockConfig>
+    _setupTestDataWallet: (
+      privateKey: `0x${string}`,
+      options: { chainId: number; label: string },
+    ) => ReturnType<typeof createTestDataConfig>
   }
+}
+
+function AdminWalletAutoConnector({ connectionId }: { connectionId: number }) {
+  const { isConnected } = useAccount()
+  const { connect, connectors } = useConnect()
+
+  useEffect(() => {
+    const connector = connectors[0]
+    if (!isConnected && connector) connect({ connector })
+  }, [connect, connectionId, connectors, isConnected])
+  return null
 }
 
 export function Root() {
   const [mode, setMode] = useState<PaletteMode>(getInitialColorMode)
   const [testWagmiConfig, setTestWagmiConfig] = useState<typeof config | null>(null)
+  const [adminConnectionId, setAdminConnectionId] = useState(0)
   const wagmiConfig = testWagmiConfig ?? config
 
   const theme = useMemo(() => createAppTheme(mode), [mode])
@@ -165,9 +185,23 @@ export function Root() {
 
   // Expose wallet setup function for E2E tests
   const setupTestWallet = useCallback(
-    (...args: Parameters<typeof createMockConfig>) => {
-      const newConfig = createMockConfig(...args)
+    (addressOrPkey: `0x${string}`, features?: Parameters<typeof createMockConfig>[1]) => {
+      const newConfig = createMockConfig(addressOrPkey, features)
       setTestWagmiConfig(newConfig)
+      return newConfig
+    },
+    []
+  )
+
+  const setupTestDataWallet = useCallback(
+    (privateKey: `0x${string}`, options: { chainId: number; label: string }) => {
+      const environment = getRuntimeConfig().COMMONALITY_ENVIRONMENT ?? 'local'
+      if (environment === 'mainnet') throw new Error('Test-data wallets are disabled on mainnet.')
+      const chainId = options.chainId
+      if (chainId !== 31337 && chainId !== 84532) throw new Error(`Unsupported test-data chain ${chainId}.`)
+      const newConfig = createTestDataConfig(privateKey, chainId, options.label)
+      setTestWagmiConfig(newConfig)
+      setAdminConnectionId(current => current + 1)
       return newConfig
     },
     []
@@ -176,6 +210,7 @@ export function Root() {
   // Make function available to Playwright tests
   if (typeof window !== 'undefined') {
     window._setupTestWallet = setupTestWallet
+    window._setupTestDataWallet = setupTestDataWallet
   }
 
   return (
@@ -183,7 +218,7 @@ export function Root() {
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <QueryClientProvider client={queryClient}>
-        {isPrivyEnabled ? (
+        {isPrivyEnabled && !testWagmiConfig ? (
           <Suspense
             fallback={(
               <Box
@@ -205,6 +240,7 @@ export function Root() {
         ) : (
           <WagmiProvider config={wagmiConfig}>
             <ConnectKitProvider>
+              {testWagmiConfig ? <AdminWalletAutoConnector connectionId={adminConnectionId} /> : null}
               <App />
             </ConnectKitProvider>
           </WagmiProvider>

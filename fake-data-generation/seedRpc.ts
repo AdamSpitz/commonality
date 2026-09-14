@@ -1,5 +1,6 @@
 import { createPublicClient, createWalletClient, http, type PublicClient } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
+import { baseSepolia } from 'viem/chains';
 import { RPC_URL } from './loadEnv.js';
 
 const hardhat = {
@@ -10,6 +11,13 @@ const hardhat = {
     default: { http: ['http://localhost:8545'] },
   },
 } as const;
+
+function seedChain() {
+  const chainId = Number(process.env.CHAIN_ID ?? '31337');
+  if (chainId === 31337) return hardhat;
+  if (chainId === baseSepolia.id) return baseSepolia;
+  throw new Error(`Fake-data writes are disabled for chain ${chainId}.`);
+}
 
 /** Local Hardhat receipts are immediate; viem's 4s default poll dominates seed time. */
 export const SEED_RPC_POLLING_INTERVAL_MS = 50;
@@ -26,11 +34,11 @@ export function createSeedClients(privateKey: `0x${string}`, rpcUrl = RPC_URL) {
   const transport = seedHttpTransport(rpcUrl);
   const walletClient = createWalletClient({
     account,
-    chain: hardhat,
+    chain: seedChain(),
     transport,
   });
   const publicClient = createPublicClient({
-    chain: hardhat,
+    chain: seedChain(),
     transport,
     pollingInterval: SEED_RPC_POLLING_INTERVAL_MS,
   }) as PublicClient;
@@ -44,7 +52,7 @@ export function createSeedClients(privateKey: `0x${string}`, rpcUrl = RPC_URL) {
 
 export function createSeedPublicClient(rpcUrl = RPC_URL) {
   return createPublicClient({
-    chain: hardhat,
+    chain: seedChain(),
     transport: seedHttpTransport(rpcUrl),
     pollingInterval: SEED_RPC_POLLING_INTERVAL_MS,
   }) as PublicClient;

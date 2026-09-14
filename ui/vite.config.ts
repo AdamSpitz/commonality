@@ -258,6 +258,7 @@ function buildRuntimeConfig(env: Record<string, string>) {
     'VITE_CSM_URL',
     'VITE_CONCEPTSPACE_URL',
     'VITE_CAUSESTARTER_URL',
+    'VITE_TEST_DATA_REGISTRY_URL',
   ]
   return Object.fromEntries(keys.flatMap(key => env[key] ? [[key, env[key]]] : []))
 }

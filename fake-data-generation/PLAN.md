@@ -51,6 +51,16 @@ Checked-in `data/seed-implication-evaluations.original-variants.json` is **stale
 
 `gen:small` / `medium` / `large` work. README still lists 1000+ users, visualization, and deep indexer validation as future.
 
+### E — Inspectable testnet demo batches
+
+Implemented 2026-09-14. `./scripts/generate-testnet-data.sh --yes` creates a deliberately
+bounded five-user Base Sepolia batch; this is not the mass-activity job. Every local or
+testnet simulation now appends an AES-GCM-encrypted run document and reverse-chronological
+registry under `output/test-data/`. CauseStarter's `/admin/test-data` route decrypts a
+capability URL locally, shows the objective run contents, and can connect in memory as any
+disposable fake user. `scripts/publish-test-data.sh` pins only encrypted files and advances
+a dedicated test-data IPNS name; mainnet is hard-disabled.
+
 ## Next
 
 Do these in order unless Adam names a different one. Each item is a session-sized chunk.
