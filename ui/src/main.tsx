@@ -16,6 +16,7 @@ import App from './App.tsx'
 import { getRuntimeConfig, loadActivePolicyBundle, loadDisplayDenylist, loadRuntimeConfig } from './shared'
 import { installStaleBuildRecovery } from './shared'
 import { ThemeModeContext } from './shared'
+import { TestDataSessionContext } from './shared/wallet/testDataSession'
 
 const queryClient = new QueryClient()
 
@@ -207,14 +208,14 @@ export function Root() {
     []
   )
 
-  // Make function available to Playwright tests
-  if (typeof window !== 'undefined') {
+  useEffect(() => {
     window._setupTestWallet = setupTestWallet
     window._setupTestDataWallet = setupTestDataWallet
-  }
+  }, [setupTestWallet, setupTestDataWallet])
 
   return (
     <ThemeModeContext.Provider value={themeModeContextValue}>
+      <TestDataSessionContext.Provider value={Boolean(testWagmiConfig)}>
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <QueryClientProvider client={queryClient}>
@@ -238,7 +239,11 @@ export function Root() {
             </PrivyAppProvider>
           </Suspense>
         ) : (
-          <WagmiProvider config={wagmiConfig}>
+          <WagmiProvider
+            key={testWagmiConfig ? `test-data-${adminConnectionId}` : 'app'}
+            config={wagmiConfig}
+            reconnectOnMount={!testWagmiConfig}
+          >
             <ConnectKitProvider>
               {testWagmiConfig ? <AdminWalletAutoConnector connectionId={adminConnectionId} /> : null}
               <App />
@@ -247,6 +252,7 @@ export function Root() {
         )}
         </QueryClientProvider>
       </ThemeProvider>
+      </TestDataSessionContext.Provider>
     </ThemeModeContext.Provider>
   )
 }

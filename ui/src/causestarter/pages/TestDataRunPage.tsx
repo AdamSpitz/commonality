@@ -18,6 +18,7 @@ export function TestDataRunPage() {
   const [run, setRun] = useState<TestDataRun | null>(null)
   const [selected, setSelected] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [connectError, setConnectError] = useState<string | null>(null)
   const registryUrl = testDataRegistryUrl()
   const environment = testDataEnvironment()
 
@@ -52,7 +53,12 @@ export function TestDataRunPage() {
   const connect = () => {
     const user = run.users.find(candidate => candidate.address === selected)
     if (!user) return
-    window._setupTestDataWallet(user.privateKey, { chainId: run.chainId, label: user.label })
+    try {
+      window._setupTestDataWallet(user.privateKey, { chainId: Number(run.chainId), label: user.label })
+      setConnectError(null)
+    } catch (reason) {
+      setConnectError(reason instanceof Error ? reason.message : String(reason))
+    }
   }
 
   return (
@@ -76,6 +82,7 @@ export function TestDataRunPage() {
             </Select>
             <Button variant="contained" disabled={!selected} onClick={connect}>Connect as selected user</Button>
           </Stack>
+          {connectError ? <Alert severity="error" sx={{ mt: 2 }}>{connectError}</Alert> : null}
         </CardContent>
       </Card>
 
