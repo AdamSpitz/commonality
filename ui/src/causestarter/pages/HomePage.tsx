@@ -67,8 +67,12 @@ export function HomePage() {
     donation.monthlyPledgedLabel ? `You’ve pledged ${donation.monthlyPledgedLabel}` : (donation.activePledgeCount > 0 ? countLabel(donation.activePledgeCount, 'monthly pledge') : null),
     donation.activeNoteCount > 0 ? countLabel(donation.activeNoteCount, 'active fund') : null,
   ].filter(Boolean).join(' · ')
-  const fundNeedSummary = (needFunding > 0 || needReimbursement > 0)
-    ? `${countLabel(needFunding, 'project')} ${needFunding === 1 ? 'needs' : 'need'} funding · ${countLabel(needReimbursement, 'project')} ${needReimbursement === 1 ? 'needs' : 'need'} reimbursement`
+  const fundNeedParts = [
+    needFunding > 0 ? `${countLabel(needFunding, 'project')} ${needFunding === 1 ? 'needs' : 'need'} funding` : null,
+    needReimbursement > 0 ? `${countLabel(needReimbursement, 'project')} ${needReimbursement === 1 ? 'needs' : 'need'} reimbursement` : null,
+  ].filter(Boolean)
+  const fundNeedSummary = fundNeedParts.length > 0
+    ? fundNeedParts.join(' · ')
     : boardStatementCids.length > 0 && !boardProjects.loading
       ? 'No open funding or reimbursement on this board right now'
       : null

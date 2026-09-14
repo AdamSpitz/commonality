@@ -85,4 +85,15 @@ describe('HomePage landing', () => {
     expect(screen.getByText('You’ve pledged 50 USDC/month · 2 active funds')).toBeInTheDocument()
     expect(screen.getByText('13 projects need funding · 5 projects need reimbursement')).toBeInTheDocument()
   })
+
+  it('omits the zero side of the Fund summary', () => {
+    renderHome({ connected: true, statements: 1, needReimbursement: 5 })
+    expect(screen.getByText('5 projects need reimbursement')).toBeInTheDocument()
+    expect(screen.queryByText(/need funding/)).not.toBeInTheDocument()
+  })
+
+  it('shows an empty-board Fund summary when nothing still needs money', () => {
+    renderHome({ connected: true, statements: 1 })
+    expect(screen.getByText('No open funding or reimbursement on this board right now')).toBeInTheDocument()
+  })
 })
