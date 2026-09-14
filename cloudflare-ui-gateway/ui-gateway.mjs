@@ -17,6 +17,7 @@ const EDGE_RESPONSE_TTL_SECONDS = 24 * 60 * 60
 const BROWSER_RESPONSE_TTL_SECONDS = 60
 const FALLBACK_GATEWAY_ORIGINS = ['https://ipfs.io', 'https://w3s.link']
 const EDGE_CACHE_VERSION = 'v2'
+const GATEWAY_FETCH_TIMEOUT_MS = 4_000
 
 // Best-effort per-isolate cache. This is only a fallback/latency optimization;
 // it is not shared globally across Worker isolates.
@@ -192,21 +193,26 @@ async function fetchFromGateway({ request, requestUrl, upstreamUrl, env, forceGe
   // if they receive alignment.testnet.commonality.works as the forwarded host,
   // they try DNSLink/IPNS for that host instead of serving the /ipfs/{cid} path
   // we constructed.
+  const fetchUrl = new URL(upstreamUrl)
   const upstreamHeaders = new Headers()
   const accept = request.headers.get('Accept')
   if (accept) upstreamHeaders.set('Accept', accept)
   const range = request.headers.get('Range')
   if (range) upstreamHeaders.set('Range', range)
   upstreamHeaders.set('X-Commonality-Forwarded-Host', requestUrl.host)
-  if (env.PINATA_GATEWAY_KEY && upstreamUrl.hostname.endsWith('pinata.cloud')) {
+  if (env.PINATA_GATEWAY_KEY && fetchUrl.hostname.endsWith('pinata.cloud')) {
     upstreamHeaders.set('x-pinata-gateway-token', env.PINATA_GATEWAY_KEY)
+    // Dedicated-gateway Host Origins match browser sites, not the mypinata host.
+    upstreamHeaders.set('Origin', requestUrl.origin)
+    upstreamHeaders.set('Referer', `${requestUrl.origin}/`)
   }
 
-  return fetch(upstreamUrl.toString(), {
+  return fetch(fetchUrl.toString(), {
     body: request.body,
     headers: upstreamHeaders,
     method: forceGet && request.method === 'HEAD' ? 'GET' : request.method,
     redirect: 'follow',
+    signal: AbortSignal.timeout(GATEWAY_FETCH_TIMEOUT_MS),
   })
 }
 

@@ -167,6 +167,55 @@ test('falls back to index.html for browser navigation routes', async () => {
   ])
 })
 
+test('skips a hanging public gateway instead of waiting until the Worker 504s', async () => {
+  const fetchedUrls = []
+  globalThis.caches = undefined
+  globalThis.fetch = async (input, init) => {
+    const url = typeof input === 'string' ? input : input.url
+    const signal = init?.signal ?? input.signal
+    fetchedUrls.push(url)
+    if (url.startsWith('https://name.web3.storage/name/')) {
+      return Response.json({ value: '/ipfs/bafy-timeout-cid' })
+    }
+    if (url === 'https://gateway.pinata.cloud/ipfs/bafy-timeout-cid/') {
+      return new Response('HTML not allowed on public gateway', { status: 403 })
+    }
+    if (url === 'https://ipfs.io/ipfs/bafy-timeout-cid/') {
+      return new Promise((_, reject) => {
+        const abort = () => reject(signal?.reason ?? new Error('aborted'))
+        if (signal?.aborted) {
+          abort()
+          return
+        }
+        signal?.addEventListener('abort', abort, { once: true })
+      })
+    }
+    if (url === 'https://w3s.link/ipfs/bafy-timeout-cid/') {
+      return new Response('<html>fallback</html>', { status: 200 })
+    }
+    throw new Error(`unexpected fetch: ${url}`)
+  }
+
+  const response = await proxyUiRequest(
+    new Request('https://causestarter.testnet.commonality.works/', {
+      headers: { Accept: 'text/html' },
+    }),
+    {
+      IPNS_CAUSESTARTER: 'k51-test-timeout',
+      PINATA_GATEWAY_ORIGIN: 'https://gateway.pinata.cloud',
+    },
+  )
+
+  assert.equal(response.status, 200)
+  assert.equal(await response.text(), '<html>fallback</html>')
+  assert.deepEqual(fetchedUrls, [
+    'https://name.web3.storage/name/k51-test-timeout',
+    'https://gateway.pinata.cloud/ipfs/bafy-timeout-cid/',
+    'https://ipfs.io/ipfs/bafy-timeout-cid/',
+    'https://w3s.link/ipfs/bafy-timeout-cid/',
+  ])
+})
+
 test('resolves the causestarter subdomain like the other UI hosts', async () => {
   const fetches = []
   globalThis.caches = undefined
