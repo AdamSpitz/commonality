@@ -3,6 +3,8 @@ import { Box, Button, Card, CardActionArea, CardContent, CircularProgress, Paper
 import type { ReactNode } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
 import { useAccount } from 'wagmi'
+import { useAlignmentTrust } from '../hooks/useAlignmentTrust'
+import { useCauseProjects } from '../hooks/useCauseProjects'
 import { useDonationSummary } from '../hooks/useDonationSummary'
 import { useUserCauses } from '../hooks/useUserCauses'
 import { useUserProjects } from '../hooks/useUserProjects'
@@ -46,9 +48,34 @@ export function HomePage() {
   const { projects, loading: projectsLoading } = useUserProjects()
   const { causes, loading: causesLoading } = useUserCauses()
   const donation = useDonationSummary()
+  const { trustedAlignmentAttesters, showInitialTrustLoad } = useAlignmentTrust()
   const createdProjects = projects.filter((project) => project.relations.includes('created')).length
+  const bookmarkedProjects = projects.filter((project) => project.relations.includes('bookmarked')).length
   const hasDonateActivity = donation.activePledgeCount > 0 || donation.activeNoteCount > 0
   const fundingBoard = readPersonalFundingBoard(address)
+  const boardStatementCids = fundingBoard?.statementCids
+    ?? (statements.length > 0 ? statements.map((statement) => statement.cid) : [])
+  const boardProjects = useCauseProjects(
+    boardStatementCids,
+    undefined,
+    trustedAlignmentAttesters,
+    boardStatementCids.length > 0 && !showInitialTrustLoad,
+  )
+  const needFunding = boardProjects.totals?.projectsNeedingFunding ?? 0
+  const needReimbursement = boardProjects.totals?.projectsNeedingReimbursement ?? 0
+  const donateSummary = [
+    donation.monthlyPledgedLabel ? `You’ve pledged ${donation.monthlyPledgedLabel}` : (donation.activePledgeCount > 0 ? countLabel(donation.activePledgeCount, 'monthly pledge') : null),
+    donation.activeNoteCount > 0 ? countLabel(donation.activeNoteCount, 'active fund') : null,
+  ].filter(Boolean).join(' · ')
+  const fundNeedSummary = (needFunding > 0 || needReimbursement > 0)
+    ? `${countLabel(needFunding, 'project')} ${needFunding === 1 ? 'needs' : 'need'} funding · ${countLabel(needReimbursement, 'project')} ${needReimbursement === 1 ? 'needs' : 'need'} reimbursement`
+    : boardStatementCids.length > 0 && !boardProjects.loading
+      ? 'No open funding or reimbursement on this board right now'
+      : null
+  const workSummaryParts = [
+    createdProjects > 0 ? countLabel(createdProjects, 'created project') : null,
+    bookmarkedProjects > 0 ? countLabel(bookmarkedProjects, 'bookmark') : null,
+  ].filter(Boolean)
 
   return (
     <Stack spacing={{ xs: 3, sm: 4 }} data-testid="home-landing">
@@ -129,7 +156,7 @@ export function HomePage() {
             description="Pledge money to a cause, entrust it to someone you trust, and check what your money has done."
             loading={isConnected && donation.loading}
             summary={hasDonateActivity
-              ? <Typography variant="body2" sx={{ fontWeight: 700 }}>{countLabel(donation.activePledgeCount, 'monthly pledge')} · {countLabel(donation.activeNoteCount, 'active fund')}</Typography>
+              ? <Typography variant="body2" sx={{ fontWeight: 700 }}>{donateSummary}</Typography>
               : <Typography variant="body2" color="text.secondary">Set up giving that does not need your daily attention.</Typography>}
             action={hasDonateActivity ? 'Manage donations' : 'Set up a donation'}
           />
@@ -137,12 +164,14 @@ export function HomePage() {
             title="Fund"
             to="/dashboard"
             description="Review relevant projects and actively decide where available money should go."
-            loading={isConnected && statementsLoading}
-            summary={fundingBoard
-              ? <Typography variant="body2" sx={{ fontWeight: 700 }}>{countLabel(fundingBoard.statementCids.length, 'statement')} in your board{fundingBoard.geographicWithin?.length ? ` · ${fundingBoard.geographicWithin.join(', ')}` : ''}</Typography>
-              : statements.length > 0
-                ? <Typography variant="body2" sx={{ fontWeight: 700 }}>{countLabel(statements.length, 'signed statement')} (default board)</Typography>
-                : <Typography variant="body2" color="text.secondary">Set the scope of your personal funding board.</Typography>}
+            loading={isConnected && (statementsLoading || (boardStatementCids.length > 0 && boardProjects.loading))}
+            summary={fundNeedSummary
+              ? <Typography variant="body2" sx={{ fontWeight: 700 }}>{fundNeedSummary}</Typography>
+              : fundingBoard
+                ? <Typography variant="body2" sx={{ fontWeight: 700 }}>{countLabel(fundingBoard.statementCids.length, 'statement')} in your board{fundingBoard.geographicWithin?.length ? ` · ${fundingBoard.geographicWithin.join(', ')}` : ''}</Typography>
+                : statements.length > 0
+                  ? <Typography variant="body2" sx={{ fontWeight: 700 }}>{countLabel(statements.length, 'signed statement')} (default board)</Typography>
+                  : <Typography variant="body2" color="text.secondary">Set the scope of your personal funding board.</Typography>}
             action={fundingBoard || statements.length > 0 ? 'Review projects' : 'Set up your funding board'}
           />
           <RoleCard
@@ -150,8 +179,8 @@ export function HomePage() {
             to="/work"
             description="Create a project, follow the ones you started, and keep a shared bookmark list of work you care about."
             loading={isConnected && projectsLoading}
-            summary={createdProjects > 0
-              ? <Typography variant="body2" sx={{ fontWeight: 700 }}>{countLabel(createdProjects, 'created project')}</Typography>
+            summary={workSummaryParts.length > 0
+              ? <Typography variant="body2" sx={{ fontWeight: 700 }}>{workSummaryParts.join(' · ')}</Typography>
               : <Typography variant="body2" color="text.secondary">Publish a piece of work people can fund.</Typography>}
             action={createdProjects > 0 ? 'Continue your work' : 'Start a project'}
           />

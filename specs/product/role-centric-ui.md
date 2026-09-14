@@ -106,8 +106,9 @@ It shows one card per established workspace. Each card answers:
 
 For an empty role, the card gives a short explanation and an entry action. Once the
 person has activity, that explanation gives way to a terse summary or useful next
-step: signed-statement count for Sign; monthly pledge and available-funds status for
-Donate; configured scope and newly eligible work for Fund; created-project count for
+step: signed-statement count for Sign; monthly pledged amount and available-funds
+status for Donate; how many board projects still need funding or reimbursement for
+Fund (falling back to configured scope); created-project and bookmark counts for
 Work; cause-board count for Organize. Evaluate should not appear until it has a real
 workspace.
 

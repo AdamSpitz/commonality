@@ -9,6 +9,8 @@ const mocks = vi.hoisted(() => ({
   useUserProjects: vi.fn(),
   useUserStatements: vi.fn(),
   useDonationSummary: vi.fn(),
+  useCauseProjects: vi.fn(),
+  useAlignmentTrust: vi.fn(),
 }))
 
 vi.mock('wagmi', () => ({ useAccount: mocks.useAccount }))
@@ -16,13 +18,36 @@ vi.mock('../hooks/useUserCauses', () => ({ useUserCauses: mocks.useUserCauses })
 vi.mock('../hooks/useUserProjects', () => ({ useUserProjects: mocks.useUserProjects }))
 vi.mock('../hooks/useUserStatements', () => ({ useUserStatements: mocks.useUserStatements }))
 vi.mock('../hooks/useDonationSummary', () => ({ useDonationSummary: mocks.useDonationSummary }))
+vi.mock('../hooks/useCauseProjects', () => ({ useCauseProjects: mocks.useCauseProjects }))
+vi.mock('../hooks/useAlignmentTrust', () => ({ useAlignmentTrust: mocks.useAlignmentTrust }))
 
-function renderHome({ connected = false, statements = 0, pledges = 0, notes = 0 } = {}) {
+function renderHome({
+  connected = false,
+  statements = 0,
+  pledges = 0,
+  notes = 0,
+  monthlyPledgedLabel = null as string | null,
+  needFunding = 0,
+  needReimbursement = 0,
+} = {}) {
   mocks.useAccount.mockReturnValue({ isConnected: connected, address: connected ? '0xabc' : undefined })
   mocks.useUserCauses.mockReturnValue({ causes: [], loading: false })
   mocks.useUserProjects.mockReturnValue({ projects: [], loading: false })
   mocks.useUserStatements.mockReturnValue({ statements: Array.from({ length: statements }, (_, index) => ({ cid: `cid-${index}` })), loading: false })
-  mocks.useDonationSummary.mockReturnValue({ activePledgeCount: pledges, activeNoteCount: notes, delegatedNoteCount: notes, loading: false })
+  mocks.useDonationSummary.mockReturnValue({
+    activePledgeCount: pledges,
+    activeNoteCount: notes,
+    delegatedNoteCount: notes,
+    monthlyPledged: 0n,
+    monthlyPledgedLabel,
+    loading: false,
+  })
+  mocks.useAlignmentTrust.mockReturnValue({ trustedAlignmentAttesters: undefined, showInitialTrustLoad: false })
+  mocks.useCauseProjects.mockReturnValue({
+    projects: [],
+    totals: { projectsNeedingFunding: needFunding, projectsNeedingReimbursement: needReimbursement },
+    loading: false,
+  })
   render(<MemoryRouter><HomePage /></MemoryRouter>)
 }
 
@@ -47,9 +72,17 @@ describe('HomePage landing', () => {
   })
 
   it('replaces blurbs with compact activity summaries', () => {
-    renderHome({ connected: true, statements: 3, pledges: 1, notes: 2 })
+    renderHome({
+      connected: true,
+      statements: 3,
+      pledges: 1,
+      notes: 2,
+      monthlyPledgedLabel: '50 USDC/month',
+      needFunding: 13,
+      needReimbursement: 5,
+    })
     expect(screen.getByText('3 signed statements')).toBeInTheDocument()
-    expect(screen.getByText('1 monthly pledge · 2 active funds')).toBeInTheDocument()
-    expect(screen.getByText('3 signed statements (default board)')).toBeInTheDocument()
+    expect(screen.getByText('You’ve pledged 50 USDC/month · 2 active funds')).toBeInTheDocument()
+    expect(screen.getByText('13 projects need funding · 5 projects need reimbursement')).toBeInTheDocument()
   })
 })

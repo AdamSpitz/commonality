@@ -80,7 +80,9 @@ export function ProfilePage() {
           </Stack>
         ) : (
           <Typography variant="body2" sx={{ mt: 1.25, fontWeight: 700 }}>
-            {countLabel(donation.activePledgeCount, 'monthly pledge')} · {countLabel(donation.activeNoteCount, 'active fund')}
+            {donation.monthlyPledgedLabel
+              ? `You’ve pledged ${donation.monthlyPledgedLabel} · ${countLabel(donation.activeNoteCount, 'active fund')}`
+              : `${countLabel(donation.activePledgeCount, 'monthly pledge')} · ${countLabel(donation.activeNoteCount, 'active fund')}`}
           </Typography>
         )}
         <Button component={RouterLink} to="/donate" sx={{ mt: 1, px: 0 }}>Open Donate</Button>
