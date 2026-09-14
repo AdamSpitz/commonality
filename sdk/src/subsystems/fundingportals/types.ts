@@ -104,6 +104,10 @@ export interface CauseFundingMetrics {
   totalUnreimbursed: CurrencyAmountBigInt[];
   /** Number of projects aligned to this cause. */
   projectCount: number;
+  /** Open projects that still need money to reach threshold. */
+  projectsNeedingFunding?: number;
+  /** Succeeded projects that still have outstanding early-funder reimbursement. */
+  projectsNeedingReimbursement?: number;
   /** Number of notes aligned to this cause. */
   noteCount: number;
   /** Distinct root owners whose currently-live notes are earmarked for this exact cause. */

@@ -831,7 +831,7 @@ export interface AlignedProjectFunding {
 /** The per-project portion of {@link CauseFundingMetrics} (everything but notes). */
 export type AlignedProjectFundingTotals = Pick<
   CauseFundingMetrics,
-  'totalRaisedAcrossProjects' | 'remainingToThreshold' | 'totalUnreimbursed' | 'projectCount'
+  'totalRaisedAcrossProjects' | 'remainingToThreshold' | 'totalUnreimbursed' | 'projectCount' | 'projectsNeedingFunding' | 'projectsNeedingReimbursement'
 >;
 
 /**
@@ -853,6 +853,7 @@ export async function foldAlignedProjectFunding(
   const remainingToThreshold = new Map<string, CurrencyAmountBigInt>();
   const totalUnreimbursed = new Map<string, CurrencyAmountBigInt>();
   const succeededProjects: AlignedProjectFunding[] = [];
+  let projectsNeedingFunding = 0;
 
   for (const project of projects) {
     addCurrencyAmount(totalRaised, project.fundingCurrency, BigInt(project.totalReceived));
@@ -861,6 +862,7 @@ export async function foldAlignedProjectFunding(
     if (status === 'active') {
       const need = remainingToThresholdForProject(project, nowSeconds);
       if (need > 0n) {
+        projectsNeedingFunding += 1;
         addCurrencyAmount(remainingToThreshold, project.fundingCurrency, need);
       }
     } else if (status === 'succeeded') {
@@ -868,6 +870,7 @@ export async function foldAlignedProjectFunding(
     }
   }
 
+  let projectsNeedingReimbursement = 0;
   if (succeededProjects.length > 0) {
     const unreimbursedAmounts = await Promise.all(
       succeededProjects.map((project) => readUnreimbursedForProject(machinery, project.projectAddress)),
@@ -875,6 +878,7 @@ export async function foldAlignedProjectFunding(
     for (let i = 0; i < succeededProjects.length; i++) {
       const amount = unreimbursedAmounts[i] ?? 0n;
       if (amount > 0n) {
+        projectsNeedingReimbursement += 1;
         addCurrencyAmount(totalUnreimbursed, succeededProjects[i]!.fundingCurrency, amount);
       }
     }
@@ -885,6 +889,8 @@ export async function foldAlignedProjectFunding(
     remainingToThreshold: currencyTotalsToArray(remainingToThreshold),
     totalUnreimbursed: currencyTotalsToArray(totalUnreimbursed),
     projectCount: projects.length,
+    projectsNeedingFunding,
+    projectsNeedingReimbursement,
   };
 }
 

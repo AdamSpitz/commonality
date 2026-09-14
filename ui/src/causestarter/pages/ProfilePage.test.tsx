@@ -16,6 +16,8 @@ vi.mock('../hooks/useDonationSummary', () => ({
     activePledgeCount: 1,
     activeNoteCount: 2,
     delegatedNoteCount: 0,
+    monthlyPledged: 0n,
+    monthlyPledgedLabel: null,
     loading: false,
   }),
 }))
