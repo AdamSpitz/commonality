@@ -1,6 +1,6 @@
 {
   "id": "facet.docs",
-  "description": "Concern facet: do the docs cohere? Gating LLM coherence judgment plus deterministic broken-reference scan. A high-severity docs-coherence finding turns this red; lesser findings make it uncertain.",
+  "description": "Do the docs cohere? Combines documentation judgment with a deterministic broken-reference scan.",
   "trigger": {
     "type": "onInputChange",
     "debounceMinutes": 1

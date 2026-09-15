@@ -91,9 +91,9 @@ Use a manual validation pass when conventional tests pass but we still need inte
 ## Operating model: refreshes, staleness, the dashboard
 
 - Leaf checks read the live project/system. Cheap leaves should use `cron`; expensive/manual/LLM leaves are intentionally `manual` unless their definition says otherwise.
-- Deterministic inner nodes use `onInputChange` — they rerun automatically when a child result changes while `verifier-scheduler` is running. `root` is `onInputChange` too, so the **rollup** follows refreshed facets; the narrative LLM is skipped unless `COMMONALITY_VERIFIER_ALLOW_LLM=1` (set by `verifier:go` / `verifier:root`). Without the scheduler, `onInputChange` does not fire on its own; a manual `verifier-run <id>` still updates descendants' inputs for the next run.
+- Deterministic inner nodes use `onInputChange` — they rerun automatically when a child result changes while `verifier-scheduler` is running. `root` is `onInputChange` too, so the **rollup** follows refreshed facets; the narrative LLM is skipped unless `COMMONALITY_VERIFIER_ALLOW_LLM=1` (set by `verifier:root`). Without the scheduler, `onInputChange` does not fire on its own; a manual `verifier-run <id>` still updates descendants' inputs for the next run.
 - Supervisors use `freshness.requiredMaxAgeMinutes` to turn old non-failing child results into `uncertain` — the warning that evidence is old enough to consider refreshing.
-- `meta.report-currency` is **manual**. `verifier:go` runs it; the scheduler does not. When HEAD has not moved it is free (no model). Advisory, never gating.
+- `meta.report-currency` is a **manual legacy heuristic**. It is not a root input and only runs explicitly through `verifier:currency:heuristic`. The intent-based operator uses deterministic path rules, the dirty tree, and per-check baselines instead.
 - Standing LLM-judgment leaves call `pi` with `xai` or `opencode-go` only (`verifier/llm-routing.json`). A chat session can supply the JSON envelope via `npm run verifier:llm -- <id> --response-file …` and that stored Result is as real as a `pi` run.
 - `meta.liveness` runs every 30 minutes and warns when scheduled checks have gone silent or overdue.
 </content>
