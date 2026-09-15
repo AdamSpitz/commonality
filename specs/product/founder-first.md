@@ -34,7 +34,7 @@ being the universal operator to whom every conduct element attaches) and product
 | How a founder fills an empty cause board | [cause-taxonomy.md](./cause-taxonomy.md) |
 | What a cause is made of: planks, views, anchors; what cause-assist should suggest | [shaping-your-cause-statements.md](/docs/founder/shaping-your-cause-statements.md) |
 | Recruiting collateral / worked pitches | [christian-pitch.md](/docs/founder/christian-pitch.md), [docs/founder/csm/](/docs/founder/csm/) |
-| What we market and to whom | [marketing.md](./marketing.md) |
+| What we market and to whom | [marketing/](./marketing/README.md) |
 | Which UIs we operate vs. publish | [ui-operator-posture.md](./ui-operator-posture.md) |
 | Why the operator/protocol split matters legally | [legal/operator-posture.md](./legal/operator-posture.md) |
 | Technical shape of a vertical (`DomainManifest`) | [ui-domains.md](./ui-domains.md), [tech/ui-domains.md](/specs/tech/ui-domains.md) |
@@ -51,14 +51,14 @@ authoritative copy; this list is the map.
       Commonality, and what do they land on? [standing-up-a-vertical](/docs/founder/standing-up-a-vertical.md)
       covers setup and [activating-a-cause](/docs/founder/activating-a-cause.md) covers
       recruiting the cause's participants; the discovery and landing path remains
-      unspecified. (from [marketing.md](./marketing.md))
+      unspecified. (from [marketing/](./marketing/README.md))
 - [ ] Improve the [Christian pitch](/docs/founder/christian-pitch.md) and write more
       pitches along those lines for other audiences. *(Adam — [inbox.md](/inbox.md))*
 - [ ] Have an AI generate a batch of imaginary founders and causes, as a breadth check on
       whether the pitch and the substrate generalize. *(from [inbox.md](/inbox.md))*
 - [ ] Pitch orgs with large do-gooder user bases (Red Cross et al.) as *prospective
       founders of their own vertical*, never as "come use Commonality."
-      (from [marketing.md](./marketing.md))
+      (from [marketing/](./marketing/README.md))
 - [ ] Resolve the naming question: new site, or rename Commonality to something like
       "Commonality"? The umbrella brand currently names the substrate, not the founder
       product. *(Adam — [inbox.md](/inbox.md))*
@@ -101,7 +101,12 @@ authoritative copy; this list is the map.
 
 - [ ] Vertical GTM for Civility and CSM specifically (elevator pitch, memes, video/podcast
       generation, alpha testers) — scoped to the verticals, never the umbrella.
-      (from [marketing.md](./marketing.md))
+      (from [marketing/](./marketing/README.md))
+- [ ] Friend walkthroughs on testnet as qualitative research (not acquisition): script in
+      [marketing/friend-walkthroughs.md](./marketing/friend-walkthroughs.md). Sequenced in
+      [marketing/PLAN.md](./marketing/PLAN.md).
+- [ ] Cause-flavored share artifacts (OG unfurls, role-deep links, statement/role-ask cards)
+      so organizers spread *their* cause. See [marketing/memes.md](./marketing/memes.md).
 - [ ] Seed at least one non-political, local-public-goods cause in the demo data, so the
       substrate can be *seen* serving a vertical unlike ours. *(from [inbox.md](/inbox.md))*
 
