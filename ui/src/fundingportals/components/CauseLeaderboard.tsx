@@ -86,7 +86,7 @@ export interface CauseLeaderboardProps {
 }
 
 /**
- * Full cause leaderboard surface. Shared by Aligning and CauseStarter.
+ * Full cause leaderboard surface. Shared by Aligning and Commonality.
  */
 export function CauseLeaderboard({
   statementCid,

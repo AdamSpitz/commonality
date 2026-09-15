@@ -7,8 +7,8 @@ import type { DomainId } from './types'
 
 
 const domainIds = Object.keys(domainManifests) as DomainId[]
-/** CauseStarter routes are eager wallet-backed pages, not the lazyRoute samples these crawls assume. */
-const crawledDomainIds = domainIds.filter((id) => id !== 'causestarter')
+/** Commonality routes are eager wallet-backed pages, not the lazyRoute samples these crawls assume. */
+const crawledDomainIds = domainIds.filter((id) => id !== 'commonality')
 const publicDocModules = import.meta.glob('../../../docs/end-user/**/*.md', { query: '?raw', import: 'default', eager: true }) as Record<string, string>
 
 const routeParamSamples: Record<string, string> = {

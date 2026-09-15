@@ -11,9 +11,9 @@ us more.
 - [x] Replace organizer-facing uses of “cause founder” with **cause organizer** where the
   person is curating and circulating a publication; reserve **vertical operator** for the
   person operating an independent front end and policy stack.
-- [x] Update CauseStarter and founder guidance that still says “founder writes; AI only
+- [x] Update Commonality and founder guidance that still says “founder writes; AI only
   coaches” to the retrieval-first “AI proposes; human explicitly adopts” model.
-- [x] Reconcile the old eight-UI-domain descriptions with CauseStarter as the primary
+- [x] Reconcile the old eight-UI-domain descriptions with Commonality as the primary
   cause-first reference surface, without deleting the generic sites or weakening ADR 0005.
 - [x] Keep cause assistance and mediation separate in product copy: clarification versus
   an explicitly proposed change in position.
@@ -42,7 +42,7 @@ us more.
 - [x] Instrument reuse-versus-creation, rejected suggestions, corrections, and abandoned
   flows so duplication and misinterpretation can be measured.
 
-## 4. Replace CauseStarter authoring without breaking existing work
+## 4. Replace Commonality authoring without breaking existing work
 
 - [x] Replace the blank plank-writing start flow with conversational intent gathering,
   retrieval, selection, and on-demand drafting.

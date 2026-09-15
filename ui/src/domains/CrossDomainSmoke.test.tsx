@@ -6,7 +6,7 @@ import { domainManifests } from './index'
 import { isRouteResolvableDocLink } from './publicDocLinks'
 import type { DomainId } from './types'
 
-const domainIds: DomainId[] = ['commonality', 'lazyGiving', 'alignment', 'tally', 'content-funding', 'civility', 'common-sense-majority', 'conceptspace', 'causestarter']
+const domainIds: DomainId[] = ['commonality', 'lazyGiving', 'alignment', 'tally', 'content-funding', 'civility', 'common-sense-majority', 'conceptspace']
 const publicDocModules = import.meta.glob('../../../docs/end-user/**/*.md', { query: '?raw', import: 'default', eager: true }) as Record<string, string>
 
 function renderDomainRoute(domainId: DomainId, path = '/') {
@@ -90,7 +90,6 @@ describe.each(domainIds)('cross-domain smoke: %s', (domainId) => {
       civility: 'Civility',
       'common-sense-majority': 'Common Sense Majority',
       conceptspace: 'Conceptspace',
-      causestarter: 'CauseStarter',
     }
 
     it('has branding copy for the domain', () => {
@@ -123,8 +122,8 @@ describe.each(domainIds)('cross-domain smoke: %s', (domainId) => {
     })
   })
 
-  // CauseStarter `/` is a wallet-backed dashboard, not a static pitch page.
-  describe.skipIf(domainId === 'causestarter')('landing page', () => {
+  // Commonality `/` is a wallet-backed dashboard, not a static pitch page.
+  describe.skipIf(domainId === 'commonality')('landing page', () => {
     it('renders a hero title', () => {
       renderDomainRoute(domainId)
       const heading = screen.getByRole('heading', { level: 1 })
@@ -167,9 +166,15 @@ describe('public docs app links', () => {
 })
 
 describe('cross-domain route ownership', () => {
-  it('commonality no longer renders product tools locally, only docs/founders', () => {
+  it('commonality owns the founder-first product tools and omits the retired participation route', () => {
     const routePaths = extractRoutePaths(domainManifests.commonality.routes)
-    expect(routePaths).toEqual(['/', '/founders', '/participate', '/for-organizations', '/docs', '/docs/*'])
+    expect(routePaths).toContain('/causes')
+    expect(routePaths).toContain('/work')
+    expect(routePaths).toContain('/statements')
+    expect(routePaths).toContain('/dashboard')
+    expect(routePaths).toContain('/founders')
+    expect(routePaths).toContain('/for-organizations')
+    expect(routePaths).not.toContain('/participate')
   })
 
   it('lazyGiving owns assurance-contract project routes', () => {
@@ -206,7 +211,7 @@ describe('cross-domain route ownership', () => {
     expect(routePaths).toContain('/user/:address')
     expect(routePaths).not.toContain('/explore')
     expect(domainManifests.tally.shell.primaryNavigation).not.toContainEqual({ label: 'Explore', path: '/explore' })
-    for (const id of ['commonality', 'lazyGiving', 'alignment', 'content-funding', 'civility', 'common-sense-majority', 'conceptspace'] as DomainId[]) {
+    for (const id of ['lazyGiving', 'alignment', 'content-funding', 'civility', 'common-sense-majority', 'conceptspace'] as DomainId[]) {
       const paths = extractRoutePaths(domainManifests[id].routes)
       expect(paths).not.toContain('/statements')
       expect(paths).not.toContain('/statement/:statementCid')
@@ -222,7 +227,7 @@ describe('cross-domain route ownership', () => {
       expect(routePaths).toContain('/content/:platform')
       expect(routePaths).toContain('/content/:platform/:channelId')
     }
-    expect(extractRoutePaths(domainManifests.commonality.routes)).not.toContain('/content')
+    expect(extractRoutePaths(domainManifests.commonality.routes)).toContain('/content')
   })
 
   it('Common Sense Majority is a thin movement site with thesis, bridge, statement, and nudger routes only', () => {
@@ -251,11 +256,9 @@ describe('cross-domain route ownership', () => {
 })
 
 describe('cross-domain landing page rendering', () => {
-  it('commonality landing links to the movement sections', () => {
-    renderDomainRoute('commonality')
-    expectLandingLinkToHref('/docs')
-    expectLandingLinkToHref('/founders')
-    expectLandingLinkToHref('/participate')
+  it('commonality navigation links to the founder-first workspaces', () => {
+    const hrefs = domainManifests.commonality.shell.primaryNavigation.map(getNavigationHref)
+    expect(hrefs).toEqual(expect.arrayContaining(['/docs', '/causes', '/work', '/statements']))
   })
 
   it('lazyGiving landing includes its project actions', () => {

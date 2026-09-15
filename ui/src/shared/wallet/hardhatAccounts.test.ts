@@ -29,7 +29,7 @@ describe('hardhatAccounts', () => {
     expect(isLocalDevHost('localhost')).toBe(true)
     expect(isLocalDevHost('127.0.0.1')).toBe(true)
     expect(isLocalDevHost('[::1]')).toBe(true)
-    expect(isLocalDevHost('causestarter.localhost')).toBe(true)
+    expect(isLocalDevHost('commonality.localhost')).toBe(true)
     expect(isLocalDevHost('example.com')).toBe(false)
     expect(isLocalDevHost('')).toBe(false)
   })

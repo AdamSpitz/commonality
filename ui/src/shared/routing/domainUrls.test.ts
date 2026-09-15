@@ -98,7 +98,7 @@ describe('domain URL helpers', () => {
     vi.stubGlobal('window', {
       location: {
         protocol: 'https:',
-        hostname: 'commonality.testnet.commonality.works',
+        hostname: 'testnet.commonality.works',
         port: '',
       },
     })
@@ -117,7 +117,7 @@ describe('domain URL helpers', () => {
     vi.stubGlobal('window', {
       location: {
         protocol: 'https:',
-        hostname: 'commonality.testnet.commonality.works',
+        hostname: 'testnet.commonality.works',
         port: '',
       },
     })

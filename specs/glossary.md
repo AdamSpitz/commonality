@@ -63,7 +63,7 @@ wrong (or this file is out of date and needs an ADR — see
 | **Site / UI domain** | A branded build that composes a subset of subsystems. There are eight |
 | **Bookmark** | A published cause or statement the user chose to keep, independently of signing. Cause bookmarks are cached locally and, with a connected wallet, stored in the `bookmarked-causes` mutable ref (public). Statement bookmarks use the separate `bookmarks` ref (statement CIDs). Unpublished cause drafts stay device-local. Never mix the two lists. User-facing verbs: bookmark / remove bookmark — never "save to device" or "delete cause" |
 | **Cause board** | The organizer publication at `/cause/:owner/:slug`: title, summary, ordered planks, bridges, pledges, and a **fundable-projects board** as the centerpiece. Code still says *roster* (`causestarter.roster`, `rosterCid`). Never say "roster" in UI copy. Not a dashboard. Leftover **cause page** is fine. See [cause-page-not-a-club.md](./product/cause-page-not-a-club.md). |
-| **Dashboard** / **my board** | A person's explicitly configured **fundable-projects board** in CauseStarter: included statements plus optional filters such as geography. It is independent of the statements the person signs. The first implementation is wallet-scoped in device storage, not a publication. See [role-centric-ui.md](./product/role-centric-ui.md). |
+| **Dashboard** / **my board** | A person's explicitly configured **fundable-projects board** in Commonality: included statements plus optional filters such as geography. It is independent of the statements the person signs. The first implementation is wallet-scoped in device storage, not a publication. See [role-centric-ui.md](./product/role-centric-ui.md). |
 | **Cause page** | Leftover synonym for **cause board** (the organizer publication). Prefer **cause board** in new copy. |
 | **Natural cause** | A cause playing the “this camp’s position” parent role in a [bridge cluster](./product/bridge-causes.md). Usually someone else’s publication; may be a **stand-in cause** the mediator wrote because that camp had no cause yet. |
 | **Stand-in cause** | A mediator-authored natural parent: a thin roster the mediator thinks the other camp believes, published under the mediator’s key and labeled as such. Not a modified cause (there is no prior parent to sliver). See [the-other-cause.md](/docs/founder/the-other-cause.md). |
@@ -151,7 +151,7 @@ retired as synonyms. `Contribution.participant`, `Refund.participant`, and
 
 - Ordinary English: the worldly goal.
 - Glossary Part 1: a **statement** used as a funding anchor (a *role*).
-- CauseStarter: the organizer **roster** — now called **cause board** in
+- Commonality: the organizer **roster** — now called **cause board** in
   user-facing copy (leftover **cause page** is fine). Identifiers and
   `/cause/:owner/:slug` may lag.
 

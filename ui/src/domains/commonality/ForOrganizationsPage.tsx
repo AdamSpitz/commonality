@@ -6,21 +6,21 @@ const sections = [
   {
     eyebrow: 'Step 1',
     title: 'Accept donations as delegatable notes',
-    description: 'Donors give to your cause and get a public receipt. They can revoke at any time, and they are refunded if a project does not clear its goal — so the ask is lower-risk than a normal donation appeal.',
-    href: getDomainUrl('lazyGiving', '/delegation/notes', { fallbackHref: '/docs/key-ideas/delegation' }),
+    description: 'Experiment with a delegatable funding note alongside your existing fundraising. Delegation is revocable; project contributions retain their normal assurance-contract refund rules.',
+    href: getDomainUrl('commonality', '/delegation/notes', { fallbackHref: '/delegation/notes' }),
     cta: 'See how delegation works',
   },
   {
     eyebrow: 'Step 2',
     title: 'Direct funds to projects you vet',
     description: 'You keep doing the part you are already good at: deciding which projects deserve money. Record those decisions as alignment attestations instead of in an internal database.',
-    href: getDomainUrl('alignment', '/', { fallbackHref: '/docs/key-ideas/funding-portals' }),
-    cta: 'Open Aligning',
+    href: getDomainUrl('commonality', '/causes', { fallbackHref: '/causes' }),
+    cta: 'Open cause boards',
   },
   {
     eyebrow: 'Step 3',
-    title: 'Let the ledger be the annual report',
-    description: 'Every delegation, decision, and disbursement is already public and auditable. There is no separate transparency exercise to run, and no overhead to justify to donors.',
+    title: 'Make funding decisions easier to inspect',
+    description: 'Onchain delegations, attestations, and disbursements create a public operational record. That can complement required accounting and reporting; it does not replace them.',
     path: '/docs/vision-and-strategy/ease-of-adoption/rails',
     cta: 'Read the rails argument',
   },
@@ -53,8 +53,8 @@ export function CommonalityForOrganizationsPage() {
   return (
     <DomainLandingPage
       eyebrow="For organizations"
-      title="Keep the judgment. Shed the financial org."
-      description="Your organization already has a cause, donors who trust it, and real expertise in evaluating projects. What it probably does not love is the overhead around all that — accounts, compliance, fundraising operations, and convincing skeptical donors where the money went. Commonality is rails you can run on instead."
+      title="Keep your judgment. Adopt the rails gradually."
+      description="Your organization can publish project judgments and experiment with transparent, delegatable funding without replacing its existing legal, accounting, or fundraising systems."
       spotlights={[
         {
           label: 'You do not have to switch anything',
@@ -63,7 +63,7 @@ export function CommonalityForOrganizationsPage() {
       ]}
       heroActions={[
         { label: 'Read the case for established orgs', path: '/docs/vision-and-strategy/ease-of-adoption/for-established-orgs' },
-        { label: 'Browse fundable-projects boards', href: getDomainUrl('alignment', '/', { fallbackHref: '#' }), variant: 'outlined' },
+        { label: 'Browse cause boards', path: '/causes', variant: 'outlined' },
       ]}
       sections={sections}
     >
@@ -91,7 +91,7 @@ export function CommonalityForOrganizationsPage() {
         <Stack spacing={1.5}>
           <Typography variant="h6">Newer org, no track record yet?</Typography>
           <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 760 }}>
-            The chicken-and-egg problem — donors want a track record, and you need donors to build one — gets easier here. Start by directing a few small notes toward good projects; the record is onchain and anyone can check it. You do not need to incorporate, hire an accountant, and print glossy annual reports just to look trustworthy. Donors who have never heard of you can at least tell that the rails underneath you are the standard ones.
+            The chicken-and-egg problem — donors want a track record, and you need donors to build one — gets easier when your project judgments and funding activity are inspectable. Start small, build a record, and be explicit about what the ledger does and does not prove. Normal legal and tax obligations still apply.
           </Typography>
         </Stack>
       </Paper>

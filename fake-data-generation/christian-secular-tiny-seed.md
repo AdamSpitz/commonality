@@ -1,12 +1,12 @@
 # Christianity × secular conservatism — tiny seed (working plan)
 
-Status: **tiny CauseStarter story is seeded and walkable; implication exercise is still weak.** Remaining work for *all* fake/seed jobs (including next left/right topics) lives in [`PLAN.md`](./PLAN.md) — resume there, not by expanding this pairing.
+Status: **tiny Commonality story is seeded and walkable; implication exercise is still weak.** Remaining work for *all* fake/seed jobs (including next left/right topics) lives in [`PLAN.md`](./PLAN.md) — resume there, not by expanding this pairing.
 
-Canonical wording constraints: [statements are peculiar for good reasons](/specs/product/statements-are-peculiar-for-good-reasons.md). Mediator strategy already in repo: [`services/bridge-creator/config/christian-secular-conservative.example.json`](/services/bridge-creator/config/christian-secular-conservative.example.json) (family-formation / kids-and-tech / religious-liberty / moral-grounding). This seed **replaces** the thin CauseStarter Christianity planks, it does not add a second Christianity.
+Canonical wording constraints: [statements are peculiar for good reasons](/specs/product/statements-are-peculiar-for-good-reasons.md). Mediator strategy already in repo: [`services/bridge-creator/config/christian-secular-conservative.example.json`](/services/bridge-creator/config/christian-secular-conservative.example.json) (family-formation / kids-and-tech / religious-liberty / moral-grounding). This seed **replaces** the thin Commonality Christianity planks, it does not add a second Christianity.
 
 ## Goal
 
-Tiny local seed (`./scripts/data.sh --seed`, i.e. `gen:tiny`) should show two CauseStarter boards and a mediator cluster whose statements actually have the peculiar shape, and whose designed implication arrows the **live** implication attester blesses.
+Tiny local seed (`./scripts/data.sh --seed`, i.e. `gen:tiny`) should show two Commonality boards and a mediator cluster whose statements actually have the peculiar shape, and whose designed implication arrows the **live** implication attester blesses.
 
 ## Decisions (locked)
 
@@ -41,9 +41,9 @@ Containment is a check after drafting, not a method. Do **not** paste commonalit
 - [x] `seedMetadata.test.ts` plank counts 4/4 and 10 projects. Common Table retargeted to `scripture/natural-christian`.
 - [x] Nudge batches: Hardhat #8 publishes 6 parent-natural → modified suggestions (`NATURAL_TO_MODIFIED_NUDGES`).
 - [x] On-chain implications: local implication attester replays 6 blessed modified→CG arrows (`BLESSED_MODIFIED_TO_COMMONALITY`).
-- [x] CauseStarter click-through on the 2026-08-25 tiny seed (no reseed this pass).
+- [x] Commonality click-through on the 2026-08-25 tiny seed (no reseed this pass).
 - [ ] Optional: align bridge-creator example anchors with these texts later; do not fork a second abortion triple in hidden-majority-patterns.
-- [x] CauseStarter **bridge cluster** under #8 (`christian-secular`): two modified rosters + bridge roster + cluster document. Tiny seed publishes it; `--cluster-only` resolves statement CIDs via IPFS (same content as an existing seed) and only republishes the cluster documents.
+- [x] Commonality **bridge cluster** under #8 (`christian-secular`): two modified rosters + bridge roster + cluster document. Tiny seed publishes it; `--cluster-only` resolves statement CIDs via IPFS (same content as an existing seed) and only republishes the cluster documents.
 - [x] Prospective-round content scenario: `Failed to find ProspectiveRoundCreated` was a call to a **no-bytecode** factory address left in `.env` after a chain that never deployed `ProspectiveContentRoundFactory` (empty-account txs succeed with no logs). Seed now skips when `getCode` is empty; SDK `createProspectiveRound` reports missing bytecode instead of a missing event. Local config sync requires `PROSPECTIVE_CONTENT_ROUND_FACTORY_ADDRESS`. 2026-08-25 tiny reseed: open YouTube round `0x147D1dB74c2878E08a6Ac648818421b3d77e90E3`; materialized Substack `0xEa26F3615fd3A84eB5dD24a00E7B4bEc06D63206` → `0xF8ADc47E258b9a56a8E0A717572dB3F1Cb1b4cc4`.
 
 ## Still open (resume here)
@@ -52,7 +52,7 @@ Optional: align bridge-creator example anchors later. Prospective-round seed is 
 
 **Generation process for later clusters (and LLM bulk seed):** [statement-generation.md](./statement-generation.md). Exercise 1 simple causes live in [seed-content/simple-causes.json](./seed-content/simple-causes.json). Not this pairing.
 
-**This pairing is a weak first exercise of the implication system (2026-08-25).** Christian × secular-conservative is a real alliance type (groups already close; they agree on the *policy*; they mistrust each other’s *why*). For that pattern the honest commonality *is* just the policy. That is why the prose kept collapsing: slogan-glue, then “I don’t need your reasons,” then “we come from different places,” then the policy twice. Nothing left to peculiar-ize. Fine as a CauseStarter demo of two nearby camps. **Bad as the tiny seed’s only test of modifieds, nudges, and the attester**, which exist to handle a deal one side would not write on their own (overlap-zone compromise, bilateral assurance, unbundling that costs something, a conditional on a fact fight). Locked topic list above mixed those jobs. Do not keep polishing this triple as if more wording will make it a compromise-in-the-middle.
+**This pairing is a weak first exercise of the implication system (2026-08-25).** Christian × secular-conservative is a real alliance type (groups already close; they agree on the *policy*; they mistrust each other’s *why*). For that pattern the honest commonality *is* just the policy. That is why the prose kept collapsing: slogan-glue, then “I don’t need your reasons,” then “we come from different places,” then the policy twice. Nothing left to peculiar-ize. Fine as a Commonality demo of two nearby camps. **Bad as the tiny seed’s only test of modifieds, nudges, and the attester**, which exist to handle a deal one side would not write on their own (overlap-zone compromise, bilateral assurance, unbundling that costs something, a conditional on a fact fight). Locked topic list above mixed those jobs. Do not keep polishing this triple as if more wording will make it a compromise-in-the-middle.
 
 **Option (a) landed 2026-08-31.** Christianity / secular boards stay. Tiny also publishes the accepted left/right abortion cluster (`data/tiny-clusters/compromise-abortion.json`, wording from `seed-content/compromise-abortion.json`). See [`PLAN.md`](./PLAN.md).
 
@@ -72,11 +72,11 @@ Hardhat #8 refs:
 
 Natural parent pages list the cluster **after this client has opened the cluster URL** (ADR 0011: remember opened citations; no crawl). Fresh browsers still say “No bridges yet” on Christianity/secular until that visit.
 
-`BridgeClusterPage` used to refetch forever (`routeRef` object identity in the load effect). Memoize `parseClusterRouteParams` on `owner`/`slugPart`. Docker/IPFS CauseStarter (`:8090`, `:8088`) still has the old bundle until republished; Vite (`npm run causestarter:dev`) shows the page.
+`BridgeClusterPage` used to refetch forever (`routeRef` object identity in the load effect). Memoize `parseClusterRouteParams` on `owner`/`slugPart`. Docker/IPFS Commonality (`:8090`, `:8088`) still has the old bundle until republished; Vite (`npm run commonality:dev`) shows the page.
 
-## CauseStarter UI walk (2026-08-25, existing local seed)
+## Commonality UI walk (2026-08-25, existing local seed)
 
-CauseStarter at `http://causestarter.localhost:8088/#/`. Hardhat picker works.
+Commonality at `http://commonality.localhost:8088/#/`. Hardhat picker works.
 
 **Camp boards (naturals only)**
 

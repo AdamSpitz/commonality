@@ -127,6 +127,6 @@ export async function writeTestDataRun(input: Omit<TestDataRun, 'schema' | 'runI
 
   const keyText = key.toString('base64url');
   console.log(`  Test-data run: ${id}`);
-  console.log(`  Admin: http://causestarter.localhost:8088/#/admin/test-data?key=${keyText}`);
+  console.log(`  Admin: http://commonality.localhost:8088/#/admin/test-data?key=${keyText}`);
   return { run, registry, capability: keyText, artifactRoot };
 }

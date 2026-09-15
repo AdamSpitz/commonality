@@ -14,7 +14,7 @@ The existing `published-data-ipfs-mirror` implements the intended write side: it
 
 | Flow | Path | Notes |
 | --- | --- | --- |
-| Cause launch statements | `ui/src/causestarter/pages/StartCausePage.tsx` | Requires `VITE_PUBLISHED_DATA_CONTRACT_ADDRESS` |
+| Cause launch statements | `ui/src/commonality/pages/StartCausePage.tsx` | Requires `VITE_PUBLISHED_DATA_CONTRACT_ADDRESS` |
 | Conceptspace create | `ui/src/conceptspace/components/CreateStatementForm.tsx` | Requires PublishedData (hard fail if missing) |
 | LazyGiving project/token metadata | `ui/src/lazy-giving/pages/CreateProjectPage.tsx` | Requires PublishedData; images are CID-only (no upload) |
 | Content-funding metadata | `ui/src/content-funding/pages/CreateContractPage.tsx` | Requires PublishedData |
@@ -36,10 +36,10 @@ Integration tests and some seed helpers may still call `uploadToIPFS` or Documen
 ## Cutover work (done)
 
 1. ~~Inventory browser `uploadToIPFS` callers~~ — no required product callers remain.
-2. ~~Migrate eligible publishing flows~~ — UI + CauseStarter force PublishedData.
+2. ~~Migrate eligible publishing flows~~ — UI + Commonality force PublishedData.
 3. ~~Document Commonality + independent operator mirror ops~~ — [`published-data-ipfs-mirror/README.md`](../../published-data-ipfs-mirror/README.md).
 4. ~~Verify hash-validating resolver chain~~ — calldata first, IPFS fallback, `ContentUnavailableError` ≠ `not-published` (SDK `createDefaultContentResolver`).
-5. ~~Remove browser Kubo write configuration~~ — `getIpfsApiUrl()` empty; CauseStarter `/ipfs-api` Vite/nginx proxy and upstream entrypoint removed; UI compose no longer sets `VITE_IPFS_API`. Gateway env (`VITE_IPFS_GATEWAY`) retained for reads.
+5. ~~Remove browser Kubo write configuration~~ — `getIpfsApiUrl()` empty; Commonality `/ipfs-api` Vite/nginx proxy and upstream entrypoint removed; UI compose no longer sets `VITE_IPFS_API`. Gateway env (`VITE_IPFS_GATEWAY`) retained for reads.
 
 ## Remaining ops (not code)
 
@@ -51,5 +51,5 @@ Integration tests and some seed helpers may still call `uploadToIPFS` or Documen
 - [x] No active PublishedData flow uploads from the browser or depends on Kubo availability.
 - [x] Independent cause operators have a usable mirror runbook without being required to operate one.
 - [x] Remaining direct IPFS writers are explicitly documented legacy exceptions.
-- [x] Removing CauseStarter's `/ipfs-api` proxy does not leave product publish paths on browser Kubo.
+- [x] Removing Commonality's `/ipfs-api` proxy does not leave product publish paths on browser Kubo.
 - [ ] Production mirror process deployed and caught up on each operated network — **ops checklist** in mirror README (environment-specific).

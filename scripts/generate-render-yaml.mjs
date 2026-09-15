@@ -40,7 +40,6 @@ const domainSlugs = [
   'civility',
   'common-sense-majority',
   'conceptspace',
-  'causestarter',
 ]
 
 const domainUrlVars = [
@@ -52,10 +51,14 @@ const domainUrlVars = [
   'VITE_CIVILITY_URL',
   'VITE_COMMON_SENSE_MAJORITY_URL',
   'VITE_CONCEPTSPACE_URL',
-  'VITE_CAUSESTARTER_URL',
 ]
 
 function uiDomainOrigin(slug, rootDomain, environmentLabel, scheme = 'https') {
+  if (slug === 'commonality') {
+    return environmentLabel
+      ? `${scheme}://${environmentLabel}.${rootDomain}`
+      : `${scheme}://${rootDomain}`
+  }
   const host = environmentLabel ? `${slug}.${environmentLabel}` : slug
   return `${scheme}://${host}.${rootDomain}`
 }
@@ -72,7 +75,8 @@ function populateUiDomainUrls(env) {
   const corsOrigins = []
   for (const [index, slug] of domainSlugs.entries()) {
     const generatedOrigin = uiDomainOrigin(slug, rootDomain, environmentLabel, scheme)
-    env[domainUrlVars[index]] ??= generatedOrigin
+    if (slug === 'commonality') env[domainUrlVars[index]] = generatedOrigin
+    else env[domainUrlVars[index]] ??= generatedOrigin
     corsOrigins.push(env[domainUrlVars[index]])
   }
 

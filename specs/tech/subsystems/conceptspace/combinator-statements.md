@@ -7,7 +7,7 @@
 document, so the combination is a graph node without asking an LLM what the
 sentence means.
 
-CauseStarter promotion of a view to an [anchor](/docs/founder/shaping-your-cause-statements.md#what-an-anchor-is-actually-for-2026-08-18)
+Commonality promotion of a view to an [anchor](/docs/founder/shaping-your-cause-statements.md#what-an-anchor-is-actually-for-2026-08-18)
 is the product reason this exists. Do not grow it into a language of beliefs.
 
 **Why:** [ADR 0010](/specs/decisions/0010-combinator-statements.md).
@@ -119,14 +119,14 @@ a combinator, still goes to the LLM attester as today. Taste arrows (“is
 pro-life part of conservatism?”) stay LLM / founder.
 
 Non-transitivity is unchanged. Nested combinators are just statements; v1
-CauseStarter only promotes over non-combinator planks.
+Commonality only promotes over non-combinator planks.
 
 Anyone may publish identical combinator bytes. Identical bytes are the same
 CID; the `PublishedData` publisher is not the claim.
 
 ## Product seat
 
-CauseStarter view strip: after a selection of planks, optional promote.
+Commonality view strip: after a selection of planks, optional promote.
 
 - **Any of these** → `any` combinator, inbound arrows from each selected plank.
 - **All of these** → `all` combinator, outbound arrows to each selected plank.

@@ -2,7 +2,7 @@
 
 A mediator watches the context you choose and proposes bridge triples: one statement for each of two founder-named sides, plus common ground both imply. Supporters see its suggestions only after opting in.
 
-When you are bridging *existing causes* (not only sides inside one cause), the public picture is a [bridge cluster](/specs/product/bridge-causes.md): a modified cause per parent plus a bridge cause. In CauseStarter, write that cluster from the cause-editing **Mediator** section (**Write a bridge**, `/bridge/new`); it does not have to come from this service. When the sides are not causes, write a statement-level triple at `/bridge/triple` instead — still no service. An LLM instance that *does* name parent causes can publish the same cluster documents on its tick (`parent_causes` on the mediator artifact). See [ADR 0012](/specs/decisions/0012-mediator-is-an-address.md).
+When you are bridging *existing causes* (not only sides inside one cause), the public picture is a [bridge cluster](/specs/product/bridge-causes.md): a modified cause per parent plus a bridge cause. In Commonality, write that cluster from the cause-editing **Mediator** section (**Write a bridge**, `/bridge/new`); it does not have to come from this service. When the sides are not causes, write a statement-level triple at `/bridge/triple` instead — still no service. An LLM instance that *does* name parent causes can publish the same cluster documents on its tick (`parent_causes` on the mediator artifact). See [ADR 0012](/specs/decisions/0012-mediator-is-an-address.md).
 
 Wording help on that page is **one-shot**, not a conversation. Approach, rejected alternatives, and what is still missing: [Helping a human write a bridge cluster](./bridge-cluster-wording-help.md). **Copy brief for your assistant** builds a constrained packet for Claude / ChatGPT / Grok; paste the JSON it returns and review before applying. The in-page buttons call cause-assist the same way plank sharpening does. You remain the publisher.
 
@@ -16,7 +16,7 @@ npm run scaffold --workspace=@commonality/bridge-creator -- \
   --output ../../my-mediator.json
 ```
 
-When `--cause-assist-url` (or `CAUSE_ASSIST_URL`) is present, the scaffold asks the existing CauseStarter assistant for editable identity, side-label, and complete anchor-cluster starting points. Without it, the command remains a blank offline scaffold. Either way, the strategy prompt stays blank: the assistant never supplies the mediator's operating policy.
+When `--cause-assist-url` (or `CAUSE_ASSIST_URL`) is present, the scaffold asks the existing Commonality assistant for editable identity, side-label, and complete anchor-cluster starting points. Without it, the command remains a blank offline scaffold. Either way, the strategy prompt stays blank: the assistant never supplies the mediator's operating policy.
 
 The generated `provisional-v1` artifact intentionally contains obvious blanks. In particular, **Commonality does not supply a default strategy prompt**. Write the policy and mediation judgment you intend to operate under, name `side_a` and `side_b`, add a few complete `side-a` / `side-b` / `common-ground` anchor clusters, and configure inspectable context sources.
 
@@ -48,7 +48,7 @@ npm run anchors --workspace=@commonality/bridge-creator -- --config ./my-mediato
 
 ## Publish the reusable UI blocks
 
-In CauseStarter, open your cause, click **Edit**, and use the collapsed **Mediator
+In Commonality, open your cause, click **Edit**, and use the collapsed **Mediator
 (optional)** panel to enter the mediator's name, description, signer address, and public
 service URL. It's all-or-nothing: a half-filled mediator can't be contacted or trusted, so
 the editor rejects a partial record. Publishing the roster carries that identity into the

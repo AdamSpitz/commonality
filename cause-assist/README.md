@@ -1,13 +1,13 @@
 # Cause assist
 
-LLM-backed helpers for CauseStarter, defaulting to **Grok 4.5** via the xAI API:
+LLM-backed helpers for Commonality, defaulting to **Grok 4.5** via the xAI API:
 
-1. **Atomizer** — turn an organizer's ordinary-language intent into independent, signable candidate planks after retrieval has failed. CauseStarter shows these as selectable proposals and never silently adopts them.
-2. **Plank sharpener** — critique/reword a plank against the attestable + signable bar. CauseStarter shows any rewording as an explicit proposal, not an automatic field overwrite.
+1. **Atomizer** — turn an organizer's ordinary-language intent into independent, signable candidate planks after retrieval has failed. Commonality shows these as selectable proposals and never silently adopts them.
+2. **Plank sharpener** — critique/reword a plank against the attestable + signable bar. Commonality shows any rewording as an explicit proposal, not an automatic field overwrite.
 3. **Anchor drafter** — promote established planks into an explicitly enumerated disjunctive anchor.
 4. **Legacy statement suggester** — preserve the main → supporting workflow for existing causes.
 5. **Implication check and safety filter** — verify arrows and apply operational acceptable-use rules.
-6. **Coherence check + worker attestation helpers** — construction-only roster judgment (planks match summary, no riders); separate prompt and model config from generation. The trusted [`coherence-badge-worker`](../coherence-badge-worker/) imports the binding/judgment helpers and writes positive-only badges as the **CauseStarter site operator** (`msg.sender`), never the founder.
+6. **Coherence check + worker attestation helpers** — construction-only roster judgment (planks match summary, no riders); separate prompt and model config from generation. The trusted [`coherence-badge-worker`](../coherence-badge-worker/) imports the binding/judgment helpers and writes positive-only badges as the **Commonality site operator** (`msg.sender`), never the founder.
 7. **Bridge-cluster wording verbs** — one-shot `draft-modified-plank`, `draft-stand-in-sliver`, `draft-bridge-plank`, and `critique-triple`. These help a human author a cluster; they are not a chat and they never write a standing strategy prompt. Product intent: [`docs/founder/bridge-cluster-wording-help.md`](../docs/founder/bridge-cluster-wording-help.md), [`docs/founder/the-other-cause.md`](../docs/founder/the-other-cause.md).
 
 The three plank-first capabilities run as cause-assist-owned strategies on the shared bridge-creator statement engine. They share execution machinery and pattern techniques with bridge creation, but never its mediation strategy prompt.
@@ -66,8 +66,8 @@ Without an API key, the suggester uses conservative local templates, implication
 # Full stack (includes cause-assist on 127.0.0.1:3002)
 ./scripts/services.sh --start
 
-# Or CauseStarter + cause-assist only
-./scripts/deploy-causestarter.sh
+# Or Commonality + cause-assist only
+./scripts/deploy-commonality.sh
 
 # Health
 curl -s http://127.0.0.1:3002/health
@@ -75,7 +75,7 @@ curl -s http://127.0.0.1:3002/health
 
 - Compose service name: `cause-assist` (`commonality-cause-assist` container)
 - Host port: **127.0.0.1:3002** (loopback) so Vite can proxy without host npm
-- In-network: `http://cause-assist:3002` (CauseStarter nginx `/api/cause-assist/`)
+- In-network: `http://cause-assist:3002` (Commonality nginx `/api/cause-assist/`)
 
 Env/keys: put `XAI_API_KEY` in repo-root `.env.secrets`, then `./scripts/setup-env.sh localhost`. Compose loads root `.env`.
 
@@ -104,4 +104,4 @@ npm run test --workspace=@commonality/cause-assist
 ## Legal posture notes
 
 - Suggestions are **drafts**; the user must adopt/edit them. Publication remains the user's signed on-chain act.
-- The filter is an operated-UI gate (hide / refuse to save in CauseStarter), not chain-level censorship.
+- The filter is an operated-UI gate (hide / refuse to save in Commonality), not chain-level censorship.

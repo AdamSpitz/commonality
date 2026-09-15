@@ -1026,7 +1026,7 @@ function requireSeedStatement(
 /**
  * Tiny/small/medium seeds load generated statements, not the curated seed
  * universe, so local-food-systems is usually missing. Nightly wipe+reseed
- * uses `--seed=tiny`; without this plank the CauseStarter cause has no
+ * uses `--seed=tiny`; without this plank the Commonality cause has no
  * aligned projects.
  */
 async function ensureMappedSeedStatement(

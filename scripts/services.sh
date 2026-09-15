@@ -49,19 +49,19 @@ show_usage() {
     echo ""
     echo "Data is stored in $DATA_DIR/. Use scripts/data.sh to manage it."
     echo ""
-    echo "CauseStarter is a core domain (IPFS gateway + dedicated SPA on :8090)."
-    echo "  Gateway: http://causestarter.localhost:8088/#/"
+    echo "Commonality is a core domain (IPFS gateway + dedicated SPA on :8090)."
+    echo "  Gateway: http://commonality.localhost:8088/#/"
     echo "  App:     http://localhost:8090/  (cause-assist on :3002)"
-    echo "  Rebuild: ./scripts/deploy-causestarter.sh"
+    echo "  Rebuild: ./scripts/deploy-commonality.sh"
     echo ""
-    echo "LOCAL_UI_DOMAINS (temporary): default is causestarter only."
+    echo "LOCAL_UI_DOMAINS (temporary): default is commonality only."
     echo "  Restore every IPFS SPA: LOCAL_UI_DOMAINS=all $0 --start"
     echo "  See workflow/local-development.md"
 }
 
-# Which UI IPFS publishers to run on --start. Default: CauseStarter only.
-# LOCAL_UI_DOMAINS=all restores the eight legacy domains + CauseStarter.
-# Comma/space list also works, e.g. LOCAL_UI_DOMAINS=causestarter,tally
+# Which UI IPFS publishers to run on --start. Default: Commonality only.
+# LOCAL_UI_DOMAINS=all restores the eight legacy domains + Commonality.
+# Comma/space list also works, e.g. LOCAL_UI_DOMAINS=commonality,tally
 load_local_ui_domains_from_env_file() {
     if [ -n "${LOCAL_UI_DOMAINS:-}" ] || [ ! -f .env ]; then
         return 0
@@ -272,8 +272,8 @@ load_env_file_if_present() {
     set +a
 }
 
-map_causestarter_contract_env() {
-    # Map root .env / hardhat deploy names onto VITE_* keys for CauseStarter runtime config.
+map_commonality_contract_env() {
+    # Map root .env / hardhat deploy names onto VITE_* keys for Commonality runtime config.
     export VITE_BELIEFS_CONTRACT_ADDRESS="${VITE_BELIEFS_CONTRACT_ADDRESS:-${BELIEFS_CONTRACT_ADDRESS:-}}"
     export VITE_IMPLICATIONS_CONTRACT_ADDRESS="${VITE_IMPLICATIONS_CONTRACT_ADDRESS:-${IMPLICATIONS_CONTRACT_ADDRESS:-}}"
     export VITE_MUTABLE_REF_UPDATER_CONTRACT_ADDRESS="${VITE_MUTABLE_REF_UPDATER_CONTRACT_ADDRESS:-${MUTABLE_REF_UPDATER_CONTRACT_ADDRESS:-${MUTABLE_REF_UPDATER_ADDRESS:-}}}"
@@ -315,7 +315,7 @@ start_services() {
         platform-api-service
         cause-assist
         alignment-trust-bootstrap
-        causestarter
+        commonality-ui
         christian-bridge-creator
         service-host-attesters
     )
@@ -343,12 +343,12 @@ start_services() {
     # The UI publisher bind-mounts these files so it reads contract addresses
     # written by hardhat-deploy at runtime instead of stale values baked into
     # the Docker image. Ensure clean checkouts have files to mount.
-    mkdir -p ui causestarter
+    mkdir -p ui commonality-ui
     # Create empty env files only when missing. `touch` on existing files updates
-    # mtime and forces Vite (npm run causestarter:dev) to full-reload the SPA.
+    # mtime and forces Vite (npm run commonality:dev) to full-reload the SPA.
     [ -f .env ] || touch .env
     [ -f ui/.env ] || touch ui/.env
-    [ -f causestarter/.env ] || touch causestarter/.env
+    [ -f commonality-ui/.env ] || touch commonality-ui/.env
     services_to_build=()
     while IFS= read -r line; do
         services_to_build+=("$line")
@@ -372,22 +372,22 @@ start_services() {
     wait_for_local_ui_gateway
     timing_mark ui_ipfs
 
-    # CauseStarter SPA + cause-assist (core founder surface on :8090).
+    # Commonality SPA + cause-assist (core founder surface on :8090).
     # localhost.env matches hardhat-deploy --network localhost; live .env files win.
     load_env_file_if_present deployments/localhost.env
     load_env_file_if_present .env
     load_env_file_if_present ui/.env
-    load_env_file_if_present causestarter/.env
-    map_causestarter_contract_env
+    load_env_file_if_present commonality-ui/.env
+    map_commonality_contract_env
     # service-host-attesters must start after the env files above are sourced:
     # it needs IMPLICATIONS_CONTRACT_ADDRESS from deployments/localhost.env, and
     # compose reads that from this shell. The bridge-cluster editor's "submit
     # pairs to attester" step talks to it on :3006.
-    echo "[$(date +%T)] Starting CauseStarter SPA, cause-assist, attesters, workers..."
+    echo "[$(date +%T)] Starting Commonality SPA, cause-assist, attesters, workers..."
     docker_compose up -d --force-recreate \
-        cause-assist alignment-trust-bootstrap causestarter christian-bridge-creator \
+        cause-assist alignment-trust-bootstrap commonality-ui christian-bridge-creator \
         service-host-attesters
-    timing_mark causestarter
+    timing_mark commonality_ui
 
     # Compose auto-loads the root .env, so once generate-wallets.mjs has run the
     # services sign with generated keys that hold no ETH on a fresh local chain.
@@ -399,9 +399,9 @@ start_services() {
         echo "  node scripts/fund-local-service-wallets.mjs"
     fi
 
-    echo "Recording local Hardhat-account trust (CauseStarter starter network)..."
+    echo "Recording local Hardhat-account trust (Commonality starter network)..."
     if ! node "$SCRIPT_DIR/seed-local-alignment-trust.mjs"; then
-        echo "Warning: could not seed local alignment trust. CauseStarter project lists may stay gated until you run:"
+        echo "Warning: could not seed local alignment trust. Commonality project lists may stay gated until you run:"
         echo "  node scripts/seed-local-alignment-trust.mjs"
     fi
     timing_mark alignment_trust
@@ -410,7 +410,7 @@ start_services() {
     echo "Services started. Use 'docker compose logs -f' to view logs."
     echo "Platform API service health: http://localhost:3001/health"
     echo "Attesters (implication + content) health: http://localhost:3006/health"
-    echo "CauseStarter: http://localhost:${CAUSESTARTER_PORT:-8090}/  (gateway: http://causestarter.localhost:8088/#/)"
+    echo "Commonality: http://localhost:${COMMONALITY_UI_PORT:-8090}/  (gateway: http://commonality.localhost:8088/#/)"
 
     # Fail fast on env / on-chain / SPA config drift (PublishedData missing, stale ProjectFactory ABI, …).
     echo ""

@@ -1,6 +1,6 @@
 {
   "id": "testnet.alignment-trust",
-  "description": "Guarded mutating Base Sepolia check: publishes an alignment vouch, waits for the CauseStarter bootstrap root to trust its attester directly, and verifies the denylist canary remains excluded.",
+  "description": "Guarded mutating Base Sepolia check: publishes an alignment vouch, waits for the Commonality bootstrap root to trust its attester directly, and verifies the denylist canary remains excluded.",
   "trigger": { "type": "manual" },
   "retention": { "keep": 5, "keepDays": 30 },
   "command": ["node", "checks/testnet/alignment-trust.mjs"],

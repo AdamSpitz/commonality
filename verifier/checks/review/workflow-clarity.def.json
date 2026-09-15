@@ -1,6 +1,6 @@
 {
   "id": "review.workflow-clarity",
-  "description": "Standing advisory LLM-judgment leaf: default CauseStarter workflow-clarity pass. Named review.workflow-clarity.<domain> checks cover the other in-scope domains. Uses coverage/domains.json as the in-scope surface enumerator.",
+  "description": "Standing advisory LLM-judgment leaf: default Commonality workflow-clarity pass. Named review.workflow-clarity.<domain> checks cover the other in-scope domains. Uses coverage/domains.json as the in-scope surface enumerator.",
   "cost": "llm",
   "trigger": {
     "type": "manual"

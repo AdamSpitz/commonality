@@ -3,7 +3,7 @@ main = "ui-gateway.mjs"
 compatibility_date = "2025-12-01"
 
 routes = [
-  { pattern = "commonality.commonality.works/*", zone_name = "commonality.works" },
+  { pattern = "commonality.works/*", zone_name = "commonality.works" },
   { pattern = "lazygiving.commonality.works/*", zone_name = "commonality.works" },
   { pattern = "alignment.commonality.works/*", zone_name = "commonality.works" },
   { pattern = "tally.commonality.works/*", zone_name = "commonality.works" },

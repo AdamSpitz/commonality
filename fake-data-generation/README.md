@@ -56,7 +56,7 @@ npm run gen:simulate
 # Or with custom parameters
 npm run gen:tiny        # 5 users, 1 round, no random universe statements, capped actions, no invariant pass
 npm run gen:seed:christian-secular-implications  # live attester on the tiny-bridge designed pairs
-                        # Always publishes the Local food systems + Christianity CauseStarter rosters (nightly wipe uses this).
+                        # Always publishes the Local food systems + Christianity Commonality rosters (nightly wipe uses this).
                         # This is what `./scripts/data.sh --seed` runs by default.
 npm run gen:small       # 10 users, 3 rounds, no invariant pass (pass `--invariants` to run them)
 npm run gen:seed:local  # 12 users, 3 rounds, formal seed content, Alignment Explorer/nudge fixtures
@@ -109,13 +109,13 @@ Generated files are split into two directories to make their lifecycle explicit:
 **`output/`** — Per-simulation-run outputs, produced fresh each time (gitignored):
 - `output/actions.json` — Log of all actions performed during simulation
 - `output/metrics.json` — Gas usage statistics and performance metrics
-- `output/test-data/` — Encrypted, durable run documents plus a reverse-chronological registry. The seed command prints a capability URL for the CauseStarter admin viewer. The capability file is never uploaded.
+- `output/test-data/` — Encrypted, durable run documents plus a reverse-chronological registry. The seed command prints a capability URL for the Commonality admin viewer. The capability file is never uploaded.
 
 ### Browsing generated runs
 
 Every completed simulation appends an encrypted run to the test-data registry. Locally,
 open `http://localhost:8088/admin` and follow **Browse generated test-data runs**. The
-run page provides the objective action/user summary and can connect CauseStarter as any
+run page provides the objective action/user summary and can connect Commonality as any
 disposable fake user from that run.
 
 **Capability key and LLMs.** The AES key lives at
@@ -123,7 +123,7 @@ disposable fake user from that run.
 uploaded). Encryption is so the published registry is not world-readable; it is
 **not** a secret from a local coding agent. If you are working on
 `/admin/test-data`, **read that file** and open
-`http://causestarter.localhost:8088/#/admin/test-data?key=<contents>` (or the
+`http://commonality.localhost:8088/#/admin/test-data?key=<contents>` (or the
 link on `http://localhost:8088/admin`). Do not treat the key as something you
 must ask Adam for. Still do not commit it, put it in `config.json`, send it to
 third-party logs, or bake it into a mainnet build.
@@ -134,8 +134,8 @@ For Base Sepolia, `./scripts/setup-testnet-naming.sh` creates
 the registry same-origin at `/test-data/registry.enc.json` (the UI Worker resolves
 the test-data IPNS). Run
 `npm run gen:test-data:publish` (or `./scripts/generate-testnet-data.sh --yes`) to
-pin encrypted artifacts and advance that IPNS name, then republish CauseStarter
-(`DOMAINS=causestarter ./scripts/deploy-testnet.sh`) and bookmark the printed
+pin encrypted artifacts and advance that IPNS name, then republish Commonality
+(`DOMAINS=commonality ./scripts/deploy-testnet.sh`) and bookmark the printed
 capability URL. Never put the capability in `config.json`, source control, logs
 sent to third parties, or a mainnet build. Test-data routes refuse to operate on mainnet.
 
@@ -155,7 +155,7 @@ existing `gen:medium` / `gen:large` stress workflows remain local-only.
 
 ## Formal Seed Content
 
-Statement *shape* (modified vs natural vs commonality, what the implication attester will bless) is documented in [`specs/product/statements-are-peculiar-for-good-reasons.md`](../specs/product/statements-are-peculiar-for-good-reasons.md). How to **generate** viable seed / cause-assist text without hand-wordsmithing: [`statement-generation.md`](./statement-generation.md). Working plan for the Christianity × secular-conservatism tiny seed: [`christian-secular-tiny-seed.md`](./christian-secular-tiny-seed.md). Tiny **bridge clusters** (owners, slugs, personas, projects) are `data/tiny-clusters/*.json` published by [`seedTinyCluster.ts`](./seedTinyCluster.ts). `gen:tiny` does **not** publish the random 12-statement `universe.json` slice; CauseStarter Christianity + secular-conservatism + the abortion-compromise cluster (and local-food) are the tiny story.
+Statement *shape* (modified vs natural vs commonality, what the implication attester will bless) is documented in [`specs/product/statements-are-peculiar-for-good-reasons.md`](../specs/product/statements-are-peculiar-for-good-reasons.md). How to **generate** viable seed / cause-assist text without hand-wordsmithing: [`statement-generation.md`](./statement-generation.md). Working plan for the Christianity × secular-conservatism tiny seed: [`christian-secular-tiny-seed.md`](./christian-secular-tiny-seed.md). Tiny **bridge clusters** (owners, slugs, personas, projects) are `data/tiny-clusters/*.json` published by [`seedTinyCluster.ts`](./seedTinyCluster.ts). `gen:tiny` does **not** publish the random 12-statement `universe.json` slice; Commonality Christianity + secular-conservatism + the abortion-compromise cluster (and local-food) are the tiny story.
 
 The curated seed statements for the real system now live in `seed-content/*.json` using a small formal schema:
 
@@ -310,19 +310,19 @@ deterministic channels/contracts. The unclaimed Twitter (`@civicbuilder`)
 contract has two posts; only
 `twitter:uid:111111111:1000000000000000001` is attested to the same
 `local-food-systems` plank as the Riverside Community Garden project, signed
-by `CONTENT_ATTESTER_PRIVATE_KEY` so CauseStarter's trusted-content filter
+by `CONTENT_ATTESTER_PRIVATE_KEY` so Commonality's trusted-content filter
 accepts it. A cause that publishes that plank should show one content-contract
 row with “1 of 2 posts attested”.
 
 The same seed then creates two prospective content rounds:
 
 - an **open** YouTube future-content round (below threshold, not materialized),
-  vouched as a project to `local-food-systems` so CauseStarter lists it before
+  vouched as a project to `local-food-systems` so Commonality lists it before
   any posts exist
 - a **successful and materialized** Substack round with one fulfilled post
   (`substack:smartwriter/civic-garden-explainer`) attested to the same plank
 
-The same seed publishes CauseStarter rosters at
+The same seed publishes Commonality rosters at
 `/cause/0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266/local-food-systems` and
 `/cause/0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266/christianity`
 (Hardhat #0) and writes `bookmarked-causes` for Hardhat `#0`–`#9`, so any of

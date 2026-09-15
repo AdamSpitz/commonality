@@ -46,7 +46,7 @@ function invalidRequest(res: Response, message: string): void {
 
 export function createCauseAssistApp(config: CauseAssistConfig): express.Express {
   const app = express()
-  // Requests arrive through the CauseStarter nginx service in Compose.
+  // Requests arrive through the Commonality nginx service in Compose.
   app.set('trust proxy', 1)
   app.use((req, res, next) => {
     const origin = req.headers.origin

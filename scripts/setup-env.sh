@@ -77,8 +77,8 @@ else
 fi
 load_env_file "$DEPLOYMENT_FILE"
 
-DOMAIN_SLUGS=(commonality lazygiving alignment tally content-funding civility common-sense-majority conceptspace causestarter)
-DOMAIN_URL_VARS=(VITE_COMMONALITY_URL VITE_LAZYGIVING_URL VITE_ALIGNMENT_URL VITE_TALLY_URL VITE_CONTENT_FUNDING_URL VITE_CIVILITY_URL VITE_COMMON_SENSE_MAJORITY_URL VITE_CONCEPTSPACE_URL VITE_CAUSESTARTER_URL)
+DOMAIN_SLUGS=(commonality lazygiving alignment tally content-funding civility common-sense-majority conceptspace)
+DOMAIN_URL_VARS=(VITE_COMMONALITY_URL VITE_LAZYGIVING_URL VITE_ALIGNMENT_URL VITE_TALLY_URL VITE_CONTENT_FUNDING_URL VITE_CIVILITY_URL VITE_COMMON_SENSE_MAJORITY_URL VITE_CONCEPTSPACE_URL)
 
 set_if_missing() {
 	local key="$1"
@@ -338,17 +338,17 @@ echo "  wrote $ROOT/integration-tests/.env.local"
 
 echo "  wrote $ROOT/ui/.env"
 
-# CauseStarter is a separate Vite app but consumes the same chain-scoped public
+# Commonality is a separate Vite app but consumes the same chain-scoped public
 # deployment configuration as the domain UIs.
-cp "$ROOT/ui/.env" "$ROOT/causestarter/.env"
-echo "  wrote $ROOT/causestarter/.env"
+cp "$ROOT/ui/.env" "$ROOT/commonality-ui/.env"
+echo "  wrote $ROOT/commonality-ui/.env"
 
 PROFILE_DIR="$ROOT/.generated-env/$NETWORK"
 mkdir -p "$PROFILE_DIR"
 cp "$ROOT/.env" "$PROFILE_DIR/root.env"
 cp "$ROOT/integration-tests/.env.local" "$PROFILE_DIR/integration-tests.env.local"
 cp "$ROOT/ui/.env" "$PROFILE_DIR/ui.env"
-cp "$ROOT/causestarter/.env" "$PROFILE_DIR/causestarter.env"
+cp "$ROOT/commonality-ui/.env" "$PROFILE_DIR/commonality-ui.env"
 echo "  saved complete profile $PROFILE_DIR"
 
 echo ""

@@ -12,7 +12,7 @@ import type {
   SafetyVerdict,
 } from './types.js'
 
-const SAFETY_SYSTEM = `You are a safety reviewer for CauseStarter, an operated public-goods coordination UI.
+const SAFETY_SYSTEM = `You are a safety reviewer for Commonality, an operated public-goods coordination UI.
 
 Apply the project's acceptable-use themes (not legal advice — operational policy):
 - No money laundering, fraud, stolen instruments, or scam fundraising.

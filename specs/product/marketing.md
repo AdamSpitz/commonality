@@ -14,7 +14,7 @@ But I'm not particularly interested in doing marketing to try to get end-users t
 
 The UI domain called Commonality is the one that's meant to be for those founders, to show them the vision and help them get their own verticals started.
 
-This boundary is not the claim that adoption takes care of itself. CauseStarter does
+This boundary is not the claim that adoption takes care of itself. Commonality does
 not manufacture motivation or replace X, newsletters, churches, professional networks,
 or the other places where a cause already has attention. It gives a founder a better
 ask once he reaches those people: contribute money, prospective judgment,

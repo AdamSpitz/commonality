@@ -253,7 +253,7 @@ emit(async () => {
 
     const sameWorld = findings.clients.a.deployedConfig && findings.clients.b.deployedConfig && configA.body === configB.body;
     if (!sameWorld) {
-      return fail("Two browser contexts did not load the same deployed CauseStarter config.", { findings });
+      return fail("Two browser contexts did not load the same deployed Commonality config.", { findings });
     }
 
     if (process.env.COMMONALITY_VERIFIER_ENABLE_TESTNET_MUTATION === "1") {
@@ -286,9 +286,9 @@ emit(async () => {
 
     const atomizeOk = findings.assist.atomize?.ok === true;
     if (!atomizeOk) {
-      return uncertain("Two browsers share the live CauseStarter world, but cause-assist atomize from the page origin failed.", { findings });
+      return uncertain("Two browsers share the live Commonality world, but cause-assist atomize from the page origin failed.", { findings });
     }
-    return pass("Two independent Chromium contexts loaded CauseStarter, shared deployed config, and atomize answered from the page origin.", { findings });
+    return pass("Two independent Chromium contexts loaded Commonality, shared deployed config, and atomize answered from the page origin.", { findings });
   } finally {
     await browser.close();
   }

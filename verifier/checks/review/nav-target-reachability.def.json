@@ -1,6 +1,6 @@
 {
   "id": "review.nav-target-reachability",
-  "description": "Deterministic lint: every static internal nav target in in-scope UI source (CauseStarter, Civility, Common Sense Majority) matches a declared route. Out-of-scope domain files are not gated.",
+  "description": "Deterministic lint: every static internal nav target in in-scope UI source (Commonality, Civility, Common Sense Majority) matches a declared route. Out-of-scope domain files are not gated.",
   "trigger": {
     "type": "cron",
     "everyMinutes": 720

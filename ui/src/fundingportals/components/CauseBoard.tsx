@@ -95,12 +95,12 @@ export interface CauseBoardProps {
   projectsHelp?: ReactNode
   /**
    * Where aligned/successful project detail links resolve.
-   * CauseStarter hosts project detail locally; Aligning deep-links to LazyGiving.
+   * Commonality hosts project detail locally; Aligning deep-links to LazyGiving.
    */
   projectLinks?: ProjectLinkMode
   /**
    * When set, alignment queries use this attester set instead of the viewer's
-   * personal trust graph. CauseStarter passes personal-or-starter so the list
+   * personal trust graph. Commonality passes personal-or-starter so the list
    * matches plank counts and the starter-network notice.
    */
   trustedAlignmentAttesters?: Iterable<string>
@@ -148,7 +148,7 @@ function NavLinkButton({ link }: { link: CauseBoardNavLink }) {
 
 /**
  * Full cause board surface (funding metrics, aligned/successful projects,
- * and vouch form). Shared by Aligning and CauseStarter.
+ * and vouch form). Shared by Aligning and Commonality.
  */
 export function CauseBoard({
   statementCid,

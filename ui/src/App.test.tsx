@@ -14,7 +14,7 @@ vi.mock('./shared/routing/routing', () => ({
   getAppUrl: vi.fn(),
 }))
 
-vi.mock('./causestarter/shell/CauseShell', () => ({
+vi.mock('./commonality/shell/CauseShell', () => ({
   CauseShell: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="cause-shell">{children}</div>
   ),
@@ -141,17 +141,17 @@ describe('App route composition', () => {
     })
 
     it('sets the document title from domain branding', async () => {
-      mockGetActiveDomain.mockReturnValue(fakeDomain('CauseStarter', [], 'footer'))
+      mockGetActiveDomain.mockReturnValue(fakeDomain('Commonality', [], 'footer'))
 
       const { default: App } = await import('./App')
       render(React.createElement(App))
 
-      expect(document.title).toBe('CauseStarter')
+      expect(document.title).toBe('Commonality')
     })
 
     it('sets the document title when using CauseShell', async () => {
       mockGetActiveDomain.mockReturnValue({
-        ...fakeDomain('CauseStarter', [], 'footer'),
+        ...fakeDomain('Commonality', [], 'footer'),
         Shell: ({ children }: { children: React.ReactNode }) => (
           <div data-testid="cause-shell">{children}</div>
         ),
@@ -161,7 +161,7 @@ describe('App route composition', () => {
       render(React.createElement(App))
 
       expect(screen.getByTestId('cause-shell')).toBeInTheDocument()
-      expect(document.title).toBe('CauseStarter')
+      expect(document.title).toBe('Commonality')
     })
   })
 

@@ -22,7 +22,7 @@ Each level is a natural position on the spectrum, and moving from one to the nex
 
 Even at Level 1, the sole donor gets real benefits from using Commonality rather than a traditional grant:
 
-  - **Standardized infrastructure.** No need to build custom grant-management systems, reporting frameworks, or accountability mechanisms. The blockchain handles all of that.
+  - **Standardized operational record.** The shared contracts can reduce custom transaction-tracking work and make funding activity auditable. They do not replace grant management, outcome reporting, accounting, or accountability processes.
   - **Verifiable track record.** The funder builds a public, auditable history of what they've funded and how those projects turned out. This is valuable for the funder's own reputation — especially for foundations that want to demonstrate impact.
   - **Project ecosystem visibility.** The project shows up in fundable-projects boards, can receive alignment attestations, and is legible to the broader Commonality ecosystem. Even if the funder is currently the only one paying, the project is *discoverable* by others in a way that a private grant isn't.
   - **Upgrade path preserved.** If the funder later decides they're fine with co-funders, or the project creator wants to diversify their funding base, the infrastructure is already there. No migration needed.

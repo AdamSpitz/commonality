@@ -15,7 +15,7 @@
 #   ./scripts/data.sh --seed --allow-seed-on-existing-data  # Intentionally add seed data on top of existing data
 #
 # Every --seed also wires Hardhat #0–#9 to trust each other on TrustRegistry
-# (CauseStarter project lists for the local wallet picker).
+# (Commonality project lists for the local wallet picker).
 #
 # Data is stored in ./data/ by default:
 #   ./data/
@@ -47,7 +47,7 @@ show_usage() {
     echo "  --seed[=SIZE]       Populate with fake data (services must be running)"
     echo "                        SIZE: tiny (default), small, medium, large, demo"
     echo "                        demo uses formal seed content and publishes Alignment Explorer/nudge fixtures"
-    echo "                        Also records local Hardhat-account trust (CauseStarter project lists)"
+    echo "                        Also records local Hardhat-account trust (Commonality project lists)"
     echo "  --use-hardhat-accounts  Use hardhat accounts instead of random wallets (for first 20 users)"
     echo "  --debug-ipfs        Show CIDs and content being uploaded to IPFS"
     echo "  --allow-seed-on-existing-data"
@@ -205,7 +205,7 @@ seed_data() {
 
     echo "================================"
     timing_mark generate
-    echo "Recording local Hardhat-account trust (CauseStarter project lists)..."
+    echo "Recording local Hardhat-account trust (Commonality project lists)..."
     cd "$SCRIPT_DIR/.."
     node "$SCRIPT_DIR/seed-local-alignment-trust.mjs"
     echo "================================"

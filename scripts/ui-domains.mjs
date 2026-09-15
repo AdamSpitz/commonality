@@ -1,8 +1,8 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-// Local `services.sh --start` / `deploy-causestarter.sh` IPFS publish list.
-// Temporary default is CauseStarter only (legacy eight-domain Vite builds
+// Local `services.sh --start` / `deploy-commonality.sh` IPFS publish list.
+// Temporary default is Commonality only (legacy sibling-domain Vite builds
 // dominate local start time). Restore every bundle with LOCAL_UI_DOMAINS=all.
 // See workflow/local-development.md.
 export const uiDomains = [
@@ -14,14 +14,13 @@ export const uiDomains = [
   'civility',
   'common-sense-majority',
   'conceptspace',
-  'causestarter',
 ]
 
-const DEFAULT_LOCAL_PUBLISH_DOMAINS = ['causestarter']
+const DEFAULT_LOCAL_PUBLISH_DOMAINS = ['commonality']
 
 export function resolveLocalPublishDomains(env = process.env) {
-  const raw = (env.LOCAL_UI_DOMAINS ?? 'causestarter').trim()
-  if (!raw || raw === 'causestarter') {
+  const raw = (env.LOCAL_UI_DOMAINS ?? 'commonality').trim()
+  if (!raw || raw === 'commonality') {
     return [...DEFAULT_LOCAL_PUBLISH_DOMAINS]
   }
   if (raw === 'all') {
@@ -44,7 +43,6 @@ const localHostnames = {
   civility: 'civility.localhost',
   'common-sense-majority': 'common-sense-majority.localhost',
   conceptspace: 'conceptspace.localhost',
-  causestarter: 'causestarter.localhost',
   noninflammatory: 'civility.localhost',
   csm: 'common-sense-majority.localhost',
 }

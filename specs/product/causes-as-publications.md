@@ -3,7 +3,7 @@
 **Status: accepted target model.** The decision and its rationale are frozen in
 [ADR 0009](../decisions/0009-causes-are-publications-over-statements.md). This document
 is the living product specification for the model and the changes needed to get there.
-Where it conflicts with older CauseStarter guidance, this document is the intended
+Where it conflicts with older Commonality guidance, this document is the intended
 direction.
 
 ## Summary
@@ -60,7 +60,7 @@ Two things follow from partitioning by cause instead:
   available once projects are grouped by the purpose they serve — which is to say, by cause.
 
 So the generic per-feature surfaces are not the shape to build. The generic surface is
-CauseStarter, and the per-feature capabilities appear inside a cause. This is a claim about
+Commonality, and the per-feature capabilities appear inside a cause. This is a claim about
 how functionality is *organized and presented*; it does not change the object model below,
 in which projects still align with immutable statements rather than with a cause.
 
@@ -168,7 +168,7 @@ Delegation remains authority granted to a person. Its optional purpose constrain
 refer to immutable statement CIDs, not to a mutable cause roster or to everything the
 delegate believes. The same AI-assisted statement-selection interaction can help a
 delegate describe what they would fund and a donor choose an acceptable scope. This does
-not imply that delegation intent must be reactivated as part of the first CauseStarter
+not imply that delegation intent must be reactivated as part of the first Commonality
 change; its unresolved semantics remain a separate product decision.
 
 ### Organizers and vertical operators
@@ -186,7 +186,7 @@ relationships, commitment, accountability, and distribution.
 
 This distinction refines rather than abandons the founder-first strategy in ADR 0005.
 **ADR 0005 remains in force: the platform's strategic customer is the independent
-vertical operator.** CauseStarter also serves the lighter-weight role of cause organizer
+vertical operator.** Commonality also serves the lighter-weight role of cause organizer
 as reference software and as the operated lens required by ADR 0008. Organizer-facing
 work is core when it makes independent operation easier or makes that reference lens
 credible; generic umbrella acquisition or promotion remains out of scope. Product copy
@@ -344,11 +344,11 @@ offer, then shares a link through which donors can evaluate the person and scope
 
 ## Implementation direction
 
-1. **Align the canonical docs.** Update the statements, explorer, CauseStarter, and
+1. **Align the canonical docs.** Update the statements, explorer, Commonality, and
    founder guidance to use this object model and terminology. Record the reversal from
    “founder writes; AI only coaches” to “AI proposes; human explicitly adopts” in an ADR.
    Preserve ADR 0005's vertical-operator strategy and ADR 0008's lens/no-directory posture.
-2. **Replace the authoring model.** Make CauseStarter begin with conversational intent
+2. **Replace the authoring model.** Make Commonality begin with conversational intent
    gathering and statement retrieval, followed by explicit selection and on-demand
    drafting. Reuse the explorer/curator and mediator engine seams rather than creating a
    second semantic graph or another AI-service tier.
@@ -404,7 +404,7 @@ them incidentally.
   existing local draft preserves all user-authored content without automatic publication.
 - The platform model still permits independently operated verticals with their own
   policies and distribution, while allowing lighter-weight organizers to publish causes
-  through CauseStarter.
+  through Commonality.
 
 ## Non-goals
 

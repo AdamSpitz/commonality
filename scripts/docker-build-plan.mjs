@@ -211,45 +211,24 @@ buildConfigs['ui-ipfs-publisher-civility'] = buildConfigs['ui-ipfs-publisher-com
 buildConfigs['ui-ipfs-publisher-common-sense-majority'] = buildConfigs['ui-ipfs-publisher-commonality']
 buildConfigs['ui-ipfs-publisher-conceptspace'] = buildConfigs['ui-ipfs-publisher-commonality']
 
-buildConfigs['ui-ipfs-publisher-causestarter'] = {
-  buildKey: 'causestarter-ipfs-publisher',
-  image: 'commonality-causestarter-ipfs-publisher:dev',
+buildConfigs['commonality-ui'] = {
+  buildKey: 'commonality-ui',
+  image: 'commonality-ui:dev',
   hashEntries: [
     '.dockerignore',
     '.npmrc',
     'package.json',
     'package-lock.json',
-    'scripts/publish-ui-to-ipfs.mjs',
-    'scripts/ui-domains.mjs',
-    'causestarter/Dockerfile.ipfs',
+    'commonality-ui/Dockerfile',
+    'commonality-ui/nginx.conf',
+    'commonality-ui/docker-entrypoint.d/30-indexer-upstream.sh',
+    'commonality-ui/docker-entrypoint.d/40-commonality-config.sh',
     'sdk/package.json',
     'ui/package.json',
-    'causestarter/package.json',
-    { path: 'sdk', ignore: [] },
-    { path: 'docs', ignore: [] },
-    { path: 'ui', ignore: ['dist'] },
-    { path: 'causestarter', ignore: ['dist'] },
-  ],
-}
-
-buildConfigs.causestarter = {
-  buildKey: 'causestarter',
-  image: 'commonality-causestarter:dev',
-  hashEntries: [
-    '.dockerignore',
-    '.npmrc',
-    'package.json',
-    'package-lock.json',
-    'causestarter/Dockerfile',
-    'causestarter/nginx.conf',
-    'causestarter/docker-entrypoint.d/30-indexer-upstream.sh',
-    'causestarter/docker-entrypoint.d/40-causestarter-config.sh',
-    'sdk/package.json',
-    'ui/package.json',
-    'causestarter/package.json',
+    'commonality-ui/package.json',
     { path: 'sdk', ignore: [] },
     { path: 'ui', ignore: ['dist'] },
-    { path: 'causestarter', ignore: ['dist'] },
+    { path: 'commonality-ui', ignore: ['dist'] },
   ],
 }
 

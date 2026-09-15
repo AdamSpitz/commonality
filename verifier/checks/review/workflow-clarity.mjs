@@ -28,16 +28,16 @@ const DOMAINS_INVENTORY = "verifier/coverage/domains.json";
 // `surfaceFiles` are starting-point hints the reviewer should open first; it is
 // free to read more widely (or elsewhere) as the trace requires.
 const DEFAULT_TARGET_WORKFLOW = {
-  domain: "causestarter",
+  domain: "commonality",
   goal: "An organizer can start or retrieve a cause, understand cause-page roles, and a newcomer can reach signing, aligned work, or funding from the cause surface — without needing the other branded sites.",
   surfaceFiles: [
-    "ui/src/domains/causestarter/manifest.tsx",
-    "ui/src/causestarter/pages/HomePage.tsx",
-    "ui/src/causestarter/pages/StartCauseRedirect.tsx",
-    "ui/src/causestarter/pages/CauseDetailPage.tsx",
-    "ui/src/causestarter/pages/StatementPage.tsx",
-    "ui/src/causestarter/pages/ProjectDetailPage.tsx",
-    "ui/src/causestarter/pages/CausesPage.tsx"
+    "ui/src/domains/commonality/manifest.tsx",
+    "ui/src/commonality/pages/HomePage.tsx",
+    "ui/src/commonality/pages/StartCauseRedirect.tsx",
+    "ui/src/commonality/pages/CauseDetailPage.tsx",
+    "ui/src/commonality/pages/StatementPage.tsx",
+    "ui/src/commonality/pages/ProjectDetailPage.tsx",
+    "ui/src/commonality/pages/CausesPage.tsx"
   ]
 };
 
@@ -62,7 +62,7 @@ function buildPrompt(workflow) {
 Trace the path a user with that goal would actually take through the real UI source. Judge whether they could get from the entry point to completion without guessing, dead-ending, or leaving the product. Understand what the workflow is FOR (read the relevant product/tech docs first) before judging the UI that implements it.`
   })}
 Where to look:
-- In-scope product domains are enumerated in \`${DOMAINS_INVENTORY}\` (CauseStarter, Civility, Common Sense Majority). Other Vite domains exist but are out of scope unless this workflow hops to them. Live route/navigation manifests and pages live under \`ui/src/domains/\` and the feature directories under \`ui/src/\`.
+- In-scope product domains are enumerated in \`${DOMAINS_INVENTORY}\` (Commonality, Civility, Common Sense Majority). Other Vite domains exist but are out of scope unless this workflow hops to them. Live route/navigation manifests and pages live under \`ui/src/domains/\` and the feature directories under \`ui/src/\`.
 - Suggested starting points for THIS workflow (open these first, then follow the trace wherever it leads — read more widely if needed):
 ${surfaceHints.length > 0 ? surfaceHints.map((p) => `  - \`${p}\``).join("\n") : "  - (none specified — locate the domain's manifest and landing page yourself)"}
 

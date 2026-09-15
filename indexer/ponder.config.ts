@@ -349,7 +349,7 @@ const contracts = {
     ...deploymentConfig(ACCOUNT_ASSERTIONS_DEPLOYMENTS, START_BLOCK),
   },
 
-  // TrustRegistry — Subjectiv direct-trust edges. CauseStarter (and the
+  // TrustRegistry — Subjectiv direct-trust edges. Commonality (and the
   // alignment-trust bootstrap) fold TrustSet events client-side.
   TrustRegistry: {
     abi: TrustRegistryAbi,

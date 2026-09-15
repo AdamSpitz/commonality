@@ -113,7 +113,6 @@ const DOMAIN_TITLES: Record<string, string> = {
   civility: 'Civility',
   'common-sense-majority': 'Common Sense Majority',
   conceptspace: 'Conceptspace',
-  causestarter: 'CauseStarter',
 }
 
 function sendStaticFile(root: string, urlPath: string, res: ServerResponse, next: () => void) {
@@ -257,7 +256,6 @@ function buildRuntimeConfig(env: Record<string, string>) {
     'VITE_NONINFLAMMATORY_URL',
     'VITE_CSM_URL',
     'VITE_CONCEPTSPACE_URL',
-    'VITE_CAUSESTARTER_URL',
     'VITE_TEST_DATA_REGISTRY_URL',
   ]
   return Object.fromEntries(keys.flatMap(key => env[key] ? [[key, env[key]]] : []))
@@ -273,7 +271,6 @@ function resolveDomain(value: string | undefined) {
     case 'civility':
     case 'common-sense-majority':
     case 'conceptspace':
-    case 'causestarter':
       return value
     default:
       return 'commonality'

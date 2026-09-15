@@ -1,23 +1,23 @@
 {
   "schemaVersion": 1,
   "source": "specs/product/ui-domains.md",
-  "scope": "Required in-scope UI workflows (CauseStarter, Civility, Common Sense Majority). Workflows on other domains may still have leftover review.workflow-clarity.* checks; those no longer gate product.workflows.",
+  "scope": "Required in-scope UI workflows (Commonality, Civility, Common Sense Majority). Workflows on other domains may still have leftover review.workflow-clarity.* checks; those no longer gate product.workflows.",
   "workflows": [
     {
-      "id": "causestarter-organize-and-fund",
-      "title": "CauseStarter organizer starts a cause and a supporter funds or signs in cause context",
-      "homeDomain": "causestarter",
+      "id": "commonality-organize-and-fund",
+      "title": "Commonality organizer starts a cause and a supporter funds or signs in cause context",
+      "homeDomain": "commonality",
       "goal": "An organizer can start or retrieve a cause, understand cause-page roles, and a newcomer can reach signing, aligned work, or funding from the cause surface.",
-      "workflowClarityCheckIds": ["review.workflow-clarity.causestarter"],
+      "workflowClarityCheckIds": ["review.workflow-clarity.commonality"],
       "objectiveSmokeCheckIds": ["automated.test-fast", "automated.test-full", "artifact.ipfs-domain-smoke"],
       "surfaceFiles": [
-        "../ui/src/domains/causestarter/manifest.tsx",
-        "../ui/src/causestarter/pages/HomePage.tsx",
-        "../ui/src/causestarter/pages/StartCauseRedirect.tsx",
-        "../ui/src/causestarter/pages/CauseDetailPage.tsx",
-        "../ui/src/causestarter/pages/StatementPage.tsx",
-        "../ui/src/causestarter/pages/ProjectDetailPage.tsx",
-        "../ui/src/causestarter/pages/CausesPage.tsx"
+        "../ui/src/domains/commonality/manifest.tsx",
+        "../ui/src/commonality/pages/HomePage.tsx",
+        "../ui/src/commonality/pages/StartCauseRedirect.tsx",
+        "../ui/src/commonality/pages/CauseDetailPage.tsx",
+        "../ui/src/commonality/pages/StatementPage.tsx",
+        "../ui/src/commonality/pages/ProjectDetailPage.tsx",
+        "../ui/src/commonality/pages/CausesPage.tsx"
       ]
     },
     {

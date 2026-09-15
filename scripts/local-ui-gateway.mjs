@@ -53,7 +53,7 @@ async function renderAdminPage() {
   let testDataLink = ''
   try {
     const capability = (await fs.readFile(path.join(testDataRoot, '.admin-capability'), 'utf8')).trim()
-    testDataLink = `<p><a href="http://causestarter.localhost:${port}/#/admin/test-data?key=${encodeURIComponent(capability)}">Browse generated test-data runs</a></p>`
+    testDataLink = `<p><a href="http://commonality.localhost:${port}/#/admin/test-data?key=${encodeURIComponent(capability)}">Browse generated test-data runs</a></p>`
   } catch {
     testDataLink = '<p>No generated test-data runs yet. Run <code>./scripts/data.sh --seed</code> first.</p>'
   }
@@ -159,7 +159,7 @@ const server = createServer(async (req, res) => {
     }
 
     const domain = resolveDomainFromHost(req.headers.host)
-    const pathname = requestUrlFor(req, domain || 'causestarter').pathname
+    const pathname = requestUrlFor(req, domain || 'commonality').pathname
     if (domain && pathname.startsWith('/test-data/')) {
       await serveTestData(req, res, pathname)
       return

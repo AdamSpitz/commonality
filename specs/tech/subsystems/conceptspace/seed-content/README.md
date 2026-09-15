@@ -4,7 +4,7 @@ This document covers our thinking about *why* we need seed content, *what kind* 
 
 **This is job C: real Conceptspace statements** (findable causes for early users). It is not the tiny fake UI world, not demo worker fixtures, and not mass random user activity. Those other jobs, current state, and the next LLM step: [`fake-data-generation/PLAN.md`](/fake-data-generation/PLAN.md).
 
-Wording is not free-form slogans: see [why statements are peculiar](/specs/product/statements-are-peculiar-for-good-reasons.md). How to generate more of them without hand-wordsmithing: [statement-generation.md](/fake-data-generation/statement-generation.md). Curated JSON that does not pass the implication attester (modified → commonality) is not done. Default `./scripts/data.sh --seed` (**tiny**) publishes the Christianity × secular-conservatism CauseStarter cluster plus local-food, not a random `universe.json` slice.
+Wording is not free-form slogans: see [why statements are peculiar](/specs/product/statements-are-peculiar-for-good-reasons.md). How to generate more of them without hand-wordsmithing: [statement-generation.md](/fake-data-generation/statement-generation.md). Curated JSON that does not pass the implication attester (modified → commonality) is not done. Default `./scripts/data.sh --seed` (**tiny**) publishes the Christianity × secular-conservatism Commonality cluster plus local-food, not a random `universe.json` slice.
 
 See this directory for concrete examples.
 

@@ -1,10 +1,10 @@
 /**
- * Shared guidance for what CauseStarter statements should look like.
+ * Shared guidance for what Commonality statements should look like.
  * Aligned with the Implication Attester criteria
  * (`@commonality/implication-attester` IMPLICATION_EVALUATOR_SYSTEM_PROMPT).
  */
 
-export const STATEMENT_QUALITY_GUIDANCE = `What a statement is (Commonality / CauseStarter):
+export const STATEMENT_QUALITY_GUIDANCE = `What a statement is (Commonality / Commonality):
 - A statement is a plain-English proposition a real person would sincerely say "yes, I believe this" to — and sign in public. A cause publication selects an ordered roster of these independent statements; it is not itself a statement.
 - Aim for determinate meaning, not exhaustive detail. A broad proposition may leave implementation open and still be clear. Reject wording only when sincere readers could assign materially different propositions to it.
 - Statements must be self-contained. Do not use slogans, tribe-markers, or shorthand that needs unstated background context (e.g. reject "I am pro-choice" as not clear enough by itself).

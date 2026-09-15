@@ -1,6 +1,6 @@
 # Cloudflare UI gateway
 
-Serves the Commonality UI apps (`*.testnet.commonality.works`), including CauseStarter, via a Cloudflare Worker that proxies IPFS content from Pinata.
+Serves the Commonality UI apps (`*.testnet.commonality.works`), including Commonality, via a Cloudflare Worker that proxies IPFS content from Pinata.
 
 ## Why a Worker instead of plain DNSLink
 
@@ -22,7 +22,7 @@ The browser URL stays `alignment.testnet.commonality.works` throughout.
 
 | URL | IPNS key (env var) |
 | --- | --- |
-| `commonality.testnet.commonality.works` | `IPNS_COMMONALITY` |
+| `testnet.commonality.works` | `IPNS_COMMONALITY` |
 | `lazygiving.testnet.commonality.works` | `IPNS_LAZYGIVING` |
 | `alignment.testnet.commonality.works` | `IPNS_ALIGNMENT` |
 | `tally.testnet.commonality.works` | `IPNS_TALLY` |
@@ -30,7 +30,6 @@ The browser URL stays `alignment.testnet.commonality.works` throughout.
 | `civility.testnet.commonality.works` | `IPNS_CIVILITY` |
 | `common-sense-majority.testnet.commonality.works` | `IPNS_COMMON_SENSE_MAJORITY` |
 | `conceptspace.testnet.commonality.works` | `IPNS_CONCEPTSPACE` |
-| `causestarter.testnet.commonality.works` | `IPNS_CAUSESTARTER` |
 | `*.testnet.commonality.works/test-data/*` | `IPNS_TEST_DATA` |
 
 IPNS key values are in `wrangler.testnet.toml` (sourced from `deployments/testnet-ipns.env`).

@@ -11,7 +11,7 @@
 //
 // Eager surface (components used at import time). External callers today:
 // `StatementRenderer` (fundingportals Alignment Explorer) and the settings
-// sections (CauseStarter SettingsPage). Other components stay module-internal.
+// sections (Commonality SettingsPage). Other components stay module-internal.
 
 export { StatementRenderer } from './components/StatementRenderer'
 export { DirectTrustSettingsSection } from './components/DirectTrustSettingsSection'

@@ -14,7 +14,6 @@ export type DomainId =
   | 'civility'
   | 'common-sense-majority'
   | 'conceptspace'
-  | 'causestarter'
 
 type DomainUrlRuntimeConfigKey =
   | 'VITE_COMMONALITY_URL'
@@ -25,7 +24,6 @@ type DomainUrlRuntimeConfigKey =
   | 'VITE_CIVILITY_URL'
   | 'VITE_COMMON_SENSE_MAJORITY_URL'
   | 'VITE_CONCEPTSPACE_URL'
-  | 'VITE_CAUSESTARTER_URL'
 
 const domainUrlKeys: Record<DomainId, DomainUrlRuntimeConfigKey> = {
   commonality: 'VITE_COMMONALITY_URL',
@@ -36,7 +34,6 @@ const domainUrlKeys: Record<DomainId, DomainUrlRuntimeConfigKey> = {
   civility: 'VITE_CIVILITY_URL',
   'common-sense-majority': 'VITE_COMMON_SENSE_MAJORITY_URL',
   conceptspace: 'VITE_CONCEPTSPACE_URL',
-  causestarter: 'VITE_CAUSESTARTER_URL',
 }
 
 const domainHostLabels: Record<DomainId, string> = {
@@ -48,7 +45,6 @@ const domainHostLabels: Record<DomainId, string> = {
   civility: 'civility',
   'common-sense-majority': 'common-sense-majority',
   conceptspace: 'conceptspace',
-  causestarter: 'causestarter',
 }
 
 const knownDomainHostLabels = new Set(Object.values(domainHostLabels))
@@ -129,8 +125,8 @@ function getSameNamingLayerDomainBaseUrl(domainId: DomainId): string | undefined
     ? [...remainderLabels.slice(1), suffix].filter(Boolean).join('.')
     : hostname
   const targetLabel = domainHostLabels[domainId]
-  const targetHost = rootSuffix === suffix && targetLabel === 'commonality'
-    ? suffix
+  const targetHost = domainId === 'commonality'
+    ? rootSuffix
     : `${targetLabel}.${rootSuffix}`
   const port = window.location.port ? `:${window.location.port}` : ''
   const hashRouterBase = isHashRouting() ? '/#/' : ''

@@ -21,10 +21,10 @@ async function loadBrief(relative) {
 function buildPrompt({ brief }) {
   return `${explorationBriefing({
     role: "second operator of the live Base Sepolia lab (the Adam/Sam shared-lab job)",
-    purpose: `Judge whether the deployed testnet is actually usable as a two-person lab. Prefer driving the live CauseStarter site. If you have a browser, use two independent sessions (two profiles, two origins, or two HTTP clients). Do not invent a passing write path you did not exercise.`
+    purpose: `Judge whether the deployed testnet is actually usable as a two-person lab. Prefer driving the live Commonality site. If you have a browser, use two independent sessions (two profiles, two origins, or two HTTP clients). Do not invent a passing write path you did not exercise.`
   })}
 Live surface:
-- CauseStarter: https://causestarter.testnet.commonality.works
+- Commonality: https://testnet.commonality.works
 - Indexer GraphQL / event cache: see verifier/environments/testnet.json
 - Read-only smoke already exists (\`testnet.http\`, \`testnet.website-journeys\`). Mutating canaries already exist (\`testnet.onchain-to-indexer\`, \`testnet.published-data\`). This check is whether *two clients* share one on-chain world through the product UI.
 
@@ -34,7 +34,7 @@ ${brief}
 -----
 
 How to look:
-- If this chat has a browser: load CauseStarter, then load it again as a second session (incognito / second user-agent / second fetch of config.json + a listed cause or project). Click around the happy paths. Try suggest/atomize if the AI box is visible.
+- If this chat has a browser: load Commonality, then load it again as a second session (incognito / second user-agent / second fetch of config.json + a listed cause or project). Click around the happy paths. Try suggest/atomize if the AI box is visible.
 - You probably cannot inject two funded wallets. That is skipped scope, not a product fail, unless the UI is obviously broken for an unconnected visitor.
 - If you have no browser, fetch the live HTML/config and the indexer. Say so under skipped scope. Do not claim a signed two-wallet walk.
 - Do not submit mutating transactions unless COMMONALITY_VERIFIER_ENABLE_TESTNET_MUTATION=1 is already the operator intent for this run.

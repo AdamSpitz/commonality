@@ -14,4 +14,4 @@ full strategic argument.
 
 Late aggregation is *how* that is allowed: you do not have to agree on a leader or a manifesto first. Organic coalitions are a *bonus* of not forcing a bundle. Neither is the headline. The headline is: **do the part you’d do anyway.**
 
-The user-facing catalog — money, attention, work, wording, “my own cause page” — lives in CauseStarter’s **[Do the part you’d do anyway](../../causestarter/the-jobs.md)**. Role-by-role one-liners: [pitches](./pitches.md).
+The user-facing catalog — money, attention, work, wording, “my own cause page” — lives in Commonality’s **[Do the part you’d do anyway](../../commonality/the-jobs.md)**. Role-by-role one-liners: [pitches](./pitches.md).

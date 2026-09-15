@@ -72,7 +72,7 @@ describe('DocsPage', () => {
     expect(headings.length).toBeGreaterThan(0)
     const headingTexts = headings.map(h => h.textContent)
     expect(headingTexts).toContain('Commonality')
-    expect(headingTexts).toContain('See it in action')
+    expect(headingTexts).toContain('Two twists')
   })
 
   it('renders markdown paragraphs as body text', () => {
@@ -82,7 +82,7 @@ describe('DocsPage', () => {
 
     const paragraphs = screen.getAllByRole('paragraph')
     expect(paragraphs.length).toBeGreaterThan(0)
-    expect(screen.getByText(/Commonality is a movement/i)).toBeInTheDocument()
+    expect(screen.getByText('cause board')).toBeInTheDocument()
   })
 
   it('renders markdown lists', () => {
@@ -92,7 +92,7 @@ describe('DocsPage', () => {
 
     const lists = screen.getAllByRole('list')
     expect(lists.length).toBeGreaterThan(0)
-    expect(screen.getByText(/Supporting the kind of political writing/i)).toBeInTheDocument()
+    expect(screen.getByText('Pledge money')).toBeInTheDocument()
   })
 
   it('renders internal doc links as router links', () => {
@@ -107,8 +107,8 @@ describe('DocsPage', () => {
     })
     expect(internalLinks.length).toBeGreaterThan(0)
     const hrefs = internalLinks.map(l => l.getAttribute('href'))
-    expect(hrefs).toContain('/docs/use-case-walkthroughs/noninflammatory-content')
-    expect(hrefs).toContain('/docs/use-case-walkthroughs/common-sense-majority')
+    expect(hrefs).toContain('/docs/key-ideas/delegation')
+    expect(hrefs).toContain('/docs/use-case-walkthroughs/block-party')
   })
 
   it('renders inline code elements', () => {

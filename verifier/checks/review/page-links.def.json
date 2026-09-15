@@ -1,6 +1,6 @@
 {
   "id": "review.page-links",
-  "description": "Deterministic per-page health check: derive in-scope UI pages (CauseStarter, Civility, Common Sense Majority) from source and verify each route resolves to a real, exported component. Out-of-scope domains are not gated.",
+  "description": "Deterministic per-page health check: derive in-scope UI pages (Commonality, Civility, Common Sense Majority) from source and verify each route resolves to a real, exported component. Out-of-scope domains are not gated.",
   "trigger": {
     "type": "cron",
     "everyMinutes": 720

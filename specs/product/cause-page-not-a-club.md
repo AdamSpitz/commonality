@@ -1,7 +1,7 @@
 # The organizer publication is a board, not a club
 
 **Status: copy sweep started 2026-08-24.** Adam agreed with this framing on 2026-08-23
-and refined the nouns on 2026-08-24. Glossary, high-traffic CauseStarter copy,
+and refined the nouns on 2026-08-24. Glossary, high-traffic Commonality copy,
 Aligning/fundable-projects UI strings, and end-user docs were updated in this
 pass. Identifiers, routes, and leftover “cause page” / “funding portal” still lag.
 It does **not** reverse [ADR 0009](../decisions/0009-causes-are-publications-over-statements.md):
@@ -12,13 +12,13 @@ roster of them; verticals as a separate operator role) stays. This note is about
 Related: [causes-as-publications.md](./causes-as-publications.md),
 [how-to-convey-this.md](./how-to-convey-this.md),
 [glossary](../glossary.md),
-[the jobs](/docs/end-user/causestarter/the-jobs.md),
-[start a cause](/docs/end-user/causestarter/start-a-cause.md).
+[the jobs](/docs/end-user/commonality/the-jobs.md),
+[start a cause](/docs/end-user/commonality/start-a-cause.md).
 
 ## The problem
 
-CauseStarter names the organizer-owned roster a **cause**, on a site named
-CauseStarter. That makes the roster feel like *the* thing you join or support.
+Commonality names the organizer-owned roster a **cause**, on a site named
+Commonality. That makes the roster feel like *the* thing you join or support.
 
 That is the wrong instinct. The protocol atoms are statements, implications,
 alignment vouches, projects, and notes. People sign statements. Projects attach
@@ -36,7 +36,7 @@ the movement. The rest of the system exists to avoid that.
 |---|---|---|
 | Ordinary English | The worldly thing you care about (clean water, the block party, not being defunded) | **Yes** — motivation, not an entity |
 | Glossary Part 1 | A **statement** in its role as a funding anchor (`causeCid` is a statement CID) | **Yes** as a *role*, not a separate ID |
-| CauseStarter roster | Versioned publication `(owner, slug)` → title, summary, ordered planks | **No** — this is the over-weighted one |
+| Commonality roster | Versioned publication `(owner, slug)` → title, summary, ordered planks | **No** — this is the over-weighted one |
 
 The rename below is meant to **shift “cause” toward the first two senses**. A
 cause board can be for **multiple** causes (several statements-as-anchors, or
@@ -85,7 +85,7 @@ funding this worldly aim”) without implying membership. Never *join a cause*,
 *members of this cause*, *support this cause* as if the mix were the funding
 target.
 
-Do **not** rename the product off CauseStarter in the same pass. “Starter” can
+Do **not** rename the product off Commonality in the same pass. “Starter” can
 mean “you start funding toward a cause (English)” without implying the roster
 is the movement.
 
@@ -137,7 +137,7 @@ board.
 
 1. **Fundable-projects board:** done in UI copy, end-user docs, glossary Part 1
    and Part 2 §5. Code `fundingportal*` / `/portal/:statementCid` still lag.
-2. **Cause board** = organizer publication: done in glossary, CauseStarter home /
+2. **Cause board** = organizer publication: done in glossary, Commonality home /
    list / editor chrome (“Cause boards”, “Start a cause board”, bookmarked
    boards), and high-traffic docs. Leftover “cause page” in comments and
    incidental copy left on purpose. Identifiers (`/causes`) still lag.

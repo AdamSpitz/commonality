@@ -7,11 +7,11 @@ fill both, but they do not collapse. The operator still owns distribution; the
 organizer still recruits one useful contribution at a time. See
 [ADR 0009](/specs/decisions/0009-causes-are-publications-over-statements.md).
 
-CauseStarter does not create motivation or build an audience for a cause. Use the
+Commonality does not create motivation or build an audience for a cause. Use the
 places where your people already gather: social media, professional networks, local
 groups, churches, newsletters, conferences, or existing organizations.
 
-What CauseStarter gives you is a much easier answer to the next question: **how can
+What Commonality gives you is a much easier answer to the next question: **how can
 those already-motivated people cooperate?**
 
 You do not have to recruit an organization that combines money, prospective
@@ -60,7 +60,7 @@ Send each person a self-contained invitation:
   do one thing without joining an organization or inheriting the other roles.”
 
 The public catalog to link is **[Do the part you'd do
-anyway](/docs/end-user/causestarter/the-jobs.md)**. When possible, quote or link the
+anyway](/docs/end-user/commonality/the-jobs.md)**. When possible, quote or link the
 specific role instead of making a newcomer read every conceptual page first.
 
 ## Bootstrap from whichever side appears first
@@ -99,7 +99,7 @@ capacity is recruitment material for the missing capacity.
 
 ## Keep the boundary honest
 
-You still own distribution. CauseStarter will not create a following, decide which
+You still own distribution. Commonality will not create a following, decide which
 influencers matter, or persuade people to care about the cause. It narrows your
 coordination problem after you reach them.
 

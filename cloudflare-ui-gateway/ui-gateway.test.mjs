@@ -197,11 +197,11 @@ test('skips a hanging public gateway instead of waiting until the Worker 504s', 
   }
 
   const response = await proxyUiRequest(
-    new Request('https://causestarter.testnet.commonality.works/', {
+    new Request('https://testnet.commonality.works/', {
       headers: { Accept: 'text/html' },
     }),
     {
-      IPNS_CAUSESTARTER: 'k51-test-timeout',
+      IPNS_COMMONALITY: 'k51-test-timeout',
       PINATA_GATEWAY_ORIGIN: 'https://gateway.pinata.cloud',
     },
   )
@@ -236,9 +236,9 @@ test('serves /test-data from the dedicated test-data IPNS name', async () => {
   }
 
   const response = await proxyUiRequest(
-    new Request('https://causestarter.testnet.commonality.works/test-data/registry.enc.json'),
+    new Request('https://testnet.commonality.works/test-data/registry.enc.json'),
     {
-      IPNS_CAUSESTARTER: 'k51-test-causestarter',
+      IPNS_COMMONALITY: 'k51-test-commonality',
       IPNS_TEST_DATA: 'k51-test-data',
       PINATA_GATEWAY_ORIGIN: 'https://ipfs-origin.testnet.commonality.works',
       PINATA_GATEWAY_KEY: 'secret',
@@ -267,11 +267,11 @@ test('sends the Pinata gateway token to a custom-domain origin', async () => {
   }
 
   const response = await proxyUiRequest(
-    new Request('https://causestarter.testnet.commonality.works/', {
+    new Request('https://testnet.commonality.works/', {
       headers: { Accept: 'text/html' },
     }),
     {
-      IPNS_CAUSESTARTER: 'k51-test-custom-domain',
+      IPNS_COMMONALITY: 'k51-test-custom-domain',
       PINATA_GATEWAY_ORIGIN: 'https://ipfs-origin.testnet.commonality.works',
       PINATA_GATEWAY_KEY: 'secret',
     },
@@ -282,30 +282,30 @@ test('sends the Pinata gateway token to a custom-domain origin', async () => {
   assert.equal(seen[1].token, 'secret')
 })
 
-test('resolves the causestarter subdomain like the other UI hosts', async () => {
+test('resolves the testnet apex like the other UI hosts', async () => {
   const fetches = []
   globalThis.caches = undefined
   globalThis.fetch = async (request) => {
     const url = typeof request === 'string' ? request : request.url
     fetches.push(url)
     if (url.startsWith('https://name.web3.storage/name/')) {
-      return Response.json({ value: '/ipfs/bafy-causestarter-cid' })
+      return Response.json({ value: '/ipfs/bafy-commonality-cid' })
     }
-    assert.equal(url, 'https://gateway.pinata.cloud/ipfs/bafy-causestarter-cid/')
-    return new Response('<html>causestarter</html>', { status: 200 })
+    assert.equal(url, 'https://gateway.pinata.cloud/ipfs/bafy-commonality-cid/')
+    return new Response('<html>commonality</html>', { status: 200 })
   }
 
   const response = await proxyUiRequest(
-    new Request('https://causestarter.testnet.commonality.works/', {
+    new Request('https://testnet.commonality.works/', {
       headers: { Accept: 'text/html' },
     }),
     {
-      IPNS_CAUSESTARTER: 'k51-test-causestarter',
+      IPNS_COMMONALITY: 'k51-test-commonality',
       PINATA_GATEWAY_ORIGIN: 'https://gateway.pinata.cloud',
     },
   )
 
   assert.equal(response.status, 200)
-  assert.equal(await response.text(), '<html>causestarter</html>')
-  assert.equal(fetches[0], 'https://name.web3.storage/name/k51-test-causestarter')
+  assert.equal(await response.text(), '<html>commonality</html>')
+  assert.equal(fetches[0], 'https://name.web3.storage/name/k51-test-commonality')
 })

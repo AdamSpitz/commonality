@@ -4,7 +4,7 @@ A way to present — and to author — a mediator’s work as **ordinary causes*
 
 This does **not** replace the [bridge-creator](./bridge-creator.md) or the [mediator-for-your-cause](./bridge-building-for-founders.md) idea. It is a *kind* of mediation (and a presentation mode) whose parents are already causes. Statement-level triples remain the engine: implication is still plank-to-plank; causes are how a cluster is shown, versioned, funded, and edited by a human.
 
-Status: accepted as product direction (2026-08-17). CauseStarter create/edit is at `/bridge/new`, published cluster at `/bridge/:owner/:slug`. Recorded plank pairs can be wording-checked and submitted to the implication attester (paid); parent→modified nudge batches are an opt-in using the existing nudger publication path. Does not replace CSM / in-cause mediator.
+Status: accepted as product direction (2026-08-17). Commonality create/edit is at `/bridge/new`, published cluster at `/bridge/:owner/:slug`. Recorded plank pairs can be wording-checked and submitted to the implication attester (paid); parent→modified nudge batches are an opt-in using the existing nudger publication path. Does not replace CSM / in-cause mediator.
 
 ## The shape
 
@@ -60,7 +60,7 @@ A person who already has specific ideas about a bridge — “left and right cou
 
 LLM help is allowed the same way [cause-assist](/docs/founder/shaping-your-cause-statements.md) helps a founder: sharpen wording so planks have the right shape for the implication attester, suggest missing arrows, refuse mush. The settled assistance approach — exportable brief plus one-shot verbs, no hosted chat — is [bridge-cluster-wording-help.md](/docs/founder/bridge-cluster-wording-help.md). The human remains the publisher. A service that only emits nudge batches is not sufficient.
 
-Concretely, the product needs a **create / edit bridge** flow (CauseStarter is the natural home) that:
+Concretely, the product needs a **create / edit bridge** flow (Commonality is the natural home) that:
 
 1. Points at existing natural causes, **or** starts a mediator-authored stand-in sliver when that side is not a cause yet (see [the-other-cause.md](/docs/founder/the-other-cause.md)). A thin stand-in may skip \(C_{im}\) and use parent→bridge plank pairs.
 2. Lets the human draft \(C_{im}\) (when not skipped) and \(C\) as normal causes under their own key.

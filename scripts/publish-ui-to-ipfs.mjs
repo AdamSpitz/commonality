@@ -9,11 +9,7 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 const rootDir = path.resolve(__dirname, '..')
 
-// CauseStarter is a VITE_DOMAIN of the ui package. UI_PACKAGE=causestarter is
-// accepted as an alias for VITE_DOMAIN=causestarter.
-const buildDomain = process.env.UI_PACKAGE === 'causestarter'
-  ? 'causestarter'
-  : resolveDomain(process.env.VITE_DOMAIN)
+const buildDomain = resolveDomain(process.env.VITE_DOMAIN)
 const distDir = path.join(rootDir, 'ui', 'dist', buildDomain)
 const artifactDir = process.env.UI_IPFS_ARTIFACT_DIR
   || path.join(rootDir, 'data', 'ui-ipfs', buildDomain)
@@ -33,7 +29,6 @@ const LOCAL_STABLE_DOMAIN_URLS = {
   VITE_NONINFLAMMATORY_URL: getLocalStableUrl('civility', localStableGatewayPort),
   VITE_CSM_URL: getLocalStableUrl('common-sense-majority', localStableGatewayPort),
   VITE_CONCEPTSPACE_URL: getLocalStableUrl('conceptspace', localStableGatewayPort),
-  VITE_CAUSESTARTER_URL: getLocalStableUrl('causestarter', localStableGatewayPort),
 }
 
 const UI_ENV_ADDRESS_MAPPINGS = {
@@ -73,8 +68,8 @@ async function loadUiBuildEnvFromFiles() {
   const rootEnv = await loadEnvFile(path.join(rootDir, '.env'))
   const uiEnv = await loadEnvFile(path.join(rootDir, 'ui', '.env'))
   const env = { ...uiEnv }
-  if (buildDomain === 'causestarter') {
-    Object.assign(env, await loadEnvFile(path.join(rootDir, 'causestarter', '.env')))
+  if (buildDomain === 'commonality') {
+    Object.assign(env, await loadEnvFile(path.join(rootDir, 'commonality-ui', '.env')))
   }
 
   for (const [sourceKey, viteKey] of Object.entries(UI_ENV_ADDRESS_MAPPINGS)) {
@@ -258,7 +253,6 @@ function resolveDomain(value) {
     case 'noninflammatory':
     case 'csm':
     case 'conceptspace':
-    case 'causestarter':
       return value
     default:
       return 'commonality'

@@ -1,0 +1,43 @@
+{
+  "id": "review.workflow-clarity.commonality",
+  "description": "Standing gating LLM-judgment leaf: judges whether Commonality exposes a clear path to start or retrieve a cause and then sign, fund, or inspect work in cause context.",
+  "cost": "llm",
+  "trigger": {
+    "type": "manual"
+  },
+  "retention": {
+    "keep": 3,
+    "keepDays": 90
+  },
+  "command": [
+    "node",
+    "checks/review/workflow-clarity.mjs"
+  ],
+  "inputs": [
+    {
+      "kind": "params",
+      "data": {
+        "commandTimeoutMs": 600000,
+        "maxFileChars": 60000,
+        "taskKind": "big-picture-thinking",
+        "targetWorkflow": {
+          "domain": "commonality",
+          "goal": "An organizer can start or retrieve a cause, understand cause-page roles, and a newcomer can reach signing, aligned work, or funding from the cause surface.",
+          "surfaceFiles": [
+            "../ui/src/domains/commonality/manifest.tsx",
+            "../ui/src/commonality/pages/HomePage.tsx",
+            "../ui/src/commonality/pages/StartCauseRedirect.tsx",
+            "../ui/src/commonality/pages/CauseDetailPage.tsx",
+            "../ui/src/commonality/pages/StatementPage.tsx",
+            "../ui/src/commonality/pages/ProjectDetailPage.tsx",
+            "../ui/src/commonality/pages/CausesPage.tsx"
+          ]
+        }
+      }
+    }
+  ],
+  "timeoutMs": 630000,
+  "display": {
+    "preferredArtifact": "report.md"
+  }
+}

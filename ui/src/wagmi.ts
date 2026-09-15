@@ -21,7 +21,7 @@ export const privySmartWalletPaymasterUrl = import.meta.env.VITE_PRIVY_SMART_WAL
  *
  * Takes precedence over `VITE_E2E`. The ui package's `.env` sets `VITE_E2E=true`
  * for Playwright, but that would otherwise install only the mock connector and
- * leave the CauseStarter Hardhat account menu disabled. Playwright tests that
+ * leave the Commonality Hardhat account menu disabled. Playwright tests that
  * need a specific account still call `window._setupTestWallet`.
  */
 export const useLocalHardhatWallets = isLocalDevHost()

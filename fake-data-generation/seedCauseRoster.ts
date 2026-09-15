@@ -1,11 +1,11 @@
 /**
- * Publish a deterministic CauseStarter roster during seed so a live local
+ * Publish a deterministic Commonality roster during seed so a live local
  * cause already includes the local-food-systems plank (garden project + mixed
  * content contract).
  *
  * The roster document extras must stay isomorphic with
- * `ui/src/causestarter/lib/causeRoster.ts` (`kind: causestarter.roster`, version 1).
- * Bookmarks use the same JSON as `ui/src/causestarter/lib/causeBookmarks.ts`.
+ * `ui/src/commonality/lib/causeRoster.ts` (`kind: causestarter.roster`, version 1).
+ * Bookmarks use the same JSON as `ui/src/commonality/lib/causeBookmarks.ts`.
  */
 
 import { PublishedDataAbi, MutableRefUpdaterAbi } from '@commonality/sdk/abis';
@@ -235,12 +235,12 @@ export async function publishSeedLocalFoodCause(plankCid: IpfsCidV1): Promise<{
   const mutableRefUpdater = CONTRACT_ADDRESSES.mutableRefUpdater as `0x${string}` | undefined;
   if (!publishedData || !mutableRefUpdater) {
     console.warn(
-      'PublishedData or MutableRefUpdater not configured — skipping seed CauseStarter roster.',
+      'PublishedData or MutableRefUpdater not configured — skipping seed Commonality roster.',
     );
     return null;
   }
 
-  console.log('\n=== Publishing seed CauseStarter roster (local food systems) ===\n');
+  console.log('\n=== Publishing seed Commonality roster (local food systems) ===\n');
 
   const ownerKey = HARDHAT_PRIVATE_KEYS[0]!;
   const ownerClients = createClients(ownerKey);

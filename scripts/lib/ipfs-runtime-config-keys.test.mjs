@@ -14,7 +14,7 @@ function extractViteRuntimeKeys(source) {
   return [...block.matchAll(/'(VITE_[A-Z0-9_]+)'/g)].map((m) => m[1])
 }
 
-test('IPFS config.json emits CauseStarter HTTP AI URLs', () => {
+test('IPFS config.json emits Commonality HTTP AI URLs', () => {
   const vite = readFileSync(join(root, 'ui/vite.config.ts'), 'utf8')
   const keys = extractViteRuntimeKeys(vite)
   for (const key of ['VITE_CAUSE_ASSIST_URL', 'VITE_IMPLICATION_ATTESTER_URL', 'VITE_TEST_DATA_REGISTRY_URL']) {

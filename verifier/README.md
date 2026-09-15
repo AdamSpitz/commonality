@@ -94,7 +94,7 @@ To run a manual/LLM validation pass (intelligent judgment when conventional test
 
 Guarded checks refuse to run without an explicit opt-in env var. **Each has its own — they are NOT interchangeable.** (`coverage/guarded-check-policy.json` is the authoritative per-check list; this is the operator's how-to.)
 
-- **`stack.fresh-seeded`** — `COMMONALITY_VERIFIER_ALLOW_DESTRUCTIVE=1`. Self-contained: wipes local data, rebuilds Docker images, restarts services, seeds tiny data, then probes rpc / platform-api / ipfs / indexer-graphql / indexer-events and asserts the tiny seed's CauseStarter refs (`local-food-systems` / `christianity` for Hardhat #0, `bookmarked-causes` for #0–#9). This **is** how you "boot the local stack." ~5–8 min (image build dominates).
+- **`stack.fresh-seeded`** — `COMMONALITY_VERIFIER_ALLOW_DESTRUCTIVE=1`. Self-contained: wipes local data, rebuilds Docker images, restarts services, seeds tiny data, then probes rpc / platform-api / ipfs / indexer-graphql / indexer-events and asserts the tiny seed's Commonality refs (`local-food-systems` / `christianity` for Hardhat #0, `bookmarked-causes` for #0–#9). This **is** how you "boot the local stack." ~5–8 min (image build dominates).
 - **`stack.restart-consistency`** — `COMMONALITY_VERIFIER_ALLOW_RESTART=1` (**not** the destructive flag). Requires a live seeded stack with an indexed event already visible; its pre-restart probe exits fast if the indexer (port 42069) is down. Run it right after `fresh-seeded` **in the same session** — a stack left down between the two makes it false-fail with `curl` exit 7.
 - **`testnet.*`** (live deployed testnet) — needs `COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE=1` **and** `COMMONALITY_TESTNET_RPC_URL`. Write journeys (`testnet.onchain-to-indexer`) additionally need `COMMONALITY_VERIFIER_ENABLE_TESTNET_MUTATION=1`. Don't set these by hand — the `verifier:testnet:run` wrapper (`scripts/verifier-testnet.sh`) supplies them from secrets.
 
@@ -145,7 +145,7 @@ The five children under `root`:
 - **`facet.security`** — is the on-chain surface sound? Hardhat tests, Slither, and contract review.
 - **`meta.verifier-health`** — can you trust the green? Liveness, flakiness, coverage maps, and the `known-bad.*` verifier-of-verifier fixtures.
 
-UI-domain gating is **CauseStarter, Civility, and Common Sense Majority only**. `coverage/domains.json` is the in-scope roster. Other Vite domains (LazyGiving, Aligning, Tally, Content Funding, Commonality, Conceptspace) may still exist and even have leftover checks, but they must not turn coverage, page-link, landing, workflow, or testnet UI probes red.
+UI-domain gating is **Commonality, Civility, and Common Sense Majority only**. `coverage/domains.json` is the in-scope roster. Other Vite domains (LazyGiving, Aligning, Tally, Content Funding, Commonality, Conceptspace) may still exist and even have leftover checks, but they must not turn coverage, page-link, landing, workflow, or testnet UI probes red.
 
 For the live tree — current children, statuses, and per-leaf detail — open the commands menu (`npm run verifier:tree`) and pick `Open check dashboard` (it's the source of truth; this README deliberately doesn't duplicate it). Drill into red children there; the `report.md` narrative is the executive summary that names the top issue under each red facet. Checks whose definitions set `display.preferredArtifact` (e.g. `"preferredArtifact": "report.md"`) show that artifact by default in the details pane.
 

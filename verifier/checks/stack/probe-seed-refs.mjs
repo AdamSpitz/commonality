@@ -1,5 +1,5 @@
 /**
- * Assert tiny-seed CauseStarter artifacts exist on the local chain.
+ * Assert tiny-seed Commonality artifacts exist on the local chain.
  * Reads MutableRefUpdater.getRef so an unseeded-but-reachable stack fails.
  */
 import { readFile } from "node:fs/promises";

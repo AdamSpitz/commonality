@@ -22,11 +22,11 @@ After those harness fixes, `npm run gen:campaign:reconcile` reported **1932/1932
 
 ## UI inspection (2026-09-11, Vite `:5174` after restart)
 
-CauseStarter has no global cause directory; campaign boards are reachable only by organizer URL:
+Commonality has no global cause directory; campaign boards are reachable only by organizer URL:
 
-`/cause/<owner>/<refName>` from `execution/runtime-bindings.json`. Vite uses path routing (`http://localhost:5174/cause/...`). The IPFS bundle still uses hash routing (`http://causestarter.localhost:8088/#/cause/...`).
+`/cause/<owner>/<refName>` from `execution/runtime-bindings.json`. Vite uses path routing (`http://localhost:5174/cause/...`). The IPFS bundle still uses hash routing (`http://commonality.localhost:8088/#/cause/...`).
 
-A Vite process that had been running since 2026-09-05 still served a Base Sepolia `import.meta.env` (`chainId=84532`, `https://commonality-indexer.onrender.com`). Cause pages showed “Failed to fetch” (CORS). `ui/.env` already had `VITE_CHAIN_ID=31337`; restarting `npm run causestarter:dev` picked it up. Event cache with empty `VITE_EVENT_CACHE_URL` uses `window.location.origin` and Vite’s `/api` proxy to `http://localhost:42069`.
+A Vite process that had been running since 2026-09-05 still served a Base Sepolia `import.meta.env` (`chainId=84532`, `https://commonality-indexer.onrender.com`). Cause pages showed “Failed to fetch” (CORS). `ui/.env` already had `VITE_CHAIN_ID=31337`; restarting `npm run commonality:dev` picked it up. Event cache with empty `VITE_EVENT_CACHE_URL` uses `window.location.origin` and Vite’s `/api` proxy to `http://localhost:42069`.
 
 Representative pages (no wallet connected):
 

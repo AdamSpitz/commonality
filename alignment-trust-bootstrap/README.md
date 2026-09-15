@@ -1,8 +1,8 @@
 # Alignment trust bootstrap
 
-This operator service gives CauseStarter a useful, spam-revocable trust root while
+This operator service gives Commonality a useful, spam-revocable trust root while
 the organic Subjectiv graph is young. It watches `AlignmentAttestation` events and
-sets direct trust to 100 for each new attester. CauseStarter uses only this wallet's
+sets direct trust to 100 for each new attester. Commonality uses only this wallet's
 direct trustees as its shipped fallback; a viewer with any personal direct-trust
 declaration continues to use their own transitive graph.
 
@@ -20,7 +20,7 @@ wallet balance and new-admission rate; pause the service during an attack.
 
 Required configuration: `RPC_URL`, `CHAIN_ID`, `ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS`,
 `TRUST_REGISTRY_ADDRESS`, `ALIGNMENT_TRUST_BOOTSTRAP_PRIVATE_KEY`, and `START_BLOCK`.
-The public address belonging to the key is shipped to CauseStarter as
+The public address belonging to the key is shipped to Commonality as
 `VITE_DEFAULT_ALIGNMENT_TRUST_ROOT`.
 
 For local development the Compose service uses Hardhat account #8. Edit
@@ -56,6 +56,6 @@ immediately write 100. Back up the denylist before replacing the Render disk.
 After installing the key, run `./scripts/setup-env.sh base-sepolia`. The public
 address generated into `deployments/operator-addresses.env` becomes
 `VITE_DEFAULT_ALIGNMENT_TRUST_ROOT` in both `ui/.env` and
-`causestarter/.env`. Then run `./scripts/verifier-testnet.sh --mutation`;
+`commonality-ui/.env`. Then run `./scripts/verifier-testnet.sh --mutation`;
 `testnet.alignment-trust` publishes a vouch and proves the root assigns its
 attester 100 while the denylist canary remains at 0.

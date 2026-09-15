@@ -4,7 +4,7 @@ This is the project's inbox; use this for tasks that might be suitable for an LL
 
 If you have stuff that needs human attention, you can put it in [Adam's inbox](/inbox.md) instead. See [task autonomy tiers](/workflow/task-tiers.md).
 
-CauseStarter also keeps its own product/architecture backlog in [`causestarter/TODO.md`](./causestarter/TODO.md) (open incompleteness allowed at merge). Prefer filing CauseStarter-specific follow-ups there when they are package-local; use this root list for cross-cutting work or items that should be visible to any LLM picking up the project inbox.
+Commonality also keeps its own product/architecture backlog in [`commonality-ui/TODO.md`](./commonality-ui/TODO.md) (open incompleteness allowed at merge). Prefer filing Commonality-specific follow-ups there when they are package-local; use this root list for cross-cutting work or items that should be visible to any LLM picking up the project inbox.
 
 When an item from this page is done and no longer needs an LLM implementor's attention, don't mark it "done", just delete it. I don't want this file to get cluttered with already-completed items.
 
@@ -44,7 +44,7 @@ Getting **testnet to a two-person shared lab** is also a standing plan, not a pi
 - Add a fresh-stack integration test for the alignment-trust bootstrap: publish
   an alignment vouch from a previously unknown wallet, observe the service's
   `TrustSet(..., 100)`, confirm a wallet with no personal graph sees that vouch
-  through CauseStarter's one-hop fallback, then add the attester to the denylist
+  through Commonality's one-hop fallback, then add the attester to the denylist
   and confirm `TrustSet(..., 0)` removes it. Also cover that any personal direct
   trust mapping replaces rather than merges with the shipped fallback.
 

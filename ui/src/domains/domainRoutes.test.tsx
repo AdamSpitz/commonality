@@ -55,11 +55,9 @@ function expectLinkHrefContaining(hrefPart: string) {
 }
 
 describe('domain manifest home routes', () => {
-  it('renders the Commonality landing page at the root route', () => {
-    renderDomainRoute('commonality')
-
-    expectRoutePageRendered()
-    expectLinkToHref('/participate')
+  it('owns the Commonality home route', () => {
+    const routePaths = extractRoutePaths(domainManifests.commonality.routes)
+    expect(routePaths).toContain('/')
   })
 
   it('renders the Commonality founder page at /founders', () => {
@@ -69,11 +67,9 @@ describe('domain manifest home routes', () => {
     expectLinkToHref('/docs/vision-and-strategy')
   })
 
-  it('renders the Commonality participation page at /participate', () => {
-    renderDomainRoute('commonality', '/participate')
-
-    expectRoutePageRendered()
-    expectLinkToHref('/docs/key-ideas/funding-portals')
+  it('does not expose the retired Commonality participation route', () => {
+    const routePaths = extractRoutePaths(domainManifests.commonality.routes)
+    expect(routePaths).not.toContain('/participate')
   })
 
   it('renders the Commonality organization page at /for-organizations', () => {

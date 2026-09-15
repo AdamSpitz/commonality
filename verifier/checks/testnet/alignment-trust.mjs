@@ -90,5 +90,5 @@ emit(async () => {
   }
   const findings = { transactionHash: hash, root, observedAttester, admittedScore: Number(admittedScore), denylistedAddress: denied, deniedAttestationSubjectId: subjectId, deniedScore: Number(deniedScore) };
   if (!observedAttester || Number(admittedScore) !== 100 || Number(deniedScore) !== 0) return fail("Alignment trust bootstrap did not expose the expected admitted/denied direct trust scores.", { findings });
-  return pass("Configured CauseStarter root directly trusts an observed attester at 100 and excludes an observed denylisted attester at 0.", { findings });
+  return pass("Configured Commonality root directly trusts an observed attester at 100 and excludes an observed denylisted attester at 0.", { findings });
 });

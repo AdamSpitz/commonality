@@ -1,15 +1,15 @@
 {
   "schemaVersion": 1,
   "source": "specs/product/ui-domains.md",
-  "scope": "In-scope UI domains for verifier gating: CauseStarter (primary entry), Civility, and Common Sense Majority. Other Vite domains still exist as tools/verticals but are allowed to be broken or unfinished and must not turn coverage red.",
+  "scope": "In-scope UI domains for verifier gating: Commonality (primary entry), Civility, and Common Sense Majority. Other Vite domains still exist as tools/verticals but are allowed to be broken or unfinished and must not turn coverage red.",
   "domains": [
     {
-      "id": "causestarter",
-      "name": "CauseStarter",
+      "id": "commonality",
+      "name": "Commonality",
       "coverage": {
         "routeSmokeCheckIds": ["automated.test-fast", "automated.test-full"],
         "artifactSmokeCheckIds": ["artifact.ipfs-domain-smoke"],
-        "manualReviewCheckIds": ["review.founder-e2e.causestarter", "review.workflow-clarity.causestarter", "review.real-ui.touched-domain", "review.testnet-two-person-lab"],
+        "manualReviewCheckIds": ["review.founder-e2e.commonality", "review.workflow-clarity.commonality", "review.real-ui.touched-domain", "review.testnet-two-person-lab"],
         "docsCoverage": "covered-by-cross-link-and-docs-inventory in automated.test-fast"
       },
       "deferred": []

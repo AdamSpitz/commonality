@@ -81,7 +81,7 @@ Put operator-only values in `~/.secrets/commonality/operator.env`:
 
 ### 2. Fund Base Sepolia operational wallets
 
-The human/operator only needs to use a Base Sepolia faucet for `DEPLOYER_ADDRESS` in `deployments/operator-addresses.env`. The deployer needs ETH for contract deployment anyway, and the distribution script can use `DEPLOYER_PRIVATE_KEY` from the operator secrets file to fund the other transaction-sending wallets, including `RECURRING_PLEDGE_SCHEDULER_ADDRESS` for permissionless standing-pledge execution pokes and `ALIGNMENT_TRUST_BOOTSTRAP_ADDRESS` for CauseStarter trust writes.
+The human/operator only needs to use a Base Sepolia faucet for `DEPLOYER_ADDRESS` in `deployments/operator-addresses.env`. The deployer needs ETH for contract deployment anyway, and the distribution script can use `DEPLOYER_PRIVATE_KEY` from the operator secrets file to fund the other transaction-sending wallets, including `RECURRING_PLEDGE_SCHEDULER_ADDRESS` for permissionless standing-pledge execution pokes and `ALIGNMENT_TRUST_BOOTSTRAP_ADDRESS` for Commonality trust writes.
 
 After the faucet transfer lands, inspect the distribution plan:
 
@@ -219,7 +219,7 @@ VITE_EVENT_CACHE_URL=https://services.testnet.commonality.works/indexer
 
 Run `./scripts/setup-env.sh base-sepolia` after wallet generation. It publishes
 the chain-scoped `VITE_DEFAULT_ALIGNMENT_TRUST_ROOT` derived from the dedicated
-bootstrap key into both the domain UI and CauseStarter Vite configuration.
+bootstrap key into both the domain UI and Commonality Vite configuration.
 
 Each generated network is also snapshotted under gitignored
 `.generated-env/<network>/`. UI publish scripts activate the requested network
