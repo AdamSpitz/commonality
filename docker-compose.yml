@@ -163,6 +163,8 @@ services:
         condition: service_completed_successfully
     environment:
       - VITE_DOMAIN=commonality
+      - VITE_DEFAULT_ALIGNMENT_TRUST_ROOT=${VITE_DEFAULT_ALIGNMENT_TRUST_ROOT:-0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f}
+      - VITE_HASH_ROUTING=true
       - UI_IPFS_API_URL=http://ipfs:5001
       - UI_IPFS_GATEWAY_URL=http://localhost:8080/ipfs
       - VITE_ROUTER_MODE=hash
@@ -391,47 +393,13 @@ services:
     networks:
       - commonality
 
-  # CauseStarter SPA hosting on local IPFS (core domain).
-  ui-ipfs-publisher-causestarter:
-    image: commonality-ui-ipfs-publisher:dev
-    build:
-      context: .
-      dockerfile: ui/Dockerfile
-    container_name: commonality-ui-ipfs-publisher-causestarter
-    user: "${UID:-1000}:${GID:-1000}"
-    command: ["node", "scripts/publish-ui-to-ipfs.mjs"]
-    working_dir: /workspace
-    volumes:
-      - ./.env:/workspace/.env:ro
-      - ./ui/.env:/workspace/ui/.env:ro
-      - ./data/ui-ipfs/causestarter:/artifacts
-    depends_on:
-      ipfs:
-        condition: service_healthy
-      hardhat-deploy:
-        condition: service_completed_successfully
-    environment:
-      - VITE_DOMAIN=causestarter
-      - VITE_DEFAULT_ALIGNMENT_TRUST_ROOT=${VITE_DEFAULT_ALIGNMENT_TRUST_ROOT:-0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f}
-      - VITE_HASH_ROUTING=true
-      - VITE_ROUTER_MODE=hash
-      - UI_IPFS_API_URL=http://ipfs:5001
-      - UI_IPFS_GATEWAY_URL=http://localhost:8080/ipfs
-      - VITE_IPFS_GATEWAY=http://localhost:8080/ipfs
-      - VITE_PLATFORM_API_URL=http://localhost:3001
-      - VITE_ETH_RPC_URL=http://127.0.0.1:8545
-      - UI_IPFS_ARTIFACT_DIR=/artifacts
-      - HOME=/tmp
-    networks:
-      - commonality
-
-  # CauseStarter LLM helpers: statement suggestions + safety filter (Grok 4.5 / xAI).
+  # Commonality LLM helpers: statement suggestions + safety filter (Grok 4.5 / xAI).
   # Graceful without an API key (templates + heuristics). Key comes from root .env
   # (via .env.secrets + setup-env.sh) or the process environment.
   #
-  # Always started with the local stack (services.sh / deploy-causestarter.sh).
-  # - Docker CauseStarter nginx proxies /api/cause-assist/ → cause-assist:3002
-  # - Host Vite (npm run causestarter:dev) proxies to loopback :3002
+  # Always started with the local stack (services.sh / deploy-commonality.sh).
+  # - Docker Commonality nginx proxies /api/cause-assist/ → cause-assist:3002
+  # - Host Vite (npm run commonality:dev) proxies to loopback :3002
   cause-assist:
     image: commonality-cause-assist:dev
     build:
@@ -504,7 +472,7 @@ services:
     networks:
       - commonality
 
-  # Bootstrap spam-filter root for CauseStarter. It admits wallets that publish
+  # Bootstrap spam-filter root for Commonality. It admits wallets that publish
   # project vouches and revokes any address added to the operator denylist.
   alignment-trust-bootstrap:
     image: commonality-alignment-trust-bootstrap:dev
@@ -537,20 +505,20 @@ services:
     networks:
       - commonality
 
-  # CauseStarter — nginx static SPA (core founder surface).
+  # Commonality — nginx static SPA (core founder surface).
   # Contract addresses / RPC URLs are injected at container start into config.json.
-  # Prefer ./scripts/deploy-causestarter.sh or services.sh (loads .env + localhost.env).
+  # Prefer ./scripts/deploy-commonality.sh or services.sh (loads .env + localhost.env).
   # Statement content publish uses PublishedData (VITE_PUBLISHED_DATA_CONTRACT_ADDRESS).
-  causestarter:
-    image: commonality-causestarter:dev
+  commonality-ui:
+    image: commonality-ui:dev
     build:
       context: .
-      dockerfile: causestarter/Dockerfile
+      dockerfile: commonality-ui/Dockerfile
       args:
         VITE_WALLETCONNECT_PROJECT_ID: ${VITE_WALLETCONNECT_PROJECT_ID:-}
-    container_name: commonality-causestarter
+    container_name: commonality-ui
     ports:
-      - "${CAUSESTARTER_PORT:-8090}:80"
+      - "${COMMONALITY_UI_PORT:-8090}:80"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     environment:
@@ -633,8 +601,6 @@ services:
       ui-ipfs-publisher-common-sense-majority:
         condition: service_completed_successfully
       ui-ipfs-publisher-conceptspace:
-        condition: service_completed_successfully
-      ui-ipfs-publisher-causestarter:
         condition: service_completed_successfully
     environment:
       - PORT=8088
@@ -865,7 +831,7 @@ services:
     networks:
       - commonality
 
-  # Seed Christianity cause mediator (featured anchors for CauseStarter).
+  # Seed Christianity cause mediator (featured anchors for Commonality).
   # Same image as service-host; runs the bridge-creator HTTP app with the
   # christian-secular-conservative example artifact. Browser fetches
   # http://127.0.0.1:3011/anchors?featured=true from the published roster.

@@ -4,7 +4,7 @@ import { CauseLeaderboard } from '../components/CauseLeaderboard'
 
 /**
  * Aligning domain route wrapper for the shared cause leaderboard surface.
- * Hosts (CauseStarter, etc.) should import {@link CauseLeaderboard} directly.
+ * Hosts (Commonality, etc.) should import {@link CauseLeaderboard} directly.
  */
 export function CauseLeaderboardPage() {
   const { statementCid } = useParams<{ statementCid: string }>()

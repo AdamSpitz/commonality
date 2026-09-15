@@ -158,7 +158,7 @@
         "COMMONALITY_VERIFIER_ENABLE_TESTNET_SMOKE",
         "COMMONALITY_VERIFIER_ENABLE_TESTNET_BROWSER_JOURNEYS"
       ],
-      "skipPolicyBeforeMandatory": "May be skipped during ordinary development because it drives two Chromium contexts against live CauseStarter and may submit a lab-wallet attestation when mutation is also enabled."
+      "skipPolicyBeforeMandatory": "May be skipped during ordinary development because it drives two Chromium contexts against live Commonality and may submit a lab-wallet attestation when mutation is also enabled."
     }
   ]
 }

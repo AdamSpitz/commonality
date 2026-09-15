@@ -1,4 +1,5 @@
 const IPNS_BY_SUBDOMAIN = {
+  testnet: 'IPNS_COMMONALITY',
   commonality: 'IPNS_COMMONALITY',
   lazygiving: 'IPNS_LAZYGIVING',
   alignment: 'IPNS_ALIGNMENT',
@@ -7,7 +8,6 @@ const IPNS_BY_SUBDOMAIN = {
   civility: 'IPNS_CIVILITY',
   'common-sense-majority': 'IPNS_COMMON_SENSE_MAJORITY',
   conceptspace: 'IPNS_CONCEPTSPACE',
-  causestarter: 'IPNS_CAUSESTARTER',
 }
 
 const CID_CACHE_TTL_SECONDS = 5 * 60

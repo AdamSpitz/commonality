@@ -7,25 +7,25 @@ Each entry follows the same shape:
 - **When a user encounters it** — UI surfaces or moments in the user's flow where this concept becomes load-bearing.
 - **What they might want help with** — typical assistant tasks around this concept.
 
-## CauseStarter API map (jobs → SDK / HTTP)
+## Commonality API map (jobs → SDK / HTTP)
 
-[Full page](/docs/end-user/causestarter/for-llms.md)
+[Full page](/docs/end-user/commonality/for-llms.md)
 
 - **What it is:** Task index for agents: which `@commonality/sdk` subpath (including IPFS upload/fetch) and which HTTP services (cause-assist, implication attester, nudgers) implement each job. Points at generated TypeDoc under `/api-docs/sdk/` rather than restating signatures. Documents the repo MCP (`mcp/`).
 - **When a user encounters it:** `/docs/for-llms`, or when an assistant is about to call the protocol instead of driving the UI.
 - **What they might want help with:** Uploading a statement to IPFS; signing; reading a cause ref; talking to an attester without treating it as platform truth.
 
-## CauseStarter (you landed on a cause page)
+## Commonality (you landed on a cause page)
 
-[Full page](/docs/end-user/causestarter/index.md)
+[Full page](/docs/end-user/commonality/index.md)
 
-- **What it is:** The spoken newcomer briefing. A cause board is a bulletin board of crowdfundable projects (Kickstarter-style refunds if the goal is missed), plus two twists: [delegate](shared/key-ideas/delegation.md) so you don't watch the board, and a **Not yet reimbursed** tab so you fund proven work instead of pitches. Almost everyone arrives via a circulated URL, not a catalog. Causes are ordinary-language statements; the board is a mix, not a club. Jobs are separable: pledge, scout/direct initial funding, recognize or reimburse proven work, start a project, vouch, optionally sign. Money, judgment, trust, distribution, and execution need not come from one organization. After signing, CauseStarter **home** is a personal fundable-projects board (including implied statements).
-- **When a user encounters it:** In-app `/docs`, or when they ask what this cause page is; returning users on CauseStarter `/`.
-- **What they might want help with:** What they can do without joining; how projects get on the list; pledging vs signing; when to start their own page vs using this one; finding “my” projects vs an organizer’s mix. Next objections: [faq.md](/docs/end-user/causestarter/faq.md). Eye-roll “support a cause” objections: [why-this-isnt-lame.md](/docs/end-user/causestarter/why-this-isnt-lame.md).
+- **What it is:** The spoken newcomer briefing. A cause board is a bulletin board of crowdfundable projects (Kickstarter-style refunds if the goal is missed), plus two twists: [delegate](shared/key-ideas/delegation.md) so you don't watch the board, and a **Not yet reimbursed** tab so you fund proven work instead of pitches. Almost everyone arrives via a circulated URL, not a catalog. Causes are ordinary-language statements; the board is a mix, not a club. Jobs are separable: pledge, scout/direct initial funding, recognize or reimburse proven work, start a project, vouch, optionally sign. Money, judgment, trust, distribution, and execution need not come from one organization. After signing, Commonality **home** is a personal fundable-projects board (including implied statements).
+- **When a user encounters it:** In-app `/docs`, or when they ask what this cause page is; returning users on Commonality `/`.
+- **What they might want help with:** What they can do without joining; how projects get on the list; pledging vs signing; when to start their own page vs using this one; finding “my” projects vs an organizer’s mix. Next objections: [faq.md](/docs/end-user/commonality/faq.md). Eye-roll “support a cause” objections: [why-this-isnt-lame.md](/docs/end-user/commonality/why-this-isnt-lame.md).
 
-## CauseStarter FAQ (objections, not a second tutorial)
+## Commonality FAQ (objections, not a second tutorial)
 
-[Full page](/docs/end-user/causestarter/faq.md)
+[Full page](/docs/end-user/commonality/faq.md)
 
 - **What it is:** Short answers to the questions after the spoken pitch: what a cause/statement is, what signing does (including implied statements), how trust-filtered vouches populate the board, forking a mix, refunds, no grant officer, wording.
 - **When a user encounters it:** `/docs/faq`, or when they ask one of those questions after the landing briefing.
@@ -33,7 +33,7 @@ Each entry follows the same shape:
 
 ## Why this isn’t lame
 
-[Full page](/docs/end-user/causestarter/why-this-isnt-lame.md)
+[Full page](/docs/end-user/commonality/why-this-isnt-lame.md)
 
 - **What it is:** Objection-handling for people who roll their eyes at “support a cause”: no black-box charity, no sucker-risk, no pitch-betting, no manifesto, judgment as a job, wording fights don’t kill funding.
 - **When a user encounters it:** `/docs/why-this-isnt-lame`, or when they say this sounds like a movement/org they don’t want to join.
@@ -41,18 +41,18 @@ Each entry follows the same shape:
 
 ## Do the part you’d do anyway (jobs, not an org)
 
-[Full page](/docs/end-user/causestarter/the-jobs.md)
+[Full page](/docs/end-user/commonality/the-jobs.md)
 
-- **What it is:** The everyday pitch for CauseStarter / Commonality. Cooperate on agreement; split the work into jobs people would already take (money, prospective scouting, retrospective evaluation/reimbursement, work, trust, wording); remove the extra job each role used to demand. Not “join a movement.” It is the user-facing form of “unbundle the organization”: one exceptional contribution is enough; a capital holder need not supply mission and talent, and an expert need not be wealthy.
-- **When a user encounters it:** CauseStarter landing, empty states on cause/project/statement pages, `/docs/the-jobs`.
+- **What it is:** The everyday pitch for Commonality / Commonality. Cooperate on agreement; split the work into jobs people would already take (money, prospective scouting, retrospective evaluation/reimbursement, work, trust, wording); remove the extra job each role used to demand. Not “join a movement.” It is the user-facing form of “unbundle the organization”: one exceptional contribution is enough; a capital holder need not supply mission and talent, and an expert need not be wealthy.
+- **When a user encounters it:** Commonality landing, empty states on cause/project/statement pages, `/docs/the-jobs`.
 - **What they might want help with:** Which job to take; why they don’t need a committee, grant officer, or matching manifesto; how delegation / refundable pledges / retroactive funding / bridges / reusing statements unblock the matching “ugh.”
 
-## CauseStarter role guides (choose one capacity)
+## Commonality role guides (choose one capacity)
 
-[Role guide hub](/docs/end-user/causestarter/roles/index.md)
+[Role guide hub](/docs/end-user/commonality/roles/index.md)
 
 - **What it is:** Sendable landing pages for six independently recruitable capacities: capital, prospective scouting/allocation, retrospective evaluation, execution, trust/distribution, and organizing. Each page explicitly says which other jobs the person does not have to accept and explains how their contribution makes those jobs easier to recruit. A whale can provide capital without founding an organization; an expert can supply judgment without being wealthy; a builder can execute without owning fundraising.
-- **When a user encounters it:** `/docs/roles`, from the CauseStarter pitch, jobs catalog, FAQ, or start-a-cause guide; especially when an organizer is making a narrow ask of a prospective participant.
+- **When a user encounters it:** `/docs/roles`, from the Commonality pitch, jobs catalog, FAQ, or start-a-cause guide; especially when an organizer is making a narrow ask of a prospective participant.
 - **What they might want help with:** Choosing the smallest honest role; sending the matching guide; explaining the flywheel from pledges to projects to vouches to reimbursement; separating alignment judgment, prospective selection, and retrospective success evaluation.
 
 ## Statements and the implication graph

@@ -41,7 +41,7 @@ execution, trust, and distribution in one new organization. Find the people who
 already care, then invite each to contribute the one capacity they have. Money
 attracts projects; projects attract money; trusted judgment makes both easier to
 use. Recruit one role at a time." See [Start a
-cause](../../causestarter/start-a-cause.md).
+cause](../../commonality/start-a-cause.md).
 
 ## Scouts (people with foresight)
 
@@ -56,4 +56,4 @@ judgment, execution ability, trust, or distribution can contribute that one thin
 without assembling the other four. The strategic explanation is [Unbundle the
 organization](./why-its-better/unbundled-organization.md).
 
-The same idea, written as the “I’d be happy to X, but ugh Y” obstacles the substrate removes: **[Do the part you’d do anyway](../../causestarter/the-jobs.md)** ([strategy note](./the-jobs.md)).
+The same idea, written as the “I’d be happy to X, but ugh Y” obstacles the substrate removes: **[Do the part you’d do anyway](../../commonality/the-jobs.md)** ([strategy note](./the-jobs.md)).

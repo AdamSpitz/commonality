@@ -1,5 +1,5 @@
 /**
- * Tiny CauseStarter story orchestrator: local-food bookmarks, Christianity
+ * Tiny Commonality story orchestrator: local-food bookmarks, Christianity
  * content-funding extras, recurring pledges, and every tiny-cluster JSON file.
  *
  * Cluster world-building is data/tiny-clusters/*.json + seedTinyCluster.ts.
@@ -256,7 +256,7 @@ export async function publishSeedChristianityCause(): Promise<{
   rosterCid: string | null;
   plankCids: string[];
 } | null> {
-  console.log('\n=== Publishing tiny CauseStarter clusters ===\n');
+  console.log('\n=== Publishing tiny Commonality clusters ===\n');
   const plankMap = new Map<string, IpfsCidV1>();
   await publishAllTinyClusters(plankMap, { publishStatements: true, activity: true });
   await seedChristianPledges(plankMap);

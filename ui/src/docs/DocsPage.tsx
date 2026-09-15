@@ -25,7 +25,6 @@ const DOMAIN_FOLDERS: ReadonlySet<string> = new Set([
   'civility',
   'common-sense-majority',
   'conceptspace',
-  'causestarter',
 ])
 
 function currentDomain(): string {
@@ -56,8 +55,7 @@ function getDefaultDocPath(): string {
     domain === 'content-funding' ||
     domain === 'common-sense-majority' ||
     domain === 'lazyGiving' ||
-    domain === 'tally' ||
-    domain === 'causestarter'
+    domain === 'tally'
   ) {
     return domain
   }
@@ -116,15 +114,22 @@ function legacySharedDocPath(docPath: string): string {
 
 function getDocContent(docPath: string): LoadedDoc | null {
   const normalizedDocPath = legacySharedDocPath(docPath.replace(/^end-user\//, '').replace(/\/$/, ''))
-  const exact = `${normalizedDocPath}.md`
-  if (docModules[exact]) return { content: docModules[exact], pathForRelativeLinks: normalizedDocPath }
-  const readme = `${normalizedDocPath}/README.md`
-  if (docModules[readme]) {
-    return { content: docModules[readme], pathForRelativeLinks: `${normalizedDocPath}/README` }
+  const candidates = [normalizedDocPath]
+  const topFolder = normalizedDocPath.split('/')[0]
+  if (topFolder !== 'shared' && !DOMAIN_FOLDERS.has(topFolder)) {
+    candidates.push(`${currentDomain()}/${normalizedDocPath}`)
   }
-  const index = `${normalizedDocPath}/index.md`
-  if (docModules[index]) {
-    return { content: docModules[index], pathForRelativeLinks: `${normalizedDocPath}/index` }
+  for (const candidate of candidates) {
+    const exact = `${candidate}.md`
+    if (docModules[exact]) return { content: docModules[exact], pathForRelativeLinks: candidate }
+    const readme = `${candidate}/README.md`
+    if (docModules[readme]) {
+      return { content: docModules[readme], pathForRelativeLinks: `${candidate}/README` }
+    }
+    const index = `${candidate}/index.md`
+    if (docModules[index]) {
+      return { content: docModules[index], pathForRelativeLinks: `${candidate}/index` }
+    }
   }
   return null
 }

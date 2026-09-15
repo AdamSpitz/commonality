@@ -13,7 +13,7 @@ nav.
 ## 2026-09-04 — Role-centric home inbox
 
 Continued [role-centric-ui.md](specs/product/role-centric-ui.md) after the Sign/Fund
-statement-mode slice. Occupied CauseStarter home is now a job inbox (Fund / Sign /
+statement-mode slice. Occupied Commonality home is now a job inbox (Fund / Sign /
 Organize teasers linking to `/dashboard`, `/statements`, `/causes`). Bookmarked
 projects on home are capped. Did not stub Direct funds or Evaluate. Trimmed the
 long inbox brainstorm to a pointer at the spec.
@@ -32,7 +32,7 @@ Deleted that Tell item from `TODO.md`. Updated the implementation-plan status an
 ## 2026-08-08 — PublishedData / browser IPFS cutover
 
 - Forced browser product publishers onto PublishedData (CreateStatementForm, CreateProjectPage, CreateContractPage); missing address hard-fails.
-- Emptied browser `getIpfsApiUrl()`; removed CauseStarter `/ipfs-api` Vite+nginx proxy and `35-ipfs-upstream` entrypoint; stopped wiring `VITE_IPFS_API` into UI compose/setup-env/publish-ui/e2e browser env.
+- Emptied browser `getIpfsApiUrl()`; removed Commonality `/ipfs-api` Vite+nginx proxy and `35-ipfs-upstream` entrypoint; stopped wiring `VITE_IPFS_API` into UI compose/setup-env/publish-ui/e2e browser env.
 - Expanded `published-data-ipfs-mirror/README.md` with Commonality + independent-operator runbook; marked cutover plan complete for browser writers (ops deploy of mirror still environment-specific).
 - Deleted the cutover item from root `TODO.md`.
 - Checks: UI focused vitest (useMachinery, CreateProjectPage, CreateContractPage) ✅; mirror package tests ✅; `ui` + `causestarter` typecheck ✅.
@@ -1729,7 +1729,7 @@ Mechanical only — no behavior change. Adam approved on 2026-08-08.
 Moving (12): attester-core, finder-core, nudger-core, implication-attester,
 content-attester, implication-finder, content-finder, implication-graph-nudger,
 beat-agent, beat-memory, bridge-creator, explorer-curator.
-Deliberately NOT moving: cause-assist (a CauseStarter dependency, not a worker),
+Deliberately NOT moving: cause-assist (a Commonality dependency, not a worker),
 service-host, platform-api-service, published-data-ipfs-mirror, indexer, sdk, ui,
 causestarter, hardhat, fake-data-generation, integration-tests.
 
@@ -1787,9 +1787,9 @@ which are worth checking first if this is repeated:
   relatively and needed `../../`. `npm run lint-precommit` does **not** cover
   these packages, so only a full `npx turbo run lint` surfaces it.
 
-## 2026-08-18 — Local start publishes CauseStarter IPFS only
+## 2026-08-18 — Local start publishes Commonality IPFS only
 
-Temporary, reversible: `./scripts/services.sh --start` and `./scripts/deploy-causestarter.sh` no longer build/publish the eight legacy `ui` domain SPAs by default. Default `LOCAL_UI_DOMAINS` is `causestarter`. Restore with `LOCAL_UI_DOMAINS=all`. Source of truth: `scripts/ui-domains.mjs` (`resolveLocalPublishDomains`). Docs: `workflow/local-development.md`, `.env.example`, `README.md`. CauseStarter on `:8090` is unchanged.
+Temporary, reversible: `./scripts/services.sh --start` and `./scripts/deploy-causestarter.sh` no longer build/publish the eight legacy `ui` domain SPAs by default. Default `LOCAL_UI_DOMAINS` is `causestarter`. Restore with `LOCAL_UI_DOMAINS=all`. Source of truth: `scripts/ui-domains.mjs` (`resolveLocalPublishDomains`). Docs: `workflow/local-development.md`, `.env.example`, `README.md`. Commonality on `:8090` is unchanged.
 
 ## 2026-08-18 — Faster local seed
 
@@ -1799,7 +1799,7 @@ Temporary, reversible: `./scripts/services.sh --start` and `./scripts/deploy-cau
 
 Copy sweep of [cause-page-not-a-club.md](specs/product/cause-page-not-a-club.md):
 the Aligning/project list is now **fundable-projects board** in UI copy and
-end-user docs; **cause board** is the CauseStarter organizer publication
+end-user docs; **cause board** is the Commonality organizer publication
 (leftover “cause page” left in comments). Routes still `/portal/:cid` and
 `/cause/:owner/:slug`; identifiers `fundingportal*` lag.
 
@@ -1992,7 +1992,7 @@ content occupancy still keyed as channels (intentional).
   into a familiar name.
 - Project header matches domain size to the raised amount and states that
   escrow enforces domain control, not charity/legal-entity identity.
-- Browse cards, cause-board aligned cards, and CauseStarter project cards
+- Browse cards, cause-board aligned cards, and Commonality project cards
   show the same mark. Funding-portal metadata now folds `beneficiary`.
 - channel-claiming.md proof/verifier names now match BeneficiaryRegistry.
 
@@ -2007,13 +2007,13 @@ domain-controlled chip); content occupancy still keyed as channels.
   known; browse/cause cards still default to not-affiliated until they fold
   on-chain state.
 
-Still needed: claim-state chips on browse/cause/CauseStarter cards (needs a
+Still needed: claim-state chips on browse/cause/Commonality cards (needs a
 fold, not a per-card RPC); content occupancy still keyed as channels.
 
 ## 2026-09-10 — Folded claim state on project cards
 
 - `useBeneficiaryClaimStates` folds `BeneficiaryRegistry` events once from
-  the event cache. Browse and CauseStarter lists use that map; cause-board
+  the event cache. Browse and Commonality lists use that map; cause-board
   cards reuse the existing content-funding fold.
 - Cards chip Unclaimed / Domain-controlled / Beneficiary-controlled and
   switch `WebsiteBeneficiaryMark` copy. Missing fold entries stay unclaimed.
@@ -2118,7 +2118,7 @@ Still needed: product docs for the full proposal flow, live-flow tests.
 - User how-to: `docs/end-user/lazyGiving/propose-a-project.md` (two entry
   points, reuse vs create, resumable attest, not-affiliated copy, control
   and disavowal). Linked from LazyGiving/Commonality indexes, get-your-
-  project-funded, claiming-an-org, CauseStarter jobs/build, help-connect-
+  project-funded, claiming-an-org, Commonality jobs/build, help-connect-
   things, tldr-for-llms.
 
 Still needed: live-flow tests (UI unit tests already cover reuse, vouch
@@ -2160,7 +2160,7 @@ Item 7 of the medium-realistic campaign: `campaignProvisioning.ts` funds generat
 
 Ran `gen:campaign:execute --mode local --concurrency 4 --skip-provision`: 1932 mined, 0 failed, ~196s. First reconcile mismatched all fund-project and note SDK folds. Fixes: derived funding checks now use `campaignFundProjectCost()` (0.01 token per buy, matching the adapter) instead of planner persona amounts; note lookups lowercase the bound contract address. Re-reconcile: 1932/1932 verified, indexer lag 0.
 
-## 2026-09-11 — Local campaign CauseStarter UI inspection
+## 2026-09-11 — Local campaign Commonality UI inspection
 
 Plan item 7 closed. Restarted a 6-day-old `causestarter:dev` so Vite baked `VITE_CHAIN_ID=31337` instead of Base Sepolia. Schools and open-source boards, a bridge statement, and a funded project (eip155:31337) render from the local indexer. Notes page needs a connected wallet. Empty `VITE_DEFAULT_ALIGNMENT_TRUST_ROOT` shows the “no starter vouching network” banner. Details: `fake-data-generation/campaigns/medium-realistic-v1-local-run.md`. Next: remote canary preflight (plan item 8).
 

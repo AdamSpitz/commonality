@@ -10,11 +10,11 @@ Adam on 2026-08-09. The design questions that were open closed on the same date
 and are recorded, with their reasoning, in [§ Resolved](#resolved-2026-08-09);
 what remains open is one bug, at the end.
 
-**What exists as of 2026-08-10**, in CauseStarter:
+**What exists as of 2026-08-10**, in Commonality:
 
 - **Planks** are the cause. `CauseDraft` is a list of `CausePlank`s, each
   published separately and each carrying its own CID
-  (`ui/src/causestarter/lib/causeStore.ts`). There is no main statement, no goal
+  (`ui/src/commonality/lib/causeStore.ts`). There is no main statement, no goal
   field, and no launch step — a cause is "live" once any plank is on chain.
 - **Views** are real. `getStatementBelieverSets` returns the deduped
   believer/indirect/disbeliever ID sets per plank, and `computeViewCounts` folds
@@ -40,7 +40,7 @@ what remains open is one bug, at the end.
   Preview-before-publish, a separate coherence check (`cause-assist`
   `/check-coherence`), and a positive-only on-chain coherence badge
   (`AlignmentAttestations` subject = roster CID digest; **attester =
-  CauseStarter operator via the trusted coherence worker**, never the founder) are wired.
+  Commonality operator via the trusted coherence worker**, never the founder) are wired.
   Publish + `updateRef` prefer one atomic wallet batch; the operator attestation
   follows asynchronously when the worker observes the resulting `RefUpdated` log.
 
@@ -230,9 +230,9 @@ What a view still cannot do — and why you eventually promote:
 | Show "N signed all / any of these" on the cause page | No — view (if people signed the planks) |
 | Show projects that further any selected plank | No — union of plank boards |
 | Put one project on every plank's board | No, and usually shouldn't |
-| Earmark "this money may further any of these" | **Yes** — conjunctive (`all`) combinator: you endorse every conjunct, so a delegate may spend on work that furthers any of them. CauseStarter's funding page mints that node if needed, then opens the pledge form against it. Do **not** use `any` for this job: signing a disjunction does not mean you endorse both spend targets. |
+| Earmark "this money may further any of these" | **Yes** — conjunctive (`all`) combinator: you endorse every conjunct, so a delegate may spend on work that furthers any of them. Commonality's funding page mints that node if needed, then opens the pledge form against it. Do **not** use `any` for this job: signing a disjunction does not mean you endorse both spend targets. |
 | Sign the *name* / the alliance in one step | **Yes** — one CID, one signature |
-| Have Tally, a vertical, a nudge, or any other surface treat the cause as a statement | **Yes** — they take a CID, not a CauseStarter roster URL |
+| Have Tally, a vertical, a nudge, or any other surface treat the cause as a statement | **Yes** — they take a CID, not a Commonality roster URL |
 | Let wholehearted people sign once and count on every plank | **Yes** — conjunctive anchor, outbound arrows |
 | Let plank-signers count toward a public "this cause" number that isn't just this SPA's set-math | **Yes** — disjunctive anchor, inbound arrows |
 
@@ -245,7 +245,7 @@ cares will click through and sign every plank, this is mostly aesthetic. The
 reason we unbundle is that they will not.
 
 The load-bearing reasons to build anchors, then, are **money to the bundle**
-and **identity that lives in the graph**. A CauseStarter roster is an
+and **identity that lives in the graph**. A Commonality roster is an
 organizer document. Everything else in the system is statement-shaped. Until
 the combination is a statement, it is not a node other people can imply,
 disbelieve, earmark to, or build a board on without opening the cause page.
@@ -416,7 +416,7 @@ disbelief, not inventing a new kind of statement.
 
 ## The roster is a publication
 
-**Status: built for CauseStarter (2026-08-10).** Roster document publish +
+**Status: built for Commonality (2026-08-10).** Roster document publish +
 stable ref, history/pinned URLs, preview-before-publish, separate coherence
 check, positive-only on-chain badge (subject = roster CID via
 `AlignmentAttestations` + well-known claim/topic; authored by the site operator
@@ -476,7 +476,7 @@ domain-separation tag, a format version. Publishing through `PublishedData` make
 the bytes the bytes, and brings author attribution via `(publisher, cid)`,
 retraction semantics, and CID-first reads along with it. It is also what [ADR
 0004](/specs/decisions/0004-user-publishes-displayable-data.md) already requires
-for founder-authored content. `ui/src/causestarter/lib/publishPlank.ts` does the
+for founder-authored content. `ui/src/commonality/lib/publishPlank.ts` does the
 same move for plank text.
 
 **Stable ID — a mutable ref.** [`MutableRefUpdater`](/specs/tech/subsystems/mutable-refs/README.md)
@@ -493,7 +493,7 @@ is `(owner, name) → value`, and the indexer keeps `ref_updates` as full histor
 That is an append-only, signed, resolvable roster history built from primitives
 that already exist. **Trap:** do not reach for `appendToUserList` — per the
 mutable-refs spec it "uploads the updated list to IPFS," which is the legacy
-browser-write path CauseStarter deliberately does not have. Publish via
+browser-write path Commonality deliberately does not have. Publish via
 `PublishedData`, then `updateRef` to the resulting CID.
 
 ### What goes in the document
@@ -528,7 +528,7 @@ badge**, per ADR 0008. A badge withholdable on grounds of distaste is an
 endorsement, and an endorsement needs the admission machinery that ADR
 deliberately does not have.
 
-The CauseStarter cause page still *names the absence* when a published roster
+The Commonality cause page still *names the absence* when a published roster
 has no operator badge ("No coherence badge"), so visitors can see that the
 check did not land. That is UI disclosure, not an on-chain negative
 attestation, and it must not be phrased as "this cause is incoherent."
@@ -592,7 +592,7 @@ fail in opposite directions, which is why both are shown.
 Every roster edit becomes a `PublishedData` publish plus an `updateRef` from the
 founder wallet. When the operator's cause-assist service judges the roster
 coherent, it separately writes a positive coherence attestation from the
-operator key. CauseStarter prefers one EIP-5792 atomic batch for publish+ref and
+operator key. Commonality prefers one EIP-5792 atomic batch for publish+ref and
 falls back to sequential txs when the wallet cannot batch (common for local
 Hardhat EOAs). Draft editing remains free and local until publish.
 
@@ -638,7 +638,7 @@ top), and the rest still describes cause-assist.
 
 The direction hardcoded in the suggester is sound for a conjunctive manifesto and
 **unsound for the other two shapes** — see
-[§ How this relates](#how-this-relates-to-what-causestarter-does-today). Because
+[§ How this relates](#how-this-relates-to-what-commonality-does-today). Because
 the wizard asks for the main statement first, the founder is committed to a shape
 before anything has told him shapes exist.
 
@@ -732,9 +732,9 @@ catalog; never share a strategy prompt. That's the same line the bridge-building
 spec draws: "if we end up authoring bridge policy for other people's causes, we've
 built the wrong thing."
 
-## How this relates to what CauseStarter does today
+## How this relates to what Commonality does today
 
-CauseStarter is roster-first, not main-statement-first. Its shared picker gathers
+Commonality is roster-first, not main-statement-first. Its shared picker gathers
 ordinary-language intent, retrieves published statements, offers a clear “none fit”
 correction path, and only then asks cause-assist for draft candidates. Existing CIDs
 are reused; drafts remain unpublished until the organizer approves them. The roster
@@ -800,7 +800,7 @@ looking at his own numbers, which teaches better than any explanation, and
 [§ Promotion](#promotion) arrives naturally instead of as a separate feature.
 
 The payoff is that the main→supporting gating problem in
-[§ How this relates](#how-this-relates-to-what-causestarter-does-today)
+[§ How this relates](#how-this-relates-to-what-commonality-does-today)
 **disappears rather than needing a fix**: with no main statement at wizard time
 there is no arrow to gate and no unsound direction to pick. cause-assist's job
 becomes wording each plank to be attestable *and* signable — precisely the

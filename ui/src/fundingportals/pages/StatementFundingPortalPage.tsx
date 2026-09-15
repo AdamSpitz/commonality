@@ -4,7 +4,7 @@ import { CauseBoard } from '../components/CauseBoard'
 
 /**
  * Aligning domain route wrapper for the shared cause board surface.
- * Hosts (CauseStarter, etc.) should import {@link CauseBoard} directly.
+ * Hosts (Commonality, etc.) should import {@link CauseBoard} directly.
  */
 export function StatementFundingPortalPage() {
   const { statementCid } = useParams<{ statementCid: string }>()

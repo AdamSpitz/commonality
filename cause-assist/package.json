@@ -1,7 +1,7 @@
 {
   "name": "@commonality/cause-assist",
   "version": "0.1.0",
-  "description": "LLM statement suggester, implication check, and safety filter for CauseStarter (Grok 4.5 / xAI)",
+  "description": "LLM statement suggester, implication check, and safety filter for Commonality (Grok 4.5 / xAI)",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

@@ -474,7 +474,7 @@ async function attestContentToPlank(
 /**
  * Point the mixed Twitter batch at a cause plank. Idempotent.
  *
- * Call this *after* the CauseStarter roster CID is finalized. Creating
+ * Call this *after* the Commonality roster CID is finalized. Creating
  * contracts first (or retrying a half-seeded chain) can otherwise leave
  * content vouches on an older statement CID than the published roster.
  */
@@ -858,7 +858,7 @@ export function seedMaterializedContentCanonicalId(): string {
 
 /**
  * Deterministic prospective / materialized rounds on already-verified seed channels.
- * The open YouTube round is vouched as a project so CauseStarter lists it before
+ * The open YouTube round is vouched as a project so Commonality lists it before
  * any posts exist. The Substack round succeeds, materializes one post, and
  * attests that post to the same local-food-systems plank.
  */

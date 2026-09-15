@@ -4,7 +4,7 @@
  *
  * Catches the class of bugs where Hardhat, deployments/localhost.env, SPA
  * config.json files, and the SDK/UI ABIs drift apart (missing PublishedData,
- * stale ProjectFactory ABI, LazyGiving vs CauseStarter address mismatch, …).
+ * stale ProjectFactory ABI, LazyGiving vs Commonality address mismatch, …).
  *
  * Usage:
  *   ./scripts/check-local-config-sync.mjs
@@ -77,7 +77,7 @@ const ROOT_TO_VITE = {
 };
 
 const RUNTIME_CONFIG_URLS = [
-  { name: 'CauseStarter', url: 'http://localhost:8090/config.json' },
+  { name: 'Commonality', url: 'http://localhost:8090/config.json' },
   { name: 'LazyGiving UI', url: 'http://lazygiving.localhost:8088/config.json' },
 ];
 
@@ -155,7 +155,7 @@ function bytecodeHasSelector(codeHex, selector) {
 }
 
 function mergeEnvSources(sources) {
-  // Later sources win (matches deploy-causestarter load order intent: localhost.env then live .env).
+  // Later sources win (matches deploy-commonality load order: localhost.env then live .env).
   const merged = {};
   for (const src of sources) {
     if (!src) continue;
@@ -231,7 +231,7 @@ function checkRuntimeAgainstDeploy(name, config, deployEnv) {
     if (normalizeAddress(actual) !== normalizeAddress(expected)) {
       errors.push(
         `${name} config.json: ${viteKey} is ${actual}, expected ${expected} from deploy env. `
-        + 'Republish UI / recreate CauseStarter after hardhat-deploy.',
+        + 'Republish UI / recreate Commonality after hardhat-deploy.',
       );
     }
   }
@@ -295,7 +295,7 @@ async function checkChain(rpcUrl, deployEnv) {
         + `(${LEGACY_PROJECT_FACTORY_CREATE_SELECTOR}). SDK/UI expect `
         + `${PROJECT_FACTORY_CREATE_SELECTOR} (createERC1155AndAssuranceContract). `
         + 'Redeploy contracts: ./scripts/deploy-contracts.sh localhost '
-        + 'then republish UIs / recreate CauseStarter.',
+        + 'then republish UIs / recreate Commonality.',
       );
     } else if (!hasCurrent) {
       errors.push(
@@ -318,12 +318,12 @@ async function main() {
   const localhostEnvPath = path.join(ROOT, 'deployments', 'localhost.env');
   const rootEnvPath = path.join(ROOT, '.env');
   const uiEnvPath = path.join(ROOT, 'ui', '.env');
-  const causestarterEnvPath = path.join(ROOT, 'causestarter', '.env');
+  const commonalityEnvPath = path.join(ROOT, 'commonality-ui', '.env');
 
   const localhostEnv = await loadEnvFile(localhostEnvPath);
   const rootEnv = await loadEnvFile(rootEnvPath);
   const uiEnv = await loadEnvFile(uiEnvPath);
-  const causestarterEnv = await loadEnvFile(causestarterEnvPath);
+  const commonalityEnv = await loadEnvFile(commonalityEnvPath);
 
   if (!localhostEnv && !rootEnv) {
     errors.push('Neither deployments/localhost.env nor .env found. Run hardhat-deploy first.');
@@ -364,16 +364,16 @@ async function main() {
     warnings.push('ui/.env missing — UI IPFS publisher may bake empty contract addresses');
   }
 
-  if (causestarterEnv) {
-    checkLocalIdentity(causestarterEnv, 'causestarter/.env', { vite: true });
+  if (commonalityEnv) {
+    checkLocalIdentity(commonalityEnv, 'commonality-ui/.env', { vite: true });
     // Optional package env; only check drift if it sets addresses.
-    const hasAny = Object.values(ROOT_TO_VITE).some((k) => causestarterEnv[k]);
+    const hasAny = Object.values(ROOT_TO_VITE).some((k) => commonalityEnv[k]);
     if (hasAny) {
-      checkViteMirror(deployEnv, causestarterEnv, 'causestarter/.env');
+      checkViteMirror(deployEnv, commonalityEnv, 'commonality-ui/.env');
     }
   }
 
-  // Explicit PublishedData callout (the gap that broke CauseStarter publish).
+  // Explicit PublishedData callout (the gap that broke Commonality publish).
   if (!deployEnv.PUBLISHED_DATA_CONTRACT_ADDRESS) {
     errors.push(
       'PUBLISHED_DATA_CONTRACT_ADDRESS is unset. Statement launch and project metadata publish need it. '
@@ -412,7 +412,7 @@ async function main() {
     console.error('\nFix:');
     console.error('  1. ./scripts/deploy-contracts.sh localhost');
     console.error('  2. Restart indexer if addresses changed (docker compose up -d --force-recreate indexer)');
-    console.error('  3. ./scripts/deploy-causestarter.sh');
+    console.error('  3. ./scripts/deploy-commonality.sh');
     console.error('  4. Republish domain UIs: ./scripts/services.sh --start  (or re-run UI IPFS publishers)');
     console.error('  5. Re-run: ./scripts/check-local-config-sync.sh');
     process.exit(1);

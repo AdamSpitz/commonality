@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Local-only: every Hardhat dev account trusts every other one (score 100)
- * on TrustRegistry. After this, CauseStarter will load a non-empty trust
+ * on TrustRegistry. After this, Commonality will load a non-empty trust
  * network for wallets connected via the local Hardhat picker.
  */
 import { readFileSync } from 'node:fs'

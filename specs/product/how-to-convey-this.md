@@ -80,14 +80,14 @@ A slogan will not carry this. One screen of contrast will.
 1. A one-screen “not this / this” under the hero. Three rows is enough: party, charity, Kickstarter. One sentence each. Do not bury this in Docs.
 2. Show a plank, not a brand. A cause as three independent sentences with separate signer counts beats “Start a movement.” The product already works this way; the landing talks as if a cause were a club.
 3. Show two camps funding one project (the rural water example from the organic-coalitions doc). That picture is the whole thesis. No slogan beats it.
-4. Name the absences as features: no directory, no membership, no pooled treasury, no permission. CauseStarter is a lens, not a marketplace. If you do not say that, “Start a cause” looks broken when they cannot browse causes.
+4. Name the absences as features: no directory, no membership, no pooled treasury, no permission. Commonality is a lens, not a marketplace. If you do not say that, “Start a cause” looks broken when they cannot browse causes.
 5. Do not lead with crypto, AI, or “change the world.” Those are how it is possible. The reason to care is: you keep your wording, you do not wait for a win, and gatekeepers are optional.
 
 Pitch you could paste
 
 │ Most systems that want to “do good at scale” ask you to join something: a party, a charity, a campaign, a Discord. You compromise on the wording, pool the money, and wait for a committee or an election.
 │
-│ CauseStarter is for people who will not swallow the bundle. You publish the claims you actually believe. Others sign only the sentences they mean. Overlap is discovered, not negotiated. Funding is per project, with refunds if the threshold is not met.
+│ Commonality is for people who will not swallow the bundle. You publish the claims you actually believe. Others sign only the sentences they mean. Overlap is discovered, not negotiated. Funding is per project, with refunds if the threshold is not met.
 │
 │ You do not need a 501(c)(3), a grant officer, or a majority. You need sentences people will stand behind, and work those sentences can pay for.
 
@@ -164,7 +164,7 @@ Other headlines in the same family:
 
 I would not use “coordination,” “aggregation,” or “organic coalitions” on the hero. Keep those for people who click “how.”
 
-CTA can stay Start a cause for founders, with a quieter second line: or pick one job below. CauseStarter is founder-first, but the story has to be about the whole crowd or founders will think they still have to recruit a complete org.
+CTA can stay Start a cause for founders, with a quieter second line: or pick one job below. Commonality is founder-first, but the story has to be about the whole crowd or founders will think they still have to recruit a complete org.
 
 Landing shape
 
@@ -247,8 +247,8 @@ If you want this in the product next, the smallest honest change is: rewrite the
 
 # 2026-08-23 — is a “cause” even the thing?
 
-Adam: the CauseStarter “cause” (organizer-owned mix of statements + project board)
-is not protocol-fundamental; labelling it a cause on a site named CauseStarter
+Adam: the Commonality “cause” (organizer-owned mix of statements + project board)
+is not protocol-fundamental; labelling it a cause on a site named Commonality
 makes it feel like the thing you join. Maybe it is just a dashboard. Maybe the
 primary loop is a personalized board of projects on statements *you* signed.
 
@@ -263,14 +263,14 @@ Reserve **dashboard** for the personal surface. Full write-up:
 
 # 2026-09-01 — unbundle the organization
 
-The jobs story also answers the adoption question more sharply. CauseStarter does not
+The jobs story also answers the adoption question more sharply. Commonality does not
 create generic motivation or replace the social ecosystem around a cause. A founder
 uses X, newsletters, churches, professional networks, and so on to reach people who
-already care. CauseStarter changes what the founder can ask them to do.
+already care. Commonality changes what the founder can ask them to do.
 
 The conventional alternative requires one organization to combine money, mission,
 prospective judgment, retrospective evaluation, execution, trust, and distribution.
-CauseStarter lets those capacities come from different people. This matters especially
+Commonality lets those capacities come from different people. This matters especially
 for unusually large contributors: a major funder need not assemble a foundation, a
 domain expert need not be rich, and an exceptional builder need not become a
 fundraiser. One exceptional contribution is enough.
@@ -286,7 +286,7 @@ Canonical homes:
 - Public strategic argument: [Unbundle the
   organization](/docs/end-user/commonality/vision-and-strategy/why-its-better/unbundled-organization.md).
 - Participant-facing roles: [Do the part you'd do
-  anyway](/docs/end-user/causestarter/the-jobs.md).
-- Public organizer entry: [Start a cause](/docs/end-user/causestarter/start-a-cause.md).
+  anyway](/docs/end-user/commonality/the-jobs.md).
+- Public organizer entry: [Start a cause](/docs/end-user/commonality/start-a-cause.md).
 - Internal founder playbook: [Activate a cause one role at a
   time](/docs/founder/activating-a-cause.md).

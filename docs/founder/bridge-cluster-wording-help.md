@@ -1,6 +1,6 @@
 # Helping a human write a bridge cluster
 
-How CauseStarter helps an organizer author a [bridge cluster](/specs/product/bridge-causes.md) without Commonality becoming the mediator.
+How Commonality helps an organizer author a [bridge cluster](/specs/product/bridge-causes.md) without Commonality becoming the mediator.
 
 Status: **approach settled (2026-08-19)**; first slice implemented in the cluster editor (`/bridge/new`). This is the writeup a fresh agent should read before changing that UI or adding LLM help. The cluster *shape* is still [bridge-causes.md](/specs/product/bridge-causes.md). The scheduled AI mediator is a different **runtime** ([bridge-creator](/specs/product/bridge-creator.md), [mediator-for-your-cause.md](./mediator-for-your-cause.md)), not a different listener object — subscribers opt into an address ([ADR 0012](/specs/decisions/0012-mediator-is-an-address.md), [bridge-cluster-as-nudger.md](/specs/product/bridge-cluster-as-nudger.md)). Statement-level triples without parent causes: `/bridge/triple`.
 
@@ -45,7 +45,7 @@ Two assistance layers. The **draft is the conversation memory**. Each turn is �
 - the Christian / secular family-formation triple labeled as a **format example only** (civic conclusion only; do not copy a “we come from different places” closer)
 - a required return schema: `commonality.bridge-cluster-patch.v1`
 
-They paste into Claude / ChatGPT / Grok, paste JSON back, **Apply pasted patch**, then review. We never see the chat. Code: `ui/src/causestarter/lib/bridgeAssistBrief.ts`.
+They paste into Claude / ChatGPT / Grok, paste JSON back, **Apply pasted patch**, then review. We never see the chat. Code: `ui/src/commonality/lib/bridgeAssistBrief.ts`.
 
 ### 2. Hosted one-shot verbs (same class as plank sharpening)
 
@@ -58,7 +58,7 @@ cause-assist endpoints — proposals, never auto-applied, never a standing strat
 | `POST /draft-bridge-plank` | One shared plank from ≥2 sides (modified wording, or stand-in planks when modified is skipped); strip justifications and coalition captions |
 | `POST /critique-triple` | Objections (`routing:`, `shape:`) and justification-leak warnings only — no rewrite. Optional parent texts. |
 
-UI: `ui/src/causestarter/components/BridgeClusterAssist.tsx`. Implementation: `cause-assist/src/bridgeClusterAssist.ts`.
+UI: `ui/src/commonality/components/BridgeClusterAssist.tsx`. Implementation: `cause-assist/src/bridgeClusterAssist.ts`.
 
 A later **BYOK in-page chat** (their key, our system prompt, we hold no transcript) is an escape hatch if founders demand it. It is not v1.
 
@@ -68,7 +68,7 @@ A later **BYOK in-page chat** (their key, our system prompt, we hold no transcri
 |---|---|---|
 | Durable object | Published causes + cluster document | Nudger address + featured anchors |
 | Who writes text | Organizer (optionally with one-shot help) | Scheduled synthesizer under *their* strategy prompt |
-| CauseStarter entry | `/bridge/new` | Cause Edit → Mediator fields |
+| Commonality entry | `/bridge/new` | Cause Edit → Mediator fields |
 | LLM role | Wording proposals / critique | Ongoing synthesis from beat context |
 
 ## Still missing in the editor (do not paper over)
@@ -82,6 +82,6 @@ Settled in the editor (see [the-other-cause.md](./the-other-cause.md)): paste a 
 ## Checks
 
 - `npm test --workspace=@commonality/cause-assist`
-- `npm test --workspace=causestarter -- src/lib/bridgeAssistBrief.test.ts src/lib/bridgeCluster.test.ts src/lib/nearDuplicatePlanks.test.ts src/components/BridgeClusterAssist.test.tsx`
+- `npm test --workspace=commonality-ui -- src/lib/bridgeAssistBrief.test.ts src/lib/bridgeCluster.test.ts src/lib/nearDuplicatePlanks.test.ts src/components/BridgeClusterAssist.test.tsx`
 
 After changing cause-assist HTTP, rebuild the Compose service (`docker compose build cause-assist && docker compose up -d cause-assist`). Vite on `:5174` picks up the SPA without that rebuild; the propose/critique buttons need the new process.

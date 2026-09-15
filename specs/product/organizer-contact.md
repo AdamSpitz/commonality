@@ -1,7 +1,7 @@
 # Organizer contact and inbound citations
 
 How a cause organizer is identified, how a mediator may optionally reach
-them, and how inbound bridge citations show up — without CauseStarter
+them, and how inbound bridge citations show up — without Commonality
 becoming a directory or a message hub.
 
 The frozen “why” is [ADR 0011](../decisions/0011-organizer-contact-is-pull.md).
@@ -25,7 +25,7 @@ breach: the cluster document already names its parents.
 Cause and bridge-cluster pages show the organizer / mediator address through
 the shared `AddressDisplay` component (`getUserSocialData`): ENS name when
 present, otherwise a verified Twitter handle, otherwise the hex address
-(tooltip keeps the address when a name is shown). CauseStarter must not
+(tooltip keeps the address when a name is shown). Commonality must not
 invent a second address widget.
 
 ### Optional `contactUrl` on the roster

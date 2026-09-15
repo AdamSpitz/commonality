@@ -1,0 +1,77 @@
+# syntax=docker/dockerfile:1.7
+#
+# Multi-stage build for Commonality.
+# Builder compiles SDK + SPA; runtime is nginx serving the static bundle with a
+# small entrypoint that writes config.json from environment variables.
+
+FROM node:24.14.1-alpine AS builder
+
+ARG NPM_VERSION=11.16.0
+RUN npm install -g npm@${NPM_VERSION} \
+  && apk add --no-cache python3 make g++
+
+WORKDIR /workspace
+
+# Workspace manifests first for better layer caching.
+COPY package.json package-lock.json .npmrc ./
+COPY sdk/package.json ./sdk/package.json
+COPY integration-tests/package.json ./integration-tests/package.json
+COPY hardhat/package.json ./hardhat/package.json
+COPY indexer/package.json ./indexer/package.json
+COPY services/attester-core/package.json ./services/attester-core/package.json
+COPY services/finder-core/package.json ./services/finder-core/package.json
+COPY services/implication-attester/package.json ./services/implication-attester/package.json
+COPY services/content-attester/package.json ./services/content-attester/package.json
+COPY services/beat-memory/package.json ./services/beat-memory/package.json
+COPY services/beat-agent/package.json ./services/beat-agent/package.json
+COPY services/implication-finder/package.json ./services/implication-finder/package.json
+COPY services/content-finder/package.json ./services/content-finder/package.json
+COPY service-host/package.json ./service-host/package.json
+COPY platform-api-service/package.json ./platform-api-service/package.json
+COPY fake-data-generation/package.json ./fake-data-generation/package.json
+COPY services/nudger-core/package.json ./services/nudger-core/package.json
+COPY services/implication-graph-nudger/package.json ./services/implication-graph-nudger/package.json
+COPY services/bridge-creator/package.json ./services/bridge-creator/package.json
+COPY services/explorer-curator/package.json ./services/explorer-curator/package.json
+COPY published-data-ipfs-mirror/package.json ./published-data-ipfs-mirror/package.json
+COPY coherence-badge-worker/package.json ./coherence-badge-worker/package.json
+COPY cause-assist/package.json ./cause-assist/package.json
+COPY ui/package.json ./ui/package.json
+COPY commonality-ui/package.json ./commonality-ui/package.json
+COPY turbo.json ./turbo.json
+
+RUN --mount=type=cache,target=/root/.npm HUSKY=0 npm ci --legacy-peer-deps
+
+COPY sdk ./sdk
+# In-app /docs bundles docs/end-user (endUserDocsPlugin).
+COPY docs ./docs
+# Cause board reuses ui/fundingportals (+ shared, lazy-giving, content-funding, delegation).
+COPY ui ./ui
+COPY commonality-ui ./commonality-ui
+
+# Optional build-time Vite defines (runtime config.json is preferred for contracts).
+# WalletConnect project id MUST be available at vite build time (import.meta.env).
+ARG VITE_HASH_ROUTING=true
+ARG VITE_WALLETCONNECT_PROJECT_ID=
+ENV VITE_HASH_ROUTING=${VITE_HASH_ROUTING}
+ENV VITE_WALLETCONNECT_PROJECT_ID=${VITE_WALLETCONNECT_PROJECT_ID}
+ENV HUSKY=0
+
+RUN npm run build --workspace=@commonality/sdk \
+  && VITE_DOMAIN=commonality npm run build --workspace=ui
+
+# ---------------------------------------------------------------------------
+FROM nginx:1.27-alpine AS runtime
+
+COPY commonality-ui/nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=builder /workspace/ui/dist/commonality /usr/share/nginx/html
+COPY commonality-ui/docker-entrypoint.d/30-indexer-upstream.sh /docker-entrypoint.d/30-indexer-upstream.sh
+COPY commonality-ui/docker-entrypoint.d/40-commonality-config.sh /docker-entrypoint.d/40-commonality-config.sh
+RUN chmod +x /docker-entrypoint.d/30-indexer-upstream.sh \
+      /docker-entrypoint.d/40-commonality-config.sh \
+  && apk add --no-cache wget \
+  && chown -R nginx:nginx /usr/share/nginx/html
+
+EXPOSE 80
+HEALTHCHECK --interval=10s --timeout=3s --start-period=5s --retries=5 \
+  CMD wget -qO- http://127.0.0.1/ >/dev/null || exit 1

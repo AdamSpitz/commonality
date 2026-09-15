@@ -27,7 +27,7 @@ Exercises awaiting a human veto live in
 | **Naturals** | How people actually talk | Signability only. Do not force them to contain the deal |
 | **Modified → commonality** | Smallest extra *belief* that still gets a conservative bless *and* a routing “I already said that” | Live attester **and** routing. Bless alone is not enough |
 
-Do not mix “populate CauseStarter boards” and “demonstrate the implication
+Do not mix “populate Commonality boards” and “demonstrate the implication
 system” in one cluster.
 
 ## Curriculum

@@ -1,4 +1,4 @@
-# CauseStarter coherence badge worker
+# Commonality coherence badge worker
 
 Trusted background worker for operator-authored roster coherence badges. It polls `MutableRefUpdater.RefUpdated`, resolves the new tip as a published document, and only considers schema-v1 documents whose `extras.kind` is `causestarter.roster`. Empty tips, shared reserved ref names, and all non-roster documents are ignored.
 

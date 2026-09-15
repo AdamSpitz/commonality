@@ -120,7 +120,7 @@ scripts/promote-dev-to-master.sh
 Then watch:
 - **Actions tab:** https://github.com/AdamSpitz/commonality/actions
 - **Render dashboard:** Check services redeploy
-- **Testnet URLs:** Visit https://commonality.testnet.commonality.works
+- **Testnet URLs:** Visit https://testnet.commonality.works
 
 ---
 
@@ -133,7 +133,7 @@ Then watch:
 
 ### UI (if changed)
 All 8 domains to IPFS/IPNS:
-- commonality.testnet.commonality.works
+- testnet.commonality.works
 - aligning.works (alignment)
 - lazygiving.testnet.commonality.works
 - tally.testnet.commonality.works
@@ -176,7 +176,7 @@ cat deployments/base-sepolia.env | grep CONTRACT_ADDRESS
 ls data/ui-ipfs/
 
 # Test UI accessibility
-curl -I https://commonality.testnet.commonality.works
+curl -I https://testnet.commonality.works
 ```
 
 ---

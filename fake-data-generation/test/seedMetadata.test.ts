@@ -272,7 +272,7 @@ test('local-food-systems seed ref matches the mapping keys used by tiny seed inj
   assert.match(plank.statement.text, /local food systems/);
 });
 
-test('seed cause roster is a CauseStarter document owned by Hardhat #0', () => {
+test('seed cause roster is a Commonality document owned by Hardhat #0', () => {
   const fields = seedCauseRosterFields('bafkreiplankcid');
   const doc = buildSeedRosterDocument(fields);
   assert.equal(doc.extras?.kind, ROSTER_KIND);
@@ -328,7 +328,7 @@ test('secular-conservative seed roster is a distinct founder cause', () => {
   assert.equal(fields.mediatorBlurb, '');
 });
 
-test('christian-secular seed cluster documents match CauseStarter extras', () => {
+test('christian-secular seed cluster documents match Commonality extras', () => {
   const modifiedCids = ['bafymc1', 'bafymc2', 'bafymc3'];
   const modified = christianModifiedRosterFields(modifiedCids);
   const modifiedDoc = buildSeedRosterDocument(modified);

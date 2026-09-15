@@ -11,7 +11,7 @@ under the names **dashboard** / **my board**. It does **not** reverse
 [ADR 0009](../decisions/0009-causes-are-publications-over-statements.md).
 
 Related: [composability.md](./composability.md) (the *portfolio* of reserved
-capital is a different object — do not conflate), [the jobs](/docs/end-user/causestarter/the-jobs.md),
+capital is a different object — do not conflate), [the jobs](/docs/end-user/commonality/the-jobs.md),
 glossary **Cause board** / **Dashboard**.
 
 ## What it is now
@@ -52,14 +52,14 @@ cause. Not a publication.
 
 ## Historical first slice (implemented, then superseded)
 
-1. CauseStarter **home**, when the wallet is connected **or** this device
+1. Commonality **home**, when the wallet is connected **or** this device
    already has cause boards: an inbox headed **Your work**. Hero is still a
    **teaser** of the personal fundable-projects board (a few compact rows),
    labeled Fund. Sign and Organize teasers sit below and link out. First-visit
    **Welcome** remains when disconnected and there are no local/bookmarked
    boards. See [role-centric-ui.md](./role-centric-ui.md).
 2. Reuse `CauseBoard` with `statementCids` = this wallet’s direct beliefs.
-   Same starter-network / personal trust filter as other CauseStarter lists.
+   Same starter-network / personal trust filter as other Commonality lists.
    Home passes `preview` (compact cards, cap, no metrics/tabs). Content
    contracts drop the channel-details block on the teaser.
 3. Empty: not connected → connect hint. Connected, no signatures → short

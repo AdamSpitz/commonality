@@ -477,9 +477,9 @@ async function main() {
     VITE_PAYMENT_TOKEN_ADDRESS: addresses.FreeERC20, VITE_PAYMENT_TOKEN_SYMBOL: 'USDZZZ', VITE_PAYMENT_TOKEN_DECIMALS: '6', ...(isLocal ? { VITE_IPFS_GATEWAY: 'http://localhost:8080/ipfs', VITE_DEFAULT_NUDGERS: LOCAL_SEED_NUDGER_ADDRESS } : {})
   };
   await updateEnvFile(join(root, 'ui', '.env'), viteAddressEntries);
-  // CauseStarter package .env is optional at runtime (Docker injects config.json),
+  // Commonality package .env is optional at runtime (Docker injects config.json),
   // but stale VITE_* values here fail local:check — keep them in sync with ui/.env.
-  await updateEnvFile(join(root, 'causestarter', '.env'), viteAddressEntries);
+  await updateEnvFile(join(root, 'commonality-ui', '.env'), viteAddressEntries);
   await updateEnvFile(join(root, 'services', 'implication-attester', '.env'), { IMPLICATIONS_CONTRACT_ADDRESS: addresses.Implications });
 
   const changed = [...freshlyDeployed];

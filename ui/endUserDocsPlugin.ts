@@ -6,7 +6,7 @@ import type { Plugin } from 'vite'
 //
 // Per-domain bundling: each branded build only embeds the docs it actually
 // serves — the shared/ connective tier plus its own product folder. The
-// commonality (big-picture/vision) build gets shared/ + commonality/. Docs for
+// Commonality bundles its founder-first guides and deeper vision material. Docs for
 // other products are reached via cross-domain links, not bundled here.
 //
 // `includeAll` embeds the entire tree; used by the test build so DocsPage unit
@@ -21,11 +21,9 @@ interface EndUserDocsPluginOptions {
 }
 
 function foldersForDomain(domain: string): string[] {
-  // `shared/` renders in-context on every site; `commonality/` is the vision
-  // site and bundles vision + shared only. CauseStarter is the founder lens:
-  // it also ships the vision tree so in-app /docs can open those pages.
-  if (domain === 'commonality') return ['shared', 'commonality', 'causestarter']
-  if (domain === 'causestarter') return ['shared', 'causestarter', 'commonality']
+  // `shared/` renders in-context on every site; Commonality includes both its
+  // practical founder-first guides and the optional deeper vision tree.
+  if (domain === 'commonality') return ['shared', 'commonality']
   return ['shared', domain]
 }
 

@@ -8,7 +8,7 @@ databases:
     postgresMajorVersion: 16
 
 services:
-  # CauseStarter's browser-facing, read-only LLM helpers. This process never
+  # Commonality's browser-facing, read-only LLM helpers. This process never
   # receives the coherence badge private key; chain writes belong to the worker.
   - type: web
     name: commonality-cause-assist
@@ -87,7 +87,7 @@ services:
     autoDeploy: true
     plan: starter
 
-  # CauseStarter's shipped one-hop trust root. The durable disk holds the scan
+  # Commonality's shipped one-hop trust root. The durable disk holds the scan
   # cursor plus operator-edited pause and denylist controls.
   - type: worker
     name: commonality-alignment-trust-bootstrap
@@ -424,7 +424,7 @@ services:
       - key: PORT
         value: 3000
       - key: CORS_ALLOWED_ORIGINS
-        value: "https://commonality.testnet.commonality.works,https://lazygiving.testnet.commonality.works,https://aligning.works,https://tally.testnet.commonality.works,https://content-funding.testnet.commonality.works,https://civility.testnet.commonality.works,https://common-sense-majority.testnet.commonality.works,https://conceptspace.testnet.commonality.works,https://causestarter.testnet.commonality.works"
+        value: "https://testnet.commonality.works,https://lazygiving.testnet.commonality.works,https://aligning.works,https://tally.testnet.commonality.works,https://content-funding.testnet.commonality.works,https://civility.testnet.commonality.works,https://common-sense-majority.testnet.commonality.works,https://conceptspace.testnet.commonality.works"
       - key: COMMONALITY_TWITTER_HANDLE
         value: "@commonality"
       - key: CLAIM_PAGE_BASE_URL

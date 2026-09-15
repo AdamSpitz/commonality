@@ -9,14 +9,14 @@
   "rpcUrlEnv": "COMMONALITY_TESTNET_RPC_URL",
   "graphqlUrl": "https://commonality-indexer.onrender.com/graphql",
   "eventCacheUrl": "https://commonality-indexer.onrender.com",
-  "appUrl": "https://causestarter.testnet.commonality.works",
+  "appUrl": "https://testnet.commonality.works",
   "expectedHosts": [
-    "causestarter.testnet.commonality.works",
+    "testnet.commonality.works",
     "civility.testnet.commonality.works",
     "common-sense-majority.testnet.commonality.works"
   ],
   "optionalHosts": [
-    "commonality.testnet.commonality.works",
+    "testnet.commonality.works",
     "lazygiving.testnet.commonality.works",
     "alignment.testnet.commonality.works",
     "tally.testnet.commonality.works",
@@ -24,12 +24,12 @@
     "conceptspace.testnet.commonality.works"
   ],
   "appUrls": [
-    "https://causestarter.testnet.commonality.works",
+    "https://testnet.commonality.works",
     "https://civility.testnet.commonality.works",
     "https://common-sense-majority.testnet.commonality.works"
   ],
   "websiteJourneys": [
-    { "url": "https://causestarter.testnet.commonality.works", "paths": ["/", "/#/", "/#/causes", "/#/docs"] },
+    { "url": "https://testnet.commonality.works", "paths": ["/", "/#/", "/#/causes", "/#/docs"] },
     { "url": "https://civility.testnet.commonality.works", "paths": ["/", "/#/"] },
     { "url": "https://common-sense-majority.testnet.commonality.works", "paths": ["/", "/#/"] }
   ],

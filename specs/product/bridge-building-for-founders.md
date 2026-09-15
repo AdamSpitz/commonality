@@ -3,7 +3,7 @@
 Today the [bridge-creator](./bridge-creator.md) exists as a single instance serving one
 vertical: Common Sense Majority. This doc asks what it would take for **any cause founder**
 to stand up their own bridge-builder — a *mediator for their cause* — and offer it through
-[CauseStarter](/causestarter/README.md), the same way they'd pick up delegation or content
+[Commonality](/commonality-ui/README.md), the same way they'd pick up delegation or content
 funding as a tool.
 
 **Second tenant — decided 2026-08-09: cause-assist is a strategy configuration on this
@@ -109,7 +109,7 @@ A mediator instance is: strategy prompt + seed anchors + context sources + label
 signer key. Today that's scattered across an env table, a prompts directory, and a JSON file.
 Bundle it into one checked-in config (or one `service-host` service entry) and add a scaffold
 command that emits a filled-in template from the cause's founding statement — the same
-cause-assist path CauseStarter already uses for drafting.
+cause-assist path Commonality already uses for drafting.
 
 This is where most of the "make it easy for him" value lives. The founder should be editing
 one file with obvious blanks, not reverse-engineering an env table.
@@ -124,7 +124,7 @@ Two components, parameterized by nudger address + service URL rather than by CSM
 - **Mediator opt-in block** — generalize `csmMediatorNudger.ts` to take name, description, and
   address from cause config, and produce the existing `?addNudger=…` deep link.
 
-In CauseStarter this becomes an entry in `SUPPORTING_TOOLS` (`ui/src/causestarter/lib/tools.ts`)
+In Commonality this becomes an entry in `SUPPORTING_TOOLS` (`ui/src/commonality/lib/tools.ts`)
 plus a field on the cause record pointing at the founder's mediator address and service URL.
 
 ### Tier 4 — The beat-agent dependency
@@ -147,7 +147,7 @@ Two honest consequences:
 Two tracks, in parallel:
 
 **Track A — generalization.** Tier 1 + Tier 2 together; vocabulary and config packaging are one
-refactor, and neither depends on live context. Then Tier 3 UI blocks and the CauseStarter tool
+refactor, and neither depends on live context. Then Tier 3 UI blocks and the Commonality tool
 entry. Roughly a week of focused work.
 
 **Track B — CSM beat-agent stand-up and end-to-end rehearsal**, already on the critical path for

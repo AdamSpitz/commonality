@@ -2,7 +2,7 @@
 
 "Getting people to switch - even to something [better](./why-its-better/) - is hard."
 
-Yes, for a generic platform. CauseStarter’s claim is narrower. It does not try to
+Yes, for a generic platform. Commonality’s claim is narrower. It does not try to
 create motivation for a generic system. Motivation is already abundant around
 particular causes, and their communities already gather in their own social
 networks, institutions, and media. Distribution remains the organizer’s job. Once
@@ -18,7 +18,7 @@ For founders, this turns adoption into a staged bootstrapping problem rather tha
 all-at-once institution-building problem. Visible money attracts projects; visible
 projects attract money; trusted judgment makes both easier to use. See [Unbundle the
 organization](./why-its-better/unbundled-organization.md) and [Start a
-cause](../../causestarter/start-a-cause.md). The public recruiting guide is [Organize
+cause](../../commonality/start-a-cause.md). The public recruiting guide is [Organize
 a cause without building an all-purpose
-organization](../../causestarter/roles/organize.md). Repository maintainers also
+organization](../../commonality/roles/organize.md). Repository maintainers also
 have the operator playbook in `docs/founder/activating-a-cause.md`.

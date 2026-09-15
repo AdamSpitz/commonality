@@ -1,6 +1,6 @@
 # Fake data and seed data — living plan
 
-Tell a fresh LLM: **read this file, then do the next unchecked item under [Next](#next).** Do not invent a second seed pipeline. Details of *how* to write statements live in [`statement-generation.md`](./statement-generation.md). Tiny CauseStarter story: [`christian-secular-tiny-seed.md`](./christian-secular-tiny-seed.md). Commands: [`README.md`](./README.md).
+Tell a fresh LLM: **read this file, then do the next unchecked item under [Next](#next).** Do not invent a second seed pipeline. Details of *how* to write statements live in [`statement-generation.md`](./statement-generation.md). Tiny Commonality story: [`christian-secular-tiny-seed.md`](./christian-secular-tiny-seed.md). Commands: [`README.md`](./README.md).
 
 This file is the **index** of current state and remaining work. Update it when work lands.
 
@@ -19,7 +19,7 @@ Job C is statements only. Jobs A/B/D create on-chain activity. Tiny (A) **does n
 
 ### A — Tiny world
 
-**Usable for CauseStarter UI.** Hand-authored personas (~10 projects), Christianity + secular-conservatism boards (naturals only), mediator #8 cluster, local-food garden, content-funding rounds, Hardhat #0–#9 bookmarks.
+**Usable for Commonality UI.** Hand-authored personas (~10 projects), Christianity + secular-conservatism boards (naturals only), mediator #8 cluster, local-food garden, content-funding rounds, Hardhat #0–#9 bookmarks.
 
 - Live attester: 6 designed-yes / 6 designed-no on the Christian×secular triples.
 - **Weak implication demo:** camps already share the civic conclusion; commonality is just the policy. Keep as “two nearby camps.” Do **not** polish that pairing into a fake middle-ground. Do **not** train generation on it.
@@ -56,7 +56,7 @@ Checked-in `data/seed-implication-evaluations.original-variants.json` is **stale
 Implemented 2026-09-14. `./scripts/generate-testnet-data.sh --yes` creates a deliberately
 bounded five-user Base Sepolia batch; this is not the mass-activity job. Every local or
 testnet simulation now appends an AES-GCM-encrypted run document and reverse-chronological
-registry under `output/test-data/`. CauseStarter's `/admin/test-data` route decrypts a
+registry under `output/test-data/`. Commonality's `/admin/test-data` route decrypts a
 capability URL locally, shows the objective run contents, and can connect in memory as any
 disposable fake user. `scripts/publish-test-data.sh` pins only encrypted files and advances
 a dedicated test-data IPNS name; mainnet is hard-disabled.

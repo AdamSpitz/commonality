@@ -60,11 +60,11 @@ authoritative copy; this list is the map.
       founders of their own vertical*, never as "come use Commonality."
       (from [marketing.md](./marketing.md))
 - [ ] Resolve the naming question: new site, or rename Commonality to something like
-      "CauseStarter"? The umbrella brand currently names the substrate, not the founder
+      "Commonality"? The umbrella brand currently names the substrate, not the founder
       product. *(Adam — [inbox.md](/inbox.md))*
 - [ ] Separate, copy-only: do not over-weight the organizer roster as “a cause”
       you join; two-step noun change in [cause-page-not-a-club.md](./cause-page-not-a-club.md).
-      Does not settle the umbrella-vs-CauseStarter brand question.
+      Does not settle the umbrella-vs-Commonality brand question.
 
 ### Make the founder's job easier (platform work)
 

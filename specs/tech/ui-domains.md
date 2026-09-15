@@ -1,6 +1,6 @@
 # Multi-Domain UI Architecture
 
-The UI domains (the eight focused sites plus CauseStarter) are built from a single codebase but deployed as separate artifacts. For the product-level description of what each site is and why they exist, see [specs/product/ui-domains.md](../product/ui-domains.md).
+The eight UI domains are built from a single codebase but deployed as separate artifacts. For the product-level description of what each site is and why they exist, see [specs/product/ui-domains.md](../product/ui-domains.md).
 
 
 ## Shared codebase, separate builds
@@ -11,7 +11,7 @@ All eight sites share:
 - Authentication and wallet infrastructure
 - Attestation display components
 
-Each site is a separate build artifact that includes only the routes and features relevant to it. A `VITE_DOMAIN` environment variable selects which domain is built; it defaults to `commonality`. CauseStarter is `VITE_DOMAIN=causestarter` (feature module `ui/src/causestarter/`).
+Each site is a separate build artifact that includes only the routes and features relevant to it. A `VITE_DOMAIN` environment variable selects which domain is built; it defaults to `commonality`. Commonality is `VITE_DOMAIN=commonality` (feature module `ui/src/commonality/`).
 
 
 ## Directory shape
@@ -21,7 +21,7 @@ This tree shows the important architectural folders, not every helper directory 
 ```
 ui/src/
 ├── shared/                    # Shared SDK, components, hooks, routing, branding helpers
-├── causestarter/              # CauseStarter feature module (ninth domain)
+├── commonality/              # Commonality founder-first feature module
 ├── conceptspace/              # Statement-signing feature module (used by Tally)
 ├── lazy-giving/               # Project/funding feature module (used by LazyGiving and funding verticals)
 ├── delegation/                # Delegation feature module (used by LazyGiving and funding verticals)
@@ -37,7 +37,6 @@ ui/src/
 │   ├── civility/
 │   ├── common-sense-majority/
 │   ├── conceptspace/
-│   ├── causestarter/
 │   ├── components/            # Shared per-domain landing/shell components
 │   └── delegation/            # Legacy compatibility folder; Delegation is not a standalone build
 └── main.tsx                   # Selects the active domain build via VITE_DOMAIN
@@ -60,7 +59,6 @@ dist/
 ├── civility/
 ├── common-sense-majority/
 ├── conceptspace/
-└── causestarter/
 ```
 
 Useful build commands (from the `ui/` directory):

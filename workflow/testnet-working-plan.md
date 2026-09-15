@@ -6,7 +6,7 @@ This file is the **index** of remaining work to make Base Sepolia a **shared lab
 
 ## What “basically working” means
 
-Enough for two operators to use `*.testnet.commonality.works` (and CauseStarter, once it has a hostname) as a shared testing environment:
+Enough for two operators to use `*.testnet.commonality.works` (and Commonality, once it has a hostname) as a shared testing environment:
 
 - UIs load over HTTPS without pointing at localhost.
 - Indexer GraphQL answers and is near chain head.
@@ -23,7 +23,7 @@ It does **not** mean: public launch, mainnet, 10⁴ fake users, or a nightly mut
 | **1. Shared two-person lab** | Live Base Sepolia + Render + IPFS UIs that two people can actually use | Scale test. Mainnet. A populated demo narrative | This file |
 | **2. Local world / seed** | Tiny or demo data on Hardhat so the UI has something to look at | Testnet history. Stress traffic | [../fake-data-generation/PLAN.md](../fake-data-generation/PLAN.md) jobs A–C |
 | **3. Mass fake activity** | Many random users/actions to stress contracts and indexer | Shared lab. Real statements | Same PLAN.md job D. **Stays local** |
-| **4. Bounded demo batch** | Five disposable users and a capped, inspectable run | A load test or permanent identity set | `scripts/generate-testnet-data.sh`; encrypted admin registry in CauseStarter |
+| **4. Bounded demo batch** | Five disposable users and a capped, inspectable run | A load test or permanent identity set | `scripts/generate-testnet-data.sh`; encrypted admin registry in Commonality |
 
 Do not push `gen:large` (today: 100 users; 1000+ not built) at Sepolia. The indexer is still catching up / lag-failing; a load generator would trash the lab you still need to read.
 
@@ -46,7 +46,7 @@ Full `./scripts/verifier-testnet.sh` (~16:46 UTC): `dns`/`http`/`rpc`/`indexer`/
 - Funding-portal `0n`: cause aggregation already folds FreeERC20 `USDZZZ` (6 decimals). The three red integration tests looked up `currency.symbol === 'ETH'` and coalesced to `0n`. They now read the settlement token (`amountInPaymentToken`). Harness unit test pass. Live mocha against this machine’s stack died on IPFS API `410 Gone` before the assertions — do not treat that as a remaining fold bug.
 - `InvalidVerifierSignature` on `stack.user-journeys`: E2E `verifyE2EChannelOwnership` preferred `VERIFIER_PRIVATE_KEY` from the environment (generated Sepolia operator signer). Local `ChannelVerifier` is deployed with Hardhat account #0 as `trustedVerifier`. Harness now always signs with that deployer key and uses chain time for the deadline. Content-funding channel create is not in the two-person testnet loop (testnet signer is the off-chain `VERIFIER_PRIVATE_KEY` matching `CHANNEL_VERIFIER_TRUSTED_SIGNER_ADDRESS`); no Sepolia republish.
 
-**Item 6 done (2026-09-06 ~01:00 UTC).** Mutation canary `COMMONALITY_TESTNET_VERIFIER_ADDRESS` `0x6295d57…` already had ~0.005 ETH (nonce 9); that is **not** live `VERIFIER_ADDRESS` `0xE486…` (still 0 ETH). `testnet.onchain-to-indexer` **pass** tx `0x9d669f0f…` block **46443918**. First `testnet.published-data` tx `0x0346d1b8…` **was indexed** but the check still expected the old `{ publication, data }` body; CID-first `/api/published-data/:dataId` returns `publications[]` pointers and no bytes. Check updated; second run **pass** tx `0x3e56aab7…` block **46444037** dataId `0x76da20b3…`. Wrapper `--mutation` now includes `published-data`. Observer-B readback (CauseStarter `config.json` event cache): same CID **active**, same AlignmentAttestation in `/api/events`. `testnet.alignment-trust` still **error** (no `VITE_DEFAULT_ALIGNMENT_TRUST_ROOT` / denylist — do not ship Hardhat #8). `app-config` still fail on idle official attester. Do not enable nightly mutation (item 9).
+**Item 6 done (2026-09-06 ~01:00 UTC).** Mutation canary `COMMONALITY_TESTNET_VERIFIER_ADDRESS` `0x6295d57…` already had ~0.005 ETH (nonce 9); that is **not** live `VERIFIER_ADDRESS` `0xE486…` (still 0 ETH). `testnet.onchain-to-indexer` **pass** tx `0x9d669f0f…` block **46443918**. First `testnet.published-data` tx `0x0346d1b8…` **was indexed** but the check still expected the old `{ publication, data }` body; CID-first `/api/published-data/:dataId` returns `publications[]` pointers and no bytes. Check updated; second run **pass** tx `0x3e56aab7…` block **46444037** dataId `0x76da20b3…`. Wrapper `--mutation` now includes `published-data`. Observer-B readback (Commonality `config.json` event cache): same CID **active**, same AlignmentAttestation in `/api/events`. `testnet.alignment-trust` still **error** (no `VITE_DEFAULT_ALIGNMENT_TRUST_ROOT` / denylist — do not ship Hardhat #8). `app-config` still fail on idle official attester. Do not enable nightly mutation (item 9).
 
 **Item 2 done.** `npx verifier-run testnet.indexer` **pass** (~16:42 UTC): GraphQL `_meta` **46429137**, lag **0**, maxLag 300. Live deploy `dep-dae48qgou94c73976610` commit `53417ecc`, env range **10000**, Alchemy RPC. Adam raised monthly usage limit to **$30**.
 
@@ -79,15 +79,15 @@ Earlier the same day: 502 crash loop (public prune) then HTTP 200 with lag fail;
 - `GET /v1/logs` needs `ownerId` + `resource` (service id). Env list: `GET /v1/services/{id}/env-vars`. Single var: `PUT /v1/services/{id}/env-vars/{KEY}` `{"value":"..."}`. Env change needs **deploy_only**, not only restart.
 - Ad-hoc scripts in `tmp/render-indexer-*.sh` and `tmp/watch-indexer-*.sh` — disposable; do not commit.
 
-**Item 5 done (2026-09-06 ~00:49 UTC).** Adam added a proxied CNAME `causestarter.testnet` → `brown-racial-sailfish-957.mypinata.cloud` (same as the other UIs). `https://causestarter.testnet.commonality.works` HTTP 200, title CauseStarter, CID `QmRBAj9Wrsr9k7Kj5fu5AeqE2xWwagbCiMZmd4s6S7dvFp`. `testnet.dns` **9 hosts pass** (TLS `*.testnet.commonality.works`). `testnet.http` 13 URLs pass. `testnet.app-shell` 9 URLs pass. `testnet.website-journeys` **pass** 24 URLs (~39s) on retry; first run failed CauseStarter `/` with empty body (cold lazy chunk), `/#/` already rendered. Do not raise the 180s timeout. Pinata dedicated-gateway Host Origins still a leftover dashboard add if CORS to that host is needed; Worker path is serving.
+**Item 5 done (2026-09-06 ~00:49 UTC).** Adam added a proxied CNAME `causestarter.testnet` → `brown-racial-sailfish-957.mypinata.cloud` (same as the other UIs). `https://causestarter.testnet.commonality.works` HTTP 200, title Commonality, CID `QmRBAj9Wrsr9k7Kj5fu5AeqE2xWwagbCiMZmd4s6S7dvFp`. `testnet.dns` **9 hosts pass** (TLS `*.testnet.commonality.works`). `testnet.http` 13 URLs pass. `testnet.app-shell` 9 URLs pass. `testnet.website-journeys` **pass** 24 URLs (~39s) on retry; first run failed Commonality `/` with empty body (cold lazy chunk), `/#/` already rendered. Do not raise the 180s timeout. Pinata dedicated-gateway Host Origins still a leftover dashboard add if CORS to that host is needed; Worker path is serving.
 
-**CauseStarter AI wiring (2026-09-07):** IPFS `buildRuntimeConfig` now emits `VITE_CAUSE_ASSIST_URL` and `VITE_IMPLICATION_ATTESTER_URL`. `setup-env.sh` no longer lets `operator-addresses.env` overwrite Sepolia public identities. Live republish is item 7.
+**Commonality AI wiring (2026-09-07):** IPFS `buildRuntimeConfig` now emits `VITE_CAUSE_ASSIST_URL` and `VITE_IMPLICATION_ATTESTER_URL`. `setup-env.sh` no longer lets `operator-addresses.env` overwrite Sepolia public identities. Live republish is item 7.
 
 **Not in the lab yet (unchanged)**
 
 - Alignment-trust bootstrap must not ship the local Hardhat key.
 - Local journeys that will bite on testnet: none of the item-8 pair left as product bugs. Remaining human leftovers below.
-- CauseStarter scale ceiling out of scope until the lab is up.
+- Commonality scale ceiling out of scope until the lab is up.
 
 **Human leftovers (do not paper over)**
 
@@ -113,7 +113,7 @@ Do these in order unless Adam names a different one. Each item is a session-size
 
 4. **[x] (Tell) Browser journeys on the happy paths.** 2026-09-05 ~18:32 UTC: `testnet.website-journeys` **pass** (22 URLs). Historical LazyGiving `/#/projects` IPFS junk CID is tolerated in the check; SDK no longer treats non-CIDs as metadata.
 
-5. **[x] (Tell) CauseStarter on testnet hostname.** Live at `https://causestarter.testnet.commonality.works` (2026-09-06). DNS CNAME by Adam; Worker route + IPNS + CORS already in. Journeys pass including `/` and `/#/`.
+5. **[x] (Tell) Commonality on testnet hostname.** Live at `https://causestarter.testnet.commonality.works` (2026-09-06). DNS CNAME by Adam; Worker route + IPNS + CORS already in. Journeys pass including `/` and `/#/`.
 
    **Done when:** `https://causestarter.testnet.commonality.works` loads over HTTPS (same Worker path as the others), platform-api CORS allows that origin, and `./scripts/verifier-testnet.sh --browser` includes it (dns/http/app-shell/journeys). Pinata Host Origins is a dashboard step — if you cannot add it, note in inbox and keep going (Worker uses `gateway.pinata.cloud` + key, dedicated-gateway origins are leftover).
 
@@ -127,26 +127,26 @@ Do these in order unless Adam names a different one. Each item is a session-size
    - `workflow/testnet-render-env.md` `CORS_ALLOWED_ORIGINS` — append `https://causestarter.testnet.commonality.works` (parser has **no** `*.testnet` wildcard). Live Render `commonality-platform-api`: PUT that env and **deploy_only** (restart does not pick env).
    - `verifier/environments/testnet.json`: `expectedHosts`, `appUrls`, and `websiteJourneys` (paths at least `"/"` and `"/#/"`).
    - `scripts/deploy-testnet.sh` already reads slugs from `testnet-names.json`. `deploy_slug_for_domain` should keep slug `causestarter` (that is `VITE_DOMAIN`). Do not map it to a legacy camelCase name.
-   - Tests that hardcode the eight-subdomain map (`cloudflare-ui-gateway/ui-gateway.test.mjs` and similar) — extend, don’t special-case CauseStarter as the only host.
+   - Tests that hardcode the eight-subdomain map (`cloudflare-ui-gateway/ui-gateway.test.mjs` and similar) — extend, don’t special-case Commonality as the only host.
 
    **Ops (existing scripts, not a new program):**
    1. DNS: `./scripts/setup-testnet-naming.sh --dns` (or one proxied CNAME for `causestarter.testnet` like the other eight). Wildcard cert `*.testnet.commonality.works` already covers TLS.
    2. `npx wrangler deploy -c cloudflare-ui-gateway/wrangler.testnet.toml` after the route/IPNS var land.
-   3. Publish **only** CauseStarter: `DOMAINS=causestarter ./scripts/deploy-testnet.sh` (needs `PINATA_JWT` + the new IPNS key in operator secrets). Do not republish all eight for luck.
+   3. Publish **only** Commonality: `DOMAINS=causestarter ./scripts/deploy-testnet.sh` (needs `PINATA_JWT` + the new IPNS key in operator secrets). Do not republish all eight for luck.
    4. Pinata dashboard → Access Controls → Host Origins: add `https://causestarter.testnet.commonality.works` (Picnic plan: no wildcards). Human if you lack dashboard access.
    5. Smoke: `curl` 200, then `./scripts/verifier-testnet.sh --browser`. If journeys fail, narrow like item 4 — do not raise the 180s timeout.
 
    Stop if you hit Cloudflare zone login, Pinata billing, or missing `CLOUDFLARE_API_TOKEN` / `PINATA_JWT` — inbox, don’t paper over.
 
-6. **[x] (Tell) Two-person write path, one mutation canary.** 2026-09-06: `onchain-to-indexer` + `published-data` fresh pass from `0x6295d57…`. CauseStarter config points at the same indexer; a second client sees both the attestation and the CID-first publication. No “cannot see each other’s stuff” bug on that path. Alignment-trust bootstrap still missing (human leftover). Wrapper `--mutation` still exits 1 because of `app-config` + `alignment-trust`.
+6. **[x] (Tell) Two-person write path, one mutation canary.** 2026-09-06: `onchain-to-indexer` + `published-data` fresh pass from `0x6295d57…`. Commonality config points at the same indexer; a second client sees both the attestation and the CID-first publication. No “cannot see each other’s stuff” bug on that path. Alignment-trust bootstrap still missing (human leftover). Wrapper `--mutation` still exits 1 because of `app-config` + `alignment-trust`.
 
-7. **[x] (Tell) CauseStarter HTTP AI on the IPFS bundle.** 2026-09-07: CID `QmVCS23i3j6KqM7YECwiKvGNdAQMf8n6dasdr6R8RvA2Uv`. Live `config.json` has `VITE_CAUSE_ASSIST_URL=https://commonality-cause-assist.onrender.com`, `VITE_IMPLICATION_ATTESTER_URL=https://commonality-service-host-attesters.onrender.com/implication-attester`, trusted attester `0x021b3C…`. Do not dummy-attest. Do not start beat-finder without Ask. Human leftover: try suggest/atomize in the browser (CORS reflects Origin).
+7. **[x] (Tell) Commonality HTTP AI on the IPFS bundle.** 2026-09-07: CID `QmVCS23i3j6KqM7YECwiKvGNdAQMf8n6dasdr6R8RvA2Uv`. Live `config.json` has `VITE_CAUSE_ASSIST_URL=https://commonality-cause-assist.onrender.com`, `VITE_IMPLICATION_ATTESTER_URL=https://commonality-service-host-attesters.onrender.com/implication-attester`, trusted attester `0x021b3C…`. Do not dummy-attest. Do not start beat-finder without Ask. Human leftover: try suggest/atomize in the browser (CORS reflects Origin).
 
 8. **[x] (Tell) Unblock the journeys that will fail as soon as someone tries them.** 2026-09-08: ETH-vs-USDZZZ test lookups and E2E verifier-key mixup. See Current state. Do not dummy-attest; do not fund live `VERIFIER_ADDRESS`.
 
 9. **[ ] (Ask) Nightly mutation flag.** When read-only smoke is green for a few days and item 6 has a fresh pass, ask Adam to set `COMMONALITY_VERIFIER_NIGHTLY_ALLOW_TESTNET_MUTATION=1` in the cadence shell. Do not enable it yourself.
 
-10. **[x] (Tell) Two-person lab LLM overlay.** 2026-09-09 browser re-run: two Chromium contexts share live CauseStarter config; lab A/B wallets are generate-wallets roles (`COMMONALITY_TESTNET_LAB_A_*` / `_B_*`); lab A `attestAlignment` `0x4764d91e…` indexed. Deterministic `testnet.two-person-browser` is on `--browser`. Live cause-assist `/health` showed OpenRouter URL + DeepSeek while only `XAI_API_KEY` was filled — 401. Headless still cannot Privy-connect.
+10. **[x] (Tell) Two-person lab LLM overlay.** 2026-09-09 browser re-run: two Chromium contexts share live Commonality config; lab A/B wallets are generate-wallets roles (`COMMONALITY_TESTNET_LAB_A_*` / `_B_*`); lab A `attestAlignment` `0x4764d91e…` indexed. Deterministic `testnet.two-person-browser` is on `--browser`. Live cause-assist `/health` showed OpenRouter URL + DeepSeek while only `XAI_API_KEY` was filled — 401. Headless still cannot Privy-connect.
 
 Item 9 is Ask — do not enable nightly mutation yourself. Item 10 is the LLM overlay so Adam/Sam are not the first two clients. **Do not start job 3 (mass activity on testnet).** Scale drills stay local (`gen:medium` / `gen:large`).
 
@@ -154,10 +154,10 @@ Item 9 is Ask — do not enable nightly mutation yourself. Item 10 is the LLM ov
 
 - Mainnet, ENS spend beyond what deployment.md already documents, Hardhat 2→3.
 - Fake-data job D at 1000+ users; graphs; indexer deep-compare (PLAN.md).
-- CauseStarter believer-set indexer aggregate and StatementPicker top-100 window (inbox; scale, not “lab is down”).
+- Commonality believer-set indexer aggregate and StatementPicker top-100 window (inbox; scale, not “lab is down”).
 - Product messaging / founder-first copy (verifier `facet.product`).
 - Admin-mode design, GitHub Issues migration, alternate UIs for Sam (inbox).
-- Replacing the eight sites with CauseStarter-only on testnet without an Ask.
+- Replacing the eight sites with Commonality-only on testnet without an Ask.
 
 ## How to work
 

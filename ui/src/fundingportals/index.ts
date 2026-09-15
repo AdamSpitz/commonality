@@ -12,7 +12,7 @@
 // Eager surface (components used at import time).
 // - FundingPortalSummary — conceptspace statement page
 // - AlignmentAttestationsSection — lazy-giving project-detail page
-// - CauseBoard / CauseLeaderboard — Aligning routes + CauseStarter host
+// - CauseBoard / CauseLeaderboard — Aligning routes + Commonality host
 // Remaining components stay module-internal until an external consumer needs them.
 
 export { FundingPortalSummary } from './components/FundingPortalSummary'

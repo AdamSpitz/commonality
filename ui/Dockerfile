@@ -31,7 +31,7 @@ COPY published-data-ipfs-mirror/package.json ./published-data-ipfs-mirror/packag
 COPY coherence-badge-worker/package.json ./coherence-badge-worker/package.json
 COPY cause-assist/package.json ./cause-assist/package.json
 COPY ui/package.json ./ui/package.json
-COPY causestarter/package.json ./causestarter/package.json
+COPY commonality-ui/package.json ./commonality-ui/package.json
 COPY turbo.json ./turbo.json
 RUN --mount=type=cache,target=/root/.npm HUSKY=0 npm ci --legacy-peer-deps
 COPY sdk ./sdk

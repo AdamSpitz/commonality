@@ -3,7 +3,7 @@ import path from "node:path";
 import { emit, fail, pass, readInputs, workspacePath } from "../lib/result.mjs";
 
 const EXPECTED_DOMAIN_NAMES = [
-  "CauseStarter",
+  "Commonality",
   "Civility",
   "Common Sense Majority"
 ];

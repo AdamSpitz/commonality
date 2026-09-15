@@ -22,19 +22,19 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 - Replace/scopedown external account tokens: Cloudflare scoped DNS token instead of global key; Render/Pinata scoped as narrowly as possible; OpenRouter spend limit.
 
-- Before deploying the CauseStarter alignment-trust bootstrap outside local Hardhat, run `node scripts/generate-wallets.mjs`, fund `ALIGNMENT_TRUST_BOOTSTRAP_ADDRESS`, install the worker's generated Render secret block, and add the configured denylist canary to its persistent disk. Never deploy the checked-in local Hardhat key; see the worker README runbook.
+- Before deploying the Commonality alignment-trust bootstrap outside local Hardhat, run `node scripts/generate-wallets.mjs`, fund `ALIGNMENT_TRUST_BOOTSTRAP_ADDRESS`, install the worker's generated Render secret block, and add the configured denylist canary to its persistent disk. Never deploy the checked-in local Hardhat key; see the worker README runbook.
 
-- **(Tell)** Personal dashboard spec + first slice: [personal-dashboard.md](specs/product/personal-dashboard.md). CauseStarter home (connected) heroes the fundable-projects union over signed statements. Not an unpublished cause board. Stars/subsets deferred.
+- **(Tell)** Personal dashboard spec + first slice: [personal-dashboard.md](specs/product/personal-dashboard.md). Commonality home (connected) heroes the fundable-projects union over signed statements. Not an unpublished cause board. Stars/subsets deferred.
 
 ### Docs / UI copy
 
-- **(Tell)** Applied [cause-page-not-a-club.md](specs/product/cause-page-not-a-club.md) copy sweep: glossary two-step rename, end-user docs, Aligning/fundable-projects UI strings, CauseStarter high-traffic docs + organizer publish copy. Leftover “cause page” in comments, `/cause/:owner/:slug` and `fundingportal*` identifiers, and incidental “funding portal” docs still lag.
+- **(Tell)** Applied [cause-page-not-a-club.md](specs/product/cause-page-not-a-club.md) copy sweep: glossary two-step rename, end-user docs, Aligning/fundable-projects UI strings, Commonality high-traffic docs + organizer publish copy. Leftover “cause page” in comments, `/cause/:owner/:slug` and `fundingportal*` identifiers, and incidental “funding portal” docs still lag.
 
 - Decide whether to act on the fresh landing-copy positioning findings. The Civility grievance-first hero was reviewed and is fine; the verifier rubric was corrected so CSM’s recognition-register rule is not imposed on every vertical. Remaining findings are elsewhere: the umbrella Commonality landing still recruits generic end users despite the founder-first strategy, CSM front-loads the mediator toggle and uses “the other side’s bullshit,” Aligning repeats its main tradeoff several times, and Tally’s “Sign once, counted forever” headline presents a future goal as current capability.
 
 ### Features that I'm realizing would make a big difference
 
-- Fund-now / claim-later is now the [focus](focus.md) (replaced testnet-usable + CauseStarter UI). Product [fund-now-claim-later.md](specs/product/fund-now-claim-later.md), tech [claimable-beneficiaries.md](specs/tech/subsystems/claimable-beneficiaries.md).
+- Fund-now / claim-later is now the [focus](focus.md) (replaced testnet-usable + Commonality UI). Product [fund-now-claim-later.md](specs/product/fund-now-claim-later.md), tech [claimable-beneficiaries.md](specs/tech/subsystems/claimable-beneficiaries.md).
 
 - Bridge-creator package is done; remaining work (CSM beat-agent stand-up, Civility-agent context source adapter, feeding signing outcomes into anchor reflection, and end-to-end rehearsal) is enumerated in [`bridge-creator-csm-next-steps.md`](workflow/bridge-creator-csm-next-steps.md). Mostly LLM-doable; the rehearsal pass needs your judgment.
 
@@ -46,9 +46,9 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 Standing index: [`workflow/testnet-working-plan.md`](workflow/testnet-working-plan.md). Operator checklist: [`testnet-prep.md`](testnet-prep.md). The two-person lab is up through item 6. Remaining **your** clicks (none of these are “the lab is down”):
 
-- **Alignment-trust bootstrap (needed for CauseStarter’s shipped trust graph, not for sites/indexer).** Same as the Security item above: dedicated wallet from `generate-wallets.mjs`, fund `ALIGNMENT_TRUST_BOOTSTRAP_ADDRESS`, Render secret, denylist canary on the worker disk. Never Hardhat #8. Details: [`alignment-trust-bootstrap/README.md`](alignment-trust-bootstrap/README.md).
+- **Alignment-trust bootstrap (needed for Commonality’s shipped trust graph, not for sites/indexer).** Same as the Security item above: dedicated wallet from `generate-wallets.mjs`, fund `ALIGNMENT_TRUST_BOOTSTRAP_ADDRESS`, Render secret, denylist canary on the worker disk. Never Hardhat #8. Details: [`alignment-trust-bootstrap/README.md`](alignment-trust-bootstrap/README.md).
 
-- **Pinata Host Origins:** add `https://causestarter.testnet.commonality.works` (Picnic: no wildcards). Worker path already serves the UI; this is only dedicated-gateway CORS.
+- **Pinata Host Origins:** add `https://testnet.commonality.works` (Picnic: no wildcards). Worker path already serves the UI; this is only dedicated-gateway CORS.
 
 - **Sponsored-gas live UI walk** — see Testing below.
 
@@ -87,10 +87,10 @@ Standing index: [`workflow/testnet-working-plan.md`](workflow/testnet-working-pl
 
 - Ultimately we want vertical founders to host their own vertical-specific services like mediators, but can we have a middle ground where we can run it for them on our infrastructure (modulo blocklist concerns) until/unless they decide to host it themselves?
 
-- How to eliminate CauseStarter’s reliance on browser `localStorage` for cause drafts / founder progress (`ui/src/causestarter/lib/causeStore.ts`). Today drafts are origin-scoped (so Vite `:5174` vs Docker `:8090` don’t share them) and vanish across devices/clears. Worth thinking through durable alternatives (on-chain draft, IPFS + pointer, account-linked backend, etc.) without re-centralizing or making launch heavier.
+- How to eliminate Commonality’s reliance on browser `localStorage` for cause drafts / founder progress (`ui/src/commonality/lib/causeStore.ts`). Today drafts are origin-scoped (so Vite `:5174` vs Docker `:8090` don’t share them) and vanish across devices/clears. Worth thinking through durable alternatives (on-chain draft, IPFS + pointer, account-linked backend, etc.) without re-centralizing or making launch heavier.
 
 - Now that have (or at least are close to having) a proper testnet setup, can we start creating an ecosystem of simulated fake users of various types? (We can use LLMs to run the ones that need more intelligence, though ideally they'll mostly be made of conventional code, to avoid burning too many LLM tokens.)
-  - Cause founder: cares a lot about some cause, comes across CauseStarter, tries actually forking the repo and making a new cause, etc.
+  - Cause founder: cares a lot about some cause, comes across Commonality, tries actually forking the repo and making a new cause, etc.
   - Donor: cares a lot about various causes, comes across some cause, decides to donate or delegate or whatever
   - Scammer: comes across this site, wants to scam people
   - Delegate
@@ -114,9 +114,9 @@ Standing index: [`workflow/testnet-working-plan.md`](workflow/testnet-working-pl
 
 - It's time to switch over to GitHub Issues, now that Sam is creating some.
 
-- **Indexer-side believer-set aggregate — the last unfixed CauseStarter scale ceiling.** A scalability pass over the CauseStarter UI turned up four per-plank query fan-outs; all four are now concurrency-capped, and believer sets are cached across mounts (`ui/src/causestarter/lib/concurrency.ts`, `ui/src/causestarter/lib/believerSetsCache.ts`). What's left can't be fixed in the UI: `getStatementBelieverSets` ships full anonymized-ID *sets* to the browser, so a plank with 100k believers downloads 100k IDs to render one number, and the SDK's `limit: 10000` per-fetch ceiling truncates *silently* into a plausible-looking wrong count. The remedy and its constraints are already worked out in [shaping-your-cause-statements.md § Scale: the fold is fine, the transport isn't](docs/founder/shaping-your-cause-statements.md#scale-the-fold-is-fine-the-transport-isnt) — including why band 1 must stay exact if sketches are ever used. Needs indexer + SDK work, not UI work.
+- **Indexer-side believer-set aggregate — the last unfixed Commonality scale ceiling.** A scalability pass over the Commonality UI turned up four per-plank query fan-outs; all four are now concurrency-capped, and believer sets are cached across mounts (`ui/src/commonality/lib/concurrency.ts`, `ui/src/commonality/lib/believerSetsCache.ts`). What's left can't be fixed in the UI: `getStatementBelieverSets` ships full anonymized-ID *sets* to the browser, so a plank with 100k believers downloads 100k IDs to render one number, and the SDK's `limit: 10000` per-fetch ceiling truncates *silently* into a plausible-looking wrong count. The remedy and its constraints are already worked out in [shaping-your-cause-statements.md § Scale: the fold is fine, the transport isn't](docs/founder/shaping-your-cause-statements.md#scale-the-fold-is-fine-the-transport-isnt) — including why band 1 must stay exact if sketches are ever used. Needs indexer + SDK work, not UI work.
 
-- **`StatementPicker` searches a top-100-by-popularity window.** `ui/src/causestarter/components/StatementPicker.tsx` calls `browseStatements({ limit: 100, orderBy: 'believerCount' })` and ranks locally. As the corpus grows, the right statement to reuse increasingly falls outside that window, so the picker degrades in *suggestion quality* rather than in speed — silently, and in exactly the direction that pushes organizers to write duplicate planks instead of reusing existing ones. Wants server-side relevance ranking.
+- **`StatementPicker` searches a top-100-by-popularity window.** `ui/src/commonality/components/StatementPicker.tsx` calls `browseStatements({ limit: 100, orderBy: 'believerCount' })` and ranks locally. As the corpus grows, the right statement to reuse increasingly falls outside that window, so the picker degrades in *suggestion quality* rather than in speed — silently, and in exactly the direction that pushes organizers to write duplicate planks instead of reusing existing ones. Wants server-side relevance ranking.
 
 ## Before mainnet
 

@@ -10,13 +10,13 @@ A different on-ramp, for orgs that have not heard of us yet: a third party can p
 
 A charity already has a cause, donors who trust it, and expertise in evaluating projects. What it *doesn't* love dealing with: organizational overhead (staff, offices, compliance, fundraising operations), donor skepticism about where money goes, and the difficulty of convincing new donors that this charity specifically is worth trusting.
 
-Commonality helps with all three. A charity (or even a well-known individual associated with one) can act as a delegate: donors send funds via delegatable notes, the charity directs those funds toward aligned projects, and the entire chain is transparently visible onchain. The charity keeps doing what it's good at — evaluating projects and making funding decisions — but without needing to run a whole organization around it. No bank accounts to maintain, no annual reports to produce (the blockchain *is* the report), no overhead to justify.
+Commonality can make part of that work easier to inspect. A charity (or even a well-known individual associated with one) can act as a delegate: donors send funds via delegatable notes, the charity directs those funds toward aligned projects, and that onchain activity is publicly visible. The charity keeps doing what it is good at — evaluating projects and making funding decisions — while using a shared operational record. That record can support normal accounting and reporting, but it does not replace bank accounts, annual reports, legal obligations, or evidence that a project delivered.
 
 This is also a much easier sell than getting government to adopt any of this. A charity director doesn't need to win an election or pass a law. They just say "hey donors, here's a new way to give to our cause — you get full transparency, your money is refunded if we don't hit our target, and you can revoke your delegation at any time."
 
-## The trust problem, solved
+## A more inspectable track record
 
-A new charity faces a brutal chicken-and-egg: you need donors to trust you, but donors want to see a track record. With Commonality, a new delegate can start small — direct a few small delegatable notes toward good projects — and their track record is right there onchain for anyone to verify. No need to incorporate a nonprofit, hire an accountant, and produce glossy annual reports just to demonstrate trustworthiness.
+A new charity faces a brutal chicken-and-egg: you need donors to trust you, but donors want to see a track record. With Commonality, a new delegate can start small — direct a few small delegatable notes toward good projects — and let anyone inspect those funding decisions onchain. That is useful evidence of activity, not proof of sound judgment or project outcomes, and it does not remove incorporation, accounting, tax, or reporting duties that otherwise apply.
 
 ## Alignment attestation as a drop-in
 

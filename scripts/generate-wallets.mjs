@@ -44,12 +44,12 @@ const roles = [
     addressEnvKey: 'CONTENT_ATTESTER_ADDRESS',
   },
   {
-    label: 'CauseStarter coherence attester (cause-assist operator)',
+    label: 'Commonality coherence attester (cause-assist operator)',
     privateKeyEnvKey: 'CAUSE_ASSIST_COHERENCE_ATTESTER_PRIVATE_KEY',
     addressEnvKey: 'CAUSE_ASSIST_COHERENCE_ATTESTER_ADDRESS',
   },
   {
-    label: 'CauseStarter alignment trust bootstrap',
+    label: 'Commonality alignment trust bootstrap',
     privateKeyEnvKey: 'ALIGNMENT_TRUST_BOOTSTRAP_PRIVATE_KEY',
     addressEnvKey: 'ALIGNMENT_TRUST_BOOTSTRAP_ADDRESS',
   },

@@ -124,7 +124,7 @@ async function expectPathToRender(domainId: DomainId, path: string) {
 describe('domain representative deep links', () => {
   it('renders every declared domain route pattern with representative params', async () => {
     for (const [domainId, manifest] of Object.entries(domainManifests) as [DomainId, typeof domainManifests[DomainId]][]) {
-      if (domainId === 'causestarter') continue
+      if (domainId === 'commonality') continue
       for (const routePattern of extractRoutePaths(manifest.routes)) {
         cleanup()
         const path = samplePathForRoutePattern(routePattern)

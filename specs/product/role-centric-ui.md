@@ -7,7 +7,7 @@ grouping.
 
 ## Original rambling motivation for this
 
-- CauseStarter may not be exactly the final iteration of the UI; we're circling closer to something good but we may not be there yet. What does the next iteration look like?
+- Commonality may not be exactly the final iteration of the UI; we're circling closer to something good but we may not be there yet. What does the next iteration look like?
   - The *current* iteration came about from the "founder-first" pivot, where we thought we were going to be aiming to attract cause-founders. Which is still sort-of right.
   - But the "causes" got demoted to "cause boards" (i.e. don't treat them too much like a central hub that everyone's going to keep coming back to, don't treat it too much like "start a cause", feel free to make your own remix). People might come to the site through a cause board, but then they sign some statements and from then on they just see that stuff in their own personalized home page. And our use of the word "cause" got reassigned to what it more properly means - within our system it's a role that the statement is taking, and it's also referring to the real cause out in the real world.
   - One hint: in the current UI it feels like there's an overwhelming complexity of stuff. (On the home page there's fundable projects, statements, suggesters. On a statement page there's *also* pledges, fundable projects, and a leaderboard. Etc.) I wonder whether maybe it'd help to split by *role* more than by *object*? (i.e. Have a Pledging UI that's optimized for finding statements and pledging money, not for browsing projects or whatever. Have a Signing UI that's optimized for making and signing statements, no money stuff. Have a Retroactive Funding UI, and an Early Funding UI, optimized for browsing projects and directing money. Etc.) Or at least to make role-specific UI pages, even if the object-specific ones still exist? (e.g. When you're in the Signing UI and you click on a statement, either it takes you to a Signing-specific statement page, or it just "focuses" the statement in some way without leaving the Signing UI. It *doesn't* take you to a general-purpose statement page that contains a whole Fundable Projects board and so on. You *can* still get there if you want, but the default easy motions keep you within the role you're currently in.)
@@ -176,7 +176,7 @@ instead of multiplying workspaces.
 
 ## Superseded: home inbox (second slice)
 
-This was implemented as an intermediate step. Occupied CauseStarter home (`/`)
+This was implemented as an intermediate step. Occupied Commonality home (`/`)
 grouped existing teasers by job instead of stacking
 every object list at equal weight:
 

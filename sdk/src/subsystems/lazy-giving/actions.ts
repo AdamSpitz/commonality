@@ -74,7 +74,7 @@ export function enhanceCreateProjectError(err: unknown, factoryAddress?: Address
     + `If this is a local stack, the factory may still be the legacy ABI `
     + `(createERC1155AndMarketplaceAndAssuranceContract) while the SDK calls `
     + `${PROJECT_FACTORY_CREATE_FN}. Redeploy contracts from the current tree `
-    + `(\`./scripts/deploy-contracts.sh localhost\`), then republish UIs / recreate CauseStarter. `
+    + `(\`./scripts/deploy-contracts.sh localhost\`), then republish UIs / recreate Commonality. `
     + `Verify with \`./scripts/check-local-config-sync.sh\`. `
     + `Original error: ${msg}`;
 

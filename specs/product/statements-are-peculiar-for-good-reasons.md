@@ -78,9 +78,9 @@ Worked abortion wording lives in [hidden-majority-patterns.md](/docs/end-user/co
 
 **CSM / mediator clusters** (statement triples, optionally lifted to [bridge causes](./bridge-causes.md)): poles, naturals, modifieds, common ground. UI is “here is a bridge between camps.”
 
-**CauseStarter causes** ([shaping your cause’s statements](/docs/founder/shaping-your-cause-statements.md)): a roster of **planks**, views over those planks, optional combinators. UI is “here is this movement’s concrete claims.”
+**Commonality causes** ([shaping your cause’s statements](/docs/founder/shaping-your-cause-statements.md)): a roster of **planks**, views over those planks, optional combinators. UI is “here is this movement’s concrete claims.”
 
-Same implication rules. Different composition. Seed data for CauseStarter that is only “I am interested in furthering the cause of X” will look empty of structure even if the hidden-majority JSON elsewhere in the repo is beautiful. Conversely, a blessed CSM triple that never becomes planks will not show up as a cause.
+Same implication rules. Different composition. Seed data for Commonality that is only “I am interested in furthering the cause of X” will look empty of structure even if the hidden-majority JSON elsewhere in the repo is beautiful. Conversely, a blessed CSM triple that never becomes planks will not show up as a cause.
 
 ## What “finicky” actually looks like in the prose
 
@@ -128,7 +128,7 @@ Isolated writers who have only these instructions tend to fail in three ways. Na
 
 Christianity × secular conservatism is **not** a left/right fight. They often already share the conclusion; they mistrust each other’s *reasons* and imagined maximalism. The [bridge-creator example strategy](/services/bridge-creator/config/christian-secular-conservative.example.json) is the right brief: different reasons, same conclusion; make the limiting principle explicit; do not smuggle God-given into a secular signature or reduce faith to “studies show.”
 
-That pattern is real, and the honest commonality **is** just the policy. Do not invent peculiar syntax to pretend there is a deal. **Do not use it as the first (or only) exercise of the implication system.** Tiny seed asked this pairing to both populate two CauseStarter boards *and* demonstrate modifieds / attester / nudges; the second job needs a gap where the commonality is something neither natural would say (compromise in the overlap, bilateral assurance, a costly unbundle, a fact-conditional). See [christian-secular-tiny-seed.md](/fake-data-generation/christian-secular-tiny-seed.md) § Still open.
+That pattern is real, and the honest commonality **is** just the policy. Do not invent peculiar syntax to pretend there is a deal. **Do not use it as the first (or only) exercise of the implication system.** Tiny seed asked this pairing to both populate two Commonality boards *and* demonstrate modifieds / attester / nudges; the second job needs a gap where the commonality is something neither natural would say (compromise in the overlap, bilateral assurance, a costly unbundle, a fact-conditional). See [christian-secular-tiny-seed.md](/fake-data-generation/christian-secular-tiny-seed.md) § Still open.
 
 For that pairing, a triple whose commonality is just two campaign slogans (and whose modifieds are those slogans glued onto the naturals) is decorative. The load-bearing extra is usually:
 

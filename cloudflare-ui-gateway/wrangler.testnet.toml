@@ -3,7 +3,7 @@ main = "ui-gateway.mjs"
 compatibility_date = "2025-12-01"
 
 routes = [
-  { pattern = "commonality.testnet.commonality.works/*", zone_name = "commonality.works" },
+  { pattern = "testnet.commonality.works/*", zone_name = "commonality.works" },
   { pattern = "lazygiving.testnet.commonality.works/*", zone_name = "commonality.works" },
   { pattern = "alignment.testnet.commonality.works/*", zone_name = "commonality.works" },
   { pattern = "tally.testnet.commonality.works/*", zone_name = "commonality.works" },
@@ -11,7 +11,6 @@ routes = [
   { pattern = "civility.testnet.commonality.works/*", zone_name = "commonality.works" },
   { pattern = "common-sense-majority.testnet.commonality.works/*", zone_name = "commonality.works" },
   { pattern = "conceptspace.testnet.commonality.works/*", zone_name = "commonality.works" },
-  { pattern = "causestarter.testnet.commonality.works/*", zone_name = "commonality.works" },
 ]
 
 [[kv_namespaces]]
@@ -28,5 +27,4 @@ IPNS_CONTENT_FUNDING = "k51qzi5uqu5dhs0gm5bpwcvhpwbf2owzeyzxtw7z0z2bxp6ofgvwfg4a
 IPNS_CIVILITY = "k51qzi5uqu5dhgz78ohaapa2smas1zov4v2z2m2qymf8iny3ol10t3csnpja27"
 IPNS_COMMON_SENSE_MAJORITY = "k51qzi5uqu5dihr9y1wyezno0gsemnkhd42g750dmcky06aimty47aobfjzdms"
 IPNS_CONCEPTSPACE = "k51qzi5uqu5dm14sc2ig40xkr800wll03zxxjqch4tdu5i5cum5q7nza40mdjg"
-IPNS_CAUSESTARTER = "k51qzi5uqu5di42gbxhcknni1iccmpo4kyw8yuc5cphvetuuemf1mobwppxd2d"
 IPNS_TEST_DATA = "k51qzi5uqu5dkhj0daffcoz3sr8kas6ym86w3sz93n9mw7e5wi79glbl930jlc"

@@ -10,7 +10,7 @@
 // the package root (`@commonality/lazy-giving`).
 //
 // Eager surface (utils used at import time). The project-status helpers and
-// website-beneficiary mark are shared with `fundingportals` and CauseStarter
+// website-beneficiary mark are shared with `fundingportals` and Commonality
 // project cards. Other components (BuyTokensSection, ProjectHeader, Leaderboard)
 // stay module-internal until an external consumer needs them.
 

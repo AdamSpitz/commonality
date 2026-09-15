@@ -4,7 +4,7 @@
  *
  * Hardhat #1–#5 buy receipt tokens on the first few seed projects (unioned
  * across their alignment statements). They also create standing pledges
- * keyed by statement CID — the same causeRef the CauseStarter pledge
+ * keyed by statement CID — the same causeRef the Commonality pledge
  * summary and leaderboard monthly card read.
  */
 

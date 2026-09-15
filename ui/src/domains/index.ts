@@ -7,7 +7,6 @@ import { contentFundingManifest } from './content-funding/manifest.tsx'
 import { civilityManifest } from './civility/manifest.tsx'
 import { commonSenseMajorityManifest } from './common-sense-majority/manifest.tsx'
 import { conceptspaceManifest } from './conceptspace/manifest.tsx'
-import { causestarterManifest } from './causestarter/manifest.tsx'
 
 export * from './types'
 
@@ -20,7 +19,6 @@ export const domainManifests: Record<DomainId, DomainManifest> = {
   civility: civilityManifest,
   'common-sense-majority': commonSenseMajorityManifest,
   conceptspace: conceptspaceManifest,
-  causestarter: causestarterManifest,
 }
 
 export function getDomainManifest(domainId: DomainId): DomainManifest {
@@ -46,4 +44,3 @@ export { contentFundingManifest }
 export { civilityManifest }
 export { commonSenseMajorityManifest }
 export { conceptspaceManifest }
-export { causestarterManifest }

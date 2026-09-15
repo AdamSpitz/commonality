@@ -1,6 +1,6 @@
 /**
  * Operator-side chain writes for roster coherence badges.
- * msg.sender is the CauseStarter site operator key, never the cause organizer.
+ * msg.sender is the Commonality site operator key, never the cause organizer.
  */
 
 import { AlignmentAttestationsAbi } from '@commonality/sdk/abis'

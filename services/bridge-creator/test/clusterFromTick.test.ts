@@ -30,7 +30,7 @@ describe('planClusterFromTick', () => {
     }), null);
   });
 
-  it('lifts this tick into n+1 rosters plus a cluster document CauseStarter can parse', () => {
+  it('lifts this tick into n+1 rosters plus a cluster document Commonality can parse', () => {
     const plan = planClusterFromTick({
       mediatorName: 'Ada Mediator',
       mediatorNote: 'Tick cluster',

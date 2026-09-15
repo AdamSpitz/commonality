@@ -37,7 +37,7 @@ if [ "$NETWORK" != "localhost" ] && [ "$NETWORK" != "hardhat" ]; then
   fi
 else
   # Local: confirm env + on-chain selectors match current SDK/UI (skip SPA runtime —
-  # callers must recreate CauseStarter / republish UIs after address changes).
+  # callers must recreate Commonality / republish UIs after address changes).
   echo
   echo "=== Local config sync (env + chain) ==="
   "$ROOT/scripts/check-local-config-sync.sh" --skip-runtime

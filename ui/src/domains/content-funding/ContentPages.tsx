@@ -34,7 +34,7 @@ export function ContentFundingCreatorsPage({
   )
 }
 
-export function CauseStarterContentFundingCreatorsPage() {
+export function CommonalityContentFundingCreatorsPage() {
   return <ContentFundingCreatorsPage learnMorePath="/content-funding/about" />
 }
 

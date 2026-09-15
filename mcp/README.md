@@ -1,10 +1,10 @@
 # Commonality MCP
 
-Stdio [MCP](https://modelcontextprotocol.io) server for agents that should talk to the protocol instead of scraping CauseStarter.
+Stdio [MCP](https://modelcontextprotocol.io) server for agents that should talk to the protocol instead of scraping Commonality.
 
 Reads go through `@commonality/sdk` (event cache + IPFS + folds). Optional HTTP helpers reach **cause-assist** and the **implication attester**. Chain/IPFS writes stay off until `COMMONALITY_MCP_WRITES=1`.
 
-Job map: [`docs/end-user/causestarter/for-llms.md`](../docs/end-user/causestarter/for-llms.md). Generated SDK docs: `sdk/docs/api/` (`npm run build:docs`).
+Job map: [`docs/end-user/commonality/for-llms.md`](../docs/end-user/commonality/for-llms.md). Generated SDK docs: `sdk/docs/api/` (`npm run build:docs`).
 
 ## Run
 
@@ -43,5 +43,16 @@ Same contract/IPFS/indexer names as integration tests (`EVENT_CACHE_URL`, `IPFS_
 | `IMPLICATION_ATTESTER_URL` | `http://localhost:3006/implication-attester` |
 | `COMMONALITY_MCP_WRITES` | unset (reads only) |
 | `MCP_PRIVATE_KEY` or `ETHEREUM_PRIVATE_KEY` | required for `believe_statement` |
+
+`believe_statement` is a **user** `setBelief`. Do not alias a service role key (`IMPLICATION_ATTESTER_PRIVATE_KEY`, `BRIDGE_CREATOR_PRIVATE_KEY`, …) onto `MCP_PRIVATE_KEY` — those identities are operators, not the agent’s person.
+
+Local Hardhat (31337) already funds the 20 well-known Anvil/Hardhat accounts. Put one of those in `.env.secrets` as `MCP_PRIVATE_KEY` (wrappers that source `.env.secrets` will then see it). Prefer an account **outside** the seeded UI personas `#0`–`#9`, e.g. Hardhat `#19`:
+
+```bash
+# well-known Hardhat/Anvil account #19 (10k ETH on local 31337; never use on a real network)
+MCP_PRIVATE_KEY=0xdf57089febbacf7ba0bc227dafbffa9fc08a93fdc68e1e42411a14efcf23656e
+```
+
+`upload_ipfs` does not need this key; only the on-chain belief write does. Restart the MCP process after editing `.env.secrets`.
 
 Do not log secrets. Stdio is the MCP transport — keep `console.log` off `stdout`.

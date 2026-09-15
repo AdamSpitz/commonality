@@ -128,7 +128,7 @@ beneficiary. An unreachable site does not block creation.
 Project surfaces render the exact canonical domain at the same visual weight as
 the raised amount and do not truncate or fold lookalikes. The project header
 reads on-chain `beneficiaryState` and chips Unclaimed / Domain-controlled /
-Beneficiary-controlled. Browse, cause-board, and CauseStarter project cards
+Beneficiary-controlled. Browse, cause-board, and Commonality project cards
 fold the same `BeneficiaryRegistry` events (not per-card RPC) and chip that
 claim state next to funding status. Once the payout wallet calls
 `takeBeneficiaryControl`, LazyGiving's factory (and the create-project form)

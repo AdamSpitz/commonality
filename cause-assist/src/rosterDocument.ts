@@ -1,5 +1,5 @@
 /**
- * Pure roster document helpers shared with CauseStarter's CID preview.
+ * Pure roster document helpers shared with Commonality's CID preview.
  * Kept local so cause-assist can bind attest requests without importing the SPA.
  */
 
@@ -12,7 +12,7 @@ import {
 export const ROSTER_KIND = 'causestarter.roster' as const
 export const ROSTER_SCHEMA_VERSION = 1 as const
 
-/** Mirrors CauseStarter's `CauseMediator`; part of the roster CID when present. */
+/** Mirrors Commonality's `CauseMediator`; part of the roster CID when present. */
 export interface RosterMediator {
   name: string
   description: string
@@ -26,13 +26,13 @@ export interface RosterFields {
   plankCids: string[]
   mediatorBlurb: string
   /**
-   * Published mediator identity. Must stay byte-identical to what CauseStarter wrote,
+   * Published mediator identity. Must stay byte-identical to what Commonality wrote,
    * or the recomputed CID in `bindRosterPayload` won't match the published roster.
    */
   mediator?: RosterMediator
 }
 
-/** Normalized exactly as CauseStarter's `parseCauseMediator` does, for CID parity. */
+/** Normalized exactly as Commonality's `parseCauseMediator` does, for CID parity. */
 export function parseRosterMediator(value: unknown): RosterMediator | undefined {
   if (!value || typeof value !== 'object') return undefined
   const record = value as Record<string, unknown>

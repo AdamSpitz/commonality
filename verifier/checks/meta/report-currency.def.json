@@ -121,7 +121,7 @@
     },
     {
       "kind": "check",
-      "id": "review.workflow-clarity.causestarter",
+      "id": "review.workflow-clarity.commonality",
       "role": "leaf"
     },
     {
@@ -141,7 +141,7 @@
     },
     {
       "kind": "check",
-      "id": "review.founder-e2e.causestarter",
+      "id": "review.founder-e2e.commonality",
       "role": "leaf"
     },
     {

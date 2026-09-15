@@ -55,7 +55,7 @@ Some compose services intentionally share a single image/build key:
 
 - all eight legacy UI IPFS publisher services share `commonality-ui-ipfs-publisher:dev`
 - the planner deduplicates them by `buildKey`, so identical builds happen once
-- local `--start` currently only *runs* the publishers listed by `LOCAL_UI_DOMAINS` (default: CauseStarter). See [local-development.md](./local-development.md).
+- local `--start` currently only *runs* the publishers listed by `LOCAL_UI_DOMAINS` (default: Commonality). See [local-development.md](./local-development.md).
 
 Compose also uses explicit image names so services with identical build definitions can share the same built image instead of rebuilding equivalent images under separate compose-generated tags.
 

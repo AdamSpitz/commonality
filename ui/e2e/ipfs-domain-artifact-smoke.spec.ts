@@ -12,7 +12,7 @@ type DomainSmoke = {
 }
 
 const domains: DomainSmoke[] = [
-  { slug: 'causestarter', hostname: 'causestarter.localhost', brand: 'CauseStarter', visibleBrand: /CauseStarter/i, deepLinks: ['/causes', '/docs'], wrongDomainRoute: '/founders' },
+  { slug: 'commonality', hostname: 'commonality.localhost', brand: 'Commonality', visibleBrand: /Commonality/i, deepLinks: ['/causes', '/docs', '/founders'], wrongDomainRoute: '/criteria' },
   { slug: 'civility', hostname: 'civility.localhost', brand: 'Civility', visibleBrand: /Civility/i, deepLinks: ['/criteria', '/content'], wrongDomainRoute: '/projects' },
   { slug: 'common-sense-majority', hostname: 'common-sense-majority.localhost', brand: 'Common Sense Majority', visibleBrand: /Common Sense Majority/i, deepLinks: ['/about', '/organize', '/popular-statements'], wrongDomainRoute: '/projects' },
 ]

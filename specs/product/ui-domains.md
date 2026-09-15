@@ -10,11 +10,11 @@ This file is the product-boundary source of truth: which sites exist and what jo
 
 It is **not** the source of truth for landing-page copy, CTA wording, spotlight cards, or navigation. The live domain manifests and landing pages live under [`ui/src/domains/`](/ui/src/domains/) and should be treated as the source of truth for the actual site copy.
 
-## Current shape: eight sites (+ CauseStarter)
+## Current shape: eight sites
 
 Four product sites for funding (LazyGiving, Aligning, Content Funding, Civility), one product site for signing (Tally), two movement sites (Commonality, CSM), and one mostly developer-facing infrastructure site (Conceptspace).
 
-**CauseStarter** is the primary cause-first reference lens on the same substrate, built as a ninth `VITE_DOMAIN` in [`ui/`](../../ui/) (`ui/src/causestarter/`, `ui/src/domains/causestarter/`). The package directory [`causestarter/`](../../causestarter/) still holds Docker/nginx/e2e glue and the product backlog. Organizers retrieve, review, publish, and circulate versioned cause rosters there; signing, aligned-project, and funding capabilities appear in cause context. The eight independent sites remain available as focused tools and verticals, consistent with ADR 0005; CauseStarter has no cause directory, ranking, or promotion. Known gaps: [`causestarter/TODO.md`](../../causestarter/TODO.md). Local stack: included in `./scripts/services.sh --start` (gateway + dedicated SPA) and `./scripts/deploy-causestarter.sh`.
+**Commonality** is the primary cause-first reference lens on the same substrate, built as one of the eight `VITE_DOMAIN` values in [`ui/`](../../ui/) (`ui/src/commonality/`, `ui/src/domains/commonality/`). The package directory [`commonality-ui/`](../../commonality-ui/) holds Docker/nginx/e2e glue and the product backlog. Organizers retrieve, review, publish, and circulate versioned cause boards there; signing, aligned-project, and funding capabilities appear in cause context. The seven sibling sites remain available as focused tools and verticals, consistent with ADR 0005; Commonality has no cause directory, ranking, or promotion. Known gaps: [`commonality-ui/TODO.md`](../../commonality-ui/TODO.md). Local stack: included in `./scripts/services.sh --start` (gateway + dedicated SPA) and `./scripts/deploy-commonality.sh`.
 
 This four-bucket grouping — **funding / signing / movement / infrastructure** — is the canonical taxonomy of the eight sites. Other docs may cut the same eight sites along a different axis (subsystems vs. branded builds in [specs/README.md](../README.md), purpose-neutral vs. cause vertical in [marketing.md](./marketing.md)); those are orthogonal cuts for their own purposes and do not replace this one. Two placements are easy to get wrong:
 

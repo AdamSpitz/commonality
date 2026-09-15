@@ -31,7 +31,7 @@ export type ProjectDetailPageProps = {
   /**
    * Where error / not-found "back" links go.
    * LazyGiving uses the projects index; hosts without `/projects` should override
-   * (e.g. CauseStarter → `/causes`).
+   * (e.g. Commonality → `/causes`).
    */
   listPath?: string
   /** Label for the back link (default: "Back to projects"). */
@@ -41,7 +41,7 @@ export type ProjectDetailPageProps = {
    * project. Default `detail` embeds a top-three preview.
    */
   variant?: 'detail' | 'leaderboard'
-  /** CauseStarter may carry a board-level preferred delegatable note into allocation. */
+  /** Commonality may carry a board-level preferred delegatable note into allocation. */
   preferredMoneySourceKey?: string
 }
 
@@ -58,7 +58,7 @@ export function ProjectDetailPage({
   const { projectAddress } = useParams<{ projectAddress: string }>()
   const [searchParams] = useSearchParams()
   const causeCid = searchParams.get('causeCid') ?? undefined
-  // CauseStarter HashRouter owns location.hash, so local board links use
+  // Commonality HashRouter owns location.hash, so local board links use
   // ?closeTheLoop=1. LazyGiving BrowserRouter still uses #close-the-loop.
   const closeTheLoop =
     searchParams.get('closeTheLoop') === '1'

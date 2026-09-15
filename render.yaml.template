@@ -11,7 +11,7 @@ databases:
     postgresMajorVersion: 16
 
 services:
-  # CauseStarter's browser-facing, read-only LLM helpers. This process never
+  # Commonality's browser-facing, read-only LLM helpers. This process never
   # receives the coherence badge private key; chain writes belong to the worker.
   - type: web
     name: commonality-cause-assist
@@ -90,7 +90,7 @@ services:
     autoDeploy: true
     plan: starter
 
-  # CauseStarter's shipped one-hop trust root. The durable disk holds the scan
+  # Commonality's shipped one-hop trust root. The durable disk holds the scan
   # cursor plus operator-edited pause and denylist controls.
   - type: worker
     name: commonality-alignment-trust-bootstrap
