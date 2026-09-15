@@ -30,7 +30,7 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 - **(Tell)** Applied [cause-page-not-a-club.md](specs/product/cause-page-not-a-club.md) copy sweep: glossary two-step rename, end-user docs, Aligning/fundable-projects UI strings, Commonality high-traffic docs + organizer publish copy. Leftover “cause page” in comments, `/cause/:owner/:slug` and `fundingportal*` identifiers, and incidental “funding portal” docs still lag.
 
-- Decide whether to act on the fresh landing-copy positioning findings. The Civility grievance-first hero was reviewed and is fine; the verifier rubric was corrected so CSM’s recognition-register rule is not imposed on every vertical. Remaining findings are elsewhere: the umbrella Commonality landing still recruits generic end users despite the founder-first strategy, CSM front-loads the mediator toggle and uses “the other side’s bullshit,” Aligning repeats its main tradeoff several times, and Tally’s “Sign once, counted forever” headline presents a future goal as current capability.
+- Decide whether to act on the fresh landing-copy positioning findings. The Civility grievance-first hero was reviewed and is fine; the verifier rubric was corrected so CSM’s recognition-register rule is not imposed on every vertical. Remaining findings: CSM front-loads the mediator toggle and uses “the other side’s bullshit,” Aligning repeats its main tradeoff several times, and Tally’s “Sign once, counted forever” headline presents a future goal as current capability. The umbrella Commonality landing that recruited generic end users was removed in the CauseStarter→Commonality cutover; [`specs/product/ui-domains.md`](specs/product/ui-domains.md) still describes that old site — rewrite is in [`TODO.md`](TODO.md).
 
 ### Features that I'm realizing would make a big difference
 
@@ -48,7 +48,7 @@ Standing index: [`workflow/testnet-working-plan.md`](workflow/testnet-working-pl
 
 - **Alignment-trust bootstrap (needed for Commonality’s shipped trust graph, not for sites/indexer).** Same as the Security item above: dedicated wallet from `generate-wallets.mjs`, fund `ALIGNMENT_TRUST_BOOTSTRAP_ADDRESS`, Render secret, denylist canary on the worker disk. Never Hardhat #8. Details: [`alignment-trust-bootstrap/README.md`](alignment-trust-bootstrap/README.md).
 
-- **Pinata Host Origins:** add `https://testnet.commonality.works` (Picnic: no wildcards). Worker path already serves the UI; this is only dedicated-gateway CORS.
+- **Pinata Host Origins:** add `https://testnet.commonality.works` (Picnic: no wildcards). Live Commonality HTML shell loads, but JS chunks 429 from public gateways after the dedicated origin times out — Worker fix is in [`TODO.md`](TODO.md). This dashboard allowlist is still needed for dedicated-gateway CORS.
 
 - **Sponsored-gas live UI walk** — see Testing below.
 

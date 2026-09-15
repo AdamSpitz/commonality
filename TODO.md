@@ -20,6 +20,12 @@ Getting **testnet to a two-person shared lab** is also a standing plan, not a pi
 
 ----
 
+- **(Tell)** Testnet Commonality SPA does not hydrate. `https://testnet.commonality.works/` and deep links now return the HTML shell (SPA fallback after public-gateway 429 is deployed), but browser loads fail on chunks such as `/assets/address-TZjglcQ5.js` (HTTP 429, public IPFS sunset body). Dedicated Pinata origin times out; Worker then falls through to `ipfs.io` / `w3s.link`. Reproduce, fix the Worker/gateway path so real assets are served from Pinata (or another working origin) instead of caching/returning 429, redeploy `cloudflare-ui-gateway`, and verify `/`, `/founders`, and a hydrated heading in a real browser. Pinata dashboard Host Origins remains Adam’s step in [`inbox.md`](inbox.md). Continuity: [`continuity/2026-09-15-commonality-live-gateway-followup.md`](continuity/2026-09-15-commonality-live-gateway-followup.md).
+
+- **(Tell)** Rewrite [`specs/product/ui-domains.md`](specs/product/ui-domains.md) so Commonality is the founder-first CauseStarter experience (organize a cause, enroll people, fund the work), not the retired umbrella movement landing that sent newcomers to LazyGiving/Tally. Keep eight sites; siblings stay tools/verticals. Check [`specs/tech/ui-domains.md`](specs/tech/ui-domains.md), glossary, and README for the same stale “movement site / choose a product site next” framing. The old landing and `/participate` are gone.
+
+----
+
 - Align `foldReimbursements` donation rounding with the contract’s per-share
   accumulator (`accumulatedReimbursementPerClaimShare` / `mulDiv`). The fold
   currently splits each donation with per-holder `claim * amount / outstanding`
