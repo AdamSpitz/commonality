@@ -17,5 +17,12 @@
     { "slug": "common-sense-majority", "envVar": "IPNS_PRIVATE_KEY_TESTNET_COMMON_SENSE_MAJORITY", "legacySlug": "csm", "legacyEnvVar": "IPNS_PRIVATE_KEY_TESTNET_CSM" },
     { "slug": "conceptspace", "envVar": "IPNS_PRIVATE_KEY_TESTNET_CONCEPTSPACE" },
     { "slug": "causestarter", "envVar": "IPNS_PRIVATE_KEY_TESTNET_CAUSESTARTER" }
+  ],
+  "extraIpnsKeys": [
+    {
+      "slug": "test-data",
+      "envVar": "IPNS_PRIVATE_KEY_TESTNET_TEST_DATA",
+      "ipnsNameEnvVar": "IPNS_NAME_TESTNET_TEST_DATA"
+    }
   ]
 }

@@ -109,6 +109,47 @@ Generated files are split into two directories to make their lifecycle explicit:
 **`output/`** — Per-simulation-run outputs, produced fresh each time (gitignored):
 - `output/actions.json` — Log of all actions performed during simulation
 - `output/metrics.json` — Gas usage statistics and performance metrics
+- `output/test-data/` — Encrypted, durable run documents plus a reverse-chronological registry. The seed command prints a capability URL for the CauseStarter admin viewer. The capability file is never uploaded.
+
+### Browsing generated runs
+
+Every completed simulation appends an encrypted run to the test-data registry. Locally,
+open `http://localhost:8088/admin` and follow **Browse generated test-data runs**. The
+run page provides the objective action/user summary and can connect CauseStarter as any
+disposable fake user from that run.
+
+**Capability key and LLMs.** The AES key lives at
+`fake-data-generation/output/test-data/.admin-capability` (gitignored, never
+uploaded). Encryption is so the published registry is not world-readable; it is
+**not** a secret from a local coding agent. If you are working on
+`/admin/test-data`, **read that file** and open
+`http://causestarter.localhost:8088/#/admin/test-data?key=<contents>` (or the
+link on `http://localhost:8088/admin`). Do not treat the key as something you
+must ask Adam for. Still do not commit it, put it in `config.json`, send it to
+third-party logs, or bake it into a mainnet build.
+
+For Base Sepolia, `./scripts/setup-testnet-naming.sh` creates
+`IPNS_PRIVATE_KEY_TESTNET_TEST_DATA` (operator secrets) and
+`IPNS_NAME_TESTNET_TEST_DATA` (`deployments/testnet-ipns.env`). The browser loads
+the registry same-origin at `/test-data/registry.enc.json` (the UI Worker resolves
+the test-data IPNS). Run
+`npm run gen:test-data:publish` (or `./scripts/generate-testnet-data.sh --yes`) to
+pin encrypted artifacts and advance that IPNS name, then republish CauseStarter
+(`DOMAINS=causestarter ./scripts/deploy-testnet.sh`) and bookmark the printed
+capability URL. Never put the capability in `config.json`, source control, logs
+sent to third parties, or a mainnet build. Test-data routes refuse to operate on mainnet.
+
+To generate and publish a fresh bounded Base Sepolia batch in one operation, run:
+
+```bash
+./scripts/generate-testnet-data.sh --yes
+```
+
+The command creates five fresh disposable users, funds each with a small faucet-ETH
+allowance and test USDZZZ, caps them at two actions in one round, waits for transaction
+receipts, writes the encrypted run, publishes the complete encrypted registry, and
+advances the dedicated IPNS pointer. The command refuses mainnet and larger runs. The
+existing `gen:medium` / `gen:large` stress workflows remain local-only.
 
 `universe.json` at the root is the hand-authored source configuration that drives generation.
 

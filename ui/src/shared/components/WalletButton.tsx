@@ -18,6 +18,7 @@ import {
   shortAddress,
 } from '../wallet/hardhatAccounts'
 import { isPrivyEnabled } from '../../wagmi'
+import { useTestDataSession } from '../wallet/testDataSession'
 
 const PrivyWalletButton = lazy(() => import('./PrivyWalletButtonImpl'))
 
@@ -199,6 +200,40 @@ function LocalHardhatWalletButton({ dense = false, testId = 'wallet-connect-butt
   )
 }
 
+function TestDataWalletButton({ dense = false, testId = 'wallet-connect-button' }: WalletButtonProps) {
+  const { address, isConnected, isConnecting } = useAccount()
+  const { connectAsync, connectors, isPending } = useConnect()
+  const { disconnectAsync } = useDisconnect()
+  const busy = isConnecting || isPending
+  const connector = connectors.find((candidate) => candidate.type === 'testDataWallet')
+  const label = isConnected && address
+    ? `${connector?.name ?? 'Test user'} (${shortAddress(address)})`
+    : 'Connect test user'
+
+  const handleClick = async () => {
+    if (!connector) return
+    if (isConnected) {
+      await disconnectAsync()
+      return
+    }
+    await connectAsync({ connector })
+  }
+
+  return (
+    <Button
+      color="inherit"
+      variant={isConnected ? 'outlined' : 'contained'}
+      size="small"
+      onClick={() => void handleClick()}
+      disabled={busy || !connector}
+      data-testid={testId}
+      sx={buttonSx(isConnected, dense)}
+    >
+      {busy ? 'Connecting…' : label}
+    </Button>
+  )
+}
+
 function BrowserWalletButton({ dense = false, testId = 'wallet-connect-button' }: WalletButtonProps) {
   const { setOpen, open } = useModal()
 
@@ -228,7 +263,11 @@ function BrowserWalletButton({ dense = false, testId = 'wallet-connect-button' }
   )
 }
 
-export function WalletButton(props: WalletButtonProps = {}) {
+function WalletButtonInner(props: WalletButtonProps) {
+  const testDataSession = useTestDataSession()
+  if (testDataSession) {
+    return <TestDataWalletButton {...props} />
+  }
   if (isPrivyEnabled) {
     return (
       <Suspense fallback={<WalletButtonLoadingFallback />}>
@@ -240,4 +279,8 @@ export function WalletButton(props: WalletButtonProps = {}) {
     return <LocalHardhatWalletButton {...props} />
   }
   return <BrowserWalletButton {...props} />
+}
+
+export function WalletButton(props: WalletButtonProps = {}) {
+  return <WalletButtonInner {...props} />
 }

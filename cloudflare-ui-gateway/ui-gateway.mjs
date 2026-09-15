@@ -17,6 +17,7 @@ const EDGE_RESPONSE_TTL_SECONDS = 24 * 60 * 60
 const BROWSER_RESPONSE_TTL_SECONDS = 60
 const FALLBACK_GATEWAY_ORIGINS = ['https://ipfs.io', 'https://w3s.link']
 const EDGE_CACHE_VERSION = 'v2'
+const GATEWAY_FETCH_TIMEOUT_MS = 4_000
 
 // Best-effort per-isolate cache. This is only a fallback/latency optimization;
 // it is not shared globally across Worker isolates.
@@ -37,9 +38,11 @@ export async function proxyUiRequest(request, env, ctx = undefined) {
     return new Response(`Unknown UI subdomain: ${subdomain}`, { status: 404 })
   }
 
-  const ipnsName = env[ipnsKey]
+  const servingTestData = requestUrl.pathname === '/test-data' || requestUrl.pathname.startsWith('/test-data/')
+  const resolvedIpnsKey = servingTestData ? 'IPNS_TEST_DATA' : ipnsKey
+  const ipnsName = env[resolvedIpnsKey]
   if (!ipnsName) {
-    return new Response(`Worker misconfigured: missing binding ${ipnsKey}`, { status: 500 })
+    return new Response(`Worker misconfigured: missing binding ${resolvedIpnsKey}`, { status: 500 })
   }
 
   const gatewayOrigins = getGatewayOrigins(env)
@@ -54,7 +57,10 @@ export async function proxyUiRequest(request, env, ctx = undefined) {
     return new Response(`Failed to resolve IPNS name: ${err.message}`, { status: 502 })
   }
 
-  const upstreamUrls = gatewayOrigins.map((origin) => buildUpstreamUrl(origin, cid, requestUrl))
+  const upstreamPath = servingTestData
+    ? (requestUrl.pathname.slice('/test-data'.length) || '/')
+    : requestUrl.pathname
+  const upstreamUrls = gatewayOrigins.map((origin) => buildUpstreamUrl(origin, cid, requestUrl, upstreamPath))
   return fetchThroughEdgeCache({ request, requestUrl, upstreamUrls, env, ctx })
 }
 
@@ -103,8 +109,8 @@ function parseIpfsPathCid(value) {
   return match?.[1]
 }
 
-function buildUpstreamUrl(gatewayOrigin, cid, requestUrl) {
-  const upstreamUrl = new URL(`${gatewayOrigin}/ipfs/${cid}${requestUrl.pathname}`)
+function buildUpstreamUrl(gatewayOrigin, cid, requestUrl, pathname = requestUrl.pathname) {
+  const upstreamUrl = new URL(`${gatewayOrigin}/ipfs/${cid}${pathname}`)
   upstreamUrl.search = requestUrl.search
   return upstreamUrl
 }
@@ -192,21 +198,28 @@ async function fetchFromGateway({ request, requestUrl, upstreamUrl, env, forceGe
   // if they receive alignment.testnet.commonality.works as the forwarded host,
   // they try DNSLink/IPNS for that host instead of serving the /ipfs/{cid} path
   // we constructed.
+  const fetchUrl = new URL(upstreamUrl)
   const upstreamHeaders = new Headers()
   const accept = request.headers.get('Accept')
   if (accept) upstreamHeaders.set('Accept', accept)
   const range = request.headers.get('Range')
   if (range) upstreamHeaders.set('Range', range)
   upstreamHeaders.set('X-Commonality-Forwarded-Host', requestUrl.host)
-  if (env.PINATA_GATEWAY_KEY && upstreamUrl.hostname.endsWith('pinata.cloud')) {
+  const pinataOriginHost = env.PINATA_GATEWAY_ORIGIN ? new URL(env.PINATA_GATEWAY_ORIGIN).hostname : ''
+  const isPinataGateway = fetchUrl.hostname.endsWith('pinata.cloud') || fetchUrl.hostname === pinataOriginHost
+  if (env.PINATA_GATEWAY_KEY && isPinataGateway) {
     upstreamHeaders.set('x-pinata-gateway-token', env.PINATA_GATEWAY_KEY)
+    // Dedicated-gateway Host Origins match browser sites, not the mypinata host.
+    upstreamHeaders.set('Origin', requestUrl.origin)
+    upstreamHeaders.set('Referer', `${requestUrl.origin}/`)
   }
 
-  return fetch(upstreamUrl.toString(), {
+  return fetch(fetchUrl.toString(), {
     body: request.body,
     headers: upstreamHeaders,
     method: forceGet && request.method === 'HEAD' ? 'GET' : request.method,
     redirect: 'follow',
+    signal: AbortSignal.timeout(GATEWAY_FETCH_TIMEOUT_MS),
   })
 }
 

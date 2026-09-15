@@ -13,7 +13,8 @@ The IPNS names are w3name keys (Protocol Labs). Public gateways like `ipfs.io` c
 3. Calls `https://name.web3.storage/name/{ipns-key}` → gets `/ipfs/{cid}`.
 4. Caches the IPNS→CID mapping in Cloudflare KV for 5 minutes.
 5. Fetches `/ipfs/{cid}/some/path` from the configured gateways. Pinata is tried first, with public CID gateways (`ipfs.io`, `w3s.link`) as fallbacks.
-6. Caches successful immutable CID responses in Cloudflare's Cache API and returns them under the original browser URL.
+6. Paths under `/test-data/` resolve `IPNS_TEST_DATA` instead of the UI bundle, so the encrypted registry is same-origin.
+7. Caches successful immutable CID responses in Cloudflare's Cache API and returns them under the original browser URL.
 
 The browser URL stays `alignment.testnet.commonality.works` throughout.
 
@@ -30,6 +31,7 @@ The browser URL stays `alignment.testnet.commonality.works` throughout.
 | `common-sense-majority.testnet.commonality.works` | `IPNS_COMMON_SENSE_MAJORITY` |
 | `conceptspace.testnet.commonality.works` | `IPNS_CONCEPTSPACE` |
 | `causestarter.testnet.commonality.works` | `IPNS_CAUSESTARTER` |
+| `*.testnet.commonality.works/test-data/*` | `IPNS_TEST_DATA` |
 
 IPNS key values are in `wrangler.testnet.toml` (sourced from `deployments/testnet-ipns.env`).
 
@@ -67,4 +69,4 @@ After publishing a new UI build (`scripts/deploy-ui.sh`), run `w3name` publish t
 
 The Pinata dedicated gateway (`brown-racial-sailfish-957.mypinata.cloud`) has the `*.testnet.commonality.works` hostnames listed under Access Controls → Host Origins. If you add a new UI subdomain, add it there too. (Wildcards are not supported on the Picnic plan.)
 
-The public Pinata gateway (`gateway.pinata.cloud`) used by the Worker does not require host origin configuration — it uses the gateway key header instead. Pinata's public gateway may still rate-limit or refuse HTML responses, so the Worker falls back to public CID gateways and caches successful responses at Cloudflare.
+The Worker fetches Pinata first using `PINATA_GATEWAY_ORIGIN` plus `PINATA_GATEWAY_KEY`. Pinata will not serve HTML from `gateway.pinata.cloud` or `*.mypinata.cloud`; testnet uses the grey-cloud custom domain `ipfs-origin.testnet.commonality.works` (CNAME to `brown-racial-sailfish-957.mypinata.cloud`). Each upstream fetch is capped at a few seconds so a stalled `ipfs.io` lookup cannot 504 the Worker. Public CID gateways remain fallbacks. Successful responses are cached at Cloudflare.

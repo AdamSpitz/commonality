@@ -52,7 +52,7 @@ export const CONTRACT_ADDRESSES = {
 
 export type ContractName = keyof typeof CONTRACT_ADDRESSES;
 
-export const RPC_URL: string = process.env.RPC_URL || 'http://localhost:8545';
+export const RPC_URL: string = process.env.RPC_URL || process.env.ETHEREUM_RPC_URL || 'http://localhost:8545';
 
 export function getContractAddress(name: ContractName): string {
   const address = CONTRACT_ADDRESSES[name];

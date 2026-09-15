@@ -17,7 +17,7 @@ function extractViteRuntimeKeys(source) {
 test('IPFS config.json emits CauseStarter HTTP AI URLs', () => {
   const vite = readFileSync(join(root, 'ui/vite.config.ts'), 'utf8')
   const keys = extractViteRuntimeKeys(vite)
-  for (const key of ['VITE_CAUSE_ASSIST_URL', 'VITE_IMPLICATION_ATTESTER_URL']) {
+  for (const key of ['VITE_CAUSE_ASSIST_URL', 'VITE_IMPLICATION_ATTESTER_URL', 'VITE_TEST_DATA_REGISTRY_URL']) {
     assert.ok(keys.includes(key), `${key} must be in buildRuntimeConfig`)
   }
 })
@@ -29,4 +29,5 @@ test('base-sepolia.env has live Render AI URLs', () => {
     env,
     /VITE_IMPLICATION_ATTESTER_URL=https:\/\/commonality-service-host-attesters\.onrender\.com\/implication-attester/,
   )
+  assert.match(env, /VITE_TEST_DATA_REGISTRY_URL=\/test-data\/registry\.enc\.json/)
 })

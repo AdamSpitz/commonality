@@ -180,6 +180,7 @@ export const uploadStatementToIPFS = publishGeneratedStatement;
 interface GenerateStatementsOptions extends StatementPublicationOptions {
   limit?: number;
   universePath?: string;
+  deferPublication?: boolean;
 }
 
 async function generateStatements(ipfsConfig: IPFSConfig, options: GenerateStatementsOptions = {}): Promise<Statement[]> {
@@ -209,7 +210,9 @@ async function generateStatements(ipfsConfig: IPFSConfig, options: GenerateState
         };
 
         __idCounter++;
-        const cid = await publishGeneratedStatement(ipfsConfig, content, domain, positionKey, 'simple', publishOptions);
+        const cid = options.deferPublication
+          ? undefined
+          : await publishGeneratedStatement(ipfsConfig, content, domain, positionKey, 'simple', publishOptions);
         const statement: Statement = {
           domain,
           position: positionKey,
@@ -240,7 +243,9 @@ async function generateStatements(ipfsConfig: IPFSConfig, options: GenerateState
         type: 'or'
       };
 
-      const cid = await publishGeneratedStatement(ipfsConfig, content, stmt1.domain, `coalition(${stmt1.position},${stmt2.position})`, 'disjunction', publishOptions);
+      const cid = options.deferPublication
+        ? undefined
+        : await publishGeneratedStatement(ipfsConfig, content, stmt1.domain, `coalition(${stmt1.position},${stmt2.position})`, 'disjunction', publishOptions);
       const coalition: Statement = {
         domain: stmt1.domain,
         position: 'coalition',
@@ -267,7 +272,9 @@ async function generateStatements(ipfsConfig: IPFSConfig, options: GenerateState
         type: 'and'
       };
 
-      const cid = await publishGeneratedStatement(ipfsConfig, content, stmt1.domain, `commonality(${stmt1.position},${stmt2.position})`, 'conjunction', publishOptions);
+      const cid = options.deferPublication
+        ? undefined
+        : await publishGeneratedStatement(ipfsConfig, content, stmt1.domain, `commonality(${stmt1.position},${stmt2.position})`, 'conjunction', publishOptions);
       const commonality: Statement = {
         domain: stmt1.domain,
         position: 'commonality',
