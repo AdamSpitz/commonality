@@ -4,6 +4,8 @@ Can we come up with some short paragraphs or slogans or memes that might be catc
 
 (Brainstorm first, then run your ideas through an "is this cringeworthy?" filter, then see if you can come up with non-cringeworthy versions.)
 
+Hub: [README.md](./README.md). Product side of this is **share artifacts**, not a brand meme page. Build order is [PLAN.md](./PLAN.md) phase 4.
+
 ## My brainstorming
 
 Rolling eyes at the attempts to pit normal people against each other:
@@ -73,11 +75,50 @@ Giving the quiet middle a voice. Making it easier for them to express themselves
 
 Could show the quiet middle in a picture.
 
-Format: meme, then at the bottom: commonality.works (nothing else)
-
-
+Format: meme, then at the bottom: **the cause's URL** (nothing else). For Civility/CSM that we run, that can be the vertical host. For a friend's cause, it is *their* board, not commonality.works. Umbrella-domain watermarks teach people to share the substrate, which is the thing they do not care about.
 
 Another meme to try: bridges vs wedges (extremists are trying something like mitosis, pulling us apart; we want to hang on to each other)
 
 Another metaphor: increase the gravity of the common middle.
 
+---
+
+## Cause-flavored share artifacts (the actual growth object)
+
+People will not forward "a better coordination protocol." They will forward **a sentence they already believe**, **a board for a thing they already fund**, or **a one-job ask** ("if you'd put in $20/month and not think about it…").
+
+That is a **social object**. Our job is to make those objects cheap to mint for organizers, not to become good at Twitter.
+
+### What to generate (product, not a marketing intern)
+
+Each published cause should be able to emit, without a designer:
+
+1. **Link unfurl (Open Graph).** Paste in iMessage/Slack/X → title is the cause's name, description is one plank or the job ask, image is cause-colored (or a simple statement card). If this is missing, every share looks like a random web app.
+2. **Role-deep links.** One URL per job, matching [activating-a-cause](/docs/founder/activating-a-cause.md) invites. The landing is that job, not the manifesto.
+3. **Statement card.** Image of one signable sentence, cause name, tiny "sign / pledge" cue. No protocol branding except maybe a discreet wordmark an organizer can turn off.
+4. **Role-ask card.** The seven invites in activating-a-cause, fill-in-the-blank with *this* cause's name and a number ("$20/month").
+5. **Before/after contrast** (optional, advanced). "Petition vs fund it yourselves" using *their* issue. High risk of cringe; only ship templates that already survived the filter below.
+
+A "meme generator" that asks the organizer for a caption and stamps it on a template is enough. Do not build a social network.
+
+### Branding rule
+
+| Audience | Brand on the artifact | Destination URL |
+| --- | --- | --- |
+| End user of Civility / CSM | Civility / CSM | that vertical |
+| End user of someone else's cause | *their* cause | their board / role link |
+| Prospective vertical founder | Commonality | founder docs + standing-up-a-vertical |
+
+If a believer is spreading *their* cause, Commonality should be invisible or a footnote they can disable. If they have to explain the platform in the caption, the artifact failed.
+
+### Tone filter (reuse for generated captions)
+
+1. Validating, not accusatory (loud vs quiet, not "they lied to you").
+2. Specific to the cause's plank, not "change the world."
+3. One idea. No mechanism soup (no "assurance + implication + trust graph" on one image).
+4. Read it out loud. If you would be embarrassed to send it to your most earnest friend in that movement, kill it.
+5. Legal: no profit, yield, "get in early," or secondary-market tease. Reimbursement and refunds only. See [legal/securities](../legal/securities.md).
+
+### Videos
+
+Same rule as images. 60–90 seconds, one cause, one job or one contrast from [how-to-convey-this.md](../how-to-convey-this.md). End card is the cause URL. Long "what is Commonality" videos are founder recruiting, and can wait until friend walkthroughs show the idea survives contact with a non-author.

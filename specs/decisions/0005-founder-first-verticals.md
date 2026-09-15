@@ -2,7 +2,7 @@
 
 - **Status:** Accepted
 - **Date:** 2026-07-31
-- **Related specs:** [`specs/product/founder-first.md`](../product/founder-first.md), [`specs/product/marketing.md`](../product/marketing.md), [`specs/product/legal/operator-posture.md`](../product/legal/operator-posture.md), [`specs/product/ui-operator-posture.md`](../product/ui-operator-posture.md)
+- **Related specs:** [`specs/product/founder-first.md`](../product/founder-first.md), [`specs/product/marketing/`](../product/marketing/README.md), [`specs/product/legal/operator-posture.md`](../product/legal/operator-posture.md), [`specs/product/ui-operator-posture.md`](../product/ui-operator-posture.md)
 
 ## Context
 
