@@ -63,6 +63,11 @@ Same as above, for common-sense-majority.testnet.commonality.works
 ### `IPNS_PRIVATE_KEY_TESTNET_CONCEPTSPACE`
 Same as above, for conceptspace.testnet.commonality.works
 
+### `IPNS_PRIVATE_KEY_TESTNET_CAUSESTARTER`
+Same as above, for causestarter.testnet.commonality.works
+
+`IPNS_PRIVATE_KEY_TESTNET_TEST_DATA` is **not** a GitHub Actions secret. It is only used by `scripts/publish-test-data.sh` from the operator secrets file.
+
 ## How to Set Up Secrets
 
 1. **Generate deployment wallets** (if not already done):
