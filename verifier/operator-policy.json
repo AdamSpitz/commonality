@@ -1,0 +1,120 @@
+{
+  "schemaVersion": 1,
+  "focus": {
+    "source": "../focus.md",
+    "label": "Current work: medium-scale realistic testnet simulation",
+    "checks": [
+      "automated.seed-implication-regression",
+      "automated.indexer-integrity-canaries",
+      "operations.indexer-lag",
+      "operations.seeded-stack-latency",
+      "stack.user-journeys",
+      "testnet.environment"
+    ]
+  },
+  "conclusions": [
+    { "id": "validation.pr", "label": "Changed code passes the fast development checks" },
+    { "id": "functionality.deep-stack", "label": "The complete system works end to end" },
+    { "id": "testnet.environment", "label": "The deployed testnet is healthy" },
+    { "id": "facet.product", "label": "The product makes sense to its intended users" },
+    { "id": "facet.security", "label": "Contracts and operational trust boundaries are sound" },
+    { "id": "facet.docs", "label": "The documentation needed for current work is coherent" },
+    { "id": "meta.verifier-health", "label": "The verification system is catching its own failures" }
+  ],
+  "hiddenByDefault": ["known-bad.*", "coverage.*"],
+  "defaultMaxAgeMinutes": 10080,
+  "costProfiles": {
+    "instant": { "label": "instant", "estimatedSeconds": 2, "tokens": "none", "autoSafe": true },
+    "short": { "label": "under a minute", "estimatedSeconds": 45, "tokens": "none", "autoSafe": true },
+    "minutes": { "label": "several minutes", "estimatedSeconds": 300, "tokens": "none", "autoSafe": false },
+    "stack": { "label": "about 20 minutes", "estimatedSeconds": 1200, "tokens": "none", "autoSafe": false, "requires": ["Docker"], "effects": ["may restart local services"] },
+    "destructive-stack": { "label": "about 20 minutes", "estimatedSeconds": 1200, "tokens": "none", "autoSafe": false, "requires": ["Docker", "explicit opt-in"], "effects": ["wipes and reseeds local development data"] },
+    "testnet-read": { "label": "several minutes", "estimatedSeconds": 300, "tokens": "none", "autoSafe": false, "requires": ["testnet RPC and deployed endpoints"] },
+    "testnet-write": { "label": "several minutes", "estimatedSeconds": 600, "tokens": "none", "autoSafe": false, "requires": ["funded verifier wallet", "explicit opt-in"], "effects": ["writes to testnet", "spends gas"] },
+    "full-cadence": { "label": "about 30 minutes", "estimatedSeconds": 1800, "tokens": "none", "autoSafe": false, "requires": ["Docker", "testnet RPC", "funded verifier wallet", "explicit opt-in"], "effects": ["wipes and reseeds local development data", "restarts local services", "writes to testnet", "spends gas"] },
+    "llm": { "label": "open-ended LLM review", "estimatedSeconds": 600, "tokens": "high", "autoSafe": false, "requires": ["explicit confirmation"] }
+  },
+  "checkOverrides": {
+    "automated.lint": { "label": "Source lint", "cost": "short" },
+    "automated.build": { "label": "Production build", "cost": "minutes" },
+    "automated.test-fast": { "label": "Fast test suite", "cost": "minutes" },
+    "automated.dependency-audit": { "label": "Dependency vulnerability audit", "cost": "instant" },
+    "automated.indexer-integrity-canaries": { "label": "Indexer integrity canaries", "cost": "short" },
+    "automated.seed-implication-regression": { "label": "Seed implication regression", "cost": "short" },
+    "review.docs-broken-refs": { "label": "Documentation link scan", "cost": "short" },
+    "review.page-links": { "label": "UI route/link scan", "cost": "short" },
+    "review.security.slither": { "label": "Smart-contract static analysis", "cost": "minutes" },
+    "operations.local-stack-health": { "label": "Local services health", "cost": "short" },
+    "operations.indexer-lag": { "label": "Indexer catch-up under load", "cost": "stack" },
+    "operations.seeded-stack-latency": { "label": "Seeded-stack response time", "cost": "stack" },
+    "stack.fresh-seeded": { "label": "Clean local boot and seed", "cost": "destructive-stack" },
+    "stack.restart-consistency": { "label": "State survives a service restart", "cost": "stack" },
+    "stack.user-journeys": { "label": "Critical local browser journeys", "cost": "stack" },
+    "testnet.environment": { "label": "Deployed testnet evidence rollup", "cost": "instant" },
+    "testnet.onchain-to-indexer": { "label": "Testnet write reaches the indexer", "cost": "testnet-write" },
+    "security.package-lock-dependencies": { "label": "New dependency review", "cost": "instant" },
+    "meta.operator-policy": { "label": "Operator view configuration", "cost": "instant" }
+  },
+  "defaultCosts": [
+    { "idPrefix": "testnet.", "cost": "testnet-read" },
+    { "idPrefix": "stack.", "cost": "stack" },
+    { "idPrefix": "facet.", "cost": "instant" },
+    { "idPrefix": "coverage.", "cost": "instant" },
+    { "idPrefix": "known-bad.", "cost": "instant" },
+    { "idPrefix": "meta.", "cost": "instant" },
+    { "idPrefix": "functionality.", "cost": "instant" },
+    { "idPrefix": "product.", "cost": "instant" },
+    { "idPrefix": "validation.", "cost": "instant" },
+    { "idPrefix": "automated.", "cost": "minutes" }
+  ],
+  "changeRules": [
+    { "paths": ["fake-data-generation/", "scripts/generate-", "scripts/seed"], "checks": ["automated.seed-implication-regression", "automated.indexer-integrity-canaries", "operations.indexer-lag", "operations.seeded-stack-latency", "stack.user-journeys"] },
+    { "paths": ["indexer/"], "checks": ["automated.indexer-integrity-canaries", "automated.integration-tests", "operations.indexer-lag", "stack.user-journeys"] },
+    { "paths": ["hardhat/", "contracts/"], "checks": ["automated.hardhat-contracts", "review.security.slither", "security.contract-invariants", "stack.user-journeys", "testnet.onchain-to-indexer"] },
+    { "paths": ["sdk/"], "checks": ["automated.test-full-sdk", "automated.integration-tests", "stack.user-journeys"] },
+    { "paths": ["ui/"], "checks": ["automated.build", "automated.test-fast", "review.page-links", "stack.user-journeys"] },
+    { "paths": ["docs/", "specs/", "workflow/", "README.md", "focus.md"], "checks": ["review.docs-broken-refs"] },
+    { "paths": ["docker-compose.yml", "scripts/services", "scripts/stop-wipe-restart"], "checks": ["operations.local-stack-health", "stack.fresh-seeded", "stack.restart-consistency", "stack.user-journeys"] },
+    { "paths": ["verifier/", "scripts/verifier-", "scripts/lib/verifier-"], "checks": ["meta.operator-policy"] },
+    { "paths": ["package.json", "package-lock.json"], "checks": ["automated.build", "automated.test-fast", "automated.dependency-audit", "security.package-lock-dependencies"] }
+  ],
+  "milestones": {
+    "testnet-simulation": {
+      "label": "Medium-scale realistic testnet simulation",
+      "checks": [
+        "automated.seed-implication-regression",
+        "automated.indexer-integrity-canaries",
+        "operations.indexer-lag",
+        "operations.seeded-stack-latency",
+        "stack.fresh-seeded",
+        "stack.restart-consistency",
+        "stack.user-journeys",
+        "testnet.environment"
+      ],
+      "steps": [
+        { "label": "Seed-model regression", "command": ["verifier-run", "automated.seed-implication-regression"], "cost": "short" },
+        { "label": "Indexer integrity canaries", "command": ["verifier-run", "automated.indexer-integrity-canaries"], "cost": "short" },
+        { "label": "Canonical local deep cadence plus read-only/browser testnet proof", "command": ["node", "scripts/verifier-deep-cadence.mjs", "--testnet", "--browser-testnet"], "cost": "destructive-stack" }
+      ]
+    },
+    "release-candidate": {
+      "label": "Release candidate",
+      "checks": ["validation.pr", "automated.test-full", "functionality.deep-stack", "review.qa-synthesis.release-candidate"],
+      "steps": [
+        { "label": "Fast change-local evidence", "command": ["npm", "run", "verifier:fast"], "cost": "minutes" },
+        { "label": "Full conventional suite", "command": ["verifier-run", "automated.test-full"], "cost": "minutes" },
+        { "label": "Canonical local deep cadence plus read-only/browser testnet proof", "command": ["node", "scripts/verifier-deep-cadence.mjs", "--testnet", "--browser-testnet"], "cost": "destructive-stack" },
+        { "label": "Release-candidate QA attestation", "command": ["verifier-run", "review.qa-synthesis.release-candidate"], "cost": "instant" }
+      ]
+    },
+    "full-launch": {
+      "label": "Full launch",
+      "checks": ["automated.test-full", "functionality.deep-stack", "review.qa-synthesis.full-launch"],
+      "steps": [
+        { "label": "Full conventional suite", "command": ["verifier-run", "automated.test-full"], "cost": "minutes" },
+        { "label": "Full deep cadence including mutating testnet journeys", "command": ["node", "scripts/verifier-deep-cadence.mjs", "--full"], "cost": "full-cadence" },
+        { "label": "Full-launch QA attestation", "command": ["verifier-run", "review.qa-synthesis.full-launch"], "cost": "instant" }
+      ]
+    }
+  }
+}

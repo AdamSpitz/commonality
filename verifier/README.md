@@ -4,33 +4,74 @@ The project-specific workspace for the external `verifier` harness (the `@adamsp
 
 See the `using-verifier` AI skill for the underlying harness model.
 
-## The one command you want
+## The three actions you want
 
 ```sh
-npm run verifier:go
+npm run verifier:work
+npm run verifier:stand
+npm run verifier:prepare -- testnet-simulation
 ```
 
-`verifier:go` is the single human-readable, idempotent top-level report. It (1) checks currency (free when no commits landed since last time), (2) offers to re-run any checks those commits invalidated (press Enter to skip — the common case), (3) refreshes `root` (cheap — reuses the prior narrative with no model call when child statuses are unchanged), and (4) prints the narrative to your terminal. Run it again a minute later and it costs nothing and asks nothing. It never says "all fine" while a facet is red.
+`verifier:work` maps committed and uncommitted changes to affected evidence,
+previews the total runtime/tokens/prerequisites/effects, and runs only checks
+marked short, deterministic, and side-effect-free. `--dry-run` only explains;
+`--all` explicitly includes the deferred expensive checks.
 
-To browse the dashboard interactively: `npm run verifier:tree`. It opens on the workspace's `commands.json` menu (the project's runner scripts — `verifier:go`, the deep cadence, facet refreshes, etc. — each shown with a description); pick `Open check dashboard` (or press `t`) for the tree. In the tree, `j`/`k` move, `r` reruns the selected check, `d` toggles the details pane between a check's report artifact and its findings JSON, `Tab` focuses the details pane so `j`/`k` scroll it, and `c` returns to the commands menu.
+`verifier:stand` is a strictly read-only answer from stored evidence. It defaults
+to the current-focus view, runs no checks, and calls no model. Add `-- --all` for
+all top-level concerns or `-- --problems` to hide passing rows.
+`verifier:prepare` previews a named evidence campaign;
+add `--run` only after reviewing its costs and effects. The current campaign is
+`testnet-simulation`; `release-candidate` and `full-launch` are also defined.
+
+The policy, human labels, costs, path ownership, and milestone campaigns live in
+[`operator-policy.json`](./operator-policy.json). See
+[`OPERATOR-OVERHAUL.md`](./OPERATOR-OVERHAUL.md) for the design and rollout.
+
+To browse the dashboard interactively: `npm run verifier:tree`. It opens on four
+task-oriented tabs: **Current work**, **Where we stand**, **Milestone**, and the
+advanced **All checks** DAG. Press `1`–`4` or Left/Right to switch views. Each
+ordinary view contains only the checks relevant to its question; `a` runs that
+view's contextual action when it has one. `j`/`k` move, `r` reruns the selected
+check, `d` toggles the details pane between a check's report artifact and its
+findings JSON, and `Tab` focuses the details pane so `j`/`k` scroll it. Press `c`
+for the legacy commands/debug menu.
+
+Tree rows distinguish verdict from freshness: bright green `✓` is a current
+pass, amber `✓` is a stale pass, bright red `✗` is a current failure, and orange
+`✗` is a stale failure. Cyan `?` is uncertain, magenta `!` is a check error, and
+grey `·` means never run. `⟳` marks stale evidence; the details pane says whether
+it aged past the seven-day default, relevant code changed, or supporting
+evidence is newer. Runtime and `LLM high` badges describe rerun cost separately.
+
+The raw tree is an evidence-flow view, not a folder hierarchy. Each parent uses
+the latest results of the children shown beneath it, so read a branch as
+**conclusion → supporting evidence**. A check can support multiple conclusions;
+the underlying structure is therefore a DAG, and that check can appear in more
+than one expanded branch.
+
+The top of the tree groups evidence by question. `facet.functionality` means **does it
+work?** (tests, builds, live-stack and testnet behavior). `facet.product` means
+**does it make sense to people and feel worth using?** (messaging, workflows,
+usability, and human/LLM judgment). `facet.docs` asks whether the documentation
+coheres, `facet.security` covers contracts and trust boundaries, and
+`meta.verifier-health` asks whether the evidence system itself is trustworthy.
+These names are maintainer vocabulary; ordinary use should start with the three
+actions above, not by running individual facets.
 
 ## Command cheat-sheet
 
 | I want to… | Command |
 |---|---|
-| The top-level report, refreshed and printed | `npm run verifier:go` |
+| Check evidence affected by my changes | `npm run verifier:work` |
+| Read where we stand without running anything | `npm run verifier:stand` |
+| Preview a milestone campaign | `npm run verifier:prepare -- testnet-simulation` |
 | Browse the dashboard interactively | `npm run verifier:tree` |
-| Print the last stored dashboard rollup (no new run) | `npm run verifier:report` |
-| Classify every check by refresh cost + flag stale results | `npm run verifier:cost` |
-| Refresh just the rollup from latest child results | `npm run verifier:root` |
-| "Is the report stale given recent commits?" (advisory) | `npm run verifier:currency` |
-| Fast change-local loop (lint/build/fast tests/canaries) | `npm run verifier:fast` |
-| Nightly/CI deep boot cadence (guarded local E2E/destructive checks) | `npm run verifier:deep-cadence` |
-| Full deep cadence including testnet guarded checks | `npm run verifier:deep-cadence:full` |
-| Refresh one facet while working in it | `npm run verifier:{functionality,docs,product,security}` |
-| Run the due-only scheduler (long-running) | `npm run verifier:run` |
-| Force any one check | `verifier-run <checkId>` |
-| List LLM-judgment checks / record a chat-session verdict | `npm run verifier:llm -- --list` / `npm run verifier:llm -- <id> --response-file verdict.json` |
+
+Those are the commands an ordinary operator should need. Verifier maintainers
+can still use `verifier-run <checkId>`, `npm run verifier:cost`, the guarded
+cadence scripts, and `npm run verifier:currency:heuristic` from the Advanced
+tree/debugging path.
 
 The project `.envrc` sets `VERIFIER_WORKSPACE=verifier`, so no `--workspace` flag is needed from the repo root. From elsewhere, pass `--workspace <path>` or set `VERIFIER_WORKSPACE`.
 
@@ -45,13 +86,13 @@ Procedure:
 3. Read the dumped prompt. Follow it: brief yourself from the repo README as instructed, inspect the scoped surface, write the JSON envelope the prompt specifies (`status`, `summary`, `reportMarkdown`, `findings`, `filesRead`, …).
 4. Save that JSON to a file and record it:
    `npm run verifier:llm -- <checkId> --response-file /tmp/verdict.json`
-5. That run is a real stored Result: supervisors, `verifier-tree`, and `verifier:go` treat it the same as a `pi` run. Status is still derived from finding severities; you cannot talk a high finding into a pass.
+5. That run is a real stored Result: supervisors, `verifier-tree`, and `verifier:stand` treat it the same as a `pi` run. Status is still derived from finding severities; you cannot talk a high finding into a pass.
 
 Only use `verifier-run <checkId>` / `COMMONALITY_VERIFIER_ALLOW_LLM=1` when Adam explicitly wants a **separate** `pi` process (subscription `xai` / `opencode-go` only — see `llm-routing.json`). Prefer the chat-session path above.
 
 ### Refresh cost (so you don't fire an expensive check by accident)
 
-Expensive (LLM/agent) checks are marked declaratively with `"cost": "llm"` in their `*.def.json`. Count them with `npm run verifier:llm -- --list`: standing `review.*` “acts like a human tester” leaves (including `review.testnet-two-person-lab`), two meta reviewers, `meta.report-currency`, the `root` narrative, and the `known-bad.report` fixture (that last one never calls a live model). **They do not auto-run.** Review/meta leaves are `trigger: manual`. `meta.report-currency` is manual (only `verifier:go` / an explicit `verifier-run` fires it). `root` may still fold on input change, but its **narrative model call is opt-in** (`COMMONALITY_VERIFIER_ALLOW_LLM=1`, which `verifier:go` and `verifier:root` set). The scheduler therefore cannot burn tokens on human-tester leaves.
+Expensive (LLM/agent) checks are marked declaratively with `"cost": "llm"` in their `*.def.json`. Count them with `npm run verifier:llm -- --list`: standing `review.*` “acts like a human tester” leaves (including `review.testnet-two-person-lab`), two meta reviewers, `meta.report-currency`, the `root` narrative, and the `known-bad.report` fixture (that last one never calls a live model). **They do not auto-run.** Review/meta leaves are `trigger: manual`. `meta.report-currency` is an explicit legacy heuristic (`npm run verifier:currency:heuristic`) and is no longer a root input. `root` may still fold on input change, but its **narrative model call is opt-in** (`COMMONALITY_VERIFIER_ALLOW_LLM=1`, set by `verifier:root`). The scheduler therefore cannot burn tokens on human-tester leaves.
 
 They spend against Adam's **subscription** providers only (`xai/grok-4.6` by default, or `opencode-go/…` via `COMMONALITY_VERIFIER_LLM_PROVIDER=opencode-go`). `verifier/llm-routing.json` is the pin; OpenRouter and other pay-per-token gateways are rewritten away before `pi` is spawned.
 
@@ -86,7 +127,7 @@ The old confidence-tier supervisors were retired; the tier names now label readi
 - **PR / change-local** (ordinary work): `npm run verifier:fast`. Refresh any extra child checks implied by what you touched (contracts/indexing/routing/seed/domain manifests).
 - **Light confidence** (before a notable demo, or when something feels off): the fast loop plus relevant manual/product checks (`verifier-run review.demo-dry-run`, `review.newcomer.touched-surface`, `review.real-ui.touched-domain`), then `npm run verifier:root`.
 - **Release-candidate / testnet-ready**: force the guarded prerequisites you intend to claim — `automated.test-full`, `artifact.ipfs-domain-smoke`, `stack.fresh-seeded`, `stack.restart-consistency` (each needs its opt-in env var; see the cheat-sheet in `DESIGN.md` operating model and `coverage/guarded-check-policy.json`) — refresh the relevant manual/LLM reports, then `npm run verifier:root`.
-- **Full launch**: refresh release-candidate evidence, configured `testnet.*` smoke, and final QA synthesis, then `npm run verifier:go` for the launch narrative.
+- **Full launch**: preview `npm run verifier:prepare -- full-launch`; add `--run` only after reviewing its testnet-writing and gas-spending effects, then explicitly run `npm run verifier:root` if a fresh launch narrative is wanted.
 
 To run a manual/LLM validation pass (intelligent judgment when conventional tests pass), follow the runbook in [`DESIGN.md`](./DESIGN.md).
 
@@ -115,7 +156,13 @@ npm install
 npm run verifier:report   # quickest smoke test that the harness is available
 ```
 
-To operate continuously, run the scheduler under a real process supervisor (`npm run verifier:run`) and add an external heartbeat cron so scheduler death is visible:
+Periodic verification is intentionally **disabled on Adam's workstation**. The
+systemd scheduler service is installed but disabled, and the old heartbeat and
+nightly deep-cadence crontab entries were removed during the operator overhaul.
+Use `verifier:work` for change-driven evidence and `verifier:prepare` for an
+explicit milestone campaign. If continuous operation is deliberately restored,
+run the scheduler under a real process supervisor (`npm run verifier:run`) and
+add an external heartbeat cron so scheduler death is visible:
 
 ```cron
 */5 * * * * cd /home/adam/Projects/commonality && npm run verifier:heartbeat

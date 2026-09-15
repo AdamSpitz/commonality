@@ -1,6 +1,6 @@
 {
   "id": "meta.backlog-reminder",
-  "description": "While TODO.md holds actionable one-shot items, guard that inbox.md keeps its standing backlog-processing reminder visible. Advisory: never gates root.",
+  "description": "Are outstanding tasks visible? Checks that inbox.md retains its backlog reminder while TODO.md has actionable items; advisory only.",
   "trigger": { "type": "cron", "everyMinutes": 720 },
   "retention": { "keep": 5, "keepDays": 30 },
   "command": ["node", "checks/meta/backlog-reminder.mjs"],

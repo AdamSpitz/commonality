@@ -1,0 +1,11 @@
+{
+  "id": "meta.operator-policy",
+  "description": "The intent-based verifier operator policy is internally consistent: referenced checks and cost profiles exist, change rules are meaningful, and the focused/milestone views remain runnable.",
+  "trigger": { "type": "cron", "everyMinutes": 720 },
+  "retention": { "keep": 5, "keepDays": 30 },
+  "command": ["node", "checks/meta/operator-policy.mjs"],
+  "inputs": [
+    { "kind": "file", "path": "operator-policy.json", "as": "policy" }
+  ],
+  "timeoutMs": 30000
+}

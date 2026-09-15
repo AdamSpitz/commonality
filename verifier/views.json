@@ -1,0 +1,41 @@
+{
+  "views": [
+    {
+      "id": "current-work",
+      "label": "Current work",
+      "description": "Checks affected by this branch and uncommitted changes.",
+      "source": ["node", "../scripts/verifier-operator.mjs", "view", "current-work"],
+      "actionLabel": "run safe checks",
+      "action": {
+        "name": "Check my current work",
+        "command": ["npm", "run", "verifier:work"],
+        "cwd": ".."
+      }
+    },
+    {
+      "id": "where-we-stand",
+      "label": "Where we stand",
+      "description": "Stored evidence for the current focus; this view never runs checks.",
+      "source": ["node", "../scripts/verifier-operator.mjs", "view", "where-we-stand"]
+    },
+    {
+      "id": "milestone",
+      "label": "Milestone",
+      "description": "Evidence required for the current milestone.",
+      "source": ["node", "../scripts/verifier-operator.mjs", "view", "milestone", "testnet-simulation"],
+      "actionLabel": "preview campaign",
+      "action": {
+        "name": "Prepare for the current milestone",
+        "command": ["npm", "run", "verifier:prepare", "--", "testnet-simulation"],
+        "cwd": ".."
+      }
+    },
+    {
+      "id": "all-checks",
+      "label": "All checks",
+      "description": "Advanced: browse the complete evidence DAG.",
+      "source": ["node", "../scripts/verifier-operator.mjs", "view", "all-checks"],
+      "includeDescendants": true
+    }
+  ]
+}

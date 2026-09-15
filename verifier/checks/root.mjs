@@ -145,7 +145,7 @@ emit(async () => {
     if (narrative) {
       narrative.stale = true;
     } else {
-      const skipped = `# Report narrative not refreshed\n\nThe rollup status is **${status}**. The LLM narrative was not regenerated (subscription spend is opt-in). Re-run with \`COMMONALITY_VERIFIER_ALLOW_LLM=1\` (or \`npm run verifier:go\` / \`npm run verifier:root\`), or record a chat-session result via \`npm run verifier:llm -- root --response-file …\`.\n\nThe dashboard rollup below is unaffected; drill into the tree for per-check detail.`;
+      const skipped = `# Report narrative not refreshed\n\nThe rollup status is **${status}**. The LLM narrative was not regenerated (subscription spend is opt-in). Re-run with \`COMMONALITY_VERIFIER_ALLOW_LLM=1\` or \`npm run verifier:root\`, or record a chat-session result via \`npm run verifier:llm -- root --response-file …\`.\n\nThe dashboard rollup below is unaffected; drill into the tree for per-check detail.`;
       const skippedArtifact = await writeTextArtifact("report.md", skipped, "text/markdown", "Rollup-only root: narrative LLM skipped because COMMONALITY_VERIFIER_ALLOW_LLM was not set.");
       narrative = { summary: null, priorities: [], model: null, skippedLlm: true, artifacts: [skippedArtifact] };
     }
