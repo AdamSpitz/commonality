@@ -94,6 +94,7 @@ set_secret IPNS_PRIVATE_KEY_TESTNET_CONTENT_FUNDING
 set_secret IPNS_PRIVATE_KEY_TESTNET_CIVILITY
 set_secret IPNS_PRIVATE_KEY_TESTNET_COMMON_SENSE_MAJORITY
 set_secret IPNS_PRIVATE_KEY_TESTNET_CONCEPTSPACE
+set_secret IPNS_PRIVATE_KEY_TESTNET_CAUSESTARTER
 
 echo ""
 echo "═══════════════════════════════════════════════════════════════"
