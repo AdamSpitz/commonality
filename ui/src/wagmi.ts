@@ -77,15 +77,15 @@ export function createMockConfig(
 export function createTestDataConfig(privateKey: `0x${string}`, chainId: number, label: string) {
   if (chainId === baseSepolia.id) {
     return createConfig({
-      chains: [baseSepolia, mainnet, hardhat],
-      transports: wagmiTransports,
+      chains: [baseSepolia],
+      transports: { [baseSepolia.id]: wagmiTransports[baseSepolia.id] },
       connectors: [testDataWalletConnector(privateKey, label)],
     })
   }
   if (chainId === hardhat.id) {
     return createConfig({
-      chains: [hardhat, mainnet, baseSepolia],
-      transports: wagmiTransports,
+      chains: [hardhat],
+      transports: { [hardhat.id]: wagmiTransports[hardhat.id] },
       connectors: [testDataWalletConnector(privateKey, label)],
     })
   }

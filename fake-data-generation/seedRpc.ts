@@ -21,7 +21,14 @@ function seedChain() {
 
 /** Local Hardhat receipts are immediate; viem's 4s default poll dominates seed time. */
 export const SEED_RPC_POLLING_INTERVAL_MS = 50;
+export const SEED_RPC_TESTNET_POLLING_INTERVAL_MS = 1_500;
 export const SEED_RPC_TIMEOUT_MS = 30_000;
+
+function seedPollingIntervalMs() {
+  return seedChain().id === baseSepolia.id
+    ? SEED_RPC_TESTNET_POLLING_INTERVAL_MS
+    : SEED_RPC_POLLING_INTERVAL_MS;
+}
 
 export function seedHttpTransport(rpcUrl = RPC_URL) {
   return http(rpcUrl, {
@@ -40,7 +47,7 @@ export function createSeedClients(privateKey: `0x${string}`, rpcUrl = RPC_URL) {
   const publicClient = createPublicClient({
     chain: seedChain(),
     transport,
-    pollingInterval: SEED_RPC_POLLING_INTERVAL_MS,
+    pollingInterval: seedPollingIntervalMs(),
   }) as PublicClient;
 
   return {
@@ -54,6 +61,6 @@ export function createSeedPublicClient(rpcUrl = RPC_URL) {
   return createPublicClient({
     chain: seedChain(),
     transport: seedHttpTransport(rpcUrl),
-    pollingInterval: SEED_RPC_POLLING_INTERVAL_MS,
+    pollingInterval: seedPollingIntervalMs(),
   }) as PublicClient;
 }

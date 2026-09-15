@@ -1,4 +1,4 @@
-import { createCipheriv, randomBytes } from 'node:crypto';
+import { createCipheriv, createDecipheriv, randomBytes } from 'node:crypto';
 import fs from 'node:fs/promises';
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -81,7 +81,6 @@ export function encryptTestData(value: unknown, key: Buffer, iv = randomBytes(12
 
 async function loadRegistry(key: Buffer): Promise<TestDataRegistry> {
   try {
-    const { createDecipheriv } = await import('node:crypto');
     const encrypted = JSON.parse(await fs.readFile(registryPath, 'utf8')) as EncryptedTestDataDocument;
     const decipher = createDecipheriv('aes-256-gcm', key, Buffer.from(encrypted.iv, 'base64url'));
     decipher.setAuthTag(Buffer.from(encrypted.authTag, 'base64url'));

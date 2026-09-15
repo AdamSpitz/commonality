@@ -35,7 +35,7 @@ while IFS= read -r -d '' file; do
   if [ "$rel" = ".admin-capability" ]; then
     continue
   fi
-  CURL_ARGS+=(-F "file=@${file};filename=test-data/${rel}")
+  CURL_ARGS+=(-F "file=@${file};filename=${rel}")
 done < <(find "$ARTIFACT_ROOT" -type f -print0)
 
 RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
@@ -59,6 +59,7 @@ CAPABILITY=$(tr -d '\n' < "$ARTIFACT_ROOT/.admin-capability")
 echo ""
 echo "Published encrypted test-data artifacts."
 echo "  CID: $CID"
-echo "  Configure VITE_TEST_DATA_REGISTRY_URL as: https://gateway.pinata.cloud/ipns/$IPNS_NAME/test-data/registry.enc.json"
+echo "  Same-origin registry: /test-data/registry.enc.json (Worker maps this onto CID $CID)"
+echo "  Direct IPFS check: https://gateway.pinata.cloud/ipfs/$CID/registry.enc.json"
 echo "  Bookmark after the CauseStarter UI is republished:"
 echo "  https://causestarter.testnet.commonality.works/#/admin/test-data?key=$CAPABILITY"
