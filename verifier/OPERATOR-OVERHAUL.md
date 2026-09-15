@@ -30,8 +30,10 @@ advanced/debugging interface.
 - Compare changes with the baseline recorded for each check by the operator
   layer. Include the dirty working tree. Never silently treat a missing or
   rewritten baseline as proof that evidence is current.
-- Use `focus.md` to select the default working view. Time-based freshness is
-  primarily for externally drifting systems, not unchanged source evidence.
+- Use `focus.md` to select the default working view. Evidence has a seven-day
+  freshness budget by default; checks for faster- or slower-drifting surfaces
+  can override it in operator policy. Relevant source changes invalidate a run
+  immediately regardless of age.
 
 ## Implementation
 
@@ -39,7 +41,14 @@ The operator policy is [`operator-policy.json`](./operator-policy.json). It is
 data rather than code so labels, views, path ownership, costs, and milestone
 campaigns can be reviewed together.
 
-The entry point is `scripts/verifier-operator.mjs`:
+The interactive entry point is `npm run verifier:tree`: it presents the three
+intentions as persistent projections of the evidence graph, plus an advanced
+complete-DAG view. The projections live in [`views.json`](./views.json); dynamic
+membership is resolved by the read-only `view` mode of
+`scripts/verifier-operator.mjs`. Contextual actions run from the active view and
+return to the refreshed projection.
+
+The equivalent non-interactive entry points remain:
 
 ```sh
 npm run verifier:work
@@ -97,4 +106,3 @@ and may re-baseline after rewritten history.
 - Expand path ownership when an unmapped change is encountered.
 - After real usage, remove redundant commands and checks rather than guessing
   which checks are redundant up front.
-

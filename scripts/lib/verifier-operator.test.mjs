@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { affectedChecks, formatDuration, pathMatches, profileFor, summarizeProfiles } from "./verifier-operator.mjs";
+import { affectedChecks, formatDuration, freshnessFor, pathMatches, presentationFor, profileFor, summarizeProfiles } from "./verifier-operator.mjs";
 
 test("maps changed paths to checks and reports unmapped paths", () => {
   const result = affectedChecks(["indexer/src/a.ts", "mystery.txt"], [
@@ -31,3 +31,17 @@ test("summarizes aggregate consequences", () => {
   assert.equal(formatDuration(summary.seconds), "about 2m");
 });
 
+test("classifies old and code-invalidated evidence independently from status", () => {
+  const now = Date.parse("2026-09-15T12:00:00Z");
+  assert.deepEqual(freshnessFor({ timestamp: "2026-09-15T11:00:00Z" }, { now, maxAgeMinutes: 120 }), {
+    stale: false, reasons: [], ageMinutes: 60, maxAgeMinutes: 120,
+  });
+  const stale = freshnessFor({ timestamp: "2026-09-01T12:00:00Z", status: "fail" }, { now, maxAgeMinutes: 120, codeChanged: true });
+  assert.equal(stale.stale, true);
+  assert.equal(stale.reasons.length, 2);
+});
+
+test("presents measured time and token cost on independent axes", () => {
+  const value = presentationFor({ durationMs: 72000 }, { estimatedSeconds: 2, tokens: "high", effects: ["writes"] }, { stale: false, reasons: [] });
+  assert.deepEqual(value.cost, { duration: "~2m", durationSource: "last run", tokens: "high", requires: [], effects: ["writes"] });
+});

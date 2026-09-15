@@ -4,7 +4,7 @@ import { execFileSync, spawnSync } from "node:child_process";
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { affectedChecks, fingerprintFiles, formatDuration, profileFor, summarizeProfiles } from "./lib/verifier-operator.mjs";
+import { affectedChecks, fingerprintFiles, formatDuration, freshnessFor, presentationFor, profileFor, summarizeProfiles } from "./lib/verifier-operator.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const workspace = path.resolve(repoRoot, process.env.VERIFIER_WORKSPACE ?? "verifier");
@@ -58,6 +58,15 @@ function changedFiles(base) {
   return [...files].sort();
 }
 
+function filesChangedSince(timestamp) {
+  const files = new Set(changedFiles("HEAD"));
+  try {
+    const committed = git(["log", `--since=${timestamp}`, "--name-only", "--format="]);
+    committed.split("\n").map((line) => line.trim()).filter(Boolean).forEach((file) => files.add(file));
+  } catch { /* working-tree changes still provide a conservative answer */ }
+  return [...files];
+}
+
 function fallbackBase() {
   for (const candidate of ["origin/dev", "dev", "HEAD^", "HEAD"]) {
     try { git(["rev-parse", "--verify", candidate]); return candidate; } catch { /* try next */ }
@@ -67,6 +76,28 @@ function fallbackBase() {
 
 function labelFor(id, def, policy) {
   return policy.checkOverrides?.[id]?.label ?? policy.conclusions?.find((item) => item.id === id)?.label ?? def?.description ?? id;
+}
+
+function viewLabels(checks, policy) {
+  return Object.fromEntries(checks.map((id) => [
+    id,
+    policy.checkOverrides?.[id]?.label ?? policy.conclusions?.find((item) => item.id === id)?.label ?? id,
+  ]));
+}
+
+
+async function viewPresentation(checks, defs, policy) {
+  const out = {};
+  for (const id of checks) {
+    const result = await latestResult(id);
+    const profile = profileFor(id, defs.get(id), policy);
+    const relevantChanges = result?.timestamp
+      ? affectedChecks(filesChangedSince(result.timestamp), policy.changeRules ?? []).checks.includes(id)
+      : false;
+    const maxAgeMinutes = policy.checkOverrides?.[id]?.maxAgeMinutes ?? policy.defaultMaxAgeMinutes ?? 10080;
+    out[id] = presentationFor(result, profile, freshnessFor(result, { maxAgeMinutes, codeChanged: relevantChanges }));
+  }
+  return out;
 }
 
 async function rowsFor(ids, defs, policy) {
@@ -190,6 +221,42 @@ async function prepare(args, policy, defs) {
   }
 }
 
+async function view(args, policy, defs) {
+  const name = args[0] ?? "current-work";
+  if (name === "current-work") {
+    const base = fallbackBase();
+    const files = changedFiles(base);
+    const affected = affectedChecks(files, policy.changeRules ?? []);
+    const baselines = await readJson(baselinesPath, { checks: {} });
+    const checks = affected.checks.filter((id) => {
+      const checkBase = baselines.checks?.[id]?.commit ?? base;
+      return changedFiles(checkBase).some((file) => affectedChecks([file], policy.changeRules ?? []).checks.includes(id));
+    });
+    const suffix = affected.unmapped.length ? `; ${affected.unmapped.length} unmapped path(s)` : "";
+    console.log(JSON.stringify({ checks, labels: viewLabels(checks, policy), presentation: await viewPresentation(checks, defs, policy), summary: `${files.length} changed path(s) · ${checks.length} relevant check(s)${suffix}` }));
+    return;
+  }
+  if (name === "where-we-stand") {
+    const checks = [...new Set([...(policy.focus.checks ?? []), "validation.pr", "meta.verifier-health"])];
+    console.log(JSON.stringify({ checks, labels: viewLabels(checks, policy), presentation: await viewPresentation(checks, defs, policy), summary: `${policy.focus.label} · stored evidence only` }));
+    return;
+  }
+  if (name === "milestone") {
+    const milestoneName = args[1] ?? "testnet-simulation";
+    const milestone = policy.milestones?.[milestoneName];
+    if (!milestone) throw new Error(`Unknown milestone '${milestoneName}'`);
+    const checks = milestone.checks ?? [];
+    console.log(JSON.stringify({ checks, labels: viewLabels(checks, policy), presentation: await viewPresentation(checks, defs, policy), summary: `${milestone.label} · required evidence and campaign preview` }));
+    return;
+  }
+  if (name === "all-checks") {
+    const checks = [...defs.keys()];
+    console.log(JSON.stringify({ checks: ["root"], labels: viewLabels(checks, policy), presentation: await viewPresentation(checks, defs, policy), summary: "Complete evidence DAG · advanced view" }));
+    return;
+  }
+  throw new Error(`Unknown view '${name}'`);
+}
+
 async function main() {
   const [command = "stand", ...args] = process.argv.slice(2);
   const policy = await readJson(policyPath);
@@ -197,6 +264,7 @@ async function main() {
   if (command === "work") await work(args, policy, defs);
   else if (command === "stand") await stand(args, policy, defs);
   else if (command === "prepare") await prepare(args, policy, defs);
+  else if (command === "view") await view(args, policy, defs);
   else throw new Error(`Unknown action '${command}'. Use work, stand, or prepare.`);
 }
 

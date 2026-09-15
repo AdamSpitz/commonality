@@ -22,6 +22,7 @@
     { "id": "meta.verifier-health", "label": "The verification system is catching its own failures" }
   ],
   "hiddenByDefault": ["known-bad.*", "coverage.*"],
+  "defaultMaxAgeMinutes": 10080,
   "costProfiles": {
     "instant": { "label": "instant", "estimatedSeconds": 2, "tokens": "none", "autoSafe": true },
     "short": { "label": "under a minute", "estimatedSeconds": 45, "tokens": "none", "autoSafe": true },
@@ -37,6 +38,7 @@
     "automated.lint": { "label": "Source lint", "cost": "short" },
     "automated.build": { "label": "Production build", "cost": "minutes" },
     "automated.test-fast": { "label": "Fast test suite", "cost": "minutes" },
+    "automated.dependency-audit": { "label": "Dependency vulnerability audit", "cost": "instant" },
     "automated.indexer-integrity-canaries": { "label": "Indexer integrity canaries", "cost": "short" },
     "automated.seed-implication-regression": { "label": "Seed implication regression", "cost": "short" },
     "review.docs-broken-refs": { "label": "Documentation link scan", "cost": "short" },
@@ -49,7 +51,9 @@
     "stack.restart-consistency": { "label": "State survives a service restart", "cost": "stack" },
     "stack.user-journeys": { "label": "Critical local browser journeys", "cost": "stack" },
     "testnet.environment": { "label": "Deployed testnet evidence rollup", "cost": "instant" },
-    "testnet.onchain-to-indexer": { "label": "Testnet write reaches the indexer", "cost": "testnet-write" }
+    "testnet.onchain-to-indexer": { "label": "Testnet write reaches the indexer", "cost": "testnet-write" },
+    "security.package-lock-dependencies": { "label": "New dependency review", "cost": "instant" },
+    "meta.operator-policy": { "label": "Operator view configuration", "cost": "instant" }
   },
   "defaultCosts": [
     { "idPrefix": "testnet.", "cost": "testnet-read" },
@@ -77,6 +81,16 @@
   "milestones": {
     "testnet-simulation": {
       "label": "Medium-scale realistic testnet simulation",
+      "checks": [
+        "automated.seed-implication-regression",
+        "automated.indexer-integrity-canaries",
+        "operations.indexer-lag",
+        "operations.seeded-stack-latency",
+        "stack.fresh-seeded",
+        "stack.restart-consistency",
+        "stack.user-journeys",
+        "testnet.environment"
+      ],
       "steps": [
         { "label": "Seed-model regression", "command": ["verifier-run", "automated.seed-implication-regression"], "cost": "short" },
         { "label": "Indexer integrity canaries", "command": ["verifier-run", "automated.indexer-integrity-canaries"], "cost": "short" },
@@ -85,6 +99,7 @@
     },
     "release-candidate": {
       "label": "Release candidate",
+      "checks": ["validation.pr", "automated.test-full", "functionality.deep-stack", "review.qa-synthesis.release-candidate"],
       "steps": [
         { "label": "Fast change-local evidence", "command": ["npm", "run", "verifier:fast"], "cost": "minutes" },
         { "label": "Full conventional suite", "command": ["verifier-run", "automated.test-full"], "cost": "minutes" },
@@ -94,6 +109,7 @@
     },
     "full-launch": {
       "label": "Full launch",
+      "checks": ["automated.test-full", "functionality.deep-stack", "review.qa-synthesis.full-launch"],
       "steps": [
         { "label": "Full conventional suite", "command": ["verifier-run", "automated.test-full"], "cost": "minutes" },
         { "label": "Full deep cadence including mutating testnet journeys", "command": ["node", "scripts/verifier-deep-cadence.mjs", "--full"], "cost": "full-cadence" },

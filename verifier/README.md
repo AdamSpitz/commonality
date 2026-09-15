@@ -28,7 +28,21 @@ The policy, human labels, costs, path ownership, and milestone campaigns live in
 [`operator-policy.json`](./operator-policy.json). See
 [`OPERATOR-OVERHAUL.md`](./OPERATOR-OVERHAUL.md) for the design and rollout.
 
-To browse the dashboard interactively: `npm run verifier:tree`. It opens on the three intent-based actions plus one Advanced entry. A launched action leaves its output on screen until you press Enter. Press `t` for the raw DAG. In the tree, `j`/`k` move, `r` reruns the selected check, `d` toggles the details pane between a check's report artifact and its findings JSON, `Tab` focuses the details pane so `j`/`k` scroll it, and `c` returns to the commands menu.
+To browse the dashboard interactively: `npm run verifier:tree`. It opens on four
+task-oriented tabs: **Current work**, **Where we stand**, **Milestone**, and the
+advanced **All checks** DAG. Press `1`–`4` or Left/Right to switch views. Each
+ordinary view contains only the checks relevant to its question; `a` runs that
+view's contextual action when it has one. `j`/`k` move, `r` reruns the selected
+check, `d` toggles the details pane between a check's report artifact and its
+findings JSON, and `Tab` focuses the details pane so `j`/`k` scroll it. Press `c`
+for the legacy commands/debug menu.
+
+Tree rows distinguish verdict from freshness: bright green `✓` is a current
+pass, amber `✓` is a stale pass, bright red `✗` is a current failure, and orange
+`✗` is a stale failure. Cyan `?` is uncertain, magenta `!` is a check error, and
+grey `·` means never run. `⟳` marks stale evidence; the details pane says whether
+it aged past the seven-day default, relevant code changed, or supporting
+evidence is newer. Runtime and `LLM high` badges describe rerun cost separately.
 
 The raw tree is an evidence-flow view, not a folder hierarchy. Each parent uses
 the latest results of the children shown beneath it, so read a branch as

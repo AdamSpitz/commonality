@@ -44,6 +44,41 @@ export function formatDuration(seconds) {
   return `about ${Math.ceil(seconds / 60)}m`;
 }
 
+export function formatCompactDuration(seconds) {
+  if (!Number.isFinite(seconds)) return null;
+  if (seconds < 60) return `~${Math.max(1, Math.round(seconds))}s`;
+  return `~${Math.ceil(seconds / 60)}m`;
+}
+
+function formatMinutes(minutes) {
+  if (minutes < 60) return `${minutes}m`;
+  if (minutes < 1440) return `${Math.floor(minutes / 60)}h`;
+  return `${Math.floor(minutes / 1440)}d`;
+}
+
+export function freshnessFor(result, { now = Date.now(), maxAgeMinutes = 10080, codeChanged = false } = {}) {
+  if (!result?.timestamp) return { stale: false, reasons: [] };
+  const ageMinutes = Math.max(0, Math.floor((now - Date.parse(result.timestamp)) / 60000));
+  const reasons = [];
+  if (Number.isFinite(maxAgeMinutes) && ageMinutes > maxAgeMinutes) reasons.push(`last run is ${formatMinutes(ageMinutes)} old (limit ${formatMinutes(maxAgeMinutes)})`);
+  if (codeChanged) reasons.push("relevant code changed since this run");
+  return { stale: reasons.length > 0, reasons, ageMinutes, maxAgeMinutes };
+}
+
+export function presentationFor(result, profile, freshness) {
+  const seconds = result?.durationMs > 0 ? result.durationMs / 1000 : profile.estimatedSeconds;
+  return {
+    freshness,
+    cost: {
+      duration: formatCompactDuration(seconds),
+      durationSource: result?.durationMs > 0 ? "last run" : "estimate",
+      tokens: profile.tokens ?? "none",
+      requires: profile.requires ?? [],
+      effects: profile.effects ?? [],
+    },
+  };
+}
+
 export async function fingerprintFiles(repoRoot, files) {
   const hash = createHash("sha256");
   for (const file of [...files].sort()) {

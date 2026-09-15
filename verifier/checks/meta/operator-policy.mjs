@@ -24,6 +24,7 @@ async function main() {
     ...(policy.conclusions ?? []).map((item) => item.id),
     ...Object.keys(policy.checkOverrides ?? {}),
     ...(policy.changeRules ?? []).flatMap((rule) => rule.checks ?? []),
+    ...Object.values(policy.milestones ?? {}).flatMap((milestone) => milestone.checks ?? []),
     ...Object.values(policy.milestones ?? {}).flatMap((milestone) => (milestone.steps ?? []).flatMap((step) => step.command?.[0] === "verifier-run" ? [step.command[1]] : [])),
   ];
   const unknownChecks = [...new Set(references.filter((id) => !ids.has(id)))].sort();
