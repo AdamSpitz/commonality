@@ -286,9 +286,16 @@ Two layers (they are not substitutes):
 | **Playwright MCP** (`@playwright/mcp`) | MCP tools Grok can `search_tool` / `use_tool` without being told a CLI exists. | Install so a *fresh* chat sees browser tools in its tool list. One server is enough — do not also add Chrome DevTools MCP. |
 | **Protocol MCP** (`mcp/`) | SDK reads/writes. Not a browser. | Indexer / statements / attesters. |
 
+### Test-data admin (`/admin/test-data`)
+
+Encrypted run documents live under `fake-data-generation/output/test-data/`.
+Read `fake-data-generation/output/test-data/.admin-capability` yourself and
+open the URL with `?key=` — Adam does not treat that local key as a secret
+from the agent. See [`fake-data-generation/README.md`](../fake-data-generation/README.md#browsing-generated-runs).
+
 ### Prerequisites
 
-1. Local stack + SPA: `./scripts/deploy-causestarter.sh` → http://localhost:8090/ (or live `https://causestarter.testnet.commonality.works`).
+1. Local stack + SPA: `./scripts/deploy-causestarter.sh` → http://localhost:8090/ (or live `https://causestarter.testnet.commonality.works`). The IPFS gateway copy is `http://causestarter.localhost:8088/#/`.
 2. Playwright MCP in Grok (`~/.grok/config.toml`):
 
 ```toml

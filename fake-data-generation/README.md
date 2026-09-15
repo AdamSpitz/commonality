@@ -118,6 +118,16 @@ open `http://localhost:8088/admin` and follow **Browse generated test-data runs*
 run page provides the objective action/user summary and can connect CauseStarter as any
 disposable fake user from that run.
 
+**Capability key and LLMs.** The AES key lives at
+`fake-data-generation/output/test-data/.admin-capability` (gitignored, never
+uploaded). Encryption is so the published registry is not world-readable; it is
+**not** a secret from a local coding agent. If you are working on
+`/admin/test-data`, **read that file** and open
+`http://causestarter.localhost:8088/#/admin/test-data?key=<contents>` (or the
+link on `http://localhost:8088/admin`). Do not treat the key as something you
+must ask Adam for. Still do not commit it, put it in `config.json`, send it to
+third-party logs, or bake it into a mainnet build.
+
 For Base Sepolia, `./scripts/setup-testnet-naming.sh` creates
 `IPNS_PRIVATE_KEY_TESTNET_TEST_DATA` (operator secrets) and
 `IPNS_NAME_TESTNET_TEST_DATA` (`deployments/testnet-ipns.env`). The browser loads

@@ -61,6 +61,10 @@ capability URL locally, shows the objective run contents, and can connect in mem
 disposable fake user. `scripts/publish-test-data.sh` pins only encrypted files and advances
 a dedicated test-data IPNS name; mainnet is hard-disabled.
 
+The local capability file (`output/test-data/.admin-capability`) is fair game for a
+coding agent: read it and open the admin URL when inspecting this UI. Details:
+[`README.md`](./README.md#browsing-generated-runs).
+
 ## Next
 
 Do these in order unless Adam names a different one. Each item is a session-sized chunk.

@@ -10,6 +10,7 @@ import {
   type TestDataRegistry,
   type TestDataRun,
 } from '../testData/testDataDocuments'
+import { actionDetail, JsonValue, KeyValueTable } from '../testData/prettyJson'
 
 export function TestDataRunPage() {
   const { runId } = useParams()
@@ -113,7 +114,7 @@ export function TestDataRunPage() {
             const transaction = String(action.transactionHash ?? action.txHash ?? action.hash ?? '')
             return <TableRow key={`${index}-${transaction}`}>
               <TableCell>{index + 1}</TableCell><TableCell>{type}</TableCell><TableCell sx={{ fontFamily: 'monospace' }}>{actor.startsWith('0x') ? shortAddress(actor) : actor}</TableCell>
-              <TableCell><Typography component="span" sx={{ fontFamily: 'monospace', fontSize: 12 }}>{transaction ? shortAddress(transaction) : JSON.stringify(action)}</Typography></TableCell>
+              <TableCell>{transaction ? <Typography component="span" sx={{ fontFamily: 'monospace', fontSize: 12 }}>{shortAddress(transaction)}</Typography> : <JsonValue value={actionDetail(action)} />}</TableCell>
             </TableRow>
           })}</TableBody>
         </Table>
@@ -121,13 +122,16 @@ export function TestDataRunPage() {
 
       <Card variant="outlined"><CardContent>
         <Typography variant="h6">Run parameters</Typography>
-        <Box component="pre" sx={{ overflow: 'auto', whiteSpace: 'pre-wrap', fontSize: 13 }}>{JSON.stringify(run.parameters, null, 2)}</Box>
+        <Divider sx={{ my: 2 }} />
+        <KeyValueTable record={run.parameters} />
       </CardContent></Card>
 
       <Card variant="outlined"><CardContent>
         <Typography variant="h6">Generated entities</Typography>
-        <Typography color="text.secondary">Statements, projects, and contract bindings captured at the end of this run.</Typography>
-        <Box component="pre" sx={{ overflow: 'auto', maxHeight: 560, whiteSpace: 'pre-wrap', fontSize: 12 }}>{JSON.stringify(run.entities, null, 2)}</Box>
+        <Typography color="text.secondary" sx={{ mb: 2 }}>Statements, projects, and contract bindings captured at the end of this run.</Typography>
+        <Box sx={{ overflowX: 'auto' }}>
+          <KeyValueTable record={run.entities} />
+        </Box>
       </CardContent></Card>
     </Stack>
   )
