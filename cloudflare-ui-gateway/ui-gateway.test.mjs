@@ -167,6 +167,51 @@ test('falls back to index.html for browser navigation routes', async () => {
   ])
 })
 
+test('falls back to index.html when every gateway fails an HTML navigation', async () => {
+  const cacheStore = new Map()
+  const fetchedUrls = []
+
+  globalThis.caches = {
+    default: {
+      async match(request) {
+        return cacheStore.get(request.url)?.clone()
+      },
+      async put(request, response) {
+        cacheStore.set(request.url, response.clone())
+      },
+    },
+  }
+
+  globalThis.fetch = async (request) => {
+    const url = typeof request === 'string' ? request : request.url
+    fetchedUrls.push(url)
+    if (url.startsWith('https://name.web3.storage/name/')) {
+      return Response.json({ value: '/ipfs/bafy-spa-error-cid' })
+    }
+    if (url.endsWith('/ipfs/bafy-spa-error-cid/founders')) {
+      return new Response('gateway unavailable', { status: 429 })
+    }
+    if (url === 'https://gateway.pinata.cloud/ipfs/bafy-spa-error-cid/index.html') {
+      return new Response('<html>spa after error</html>', { status: 200 })
+    }
+    throw new Error(`unexpected fetch: ${url}`)
+  }
+
+  const response = await proxyUiRequest(
+    new Request('https://testnet.commonality.works/founders', {
+      headers: { Accept: 'text/html' },
+    }),
+    {
+      IPNS_COMMONALITY: 'k51-test-spa-error-fallback',
+      PINATA_GATEWAY_ORIGIN: 'https://gateway.pinata.cloud',
+    },
+  )
+
+  assert.equal(response.status, 200)
+  assert.equal(await response.text(), '<html>spa after error</html>')
+  assert.equal(fetchedUrls.at(-1), 'https://gateway.pinata.cloud/ipfs/bafy-spa-error-cid/index.html')
+})
+
 test('skips a hanging public gateway instead of waiting until the Worker 504s', async () => {
   const fetchedUrls = []
   globalThis.caches = undefined
