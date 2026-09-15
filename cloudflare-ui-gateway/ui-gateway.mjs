@@ -225,7 +225,7 @@ async function fetchFromGateway({ request, requestUrl, upstreamUrl, env, forceGe
 
 function shouldTrySpaFallback(request, response, upstreamUrl) {
   if (request.method !== 'GET' && request.method !== 'HEAD') return false
-  if (response.status !== 404) return false
+  if (response.ok) return false
   if (!request.headers.get('Accept')?.includes('text/html')) return false
   return !upstreamUrl.pathname.endsWith('/index.html')
 }
