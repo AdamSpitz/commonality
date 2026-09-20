@@ -6,6 +6,10 @@ import { onchainTable, index } from "ponder";
 // This table stores raw events from all contracts for client-side folding.
 // No derived fields. No joins. One row per event, forever.
 // The SDK reads these events and folds them locally.
+//
+// Changing column types/names is a breaking Ponder schema change and requires
+// a new DATABASE_SCHEMA (full resync). Adding handlers or contract addresses
+// does not. Do not bump DATABASE_SCHEMA to work around Render schema locks.
 
 export const events = onchainTable(
   "events",

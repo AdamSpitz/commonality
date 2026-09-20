@@ -156,6 +156,9 @@ services:
         fromDatabase:
           name: commonality-indexer-db
           property: connectionString
+      # Changing this name wipes the event cache and forces a full historical
+      # resync (Alchemy CUs). Bump only with INDEXER_ALLOW_SCHEMA_BUMP=1 after
+      # an incompatible onchainTable change — never as a schema-lock workaround.
       - key: DATABASE_SCHEMA
         value: commonality_base_sepolia_v6
       - key: PONDER_EXPERIMENTAL_DB
@@ -168,10 +171,12 @@ services:
         sync: false  # Secret: RPC provider URL (contains API key)
       - key: PONDER_ETH_GET_LOGS_BLOCK_RANGE
         value: 10000
+      - key: PONDER_POLL_INTERVAL_MS
+        value: "4000"
       - key: PONDER_RPC_MAX_RESPONSE_BODY_SIZE
         value: 0
       - key: INDEXER_DEPLOYMENT_MANIFEST
-        sync: false  # Optional JSON manifest for versioned contract deployments
+        sync: false  # from-env: INDEXER_DEPLOYMENT_MANIFEST
       - key: START_BLOCK
         sync: false  # from-env: START_BLOCK
       - key: BELIEFS_CONTRACT_ADDRESS

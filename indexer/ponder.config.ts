@@ -1,6 +1,7 @@
 import { createConfig, factory } from "ponder";
 import { http } from "viem";
 import { installEthGetLogsRangeGuard } from "./src/rpc/ethGetLogsRangeGuard";
+import { installMonthlyCapacityGuard } from "./src/rpc/monthlyCapacity";
 import { INDEXER_CHAIN_IDS, type IndexerChainName } from "./src/utils/chain";
 
 // Conceptspace ABIs
@@ -137,6 +138,11 @@ function parseStartBlock(value: string | undefined, fallback: number): number {
   return parsed;
 }
 
+/** Prefer a per-contract deploy block over the global START_BLOCK fallback. */
+function contractStartBlock(specificEnvVar: string, fallback: number): number {
+  return parseStartBlock(process.env[specificEnvVar], fallback);
+}
+
 function parseLegacyDeployment(addressEnvVar: string, startBlock: number): ContractDeployment[] {
   const address = process.env[addressEnvVar];
   return address && address !== "" ? [{ address: address as `0x${string}`, startBlock }] : [];
@@ -190,38 +196,50 @@ function factoryAddress(deployments: ContractDeployment[]) {
   return address ? { address, startBlock: deploymentStartBlock(deployments, START_BLOCK) } : undefined;
 }
 
-const BELIEFS_DEPLOYMENTS = getDeployments("Beliefs", "BELIEFS_CONTRACT_ADDRESS", START_BLOCK);
-const IMPLICATIONS_DEPLOYMENTS = getDeployments("Implications", "IMPLICATIONS_CONTRACT_ADDRESS", START_BLOCK);
-const ASSURANCE_CONTRACT_FACTORY_DEPLOYMENTS = getDeployments("AssuranceContractFactory", "ASSURANCE_CONTRACT_FACTORY_ADDRESS", LAZYGIVING_START_BLOCK);
-const PROJECT_FACTORY_DEPLOYMENTS = getDeployments("ProjectFactory", "PROJECT_FACTORY_ADDRESS", LAZYGIVING_START_BLOCK);
-const ERC1155_FACTORY_DEPLOYMENTS = getDeployments("ERC1155Factory", "ERC1155_FACTORY_ADDRESS", LAZYGIVING_START_BLOCK);
+const BELIEFS_DEPLOYMENTS = getDeployments("Beliefs", "BELIEFS_CONTRACT_ADDRESS", contractStartBlock("BELIEFS_START_BLOCK", START_BLOCK));
+const IMPLICATIONS_DEPLOYMENTS = getDeployments("Implications", "IMPLICATIONS_CONTRACT_ADDRESS", contractStartBlock("IMPLICATIONS_START_BLOCK", START_BLOCK));
+const ASSURANCE_CONTRACT_FACTORY_DEPLOYMENTS = getDeployments("AssuranceContractFactory", "ASSURANCE_CONTRACT_FACTORY_ADDRESS", contractStartBlock("ASSURANCE_CONTRACT_FACTORY_START_BLOCK", LAZYGIVING_START_BLOCK));
+const PROJECT_FACTORY_DEPLOYMENTS = getDeployments("ProjectFactory", "PROJECT_FACTORY_ADDRESS", contractStartBlock("PROJECT_FACTORY_START_BLOCK", LAZYGIVING_START_BLOCK));
+const ERC1155_FACTORY_DEPLOYMENTS = getDeployments("ERC1155Factory", "ERC1155_FACTORY_ADDRESS", contractStartBlock("ERC1155_FACTORY_START_BLOCK", LAZYGIVING_START_BLOCK));
 const DELEGATABLE_NOTES_DEPLOYMENTS = getDeployments(
   "DelegatableNotes",
   process.env.DELEGATABLE_NOTES_ADDRESS ? "DELEGATABLE_NOTES_ADDRESS" : "DELEGATABLE_NOTES_CONTRACT_ADDRESS",
-  DELEGATION_START_BLOCK,
+  contractStartBlock("DELEGATABLE_NOTES_START_BLOCK", DELEGATION_START_BLOCK),
 );
-const RECURRING_PLEDGES_DEPLOYMENTS = getDeployments("RecurringPledges", "RECURRING_PLEDGES_ADDRESS", DELEGATION_START_BLOCK);
-const NOTE_INTENT_DEPLOYMENTS = getDeployments("NoteIntent", "NOTE_INTENT_ADDRESS", DELEGATION_START_BLOCK);
+const RECURRING_PLEDGES_DEPLOYMENTS = getDeployments("RecurringPledges", "RECURRING_PLEDGES_ADDRESS", contractStartBlock("RECURRING_PLEDGES_START_BLOCK", DELEGATION_START_BLOCK));
+const NOTE_INTENT_DEPLOYMENTS = getDeployments("NoteIntent", "NOTE_INTENT_ADDRESS", contractStartBlock("NOTE_INTENT_START_BLOCK", DELEGATION_START_BLOCK));
 const ALIGNMENT_ATTESTATIONS_DEPLOYMENTS = getDeployments(
   "AlignmentAttestations",
   process.env.ALIGNMENT_ATTESTATIONS_ADDRESS ? "ALIGNMENT_ATTESTATIONS_ADDRESS" : "ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS",
-  FUNDING_PORTAL_START_BLOCK,
+  contractStartBlock("ALIGNMENT_ATTESTATIONS_START_BLOCK", FUNDING_PORTAL_START_BLOCK),
 );
-const ACCOUNT_ASSERTIONS_DEPLOYMENTS = getDeployments("AccountAssertions", "ACCOUNT_ASSERTIONS_ADDRESS", START_BLOCK);
-const TRUST_REGISTRY_DEPLOYMENTS = getDeployments("TrustRegistry", "TRUST_REGISTRY_ADDRESS", START_BLOCK);
-const MUTABLE_REF_UPDATER_DEPLOYMENTS = getDeployments("MutableRefUpdater", "MUTABLE_REF_UPDATER_ADDRESS", START_BLOCK);
-const NUDGE_PUBLICATIONS_DEPLOYMENTS = getDeployments("NudgePublications", "NUDGE_PUBLICATIONS_CONTRACT_ADDRESS", START_BLOCK);
-const PUBLISHED_DATA_DEPLOYMENTS = getDeployments("PublishedData", "PUBLISHED_DATA_CONTRACT_ADDRESS", PUBLISHED_DATA_START_BLOCK);
-const CONTENT_REGISTRY_DEPLOYMENTS = getDeployments("ContentRegistry", "CONTENT_REGISTRY_ADDRESS", CONTENT_FUNDING_START_BLOCK);
-const BENEFICIARY_REGISTRY_DEPLOYMENTS = getDeployments("BeneficiaryRegistry", "BENEFICIARY_REGISTRY_ADDRESS", CONTENT_FUNDING_START_BLOCK);
-const BENEFICIARY_ESCROW_DEPLOYMENTS = getDeployments("BeneficiaryEscrow", "BENEFICIARY_ESCROW_ADDRESS", CONTENT_FUNDING_START_BLOCK);
-const CREATOR_CONTRACT_FACTORY_DEPLOYMENTS = getDeployments("CreatorAssuranceContractFactory", "CREATOR_CONTRACT_FACTORY_ADDRESS", CONTENT_FUNDING_START_BLOCK);
-const CREATOR_ASSURANCE_VETO_DEPLOYMENTS = getDeployments("CreatorAssuranceVeto", "CREATOR_ASSURANCE_VETO_ADDRESS", CONTENT_FUNDING_START_BLOCK);
-const PROSPECTIVE_FACTORY_DEPLOYMENTS = getDeployments("ProspectiveContentRoundFactory", "PROSPECTIVE_CONTENT_ROUND_FACTORY_ADDRESS", CONTENT_FUNDING_START_BLOCK);
+const ACCOUNT_ASSERTIONS_DEPLOYMENTS = getDeployments("AccountAssertions", "ACCOUNT_ASSERTIONS_ADDRESS", contractStartBlock("ACCOUNT_ASSERTIONS_START_BLOCK", START_BLOCK));
+const TRUST_REGISTRY_DEPLOYMENTS = getDeployments("TrustRegistry", "TRUST_REGISTRY_ADDRESS", contractStartBlock("TRUST_REGISTRY_START_BLOCK", START_BLOCK));
+const MUTABLE_REF_UPDATER_DEPLOYMENTS = getDeployments("MutableRefUpdater", "MUTABLE_REF_UPDATER_ADDRESS", contractStartBlock("MUTABLE_REF_UPDATER_START_BLOCK", START_BLOCK));
+const NUDGE_PUBLICATIONS_DEPLOYMENTS = getDeployments("NudgePublications", "NUDGE_PUBLICATIONS_CONTRACT_ADDRESS", contractStartBlock("NUDGE_PUBLICATIONS_START_BLOCK", START_BLOCK));
+const PUBLISHED_DATA_DEPLOYMENTS = getDeployments("PublishedData", "PUBLISHED_DATA_CONTRACT_ADDRESS", contractStartBlock("PUBLISHED_DATA_START_BLOCK", PUBLISHED_DATA_START_BLOCK));
+const CONTENT_REGISTRY_DEPLOYMENTS = getDeployments("ContentRegistry", "CONTENT_REGISTRY_ADDRESS", contractStartBlock("CONTENT_REGISTRY_START_BLOCK", CONTENT_FUNDING_START_BLOCK));
+const BENEFICIARY_REGISTRY_DEPLOYMENTS = getDeployments("BeneficiaryRegistry", "BENEFICIARY_REGISTRY_ADDRESS", contractStartBlock("BENEFICIARY_REGISTRY_START_BLOCK", CONTENT_FUNDING_START_BLOCK));
+const BENEFICIARY_ESCROW_DEPLOYMENTS = getDeployments("BeneficiaryEscrow", "BENEFICIARY_ESCROW_ADDRESS", contractStartBlock("BENEFICIARY_ESCROW_START_BLOCK", CONTENT_FUNDING_START_BLOCK));
+const CREATOR_CONTRACT_FACTORY_DEPLOYMENTS = getDeployments("CreatorAssuranceContractFactory", "CREATOR_CONTRACT_FACTORY_ADDRESS", contractStartBlock("CREATOR_CONTRACT_FACTORY_START_BLOCK", CONTENT_FUNDING_START_BLOCK));
+const CREATOR_ASSURANCE_VETO_DEPLOYMENTS = getDeployments("CreatorAssuranceVeto", "CREATOR_ASSURANCE_VETO_ADDRESS", contractStartBlock("CREATOR_ASSURANCE_VETO_START_BLOCK", CONTENT_FUNDING_START_BLOCK));
+const PROSPECTIVE_FACTORY_DEPLOYMENTS = getDeployments("ProspectiveContentRoundFactory", "PROSPECTIVE_CONTENT_ROUND_FACTORY_ADDRESS", contractStartBlock("PROSPECTIVE_CONTENT_ROUND_FACTORY_START_BLOCK", CONTENT_FUNDING_START_BLOCK));
 
 const ETH_GET_LOGS_BLOCK_RANGE = process.env.PONDER_ETH_GET_LOGS_BLOCK_RANGE
   ? Number(process.env.PONDER_ETH_GET_LOGS_BLOCK_RANGE)
   : undefined;
+
+function hostedPollingIntervalMs(): number {
+  const raw = process.env.PONDER_POLL_INTERVAL_MS;
+  if (raw !== undefined && raw !== "") {
+    const parsed = Number(raw);
+    if (!Number.isFinite(parsed) || parsed < 500) {
+      throw new Error(`Invalid PONDER_POLL_INTERVAL_MS "${raw}". Expected a millisecond count >= 500.`);
+    }
+    return parsed;
+  }
+  return 4000;
+}
 
 const contracts = {
   // ========================================================================
@@ -488,6 +506,8 @@ function getActiveChains() {
           id: INDEXER_CHAIN_IDS["base-sepolia"],
           rpc: getRpcTransport(process.env.PONDER_RPC_URL_84532),
           ethGetLogsBlockRange: ETH_GET_LOGS_BLOCK_RANGE ?? 10000,
+          // Base Sepolia blocks ~2s; 1s HTTP polling doubles CU spend at head.
+          pollingInterval: hostedPollingIntervalMs(),
         },
       } as const;
     case "mainnet":
@@ -496,6 +516,7 @@ function getActiveChains() {
           id: INDEXER_CHAIN_IDS.mainnet,
           rpc: getRpcTransport(process.env.PONDER_RPC_URL_1),
           ethGetLogsBlockRange: ETH_GET_LOGS_BLOCK_RANGE,
+          pollingInterval: hostedPollingIntervalMs(),
         },
       } as const;
   }
@@ -509,6 +530,7 @@ if (INDEXER_CHAIN !== "hardhat") {
       ? (ETH_GET_LOGS_BLOCK_RANGE ?? 10000)
       : ETH_GET_LOGS_BLOCK_RANGE;
   installEthGetLogsRangeGuard({ configuredRange });
+  installMonthlyCapacityGuard();
 }
 
 export default createConfig({

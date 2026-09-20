@@ -98,7 +98,7 @@ From testnet-prep / inbox — stop and Ask if you hit them:
 - `COMMONALITY_TESTNET_VERIFIER_PRIVATE_KEY` canary is funded and used for item 6. Live `VERIFIER_ADDRESS` (`0xE486…`) is still 0 ETH. Nightly flag is item 9 — Ask, do not set.
 - Sponsored-gas live UI walk: [sponsored-gas-live-trace.md](./sponsored-gas-live-trace.md).
 - Alignment-trust bootstrap: generate wallets, fund `ALIGNMENT_TRUST_BOOTSTRAP_ADDRESS`, Render secrets, denylist canary — never the checked-in local key.
-- Alchemy (or other archive RPC) **CUPS / plan**: indexer is at head on Alchemy after the $30 monthly cap; do not re-open unless lag/502 returns.
+- Alchemy (or other archive RPC) **monthly CU fuse**: 2026-09-19 hit “Monthly capacity limit exceeded” again (indexer crash-looping `eth_chainId`). Do not switch to `sepolia.base.org`. Do not bump `DATABASE_SCHEMA`. Raise the dashboard usage limit, then resume the indexer. Hosted backoff lives in `indexer/start.sh` once that commit is on `master`.
 - Implication attester / content attester / beat agent funded (0.005 ETH each). Channel signer `VERIFIER_ADDRESS` `0xE486…` still 0 ETH **by design** (off-chain signatures; funder skips it).
 
 ## Next

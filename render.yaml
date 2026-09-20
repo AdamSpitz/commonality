@@ -153,6 +153,9 @@ services:
         fromDatabase:
           name: commonality-indexer-db
           property: connectionString
+      # Changing this name wipes the event cache and forces a full historical
+      # resync (Alchemy CUs). Bump only with INDEXER_ALLOW_SCHEMA_BUMP=1 after
+      # an incompatible onchainTable change — never as a schema-lock workaround.
       - key: DATABASE_SCHEMA
         value: commonality_base_sepolia_v6
       - key: PONDER_EXPERIMENTAL_DB
@@ -165,10 +168,12 @@ services:
         sync: false  # Secret: RPC provider URL (contains API key)
       - key: PONDER_ETH_GET_LOGS_BLOCK_RANGE
         value: 10000
+      - key: PONDER_POLL_INTERVAL_MS
+        value: "4000"
       - key: PONDER_RPC_MAX_RESPONSE_BODY_SIZE
         value: 0
       - key: INDEXER_DEPLOYMENT_MANIFEST
-        sync: false  # Optional JSON manifest for versioned contract deployments
+        value: "{\"chains\":{\"base-sepolia\":{\"Beliefs\":[{\"address\":\"0x353d650D50d8a5eA3A5a966FE1690177a8a82D92\",\"startBlock\":42768673}],\"Implications\":[{\"address\":\"0xF174ED372d1D3276e999970dDF82771Fb504BB3B\",\"startBlock\":42768673}],\"TrustRegistry\":[{\"address\":\"0x3a93BAB464Cc20333076b83490DE40357094355E\",\"startBlock\":42768673}],\"AccountAssertions\":[{\"address\":\"0x3991162F03F888f52FB2C655024Ba787F39A1367\",\"startBlock\":42768673}],\"AlignmentAttestations\":[{\"address\":\"0xAc19417eE26f7795AEeAD374911932b412Ef808d\",\"startBlock\":42768673}],\"NoteIntent\":[{\"address\":\"0x8665DD3Fc75240D99066A768C227aA5Cf5179E2a\",\"startBlock\":42768673}],\"DelegatableNotes\":[{\"address\":\"0x65EA738f22F3537595A6afeB9c327a5fC2FfE0a5\",\"startBlock\":42768673}],\"RecurringPledges\":[{\"address\":\"0xd07A8F2B368b5999D0C3D504906AEB0097480611\",\"startBlock\":42768673}],\"MutableRefUpdater\":[{\"address\":\"0x472f9A996546bcc7572692B002B63483F3cDB70e\",\"startBlock\":42768673}],\"NudgePublications\":[{\"address\":\"0x94b76d80D7c837588299BDf1c29F5D46362e3427\",\"startBlock\":42768673}],\"PublishedData\":[{\"address\":\"0xee860Bb27652a3Be968bf6D351ee0eBb9d995eD3\",\"startBlock\":45094307}],\"AssuranceContractFactory\":[{\"address\":\"0x1AcecE71A211A01D54F51A5940De49169E1d90E3\",\"startBlock\":42768673}],\"ProjectFactory\":[{\"address\":\"0x1248b2c8cf7Cd25d203Ab5880017c73e8acB6FF8\",\"startBlock\":42768673}],\"ERC1155Factory\":[{\"address\":\"0xB0e482ec5Ee5BcfeDC24EfF4C90DB45b4fFD8f0c\",\"startBlock\":42768673}],\"ContentRegistry\":[{\"address\":\"0xffD51AF6a58f507057d97616cc716573D5bd7c45\",\"startBlock\":42768673}],\"BeneficiaryRegistry\":[{\"address\":\"0x428Accc99067e01537d35716B1b2C38273d5a446\",\"startBlock\":42768673}],\"BeneficiaryEscrow\":[{\"address\":\"0x2cdb82C9F239e8a6b9C0792a36EAc5A0B926433a\",\"startBlock\":42768673}],\"CreatorAssuranceContractFactory\":[{\"address\":\"0x73436B6eD029BfB64Bde291778874c5081c0118d\",\"startBlock\":42768673}],\"CreatorAssuranceVeto\":[{\"address\":\"0x03963Bbf40d3C2804A83f63f9cdea40f6d8c4b26\",\"startBlock\":42768673}],\"ProspectiveContentRoundFactory\":[{\"address\":\"0x08b486F03A9148B8ed9658465BBb6d83A4152706\",\"startBlock\":42768673}]}}}"
       - key: START_BLOCK
         value: "42768673"
       - key: BELIEFS_CONTRACT_ADDRESS

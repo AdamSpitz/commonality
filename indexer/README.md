@@ -46,6 +46,16 @@ For Render or other hosted environments:
   start mode, and Render's native file-watcher limit can otherwise abort startup with
   `EMFILE: too many open files, watch '/app'`.
 - Keep `PONDER_ETH_GET_LOGS_BLOCK_RANGE` large enough for catch-up. The Render blueprint defaults to `10000`. A tiny range such as `10` makes a million-block historical sync require hundreds of thousands of `eth_getLogs` batches and will blow Alchemy CUPS. If the provider rejects the window, the process logs a one-shot `[commonality-indexer] eth_getLogs failed because the RPC rejected the block range or response size` line with the env to change; lower to `1000` then `10`.
+- Hosted chains poll every `PONDER_POLL_INTERVAL_MS` (default `4000`). Hardhat stays at 100ms.
+- Keep `DATABASE_SCHEMA` stable (`commonality_base_sepolia_v6` on testnet). Renaming it drops the event cache and replays history against the RPC. `scripts/smoke-check-render.mjs` fails if the name changes unless `INDEXER_ALLOW_SCHEMA_BUMP=1`. Code deploys (`ponder start` + `PONDER_EXPERIMENTAL_DB=platform` + the persistent disk for stop-before-start) reuse the same schema. The `events` table is append-only raw logs; new handlers and extra contract addresses in `INDEXER_DEPLOYMENT_MANIFEST` do not need a wipe.
+
+### RPC budget (Alchemy monthly CU)
+
+The indexer is the intended heavy user of an archive RPC. Do **not** switch `PONDER_RPC_URL_84532` to `https://sepolia.base.org` to save CUs — that endpoint prunes below ~45_000_000 and our `START_BLOCK` is older.
+
+When Alchemy returns **monthly capacity** (distinct from compute-units-per-second), `start.sh` records a flag, parks behind a stub `/graphql` 200, and waits 1 minute doubling up to 6 hours before retrying. That is the automatic “suspend” — Render stays up, JSON-RPC stops. A human still has to raise the billing fuse (or wait for the period reset) before indexing resumes.
+
+Optional dashboard hygiene: put the **indexer** on its own Alchemy app/key so a seed script cannot share the fuse. Fake-data writes can keep using the same archive URL; they are cheap compared to `eth_getLogs` catch-up. If you split keys, keep the indexer on archive and never on the pruned public node.
 
 Contract deployments can still be configured with the legacy one-env-var-per-contract
 addresses plus subsystem start blocks, but the indexer also accepts an
@@ -69,7 +79,10 @@ The top-level chain form (`{"base-sepolia": { ... }}`) is also accepted. Logical
 contract names match the names in `ponder.config.ts` (`Beliefs`, `DelegatableNotes`,
 `CreatorAssuranceContractFactory`, etc.). When multiple versions are listed, Ponder
 indexes all addresses and starts at the earliest listed `startBlock` for that logical
-contract/factory.
+contract/factory. A **new** contract must use its **deploy block** as `startBlock`
+(`BELIEFS_START_BLOCK`, `PUBLISHED_DATA_START_BLOCK`, … written by
+`hardhat/scripts/deploy-incremental.js`). Do not index it from global `START_BLOCK`
+unless that really is when it was deployed.
 
 Build the publishable manifest from a deployment env file with:
 

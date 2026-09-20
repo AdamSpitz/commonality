@@ -12,9 +12,10 @@
 //                                   present, stays sync: false if not
 
 import { readFile, writeFile } from 'node:fs/promises'
-import { dirname, join, relative } from 'node:path'
+import { basename, dirname, join, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { parseEnvFile } from './lib/parse-env-file.mjs'
+import { indexerDeploymentManifestJson } from './deployment-manifest.mjs'
 
 const rootDir = join(dirname(fileURLToPath(import.meta.url)), '..')
 const envFile = process.argv[2] ?? join(rootDir, 'deployments', 'base-sepolia.env')
@@ -129,6 +130,10 @@ const [templateContent, envContent] = await Promise.all([
 ])
 
 const env = populateUiDomainUrls(parseEnvFile(envContent))
+if (!env.INDEXER_DEPLOYMENT_MANIFEST) {
+  const network = basename(envFile, '.env')
+  env.INDEXER_DEPLOYMENT_MANIFEST = indexerDeploymentManifestJson(network, env)
+}
 const relativeEnvFile = relative(rootDir, envFile)
 
 let output = generate(templateContent, env)
