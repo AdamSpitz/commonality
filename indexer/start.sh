@@ -22,5 +22,55 @@ if [ -f /workspace/.env ]; then
 fi
 
 PONDER_SCRIPT="${PONDER_SCRIPT:-dev:no-ui}"
+FLAG_PATH="${INDEXER_RPC_BUDGET_FLAG_PATH:-/tmp/commonality-rpc-monthly-capacity}"
+
+if [ -d /data ] && [ -w /data ]; then
+  BACKOFF_PATH="${INDEXER_RPC_BUDGET_BACKOFF_PATH:-/data/rpc-monthly-capacity-backoff-seconds}"
+else
+  BACKOFF_PATH="${INDEXER_RPC_BUDGET_BACKOFF_PATH:-/tmp/rpc-monthly-capacity-backoff-seconds}"
+fi
+
+MIN_BACKOFF=60
+MAX_BACKOFF=21600
+
+read_backoff() {
+  if [ -f "$BACKOFF_PATH" ]; then
+    cat "$BACKOFF_PATH"
+  else
+    echo "$MIN_BACKOFF"
+  fi
+}
+
+write_backoff() {
+  echo "$1" > "$BACKOFF_PATH"
+}
+
+# Hosted `ponder start` crash-loops on Alchemy monthly-capacity 429s (even
+# eth_chainId). Keep the container alive with a stub /graphql and wait; do not
+# bump DATABASE_SCHEMA or switch to sepolia.base.org.
+if [ "$PONDER_SCRIPT" = "start" ]; then
+  while true; do
+    rm -f "$FLAG_PATH"
+    set +e
+    npm run "$PONDER_SCRIPT"
+    code=$?
+    set -e
+    if [ -f "$FLAG_PATH" ]; then
+      backoff=$(read_backoff)
+      case "$backoff" in
+        ''|*[!0-9]*) backoff=$MIN_BACKOFF ;;
+      esac
+      if [ "$backoff" -lt "$MIN_BACKOFF" ]; then backoff=$MIN_BACKOFF; fi
+      if [ "$backoff" -gt "$MAX_BACKOFF" ]; then backoff=$MAX_BACKOFF; fi
+      node /app/pausedHealthServer.mjs --seconds "$backoff" --port "${PORT:-42069}"
+      next=$((backoff * 2))
+      if [ "$next" -gt "$MAX_BACKOFF" ]; then next=$MAX_BACKOFF; fi
+      write_backoff "$next"
+      continue
+    fi
+    rm -f "$BACKOFF_PATH"
+    exit "$code"
+  done
+fi
 
 exec npm run "$PONDER_SCRIPT"

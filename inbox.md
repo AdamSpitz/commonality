@@ -46,6 +46,8 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 Standing index: [`workflow/testnet-working-plan.md`](workflow/testnet-working-plan.md). Operator checklist: [`testnet-prep.md`](testnet-prep.md). The two-person lab is up through item 6. Remaining **your** clicks (none of these are “the lab is down”):
 
+- **(Tell)** Alchemy Base Sepolia is 429 monthly-capacity again. Suspended `commonality-indexer` so it stops crash-looping `eth_chainId`. Resume after you raise the usage limit (or the billing period resets). The indexer branch now parks automatically on that 429 (stub `/graphql`, 1m→6h backoff) so we should not need a manual suspend next time — still needs the code on `master`. Do not bump `DATABASE_SCHEMA` or switch RPC to `sepolia.base.org`.
+
 - **Alignment-trust bootstrap (needed for Commonality’s shipped trust graph, not for sites/indexer).** Same as the Security item above: dedicated wallet from `generate-wallets.mjs`, fund `ALIGNMENT_TRUST_BOOTSTRAP_ADDRESS`, Render secret, denylist canary on the worker disk. Never Hardhat #8. Details: [`alignment-trust-bootstrap/README.md`](alignment-trust-bootstrap/README.md).
 
 - **Pinata Host Origins:** add `https://testnet.commonality.works` (Picnic: no wildcards). Live Commonality HTML shell loads, but JS chunks 429 from public gateways after the dedicated origin times out — Worker fix is in [`TODO.md`](TODO.md). This dashboard allowlist is still needed for dedicated-gateway CORS.

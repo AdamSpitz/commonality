@@ -2,6 +2,7 @@ import hre from 'hardhat';
 import fs from 'fs/promises';
 import { join } from 'path';
 import crypto from 'crypto';
+import { DEPLOY_NAME_START_BLOCK_ENV } from '../../scripts/deployment-manifest.mjs';
 
 const { ethers } = hre;
 const LOCAL_SEED_NUDGER_ADDRESS = '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266';
@@ -140,6 +141,33 @@ async function main() {
   const manifest = { network, deployer: deployerAddress, contractAdmin: contractAdminAddress, updatedAt: new Date().toISOString(), contracts: {} };
   let deployStartBlock = env.START_BLOCK || env.CONTENT_FUNDING_START_BLOCK || '';
 
+  function reusedStartBlock(name) {
+    const fromManifest = oldManifest.contracts?.[name]?.blockNumber;
+    if (fromManifest !== undefined && fromManifest !== null && fromManifest !== '') {
+      const parsed = Number(fromManifest);
+      if (Number.isInteger(parsed) && parsed >= 0) return parsed;
+    }
+    const key = DEPLOY_NAME_START_BLOCK_ENV[name];
+    if (key && env[key]) {
+      const parsed = Number(env[key]);
+      if (Number.isInteger(parsed) && parsed >= 0) return parsed;
+    }
+    return undefined;
+  }
+
+  function startBlockEnvEntries() {
+    const entries = {};
+    for (const [name, key] of Object.entries(DEPLOY_NAME_START_BLOCK_ENV)) {
+      const block = manifest.contracts[name]?.blockNumber;
+      if (block !== undefined && block !== null && block !== '') {
+        entries[key] = String(block);
+      } else if (env[key]) {
+        entries[key] = env[key];
+      }
+    }
+    return entries;
+  }
+
   async function ownerCapable(contract) {
     if (isLocal) return contract;
     const owner = ethers.getAddress(await contract.owner());
@@ -167,7 +195,16 @@ async function main() {
       : undefined;
     if (codePresent && (fingerprintMatch || adoptExisting) && !claimedBy) {
       addresses[name] = ethers.getAddress(oldAddress);
-      manifest.contracts[name] = { contractName, address: addresses[name], fingerprint: fp, reused: true, constructorArgs: args, ...(fingerprintMatch ? {} : { adopted: true }) };
+      const reusedBlock = reusedStartBlock(name);
+      manifest.contracts[name] = {
+        contractName,
+        address: addresses[name],
+        fingerprint: fp,
+        reused: true,
+        constructorArgs: args,
+        ...(fingerprintMatch ? {} : { adopted: true }),
+        ...(reusedBlock !== undefined ? { blockNumber: reusedBlock } : {}),
+      };
       console.log(`↻ ${name}: ${fingerprintMatch ? 'unchanged' : 'ADOPTED from env'}, reusing ${addresses[name]}`);
       return addresses[name];
     }
@@ -436,7 +473,7 @@ async function main() {
     PROSPECTIVE_CONTENT_ROUND_FACTORY_ADDRESS: addresses.ProspectiveContentRoundFactory,
     NUDGE_PUBLICATIONS_CONTRACT_ADDRESS: addresses.NudgePublications,
     PUBLISHED_DATA_CONTRACT_ADDRESS: addresses.PublishedData,
-    PUBLISHED_DATA_START_BLOCK: String(manifest.contracts.PublishedData?.blockNumber ?? env.PUBLISHED_DATA_START_BLOCK ?? deployStartBlock),
+    ...startBlockEnvEntries(),
     SPONSORED_GAS_ENTRY_POINT_ADDRESS: addresses.SponsoredGasEntryPoint,
     CREATOR_GAS_TANK_ADDRESS: addresses.CreatorGasTank,
     SPONSORED_GAS_MAX_WEI_PER_WALLET_PER_WINDOW: sponsoredGasMaxWeiPerWalletPerWindow.toString(),
@@ -448,8 +485,8 @@ async function main() {
       SPONSORED_GAS_SWAP_ROUTER_ADDRESS: addresses.SponsoredGasSwapRouter,
       SPONSORED_GAS_SWAP_POOL_FEE: String(sponsoredGasSwapFee),
     } : {}),
-    CONTENT_FUNDING_START_BLOCK: String(deployStartBlock),
-    START_BLOCK: String(deployStartBlock),
+    CONTENT_FUNDING_START_BLOCK: String(env.CONTENT_FUNDING_START_BLOCK || env.START_BLOCK || deployStartBlock),
+    START_BLOCK: String(env.START_BLOCK || deployStartBlock),
   };
   await fs.mkdir(join(root, 'deployments'), { recursive: true });
   await updateEnvFile(networkEnvPath, addressEntries);

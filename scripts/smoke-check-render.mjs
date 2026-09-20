@@ -7,11 +7,13 @@
  * - YAML syntax errors
  * - Missing rootDir or Dockerfile references
  * - Indexer env vars declared in render.yaml but not read in ponder.config.ts (and vice versa)
+ * - DATABASE_SCHEMA renamed without INDEXER_ALLOW_SCHEMA_BUMP (that wipes the event cache)
  * - Cross-service URL mismatches (hardcoded URLs that don't match service names)
  *
  * Run: node scripts/smoke-check-render.mjs
  */
 
+import { execFileSync } from 'node:child_process';
 import { readFileSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -252,6 +254,28 @@ if (!indexerService) {
       'FUNDING_PORTAL_START_BLOCK', // Optional override, defaults to START_BLOCK
       'CONTENT_FUNDING_START_BLOCK', // Optional override, defaults to START_BLOCK
       'DATABASE_PRIVATE_URL',      // Alternative to DATABASE_URL (Render uses DATABASE_URL via fromDatabase)
+      'INDEXER_RPC_BUDGET_FLAG_PATH',
+      'INDEXER_RPC_BUDGET_BACKOFF_PATH',
+      // Per-contract start blocks: Render gets them via INDEXER_DEPLOYMENT_MANIFEST.
+      'BELIEFS_START_BLOCK',
+      'IMPLICATIONS_START_BLOCK',
+      'TRUST_REGISTRY_START_BLOCK',
+      'ACCOUNT_ASSERTIONS_START_BLOCK',
+      'ALIGNMENT_ATTESTATIONS_START_BLOCK',
+      'NOTE_INTENT_START_BLOCK',
+      'DELEGATABLE_NOTES_START_BLOCK',
+      'RECURRING_PLEDGES_START_BLOCK',
+      'MUTABLE_REF_UPDATER_START_BLOCK',
+      'NUDGE_PUBLICATIONS_START_BLOCK',
+      'ASSURANCE_CONTRACT_FACTORY_START_BLOCK',
+      'PROJECT_FACTORY_START_BLOCK',
+      'ERC1155_FACTORY_START_BLOCK',
+      'CONTENT_REGISTRY_START_BLOCK',
+      'BENEFICIARY_REGISTRY_START_BLOCK',
+      'BENEFICIARY_ESCROW_START_BLOCK',
+      'CREATOR_CONTRACT_FACTORY_START_BLOCK',
+      'CREATOR_ASSURANCE_VETO_START_BLOCK',
+      'PROSPECTIVE_CONTENT_ROUND_FACTORY_START_BLOCK',
     ]);
 
     // Keys in code but not in render.yaml (missing = will be undefined in production)
@@ -278,6 +302,38 @@ if (!indexerService) {
       ok('All env vars declared in render.yaml are read in ponder.config.ts');
     }
   }
+}
+
+function extractDatabaseSchema(yamlText) {
+  const match = yamlText.match(/- key: DATABASE_SCHEMA\s*\n\s+value:\s+(\S+)/);
+  return match ? match[1].replace(/^["']|["']$/g, '') : null;
+}
+
+process.stdout.write('\n6. Checking indexer DATABASE_SCHEMA was not bumped as a wipe...\n');
+try {
+  const committedTemplate = execFileSync('git', ['show', 'HEAD:render.yaml.template'], {
+    cwd: rootDir,
+    encoding: 'utf8',
+  });
+  const workingTemplate = readFileSync(join(rootDir, 'render.yaml.template'), 'utf8');
+  const committedSchema = extractDatabaseSchema(committedTemplate);
+  const workingSchema = extractDatabaseSchema(workingTemplate);
+  if (committedSchema && workingSchema && committedSchema !== workingSchema) {
+    if (process.env.INDEXER_ALLOW_SCHEMA_BUMP === '1') {
+      ok(`DATABASE_SCHEMA ${committedSchema} → ${workingSchema} allowed by INDEXER_ALLOW_SCHEMA_BUMP=1`);
+    } else {
+      error(
+        `DATABASE_SCHEMA changed ${committedSchema} → ${workingSchema}. ` +
+          'That wipes the Ponder event cache and forces a full RPC resync. ' +
+          'Keep the name unless onchainTable is incompatible, then rerun with INDEXER_ALLOW_SCHEMA_BUMP=1. ' +
+          'Schema-lock failures are a Render rolling-deploy issue (keep the persistent disk), not a reason to bump.',
+      );
+    }
+  } else {
+    ok(`DATABASE_SCHEMA stable (${workingSchema || 'unset'})`);
+  }
+} catch (e) {
+  warn(`Could not compare DATABASE_SCHEMA to HEAD (${e.message})`);
 }
 
 // ---------------------------------------------------------------------------

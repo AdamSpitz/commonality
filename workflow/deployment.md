@@ -430,10 +430,12 @@ The blueprint already wires:
 
 - `PONDER_SCRIPT=start` so hosted deployments use `ponder start`
 - `DATABASE_URL` from the managed Postgres database
-- `DATABASE_SCHEMA=commonality_base_sepolia_v4` for the current Base Sepolia deployment. Use a fresh schema only when intentionally abandoning stale indexed data; otherwise keep the schema stable.
+- `DATABASE_SCHEMA=commonality_base_sepolia_v6` for the current Base Sepolia deployment. **Keep this name.** Changing it wipes the event cache and forces a full historical `eth_getLogs` replay (this is how we accidentally spent a month of Alchemy CUs). Bump only when `indexer/schemas/events.schema.ts` is incompatible, and only with `INDEXER_ALLOW_SCHEMA_BUMP=1` so `npm run smoke-check` will pass. Schema-lock errors are a rolling-deploy problem — keep the persistent disk — not a reason to mint `v7`.
 - `PONDER_EXPERIMENTAL_DB=platform` so normal Render redeploys of a changed Ponder build can reuse the same production schema instead of failing with "previously used by a different Ponder app".
 - `PONDER_ETH_GET_LOGS_BLOCK_RANGE=10000` for Base Sepolia on the current Alchemy PAYG key (wider windows cut catch-up `eth_getLogs` count by ~1000× vs a 10-block free-tier cap). If logs show `[commonality-indexer] eth_getLogs failed because the RPC rejected the block range or response size`, lower it to `1000` then `10`, PUT the Render env, and **deploy** (not restart only). The indexer wraps `fetch` to print that hint once; do not switch the RPC to a viem `http()` transport to “see errors” — that breaks Ponder’s rate limiter.
-- For the first Render rehearsal, `START_BLOCK` is intentionally near the current chain head to avoid free-tier RPC rate limits during backfill. If you need older testnet events, lower `START_BLOCK` and switch to a fresh Ponder schema (or drop the existing schema) after upgrading RPC capacity.
+- `PONDER_POLL_INTERVAL_MS=4000` on hosted chains so head-following does not poll faster than Base Sepolia block time.
+- Monthly Alchemy capacity 429s: do not crash-loop and do not switch to `sepolia.base.org`. `indexer/start.sh` backs off (1m…6h) with a stub `/graphql`. Raise the dashboard usage limit, then the next retry resumes the same `DATABASE_SCHEMA`.
+- `START_BLOCK` is the fallback earliest block for contracts that do not set their own `startBlock`. Newly deployed contracts should use **their deploy block**, not a replay from the original 42768673. Do not lower global `START_BLOCK` or mint a new `DATABASE_SCHEMA` to “include more history.”
 - The indexer declares a small persistent disk even though it does not store application data there. This is an intentional Render workaround, not indexer storage: Render disables zero-downtime/rolling deploys for services with disks, which gives Ponder the stop-before-start deployment behavior it needs for the exclusive `DATABASE_SCHEMA` lock. Do not remove this disk just because `/data` appears unused unless the indexer has moved to a cleaner singleton-writer deployment model.
 
 ### Known Render indexer deployment trap: Ponder schema lock
@@ -448,20 +450,9 @@ This happens because Render web services deploy with rolling/zero-downtime seman
 
 The intended Render fix is the persistent disk declared on `commonality-indexer` in `render.yaml.template`: Render services with disks deploy stop-before-start instead of zero-downtime, avoiding two simultaneous Ponder writers on the same schema. This is admittedly a platform-specific workaround rather than a beautiful architecture knob. The disk is operationally significant even though the indexer does not use `/data` for app state; do not delete it during cleanup/refactoring unless you replace it with another guaranteed singleton deploy strategy.
 
-If the disk is not attached yet, or if a rehearsal needs an emergency dashboard-green workaround, you can still use a fresh schema:
+Do **not** mint a fresh `DATABASE_SCHEMA` (`v7`, …) to get a green deploy. That is a wipe: Ponder replays from `START_BLOCK` and the RPC bill follows. Historical v2–v6 bumps were schema-lock workarounds from before the persistent disk forced stop-before-start. If a deploy still reports `MigrationError: Failed to acquire lock on schema`, fix the singleton writer (disk still attached?) rather than abandoning the cache.
 
-1. Pick a fresh schema name in `render.yaml.template` (`DATABASE_SCHEMA=commonality_base_sepolia_v<N+1>`).
-2. If abandoning old testnet history is acceptable, bump `START_BLOCK` / `CONTENT_FUNDING_START_BLOCK` in `deployments/base-sepolia.env` near the current chain head so the free-tier RPC does not have to backfill much history.
-3. Regenerate and commit `render.yaml`:
-
-   ```bash
-   node scripts/generate-render-yaml.mjs
-   npm run smoke-check
-   ```
-
-4. Push and let Render auto-deploy.
-
-Do **not** treat fresh schemas as the long-term production answer. Before a real production deployment, either configure the indexer so the old process is stopped before the new one starts (if Render supports disabling rolling deploys for this service), or split indexing from serving so the singleton writer can deploy separately from read-only HTTP serving.
+The indexer is upgradeable in place because it stores only the raw `events` table. Handler/ABI/address-list changes reuse the same schema (`PONDER_EXPERIMENTAL_DB=platform`). Wipe only when the onchainTable shape is incompatible, and then set `INDEXER_ALLOW_SCHEMA_BUMP=1` for smoke-check.
 
 For local Docker development, the same image still defaults to `PONDER_SCRIPT=dev:no-ui` and `PONDER_CHAIN=hardhat`.
 
@@ -506,11 +497,11 @@ For mainnet, consider setting `autoDeploy: false` per service and triggering man
 
 Contracts are not upgradeable in this codebase. Redeploying changed contracts means:
 
-1. `./scripts/deploy-contracts.sh <net>` incrementally deploys only contracts whose bytecode/ABI/constructor inputs changed, plus downstream contracts whose constructor inputs now point at new addresses. It writes updated addresses and the deployment manifest.
+1. `./scripts/deploy-contracts.sh <net>` incrementally deploys only contracts whose bytecode/ABI/constructor inputs changed, plus downstream contracts whose constructor inputs now point at new addresses. It writes updated addresses, per-contract `*_START_BLOCK` (the deploy receipt block — so the indexer backfills only from that block), and the deployment manifest. It does **not** raise or reset global `START_BLOCK`.
 2. Commit the updated `deployments/<net>.env` and `deployments/<net>.contracts-manifest.json`.
 3. Regenerate and commit `render.yaml`: `node scripts/generate-render-yaml.mjs`. This fills in the new contract addresses automatically — no Render dashboard edits needed for addresses.
 4. Redeploy UI (addresses are baked into the bundle): `./scripts/deploy-testnet.sh`. The IPNS pointer updates automatically; ENS contenthash does not need a new transaction.
-5. If any indexed contract address changed, old indexer data for that contract set is wrong — wipe the indexer Postgres or use a fresh schema and resync from the new `START_BLOCK`/contract start block.
+5. If a **contract address** changed, add the new address + **its deploy `startBlock`** to `INDEXER_DEPLOYMENT_MANIFEST` (keep the old address if you still care about its events). Ponder backfills **only that source** from that block. Do **not** bump `DATABASE_SCHEMA` or wipe Postgres — that replays every contract from `START_BLOCK` and is how we blew Alchemy CUs. Stale rows for a replaced address are harmless leftover cache.
 
 This is intentionally high-friction. For testnet it's tolerable; for mainnet, consider adding an audit pass before each redeploy.
 

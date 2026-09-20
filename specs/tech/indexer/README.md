@@ -36,7 +36,7 @@ All entity-state computation (reconstructing a project's state, computing fundin
 
 ## Why
 
-**Simplicity.** One Ponder process, one database table (`events`), one REST endpoint. No schema migrations when event structures change. No subsystem boundaries to maintain in the indexer.
+**Simplicity.** One Ponder process, one database table (`events`), one REST endpoint. No schema migrations when event *payloads* change (they live in `data` / topics). No subsystem boundaries to maintain in the indexer. Hosted deploys reuse `DATABASE_SCHEMA`; renaming that Postgres schema is a full resync, not an upgrade.
 
 **Fold logic versioned with the SDK.** When you change how state is computed, you update the SDK — no indexer redeployment, no re-sync of derived tables.
 
