@@ -50,6 +50,8 @@ services:
     volumes:
       # Mount project root so deploy script can write .env files
       - .:/workspace
+      # /app/scripts/deploy-incremental.js imports ../../scripts/deployment-manifest.mjs
+      - ./scripts/deployment-manifest.mjs:/scripts/deployment-manifest.mjs:ro
       # Access chain data for deployment
       - ${COMMONALITY_DATA_DIR:-./data}/hardhat:/data
     working_dir: /app

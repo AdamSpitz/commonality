@@ -8,9 +8,8 @@ import {ERC1155Holder} from "@openzeppelin/contracts/token/ERC1155/utils/ERC1155
 import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import {AssuranceContract} from "../individual-projects/AssuranceContract.sol";
-import {MultiERC1155AssuranceContract} from "../individual-projects/AssuranceContracts.sol";
-import {ERC1155PrimaryMarket} from "../individual-projects/ERC1155PrimaryMarket.sol";
+import {IFundingMarket, IRefundableFundingMarket} from "./IFundingMarket.sol";
+import {AssuranceReimbursement} from "./AssuranceReimbursement.sol";
 
 interface IPrimaryMarketFactory {
   function isDeployedPrimaryMarket(address primaryMarket) external view returns (bool);
@@ -251,9 +250,9 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
   // ============ Primary Market Authorization ============
 
   /**
-   * @notice Authorize or deauthorize a factory whose deployed contracts conform to ERC1155PrimaryMarket.
+   * @notice Authorize or deauthorize a factory whose deployed contracts conform to IFundingMarket.
    * @dev DelegatableNotes supports exactly one purchase shape: primary markets implementing
-   *      ERC1155PrimaryMarket. New products plug in by deploying conforming primary markets through
+   *      IFundingMarket. New products plug in by deploying conforming primary markets through
    *      an authorized factory. A genuinely new exchange mechanism should use a v2 contract or a new
    *      purchase adapter.
    */
@@ -583,14 +582,14 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
     if (!isAuthorizedPrimaryMarket(primaryMarket)) revert UnauthorizedMarket();
 
     address caller = _msgSender();
-    address paymentToken = AssuranceContract(primaryMarket).paymentToken();
+    address paymentToken = IFundingMarket(primaryMarket).paymentToken();
 
     uint256[] memory tokenIds = new uint256[](1);
     uint256[] memory counts = new uint256[](1);
     tokenIds[0] = tokenId;
     counts[0] = count;
 
-    uint256 requiredPayment = ERC1155PrimaryMarket(primaryMarket).erc1155TotalCost(
+    uint256 requiredPayment = IFundingMarket(primaryMarket).erc1155TotalCost(
       erc1155Contract,
       tokenIds,
       counts
@@ -613,7 +612,7 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
     );
 
     IERC20(paymentToken).forceApprove(primaryMarket, requiredPayment);
-    ERC1155PrimaryMarket(primaryMarket).buyERC1155(
+    IFundingMarket(primaryMarket).buyERC1155(
       address(this),
       erc1155Contract,
       tokenIds,
@@ -676,7 +675,7 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
     uint256 count = note.amount;
     bytes32 chainHash = note.chainHash;
 
-    address paymentToken = AssuranceContract(primaryMarket).paymentToken();
+    address paymentToken = IFundingMarket(primaryMarket).paymentToken();
 
     uint256[] memory ids = new uint256[](1);
     uint256[] memory counts = new uint256[](1);
@@ -694,7 +693,7 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
     // authoritative refund amount.
     uint256 balanceBefore = IERC20(paymentToken).balanceOf(address(this));
     IERC1155(erc1155Contract).setApprovalForAll(primaryMarket, true);
-    ERC1155PrimaryMarket(primaryMarket).refundERC1155(
+    IRefundableFundingMarket(primaryMarket).refundERC1155(
       address(this),
       erc1155Contract,
       ids,
@@ -752,17 +751,13 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
     if (claim.primaryMarket == address(0)) revert NoteHasNoReimbursementClaim();
     if (claim.primaryMarket != primaryMarket) revert WrongPrimaryMarket();
 
-    MultiERC1155AssuranceContract market = MultiERC1155AssuranceContract(primaryMarket);
-    uint256 totalBasis = market.totalEarlyContributions();
-    uint256 earned = totalBasis == 0
-      ? 0
-      : claim.contribution * market.totalRetroReceived() / totalBasis;
+    uint256 earned = AssuranceReimbursement.earned(primaryMarket, claim.contribution);
     if (earned <= claim.withdrawn) revert NoReimbursementAvailable();
     uint256 amount = earned - claim.withdrawn;
     claim.withdrawn = earned;
 
-    address paymentToken = market.paymentToken();
-    market.withdrawReimbursementTo(address(this), amount);
+    address paymentToken = IFundingMarket(primaryMarket).paymentToken();
+    AssuranceReimbursement.withdraw(primaryMarket, address(this), amount);
 
     reimbursementNoteId = nextNoteId++;
     notes[reimbursementNoteId] = Note({
