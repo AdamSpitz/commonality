@@ -1,3 +1,6 @@
+import { installFundingSocialAssociation } from '../../shared/funding/installVerifiedSocialAssociation'
+
+installFundingSocialAssociation()
 import type { ReactNode } from 'react'
 import { Route } from 'react-router-dom'
 import type { DomainManifest } from '../types'

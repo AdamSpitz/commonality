@@ -32,6 +32,7 @@ export default defineConfig(({ mode }) => {
       // subpath (the package has no flat barrel).
       ...sdkSourceAliases(),
       '@ui': path.resolve(process.cwd(), 'src'),
+      '@ui-active-domain': path.resolve(process.cwd(), `src/domains/active/${domain}.ts`),
       events: 'events',
     },
   },

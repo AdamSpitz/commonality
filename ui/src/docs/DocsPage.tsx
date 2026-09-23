@@ -5,7 +5,7 @@ import type { Components } from 'react-markdown'
 import { Box, Typography, Divider, Button, Paper } from '@mui/material'
 import docModulesByRelativePath from 'virtual:end-user-docs'
 import { resolveLinkHref } from '../shared'
-import { RetroFundingStory } from '../domains/lazy-giving/RetroFundingStory'
+import type { ReactNode } from 'react'
 
 // Public end-user docs for THIS build, keyed by path relative to docs/end-user/
 // (e.g. "shared/key-ideas/delegation.md"). Each branded build bundles only the
@@ -187,7 +187,7 @@ function resolveHref(href: string, currentDocPath: string): string {
   return buildDocHref(resolved.join('/'))
 }
 
-export function DocsPage() {
+export function DocsPage({ diagram }: { diagram?: ReactNode } = {}) {
   const params = useParams()
   const docPath = params['*'] || getDefaultDocPath()
   const loadedDoc = getDocContent(docPath)
@@ -301,7 +301,7 @@ export function DocsPage() {
           <ReactMarkdown rehypePlugins={[rehypeSanitize]} components={components}>
             {part}
           </ReactMarkdown>
-          {showRetroFundingStory && index < contentParts.length - 1 ? <RetroFundingStory /> : null}
+          {showRetroFundingStory && index < contentParts.length - 1 ? diagram : null}
         </Box>
       ))}
     </Box>
