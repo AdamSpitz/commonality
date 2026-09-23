@@ -18,6 +18,7 @@ export const conceptspaceContractNames = [
   "MutableRefUpdater",
   "NudgePublications",
   "PublishedData",
+  "BeneficiaryIdentity",
 ] as const;
 
 export const fundingContractNames = [

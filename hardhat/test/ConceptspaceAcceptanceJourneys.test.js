@@ -101,7 +101,8 @@ describe("Conceptspace acceptance journeys", function () {
     const conditionFactory = await ethers.deployContract("ValueThresholdConditionFactory");
     const verifier = await ethers.deployContract("MockBeneficiaryVerifier");
     const paymentToken = await ethers.deployContract("FreeERC20", ["USD Coin", "USDC", 6]);
-    const beneficiaryRegistry = await ethers.deployContract("BeneficiaryRegistry", [verifier.target]);
+    const beneficiaryIdentity = await ethers.deployContract("BeneficiaryIdentity", [verifier.target]);
+    const beneficiaryRegistry = await ethers.deployContract("BeneficiaryRegistry", [beneficiaryIdentity.target]);
     const beneficiaryEscrow = await ethers.deployContract("BeneficiaryEscrow", [
       beneficiaryRegistry.target,
       paymentToken.target,

@@ -1,12 +1,12 @@
 // Auto-generated from hardhat/contracts - DO NOT EDIT MANUALLY
 // Run `npm run sync-abis` to regenerate
 
-export const BeneficiaryRegistryAbi = [
+export const BeneficiaryIdentityAbi = [
   {
     "inputs": [
       {
         "internalType": "address",
-        "name": "identity_",
+        "name": "_verifier",
         "type": "address"
       }
     ],
@@ -21,51 +21,7 @@ export const BeneficiaryRegistryAbi = [
         "type": "bytes32"
       }
     ],
-    "name": "BeneficiaryAlreadyControlled",
-    "type": "error"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "beneficiaryId",
-        "type": "bytes32"
-      }
-    ],
-    "name": "BeneficiaryAlreadyVerified",
-    "type": "error"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "beneficiaryId",
-        "type": "bytes32"
-      }
-    ],
-    "name": "BeneficiaryNotClaimed",
-    "type": "error"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "beneficiaryId",
-        "type": "bytes32"
-      }
-    ],
-    "name": "BeneficiaryNotControlled",
-    "type": "error"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "beneficiaryId",
-        "type": "bytes32"
-      }
-    ],
-    "name": "BeneficiaryNotVerified",
+    "name": "BeneficiaryAlreadyClaimed",
     "type": "error"
   },
   {
@@ -75,37 +31,37 @@ export const BeneficiaryRegistryAbi = [
   },
   {
     "inputs": [],
-    "name": "InvalidIdentityAddress",
+    "name": "InvalidClaimant",
     "type": "error"
   },
   {
     "inputs": [],
-    "name": "InvalidNewPayoutAddress",
+    "name": "InvalidNonce",
     "type": "error"
   },
   {
     "inputs": [],
-    "name": "InvalidProjectAddress",
+    "name": "InvalidProofHash",
     "type": "error"
   },
   {
     "inputs": [],
-    "name": "OnlyPayoutAddressCanDisavowProject",
+    "name": "InvalidVerifierAddress",
     "type": "error"
   },
   {
     "inputs": [],
-    "name": "OnlyPayoutAddressCanReleaseControl",
+    "name": "InvalidVerifierSignature",
     "type": "error"
   },
   {
     "inputs": [],
-    "name": "OnlyPayoutAddressCanRotate",
+    "name": "NoVerifierConfigured",
     "type": "error"
   },
   {
     "inputs": [],
-    "name": "OnlyPayoutAddressCanTakeControl",
+    "name": "OnlyOwnerOrGuardian",
     "type": "error"
   },
   {
@@ -131,51 +87,13 @@ export const BeneficiaryRegistryAbi = [
     "type": "error"
   },
   {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "beneficiaryId",
-        "type": "bytes32"
-      },
-      {
-        "internalType": "address",
-        "name": "project",
-        "type": "address"
-      }
-    ],
-    "name": "ProjectAlreadyDisavowed",
+    "inputs": [],
+    "name": "ProofExpired",
     "type": "error"
   },
   {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "beneficiaryId",
-        "type": "bytes32"
-      },
-      {
-        "internalType": "address",
-        "name": "project",
-        "type": "address"
-      }
-    ],
-    "name": "ProjectNotDisavowed",
-    "type": "error"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "beneficiaryId",
-        "type": "bytes32"
-      },
-      {
-        "internalType": "address",
-        "name": "project",
-        "type": "address"
-      }
-    ],
-    "name": "ProjectNotForBeneficiary",
+    "inputs": [],
+    "name": "VerifierAlreadyRevoked",
     "type": "error"
   },
   {
@@ -194,7 +112,7 @@ export const BeneficiaryRegistryAbi = [
         "type": "address"
       }
     ],
-    "name": "BeneficiaryControlReleased",
+    "name": "BeneficiaryClaimed",
     "type": "event"
   },
   {
@@ -211,9 +129,15 @@ export const BeneficiaryRegistryAbi = [
         "internalType": "address",
         "name": "owner",
         "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "proofHash",
+        "type": "bytes32"
       }
     ],
-    "name": "BeneficiaryControlTaken",
+    "name": "BeneficiaryProofAnchored",
     "type": "event"
   },
   {
@@ -221,18 +145,18 @@ export const BeneficiaryRegistryAbi = [
     "inputs": [
       {
         "indexed": true,
-        "internalType": "bytes32",
-        "name": "beneficiaryId",
-        "type": "bytes32"
+        "internalType": "address",
+        "name": "oldGuardian",
+        "type": "address"
       },
       {
         "indexed": true,
         "internalType": "address",
-        "name": "payoutAddress",
+        "name": "newGuardian",
         "type": "address"
       }
     ],
-    "name": "BeneficiaryVerified",
+    "name": "GuardianUpdated",
     "type": "event"
   },
   {
@@ -240,18 +164,18 @@ export const BeneficiaryRegistryAbi = [
     "inputs": [
       {
         "indexed": true,
-        "internalType": "bytes32",
-        "name": "namespaceHash",
-        "type": "bytes32"
+        "internalType": "address",
+        "name": "previousOwner",
+        "type": "address"
       },
       {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "period",
-        "type": "uint256"
+        "indexed": true,
+        "internalType": "address",
+        "name": "newOwner",
+        "type": "address"
       }
     ],
-    "name": "NamespaceClaimWaitingPeriodUpdated",
+    "name": "OwnershipTransferStarted",
     "type": "event"
   },
   {
@@ -278,24 +202,18 @@ export const BeneficiaryRegistryAbi = [
     "inputs": [
       {
         "indexed": true,
-        "internalType": "bytes32",
-        "name": "beneficiaryId",
-        "type": "bytes32"
-      },
-      {
-        "indexed": true,
         "internalType": "address",
-        "name": "oldPayoutAddress",
+        "name": "revokedVerifier",
         "type": "address"
       },
       {
         "indexed": true,
         "internalType": "address",
-        "name": "newPayoutAddress",
+        "name": "revokedBy",
         "type": "address"
       }
     ],
-    "name": "PayoutAddressRotated",
+    "name": "VerifierRevoked",
     "type": "event"
   },
   {
@@ -303,185 +221,49 @@ export const BeneficiaryRegistryAbi = [
     "inputs": [
       {
         "indexed": true,
-        "internalType": "bytes32",
-        "name": "beneficiaryId",
-        "type": "bytes32"
-      },
-      {
-        "indexed": true,
         "internalType": "address",
-        "name": "project",
+        "name": "oldVerifier",
         "type": "address"
       },
       {
         "indexed": true,
         "internalType": "address",
-        "name": "owner",
+        "name": "newVerifier",
         "type": "address"
       }
     ],
-    "name": "ProjectDisavowalWithdrawn",
+    "name": "VerifierUpdated",
     "type": "event"
   },
   {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "bytes32",
-        "name": "beneficiaryId",
-        "type": "bytes32"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "project",
-        "type": "address"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "owner",
-        "type": "address"
-      }
-    ],
-    "name": "ProjectDisavowed",
-    "type": "event"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "beneficiaryId",
-        "type": "bytes32"
-      }
-    ],
-    "name": "adoptBeneficiary",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "beneficiaryId",
-        "type": "bytes32"
-      }
-    ],
-    "name": "beneficiaryState",
-    "outputs": [
-      {
-        "internalType": "uint8",
-        "name": "",
-        "type": "uint8"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "beneficiaryId",
-        "type": "bytes32"
-      }
-    ],
-    "name": "claimWithdrawableAt",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "beneficiaryId",
-        "type": "bytes32"
-      }
-    ],
-    "name": "controlTakenAt",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "beneficiaryId",
-        "type": "bytes32"
-      },
-      {
-        "internalType": "address",
-        "name": "project",
-        "type": "address"
-      }
-    ],
-    "name": "disavowProject",
+    "inputs": [],
+    "name": "acceptOwnership",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
   },
   {
     "inputs": [],
-    "name": "identity",
+    "name": "guardian",
     "outputs": [
-      {
-        "internalType": "contract IBeneficiaryIdentity",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "beneficiaryId",
-        "type": "bytes32"
-      }
-    ],
-    "name": "isBeneficiaryControlled",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "beneficiaryId",
-        "type": "bytes32"
-      },
       {
         "internalType": "address",
-        "name": "project",
+        "name": "",
         "type": "address"
       }
     ],
-    "name": "isProjectDisavowed",
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "beneficiaryId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "isClaimed",
     "outputs": [
       {
         "internalType": "bool",
@@ -500,31 +282,12 @@ export const BeneficiaryRegistryAbi = [
         "type": "bytes32"
       }
     ],
-    "name": "isVerified",
+    "name": "namespaceHashOf",
     "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
       {
         "internalType": "bytes32",
-        "name": "namespaceHash",
+        "name": "",
         "type": "bytes32"
-      }
-    ],
-    "name": "namespaceClaimWaitingPeriod",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "period",
-        "type": "uint256"
       }
     ],
     "stateMutability": "view",
@@ -551,7 +314,7 @@ export const BeneficiaryRegistryAbi = [
         "type": "bytes32"
       }
     ],
-    "name": "payoutAddress",
+    "name": "ownerOf",
     "outputs": [
       {
         "internalType": "address",
@@ -563,16 +326,16 @@ export const BeneficiaryRegistryAbi = [
     "type": "function"
   },
   {
-    "inputs": [
+    "inputs": [],
+    "name": "pendingOwner",
+    "outputs": [
       {
-        "internalType": "bytes32",
-        "name": "beneficiaryId",
-        "type": "bytes32"
+        "internalType": "address",
+        "name": "",
+        "type": "address"
       }
     ],
-    "name": "releaseBeneficiaryControl",
-    "outputs": [],
-    "stateMutability": "nonpayable",
+    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -583,19 +346,21 @@ export const BeneficiaryRegistryAbi = [
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "revokeVerifier",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
-        "internalType": "bytes32",
-        "name": "beneficiaryId",
-        "type": "bytes32"
-      },
-      {
         "internalType": "address",
-        "name": "newPayoutAddress",
+        "name": "_guardian",
         "type": "address"
       }
     ],
-    "name": "rotatePayoutAddress",
+    "name": "setGuardian",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -603,30 +368,12 @@ export const BeneficiaryRegistryAbi = [
   {
     "inputs": [
       {
-        "internalType": "bytes32",
-        "name": "namespaceHash",
-        "type": "bytes32"
-      },
-      {
-        "internalType": "uint256",
-        "name": "period",
-        "type": "uint256"
+        "internalType": "address",
+        "name": "_verifier",
+        "type": "address"
       }
     ],
-    "name": "setNamespaceClaimWaitingPeriod",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "beneficiaryId",
-        "type": "bytes32"
-      }
-    ],
-    "name": "takeBeneficiaryControl",
+    "name": "setVerifier",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -642,6 +389,19 @@ export const BeneficiaryRegistryAbi = [
     "name": "transferOwnership",
     "outputs": [],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "verifier",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -721,24 +481,6 @@ export const BeneficiaryRegistryAbi = [
       }
     ],
     "name": "verifyNamespacedBeneficiary",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "beneficiaryId",
-        "type": "bytes32"
-      },
-      {
-        "internalType": "address",
-        "name": "project",
-        "type": "address"
-      }
-    ],
-    "name": "withdrawProjectDisavowal",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

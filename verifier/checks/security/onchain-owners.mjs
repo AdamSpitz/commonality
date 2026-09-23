@@ -4,6 +4,7 @@ import { envValue, readEnvFile, readTestnetConfig, requireOptIn, rpcCall } from 
 const OWNER_SELECTOR = "0x8da5cb5b";
 const OWNER_KEYS = [
   ["BeneficiaryVerifier", "BENEFICIARY_VERIFIER_ADDRESS"],
+  ["BeneficiaryIdentity", "BENEFICIARY_IDENTITY_ADDRESS"],
   ["BeneficiaryRegistry", "BENEFICIARY_REGISTRY_ADDRESS"],
   ["DelegatableNotes", "DELEGATABLE_NOTES_CONTRACT_ADDRESS"]
 ];

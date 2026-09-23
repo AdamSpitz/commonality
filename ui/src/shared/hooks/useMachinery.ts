@@ -90,6 +90,7 @@ export function useMachinery(): SDKMachinery {
       accountAssertions: getRuntimeConfigValue('VITE_ACCOUNT_ASSERTIONS_CONTRACT_ADDRESS') as `0x${string}` | undefined,
       nudgePublications: getRuntimeConfigValue('VITE_NUDGE_PUBLICATIONS_CONTRACT_ADDRESS') as `0x${string}` | undefined,
       publishedData: getRuntimeConfigValue('VITE_PUBLISHED_DATA_CONTRACT_ADDRESS') as `0x${string}` | undefined,
+      beneficiaryIdentity: getRuntimeConfigValue('VITE_BENEFICIARY_IDENTITY_ADDRESS') as `0x${string}` | undefined,
       contentRegistry: getRuntimeConfigValue('VITE_CONTENT_REGISTRY_ADDRESS') as `0x${string}` | undefined,
       beneficiaryRegistry: getRuntimeConfigValue('VITE_BENEFICIARY_REGISTRY_ADDRESS') as `0x${string}` | undefined,
       beneficiaryEscrow: getRuntimeConfigValue('VITE_BENEFICIARY_ESCROW_ADDRESS') as `0x${string}` | undefined,
@@ -105,7 +106,7 @@ export function useMachinery(): SDKMachinery {
     const machinery = createSDKMachinery({
       ipfsConfig,
       twitterApiConfig,
-      verifiedSocialAssociation: getRuntimeConfigValue('VITE_BENEFICIARY_REGISTRY_ADDRESS')
+      verifiedSocialAssociation: getRuntimeConfigValue('VITE_BENEFICIARY_IDENTITY_ADDRESS')
         ? verifiedSocialAssociationLookup()
         : undefined,
       publicClient: publicClient as any,

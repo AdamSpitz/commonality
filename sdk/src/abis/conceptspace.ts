@@ -11,3 +11,4 @@ export { AlignmentAttestationsAbi } from '../../abis/AlignmentAttestationsAbi.js
 export { MutableRefUpdaterAbi } from '../../abis/MutableRefUpdaterAbi.js';
 export { NudgePublicationsAbi } from '../../abis/NudgePublicationsAbi.js';
 export { AccountAssertionsAbi } from '../../abis/AccountAssertionsAbi.js';
+export { BeneficiaryIdentityAbi } from '../../abis/BeneficiaryIdentityAbi.js';

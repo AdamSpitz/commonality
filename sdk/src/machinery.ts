@@ -39,6 +39,8 @@ export interface ConceptspaceContractAddresses {
   nudgePublications?: `0x${string}`;
   /** PublishedData.sol -- shared user-published content/retraction registry. */
   publishedData?: `0x${string}`;
+  /** BeneficiaryIdentity.sol -- who proved control of a public identity. Not a payout. */
+  beneficiaryIdentity?: `0x${string}`;
 }
 
 /**
@@ -60,7 +62,7 @@ export interface FundingContractAddresses {
   recurringPledges?: `0x${string}`;
   /** ContentRegistry.sol -- registers content for the content-funding subsystem. */
   contentRegistry?: `0x${string}`;
-  /** BeneficiaryRegistry.sol -- registers funding channels. */
+  /** BeneficiaryRegistry.sol -- payout address, project control, and claim waiting period. */
   beneficiaryRegistry?: `0x${string}`;
   /** BeneficiaryEscrow.sol -- holds escrowed funds for channels. */
   beneficiaryEscrow?: `0x${string}`;

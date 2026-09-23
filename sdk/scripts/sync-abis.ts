@@ -35,6 +35,7 @@ const CONTRACTS_TO_SYNC: Record<string, AbiSyncEntry> = {
   Beliefs: { artifactPath: "statements/Beliefs.sol/Beliefs.json", outputFile: "BeliefsAbi.ts", capability: "conceptspace" },
   Implications: { artifactPath: "statements/Implications.sol/Implications.json", outputFile: "ImplicationsAbi.ts", capability: "conceptspace" },
   PublishedData: { artifactPath: "published-data/PublishedData.sol/PublishedData.json", outputFile: "PublishedDataAbi.ts", capability: "conceptspace" },
+  BeneficiaryIdentity: { artifactPath: "identity/BeneficiaryIdentity.sol/BeneficiaryIdentity.json", outputFile: "BeneficiaryIdentityAbi.ts", capability: "conceptspace" },
   TrustRegistry: { artifactPath: "subjectiv/TrustRegistry.sol/TrustRegistry.json", outputFile: "TrustRegistryAbi.ts", capability: "conceptspace" },
   AccountAssertions: { artifactPath: "subjectiv/AccountAssertions.sol/AccountAssertions.json", outputFile: "AccountAssertionsAbi.ts", capability: "conceptspace" },
   AlignmentAttestations: { artifactPath: "alignment-attestations/AlignmentAttestations.sol/AlignmentAttestations.json", outputFile: "AlignmentAttestationsAbi.ts", capability: "conceptspace" },

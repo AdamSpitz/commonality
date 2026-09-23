@@ -4,7 +4,7 @@ pragma solidity 0.8.33;
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {EIP712} from "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
-import {IBeneficiaryVerifier} from "./BeneficiaryRegistry.sol";
+import {IBeneficiaryVerifier} from "../identity/BeneficiaryIdentity.sol";
 import {Guardable} from "../utils/Guardable.sol";
 
 error InvalidTrustedVerifierAddress();

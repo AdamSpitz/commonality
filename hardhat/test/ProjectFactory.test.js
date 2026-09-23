@@ -8,7 +8,8 @@ async function deployProjectFactory() {
   const assuranceFactory = await ethers.deployContract('AssuranceContractFactory');
   const conditionFactory = await ethers.deployContract('ValueThresholdConditionFactory');
   const verifier = await ethers.deployContract('MockBeneficiaryVerifier');
-  const beneficiaryRegistry = await ethers.deployContract('BeneficiaryRegistry', [verifier.target]);
+  const beneficiaryIdentity = await ethers.deployContract('BeneficiaryIdentity', [verifier.target]);
+  const beneficiaryRegistry = await ethers.deployContract('BeneficiaryRegistry', [beneficiaryIdentity.target]);
   const paymentToken = await ethers.deployContract('FreeERC20', ['USD Coin', 'USDC', 6]);
   const beneficiaryEscrow = await ethers.deployContract('BeneficiaryEscrow', [beneficiaryRegistry.target, paymentToken.target]);
   const projectFactory = await ethers.deployContract('ProjectFactory', [

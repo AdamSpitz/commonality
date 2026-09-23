@@ -25,6 +25,7 @@ test("conceptspace selection drops funding contracts", () => {
     MutableRefUpdater: { kind: "conceptspace" },
     NudgePublications: { kind: "conceptspace" },
     PublishedData: { kind: "conceptspace" },
+    BeneficiaryIdentity: { kind: "conceptspace" },
     AssuranceContractFactory: { kind: "funding" },
     ProjectFactory: { kind: "funding" },
     ERC1155Factory: { kind: "funding" },

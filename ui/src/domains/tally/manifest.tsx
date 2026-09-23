@@ -1,4 +1,7 @@
+import { installIdentitySocialAssociation } from '../../shared'
 import type { ReactNode } from 'react'
+
+installIdentitySocialAssociation()
 import { Navigate, Route } from 'react-router-dom'
 import type { DomainManifest } from '../types'
 import { lazyRoute } from '../lazyRoute'

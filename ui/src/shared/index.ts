@@ -107,6 +107,7 @@ export {
 export type { BeatAgentTrustPolicy } from './hooks/useBeatAgentTrustPolicy'
 
 export { getEventCacheUrl, getIpfsApiUrl, useMachinery } from './hooks/useMachinery'
+export { installIdentitySocialAssociation } from './hooks/verifiedSocialAssociation'
 export { useMutedNudgers } from './hooks/useMutedNudgers'
 export { useMutedTopics } from './hooks/useMutedTopics'
 export { useNudgeIntensity } from './hooks/useNudgeIntensity'

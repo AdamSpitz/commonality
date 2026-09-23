@@ -1,7 +1,7 @@
 //SPDX-License-Identifier: MIT
 pragma solidity 0.8.33;
 
-import {IBeneficiaryVerifier} from "../content-funding/BeneficiaryRegistry.sol";
+import {IBeneficiaryVerifier} from "../identity/BeneficiaryIdentity.sol";
 
 /**
  * @title MockBeneficiaryVerifier

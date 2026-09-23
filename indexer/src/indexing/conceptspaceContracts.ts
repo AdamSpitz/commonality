@@ -6,6 +6,7 @@ import { TrustRegistryAbi } from "../../abis/TrustRegistryAbi";
 import { MutableRefUpdaterAbi } from "../../abis/MutableRefUpdaterAbi";
 import { NudgePublicationsAbi } from "../../abis/NudgePublicationsAbi";
 import { PublishedDataAbi } from "../../abis/PublishedDataAbi";
+import { BeneficiaryIdentityAbi } from "../../abis/BeneficiaryIdentityAbi";
 import type { IndexerDeploymentContext } from "./ponderEnv";
 
 /** Conceptspace contract registrations. Does not import funding ABIs. */
@@ -52,6 +53,11 @@ export function conceptspaceContracts(context: IndexerDeploymentContext) {
     "PUBLISHED_DATA_CONTRACT_ADDRESS",
     context.contractStartBlock("PUBLISHED_DATA_START_BLOCK", context.publishedDataStartBlock),
   );
+  const beneficiaryIdentity = context.getDeployments(
+    "BeneficiaryIdentity",
+    "BENEFICIARY_IDENTITY_ADDRESS",
+    context.contractStartBlock("BENEFICIARY_IDENTITY_START_BLOCK", context.startBlock),
+  );
 
   return {
     Beliefs: {
@@ -93,6 +99,11 @@ export function conceptspaceContracts(context: IndexerDeploymentContext) {
       abi: PublishedDataAbi,
       chain: context.chain,
       ...context.deploymentConfig(publishedData, context.publishedDataStartBlock),
+    },
+    BeneficiaryIdentity: {
+      abi: BeneficiaryIdentityAbi,
+      chain: context.chain,
+      ...context.deploymentConfig(beneficiaryIdentity, context.startBlock),
     },
   } as const;
 }
