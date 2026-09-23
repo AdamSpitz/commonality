@@ -2,9 +2,9 @@ import { useEffect, useState } from 'react'
 import { getUserSocialData } from '@commonality/sdk/signer-profiles'
 import { Alert, Box, Button, CircularProgress, Paper, TextField, Typography } from '@mui/material'
 import { useAccount } from 'wagmi'
-import { useClaimFlow } from '../../../content-funding'
-import { useMachinery } from '../../../shared'
-import { loadTwitterHandleHint, saveTwitterHandleHint } from '../../twitterHandleHints'
+import { loadTwitterHandleHint, saveTwitterHandleHint } from '@ui/conceptspace'
+import { useMachinery } from '../../shared'
+import { useClaimFlow } from '../hooks/useClaimFlow'
 
 export function LinkedSocialAccountsSection() {
   const { address, isConnected } = useAccount()

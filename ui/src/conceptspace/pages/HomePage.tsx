@@ -2,8 +2,7 @@ import { useState } from 'react'
 import { Box, Typography, Paper, Button, Alert, Stack } from '@mui/material'
 import { useAccount } from 'wagmi'
 import { Link, useNavigate } from 'react-router-dom'
-import { getDomainUrl, landingHeroContainedButtonSx, landingHeroPaperSx, StatementPicker } from '../../shared'
-import type { DomainId } from '../../shared'
+import { landingHeroContainedButtonSx, landingHeroPaperSx, StatementPicker } from '../../shared'
 import { CreateStatementForm } from '../components'
 import type { IpfsCidV1 } from '@commonality/sdk/utils'
 
@@ -23,36 +22,24 @@ const gettingStartedSteps = [
     to: '/docs/use-case-walkthroughs/noninflammatory-content',
   },
   {
-    title: 'Learn about cause funding',
+    title: 'Choose whose judgment counts',
     description:
-      'Cause exploration lives on Alignment, where statements connect to fundable-projects boards and aligned projects.',
-    cta: 'Learn about fundable-projects boards',
-    to: '/docs/key-ideas/funding-portals',
+      'Trust settings decide which attestations and mediators this app relies on. Most people can skip this at first.',
+    cta: 'Open trust settings',
+    to: '/settings',
   },
 ]
 
-const roleCards: Array<{
-  title: string
-  description: string
-  to: string
-  domain?: DomainId
-}> = [
+const roleCards = [
   {
     title: 'Express what you care about',
-    description: 'Sign a statement in your own words and discover related causes.',
+    description: 'Sign a statement in your own words and see what public support adds up to.',
     to: '/docs/tally/express-what-you-care-about',
   },
   {
-    title: 'Fund a project',
-    description: 'Back a project with a refundable contribution if the goal is met.',
-    to: '/projects',
-    domain: 'lazyGiving',
-  },
-  {
-    title: 'Support creators',
-    description: 'Explore creators and channels that fit the causes you care about.',
-    to: '/content/twitter',
-    domain: 'content-funding',
+    title: 'See what you have signed',
+    description: 'Your profile lists the statements you have signed and the public trail around them.',
+    to: '/profile',
   },
 ]
 
@@ -82,10 +69,10 @@ export function HomePage() {
           fontSize: { xs: '2rem', md: '2.8rem' },
         }}
       >
-        Fund projects and content around what people actually care about.
+        Sign what you believe and see what public support adds up to.
       </Typography>
       <Typography variant="h6" sx={{ maxWidth: 780, fontWeight: 500 }}>
-        A conservative and a progressive can end up funding the same piece of writing — without ever coordinating. That's the core idea: shared values, discovered automatically.
+        Statements, signatures, and the implication graph — without a funding step.
       </Typography>
       <Typography variant="body1" sx={{ maxWidth: 680, mt: 1.5, opacity: 0.85 }}>
         Start by reading one example, then browse statements, then connect your wallet only when you know what you want to do.
@@ -143,7 +130,7 @@ export function HomePage() {
         <Typography variant="h5" sx={{ mt: 4, mb: 2, fontWeight: 700 }}>
           Pick one thing to do
         </Typography>
-        <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' } }}>
+        <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' } }}>
           {roleCards.map((card) => (
             <Paper key={card.title} sx={{ p: 3, borderRadius: 3 }}>
               <Typography variant="h6" sx={{ mb: 1 }}>
@@ -152,19 +139,9 @@ export function HomePage() {
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                 {card.description}
               </Typography>
-              {card.domain ? (
-                <Button
-                  component="a"
-                  href={getDomainUrl(card.domain, card.to, { fallbackHref: card.to })}
-                  size="small"
-                >
-                  Explore
-                </Button>
-              ) : (
-                <Button component={Link} to={card.to} size="small">
-                  Explore
-                </Button>
-              )}
+              <Button component={Link} to={card.to} size="small">
+                Explore
+              </Button>
             </Paper>
           ))}
         </Box>

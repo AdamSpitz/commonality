@@ -20,6 +20,7 @@ import {
 import type { IpfsCidV1 } from '@commonality/sdk/utils'
 import { useTrustedAttesters } from '@ui/shared'
 import { CauseBoard, CauseLeaderboard } from '@ui/fundingportals'
+import { ContentSubmissionForm, StatementSupportingContent } from '@ui/content-funding'
 import { useAlignmentTrust } from '../hooks/useAlignmentTrust'
 import { SupportButton } from '../components/SupportButton'
 import { CauseFundingSummary } from '../components/CauseFundingSummary'
@@ -430,6 +431,10 @@ export function StatementPage() {
         </Stack>
       </Paper>
       </Box>
+
+      {showFunding && <StatementSupportingContent statementCid={statementCid as IpfsCidV1} />}
+
+      {showFunding && <ContentSubmissionForm statementCid={statementCid as IpfsCidV1} />}
 
       {showFunding && <CauseFundingSummary statementCids={[statementCid as string]} />}
 

@@ -1,21 +1,11 @@
 import { Box, Typography, Alert } from '@mui/material'
-import {
-  AlignmentFilterToggle,
-  DiscoverySlider,
-  useAlignmentFilter,
-  useDiscoveryLevel,
-} from '../../fundingportals'
 import { DirectTrustSettingsSection } from '../components/DirectTrustSettingsSection'
-import { LinkedSocialAccountsSection } from '../components/settings/LinkedSocialAccountsSection'
 import { NudgerSettingsSection } from '../components/settings/NudgerSettingsSection'
 import { SingleAccountAssertionSection } from '../components/settings/SingleAccountAssertionSection'
 import { TrustedContentAttestersSection } from '../components/settings/TrustedContentAttestersSection'
 import { TrustedStatementSourcesSection } from '../components/settings/TrustedStatementSourcesSection'
 
 export function SettingsPage() {
-  const [discoveryLevel, setDiscoveryLevel] = useDiscoveryLevel()
-  const [alignmentFilter, setAlignmentFilter] = useAlignmentFilter()
-
   return (
     <Box>
       <Typography variant="h4" component="h1" gutterBottom>
@@ -27,16 +17,6 @@ export function SettingsPage() {
         attestations and trust relationships you want the app to rely on.
       </Alert>
 
-      <Box sx={{ mt: 3 }}>
-        <DiscoverySlider
-          value={discoveryLevel}
-          onChange={setDiscoveryLevel}
-          voucherLabel="project vouches"
-        />
-        <AlignmentFilterToggle value={alignmentFilter} onChange={setAlignmentFilter} />
-      </Box>
-
-      <LinkedSocialAccountsSection />
       <SingleAccountAssertionSection />
       <TrustedStatementSourcesSection />
       <TrustedContentAttestersSection />

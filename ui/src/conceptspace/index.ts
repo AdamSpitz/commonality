@@ -16,6 +16,7 @@
 export { StatementRenderer } from './components/StatementRenderer'
 export { DirectTrustSettingsSection } from './components/DirectTrustSettingsSection'
 export { NudgerSettingsSection } from './components/settings/NudgerSettingsSection'
+export { loadTwitterHandleHint, saveTwitterHandleHint } from './twitterHandleHints'
 
 // Note on pages: the route components (HomePage, BrowseStatementsPage,
 // StatementPage, UserProfilePage, SettingsPage) are intentionally NOT

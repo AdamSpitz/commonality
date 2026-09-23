@@ -75,13 +75,15 @@ Split ABI exports and decoder imports as well. [eventDecoder.ts](../../sdk/src/u
 
 ### 2. Compose Tally and Commonality from shared components
 
-Tally does not have its own statement or settings screens. [Its manifest](../../ui/src/domains/tally/manifest.tsx) lazy-loads Conceptspace pages, and those pages import funding. What the Tally UI pulls in today:
+The page-level split below is implemented. Tally's manifest no longer mounts funding-portal routes. Conceptspace statement, settings, and home pages no longer import `fundingportals`, `content-funding`, or LazyGiving. `StatementSupportingContent` and `LinkedSocialAccountsSection` live in content-funding. Commonality's statement page renders supporting content and the submission form next to its own cause board. Commonality's settings page renders linked social accounts next to the shared trust sections. An ESLint rule rejects those funding imports from `ui/src/conceptspace/**` and `ui/src/domains/tally/**`.
+
+What Tally used to pull in, before that split:
 
 | Surface | Funding dependency |
 |---|---|
 | Routes `/portal/:statementCid` and `/portal/:statementCid/leaderboard` | `StatementFundingPortalPage` and `CauseLeaderboardPage` from `fundingportals` |
-| [StatementPage](../../ui/src/conceptspace/pages/StatementPage.tsx) | `FundingPortalSummary` (`fundingportals`); `ContentSubmissionForm` (`content-funding`); [StatementSupportingContent](../../ui/src/conceptspace/components/StatementSupportingContent.tsx), which reads `@commonality/sdk/content-funding` and renders `ContentAttestationSummary` |
-| [SettingsPage](../../ui/src/conceptspace/pages/SettingsPage.tsx) | `DiscoverySlider`, `AlignmentFilterToggle`, and their hooks from `fundingportals` (project discovery and alignment filtering). [LinkedSocialAccountsSection](../../ui/src/conceptspace/components/settings/LinkedSocialAccountsSection.tsx) verifies handles through content-funding's `useClaimFlow` |
+| [StatementPage](../../ui/src/conceptspace/pages/StatementPage.tsx) | `FundingPortalSummary` (`fundingportals`); `ContentSubmissionForm` (`content-funding`); [StatementSupportingContent](../../ui/src/content-funding/components/StatementSupportingContent.tsx), which reads `@commonality/sdk/content-funding` and renders `ContentAttestationSummary` |
+| [SettingsPage](../../ui/src/conceptspace/pages/SettingsPage.tsx) | `DiscoverySlider`, `AlignmentFilterToggle`, and their hooks from `fundingportals` (project discovery and alignment filtering). [LinkedSocialAccountsSection](../../ui/src/content-funding/components/LinkedSocialAccountsSection.tsx) verifies handles through content-funding's `useClaimFlow` |
 | [HomePage](../../ui/src/conceptspace/pages/HomePage.tsx), mounted at Tally `/start` | Cards that link to LazyGiving `/projects` and content-funding `/content/twitter` |
 
 Commonality already has its own [statement page](../../ui/src/commonality/pages/StatementPage.tsx) and [settings page](../../ui/src/commonality/pages/SettingsPage.tsx). The settings page is the shape to keep: it imports `DirectTrustSettingsSection` and `NudgerSettingsSection` from Conceptspace and renders funding discovery controls itself. The statement page is not there yet; it reimplements signing instead of reusing the Conceptspace statement components, and it adds `CauseBoard`, `CauseLeaderboard`, and cause funding.
@@ -92,7 +94,7 @@ Move the funding-free pieces (statement rendering, belief controls, support metr
 
 ### 3. Separate social identity from payout ownership
 
-This is one of the less obvious blockers. [Signer-profile queries](../../sdk/src/subsystems/signer-profiles/queries.ts) explicitly depend on content-funding state to verify channel ownership. [LinkedSocialAccountsSection](../../ui/src/conceptspace/components/settings/LinkedSocialAccountsSection.tsx) uses content-funding's `useClaimFlow`. Thus a useful piece of Tally currently depends back on the money-side identity infrastructure.
+This is one of the less obvious blockers. [Signer-profile queries](../../sdk/src/subsystems/signer-profiles/queries.ts) explicitly depend on content-funding state to verify channel ownership. [LinkedSocialAccountsSection](../../ui/src/content-funding/components/LinkedSocialAccountsSection.tsx) uses content-funding's `useClaimFlow`. It is mounted from Commonality settings, not Tally. Verified handles still have no neutral interface, so Tally does not offer that section.
 
 Define a neutral profile/verified-association interface. The existing beneficiary-registry lookup can be a downstream adapter; Conceptspace must work without it. For initial independence, verified social enrichment could be optional while address profiles, beliefs and account assertions continue to work. If verified handles are required in standalone Tally, extract the identity-proof service/storage deliberately. Do not move escrow or automatically equate a social-account proof with authorization to claim funds. Avoid redesigning identity wholesale merely to move the repo.
 

@@ -15,8 +15,6 @@ const routes: ReactNode = (
     <Route path="/profile" element={lazyRoute(() => import('../../conceptspace/pages/UserProfilePage'), 'UserProfilePage')} />
     <Route path="/user/:address" element={lazyRoute(() => import('../../conceptspace/pages/UserProfilePage'), 'UserProfilePage')} />
     <Route path="/settings" element={lazyRoute(() => import('../../conceptspace/pages/SettingsPage'), 'SettingsPage')} />
-    <Route path="/portal/:statementCid" element={lazyRoute(() => import('../../fundingportals/pages/StatementFundingPortalPage'), 'StatementFundingPortalPage')} />
-    <Route path="/portal/:statementCid/leaderboard" element={lazyRoute(() => import('../../fundingportals/pages/CauseLeaderboardPage'), 'CauseLeaderboardPage')} />
   </>
 )
 

@@ -51,6 +51,11 @@ vi.mock('../components/CauseFundingSummary', () => ({
   CauseFundingSummary: () => <div data-testid="funding-summary" />,
 }))
 
+vi.mock('@ui/content-funding', () => ({
+  StatementSupportingContent: () => <div data-testid="supporting-content" />,
+  ContentSubmissionForm: () => <div data-testid="content-submission-form" />,
+}))
+
 vi.mock('@ui/fundingportals', () => ({
   CauseBoard: () => <div data-testid="fundable-projects" />,
   CauseLeaderboard: () => <div data-testid="contributor-leaderboard" />,
