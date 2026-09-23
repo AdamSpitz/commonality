@@ -5,14 +5,22 @@
 # Operator-only secrets live outside the repo and are not written to generated service env files.
 #
 # Usage:
-#   ./scripts/setup-env.sh [network]
+#   ./scripts/setup-env.sh [network] [all|conceptspace]
 #
 # network: localhost (default), base-sepolia, mainnet
+# conceptspace omits funding contract addresses from the generated files.
+# The default all keeps the shared deployment.
 
 set -euo pipefail
 
 NETWORK="${1:-localhost}"
+CAPABILITY="${2:-all}"
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+
+if [ "$CAPABILITY" != "all" ] && [ "$CAPABILITY" != "conceptspace" ]; then
+	echo "Unknown capability: $CAPABILITY (expected: all, conceptspace)" >&2
+	exit 1
+fi
 
 # shellcheck source=scripts/lib/secrets.sh
 source "$ROOT/scripts/lib/secrets.sh"
@@ -192,6 +200,18 @@ fi
 
 populate_ui_domain_urls
 
+if [ "$CAPABILITY" = "conceptspace" ]; then
+	while IFS= read -r key; do
+		[ -n "$key" ] || continue
+		unset "VARS[$key]"
+	done < <(cd "$ROOT" && node --input-type=module -e '
+		import { FUNDING_ENV_KEYS } from "./scripts/deployment-manifest.mjs";
+		for (const key of FUNDING_ENV_KEYS) console.log(key);
+	')
+	VARS[INDEXER_CONTRACTS]="conceptspace"
+	VARS[SERVICE_HOST_CAPABILITY]="conceptspace"
+fi
+
 # ============================================================
 # 1. Root .env — used by docker-compose, hardhat, indexer
 # ============================================================
@@ -243,6 +263,7 @@ ROOT_VARS=(
 	BENEFICIARY_VERIFIER_ADDRESS CONTENT_REGISTRY_ADDRESS BENEFICIARY_REGISTRY_ADDRESS
 	BENEFICIARY_ESCROW_ADDRESS CREATOR_CONTRACT_FACTORY_ADDRESS PROSPECTIVE_CONTENT_ROUND_FACTORY_ADDRESS
 	START_BLOCK CONTENT_FUNDING_START_BLOCK
+	INDEXER_CONTRACTS SERVICE_HOST_CAPABILITY
 	IPFS_API IPFS_GATEWAY
 	EVENT_CACHE_URL DISPLAY_DENYLIST_URL POLICY_BUNDLE_URL
 	VITE_COMMONALITY_URL VITE_LAZYGIVING_URL VITE_ALIGNMENT_URL VITE_TALLY_URL

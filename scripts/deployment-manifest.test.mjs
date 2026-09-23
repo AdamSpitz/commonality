@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
   buildDeploymentManifest,
+  FUNDING_ENV_KEYS,
   indexerDeploymentManifestJson,
   parseStartBlock,
 } from './deployment-manifest.mjs';
@@ -58,6 +59,11 @@ test('conceptspace manifest omits funding contracts that are present in env', ()
   assert.equal(conceptspace.chains['base-sepolia'].Beliefs[0].startBlock, 111);
   assert.equal(conceptspace.chains['base-sepolia'].NoteIntent, undefined);
   assert.throws(() => buildDeploymentManifest('base-sepolia', env, 'funding'), /manifest capability/);
+
+  assert.ok(FUNDING_ENV_KEYS.includes('NOTE_INTENT_ADDRESS'));
+  assert.ok(FUNDING_ENV_KEYS.includes('VITE_BENEFICIARY_ESCROW_ADDRESS'));
+  assert.equal(FUNDING_ENV_KEYS.includes('BELIEFS_CONTRACT_ADDRESS'), false);
+  assert.equal(FUNDING_ENV_KEYS.includes('TRUST_REGISTRY_ADDRESS'), false);
 });
 
 test('indexer JSON is compact chains-only', () => {
