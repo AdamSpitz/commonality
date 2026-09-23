@@ -20,18 +20,19 @@ export interface TestConfig {
  *
  * Do not fill unused addresses with the zero address. Omit a field the
  * deployment does not have, and fail at the action that needs it.
+ * Every field is optional on the configured object for that reason.
  */
 export interface ConceptspaceContractAddresses {
   /** Beliefs.sol -- stores direct belief attestations on statements. */
-  beliefs: `0x${string}`;
+  beliefs?: `0x${string}`;
   /** Implications.sol -- stores implication links between statements. */
-  implications: `0x${string}`;
+  implications?: `0x${string}`;
   /** AlignmentAttestations.sol -- links arbitrary subjects to statements. */
-  alignmentAttestations: `0x${string}`;
+  alignmentAttestations?: `0x${string}`;
   /** MutableRefUpdater.sol -- on-chain named mutable references. */
-  mutableRefUpdater: `0x${string}`;
+  mutableRefUpdater?: `0x${string}`;
   /** TrustRegistry.sol -- stores direct trust scores between addresses. */
-  trustRegistry: `0x${string}`;
+  trustRegistry?: `0x${string}`;
   /** AccountAssertions.sol -- tier-0/1 proof-of-personhood self-declarations. */
   accountAssertions?: `0x${string}`;
   /** NudgePublications.sol -- records nudger publication CIDs. */
@@ -83,6 +84,8 @@ export type DeployedContractAddresses = ConceptspaceContractAddresses & Partial<
 
 export type ContractAddressesByChain = Record<number, DeployedContractAddresses>;
 
+const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
+
 const FUNDING_CORE_FIELDS = [
   'assuranceContractFactory',
   'erc1155Factory',
@@ -90,11 +93,36 @@ const FUNDING_CORE_FIELDS = [
   'noteIntent',
 ] as const;
 
+function isConfiguredAddress(value: `0x${string}` | undefined): value is `0x${string}` {
+  return !!value && value.toLowerCase() !== ZERO_ADDRESS;
+}
+
+/** Keep a real address; drop empty strings and the zero address. */
+export function configuredAddress(value: string | undefined): `0x${string}` | undefined {
+  if (!value || value.toLowerCase() === ZERO_ADDRESS) return undefined;
+  return value as `0x${string}`;
+}
+
+/** Throw if an action needs a Conceptspace contract that was not configured. */
+export function requireConceptspaceContractAddress(
+  addresses: Partial<ConceptspaceContractAddresses> | undefined,
+  field: keyof ConceptspaceContractAddresses,
+): `0x${string}` {
+  const value = addresses?.[field];
+  if (!isConfiguredAddress(value)) {
+    throw new Error(
+      `Conceptspace contract address "${field}" is required. ` +
+      'Do not substitute the zero address.',
+    );
+  }
+  return value;
+}
+
 /** Throw if a funding action is invoked without its contract addresses. */
 export function requireFundingContractAddresses(
   addresses: Partial<FundingContractAddresses> | undefined,
 ): FundingContractAddresses {
-  const missing = FUNDING_CORE_FIELDS.filter((field) => !addresses?.[field]);
+  const missing = FUNDING_CORE_FIELDS.filter((field) => !isConfiguredAddress(addresses?.[field]));
   if (missing.length > 0) {
     throw new Error(
       `Funding contract addresses are required (${missing.join(', ')}). ` +

@@ -10,7 +10,7 @@ import {
   validatePayment,
   type PaymentConfig,
 } from '@commonality/attester-core';
-import { createSDKMachinery, type ConceptspaceContractAddresses } from '@commonality/sdk/machinery';
+import { configuredAddress, createSDKMachinery, type ConceptspaceContractAddresses } from '@commonality/sdk/machinery';
 import { createWriteClients } from '@commonality/sdk/utils';
 import { loadConfig, loadConfigFromEnv } from './config.js';
 import { appendProposal, loadProposalStoreFile, markProposalsConsumed, validateProposalInput } from './proposals.js';
@@ -97,11 +97,7 @@ interface NudgerMetadata {
 
 function createContractAddresses(): ConceptspaceContractAddresses {
   return {
-    beliefs: '0x0000000000000000000000000000000000000000',
-    implications: (process.env.IMPLICATIONS_CONTRACT_ADDRESS || '0x0000000000000000000000000000000000000000') as `0x${string}`,
-    alignmentAttestations: '0x0000000000000000000000000000000000000000',
-    mutableRefUpdater: '0x0000000000000000000000000000000000000000',
-    trustRegistry: '0x0000000000000000000000000000000000000000',
+    implications: configuredAddress(process.env.IMPLICATIONS_CONTRACT_ADDRESS),
   };
 }
 

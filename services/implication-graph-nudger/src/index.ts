@@ -2,7 +2,7 @@ import { pathToFileURL } from 'node:url';
 import express, { type Express } from 'express';
 import { type Request, type Response } from 'express';
 import { getAllStatements } from '@commonality/sdk/conceptspace';
-import { createSDKMachinery, type ConceptspaceContractAddresses } from '@commonality/sdk/machinery';
+import { configuredAddress, createSDKMachinery, type ConceptspaceContractAddresses } from '@commonality/sdk/machinery';
 import { loadConfig, loadConfigFromEnv } from './config.js';
 export { loadConfigFromEnv };
 import {
@@ -16,12 +16,8 @@ const NEVER: Promise<void> = new Promise(() => {});
 
 function createContractAddresses(): ConceptspaceContractAddresses {
   return {
-    beliefs: '0x0000000000000000000000000000000000000000',
-    implications: (process.env.IMPLICATIONS_CONTRACT_ADDRESS || '0x0000000000000000000000000000000000000000') as `0x${string}`,
-    alignmentAttestations: '0x0000000000000000000000000000000000000000',
-    mutableRefUpdater: '0x0000000000000000000000000000000000000000',
-    trustRegistry: '0x0000000000000000000000000000000000000000',
-    publishedData: (process.env.PUBLISHED_DATA_CONTRACT_ADDRESS || '0x0000000000000000000000000000000000000000') as `0x${string}`,
+    implications: configuredAddress(process.env.IMPLICATIONS_CONTRACT_ADDRESS),
+    publishedData: configuredAddress(process.env.PUBLISHED_DATA_CONTRACT_ADDRESS),
   };
 }
 

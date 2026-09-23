@@ -164,7 +164,7 @@ describe('subjectivTrustCache', () => {
         ...options,
         address: options.address.toLowerCase(),
         contractAddresses: {
-          trustRegistry: options.contractAddresses.trustRegistry.toUpperCase() as `0x${string}`,
+          trustRegistry: options.contractAddresses.trustRegistry!.toUpperCase() as `0x${string}`,
         },
       })
     ).resolves.toEqual({

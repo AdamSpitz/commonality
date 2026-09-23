@@ -71,7 +71,9 @@ The SDK already exposes subsystem entry points in [its package manifest](../../s
 
 Address types are split. `ConceptspaceContractAddresses` is the base; `FundingContractAddresses` is separate; `ContractAddresses` is both, for a deployment that funds. `SDKMachinery.contractAddresses` is `DeployedContractAddresses`, so funding fields are absent unless configured. `requireFundingContractAddresses` throws if a funding action is invoked without them. Bridge creator, the implication nudger, and the explorer curator no longer invent zero funding addresses. Conceptspace fields on those services are still zero placeholders where the process does not read them — replace those with the real addresses or omit-and-require at the action, do not add funding zeros back.
 
-Still open: do not satisfy a Conceptspace build with dummy zero addresses for the contracts that build actually calls. Twitter and settlement-token configuration still live on the shared machinery object (both optional). Each action should require the capability it actually uses.
+Conceptspace address fields are all optional. `configuredAddress` drops the zero address, and `requireConceptspaceContractAddress` fails the action that needs a missing contract. The bridge creator, implication nudger, explorer curator, and MCP config omit addresses they do not have instead of filling zeros.
+
+Still open: Twitter and settlement-token configuration still live on the shared machinery object (Twitter is always present, settlement tokens are optional). Each action should require the capability it actually uses.
 
 Split ABI exports and decoder imports as well. [eventDecoder.ts](../../sdk/src/utils/eventDecoder.ts) re-exports all domains, and [ABI synchronization](../../sdk/scripts/sync-abis.ts) assumes a sibling Hardhat tree containing all contracts. Published artifacts must have reproducible ABI provenance without needing the other repository's source tree. Existing subsystem exports are a head start, not independent installable packages yet.
 

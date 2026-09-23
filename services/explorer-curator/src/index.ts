@@ -1,7 +1,7 @@
 import { pathToFileURL } from 'node:url';
 import express, { type Express } from 'express';
 import { type Request, type Response } from 'express';
-import { createSDKMachinery, type ConceptspaceContractAddresses } from '@commonality/sdk/machinery';
+import { configuredAddress, createSDKMachinery, type ConceptspaceContractAddresses } from '@commonality/sdk/machinery';
 import { loadConfig, loadConfigFromEnv } from './config.js';
 export { loadConfigFromEnv };
 export type { ExplorerCuratorConfig } from './config.js';
@@ -13,12 +13,8 @@ const NEVER: Promise<void> = new Promise(() => {});
 
 function createContractAddresses(config: ReturnType<typeof loadConfig>): ConceptspaceContractAddresses {
   return {
-    beliefs: '0x0000000000000000000000000000000000000000',
-    implications: (process.env.IMPLICATIONS_CONTRACT_ADDRESS || '0x0000000000000000000000000000000000000000') as `0x${string}`,
-    alignmentAttestations: '0x0000000000000000000000000000000000000000',
-    mutableRefUpdater: '0x0000000000000000000000000000000000000000',
-    trustRegistry: '0x0000000000000000000000000000000000000000',
-    nudgePublications: config.nudgePublicationsContractAddress as `0x${string}`,
+    implications: configuredAddress(process.env.IMPLICATIONS_CONTRACT_ADDRESS),
+    nudgePublications: configuredAddress(config.nudgePublicationsContractAddress),
   };
 }
 

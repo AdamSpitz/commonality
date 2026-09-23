@@ -6,6 +6,7 @@ import { getStatementWithContent, getImplicationsFrom, getImplicationsTo, getUse
 import { getUserRef } from '@commonality/sdk/mutable-refs'
 import { getProject } from '@commonality/sdk/lazy-giving'
 import { BeliefsAbi } from '@commonality/sdk/abis'
+import { requireConceptspaceContractAddress } from '@commonality/sdk/machinery'
 import { errorResult, textResult } from './json.js'
 import { isCauseAssistPath, loadMcpConfig } from './config.js'
 import { fetchJson } from './http.js'
@@ -211,7 +212,7 @@ function registerWriteTools(server: McpServer): void {
         const clients = createWriteClients(config.privateKey, config.rpcUrl)
         const hash = await believeStatement(
           clients,
-          { address: config.contractAddresses.beliefs, abi: BeliefsAbi },
+          { address: requireConceptspaceContractAddress(config.contractAddresses, 'beliefs'), abi: BeliefsAbi },
           asCid(cid),
         )
         return textResult({ transactionHash: hash })

@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'mocha';
 import {
+  configuredAddress,
+  requireConceptspaceContractAddress,
   requireFundingContractAddresses,
   type ConceptspaceContractAddresses,
   type DeployedContractAddresses,
@@ -25,6 +27,23 @@ describe('contract address capabilities', () => {
     assert.throws(
       () => requireFundingContractAddresses(conceptspaceOnly),
       /Funding contract addresses are required/,
+    );
+  });
+
+  it('rejects a zero address standing in for a missing contract', () => {
+    assert.equal(configuredAddress('0x0000000000000000000000000000000000000000'), undefined);
+    assert.throws(
+      () => requireConceptspaceContractAddress({ beliefs: '0x0000000000000000000000000000000000000000' }, 'beliefs'),
+      /Conceptspace contract address "beliefs" is required/,
+    );
+    assert.throws(
+      () => requireFundingContractAddresses({
+        assuranceContractFactory: '0x0000000000000000000000000000000000000000',
+        erc1155Factory: '0x2000000000000000000000000000000000000002',
+        delegatableNotes: '0x2000000000000000000000000000000000000003',
+        noteIntent: '0x2000000000000000000000000000000000000004',
+      }),
+      /assuranceContractFactory/,
     );
   });
 

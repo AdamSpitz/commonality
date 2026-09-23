@@ -38,7 +38,7 @@ function getCacheKey({
   return [
     SUBJECTIV_TRUST_CACHE_VERSION,
     eventCacheUrl,
-    contractAddresses.trustRegistry.toLowerCase(),
+    (contractAddresses.trustRegistry ?? 'unset').toLowerCase(),
     address.toLowerCase(),
     `maxHops=${maxHops ?? 'default'}`,
   ].join('::')
