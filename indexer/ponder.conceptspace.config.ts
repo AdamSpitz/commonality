@@ -2,11 +2,6 @@ import { createConfig } from "ponder";
 
 type CreateConfigArgs = Parameters<typeof createConfig>[0];
 import { conceptspaceContracts } from "./src/indexing/conceptspaceContracts";
-import { fundingContracts } from "./src/indexing/fundingContracts";
-import {
-  readIndexerContractCapability,
-  selectIndexerContracts,
-} from "./src/indexing/contractCapabilities";
 import {
   getActiveChains,
   installHostedRpcGuards,
@@ -14,20 +9,12 @@ import {
 } from "./src/indexing/ponderEnv";
 
 /**
- * Shared production feed. `INDEXER_CONTRACTS=conceptspace` still loads this
- * file, including funding ABIs. A process that must not load them uses
- * `ponder.conceptspace.config.ts` instead.
+ * Conceptspace-only Ponder entry. Does not import funding contract modules,
+ * so assurance, delegation, and content-funding ABIs stay out of the process.
+ * Financial HTTP routes in `src/api` are still part of the indexer package.
  */
 const context = loadIndexerDeploymentContext();
 installHostedRpcGuards(context);
-
-const contracts = selectIndexerContracts(
-  {
-    ...conceptspaceContracts(context),
-    ...fundingContracts(context),
-  },
-  readIndexerContractCapability(process.env.INDEXER_CONTRACTS),
-);
 
 export default createConfig({
   database:
@@ -37,5 +24,5 @@ export default createConfig({
         ? { kind: "postgres" }
         : undefined,
   chains: getActiveChains(context) as unknown as CreateConfigArgs["chains"],
-  contracts,
+  contracts: conceptspaceContracts(context),
 });
