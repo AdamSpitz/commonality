@@ -1,16 +1,20 @@
 # Separating Conceptspace from funding
 
-Date: 2026-09-23. Status: analysis and recommendation, **not an approved extraction plan**. No implementation changes accompany this document.
+Date: 2026-09-23. Updated the same day. Status: **in-repo dependency direction, not an extraction.** Do not split git history. No second repository until a later, separate decision.
 
-## Recommendation
+## Decision
 
-**Yes: this is a sensible boundary and a feasible extraction, but it is more than moving the directories named `conceptspace`.** The underlying statements/implications contracts are already independent of funding. The complete non-financial experience is not: UI composition, identity enrichment, publication tooling, configuration, and deployment still cross the proposed boundary.
+Conceptspace is an underlying horizontal layer (expressing beliefs, relating statements, publishing collections, finding wording and common ground). Civility and CSM are vertical products composed on top of shared pieces. Both separations are good ideas, for different reasons. Which one matters more changes; neither requires a new repository right now.
 
-I would create one Conceptspace repository containing a small set of packages, services, and a usable Tally application. It would own **expressing beliefs, relating statements, publishing collections of them, and helping people find wording and common ground**. Commonality would own funding mechanisms and applications that connect that substrate to money. Commonality would consume versioned Conceptspace packages; Conceptspace would not import Commonality funding packages.
+The work now is:
 
-The most important test of the boundary is: **can someone install, run, and use signing and mediation without deploying a funding contract, configuring a payment token, or operating the funding application?** Repository separation is valuable when the answer is yes.
+- **Dependencies point one way.** Conceptspace modules do not import funding, content-funding, LazyGiving, or a vertical application. Funding and verticals may import Conceptspace. Enforce that in the workspace so the wrong direction cannot creep back.
+- **Tally is a non-financial composition.** It uses shared Conceptspace components and adds only its own non-financial screens. It does not mount funding routes or funding widgets.
+- **Commonality composes the same components and adds funding.** Do not put optional slots, render props, or feature flags on the Tally pages so Commonality can inject funding. Each application owns its pages and mixes in the shared pieces it wants.
 
-This fits the existing direction in [technical UI domains](ui-domains.md#future-direction-per-vertical-repo-split-decided-2026-06-22), which already calls for independent repositories consuming published packages. That note proposes Civility first as the smallest packaging exercise. Prioritizing Conceptspace instead would be a different sequencing choice, justified by independence of the non-financial product. It is a larger first extraction. The note's assertion that the UI feature graph is nearly flat is no longer a sufficient description of the inspected code: Tally's statement and settings pages import funding features directly.
+The test of the boundary stays the same: a Tally build and journey that signs, mediates, and publishes with no funding contract, payment token, or funding module in the graph. A second journey shows Commonality still using those statements to fund a project. Chain identity stays shared. Source layout is not a reason to fork beliefs.
+
+Extracting Civility or CSM as their own verticals remains a separate, later packaging choice, as in [technical UI domains](ui-domains.md#future-direction-per-vertical-repo-split-decided-2026-06-22). That note's "nearly flat feature graph" is stale: Tally currently reaches funding by mounting Conceptspace pages that import it. Fix the direction here first. A top-level `conceptspace/` folder is optional packaging after the import rule holds, not the first step. Copying this monorepo into two git histories is explicitly out of scope.
 
 ## Why it makes sense—and what it does not accomplish
 
@@ -69,16 +73,22 @@ Introduce a minimal transport/publication context and explicit capability-specif
 
 Split ABI exports and decoder imports as well. [eventDecoder.ts](../../sdk/src/utils/eventDecoder.ts) re-exports all domains, and [ABI synchronization](../../sdk/scripts/sync-abis.ts) assumes a sibling Hardhat tree containing all contracts. Published artifacts must have reproducible ABI provenance without needing the other repository's source tree. Existing subsystem exports are a head start, not independent installable packages yet.
 
-### 2. Remove financial composition from Tally's core pages
+### 2. Compose Tally and Commonality from shared components
 
-These are real reverse dependencies in today's non-financial experience:
+Tally does not have its own statement or settings screens. [Its manifest](../../ui/src/domains/tally/manifest.tsx) lazy-loads Conceptspace pages, and those pages import funding. What the Tally UI pulls in today:
 
-- [StatementPage](../../ui/src/conceptspace/pages/StatementPage.tsx) imports `FundingPortalSummary` and `ContentSubmissionForm`.
-- [SettingsPage](../../ui/src/conceptspace/pages/SettingsPage.tsx) imports project discovery/alignment settings from `fundingportals`.
-- [Tally's manifest](../../ui/src/domains/tally/manifest.tsx) includes funding-portal and funding-leaderboard routes.
-- `ui/src/shared/` itself contains project caches and currency helpers. Its folder name does not make all its contents neutral.
+| Surface | Funding dependency |
+|---|---|
+| Routes `/portal/:statementCid` and `/portal/:statementCid/leaderboard` | `StatementFundingPortalPage` and `CauseLeaderboardPage` from `fundingportals` |
+| [StatementPage](../../ui/src/conceptspace/pages/StatementPage.tsx) | `FundingPortalSummary` (`fundingportals`); `ContentSubmissionForm` (`content-funding`); [StatementSupportingContent](../../ui/src/conceptspace/components/StatementSupportingContent.tsx), which reads `@commonality/sdk/content-funding` and renders `ContentAttestationSummary` |
+| [SettingsPage](../../ui/src/conceptspace/pages/SettingsPage.tsx) | `DiscoverySlider`, `AlignmentFilterToggle`, and their hooks from `fundingportals` (project discovery and alignment filtering). [LinkedSocialAccountsSection](../../ui/src/conceptspace/components/settings/LinkedSocialAccountsSection.tsx) verifies handles through content-funding's `useClaimFlow` |
+| [HomePage](../../ui/src/conceptspace/pages/HomePage.tsx), mounted at Tally `/start` | Cards that link to LazyGiving `/projects` and content-funding `/content/twitter` |
 
-Make reusable statement/profile/settings components accept optional application sections, or compose them in downstream wrapper pages. Tally gets the non-financial sections; Commonality adds funding sections. Replace cross-product route assumptions with configurable links. A hidden button or runtime feature flag is insufficient if a standalone build still imports and requires the funding implementation.
+Commonality already has its own [statement page](../../ui/src/commonality/pages/StatementPage.tsx) and [settings page](../../ui/src/commonality/pages/SettingsPage.tsx). The settings page is the shape to keep: it imports `DirectTrustSettingsSection` and `NudgerSettingsSection` from Conceptspace and renders funding discovery controls itself. The statement page is not there yet; it reimplements signing instead of reusing the Conceptspace statement components, and it adds `CauseBoard`, `CauseLeaderboard`, and cause funding.
+
+Move the funding-free pieces (statement rendering, belief controls, support metrics, suggestions, high-profile signers, trust and nudger settings sections) behind the Conceptspace public exports if they are not already. Tally's pages import those and nothing from `fundingportals`, `content-funding`, or `lazy-giving`. Commonality's pages import the same pieces and add funding sections in the Commonality file. Do not add optional slots to the shared components or to the Tally pages. Delete the funding routes from the Tally manifest. Replace Tally home cards that point at funding products with Tally's own next steps, or drop them.
+
+`ui/src/shared/` contains project caches and currency helpers. Its folder name does not make those neutral. Conceptspace components must not import them. A hidden button or runtime flag is insufficient if Tally still imports the funding implementation.
 
 ### 3. Separate social identity from payout ownership
 
@@ -110,9 +120,9 @@ Keep generic LLM, worker and HTTP support reusable without mandating paid APIs. 
 
 Deployment manifests, environment generation, Compose, CI, seeds, gateways, SDK ABI generation, and the MCP tool registry need the same composition boundary. [MCP tools](../../mcp/src/tools.ts), for example, currently mix statement operations and `get_project`. Transfer the relevant tests, fixtures and operator docs with each capability. Audit `published-data-ipfs-mirror`, `coherence-badge-worker`, and trust-bootstrap tooling by dependencies and intended consumers rather than moving or retaining them solely by name.
 
-## A workable repository shape
+## A later repository shape
 
-Use one new repo with several packages, not a new repo per primitive. A reasonable starting shape is:
+Not the current milestone. If extraction happens later, use one new repo with several packages, not a new repo per primitive. A reasonable shape then is:
 
 ```text
 conceptspace/
@@ -135,10 +145,12 @@ Keep data identity stable across both repos: chain IDs, deployed contract addres
 
 ## Sequence and readiness test
 
-1. **First, inside this repo:** define the package APIs and allowed dependency direction; split machinery/ABI exports; remove the concrete reverse dependencies above. Enforce imports so new funding dependencies cannot creep back into the neutral modules.
-2. **Build a standalone slice:** Tally plus human mediation/publication and the required contracts/indexer. Add implication/nudger services as optional separately runnable components. Build and test this slice with all funding addresses and services absent.
-3. **Prove packaging:** install packed release artifacts into an isolated temporary consumer outside workspace resolution. Run Commonality against those same artifacts. This catches relative paths, undeclared dependencies, build-order assumptions and accidental access to hoisted workspace packages.
-4. **Only then extract:** move source history where practical, transfer tests/docs/CI, establish versioning and releases, and replace local dependencies in Commonality. Retain compatibility adapters for existing applications during the transition.
+Do this in the current repository. Do not split git history as part of it.
+
+1. **UI composition first.** Export the shared non-financial components. Point Tally's statement, settings, and home pages at those components only. Move funding widgets and routes to Commonality pages that mix the same components with funding. This is the current priority.
+2. **Enforce the direction.** A workspace lint or project-reference rule: Conceptspace UI and its SDK entry must not import funding, content-funding, LazyGiving, or an application vertical. Funding and verticals may import Conceptspace. Cover the social-verification edge (`useClaimFlow`) and `StatementSupportingContent`, not only the obvious page imports.
+3. **Then the other concrete edges in this document**, still in-repo: capability-specific SDK config and ABI exports, a neutral profile interface so verified social handles are optional, publication and bridge formats below both UIs, and a Conceptspace-only indexer and service list. No dummy zero addresses.
+4. **Prove the journeys** below. A second git repository, packed external installs, Civility extraction, and CSM extraction are later decisions. They become mostly release and ownership work once the import rule already holds.
 
 The standalone acceptance journey should cover publishing and signing a statement, withdrawing/changing belief, implication-derived support, trust selection, subscribing to and muting a human mediator, publishing a bridge triple/cluster, following its parent→modified nudge, and resolving/retracting versioned publications. No step should require a financial service. Run a second integration journey proving Commonality can still use those same statements and attestations to show and fund a project. Check old links/documents remain readable and unavailable optional integrations are absent or explained rather than silently broken.
 
@@ -146,11 +158,9 @@ Do not make complete CSM rebranding, a wallet redesign, replacing Ponder/IPFS, o
 
 ## Effort and timing
 
-**High feasibility; medium-to-large refactoring effort; low need for protocol redesign.** The contract source move is likely the easy part. UI/identity/publication seams and independent deployment are the work most likely to consume time. Treat this as several focused stages, not a weekend directory move.
+**High feasibility; the UI composition is the small first stage; low need for protocol redesign.** Moving contract source would be the easy part of a later extraction and is not this stage. UI composition and the import rule are the work now. Identity, publication formats, SDK machinery, and deployment composition remain real, and they stay in this repo until a later decision.
 
-For planning only, one developer could reasonably budget several weeks for a credible standalone extraction and consumer migration, with a broader roughly 3–8 week envelope depending on required social-identity parity, deployment polish and concurrent changes. This is an inspection-based estimate, not a measured task breakdown. A minimal package-only extraction is smaller but would not by itself satisfy the standalone-user goal.
-
-The best preparatory work even if extraction is postponed is: **make Tally run without funding configuration, isolate verified social identity, and put cause/bridge publication formats below both the UI and services.** Those changes improve the current system and directly test the proposed boundary. Once they exist, repo separation becomes mostly a release/ownership decision.
+The stage that matches the current decision is: **Tally's pages omit funding by composing shared components, Commonality's pages add funding themselves, and the workspace rejects an import in the wrong direction.** Repository separation stays a later ownership choice, not a milestone of this work.
 
 ## Evidence limits
 
