@@ -33,6 +33,11 @@ export function isCauseAssistPath(path: string): path is CauseAssistPath {
   return (CAUSE_ASSIST_PATHS as readonly string[]).includes(path)
 }
 
+/** True when the four funding core addresses are set. Conceptspace-only env omits them. */
+export function mcpFundingConfigured(): boolean {
+  return loadFundingAddresses().assuranceContractFactory !== undefined
+}
+
 function loadFundingAddresses(): Partial<FundingContractAddresses> {
   const assuranceContractFactory = address('ASSURANCE_CONTRACT_FACTORY_ADDRESS')
   const erc1155Factory = address('ERC1155_FACTORY_ADDRESS')

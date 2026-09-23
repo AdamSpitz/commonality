@@ -4,7 +4,6 @@ import type { IpfsCidV1 } from '@commonality/sdk/utils'
 import { fetchFromIPFS, uploadToIPFS, createWriteClients } from '@commonality/sdk/utils'
 import { getStatementWithContent, getImplicationsFrom, getImplicationsTo, getUserBelief, believeStatement } from '@commonality/sdk/conceptspace'
 import { getUserRef } from '@commonality/sdk/mutable-refs'
-import { getProject } from '@commonality/sdk/lazy-giving'
 import { BeliefsAbi } from '@commonality/sdk/abis'
 import { requireConceptspaceContractAddress } from '@commonality/sdk/machinery'
 import { errorResult, textResult } from './json.js'
@@ -24,14 +23,13 @@ function requireWrites() {
   return config
 }
 
-export const TOOL_NAMES = [
+export const CONCEPTSPACE_TOOL_NAMES = [
   'get_statement',
   'fetch_ipfs',
   'get_implications_from',
   'get_implications_to',
   'get_user_belief',
   'get_user_ref',
-  'get_project',
   'indexer_status',
   'cause_assist',
   'implication_attester_status',
@@ -112,17 +110,6 @@ function registerReadTools(server: McpServer): void {
       return textResult(ref)
     },
   )
-
-  server.tool(
-    'get_project',
-    'Fold a LazyGiving assurance-contract address into project state.',
-    { address: z.string().describe('Assurance contract address') },
-    async ({ address }) => {
-      const project = await getProject(getMachinery(), address)
-      return textResult(project)
-    },
-  )
-
 }
 
 function registerHttpTools(server: McpServer): void {
