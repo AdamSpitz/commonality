@@ -97,6 +97,8 @@ Bundle selection flags:
 - `BRIDGE_CREATOR_ENABLED`
 - `EXPLORER_CURATOR_ENABLED` (defaults to `false`; Commonality does not run an explorer, [ADR 0014](../specs/decisions/0014-no-operated-generic-explorer.md))
 
+`SERVICE_HOST_CAPABILITY=conceptspace` starts only the non-financial services (implication finder, implication nudger, bridge creator, explorer curator, implication attester, beat memory). Funding enable flags are ignored, and a funding name in `SERVICE_HOST_INSTANCES` fails startup. The default is `all`. `npm run dev:conceptspace` sets the variable.
+
 Shared env vars used by multiple enabled services:
 
 - `PORT` or `SERVICE_HOST_PORT`

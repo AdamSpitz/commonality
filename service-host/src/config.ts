@@ -38,6 +38,25 @@ export const fundingServiceKinds = [
 
 export type FundingServiceKind = (typeof fundingServiceKinds)[number];
 
+export type HostCapability = 'all' | 'conceptspace';
+
+/** Default `all` keeps the combined host. `conceptspace` is the non-financial process. */
+export function parseHostCapability(value: string | undefined): HostCapability {
+  if (value === undefined || value === '' || value === 'all') return 'all';
+  if (value === 'conceptspace') return 'conceptspace';
+  throw new Error(
+    `Invalid SERVICE_HOST_CAPABILITY "${value}". Expected all or conceptspace.`,
+  );
+}
+
+export function assertConceptspaceServiceKind(kind: ServiceKind): void {
+  if (!(conceptspaceServiceKinds as readonly string[]).includes(kind)) {
+    throw new Error(
+      `Service kind "${kind}" is a funding service. A Conceptspace host cannot start it.`,
+    );
+  }
+}
+
 export interface HostedServiceConfig {
   name: string;
   kind: ServiceKind;
