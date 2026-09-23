@@ -413,13 +413,18 @@ async function main() {
 
   let needsAdminAcceptance = false;
   if (!isLocal && !planOnly) {
-    for (const name of ['BeneficiaryVerifier', 'BeneficiaryIdentity', 'BeneficiaryRegistry']) {
+    for (const name of ['BeneficiaryVerifier', 'BeneficiaryIdentity']) {
       const c = await ethers.getContractAt(name, addresses[name]);
       if (ethers.getAddress(await c.owner()) !== contractAdminAddress) {
         const pending = ethers.getAddress(await c.pendingOwner());
         if (pending !== contractAdminAddress) await (await c.transferOwnership(contractAdminAddress)).wait();
         needsAdminAcceptance = true;
       }
+    }
+    // BeneficiaryRegistry is Ownable, not Ownable2Step: transfer lands immediately.
+    const registry = await ethers.getContractAt('BeneficiaryRegistry', addresses.BeneficiaryRegistry);
+    if (ethers.getAddress(await registry.owner()) !== contractAdminAddress) {
+      await (await registry.transferOwnership(contractAdminAddress)).wait();
     }
     const d = await ethers.getContractAt('DelegatableNotes', addresses.DelegatableNotes);
     if (ethers.getAddress(await d.owner()) !== contractAdminAddress) await (await d.transferOwnership(contractAdminAddress)).wait();

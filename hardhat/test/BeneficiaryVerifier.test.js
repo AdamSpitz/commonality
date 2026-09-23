@@ -194,6 +194,26 @@ describe("BeneficiaryVerifier", function () {
       expect(await beneficiaryRegistry.payoutAddress(channelId)).to.equal(alice.address);
     });
 
+    it("Should refuse to adopt an identity for a wallet that does not own it", async function () {
+      const BeneficiaryIdentity = await ethers.getContractFactory("BeneficiaryIdentity");
+      const beneficiaryIdentity = await BeneficiaryIdentity.deploy(await verifier.getAddress());
+      const BeneficiaryRegistry = await ethers.getContractFactory("BeneficiaryRegistry");
+      const beneficiaryRegistry = await BeneficiaryRegistry.deploy(await beneficiaryIdentity.getAddress());
+
+      const latestBlock = await ethers.provider.getBlock("latest");
+      const deadline = latestBlock.timestamp + 3600;
+      const signature = await signClaimProof(trustedSigner, verifier, channelId, alice.address, nonce, deadline);
+      await beneficiaryIdentity.verifyBeneficiary(channelId, alice.address, nonce, deadline, proofHash, signature);
+
+      await expect(beneficiaryRegistry.verifyBeneficiary(channelId, bob.address, nonce, deadline, proofHash, signature))
+        .to.be.revertedWithCustomError(beneficiaryRegistry, "ClaimantIsNotIdentityOwner")
+        .withArgs(channelId, bob.address);
+      expect(await beneficiaryRegistry.payoutAddress(channelId)).to.equal(ethers.ZeroAddress);
+
+      await beneficiaryRegistry.verifyBeneficiary(channelId, alice.address, nonce, deadline, proofHash, signature);
+      expect(await beneficiaryRegistry.payoutAddress(channelId)).to.equal(alice.address);
+    });
+
     it("Should reject channel verification with a forged signature", async function () {
       const BeneficiaryIdentity = await ethers.getContractFactory("BeneficiaryIdentity");
       const beneficiaryIdentity = await BeneficiaryIdentity.deploy(await verifier.getAddress());

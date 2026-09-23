@@ -83,6 +83,15 @@ export function assertIndexerContractPartition(names: readonly string[]): void {
   }
 }
 
+/** Conceptspace indexing skips funding contracts. The shared feed indexes both. */
+export function indexerContractEnabled(
+  contractName: string,
+  capability: IndexerContractCapability,
+): boolean {
+  if (capability === "all") return true;
+  return conceptspaceNames.has(contractName);
+}
+
 export function selectIndexerContracts<T extends Record<string, unknown>>(
   contracts: T,
   capability: IndexerContractCapability,

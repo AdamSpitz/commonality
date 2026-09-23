@@ -69,6 +69,22 @@ export const BeneficiaryRegistryAbi = [
     "type": "error"
   },
   {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "beneficiaryId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "address",
+        "name": "claimant",
+        "type": "address"
+      }
+    ],
+    "name": "ClaimantIsNotIdentityOwner",
+    "type": "error"
+  },
+  {
     "inputs": [],
     "name": "InvalidBeneficiaryIdentity",
     "type": "error"

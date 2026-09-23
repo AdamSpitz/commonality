@@ -4,9 +4,16 @@ import {
   conceptspaceContractNames,
   fundingContractNames,
   fundingIndexerRoutesEnabled,
+  indexerContractEnabled,
   readIndexerContractCapability,
   selectIndexerContracts,
 } from "./contractCapabilities";
+
+test("conceptspace indexing does not enable funding contracts", () => {
+  assert.equal(indexerContractEnabled("BeneficiaryIdentity", "conceptspace"), true);
+  assert.equal(indexerContractEnabled("DelegatableNotes", "conceptspace"), false);
+  assert.equal(indexerContractEnabled("DelegatableNotes", "all"), true);
+});
 
 test("conceptspace and funding contract names do not overlap", () => {
   const funding = new Set<string>(fundingContractNames);

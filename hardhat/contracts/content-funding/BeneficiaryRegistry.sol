@@ -20,6 +20,7 @@ error ProjectAlreadyDisavowed(bytes32 beneficiaryId, address project);
 error ProjectNotDisavowed(bytes32 beneficiaryId, address project);
 error InvalidIdentityAddress();
 error InvalidBeneficiaryIdentity();
+error ClaimantIsNotIdentityOwner(bytes32 beneficiaryId, address claimant);
 error ClaimWaitingPeriodNotElapsed(uint256 withdrawableAt);
 
 /**
@@ -220,7 +221,8 @@ contract BeneficiaryRegistry is IBeneficiaryRegistry, Ownable {
 
     /**
      * @notice Record a proof on BeneficiaryIdentity, then copy that owner in as the payout address.
-     * @dev If the identity was already claimed, this only adopts it. A second adopt reverts.
+     * @dev If the identity was already claimed by `claimant`, this only adopts it.
+     *      A different claimant reverts. A second adopt reverts.
      */
     function verifyBeneficiary(
         bytes32 beneficiaryId,
@@ -232,6 +234,8 @@ contract BeneficiaryRegistry is IBeneficiaryRegistry, Ownable {
     ) external {
         if (!identity.isClaimed(beneficiaryId)) {
             identity.verifyBeneficiary(beneficiaryId, claimant, nonce, deadline, proofHash, verifierSignature);
+        } else if (identity.ownerOf(beneficiaryId) != claimant) {
+            revert ClaimantIsNotIdentityOwner(beneficiaryId, claimant);
         }
         _adopt(beneficiaryId);
     }
@@ -264,6 +268,8 @@ contract BeneficiaryRegistry is IBeneficiaryRegistry, Ownable {
                 proofHash,
                 verifierSignature
             );
+        } else if (identity.ownerOf(beneficiaryId) != claimant) {
+            revert ClaimantIsNotIdentityOwner(beneficiaryId, claimant);
         }
         _adopt(beneficiaryId);
     }
