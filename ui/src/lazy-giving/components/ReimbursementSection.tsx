@@ -4,7 +4,8 @@ import { donateRetroactive, forgoReimbursement, withdrawReimbursement } from '@c
 import { AssuranceContractAbi } from '@commonality/sdk/abis'
 import { parseUnits } from 'viem'
 import { useState } from 'react'
-import { formatCurrencyAmount, humanizeTxError, useWriteClients } from '../../shared'
+import { humanizeTxError, useWriteClients } from '../../shared'
+import { formatCurrencyAmount } from '../../shared/funding'
 
 interface ReimbursementSectionProps {
   project: Project

@@ -95,7 +95,7 @@ Commonality already has its own [statement page](../../ui/src/commonality/pages/
 
 Move the funding-free pieces (statement rendering, belief controls, support metrics, suggestions, high-profile signers, trust and nudger settings sections) behind the Conceptspace public exports if they are not already. Tally's pages import those and nothing from `fundingportals`, `content-funding`, or `lazy-giving`. Commonality's pages import the same pieces and add funding sections in the Commonality file. Do not add optional slots to the shared components or to the Tally pages. Delete the funding routes from the Tally manifest. Replace Tally home cards that point at funding products with Tally's own next steps, or drop them.
 
-`ui/src/shared/` contains project caches and currency helpers. Its folder name does not make those neutral. Conceptspace components must not import them. A hidden button or runtime flag is insufficient if Tally still imports the funding implementation.
+`ui/src/shared/` still contains project caches and currency helpers on disk. Those exports are not on the main barrel. Funding pages import them from `shared/funding` (`@ui/shared/funding`). Conceptspace and Tally import the main barrel only, and ESLint rejects `shared/funding` from `ui/src/conceptspace/**` and `ui/src/domains/tally/**`. A hidden button or runtime flag is insufficient if Tally still imports the funding implementation.
 
 ### 3. Separate social identity from payout ownership
 

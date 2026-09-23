@@ -187,8 +187,8 @@ export default defineConfig([
           // `ignores` so the module's own files can import their own internals;
           // the two test files that need a real module namespace for `vi.spyOn`
           // carry an inline `eslint-disable-next-line no-restricted-imports`.
-          regex: '(?:(?:\\.{1,2}/)+|@ui/)shared/(?!components/AppShell(?:/|$)|components/WalletButton(?:/|$)|wallet(?:/|$))',
-          message: 'Import shared through its public barrel ("…/shared"), not deep paths. (AppShell/WalletButton/wallet are allowed as heavy subpath entry points.) See docs/founder/standing-up-a-vertical.md.',
+          regex: '(?:(?:\\.{1,2}/)+|@ui/)shared/(?!components/AppShell(?:/|$)|components/WalletButton(?:/|$)|wallet(?:/|$)|funding(?:/|$))',
+          message: 'Import shared through its public barrel ("…/shared"), not deep paths. (AppShell/WalletButton/wallet are heavy subpath entry points. funding is the payment and project-cache entry.) See docs/founder/standing-up-a-vertical.md.',
         }],
       }],
     },
@@ -216,7 +216,15 @@ export default defineConfig([
           },
           {
             regex: '(?:(?:\\.{1,2}/)+|@ui/)shared/(?!components/AppShell(?:/|$)|components/WalletButton(?:/|$)|wallet(?:/|$))',
-            message: 'Import shared through its public barrel ("…/shared"), not deep paths. (AppShell/WalletButton/wallet are allowed as heavy subpath entry points.) See docs/founder/standing-up-a-vertical.md.',
+            message: 'Import shared through its public barrel ("…/shared"), not deep paths. Conceptspace and Tally must not import shared/funding. See specs/tech/conceptspace-repo-split-analysis.md.',
+          },
+          {
+            group: [
+              '**/shared/funding',
+              '**/shared/funding/**',
+              '@ui/shared/funding',
+            ],
+            message: 'Conceptspace and Tally must not import payment-token formatting or project caches. See specs/tech/conceptspace-repo-split-analysis.md.',
           },
         ],
       }],

@@ -23,8 +23,8 @@ import { getDomainUrl, StatementPicker, useMachinery } from '../../shared'
 import { noteDetailPathFor } from '../utils'
 import { useWriteClients } from '../../shared'
 import { truncateAddress } from '../utils'
-import { DEFAULT_PAYMENT_CURRENCY, getConfiguredPaymentCurrency } from '../../shared'
-import { usePaymentTokenCurrency } from '../../shared'
+import { DEFAULT_PAYMENT_CURRENCY, getConfiguredPaymentCurrency } from '../../shared/funding'
+import { usePaymentTokenCurrency } from '../../shared/funding'
 import { AddressPicker, type AddressPickerStatus } from '../../shared'
 
 function getDelegationContract(): DelegatableNotesContract | null {

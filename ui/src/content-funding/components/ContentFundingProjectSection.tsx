@@ -10,7 +10,8 @@ import {
 } from '@mui/material'
 import { alpha } from '@mui/material/styles'
 import { Link as RouterLink, useSearchParams } from 'react-router-dom'
-import { formatCurrencyAmount, InfoChip } from '../../shared'
+import { InfoChip } from '../../shared'
+import { formatCurrencyAmount } from '../../shared/funding'
 import {
   FAN_CREATED_TOOLTIP,
   CHANNEL_STATE_TOOLTIPS,

@@ -18,7 +18,7 @@ import {
 import { useProjectDisavowals } from '../hooks/useProjectDisavowals'
 import { getProjectStatus, computeUserTokenBalance } from '../utils'
 import { getEventCacheUrl, useMachinery } from '../../shared'
-import { useCachedProject } from '../../shared'
+import { useCachedProject } from '../../shared/funding'
 import { AlignmentAttestationsSection } from '../../fundingportals'
 import { ContentFundingProjectSection, useContentFundingState } from '../../content-funding'
 import { hashCanonicalId } from '@commonality/sdk/content-funding'

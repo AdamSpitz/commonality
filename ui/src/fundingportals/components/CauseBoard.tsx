@@ -25,11 +25,7 @@ import {
 import type { IpfsCidV1 } from '@commonality/sdk/utils'
 import { useMachinery } from '../../shared'
 import {
-  DEFAULT_PAYMENT_CURRENCY,
   boardSnapshotCacheOptions,
-  formatCurrencyAmount,
-  formatCurrencyTotals,
-  getConfiguredPaymentCurrency,
   getDomainUrl,
   loadBoardMetricsSnapshot,
   saveBoardMetricsSnapshot,
@@ -38,6 +34,7 @@ import {
   useTrustedContentAttesters,
   TrustNetworkRefreshIndicator,
 } from '../../shared'
+import { DEFAULT_PAYMENT_CURRENCY, formatCurrencyAmount, formatCurrencyTotals, getConfiguredPaymentCurrency } from '../../shared/funding'
 import {
   selectAlignedContentContracts,
   useContentFundingState,

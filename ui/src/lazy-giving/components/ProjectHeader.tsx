@@ -11,7 +11,8 @@ import {
   DEADLINE_OPEN_TOOLTIP,
   formatRelativeDeadline,
 } from '../utils'
-import { truncateAddress, formatCurrencyRaised, InfoChip, InfoLabel } from '../../shared'
+import { truncateAddress, InfoChip, InfoLabel } from '../../shared'
+import { formatCurrencyRaised } from '../../shared/funding'
 import { WebsiteBeneficiaryClaimChip } from './WebsiteBeneficiaryClaimChip'
 import { dnsBeneficiaryDomain, WebsiteBeneficiaryMark } from './WebsiteBeneficiaryMark'
 

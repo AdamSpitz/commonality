@@ -30,7 +30,7 @@ import { getNotesByOwner, getNotesByRoot, getDelegationChain, getDonationActivit
 import type { Currency, IpfsCidV1 } from '@commonality/sdk/utils'
 import { getDomainUrl, useMachinery } from '../../shared'
 import { useWriteClients } from '../../shared'
-import { formatCurrencyAmount, getCurrencyForNote } from '../../shared'
+import { formatCurrencyAmount, getCurrencyForNote } from '../../shared/funding'
 import { formatNoteAmount, isDelegate, truncateAddress, isEthNote, noteDetailPath, noteScopedKey } from '../utils'
 import { readLazyGivingProjectMetadata } from '../../lazy-giving/metadata'
 

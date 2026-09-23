@@ -21,14 +21,13 @@ import {
   getDomainUrl,
   isDomainConfigured,
   loadAlignedListSnapshot,
-  loadProjectWithCache,
-  projectFoldCacheOptions,
   saveAlignedListSnapshot,
   useMachinery,
   useTrustedContentAttesters,
   useTrustedSet,
   TrustNetworkRefreshIndicator,
 } from '../../shared'
+import { loadProjectWithCache, projectFoldCacheOptions } from '../../shared/funding'
 import {
   selectAlignedContentContracts,
   useContentFundingState,

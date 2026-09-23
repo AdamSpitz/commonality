@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { IpfsCidV1 } from '@commonality/sdk/utils'
-import { getEventCacheUrl, getRuntimeConfigValue, useCachedProjects, useMachinery } from '../../shared'
+import { getEventCacheUrl, getRuntimeConfigValue, useMachinery } from '../../shared'
+import { useCachedProjects } from '../../shared/funding'
 import { loadDisplayDenylist } from '../../shared'
 import { readLazyGivingProjectMetadata, type ProjectMetadata } from '../metadata'
 import { canonicalDnsOrNull, projectsForBeneficiary, type BeneficiaryProjectMatch } from '../projectsForBeneficiary'

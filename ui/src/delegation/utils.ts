@@ -1,5 +1,5 @@
 import type { Note } from '@commonality/sdk/delegation'
-import { formatCurrencyAmount, getCurrencyForNote } from '../shared'
+import { formatCurrencyAmount, getCurrencyForNote } from '../shared/funding'
 
 const ETH_ADDRESS = '0x0000000000000000000000000000000000000000'
 
