@@ -1,12 +1,12 @@
 /**
  * Funding read for a roster's coherence badge.
- * Kept out of causeRoster.ts so the document parser does not import fundingportals.
+ * Kept out of causeRoster.ts. The read uses AlignmentAttestations, not a funding package.
  */
 
 import {
   getSubjectStatements,
   type AlignmentAttestation,
-} from '@commonality/sdk/fundingportals'
+} from '@commonality/sdk/alignment-attestations'
 import type { SDKMachinery } from '@commonality/sdk/machinery'
 import { ROSTER_COHERENCE_CLAIM, ROSTER_COHERENCE_TOPIC } from '@commonality/sdk/displayable-documents'
 import { cidToBytes32 } from '@commonality/sdk/utils'

@@ -4,7 +4,7 @@ import type { RefUpdate } from '@commonality/sdk/mutable-refs'
 const getSubjectStatements = vi.hoisted(() => vi.fn())
 const documentRead = vi.hoisted(() => vi.fn())
 const getStatementWithContent = vi.hoisted(() => vi.fn())
-vi.mock('@commonality/sdk/fundingportals', async (importOriginal) => ({
+vi.mock('@commonality/sdk/alignment-attestations', async (importOriginal) => ({
   ...(await importOriginal<object>()),
   getSubjectStatements,
 }))
