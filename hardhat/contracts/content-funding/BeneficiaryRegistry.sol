@@ -2,12 +2,12 @@
 pragma solidity 0.8.33;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {Guardable} from "../utils/Guardable.sol";
+import {IBeneficiaryIdentity} from "../identity/BeneficiaryIdentity.sol";
 
 error BeneficiaryAlreadyVerified(bytes32 beneficiaryId);
+error BeneficiaryNotClaimed(bytes32 beneficiaryId);
 error BeneficiaryNotVerified(bytes32 beneficiaryId);
 error BeneficiaryAlreadyControlled(bytes32 beneficiaryId);
-error InvalidClaimant();
 error InvalidNewPayoutAddress();
 error OnlyPayoutAddressCanTakeControl();
 error OnlyPayoutAddressCanReleaseControl();
@@ -18,31 +18,10 @@ error InvalidProjectAddress();
 error ProjectNotForBeneficiary(bytes32 beneficiaryId, address project);
 error ProjectAlreadyDisavowed(bytes32 beneficiaryId, address project);
 error ProjectNotDisavowed(bytes32 beneficiaryId, address project);
-error InvalidNonce();
-error ProofExpired();
-error InvalidVerifierSignature();
-error InvalidProofHash();
-error InvalidVerifierAddress();
-error NoVerifierConfigured();
-error VerifierAlreadyRevoked();
+error InvalidIdentityAddress();
 error InvalidBeneficiaryIdentity();
+error ClaimantIsNotIdentityOwner(bytes32 beneficiaryId, address claimant);
 error ClaimWaitingPeriodNotElapsed(uint256 withdrawableAt);
-
-/**
- * @title IBeneficiaryVerifier
- * @notice Interface for verifying beneficiary identity claim proofs
- */
-interface IBeneficiaryVerifier {
-    function verifyClaimProof(
-        bytes32 beneficiaryId,
-        bytes32 namespaceHash,
-        address claimant,
-        bytes32 nonce,
-        uint256 deadline,
-        bytes32 proofHash,
-        bytes calldata verifierSignature
-    ) external view returns (bool);
-}
 
 /**
  * @title IBeneficiaryRegistry
@@ -51,7 +30,6 @@ interface IBeneficiaryVerifier {
 interface IBeneficiaryRegistry {
     function payoutAddress(bytes32 beneficiaryId) external view returns (address);
     function beneficiaryState(bytes32 beneficiaryId) external view returns (uint8);
-    function verifier() external view returns (address);
     function verifyBeneficiary(
         bytes32 beneficiaryId,
         address claimant,
@@ -63,8 +41,6 @@ interface IBeneficiaryRegistry {
     function takeBeneficiaryControl(bytes32 beneficiaryId) external;
     function releaseBeneficiaryControl(bytes32 beneficiaryId) external;
     function rotatePayoutAddress(bytes32 beneficiaryId, address newPayoutAddress) external;
-    function setVerifier(address verifier) external;
-    function revokeVerifier() external;
     function isVerified(bytes32 beneficiaryId) external view returns (bool);
     function isBeneficiaryControlled(bytes32 beneficiaryId) external view returns (bool);
     function isProjectDisavowed(bytes32 beneficiaryId, address project) external view returns (bool);
@@ -80,12 +56,12 @@ interface IBeneficiaryBoundProject {
 
 /**
  * @title BeneficiaryRegistry
- * @notice Tracks beneficiary payout and verification state for shared funding flows
- * @dev Identities progress through Unclaimed -> Verified -> BeneficiaryControlled.
- *      Verification requires a signed proof from an off-chain verifier (the Platform API Service).
- *      Content-only veto and occupancy live on the content factory, not here.
+ * @notice Tracks beneficiary payout and project-control state for funding.
+ * @dev Who proved the identity lives on BeneficiaryIdentity. This contract copies
+ *      that owner in once as the initial payout address. Later rotation, control,
+ *      disavowal, and the claim waiting period stay here.
  */
-contract BeneficiaryRegistry is IBeneficiaryRegistry, Guardable {
+contract BeneficiaryRegistry is IBeneficiaryRegistry, Ownable {
 
     /**
      * @notice Beneficiary lifecycle states
@@ -100,15 +76,13 @@ contract BeneficiaryRegistry is IBeneficiaryRegistry, Guardable {
         BeneficiaryControlled
     }
 
+    IBeneficiaryIdentity public identity;
+
     mapping(bytes32 beneficiaryId => address payout) private _payoutAddresses;
     mapping(bytes32 beneficiaryId => BeneficiaryState) private _beneficiaryStates;
-    mapping(bytes32 nonce => bool) private _usedNonces;
     mapping(bytes32 namespaceHash => uint256 period) public namespaceClaimWaitingPeriod;
     mapping(bytes32 beneficiaryId => uint256 timestamp) private _verifiedAt;
     mapping(bytes32 beneficiaryId => uint256 period) private _appliedClaimWaitingPeriod;
-
-    /// @notice The verifier contract used to validate channel claim proofs (zero once revoked)
-    address public verifier;
 
     mapping(bytes32 beneficiaryId => uint256 timestamp) private _controlTakenAt;
     mapping(bytes32 beneficiaryId => mapping(address project => bool disavowed)) private _projectDisavowed;
@@ -119,17 +93,6 @@ contract BeneficiaryRegistry is IBeneficiaryRegistry, Guardable {
      * @param payoutAddress The address bound to receive beneficiary funds
      */
     event BeneficiaryVerified(bytes32 indexed beneficiaryId, address indexed payoutAddress);
-
-    /**
-     * @notice Emitted with the hash of the public proof artifact used for beneficiary verification.
-     * @dev The hash should be over the durable public proof reference (for example a tweet URL
-     *      or Substack post URL), so anyone can independently re-check verifier honesty.
-     */
-    event BeneficiaryProofAnchored(
-        bytes32 indexed beneficiaryId,
-        address indexed payoutAddress,
-        bytes32 indexed proofHash
-    );
 
     /**
      * @notice Emitted when a verified payout address takes identity control
@@ -175,20 +138,6 @@ contract BeneficiaryRegistry is IBeneficiaryRegistry, Guardable {
     );
 
     /**
-     * @notice Emitted when the verifier contract is updated
-     * @param oldVerifier The previous verifier address
-     * @param newVerifier The new verifier address
-     */
-    event VerifierUpdated(address indexed oldVerifier, address indexed newVerifier);
-
-    /**
-     * @notice Emitted when the verifier contract is revoked, halting all new channel verification
-     * @param revokedVerifier The verifier contract that was trusted until now
-     * @param revokedBy The owner or guardian that called the revocation
-     */
-    event VerifierRevoked(address indexed revokedVerifier, address indexed revokedBy);
-
-    /**
      * @notice Emitted when a namespace's first-claim waiting period is updated
      * @param namespaceHash keccak256 of the namespace string (for example "dns")
      * @param period Seconds that must elapse after verification before first withdrawal
@@ -196,12 +145,11 @@ contract BeneficiaryRegistry is IBeneficiaryRegistry, Guardable {
     event NamespaceClaimWaitingPeriodUpdated(bytes32 indexed namespaceHash, uint256 period);
 
     /**
-     * @notice Initializes the channel registry with a verifier contract
-     * @param _verifier The address of the IBeneficiaryVerifier contract
+     * @param identity_ The BeneficiaryIdentity contract whose proved owner is copied in once
      */
-    constructor(address _verifier) Ownable(msg.sender) {
-        if (_verifier == address(0)) revert InvalidVerifierAddress();
-        verifier = _verifier;
+    constructor(address identity_) Ownable(msg.sender) {
+        if (identity_ == address(0)) revert InvalidIdentityAddress();
+        identity = IBeneficiaryIdentity(identity_);
     }
 
     /**
@@ -272,44 +220,9 @@ contract BeneficiaryRegistry is IBeneficiaryRegistry, Guardable {
     }
 
     /**
-     * @notice Update the verifier contract address
-     * @dev Only callable by the contract owner
-     * @param _verifier The new verifier contract address
-     */
-    function setVerifier(address _verifier) external onlyOwner {
-        if (_verifier == address(0)) revert InvalidVerifierAddress();
-        address oldVerifier = verifier;
-        verifier = _verifier;
-        emit VerifierUpdated(oldVerifier, _verifier);
-    }
-
-    /**
-     * @notice Immediately stop trusting the current verifier contract
-     * @dev Callable by the owner *or* the guardian, so it does not have to wait on the
-     *      timelock that gates `setVerifier`. This is the registry-level counterpart to
-     *      `BeneficiaryVerifier.revokeTrustedVerifier`: use it when the verifier *contract*
-     *      itself is compromised or misbehaving, rather than just its signing key.
-     *      It only reduces power — `verifyBeneficiary` reverts until the owner installs a
-     *      replacement, while every other flow (taking control, escrow withdrawals by
-     *      already-verified owners) is untouched.
-     */
-    function revokeVerifier() external onlyOwnerOrGuardian {
-        address oldVerifier = verifier;
-        if (oldVerifier == address(0)) revert VerifierAlreadyRevoked();
-        verifier = address(0);
-        emit VerifierRevoked(oldVerifier, _msgSender());
-    }
-
-    /**
-     * @notice Verify a beneficiary using a signed proof from the off-chain verifier
-     * @dev Transitions the beneficiary from Unclaimed to Verified. Can only be called once per beneficiary.
-     *      The proof must be signed by the trusted verifier and not expired.
-     * @param beneficiaryId The beneficiary to verify
-     * @param claimant The payout address claiming control of the beneficiary
-     * @param nonce A unique nonce to prevent replay attacks
-     * @param deadline The unix timestamp after which the proof expires
-     * @param proofHash Hash of the durable public proof reference (tweet/RSS URL) checked by the verifier
-     * @param verifierSignature The signature from the off-chain verifier
+     * @notice Record a proof on BeneficiaryIdentity, then copy that owner in as the payout address.
+     * @dev If the identity was already claimed by `claimant`, this only adopts it.
+     *      A different claimant reverts. A second adopt reverts.
      */
     function verifyBeneficiary(
         bytes32 beneficiaryId,
@@ -319,13 +232,18 @@ contract BeneficiaryRegistry is IBeneficiaryRegistry, Guardable {
         bytes32 proofHash,
         bytes calldata verifierSignature
     ) external {
-        _verifyBeneficiary(beneficiaryId, bytes32(0), claimant, nonce, deadline, proofHash, verifierSignature, 0);
+        if (!identity.isClaimed(beneficiaryId)) {
+            identity.verifyBeneficiary(beneficiaryId, claimant, nonce, deadline, proofHash, verifierSignature);
+        } else if (identity.ownerOf(beneficiaryId) != claimant) {
+            revert ClaimantIsNotIdentityOwner(beneficiaryId, claimant);
+        }
+        _adopt(beneficiaryId);
     }
 
     /**
-     * @notice Verify a namespaced beneficiary and apply that namespace's waiting period
-     * @dev `beneficiaryId` is keccak256 of `namespace:canonicalIdentifier`. DNS uses a
-     *      non-zero waiting period so the public proof can be noticed before first withdrawal.
+     * @notice Claim a namespaced identity, then copy its owner in as the payout address.
+     * @dev The waiting period is the namespace period configured here, read from the
+     *      namespace hash the identity contract stored.
      */
     function verifyNamespacedBeneficiary(
         string calldata namespace,
@@ -340,57 +258,44 @@ contract BeneficiaryRegistry is IBeneficiaryRegistry, Guardable {
             revert InvalidBeneficiaryIdentity();
         }
         bytes32 beneficiaryId = keccak256(bytes(string.concat(namespace, ":", canonicalIdentifier)));
-        uint256 waitingPeriod = namespaceClaimWaitingPeriod[keccak256(bytes(namespace))];
-        _verifyBeneficiary(
-            beneficiaryId,
-            keccak256(bytes(namespace)),
-            claimant,
-            nonce,
-            deadline,
-            proofHash,
-            verifierSignature,
-            waitingPeriod
-        );
+        if (!identity.isClaimed(beneficiaryId)) {
+            identity.verifyNamespacedBeneficiary(
+                namespace,
+                canonicalIdentifier,
+                claimant,
+                nonce,
+                deadline,
+                proofHash,
+                verifierSignature
+            );
+        } else if (identity.ownerOf(beneficiaryId) != claimant) {
+            revert ClaimantIsNotIdentityOwner(beneficiaryId, claimant);
+        }
+        _adopt(beneficiaryId);
     }
 
-    function _verifyBeneficiary(
-        bytes32 beneficiaryId,
-        bytes32 namespaceHash,
-        address claimant,
-        bytes32 nonce,
-        uint256 deadline,
-        bytes32 proofHash,
-        bytes calldata verifierSignature,
-        uint256 waitingPeriod
-    ) private {
+    /**
+     * @notice Copy an already-proved owner in as the initial payout address.
+     * @dev Use this when the identity was claimed without a funding registry present.
+     *      A later identity proof cannot replace an adopted payout address.
+     */
+    function adoptBeneficiary(bytes32 beneficiaryId) external {
+        _adopt(beneficiaryId);
+    }
+
+    function _adopt(bytes32 beneficiaryId) private {
         if (_beneficiaryStates[beneficiaryId] >= BeneficiaryState.Verified) {
             revert BeneficiaryAlreadyVerified(beneficiaryId);
         }
-        if (claimant == address(0)) revert InvalidClaimant();
-        if (_usedNonces[nonce]) revert InvalidNonce();
-        if (block.timestamp > deadline) revert ProofExpired();
-        if (proofHash == bytes32(0)) revert InvalidProofHash();
-        if (verifier == address(0)) revert NoVerifierConfigured();
+        address owner = identity.ownerOf(beneficiaryId);
+        if (owner == address(0)) revert BeneficiaryNotClaimed(beneficiaryId);
 
-        bool validProof = IBeneficiaryVerifier(verifier).verifyClaimProof(
-            beneficiaryId,
-            namespaceHash,
-            claimant,
-            nonce,
-            deadline,
-            proofHash,
-            verifierSignature
-        );
-        if (!validProof) revert InvalidVerifierSignature();
-
-        _usedNonces[nonce] = true;
-        _payoutAddresses[beneficiaryId] = claimant;
+        _payoutAddresses[beneficiaryId] = owner;
         _beneficiaryStates[beneficiaryId] = BeneficiaryState.Verified;
         _verifiedAt[beneficiaryId] = block.timestamp;
-        _appliedClaimWaitingPeriod[beneficiaryId] = waitingPeriod;
+        _appliedClaimWaitingPeriod[beneficiaryId] = namespaceClaimWaitingPeriod[identity.namespaceHashOf(beneficiaryId)];
 
-        emit BeneficiaryVerified(beneficiaryId, claimant);
-        emit BeneficiaryProofAnchored(beneficiaryId, claimant, proofHash);
+        emit BeneficiaryVerified(beneficiaryId, owner);
     }
 
     /**

@@ -90,7 +90,7 @@ describe('domain manifest home routes', () => {
     renderDomainRoute('alignment')
 
     expectRoutePageRendered()
-    expectLinkToHref('/explore')
+    expectLinkToHref('/docs/alignment/how-alignment-works')
   })
 
   it('lazyGiving redirects /delegation to /delegation/notes', () => {

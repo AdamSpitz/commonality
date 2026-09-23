@@ -207,6 +207,10 @@ services:
         sync: false  # from-env: PUBLISHED_DATA_CONTRACT_ADDRESS
       - key: PUBLISHED_DATA_START_BLOCK
         sync: false  # from-env: PUBLISHED_DATA_START_BLOCK
+      - key: BENEFICIARY_IDENTITY_ADDRESS
+        sync: false  # from-env: BENEFICIARY_IDENTITY_ADDRESS
+      - key: BENEFICIARY_IDENTITY_START_BLOCK
+        sync: false  # from-env: BENEFICIARY_IDENTITY_START_BLOCK
       - key: CONTENT_REGISTRY_ADDRESS
         sync: false  # from-env: CONTENT_REGISTRY_ADDRESS
       - key: BENEFICIARY_REGISTRY_ADDRESS
@@ -451,6 +455,8 @@ services:
         sync: false  # Secret: Coinbase Onramp session-token API key id
       - key: COINBASE_CDP_API_KEY_SECRET
         sync: false  # Secret: Coinbase Onramp session-token private key
+      - key: BENEFICIARY_IDENTITY_ADDRESS
+        sync: false  # from-env: BENEFICIARY_IDENTITY_ADDRESS
       - key: BENEFICIARY_REGISTRY_ADDRESS
         sync: false  # from-env: BENEFICIARY_REGISTRY_ADDRESS
       - key: BENEFICIARY_VERIFIER_ADDRESS

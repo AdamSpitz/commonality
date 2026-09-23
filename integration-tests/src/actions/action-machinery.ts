@@ -16,6 +16,7 @@ export function createActionTestingMachinery(): ActionTestingMachinery {
   const publicClient = createPublicClient({
     chain: hardhat,
     transport: http(rpcUrl),
+    pollingInterval: 100,
   });
 
   const eventCacheUrl = process.env.EVENT_CACHE_URL;

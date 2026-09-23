@@ -19,7 +19,9 @@ import {
 } from '@commonality/sdk/displayable-documents'
 import type { IpfsCidV1 } from '@commonality/sdk/utils'
 import { useTrustedAttesters } from '@ui/shared'
+import { StatementRenderer } from '@ui/conceptspace'
 import { CauseBoard, CauseLeaderboard } from '@ui/fundingportals'
+import { ContentSubmissionForm, StatementSupportingContent } from '@ui/content-funding'
 import { useAlignmentTrust } from '../hooks/useAlignmentTrust'
 import { SupportButton } from '../components/SupportButton'
 import { CauseFundingSummary } from '../components/CauseFundingSummary'
@@ -32,15 +34,6 @@ import {
   writePersonalFundingBoard,
 } from '../lib/personalFundingBoard'
 import { useMachinery } from '../../shared'
-
-function documentText(doc: DisplayableDocument | null | undefined): string | null {
-  if (!doc) return null
-  const content = (doc as { content?: unknown }).content
-  if (typeof content === 'string' && content.trim()) return content
-  const title = (doc as { title?: unknown }).title
-  if (typeof title === 'string' && title.trim()) return title
-  return null
-}
 
 type StatementMode = 'sign' | 'fund' | 'all'
 
@@ -85,7 +78,7 @@ export function StatementPage() {
   )
   const [statement, setStatement] = useState<Statement | null>(null)
   const [content, setContent] = useState<DisplayableDocument | null>(null)
-  const [operandBodies, setOperandBodies] = useState<Array<{ cid: string; text: string }>>([])
+  const [referencedDocuments, setReferencedDocuments] = useState<Record<string, DisplayableDocument | null>>({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [cidCopiedOpen, setCidCopiedOpen] = useState(false)
@@ -130,31 +123,27 @@ export function StatementPage() {
         setError('Statement not found')
         setStatement(null)
         setContent(null)
-        setOperandBodies([])
+        setReferencedDocuments({})
         return
       }
       setStatement(result.statement)
       setContent(result.content)
       const combinator = result.content ? parseCombinatorStatement(result.content) : null
+      setReferencedDocuments({})
       if (combinator) {
-        // Paint CID fallbacks immediately so the statement page is not held
-        // behind operand IPFS reads; fill each body as it arrives.
-        setOperandBodies(combinator.operandCids.map((cid) => ({ cid, text: cid })))
+        // Operand bodies fill in after the page paints. StatementRenderer
+        // shows the CID until each read resolves.
         void Promise.all(combinator.operandCids.map(async (cid) => {
-          let text = cid
+          let body: DisplayableDocument | null = null
           try {
             const operand = await getStatementWithContent(machinery, cid as IpfsCidV1)
-            text = documentText(operand?.content) || cid
+            body = operand?.content ?? null
           } catch {
-            text = cid
+            body = null
           }
           if (cancelled()) return
-          setOperandBodies((prev) =>
-            prev.map((row) => (row.cid === cid ? { cid, text } : row)),
-          )
+          setReferencedDocuments((prev) => ({ ...prev, [cid]: body }))
         }))
-      } else {
-        setOperandBodies([])
       }
     } catch (err) {
       if (cancelled()) return
@@ -162,7 +151,7 @@ export function StatementPage() {
     } finally {
       if (!cancelled()) setLoading(false)
     }
-  }, [machinery, setContent, setError, setLoading, setOperandBodies, setStatement, statementCid])
+  }, [machinery, statementCid])
 
   useEffect(() => {
     if (loading || mode !== 'fund' || searchParams.get('section') !== 'fundable-projects') return
@@ -213,24 +202,12 @@ export function StatementPage() {
     )
   }
 
-  const body =
-    documentText(content)
-    ?? statement.excerpt
-    ?? statement.title
-    ?? 'No content available for this statement.'
-  const title = statement.title?.trim()
-  const showTitle = Boolean(
-    title
-    && title !== 'Statement'
-    && !body.trim().startsWith(title),
-  )
   const support = statementCid ? perPlank.get(statementCid) : undefined
   const supportCaption = support
     ? `${support.total.toLocaleString()} · ${support.direct} direct · ${support.indirect} indirect`
     : countsLoading
       ? 'Counting signers…'
       : 'Signers unavailable'
-  const combinator = content ? parseCombinatorStatement(content) : null
   const createdLabel = statement.createdAt
     ? ` · ${new Date(statement.createdAt).toLocaleDateString()}`
     : ''
@@ -277,52 +254,18 @@ export function StatementPage() {
         >
           Statement
         </Typography>
+      <StatementRenderer
+        statementCid={statementCid as string}
+        content={content}
+        referencedDocuments={referencedDocuments}
+        statementPath={(cid) => statementModePath(cid, mode)}
+      />
       <Paper
         variant="outlined"
         sx={{ p: 1.25, borderRadius: 2 }}
         data-testid="statement-header"
       >
         <Stack spacing={0.75}>
-          {showTitle && (
-            <Typography variant="subtitle2" component="h1" sx={{ fontWeight: 700 }}>
-              {title}
-            </Typography>
-          )}
-          {combinator && (
-            <Typography
-              variant="overline"
-              sx={{ letterSpacing: '0.12em', fontWeight: 700, color: 'text.secondary', display: 'block' }}
-              data-testid="combinator-kind"
-            >
-              {combinator.combinator === 'all' ? 'All of these statements' : 'Any of these statements'}
-            </Typography>
-          )}
-          <Typography
-            variant="body2"
-            component={showTitle ? 'p' : 'h1'}
-            sx={{ fontWeight: 500, whiteSpace: 'pre-wrap' }}
-          >
-            {body}
-          </Typography>
-          {combinator && operandBodies.length > 0 && (
-            <Stack spacing={1} sx={{ pt: 1 }} data-testid="combinator-operands">
-              {operandBodies.map((operand) => (
-                <Box key={operand.cid}>
-                  <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
-                    {operand.text}
-                  </Typography>
-                  <Link
-                    component={RouterLink}
-                    to={statementModePath(operand.cid, mode)}
-                    variant="caption"
-                    underline="hover"
-                  >
-                    Open statement
-                  </Link>
-                </Box>
-              ))}
-            </Stack>
-          )}
           {showSigning && <Stack
             direction="row"
             spacing={0.75}
@@ -430,6 +373,10 @@ export function StatementPage() {
         </Stack>
       </Paper>
       </Box>
+
+      {showFunding && <StatementSupportingContent statementCid={statementCid as IpfsCidV1} />}
+
+      {showFunding && <ContentSubmissionForm statementCid={statementCid as IpfsCidV1} />}
 
       {showFunding && <CauseFundingSummary statementCids={[statementCid as string]} />}
 

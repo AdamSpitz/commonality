@@ -1,6 +1,8 @@
 # Conceptspace Explorer
 
-A goal-oriented nudger pattern that helps users discover and sign statements relevant to a specific purpose — finding fundable projects, participating in a movement, or onboarding to the system [for the first time](/specs/product/new-user-experience.md). The explorer mechanism is reusable, but each concrete explorer has a specific goal and stream; there is no generic Tally `/explore` surface yet.
+A goal-oriented nudger pattern that helps users discover and sign statements relevant to a specific purpose — finding fundable projects, participating in a movement, or onboarding to the system [for the first time](/specs/product/new-user-experience.md). The explorer mechanism is reusable, but each concrete explorer has a specific goal and stream.
+
+**Commonality does not run one.** [ADR 0014](../../../decisions/0014-no-operated-generic-explorer.md): the package is a template for someone else's focused explorer. The host leaves `EXPLORER_CURATOR_ENABLED` off, default nudgers do not include one, and Aligning does not mount `/explore`. Do not add a Commonality-operated "what are people signing?" map in its place.
 
 ## Architecture: two-tier LLM
 

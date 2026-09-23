@@ -32,6 +32,7 @@ export default defineConfig(({ mode }) => {
       // subpath (the package has no flat barrel).
       ...sdkSourceAliases(),
       '@ui': path.resolve(process.cwd(), 'src'),
+      '@ui-active-domain': path.resolve(process.cwd(), `src/domains/active/${domain}.ts`),
       events: 'events',
     },
   },
@@ -224,6 +225,7 @@ function buildRuntimeConfig(env: Record<string, string>) {
     'VITE_NUDGE_PUBLICATIONS_CONTRACT_ADDRESS',
     'VITE_PUBLISHED_DATA_CONTRACT_ADDRESS',
     'VITE_CONTENT_REGISTRY_ADDRESS',
+    'VITE_BENEFICIARY_IDENTITY_ADDRESS',
     'VITE_BENEFICIARY_REGISTRY_ADDRESS',
     'VITE_BENEFICIARY_ESCROW_ADDRESS',
     'VITE_CREATOR_CONTRACT_FACTORY_ADDRESS',

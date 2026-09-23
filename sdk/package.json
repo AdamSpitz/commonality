@@ -20,6 +20,14 @@
       "types": "./dist/src/abis.d.ts",
       "default": "./dist/src/abis.js"
     },
+    "./abis/conceptspace": {
+      "types": "./dist/src/abis/conceptspace.d.ts",
+      "default": "./dist/src/abis/conceptspace.js"
+    },
+    "./abis/funding": {
+      "types": "./dist/src/abis/funding.d.ts",
+      "default": "./dist/src/abis/funding.js"
+    },
     "./utils": {
       "types": "./dist/src/utils/index.d.ts",
       "default": "./dist/src/utils/index.js"
@@ -27,6 +35,10 @@
     "./testing": {
       "types": "./dist/src/testing.d.ts",
       "default": "./dist/src/testing.js"
+    },
+    "./content-identity": {
+      "types": "./dist/src/content-identity/index.d.ts",
+      "default": "./dist/src/content-identity/index.js"
     },
     "./conceptspace": {
       "types": "./dist/src/subsystems/conceptspace/index.d.ts",
@@ -43,6 +55,10 @@
     "./displayable-documents": {
       "types": "./dist/src/subsystems/displayable-documents/index.d.ts",
       "default": "./dist/src/subsystems/displayable-documents/index.js"
+    },
+    "./alignment-attestations": {
+      "types": "./dist/src/subsystems/alignment-attestations/index.d.ts",
+      "default": "./dist/src/subsystems/alignment-attestations/index.js"
     },
     "./fundingportals": {
       "types": "./dist/src/subsystems/fundingportals/index.d.ts",

@@ -9,7 +9,8 @@
 import { createWriteClients, type WriteClients } from '@commonality/sdk/utils';
 import { TEST_PRIVATE_KEYS } from '@commonality/sdk/testing';
 
-import { keccak256, toHex } from 'viem';
+import { createPublicClient, http, keccak256, toHex } from 'viem';
+import { hardhat } from 'viem/chains';
 import { privateKeyToAccount } from 'viem/accounts';
 
 /**
@@ -111,7 +112,15 @@ export function createIsolatedWriteClients(
   rpcUrl = process.env.RPC_URL || 'http://localhost:8545'
 ): WriteClients {
   const privateKey = getTestPrivateKey(suiteName, accountIndex);
-  return createWriteClients(privateKey, rpcUrl);
+  const clients = createWriteClients(privateKey, rpcUrl);
+  // The local chain mines immediately. The production client's default 4s
+  // polling made the full suite exceed the verifier's 15-minute limit.
+  clients.publicClient = createPublicClient({
+    chain: hardhat,
+    transport: http(rpcUrl),
+    pollingInterval: 100,
+  });
+  return clients;
 }
 
 /**

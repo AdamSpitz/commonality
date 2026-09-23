@@ -101,8 +101,7 @@ export default defineConfig([
           // Forbid deep relative imports into the fundingportals feature module,
           // but allow the barrel itself (`.../fundingportals`, no trailing path)
           // and the lazy route entry points (`.../fundingportals/pages/*`), which
-          // domain route wrappers (domains/alignment/manifest.tsx and
-          // domains/tally/manifest.tsx) load via dynamic import() to keep routes
+          // domain route wrappers (domains/alignment/manifest.tsx) load via dynamic import() to keep routes
           // in their own code-split chunks and which are the subpath half of the
           // public API. Same regex form as the content-funding/lazy-giving blocks
           // — see those comments for why the glob `group` form is avoided.
@@ -188,9 +187,46 @@ export default defineConfig([
           // `ignores` so the module's own files can import their own internals;
           // the two test files that need a real module namespace for `vi.spyOn`
           // carry an inline `eslint-disable-next-line no-restricted-imports`.
-          regex: '(?:(?:\\.{1,2}/)+|@ui/)shared/(?!components/AppShell(?:/|$)|components/WalletButton(?:/|$)|wallet(?:/|$))',
-          message: 'Import shared through its public barrel ("…/shared"), not deep paths. (AppShell/WalletButton/wallet are allowed as heavy subpath entry points.) See docs/founder/standing-up-a-vertical.md.',
+          regex: '(?:(?:\\.{1,2}/)+|@ui/)shared/(?!components/AppShell(?:/|$)|components/WalletButton(?:/|$)|wallet(?:/|$)|funding(?:/|$))',
+          message: 'Import shared through its public barrel ("…/shared"), not deep paths. (AppShell/WalletButton/wallet are heavy subpath entry points. funding is the payment and project-cache entry.) See docs/founder/standing-up-a-vertical.md.',
         }],
+      }],
+    },
+  },
+  {
+    files: ['src/conceptspace/**/*.{ts,tsx}', 'src/domains/tally/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': ['error', {
+        patterns: [
+          {
+            group: [
+              '**/fundingportals',
+              '**/fundingportals/**',
+              '**/content-funding',
+              '**/content-funding/**',
+              '**/lazy-giving',
+              '**/lazy-giving/**',
+              '@commonality/sdk/fundingportals',
+              '@commonality/sdk/content-funding',
+              '@ui/fundingportals',
+              '@ui/content-funding',
+              '@ui/lazy-giving',
+            ],
+            message: 'Conceptspace and Tally must not import funding verticals. Commonality composes those pieces in its own pages. See specs/tech/conceptspace-repo-split-analysis.md.',
+          },
+          {
+            regex: '(?:(?:\\.{1,2}/)+|@ui/)shared/(?!components/AppShell(?:/|$)|components/WalletButton(?:/|$)|wallet(?:/|$))',
+            message: 'Import shared through its public barrel ("…/shared"), not deep paths. Conceptspace and Tally must not import shared/funding. See specs/tech/conceptspace-repo-split-analysis.md.',
+          },
+          {
+            group: [
+              '**/shared/funding',
+              '**/shared/funding/**',
+              '@ui/shared/funding',
+            ],
+            message: 'Conceptspace and Tally must not import payment-token formatting or project caches. See specs/tech/conceptspace-repo-split-analysis.md.',
+          },
+        ],
       }],
     },
   },

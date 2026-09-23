@@ -1,6 +1,7 @@
 import { cleanup, render, screen } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { DocsPage } from './DocsPage'
+import { LazyGivingDocsPage } from './LazyGivingDocsPage'
 import { BrowserRouter, useParams } from 'react-router-dom'
 
 vi.mock('react-router-dom', async () => {
@@ -50,6 +51,24 @@ function renderDocsPage() {
 }
 
 describe('DocsPage', () => {
+  it('mounts the retro-funding diagram from the LazyGiving docs route only', () => {
+    mockUseParams.mockReturnValue({ '*': 'lazyGiving/retroactive-funding' })
+    render(
+      <BrowserRouter>
+        <DocsPage />
+      </BrowserRouter>,
+    )
+    expect(screen.queryByTitle(/Animated story/)).toBeNull()
+    cleanup()
+    mockUseParams.mockReturnValue({ '*': 'lazyGiving/retroactive-funding' })
+    render(
+      <BrowserRouter>
+        <LazyGivingDocsPage />
+      </BrowserRouter>,
+    )
+    expect(screen.getByTitle(/Animated story/)).toBeTruthy()
+  })
+
   beforeEach(() => {
     vi.clearAllMocks()
   })

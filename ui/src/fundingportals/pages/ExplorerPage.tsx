@@ -1,7 +1,5 @@
-// Fundable Project Explorer — the Aligning site's "Explore Causes" surface (mounted at
-// /explore in domains/alignment/manifest.tsx). It lives in the shared fundingportals/ module,
-// but the design lives under conceptspace because the explorer is a conceptspace nudger pattern:
-// see specs/tech/subsystems/conceptspace/explorer.md and specs/tech/ui-domains.md (Aligning /explore).
+// Fundable Project Explorer page. Aligning no longer mounts this (ADR 0014). The component
+// remains for a third-party explorer. See specs/tech/subsystems/conceptspace/explorer.md.
 import { useState, useEffect, useCallback } from 'react'
 import {
   Box,

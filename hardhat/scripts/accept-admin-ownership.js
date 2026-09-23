@@ -14,7 +14,7 @@ const { ethers } = hre;
 
 const OWNABLE_2_STEP_CONTRACTS = [
   ['BeneficiaryVerifier', 'BENEFICIARY_VERIFIER_ADDRESS'],
-  ['BeneficiaryRegistry', 'BENEFICIARY_REGISTRY_ADDRESS'],
+  ['BeneficiaryIdentity', 'BENEFICIARY_IDENTITY_ADDRESS'],
 ];
 
 function requireEnv(key) {

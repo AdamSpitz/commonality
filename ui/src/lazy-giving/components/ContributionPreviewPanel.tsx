@@ -1,6 +1,6 @@
 import { Paper, Typography, Stack, Box, Alert } from '@mui/material'
 import type { ProjectToken } from '@commonality/sdk/lazy-giving'
-import { formatCurrencyAmount } from '../../shared'
+import { formatCurrencyAmount } from '../../shared/funding'
 import { WalletButton } from '../../shared/components/WalletButton'
 import { givingOptionLabel } from '../utils'
 

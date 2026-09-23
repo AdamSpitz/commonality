@@ -6,7 +6,8 @@
 // pattern): external consumers — every other feature module, the domain
 // manifests, and the top-level app entry (`App.tsx`/`main.tsx`) — should import
 // from this barrel ONLY, never from deep paths like `shared/hooks/useMachinery`
-// or `shared/currency/currency`. Everything not re-exported here is module-internal and
+// or `shared/currency/currency`. Payment-token formatting and project fold
+// caches live on `shared/funding`, not here. Everything not re-exported here is module-internal and
 // may be moved/renamed freely. When this module becomes its own published
 // package, this file becomes the package root (`@commonality/shared`).
 //
@@ -22,7 +23,7 @@
 // barrel is behavior-preserving on landing.
 
 // The export blocks below are grouped to mirror the on-disk subdirectories
-// (`config/`, `routing/`, `currency/`, `nudges/`, `stores/`, `trust/`, `theme/`,
+// (`config/`, `routing/`, `nudges/`, `stores/`, `trust/`, `theme/`,
 // plus the by-kind `hooks/`, `components/`, `utils/`). Each subdirectory is a
 // coherent sub-area of the substrate; this barrel is the only public entry.
 
@@ -59,19 +60,6 @@ export {
   projectPathForAddress,
   tryParseChainAddressRef,
 } from './routing/chainAddressRoutes'
-
-// === currency/ — payment-token currency formatting + hook ===
-export {
-  DEFAULT_PAYMENT_CURRENCY,
-  formatCurrencyAmount,
-  formatCurrencyAmountWithLocalEstimate,
-  formatCurrencyProgress,
-  formatCurrencyRaised,
-  formatCurrencyTotals,
-  getConfiguredPaymentCurrency,
-  getCurrencyForNote,
-} from './currency/currency'
-export { usePaymentTokenCurrency } from './currency/usePaymentTokenCurrency'
 
 // === nudges/ — dismissed-nudge store + CSM mediator nudger ===
 export { dismissNudge, getDismissedNudges } from './nudges/nudgeStore'
@@ -118,9 +106,8 @@ export {
 } from './hooks/useBeatAgentTrustPolicy'
 export type { BeatAgentTrustPolicy } from './hooks/useBeatAgentTrustPolicy'
 
-export { loadProjectWithCache, projectFoldCacheOptions, useCachedProject } from './hooks/useCachedProject'
-export { useCachedProjects } from './hooks/useCachedProjects'
 export { getEventCacheUrl, getIpfsApiUrl, useMachinery } from './hooks/useMachinery'
+export { installIdentitySocialAssociation } from './hooks/verifiedSocialAssociation'
 export { useMutedNudgers } from './hooks/useMutedNudgers'
 export { useMutedTopics } from './hooks/useMutedTopics'
 export { useNudgeIntensity } from './hooks/useNudgeIntensity'

@@ -9,7 +9,7 @@ import {
 import { getProject } from '@commonality/sdk/lazy-giving'
 import { type IpfsCidV1 } from '@commonality/sdk/utils'
 import { useMachinery } from '../../shared'
-import { formatCurrencyAmount } from '../../shared'
+import { formatCurrencyAmount } from '../../shared/funding'
 import { projectPathForAddress } from '../../shared'
 import { resolveProjectNav, type ProjectLinkMode, type ProjectMetadata } from './AlignedProjectCard'
 import { readProjectMetadata } from './projectMetadata'

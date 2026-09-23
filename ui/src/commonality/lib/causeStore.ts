@@ -13,6 +13,10 @@
  * wording of planks not yet published.
  */
 
+import type { CauseAnchor, CauseMediator, RosterBridgeLink } from '@commonality/sdk/displayable-documents'
+
+export type { CauseAnchor, CauseMediator, RosterBridgeLink }
+
 export type StatementOrigin = 'suggested' | 'user'
 
 export type SafetyCategory =
@@ -45,22 +49,6 @@ export interface CausePlank {
   safety?: SafetyState
   /** Published statement CID. Absent until this plank is published. */
   cid?: string
-}
-
-export interface CauseMediator {
-  address: string
-  serviceUrl: string
-  name: string
-  description: string
-}
-
-/** Link from a modified/bridge roster back to its cluster publication. */
-export interface RosterBridgeLink {
-  clusterOwner: `0x${string}`
-  clusterSlug: string
-  role: 'modified' | 'bridge'
-  parentOwner?: `0x${string}`
-  parentSlug?: string
 }
 
 export interface CauseDraft {
@@ -119,12 +107,6 @@ export interface CauseDraft {
  * anchor describes the selection it was minted from and no other. Changing the
  * selection mints a *new* anchor rather than updating this one.
  */
-export interface CauseAnchor {
-  combinator: 'all' | 'any'
-  cid: string
-  operandCids: string[]
-}
-
 /** Canonical key for an operand set: order- and duplicate-insensitive. */
 export function operandSetKey(cids: readonly string[]): string {
   return [...new Set(cids.map((cid) => cid.trim()).filter(Boolean))].sort().join('\n')

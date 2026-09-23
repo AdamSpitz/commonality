@@ -5,7 +5,8 @@ import type { IpfsCidV1 } from '@commonality/sdk/utils'
 import { useMachinery } from '../../shared'
 import { getRuntimeConfigValue } from '../../shared'
 import { useTrustedContentAttesters } from '../../shared'
-import { ContentAttestationSummary, type ContentAttestationInfo } from '../../content-funding'
+import { ContentAttestationSummary } from './ContentAttestationSummary'
+import type { ContentAttestationInfo } from '../hooks/useContentFundingState'
 
 interface StatementSupportingContentProps {
   statementCid: IpfsCidV1

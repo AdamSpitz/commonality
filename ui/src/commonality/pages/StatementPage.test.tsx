@@ -19,6 +19,8 @@ vi.mock('@commonality/sdk/conceptspace', () => ({
 vi.mock('@ui/shared', () => ({
   useMachinery: () => ({}),
   useTrustedAttesters: () => [],
+  loadDisplayDenylist: async () => ({ deniedCids: [], honoredRetractors: [] }),
+  isCidDeniedByDisplayDenylist: () => false,
 }))
 
 vi.mock('../hooks/useAlignmentTrust', () => ({
@@ -49,6 +51,11 @@ vi.mock('../components/SupportButton', () => ({
 
 vi.mock('../components/CauseFundingSummary', () => ({
   CauseFundingSummary: () => <div data-testid="funding-summary" />,
+}))
+
+vi.mock('@ui/content-funding', () => ({
+  StatementSupportingContent: () => <div data-testid="supporting-content" />,
+  ContentSubmissionForm: () => <div data-testid="content-submission-form" />,
 }))
 
 vi.mock('@ui/fundingportals', () => ({

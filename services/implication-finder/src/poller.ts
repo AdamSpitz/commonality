@@ -1,4 +1,4 @@
-import type { SDKMachinery } from '@commonality/sdk/machinery';
+import { requireConceptspaceContractAddress, type SDKMachinery } from '@commonality/sdk/machinery';
 import { fetchEvents } from '@commonality/sdk/utils';
 import { decodeDirectSupportEvent, decodeImplicationAttestationEvent, type DecodedDirectSupportEvent, type DecodedImplicationAttestationEvent } from '@commonality/sdk/utils';
 
@@ -11,7 +11,7 @@ export async function fetchDirectSupportEvents(
   sinceBlock: string,
 ): Promise<DecodedDirectSupportEvent[]> {
   const raw = await fetchEvents(machinery, {
-    contractAddress: machinery.contractAddresses!.beliefs,
+    contractAddress: requireConceptspaceContractAddress(machinery.contractAddresses, 'beliefs'),
     eventName: 'DirectSupport',
     blockNumber_gte: sinceBlock,
     limit: 10000,
@@ -33,7 +33,7 @@ export async function fetchExistingImplications(
   machinery: SDKMachinery,
 ): Promise<DecodedImplicationAttestationEvent[]> {
   const raw = await fetchEvents(machinery, {
-    contractAddress: machinery.contractAddresses!.implications,
+    contractAddress: requireConceptspaceContractAddress(machinery.contractAddresses, 'implications'),
     eventName: 'ImplicationAttestation',
     limit: 10000,
   });

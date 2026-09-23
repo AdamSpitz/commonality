@@ -43,12 +43,16 @@ import {
   type CoherenceVerdict,
 } from '../lib/causeAssistClient'
 import {
-  applyPlankTexts, formatRosterAge, loadPlankTexts, loadRosterCoherenceBadge,
+  applyPlankTexts, formatRosterAge, loadPlankTexts,
   loadRosterDocument, loadRosterHistory, normalizeSlug, parseCauseRouteParams,
   placeholderPlanksFromCids, plankAddedLaterLabels, plankFirstSeenInHistory,
   previewRosterCid, publishRoster, resolveRosterCid, rosterFieldsFromCause,
-  stableCausePath, validateSlug, type RosterCoherenceBadge,
+  stableCausePath, validateSlug,
 } from '../lib/causeRoster'
+import {
+  loadRosterCoherenceBadge,
+  type RosterCoherenceBadge,
+} from '../lib/rosterCoherence'
 import {
   persistCauseBookmarks,
   rememberBookmarkKept,

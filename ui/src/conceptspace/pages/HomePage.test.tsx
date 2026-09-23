@@ -49,7 +49,7 @@ describe('HomePage', () => {
 
       expect(
         screen.getByRole('heading', {
-          name: /fund projects and content around what people actually care about/i,
+          name: /sign what you believe and see what public support adds up to/i,
         })
       ).toBeInTheDocument()
     })
@@ -97,7 +97,7 @@ describe('HomePage', () => {
 
       expect(
         screen.queryByRole('heading', {
-          name: /fund projects and content around what people actually care about/i,
+          name: /sign what you believe and see what public support adds up to/i,
         })
       ).toBeInTheDocument()
     })

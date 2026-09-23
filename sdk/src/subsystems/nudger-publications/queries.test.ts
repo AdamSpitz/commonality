@@ -5,7 +5,7 @@ import { uploadToMockIPFS } from '../../utils/mock-ipfs.js';
 import { cidToBytes32 } from '../../utils/cid-types.js';
 import { fakeIpfsCidV1 } from '../../utils/test-helpers.js';
 import type { RawEventFromCache } from '../../utils/eventCacheClient.js';
-import { NudgePublicationsAbi } from '../../abis.js';
+import { NudgePublicationsAbi } from '../../abis/conceptspace.js';
 import { foldNudgeBatchPublications } from './folds.js';
 import { getCuratedCollections, getNudgerPublications, getStatementNudges } from './queries.js';
 

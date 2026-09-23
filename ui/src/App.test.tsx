@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 const mockGetActiveDomain = vi.fn()
 const mockIsHashRouting = vi.fn()
 
-vi.mock('./domains', () => ({
+vi.mock('./domains/activeDomain', () => ({
   getActiveDomain: () => mockGetActiveDomain(),
   getDomainManifest: vi.fn(),
   domainManifests: {},

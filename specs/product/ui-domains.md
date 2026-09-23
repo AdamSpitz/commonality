@@ -47,13 +47,13 @@ Mobile priority: high for browse, project detail, pledge status, and refund/conf
 
 ### Aligning
 
-- **Explore cause boards:** a donor lands on Explore Causes, finds a statement/cause board, and understands why projects are shown there.
+- **Arrive at a cause:** a donor opens a cause they were sent, not a directory Commonality ranked. Aligning does not mount Explore Causes ([ADR 0014](../decisions/0014-no-operated-generic-explorer.md)).
 - **Inspect a cause board:** a user opens a board, sees aligned projects, attestation/trust signals, and leaderboard/status information.
 - **Fund an ongoing cause:** a donor chooses how to contribute or delegate support to a cause rather than a one-off project.
 - **Attest alignment:** an attester/scout records or reviews whether a project belongs on a cause board.
 - **Follow trusted judgment:** a donor understands how delegation and trust affect what they see, even if delegation management lives on LazyGiving.
 
-Mobile priority: high for explore, board detail, and contribution status; medium for attestation and trust/delegation configuration.
+Mobile priority: high for board detail and contribution status; medium for attestation and trust/delegation configuration.
 
 ### Tally
 

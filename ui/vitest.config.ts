@@ -17,6 +17,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@ui': fileURLToPath(new URL('./src', import.meta.url)),
+      '@ui-active-domain': fileURLToPath(new URL('./src/domains/active/commonality.ts', import.meta.url)),
     },
   },
   server: {
@@ -29,6 +30,6 @@ export default defineConfig({
     globals: true,
     setupFiles: './src/test/setup.ts',
     css: true,
-    exclude: ['**/node_modules/**', '**/dist/**', '**/e2e/**'],
+    exclude: ['**/node_modules/**', '**/dist/**', '**/e2e/**', 'scripts/**'],
   },
 })

@@ -4,7 +4,7 @@ import type { RefUpdate } from '@commonality/sdk/mutable-refs'
 const getSubjectStatements = vi.hoisted(() => vi.fn())
 const documentRead = vi.hoisted(() => vi.fn())
 const getStatementWithContent = vi.hoisted(() => vi.fn())
-vi.mock('@commonality/sdk/fundingportals', async (importOriginal) => ({
+vi.mock('@commonality/sdk/alignment-attestations', async (importOriginal) => ({
   ...(await importOriginal<object>()),
   getSubjectStatements,
 }))
@@ -22,7 +22,6 @@ import {
   buildRosterDocument,
   readPlankText,
   formatRosterAge,
-  loadRosterCoherenceBadge,
   mediatorBlurbFrom,
   normalizeSlug,
   parseCauseLink,
@@ -42,6 +41,7 @@ import {
   textFromStatementDocument,
   validateSlug,
 } from './causeRoster'
+import { loadRosterCoherenceBadge } from './rosterCoherence'
 import type { CauseDraft } from './causeStore'
 
 function draft(partial: Partial<CauseDraft> & { planks: CauseDraft['planks'] }): CauseDraft {

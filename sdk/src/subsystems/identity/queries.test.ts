@@ -2,7 +2,7 @@ import assert from 'assert';
 import { encodeEventTopics } from 'viem';
 import { createSDKMachinery } from '../../machinery.js';
 import type { RawEventFromCache } from '../../utils/eventCacheClient.js';
-import { AccountAssertionsAbi } from '../../abis.js';
+import { AccountAssertionsAbi } from '../../abis/conceptspace.js';
 import {
   computeAnonymizedId,
   ProofTier,

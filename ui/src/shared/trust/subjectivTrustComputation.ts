@@ -1,4 +1,4 @@
-import type { ContractAddresses, SDKMachinery } from '@commonality/sdk/machinery'
+import type { ConceptspaceContractAddresses, SDKMachinery } from '@commonality/sdk/machinery'
 import { getDirectTrustMapping, getTransitiveTrustMapping, type DirectTrustMapping } from '@commonality/sdk/subjectiv'
 import type {
   SubjectivCachedDirectTrustMappings,
@@ -10,7 +10,7 @@ import type {
 export interface ComputeSubjectivTrustedSetOptions {
   address: string
   eventCacheUrl: string
-  contractAddresses: ContractAddresses
+  contractAddresses: ConceptspaceContractAddresses
   cachedDirectTrustMappings?: SubjectivCachedDirectTrustMappings
   /** Maximum trust-graph hops to traverse (default: full transitive network, see SDK). */
   maxHops?: number

@@ -68,7 +68,7 @@ async function createContentFundingContract({
 }
 
 describe("ContentFunding", function () {
-  let contentRegistry, beneficiaryRegistry, beneficiaryEscrow;
+  let contentRegistry, beneficiaryIdentity, beneficiaryRegistry, beneficiaryEscrow;
   let factory, contentVeto, erc1155Factory, conditionFactory;
   let paymentToken;
   let mockVerifier;
@@ -83,8 +83,11 @@ describe("ContentFunding", function () {
     const ContentRegistry = await ethers.getContractFactory("ContentRegistry");
     contentRegistry = await ContentRegistry.deploy();
 
+    const BeneficiaryIdentity = await ethers.getContractFactory("BeneficiaryIdentity");
+    beneficiaryIdentity = await BeneficiaryIdentity.deploy(await mockVerifier.getAddress());
+
     const BeneficiaryRegistry = await ethers.getContractFactory("BeneficiaryRegistry");
-    beneficiaryRegistry = await BeneficiaryRegistry.deploy(await mockVerifier.getAddress());
+    beneficiaryRegistry = await BeneficiaryRegistry.deploy(await beneficiaryIdentity.getAddress());
 
     const PremintingERC20 = await ethers.getContractFactory("PremintingERC20");
     paymentToken = await PremintingERC20.deploy(
@@ -279,7 +282,7 @@ describe("ContentFunding", function () {
       await mockVerifier.setValid(true);
 
       await expect(beneficiaryRegistry.verifyBeneficiary(channelId, ethers.ZeroAddress, nonce, deadline, proofHash, verifierSignature))
-        .to.be.revertedWithCustomError(beneficiaryRegistry, "InvalidClaimant");
+        .to.be.revertedWithCustomError(beneficiaryIdentity, "InvalidClaimant");
     });
 
     it("Should allow only monotonic veto window lengthening on the content factory", async function () {
@@ -310,14 +313,14 @@ describe("ContentFunding", function () {
       const expiredDeadline = Math.floor(Date.now() / 1000) - 3600;
 
       await expect(beneficiaryRegistry.verifyBeneficiary(channelId, alice.address, nonce, expiredDeadline, proofHash, verifierSignature))
-        .to.be.revertedWithCustomError(beneficiaryRegistry, "ProofExpired");
+        .to.be.revertedWithCustomError(beneficiaryIdentity, "ProofExpired");
     });
 
     it("Should revert when verifier signature is invalid", async function () {
       const invalidSig = "0x12345678";
 
       await expect(beneficiaryRegistry.verifyBeneficiary(channelId, alice.address, nonce, deadline, proofHash, invalidSig))
-        .to.be.revertedWithCustomError(beneficiaryRegistry, "InvalidVerifierSignature");
+        .to.be.revertedWithCustomError(beneficiaryIdentity, "InvalidVerifierSignature");
     });
 
     it("Should revert when reusing a nonce", async function () {
@@ -327,7 +330,7 @@ describe("ContentFunding", function () {
       // Try to use the same nonce for a different channel
       const channelId2 = ethers.id("test-channel-2");
       await expect(beneficiaryRegistry.verifyBeneficiary(channelId2, alice.address, nonce, deadline, proofHash, verifierSignature))
-        .to.be.revertedWithCustomError(beneficiaryRegistry, "InvalidNonce");
+        .to.be.revertedWithCustomError(beneficiaryIdentity, "InvalidNonce");
     });
 
     it("Should allow only the verified owner to rotate the payout address", async function () {
@@ -519,21 +522,21 @@ describe("ContentFunding", function () {
     it("Should update verifier (owner only)", async function () {
       const newVerifier = bob;
 
-      await expect(beneficiaryRegistry.connect(owner).setVerifier(await newVerifier.getAddress()))
-        .to.emit(beneficiaryRegistry, "VerifierUpdated")
+      await expect(beneficiaryIdentity.connect(owner).setVerifier(await newVerifier.getAddress()))
+        .to.emit(beneficiaryIdentity, "VerifierUpdated")
         .withArgs(await mockVerifier.getAddress(), await newVerifier.getAddress());
 
-      expect(await beneficiaryRegistry.verifier()).to.equal(await newVerifier.getAddress());
+      expect(await beneficiaryIdentity.verifier()).to.equal(await newVerifier.getAddress());
     });
 
     it("Should revert setVerifier from non-owner", async function () {
-      await expect(beneficiaryRegistry.connect(alice).setVerifier(await bob.getAddress()))
-        .to.be.revertedWithCustomError(beneficiaryRegistry, "OwnableUnauthorizedAccount");
+      await expect(beneficiaryIdentity.connect(alice).setVerifier(await bob.getAddress()))
+        .to.be.revertedWithCustomError(beneficiaryIdentity, "OwnableUnauthorizedAccount");
     });
 
     it("Should revert when setting invalid verifier address", async function () {
-      await expect(beneficiaryRegistry.setVerifier(ethers.ZeroAddress))
-        .to.be.revertedWithCustomError(beneficiaryRegistry, "InvalidVerifierAddress");
+      await expect(beneficiaryIdentity.setVerifier(ethers.ZeroAddress))
+        .to.be.revertedWithCustomError(beneficiaryIdentity, "InvalidVerifierAddress");
     });
 
   });

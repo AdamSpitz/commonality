@@ -26,7 +26,7 @@ vi.mock('../../shared/config/runtimeConfig', () => ({
   getRuntimeConfigValue: vi.fn(),
 }))
 
-vi.mock('../../content-funding/components/ContentAttestationSummary', () => ({
+vi.mock('./ContentAttestationSummary', () => ({
   ContentAttestationSummary: () => <div data-testid="attestation-summary" />,
 }))
 

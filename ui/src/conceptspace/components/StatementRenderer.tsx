@@ -19,6 +19,12 @@ interface StatementRendererProps {
   unavailableSeverity?: 'warning' | 'error'
   /** Operand documents for a combinator statement, keyed by CID. */
   referencedDocuments?: Record<string, DisplayableDocument | null>
+  /**
+   * Where a referenced statement opens. Defaults to `/statement/:cid`.
+   * Callers that add their own query (a funding view, for example) pass this
+   * so the shared renderer does not grow mode flags.
+   */
+  statementPath?: (statementCid: string) => string
 }
 
 export function StatementRenderer({
@@ -28,6 +34,7 @@ export function StatementRenderer({
   error = null,
   unavailableSeverity = 'error',
   referencedDocuments,
+  statementPath = (cid) => `/statement/${cid}`,
 }: StatementRendererProps) {
   const [displayDenylist, setDisplayDenylist] = useState<DisplayDenylist>({ deniedCids: [], honoredRetractors: [] })
 
@@ -99,6 +106,7 @@ export function StatementRenderer({
       doc={content}
       displayDenylist={displayDenylist}
       referencedDocuments={referencedDocuments}
+      statementPath={statementPath}
     />
   )
 }
@@ -111,10 +119,12 @@ function DisplayableDocumentRenderer({
   doc,
   displayDenylist,
   referencedDocuments,
+  statementPath,
 }: {
   doc: DisplayableDocument
   displayDenylist: DisplayDenylist
   referencedDocuments?: Record<string, DisplayableDocument | null>
+  statementPath: (statementCid: string) => string
 }) {
   const combinator = parseCombinatorStatement(doc)
 
@@ -167,7 +177,7 @@ function DisplayableDocumentRenderer({
                         {ref.cid}
                       </Typography>
                     )}
-                    <MuiLink component={RouterLink} to={`/statement/${ref.cid}`} variant="caption">
+                    <MuiLink component={RouterLink} to={statementPath(ref.cid)} variant="caption">
                       Open statement
                     </MuiLink>
                   </>
@@ -192,7 +202,7 @@ function DisplayableDocumentRenderer({
                     [reference suppressed by display policy]
                   </Typography>
                 ) : (
-                  <MuiLink component={RouterLink} to={`/statement/${ref.cid}`}>
+                  <MuiLink component={RouterLink} to={statementPath(ref.cid)}>
                     {ref.label || ref.cid}
                   </MuiLink>
                 )}

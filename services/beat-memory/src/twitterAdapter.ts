@@ -2,7 +2,7 @@ import {
 	buildCanonicalChannelId,
 	buildCanonicalContentId,
 	parseCanonicalChannelId,
-} from "@commonality/sdk/content-funding";
+} from "@commonality/sdk/content-identity";
 import type {
 	BeatIngestedItem,
 	BeatSource,

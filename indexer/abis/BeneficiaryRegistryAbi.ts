@@ -6,7 +6,7 @@ export const BeneficiaryRegistryAbi = [
     "inputs": [
       {
         "internalType": "address",
-        "name": "_verifier",
+        "name": "identity_",
         "type": "address"
       }
     ],
@@ -43,6 +43,17 @@ export const BeneficiaryRegistryAbi = [
         "type": "bytes32"
       }
     ],
+    "name": "BeneficiaryNotClaimed",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "beneficiaryId",
+        "type": "bytes32"
+      }
+    ],
     "name": "BeneficiaryNotControlled",
     "type": "error"
   },
@@ -58,13 +69,29 @@ export const BeneficiaryRegistryAbi = [
     "type": "error"
   },
   {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "beneficiaryId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "address",
+        "name": "claimant",
+        "type": "address"
+      }
+    ],
+    "name": "ClaimantIsNotIdentityOwner",
+    "type": "error"
+  },
+  {
     "inputs": [],
     "name": "InvalidBeneficiaryIdentity",
     "type": "error"
   },
   {
     "inputs": [],
-    "name": "InvalidClaimant",
+    "name": "InvalidIdentityAddress",
     "type": "error"
   },
   {
@@ -74,37 +101,7 @@ export const BeneficiaryRegistryAbi = [
   },
   {
     "inputs": [],
-    "name": "InvalidNonce",
-    "type": "error"
-  },
-  {
-    "inputs": [],
     "name": "InvalidProjectAddress",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "InvalidProofHash",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "InvalidVerifierAddress",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "InvalidVerifierSignature",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "NoVerifierConfigured",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "OnlyOwnerOrGuardian",
     "type": "error"
   },
   {
@@ -198,16 +195,6 @@ export const BeneficiaryRegistryAbi = [
     "type": "error"
   },
   {
-    "inputs": [],
-    "name": "ProofExpired",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "VerifierAlreadyRevoked",
-    "type": "error"
-  },
-  {
     "anonymous": false,
     "inputs": [
       {
@@ -259,53 +246,9 @@ export const BeneficiaryRegistryAbi = [
         "internalType": "address",
         "name": "payoutAddress",
         "type": "address"
-      },
-      {
-        "indexed": true,
-        "internalType": "bytes32",
-        "name": "proofHash",
-        "type": "bytes32"
-      }
-    ],
-    "name": "BeneficiaryProofAnchored",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "bytes32",
-        "name": "beneficiaryId",
-        "type": "bytes32"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "payoutAddress",
-        "type": "address"
       }
     ],
     "name": "BeneficiaryVerified",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "oldGuardian",
-        "type": "address"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "newGuardian",
-        "type": "address"
-      }
-    ],
-    "name": "GuardianUpdated",
     "type": "event"
   },
   {
@@ -325,25 +268,6 @@ export const BeneficiaryRegistryAbi = [
       }
     ],
     "name": "NamespaceClaimWaitingPeriodUpdated",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "previousOwner",
-        "type": "address"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "newOwner",
-        "type": "address"
-      }
-    ],
-    "name": "OwnershipTransferStarted",
     "type": "event"
   },
   {
@@ -441,46 +365,14 @@ export const BeneficiaryRegistryAbi = [
     "type": "event"
   },
   {
-    "anonymous": false,
     "inputs": [
       {
-        "indexed": true,
-        "internalType": "address",
-        "name": "revokedVerifier",
-        "type": "address"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "revokedBy",
-        "type": "address"
+        "internalType": "bytes32",
+        "name": "beneficiaryId",
+        "type": "bytes32"
       }
     ],
-    "name": "VerifierRevoked",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "oldVerifier",
-        "type": "address"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "newVerifier",
-        "type": "address"
-      }
-    ],
-    "name": "VerifierUpdated",
-    "type": "event"
-  },
-  {
-    "inputs": [],
-    "name": "acceptOwnership",
+    "name": "adoptBeneficiary",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -562,10 +454,10 @@ export const BeneficiaryRegistryAbi = [
   },
   {
     "inputs": [],
-    "name": "guardian",
+    "name": "identity",
     "outputs": [
       {
-        "internalType": "address",
+        "internalType": "contract IBeneficiaryIdentity",
         "name": "",
         "type": "address"
       }
@@ -687,19 +579,6 @@ export const BeneficiaryRegistryAbi = [
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "pendingOwner",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
     "inputs": [
       {
         "internalType": "bytes32",
@@ -715,13 +594,6 @@ export const BeneficiaryRegistryAbi = [
   {
     "inputs": [],
     "name": "renounceOwnership",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "revokeVerifier",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -747,19 +619,6 @@ export const BeneficiaryRegistryAbi = [
   {
     "inputs": [
       {
-        "internalType": "address",
-        "name": "_guardian",
-        "type": "address"
-      }
-    ],
-    "name": "setGuardian",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
         "internalType": "bytes32",
         "name": "namespaceHash",
         "type": "bytes32"
@@ -771,19 +630,6 @@ export const BeneficiaryRegistryAbi = [
       }
     ],
     "name": "setNamespaceClaimWaitingPeriod",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "_verifier",
-        "type": "address"
-      }
-    ],
-    "name": "setVerifier",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -812,19 +658,6 @@ export const BeneficiaryRegistryAbi = [
     "name": "transferOwnership",
     "outputs": [],
     "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "verifier",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
     "type": "function"
   },
   {

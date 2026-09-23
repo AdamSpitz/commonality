@@ -17,7 +17,7 @@ import {
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
 import type { Contribution, Refund } from '@commonality/sdk/lazy-giving'
 import { computeContributorStats } from '../utils'
-import { formatCurrencyAmount } from '../../shared'
+import { formatCurrencyAmount } from '../../shared/funding'
 import { truncateAddress } from '../../shared'
 
 function SectionHeading({ title, info }: { title: string; info: string }) {

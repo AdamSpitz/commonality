@@ -1,4 +1,6 @@
 import { SDKMachinery } from '../machinery.js';
+import { cachedProjectLogs, projectLogCacheKey, storeProjectLogs } from './projectLogCache.js';
+import { readProjectLogsFromNode } from './projectLogRead.js';
 
 /**
  * A raw blockchain event as returned by the event cache API.
@@ -241,7 +243,7 @@ export async function fetchLazyGivingProjectEvents(
 ): Promise<RawEventFromCache[]> {
   const paddedAddress = padAddressAsTopic(assuranceContractAddress);
 
-  const [factoryEvents, creatorFactoryEvents, contractEvents] = await Promise.all([
+  const [factoryEvents, creatorFactoryEvents, cachedContractEvents] = await Promise.all([
     fetchEvents(machinery, {
       eventName: 'LazyGivingAssuranceContractCreated',
       topic1: paddedAddress,
@@ -259,7 +261,34 @@ export async function fetchLazyGivingProjectEvents(
     }),
   ]);
 
+  const contractEvents = cachedContractEvents.length > 0 || !machinery.publicClient
+    ? cachedContractEvents
+    : await readUnindexedProjectLogs(machinery, assuranceContractAddress, options.blockNumber_gte);
+
   return [...factoryEvents, ...creatorFactoryEvents, ...contractEvents];
+}
+
+async function readUnindexedProjectLogs(
+  machinery: SDKMachinery,
+  assuranceContractAddress: string,
+  fromBlock: string | undefined,
+): Promise<RawEventFromCache[]> {
+  const key = projectLogCacheKey(machinery.defaultChainId, assuranceContractAddress, fromBlock);
+  const cached = cachedProjectLogs(key);
+  if (cached) return cached;
+
+  try {
+    const events = await readProjectLogsFromNode(
+      machinery.publicClient!,
+      machinery.defaultChainId,
+      assuranceContractAddress,
+      fromBlock ? BigInt(fromBlock) : 0n,
+    );
+    storeProjectLogs(key, events);
+    return events;
+  } catch {
+    return [];
+  }
 }
 
 /**

@@ -28,4 +28,9 @@ Tests are slow for two reasons:
 
 1. **Docker startup**: The test script (`scripts/run-integration-tests.sh`) still has to start Hardhat, IPFS, the indexer, and related services, but it uses the build planner documented in [`workflow/build.md`](../workflow/build.md) to avoid rebuilding Docker images when their inputs have not changed. Expect extra startup time when images are stale; otherwise the main cost is container startup and health checks.
 
-2. **Indexer sync waits**: Each transaction must wait for Ponder to index it before the test can verify results. Polling intervals are already optimized (Ponder polls Hardhat every 100ms in `ponder.config.ts`, tests poll Ponder every 50-100ms in `sdk/src/queries/common.ts`). This is architecturally unavoidable—you can't verify indexed data until the indexer processes the block.
+2. **Transaction and indexer sync waits**: Each transaction must be mined and
+   indexed before assertions run. Integration-test public clients explicitly
+   poll every 100ms in `src/utils/test-utils.ts` and
+   `src/actions/action-machinery.ts`; viem's default four-second interval against
+   the immediately mined local chain can push the suite past the verifier's
+   15-minute limit. SDK indexer synchronization still waits for indexed data.

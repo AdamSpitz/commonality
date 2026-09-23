@@ -29,7 +29,8 @@ Replace `ChannelRegistry` + `ChannelEscrow` + `IChannelVerifier` / `ChannelClaim
 
 | Piece | Role |
 |---|---|
-| `BeneficiaryRegistry` | State per `beneficiaryId`: unclaimed / verified / beneficiary-controlled; bound payout address; proof-hash anchoring; nonce/deadline replay rules; owner-authorized payout rotation |
+| `BeneficiaryIdentity` | Who proved control of a `beneficiaryId` (social channel or DNS name — one mechanism). Proof-hash anchoring, nonce/deadline replay, verifier. Not a payout address. Conceptspace deployment. |
+| `BeneficiaryRegistry` | Funding copy of that owner as the initial payout address, then rotation, beneficiary-controlled project creation, disavowal, and the namespace claim waiting period. A later proof cannot replace an adopted payout. |
 | `BeneficiaryEscrow` | ETH (later stablecoin) balances keyed by `beneficiaryId`; `withdraw` only to the registry's current payout address |
 | `IBeneficiaryVerifier` | `verifyClaimProof(proof) returns (bool)` — one implementation per namespace (tweet, RSS, well-known HTTPS, later zkTLS / DNSSEC) |
 

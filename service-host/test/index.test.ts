@@ -179,7 +179,7 @@ describe("service host", () => {
 		});
 
 		assert.strictEqual(config.port, 3011);
-		assert.strictEqual(config.services.length, 7);
+		assert.strictEqual(config.services.length, 6);
 		assert.strictEqual(config.services[0]?.name, "implication-attester");
 		assert.strictEqual(config.services[0]?.kind, "implication-attester");
 		assert.strictEqual(
@@ -254,7 +254,6 @@ describe("service host", () => {
 				"content-finder",
 				"implication-graph-nudger",
 				"bridge-creator",
-				"explorer-curator",
 			],
 		);
 		assert.deepStrictEqual(
@@ -264,7 +263,6 @@ describe("service host", () => {
 				undefined,
 				"/implication-graph-nudger",
 				"/bridge-creator",
-				"/explorer-curator",
 			],
 		);
 	});

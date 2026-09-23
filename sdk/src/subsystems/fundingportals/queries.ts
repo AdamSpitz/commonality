@@ -10,13 +10,23 @@ import {
   type EventQueryParams,
 } from '../../utils/eventCacheClient.js';
 import {
-  decodeAlignmentAttestationEvent,
-  decodeAlignmentRevokedEvent,
   decodeAssuranceContractInitializedEvent,
   decodeSuccessAttestationEvent,
   decodeSuccessRevokedEvent,
 } from '../../utils/eventDecoder.js';
-import { foldAlignmentAttestations } from './folds.js';
+import {
+  cidReferencesSameDigest,
+  getAlignedProjects,
+  getAlignedSubjects,
+  getAlignmentAttestation,
+  getAlignmentsByAttester,
+  getProjectAlignment,
+  getProjectStatements,
+  getSubjectStatements,
+  normalizeTrustedAddresses,
+  type TrustedAddressInput,
+} from '../alignment-attestations/queries.js';
+import { foldAlignmentAttestations } from '../alignment-attestations/folds.js';
 import {
   getProject,
   getProjectContributions,
@@ -26,7 +36,6 @@ import {
 } from '../lazy-giving/queries.js';
 import { getNoteIntentAggregate } from '../delegation/queries.js';
 import {
-  type AlignmentAttestation,
   type SuccessAttestation,
   type IndirectSubjectAlignment,
   type IndirectSubjectSuccess,
@@ -52,6 +61,16 @@ import {
   readProjectPaymentTokenInfo,
 } from '../../utils/chain-reads.js';
 import type { Address } from 'viem';
+import { summarizeFunding } from '../../utils/funding-summary.js';
+import {
+  classifyAlignedProjectStatus,
+  summarizeThresholdFunding,
+} from '../lazy-giving/funding-summary.js';
+// Keep existing consumer imports stable; lifecycle interpretation belongs to LazyGiving.
+export {
+  classifyAlignedProjectStatus,
+  remainingToThresholdForProject,
+} from '../lazy-giving/funding-summary.js';
 
 function addAmountToCurrencyList(
   totals: CurrencyAmountBigInt[],
@@ -96,42 +115,16 @@ function compareCurrencyTotals(
   return 0;
 }
 
-export type TrustedAddressInput = string | Iterable<string>;
-
-function normalizeTrustedAddresses(
-  trustedAddresses?: TrustedAddressInput
-): Set<string> | null {
-  if (!trustedAddresses) return null;
-
-  if (typeof trustedAddresses === 'string') {
-    return new Set([trustedAddresses.toLowerCase()]);
-  }
-
-  const normalized = new Set<string>();
-  for (const address of trustedAddresses) {
-    normalized.add(address.toLowerCase());
-  }
-
-  return normalized.size > 0 ? normalized : null;
-}
-
-async function fetchDecodedAlignmentLifecycleEvents(
-  machinery: SDKMachinery,
-  params: Omit<EventQueryParams, 'eventName'>,
-) {
-  const [attestations, revocations] = await Promise.all([
-    fetchEvents(machinery, { ...params, eventName: 'AlignmentAttestation' }),
-    fetchEvents(machinery, { ...params, eventName: 'AlignmentRevoked' }),
-  ]);
-  return [
-    ...attestations.map(decodeAlignmentAttestationEvent).filter(
-      (event): event is NonNullable<typeof event> => event !== null,
-    ),
-    ...revocations.map(decodeAlignmentRevokedEvent).filter(
-      (event): event is NonNullable<typeof event> => event !== null,
-    ),
-  ];
-}
+export type { TrustedAddressInput };
+export {
+  getAlignedProjects,
+  getAlignedSubjects,
+  getAlignmentAttestation,
+  getAlignmentsByAttester,
+  getProjectAlignment,
+  getProjectStatements,
+  getSubjectStatements,
+};
 
 async function fetchDecodedSuccessLifecycleEvents(
   machinery: SDKMachinery,
@@ -149,26 +142,6 @@ async function fetchDecodedSuccessLifecycleEvents(
       (event): event is NonNullable<typeof event> => event !== null,
     ),
   ];
-}
-
-function normalizeSubjectIdForTopic(subjectId: string): `0x${string}` {
-  if (/^0x[0-9a-fA-F]{40}$/.test(subjectId)) {
-    return padAddressAsTopic(subjectId) as `0x${string}`;
-  }
-  return subjectId.toLowerCase() as `0x${string}`;
-}
-
-function cidReferencesSameDigest(left: string, right: string): boolean {
-  if (left.toLowerCase() === right.toLowerCase()) return true;
-
-  try {
-    // AlignmentAttestations stores only the CID multihash digest in bytes32.
-    // Decoding therefore cannot preserve whether the original CID used raw or
-    // dag-pb codecs (bafkrei… vs bafybei…), so compare their stored digests.
-    return cidToBytes32(left) === cidToBytes32(right);
-  } catch {
-    return false;
-  }
 }
 
 function dedupeAlignedProjects<T extends {
@@ -191,162 +164,6 @@ function dedupeAlignedProjects<T extends {
 
 export function noteIntentNoteLookupKey(attestation: { noteContract: string; noteId: string }): string {
   return `${attestation.noteContract.toLowerCase()}:${attestation.noteId}`;
-}
-
-// ============================================================================
-// AlignmentAttestation Queries (Event Cache + Folds)
-// ============================================================================
-
-/**
- * Get all alignment attestations for a specific statement (by attester if provided)
- */
-export async function getAlignedSubjects(
-  machinery: SDKMachinery,
-  statementCid: IpfsCidV1,
-  trustedAlignmentAttesters?: TrustedAddressInput,
-  topicStatementCid?: IpfsCidV1
-): Promise<AlignmentAttestation[]> {
-  
-  // AlignmentAttestation(address indexed attester, bytes32 indexed subjectId, bytes32 indexed statementId, bytes32 topicStatementId)
-  // topic1=attester, topic2=subjectId, topic3=statementId (bytes32)
-  const decodedEvents = await fetchDecodedAlignmentLifecycleEvents(machinery, {
-    topic3: cidToBytes32(statementCid),
-    limit: 10000,
-  });
-  
-  let attestations = foldAlignmentAttestations(decodedEvents);
-
-  if (topicStatementCid) {
-    attestations = attestations.filter((attestation) =>
-      cidReferencesSameDigest(attestation.topicStatementCid, topicStatementCid),
-    );
-  }
-
-  const trustedAddresses = normalizeTrustedAddresses(trustedAlignmentAttesters);
-  if (trustedAddresses) {
-    attestations = attestations.filter(a => trustedAddresses.has(a.attester.toLowerCase()));
-  }
-  
-  return attestations.map(a => ({
-    attester: a.attester,
-    subjectId: a.subjectId,
-    statementCid: a.statementCid,
-    topicStatementCid: a.topicStatementCid || topicStatementCid,
-    createdAt: a.createdAt,
-    blockNumber: a.blockNumber,
-  }));
-}
-
-// Backwards compatibility alias
-export const getAlignedProjects = getAlignedSubjects;
-
-/**
- * Get all statement alignments for a specific subject (by attester if provided)
- *
- * @param subjectId bytes32 subject identifier. For address subjects, use toSubjectId(address).
- */
-export async function getSubjectStatements(
-  machinery: SDKMachinery,
-  subjectId: string,
-  attesterAddress?: string,
-  topicStatementCid?: IpfsCidV1
-): Promise<AlignmentAttestation[]> {
-  const decodedEvents = await fetchDecodedAlignmentLifecycleEvents(machinery, {
-    topic2: normalizeSubjectIdForTopic(subjectId),
-    limit: 10000,
-  });
-
-  let attestations = foldAlignmentAttestations(decodedEvents);
-
-  if (topicStatementCid) {
-    attestations = attestations.filter(a =>
-      cidReferencesSameDigest(a.topicStatementCid, topicStatementCid),
-    );
-  }
-
-  if (attesterAddress) {
-    const attesterLower = attesterAddress.toLowerCase();
-    attestations = attestations.filter(a => a.attester.toLowerCase() === attesterLower);
-  }
-
-  return attestations.map(a => ({
-    attester: a.attester,
-    subjectId: a.subjectId,
-    statementCid: a.statementCid,
-    topicStatementCid: a.topicStatementCid || topicStatementCid,
-    createdAt: a.createdAt,
-    blockNumber: a.blockNumber,
-  }));
-}
-
-// Backwards compatibility alias
-export const getProjectStatements = getSubjectStatements;
-
-/**
- * Get a specific alignment attestation
- *
- * @param subjectId bytes32 subject identifier. For address subjects, use toSubjectId(address).
- */
-export async function getAlignmentAttestation(
-  machinery: SDKMachinery,
-  attesterAddress: string,
-  subjectId: string,
-  statementCid: IpfsCidV1,
-  topicStatementCid?: IpfsCidV1
-): Promise<AlignmentAttestation | null> {
-  const decodedEvents = await fetchDecodedAlignmentLifecycleEvents(machinery, {
-    topic3: cidToBytes32(statementCid),
-    topic2: normalizeSubjectIdForTopic(subjectId),
-    limit: 1000,
-  });
-
-  const attesterLower = attesterAddress.toLowerCase();
-  const matching = decodedEvents.filter(e => e.attester.toLowerCase() === attesterLower);
-
-  const active = foldAlignmentAttestations(matching).find((attestation) =>
-    !topicStatementCid
-    || cidReferencesSameDigest(attestation.topicStatementCid, topicStatementCid),
-  );
-  if (!active) return null;
-
-  return {
-    ...active,
-    topicStatementCid: topicStatementCid ?? active.topicStatementCid,
-  };
-}
-
-// Backwards compatibility alias
-export const getProjectAlignment = getAlignmentAttestation;
-
-/**
- * Get all alignments by a specific attester
- */
-export async function getAlignmentsByAttester(
-  machinery: SDKMachinery,
-  attesterAddress: string,
-  topicStatementCid?: IpfsCidV1
-): Promise<AlignmentAttestation[]> {
-  // AlignmentAttestation: topic1=attester, topic2=subjectId, topic3=statementId
-  const decodedEvents = await fetchDecodedAlignmentLifecycleEvents(machinery, {
-    topic1: padAddressAsTopic(attesterAddress),
-    limit: 10000,
-  });
-
-  let attestations = foldAlignmentAttestations(decodedEvents);
-  if (topicStatementCid) {
-    attestations = attestations.filter((attestation) =>
-      cidReferencesSameDigest(attestation.topicStatementCid, topicStatementCid),
-    );
-  }
-
-  return attestations.map(a => ({
-    attester: a.attester,
-    subjectId: a.subjectId,
-    statementCid: normalizeCidV1(a.statementCid),
-    topicStatementCid: a.topicStatementCid || topicStatementCid,
-    createdAt: a.createdAt,
-    blockNumber: a.blockNumber,
-  }));
 }
 
 // ============================================================================
@@ -769,37 +586,6 @@ export async function getFullyReimbursedProjectsForCause(
 // Aggregated Funding Metrics (E2) - Event Cache + Chain Reads
 // ============================================================================
 
-/**
- * Classify an assurance project the same way LazyGiving UIs do:
- * threshold met → succeeded; past deadline without threshold → refunding (failed);
- * otherwise still open (active funding).
- */
-export function classifyAlignedProjectStatus(project: {
-  totalReceived: string;
-  threshold: string;
-  deadline: string;
-}, nowSeconds: number = Math.floor(Date.now() / 1000)): 'active' | 'succeeded' | 'refunding' {
-  const thresholdMet = BigInt(project.totalReceived) >= BigInt(project.threshold);
-  if (thresholdMet) return 'succeeded';
-  if (Number(project.deadline) < nowSeconds) return 'refunding';
-  return 'active';
-}
-
-/**
- * Remaining amount needed for an open project to hit its funding threshold.
- * Zero when the project is not open or already at/above threshold.
- */
-export function remainingToThresholdForProject(project: {
-  totalReceived: string;
-  threshold: string;
-  deadline: string;
-}, nowSeconds: number = Math.floor(Date.now() / 1000)): bigint {
-  if (classifyAlignedProjectStatus(project, nowSeconds) !== 'active') return 0n;
-  const received = BigInt(project.totalReceived);
-  const threshold = BigInt(project.threshold);
-  return threshold > received ? threshold - received : 0n;
-}
-
 async function readUnreimbursedForProject(
   machinery: SDKMachinery,
   projectAddress: string,
@@ -849,49 +635,17 @@ export async function foldAlignedProjectFunding(
   projects: AlignedProjectFunding[],
   nowSeconds: number = Math.floor(Date.now() / 1000),
 ): Promise<AlignedProjectFundingTotals> {
-  const totalRaised = new Map<string, CurrencyAmountBigInt>();
-  const remainingToThreshold = new Map<string, CurrencyAmountBigInt>();
-  const totalUnreimbursed = new Map<string, CurrencyAmountBigInt>();
-  const succeededProjects: AlignedProjectFunding[] = [];
-  let projectsNeedingFunding = 0;
-
-  for (const project of projects) {
-    addCurrencyAmount(totalRaised, project.fundingCurrency, BigInt(project.totalReceived));
-
-    const status = classifyAlignedProjectStatus(project, nowSeconds);
-    if (status === 'active') {
-      const need = remainingToThresholdForProject(project, nowSeconds);
-      if (need > 0n) {
-        projectsNeedingFunding += 1;
-        addCurrencyAmount(remainingToThreshold, project.fundingCurrency, need);
-      }
-    } else if (status === 'succeeded') {
-      succeededProjects.push(project);
-    }
-  }
-
-  let projectsNeedingReimbursement = 0;
-  if (succeededProjects.length > 0) {
-    const unreimbursedAmounts = await Promise.all(
-      succeededProjects.map((project) => readUnreimbursedForProject(machinery, project.projectAddress)),
-    );
-    for (let i = 0; i < succeededProjects.length; i++) {
-      const amount = unreimbursedAmounts[i] ?? 0n;
-      if (amount > 0n) {
-        projectsNeedingReimbursement += 1;
-        addCurrencyAmount(totalUnreimbursed, succeededProjects[i]!.fundingCurrency, amount);
-      }
-    }
-  }
-
-  return {
-    totalRaisedAcrossProjects: currencyTotalsToArray(totalRaised),
-    remainingToThreshold: currencyTotalsToArray(remainingToThreshold),
-    totalUnreimbursed: currencyTotalsToArray(totalUnreimbursed),
-    projectCount: projects.length,
-    projectsNeedingFunding,
-    projectsNeedingReimbursement,
-  };
+  // This entry point accepts the existing assurance product's snapshots. Keep
+  // its chain/event reads here; shared aggregation consumes only presentation data.
+  const summaries = await Promise.all(projects.map(async (project) => {
+    const succeeded = classifyAlignedProjectStatus(project, nowSeconds) === 'succeeded';
+    const outstanding = succeeded
+      ? await readUnreimbursedForProject(machinery, project.projectAddress)
+      : 0n;
+    return summarizeThresholdFunding(project, nowSeconds, { outstanding });
+  }));
+  const { remainingToGoal, ...totals } = summarizeFunding(summaries);
+  return { ...totals, remainingToThreshold: remainingToGoal };
 }
 
 /**

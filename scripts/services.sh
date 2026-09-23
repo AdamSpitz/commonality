@@ -57,6 +57,10 @@ show_usage() {
     echo "LOCAL_UI_DOMAINS (temporary): default is commonality only."
     echo "  Restore every IPFS SPA: LOCAL_UI_DOMAINS=all $0 --start"
     echo "  See workflow/local-development.md"
+    echo ""
+    echo "COMPOSE_CAPABILITY: all (default) or conceptspace."
+    echo "  conceptspace omits funding contract env, the platform API, and the"
+    echo "  alignment-trust bootstrap. The indexer and service host follow it."
 }
 
 # Which UI IPFS publishers to run on --start. Default: Commonality only.
@@ -300,25 +304,43 @@ map_commonality_contract_env() {
 }
 
 start_services() {
+    local capability="${COMPOSE_CAPABILITY:-all}"
+    if [ "$capability" != "all" ] && [ "$capability" != "conceptspace" ]; then
+        echo "Unknown COMPOSE_CAPABILITY: $capability (expected: all, conceptspace)" >&2
+        exit 1
+    fi
+    export INDEXER_CONTRACTS="$capability"
+    export SERVICE_HOST_CAPABILITY="$capability"
+
     local -a core_services=(
         hardhat-node
         hardhat-deploy
         ipfs
         published-data-ipfs-mirror
         indexer
-        platform-api-service
     )
-    local -a buildable_services=(
-        hardhat-deploy
-        published-data-ipfs-mirror
-        indexer
-        platform-api-service
+    local -a app_services=(
         cause-assist
-        alignment-trust-bootstrap
         commonality-ui
         christian-bridge-creator
         service-host-attesters
     )
+    if [ "$capability" = "all" ]; then
+        core_services+=(platform-api-service)
+        app_services+=(alignment-trust-bootstrap)
+    fi
+    local -a buildable_services=(
+        hardhat-deploy
+        published-data-ipfs-mirror
+        indexer
+        cause-assist
+        commonality-ui
+        christian-bridge-creator
+        service-host-attesters
+    )
+    if [ "$capability" = "all" ]; then
+        buildable_services+=(platform-api-service alignment-trust-bootstrap)
+    fi
     local domain
     for domain in $(local_publish_domains); do
         buildable_services+=("ui-ipfs-publisher-${domain}")
@@ -326,8 +348,8 @@ start_services() {
     local -a services_to_build=()
 
     timing_begin
-    echo "[$(date +%T)] Activating the complete localhost environment profile..."
-    "$SCRIPT_DIR/setup-env.sh" localhost
+    echo "[$(date +%T)] Activating the localhost environment profile ($capability)..."
+    "$SCRIPT_DIR/setup-env.sh" localhost "$capability"
     "$SCRIPT_DIR/check-local-config-sync.sh" --env-only
     "$SCRIPT_DIR/check-prerequisites.sh"
     check_existing_containers
@@ -383,10 +405,8 @@ start_services() {
     # it needs IMPLICATIONS_CONTRACT_ADDRESS from deployments/localhost.env, and
     # compose reads that from this shell. The bridge-cluster editor's "submit
     # pairs to attester" step talks to it on :3006.
-    echo "[$(date +%T)] Starting Commonality SPA, cause-assist, attesters, workers..."
-    docker_compose up -d --force-recreate \
-        cause-assist alignment-trust-bootstrap commonality-ui christian-bridge-creator \
-        service-host-attesters
+    echo "[$(date +%T)] Starting Commonality SPA, cause-assist, attesters..."
+    docker_compose up -d --force-recreate "${app_services[@]}"
     timing_mark commonality_ui
 
     # Compose auto-loads the root .env, so once generate-wallets.mjs has run the
@@ -399,10 +419,14 @@ start_services() {
         echo "  node scripts/fund-local-service-wallets.mjs"
     fi
 
-    echo "Recording local Hardhat-account trust (Commonality starter network)..."
-    if ! node "$SCRIPT_DIR/seed-local-alignment-trust.mjs"; then
-        echo "Warning: could not seed local alignment trust. Commonality project lists may stay gated until you run:"
-        echo "  node scripts/seed-local-alignment-trust.mjs"
+    if [ "$capability" = "all" ]; then
+        echo "Recording local Hardhat-account trust (Commonality starter network)..."
+        if ! node "$SCRIPT_DIR/seed-local-alignment-trust.mjs"; then
+            echo "Warning: could not seed local alignment trust. Commonality project lists may stay gated until you run:"
+            echo "  node scripts/seed-local-alignment-trust.mjs"
+        fi
+    else
+        echo "Skipping alignment-trust seed; COMPOSE_CAPABILITY=conceptspace has no funding operator bootstrap."
     fi
     timing_mark alignment_trust
 

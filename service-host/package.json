@@ -7,6 +7,7 @@
   "scripts": {
     "predev": "npm run build --workspace=@commonality/implication-finder && npm run build --workspace=@commonality/content-finder && npm run build --workspace=@commonality/implication-graph-nudger && npm run build --workspace=@commonality/bridge-creator && npm run build --workspace=@commonality/explorer-curator",
     "dev": "tsx watch src/cli.ts",
+    "dev:conceptspace": "SERVICE_HOST_CAPABILITY=conceptspace tsx watch src/cli.ts",
     "build": "tsc",
     "clean": "rm -rf dist",
     "typecheck": "tsc --noEmit",

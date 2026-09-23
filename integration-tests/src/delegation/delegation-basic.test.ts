@@ -298,17 +298,17 @@ describe('Delegation System', () => {
       }
     );
 
-    // Check that the note's owner after revocation.
-    // Contract revoke() semantics: user2 revokes from [user3,user2,user1] (leaf-first),
-    // callerIndex=1, newChainLength=2. The new hash corresponds to chain [user2,user1]
-    // in root-first order (user2 as new root, user1 as new leaf/spender).
+    // The middle revoker regains spending authority; the original root is retained.
     const revokedNote = await getNote(machinery, note3.toString());
     assert.ok(revokedNote, 'Revoked note');
-    assert.strictEqual(revokedNote.owner.toLowerCase(), user1.account.toLowerCase(), 'Owner should be user1 after revocation (contract revoke() reverses the retained sub-chain)');
+    assert.strictEqual(revokedNote.owner.toLowerCase(), user2.account.toLowerCase(), 'Owner should be the revoker');
+    assert.strictEqual(revokedNote.rootOwner.toLowerCase(), user1.account.toLowerCase(), 'Root should remain the original depositor');
 
-    // Check delegation chain (should be 2 deep after revocation: user2 -> user1)
+    // SDK chains are root-first: user1 -> user2, with user3 removed.
     const revokedChain = await getDelegationChain(machinery, note3.toString());
-    assert.strictEqual(revokedChain.length, 2, 'Delegation chain should have 2 entries after revocation');
+    assert.deepStrictEqual(revokedChain.map(link => link.address.toLowerCase()), [
+      user1.account.toLowerCase(), user2.account.toLowerCase(),
+    ]);
   });
 
   it('should allow reclaiming funds from a root note', async function() {

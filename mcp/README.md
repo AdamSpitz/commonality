@@ -28,7 +28,8 @@ Run the process with cwd = this repository so workspace resolution works.
 
 | Tool | Side effect |
 | --- | --- |
-| `get_statement`, `fetch_ipfs`, `get_implications_*`, `get_user_belief`, `get_user_ref`, `get_project`, `indexer_status` | Read |
+| `get_statement`, `fetch_ipfs`, `get_implications_*`, `get_user_belief`, `get_user_ref`, `indexer_status` | Read |
+| `get_project` | Read; registered only when the funding core addresses are set (`ASSURANCE_CONTRACT_FACTORY_ADDRESS`, `ERC1155_FACTORY_ADDRESS`, `DELEGATABLE_NOTES_CONTRACT_ADDRESS` or `DELEGATABLE_NOTES_ADDRESS`, `NOTE_INTENT_ADDRESS`) |
 | `cause_assist` | HTTP to cause-assist (wording only) |
 | `implication_attester_status`, `evaluate_implication` | HTTP; evaluate may 402 (x402) and, if paid, the *attester* publishes on-chain |
 | `upload_ipfs`, `believe_statement` | Writes; require `COMMONALITY_MCP_WRITES=1` |

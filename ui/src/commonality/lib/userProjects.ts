@@ -1,6 +1,6 @@
 import { getProject, getUserContributions, getUserCreatedProjects, type Project } from '@commonality/sdk/lazy-giving'
 import type { SDKMachinery } from '@commonality/sdk/machinery'
-import { loadProjectWithCache, projectFoldCacheOptions } from '@ui/shared'
+import { loadProjectWithCache, projectFoldCacheOptions } from '@ui/shared/funding'
 import { dnsBeneficiaryDomain, readLazyGivingProjectMetadata } from '@ui/lazy-giving'
 import type { IpfsCidV1 } from '@commonality/sdk/utils'
 import { mapWithConcurrency, PLANK_QUERY_CONCURRENCY } from './concurrency'

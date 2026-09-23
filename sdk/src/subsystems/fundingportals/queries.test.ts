@@ -3,6 +3,7 @@ import { encodeAbiParameters, encodeEventTopics } from 'viem';
 import {
   calculateSuccessConfidenceScore,
   classifyAlignedProjectStatus,
+  foldAlignedProjectFunding,
   getAlignmentAttestation,
   getSubjectStatements,
   getSubjectSuccessStatements,
@@ -17,6 +18,9 @@ import type { SDKMachinery } from '../../machinery.js';
 import { AlignmentAttestationsAbi } from '../../abis.js';
 import { cidToBytes32 } from '../../utils/cid-types.js';
 import { fakeIpfsCidV1 } from '../../utils/test-helpers.js';
+import { ETH_CURRENCY } from '../../utils/currency.js';
+import { createSDKMachinery } from '../../machinery.js';
+import type { PublicClient } from 'viem';
 
 const ALIGNMENT_CONTRACT = '0x9999999999999999999999999999999999999999' as const;
 const PROJECT_ADDRESS = '0x1111111111111111111111111111111111111111' as const;
@@ -46,6 +50,30 @@ describe('funding portal queries', () => {
 
   afterEach(() => {
     global.fetch = originalFetch;
+  });
+
+  it('adapts assurance funding and reads reimbursement only for successful projects', async () => {
+    const reads: string[] = [];
+    const machinery = createSDKMachinery({ publicClient: {
+      readContract: async ({ address, functionName }: { address: string; functionName: string }) => {
+        assert.strictEqual(functionName, 'outstandingReimbursementTotal');
+        reads.push(address);
+        return 40n;
+      },
+    } as unknown as PublicClient });
+    const base = { fundingCurrency: ETH_CURRENCY, threshold: '100', deadline: '200' };
+    const totals = await foldAlignedProjectFunding(machinery, [
+      { ...base, projectAddress: A, totalReceived: '25' },
+      { ...base, projectAddress: B, totalReceived: '100' },
+      { ...base, projectAddress: C, totalReceived: '10', deadline: '50' },
+    ], 100);
+    assert.deepStrictEqual(reads, [B]);
+    assert.strictEqual(totals.totalRaisedAcrossProjects[0]?.amount, 135n);
+    assert.strictEqual(totals.remainingToThreshold[0]?.amount, 75n);
+    assert.strictEqual(totals.totalUnreimbursed[0]?.amount, 40n);
+    assert.strictEqual(totals.projectsNeedingFunding, 1);
+    assert.strictEqual(totals.projectsNeedingReimbursement, 1);
+    assert.strictEqual(totals.projectCount, 3);
   });
 
   describe('aligned project open/succeeded classification', () => {

@@ -8,6 +8,12 @@ export interface ExplorerCuratorConfig extends LlmNudgerConfig {
   fullReviewIntervalMs: number;
   pendingImportanceThreshold: number;
   trustedImplicationAttesters?: string[];
+  /** Replaces the funding-landscape curator instructions. Unset keeps that default. */
+  curationBrief?: string;
+  curatorSystemPrompt?: string;
+  /** Replaces the funding-area personalizer lead. Unset keeps that default. */
+  personalizationBrief?: string;
+  personalizerSystemPrompt?: string;
 }
 
 export function loadConfigFromEnv(env: NodeJS.ProcessEnv = process.env): ExplorerCuratorConfig {
@@ -44,6 +50,14 @@ export function loadConfigFromEnv(env: NodeJS.ProcessEnv = process.env): Explore
     return values.length > 0 ? values : undefined;
   }
 
+  function optionalString(names: readonly string[]): string | undefined {
+    for (const name of names) {
+      const value = env[name]?.trim();
+      if (value) return value;
+    }
+    return undefined;
+  }
+
   return {
     nudgerPrivateKey: requireFrom('EXPLORER_CURATOR_PRIVATE_KEY'),
     ethereumRpcUrl: readString(
@@ -66,6 +80,10 @@ export function loadConfigFromEnv(env: NodeJS.ProcessEnv = process.env): Explore
     fullReviewIntervalMs: readNumber(['EXPLORER_CURATOR_FULL_REVIEW_INTERVAL_MS', 'CURATOR_FULL_REVIEW_INTERVAL_MS'], 6 * 60 * 60 * 1000),
     pendingImportanceThreshold: readNumber(['EXPLORER_CURATOR_PENDING_IMPORTANCE_THRESHOLD', 'CURATOR_PENDING_IMPORTANCE_THRESHOLD'], 25),
     trustedImplicationAttesters: readCsv(['EXPLORER_CURATOR_TRUSTED_IMPLICATION_ATTESTERS', 'TRUSTED_IMPLICATION_ATTESTERS']),
+    curationBrief: optionalString(['EXPLORER_CURATOR_CURATION_BRIEF', 'EXPLORER_CURATION_BRIEF']),
+    curatorSystemPrompt: optionalString(['EXPLORER_CURATOR_SYSTEM_PROMPT']),
+    personalizationBrief: optionalString(['EXPLORER_CURATOR_PERSONALIZATION_BRIEF', 'EXPLORER_PERSONALIZATION_BRIEF']),
+    personalizerSystemPrompt: optionalString(['EXPLORER_CURATOR_PERSONALIZER_SYSTEM_PROMPT']),
   };
 }
 
@@ -119,5 +137,9 @@ export function loadConfig(): ExplorerCuratorConfig {
     fullReviewIntervalMs: readNumberEnv('CURATOR_FULL_REVIEW_INTERVAL_MS', 6 * 60 * 60 * 1000),
     pendingImportanceThreshold: readNumberEnv('CURATOR_PENDING_IMPORTANCE_THRESHOLD', 25),
     trustedImplicationAttesters: readCsvEnv('TRUSTED_IMPLICATION_ATTESTERS'),
+    curationBrief: process.env.EXPLORER_CURATION_BRIEF?.trim() || undefined,
+    curatorSystemPrompt: process.env.EXPLORER_CURATOR_SYSTEM_PROMPT?.trim() || undefined,
+    personalizationBrief: process.env.EXPLORER_PERSONALIZATION_BRIEF?.trim() || undefined,
+    personalizerSystemPrompt: process.env.EXPLORER_CURATOR_PERSONALIZER_SYSTEM_PROMPT?.trim() || undefined,
   };
 }

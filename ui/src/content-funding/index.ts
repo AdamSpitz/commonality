@@ -14,6 +14,8 @@
 
 export { ContentAttestationSummary } from './components/ContentAttestationSummary'
 export { ContentSubmissionForm } from './components/ContentSubmissionForm'
+export { StatementSupportingContent } from './components/StatementSupportingContent'
+export { LinkedSocialAccountsSection } from './components/LinkedSocialAccountsSection'
 export { ContentFundingProjectSection } from './components/ContentFundingProjectSection'
 export { ClaimFlowModal } from './components/ClaimFlowModal'
 

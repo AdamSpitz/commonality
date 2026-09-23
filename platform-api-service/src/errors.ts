@@ -1,3 +1,4 @@
+import { ContentIdentityError } from '@commonality/sdk/content-identity';
 import { ContentFundingCanonicalizationError } from '@commonality/sdk/content-funding';
 
 export class HttpError extends Error {
@@ -25,7 +26,7 @@ export function toErrorResponse(error: unknown): {
     };
   }
 
-  if (error instanceof ContentFundingCanonicalizationError) {
+  if (error instanceof ContentIdentityError || error instanceof ContentFundingCanonicalizationError) {
     return {
       status: 400,
       body: buildErrorBody(error.code, error.message),

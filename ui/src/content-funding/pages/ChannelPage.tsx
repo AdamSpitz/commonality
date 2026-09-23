@@ -25,7 +25,8 @@ import { useAccount } from 'wagmi'
 import { parseCanonicalChannelId, getChannelOverview, getContentItemKey, getProspectiveRounds, hashCanonicalId, type ChannelOverview, type ContentFundingContractSummary, type ContentItem, type ChannelState, type ProspectiveRoundSummary } from '@commonality/sdk/content-funding'
 import { useContentFundingState, type ContentAttestationInfo } from '../hooks/useContentFundingState'
 import { getChannelDisplayLabels } from '../channelDisplay'
-import { formatCurrencyAmount, getAppUrl, contentContractPathForAddress, InfoChip, useTrustedContentAttesters } from '../../shared'
+import { getAppUrl, contentContractPathForAddress, InfoChip, useTrustedContentAttesters } from '../../shared'
+import { formatCurrencyAmount } from '../../shared/funding'
 import {
   FAN_CREATED_TOOLTIP,
   CHANNEL_STATE_TOOLTIPS,

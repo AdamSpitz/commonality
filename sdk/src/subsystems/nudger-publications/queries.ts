@@ -14,7 +14,7 @@ import { fetchEvents, padAddressAsTopic } from '../../utils/eventCacheClient.js'
 import {
   decodeNudgesPublishedEvent,
   type DecodedNudgesPublishedEvent,
-} from '../../utils/eventDecoder.js';
+} from '../../utils/event-decoders/nudger-publications.js';
 import { foldCuratedCollectionPublications, foldNudgeBatchPublications } from './folds.js';
 import {
   type CuratedCollectionEntry,

@@ -25,17 +25,6 @@ export function getDomainManifest(domainId: DomainId): DomainManifest {
   return domainManifests[domainId]
 }
 
-export function getActiveDomain(): DomainManifest {
-  const domainId = getDomainIdFromEnv()
-  return domainManifests[domainId]
-}
-
-function getDomainIdFromEnv(): DomainId {
-  const envDomain = import.meta.env.VITE_DOMAIN
-  if (envDomain in domainManifests) return envDomain as DomainId
-  return 'commonality'
-}
-
 export { commonalityManifest }
 export { lazyGivingManifest }
 export { alignmentManifest }

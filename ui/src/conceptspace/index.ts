@@ -10,12 +10,19 @@
 // package, this file becomes the package root (`@commonality/conceptspace`).
 //
 // Eager surface (components used at import time). External callers today:
-// `StatementRenderer` (fundingportals Alignment Explorer) and the settings
-// sections (Commonality SettingsPage). Other components stay module-internal.
+// `StatementRenderer` (fundingportals Alignment Explorer and the Commonality
+// statement page) and the settings sections (Commonality SettingsPage).
+// Belief controls, support metrics, suggestions, and high-profile signers are
+// exported for the same composition. Commonality does not have to mount them.
 
 export { StatementRenderer } from './components/StatementRenderer'
+export { BeliefControls } from './components/BeliefControls'
+export { SupportMetrics } from './components/SupportMetrics'
+export { StatementSuggestions } from './components/StatementSuggestions'
+export { HighProfileSigners } from './components/HighProfileSigners'
 export { DirectTrustSettingsSection } from './components/DirectTrustSettingsSection'
 export { NudgerSettingsSection } from './components/settings/NudgerSettingsSection'
+export { loadTwitterHandleHint, saveTwitterHandleHint } from './twitterHandleHints'
 
 // Note on pages: the route components (HomePage, BrowseStatementsPage,
 // StatementPage, UserProfilePage, SettingsPage) are intentionally NOT

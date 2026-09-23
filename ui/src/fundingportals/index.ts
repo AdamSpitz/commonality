@@ -10,7 +10,7 @@
 // package, this file becomes the package root (`@commonality/fundingportals`).
 //
 // Eager surface (components used at import time).
-// - FundingPortalSummary — conceptspace statement page
+// - FundingPortalSummary — funding-portal summary for consumers outside conceptspace
 // - AlignmentAttestationsSection — lazy-giving project-detail page
 // - CauseBoard / CauseLeaderboard — Aligning routes + Commonality host
 // Remaining components stay module-internal until an external consumer needs them.

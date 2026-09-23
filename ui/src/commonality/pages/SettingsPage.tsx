@@ -1,5 +1,6 @@
 import { Box, Typography } from '@mui/material'
 import { DirectTrustSettingsSection, NudgerSettingsSection } from '@ui/conceptspace'
+import { LinkedSocialAccountsSection } from '@ui/content-funding'
 import {
   AlignmentFilterToggle,
   DiscoverySlider,
@@ -28,6 +29,7 @@ export function SettingsPage() {
         voucherLabel="project vouches"
       />
       <AlignmentFilterToggle value={alignmentFilter} onChange={setAlignmentFilter} />
+      <LinkedSocialAccountsSection />
       <DirectTrustSettingsSection
         emptyTrustMessage="No personal trust scores yet. Commonality's starter network is currently filtering project vouches for you."
         refreshingEmptyMessage="Refreshing your personal trust network. Commonality's starter network remains in use until you name someone yourself."

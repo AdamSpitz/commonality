@@ -32,7 +32,8 @@ import {
   CONTENT_FUNDING_BADGE_TOOLTIP,
   CONTRACT_STATUS_TOOLTIPS,
 } from '../../content-funding'
-import { formatCurrencyProgress, InfoChip, projectPathForAddress } from '../../shared'
+import { InfoChip, projectPathForAddress } from '../../shared'
+import { formatCurrencyProgress } from '../../shared/funding'
 import {
   claimStateForDnsDomain,
   dnsBeneficiaryDomain,

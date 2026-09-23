@@ -249,6 +249,7 @@ if (!indexerService) {
     const optionalEnvKeys = new Set([
       'PONDER_RPC_URL_31337',     // Local hardhat chain (not used in production)
       'PONDER_EPHEMERAL',          // Docker-based test runs
+      'INDEXER_CONTRACTS',         // Optional; default shared feed is "all"
       'LAZYGIVING_START_BLOCK',    // Optional override, defaults to START_BLOCK
       'DELEGATION_START_BLOCK',    // Optional override, defaults to START_BLOCK
       'FUNDING_PORTAL_START_BLOCK', // Optional override, defaults to START_BLOCK

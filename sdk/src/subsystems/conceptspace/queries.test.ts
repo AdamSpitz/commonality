@@ -7,7 +7,7 @@ import { computePublishedDataId, publishedDataIdToCid } from '../published-data/
 import { fakeContentResolver } from '../published-data/test-support.js';
 import { fakeIpfsCidV1 } from '../../utils/test-helpers.js';
 import type { RawEventFromCache } from '../../utils/eventCacheClient.js';
-import { BeliefsAbi, ImplicationsAbi } from '../../abis.js';
+import { BeliefsAbi, ImplicationsAbi } from '../../abis/conceptspace.js';
 import { computeAnonymizedId, ProofTier, type AnonymizedId } from '../identity/unique-human-id.js';
 import {
   browseStatementsByMostSupporters,

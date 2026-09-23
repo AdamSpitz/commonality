@@ -1,7 +1,7 @@
 import assert from 'node:assert';
 import { encodeAbiParameters, encodeEventTopics, parseAbiParameters, type Address } from 'viem';
 import { createSDKMachinery } from '@commonality/sdk/machinery';
-import { BeliefsAbi, ImplicationsAbi, PublishedDataAbi } from '@commonality/sdk/abis';
+import { BeliefsAbi, ImplicationsAbi, PublishedDataAbi } from '@commonality/sdk/abis/conceptspace';
 import { cidToBytes32, type RawEventFromCache } from '@commonality/sdk/utils';
 import { fakeIpfsCidV1 } from '@commonality/sdk/testing';
 import { computePublishedDataId, publishedDataIdToCid } from '@commonality/sdk/published-data';
@@ -130,13 +130,6 @@ describe('ImplicationGraphNudger retraction re-anchor mode', () => {
         beliefs: BELIEFS_CONTRACT,
         implications: IMPLICATIONS_CONTRACT,
         publishedData: PUBLISHED_DATA_CONTRACT,
-        assuranceContractFactory: '0x0000000000000000000000000000000000000000',
-        erc1155Factory: '0x0000000000000000000000000000000000000000',
-        delegatableNotes: '0x0000000000000000000000000000000000000000',
-        noteIntent: '0x0000000000000000000000000000000000000000',
-        alignmentAttestations: '0x0000000000000000000000000000000000000000',
-        mutableRefUpdater: '0x0000000000000000000000000000000000000000',
-        trustRegistry: '0x0000000000000000000000000000000000000000',
       },
     });
 
@@ -150,7 +143,7 @@ describe('ImplicationGraphNudger retraction re-anchor mode', () => {
       description: 'test',
       sourceType: 'implication-graph',
       version: '0.1.0',
-      nudgePublicationsContractAddress: '0x0000000000000000000000000000000000000000',
+      nudgePublicationsContractAddress: '0x00000000000000000000000000000000000000b4',
     });
 
     assert.deepStrictEqual(nudges.map(({ targetStatementCid, suggestedStatementCid }) => ({ targetStatementCid, suggestedStatementCid })), [

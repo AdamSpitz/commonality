@@ -24,7 +24,8 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true,
     "paths": {
-      "@ui/*": ["./src/*"]
+      "@ui/*": ["./src/*"],
+      "@ui-active-domain": ["./src/domains/active/commonality.ts"]
     }
   },
   "include": ["src"],

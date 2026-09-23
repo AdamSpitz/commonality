@@ -1,6 +1,6 @@
 import { pathToFileURL } from 'node:url';
 import { runPollingFinder, type PollingFinderRunHandle } from '@commonality/finder-core';
-import type { SDKMachinery } from '@commonality/sdk/machinery';
+import { createSDKMachinery, type SDKMachinery } from '@commonality/sdk/machinery';
 import { loadConfig, loadConfigFromEnv, type FinderConfig } from './config.js';
 export { loadConfigFromEnv };
 export type { FinderConfig };
@@ -12,24 +12,14 @@ import { evaluatePairs } from './attesterClient.js';
 import { fetchStatementDomains } from './domainFetcher.js';
 
 function createMachinery(config: FinderConfig): SDKMachinery {
-  return {
+  return createSDKMachinery({
     ipfsConfig: { gatewayUrl: '', apiUrl: '' },
-    twitterApiConfig: {},
-    testConfig: {},
     eventCacheUrl: config.eventCacheUrl,
     contractAddresses: {
       beliefs: config.beliefsContractAddress,
       implications: config.implicationsContractAddress,
-      // The finder only reads beliefs + implications events, so the rest are unused.
-      assuranceContractFactory: '0x0',
-      erc1155Factory: '0x0',
-      delegatableNotes: '0x0',
-      noteIntent: '0x0',
-      alignmentAttestations: '0x0',
-      mutableRefUpdater: '0x0',
-      trustRegistry: '0x0',
     },
-  };
+  });
 }
 
 async function runOnce(

@@ -1,4 +1,7 @@
+import { installIdentitySocialAssociation } from '../../shared'
 import type { ReactNode } from 'react'
+
+installIdentitySocialAssociation()
 import { Navigate, Route } from 'react-router-dom'
 import type { DomainManifest } from '../types'
 import { lazyRoute } from '../lazyRoute'
@@ -15,8 +18,6 @@ const routes: ReactNode = (
     <Route path="/profile" element={lazyRoute(() => import('../../conceptspace/pages/UserProfilePage'), 'UserProfilePage')} />
     <Route path="/user/:address" element={lazyRoute(() => import('../../conceptspace/pages/UserProfilePage'), 'UserProfilePage')} />
     <Route path="/settings" element={lazyRoute(() => import('../../conceptspace/pages/SettingsPage'), 'SettingsPage')} />
-    <Route path="/portal/:statementCid" element={lazyRoute(() => import('../../fundingportals/pages/StatementFundingPortalPage'), 'StatementFundingPortalPage')} />
-    <Route path="/portal/:statementCid/leaderboard" element={lazyRoute(() => import('../../fundingportals/pages/CauseLeaderboardPage'), 'CauseLeaderboardPage')} />
   </>
 )
 

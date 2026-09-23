@@ -79,14 +79,6 @@ vi.mock('../components/HighProfileSigners', () => ({
   )),
 }))
 
-vi.mock('../../content-funding/components/ContentSubmissionForm', () => ({
-  ContentSubmissionForm: vi.fn(({ statementCid }) => (
-    <div data-testid="content-submission-form">
-      Content submission form for: {statementCid}
-    </div>
-  )),
-}))
-
 import { useParams } from 'react-router-dom'
 import { useAccount } from 'wagmi'
 import { getStatementWithContent, getUserBelief } from '@commonality/sdk/conceptspace'

@@ -69,6 +69,33 @@ describe('suggestForUser', () => {
     assert.deepStrictEqual(result, []);
   });
 
+  it('uses the configured personalization brief instead of the funding default', async () => {
+    let userPrompt = '';
+    let systemPrompt = '';
+    await suggestForUser(
+      MACHINERY,
+      { stream: 'test-stream', signedStatementCids: [] },
+      {
+        ...makeConfig(),
+        personalizationBrief: 'Suggest related beliefs. Do not mention funding.',
+        personalizerSystemPrompt: 'Belief suggester.',
+      },
+      makeDeps({
+        getCuratedCollections: wrapCollection(makeCollection([
+          { cid: 'bafy1', label: 'Libraries', topicArea: 'Civic' },
+        ])),
+        requestJsonCompletion: async <T>(req: OpenRouterJsonRequest) => {
+          userPrompt = req.userPrompt;
+          systemPrompt = req.systemPrompt;
+          return [{ cid: 'bafy1', reason: 'Nearby' }] as T;
+        },
+      }),
+    );
+    assert.match(userPrompt, /Do not mention funding/);
+    assert.doesNotMatch(userPrompt, /funding areas/);
+    assert.strictEqual(systemPrompt, 'Belief suggester.');
+  });
+
   it('returns empty array when the latest collection has no entries', async () => {
     const result = await suggestForUser(
       MACHINERY,

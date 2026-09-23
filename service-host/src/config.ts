@@ -16,6 +16,47 @@ export const serviceKinds = [
 
 export type ServiceKind = (typeof serviceKinds)[number];
 
+/** Non-financial services. A Conceptspace-only host uses this list and must not import funding factories. */
+export const conceptspaceServiceKinds = [
+  'implication-finder',
+  'implication-graph-nudger',
+  'bridge-creator',
+  'explorer-curator',
+  'implication-attester',
+  'beat-memory',
+] as const satisfies readonly ServiceKind[];
+
+export type ConceptspaceServiceKind = (typeof conceptspaceServiceKinds)[number];
+
+/** Funding and content-payout consumers. Composed into the full host, not the Conceptspace default. */
+export const fundingServiceKinds = [
+  'content-finder',
+  'content-attester',
+  'beat-agent',
+  'recurring-pledge-scheduler',
+] as const satisfies readonly ServiceKind[];
+
+export type FundingServiceKind = (typeof fundingServiceKinds)[number];
+
+export type HostCapability = 'all' | 'conceptspace';
+
+/** Default `all` keeps the combined host. `conceptspace` is the non-financial process. */
+export function parseHostCapability(value: string | undefined): HostCapability {
+  if (value === undefined || value === '' || value === 'all') return 'all';
+  if (value === 'conceptspace') return 'conceptspace';
+  throw new Error(
+    `Invalid SERVICE_HOST_CAPABILITY "${value}". Expected all or conceptspace.`,
+  );
+}
+
+export function assertConceptspaceServiceKind(kind: ServiceKind): void {
+  if (!(conceptspaceServiceKinds as readonly string[]).includes(kind)) {
+    throw new Error(
+      `Service kind "${kind}" is a funding service. A Conceptspace host cannot start it.`,
+    );
+  }
+}
+
 export interface HostedServiceConfig {
   name: string;
   kind: ServiceKind;

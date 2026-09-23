@@ -43,6 +43,11 @@ wrong (or this file is out of date and needs an ADR — see
 | **Standing pledge** | A *recurring* funding commitment registered with `RecurringPledges`, executed periodically into a note |
 | **Fundable-projects board** | The list of aligned work you might fund (heading **Fundable Projects**), inlined on a statement or cause board and also a full page. Code still says `fundingportal*` / `/portal/:statementCid`. Formerly called **portal** and then **cause board**. |
 
+Implementation term: **Funding summary** is the mechanism-independent presentation
+of funds received and supported contribution, refund, and reimbursement
+capabilities. It is not a new project identity or an authorization to spend.
+See [funding boundaries](tech/shared/decoupling.md).
+
 ### Judgments people and services publish
 
 | Term | Means |

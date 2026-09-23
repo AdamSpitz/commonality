@@ -13,25 +13,72 @@ import {
   PublishedDataAbi,
 } from '@commonality/sdk/abis'
 import {
+  buildRosterDocument,
   createDefaultDocumentReader,
   createDefaultDocumentStore,
-  createDisplayableDocument,
-  publishedDataCidForDocument,
+  MAX_MEDIATOR_BLURB_LENGTH,
+  MAX_SUMMARY_LENGTH,
+  MAX_TITLE_LENGTH,
+  mediatorBlurbFrom,
+  parseAnchors,
+  parseBoardInclusionRules,
+  parseCauseMediator,
+  parseContactUrl,
+  parsePlacePath,
+  parseRosterBridgeLink,
+  parseRosterDocument,
+  previewRosterCid,
+  renderRosterContent,
+  ROSTER_COHERENCE_CLAIM,
+  ROSTER_COHERENCE_CLAIM_DOCUMENT,
+  ROSTER_COHERENCE_TOPIC,
+  ROSTER_COHERENCE_TOPIC_DOCUMENT,
+  ROSTER_KIND,
+  ROSTER_SCHEMA_VERSION,
   toCanonicalJson,
   validateDisplayableDocument,
+  publishedDataCidForDocument,
+  validateSlug,
+  type BoardInclusionRules,
+  type CauseAnchor,
+  type CauseMediator,
   type DisplayableDocument,
+  type RosterBridgeLink,
+  type RosterExtras,
+  type RosterFields,
 } from '@commonality/sdk/displayable-documents'
+
+export {
+  buildRosterDocument,
+  MAX_MEDIATOR_BLURB_LENGTH,
+  MAX_SUMMARY_LENGTH,
+  MAX_TITLE_LENGTH,
+  mediatorBlurbFrom,
+  normalizeSlug,
+  parseAnchors,
+  parseBoardInclusionRules,
+  parseCauseMediator,
+  parseContactUrl,
+  parsePlacePath,
+  parseRosterBridgeLink,
+  parseRosterDocument,
+  previewRosterCid,
+  renderRosterContent,
+  ROSTER_COHERENCE_CLAIM,
+  ROSTER_COHERENCE_CLAIM_DOCUMENT,
+  ROSTER_COHERENCE_TOPIC,
+  ROSTER_COHERENCE_TOPIC_DOCUMENT,
+  ROSTER_KIND,
+  ROSTER_SCHEMA_VERSION,
+  validateSlug,
+}
+export type { BoardInclusionRules, CauseAnchor, CauseMediator, RosterBridgeLink, RosterExtras, RosterFields }
 import { getStatementWithContent } from '@commonality/sdk/conceptspace'
-import {
-  getSubjectStatements,
-  type AlignmentAttestation,
-} from '@commonality/sdk/fundingportals'
 import type { SDKMachinery } from '@commonality/sdk/machinery'
 import { mapWithConcurrency, PLANK_QUERY_CONCURRENCY } from './concurrency'
 import {
   getUserRef,
   getUserRefHistory,
-  RESERVED_REF_NAMES,
   type RefUpdate,
 } from '@commonality/sdk/mutable-refs'
 import {
@@ -48,231 +95,11 @@ import {
   type Hash,
 } from 'viem'
 import { getRuntimeConfigValue } from '../../shared'
-import type { CauseAnchor, CauseDraft, CauseMediator, CausePlank, RosterBridgeLink } from './causeStore'
-import {
-  parseBoardInclusionRules,
-  parsePlacePath,
-  type BoardInclusionRules,
-} from '../../fundingportals/components/geographicInclusion'
+import type { CauseDraft, CausePlank } from './causeStore'
+import { normalizeSlug } from '@commonality/sdk/displayable-documents'
 import { publishedPlanks } from './causeStore'
 
 /** Structured payload stored in DisplayableDocument.extras. */
-// Persisted public document kinds retain their original namespace for compatibility.
-export const ROSTER_KIND = 'causestarter.roster' as const
-export const ROSTER_SCHEMA_VERSION = 1 as const
-
-/**
- * Well-known topic for roster coherence attestations (construction, not merit).
- * Positive-only: silence means no badge — never a published negative judgment.
- */
-export const ROSTER_COHERENCE_TOPIC_DOCUMENT: DisplayableDocument = createDisplayableDocument({
-  format: 'text/plain',
-  content: 'This is the well-known topic for cause-roster coherence attestations in Commonality.',
-  extras: {
-    statementType: 'topic',
-    kind: 'causestarter.roster-coherence',
-  },
-})
-
-/**
- * Well-known claim: subject roster is coherently constructed.
- * Bound on-chain via AlignmentAttestations (subject = roster CID digest).
- */
-export const ROSTER_COHERENCE_CLAIM_DOCUMENT: DisplayableDocument = createDisplayableDocument({
-  format: 'text/plain',
-  content:
-    'This roster is coherently constructed: its published issues match its title and summary, and it hides no riders. This is a claim about construction only, not about merit.',
-  extras: {
-    statementType: 'claim',
-    kind: 'causestarter.roster-coherence',
-  },
-})
-
-export const ROSTER_COHERENCE_TOPIC: IpfsCidV1 = publishedDataCidForDocument(
-  ROSTER_COHERENCE_TOPIC_DOCUMENT,
-) as IpfsCidV1
-
-export const ROSTER_COHERENCE_CLAIM: IpfsCidV1 = publishedDataCidForDocument(
-  ROSTER_COHERENCE_CLAIM_DOCUMENT,
-) as IpfsCidV1
-
-export interface RosterFields {
-  title: string
-  summary: string
-  /** Ordered published plank CIDs — order is significant. */
-  plankCids: string[]
-  /** Founder-authored mediator copy, rendered into the document body. */
-  mediatorBlurb: string
-  /**
-   * Machine-readable mediator identity. Published so that *followers* — who have no
-   * local copy of the cause — can fetch its featured bridges and build an opt-in link.
-   * Omitted entirely when the cause has no mediator, which keeps roster CIDs for
-   * mediator-less causes byte-identical to those published before this field existed.
-   */
-  mediator?: CauseMediator
-  /**
-   * When this roster is a modified or bridge cause in a cluster, point back at
-   * that cluster so the cause page can label mediator authorship.
-   */
-  bridgeCluster?: RosterBridgeLink
-  /** Promoted combinator anchors, omitted entirely when there are none. */
-  anchors?: CauseAnchor[]
-  /**
-   * Optional public contact URI. Omitted when empty so contact-less roster CIDs
-   * stay byte-identical to pre-field publications (ADR 0011).
-   */
-  contactUrl?: string
-  /** Factual view rules; initially only an optional geographic scope. */
-  inclusionRules?: BoardInclusionRules
-}
-
-export interface RosterExtras extends RosterFields {
-  kind: typeof ROSTER_KIND
-  version: typeof ROSTER_SCHEMA_VERSION
-}
-
-export interface StableCauseId {
-  owner: `0x${string}`
-  slug: string
-}
-
-export interface CauseRouteRef extends StableCauseId {
-  /** When set, render this roster version instead of the ref tip. */
-  versionCid?: string
-}
-
-export interface PublishRosterResult {
-  rosterCid: string
-  refTxHash: `0x${string}`
-  publishTxHash: `0x${string}`
-  /** True when publish + updateRef shared one wallet batch. */
-  batched: boolean
-}
-
-export interface RosterCoherenceBadge {
-  rosterCid: string
-  /** On-chain attester addresses that asserted the well-known coherence claim. */
-  attesters: `0x${string}`[]
-  /** Earliest attestation timestamp (ISO), when available. */
-  attestedAt?: string
-  attestations: AlignmentAttestation[]
-}
-
-const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
-const MAX_SLUG_LENGTH = 64
-const MAX_TITLE_LENGTH = 120
-const MAX_SUMMARY_LENGTH = 2000
-const MAX_MEDIATOR_BLURB_LENGTH = 1000
-const MAX_CONTACT_URL_LENGTH = 300
-
-export function normalizeSlug(raw: string): string {
-  return raw
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .slice(0, MAX_SLUG_LENGTH)
-    .replace(/-+$/g, '')
-}
-
-export function validateSlug(slug: string): string | null {
-  if (!slug) return 'Choose a URL slug for this cause.'
-  if (slug.length > MAX_SLUG_LENGTH) return `Slug must be at most ${MAX_SLUG_LENGTH} characters.`
-  if (!SLUG_PATTERN.test(slug)) {
-    return 'Slug must be lowercase letters, numbers, and hyphens (no leading/trailing hyphen).'
-  }
-  if (RESERVED_REF_NAMES.has(slug)) {
-    return `“${slug}” is reserved. Pick a different slug.`
-  }
-  return null
-}
-
-/**
- * One public contact URI the organizer already uses. Not a Commonality inbox.
- * `mailto:` is allowed; javascript and other schemes are not.
- */
-export function parseContactUrl(value: unknown): string | undefined {
-  if (typeof value !== 'string') return undefined
-  const trimmed = value.trim().slice(0, MAX_CONTACT_URL_LENGTH)
-  if (!trimmed) return undefined
-  try {
-    const parsed = new URL(trimmed)
-    if (parsed.protocol === 'mailto:') {
-      return parsed.href.startsWith('mailto:') ? parsed.href : undefined
-    }
-    if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
-      return parsed.href
-    }
-    return undefined
-  } catch {
-    return undefined
-  }
-}
-
-/**
- * Validate a mediator record read back from a published roster.
- *
- * Roster documents are fetched from IPFS, and the mediator's `serviceUrl` is fetched
- * and its `address` put into an opt-in link, so a malformed or hostile record must not
- * reach the UI. All four fields are required — a half-filled mediator can't be
- * contacted or trusted — and anything unexpected degrades to "no mediator".
- */
-export function parseCauseMediator(value: unknown): CauseMediator | undefined {
-  if (!value || typeof value !== 'object') return undefined
-  const record = value as Record<string, unknown>
-  const name = typeof record.name === 'string' ? record.name.trim() : ''
-  const description = typeof record.description === 'string' ? record.description.trim() : ''
-  const address = typeof record.address === 'string' ? record.address.trim() : ''
-  const serviceUrl = typeof record.serviceUrl === 'string' ? record.serviceUrl.trim() : ''
-  if (!name || !description || !address || !serviceUrl) return undefined
-  if (!/^0x[0-9a-fA-F]{40}$/.test(address)) return undefined
-  try {
-    if (!['http:', 'https:'].includes(new URL(serviceUrl).protocol)) return undefined
-  } catch {
-    return undefined
-  }
-  return {
-    name: name.slice(0, MAX_MEDIATOR_BLURB_LENGTH),
-    description: description.slice(0, MAX_MEDIATOR_BLURB_LENGTH),
-    address,
-    serviceUrl: serviceUrl.replace(/\/+$/, ''),
-  }
-}
-
-export function parseRosterBridgeLink(value: unknown): RosterBridgeLink | undefined {
-  if (!value || typeof value !== 'object') return undefined
-  const record = value as Record<string, unknown>
-  const clusterOwner = typeof record.clusterOwner === 'string' ? record.clusterOwner.trim() : ''
-  const clusterSlug = typeof record.clusterSlug === 'string' ? record.clusterSlug.trim() : ''
-  const role = record.role
-  if (!/^0x[0-9a-fA-F]{40}$/.test(clusterOwner)) return undefined
-  if (validateSlug(clusterSlug)) return undefined
-  if (role !== 'modified' && role !== 'bridge') return undefined
-  const parentOwner = typeof record.parentOwner === 'string' ? record.parentOwner.trim() : ''
-  const parentSlug = typeof record.parentSlug === 'string' ? record.parentSlug.trim() : ''
-  const parent = /^0x[0-9a-fA-F]{40}$/.test(parentOwner) && !validateSlug(parentSlug)
-    ? { parentOwner: parentOwner.toLowerCase() as `0x${string}`, parentSlug }
-    : {}
-  return {
-    clusterOwner: clusterOwner.toLowerCase() as `0x${string}`,
-    clusterSlug,
-    role,
-    ...parent,
-  }
-}
-
-export function mediatorBlurbFrom(mediator: CauseMediator | undefined): string {
-  if (!mediator) return ''
-  const name = mediator.name.trim()
-  const description = mediator.description.trim()
-  if (name && description) return `${name}: ${description}`
-  return name || description
-}
-
-/**
- * Build the organizer-authored fields that go into a roster document.
- * Title falls back to the first published plank when the organizer left it blank.
- */
 export function rosterFieldsFromCause(cause: CauseDraft): RosterFields {
   const planks = publishedPlanks(cause)
   const firstText = planks[0]?.text.trim() ?? ''
@@ -293,124 +120,22 @@ export function rosterFieldsFromCause(cause: CauseDraft): RosterFields {
   }
 }
 
-/** Human-readable body; structured fields live in extras (also part of the CID). */
-export function renderRosterContent(fields: RosterFields): string {
-  const lines: string[] = [`# ${fields.title}`]
-  if (fields.summary.trim()) {
-    lines.push('', fields.summary.trim())
-  }
-  if (fields.plankCids.length > 0) {
-    lines.push('', '## Issues')
-    for (const cid of fields.plankCids) {
-      lines.push(`- ${cid}`)
-    }
-  }
-  if (fields.mediatorBlurb.trim()) {
-    lines.push('', '## Mediator', fields.mediatorBlurb.trim())
-  }
-  const contactUrl = parseContactUrl(fields.contactUrl)
-  if (contactUrl) {
-    lines.push('', '## Contact', contactUrl)
-  }
-  const anchors = parseAnchors(fields.anchors)
-  if (anchors) {
-    lines.push('', '## Graph handles')
-    for (const anchor of anchors) {
-      lines.push(`- ${anchor.combinator} of ${anchor.operandCids.length} statements: ${anchor.cid}`)
-    }
-  }
-  return lines.join('\n')
+export interface StableCauseId {
+  owner: `0x${string}`
+  slug: string
 }
 
-export function buildRosterDocument(fields: RosterFields): DisplayableDocument {
-  const extras: RosterExtras = {
-    kind: ROSTER_KIND,
-    version: ROSTER_SCHEMA_VERSION,
-    title: fields.title,
-    summary: fields.summary,
-    plankCids: [...fields.plankCids],
-    mediatorBlurb: fields.mediatorBlurb,
-  }
-  // Added only when present, so mediator-less rosters keep their pre-existing CIDs.
-  const mediator = parseCauseMediator(fields.mediator)
-  if (mediator) extras.mediator = mediator
-  const bridgeCluster = parseRosterBridgeLink(fields.bridgeCluster)
-  if (bridgeCluster) extras.bridgeCluster = bridgeCluster
-  const anchors = parseAnchors(fields.anchors)
-  if (anchors) extras.anchors = anchors
-  const contactUrl = parseContactUrl(fields.contactUrl)
-  if (contactUrl) extras.contactUrl = contactUrl
-  const inclusionRules = parseBoardInclusionRules(fields.inclusionRules)
-  if (inclusionRules) extras.inclusionRules = inclusionRules
-  return createDisplayableDocument({
-    format: 'markdown-restricted',
-    content: renderRosterContent(fields),
-    references: fields.plankCids.map((cid) => ({ cid, label: 'plank' })),
-    extras: extras as unknown as Record<string, unknown>,
-  })
+export interface CauseRouteRef extends StableCauseId {
+  /** When set, render this roster version instead of the ref tip. */
+  versionCid?: string
 }
 
-/** Pure would-be CID for preview-before-publish (no chain write). */
-export function previewRosterCid(fields: RosterFields): string {
-  return publishedDataCidForDocument(buildRosterDocument(fields))
-}
-
-export function parseRosterDocument(doc: DisplayableDocument): RosterFields | null {
-  const extras = doc.extras
-  if (!extras || typeof extras !== 'object') return null
-  if (extras.kind !== ROSTER_KIND) return null
-  if (extras.version !== ROSTER_SCHEMA_VERSION) return null
-
-  const title = typeof extras.title === 'string' ? extras.title : ''
-  const summary = typeof extras.summary === 'string' ? extras.summary : ''
-  const mediatorBlurb = typeof extras.mediatorBlurb === 'string' ? extras.mediatorBlurb : ''
-  const plankCids = Array.isArray(extras.plankCids)
-    ? extras.plankCids.filter((cid): cid is string => typeof cid === 'string' && cid.length > 0)
-    : []
-
-  if (!title.trim() && plankCids.length === 0) return null
-  // Absent on rosters published before the mediator identity was carried; not an error.
-  const mediator = parseCauseMediator(extras.mediator)
-  const bridgeCluster = parseRosterBridgeLink(extras.bridgeCluster)
-  const anchors = parseAnchors(extras.anchors)
-  const contactUrl = parseContactUrl(extras.contactUrl)
-  const inclusionRules = parseBoardInclusionRules(extras.inclusionRules)
-  return {
-    title,
-    summary,
-    plankCids,
-    mediatorBlurb,
-    ...(mediator ? { mediator } : {}),
-    ...(bridgeCluster ? { bridgeCluster } : {}),
-    ...(anchors ? { anchors } : {}),
-    ...(contactUrl ? { contactUrl } : {}),
-    ...(inclusionRules ? { inclusionRules } : {}),
-  }
-}
-
-/**
- * Anchors carry their operands: a bare CID cannot be shown honestly, because
- * nothing says which selection minted it. Entries that lack operands (or that
- * came from the pre-operand shape) are dropped rather than displayed.
- */
-export function parseAnchors(value: unknown): CauseAnchor[] | undefined {
-  if (!Array.isArray(value)) return undefined
-  const anchors: CauseAnchor[] = []
-  for (const entry of value) {
-    if (!entry || typeof entry !== 'object') continue
-    const record = entry as Record<string, unknown>
-    const combinator = record.combinator
-    if (combinator !== 'all' && combinator !== 'any') continue
-    const cid = typeof record.cid === 'string' ? record.cid.trim() : ''
-    if (!cid) continue
-    if (!Array.isArray(record.operandCids)) continue
-    const operandCids = record.operandCids
-      .filter((operand): operand is string => typeof operand === 'string' && Boolean(operand.trim()))
-      .map((operand) => operand.trim())
-    if (operandCids.length < 2) continue
-    anchors.push({ combinator, cid, operandCids })
-  }
-  return anchors.length > 0 ? anchors : undefined
+export interface PublishRosterResult {
+  rosterCid: string
+  refTxHash: `0x${string}`
+  publishTxHash: `0x${string}`
+  /** True when publish + updateRef shared one wallet batch. */
+  batched: boolean
 }
 
 export function stableCausePath(id: StableCauseId, versionCid?: string): string {
@@ -661,62 +386,6 @@ export async function publishRoster(args: {
     publishTxHash: hashes[0]!,
     refTxHash: hashes[1]!,
     batched: false,
-  }
-}
-
-/**
- * Load on-chain positive coherence attestations for a roster version CID.
- * Viewers recompute the badge from AlignmentAttestations + well-known claim/topic.
- *
- * `operator` is the Commonality operator address (from cause-assist /health).
- * Anyone can write the well-known claim about any roster — including the organizer —
- * so only attestations signed by that operator count. Without a known operator
- * there is nothing to trust, and no badge is shown.
- */
-export async function loadRosterCoherenceBadge(
-  machinery: SDKMachinery,
-  rosterCid: string,
-  operator: `0x${string}` | null | undefined,
-): Promise<RosterCoherenceBadge | null> {
-  if (!rosterCid || !operator) return null
-  const operatorAddress = operator.toLowerCase()
-  let attestations: AlignmentAttestation[]
-  try {
-    attestations = await getSubjectStatements(
-      machinery,
-      rosterSubjectId(rosterCid),
-      undefined,
-      ROSTER_COHERENCE_TOPIC,
-    )
-  } catch {
-    return null
-  }
-
-  // AlignmentAttestations stores only the multihash digest; decoded CIDs may use
-  // dag-pb (bafybei…) while well-known PublishedData CIDs use raw (bafkrei…).
-  const claimDigest = cidToBytes32(ROSTER_COHERENCE_CLAIM).toLowerCase()
-  const matching = attestations.filter((a) => {
-    if (a.attester.toLowerCase() !== operatorAddress) return false
-    try {
-      return cidToBytes32(a.statementCid).toLowerCase() === claimDigest
-    } catch {
-      return a.statementCid === ROSTER_COHERENCE_CLAIM
-    }
-  })
-
-  if (matching.length === 0) return null
-  const active = matching
-
-  const attesters = [...new Set(active.map((a) => a.attester.toLowerCase() as `0x${string}`))]
-  const times = active
-    .map((a) => a.createdAt)
-    .filter((t): t is string => Boolean(t))
-    .sort()
-  return {
-    rosterCid,
-    attesters,
-    attestedAt: times[0],
-    attestations: active,
   }
 }
 

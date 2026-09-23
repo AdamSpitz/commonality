@@ -22,6 +22,9 @@ if [ -f /workspace/.env ]; then
 fi
 
 PONDER_SCRIPT="${PONDER_SCRIPT:-dev:no-ui}"
+# INDEXER_CONTRACTS=conceptspace uses ponder.conceptspace.config.ts so funding
+# ABI modules are not loaded. The default shared feed is unchanged.
+PONDER_SCRIPT="$(node /app/selectPonderScript.mjs "$PONDER_SCRIPT" "${INDEXER_CONTRACTS:-all}")"
 FLAG_PATH="${INDEXER_RPC_BUDGET_FLAG_PATH:-/tmp/commonality-rpc-monthly-capacity}"
 
 if [ -d /data ] && [ -w /data ]; then

@@ -42,6 +42,7 @@ describe('config', () => {
     process.env.CURATOR_PENDING_IMPORTANCE_THRESHOLD = '42';
     process.env.PORT = '4000';
     process.env.TRUSTED_IMPLICATION_ATTESTERS = '0xabc, 0xdef';
+    process.env.EXPLORER_CURATION_BRIEF = 'Beliefs only.';
 
     const { loadConfig } = await import('../src/config.js');
     const config = loadConfig();
@@ -52,6 +53,7 @@ describe('config', () => {
     assert.strictEqual(config.fullReviewIntervalMs, 21600000);
     assert.strictEqual(config.pendingImportanceThreshold, 42);
     assert.deepStrictEqual(config.trustedImplicationAttesters, ['0xabc', '0xdef']);
+    assert.strictEqual(config.curationBrief, 'Beliefs only.');
   });
 
   it('throws when required env vars are missing', async () => {

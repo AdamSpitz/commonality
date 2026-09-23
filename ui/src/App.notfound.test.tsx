@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const mockGetActiveDomain = vi.fn()
 
-vi.mock('./domains', () => ({
+vi.mock('./domains/activeDomain', () => ({
   getActiveDomain: () => mockGetActiveDomain(),
 }))
 

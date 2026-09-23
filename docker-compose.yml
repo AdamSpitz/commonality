@@ -50,6 +50,8 @@ services:
     volumes:
       # Mount project root so deploy script can write .env files
       - .:/workspace
+      # /app/scripts/deploy-incremental.js imports ../../scripts/deployment-manifest.mjs
+      - ./scripts/deployment-manifest.mjs:/scripts/deployment-manifest.mjs:ro
       # Access chain data for deployment
       - ${COMMONALITY_DATA_DIR:-./data}/hardhat:/data
     working_dir: /app
@@ -546,6 +548,7 @@ services:
       VITE_DEFAULT_NUDGERS: ${VITE_DEFAULT_NUDGERS:-}
       VITE_PUBLISHED_DATA_CONTRACT_ADDRESS: ${VITE_PUBLISHED_DATA_CONTRACT_ADDRESS:-}
       VITE_CONTENT_REGISTRY_ADDRESS: ${VITE_CONTENT_REGISTRY_ADDRESS:-}
+      VITE_BENEFICIARY_IDENTITY_ADDRESS: ${VITE_BENEFICIARY_IDENTITY_ADDRESS:-}
       VITE_BENEFICIARY_REGISTRY_ADDRESS: ${VITE_BENEFICIARY_REGISTRY_ADDRESS:-}
       VITE_BENEFICIARY_ESCROW_ADDRESS: ${VITE_BENEFICIARY_ESCROW_ADDRESS:-}
       VITE_CREATOR_CONTRACT_FACTORY_ADDRESS: ${VITE_CREATOR_CONTRACT_FACTORY_ADDRESS:-}
@@ -583,25 +586,12 @@ services:
       - ./scripts/ui-domains.mjs:/workspace/scripts/ui-domains.mjs:ro
       - ./data/ui-ipfs:/workspace/data/ui-ipfs:ro
       - ./fake-data-generation/output:/workspace/fake-data-generation/output:ro
+    # Publishers are started by scripts/services.sh for LOCAL_UI_DOMAINS.
+    # Do not wait on every funding site here: a Conceptspace-only start must
+    # be able to serve the domains that were actually published.
     depends_on:
       ipfs:
         condition: service_healthy
-      ui-ipfs-publisher-commonality:
-        condition: service_completed_successfully
-      ui-ipfs-publisher-lazyGiving:
-        condition: service_completed_successfully
-      ui-ipfs-publisher-alignment:
-        condition: service_completed_successfully
-      ui-ipfs-publisher-tally:
-        condition: service_completed_successfully
-      ui-ipfs-publisher-content-funding:
-        condition: service_completed_successfully
-      ui-ipfs-publisher-civility:
-        condition: service_completed_successfully
-      ui-ipfs-publisher-common-sense-majority:
-        condition: service_completed_successfully
-      ui-ipfs-publisher-conceptspace:
-        condition: service_completed_successfully
     environment:
       - PORT=8088
       - UI_IPFS_ARTIFACT_ROOT=/workspace/data/ui-ipfs
@@ -645,6 +635,8 @@ services:
       - PONDER_RPC_URL_31337=http://hardhat-node:8545
       # Use ephemeral database if PONDER_EPHEMERAL=true is set
       - PONDER_EPHEMERAL=${PONDER_EPHEMERAL:-false}
+      # all (default) indexes both families. conceptspace uses ponder.conceptspace.config.ts.
+      - INDEXER_CONTRACTS=${INDEXER_CONTRACTS:-all}
       # Point to local IPFS gateway
       - IPFS_GATEWAY=http://ipfs:8080/ipfs
       - IPFS_API=http://ipfs:5001
@@ -689,6 +681,7 @@ services:
       - YOUTUBE_API_BASE_URL=${YOUTUBE_API_BASE_URL:-https://www.googleapis.com/youtube/v3}
       - VERIFIER_PRIVATE_KEY=${VERIFIER_PRIVATE_KEY:-}
       - ETHEREUM_RPC_URL=${ETHEREUM_RPC_URL:-http://hardhat-node:8545}
+      - BENEFICIARY_IDENTITY_ADDRESS=${BENEFICIARY_IDENTITY_ADDRESS:-}
       - BENEFICIARY_REGISTRY_ADDRESS=${BENEFICIARY_REGISTRY_ADDRESS:-}
       - BENEFICIARY_VERIFIER_ADDRESS=${BENEFICIARY_VERIFIER_ADDRESS:-}
       - CHAIN_ID=${CHAIN_ID:-31337}
@@ -726,6 +719,8 @@ services:
         condition: service_completed_successfully
     environment:
       - SERVICE_HOST_PORT=3000
+      # all (default) is the combined host. conceptspace refuses funding instance names.
+      - SERVICE_HOST_CAPABILITY=${SERVICE_HOST_CAPABILITY:-all}
       - ETHEREUM_RPC_URL=http://hardhat-node:8545
       - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
       - OPENROUTER_MODEL=deepseek/deepseek-v4-flash-0731
@@ -798,6 +793,7 @@ services:
         condition: service_healthy
     environment:
       - SERVICE_HOST_PORT=3000
+      - SERVICE_HOST_CAPABILITY=${SERVICE_HOST_CAPABILITY:-all}
       - ETHEREUM_RPC_URL=http://hardhat-node:8545
       - INDEXER_URL=http://indexer:42069
       - IPFS_API=http://ipfs:5001

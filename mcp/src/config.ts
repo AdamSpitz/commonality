@@ -1,5 +1,5 @@
 import type { Address } from 'viem'
-import type { ContractAddresses } from '@commonality/sdk/machinery'
+import { configuredAddress, type DeployedContractAddresses, type FundingContractAddresses } from '@commonality/sdk/machinery'
 
 function env(name: string, fallback?: string): string | undefined {
   const value = process.env[name]
@@ -8,8 +8,7 @@ function env(name: string, fallback?: string): string | undefined {
 }
 
 function address(name: string): Address | undefined {
-  const value = env(name)
-  return value ? (value as Address) : undefined
+  return configuredAddress(env(name))
 }
 
 export const CAUSE_ASSIST_PATHS = [
@@ -34,19 +33,30 @@ export function isCauseAssistPath(path: string): path is CauseAssistPath {
   return (CAUSE_ASSIST_PATHS as readonly string[]).includes(path)
 }
 
-const ZERO: Address = '0x0000000000000000000000000000000000000000'
+/** True when the four funding core addresses are set. Conceptspace-only env omits them. */
+export function mcpFundingConfigured(): boolean {
+  return loadFundingAddresses().assuranceContractFactory !== undefined
+}
 
-function loadContractAddresses(): ContractAddresses {
+function loadFundingAddresses(): Partial<FundingContractAddresses> {
+  const assuranceContractFactory = address('ASSURANCE_CONTRACT_FACTORY_ADDRESS')
+  const erc1155Factory = address('ERC1155_FACTORY_ADDRESS')
+  const delegatableNotes = address('DELEGATABLE_NOTES_CONTRACT_ADDRESS') ?? address('DELEGATABLE_NOTES_ADDRESS')
+  const noteIntent = address('NOTE_INTENT_ADDRESS')
+  if (!assuranceContractFactory || !erc1155Factory || !delegatableNotes || !noteIntent) {
+    return {}
+  }
+  return { assuranceContractFactory, erc1155Factory, delegatableNotes, noteIntent }
+}
+
+function loadContractAddresses(): DeployedContractAddresses {
   return {
-    beliefs: address('BELIEFS_CONTRACT_ADDRESS') ?? ZERO,
-    implications: address('IMPLICATIONS_CONTRACT_ADDRESS') ?? ZERO,
-    assuranceContractFactory: address('ASSURANCE_CONTRACT_FACTORY_ADDRESS') ?? ZERO,
-    erc1155Factory: address('ERC1155_FACTORY_ADDRESS') ?? ZERO,
-    delegatableNotes: address('DELEGATABLE_NOTES_CONTRACT_ADDRESS') ?? address('DELEGATABLE_NOTES_ADDRESS') ?? ZERO,
-    noteIntent: address('NOTE_INTENT_ADDRESS') ?? ZERO,
-    alignmentAttestations: address('PROJECT_ALIGNMENT_CONTRACT_ADDRESS') ?? address('ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS') ?? ZERO,
-    mutableRefUpdater: address('MUTABLE_REF_UPDATER_CONTRACT_ADDRESS') ?? address('MUTABLE_REF_UPDATER_ADDRESS') ?? ZERO,
-    trustRegistry: address('TRUST_REGISTRY_ADDRESS') ?? ZERO,
+    beliefs: address('BELIEFS_CONTRACT_ADDRESS'),
+    implications: address('IMPLICATIONS_CONTRACT_ADDRESS'),
+    ...loadFundingAddresses(),
+    alignmentAttestations: address('PROJECT_ALIGNMENT_CONTRACT_ADDRESS') ?? address('ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS'),
+    mutableRefUpdater: address('MUTABLE_REF_UPDATER_CONTRACT_ADDRESS') ?? address('MUTABLE_REF_UPDATER_ADDRESS'),
+    trustRegistry: address('TRUST_REGISTRY_ADDRESS'),
     nudgePublications: address('NUDGE_PUBLICATIONS_CONTRACT_ADDRESS'),
     publishedData: address('PUBLISHED_DATA_CONTRACT_ADDRESS'),
   }

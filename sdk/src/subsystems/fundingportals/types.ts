@@ -1,26 +1,8 @@
 import { IpfsCidV1 } from "../../utils/cid-types.js";
 import type { CurrencyAmountBigInt } from "../../utils/currency.js";
 
-/**
- * An attestation that a subject (project, user, content item) is aligned with a statement/cause.
- *
- * Recorded via the AlignmentAttestations contract. Used to connect projects
- * to the causes they support in the funding portal system.
- */
-export interface AlignmentAttestation {
-  /** Address of the attester who created this alignment. */
-  attester: string;
-  /** Bytes32 subject identifier (left-padded address for address subjects). */
-  subjectId: string;
-  /** CID of the statement/cause the subject is aligned with. */
-  statementCid: IpfsCidV1;
-  /** CID of the topic statement used for indexer filtering. */
-  topicStatementCid?: IpfsCidV1;
-  /** Block timestamp of the attestation. */
-  createdAt: string;
-  /** Block number of the attestation. */
-  blockNumber: string;
-}
+export type { AlignmentAttestation } from '../alignment-attestations/types.js';
+import type { AlignmentAttestation } from '../alignment-attestations/types.js';
 
 /** @deprecated Use {@link AlignmentAttestation} instead. */
 export type ProjectAlignment = AlignmentAttestation;

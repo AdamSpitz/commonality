@@ -1,3 +1,6 @@
+import { installFundingSocialAssociation } from '../../shared/funding/installVerifiedSocialAssociation'
+
+installFundingSocialAssociation()
 import type { ReactNode } from 'react'
 import { Route, Navigate } from 'react-router-dom'
 import type { DomainManifest } from '../types'
@@ -17,8 +20,8 @@ const routes: ReactNode = (
     <Route path="/delegation/notes/:noteId" element={lazyRoute(() => import('../../delegation/pages/NoteDetailPage'), 'NoteDetailPage')} />
     <Route path="/delegates/offer" element={lazyRoute(() => import('../../delegation/pages/DelegateProfilePage'), 'DelegateProfilePage')} />
     <Route path="/delegates/:address" element={lazyRoute(() => import('../../delegation/pages/DelegateProfilePage'), 'DelegateProfilePage')} />
-    <Route path="/docs" element={lazyRoute(() => import('../../docs/DocsPage'), 'DocsPage')} />
-    <Route path="/docs/*" element={lazyRoute(() => import('../../docs/DocsPage'), 'DocsPage')} />
+    <Route path="/docs" element={lazyRoute(() => import('../../docs/LazyGivingDocsPage'), 'LazyGivingDocsPage')} />
+    <Route path="/docs/*" element={lazyRoute(() => import('../../docs/LazyGivingDocsPage'), 'LazyGivingDocsPage')} />
   </>
 )
 

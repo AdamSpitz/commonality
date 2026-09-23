@@ -28,14 +28,11 @@ import {
 import type { IpfsCidV1 } from '@commonality/sdk/utils'
 import {
   useMachinery,
-  DEFAULT_PAYMENT_CURRENCY,
-  formatCurrencyAmount,
-  formatCurrencyTotals,
-  getConfiguredPaymentCurrency,
   useTrustedSet,
   truncateAddress,
   TrustNetworkRefreshIndicator,
 } from '../../shared'
+import { DEFAULT_PAYMENT_CURRENCY, formatCurrencyAmount, formatCurrencyTotals, getConfiguredPaymentCurrency } from '../../shared/funding'
 import type { CauseBoardNavLink } from './CauseBoard'
 import { useKeepPaintedWhileRefreshing } from '../hooks/useKeepPaintedWhileRefreshing'
 import { resolveStatementCids } from './statementCids'

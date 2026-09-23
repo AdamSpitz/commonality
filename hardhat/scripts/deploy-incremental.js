@@ -22,6 +22,7 @@ const ADDRESS_KEYS = {
   ValueThresholdConditionFactory: ['ETH_THRESHOLD_CONDITION_FACTORY_ADDRESS'],
   FreeERC20: ['PAYMENT_TOKEN_ADDRESS'],
   BeneficiaryVerifier: ['BENEFICIARY_VERIFIER_ADDRESS'],
+  BeneficiaryIdentity: ['BENEFICIARY_IDENTITY_ADDRESS'],
   ContentRegistry: ['CONTENT_REGISTRY_ADDRESS'],
   BeneficiaryRegistry: ['BENEFICIARY_REGISTRY_ADDRESS'],
   BeneficiaryEscrow: ['BENEFICIARY_ESCROW_ADDRESS'],
@@ -254,6 +255,7 @@ async function main() {
   }});
   const trusted = isLocal ? deployer.address : (process.env.BENEFICIARY_VERIFIER_TRUSTED_SIGNER_ADDRESS || deployer.address);
   await deployOrReuse('BeneficiaryVerifier', 'BeneficiaryVerifier', [trusted]);
+  await deployOrReuse('BeneficiaryIdentity', 'BeneficiaryIdentity', [addresses.BeneficiaryVerifier]);
   await deployOrReuse('ContentRegistry', 'ContentRegistry', [], {
     // ContentRegistry ownership is handed to CreatorAssuranceContractFactory.
     // If the future factory's implementation inputs change, redeploy the
@@ -266,7 +268,7 @@ async function main() {
       addresses.FreeERC20,
     ],
   });
-  await deployOrReuse('BeneficiaryRegistry', 'BeneficiaryRegistry', [addresses.BeneficiaryVerifier]);
+  await deployOrReuse('BeneficiaryRegistry', 'BeneficiaryRegistry', [addresses.BeneficiaryIdentity]);
   await deployOrReuse('BeneficiaryEscrow', 'BeneficiaryEscrow', [addresses.BeneficiaryRegistry, addresses.FreeERC20]);
   await deployOrReuse('CreatorAssuranceContractFactory', 'CreatorAssuranceContractFactory', [addresses.ContentRegistry, addresses.BeneficiaryRegistry, addresses.BeneficiaryEscrow, addresses.PremintingERC1155Factory, addresses.ValueThresholdConditionFactory, addresses.FreeERC20, ':']);
   if (addresses.CreatorAssuranceContractFactory) {
@@ -411,13 +413,18 @@ async function main() {
 
   let needsAdminAcceptance = false;
   if (!isLocal && !planOnly) {
-    for (const name of ['BeneficiaryVerifier', 'BeneficiaryRegistry']) {
+    for (const name of ['BeneficiaryVerifier', 'BeneficiaryIdentity']) {
       const c = await ethers.getContractAt(name, addresses[name]);
       if (ethers.getAddress(await c.owner()) !== contractAdminAddress) {
         const pending = ethers.getAddress(await c.pendingOwner());
         if (pending !== contractAdminAddress) await (await c.transferOwnership(contractAdminAddress)).wait();
         needsAdminAcceptance = true;
       }
+    }
+    // BeneficiaryRegistry is Ownable, not Ownable2Step: transfer lands immediately.
+    const registry = await ethers.getContractAt('BeneficiaryRegistry', addresses.BeneficiaryRegistry);
+    if (ethers.getAddress(await registry.owner()) !== contractAdminAddress) {
+      await (await registry.transferOwnership(contractAdminAddress)).wait();
     }
     const d = await ethers.getContractAt('DelegatableNotes', addresses.DelegatableNotes);
     if (ethers.getAddress(await d.owner()) !== contractAdminAddress) await (await d.transferOwnership(contractAdminAddress)).wait();
@@ -462,6 +469,7 @@ async function main() {
     DEPLOYER_ADDRESS: deployer.address,
     CONTRACT_ADMIN_ADDRESS: contractAdminAddress,
     BENEFICIARY_VERIFIER_ADDRESS: addresses.BeneficiaryVerifier,
+    BENEFICIARY_IDENTITY_ADDRESS: addresses.BeneficiaryIdentity,
     BENEFICIARY_VERIFIER_TRUSTED_SIGNER_ADDRESS: trusted,
     CONTENT_REGISTRY_ADDRESS: addresses.ContentRegistry,
     BENEFICIARY_REGISTRY_ADDRESS: addresses.BeneficiaryRegistry,
@@ -506,7 +514,7 @@ async function main() {
     VITE_ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS: addresses.AlignmentAttestations, VITE_TRUST_REGISTRY_CONTRACT_ADDRESS: addresses.TrustRegistry, VITE_NUDGE_PUBLICATIONS_CONTRACT_ADDRESS: addresses.NudgePublications,
     VITE_PUBLISHED_DATA_CONTRACT_ADDRESS: addresses.PublishedData,
     VITE_ACCOUNT_ASSERTIONS_CONTRACT_ADDRESS: addresses.AccountAssertions,
-    VITE_CONTENT_REGISTRY_ADDRESS: addresses.ContentRegistry, VITE_BENEFICIARY_REGISTRY_ADDRESS: addresses.BeneficiaryRegistry, VITE_BENEFICIARY_VERIFIER_ADDRESS: addresses.BeneficiaryVerifier,
+    VITE_CONTENT_REGISTRY_ADDRESS: addresses.ContentRegistry, VITE_BENEFICIARY_IDENTITY_ADDRESS: addresses.BeneficiaryIdentity, VITE_BENEFICIARY_REGISTRY_ADDRESS: addresses.BeneficiaryRegistry, VITE_BENEFICIARY_VERIFIER_ADDRESS: addresses.BeneficiaryVerifier,
     VITE_BENEFICIARY_ESCROW_ADDRESS: addresses.BeneficiaryEscrow, VITE_CREATOR_CONTRACT_FACTORY_ADDRESS: addresses.CreatorAssuranceContractFactory, ...(addresses.CreatorAssuranceVeto ? { VITE_CREATOR_ASSURANCE_VETO_ADDRESS: addresses.CreatorAssuranceVeto } : {}), VITE_PROJECT_FACTORY_CONTRACT_ADDRESS: addresses.ProjectFactory,
     VITE_PROSPECTIVE_CONTENT_ROUND_FACTORY_ADDRESS: addresses.ProspectiveContentRoundFactory,
     VITE_CREATOR_GAS_TANK_ADDRESS: addresses.CreatorGasTank, VITE_SPONSORED_GAS_ENTRY_POINT_ADDRESS: addresses.SponsoredGasEntryPoint,
