@@ -129,6 +129,37 @@ describe('ExplorerCurator.runCuratorCycle', () => {
     assert.strictEqual(publishedArgs[0].entries[0].label, 'Healthcare');
   });
 
+  it('sends the funding brief by default and a caller brief when configured', async () => {
+    const prompts: string[] = [];
+    const deps = {
+      getAllStatements: async () => [makeStatement('bafy1', 'Local libraries matter')],
+      getStatementWithContent: async (_m: SDKMachinery, cid: IpfsCidV1) => ({
+        cid,
+        content: { content: 'Local libraries matter', format: 'text/plain', assets: {}, references: [], extras: {} },
+      } as any),
+      requestJsonCompletion: async <T>(req: OpenRouterJsonRequest) => {
+        prompts.push(`${req.systemPrompt}\n${req.userPrompt}`);
+        return {
+          entries: [{ cid: 'bafy1', label: 'Libraries', topicArea: 'Civic' }],
+          changed: true,
+          summary: 'initial',
+        } as T;
+      },
+    };
+
+    await new ExplorerCurator(makeDeps(deps)).runCuratorCycle(MACHINERY, makeConfig());
+    assert.match(prompts[0], /funding landscape/);
+    assert.match(prompts[0], /map of funding areas/);
+
+    await new ExplorerCurator(makeDeps(deps)).runCuratorCycle(MACHINERY, makeConfig({
+      curationBrief: 'Curate a map of beliefs with no financial framing.',
+      curatorSystemPrompt: 'Belief map curator.',
+    }));
+    assert.match(prompts[1], /no financial framing/);
+    assert.match(prompts[1], /Belief map curator/);
+    assert.doesNotMatch(prompts[1], /funding landscape/);
+  });
+
   it('skips publishing when LLM says collection has not materially changed', async () => {
     let publishCallCount = 0;
 

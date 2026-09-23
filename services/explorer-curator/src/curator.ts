@@ -7,6 +7,7 @@ import {
   type CuratedCollectionEntry,
 } from '@commonality/nudger-core';
 import type { ExplorerCuratorConfig } from './config.js';
+import { curationBrief, curatorSystemPrompt } from './prompts.js';
 
 interface CuratedMapEntry {
   cid: string;
@@ -188,18 +189,7 @@ export class ExplorerCurator {
       ? JSON.stringify(this.previousEntries.map((e) => ({ cid: e.cid, label: e.label, topicArea: e.topicArea })))
       : 'none (first run)';
 
-    const prompt = `You are curating a map of fundable project areas for a civic engagement platform.
-
-The platform has users posting statements about causes they care about. Your job is to maintain a non-redundant, well-organized map of the funding landscape — a small set of statements (dozens to low hundreds) that covers the space of fundable causes and project areas.
-
-Given the current set of statements, produce a curated collection that:
-1. Covers distinct funding/cause areas without redundancy (no five ways of saying the same thing)
-2. Includes statements that are genuinely useful for understanding the landscape (not idiosyncratic personal statements)
-3. Uses verified support as a demand signal: high totalSupporters means many people are already nearby, so bringing funding/organizing energy there is more likely to be fruitful
-4. Treats directBelievers as stronger evidence for this exact wording, and indirectSupporters as strong evidence for broader demand discovered through implication attestations
-5. Does not mechanically rank by support alone: semantic coverage, non-redundancy, and emerging underrepresented areas still matter
-6. Groups entries by topicArea for navigability
-7. Uses parentCid sparingly for lightweight hierarchical hints within a topic area
+    const prompt = `${curationBrief(config)}
 
 ${this.previousEntries.length > 0 ? `PREVIOUS COLLECTION (for comparison):\n${previousEntriesJson}` : 'This is the first run — build the initial collection.'}
 
@@ -224,7 +214,7 @@ Respond with a JSON object containing:
     const request: OpenRouterJsonRequest = {
       apiKey: config.openRouterApiKey,
       model: config.openRouterModel,
-      systemPrompt: 'You are a curator of civic engagement statements, organizing them into a navigable map of funding areas.',
+      systemPrompt: curatorSystemPrompt(config),
       userPrompt: `${prompt}\n\nAVAILABLE STATEMENTS:\n${statementsJson}`,
       maxTokens: 8000,
       temperature: 0.2,

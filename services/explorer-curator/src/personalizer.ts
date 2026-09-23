@@ -3,6 +3,7 @@ import type { SDKMachinery } from '@commonality/sdk/machinery';
 import { getCuratedCollections } from '@commonality/sdk/nudger-publications';
 import { requestJsonCompletion, type OpenRouterJsonRequest } from '@commonality/attester-core';
 import type { ExplorerCuratorConfig } from './config.js';
+import { personalizationBrief, personalizerSystemPrompt } from './prompts.js';
 
 export interface ExplorerSuggestion {
   cid: string;
@@ -71,7 +72,7 @@ export async function suggestForUser(
   const resolvedSigned = signedStatements.filter((s) => s.text !== null);
   const signedJson = resolvedSigned.length > 0 ? JSON.stringify(resolvedSigned) : null;
 
-  const prompt = `A user is exploring causes on a civic engagement platform. They have already signed certain statements (expressing their beliefs). Given the curated collection of funding areas, suggest which ones to surface to this user.
+  const prompt = `${personalizationBrief(config)}
 
 Consider:
 - Anti-correlations: Don't suggest statements that directly oppose what the user has already signed
@@ -92,7 +93,7 @@ Respond with a JSON array only.`;
   const req: OpenRouterJsonRequest = {
     apiKey: config.openRouterApiKey,
     model: config.openRouterModel,
-    systemPrompt: 'You are a helpful assistant that personalizes cause exploration for civic engagement users.',
+    systemPrompt: personalizerSystemPrompt(config),
     userPrompt: prompt,
     maxTokens: 2000,
     temperature: 0.3,
