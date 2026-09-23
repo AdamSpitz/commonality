@@ -79,6 +79,8 @@ The default query helpers (`getProject`, `getAllAlignedProjectsForCause`, etc.) 
 
 For now this is fine at expected MVP scale. Wire more fold types into storage if fold latency becomes noticeable (e.g. a project with tens of thousands of contributions).
 
+Projects that are not in the watch list are not copied here. Their history is read from a node on demand, cached briefly in the client, and repeated misses are reported for an operator to promote by hand. See [on-demand project reads](on-demand-project-reads.md).
+
 ### If/when we store accumulators: versioning is required
 
 A stored accumulator is a snapshot of fold state at a point in time. If the fold logic changes and a client loads a stale accumulator, it will resume from a wrong base and produce wrong results. Version numbers prevent this.
