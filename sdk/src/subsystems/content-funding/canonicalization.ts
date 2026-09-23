@@ -1,8 +1,20 @@
-import { keccak256, stringToBytes, type Hex } from 'viem';
 import { getDomain } from 'tldts';
+import type { Hex } from 'viem';
+import { hashCanonicalId } from '../../content-identity/ids.js';
+import type { ContentPlatform } from '../../content-identity/ids.js';
+
+export {
+  ContentIdentityError,
+  buildCanonicalChannelId,
+  buildCanonicalContentId,
+  extractChannelCanonicalIdFromContentCanonicalId,
+  hashCanonicalId,
+  parseCanonicalChannelId,
+} from '../../content-identity/ids.js';
+export type { ParsedCanonicalChannelId } from '../../content-identity/ids.js';
 
 /** Supported content platforms for the content-funding subsystem. */
-export type ContentFundingPlatform = 'twitter' | 'youtube' | 'substack';
+export type ContentFundingPlatform = ContentPlatform;
 
 /** Error codes for content-funding URL/ID canonicalization failures. */
 export type ContentFundingCanonicalizationErrorCode =
@@ -64,14 +76,6 @@ export type ParsedContentFundingUrl =
   | ParsedYouTubeVideoUrl
   | ParsedSubstackPostUrl;
 
-/** Result of parsing a canonical channel ID string back into its components. */
-export interface ParsedCanonicalChannelId {
-  /** Platform the channel belongs to. */
-  platform: ContentFundingPlatform;
-  /** Platform-specific stable identifier (e.g. numeric Twitter user ID, UC-prefixed YouTube channel ID). */
-  stableId: string;
-}
-
 const TWITTER_HOSTS = new Set(['twitter.com', 'www.twitter.com', 'x.com', 'www.x.com']);
 const YOUTUBE_HOSTS = new Set(['youtube.com', 'www.youtube.com']);
 const YOUTUBE_SHORT_HOSTS = new Set(['youtu.be']);
@@ -79,8 +83,6 @@ const YOUTUBE_VIDEO_ID_PATTERN = /^[A-Za-z0-9_-]{11}$/;
 const TWITTER_HANDLE_PATTERN = /^@?[A-Za-z0-9_]{1,15}$/;
 const SUBSTACK_PUBLICATION_PATTERN = /^[a-z0-9-]+$/;
 const SUBSTACK_SLUG_PATTERN = /^[A-Za-z0-9-]+$/;
-const TWITTER_CHANNEL_ID_PATTERN = /^\d+$/;
-const YOUTUBE_CHANNEL_ID_PATTERN = /^UC[A-Za-z0-9_-]+$/;
 
 /**
  * Parse a content URL into its platform-specific components.
@@ -262,53 +264,6 @@ export function parseSubstackPostUrl(rawUrl: string): ParsedSubstackPostUrl {
 }
 
 /**
- * Build a canonical channel ID string from a platform and stable identifier.
- *
- * Canonical channel ID formats:
- * - Twitter: `"twitter:uid:<numericUserId>"`
- * - YouTube: `"youtube:channel:<UCchannelId>"`
- * - Substack: `"substack:<publicationSlug>"`
- *
- * @param platform - Content platform
- * @param stableId - Platform-specific stable identifier
- * @returns Canonical channel ID string
- * @throws {@link ContentFundingCanonicalizationError} with code `invalid_channel_id`
- */
-export function buildCanonicalChannelId(
-  platform: ContentFundingPlatform,
-  stableId: string,
-): string {
-  switch (platform) {
-    case 'twitter':
-      if (!TWITTER_CHANNEL_ID_PATTERN.test(stableId)) {
-        throw new ContentFundingCanonicalizationError(
-          'invalid_channel_id',
-          `Twitter channel IDs must use numeric user IDs: ${stableId}`,
-        );
-      }
-      return buildCanonicalBeneficiaryId('twitter', `uid:${stableId}`);
-    case 'youtube':
-      if (!YOUTUBE_CHANNEL_ID_PATTERN.test(stableId)) {
-        throw new ContentFundingCanonicalizationError(
-          'invalid_channel_id',
-          `YouTube channel IDs must use UC-prefixed channel IDs: ${stableId}`,
-        );
-      }
-      return buildCanonicalBeneficiaryId('youtube', `channel:${stableId}`);
-    case 'substack': {
-      const normalizedPublication = stableId.trim().toLowerCase();
-      if (!SUBSTACK_PUBLICATION_PATTERN.test(normalizedPublication)) {
-        throw new ContentFundingCanonicalizationError(
-          'invalid_channel_id',
-          `Substack channel IDs must use publication slugs: ${stableId}`,
-        );
-      }
-      return buildCanonicalBeneficiaryId('substack', normalizedPublication);
-    }
-  }
-}
-
-/**
  * Build the canonical string whose hash identifies a claimable beneficiary.
  *
  * The namespace selects the identity system and verifier; the canonical
@@ -401,119 +356,6 @@ export function assertDnsRedirectStaysOnDomain(finalUrl: string, expectedDomain:
       `Website redirected to a different registrable domain (${finalUrl})`,
     );
   }
-}
-
-/**
- * Parse a canonical channel ID string back into its platform and stable ID components.
- *
- * @param channelId - Canonical channel ID (e.g. `"twitter:uid:123"`, `"youtube:channel:UCxyz"`)
- * @returns Parsed platform and stable ID
- * @throws {@link ContentFundingCanonicalizationError} with code `invalid_channel_id`
- */
-export function parseCanonicalChannelId(channelId: string): ParsedCanonicalChannelId {
-  const twitterMatch = /^twitter:uid:(\d+)$/.exec(channelId);
-  if (twitterMatch) {
-    return { platform: 'twitter', stableId: twitterMatch[1] };
-  }
-
-  const youTubeMatch = /^youtube:channel:(UC[A-Za-z0-9_-]+)$/.exec(channelId);
-  if (youTubeMatch) {
-    return { platform: 'youtube', stableId: youTubeMatch[1] };
-  }
-
-  const substackMatch = /^substack:([a-z0-9-]+)$/.exec(channelId);
-  if (substackMatch) {
-    return { platform: 'substack', stableId: substackMatch[1] };
-  }
-
-  throw new ContentFundingCanonicalizationError(
-    'invalid_channel_id',
-    `Invalid canonical channel ID: ${channelId}`,
-  );
-}
-
-/**
- * Build a canonical content ID by combining a channel ID with a content suffix.
- *
- * Content ID formats:
- * - Twitter: `"twitter:uid:<userId>:<tweetId>"`
- * - YouTube: `"youtube:channel:<channelId>:<videoId>"`
- * - Substack: `"substack:<publication>/<slug>"`
- *
- * @param channelId - Canonical channel ID
- * @param contentSuffix - Platform-specific content identifier (tweet ID, video ID, or post slug)
- * @returns Canonical content ID string
- * @throws {@link ContentFundingCanonicalizationError} with code `invalid_content_suffix`
- */
-export function buildCanonicalContentId(channelId: string, contentSuffix: string): string {
-  const parsedChannelId = parseCanonicalChannelId(channelId);
-
-  switch (parsedChannelId.platform) {
-    case 'twitter':
-      if (!/^\d+$/.test(contentSuffix)) {
-        throw new ContentFundingCanonicalizationError(
-          'invalid_content_suffix',
-          `Twitter content suffix must be a numeric tweet ID: ${contentSuffix}`,
-        );
-      }
-      return `${channelId}:${contentSuffix}`;
-    case 'youtube':
-      if (!YOUTUBE_VIDEO_ID_PATTERN.test(contentSuffix)) {
-        throw new ContentFundingCanonicalizationError(
-          'invalid_content_suffix',
-          `YouTube content suffix must be an 11-character video ID: ${contentSuffix}`,
-        );
-      }
-      return `${channelId}:${contentSuffix}`;
-    case 'substack':
-      if (!SUBSTACK_SLUG_PATTERN.test(contentSuffix)) {
-        throw new ContentFundingCanonicalizationError(
-          'invalid_content_suffix',
-          `Substack content suffix must be a publication post slug: ${contentSuffix}`,
-        );
-      }
-      return `${channelId}/${contentSuffix}`;
-  }
-}
-
-/**
- * Compute the keccak256 hash of a canonical ID string for on-chain storage.
- *
- * @param canonicalId - Canonical channel or content ID string
- * @returns 32-byte keccak256 hash as a hex string
- */
-export function hashCanonicalId(canonicalId: string): Hex {
-  return keccak256(stringToBytes(canonicalId));
-}
-
-/**
- * Extract the channel canonical ID from a content canonical ID.
- *
- * Content canonical ID formats:
- *   Twitter:   "twitter:uid:DIGITS:TWEETID"   → "twitter:uid:DIGITS"
- *   YouTube:   "youtube:channel:UCID:VIDEOID" → "youtube:channel:UCID"
- *   Substack:  "substack:PUB/SLUG"            → "substack:PUB"
- */
-export function extractChannelCanonicalIdFromContentCanonicalId(contentCanonicalId: string): string {
-  const slashIndex = contentCanonicalId.indexOf('/');
-  if (slashIndex !== -1) {
-    // Substack: "substack:pub/slug" → "substack:pub"
-    return contentCanonicalId.slice(0, slashIndex);
-  }
-  const parts = contentCanonicalId.split(':');
-  if (parts[0] === 'substack' && parts.length >= 3) {
-    // Some local/seed deployments use the factory's ":" separator for all
-    // platforms: "substack:pub:slug" → "substack:pub".
-    return parts.slice(0, 2).join(':');
-  }
-  // Twitter / YouTube: "platform:type:id:suffix" → "platform:type:id"
-  if (parts.length >= 4) {
-    return parts.slice(0, 3).join(':');
-  }
-  throw new ContentFundingCanonicalizationError(
-    'invalid_content_suffix',
-    `Cannot extract channel canonical ID from content canonical ID: ${contentCanonicalId}`,
-  );
 }
 
 function parseUrl(rawUrl: string): URL {

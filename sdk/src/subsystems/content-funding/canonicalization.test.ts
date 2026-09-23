@@ -1,6 +1,7 @@
 import assert from 'assert';
 import {
   ContentFundingCanonicalizationError,
+  ContentIdentityError,
   buildCanonicalChannelId,
   buildCanonicalBeneficiaryId,
   buildCanonicalContentId,
@@ -202,14 +203,14 @@ describe('content-funding canonicalization', () => {
       assert.throws(
         () => buildCanonicalChannelId('twitter', 'alice'),
         (error: unknown) =>
-          error instanceof ContentFundingCanonicalizationError &&
+          error instanceof ContentIdentityError &&
           error.code === 'invalid_channel_id',
       );
 
       assert.throws(
         () => buildCanonicalContentId('youtube:channel:UCuAXFkgsw1L7xaCfnd5JJOw', 'bad!'),
         (error: unknown) =>
-          error instanceof ContentFundingCanonicalizationError &&
+          error instanceof ContentIdentityError &&
           error.code === 'invalid_content_suffix',
       );
     });
