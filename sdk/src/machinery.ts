@@ -14,32 +14,19 @@ export interface TestConfig {
 }
 
 /**
- * Deployed contract addresses for every Commonality protocol contract.
+ * Conceptspace contracts: statements, implications, generic subject
+ * attestations, publications, and trust. A non-financial deployment
+ * supplies these and nothing from {@link FundingContractAddresses}.
  *
- * Required when using the event-cache query path (Phase 4+) so the SDK
- * knows which contract addresses to filter events for.
- *
- * Optional fields (content-funding contracts) may be omitted on chains
- * where those contracts are not yet deployed.
+ * Do not fill unused addresses with the zero address. Omit a field the
+ * deployment does not have, and fail at the action that needs it.
  */
-export type ContractAddressesByChain = Record<number, ContractAddresses>;
-
-export interface ContractAddresses {
+export interface ConceptspaceContractAddresses {
   /** Beliefs.sol -- stores direct belief attestations on statements. */
   beliefs: `0x${string}`;
   /** Implications.sol -- stores implication links between statements. */
   implications: `0x${string}`;
-  /** CreatorAssuranceContractFactory.sol -- deploys new crowdfunding projects. */
-  assuranceContractFactory: `0x${string}`;
-  /** Factory that deploys per-project ERC-1155 token contracts. */
-  erc1155Factory: `0x${string}`;
-  /** DelegatableNotes.sol -- ERC-20/ERC-1155 note delegation tree. */
-  delegatableNotes: `0x${string}`;
-  /** RecurringPledges.sol -- standing pledge intent registry and executor. */
-  recurringPledges?: `0x${string}`;
-  /** NoteIntent.sol -- records the intended purpose of a note. */
-  noteIntent: `0x${string}`;
-  /** AlignmentAttestations.sol -- links subjects to cause-statements. */
+  /** AlignmentAttestations.sol -- links arbitrary subjects to statements. */
   alignmentAttestations: `0x${string}`;
   /** MutableRefUpdater.sol -- on-chain named mutable references. */
   mutableRefUpdater: `0x${string}`;
@@ -49,6 +36,27 @@ export interface ContractAddresses {
   accountAssertions?: `0x${string}`;
   /** NudgePublications.sol -- records nudger publication CIDs. */
   nudgePublications?: `0x${string}`;
+  /** PublishedData.sol -- shared user-published content/retraction registry. */
+  publishedData?: `0x${string}`;
+}
+
+/**
+ * Funding contracts. Present only on a deployment that moves value.
+ * Content-funding factories may be omitted where those contracts are
+ * not deployed; the four core fields are required once this capability
+ * is configured.
+ */
+export interface FundingContractAddresses {
+  /** CreatorAssuranceContractFactory.sol -- deploys new crowdfunding projects. */
+  assuranceContractFactory: `0x${string}`;
+  /** Factory that deploys per-project ERC-1155 token contracts. */
+  erc1155Factory: `0x${string}`;
+  /** DelegatableNotes.sol -- ERC-20/ERC-1155 note delegation tree. */
+  delegatableNotes: `0x${string}`;
+  /** NoteIntent.sol -- records the intended purpose of a note. */
+  noteIntent: `0x${string}`;
+  /** RecurringPledges.sol -- standing pledge intent registry and executor. */
+  recurringPledges?: `0x${string}`;
   /** ContentRegistry.sol -- registers content for the content-funding subsystem. */
   contentRegistry?: `0x${string}`;
   /** BeneficiaryRegistry.sol -- registers funding channels. */
@@ -59,8 +67,41 @@ export interface ContractAddresses {
   creatorContractFactory?: `0x${string}`;
   /** Factory for channel-bound future-content rounds. */
   prospectiveContentRoundFactory?: `0x${string}`;
-  /** PublishedData.sol -- shared user-published content/retraction registry. */
-  publishedData?: `0x${string}`;
+}
+
+/**
+ * Full deployment: Conceptspace plus funding. Prefer
+ * {@link ConceptspaceContractAddresses} when the process does not fund.
+ */
+export type ContractAddresses = ConceptspaceContractAddresses & FundingContractAddresses;
+
+/**
+ * Addresses a process actually has. Funding fields are present only when
+ * that capability is configured.
+ */
+export type DeployedContractAddresses = ConceptspaceContractAddresses & Partial<FundingContractAddresses>;
+
+export type ContractAddressesByChain = Record<number, DeployedContractAddresses>;
+
+const FUNDING_CORE_FIELDS = [
+  'assuranceContractFactory',
+  'erc1155Factory',
+  'delegatableNotes',
+  'noteIntent',
+] as const;
+
+/** Throw if a funding action is invoked without its contract addresses. */
+export function requireFundingContractAddresses(
+  addresses: Partial<FundingContractAddresses> | undefined,
+): FundingContractAddresses {
+  const missing = FUNDING_CORE_FIELDS.filter((field) => !addresses?.[field]);
+  if (missing.length > 0) {
+    throw new Error(
+      `Funding contract addresses are required (${missing.join(', ')}). ` +
+      'A Conceptspace-only configuration does not include them.',
+    );
+  }
+  return addresses as FundingContractAddresses;
 }
 
 export type SDKMachinery = {
@@ -72,7 +113,7 @@ export type SDKMachinery = {
   /** Event cache API base URL for client-side folding queries and the indexer /status endpoint. */
   eventCacheUrl?: string;
   /** Deployed contract addresses for event-cache filtering. Required when using eventCacheUrl. */
-  contractAddresses?: ContractAddresses;
+  contractAddresses?: DeployedContractAddresses;
   /** Default chain for bare addresses and single-chain deployments. */
   defaultChainId?: number;
   /** Optional chain-key used by services such as Ponder status responses. */
@@ -110,6 +151,6 @@ export function createSDKMachinery(options: Partial<SDKMachinery>): SDKMachinery
 export function getContractAddressesForChain(
   machinery: SDKMachinery,
   chainId: number = machinery.defaultChainId ?? 31337,
-): ContractAddresses | undefined {
+): DeployedContractAddresses | undefined {
   return machinery.contractAddressesByChain?.[chainId] ?? machinery.contractAddresses;
 }

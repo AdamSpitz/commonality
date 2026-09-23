@@ -14,7 +14,7 @@ The work now is:
 
 The test of the boundary stays the same: a Tally build and journey that signs, mediates, and publishes with no funding contract, payment token, or funding module in the graph. A second journey shows Commonality still using those statements to fund a project. Chain identity stays shared. Source layout is not a reason to fork beliefs.
 
-Extracting Civility or CSM as their own verticals remains a separate, later packaging choice, as in [technical UI domains](ui-domains.md#future-direction-per-vertical-repo-split-decided-2026-06-22). That note's "nearly flat feature graph" is stale: Tally currently reaches funding by mounting Conceptspace pages that import it. Fix the direction here first. A top-level `conceptspace/` folder is optional packaging after the import rule holds, not the first step. Copying this monorepo into two git histories is explicitly out of scope.
+Extracting Civility or CSM as their own verticals remains a separate, later packaging choice, as in [technical UI domains](ui-domains.md#future-direction-per-vertical-repo-split-decided-2026-06-22). That note's "nearly flat feature graph" is stale. Tally no longer reaches funding by mounting Conceptspace pages that import it; keep the import rule as new code lands. A top-level `conceptspace/` folder is optional packaging after the import rule holds, not the first step. Copying this monorepo into two git histories is explicitly out of scope.
 
 ## Why it makes sense—and what it does not accomplish
 
@@ -67,9 +67,11 @@ The SDK already exposes subsystem entry points in [its package manifest](../../s
 
 ### 1. Split SDK configuration and exports by capability
 
-[SDKMachinery and ContractAddresses](../../sdk/src/machinery.ts) describe the whole system. Providing a contract-address object currently requires assurance factories, delegatable notes and note intent alongside beliefs and implications. Twitter configuration and settlement-token configuration also live in the shared machinery type.
+[SDKMachinery and ContractAddresses](../../sdk/src/machinery.ts) describe the whole system. Twitter configuration and settlement-token configuration also live on the shared machinery type.
 
-Introduce a minimal transport/publication context and explicit capability-specific address/configuration types. Funding extends the base. Do not satisfy standalone builds with dummy zero addresses or make every field optional and defer errors until a user clicks something. Each action should require the capability it actually uses.
+Address types are split. `ConceptspaceContractAddresses` is the base; `FundingContractAddresses` is separate; `ContractAddresses` is both, for a deployment that funds. `SDKMachinery.contractAddresses` is `DeployedContractAddresses`, so funding fields are absent unless configured. `requireFundingContractAddresses` throws if a funding action is invoked without them. Bridge creator, the implication nudger, and the explorer curator no longer invent zero funding addresses. Conceptspace fields on those services are still zero placeholders where the process does not read them — replace those with the real addresses or omit-and-require at the action, do not add funding zeros back.
+
+Still open: do not satisfy a Conceptspace build with dummy zero addresses for the contracts that build actually calls. Twitter and settlement-token configuration still live on the shared machinery object (both optional). Each action should require the capability it actually uses.
 
 Split ABI exports and decoder imports as well. [eventDecoder.ts](../../sdk/src/utils/eventDecoder.ts) re-exports all domains, and [ABI synchronization](../../sdk/scripts/sync-abis.ts) assumes a sibling Hardhat tree containing all contracts. Published artifacts must have reproducible ABI provenance without needing the other repository's source tree. Existing subsystem exports are a head start, not independent installable packages yet.
 

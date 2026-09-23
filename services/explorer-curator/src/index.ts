@@ -1,7 +1,7 @@
 import { pathToFileURL } from 'node:url';
 import express, { type Express } from 'express';
 import { type Request, type Response } from 'express';
-import { createSDKMachinery, type ContractAddresses } from '@commonality/sdk/machinery';
+import { createSDKMachinery, type ConceptspaceContractAddresses } from '@commonality/sdk/machinery';
 import { loadConfig, loadConfigFromEnv } from './config.js';
 export { loadConfigFromEnv };
 export type { ExplorerCuratorConfig } from './config.js';
@@ -11,14 +11,10 @@ import { suggestForUser, type ExplorerSuggestRequest, type ExplorerSuggestion } 
 
 const NEVER: Promise<void> = new Promise(() => {});
 
-function createContractAddresses(config: ReturnType<typeof loadConfig>): ContractAddresses {
+function createContractAddresses(config: ReturnType<typeof loadConfig>): ConceptspaceContractAddresses {
   return {
     beliefs: '0x0000000000000000000000000000000000000000',
     implications: (process.env.IMPLICATIONS_CONTRACT_ADDRESS || '0x0000000000000000000000000000000000000000') as `0x${string}`,
-    assuranceContractFactory: '0x0000000000000000000000000000000000000000',
-    erc1155Factory: '0x0000000000000000000000000000000000000000',
-    delegatableNotes: '0x0000000000000000000000000000000000000000',
-    noteIntent: '0x0000000000000000000000000000000000000000',
     alignmentAttestations: '0x0000000000000000000000000000000000000000',
     mutableRefUpdater: '0x0000000000000000000000000000000000000000',
     trustRegistry: '0x0000000000000000000000000000000000000000',
