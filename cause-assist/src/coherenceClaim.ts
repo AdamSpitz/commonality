@@ -1,8 +1,7 @@
 /**
  * Well-known topic/claim CIDs for roster coherence badges.
  *
- * Must stay pinned to the same PublishedData CIDs as
- * ui/src/commonality/lib/causeRoster.ts (ROSTER_COHERENCE_TOPIC / CLAIM).
+ * Same PublishedData CIDs as `@commonality/sdk/displayable-documents`.
  * Subject on chain is the roster document CID digest; claim/topic are these.
  */
 import type { IpfsCidV1 } from '@commonality/sdk/utils'
