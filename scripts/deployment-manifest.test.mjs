@@ -44,6 +44,22 @@ test('new contract in the manifest uses its own deploy block', () => {
   assert.equal(manifest.chains['base-sepolia'].PublishedData[0].startBlock, 46450000);
 });
 
+test('conceptspace manifest omits funding contracts that are present in env', () => {
+  const env = {
+    BELIEFS_CONTRACT_ADDRESS: '0x353d650D50d8a5eA3A5a966FE1690177a8a82D92',
+    BELIEFS_START_BLOCK: '111',
+    NOTE_INTENT_ADDRESS: '0xee860Bb27652a3Be968bf6D351ee0eBb9d995eD3',
+    NOTE_INTENT_START_BLOCK: '222',
+    START_BLOCK: '1',
+  };
+  const shared = buildDeploymentManifest('base-sepolia', env);
+  const conceptspace = buildDeploymentManifest('base-sepolia', env, 'conceptspace');
+  assert.equal(shared.chains['base-sepolia'].NoteIntent[0].startBlock, 222);
+  assert.equal(conceptspace.chains['base-sepolia'].Beliefs[0].startBlock, 111);
+  assert.equal(conceptspace.chains['base-sepolia'].NoteIntent, undefined);
+  assert.throws(() => buildDeploymentManifest('base-sepolia', env, 'funding'), /manifest capability/);
+});
+
 test('indexer JSON is compact chains-only', () => {
   const json = indexerDeploymentManifestJson('base-sepolia', {
     BELIEFS_CONTRACT_ADDRESS: '0x353d650D50d8a5eA3A5a966FE1690177a8a82D92',
