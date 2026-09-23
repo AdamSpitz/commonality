@@ -3,6 +3,10 @@ import { http } from "viem";
 import { installEthGetLogsRangeGuard } from "./src/rpc/ethGetLogsRangeGuard";
 import { installMonthlyCapacityGuard } from "./src/rpc/monthlyCapacity";
 import { INDEXER_CHAIN_IDS, type IndexerChainName } from "./src/utils/chain";
+import {
+  readIndexerContractCapability,
+  selectIndexerContracts,
+} from "./src/indexing/contractCapabilities";
 
 // Conceptspace ABIs
 import { BeliefsAbi } from "./abis/BeliefsAbi";
@@ -533,6 +537,14 @@ if (INDEXER_CHAIN !== "hardhat") {
   installMonthlyCapacityGuard();
 }
 
+// Default is the shared feed. INDEXER_CONTRACTS=conceptspace omits funding
+// contracts. Funding ABIs stay imported here because the shared feed is the
+// production entry; a later package split can load them from a funding config.
+const indexerContracts = selectIndexerContracts(
+  contracts,
+  readIndexerContractCapability(process.env.INDEXER_CONTRACTS),
+);
+
 export default createConfig({
   database:
     process.env.PONDER_EPHEMERAL === "true"
@@ -541,5 +553,5 @@ export default createConfig({
         ? { kind: "postgres" }
         : undefined,
   chains,
-  contracts,
+  contracts: indexerContracts,
 });
