@@ -12,7 +12,7 @@ import { fetchEvents } from '../../utils/eventCacheClient.js';
 import {
   decodeDirectSupportEvent,
   type DecodedDirectSupportEvent,
-} from '../../utils/eventDecoder.js';
+} from '../../utils/event-decoders/conceptspace.js';
 import { foldStatementBeliefs } from '../conceptspace/folds.js';
 import { IpfsCidV1, cidToBytes32 } from '../../utils/cid-types.js';
 import { fetchAddressSocialData, fetchFollowerCountForTwitterHandle } from '../../utils/twitter.js';

@@ -2,7 +2,7 @@ import { type Address } from 'viem';
 import { type DisplayableDocument, createDefaultDocumentReader, type DocumentReadResult } from '../../displayable-documents/displayable-document.js';
 import { IpfsCidV1 } from '../../../utils/cid-types.js';
 import { SDKMachinery } from '../../../machinery.js';
-import type { DecodedDirectSupportEvent } from '../../../utils/eventDecoder.js';
+import type { DecodedDirectSupportEvent } from '../../../utils/event-decoders/conceptspace.js';
 import type { StatementContentStatus, StatementListItem } from '../types.js';
 
 export function uniqueAddresses(values: Iterable<string>): Address[] {

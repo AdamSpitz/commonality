@@ -7,7 +7,7 @@
 import { type Address } from 'viem';
 import { SDKMachinery } from '../../machinery.js';
 import { fetchEvents, padAddressAsTopic } from '../../utils/eventCacheClient.js';
-import { decodeAccountAssertionSetEvent } from '../../utils/eventDecoder.js';
+import { decodeAccountAssertionSetEvent } from '../../utils/event-decoders/identity.js';
 import {
   computeAnonymizedId,
   createUniqueHumanIdConfig,

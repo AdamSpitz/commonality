@@ -9,7 +9,7 @@ import {
 import type { RefUpdatedEvent } from './events.js';
 import { SDKMachinery } from '../../machinery.js';
 import { fetchRefUpdatedEvents, fetchAllRefUpdatedEvents } from '../../utils/eventCacheClient.js';
-import { decodeMutableRefEvent } from '../../utils/eventDecoder.js';
+import { decodeMutableRefEvent } from '../../utils/event-decoders/mutable-refs.js';
 import { foldMutableRef, foldRefHistory, foldUserList } from './folds.js';
 
 function decodeRefUpdatedEvents(rawEvents: Awaited<ReturnType<typeof fetchRefUpdatedEvents>>): RefUpdatedEvent[] {

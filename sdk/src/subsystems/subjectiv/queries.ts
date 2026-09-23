@@ -1,6 +1,6 @@
 import { SDKMachinery } from '../../machinery.js';
 import { fetchEvents, padAddressAsTopic } from '../../utils/eventCacheClient.js';
-import { decodeTrustSetEvent } from '../../utils/eventDecoder.js';
+import { decodeTrustSetEvent } from '../../utils/event-decoders/subjectiv.js';
 import { foldDirectTrustMapping } from './folds.js';
 import type {
   DirectTrustMapping,

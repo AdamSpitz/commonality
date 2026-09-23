@@ -16,7 +16,7 @@ import {
   type IndirectSupportTieredHeadCountOptions,
   BeliefStates,
 } from '../types.js';
-import type { DecodedDirectSupportEvent } from '../../../utils/eventDecoder.js';
+import type { DecodedDirectSupportEvent } from '../../../utils/event-decoders/conceptspace.js';
 import { fetchDecodedDirectSupportEvents, fetchDecodedImplicationLifecycleEvents } from './fetch.js';
 import { fetchStatementDocument, uniqueAddresses } from './documents.js';
 import { filterByTrustedAttesters } from './implications.js';

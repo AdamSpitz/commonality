@@ -20,6 +20,14 @@
       "types": "./dist/src/abis.d.ts",
       "default": "./dist/src/abis.js"
     },
+    "./abis/conceptspace": {
+      "types": "./dist/src/abis/conceptspace.d.ts",
+      "default": "./dist/src/abis/conceptspace.js"
+    },
+    "./abis/funding": {
+      "types": "./dist/src/abis/funding.d.ts",
+      "default": "./dist/src/abis/funding.js"
+    },
     "./utils": {
       "types": "./dist/src/utils/index.d.ts",
       "default": "./dist/src/utils/index.js"

@@ -11,7 +11,7 @@ import {
   type DecodedDirectSupportEvent,
   type DecodedImplicationAttestationEvent,
   type DecodedImplicationRevokedEvent,
-} from '../../../utils/eventDecoder.js';
+} from '../../../utils/event-decoders/conceptspace.js';
 import { SDKMachinery } from '../../../machinery.js';
 
 export type ConceptspaceEventFilter = Omit<
