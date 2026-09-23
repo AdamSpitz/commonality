@@ -19,9 +19,9 @@ const sections = [
   {
     title: 'Or pick projects yourself',
     description:
-      "Prefer the hands-on path? Start with Explore Causes, open a cause statement, then use its fundable-projects board to see the projects aligned with it — curated by your trust network, not a gatekeeper. Fund the ones you like directly on their LazyGiving project pages.",
-    path: '/explore',
-    cta: 'Explore causes',
+      "Prefer the hands-on path? Open a cause someone sent you, then use its fundable-projects board to see the projects aligned with it — curated by your trust network, not a gatekeeper. Fund the ones you like directly on their LazyGiving project pages. Aligning does not keep a directory of causes.",
+    path: '/docs/alignment/how-alignment-works',
+    cta: 'How a cause board works',
   },
   {
     title: "Causes don't need exact wording",
@@ -59,7 +59,6 @@ export function AlignmentLandingPage() {
       heroActions={[
         { label: 'Set up delegation', domain: 'lazyGiving', path: '/delegation/notes/new' },
         { label: 'How it works', path: '/docs/alignment/how-alignment-works', variant: 'outlined' },
-        { label: 'Explore causes', path: '/explore', variant: 'outlined' },
       ]}
       sections={sections}
     />

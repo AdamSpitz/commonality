@@ -254,7 +254,6 @@ describe("service host", () => {
 				"content-finder",
 				"implication-graph-nudger",
 				"bridge-creator",
-				"explorer-curator",
 			],
 		);
 		assert.deepStrictEqual(
@@ -264,7 +263,6 @@ describe("service host", () => {
 				undefined,
 				"/implication-graph-nudger",
 				"/bridge-creator",
-				"/explorer-curator",
 			],
 		);
 	});

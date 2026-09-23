@@ -194,8 +194,6 @@ const contentAttesterAddress = byAddress.get('CONTENT_ATTESTER_ADDRESS').address
 const beatAgentAddress = byAddress.get('BEAT_AGENT_ADDRESS').address
 const graphNudgerAddress = byAddress.get('IMPLICATION_GRAPH_NUDGER_ADDRESS').address
 const bridgeCreatorAddress = byAddress.get('BRIDGE_CREATOR_ADDRESS').address
-const explorerCuratorAddress = byAddress.get('EXPLORER_CURATOR_ADDRESS').address
-
 const defaultNudgers = JSON.stringify([
   {
     address: graphNudgerAddress,
@@ -208,12 +206,6 @@ const defaultNudgers = JSON.stringify([
     name: 'Common Sense Majority mediator',
     description: 'Suggests low-commitment CSM bridge statements you might be willing to sign in Tally.',
     sourceType: 'bridge-creator',
-  },
-  {
-    address: explorerCuratorAddress,
-    name: 'Fundable Project Explorer',
-    description: 'Curates a map of fundable project areas and personalized suggestions.',
-    sourceType: 'explorer-curator',
   },
 ])
 

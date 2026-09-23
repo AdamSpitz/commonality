@@ -202,7 +202,8 @@ export function loadServiceHostConfigFromEnv(env: NodeJS.ProcessEnv = process.en
   const contentFinderEnabled = readBooleanFrom(env, ['CONTENT_FINDER_ENABLED'], true);
   const implicationGraphNudgerEnabled = readBooleanFrom(env, ['IMPLICATION_GRAPH_NUDGER_ENABLED'], true);
   const bridgeCreatorEnabled = readBooleanFrom(env, ['BRIDGE_CREATOR_ENABLED'], true);
-  const explorerCuratorEnabled = readBooleanFrom(env, ['EXPLORER_CURATOR_ENABLED'], true);
+  // Off unless explicitly enabled. See ADR 0014.
+  const explorerCuratorEnabled = readBooleanFrom(env, ['EXPLORER_CURATOR_ENABLED'], false);
   const recurringPledgeSchedulerEnabled = readBooleanFrom(env, ['RECURRING_PLEDGE_SCHEDULER_ENABLED'], false);
 
   return {

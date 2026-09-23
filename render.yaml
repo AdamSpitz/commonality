@@ -536,6 +536,8 @@ services:
         sync: false  # Secret
       - key: BRIDGE_CREATOR_PRIVATE_KEY
         sync: false  # Secret
+      - key: EXPLORER_CURATOR_ENABLED
+        value: "false"
       - key: EXPLORER_CURATOR_PRIVATE_KEY
         sync: false  # Secret
       - key: BRIDGE_CREATOR_COMMONALITY_STATEMENTS

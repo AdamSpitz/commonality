@@ -184,7 +184,8 @@ describe('cross-domain route ownership', () => {
 
   it('alignment owns funding-portal routes', () => {
     const routePaths = extractRoutePaths(domainManifests.alignment.routes)
-    expect(routePaths).toEqual(['/', '/explore', '/portal/:statementCid', '/portal/:statementCid/leaderboard', '/docs', '/docs/*'])
+    expect(routePaths).toEqual(['/', '/portal/:statementCid', '/portal/:statementCid/leaderboard', '/docs', '/docs/*'])
+    expect(routePaths).not.toContain('/explore')
   })
 
   it('lazyGiving and content-funding own delegation routes', () => {
@@ -267,9 +268,9 @@ describe('cross-domain landing page rendering', () => {
     expectLandingLinkToHref('/projects')
   })
 
-  it('alignment landing includes the cause-exploration action', () => {
+  it('alignment landing does not offer a cause directory', () => {
     renderDomainRoute('alignment')
-    expectLandingLinkToHref('/explore')
+    expect(screen.queryByRole('link', { name: /explore causes/i })).not.toBeInTheDocument()
   })
 
   it('lazyGiving has delegation in primary navigation, not secondary', () => {

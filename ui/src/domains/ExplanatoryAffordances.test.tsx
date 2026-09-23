@@ -38,7 +38,8 @@ describe('domain landing explanatory affordances', () => {
       expect(screen.getByRole('heading', { name: /hand your giving to a friend/i })).toBeInTheDocument()
       expect(screen.getByText(/delegate to a friend instead/i)).toBeInTheDocument()
       expect(screen.getByText(/prefer the hands-on path/i)).toBeInTheDocument()
-      expect(screen.getAllByRole('link', { name: /explore causes/i }).some((link) => link.getAttribute('href') === '/explore')).toBe(true)
+      expect(screen.getByText(/aligning does not keep a directory of causes/i)).toBeInTheDocument()
+      expect(screen.queryByRole('link', { name: /explore causes/i })).not.toBeInTheDocument()
     })
 
     it('explains why cause boards include differently worded but related causes', () => {

@@ -5,7 +5,7 @@ Background curator service and per-user personalization endpoint for conceptspac
 ## Role in the AI-service ecosystem
 
 - **Family:** Explorer / nudger-style curation service.
-- **Primary UI domain:** Alignment initially, via the fundable-project explorer; other purpose-specific explorers may use the same pattern later.
+- **Primary UI domain:** None operated by Commonality ([ADR 0014](../../specs/decisions/0014-no-operated-generic-explorer.md)). A third party can run this package for one focused stream. Aligning does not mount `/explore`.
 - **Trust boundary:** Users are trusting the curator for navigation and prioritization, not for durable truth. Explorer suggestions do not affect shared state unless the user acts on them.
 - **Output:** Curated-collection nudger publications in IPFS with on-chain CIDs, plus optional per-user `/suggest` personalization.
 - **Related services:** `implication-graph-nudger` suggests graph-adjacent statements; `bridge-creator` synthesizes new bridge statements for CSM.

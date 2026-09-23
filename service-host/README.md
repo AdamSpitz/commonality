@@ -95,7 +95,7 @@ Bundle selection flags:
 - `CONTENT_FINDER_ENABLED`
 - `IMPLICATION_GRAPH_NUDGER_ENABLED`
 - `BRIDGE_CREATOR_ENABLED`
-- `EXPLORER_CURATOR_ENABLED`
+- `EXPLORER_CURATOR_ENABLED` (defaults to `false`; Commonality does not run an explorer, [ADR 0014](../specs/decisions/0014-no-operated-generic-explorer.md))
 
 Shared env vars used by multiple enabled services:
 

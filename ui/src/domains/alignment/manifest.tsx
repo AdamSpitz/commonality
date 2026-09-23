@@ -7,7 +7,6 @@ import { AlignmentLandingPage } from './LandingPage'
 const routes: ReactNode = (
   <>
     <Route path="/" element={<AlignmentLandingPage />} />
-    <Route path="/explore" element={lazyRoute(() => import('../../fundingportals/pages/ExplorerPage'), 'ExplorerPage')} />
     <Route path="/portal/:statementCid" element={lazyRoute(() => import('../../fundingportals/pages/StatementFundingPortalPage'), 'StatementFundingPortalPage')} />
     <Route path="/portal/:statementCid/leaderboard" element={lazyRoute(() => import('../../fundingportals/pages/CauseLeaderboardPage'), 'CauseLeaderboardPage')} />
     <Route path="/docs" element={lazyRoute(() => import('../../docs/DocsPage'), 'DocsPage')} />
@@ -23,7 +22,6 @@ export const alignmentManifest: DomainManifest = {
   },
   shell: {
     primaryNavigation: [
-      { label: 'Explore Causes', path: '/explore' },
       { label: 'Docs', path: '/docs' },
       { label: 'Delegation on LazyGiving', domain: 'lazyGiving', path: '/delegation/notes' },
       { label: 'Statements on Tally', domain: 'tally', path: '/statements' },

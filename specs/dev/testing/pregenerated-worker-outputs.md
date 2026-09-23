@@ -12,7 +12,7 @@ We already solve this problem for implication attestations. The `fake-data-gener
 
 The local-dev fixture lives in `fake-data-generation/data/seed-worker-outputs.json` and is replayed by `./scripts/data.sh --seed=demo`.
 
-**Fundable Project Explorer curator** — Stores a curated collection from the formal seed statements for stream `fundable-project-explorer`. This is the Alignment `/explore` map of causes with cause boards, not a generic Tally explorer. During seeding, the local seed nudger signs those statements and publishes a `curated-collection` nudger publication on-chain.
+**Fundable Project Explorer curator** — Stores a curated collection from the formal seed statements for stream `fundable-project-explorer`. Aligning no longer mounts that map ([ADR 0014](../../decisions/0014-no-operated-generic-explorer.md)). Seeding still publishes the collection so the publication format stays exercised. During seeding, the local seed nudger signs those statements and publishes a `curated-collection` nudger publication on-chain.
 
 **Nudgers** — Stores a deterministic nudge batch for seed statement pairs. During seeding, the local seed nudger publishes it as a `nudge-batch` publication.
 
@@ -33,7 +33,7 @@ The fixture records the generation algorithm and a seed-content fingerprint. The
 
 ## Seeding Integration
 
-`./scripts/data.sh --seed=demo` runs `fake-data-generation` with `--publish-seed-worker-outputs`, which replays the pre-generated outputs on-chain after the fake universe is populated. The UI consumes this collection from Alignment `/explore`; Tally intentionally does not expose `/explore` yet.
+`./scripts/data.sh --seed=demo` runs `fake-data-generation` with `--publish-seed-worker-outputs`, which replays the pre-generated outputs on-chain after the fake universe is populated. Nothing in the operated UI mounts this collection. Tally and Aligning both omit `/explore`.
 
 ## Status as of 2026-05-01
 
