@@ -11,8 +11,9 @@ import {
 /**
  * Conceptspace-only Ponder entry. Does not import funding contract modules,
  * so assurance, delegation, and content-funding ABIs stay out of the process.
- * Financial HTTP routes in `src/api` are still part of the indexer package.
+ * The API reads INDEXER_CONTRACTS and omits funding routes when it is conceptspace.
  */
+process.env.INDEXER_CONTRACTS = "conceptspace";
 const context = loadIndexerDeploymentContext();
 installHostedRpcGuards(context);
 

@@ -25,7 +25,7 @@ No business logic, no aggregation, no IPFS sync, and no user content. All entity
 
 See [specs/tech/indexer/README.md](../specs/tech/indexer/README.md) for the full explanation of what this means and why.
 
-`ponder.config.ts` is the shared feed (funding contracts included). `INDEXER_CONTRACTS=conceptspace` on that file omits funding contracts but still loads their ABIs. `npm run dev:conceptspace` uses `ponder.conceptspace.config.ts`, which does not import them. Alignment attestations stay on both.
+`ponder.config.ts` is the shared feed (funding contracts included). `INDEXER_CONTRACTS=conceptspace` on that file omits funding contracts but still loads their ABIs, and the API then omits `GET /api/project-read-demand`. `npm run dev:conceptspace` uses `ponder.conceptspace.config.ts`, which does not import the funding ABIs and sets `INDEXER_CONTRACTS=conceptspace`. Alignment attestations stay on both.
 
 ## Deployment
 

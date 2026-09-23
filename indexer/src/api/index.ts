@@ -13,6 +13,7 @@ import { Hono } from "hono";
 import { client, graphql } from "ponder";
 import { and, desc, eq, gte, lte, or } from "ponder";
 import { getAddress, isAddress, type Hex } from "viem";
+import { fundingIndexerRoutesEnabled } from "../indexing/contractCapabilities";
 import { isBareContractLogQuery, projectReadDemandReport, recordUnindexedProjectLogRequest } from "./projectReadDemand";
 
 /**
@@ -255,15 +256,19 @@ app.get("/api/events", async (c) => {
       .limit(limit))
       .reverse();
 
-    if (items.length === 0 && isBareContractLogQuery({
-      contractAddress,
-      eventName,
-      topic1,
-      topic2,
-      topic3,
-      blockNumber_gte,
-      blockNumber_lte,
-    })) {
+    if (
+      fundingIndexerRoutesEnabled()
+      && items.length === 0
+      && isBareContractLogQuery({
+        contractAddress,
+        eventName,
+        topic1,
+        topic2,
+        topic3,
+        blockNumber_gte,
+        blockNumber_lte,
+      })
+    ) {
       recordUnindexedProjectLogRequest(contractAddress!);
     }
 
@@ -276,6 +281,9 @@ app.get("/api/events", async (c) => {
 const PROJECT_CREATION_EVENTS = ["LazyGivingAssuranceContractCreated", "CreatorContractCreated"];
 
 app.get("/api/project-read-demand", async (c) => {
+  if (!fundingIndexerRoutesEnabled()) {
+    return c.json({ error: "project read demand is a funding indexer route" }, 404);
+  }
   try {
     const windowMs = Math.min(parseInt(c.req.query("windowMs") ?? String(24 * 60 * 60 * 1000), 10) || 0, 24 * 60 * 60 * 1000);
     const now = Date.now();

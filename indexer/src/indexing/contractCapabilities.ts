@@ -43,6 +43,13 @@ export const fundingContractNames = [
 const conceptspaceNames = new Set<string>(conceptspaceContractNames);
 const fundingNames = new Set<string>(fundingContractNames);
 
+/** Funding HTTP routes belong on the shared feed, not a Conceptspace-only process. */
+export function fundingIndexerRoutesEnabled(
+  raw: string | undefined = process.env.INDEXER_CONTRACTS,
+): boolean {
+  return readIndexerContractCapability(raw) === "all";
+}
+
 export function readIndexerContractCapability(
   raw: string | undefined,
 ): IndexerContractCapability {

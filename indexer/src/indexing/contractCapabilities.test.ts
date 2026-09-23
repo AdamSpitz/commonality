@@ -3,6 +3,7 @@ import { test } from "node:test";
 import {
   conceptspaceContractNames,
   fundingContractNames,
+  fundingIndexerRoutesEnabled,
   readIndexerContractCapability,
   selectIndexerContracts,
 } from "./contractCapabilities";
@@ -53,4 +54,6 @@ test("INDEXER_CONTRACTS defaults to the shared feed", () => {
   assert.equal(readIndexerContractCapability(""), "all");
   assert.equal(readIndexerContractCapability("conceptspace"), "conceptspace");
   assert.throws(() => readIndexerContractCapability("funding"), /INDEXER_CONTRACTS/);
+  assert.equal(fundingIndexerRoutesEnabled(undefined), true);
+  assert.equal(fundingIndexerRoutesEnabled("conceptspace"), false);
 });
