@@ -17,7 +17,6 @@ import { foldStatementBeliefs } from '../conceptspace/folds.js';
 import { IpfsCidV1, cidToBytes32 } from '../../utils/cid-types.js';
 import { fetchAddressSocialData, fetchFollowerCountForTwitterHandle } from '../../utils/twitter.js';
 import { requireTwitterApiConfig, SDKMachinery } from '../../machinery.js';
-import { fetchAndFoldContentFundingState, getOwnerForCanonicalChannelId } from '../content-funding/queries.js';
 import { type UserSocialData, type HighProfileSigner } from './types.js';
 
 /** Options for {@link getHighProfileSigners}. */
@@ -96,11 +95,10 @@ export async function getUserSocialData(
 ): Promise<UserSocialData | null> {
   const twitterApiConfig = requireTwitterApiConfig(_machinery);
   const data = await fetchAddressSocialData(twitterApiConfig, address);
-  const verifiedAssociation = await resolveTwitterAssociationViaBeneficiaryRegistry(
-    _machinery,
-    address,
-    options.twitterHandleHint ?? data.twitterHandle,
-  );
+  const handleHint = options.twitterHandleHint ?? data.twitterHandle;
+  const verifiedAssociation = _machinery.verifiedSocialAssociation
+    ? await _machinery.verifiedSocialAssociation(_machinery, address, handleHint)
+    : null;
   const twitterHandle = verifiedAssociation?.twitterHandle ?? data.twitterHandle;
   const twitterFollowerCount = verifiedAssociation && data.twitterFollowerCount === undefined
     ? await fetchFollowerCountForTwitterHandle(twitterApiConfig, verifiedAssociation.twitterHandle)
@@ -119,70 +117,5 @@ export async function getUserSocialData(
         : undefined,
     socialDataFetched: true,
     fetchedAt: new Date().toISOString(),
-  };
-}
-
-function normalizeTwitterHandleHint(handle: string): string {
-  const trimmed = handle.trim();
-  return trimmed.startsWith('@') ? trimmed : `@${trimmed}`;
-}
-
-interface ResolvedTwitterChannel {
-  channelId: string;
-  handle?: string;
-}
-
-async function resolveTwitterChannelAssociation(
-  machinery: SDKMachinery,
-  handle: string,
-): Promise<ResolvedTwitterChannel | null> {
-  const baseUrl = requireTwitterApiConfig(machinery).platformApiBaseUrl;
-  if (!baseUrl) {
-    return null;
-  }
-
-  const response = await fetch(`${baseUrl}/resolve/channel`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      platform: 'twitter',
-      handle: normalizeTwitterHandleHint(handle),
-    }),
-  });
-
-  if (!response.ok) {
-    return null;
-  }
-
-  const resolved = await response.json() as ResolvedTwitterChannel;
-  return typeof resolved.channelId === 'string' ? resolved : null;
-}
-
-async function resolveTwitterAssociationViaBeneficiaryRegistry(
-  machinery: SDKMachinery,
-  address: string,
-  handleHint?: string,
-): Promise<{ twitterHandle: string } | null> {
-  if (!handleHint) {
-    return null;
-  }
-
-  const contentFunding = await fetchAndFoldContentFundingState(machinery);
-  if (!contentFunding) {
-    return null;
-  }
-
-  const resolvedChannel = await resolveTwitterChannelAssociation(machinery, handleHint);
-  if (!resolvedChannel?.channelId) {
-    return null;
-  }
-
-  const owner = getOwnerForCanonicalChannelId(contentFunding.state, resolvedChannel.channelId);
-  if (!owner || owner.toLowerCase() !== address.toLowerCase()) {
-    return null;
-  }
-
-  return {
-    twitterHandle: normalizeTwitterHandleHint(resolvedChannel.handle ?? handleHint),
   };
 }

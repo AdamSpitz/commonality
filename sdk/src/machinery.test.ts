@@ -63,10 +63,11 @@ describe('contract address capabilities', () => {
 });
 
 describe('social and settlement capabilities', () => {
-  it('does not invent Twitter or settlement-token configuration', () => {
+  it('does not invent Twitter, settlement-token, or verified-handle configuration', () => {
     const machinery = createSDKMachinery({ ipfsConfig: {} });
     assert.equal(machinery.twitterApiConfig, undefined);
     assert.equal(machinery.settlementTokenAddresses, undefined);
+    assert.equal(machinery.verifiedSocialAssociation, undefined);
     assert.equal(createSDKMachinery({ settlementTokenAddresses: [] }).settlementTokenAddresses, undefined);
   });
 

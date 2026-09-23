@@ -133,6 +133,18 @@ export function requireFundingContractAddresses(
 }
 
 /**
+ * Optional check that a hinted social handle is controlled by an address.
+ * Conceptspace profiles work without it. A funding deployment may install
+ * the beneficiary-registry adapter; that proof is not authorization to
+ * claim funds.
+ */
+export type VerifiedSocialAssociationLookup = (
+  machinery: SDKMachinery,
+  address: string,
+  handleHint?: string,
+) => Promise<{ twitterHandle: string } | null>;
+
+/**
  * Throw if an action needs Twitter or ENS social lookup and the process
  * did not configure it. An empty object is a real configuration: ENS uses
  * the default mainnet RPC and follower counts are skipped.
@@ -174,6 +186,11 @@ export type SDKMachinery = {
    * deployment that does not resolve handles. Do not default this to `{}`.
    */
   twitterApiConfig?: TwitterApiConfig;
+  /**
+   * When set, signer profiles may mark a handle verified. Omit it and
+   * profiles still resolve ENS text records.
+   */
+  verifiedSocialAssociation?: VerifiedSocialAssociationLookup;
   testConfig: TestConfig;
   /** Viem public client for on-chain reads. Required for on-chain read functions. */
   publicClient?: PublicClient;
@@ -207,6 +224,9 @@ export function createSDKMachinery(options: Partial<SDKMachinery>): SDKMachinery
   return {
     ipfsConfig: options.ipfsConfig ?? {},
     ...(options.twitterApiConfig ? { twitterApiConfig: options.twitterApiConfig } : {}),
+    ...(options.verifiedSocialAssociation
+      ? { verifiedSocialAssociation: options.verifiedSocialAssociation }
+      : {}),
     testConfig: options.testConfig ?? {},
     publicClient: options.publicClient,
     eventCacheUrl: options.eventCacheUrl,

@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { createPublicClient, http } from 'viem'
 import { baseSepolia, hardhat, mainnet } from 'viem/chains'
 import { createSDKMachinery, type SDKMachinery } from '@commonality/sdk/machinery'
+import { lookupVerifiedTwitterAssociation } from '@commonality/sdk/content-funding'
 import { getRuntimeConfigValue } from '../config/runtimeConfig'
 import { getActivePolicyBundle } from '../config/policyBundle'
 
@@ -104,6 +105,9 @@ export function useMachinery(): SDKMachinery {
     const machinery = createSDKMachinery({
       ipfsConfig,
       twitterApiConfig,
+      verifiedSocialAssociation: getRuntimeConfigValue('VITE_BENEFICIARY_REGISTRY_ADDRESS')
+        ? lookupVerifiedTwitterAssociation
+        : undefined,
       publicClient: publicClient as any,
       eventCacheUrl,
       contractAddresses,
