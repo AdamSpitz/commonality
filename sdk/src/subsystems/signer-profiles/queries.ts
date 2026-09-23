@@ -16,7 +16,7 @@ import {
 import { foldStatementBeliefs } from '../conceptspace/folds.js';
 import { IpfsCidV1, cidToBytes32 } from '../../utils/cid-types.js';
 import { fetchAddressSocialData, fetchFollowerCountForTwitterHandle } from '../../utils/twitter.js';
-import { SDKMachinery } from '../../machinery.js';
+import { requireTwitterApiConfig, SDKMachinery } from '../../machinery.js';
 import { fetchAndFoldContentFundingState, getOwnerForCanonicalChannelId } from '../content-funding/queries.js';
 import { type UserSocialData, type HighProfileSigner } from './types.js';
 
@@ -94,7 +94,8 @@ export async function getUserSocialData(
     twitterHandleHint?: string;
   } = {},
 ): Promise<UserSocialData | null> {
-  const data = await fetchAddressSocialData(_machinery.twitterApiConfig, address);
+  const twitterApiConfig = requireTwitterApiConfig(_machinery);
+  const data = await fetchAddressSocialData(twitterApiConfig, address);
   const verifiedAssociation = await resolveTwitterAssociationViaBeneficiaryRegistry(
     _machinery,
     address,
@@ -102,7 +103,7 @@ export async function getUserSocialData(
   );
   const twitterHandle = verifiedAssociation?.twitterHandle ?? data.twitterHandle;
   const twitterFollowerCount = verifiedAssociation && data.twitterFollowerCount === undefined
-    ? await fetchFollowerCountForTwitterHandle(_machinery.twitterApiConfig, verifiedAssociation.twitterHandle)
+    ? await fetchFollowerCountForTwitterHandle(twitterApiConfig, verifiedAssociation.twitterHandle)
     : data.twitterFollowerCount;
 
   return {
@@ -135,7 +136,7 @@ async function resolveTwitterChannelAssociation(
   machinery: SDKMachinery,
   handle: string,
 ): Promise<ResolvedTwitterChannel | null> {
-  const baseUrl = machinery.twitterApiConfig.platformApiBaseUrl;
+  const baseUrl = requireTwitterApiConfig(machinery).platformApiBaseUrl;
   if (!baseUrl) {
     return null;
   }

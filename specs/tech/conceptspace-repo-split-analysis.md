@@ -73,7 +73,7 @@ Address types are split. `ConceptspaceContractAddresses` is the base; `FundingCo
 
 Conceptspace address fields are all optional. `configuredAddress` drops the zero address, and `requireConceptspaceContractAddress` fails the action that needs a missing contract. The bridge creator, implication nudger, explorer curator, and MCP config omit addresses they do not have instead of filling zeros.
 
-Still open: Twitter and settlement-token configuration still live on the shared machinery object (Twitter is always present, settlement tokens are optional). Each action should require the capability it actually uses.
+Twitter configuration and settlement-token addresses are optional capabilities on the same machinery object, not defaults. `createSDKMachinery` omits them unless the caller passes them (an empty settlement-token list is omitted). `requireTwitterApiConfig` throws when a social lookup runs without Twitter configuration. `requireSettlementTokenAddresses` throws when an action is specifically including settlement ERC-20s and none are configured. Soft note-intent aggregates still count native value without that list; they do not call the require helper.
 
 Split ABI exports and decoder imports as well. [eventDecoder.ts](../../sdk/src/utils/eventDecoder.ts) re-exports all domains, and [ABI synchronization](../../sdk/scripts/sync-abis.ts) assumes a sibling Hardhat tree containing all contracts. Published artifacts must have reproducible ABI provenance without needing the other repository's source tree. Existing subsystem exports are a head start, not independent installable packages yet.
 

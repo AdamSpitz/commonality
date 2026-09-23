@@ -132,9 +132,48 @@ export function requireFundingContractAddresses(
   return addresses as FundingContractAddresses;
 }
 
+/**
+ * Throw if an action needs Twitter or ENS social lookup and the process
+ * did not configure it. An empty object is a real configuration: ENS uses
+ * the default mainnet RPC and follower counts are skipped.
+ */
+export function requireTwitterApiConfig(
+  machinery: { twitterApiConfig?: TwitterApiConfig },
+): TwitterApiConfig {
+  if (!machinery.twitterApiConfig) {
+    throw new Error(
+      'Twitter API configuration is required for this action. ' +
+      'A Conceptspace configuration does not include it unless social lookup is enabled.',
+    );
+  }
+  return machinery.twitterApiConfig;
+}
+
+/**
+ * Settlement ERC-20s are a funding capability. Native value (the zero
+ * address) does not need this list. Throw when an action is specifically
+ * including configured settlement tokens and none were provided.
+ */
+export function requireSettlementTokenAddresses(
+  machinery: { settlementTokenAddresses?: `0x${string}`[] },
+): `0x${string}`[] {
+  const addresses = machinery.settlementTokenAddresses?.filter(isConfiguredAddress);
+  if (!addresses || addresses.length === 0) {
+    throw new Error(
+      'Settlement token addresses are required for this action. ' +
+      'A Conceptspace configuration does not include them.',
+    );
+  }
+  return addresses;
+}
+
 export type SDKMachinery = {
   ipfsConfig: IPFSConfig;
-  twitterApiConfig: TwitterApiConfig;
+  /**
+   * Social lookup (ENS text records and the platform API). Omit it on a
+   * deployment that does not resolve handles. Do not default this to `{}`.
+   */
+  twitterApiConfig?: TwitterApiConfig;
   testConfig: TestConfig;
   /** Viem public client for on-chain reads. Required for on-chain read functions. */
   publicClient?: PublicClient;
@@ -148,7 +187,11 @@ export type SDKMachinery = {
   chainStatusKey?: string;
   /** Optional chain-keyed address registry for multi-chain deployments. */
   contractAddressesByChain?: ContractAddressesByChain;
-  /** Settlement ERC-20s whose balances may be included in soft note-intent aggregates. */
+  /**
+   * Funding capability: settlement ERC-20s included in soft note-intent
+   * aggregates, in addition to native value. Omit when the deployment
+   * does not fund, or when only native value counts.
+   */
   settlementTokenAddresses?: `0x${string}`[];
   /**
    * Where PublishedData content bytes are fetched from.
@@ -163,7 +206,7 @@ export type SDKMachinery = {
 export function createSDKMachinery(options: Partial<SDKMachinery>): SDKMachinery {
   return {
     ipfsConfig: options.ipfsConfig ?? {},
-    twitterApiConfig: options.twitterApiConfig ?? {},
+    ...(options.twitterApiConfig ? { twitterApiConfig: options.twitterApiConfig } : {}),
     testConfig: options.testConfig ?? {},
     publicClient: options.publicClient,
     eventCacheUrl: options.eventCacheUrl,
@@ -171,7 +214,9 @@ export function createSDKMachinery(options: Partial<SDKMachinery>): SDKMachinery
     defaultChainId: options.defaultChainId,
     chainStatusKey: options.chainStatusKey,
     contractAddressesByChain: options.contractAddressesByChain,
-    settlementTokenAddresses: options.settlementTokenAddresses,
+    ...(options.settlementTokenAddresses && options.settlementTokenAddresses.length > 0
+      ? { settlementTokenAddresses: options.settlementTokenAddresses }
+      : {}),
     publishedContentResolver: options.publishedContentResolver,
   };
 }

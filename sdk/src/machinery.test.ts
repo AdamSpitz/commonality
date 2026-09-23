@@ -2,8 +2,11 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'mocha';
 import {
   configuredAddress,
+  createSDKMachinery,
   requireConceptspaceContractAddress,
   requireFundingContractAddresses,
+  requireSettlementTokenAddresses,
+  requireTwitterApiConfig,
   type ConceptspaceContractAddresses,
   type DeployedContractAddresses,
 } from './machinery.js';
@@ -56,5 +59,39 @@ describe('contract address capabilities', () => {
       noteIntent: '0x2000000000000000000000000000000000000004',
     });
     assert.equal(funding.noteIntent, '0x2000000000000000000000000000000000000004');
+  });
+});
+
+describe('social and settlement capabilities', () => {
+  it('does not invent Twitter or settlement-token configuration', () => {
+    const machinery = createSDKMachinery({ ipfsConfig: {} });
+    assert.equal(machinery.twitterApiConfig, undefined);
+    assert.equal(machinery.settlementTokenAddresses, undefined);
+    assert.equal(createSDKMachinery({ settlementTokenAddresses: [] }).settlementTokenAddresses, undefined);
+  });
+
+  it('refuses social lookup until Twitter configuration is present', () => {
+    assert.throws(
+      () => requireTwitterApiConfig({}),
+      /Twitter API configuration is required/,
+    );
+    assert.deepEqual(requireTwitterApiConfig({ twitterApiConfig: {} }), {});
+  });
+
+  it('refuses settlement-token actions until those addresses are configured', () => {
+    assert.throws(
+      () => requireSettlementTokenAddresses({}),
+      /Settlement token addresses are required/,
+    );
+    assert.throws(
+      () => requireSettlementTokenAddresses({
+        settlementTokenAddresses: ['0x0000000000000000000000000000000000000000'],
+      }),
+      /Settlement token addresses are required/,
+    );
+    const tokens = requireSettlementTokenAddresses({
+      settlementTokenAddresses: ['0x3000000000000000000000000000000000000001'],
+    });
+    assert.deepEqual(tokens, ['0x3000000000000000000000000000000000000001']);
   });
 });

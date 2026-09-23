@@ -430,6 +430,9 @@ export async function getNoteIntentAggregate(
   const noteContract = machinery.contractAddresses?.delegatableNotes?.toLowerCase();
   const supportedTokens = new Set([
     '0x0000000000000000000000000000000000000000',
+    // Optional funding capability. Native value is always eligible; ERC-20s
+    // count only when the deployment configured them. Do not require the
+    // list here — a funding deployment may settle in native value only.
     ...(machinery.settlementTokenAddresses ?? []).map(address => address.toLowerCase()),
   ]);
   const chainId = machinery.defaultChainId ?? 31337;
