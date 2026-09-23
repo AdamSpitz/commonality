@@ -1,13 +1,25 @@
 /**
- * Lift this tick's statement triples into a Commonality-compatible bridge cluster
- * when the mediator named parent causes. Same extras kinds as ui/src/commonality/lib/bridgeCluster.ts
- * and causeRoster.ts so /bridge/:owner/:slug can load them.
+ * Lift this tick's statement triples into a bridge cluster when the mediator
+ * named parent causes. Cluster documents use the SDK format so /bridge/:owner/:slug
+ * can load them.
  */
 
-export const BRIDGE_CLUSTER_KIND = 'causestarter.bridge-cluster' as const;
-export const BRIDGE_CLUSTER_SCHEMA_VERSION = 1 as const;
-export const ROSTER_KIND = 'causestarter.roster' as const;
-export const ROSTER_SCHEMA_VERSION = 1 as const;
+import {
+  BRIDGE_CLUSTER_KIND,
+  BRIDGE_CLUSTER_SCHEMA_VERSION,
+  buildClusterDocument,
+  ROSTER_KIND,
+  ROSTER_SCHEMA_VERSION,
+  type BridgeClusterFields,
+  type DisplayableDocument,
+} from '@commonality/sdk/displayable-documents';
+
+export {
+  BRIDGE_CLUSTER_KIND,
+  BRIDGE_CLUSTER_SCHEMA_VERSION,
+  ROSTER_KIND,
+  ROSTER_SCHEMA_VERSION,
+};
 
 export interface ParentCauseRef {
   owner: `0x${string}`;
@@ -212,22 +224,15 @@ export function rosterDocumentFromPlan(plan: ClusterRosterPlan): Record<string, 
   };
 }
 
-export function clusterDocumentFromPlan(plan: ClusterDocumentPlan): Record<string, unknown> {
-  return {
-    format: 'markdown-restricted',
-    content: `# Bridge cluster\n\nMediator: ${plan.mediatorName}`,
-    assets: {},
-    references: [],
-    extras: {
-      kind: BRIDGE_CLUSTER_KIND,
-      version: BRIDGE_CLUSTER_SCHEMA_VERSION,
-      mediatorName: plan.mediatorName,
-      mediatorNote: plan.mediatorNote,
-      mediatorAddress: plan.mediatorAddress,
-      parents: plan.parents,
-      modified: plan.modified,
-      bridge: plan.bridge,
-      pairs: plan.pairs,
-    },
+export function clusterDocumentFromPlan(plan: ClusterDocumentPlan): DisplayableDocument {
+  const fields: BridgeClusterFields = {
+    mediatorName: plan.mediatorName,
+    mediatorNote: plan.mediatorNote,
+    mediatorAddress: plan.mediatorAddress,
+    parents: plan.parents,
+    modified: plan.modified,
+    bridge: plan.bridge,
+    pairs: plan.pairs,
   };
+  return buildClusterDocument(fields);
 }

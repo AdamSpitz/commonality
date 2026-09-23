@@ -10,8 +10,14 @@
 
 import { PublishedDataAbi, MutableRefUpdaterAbi } from '@commonality/sdk/abis';
 import {
+  BRIDGE_CLUSTER_KIND,
+  BRIDGE_CLUSTER_SCHEMA_VERSION,
+  buildClusterDocument,
   createDefaultDocumentStore,
   createDisplayableDocument,
+  ROSTER_KIND,
+  ROSTER_SCHEMA_VERSION,
+  type BridgeClusterFields,
 } from '@commonality/sdk/displayable-documents';
 import { createSDKMachinery } from '@commonality/sdk/machinery';
 import { updateRef } from '@commonality/sdk/mutable-refs';
@@ -22,10 +28,12 @@ import { HARDHAT_PRIVATE_KEYS } from './generateUsers.js';
 import { CONTRACT_ADDRESSES, RPC_URL } from './loadEnv.js';
 import { createSeedClients } from './seedRpc.js';
 
-export const ROSTER_KIND = 'causestarter.roster' as const;
-export const ROSTER_SCHEMA_VERSION = 1 as const;
-export const BRIDGE_CLUSTER_KIND = 'causestarter.bridge-cluster' as const;
-export const BRIDGE_CLUSTER_SCHEMA_VERSION = 1 as const;
+export {
+  BRIDGE_CLUSTER_KIND,
+  BRIDGE_CLUSTER_SCHEMA_VERSION,
+  ROSTER_KIND,
+  ROSTER_SCHEMA_VERSION,
+};
 export const CAUSE_BOOKMARKS_REF = 'bookmarked-causes';
 export const CAUSE_BOOKMARKS_SCHEMA_VERSION = 1 as const;
 
@@ -153,61 +161,8 @@ export interface SeedBridgeClusterFields {
   pairs: SeedClusterPair[];
 }
 
-export function renderSeedClusterContent(fields: SeedBridgeClusterFields): string {
-  const lines = [
-    '# Bridge cluster',
-    '',
-    `Mediator: ${fields.mediatorName.trim()}`,
-  ];
-  if (fields.mediatorNote.trim()) {
-    lines.push('', fields.mediatorNote.trim());
-  }
-  lines.push('', '## Natural parents');
-  for (const parent of fields.parents) {
-    lines.push(`- ${parent.owner.toLowerCase()}/${parent.slug}`);
-  }
-  lines.push('', '## Modified causes');
-  for (const modified of fields.modified) {
-    lines.push(
-      `- ${modified.owner.toLowerCase()}/${modified.slug} (from ${modified.parentOwner.toLowerCase()}/${modified.parentSlug})`,
-    );
-  }
-  lines.push('', '## Bridge cause', `- ${fields.bridge.owner.toLowerCase()}/${fields.bridge.slug}`);
-  lines.push('', '## Intended plank pairs');
-  for (const pair of fields.pairs) {
-    lines.push(`- ${pair.fromCid} → ${pair.toCid} (${pair.role})`);
-  }
-  return lines.join('\n');
-}
-
 export function buildSeedClusterDocument(fields: SeedBridgeClusterFields) {
-  const mediatorAddress = fields.mediatorAddress.toLowerCase();
-  return createDisplayableDocument({
-    format: 'markdown-restricted',
-    content: renderSeedClusterContent(fields),
-    extras: {
-      kind: BRIDGE_CLUSTER_KIND,
-      version: BRIDGE_CLUSTER_SCHEMA_VERSION,
-      mediatorName: fields.mediatorName.trim(),
-      mediatorNote: fields.mediatorNote.trim(),
-      mediatorAddress,
-      parents: fields.parents.map((parent) => ({
-        owner: parent.owner.toLowerCase(),
-        slug: parent.slug,
-      })),
-      modified: fields.modified.map((modified) => ({
-        owner: modified.owner.toLowerCase(),
-        slug: modified.slug,
-        parentOwner: modified.parentOwner.toLowerCase(),
-        parentSlug: modified.parentSlug,
-      })),
-      bridge: {
-        owner: fields.bridge.owner.toLowerCase(),
-        slug: fields.bridge.slug,
-      },
-      pairs: fields.pairs.map((pair) => ({ ...pair })),
-    },
-  });
+  return buildClusterDocument(fields as BridgeClusterFields);
 }
 
 export function serializeSeedCauseBookmarkList(
