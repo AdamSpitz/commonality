@@ -16,6 +16,28 @@ export const serviceKinds = [
 
 export type ServiceKind = (typeof serviceKinds)[number];
 
+/** Non-financial services. A Conceptspace-only host uses this list and must not import funding factories. */
+export const conceptspaceServiceKinds = [
+  'implication-finder',
+  'implication-graph-nudger',
+  'bridge-creator',
+  'explorer-curator',
+  'implication-attester',
+  'beat-memory',
+] as const satisfies readonly ServiceKind[];
+
+export type ConceptspaceServiceKind = (typeof conceptspaceServiceKinds)[number];
+
+/** Funding and content-payout consumers. Composed into the full host, not the Conceptspace default. */
+export const fundingServiceKinds = [
+  'content-finder',
+  'content-attester',
+  'beat-agent',
+  'recurring-pledge-scheduler',
+] as const satisfies readonly ServiceKind[];
+
+export type FundingServiceKind = (typeof fundingServiceKinds)[number];
+
 export interface HostedServiceConfig {
   name: string;
   kind: ServiceKind;
