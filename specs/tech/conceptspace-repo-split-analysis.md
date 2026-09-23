@@ -125,7 +125,13 @@ Service kinds are split into `conceptspaceServiceKinds` and `fundingServiceKinds
 
 [Ponder configuration](../../indexer/ponder.config.ts) includes both contract families; the indexer also contains project-specific API work. Separate the event-cache protocol/base implementation from contract registrations and financial endpoints. Retain a shared production feed initially if useful: two repositories need not mean two databases or duplicated indexing. But provide a Conceptspace-only configuration and prove it works. The [shared-feed topology](indexer/shared-feed-topology.md) is compatible with optional independent operation.
 
-`scripts/deployment-manifest.mjs` lists Conceptspace and funding contracts separately. `buildDeploymentManifest(..., 'conceptspace')` and `--contracts conceptspace` omit funding entries; the default shared manifest is unchanged. Environment generation, Compose, CI, seeds, gateways, and SDK ABI generation still need the same composition boundary. The [MCP tool module](../../mcp/src/tools.ts) registers statement, publication, and attester tools and does not import LazyGiving. [fundingTools.ts](../../mcp/src/fundingTools.ts) registers `get_project`, and the server loads it only when `mcpFundingConfigured()` sees the funding core addresses. Audit `published-data-ipfs-mirror`, `coherence-badge-worker`, and trust-bootstrap tooling by dependencies and intended consumers rather than moving or retaining them solely by name.
+`scripts/deployment-manifest.mjs` lists Conceptspace and funding contracts separately. `buildDeploymentManifest(..., 'conceptspace')` and `--contracts conceptspace` omit funding entries; the default shared manifest is unchanged. Environment generation, Compose, CI, seeds, gateways, and SDK ABI generation still need the same composition boundary. The [MCP tool module](../../mcp/src/tools.ts) registers statement, publication, and attester tools and does not import LazyGiving. [fundingTools.ts](../../mcp/src/fundingTools.ts) registers `get_project`, and the server loads it only when `mcpFundingConfigured()` sees the funding core addresses.
+
+Worker audit (dependencies and consumers, not names):
+
+- `published-data-ipfs-mirror` is Conceptspace infrastructure. It imports `PublishedData` and `@commonality/sdk/published-data` only. A Conceptspace deployment can run it; a funding deployment does not need a second copy.
+- `alignment-trust-bootstrap` is a funding operator tool. It watches project-alignment attesters against `TrustRegistry`. Tally does not run it.
+- `coherence-badge-worker` stays with Commonality. It follows cause-roster mutable refs and writes alignment attestations through cause-assist. The contracts are Conceptspace; the product (roster coherence badges) is the organizer app. Do not start it for a Tally-only process.
 
 ## A later repository shape
 
@@ -171,4 +177,4 @@ The stage that matches the current decision is: **Tally's pages omit funding by 
 
 ## Evidence limits
 
-This assessment inspected architecture/product guidance and representative contracts, SDK imports/configuration, UI composition, mediation/context services, indexer and build tooling. It is not an exhaustive transitive dependency audit, deployment rehearsal, or test of current product readiness. Implementation evidence takes precedence where older documentation describes a cleaner boundary or unfinished feature that current code has since changed. No application code, deployments or branch state were changed for this analysis.
+This assessment inspected architecture/product guidance and representative contracts, SDK imports/configuration, UI composition, mediation/context services, indexer and build tooling. It is not an exhaustive transitive dependency audit, deployment rehearsal, or test of current product readiness. Implementation evidence takes precedence where older documentation describes a cleaner boundary or unfinished feature that current code has since changed. The worker audit above is from current imports, not from the original read-only pass.
