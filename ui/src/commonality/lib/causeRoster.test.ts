@@ -22,7 +22,6 @@ import {
   buildRosterDocument,
   readPlankText,
   formatRosterAge,
-  loadRosterCoherenceBadge,
   mediatorBlurbFrom,
   normalizeSlug,
   parseCauseLink,
@@ -42,6 +41,7 @@ import {
   textFromStatementDocument,
   validateSlug,
 } from './causeRoster'
+import { loadRosterCoherenceBadge } from './rosterCoherence'
 import type { CauseDraft } from './causeStore'
 
 function draft(partial: Partial<CauseDraft> & { planks: CauseDraft['planks'] }): CauseDraft {
