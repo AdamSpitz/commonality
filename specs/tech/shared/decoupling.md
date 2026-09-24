@@ -6,6 +6,10 @@ LazyGiving's assurance contract with non-transferable receipts and at-cost
 reimbursement. ERC-1155 compatibility alone does not imply compatibility with
 that funding lifecycle.
 
+For the broader map of potentially independent funding pieces and a staged
+external-project integration, see [Funding decomposition exploration](funding-decomposition.md).
+That document records possibilities, not an implementation commitment or legal assessment.
+
 ## Implemented boundaries
 
 - Delegated purchases depend on `IFundingMarket`, not the concrete assurance
