@@ -169,6 +169,96 @@ separating it is more than extracting a pro-rata formula. The current product
 uses non-transferable recognition receipts and non-transferable reimbursement
 claims, not a secondary market.
 
+## Publishing risk, informal
+
+Recorded 2026-09-24 from a read of the candidate list. This is not a legal
+opinion, a compliance review, or permission to publish. It ranks one question
+only: how exposed is a named package that other people can actually deposit
+into, compared with leaving the same code inside Commonality?
+
+Custody, and whether value can be handed to someone else, matter more than how
+clean the package boundary is. Immutable contracts, no admin key, no fee, and
+users calling the contracts themselves reduce the "you are the money business"
+argument. They do not turn a custodial, delegatable, or pay-the-absent-person
+contract into a neutral library.
+
+### Safer to publish alone
+
+**Cause-based funding discovery, as link-out only.** A board of statements,
+alignment, and trust that links to someone else's funding page does not take
+deposits or choose who gets paid. That is Juicebox stage 1 above. Exposure
+jumps if the package itself accepts payment or spends a note into the external
+project.
+
+**Conditional funding composition, as condition logic only.**
+`IAssuranceCondition`, `IProgressSource`, and combinators (AND/OR/K-of-N) that
+do not hold balances are rules. A matching pool, a waterfall that custodies, or
+an on-chain fallback router that sits on the funds belongs with assurance
+funding.
+
+**Recurring pledges, only as a registry of user-signed instructions plus a
+permissionless poke.** If the user's wallet still holds the tokens until
+execution, the registry is an alarm clock. The current design does not stay
+there: each instruction mints a delegated note, so publishing recurring pledges
+as they work today publishes the note system too. Running the keeper puts the
+operator in the transmission path even when `executeDue` is permissionless.
+
+### Middle
+
+**Content funding.** This is an application. A factory that creates fundable
+artifacts still holds contributions and pays creators or escrows. Narrowing it
+to particular artifact types does not change that. Non-transferable receipts
+help against a profit-share story; they do not make the factory a
+non-financial library.
+
+**Assurance funding.** Ordinary conditional escrow: people deposit, the
+contract holds, a threshold releases or a failure refunds. That is the central
+money-services fact pattern. The design already points the right direction
+against a securities story: non-transferable recognition receipts, no interest,
+no premium, refunds instead of a tradeable claim. The economic story is "your
+contribution is released or returned." A demo that accepts deposits is still
+operating that escrow.
+
+**Retroactive reimbursement.** Inside assurance funding, later donors restoring
+early contributors at cost is a refund-like feature. Non-transferable claims,
+no upside, and a cap at basis are what keep it from looking like a profit share
+or a RetroPGF payout. Lifted out as its own primitive, the same ledger
+(contribution basis, earned amounts, withdrawal rights) is easier to describe
+as a financial claim. Publishing it separately makes that story worse. It gets
+sharply worse if those claims become transferable or ever pay more than cost.
+
+### Riskier
+
+**Claimable beneficiaries.** The independent job is holding money for a website
+or account that has no wallet yet, then paying whoever later proves control.
+That is third-party custody in the plainest sense. Separating identity proof
+from the escrow does not remove the escrow. A domain proof is not continuity
+of an organization, and a social-account proof can pay the wrong person.
+Another project's GitHub version of this (Drips) does not make a small demo of
+`BeneficiaryEscrow` a neutral library.
+
+**Delegatable notes.** Users deposit value into a contract; the balance can be
+split; spending authority can be passed onward; upstream parties can revoke
+what remains; the chain survives purchases, refunds, and reimbursements.
+Onward delegation is what separates this from a single signed authorization. A
+permission over the owner's own wallet is a calmer object because the deposit
+never becomes a balance someone else holds, and it remains a worse technical
+fit for the reasons in the adoption survey. A generic arbitrary-call spend
+would be worse still. Even a narrow "spend only into these markets" package is
+a stored balance that other people can draw. Of the eight rows, this is the
+one not to ship as a general delegated-budget primitive on the strength of the
+mechanism being elegant.
+
+### What this does to the suggested direction
+
+Technical reuse and publishing exposure point different ways. Delegation and
+claimable beneficiaries are the strongest standalone mechanisms and the
+riskiest things to publish as deposit-taking packages. Discovery-as-link-out
+and condition interfaces are the rows that can be separate primitives and still
+plausibly be only software. Reimbursement should stay an internal boundary of
+assurance funding until some other consumer exists; extracting it highlights
+the claim.
+
 ## Suggested direction and open decisions
 
 The suggested direction is to make delegation and claimable beneficiaries
