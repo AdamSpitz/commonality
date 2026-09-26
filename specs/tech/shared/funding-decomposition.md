@@ -27,7 +27,7 @@ it does not automatically need another branded website.
 | Retroactive reimbursement | Let later donors reimburse early contributors at cost so their giving budgets can circulate again. | Distinct economics, currently coupled to assurance contribution and claim accounting. |
 | Delegatable notes | Give someone revocable spending authority, including onward delegation, while retaining the original owner's position. | Strong standalone candidate; spending and returned-fund accounting still have funding-specific assumptions. |
 | Recurring pledges | Execute a previously authorized funding instruction periodically. | Separate registry and executor already exist; the current instruction creates a delegated note. |
-| Claimable beneficiaries | Hold funds for an external identity until control is proved and a payout address established. | Shared beneficiary registry/escrow already serve ordinary projects and content funding; project-policy responsibilities merit a boundary review. |
+| Claimable beneficiaries | Name a public identity that has not joined yet, and let whoever later proves control claim or refuse each project's proceeds. | Identity proof and the payout registry are shared. Each new project keeps its own proceeds ([ADR 0015](../../decisions/0015-per-project-beneficiary-proceeds.md)). `BeneficiaryEscrow` is leftover wiring, not a destination for new projects. Whether beneficiary-controlled project creation and disavowal stay on the registry is still open. |
 | Content funding | Identify artifacts or future content, associate them with creators, and fund them. | Application combining content registration, assurance funding, beneficiary claiming, and attestations. |
 | Cause-based funding discovery | Find fundable work through statements, alignment judgments, and personal trust. | Integration layer between the nonfinancial substrate and funding; discovery and project pages still assume our assurance contracts. |
 | Conditional funding composition | Express matching, coordinated thresholds, conditional participation, and fallback funding. | Existing interfaces provide seams; several richer compositions remain proposals rather than implemented products. |
@@ -51,7 +51,7 @@ Surveyed 2026-09-24. This is not a legal review and does not authorize swapping 
 | Retroactive reimbursement | **Keep ours.** Do not substitute RetroPGF or Hypercerts. | Optimism RetroPGF, Gitcoin retro rounds, and Hypercerts pay later for demonstrated impact, often with surplus relative to cost. The job here is later donors restoring early contributors' original budgets with no upside, via non-transferable claims, so giving capacity recirculates. Using RetroPGF would replace that economics with a different product. Adjacent, not usable. |
 | Delegatable notes | **Keep ours** as the budget object. Do not replace it with ERC-7710, Zodiac, or Hats. | [MetaMask Delegation / ERC-7710](https://docs.metamask.io/smart-accounts-kit/development/concepts/delegation/overview/) is the real preexisting permission primitive: revocable, redelegatable, caveat-restricted execution from a smart account. Zodiac Roles scopes calls from a Safe. Hats is role tokens, not money. None of them is a splittable deposited balance whose chain survives purchases, refunds, and reimbursements, rooted at an EOA who never moved to a smart account. Adopting ERC-7710 would mean rewriting notes as permissions over a wallet, forcing smart accounts, and losing the note-as-asset / `chainHash` model. A later adapter could let an ERC-7710 delegate *spend into* our markets (Juicebox stage 3 territory). That is composition, not replacement. |
 | Recurring pledges | **Keep the registry + note mint.** Keepers are optional. Streaming protocols are not a substitute. | Superfluid, Sablier, LlamaPay, and Drips streams continuously pay an *address*. The standing pledge must mint a note **rooted at the user**, already delegated, targeting a cause — because a third-party `deposit()` would make the executor the root ([recurring-pledges.md](../subsystems/delegation/recurring-pledges.md)). Streaming to a project or to Alice skips that. Unlock's recurring memberships are the closest *shape* (ERC-20 allowance + permissionless poke) but the execution target is a membership NFT, not a delegated note. Giveth recurring donations are Superfluid into Allo anchors. We could replace our offchain scheduler with Gelato/Chainlink, since `executeDue` is already permissionless; that is the only preexisting piece that actually fits. |
-| Claimable beneficiaries | **Keep the multi-namespace registry/escrow.** Drips is usable only if GitHub-repo funding is a real consumer. | [Drips](https://docs.drips.network/) already funds a GitHub repository before the maintainer has a wallet; they claim later with `FUNDING.json`. That *is* the job for the GitHub namespace. It is not the job for DNS, X, YouTube, or Substack, and it does not give us payout rotation that a later proof cannot hijack, namespace waiting periods, or beneficiary-controlled project creation. 0xSplits only splits among *already known addresses*. ENS DNS import proves a domain; it does not hold funds. Proposed ERC-8186 (claimable escrow for off-chain identifiers) is the same idea on paper and is not a deployed thing to adopt. Use Drips if we want GitHub OSS as an external mechanism or a first GitHub namespace; do not throw away `BeneficiaryIdentity` / `BeneficiaryRegistry` / `BeneficiaryEscrow` for websites and creator accounts. |
+| Claimable beneficiaries | **Keep identity proof and the payout registry.** Drips is usable only if GitHub-repo funding is a real consumer. | [Drips](https://docs.drips.network/) already funds a GitHub repository before the maintainer has a wallet; they claim later with `FUNDING.json`. That *is* the job for the GitHub namespace. It is not the job for DNS, X, YouTube, or Substack, and it does not give us payout rotation that a later proof cannot hijack, namespace waiting periods, or beneficiary-controlled project creation. 0xSplits only splits among *already known addresses*. ENS DNS import proves a domain; it does not hold funds. Proposed ERC-8186 (claimable escrow for off-chain identifiers) is the same idea on paper and is not a deployed thing to adopt. Use Drips if we want GitHub OSS as an external mechanism or a first GitHub namespace. Keep `BeneficiaryIdentity` and `BeneficiaryRegistry` for websites and creator accounts. Do not revive `BeneficiaryEscrow` as the pot: since [ADR 0015](../../decisions/0015-per-project-beneficiary-proceeds.md), each new project holds its own proceeds, and the registry's current payout address claims or refuses that project only. |
 | Content funding | **Keep as our application.** Do not adopt Mirror/Zora contracts. | Mirror crowdfunds (now under Paragraph), Zora coins, and Unlock memberships fund artifacts and creators, usually with tradable tokens or NFTs. They do not compose our assurance receipts, claimable beneficiaries, and attestations. Treat them like Juicebox: possible external mechanisms on a board, not a replacement for the content-funding factory. |
 | Cause-based funding discovery | **Keep the alignment/trust board.** Point it at other people's projects. | Gitcoin, Giveth, and Allo are grants catalogs plus matching/sybil tooling. Allo is in maintenance mode. They do not find work through statements, implications, alignment attestations, and personal trust. What we *can* use: their projects as attestation subjects and link-out targets, same as Juicebox. Passport/EAS are identity/attestation rails, not cause discovery. |
 | Conditional funding composition | **Keep `IAssuranceCondition` / `IProgressSource`.** Use Gitcoin matching only as another external mechanism. | Gitcoin quadratic matching and Allo strategies allocate a *matching pool*. Gnosis Conditional Tokens (Polymarket) split collateral on oracle outcomes. Juicebox rulesets govern *their* treasuries. None of those is combinators over our tri-state conditions (AND/OR/K-of-N, waterfalls, gated pledgers, fallback routing). Our matching already works by treating a matcher as a buyer ([matching.md](../subsystems/lazyGiving/matching.md)). Writing an Allo strategy that pays into LazyGiving would be optional composition with a mothballed protocol, not a reason to stop owning the condition interfaces. |
@@ -134,27 +134,45 @@ discussion does not resolve the latter.
 
 ## Claimable beneficiaries: fund now, claim later
 
-The independent proposition is straightforward: put money aside for the owner
-of a website or creator account before they join.
+Updated 2026-09-26 for [ADR 0015](../../decisions/0015-per-project-beneficiary-proceeds.md).
 
-Identity proof belongs in the nonfinancial substrate. Establishing and rotating
-a payout address, holding balances, and releasing money belong in the funding
-layer. This is reflected in the separation of `BeneficiaryIdentity` from
-`BeneficiaryRegistry` and `BeneficiaryEscrow`.
+The independent proposition is: a project can name the controller of a website
+or creator account before that person joins. Successful proceeds stay in that
+project. The project creator cannot withdraw them, and neither can Commonality.
+Whoever later proves control binds a payout address, and that address may claim
+or refuse this project only. Registering the address, or claiming some other
+project, does not accept this one.
 
-Content funding and ordinary projects can both consume this primitive. Other
-funding systems could potentially do the same without adopting our assurance
-mechanism.
+Identity proof stays in the nonfinancial substrate (`BeneficiaryIdentity`).
+The funding registry (`BeneficiaryRegistry`) copies that controller as the
+initial payout address and handles rotation. It does not hold the project's
+money. `BeneficiaryEscrow` remains deployed for old wiring and is not a
+destination for new projects. `withdraw()` on an identity-targeted project
+reverts; the parent recipient is the contract itself.
 
-The current registry also handles beneficiary-controlled project creation and
-project disavowal. Review whether those policies belong in the smallest
-independent package or in integrations above it. Content occupancy and creator
-veto already belong with content funding.
+A refusal before success uses the ordinary purchase-refund path. A refusal
+after success, or silence for 90 days after someone notes success, lets
+contributors reclaim the recipient surplus in proportion to their claim-share
+balance. Reimbursement reserves stay reserved. The 90-day window starts at
+`noteSuccess`, which the project page can call, because the funding condition
+has no success timestamp.
 
-An extraction must preserve the existing claim semantics: identity proof alone
-cannot redirect an adopted payout address, claim waiting periods remain
-namespace-specific, and proving domain control does not establish continuity of
-a legal organization. See the beneficiary spec for the detailed limitations.
+Content funding and ordinary projects both use this claim and refuse path.
+Other funding systems could name the same identity without adopting our
+assurance mechanism. They would still have to hold the money themselves: the
+shared pot is not the interface.
+
+The registry also handles beneficiary-controlled project creation and project
+disavowal. Whether those policies belong in the smallest identity package or
+in integrations above it is still open. Content occupancy and creator veto
+already belong with content funding.
+
+An extraction must preserve the claim semantics: identity proof alone cannot
+redirect an adopted payout address, a Verified or Domain-controlled mark is
+not acceptance of a balance, claim waiting periods remain namespace-specific,
+and proving domain control does not establish continuity of a legal
+organization. See the [beneficiary spec](../subsystems/claimable-beneficiaries.md)
+and [fund now, claim later](../../product/fund-now-claim-later.md).
 
 ## Reimbursement deserves an explicit boundary
 
@@ -229,13 +247,24 @@ sharply worse if those claims become transferable or ever pay more than cost.
 
 ### Riskier
 
-**Claimable beneficiaries.** The independent job is holding money for a website
-or account that has no wallet yet, then paying whoever later proves control.
-That is third-party custody in the plainest sense. Separating identity proof
-from the escrow does not remove the escrow. A domain proof is not continuity
-of an organization, and a social-account proof can pay the wrong person.
-Another project's GitHub version of this (Drips) does not make a small demo of
-`BeneficiaryEscrow` a neutral library.
+**Claimable beneficiaries.** The earlier reading treated this row as its own
+custodial package: `BeneficiaryEscrow` holding one balance per name and paying
+it to whoever later proved control. [ADR 0015](../../decisions/0015-per-project-beneficiary-proceeds.md)
+rejected that pot. New projects keep their proceeds. The registry binds a
+payout address; it does not take the deposit. One claim cannot sweep every
+project that named the same identity.
+
+Custody does not disappear. Each identity-targeted project still holds money
+for a person who may not have a wallet yet, then pays the registry's current
+payout address if that address claims this project. That is the same
+conditional-escrow fact pattern as assurance funding, with an extra rule about
+who may release the recipient surplus. Publishing `BeneficiaryIdentity` and
+`BeneficiaryRegistry` alone, with no project that accepts deposits, is a
+calmer object: proof and a payout address, not a balance. Publishing a fresh
+shared escrow would put the rejected design back on the table. A domain proof
+is still not continuity of an organization, and a social-account proof can
+still pay the wrong person. Drips doing this for GitHub does not make either
+shape a neutral library.
 
 **Delegatable notes.** Users deposit value into a contract; the balance can be
 split; spending authority can be passed onward; upstream parties can revoke
@@ -251,22 +280,27 @@ mechanism being elegant.
 
 ### What this does to the suggested direction
 
-Technical reuse and publishing exposure point different ways. Delegation and
-claimable beneficiaries are the strongest standalone mechanisms and the
-riskiest things to publish as deposit-taking packages. Discovery-as-link-out
-and condition interfaces are the rows that can be separate primitives and still
-plausibly be only software. Reimbursement should stay an internal boundary of
+Technical reuse and publishing exposure point different ways. Delegation
+remains a strong standalone mechanism and a risky thing to publish as a
+deposit-taking package. Claimable-beneficiary *identity and payout binding*
+can be a reusable primitive without taking deposits. The money stays inside
+the project, so the custodial exposure sits with assurance funding rather
+than with a separate escrow package. Discovery-as-link-out and condition
+interfaces are the rows that can be separate primitives and still plausibly
+be only software. Reimbursement should stay an internal boundary of
 assurance funding until some other consumer exists; extracting it highlights
 the claim.
 
 ## Suggested direction and open decisions
 
-The suggested direction is to make delegation and claimable beneficiaries
-reusable primitives; retain assurance funding plus reimbursement as a coherent
-initial product with separable internals; and open cause-board discovery to
-external funding mechanisms. Content funding remains a focused application of
-those pieces. Recurring pledges can stay a separate automation layer without
-requiring premature generalization of its execution target.
+The suggested direction is to make delegation a reusable primitive; keep
+claimable-beneficiary identity and payout binding reusable without a shared
+pot; retain assurance funding plus reimbursement, including per-project
+beneficiary proceeds, as a coherent initial product with separable internals;
+and open cause-board discovery to external funding mechanisms. Content
+funding remains a focused application of those pieces. Recurring pledges can
+stay a separate automation layer without requiring premature generalization
+of its execution target.
 
 Open decisions:
 
@@ -274,7 +308,7 @@ Open decisions:
 - Is Juicebox link-out discovery the first test of external project support?
 - What canonical external-project identity and metadata resolution should boards use?
 - Which spending operations define the first independently publishable notes package?
-- Should beneficiary project policies be separated from payout registry/escrow?
+- Should beneficiary-controlled project creation and disavowal stay on the payout registry, now that proceeds stay in the project?
 - Does reimbursement have a second consumer that justifies extracting more now?
 
 These questions do not authorize implementation or repository moves. The next
