@@ -2,7 +2,7 @@
  * User actions for Delegation subsystem
  */
 
-import { type Address, type Hash, type Abi, parseEventLogs } from 'viem';
+import { type Address, type Hash, type Abi, parseEventLogs, zeroHash } from 'viem';
 import { type WriteClients } from '../../utils/ethereum.js';
 import { DelegatableNotesAbi } from '../../abis.js';
 import { approveERC20Spend } from '../../utils/erc20.js';
@@ -230,8 +230,22 @@ export async function replaceDelegate(
   });
   const replaced = replacedLogs[0];
   const replacedNoteId = replaced?.args.toNoteId ?? params.noteId;
-  const full = replaced !== undefined && replaced.args.amount === params.amount;
-  return { hash, replacedNoteId, remainderNoteId: full ? 0n : params.noteId };
+  // The event amount is the amount moved, which always equals params.amount.
+  // A partial replacement leaves the old note in place.
+  const chainHash = await clients.publicClient.readContract({
+    address: delegatableNotesContract.address,
+    abi: [{
+      type: 'function',
+      name: 'notes',
+      stateMutability: 'view',
+      inputs: [{ name: 'noteId', type: 'uint256' }],
+      outputs: [{ name: 'chainHash', type: 'bytes32' }],
+    }],
+    functionName: 'notes',
+    args: [params.noteId],
+  } as never) as `0x${string}`;
+  const retired = chainHash === zeroHash;
+  return { hash, replacedNoteId, remainderNoteId: retired ? 0n : params.noteId };
 }
 
 /**
