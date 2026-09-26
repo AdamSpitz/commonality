@@ -40,12 +40,15 @@ describe("RecurringPledges", function () {
       await token.getAddress(),
       amount,
       period,
-      "bafy-cause"
+      "bafy-cause",
+      0,
+      false,
+      []
     );
 
     await expect(tx)
       .to.emit(recurringPledges, "StandingPledgeCreated")
-      .withArgs(1, alice.address, bob.address, await token.getAddress(), amount, period, "bafy-cause", 0)
+      .withArgs(1, alice.address, bob.address, await token.getAddress(), amount, period, "bafy-cause", 0, 0, false)
       .and.to.emit(notes, "NoteCreated")
       .withArgs(1, alice.address, amount, await token.getAddress(), 0, 0)
       .and.to.emit(notes, "NoteDelegated")
@@ -77,7 +80,10 @@ describe("RecurringPledges", function () {
       await token.getAddress(),
       amount,
       period,
-      "bafy-cause"
+      "bafy-cause",
+      0,
+      false,
+      []
     );
 
     await expect(recurringPledges.connect(carol).executeDue(1))
@@ -105,7 +111,10 @@ describe("RecurringPledges", function () {
       await token.getAddress(),
       amount,
       60,
-      "bafy-cause"
+      "bafy-cause",
+      0,
+      false,
+      []
     );
 
     await expect(recurringPledges.connect(carol).cancelStandingPledge(1))
@@ -127,7 +136,10 @@ describe("RecurringPledges", function () {
       alice.address,
       await token.getAddress(),
       10_000n,
-      bob.address
+      bob.address,
+      0,
+      false,
+      []
     )).to.be.revertedWithCustomError(notes, "UnauthorizedRecurringPledgeRegistry");
   });
 

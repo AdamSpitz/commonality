@@ -16,6 +16,12 @@ export interface NoteDelegatedEvent extends RawEvent {
   amount: bigint;
 }
 
+export interface NoteSplitSameChainEvent extends RawEvent {
+  fromNoteId: bigint;
+  newNoteId: bigint;
+  amount: bigint;
+}
+
 export interface ChainSplitEvent extends RawEvent {
   originalLeafId: bigint;
   splitLeafId: bigint;

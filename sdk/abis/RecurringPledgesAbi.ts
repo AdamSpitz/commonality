@@ -68,6 +68,31 @@ export const RecurringPledgesAbi = [
         "type": "uint256"
       },
       {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "spendDelay",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "bool",
+        "name": "strictMode",
+        "type": "bool"
+      }
+    ],
+    "name": "PledgeSpendPolicyUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "pledgeId",
+        "type": "uint256"
+      },
+      {
         "indexed": true,
         "internalType": "address",
         "name": "rootOwner",
@@ -127,6 +152,18 @@ export const RecurringPledgesAbi = [
         "internalType": "enum RecurringPledges.BackingType",
         "name": "backingType",
         "type": "uint8"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "spendDelay",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "bool",
+        "name": "strictMode",
+        "type": "bool"
       }
     ],
     "name": "StandingPledgeCreated",
@@ -196,6 +233,21 @@ export const RecurringPledgesAbi = [
         "internalType": "string",
         "name": "causeRef",
         "type": "string"
+      },
+      {
+        "internalType": "uint256",
+        "name": "spendDelay",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bool",
+        "name": "strictMode",
+        "type": "bool"
+      },
+      {
+        "internalType": "address[]",
+        "name": "flaggers",
+        "type": "address[]"
       }
     ],
     "name": "createStandingPledge",
@@ -301,6 +353,25 @@ export const RecurringPledgesAbi = [
     "inputs": [
       {
         "internalType": "uint256",
+        "name": "pledgeId",
+        "type": "uint256"
+      }
+    ],
+    "name": "pledgeFlaggers",
+    "outputs": [
+      {
+        "internalType": "address[]",
+        "name": "",
+        "type": "address[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
         "name": "",
         "type": "uint256"
       }
@@ -351,9 +422,47 @@ export const RecurringPledgesAbi = [
         "internalType": "bool",
         "name": "active",
         "type": "bool"
+      },
+      {
+        "internalType": "uint256",
+        "name": "spendDelay",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bool",
+        "name": "strictMode",
+        "type": "bool"
       }
     ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "pledgeId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "spendDelay",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bool",
+        "name": "strictMode",
+        "type": "bool"
+      },
+      {
+        "internalType": "address[]",
+        "name": "flaggers",
+        "type": "address[]"
+      }
+    ],
+    "name": "updateSpendPolicy",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   }
 ] as const;

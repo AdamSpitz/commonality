@@ -57,6 +57,29 @@ export function decodeNoteDelegatedEvent(
   };
 }
 
+export function decodeNoteSplitSameChainEvent(
+  rawEvent: RawEventFromCache,
+): {
+  fromNoteId: bigint;
+  newNoteId: bigint;
+  amount: bigint;
+  contractAddress: `0x${string}`;
+  blockNumber: bigint;
+  blockTimestamp: bigint;
+  transactionHash: `0x${string}`;
+  logIndex: number;
+} | null {
+  if (rawEvent.eventName !== 'NoteSplitSameChain') return null;
+  const args = decodeRawEventArgs(rawEvent, DelegatableNotesAbi);
+  if (!args) return null;
+  return {
+    fromNoteId: args.fromNoteId as bigint,
+    newNoteId: args.newNoteId as bigint,
+    amount: (args.amount as bigint) ?? 0n,
+    ...decodedLogMeta(rawEvent),
+  };
+}
+
 export function decodeChainSplitEvent(
   rawEvent: RawEventFromCache,
 ): {
