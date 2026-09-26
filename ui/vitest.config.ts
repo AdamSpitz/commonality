@@ -29,6 +29,9 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: './src/test/setup.ts',
+    // Load cushion for a saturated full run. Dialogs must not depend on this:
+    // setup.ts disables MUI transitions so they unmount without waiting on jsdom.
+    testTimeout: 10_000,
     css: true,
     exclude: ['**/node_modules/**', '**/dist/**', '**/e2e/**', 'scripts/**'],
   },
