@@ -45,7 +45,7 @@ Each note shows:
 - Current leaf owner (with chain depth, e.g. "controlled by [address] (3 levels deep)")
 - Status: "Undelegated" / "Delegated"
 
-For delegated notes, a **Revoke** button is available. This calls `revokeNote` with the full delegation chain (obtained via `getDelegationChain`). Revoking brings control back to the root.
+For delegated notes where the connected user is the root, show **Takeback** and **Partial takeback**. Takeback calls `revokeNote` with the full delegation chain and brings the whole note back to her. Partial takeback asks for an amount greater than zero and less than the balance, calls `partialTakeback`, and leaves the rest delegated. The copy says she is taking that amount back, not approving a payment of his. While a spend is pending, partial takeback is unavailable until that spend is cancelled or the whole note is taken back.
 
 A **Reclaim** button is available on undelegated notes (where root = leaf), calling `reclaimFunds` to withdraw the funds back to the user's wallet.
 
@@ -87,7 +87,9 @@ Each link shows the address (and ENS name if resolvable) with a copy button and 
 Only shown to relevant users:
 
 - **Delegate** (shown to the current leaf owner): address + amount fields. Calls `delegateNote`.
-- **Revoke** (shown to any chain member who is not the leaf): calls `revokeNote`. The UI should make it clear that revoking will truncate the chain at the revoker's position, removing all delegations below them.
+- **Takeback** (shown to the root while the note is delegated): calls `revokeNote`. The whole note comes back to her. The delegate's authority over it ends.
+- **Partial takeback** (shown to the root while the note is delegated): an amount field, then `partialTakeback`. The rest stays with the delegate under the same rules. Hidden or disabled while a spend is pending. Not labeled as approving his payment.
+- **Hand back** (shown to the leaf while the note is delegated): also calls `revokeNote`. He is giving the note back, not taking it back.
 - **Reclaim** (shown only to the root owner, and only when the note is undelegated — root = leaf): calls `reclaimFunds`.
 - **Spend on Project** (shown to the current leaf owner): see "Spending" section below.
 

@@ -14,7 +14,7 @@ A same-chain `splitNote` is leaf-only on a delegated note. It moves part of the 
 
 `replaceDelegate` cancels a pending schedule and moves the funds with no project attached. The new note copies the strict-mode switch and the flagger list, and it keeps the current delay. `replaceDelegateWithDelay` is that same replacement when she sets a different delay in the action. A full replacement deletes the old note. A partial replacement leaves the remainder delegated to the current leaf, with its schedule cleared, because a schedule covers the whole note.
 
-`revoke` clears a pending schedule and then truncates the chain as it does today.
+`revoke` clears a pending schedule and then truncates the chain as it does today. Partial takeback does not. While a spend is pending it reverts, and the schedule stays. See [partial-takeback.md](./partial-takeback.md).
 
 ## One schedule for the whole note
 

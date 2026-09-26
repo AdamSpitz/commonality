@@ -2,7 +2,7 @@
 
 A donor cannot stop a delegate from spending in ways she would not have chosen. That is what the delegation is for. She can, though, attach criteria that sort his spends into classes, and set one treatment per class, so the worst cases take more of her attention and the payees she already accepts take less. Accepted in [ADR 0017](/specs/decisions/0017-spend-classification.md).
 
-This file is the proposal the beneficiary-identity item in [TODO.md](/TODO.md) asked for. It does not change contracts. The donor-set delay itself is [waiting-period.md](./waiting-period.md). A one-payment exception to a block is the separate exact-payment override item, not this one.
+This file is the proposal the beneficiary-identity item in [TODO.md](/TODO.md) asked for. It does not change contracts. The donor-set delay itself is [waiting-period.md](./waiting-period.md). A one-payment way through a block is [partial-takeback.md](./partial-takeback.md): she takes that amount back and pays it herself. It is not an approval that lets the delegate break the rule.
 
 ## Classes
 
@@ -56,7 +56,7 @@ The pending spend shows that on-chain route. It does not substitute the registry
 
 `U = 0` spends in the delegate's transaction and stores no pending row, same as `T = 0` on an unmarked spend. It is labeled unsuspicious in that authorization's history.
 
-A suspicious warning is off-chain and follows her existing notification opt-in. The longer wait and the block are on-chain. Her exact-payment approval can let that one spend through without changing the list, `U`, `S`, or the block. [waiting-period.md](./waiting-period.md) already lets her approve a scheduled spend early. A block has no schedule. The override item has to authorize that one payment before a blocked spend can be forced through. Until then, block means the delegate's spend reverts.
+A suspicious warning is off-chain and follows her existing notification opt-in. The longer wait and the block are on-chain. [waiting-period.md](./waiting-period.md) already lets her approve a scheduled spend early. A block has no schedule, so **Approve now** has nothing to pay. The delegate's blocked spend reverts. She can take an amount back and pay it herself without changing the list, `U`, `S`, or the block on the note that stays delegated. See [partial-takeback.md](./partial-takeback.md).
 
 ## Deadlines already running
 

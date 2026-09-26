@@ -36,6 +36,6 @@ The rules bind the delegate's own spends. Her spend of a note she holds is not c
 
 Website projects created through `createERC1155AndAssuranceContractForBeneficiary` do not match this criterion. They claim later. The fine list does nothing for them until a route fixes the recipient and stores the `beneficiaryId` on-chain. Do not paper over that with metadata.
 
-A block cannot reuse `approveScheduledSpend`, because a blocked spend has no schedule. One-payment approval of a block waits on the exact-payment override. Delayed spends can already be approved early.
+A block cannot reuse `approveScheduledSpend`, because a blocked spend has no schedule. She takes that amount back and pays it herself. See [partial-takeback.md](../tech/subsystems/delegation/partial-takeback.md). Delayed spends can already be approved early.
 
 Revisit this if claim-time payout and the controller at spend time need to be the same fact, or if a suspicious criterion exists that is not satisfied by the delegate verifying a name he controls.
