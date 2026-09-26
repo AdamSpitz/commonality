@@ -1,6 +1,6 @@
 # UI Vitest speed and reliability — 2026-09-26
 
-Done the same day. See CONTINUITY.md. Do not repeat this unless the create-project timeouts come back.
+Done the same day in `b65a9de5`. Do not redo the transition work. The two leftover speed experiments are in [2026-09-26-ui-vitest-remaining-speed.md](./2026-09-26-ui-vitest-remaining-speed.md).
 
 ## Objective
 
