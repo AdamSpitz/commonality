@@ -9,7 +9,10 @@ interface IDelegatableNotesForRecurringPledges {
     address rootOwner,
     address token,
     uint256 amount,
-    address delegateTo
+    address delegateTo,
+    uint256 spendDelay,
+    bool strictMode,
+    address[] calldata flaggers
   ) external returns (uint256);
 }
 
@@ -30,6 +33,8 @@ contract RecurringPledges is ReentrancyGuard {
     BackingType backingType;
     uint256 lastExecuted;
     bool active;
+    uint256 spendDelay;
+    bool strictMode;
   }
 
   error ZeroAddress();
@@ -49,7 +54,15 @@ contract RecurringPledges is ReentrancyGuard {
     uint256 amountPerPeriod,
     uint256 period,
     string causeRef,
-    BackingType backingType
+    BackingType backingType,
+    uint256 spendDelay,
+    bool strictMode
+  );
+
+  event PledgeSpendPolicyUpdated(
+    uint256 indexed pledgeId,
+    uint256 spendDelay,
+    bool strictMode
   );
 
   event StandingPledgeExecuted(
@@ -63,6 +76,7 @@ contract RecurringPledges is ReentrancyGuard {
   IDelegatableNotesForRecurringPledges public immutable delegatableNotes;
   uint256 public nextPledgeId = 1;
   mapping(uint256 => Pledge) public pledges;
+  mapping(uint256 => address[]) private pledgeFlaggerList;
 
   constructor(address delegatableNotesAddress) {
     if (delegatableNotesAddress == address(0)) revert ZeroAddress();
@@ -74,7 +88,10 @@ contract RecurringPledges is ReentrancyGuard {
     address token,
     uint256 amountPerPeriod,
     uint256 period,
-    string calldata causeRef
+    string calldata causeRef,
+    uint256 spendDelay,
+    bool strictMode,
+    address[] calldata flaggers
   ) external nonReentrant returns (uint256 pledgeId, uint256 firstNoteId) {
     address rootOwner = msg.sender;
     if (rootOwner == address(0) || delegateTo == address(0) || token == address(0)) revert ZeroAddress();
@@ -92,8 +109,15 @@ contract RecurringPledges is ReentrancyGuard {
       causeRef: causeRef,
       backingType: BackingType.AutoPull,
       lastExecuted: 0,
-      active: true
+      active: true,
+      spendDelay: spendDelay,
+      strictMode: strictMode
     });
+    for (uint256 i = 0; i < flaggers.length; i++) {
+      if (flaggers[i] != address(0) && flaggers[i] != delegateTo) {
+        pledgeFlaggerList[pledgeId].push(flaggers[i]);
+      }
+    }
 
     emit StandingPledgeCreated(
       pledgeId,
@@ -103,7 +127,9 @@ contract RecurringPledges is ReentrancyGuard {
       amountPerPeriod,
       period,
       causeRef,
-      BackingType.AutoPull
+      BackingType.AutoPull,
+      spendDelay,
+      strictMode
     );
 
     firstNoteId = _execute(pledgeId);
@@ -117,6 +143,31 @@ contract RecurringPledges is ReentrancyGuard {
 
     pledge.active = false;
     emit StandingPledgeCancelled(pledgeId, pledge.rootOwner);
+  }
+
+  function updateSpendPolicy(
+    uint256 pledgeId,
+    uint256 spendDelay,
+    bool strictMode,
+    address[] calldata flaggers
+  ) external {
+    Pledge storage pledge = pledges[pledgeId];
+    if (pledge.rootOwner == address(0)) revert PledgeDoesNotExist();
+    if (pledge.rootOwner != msg.sender) revert NotPledgeOwner();
+    if (!pledge.active) revert PledgeInactive();
+    pledge.spendDelay = spendDelay;
+    pledge.strictMode = strictMode;
+    delete pledgeFlaggerList[pledgeId];
+    for (uint256 i = 0; i < flaggers.length; i++) {
+      if (flaggers[i] != address(0) && flaggers[i] != pledge.delegateTo) {
+        pledgeFlaggerList[pledgeId].push(flaggers[i]);
+      }
+    }
+    emit PledgeSpendPolicyUpdated(pledgeId, spendDelay, strictMode);
+  }
+
+  function pledgeFlaggers(uint256 pledgeId) external view returns (address[] memory) {
+    return pledgeFlaggerList[pledgeId];
   }
 
   function executeDue(uint256 pledgeId) external nonReentrant returns (uint256 noteId) {
@@ -151,7 +202,10 @@ contract RecurringPledges is ReentrancyGuard {
       pledge.rootOwner,
       pledge.token,
       pledge.amountPerPeriod,
-      pledge.delegateTo
+      pledge.delegateTo,
+      pledge.spendDelay,
+      pledge.strictMode,
+      pledgeFlaggerList[pledgeId]
     );
     emit StandingPledgeExecuted(pledgeId, noteId, executedAt);
   }

@@ -70,6 +70,16 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
   error DelegationHopLimit();
   error ReplaceRequiresOneDelegate();
   error NotNoteRoot();
+  error SpendMustBeScheduled();
+  error ScheduledSpendMustUseWholeNote(uint256 cost, uint256 noteAmount);
+  error SpendAlreadyScheduled();
+  error NoScheduledSpend();
+  error SpendNotDue();
+  error SpendPaused();
+  error NotSpendFlagger();
+  error FlaggerCannotBeDelegate();
+  error FlaggerCannotBeMarket();
+  error SplitAmountMustBePartial();
 
   enum TokenType { ERC20, ERC1155 }
 
@@ -93,12 +103,34 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
     uint256 withdrawn;
   }
 
+  struct SpendPolicy {
+    uint256 delay;
+    bool strictMode;
+  }
+
+  struct PendingSpend {
+    address primaryMarket;
+    address erc1155Contract;
+    uint256 tokenId;
+    uint256 count;
+    uint256 deadline;
+    uint256 nonce;
+    bool paused;
+    bool exists;
+  }
+
   // Depth limit to prevent gas exhaustion from extremely long chains
   uint256 public constant MAX_DELEGATION_DEPTH = 200;
 
   uint256 public nextNoteId = 1;
+  uint256 public nextScheduleNonce = 1;
   mapping(uint256 => Note) public notes;
   mapping(uint256 => ReimbursementClaim) public reimbursementClaims;
+  mapping(uint256 => SpendPolicy) public spendPolicies;
+  mapping(uint256 => PendingSpend) public pendingSpends;
+  mapping(uint256 => mapping(address => bool)) public isSpendFlagger;
+  mapping(uint256 => address[]) private spendFlaggerList;
+  bool private scheduledExecution;
   mapping(address => bool) public authorizedPrimaryMarketFactories;
   mapping(address => bool) private knownPrimaryMarketFactories;
   address public recurringPledgeRegistry;
@@ -195,6 +227,26 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
     uint256 indexed remainderLeafId,
     uint256 splitAmount
   );
+
+  event SpendDelaySet(uint256 indexed noteId, uint256 delay);
+  event StrictModeSet(uint256 indexed noteId, bool enabled);
+  event SpendFlaggerSet(uint256 indexed noteId, address indexed flagger, bool allowed);
+  event NoteSplitSameChain(uint256 indexed fromNoteId, uint256 indexed newNoteId, uint256 amount);
+  event SpendScheduled(
+    uint256 indexed noteId,
+    uint256 indexed nonce,
+    address indexed delegate,
+    address primaryMarket,
+    address erc1155Contract,
+    uint256 tokenId,
+    uint256 count,
+    uint256 amount,
+    uint256 deadline
+  );
+  event SpendFlagged(uint256 indexed noteId, uint256 indexed nonce, address indexed flagger, bool paused);
+  event SpendCancelled(uint256 indexed noteId, uint256 indexed nonce, address indexed caller);
+  event SpendScheduleCleared(uint256 indexed noteId, uint256 indexed nonce);
+  event SpendExecuted(uint256 indexed noteId, uint256 indexed nonce, address indexed caller, bool early);
 
   /**
    * @notice Emitted when a note's balance is consumed (spent) during a purchase
@@ -334,7 +386,10 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
     address rootOwner,
     address token,
     uint256 amount,
-    address delegateTo
+    address delegateTo,
+    uint256 spendDelay,
+    bool strictMode,
+    address[] calldata flaggers
   ) external nonReentrant returns (uint256) {
     if (_msgSender() != recurringPledgeRegistry) revert UnauthorizedRecurringPledgeRegistry();
     if (rootOwner == address(0) || token == address(0) || delegateTo == address(0)) revert ZeroAddress();
@@ -352,6 +407,7 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
       tokenType: TokenType.ERC20,
       tokenId: 0
     });
+    _writePolicy(noteId, spendDelay, strictMode, flaggers, delegateTo);
 
     emit NoteCreated(noteId, rootOwner, amount, token, TokenType.ERC20, 0);
     emit NoteDelegated(noteId, noteId, delegateTo, amount);
@@ -478,7 +534,7 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
     address[] calldata owners,
     address delegateTo,
     uint256 amountToDelegate
-  ) external nonReentrant returns (uint256 delegatedNoteId, uint256 remainderNoteId) {
+  ) public nonReentrant returns (uint256 delegatedNoteId, uint256 remainderNoteId) {
     Note storage note = notes[noteId];
     if (note.chainHash == bytes32(0)) revert NoteDoesNotExist();
 
@@ -542,6 +598,27 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
     address newDelegate,
     uint256 amount
   ) external nonReentrant returns (uint256 replacedNoteId, uint256 remainderNoteId) {
+    return _replaceDelegate(noteId, owners, newDelegate, amount, spendPolicies[noteId].delay);
+  }
+
+  /// @notice Replacement that also sets the new note's delay in the same action.
+  function replaceDelegateWithDelay(
+    uint256 noteId,
+    address[] calldata owners,
+    address newDelegate,
+    uint256 amount,
+    uint256 newDelay
+  ) external nonReentrant returns (uint256 replacedNoteId, uint256 remainderNoteId) {
+    return _replaceDelegate(noteId, owners, newDelegate, amount, newDelay);
+  }
+
+  function _replaceDelegate(
+    uint256 noteId,
+    address[] calldata owners,
+    address newDelegate,
+    uint256 amount,
+    uint256 newDelay
+  ) private returns (uint256 replacedNoteId, uint256 remainderNoteId) {
     Note storage note = notes[noteId];
     if (note.chainHash == bytes32(0)) revert NoteDoesNotExist();
 
@@ -557,6 +634,8 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
     address token = note.token;
     TokenType tokenType = note.tokenType;
     uint256 tokenId = note.tokenId;
+    bool strictMode = spendPolicies[noteId].strictMode;
+    _clearPending(noteId);
     bytes32 newChainHash = _computeChainHash(newDelegate, _computeChainHash(root, bytes32(0)));
 
     replacedNoteId = nextNoteId++;
@@ -568,10 +647,13 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
       tokenId: tokenId
     });
     _moveClaimPortion(noteId, replacedNoteId, amount);
+    address[] memory flaggers = spendFlaggerList[noteId];
+    _writePolicy(replacedNoteId, newDelay, strictMode, flaggers, newDelegate);
 
     if (amount == note.amount) {
       delete notes[noteId];
       delete reimbursementClaims[noteId];
+      _deleteSpendPolicy(noteId);
       remainderNoteId = 0;
     } else {
       note.amount -= amount;
@@ -597,6 +679,276 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
     originalClaim.withdrawn -= movedWithdrawn;
   }
 
+
+  // ============ Waiting period ============
+
+  function delegateWithDelay(
+    uint256 noteId,
+    address[] calldata owners,
+    address delegateTo,
+    uint256 amountToDelegate,
+    uint256 delay
+  ) external returns (uint256 delegatedNoteId, uint256 remainderNoteId) {
+    (delegatedNoteId, remainderNoteId) = delegate(noteId, owners, delegateTo, amountToDelegate);
+    spendPolicies[delegatedNoteId].delay = delay;
+    emit SpendDelaySet(delegatedNoteId, delay);
+  }
+
+  function setSpendDelay(uint256 noteId, address[] calldata owners, uint256 delay) external {
+    _requireRoot(noteId, owners);
+    spendPolicies[noteId].delay = delay;
+    emit SpendDelaySet(noteId, delay);
+  }
+
+  function setStrictMode(uint256 noteId, address[] calldata owners, bool enabled) external {
+    _requireRoot(noteId, owners);
+    spendPolicies[noteId].strictMode = enabled;
+    emit StrictModeSet(noteId, enabled);
+  }
+
+  function setSpendFlagger(
+    uint256 noteId,
+    address[] calldata owners,
+    address flagger,
+    bool allowed
+  ) external {
+    _requireRoot(noteId, owners);
+    if (flagger == address(0)) revert ZeroAddress();
+    if (owners.length > 1 && flagger == owners[0]) revert FlaggerCannotBeDelegate();
+    if (allowed == isSpendFlagger[noteId][flagger]) {
+      emit SpendFlaggerSet(noteId, flagger, allowed);
+      return;
+    }
+    if (allowed) {
+      isSpendFlagger[noteId][flagger] = true;
+      spendFlaggerList[noteId].push(flagger);
+    } else {
+      isSpendFlagger[noteId][flagger] = false;
+      address[] storage list = spendFlaggerList[noteId];
+      for (uint256 i = 0; i < list.length; i++) {
+        if (list[i] == flagger) {
+          list[i] = list[list.length - 1];
+          list.pop();
+          break;
+        }
+      }
+    }
+    emit SpendFlaggerSet(noteId, flagger, allowed);
+  }
+
+  function spendFlaggers(uint256 noteId) external view returns (address[] memory) {
+    return spendFlaggerList[noteId];
+  }
+
+  function splitNote(
+    uint256 noteId,
+    address[] calldata owners,
+    uint256 amount
+  ) external nonReentrant returns (uint256 newNoteId) {
+    Note storage note = _requireDelegatedLeaf(noteId, owners);
+    if (pendingSpends[noteId].exists) revert SpendAlreadyScheduled();
+    if (amount == 0 || amount >= note.amount) revert SplitAmountMustBePartial();
+
+    newNoteId = nextNoteId++;
+    notes[newNoteId] = Note({
+      chainHash: note.chainHash,
+      amount: amount,
+      token: note.token,
+      tokenType: note.tokenType,
+      tokenId: note.tokenId
+    });
+    address[] memory flaggers = spendFlaggerList[noteId];
+    _writePolicy(newNoteId, spendPolicies[noteId].delay, spendPolicies[noteId].strictMode, flaggers, owners[0]);
+    _moveClaimPortion(noteId, newNoteId, amount);
+    note.amount -= amount;
+    emit NoteSplitSameChain(noteId, newNoteId, amount);
+  }
+
+  function scheduleSpend(
+    uint256 noteId,
+    address[] calldata owners,
+    address primaryMarket,
+    address erc1155Contract,
+    uint256 tokenId,
+    uint256 count
+  ) external nonReentrant {
+    Note storage note = _requireDelegatedLeaf(noteId, owners);
+    if (pendingSpends[noteId].exists) revert SpendAlreadyScheduled();
+    if (count == 0) revert AmountMustBeGreaterThanZero();
+
+    _requireScheduledSpendUsesWholeNote(
+      primaryMarket,
+      erc1155Contract,
+      tokenId,
+      count,
+      note.amount
+    );
+
+    if (spendPolicies[noteId].delay == 0) {
+      PurchaseShare[] memory shares = new PurchaseShare[](1);
+      shares[0] = PurchaseShare({ noteId: noteId, chain: owners, shares: count });
+      _purchaseFromPrimaryMarket(shares, primaryMarket, erc1155Contract, tokenId, count);
+      return;
+    }
+
+    uint256 nonce = nextScheduleNonce++;
+    uint256 deadline = block.timestamp + spendPolicies[noteId].delay;
+    pendingSpends[noteId] = PendingSpend({
+      primaryMarket: primaryMarket,
+      erc1155Contract: erc1155Contract,
+      tokenId: tokenId,
+      count: count,
+      deadline: deadline,
+      nonce: nonce,
+      paused: false,
+      exists: true
+    });
+    emit SpendScheduled(
+      noteId,
+      nonce,
+      owners[0],
+      primaryMarket,
+      erc1155Contract,
+      tokenId,
+      count,
+      note.amount,
+      deadline
+    );
+  }
+
+  function cancelScheduledSpend(uint256 noteId, address[] calldata owners) external nonReentrant {
+    _requireChain(noteId, owners);
+    PendingSpend storage pending = pendingSpends[noteId];
+    if (!pending.exists) revert NoScheduledSpend();
+    address caller = _msgSender();
+    bool isRoot = caller == owners[owners.length - 1];
+    bool isLeaf = caller == owners[0];
+    if (!isRoot && !isLeaf) revert NotNoteOwner();
+    if (isLeaf && !isRoot && pending.paused) revert SpendPaused();
+    uint256 nonce = pending.nonce;
+    delete pendingSpends[noteId];
+    emit SpendCancelled(noteId, nonce, caller);
+  }
+
+  function approveScheduledSpend(uint256 noteId, address[] calldata owners) external nonReentrant {
+    _requireRoot(noteId, owners);
+    _executePending(noteId, owners, true);
+  }
+
+  function executeScheduledSpend(uint256 noteId, address[] calldata owners) external nonReentrant {
+    PendingSpend storage pending = pendingSpends[noteId];
+    if (!pending.exists) revert NoScheduledSpend();
+    if (pending.paused) revert SpendPaused();
+    if (block.timestamp < pending.deadline) revert SpendNotDue();
+    _executePending(noteId, owners, false);
+  }
+
+  function flagScheduledSpend(uint256 noteId, address[] calldata owners) external {
+    _requireChain(noteId, owners);
+    PendingSpend storage pending = pendingSpends[noteId];
+    if (!pending.exists) revert NoScheduledSpend();
+    address caller = _msgSender();
+    if (!isSpendFlagger[noteId][caller]) revert NotSpendFlagger();
+    if (caller == owners[0]) revert FlaggerCannotBeDelegate();
+    if (caller == pending.primaryMarket) revert FlaggerCannotBeMarket();
+    bool pause = spendPolicies[noteId].strictMode;
+    if (pause) pending.paused = true;
+    emit SpendFlagged(noteId, pending.nonce, caller, pause);
+  }
+
+  function _executePending(uint256 noteId, address[] calldata owners, bool early) private {
+    PendingSpend memory pending = pendingSpends[noteId];
+    if (!pending.exists) revert NoScheduledSpend();
+    _requireScheduledSpendUsesWholeNote(
+      pending.primaryMarket,
+      pending.erc1155Contract,
+      pending.tokenId,
+      pending.count,
+      notes[noteId].amount
+    );
+    delete pendingSpends[noteId];
+    scheduledExecution = true;
+    PurchaseShare[] memory shares = new PurchaseShare[](1);
+    shares[0] = PurchaseShare({ noteId: noteId, chain: owners, shares: pending.count });
+    _purchaseFromPrimaryMarket(
+      shares,
+      pending.primaryMarket,
+      pending.erc1155Contract,
+      pending.tokenId,
+      pending.count
+    );
+    scheduledExecution = false;
+    emit SpendExecuted(noteId, pending.nonce, _msgSender(), early);
+  }
+
+  function _requireRoot(uint256 noteId, address[] calldata owners) private view {
+    _requireChain(noteId, owners);
+    if (owners[owners.length - 1] != _msgSender()) revert NotNoteRoot();
+  }
+
+  function _requireDelegatedLeaf(uint256 noteId, address[] calldata owners) private view returns (Note storage note) {
+    note = _requireChain(noteId, owners);
+    if (owners.length != 2) revert DelegationHopLimit();
+    if (owners[0] != _msgSender()) revert NotNoteOwner();
+  }
+
+  function _requireChain(uint256 noteId, address[] calldata owners) private view returns (Note storage note) {
+    note = notes[noteId];
+    if (note.chainHash == bytes32(0)) revert NoteDoesNotExist();
+    if (note.chainHash != _verifyAndComputeChainHash(owners)) revert InvalidChain();
+  }
+
+  function _requireScheduledSpendUsesWholeNote(
+    address primaryMarket,
+    address erc1155Contract,
+    uint256 tokenId,
+    uint256 count,
+    uint256 noteAmount
+  ) private view {
+    uint256[] memory tokenIds = new uint256[](1);
+    uint256[] memory counts = new uint256[](1);
+    tokenIds[0] = tokenId;
+    counts[0] = count;
+    uint256 cost = IFundingMarket(primaryMarket).erc1155TotalCost(erc1155Contract, tokenIds, counts);
+    if (cost != noteAmount) revert ScheduledSpendMustUseWholeNote(cost, noteAmount);
+  }
+
+  function _clearPending(uint256 noteId) private {
+    PendingSpend storage pending = pendingSpends[noteId];
+    if (!pending.exists) return;
+    uint256 nonce = pending.nonce;
+    delete pendingSpends[noteId];
+    emit SpendScheduleCleared(noteId, nonce);
+  }
+
+  function _deleteSpendPolicy(uint256 noteId) private {
+    delete spendPolicies[noteId];
+    address[] storage list = spendFlaggerList[noteId];
+    for (uint256 i = 0; i < list.length; i++) {
+      delete isSpendFlagger[noteId][list[i]];
+    }
+    delete spendFlaggerList[noteId];
+  }
+
+  function _writePolicy(
+    uint256 noteId,
+    uint256 delay,
+    bool strictMode,
+    address[] memory flaggers,
+    address delegateTo
+  ) private {
+    spendPolicies[noteId].delay = delay;
+    spendPolicies[noteId].strictMode = strictMode;
+    emit SpendDelaySet(noteId, delay);
+    emit StrictModeSet(noteId, strictMode);
+    for (uint256 i = 0; i < flaggers.length; i++) {
+      address flagger = flaggers[i];
+      if (flagger == address(0) || flagger == delegateTo || isSpendFlagger[noteId][flagger]) continue;
+      isSpendFlagger[noteId][flagger] = true;
+      spendFlaggerList[noteId].push(flagger);
+      emit SpendFlaggerSet(noteId, flagger, true);
+    }
+  }
 
   // ============ Revocation ============
 
@@ -624,6 +976,8 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
       }
     }
     if (!found) revert CallerNotInChain();
+
+    _clearPending(noteId);
 
     // Ancestors revoke back to themselves; a leaf caller returns control to its parent.
     uint256 newLeafIndex = callerIndex == 0 && owners.length > 1 ? 1 : callerIndex;
@@ -655,6 +1009,16 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
     uint256 tokenId,
     uint256 count
   ) external nonReentrant {
+    _purchaseFromPrimaryMarket(purchaseShares, primaryMarket, erc1155Contract, tokenId, count);
+  }
+
+  function _purchaseFromPrimaryMarket(
+    PurchaseShare[] memory purchaseShares,
+    address primaryMarket,
+    address erc1155Contract,
+    uint256 tokenId,
+    uint256 count
+  ) private {
     if (count == 0) revert AmountMustBeGreaterThanZero();
     if (!isAuthorizedPrimaryMarket(primaryMarket)) revert UnauthorizedMarket();
 
@@ -855,7 +1219,7 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
   // ============ Purchase Helpers ============
 
   function _executeSharePurchase(
-    PurchaseShare[] calldata purchaseShares,
+    PurchaseShare[] memory purchaseShares,
     uint256 outputCount,
     uint256 requiredPayment,
     address paymentToken
@@ -878,7 +1242,7 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
     uint256[] memory spentAmounts = new uint256[](purchaseShares.length);
 
     for (uint256 i = 0; i < purchaseShares.length; i++) {
-      PurchaseShare calldata purchaseShare = purchaseShares[i];
+      PurchaseShare memory purchaseShare = purchaseShares[i];
       if (purchaseShare.shares == 0) revert InvalidPurchaseShares();
 
       Note storage note = notes[purchaseShare.noteId];
@@ -886,7 +1250,11 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
 
       bytes32 expectedHash = _verifyAndComputeChainHash(purchaseShare.chain);
       if (note.chainHash != expectedHash) revert InvalidChain();
-      if (purchaseShare.chain[0] != caller) revert NotNoteOwner();
+      if (pendingSpends[purchaseShare.noteId].exists) revert SpendAlreadyScheduled();
+      if (!scheduledExecution && spendPolicies[purchaseShare.noteId].delay != 0) {
+        revert SpendMustBeScheduled();
+      }
+      if (!scheduledExecution && purchaseShare.chain[0] != caller) revert NotNoteOwner();
       if (purchaseShare.chain.length > 2) revert DelegationHopLimit();
       if (note.tokenType != TokenType.ERC20 || note.token != paymentToken) {
         revert InvalidPaymentTokenForPurchase();

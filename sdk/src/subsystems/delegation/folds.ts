@@ -4,6 +4,7 @@ import type {
   NoteCreatedEvent,
   NoteDelegatedEvent,
   ChainSplitEvent,
+  NoteSplitSameChainEvent,
   NoteRevokedEvent,
   NoteDelegateReplacedEvent,
   FundsReclaimedEvent,
@@ -20,6 +21,7 @@ export type DelegationEvent =
   | { type: 'noteCreated'; event: NoteCreatedEvent }
   | { type: 'noteDelegated'; event: NoteDelegatedEvent }
   | { type: 'chainSplit'; event: ChainSplitEvent }
+  | { type: 'noteSplitSameChain'; event: NoteSplitSameChainEvent }
   | { type: 'noteRevoked'; event: NoteRevokedEvent }
   | { type: 'noteDelegateReplaced'; event: NoteDelegateReplacedEvent }
   | { type: 'fundsReclaimed'; event: FundsReclaimedEvent }
@@ -182,6 +184,28 @@ export function foldDelegationState(
           rootOwner: owner,
           chain: [{ address: owner, position: 0, createdAt: blockTimestamp.toString() }],
         });
+        break;
+      }
+
+      case 'noteSplitSameChain': {
+        const { fromNoteId, newNoteId, amount, blockTimestamp } = ev.event;
+        const originalId = contractScopedId(ev.event.contractAddress, fromNoteId);
+        const splitId = contractScopedId(ev.event.contractAddress, newNoteId);
+        const original = stateMap.get(originalId);
+        if (original) {
+          stateMap.set(splitId, {
+            ...original,
+            id: newNoteId.toString(),
+            amount,
+            createdAt: blockTimestamp.toString(),
+            createdAtBlock: ev.event.blockNumber.toString(),
+            createdAtLogIndex: ev.event.logIndex,
+            updatedAt: blockTimestamp.toString(),
+            chain: original.chain.map((link) => ({ ...link })),
+          });
+          original.amount -= amount;
+          original.updatedAt = blockTimestamp.toString();
+        }
         break;
       }
 

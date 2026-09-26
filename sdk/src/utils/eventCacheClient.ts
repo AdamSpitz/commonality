@@ -307,6 +307,7 @@ export async function fetchAllDelegationEvents(
     'NoteCreated',
     'NoteDelegated',
     'ChainSplit',
+    'NoteSplitSameChain',
     'NoteRevoked',
     'FundsReclaimed',
     'NoteConsumed',
@@ -322,7 +323,7 @@ export async function fetchAllDelegationEventsComplete(
   machinery: SDKMachinery,
 ): Promise<RawEventFromCache[]> {
   const eventNames = [
-    'NoteCreated', 'NoteDelegated', 'ChainSplit', 'NoteRevoked', 'FundsReclaimed',
+    'NoteCreated', 'NoteDelegated', 'ChainSplit', 'NoteSplitSameChain', 'NoteRevoked', 'FundsReclaimed',
     'NoteConsumed', 'ERC1155Purchased', 'RefundedIntoNote', 'ReimbursementClaimedIntoNote',
   ];
   return (await Promise.all(eventNames.map(eventName => fetchEventsComplete(machinery, { eventName })))).flat();

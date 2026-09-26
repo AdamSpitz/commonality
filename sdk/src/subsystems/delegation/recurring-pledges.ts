@@ -218,13 +218,25 @@ export async function createStandingPledge(
     amountPerPeriod: bigint;
     period: bigint;
     causeRef: string;
+    spendDelay?: bigint;
+    strictMode?: boolean;
+    flaggers?: Address[];
   },
 ): Promise<{ hash: Hash; pledgeId: bigint; firstNoteId: bigint }> {
   const hash = await clients.walletClient.writeContract({
     address: recurringPledgesContract.address,
     abi: recurringPledgesContract.abi,
     functionName: 'createStandingPledge',
-    args: [params.delegateTo, params.token, params.amountPerPeriod, params.period, params.causeRef],
+    args: [
+      params.delegateTo,
+      params.token,
+      params.amountPerPeriod,
+      params.period,
+      params.causeRef,
+      params.spendDelay ?? 0n,
+      params.strictMode ?? false,
+      params.flaggers ?? [],
+    ],
     chain: clients.walletClient.chain,
     account: clients.walletClient.account!,
   });

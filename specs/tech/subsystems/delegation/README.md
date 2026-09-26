@@ -6,7 +6,7 @@ The `DelegatableNotes` contract lets users deposit tokens and delegate spending 
 
 `delegate` and `revoke` still rewrite `chainHash` on the same note id. `replaceDelegate` does not.
 
-See [ui.md](./ui.md) for the UI spec. For standing-order/recurring pledges built on top of notes, see [recurring-pledges.md](./recurring-pledges.md) (product view: [specs/product/recurring-pledges.md](/specs/product/recurring-pledges.md)).
+See [ui.md](./ui.md) for the UI spec. For standing-order/recurring pledges built on top of notes, see [recurring-pledges.md](./recurring-pledges.md) (product view: [specs/product/recurring-pledges.md](/specs/product/recurring-pledges.md)). For the donor-set delay on delegated spends, see [waiting-period.md](./waiting-period.md).
 
 ---
 
