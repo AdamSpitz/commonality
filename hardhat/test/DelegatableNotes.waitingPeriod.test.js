@@ -180,6 +180,13 @@ describe("DelegatableNotes waiting period", function () {
     expect((await notes.pendingSpends(noteId)).exists).to.equal(false);
   });
 
+  it("rejects a schedule whose price is not the whole note", async function () {
+    const noteId = await delegateAmount(ethers.parseEther("0.2"), 3600);
+    await expect(
+      notes.connect(bob).scheduleSpend(...marketArgs(noteId))
+    ).to.be.revertedWithCustomError(notes, "ScheduledSpendMustUseWholeNote");
+  });
+
   it("keeps an in-flight deadline when she changes the delay", async function () {
     const noteId = await delegateAmount(ethers.parseEther("0.1"), 1000);
     await notes.connect(bob).scheduleSpend(...marketArgs(noteId));

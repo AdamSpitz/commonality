@@ -212,6 +212,22 @@ export const DelegatableNotesAbi = [
     "type": "error"
   },
   {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "cost",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "noteAmount",
+        "type": "uint256"
+      }
+    ],
+    "name": "ScheduledSpendMustUseWholeNote",
+    "type": "error"
+  },
+  {
     "inputs": [],
     "name": "SpendAlreadyScheduled",
     "type": "error"

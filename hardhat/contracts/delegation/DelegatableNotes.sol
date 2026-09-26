@@ -71,6 +71,7 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
   error ReplaceRequiresOneDelegate();
   error NotNoteRoot();
   error SpendMustBeScheduled();
+  error ScheduledSpendMustUseWholeNote(uint256 cost, uint256 noteAmount);
   error SpendAlreadyScheduled();
   error NoScheduledSpend();
   error SpendNotDue();
@@ -775,6 +776,14 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
     if (pendingSpends[noteId].exists) revert SpendAlreadyScheduled();
     if (count == 0) revert AmountMustBeGreaterThanZero();
 
+    _requireScheduledSpendUsesWholeNote(
+      primaryMarket,
+      erc1155Contract,
+      tokenId,
+      count,
+      note.amount
+    );
+
     if (spendPolicies[noteId].delay == 0) {
       PurchaseShare[] memory shares = new PurchaseShare[](1);
       shares[0] = PurchaseShare({ noteId: noteId, chain: owners, shares: count });
@@ -850,6 +859,13 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
   function _executePending(uint256 noteId, address[] calldata owners, bool early) private {
     PendingSpend memory pending = pendingSpends[noteId];
     if (!pending.exists) revert NoScheduledSpend();
+    _requireScheduledSpendUsesWholeNote(
+      pending.primaryMarket,
+      pending.erc1155Contract,
+      pending.tokenId,
+      pending.count,
+      notes[noteId].amount
+    );
     delete pendingSpends[noteId];
     scheduledExecution = true;
     PurchaseShare[] memory shares = new PurchaseShare[](1);
@@ -880,6 +896,21 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
     note = notes[noteId];
     if (note.chainHash == bytes32(0)) revert NoteDoesNotExist();
     if (note.chainHash != _verifyAndComputeChainHash(owners)) revert InvalidChain();
+  }
+
+  function _requireScheduledSpendUsesWholeNote(
+    address primaryMarket,
+    address erc1155Contract,
+    uint256 tokenId,
+    uint256 count,
+    uint256 noteAmount
+  ) private view {
+    uint256[] memory tokenIds = new uint256[](1);
+    uint256[] memory counts = new uint256[](1);
+    tokenIds[0] = tokenId;
+    counts[0] = count;
+    uint256 cost = IFundingMarket(primaryMarket).erc1155TotalCost(erc1155Contract, tokenIds, counts);
+    if (cost != noteAmount) revert ScheduledSpendMustUseWholeNote(cost, noteAmount);
   }
 
   function _clearPending(uint256 noteId) private {

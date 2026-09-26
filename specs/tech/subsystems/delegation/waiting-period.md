@@ -18,7 +18,7 @@ A same-chain `splitNote` is leaf-only on a delegated note. It moves part of the 
 
 ## One schedule for the whole note
 
-The delegate schedules one project for the whole note: primary market, ERC-1155 contract, token id, and count. He splits first when he wants to send only part of the money. A second schedule on the same note reverts.
+The delegate schedules one project for the whole note: primary market, ERC-1155 contract, token id, and count. He splits first when he wants to send only part of the money. Scheduling and completion both revert unless that count's current price equals the note's balance, so a cheaper count cannot lock the note and then leave a remainder, and a price change cannot complete as a partial spend. A second schedule on the same note reverts.
 
 Delay zero spends in that transaction and stores no pending row. `purchaseFromPrimaryMarket` still spends immediately when the delay is zero, which is the existing path. When the delay is above zero, that direct purchase reverts. The delegate uses `scheduleSpend`.
 
