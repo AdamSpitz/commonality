@@ -52,6 +52,40 @@ describe('ProjectHeader', () => {
     expect(screen.queryByText('Project')).not.toBeInTheDocument()
   })
 
+  it('shows a verified mark when the published domain matches the contract', () => {
+    const project = makeProject()
+    const metadata = {
+      name: 'Help the garden',
+      beneficiary: { namespace: 'dns', canonicalIdentifier: 'example.org' },
+    }
+    render(
+      <ProjectHeader
+        project={project}
+        metadata={metadata}
+        beneficiaryBinding={{ status: 'verified', domain: 'example.org' }}
+      />,
+    )
+    expect(screen.getByTestId('beneficiary-binding-verified')).toBeInTheDocument()
+    expect(screen.getByLabelText(/hash of dns:example.org/i)).toBeInTheDocument()
+  })
+
+  it('shows a warning when the published domain does not match the contract', () => {
+    const project = makeProject()
+    const metadata = {
+      name: 'Help the garden',
+      beneficiary: { namespace: 'dns', canonicalIdentifier: 'example.org' },
+    }
+    render(
+      <ProjectHeader
+        project={project}
+        metadata={metadata}
+        beneficiaryBinding={{ status: 'mismatch', domain: 'example.org' }}
+      />,
+    )
+    expect(screen.getByTestId('beneficiary-binding-mismatch')).toBeInTheDocument()
+    expect(screen.queryByTestId('beneficiary-binding-verified')).not.toBeInTheDocument()
+  })
+
   it('shows a website beneficiary as the recipient identity', () => {
     const project = makeProject()
     const metadata = {
