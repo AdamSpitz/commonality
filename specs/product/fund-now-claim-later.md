@@ -2,7 +2,7 @@
 
 Status: complete enough to support the current [focus](/focus.md). Strategy: [claiming-an-org.md](/docs/end-user/commonality/vision-and-strategy/ease-of-adoption/claiming-an-org.md). Tech (contracts, proof, refactor of `Channel*`): [claimable-beneficiaries.md](/specs/tech/subsystems/claimable-beneficiaries.md).
 
-**The primitive:** anyone can create a project whose beneficiary is a public identity nobody on our system has claimed yet. Successful funds go to escrow keyed to that identity. The project creator cannot withdraw. Commonality cannot withdraw. Whoever later proves control of that identity binds a payout address and takes the money.
+**The primitive:** anyone can create a project whose beneficiary is a public identity nobody on our system has claimed yet. Successful funds stay in that project. The project creator cannot withdraw. Commonality cannot withdraw. Whoever later proves control of that identity binds a payout address, and that address may claim or refuse this project only. See [ADR 0015](/specs/decisions/0015-per-project-beneficiary-proceeds.md).
 
 That is what content funding already does for unclaimed X/YouTube/Substack channels. This page is the generalization to websites and (later) other named institutions, so a third party can pool money for a charity *before the charity has heard of us*, without a dishonest middleman and without us as custodian.
 
@@ -17,7 +17,7 @@ No real users yet: content channels should **become** this primitive (see the te
 
 ## Product shape
 
-A project names a **claimable beneficiary** (namespace + canonical id): a tweet channel, a YouTube channel, a website, later a GitHub org. Unclaimed: third parties may create projects pointed at it; nobody withdraws; UI says fan-created / not affiliated. Verified: the controller proved they can write that identity and bound a payout address. Optionally later, **beneficiary-controlled**: only they may create new projects *about* that id. First withdraw does not force that.
+A project names a **claimable beneficiary** (namespace + canonical id): a tweet channel, a YouTube channel, a website, later a GitHub org. Unclaimed: third parties may create projects pointed at it; nobody withdraws; UI says fan-created / not affiliated. Verified: the controller proved they can write that identity and bound a payout address. That registration does not accept any project's funds. The current payout address claims or refuses each project separately. Optionally later, **beneficiary-controlled**: only they may create new projects *about* that id. Claiming does not force that.
 
 Content-specific rules (one contract per tweet, creator veto) stay content-funding features. They are not part of being a beneficiary.
 
@@ -45,7 +45,7 @@ Stablecoin in escrow → org claims to own wallet/multisig → independent KYC/o
 - **Domain expiry or transfer.** For the MVP, the first controller to complete a claim after the public waiting period receives the unclaimed escrow. After that first claim, control of the public identity alone can never replace the established payout address or inherit its funds. An uncooperative domain transfer may therefore leave the identifier unusable until a later recovery design exists; stranding functionality is safer than redirecting money. The UI may freeze new activity when ownership is disputed, but Commonality does not adjudicate a winner.
 - **Wallet rotation.** The current payout wallet may authorize a new payout address (and namespaces may additionally require a fresh identity proof). Identity proof without authorization from the current payout wallet is not a recovery mechanism in the MVP. Lost-wallet recovery, domain-transfer recovery, and claim-generation accounting are deferred until real use demands them.
 - **Compromise.** Stolen domain or wallet can produce a bad claim. For org-scale balances, a **public waiting period** between proof publication and first withdrawal so the real org can notice a rogue webmaster. Content-scale tips may use a zero wait.
-- **Unclaimed money.** Project deadline, then refund contributors. Do not trap funds forever. Do not roll into another project or to us.
+- **Unclaimed money.** If the project never succeeds, the project deadline refunds contributors. If it succeeds and the payout address neither claims nor refuses, anyone may note success, and 90 days later contributors reclaim the recipient surplus. Reimbursement reserves stay reserved. Do not trap funds forever. Do not roll into another project or to us.
 - **Unauthorized employee claim.** We do not run a dispute court. Waiting period + public proof is the mitigation.
 - **Sanctions / solicitation.** Permissionless projects *named* after real-world orgs create exposure even if we never hold funds. Screening at identity resolution / display time. Advertising "donate to the Red Cross" may be solicitation even when escrow is the protocol. See [analysis-and-reporting-plan](/workflow/analysis-and-reporting-plan.md) and [sanctions](/specs/product/legal/sanctions.md).
 - **Tax.** Never present an assurance contribution as a tax-deductible gift unless the recipient's receipting says so.

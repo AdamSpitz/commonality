@@ -72,7 +72,7 @@ export function NoninflammatoryCreatorDashboardPage() {
   return (
     <CreatorDashboardPage
       title="Creator Dashboard"
-      description="Verify channels, withdraw escrowed balances, and manage noninflammatory contracts that contributors have opened around your content."
+      description="Verify channels and manage noninflammatory contracts that contributors have opened around your content. Claim or refuse each project's funds on that project."
       connectPrompt="Connect your wallet to manage your bridge-building content channels."
       emptyState="No eligible channels found yet. Verify a channel to start receiving support for noninflammatory work."
     />
@@ -283,7 +283,7 @@ export function NoninflammatoryAboutPage() {
             How money and attestations flow
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            A contributor puts funds into an escrow contract tied to a channel or content item. The creator verifies ownership to withdraw. Separately, AI evaluators assess whether content meets the noninflammatory standard — steelmanning, avoiding contempt, resisting tribal signaling — and publish attestations. Delegates and contributors choose which evaluators they trust, so funding decisions can flow toward attested content automatically.
+            A contributor puts funds into a project tied to a channel or content item. The creator verifies ownership, then claims or refuses that project. Verification does not take the money. Separately, AI evaluators assess whether content meets the noninflammatory standard — steelmanning, avoiding contempt, resisting tribal signaling — and publish attestations. Delegates and contributors choose which evaluators they trust, so funding decisions can flow toward attested content automatically.
           </Typography>
         </Paper>
         <Paper sx={{ p: 2 }}>

@@ -38,6 +38,11 @@ export const CreatorAssuranceContractFactoryAbi = [
         "internalType": "string",
         "name": "_contentIdSeparator",
         "type": "string"
+      },
+      {
+        "internalType": "address",
+        "name": "_assuranceDeployer",
+        "type": "address"
       }
     ],
     "stateMutability": "nonpayable",
@@ -126,6 +131,11 @@ export const CreatorAssuranceContractFactoryAbi = [
   {
     "inputs": [],
     "name": "InvalidContentIdSeparator",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "InvalidDeployerAddress",
     "type": "error"
   },
   {
@@ -384,9 +394,35 @@ export const CreatorAssuranceContractFactoryAbi = [
   },
   {
     "inputs": [],
+    "name": "UNCLAIMED_PROCEEDS_WINDOW",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "acceptOwnership",
     "outputs": [],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "assuranceDeployer",
+    "outputs": [
+      {
+        "internalType": "contract CreatorAssuranceDeployer",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {

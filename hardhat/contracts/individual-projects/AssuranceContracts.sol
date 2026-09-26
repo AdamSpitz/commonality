@@ -397,7 +397,7 @@ contract MultiERC1155AssuranceContract is
      * @inheritdoc ERC1155PrimaryMarket
      * @dev Buying is disabled once the assurance contract has failed
      */
-    function requireBuyingAllowed() internal view override {
+    function requireBuyingAllowed() internal view virtual override {
         requireAssuranceContractHasNotFailed();
     }
 
@@ -405,7 +405,7 @@ contract MultiERC1155AssuranceContract is
      * @notice Checks if refunds are allowed
      * @dev Refunds are only allowed if the assurance contract has failed
      */
-    function requireRefundsAllowed() internal view override {
+    function requireRefundsAllowed() internal view virtual override {
         requireAssuranceContractHasFailed();
     }
 }

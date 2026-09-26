@@ -11,11 +11,6 @@ export const BeneficiaryAssuranceContractAbi = [
       },
       {
         "internalType": "address",
-        "name": "payoutRecipient",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
         "name": "paymentToken",
         "type": "address"
       },
@@ -35,9 +30,14 @@ export const BeneficiaryAssuranceContractAbi = [
         "type": "bytes32"
       },
       {
-        "internalType": "bool",
-        "name": "_recipientIsEscrow",
-        "type": "bool"
+        "internalType": "address",
+        "name": "registry",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "unclaimedWindow",
+        "type": "uint256"
       }
     ],
     "stateMutability": "nonpayable",
@@ -45,7 +45,50 @@ export const BeneficiaryAssuranceContractAbi = [
   },
   {
     "inputs": [],
+    "name": "AcceptanceClosed",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "AlreadyReclaimed",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "ArrayLengthMismatch",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "withdrawableAt",
+        "type": "uint256"
+      }
+    ],
+    "name": "ClaimWaitingPeriodNotElapsed",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "closedAt",
+        "type": "uint256"
+      }
+    ],
+    "name": "ClaimWindowElapsed",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "opensAt",
+        "type": "uint256"
+      }
+    ],
+    "name": "ClaimWindowStillOpen",
     "type": "error"
   },
   {
@@ -176,12 +219,32 @@ export const BeneficiaryAssuranceContractAbi = [
   },
   {
     "inputs": [],
+    "name": "InvalidProceedsRegistry",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "NoReimbursementAvailable",
     "type": "error"
   },
   {
     "inputs": [],
     "name": "NonTransferableReimbursementClaim",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "NotPayoutAddress",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "NothingToClaim",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "NothingToReclaim",
     "type": "error"
   },
   {
@@ -223,11 +286,6 @@ export const BeneficiaryAssuranceContractAbi = [
   },
   {
     "inputs": [],
-    "name": "RecipientNotBeneficiaryEscrow",
-    "type": "error"
-  },
-  {
-    "inputs": [],
     "name": "ReentrancyGuardReentrantCall",
     "type": "error"
   },
@@ -250,6 +308,11 @@ export const BeneficiaryAssuranceContractAbi = [
   {
     "inputs": [],
     "name": "UnsupportedERC1155",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "UseClaim",
     "type": "error"
   },
   {
@@ -456,6 +519,50 @@ export const BeneficiaryAssuranceContractAbi = [
     "inputs": [
       {
         "indexed": true,
+        "internalType": "bytes32",
+        "name": "beneficiaryId",
+        "type": "bytes32"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "to",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "ProceedsClaimed",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "beneficiaryId",
+        "type": "bytes32"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "payout",
+        "type": "address"
+      }
+    ],
+    "name": "ProceedsRefused",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
         "internalType": "address",
         "name": "contributor",
         "type": "address"
@@ -506,6 +613,57 @@ export const BeneficiaryAssuranceContractAbi = [
       }
     ],
     "name": "RetroactiveDonationReceived",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "succeededAt",
+        "type": "uint256"
+      }
+    ],
+    "name": "SuccessNoted",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "holder",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "SurplusReclaimed",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "surplus",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "supply",
+        "type": "uint256"
+      }
+    ],
+    "name": "SurplusReturnOpened",
     "type": "event"
   },
   {
@@ -655,6 +813,13 @@ export const BeneficiaryAssuranceContractAbi = [
       }
     ],
     "name": "buyERC1155",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "claim",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -857,6 +1022,13 @@ export const BeneficiaryAssuranceContractAbi = [
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "noteSuccess",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "address",
@@ -975,6 +1147,19 @@ export const BeneficiaryAssuranceContractAbi = [
   },
   {
     "inputs": [],
+    "name": "proceedsRegistry",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "recipient",
     "outputs": [
       {
@@ -988,15 +1173,9 @@ export const BeneficiaryAssuranceContractAbi = [
   },
   {
     "inputs": [],
-    "name": "recipientIsEscrow",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "view",
+    "name": "reclaimUnclaimedShare",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -1028,6 +1207,13 @@ export const BeneficiaryAssuranceContractAbi = [
       }
     ],
     "name": "refundERC1155",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "refuse",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -1273,6 +1459,19 @@ export const BeneficiaryAssuranceContractAbi = [
   },
   {
     "inputs": [],
+    "name": "unclaimedProceedsWindow",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "withdraw",
     "outputs": [],
     "stateMutability": "nonpayable",
@@ -1299,13 +1498,6 @@ export const BeneficiaryAssuranceContractAbi = [
       }
     ],
     "name": "withdrawReimbursementTo",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "withdrawToBeneficiaryEscrow",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

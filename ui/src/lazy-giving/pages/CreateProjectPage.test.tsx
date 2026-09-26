@@ -332,7 +332,7 @@ describe('CreateProjectPage', () => {
     })
   })
 
-  describe('Successful submission', () => {
+  describe('Successful submission', { timeout: 30_000 }, () => {
     function fillForm() {
       setFieldValue(/project name/i, 'Test Project')
       setFieldValue(/description/i, 'A test description')

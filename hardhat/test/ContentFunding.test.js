@@ -112,6 +112,7 @@ describe("ContentFunding", function () {
     const ValueThresholdConditionFactory = await ethers.getContractFactory("ValueThresholdConditionFactory");
     conditionFactory = await ValueThresholdConditionFactory.deploy();
 
+    const assuranceDeployer = await ethers.deployContract("CreatorAssuranceDeployer");
     const CreatorAssuranceContractFactory = await ethers.getContractFactory("CreatorAssuranceContractFactory");
     factory = await CreatorAssuranceContractFactory.deploy(
       await contentRegistry.getAddress(),
@@ -120,7 +121,8 @@ describe("ContentFunding", function () {
       await erc1155Factory.getAddress(),
       await conditionFactory.getAddress(),
       await paymentToken.getAddress(),
-      ":"
+      ":",
+      await assuranceDeployer.getAddress()
     );
 
     contentVeto = await ethers.getContractAt("CreatorAssuranceVeto", await factory.contentVeto());
@@ -676,18 +678,12 @@ describe("ContentFunding", function () {
       await ethers.provider.send("evm_increaseTime", [Number(vetoWindowDuration) + 1]);
       await ethers.provider.send("evm_mine");
 
-      await firstContract.withdrawToEscrow();
-      await secondContract.withdrawToEscrow();
+      const totalProceeds = (firstDepositAmount + secondDepositAmount) * 2n;
+      const before = await paymentToken.balanceOf(alice.address);
+      await firstContract.connect(alice).claim();
+      await secondContract.connect(alice).claim();
 
-      const totalEscrowBalance = (firstDepositAmount + secondDepositAmount) * 2n;
-      expect(await beneficiaryEscrow.balance(escrowedChannelId)).to.equal(totalEscrowBalance);
-
-      await mockVerifier.setValid(true);
-
-      await expect(beneficiaryEscrow.connect(alice).withdraw(escrowedChannelId))
-        .to.emit(beneficiaryEscrow, "Withdrawn")
-        .withArgs(escrowedChannelId, await alice.getAddress(), totalEscrowBalance);
-
+      expect(await paymentToken.balanceOf(alice.address) - before).to.equal(totalProceeds);
       expect(await beneficiaryEscrow.balance(escrowedChannelId)).to.equal(0);
     });
 
@@ -1102,12 +1098,14 @@ describe("ContentFunding", function () {
       await ethers.provider.send("evm_increaseTime", [Number(vetoWindowDuration) + 1]);
       await ethers.provider.send("evm_mine");
 
-      await createdContract.withdrawToEscrow();
+      const before = await paymentToken.balanceOf(alice.address);
+      await createdContract.connect(alice).claim();
 
-      expect(await beneficiaryEscrow.balance(unclaimedChannel)).to.equal(purchaseAmount * 2n);
+      expect(await paymentToken.balanceOf(alice.address) - before).to.equal(purchaseAmount * 2n);
+      expect(await beneficiaryEscrow.balance(unclaimedChannel)).to.equal(0);
     });
 
-    it("Should revert withdrawToEscrow when contract recipient is not escrow", async function () {
+    it("Should keep creator-owned proceeds in the contract until claim", async function () {
       const tx = await createContentFundingContract({
         factory,
         signer: owner,
@@ -1128,8 +1126,10 @@ describe("ContentFunding", function () {
       const contractAddress = event.args.contractAddress;
       const createdContract = await ethers.getContractAt("CreatorAssuranceContract", contractAddress);
 
-      await expect(createdContract.withdrawToEscrow())
-        .to.be.revertedWithCustomError(createdContract, "RecipientNotEscrow");
+      await expect(createdContract.withdraw())
+        .to.be.revertedWithCustomError(createdContract, "UseClaim");
+      await expect(createdContract.connect(owner).claim())
+        .to.be.revertedWithCustomError(createdContract, "ConditionNotMet");
     });
 
     it("Should revert third-party contract on CreatorControlled channel", async function () {
@@ -1556,6 +1556,8 @@ describe("ContentFunding", function () {
       );
       expect(await condition.hasSucceeded()).to.equal(false);
       await expect(thirdPartyContract.connect(alice).withdraw())
+        .to.be.revertedWithCustomError(thirdPartyContract, "UseClaim");
+      await expect(thirdPartyContract.connect(alice).claim())
         .to.be.revertedWithCustomError(thirdPartyContract, "ConditionNotMet");
 
       // Creator takes channel control

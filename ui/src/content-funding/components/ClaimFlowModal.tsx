@@ -18,8 +18,8 @@ import {
 import { useAccount } from 'wagmi'
 import { formatEther } from 'viem'
 import { useClaimFlow } from '../hooks/useClaimFlow'
-import { BeneficiaryEscrowAbi, BeneficiaryRegistryAbi } from '@commonality/sdk/abis'
-import { withdrawFromEscrow, takeBeneficiaryControl, hashCanonicalId } from '@commonality/sdk/content-funding'
+import { BeneficiaryRegistryAbi } from '@commonality/sdk/abis'
+import { takeBeneficiaryControl, hashCanonicalId } from '@commonality/sdk/content-funding'
 import type { ChannelState } from '@commonality/sdk/content-funding'
 import { useWriteClients } from '../../shared'
 
@@ -69,9 +69,7 @@ export function ClaimFlowModal({
   const [confirmLoading, setConfirmLoading] = useState(false)
   const [confirmError, setConfirmError] = useState<string | null>(null)
   const [transactionHash, setTransactionHash] = useState<string | null>(null)
-  const [withdrawing, setWithdrawing] = useState(false)
-  const [withdrawError, setWithdrawError] = useState<string | null>(null)
-  const [withdrawTxHash, setWithdrawTxHash] = useState<string | null>(null)
+
   const [takingControl, setTakingControl] = useState(false)
   const [takeControlError, setTakeControlError] = useState<string | null>(null)
   const [takeControlTxHash, setTakeControlTxHash] = useState<string | null>(null)
@@ -92,8 +90,6 @@ export function ClaimFlowModal({
       setTweetUrl('')
       setConfirmError(null)
       setTransactionHash(null)
-      setWithdrawError(null)
-      setWithdrawTxHash(null)
       setTakeControlError(null)
       setTakeControlTxHash(null)
       clearError()
@@ -140,36 +136,6 @@ export function ClaimFlowModal({
       setConfirmError(err instanceof Error ? err.message : 'Verification failed')
     } finally {
       setConfirmLoading(false)
-    }
-  }
-
-  const handleWithdraw = async () => {
-    if (!writeClients || !channelId) return
-
-    const escrowAddress = import.meta.env.VITE_BENEFICIARY_ESCROW_ADDRESS
-    if (!escrowAddress) {
-      setWithdrawError('Channel escrow not configured')
-      return
-    }
-
-    try {
-      setWithdrawing(true)
-      setWithdrawError(null)
-
-      const clients = writeClients!
-
-      const escrowContract = {
-        address: escrowAddress as `0x${string}`,
-        abi: BeneficiaryEscrowAbi,
-      }
-
-      const result = await withdrawFromEscrow(clients, escrowContract, hashCanonicalId(channelId))
-      setWithdrawTxHash(result.hash)
-      setActiveStep(showTakeControlStep ? 3 : 4)
-    } catch (err) {
-      setWithdrawError(err instanceof Error ? err.message : 'Failed to withdraw')
-    } finally {
-      setWithdrawing(false)
     }
   }
 
@@ -352,10 +318,12 @@ export function ClaimFlowModal({
             {showWithdrawStep ? (
               <>
                 <Typography variant="h6" gutterBottom>
-                  Withdraw Funds
+                  Identity verified
                 </Typography>
                 <Typography color="text.secondary" sx={{ mb: 2 }}>
-                  You have successfully verified your identity for &quot;{channelDisplayName}&quot;.
+                  You proved control of &quot;{channelDisplayName}&quot; and bound a payout address.
+                  That does not accept funds. Each project holds its own balance. Claim or refuse a
+                  project from that project. Other projects stay where they are.
                 </Typography>
                 {transactionHash && (
                   <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
@@ -374,21 +342,10 @@ export function ClaimFlowModal({
                   variant="contained"
                   color="warning"
                   size="large"
-                  onClick={handleWithdraw}
-                  disabled={withdrawing || escrowBalance === 0n || withdrawLocked}
+                  onClick={() => setActiveStep(showTakeControlStep ? 3 : 4)}
                 >
-                  {withdrawing ? 'Withdrawing...' : 'Withdraw to Wallet'}
+                  Continue without claiming
                 </Button>
-                {withdrawError && (
-                  <Alert severity="error" sx={{ mt: 2 }}>
-                    {withdrawError}
-                  </Alert>
-                )}
-                {withdrawTxHash && (
-                  <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-                    Transaction: {withdrawTxHash.slice(0, 10)}...{withdrawTxHash.slice(-8)}
-                  </Typography>
-                )}
                 {!showTakeControlStep && (
                   <Typography color="text.secondary" sx={{ mt: 2 }}>
                     You can now manage future contracts from your dashboard.
@@ -409,7 +366,7 @@ export function ClaimFlowModal({
                   </Typography>
                 )}
                 <Typography color="text.secondary">
-                  You can now withdraw the escrowed funds from your dashboard.
+                  Claim or refuse each project from that project. This verification did not move any funds.
                 </Typography>
               </>
             )}

@@ -24,9 +24,9 @@ export const COMMUNITY_CREATED_NOTICE =
 
 export const WEBSITE_CLAIM_STATE_TOOLTIPS: Record<BeneficiaryState, string> = {
   unclaimed:
-    `${COMMUNITY_CREATED_NOTICE} Nobody has proven control of this website yet. Successful funds stay in protocol escrow until the controller claims them.`,
+    `${COMMUNITY_CREATED_NOTICE} Nobody has proven control of this website yet. Successful funds stay in this project until the controller claims this project, refuses it, or the unclaimed window elapses.`,
   verified:
-    `${COMMUNITY_CREATED_NOTICE} Someone proved they can write this domain and bound a payout address. Claiming and withdrawing are not endorsement. Escrow enforces domain control — not charity status, legal-entity identity, or tax deductibility.`,
+    `${COMMUNITY_CREATED_NOTICE} Someone proved they can write this domain and bound a payout address. That is not acceptance of this project's funds. Domain control is not charity status, legal-entity identity, or tax deductibility.`,
   'beneficiary-controlled':
     `${COMMUNITY_CREATED_NOTICE} The verified domain controller has restricted future project creation to this payout wallet. Existing projects keep their original authorship. That wallet can reopen third-party proposals later.`,
 }

@@ -86,15 +86,15 @@ contract AssuranceContractFactory {
 
   function createBeneficiaryAssuranceContract(
     address owner,
-    address recipient,
     address paymentToken,
     address erc1155Addr,
     string memory projectMetadataCid,
     bytes32 beneficiaryId,
-    bool recipientIsEscrow
+    address registry,
+    uint256 unclaimedWindow
   ) public returns (BeneficiaryAssuranceContract) {
     BeneficiaryAssuranceContract ac = new BeneficiaryAssuranceContract(
-      owner, recipient, paymentToken, erc1155Addr, projectMetadataCid, beneficiaryId, recipientIsEscrow
+      owner, paymentToken, erc1155Addr, projectMetadataCid, beneficiaryId, registry, unclaimedWindow
     );
     isDeployedAssurance[address(ac)] = true;
     isDeployedPrimaryMarket[address(ac)] = true;
@@ -147,7 +147,10 @@ contract ProjectFactory {
   AssuranceContractFactory public immutable _assuranceFactory;
   ValueThresholdConditionFactory public immutable _conditionFactory;
   IProjectBeneficiaryRegistry public immutable beneficiaryRegistry;
+  /// @notice Retained so existing deployment wiring still constructs this factory.
+  ///         New projects do not deposit here.
   address public immutable beneficiaryEscrow;
+  uint256 public constant UNCLAIMED_PROCEEDS_WINDOW = 90 days;
 
   /**
    * @notice Emitted once per createERC1155...() call, tying together the three
@@ -242,9 +245,8 @@ contract ProjectFactory {
   }
 
   /**
-   * @notice Creates a threshold project for a claimable beneficiary.
-   * @dev Verified beneficiaries receive funds directly. Unclaimed beneficiaries
-   *      receive them through BeneficiaryEscrow after project success.
+   * @notice Creates a threshold project whose proceeds stay in the project until
+   *         the named beneficiary claims or refuses them.
    */
   function createERC1155AndAssuranceContractForBeneficiary(
     string memory metadataURI,
@@ -260,23 +262,18 @@ contract ProjectFactory {
     uint256[] memory prices
   ) public returns (IERC1155, AssuranceContract) {
     if (beneficiaryId == bytes32(0)) revert InvalidRecipientAddress();
-    if (paymentToken != IProjectBeneficiaryEscrow(beneficiaryEscrow).paymentToken()) {
-      revert BeneficiaryPaymentTokenMismatch();
-    }
     if (threshold == 0) revert InvalidThreshold();
     if (deadline <= block.timestamp) revert InvalidDeadline();
 
-    bool verified = beneficiaryRegistry.isVerified(beneficiaryId);
     address payout = beneficiaryRegistry.payoutAddress(beneficiaryId);
     if (beneficiaryRegistry.isBeneficiaryControlled(beneficiaryId) && msg.sender != payout) {
       revert OnlyPayoutAddressCanCreateForControlledBeneficiary();
     }
-    address recipient = verified ? payout : beneficiaryEscrow;
     CreateProjectParams memory params = CreateProjectParams({
       metadataURI: metadataURI,
       contractURI: contractURI,
       owner: owner,
-      recipient: recipient,
+      recipient: address(this),
       paymentToken: paymentToken,
       projectMetadataCid: projectMetadataCid,
       ids: ids,
@@ -287,7 +284,7 @@ contract ProjectFactory {
     _validateProjectParams(params);
     PremintingERC1155 t = _deployToken(params);
     BeneficiaryAssuranceContract ac = _assuranceFactory.createBeneficiaryAssuranceContract(
-      address(this), recipient, paymentToken, address(t), projectMetadataCid, beneficiaryId, !verified
+      address(this), paymentToken, address(t), projectMetadataCid, beneficiaryId, address(beneficiaryRegistry), UNCLAIMED_PROCEEDS_WINDOW
     );
     ValueThresholdCondition condition = _conditionFactory.createCondition(address(ac), threshold, deadline);
     _wireUpAndFinalize(t, ac, IAssuranceCondition(address(condition)), params);

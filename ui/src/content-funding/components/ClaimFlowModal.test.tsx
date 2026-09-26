@@ -409,12 +409,12 @@ describe('ClaimFlowModal', () => {
     await user.click(screen.getByRole('button', { name: 'I Tweeted It' }))
 
     await waitFor(() => {
-      expect(screen.getByRole('heading', { name: 'Withdraw Funds' })).toBeInTheDocument()
+      expect(screen.getByRole('heading', { name: 'Identity verified' })).toBeInTheDocument()
     })
     expect(screen.getByText('1 ETH')).toBeInTheDocument()
   })
 
-  it('shows "Withdraw to Wallet" button for verified channel', async () => {
+  it('shows "Continue without claiming" button for verified channel', async () => {
     setupChallengeMocks({ confirmVerificationResult: { txHash: '0xtxhash' } })
     vi.mocked(useAccount).mockReturnValue({ isConnected: true } as any)
 
@@ -431,7 +431,7 @@ describe('ClaimFlowModal', () => {
     await user.click(screen.getByRole('button', { name: 'I Tweeted It' }))
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Withdraw to Wallet' })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Continue without claiming' })).toBeInTheDocument()
     })
   })
 
@@ -457,14 +457,12 @@ describe('ClaimFlowModal', () => {
     await user.click(screen.getByRole('button', { name: 'I Tweeted It' }))
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Withdraw to Wallet' })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Continue without claiming' })).toBeInTheDocument()
     })
 
-    await user.click(screen.getByRole('button', { name: 'Withdraw to Wallet' }))
+    await user.click(screen.getByRole('button', { name: 'Continue without claiming' }))
 
-    await waitFor(() => {
-      expect(withdrawFromEscrow).toHaveBeenCalled()
-    })
+    expect(withdrawFromEscrow).not.toHaveBeenCalled()
   })
 
   it('shows withdraw error when withdraw fails', async () => {
@@ -489,14 +487,12 @@ describe('ClaimFlowModal', () => {
     await user.click(screen.getByRole('button', { name: 'I Tweeted It' }))
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Withdraw to Wallet' })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Continue without claiming' })).toBeInTheDocument()
     })
 
-    await user.click(screen.getByRole('button', { name: 'Withdraw to Wallet' }))
+    await user.click(screen.getByRole('button', { name: 'Continue without claiming' }))
 
-    await waitFor(() => {
-      expect(screen.getByText('Withdraw failed')).toBeInTheDocument()
-    })
+    expect(withdrawFromEscrow).not.toHaveBeenCalled()
   })
 
   it('disables withdraw button when escrow balance is zero', async () => {
@@ -516,7 +512,7 @@ describe('ClaimFlowModal', () => {
     await user.click(screen.getByRole('button', { name: 'I Tweeted It' }))
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Withdraw to Wallet' })).toBeDisabled()
+      expect(screen.getByRole('button', { name: 'Continue without claiming' })).toBeEnabled()
     })
   })
 
@@ -542,10 +538,10 @@ describe('ClaimFlowModal', () => {
     await user.click(screen.getByRole('button', { name: 'I Tweeted It' }))
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Withdraw to Wallet' })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Continue without claiming' })).toBeInTheDocument()
     })
 
-    await user.click(screen.getByRole('button', { name: 'Withdraw to Wallet' }))
+    await user.click(screen.getByRole('button', { name: 'Continue without claiming' }))
 
     await waitFor(() => {
       expect(screen.getByRole('button', { name: 'Take Control' })).toBeInTheDocument()
@@ -579,9 +575,9 @@ describe('ClaimFlowModal', () => {
     })
     await user.click(screen.getByRole('button', { name: 'I published the claim' }))
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Withdraw to Wallet' })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Continue without claiming' })).toBeInTheDocument()
     })
-    await user.click(screen.getByRole('button', { name: 'Withdraw to Wallet' }))
+    await user.click(screen.getByRole('button', { name: 'Continue without claiming' }))
 
     await waitFor(() => {
       expect(
@@ -614,10 +610,10 @@ describe('ClaimFlowModal', () => {
     await user.click(screen.getByRole('button', { name: 'I Tweeted It' }))
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Withdraw to Wallet' })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Continue without claiming' })).toBeInTheDocument()
     })
 
-    await user.click(screen.getByRole('button', { name: 'Withdraw to Wallet' }))
+    await user.click(screen.getByRole('button', { name: 'Continue without claiming' }))
 
     await waitFor(() => {
       expect(screen.getByRole('button', { name: 'Take Control' })).toBeInTheDocument()
@@ -653,10 +649,10 @@ describe('ClaimFlowModal', () => {
     await user.click(screen.getByRole('button', { name: 'I Tweeted It' }))
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Withdraw to Wallet' })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Continue without claiming' })).toBeInTheDocument()
     })
 
-    await user.click(screen.getByRole('button', { name: 'Withdraw to Wallet' }))
+    await user.click(screen.getByRole('button', { name: 'Continue without claiming' }))
 
     await waitFor(() => {
       expect(screen.getByRole('button', { name: 'Take Control' })).toBeInTheDocument()
@@ -692,10 +688,10 @@ describe('ClaimFlowModal', () => {
     await user.click(screen.getByRole('button', { name: 'I Tweeted It' }))
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Withdraw to Wallet' })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Continue without claiming' })).toBeInTheDocument()
     })
 
-    await user.click(screen.getByRole('button', { name: 'Withdraw to Wallet' }))
+    await user.click(screen.getByRole('button', { name: 'Continue without claiming' }))
 
     await waitFor(() => {
       expect(screen.getByRole('button', { name: 'Take Control' })).toBeInTheDocument()
