@@ -264,6 +264,11 @@ export const DelegatableNotesAbi = [
   },
   {
     "inputs": [],
+    "name": "UnsuspiciousDelayExceedsStanding",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "WrongPrimaryMarket",
     "type": "error"
   },
@@ -350,6 +355,31 @@ export const DelegatableNotesAbi = [
       }
     ],
     "name": "ERC1155Purchased",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "noteId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "beneficiaryId",
+        "type": "bytes32"
+      },
+      {
+        "indexed": false,
+        "internalType": "bool",
+        "name": "allowed",
+        "type": "bool"
+      }
+    ],
+    "name": "FineListSet",
     "type": "event"
   },
   {
@@ -754,6 +784,56 @@ export const DelegatableNotesAbi = [
       },
       {
         "indexed": false,
+        "internalType": "uint8",
+        "name": "class",
+        "type": "uint8"
+      },
+      {
+        "indexed": false,
+        "internalType": "bytes32",
+        "name": "beneficiaryId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "SpendClassResolved",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "noteId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "nonce",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "deadline",
+        "type": "uint256"
+      }
+    ],
+    "name": "SpendDeadlineRevised",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "noteId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
         "internalType": "uint256",
         "name": "delay",
         "type": "uint256"
@@ -949,6 +1029,51 @@ export const DelegatableNotesAbi = [
     "type": "event"
   },
   {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "noteId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "delay",
+        "type": "uint256"
+      }
+    ],
+    "name": "UnsuspiciousDelaySet",
+    "type": "event"
+  },
+  {
+    "inputs": [],
+    "name": "CLASS_UNMARKED",
+    "outputs": [
+      {
+        "internalType": "uint8",
+        "name": "",
+        "type": "uint8"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "CLASS_UNSUSPICIOUS",
+    "outputs": [
+      {
+        "internalType": "uint8",
+        "name": "",
+        "type": "uint8"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [],
     "name": "MAX_DELEGATION_DEPTH",
     "outputs": [
@@ -1073,6 +1198,11 @@ export const DelegatableNotesAbi = [
         "type": "uint256"
       },
       {
+        "internalType": "uint256",
+        "name": "unsuspiciousDelay",
+        "type": "uint256"
+      },
+      {
         "internalType": "bool",
         "name": "strictMode",
         "type": "bool"
@@ -1081,6 +1211,11 @@ export const DelegatableNotesAbi = [
         "internalType": "address[]",
         "name": "flaggers",
         "type": "address[]"
+      },
+      {
+        "internalType": "bytes32[]",
+        "name": "fineIds",
+        "type": "bytes32[]"
       }
     ],
     "name": "createDelegatedNoteFor",
@@ -1219,6 +1354,35 @@ export const DelegatableNotesAbi = [
         "type": "uint256"
       },
       {
+        "internalType": "address",
+        "name": "primaryMarket",
+        "type": "address"
+      }
+    ],
+    "name": "effectiveSpendDelay",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "delay",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint8",
+        "name": "class",
+        "type": "uint8"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "noteId",
+        "type": "uint256"
+      },
+      {
         "internalType": "address[]",
         "name": "owners",
         "type": "address[]"
@@ -1227,6 +1391,49 @@ export const DelegatableNotesAbi = [
     "name": "executeScheduledSpend",
     "outputs": [],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "noteId",
+        "type": "uint256"
+      }
+    ],
+    "name": "fineList",
+    "outputs": [
+      {
+        "internalType": "bytes32[]",
+        "name": "",
+        "type": "bytes32[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "name": "fineListed",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -1474,6 +1681,11 @@ export const DelegatableNotesAbi = [
       {
         "internalType": "uint256",
         "name": "count",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "scheduledAt",
         "type": "uint256"
       },
       {
@@ -1815,6 +2027,34 @@ export const DelegatableNotesAbi = [
   {
     "inputs": [
       {
+        "internalType": "uint256",
+        "name": "noteId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address[]",
+        "name": "owners",
+        "type": "address[]"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "beneficiaryId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bool",
+        "name": "allowed",
+        "type": "bool"
+      }
+    ],
+    "name": "setFineListed",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "address",
         "name": "primaryMarketFactory",
         "type": "address"
@@ -1923,6 +2163,29 @@ export const DelegatableNotesAbi = [
         "internalType": "uint256",
         "name": "noteId",
         "type": "uint256"
+      },
+      {
+        "internalType": "address[]",
+        "name": "owners",
+        "type": "address[]"
+      },
+      {
+        "internalType": "uint256",
+        "name": "delay",
+        "type": "uint256"
+      }
+    ],
+    "name": "setUnsuspiciousDelay",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "noteId",
+        "type": "uint256"
       }
     ],
     "name": "spendFlaggers",
@@ -1949,6 +2212,11 @@ export const DelegatableNotesAbi = [
       {
         "internalType": "uint256",
         "name": "delay",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "unsuspiciousDelay",
         "type": "uint256"
       },
       {

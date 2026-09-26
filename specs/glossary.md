@@ -40,6 +40,8 @@ wrong (or this file is out of date and needs an ADR — see
 | **Retroactive donation** | Money going into a *successful* project's reimbursement flow, after the fact. Buys nothing; it repays early contributors |
 | **Reimbursement** | What a retroactive donation pays out to an early contributor — at cost, no upside |
 | **Note** | A `DelegatableNote`: a bucket of deposited funds whose spending authority can be delegated down a chain, revocably. The unit of delegated giving |
+| **Fine list** | The `beneficiaryId`s a donor has named so a delegate's spend to the current controller of one of them is unsuspicious. Empty until she adds a name. Not an endorsement of a project. See [spend classification](tech/subsystems/delegation/spend-classification.md) |
+| **Unsuspicious / unmarked / suspicious** | Classes of a delegate's spend. Unsuspicious shortens the wait. Unmarked keeps the standing delay and is not a warning. Suspicious is a longer wait plus a warning, or a block. See [spend classification](tech/subsystems/delegation/spend-classification.md) |
 | **Standing pledge** | A *recurring* funding commitment registered with `RecurringPledges`, executed periodically into a note |
 | **Fundable-projects board** | The list of aligned work you might fund (heading **Fundable Projects**), inlined on a statement or cause board and also a full page. Code still says `fundingportal*` / `/portal/:statementCid`. Formerly called **portal** and then **cause board**. |
 

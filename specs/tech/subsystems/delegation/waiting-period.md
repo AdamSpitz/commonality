@@ -6,7 +6,7 @@ The delay is her control over one delegate's spends. It is not a second escrow, 
 
 ## Where the delay lives
 
-`spendPolicies[noteId]` stores `delay` (seconds) and `strictMode`. A note with no policy has delay zero and strict mode off. She can change either in place. A spend already scheduled keeps the deadline it was given (`block.timestamp + delay` at schedule time). Setting the delay to zero does not make that in-flight spend immediate. She approves it if she wants it paid now.
+`spendPolicies[noteId]` stores `delay` (seconds) and `strictMode`. A note with no policy has delay zero and strict mode off. She can change either in place. A spend already scheduled keeps the deadline it was given (`block.timestamp + delay` at schedule time). Setting the delay to zero does not make that in-flight spend immediate. She approves it if she wants it paid now. A change of spend class is not this rule: that deadline is recomputed from the original schedule time, as [spend-classification.md](./spend-classification.md) describes.
 
 `delegate` still creates a note with delay zero. `delegateWithDelay` is the same delegation with a delay. `setSpendDelay` and `setStrictMode` are root-only on that note.
 

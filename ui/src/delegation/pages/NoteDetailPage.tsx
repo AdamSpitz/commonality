@@ -30,6 +30,7 @@ import { getProjectsFiltered, type ProjectWithMetrics, getProjectTokens, type Pr
 import { StatementPicker, useMachinery } from '../../shared'
 import { useWriteClients } from '../../shared'
 import { formatNoteAmount, isDelegate, truncateAddress, isEthNote, parseNoteRouteId, noteDetailPathFor } from '../utils'
+import { FineListPanel } from '../components/FineListPanel'
 
 function getContract(address?: string) {
   const addr = address ?? import.meta.env.VITE_DELEGATABLE_NOTES_CONTRACT_ADDRESS
@@ -687,6 +688,14 @@ export function NoteDetailPage() {
         <Alert severity="info" sx={{ mb: 2 }}>
           Transaction in progress...
         </Alert>
+      )}
+
+      {isRootOwner && (
+        <FineListPanel
+          noteId={BigInt(note.id)}
+          contractAddress={note.contractAddress as `0x${string}`}
+          owners={[...chain].sort((a, b) => b.position - a.position).map((link) => link.address as `0x${string}`)}
+        />
       )}
 
       <Paper sx={{ p: 3, mb: 3 }}>

@@ -75,12 +75,14 @@ Direction discussed with Adam, not a contract implementation specification:
 1. **One named delegate**, with donor approval required for replacement.
 2. **Reliable revocation**, covering pending spends and authority over future returned funds. Revocation must reach outstanding receipt claims so a later refund cannot revive authority the donor removed.
 3. **Optional donor-set delay**, including zero, with clear pending payments and early approval. Zero delay offers no guaranteed intervention window. Keep trusted flags as notification by default and the already-proposed donor opt-in pause mode as the stronger choice.
-4. **Beneficiary identity integration**, showing and checking the actual destination. Offer donor-approved identities where useful, without requiring every donor to preselect recipients: broad project discovery can deliberately remain the delegate's job.
+4. **Beneficiary identity integration**, showing and checking the actual destination. Accepted in [ADR 0017](/specs/decisions/0017-spend-classification.md) and [spend-classification.md](/specs/tech/subsystems/delegation/spend-classification.md). The fine list is optional and starts empty. Broad project discovery stays the delegate's job.
 5. **Specific donor overrides**, without accidentally changing standing rules. Rules govern what the delegate can do without asking; the donor can approve an exception for an exact payment.
 
 Keep monthly deposits as they are. Defer additional spending caps, compulsory renewal, separate watchers with cancellation authority, and new payout-attestation machinery. Optional spending summaries can prompt review without expiring authority; respect notification preferences.
 
 ### Beneficiary evidence and recipient choice
+
+Settled in [ADR 0017](/specs/decisions/0017-spend-classification.md). The notes below are the reasoning that led there.
 
 “Has a verified domain” is not a sufficient safety filter: a dishonest delegate can verify their own domain. An optional rule restricting independent spending to identities the donor has approved is stronger, but costs the donor some of the discovery benefit of delegation. Identity verification connects an identity to an authorized payout; it does not establish that the work is worthwhile or aligned with the donor's intentions.
 

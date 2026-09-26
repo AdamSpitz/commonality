@@ -6,6 +6,7 @@ const { ethers } = hardhat;
 async function deployProjectFactory() {
   const tokenFactory = await ethers.deployContract('PremintingERC1155Factory');
   const assuranceFactory = await ethers.deployContract('AssuranceContractFactory');
+  const fixedControllerFactory = await ethers.deployContract('FixedControllerFactory');
   const conditionFactory = await ethers.deployContract('ValueThresholdConditionFactory');
   const verifier = await ethers.deployContract('MockBeneficiaryVerifier');
   const beneficiaryIdentity = await ethers.deployContract('BeneficiaryIdentity', [verifier.target]);
@@ -18,6 +19,7 @@ async function deployProjectFactory() {
     conditionFactory.target,
     beneficiaryRegistry.target,
     beneficiaryEscrow.target,
+    fixedControllerFactory.target,
   ]);
   return { projectFactory, assuranceFactory, conditionFactory, beneficiaryRegistry, beneficiaryEscrow, verifier, beneficiaryPaymentToken: paymentToken };
 }
@@ -105,7 +107,7 @@ describe('ProjectFactory', function () {
     const dependency = await ethers.deployContract('PremintingERC1155Factory');
 
     await expect(
-      factory.deploy(ethers.ZeroAddress, dependency.target, dependency.target, dependency.target, dependency.target),
+      factory.deploy(ethers.ZeroAddress, dependency.target, dependency.target, dependency.target, dependency.target, dependency.target),
     ).to.be.revertedWithCustomError(factory, 'InvalidFactoryAddress');
   });
 
@@ -172,9 +174,16 @@ describe('ProjectFactory', function () {
     );
 
     const args = defaultProjectParams(owner.address, ethers.ZeroAddress, paymentToken.target, deadline);
-    await expect(projectFactory.connect(creator).createERC1155AndAssuranceContractForBeneficiary(
+    const tx = await projectFactory.connect(creator).createERC1155AndAssuranceContractForBeneficiary(
       args[0], args[1], args[2], beneficiaryId, ...args.slice(4),
-    )).to.emit(projectFactory, 'ProjectCreated');
+    );
+    await expect(tx).to.emit(projectFactory, 'ProjectCreated');
+    const receipt = await tx.wait();
+    const event = receipt.logs.map(log => { try { return projectFactory.interface.parseLog(log); } catch { return null; } })
+      .find(log => log?.name === 'ProjectCreated');
+    const fixed = await ethers.getContractAt('FixedControllerAssuranceContract', event.args.assuranceContract);
+    expect(await fixed.beneficiaryId()).to.equal(beneficiaryId);
+    expect(await fixed.recipient()).to.equal(owner.address);
   });
 
   it('blocks third-party creation once the beneficiary has taken control', async function () {

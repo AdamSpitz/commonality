@@ -138,7 +138,9 @@ describe("RecurringPledges", function () {
       10_000n,
       bob.address,
       0,
+      0,
       false,
+      [],
       []
     )).to.be.revertedWithCustomError(notes, "UnauthorizedRecurringPledgeRegistry");
   });

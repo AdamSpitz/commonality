@@ -454,3 +454,33 @@ export async function claimNoteReimbursement(
 
   return extractCreatedNoteId(clients, hash);
 }
+
+export async function setUnsuspiciousDelay(
+  clients: WriteClients,
+  delegatableNotesContract: DelegatableNotesContract,
+  params: { noteId: bigint; owners: Address[]; delay: bigint },
+): Promise<Hash> {
+  return clients.walletClient.writeContract({
+    address: delegatableNotesContract.address,
+    abi: delegatableNotesContract.abi,
+    functionName: 'setUnsuspiciousDelay',
+    args: [params.noteId, params.owners, params.delay],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
+  });
+}
+
+export async function setFineListed(
+  clients: WriteClients,
+  delegatableNotesContract: DelegatableNotesContract,
+  params: { noteId: bigint; owners: Address[]; beneficiaryId: `0x${string}`; allowed: boolean },
+): Promise<Hash> {
+  return clients.walletClient.writeContract({
+    address: delegatableNotesContract.address,
+    abi: delegatableNotesContract.abi,
+    functionName: 'setFineListed',
+    args: [params.noteId, params.owners, params.beneficiaryId, params.allowed],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
+  });
+}

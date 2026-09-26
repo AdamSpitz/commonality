@@ -195,4 +195,17 @@ describe("DelegatableNotes waiting period", function () {
     expect((await notes.pendingSpends(noteId)).deadline).to.equal(deadline);
     expect((await notes.spendPolicies(noteId)).delay).to.equal(10);
   });
+
+  it("does not apply the delay when the donor spends the note herself", async function () {
+    const noteId = await delegateAmount(ethers.parseEther("0.1"), 3600);
+    await notes.connect(alice).revoke(noteId, [bob.address, alice.address]);
+    await notes.connect(alice).purchaseFromPrimaryMarket(
+      [{ noteId, chain: [alice.address], shares: 1 }],
+      assuranceContract.target,
+      erc1155Token.target,
+      1,
+      1
+    );
+    expect((await notes.notes(noteId)).chainHash).to.equal(ethers.ZeroHash);
+  });
 });

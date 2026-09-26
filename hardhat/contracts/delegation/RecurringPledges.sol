@@ -11,8 +11,10 @@ interface IDelegatableNotesForRecurringPledges {
     uint256 amount,
     address delegateTo,
     uint256 spendDelay,
+    uint256 unsuspiciousDelay,
     bool strictMode,
-    address[] calldata flaggers
+    address[] calldata flaggers,
+    bytes32[] calldata fineIds
   ) external returns (uint256);
 }
 
@@ -34,6 +36,7 @@ contract RecurringPledges is ReentrancyGuard {
     uint256 lastExecuted;
     bool active;
     uint256 spendDelay;
+    uint256 unsuspiciousDelay;
     bool strictMode;
   }
 
@@ -65,6 +68,9 @@ contract RecurringPledges is ReentrancyGuard {
     bool strictMode
   );
 
+  event PledgeUnsuspiciousDelaySet(uint256 indexed pledgeId, uint256 unsuspiciousDelay);
+  event PledgeFineListSet(uint256 indexed pledgeId, bytes32 indexed beneficiaryId, bool allowed);
+
   event StandingPledgeExecuted(
     uint256 indexed pledgeId,
     uint256 indexed noteId,
@@ -77,6 +83,8 @@ contract RecurringPledges is ReentrancyGuard {
   uint256 public nextPledgeId = 1;
   mapping(uint256 => Pledge) public pledges;
   mapping(uint256 => address[]) private pledgeFlaggerList;
+  mapping(uint256 => bytes32[]) private pledgeFineList;
+  mapping(uint256 => mapping(bytes32 => bool)) public pledgeFineListed;
 
   constructor(address delegatableNotesAddress) {
     if (delegatableNotesAddress == address(0)) revert ZeroAddress();
@@ -111,6 +119,7 @@ contract RecurringPledges is ReentrancyGuard {
       lastExecuted: 0,
       active: true,
       spendDelay: spendDelay,
+      unsuspiciousDelay: 0,
       strictMode: strictMode
     });
     for (uint256 i = 0; i < flaggers.length; i++) {
@@ -164,7 +173,50 @@ contract RecurringPledges is ReentrancyGuard {
       }
     }
     emit PledgeSpendPolicyUpdated(pledgeId, spendDelay, strictMode);
+    if (pledge.unsuspiciousDelay > spendDelay) {
+      pledge.unsuspiciousDelay = spendDelay;
+      emit PledgeUnsuspiciousDelaySet(pledgeId, spendDelay);
+    }
   }
+
+  function setPledgeUnsuspiciousDelay(uint256 pledgeId, uint256 unsuspiciousDelay) external {
+    Pledge storage pledge = pledges[pledgeId];
+    if (pledge.rootOwner == address(0)) revert PledgeDoesNotExist();
+    if (pledge.rootOwner != msg.sender) revert NotPledgeOwner();
+    if (!pledge.active) revert PledgeInactive();
+    if (unsuspiciousDelay > pledge.spendDelay) revert UnsuspiciousDelayExceedsStanding();
+    pledge.unsuspiciousDelay = unsuspiciousDelay;
+    emit PledgeUnsuspiciousDelaySet(pledgeId, unsuspiciousDelay);
+  }
+
+  function setPledgeFineListed(uint256 pledgeId, bytes32 beneficiaryId, bool allowed) external {
+    Pledge storage pledge = pledges[pledgeId];
+    if (pledge.rootOwner == address(0)) revert PledgeDoesNotExist();
+    if (pledge.rootOwner != msg.sender) revert NotPledgeOwner();
+    if (!pledge.active) revert PledgeInactive();
+    if (beneficiaryId == bytes32(0)) revert ZeroAddress();
+    if (allowed == pledgeFineListed[pledgeId][beneficiaryId]) {
+      emit PledgeFineListSet(pledgeId, beneficiaryId, allowed);
+      return;
+    }
+    if (allowed) {
+      pledgeFineListed[pledgeId][beneficiaryId] = true;
+      pledgeFineList[pledgeId].push(beneficiaryId);
+    } else {
+      pledgeFineListed[pledgeId][beneficiaryId] = false;
+      bytes32[] storage ids = pledgeFineList[pledgeId];
+      for (uint256 i = 0; i < ids.length; i++) {
+        if (ids[i] == beneficiaryId) {
+          ids[i] = ids[ids.length - 1];
+          ids.pop();
+          break;
+        }
+      }
+    }
+    emit PledgeFineListSet(pledgeId, beneficiaryId, allowed);
+  }
+
+  error UnsuspiciousDelayExceedsStanding();
 
   function pledgeFlaggers(uint256 pledgeId) external view returns (address[] memory) {
     return pledgeFlaggerList[pledgeId];
@@ -204,8 +256,10 @@ contract RecurringPledges is ReentrancyGuard {
       pledge.amountPerPeriod,
       pledge.delegateTo,
       pledge.spendDelay,
+      pledge.unsuspiciousDelay,
       pledge.strictMode,
-      pledgeFlaggerList[pledgeId]
+      pledgeFlaggerList[pledgeId],
+      pledgeFineList[pledgeId]
     );
     emit StandingPledgeExecuted(pledgeId, noteId, executedAt);
   }

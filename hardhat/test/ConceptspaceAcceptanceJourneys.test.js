@@ -98,6 +98,7 @@ describe("Conceptspace acceptance journeys", function () {
 
     const tokenFactory = await ethers.deployContract("PremintingERC1155Factory");
     const assuranceFactory = await ethers.deployContract("AssuranceContractFactory");
+    const fixedControllerFactory = await ethers.deployContract("FixedControllerFactory");
     const conditionFactory = await ethers.deployContract("ValueThresholdConditionFactory");
     const verifier = await ethers.deployContract("MockBeneficiaryVerifier");
     const paymentToken = await ethers.deployContract("FreeERC20", ["USD Coin", "USDC", 6]);
@@ -113,6 +114,7 @@ describe("Conceptspace acceptance journeys", function () {
       conditionFactory.target,
       beneficiaryRegistry.target,
       beneficiaryEscrow.target,
+      fixedControllerFactory.target,
     ]);
 
     const [, owner, recipient] = await ethers.getSigners();
