@@ -45,6 +45,11 @@ export const DelegatableNotesAbi = [
   },
   {
     "inputs": [],
+    "name": "DelegationHopLimit",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "ETHMustUseERC20Type",
     "type": "error"
   },
@@ -115,6 +120,11 @@ export const DelegatableNotesAbi = [
   },
   {
     "inputs": [],
+    "name": "NotNoteRoot",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "NotRootNoteOrNotOwner",
     "type": "error"
   },
@@ -163,6 +173,11 @@ export const DelegatableNotesAbi = [
   {
     "inputs": [],
     "name": "ReentrancyGuardReentrantCall",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "ReplaceRequiresOneDelegate",
     "type": "error"
   },
   {
@@ -391,6 +406,37 @@ export const DelegatableNotesAbi = [
       }
     ],
     "name": "NoteCreated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "fromNoteId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "toNoteId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "newDelegate",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "NoteDelegateReplaced",
     "type": "event"
   },
   {
@@ -1086,6 +1132,45 @@ export const DelegatableNotesAbi = [
     "inputs": [],
     "name": "renounceOwnership",
     "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "noteId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address[]",
+        "name": "owners",
+        "type": "address[]"
+      },
+      {
+        "internalType": "address",
+        "name": "newDelegate",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "replaceDelegate",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "replacedNoteId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "remainderNoteId",
+        "type": "uint256"
+      }
+    ],
     "stateMutability": "nonpayable",
     "type": "function"
   },

@@ -2,7 +2,7 @@
  * User actions for Delegation subsystem
  */
 
-import { type Address, type Hash, type Abi, parseEventLogs } from 'viem';
+import { type Address, type Hash, type Abi, parseEventLogs, zeroHash } from 'viem';
 import { type WriteClients } from '../../utils/ethereum.js';
 import { DelegatableNotesAbi } from '../../abis.js';
 import { approveERC20Spend } from '../../utils/erc20.js';
@@ -196,6 +196,56 @@ export async function delegateNote(
   }
 
   return { hash, delegatedNoteId, remainderNoteId };
+}
+
+/**
+ * Root replaces the current delegate. The new delegate receives a new note.
+ * A full replacement retires `noteId`. A partial replacement leaves the
+ * remainder on `noteId`, still delegated to the previous leaf.
+ */
+export async function replaceDelegate(
+  clients: WriteClients,
+  delegatableNotesContract: DelegatableNotesContract,
+  params: {
+    noteId: bigint;
+    owners: Address[];
+    newDelegate: Address;
+    amount: bigint;
+  }
+): Promise<{ hash: Hash; replacedNoteId: bigint; remainderNoteId: bigint }> {
+  const hash = await clients.walletClient.writeContract({
+    address: delegatableNotesContract.address,
+    abi: delegatableNotesContract.abi,
+    functionName: 'replaceDelegate',
+    args: [params.noteId, params.owners, params.newDelegate, params.amount],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
+  });
+
+  const receipt = await clients.publicClient.waitForTransactionReceipt({ hash });
+  const replacedLogs = parseEventLogs({
+    abi: DelegatableNotesAbi,
+    eventName: 'NoteDelegateReplaced',
+    logs: receipt.logs,
+  });
+  const replaced = replacedLogs[0];
+  const replacedNoteId = replaced?.args.toNoteId ?? params.noteId;
+  // The event amount is the amount moved, which always equals params.amount.
+  // A partial replacement leaves the old note in place.
+  const chainHash = await clients.publicClient.readContract({
+    address: delegatableNotesContract.address,
+    abi: [{
+      type: 'function',
+      name: 'notes',
+      stateMutability: 'view',
+      inputs: [{ name: 'noteId', type: 'uint256' }],
+      outputs: [{ name: 'chainHash', type: 'bytes32' }],
+    }],
+    functionName: 'notes',
+    args: [params.noteId],
+  } as never) as `0x${string}`;
+  const retired = chainHash === zeroHash;
+  return { hash, replacedNoteId, remainderNoteId: retired ? 0n : params.noteId };
 }
 
 /**

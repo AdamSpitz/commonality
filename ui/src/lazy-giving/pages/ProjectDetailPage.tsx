@@ -11,6 +11,7 @@ import {
   ContributionPreviewPanel,
   RefundSection,
   WithdrawSection,
+  BeneficiaryProceedsSection,
   ReimbursementSection,
   Leaderboard,
   WebsiteClaimSection,
@@ -25,6 +26,7 @@ import { hashCanonicalId } from '@commonality/sdk/content-funding'
 import { getRuntimeConfigValue, isCidDeniedByDisplayDenylist, loadDisplayDenylist } from '../../shared'
 import { tryParseChainAddressRef } from '../../shared'
 import { readLazyGivingProjectMetadata, readLazyGivingTokenMetadata, type ProjectMetadata } from '../metadata'
+import { usePublishedBeneficiaryBinding } from '../components/usePublishedBeneficiaryBinding'
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000' as const
 
 export type ProjectDetailPageProps = {
@@ -101,6 +103,10 @@ export function ProjectDetailPage({
 
   const [metadata, setMetadata] = useState<ProjectMetadata | null>(null)
   const [metadataWarning, setMetadataWarning] = useState<string | null>(null)
+  const beneficiaryBinding = usePublishedBeneficiaryBinding(
+    projectContractAddress || undefined,
+    metadata?.beneficiary,
+  )
   const [tokens, setTokens] = useState<ProjectToken[]>([])
   const [tokenImages, setTokenImages] = useState<Record<string, string>>({})
   const [tokenNames, setTokenNames] = useState<Record<string, string>>({})
@@ -364,7 +370,7 @@ export function ProjectDetailPage({
         <Button component={RouterLink} to={projectPath} size="small" sx={{ mb: 2, textTransform: 'none' }}>
           ← Back to project
         </Button>
-        <ProjectHeader project={project} metadata={metadata} kind={headerKind} />
+        <ProjectHeader project={project} metadata={metadata} kind={headerKind} beneficiaryBinding={beneficiaryBinding} />
         <Leaderboard
           contributions={contributions}
           refunds={refunds}
@@ -376,12 +382,13 @@ export function ProjectDetailPage({
 
   return (
     <Box>
-      <ProjectHeader project={project} metadata={metadata} kind={headerKind} />
+      <ProjectHeader project={project} metadata={metadata} kind={headerKind} beneficiaryBinding={beneficiaryBinding} />
 
       {projectContractAddress && disavowedProjects.has(projectContractAddress.toLowerCase()) && (
         <Alert severity="warning" sx={{ mb: 3 }}>
           The named beneficiary has disavowed this project. It is still onchain:
-          authorship, funding conditions, and escrow are unchanged. Discovery
+          authorship and funding conditions are unchanged. Disavowal does not
+          claim or return the funds. Discovery
           surfaces stop promoting it.
         </Alert>
       )}
@@ -440,13 +447,22 @@ export function ProjectDetailPage({
         />
       )}
 
-      {isConnected && status === 'succeeded' && address?.toLowerCase() !== project.recipient.toLowerCase() && (
+      {beneficiaryBinding.status !== 'none' && beneficiaryBinding.status !== 'mismatch' && projectContractAddress && (
+        <BeneficiaryProceedsSection
+          projectAddress={projectContractAddress as `0x${string}`}
+          address={address}
+          succeeded={status === 'succeeded'}
+          onRefresh={handleRefresh}
+        />
+      )}
+
+      {isConnected && status === 'succeeded' && beneficiaryBinding.status === 'none' && address?.toLowerCase() !== project.recipient.toLowerCase() && (
         <Alert severity="success" sx={{ mb: 3 }}>
           This project reached its funding goal. Only the recipient wallet can withdraw the pooled funds; contributor tokens remain as permanent recognition receipts.
         </Alert>
       )}
 
-      {isConnected && status === 'succeeded' && address?.toLowerCase() === project.recipient.toLowerCase() && (
+      {isConnected && status === 'succeeded' && beneficiaryBinding.status === 'none' && address?.toLowerCase() === project.recipient.toLowerCase() && (
         <WithdrawSection
           project={project}
           address={address}
@@ -454,11 +470,17 @@ export function ProjectDetailPage({
         />
       )}
 
-      {metadata?.beneficiary?.namespace === 'dns' && metadata.beneficiary.canonicalIdentifier && (
+      {beneficiaryBinding.status !== 'none' && beneficiaryBinding.status !== 'mismatch' && (
         <WebsiteClaimSection
-          domain={metadata.beneficiary.canonicalIdentifier}
+          domain={beneficiaryBinding.domain}
           projectAddress={projectContractAddress ? projectContractAddress as `0x${string}` : undefined}
         />
+      )}
+      {beneficiaryBinding.status === 'mismatch' && (
+        <Alert severity="warning" sx={{ mb: 3 }}>
+          Project metadata names {beneficiaryBinding.domain}, but this contract does not store that beneficiary id.
+          Claim and withdrawal actions for that name are hidden.
+        </Alert>
       )}
 
       <Leaderboard

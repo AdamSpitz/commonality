@@ -163,7 +163,7 @@ describe('Content Funding branded surfaces', () => {
       )
 
       expect(
-        screen.getByText(/Open a channel to see active contracts and escrowed funds/i),
+        screen.getByText(/Open a channel to see active contracts/i),
       ).toBeInTheDocument()
     })
   })
@@ -206,7 +206,7 @@ describe('Content Funding branded surfaces', () => {
         screen.getByText(/this creator has not claimed the channel/i),
       ).toBeInTheDocument()
       expect(
-        screen.getByText(/verify your identity and claim the escrowed funds/i),
+        screen.getByText(/Verifying the channel binds a payout address/i),
       ).toBeInTheDocument()
     })
 
@@ -274,7 +274,7 @@ describe('Content Funding branded surfaces', () => {
         screen.getByRole('heading', { name: /creator funding dashboard/i }),
       ).toBeInTheDocument()
       expect(
-        screen.getByText(/manage claimed channels, withdraw escrowed balances/i),
+        screen.getByText(/Claim or refuse each project's funds/i),
       ).toBeInTheDocument()
     })
 
@@ -328,7 +328,7 @@ describe('Content Funding branded surfaces', () => {
 
       expect(screen.getByRole('heading', { name: /what you can do here/i })).toBeInTheDocument()
       expect(screen.getByText(/browse creators by platform/i)).toBeInTheDocument()
-      expect(screen.getByText(/contribute funds that stay in escrow/i)).toBeInTheDocument()
+      expect(screen.getByText(/Contribute funds that stay in the project/i)).toBeInTheDocument()
     })
 
     it('includes "How money flows" section', () => {
@@ -339,7 +339,7 @@ describe('Content Funding branded surfaces', () => {
       )
 
       expect(screen.getByRole('heading', { name: /how money flows/i })).toBeInTheDocument()
-      expect(screen.getByText(/escrow contract/i)).toBeInTheDocument()
+      expect(screen.getByText(/funds stay in that project/i)).toBeInTheDocument()
     })
 
     it('includes "Do I need crypto?" section', () => {
@@ -386,7 +386,7 @@ describe('Content Funding branded surfaces', () => {
       )
 
       expect(
-        screen.getByText(/See who contributed, what content is covered, and where the escrow stands/i),
+        screen.getByText(/The project holds its own funds/i),
       ).toBeInTheDocument()
     })
 

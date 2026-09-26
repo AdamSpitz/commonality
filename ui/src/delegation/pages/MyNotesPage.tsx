@@ -26,7 +26,7 @@ import { useAccount } from 'wagmi'
 import { formatEther, parseEther } from 'viem'
 import { DelegatableNotesAbi, RecurringPledgesAbi } from '@commonality/sdk/abis'
 import { getStatement } from '@commonality/sdk/conceptspace'
-import { getNotesByOwner, getNotesByRoot, getDelegationChain, getDonationActivityByRoot, delegateNote, revokeNote, reclaimFunds, getActiveStandingPledgesByUser, cancelStandingPledge, type DonationActivity, type Note, type StandingPledge, type DelegatableNotesContract, type RecurringPledgesContract } from '@commonality/sdk/delegation'
+import { getNotesByOwner, getNotesByRoot, getDelegationChain, getDonationActivityByRoot, delegateNote, replaceDelegate, revokeNote, reclaimFunds, getActiveStandingPledgesByUser, cancelStandingPledge, type DonationActivity, type Note, type StandingPledge, type DelegatableNotesContract, type RecurringPledgesContract } from '@commonality/sdk/delegation'
 import type { Currency, IpfsCidV1 } from '@commonality/sdk/utils'
 import { getDomainUrl, useMachinery } from '../../shared'
 import { useWriteClients } from '../../shared'
@@ -76,9 +76,13 @@ function NoteCard({
   showRevoke,
   showReclaim,
   showDelegate,
+  showReplace,
+  showGiveBack,
   onDelegate,
+  onReplace,
   onRevoke,
   onReclaim,
+  onGiveBack,
 }: {
   note: Note
   showDelegatedFrom?: boolean
@@ -86,9 +90,13 @@ function NoteCard({
   showRevoke?: boolean
   showReclaim?: boolean
   showDelegate?: boolean
+  showReplace?: boolean
+  showGiveBack?: boolean
   onDelegate?: (note: Note) => void
+  onReplace?: (note: Note) => void
   onRevoke?: (note: Note) => void
   onReclaim?: (note: Note) => void
+  onGiveBack?: (note: Note) => void
 }) {
   return (
     <Card>
@@ -125,7 +133,7 @@ function NoteCard({
           </Box>
         </CardContent>
       </CardActionArea>
-      {(showDelegate || showRevoke || showReclaim) && (
+      {(showDelegate || showReplace || showGiveBack || showRevoke || showReclaim) && (
         <Box sx={{ px: 2, pb: 1.5, display: 'flex', gap: 1 }}>
           {showDelegate && (
             <Button
@@ -134,6 +142,25 @@ function NoteCard({
               onClick={(e) => { e.preventDefault(); onDelegate?.(note) }}
             >
               Delegate
+            </Button>
+          )}
+          {showReplace && (
+            <Button
+              size="small"
+              variant="outlined"
+              onClick={(e) => { e.preventDefault(); onReplace?.(note) }}
+            >
+              Replace delegate
+            </Button>
+          )}
+          {showGiveBack && (
+            <Button
+              size="small"
+              variant="outlined"
+              color="warning"
+              onClick={(e) => { e.preventDefault(); onGiveBack?.(note) }}
+            >
+              Give back
             </Button>
           )}
           {showRevoke && (
@@ -165,11 +192,13 @@ function NoteCard({
 function DelegateDialog({
   open,
   note,
+  mode,
   onClose,
   onSubmit,
 }: {
   open: boolean
   note: Note | null
+  mode: 'delegate' | 'replace'
   onClose: () => void
   onSubmit: (note: Note, toAddress: string, amount: string) => void
 }) {
@@ -191,10 +220,10 @@ function DelegateDialog({
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Delegate Fund #{note?.id}</DialogTitle>
+      <DialogTitle>{mode === 'replace' ? `Replace delegate on fund #${note?.id}` : `Delegate fund #${note?.id}`}</DialogTitle>
       <DialogContent>
         <TextField
-          label="Delegate to address"
+          label={mode === 'replace' ? 'New delegate address' : 'Delegate to address'}
           value={toAddress}
           onChange={(e) => setToAddress(e.target.value)}
           fullWidth
@@ -213,7 +242,7 @@ function DelegateDialog({
       <DialogActions>
         <Button onClick={onClose}>Cancel</Button>
         <Button onClick={handleSubmit} variant="contained" disabled={!toAddress || !amount}>
-          Delegate
+          {mode === 'replace' ? 'Replace' : 'Delegate'}
         </Button>
       </DialogActions>
     </Dialog>
@@ -403,6 +432,7 @@ export function MyNotesPage({ experience = 'delegation' }: { experience?: 'deleg
   const [actionLoading, setActionLoading] = useState(false)
 
   const [delegateDialogOpen, setDelegateDialogOpen] = useState(false)
+  const [delegateMode, setDelegateMode] = useState<'delegate' | 'replace'>('delegate')
   const [delegateTarget, setDelegateTarget] = useState<Note | null>(null)
   const isDonate = experience === 'donate'
 
@@ -460,6 +490,13 @@ export function MyNotesPage({ experience = 'delegation' }: { experience?: 'deleg
   }, [loadNotes])
 
   const handleDelegate = (note: Note) => {
+    setDelegateMode('delegate')
+    setDelegateTarget(note)
+    setDelegateDialogOpen(true)
+  }
+
+  const handleReplace = (note: Note) => {
+    setDelegateMode('replace')
     setDelegateTarget(note)
     setDelegateDialogOpen(true)
   }
@@ -476,12 +513,22 @@ export function MyNotesPage({ experience = 'delegation' }: { experience?: 'deleg
       const owners = chain
         .sort((a, b) => b.position - a.position)
         .map(link => link.address as `0x${string}`)
-      await delegateNote(clients, contract, {
-        noteId: BigInt(note.id),
-        owners,
-        delegateTo: toAddress as `0x${string}`,
-        amount: parseEther(amount),
-      })
+      const amountWei = parseEther(amount)
+      if (delegateMode === 'replace') {
+        await replaceDelegate(clients, contract, {
+          noteId: BigInt(note.id),
+          owners,
+          newDelegate: toAddress as `0x${string}`,
+          amount: amountWei,
+        })
+      } else {
+        await delegateNote(clients, contract, {
+          noteId: BigInt(note.id),
+          owners,
+          delegateTo: toAddress as `0x${string}`,
+          amount: amountWei,
+        })
+      }
       await loadNotes()
     } catch (err) {
       console.error('Delegate failed:', err)
@@ -621,7 +668,15 @@ export function MyNotesPage({ experience = 'delegation' }: { experience?: 'deleg
             ) : (
               <Stack spacing={2} sx={{ mb: 3 }}>
                 {ownedNotes.map((note) => (
-                  <NoteCard key={noteScopedKey(note)} note={note} showDelegatedFrom showDelegate onDelegate={handleDelegate} />
+                  <NoteCard
+                    key={noteScopedKey(note)}
+                    note={note}
+                    showDelegatedFrom
+                    showDelegate={!isDelegate(note)}
+                    showGiveBack={isDelegate(note)}
+                    onDelegate={handleDelegate}
+                    onGiveBack={handleRevoke}
+                  />
                 ))}
               </Stack>
             )}
@@ -669,7 +724,11 @@ export function MyNotesPage({ experience = 'delegation' }: { experience?: 'deleg
                   note={note}
                   showCurrentOwner
                   showRevoke={isDelegate(note)}
+                  showReplace={isDelegate(note)}
                   showReclaim={!isDelegate(note)}
+                  showDelegate={!isDelegate(note)}
+                  onDelegate={handleDelegate}
+                  onReplace={handleReplace}
                   onRevoke={handleRevoke}
                   onReclaim={handleReclaim}
                 />
@@ -709,6 +768,7 @@ export function MyNotesPage({ experience = 'delegation' }: { experience?: 'deleg
       <DelegateDialog
         open={delegateDialogOpen}
         note={delegateTarget}
+        mode={delegateMode}
         onClose={() => { setDelegateDialogOpen(false); setDelegateTarget(null) }}
         onSubmit={handleDelegateSubmit}
       />

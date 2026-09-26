@@ -96,12 +96,16 @@ abstract contract AssuranceContract {
      * @notice Withdraws all funds if the project has succeeded
      * @dev Only the recipient can call this function. Reverts if the project has not succeeded.
      */
-    function withdraw() external {
+    function withdraw() external virtual {
         if (msg.sender != _recipient) revert OnlyRecipientCanWithdraw();
         requireAssuranceContractHasSucceeded();
         uint256 value = withdrawableRecipientBalance();
         emit AssuranceContractWithdrawal(_recipient, value);
         IERC20(paymentToken).safeTransfer(_recipient, value);
+    }
+
+    function _hasSucceeded() internal view returns (bool) {
+        return _conditionSet && _condition.hasSucceeded();
     }
 
     function withdrawableRecipientBalance() internal view virtual returns (uint256) {

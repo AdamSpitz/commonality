@@ -5,7 +5,7 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {CreatorAssuranceContract, ICreatorAssuranceContract} from "./CreatorAssuranceContract.sol";
+import {CreatorAssuranceContract, CreatorAssuranceDeployer, ICreatorAssuranceContract} from "./CreatorAssuranceContract.sol";
 import {ContentRegistry} from "./ContentRegistry.sol";
 import {BeneficiaryRegistry} from "./BeneficiaryRegistry.sol";
 import {BeneficiaryEscrow} from "./BeneficiaryEscrow.sol";
@@ -21,6 +21,7 @@ error ArrayLengthMismatch();
 error InvalidChannelId();
 error InvalidContentIdSeparator();
 error InvalidPaymentTokenAddress();
+error InvalidDeployerAddress();
 error ChannelCanonicalIdMismatch(bytes32 channelId, bytes32 canonicalChannelIdHash);
 error BeneficiaryNotVerifiedOrControlled(bytes32 channelId);
 error ChannelCreatorControlled(bytes32 channelId);
@@ -124,7 +125,11 @@ contract CreatorAssuranceContractFactory is Ownable2Step {
     /// @notice The channel registry for checking channel ownership and state
     BeneficiaryRegistry public beneficiaryRegistry;
     /// @notice The escrow contract for unclaimed channels
+    /// @notice Retained so existing deployment wiring still constructs this factory.
+    ///         New contracts do not deposit here.
     BeneficiaryEscrow public beneficiaryEscrow;
+    uint256 public constant UNCLAIMED_PROCEEDS_WINDOW = 90 days;
+    CreatorAssuranceDeployer public immutable assuranceDeployer;
 
     /// @notice Factory for creating ERC1155 token contracts
     PremintingERC1155Factory public immutable erc1155Factory;
@@ -174,10 +179,13 @@ contract CreatorAssuranceContractFactory is Ownable2Step {
         address _erc1155Factory,
         address _conditionFactory,
         address _paymentToken,
-        string memory _contentIdSeparator
+        string memory _contentIdSeparator,
+        address _assuranceDeployer
     ) Ownable(msg.sender) {
         if (bytes(_contentIdSeparator).length != 1) revert InvalidContentIdSeparator();
         if (_paymentToken == address(0)) revert InvalidPaymentTokenAddress();
+        if (_assuranceDeployer == address(0)) revert InvalidDeployerAddress();
+        assuranceDeployer = CreatorAssuranceDeployer(_assuranceDeployer);
         contentRegistry = ContentRegistry(_contentRegistry);
         beneficiaryRegistry = BeneficiaryRegistry(_beneficiaryRegistry);
         beneficiaryEscrow = BeneficiaryEscrow(_beneficiaryEscrow);
@@ -361,14 +369,14 @@ contract CreatorAssuranceContractFactory is Ownable2Step {
         // Securities-redesign content contracts intentionally do not deploy a per-project
         // secondary marketplace. Receipt tokens are non-transferable; later donations use
         // the reimbursement flow instead of resale.
-        CreatorAssuranceContract ac = new CreatorAssuranceContract(
+        CreatorAssuranceContract ac = assuranceDeployer.deploy(
             address(this),
-            channel.recipient,
             paymentToken,
             address(erc1155),
             params.metadataCid,
             params.channelId,
-            !channel.verified
+            address(beneficiaryRegistry),
+            UNCLAIMED_PROCEEDS_WINDOW
         );
 
         address conditionAddress;

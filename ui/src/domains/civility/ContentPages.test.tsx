@@ -298,7 +298,7 @@ describe('Noninflammatory branded surfaces', () => {
 
       expect(screen.getByRole('heading', { name: /creator dashboard/i })).toBeInTheDocument()
       expect(
-        screen.getByText(/verify channels, withdraw escrowed balances/i),
+        screen.getByText(/Claim or refuse each project's funds/i),
       ).toBeInTheDocument()
     })
 

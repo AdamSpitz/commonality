@@ -479,7 +479,7 @@ export function CreateProjectPage() {
                 required
               />
               <Alert severity="warning">
-                {COMMUNITY_CREATED_NOTICE} Claiming the website later does not change that. If unclaimed, successful funds stay in protocol escrow until the controller proves domain control; you cannot withdraw them. Contributions are not tax-deductible gifts and do not certify charity or legal-entity identity.
+                {COMMUNITY_CREATED_NOTICE} Claiming the website later does not accept this project's funds. Successful funds stay in this project until the current payout address claims or refuses this project, or contributors reclaim them after the unclaimed window. Registering a payout address does not accept any project. Contributions are not tax-deductible gifts and do not certify charity or legal-entity identity.
               </Alert>
               <ExistingBeneficiaryProjects domain={beneficiaryDomain} />
             </Stack>

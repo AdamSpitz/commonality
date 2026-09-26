@@ -1,5 +1,18 @@
 import '@testing-library/jest-dom/vitest'
 import { beforeAll, beforeEach, afterAll, vi } from 'vitest'
+// MUI does not publish types for this internal singleton. The package export
+// map also blocks importing it by package name.
+// @ts-expect-error no declaration file for the internal theme module
+import defaultTheme from '../../../node_modules/@mui/material/esm/styles/defaultTheme.js'
+
+// jsdom never finishes CSS transitions, so MUI dialogs keep the page aria-hidden
+// until the exit timeout. CreateProjectPage and ClaimFlowModal render Dialog with
+// no ThemeProvider, so they use this singleton. Zero the durations and skip the
+// generated transition CSS. A page that builds its own theme will not see this.
+defaultTheme.transitions.create = () => 'none'
+for (const key of Object.keys(defaultTheme.transitions.duration)) {
+  defaultTheme.transitions.duration[key as keyof typeof defaultTheme.transitions.duration] = 0
+}
 
 // Provide indexedDB for tests (used by contactStore, nudgeStore, etc.)
 import 'fake-indexeddb/auto'

@@ -11,7 +11,7 @@ This is a risk map, not legal advice. Adam is a Canadian resident and the produc
 
 Those changes remove the facts that made the original securities story especially alarming and vacate the primary upload/hosting role for new user-authored text. They do **not** make the project legally cleared:
 
-- A securities lawyer still needs to review the contingent, zero-interest reimbursement right and delegation model before mainnet.
+- A securities lawyer still needs to review the contingent, zero-interest reimbursement right and delegation model before mainnet. Further ways to narrow delegation, not yet decided, are in [delegation-narrowing.md](delegation-narrowing.md).
 - We still operate the default UIs, indexer/API, identity verifier, and editorial agents. We are a platform operator for those acts, not “just a protocol.”
 - Displaying and re-serving third-party material still needs a real notice/takedown process. The code has suppression plumbing; an operated policy, monitored contact, configured production list, and response procedure are separate work.
 - Incorporation, counsel-written ToS/privacy policy, sanctions/wallet screening, political-funding rules, charitable-solicitation review, and tax disclaimers remain before-mainnet work.

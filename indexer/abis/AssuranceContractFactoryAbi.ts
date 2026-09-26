@@ -63,11 +63,6 @@ export const AssuranceContractFactoryAbi = [
       },
       {
         "internalType": "address",
-        "name": "recipient",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
         "name": "paymentToken",
         "type": "address"
       },
@@ -87,9 +82,14 @@ export const AssuranceContractFactoryAbi = [
         "type": "bytes32"
       },
       {
-        "internalType": "bool",
-        "name": "recipientIsEscrow",
-        "type": "bool"
+        "internalType": "address",
+        "name": "registry",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "unclaimedWindow",
+        "type": "uint256"
       }
     ],
     "name": "createBeneficiaryAssuranceContract",

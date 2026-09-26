@@ -17,6 +17,7 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 ## Main list
 
+- Think through the further delegation-narrowing ideas in [delegation-narrowing.md](specs/product/legal/delegation-narrowing.md). The three TODO.md items (one hop, one voice, optional delay) are the baseline. Still open: risk tiers based on vouches for payout addresses rather than "new project" or "address has been paid before"; signed spend rules; refunds and reimbursement returning to the donor; expiring authority; an optional watcher who can cancel but not spend; and whether the delegate should ever hold a balance. Not legal advice, and not a decision yet.
 
 ### Security/recoverability human actions
 

@@ -236,7 +236,7 @@ describe('BrowseProjectsPage', () => {
 
       await waitFor(() => {
         expect(screen.getByText('Domain-controlled')).toBeInTheDocument()
-        expect(screen.getByText(/escrow pays the bound wallet/i)).toBeInTheDocument()
+        expect(screen.getByText(/does not accept this project's funds/i)).toBeInTheDocument()
       })
     })
 

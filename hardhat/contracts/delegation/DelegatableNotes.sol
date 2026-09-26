@@ -67,6 +67,9 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
   error NoteHasNoReimbursementClaim();
   error NoReimbursementAvailable();
   error WrongPrimaryMarket();
+  error DelegationHopLimit();
+  error ReplaceRequiresOneDelegate();
+  error NotNoteRoot();
 
   enum TokenType { ERC20, ERC1155 }
 
@@ -147,6 +150,19 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
    * @param revoker The address that revoked the delegation
    */
   event NoteRevoked(uint256 indexed noteId, address indexed revoker);
+
+  /**
+   * @notice The root replaced the current delegate with a new note.
+   * @dev The original note keeps its chain. A full replacement retires it.
+   *      A partial replacement leaves the remainder on it. `toNoteId` is a new
+   *      note whose chain is exactly [root, newDelegate].
+   */
+  event NoteDelegateReplaced(
+    uint256 indexed fromNoteId,
+    uint256 indexed toNoteId,
+    address indexed newDelegate,
+    uint256 amount
+  );
 
   /**
    * @notice Emitted when the root owner reclaims funds from a note
@@ -471,6 +487,8 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
     if (owners[0] != _msgSender()) revert NotNoteOwner();
     if (amountToDelegate == 0 || amountToDelegate > note.amount) revert InvalidDelegationAmount();
     if (delegateTo == address(0)) revert CannotDelegateToZeroAddress();
+    // The leaf of an undelegated note is the root. A second hop is rejected.
+    if (owners.length != 1) revert DelegationHopLimit();
 
     for (uint256 i = 0; i < owners.length; i++) {
       if (owners[i] == delegateTo) revert CircularDelegationDetected();
@@ -497,18 +515,7 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
         tokenId: note.tokenId
       });
 
-      ReimbursementClaim storage originalClaim = reimbursementClaims[noteId];
-      if (originalClaim.primaryMarket != address(0)) {
-        uint256 delegatedContribution = originalClaim.contribution * amountToDelegate / note.amount;
-        uint256 delegatedWithdrawn = originalClaim.withdrawn * amountToDelegate / note.amount;
-        reimbursementClaims[delegatedNoteId] = ReimbursementClaim({
-          primaryMarket: originalClaim.primaryMarket,
-          contribution: delegatedContribution,
-          withdrawn: delegatedWithdrawn
-        });
-        originalClaim.contribution -= delegatedContribution;
-        originalClaim.withdrawn -= delegatedWithdrawn;
-      }
+      _moveClaimPortion(noteId, delegatedNoteId, amountToDelegate);
 
       // Update original note with remainder (keep same chain)
       note.amount = remainderAmount;
@@ -518,6 +525,76 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
 
       return (delegatedNoteId, noteId);
     }
+  }
+
+  /**
+   * @notice Root replaces the single delegate on this note, in whole or in part.
+   * @dev Mints a new note with chain [root, newDelegate]. Does not rewrite the
+   *      chain on `noteId`. A full replacement deletes `noteId`. A partial
+   *      replacement leaves the remainder delegated to the current leaf.
+   *      `owners` must be the current chain, leaf first, and exactly length 2.
+   * @return replacedNoteId The new note controlled by `newDelegate`
+   * @return remainderNoteId `noteId` when some amount stays, otherwise 0
+   */
+  function replaceDelegate(
+    uint256 noteId,
+    address[] calldata owners,
+    address newDelegate,
+    uint256 amount
+  ) external nonReentrant returns (uint256 replacedNoteId, uint256 remainderNoteId) {
+    Note storage note = notes[noteId];
+    if (note.chainHash == bytes32(0)) revert NoteDoesNotExist();
+
+    bytes32 expectedHash = _verifyAndComputeChainHash(owners);
+    if (note.chainHash != expectedHash) revert InvalidChain();
+    if (owners.length != 2) revert ReplaceRequiresOneDelegate();
+    if (owners[owners.length - 1] != _msgSender()) revert NotNoteRoot();
+    if (amount == 0 || amount > note.amount) revert InvalidDelegationAmount();
+    if (newDelegate == address(0)) revert CannotDelegateToZeroAddress();
+    if (newDelegate == owners[0] || newDelegate == owners[1]) revert CircularDelegationDetected();
+
+    address root = owners[1];
+    address token = note.token;
+    TokenType tokenType = note.tokenType;
+    uint256 tokenId = note.tokenId;
+    bytes32 newChainHash = _computeChainHash(newDelegate, _computeChainHash(root, bytes32(0)));
+
+    replacedNoteId = nextNoteId++;
+    notes[replacedNoteId] = Note({
+      chainHash: newChainHash,
+      amount: amount,
+      token: token,
+      tokenType: tokenType,
+      tokenId: tokenId
+    });
+    _moveClaimPortion(noteId, replacedNoteId, amount);
+
+    if (amount == note.amount) {
+      delete notes[noteId];
+      delete reimbursementClaims[noteId];
+      remainderNoteId = 0;
+    } else {
+      note.amount -= amount;
+      remainderNoteId = noteId;
+    }
+
+    emit NoteCreated(replacedNoteId, root, amount, token, tokenType, tokenId);
+    emit NoteDelegateReplaced(noteId, replacedNoteId, newDelegate, amount);
+  }
+
+  function _moveClaimPortion(uint256 fromNoteId, uint256 toNoteId, uint256 amount) private {
+    ReimbursementClaim storage originalClaim = reimbursementClaims[fromNoteId];
+    if (originalClaim.primaryMarket == address(0)) return;
+    uint256 noteAmount = notes[fromNoteId].amount;
+    uint256 movedContribution = originalClaim.contribution * amount / noteAmount;
+    uint256 movedWithdrawn = originalClaim.withdrawn * amount / noteAmount;
+    reimbursementClaims[toNoteId] = ReimbursementClaim({
+      primaryMarket: originalClaim.primaryMarket,
+      contribution: movedContribution,
+      withdrawn: movedWithdrawn
+    });
+    originalClaim.contribution -= movedContribution;
+    originalClaim.withdrawn -= movedWithdrawn;
   }
 
 
@@ -667,6 +744,7 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
     bytes32 expectedHash = _verifyAndComputeChainHash(chain);
     if (note.chainHash != expectedHash) revert InvalidChain();
     if (chain[0] != _msgSender()) revert NotNoteOwner();
+    if (chain.length > 2) revert DelegationHopLimit();
     if (note.tokenType != TokenType.ERC1155) revert NoteIsNotReceiptToken();
     if (reimbursementClaims[noteId].primaryMarket != primaryMarket) revert WrongPrimaryMarket();
 
@@ -746,6 +824,7 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
     if (receiptNote.tokenType != TokenType.ERC1155) revert NoteIsNotReceiptToken();
     if (receiptNote.chainHash != _verifyAndComputeChainHash(chain)) revert InvalidChain();
     if (chain[0] != _msgSender()) revert NotNoteOwner();
+    if (chain.length > 2) revert DelegationHopLimit();
 
     ReimbursementClaim storage claim = reimbursementClaims[receiptNoteId];
     if (claim.primaryMarket == address(0)) revert NoteHasNoReimbursementClaim();
@@ -808,6 +887,7 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
       bytes32 expectedHash = _verifyAndComputeChainHash(purchaseShare.chain);
       if (note.chainHash != expectedHash) revert InvalidChain();
       if (purchaseShare.chain[0] != caller) revert NotNoteOwner();
+      if (purchaseShare.chain.length > 2) revert DelegationHopLimit();
       if (note.tokenType != TokenType.ERC20 || note.token != paymentToken) {
         revert InvalidPaymentTokenForPurchase();
       }

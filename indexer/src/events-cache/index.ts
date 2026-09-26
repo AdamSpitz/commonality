@@ -71,6 +71,7 @@ register("DelegatableNotes:NoteCreated");
 register("DelegatableNotes:NoteDelegated");
 register("DelegatableNotes:ChainSplit");
 register("DelegatableNotes:NoteRevoked");
+register("DelegatableNotes:NoteDelegateReplaced");
 register("DelegatableNotes:FundsReclaimed");
 register("DelegatableNotes:NoteConsumed");
 register("DelegatableNotes:ERC1155Purchased");

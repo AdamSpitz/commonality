@@ -2167,3 +2167,7 @@ Plan item 7 closed. Restarted a 6-day-old `causestarter:dev` so Vite baked `VITE
 ## 2026-09-11 — Remote canary preflight (no mutation)
 
 Plan item 8 closed. `campaignCanary.ts` + `npm run gen:campaign:canary-preflight` slice the medium-realistic plan to 10 users (plus extra actors required by prerequisites), estimate ETH/token needs and paced duration, probe chain bytecode and indexer lag, and write `reports/remote-canary-preflight.{json,md}`. Shared-lab health, official implication path, `verifier-testnet.sh`, and the budget/window remain `needs-adam`. Does not send transactions. Next: item 9 only after Adam approves that proposal.
+
+## 2026-09-26 — UI Vitest dialog timeouts
+
+Disabled Material UI transitions in `ui/src/test/setup.ts` by zeroing the default theme's durations (`transitions.create` returns `none`). `CreateProjectPage` and `ClaimFlowModal` render `Dialog` with no `ThemeProvider`, so they use that singleton. Removed the 30s `Successful submission` timeout. Set Vitest `testTimeout` to 10s. Left `css: true`. Isolation run of those two files passed (74 tests). `npm run ui:test:vitest:raw` passed: 198 files, 2092 tests, about 73s. Slowest create-project case under that load was about 4.0s.

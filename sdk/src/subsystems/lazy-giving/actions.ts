@@ -8,7 +8,6 @@ import {
   PremintingERC1155Abi,
   PremintingERC1155FactoryAbi,
   AssuranceContractFactoryAbi,
-  BeneficiaryAssuranceContractAbi,
 } from '../../abis.js';
 import { IpfsCidV1 } from '../../utils/cid-types.js';
 import { approveERC20Spend, erc20ApproveAbi } from '../../utils/erc20.js';
@@ -316,20 +315,47 @@ export async function createProject(
   };
 }
 
-/** Deposit a successful unclaimed-beneficiary project's proceeds into shared escrow. */
-export async function withdrawBeneficiaryProjectToEscrow(
+const identityProceedsAbi = [
+  { type: 'function', name: 'claim', stateMutability: 'nonpayable', inputs: [], outputs: [] },
+  { type: 'function', name: 'refuse', stateMutability: 'nonpayable', inputs: [], outputs: [] },
+  { type: 'function', name: 'reclaimUnclaimedShare', stateMutability: 'nonpayable', inputs: [], outputs: [] },
+  { type: 'function', name: 'noteSuccess', stateMutability: 'nonpayable', inputs: [], outputs: [] },
+] as const;
+
+async function writeIdentityProceeds(
   clients: WriteClients,
   assuranceContractAddress: Address,
+  functionName: 'claim' | 'refuse' | 'reclaimUnclaimedShare' | 'noteSuccess',
 ): Promise<Hash> {
   const hash = await clients.walletClient.writeContract({
     address: assuranceContractAddress,
-    abi: BeneficiaryAssuranceContractAbi,
-    functionName: 'withdrawToBeneficiaryEscrow',
+    abi: identityProceedsAbi,
+    functionName,
     chain: clients.walletClient.chain,
     account: clients.walletClient.account!,
   });
   await clients.publicClient.waitForTransactionReceipt({ hash });
   return hash;
+}
+
+/** Current payout address takes this project's recipient balance. Other projects stay put. */
+export function claimIdentityProceeds(clients: WriteClients, assuranceContractAddress: Address): Promise<Hash> {
+  return writeIdentityProceeds(clients, assuranceContractAddress, 'claim');
+}
+
+/** Current payout address refuses this project. */
+export function refuseIdentityProceeds(clients: WriteClients, assuranceContractAddress: Address): Promise<Hash> {
+  return writeIdentityProceeds(clients, assuranceContractAddress, 'refuse');
+}
+
+/** Contributor pulls their share after a refusal or the unclaimed window. */
+export function reclaimUnclaimedProceeds(clients: WriteClients, assuranceContractAddress: Address): Promise<Hash> {
+  return writeIdentityProceeds(clients, assuranceContractAddress, 'reclaimUnclaimedShare');
+}
+
+/** Start the unclaimed window once the project has succeeded. */
+export function noteIdentityProceedsSuccess(clients: WriteClients, assuranceContractAddress: Address): Promise<Hash> {
+  return writeIdentityProceeds(clients, assuranceContractAddress, 'noteSuccess');
 }
 
 /**

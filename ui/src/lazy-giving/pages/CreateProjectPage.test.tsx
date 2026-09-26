@@ -375,8 +375,7 @@ describe('CreateProjectPage', () => {
       fillForm()
       await submitAndConfirm(user)
 
-      // Wait for the confirmation dialog's close transition to finish (it keeps the
-      // background aria-hidden until then, which would hide the submit button).
+      // The dialog keeps the page aria-hidden until its exit callback runs.
       const submitButton = await screen.findByRole('button', { name: /project created/i })
       expect(submitButton).toBeDisabled()
       expect(createProject).toHaveBeenCalledTimes(1)

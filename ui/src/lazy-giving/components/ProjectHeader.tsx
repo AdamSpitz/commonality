@@ -15,6 +15,8 @@ import { truncateAddress, InfoChip, InfoLabel } from '../../shared'
 import { formatCurrencyRaised } from '../../shared/funding'
 import { WebsiteBeneficiaryClaimChip } from './WebsiteBeneficiaryClaimChip'
 import { dnsBeneficiaryDomain, WebsiteBeneficiaryMark } from './WebsiteBeneficiaryMark'
+import { PublishedBeneficiaryVerifiedMark } from './PublishedBeneficiaryVerifiedMark'
+import type { PublishedBeneficiaryBinding } from './usePublishedBeneficiaryBinding'
 
 type ProjectMetadata = {
   name?: string
@@ -28,9 +30,11 @@ interface ProjectHeaderProps {
   metadata: ProjectMetadata | null
   /** Page kind for the overline. Content-funding creator contracts use `content-project`. */
   kind?: 'project' | 'content-project'
+  /** On-chain check of the published DNS beneficiary. Omitted until the page has read it. */
+  beneficiaryBinding?: PublishedBeneficiaryBinding
 }
 
-export function ProjectHeader({ project, metadata, kind = 'project' }: ProjectHeaderProps) {
+export function ProjectHeader({ project, metadata, kind = 'project', beneficiaryBinding }: ProjectHeaderProps) {
   const status = getProjectStatus(project)
   const [copiedRecipient, setCopiedRecipient] = useState(false)
   const hasMinimum = BigInt(project.threshold) > 0n
@@ -76,8 +80,9 @@ export function ProjectHeader({ project, metadata, kind = 'project' }: ProjectHe
             </Typography>
           )}
           {websiteBeneficiary ? (
-            <Box sx={{ mt: 1 }}>
+            <Box sx={{ mt: 1, display: 'flex', alignItems: 'flex-start' }}>
               <WebsiteBeneficiaryMark domain={websiteBeneficiary} size="hero" />
+              {beneficiaryBinding && <PublishedBeneficiaryVerifiedMark binding={beneficiaryBinding} />}
             </Box>
           ) : (
           <Stack direction="row" spacing={0.5} alignItems="center">
@@ -93,7 +98,9 @@ export function ProjectHeader({ project, metadata, kind = 'project' }: ProjectHe
           )}
         </Box>
         <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-          {websiteBeneficiary && <WebsiteBeneficiaryClaimChip domain={websiteBeneficiary} />}
+          {websiteBeneficiary && beneficiaryBinding?.status !== 'mismatch' && (
+            <WebsiteBeneficiaryClaimChip domain={websiteBeneficiary} />
+          )}
           <InfoChip
             title={STATUS_TOOLTIPS[status]}
             label={STATUS_LABELS[status]}

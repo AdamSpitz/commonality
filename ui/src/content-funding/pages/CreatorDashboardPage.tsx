@@ -21,8 +21,9 @@ import { formatCurrencyAmount } from '../../shared/funding'
 import { CHANNEL_STATE_TOOLTIPS, CONTRACT_STATUS_TOOLTIPS } from '../chipTooltips'
 import { getVetoableContracts, hashCanonicalId, type ChannelWithCanonicalId, type ChannelState } from '@commonality/sdk/content-funding'
 import { ETH_CURRENCY, type Currency } from '@commonality/sdk/utils'
-import { BeneficiaryRegistryAbi, BeneficiaryEscrowAbi, CreatorAssuranceVetoAbi } from '@commonality/sdk/abis'
-import { withdrawFromEscrow, takeBeneficiaryControl, vetoContract } from '@commonality/sdk/content-funding'
+import { BeneficiaryRegistryAbi, CreatorAssuranceVetoAbi } from '@commonality/sdk/abis'
+import { takeBeneficiaryControl, vetoContract } from '@commonality/sdk/content-funding'
+import { claimIdentityProceeds } from '@commonality/sdk/lazy-giving'
 import { getChannelDisplayLabels, type ChannelDisplayMetadata } from '../channelDisplay'
 import { useContentFundingState } from '../hooks/useContentFundingState'
 import { useWriteClients } from '../../shared'
@@ -110,7 +111,7 @@ function ChannelCard({ channel, state, projects, onWithdraw, onTakeControl, onVe
           </Box>
           <Box>
             <Typography variant="body2" color="text.secondary">
-              Escrowed Balance
+              Legacy shared escrow
             </Typography>
             <Typography variant="body1" color={hasEscrowBalance ? 'warning.main' : 'text.secondary'}>
               {formatCurrencyAmount(channel.escrow.balance, fundingCurrency)}
@@ -138,7 +139,7 @@ function ChannelCard({ channel, state, projects, onWithdraw, onTakeControl, onVe
               {takingControl ? 'Taking Control...' : 'Take Control'}
             </Button>
             <Typography variant="caption" display="block" color="text.secondary" sx={{ mt: 0.5 }}>
-              Take control to manage contracts and withdraw funds.
+              Take control to decide who may create new contracts. It does not claim a project's funds.
             </Typography>
           </Box>
         )}
@@ -153,7 +154,7 @@ function ChannelCard({ channel, state, projects, onWithdraw, onTakeControl, onVe
               disabled={withdrawing}
               size="small"
             >
-              {withdrawing ? 'Withdrawing...' : `Withdraw ${formatCurrencyAmount(channel.escrow.balance, fundingCurrency)}`}
+              {withdrawing ? 'Claiming...' : 'Claim each project'}
             </Button>
           </Box>
         )}
@@ -250,7 +251,7 @@ interface CreatorDashboardPageProps {
 
 export function CreatorDashboardPage({
   title = 'Creator Dashboard',
-  description = 'Manage your verified channels, withdraw escrowed funds, and veto fan-created contracts during the 7-day window.',
+  description = 'Manage your verified channels, claim or refuse each project, and veto fan-created contracts during the 7-day window.',
   connectPrompt = 'Connect your wallet to manage your channels.',
   emptyState = 'You don\'t have any channels yet. Verify a channel to get started.',
 }: CreatorDashboardPageProps) {
@@ -281,31 +282,31 @@ export function CreatorDashboardPage({
   }, [address, channels])
 
   const handleWithdraw = async (channel: ChannelWithCanonicalId) => {
-    if (!writeClients || !address || !channel.canonicalChannelId) return
-
-    const escrowAddress = import.meta.env.VITE_BENEFICIARY_ESCROW_ADDRESS
-    const channelId = channel.canonicalChannelId
-
-    if (!escrowAddress) {
-      setWithdrawError('Channel escrow not configured')
+    if (!writeClients || !address) return
+    const contracts = channel.contracts.map((contract) => contract.contractAddress).filter(Boolean)
+    if (contracts.length === 0) {
+      setWithdrawError('No projects to claim. Registering this name does not accept funds.')
       return
     }
 
     try {
       setWithdrawing(true)
       setWithdrawError(null)
-
-      const clients = writeClients!
-
-      const escrowContract = {
-        address: escrowAddress as `0x${string}`,
-        abi: BeneficiaryEscrowAbi,
+      const failures: string[] = []
+      for (const contractAddress of contracts) {
+        try {
+          await claimIdentityProceeds(writeClients, contractAddress as `0x${string}`)
+        } catch (err) {
+          failures.push(err instanceof Error ? err.message : String(contractAddress))
+        }
       }
-
-      await withdrawFromEscrow(clients, escrowContract, hashCanonicalId(channelId))
+      if (failures.length === contracts.length) {
+        setWithdrawError(failures[0] ?? 'No project could be claimed')
+        return
+      }
       window.location.reload()
     } catch (err) {
-      setWithdrawError(err instanceof Error ? err.message : 'Failed to withdraw')
+      setWithdrawError(err instanceof Error ? err.message : 'Failed to claim')
     } finally {
       setWithdrawing(false)
     }

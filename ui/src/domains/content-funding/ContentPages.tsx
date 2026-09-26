@@ -27,7 +27,7 @@ export function ContentFundingCreatorsPage({
     <CreatorsLandingPage
       title="Content Funding"
       description="Fund creators and individual pieces of content people already value. Browse by platform, back work you care about, and let creators claim what contributors have pooled for them."
-      secondaryDescription="Open a channel to see active contracts and escrowed funds, or create a new contract around content you want to reward."
+      secondaryDescription="Open a channel to see active contracts, or create a new contract around content you want to reward. Each contract holds its own funds."
       learnMoreLabel="Learn how content funding contracts work"
       learnMorePath={learnMorePath}
     />
@@ -53,7 +53,7 @@ export function ContentFundingChannelPage() {
       contractsHeading="Content Funding Contracts"
       createContractLabel="Start Contract"
       emptyContractsState="No content-funding contracts exist for this channel yet."
-      unclaimedHeroDescription="This creator has not claimed the channel yet. If it is yours, verify your identity and claim the escrowed funds contributors have already pooled here."
+      unclaimedHeroDescription="This creator has not claimed the channel yet. Verifying the channel binds a payout address. It does not accept funds. Claim or refuse each project on its own."
       shareDescription="If you know this creator, send them the claim link below so they can verify ownership and collect the funds waiting for them."
       contractPathForAddress={getContentFundingContractPath}
     />
@@ -82,7 +82,7 @@ export function ContentFundingCreatorDashboardPage() {
   return (
     <CreatorDashboardPage
       title="Creator Funding Dashboard"
-      description="Manage claimed channels, withdraw escrowed balances, and review active or vetoable contracts tied to your content."
+      description="Manage claimed channels and review active or vetoable contracts. Claim or refuse each project's funds on that project."
       connectPrompt="Connect your wallet to manage creator funding contracts."
       emptyState="No eligible creator channels found for this wallet yet. Verify a channel by starting a contract for your channel or pasting a content URL from the Content Funding start page."
     />
@@ -210,7 +210,7 @@ export function ContentFundingAboutPage() {
         About Content Funding
       </Typography>
       <Typography variant="body1" color="text.secondary" sx={{ mb: 3, maxWidth: 780 }}>
-        Reward articles, videos, posts, and channels you want more of. Contributors pool money around a creator or piece of work; if the channel owner verifies, the escrow pays out to the creator.
+        Reward articles, videos, posts, and channels you want more of. Contributors pool money in each project. Verifying a channel binds a payout address. The controller then claims or refuses each project separately.
       </Typography>
 
       <Stack spacing={2}>
@@ -248,13 +248,13 @@ export function ContentFundingAboutPage() {
               • Browse creators by platform and open a funding contract around a channel or specific piece of content.
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              • Contribute funds that stay in escrow until the creator verifies ownership and claims them.
+              • Contribute funds that stay in the project until the creator claims or refuses that project.
             </Typography>
             <Typography variant="body2" color="text.secondary">
               • Share a claim link with the creator so they can verify and collect what contributors have pooled.
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              • If you are the creator, verify your channel and withdraw escrowed balances from one dashboard.
+              • If you are the creator, verify your channel. Claim or refuse each project on its own. Verification does not take the money.
             </Typography>
           </Stack>
         </Paper>
@@ -263,7 +263,7 @@ export function ContentFundingAboutPage() {
             How money flows
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            A contributor puts funds into an escrow contract tied to a specific channel or content item. The creator verifies ownership through the platform API. Once verified, the creator can withdraw the pooled balance. If the creator never shows up, contributors can reclaim their contribution.
+            A contributor puts funds into a project tied to a specific channel or content item. The funds stay in that project. The creator verifies ownership through the platform API, then claims or refuses that project. Verification does not take the money. If nobody claims within 90 days after success is noted, contributors can reclaim the surplus.
           </Typography>
         </Paper>
         <Paper sx={{ p: 2 }}>
@@ -322,7 +322,7 @@ export function ContentFundingContractPage() {
           Content Funding Contract
         </Typography>
         <Typography variant="body1" color="text.secondary">
-          See who contributed, what content is covered, and where the escrow stands. Creators can verify the channel here to claim pooled funds.
+          See who contributed and what content is covered. The project holds its own funds. Verifying the channel does not claim them.
         </Typography>
       </Paper>
       <ProjectDetailPage />

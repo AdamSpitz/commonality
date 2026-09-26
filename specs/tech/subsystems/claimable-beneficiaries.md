@@ -21,7 +21,7 @@ beneficiaryId = keccak256(namespace, canonicalIdentifier)
 
 Examples: `("x","uid:44196397")`, `("youtube","channel:UC…")`, `("substack","example")`, `("dns","example.org")`.
 
-A project (LazyGiving or creator assurance) names a `beneficiaryId`. If unverified, success pays `BeneficiaryEscrow`. If verified, success may pay the bound payout address directly. The namespace's verifier decides who may bind that address.
+A project (LazyGiving or creator assurance) names a `beneficiaryId` and keeps its funds. After success, the registry's current payout address may claim or refuse that project. The claim reads the registry at that moment, so a payout rotation applies only when that project is claimed. The namespace's verifier decides who may bind the address. Registering the address does not accept the project's funds.
 
 ## Contract split
 
@@ -31,7 +31,7 @@ Replace `ChannelRegistry` + `ChannelEscrow` + `IChannelVerifier` / `ChannelClaim
 |---|---|
 | `BeneficiaryIdentity` | Who proved control of a `beneficiaryId` (social channel or DNS name — one mechanism). Proof-hash anchoring, nonce/deadline replay, verifier. Not a payout address. Conceptspace deployment. |
 | `BeneficiaryRegistry` | Funding copy of that owner as the initial payout address, then rotation, beneficiary-controlled project creation, disavowal, and the namespace claim waiting period. A later proof cannot replace an adopted payout. |
-| `BeneficiaryEscrow` | ETH (later stablecoin) balances keyed by `beneficiaryId`; `withdraw` only to the registry's current payout address |
+| `BeneficiaryEscrow` | Legacy shared pot. New LazyGiving and content projects do not deposit here. See [ADR 0015](/specs/decisions/0015-per-project-beneficiary-proceeds.md). |
 | `IBeneficiaryVerifier` | `verifyClaimProof(proof) returns (bool)` — one implementation per namespace (tweet, RSS, well-known HTTPS, later zkTLS / DNSSEC) |
 
 Content-funding factory and `ContentRegistry` **call** the registry (may this address create a contract that includes this channel's items? is the channel beneficiary-controlled?) but do not live inside it. Veto stays on the content factory / registry.

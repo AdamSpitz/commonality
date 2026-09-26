@@ -26,6 +26,7 @@ const ADDRESS_KEYS = {
   ContentRegistry: ['CONTENT_REGISTRY_ADDRESS'],
   BeneficiaryRegistry: ['BENEFICIARY_REGISTRY_ADDRESS'],
   BeneficiaryEscrow: ['BENEFICIARY_ESCROW_ADDRESS'],
+  CreatorAssuranceDeployer: ['CREATOR_ASSURANCE_DEPLOYER_ADDRESS'],
   CreatorAssuranceContractFactory: ['CREATOR_CONTRACT_FACTORY_ADDRESS'],
   CreatorAssuranceVeto: ['CREATOR_ASSURANCE_VETO_ADDRESS'],
   ProspectiveRoundDeploymentHelper: ['PROSPECTIVE_ROUND_DEPLOYMENT_HELPER_ADDRESS'],
@@ -270,7 +271,8 @@ async function main() {
   });
   await deployOrReuse('BeneficiaryRegistry', 'BeneficiaryRegistry', [addresses.BeneficiaryIdentity]);
   await deployOrReuse('BeneficiaryEscrow', 'BeneficiaryEscrow', [addresses.BeneficiaryRegistry, addresses.FreeERC20]);
-  await deployOrReuse('CreatorAssuranceContractFactory', 'CreatorAssuranceContractFactory', [addresses.ContentRegistry, addresses.BeneficiaryRegistry, addresses.BeneficiaryEscrow, addresses.PremintingERC1155Factory, addresses.ValueThresholdConditionFactory, addresses.FreeERC20, ':']);
+  await deployOrReuse('CreatorAssuranceDeployer', 'CreatorAssuranceDeployer', []);
+  await deployOrReuse('CreatorAssuranceContractFactory', 'CreatorAssuranceContractFactory', [addresses.ContentRegistry, addresses.BeneficiaryRegistry, addresses.BeneficiaryEscrow, addresses.PremintingERC1155Factory, addresses.ValueThresholdConditionFactory, addresses.FreeERC20, ':', addresses.CreatorAssuranceDeployer]);
   if (addresses.CreatorAssuranceContractFactory) {
     try {
       const factory = await ethers.getContractAt('CreatorAssuranceContractFactory', addresses.CreatorAssuranceContractFactory);

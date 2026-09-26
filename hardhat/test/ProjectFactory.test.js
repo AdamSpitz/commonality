@@ -109,8 +109,8 @@ describe('ProjectFactory', function () {
     ).to.be.revertedWithCustomError(factory, 'InvalidFactoryAddress');
   });
 
-  it('routes an unclaimed beneficiary project through shared escrow', async function () {
-    const [creator, owner] = await ethers.getSigners();
+  it('keeps beneficiary proceeds in the project until that payout address claims', async function () {
+    const [creator, owner, other] = await ethers.getSigners();
     const { projectFactory, beneficiaryRegistry, beneficiaryEscrow, verifier, beneficiaryPaymentToken: paymentToken } = await deployProjectFactory();
     const deadline = BigInt((await ethers.provider.getBlock('latest')).timestamp + 3600);
     const beneficiaryId = ethers.keccak256(ethers.toUtf8Bytes('dns:example.org'));
@@ -125,34 +125,35 @@ describe('ProjectFactory', function () {
     const assurance = await ethers.getContractAt('BeneficiaryAssuranceContract', event.args.assuranceContract);
 
     expect(await assurance.beneficiaryId()).to.equal(beneficiaryId);
-    expect(await assurance.recipient()).to.equal(beneficiaryEscrow.target);
-    expect(await assurance.recipientIsEscrow()).to.equal(true);
+    expect(await assurance.recipient()).to.equal(assurance.target);
+    expect(await beneficiaryEscrow.balance(beneficiaryId)).to.equal(0n);
 
     const token = await ethers.getContractAt('PremintingERC1155', event.args.token);
     await paymentToken.connect(creator).mint(105n);
     await paymentToken.connect(creator).approve(assurance.target, 105n);
     await assurance.connect(creator).buyERC1155(creator.address, token.target, [2n], [15n], '0x');
-    await assurance.withdrawToBeneficiaryEscrow();
-    expect(await beneficiaryEscrow.balance(beneficiaryId)).to.equal(105n);
+    await expect(assurance.withdraw()).to.be.revertedWithCustomError(assurance, 'UseClaim');
+    await expect(assurance.connect(other).claim()).to.be.revertedWithCustomError(assurance, 'NotPayoutAddress');
 
     await verifier.setValid(true);
     const nonce = ethers.keccak256(ethers.toUtf8Bytes('project-factory-beneficiary-claim'));
     const proofHash = ethers.keccak256(ethers.toUtf8Bytes('https://example.org/.well-known/commonality-claim.json'));
     await beneficiaryRegistry.verifyBeneficiary(beneficiaryId, owner.address, nonce, deadline, proofHash, '0x');
-    await beneficiaryEscrow.connect(owner).withdraw(beneficiaryId);
+    await assurance.connect(owner).claim();
     expect(await paymentToken.balanceOf(owner.address)).to.equal(105n);
+    expect(await beneficiaryEscrow.balance(beneficiaryId)).to.equal(0n);
   });
 
-  it('rejects a beneficiary project using a token unsupported by the escrow', async function () {
+  it('accepts a beneficiary project in a token other than the legacy escrow token', async function () {
     const [, owner] = await ethers.getSigners();
-    const unsupportedToken = await ethers.deployContract('FreeERC20', ['Other', 'OTHER', 6]);
+    const otherToken = await ethers.deployContract('FreeERC20', ['Other', 'OTHER', 6]);
     const { projectFactory } = await deployProjectFactory();
     const deadline = BigInt((await ethers.provider.getBlock('latest')).timestamp + 3600);
-    const args = defaultProjectParams(owner.address, ethers.ZeroAddress, unsupportedToken.target, deadline);
+    const args = defaultProjectParams(owner.address, ethers.ZeroAddress, otherToken.target, deadline);
 
     await expect(projectFactory.createERC1155AndAssuranceContractForBeneficiary(
       args[0], args[1], args[2], ethers.keccak256(ethers.toUtf8Bytes('dns:example.org')), ...args.slice(4),
-    )).to.be.revertedWithCustomError(projectFactory, 'BeneficiaryPaymentTokenMismatch');
+    )).to.emit(projectFactory, 'ProjectCreated');
   });
 
   it('lets anyone create for a verified but not-controlled beneficiary', async function () {

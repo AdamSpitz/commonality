@@ -40,11 +40,6 @@ export const ProjectFactoryAbi = [
   },
   {
     "inputs": [],
-    "name": "BeneficiaryPaymentTokenMismatch",
-    "type": "error"
-  },
-  {
-    "inputs": [],
     "name": "EmptyTokenList",
     "type": "error"
   },
@@ -118,6 +113,19 @@ export const ProjectFactoryAbi = [
     ],
     "name": "ProjectCreated",
     "type": "event"
+  },
+  {
+    "inputs": [],
+    "name": "UNCLAIMED_PROCEEDS_WINDOW",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
   },
   {
     "inputs": [],

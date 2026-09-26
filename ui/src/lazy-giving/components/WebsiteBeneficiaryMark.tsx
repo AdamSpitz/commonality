@@ -23,7 +23,7 @@ export function dnsBeneficiaryDomain(beneficiary?: {
 
 function cardCaption(claimState?: BeneficiaryState): string {
   if (claimState === 'verified' || claimState === 'beneficiary-controlled') {
-    return `${COMMUNITY_CREATED_NOTICE} Domain-controlled. Escrow pays the bound wallet, not a certified charity.`
+    return `${COMMUNITY_CREATED_NOTICE} Domain-controlled. That does not accept this project's funds, and it does not certify a charity.`
   }
   return `${COMMUNITY_CREATED_NOTICE} For the controller of this website.`
 }

@@ -5,6 +5,7 @@ import type {
   NoteDelegatedEvent,
   ChainSplitEvent,
   NoteRevokedEvent,
+  NoteDelegateReplacedEvent,
   FundsReclaimedEvent,
   NoteConsumedEvent,
   ERC1155PurchasedEvent,
@@ -20,6 +21,7 @@ export type DelegationEvent =
   | { type: 'noteDelegated'; event: NoteDelegatedEvent }
   | { type: 'chainSplit'; event: ChainSplitEvent }
   | { type: 'noteRevoked'; event: NoteRevokedEvent }
+  | { type: 'noteDelegateReplaced'; event: NoteDelegateReplacedEvent }
   | { type: 'fundsReclaimed'; event: FundsReclaimedEvent }
   | { type: 'noteConsumed'; event: NoteConsumedEvent }
   | { type: 'erc1155Purchased'; event: ERC1155PurchasedEvent }
@@ -238,6 +240,29 @@ export function foldDelegationState(
             child.parentNoteId = parentNoteIdForDisplay;
             child.updatedAt = blockTimestamp.toString();
           }
+        }
+        break;
+      }
+
+      case 'noteDelegateReplaced': {
+        const { fromNoteId, toNoteId, newDelegate, amount, blockTimestamp } = ev.event;
+        const fromId = contractScopedId(ev.event.contractAddress, fromNoteId);
+        const toId = contractScopedId(ev.event.contractAddress, toNoteId);
+        const to = stateMap.get(toId);
+        if (to) {
+          to.chain.push({
+            address: newDelegate,
+            position: to.chain.length,
+            createdAt: blockTimestamp.toString(),
+          });
+          to.parentNoteId = fromNoteId.toString();
+          to.updatedAt = blockTimestamp.toString();
+        }
+        const from = stateMap.get(fromId);
+        if (from) {
+          from.amount = from.amount > amount ? from.amount - amount : 0n;
+          if (from.amount === 0n) from.active = false;
+          from.updatedAt = blockTimestamp.toString();
         }
         break;
       }

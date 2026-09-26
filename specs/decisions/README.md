@@ -62,3 +62,5 @@ instance most needs answered and can't get anywhere else.
 | [0012](./0012-mediator-is-an-address.md) | A mediator is an address; human and LLM are authors | Accepted |
 | [0013](./0013-checkpointed-reimbursement-claim-tokens.md) | Checkpointed reimbursement claim tokens | Accepted |
 | [0014](./0014-no-operated-generic-explorer.md) | Commonality does not run a generic explorer | Accepted |
+| [0015](./0015-per-project-beneficiary-proceeds.md) | Beneficiary proceeds stay in the project that raised them | Accepted |
+| [0016](./0016-one-hop-delegation.md) | A delegated note has one delegate, and replacing that delegate mints a new note | Accepted |
