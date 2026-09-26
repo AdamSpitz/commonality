@@ -62,7 +62,7 @@ Public remarks from people who are not flaggers are a later UI feature. They are
 
 ## What a project page should show
 
-`SpendScheduled` is a pending contribution of the note's full amount until `SpendExecuted`, `SpendCancelled`, or `SpendScheduleCleared`. The page shows the amount and the deadline as money that can still be cancelled. It does not count as raised. That page is not wired yet.
+`SpendScheduled` is a pending contribution of the note's full amount until `SpendExecuted`, `SpendCancelled`, or `SpendScheduleCleared`. The project page shows the amount and the deadline as money that can still be cancelled. It does not count as raised.
 
 ## Out of scope
 

@@ -6,10 +6,7 @@ import { DelegatableNotesAbi } from '@commonality/sdk/abis'
 import { hashBeneficiaryId, normalizeDnsBeneficiary } from '@commonality/sdk/content-funding'
 import { setFineListed } from '@commonality/sdk/delegation'
 import { useWriteClients } from '../../shared'
-
-export function spendClassLabel(spendClass: number): 'Unsuspicious' | 'Unmarked' {
-  return spendClass === 1 ? 'Unsuspicious' : 'Unmarked'
-}
+import { spendClassLabel } from '../spendClass'
 
 export function FineListPanel({
   noteId,

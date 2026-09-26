@@ -23,15 +23,17 @@ import {
 } from '@mui/material'
 import { Link as RouterLink } from 'react-router-dom'
 import { useAccount } from 'wagmi'
-import { formatEther, parseEther } from 'viem'
+import { decodeEventLog, formatEther, parseEther, type Hex } from 'viem'
 import { DelegatableNotesAbi, RecurringPledgesAbi } from '@commonality/sdk/abis'
 import { getStatement } from '@commonality/sdk/conceptspace'
 import { getNotesByOwner, getNotesByRoot, getDelegationChain, getDonationActivityByRoot, delegateNote, replaceDelegate, revokeNote, reclaimFunds, getActiveStandingPledgesByUser, cancelStandingPledge, type DonationActivity, type Note, type StandingPledge, type DelegatableNotesContract, type RecurringPledgesContract } from '@commonality/sdk/delegation'
-import type { Currency, IpfsCidV1 } from '@commonality/sdk/utils'
+import { fetchEvents, type Currency, type IpfsCidV1 } from '@commonality/sdk/utils'
 import { getDomainUrl, useMachinery } from '../../shared'
 import { useWriteClients } from '../../shared'
 import { formatCurrencyAmount, getCurrencyForNote } from '../../shared/funding'
 import { formatNoteAmount, isDelegate, truncateAddress, isEthNote, noteDetailPath, noteScopedKey } from '../utils'
+import { DonorPendingSpends } from '../components/DonorPendingSpends'
+import { spendClassLabel } from '../spendClass'
 import { readLazyGivingProjectMetadata } from '../../lazy-giving/metadata'
 
 function SummaryCards({ ownedNotes, depositedNotes, standingPledges, experience = 'delegation' }: { ownedNotes: Note[]; depositedNotes: Note[]; standingPledges: StandingPledge[]; experience?: 'delegation' | 'donate' }) {
@@ -361,10 +363,11 @@ function StandingPledgeCard({
   )
 }
 
-function DonationActivityFeed({ activities, projectTitles, causeTitles }: {
+function DonationActivityFeed({ activities, projectTitles, causeTitles, classByNoteId }: {
   activities: DonationActivity[]
   projectTitles: Record<string, string>
   causeTitles: Record<string, string>
+  classByNoteId: Record<string, number>
 }) {
   const groups = new Map<string, DonationActivity[]>()
   for (const activity of activities) {
@@ -388,6 +391,12 @@ function DonationActivityFeed({ activities, projectTitles, causeTitles }: {
                   <Stack direction="row" justifyContent="space-between" alignItems="flex-start" gap={2}>
                     <Box>
                       <Typography sx={{ fontWeight: 700 }}>{formatCurrencyAmount(activity.amount, activity.currency)}</Typography>
+                      {(() => {
+                        const value = activity.inputNoteIds.map((id) => classByNoteId[id]).find((item) => item !== undefined)
+                        if (value === undefined) return null
+                        const label = spendClassLabel(value)
+                        return <Chip label={label} size="small" color={label === 'Suspicious' ? 'warning' : 'default'} />
+                      })()}
                       <Typography variant="body2" color="text.secondary">
                         Directed by {truncateAddress(activity.directedBy)} · {formatPledgeDate(activity.createdAt)}
                       </Typography>
@@ -423,6 +432,7 @@ export function MyNotesPage({ experience = 'delegation' }: { experience?: 'deleg
   const [depositedNotes, setDepositedNotes] = useState<Note[]>([])
   const [standingPledges, setStandingPledges] = useState<StandingPledge[]>([])
   const [donationActivity, setDonationActivity] = useState<DonationActivity[]>([])
+  const [classByNoteId, setClassByNoteId] = useState<Record<string, number>>({})
   const [causeTitles, setCauseTitles] = useState<Record<string, string>>({})
   const [projectTitles, setProjectTitles] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(true)
@@ -464,6 +474,27 @@ export function MyNotesPage({ experience = 'delegation' }: { experience?: 'deleg
       setDepositedNotes(deposited.filter(n => n.active))
       setStandingPledges(activePledges)
       setDonationActivity(activity)
+      const notesAddress = import.meta.env.VITE_DELEGATABLE_NOTES_CONTRACT_ADDRESS as string | undefined
+      if (isDonate && notesAddress && machinery.eventCacheUrl) {
+        const events = await fetchEvents(machinery, {
+          contractAddress: notesAddress,
+          eventName: 'SpendClassResolved',
+        }).catch(() => [])
+        const labels: Record<string, number> = {}
+        for (const event of events) {
+          if (!event.topic0 || !event.topic1) continue
+          const decoded = decodeEventLog({
+            abi: DelegatableNotesAbi,
+            eventName: 'SpendClassResolved',
+            topics: [event.topic0 as Hex, event.topic1 as Hex],
+            data: event.data as Hex,
+          })
+          labels[decoded.args.noteId.toString()] = Number(decoded.args.class)
+        }
+        setClassByNoteId(labels)
+      } else {
+        setClassByNoteId({})
+      }
       const projectEntries = await Promise.all(activity.map(async (row) => {
         if (!row.projectMetadataCid) return [row.projectAddress?.toLowerCase() ?? row.receiptContract.toLowerCase(), undefined] as const
         const metadata = await readLazyGivingProjectMetadata(machinery, row.projectMetadataCid as IpfsCidV1).catch(() => null)
@@ -705,6 +736,8 @@ export function MyNotesPage({ experience = 'delegation' }: { experience?: 'deleg
             </Stack>
           )}
 
+          <DonorPendingSpends notes={depositedNotes} />
+
           <Typography variant="h5" component="h2" gutterBottom sx={{ mt: 3 }}>
             {isDonate ? 'Money in the system' : 'Funds I Created'}
           </Typography>
@@ -748,7 +781,7 @@ export function MyNotesPage({ experience = 'delegation' }: { experience?: 'deleg
                   </Typography>
                 </Paper>
               ) : (
-                <DonationActivityFeed activities={donationActivity} projectTitles={projectTitles} causeTitles={causeTitles} />
+                <DonationActivityFeed activities={donationActivity} projectTitles={projectTitles} causeTitles={causeTitles} classByNoteId={classByNoteId} />
               )}
             </Box>
           )}

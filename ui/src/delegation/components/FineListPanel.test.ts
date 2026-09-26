@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { spendClassLabel } from './FineListPanel'
+import { spendClassLabel } from '../spendClass'
 
 describe('spendClassLabel', () => {
   it('names the two classes the contract can return', () => {

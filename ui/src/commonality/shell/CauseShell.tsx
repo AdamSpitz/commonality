@@ -24,6 +24,7 @@ import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { WalletButton } from '../../shared/components/WalletButton'
 import { containerMaxWidth, pageWidthForPath } from './pageWidth'
+import { SuspiciousSpendBanner } from './SuspiciousSpendBanner'
 
 const GITHUB_REPO_URL = 'https://github.com/AdamSpitz/commonality'
 
@@ -189,6 +190,7 @@ export function CauseShell({ children }: CauseShellProps) {
           data-page-width={pageWidth}
           sx={{ pt: { xs: 2, sm: 3 }, px: { xs: 1.75, sm: 2, md: 3 } }}
         >
+          <SuspiciousSpendBanner />
           {children}
         </Container>
       </Box>

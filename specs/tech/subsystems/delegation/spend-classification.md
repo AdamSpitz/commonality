@@ -66,6 +66,6 @@ Classification is different. The schedule stores the time it was created. While 
 
 ## What she sees
 
-One section lists her pending delegate spends. Each row is labeled unmarked, unsuspicious, or suspicious, and suspicious rows stand out. Unmarked and unsuspicious rows are still there. While she is signed in and any spend of hers is suspicious and still pending, one banner at the top of Commonality points at that section. The banner does not follow the notification opt-in. Email or push does.
+One section on her notes page lists her pending delegate spends. Each row is labeled unmarked, unsuspicious, or suspicious, and suspicious rows stand out. Unmarked and unsuspicious rows are still there. While she is signed in and any spend of hers is suspicious and still pending, one banner at the top of Commonality points at that section. The banner does not follow the notification opt-in. Email or push does. Neither is sent yet.
 
 Immediate unsuspicious spends are not in that pending section. They are in the authorization's history, with the same label.

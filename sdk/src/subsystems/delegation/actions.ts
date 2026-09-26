@@ -484,3 +484,78 @@ export async function setFineListed(
     account: clients.walletClient.account!,
   });
 }
+
+export async function setSpendDelay(
+  clients: WriteClients,
+  delegatableNotesContract: DelegatableNotesContract,
+  params: { noteId: bigint; owners: Address[]; delay: bigint },
+): Promise<Hash> {
+  return clients.walletClient.writeContract({
+    address: delegatableNotesContract.address,
+    abi: delegatableNotesContract.abi,
+    functionName: 'setSpendDelay',
+    args: [params.noteId, params.owners, params.delay],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
+  });
+}
+
+export async function setStrictMode(
+  clients: WriteClients,
+  delegatableNotesContract: DelegatableNotesContract,
+  params: { noteId: bigint; owners: Address[]; enabled: boolean },
+): Promise<Hash> {
+  return clients.walletClient.writeContract({
+    address: delegatableNotesContract.address,
+    abi: delegatableNotesContract.abi,
+    functionName: 'setStrictMode',
+    args: [params.noteId, params.owners, params.enabled],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
+  });
+}
+
+export async function setSpendFlagger(
+  clients: WriteClients,
+  delegatableNotesContract: DelegatableNotesContract,
+  params: { noteId: bigint; owners: Address[]; flagger: Address; allowed: boolean },
+): Promise<Hash> {
+  return clients.walletClient.writeContract({
+    address: delegatableNotesContract.address,
+    abi: delegatableNotesContract.abi,
+    functionName: 'setSpendFlagger',
+    args: [params.noteId, params.owners, params.flagger, params.allowed],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
+  });
+}
+
+export async function approveScheduledSpend(
+  clients: WriteClients,
+  delegatableNotesContract: DelegatableNotesContract,
+  params: { noteId: bigint; owners: Address[] },
+): Promise<Hash> {
+  return clients.walletClient.writeContract({
+    address: delegatableNotesContract.address,
+    abi: delegatableNotesContract.abi,
+    functionName: 'approveScheduledSpend',
+    args: [params.noteId, params.owners],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
+  });
+}
+
+export async function cancelScheduledSpend(
+  clients: WriteClients,
+  delegatableNotesContract: DelegatableNotesContract,
+  params: { noteId: bigint; owners: Address[] },
+): Promise<Hash> {
+  return clients.walletClient.writeContract({
+    address: delegatableNotesContract.address,
+    abi: delegatableNotesContract.abi,
+    functionName: 'cancelScheduledSpend',
+    args: [params.noteId, params.owners],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
+  });
+}
