@@ -6,7 +6,7 @@
  * - Delegate notes (full and partial)
  * - Revoke delegations
  * - Reclaim funds
- * - Multi-level delegation chains
+ * - One delegate per note, replaced by the root onto a new note
  */
 
 import assert from 'assert';
@@ -181,7 +181,7 @@ describe('Delegation System', () => {
     assert.strictEqual(remainderNote!.owner.toLowerCase(), user1.account.toLowerCase(), 'Remainder note owner should still be user1');
   });
 
-  it('should support multi-level delegation chains', async function() {
+  it('rejects a second delegation hop', async function() {
     this.timeout(20000);
 
     const user1 = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
@@ -216,28 +216,24 @@ describe('Delegation System', () => {
       }
     );
 
-    // User 2 delegates to User 3
-    const { delegatedNoteId: note3 } = await delegateNoteChecked(
+    await assert.rejects(() => delegateNoteChecked(
       user2,
       delegatableNotesContract,
       machinery,
       {
         noteId: note2,
-        owners: [user2.account, user1.account], // Chain: user2 (leaf) -> user1 (root)
+        owners: [user2.account, user1.account],
         delegateTo: user3.account,
         amount: depositAmount,
       }
-    );
+    ));
 
-    // Check final note
-    const finalNote = await getNote(machinery, note3.toString());
-    assert.ok(finalNote, 'Final note');
-    assert.strictEqual(finalNote!.owner.toLowerCase(), user3.account.toLowerCase(), 'Final owner should be user3');
+    const finalNote = await getNote(machinery, note2.toString());
+    assert.ok(finalNote, 'Delegated note');
+    assert.strictEqual(finalNote!.owner.toLowerCase(), user2.account.toLowerCase(), 'Delegate should still be user2');
     assert.strictEqual(finalNote!.rootOwner.toLowerCase(), user1.account.toLowerCase(), 'Root should still be user1');
-
-    // Check delegation chain (should be 3 deep: user1 -> user2 -> user3)
-    const finalChain = await getDelegationChain(machinery, note3.toString());
-    assert.strictEqual(finalChain.length, 3, 'Delegation chain should have 3 entries');
+    const finalChain = await getDelegationChain(machinery, note2.toString());
+    assert.strictEqual(finalChain.length, 2, 'Delegation chain should stay one hop');
   });
 
   it('should allow revoking a delegation', async function() {

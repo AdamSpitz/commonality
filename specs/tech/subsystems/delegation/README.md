@@ -2,7 +2,9 @@
 
 ## Overview
 
-The `DelegatableNotes` contract lets users deposit tokens and delegate spending authority along a chain. For example: Alice deposits ETH → Alice delegates to Bob → Bob delegates to Carol. Carol can now spend the note, and each step in the chain can revoke authority at any time.
+The `DelegatableNotes` contract lets users deposit tokens and delegate spending authority one hop. Alice deposits, then delegates to Bob. Bob can spend the note or hand it back. Bob cannot delegate to Carol. Alice replaces Bob by minting a new note for the replacement. See [one-hop.md](./one-hop.md) and [ADR 0016](/specs/decisions/0016-one-hop-delegation.md).
+
+`delegate` and `revoke` still rewrite `chainHash` on the same note id. `replaceDelegate` does not.
 
 See [ui.md](./ui.md) for the UI spec. For standing-order/recurring pledges built on top of notes, see [recurring-pledges.md](./recurring-pledges.md) (product view: [specs/product/recurring-pledges.md](/specs/product/recurring-pledges.md)).
 
@@ -65,6 +67,7 @@ The indexer captures every `DelegatableNotes` event as a raw row in the event ca
 | `ChainSplit` | Partial delegation — original note splits into two |
 | `NoteDelegated` | A note's chain is extended with a new delegate |
 | `NoteRevoked` | A chain member revokes — chain truncated back to revoker |
+| `NoteDelegateReplaced` | The root minted a new note for a replacement delegate. The original chain is unchanged. A full replacement retires the original note |
 | `NoteConsumed` | Note amount reduced (or deleted) by a spend |
 | `FundsReclaimed` | Root owner withdrew funds |
 | `ERC1155Purchased` | Purchase completed; output notes inherit input chains |
@@ -92,6 +95,7 @@ interface DelegationChainLink {
 - `NoteDelegated (full)` → push `{ address: delegate, position: chain.length }` onto the same note's chain
 - `NoteDelegated (partial)` → push delegate onto the split note's chain (ChainSplit ran first)
 - `NoteRevoked` → truncate the chain so the revoker becomes the new leaf (strips all downstream delegates)
+- `NoteDelegateReplaced` → the new note, already created by `NoteCreated` as the root alone, gains the replacement delegate. The original note loses the replaced amount and, when that amount was the whole note, becomes inactive. Its chain stays as it was
 - `NoteConsumed` / `FundsReclaimed` → mark note inactive; chain is preserved in the map for ERC1155Purchased reference
 - `ERC1155Purchased` → output notes were emitted as `NoteCreated` with a single-link chain; the fold replaces that with the full chain copied from the corresponding input note
 - `RefundedIntoNote` → the refunded settlement-token note was emitted as `NoteCreated` with a single-link chain; the fold replaces that with the full chain copied from the (now-consumed) input receipt note — the same chain-copy mechanism as `ERC1155Purchased`, so revocability survives the purchase→refund round trip

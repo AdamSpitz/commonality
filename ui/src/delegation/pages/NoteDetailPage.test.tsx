@@ -9,6 +9,7 @@ const NOTE_CONTRACT = '0x3333333333333333333333333333333333333333'
 
 vi.mock('react-router-dom', () => ({
   useParams: vi.fn(),
+  useNavigate: vi.fn(() => vi.fn()),
   Link: vi.fn(({ to, children, ...props }: any) => (
     <a href={to} {...props}>{children}</a>
   )),

@@ -20,6 +20,7 @@ import {
   decodeNoteDelegatedEvent,
   decodeChainSplitEvent,
   decodeNoteRevokedEvent,
+  decodeNoteDelegateReplacedEvent,
   decodeFundsReclaimedEvent,
   decodeNoteConsumedEvent,
   decodeERC1155PurchasedEvent,
@@ -53,6 +54,11 @@ function decodeDelegationEvents(rawEvents: Awaited<ReturnType<typeof fetchAllDel
       case 'NoteRevoked': {
         const d = decodeNoteRevokedEvent(raw);
         if (d) events.push({ type: 'noteRevoked', event: d });
+        break;
+      }
+      case 'NoteDelegateReplaced': {
+        const d = decodeNoteDelegateReplacedEvent(raw);
+        if (d) events.push({ type: 'noteDelegateReplaced', event: d });
         break;
       }
       case 'FundsReclaimed': {

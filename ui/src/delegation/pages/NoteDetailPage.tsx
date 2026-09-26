@@ -2,7 +2,7 @@
 // concerns that could be extracted (note display, pledge/intent sub-sections, and action modals). Left intact for now — please split
 // it up when next doing substantial work here.
 import { useState, useEffect } from 'react'
-import { useParams, Link as RouterLink } from 'react-router-dom'
+import { useParams, Link as RouterLink, useNavigate } from 'react-router-dom'
 import {
   Box,
   Typography,
@@ -23,13 +23,13 @@ import {
 import { useAccount } from 'wagmi'
 import { formatEther, parseEther } from 'viem'
 import { DelegatableNotesAbi, NoteIntentAbi } from '@commonality/sdk/abis'
-import { getNote, getDelegationChain, getNoteIntentAttestation, attestNoteIntent, delegateNote, revokeNote, reclaimFunds, purchaseFromPrimaryMarketWithNotes, refundNote, type Note, type NoteIntentAttestation, type DelegationChainLink, type NoteIntentContract } from '@commonality/sdk/delegation'
+import { getNote, getDelegationChain, getNoteIntentAttestation, attestNoteIntent, delegateNote, replaceDelegate, revokeNote, reclaimFunds, purchaseFromPrimaryMarketWithNotes, refundNote, type Note, type NoteIntentAttestation, type DelegationChainLink, type NoteIntentContract } from '@commonality/sdk/delegation'
 import { getStatement, type StatementListItem } from '@commonality/sdk/conceptspace'
 import type { IpfsCidV1 } from '@commonality/sdk/utils'
 import { getProjectsFiltered, type ProjectWithMetrics, getProjectTokens, type ProjectToken } from '@commonality/sdk/lazy-giving'
 import { StatementPicker, useMachinery } from '../../shared'
 import { useWriteClients } from '../../shared'
-import { formatNoteAmount, isDelegate, truncateAddress, isEthNote, parseNoteRouteId } from '../utils'
+import { formatNoteAmount, isDelegate, truncateAddress, isEthNote, parseNoteRouteId, noteDetailPathFor } from '../utils'
 
 function getContract(address?: string) {
   const addr = address ?? import.meta.env.VITE_DELEGATABLE_NOTES_CONTRACT_ADDRESS
@@ -122,11 +122,13 @@ function DelegationChainVisualization({ chain, note }: DelegationChainVisualizat
 interface DelegateDialogProps {
   open: boolean
   note: Note | null
+  title: string
+  submitLabel: string
   onClose: () => void
   onSubmit: (noteId: string, toAddress: string, amount: string) => void
 }
 
-function DelegateDialog({ open, note, onClose, onSubmit }: DelegateDialogProps) {
+function DelegateDialog({ open, note, title, submitLabel, onClose, onSubmit }: DelegateDialogProps) {
   const [toAddress, setToAddress] = useState('')
   const [amount, setAmount] = useState('')
 
@@ -145,7 +147,7 @@ function DelegateDialog({ open, note, onClose, onSubmit }: DelegateDialogProps) 
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Delegate Fund #{note?.id}</DialogTitle>
+      <DialogTitle>{title}</DialogTitle>
       <DialogContent>
         <TextField
           label="Delegate to address"
@@ -167,7 +169,7 @@ function DelegateDialog({ open, note, onClose, onSubmit }: DelegateDialogProps) 
       <DialogActions>
         <Button onClick={onClose}>Cancel</Button>
         <Button onClick={handleSubmit} variant="contained" disabled={!toAddress || !amount}>
-          Delegate
+          {submitLabel}
         </Button>
       </DialogActions>
     </Dialog>
@@ -307,6 +309,7 @@ function SpendDialog({
 }
 
 export function NoteDetailPage() {
+  const navigate = useNavigate()
   const { noteId: routeNoteId } = useParams<{ noteId: string }>()
   const { address } = useAccount()
   const writeClients = useWriteClients(address)
@@ -319,6 +322,7 @@ export function NoteDetailPage() {
   const [actionError, setActionError] = useState<string | null>(null)
   const [actionLoading, setActionLoading] = useState(false)
   const [delegateDialogOpen, setDelegateDialogOpen] = useState(false)
+  const [delegateMode, setDelegateMode] = useState<'delegate' | 'replace'>('delegate')
   const [spendDialogOpen, setSpendDialogOpen] = useState(false)
   const [projects, setProjects] = useState<ProjectWithMetrics[]>([])
   const [projectsLoading, setProjectsLoading] = useState(false)
@@ -434,12 +438,26 @@ export function NoteDetailPage() {
       const owners = [...chain]
         .sort((a, b) => b.position - a.position)
         .map(link => link.address as `0x${string}`)
-      await delegateNote(clients, contract, {
-        noteId: BigInt(noteId),
-        owners,
-        delegateTo: toAddress as `0x${string}`,
-        amount: parseEther(amount),
-      })
+      const amountWei = parseEther(amount)
+      if (delegateMode === 'replace') {
+        const { replacedNoteId, remainderNoteId } = await replaceDelegate(clients, contract, {
+          noteId: BigInt(noteId),
+          owners,
+          newDelegate: toAddress as `0x${string}`,
+          amount: amountWei,
+        })
+        if (remainderNoteId === 0n && contract.address) {
+          navigate(noteDetailPathFor(contract.address, replacedNoteId))
+          return
+        }
+      } else {
+        await delegateNote(clients, contract, {
+          noteId: BigInt(noteId),
+          owners,
+          delegateTo: toAddress as `0x${string}`,
+          amount: amountWei,
+        })
+      }
       await loadNoteData()
     } catch (err) {
       console.error('Delegate failed:', err)
@@ -642,10 +660,12 @@ export function NoteDetailPage() {
   const isRootOwner = note.rootOwner.toLowerCase() === address?.toLowerCase()
   const isChainMember = chain.some(link => link.address.toLowerCase() === address?.toLowerCase())
   const isUndelegated = !isDelegate(note)
-  const canDelegate = isCurrentLeafOwner
+  const canDelegate = isCurrentLeafOwner && chain.length <= 1
+  const canReplace = isRootOwner && chain.length === 2
+  const canResign = isCurrentLeafOwner && chain.length > 1
   const canRevoke = isChainMember && !isCurrentLeafOwner
   const canReclaim = isRootOwner && isUndelegated
-  const canSpend = isCurrentLeafOwner && isEthNote(note)
+  const canSpend = isCurrentLeafOwner && isEthNote(note) && chain.length <= 2
   const canRefund = note.active && isCurrentLeafOwner && note.tokenType === 1 && refundProject !== null
   const canChangeIntent = note.active && note.tokenType === 0 && isRootOwner
 
@@ -738,8 +758,18 @@ export function NoteDetailPage() {
         </Typography>
         <Stack direction="row" spacing={2} flexWrap="wrap" sx={{ gap: 1 }}>
           {canDelegate && (
-            <Button variant="contained" onClick={() => setDelegateDialogOpen(true)}>
+            <Button variant="contained" onClick={() => { setDelegateMode('delegate'); setDelegateDialogOpen(true) }}>
               Delegate
+            </Button>
+          )}
+          {canReplace && (
+            <Button variant="contained" onClick={() => { setDelegateMode('replace'); setDelegateDialogOpen(true) }}>
+              Replace delegate
+            </Button>
+          )}
+          {canResign && (
+            <Button variant="outlined" color="warning" onClick={handleRevoke}>
+              Give back
             </Button>
           )}
           {canRevoke && (
@@ -762,7 +792,7 @@ export function NoteDetailPage() {
               Refund into a Fund
             </Button>
           )}
-          {!canDelegate && !canRevoke && !canReclaim && !canSpend && !canRefund && (
+          {!canDelegate && !canReplace && !canResign && !canRevoke && !canReclaim && !canSpend && !canRefund && (
             <Typography variant="body2" color="text.secondary">
               You don't have any actions available for this note.
             </Typography>
@@ -773,6 +803,8 @@ export function NoteDetailPage() {
       <DelegateDialog
         open={delegateDialogOpen}
         note={note}
+        title={delegateMode === 'replace' ? `Replace delegate on fund #${note.id}` : `Delegate fund #${note.id}`}
+        submitLabel={delegateMode === 'replace' ? 'Replace' : 'Delegate'}
         onClose={() => setDelegateDialogOpen(false)}
         onSubmit={handleDelegateSubmit}
       />

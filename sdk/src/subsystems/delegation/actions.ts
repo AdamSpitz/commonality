@@ -199,6 +199,42 @@ export async function delegateNote(
 }
 
 /**
+ * Root replaces the current delegate. The new delegate receives a new note.
+ * A full replacement retires `noteId`. A partial replacement leaves the
+ * remainder on `noteId`, still delegated to the previous leaf.
+ */
+export async function replaceDelegate(
+  clients: WriteClients,
+  delegatableNotesContract: DelegatableNotesContract,
+  params: {
+    noteId: bigint;
+    owners: Address[];
+    newDelegate: Address;
+    amount: bigint;
+  }
+): Promise<{ hash: Hash; replacedNoteId: bigint; remainderNoteId: bigint }> {
+  const hash = await clients.walletClient.writeContract({
+    address: delegatableNotesContract.address,
+    abi: delegatableNotesContract.abi,
+    functionName: 'replaceDelegate',
+    args: [params.noteId, params.owners, params.newDelegate, params.amount],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
+  });
+
+  const receipt = await clients.publicClient.waitForTransactionReceipt({ hash });
+  const replacedLogs = parseEventLogs({
+    abi: DelegatableNotesAbi,
+    eventName: 'NoteDelegateReplaced',
+    logs: receipt.logs,
+  });
+  const replaced = replacedLogs[0];
+  const replacedNoteId = replaced?.args.toNoteId ?? params.noteId;
+  const full = replaced !== undefined && replaced.args.amount === params.amount;
+  return { hash, replacedNoteId, remainderNoteId: full ? 0n : params.noteId };
+}
+
+/**
  * Revoke a delegated note back to a position in the chain
  *
  * Revokes a delegation by calling this function from a parent position in the delegation

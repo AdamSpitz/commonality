@@ -82,6 +82,31 @@ export function decodeChainSplitEvent(
   };
 }
 
+export function decodeNoteDelegateReplacedEvent(
+  rawEvent: RawEventFromCache,
+): {
+  fromNoteId: bigint;
+  toNoteId: bigint;
+  newDelegate: `0x${string}`;
+  amount: bigint;
+  contractAddress: `0x${string}`;
+  blockNumber: bigint;
+  blockTimestamp: bigint;
+  transactionHash: `0x${string}`;
+  logIndex: number;
+} | null {
+  if (rawEvent.eventName !== 'NoteDelegateReplaced') return null;
+  const args = decodeRawEventArgs(rawEvent, DelegatableNotesAbi);
+  if (!args) return null;
+  return {
+    fromNoteId: args.fromNoteId as bigint,
+    toNoteId: args.toNoteId as bigint,
+    newDelegate: args.newDelegate as `0x${string}`,
+    amount: args.amount as bigint,
+    ...decodedLogMeta(rawEvent),
+  };
+}
+
 export function decodeNoteRevokedEvent(
   rawEvent: RawEventFromCache,
 ): {

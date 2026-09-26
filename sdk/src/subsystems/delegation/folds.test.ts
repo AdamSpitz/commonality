@@ -12,6 +12,7 @@ import type {
   NoteDelegatedEvent,
   ChainSplitEvent,
   NoteRevokedEvent,
+  NoteDelegateReplacedEvent,
   FundsReclaimedEvent,
   NoteConsumedEvent,
   ERC1155PurchasedEvent,
@@ -86,6 +87,21 @@ function makeChainSplit(overrides: Partial<ChainSplitEvent> = {}): ChainSplitEve
     blockTimestamp: 1700000100n,
     transactionHash: TX_HASH,
     logIndex: 0,
+    ...overrides,
+  };
+}
+
+function makeNoteDelegateReplaced(overrides: Partial<NoteDelegateReplacedEvent> = {}): NoteDelegateReplacedEvent {
+  return {
+    contractAddress: NOTE_CONTRACT,
+    fromNoteId: 1n,
+    toNoteId: 2n,
+    newDelegate: CAROL,
+    amount: 100n,
+    blockNumber: 102n,
+    blockTimestamp: 1700000200n,
+    transactionHash: TX_HASH,
+    logIndex: 2,
     ...overrides,
   };
 }
@@ -338,6 +354,31 @@ describe('foldDelegationState', () => {
     assert.strictEqual(chain[2].address, CAROL);
 
     assert.strictEqual(note.chainHash, expectedChainHash([ALICE, BOB, CAROL]));
+  });
+
+  it('mints a new note when the root replaces the delegate', () => {
+    const events: DelegationEvent[] = [
+      { type: 'noteCreated', event: makeNoteCreated() },
+      { type: 'noteDelegated', event: makeNoteDelegated({ delegate: BOB }) },
+      { type: 'noteCreated', event: makeNoteCreated({ noteId: 2n, amount: 100n, blockNumber: 102n, logIndex: 1 }) },
+      { type: 'noteDelegateReplaced', event: makeNoteDelegateReplaced() },
+    ];
+    const { notes, chains } = foldDelegationState(events);
+
+    const retired = notes.get('1');
+    assert.ok(retired);
+    assert.strictEqual(retired.active, false);
+    assert.strictEqual(retired.amount, '0');
+    assert.deepStrictEqual(chains.get('1')?.map(link => link.address), [ALICE, BOB]);
+
+    const replaced = notes.get('2');
+    assert.ok(replaced);
+    assert.strictEqual(replaced.active, true);
+    assert.strictEqual(replaced.owner, CAROL);
+    assert.strictEqual(replaced.rootOwner, ALICE);
+    assert.strictEqual(replaced.parentNoteId, '1');
+    assert.deepStrictEqual(chains.get('2')?.map(link => link.address), [ALICE, CAROL]);
+    assert.strictEqual(replaced.chainHash, expectedChainHash([ALICE, CAROL]));
   });
 
   it('truncates to the root when the root revokes', () => {

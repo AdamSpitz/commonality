@@ -28,6 +28,13 @@ export interface NoteRevokedEvent extends RawEvent {
   revoker: `0x${string}`;
 }
 
+export interface NoteDelegateReplacedEvent extends RawEvent {
+  fromNoteId: bigint;
+  toNoteId: bigint;
+  newDelegate: `0x${string}`;
+  amount: bigint;
+}
+
 export interface FundsReclaimedEvent extends RawEvent {
   noteId: bigint;
   owner: `0x${string}`;

@@ -107,22 +107,15 @@ describe("DelegatableNotes - Audit Regression Tests", function () {
         .withArgs(1, alice.address, amount, ethers.ZeroAddress, 0, 0);
     });
 
-    it("should let a middle revoker spend after revoking a child delegation", async function () {
+    it("should reject a delegate extending the chain", async function () {
       const amount = ethers.parseEther("1");
 
       await depositPaymentNote(alice, amount);
       await notes.connect(alice).delegate(1, [alice.address], bob.address, amount);
-      await notes.connect(bob).delegate(1, [bob.address, alice.address], charlie.address, amount);
 
-      await notes.connect(bob).revoke(1, [charlie.address, bob.address, alice.address]);
-
-      await expect(notes.connect(bob).purchaseFromPrimaryMarket(
-        [{ noteId: 1, chain: [bob.address, alice.address], shares: 3 }],
-        await primaryMarket.getAddress(),
-        await erc1155Token.getAddress(),
-        1,
-        3
-      )).to.emit(notes, "ERC1155Purchased");
+      await expect(
+        notes.connect(bob).delegate(1, [bob.address, alice.address], charlie.address, amount)
+      ).to.be.revertedWithCustomError(notes, "DelegationHopLimit");
     });
 
     it("control: lets a leaf holder return control to the root", async function () {

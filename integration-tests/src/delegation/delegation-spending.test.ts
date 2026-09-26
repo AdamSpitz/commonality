@@ -14,7 +14,6 @@ import type { DelegatableNotesContract } from '@commonality/sdk/delegation';
 import { createStatement, publishDocument } from '@commonality/sdk/displayable-documents';
 import type { ProjectFactoryContract } from '@commonality/sdk/lazy-giving';
 import { uploadToIPFS } from '@commonality/sdk/utils';
-import { getDelegationChain } from '@commonality/sdk/delegation';
 import { getProject, getProjectContributions } from '@commonality/sdk/lazy-giving';
 import { testLog, createIsolatedWriteClients } from '../utils/setup.js';
 import {
@@ -238,7 +237,7 @@ describe('Delegation Spending', () => {
     );
   });
 
-  it('should support multi-level delegation chains for spending', async function() {
+  it('rejects spending through a second delegation hop', async function() {
     this.timeout(30000);
 
     const user1 = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
@@ -269,8 +268,7 @@ describe('Delegation Spending', () => {
       }
     );
 
-    // User 2 -> User 3 (automatically verifies delegation chain integrity)
-    const { delegatedNoteId: note3 } = await delegateNoteChecked(
+    await assert.rejects(() => delegateNoteChecked(
       user2,
       delegatableNotesContract,
       machinery,
@@ -280,68 +278,7 @@ describe('Delegation Spending', () => {
         delegateTo: user3.account,
         amount: depositAmount,
       }
-    );
-
-    // Verify delegation chain
-    const chain = await getDelegationChain(machinery, note3.toString());
-    assert.strictEqual(chain.length, 3, 'Should have 3-level delegation chain');
-
-    // Create a project
-    const nowInSeconds = BigInt(Math.floor(Date.now() / 1000));
-    const { projectDetails } = await createProjectChecked(user1, projectFactoryContract, machinery, {
-      metadataURI: 'ipfs://project-metadata-3',
-      contractURI: 'ipfs://contract-metadata-3',
-      owner: user1.account,
-      recipient: user1.account,
-      threshold: 200000n,
-      deadline: nowInSeconds + 86400n,
-      projectMetadataCid: await uploadToIPFS(machinery.ipfsConfig, { name: 'Multi-Level Delegation Project', description: 'Multi-level delegation chain spending test' }),
-      tokenIds: [1n],
-      tokenCounts: [100n],
-      tokenPrices: [5000n],
-    });
-    testLog('  ✓ Project creation properties verified');
-
-    // The assurance contract IS the primary market
-    const primaryMarketAddress = projectDetails.assuranceContractAddress;
-
-    // User 3 (end of delegation chain) spends the note
-    // Automatically verifies delegation chain integrity
-    const purchaseAmount = 200000n; // 0.2 tokens
-    const tokensToBuy = 40n;
-
-    await spendDelegatedNoteChecked(
-      user3,
-      delegatableNotesContract,
-      machinery,
-      {
-        noteIds: [note3],
-        chains: [[user3.account, user2.account, user1.account]], // Full chain: user3 -> user2 -> user1
-        paymentAmount: purchaseAmount,
-        primaryMarket: primaryMarketAddress,
-        erc1155Contract: projectDetails.tokenAddress,
-        tokenIds: [1n],
-        counts: [tokensToBuy],
-      }
-    );
-
-    // Verify project received funds
-    const project = await getProject(machinery, projectDetails.assuranceContractAddress);
-    assert.ok(project, 'Project');
-    assert.strictEqual(
-      project.totalReceived,
-      purchaseAmount.toString(),
-      'Project should have received 2 ETH from multi-level delegation'
-    );
-
-    // Verify contribution was tracked
-    const contributions = await getProjectContributions(machinery, projectDetails.assuranceContractAddress);
-    assert(contributions.length > 0, 'Should have contributions');
-    assert.strictEqual(
-      contributions[0].totalCost,
-      purchaseAmount.toString(),
-      'Contribution amount should match'
-    );
+    ));
   });
 
   it('should spend partial amounts from delegatable notes', async function() {

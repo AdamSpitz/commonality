@@ -69,23 +69,73 @@ describe("DelegatableNotes - Core Functionality", function () {
       expect(note1.amount).to.equal(amount);
     });
 
-    it("Should allow multi-level delegation", async function () {
+    it("Should reject a second delegation hop", async function () {
       const amount = ethers.parseEther("1.0");
       await notes.connect(alice).deposit(ethers.ZeroAddress, 0, 0, 0, { value: amount });
-
-      // Alice delegates to Bob (full amount, so note 1 stays but chainHash changes)
       await notes.connect(alice).delegate(1, [alice.address], bob.address, amount);
 
-      // Verify the delegation happened
-      const note = await notes.notes(1);
-      expect(note.amount).to.equal(amount);
+      await expect(
+        notes.connect(bob).delegate(1, [bob.address, alice.address], charlie.address, amount)
+      ).to.be.revertedWithCustomError(notes, "DelegationHopLimit");
+    });
 
-      // Bob can now delegate to Charlie using the new chain
-      await notes.connect(bob).delegate(1, [bob.address, alice.address], charlie.address, amount);
+    function chainHash(rootFirst) {
+      let hash = ethers.ZeroHash;
+      for (const account of rootFirst) {
+        hash = ethers.keccak256(ethers.solidityPacked(["address", "bytes32"], [account, hash]));
+      }
+      return hash;
+    }
 
-      // Verify the chain is now alice -> bob -> charlie
-      const updatedNote = await notes.notes(1);
-      expect(updatedNote.amount).to.equal(amount);
+    it("Should replace a delegate by minting a new note", async function () {
+      const amount = ethers.parseEther("1.0");
+      await notes.connect(alice).deposit(ethers.ZeroAddress, 0, 0, 0, { value: amount });
+      await notes.connect(alice).delegate(1, [alice.address], bob.address, amount);
+
+      const bobNote = await notes.notes(1);
+      await expect(notes.connect(alice).replaceDelegate(1, [bob.address, alice.address], charlie.address, amount))
+        .to.emit(notes, "NoteDelegateReplaced")
+        .withArgs(1, 2, charlie.address, amount);
+
+      const retired = await notes.notes(1);
+      expect(retired.chainHash).to.equal(ethers.ZeroHash);
+      const replaced = await notes.notes(2);
+      expect(replaced.amount).to.equal(amount);
+      expect(replaced.chainHash).to.equal(chainHash([alice.address, charlie.address]));
+      expect(replaced.chainHash).to.not.equal(bobNote.chainHash);
+
+      await notes.connect(alice).revoke(2, [charlie.address, alice.address]);
+      await expect(notes.connect(alice).reclaimFunds(2)).to.emit(notes, "FundsReclaimed");
+    });
+
+    it("Should leave the remainder delegated to the current delegate", async function () {
+      const amount = ethers.parseEther("10");
+      const replacedAmount = ethers.parseEther("4");
+      await notes.connect(alice).deposit(ethers.ZeroAddress, 0, 0, 0, { value: amount });
+      await notes.connect(alice).delegate(1, [alice.address], bob.address, amount);
+
+      await notes.connect(alice).replaceDelegate(1, [bob.address, alice.address], charlie.address, replacedAmount);
+
+      const remainder = await notes.notes(1);
+      expect(remainder.amount).to.equal(amount - replacedAmount);
+      expect(remainder.chainHash).to.equal(chainHash([alice.address, bob.address]));
+      const replaced = await notes.notes(2);
+      expect(replaced.amount).to.equal(replacedAmount);
+      expect(replaced.chainHash).to.equal(chainHash([alice.address, charlie.address]));
+    });
+
+    it("Should reject replacement by the delegate and on an undelegated note", async function () {
+      const amount = ethers.parseEther("1");
+      await notes.connect(alice).deposit(ethers.ZeroAddress, 0, 0, 0, { value: amount });
+
+      await expect(
+        notes.connect(alice).replaceDelegate(1, [alice.address], bob.address, amount)
+      ).to.be.revertedWithCustomError(notes, "ReplaceRequiresOneDelegate");
+
+      await notes.connect(alice).delegate(1, [alice.address], bob.address, amount);
+      await expect(
+        notes.connect(bob).replaceDelegate(1, [bob.address, alice.address], charlie.address, amount)
+      ).to.be.revertedWithCustomError(notes, "NotNoteRoot");
     });
 
     it("Should not allow delegating to zero address", async function () {
