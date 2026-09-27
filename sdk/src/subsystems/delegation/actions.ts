@@ -145,6 +145,57 @@ export async function depositERC20(
  * });
  * ```
  */
+async function readDelegationResult(
+  clients: WriteClients,
+  hash: Hash,
+  noteId: bigint,
+): Promise<{ hash: Hash; delegatedNoteId: bigint; remainderNoteId: bigint }> {
+  const receipt = await clients.publicClient.waitForTransactionReceipt({ hash });
+  let delegatedNoteId = noteId;
+  let remainderNoteId = 0n;
+  const chainSplitLogs = parseEventLogs({
+    abi: DelegatableNotesAbi,
+    eventName: 'ChainSplit',
+    logs: receipt.logs,
+  });
+  if (chainSplitLogs.length > 0) {
+    delegatedNoteId = chainSplitLogs[0].args.splitLeafId;
+    remainderNoteId = chainSplitLogs[0].args.remainderLeafId;
+  } else {
+    const noteDelegatedLogs = parseEventLogs({
+      abi: DelegatableNotesAbi,
+      eventName: 'NoteDelegated',
+      logs: receipt.logs,
+    });
+    if (noteDelegatedLogs.length > 0) {
+      delegatedNoteId = noteDelegatedLogs[0].args.childNoteId;
+    }
+  }
+  return { hash, delegatedNoteId, remainderNoteId };
+}
+
+export async function delegateWithDelay(
+  clients: WriteClients,
+  delegatableNotesContract: DelegatableNotesContract,
+  params: {
+    noteId: bigint;
+    owners: Address[];
+    delegateTo: Address;
+    amount: bigint;
+    delay: bigint;
+  },
+): Promise<{ hash: Hash; delegatedNoteId: bigint; remainderNoteId: bigint }> {
+  const hash = await clients.walletClient.writeContract({
+    address: delegatableNotesContract.address,
+    abi: delegatableNotesContract.abi,
+    functionName: 'delegateWithDelay',
+    args: [params.noteId, params.owners, params.delegateTo, params.amount, params.delay],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
+  });
+  return readDelegationResult(clients, hash, params.noteId);
+}
+
 export async function delegateNote(
   clients: WriteClients,
   delegatableNotesContract: DelegatableNotesContract,
@@ -163,39 +214,7 @@ export async function delegateNote(
     chain: clients.walletClient.chain,
     account: clients.walletClient.account!,
   });
-
-  const receipt = await clients.publicClient.waitForTransactionReceipt({ hash });
-
-  // Parse events to get the delegated note ID
-  // The event could be a ChainSplit (partial delegation) or NoteDelegated (full delegation)
-  let delegatedNoteId = params.noteId; // Default to same note for full delegation
-  let remainderNoteId = 0n;
-
-  // Look for ChainSplit event first (partial delegation)
-  const chainSplitLogs = parseEventLogs({
-    abi: DelegatableNotesAbi,
-    eventName: 'ChainSplit',
-    logs: receipt.logs,
-  });
-
-  if (chainSplitLogs.length > 0) {
-    // Partial delegation occurred
-    delegatedNoteId = chainSplitLogs[0].args.splitLeafId;
-    remainderNoteId = chainSplitLogs[0].args.remainderLeafId;
-  } else {
-    // Full delegation - parse NoteDelegated event
-    const noteDelegatedLogs = parseEventLogs({
-      abi: DelegatableNotesAbi,
-      eventName: 'NoteDelegated',
-      logs: receipt.logs,
-    });
-
-    if (noteDelegatedLogs.length > 0) {
-      delegatedNoteId = noteDelegatedLogs[0].args.childNoteId;
-    }
-  }
-
-  return { hash, delegatedNoteId, remainderNoteId };
+  return readDelegationResult(clients, hash, params.noteId);
 }
 
 /**

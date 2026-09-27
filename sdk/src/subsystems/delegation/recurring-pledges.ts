@@ -219,8 +219,10 @@ export async function createStandingPledge(
     period: bigint;
     causeRef: string;
     spendDelay?: bigint;
+    unsuspiciousDelay?: bigint;
     strictMode?: boolean;
     flaggers?: Address[];
+    fineIds?: `0x${string}`[];
   },
 ): Promise<{ hash: Hash; pledgeId: bigint; firstNoteId: bigint }> {
   const hash = await clients.walletClient.writeContract({
@@ -234,8 +236,10 @@ export async function createStandingPledge(
       params.period,
       params.causeRef,
       params.spendDelay ?? 0n,
+      params.unsuspiciousDelay ?? 0n,
       params.strictMode ?? false,
       params.flaggers ?? [],
+      params.fineIds ?? [],
     ],
     chain: clients.walletClient.chain,
     account: clients.walletClient.account!,
@@ -283,4 +287,55 @@ export async function executeDueStandingPledge(
   const executed = parseEventLogs({ abi: RecurringPledgesAbi, eventName: 'StandingPledgeExecuted', logs: receipt.logs });
   if (executed.length === 0) throw new Error('Failed to find StandingPledgeExecuted event');
   return { hash, noteId: executed[0].args.noteId };
+}
+
+export async function updatePledgeSpendPolicy(
+  clients: WriteClients,
+  recurringPledgesContract: RecurringPledgesContract,
+  params: { pledgeId: bigint; spendDelay: bigint; strictMode: boolean; flaggers: Address[] },
+): Promise<Hash> {
+  const hash = await clients.walletClient.writeContract({
+    address: recurringPledgesContract.address,
+    abi: recurringPledgesContract.abi,
+    functionName: 'updateSpendPolicy',
+    args: [params.pledgeId, params.spendDelay, params.strictMode, params.flaggers],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
+  });
+  await clients.publicClient.waitForTransactionReceipt({ hash });
+  return hash;
+}
+
+export async function setPledgeUnsuspiciousDelay(
+  clients: WriteClients,
+  recurringPledgesContract: RecurringPledgesContract,
+  params: { pledgeId: bigint; delay: bigint },
+): Promise<Hash> {
+  const hash = await clients.walletClient.writeContract({
+    address: recurringPledgesContract.address,
+    abi: recurringPledgesContract.abi,
+    functionName: 'setPledgeUnsuspiciousDelay',
+    args: [params.pledgeId, params.delay],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
+  });
+  await clients.publicClient.waitForTransactionReceipt({ hash });
+  return hash;
+}
+
+export async function setPledgeFineListed(
+  clients: WriteClients,
+  recurringPledgesContract: RecurringPledgesContract,
+  params: { pledgeId: bigint; beneficiaryId: `0x${string}`; allowed: boolean },
+): Promise<Hash> {
+  const hash = await clients.walletClient.writeContract({
+    address: recurringPledgesContract.address,
+    abi: recurringPledgesContract.abi,
+    functionName: 'setPledgeFineListed',
+    args: [params.pledgeId, params.beneficiaryId, params.allowed],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
+  });
+  await clients.publicClient.waitForTransactionReceipt({ hash });
+  return hash;
 }

@@ -412,7 +412,15 @@ function StandingPledgeCard({
             <Typography variant="body2" color="text.secondary">
               Last executed: {pledge.lastExecuted === '0' ? 'not yet' : formatPledgeDate(pledge.lastExecuted)}
             </Typography>
-            <Box>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <Button
+                size="small"
+                variant="outlined"
+                component={RouterLink}
+                to={`/delegation/pledges/${pledge.id}`}
+              >
+                Edit future notes
+              </Button>
               <Button
                 size="small"
                 variant="outlined"
@@ -484,7 +492,7 @@ function DonationActivityFeed({ activities, projectTitles, causeTitles, classByN
                         const value = activity.inputNoteIds.map((id) => classByNoteId[`${activity.noteContract?.toLowerCase()}:${activity.transactionHash.toLowerCase()}:${id}`]).find((item) => item !== undefined)
                         if (value === undefined) return null
                         const label = spendClassLabel(value)
-                        return <Chip label={label} size="small" color={label === 'Suspicious' ? 'warning' : 'default'} />
+                        return <Chip label={label} size="small" color={label === 'Needs attention' ? 'warning' : label === 'On your list' ? 'success' : 'default'} />
                       })()}
                       <Typography variant="body2" color="text.secondary">
                         Directed by {truncateAddress(activity.directedBy)} · {formatPledgeDate(activity.createdAt)}

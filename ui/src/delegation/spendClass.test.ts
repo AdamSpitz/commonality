@@ -2,10 +2,10 @@ import { describe, expect, it } from 'vitest'
 import { formatPendingSpendDeadline, hoursInputToSeconds, isSuspiciousClass, secondsToHourInput, spendClassLabel } from './spendClass'
 
 describe('spend class labels', () => {
-  it('names unmarked, unsuspicious, and any later suspicious class', () => {
-    expect(spendClassLabel(0)).toBe('Unmarked')
-    expect(spendClassLabel(1)).toBe('Unsuspicious')
-    expect(spendClassLabel(2)).toBe('Suspicious')
+  it('names a listed payee, everyone else, and a class no rule produces yet', () => {
+    expect(spendClassLabel(0)).toBe('Not on your list')
+    expect(spendClassLabel(1)).toBe('On your list')
+    expect(spendClassLabel(2)).toBe('Needs attention')
     expect(isSuspiciousClass(2)).toBe(true)
     expect(isSuspiciousClass(0)).toBe(false)
   })

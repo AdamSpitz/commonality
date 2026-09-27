@@ -1,12 +1,12 @@
-/** Contract classes: 0 unmarked, 1 unsuspicious. Anything else is the reserved suspicious class. */
-export function spendClassLabel(spendClass: number): 'Unsuspicious' | 'Unmarked' | 'Suspicious' {
-  if (spendClass === 1) return 'Unsuspicious'
-  if (spendClass === 0) return 'Unmarked'
-  return 'Suspicious'
+/** Contract classes: 0 not on the list, 1 on the list. Anything else is reserved and not produced yet. */
+export function spendClassLabel(spendClass: number): 'On your list' | 'Not on your list' | 'Needs attention' {
+  if (spendClass === 1) return 'On your list'
+  if (spendClass === 0) return 'Not on your list'
+  return 'Needs attention'
 }
 
 export function isSuspiciousClass(spendClass: number): boolean {
-  return spendClassLabel(spendClass) === 'Suspicious'
+  return spendClassLabel(spendClass) === 'Needs attention'
 }
 
 export function secondsToHourInput(seconds: bigint): string {

@@ -107,12 +107,12 @@ export function FineListPanel({
 
   return (
     <Paper sx={{ p: 2, mb: 3 }}>
-      <Typography variant="subtitle2" gutterBottom>Fine list</Typography>
+      <Typography variant="subtitle2" gutterBottom>Names that can be paid immediately</Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-        A delegate spend that pays the current controller of a name here waits U instead of the standing delay. U starts at zero. Claim-later projects stay on the standing delay.
+        A payment that goes straight to the wallet that currently controls one of these names completes immediately. You cannot cancel it. A project that holds the money to be claimed later, or that pays a different wallet, keeps the ordinary wait.
       </Typography>
       {pendingLabel && (
-        <Chip label={`Pending spend: ${pendingLabel}`} size="small" color={pendingLabel === 'Unsuspicious' ? 'success' : 'default'} sx={{ mb: 1 }} />
+        <Chip label={`Pending spend: ${pendingLabel}`} size="small" color={pendingLabel === 'On your list' ? 'success' : 'default'} sx={{ mb: 1 }} />
       )}
       <Stack direction="row" spacing={1} sx={{ mb: 1, flexWrap: 'wrap' }}>
         {names.length === 0 && <Typography variant="body2">No names yet.</Typography>}

@@ -53,7 +53,7 @@ export function SuspiciousSpendBanner() {
   if (!show) return null
   return (
     <Alert severity="warning" sx={{ mb: 2 }}>
-      A delegate spend is suspicious and still waiting. <Link to="/delegation/notes#pending-spends">Review it</Link>
+      A delegate spend matched a rule you turned on and is still waiting. <Link to="/delegation/notes#pending-spends">Review it</Link>
     </Alert>
   )
 }

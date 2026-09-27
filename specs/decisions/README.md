@@ -65,3 +65,4 @@ instance most needs answered and can't get anywhere else.
 | [0015](./0015-per-project-beneficiary-proceeds.md) | Beneficiary proceeds stay in the project that raised them | Accepted |
 | [0016](./0016-one-hop-delegation.md) | A delegated note has one delegate, and replacing that delegate mints a new note | Accepted |
 | [0017](./0017-spend-classification.md) | Delegated spends are classified, and only a current controller is unsuspicious | Accepted |
+| [0018](./0018-pledge-classification-before-first-note.md) | A standing pledge applies its fine list before the first note, and new delegations prefill a 72 hour wait | Accepted |

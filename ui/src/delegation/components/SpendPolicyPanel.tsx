@@ -22,7 +22,8 @@ export function SpendPolicyPanel({
   const publicClient = usePublicClient()
   const clients = useWriteClients()
   const [delayHours, setDelayHours] = useState('0')
-  const [unsuspiciousHours, setUnsuspiciousHours] = useState('0')
+  const [listedWaitHours, setListedWaitHours] = useState('0')
+  const [showListedWait, setShowListedWait] = useState(false)
   const [strictMode, setStrict] = useState(false)
   const [flaggers, setFlaggers] = useState<Address[]>([])
   const [flaggerInput, setFlaggerInput] = useState('')
@@ -52,7 +53,8 @@ export function SpendPolicyPanel({
       }) as Address[]
       if (cancelled) return
       setDelayHours(secondsToHourInput(policy[0]))
-      setUnsuspiciousHours(secondsToHourInput(policy[1]))
+      setListedWaitHours(secondsToHourInput(policy[1]))
+      if (policy[1] > 0n) setShowListedWait(true)
       setStrict(policy[2])
       setFlaggers(listed)
     })().catch(() => {
@@ -63,14 +65,16 @@ export function SpendPolicyPanel({
 
   async function saveDelays() {
     if (!clients) return
-    const delay = hoursInputToSeconds(delayHours)
-    const unsuspicious = hoursInputToSeconds(unsuspiciousHours)
-    if (delay === null || unsuspicious === null) {
-      setError('Enter the delays in hours')
+    const delay = hoursInputToSeconds(delayHours.trim() === '' ? '0' : delayHours)
+    const listedWait = showListedWait
+      ? hoursInputToSeconds(listedWaitHours.trim() === '' ? '0' : listedWaitHours)
+      : 0n
+    if (delay === null || listedWait === null) {
+      setError('Enter the wait in hours, or leave it empty for none')
       return
     }
-    if (unsuspicious > delay) {
-      setError('The shorter delay cannot be longer than the standing delay')
+    if (listedWait > delay) {
+      setError('The wait for a listed name cannot be longer than the ordinary wait')
       return
     }
     setBusy(true)
@@ -78,7 +82,7 @@ export function SpendPolicyPanel({
     try {
       const contract = { address: contractAddress, abi: DelegatableNotesAbi }
       await waitForUpdate(await setSpendDelay(clients, contract, { noteId, owners, delay }))
-      await waitForUpdate(await setUnsuspiciousDelay(clients, contract, { noteId, owners, delay: unsuspicious }))
+      await waitForUpdate(await setUnsuspiciousDelay(clients, contract, { noteId, owners, delay: listedWait }))
       await onChanged?.()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not save the delay')
@@ -121,15 +125,28 @@ export function SpendPolicyPanel({
 
   return (
     <Paper sx={{ p: 2, mb: 3 }}>
-      <Typography variant="subtitle2" gutterBottom>Delay before a delegate spend completes</Typography>
+      <Typography variant="subtitle2" gutterBottom>Wait before a spend completes</Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-        A delay above zero means the delegate schedules the whole note. You can cancel it until it completes. A spend already scheduled keeps the deadline it was given, unless its class changes.
+        Other payments wait this long, and you can cancel them until they complete. A spend already scheduled keeps the deadline it was given, unless you change who is on your list.
       </Typography>
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ mb: 1 }}>
-        <TextField size="small" label="Standing delay (hours)" value={delayHours} onChange={(event) => setDelayHours(event.target.value)} />
-        <TextField size="small" label="Unsuspicious delay (hours)" value={unsuspiciousHours} onChange={(event) => setUnsuspiciousHours(event.target.value)} helperText="Must be at most the standing delay. Zero completes in the delegate's transaction." />
-        <Button variant="outlined" disabled={busy} onClick={() => { void saveDelays() }}>Save delays</Button>
+        <TextField size="small" label="Wait (hours)" value={delayHours} onChange={(event) => setDelayHours(event.target.value)} helperText="Empty means no wait." />
+        <Button variant="outlined" disabled={busy} onClick={() => { void saveDelays() }}>Save wait</Button>
       </Stack>
+      {!showListedWait && (
+        <Button size="small" sx={{ mb: 1 }} onClick={() => setShowListedWait(true)}>Wait before paying a listed name too</Button>
+      )}
+      {showListedWait && (
+        <TextField
+          size="small"
+          label="Wait for a listed name (hours)"
+          value={listedWaitHours}
+          onChange={(event) => setListedWaitHours(event.target.value)}
+          helperText="Zero pays that name immediately, and you cannot cancel it. It cannot be longer than the ordinary wait."
+          sx={{ mb: 1 }}
+        />
+      )}
+      <Typography variant="subtitle2" sx={{ mt: 2 }} gutterBottom>Someone can pause a spend that is waiting</Typography>
       <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
         <Switch checked={strictMode} disabled={busy} onChange={(_, checked) => { void saveStrict(checked) }} />
         <Typography variant="body2">Strict mode: a flagger pauses the spend. Off, the countdown continues.</Typography>

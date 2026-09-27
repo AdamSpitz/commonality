@@ -84,7 +84,7 @@ export function DonorPendingSpends({ notes }: { notes: Note[] }) {
               >
                 {formatNoteAmount(row.note)}
               </Typography>
-              <Chip label={label} size="small" color={suspicious ? 'warning' : label === 'Unsuspicious' ? 'success' : 'default'} />
+              <Chip label={label} size="small" color={suspicious ? 'warning' : label === 'On your list' ? 'success' : 'default'} />
               {row.paused && <Chip label="Paused" size="small" color="warning" />}
             </Stack>
             <Typography variant="body2" color="text.secondary">

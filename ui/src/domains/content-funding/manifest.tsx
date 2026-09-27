@@ -23,6 +23,7 @@ const routes: ReactNode = (
     <Route path="/delegation" element={lazyRoute(() => import('../delegation/LandingPage'), 'DelegationLandingPage')} />
     <Route path="/delegation/notes" element={lazyRoute(() => import('../../delegation/pages/MyNotesPage'), 'MyNotesPage')} />
     <Route path="/delegation/notes/new" element={lazyRoute(() => import('../../delegation/pages/DepositPage'), 'DepositPage')} />
+    <Route path="/delegation/pledges/:pledgeId" element={lazyRoute(() => import('../../delegation/pages/PledgePage'), 'PledgePage')} />
     <Route path="/delegation/notes/:noteId" element={lazyRoute(() => import('../../delegation/pages/NoteDetailPage'), 'NoteDetailPage')} />
     <Route path="/docs" element={lazyRoute(() => import('../../docs/DocsPage'), 'DocsPage')} />
     <Route path="/docs/*" element={lazyRoute(() => import('../../docs/DocsPage'), 'DocsPage')} />
