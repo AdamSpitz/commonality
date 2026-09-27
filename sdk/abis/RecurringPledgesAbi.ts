@@ -289,6 +289,11 @@ export const RecurringPledgesAbi = [
         "type": "uint256"
       },
       {
+        "internalType": "uint256",
+        "name": "unsuspiciousDelay",
+        "type": "uint256"
+      },
+      {
         "internalType": "bool",
         "name": "strictMode",
         "type": "bool"
@@ -297,6 +302,11 @@ export const RecurringPledgesAbi = [
         "internalType": "address[]",
         "name": "flaggers",
         "type": "address[]"
+      },
+      {
+        "internalType": "bytes32[]",
+        "name": "fineIds",
+        "type": "bytes32[]"
       }
     ],
     "name": "createStandingPledge",
@@ -417,6 +427,25 @@ export const RecurringPledgesAbi = [
         "internalType": "bool",
         "name": "",
         "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "pledgeId",
+        "type": "uint256"
+      }
+    ],
+    "name": "pledgeFineList",
+    "outputs": [
+      {
+        "internalType": "bytes32[]",
+        "name": "",
+        "type": "bytes32[]"
       }
     ],
     "stateMutability": "view",

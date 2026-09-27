@@ -42,6 +42,9 @@ vi.mock('@commonality/sdk/delegation', async () => {
     ...actual,
     depositERC20: vi.fn(),
     delegateNote: vi.fn(),
+    delegateWithDelay: vi.fn(),
+    setFineListed: vi.fn(),
+    setUnsuspiciousDelay: vi.fn(),
     approveRecurringPledgeToken: vi.fn(),
     createStandingPledge: vi.fn(),
   }
@@ -58,7 +61,7 @@ vi.mock('@commonality/sdk/machinery', async () => {
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAccount, useWalletClient, usePublicClient } from 'wagmi'
 import { browseStatementsByNewest } from '@commonality/sdk/conceptspace'
-import { depositERC20, delegateNote, approveRecurringPledgeToken, createStandingPledge } from '@commonality/sdk/delegation'
+import { depositERC20, delegateNote, delegateWithDelay, approveRecurringPledgeToken, createStandingPledge } from '@commonality/sdk/delegation'
 import { createSDKMachinery } from '@commonality/sdk/machinery'
 
 const mockNavigate = vi.fn()
@@ -306,6 +309,9 @@ describe('DepositPage', () => {
             delegateTo: OTHER_ADDR,
             token: '0x4444444444444444444444444444444444444444',
             causeRef: TEST_STATEMENT.cid,
+            spendDelay: 72n * 3600n,
+            unsuspiciousDelay: 0n,
+            fineIds: [],
           })
         )
       })
@@ -380,9 +386,9 @@ describe('DepositPage', () => {
   })
 
   describe('Delegation during deposit', () => {
-    it('calls delegateNote when delegate address is provided', async () => {
+    it('calls delegateWithDelay when delegate address is provided', async () => {
       vi.mocked(depositERC20).mockResolvedValue({ noteId: 7n, hash: '0xabc' })
-      vi.mocked(delegateNote).mockResolvedValue({ hash: '0xdef' } as any)
+      vi.mocked(delegateWithDelay).mockResolvedValue({ hash: '0xdef', delegatedNoteId: 7n, remainderNoteId: 0n })
 
       render(<DepositPage />)
       fireEvent.change(screen.getByLabelText(/amount \(usdzzz\)/i), { target: { value: '0.5' } })
@@ -390,7 +396,7 @@ describe('DepositPage', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Deposit' }))
 
       await waitFor(() => {
-        expect(delegateNote).toHaveBeenCalledWith(
+        expect(delegateWithDelay).toHaveBeenCalledWith(
           expect.any(Object),
           expect.any(Object),
           expect.objectContaining({
@@ -398,6 +404,7 @@ describe('DepositPage', () => {
             owners: [USER_ADDR],
             delegateTo: OTHER_ADDR,
             amount: expect.any(BigInt),
+            delay: 72n * 3600n,
           })
         )
       })
@@ -414,11 +421,12 @@ describe('DepositPage', () => {
         expect(screen.getByText('Funds Added')).toBeInTheDocument()
       })
       expect(delegateNote).not.toHaveBeenCalled()
+      expect(delegateWithDelay).not.toHaveBeenCalled()
     })
 
     it('shows error when delegation fails after successful deposit', async () => {
       vi.mocked(depositERC20).mockResolvedValue({ noteId: 7n, hash: '0xabc' })
-      vi.mocked(delegateNote).mockRejectedValue(new Error('Delegation reverted'))
+      vi.mocked(delegateWithDelay).mockRejectedValue(new Error('Delegation reverted'))
 
       render(<DepositPage />)
       fireEvent.change(screen.getByLabelText(/amount \(usdzzz\)/i), { target: { value: '0.5' } })

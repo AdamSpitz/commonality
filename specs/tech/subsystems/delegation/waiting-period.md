@@ -38,6 +38,8 @@ While `paused` is true, `executeScheduledSpend` reverts and the delegate cannot 
 
 A standing pledge stores `spendDelay`, `strictMode`, and its own flagger list. Each note it mints copies all three. `updateSpendPolicy` changes what later notes receive. Notes already minted keep the settings they were born with. She can still edit those notes in place.
 
+The deposit screen prefills 72 hours on both ways of creating a delegation, as the one wait before a spend completes. A new standing pledge passes that value as `spendDelay`. A one-shot delegation uses `delegateWithDelay` with that value instead of `delegate`, which would store 0. She can change the prefill before submitting, including to 0. The note page shows the delay stored on the note, not this prefill. The contract default when a caller omits the delay remains 0. Names that skip or shorten that wait, and the pledge page that edits the whole template, are specified in [spend-classification.md](./spend-classification.md).
+
 ## Events
 
 | Event | When |
@@ -66,4 +68,4 @@ Public remarks from people who are not flaggers are a later UI feature. They are
 
 ## Out of scope
 
-Beneficiary allow-lists, donor exceptions, refund authority, and a prose label on the schedule are other items. This design does not add them.
+Beneficiary allow-lists, donor exceptions, and a prose label on the schedule are other items. Refund authority is [revocation.md](./revocation.md). This design does not add them.

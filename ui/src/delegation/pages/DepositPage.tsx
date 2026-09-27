@@ -10,6 +10,7 @@ import {
   Card,
   CardContent,
   Checkbox,
+  Chip,
   FormControlLabel,
 } from '@mui/material'
 import { useNavigate, useSearchParams } from 'react-router-dom'
@@ -18,7 +19,9 @@ import { parseUnits, isAddress } from 'viem'
 import { DelegatableNotesAbi, NoteIntentAbi, RecurringPledgesAbi } from '@commonality/sdk/abis'
 import { browseStatementsByNewest, getStatementWithContent, type StatementListItem } from '@commonality/sdk/conceptspace'
 import type { IpfsCidV1 } from '@commonality/sdk/utils'
-import { depositERC20, delegateNote, attestNoteIntent, approveRecurringPledgeToken, createStandingPledge, type DelegatableNotesContract, type NoteIntentContract, type RecurringPledgesContract } from '@commonality/sdk/delegation'
+import { hashBeneficiaryId, normalizeDnsBeneficiary } from '@commonality/sdk/content-funding'
+import { depositERC20, delegateNote, delegateWithDelay, attestNoteIntent, approveRecurringPledgeToken, createStandingPledge, setFineListed, setUnsuspiciousDelay, type DelegatableNotesContract, type NoteIntentContract, type RecurringPledgesContract } from '@commonality/sdk/delegation'
+import { hoursInputToSeconds } from '../spendClass'
 import { getDomainUrl, StatementPicker, useMachinery } from '../../shared'
 import { noteDetailPathFor } from '../utils'
 import { useWriteClients } from '../../shared'
@@ -46,6 +49,7 @@ function getNoteIntentContract(): NoteIntentContract | null {
 
 const MONTHLY_PERIOD_SECONDS = 30n * 24n * 60n * 60n
 const DEFAULT_RECURRING_ALLOWANCE_PERIODS = 12n
+const DEFAULT_WAIT_HOURS = '72'
 
 export function DepositPage() {
   const navigate = useNavigate()
@@ -60,6 +64,11 @@ export function DepositPage() {
   const [delegateStatus, setDelegateStatus] = useState<AddressPickerStatus>('empty')
   const [selectedStatement, setSelectedStatement] = useState<StatementListItem | null>(null)
   const [isRecurring, setIsRecurring] = useState(false)
+  const [waitHours, setWaitHours] = useState(DEFAULT_WAIT_HOURS)
+  const [listedNames, setListedNames] = useState<string[]>([])
+  const [nameInput, setNameInput] = useState('')
+  const [showListedWait, setShowListedWait] = useState(false)
+  const [listedWaitHours, setListedWaitHours] = useState('0')
   const [recurringAllowancePeriods, setRecurringAllowancePeriods] = useState(DEFAULT_RECURRING_ALLOWANCE_PERIODS.toString())
   const [statements, setStatements] = useState<StatementListItem[]>([])
   const [statementsLoading, setStatementsLoading] = useState(false)
@@ -185,6 +194,29 @@ export function DepositPage() {
       return
     }
 
+    const delegating = isRecurring || Boolean(delegateTo)
+    const waitSeconds = hoursInputToSeconds(waitHours.trim() === '' ? '0' : waitHours)
+    const listedWaitSeconds = !showListedWait
+      ? 0n
+      : hoursInputToSeconds(listedWaitHours.trim() === '' ? '0' : listedWaitHours)
+    if (delegating && (waitSeconds === null || listedWaitSeconds === null)) {
+      setError('Enter the wait in hours, or leave it empty for none')
+      return
+    }
+    if (delegating && listedWaitSeconds! > waitSeconds!) {
+      setError('The wait for a listed name cannot be longer than the ordinary wait')
+      return
+    }
+    let fineIds: `0x${string}`[] = []
+    if (delegating && listedNames.length > 0) {
+      try {
+        fineIds = listedNames.map((name) => hashBeneficiaryId('dns', name))
+      } catch {
+        setError('One of the names is not a website')
+        return
+      }
+    }
+
     setSubmitting(true)
     setError(null)
 
@@ -203,6 +235,9 @@ export function DepositPage() {
           amountPerPeriod: depositAmount,
           period: MONTHLY_PERIOD_SECONDS,
           causeRef: selectedStatement!.cid,
+          spendDelay: waitSeconds!,
+          unsuspiciousDelay: listedWaitSeconds!,
+          fineIds,
         })
         setSuccessNoteId(firstNoteId)
         return
@@ -214,12 +249,41 @@ export function DepositPage() {
       })
 
       if (delegateTo && isAddress(delegateTo)) {
-        await delegateNote(clients, delegationContract, {
-          noteId,
-          owners: [address as `0x${string}`],
-          delegateTo: delegateTo as `0x${string}`,
-          amount: depositAmount,
-        })
+        const owners = [address as `0x${string}`]
+        const delegation = waitSeconds! > 0n
+          ? await delegateWithDelay(clients, delegationContract, {
+            noteId,
+            owners,
+            delegateTo: delegateTo as `0x${string}`,
+            amount: depositAmount,
+            delay: waitSeconds!,
+          })
+          : await delegateNote(clients, delegationContract, {
+            noteId,
+            owners,
+            delegateTo: delegateTo as `0x${string}`,
+            amount: depositAmount,
+          })
+        const delegatedNoteId = delegation.delegatedNoteId
+        for (const beneficiaryId of fineIds) {
+          const hash = await setFineListed(clients, delegationContract, {
+            noteId: delegatedNoteId,
+            owners,
+            beneficiaryId,
+            allowed: true,
+          })
+          const receipt = await clients.publicClient.waitForTransactionReceipt({ hash })
+          if (receipt.status !== 'success') throw new Error('Could not save a name that can be paid immediately')
+        }
+        if (listedWaitSeconds! > 0n) {
+          const hash = await setUnsuspiciousDelay(clients, delegationContract, {
+            noteId: delegatedNoteId,
+            owners,
+            delay: listedWaitSeconds!,
+          })
+          const receipt = await clients.publicClient.waitForTransactionReceipt({ hash })
+          if (receipt.status !== 'success') throw new Error('Could not save the wait for a listed name')
+        }
       }
 
       setSuccessNoteId(noteId)
@@ -384,6 +448,61 @@ export function DepositPage() {
                   : 'Optional — leave this alone to manage the fund yourself.'}
               </Typography>
             </Box>
+
+            {(isRecurring || delegateTo) && (
+              <Stack spacing={1}>
+                <TextField
+                  label="Wait before a spend completes (hours)"
+                  value={waitHours}
+                  onChange={(e) => setWaitHours(e.target.value)}
+                  disabled={submitting}
+                  helperText="Suggested: 72. Clear this for no wait. You can cancel a spend during the wait. A name you add below can be paid immediately, and that payment cannot be cancelled."
+                />
+                <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
+                  {listedNames.map((name) => (
+                    <Chip key={name} label={name} onDelete={() => setListedNames(listedNames.filter((item) => item !== name))} />
+                  ))}
+                </Stack>
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  <TextField
+                    size="small"
+                    label="Name that can be paid immediately"
+                    value={nameInput}
+                    onChange={(e) => setNameInput(e.target.value)}
+                    placeholder="example.org"
+                    disabled={submitting}
+                    helperText="Only a payment that goes straight to the wallet that currently controls this name. A project that holds the money for later still waits."
+                  />
+                  <Button
+                    variant="outlined"
+                    disabled={submitting || nameInput.trim() === ''}
+                    onClick={() => {
+                      try {
+                        const canonical = normalizeDnsBeneficiary(nameInput)
+                        setListedNames((current) => current.includes(canonical) ? current : [...current, canonical])
+                        setNameInput('')
+                      } catch {
+                        setError('Enter a website, such as example.org')
+                      }
+                    }}
+                  >
+                    Add name
+                  </Button>
+                </Box>
+                {!showListedWait && (
+                  <Button size="small" onClick={() => setShowListedWait(true)}>Wait before paying a listed name too</Button>
+                )}
+                {showListedWait && (
+                  <TextField
+                    label="Wait for a listed name (hours)"
+                    value={listedWaitHours}
+                    onChange={(e) => setListedWaitHours(e.target.value)}
+                    disabled={submitting}
+                    helperText="Leave this at 0 to pay those names immediately."
+                  />
+                )}
+              </Stack>
+            )}
 
             {statementsLoading && requestedStatementCid && <Alert severity="info">Loading the statement from the cause link…</Alert>}
             {selectedStatement && (

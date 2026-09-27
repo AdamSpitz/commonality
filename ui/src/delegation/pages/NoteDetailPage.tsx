@@ -23,7 +23,7 @@ import {
 import { useAccount, usePublicClient } from 'wagmi'
 import { formatEther, parseEther } from 'viem'
 import { DelegatableNotesAbi, NoteIntentAbi } from '@commonality/sdk/abis'
-import { getNote, getDelegationChain, getNoteIntentAttestation, attestNoteIntent, delegateNote, partialTakeback, replaceDelegate, revokeNote, reclaimFunds, purchaseFromPrimaryMarketWithNotes, refundNote, type Note, type NoteIntentAttestation, type DelegationChainLink, type NoteIntentContract } from '@commonality/sdk/delegation'
+import { getNote, getDelegationChain, getNoteIntentAttestation, attestNoteIntent, delegateNote, partialTakeback, replaceDelegate, reclaimFunds, purchaseFromPrimaryMarketWithNotes, refundNote, type Note, type NoteIntentAttestation, type DelegationChainLink, type NoteIntentContract } from '@commonality/sdk/delegation'
 import { getStatement, type StatementListItem } from '@commonality/sdk/conceptspace'
 import type { IpfsCidV1 } from '@commonality/sdk/utils'
 import { getProjectsFiltered, type ProjectWithMetrics, getProjectTokens, type ProjectToken } from '@commonality/sdk/lazy-giving'
@@ -34,6 +34,7 @@ import { getCurrencyForNote } from '../../shared/funding'
 import { FineListPanel } from '../components/FineListPanel'
 import { PendingSpendCard } from '../components/PendingSpendCard'
 import { SpendPolicyPanel } from '../components/SpendPolicyPanel'
+import { RevokeClosureDialog } from '../components/RevokeClosureDialog'
 
 function getContract(address?: string) {
   const addr = address ?? import.meta.env.VITE_DELEGATABLE_NOTES_CONTRACT_ADDRESS
@@ -328,6 +329,7 @@ export function NoteDetailPage() {
   const [actionLoading, setActionLoading] = useState(false)
   const [delegateDialogOpen, setDelegateDialogOpen] = useState(false)
   const [partialOpen, setPartialOpen] = useState(false)
+  const [revokeMode, setRevokeMode] = useState<'takeback' | 'handback' | null>(null)
   const [partialAmount, setPartialAmount] = useState('')
   const [spendPending, setSpendPending] = useState(false)
   const [delegateMode, setDelegateMode] = useState<'delegate' | 'replace'>('delegate')
@@ -490,30 +492,6 @@ export function NoteDetailPage() {
     } catch (err) {
       console.error('Delegate failed:', err)
       setActionError(err instanceof Error ? err.message : 'Delegation failed')
-    } finally {
-      setActionLoading(false)
-    }
-  }
-
-  const handleRevoke = async () => {
-    if (!note) return
-    const clients = getClients()
-    const contract = getContract(note.contractAddress)
-    if (!clients || !contract) return
-    try {
-      setActionLoading(true)
-      setActionError(null)
-      const owners = [...chain]
-        .sort((a, b) => b.position - a.position)
-        .map(link => link.address as `0x${string}`)
-      await revokeNote(clients, contract, {
-        noteId: BigInt(note.id),
-        owners,
-      })
-      await loadNoteData()
-    } catch (err) {
-      console.error('Takeback failed:', err)
-      setActionError(err instanceof Error ? err.message : 'Takeback failed')
     } finally {
       setActionLoading(false)
     }
@@ -750,6 +728,7 @@ export function NoteDetailPage() {
         <>
           <SpendPolicyPanel
             onChanged={loadNoteData}
+            receipt={note.tokenType === 1}
             noteId={BigInt(note.id)}
             contractAddress={note.contractAddress as `0x${string}`}
             owners={[...chain].sort((a, b) => b.position - a.position).map((link) => link.address as `0x${string}`)}
@@ -853,12 +832,12 @@ export function NoteDetailPage() {
             </Button>
           )}
           {canResign && (
-            <Button variant="outlined" color="warning" onClick={handleRevoke}>
+            <Button variant="outlined" color="warning" onClick={() => setRevokeMode('handback')}>
               Hand back
             </Button>
           )}
           {canTakeback && (
-            <Button variant="outlined" color="warning" onClick={handleRevoke}>
+            <Button variant="outlined" color="warning" onClick={() => setRevokeMode('takeback')}>
               Takeback
             </Button>
           )}
@@ -897,6 +876,17 @@ export function NoteDetailPage() {
         submitLabel={delegateMode === 'replace' ? 'Replace' : 'Delegate'}
         onClose={() => setDelegateDialogOpen(false)}
         onSubmit={handleDelegateSubmit}
+      />
+
+      <RevokeClosureDialog
+        open={revokeMode !== null}
+        mode={revokeMode ?? 'takeback'}
+        originNoteId={note ? BigInt(note.id) : null}
+        contract={getContract(note.contractAddress)}
+        clients={getClients()}
+        logSource={publicClient ?? null}
+        onClose={() => setRevokeMode(null)}
+        onFinished={loadNoteData}
       />
 
       <Dialog open={partialOpen} onClose={() => setPartialOpen(false)} maxWidth="sm" fullWidth>

@@ -83,7 +83,7 @@ contract RecurringPledges is ReentrancyGuard {
   uint256 public nextPledgeId = 1;
   mapping(uint256 => Pledge) public pledges;
   mapping(uint256 => address[]) private pledgeFlaggerList;
-  mapping(uint256 => bytes32[]) private pledgeFineList;
+  mapping(uint256 => bytes32[]) private pledgeFineIds;
   mapping(uint256 => mapping(bytes32 => bool)) public pledgeFineListed;
 
   constructor(address delegatableNotesAddress) {
@@ -98,8 +98,10 @@ contract RecurringPledges is ReentrancyGuard {
     uint256 period,
     string calldata causeRef,
     uint256 spendDelay,
+    uint256 unsuspiciousDelay,
     bool strictMode,
-    address[] calldata flaggers
+    address[] calldata flaggers,
+    bytes32[] calldata fineIds
   ) external nonReentrant returns (uint256 pledgeId, uint256 firstNoteId) {
     address rootOwner = msg.sender;
     if (rootOwner == address(0) || delegateTo == address(0) || token == address(0)) revert ZeroAddress();
@@ -122,6 +124,10 @@ contract RecurringPledges is ReentrancyGuard {
       unsuspiciousDelay: 0,
       strictMode: strictMode
     });
+    _setUnsuspiciousDelay(pledgeId, pledges[pledgeId], unsuspiciousDelay);
+    for (uint256 i = 0; i < fineIds.length; i++) {
+      _setFineListed(pledgeId, fineIds[i], true);
+    }
     for (uint256 i = 0; i < flaggers.length; i++) {
       if (flaggers[i] != address(0) && flaggers[i] != delegateTo) {
         pledgeFlaggerList[pledgeId].push(flaggers[i]);
@@ -174,8 +180,7 @@ contract RecurringPledges is ReentrancyGuard {
     }
     emit PledgeSpendPolicyUpdated(pledgeId, spendDelay, strictMode);
     if (pledge.unsuspiciousDelay > spendDelay) {
-      pledge.unsuspiciousDelay = spendDelay;
-      emit PledgeUnsuspiciousDelaySet(pledgeId, spendDelay);
+      _setUnsuspiciousDelay(pledgeId, pledge, spendDelay);
     }
   }
 
@@ -184,6 +189,10 @@ contract RecurringPledges is ReentrancyGuard {
     if (pledge.rootOwner == address(0)) revert PledgeDoesNotExist();
     if (pledge.rootOwner != msg.sender) revert NotPledgeOwner();
     if (!pledge.active) revert PledgeInactive();
+    _setUnsuspiciousDelay(pledgeId, pledge, unsuspiciousDelay);
+  }
+
+  function _setUnsuspiciousDelay(uint256 pledgeId, Pledge storage pledge, uint256 unsuspiciousDelay) private {
     if (unsuspiciousDelay > pledge.spendDelay) revert UnsuspiciousDelayExceedsStanding();
     pledge.unsuspiciousDelay = unsuspiciousDelay;
     emit PledgeUnsuspiciousDelaySet(pledgeId, unsuspiciousDelay);
@@ -194,6 +203,10 @@ contract RecurringPledges is ReentrancyGuard {
     if (pledge.rootOwner == address(0)) revert PledgeDoesNotExist();
     if (pledge.rootOwner != msg.sender) revert NotPledgeOwner();
     if (!pledge.active) revert PledgeInactive();
+    _setFineListed(pledgeId, beneficiaryId, allowed);
+  }
+
+  function _setFineListed(uint256 pledgeId, bytes32 beneficiaryId, bool allowed) private {
     if (beneficiaryId == bytes32(0)) revert ZeroAddress();
     if (allowed == pledgeFineListed[pledgeId][beneficiaryId]) {
       emit PledgeFineListSet(pledgeId, beneficiaryId, allowed);
@@ -201,10 +214,10 @@ contract RecurringPledges is ReentrancyGuard {
     }
     if (allowed) {
       pledgeFineListed[pledgeId][beneficiaryId] = true;
-      pledgeFineList[pledgeId].push(beneficiaryId);
+      pledgeFineIds[pledgeId].push(beneficiaryId);
     } else {
       pledgeFineListed[pledgeId][beneficiaryId] = false;
-      bytes32[] storage ids = pledgeFineList[pledgeId];
+      bytes32[] storage ids = pledgeFineIds[pledgeId];
       for (uint256 i = 0; i < ids.length; i++) {
         if (ids[i] == beneficiaryId) {
           ids[i] = ids[ids.length - 1];
@@ -220,6 +233,10 @@ contract RecurringPledges is ReentrancyGuard {
 
   function pledgeFlaggers(uint256 pledgeId) external view returns (address[] memory) {
     return pledgeFlaggerList[pledgeId];
+  }
+
+  function pledgeFineList(uint256 pledgeId) external view returns (bytes32[] memory) {
+    return pledgeFineIds[pledgeId];
   }
 
   function executeDue(uint256 pledgeId) external nonReentrant returns (uint256 noteId) {
@@ -259,7 +276,7 @@ contract RecurringPledges is ReentrancyGuard {
       pledge.unsuspiciousDelay,
       pledge.strictMode,
       pledgeFlaggerList[pledgeId],
-      pledgeFineList[pledgeId]
+      pledgeFineIds[pledgeId]
     );
     emit StandingPledgeExecuted(pledgeId, noteId, executedAt);
   }

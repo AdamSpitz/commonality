@@ -28,12 +28,28 @@ async function deployFixture() {
 }
 
 describe("RecurringPledges", function () {
+  it("copies the list and shorter delay onto the first note", async function () {
+    const { alice, bob, notes, recurringPledges, token } = await deployFixture();
+    const id = ethers.id("dns:example.org");
+    await token.connect(alice).approve(notes.target, 10_000n);
+    await recurringPledges.connect(alice).createStandingPledge(
+      bob.address, token.target, 10_000n, 60, "bafy-cause", 100, 20, false, [], [id]
+    );
+    expect(await recurringPledges.pledgeFineList(1)).to.deep.equal([id]);
+    expect(await notes.fineList(1)).to.deep.equal([id]);
+    expect((await notes.spendPolicies(1)).unsuspiciousDelay).to.equal(20);
+    expect((await notes.spendPolicies(1)).delay).to.equal(100);
+    await expect(recurringPledges.connect(alice).createStandingPledge(
+      bob.address, token.target, 10_000n, 60, "bafy-cause", 10, 11, false, [], []
+    )).to.be.revertedWithCustomError(recurringPledges, "UnsuspiciousDelayExceedsStanding");
+  });
+
   it("copies policy edits only to later notes and enforces owner and delay bounds", async function () {
     const { alice, bob, carol, notes, recurringPledges, token } = await deployFixture();
     const id = ethers.id("dns:example.org");
     await token.connect(alice).approve(notes.target, 30_000n);
     await recurringPledges.connect(alice).createStandingPledge(
-      bob.address, token.target, 10_000n, 60, "bafy-cause", 100, true, [carol.address]
+      bob.address, token.target, 10_000n, 60, "bafy-cause", 100, 0, true, [carol.address], []
     );
     await expect(recurringPledges.connect(bob).setPledgeFineListed(1, id, true))
       .to.be.revertedWithCustomError(recurringPledges, "NotPledgeOwner");
@@ -79,7 +95,9 @@ describe("RecurringPledges", function () {
       period,
       "bafy-cause",
       0,
+      0,
       false,
+      [],
       []
     );
 
@@ -119,7 +137,9 @@ describe("RecurringPledges", function () {
       period,
       "bafy-cause",
       0,
+      0,
       false,
+      [],
       []
     );
 
@@ -150,7 +170,9 @@ describe("RecurringPledges", function () {
       60,
       "bafy-cause",
       0,
+      0,
       false,
+      [],
       []
     );
 

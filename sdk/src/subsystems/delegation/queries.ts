@@ -34,7 +34,7 @@ import { foldDelegationState, foldNote, foldNoteIntentAttestations, uniqueNotes,
 import { getAllProjects, type Project } from '../lazy-giving/index.js';
 import { getStandingPledges } from './recurring-pledges.js';
 
-function decodeDelegationEvents(rawEvents: Awaited<ReturnType<typeof fetchAllDelegationEvents>>): DelegationEvent[] {
+export function decodeDelegationEvents(rawEvents: Awaited<ReturnType<typeof fetchAllDelegationEvents>>): DelegationEvent[] {
   const events: DelegationEvent[] = [];
   for (const raw of rawEvents) {
     switch (raw.eventName) {

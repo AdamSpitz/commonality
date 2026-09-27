@@ -5,3 +5,4 @@ export * from './note-intent-actions.js';
 export * from './recurring-pledges.js';
 export * from './events.js';
 export * from './folds.js';
+export * from './revocationClosure.js';

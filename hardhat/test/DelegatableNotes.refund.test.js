@@ -218,4 +218,56 @@ describe("DelegatableNotes - Refund Into Note", function () {
       )
     ).to.be.revertedWithCustomError(notes, "UnauthorizedMarket");
   });
+
+  it("copies the payment note's rules onto the receipt and the receipt's current rules onto the refund", async function () {
+    const paymentNoteId = await depositPaymentNote(alice, COST);
+    await notes.connect(alice).delegate(paymentNoteId, [alice.address], bob.address, COST);
+    const beneficiaryId = ethers.id("beneficiary");
+    await notes.connect(alice).setFineListed(paymentNoteId, [bob.address, alice.address], beneficiaryId, true);
+
+    const tx = await notes.connect(bob).purchaseFromPrimaryMarket(
+      [{ noteId: paymentNoteId, chain: [bob.address, alice.address], shares: COUNT }],
+      await assuranceContract.getAddress(),
+      await erc1155Token.getAddress(),
+      TOKEN_ID,
+      COUNT
+    );
+    const purchased = await tx.wait();
+    const receiptNoteId = purchased.logs.find(l => l.fragment && l.fragment.name === "ERC1155Purchased").args.outputNoteIds[0];
+    expect(await notes.fineListed(receiptNoteId, beneficiaryId)).to.equal(true);
+
+    await notes.connect(alice).setSpendDelay(receiptNoteId, [bob.address, alice.address], 250);
+    await failTheContract();
+    const refundTx = await notes.connect(bob).refundIntoNote(
+      receiptNoteId,
+      [bob.address, alice.address],
+      await assuranceContract.getAddress()
+    );
+    const refunded = await refundTx.wait();
+    const refundNoteId = refunded.logs.find(l => l.fragment && l.fragment.name === "RefundedIntoNote").args.outputNoteId;
+    expect((await notes.spendPolicies(refundNoteId)).delay).to.equal(250);
+    expect(await notes.fineListed(refundNoteId, beneficiaryId)).to.equal(true);
+  });
+
+  it("revokeMany skips a missing note and revokes the receipt that is still there", async function () {
+    const receiptNoteId = await setUpDelegatedReceiptNote();
+    const chain = [bob.address, alice.address];
+    await notes.connect(alice).revokeMany([999n, receiptNoteId], [chain, chain]);
+    const revoked = await notes.notes(receiptNoteId);
+    const rootHash = ethers.keccak256(ethers.solidityPacked(["address", "bytes32"], [alice.address, ethers.ZeroHash]));
+    expect(revoked.chainHash).to.equal(rootHash);
+
+    await failTheContract();
+    await expect(
+      notes.connect(bob).refundIntoNote(receiptNoteId, chain, await assuranceContract.getAddress())
+    ).to.be.revertedWithCustomError(notes, "InvalidChain");
+    const refundTx = await notes.connect(alice).refundIntoNote(
+      receiptNoteId,
+      [alice.address],
+      await assuranceContract.getAddress()
+    );
+    const refunded = await refundTx.wait();
+    const refundNoteId = refunded.logs.find(l => l.fragment && l.fragment.name === "RefundedIntoNote").args.outputNoteId;
+    expect((await notes.notes(refundNoteId)).chainHash).to.equal(rootHash);
+  });
 });

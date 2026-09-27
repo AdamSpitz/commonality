@@ -6,7 +6,7 @@ The `DelegatableNotes` contract lets users deposit tokens and delegate spending 
 
 `delegate` and `revoke` still rewrite `chainHash` on the same note id. `replaceDelegate` does not.
 
-See [ui.md](./ui.md) for the UI spec. For standing-order/recurring pledges built on top of notes, see [recurring-pledges.md](./recurring-pledges.md) (product view: [specs/product/recurring-pledges.md](/specs/product/recurring-pledges.md)). For the donor-set delay on delegated spends, see [waiting-period.md](./waiting-period.md). For classifying those spends as unsuspicious, unmarked, or suspicious, see [spend-classification.md](./spend-classification.md) and [ADR 0017](/specs/decisions/0017-spend-classification.md). For the donor taking part of a delegated note back, see [partial-takeback.md](./partial-takeback.md).
+See [ui.md](./ui.md) for the UI spec. For standing-order/recurring pledges built on top of notes, see [recurring-pledges.md](./recurring-pledges.md) (product view: [specs/product/recurring-pledges.md](/specs/product/recurring-pledges.md)). For the donor-set delay on delegated spends, see [waiting-period.md](./waiting-period.md). For classifying those spends as unsuspicious, unmarked, or suspicious, see [spend-classification.md](./spend-classification.md) and [ADR 0017](/specs/decisions/0017-spend-classification.md). For the donor taking part of a delegated note back, see [partial-takeback.md](./partial-takeback.md). For one Takeback covering the receipts and refunds that came out of a note, see [revocation.md](./revocation.md).
 
 ---
 
@@ -158,6 +158,10 @@ delegateNote(clients, contract, { noteId, owners, delegateTo, amount })
 // Revoke (any chain member can call); owners is leaf-first.
 // The donor's full takeback, and the delegate handing the note back, are both this call.
 revokeNote(clients, contract, { noteId, owners })
+
+// Revoke many notes in one transaction. A note that is already gone is skipped.
+// A bad chain or a caller who is not in a note that still exists reverts the call.
+revokeMany(clients, contract, { notes: [{ noteId, owners }, ...] })
 
 // Donor takes part of a delegated note back. The original note stays delegated.
 // amount is greater than zero and less than the balance. Reverts while a spend is pending.

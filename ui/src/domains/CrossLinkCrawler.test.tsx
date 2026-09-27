@@ -14,6 +14,7 @@ const publicDocModules = import.meta.glob('../../../docs/end-user/**/*.md', { qu
 const routeParamSamples: Record<string, string> = {
   address: '0x0000000000000000000000000000000000000001',
   noteId: '1',
+  pledgeId: '1',
   platform: 'youtube',
   projectAddress: '0x0000000000000000000000000000000000000002',
   roundAddress: '0x0000000000000000000000000000000000000003',

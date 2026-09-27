@@ -109,7 +109,7 @@ export function PendingSpendCard({
     <Paper sx={{ p: 2, mb: 3, borderColor: suspicious ? 'warning.main' : 'divider', borderWidth: 1, borderStyle: 'solid' }}>
       <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
         <Typography variant="subtitle2">Pending spend</Typography>
-        <Chip label={label} size="small" color={suspicious ? 'warning' : label === 'Unsuspicious' ? 'success' : 'default'} />
+        <Chip label={label} size="small" color={suspicious ? 'warning' : label === 'On your list' ? 'success' : 'default'} />
         {row.paused && <Chip label="Paused" size="small" color="warning" />}
       </Stack>
       <Typography variant="body1">{formatCurrencyAmount(row.amount, currency)}</Typography>

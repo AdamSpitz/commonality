@@ -17,6 +17,7 @@ const routes: ReactNode = (
     <Route path="/delegation" element={<Navigate to="/delegation/notes" replace />} />
     <Route path="/delegation/notes" element={lazyRoute(() => import('../../delegation/pages/MyNotesPage'), 'MyNotesPage')} />
     <Route path="/delegation/notes/new" element={lazyRoute(() => import('../../delegation/pages/DepositPage'), 'DepositPage')} />
+    <Route path="/delegation/pledges/:pledgeId" element={lazyRoute(() => import('../../delegation/pages/PledgePage'), 'PledgePage')} />
     <Route path="/delegation/notes/:noteId" element={lazyRoute(() => import('../../delegation/pages/NoteDetailPage'), 'NoteDetailPage')} />
     <Route path="/delegates/offer" element={lazyRoute(() => import('../../delegation/pages/DelegateProfilePage'), 'DelegateProfilePage')} />
     <Route path="/delegates/:address" element={lazyRoute(() => import('../../delegation/pages/DelegateProfilePage'), 'DelegateProfilePage')} />

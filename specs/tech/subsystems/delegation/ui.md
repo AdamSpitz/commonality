@@ -45,7 +45,7 @@ Each note shows:
 - Current leaf owner (with chain depth, e.g. "controlled by [address] (3 levels deep)")
 - Status: "Undelegated" / "Delegated"
 
-For delegated notes where the connected user is the root, show **Takeback** and **Partial takeback**. Takeback calls `revokeNote` with the full delegation chain and brings the whole note back to her. Partial takeback asks for an amount greater than zero and less than the balance, calls `partialTakeback`, and leaves the rest delegated. The copy says she is taking that amount back, not approving a payment of his. While a spend is pending, partial takeback is unavailable until that spend is cancelled or the whole note is taken back.
+For delegated notes where the connected user is the root, show **Takeback** and **Partial takeback**. Takeback opens the confirm list in [revocation.md](./revocation.md). Partial takeback asks for an amount greater than zero and less than the balance, calls `partialTakeback`, and leaves the rest delegated. The copy says she is taking that amount back, not approving a payment of his. While a spend is pending, partial takeback is unavailable until that spend is cancelled or the whole note is taken back.
 
 A **Reclaim** button is available on undelegated notes (where root = leaf), calling `reclaimFunds` to withdraw the funds back to the user's wallet.
 
@@ -87,9 +87,11 @@ Each link shows the address (and ENS name if resolvable) with a copy button and 
 Only shown to relevant users:
 
 - **Delegate** (shown to the current leaf owner): address + amount fields. Calls `delegateNote`.
-- **Takeback** (shown to the root while the note is delegated): calls `revokeNote`. The whole note comes back to her. The delegate's authority over it ends.
-- **Partial takeback** (shown to the root while the note is delegated): an amount field, then `partialTakeback`. The rest stays with the delegate under the same rules. Hidden or disabled while a spend is pending. Not labeled as approving his payment.
-- **Hand back** (shown to the leaf while the note is delegated): also calls `revokeNote`. He is giving the note back, not taking it back.
+- **Takeback** (shown to the root while the note is delegated): opens the confirm list in [revocation.md](./revocation.md). Every still-delegated note in the closure starts checked. She can uncheck rows. The client calls `revokeMany` and repeats until that set is clear.
+- **Partial takeback** (shown to the root while the note is delegated): an amount field, then `partialTakeback`. The rest stays with the delegate under the same rules. Hidden or disabled while a spend is pending. Not labeled as approving his payment. This does not walk the closure.
+- **Hand back** (shown to the leaf while the note is delegated): the same confirm list. Only the note on this page starts checked.
+
+The spend-policy and fine-list controls stay on the note the root is viewing, including a receipt. Edits on a receipt are the rules a later refund of that receipt comes back under. They do not change the unspent remainder.
 - **Reclaim** (shown only to the root owner, and only when the note is undelegated — root = leaf): calls `reclaimFunds`.
 - **Spend on Project** (shown to the current leaf owner): see "Spending" section below.
 
