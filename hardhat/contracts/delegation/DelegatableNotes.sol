@@ -1132,6 +1132,20 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
     }
   }
 
+  function _copySpendPolicy(uint256 fromNoteId, uint256 toNoteId, address copiedDelegate) private {
+    SpendPolicy storage policy = spendPolicies[fromNoteId];
+    address[] memory flaggers = spendFlaggerList[fromNoteId];
+    _writePolicy(
+      toNoteId,
+      policy.delay,
+      policy.unsuspiciousDelay,
+      policy.strictMode,
+      flaggers,
+      copiedDelegate
+    );
+    _copyFineList(fromNoteId, toNoteId);
+  }
+
   function _copyFineList(uint256 fromNoteId, uint256 toNoteId) private {
     bytes32[] storage ids = fineListIds[fromNoteId];
     for (uint256 i = 0; i < ids.length; i++) {
@@ -1159,6 +1173,25 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
    * @param owners The delegation chain (leaf first, root last)
    */
   function revoke(uint256 noteId, address[] calldata owners) external nonReentrant {
+    _revoke(noteId, owners);
+  }
+
+  /**
+   * @notice Revoke each note. A note that is already gone is skipped.
+   * @dev A note that still exists with a wrong chain, or a caller who is not in it, reverts the call.
+   */
+  function revokeMany(
+    uint256[] calldata noteIds,
+    address[][] calldata owners
+  ) external nonReentrant {
+    if (noteIds.length != owners.length) revert ArrayLengthMismatch();
+    for (uint256 i = 0; i < noteIds.length; i++) {
+      if (notes[noteIds[i]].chainHash == bytes32(0)) continue;
+      _revoke(noteIds[i], owners[i]);
+    }
+  }
+
+  function _revoke(uint256 noteId, address[] calldata owners) private {
     address caller = _msgSender();
 
     Note storage note = notes[noteId];
@@ -1293,6 +1326,7 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
       primaryMarket,
       erc1155Contract,
       tokenId,
+      inputNoteIds,
       paymentChains,
       outputShares,
       requiredPayment,
@@ -1405,6 +1439,8 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
     // NoteCreated alone carries only the leaf; RefundedIntoNote lets the fold copy the full
     // chain from the consumed input note (the same pattern ERC1155Purchased uses for outputs).
     emit NoteCreated(refundNoteId, chain[0], refundValue, paymentToken, TokenType.ERC20, 0);
+    _copySpendPolicy(noteId, refundNoteId, chain.length > 1 ? chain[0] : address(0));
+    _deleteSpendPolicy(noteId);
     emit RefundedIntoNote(
       _msgSender(),
       primaryMarket,
@@ -1557,6 +1593,7 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
     address primaryMarket,
     address erc1155Contract,
     uint256 tokenId,
+    uint256[] memory inputNoteIds,
     address[][] memory chains,
     uint256[] memory outputShares,
     uint256 totalPayment,
@@ -1575,6 +1612,11 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
         tokenType: TokenType.ERC1155,
         tokenId: tokenId
       });
+      _copySpendPolicy(
+        inputNoteIds[i],
+        newNoteId,
+        chains[i].length > 1 ? chains[i][0] : address(0)
+      );
       reimbursementClaims[newNoteId] = ReimbursementClaim({
         primaryMarket: primaryMarket,
         contribution: totalPayment * outputShares[i] / totalShares,

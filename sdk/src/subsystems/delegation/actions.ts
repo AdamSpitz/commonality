@@ -335,6 +335,27 @@ export async function revokeNote(
   return hash;
 }
 
+/** Revoke each note. A note that is already gone is skipped. */
+export async function revokeMany(
+  clients: WriteClients,
+  delegatableNotesContract: DelegatableNotesContract,
+  params: {
+    notes: { noteId: bigint; owners: Address[] }[];
+  }
+): Promise<Hash> {
+  const hash = await clients.walletClient.writeContract({
+    address: delegatableNotesContract.address,
+    abi: delegatableNotesContract.abi,
+    functionName: 'revokeMany',
+    args: [params.notes.map((note) => note.noteId), params.notes.map((note) => note.owners)],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
+  });
+
+  await clients.publicClient.waitForTransactionReceipt({ hash });
+  return hash;
+}
+
 /**
  * Reclaim funds from a root note (non-delegated)
  *

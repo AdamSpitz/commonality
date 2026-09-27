@@ -12,4 +12,4 @@ A recurring pledge still mints `[donor, delegate]` for each period. The delegate
 
 Purchases, refunds, and reimbursements keep copying the chain they already copy. A copied one-hop chain stays with that delegate. A copied longer chain is frozen under the same spend rule.
 
-Not in this rule: an off-chain UI where the current delegate names a proposed successor for the donor to sign. The waiting period, delegation copy, refund revocation, beneficiary checks, and partial takeback stay in their own items.
+Not in this rule: an off-chain UI where the current delegate names a proposed successor for the donor to sign. The waiting period, delegation copy, beneficiary checks, and partial takeback stay in their own items. Revocation of receipts and refunds is [revocation.md](./revocation.md).

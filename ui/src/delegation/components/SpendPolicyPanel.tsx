@@ -13,11 +13,14 @@ export function SpendPolicyPanel({
   contractAddress,
   owners,
   onChanged,
+  receipt = false,
 }: {
   noteId: bigint
   contractAddress: Address
   owners: Address[]
   onChanged?: () => Promise<void>
+  /** Edits here follow a refund of this receipt. They do not change the unspent remainder. */
+  receipt?: boolean
 }) {
   const publicClient = usePublicClient()
   const clients = useWriteClients()
@@ -128,6 +131,7 @@ export function SpendPolicyPanel({
       <Typography variant="subtitle2" gutterBottom>Wait before a spend completes</Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
         Other payments wait this long, and you can cancel them until they complete. A spend already scheduled keeps the deadline it was given, unless you change who is on your list.
+        {receipt ? ' A refund of this receipt comes back under these rules. The unspent fund is separate.' : ''}
       </Typography>
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ mb: 1 }}>
         <TextField size="small" label="Wait (hours)" value={delayHours} onChange={(event) => setDelayHours(event.target.value)} helperText="Empty means no wait." />

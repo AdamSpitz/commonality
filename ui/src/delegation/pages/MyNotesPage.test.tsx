@@ -24,6 +24,8 @@ vi.mock('@commonality/sdk/delegation', async () => {
     getDelegationChain: vi.fn(),
     delegateNote: vi.fn(),
     revokeNote: vi.fn(),
+    revokeMany: vi.fn(),
+    loadRevocableClosure: vi.fn(),
     partialTakeback: vi.fn(),
     reclaimFunds: vi.fn(),
     getActiveStandingPledgesByUser: vi.fn(),
@@ -49,7 +51,7 @@ vi.mock('@commonality/sdk/machinery', async () => {
 })
 
 import { useAccount, useWalletClient, usePublicClient } from 'wagmi'
-import { getNotesByOwner, getNotesByRoot, getDelegationChain, getDonationActivityByRoot, delegateNote, revokeNote, reclaimFunds, getActiveStandingPledgesByUser, cancelStandingPledge } from '@commonality/sdk/delegation'
+import { getNotesByOwner, getNotesByRoot, getDelegationChain, getDonationActivityByRoot, delegateNote, revokeMany, loadRevocableClosure, reclaimFunds, getActiveStandingPledgesByUser, cancelStandingPledge } from '@commonality/sdk/delegation'
 import { createSDKMachinery } from '@commonality/sdk/machinery'
 import { getStatement } from '@commonality/sdk/conceptspace'
 import { getDomainUrl } from '../../shared'
@@ -558,7 +560,18 @@ describe('MyNotesPage', () => {
         { address: userAddress, position: 0, createdAt: '1700000000' },
         { address: delegateAddress, position: 1, createdAt: '1700000001' },
       ])
-      vi.mocked(revokeNote).mockResolvedValue({ hash: '0xrevoke' } as any)
+      const row = {
+        id: '1',
+        noteId: 1n,
+        amount: '1',
+        owners: [delegateAddress as `0x${string}`, userAddress as `0x${string}`],
+        parentId: null,
+      }
+      vi.mocked(revokeMany).mockResolvedValue('0xrevoke')
+      vi.mocked(loadRevocableClosure)
+        .mockResolvedValueOnce([row])
+        .mockResolvedValueOnce([row])
+        .mockResolvedValue([])
 
       render(<MyNotesPage />)
 
@@ -567,15 +580,14 @@ describe('MyNotesPage', () => {
         expect(screen.getByRole('button', { name: 'Partial takeback' })).toBeInTheDocument()
       })
       fireEvent.click(screen.getByRole('button', { name: 'Takeback' }))
+      fireEvent.click(await screen.findByRole('button', { name: 'Revoke selected' }))
 
       await waitFor(() => {
-        expect(getDelegationChain).toHaveBeenCalledWith(mockMachinery, '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:1')
-        expect(revokeNote).toHaveBeenCalledWith(
+        expect(revokeMany).toHaveBeenCalledWith(
           expect.any(Object),
           expect.objectContaining({ address: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' }),
           expect.objectContaining({
-            noteId: 1n,
-            owners: [delegateAddress, userAddress],
+            notes: [{ noteId: 1n, owners: [delegateAddress, userAddress] }],
           })
         )
       })
@@ -593,13 +605,21 @@ describe('MyNotesPage', () => {
         { address: userAddress, position: 0, createdAt: '1700000000' },
         { address: delegateAddress, position: 1, createdAt: '1700000001' },
       ])
-      vi.mocked(revokeNote).mockRejectedValue(new Error('Revocation reverted'))
+      vi.mocked(loadRevocableClosure).mockResolvedValue([{
+        id: '1',
+        noteId: 1n,
+        amount: '1',
+        owners: [delegateAddress, userAddress],
+        parentId: null,
+      }])
+      vi.mocked(revokeMany).mockRejectedValue(new Error('Revocation reverted'))
 
       render(<MyNotesPage />)
 
       await waitFor(() => {
         fireEvent.click(screen.getByRole('button', { name: 'Takeback' }))
       })
+      fireEvent.click(await screen.findByRole('button', { name: 'Revoke selected' }))
 
       await waitFor(() => {
         expect(screen.getByText('Revocation reverted')).toBeInTheDocument()

@@ -68,4 +68,4 @@ Public remarks from people who are not flaggers are a later UI feature. They are
 
 ## Out of scope
 
-Beneficiary allow-lists, donor exceptions, refund authority, and a prose label on the schedule are other items. This design does not add them.
+Beneficiary allow-lists, donor exceptions, and a prose label on the schedule are other items. Refund authority is [revocation.md](./revocation.md). This design does not add them.

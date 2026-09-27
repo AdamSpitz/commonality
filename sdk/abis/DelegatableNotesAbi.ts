@@ -2062,6 +2062,24 @@ export const DelegatableNotesAbi = [
   {
     "inputs": [
       {
+        "internalType": "uint256[]",
+        "name": "noteIds",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "address[][]",
+        "name": "owners",
+        "type": "address[][]"
+      }
+    ],
+    "name": "revokeMany",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "uint256",
         "name": "noteId",
         "type": "uint256"

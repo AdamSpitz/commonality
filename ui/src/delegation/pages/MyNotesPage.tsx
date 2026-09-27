@@ -26,13 +26,14 @@ import { useAccount, usePublicClient } from 'wagmi'
 import { decodeEventLog, formatEther, parseEther, type Hex } from 'viem'
 import { DelegatableNotesAbi, RecurringPledgesAbi } from '@commonality/sdk/abis'
 import { getStatement } from '@commonality/sdk/conceptspace'
-import { getNotesByOwner, getNotesByRoot, getDelegationChain, getDonationActivityByRoot, delegateNote, partialTakeback, replaceDelegate, revokeNote, reclaimFunds, getActiveStandingPledgesByUser, cancelStandingPledge, type DonationActivity, type Note, type StandingPledge, type DelegatableNotesContract, type RecurringPledgesContract } from '@commonality/sdk/delegation'
+import { getNotesByOwner, getNotesByRoot, getDelegationChain, getDonationActivityByRoot, delegateNote, partialTakeback, replaceDelegate, reclaimFunds, getActiveStandingPledgesByUser, cancelStandingPledge, type DonationActivity, type Note, type StandingPledge, type DelegatableNotesContract, type RecurringPledgesContract } from '@commonality/sdk/delegation'
 import { fetchEventsComplete, type Currency, type IpfsCidV1 } from '@commonality/sdk/utils'
 import { getDomainUrl, useMachinery } from '../../shared'
 import { useWriteClients } from '../../shared'
 import { formatCurrencyAmount, getCurrencyForNote } from '../../shared/funding'
 import { formatNoteAmount, isDelegate, truncateAddress, isEthNote, noteDetailPath, noteScopedKey, parsePartialTakebackAmount } from '../utils'
 import { DonorPendingSpends } from '../components/DonorPendingSpends'
+import { RevokeClosureDialog } from '../components/RevokeClosureDialog'
 import { spendClassLabel } from '../spendClass'
 import { readLazyGivingProjectMetadata } from '../../lazy-giving/metadata'
 
@@ -522,6 +523,7 @@ function DonationActivityFeed({ activities, projectTitles, causeTitles, classByN
 
 export function MyNotesPage({ experience = 'delegation' }: { experience?: 'delegation' | 'donate' } = {}) {
   const { address } = useAccount()
+  const publicClient = usePublicClient()
   const writeClients = useWriteClients(address)
   const machinery = useMachinery()
 
@@ -541,6 +543,7 @@ export function MyNotesPage({ experience = 'delegation' }: { experience?: 'deleg
   const [delegateDialogOpen, setDelegateDialogOpen] = useState(false)
   const [delegateMode, setDelegateMode] = useState<'delegate' | 'replace'>('delegate')
   const [delegateTarget, setDelegateTarget] = useState<Note | null>(null)
+  const [revokeTarget, setRevokeTarget] = useState<{ note: Note; mode: 'takeback' | 'handback' } | null>(null)
   const isDonate = experience === 'donate'
 
   const getClients = () => {
@@ -664,28 +667,8 @@ export function MyNotesPage({ experience = 'delegation' }: { experience?: 'deleg
     }
   }
 
-  const handleRevoke = async (note: Note) => {
-    const clients = getClients()
-    const contract = getContract(note.contractAddress)
-    if (!clients || !contract) return
-    try {
-      setActionLoading(true)
-      setActionError(null)
-      const chain = await getDelegationChain(machinery, noteScopedKey(note))
-      const owners = chain
-        .sort((a, b) => b.position - a.position)
-        .map(link => link.address as `0x${string}`)
-      await revokeNote(clients, contract, {
-        noteId: BigInt(note.id),
-        owners,
-      })
-      await loadNotes()
-    } catch (err) {
-      console.error('Takeback failed:', err)
-      setActionError(err instanceof Error ? err.message : 'Takeback failed')
-    } finally {
-      setActionLoading(false)
-    }
+  const handleRevoke = (note: Note, mode: 'takeback' | 'handback') => {
+    setRevokeTarget({ note, mode })
   }
 
   const handlePartialTakeback = async (note: Note, amount: string) => {
@@ -828,7 +811,7 @@ export function MyNotesPage({ experience = 'delegation' }: { experience?: 'deleg
                     showDelegate={!isDelegate(note)}
                     showGiveBack={isDelegate(note)}
                     onDelegate={handleDelegate}
-                    onGiveBack={handleRevoke}
+                    onGiveBack={(note) => handleRevoke(note, 'handback')}
                   />
                 ))}
               </Stack>
@@ -885,7 +868,7 @@ export function MyNotesPage({ experience = 'delegation' }: { experience?: 'deleg
                   showDelegate={!isDelegate(note)}
                   onDelegate={handleDelegate}
                   onReplace={handleReplace}
-                  onRevoke={handleRevoke}
+                  onRevoke={(note) => handleRevoke(note, 'takeback')}
                   onPartialTakeback={handlePartialTakeback}
                   onReclaim={handleReclaim}
                 />
@@ -921,6 +904,17 @@ export function MyNotesPage({ experience = 'delegation' }: { experience?: 'deleg
           )}
         </>
       )}
+
+      <RevokeClosureDialog
+        open={revokeTarget !== null}
+        mode={revokeTarget?.mode ?? 'takeback'}
+        originNoteId={revokeTarget ? BigInt(revokeTarget.note.id) : null}
+        contract={revokeTarget ? getContract(revokeTarget.note.contractAddress) : null}
+        clients={getClients()}
+        logSource={publicClient ?? null}
+        onClose={() => setRevokeTarget(null)}
+        onFinished={async () => { await loadNotes() }}
+      />
 
       <DelegateDialog
         open={delegateDialogOpen}
