@@ -27,6 +27,7 @@ import { getRuntimeConfigValue, isCidDeniedByDisplayDenylist, loadDisplayDenylis
 import { tryParseChainAddressRef } from '../../shared'
 import { readLazyGivingProjectMetadata, readLazyGivingTokenMetadata, type ProjectMetadata } from '../metadata'
 import { usePublishedBeneficiaryBinding } from '../components/usePublishedBeneficiaryBinding'
+import { PendingProjectSpends } from '../components/PendingProjectSpends'
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000' as const
 
 export type ProjectDetailPageProps = {
@@ -383,6 +384,7 @@ export function ProjectDetailPage({
   return (
     <Box>
       <ProjectHeader project={project} metadata={metadata} kind={headerKind} beneficiaryBinding={beneficiaryBinding} />
+      {projectContractAddress && <PendingProjectSpends primaryMarket={projectContractAddress} currency={fundingCurrency} />}
 
       {projectContractAddress && disavowedProjects.has(projectContractAddress.toLowerCase()) && (
         <Alert severity="warning" sx={{ mb: 3 }}>

@@ -103,6 +103,7 @@ describe("Conceptspace acceptance journeys", function () {
     const paymentToken = await ethers.deployContract("FreeERC20", ["USD Coin", "USDC", 6]);
     const beneficiaryIdentity = await ethers.deployContract("BeneficiaryIdentity", [verifier.target]);
     const beneficiaryRegistry = await ethers.deployContract("BeneficiaryRegistry", [beneficiaryIdentity.target]);
+    const fixedControllerFactory = await ethers.deployContract("FixedControllerFactory", [beneficiaryRegistry.target]);
     const beneficiaryEscrow = await ethers.deployContract("BeneficiaryEscrow", [
       beneficiaryRegistry.target,
       paymentToken.target,
@@ -113,6 +114,7 @@ describe("Conceptspace acceptance journeys", function () {
       conditionFactory.target,
       beneficiaryRegistry.target,
       beneficiaryEscrow.target,
+      fixedControllerFactory.target,
     ]);
 
     const [, owner, recipient] = await ethers.getSigners();

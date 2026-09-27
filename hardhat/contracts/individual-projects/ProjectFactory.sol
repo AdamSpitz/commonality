@@ -9,6 +9,7 @@ import {MultiERC1155AssuranceContract} from "./AssuranceContracts.sol";
 import {IAssuranceCondition} from "./IAssuranceCondition.sol";
 import {ValueThresholdCondition} from "./ValueThresholdCondition.sol";
 import {BeneficiaryAssuranceContract} from "./BeneficiaryAssuranceContract.sol";
+import {FixedControllerFactory} from "./FixedControllerFactory.sol";
 
 interface IProjectBeneficiaryRegistry {
   function isVerified(bytes32 beneficiaryId) external view returns (bool);
@@ -147,6 +148,7 @@ contract ProjectFactory {
   AssuranceContractFactory public immutable _assuranceFactory;
   ValueThresholdConditionFactory public immutable _conditionFactory;
   IProjectBeneficiaryRegistry public immutable beneficiaryRegistry;
+  FixedControllerFactory public immutable fixedControllerFactory;
   /// @notice Retained so existing deployment wiring still constructs this factory.
   ///         New projects do not deposit here.
   address public immutable beneficiaryEscrow;
@@ -168,18 +170,21 @@ contract ProjectFactory {
     address assuranceFactory,
     address conditionFactory,
     address _beneficiaryRegistry,
-    address _beneficiaryEscrow
+    address _beneficiaryEscrow,
+    address _fixedControllerFactory
   ) {
     if (erc1155Factory == address(0)) revert InvalidFactoryAddress();
     if (assuranceFactory == address(0)) revert InvalidFactoryAddress();
     if (conditionFactory == address(0)) revert InvalidFactoryAddress();
     if (_beneficiaryRegistry == address(0)) revert InvalidFactoryAddress();
     if (_beneficiaryEscrow == address(0)) revert InvalidFactoryAddress();
+    if (_fixedControllerFactory == address(0)) revert InvalidFactoryAddress();
     _premintingERC1155Factory = PremintingERC1155Factory(erc1155Factory);
     _assuranceFactory = AssuranceContractFactory(assuranceFactory);
     _conditionFactory = ValueThresholdConditionFactory(conditionFactory);
     beneficiaryRegistry = IProjectBeneficiaryRegistry(_beneficiaryRegistry);
     beneficiaryEscrow = _beneficiaryEscrow;
+    fixedControllerFactory = FixedControllerFactory(_fixedControllerFactory);
     if (IProjectBeneficiaryEscrow(_beneficiaryEscrow).beneficiaryRegistry() != _beneficiaryRegistry) {
       revert BeneficiaryEscrowRegistryMismatch();
     }
@@ -245,8 +250,9 @@ contract ProjectFactory {
   }
 
   /**
-   * @notice Creates a threshold project whose proceeds stay in the project until
-   *         the named beneficiary claims or refuses them.
+   * @notice Creates a project for a beneficiary id. A verified identity pays the
+   *         current controller's wallet, fixed here. An unclaimed identity keeps
+   *         the proceeds until a later claim.
    */
   function createERC1155AndAssuranceContractForBeneficiary(
     string memory metadataURI,
@@ -266,6 +272,7 @@ contract ProjectFactory {
     if (deadline <= block.timestamp) revert InvalidDeadline();
 
     address payout = beneficiaryRegistry.payoutAddress(beneficiaryId);
+    bool verified = beneficiaryRegistry.isVerified(beneficiaryId) && payout != address(0);
     if (beneficiaryRegistry.isBeneficiaryControlled(beneficiaryId) && msg.sender != payout) {
       revert OnlyPayoutAddressCanCreateForControlledBeneficiary();
     }
@@ -273,7 +280,7 @@ contract ProjectFactory {
       metadataURI: metadataURI,
       contractURI: contractURI,
       owner: owner,
-      recipient: address(this),
+      recipient: verified ? payout : address(this),
       paymentToken: paymentToken,
       projectMetadataCid: projectMetadataCid,
       ids: ids,
@@ -283,9 +290,16 @@ contract ProjectFactory {
 
     _validateProjectParams(params);
     PremintingERC1155 t = _deployToken(params);
-    BeneficiaryAssuranceContract ac = _assuranceFactory.createBeneficiaryAssuranceContract(
-      address(this), paymentToken, address(t), projectMetadataCid, beneficiaryId, address(beneficiaryRegistry), UNCLAIMED_PROCEEDS_WINDOW
-    );
+    MultiERC1155AssuranceContract ac;
+    if (verified) {
+      ac = fixedControllerFactory.create(
+        address(this), payout, paymentToken, address(t), projectMetadataCid, beneficiaryId, address(beneficiaryRegistry)
+      );
+    } else {
+      ac = _assuranceFactory.createBeneficiaryAssuranceContract(
+        address(this), paymentToken, address(t), projectMetadataCid, beneficiaryId, address(beneficiaryRegistry), UNCLAIMED_PROCEEDS_WINDOW
+      );
+    }
     ValueThresholdCondition condition = _conditionFactory.createCondition(address(ac), threshold, deadline);
     _wireUpAndFinalize(t, ac, IAssuranceCondition(address(condition)), params);
     emit ProjectCreated(msg.sender, address(t), address(ac), address(condition));

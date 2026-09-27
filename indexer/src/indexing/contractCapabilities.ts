@@ -23,6 +23,8 @@ export const conceptspaceContractNames = [
 
 export const fundingContractNames = [
   "AssuranceContractFactory",
+  "FixedControllerFactory",
+  "FixedControllerAssuranceContract",
   "ProjectFactory",
   "ERC1155Factory",
   "AssuranceContract",

@@ -34,6 +34,7 @@ const ADDRESS_KEYS = {
   ProspectiveContentRoundFactory: ['PROSPECTIVE_CONTENT_ROUND_FACTORY_ADDRESS'],
   NudgePublications: ['NUDGE_PUBLICATIONS_CONTRACT_ADDRESS'],
   PublishedData: ['PUBLISHED_DATA_CONTRACT_ADDRESS'],
+  FixedControllerFactory: ['FIXED_CONTROLLER_FACTORY_ADDRESS'],
   ProjectFactory: ['PROJECT_FACTORY_ADDRESS'],
   SponsoredGasEntryPoint: ['SPONSORED_GAS_ENTRY_POINT_ADDRESS'],
   CreatorGasTank: ['CREATOR_GAS_TANK_ADDRESS'],
@@ -335,7 +336,14 @@ async function main() {
   }
   await deployOrReuse('NudgePublications', 'NudgePublications');
   await deployOrReuse('PublishedData', 'PublishedData');
-  await deployOrReuse('ProjectFactory', 'ProjectFactory', [addresses.PremintingERC1155Factory, addresses.AssuranceContractFactory, addresses.ValueThresholdConditionFactory, addresses.BeneficiaryRegistry, addresses.BeneficiaryEscrow]);
+  await deployOrReuse('FixedControllerFactory', 'FixedControllerFactory', [addresses.BeneficiaryRegistry]);
+  if (addresses.DelegatableNotes && addresses.FixedControllerFactory && (freshlyDeployed.has('DelegatableNotes') || freshlyDeployed.has('FixedControllerFactory'))) {
+    const d = await ownerCapable(await ethers.getContractAt('DelegatableNotes', addresses.DelegatableNotes));
+    if (!(await d.authorizedPrimaryMarketFactories(addresses.FixedControllerFactory))) {
+      await (await d.setPrimaryMarketFactoryAuthorization(addresses.FixedControllerFactory, true)).wait();
+    }
+  }
+  await deployOrReuse('ProjectFactory', 'ProjectFactory', [addresses.PremintingERC1155Factory, addresses.AssuranceContractFactory, addresses.ValueThresholdConditionFactory, addresses.BeneficiaryRegistry, addresses.BeneficiaryEscrow, addresses.FixedControllerFactory]);
 
   if (isLocal) {
     await deployOrReuse('SponsoredGasEntryPoint', 'MockEntryPoint');
@@ -467,6 +475,7 @@ async function main() {
     PAYMENT_TOKEN_ADDRESS: addresses.FreeERC20,
     PAYMENT_TOKEN_SYMBOL: 'USDZZZ',
     PAYMENT_TOKEN_DECIMALS: '6',
+    FIXED_CONTROLLER_FACTORY_ADDRESS: addresses.FixedControllerFactory,
     PROJECT_FACTORY_ADDRESS: addresses.ProjectFactory,
     DEPLOYER_ADDRESS: deployer.address,
     CONTRACT_ADMIN_ADDRESS: contractAdminAddress,

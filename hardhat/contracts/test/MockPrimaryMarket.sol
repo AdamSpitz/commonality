@@ -3,6 +3,15 @@ pragma solidity 0.8.33;
 
 contract MockPrimaryMarket {
   uint256 public price = 1;
+  bytes32 public beneficiaryId;
+  address public recipient;
+  address public proceedsRegistry;
+
+  function setRoute(bytes32 beneficiaryId_, address recipient_, address registry_) external {
+    beneficiaryId = beneficiaryId_;
+    recipient = recipient_;
+    proceedsRegistry = registry_;
+  }
 
   function setPrice(uint256 price_) external {
     price = price_;

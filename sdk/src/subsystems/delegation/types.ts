@@ -130,6 +130,7 @@ export type DonationActivityStatus = 'receipt active' | 'refunded' | 'reimbursed
 /** One project allocation made from notes rooted in a donor's wallet. */
 export interface DonationActivity {
   id: string;
+  noteContract: string;
   transactionHash: string;
   createdAt: string;
   blockNumber: string;

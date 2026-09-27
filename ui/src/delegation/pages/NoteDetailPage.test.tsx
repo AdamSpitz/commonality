@@ -353,7 +353,8 @@ describe('NoteDetailPage', () => {
       render(<NoteDetailPage />)
 
       await waitFor(() => {
-        expect(screen.getByRole('button', { name: 'Revoke' })).toBeInTheDocument()
+        expect(screen.getByRole('button', { name: 'Takeback' })).toBeInTheDocument()
+        expect(screen.getByRole('button', { name: 'Partial takeback' })).toBeInTheDocument()
       })
     })
 
@@ -473,7 +474,8 @@ describe('NoteDetailPage', () => {
       render(<NoteDetailPage />)
 
       await waitFor(() => {
-        expect(screen.getByRole('button', { name: 'Revoke' })).toBeInTheDocument()
+        expect(screen.getByRole('button', { name: 'Takeback' })).toBeInTheDocument()
+        expect(screen.getByRole('button', { name: 'Partial takeback' })).toBeInTheDocument()
       })
     })
   })

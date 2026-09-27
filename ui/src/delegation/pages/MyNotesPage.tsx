@@ -22,16 +22,18 @@ import {
   TextField,
 } from '@mui/material'
 import { Link as RouterLink } from 'react-router-dom'
-import { useAccount } from 'wagmi'
-import { formatEther, parseEther } from 'viem'
+import { useAccount, usePublicClient } from 'wagmi'
+import { decodeEventLog, formatEther, parseEther, type Hex } from 'viem'
 import { DelegatableNotesAbi, RecurringPledgesAbi } from '@commonality/sdk/abis'
 import { getStatement } from '@commonality/sdk/conceptspace'
-import { getNotesByOwner, getNotesByRoot, getDelegationChain, getDonationActivityByRoot, delegateNote, replaceDelegate, revokeNote, reclaimFunds, getActiveStandingPledgesByUser, cancelStandingPledge, type DonationActivity, type Note, type StandingPledge, type DelegatableNotesContract, type RecurringPledgesContract } from '@commonality/sdk/delegation'
-import type { Currency, IpfsCidV1 } from '@commonality/sdk/utils'
+import { getNotesByOwner, getNotesByRoot, getDelegationChain, getDonationActivityByRoot, delegateNote, partialTakeback, replaceDelegate, revokeNote, reclaimFunds, getActiveStandingPledgesByUser, cancelStandingPledge, type DonationActivity, type Note, type StandingPledge, type DelegatableNotesContract, type RecurringPledgesContract } from '@commonality/sdk/delegation'
+import { fetchEventsComplete, type Currency, type IpfsCidV1 } from '@commonality/sdk/utils'
 import { getDomainUrl, useMachinery } from '../../shared'
 import { useWriteClients } from '../../shared'
 import { formatCurrencyAmount, getCurrencyForNote } from '../../shared/funding'
-import { formatNoteAmount, isDelegate, truncateAddress, isEthNote, noteDetailPath, noteScopedKey } from '../utils'
+import { formatNoteAmount, isDelegate, truncateAddress, isEthNote, noteDetailPath, noteScopedKey, parsePartialTakebackAmount } from '../utils'
+import { DonorPendingSpends } from '../components/DonorPendingSpends'
+import { spendClassLabel } from '../spendClass'
 import { readLazyGivingProjectMetadata } from '../../lazy-giving/metadata'
 
 function SummaryCards({ ownedNotes, depositedNotes, standingPledges, experience = 'delegation' }: { ownedNotes: Note[]; depositedNotes: Note[]; standingPledges: StandingPledge[]; experience?: 'delegation' | 'donate' }) {
@@ -74,6 +76,7 @@ function NoteCard({
   showDelegatedFrom,
   showCurrentOwner,
   showRevoke,
+  showPartialTakeback,
   showReclaim,
   showDelegate,
   showReplace,
@@ -81,6 +84,7 @@ function NoteCard({
   onDelegate,
   onReplace,
   onRevoke,
+  onPartialTakeback,
   onReclaim,
   onGiveBack,
 }: {
@@ -88,6 +92,7 @@ function NoteCard({
   showDelegatedFrom?: boolean
   showCurrentOwner?: boolean
   showRevoke?: boolean
+  showPartialTakeback?: boolean
   showReclaim?: boolean
   showDelegate?: boolean
   showReplace?: boolean
@@ -95,9 +100,34 @@ function NoteCard({
   onDelegate?: (note: Note) => void
   onReplace?: (note: Note) => void
   onRevoke?: (note: Note) => void
+  onPartialTakeback?: (note: Note, amount: string) => void
   onReclaim?: (note: Note) => void
   onGiveBack?: (note: Note) => void
 }) {
+  const publicClient = usePublicClient()
+  const [spendPending, setSpendPending] = useState(false)
+  const [partialOpen, setPartialOpen] = useState(false)
+
+  useEffect(() => {
+    if (!showPartialTakeback || !publicClient) {
+      setSpendPending(false)
+      return
+    }
+    let cancelled = false
+    ;(async () => {
+      const pending = await publicClient.readContract({
+        address: note.contractAddress as `0x${string}`,
+        abi: DelegatableNotesAbi,
+        functionName: 'pendingSpends',
+        args: [BigInt(note.id)],
+      }) as readonly [unknown, unknown, bigint, bigint, bigint, bigint, bigint, boolean, boolean]
+      if (!cancelled) setSpendPending(pending[8])
+    })().catch(() => {
+      if (!cancelled) setSpendPending(false)
+    })
+    return () => { cancelled = true }
+  }, [publicClient, showPartialTakeback, note.contractAddress, note.id])
+
   return (
     <Card>
       <CardActionArea component={RouterLink} to={noteDetailPath(note)}>
@@ -133,7 +163,7 @@ function NoteCard({
           </Box>
         </CardContent>
       </CardActionArea>
-      {(showDelegate || showReplace || showGiveBack || showRevoke || showReclaim) && (
+      {(showDelegate || showReplace || showGiveBack || showRevoke || showPartialTakeback || showReclaim) && (
         <Box sx={{ px: 2, pb: 1.5, display: 'flex', gap: 1 }}>
           {showDelegate && (
             <Button
@@ -160,7 +190,7 @@ function NoteCard({
               color="warning"
               onClick={(e) => { e.preventDefault(); onGiveBack?.(note) }}
             >
-              Give back
+              Hand back
             </Button>
           )}
           {showRevoke && (
@@ -170,7 +200,17 @@ function NoteCard({
               color="warning"
               onClick={(e) => { e.preventDefault(); onRevoke?.(note) }}
             >
-              Revoke
+              Takeback
+            </Button>
+          )}
+          {showPartialTakeback && (
+            <Button
+              size="small"
+              variant="outlined"
+              disabled={spendPending}
+              onClick={(e) => { e.preventDefault(); setPartialOpen(true) }}
+            >
+              Partial takeback
             </Button>
           )}
           {showReclaim && (
@@ -185,7 +225,58 @@ function NoteCard({
           )}
         </Box>
       )}
+      <PartialTakebackDialog
+        open={partialOpen}
+        note={note}
+        onClose={() => setPartialOpen(false)}
+        onSubmit={(amount) => onPartialTakeback?.(note, amount)}
+      />
     </Card>
+  )
+}
+
+function PartialTakebackDialog({
+  open,
+  note,
+  onClose,
+  onSubmit,
+}: {
+  open: boolean
+  note: Note | null
+  onClose: () => void
+  onSubmit: (amount: string) => void
+}) {
+  const [amount, setAmount] = useState('')
+  const parsed = note ? parsePartialTakebackAmount(amount, note) : null
+  const valid = parsed !== null
+
+  return (
+    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+      <DialogTitle>Partial takeback of fund #{note?.id}</DialogTitle>
+      <DialogContent>
+        <Typography variant="body2" sx={{ mt: 1 }}>
+          You are taking this amount back. The rest stays with the delegate under the same rules. This does not approve a payment.
+        </Typography>
+        <TextField
+          label={`Amount to take back (${note ? getCurrencyForNote(note).symbol : ''})`}
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+          fullWidth
+          margin="normal"
+          helperText={note ? `Greater than zero and less than ${formatNoteAmount(note)}` : ''}
+        />
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose}>Cancel</Button>
+        <Button
+          onClick={() => { if (valid && parsed !== null) { onSubmit(amount); onClose(); setAmount('') } }}
+          variant="contained"
+          disabled={!valid}
+        >
+          Take back
+        </Button>
+      </DialogActions>
+    </Dialog>
   )
 }
 
@@ -361,10 +452,11 @@ function StandingPledgeCard({
   )
 }
 
-function DonationActivityFeed({ activities, projectTitles, causeTitles }: {
+function DonationActivityFeed({ activities, projectTitles, causeTitles, classByNoteId }: {
   activities: DonationActivity[]
   projectTitles: Record<string, string>
   causeTitles: Record<string, string>
+  classByNoteId: Record<string, number>
 }) {
   const groups = new Map<string, DonationActivity[]>()
   for (const activity of activities) {
@@ -388,6 +480,12 @@ function DonationActivityFeed({ activities, projectTitles, causeTitles }: {
                   <Stack direction="row" justifyContent="space-between" alignItems="flex-start" gap={2}>
                     <Box>
                       <Typography sx={{ fontWeight: 700 }}>{formatCurrencyAmount(activity.amount, activity.currency)}</Typography>
+                      {(() => {
+                        const value = activity.inputNoteIds.map((id) => classByNoteId[`${activity.noteContract?.toLowerCase()}:${activity.transactionHash.toLowerCase()}:${id}`]).find((item) => item !== undefined)
+                        if (value === undefined) return null
+                        const label = spendClassLabel(value)
+                        return <Chip label={label} size="small" color={label === 'Suspicious' ? 'warning' : 'default'} />
+                      })()}
                       <Typography variant="body2" color="text.secondary">
                         Directed by {truncateAddress(activity.directedBy)} · {formatPledgeDate(activity.createdAt)}
                       </Typography>
@@ -423,6 +521,7 @@ export function MyNotesPage({ experience = 'delegation' }: { experience?: 'deleg
   const [depositedNotes, setDepositedNotes] = useState<Note[]>([])
   const [standingPledges, setStandingPledges] = useState<StandingPledge[]>([])
   const [donationActivity, setDonationActivity] = useState<DonationActivity[]>([])
+  const [classByNoteId, setClassByNoteId] = useState<Record<string, number>>({})
   const [causeTitles, setCauseTitles] = useState<Record<string, string>>({})
   const [projectTitles, setProjectTitles] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(true)
@@ -464,6 +563,25 @@ export function MyNotesPage({ experience = 'delegation' }: { experience?: 'deleg
       setDepositedNotes(deposited.filter(n => n.active))
       setStandingPledges(activePledges)
       setDonationActivity(activity)
+      if (isDonate && machinery.eventCacheUrl) {
+        const events = await fetchEventsComplete(machinery, {
+          eventName: 'SpendClassResolved',
+        }).catch(() => [])
+        const labels: Record<string, number> = {}
+        for (const event of events) {
+          if (!event.topic0 || !event.topic1) continue
+          const decoded = decodeEventLog({
+            abi: DelegatableNotesAbi,
+            eventName: 'SpendClassResolved',
+            topics: [event.topic0 as Hex, event.topic1 as Hex],
+            data: event.data as Hex,
+          })
+          labels[`${event.contractAddress.toLowerCase()}:${event.transactionHash.toLowerCase()}:${decoded.args.noteId}`] = Number(decoded.args.class)
+        }
+        setClassByNoteId(labels)
+      } else {
+        setClassByNoteId({})
+      }
       const projectEntries = await Promise.all(activity.map(async (row) => {
         if (!row.projectMetadataCid) return [row.projectAddress?.toLowerCase() ?? row.receiptContract.toLowerCase(), undefined] as const
         const metadata = await readLazyGivingProjectMetadata(machinery, row.projectMetadataCid as IpfsCidV1).catch(() => null)
@@ -555,8 +673,35 @@ export function MyNotesPage({ experience = 'delegation' }: { experience?: 'deleg
       })
       await loadNotes()
     } catch (err) {
-      console.error('Revoke failed:', err)
-      setActionError(err instanceof Error ? err.message : 'Revocation failed')
+      console.error('Takeback failed:', err)
+      setActionError(err instanceof Error ? err.message : 'Takeback failed')
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
+  const handlePartialTakeback = async (note: Note, amount: string) => {
+    const parsed = parsePartialTakebackAmount(amount, note)
+    if (parsed === null) return
+    const clients = getClients()
+    const contract = getContract(note.contractAddress)
+    if (!clients || !contract) return
+    try {
+      setActionLoading(true)
+      setActionError(null)
+      const chain = await getDelegationChain(machinery, noteScopedKey(note))
+      const owners = chain
+        .sort((a, b) => b.position - a.position)
+        .map(link => link.address as `0x${string}`)
+      await partialTakeback(clients, contract, {
+        noteId: BigInt(note.id),
+        owners,
+        amount: parsed,
+      })
+      await loadNotes()
+    } catch (err) {
+      console.error('Partial takeback failed:', err)
+      setActionError(err instanceof Error ? err.message : 'Partial takeback failed')
     } finally {
       setActionLoading(false)
     }
@@ -705,6 +850,8 @@ export function MyNotesPage({ experience = 'delegation' }: { experience?: 'deleg
             </Stack>
           )}
 
+          <DonorPendingSpends notes={depositedNotes} />
+
           <Typography variant="h5" component="h2" gutterBottom sx={{ mt: 3 }}>
             {isDonate ? 'Money in the system' : 'Funds I Created'}
           </Typography>
@@ -724,12 +871,14 @@ export function MyNotesPage({ experience = 'delegation' }: { experience?: 'deleg
                   note={note}
                   showCurrentOwner
                   showRevoke={isDelegate(note)}
+                  showPartialTakeback={isDelegate(note)}
                   showReplace={isDelegate(note)}
                   showReclaim={!isDelegate(note)}
                   showDelegate={!isDelegate(note)}
                   onDelegate={handleDelegate}
                   onReplace={handleReplace}
                   onRevoke={handleRevoke}
+                  onPartialTakeback={handlePartialTakeback}
                   onReclaim={handleReclaim}
                 />
               ))}
@@ -748,7 +897,7 @@ export function MyNotesPage({ experience = 'delegation' }: { experience?: 'deleg
                   </Typography>
                 </Paper>
               ) : (
-                <DonationActivityFeed activities={donationActivity} projectTitles={projectTitles} causeTitles={causeTitles} />
+                <DonationActivityFeed activities={donationActivity} projectTitles={projectTitles} causeTitles={causeTitles} classByNoteId={classByNoteId} />
               )}
             </Box>
           )}

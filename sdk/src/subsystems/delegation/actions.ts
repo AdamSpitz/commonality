@@ -249,25 +249,51 @@ export async function replaceDelegate(
 }
 
 /**
- * Revoke a delegated note back to a position in the chain
- *
- * Revokes a delegation by calling this function from a parent position in the delegation
- * chain. This burns the delegated note and returns control to the revoker.
- *
- * @param clients - Test wallet and public clients for interacting with the blockchain
- * @param delegatableNotesContract - The DelegatableNotes contract instance
- * @param params - Revocation parameters
- * @param params.noteId - The ID of the note to revoke
- * @param params.owners - Current delegation chain (leaf first, root last)
- * @returns Transaction hash
- *
- * @example
- * ```typescript
- * await revokeNote(clients, contract, {
- *   noteId: 2n,
- *   owners: [bob.address, alice.address]
- * });
- * ```
+ * The donor takes part of a delegated note back. The original note stays
+ * delegated. `amount` is greater than zero and less than the balance.
+ * Reverts while a spend is pending.
+ */
+export async function partialTakeback(
+  clients: WriteClients,
+  delegatableNotesContract: DelegatableNotesContract,
+  params: {
+    noteId: bigint;
+    owners: Address[];
+    amount: bigint;
+  }
+): Promise<{ hash: Hash; sliceNoteId: bigint }> {
+  const hash = await clients.walletClient.writeContract({
+    address: delegatableNotesContract.address,
+    abi: delegatableNotesContract.abi,
+    functionName: 'partialTakeback',
+    args: [params.noteId, params.owners, params.amount],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
+  });
+
+  const receipt = await clients.publicClient.waitForTransactionReceipt({ hash });
+  if (receipt.status === 'reverted') {
+    throw new Error(`Partial takeback transaction reverted: ${hash}`);
+  }
+  const logs = parseEventLogs({
+    abi: DelegatableNotesAbi,
+    eventName: 'NotePartiallyTakenBack',
+    logs: receipt.logs,
+  });
+  const takenBack = logs.find(log =>
+    log.address.toLowerCase() === delegatableNotesContract.address.toLowerCase()
+    && log.args.noteId === params.noteId
+    && log.args.amount === params.amount,
+  );
+  if (!takenBack) {
+    throw new Error(`Failed to find matching NotePartiallyTakenBack event in transaction logs: ${hash}`);
+  }
+  return { hash, sliceNoteId: takenBack.args.sliceNoteId };
+}
+
+/**
+ * Revoke a delegated note back to a position in the chain.
+ * The donor's full takeback, and the delegate handing the note back, are both this call.
  */
 export async function revokeNote(
   clients: WriteClients,
@@ -453,4 +479,109 @@ export async function claimNoteReimbursement(
   });
 
   return extractCreatedNoteId(clients, hash);
+}
+
+export async function setUnsuspiciousDelay(
+  clients: WriteClients,
+  delegatableNotesContract: DelegatableNotesContract,
+  params: { noteId: bigint; owners: Address[]; delay: bigint },
+): Promise<Hash> {
+  return clients.walletClient.writeContract({
+    address: delegatableNotesContract.address,
+    abi: delegatableNotesContract.abi,
+    functionName: 'setUnsuspiciousDelay',
+    args: [params.noteId, params.owners, params.delay],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
+  });
+}
+
+export async function setFineListed(
+  clients: WriteClients,
+  delegatableNotesContract: DelegatableNotesContract,
+  params: { noteId: bigint; owners: Address[]; beneficiaryId: `0x${string}`; allowed: boolean },
+): Promise<Hash> {
+  return clients.walletClient.writeContract({
+    address: delegatableNotesContract.address,
+    abi: delegatableNotesContract.abi,
+    functionName: 'setFineListed',
+    args: [params.noteId, params.owners, params.beneficiaryId, params.allowed],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
+  });
+}
+
+export async function setSpendDelay(
+  clients: WriteClients,
+  delegatableNotesContract: DelegatableNotesContract,
+  params: { noteId: bigint; owners: Address[]; delay: bigint },
+): Promise<Hash> {
+  return clients.walletClient.writeContract({
+    address: delegatableNotesContract.address,
+    abi: delegatableNotesContract.abi,
+    functionName: 'setSpendDelay',
+    args: [params.noteId, params.owners, params.delay],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
+  });
+}
+
+export async function setStrictMode(
+  clients: WriteClients,
+  delegatableNotesContract: DelegatableNotesContract,
+  params: { noteId: bigint; owners: Address[]; enabled: boolean },
+): Promise<Hash> {
+  return clients.walletClient.writeContract({
+    address: delegatableNotesContract.address,
+    abi: delegatableNotesContract.abi,
+    functionName: 'setStrictMode',
+    args: [params.noteId, params.owners, params.enabled],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
+  });
+}
+
+export async function setSpendFlagger(
+  clients: WriteClients,
+  delegatableNotesContract: DelegatableNotesContract,
+  params: { noteId: bigint; owners: Address[]; flagger: Address; allowed: boolean },
+): Promise<Hash> {
+  return clients.walletClient.writeContract({
+    address: delegatableNotesContract.address,
+    abi: delegatableNotesContract.abi,
+    functionName: 'setSpendFlagger',
+    args: [params.noteId, params.owners, params.flagger, params.allowed],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
+  });
+}
+
+export async function approveScheduledSpend(
+  clients: WriteClients,
+  delegatableNotesContract: DelegatableNotesContract,
+  params: { noteId: bigint; owners: Address[] },
+): Promise<Hash> {
+  return clients.walletClient.writeContract({
+    address: delegatableNotesContract.address,
+    abi: delegatableNotesContract.abi,
+    functionName: 'approveScheduledSpend',
+    args: [params.noteId, params.owners],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
+  });
+}
+
+export async function cancelScheduledSpend(
+  clients: WriteClients,
+  delegatableNotesContract: DelegatableNotesContract,
+  params: { noteId: bigint; owners: Address[] },
+): Promise<Hash> {
+  return clients.walletClient.writeContract({
+    address: delegatableNotesContract.address,
+    abi: delegatableNotesContract.abi,
+    functionName: 'cancelScheduledSpend',
+    args: [params.noteId, params.owners],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
+  });
 }

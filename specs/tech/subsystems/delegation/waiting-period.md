@@ -6,7 +6,7 @@ The delay is her control over one delegate's spends. It is not a second escrow, 
 
 ## Where the delay lives
 
-`spendPolicies[noteId]` stores `delay` (seconds) and `strictMode`. A note with no policy has delay zero and strict mode off. She can change either in place. A spend already scheduled keeps the deadline it was given (`block.timestamp + delay` at schedule time). Setting the delay to zero does not make that in-flight spend immediate. She approves it if she wants it paid now.
+`spendPolicies[noteId]` stores `delay` (seconds) and `strictMode`. A note with no policy has delay zero and strict mode off. She can change either in place. A spend already scheduled keeps the deadline it was given (`block.timestamp + delay` at schedule time). Setting the delay to zero does not make that in-flight spend immediate. She approves it if she wants it paid now. A change of spend class is not this rule: that deadline is recomputed from the original schedule time, as [spend-classification.md](./spend-classification.md) describes.
 
 `delegate` still creates a note with delay zero. `delegateWithDelay` is the same delegation with a delay. `setSpendDelay` and `setStrictMode` are root-only on that note.
 
@@ -14,7 +14,7 @@ A same-chain `splitNote` is leaf-only on a delegated note. It moves part of the 
 
 `replaceDelegate` cancels a pending schedule and moves the funds with no project attached. The new note copies the strict-mode switch and the flagger list, and it keeps the current delay. `replaceDelegateWithDelay` is that same replacement when she sets a different delay in the action. A full replacement deletes the old note. A partial replacement leaves the remainder delegated to the current leaf, with its schedule cleared, because a schedule covers the whole note.
 
-`revoke` clears a pending schedule and then truncates the chain as it does today.
+`revoke` clears a pending schedule and then truncates the chain as it does today. Partial takeback does not. While a spend is pending it reverts, and the schedule stays. See [partial-takeback.md](./partial-takeback.md).
 
 ## One schedule for the whole note
 
@@ -62,7 +62,7 @@ Public remarks from people who are not flaggers are a later UI feature. They are
 
 ## What a project page should show
 
-`SpendScheduled` is a pending contribution of the note's full amount until `SpendExecuted`, `SpendCancelled`, or `SpendScheduleCleared`. The page shows the amount and the deadline as money that can still be cancelled. It does not count as raised. That page is not wired yet.
+`SpendScheduled` is a pending contribution of the note's full amount until `SpendExecuted`, `SpendCancelled`, or `SpendScheduleCleared`. The project page shows the amount and the deadline as money that can still be cancelled. It does not count as raised.
 
 ## Out of scope
 

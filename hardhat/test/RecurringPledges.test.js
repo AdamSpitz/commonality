@@ -28,6 +28,43 @@ async function deployFixture() {
 }
 
 describe("RecurringPledges", function () {
+  it("copies policy edits only to later notes and enforces owner and delay bounds", async function () {
+    const { alice, bob, carol, notes, recurringPledges, token } = await deployFixture();
+    const id = ethers.id("dns:example.org");
+    await token.connect(alice).approve(notes.target, 30_000n);
+    await recurringPledges.connect(alice).createStandingPledge(
+      bob.address, token.target, 10_000n, 60, "bafy-cause", 100, true, [carol.address]
+    );
+    await expect(recurringPledges.connect(bob).setPledgeFineListed(1, id, true))
+      .to.be.revertedWithCustomError(recurringPledges, "NotPledgeOwner");
+    await expect(recurringPledges.connect(bob).setPledgeUnsuspiciousDelay(1, 20))
+      .to.be.revertedWithCustomError(recurringPledges, "NotPledgeOwner");
+    await expect(recurringPledges.setPledgeUnsuspiciousDelay(1, 101))
+      .to.be.revertedWithCustomError(recurringPledges, "UnsuspiciousDelayExceedsStanding");
+    await recurringPledges.setPledgeFineListed(1, id, true);
+    await recurringPledges.setPledgeUnsuspiciousDelay(1, 40);
+    await time.increase(60);
+    await recurringPledges.executeDue(1);
+    expect(await notes.fineList(1)).to.deep.equal([]);
+    expect((await notes.spendPolicies(1)).unsuspiciousDelay).to.equal(0);
+    expect(await notes.fineList(2)).to.deep.equal([id]);
+    expect((await notes.spendPolicies(2)).unsuspiciousDelay).to.equal(40);
+    expect((await notes.spendPolicies(2)).strictMode).to.equal(true);
+    expect(await notes.isSpendFlagger(2, carol.address)).to.equal(true);
+    await recurringPledges.setPledgeFineListed(1, id, false);
+    await recurringPledges.updateSpendPolicy(1, 10, false, []);
+    expect((await recurringPledges.pledges(1)).unsuspiciousDelay).to.equal(10);
+    await time.increase(60);
+    await recurringPledges.executeDue(1);
+    expect(await notes.fineList(3)).to.deep.equal([]);
+    expect((await notes.spendPolicies(3)).unsuspiciousDelay).to.equal(10);
+    expect(await notes.fineList(2)).to.deep.equal([id]);
+    expect((await notes.spendPolicies(2)).unsuspiciousDelay).to.equal(40);
+    await recurringPledges.cancelStandingPledge(1);
+    await expect(recurringPledges.setPledgeFineListed(1, id, true))
+      .to.be.revertedWithCustomError(recurringPledges, "PledgeInactive");
+  });
+
   it("creates a public pledge intent and executes the first note immediately", async function () {
     const { alice, bob, notes, recurringPledges, token } = await deployFixture();
     const amount = 10_000n;
@@ -138,7 +175,9 @@ describe("RecurringPledges", function () {
       10_000n,
       bob.address,
       0,
+      0,
       false,
+      [],
       []
     )).to.be.revertedWithCustomError(notes, "UnauthorizedRecurringPledgeRegistry");
   });

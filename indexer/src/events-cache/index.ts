@@ -40,6 +40,7 @@ register("Implications:ImplicationRevoked");
 
 // LAZYGIVING: Factory + AssuranceContract + non-transferable ERC1155 receipts
 register("AssuranceContractFactory:LazyGivingAssuranceContractCreated");
+register("FixedControllerFactory:FixedControllerAssuranceCreated");
 register("ProjectFactory:ProjectCreated");
 register("ERC1155Factory:LazyGivingERC1155ContractCreated");
 const assuranceContractEvents = [
@@ -56,6 +57,7 @@ const assuranceContractEvents = [
 
 for (const contractName of [
   "AssuranceContract",
+  "FixedControllerAssuranceContract",
   "CreatorAssuranceContract",
   "ProspectiveContentAssuranceContract",
 ] as const) {
@@ -71,6 +73,7 @@ register("DelegatableNotes:NoteCreated");
 register("DelegatableNotes:NoteDelegated");
 register("DelegatableNotes:ChainSplit");
 register("DelegatableNotes:NoteRevoked");
+register("DelegatableNotes:NotePartiallyTakenBack");
 register("DelegatableNotes:NoteDelegateReplaced");
 register("DelegatableNotes:FundsReclaimed");
 register("DelegatableNotes:NoteConsumed");
@@ -78,6 +81,12 @@ register("DelegatableNotes:ERC1155Purchased");
 register("DelegatableNotes:RefundedIntoNote");
 register("DelegatableNotes:ReimbursementClaimedIntoNote");
 register("DelegatableNotes:SpendDelaySet");
+register("DelegatableNotes:UnsuspiciousDelaySet");
+register("DelegatableNotes:FineListSet");
+register("DelegatableNotes:SpendClassResolved");
+register("DelegatableNotes:SpendDeadlineRevised");
+register("RecurringPledges:PledgeUnsuspiciousDelaySet");
+register("RecurringPledges:PledgeFineListSet");
 register("DelegatableNotes:StrictModeSet");
 register("DelegatableNotes:SpendFlaggerSet");
 register("DelegatableNotes:NoteSplitSameChain");

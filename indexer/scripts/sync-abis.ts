@@ -52,6 +52,7 @@ const CONTRACTS_TO_SYNC: Record<string, AbiSyncEntry> = {
   ProjectFactory: { artifactPath: "individual-projects/ProjectFactory.sol/ProjectFactory.json", outputFile: "ProjectFactoryAbi.ts", capability: "funding" },
   PremintingERC1155Factory: { artifactPath: "individual-projects/ProjectFactory.sol/PremintingERC1155Factory.json", outputFile: "PremintingERC1155FactoryAbi.ts", capability: "funding" },
   AssuranceContractFactory: { artifactPath: "individual-projects/ProjectFactory.sol/AssuranceContractFactory.json", outputFile: "AssuranceContractFactoryAbi.ts", capability: "funding" },
+  FixedControllerFactory: { artifactPath: "individual-projects/FixedControllerFactory.sol/FixedControllerFactory.json", outputFile: "FixedControllerFactoryAbi.ts", capability: "funding" },
   ValueThresholdConditionFactory: { artifactPath: "individual-projects/ProjectFactory.sol/ValueThresholdConditionFactory.json", outputFile: "ValueThresholdConditionFactoryAbi.ts", capability: "funding" },
   ContentRegistry: { artifactPath: "content-funding/ContentRegistry.sol/ContentRegistry.json", outputFile: "ContentRegistryAbi.ts", capability: "funding" },
   BeneficiaryRegistry: { artifactPath: "content-funding/BeneficiaryRegistry.sol/BeneficiaryRegistry.json", outputFile: "BeneficiaryRegistryAbi.ts", capability: "funding" },

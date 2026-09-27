@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { fundingContracts } from "./fundingContracts";
+import { loadIndexerDeploymentContext } from "./ponderEnv";
 import {
   conceptspaceContractNames,
   fundingContractNames,
@@ -8,6 +10,24 @@ import {
   readIndexerContractCapability,
   selectIndexerContracts,
 } from "./contractCapabilities";
+
+test("fixed-controller projects are discovered and indexed from their factory deployment", () => {
+  const address = "0x1111111111111111111111111111111111111111" as const;
+  const context = loadIndexerDeploymentContext();
+  context.getDeployments = (name) => name === "FixedControllerFactory"
+    ? [{ address, startBlock: 123 }]
+    : [];
+  const contracts = fundingContracts(context);
+  assert.equal(contracts.FixedControllerFactory.address, address);
+  assert.equal(contracts.FixedControllerFactory.startBlock, 123);
+  const market = contracts.FixedControllerAssuranceContract;
+  assert.equal(market.startBlock, 123);
+  assert.equal(market.address?.address, address);
+  assert.equal(market.address?.event.name, "FixedControllerAssuranceCreated");
+  assert.equal(market.address?.parameter, "assuranceContract");
+  assert.ok(market.abi.some(item => item.type === "event" && item.name === "AssuranceContractInitialized"));
+  assert.ok(market.abi.some(item => item.type === "event" && item.name === "ERC1155Bought"));
+});
 
 test("conceptspace indexing does not enable funding contracts", () => {
   assert.equal(indexerContractEnabled("BeneficiaryIdentity", "conceptspace"), true);
@@ -34,6 +54,8 @@ test("conceptspace selection drops funding contracts", () => {
     PublishedData: { kind: "conceptspace" },
     BeneficiaryIdentity: { kind: "conceptspace" },
     AssuranceContractFactory: { kind: "funding" },
+    FixedControllerFactory: { kind: "funding" },
+    FixedControllerAssuranceContract: { kind: "funding" },
     ProjectFactory: { kind: "funding" },
     ERC1155Factory: { kind: "funding" },
     AssuranceContract: { kind: "funding" },

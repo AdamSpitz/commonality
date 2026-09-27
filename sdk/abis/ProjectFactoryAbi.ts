@@ -28,6 +28,11 @@ export const ProjectFactoryAbi = [
         "internalType": "address",
         "name": "_beneficiaryEscrow",
         "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_fixedControllerFactory",
+        "type": "address"
       }
     ],
     "stateMutability": "nonpayable",
@@ -407,6 +412,19 @@ export const ProjectFactoryAbi = [
       }
     ],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "fixedControllerFactory",
+    "outputs": [
+      {
+        "internalType": "contract FixedControllerFactory",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   }
 ] as const;

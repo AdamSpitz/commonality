@@ -1,4 +1,5 @@
 import type { Note } from '@commonality/sdk/delegation'
+import { parseUnits } from 'viem'
 import { formatCurrencyAmount, getCurrencyForNote } from '../shared/funding'
 
 const ETH_ADDRESS = '0x0000000000000000000000000000000000000000'
@@ -9,6 +10,15 @@ export function isEthNote(note: Note): boolean {
 
 export function formatNoteAmount(note: Note): string {
   return formatCurrencyAmount(note.amount, getCurrencyForNote(note))
+}
+
+export function parsePartialTakebackAmount(input: string, note: Note): bigint | null {
+  const decimals = getCurrencyForNote(note).decimals
+  const value = input.trim()
+  if (!/^\d+(\.\d+)?$/.test(value)) return null
+  if ((value.split('.')[1]?.length ?? 0) > decimals) return null
+  const amount = parseUnits(value, decimals)
+  return amount > 0n && amount < BigInt(note.amount) ? amount : null
 }
 
 export { truncateAddress } from '../shared'

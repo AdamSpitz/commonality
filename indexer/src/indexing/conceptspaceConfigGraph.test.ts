@@ -10,6 +10,7 @@ const indexerRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "
 const fundingAbiModules = [
   "AssuranceContractAbi",
   "AssuranceContractFactoryAbi",
+  "FixedControllerFactoryAbi",
   "PremintingERC1155FactoryAbi",
   "ProjectFactoryAbi",
   "PremintingERC1155Abi",

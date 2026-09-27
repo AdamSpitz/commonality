@@ -6,7 +6,7 @@ The `DelegatableNotes` contract lets users deposit tokens and delegate spending 
 
 `delegate` and `revoke` still rewrite `chainHash` on the same note id. `replaceDelegate` does not.
 
-See [ui.md](./ui.md) for the UI spec. For standing-order/recurring pledges built on top of notes, see [recurring-pledges.md](./recurring-pledges.md) (product view: [specs/product/recurring-pledges.md](/specs/product/recurring-pledges.md)). For the donor-set delay on delegated spends, see [waiting-period.md](./waiting-period.md).
+See [ui.md](./ui.md) for the UI spec. For standing-order/recurring pledges built on top of notes, see [recurring-pledges.md](./recurring-pledges.md) (product view: [specs/product/recurring-pledges.md](/specs/product/recurring-pledges.md)). For the donor-set delay on delegated spends, see [waiting-period.md](./waiting-period.md). For classifying those spends as unsuspicious, unmarked, or suspicious, see [spend-classification.md](./spend-classification.md) and [ADR 0017](/specs/decisions/0017-spend-classification.md). For the donor taking part of a delegated note back, see [partial-takeback.md](./partial-takeback.md).
 
 ---
 
@@ -66,7 +66,8 @@ The indexer captures every `DelegatableNotes` event as a raw row in the event ca
 | `NoteCreated` | New note created (deposit or ERC1155 purchase output) |
 | `ChainSplit` | Partial delegation — original note splits into two |
 | `NoteDelegated` | A note's chain is extended with a new delegate |
-| `NoteRevoked` | A chain member revokes — chain truncated back to revoker |
+| `NoteRevoked` | A chain member revokes — chain truncated back to revoker. The donor's full takeback, and the delegate handing the note back, are both this event |
+| `NotePartiallyTakenBack` | The root took an amount back. The original note stays delegated. The slice is a new note she alone holds |
 | `NoteDelegateReplaced` | The root minted a new note for a replacement delegate. The original chain is unchanged. A full replacement retires the original note |
 | `NoteConsumed` | Note amount reduced (or deleted) by a spend |
 | `FundsReclaimed` | Root owner withdrew funds |
@@ -95,6 +96,7 @@ interface DelegationChainLink {
 - `NoteDelegated (full)` → push `{ address: delegate, position: chain.length }` onto the same note's chain
 - `NoteDelegated (partial)` → push delegate onto the split note's chain (ChainSplit ran first)
 - `NoteRevoked` → truncate the chain so the revoker becomes the new leaf (strips all downstream delegates)
+- `NotePartiallyTakenBack` → reduce the parent balance and leave its chain unchanged. The slice was already `NoteCreated` as the root alone. Do not copy the parent's delegate onto it
 - `NoteDelegateReplaced` → the new note, already created by `NoteCreated` as the root alone, gains the replacement delegate. The original note loses the replaced amount and, when that amount was the whole note, becomes inactive. Its chain stays as it was
 - `NoteConsumed` / `FundsReclaimed` → mark note inactive; chain is preserved in the map for ERC1155Purchased reference
 - `ERC1155Purchased` → output notes were emitted as `NoteCreated` with a single-link chain; the fold replaces that with the full chain copied from the corresponding input note
@@ -153,8 +155,13 @@ depositETH(clients, contract, { amount })
 // Delegate (full or partial); owners is leaf-first
 delegateNote(clients, contract, { noteId, owners, delegateTo, amount })
 
-// Revoke (any chain member can call); owners is leaf-first
+// Revoke (any chain member can call); owners is leaf-first.
+// The donor's full takeback, and the delegate handing the note back, are both this call.
 revokeNote(clients, contract, { noteId, owners })
+
+// Donor takes part of a delegated note back. The original note stays delegated.
+// amount is greater than zero and less than the balance. Reverts while a spend is pending.
+partialTakeback(clients, contract, { noteId, owners, amount })
 
 // Reclaim funds from a root (non-delegated) note
 reclaimFunds(clients, contract, noteId)

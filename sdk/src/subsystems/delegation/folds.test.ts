@@ -13,6 +13,7 @@ import type {
   ChainSplitEvent,
   NoteRevokedEvent,
   NoteDelegateReplacedEvent,
+  NotePartiallyTakenBackEvent,
   FundsReclaimedEvent,
   NoteConsumedEvent,
   ERC1155PurchasedEvent,
@@ -102,6 +103,20 @@ function makeNoteDelegateReplaced(overrides: Partial<NoteDelegateReplacedEvent> 
     blockTimestamp: 1700000200n,
     transactionHash: TX_HASH,
     logIndex: 2,
+    ...overrides,
+  };
+}
+
+function makeNotePartiallyTakenBack(overrides: Partial<NotePartiallyTakenBackEvent> = {}): NotePartiallyTakenBackEvent {
+  return {
+    contractAddress: NOTE_CONTRACT,
+    noteId: 1n,
+    sliceNoteId: 2n,
+    amount: 40n,
+    blockNumber: 102n,
+    blockTimestamp: 1700000200n,
+    transactionHash: TX_HASH,
+    logIndex: 1,
     ...overrides,
   };
 }
@@ -379,6 +394,30 @@ describe('foldDelegationState', () => {
     assert.strictEqual(replaced.parentNoteId, '1');
     assert.deepStrictEqual(chains.get('2')?.map(link => link.address), [ALICE, CAROL]);
     assert.strictEqual(replaced.chainHash, expectedChainHash([ALICE, CAROL]));
+  });
+
+  it('reduces the parent balance and leaves the slice as the root alone', () => {
+    const events: DelegationEvent[] = [
+      { type: 'noteCreated', event: makeNoteCreated() },
+      { type: 'noteDelegated', event: makeNoteDelegated({ delegate: BOB }) },
+      { type: 'noteCreated', event: makeNoteCreated({ noteId: 2n, owner: ALICE, amount: 40n, blockNumber: 102n, logIndex: 0 }) },
+      { type: 'notePartiallyTakenBack', event: makeNotePartiallyTakenBack() },
+    ];
+    const { notes, chains } = foldDelegationState(events);
+
+    const parent = notes.get('1');
+    assert.ok(parent);
+    assert.strictEqual(parent.active, true);
+    assert.strictEqual(parent.amount, '60');
+    assert.strictEqual(parent.owner, BOB);
+    assert.deepStrictEqual(chains.get('1')?.map(link => link.address), [ALICE, BOB]);
+
+    const slice = notes.get('2');
+    assert.ok(slice);
+    assert.strictEqual(slice.amount, '40');
+    assert.strictEqual(slice.owner, ALICE);
+    assert.strictEqual(slice.rootOwner, ALICE);
+    assert.deepStrictEqual(chains.get('2')?.map(link => link.address), [ALICE]);
   });
 
   it('truncates to the root when the root revokes', () => {

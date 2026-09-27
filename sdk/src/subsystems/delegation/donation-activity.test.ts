@@ -54,6 +54,7 @@ describe('foldDonationActivityByRoot', () => {
     const [activity] = foldDonationActivityByRoot(ROOT, purchaseEvents(), [intent], [project]);
 
     assert.equal(activity.amount, '250');
+    assert.equal(activity.noteContract, NOTES);
     assert.equal(activity.directedBy, DELEGATE);
     assert.equal(activity.projectAddress, PROJECT);
     assert.deepEqual(activity.receiptNoteIds, ['2']);

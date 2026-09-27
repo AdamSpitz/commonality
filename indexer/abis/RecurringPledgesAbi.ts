@@ -55,8 +55,38 @@ export const RecurringPledgesAbi = [
   },
   {
     "inputs": [],
+    "name": "UnsuspiciousDelayExceedsStanding",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "ZeroAddress",
     "type": "error"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "pledgeId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "beneficiaryId",
+        "type": "bytes32"
+      },
+      {
+        "indexed": false,
+        "internalType": "bool",
+        "name": "allowed",
+        "type": "bool"
+      }
+    ],
+    "name": "PledgeFineListSet",
+    "type": "event"
   },
   {
     "anonymous": false,
@@ -81,6 +111,25 @@ export const RecurringPledgesAbi = [
       }
     ],
     "name": "PledgeSpendPolicyUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "pledgeId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "unsuspiciousDelay",
+        "type": "uint256"
+      }
+    ],
+    "name": "PledgeUnsuspiciousDelaySet",
     "type": "event"
   },
   {
@@ -353,6 +402,30 @@ export const RecurringPledgesAbi = [
     "inputs": [
       {
         "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "name": "pledgeFineListed",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
         "name": "pledgeId",
         "type": "uint256"
       }
@@ -429,12 +502,58 @@ export const RecurringPledgesAbi = [
         "type": "uint256"
       },
       {
+        "internalType": "uint256",
+        "name": "unsuspiciousDelay",
+        "type": "uint256"
+      },
+      {
         "internalType": "bool",
         "name": "strictMode",
         "type": "bool"
       }
     ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "pledgeId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "beneficiaryId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bool",
+        "name": "allowed",
+        "type": "bool"
+      }
+    ],
+    "name": "setPledgeFineListed",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "pledgeId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "unsuspiciousDelay",
+        "type": "uint256"
+      }
+    ],
+    "name": "setPledgeUnsuspiciousDelay",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
