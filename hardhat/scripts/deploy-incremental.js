@@ -336,7 +336,7 @@ async function main() {
   }
   await deployOrReuse('NudgePublications', 'NudgePublications');
   await deployOrReuse('PublishedData', 'PublishedData');
-  await deployOrReuse('FixedControllerFactory', 'FixedControllerFactory');
+  await deployOrReuse('FixedControllerFactory', 'FixedControllerFactory', [addresses.BeneficiaryRegistry]);
   if (addresses.DelegatableNotes && addresses.FixedControllerFactory && (freshlyDeployed.has('DelegatableNotes') || freshlyDeployed.has('FixedControllerFactory'))) {
     const d = await ownerCapable(await ethers.getContractAt('DelegatableNotes', addresses.DelegatableNotes));
     if (!(await d.authorizedPrimaryMarketFactories(addresses.FixedControllerFactory))) {

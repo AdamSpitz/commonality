@@ -1,5 +1,6 @@
 import { factory } from "ponder";
 import { AssuranceContractFactoryAbi } from "../../abis/AssuranceContractFactoryAbi";
+import { FixedControllerFactoryAbi } from "../../abis/FixedControllerFactoryAbi";
 import { PremintingERC1155FactoryAbi } from "../../abis/PremintingERC1155FactoryAbi";
 import { ProjectFactoryAbi } from "../../abis/ProjectFactoryAbi";
 import { AssuranceContractAbi } from "../../abis/AssuranceContractAbi";
@@ -18,6 +19,9 @@ import type { IndexerDeploymentContext } from "./ponderEnv";
 
 const assuranceContractCreatedEvent = AssuranceContractFactoryAbi.find(
   (item) => item.type === "event" && item.name === "LazyGivingAssuranceContractCreated",
+)!;
+const fixedControllerCreatedEvent = FixedControllerFactoryAbi.find(
+  (item) => item.type === "event" && item.name === "FixedControllerAssuranceCreated",
 )!;
 const erc1155ContractCreatedEvent = PremintingERC1155FactoryAbi.find(
   (item) => item.type === "event" && item.name === "LazyGivingERC1155ContractCreated",
@@ -43,6 +47,11 @@ export function fundingContracts(context: IndexerDeploymentContext) {
     "ProjectFactory",
     "PROJECT_FACTORY_ADDRESS",
     context.contractStartBlock("PROJECT_FACTORY_START_BLOCK", context.lazyGivingStartBlock),
+  );
+  const fixedControllerFactory = context.getDeployments(
+    "FixedControllerFactory",
+    "FIXED_CONTROLLER_FACTORY_ADDRESS",
+    context.contractStartBlock("FIXED_CONTROLLER_FACTORY_START_BLOCK", context.lazyGivingStartBlock),
   );
   const erc1155Factory = context.getDeployments(
     "ERC1155Factory",
@@ -96,11 +105,29 @@ export function fundingContracts(context: IndexerDeploymentContext) {
   );
 
   const assuranceFactoryAddress = context.factoryAddress(assuranceFactory);
+  const fixedControllerFactoryAddress = context.factoryAddress(fixedControllerFactory);
   const erc1155FactoryAddress = context.factoryAddress(erc1155Factory);
   const prospectiveFactoryAddress = context.factoryAddress(prospectiveFactory);
   const creatorFactoryAddress = context.factoryAddress(creatorFactory);
 
   return {
+    FixedControllerFactory: {
+      abi: FixedControllerFactoryAbi,
+      chain: context.chain,
+      ...context.deploymentConfig(fixedControllerFactory, context.lazyGivingStartBlock),
+    },
+    FixedControllerAssuranceContract: {
+      abi: AssuranceContractAbi,
+      chain: context.chain,
+      address: fixedControllerFactoryAddress
+        ? factory({
+            ...fixedControllerFactoryAddress,
+            event: fixedControllerCreatedEvent,
+            parameter: "assuranceContract",
+          })
+        : undefined,
+      startBlock: context.deploymentStartBlock(fixedControllerFactory, context.lazyGivingStartBlock),
+    },
     AssuranceContractFactory: {
       abi: AssuranceContractFactoryAbi,
       chain: context.chain,

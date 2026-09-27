@@ -278,7 +278,7 @@ app.get("/api/events", async (c) => {
   }
 });
 
-const PROJECT_CREATION_EVENTS = ["LazyGivingAssuranceContractCreated", "CreatorContractCreated"];
+const PROJECT_CREATION_EVENTS = ["LazyGivingAssuranceContractCreated", "CreatorContractCreated", "FixedControllerAssuranceCreated"];
 
 app.get("/api/project-read-demand", async (c) => {
   if (!fundingIndexerRoutesEnabled()) {
@@ -295,6 +295,7 @@ app.get("/api/project-read-demand", async (c) => {
         or(
           eq(schema.events.eventName, PROJECT_CREATION_EVENTS[0]!),
           eq(schema.events.eventName, PROJECT_CREATION_EVENTS[1]!),
+          eq(schema.events.eventName, PROJECT_CREATION_EVENTS[2]!),
         ),
       )).limit(1);
       const factoryEvent = created[0];

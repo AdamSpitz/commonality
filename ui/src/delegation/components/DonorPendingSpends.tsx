@@ -3,11 +3,10 @@ import { Chip, Paper, Stack, Typography } from '@mui/material'
 import { Link as RouterLink } from 'react-router-dom'
 import { usePublicClient } from 'wagmi'
 import type { Address } from 'viem'
-import { formatEther } from 'viem'
 import { DelegatableNotesAbi } from '@commonality/sdk/abis'
 import type { Note } from '@commonality/sdk/delegation'
 import { formatPendingSpendDeadline, isSuspiciousClass, spendClassLabel } from '../spendClass'
-import { noteDetailPathFor } from '../utils'
+import { formatNoteAmount, noteDetailPathFor } from '../utils'
 
 type Row = {
   note: Note
@@ -41,9 +40,14 @@ export function DonorPendingSpends({ notes }: { notes: Note[] }) {
           functionName: 'effectiveSpendDelay',
           args: [BigInt(note.id), pending[0]],
         }) as readonly [bigint, number]
+        const deadline = await publicClient.readContract({
+          ...contract,
+          functionName: 'effectivePendingSpendDeadline',
+          args: [BigInt(note.id)],
+        })
         found.push({
           note,
-          deadline: pending[5],
+          deadline,
           paused: pending[7],
           spendClass: Number(classified[1]),
         })
@@ -78,7 +82,7 @@ export function DonorPendingSpends({ notes }: { notes: Note[] }) {
                 to={noteDetailPathFor(row.note.contractAddress, row.note.id)}
                 sx={{ fontWeight: 700 }}
               >
-                {formatEther(BigInt(row.note.amount))} ETH
+                {formatNoteAmount(row.note)}
               </Typography>
               <Chip label={label} size="small" color={suspicious ? 'warning' : label === 'Unsuspicious' ? 'success' : 'default'} />
               {row.paused && <Chip label="Paused" size="small" color="warning" />}
@@ -92,4 +96,3 @@ export function DonorPendingSpends({ notes }: { notes: Note[] }) {
     </Stack>
   )
 }
-

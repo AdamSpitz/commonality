@@ -194,6 +194,14 @@ describe("DelegatableNotes waiting period", function () {
     await notes.connect(alice).setSpendDelay(noteId, [bob.address, alice.address], 10);
     expect((await notes.pendingSpends(noteId)).deadline).to.equal(deadline);
     expect((await notes.spendPolicies(noteId)).delay).to.equal(10);
+    await time.increase(20);
+    await expect(notes.connect(bob).executeScheduledSpend(noteId, [bob.address, alice.address]))
+      .to.be.revertedWithCustomError(notes, "SpendNotDue");
+    await notes.connect(alice).setUnsuspiciousDelay(noteId, [bob.address, alice.address], 5);
+    expect((await notes.pendingSpends(noteId)).deadline).to.equal(deadline);
+    await time.increaseTo(deadline);
+    await notes.connect(bob).executeScheduledSpend(noteId, [bob.address, alice.address]);
+    expect((await notes.pendingSpends(noteId)).exists).to.equal(false);
   });
 
   it("does not apply the delay when the donor spends the note herself", async function () {

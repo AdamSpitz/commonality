@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import { Alert, Button, Chip, Paper, Stack, Typography } from '@mui/material'
 import { usePublicClient } from 'wagmi'
 import type { Address } from 'viem'
-import { formatEther } from 'viem'
+import type { Currency } from '@commonality/sdk/utils'
+import { formatCurrencyAmount } from '../../shared/funding'
 import { DelegatableNotesAbi } from '@commonality/sdk/abis'
 import { approveScheduledSpend, cancelScheduledSpend } from '@commonality/sdk/delegation'
 import { useWriteClients } from '../../shared'
@@ -21,15 +22,19 @@ export function PendingSpendCard({
   contractAddress,
   owners,
   amount,
+  currency,
   canApprove,
   canCancel,
+  onChanged,
 }: {
   noteId: bigint
   contractAddress: Address
   owners: Address[]
   amount: bigint
+  currency: Currency
   canApprove: boolean
   canCancel: boolean
+  onChanged?: () => Promise<void>
 }) {
   const publicClient = usePublicClient()
   const clients = useWriteClients()
@@ -56,10 +61,15 @@ export function PendingSpendCard({
         functionName: 'effectiveSpendDelay',
         args: [noteId, pending[0]],
       }) as readonly [bigint, number]
+      const deadline = await publicClient.readContract({
+        ...contract,
+        functionName: 'effectivePendingSpendDeadline',
+        args: [noteId],
+      })
       if (!cancelled) {
         setRow({
           primaryMarket: pending[0],
-          deadline: pending[5],
+          deadline,
           paused: pending[7],
           amount,
           spendClass: Number(classified[1]),
@@ -82,8 +92,12 @@ export function PendingSpendCard({
     try {
       const contract = { address: contractAddress, abi: DelegatableNotesAbi }
       const params = { noteId, owners }
-      if (kind === 'approve') await approveScheduledSpend(clients, contract, params)
-      else await cancelScheduledSpend(clients, contract, params)
+      const hash = kind === 'approve'
+        ? await approveScheduledSpend(clients, contract, params)
+        : await cancelScheduledSpend(clients, contract, params)
+      const receipt = await clients.publicClient.waitForTransactionReceipt({ hash })
+      if (receipt.status !== 'success') throw new Error('The pending spend update reverted')
+      await onChanged?.()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not update the pending spend')
     } finally {
@@ -98,7 +112,7 @@ export function PendingSpendCard({
         <Chip label={label} size="small" color={suspicious ? 'warning' : label === 'Unsuspicious' ? 'success' : 'default'} />
         {row.paused && <Chip label="Paused" size="small" color="warning" />}
       </Stack>
-      <Typography variant="body1">{formatEther(row.amount)} ETH</Typography>
+      <Typography variant="body1">{formatCurrencyAmount(row.amount, currency)}</Typography>
       <Typography variant="body2" color="text.secondary">
         {row.paused
           ? 'Paused. The delegate cannot cancel it. You can approve it or cancel it. It is not counted as raised.'

@@ -27,11 +27,11 @@ import { decodeEventLog, formatEther, parseEther, type Hex } from 'viem'
 import { DelegatableNotesAbi, RecurringPledgesAbi } from '@commonality/sdk/abis'
 import { getStatement } from '@commonality/sdk/conceptspace'
 import { getNotesByOwner, getNotesByRoot, getDelegationChain, getDonationActivityByRoot, delegateNote, partialTakeback, replaceDelegate, revokeNote, reclaimFunds, getActiveStandingPledgesByUser, cancelStandingPledge, type DonationActivity, type Note, type StandingPledge, type DelegatableNotesContract, type RecurringPledgesContract } from '@commonality/sdk/delegation'
-import { fetchEvents, type Currency, type IpfsCidV1 } from '@commonality/sdk/utils'
+import { fetchEventsComplete, type Currency, type IpfsCidV1 } from '@commonality/sdk/utils'
 import { getDomainUrl, useMachinery } from '../../shared'
 import { useWriteClients } from '../../shared'
 import { formatCurrencyAmount, getCurrencyForNote } from '../../shared/funding'
-import { formatNoteAmount, isDelegate, truncateAddress, isEthNote, noteDetailPath, noteScopedKey } from '../utils'
+import { formatNoteAmount, isDelegate, truncateAddress, isEthNote, noteDetailPath, noteScopedKey, parsePartialTakebackAmount } from '../utils'
 import { DonorPendingSpends } from '../components/DonorPendingSpends'
 import { spendClassLabel } from '../spendClass'
 import { readLazyGivingProjectMetadata } from '../../lazy-giving/metadata'
@@ -247,14 +247,8 @@ function PartialTakebackDialog({
   onSubmit: (amount: string) => void
 }) {
   const [amount, setAmount] = useState('')
-  const balance = note ? BigInt(note.amount) : 0n
-  let parsed: bigint | null = null
-  try {
-    if (amount) parsed = parseEther(amount)
-  } catch {
-    parsed = null
-  }
-  const valid = parsed !== null && parsed > 0n && parsed < balance
+  const parsed = note ? parsePartialTakebackAmount(amount, note) : null
+  const valid = parsed !== null
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
@@ -264,12 +258,12 @@ function PartialTakebackDialog({
           You are taking this amount back. The rest stays with the delegate under the same rules. This does not approve a payment.
         </Typography>
         <TextField
-          label="Amount to take back (ETH)"
+          label={`Amount to take back (${note ? getCurrencyForNote(note).symbol : ''})`}
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
           fullWidth
           margin="normal"
-          helperText={note ? `Greater than zero and less than ${formatEther(balance)} ETH` : ''}
+          helperText={note ? `Greater than zero and less than ${formatNoteAmount(note)}` : ''}
         />
       </DialogContent>
       <DialogActions>
@@ -487,7 +481,7 @@ function DonationActivityFeed({ activities, projectTitles, causeTitles, classByN
                     <Box>
                       <Typography sx={{ fontWeight: 700 }}>{formatCurrencyAmount(activity.amount, activity.currency)}</Typography>
                       {(() => {
-                        const value = activity.inputNoteIds.map((id) => classByNoteId[id]).find((item) => item !== undefined)
+                        const value = activity.inputNoteIds.map((id) => classByNoteId[`${activity.noteContract?.toLowerCase()}:${activity.transactionHash.toLowerCase()}:${id}`]).find((item) => item !== undefined)
                         if (value === undefined) return null
                         const label = spendClassLabel(value)
                         return <Chip label={label} size="small" color={label === 'Suspicious' ? 'warning' : 'default'} />
@@ -569,10 +563,8 @@ export function MyNotesPage({ experience = 'delegation' }: { experience?: 'deleg
       setDepositedNotes(deposited.filter(n => n.active))
       setStandingPledges(activePledges)
       setDonationActivity(activity)
-      const notesAddress = import.meta.env.VITE_DELEGATABLE_NOTES_CONTRACT_ADDRESS as string | undefined
-      if (isDonate && notesAddress && machinery.eventCacheUrl) {
-        const events = await fetchEvents(machinery, {
-          contractAddress: notesAddress,
+      if (isDonate && machinery.eventCacheUrl) {
+        const events = await fetchEventsComplete(machinery, {
           eventName: 'SpendClassResolved',
         }).catch(() => [])
         const labels: Record<string, number> = {}
@@ -584,7 +576,7 @@ export function MyNotesPage({ experience = 'delegation' }: { experience?: 'deleg
             topics: [event.topic0 as Hex, event.topic1 as Hex],
             data: event.data as Hex,
           })
-          labels[decoded.args.noteId.toString()] = Number(decoded.args.class)
+          labels[`${event.contractAddress.toLowerCase()}:${event.transactionHash.toLowerCase()}:${decoded.args.noteId}`] = Number(decoded.args.class)
         }
         setClassByNoteId(labels)
       } else {
@@ -689,6 +681,8 @@ export function MyNotesPage({ experience = 'delegation' }: { experience?: 'deleg
   }
 
   const handlePartialTakeback = async (note: Note, amount: string) => {
+    const parsed = parsePartialTakebackAmount(amount, note)
+    if (parsed === null) return
     const clients = getClients()
     const contract = getContract(note.contractAddress)
     if (!clients || !contract) return
@@ -702,7 +696,7 @@ export function MyNotesPage({ experience = 'delegation' }: { experience?: 'deleg
       await partialTakeback(clients, contract, {
         noteId: BigInt(note.id),
         owners,
-        amount: parseEther(amount),
+        amount: parsed,
       })
       await loadNotes()
     } catch (err) {

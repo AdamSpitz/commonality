@@ -134,6 +134,8 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
   mapping(uint256 => ReimbursementClaim) public reimbursementClaims;
   mapping(uint256 => SpendPolicy) public spendPolicies;
   mapping(uint256 => PendingSpend) public pendingSpends;
+  // Standing-delay edits affect future schedules only, including an implicit U clamp.
+  mapping(uint256 => SpendPolicy) private pendingPolicies;
   mapping(uint256 => mapping(bytes32 => bool)) public fineListed;
   mapping(uint256 => bytes32[]) private fineListIds;
   mapping(uint256 => mapping(address => bool)) public isSpendFlagger;
@@ -599,6 +601,15 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
       });
 
       _moveClaimPortion(noteId, delegatedNoteId, amountToDelegate);
+      _writePolicy(
+        delegatedNoteId,
+        spendPolicies[noteId].delay,
+        spendPolicies[noteId].unsuspiciousDelay,
+        spendPolicies[noteId].strictMode,
+        spendFlaggerList[noteId],
+        delegateTo
+      );
+      _copyFineList(noteId, delegatedNoteId);
 
       // Update original note with remainder (keep same chain)
       note.amount = remainderAmount;
@@ -738,6 +749,7 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
     _requireRoot(noteId, owners);
     if (delay > spendPolicies[noteId].delay) revert UnsuspiciousDelayExceedsStanding();
     spendPolicies[noteId].unsuspiciousDelay = delay;
+    pendingPolicies[noteId].unsuspiciousDelay = delay;
     emit UnsuspiciousDelaySet(noteId, delay);
     _revisePending(noteId);
   }
@@ -875,7 +887,6 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
 
     (uint256 delay, uint8 class) = _classification(noteId, primaryMarket);
     if (delay == 0) {
-      emit SpendClassResolved(noteId, class, _routeBeneficiaryId(primaryMarket));
       PurchaseShare[] memory shares = new PurchaseShare[](1);
       shares[0] = PurchaseShare({ noteId: noteId, chain: owners, shares: count });
       _purchaseFromPrimaryMarket(shares, primaryMarket, erc1155Contract, tokenId, count);
@@ -884,6 +895,7 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
 
     uint256 nonce = nextScheduleNonce++;
     uint256 scheduledAt = block.timestamp;
+    pendingPolicies[noteId] = spendPolicies[noteId];
     uint256 deadline = scheduledAt + delay;
     pendingSpends[noteId] = PendingSpend({
       primaryMarket: primaryMarket,
@@ -970,6 +982,7 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
     (, uint8 class) = _classification(noteId, pending.primaryMarket);
     emit SpendClassResolved(noteId, class, _routeBeneficiaryId(pending.primaryMarket));
     delete pendingSpends[noteId];
+    delete pendingPolicies[noteId];
     scheduledExecution = true;
     PurchaseShare[] memory shares = new PurchaseShare[](1);
     shares[0] = PurchaseShare({ noteId: noteId, chain: owners, shares: pending.count });
@@ -1021,6 +1034,7 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
     if (!pending.exists) return;
     uint256 nonce = pending.nonce;
     delete pendingSpends[noteId];
+    delete pendingPolicies[noteId];
     emit SpendScheduleCleared(noteId, nonce);
   }
 
@@ -1060,12 +1074,23 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
   function _revisePending(uint256 noteId) private {
     PendingSpend storage pending = pendingSpends[noteId];
     if (!pending.exists) return;
-    (uint256 delay, uint8 class) = _classification(noteId, pending.primaryMarket);
-    uint256 deadline = pending.scheduledAt + delay;
+    uint256 deadline = effectivePendingSpendDeadline(noteId);
     if (deadline == pending.deadline) return;
     pending.deadline = deadline;
+    (, uint8 class) = _classification(noteId, pending.primaryMarket);
     emit SpendDeadlineRevised(noteId, pending.nonce, deadline);
     emit SpendClassResolved(noteId, class, _routeBeneficiaryId(pending.primaryMarket));
+  }
+
+  /// @notice Current deadline, including registry changes not yet stored by an execution attempt.
+  function effectivePendingSpendDeadline(uint256 noteId) public view returns (uint256) {
+    PendingSpend storage pending = pendingSpends[noteId];
+    if (!pending.exists) return 0;
+    (, uint8 class) = _classification(noteId, pending.primaryMarket);
+    uint256 delay = class == CLASS_UNSUSPICIOUS
+      ? pendingPolicies[noteId].unsuspiciousDelay
+      : pendingPolicies[noteId].delay;
+    return pending.scheduledAt + delay;
   }
 
   function _classification(uint256 noteId, address market) private view returns (uint256 delay, uint8 class) {
@@ -1475,8 +1500,9 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
       if (note.chainHash != expectedHash) revert InvalidChain();
       if (pendingSpends[purchaseShare.noteId].exists) revert SpendAlreadyScheduled();
       if (!scheduledExecution && purchaseShare.chain.length > 1) {
-        (uint256 effectiveDelay,) = _classification(purchaseShare.noteId, primaryMarket);
+        (uint256 effectiveDelay, uint8 class) = _classification(purchaseShare.noteId, primaryMarket);
         if (effectiveDelay != 0) revert SpendMustBeScheduled();
+        emit SpendClassResolved(purchaseShare.noteId, class, _routeBeneficiaryId(primaryMarket));
       }
       if (!scheduledExecution && purchaseShare.chain[0] != caller) revert NotNoteOwner();
       if (purchaseShare.chain.length > 2) revert DelegationHopLimit();

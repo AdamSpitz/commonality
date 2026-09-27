@@ -240,6 +240,7 @@ describe('MyNotesPage', () => {
       vi.mocked(getNotesByRoot).mockResolvedValue([])
       vi.mocked(getDonationActivityByRoot).mockResolvedValue([{
         id: 'allocation-1',
+        noteContract: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
         transactionHash: '0xabc',
         createdAt: '1700000000',
         blockNumber: '100',

@@ -16,6 +16,8 @@ describe('spend class labels', () => {
     expect(hoursInputToSeconds('2')).toBe(7200n)
     expect(hoursInputToSeconds('1.5')).toBe(5400n)
     expect(hoursInputToSeconds('soon')).toBeNull()
+    expect(hoursInputToSeconds('9'.repeat(309))).toBeNull()
+    expect(hoursInputToSeconds('9'.repeat(306))).toBeNull()
   })
 
   it('describes a pending deadline as cancellable money, not raised', () => {

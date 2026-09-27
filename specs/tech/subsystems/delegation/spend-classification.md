@@ -2,7 +2,7 @@
 
 A donor cannot stop a delegate from spending in ways she would not have chosen. That is what the delegation is for. She can, though, attach criteria that sort his spends into classes, and set one treatment per class, so the worst cases take more of her attention and the payees she already accepts take less. Accepted in [ADR 0017](/specs/decisions/0017-spend-classification.md).
 
-This file is the proposal the beneficiary-identity item in [TODO.md](/TODO.md) asked for. It does not change contracts. The donor-set delay itself is [waiting-period.md](./waiting-period.md). A one-payment way through a block is [partial-takeback.md](./partial-takeback.md): she takes that amount back and pays it herself. It is not an approval that lets the delegate break the rule.
+This file specifies the beneficiary-identity classification implemented by the note contracts. The donor-set delay itself is [waiting-period.md](./waiting-period.md). A one-payment way through a block is [partial-takeback.md](./partial-takeback.md): she takes that amount back and pays it herself. It is not an approval that lets the delegate break the rule.
 
 ## Classes
 
@@ -42,7 +42,7 @@ Escrow does not match. Neither does a project whose proceeds stay in the contrac
 
 A third-party project matches if, and only if, it meets the three conditions above. The class does not mean the beneficiary endorses the project. Disavowal does not change it.
 
-A verified identity is created as `FixedControllerAssuranceContract`: the recipient is the registry payout at creation, and `beneficiaryId` is stored on the contract. An identity that is not verified yet stays on `BeneficiaryAssuranceContract`, whose recipient is the contract itself until claim. That route does not match. Do not invent a match by reading metadata, and do not add payout-attestation machinery.
+A verified identity is created as `FixedControllerAssuranceContract`: the recipient is the registry payout at creation, and `beneficiaryId` is stored on the contract. Its authorized factory pins the beneficiary registry at deployment and rejects a caller-supplied replacement registry. An identity that is not verified yet stays on `BeneficiaryAssuranceContract`, whose recipient is the contract itself until claim. That route does not match. Do not invent a match by reading metadata, and do not add payout-attestation machinery.
 
 The pending spend shows that on-chain route. It does not substitute the registry's current wallet when the project pays something else.
 

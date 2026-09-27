@@ -177,6 +177,7 @@ export function foldDonationActivityByRoot(
 
     return [{
       id: `${contract}:${purchase.transactionHash.toLowerCase()}:${purchase.logIndex}:${root}`,
+      noteContract: purchase.contractAddress,
       transactionHash: purchase.transactionHash,
       createdAt: purchase.blockTimestamp.toString(),
       blockNumber: purchase.blockNumber.toString(),

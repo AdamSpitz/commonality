@@ -29,7 +29,8 @@ import type { IpfsCidV1 } from '@commonality/sdk/utils'
 import { getProjectsFiltered, type ProjectWithMetrics, getProjectTokens, type ProjectToken } from '@commonality/sdk/lazy-giving'
 import { StatementPicker, useMachinery } from '../../shared'
 import { useWriteClients } from '../../shared'
-import { formatNoteAmount, isDelegate, truncateAddress, isEthNote, parseNoteRouteId, noteDetailPathFor } from '../utils'
+import { formatNoteAmount, isDelegate, truncateAddress, isEthNote, parseNoteRouteId, noteDetailPathFor, parsePartialTakebackAmount } from '../utils'
+import { getCurrencyForNote } from '../../shared/funding'
 import { FineListPanel } from '../components/FineListPanel'
 import { PendingSpendCard } from '../components/PendingSpendCard'
 import { SpendPolicyPanel } from '../components/SpendPolicyPanel'
@@ -520,6 +521,8 @@ export function NoteDetailPage() {
 
   const handlePartialTakeback = async () => {
     if (!note) return
+    const amount = parsePartialTakebackAmount(partialAmount, note)
+    if (amount === null) return
     const clients = getClients()
     const contract = getContract(note.contractAddress)
     if (!clients || !contract) return
@@ -532,7 +535,7 @@ export function NoteDetailPage() {
       await partialTakeback(clients, contract, {
         noteId: BigInt(note.id),
         owners,
-        amount: parseEther(partialAmount),
+        amount,
       })
       setPartialOpen(false)
       setPartialAmount('')
@@ -746,11 +749,13 @@ export function NoteDetailPage() {
       {isRootOwner && (
         <>
           <SpendPolicyPanel
+            onChanged={loadNoteData}
             noteId={BigInt(note.id)}
             contractAddress={note.contractAddress as `0x${string}`}
             owners={[...chain].sort((a, b) => b.position - a.position).map((link) => link.address as `0x${string}`)}
           />
           <FineListPanel
+            onChanged={loadNoteData}
             noteId={BigInt(note.id)}
             contractAddress={note.contractAddress as `0x${string}`}
             owners={[...chain].sort((a, b) => b.position - a.position).map((link) => link.address as `0x${string}`)}
@@ -763,8 +768,10 @@ export function NoteDetailPage() {
         contractAddress={note.contractAddress as `0x${string}`}
         owners={[...chain].sort((a, b) => b.position - a.position).map((link) => link.address as `0x${string}`)}
         amount={BigInt(note.amount)}
+        currency={getCurrencyForNote(note)}
         canApprove={isRootOwner}
         canCancel={isRootOwner || isCurrentLeafOwner}
+        onChanged={loadNoteData}
       />
 
       <Paper sx={{ p: 3, mb: 3 }}>
@@ -899,17 +906,17 @@ export function NoteDetailPage() {
             You are taking this amount back. The rest stays with the delegate under the same rules. This does not approve a payment.
           </Typography>
           <TextField
-            label="Amount to take back (ETH)"
+            label={`Amount to take back (${getCurrencyForNote(note).symbol})`}
             value={partialAmount}
             onChange={(e) => setPartialAmount(e.target.value)}
             fullWidth
             margin="normal"
-            helperText={`Greater than zero and less than ${formatEther(BigInt(note.amount))} ETH`}
+            helperText={`Greater than zero and less than ${formatNoteAmount(note)}`}
           />
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setPartialOpen(false)}>Cancel</Button>
-          <Button variant="contained" onClick={handlePartialTakeback} disabled={actionLoading || !partialAmount}>
+          <Button variant="contained" onClick={handlePartialTakeback} disabled={actionLoading || parsePartialTakebackAmount(partialAmount, note) === null}>
             Take back
           </Button>
         </DialogActions>

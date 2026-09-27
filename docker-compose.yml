@@ -641,6 +641,9 @@ services:
       - IPFS_GATEWAY=http://ipfs:8080/ipfs
       - IPFS_API=http://ipfs:5001
       - HOME=/tmp
+      # Ponder starts Vite/Chokidar. This host's inotify instance cap is 128,
+      # and watching /app exhausts it (EMFILE). Match the Render blueprint.
+      - CHOKIDAR_USEPOLLING=true
     healthcheck:
       test: |
         curl -f -X POST -H "Content-Type: application/json" \

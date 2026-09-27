@@ -12,10 +12,12 @@ export function FineListPanel({
   noteId,
   contractAddress,
   owners,
+  onChanged,
 }: {
   noteId: bigint
   contractAddress: Address
   owners: Address[]
+  onChanged?: () => Promise<void>
 }) {
   const publicClient = usePublicClient()
   const clients = useWriteClients()
@@ -68,15 +70,36 @@ export function FineListPanel({
     setError(null)
     try {
       const canonical = normalizeDnsBeneficiary(domain)
-      await setFineListed(clients, { address: contractAddress, abi: DelegatableNotesAbi }, {
+      const hash = await setFineListed(clients, { address: contractAddress, abi: DelegatableNotesAbi }, {
         noteId,
         owners,
         beneficiaryId: hashBeneficiaryId('dns', canonical),
         allowed: true,
       })
+      const receipt = await clients.publicClient.waitForTransactionReceipt({ hash })
+      if (receipt.status !== 'success') throw new Error('The fine list update reverted')
       setDomain('')
+      await onChanged?.()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not add that name')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function removeName(beneficiaryId: `0x${string}`) {
+    if (!clients) return
+    setBusy(true)
+    setError(null)
+    try {
+      const hash = await setFineListed(clients, { address: contractAddress, abi: DelegatableNotesAbi }, {
+        noteId, owners, beneficiaryId, allowed: false,
+      })
+      const receipt = await clients.publicClient.waitForTransactionReceipt({ hash })
+      if (receipt.status !== 'success') throw new Error('The fine list update reverted')
+      await onChanged?.()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not remove that name')
     } finally {
       setBusy(false)
     }
@@ -93,7 +116,7 @@ export function FineListPanel({
       )}
       <Stack direction="row" spacing={1} sx={{ mb: 1, flexWrap: 'wrap' }}>
         {names.length === 0 && <Typography variant="body2">No names yet.</Typography>}
-        {names.map((id) => <Chip key={id} label={id} size="small" />)}
+        {names.map((id) => <Chip key={id} label={id} size="small" disabled={busy} onDelete={() => { void removeName(id as `0x${string}`) }} />)}
       </Stack>
       <Box sx={{ display: 'flex', gap: 1 }}>
         <TextField size="small" label="Website" value={domain} onChange={(event) => setDomain(event.target.value)} placeholder="example.org" />

@@ -241,7 +241,6 @@ describe('Delegation System', () => {
 
     const user1 = createIsolatedWriteClients(SUITE_NAME, 0, RPC_URL);
     const user2 = createIsolatedWriteClients(SUITE_NAME, 1, RPC_URL);
-    const user3 = createIsolatedWriteClients(SUITE_NAME, 2, RPC_URL);
 
     // User 1 deposits
     await publishDocument(machinery.ipfsConfig, createStatement({
@@ -258,7 +257,7 @@ describe('Delegation System', () => {
       }
     );
 
-    // User 1 -> User 2 -> User 3 delegation chain
+    // One hop: user1 delegates the whole note to user2.
     const { delegatedNoteId: note2 } = await delegateNoteChecked(
       user1,
       delegatableNotesContract,
@@ -271,39 +270,25 @@ describe('Delegation System', () => {
       }
     );
 
-    const { delegatedNoteId: note3 } = await delegateNoteChecked(
-      user2,
+    // The root takes the note back. A second hop is not allowed.
+    await revokeNoteChecked(
+      user1,
       delegatableNotesContract,
       machinery,
       {
         noteId: note2,
         owners: [user2.account, user1.account],
-        delegateTo: user3.account,
-        amount: depositAmount,
       }
     );
 
-    // User 2 revokes (takes back control from user3)
-    await revokeNoteChecked(
-      user2,
-      delegatableNotesContract,
-      machinery,
-      {
-        noteId: note3,
-        owners: [user3.account, user2.account, user1.account], // Current chain
-      }
-    );
-
-    // The middle revoker regains spending authority; the original root is retained.
-    const revokedNote = await getNote(machinery, note3.toString());
+    const revokedNote = await getNote(machinery, note2.toString());
     assert.ok(revokedNote, 'Revoked note');
-    assert.strictEqual(revokedNote.owner.toLowerCase(), user2.account.toLowerCase(), 'Owner should be the revoker');
+    assert.strictEqual(revokedNote.owner.toLowerCase(), user1.account.toLowerCase(), 'Owner should be the root');
     assert.strictEqual(revokedNote.rootOwner.toLowerCase(), user1.account.toLowerCase(), 'Root should remain the original depositor');
 
-    // SDK chains are root-first: user1 -> user2, with user3 removed.
-    const revokedChain = await getDelegationChain(machinery, note3.toString());
+    const revokedChain = await getDelegationChain(machinery, note2.toString());
     assert.deepStrictEqual(revokedChain.map(link => link.address.toLowerCase()), [
-      user1.account.toLowerCase(), user2.account.toLowerCase(),
+      user1.account.toLowerCase(),
     ]);
   });
 

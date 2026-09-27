@@ -1,7 +1,23 @@
 import { describe, it, expect } from 'vitest'
-import { isEthNote, formatNoteAmount, truncateAddress, isDelegate, noteDetailPath, noteDetailPathFor, parseNoteRouteId } from './utils'
+import { isEthNote, formatNoteAmount, truncateAddress, isDelegate, noteDetailPath, noteDetailPathFor, parseNoteRouteId, parsePartialTakebackAmount } from './utils'
 
 const ETH_ADDRESS = '0x0000000000000000000000000000000000000000'
+
+describe('partial takeback amounts', () => {
+  it('parses ETH decimals and rejects zero, the whole balance, and excess precision', () => {
+    const note = makeNote()
+    expect(parsePartialTakebackAmount('0.25', note)).toBe(250000000000000000n)
+    for (const input of ['0', '1', '2', '-1', 'bad', '0.0000000000000000001']) {
+      expect(parsePartialTakebackAmount(input, note)).toBeNull()
+    }
+  })
+
+  it('takes receipt tokens back as whole units instead of applying ETH decimals', () => {
+    const note = makeNote({ tokenType: 1, amount: '10' })
+    expect(parsePartialTakebackAmount('3', note)).toBe(3n)
+    expect(parsePartialTakebackAmount('0.5', note)).toBeNull()
+  })
+})
 
 function makeNote(overrides: Record<string, unknown> = {}) {
   return {

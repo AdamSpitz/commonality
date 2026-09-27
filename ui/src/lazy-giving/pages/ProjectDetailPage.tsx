@@ -384,7 +384,7 @@ export function ProjectDetailPage({
   return (
     <Box>
       <ProjectHeader project={project} metadata={metadata} kind={headerKind} beneficiaryBinding={beneficiaryBinding} />
-      {projectContractAddress && <PendingProjectSpends primaryMarket={projectContractAddress} />}
+      {projectContractAddress && <PendingProjectSpends primaryMarket={projectContractAddress} currency={fundingCurrency} />}
 
       {projectContractAddress && disavowedProjects.has(projectContractAddress.toLowerCase()) && (
         <Alert severity="warning" sx={{ mb: 3 }}>

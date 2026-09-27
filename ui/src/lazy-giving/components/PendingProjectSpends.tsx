@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
 import { Paper, Stack, Typography } from '@mui/material'
-import { decodeEventLog, formatEther, type Address, type Hex } from 'viem'
+import { decodeEventLog, type Address, type Hex } from 'viem'
 import { usePublicClient } from 'wagmi'
 import { DelegatableNotesAbi } from '@commonality/sdk/abis'
-import { fetchEvents } from '@commonality/sdk/utils'
+import { fetchEventsComplete, type Currency } from '@commonality/sdk/utils'
+import { formatCurrencyAmount } from '../../shared/funding'
 import { useMachinery } from '../../shared'
 import { formatPendingSpendDeadline } from '../../delegation/spendClass'
 
@@ -13,7 +14,7 @@ const NOTES = import.meta.env.VITE_DELEGATABLE_NOTES_CONTRACT_ADDRESS as string 
  * Scheduled spends are not purchases, so they are absent from the raised total.
  * This lists the ones still pending against this project's assurance contract.
  */
-export function PendingProjectSpends({ primaryMarket }: { primaryMarket: string }) {
+export function PendingProjectSpends({ primaryMarket, currency }: { primaryMarket: string; currency?: Currency }) {
   const publicClient = usePublicClient()
   const machinery = useMachinery()
   const [lines, setLines] = useState<{ noteId: string; amount: bigint; deadline: bigint }[]>([])
@@ -25,7 +26,7 @@ export function PendingProjectSpends({ primaryMarket }: { primaryMarket: string 
     }
     let cancelled = false
     ;(async () => {
-      const events = await fetchEvents(machinery, {
+      const events = await fetchEventsComplete(machinery, {
         contractAddress: NOTES,
         eventName: 'SpendScheduled',
       })
@@ -52,7 +53,19 @@ export function PendingProjectSpends({ primaryMarket }: { primaryMarket: string 
           args: [noteId],
         }) as readonly [Address, Address, bigint, bigint, bigint, bigint, bigint, boolean, boolean]
         if (!pending[8] || pending[0].toLowerCase() !== market) continue
-        next.push({ noteId: key, amount: decoded.args.amount, deadline: pending[5] })
+        const deadline = await publicClient.readContract({
+          address: NOTES as Address,
+          abi: DelegatableNotesAbi,
+          functionName: 'effectivePendingSpendDeadline',
+          args: [noteId],
+        })
+        const note = await publicClient.readContract({
+          address: NOTES as Address,
+          abi: DelegatableNotesAbi,
+          functionName: 'notes',
+          args: [noteId],
+        })
+        next.push({ noteId: key, amount: note[1], deadline })
       }
       if (!cancelled) setLines(next)
     })().catch(() => {
@@ -71,7 +84,7 @@ export function PendingProjectSpends({ primaryMarket }: { primaryMarket: string 
       <Stack spacing={1}>
         {lines.map((line) => (
           <Typography key={line.noteId} variant="body2">
-            {formatEther(line.amount)} ETH. {formatPendingSpendDeadline(line.deadline)}
+            {formatCurrencyAmount(line.amount, currency)}. {formatPendingSpendDeadline(line.deadline)}
           </Typography>
         ))}
       </Stack>

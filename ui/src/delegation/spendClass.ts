@@ -18,8 +18,9 @@ export function hoursInputToSeconds(input: string): bigint | null {
   const trimmed = input.trim()
   if (!/^\d+(\.\d+)?$/.test(trimmed)) return null
   const hours = Number(trimmed)
-  if (!Number.isFinite(hours)) return null
-  return BigInt(Math.round(hours * 3600))
+  const seconds = Math.round(hours * 3600)
+  if (!Number.isSafeInteger(seconds)) return null
+  return BigInt(seconds)
 }
 
 export function formatPendingSpendDeadline(deadlineSeconds: bigint, nowSeconds = Math.floor(Date.now() / 1000)): string {

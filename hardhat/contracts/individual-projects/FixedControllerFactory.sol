@@ -6,7 +6,14 @@ import {FixedControllerAssuranceContract} from "./FixedControllerAssuranceContra
 /// @notice Deploys fixed-controller assurance contracts. DelegatableNotes authorizes
 ///         this factory on its own so AssuranceContractFactory stays under the size limit.
 contract FixedControllerFactory {
+    error InvalidRegistry();
+    address public immutable beneficiaryRegistry;
     mapping(address => bool) public isDeployedPrimaryMarket;
+
+    constructor(address registry) {
+        if (registry == address(0)) revert InvalidRegistry();
+        beneficiaryRegistry = registry;
+    }
 
     event FixedControllerAssuranceCreated(address indexed assuranceContract);
 
@@ -19,6 +26,7 @@ contract FixedControllerFactory {
         bytes32 beneficiaryId,
         address registry
     ) external returns (FixedControllerAssuranceContract ac) {
+        if (registry != beneficiaryRegistry) revert InvalidRegistry();
         ac = new FixedControllerAssuranceContract(
             owner, recipient, paymentToken, erc1155Addr, projectMetadataCid, beneficiaryId, registry
         );

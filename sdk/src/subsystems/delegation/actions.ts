@@ -272,13 +272,23 @@ export async function partialTakeback(
   });
 
   const receipt = await clients.publicClient.waitForTransactionReceipt({ hash });
+  if (receipt.status === 'reverted') {
+    throw new Error(`Partial takeback transaction reverted: ${hash}`);
+  }
   const logs = parseEventLogs({
     abi: DelegatableNotesAbi,
     eventName: 'NotePartiallyTakenBack',
     logs: receipt.logs,
   });
-  const sliceNoteId = logs[0]?.args.sliceNoteId ?? 0n;
-  return { hash, sliceNoteId };
+  const takenBack = logs.find(log =>
+    log.address.toLowerCase() === delegatableNotesContract.address.toLowerCase()
+    && log.args.noteId === params.noteId
+    && log.args.amount === params.amount,
+  );
+  if (!takenBack) {
+    throw new Error(`Failed to find matching NotePartiallyTakenBack event in transaction logs: ${hash}`);
+  }
+  return { hash, sliceNoteId: takenBack.args.sliceNoteId };
 }
 
 /**

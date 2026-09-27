@@ -12,10 +12,12 @@ export function SpendPolicyPanel({
   noteId,
   contractAddress,
   owners,
+  onChanged,
 }: {
   noteId: bigint
   contractAddress: Address
   owners: Address[]
+  onChanged?: () => Promise<void>
 }) {
   const publicClient = usePublicClient()
   const clients = useWriteClients()
@@ -26,6 +28,12 @@ export function SpendPolicyPanel({
   const [flaggerInput, setFlaggerInput] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+
+  async function waitForUpdate(hash: `0x${string}`) {
+    if (!clients) return
+    const receipt = await clients.publicClient.waitForTransactionReceipt({ hash })
+    if (receipt.status !== 'success') throw new Error('The spend policy update reverted')
+  }
 
   useEffect(() => {
     if (!publicClient) return
@@ -69,8 +77,9 @@ export function SpendPolicyPanel({
     setError(null)
     try {
       const contract = { address: contractAddress, abi: DelegatableNotesAbi }
-      await setSpendDelay(clients, contract, { noteId, owners, delay })
-      await setUnsuspiciousDelay(clients, contract, { noteId, owners, delay: unsuspicious })
+      await waitForUpdate(await setSpendDelay(clients, contract, { noteId, owners, delay }))
+      await waitForUpdate(await setUnsuspiciousDelay(clients, contract, { noteId, owners, delay: unsuspicious }))
+      await onChanged?.()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not save the delay')
     } finally {
@@ -83,8 +92,9 @@ export function SpendPolicyPanel({
     setBusy(true)
     setError(null)
     try {
-      await setStrictMode(clients, { address: contractAddress, abi: DelegatableNotesAbi }, { noteId, owners, enabled })
+      await waitForUpdate(await setStrictMode(clients, { address: contractAddress, abi: DelegatableNotesAbi }, { noteId, owners, enabled }))
       setStrict(enabled)
+      await onChanged?.()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not change strict mode')
     } finally {
@@ -97,10 +107,11 @@ export function SpendPolicyPanel({
     setBusy(true)
     setError(null)
     try {
-      await setSpendFlagger(clients, { address: contractAddress, abi: DelegatableNotesAbi }, {
+      await waitForUpdate(await setSpendFlagger(clients, { address: contractAddress, abi: DelegatableNotesAbi }, {
         noteId, owners, flagger, allowed,
-      })
+      }))
       setFlaggerInput('')
+      await onChanged?.()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not change that flagger')
     } finally {

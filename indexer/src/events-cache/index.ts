@@ -40,6 +40,7 @@ register("Implications:ImplicationRevoked");
 
 // LAZYGIVING: Factory + AssuranceContract + non-transferable ERC1155 receipts
 register("AssuranceContractFactory:LazyGivingAssuranceContractCreated");
+register("FixedControllerFactory:FixedControllerAssuranceCreated");
 register("ProjectFactory:ProjectCreated");
 register("ERC1155Factory:LazyGivingERC1155ContractCreated");
 const assuranceContractEvents = [
@@ -56,6 +57,7 @@ const assuranceContractEvents = [
 
 for (const contractName of [
   "AssuranceContract",
+  "FixedControllerAssuranceContract",
   "CreatorAssuranceContract",
   "ProspectiveContentAssuranceContract",
 ] as const) {
