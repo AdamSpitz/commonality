@@ -130,6 +130,29 @@ export function decodeNoteDelegateReplacedEvent(
   };
 }
 
+export function decodeNotePartiallyTakenBackEvent(
+  rawEvent: RawEventFromCache,
+): {
+  noteId: bigint;
+  sliceNoteId: bigint;
+  amount: bigint;
+  contractAddress: `0x${string}`;
+  blockNumber: bigint;
+  blockTimestamp: bigint;
+  transactionHash: `0x${string}`;
+  logIndex: number;
+} | null {
+  if (rawEvent.eventName !== 'NotePartiallyTakenBack') return null;
+  const args = decodeRawEventArgs(rawEvent, DelegatableNotesAbi);
+  if (!args) return null;
+  return {
+    noteId: args.noteId as bigint,
+    sliceNoteId: args.sliceNoteId as bigint,
+    amount: args.amount as bigint,
+    ...decodedLogMeta(rawEvent),
+  };
+}
+
 export function decodeNoteRevokedEvent(
   rawEvent: RawEventFromCache,
 ): {

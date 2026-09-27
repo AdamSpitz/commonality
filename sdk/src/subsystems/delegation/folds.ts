@@ -6,6 +6,7 @@ import type {
   ChainSplitEvent,
   NoteSplitSameChainEvent,
   NoteRevokedEvent,
+  NotePartiallyTakenBackEvent,
   NoteDelegateReplacedEvent,
   FundsReclaimedEvent,
   NoteConsumedEvent,
@@ -23,6 +24,7 @@ export type DelegationEvent =
   | { type: 'chainSplit'; event: ChainSplitEvent }
   | { type: 'noteSplitSameChain'; event: NoteSplitSameChainEvent }
   | { type: 'noteRevoked'; event: NoteRevokedEvent }
+  | { type: 'notePartiallyTakenBack'; event: NotePartiallyTakenBackEvent }
   | { type: 'noteDelegateReplaced'; event: NoteDelegateReplacedEvent }
   | { type: 'fundsReclaimed'; event: FundsReclaimedEvent }
   | { type: 'noteConsumed'; event: NoteConsumedEvent }
@@ -287,6 +289,18 @@ export function foldDelegationState(
           from.amount = from.amount > amount ? from.amount - amount : 0n;
           if (from.amount === 0n) from.active = false;
           from.updatedAt = blockTimestamp.toString();
+        }
+        break;
+      }
+
+      case 'notePartiallyTakenBack': {
+        // NoteCreated already recorded the slice as the root alone. Leave that
+        // chain as it is. The parent stays delegated and only loses the amount.
+        const { noteId, amount, blockTimestamp } = ev.event;
+        const parent = stateMap.get(contractScopedId(ev.event.contractAddress, noteId));
+        if (parent) {
+          parent.amount = parent.amount > amount ? parent.amount - amount : 0n;
+          parent.updatedAt = blockTimestamp.toString();
         }
         break;
       }

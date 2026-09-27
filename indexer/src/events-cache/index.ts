@@ -71,6 +71,7 @@ register("DelegatableNotes:NoteCreated");
 register("DelegatableNotes:NoteDelegated");
 register("DelegatableNotes:ChainSplit");
 register("DelegatableNotes:NoteRevoked");
+register("DelegatableNotes:NotePartiallyTakenBack");
 register("DelegatableNotes:NoteDelegateReplaced");
 register("DelegatableNotes:FundsReclaimed");
 register("DelegatableNotes:NoteConsumed");

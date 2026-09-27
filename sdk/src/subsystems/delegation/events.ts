@@ -34,6 +34,12 @@ export interface NoteRevokedEvent extends RawEvent {
   revoker: `0x${string}`;
 }
 
+export interface NotePartiallyTakenBackEvent extends RawEvent {
+  noteId: bigint;
+  sliceNoteId: bigint;
+  amount: bigint;
+}
+
 export interface NoteDelegateReplacedEvent extends RawEvent {
   fromNoteId: bigint;
   toNoteId: bigint;

@@ -24,6 +24,7 @@ vi.mock('@commonality/sdk/delegation', async () => {
     getDelegationChain: vi.fn(),
     delegateNote: vi.fn(),
     revokeNote: vi.fn(),
+    partialTakeback: vi.fn(),
     reclaimFunds: vi.fn(),
     getActiveStandingPledgesByUser: vi.fn(),
     getDonationActivityByRoot: vi.fn(),
@@ -353,7 +354,8 @@ describe('MyNotesPage', () => {
       render(<MyNotesPage />)
 
       await waitFor(() => {
-        expect(screen.getByRole('button', { name: 'Revoke' })).toBeInTheDocument()
+        expect(screen.getByRole('button', { name: 'Takeback' })).toBeInTheDocument()
+        expect(screen.getByRole('button', { name: 'Partial takeback' })).toBeInTheDocument()
       })
     })
 
@@ -560,9 +562,10 @@ describe('MyNotesPage', () => {
       render(<MyNotesPage />)
 
       await waitFor(() => {
-        expect(screen.getByRole('button', { name: 'Revoke' })).toBeInTheDocument()
+        expect(screen.getByRole('button', { name: 'Takeback' })).toBeInTheDocument()
+        expect(screen.getByRole('button', { name: 'Partial takeback' })).toBeInTheDocument()
       })
-      fireEvent.click(screen.getByRole('button', { name: 'Revoke' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Takeback' }))
 
       await waitFor(() => {
         expect(getDelegationChain).toHaveBeenCalledWith(mockMachinery, '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:1')
@@ -594,7 +597,7 @@ describe('MyNotesPage', () => {
       render(<MyNotesPage />)
 
       await waitFor(() => {
-        fireEvent.click(screen.getByRole('button', { name: 'Revoke' }))
+        fireEvent.click(screen.getByRole('button', { name: 'Takeback' }))
       })
 
       await waitFor(() => {

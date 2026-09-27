@@ -22,11 +22,11 @@ import {
   TextField,
 } from '@mui/material'
 import { Link as RouterLink } from 'react-router-dom'
-import { useAccount } from 'wagmi'
+import { useAccount, usePublicClient } from 'wagmi'
 import { decodeEventLog, formatEther, parseEther, type Hex } from 'viem'
 import { DelegatableNotesAbi, RecurringPledgesAbi } from '@commonality/sdk/abis'
 import { getStatement } from '@commonality/sdk/conceptspace'
-import { getNotesByOwner, getNotesByRoot, getDelegationChain, getDonationActivityByRoot, delegateNote, replaceDelegate, revokeNote, reclaimFunds, getActiveStandingPledgesByUser, cancelStandingPledge, type DonationActivity, type Note, type StandingPledge, type DelegatableNotesContract, type RecurringPledgesContract } from '@commonality/sdk/delegation'
+import { getNotesByOwner, getNotesByRoot, getDelegationChain, getDonationActivityByRoot, delegateNote, partialTakeback, replaceDelegate, revokeNote, reclaimFunds, getActiveStandingPledgesByUser, cancelStandingPledge, type DonationActivity, type Note, type StandingPledge, type DelegatableNotesContract, type RecurringPledgesContract } from '@commonality/sdk/delegation'
 import { fetchEvents, type Currency, type IpfsCidV1 } from '@commonality/sdk/utils'
 import { getDomainUrl, useMachinery } from '../../shared'
 import { useWriteClients } from '../../shared'
@@ -76,6 +76,7 @@ function NoteCard({
   showDelegatedFrom,
   showCurrentOwner,
   showRevoke,
+  showPartialTakeback,
   showReclaim,
   showDelegate,
   showReplace,
@@ -83,6 +84,7 @@ function NoteCard({
   onDelegate,
   onReplace,
   onRevoke,
+  onPartialTakeback,
   onReclaim,
   onGiveBack,
 }: {
@@ -90,6 +92,7 @@ function NoteCard({
   showDelegatedFrom?: boolean
   showCurrentOwner?: boolean
   showRevoke?: boolean
+  showPartialTakeback?: boolean
   showReclaim?: boolean
   showDelegate?: boolean
   showReplace?: boolean
@@ -97,9 +100,34 @@ function NoteCard({
   onDelegate?: (note: Note) => void
   onReplace?: (note: Note) => void
   onRevoke?: (note: Note) => void
+  onPartialTakeback?: (note: Note, amount: string) => void
   onReclaim?: (note: Note) => void
   onGiveBack?: (note: Note) => void
 }) {
+  const publicClient = usePublicClient()
+  const [spendPending, setSpendPending] = useState(false)
+  const [partialOpen, setPartialOpen] = useState(false)
+
+  useEffect(() => {
+    if (!showPartialTakeback || !publicClient) {
+      setSpendPending(false)
+      return
+    }
+    let cancelled = false
+    ;(async () => {
+      const pending = await publicClient.readContract({
+        address: note.contractAddress as `0x${string}`,
+        abi: DelegatableNotesAbi,
+        functionName: 'pendingSpends',
+        args: [BigInt(note.id)],
+      }) as readonly [unknown, unknown, bigint, bigint, bigint, bigint, bigint, boolean, boolean]
+      if (!cancelled) setSpendPending(pending[8])
+    })().catch(() => {
+      if (!cancelled) setSpendPending(false)
+    })
+    return () => { cancelled = true }
+  }, [publicClient, showPartialTakeback, note.contractAddress, note.id])
+
   return (
     <Card>
       <CardActionArea component={RouterLink} to={noteDetailPath(note)}>
@@ -135,7 +163,7 @@ function NoteCard({
           </Box>
         </CardContent>
       </CardActionArea>
-      {(showDelegate || showReplace || showGiveBack || showRevoke || showReclaim) && (
+      {(showDelegate || showReplace || showGiveBack || showRevoke || showPartialTakeback || showReclaim) && (
         <Box sx={{ px: 2, pb: 1.5, display: 'flex', gap: 1 }}>
           {showDelegate && (
             <Button
@@ -162,7 +190,7 @@ function NoteCard({
               color="warning"
               onClick={(e) => { e.preventDefault(); onGiveBack?.(note) }}
             >
-              Give back
+              Hand back
             </Button>
           )}
           {showRevoke && (
@@ -172,7 +200,17 @@ function NoteCard({
               color="warning"
               onClick={(e) => { e.preventDefault(); onRevoke?.(note) }}
             >
-              Revoke
+              Takeback
+            </Button>
+          )}
+          {showPartialTakeback && (
+            <Button
+              size="small"
+              variant="outlined"
+              disabled={spendPending}
+              onClick={(e) => { e.preventDefault(); setPartialOpen(true) }}
+            >
+              Partial takeback
             </Button>
           )}
           {showReclaim && (
@@ -187,7 +225,64 @@ function NoteCard({
           )}
         </Box>
       )}
+      <PartialTakebackDialog
+        open={partialOpen}
+        note={note}
+        onClose={() => setPartialOpen(false)}
+        onSubmit={(amount) => onPartialTakeback?.(note, amount)}
+      />
     </Card>
+  )
+}
+
+function PartialTakebackDialog({
+  open,
+  note,
+  onClose,
+  onSubmit,
+}: {
+  open: boolean
+  note: Note | null
+  onClose: () => void
+  onSubmit: (amount: string) => void
+}) {
+  const [amount, setAmount] = useState('')
+  const balance = note ? BigInt(note.amount) : 0n
+  let parsed: bigint | null = null
+  try {
+    if (amount) parsed = parseEther(amount)
+  } catch {
+    parsed = null
+  }
+  const valid = parsed !== null && parsed > 0n && parsed < balance
+
+  return (
+    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+      <DialogTitle>Partial takeback of fund #{note?.id}</DialogTitle>
+      <DialogContent>
+        <Typography variant="body2" sx={{ mt: 1 }}>
+          You are taking this amount back. The rest stays with the delegate under the same rules. This does not approve a payment.
+        </Typography>
+        <TextField
+          label="Amount to take back (ETH)"
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+          fullWidth
+          margin="normal"
+          helperText={note ? `Greater than zero and less than ${formatEther(balance)} ETH` : ''}
+        />
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose}>Cancel</Button>
+        <Button
+          onClick={() => { if (valid && parsed !== null) { onSubmit(amount); onClose(); setAmount('') } }}
+          variant="contained"
+          disabled={!valid}
+        >
+          Take back
+        </Button>
+      </DialogActions>
+    </Dialog>
   )
 }
 
@@ -586,8 +681,33 @@ export function MyNotesPage({ experience = 'delegation' }: { experience?: 'deleg
       })
       await loadNotes()
     } catch (err) {
-      console.error('Revoke failed:', err)
-      setActionError(err instanceof Error ? err.message : 'Revocation failed')
+      console.error('Takeback failed:', err)
+      setActionError(err instanceof Error ? err.message : 'Takeback failed')
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
+  const handlePartialTakeback = async (note: Note, amount: string) => {
+    const clients = getClients()
+    const contract = getContract(note.contractAddress)
+    if (!clients || !contract) return
+    try {
+      setActionLoading(true)
+      setActionError(null)
+      const chain = await getDelegationChain(machinery, noteScopedKey(note))
+      const owners = chain
+        .sort((a, b) => b.position - a.position)
+        .map(link => link.address as `0x${string}`)
+      await partialTakeback(clients, contract, {
+        noteId: BigInt(note.id),
+        owners,
+        amount: parseEther(amount),
+      })
+      await loadNotes()
+    } catch (err) {
+      console.error('Partial takeback failed:', err)
+      setActionError(err instanceof Error ? err.message : 'Partial takeback failed')
     } finally {
       setActionLoading(false)
     }
@@ -757,12 +877,14 @@ export function MyNotesPage({ experience = 'delegation' }: { experience?: 'deleg
                   note={note}
                   showCurrentOwner
                   showRevoke={isDelegate(note)}
+                  showPartialTakeback={isDelegate(note)}
                   showReplace={isDelegate(note)}
                   showReclaim={!isDelegate(note)}
                   showDelegate={!isDelegate(note)}
                   onDelegate={handleDelegate}
                   onReplace={handleReplace}
                   onRevoke={handleRevoke}
+                  onPartialTakeback={handlePartialTakeback}
                   onReclaim={handleReclaim}
                 />
               ))}

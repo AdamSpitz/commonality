@@ -20,10 +20,10 @@ import {
   DialogActions,
   Autocomplete,
 } from '@mui/material'
-import { useAccount } from 'wagmi'
+import { useAccount, usePublicClient } from 'wagmi'
 import { formatEther, parseEther } from 'viem'
 import { DelegatableNotesAbi, NoteIntentAbi } from '@commonality/sdk/abis'
-import { getNote, getDelegationChain, getNoteIntentAttestation, attestNoteIntent, delegateNote, replaceDelegate, revokeNote, reclaimFunds, purchaseFromPrimaryMarketWithNotes, refundNote, type Note, type NoteIntentAttestation, type DelegationChainLink, type NoteIntentContract } from '@commonality/sdk/delegation'
+import { getNote, getDelegationChain, getNoteIntentAttestation, attestNoteIntent, delegateNote, partialTakeback, replaceDelegate, revokeNote, reclaimFunds, purchaseFromPrimaryMarketWithNotes, refundNote, type Note, type NoteIntentAttestation, type DelegationChainLink, type NoteIntentContract } from '@commonality/sdk/delegation'
 import { getStatement, type StatementListItem } from '@commonality/sdk/conceptspace'
 import type { IpfsCidV1 } from '@commonality/sdk/utils'
 import { getProjectsFiltered, type ProjectWithMetrics, getProjectTokens, type ProjectToken } from '@commonality/sdk/lazy-giving'
@@ -317,6 +317,7 @@ export function NoteDetailPage() {
   const { address } = useAccount()
   const writeClients = useWriteClients(address)
   const machinery = useMachinery()
+  const publicClient = usePublicClient()
 
   const [note, setNote] = useState<Note | null>(null)
   const [chain, setChain] = useState<DelegationChainLink[]>([])
@@ -325,6 +326,9 @@ export function NoteDetailPage() {
   const [actionError, setActionError] = useState<string | null>(null)
   const [actionLoading, setActionLoading] = useState(false)
   const [delegateDialogOpen, setDelegateDialogOpen] = useState(false)
+  const [partialOpen, setPartialOpen] = useState(false)
+  const [partialAmount, setPartialAmount] = useState('')
+  const [spendPending, setSpendPending] = useState(false)
   const [delegateMode, setDelegateMode] = useState<'delegate' | 'replace'>('delegate')
   const [spendDialogOpen, setSpendDialogOpen] = useState(false)
   const [projects, setProjects] = useState<ProjectWithMetrics[]>([])
@@ -418,6 +422,26 @@ export function NoteDetailPage() {
   }, [routeNoteId])
 
   useEffect(() => {
+    if (!publicClient || !note) {
+      setSpendPending(false)
+      return
+    }
+    let cancelled = false
+    ;(async () => {
+      const pending = await publicClient.readContract({
+        address: note.contractAddress as `0x${string}`,
+        abi: DelegatableNotesAbi,
+        functionName: 'pendingSpends',
+        args: [BigInt(note.id)],
+      }) as readonly [unknown, unknown, bigint, bigint, bigint, bigint, bigint, boolean, boolean]
+      if (!cancelled) setSpendPending(pending[8])
+    })().catch(() => {
+      if (!cancelled) setSpendPending(false)
+    })
+    return () => { cancelled = true }
+  }, [publicClient, note])
+
+  useEffect(() => {
     if (spendDialogOpen && projects.length === 0) {
       loadProjects()
     }
@@ -487,8 +511,35 @@ export function NoteDetailPage() {
       })
       await loadNoteData()
     } catch (err) {
-      console.error('Revoke failed:', err)
-      setActionError(err instanceof Error ? err.message : 'Revocation failed')
+      console.error('Takeback failed:', err)
+      setActionError(err instanceof Error ? err.message : 'Takeback failed')
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
+  const handlePartialTakeback = async () => {
+    if (!note) return
+    const clients = getClients()
+    const contract = getContract(note.contractAddress)
+    if (!clients || !contract) return
+    try {
+      setActionLoading(true)
+      setActionError(null)
+      const owners = [...chain]
+        .sort((a, b) => b.position - a.position)
+        .map(link => link.address as `0x${string}`)
+      await partialTakeback(clients, contract, {
+        noteId: BigInt(note.id),
+        owners,
+        amount: parseEther(partialAmount),
+      })
+      setPartialOpen(false)
+      setPartialAmount('')
+      await loadNoteData()
+    } catch (err) {
+      console.error('Partial takeback failed:', err)
+      setActionError(err instanceof Error ? err.message : 'Partial takeback failed')
     } finally {
       setActionLoading(false)
     }
@@ -661,12 +712,12 @@ export function NoteDetailPage() {
 
   const isCurrentLeafOwner = note.owner.toLowerCase() === address?.toLowerCase()
   const isRootOwner = note.rootOwner.toLowerCase() === address?.toLowerCase()
-  const isChainMember = chain.some(link => link.address.toLowerCase() === address?.toLowerCase())
   const isUndelegated = !isDelegate(note)
   const canDelegate = isCurrentLeafOwner && chain.length <= 1
   const canReplace = isRootOwner && chain.length === 2
   const canResign = isCurrentLeafOwner && chain.length > 1
-  const canRevoke = isChainMember && !isCurrentLeafOwner
+  const canTakeback = isRootOwner && chain.length > 1
+  const canPartialTakeback = canTakeback
   const canReclaim = isRootOwner && isUndelegated
   const canSpend = isCurrentLeafOwner && isEthNote(note) && chain.length <= 2
   const canRefund = note.active && isCurrentLeafOwner && note.tokenType === 1 && refundProject !== null
@@ -796,12 +847,17 @@ export function NoteDetailPage() {
           )}
           {canResign && (
             <Button variant="outlined" color="warning" onClick={handleRevoke}>
-              Give back
+              Hand back
             </Button>
           )}
-          {canRevoke && (
+          {canTakeback && (
             <Button variant="outlined" color="warning" onClick={handleRevoke}>
-              Revoke
+              Takeback
+            </Button>
+          )}
+          {canPartialTakeback && (
+            <Button variant="outlined" disabled={spendPending} onClick={() => setPartialOpen(true)}>
+              Partial takeback
             </Button>
           )}
           {canReclaim && (
@@ -819,7 +875,7 @@ export function NoteDetailPage() {
               Refund into a Fund
             </Button>
           )}
-          {!canDelegate && !canReplace && !canResign && !canRevoke && !canReclaim && !canSpend && !canRefund && (
+          {!canDelegate && !canReplace && !canResign && !canTakeback && !canPartialTakeback && !canReclaim && !canSpend && !canRefund && (
             <Typography variant="body2" color="text.secondary">
               You don't have any actions available for this note.
             </Typography>
@@ -835,6 +891,29 @@ export function NoteDetailPage() {
         onClose={() => setDelegateDialogOpen(false)}
         onSubmit={handleDelegateSubmit}
       />
+
+      <Dialog open={partialOpen} onClose={() => setPartialOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>Partial takeback of fund #{note.id}</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" sx={{ mt: 1 }}>
+            You are taking this amount back. The rest stays with the delegate under the same rules. This does not approve a payment.
+          </Typography>
+          <TextField
+            label="Amount to take back (ETH)"
+            value={partialAmount}
+            onChange={(e) => setPartialAmount(e.target.value)}
+            fullWidth
+            margin="normal"
+            helperText={`Greater than zero and less than ${formatEther(BigInt(note.amount))} ETH`}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setPartialOpen(false)}>Cancel</Button>
+          <Button variant="contained" onClick={handlePartialTakeback} disabled={actionLoading || !partialAmount}>
+            Take back
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <SpendDialog
         open={spendDialogOpen}

@@ -192,6 +192,17 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
   event NoteRevoked(uint256 indexed noteId, address indexed revoker);
 
   /**
+   * @notice The root took an amount back. The original note stays delegated.
+   * @dev `sliceNoteId` is a new note she alone holds. This is not a revocation
+   *      and not a chain split: the slice does not inherit the delegated chain.
+   */
+  event NotePartiallyTakenBack(
+    uint256 indexed noteId,
+    uint256 indexed sliceNoteId,
+    uint256 amount
+  );
+
+  /**
    * @notice The root replaced the current delegate with a new note.
    * @dev The original note keeps its chain. A full replacement retires it.
    *      A partial replacement leaves the remainder on it. `toNoteId` is a new
@@ -1153,6 +1164,52 @@ contract DelegatableNotes is Context, Ownable, ReentrancyGuard, ERC1155Holder {
 
     note.chainHash = newHash;
     emit NoteRevoked(noteId, caller);
+  }
+
+  /**
+   * @notice The root takes part of a delegated note back. The rest stays delegated.
+   * @dev Does not clear a pending spend. The slice is a new root-only note.
+   *      `amount` must be greater than zero and less than the balance.
+   * @return sliceNoteId The new note she alone holds
+   */
+  function partialTakeback(
+    uint256 noteId,
+    address[] calldata owners,
+    uint256 amount
+  ) external nonReentrant returns (uint256 sliceNoteId) {
+    Note storage note = notes[noteId];
+    if (note.chainHash == bytes32(0)) revert NoteDoesNotExist();
+    if (note.chainHash != _verifyAndComputeChainHash(owners)) revert InvalidChain();
+    if (owners[owners.length - 1] != _msgSender()) revert NotNoteRoot();
+    // A note she already holds is not a takeback. Longer chains are outside the hop limit.
+    if (owners.length != 2) revert DelegationHopLimit();
+    if (pendingSpends[noteId].exists) revert SpendAlreadyScheduled();
+    if (amount == 0 || amount >= note.amount) revert SplitAmountMustBePartial();
+
+    address root = owners[1];
+    sliceNoteId = nextNoteId++;
+    notes[sliceNoteId] = Note({
+      chainHash: _computeChainHash(root, bytes32(0)),
+      amount: amount,
+      token: note.token,
+      tokenType: note.tokenType,
+      tokenId: note.tokenId
+    });
+    address[] memory flaggers = spendFlaggerList[noteId];
+    _writePolicy(
+      sliceNoteId,
+      spendPolicies[noteId].delay,
+      spendPolicies[noteId].unsuspiciousDelay,
+      spendPolicies[noteId].strictMode,
+      flaggers,
+      owners[0]
+    );
+    _copyFineList(noteId, sliceNoteId);
+    _moveClaimPortion(noteId, sliceNoteId, amount);
+    note.amount -= amount;
+
+    emit NoteCreated(sliceNoteId, root, amount, note.token, note.tokenType, note.tokenId);
+    emit NotePartiallyTakenBack(noteId, sliceNoteId, amount);
   }
 
 
