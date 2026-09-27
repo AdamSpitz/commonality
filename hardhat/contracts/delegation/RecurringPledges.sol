@@ -84,7 +84,7 @@ contract RecurringPledges is ReentrancyGuard {
   mapping(uint256 => Pledge) public pledges;
   mapping(uint256 => address[]) private pledgeFlaggerList;
   mapping(uint256 => bytes32[]) private pledgeFineIds;
-  mapping(uint256 => mapping(bytes32 => bool)) public pledgeFineIdsed;
+  mapping(uint256 => mapping(bytes32 => bool)) public pledgeFineListed;
 
   constructor(address delegatableNotesAddress) {
     if (delegatableNotesAddress == address(0)) revert ZeroAddress();
@@ -208,15 +208,15 @@ contract RecurringPledges is ReentrancyGuard {
 
   function _setFineListed(uint256 pledgeId, bytes32 beneficiaryId, bool allowed) private {
     if (beneficiaryId == bytes32(0)) revert ZeroAddress();
-    if (allowed == pledgeFineIdsed[pledgeId][beneficiaryId]) {
+    if (allowed == pledgeFineListed[pledgeId][beneficiaryId]) {
       emit PledgeFineListSet(pledgeId, beneficiaryId, allowed);
       return;
     }
     if (allowed) {
-      pledgeFineIdsed[pledgeId][beneficiaryId] = true;
+      pledgeFineListed[pledgeId][beneficiaryId] = true;
       pledgeFineIds[pledgeId].push(beneficiaryId);
     } else {
-      pledgeFineIdsed[pledgeId][beneficiaryId] = false;
+      pledgeFineListed[pledgeId][beneficiaryId] = false;
       bytes32[] storage ids = pledgeFineIds[pledgeId];
       for (uint256 i = 0; i < ids.length; i++) {
         if (ids[i] == beneficiaryId) {
