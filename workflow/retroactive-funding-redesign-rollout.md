@@ -23,9 +23,12 @@ while keeping retroactive funding:
   in** — never interest/premium/markup. The secondary market is **deleted
   entirely** (a capped market is vestigial; removing it eliminates the
   exchange/dealer problem instead of merely shrinking it).
-- **Design 2 — Delegation is the scout-payment channel.** Reward for judgment
-  is reputation + larger *delegated budgets* (money to manage, never in
-  pocket), optionally a flat service fee — never per-dollar-of-outcome.
+- **Design 2 — Delegation is the scout-payment channel.** Jul 2026 complement,
+  superseded for the voice. It rewarded judgment with larger delegated budgets
+  (money to manage, never in pocket). The current baseline is the one-voice
+  note in [delegation-narrowing.md](/specs/product/legal/delegation-narrowing.md):
+  a limited authorization, not a steward. The copy scrub is still open in
+  [TODO.md](/TODO.md). Do not implement this bullet as written.
 
 The marketing/UX invariant that governs everything below: **"get your money
 back and fund the next one" must be the *whole* story.** No buy/sell/invest/
