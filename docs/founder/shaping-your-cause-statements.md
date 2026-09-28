@@ -808,23 +808,43 @@ mediator's needle, landing where [§ This is the mediator's job](#this-is-the-me
 already argues it should. It also satisfies the ordering constraint for free: a
 disjunctive anchor names its planks, so it must be generated after them.
 
-### Scale: the fold is fine, the transport isn't
+### Scale: the fold is fine, the transport is slow
 
-The set algebra was never the risk — union and intersection over 10⁵ anonymized
-IDs is milliseconds. What breaks is the event fetching underneath.
-`computeIndirectSupport` (`sdk/src/subsystems/conceptspace/queries.ts:330`)
-fetches `DirectSupport` events per statement under a hard `limit: 10000`, then
-fans out one fetch *per implying statement* plus a `fetchStatementDocument`
-retraction check per implying CID. A five-plank view multiplies that whole
-fan-out by five. So the ceiling bites at **10⁴, not 10⁵**, and it bites
-*silently*: a truncated fold returns a plausible-looking wrong number.
+Measured locally on 2026-09-28. No chain and no indexer database: a stand-in
+served `GET /api/events` with the indexer's rules (cap 10,000, newest rows
+first, then restored to chain order, block-range filters). Five planks, 100,000
+`DirectSupport` logs each, one signer per block, the same 100,000 addresses on
+every plank. The fold was the real SDK path (`fetchEventsComplete`,
+`decodeDirectSupportEvent`, `foldAnonymizedBelieverIds`, `computeViewCounts`),
+in Node and in headless Chrome.
 
-Cost also scales with the implication graph rather than the signer count, so a
-heavily-attested plank is expensive before it is popular.
+The set algebra is the cheap part. Once the ID sets exist, the five-plank view
+counts took 51 ms in Chrome and 304 ms in Node, and both runs returned the
+right numbers (union 100,000, band 1 "signed every plank" 100,000). Building
+the sets is the cost: one plank was 5.6 s in Node (1.6 s to fetch, 4.0 s to
+decode and hash anonymized IDs), 32 requests, about 150 MB of JSON. Chrome
+folded all five planks one after another in 25 s and held about 440–470 MB of
+JS heap. The client can do this. A server-side fold is not required for a
+correct count at 10⁵ signers. It would matter only if a cause page should not
+wait a few seconds or download on the order of 100 MB per popular plank.
 
-The remedy, if measurement confirms it, is an indexer-side aggregate returning
-folded believer-ID sets per statement. The client-side set algebra survives
-either way — nothing above depends on where the sets come from.
+`fetchEventsComplete` (`sdk/src/utils/eventCacheClient.ts`) is what conceptspace
+reads through now. It splits block ranges when a response hits the 10,000 cap,
+so a spread of 10⁵ logs is not silently truncated. The split is wasteful: each
+probe re-downloads a full 10,000-row page and discards it, which is why one
+plank costs about 150 MB for roughly 50 MB of distinct logs. A five-plank view
+still multiplies that walk by five, and each plank also walks every statement
+that implies it, plus a retraction check per implying CID. Cost still scales
+with the implication graph, so a heavily-attested plank is expensive before it
+is popular.
+
+One hole remains. If 10,001 matching logs share a single block,
+`fetchEventsComplete` throws (`complete retrieval is impossible without log
+pagination`). It does not return a short count. Ordinary signing will not fill
+a block that way. A burst that does still cannot be folded completely. Log
+pagination would close that hole. An indexer-side aggregate that returns folded
+believer-ID sets per statement would make the page fast, and the client-side
+set algebra would survive either way. Neither is required for the model.
 
 **Sketches, if that aggregate is ever built.** Probabilistic sketches
 (HyperLogLog, Bloom) would let such an aggregate ship fixed-size per-plank blobs
@@ -842,19 +862,23 @@ change to the model.
 
 What [§ Planks, views, anchors](#planks-views-anchors) establishes is that a view
 needs no published statement, no attestation, and nothing on chain. That is not
-the same as free. Views are not free at the *read* layer, and pointers-only
-already made RPC load-bearing for reads. If the answer to the scale question is a
-server-side aggregate, then views quietly add to a founder's infrastructure
-burden — the exact thing
+the same as free. Views are not free at the *read* layer: a popular plank is a
+few seconds and on the order of 100 MB in the browser, as
+[§ Scale](#scale-the-fold-is-fine-the-transport-is-slow) measured. Pointers-only
+already made RPC load-bearing for reads. Choosing a server-side aggregate to
+make that read instant would add to a founder's infrastructure burden — the
+exact thing
 [what-a-founder-needs.md § 3.3](/docs/founder/what-a-founder-needs.md#33-open-question-how-much-of-this-should-we-absorb)
-is trying to shrink. Don't let the two claims slide into each other.
+is trying to shrink. The 2026-09-28 measurement says that choice is optional.
+Don't let "nothing on chain" slide into "free to read."
 
 ## Open questions
 
-None of the design questions above remain open. What's left is queued work:
-measuring the client-side fold at ~10⁵ signers, testing plank→disjunctive-anchor
-arrows against the real attester prompt, and building the plank-first service and
-wizard. All four are in [TODO.md](/TODO.md).
+None of the design questions above remain open. The client-side fold at ~10⁵
+signers was measured on 2026-09-28; see
+[§ Scale](#scale-the-fold-is-fine-the-transport-is-slow). What's left is queued
+work: testing plank→disjunctive-anchor arrows against the real attester prompt,
+and building the plank-first service and wizard. Those are in [TODO.md](/TODO.md).
 
 One caveat on earmarking, since this doc's [§ Align low, aggregate
 high](#align-low-aggregate-high) describes earmarking to planks: **NoteIntent is

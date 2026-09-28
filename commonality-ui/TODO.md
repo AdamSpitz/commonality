@@ -33,7 +33,7 @@ open **if they stay listed here**.
   Next candidate: a surface that needs a coalition CID (Tally / public
   alliance count / "sign the name"). Ask before wiring it into
   bridge-cluster publish.
-- [ ] View counts fetch believer sets per plank, and each fetch walks events for the plank *plus* every statement implying it, under a `limit: 10000` that truncates silently. Fine locally; measure before it matters. Remedy is an indexer-side aggregate ([§ Scale](/docs/founder/shaping-your-cause-statements.md#scale-the-fold-is-fine-the-transport-isnt)), optionally sketch-backed — but band 1 must stay exact.
+- [x] **View-count scale, measured 2026-09-28.** A browser can fold 10⁵ `DirectSupport` logs per plank (five planks, ~25 s, ~440–470 MB heap, correct band-1 intersection). `fetchEventsComplete` pages across blocks; it does not silently stop at 10,000. Still open, and not required for the model: one block with ≥10,000 matching logs throws, and an indexer-side aggregate would only be for making that read instant. If sketches are ever used, band 1 stays exact. Details: [§ Scale](/docs/founder/shaping-your-cause-statements.md#scale-the-fold-is-fine-the-transport-is-slow).
 
 - [ ] Safety filter is MVP/heuristic + LLM policy text — not legal-grade; version/align with operator/legal specs later.
 - [ ] Unpublished draft state still in `localStorage` only — multi-device recovery of *drafts* later (published rosters are on chain; published *bookmarks* follow the wallet `bookmarked-causes` ref).
