@@ -1,5 +1,6 @@
 import { http } from "viem";
 import { installEthGetLogsRangeGuard } from "../rpc/ethGetLogsRangeGuard";
+import { idleHeadCacheEnabled, installIdleHeadCache } from "../rpc/idleHeadCache";
 import { installMonthlyCapacityGuard } from "../rpc/monthlyCapacity";
 import { INDEXER_CHAIN_IDS, type IndexerChainName } from "../utils/chain";
 
@@ -222,4 +223,5 @@ export function installHostedRpcGuards(context: IndexerDeploymentContext): void 
       : context.ethGetLogsBlockRange;
   installEthGetLogsRangeGuard({ configuredRange });
   installMonthlyCapacityGuard();
+  if (idleHeadCacheEnabled(context.chain)) installIdleHeadCache();
 }

@@ -14,6 +14,7 @@ import { client, graphql } from "ponder";
 import { and, desc, eq, gte, lte, or } from "ponder";
 import { getAddress, isAddress, type Hex } from "viem";
 import { fundingIndexerRoutesEnabled } from "../indexing/contractCapabilities";
+import { noteIndexerWake, requestWakesIndexer } from "../rpc/idleHeadCache";
 import { isBareContractLogQuery, projectReadDemandReport, recordUnindexedProjectLogRequest } from "./projectReadDemand";
 
 /**
@@ -79,6 +80,19 @@ function publicationPointer(event: { blockNumber: bigint; transactionHash: strin
 }
 
 const app = new Hono();
+
+app.use("*", async (c, next) => {
+  if (requestWakesIndexer(c.req.method, c.req.path)) noteIndexerWake();
+  await next();
+});
+
+app.post("/api/indexer-wake", (c) => {
+  const until = noteIndexerWake();
+  return c.json({
+    ok: true,
+    fastPollingUntil: until > 0 ? new Date(until).toISOString() : null,
+  });
+});
 
 // Expose SQL client for direct queries (all tables)
 app.use("/sql/*", client({ db, schema }));

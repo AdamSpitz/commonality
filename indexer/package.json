@@ -14,7 +14,7 @@
     "serve": "ponder serve",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit && npm run check-abis",
-    "test": "node --import tsx --test selectPonderScript.test.mjs src/rpc/ethGetLogsRangeGuard.test.ts src/rpc/monthlyCapacity.test.ts src/api/projectReadDemand.test.ts src/indexing/contractCapabilities.test.ts src/indexing/conceptspaceConfigGraph.test.ts",
+    "test": "node --import tsx --test selectPonderScript.test.mjs src/rpc/ethGetLogsRangeGuard.test.ts src/rpc/monthlyCapacity.test.ts src/rpc/idleHeadCache.test.ts src/api/projectReadDemand.test.ts src/indexing/contractCapabilities.test.ts src/indexing/conceptspaceConfigGraph.test.ts",
     "build": "tsc",
     "check-abis": "tsx scripts/sync-abis.ts --check",
     "clean": "rm -rf .ponder",
