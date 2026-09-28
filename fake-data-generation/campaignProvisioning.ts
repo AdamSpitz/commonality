@@ -13,7 +13,9 @@ const GAS_UNITS: Record<PlannedAction['type'], bigint> = {
 };
 
 const DEFAULT_GAS_PRICE = 1_000_000_000n;
-const NATIVE_BUFFER_WEI = parseEther('0.05');
+// Slack on top of the per-action gas estimate, not a spending allowance.
+// 0.05 ETH per wallet made a 10-user canary look like it needed ~1 ETH.
+const NATIVE_BUFFER_WEI = parseEther('0.001');
 
 
 export const PAYMENT_TOKEN_FUNDING_ABI = [

@@ -40,9 +40,9 @@ function localEnv(): CampaignEnvironment {
 test('funding needs include gas, note deposits, and project token buys', () => {
   const [need] = computeCampaignFundingNeeds(plan, [wallet], 1_000_000_000n);
   assert.equal(need.walletSlot, 'wallet-user-001');
-  assert.ok(need.nativeWei > parseEther('0.05'));
+  assert.ok(need.nativeWei > parseEther('0.001'));
   assert.equal(need.paymentTokenUnits, parseUnits('0.01', 6));
-  assert.ok(need.nativeWei >= parseEther('0.05') + 90_000n * 1_000_000_000n + 180_000n * 1_000_000_000n + 150_000n * 1_000_000_000n + parseEther('0.01'));
+  assert.ok(need.nativeWei >= parseEther('0.001') + 90_000n * 1_000_000_000n + 180_000n * 1_000_000_000n + 150_000n * 1_000_000_000n + parseEther('0.01'));
 });
 
 test('local provisioning mints when transfer fails and skips already-funded wallets', async () => {

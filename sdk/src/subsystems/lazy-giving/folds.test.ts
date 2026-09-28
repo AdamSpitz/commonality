@@ -584,6 +584,62 @@ describe('foldReimbursements', () => {
       forgoneAmount: '0',
     });
   });
+
+  it('keeps indivisible donation dust on the share accumulator, matching the contract views', () => {
+    const common = {
+      contractAddress: PROJECT_ADDR,
+      blockNumber: 110n,
+      blockTimestamp: 1700001000n,
+      transactionHash: TX_HASH_5,
+      logIndex: 0,
+    };
+    const result = foldReimbursements(PROJECT_ADDR, [
+      { type: 'bought', event: makeBoughtEvent({ participant: PARTICIPANT_A, totalCost: 2n }) },
+      { type: 'bought', event: makeBoughtEvent({ participant: PARTICIPANT_B, totalCost: 1n }) },
+      { type: 'retroactiveDonation', event: { ...common, donor: RECIPIENT, amount: 1n } },
+    ]);
+
+    // Outstanding falls by the full 1, but 1 wei does not divide across 3 shares.
+    // Per-holder currency division would leave claims of 2 and 1; the contract
+    // views are mulDiv(shares, outstanding, supply) and a still-zero accumulator payout.
+    assert.strictEqual(result.project.outstandingReimbursement, '2');
+    assert.strictEqual(result.project.totalRetroactiveDonations, '1');
+    const holderA = result.contributors.find(({ contributor }) => contributor === PARTICIPANT_A);
+    const holderB = result.contributors.find(({ contributor }) => contributor === PARTICIPANT_B);
+    assert.strictEqual(holderA?.futureReimbursementClaim, '1');
+    assert.strictEqual(holderB?.futureReimbursementClaim, '0');
+    assert.strictEqual(holderA?.reimbursableAmount, '0');
+    assert.strictEqual(holderB?.reimbursableAmount, '0');
+  });
+
+  it('assigns withdrawable wei from share balance after a ceiling mint, not from currency claims', () => {
+    const donation = {
+      contractAddress: PROJECT_ADDR,
+      blockNumber: 110n,
+      blockTimestamp: 1700001000n,
+      transactionHash: TX_HASH_5,
+      logIndex: 0,
+    };
+    const result = foldReimbursements(PROJECT_ADDR, [
+      { type: 'bought', event: makeBoughtEvent({ participant: PARTICIPANT_A, totalCost: 3n }) },
+      { type: 'retroactiveDonation', event: { ...donation, amount: 1n } },
+      { type: 'bought', event: makeBoughtEvent({ participant: PARTICIPANT_B, totalCost: 1n, transactionHash: TX_HASH_2 }) },
+      { type: 'retroactiveDonation', event: { ...donation, amount: 2n, transactionHash: TX_HASH_3 } },
+    ]);
+
+    // B pays 1 against outstanding 2 and supply 3, so the contract mints ceil(1*3/2) = 2 shares.
+    // Accumulator payouts are 2 and 0; currency-claim splitting would pay A only 1 and
+    // leave both holders a future claim of 1.
+    assert.strictEqual(result.project.totalEarlyContributions, '4');
+    assert.strictEqual(result.project.outstandingReimbursement, '1');
+    const holderA = result.contributors.find(({ contributor }) => contributor === PARTICIPANT_A);
+    const holderB = result.contributors.find(({ contributor }) => contributor === PARTICIPANT_B);
+    assert.strictEqual(holderA?.reimbursableAmount, '2');
+    assert.strictEqual(holderB?.reimbursableAmount, '0');
+    assert.strictEqual(holderA?.futureReimbursementClaim, '0');
+    assert.strictEqual(holderB?.futureReimbursementClaim, '0');
+    assert.strictEqual(holderB?.earlyContribution, '1');
+  });
 });
 
 // ============================================================================
