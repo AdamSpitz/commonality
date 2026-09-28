@@ -14,9 +14,11 @@ directory: a map for where to spend lawyer money, not legal advice.)
 
 ## Resolved decisions (Jul 2026)
 
-Adam has chosen this redesign (Design 1 + Design 2 below) as the securities
-posture to build toward, and settled the open design questions. These are the
-decisions of record; the analysis further down explains *why* each is safe.
+Adam chose Design 1, below, as the reimbursement posture, and settled the
+open design questions in that section. Those are the decisions of record; the
+analysis further down explains *why* each is safe. Design 2 was the Jul 2026
+complement. Its steward framing is not the current voice — see the note on
+that section.
 
 - **Reimbursement is pro-rata and simultaneous, with no seniority.** Early
   contributors all funded before the assurance threshold was met, so they are
@@ -149,6 +151,14 @@ Both are acceptable losses — an intermediate buyer at cost was economically
 irrational anyway, so the capped market was mostly theater.
 
 ## Design 2 (complement): Delegation is the legal scout-payment mechanism
+
+**Superseded for the voice (2026-09).** This section records the Jul 2026
+complement: delegation as the scout's reward, framed as program-officer work
+and money under management. That is no longer the intended description. The
+live baseline is [delegation-narrowing.md](delegation-narrowing.md): the donor
+authorizes a spend, the delegate promises nothing, and "scout" stays an early
+contributor who may be reimbursed at cost. The copy scrub is still open in
+[TODO.md](/TODO.md). The paragraphs below are the framing that was chosen then.
 
 We already built the clean version of "skilled people direct other people's
 money": the **Delegation** subsystem. Reframed:
