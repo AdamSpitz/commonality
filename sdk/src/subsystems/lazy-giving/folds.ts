@@ -248,108 +248,193 @@ export function foldContributions(
   return foldContributionsFromEvents(boughtEvents, soldEvents, undefined, fundingCurrency);
 }
 
-/** Fold contribution and waterfall events into project and per-contributor reimbursement state. */
+/**
+ * Matches `REIMBURSEMENT_PER_SHARE_SCALE` in AssuranceContracts.sol.
+ * Donations accrue in this scale so leftover wei stays assigned to shares
+ * until a later donation pushes a holder across a whole token unit.
+ */
+const REIMBURSEMENT_PER_SHARE_SCALE = 10n ** 36n;
+
+function mulDivFloor(x: bigint, y: bigint, denominator: bigint): bigint {
+  return (x * y) / denominator;
+}
+
+/** OpenZeppelin Math.mulDiv(..., Rounding.Ceil). */
+function mulDivCeil(x: bigint, y: bigint, denominator: bigint): bigint {
+  const product = x * y;
+  const rounded = product / denominator;
+  return product % denominator === 0n ? rounded : rounded + 1n;
+}
+
+/**
+ * Fold contribution and waterfall events into project and per-contributor reimbursement state.
+ *
+ * Replays the contract's claim-share ledger: purchases mint shares with a
+ * ceiling division, retroactive donations bump `accumulatedReimbursementPerClaimShare`,
+ * and each holder's withdrawable and future claim are the contract's `mulDiv` views.
+ * A same-transaction buy plus forgo that exceeds the claim (donate-normally, which
+ * never mints) undoes the shares just minted. A sell applies the refund's basis
+ * reduction; the matching `ReimbursementForgone` event, when present, is what
+ * counts toward forgone totals.
+ */
 export function foldReimbursements(
   projectAddress: string,
   events: ReimbursementEvent[],
   fundingCurrency: Currency = ETH_CURRENCY,
 ): { project: ProjectReimbursementState; contributors: ContributorReimbursementState[] } {
-  const contributions = new Map<string, bigint>();
-  const futureClaims = new Map<string, bigint>();
-  const withdrawable = new Map<string, bigint>();
+  const early = new Map<string, bigint>();
+  const shares = new Map<string, bigint>();
+  const checkpoint = new Map<string, bigint>();
+  const storedWithdrawable = new Map<string, bigint>();
   const withdrawn = new Map<string, bigint>();
   const forgone = new Map<string, bigint>();
-  let totalRetroactiveDonations = 0n;
-  let outstanding = 0n;
+  const seen = new Set<string>();
+  const lastMint = new Map<string, { tx: string; value: bigint; shares: bigint }>();
+  let totalEarly = 0n;
+  let totalRetro = 0n;
+  let totalShares = 0n;
+  let accumulated = 0n;
 
-  const add = (map: Map<string, bigint>, address: string, amount: bigint) => {
-    const key = address.toLowerCase();
-    map.set(key, (map.get(key) ?? 0n) + amount);
+  const keyOf = (address: string) => address.toLowerCase();
+  const outstanding = () => totalEarly - totalRetro;
+  const balanceOf = (key: string) => shares.get(key) ?? 0n;
+
+  const futureClaim = (key: string): bigint => {
+    if (totalShares === 0n) return 0n;
+    return mulDivFloor(balanceOf(key), outstanding(), totalShares);
   };
-  const subtractContributionClamped = (address: string, amount: bigint) => {
-    const key = address.toLowerCase();
-    const tracked = contributions.get(key) ?? 0n;
-    contributions.set(key, tracked > amount ? tracked - amount : 0n);
+
+  const checkpointAccount = (key: string) => {
+    const marked = checkpoint.get(key) ?? 0n;
+    if (accumulated !== marked) {
+      const earned = mulDivFloor(balanceOf(key), accumulated - marked, REIMBURSEMENT_PER_SHARE_SCALE);
+      storedWithdrawable.set(key, (storedWithdrawable.get(key) ?? 0n) + earned);
+      checkpoint.set(key, accumulated);
+    }
   };
-  const subtractClamped = (map: Map<string, bigint>, address: string, amount: bigint) => {
-    const key = address.toLowerCase();
-    const tracked = map.get(key) ?? 0n;
-    const reduction = tracked < amount ? tracked : amount;
-    map.set(key, tracked - reduction);
-    return reduction;
+
+  const withdrawableOf = (key: string): bigint => {
+    const settled = storedWithdrawable.get(key) ?? 0n;
+    const marked = checkpoint.get(key) ?? 0n;
+    if (accumulated === marked) return settled;
+    return settled + mulDivFloor(balanceOf(key), accumulated - marked, REIMBURSEMENT_PER_SHARE_SCALE);
+  };
+
+  const mintShares = (key: string, value: bigint, tx: string) => {
+    checkpointAccount(key);
+    const out = outstanding();
+    const minted = totalShares === 0n || out === 0n
+      ? value
+      : mulDivCeil(value, totalShares, out);
+    shares.set(key, balanceOf(key) + minted);
+    totalShares += minted;
+    early.set(key, (early.get(key) ?? 0n) + value);
+    totalEarly += value;
+    lastMint.set(key, { tx, value, shares: minted });
+  };
+
+  const undoMint = (key: string, value: bigint, minted: bigint) => {
+    const held = balanceOf(key);
+    const burned = minted < held ? minted : held;
+    shares.set(key, held - burned);
+    totalShares -= burned;
+    const tracked = early.get(key) ?? 0n;
+    const basis = value < tracked ? value : tracked;
+    early.set(key, tracked - basis);
+    totalEarly -= basis;
+  };
+
+  const reduceBasis = (key: string, amount: bigint, countForgone: boolean, tx?: string) => {
+    if (amount === 0n) return;
+    checkpointAccount(key);
+    const claim = futureClaim(key);
+    const tracked = early.get(key) ?? 0n;
+    const phantom = tx === undefined ? undefined : lastMint.get(key);
+    if (phantom && phantom.tx === tx && phantom.value === amount && amount > claim) {
+      undoMint(key, amount, phantom.shares);
+      if (countForgone) forgone.set(key, (forgone.get(key) ?? 0n) + amount);
+      return;
+    }
+    const applied = amount < claim && amount < tracked ? amount : (claim < tracked ? claim : tracked);
+    if (applied === 0n) return;
+    const held = balanceOf(key);
+    const out = outstanding();
+    let burned = applied === claim
+      ? held
+      : (out === 0n ? 0n : mulDivCeil(applied, totalShares, out));
+    if (burned > held) burned = held;
+    shares.set(key, held - burned);
+    totalShares -= burned;
+    early.set(key, tracked - applied);
+    totalEarly -= applied;
+    if (countForgone) forgone.set(key, (forgone.get(key) ?? 0n) + applied);
   };
 
   for (const { type, event } of events) {
     switch (type) {
-      case 'bought':
-        add(contributions, event.participant, event.totalCost);
-        add(futureClaims, event.participant, event.totalCost);
-        outstanding += event.totalCost;
+      case 'bought': {
+        const key = keyOf(event.participant);
+        seen.add(key);
+        mintShares(key, event.totalCost, event.transactionHash);
         break;
-      // Match recordPrimaryRefund: the reimbursement basis may already have
-      // been reduced by a forgo, while the full token value is still refunded.
+      }
+      // recordPrimaryRefund forgoes the tracked basis (clamped to what is left)
+      // before ERC1155Sold. When that Forgone event is in the stream it has
+      // already reduced the basis, and this is a no-op.
       case 'sold': {
-        subtractContributionClamped(event.participant, event.totalCost);
-        const reduction = subtractClamped(futureClaims, event.participant, event.totalCost);
-        outstanding -= reduction;
+        const key = keyOf(event.participant);
+        seen.add(key);
+        const tracked = early.get(key) ?? 0n;
+        const reduction = event.totalCost < tracked ? event.totalCost : tracked;
+        reduceBasis(key, reduction, false);
         break;
       }
       case 'retroactiveDonation': {
-        const before = outstanding;
-        if (before > 0n) {
-          for (const [contributor, claim] of futureClaims) {
-            const earned = claim * event.amount / before;
-            futureClaims.set(contributor, claim - earned);
-            add(withdrawable, contributor, earned);
-          }
+        if (totalShares > 0n && event.amount > 0n) {
+          accumulated += mulDivFloor(event.amount, REIMBURSEMENT_PER_SHARE_SCALE, totalShares);
         }
-        outstanding -= event.amount;
-        totalRetroactiveDonations += event.amount;
+        totalRetro += event.amount;
         break;
       }
-      case 'reimbursementWithdrawn':
-        subtractClamped(withdrawable, event.contributor, event.amount);
-        add(withdrawn, event.contributor, event.amount);
+      case 'reimbursementWithdrawn': {
+        const key = keyOf(event.contributor);
+        seen.add(key);
+        checkpointAccount(key);
+        const available = storedWithdrawable.get(key) ?? 0n;
+        const paid = event.amount < available ? event.amount : available;
+        storedWithdrawable.set(key, available - paid);
+        withdrawn.set(key, (withdrawn.get(key) ?? 0n) + paid);
         break;
-      case 'reimbursementForgone':
-        add(contributions, event.contributor, -event.amount);
-        subtractClamped(futureClaims, event.contributor, event.amount);
-        outstanding -= event.amount;
-        add(forgone, event.contributor, event.amount);
+      }
+      case 'reimbursementForgone': {
+        const key = keyOf(event.contributor);
+        seen.add(key);
+        reduceBasis(key, event.amount, true, event.transactionHash);
         break;
+      }
     }
   }
 
-  const totalEarlyContributions = [...contributions.values()].reduce((sum, value) => sum + value, 0n);
   const totalWithdrawn = [...withdrawn.values()].reduce((sum, value) => sum + value, 0n);
   const totalForgone = [...forgone.values()].reduce((sum, value) => sum + value, 0n);
-  const addresses = new Set([
-    ...contributions.keys(), ...futureClaims.keys(), ...withdrawable.keys(),
-    ...withdrawn.keys(), ...forgone.keys(),
-  ]);
-  const contributors = [...addresses].map((contributor) => {
-    const contribution = contributions.get(contributor) ?? 0n;
-    const contributorWithdrawn = withdrawn.get(contributor) ?? 0n;
-    const reimbursable = withdrawable.get(contributor) ?? 0n;
-    return {
-      projectAddress,
-      contributor,
-      currency: fundingCurrency,
-      earlyContribution: contribution.toString(),
-      futureReimbursementClaim: (futureClaims.get(contributor) ?? 0n).toString(),
-      reimbursableAmount: reimbursable.toString(),
-      withdrawnAmount: contributorWithdrawn.toString(),
-      forgoneAmount: (forgone.get(contributor) ?? 0n).toString(),
-    };
-  });
+  const contributors = [...seen].map((contributor) => ({
+    projectAddress,
+    contributor,
+    currency: fundingCurrency,
+    earlyContribution: (early.get(contributor) ?? 0n).toString(),
+    futureReimbursementClaim: futureClaim(contributor).toString(),
+    reimbursableAmount: withdrawableOf(contributor).toString(),
+    withdrawnAmount: (withdrawn.get(contributor) ?? 0n).toString(),
+    forgoneAmount: (forgone.get(contributor) ?? 0n).toString(),
+  }));
 
   return {
     project: {
       projectAddress,
       currency: fundingCurrency,
-      totalEarlyContributions: totalEarlyContributions.toString(),
-      totalRetroactiveDonations: totalRetroactiveDonations.toString(),
-      outstandingReimbursement: outstanding.toString(),
+      totalEarlyContributions: totalEarly.toString(),
+      totalRetroactiveDonations: totalRetro.toString(),
+      outstandingReimbursement: outstanding().toString(),
       totalReimbursementsWithdrawn: totalWithdrawn.toString(),
       totalReimbursementsForgone: totalForgone.toString(),
     },
