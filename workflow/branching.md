@@ -12,7 +12,10 @@ git push -u origin feature/the-thing  # 3. push the branch (no gate to push)
 gh pr create --base dev --fill        # 4. open the PR
 # 5. review + post the receipt:  /code-review --comment  &&  scripts/post-review.sh
 gh pr merge --auto --merge            # 6. queue merge; do NOT wait for GitHub Actions
-# 7. start the next task (see "Don't wait on CI" below)
+# 7. once it has landed: switch back to local dev and delete the local branch
+git switch dev && git pull
+git branch -d feature/the-thing
+# 8. start the next task (see "Don't wait on CI" below)
 ```
 
 - **Never work on `dev` directly.** If you forget and try to commit, the hook
@@ -27,6 +30,12 @@ gh pr merge --auto --merge            # 6. queue merge; do NOT wait for GitHub A
   are informational. They are **not** required to merge. If Adam says "merge
   when it's ready," that means review receipt + resolved threads, not a
   six-minute CI wait.
+- **After a PR lands, leave `dev` checked out and delete the local branch.**
+  Adam does not keep merged feature branches around. Switch back to local
+  `dev`, pull, and `git branch -d` the branch that just merged. Do this for
+  the branch you just merged; do not sweep unrelated local branches unless
+  asked. GitHub deletes the remote branch on merge; the local one is yours
+  to remove.
 
 ## Overview
 
@@ -79,8 +88,13 @@ this step.
    gh pr merge --auto --merge    # or --squash; your call
    ```
    Auto-merge lands the PR as soon as `review-received` is green, threads are
-   resolved, and the branch is up to date with `dev` (`strict` is on). Then
-   delete the branch when GitHub does (or after it lands).
+   resolved, and the branch is up to date with `dev` (`strict` is on). GitHub
+   deletes the remote branch. Once the PR has actually merged, switch the
+   local checkout back to `dev`, pull, and delete the local branch
+   (`git switch dev && git pull && git branch -d feature/your-thing`). Do not
+   leave that checkout sitting on the merged branch, and do not keep the
+   local branch "just in case." If auto-merge has only been queued, stay on
+   the feature branch until it lands, then do the switch and delete.
 6. **Release:** fast-forward `master` to `dev`:
    ```bash
    scripts/promote-dev-to-master.sh
