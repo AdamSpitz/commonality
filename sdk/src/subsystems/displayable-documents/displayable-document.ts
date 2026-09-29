@@ -11,7 +11,7 @@
 import { type Address, type Hash } from 'viem';
 import { uploadToIPFS, fetchFromIPFS, IPFSConfig } from '../../utils/ipfs.js';
 import { type WriteClients } from '../../utils/ethereum.js';
-import { publishData, readData, computePublishedDataId, publishedDataCidToId, publishedDataIdToCid, createEventCacheCidResolver, createPublishedDataApiCidResolver, type DisplayPolicy, type CidResolution, type PublishedDataCache, type PublishedDataContract, type PublishedDataId, type PublishedDataReadResult, type PublishedDataCid, type PublishDataOptions } from '../published-data/index.js';
+import { publishData, publishDataBatch, readData, computePublishedDataId, publishedDataCidToId, publishedDataIdToCid, createEventCacheCidResolver, createPublishedDataApiCidResolver, type DisplayPolicy, type CidResolution, type PublishedDataCache, type PublishedDataContract, type PublishedDataId, type PublishedDataReadResult, type PublishedDataCid, type PublishDataOptions } from '../published-data/index.js';
 import type { SDKMachinery } from '../../machinery.js';
 import { IpfsCidV1 } from '../../utils/cid-types.js';
 
@@ -445,6 +445,26 @@ export async function publishDocumentToPublishedData(
   }
 
   return publishData(clients, publishedDataContract, canonicalDocumentBytes(doc), options);
+}
+
+/** Publish several documents in one PublishedData transaction, in the given order. */
+export async function publishDocumentsToPublishedData(
+  clients: WriteClients,
+  publishedDataContract: PublishedDataContract,
+  docs: readonly DisplayableDocument[],
+  options: PublishDataOptions = {},
+): Promise<PublishedDocumentResult[]> {
+  for (const doc of docs) {
+    const validation = validateDisplayableDocument(doc);
+    if (!validation.valid) throw new Error(`Invalid displayable document: ${validation.errors.join(', ')}`);
+  }
+  const { txHash, results } = await publishDataBatch(
+    clients,
+    publishedDataContract,
+    docs.map((doc) => canonicalDocumentBytes(doc)),
+    options,
+  );
+  return results.map((result) => ({ dataId: result.dataId, cid: result.cid, txHash }));
 }
 
 /**

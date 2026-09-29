@@ -1,6 +1,7 @@
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import type { Hex } from 'viem';
+import { groupCampaignWrites, splitNativeCost } from './campaignBatching.js';
 import type { PlannedAction } from './campaignPlanner.js';
 
 export const CAMPAIGN_EXECUTION_VERSION = 'commonality-campaign-execution-v1' as const;
@@ -16,7 +17,11 @@ export interface CampaignReceipt {
 
 export interface CampaignExecutionAdapter {
   estimateNativeCost(action: PlannedAction): Promise<bigint>;
+  /** Cost of one transaction that submits this whole group. Falls back to the sum of per-action estimates. */
+  estimateGroupCost?(actions: readonly PlannedAction[]): Promise<bigint>;
   submit(action: PlannedAction): Promise<Hex>;
+  /** One transaction for every action in the group. Required when a group has more than one action. */
+  submitGroup?(actions: readonly PlannedAction[]): Promise<Hex>;
   getReceipt(transactionHash: Hex): Promise<CampaignReceipt | null>;
   classifyError(error: unknown): { retryable: boolean; category: string; message: string };
 }
@@ -49,6 +54,8 @@ export interface CampaignExecutionOptions {
   maxRetries: number;
   retryBackoffMs: number;
   transactionCap: number;
+  /** False when the deployed PublishedData contract has no publishDataBatch. Defaults to true. */
+  batchPublishes?: boolean;
   nativeTokenBudget: bigint;
   shouldStop?: () => boolean;
   now?: () => Date;
@@ -90,7 +97,7 @@ function summarize(state: CampaignExecutionState, stopped: boolean): CampaignExe
   return {
     stopped,
     mined: count('mined'), failed: count('failed'), submitted: count('submitted'), planned: count('planned'),
-    transactions: state.actions.filter((action) => action.transactionHash).length,
+    transactions: new Set(state.actions.map((action) => action.transactionHash).filter((hash) => hash !== undefined)).size,
     nativeCost: state.actions.reduce((sum, action) => sum + BigInt(action.nativeCost ?? 0), 0n),
   };
 }
@@ -117,8 +124,9 @@ export async function executeCampaignPlan(input: {
   if (state.actions.length !== actions.length || state.actions.some((item, index) => item.actionId !== actions[index].id)) throw new Error('execution state action list does not match this campaign plan');
 
   const records = new Map(state.actions.map((record) => [record.actionId, record]));
+  const groups = groupCampaignWrites(actions, { batchPublishes: options.batchPublishes });
   let reservedNativeCost = state.actions.reduce((sum, record) => sum + BigInt(record.nativeCost ?? 0), 0n);
-  let transactionCount = state.actions.filter((record) => record.transactionHash).length;
+  let transactionCount = new Set(state.actions.map((record) => record.transactionHash).filter((hash) => hash !== undefined)).size;
   let lastSubmissionAt = 0;
   let stopped = false;
   let stateWrite = Promise.resolve();
@@ -129,7 +137,28 @@ export async function executeCampaignPlan(input: {
     await stateWrite;
   };
 
-  const submitWithinBudget = async (action: PlannedAction, record: CampaignActionExecution, estimate: bigint): Promise<void> => {
+  const applyReceipt = async (members: readonly PlannedAction[], transactionHash: Hex): Promise<boolean> => {
+    const receipt = await adapter.getReceipt(transactionHash);
+    if (!receipt) return false;
+    const memberRecords = members.map((action) => records.get(action.id)!);
+    const previousCost = memberRecords.reduce((sum, record) => sum + BigInt(record.nativeCost ?? 0), 0n);
+    const actualCost = receipt.gasUsed * receipt.effectiveGasPrice;
+    const shares = splitNativeCost(actualCost, memberRecords.length);
+    reservedNativeCost += actualCost - previousCost;
+    const minedAt = now().toISOString();
+    memberRecords.forEach((record, index) => {
+      record.gasUsed = receipt.gasUsed.toString();
+      record.nativeCost = shares[index].toString();
+      record.minedAt = minedAt;
+      if (receipt.blockNumber !== undefined) record.blockNumber = receipt.blockNumber.toString();
+      record.status = receipt.status === 'success' ? 'mined' : 'failed';
+      if (receipt.status === 'reverted') record.failure = { category: 'contract-revert', message: 'transaction reverted' };
+    });
+    await save();
+    return true;
+  };
+
+  const submitWithinBudget = async (members: readonly PlannedAction[], estimate: bigint): Promise<void> => {
     const previous = submissionLock;
     let release = (): void => undefined;
     submissionLock = new Promise<void>((resolve) => { release = resolve; });
@@ -139,34 +168,35 @@ export async function executeCampaignPlan(input: {
       if (reservedNativeCost + estimate > options.nativeTokenBudget) throw new Error(`campaign native-token budget ${options.nativeTokenBudget} would be exceeded`);
       const pacingWait = Math.max(0, lastSubmissionAt + options.pacingMs - Date.now());
       if (pacingWait > 0) await sleep(pacingWait);
-      record.attempts += 1;
-      const transactionHash = await adapter.submit(action);
+      const memberRecords = members.map((action) => records.get(action.id)!);
+      for (const record of memberRecords) record.attempts += 1;
+      const transactionHash = members.length === 1
+        ? await adapter.submit(members[0])
+        : await adapter.submitGroup!(members);
       lastSubmissionAt = Date.now();
-      record.status = 'submitted'; record.transactionHash = transactionHash; record.nativeCost = estimate.toString();
-      record.submittedAt = now().toISOString();
+      const shares = splitNativeCost(estimate, memberRecords.length);
+      const submittedAt = now().toISOString();
+      memberRecords.forEach((record, index) => {
+        record.status = 'submitted';
+        record.transactionHash = transactionHash;
+        record.nativeCost = shares[index].toString();
+        record.submittedAt = submittedAt;
+      });
       transactionCount += 1; reservedNativeCost += estimate;
       await save();
     } finally { release(); }
   };
 
-  const run = async (action: PlannedAction): Promise<void> => {
-    const record = records.get(action.id)!;
+  const run = async (members: readonly PlannedAction[]): Promise<void> => {
+    const memberRecords = () => members.map((action) => records.get(action.id)!);
     let receiptRetries = 0;
     for (;;) {
       if (options.shouldStop?.()) { stopped = true; return; }
-      if (record.status === 'submitted') {
+      const current = memberRecords();
+      if (current.every((record) => record.status === 'submitted')) {
         try {
-          const receipt = await adapter.getReceipt(record.transactionHash!);
-          if (!receipt) return;
-          const previousCost = BigInt(record.nativeCost ?? 0);
-          const actualCost = receipt.gasUsed * receipt.effectiveGasPrice;
-          reservedNativeCost += actualCost - previousCost;
-          record.gasUsed = receipt.gasUsed.toString(); record.nativeCost = actualCost.toString();
-          record.minedAt = now().toISOString();
-          if (receipt.blockNumber !== undefined) record.blockNumber = receipt.blockNumber.toString();
-          record.status = receipt.status === 'success' ? 'mined' : 'failed';
-          if (receipt.status === 'reverted') record.failure = { category: 'contract-revert', message: 'transaction reverted' };
-          await save();
+          const mined = await applyReceipt(members, current[0].transactionHash!);
+          if (!mined) return;
           return;
         } catch (error) {
           const failure = adapter.classifyError(error);
@@ -176,30 +206,51 @@ export async function executeCampaignPlan(input: {
         }
       }
       try {
-        const estimate = await adapter.estimateNativeCost(action);
-        await submitWithinBudget(action, record, estimate);
+        if (members.length > 1 && !adapter.submitGroup) throw new Error('campaign adapter cannot submit a batched write group');
+        const estimate = adapter.estimateGroupCost
+          ? await adapter.estimateGroupCost(members)
+          : (await Promise.all(members.map((action) => adapter.estimateNativeCost(action)))).reduce((sum, cost) => sum + cost, 0n);
+        await submitWithinBudget(members, estimate);
       } catch (error) {
         if (error instanceof Error && error.message.startsWith('campaign ')) throw error;
         const failure = adapter.classifyError(error);
-        if (failure.retryable && record.attempts <= options.maxRetries) { await sleep(options.retryBackoffMs * record.attempts); continue; }
-        record.status = 'failed'; record.failure = { category: failure.category, message: failure.message };
+        const attempts = memberRecords()[0]?.attempts ?? 0;
+        if (failure.retryable && attempts <= options.maxRetries) { await sleep(options.retryBackoffMs * attempts); continue; }
+        for (const record of memberRecords()) {
+          record.status = 'failed';
+          record.failure = { category: failure.category, message: failure.message };
+        }
         await save();
         return;
       }
     }
   };
 
+  const readyWork = (): PlannedAction[][] => {
+    const work: PlannedAction[][] = [];
+    for (const members of groups) {
+      const pending = members.filter((action) => {
+        const status = records.get(action.id)!.status;
+        return status !== 'mined' && status !== 'failed';
+      });
+      const submitted = pending.filter((action) => records.get(action.id)!.status === 'submitted');
+      if (submitted.length > 0) {
+        work.push(submitted);
+        continue;
+      }
+      const planned = pending.filter((action) => action.dependsOn.every((dependency) => records.get(dependency)?.status === 'mined'));
+      if (planned.length > 0) work.push(planned);
+    }
+    return work;
+  };
+
   while (!stopped) {
     if (options.shouldStop?.()) { stopped = true; break; }
-    const ready = actions.filter((action) => {
-      const record = records.get(action.id)!;
-      if (record.status === 'mined' || record.status === 'failed') return false;
-      return record.status === 'submitted' || action.dependsOn.every((dependency) => records.get(dependency)?.status === 'mined');
-    });
+    const ready = readyWork();
     if (ready.length === 0) break;
     const batch = ready.slice(0, options.concurrency);
     await Promise.all(batch.map(run));
-    if (batch.every((action) => records.get(action.id)!.status === 'submitted')) break;
+    if (batch.every((members) => members.every((action) => records.get(action.id)!.status === 'submitted'))) break;
   }
   await stateWrite;
   return summarize(state, stopped);

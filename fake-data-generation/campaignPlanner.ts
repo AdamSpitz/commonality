@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { estimateGroupGas, groupCampaignWrites } from './campaignBatching.js';
 import { type CampaignActionType, type CampaignManifestV1, type CampaignRole, validateCampaignManifest } from './campaignSchema.js';
 import { flattenSeedStatements, loadSeedCollections } from './seed-content-format.js';
 
@@ -258,7 +259,8 @@ export async function buildCampaignPlan(manifest: CampaignManifestV1): Promise<C
 
   validatePlannedActions(manifest, statements, users, projects, actions);
   const writesByType = Object.fromEntries(manifest.actionRules.map((rule) => [rule.type, actions.filter((action) => action.type === rule.type).length])) as Record<CampaignActionType, number>;
-  const estimatedGasByType = Object.fromEntries(Object.entries(writesByType).map(([type, count]) => [type, count * GAS_UNITS[type as CampaignActionType]])) as Record<CampaignActionType, number>;
+  const estimatedGasByType = Object.fromEntries(manifest.actionRules.map((rule) => [rule.type, 0])) as Record<CampaignActionType, number>;
+  for (const group of groupCampaignWrites(actions)) estimatedGasByType[group[0].type] += Number(estimateGroupGas(group));
   const estimatedPaymentTokenUnits = actions.filter((action) => action.type === 'fund-project').reduce((sum, action) => sum + (action.amount ?? 0), 0);
   return { version: CAMPAIGN_PLAN_VERSION, campaignId: manifest.campaign.id, deterministicSeed: manifest.campaign.deterministicSeed, manifestFingerprint: sha256(stableJson(manifest)), statements, users, projects, actions, estimate: { writesByType, totalWrites: actions.length, estimatedGasByType, estimatedTotalGas: Object.values(estimatedGasByType).reduce((sum, value) => sum + value, 0), assumptions: { gasUnitsPerWrite: GAS_UNITS, paymentTokenBaseUnit: 100 }, estimatedPaymentTokenUnits } };
 }

@@ -63,6 +63,7 @@ export async function reconcileLocalCampaign(input: {
     machinery: stack.machinery,
     publicClient: stack.publicClient,
     derivedChecks: createCampaignSdkDerivedCheckProvider({ machinery: stack.machinery, plan, bindings }),
+    bindings,
   });
   const report = await reconcileCampaign({
     actions: plan.actions,

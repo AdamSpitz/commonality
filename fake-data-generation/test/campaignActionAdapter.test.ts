@@ -53,6 +53,9 @@ function writer(calls: string[]): CampaignActionWriter {
       }
       return { hash };
     },
+    async submitMany() {
+      throw new Error('unexpected batched write');
+    },
   };
 }
 

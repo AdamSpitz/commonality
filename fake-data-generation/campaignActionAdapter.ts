@@ -10,10 +10,10 @@ import {
   PublishedDataAbi,
   AssuranceContractAbi,
 } from '@commonality/sdk/abis';
-import { believeStatement, disbelieveStatement, attestImplication } from '@commonality/sdk/conceptspace';
+import { believeStatement, disbelieveStatement, attestImplication, attestImplicationsBatch, setBeliefsBatch } from '@commonality/sdk/conceptspace';
 import { depositETH, delegateNote, revokeNote } from '@commonality/sdk/delegation';
-import { createDefaultDocumentStore, createDisplayableDocument, createStatement } from '@commonality/sdk/displayable-documents';
-import { attestAlignment, PROJECT_ALIGNMENT_TOPIC, toSubjectId } from '@commonality/sdk/fundingportals';
+import { createDefaultDocumentStore, createDisplayableDocument, createStatement, publishDocumentsToPublishedData } from '@commonality/sdk/displayable-documents';
+import { attestAlignment, attestAlignmentsBatch, PROJECT_ALIGNMENT_TOPIC, toSubjectId } from '@commonality/sdk/fundingportals';
 import { buyProjectTokens, createProject, getProject } from '@commonality/sdk/lazy-giving';
 import { createSDKMachinery } from '@commonality/sdk/machinery';
 import { updateRef } from '@commonality/sdk/mutable-refs';
@@ -21,6 +21,7 @@ import { createIPFSConfigInNodeJSFromTheUsualEnvVars } from '@commonality/sdk/no
 import type { IpfsCidV1, WriteClients } from '@commonality/sdk/utils';
 import type { CampaignContracts, CampaignWalletBinding } from './campaignEnvironment.js';
 import type { CampaignExecutionAdapter, CampaignReceipt } from './campaignExecutor.js';
+import { estimateGroupGas } from './campaignBatching.js';
 import type { CampaignPlan, PlannedAction, PlannedProject } from './campaignPlanner.js';
 import type { CampaignRuntimeBindings } from './campaignRuntimeBindings.js';
 import { writeRuntimeBindings } from './campaignRuntimeBindings.js';
@@ -28,11 +29,7 @@ import { buildSeedRosterDocument } from './seedCauseRoster.js';
 import { createSeedClients } from './seedRpc.js';
 import { campaignFundProjectCost, getPaymentTokenDecimals } from './paymentTokenUnits.js';
 
-const GAS_UNITS: Record<PlannedAction['type'], bigint> = {
-  'publish-statement': 180_000n, 'create-cause': 120_000n, 'set-belief': 90_000n,
-  'attest-implication': 130_000n, 'create-project': 1_100_000n, 'attest-alignment': 130_000n,
-  'fund-project': 180_000n, 'deposit-note': 150_000n, 'delegate-note': 100_000n, 'revoke-delegation': 90_000n,
-};
+
 
 export interface CampaignSubmittedWrite {
   hash: Hex;
@@ -44,6 +41,7 @@ export interface CampaignSubmittedWrite {
 
 export interface CampaignActionWriter {
   submit(action: PlannedAction, actor: WriteClients): Promise<CampaignSubmittedWrite>;
+  submitMany(actions: readonly PlannedAction[], actor: WriteClients): Promise<{ hash: Hex; writes: CampaignSubmittedWrite[] }>;
 }
 
 export function classifyCampaignError(error: unknown): { retryable: boolean; category: string; message: string } {
@@ -94,7 +92,8 @@ export function createCampaignContractAdapter(input: {
   };
 
   return {
-    estimateNativeCost: async (action) => GAS_UNITS[action.type] * gasPrice,
+    estimateNativeCost: async (action) => estimateGroupGas([action]) * gasPrice,
+    estimateGroupCost: async (actions) => estimateGroupGas(actions) * gasPrice,
     classifyError: classifyCampaignError,
     getReceipt: input.getReceipt,
     async submit(action) {
@@ -105,6 +104,20 @@ export function createCampaignContractAdapter(input: {
       if (write.project) projectTokens.set(action.projectId!, write.project.token);
       await input.persistBindings?.(input.bindings);
       return write.hash;
+    },
+    async submitGroup(actions) {
+      const wallet = actorFor(actions[0]);
+      if (actions.some((action) => actorFor(action).address !== wallet.address)) throw new Error('batched campaign writes must share one wallet');
+      const clients = clientsFor(wallet);
+      const submitted = await input.writer.submitMany(actions, clients);
+      if (submitted.writes.length !== actions.length) throw new Error('batched campaign write did not return one result per action');
+      actions.forEach((action, index) => {
+        const write = submitted.writes[index];
+        applySubmittedBindings(input.bindings, action, write, clients.account, now());
+        if (write.project) projectTokens.set(action.projectId!, write.project.token);
+      });
+      await input.persistBindings?.(input.bindings);
+      return submitted.hash;
     },
   };
 }
@@ -214,7 +227,58 @@ export function createLiveCampaignActionWriter(input: {
     },
   };
 
-  return { submit: (action, clients) => handlers[action.type](action, clients) };
+  const submitMany: CampaignActionWriter['submitMany'] = async (actions, clients) => {
+    const type = actions[0]?.type;
+    if (!type || actions.some((action) => action.type !== type)) throw new Error('batched campaign writes must share one action type');
+    if (type === 'set-belief') {
+      const hash = await setBeliefsBatch(clients, { address: input.contracts.beliefs, abi: BeliefsAbi }, actions.map((action) => ({
+        statementCid: statementCid(action.statementId),
+        beliefState: action.belief === 'disbelieve' ? 2 : 1,
+      })));
+      return { hash, writes: actions.map(() => ({ hash })) };
+    }
+    if (type === 'attest-implication') {
+      const hash = await attestImplicationsBatch(
+        clients,
+        { address: input.contracts.implications, abi: ImplicationsAbi },
+        actions.map((action) => statementCid(action.implication!.fromStatementId)),
+        actions.map((action) => statementCid(action.implication!.toStatementId)),
+      );
+      return { hash, writes: actions.map(() => ({ hash })) };
+    }
+    if (type === 'attest-alignment') {
+      const hash = await attestAlignmentsBatch(
+        clients,
+        { address: input.contracts.alignmentAttestations, abi: AlignmentAttestationsAbi },
+        actions.map((action) => toSubjectId(projectAddress(action.projectId))),
+        actions.map((action) => statementCid(action.statementId)),
+        actions.map(() => PROJECT_ALIGNMENT_TOPIC),
+      );
+      return { hash, writes: actions.map(() => ({ hash })) };
+    }
+    if (type === 'publish-statement') {
+      const publications = await publishDocumentsToPublishedData(
+        clients,
+        { address: input.contracts.publishedData, abi: PublishedDataAbi },
+        actions.map((action) => {
+          const planned = requireBound(statements.get(action.statementId!), `statement ${action.statementId}`);
+          return createStatement({
+            content: planned.text, topic: planned.causeId, extras: { campaign: input.plan.campaignId, synthetic: true },
+          });
+        }),
+      );
+      return {
+        hash: publications[0].txHash,
+        writes: publications.map((publication) => ({ hash: publication.txHash, statementCid: publication.cid })),
+      };
+    }
+    throw new Error(`campaign action ${type} cannot be batched`);
+  };
+
+  return {
+    submit: (action, clients) => handlers[action.type](action, clients),
+    submitMany,
+  };
 }
 
 export async function persistCampaignBindings(plan: CampaignPlan, bindings: CampaignRuntimeBindings, outputPath: string): Promise<void> {

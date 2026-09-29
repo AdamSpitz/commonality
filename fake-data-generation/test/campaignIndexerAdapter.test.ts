@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createCampaignIndexerAdapter, CAMPAIGN_ACTION_EVENTS, collapseIndexedMatches } from '../campaignIndexerAdapter.js';
+import { createCampaignIndexerAdapter, CAMPAIGN_ACTION_EVENTS, campaignEventMatchesAction, collapseIndexedMatches } from '../campaignIndexerAdapter.js';
+import { cidToBytes32 } from '@commonality/sdk/utils';
+import { fakeIpfsCidV1 } from '@commonality/sdk/testing';
 import type { PlannedAction } from '../campaignPlanner.js';
 
 const TX = `0x${'a'.repeat(64)}` as const;
@@ -43,6 +45,23 @@ test('adapter reads chain/indexer heads and matches only the action transaction'
     assert.ok(requested.some((url) => url.includes('eventName=RetroactiveDonationReceived')));
     assert.ok(requested.some((url) => url.includes('limit=10000')));
   } finally { globalThis.fetch = originalFetch; }
+});
+
+test('a shared transaction matches each belief by its statement topic', () => {
+  const first = fakeIpfsCidV1('statement-1');
+  const second = fakeIpfsCidV1('statement-2');
+  const event = (id: string, topic2: string) => ({
+    id, contractAddress: '0x1', eventName: 'DirectSupport', blockNumber: '1', blockTimestamp: '1', transactionHash: TX, logIndex: 0,
+    topic0: null, topic1: null, topic2, topic3: null, data: '0x',
+  });
+  const bindings = {
+    version: 'commonality-campaign-runtime-bindings-v1' as const,
+    campaignId: 'test', manifestFingerprint: 'fp', updatedAt: 'now',
+    users: {}, statements: { s1: first, s2: second }, causes: {}, projects: {}, notes: {},
+  };
+  const belief = { ...action, type: 'set-belief' as const, statementId: 's1' };
+  const logs = [event('a', cidToBytes32(first)), event('b', cidToBytes32(second))];
+  assert.equal(logs.filter((log) => campaignEventMatchesAction(belief, log, bindings)).length, 1);
 });
 
 test('alternative proving events collapse; same-name logs stay duplicates', () => {
