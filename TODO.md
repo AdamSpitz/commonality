@@ -50,16 +50,6 @@ Getting **testnet to a two-person shared lab** is also a standing plan, not a pi
   and confirm `TrustSet(..., 0)` removes it. Also cover that any personal direct
   trust mapping replaces rather than merges with the shipped fallback.
 
-- **(Tell)** Glossary follow-ups. [`specs/glossary.md`](specs/glossary.md) is now the
-  ubiquitous-language reference; Adam ruled on support/sign/pledge/contributor 2026-08-14
-  and those sweeps are done. Part 2 §6 lists what's left, none of it urgent: **earmark**
-  is used ~35 times and defined nowhere (define it or fold it into "contribution to a
-  cause"); `Project.marketplaceAddress` may be dead since receipts went non-transferable;
-  and the contract directory names (`individual-projects/` = LazyGiving, `statements/` =
-  Conceptspace, `alignment-attestations/` = fundingportals) don't match their subsystem
-  names, which breaks the four-layer isomorphism. Add new terms to the glossary as they
-  appear rather than letting drift re-accumulate.
-
 - Verify the new local public-goods demo-seed storyline against a live stack. `PROJECT_SEED_METADATA[0]` is now "Riverside Community Garden" (aligned to `fundable-projects`/`local-community`/`local-food-systems`), `DETERMINISTIC_SEED_PROJECT_ALIGNMENT_COUNT` matches `SEED_PROJECT_TEMPLATE_COUNT` so no existing storyline lost its alignment, and `gen:seed:local` runs 12 users to keep the success-attester pool satisfied. Unit tests pass, but the seed has still never been run end-to-end: `stack.fresh-seeded` now passes (2026-08-03) but it seeds `tiny`, not `demo`. Run `./scripts/data.sh --wipe && ./scripts/data.sh --seed=demo` and confirm in the UI that the garden project shows an alignment vouch, contributions, and a success attestation. Consider also regenerating `data/seed-worker-outputs.json` if the Explorer fixture should mention the new cause.
 
 - Give the demo seed (`./scripts/data.sh --seed=demo`) more **local public-goods** coverage. One storyline now exists (see above), but rows A5 (federated regional) and E2 (nonprofit on the rails) in [use-cases.md](specs/product/use-cases.md) are still not demonstrable — and those are exactly the cases the strategy docs lean on hardest. Note also that the project-creation form ships "Community garden" / "Clean water" / "Learning circle" stock images that nothing in the seed uses. Found 2026-07-25 while verifying use-case statuses against the live UI.
