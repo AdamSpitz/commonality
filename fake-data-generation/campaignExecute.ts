@@ -91,6 +91,9 @@ async function main(): Promise<void> {
   const funder = wallets.find((wallet) => wallet.source === 'hardhat') ?? wallets[0];
   if (!funder) throw new Error('campaign has no funder wallet');
   const publicClient = createSeedPublicClient(environment.rpcUrl);
+  const gasPrice = await publicClient.getGasPrice();
+  if (gasPrice <= 0n) throw new Error('RPC returned a non-positive gas price');
+  console.log(`Campaign gas-price quote: ${gasPrice} wei`);
   const publishedCode = await publicClient.getBytecode({ address: environment.contracts.publishedData });
   const batchPublishes = (publishedCode ?? '0x').toLowerCase().includes(PUBLISH_DATA_BATCH_SELECTOR.slice(2).toLowerCase());
   if (!batchPublishes) console.log('PublishedData has no publishDataBatch; statement publishes stay one transaction each until that contract is redeployed.');
@@ -101,6 +104,7 @@ async function main(): Promise<void> {
       plan,
       wallets,
       batchPublishes,
+      gasPrice,
       chain: createLiveCampaignFundingChain({ funderPrivateKey: funder.privateKey, contracts: environment.contracts }),
       ledgerPath: path.join(outputDirectory, manifest.artifactLayout.fundingLedger),
     });
@@ -126,6 +130,7 @@ async function main(): Promise<void> {
     bindings,
     writer: createLiveCampaignActionWriter({ plan, contracts: environment.contracts, bindings }),
     getReceipt: createReceiptLookup(publicClient),
+    gasPrice,
     persistBindings: (value) => persistCampaignBindings(plan, value, bindingsPath),
   });
   const summary = await executeCampaignPlan({

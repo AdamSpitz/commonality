@@ -116,9 +116,11 @@ test('runRemoteCanaryPreflight writes artifacts and never confirms mutation', as
       indexerUrl: 'https://example.invalid',
       outputDirectory,
       probeIndexer: async () => ({ chainHead: 100n, indexerHead: 100n }),
+      quoteGasPrice: async () => 6_000_000n,
     });
     assert.equal(environment.mutationConfirmed, false);
     assert.equal(proposal.indexerLagBlocks, '0');
+    assert.equal(proposal.gasPriceWei, '6000000');
     const written = JSON.parse(await readFile(jsonPath, 'utf8')) as { mutatesChain: boolean };
     assert.equal(written.mutatesChain, false);
     const markdown = await readFile(markdownPath, 'utf8');

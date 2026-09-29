@@ -42,7 +42,35 @@ test('funding needs include gas, note deposits, and project token buys', () => {
   assert.equal(need.walletSlot, 'wallet-user-001');
   assert.ok(need.nativeWei > parseEther('0.001'));
   assert.equal(need.paymentTokenUnits, parseUnits('0.01', 6));
-  assert.ok(need.nativeWei >= parseEther('0.001') + 90_000n * 1_000_000_000n + 180_000n * 1_000_000_000n + 150_000n * 1_000_000_000n + parseEther('0.01'));
+  assert.ok(need.nativeWei >= 90_000n * 1_000_000_000n + 180_000n * 1_000_000_000n + 150_000n * 1_000_000_000n + parseEther('0.01'));
+});
+
+test('native reserve scales with gas and leaves idle wallets unfunded', () => {
+  const idle = { ...wallet, walletSlot: 'wallet-idle' };
+  const needs = computeCampaignFundingNeeds(plan, [wallet, idle], 1_000_000_000n);
+  const estimatedGasWei = (90_000n + 180_000n + 150_000n) * 1_000_000_000n;
+  assert.equal(needs[0].nativeWei, parseEther('0.01') + estimatedGasWei * 125n / 100n + parseEther('0.0001'));
+  assert.equal(needs[1].nativeWei, 0n);
+});
+
+test('provisioning uses the supplied RPC gas-price quote', async () => {
+  const directory = await mkdtemp(path.join(tmpdir(), 'campaign-gas-quote-'));
+  try {
+    const transfers: bigint[] = [];
+    await provisionCampaignWallets({
+      environment: localEnv(), plan, wallets: [wallet], gasPrice: 6_000_000n,
+      chain: {
+        getNativeBalance: async () => 0n,
+        getTokenBalance: async () => 10n ** 18n,
+        transferNative: async (_to, amount) => { transfers.push(amount); return '0x1' as Hex; },
+        transferToken: async () => { throw new Error('should skip token'); },
+      },
+      ledgerPath: path.join(directory, 'ledger.json'),
+    });
+    assert.deepEqual(transfers, [computeCampaignFundingNeeds(plan, [wallet], 6_000_000n)[0].nativeWei]);
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
 });
 
 test('local provisioning mints when transfer fails and skips already-funded wallets', async () => {

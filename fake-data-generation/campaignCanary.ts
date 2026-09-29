@@ -14,6 +14,7 @@ import {
 import { createLocalCampaignStack, probeLocalCampaignStack } from './campaignLocalStack.js';
 import { loadCampaignPlan, type CampaignPlan, type PlannedAction } from './campaignPlanner.js';
 import { computeCampaignFundingNeeds } from './campaignProvisioning.js';
+import { createSeedPublicClient } from './seedRpc.js';
 import type { CampaignManifestV1 } from './campaignSchema.js';
 import { loadEnv, RPC_URL } from './loadEnv.js';
 
@@ -56,6 +57,7 @@ export interface CampaignCanaryProposal {
   writesByType: Record<string, number>;
   nativeWeiNeeded: string;
   nativeEthNeeded: string;
+  gasPriceWei: string;
   paymentTokenUnitsNeeded: string;
   pacingMs: number;
   concurrency: number;
@@ -161,6 +163,7 @@ export function buildRemoteCanaryProposal(input: {
   indexerUrl: string;
   indexerLagBlocks: bigint | null;
   maxIndexerLagBlocks?: bigint;
+  gasPrice?: bigint;
 }): CampaignCanaryProposal {
   if (input.environment.mode !== 'remote') throw new Error('remote canary preflight refuses local mode');
   const slice = input.slice ?? sliceCampaignPlanForCanary(input.plan);
@@ -168,7 +171,9 @@ export function buildRemoteCanaryProposal(input: {
   const concurrency = input.concurrency ?? DEFAULT_REMOTE_CONCURRENCY;
   const fundedUsers = [...slice.users, ...slice.extraActors];
   const slicedPlan = { ...input.plan, users: fundedUsers, actions: slice.actions, projects: slice.projects };
-  const needs = computeCampaignFundingNeeds(slicedPlan, placeholderWallets(fundedUsers));
+  const gasPrice = input.gasPrice ?? 1_000_000_000n;
+  if (gasPrice <= 0n) throw new Error('canary gas-price quote must be positive');
+  const needs = computeCampaignFundingNeeds(slicedPlan, placeholderWallets(fundedUsers), gasPrice);
   const nativeWei = needs.reduce((sum, need) => sum + need.nativeWei, 0n);
   const paymentTokenUnits = needs.reduce((sum, need) => sum + need.paymentTokenUnits, 0n);
   const estimatedDurationMs = estimateCanaryDurationMs(slice.actions.length, pacingMs, concurrency);
@@ -191,6 +196,7 @@ export function buildRemoteCanaryProposal(input: {
     writesByType: slice.writesByType,
     nativeWeiNeeded: nativeWei.toString(),
     nativeEthNeeded: formatEther(nativeWei),
+    gasPriceWei: gasPrice.toString(),
     paymentTokenUnitsNeeded: paymentTokenUnits.toString(),
     pacingMs,
     concurrency,
@@ -219,6 +225,7 @@ This preflight **does not mutate** the chain. Do not run \`gen:campaign:execute 
 - Users: ${proposal.userCount}
 - Writes: ${proposal.writeCount}
 - Native needed: ${proposal.nativeEthNeeded} ETH (${proposal.nativeWeiNeeded} wei)
+- Gas-price quote: ${proposal.gasPriceWei} wei (snapshot; re-quote at execution)
 - Payment-token units: ${proposal.paymentTokenUnitsNeeded}
 - Pacing: ${proposal.pacingMs} ms, concurrency ${proposal.concurrency}
 - Estimated duration: ${proposal.estimatedDurationMinutes} minutes
@@ -250,6 +257,7 @@ export async function runRemoteCanaryPreflight(input: {
   pacingMs?: number;
   concurrency?: number;
   probeIndexer?: () => Promise<{ chainHead: bigint; indexerHead: bigint }>;
+  quoteGasPrice?: () => Promise<bigint>;
 }): Promise<{ proposal: CampaignCanaryProposal; jsonPath: string; markdownPath: string }> {
   if (input.environment.mode !== 'remote') throw new Error('remote canary preflight refuses local mode');
   const chainPreflight = await preflightCampaignEnvironment(input.environment, input.chain);
@@ -277,6 +285,7 @@ export async function runRemoteCanaryPreflight(input: {
     concurrency: input.concurrency,
     indexerUrl: input.indexerUrl,
     indexerLagBlocks,
+    gasPrice: await (input.quoteGasPrice ?? (() => createSeedPublicClient(input.environment.rpcUrl).getGasPrice()))(),
   });
   const jsonPath = path.join(input.outputDirectory, 'reports/remote-canary-preflight.json');
   const markdownPath = path.join(input.outputDirectory, 'reports/remote-canary-preflight.md');
