@@ -37,24 +37,28 @@ function parseOption(name: string, fallback?: string): string | undefined {
 }
 
 async function loadOrCreateWallets(planUsers: { id: string; walletSlot: string }[], secretsPath: string, local: boolean): Promise<CampaignWalletBinding[]> {
+  let saved: CampaignWalletBinding[] = [];
   try {
-    const saved = JSON.parse(await readFile(secretsPath, 'utf8')) as CampaignWalletBinding[];
-    return saved;
+    saved = JSON.parse(await readFile(secretsPath, 'utf8')) as CampaignWalletBinding[];
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
   }
-  const wallets = planUsers.map((user, index) => {
+  const existingSlots = new Set(saved.map((wallet) => wallet.walletSlot));
+  const added = planUsers.flatMap((user, index) => {
+    if (existingSlots.has(user.walletSlot)) return [];
     const privateKey = local && index < FUNDED_HARDHAT_DEV_KEYS.length
       ? FUNDED_HARDHAT_DEV_KEYS[index] as `0x${string}`
       : generatePrivateKey();
     const account = privateKeyToAccount(privateKey);
-    return {
+    return [{
       walletSlot: user.walletSlot,
       address: account.address,
       privateKey,
       source: (local && index < FUNDED_HARDHAT_DEV_KEYS.length ? 'hardhat' : 'generated') as CampaignWalletBinding['source'],
-    };
+    }];
   });
+  if (added.length === 0) return saved;
+  const wallets = [...saved, ...added];
   await mkdir(path.dirname(secretsPath), { recursive: true });
   await writeFile(secretsPath, `${JSON.stringify(wallets, null, 2)}\n`);
   return wallets;

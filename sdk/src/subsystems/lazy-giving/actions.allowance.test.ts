@@ -70,6 +70,20 @@ describe('buyProjectTokens ERC20 allowance handling', () => {
     assert.deepStrictEqual(approve.args, [ASSURANCE, 100n]);
   });
 
+  it('waits for requested approval confirmations before buying', async () => {
+    const { clients, writes } = makeMockClients(0n);
+    const confirmations: number[] = [];
+    Object.assign(clients.publicClient, {
+      waitForTransactionReceipt: async ({ confirmations: count }: { confirmations?: number }) => {
+        if (count !== undefined) confirmations.push(count);
+        return { status: 'success' };
+      },
+    });
+    await buyProjectTokens(clients, { address: ASSURANCE, abi: AssuranceContractAbi }, { ...buyParams, approvalConfirmations: 3 });
+    assert.deepStrictEqual(confirmations, [3]);
+    assert.deepStrictEqual(writes.map((write) => write.functionName), ['approve', 'buyERC1155']);
+  });
+
   it('atomically batches a required approval with the purchase for smart accounts', async () => {
     const { clients, writes } = makeMockClients(0n);
     const requests: { method: string; params: readonly unknown[] }[] = [];

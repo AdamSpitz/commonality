@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createCampaignIndexerAdapter, CAMPAIGN_ACTION_EVENTS, campaignEventMatchesAction, collapseIndexedMatches } from '../campaignIndexerAdapter.js';
+import { createCampaignIndexerAdapter, CAMPAIGN_ACTION_EVENTS, campaignEventMatchesAction, collapseIndexedMatches, selectBatchedBeliefMatch } from '../campaignIndexerAdapter.js';
 import { cidToBytes32 } from '@commonality/sdk/utils';
 import { fakeIpfsCidV1 } from '@commonality/sdk/testing';
 import type { PlannedAction } from '../campaignPlanner.js';
+import type { CampaignExecutionState } from '../campaignExecutor.js';
 
 const TX = `0x${'a'.repeat(64)}` as const;
 const OTHER_TX = `0x${'b'.repeat(64)}` as const;
@@ -62,6 +63,23 @@ test('a shared transaction matches each belief by its statement topic', () => {
   const belief = { ...action, type: 'set-belief' as const, statementId: 's1' };
   const logs = [event('a', cidToBytes32(first)), event('b', cidToBytes32(second))];
   assert.equal(logs.filter((log) => campaignEventMatchesAction(belief, log, bindings)).length, 1);
+});
+
+test('repeated beliefs in one batch claim one ordered event each', () => {
+  const first = { ...action, id: 'belief-1', sequence: 1, type: 'set-belief' as const, statementId: 's1' };
+  const second = { ...first, id: 'belief-2', sequence: 2 };
+  const event = (id: string, logIndex: number) => ({
+    id, contractAddress: '0x1', eventName: 'DirectSupport', blockNumber: '1', blockTimestamp: '1', transactionHash: TX, logIndex,
+    topic0: null, topic1: null, topic2: null, topic3: null, data: '0x',
+  });
+  const execution = { actions: [
+    { actionId: first.id, status: 'mined', transactionHash: TX },
+    { actionId: second.id, status: 'mined', transactionHash: TX },
+  ] } as CampaignExecutionState;
+  const logs = [event('later', 2), event('earlier', 1)];
+  assert.equal(selectBatchedBeliefMatch(first, TX, logs, [first, second], execution)[0].id, 'earlier');
+  assert.equal(selectBatchedBeliefMatch(second, TX, logs, [first, second], execution)[0].id, 'later');
+  assert.equal(selectBatchedBeliefMatch(first, TX, [...logs, event('extra', 3)], [first, second], execution).length, 3);
 });
 
 test('alternative proving events collapse; same-name logs stay duplicates', () => {

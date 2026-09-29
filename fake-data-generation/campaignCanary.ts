@@ -94,7 +94,7 @@ export function sliceCampaignPlanForCanary(plan: CampaignPlan, userCount = REMOT
     if (action.delegateUserId && userIds.has(action.delegateUserId)) addWithDeps(action.id);
   }
   const actions = plan.actions.filter((action) => selected.has(action.id));
-  const actorIds = new Set(actions.flatMap((action) => (action.actorUserId ? [action.actorUserId] : [])));
+  const actorIds = new Set(actions.flatMap((action) => [action.actorUserId, action.delegateUserId].filter((id): id is string => Boolean(id))));
   const extraActors = plan.users.filter((user) => actorIds.has(user.id) && !userIds.has(user.id));
   const projectIds = new Set(actions.flatMap((action) => (action.projectId ? [action.projectId] : [])));
   const projects = plan.projects.filter((project) => projectIds.has(project.id) || userIds.has(project.founderUserId));
@@ -138,7 +138,7 @@ function remoteCanaryGates(input: {
     { id: 'generated-wallets', status: passFail(input.environment.provisioning.walletSource === 'generated-only'), detail: input.environment.provisioning.walletSource },
     { id: 'bytecode', status: passFail(input.chainPreflight.checkedContracts.length > 0), detail: input.chainPreflight.checkedContracts.join(',') },
     { id: 'no-mutation-in-preflight', status: passFail(input.environment.mode === 'remote' && !input.environment.mutationConfirmed), detail: 'preflight must not set --confirm-remote-mutation' },
-    { id: 'canary-size', status: passFail(input.slice.userCount === REMOTE_CANARY_USER_COUNT), detail: `${input.slice.userCount} users, ${input.slice.actions.length} writes` },
+    { id: 'stage-size', status: passFail(input.slice.userCount > 0), detail: `${input.slice.userCount} users, ${input.slice.actions.length} writes` },
     { id: 'secrets-layout', status: passFail(input.secretsPath.startsWith('../secrets/')), detail: input.secretsPath },
     {
       id: 'indexer-lag',
@@ -254,6 +254,7 @@ export async function runRemoteCanaryPreflight(input: {
   chain: CampaignChainAdapter;
   indexerUrl: string;
   outputDirectory: string;
+  userCount?: number;
   pacingMs?: number;
   concurrency?: number;
   probeIndexer?: () => Promise<{ chainHead: bigint; indexerHead: bigint }>;
@@ -278,6 +279,7 @@ export async function runRemoteCanaryPreflight(input: {
   }
   const proposal = buildRemoteCanaryProposal({
     plan: input.plan,
+    slice: sliceCampaignPlanForCanary(input.plan, input.userCount ?? REMOTE_CANARY_USER_COUNT),
     manifest: input.manifest,
     environment: input.environment,
     chainPreflight,
@@ -287,8 +289,11 @@ export async function runRemoteCanaryPreflight(input: {
     indexerLagBlocks,
     gasPrice: await (input.quoteGasPrice ?? (() => createSeedPublicClient(input.environment.rpcUrl).getGasPrice()))(),
   });
-  const jsonPath = path.join(input.outputDirectory, 'reports/remote-canary-preflight.json');
-  const markdownPath = path.join(input.outputDirectory, 'reports/remote-canary-preflight.md');
+  const reportDirectory = input.userCount && input.userCount !== REMOTE_CANARY_USER_COUNT
+    ? path.join(input.outputDirectory, `stage-${input.userCount}`)
+    : input.outputDirectory;
+  const jsonPath = path.join(reportDirectory, 'reports/remote-canary-preflight.json');
+  const markdownPath = path.join(reportDirectory, 'reports/remote-canary-preflight.md');
   await mkdir(path.dirname(jsonPath), { recursive: true });
   await writeFile(jsonPath, `${JSON.stringify(proposal, null, 2)}\n`);
   await writeFile(markdownPath, formatCanaryProposalMarkdown(proposal));
@@ -327,6 +332,7 @@ async function main(): Promise<void> {
     chain: createCampaignChainAdapter(environment.rpcUrl),
     indexerUrl,
     outputDirectory,
+    userCount: Number(parseOption('--user-count', String(REMOTE_CANARY_USER_COUNT))),
     pacingMs: Number(parseOption('--pacing-ms', String(DEFAULT_REMOTE_PACING_MS))),
     concurrency: Number(parseOption('--concurrency', String(DEFAULT_REMOTE_CONCURRENCY))),
   });

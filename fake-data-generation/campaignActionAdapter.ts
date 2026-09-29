@@ -201,7 +201,9 @@ export function createLiveCampaignActionWriter(input: {
         token = folded.erc1155Address as Address;
         projectTokens.set(action.projectId!, token);
       }
-      return { hash: await buyProjectTokens(clients, { address: assurance, abi: AssuranceContractAbi }, { buyer: clients.account, tokenAddress: token, tokenIds: [3n], tokenCounts: [1n], totalCost: campaignFundProjectCost(), batchApproval: true }) };
+      // A campaign wallet may fund the same project repeatedly. Cover the full
+      // campaign in one approval so each purchase does not race an allowance read.
+      return { hash: await buyProjectTokens(clients, { address: assurance, abi: AssuranceContractAbi }, { buyer: clients.account, tokenAddress: token, tokenIds: [3n], tokenCounts: [1n], totalCost: campaignFundProjectCost() * 100n, approvalConfirmations: 3 }) };
     },
     async 'deposit-note'(action, clients) {
       const { hash, noteId } = await depositETH(clients, notesContract, { amount: noteAmount(action) });
@@ -301,4 +303,3 @@ export function createReceiptLookup(publicClient: Pick<PublicClient, 'getTransac
     }
   };
 }
-

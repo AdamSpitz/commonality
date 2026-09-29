@@ -4,6 +4,7 @@ import type { SDKMachinery } from '@commonality/sdk/machinery';
 import { chainStatusKeyForChainId, cidToBytes32, fetchEventsComplete, type RawEventFromCache } from '@commonality/sdk/utils';
 import type { CampaignActionType } from './campaignSchema.js';
 import type { PlannedAction } from './campaignPlanner.js';
+import type { CampaignExecutionState } from './campaignExecutor.js';
 import type { CampaignRuntimeBindings } from './campaignRuntimeBindings.js';
 import type { CampaignReconciliationAdapter, DerivedCheck, IndexedActionMatch } from './campaignReconciler.js';
 
@@ -100,6 +101,24 @@ export function collapseIndexedMatches(events: readonly RawEventFromCache[]): In
   return events[0] ? [toMatch(events[0])] : [];
 }
 
+export function selectBatchedBeliefMatch(
+  action: PlannedAction,
+  transactionHash: string,
+  matched: RawEventFromCache[],
+  actions?: readonly PlannedAction[],
+  execution?: CampaignExecutionState,
+): RawEventFromCache[] {
+  if (action.type !== 'set-belief' || !actions || !execution) return matched;
+  const hashById = new Map(execution.actions.map((record) => [record.actionId, record.transactionHash?.toLowerCase()]));
+  const siblings = actions.filter((candidate) => candidate.type === 'set-belief'
+    && candidate.actorUserId === action.actorUserId
+    && candidate.statementId === action.statementId
+    && hashById.get(candidate.id) === transactionHash.toLowerCase());
+  if (siblings.length < 2 || matched.length !== siblings.length) return matched;
+  const index = siblings.findIndex((candidate) => candidate.id === action.id);
+  return index < 0 ? matched : [[...matched].sort((a, b) => a.logIndex - b.logIndex)[index]];
+}
+
 /**
  * Bind campaign reconciliation to the real Ponder event cache and SDK fold seam.
  * Event-cache results are filtered by transaction hash because the public API
@@ -110,6 +129,8 @@ export function createCampaignIndexerAdapter(input: {
   publicClient: Pick<PublicClient, 'getBlockNumber'>;
   derivedChecks: CampaignDerivedCheckProvider;
   bindings?: CampaignRuntimeBindings;
+  actions?: readonly PlannedAction[];
+  execution?: CampaignExecutionState;
 }): CampaignReconciliationAdapter {
   requireEventCacheUrl(input.machinery);
   return {
@@ -123,7 +144,7 @@ export function createCampaignIndexerAdapter(input: {
       const matched = input.bindings
         ? inTransaction.filter((event) => campaignEventMatchesAction(action, event, input.bindings!))
         : inTransaction;
-      return collapseIndexedMatches(matched);
+      return collapseIndexedMatches(selectBatchedBeliefMatch(action, transactionHash, matched, input.actions, input.execution));
     },
     getDerivedChecks: (action) => input.derivedChecks.getDerivedChecks(action),
   };

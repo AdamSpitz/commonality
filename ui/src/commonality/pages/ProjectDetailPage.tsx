@@ -25,6 +25,7 @@ export function ProjectDetailPage() {
         listPath={fromWork ? '/work' : '/dashboard'}
         listLabel={fromWork ? 'Back to Work' : 'Back to Fund'}
         preferredMoneySourceKey={preferredMoneySourceKey}
+        statementRoutePrefix="/statement"
       />
     </Stack>
   )

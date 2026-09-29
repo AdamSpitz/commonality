@@ -94,6 +94,7 @@ export function validateRuntimeBindings(plan: CampaignPlan, bindings: CampaignRu
   const userIds = new Set(plan.users.map((item) => item.id));
   const statementIds = new Set(plan.statements.map((item) => item.id));
   const causeIds = new Set(plan.statements.map((item) => item.causeId));
+  const createdCauseIds = new Set(plan.actions.flatMap((item) => item.type === 'create-cause' && item.causeId ? [item.causeId] : []));
   const projectIds = new Set(plan.projects.map((item) => item.id));
   const noteIds = new Set(plan.actions.flatMap((item) => item.noteId ? [item.noteId] : []));
   validateKeys('users', bindings.users, userIds);
@@ -103,7 +104,7 @@ export function validateRuntimeBindings(plan: CampaignPlan, bindings: CampaignRu
   validateKeys('notes', bindings.notes, noteIds);
 
   validateBindingValues(bindings);
-  if (options.complete) requireCompleteBindings(bindings, { user: userIds, statement: statementIds, cause: causeIds, project: projectIds, note: noteIds });
+  if (options.complete) requireCompleteBindings(bindings, { user: userIds, statement: statementIds, cause: createdCauseIds, project: projectIds, note: noteIds });
 }
 
 export async function writeRuntimeBindings(plan: CampaignPlan, bindings: CampaignRuntimeBindings, outputPath: string): Promise<void> {
