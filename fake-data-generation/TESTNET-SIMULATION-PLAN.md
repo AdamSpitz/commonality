@@ -162,16 +162,16 @@ This focus is complete when:
 
 ## Testnet readiness gate
 
-Do not begin a mutating remote phase until all of these are true:
+Decided 2026-09-28, while walking through the old four "needs-adam" checks: those checks are how the run behaves, not a permission conversation. Play-money spend does not need a separate yes. The September "~0.97 ETH" figure was the preflight **transfer** into disposable wallets, almost all of it a 0.05 ETH cushion per wallet. The cushion is now 0.001 ETH (`NATIVE_BUFFER_WEI` in `campaignProvisioning.ts`). Gas for the 10-user slice (about 19 wallets, 85 transactions) is well under 0.02 ETH. On 2026-09-29 the operator deployer `0xFC0054CAA8417b946666a0093521B57efC5e5E4a` held **0.1158 ETH** on Base Sepolia (public RPC `sepolia.base.org`), above the ~0.04 ETH the script tries to hand out before it starts.
 
-- [`../workflow/testnet-working-plan.md`](../workflow/testnet-working-plan.md)'s shared-lab milestone is boring enough that new failures can be attributed to the campaign;
-- the relevant read-only verifier leaves pass immediately before the run;
-- the official implication/trust path needed by the chosen statements is intentionally populated and working;
-- the remote runner verifies chain ID, contract bytecode/addresses, indexer endpoint, and campaign budget;
-- wallet secrets have a storage and deletion/retention procedure;
-- Adam has approved the particular campaign manifest, budget, pacing, and testnet window.
+Before a mutating remote phase:
 
-After each remote phase, stop and reconcile before increasing the user or action count. A failed gate sends the work back to local diagnosis; it does not justify pushing more traffic.
+- Run the read-only verifier as the first step. Stop if DNS, the indexer, or the contracts are broken. An idle official implication attester (zero `ImplicationAttestation`s from `0x021b3C…`) is not a reason to stop and ask.
+- The runner still verifies chain ID, contract bytecode/addresses, indexer endpoint, and the native-token budget, and refuses to start if the funder cannot cover the transfer. Wallet secrets stay gitignored under `output/campaigns/secrets/`.
+- Remote execute still requires `--confirm-remote-mutation`. That flag is the opt-in, not a fresh budget approval.
+- Adding one or two implications signed by the official attester (`0x021b3C…`), from already-accepted pairs, is the agreed way to retire the empty-graph question. That slice is not built yet. It is a follow-up, not a blocker for the first 10-user run.
+
+After each stage (10, then 25, then 100), stop and reconcile. Do not start the next stage if the current one does not reconcile. A failed stage goes back to local diagnosis.
 
 ## Next
 
@@ -184,17 +184,11 @@ Do these in order unless Adam names a different item. Keep each item small enoug
 5. **[x] Make simulated behavior persona- and cause-aware.** The deterministic planner now emits concrete belief values and linked belief changes, readable projects derived from their accepted outcome statements, outcome-backed alignments, cause-member funding with persona-sized amounts and deliberately skewed project popularity (including unfunded projects), and note delegations restricted to trusted-role users who share a cause with the donor. Implication actions remain limited to accepted bridge-role evidence. Planner validation and tests enforce the behavioral payloads, relationships, and histories before execution.
 6. **[x] Bind execution to contracts and deep reconciliation.** [`campaignActionAdapter.ts`](./campaignActionAdapter.ts) turns planned actions into contract writes, records mined hashes, and updates the public runtime-binding artifact. `npm run gen:campaign:execute` is local-first, refuses remote mutation without `--confirm-remote-mutation`, and keeps wallet secrets outside the campaign directory. Reconciliation already maps those hashes to Ponder events and SDK folds. Local execution now funds generated wallets (ETH plus payment tokens, with mint fallback) and writes `execution/funding-ledger.json` before submitting writes.
 7. **[x] Run and inspect the full 100-user campaign locally.** Local execute mined all 1932 actions in ~196s (concurrency 4); after harness fixes, reconciliation is 1932/1932 with lag 0. Commonality on Vite `:5174` (chain 31337, indexer via `/api` → `:42069`) shows campaign boards, statements, and funded projects. See [`campaigns/medium-realistic-v1-local-run.md`](./campaigns/medium-realistic-v1-local-run.md). A Vite process started against a previous testnet env will keep hitting Base Sepolia until it is restarted.
-8. **[x] Prepare the remote canary.** [`campaignCanary.ts`](./campaignCanary.ts) slices the frozen plan to 10 users plus dependency actors, estimates native/token funding and paced duration, and writes a read-only proposal (`reports/remote-canary-preflight.{json,md}`). `npm run gen:campaign:canary-preflight` checks remote chain ID/bytecode and indexer lag, refuses `--confirm-remote-mutation`, documents secrets layout/retention and the synthetic label, and leaves shared-lab, official implication path, verifier-testnet, and budget-window items as `needs-adam`. It does not send transactions.
+8. **[x] Prepare the remote canary.** [`campaignCanary.ts`](./campaignCanary.ts) slices the frozen plan to 10 users plus dependency actors, estimates native/token funding and paced duration, and writes a read-only proposal (`reports/remote-canary-preflight.{json,md}`). `npm run gen:campaign:canary-preflight` checks remote chain ID/bytecode and indexer lag, refuses `--confirm-remote-mutation`, and documents secrets layout/retention and the synthetic label. It does not send transactions. The 2026-09-11 note that four gates were `needs-adam` is superseded by the readiness section above.
 9. **[ ] Run 10 users on testnet and reconcile.** Stop on unexplained discrepancies. Demonstrate safe resume and confirm the populated pages are readable before expanding.
 
-   **Status (2026-09-11):** Preflight completed successfully. All technical gates pass. Proposal at `output/campaigns/medium-realistic-v1/reports/remote-canary-preflight.{json,md}`. Awaiting Adam's approval on four "needs-adam" items:
-   - shared-lab-readiness (core infra working; some non-critical verifier checks still fail)
-   - official-implication-path (confirm implication/trust relationships are populated for chosen statements)
-   - read-only-verifier (run immediately before execution)
-   - budget-and-window (approve ~0.97 ETH budget and testnet window)
-   
-   Once approved: execute with `RPC_URL=<alchemy> EVENT_CACHE_URL=https://commonality-indexer.onrender.com npm run gen:campaign:execute -- --mode remote --confirm-remote-mutation`
-10. **[ ] Run staged 25-user then 100-user campaigns.** Re-run health/preflight and reconcile after each phase. Do not automatically advance after a failed or materially surprising phase.
+   **Status (2026-09-29):** The 2026-09-28 walkthrough closed the approval questions. Deployer balance is enough for the 10-user transfer (0.1158 ETH; see the readiness section). Still not in this slice: one or two official-attester implications. Command when running: `RPC_URL=<alchemy> EVENT_CACHE_URL=https://commonality-indexer.onrender.com npm run gen:campaign:execute -- --mode remote --confirm-remote-mutation`
+10. **[ ] Run staged 25-user then 100-user campaigns.** Re-run health/preflight and reconcile after each phase. Stop at the first stage that does not reconcile.
 11. **[ ] Publish the campaign report and follow-up decisions.** Record product findings, operational limits, indexing correctness/latency, gas/provider costs, and the explicitly unsupported scalability claims. Move concrete fixes to the appropriate backlog or a new focus; do not let this plan become a permanent catch-all.
 
 ## Relationship to existing tools
