@@ -1,7 +1,9 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import dotenv from 'dotenv';
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
+import { sliceCampaignPlanForCanary } from './campaignCanary.js';
 import {
   LOCAL_HARDHAT_CHAIN_ID,
   loadCampaignEnvironment,
@@ -66,7 +68,13 @@ async function main(): Promise<void> {
   const deploymentEnvPath = parseOption('--deployment-env', path.join(directory, '../deployments/localhost.env'))!;
   const mutationConfirmed = parseFlag('--confirm-remote-mutation');
   const manifest = JSON.parse(await readFile(manifestPath, 'utf8')) as CampaignManifestV1;
-  const plan = await loadCampaignPlan(manifest, outputDirectory);
+  const loadedPlan = await loadCampaignPlan(manifest, outputDirectory);
+  const userCount = parseOption('--user-count');
+  const slice = userCount ? sliceCampaignPlanForCanary(loadedPlan, Number(userCount)) : null;
+  const plan = slice
+    ? { ...loadedPlan, users: [...slice.users, ...slice.extraActors], actions: slice.actions, projects: slice.projects }
+    : loadedPlan;
+  const stageDirectory = slice ? `stage-${slice.userCount}` : '';
   const environment = await loadCampaignEnvironment({
     mode,
     rpcUrl: RPC_URL,
@@ -78,7 +86,9 @@ async function main(): Promise<void> {
     throw new Error('remote campaign execution requires --confirm-remote-mutation');
   }
   await preflightCampaignEnvironment(environment, createCampaignChainAdapter(environment.rpcUrl));
-  const secretsPath = path.join(outputDirectory, manifest.artifactLayout.walletSecrets);
+  const secretsPath = environment.mode === 'remote'
+    ? path.join(outputDirectory, '../secrets/medium-realistic-v1.remote.wallets.json')
+    : path.join(outputDirectory, manifest.artifactLayout.walletSecrets);
   const wallets = await loadOrCreateWallets(plan.users, secretsPath, environment.mode === 'local');
   validateCampaignWallets(environment, wallets, HARDHAT_PRIVATE_KEYS);
   await writeFile(path.join(outputDirectory, manifest.artifactLayout.walletAddresses), `${JSON.stringify({
@@ -90,6 +100,7 @@ async function main(): Promise<void> {
   }, null, 2)}\n`);
   const funder = wallets.find((wallet) => wallet.source === 'hardhat') ?? wallets[0];
   if (!funder) throw new Error('campaign has no funder wallet');
+  const funderPrivateKey = environment.mode === 'remote' ? remoteFunderPrivateKey() : funder.privateKey;
   const publicClient = createSeedPublicClient(environment.rpcUrl);
   const gasPrice = await publicClient.getGasPrice();
   if (gasPrice <= 0n) throw new Error('RPC returned a non-positive gas price');
@@ -105,12 +116,12 @@ async function main(): Promise<void> {
       wallets,
       batchPublishes,
       gasPrice,
-      chain: createLiveCampaignFundingChain({ funderPrivateKey: funder.privateKey, contracts: environment.contracts }),
-      ledgerPath: path.join(outputDirectory, manifest.artifactLayout.fundingLedger),
+      chain: createLiveCampaignFundingChain({ funderPrivateKey, contracts: environment.contracts }),
+      ledgerPath: path.join(outputDirectory, stageDirectory, manifest.artifactLayout.fundingLedger),
     });
   }
   const publisher = wallets[0];
-  const bindingsPath = path.join(outputDirectory, manifest.artifactLayout.runtimeBindings ?? 'execution/runtime-bindings.json');
+  const bindingsPath = path.join(outputDirectory, stageDirectory, manifest.artifactLayout.runtimeBindings ?? 'execution/runtime-bindings.json');
   let bindings;
   try {
     bindings = await loadRuntimeBindings(plan, bindingsPath);
@@ -139,7 +150,7 @@ async function main(): Promise<void> {
     actions: plan.actions,
     adapter,
     options: {
-      statePath: path.join(outputDirectory, manifest.artifactLayout.executionState),
+      statePath: path.join(outputDirectory, stageDirectory, manifest.artifactLayout.executionState),
       concurrency: Number(parseOption('--concurrency', '1')),
       pacingMs: Number(parseOption('--pacing-ms', environment.mode === 'local' ? '0' : '250')),
       maxRetries: Number(parseOption('--max-retries', '2')),
@@ -150,6 +161,17 @@ async function main(): Promise<void> {
     },
   });
   console.log(`Campaign ${plan.campaignId}: mined ${summary.mined}, failed ${summary.failed}, submitted ${summary.submitted}, planned ${summary.planned}.`);
+}
+
+function remoteFunderPrivateKey(): `0x${string}` {
+  const secretsFile = process.env.COMMONALITY_OPERATOR_SECRETS_FILE
+    || path.join(process.env.HOME || '', '.secrets', 'commonality', 'operator.env');
+  dotenv.config({ path: secretsFile });
+  const key = process.env.DEPLOYER_PRIVATE_KEY?.trim();
+  if (!key || !/^0x[0-9a-fA-F]{64}$/.test(key)) {
+    throw new Error('remote campaign provisioning needs DEPLOYER_PRIVATE_KEY in the operator secrets file');
+  }
+  return key as `0x${string}`;
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

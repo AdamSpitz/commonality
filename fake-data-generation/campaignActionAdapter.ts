@@ -201,7 +201,7 @@ export function createLiveCampaignActionWriter(input: {
         token = folded.erc1155Address as Address;
         projectTokens.set(action.projectId!, token);
       }
-      return { hash: await buyProjectTokens(clients, { address: assurance, abi: AssuranceContractAbi }, { buyer: clients.account, tokenAddress: token, tokenIds: [3n], tokenCounts: [1n], totalCost: campaignFundProjectCost() }) };
+      return { hash: await buyProjectTokens(clients, { address: assurance, abi: AssuranceContractAbi }, { buyer: clients.account, tokenAddress: token, tokenIds: [3n], tokenCounts: [1n], totalCost: campaignFundProjectCost(), batchApproval: true }) };
     },
     async 'deposit-note'(action, clients) {
       const { hash, noteId } = await depositETH(clients, notesContract, { amount: noteAmount(action) });

@@ -49,12 +49,14 @@ export async function reconcileLocalCampaign(input: {
   outputDirectory: string;
   bindingsPath: string;
   executionPath?: string;
+  plan?: Awaited<ReturnType<typeof loadCampaignPlan>>;
+  reportDirectory?: string;
   stack?: LocalCampaignStack;
   settlingWindowMs?: number;
   pollIntervalMs?: number;
 }): Promise<{ report: CampaignReconciliationReport; summary: string; jsonPath: string; summaryPath: string }> {
   const stack = input.stack ?? createLocalCampaignStack();
-  const plan = await loadCampaignPlan(input.manifest, input.outputDirectory);
+  const plan = input.plan ?? await loadCampaignPlan(input.manifest, input.outputDirectory);
   const bindings = await loadRuntimeBindings(plan, input.bindingsPath, { complete: true });
   const executionPath = input.executionPath ?? path.join(input.outputDirectory, input.manifest.artifactLayout.executionState);
   const execution = JSON.parse(await readFile(executionPath, 'utf8')) as CampaignExecutionState;
@@ -71,8 +73,9 @@ export async function reconcileLocalCampaign(input: {
     adapter,
     options: { settlingWindowMs: input.settlingWindowMs ?? 30_000, pollIntervalMs: input.pollIntervalMs ?? 1_000 },
   });
-  const jsonPath = path.join(input.outputDirectory, input.manifest.artifactLayout.reconciliation);
-  const summaryPath = path.join(input.outputDirectory, input.manifest.artifactLayout.summary);
+  const reportDirectory = input.reportDirectory ?? input.outputDirectory;
+  const jsonPath = path.join(reportDirectory, input.manifest.artifactLayout.reconciliation);
+  const summaryPath = path.join(reportDirectory, input.manifest.artifactLayout.summary);
   await writeReconciliationArtifacts(report, jsonPath, summaryPath);
   return { report, summary: formatReconciliationReport(report), jsonPath, summaryPath };
 }
