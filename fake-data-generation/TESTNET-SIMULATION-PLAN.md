@@ -162,7 +162,7 @@ This focus is complete when:
 
 ## Testnet readiness gate
 
-Decided 2026-09-28, while walking through the old four "needs-adam" checks: those checks are how the run behaves, not a permission conversation. Play-money spend does not need a separate yes. The September "~0.97 ETH" figure was the preflight **transfer** into disposable wallets, almost all of it a 0.05 ETH cushion per wallet. The cushion is now 0.001 ETH (`NATIVE_BUFFER_WEI` in `campaignProvisioning.ts`). Gas for the 10-user slice (about 19 wallets, 85 transactions) is well under 0.02 ETH. On 2026-09-29 the operator deployer `0xFC0054CAA8417b946666a0093521B57efC5e5E4a` held **0.1158 ETH** on Base Sepolia (public RPC `sepolia.base.org`), above the ~0.04 ETH the script tries to hand out before it starts.
+Decided 2026-09-28, while walking through the old four "needs-adam" checks: those checks are how the run behaves, not a permission conversation. Play-money spend does not need a separate yes. The September "~0.97 ETH" figure was the preflight **transfer** into disposable wallets, almost all of it a 0.05 ETH cushion per wallet. The cushion is now a 0.0001 ETH floor plus 25% of estimated gas for each active wallet (`campaignProvisioning.ts`); idle wallets receive no ETH. The 2026-09-29 read-only preflight quoted 6,000,000 wei/gas and estimated 0.00660745 ETH for the 10-user slice (about 19 wallets, 85 planned actions). Re-quote before execution. On 2026-09-29 the operator deployer `0xFC0054CAA8417b946666a0093521B57efC5e5E4a` held **0.1158 ETH** on Base Sepolia (public RPC `sepolia.base.org`); check its current balance before spending.
 
 Before a mutating remote phase:
 
