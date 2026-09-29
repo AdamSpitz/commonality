@@ -4,6 +4,11 @@
 export const PublishedDataAbi = [
   {
     "inputs": [],
+    "name": "EmptyBatch",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "EmptyContent",
     "type": "error"
   },
@@ -109,6 +114,19 @@ export const PublishedDataAbi = [
         "type": "bytes32"
       }
     ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes[]",
+        "name": "contents",
+        "type": "bytes[]"
+      }
+    ],
+    "name": "publishDataBatch",
+    "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
   },

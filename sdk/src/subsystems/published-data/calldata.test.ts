@@ -2,7 +2,7 @@ import { strict as assert } from 'assert';
 import { concat, encodeAbiParameters, encodeFunctionData, getAddress, pad, toBytes, toHex, type Address, type Hex } from 'viem';
 import { createCalldataContentResolver } from './calldata-resolver.js';
 import { ContentUnavailableError, resolvePublishedContent } from './content-resolver.js';
-import { extractPublications, PUBLISH_DATA_SELECTOR } from './calldata.js';
+import { extractPublications, PUBLISH_DATA_BATCH_SELECTOR, PUBLISH_DATA_SELECTOR } from './calldata.js';
 import { dataIdOf } from './test-support.js';
 
 const publishedData = getAddress('0x0000000000000000000000000000000000000c0d');
@@ -120,6 +120,21 @@ describe('publishData calldata recovery', () => {
 
   it('agrees with the deployed publishData selector', () => {
     assert.equal(publishCall(content).slice(0, 10), PUBLISH_DATA_SELECTOR);
+  });
+
+  it('recovers every item of a publishDataBatch call from the same publisher', () => {
+    const second = toBytes('another statement');
+    const input = encodeFunctionData({
+      abi: [{ type: 'function', name: 'publishDataBatch', stateMutability: 'nonpayable', inputs: [{ name: 'contents', type: 'bytes[]' }], outputs: [] }],
+      functionName: 'publishDataBatch',
+      args: [[toHex(content), toHex(second)]],
+    });
+    assert.equal(input.slice(0, 10), PUBLISH_DATA_BATCH_SELECTOR);
+    const { publications } = extractPublications(tx(eoa, publishedData, input), publishedData);
+    assert.equal(publications.length, 2);
+    assert.equal(publications[0]?.publisher, eoa);
+    assert.equal(publications[0]?.content, toHex(content));
+    assert.equal(publications[1]?.content, toHex(second));
   });
 
   it('recovers a direct EOA publication', () => {

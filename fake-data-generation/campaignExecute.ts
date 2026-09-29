@@ -19,6 +19,7 @@ import type { CampaignManifestV1 } from './campaignSchema.js';
 import { FUNDED_HARDHAT_DEV_KEYS } from './seedCauseRoster.js';
 import { createSeedPublicClient } from './seedRpc.js';
 import { loadEnv, RPC_URL } from './loadEnv.js';
+import { PUBLISH_DATA_BATCH_SELECTOR } from '@commonality/sdk/published-data';
 import { HARDHAT_PRIVATE_KEYS } from './generateUsers.js';
 
 loadEnv();
@@ -89,12 +90,17 @@ async function main(): Promise<void> {
   }, null, 2)}\n`);
   const funder = wallets.find((wallet) => wallet.source === 'hardhat') ?? wallets[0];
   if (!funder) throw new Error('campaign has no funder wallet');
+  const publicClient = createSeedPublicClient(environment.rpcUrl);
+  const publishedCode = await publicClient.getBytecode({ address: environment.contracts.publishedData });
+  const batchPublishes = (publishedCode ?? '0x').toLowerCase().includes(PUBLISH_DATA_BATCH_SELECTOR.slice(2).toLowerCase());
+  if (!batchPublishes) console.log('PublishedData has no publishDataBatch; statement publishes stay one transaction each until that contract is redeployed.');
   const skipProvision = parseFlag('--skip-provision');
   if (!skipProvision) {
     await provisionCampaignWallets({
       environment,
       plan,
       wallets,
+      batchPublishes,
       chain: createLiveCampaignFundingChain({ funderPrivateKey: funder.privateKey, contracts: environment.contracts }),
       ledgerPath: path.join(outputDirectory, manifest.artifactLayout.fundingLedger),
     });
@@ -112,7 +118,6 @@ async function main(): Promise<void> {
     if (wallet) bindings.users[user.id] = wallet.address;
   }
   await persistCampaignBindings(plan, bindings, bindingsPath);
-  const publicClient = createSeedPublicClient(environment.rpcUrl);
   const adapter = createCampaignContractAdapter({
     plan,
     contracts: environment.contracts,
@@ -135,6 +140,7 @@ async function main(): Promise<void> {
       maxRetries: Number(parseOption('--max-retries', '2')),
       retryBackoffMs: Number(parseOption('--retry-backoff-ms', '500')),
       transactionCap: Number(parseOption('--transaction-cap', String(plan.actions.length))),
+      batchPublishes,
       nativeTokenBudget: BigInt(parseOption('--native-budget-wei', '10000000000000000000')!),
     },
   });

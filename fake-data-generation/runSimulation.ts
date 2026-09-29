@@ -561,14 +561,15 @@ class SimulationRunner {
             break;
           }
 
-          // Use SDK's believeStatement for each - batch not in SDK yet, call individually
-          for (let i = 0; i < selected.length; i++) {
-            if (beliefs[i] === 1) {
-              hash = await believeStatement(clients, this.contracts.beliefs!, selected[i]);
-            } else {
-              hash = await disbelieveStatement(clients, this.contracts.beliefs!, selected[i]);
-            }
-          }
+          hash = await clients.walletClient.writeContract({
+            address: this.contracts.beliefs!.address as `0x${string}`,
+            abi: this.contracts.beliefs!.abi,
+            functionName: 'setBeliefsInBatch',
+            args: [selected.map(cidToBytes32), beliefs],
+            chain: clients.walletClient.chain,
+            account: clients.walletClient.account,
+          });
+          await clients.publicClient.waitForTransactionReceipt({ hash });
           if (hash) {
             receipt = await publicClient.getTransactionReceipt({ hash });
             this.recordAction('setBeliefsInBatch', user, { count: selected.length }, receipt);

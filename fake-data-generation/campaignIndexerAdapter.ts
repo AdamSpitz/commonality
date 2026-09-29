@@ -1,8 +1,10 @@
 import type { PublicClient } from 'viem';
+import { toSubjectId } from '@commonality/sdk/fundingportals';
 import type { SDKMachinery } from '@commonality/sdk/machinery';
-import { chainStatusKeyForChainId, fetchEventsComplete, type RawEventFromCache } from '@commonality/sdk/utils';
+import { chainStatusKeyForChainId, cidToBytes32, fetchEventsComplete, type RawEventFromCache } from '@commonality/sdk/utils';
 import type { CampaignActionType } from './campaignSchema.js';
 import type { PlannedAction } from './campaignPlanner.js';
+import type { CampaignRuntimeBindings } from './campaignRuntimeBindings.js';
 import type { CampaignReconciliationAdapter, DerivedCheck, IndexedActionMatch } from './campaignReconciler.js';
 
 /** Events whose presence proves that one planned write reached the raw event cache. */
@@ -56,6 +58,35 @@ function toMatch(event: RawEventFromCache): IndexedActionMatch {
  * Alternative proving events (e.g. ordinary vs retroactive funding) count as
  * one indexed write. Duplicates of the same event name remain visible.
  */
+function sameTopic(actual: string | null, expected: string | undefined): boolean {
+  if (!expected) return true;
+  return actual?.toLowerCase() === expected.toLowerCase();
+}
+
+/**
+ * When one transaction emits several events of the same name, keep the log whose
+ * indexed ids are this planned write. Missing bindings do not filter.
+ */
+export function campaignEventMatchesAction(action: PlannedAction, event: RawEventFromCache, bindings: CampaignRuntimeBindings): boolean {
+  const statement = (id: string | undefined): `0x${string}` | undefined => {
+    const cid = id ? bindings.statements[id] : undefined;
+    return cid ? cidToBytes32(cid) : undefined;
+  };
+  if (action.type === 'publish-statement' || action.type === 'set-belief') {
+    return sameTopic(event.topic2, statement(action.statementId));
+  }
+  if (action.type === 'attest-implication') {
+    return sameTopic(event.topic2, statement(action.implication?.fromStatementId))
+      && sameTopic(event.topic3, statement(action.implication?.toStatementId));
+  }
+  if (action.type === 'attest-alignment') {
+    const project = action.projectId ? bindings.projects[action.projectId] : undefined;
+    return sameTopic(event.topic2, project ? toSubjectId(project) : undefined)
+      && sameTopic(event.topic3, statement(action.statementId));
+  }
+  return true;
+}
+
 export function collapseIndexedMatches(events: readonly RawEventFromCache[]): IndexedActionMatch[] {
   const byName = new Map<string, RawEventFromCache[]>();
   for (const event of events) {
@@ -78,6 +109,7 @@ export function createCampaignIndexerAdapter(input: {
   machinery: SDKMachinery;
   publicClient: Pick<PublicClient, 'getBlockNumber'>;
   derivedChecks: CampaignDerivedCheckProvider;
+  bindings?: CampaignRuntimeBindings;
 }): CampaignReconciliationAdapter {
   requireEventCacheUrl(input.machinery);
   return {
@@ -87,7 +119,11 @@ export function createCampaignIndexerAdapter(input: {
       const eventGroups = await Promise.all(CAMPAIGN_ACTION_EVENTS[action.type].map((eventName) =>
         fetchEventsComplete(input.machinery, { eventName })));
       const target = transactionHash.toLowerCase();
-      return collapseIndexedMatches(eventGroups.flat().filter((event) => event.transactionHash.toLowerCase() === target));
+      const inTransaction = eventGroups.flat().filter((event) => event.transactionHash.toLowerCase() === target);
+      const matched = input.bindings
+        ? inTransaction.filter((event) => campaignEventMatchesAction(action, event, input.bindings!))
+        : inTransaction;
+      return collapseIndexedMatches(matched);
     },
     getDerivedChecks: (action) => input.derivedChecks.getDerivedChecks(action),
   };

@@ -31,7 +31,7 @@ The fundamental fact this system records is not "here's some data" — it's **"A
 
 One immutable, admin-less contract, shared by all verticals and usable by anyone:
 
-- **`publishData(bytes content)`** — hashes the calldata bytes, verifies/derives the CID, records the publication for `(msg.sender, cid)`, emits `DataPublished(publisher, cid)`. Duplicate publication by the same publisher no-ops (or reverts — scheduling-time detail).
+- **`publishData(bytes content)`** — hashes the calldata bytes, verifies/derives the CID, records the publication for `(msg.sender, cid)`, emits `DataPublished(publisher, cid)`. Duplicate publication by the same publisher no-ops (or reverts — scheduling-time detail). **`publishDataBatch(bytes[])`** does that once per item in a single transaction and emits the same event per item, so the publisher stays `msg.sender`.
 - **`retractData(bytes32 cid)`** — records a retraction attestation for `(msg.sender, cid)`, emits `DataRetracted(publisher, cid)`. Note the deliberate generality: this is *an attestation about a CID by an address*, and any address may retract any CID — retracting your own publication is just the primary case. A vertical's denylist keeper, or a regulator, can publish "this CID should be retracted" the same way. **No authority is baked into the contract**; who to *honor* is display-layer policy (below).
 - **View functions** — `isPublished(publisher, cid)`, `isRetracted(publisher, cid)` — available for any consumer that wants an onchain existence/retraction check. Note the resolved decision (readiness note): `supportStatement` does **not** gate on `isPublished` — existence is a display-layer concern — so these views are informational, not a required gate.
 
