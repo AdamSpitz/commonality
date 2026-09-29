@@ -2168,6 +2168,12 @@ Plan item 7 closed. Restarted a 6-day-old `causestarter:dev` so Vite baked `VITE
 
 Plan item 8 closed. `campaignCanary.ts` + `npm run gen:campaign:canary-preflight` slice the medium-realistic plan to 10 users (plus extra actors required by prerequisites), estimate ETH/token needs and paced duration, probe chain bytecode and indexer lag, and write `reports/remote-canary-preflight.{json,md}`. Shared-lab health, official implication path, `verifier-testnet.sh`, and the budget/window remain `needs-adam`. Does not send transactions. Next: item 9 only after Adam approves that proposal.
 
+## 2026-09-29 — Campaign canary approval is closed; deployer is funded
+
+The 2026-09-11 "four needs-adam gates" note is stale. On 2026-09-28 Adam walked through them: the verifier runs as the first step and an idle official attester does not block; play-money spend does not need a separate yes; stages are 10, then 25, then 100, stopping at the first that does not reconcile. One or two official-attester implications in the 10-user slice are a follow-up, not a blocker. The 0.05 ETH wallet cushion (the source of the ~0.97 ETH transfer estimate) was already cut to 0.001 ETH in `f811351f`.
+
+Deployer `0xFC0054CAA8417b946666a0093521B57efC5e5E4a` balance on Base Sepolia, read from `https://sepolia.base.org` `eth_getBalance`: **0.11581178119970871 ETH** (`0x19b72338f36c219` wei). That covers the ~0.04 ETH the 10-user slice tries to hand out before it starts. Recorded in `fake-data-generation/TESTNET-SIMULATION-PLAN.md` and `testnet-prep.md`. No transactions sent.
+
 ## 2026-09-26 — UI Vitest dialog timeouts
 
 Disabled Material UI transitions in `ui/src/test/setup.ts` by zeroing the default theme's durations (`transitions.create` returns `none`). `CreateProjectPage` and `ClaimFlowModal` render `Dialog` with no `ThemeProvider`, so they use that singleton. Removed the 30s `Successful submission` timeout. Set Vitest `testTimeout` to 10s. Left `css: true`. Isolation run of those two files passed (74 tests). `npm run ui:test:vitest:raw` passed: 198 files, 2092 tests, about 73s. Slowest create-project case under that load was about 4.0s.
