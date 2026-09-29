@@ -184,8 +184,12 @@ async function computeIndirectSupport(
  *
  * **Cost:** this walks DirectSupport events for the statement *and* for every
  * statement implying it, so a view over N planks multiplies that walk by N.
- * Fetches use {@link fetchEventsComplete}; a 10⁵-signer fold is still a
- * client-side problem (TODO.md), not a silent 10_000 cap.
+ * Fetches use {@link fetchEventsComplete}. A local 2026-09-28 measurement
+ * (see shaping-your-cause-statements.md § Scale) folded 10⁵ signers per plank
+ * in the browser: a few seconds and ~100 MB downloaded per plank, and a
+ * five-plank view over the same 10⁵ addresses used ~440–470 MB of JS heap.
+ * The 10_000 cap no longer truncates silently across blocks. One block with
+ * at least 10_000 matching logs still cannot be fetched completely.
  */
 export interface StatementBelieverSets {
   statementCid: IpfsCidV1;
