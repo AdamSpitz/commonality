@@ -249,13 +249,31 @@ async function main() {
   await deployOrReuse('RecurringPledges', 'RecurringPledges', [addresses.DelegatableNotes]);
   if (freshlyDeployed.has('DelegatableNotes') || freshlyDeployed.has('RecurringPledges')) {
     const d = await ethers.getContractAt('DelegatableNotes', addresses.DelegatableNotes);
-    if (ethers.getAddress(await d.recurringPledgeRegistry()) !== addresses.RecurringPledges) await (await d.setRecurringPledgeRegistry(addresses.RecurringPledges)).wait();
+    // A just-mined contract can briefly return empty calldata on a lagging RPC.
+    let currentRegistry;
+    let lastError;
+    for (let attempt = 1; attempt <= 6; attempt++) {
+      try {
+        currentRegistry = await d.recurringPledgeRegistry();
+        break;
+      } catch (error) {
+        lastError = error;
+        await new Promise((resolve) => setTimeout(resolve, 2000 * attempt));
+      }
+    }
+    if (currentRegistry === undefined) throw lastError;
+    if (ethers.getAddress(currentRegistry) !== addresses.RecurringPledges) await (await d.setRecurringPledgeRegistry(addresses.RecurringPledges)).wait();
   }
   await deployOrReuse('ValueThresholdConditionFactory', 'ValueThresholdConditionFactory');
   await deployOrReuse('FreeERC20', 'FreeERC20', ['Test USD', 'USDZZZ', 6], { after: async (token) => {
     for (const signer of await ethers.getSigners()) await (await token.mintTo(signer.address, ethers.parseUnits('1000000', 6))).wait();
   }});
-  const trusted = isLocal ? deployer.address : (process.env.BENEFICIARY_VERIFIER_TRUSTED_SIGNER_ADDRESS || deployer.address);
+  const hardhatDefault = '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266';
+  let trusted = isLocal ? deployer.address : (process.env.BENEFICIARY_VERIFIER_TRUSTED_SIGNER_ADDRESS || deployer.address);
+  if (!isLocal && ethers.getAddress(trusted) === ethers.getAddress(hardhatDefault)) {
+    console.warn('Ignoring the Hardhat default beneficiary verifier signer on a non-local network; using the deployer address.');
+    trusted = deployer.address;
+  }
   await deployOrReuse('BeneficiaryVerifier', 'BeneficiaryVerifier', [trusted]);
   await deployOrReuse('BeneficiaryIdentity', 'BeneficiaryIdentity', [addresses.BeneficiaryVerifier]);
   await deployOrReuse('ContentRegistry', 'ContentRegistry', [], {
@@ -277,7 +295,19 @@ async function main() {
   if (addresses.CreatorAssuranceContractFactory) {
     try {
       const factory = await ethers.getContractAt('CreatorAssuranceContractFactory', addresses.CreatorAssuranceContractFactory);
-      addresses.CreatorAssuranceVeto = await factory.contentVeto();
+      let veto;
+      let vetoError;
+      for (let attempt = 1; attempt <= 6; attempt++) {
+        try {
+          veto = await factory.contentVeto();
+          break;
+        } catch (error) {
+          vetoError = error;
+          await new Promise((resolve) => setTimeout(resolve, 2000 * attempt));
+        }
+      }
+      if (veto === undefined) throw vetoError;
+      addresses.CreatorAssuranceVeto = veto;
     } catch (err) {
       // Fallback: manually query using raw call with correct function selector
       console.log('Warning: contentVeto() call failed, trying manual query...');
@@ -312,9 +342,44 @@ async function main() {
     addresses.ProspectiveRoundDeploymentHelper,
     addresses.MaterializedContentDeploymentHelper,
   ]);
-  if (freshlyDeployed.has('ContentRegistry') || freshlyDeployed.has('CreatorAssuranceContractFactory')) {
-    const c = await ethers.getContractAt('ContentRegistry', addresses.ContentRegistry);
-    if (ethers.getAddress(await c.owner()) !== addresses.CreatorAssuranceContractFactory) await (await c.transferOwnership(addresses.CreatorAssuranceContractFactory)).wait();
+  if (!planOnly && addresses.ContentRegistry && addresses.CreatorAssuranceContractFactory) {
+    let registryAddress = addresses.ContentRegistry;
+    let c = await ethers.getContractAt('ContentRegistry', registryAddress);
+    let owner = ethers.getAddress(await c.owner());
+    const factoryAddress = ethers.getAddress(addresses.CreatorAssuranceContractFactory);
+    // A reused registry stays owned by the previous factory. That contract cannot
+    // transfer ownership, so a new factory needs a freshly deployed registry.
+    if (owner !== ethers.getAddress(deployerAddress) && owner !== factoryAddress) {
+      console.log(`ContentRegistry ${registryAddress} is owned by ${owner}; deploying a replacement for ${factoryAddress}.`);
+      const Factory = await ethers.getContractFactory('ContentRegistry');
+      const replacement = await Factory.deploy();
+      await replacement.waitForDeployment();
+      registryAddress = await replacement.getAddress();
+      const receipt = await replacement.deploymentTransaction().wait();
+      addresses.ContentRegistry = registryAddress;
+      freshlyDeployed.add('ContentRegistry');
+      const fp = await fingerprint('ContentRegistry', [], [
+        (await fingerprint('CreatorAssuranceContractFactory', [], ['implementation-only'])),
+        addresses.PremintingERC1155Factory,
+        addresses.ValueThresholdConditionFactory,
+        addresses.FreeERC20,
+      ]);
+      manifest.contracts.ContentRegistry = {
+        contractName: 'ContentRegistry',
+        address: registryAddress,
+        fingerprint: fp,
+        reused: false,
+        constructorArgs: [],
+        blockNumber: receipt.blockNumber,
+        tx: replacement.deploymentTransaction().hash,
+      };
+      console.log(`✓ ContentRegistry: ${registryAddress} (block ${receipt.blockNumber})`);
+      c = replacement;
+      // The deployer is owner immediately after construction. Reading owner()
+      // here races a lagging RPC and can return empty calldata.
+      owner = ethers.getAddress(deployerAddress);
+    }
+    if (owner !== factoryAddress) await (await c.transferOwnership(factoryAddress)).wait();
   }
   if (freshlyDeployed.has('BeneficiaryRegistry')) {
     const c = await ownerCapable(await ethers.getContractAt('BeneficiaryRegistry', addresses.BeneficiaryRegistry));
@@ -324,7 +389,7 @@ async function main() {
       await (await c.setNamespaceClaimWaitingPeriod(dnsNamespace, dnsWaitingPeriod)).wait();
     }
   }
-  if (freshlyDeployed.has('DelegatableNotes') || freshlyDeployed.has('CreatorAssuranceContractFactory')) {
+  if (!planOnly && addresses.DelegatableNotes && addresses.CreatorAssuranceContractFactory) {
     const d = await ownerCapable(await ethers.getContractAt('DelegatableNotes', addresses.DelegatableNotes));
     if (!(await d.authorizedPrimaryMarketFactories(addresses.CreatorAssuranceContractFactory))) await (await d.setPrimaryMarketFactoryAuthorization(addresses.CreatorAssuranceContractFactory, true)).wait();
   }
