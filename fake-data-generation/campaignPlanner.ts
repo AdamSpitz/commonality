@@ -168,6 +168,16 @@ function fundingAmount(user: PlannedUser, projectIndex: number, random: Xoshiro1
   return personaScale * projectPopularity * random.integer(1, 3);
 }
 
+/** Display name and blurb from statement ids. The published statement text stays on the statement, not the project card. */
+function projectCopy(causeTitle: string, selected: PlannedStatement[]): { title: string; outcome: string } {
+  const labels = selected.map((statement) => statement.source.statementId.split('-').filter(Boolean).join(' '));
+  const listed = labels.length === 1 ? labels[0] : `${labels.slice(0, -1).join(', ')} and ${labels[labels.length - 1]}`;
+  return {
+    title: `${causeTitle}: ${labels[0]}`,
+    outcome: `A project for ${causeTitle.toLowerCase()}, working on ${listed}.`,
+  };
+}
+
 export async function buildCampaignPlan(manifest: CampaignManifestV1): Promise<CampaignPlan> {
   validateCampaignManifest(manifest);
   const random = new Xoshiro128StarStar(manifest.campaign.deterministicSeed);
@@ -202,7 +212,8 @@ export async function buildCampaignPlan(manifest: CampaignManifestV1): Promise<C
     const candidates = statements.filter((statement) => statement.causeId === causeId);
     const selected = random.shuffle(candidates).slice(0, random.integer(1, Math.min(3, candidates.length)));
     const cause = manifest.causes.find((item) => item.id === causeId)!;
-    return { id: `project-${String(index + 1).padStart(3, '0')}`, title: `${cause.title}: ${selected[0].text}`, outcome: selected.map((statement) => statement.text).join(' '), causeId, founderUserId: founder.id, statementIds: selected.map((statement) => statement.id) };
+    const copy = projectCopy(cause.title, selected);
+    return { id: `project-${String(index + 1).padStart(3, '0')}`, title: copy.title, outcome: copy.outcome, causeId, founderUserId: founder.id, statementIds: selected.map((statement) => statement.id) };
   });
 
   const actions: PlannedAction[] = [];
