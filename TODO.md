@@ -14,6 +14,10 @@ Getting **testnet to a two-person shared lab** is also a standing plan, not a pi
 
 ----
 
+- **(Tell)** Shrink medium-realistic-v1 delegatable-note deposits to a dust ETH amount, then run stage 100. `DelegatableNotes.deposit` locks real `msg.value` when the token is `address(0)`, and the campaign always calls `depositETH`. The planner’s persona integer (`max(100, fundingWeight * 500) * 1..3`) is divided by 100,000 in both `campaignProvisioning.ts` (`noteDepositWei`) and `campaignActionAdapter.ts` (`noteAmount`) and parsed as ETH, so 145 notes quote **1.706790525 ETH**. That divisor is the test scale, not a product minimum; any `msg.value > 0` creates a note. Use one shared dust amount for provision and deposit, keep stages 10 and 25 as already mined, re-quote `stage-100`, and execute only if the deployer can cover it. Reconcile and stop if it does not. Report: [`fake-data-generation/campaigns/medium-realistic-v1-testnet-run.md`](fake-data-generation/campaigns/medium-realistic-v1-testnet-run.md). Plan item 10.
+
+- **(Tell)** Give campaign projects a short title and description. Create-project publishes `planned.title` and `planned.outcome` as the display name and description, and the live project page repeats the full outcome statement in both. The statement page also reports that the noninflammatory meta-statement is not configured, so civility attestations cannot be checked on testnet.
+
 - **(Tell)** Next fake-data/seed-data step lives in [`fake-data-generation/PLAN.md`](fake-data-generation/PLAN.md). Abortion, immigration, crime, and LGBT-schools triples are accepted; next is the demo-seed live UI pass.
 
 - **(Tell)** Next testnet-lab step lives in [`workflow/testnet-working-plan.md`](workflow/testnet-working-plan.md). Shared lab is up through item 8. Next unchecked is item 9 (Ask: nightly mutation flag). Human leftovers: [`inbox.md`](inbox.md) and [`testnet-prep.md`](testnet-prep.md). Do not mix with mass fake activity or mainnet.
