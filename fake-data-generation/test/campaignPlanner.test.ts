@@ -57,7 +57,14 @@ test('behavior histories are cause-aware and carry executable intent', async () 
     assert.ok(projects.get(action.projectId!)!.statementIds.includes(action.statementId!));
     assert.equal(action.alignment, 'supports-described-outcome');
   }
-  assert.ok(plan.projects.every((project) => project.title.length > 20 && project.outcome.length > 20));
+  const statementText = new Map(plan.statements.map((statement) => [statement.id, statement.text]));
+  assert.ok(plan.projects.every((project) => {
+    const texts = project.statementIds.map((id) => statementText.get(id)!);
+    return project.title.length > 12 && project.title.length < 90
+      && project.outcome.length > 20 && project.outcome.length < 280
+      && project.title !== project.outcome
+      && texts.every((text) => !project.title.includes(text) && !project.outcome.includes(text));
+  }));
   for (const action of plan.actions.filter((item) => item.type === 'fund-project')) {
     assert.ok(users.get(action.actorUserId!)!.causeIds.includes(action.causeId!));
     assert.ok(action.amount! > 0);
