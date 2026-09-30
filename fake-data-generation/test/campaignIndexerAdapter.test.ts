@@ -45,6 +45,9 @@ test('adapter reads chain/indexer heads and matches only the action transaction'
     assert.ok(requested.some((url) => url.includes('eventName=ERC1155Bought')));
     assert.ok(requested.some((url) => url.includes('eventName=RetroactiveDonationReceived')));
     assert.ok(requested.some((url) => url.includes('limit=10000')));
+    const afterFirstLookup = requested.length;
+    await adapter.findIndexedAction(action, TX);
+    assert.equal(requested.length, afterFirstLookup);
   } finally { globalThis.fetch = originalFetch; }
 });
 
@@ -78,6 +81,14 @@ test('repeated beliefs in one batch claim one ordered event each', () => {
   ] } as CampaignExecutionState;
   const logs = [event('later', 2), event('earlier', 1)];
   assert.equal(selectBatchedBeliefMatch(first, TX, logs, [first, second], execution)[0].id, 'earlier');
+  const implication = { ...action, id: 'impl-1', sequence: 1, type: 'attest-implication' as const, implication: { fromStatementId: 's1', toStatementId: 's2', evidence: 'pair' } };
+  const repeat = { ...implication, id: 'impl-2', sequence: 2 };
+  const implExecution = { actions: [
+    { actionId: implication.id, status: 'mined', transactionHash: TX },
+    { actionId: repeat.id, status: 'mined', transactionHash: TX },
+  ] } as CampaignExecutionState;
+  const implLogs = [event('impl-later', 4), event('impl-earlier', 3)];
+  assert.equal(selectBatchedBeliefMatch(implication, TX, implLogs, [implication, repeat], implExecution)[0].id, 'impl-earlier');
   assert.equal(selectBatchedBeliefMatch(second, TX, logs, [first, second], execution)[0].id, 'later');
   assert.equal(selectBatchedBeliefMatch(first, TX, [...logs, event('extra', 3)], [first, second], execution).length, 3);
 });

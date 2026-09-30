@@ -74,8 +74,16 @@ export interface CampaignFundingChain {
   mintToken?(to: Address, amount: bigint): Promise<Hex>;
 }
 
-function noteDepositWei(action: PlannedAction): bigint {
-  return parseEther((Math.max(1, action.amount ?? 1) / 100_000).toString());
+/**
+ * ETH locked in each synthetic delegatable note. The planner's persona integer
+ * stays on the action for the campaign story; DelegatableNotes only requires
+ * msg.value > 0. Provisioning and depositETH both use this so the funder quote
+ * matches what the chain locks. Delegation of the full note uses the same value.
+ */
+export const CAMPAIGN_NOTE_WEI = 1n;
+
+export function campaignNoteWei(_action: PlannedAction): bigint {
+  return CAMPAIGN_NOTE_WEI;
 }
 
 export function computeCampaignFundingNeeds(plan: CampaignPlan, wallets: readonly CampaignWalletBinding[], gasPrice = DEFAULT_GAS_PRICE, options: { batchPublishes?: boolean } = {}): CampaignWalletNeed[] {
@@ -96,7 +104,7 @@ export function computeCampaignFundingNeeds(plan: CampaignPlan, wallets: readonl
     need.nativeWei += gasWei;
     gasBySlot.set(user.walletSlot, (gasBySlot.get(user.walletSlot) ?? 0n) + gasWei);
     for (const action of group) {
-      if (action.type === 'deposit-note') need.nativeWei += noteDepositWei(action);
+      if (action.type === 'deposit-note') need.nativeWei += campaignNoteWei(action);
       if (action.type === 'fund-project') need.paymentTokenUnits += fundCost;
     }
   }

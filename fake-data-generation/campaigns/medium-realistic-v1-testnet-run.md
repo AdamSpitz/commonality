@@ -1,4 +1,4 @@
-# Medium realistic v1 — Base Sepolia stages 10 and 25
+# Medium realistic v1 — Base Sepolia stages 10, 25, and 100
 
 Operator notes for the 2026-09-29 remote campaign. Per-stage execution files, wallet secrets, and reconciliation JSON stay gitignored under `output/campaigns/medium-realistic-v1/`. This page records the measurements those files support. The run is synthetic activity on accepted seed statements. It is not a capacity or adoption claim.
 
@@ -10,7 +10,7 @@ Chain 84532. Campaign sends used the public RPC `https://sepolia.base.org`. The 
 | --- | --- | --- | --- | --- |
 | 10 | 85 mined | 43 | 85/85 verified at indexer/chain head 47471231 | 0 |
 | 25 | 154 mined | 98 | 154/154 verified at indexer/chain head 47471743 | 0 |
-| 100 | not started | — | — | preflight lag 0 |
+| 100 | 1932 mined | 1329 | 1932/1932 verified at indexer head 47485501 (chain head 47485502) | 1 |
 
 Gas and native cost below count each transaction hash once. The execution log copies the full receipt `gasUsed` and `nativeCost` onto every batched action, so a per-action sum overstates the stage.
 
@@ -18,21 +18,28 @@ Gas and native cost below count each transaction hash once. The execution log co
 | --- | --- | --- | --- | --- |
 | 10 | 19,655,692 | 0.00010954 ETH | 0.0065512 ETH across 14 wallets | 220,000 (0.22 USDZZZ) |
 | 25 | 50,896,786 | 0.00029836 ETH | 0.028481225 ETH across 9 wallets | 520,000 (0.52 USDZZZ) |
+| 100 | 217,193,120 | 0.00123235 ETH | deployer balance fell 0.00731448 ETH (quote 0.010790525 ETH; 75 of 100 wallets topped up) | 8,610,000 transferred (8.61 USDZZZ) |
 
 Stage 10 preflight quoted 0.00660745 ETH. Stage 25 preflight quoted 0.0310106625 ETH. Both quotes include the per-active-wallet gas buffer, which is why provisioned ETH is much larger than receipt cost. Stage 10 had retries (attempts up to 6 on a few actions) while the indexer was behind and allowance was short. Stage 25 had 19 actions that needed a second attempt; the mined rows were kept.
 
-## Stage 100 stopped before any send
+## Stage 100
 
-Read-only preflight (`stage-100/reports/remote-canary-preflight.md`) on 2026-09-29:
+The first read-only preflight on 2026-09-29 quoted **1.706790525 ETH** for 145 delegatable notes. That figure parsed the planner's persona integer (`max(100, fundingWeight * 500) * 1..3`, divided by 100,000) as ETH. `DelegatableNotes` only requires `msg.value > 0` for an ETH note. Provisioning and `depositETH` / full-note delegation now use one shared amount, `CAMPAIGN_NOTE_WEI` = 1 wei. Stages 10 and 25 were already mined and were not replayed.
+
+Re-quote on 2026-09-30 UTC (`stage-100/reports/remote-canary-preflight.md`):
 
 - 100 users, 1932 writes
 - gas-price snapshot 6,000,000 wei
-- native quoted **1.706790525 ETH**
+- native quoted **0.010790525 ETH**
 - payment-token units 8,850,000 (8.85 USDZZZ)
-- indexer lag 0
+- indexer lag 1
 - bytecode gates passed
 
-Deployer `0xFC0054CAA8417b946666a0093521B57efC5e5E4a` held **0.051338 ETH** on the public RPC at that check. The quote is mostly delegatable-note principal (`deposit-note` amounts converted to ETH), not the gas buffer. The runner refuses when the funder cannot cover provisioning, so the 100-user stage was not started and nothing was reset. `./scripts/verifier-testnet.sh` passed DNS, HTTP, RPC, indexer (2 blocks behind), and contracts. `testnet.app-config` failed on the then-live UI bundle missing `PublishedData` `0xC4074f563DA9E2b9751629e9A3213eB02099513e`, and on the official attester still having no publications. The attester gap is a follow-up, not a reason this stage was skipped.
+Deployer `0xFC0054CAA8417b946666a0093521B57efC5e5E4a` held **0.051338 ETH** before the run and **0.044023 ETH** after, a drop of **0.00731448 ETH**. That is under the gross quote because 25 wallets already held enough ETH from earlier stages; 75 were topped up. Token provisioning transferred 8.61 USDZZZ, skipped 3 wallets that already held enough, and left 37 wallets with no payment-token need. Every action mined on the first attempt.
+
+`./scripts/verifier-testnet.sh` passed DNS, HTTP, RPC, indexer (0 blocks behind at that check), contracts, app shell, and policy enforcement. `testnet.app-config` still failed because the official attester has no publications. That gap is a follow-up, not a reason this stage was skipped.
+
+Reconciliation is 1932/1932. The chain head was one block ahead of the indexer at the end of the check (47485502 vs 47485501); every planned action already had its indexed event and its SDK fold matched. The first reconcile attempt opened a full event-history download per action and the indexer connection dropped. The rerun loads each event name once and checks actions a few at a time. Identical implication or alignment writes that share one transaction are paired with one log each, in log order.
 
 ## Provider and approval notes
 

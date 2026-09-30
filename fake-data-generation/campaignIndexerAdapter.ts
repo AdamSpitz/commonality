@@ -101,6 +101,19 @@ export function collapseIndexedMatches(events: readonly RawEventFromCache[]): In
   return events[0] ? [toMatch(events[0])] : [];
 }
 
+function sameBatchIdentity(action: PlannedAction, candidate: PlannedAction): boolean {
+  if (candidate.type !== action.type || candidate.actorUserId !== action.actorUserId) return false;
+  if (action.type === 'set-belief') return candidate.statementId === action.statementId;
+  if (action.type === 'attest-implication') {
+    return candidate.implication?.fromStatementId === action.implication?.fromStatementId
+      && candidate.implication?.toStatementId === action.implication?.toStatementId;
+  }
+  if (action.type === 'attest-alignment') {
+    return candidate.projectId === action.projectId && candidate.statementId === action.statementId;
+  }
+  return false;
+}
+
 export function selectBatchedBeliefMatch(
   action: PlannedAction,
   transactionHash: string,
@@ -108,11 +121,9 @@ export function selectBatchedBeliefMatch(
   actions?: readonly PlannedAction[],
   execution?: CampaignExecutionState,
 ): RawEventFromCache[] {
-  if (action.type !== 'set-belief' || !actions || !execution) return matched;
+  if (!actions || !execution || !['set-belief', 'attest-implication', 'attest-alignment'].includes(action.type)) return matched;
   const hashById = new Map(execution.actions.map((record) => [record.actionId, record.transactionHash?.toLowerCase()]));
-  const siblings = actions.filter((candidate) => candidate.type === 'set-belief'
-    && candidate.actorUserId === action.actorUserId
-    && candidate.statementId === action.statementId
+  const siblings = actions.filter((candidate) => sameBatchIdentity(action, candidate)
     && hashById.get(candidate.id) === transactionHash.toLowerCase());
   if (siblings.length < 2 || matched.length !== siblings.length) return matched;
   const index = siblings.findIndex((candidate) => candidate.id === action.id);
@@ -133,12 +144,24 @@ export function createCampaignIndexerAdapter(input: {
   execution?: CampaignExecutionState;
 }): CampaignReconciliationAdapter {
   requireEventCacheUrl(input.machinery);
+  // Reconciliation checks every planned action. Each check only needs the
+  // events for its type, so load each event name once per adapter.
+  const eventsByName = new Map<string, Promise<RawEventFromCache[]>>();
+  const loadEvents = (eventName: string): Promise<RawEventFromCache[]> => {
+    const cached = eventsByName.get(eventName);
+    if (cached) return cached;
+    const pending = fetchEventsComplete(input.machinery, { eventName }).catch((error: unknown) => {
+      eventsByName.delete(eventName);
+      throw error;
+    });
+    eventsByName.set(eventName, pending);
+    return pending;
+  };
   return {
     getChainHead: () => input.publicClient.getBlockNumber(),
     getIndexerHead: () => getIndexerHead(input.machinery),
     async findIndexedAction(action, transactionHash) {
-      const eventGroups = await Promise.all(CAMPAIGN_ACTION_EVENTS[action.type].map((eventName) =>
-        fetchEventsComplete(input.machinery, { eventName })));
+      const eventGroups = await Promise.all(CAMPAIGN_ACTION_EVENTS[action.type].map((eventName) => loadEvents(eventName)));
       const target = transactionHash.toLowerCase();
       const inTransaction = eventGroups.flat().filter((event) => event.transactionHash.toLowerCase() === target);
       const matched = input.bindings

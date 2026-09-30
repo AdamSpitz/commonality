@@ -1,5 +1,5 @@
 import type { Address, Hex, PublicClient } from 'viem';
-import { parseEther, parseUnits } from 'viem';
+import { parseUnits } from 'viem';
 import {
   AlignmentAttestationsAbi,
   BeliefsAbi,
@@ -28,6 +28,7 @@ import { writeRuntimeBindings } from './campaignRuntimeBindings.js';
 import { buildSeedRosterDocument } from './seedCauseRoster.js';
 import { createSeedClients } from './seedRpc.js';
 import { campaignFundProjectCost, getPaymentTokenDecimals } from './paymentTokenUnits.js';
+import { campaignNoteWei } from './campaignProvisioning.js';
 
 
 
@@ -144,7 +145,7 @@ export function createLiveCampaignActionWriter(input: {
     clients,
     publishedDataContract: { address: input.contracts.publishedData, abi: PublishedDataAbi },
   });
-  const noteAmount = (action: PlannedAction) => parseEther((Math.max(1, action.amount ?? 1) / 100_000).toString());
+  const noteAmount = (action: PlannedAction) => campaignNoteWei(action);
 
   const handlers: Record<PlannedAction['type'], (action: PlannedAction, clients: WriteClients) => Promise<CampaignSubmittedWrite>> = {
     async 'publish-statement'(action, clients) {

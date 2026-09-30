@@ -7,7 +7,7 @@ import { parseEther, parseUnits, type Address, type Hex } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { LOCAL_HARDHAT_CHAIN_ID, type CampaignEnvironment } from '../campaignEnvironment.js';
 import type { CampaignPlan, PlannedAction } from '../campaignPlanner.js';
-import { computeCampaignFundingNeeds, provisionCampaignWallets, type CampaignFundingChain } from '../campaignProvisioning.js';
+import { CAMPAIGN_NOTE_WEI, computeCampaignFundingNeeds, provisionCampaignWallets, type CampaignFundingChain } from '../campaignProvisioning.js';
 
 const generatedKey = '0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d' as const;
 const generatedAddress = privateKeyToAccount(generatedKey).address;
@@ -40,16 +40,15 @@ function localEnv(): CampaignEnvironment {
 test('funding needs include gas, note deposits, and project token buys', () => {
   const [need] = computeCampaignFundingNeeds(plan, [wallet], 1_000_000_000n);
   assert.equal(need.walletSlot, 'wallet-user-001');
-  assert.ok(need.nativeWei > parseEther('0.001'));
   assert.equal(need.paymentTokenUnits, parseUnits('0.01', 6));
-  assert.ok(need.nativeWei >= 90_000n * 1_000_000_000n + 180_000n * 1_000_000_000n + 150_000n * 1_000_000_000n + parseEther('0.01'));
+  assert.ok(need.nativeWei >= 90_000n * 1_000_000_000n + 180_000n * 1_000_000_000n + 150_000n * 1_000_000_000n + CAMPAIGN_NOTE_WEI);
 });
 
 test('native reserve scales with gas and leaves idle wallets unfunded', () => {
   const idle = { ...wallet, walletSlot: 'wallet-idle' };
   const needs = computeCampaignFundingNeeds(plan, [wallet, idle], 1_000_000_000n);
   const estimatedGasWei = (90_000n + 180_000n + 150_000n) * 1_000_000_000n;
-  assert.equal(needs[0].nativeWei, parseEther('0.01') + estimatedGasWei * 125n / 100n + parseEther('0.0001'));
+  assert.equal(needs[0].nativeWei, CAMPAIGN_NOTE_WEI + estimatedGasWei * 125n / 100n + parseEther('0.0001'));
   assert.equal(needs[1].nativeWei, 0n);
 });
 
