@@ -35,7 +35,7 @@ encrypted capability-gated registry. It does not relax the prohibition on mass a
 
 Full `./scripts/verifier-testnet.sh` (~16:46 UTC): `dns`/`http`/`rpc`/`indexer`/`app-shell`/`contracts`/`policy-enforcement` **pass**; `sponsored-gas` advisory **pass**; **`app-config` fail** (idle official implication attester). Indexer `_meta` **46429250**, lag **0**.
 
-`app-config` reports 0 `ImplicationAttestation`s from `VITE_DEFAULT_TRUSTED_ATTESTERS` `0x021b3C…`. That is the shipped default; filtering to it is the product. Empty official graph → zeros is correct, not a wrong-chain config bug. **Do not mint a dummy attestation to green the check.** **Do not treat this fail as “the lab is down.”** The wrapper still exits 1 until the official attester actually runs (or the check is later made advisory). Item 3’s lab surfaces (sites, RPC, indexer, shells, contracts) are up.
+`app-config` used to report 0 `ImplicationAttestation`s from `VITE_DEFAULT_TRUSTED_ATTESTERS` `0x021b3C…`. That address is the shipped default; filtering to it is the product. On 2026-09-30 the official attester signed two already-accepted abortion bridge pairs (block 47506047). Empty official graph → zeros was correct before that, not a wrong-chain config bug. **Do not mint a dummy attestation to green the check.** Item 3’s lab surfaces (sites, RPC, indexer, shells, contracts) are up.
 
 **Wallets funded 2026-09-05** from operator deployer `0xFC0054…`: implication attester, content attester, beat agent each **0.005 ETH** (block 46430751). Verifier still 0.
 

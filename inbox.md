@@ -19,6 +19,8 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 - **(Tell)** Campaign create-project now publishes a short title and description from statement ids (`cause title: statement id`) instead of pasting the full statement into both fields. Planner tests cover that the card copy does not contain the statement text. Projects already mined in the medium-realistic campaign still show the old long metadata until those projects are created again.
 
+- **(Tell)** Official attester `0x021b3C…` signed two already-accepted abortion bridge pairs (modified-left and modified-right → commonality) on Base Sepolia, block 47506047, txs `0xa4dd1c3b…` and `0xf07542bc…`. The indexer event cache already returns both `ImplicationAttestation`s. Campaign persona wallets were a different signer, so those runs never filled this trust root.
+
 - Think through the further delegation-narrowing ideas in [delegation-narrowing.md](specs/product/legal/delegation-narrowing.md). The three TODO.md items (one hop, one voice, optional delay) are the baseline. Still open: risk tiers based on vouches for payout addresses rather than "new project" or "address has been paid before"; signed spend rules; refunds and reimbursement returning to the donor; expiring authority; an optional watcher who can cancel but not spend; and whether the delegate should ever hold a balance. Not legal advice, and not a decision yet.
 
 ### Security/recoverability human actions
