@@ -17,6 +17,8 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 ## Main list
 
+- **(Tell)** Testnet civility topic is published. CID `bafkreihbefcrlkqox2ezrq5xdilblh2r4eiym6m7tmdh732fijcd2refma` is in `deployments/base-sepolia.env` and on `commonality-service-host-attesters`. All eight testnet UIs were republished. Statement pages now say there are no attested writeups yet, instead of saying the meta-statement is unconfigured.
+
 - **(Tell)** Campaign create-project now publishes a short title and description from statement ids (`cause title: statement id`) instead of pasting the full statement into both fields. Planner tests cover that the card copy does not contain the statement text. Projects already mined in the medium-realistic campaign still show the old long metadata until those projects are created again.
 
 - **(Tell)** Official attester `0x021b3C…` signed two already-accepted abortion bridge pairs (modified-left and modified-right → commonality) on Base Sepolia, block 47506047, txs `0xa4dd1c3b…` and `0xf07542bc…`. The indexer event cache already returns both `ImplicationAttestation`s. Campaign persona wallets were a different signer, so those runs never filled this trust root.

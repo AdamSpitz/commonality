@@ -14,8 +14,6 @@ Getting **testnet to a two-person shared lab** is also a standing plan, not a pi
 
 ----
 
-- **(Tell)** Configure the noninflammatory meta-statement on testnet so civility attestations can be checked. Statement pages still say it is not configured (`VITE_NONINFLAMMATORY_TOPIC_CID` is empty in the published bundle). Seen on `#/statement/bafybeidp4jh…` in `assets/index-D3p1LkpC.js`. Report: [`fake-data-generation/campaigns/medium-realistic-v1-testnet-run.md`](fake-data-generation/campaigns/medium-realistic-v1-testnet-run.md).
-
 - **(Tell)** Next fake-data/seed-data step lives in [`fake-data-generation/PLAN.md`](fake-data-generation/PLAN.md). Abortion, immigration, crime, and LGBT-schools triples are accepted; next is the demo-seed live UI pass.
 
 - **(Tell)** Next testnet-lab step lives in [`workflow/testnet-working-plan.md`](workflow/testnet-working-plan.md). Shared lab is up through item 8. Next unchecked is item 9 (Ask: nightly mutation flag). Human leftovers: [`inbox.md`](inbox.md) and [`testnet-prep.md`](testnet-prep.md). Do not mix with mass fake activity or mainnet.
