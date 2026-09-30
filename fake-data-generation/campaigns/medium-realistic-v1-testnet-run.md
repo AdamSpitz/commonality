@@ -37,7 +37,7 @@ Re-quote on 2026-09-30 UTC (`stage-100/reports/remote-canary-preflight.md`):
 
 Deployer `0xFC0054CAA8417b946666a0093521B57efC5e5E4a` held **0.051338 ETH** before the run and **0.044023 ETH** after, a drop of **0.00731448 ETH**. That is under the gross quote because 25 wallets already held enough ETH from earlier stages; 75 were topped up. Token provisioning transferred 8.61 USDZZZ, skipped 3 wallets that already held enough, and left 37 wallets with no payment-token need. Every action mined on the first attempt.
 
-`./scripts/verifier-testnet.sh` passed DNS, HTTP, RPC, indexer (0 blocks behind at that check), contracts, app shell, and policy enforcement. `testnet.app-config` still failed because the official attester has no publications. That gap is a follow-up, not a reason this stage was skipped.
+`./scripts/verifier-testnet.sh` passed DNS, HTTP, RPC, indexer (0 blocks behind at that check), contracts, app shell, and policy enforcement. `testnet.app-config` still failed at that check because the official attester had no publications. On 2026-09-30 `0x021b3C…` signed two accepted abortion bridge pairs (block 47506047). That gap was a follow-up, not a reason this stage was skipped. Campaign implication writes stay on persona wallets.
 
 Reconciliation is 1932/1932. The chain head was one block ahead of the indexer at the end of the check (47485502 vs 47485501); every planned action already had its indexed event and its SDK fold matched. The first reconcile attempt opened a full event-history download per action and the indexer connection dropped. The rerun loads each event name once and checks actions a few at a time. Identical implication or alignment writes that share one transaction are paired with one log each, in log order.
 
