@@ -13,6 +13,8 @@ export type CampaignRole =
 export type CampaignActionType =
   | 'publish-statement'
   | 'create-cause'
+  | 'create-bridge-board'
+  | 'create-bridge'
   | 'set-belief'
   | 'attest-implication'
   | 'create-project'

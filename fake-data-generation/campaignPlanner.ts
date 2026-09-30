@@ -53,7 +53,36 @@ export interface PlannedAction {
   alignment?: 'supports-described-outcome';
   delegationBasis?: { sharedCauseIds: string[]; reason: 'shared-cause-trusted-role' };
   implication?: { fromStatementId: string; toStatementId: string; evidence: 'accepted-bridge-role-pair' };
+  /** Binding key when one cause publishes more than one board. Defaults to causeId. */
+  boardId?: string;
+  board?: PlannedCauseBoard;
+  bridge?: PlannedBridge;
   dependsOn: string[];
+}
+
+/** One roster inside a cause. Bridge topics use five of these, not one combined roster. */
+export interface PlannedCauseBoard {
+  role: 'plain' | 'natural-left' | 'natural-right' | 'modified-left' | 'modified-right' | 'commonality';
+  slug: string;
+  title: string;
+  summary: string;
+  statementIds: string[];
+  clusterSlug?: string;
+  /** Modified boards cite the natural board they narrow. */
+  parentBoardId?: string;
+}
+
+export interface PlannedBridge {
+  slug: string;
+  mediatorName: string;
+  mediatorNote: string;
+  boardIds: {
+    naturalLeft: string;
+    naturalRight: string;
+    modifiedLeft: string;
+    modifiedRight: string;
+    commonality: string;
+  };
 }
 
 export interface CampaignPlan {
@@ -76,7 +105,7 @@ export interface CampaignPlan {
 }
 
 const GAS_UNITS: Record<CampaignActionType, number> = {
-  'publish-statement': 180_000, 'create-cause': 120_000, 'set-belief': 90_000,
+  'publish-statement': 180_000, 'create-cause': 120_000, 'create-bridge-board': 120_000, 'create-bridge': 120_000, 'set-belief': 90_000,
   'attest-implication': 130_000, 'create-project': 1_100_000, 'attest-alignment': 130_000,
   'fund-project': 180_000, 'deposit-note': 150_000, 'delegate-note': 100_000, 'revoke-delegation': 90_000,
 };
@@ -127,7 +156,25 @@ function statementKey(ref: { collectionId: string; groupId: string; statementId:
 }
 
 function allocateCount(rule: CampaignManifestV1['actionRules'][number], random: Xoshiro128StarStar): number {
+  // Bridge boards are derived from seed roles. Counting them here would consume
+  // the deterministic stream and reshuffle every later action.
+  if (rule.type === 'create-bridge-board' || rule.type === 'create-bridge') return 0;
   return random.integer(rule.targetCount.min, rule.targetCount.max);
+}
+
+const BRIDGE_SIDES = ['natural-left', 'natural-right', 'modified-left', 'modified-right', 'commonality'] as const;
+
+function isBridgeCause(statements: PlannedStatement[]): boolean {
+  const roles = new Set(statements.map((statement) => statement.role));
+  return BRIDGE_SIDES.every((role) => roles.has(role));
+}
+
+function boardSlug(campaignId: string, causeId: string, suffix: string): string {
+  const slug = `${campaignId}-${causeId}-${suffix}`;
+  if (slug.length > 64 || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
+    throw new Error(`campaign board slug is not a usable ref name: ${slug}`);
+  }
+  return slug;
 }
 
 function chooseDistinctCauses(manifest: CampaignManifestV1, count: number, random: Xoshiro128StarStar): string[] {
@@ -219,7 +266,86 @@ export async function buildCampaignPlan(manifest: CampaignManifestV1): Promise<C
   const actions: PlannedAction[] = [];
   const add = (action: Omit<PlannedAction, 'id' | 'sequence'>): PlannedAction => { const value = { ...action, id: `action-${String(actions.length + 1).padStart(5, '0')}`, sequence: actions.length + 1 }; actions.push(value); return value; };
   const publishes = new Map(statements.map((statement) => [statement.id, add({ type: 'publish-statement', actorUserId: null, causeId: statement.causeId, statementId: statement.id, dependsOn: [] })]));
-  const causes = new Map(manifest.causes.map((cause) => [cause.id, add({ type: 'create-cause', actorUserId: random.pick(activeUsers.filter((user) => user.roles.includes('cause-founder') || user.roles.includes('power-user'))).id, causeId: cause.id, dependsOn: cause.statementRefs.map((ref) => publishes.get(statements.find((statement) => statementKey(statement.source) === statementKey(ref))!.id)!.id) })]));
+  const founders = activeUsers.filter((user) => (user.roles.includes('cause-founder') || user.roles.includes('power-user')) && !user.roles.includes('mediator')).sort((a, b) => a.id.localeCompare(b.id));
+  const mediators = activeUsers.filter((user) => user.roles.includes('mediator'));
+  if (founders.length === 0 || mediators.length === 0) throw new Error('campaign lacks a natural-board founder or a mediator');
+  const causeFounders = activeUsers.filter((user) => user.roles.includes('cause-founder') || user.roles.includes('power-user'));
+  const causes = new Map<string, PlannedAction>();
+  for (const cause of manifest.causes) {
+    const group = statements.filter((statement) => statement.causeId === cause.id);
+    const bridgeShaped = isBridgeCause(group);
+    const byRole = new Map(group.map((statement) => [statement.role, statement]));
+    const actor = bridgeShaped ? random.pick(mediators) : random.pick(causeFounders);
+    const included = bridgeShaped ? [byRole.get('commonality')!] : group;
+    const clusterSlug = bridgeShaped ? boardSlug(manifest.campaign.id, cause.id, 'cluster') : undefined;
+    const commonalityBoard: PlannedCauseBoard | undefined = bridgeShaped ? {
+      role: 'commonality',
+      slug: boardSlug(manifest.campaign.id, cause.id, 'bridge'),
+      title: `${cause.title} — common ground`,
+      summary: `SYNTHETIC TESTNET CAMPAIGN. Common-ground board for ${cause.title}. Only the settlement statement is on this board.`,
+      statementIds: [byRole.get('commonality')!.id],
+      clusterSlug,
+    } : undefined;
+    causes.set(cause.id, add({
+      type: 'create-cause',
+      actorUserId: actor.id,
+      causeId: cause.id,
+      boardId: cause.id,
+      ...(commonalityBoard ? { board: commonalityBoard } : {}),
+      dependsOn: included.map((statement) => publishes.get(statement.id)!.id),
+    }));
+    if (!bridgeShaped) continue;
+    const sides = [
+      { role: 'natural-left' as const, suffix: 'left', owner: founders[0]!, parent: false },
+      { role: 'natural-right' as const, suffix: 'right', owner: founders[1] ?? founders[0]!, parent: false },
+      { role: 'modified-left' as const, suffix: 'left-modified', owner: actor, parent: true },
+      { role: 'modified-right' as const, suffix: 'right-modified', owner: actor, parent: true },
+    ];
+    const sideActions = new Map<string, PlannedAction>();
+    for (const side of sides) {
+      const parentRole = side.role === 'modified-left' ? 'natural-left' : side.role === 'modified-right' ? 'natural-right' : undefined;
+      const parentBoardId = parentRole ? `${cause.id}:${parentRole}` : undefined;
+      const board: PlannedCauseBoard = {
+        role: side.role,
+        slug: boardSlug(manifest.campaign.id, cause.id, side.suffix),
+        title: `${cause.title} — ${side.role}`,
+        summary: `SYNTHETIC TESTNET CAMPAIGN. ${side.role} board for ${cause.title}. The other sides of this bridge are separate boards.`,
+        statementIds: [byRole.get(side.role)!.id],
+        clusterSlug,
+        ...(parentBoardId ? { parentBoardId } : {}),
+      };
+      const boardId = `${cause.id}:${side.role}`;
+      sideActions.set(side.role, add({
+        type: 'create-bridge-board',
+        actorUserId: side.owner.id,
+        causeId: cause.id,
+        boardId,
+        board,
+        dependsOn: [
+          publishes.get(byRole.get(side.role)!.id)!.id,
+          ...(parentRole ? [sideActions.get(parentRole)!.id] : []),
+        ],
+      }));
+    }
+    add({
+      type: 'create-bridge',
+      actorUserId: actor.id,
+      causeId: cause.id,
+      bridge: {
+        slug: clusterSlug!,
+        mediatorName: 'Synthetic campaign mediator',
+        mediatorNote: `SYNTHETIC TESTNET CAMPAIGN bridge for ${cause.title}. Modified wordings imply the common-ground statement. Natural boards stay on their own side.`,
+        boardIds: {
+          naturalLeft: `${cause.id}:natural-left`,
+          naturalRight: `${cause.id}:natural-right`,
+          modifiedLeft: `${cause.id}:modified-left`,
+          modifiedRight: `${cause.id}:modified-right`,
+          commonality: cause.id,
+        },
+      },
+      dependsOn: [causes.get(cause.id)!.id, ...[...sideActions.values()].map((action) => action.id)],
+    });
+  }
 
   const latestBelief = new Map<string, PlannedAction>();
   for (let index = 0; index < countByType['set-belief']; index++) {

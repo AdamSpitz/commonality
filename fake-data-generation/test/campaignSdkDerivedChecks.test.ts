@@ -10,6 +10,21 @@ import type { CampaignManifestV1 } from '../campaignSchema.js';
 
 const address = (index: number): Address => `0x${index.toString(16).padStart(40, '0')}` as Address;
 
+function publicationBindings(plan: Awaited<ReturnType<typeof buildCampaignPlan>>) {
+  const causes: CampaignRuntimeBindings['causes'] = {};
+  const bridges: NonNullable<CampaignRuntimeBindings['bridges']> = {};
+  for (const action of plan.actions) {
+    if (action.type === 'create-cause' || action.type === 'create-bridge-board') {
+      const id = action.boardId ?? action.causeId!;
+      causes[id] = { owner: address(201), refName: action.board?.slug ?? `cause-${id}`, rosterCid: fakeIpfsCidV1(id) };
+    }
+    if (action.type === 'create-bridge' && action.causeId && action.bridge) {
+      bridges[action.causeId] = { owner: address(250), refName: action.bridge.slug, rosterCid: fakeIpfsCidV1(`bridge-${action.causeId}`) };
+    }
+  }
+  return { causes, bridges };
+}
+
 test('SDK provider checks final folded state through runtime bindings', async () => {
   const manifest = JSON.parse(await readFile(new URL('../campaigns/medium-realistic-v1.json', import.meta.url), 'utf8')) as CampaignManifestV1;
   const plan = await buildCampaignPlan(manifest);
@@ -20,7 +35,7 @@ test('SDK provider checks final folded state through runtime bindings', async ()
     updatedAt: new Date(0).toISOString(),
     users: Object.fromEntries(plan.users.map((item, index) => [item.id, address(index + 1)])),
     statements: Object.fromEntries(plan.statements.map((item) => [item.id, fakeIpfsCidV1(item.id)])),
-    causes: Object.fromEntries([...new Set(plan.statements.map((item) => item.causeId))].map((id, index) => [id, { owner: address(index + 201), refName: `cause-${id}`, rosterCid: fakeIpfsCidV1(`roster-${id}`) }])),
+    ...publicationBindings(plan),
     projects: Object.fromEntries(plan.projects.map((item, index) => [item.id, address(index + 301)])),
     notes: Object.fromEntries([...new Set(plan.actions.flatMap((item) => item.noteId ? [item.noteId] : []))].map((id, index) => [id, { contractAddress: address(401), noteId: String(index + 1) }])),
   };
@@ -34,7 +49,7 @@ test('SDK provider checks final folded state through runtime bindings', async ()
     getUserBelief: async (user, statement) => latestBeliefs.get(`${user}/${statement}`)!,
     hasImplication: async () => true,
     getRefsByName: async (name) => {
-      const binding = Object.values(bindings.causes).find((item) => item.refName === name)!;
+      const binding = [...Object.values(bindings.causes), ...Object.values(bindings.bridges ?? {})].find((item) => item.refName === name)!;
       return [{ owner: binding.owner, name, value: binding.rosterCid, updatedAt: '0', updatedAtBlock: '1', transactionHash: `0x${'1'.repeat(64)}` }];
     },
     getProject: async (projectAddress) => {
@@ -74,7 +89,7 @@ test('SDK note lookup lowercases the bound contract address', async () => {
     updatedAt: new Date(0).toISOString(),
     users: Object.fromEntries(plan.users.map((item, index) => [item.id, address(index + 1)])),
     statements: Object.fromEntries(plan.statements.map((item) => [item.id, fakeIpfsCidV1(item.id)])),
-    causes: Object.fromEntries([...new Set(plan.statements.map((item) => item.causeId))].map((id, index) => [id, { owner: address(index + 201), refName: `cause-${id}`, rosterCid: fakeIpfsCidV1(`roster-${id}`) }])),
+    ...publicationBindings(plan),
     projects: Object.fromEntries(plan.projects.map((item, index) => [item.id, address(index + 301)])),
     notes: Object.fromEntries([...new Set(plan.actions.flatMap((item) => item.noteId ? [item.noteId] : []))].map((id, index) => [id, { contractAddress: mixed, noteId: String(index + 1) }])),
   };
@@ -117,7 +132,7 @@ test('SDK provider exposes a derived mismatch instead of hiding it', async () =>
   const bindings = {
     version: CAMPAIGN_RUNTIME_BINDINGS_VERSION, campaignId: plan.campaignId, manifestFingerprint: plan.manifestFingerprint, updatedAt: new Date(0).toISOString(), users,
     statements: Object.fromEntries(plan.statements.map((item) => [item.id, fakeIpfsCidV1(item.id)])),
-    causes: Object.fromEntries([...new Set(plan.statements.map((item) => item.causeId))].map((id, index) => [id, { owner: address(index + 201), refName: id, rosterCid: fakeIpfsCidV1(id) }])),
+    ...publicationBindings(plan),
     projects: Object.fromEntries(plan.projects.map((item, index) => [item.id, address(index + 301)])),
     notes: Object.fromEntries([...new Set(plan.actions.flatMap((item) => item.noteId ? [item.noteId] : []))].map((id, index) => [id, { contractAddress: address(401), noteId: String(index + 1) }])),
   } satisfies CampaignRuntimeBindings;

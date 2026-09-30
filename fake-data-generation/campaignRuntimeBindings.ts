@@ -29,6 +29,8 @@ export interface CampaignRuntimeBindings {
   users: Record<string, Address>;
   statements: Record<string, IpfsCidV1>;
   causes: Record<string, CampaignCauseBinding>;
+  /** Cluster documents, keyed by cause id. Absent on plans that predate bridge boards. */
+  bridges?: Record<string, CampaignCauseBinding>;
   projects: Record<string, Address>;
   notes: Record<string, CampaignNoteBinding>;
 }
@@ -39,7 +41,7 @@ export function createEmptyRuntimeBindings(plan: CampaignPlan, now: Date = new D
     campaignId: plan.campaignId,
     manifestFingerprint: plan.manifestFingerprint,
     updatedAt: now.toISOString(),
-    users: {}, statements: {}, causes: {}, projects: {}, notes: {},
+    users: {}, statements: {}, causes: {}, bridges: {}, projects: {}, notes: {},
   };
 }
 
@@ -63,6 +65,11 @@ function validateBindingValues(bindings: CampaignRuntimeBindings): void {
     if (!cause.refName.trim()) throw new Error(`cause ${id} has an empty ref name`);
     try { ensureIpfsCidV1(cause.rosterCid); } catch { throw new Error(`cause ${id} roster is not a valid CIDv1`); }
   }
+  for (const [id, bridge] of Object.entries(bindings.bridges ?? {})) {
+    validateAddress(bridge.owner, `bridge ${id} owner`);
+    if (!bridge.refName.trim()) throw new Error(`bridge ${id} has an empty ref name`);
+    try { ensureIpfsCidV1(bridge.rosterCid); } catch { throw new Error(`bridge ${id} cluster is not a valid CIDv1`); }
+  }
   for (const [id, address] of Object.entries(bindings.projects)) validateAddress(address, `project ${id}`);
   for (const [id, note] of Object.entries(bindings.notes)) {
     validateAddress(note.contractAddress, `note ${id} contract`);
@@ -74,11 +81,12 @@ function missingBindings(kind: string, plannedIds: Set<string>, values: Record<s
   return [...plannedIds].filter((id) => !values[id]).map((id) => `${kind}:${id}`);
 }
 
-function requireCompleteBindings(bindings: CampaignRuntimeBindings, ids: Record<'user' | 'statement' | 'cause' | 'project' | 'note', Set<string>>): void {
+function requireCompleteBindings(bindings: CampaignRuntimeBindings, ids: Record<'user' | 'statement' | 'cause' | 'bridge' | 'project' | 'note', Set<string>>): void {
   const missing = [
     ...missingBindings('user', ids.user, bindings.users),
     ...missingBindings('statement', ids.statement, bindings.statements),
     ...missingBindings('cause', ids.cause, bindings.causes),
+    ...missingBindings('bridge', ids.bridge, bindings.bridges ?? {}),
     ...missingBindings('project', ids.project, bindings.projects),
     ...missingBindings('note', ids.note, bindings.notes),
   ];
@@ -93,18 +101,25 @@ export function validateRuntimeBindings(plan: CampaignPlan, bindings: CampaignRu
 
   const userIds = new Set(plan.users.map((item) => item.id));
   const statementIds = new Set(plan.statements.map((item) => item.id));
-  const causeIds = new Set(plan.statements.map((item) => item.causeId));
-  const createdCauseIds = new Set(plan.actions.flatMap((item) => item.type === 'create-cause' && item.causeId ? [item.causeId] : []));
+  const causeIds = new Set([
+    ...plan.statements.map((item) => item.causeId),
+    ...plan.actions.flatMap((item) => item.boardId ? [item.boardId] : []),
+  ]);
+  const createdCauseIds = new Set(plan.actions.flatMap((item) => (
+    (item.type === 'create-cause' || item.type === 'create-bridge-board') && (item.boardId || item.causeId) ? [item.boardId ?? item.causeId!] : []
+  )));
+  const bridgeIds = new Set(plan.actions.flatMap((item) => item.type === 'create-bridge' && item.causeId ? [item.causeId] : []));
   const projectIds = new Set(plan.projects.map((item) => item.id));
   const noteIds = new Set(plan.actions.flatMap((item) => item.noteId ? [item.noteId] : []));
   validateKeys('users', bindings.users, userIds);
   validateKeys('statements', bindings.statements, statementIds);
   validateKeys('causes', bindings.causes, causeIds);
+  validateKeys('bridges', bindings.bridges ?? {}, bridgeIds);
   validateKeys('projects', bindings.projects, projectIds);
   validateKeys('notes', bindings.notes, noteIds);
 
   validateBindingValues(bindings);
-  if (options.complete) requireCompleteBindings(bindings, { user: userIds, statement: statementIds, cause: createdCauseIds, project: projectIds, note: noteIds });
+  if (options.complete) requireCompleteBindings(bindings, { user: userIds, statement: statementIds, cause: createdCauseIds, bridge: bridgeIds, project: projectIds, note: noteIds });
 }
 
 export async function writeRuntimeBindings(plan: CampaignPlan, bindings: CampaignRuntimeBindings, outputPath: string): Promise<void> {

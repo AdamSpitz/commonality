@@ -30,6 +30,28 @@ test('planner assigns overlapping, uneven causes and respects persona bounds', a
   for (const user of plan.users) { const persona = manifest.personas.find((item) => item.id === user.personaId)!; assert.ok(user.causeIds.length >= persona.causesPerUser.min && user.causeIds.length <= persona.causesPerUser.max); }
 });
 
+test('bridge topics publish five boards and a cluster, not one combined roster', async () => {
+  const plan = await buildCampaignPlan(await loadManifest());
+  const bridgeCauses = ['abortion-common-ground', 'immigration-common-ground', 'violent-crime-common-ground', 'schools-common-ground'];
+  for (const causeId of bridgeCauses) {
+    const boards = plan.actions.filter((action) => action.causeId === causeId && (action.type === 'create-cause' || action.type === 'create-bridge-board'));
+    const roles = boards.map((action) => action.board?.role).sort();
+    assert.deepEqual(roles, ['commonality', 'modified-left', 'modified-right', 'natural-left', 'natural-right']);
+    for (const board of boards) assert.equal(board.board?.statementIds.length, 1);
+    const cluster = plan.actions.find((action) => action.type === 'create-bridge' && action.causeId === causeId);
+    assert.ok(cluster);
+    assert.equal(cluster!.actorUserId, boards.find((action) => action.board?.role === 'commonality')!.actorUserId);
+    assert.notEqual(cluster!.actorUserId, boards.find((action) => action.board?.role === 'natural-left')!.actorUserId);
+    const commonality = boards.find((action) => action.type === 'create-cause')!;
+    assert.equal(commonality.boardId, causeId);
+    assert.ok(boards.find((action) => action.board?.role === 'modified-left')!.dependsOn.includes(boards.find((action) => action.board?.role === 'natural-left')!.id));
+  }
+  const plain = plan.actions.find((action) => action.type === 'create-cause' && action.causeId === 'open-source');
+  assert.equal(plain?.board, undefined);
+  assert.equal(plan.actions.filter((action) => action.type === 'create-cause').length, 10);
+  assert.equal(plan.actions.filter((action) => action.type === 'create-bridge').length, 4);
+});
+
 test('all implication actions use accepted bridge-role pairs', async () => {
   const plan = await buildCampaignPlan(await loadManifest()); const statements = new Map(plan.statements.map((statement) => [statement.id, statement]));
   for (const action of plan.actions.filter((item) => item.type === 'attest-implication')) {

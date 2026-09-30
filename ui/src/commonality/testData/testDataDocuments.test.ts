@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 const runtimeConfig = vi.hoisted(() => ({ COMMONALITY_ENVIRONMENT: 'local' as string, VITE_TEST_DATA_REGISTRY_URL: '' }))
 vi.mock('../../shared', () => ({ getRuntimeConfig: () => runtimeConfig }))
 
-import { decryptTestData, resolveRunUrl, testDataEnvironment } from './testDataDocuments'
+import { decryptTestData, resolveRunUrl, testDataEnvironment, testDataRunLinks } from './testDataDocuments'
 
 function base64url(bytes: Uint8Array): string {
   return btoa(String.fromCharCode(...bytes)).replaceAll('+', '-').replaceAll('/', '_').replace(/=+$/, '')
@@ -23,6 +23,16 @@ describe('test-data capability documents', () => {
       schema: 'commonality-test-data-encrypted-v1', algorithm: 'AES-256-GCM',
       iv: base64url(iv), ciphertext: base64url(ciphertext), authTag: base64url(authTag),
     }, base64url(rawKey))).resolves.toEqual({ ok: true })
+  })
+
+  it('keeps cause-board and bridge paths from a run', () => {
+    expect(testDataRunLinks({
+      causeBoards: [{ title: 'Abortion — natural-left', path: '/cause/0xabc/abortion-left', role: 'natural-left' }, { title: 'skip' }],
+      bridges: [{ title: 'Abortion bridge', path: '/bridge/0xabc/abortion-cluster' }],
+    })).toEqual({
+      causeBoards: [{ title: 'Abortion — natural-left', path: '/cause/0xabc/abortion-left', detail: 'natural-left' }],
+      bridges: [{ title: 'Abortion bridge', path: '/bridge/0xabc/abortion-cluster' }],
+    })
   })
 
   it('hard-disables the interface on mainnet', () => {

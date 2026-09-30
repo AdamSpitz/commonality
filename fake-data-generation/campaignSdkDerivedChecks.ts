@@ -107,11 +107,19 @@ export function createCampaignSdkDerivedCheckProvider(input: {
           // DataPublished has no independent SDK fold; its raw indexed event is
           // the authoritative publication check. Later actions query this CID.
           return [];
-        case 'create-cause': {
-          const binding = bindings.causes[action.causeId!];
+        case 'create-cause':
+        case 'create-bridge-board': {
+          const binding = bindings.causes[action.boardId ?? action.causeId!];
           const refs = await queries.getRefsByName(binding.refName);
           const actual = refs.find((ref) => ref.owner.toLowerCase() === binding.owner.toLowerCase())?.value ?? null;
           return [check('SDK cause roster ref', binding.rosterCid, actual)];
+        }
+        case 'create-bridge': {
+          const binding = bindings.bridges?.[action.causeId!];
+          if (!binding) return [check('SDK bridge cluster ref', 'published', null)];
+          const refs = await queries.getRefsByName(binding.refName);
+          const actual = refs.find((ref) => ref.owner.toLowerCase() === binding.owner.toLowerCase())?.value ?? null;
+          return [check('SDK bridge cluster ref', binding.rosterCid, actual)];
         }
         case 'set-belief': {
           const final = latestBelief.get(`${action.actorUserId}/${action.statementId}`)!;

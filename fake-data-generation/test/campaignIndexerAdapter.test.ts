@@ -12,7 +12,7 @@ const action: PlannedAction = { id: 'a1', sequence: 1, type: 'fund-project', act
 
 test('every campaign action has an explicit real indexer event mapping', () => {
   assert.deepEqual(Object.keys(CAMPAIGN_ACTION_EVENTS).sort(), [
-    'attest-alignment', 'attest-implication', 'create-cause', 'create-project', 'delegate-note',
+    'attest-alignment', 'attest-implication', 'create-bridge', 'create-bridge-board', 'create-cause', 'create-project', 'delegate-note',
     'deposit-note', 'fund-project', 'publish-statement', 'revoke-delegation', 'set-belief',
   ]);
   assert.ok(Object.values(CAMPAIGN_ACTION_EVENTS).every((names) => names.length > 0));

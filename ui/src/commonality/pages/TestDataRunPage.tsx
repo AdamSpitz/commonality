@@ -8,6 +8,7 @@ import {
   testDataEnvironment,
   testDataRegistryUrl,
   type TestDataRegistry,
+  testDataRunLinks,
   type TestDataRun,
 } from '../testData/testDataDocuments'
 import { actionDetail, JsonValue, KeyValueTable } from '../testData/prettyJson'
@@ -36,6 +37,8 @@ export function TestDataRunPage() {
       .catch(reason => { if (!cancelled) setError(reason instanceof Error ? reason.message : String(reason)) })
     return () => { cancelled = true }
   }, [capability, environment, registryUrl, runId])
+
+  const publications = useMemo(() => testDataRunLinks(run?.entities ?? {}), [run])
 
   const actionsByType = useMemo(() => {
     const counts = new Map<string, number>()
@@ -125,6 +128,25 @@ export function TestDataRunPage() {
         <Divider sx={{ my: 2 }} />
         <KeyValueTable record={run.parameters} />
       </CardContent></Card>
+
+      {(publications.causeBoards.length > 0 || publications.bridges.length > 0) && (
+        <Card variant="outlined"><CardContent>
+          <Typography variant="h6">Cause boards and bridges</Typography>
+          <Divider sx={{ my: 2 }} />
+          <Stack spacing={1}>
+            {publications.bridges.map((link) => (
+              <Button key={link.path} component={RouterLink} to={link.path} sx={{ justifyContent: 'flex-start', px: 0 }}>
+                Bridge · {link.title}
+              </Button>
+            ))}
+            {publications.causeBoards.map((link) => (
+              <Button key={link.path} component={RouterLink} to={link.path} sx={{ justifyContent: 'flex-start', px: 0 }}>
+                {link.detail ? `${link.detail} · ` : ''}{link.title}
+              </Button>
+            ))}
+          </Stack>
+        </CardContent></Card>
+      )}
 
       <Card variant="outlined"><CardContent>
         <Typography variant="h6">Generated entities</Typography>

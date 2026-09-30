@@ -105,6 +105,33 @@ export function testDataRegistryUrl(): string | undefined {
   return '/test-data/registry.enc.json'
 }
 
+export interface TestDataPageLink {
+  title: string
+  path: string
+  detail?: string
+}
+
+function linksFrom(value: unknown): TestDataPageLink[] {
+  if (!Array.isArray(value)) return []
+  return value.flatMap((item) => {
+    if (!item || typeof item !== 'object') return []
+    const record = item as Record<string, unknown>
+    const title = typeof record.title === 'string' ? record.title : ''
+    const path = typeof record.path === 'string' ? record.path : ''
+    if (!title || !path.startsWith('/')) return []
+    const detail = typeof record.role === 'string' ? record.role : undefined
+    return [{ title, path, ...(detail ? { detail } : {}) }]
+  })
+}
+
+/** Cause boards and bridge clusters recorded on a generated run. */
+export function testDataRunLinks(entities: Record<string, unknown>): { causeBoards: TestDataPageLink[]; bridges: TestDataPageLink[] } {
+  return {
+    causeBoards: linksFrom(entities.causeBoards),
+    bridges: linksFrom(entities.bridges),
+  }
+}
+
 export function resolveRunUrl(registryUrl: string, href: string): string {
   const absolute = /^https?:\/\//i.test(registryUrl)
   const resolved = new URL(href, absolute ? registryUrl : `https://placeholder.local${registryUrl}`)
