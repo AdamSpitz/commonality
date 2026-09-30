@@ -13,7 +13,7 @@ const CID = buildCidV1FromDigest(0x70, new Uint8Array(32).fill(7));
 const plan = {
   version: 'commonality-campaign-plan-v1', campaignId: 'test', deterministicSeed: 'seed', manifestFingerprint: 'fingerprint',
   users: [{ id: 'user-1' }], statements: [{ id: 'statement-1', causeId: 'cause-1' }], projects: [{ id: 'project-1' }],
-  actions: [{ noteId: 'note-1' }],
+  actions: [{ type: 'create-cause', causeId: 'cause-1', noteId: 'note-1' }],
 } as CampaignPlan;
 
 function completeBindings() {
@@ -28,6 +28,16 @@ function completeBindings() {
 
 test('validates a complete execution-to-SDK binding artifact', () => {
   assert.doesNotThrow(() => validateRuntimeBindings(plan, completeBindings(), { complete: true }));
+});
+
+test('a stage needs bindings only for causes created in that stage', () => {
+  const stagedPlan = {
+    ...plan,
+    statements: [...plan.statements, { id: 'statement-2', causeId: 'cause-2' }],
+  } as CampaignPlan;
+  const bindings = completeBindings();
+  bindings.statements['statement-2'] = CID;
+  assert.doesNotThrow(() => validateRuntimeBindings(stagedPlan, bindings, { complete: true }));
 });
 
 test('rejects mismatched plans, unknown IDs, invalid values, and incomplete artifacts', () => {

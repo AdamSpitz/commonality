@@ -3,7 +3,8 @@
 pragma solidity 0.8.33;
 
 import {IERC1155} from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
-import {PremintingERC1155} from "../utils/PremintingERC1155.sol";
+import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
+import {PremintingERC1155, PremintingERC1155Clone} from "../utils/PremintingERC1155.sol";
 import {AssuranceContract} from "./AssuranceContract.sol";
 import {MultiERC1155AssuranceContract} from "./AssuranceContracts.sol";
 import {IAssuranceCondition} from "./IAssuranceCondition.sol";
@@ -36,15 +37,46 @@ error OnlyPayoutAddressCanCreateForControlledBeneficiary();
 
 /**
  * @title PremintingERC1155Factory
- * @notice Factory contract for creating PremintingERC1155 token contracts
+ * @notice Factory contract for creating PremintingERC1155 token contracts.
+ * @dev The default path uses ERC-1167 clones. Local Hardhat measurement with short
+ *      IPFS URIs: 161,559 gas to create a clone versus 1,567,213 gas for a
+ *      direct token deployment; a sample token transfer cost 2,679 more gas
+ *      through the clone. This saves roughly 1.4m gas per token at creation,
+ *      with break-even around 525 similar interactions. Re-measure the actual
+ *      create/buy/refund mix before reversing the choice; these figures exclude
+ *      the one-time factory deployment and Base's L1 data fee.
+ *
+ *      Both ProjectFactory and CreatorAssuranceContractFactory call the default
+ *      method. To switch future tokens back to direct deployments, change their
+ *      call sites to createPremintingERC1155Direct and redeploy the affected
+ *      factories. Existing tokens cannot change deployment type.
  */
 contract PremintingERC1155Factory {
+  address public immutable implementation;
+
+  constructor() {
+    implementation = address(new PremintingERC1155Clone());
+  }
   /**
    * @notice Emitted when a new PremintingERC1155 contract is created
    */
   event LazyGivingERC1155ContractCreated(address indexed erc1155);
 
   function createPremintingERC1155(
+    address owner,
+    string memory metadataURI,
+    string memory contractURI
+  ) public returns (PremintingERC1155) {
+    address clone = Clones.clone(implementation);
+    PremintingERC1155Clone(clone).initialize(owner, metadataURI, contractURI);
+    PremintingERC1155 t = PremintingERC1155(clone);
+    emit LazyGivingERC1155ContractCreated(address(t));
+    return t;
+  }
+
+  /// @notice Alternative for callers that prefer cheaper ongoing token calls.
+  /// @dev Emits the same event and returns the same interface as the clone path.
+  function createPremintingERC1155Direct(
     address owner,
     string memory metadataURI,
     string memory contractURI

@@ -65,6 +65,36 @@ test('refuses state from a different immutable plan', async () => {
   } finally { await rm(directory, { recursive: true, force: true }); }
 });
 
+test('independent beliefs from one wallet share one transaction', async () => {
+  const directory = await mkdtemp(path.join(tmpdir(), 'campaign-batch-'));
+  const beliefs: PlannedAction[] = [
+    { id: 'belief-1', sequence: 1, type: 'set-belief', actorUserId: 'user-1', statementId: 's1', belief: 'believe', dependsOn: [] },
+    { id: 'belief-2', sequence: 2, type: 'set-belief', actorUserId: 'user-1', statementId: 's2', belief: 'disbelieve', dependsOn: [] },
+    { id: 'belief-3', sequence: 3, type: 'set-belief', actorUserId: 'user-1', statementId: 's1', belief: 'disbelieve', dependsOn: ['belief-1'] },
+  ];
+  const submitted: PlannedAction[][] = [];
+  const batchAdapter: CampaignExecutionAdapter = {
+    estimateNativeCost: async () => 90n,
+    estimateGroupCost: async (group) => 45n + 35n * BigInt(group.length),
+    submit: async (action) => { submitted.push([action]); return `0x${'1'.repeat(64)}` as Hex; },
+    submitGroup: async (group) => { submitted.push([...group]); return `0x${'2'.repeat(64)}` as Hex; },
+    getReceipt: async () => ({ status: 'success', gasUsed: 4n, effectiveGasPrice: 5n }),
+    classifyError: () => ({ retryable: false, category: 'adapter', message: 'no' }),
+  };
+  try {
+    const summary = await executeCampaignPlan({
+      campaignId: 'test', manifestFingerprint: 'fingerprint', actions: beliefs, adapter: batchAdapter,
+      options: { statePath: path.join(directory, 'execution.json'), concurrency: 2, pacingMs: 0, maxRetries: 0, retryBackoffMs: 0, transactionCap: 10, nativeTokenBudget: 1_000n },
+    });
+    assert.equal(summary.mined, 3);
+    assert.equal(summary.transactions, 2);
+    assert.deepEqual(submitted.map((group) => group.map((action) => action.id)), [['belief-1', 'belief-2'], ['belief-3']]);
+    const state = JSON.parse(await readFile(path.join(directory, 'execution.json'), 'utf8')) as { actions: Array<{ nativeCost: string }> };
+    const spent = state.actions.reduce((sum, action) => sum + BigInt(action.nativeCost), 0n);
+    assert.equal(spent, 4n * 5n * 2n);
+  } finally { await rm(directory, { recursive: true, force: true }); }
+});
+
 test('a receipt RPC error never causes duplicate transaction submission', async () => {
   const directory = await mkdtemp(path.join(tmpdir(), 'campaign-receipt-'));
   const submitted: string[] = [];

@@ -69,7 +69,11 @@ async function main() {
     if (!receipt || receipt.status === 0) {
       throw new Error(`${name} acceptOwnership transaction reverted (status 0): ${tx.hash}`);
     }
-    const newOwner = ethers.getAddress(await contract.owner());
+    let newOwner = ethers.getAddress(await contract.owner());
+    for (let attempt = 1; newOwner !== wallet.address && attempt <= 5; attempt++) {
+      await new Promise((resolve) => setTimeout(resolve, 2000 * attempt));
+      newOwner = ethers.getAddress(await contract.owner());
+    }
     if (newOwner !== wallet.address) {
       throw new Error(`${name} acceptOwnership mined (status 1) but owner is still ${newOwner} — unexpected`);
     }

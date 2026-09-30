@@ -94,6 +94,28 @@ export async function disbelieveStatement(
 /**
  * Remove opinion on a statement
  */
+/**
+ * Set several beliefs in one `setBeliefsInBatch` transaction.
+ * `beliefState` is 0 (no opinion), 1 (believes), or 2 (disbelieves).
+ */
+export async function setBeliefsBatch(
+  clients: WriteClients,
+  beliefsContract: BeliefsContract,
+  updates: readonly { statementCid: IpfsCidV1; beliefState: number }[],
+): Promise<Hash> {
+  if (updates.length === 0) throw new Error('setBeliefsBatch requires at least one belief');
+  const hash = await clients.walletClient.writeContract({
+    address: beliefsContract.address,
+    abi: beliefsContract.abi,
+    functionName: 'setBeliefsInBatch',
+    args: [updates.map((update) => cidToBytes32(update.statementCid)), updates.map((update) => update.beliefState)],
+    chain: clients.walletClient.chain,
+    account: clients.walletClient.account!,
+  });
+  await clients.publicClient.waitForTransactionReceipt({ hash });
+  return hash;
+}
+
 export async function clearOpinion(
   clients: WriteClients,
   beliefsContract: BeliefsContract,

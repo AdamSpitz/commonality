@@ -75,3 +75,25 @@ contract PremintingERC1155 is Ownable, ERC1155, ERC1155Burnable, ERC7572 {
     super._update(from, to, ids, values);
   }
 }
+
+/// @notice ERC-1167 implementation. Each clone has independent ERC1155 and ownership storage.
+/// @dev The implementation's constructor locks its own initializer; clones start
+///      with empty storage. The flag remains set after renounceOwnership, so the
+///      project's irreversible ownership renunciation cannot reopen initialization.
+contract PremintingERC1155Clone is PremintingERC1155 {
+  error AlreadyInitialized();
+  bool private _initialized;
+
+  constructor() PremintingERC1155(msg.sender, "", "") {
+    _initialized = true;
+  }
+
+  function initialize(address initialOwner, string memory initialURI, string memory initialContractURI) external {
+    if (_initialized) revert AlreadyInitialized();
+    if (initialOwner == address(0)) revert OwnableInvalidOwner(address(0));
+    _initialized = true;
+    _transferOwnership(initialOwner);
+    _setURI(initialURI);
+    _contractURI = initialContractURI;
+  }
+}

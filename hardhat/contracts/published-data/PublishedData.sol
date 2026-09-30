@@ -19,6 +19,7 @@ pragma solidity 0.8.33;
  */
 contract PublishedData {
     error EmptyContent();
+    error EmptyBatch();
 
     mapping(address => mapping(bytes32 => bool)) private publications;
     mapping(address => mapping(bytes32 => bool)) private retractions;
@@ -41,6 +42,22 @@ contract PublishedData {
         publications[msg.sender][dataId] = true;
 
         emit DataPublished(msg.sender, dataId);
+    }
+
+    /**
+     * @notice Publish several contents in one transaction.
+     * @dev Each item is stored and logged exactly as `publishData` would. `msg.sender` stays the
+     *      publisher, which a Multicall wrapper would not. Calldata still carries every byte.
+     */
+    function publishDataBatch(bytes[] calldata contents) external {
+        if (contents.length == 0) revert EmptyBatch();
+        for (uint256 i = 0; i < contents.length; i++) {
+            bytes calldata content = contents[i];
+            if (content.length == 0) revert EmptyContent();
+            bytes32 dataId = sha256(content);
+            publications[msg.sender][dataId] = true;
+            emit DataPublished(msg.sender, dataId);
+        }
     }
 
     /**

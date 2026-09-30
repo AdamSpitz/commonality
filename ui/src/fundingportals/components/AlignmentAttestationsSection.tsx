@@ -38,9 +38,10 @@ interface AlignmentQueueItem {
 interface Props {
   projectAddress: string
   initialStatementCid?: string
+  statementRoutePrefix?: string
 }
 
-export function AlignmentAttestationsSection({ projectAddress, initialStatementCid }: Props) {
+export function AlignmentAttestationsSection({ projectAddress, initialStatementCid, statementRoutePrefix = '/portal' }: Props) {
   const machinery = useMachinery()
   const { address, isConnected } = useAccount()
   const writeClients = useWriteClients(address)
@@ -295,7 +296,7 @@ export function AlignmentAttestationsSection({ projectAddress, initialStatementC
                 <Box>
                   <Typography
                     component={RouterLink}
-                    to={`/portal/${a.statementCid}`}
+                    to={`${statementRoutePrefix}/${a.statementCid}`}
                     variant="body1"
                     sx={{ textDecoration: 'none', color: 'primary.main', '&:hover': { textDecoration: 'underline' } }}
                   >
@@ -329,7 +330,7 @@ export function AlignmentAttestationsSection({ projectAddress, initialStatementC
             {successes.map((a) => (
               <Box key={`success-${a.attester}-${a.statementCid}`} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', p: 1.5, border: '1px solid', borderColor: 'divider', borderRadius: 1 }}>
                 <Box>
-                  <Typography component={RouterLink} to={`/portal/${a.statementCid}`} variant="body1" sx={{ textDecoration: 'none', color: 'primary.main', '&:hover': { textDecoration: 'underline' } }}>
+                  <Typography component={RouterLink} to={`${statementRoutePrefix}/${a.statementCid}`} variant="body1" sx={{ textDecoration: 'none', color: 'primary.main', '&:hover': { textDecoration: 'underline' } }}>
                     {a.statementTitle || `Statement ${a.statementCid.slice(0, 12)}...`}
                   </Typography>
                   <Typography variant="caption" color="text.secondary" display="block">

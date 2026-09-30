@@ -41,6 +41,48 @@ function defaultProjectParams(owner, recipient, paymentToken, deadline) {
 }
 
 describe('ProjectFactory', function () {
+  it('creates isolated receipt-token clones and initializes each exactly once', async function () {
+    const [owner, other] = await ethers.getSigners();
+    const factory = await ethers.deployContract('PremintingERC1155Factory');
+    const implementation = await factory.implementation();
+    const firstTx = await factory.createPremintingERC1155(owner.address, 'ipfs://first/{id}', 'ipfs://first-contract');
+    const secondTx = await factory.createPremintingERC1155(other.address, 'ipfs://second/{id}', 'ipfs://second-contract');
+    const created = async (tx) => {
+      const receipt = await tx.wait();
+      const event = receipt.logs.map(log => { try { return factory.interface.parseLog(log); } catch { return null; } })
+        .find(log => log?.name === 'LazyGivingERC1155ContractCreated');
+      return ethers.getContractAt('PremintingERC1155Clone', event.args.erc1155);
+    };
+    const first = await created(firstTx);
+    const second = await created(secondTx);
+
+    expect(first.target).to.not.equal(second.target);
+    expect(await ethers.provider.getCode(first.target)).to.contain(implementation.slice(2).toLowerCase());
+    expect(await first.owner()).to.equal(owner.address);
+    expect(await first.uri(1n)).to.equal('ipfs://first/{id}');
+    expect(await first.contractURI()).to.equal('ipfs://first-contract');
+    expect(await second.owner()).to.equal(other.address);
+    expect(await second.uri(1n)).to.equal('ipfs://second/{id}');
+    await first.connect(owner).mintBatch(owner.address, [1n], [2n]);
+    expect(await second.balanceOf(owner.address, 1n)).to.equal(0n);
+    await expect(first.initialize(other.address, 'evil', 'evil')).to.be.revertedWithCustomError(first, 'AlreadyInitialized');
+    await expect(second.initialize(owner.address, 'evil', 'evil')).to.be.revertedWithCustomError(second, 'AlreadyInitialized');
+    await first.connect(owner).renounceOwnership();
+    await expect(first.initialize(other.address, 'evil', 'evil')).to.be.revertedWithCustomError(first, 'AlreadyInitialized');
+    const implementationToken = await ethers.getContractAt('PremintingERC1155Clone', implementation);
+    await expect(implementationToken.initialize(owner.address, 'evil', 'evil'))
+      .to.be.revertedWithCustomError(implementationToken, 'AlreadyInitialized');
+    await expect(factory.createPremintingERC1155(ethers.ZeroAddress, '', '')).to.be.reverted;
+
+    const direct = await created(await factory.createPremintingERC1155Direct(
+      owner.address, 'ipfs://direct/{id}', 'ipfs://direct-contract',
+    ));
+    expect(await direct.owner()).to.equal(owner.address);
+    expect(await direct.uri(1n)).to.equal('ipfs://direct/{id}');
+    expect(await direct.contractURI()).to.equal('ipfs://direct-contract');
+    expect(await ethers.provider.getCode(direct.target)).to.not.contain(implementation.slice(2).toLowerCase());
+  });
+
   it('creates and fully wires a threshold project', async function () {
     const [creator, owner, recipient] = await ethers.getSigners();
     const paymentToken = await ethers.deployContract('FreeERC20', ['USD Coin', 'USDC', 6]);

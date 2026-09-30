@@ -18,12 +18,15 @@ import {
   getAddress,
   size,
   slice,
+  toFunctionSelector,
   type Address,
   type Hex,
 } from 'viem';
 
 /** `publishData(bytes)`. Asserted against the real ABI by the hardhat fixture runner. */
 export const PUBLISH_DATA_SELECTOR = '0x8a82e7b6';
+/** `publishDataBatch(bytes[])`. Same recovery rules, one publication per item. */
+export const PUBLISH_DATA_BATCH_SELECTOR = toFunctionSelector('publishDataBatch(bytes[])');
 const KERNEL_EXECUTE_SELECTOR = '0xe9ae5c53'; // execute(bytes32,bytes)
 const HANDLE_OPS_SELECTOR = '0x765e827f'; // handleOps((address,uint256,bytes,bytes,bytes32,uint256,bytes32,bytes,bytes)[],address)
 const AGGREGATE3_SELECTOR = '0x82ad56cb'; // aggregate3((address,bool,bytes)[])
@@ -43,6 +46,14 @@ const publishDataAbi = [{
   stateMutability: 'nonpayable',
   inputs: [{ name: 'content', type: 'bytes' }],
   outputs: [{ name: 'dataId', type: 'bytes32' }],
+}] as const;
+
+const publishDataBatchAbi = [{
+  type: 'function',
+  name: 'publishDataBatch',
+  stateMutability: 'nonpayable',
+  inputs: [{ name: 'contents', type: 'bytes[]' }],
+  outputs: [],
 }] as const;
 
 const kernelExecuteAbi = [{
@@ -168,6 +179,13 @@ export function extractPublications(
     if (!selector || !to) return;
 
     if (to.toLowerCase() === target) {
+      if (selector === PUBLISH_DATA_BATCH_SELECTOR) {
+        const [contents] = decodeFunctionData({ abi: publishDataBatchAbi, data }).args;
+        contents.forEach((content, index) => {
+          publications.push({ path: `${path}.publishDataBatch[${index}]`, publisher: getAddress(caller), content });
+        });
+        return;
+      }
       if (selector !== PUBLISH_DATA_SELECTOR) return; // e.g. retractData; not a content carrier
       const [content] = decodeFunctionData({ abi: publishDataAbi, data }).args;
       publications.push({ path, publisher: getAddress(caller), content });

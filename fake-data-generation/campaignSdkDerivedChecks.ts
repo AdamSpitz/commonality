@@ -43,6 +43,33 @@ function check(name: string, expected: DerivedCheck['expected'], actual: Derived
   return { name, expected, actual };
 }
 
+function memoizeCampaignSdkQueries(queries: CampaignSdkQueries): CampaignSdkQueries {
+  const remember = <T>(key: string, load: () => Promise<T>, cache: Map<string, Promise<T>>): Promise<T> => {
+    const cached = cache.get(key);
+    if (cached) return cached;
+    const pending = load().catch((error: unknown) => {
+      cache.delete(key);
+      throw error;
+    });
+    cache.set(key, pending);
+    return pending;
+  };
+  const beliefs = new Map<string, Promise<number>>();
+  const implications = new Map<string, Promise<boolean>>();
+  const refs = new Map<string, Promise<MutableRef[]>>();
+  const projects = new Map<string, Promise<Project | null>>();
+  const alignments = new Map<string, Promise<boolean>>();
+  const notes = new Map<string, Promise<Note | null>>();
+  return {
+    getUserBelief: (user, statement) => remember(`${user}/${statement}`, () => queries.getUserBelief(user, statement), beliefs),
+    hasImplication: (attester, from, to) => remember(`${attester}/${from}/${to}`, () => queries.hasImplication(attester, from, to), implications),
+    getRefsByName: (name) => remember(name, () => queries.getRefsByName(name), refs),
+    getProject: (address) => remember(address.toLowerCase(), () => queries.getProject(address), projects),
+    hasAlignment: (attester, project, statement) => remember(`${attester}/${project}/${statement}`, () => queries.hasAlignment(attester, project, statement), alignments),
+    getNote: (noteId) => remember(noteId.toLowerCase(), () => queries.getNote(noteId), notes),
+  };
+}
+
 /**
  * Build SDK-fold checks against the campaign's final intended state. Historical
  * writes to the same belief, project, or note deliberately share the final
@@ -56,7 +83,7 @@ export function createCampaignSdkDerivedCheckProvider(input: {
 }): CampaignDerivedCheckProvider {
   const { plan, bindings } = input;
   validateRuntimeBindings(plan, bindings, { complete: true });
-  const queries = input.queries ?? realSdkQueries(input.machinery);
+  const queries = memoizeCampaignSdkQueries(input.queries ?? realSdkQueries(input.machinery));
   const latestBelief = new Map<string, PlannedAction>();
   const latestNoteAction = new Map<string, PlannedAction>();
   const fundingByProject = new Map<string, bigint>();

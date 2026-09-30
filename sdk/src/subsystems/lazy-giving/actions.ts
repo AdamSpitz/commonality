@@ -396,6 +396,8 @@ export async function buyProjectTokens(
     totalCost: bigint;
     /** Submit a required approval and purchase as one EIP-5792 atomic batch. */
     batchApproval?: boolean;
+    /** Wait for this many confirmations before spending a newly approved allowance. */
+    approvalConfirmations?: number;
   }
 ): Promise<Hash> {
   // @ts-expect-error - viem type inference issue with readContract
@@ -415,7 +417,13 @@ export async function buyProjectTokens(
       { to: assuranceContract.address, abi: assuranceContract.abi, functionName: 'buyERC1155', args: buyArgs },
     ]);
   }
-  if (!hasAllowance) await approveERC20Spend(clients, paymentToken, assuranceContract.address, params.totalCost);
+  if (!hasAllowance) {
+    const approvalHash = await approveERC20Spend(clients, paymentToken, assuranceContract.address, params.totalCost);
+    if ((params.approvalConfirmations ?? 1) > 1) {
+      const receipt = await clients.publicClient.waitForTransactionReceipt({ hash: approvalHash, confirmations: params.approvalConfirmations });
+      if (receipt.status !== 'success') throw new Error(`ERC20 approval reverted: ${approvalHash}`);
+    }
+  }
 
   const hash = await clients.walletClient.writeContract({
     address: assuranceContract.address,

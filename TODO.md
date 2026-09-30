@@ -14,6 +14,10 @@ Getting **testnet to a two-person shared lab** is also a standing plan, not a pi
 
 ----
 
+- **(Tell)** Give campaign projects a short title and description. Create-project publishes `planned.title` and `planned.outcome` as the display name and description, and the live project page repeats the full outcome statement in both. The statement page also reports that the noninflammatory meta-statement is not configured, so civility attestations cannot be checked on testnet. Seen again on the republished testnet bundle (`assets/index-D3p1LkpC.js`): project `0x847B3d4e…` uses the long statement as its title, and `#/statement/bafybeidp4jh…` still says the meta-statement is not configured. Report: [`fake-data-generation/campaigns/medium-realistic-v1-testnet-run.md`](fake-data-generation/campaigns/medium-realistic-v1-testnet-run.md).
+
+- **(Tell)** Publish one or two official-attester implications so the empty testnet graph is retired for real. `./scripts/verifier-testnet.sh` still fails `testnet.app-config` because `VITE_DEFAULT_TRUSTED_ATTESTERS` `0x021b3C…` has no `ImplicationAttestation`s. Sign those from already-accepted pairs with the official attester. Do not mint a dummy attestation just to green the check, and do not treat the idle attester as a reason the lab or the campaign is down. The 10-, 25-, and 100-user stages are already reconciled without this slice. Plan: [`fake-data-generation/TESTNET-SIMULATION-PLAN.md`](fake-data-generation/TESTNET-SIMULATION-PLAN.md) (readiness gate). Lab note: [`workflow/testnet-working-plan.md`](workflow/testnet-working-plan.md).
+
 - **(Tell)** Next fake-data/seed-data step lives in [`fake-data-generation/PLAN.md`](fake-data-generation/PLAN.md). Abortion, immigration, crime, and LGBT-schools triples are accepted; next is the demo-seed live UI pass.
 
 - **(Tell)** Next testnet-lab step lives in [`workflow/testnet-working-plan.md`](workflow/testnet-working-plan.md). Shared lab is up through item 8. Next unchecked is item 9 (Ask: nightly mutation flag). Human leftovers: [`inbox.md`](inbox.md) and [`testnet-prep.md`](testnet-prep.md). Do not mix with mass fake activity or mainnet.

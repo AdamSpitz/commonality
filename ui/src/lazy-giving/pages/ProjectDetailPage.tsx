@@ -46,6 +46,7 @@ export type ProjectDetailPageProps = {
   variant?: 'detail' | 'leaderboard'
   /** Commonality may carry a board-level preferred delegatable note into allocation. */
   preferredMoneySourceKey?: string
+  statementRoutePrefix?: string
 }
 
 export function ProjectLeaderboardPage() {
@@ -57,6 +58,7 @@ export function ProjectDetailPage({
   listLabel = 'Back to projects',
   variant = 'detail',
   preferredMoneySourceKey,
+  statementRoutePrefix,
 }: ProjectDetailPageProps = {}) {
   const { projectAddress } = useParams<{ projectAddress: string }>()
   const [searchParams] = useSearchParams()
@@ -496,7 +498,7 @@ export function ProjectDetailPage({
 
       {projectContractAddress && (
         <>
-          <AlignmentAttestationsSection projectAddress={projectContractAddress} initialStatementCid={causeCid} />
+          <AlignmentAttestationsSection projectAddress={projectContractAddress} initialStatementCid={causeCid} statementRoutePrefix={statementRoutePrefix} />
           <ContentFundingProjectSection projectAddress={projectContractAddress} />
         </>
       )}

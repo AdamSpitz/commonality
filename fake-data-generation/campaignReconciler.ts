@@ -26,6 +26,26 @@ export interface CampaignReconciliationOptions { settlingWindowMs: number; pollI
 const statuses: ReconciliationStatus[] = ['verified', 'pending', 'missing', 'duplicate', 'derived-mismatch', 'not-mined'];
 const emptyCounts = (): Record<ReconciliationStatus, number> => Object.fromEntries(statuses.map((status) => [status, 0])) as Record<ReconciliationStatus, number>;
 const delay = (milliseconds: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, milliseconds));
+const RECONCILE_CONCURRENCY = 8;
+
+async function mapPool<T, R>(items: readonly T[], limit: number, run: (item: T, index: number) => Promise<R>): Promise<R[]> {
+  const results = new Array<R>(items.length);
+  let next = 0;
+  const worker = async (): Promise<void> => {
+    while (next < items.length) {
+      const index = next;
+      next += 1;
+      results[index] = await run(items[index], index);
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, () => worker()));
+  return results;
+}
+
+function isTransientFetchError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+  return message.includes('fetch failed') || message.includes('ECONNRESET') || message.includes('ETIMEDOUT');
+}
 
 export async function reconcileCampaign(input: { actions: readonly PlannedAction[]; execution: CampaignExecutionState; adapter: CampaignReconciliationAdapter; options: CampaignReconciliationOptions }): Promise<CampaignReconciliationReport> {
   const { actions, execution, adapter, options } = input;
@@ -33,10 +53,11 @@ export async function reconcileCampaign(input: { actions: readonly PlannedAction
   if (actions.length === 0) throw new Error('cannot reconcile an empty campaign plan');
   if (execution.actions.length !== actions.length || execution.actions.some((record, index) => record.actionId !== actions[index]?.id)) throw new Error('execution state action list does not match reconciliation plan');
   const now = options.now ?? (() => new Date()); const sleep = options.sleep ?? delay; const started = now().getTime();
-  let observations: ActionReconciliation[] = []; let chainHead = 0n; let indexerHead = 0n;
+  let observations: ActionReconciliation[] = []; let chainHead = 0n; let indexerHead = 0n; let fetchAttempts = 0;
   for (;;) {
     [chainHead, indexerHead] = await Promise.all([adapter.getChainHead(), adapter.getIndexerHead()]);
-    observations = await Promise.all(actions.map(async (action, index): Promise<ActionReconciliation> => {
+    try {
+      observations = await mapPool(actions, RECONCILE_CONCURRENCY, async (action, index): Promise<ActionReconciliation> => {
       const record = execution.actions[index];
       if (record.status !== 'mined' || !record.transactionHash) return { actionId: action.id, type: action.type, status: 'not-mined', indexedMatches: [], derivedChecks: [] };
       const [indexedMatches, derivedChecks] = await Promise.all([adapter.findIndexedAction(action, record.transactionHash), adapter.getDerivedChecks(action)]);
@@ -47,7 +68,13 @@ export async function reconcileCampaign(input: { actions: readonly PlannedAction
       const indexedAt = indexedMatches[0]?.indexedAt ? Date.parse(indexedMatches[0].indexedAt) : undefined;
       const minedAt = record.minedAt ? Date.parse(record.minedAt) : undefined;
       return { actionId: action.id, type: action.type, status, transactionHash: record.transactionHash, indexedMatches, derivedChecks, ...(indexedAt !== undefined && minedAt !== undefined ? { indexLatencyMs: Math.max(0, indexedAt - minedAt) } : {}) };
-    }));
+    });
+    } catch (error) {
+      if (!isTransientFetchError(error) || fetchAttempts >= 8) throw error;
+      fetchAttempts += 1;
+      await sleep(2_000);
+      continue;
+    }
     if (!observations.some((item) => item.status === 'pending') || now().getTime() - started >= options.settlingWindowMs) break;
     await sleep(options.pollIntervalMs);
   }

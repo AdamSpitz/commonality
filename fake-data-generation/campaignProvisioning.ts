@@ -3,19 +3,16 @@ import path from 'node:path';
 import { parseEther, type Address, type Hex } from 'viem';
 import type { CampaignContracts, CampaignEnvironment, CampaignWalletBinding } from './campaignEnvironment.js';
 import type { CampaignPlan, PlannedAction } from './campaignPlanner.js';
+import { estimateGroupGas, groupCampaignWrites } from './campaignBatching.js';
 import { campaignFundProjectCost } from './paymentTokenUnits.js';
 import { createSeedClients } from './seedRpc.js';
 
-const GAS_UNITS: Record<PlannedAction['type'], bigint> = {
-  'publish-statement': 180_000n, 'create-cause': 120_000n, 'set-belief': 90_000n,
-  'attest-implication': 130_000n, 'create-project': 1_100_000n, 'attest-alignment': 130_000n,
-  'fund-project': 180_000n, 'deposit-note': 150_000n, 'delegate-note': 100_000n, 'revoke-delegation': 90_000n,
-};
-
 const DEFAULT_GAS_PRICE = 1_000_000_000n;
-// Slack on top of the per-action gas estimate, not a spending allowance.
-// 0.05 ETH per wallet made a 10-user canary look like it needed ~1 ETH.
-const NATIVE_BUFFER_WEI = parseEther('0.001');
+// Keep a small floor for transaction price changes, then scale headroom with
+// the work assigned to each wallet. A fixed 0.001 ETH per user strands 0.1 ETH
+// in a 100-user run before accounting for any actual transaction cost.
+const MIN_GAS_BUFFER_WEI = parseEther('0.0001');
+const GAS_BUFFER_PERCENT = 25n;
 
 
 export const PAYMENT_TOKEN_FUNDING_ABI = [
@@ -77,27 +74,46 @@ export interface CampaignFundingChain {
   mintToken?(to: Address, amount: bigint): Promise<Hex>;
 }
 
-function noteDepositWei(action: PlannedAction): bigint {
-  return parseEther((Math.max(1, action.amount ?? 1) / 100_000).toString());
+/**
+ * ETH locked in each synthetic delegatable note. The planner's persona integer
+ * stays on the action for the campaign story; DelegatableNotes only requires
+ * msg.value > 0. Provisioning and depositETH both use this so the funder quote
+ * matches what the chain locks. Delegation of the full note uses the same value.
+ */
+export const CAMPAIGN_NOTE_WEI = 1n;
+
+export function campaignNoteWei(_action: PlannedAction): bigint {
+  return CAMPAIGN_NOTE_WEI;
 }
 
-export function computeCampaignFundingNeeds(plan: CampaignPlan, wallets: readonly CampaignWalletBinding[], gasPrice = DEFAULT_GAS_PRICE): CampaignWalletNeed[] {
+export function computeCampaignFundingNeeds(plan: CampaignPlan, wallets: readonly CampaignWalletBinding[], gasPrice = DEFAULT_GAS_PRICE, options: { batchPublishes?: boolean } = {}): CampaignWalletNeed[] {
   const users = new Map(plan.users.map((user) => [user.id, user]));
   const bySlot = new Map<string, CampaignWalletNeed>();
+  const gasBySlot = new Map<string, bigint>();
   for (const wallet of wallets) {
-    bySlot.set(wallet.walletSlot, { walletSlot: wallet.walletSlot, address: wallet.address, nativeWei: NATIVE_BUFFER_WEI, paymentTokenUnits: 0n });
+    bySlot.set(wallet.walletSlot, { walletSlot: wallet.walletSlot, address: wallet.address, nativeWei: 0n, paymentTokenUnits: 0n });
   }
   const fundCost = campaignFundProjectCost();
-  for (const action of plan.actions) {
-    const user = action.actorUserId ? users.get(action.actorUserId) : undefined;
+  for (const group of groupCampaignWrites(plan.actions, options)) {
+    const actorUserId = group[0].actorUserId;
+    const user = actorUserId ? users.get(actorUserId) : undefined;
     if (!user) continue;
     const need = bySlot.get(user.walletSlot);
     if (!need) continue;
-    need.nativeWei += GAS_UNITS[action.type] * gasPrice;
-    if (action.type === 'deposit-note') need.nativeWei += noteDepositWei(action);
-    if (action.type === 'fund-project') need.paymentTokenUnits += fundCost;
+    const gasWei = estimateGroupGas(group) * gasPrice;
+    need.nativeWei += gasWei;
+    gasBySlot.set(user.walletSlot, (gasBySlot.get(user.walletSlot) ?? 0n) + gasWei);
+    for (const action of group) {
+      if (action.type === 'deposit-note') need.nativeWei += campaignNoteWei(action);
+      if (action.type === 'fund-project') need.paymentTokenUnits += fundCost;
+    }
   }
-  return [...bySlot.values()];
+  return [...bySlot.values()].map((need) => {
+    // Deposits are principal, not gas; apply the percentage only to estimated gas.
+    const gasWei = gasBySlot.get(need.walletSlot) ?? 0n;
+    const bufferWei = gasWei > 0n ? MIN_GAS_BUFFER_WEI + gasWei * GAS_BUFFER_PERCENT / 100n : 0n;
+    return { ...need, nativeWei: need.nativeWei + bufferWei };
+  });
 }
 
 export async function provisionCampaignWallets(input: {
@@ -106,11 +122,13 @@ export async function provisionCampaignWallets(input: {
   wallets: readonly CampaignWalletBinding[];
   chain: CampaignFundingChain;
   ledgerPath: string;
+  batchPublishes?: boolean;
+  gasPrice?: bigint;
 }): Promise<CampaignFundingLedger> {
   if (input.environment.mode === 'remote' && input.wallets.some((wallet) => wallet.source === 'hardhat')) {
     throw new Error('remote campaign provisioning refuses Hardhat wallets');
   }
-  const needs = computeCampaignFundingNeeds(input.plan, input.wallets);
+  const needs = computeCampaignFundingNeeds(input.plan, input.wallets, input.gasPrice, { batchPublishes: input.batchPublishes });
   const ledger: CampaignFundingLedger = {
     campaignId: input.plan.campaignId,
     mode: input.environment.mode,
