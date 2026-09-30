@@ -49,7 +49,7 @@ Standing index: [`workflow/testnet-working-plan.md`](workflow/testnet-working-pl
 
 - **Sponsored-gas live UI walk** — see Testing below.
 
-- **[ ] (Ask) Nightly mutation flag** — after a few quiet days, set `COMMONALITY_VERIFIER_NIGHTLY_ALLOW_TESTNET_MUTATION=1` in the cadence shell (working-plan item 8). Do not set it yet.
+- **[x] Nightly mutation flag** — 2026-09-30, exported by `scripts/verifier-nightly-deep-cadence.sh` (not `.env`; fresh-seeded rewrites that file). Working-plan item 9. The canary write is `testnet.onchain-to-indexer` only.
 
 - **Cloudflare leftovers** (UIs already work via `*.testnet.commonality.works`): zone/DNSLink and `services.testnet.commonality.works` gateway. Unchecked boxes in [`testnet-prep.md`](testnet-prep.md).
 
