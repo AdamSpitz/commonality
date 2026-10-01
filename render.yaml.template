@@ -76,7 +76,8 @@ services:
       - key: EVENT_CACHE_URL
         value: https://commonality-indexer.onrender.com
       - key: STATE_FILE
-        value: /data/coherence-badge-worker.base-sepolia.json
+        # v2 replays refs missed while Render pointed PublishedData at an old contract.
+        value: /data/coherence-badge-worker.base-sepolia.v2.json
       - key: CONFIRMATIONS
         value: "12"
       - key: BLOCK_RANGE
