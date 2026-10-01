@@ -136,6 +136,7 @@ describe('AlignmentAttestationsSection', () => {
       render(<AlignmentAttestationsSection projectAddress={PROJECT_ADDR} />)
 
       expect(screen.getByRole('progressbar')).toBeInTheDocument()
+      expect(screen.getByLabelText('About Project Vouches')).toBeInTheDocument()
     })
   })
 

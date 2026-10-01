@@ -12,6 +12,8 @@ import type { CampaignReconciliationAdapter, DerivedCheck, IndexedActionMatch } 
 export const CAMPAIGN_ACTION_EVENTS: Record<CampaignActionType, readonly string[]> = {
   'publish-statement': ['DataPublished'],
   'create-cause': ['RefUpdated'],
+  'create-bridge-board': ['RefUpdated'],
+  'create-bridge': ['RefUpdated'],
   'set-belief': ['DirectSupport'],
   'attest-implication': ['ImplicationAttestation'],
   'create-project': ['ProjectCreated'],

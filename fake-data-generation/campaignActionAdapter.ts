@@ -1,4 +1,4 @@
-import type { Address, Hex, PublicClient } from 'viem';
+import { getAddress, type Address, type Hex, type PublicClient } from 'viem';
 import { parseUnits } from 'viem';
 import {
   AlignmentAttestationsAbi,
@@ -22,10 +22,11 @@ import type { IpfsCidV1, WriteClients } from '@commonality/sdk/utils';
 import type { CampaignContracts, CampaignWalletBinding } from './campaignEnvironment.js';
 import type { CampaignExecutionAdapter, CampaignReceipt } from './campaignExecutor.js';
 import { estimateGroupGas } from './campaignBatching.js';
+import { causeBoardSummary } from './campaignCopy.js';
 import type { CampaignPlan, PlannedAction, PlannedProject } from './campaignPlanner.js';
 import type { CampaignRuntimeBindings } from './campaignRuntimeBindings.js';
 import { writeRuntimeBindings } from './campaignRuntimeBindings.js';
-import { buildSeedRosterDocument } from './seedCauseRoster.js';
+import { buildSeedClusterDocument, buildSeedRosterDocument } from './seedCauseRoster.js';
 import { createSeedClients } from './seedRpc.js';
 import { campaignFundProjectCost, getPaymentTokenDecimals } from './paymentTokenUnits.js';
 import { campaignNoteWei } from './campaignProvisioning.js';
@@ -57,11 +58,48 @@ function requireBound<T>(value: T | undefined, label: string): T {
   return value;
 }
 
+export function campaignRunPublications(plan: CampaignPlan, bindings: CampaignRuntimeBindings): {
+  causeBoards: Array<{ title: string; role: string; owner: Address; slug: string; path: string }>;
+  bridges: Array<{ title: string; owner: Address; slug: string; path: string }>;
+} {
+  const causeBoards = [];
+  const bridges = [];
+  for (const action of plan.actions) {
+    if (action.type === 'create-cause' || action.type === 'create-bridge-board') {
+      const binding = bindings.causes[action.boardId ?? action.causeId ?? ''];
+      if (!binding) continue;
+      causeBoards.push({
+        title: action.board?.title ?? action.causeId ?? binding.refName,
+        role: action.board?.role ?? 'plain',
+        owner: binding.owner,
+        slug: binding.refName,
+        path: `/cause/${binding.owner}/${binding.refName}`,
+      });
+    }
+    if (action.type === 'create-bridge' && action.causeId && action.bridge) {
+      const binding = bindings.bridges?.[action.causeId];
+      if (!binding) continue;
+      bridges.push({
+        title: `${action.causeId} bridge`,
+        owner: binding.owner,
+        slug: binding.refName,
+        path: `/bridge/${binding.owner}/${binding.refName}`,
+      });
+    }
+  }
+  return { causeBoards, bridges };
+}
+
 export function applySubmittedBindings(bindings: CampaignRuntimeBindings, action: PlannedAction, write: CampaignSubmittedWrite, actor: Address, now: Date): void {
   bindings.updatedAt = now.toISOString();
   if (action.actorUserId) bindings.users[action.actorUserId] = actor;
   if (action.statementId && write.statementCid) bindings.statements[action.statementId] = write.statementCid;
-  if (action.causeId && write.cause) bindings.causes[action.causeId] = write.cause;
+  if (action.type === 'create-bridge' && action.causeId && write.cause) {
+    bindings.bridges ??= {};
+    bindings.bridges[action.causeId] = write.cause;
+  } else if ((action.type === 'create-cause' || action.type === 'create-bridge-board') && write.cause) {
+    bindings.causes[action.boardId ?? action.causeId!] = write.cause;
+  }
   if (action.projectId && write.project) bindings.projects[action.projectId] = write.project.assurance;
   if (action.noteId && write.note) bindings.notes[action.noteId] = write.note;
 }
@@ -147,6 +185,39 @@ export function createLiveCampaignActionWriter(input: {
   });
   const noteAmount = (action: PlannedAction) => campaignNoteWei(action);
 
+  async function publishBoard(action: PlannedAction, clients: WriteClients): Promise<CampaignSubmittedWrite> {
+    const board = action.board;
+    const plankIds = board
+      ? board.statementIds
+      : input.plan.statements.filter((item) => item.causeId === action.causeId).map((item) => item.id);
+    const title = board?.title ?? action.causeId ?? 'campaign-cause';
+    const summary = board?.summary ?? causeBoardSummary(title);
+    const refName = board?.slug ?? `campaign-${input.plan.campaignId}-${action.causeId}`;
+    const parent = board?.parentBoardId
+      ? {
+        owner: requireBound(input.bindings.causes[board.parentBoardId], `parent board ${board.parentBoardId}`).owner,
+        slug: requireBound(input.plan.actions.find((item) => item.boardId === board.parentBoardId)?.board, `parent board ${board.parentBoardId}`).slug,
+      }
+      : undefined;
+    const narrowed = board?.role === 'modified-left' || board?.role === 'modified-right' || board?.role === 'commonality';
+    const rosterCid = (await storeFor(clients).publish(buildSeedRosterDocument({
+      title,
+      summary,
+      plankCids: plankIds.map((id) => statementCid(id)),
+      mediatorBlurb: '',
+      ...(narrowed && board?.clusterSlug ? {
+        bridgeCluster: {
+          clusterOwner: clients.account,
+          clusterSlug: board.clusterSlug,
+          role: board.role === 'commonality' ? 'bridge' as const : 'modified' as const,
+          ...(parent ? { parentOwner: parent.owner, parentSlug: parent.slug } : {}),
+        },
+      } : {}),
+    }))).cid;
+    const hash = await updateRef(clients, { address: input.contracts.mutableRefUpdater, abi: MutableRefUpdaterAbi }, refName, rosterCid);
+    return { hash, cause: { owner: clients.account, refName, rosterCid } };
+  }
+
   const handlers: Record<PlannedAction['type'], (action: PlannedAction, clients: WriteClients) => Promise<CampaignSubmittedWrite>> = {
     async 'publish-statement'(action, clients) {
       const planned = requireBound(statements.get(action.statementId!), `statement ${action.statementId}`);
@@ -156,14 +227,47 @@ export function createLiveCampaignActionWriter(input: {
       return { hash: publication.txHash, statementCid: publication.cid };
     },
     async 'create-cause'(action, clients) {
-      const plankCids = input.plan.statements.filter((item) => item.causeId === action.causeId).map((item) => statementCid(item.id));
-      const title = action.causeId ?? 'campaign-cause';
-      const rosterCid = (await storeFor(clients).publish(buildSeedRosterDocument({
-        title, summary: `SYNTHETIC TESTNET CAMPAIGN cause ${title}`, plankCids, mediatorBlurb: '',
+      return publishBoard(action, clients);
+    },
+    async 'create-bridge-board'(action, clients) {
+      return publishBoard(action, clients);
+    },
+    async 'create-bridge'(action, clients) {
+      const bridge = requireBound(action.bridge, `bridge ${action.causeId}`);
+      const boardAction = (boardId: string) => requireBound(
+        input.plan.actions.find((item) => item.boardId === boardId && item.board),
+        `board ${boardId}`,
+      );
+      const bound = (boardId: string) => requireBound(input.bindings.causes[boardId], `board binding ${boardId}`);
+      const ref = (boardId: string) => {
+        const planned = boardAction(boardId);
+        const published = bound(boardId);
+        return { owner: getAddress(published.owner), slug: planned.board!.slug };
+      };
+      const naturalLeft = ref(bridge.boardIds.naturalLeft);
+      const naturalRight = ref(bridge.boardIds.naturalRight);
+      const modifiedLeft = ref(bridge.boardIds.modifiedLeft);
+      const modifiedRight = ref(bridge.boardIds.modifiedRight);
+      const commonality = ref(bridge.boardIds.commonality);
+      const pair = (fromId: string, toId: string) => ({
+        fromCid: statementCid(boardAction(fromId).board!.statementIds[0]),
+        toCid: statementCid(boardAction(toId).board!.statementIds[0]),
+        role: 'modified-to-bridge' as const,
+      });
+      const clusterCid = (await storeFor(clients).publish(buildSeedClusterDocument({
+        mediatorName: bridge.mediatorName,
+        mediatorNote: bridge.mediatorNote,
+        mediatorAddress: getAddress(clients.account).toLowerCase() as `0x${string}`,
+        parents: [naturalLeft, naturalRight],
+        modified: [
+          { ...modifiedLeft, parentOwner: naturalLeft.owner, parentSlug: naturalLeft.slug },
+          { ...modifiedRight, parentOwner: naturalRight.owner, parentSlug: naturalRight.slug },
+        ],
+        bridge: commonality,
+        pairs: [pair(bridge.boardIds.modifiedLeft, bridge.boardIds.commonality), pair(bridge.boardIds.modifiedRight, bridge.boardIds.commonality)],
       }))).cid;
-      const refName = `campaign-${input.plan.campaignId}-${action.causeId}`;
-      const hash = await updateRef(clients, { address: input.contracts.mutableRefUpdater, abi: MutableRefUpdaterAbi }, refName, rosterCid);
-      return { hash, cause: { owner: clients.account, refName, rosterCid } };
+      const hash = await updateRef(clients, { address: input.contracts.mutableRefUpdater, abi: MutableRefUpdaterAbi }, bridge.slug, clusterCid);
+      return { hash, cause: { owner: clients.account, refName: bridge.slug, rosterCid: clusterCid } };
     },
     async 'set-belief'(action, clients) {
       const beliefs = { address: input.contracts.beliefs, abi: BeliefsAbi };

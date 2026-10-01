@@ -21,6 +21,8 @@ export type ProjectMetadata = {
   channelHandle?: string
   relevantAreas?: string[][]
   beneficiary?: ProjectBeneficiary
+  /** Campaign publications set this so the page can say the project is test data. */
+  synthetic?: boolean
 }
 export type TokenMetadata = { name?: string; image?: string; description?: string }
 
@@ -73,6 +75,7 @@ export function projectMetadataFromDocument(document: DisplayableDocument): Proj
     channelHandle: stringField(extras.channelHandle),
     relevantAreas: relevantAreasField(extras.relevantAreas),
     beneficiary: beneficiaryField(extras.beneficiary),
+    synthetic: extras.synthetic === true,
   }
 }
 

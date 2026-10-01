@@ -144,11 +144,11 @@ Do these in order unless Adam names a different one. Each item is a session-size
 
 8. **[x] (Tell) Unblock the journeys that will fail as soon as someone tries them.** 2026-09-08: ETH-vs-USDZZZ test lookups and E2E verifier-key mixup. See Current state. Do not dummy-attest; do not fund live `VERIFIER_ADDRESS`.
 
-9. **[ ] (Ask) Nightly mutation flag.** When read-only smoke is green for a few days and item 6 has a fresh pass, ask Adam to set `COMMONALITY_VERIFIER_NIGHTLY_ALLOW_TESTNET_MUTATION=1` in the cadence shell. Do not enable it yourself.
+9. **[x] (Tell) Nightly mutation flag.** 2026-09-30: Adam said to skip the “green for a few days” wait. `scripts/verifier-nightly-deep-cadence.sh` exports `COMMONALITY_VERIFIER_NIGHTLY_ALLOW_TESTNET_MUTATION=1` after sourcing env files. A line in `.env` does not survive `stack.fresh-seeded`, which rewrites that file for the localhost profile. The wrapper adds only `testnet.onchain-to-indexer`, and only when `COMMONALITY_TESTNET_VERIFIER_PRIVATE_KEY` is set.
 
 10. **[x] (Tell) Two-person lab LLM overlay.** 2026-09-09 browser re-run: two Chromium contexts share live Commonality config; lab A/B wallets are generate-wallets roles (`COMMONALITY_TESTNET_LAB_A_*` / `_B_*`); lab A `attestAlignment` `0x4764d91e…` indexed. Deterministic `testnet.two-person-browser` is on `--browser`. Live cause-assist `/health` showed OpenRouter URL + DeepSeek while only `XAI_API_KEY` was filled — 401. Headless still cannot Privy-connect.
 
-Item 9 is Ask — do not enable nightly mutation yourself. Item 10 is the LLM overlay so Adam/Sam are not the first two clients. **Do not start job 3 (mass activity on testnet).** Scale drills stay local (`gen:medium` / `gen:large`).
+Item 9 is on in `scripts/verifier-nightly-deep-cadence.sh`. Item 10 is the LLM overlay so Adam/Sam are not the first two clients. **Do not start job 3 (mass activity on testnet).** Scale drills stay local (`gen:medium` / `gen:large`).
 
 ## Explicitly out of scope
 

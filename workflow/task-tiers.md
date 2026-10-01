@@ -11,7 +11,7 @@ after, **Trust** entirely"):
 | Tier | Name | What an LLM should do |
 |------|------|-----------------------|
 | **A** | **Ask** | Do **not** act. Surface it in [`inbox.md`](/inbox.md) for Adam to rule on. |
-| **B** | **Tell** | Do it, then drop a short "did this" note in [`inbox.md`](/inbox.md) so Adam can review after the fact. |
+| **B** | **Tell** | Do it, then drop a short "did this" note in [`inbox.md`](/inbox.md) labelled "Tell Report" so Adam can review after the fact. |
 | **C** | **Trust** | Just do it. No need to surface it anywhere. |
 
 The default for anything whose tier is unstated is **Ask** — when in doubt, ask.

@@ -35,7 +35,7 @@ while IFS= read -r -d '' file; do
   if [ "$rel" = ".admin-capability" ]; then
     continue
   fi
-  CURL_ARGS+=(-F "file=@${file};filename=${rel}")
+  CURL_ARGS+=(-F "file=@${file};filename=test-data/${rel}")
 done < <(find "$ARTIFACT_ROOT" -type f -print0)
 
 RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
