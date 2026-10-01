@@ -9,11 +9,14 @@ import {
   Divider,
   Button,
   Chip,
+  IconButton,
+  Tooltip,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
 } from '@mui/material'
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
 import { Link as RouterLink } from 'react-router-dom'
 import { useAccount } from 'wagmi'
 import { getStatement } from '@commonality/sdk/conceptspace'
@@ -249,7 +252,17 @@ export function AlignmentAttestationsSection({ projectAddress, initialStatementC
     <Box sx={{ mb: 3 }}>
       <Paper sx={{ p: 3 }}>
         <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-          <Typography variant="h6">Project Vouches</Typography>
+          <Stack direction="row" alignItems="center" spacing={0.5}>
+            <Typography variant="h6">Project Vouches</Typography>
+            <Tooltip
+              title="A vouch is someone saying this project advances a statement. Lists of projects count that vouch when the voucher is in your trust network."
+              placement="top"
+            >
+              <IconButton size="small" aria-label="About Project Vouches" sx={{ color: 'text.secondary' }}>
+                <InfoOutlinedIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          </Stack>
           {isConnected ? (
             <Stack direction="row" spacing={1}>
               <Button variant="outlined" size="small" onClick={() => handleOpenDialog('alignment')}>

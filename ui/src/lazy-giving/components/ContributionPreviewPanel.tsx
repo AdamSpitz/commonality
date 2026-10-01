@@ -1,6 +1,6 @@
 import { Paper, Typography, Stack, Box, Alert } from '@mui/material'
 import type { ProjectToken } from '@commonality/sdk/lazy-giving'
-import { formatCurrencyAmount } from '../../shared/funding'
+import { formatCurrencyAmount, MoneyText } from '../../shared/funding'
 import { WalletButton } from '../../shared/components/WalletButton'
 import { givingOptionLabel } from '../utils'
 
@@ -21,7 +21,7 @@ export function ContributionPreviewPanel({ tokens, tokenImages = {}, tokenLabels
         Give to this project
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2, maxWidth: 720 }}>
-        Your contribution counts toward the funding goal; if the project does not reach its goal by the deadline, you can get a refund. If it succeeds, the creator can withdraw the pooled funds and your onchain tokens remain your receipt/reward.
+        Buying a token is how you fund this project. Your contribution counts toward the funding goal; if the project does not reach its goal by the deadline, you can get a refund. If it succeeds, the creator can withdraw the pooled funds and your onchain tokens remain your receipt.
       </Typography>
 
       {tokens.length > 0 ? (
@@ -43,7 +43,7 @@ export function ContributionPreviewPanel({ tokens, tokenImages = {}, tokenLabels
                   {label}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  {formatCurrencyAmount(token.price, token.currency)} each
+                  <MoneyText text={`${formatCurrencyAmount(token.price, token.currency)} each`} />
                 </Typography>
               </Box>
             )

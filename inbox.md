@@ -17,10 +17,6 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 ## Main list
 
-- **(Tell)** Campaign create-project now publishes a short title and description from statement ids (`cause title: statement id`) instead of pasting the full statement into both fields. Planner tests cover that the card copy does not contain the statement text. Projects already mined in the medium-realistic campaign still show the old long metadata until those projects are created again.
-
-- **(Tell)** Official attester `0x021b3C…` signed two already-accepted abortion bridge pairs (modified-left and modified-right → commonality) on Base Sepolia, block 47506047, txs `0xa4dd1c3b…` and `0xf07542bc…`. The indexer event cache already returns both `ImplicationAttestation`s. Campaign persona wallets were a different signer, so those runs never filled this trust root.
-
 - Think through the further delegation-narrowing ideas in [delegation-narrowing.md](specs/product/legal/delegation-narrowing.md). The three TODO.md items (one hop, one voice, optional delay) are the baseline. Still open: risk tiers based on vouches for payout addresses rather than "new project" or "address has been paid before"; signed spend rules; refunds and reimbursement returning to the donor; expiring authority; an optional watcher who can cancel but not spend; and whether the delegate should ever hold a balance. Not legal advice, and not a decision yet.
 
 ### Security/recoverability human actions
@@ -29,11 +25,7 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 - Before deploying the Commonality alignment-trust bootstrap outside local Hardhat, run `node scripts/generate-wallets.mjs`, fund `ALIGNMENT_TRUST_BOOTSTRAP_ADDRESS`, install the worker's generated Render secret block, and add the configured denylist canary to its persistent disk. Never deploy the checked-in local Hardhat key; see the worker README runbook.
 
-- **(Tell)** Personal dashboard spec + first slice: [personal-dashboard.md](specs/product/personal-dashboard.md). Commonality home (connected) heroes the fundable-projects union over signed statements. Not an unpublished cause board. Stars/subsets deferred.
-
 ### Docs / UI copy
-
-- **(Tell)** Applied [cause-page-not-a-club.md](specs/product/cause-page-not-a-club.md) copy sweep: glossary two-step rename, end-user docs, Aligning/fundable-projects UI strings, Commonality high-traffic docs + organizer publish copy. Leftover “cause page” in comments, `/cause/:owner/:slug` and `fundingportal*` identifiers, and incidental “funding portal” docs still lag.
 
 - Decide whether to act on the fresh landing-copy positioning findings. The Civility grievance-first hero was reviewed and is fine; the verifier rubric was corrected so CSM’s recognition-register rule is not imposed on every vertical. Remaining findings: CSM front-loads the mediator toggle and uses “the other side’s bullshit,” Aligning repeats its main tradeoff several times, and Tally’s “Sign once, counted forever” headline presents a future goal as current capability. The umbrella Commonality landing that recruited generic end users was removed in the CauseStarter→Commonality cutover; [`specs/product/ui-domains.md`](specs/product/ui-domains.md) still describes that old site — rewrite is in [`TODO.md`](TODO.md).
 
@@ -51,15 +43,13 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 Standing index: [`workflow/testnet-working-plan.md`](workflow/testnet-working-plan.md). Operator checklist: [`testnet-prep.md`](testnet-prep.md). The two-person lab is up through item 6. Remaining **your** clicks (none of these are “the lab is down”):
 
-- **(Tell)** Alchemy Base Sepolia is 429 monthly-capacity again. Suspended `commonality-indexer` so it stops crash-looping `eth_chainId`. Resume after you raise the usage limit (or the billing period resets). The indexer branch now parks automatically on that 429 (stub `/graphql`, 1m→6h backoff) so we should not need a manual suspend next time — still needs the code on `master`. Do not bump `DATABASE_SCHEMA` or switch RPC to `sepolia.base.org`.
-
 - **Alignment-trust bootstrap (needed for Commonality’s shipped trust graph, not for sites/indexer).** Same as the Security item above: dedicated wallet from `generate-wallets.mjs`, fund `ALIGNMENT_TRUST_BOOTSTRAP_ADDRESS`, Render secret, denylist canary on the worker disk. Never Hardhat #8. Details: [`alignment-trust-bootstrap/README.md`](alignment-trust-bootstrap/README.md).
 
 - **Pinata Host Origins:** add `https://testnet.commonality.works` (Picnic: no wildcards). Live Commonality HTML shell loads, but JS chunks 429 from public gateways after the dedicated origin times out — Worker fix is in [`TODO.md`](TODO.md). This dashboard allowlist is still needed for dedicated-gateway CORS.
 
 - **Sponsored-gas live UI walk** — see Testing below.
 
-- **[ ] (Ask) Nightly mutation flag** — after a few quiet days, set `COMMONALITY_VERIFIER_NIGHTLY_ALLOW_TESTNET_MUTATION=1` in the cadence shell (working-plan item 8). Do not set it yet.
+- **[x] Nightly mutation flag** — 2026-09-30, exported by `scripts/verifier-nightly-deep-cadence.sh` (not `.env`; fresh-seeded rewrites that file). Working-plan item 9. The canary write is `testnet.onchain-to-indexer` only.
 
 - **Cloudflare leftovers** (UIs already work via `*.testnet.commonality.works`): zone/DNSLink and `services.testnet.commonality.works` gateway. Unchecked boxes in [`testnet-prep.md`](testnet-prep.md).
 

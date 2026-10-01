@@ -32,7 +32,7 @@ import {
   truncateAddress,
   TrustNetworkRefreshIndicator,
 } from '../../shared'
-import { DEFAULT_PAYMENT_CURRENCY, formatCurrencyAmount, formatCurrencyTotals, getConfiguredPaymentCurrency } from '../../shared/funding'
+import { DEFAULT_PAYMENT_CURRENCY, formatCurrencyAmount, formatCurrencyTotals, getConfiguredPaymentCurrency, MoneyText } from '../../shared/funding'
 import type { CauseBoardNavLink } from './CauseBoard'
 import { useKeepPaintedWhileRefreshing } from '../hooks/useKeepPaintedWhileRefreshing'
 import { resolveStatementCids } from './statementCids'
@@ -259,11 +259,11 @@ export function CauseLeaderboard({
                   </Tooltip>
                 </TableCell>
                 <TableCell align="right">
-                  {formatCurrencyTotals(entry.totalContributed)}
+                  <MoneyText text={formatCurrencyTotals(entry.totalContributed)} />
                 </TableCell>
                 <TableCell align="right">{entry.projectsContributedTo}</TableCell>
                 <TableCell align="right">
-                  {formatCurrencyTotals(entry.netContribution)}
+                  <MoneyText text={formatCurrencyTotals(entry.netContribution)} />
                 </TableCell>
               </TableRow>
             )
@@ -333,7 +333,7 @@ export function CauseLeaderboard({
           <Typography variant="body1">
             You are <strong>#{userRank.rank}</strong> direct-purchase contributor to this cause
             {' — '}
-            {formatCurrencyTotals(userRank.stats.netContribution)} across{' '}
+            <MoneyText text={formatCurrencyTotals(userRank.stats.netContribution)} /> across{' '}
             {userRank.stats.projectsContributedTo} project
             {userRank.stats.projectsContributedTo !== 1 ? 's' : ''}.
           </Typography>
@@ -401,11 +401,10 @@ export function CauseLeaderboard({
                         </Tooltip>
                       </TableCell>
                       <TableCell align="right">
-                        {formatCurrencyAmount(
+                        <MoneyText text={`${formatCurrencyAmount(
                           row.amount,
                           getConfiguredPaymentCurrency() ?? DEFAULT_PAYMENT_CURRENCY,
-                        )}
-                        /month
+                        )}/month`} />
                       </TableCell>
                     </TableRow>
                   )

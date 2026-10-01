@@ -9,7 +9,7 @@ import { ETH_CURRENCY } from '@commonality/sdk/utils'
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useMachinery } from '../../shared'
 import { useWriteClients } from '../../shared'
-import { formatCurrencyAmount } from '../../shared/funding'
+import { formatCurrencyAmount, MoneyText } from '../../shared/funding'
 import { getDomainUrl } from '../../shared'
 import { humanizeTxError, truncateAddress } from '../../shared'
 import { isDelegate, noteScopedKey } from '../../delegation'
@@ -392,7 +392,7 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
         Give to this project
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2, maxWidth: 720 }}>
-        Both options count toward the goal and leave a permanent recognition receipt in your wallet. If the project misses its goal, either option is refundable.
+        Buying a token is how you fund this project. Both options count toward the goal and leave a permanent recognition receipt in your wallet. If the project misses its goal, either option is refundable.
       </Typography>
 
       {!address && (
@@ -446,7 +446,7 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
                   >
                     {notes.map(note => (
                       <MenuItem key={noteScopedKey(note)} value={noteScopedKey(note)}>
-                        Fund #{note.id} — {formatCurrencyAmount(note.amount, fundingCurrency)} — {isDelegate(note) ? `entrusted by ${truncateAddress(note.rootOwner)}` : 'your fund'}
+                        Fund #{note.id} — <MoneyText text={formatCurrencyAmount(note.amount, fundingCurrency)} /> — {isDelegate(note) ? `entrusted by ${truncateAddress(note.rootOwner)}` : 'your fund'}
                       </MenuItem>
                     ))}
                   </Select>
@@ -467,7 +467,7 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
                       {label}
                     </Typography>
                     <Typography variant="body2" color="text.secondary" sx={{ minWidth: 140 }}>
-                      {formatCurrencyAmount(token.price, token.currency)} each
+                      <MoneyText text={`${formatCurrencyAmount(token.price, token.currency)} each`} />
                     </Typography>
                     <TextField
                       type="number"
@@ -485,11 +485,11 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
                 {noteTotalCost > 0n && (
                   <Box>
                     <Typography variant="body2">
-                      Total cost: {formatCurrencyAmount(noteTotalCost, fundingCurrency)}
+                      Total cost: <MoneyText text={formatCurrencyAmount(noteTotalCost, fundingCurrency)} />
                     </Typography>
                     {selectedNote && !noteBalanceSufficient && (
                       <Typography variant="caption" color="error">
-                        Exceeds note balance ({formatCurrencyAmount(selectedNote.amount, fundingCurrency)})
+                        Exceeds note balance (<MoneyText text={formatCurrencyAmount(selectedNote.amount, fundingCurrency)} />)
                       </Typography>
                     )}
                   </Box>
@@ -523,7 +523,7 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
             </FormControl>
             <TextField
               type="number"
-              label={`Give amount (${fundingCurrency.symbol})`}
+              label={<MoneyText text={`Give amount (${fundingCurrency.symbol})`} />}
               value={giveAmount}
               onChange={(e) => setGiveAmount(e.target.value)}
               inputProps={{ min: 0, step: fundingCurrency.decimals === 0 ? 1 : 'any' }}
@@ -544,7 +544,7 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
                             <Box component="img" src={tokenImages[token.tokenId]} alt={label} sx={{ width: '100%', height: 96, objectFit: 'cover', borderRadius: 1 }} />
                           )}
                           <Typography variant="body1">{label}</Typography>
-                          <Typography variant="body2" color="text.secondary">Adds {formatCurrencyAmount(token.price, token.currency)}</Typography>
+                          <Typography variant="body2" color="text.secondary">Adds <MoneyText text={formatCurrencyAmount(token.price, token.currency)} /></Typography>
                           {selectedAddOns[token.tokenId] && <Chip size="small" color="primary" label="Included" sx={{ alignSelf: 'flex-start' }} />}
                         </Stack>
                       </CardActionArea>
@@ -558,9 +558,9 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
             {directAllocationPreview && (
               <Alert severity={directAllocationPreview.status === 'exact' ? 'info' : 'warning'}>
                 {directAllocationPreview.status === 'exact'
-                  ? `You'll give ${formatCurrencyAmount(directAllocationPreview.totalCost, fundingCurrency)} in one wallet transaction. Your wallet may also show a small network fee.`
+                  ? <MoneyText text={`You'll give ${formatCurrencyAmount(directAllocationPreview.totalCost, fundingCurrency)} in one wallet transaction. Your wallet may also show a small network fee.`} />
                   : directAllocationPreview.status === 'snapped'
-                    ? `That exact amount is not available. The nearest available contribution is ${formatCurrencyAmount(directAllocationPreview.totalCost, fundingCurrency)}.`
+                    ? <MoneyText text={`That exact amount is not available. The nearest available contribution is ${formatCurrencyAmount(directAllocationPreview.totalCost, fundingCurrency)}.`} />
                     : directAllocationPreview.message}
               </Alert>
             )}
@@ -607,7 +607,7 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
           </>
         )}
 
-        {buyError && <Alert severity="error">{buyError}</Alert>}
+        {buyError && <Alert severity="error"><MoneyText text={buyError} /></Alert>}
         {buySuccess && (
           <Alert
             severity="success"

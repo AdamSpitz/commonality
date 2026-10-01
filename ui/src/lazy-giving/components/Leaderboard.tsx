@@ -17,7 +17,7 @@ import {
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
 import type { Contribution, Refund } from '@commonality/sdk/lazy-giving'
 import { computeContributorStats } from '../utils'
-import { formatCurrencyAmount } from '../../shared/funding'
+import { formatCurrencyAmount, MoneyText } from '../../shared/funding'
 import { truncateAddress } from '../../shared'
 
 function SectionHeading({ title, info }: { title: string; info: string }) {
@@ -142,9 +142,9 @@ export function Leaderboard({
                       </Box>
                     )}
                   </TableCell>
-                  <TableCell align="right">{formatCurrencyAmount(entry.contributed, entry.currency)}</TableCell>
-                  <TableCell align="right">{formatCurrencyAmount(entry.refunded, entry.currency)}</TableCell>
-                  <TableCell align="right">{formatCurrencyAmount(entry.net, entry.currency)}</TableCell>
+                  <TableCell align="right"><MoneyText text={formatCurrencyAmount(entry.contributed, entry.currency)} /></TableCell>
+                  <TableCell align="right"><MoneyText text={formatCurrencyAmount(entry.refunded, entry.currency)} /></TableCell>
+                  <TableCell align="right"><MoneyText text={formatCurrencyAmount(entry.net, entry.currency)} /></TableCell>
                 </TableRow>
               )
             })}

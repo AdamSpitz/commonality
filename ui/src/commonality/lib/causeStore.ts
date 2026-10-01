@@ -14,6 +14,7 @@
  */
 
 import type { CauseAnchor, CauseMediator, RosterBridgeLink } from '@commonality/sdk/displayable-documents'
+import { presentCampaignTitle } from '@ui/shared'
 
 export type { CauseAnchor, CauseMediator, RosterBridgeLink }
 
@@ -207,7 +208,7 @@ export function hasPublishedRoster(cause: CauseDraft): boolean {
  * (truncated for chrome). Roster publish seals the full title into the document.
  */
 export function causeTitle(cause: CauseDraft): string {
-  const explicit = cause.title?.trim()
+  const explicit = presentCampaignTitle(cause.title?.trim() ?? '')
   if (explicit) {
     if (explicit.length <= 48) return explicit
     return `${explicit.slice(0, 45).trim()}…`

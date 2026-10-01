@@ -100,7 +100,9 @@
     { "type": "fund-project", "prerequisites": ["create-project", "attest-alignment"], "targetCount": { "min": 350, "max": 900 } },
     { "type": "deposit-note", "prerequisites": [], "targetCount": { "min": 120, "max": 260 } },
     { "type": "delegate-note", "prerequisites": ["deposit-note"], "targetCount": { "min": 80, "max": 200 } },
-    { "type": "revoke-delegation", "prerequisites": ["delegate-note"], "targetCount": { "min": 10, "max": 35 } }
+    { "type": "revoke-delegation", "prerequisites": ["delegate-note"], "targetCount": { "min": 10, "max": 35 } },
+    { "type": "create-bridge-board", "prerequisites": ["publish-statement"], "targetCount": { "min": 16, "max": 16 } },
+    { "type": "create-bridge", "prerequisites": ["create-cause", "create-bridge-board"], "targetCount": { "min": 4, "max": 4 } }
   ],
   "artifactLayout": {
     "manifest": "manifest.json",

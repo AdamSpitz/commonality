@@ -234,7 +234,10 @@ describe('StatementFundingPortalPage', () => {
     })
 
     expect(getMonthlyPledgedByCause).toHaveBeenCalledWith(mockMachinery)
-    expect(screen.getByText('12.34 USDZZZ/mo')).toBeInTheDocument()
+    // MoneyText splits currency code into abbr tag, so check for the parts
+    const monthlyPledgesSection = screen.getByText('Monthly pledges').closest('div')
+    expect(monthlyPledgesSection).toContainHTML('12.34')
+    expect(monthlyPledgesSection).toContainHTML('USDZZZ')
   })
 
   it('skips monthly pledge loading when the recurring pledge contract is not configured', async () => {
@@ -248,7 +251,10 @@ describe('StatementFundingPortalPage', () => {
     })
 
     expect(getMonthlyPledgedByCause).not.toHaveBeenCalled()
-    expect(screen.getByText('0 USDZZZ/mo')).toBeInTheDocument()
+    // MoneyText splits currency code into abbr tag, so check for the parts
+    const monthlyPledgesSection = screen.getByText('Monthly pledges').closest('div')
+    expect(monthlyPledgesSection).toContainHTML('0')
+    expect(monthlyPledgesSection).toContainHTML('USDZZZ')
   })
 
   it('renders the Successful tab when the Successful view is selected', async () => {

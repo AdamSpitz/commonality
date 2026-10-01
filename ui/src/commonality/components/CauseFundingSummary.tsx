@@ -1,6 +1,7 @@
 import { Box, CircularProgress, Paper, Stack, Typography } from '@mui/material'
 import { Link as RouterLink } from 'react-router-dom'
 import { formatUnits } from 'viem'
+import { MoneyText } from '../../shared/funding'
 import { ConnectWalletHint } from './ConnectWalletHint'
 import { useCauseMonthlyPledges } from '../hooks/useCauseMonthlyPledges'
 
@@ -50,11 +51,11 @@ export function CauseFundingSummary({
         ) : (
           <Stack spacing={0.25} sx={{ mt: 0.75 }}>
             <Typography variant="body1" sx={{ fontWeight: 600 }}>
-              {available ? formatMonthly(totalMonthly, decimals, symbol) : `0 ${symbol}/month`} pledged
+              <MoneyText text={`${available ? formatMonthly(totalMonthly, decimals, symbol) : `0 ${symbol}/month`} pledged`} />
             </Typography>
             {connected && (
               <Typography variant="body2" color="text.secondary">
-                You: {available ? formatMonthly(personalMonthly, decimals, symbol) : `0 ${symbol}/month`}
+                <MoneyText text={`You: ${available ? formatMonthly(personalMonthly, decimals, symbol) : `0 ${symbol}/month`}`} />
               </Typography>
             )}
           </Stack>

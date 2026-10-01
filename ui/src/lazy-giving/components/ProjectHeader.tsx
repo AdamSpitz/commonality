@@ -11,8 +11,13 @@ import {
   DEADLINE_OPEN_TOOLTIP,
   formatRelativeDeadline,
 } from '../utils'
-import { truncateAddress, InfoChip, InfoLabel } from '../../shared'
-import { formatCurrencyRaised } from '../../shared/funding'
+import {
+  InfoChip,
+  InfoLabel,
+  presentCampaignProjectDescription,
+  truncateAddress,
+} from '../../shared'
+import { formatCurrencyRaised, MoneyText } from '../../shared/funding'
 import { WebsiteBeneficiaryClaimChip } from './WebsiteBeneficiaryClaimChip'
 import { dnsBeneficiaryDomain, WebsiteBeneficiaryMark } from './WebsiteBeneficiaryMark'
 import { PublishedBeneficiaryVerifiedMark } from './PublishedBeneficiaryVerifiedMark'
@@ -23,6 +28,7 @@ type ProjectMetadata = {
   description?: string
   updatesUrl?: string
   beneficiary?: { namespace?: string; canonicalIdentifier?: string }
+  synthetic?: boolean
 }
 
 interface ProjectHeaderProps {
@@ -68,7 +74,7 @@ export function ProjectHeader({ project, metadata, kind = 'project', beneficiary
           </Typography>
           {metadata?.description && (
             <Typography variant="body1" color="text.secondary" sx={{ mb: 1 }}>
-              {metadata.description}
+              {presentCampaignProjectDescription(metadata.description, metadata.synthetic === true)}
             </Typography>
           )}
           {metadata?.updatesUrl && (
@@ -117,7 +123,7 @@ export function ProjectHeader({ project, metadata, kind = 'project', beneficiary
       <Box sx={{ mt: 2 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
           <Typography variant={websiteBeneficiary ? 'h4' : 'body1'} component="p" sx={websiteBeneficiary ? { fontWeight: 700 } : undefined}>
-            {formatCurrencyRaised(project.totalReceived, project.threshold, project.fundingCurrency)}
+            <MoneyText text={formatCurrencyRaised(project.totalReceived, project.threshold, project.fundingCurrency)} />
           </Typography>
           {hasMinimum ? (
             <Typography variant="body1">{progressPercent}%</Typography>

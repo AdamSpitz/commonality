@@ -15,7 +15,7 @@ const MAX_BATCH: Partial<Record<CampaignActionType, number>> = {
 
 /** Gas for a transaction that carries exactly one of these writes. */
 export const SOLO_GAS_UNITS: Record<CampaignActionType, bigint> = {
-  'publish-statement': 180_000n, 'create-cause': 120_000n, 'set-belief': 90_000n,
+  'publish-statement': 180_000n, 'create-cause': 120_000n, 'create-bridge-board': 120_000n, 'create-bridge': 120_000n, 'set-belief': 90_000n,
   // Base Sepolia clone-factory canary on 2026-09-29: five create-project
   // receipts averaged 2,851,538 gas. Keep a little headroom for colder storage.
   'attest-implication': 130_000n, 'create-project': 3_000_000n, 'attest-alignment': 130_000n,

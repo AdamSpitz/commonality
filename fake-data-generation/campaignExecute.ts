@@ -12,7 +12,7 @@ import {
   validateCampaignWallets,
   type CampaignWalletBinding,
 } from './campaignEnvironment.js';
-import { createCampaignContractAdapter, createLiveCampaignActionWriter, createReceiptLookup, persistCampaignBindings } from './campaignActionAdapter.js';
+import { campaignRunPublications, createCampaignContractAdapter, createLiveCampaignActionWriter, createReceiptLookup, persistCampaignBindings } from './campaignActionAdapter.js';
 import { executeCampaignPlan } from './campaignExecutor.js';
 import { loadCampaignPlan } from './campaignPlanner.js';
 import { createLiveCampaignFundingChain, provisionCampaignWallets } from './campaignProvisioning.js';
@@ -23,6 +23,7 @@ import { createSeedPublicClient } from './seedRpc.js';
 import { loadEnv, RPC_URL } from './loadEnv.js';
 import { PUBLISH_DATA_BATCH_SELECTOR } from '@commonality/sdk/published-data';
 import { HARDHAT_PRIVATE_KEYS } from './generateUsers.js';
+import { writeTestDataRun } from './testDataArtifacts.js';
 
 loadEnv();
 
@@ -165,6 +166,22 @@ async function main(): Promise<void> {
     },
   });
   console.log(`Campaign ${plan.campaignId}: mined ${summary.mined}, failed ${summary.failed}, submitted ${summary.submitted}, planned ${summary.planned}.`);
+  const chainId = environment.expectedChainId;
+  const network = chainId === LOCAL_HARDHAT_CHAIN_ID ? 'local' : chainId === 84532 ? 'testnet' : undefined;
+  if (network) {
+    const publications = campaignRunPublications(plan, bindings);
+    await writeTestDataRun({
+      network,
+      chainId,
+      parameters: { campaignId: plan.campaignId, kind: 'campaign', mined: summary.mined, failed: summary.failed },
+      entities: publications,
+      users: [],
+      actions: plan.actions
+        .filter((action) => action.type === 'create-cause' || action.type === 'create-bridge-board' || action.type === 'create-bridge')
+        .map((action) => ({ ...action })),
+      metrics: { errors: [] },
+    });
+  }
 }
 
 function remoteFunderPrivateKey(): `0x${string}` {
