@@ -184,7 +184,10 @@ describe('CauseLeaderboardPage', () => {
     })
 
     expect(screen.getByText('Already Contributed')).toBeInTheDocument()
-    expect(screen.getByText('2.5 USDZZZ/month')).toBeInTheDocument()
+    // MoneyText splits currency code into abbr tag, so check for the parts
+    const pledgeRow = screen.getByTestId('monthly-pledge-list')
+    expect(pledgeRow).toContainHTML('2.5')
+    expect(pledgeRow).toContainHTML('USDZZZ')
     expect(
       screen.queryByText(
         'Active standing pledges are ongoing commitments and are not ranked with one-time project purchases.'

@@ -4,7 +4,7 @@ import {
   Link, MenuItem, Paper, Stack, TextField, Typography,
 } from '@mui/material'
 import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom'
-import { AddressDisplay } from '@ui/shared'
+import { AddressDisplay, presentCampaignSummary } from '@ui/shared'
 import { useAccount } from 'wagmi'
 import { checkImplications } from '../lib/causeAssistClient'
 import {
@@ -365,7 +365,7 @@ export function BridgeClusterPage() {
             {published.mediatorName}
           </Typography>
           {published.mediatorNote && (
-            <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>{published.mediatorNote}</Typography>
+            <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>{presentCampaignSummary(published.mediatorNote)}</Typography>
           )}
         </Box>
 

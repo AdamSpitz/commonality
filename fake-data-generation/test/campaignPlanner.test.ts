@@ -47,7 +47,10 @@ test('bridge topics publish five boards and a cluster, not one combined roster',
     assert.ok(boards.find((action) => action.board?.role === 'modified-left')!.dependsOn.includes(boards.find((action) => action.board?.role === 'natural-left')!.id));
   }
   const plain = plan.actions.find((action) => action.type === 'create-cause' && action.causeId === 'open-source');
-  assert.equal(plain?.board, undefined);
+  assert.equal(plain?.board?.role, 'plain');
+  assert.equal(plain?.board?.title, 'Open-source public infrastructure');
+  assert.match(plain?.board?.summary ?? '', /Cause board supporting open-source public infrastructure/);
+  assert.match(plain?.board?.summary ?? '', /This is fake data created for testing/);
   assert.equal(plan.actions.filter((action) => action.type === 'create-cause').length, 10);
   assert.equal(plan.actions.filter((action) => action.type === 'create-bridge').length, 4);
 });

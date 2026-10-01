@@ -4,6 +4,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { estimateGroupGas, groupCampaignWrites } from './campaignBatching.js';
 import { type CampaignActionType, type CampaignManifestV1, type CampaignRole, validateCampaignManifest } from './campaignSchema.js';
+import { bridgeMediatorNote, causeBoardSummary, projectOutcome } from './campaignCopy.js';
 import { flattenSeedStatements, loadSeedCollections } from './seed-content-format.js';
 
 export const CAMPAIGN_PLAN_VERSION = 'commonality-campaign-plan-v1' as const;
@@ -221,7 +222,7 @@ function projectCopy(causeTitle: string, selected: PlannedStatement[]): { title:
   const listed = labels.length === 1 ? labels[0] : `${labels.slice(0, -1).join(', ')} and ${labels[labels.length - 1]}`;
   return {
     title: `${causeTitle}: ${labels[0]}`,
-    outcome: `A project for ${causeTitle.toLowerCase()}, working on ${listed}.`,
+    outcome: projectOutcome(causeTitle, listed),
   };
 }
 
@@ -282,16 +283,23 @@ export async function buildCampaignPlan(manifest: CampaignManifestV1): Promise<C
       role: 'commonality',
       slug: boardSlug(manifest.campaign.id, cause.id, 'bridge'),
       title: `${cause.title} — common ground`,
-      summary: `SYNTHETIC TESTNET CAMPAIGN. Common-ground board for ${cause.title}. Only the settlement statement is on this board.`,
+      summary: causeBoardSummary(cause.title, 'commonality'),
       statementIds: [byRole.get('commonality')!.id],
       clusterSlug,
     } : undefined;
+    const plainBoard: PlannedCauseBoard | undefined = bridgeShaped ? undefined : {
+      role: 'plain',
+      slug: `campaign-${manifest.campaign.id}-${cause.id}`,
+      title: cause.title,
+      summary: causeBoardSummary(cause.title),
+      statementIds: group.map((statement) => statement.id),
+    };
     causes.set(cause.id, add({
       type: 'create-cause',
       actorUserId: actor.id,
       causeId: cause.id,
       boardId: cause.id,
-      ...(commonalityBoard ? { board: commonalityBoard } : {}),
+      ...(commonalityBoard ? { board: commonalityBoard } : { board: plainBoard }),
       dependsOn: included.map((statement) => publishes.get(statement.id)!.id),
     }));
     if (!bridgeShaped) continue;
@@ -309,7 +317,7 @@ export async function buildCampaignPlan(manifest: CampaignManifestV1): Promise<C
         role: side.role,
         slug: boardSlug(manifest.campaign.id, cause.id, side.suffix),
         title: `${cause.title} — ${side.role}`,
-        summary: `SYNTHETIC TESTNET CAMPAIGN. ${side.role} board for ${cause.title}. The other sides of this bridge are separate boards.`,
+        summary: causeBoardSummary(cause.title, side.role),
         statementIds: [byRole.get(side.role)!.id],
         clusterSlug,
         ...(parentBoardId ? { parentBoardId } : {}),
@@ -334,7 +342,7 @@ export async function buildCampaignPlan(manifest: CampaignManifestV1): Promise<C
       bridge: {
         slug: clusterSlug!,
         mediatorName: 'Synthetic campaign mediator',
-        mediatorNote: `SYNTHETIC TESTNET CAMPAIGN bridge for ${cause.title}. Modified wordings imply the common-ground statement. Natural boards stay on their own side.`,
+        mediatorNote: bridgeMediatorNote(cause.title),
         boardIds: {
           naturalLeft: `${cause.id}:natural-left`,
           naturalRight: `${cause.id}:natural-right`,

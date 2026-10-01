@@ -34,7 +34,7 @@ import {
   useTrustedContentAttesters,
   TrustNetworkRefreshIndicator,
 } from '../../shared'
-import { DEFAULT_PAYMENT_CURRENCY, formatCurrencyAmount, formatCurrencyTotals, getConfiguredPaymentCurrency } from '../../shared/funding'
+import { DEFAULT_PAYMENT_CURRENCY, formatCurrencyAmount, formatCurrencyTotals, getConfiguredPaymentCurrency, MoneyText } from '../../shared/funding'
 import {
   selectAlignedContentContracts,
   useContentFundingState,
@@ -548,7 +548,7 @@ export function CauseBoard({
                 Raised
               </Typography>
               <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                {formatCurrencyTotals(totalRaised)}
+                <MoneyText text={formatCurrencyTotals(totalRaised)} />
               </Typography>
             </Box>
 
@@ -557,7 +557,7 @@ export function CauseBoard({
                 Still needed
               </Typography>
               <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                {formatCurrencyTotals(remainingToThreshold)}
+                <MoneyText text={formatCurrencyTotals(remainingToThreshold)} />
               </Typography>
             </Box>
 
@@ -566,7 +566,7 @@ export function CauseBoard({
                 Unreimbursed
               </Typography>
               <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                {formatCurrencyTotals(totalUnreimbursed)}
+                <MoneyText text={formatCurrencyTotals(totalUnreimbursed)} />
               </Typography>
             </Box>
 
@@ -575,11 +575,10 @@ export function CauseBoard({
                 Monthly pledges
               </Typography>
               <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                {formatCurrencyAmount(
+                <MoneyText text={`${formatCurrencyAmount(
                   monthlyPledged,
                   getConfiguredPaymentCurrency() ?? DEFAULT_PAYMENT_CURRENCY,
-                )}
-                /mo
+                )}/mo`} />
               </Typography>
             </Box>
 

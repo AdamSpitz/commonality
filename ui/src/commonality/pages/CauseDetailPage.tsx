@@ -12,6 +12,7 @@ import { useAccount } from 'wagmi'
 import type { RefUpdate } from '@commonality/sdk/mutable-refs'
 import {
   InfoChip,
+  presentCampaignSummary,
   TrustNetworkRefreshIndicator,
   useTrustedAttesters,
 } from '@ui/shared'
@@ -530,7 +531,9 @@ export function CauseDetailPage({ editMode = false }: { editMode?: boolean }) {
    * shows what is actually published rather than unsaved local edits.
    */
   const displayTitle = isEditing ? (titleDraft.trim() || causeTitle(cause)) : causeTitle(cause)
-  const displaySummary = isEditing ? (summaryDraft.trim() || cause.summary) : cause.summary
+  const displaySummary = isEditing
+    ? (summaryDraft.trim() || cause.summary)
+    : presentCampaignSummary(cause.summary)
   /** Drafts exist only on this device, so a supporter's view has none of them. */
   const visiblePlanks = isEditing ? cause.planks : cause.planks.filter((plank) => plank.cid)
   /** Brand-new local draft: show the start-a-cause coach copy instead of "Untitled". */

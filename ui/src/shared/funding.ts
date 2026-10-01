@@ -13,6 +13,7 @@ export {
   getConfiguredPaymentCurrency,
   getCurrencyForNote,
 } from './currency/currency'
+export { MoneyText, USDZZZ_TOOLTIP } from './currency/MoneyText'
 export { usePaymentTokenCurrency } from './currency/usePaymentTokenCurrency'
 
 export { loadProjectWithCache, projectFoldCacheOptions, useCachedProject } from './hooks/useCachedProject'

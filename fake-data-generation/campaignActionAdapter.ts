@@ -22,6 +22,7 @@ import type { IpfsCidV1, WriteClients } from '@commonality/sdk/utils';
 import type { CampaignContracts, CampaignWalletBinding } from './campaignEnvironment.js';
 import type { CampaignExecutionAdapter, CampaignReceipt } from './campaignExecutor.js';
 import { estimateGroupGas } from './campaignBatching.js';
+import { causeBoardSummary } from './campaignCopy.js';
 import type { CampaignPlan, PlannedAction, PlannedProject } from './campaignPlanner.js';
 import type { CampaignRuntimeBindings } from './campaignRuntimeBindings.js';
 import { writeRuntimeBindings } from './campaignRuntimeBindings.js';
@@ -190,7 +191,7 @@ export function createLiveCampaignActionWriter(input: {
       ? board.statementIds
       : input.plan.statements.filter((item) => item.causeId === action.causeId).map((item) => item.id);
     const title = board?.title ?? action.causeId ?? 'campaign-cause';
-    const summary = board?.summary ?? `SYNTHETIC TESTNET CAMPAIGN cause ${title}`;
+    const summary = board?.summary ?? causeBoardSummary(title);
     const refName = board?.slug ?? `campaign-${input.plan.campaignId}-${action.causeId}`;
     const parent = board?.parentBoardId
       ? {

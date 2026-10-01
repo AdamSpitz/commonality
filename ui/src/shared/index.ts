@@ -186,3 +186,11 @@ export { TrustNetworkRefreshIndicator } from './components/TrustNetworkRefreshIn
 // === utils/ — small pure helpers ===
 export { truncateAddress } from './utils/address'
 export { humanizeTxError } from './utils/txError'
+
+// === syntheticCampaignCopy — campaign description utilities ===
+export {
+  FAKE_DATA_NOTE,
+  presentCampaignProjectDescription,
+  presentCampaignSummary,
+  presentCampaignTitle,
+} from './syntheticCampaignCopy'

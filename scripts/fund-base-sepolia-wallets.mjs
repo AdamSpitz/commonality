@@ -7,6 +7,9 @@
 // By default this reads BASE_SEPOLIA_RPC_URL from .env.secrets/.env and addresses
 // from deployments/operator-addresses.env. If FUNDER_PRIVATE_KEY is unset, it falls back to
 // DEPLOYER_PRIVATE_KEY from the operator secrets file and skips sending to DEPLOYER_ADDRESS.
+// Every *_ADDRESS in that file is a target, including ALIGNMENT_TRUST_BOOTSTRAP_ADDRESS
+// once scripts/generate-wallets.mjs has written it. VITE_DEFAULT_ALIGNMENT_TRUST_ROOT is
+// the same address and is not a second target. The channel-verifier signer keys are excluded.
 
 import { readFile } from 'node:fs/promises'
 import { join, dirname } from 'node:path'
