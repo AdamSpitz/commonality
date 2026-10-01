@@ -109,6 +109,23 @@ export interface TestDataPageLink {
   title: string
   path: string
   detail?: string
+  slug?: string
+}
+
+const BOARD_ROLE_ORDER = ['commonality', 'natural-left', 'natural-right', 'modified-left', 'modified-right', 'plain']
+
+const BOARD_ROLE_LABEL: Record<string, string> = {
+  commonality: 'Common ground',
+  'natural-left': 'Natural left',
+  'natural-right': 'Natural right',
+  'modified-left': 'Modified left',
+  'modified-right': 'Modified right',
+  plain: 'Cause board',
+}
+
+export function boardRoleLabel(role: string | undefined): string {
+  if (!role) return 'Cause board'
+  return BOARD_ROLE_LABEL[role] ?? role
 }
 
 function linksFrom(value: unknown): TestDataPageLink[] {
@@ -120,7 +137,8 @@ function linksFrom(value: unknown): TestDataPageLink[] {
     const path = typeof record.path === 'string' ? record.path : ''
     if (!title || !path.startsWith('/')) return []
     const detail = typeof record.role === 'string' ? record.role : undefined
-    return [{ title, path, ...(detail ? { detail } : {}) }]
+    const slug = typeof record.slug === 'string' ? record.slug : undefined
+    return [{ title, path, ...(detail ? { detail } : {}), ...(slug ? { slug } : {}) }]
   })
 }
 
@@ -130,6 +148,59 @@ export function testDataRunLinks(entities: Record<string, unknown>): { causeBoar
     causeBoards: linksFrom(entities.causeBoards),
     bridges: linksFrom(entities.bridges),
   }
+}
+
+export interface TestDataPageGroup {
+  kind: 'bridge' | 'cause'
+  title: string
+  path: string
+  boards: TestDataPageLink[]
+}
+
+function bridgeStem(slug: string | undefined): string | undefined {
+  if (!slug) return undefined
+  return slug.endsWith('-cluster') ? slug.slice(0, -'-cluster'.length) : slug
+}
+
+function displayCauseTitle(title: string): string {
+  if (/\s/.test(title)) return title
+  return title.replaceAll('-', ' ').replace(/\b\w/g, character => character.toUpperCase())
+}
+
+function humanBridgeTitle(bridge: TestDataPageLink, boards: TestDataPageLink[]): string {
+  const commonGround = boards.find(board => board.detail === 'commonality')
+  if (commonGround) return commonGround.title.replace(/ — .*$/, '')
+  return bridge.title.replace(/ bridge$/i, '').replaceAll('-', ' ')
+}
+
+function byRole(a: TestDataPageLink, b: TestDataPageLink): number {
+  const rank = (role: string | undefined) => {
+    const index = BOARD_ROLE_ORDER.indexOf(role ?? '')
+    return index === -1 ? BOARD_ROLE_ORDER.length : index
+  }
+  return rank(a.detail) - rank(b.detail) || a.title.localeCompare(b.title)
+}
+
+/**
+ * Group recorded publications the way someone browsing the run wants to open them:
+ * each bridge with the boards that belong to it, then standalone cause boards.
+ */
+export function testDataPageGroups(entities: Record<string, unknown>): TestDataPageGroup[] {
+  const { causeBoards, bridges } = testDataRunLinks(entities)
+  const claimed = new Set<string>()
+  const groups: TestDataPageGroup[] = bridges.map(bridge => {
+    const stem = bridgeStem(bridge.slug)
+    const boards = stem
+      ? causeBoards.filter(board => board.slug === stem || board.slug?.startsWith(`${stem}-`))
+      : []
+    for (const board of boards) claimed.add(board.path)
+    return { kind: 'bridge' as const, title: humanBridgeTitle(bridge, boards), path: bridge.path, boards: boards.sort(byRole) }
+  })
+  for (const board of causeBoards) {
+    if (claimed.has(board.path)) continue
+    groups.push({ kind: 'cause', title: displayCauseTitle(board.title), path: board.path, boards: [] })
+  }
+  return groups
 }
 
 export function resolveRunUrl(registryUrl: string, href: string): string {

@@ -3,12 +3,13 @@ import { Alert, Box, Button, Card, CardContent, Divider, MenuItem, Select, Stack
 import { Link as RouterLink, useParams, useSearchParams } from 'react-router-dom'
 import { shortAddress } from '../../shared/wallet/hardhatAccounts'
 import {
+  boardRoleLabel,
   fetchEncryptedTestData,
   resolveRunUrl,
   testDataEnvironment,
+  testDataPageGroups,
   testDataRegistryUrl,
   type TestDataRegistry,
-  testDataRunLinks,
   type TestDataRun,
 } from '../testData/testDataDocuments'
 import { actionDetail, JsonValue, KeyValueTable } from '../testData/prettyJson'
@@ -38,7 +39,7 @@ export function TestDataRunPage() {
     return () => { cancelled = true }
   }, [capability, environment, registryUrl, runId])
 
-  const publications = useMemo(() => testDataRunLinks(run?.entities ?? {}), [run])
+  const pageGroups = useMemo(() => testDataPageGroups(run?.entities ?? {}), [run])
 
   const actionsByType = useMemo(() => {
     const counts = new Map<string, number>()
@@ -72,6 +73,45 @@ export function TestDataRunPage() {
         <Typography variant="h4" component="h1">Run {run.runId}</Typography>
         <Typography color="text.secondary">{new Date(run.createdAt).toLocaleString()} · {run.network} · chain {run.chainId}</Typography>
       </Box>
+
+      {pageGroups.length > 0 && (
+        <Card variant="outlined" data-testid="test-data-run-pages">
+          <CardContent>
+            <Typography variant="h6">Pages created in this run</Typography>
+            <Typography color="text.secondary" sx={{ mb: 2 }}>
+              Open each cause board and bridge in the app.
+            </Typography>
+            <Stack spacing={2.5}>
+              {pageGroups.filter(group => group.kind === 'bridge').map(group => (
+                <Box key={group.path}>
+                  <Button component={RouterLink} to={group.path} variant="contained" sx={{ mb: 1 }}>
+                    Bridge · {group.title}
+                  </Button>
+                  <Stack spacing={0.5} sx={{ pl: 1 }}>
+                    {group.boards.map(board => (
+                      <Button key={board.path} component={RouterLink} to={board.path} sx={{ justifyContent: 'flex-start', px: 1 }}>
+                        {boardRoleLabel(board.detail)} · {board.title}
+                      </Button>
+                    ))}
+                  </Stack>
+                </Box>
+              ))}
+              {pageGroups.some(group => group.kind === 'cause') && (
+                <Box>
+                  <Typography variant="subtitle1" sx={{ mb: 0.5 }}>Cause boards</Typography>
+                  <Stack spacing={0.5}>
+                    {pageGroups.filter(group => group.kind === 'cause').map(group => (
+                      <Button key={group.path} component={RouterLink} to={group.path} sx={{ justifyContent: 'flex-start', px: 1 }}>
+                        {group.title}
+                      </Button>
+                    ))}
+                  </Stack>
+                </Box>
+              )}
+            </Stack>
+          </CardContent>
+        </Card>
+      )}
 
       <Card variant="outlined">
         <CardContent>
@@ -128,25 +168,6 @@ export function TestDataRunPage() {
         <Divider sx={{ my: 2 }} />
         <KeyValueTable record={run.parameters} />
       </CardContent></Card>
-
-      {(publications.causeBoards.length > 0 || publications.bridges.length > 0) && (
-        <Card variant="outlined"><CardContent>
-          <Typography variant="h6">Cause boards and bridges</Typography>
-          <Divider sx={{ my: 2 }} />
-          <Stack spacing={1}>
-            {publications.bridges.map((link) => (
-              <Button key={link.path} component={RouterLink} to={link.path} sx={{ justifyContent: 'flex-start', px: 0 }}>
-                Bridge · {link.title}
-              </Button>
-            ))}
-            {publications.causeBoards.map((link) => (
-              <Button key={link.path} component={RouterLink} to={link.path} sx={{ justifyContent: 'flex-start', px: 0 }}>
-                {link.detail ? `${link.detail} · ` : ''}{link.title}
-              </Button>
-            ))}
-          </Stack>
-        </CardContent></Card>
-      )}
 
       <Card variant="outlined"><CardContent>
         <Typography variant="h6">Generated entities</Typography>

@@ -1,4 +1,5 @@
 import { Box, Chip, Link, Stack, Table, TableBody, TableCell, TableHead, TableRow, Typography } from '@mui/material'
+import { Link as RouterLink } from 'react-router-dom'
 import { getRuntimeConfigValue } from '../../shared'
 import { shortAddress } from '../../shared/wallet/hardhatAccounts'
 
@@ -108,6 +109,9 @@ function objectColumns(rows: Array<Record<string, unknown>>): string[] {
 
 export function JsonValue({ value, field }: { value: unknown; field?: string }) {
   if (isCidField(field, value)) return <CidLink cid={value} />
+  if (typeof value === 'string' && value.startsWith('/') && field === 'path') {
+    return <Link component={RouterLink} to={value}>{value}</Link>
+  }
   if (value == null || typeof value !== 'object') {
     return <Typography component="span">{formatScalar(value)}</Typography>
   }
