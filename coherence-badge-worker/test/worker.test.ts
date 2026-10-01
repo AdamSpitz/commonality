@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdtemp, rm } from 'node:fs/promises';
+import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, it } from 'mocha';
@@ -7,7 +7,7 @@ import { createDisplayableDocument, type DisplayableDocument } from '@commonalit
 import { assertWorkerCanMint } from '../src/index.js';
 import type { WorkerConfig } from '../src/config.js';
 import { processRefUpdated, type RefUpdatedLog, type WorkerDependencies } from '../src/worker.js';
-import { readCursor, writeCursor } from '../src/state.js';
+import { readCursor, readState, writeCursor, writeState } from '../src/state.js';
 
 const log: RefUpdatedLog = {
   owner: '0x0000000000000000000000000000000000000001',
@@ -118,6 +118,22 @@ describe('coherence badge worker', () => {
       await writeCursor(path, { blockNumber: 12n, logIndex: 3 }, identity);
       assert.deepEqual(await readCursor(path, 1n, identity), { blockNumber: 12n, logIndex: 3 });
       await assert.rejects(readCursor(path, 1n, { ...identity, chainId: 1 }), /different chain/);
+    } finally {
+      await rm(directory, { recursive: true, force: true });
+    }
+  });
+
+  it('retains unavailable tips across restart and reads old cursor-only state', async () => {
+    const directory = await mkdtemp(join(tmpdir(), 'coherence-worker-pending-'));
+    const path = join(directory, 'state.json');
+    const identity = { chainId: 31337, mutableRefUpdaterAddress: log.owner };
+    try {
+      const cursor = { blockNumber: 13n, logIndex: -1 };
+      await writeFile(path, JSON.stringify({ chainId: identity.chainId, mutableRefUpdaterAddress: identity.mutableRefUpdaterAddress, blockNumber: '13', logIndex: -1 }));
+      assert.deepEqual(await readState(path, 1n, identity), { cursor, pending: [] });
+      const pending = [{ log, retryAfter: 12345 }];
+      await writeState(path, { cursor, pending }, identity);
+      assert.deepEqual(await readState(path, 1n, identity), { cursor, pending });
     } finally {
       await rm(directory, { recursive: true, force: true });
     }

@@ -5,7 +5,7 @@ import {
 } from '@commonality/cause-assist';
 import { MutableRefUpdaterAbi } from '@commonality/sdk/abis';
 import { loadWorkerConfig, type WorkerConfig } from './config.js';
-import { readCursor, writeCursor } from './state.js';
+import { readState, writeState, type WorkerState } from './state.js';
 import { createWorkerDependencies, processRefUpdated, type RefUpdatedLog } from './worker.js';
 
 const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
@@ -16,6 +16,31 @@ const NON_TERMINAL_JUDGED_REASONS = new Set([
   'attester_not_configured',
   'roster_unavailable',
 ]);
+const UNAVAILABLE_RETRY_MS = 60_000;
+
+async function retryPending(
+  state: WorkerState,
+  dependencies: ReturnType<typeof createWorkerDependencies>,
+  config: WorkerConfig,
+  identity: { chainId: number; mutableRefUpdaterAddress: `0x${string}` },
+): Promise<void> {
+  const index = state.pending.findIndex((item) => item.retryAfter <= Date.now());
+  if (index < 0) return;
+  const item = state.pending[index];
+  const result = await processRefUpdated(item.log, dependencies, config.contentRetryCount, config.contentRetryDelayMs);
+  if (result.status === 'judged' && NON_TERMINAL_JUDGED_REASONS.has(result.result.reason)) {
+    throw new Error(`Pending RefUpdated ${item.log.transactionHash}:${item.log.logIndex} non-terminal attest reason ${result.result.reason}`);
+  }
+  if (result.status === 'unavailable') {
+    item.retryAfter = Date.now() + UNAVAILABLE_RETRY_MS;
+    state.pending.splice(index, 1);
+    state.pending.push(item);
+  } else {
+    state.pending.splice(index, 1);
+    console.log(`Pending RefUpdated ${item.log.transactionHash}:${item.log.logIndex} ${result.status === 'judged' ? result.result.reason : result.status}`);
+  }
+  await writeState(config.stateFile, state, identity);
+}
 
 export function validateRpcChainId(rpcChainId: number, configuredChainId: number): void {
   if (rpcChainId !== configuredChainId) {
@@ -48,24 +73,25 @@ export async function runWorker(config: WorkerConfig, signal?: AbortSignal): Pro
     chainId: config.chainId,
     mutableRefUpdaterAddress: config.mutableRefUpdaterAddress,
   };
-  let cursor = await readCursor(config.stateFile, config.startBlock, identity);
+  const state = await readState(config.stateFile, config.startBlock, identity);
   const dependencies = createWorkerDependencies(config.causeAssist);
 
   while (!signal?.aborted) {
+    await retryPending(state, dependencies, config, identity);
     const head = await client.getBlockNumber();
-    if (head < config.confirmations || cursor.blockNumber > head - config.confirmations) {
+    if (head < config.confirmations || state.cursor.blockNumber > head - config.confirmations) {
       await sleep(config.pollIntervalMs);
       continue;
     }
     const safeHead = head - config.confirmations;
-    const toBlock = cursor.blockNumber + config.blockRange - 1n > safeHead
+    const toBlock = state.cursor.blockNumber + config.blockRange - 1n > safeHead
       ? safeHead
-      : cursor.blockNumber + config.blockRange - 1n;
+      : state.cursor.blockNumber + config.blockRange - 1n;
     const logs = await client.getContractEvents({
       address: config.mutableRefUpdaterAddress,
       abi: MutableRefUpdaterAbi,
       eventName: 'RefUpdated',
-      fromBlock: cursor.blockNumber,
+      fromBlock: state.cursor.blockNumber,
       toBlock,
       strict: true,
     });
@@ -74,7 +100,7 @@ export async function runWorker(config: WorkerConfig, signal?: AbortSignal): Pro
       if (log.transactionHash === null || log.blockNumber === null || log.logIndex === null) {
         throw new Error('RPC returned an unmined RefUpdated log');
       }
-      if (log.blockNumber === cursor.blockNumber && log.logIndex <= cursor.logIndex) continue;
+      if (log.blockNumber === state.cursor.blockNumber && log.logIndex <= state.cursor.logIndex) continue;
       const update: RefUpdatedLog = {
         owner: log.args.owner,
         name: log.args.name,
@@ -90,9 +116,8 @@ export async function runWorker(config: WorkerConfig, signal?: AbortSignal): Pro
         config.contentRetryDelayMs,
       );
 
-      // Config/judgment gaps must not burn the durable cursor — restart with a key
-      // should still see this tip. Permanent content miss after retries still advances
-      // so one stuck CID cannot block later rosters (see worker README).
+      // Configuration and judgment gaps stop the scan. Content outages are
+      // queued durably so one unavailable CID does not block later rosters.
       if (result.status === 'judged' && NON_TERMINAL_JUDGED_REASONS.has(result.result.reason)) {
         throw new Error(
           `RefUpdated ${update.transactionHash}:${update.logIndex} non-terminal attest reason ${result.result.reason}; refusing to advance cursor`,
@@ -104,12 +129,16 @@ export async function runWorker(config: WorkerConfig, signal?: AbortSignal): Pro
           ? `RefUpdated ${update.transactionHash}:${update.logIndex} judged ${result.result.reason}`
           : `RefUpdated ${update.transactionHash}:${update.logIndex} ${result.status}${result.status === 'ignored' ? `:${result.reason}` : ''}`,
       );
-      cursor = { blockNumber: update.blockNumber, logIndex: update.logIndex };
-      await writeCursor(config.stateFile, cursor, identity);
+      if (result.status === 'unavailable' && !state.pending.some((item) =>
+        item.log.transactionHash === update.transactionHash && item.log.logIndex === update.logIndex)) {
+        state.pending.push({ log: update, retryAfter: Date.now() + UNAVAILABLE_RETRY_MS });
+      }
+      state.cursor = { blockNumber: update.blockNumber, logIndex: update.logIndex };
+      await writeState(config.stateFile, state, identity);
     }
 
-    cursor = { blockNumber: toBlock + 1n, logIndex: -1 };
-    await writeCursor(config.stateFile, cursor, identity);
+    state.cursor = { blockNumber: toBlock + 1n, logIndex: -1 };
+    await writeState(config.stateFile, state, identity);
   }
 }
 
