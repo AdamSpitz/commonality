@@ -4,7 +4,7 @@ import { parseEther, type Address, type Hex } from 'viem';
 import type { CampaignContracts, CampaignEnvironment, CampaignWalletBinding } from './campaignEnvironment.js';
 import type { CampaignPlan, PlannedAction } from './campaignPlanner.js';
 import { estimateGroupGas, groupCampaignWrites } from './campaignBatching.js';
-import { campaignFundProjectCost } from './paymentTokenUnits.js';
+import { campaignActionFundingCost } from './paymentTokenUnits.js';
 import { createSeedClients } from './seedRpc.js';
 
 const DEFAULT_GAS_PRICE = 1_000_000_000n;
@@ -93,19 +93,21 @@ export function computeCampaignFundingNeeds(plan: CampaignPlan, wallets: readonl
   for (const wallet of wallets) {
     bySlot.set(wallet.walletSlot, { walletSlot: wallet.walletSlot, address: wallet.address, nativeWei: 0n, paymentTokenUnits: 0n });
   }
-  const fundCost = campaignFundProjectCost();
   for (const group of groupCampaignWrites(plan.actions, options)) {
     const actorUserId = group[0].actorUserId;
     const user = actorUserId ? users.get(actorUserId) : undefined;
-    if (!user) continue;
-    const need = bySlot.get(user.walletSlot);
+    // Publication actions use the campaign publisher, which is the first wallet.
+    // It can be an otherwise inactive user and still needs gas for every publish.
+    const walletSlot = user?.walletSlot ?? (actorUserId === null ? wallets[0]?.walletSlot : undefined);
+    if (!walletSlot) continue;
+    const need = bySlot.get(walletSlot);
     if (!need) continue;
     const gasWei = estimateGroupGas(group) * gasPrice;
     need.nativeWei += gasWei;
-    gasBySlot.set(user.walletSlot, (gasBySlot.get(user.walletSlot) ?? 0n) + gasWei);
+    gasBySlot.set(walletSlot, (gasBySlot.get(walletSlot) ?? 0n) + gasWei);
     for (const action of group) {
       if (action.type === 'deposit-note') need.nativeWei += campaignNoteWei(action);
-      if (action.type === 'fund-project') need.paymentTokenUnits += fundCost;
+      if (action.type === 'fund-project') need.paymentTokenUnits += campaignActionFundingCost(action);
     }
   }
   return [...bySlot.values()].map((need) => {

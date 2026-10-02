@@ -10,15 +10,15 @@ import {
   PublishedDataAbi,
   AssuranceContractAbi,
 } from '@commonality/sdk/abis';
-import { believeStatement, disbelieveStatement, attestImplication, attestImplicationsBatch, setBeliefsBatch } from '@commonality/sdk/conceptspace';
+import { attestImplication, attestImplicationsBatch } from '@commonality/sdk/conceptspace';
 import { depositETH, delegateNote, revokeNote } from '@commonality/sdk/delegation';
 import { createDefaultDocumentStore, createDisplayableDocument, createStatement, publishDocumentsToPublishedData } from '@commonality/sdk/displayable-documents';
 import { attestAlignment, attestAlignmentsBatch, PROJECT_ALIGNMENT_TOPIC, toSubjectId } from '@commonality/sdk/fundingportals';
-import { buyProjectTokens, createProject, getProject } from '@commonality/sdk/lazy-giving';
+import { buyProjectTokens, createProject, donateRetroactive, getProject } from '@commonality/sdk/lazy-giving';
 import { createSDKMachinery } from '@commonality/sdk/machinery';
 import { updateRef } from '@commonality/sdk/mutable-refs';
 import { createIPFSConfigInNodeJSFromTheUsualEnvVars } from '@commonality/sdk/node';
-import type { IpfsCidV1, WriteClients } from '@commonality/sdk/utils';
+import { cidToBytes32, type IpfsCidV1, type WriteClients } from '@commonality/sdk/utils';
 import type { CampaignContracts, CampaignWalletBinding } from './campaignEnvironment.js';
 import type { CampaignExecutionAdapter, CampaignReceipt } from './campaignExecutor.js';
 import { estimateGroupGas } from './campaignBatching.js';
@@ -28,7 +28,7 @@ import type { CampaignRuntimeBindings } from './campaignRuntimeBindings.js';
 import { writeRuntimeBindings } from './campaignRuntimeBindings.js';
 import { buildSeedClusterDocument, buildSeedRosterDocument } from './seedCauseRoster.js';
 import { createSeedClients } from './seedRpc.js';
-import { campaignFundProjectCost, getPaymentTokenDecimals } from './paymentTokenUnits.js';
+import { campaignActionFundingCost, campaignFundProjectCost, getPaymentTokenDecimals } from './paymentTokenUnits.js';
 import { campaignNoteWei } from './campaignProvisioning.js';
 
 
@@ -61,6 +61,7 @@ function requireBound<T>(value: T | undefined, label: string): T {
 export function campaignRunPublications(plan: CampaignPlan, bindings: CampaignRuntimeBindings): {
   causeBoards: Array<{ title: string; role: string; owner: Address; slug: string; path: string }>;
   bridges: Array<{ title: string; owner: Address; slug: string; path: string }>;
+  projects: Array<{ title: string; assuranceContract: Address; path: string }>;
 } {
   const causeBoards = [];
   const bridges = [];
@@ -87,7 +88,11 @@ export function campaignRunPublications(plan: CampaignPlan, bindings: CampaignRu
       });
     }
   }
-  return { causeBoards, bridges };
+  const projects = plan.projects.flatMap((project) => {
+    const assuranceContract = bindings.projects[project.id];
+    return assuranceContract ? [{ title: project.title, assuranceContract, path: `/projects/${assuranceContract}` }] : [];
+  });
+  return { causeBoards, bridges, projects };
 }
 
 export function applySubmittedBindings(bindings: CampaignRuntimeBindings, action: PlannedAction, write: CampaignSubmittedWrite, actor: Address, now: Date): void {
@@ -166,6 +171,7 @@ export function createLiveCampaignActionWriter(input: {
   contracts: CampaignContracts;
   bindings: CampaignRuntimeBindings;
   projectTokens?: Map<string, Address>;
+  approvalConfirmations?: number;
 }): CampaignActionWriter {
   const machinery = createSDKMachinery({
     ipfsConfig: createIPFSConfigInNodeJSFromTheUsualEnvVars(),
@@ -272,7 +278,10 @@ export function createLiveCampaignActionWriter(input: {
     async 'set-belief'(action, clients) {
       const beliefs = { address: input.contracts.beliefs, abi: BeliefsAbi };
       const cid = statementCid(action.statementId);
-      const hash = action.belief === 'disbelieve' ? await disbelieveStatement(clients, beliefs, cid) : await believeStatement(clients, beliefs, cid);
+      const hash = await clients.walletClient.writeContract({ address: beliefs.address, abi: beliefs.abi, functionName: 'setBelief',
+        args: [cidToBytes32(cid), action.belief === 'disbelieve' ? 2 : 1], gas: 120_000n,
+        chain: clients.walletClient.chain, account: clients.walletClient.account! });
+      await clients.publicClient.waitForTransactionReceipt({ hash });
       return { hash };
     },
     async 'attest-implication'(action, clients) {
@@ -303,6 +312,9 @@ export function createLiveCampaignActionWriter(input: {
     },
     async 'fund-project'(action, clients) {
       const assurance = projectAddress(action.projectId);
+      if (action.funding?.kind === 'retroactive') {
+        return { hash: await donateRetroactive(clients, { address: assurance, abi: AssuranceContractAbi }, campaignActionFundingCost(action)) };
+      }
       let token = projectTokens.get(action.projectId!);
       if (!token) {
         const folded = await getProject(machinery, assurance);
@@ -312,7 +324,12 @@ export function createLiveCampaignActionWriter(input: {
       }
       // A campaign wallet may fund the same project repeatedly. Cover the full
       // campaign in one approval so each purchase does not race an allowance read.
-      return { hash: await buyProjectTokens(clients, { address: assurance, abi: AssuranceContractAbi }, { buyer: clients.account, tokenAddress: token, tokenIds: [3n], tokenCounts: [1n], totalCost: campaignFundProjectCost() * 100n, approvalConfirmations: 3 }) };
+      const totalCost = action.funding
+        ? input.plan.actions.filter((item) => item.type === 'fund-project' && item.actorUserId === action.actorUserId && item.projectId === action.projectId && item.funding?.kind === 'early').reduce((sum, item) => sum + campaignActionFundingCost(item), 0n)
+        : campaignFundProjectCost() * 100n;
+      return { hash: await buyProjectTokens(clients, { address: assurance, abi: AssuranceContractAbi }, { buyer: clients.account, tokenAddress: token,
+        tokenIds: [BigInt(action.funding?.tokenId ?? 3)], tokenCounts: [BigInt(action.funding?.tokenCount ?? 1)], totalCost,
+        approvalConfirmations: input.approvalConfirmations ?? 3 }) };
     },
     async 'deposit-note'(action, clients) {
       const { hash, noteId } = await depositETH(clients, notesContract, { amount: noteAmount(action) });
@@ -342,10 +359,10 @@ export function createLiveCampaignActionWriter(input: {
     const type = actions[0]?.type;
     if (!type || actions.some((action) => action.type !== type)) throw new Error('batched campaign writes must share one action type');
     if (type === 'set-belief') {
-      const hash = await setBeliefsBatch(clients, { address: input.contracts.beliefs, abi: BeliefsAbi }, actions.map((action) => ({
-        statementCid: statementCid(action.statementId),
-        beliefState: action.belief === 'disbelieve' ? 2 : 1,
-      })));
+      const hash = await clients.walletClient.writeContract({ address: input.contracts.beliefs, abi: BeliefsAbi, functionName: 'setBeliefsInBatch',
+        args: [actions.map((action) => cidToBytes32(statementCid(action.statementId))), actions.map((action) => action.belief === 'disbelieve' ? 2 : 1)],
+        gas: 40_000n + 80_000n * BigInt(actions.length), chain: clients.walletClient.chain, account: clients.walletClient.account! });
+      await clients.publicClient.waitForTransactionReceipt({ hash });
       return { hash, writes: actions.map(() => ({ hash })) };
     }
     if (type === 'attest-implication') {

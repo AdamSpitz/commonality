@@ -93,15 +93,15 @@ test('preflight proposal is read-only and fail-closed on indexer lag', async () 
   assert.equal(proposal.phase, 'remote-canary-10');
   assert.equal(proposal.userCount, 10);
   assert.ok(Number(proposal.nativeWeiNeeded) > 0);
-  assert.ok(proposal.gates.some((gate) => gate.id === 'budget-and-window' && gate.status === 'needs-adam'));
-  assert.equal(proposal.readyForAdamApproval, true);
+  assert.ok(proposal.gates.every((gate) => gate.status === 'pass'));
+  assert.equal(proposal.readyForExecution, true);
   assert.equal(proposal.secrets.hardhatKeys, 'forbidden on remote');
   const lagFail = buildRemoteCanaryProposal({
     plan: plan(), manifest: manifest(), environment, chainPreflight,
     indexerUrl: 'https://commonality-indexer.onrender.com', indexerLagBlocks: 10_000n,
   });
   assert.equal(lagFail.gates.find((gate) => gate.id === 'indexer-lag')?.status, 'fail');
-  assert.equal(lagFail.readyForAdamApproval, false);
+  assert.equal(lagFail.readyForExecution, false);
 }));
 
 test('runRemoteCanaryPreflight writes artifacts and never confirms mutation', async () => withEnv(async (deploymentEnvPath) => {

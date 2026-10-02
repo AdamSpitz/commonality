@@ -52,6 +52,12 @@ test('native reserve scales with gas and leaves idle wallets unfunded', () => {
   assert.equal(needs[1].nativeWei, 0n);
 });
 
+test('publisher wallet receives gas for actorless statement writes', () => {
+  const publishOnly = { ...plan, actions: [action({ id: 'publish', type: 'publish-statement', actorUserId: null })] } as CampaignPlan;
+  const [need] = computeCampaignFundingNeeds(publishOnly, [wallet], 6_000_000n);
+  assert.ok(need.nativeWei > 180_000n * 6_000_000n);
+});
+
 test('provisioning uses the supplied RPC gas-price quote', async () => {
   const directory = await mkdtemp(path.join(tmpdir(), 'campaign-gas-quote-'));
   try {

@@ -52,10 +52,36 @@ test('v2 includes every hobby story and its interested synthetic people', async 
     assert.equal(profiles.length, 4);
     assert.ok(profiles.every((user) => user.causeIds.includes(causeId) && user.displayName && user.bio && user.interests?.length));
     assert.ok(plan.projects.filter((project) => project.causeId === causeId).every((project) => profiles.some((user) => user.id === project.founderUserId)));
+    const causeFounder = plan.actions.find((action) => action.type === 'create-cause' && action.causeId === causeId);
+    assert.ok(causeFounder && profiles.some((user) => user.id === causeFounder.actorUserId));
     assert.ok(plan.actions.some((action) => action.type === 'fund-project' && action.causeId === causeId && profiles.some((user) => user.id === action.actorUserId)));
+    assert.ok(plan.actions.filter((action) => action.type === 'fund-project' && action.causeId === causeId).every((action) =>
+      action.actorUserId !== plan.projects.find((project) => project.id === action.projectId)?.founderUserId));
   }
   assert.ok(plan.statements.filter((statement) => hobbyCauses.includes(statement.causeId)).every((statement) => statement.source.collectionId === 'medium-realistic-v2'));
   assert.ok(plan.projects.every((project) => project.blocker && project.statementIds.length > 0 && project.outcome.includes('This is fake data created for testing')));
+});
+
+test('v2 funds one bridge project from both camps before retroactive reimbursement', async () => {
+  const manifest = JSON.parse(await readFile(new URL('../campaigns/medium-realistic-v2.json', import.meta.url), 'utf8')) as CampaignManifestV1;
+  const plan = await buildCampaignPlan(manifest);
+  const actions = new Map(plan.actions.map((action) => [action.id, action]));
+  const bridgeProject = plan.projects.find((project) => project.causeId === 'abortion-common-ground')!;
+  const purchases = plan.actions.filter((action) => action.projectId === bridgeProject.id && action.funding?.kind === 'early' && action.funding.camp);
+  assert.equal(purchases.length, 20);
+  assert.deepEqual(new Set(purchases.map((action) => action.funding?.camp)), new Set(['left', 'right']));
+  assert.equal(purchases.reduce((sum, action) => sum + action.amount!, 0), 200);
+  for (const purchase of purchases) {
+    assert.ok(purchase.dependsOn.some((id) => {
+      const belief = actions.get(id);
+      return belief?.type === 'set-belief' && belief.actorUserId === purchase.actorUserId &&
+        plan.statements.find((statement) => statement.id === belief.statementId)?.role === `natural-${purchase.funding?.camp}`;
+    }));
+  }
+  const retroactive = plan.actions.filter((action) => action.funding?.kind === 'retroactive');
+  assert.equal(retroactive.length, 4);
+  assert.ok(retroactive.every((action) => action.projectId === bridgeProject.id && purchases.every((purchase) => action.dependsOn.includes(purchase.id))));
+  assert.ok(new Set(plan.actions.filter((action) => action.funding?.kind === 'early').map((action) => action.funding?.tokenCount)).size > 1);
 });
 
 test('planner assigns overlapping, uneven causes and respects persona bounds', async () => {
