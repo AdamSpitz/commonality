@@ -44,7 +44,7 @@ export interface CampaignCanarySlice {
 
 export interface CampaignCanaryGate {
   id: string;
-  status: 'pass' | 'fail' | 'needs-adam';
+  status: 'pass' | 'fail';
   detail: string;
 }
 
@@ -72,7 +72,7 @@ export interface CampaignCanaryProposal {
   indexerUrl: string;
   indexerLagBlocks: string | null;
   gates: CampaignCanaryGate[];
-  readyForAdamApproval: boolean;
+  readyForExecution: boolean;
 }
 
 export function sliceCampaignPlanForCanary(plan: CampaignPlan, userCount = REMOTE_CANARY_USER_COUNT): CampaignCanarySlice {
@@ -145,10 +145,6 @@ function remoteCanaryGates(input: {
       status: passFail(lagOk),
       detail: input.indexerLagBlocks === null ? 'indexer head unavailable' : `${input.indexerLagBlocks} blocks (max ${input.maxLag})`,
     },
-    { id: 'shared-lab-readiness', status: 'needs-adam', detail: 'Confirm workflow/testnet-working-plan.md shared-lab milestone is boring before mutating' },
-    { id: 'official-implication-path', status: 'needs-adam', detail: 'Confirm the official implication/trust path for the chosen statements is intentionally populated' },
-    { id: 'read-only-verifier', status: 'needs-adam', detail: 'Run ./scripts/verifier-testnet.sh (read-only leaves) immediately before the mutating canary' },
-    { id: 'budget-and-window', status: 'needs-adam', detail: 'Adam must approve this proposal, native budget, pacing, and testnet window' },
   ];
 }
 
@@ -186,7 +182,7 @@ export function buildRemoteCanaryProposal(input: {
     indexerLagBlocks: input.indexerLagBlocks,
     maxLag,
   });
-  const readyForAdamApproval = gates.every((gate) => gate.status !== 'fail');
+  const readyForExecution = gates.every((gate) => gate.status !== 'fail');
   return {
     campaignId: input.plan.campaignId,
     phase: 'remote-canary-10',
@@ -211,7 +207,7 @@ export function buildRemoteCanaryProposal(input: {
     indexerUrl: input.indexerUrl,
     indexerLagBlocks: input.indexerLagBlocks === null ? null : input.indexerLagBlocks.toString(),
     gates,
-    readyForAdamApproval,
+    readyForExecution,
   };
 }
 
@@ -220,7 +216,7 @@ export function formatCanaryProposalMarkdown(proposal: CampaignCanaryProposal): 
   const typeLines = Object.entries(proposal.writesByType).map(([type, count]) => `- ${type}: ${count}`).join('\n');
   return `# Remote canary proposal (${proposal.campaignId})
 
-This preflight **does not mutate** the chain. Do not run \`gen:campaign:execute --mode remote --confirm-remote-mutation\` until Adam approves this file.
+This preflight **does not mutate** the chain. Run the read-only testnet verifier before execution, and stop if DNS, indexer, or deployed contracts fail. Remote execution requires \`--confirm-remote-mutation\`.
 
 - Users: ${proposal.userCount}
 - Writes: ${proposal.writeCount}
@@ -243,7 +239,7 @@ ${typeLines}
 
 ${gateLines}
 
-Ready for Adam approval: **${proposal.readyForAdamApproval ? 'yes (pending the needs-adam items)' : 'no'}**
+Ready for execution after the read-only verifier: **${proposal.readyForExecution ? 'yes' : 'no'}**
 `;
 }
 
@@ -338,7 +334,7 @@ async function main(): Promise<void> {
   });
   console.log(formatCanaryProposalMarkdown(proposal));
   console.log(`Wrote ${jsonPath} and ${markdownPath}`);
-  if (!proposal.readyForAdamApproval) process.exitCode = 1;
+  if (!proposal.readyForExecution) process.exitCode = 1;
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

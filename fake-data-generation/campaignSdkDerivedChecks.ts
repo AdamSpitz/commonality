@@ -2,7 +2,7 @@ import type { Address } from 'viem';
 import { BeliefStates, getImplication, getUserBelief } from '@commonality/sdk/conceptspace';
 import { getNote, type Note } from '@commonality/sdk/delegation';
 import { getAlignmentAttestation, PROJECT_ALIGNMENT_TOPIC, toSubjectId } from '@commonality/sdk/fundingportals';
-import { getProject, type Project } from '@commonality/sdk/lazy-giving';
+import { getProject, getProjectReimbursementState, type Project, type ProjectReimbursementState } from '@commonality/sdk/lazy-giving';
 import type { SDKMachinery } from '@commonality/sdk/machinery';
 import { getRefsByName, type MutableRef } from '@commonality/sdk/mutable-refs';
 import type { IpfsCidV1 } from '@commonality/sdk/utils';
@@ -10,7 +10,7 @@ import type { CampaignDerivedCheckProvider } from './campaignIndexerAdapter.js';
 import type { CampaignPlan, PlannedAction } from './campaignPlanner.js';
 import { validateRuntimeBindings, type CampaignRuntimeBindings } from './campaignRuntimeBindings.js';
 import type { DerivedCheck } from './campaignReconciler.js';
-import { campaignFundProjectCost } from './paymentTokenUnits.js';
+import { campaignActionFundingCost } from './paymentTokenUnits.js';
 
 /** Injectable SDK query surface, primarily to make the expected-state logic testable. */
 export interface CampaignSdkQueries {
@@ -18,6 +18,7 @@ export interface CampaignSdkQueries {
   hasImplication(attester: Address, from: IpfsCidV1, to: IpfsCidV1): Promise<boolean>;
   getRefsByName(name: string): Promise<MutableRef[]>;
   getProject(address: Address): Promise<Project | null>;
+  getProjectReimbursementState?(address: Address): Promise<ProjectReimbursementState>;
   hasAlignment(attester: Address, project: Address, statement: IpfsCidV1): Promise<boolean>;
   getNote(noteId: string): Promise<Note | null>;
 }
@@ -32,6 +33,7 @@ function realSdkQueries(machinery: SDKMachinery): CampaignSdkQueries {
     },
     getRefsByName: (name) => getRefsByName(machinery, name, 10_000),
     getProject: (address) => getProject(machinery, address),
+    getProjectReimbursementState: (address) => getProjectReimbursementState(machinery, address),
     async hasAlignment(attester, project, statement) {
       return (await getAlignmentAttestation(machinery, attester, toSubjectId(project), statement, PROJECT_ALIGNMENT_TOPIC)) !== null;
     },
@@ -65,6 +67,7 @@ function memoizeCampaignSdkQueries(queries: CampaignSdkQueries): CampaignSdkQuer
     hasImplication: (attester, from, to) => remember(`${attester}/${from}/${to}`, () => queries.hasImplication(attester, from, to), implications),
     getRefsByName: (name) => remember(name, () => queries.getRefsByName(name), refs),
     getProject: (address) => remember(address.toLowerCase(), () => queries.getProject(address), projects),
+    getProjectReimbursementState: queries.getProjectReimbursementState ? (address) => queries.getProjectReimbursementState!(address) : undefined,
     hasAlignment: (attester, project, statement) => remember(`${attester}/${project}/${statement}`, () => queries.hasAlignment(attester, project, statement), alignments),
     getNote: (noteId) => remember(noteId.toLowerCase(), () => queries.getNote(noteId), notes),
   };
@@ -87,11 +90,14 @@ export function createCampaignSdkDerivedCheckProvider(input: {
   const latestBelief = new Map<string, PlannedAction>();
   const latestNoteAction = new Map<string, PlannedAction>();
   const fundingByProject = new Map<string, bigint>();
-  const fundCost = campaignFundProjectCost();
+  const retroByProject = new Map<string, bigint>();
   for (const action of plan.actions) {
     if (action.type === 'set-belief') latestBelief.set(`${action.actorUserId}/${action.statementId}`, action);
     if (action.noteId) latestNoteAction.set(action.noteId, action);
-    if (action.type === 'fund-project') fundingByProject.set(action.projectId!, (fundingByProject.get(action.projectId!) ?? 0n) + fundCost);
+    if (action.type === 'fund-project') {
+      const target = action.funding?.kind === 'retroactive' ? retroByProject : fundingByProject;
+      target.set(action.projectId!, (target.get(action.projectId!) ?? 0n) + campaignActionFundingCost(action));
+    }
   }
 
   const user = (id: string | null | undefined): Address => bindings.users[id!];
@@ -134,6 +140,10 @@ export function createCampaignSdkDerivedCheckProvider(input: {
           return [check('SDK active project alignment', true, await queries.hasAlignment(user(action.actorUserId), project(action.projectId), statement(action.statementId)))];
         case 'fund-project': {
           const folded = await queries.getProject(project(action.projectId));
+          if (action.funding?.kind === 'retroactive') {
+            const reimbursement = await queries.getProjectReimbursementState?.(project(action.projectId));
+            return [check('SDK final retroactive donations', (retroByProject.get(action.projectId!) ?? 0n).toString(), reimbursement?.totalRetroactiveDonations ?? null)];
+          }
           return [check('SDK final project funding', (fundingByProject.get(action.projectId!) ?? 0n).toString(), folded?.totalReceived ?? null)];
         }
         case 'deposit-note':

@@ -57,6 +57,7 @@ export interface PlannedAction {
   delegateUserId?: string;
   belief?: 'believe' | 'disbelieve';
   amount?: number;
+  funding?: { kind: 'early' | 'retroactive'; tokenId?: 1 | 3; tokenCount?: number; camp?: 'left' | 'right' };
   alignment?: 'supports-described-outcome';
   delegationBasis?: { sharedCauseIds: string[]; reason: 'shared-cause-trusted-role' };
   implication?: { fromStatementId: string; toStatementId: string; evidence: 'accepted-bridge-role-pair' };
@@ -430,15 +431,38 @@ export async function buildCampaignPlan(manifest: CampaignManifestV1): Promise<C
     ? [...firstProjects, ...projects.filter((project) => !firstProjects.includes(project))].slice(0, fundableCount)
     : projects.slice(0, fundableCount);
   const hobbyCauses = ['music-learning', 'car-repair', 'gluten-free-cooking', 'game-commons'];
+  const bridgeProject = useStories ? firstByCause.get('abortion-common-ground') : undefined;
+  const bridgeBackers = bridgeProject
+    ? activeUsers.filter((user) => user.causeIds.includes(bridgeProject.causeId) && user.fundingWeight > 0 && user.id !== bridgeProject.founderUserId).slice(0, 2)
+    : [];
+  if (bridgeProject && bridgeBackers.length < 2) throw new Error('v2 bridge project needs two independent camp backers');
+  const campBeliefs = bridgeBackers.map((user, index) => {
+    const camp = index === 0 ? 'left' : 'right';
+    const statement = statements.find((item) => item.causeId === bridgeProject!.causeId && item.role === `natural-${camp}`)!;
+    return add({ type: 'set-belief', actorUserId: user.id, causeId: bridgeProject!.causeId, statementId: statement.id, belief: 'believe', dependsOn: [publishes.get(statement.id)!.id] });
+  });
+  const thresholdPurchases: PlannedAction[] = [];
   for (let index = 0; index < countByType['fund-project']; index++) {
     const featuredCause = useStories ? hobbyCauses[index] : undefined;
-    const project = featuredCause ? firstByCause.get(featuredCause)! : random.weighted(fundableProjects, (item) => Math.max(1, fundableProjects.length - (useStories ? fundableProjects.indexOf(item) : projects.indexOf(item))));
+    const bridgePurchase = Boolean(bridgeProject && index >= hobbyCauses.length && index < hobbyCauses.length + 20);
+    const project = bridgePurchase ? bridgeProject! : featuredCause ? firstByCause.get(featuredCause)! : random.weighted(fundableProjects, (item) => Math.max(1, fundableProjects.length - (useStories ? fundableProjects.indexOf(item) : projects.indexOf(item))));
     const supporters = activeUsers.filter((user) => user.causeIds.includes(project.causeId) && user.fundingWeight > 0 && (!useStories || user.id !== project.founderUserId));
     const interestedSupporters = featuredCause ? supporters.filter((user) => user.favoriteCauseId === featuredCause && user.id !== project.founderUserId) : [];
-    const actor = random.weighted(interestedSupporters.length ? interestedSupporters : supporters, (user) => user.fundingWeight);
+    const actor = bridgePurchase ? bridgeBackers[(index - hobbyCauses.length) % 2] : random.weighted(interestedSupporters.length ? interestedSupporters : supporters, (user) => user.fundingWeight);
     const alignment = alignments.find((item) => item.projectId === project.id);
     if (!alignment) throw new Error(`impossible fund-project: ${project.id} has no alignment action`);
-    add({ type: 'fund-project', actorUserId: actor.id, causeId: project.causeId, projectId: project.id, amount: fundingAmount(actor, projects.indexOf(project), random), dependsOn: [createProjects.get(project.id)!.id, alignment.id] });
+    const tokenId = bridgePurchase ? 1 : 3;
+    const tokenCount = bridgePurchase ? 1 : Math.max(1, Math.min(10, Math.round(fundingAmount(actor, projects.indexOf(project), random) / 100)));
+    const action = add({ type: 'fund-project', actorUserId: actor.id, causeId: project.causeId, projectId: project.id,
+      amount: useStories ? tokenCount * (tokenId === 1 ? 10 : 1) : fundingAmount(actor, projects.indexOf(project), random),
+      ...(useStories ? { funding: { kind: 'early' as const, tokenId: tokenId as 1 | 3, tokenCount, ...(bridgePurchase ? { camp: ((index - hobbyCauses.length) % 2 === 0 ? 'left' : 'right') as 'left' | 'right' } : {}) } } : {}),
+      dependsOn: [createProjects.get(project.id)!.id, alignment.id, ...(bridgePurchase ? [campBeliefs[(index - hobbyCauses.length) % 2].id] : [])] });
+    if (bridgePurchase) thresholdPurchases.push(action);
+  }
+  if (bridgeProject) for (let index = 0; index < 4; index++) {
+    add({ type: 'fund-project', actorUserId: bridgeBackers[index % 2].id, causeId: bridgeProject.causeId, projectId: bridgeProject.id,
+      amount: 25, funding: { kind: 'retroactive', camp: index % 2 === 0 ? 'left' : 'right' },
+      dependsOn: [createProjects.get(bridgeProject.id)!.id, alignments.find((item) => item.projectId === bridgeProject.id)!.id, ...thresholdPurchases.map((purchase) => purchase.id)] });
   }
   const deposits: PlannedAction[] = [];
   const delegatingDepositors = activeUsers.filter((owner) => delegates.some((delegate) => delegate.id !== owner.id && delegate.causeIds.some((causeId) => owner.causeIds.includes(causeId))));
@@ -478,6 +502,12 @@ export function validatePlannedActions(manifest: CampaignManifestV1, statements:
     if (action.causeId && actor && ['set-belief', 'fund-project'].includes(action.type) && !actor.causeIds.includes(action.causeId)) throw new Error(`${action.id} actor is outside cause ${action.causeId}`);
     if (action.type === 'set-belief' && !action.belief) throw new Error(`${action.id} is missing belief value`);
     if (action.type === 'fund-project' && (!action.amount || action.amount <= 0)) throw new Error(`${action.id} is missing positive funding amount`);
+    if (action.type === 'fund-project' && action.funding?.kind === 'early' &&
+      (!action.funding.tokenId || !action.funding.tokenCount || action.amount !== action.funding.tokenCount * (action.funding.tokenId === 1 ? 10 : 1))) {
+      throw new Error(`${action.id} funding receipt price does not match amount`);
+    }
+    if (action.type === 'fund-project' && action.funding?.kind === 'retroactive' &&
+      !action.dependsOn.some((id) => actionById.get(id)?.type === 'fund-project')) throw new Error(`${action.id} has no earlier funding dependency`);
     if (action.type === 'attest-alignment' && action.alignment !== 'supports-described-outcome') throw new Error(`${action.id} lacks project outcome alignment evidence`);
     if (action.type === 'delegate-note' && (!action.delegationBasis || action.delegationBasis.sharedCauseIds.length === 0)) throw new Error(`${action.id} lacks a shared-cause delegation basis`);
   }
