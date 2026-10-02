@@ -50,14 +50,14 @@ or, for a specific project:
 
 These records are reputation signals. They help donors decide whose judgment they trust. They are not projections, yield claims, or platform guarantees.
 
-Delegation is the natural complement: if you do not want to evaluate early projects yourself, you can delegate a giving budget to someone whose work and track record you respect. Suggested delegates are a UI convenience only. The protocol does not automatically route money to them; they receive responsibility over donated funds.
+Delegation is the natural complement: if you do not want to evaluate early projects yourself, you can authorize a specific person whose work and track record you respect to spend a stated amount on projects. The protocol routes nothing automatically and ranks no one: every donor names their own delegate, and only the donor can change that choice.
 
 ## Why this is better than prospective-only funding
 
 - **Better evidence.** Donors can inspect delivered work instead of judging only promises.
 - **Separate roles.** Scouts specialize in early judgment; retroactive donors specialize in supporting proven results.
 - **Revolving capacity.** Reimbursement at cost lets early giving budgets be used again.
-- **Visible reputation.** Good scout judgment compounds into trust, delegated budgets, and social proof.
+- **Visible reputation.** Good scout judgment compounds into donors' trust and social proof — and donors who like what they see can each choose to delegate to that scout.
 - **Lower fraud risk.** It is harder to fake completed work than a polished proposal.
 
 ## Known limitations

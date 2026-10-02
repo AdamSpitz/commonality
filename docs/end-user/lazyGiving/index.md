@@ -8,7 +8,7 @@ It's a lot like Kickstarter, except it spares you the two jobs most crowdfunding
 
 - **You don't have to make each donation decision yourself.** Evaluating projects one by one is a lot of homework. With [delegation](../shared/key-ideas/delegation.md), you can hand that work to someone whose judgment you trust. They pick; your name still shows up on the contributor list; you can stop the delegation anytime.
 
-If you enjoy hunting for diamonds in the rough, fund early as a scout. Later donors may return your contribution at cost so you can fund the next project, and your track record can attract delegated budgets.
+If you enjoy hunting for diamonds in the rough, fund early as a scout. Later donors may return your contribution at cost so you can fund the next project, and your public track record is what other donors can look at when deciding whom to delegate to.
 
 It all runs onchain, so no company owns the ledger: your pledges, your refunds, and the contributor list live on open infrastructure, not locked inside one platform that can change the rules on you.
 

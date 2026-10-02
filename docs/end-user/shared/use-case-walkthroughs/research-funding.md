@@ -26,7 +26,7 @@ You're a donor who cares about this field but doesn't want to gamble on unknowns
 
 Your donation enters the project's reimbursement waterfall. It returns early contributors' money pro-rata, never more than each person originally contributed. Their receipts are recognition records, not assets to trade, and nobody receives interest, a premium, or a profit.
 
-Reimbursed contributors can use that same giving budget to scout and fund the next promising project. Their public record — what they backed and what later succeeded — helps donors decide whom to trust with delegated budgets.
+Reimbursed contributors can use that same giving budget to scout and fund the next promising project. Their public record — what they backed and what later succeeded — helps donors decide whom to delegate to.
 
 ## The cycle
 
@@ -34,7 +34,7 @@ Reimbursed contributors can use that same giving budget to scout and fund the ne
 2. **Projects deliver** verifiable results.
 3. **Later donors** fund proven successes without predicting winners.
 4. **Early contributors get their money back**, pro-rata and at cost, so they can fund the next project.
-5. Their track records help good scouts attract larger delegated budgets.
+5. Their track records help donors decide to delegate to them.
 6. Repeat.
 
 The point is capital velocity, not financial return: get your contribution back and fund the next one.

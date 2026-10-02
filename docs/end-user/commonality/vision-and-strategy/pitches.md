@@ -45,7 +45,7 @@ cause](../../commonality/start-a-cause.md).
 
 ## Scouts (people with foresight)
 
-"Good at spotting promising projects early? Fund them before anyone else does. If the project delivers, later donors can reimburse your contribution at cost so your giving budget can fund another attempt. Your public track record can also attract larger delegated budgets. You're a scout for public goods: the projects you spot get early funding, and good judgment earns trust and responsibility."
+"Good at spotting promising projects early? Fund them before anyone else does. If the project delivers, later donors can reimburse your contribution at cost so your giving budget can fund another attempt. Your public track record is also how donors who've never met you can decide to delegate to you. You're a scout for public goods: the projects you spot get early funding, and good judgment earns donors' trust."
 
 ## The common thread
 

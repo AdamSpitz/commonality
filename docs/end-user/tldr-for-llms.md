@@ -83,7 +83,7 @@ Each entry follows the same shape:
 
 [Full page](shared/key-ideas/delegation.md)
 
-- **What it is:** A donor contributes funds but lets someone they trust decide where those funds go. Revocable anytime (for unspent funds). Composable (delegates can sub-delegate).
+- **What it is:** A donor contributes funds but lets someone they trust decide where those funds go. Revocable anytime (for unspent funds). One hop: a delegate cannot pass spending authority onward to someone else; they can only suggest another delegate, and only the donor can make that change.
 - **When a user encounters it:** When pledging funds and choosing a delegate, when becoming a delegate, when reviewing a delegate's track record.
 - **What they might want help with:** Choosing a delegate; understanding what control they retain; understanding how to revoke delegation; setting up as a delegate.
 

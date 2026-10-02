@@ -10,9 +10,9 @@ If you know your field well enough to spot good projects, delegation lets you ac
 
 And the bar is lower than it sounds. You don't have to be a prophet who picks winners before they've proven anything. Because projects can be funded **retroactively**, a perfectly good delegate just watches for projects that have *already* delivered and rewards those. Recognizing good work after the fact is far easier than predicting it — which is exactly why donors are comfortable handing this job to a friend rather than a professional.
 
-Donors who want to help but don't have the time or expertise to evaluate projects need someone like you. They're looking for a delegate whose track record matches their values. If you build that track record — honestly, transparently — you'll attract more delegated funds over time.
+Donors who want to help but don't have the time or expertise to evaluate projects need someone like you. They're looking for a delegate whose track record matches their values. If you build that track record — honestly, transparently — more donors may choose to delegate to you over time.
 
-This is how a lot of philanthropic infrastructure works already: foundations, program officers, community funds all do essentially this job. Commonality lets anyone do it without the overhead, and makes the decision record fully public so your track record speaks for itself.
+A lot of philanthropic infrastructure already does essentially this job — but at a distance: foundations, program officers, community funds, all staffed by people the actual donors never met or chose. Commonality keeps the job but removes the distance. Every donor you serve chose *you*, personally, after looking at what you've actually funded — and can un-choose you at any time. You're not a salaried officer inside an opaque institution; you're the specific person a specific donor decided to trust. The decision record is fully public, so your track record speaks for itself.
 
 ## How it works
 
@@ -20,9 +20,9 @@ Donors create "delegatable notes" — pledges earmarked for a cause — and assi
 
 Your funding decisions are recorded on-chain. Anyone can see what you've funded, when, and how much. Donors can see your track record before they assign notes to you, and can revoke at any time if they disagree with your choices.
 
-You can also sub-delegate: if you trust someone else's judgment in a particular sub-area, you can route part of your pool through them. This lets you specialize without having to personally evaluate everything.
+Delegation is one hop: you cannot pass a donor's spending authority onward to someone else. If you know someone whose judgment fits a donor's cause better than yours, tell the donor — they can delegate to that person themselves if they agree. The donor chose you; that choice stays theirs to make, not yours.
 
-**Your reward is your track record.** When you direct a donor's funds to a project, the money stays theirs. If later donors reimburse that early contribution after the project delivers, the returned money belongs to the donor and can fund another project; it is never a profit for the delegate. What you get is reputation (plus the satisfaction of your efforts having contributed in a useful way to the cause, of course). Every decision is recorded on-chain and shown on the leaderboard as "donor → you," so a delegate who keeps backing successful projects builds a visible, permanent record of good judgment. That track record is what might attract more donors to assign their notes to you.
+**Your reward is your track record.** When you direct a donor's funds to a project, the money stays theirs. If later donors reimburse that early contribution after the project delivers, the returned money belongs to the donor and can fund another project; it is never a profit for the delegate. What you get is reputation (plus the satisfaction of your efforts having contributed in a useful way to the cause, of course). Every decision is recorded on-chain and shown on the leaderboard as "donor → you," so a delegate who keeps backing successful projects builds a visible, permanent record of good judgment. That track record is what might lead more donors to choose you as their delegate.
 
 ## Getting started
 
