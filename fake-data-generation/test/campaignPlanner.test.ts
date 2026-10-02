@@ -52,7 +52,11 @@ test('v2 includes every hobby story and its interested synthetic people', async 
     assert.equal(profiles.length, 4);
     assert.ok(profiles.every((user) => user.causeIds.includes(causeId) && user.displayName && user.bio && user.interests?.length));
     assert.ok(plan.projects.filter((project) => project.causeId === causeId).every((project) => profiles.some((user) => user.id === project.founderUserId)));
+    const causeFounder = plan.actions.find((action) => action.type === 'create-cause' && action.causeId === causeId);
+    assert.ok(causeFounder && profiles.some((user) => user.id === causeFounder.actorUserId));
     assert.ok(plan.actions.some((action) => action.type === 'fund-project' && action.causeId === causeId && profiles.some((user) => user.id === action.actorUserId)));
+    assert.ok(plan.actions.filter((action) => action.type === 'fund-project' && action.causeId === causeId).every((action) =>
+      action.actorUserId !== plan.projects.find((project) => project.id === action.projectId)?.founderUserId));
   }
   assert.ok(plan.statements.filter((statement) => hobbyCauses.includes(statement.causeId)).every((statement) => statement.source.collectionId === 'medium-realistic-v2'));
   assert.ok(plan.projects.every((project) => project.blocker && project.statementIds.length > 0 && project.outcome.includes('This is fake data created for testing')));

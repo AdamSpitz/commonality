@@ -315,7 +315,8 @@ export async function buildCampaignPlan(manifest: CampaignManifestV1): Promise<C
     const group = statements.filter((statement) => statement.causeId === cause.id);
     const bridgeShaped = isBridgeCause(group);
     const byRole = new Map(group.map((statement) => [statement.role, statement]));
-    const actor = bridgeShaped ? random.pick(mediators) : random.pick(causeFounders);
+    const interestedFounders = useStories ? causeFounders.filter((user) => user.favoriteCauseId === cause.id) : [];
+    const actor = bridgeShaped ? random.pick(mediators) : random.pick(interestedFounders.length ? interestedFounders : causeFounders);
     const included = bridgeShaped ? [byRole.get('commonality')!] : group;
     const clusterSlug = bridgeShaped ? boardSlug(manifest.campaign.id, cause.id, 'cluster') : undefined;
     const commonalityBoard: PlannedCauseBoard | undefined = bridgeShaped ? {
@@ -432,7 +433,7 @@ export async function buildCampaignPlan(manifest: CampaignManifestV1): Promise<C
   for (let index = 0; index < countByType['fund-project']; index++) {
     const featuredCause = useStories ? hobbyCauses[index] : undefined;
     const project = featuredCause ? firstByCause.get(featuredCause)! : random.weighted(fundableProjects, (item) => Math.max(1, fundableProjects.length - (useStories ? fundableProjects.indexOf(item) : projects.indexOf(item))));
-    const supporters = activeUsers.filter((user) => user.causeIds.includes(project.causeId) && user.fundingWeight > 0);
+    const supporters = activeUsers.filter((user) => user.causeIds.includes(project.causeId) && user.fundingWeight > 0 && (!useStories || user.id !== project.founderUserId));
     const interestedSupporters = featuredCause ? supporters.filter((user) => user.favoriteCauseId === featuredCause && user.id !== project.founderUserId) : [];
     const actor = random.weighted(interestedSupporters.length ? interestedSupporters : supporters, (user) => user.fundingWeight);
     const alignment = alignments.find((item) => item.projectId === project.id);
