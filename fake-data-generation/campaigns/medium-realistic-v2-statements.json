@@ -1,0 +1,45 @@
+{
+  "format": "commonality-seed-content-v1",
+  "id": "medium-realistic-v2",
+  "title": "Synthetic hobby causes for medium realistic v2",
+  "description": "Campaign-local synthetic statements for testing public-goods projects. They are not accepted real Conceptspace seed content.",
+  "notes": ["Synthetic testnet campaign only; do not publish through the real seed-content pipeline."],
+  "groups": [
+    {
+      "id": "music-learning",
+      "title": "Open music learning",
+      "statements": [
+        { "id": "free-guitar-lessons", "text": "I want free, reusable guitar lessons that beginners can learn from at their own pace." },
+        { "id": "interactive-music-theory", "text": "I want free interactive music theory tools that let learners hear the ideas they are studying." },
+        { "id": "grey-county-music-learning", "text": "I want freely available music lessons made with and for learners in Grey County, Ontario." }
+      ]
+    },
+    {
+      "id": "car-repair",
+      "title": "Open car repair knowledge",
+      "statements": [
+        { "id": "repair-guides", "text": "I want free, clearly documented guides to diagnosing and repairing common car problems safely." },
+        { "id": "repair-training", "text": "I want practical car repair teaching materials that learners and community workshops can reuse." },
+        { "id": "grey-county-repair", "text": "I want accessible car repair knowledge for people in Grey County, Ontario, where a broken car can mean losing a way to get around." }
+      ]
+    },
+    {
+      "id": "gluten-free-cooking",
+      "title": "Accessible gluten-free cooking",
+      "statements": [
+        { "id": "tested-open-recipes", "text": "I want freely available gluten-free recipes that have been tested and clearly explain substitutions and cross-contact precautions." },
+        { "id": "affordable-ingredients", "text": "I want practical gluten-free recipes using affordable ingredients that ordinary grocery stores carry." },
+        { "id": "grey-county-gluten-free", "text": "I want an open collection of gluten-free recipes that makes good use of food grown in Grey County, Ontario." }
+      ]
+    },
+    {
+      "id": "game-commons",
+      "title": "Open video game commons",
+      "statements": [
+        { "id": "open-game-infrastructure", "text": "I want open-source tools and servers that keep small video game communities running." },
+        { "id": "game-accessibility-tools", "text": "I want reusable accessibility tools and public testing results that help more people play video games." },
+        { "id": "lawful-game-preservation", "text": "I want lawful tools and documentation that help preserve access to older video games." }
+      ]
+    }
+  ]
+}

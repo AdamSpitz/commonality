@@ -2,16 +2,17 @@
   "schema": "commonality-testnet-campaign-v1",
   "campaign": {
     "id": "medium-realistic-v2",
-    "label": "Medium realistic campaign v2",
+    "label": "Medium realistic campaign v2 — shared hobbies",
     "syntheticDataLabel": "SYNTHETIC TESTNET CAMPAIGN — NOT REAL USERS OR ADOPTION",
     "userCount": 100,
-    "deterministicSeed": "commonality-medium-realistic-v2-2026-09-11",
+    "deterministicSeed": "commonality-medium-realistic-v2-2026-10-02",
     "randomAlgorithm": "xoshiro128**"
   },
   "sourcePolicy": {
-    "kind": "accepted-seed-content-only",
+    "kind": "accepted-plus-campaign-synthetic",
     "fingerprintAlgorithm": "sha256",
-    "excludeCollections": ["proliferation"]
+    "excludeCollections": ["proliferation"],
+    "campaignCollection": "medium-realistic-v2-statements.json"
   },
   "causes": [
     { "id": "open-source", "title": "Open-source public infrastructure", "activityTier": "large", "membershipWeight": 16, "statementRefs": [
@@ -79,6 +80,26 @@
       { "collectionId": "lgbt-schools", "groupId": "lgbt-schools-pushing", "statementId": "modified-left" },
       { "collectionId": "lgbt-schools", "groupId": "lgbt-schools-pushing", "statementId": "modified-right" },
       { "collectionId": "lgbt-schools", "groupId": "lgbt-schools-pushing", "statementId": "commonality" }
+    ]},
+    { "id": "music-learning", "title": "Open music learning", "activityTier": "medium", "membershipWeight": 11, "statementRefs": [
+      { "collectionId": "medium-realistic-v2", "groupId": "music-learning", "statementId": "free-guitar-lessons" },
+      { "collectionId": "medium-realistic-v2", "groupId": "music-learning", "statementId": "interactive-music-theory" },
+      { "collectionId": "medium-realistic-v2", "groupId": "music-learning", "statementId": "grey-county-music-learning" }
+    ]},
+    { "id": "car-repair", "title": "Open car repair knowledge", "activityTier": "medium", "membershipWeight": 10, "statementRefs": [
+      { "collectionId": "medium-realistic-v2", "groupId": "car-repair", "statementId": "repair-guides" },
+      { "collectionId": "medium-realistic-v2", "groupId": "car-repair", "statementId": "repair-training" },
+      { "collectionId": "medium-realistic-v2", "groupId": "car-repair", "statementId": "grey-county-repair" }
+    ]},
+    { "id": "gluten-free-cooking", "title": "Accessible gluten-free cooking", "activityTier": "medium", "membershipWeight": 10, "statementRefs": [
+      { "collectionId": "medium-realistic-v2", "groupId": "gluten-free-cooking", "statementId": "tested-open-recipes" },
+      { "collectionId": "medium-realistic-v2", "groupId": "gluten-free-cooking", "statementId": "affordable-ingredients" },
+      { "collectionId": "medium-realistic-v2", "groupId": "gluten-free-cooking", "statementId": "grey-county-gluten-free" }
+    ]},
+    { "id": "game-commons", "title": "Open video game commons", "activityTier": "medium", "membershipWeight": 10, "statementRefs": [
+      { "collectionId": "medium-realistic-v2", "groupId": "game-commons", "statementId": "open-game-infrastructure" },
+      { "collectionId": "medium-realistic-v2", "groupId": "game-commons", "statementId": "game-accessibility-tools" },
+      { "collectionId": "medium-realistic-v2", "groupId": "game-commons", "statementId": "lawful-game-preservation" }
     ]}
   ],
   "personas": [
@@ -90,13 +111,31 @@
     { "id": "bridge-mediator", "count": 6, "roles": ["attester", "mediator"], "causesPerUser": { "min": 2, "max": 3 }, "activityWeight": 2.4, "inactivityRate": 0, "fundingWeight": 0.6 },
     { "id": "power-user", "count": 4, "roles": ["power-user", "supporter", "delegate"], "causesPerUser": { "min": 3, "max": 3 }, "activityWeight": 4, "inactivityRate": 0, "fundingWeight": 2.5 }
   ],
+  "userProfiles": [
+    { "userId": "user-001", "displayName": "Mira", "bio": "Practices beginner guitar after work and saves free chord charts for friends.", "favoriteCauseId": "music-learning", "interests": ["guitar", "learning songs"] },
+    { "userId": "user-002", "displayName": "Eli", "bio": "Likes seeing how chord progressions work and shares simple theory exercises.", "favoriteCauseId": "music-learning", "interests": ["music theory", "guitar"] },
+    { "userId": "user-003", "displayName": "Jo", "bio": "Keeps an older car running and looks for clear repair diagrams before opening the hood.", "favoriteCauseId": "car-repair", "interests": ["older cars", "DIY repairs"] },
+    { "userId": "user-004", "displayName": "Nico", "bio": "Trades practical mechanic tips with neighbors in Grey County.", "favoriteCauseId": "car-repair", "interests": ["car diagnostics", "Grey County"] },
+    { "userId": "user-025", "displayName": "Anika", "bio": "Tests gluten-free baking substitutions and writes down which ones actually work.", "favoriteCauseId": "gluten-free-cooking", "interests": ["gluten-free baking", "recipe testing"] },
+    { "userId": "user-026", "displayName": "Beth", "bio": "Wants affordable gluten-free meals built from ordinary local ingredients.", "favoriteCauseId": "gluten-free-cooking", "interests": ["budget cooking", "local food"] },
+    { "userId": "user-027", "displayName": "Dev", "bio": "Hosts small multiplayer nights and depends on volunteer-run game servers.", "favoriteCauseId": "game-commons", "interests": ["multiplayer games", "open servers"] },
+    { "userId": "user-028", "displayName": "Rae", "bio": "Plays older games and cares about preserving lawful ways to run them.", "favoriteCauseId": "game-commons", "interests": ["game preservation", "retro games"] },
+    { "userId": "user-055", "displayName": "Talia", "bio": "Organizes informal music meetups across Grey County and wants free materials for beginners.", "favoriteCauseId": "music-learning", "interests": ["community music", "Grey County"] },
+    { "userId": "user-056", "displayName": "Owen", "bio": "Helps neighbors learn safe car maintenance in small hands-on workshops.", "favoriteCauseId": "car-repair", "interests": ["repair workshops", "safe maintenance"] },
+    { "userId": "user-057", "displayName": "Priya", "bio": "Coordinates recipe swaps and checks gluten-free substitutions carefully.", "favoriteCauseId": "gluten-free-cooking", "interests": ["gluten-free recipes", "community cooking"] },
+    { "userId": "user-058", "displayName": "Kit", "bio": "Brings accessibility-minded players together to test open game tools.", "favoriteCauseId": "game-commons", "interests": ["accessible games", "community testing"] },
+    { "userId": "user-069", "displayName": "Noah", "bio": "Records guitar lessons and wants the song sheets to stay free to reuse.", "favoriteCauseId": "music-learning", "interests": ["guitar teaching", "open lessons"] },
+    { "userId": "user-070", "displayName": "Leah", "bio": "Films car diagnostics and documents the tools and safety checks behind each fix.", "favoriteCauseId": "car-repair", "interests": ["car repair", "teaching"] },
+    { "userId": "user-071", "displayName": "Avery", "bio": "Develops low-cost gluten-free recipes and records precise measurements.", "favoriteCauseId": "gluten-free-cooking", "interests": ["recipe development", "local ingredients"] },
+    { "userId": "user-072", "displayName": "Morgan", "bio": "Maintains open game servers and writes setup guides for small groups.", "favoriteCauseId": "game-commons", "interests": ["game servers", "open source"] }
+  ],
   "actionRules": [
-    { "type": "publish-statement", "prerequisites": [], "targetCount": { "min": 46, "max": 46 } },
-    { "type": "create-cause", "prerequisites": ["publish-statement"], "targetCount": { "min": 10, "max": 10 } },
+    { "type": "publish-statement", "prerequisites": [], "targetCount": { "min": 58, "max": 58 } },
+    { "type": "create-cause", "prerequisites": ["publish-statement"], "targetCount": { "min": 14, "max": 14 } },
     { "type": "set-belief", "prerequisites": ["publish-statement"], "targetCount": { "min": 350, "max": 650 } },
     { "type": "attest-implication", "prerequisites": ["publish-statement"], "targetCount": { "min": 20, "max": 50 } },
-    { "type": "create-project", "prerequisites": ["create-cause"], "targetCount": { "min": 18, "max": 26 } },
-    { "type": "attest-alignment", "prerequisites": ["create-project", "publish-statement"], "targetCount": { "min": 30, "max": 65 } },
+    { "type": "create-project", "prerequisites": ["create-cause"], "targetCount": { "min": 29, "max": 29 } },
+    { "type": "attest-alignment", "prerequisites": ["create-project", "publish-statement"], "targetCount": { "min": 42, "max": 75 } },
     { "type": "fund-project", "prerequisites": ["create-project", "attest-alignment"], "targetCount": { "min": 350, "max": 900 } },
     { "type": "deposit-note", "prerequisites": [], "targetCount": { "min": 120, "max": 260 } },
     { "type": "delegate-note", "prerequisites": ["deposit-note"], "targetCount": { "min": 80, "max": 200 } },

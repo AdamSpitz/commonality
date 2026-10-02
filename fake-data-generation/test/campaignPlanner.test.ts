@@ -6,6 +6,7 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { buildCampaignPlan, loadCampaignPlan, validatePlannedActions, writePlanArtifacts } from '../campaignPlanner.js';
+import { CAMPAIGN_PROJECT_STORIES } from '../campaignProjectStories.js';
 
 async function loadManifest(): Promise<CampaignManifestV1> {
   return JSON.parse(await readFile(new URL('../campaigns/medium-realistic-v1.json', import.meta.url), 'utf8')) as CampaignManifestV1;
@@ -33,6 +34,28 @@ test('v2 gives every cause a concrete project and bridge projects use shared out
       assert.deepEqual(project.statementIds.map((id) => plan.statements.find((statement) => statement.id === id)?.role), ['commonality']);
     }
   }
+});
+
+test('v2 includes every hobby story and its interested synthetic people', async () => {
+  const manifest = JSON.parse(await readFile(new URL('../campaigns/medium-realistic-v2.json', import.meta.url), 'utf8')) as CampaignManifestV1;
+  const plan = await buildCampaignPlan(manifest);
+  const hobbyCauses = ['music-learning', 'car-repair', 'gluten-free-cooking', 'game-commons'];
+  assert.equal(plan.users.length, 100);
+  assert.equal(plan.statements.length, 58);
+  assert.equal(plan.projects.length, 29);
+  for (const causeId of hobbyCauses) {
+    assert.deepEqual(
+      plan.projects.filter((project) => project.causeId === causeId).map((project) => project.title),
+      CAMPAIGN_PROJECT_STORIES[causeId].map((story) => story.title),
+    );
+    const profiles = plan.users.filter((user) => user.favoriteCauseId === causeId);
+    assert.equal(profiles.length, 4);
+    assert.ok(profiles.every((user) => user.causeIds.includes(causeId) && user.displayName && user.bio && user.interests?.length));
+    assert.ok(plan.projects.filter((project) => project.causeId === causeId).every((project) => profiles.some((user) => user.id === project.founderUserId)));
+    assert.ok(plan.actions.some((action) => action.type === 'fund-project' && action.causeId === causeId && profiles.some((user) => user.id === action.actorUserId)));
+  }
+  assert.ok(plan.statements.filter((statement) => hobbyCauses.includes(statement.causeId)).every((statement) => statement.source.collectionId === 'medium-realistic-v2'));
+  assert.ok(plan.projects.every((project) => project.blocker && project.statementIds.length > 0 && project.outcome.includes('This is fake data created for testing')));
 });
 
 test('planner assigns overlapping, uneven causes and respects persona bounds', async () => {

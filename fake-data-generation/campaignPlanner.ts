@@ -6,7 +6,7 @@ import { estimateGroupGas, groupCampaignWrites } from './campaignBatching.js';
 import { type CampaignActionType, type CampaignManifestV1, type CampaignRole, validateCampaignManifest } from './campaignSchema.js';
 import { FAKE_DATA_NOTE, bridgeMediatorNote, causeBoardSummary, projectOutcome } from './campaignCopy.js';
 import { CAMPAIGN_PROJECT_STORIES } from './campaignProjectStories.js';
-import { flattenSeedStatements, loadSeedCollections } from './seed-content-format.js';
+import { flattenSeedStatements, loadSeedCollections, validateSeedCollection, type SeedCollection } from './seed-content-format.js';
 
 export const CAMPAIGN_PLAN_VERSION = 'commonality-campaign-plan-v1' as const;
 
@@ -29,6 +29,10 @@ export interface PlannedUser {
   inactive: boolean;
   activityWeight: number;
   fundingWeight: number;
+  displayName?: string;
+  bio?: string;
+  interests?: string[];
+  favoriteCauseId?: string;
 }
 
 export interface PlannedProject {
@@ -180,9 +184,9 @@ function boardSlug(campaignId: string, causeId: string, suffix: string): string 
   return slug;
 }
 
-function chooseDistinctCauses(manifest: CampaignManifestV1, count: number, random: Xoshiro128StarStar): string[] {
-  const remaining = [...manifest.causes];
-  const chosen: string[] = [];
+function chooseDistinctCauses(manifest: CampaignManifestV1, count: number, random: Xoshiro128StarStar, favoriteCauseId?: string): string[] {
+  const remaining = manifest.causes.filter((cause) => cause.id !== favoriteCauseId);
+  const chosen: string[] = favoriteCauseId ? [favoriteCauseId] : [];
   while (chosen.length < count) {
     const cause = random.weighted(remaining, (item) => item.membershipWeight);
     chosen.push(cause.id);
@@ -231,7 +235,15 @@ function projectCopy(causeTitle: string, selected: PlannedStatement[]): { title:
 export async function buildCampaignPlan(manifest: CampaignManifestV1): Promise<CampaignPlan> {
   validateCampaignManifest(manifest);
   const random = new Xoshiro128StarStar(manifest.campaign.deterministicSeed);
-  const records = flattenSeedStatements(await loadSeedCollections());
+  const collections = await loadSeedCollections();
+  if (manifest.sourcePolicy.campaignCollection) {
+    const sourcePath = path.join(path.dirname(fileURLToPath(import.meta.url)), 'campaigns', manifest.sourcePolicy.campaignCollection);
+    const collection = JSON.parse(await readFile(sourcePath, 'utf8')) as SeedCollection;
+    validateSeedCollection(collection, sourcePath);
+    if (collections.some((accepted) => accepted.id === collection.id)) throw new Error(`campaign collection ${collection.id} collides with accepted seed content`);
+    collections.push(collection);
+  }
+  const records = flattenSeedStatements(collections);
   const recordByKey = new Map(records.map((record) => [statementKey({ collectionId: record.collection.id, groupId: record.group.id, statementId: record.statement.id }), record]));
   const statements: PlannedStatement[] = manifest.causes.flatMap((cause) => cause.statementRefs.map((ref) => {
     const record = recordByKey.get(statementKey(ref));
@@ -240,10 +252,12 @@ export async function buildCampaignPlan(manifest: CampaignManifestV1): Promise<C
   }));
 
   const users: PlannedUser[] = [];
+  const profiles = new Map((manifest.userProfiles ?? []).map((profile) => [profile.userId, profile]));
   for (const persona of manifest.personas) for (let index = 0; index < persona.count; index++) {
     const id = `user-${String(users.length + 1).padStart(3, '0')}`;
+    const profile = profiles.get(id);
     const causeCount = random.integer(persona.causesPerUser.min, persona.causesPerUser.max);
-    users.push({ id, walletSlot: `wallet-${id}`, personaId: persona.id, roles: persona.roles, causeIds: chooseDistinctCauses(manifest, causeCount, random), inactive: random.next() < persona.inactivityRate, activityWeight: persona.activityWeight, fundingWeight: persona.fundingWeight });
+    users.push({ id, walletSlot: `wallet-${id}`, personaId: persona.id, roles: persona.roles, causeIds: chooseDistinctCauses(manifest, causeCount, random, profile?.favoriteCauseId), inactive: random.next() < persona.inactivityRate, activityWeight: persona.activityWeight, fundingWeight: persona.fundingWeight, ...(profile ? { displayName: profile.displayName, bio: profile.bio, interests: profile.interests, favoriteCauseId: profile.favoriteCauseId } : {}) });
   }
   const activeUsers = users.filter((user) => !user.inactive && user.activityWeight > 0);
   if (activeUsers.length === 0) throw new Error('campaign has no active users');
@@ -257,11 +271,20 @@ export async function buildCampaignPlan(manifest: CampaignManifestV1): Promise<C
   if (projectFounders.length === 0 || attesters.length === 0 || delegates.length === 0) throw new Error('campaign lacks an active project founder, attester, or delegate');
 
   const useStories = manifest.campaign.id === 'medium-realistic-v2';
+  const scheduledStoryCauses = useStories
+    ? manifest.causes.flatMap((cause) => CAMPAIGN_PROJECT_STORIES[cause.id]?.map(() => cause.id) ?? [])
+    : [];
+  if (useStories && scheduledStoryCauses.length !== countByType['create-project']) {
+    throw new Error('v2 project target must match the curated story count');
+  }
   const storyCounts = new Map<string, number>();
   const projects: PlannedProject[] = Array.from({ length: countByType['create-project'] }, (_, index) => {
-    const scheduledCause = useStories && index < manifest.causes.length ? manifest.causes[index].id : undefined;
+    const scheduledCause = useStories ? scheduledStoryCauses[index] : undefined;
     const eligibleFounders = scheduledCause ? projectFounders.filter((user) => user.causeIds.includes(scheduledCause)) : projectFounders;
-    const founder = random.pick(eligibleFounders.length ? eligibleFounders : projectFounders);
+    const featuredFounders = useStories && scheduledCause
+      ? eligibleFounders.filter((user) => user.favoriteCauseId === scheduledCause)
+      : [];
+    const founder = random.pick(featuredFounders.length ? featuredFounders : eligibleFounders.length ? eligibleFounders : projectFounders);
     const causeId = scheduledCause ?? random.pick(founder.causeIds);
     const candidates = statements.filter((statement) => statement.causeId === causeId);
     const storyIndex = storyCounts.get(causeId) ?? 0;
@@ -396,9 +419,22 @@ export async function buildCampaignPlan(manifest: CampaignManifestV1): Promise<C
     const project = projects[index % projects.length]; const statementId = project.statementIds[index % project.statementIds.length];
     alignments.push(add({ type: 'attest-alignment', actorUserId: chooseCauseAttester(activeUsers, project.causeId, random).id, causeId: project.causeId, projectId: project.id, statementId, alignment: 'supports-described-outcome', dependsOn: [createProjects.get(project.id)!.id, publishes.get(statementId)!.id] }));
   }
-  const fundableProjects = projects.slice(0, Math.max(1, Math.floor(projects.length * 0.8)));
+  const fundableCount = Math.max(1, Math.floor(projects.length * 0.8));
+  const firstByCause = new Map<string, PlannedProject>();
+  if (useStories) for (const project of projects) {
+    if (!firstByCause.has(project.causeId)) firstByCause.set(project.causeId, project);
+  }
+  const firstProjects = [...firstByCause.values()];
+  const fundableProjects = useStories
+    ? [...firstProjects, ...projects.filter((project) => !firstProjects.includes(project))].slice(0, fundableCount)
+    : projects.slice(0, fundableCount);
+  const hobbyCauses = ['music-learning', 'car-repair', 'gluten-free-cooking', 'game-commons'];
   for (let index = 0; index < countByType['fund-project']; index++) {
-    const project = random.weighted(fundableProjects, (item) => Math.max(1, fundableProjects.length - projects.indexOf(item))); const supporters = activeUsers.filter((user) => user.causeIds.includes(project.causeId) && user.fundingWeight > 0); const actor = random.weighted(supporters, (user) => user.fundingWeight);
+    const featuredCause = useStories ? hobbyCauses[index] : undefined;
+    const project = featuredCause ? firstByCause.get(featuredCause)! : random.weighted(fundableProjects, (item) => Math.max(1, fundableProjects.length - (useStories ? fundableProjects.indexOf(item) : projects.indexOf(item))));
+    const supporters = activeUsers.filter((user) => user.causeIds.includes(project.causeId) && user.fundingWeight > 0);
+    const interestedSupporters = featuredCause ? supporters.filter((user) => user.favoriteCauseId === featuredCause && user.id !== project.founderUserId) : [];
+    const actor = random.weighted(interestedSupporters.length ? interestedSupporters : supporters, (user) => user.fundingWeight);
     const alignment = alignments.find((item) => item.projectId === project.id);
     if (!alignment) throw new Error(`impossible fund-project: ${project.id} has no alignment action`);
     add({ type: 'fund-project', actorUserId: actor.id, causeId: project.causeId, projectId: project.id, amount: fundingAmount(actor, projects.indexOf(project), random), dependsOn: [createProjects.get(project.id)!.id, alignment.id] });
