@@ -4,7 +4,8 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { estimateGroupGas, groupCampaignWrites } from './campaignBatching.js';
 import { type CampaignActionType, type CampaignManifestV1, type CampaignRole, validateCampaignManifest } from './campaignSchema.js';
-import { bridgeMediatorNote, causeBoardSummary, projectOutcome } from './campaignCopy.js';
+import { FAKE_DATA_NOTE, bridgeMediatorNote, causeBoardSummary, projectOutcome } from './campaignCopy.js';
+import { CAMPAIGN_PROJECT_STORIES } from './campaignProjectStories.js';
 import { flattenSeedStatements, loadSeedCollections } from './seed-content-format.js';
 
 export const CAMPAIGN_PLAN_VERSION = 'commonality-campaign-plan-v1' as const;
@@ -37,6 +38,7 @@ export interface PlannedProject {
   causeId: string;
   founderUserId: string;
   statementIds: string[];
+  blocker?: string;
 }
 
 export interface PlannedAction {
@@ -254,14 +256,28 @@ export async function buildCampaignPlan(manifest: CampaignManifestV1): Promise<C
   const delegates = activeUsers.filter((user) => user.roles.includes('delegate'));
   if (projectFounders.length === 0 || attesters.length === 0 || delegates.length === 0) throw new Error('campaign lacks an active project founder, attester, or delegate');
 
+  const useStories = manifest.campaign.id === 'medium-realistic-v2';
+  const storyCounts = new Map<string, number>();
   const projects: PlannedProject[] = Array.from({ length: countByType['create-project'] }, (_, index) => {
-    const founder = random.pick(projectFounders);
-    const causeId = random.pick(founder.causeIds);
+    const scheduledCause = useStories && index < manifest.causes.length ? manifest.causes[index].id : undefined;
+    const eligibleFounders = scheduledCause ? projectFounders.filter((user) => user.causeIds.includes(scheduledCause)) : projectFounders;
+    const founder = random.pick(eligibleFounders.length ? eligibleFounders : projectFounders);
+    const causeId = scheduledCause ?? random.pick(founder.causeIds);
     const candidates = statements.filter((statement) => statement.causeId === causeId);
-    const selected = random.shuffle(candidates).slice(0, random.integer(1, Math.min(3, candidates.length)));
+    const storyIndex = storyCounts.get(causeId) ?? 0;
+    storyCounts.set(causeId, storyIndex + 1);
+    const story = useStories ? CAMPAIGN_PROJECT_STORIES[causeId]?.[storyIndex % CAMPAIGN_PROJECT_STORIES[causeId].length] : undefined;
+    if (useStories && !story) throw new Error(`missing project story for ${causeId}`);
+    const selected = story
+      ? story.statementRefs.map((ref) => {
+        const match = candidates.find((statement) => statement.source.statementId === ref);
+        if (!match) throw new Error(`story ${causeId} references missing statement ${ref}`);
+        return match;
+      })
+      : random.shuffle(candidates).slice(0, random.integer(1, Math.min(3, candidates.length)));
     const cause = manifest.causes.find((item) => item.id === causeId)!;
-    const copy = projectCopy(cause.title, selected);
-    return { id: `project-${String(index + 1).padStart(3, '0')}`, title: copy.title, outcome: copy.outcome, causeId, founderUserId: founder.id, statementIds: selected.map((statement) => statement.id) };
+    const copy = story ? { title: story.title, outcome: `${story.outcome} Funding gap: ${story.blocker}. ${FAKE_DATA_NOTE}` } : projectCopy(cause.title, selected);
+    return { id: `project-${String(index + 1).padStart(3, '0')}`, title: copy.title, outcome: copy.outcome, causeId, founderUserId: founder.id, statementIds: selected.map((statement) => statement.id), ...(story ? { blocker: story.blocker } : {}) };
   });
 
   const actions: PlannedAction[] = [];
@@ -466,8 +482,8 @@ export async function writePlanArtifacts(manifest: CampaignManifestV1, plan: Cam
 
 async function main(): Promise<void> {
   const directory = path.dirname(fileURLToPath(import.meta.url));
-  const manifestPath = process.argv[2] ?? path.join(directory, 'campaigns/medium-realistic-v1.json');
-  const outputDirectory = process.argv[3] ?? path.join(directory, 'output/campaigns/medium-realistic-v1');
+  const manifestPath = process.argv[2] ?? path.join(directory, 'campaigns/medium-realistic-v2.json');
+  const outputDirectory = process.argv[3] ?? path.join(directory, 'output/campaigns/medium-realistic-v2');
   const manifest = JSON.parse(await readFile(manifestPath, 'utf8')) as CampaignManifestV1;
   const plan = await buildCampaignPlan(manifest); await writePlanArtifacts(manifest, plan, outputDirectory);
   console.log(`Planned ${plan.users.length} users, ${plan.statements.length} statements, ${plan.projects.length} projects, and ${plan.estimate.totalWrites} writes.`);

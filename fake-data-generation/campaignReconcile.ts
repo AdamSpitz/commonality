@@ -13,8 +13,8 @@ async function main(): Promise<void> {
   const directory = path.dirname(fileURLToPath(import.meta.url));
   const probeOnly = process.argv.includes('--probe');
   const args = process.argv.slice(2).filter((arg) => arg !== '--probe');
-  const manifestPath = args[0] ?? path.join(directory, 'campaigns/medium-realistic-v1.json');
-  const outputDirectory = args[1] ?? path.join(directory, 'output/campaigns/medium-realistic-v1');
+  const manifestPath = args[0] ?? path.join(directory, 'campaigns/medium-realistic-v2.json');
+  const outputDirectory = args[1] ?? path.join(directory, 'output/campaigns/medium-realistic-v2');
   const bindingsPath = args[2] ?? path.join(outputDirectory, 'execution/runtime-bindings.json');
   const chainIdFlag = process.argv.indexOf('--chain-id');
   const chainId = chainIdFlag >= 0 ? Number(process.argv[chainIdFlag + 1]) : (process.env.RPC_URL && !process.env.RPC_URL.includes('localhost') ? 84532 : 31337);

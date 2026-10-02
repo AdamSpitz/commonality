@@ -6,6 +6,13 @@ Building a vertical and need concrete examples rather than categories? These sev
 are the *gate*; `specs/product/cause-taxonomy.md` is the
 generator that turns them into a populated fundable-projects board.
 
+The gate applies to a **deliverable**, not merely a cause title. "Education" or
+"open science" might describe work an existing institution already funds well.
+For a proposed project, ask: *What will be delivered, who wants to pay, who
+benefits without paying, and who would have to say yes today?* If willing payers
+can already commission it easily, the topic alone does not establish an
+advantage for Commonality.
+
 ## The kinds it's better for
 
 Organized not by topic but by *what's blocking them today* — each a specific failure mode of legacy institutions, paired with the specific Commonality mechanism that addresses it. These categories overlap rather than partition: a given good can sit in several at once.
@@ -33,3 +40,24 @@ The clean analogy: **Commonality is to public goods what startups are to private
 **6. Politically-disfavored / suppressible goods.** Advocacy, legal defense, contested speech — things a hostile authority actively wants to *defund*. [Censorship-resistance](../hard-to-stop/censorship-resistance.md) turns "can't" into "can."
 
 **7. Bridging / communication goods.** Funding the spread of depolarizing, noninflammatory content across a divide. Government and charity essentially don't — and couldn't credibly — do this. This is a close cousin of #2, but distinct: #2 funds a concrete *outcome* both sides already agree on, while #7 funds the *communication that reveals or creates* that agreement. It's an input to #2 — the thing that manufactures a hidden majority where the blocker is misunderstanding rather than genuine disagreement.
+
+## What these distinctions look like as projects
+
+These are synthetic examples, not claims about existing organizations or demand:
+
+| Deliverable | Blocker | Why the mechanism matters |
+|---|---|---|
+| Maintained releases of a shared software dependency | Its many users each benefit, but none can justify paying the full maintainer cost | The users can assure one another that enough will contribute before work begins |
+| Open water-quality data for a watershed crossing three towns | No town owns the full benefit | Residents can pool money across the jurisdiction line |
+| Preregistered replication with public results even if it fails | A grant panel must choose before the result is known | Early supporters can back the attempt; later supporters can fund demonstrated value |
+| An independently checked brief on a disputed school practice | Opposing camps distrust a single camp's institution | The shared factual question can attract support from both sides without either side owning the work |
+| A public explainer of where those camps agree and still disagree | Misunderstanding blocks recognition of possible agreement | Supporters fund communication itself, even before a shared policy project exists |
+
+The last two are deliberately different. A shared-outcome project should be
+aligned with the proposition both camps can accept; the camps' stronger natural
+positions explain *why* their supporters are interested, but are not themselves
+interchangeable project outcomes. A communication project may instead help
+people discover whether that shared proposition is real. For fact-conditional
+agreements, the first useful deliverable may be an independent test of the
+disputed premise rather than implementation of a policy whose premise has not
+been established.

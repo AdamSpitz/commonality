@@ -1,5 +1,7 @@
 # Medium-scale realistic testnet simulation — working plan
 
+**Current campaign: medium-realistic-v2.** The completed execution measurements below describe historical v1 runs and should not be read as v2 results. V1 remains available only to interpret those already-mined runs; default campaign commands and new planning output use v2.
+
 Tell a fresh LLM: **read this file, then do the next unchecked item under [Next](#next).** Keep [`PLAN.md`](./PLAN.md)'s four data jobs separate: this work combines curated Job C statements with disposable Job D actors, but does not turn fake activity into seed content. Deployment and shared-lab recovery still belong to [`../workflow/testnet-working-plan.md`](../workflow/testnet-working-plan.md).
 
 ## Goal

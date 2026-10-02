@@ -22,6 +22,19 @@ test('planner emits an identical, complete plan for the same seed', async () => 
   assert.equal(first.users.some((user) => 'privateKey' in user || 'address' in user), false);
 });
 
+test('v2 gives every cause a concrete project and bridge projects use shared outcomes', async () => {
+  const manifest = JSON.parse(await readFile(new URL('../campaigns/medium-realistic-v2.json', import.meta.url), 'utf8')) as CampaignManifestV1;
+  const plan = await buildCampaignPlan(manifest);
+  assert.deepEqual(new Set(plan.projects.map((project) => project.causeId)), new Set(manifest.causes.map((cause) => cause.id)));
+  for (const project of plan.projects) {
+    assert.ok(project.blocker);
+    assert.match(project.outcome, /This is fake data created for testing/);
+    if (project.causeId.endsWith('common-ground')) {
+      assert.deepEqual(project.statementIds.map((id) => plan.statements.find((statement) => statement.id === id)?.role), ['commonality']);
+    }
+  }
+});
+
 test('planner assigns overlapping, uneven causes and respects persona bounds', async () => {
   const manifest = await loadManifest(); const plan = await buildCampaignPlan(manifest);
   const memberships = Object.fromEntries(manifest.causes.map((cause) => [cause.id, plan.users.filter((user) => user.causeIds.includes(cause.id)).length]));
