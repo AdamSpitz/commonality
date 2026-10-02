@@ -24,7 +24,6 @@ Getting **testnet to a two-person shared lab** is also a standing plan, not a pi
 
 - **(Tell)** Send the donor-set waiting-period page. Note and project screens show a pending spend's amount and deadline as money that can still be cancelled. `shouldPageDonor` still only decides once per `(noteId, nonce)`. There is no opt-in store and no email or push sender. Public remarks from people who are not flaggers stay a later UI feature and are not stored on-chain. Rules: [waiting-period.md](specs/tech/subsystems/delegation/waiting-period.md).
 
-
 - **(Tell)** Nightly `verifier:deep-cadence` still runs the local destructive stack first (`stack.fresh-seeded`, `operations.local-stack-health`, `stack.restart-consistency`, `operations.indexer-lag`, `artifact.ipfs-domain-smoke`, `stack.user-journeys`). A failure there exits the job red even when the testnet mutation canary is fine. Boot that stack and get those checks passing. `verifier/PLAN.md` already says a broken local stack is a bug, not a skip.
 
 - **(Tell)** Rewrite [`specs/product/ui-domains.md`](specs/product/ui-domains.md) so Commonality is the founder-first CauseStarter experience (organize a cause, enroll people, fund the work), not the retired umbrella movement landing that sent newcomers to LazyGiving/Tally. Keep eight sites; siblings stay tools/verticals. Check [`specs/tech/ui-domains.md`](specs/tech/ui-domains.md), glossary, and README for the same stale “movement site / choose a product site next” framing. The old landing and `/participate` are gone.

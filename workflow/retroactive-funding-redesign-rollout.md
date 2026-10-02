@@ -27,8 +27,8 @@ while keeping retroactive funding:
   superseded for the voice. It rewarded judgment with larger delegated budgets
   (money to manage, never in pocket). The current baseline is the one-voice
   note in [delegation-narrowing.md](/specs/product/legal/delegation-narrowing.md):
-  a limited authorization, not a steward. The copy scrub is still open in
-  [TODO.md](/TODO.md). Do not implement this bullet as written.
+  a limited authorization, not a steward. The copy scrub is done (2026-10-02,
+  PR #215); the TODO item is cleared. Do not implement this bullet as written.
 
 The marketing/UX invariant that governs everything below: **"get your money
 back and fund the next one" must be the *whole* story.** No buy/sell/invest/
