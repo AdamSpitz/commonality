@@ -112,6 +112,14 @@ export interface TestDataPageLink {
   slug?: string
 }
 
+export interface TestDataProjectLink {
+  title: string
+  path: string
+  assuranceContract: string
+  erc1155: string
+  seedProjectKind?: string
+}
+
 const BOARD_ROLE_ORDER = ['commonality', 'natural-left', 'natural-right', 'modified-left', 'modified-right', 'plain']
 
 const BOARD_ROLE_LABEL: Record<string, string> = {
@@ -150,11 +158,38 @@ export function testDataRunLinks(entities: Record<string, unknown>): { causeBoar
   }
 }
 
+/** Projects recorded on a generated run. */
+export function testDataRunProjects(entities: Record<string, unknown>): TestDataProjectLink[] {
+  const projects = entities.projects
+  if (!Array.isArray(projects)) return []
+  return projects.flatMap((item) => {
+    if (!item || typeof item !== 'object') return []
+    const record = item as Record<string, unknown>
+    const assuranceContract = typeof record.assuranceContract === 'string' ? record.assuranceContract : ''
+    const erc1155 = typeof record.erc1155 === 'string' ? record.erc1155 : ''
+    if (!assuranceContract || !erc1155) return []
+    const seedProjectKind = typeof record.seedProjectKind === 'string' ? record.seedProjectKind : undefined
+    const title = seedProjectKind ? `Seed project ${seedProjectKind}` : `Project ${assuranceContract.slice(0, 8)}…`
+    return [{
+      title,
+      path: `/projects/${assuranceContract}`,
+      assuranceContract,
+      erc1155,
+      ...(seedProjectKind ? { seedProjectKind } : {}),
+    }]
+  })
+}
+
 export interface TestDataPageGroup {
   kind: 'bridge' | 'cause'
   title: string
   path: string
   boards: TestDataPageLink[]
+}
+
+export interface TestDataProjectGroup {
+  kind: 'project'
+  projects: TestDataProjectLink[]
 }
 
 function bridgeStem(slug: string | undefined): string | undefined {

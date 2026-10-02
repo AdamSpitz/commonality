@@ -9,6 +9,7 @@ import {
   testDataEnvironment,
   testDataPageGroups,
   testDataRegistryUrl,
+  testDataRunProjects,
   type TestDataRegistry,
   type TestDataRun,
 } from '../testData/testDataDocuments'
@@ -40,6 +41,7 @@ export function TestDataRunPage() {
   }, [capability, environment, registryUrl, runId])
 
   const pageGroups = useMemo(() => testDataPageGroups(run?.entities ?? {}), [run])
+  const projects = useMemo(() => testDataRunProjects(run?.entities ?? {}), [run])
 
   const actionsByType = useMemo(() => {
     const counts = new Map<string, number>()
@@ -74,12 +76,12 @@ export function TestDataRunPage() {
         <Typography color="text.secondary">{new Date(run.createdAt).toLocaleString()} · {run.network} · chain {run.chainId}</Typography>
       </Box>
 
-      {pageGroups.length > 0 && (
+      {(pageGroups.length > 0 || projects.length > 0) && (
         <Card variant="outlined" data-testid="test-data-run-pages">
           <CardContent>
             <Typography variant="h6">Pages created in this run</Typography>
             <Typography color="text.secondary" sx={{ mb: 2 }}>
-              Open each cause board and bridge in the app.
+              Open each cause board, bridge, and project in the app.
             </Typography>
             <Stack spacing={2.5}>
               {pageGroups.filter(group => group.kind === 'bridge').map(group => (
@@ -103,6 +105,18 @@ export function TestDataRunPage() {
                     {pageGroups.filter(group => group.kind === 'cause').map(group => (
                       <Button key={group.path} component={RouterLink} to={group.path} sx={{ justifyContent: 'flex-start', px: 1 }}>
                         {group.title}
+                      </Button>
+                    ))}
+                  </Stack>
+                </Box>
+              )}
+              {projects.length > 0 && (
+                <Box>
+                  <Typography variant="subtitle1" sx={{ mb: 0.5 }}>Projects ({projects.length})</Typography>
+                  <Stack spacing={0.5}>
+                    {projects.map(project => (
+                      <Button key={project.assuranceContract} component={RouterLink} to={project.path} sx={{ justifyContent: 'flex-start', px: 1 }}>
+                        {project.title}
                       </Button>
                     ))}
                   </Stack>

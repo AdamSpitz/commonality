@@ -280,9 +280,13 @@ export function createLiveCampaignActionWriter(input: {
     },
     async 'create-project'(action, clients) {
       const planned = requireBound(projects.get(action.projectId!), `project ${action.projectId}`) as PlannedProject;
+      const founder = input.plan.users.find((user) => user.id === planned.founderUserId);
+      const description = founder?.displayName && founder.bio
+        ? `${planned.outcome} Founder: ${founder.displayName}. ${founder.bio}`
+        : planned.outcome;
       const publication = await storeFor(clients).publish(createDisplayableDocument({
-        format: 'markdown-restricted', content: planned.outcome,
-        extras: { statementType: 'lazy-giving-project-metadata', name: planned.title, description: planned.outcome, campaign: input.plan.campaignId, synthetic: true, alignedStatementRefs: planned.statementIds },
+        format: 'markdown-restricted', content: description,
+        extras: { statementType: 'lazy-giving-project-metadata', name: planned.title, description, campaign: input.plan.campaignId, synthetic: true, alignedStatementRefs: planned.statementIds, ...(founder?.interests ? { founderInterests: founder.interests } : {}) },
       }));
       const latest = await clients.publicClient.getBlock();
       const { hash, projectDetails } = await createProject(clients, { address: input.contracts.projectFactory, abi: ProjectFactoryAbi }, {

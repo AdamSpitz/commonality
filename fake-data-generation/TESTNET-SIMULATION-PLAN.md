@@ -1,5 +1,7 @@
 # Medium-scale realistic testnet simulation — working plan
 
+**Current campaign: medium-realistic-v2.** The completed execution measurements below describe historical v1 runs and should not be read as v2 results. V1 remains available for reproducibility; default campaign commands and new planning output use v2. V2 includes campaign-local hobby causes, projects, and interested users; it has been planned, not executed on a chain.
+
 Tell a fresh LLM: **read this file, then do the next unchecked item under [Next](#next).** Keep [`PLAN.md`](./PLAN.md)'s four data jobs separate: this work combines curated Job C statements with disposable Job D actors, but does not turn fake activity into seed content. Deployment and shared-lab recovery still belong to [`../workflow/testnet-working-plan.md`](../workflow/testnet-working-plan.md).
 
 ## Goal
@@ -7,8 +9,8 @@ Tell a fresh LLM: **read this file, then do the next unchecked item under [Next]
 Build a reproducible, observable campaign that makes a testnet deployment look and behave like a small but real Commonality community:
 
 - about **100 synthetic users** with persistent, disposable wallets;
-- **8–12 coherent causes** built from real, human-accepted seed statements;
-- initially **30–50 statements**, **15–30 projects**, and roughly **1,000–3,000 successful actions**;
+- **14 coherent causes** built from accepted seed statements plus explicitly synthetic campaign-only hobby statements;
+- **58 statements**, **29 projects**, and roughly **1,000–3,000 successful actions**;
 - uneven participation, overlapping memberships, different roles and engagement levels, and a small controlled amount of disagreement and inactivity;
 - a report that reconciles intended actions, mined transactions, indexed events, derived state, and representative UI pages.
 

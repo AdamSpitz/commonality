@@ -310,8 +310,8 @@ function parseOption(name: string, fallback?: string): string | undefined {
 
 async function main(): Promise<void> {
   const directory = path.dirname(fileURLToPath(import.meta.url));
-  const manifestPath = parseOption('--manifest', path.join(directory, 'campaigns/medium-realistic-v1.json'))!;
-  const outputDirectory = parseOption('--output', path.join(directory, 'output/campaigns/medium-realistic-v1'))!;
+  const manifestPath = parseOption('--manifest', path.join(directory, 'campaigns/medium-realistic-v2.json'))!;
+  const outputDirectory = parseOption('--output', path.join(directory, 'output/campaigns/medium-realistic-v2'))!;
   const deploymentEnvPath = parseOption('--deployment-env', path.join(directory, DEFAULT_TESTNET_DEPLOYMENT_ENV))!;
   const indexerUrl = parseOption('--indexer-url', process.env.EVENT_CACHE_URL || DEFAULT_TESTNET_INDEXER_URL)!;
   const rpcUrl = parseOption('--rpc-url', RPC_URL)!;

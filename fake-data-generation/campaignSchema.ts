@@ -48,6 +48,14 @@ export interface CampaignPersona {
   fundingWeight: number;
 }
 
+export interface CampaignUserProfile {
+  userId: string;
+  displayName: string;
+  bio: string;
+  favoriteCauseId: string;
+  interests: string[];
+}
+
 export interface CampaignActionRule {
   type: CampaignActionType;
   prerequisites: CampaignActionType[];
@@ -65,12 +73,15 @@ export interface CampaignManifestV1 {
     randomAlgorithm: 'xoshiro128**';
   };
   sourcePolicy: {
-    kind: 'accepted-seed-content-only';
+    kind: 'accepted-seed-content-only' | 'accepted-plus-campaign-synthetic';
     fingerprintAlgorithm: 'sha256';
     excludeCollections: string[];
+    /** Optional synthetic collection stored beside the campaign manifest, never in seed-content/. */
+    campaignCollection?: string;
   };
   causes: CampaignCause[];
   personas: CampaignPersona[];
+  userProfiles?: CampaignUserProfile[];
   actionRules: CampaignActionRule[];
   artifactLayout: Record<string, string>;
 }
@@ -90,12 +101,12 @@ function validateCampaignIdentity(manifest: CampaignManifestV1): void {
 }
 
 function validateCauses(manifest: CampaignManifestV1): void {
-  if (manifest.causes.length < 8 || manifest.causes.length > 12) throw new Error('campaign must contain 8-12 causes');
+  if (manifest.causes.length < 8 || manifest.causes.length > 16) throw new Error('campaign must contain 8-16 causes');
   requireUnique(manifest.causes.map((cause) => cause.id), 'cause IDs');
   const statementRefs = manifest.causes.flatMap((cause) => cause.statementRefs);
   const statementKeys = statementRefs.map((ref) => `${ref.collectionId}/${ref.groupId}/${ref.statementId}`);
   requireUnique(statementKeys, 'statement references');
-  if (statementRefs.length < 30 || statementRefs.length > 50) throw new Error('campaign must contain 30-50 statements');
+  if (statementRefs.length < 30 || statementRefs.length > 70) throw new Error('campaign must contain 30-70 statements');
   if (manifest.causes.some((cause) => cause.membershipWeight <= 0 || cause.statementRefs.length === 0)) {
     throw new Error('every cause needs a positive membership weight and at least one statement');
   }
@@ -111,6 +122,15 @@ function validatePersonas(manifest: CampaignManifestV1): void {
       throw new Error(`persona ${persona.id} must join 1-3 causes`);
     }
     if (persona.inactivityRate < 0 || persona.inactivityRate > 1) throw new Error(`invalid inactivityRate for persona ${persona.id}`);
+  }
+  requireUnique((manifest.userProfiles ?? []).map((profile) => profile.userId), 'profile user IDs');
+  const causeIds = new Set(manifest.causes.map((cause) => cause.id));
+  for (const profile of manifest.userProfiles ?? []) {
+    const userNumber = Number(profile.userId.match(/^user-(\d{3})$/)?.[1]);
+    if (!Number.isInteger(userNumber) || userNumber < 1 || userNumber > manifest.campaign.userCount) throw new Error(`invalid profile user ID ${profile.userId}`);
+    if (!causeIds.has(profile.favoriteCauseId) || !profile.displayName.trim() || !profile.bio.trim() || profile.interests.length === 0) {
+      throw new Error(`invalid interest profile for ${profile.userId}`);
+    }
   }
 }
 
@@ -139,6 +159,12 @@ function validateArtifactLayout(manifest: CampaignManifestV1): void {
 export function validateCampaignManifest(manifest: CampaignManifestV1): void {
   if (manifest.schema !== CAMPAIGN_SCHEMA_VERSION) throw new Error(`unsupported campaign schema: ${String(manifest.schema)}`);
   validateCampaignIdentity(manifest);
+  if ((manifest.sourcePolicy.kind === 'accepted-plus-campaign-synthetic') !== Boolean(manifest.sourcePolicy.campaignCollection)) {
+    throw new Error('synthetic campaign source policy requires a campaign collection, and vice versa');
+  }
+  if (manifest.sourcePolicy.campaignCollection && !/^[a-z0-9][a-z0-9-]*\.json$/.test(manifest.sourcePolicy.campaignCollection)) {
+    throw new Error('sourcePolicy.campaignCollection must be a JSON filename in campaigns/');
+  }
   validateCauses(manifest);
   validatePersonas(manifest);
   validateActionRules(manifest);

@@ -68,8 +68,8 @@ async function loadOrCreateWallets(planUsers: { id: string; walletSlot: string }
 async function main(): Promise<void> {
   const directory = path.dirname(fileURLToPath(import.meta.url));
   const mode = parseOption('--mode', 'local') as 'local' | 'remote';
-  const manifestPath = parseOption('--manifest', path.join(directory, 'campaigns/medium-realistic-v1.json'))!;
-  const outputDirectory = parseOption('--output', path.join(directory, 'output/campaigns/medium-realistic-v1'))!;
+  const manifestPath = parseOption('--manifest', path.join(directory, 'campaigns/medium-realistic-v2.json'))!;
+  const outputDirectory = parseOption('--output', path.join(directory, 'output/campaigns/medium-realistic-v2'))!;
   const deploymentEnvPath = parseOption('--deployment-env', path.join(directory, '../deployments/localhost.env'))!;
   const mutationConfirmed = parseFlag('--confirm-remote-mutation');
   const manifest = JSON.parse(await readFile(manifestPath, 'utf8')) as CampaignManifestV1;
@@ -92,7 +92,7 @@ async function main(): Promise<void> {
   }
   await preflightCampaignEnvironment(environment, createCampaignChainAdapter(environment.rpcUrl));
   const secretsPath = environment.mode === 'remote'
-    ? path.join(outputDirectory, '../secrets/medium-realistic-v1.remote.wallets.json')
+    ? path.join(outputDirectory, `../secrets/${manifest.campaign.id}.remote.wallets.json`)
     : path.join(outputDirectory, manifest.artifactLayout.walletSecrets);
   const wallets = await loadOrCreateWallets(plan.users, secretsPath, environment.mode === 'local');
   validateCampaignWallets(environment, wallets, HARDHAT_PRIVATE_KEYS);
