@@ -22,7 +22,7 @@ The page aggregates other people's vouches through your trust network. You do no
 
 ## Who this page is for
 
-Some people enjoy finding promising work early. If that is you, [fund as a scout](../lazyGiving/fund-something.md). Your contribution may later be reimbursed at cost, and your track record can help you earn larger delegated budgets.
+Some people enjoy finding promising work early. If that is you, [fund as a scout](../lazyGiving/fund-something.md). Your contribution may later be reimbursed at cost, and your track record can help donors decide whether to delegate to you.
 
 If you prefer to see results first, this page is your main surface:
 

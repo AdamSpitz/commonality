@@ -142,7 +142,7 @@ describe('SuccessfulProjectsList', () => {
     )
   })
 
-  it('renders indexed successful projects with metadata, reimbursement status, scout records, suggestions, vouches, and LazyGiving close-the-loop links', async () => {
+  it('renders indexed successful projects with metadata, reimbursement status, scout records, vouches, and LazyGiving close-the-loop links', async () => {
     vi.mocked(getSuccessfulProjectsForCause).mockResolvedValue([
       makeSuccessfulProject({ successAttesters: [ATTESTER_A, ATTESTER_B] }),
     ])
@@ -156,7 +156,6 @@ describe('SuccessfulProjectsList', () => {
     expect(screen.getByText('12.5 USDC')).toBeInTheDocument()
     expect(screen.getByText('3')).toBeInTheDocument()
     expect(screen.getByText(/0xAAAA…AAAA: scouted 3 USDC, reimbursed 0 USDC, outstanding 3 USDC/)).toBeInTheDocument()
-    expect(screen.getByText('Suggested delegates')).toBeInTheDocument()
     expect(screen.getByText('2 points')).toBeInTheDocument()
     expect(screen.getByText('0xAAAA…AAAA, 0xBBBB…BBBB')).toBeInTheDocument()
 

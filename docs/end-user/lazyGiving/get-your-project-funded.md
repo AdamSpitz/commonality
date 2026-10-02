@@ -13,10 +13,10 @@ Assurance contracts let you go directly to the people who would actually benefit
 LazyGiving is specifically designed to reach donors who'd happily fund work they care about but don't want to spend their weekend evaluating pitches. That's actually good news for you:
 
 - Donors who don't want to pick winners themselves can still find you through **retroactive funding** after you ship, while scouts can back you early and later recover their contributions at cost.
-- Donors who don't want to research projects at all can still fund you, through **delegates** they trust who route money on their behalf.
+- Donors who don't want to research projects at all can still fund you, through **delegates** they've personally chosen to route money on their behalf.
 - Donors who haven't heard of you can still find you, through the **implication graph** — if your mission statement implies values that thousands of people have already expressed on Tally, you become discoverable to them automatically.
 
-You don't have to convince every individual donor. You have to convince the scouts, delegates, and attesters whose judgment those donors rely on.
+You don't have to convince every individual donor. You have to convince the scouts, the delegates those donors have personally chosen, and the attesters they trust.
 
 ## How it works
 
@@ -26,7 +26,7 @@ Your project is published on-chain. Donors find it by browsing, through fundable
 
 When pledges reach your goal, funds are released. If the deadline passes without reaching the goal, all pledges are automatically refunded.
 
-After you've delivered, your project remains open for **retroactive funding**. Donors who wanted to see results first can donate to its reimbursement waterfall. That money becomes available to early contributors pro-rata, capped at exactly what each person put in; it does not pay the project a second time and never includes interest or a premium. Reimbursement lets scouts use the same giving budget on another early project, while their public record helps them attract delegated funds.
+After you've delivered, your project remains open for **retroactive funding**. Donors who wanted to see results first can donate to its reimbursement waterfall. That money becomes available to early contributors pro-rata, capped at exactly what each person put in; it does not pay the project a second time and never includes interest or a premium. Reimbursement lets scouts use the same giving budget on another early project, while their public record helps donors decide whom to delegate to.
 
 **Alignment attestations** help a lot. If someone trusted by a community attests that your project aligns with a cause they care about, you become visible in that community's fundable-projects board — and visible to delegates who fund on that community's behalf. Reach out to people you know and ask them to vouch for your project's alignment. No money involved; just a statement of connection.
 
@@ -38,7 +38,7 @@ If the money should go to an organization that is not on Commonality yet, use th
 
 Think about which causes your project serves. Browse existing statements on Tally and see which ones your work implies. The more precisely your mission statement connects to things people have already said they care about, the more discoverable you'll be to donors who never read individual project pages.
 
-If you know anyone in the relevant community, ask them to attest that your project is aligned with relevant causes. A few trusted attestations will put you in front of the right donors — and in front of the delegates funding on their behalf.
+If you know anyone in the relevant community, ask them to attest that your project is aligned with relevant causes. A few trusted attestations will put you in front of the right donors — and in front of the delegates those donors have personally chosen.
 
 ## On other sites
 

@@ -3,8 +3,8 @@
 Private charity is nice because no coercion, but has its own problems that Commonality fixes:
 
   - **Free-rider problem is unaddressed.** Charities say "please give unconditionally." There's no assurance-contract mechanism. You hand over your money and hope enough other people do too.
-  - **Discovery and evaluation burden.** Finding good charities, vetting them, deciding how much to give — most people either don't bother or pick a well-known name. Commonality's delegation system lets you offload that work to someone you trust, with full transparency and revocability.
-  - **Opaque decision-making.** When you donate to a big charity, you mostly have no idea how the money gets spent. Commonality's onchain transparency lets you see exactly where every dollar went, who made each decision, the full delegation chain.
+  - **Discovery and evaluation burden.** Finding good charities, vetting them, deciding how much to give — most people either don't bother or pick a well-known name. Commonality's delegation system lets you offload that work to someone you *personally chose* — not a faceless org you have to take on faith — with full transparency and revocability.
+  - **Opaque decision-making.** When you donate to a big charity, you mostly have no idea how the money gets spent. Commonality's onchain transparency lets you see exactly where every dollar went, who made each decision, and who the donor personally chose to authorize it.
   - **Organizational overhead and capture.** Charities have staff, offices, boards, executives. They accumulate overhead and can be captured by people whose priorities diverge from the donors'. Commonality has no central organization to accumulate overhead or be captured.
   - **Centralized chokepoints.** A charity has bank accounts that can be frozen, a legal entity that can be sued, leadership that can be pressured — especially charities working on anything politically contentious.
   - **No retroactive funding.** Charities fund stuff prospectively. Commonality lets later donors support projects that have *already* demonstrated value by reimbursing their early contributors at cost.
@@ -20,4 +20,5 @@ Many people feel they can’t trust charities not to be corrupt — and noticing
 Commonality addresses this directly:
   - **Onchain transparency** means you can see exactly where every dollar went, without needing to do a forensic audit.
   - **Direct funding** lets you support specific projects rather than routing money through a large organization with opaque internal allocation.
+  - **Personal, not impersonal, delegation** means that even if you offload the decisions, you're delegating to a specific person you chose — a friend, a local figure, someone whose public funding record you can inspect — rather than blindly trusting a distant org's internal grant process or a government bureaucrat. And delegation is one hop: your delegate can't quietly hand your money's decisions to someone you never vetted.
   - **Retroactive funding** means you can support things that have *already* demonstrated value by reimbursing their early contributors at cost, rather than trusting a charity’s promises about what they’ll do with your money.

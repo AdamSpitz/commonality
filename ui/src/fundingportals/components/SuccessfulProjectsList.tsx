@@ -160,13 +160,6 @@ export function SuccessfulProjectsList({
               : `${projectPath}#close-the-loop`
             const projectNav = resolveProjectNav(projectPath, projectLinks)
             const closeLoopNav = resolveProjectNav(closeLoopPath, projectLinks)
-            const suggestedDelegates = project.scoutRecords.slice().sort((a, b) => {
-              const outstandingA = BigInt(a.outstandingAmount)
-              const outstandingB = BigInt(b.outstandingAmount)
-              if (outstandingA > outstandingB) return -1
-              if (outstandingA < outstandingB) return 1
-              return a.scout.localeCompare(b.scout)
-            }).slice(0, 3)
             return (
               <Card key={project.projectAddress}>
                 <CardContent>
@@ -239,18 +232,6 @@ export function SuccessfulProjectsList({
                       ))}
                     </Stack>
                   </Box>
-
-                  {suggestedDelegates.length > 0 && (
-                    <Box sx={{ mt: 2 }}>
-                      <Typography variant="subtitle2">Suggested delegates</Typography>
-                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
-                        UI-only suggestions ranked by visible scout work and reimbursement history. Delegation is discretionary; this is never a protocol mechanic or donor payout promise.
-                      </Typography>
-                      <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-                        {suggestedDelegates.map(record => <Chip key={record.scout} label={shortAddress(record.scout)} size="small" variant="outlined" />)}
-                      </Stack>
-                    </Box>
-                  )}
                 </CardContent>
                 <CardActions>
                   {reimbursement === 'outstanding' && (closeLoopNav.kind === 'route' ? (

@@ -16,7 +16,7 @@ Traditional fundraising puts two jobs on donors: predicting which projects will 
 - **You don't have to predict winners.** Wait for results, then donate to close a successful project's reimbursement loop.
 - **You don't have to research every project yourself.** [Delegate](../shared/key-ideas/delegation.md) your funding decisions to someone whose judgment you trust.
 
-If you enjoy finding promising early projects, fund as a scout. Your public track record can help other donors decide to delegate larger budgets to you, and later reimbursement can let your giving budget fund the next project.
+If you enjoy finding promising early projects, fund as a scout. Your public track record can help other donors decide to delegate to you, and later reimbursement can let your giving budget fund the next project.
 
 ## How it works
 

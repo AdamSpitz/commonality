@@ -23,7 +23,7 @@ An early contributor can also permanently forgo future reimbursement. They keep 
 
 Reimbursement gives a scout's donation budget another turn. A person who is good at recognizing promising projects can support one early, get that contribution back after later donors recognize the result, and direct it to another attempt.
 
-The scout's reward for good judgment is a public track record — projects scouted, amount reimbursed, and amount still outstanding — and the opportunity to manage larger delegated budgets from donors who trust that record. Reimbursed money is capital to direct, not income in the scout's pocket.
+The scout's reward for good judgment is a public track record — projects scouted, amount reimbursed, and amount still outstanding. It's not a budget anyone hands over: donors who like what they see can each decide, personally, to delegate to that scout. Reimbursed money is giving budget, not income in the scout's pocket.
 
 ## A clear goal: close the reimbursement loop
 

@@ -12,14 +12,14 @@ This is also a more durable way to give. A one-time donation is a one-time donat
 
 ## How it works
 
-You create a "delegatable note" — a pledge of funds (one-time or recurring) earmarked for a particular cause. You then assign that note to a delegate: a person or organization you trust to direct the funds toward good projects.
+You create a "delegatable note" — a pledge of funds (one-time or recurring) earmarked for a particular cause. You then authorize a delegate to spend from it: a person or organization you have personally chosen to direct the funds toward good projects. Not a faceless org you have to take on faith — someone you picked.
 
 Your delegate sees your note in their pool of funds to direct. When they identify a project they believe in, they route funds from their pool toward it. You can watch this happen in real time — all decisions are transparent on-chain.
 
 You can:
 - Switch delegates anytime if you lose confidence in their judgment
 - Revoke your pledge and reclaim unspent funds
-- Sub-delegate: point your note toward a delegate who themselves partially delegates to others
+- Delegate one hop only: your delegate cannot pass your spending authority to someone else. If they know a better fit, they can suggest you delegate to that person — but that choice stays yours.
 
 ## Getting started
 
