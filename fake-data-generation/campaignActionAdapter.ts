@@ -61,6 +61,7 @@ function requireBound<T>(value: T | undefined, label: string): T {
 export function campaignRunPublications(plan: CampaignPlan, bindings: CampaignRuntimeBindings): {
   causeBoards: Array<{ title: string; role: string; owner: Address; slug: string; path: string }>;
   bridges: Array<{ title: string; owner: Address; slug: string; path: string }>;
+  projects: Array<{ title: string; assuranceContract: Address; path: string }>;
 } {
   const causeBoards = [];
   const bridges = [];
@@ -87,7 +88,11 @@ export function campaignRunPublications(plan: CampaignPlan, bindings: CampaignRu
       });
     }
   }
-  return { causeBoards, bridges };
+  const projects = plan.projects.flatMap((project) => {
+    const assuranceContract = bindings.projects[project.id];
+    return assuranceContract ? [{ title: project.title, assuranceContract, path: `/projects/${assuranceContract}` }] : [];
+  });
+  return { causeBoards, bridges, projects };
 }
 
 export function applySubmittedBindings(bindings: CampaignRuntimeBindings, action: PlannedAction, write: CampaignSubmittedWrite, actor: Address, now: Date): void {
@@ -166,6 +171,7 @@ export function createLiveCampaignActionWriter(input: {
   contracts: CampaignContracts;
   bindings: CampaignRuntimeBindings;
   projectTokens?: Map<string, Address>;
+  approvalConfirmations?: number;
 }): CampaignActionWriter {
   const machinery = createSDKMachinery({
     ipfsConfig: createIPFSConfigInNodeJSFromTheUsualEnvVars(),
@@ -312,7 +318,7 @@ export function createLiveCampaignActionWriter(input: {
       }
       // A campaign wallet may fund the same project repeatedly. Cover the full
       // campaign in one approval so each purchase does not race an allowance read.
-      return { hash: await buyProjectTokens(clients, { address: assurance, abi: AssuranceContractAbi }, { buyer: clients.account, tokenAddress: token, tokenIds: [3n], tokenCounts: [1n], totalCost: campaignFundProjectCost() * 100n, approvalConfirmations: 3 }) };
+      return { hash: await buyProjectTokens(clients, { address: assurance, abi: AssuranceContractAbi }, { buyer: clients.account, tokenAddress: token, tokenIds: [3n], tokenCounts: [1n], totalCost: campaignFundProjectCost() * 100n, approvalConfirmations: input.approvalConfirmations ?? 3 }) };
     },
     async 'deposit-note'(action, clients) {
       const { hash, noteId } = await depositETH(clients, notesContract, { amount: noteAmount(action) });

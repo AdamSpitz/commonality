@@ -116,7 +116,7 @@ export interface TestDataProjectLink {
   title: string
   path: string
   assuranceContract: string
-  erc1155: string
+  erc1155?: string
   seedProjectKind?: string
 }
 
@@ -167,14 +167,16 @@ export function testDataRunProjects(entities: Record<string, unknown>): TestData
     const record = item as Record<string, unknown>
     const assuranceContract = typeof record.assuranceContract === 'string' ? record.assuranceContract : ''
     const erc1155 = typeof record.erc1155 === 'string' ? record.erc1155 : ''
-    if (!assuranceContract || !erc1155) return []
+    if (!assuranceContract) return []
     const seedProjectKind = typeof record.seedProjectKind === 'string' ? record.seedProjectKind : undefined
-    const title = seedProjectKind ? `Seed project ${seedProjectKind}` : `Project ${assuranceContract.slice(0, 8)}…`
+    const title = typeof record.title === 'string' && record.title.trim()
+      ? record.title
+      : seedProjectKind ? `Seed project ${seedProjectKind}` : `Project ${assuranceContract.slice(0, 8)}…`
     return [{
       title,
       path: `/projects/${assuranceContract}`,
       assuranceContract,
-      erc1155,
+      ...(erc1155 ? { erc1155 } : {}),
       ...(seedProjectKind ? { seedProjectKind } : {}),
     }]
   })

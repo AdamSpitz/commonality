@@ -406,7 +406,9 @@ start_services() {
     # compose reads that from this shell. The bridge-cluster editor's "submit
     # pairs to attester" step talks to it on :3006.
     echo "[$(date +%T)] Starting Commonality SPA, cause-assist, attesters..."
-    docker_compose up -d --force-recreate "${app_services[@]}"
+    # Core dependencies already started above. Recreating them here can rerun
+    # hardhat-deploy after the first deployment and invalidate its registry owner.
+    docker_compose up -d --no-deps --force-recreate "${app_services[@]}"
     timing_mark commonality_ui
 
     # Compose auto-loads the root .env, so once generate-wallets.mjs has run the

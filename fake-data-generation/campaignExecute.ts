@@ -144,7 +144,7 @@ async function main(): Promise<void> {
     wallets,
     publisher,
     bindings,
-    writer: createLiveCampaignActionWriter({ plan, contracts: environment.contracts, bindings }),
+    writer: createLiveCampaignActionWriter({ plan, contracts: environment.contracts, bindings, approvalConfirmations: environment.mode === 'local' ? 1 : 3 }),
     getReceipt: createReceiptLookup(publicClient),
     gasPrice,
     persistBindings: (value) => persistCampaignBindings(plan, value, bindingsPath),

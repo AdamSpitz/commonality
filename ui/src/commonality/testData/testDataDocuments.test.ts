@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 const runtimeConfig = vi.hoisted(() => ({ COMMONALITY_ENVIRONMENT: 'local' as string, VITE_TEST_DATA_REGISTRY_URL: '' }))
 vi.mock('../../shared', () => ({ getRuntimeConfig: () => runtimeConfig }))
 
-import { decryptTestData, resolveRunUrl, testDataEnvironment, testDataPageGroups, testDataRunLinks } from './testDataDocuments'
+import { decryptTestData, resolveRunUrl, testDataEnvironment, testDataPageGroups, testDataRunLinks, testDataRunProjects } from './testDataDocuments'
 
 function base64url(bytes: Uint8Array): string {
   return btoa(String.fromCharCode(...bytes)).replaceAll('+', '-').replaceAll('/', '_').replace(/=+$/, '')
@@ -33,6 +33,11 @@ describe('test-data capability documents', () => {
       causeBoards: [{ title: 'Abortion — natural-left', path: '/cause/0xabc/abortion-left', detail: 'natural-left' }],
       bridges: [{ title: 'Abortion bridge', path: '/bridge/0xabc/abortion-cluster' }],
     })
+  })
+
+  it('links campaign projects by assurance address and keeps their titles', () => {
+    expect(testDataRunProjects({ projects: [{ title: 'Grey County guitar songbook', assuranceContract: '0xabc' }] }))
+      .toEqual([{ title: 'Grey County guitar songbook', path: '/projects/0xabc', assuranceContract: '0xabc' }])
   })
 
   it('groups each bridge with its boards, then standalone causes', () => {
