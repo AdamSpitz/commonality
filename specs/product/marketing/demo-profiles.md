@@ -9,6 +9,18 @@ Curated fake-user profiles in the v2 campaign, marked with ★ in the admin page
 3. Click "Show curated only (8) ★" to filter to just these profiles
 4. Browse bios and interests to pick the right one for your friend
 
+## Grey County walkthrough profiles
+
+The stable descriptions are in [demo-profile-briefs.md](./demo-profile-briefs.md). This table is only the current wiring. These three are pinned to the top of the test-data admin list (`spotlightOrder`). "Show curated only" still includes every profiled user; Kurt, Fred, and Sean come first.
+
+| Profile | Slot | Boards they join | Notes |
+|---|---|---|---|
+| **Kurt** | trusted delegate (`user-083`) | Car repair, gluten-free cooking, video games | Church, guitar, and Christianity are in the bio. No Christianity board exists. |
+| **Fred** | regular supporter (`user-029`) | Video games | His delegated notes go to Kurt. Contracting and handyman work are in the bio only. |
+| **Sean** | trusted delegate (`user-084`) | Local food | Stress and productivity are in the bio. No board exists for that. |
+
+A delegate slot joins the delegation graph. It does not guarantee that Kurt or Sean personally sign alignment attestations.
+
 ## The eight archetypes
 
 | Profile | Role | Best for showing... | Favorite cause |

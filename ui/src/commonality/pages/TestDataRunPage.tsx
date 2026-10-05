@@ -14,6 +14,14 @@ import {
   type TestDataRun,
 } from '../testData/testDataDocuments'
 import { actionDetail, JsonValue, KeyValueTable } from '../testData/prettyJson'
+import type { TestDataUser } from '../testData/testDataDocuments'
+
+function userListRank(user: TestDataUser): number {
+  const spotlightOrder = user.spotlightOrder
+  if (typeof spotlightOrder === 'number') return spotlightOrder
+  if (user.label.includes('★')) return 1_000 + user.id
+  return 10_000 + user.id
+}
 
 export function TestDataRunPage() {
   const { runId } = useParams()
@@ -44,13 +52,17 @@ export function TestDataRunPage() {
   const pageGroups = useMemo(() => testDataPageGroups(run?.entities ?? {}), [run])
   const projects = useMemo(() => testDataRunProjects(run?.entities ?? {}), [run])
 
-  const curatedUsers = useMemo(() => {
-    return (run?.users ?? []).filter(user => user.label.includes('★'))
+  const orderedUsers = useMemo(() => {
+    return [...(run?.users ?? [])].sort((left, right) => userListRank(left) - userListRank(right) || left.id - right.id)
   }, [run])
 
+  const curatedUsers = useMemo(() => {
+    return orderedUsers.filter(user => user.label.includes('★'))
+  }, [orderedUsers])
+
   const displayedUsers = useMemo(() => {
-    return showCuratedOnly ? curatedUsers : (run?.users ?? [])
-  }, [run, showCuratedOnly, curatedUsers])
+    return showCuratedOnly ? curatedUsers : orderedUsers
+  }, [showCuratedOnly, curatedUsers, orderedUsers])
 
   const actionsByType = useMemo(() => {
     const counts = new Map<string, number>()

@@ -190,8 +190,10 @@ async function main(): Promise<void> {
         displayName: user.displayName,
         bio: user.bio,
         favoriteCauseId: user.favoriteCauseId,
+        ...(user.spotlightOrder ? { spotlightOrder: user.spotlightOrder } : {}),
       };
     });
+    usersForTestData.sort((left, right) => userListRank(left) - userListRank(right) || left.id - right.id);
     await writeTestDataRun({
       network,
       chainId,
@@ -204,6 +206,12 @@ async function main(): Promise<void> {
       metrics: { errors: [] },
     });
   }
+}
+
+function userListRank(user: { id: number; label: string; spotlightOrder?: number }): number {
+  if (user.spotlightOrder) return user.spotlightOrder;
+  if (user.label.includes('★')) return 1_000 + user.id;
+  return 10_000 + user.id;
 }
 
 function remoteFunderPrivateKey(): `0x${string}` {

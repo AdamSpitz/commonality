@@ -49,7 +49,7 @@ test('v2 includes every hobby story and its interested synthetic people', async 
       CAMPAIGN_PROJECT_STORIES[causeId].map((story) => story.title),
     );
     const profiles = plan.users.filter((user) => user.favoriteCauseId === causeId);
-    assert.equal(profiles.length, 4);
+    assert.ok(profiles.length >= 4);
     assert.ok(profiles.every((user) => user.causeIds.includes(causeId) && user.displayName && user.bio && user.interests?.length));
     assert.ok(plan.projects.filter((project) => project.causeId === causeId).every((project) => profiles.some((user) => user.id === project.founderUserId)));
     const causeFounder = plan.actions.find((action) => action.type === 'create-cause' && action.causeId === causeId);
@@ -60,6 +60,24 @@ test('v2 includes every hobby story and its interested synthetic people', async 
   }
   assert.ok(plan.statements.filter((statement) => hobbyCauses.includes(statement.causeId)).every((statement) => statement.source.collectionId === 'medium-realistic-v2'));
   assert.ok(plan.projects.every((project) => project.blocker && project.statementIds.length > 0 && project.outcome.includes('This is fake data created for testing')));
+});
+
+test('v2 pins the Grey County walkthrough profiles and Fred delegates to Kurt', async () => {
+  const manifest = JSON.parse(await readFile(new URL('../campaigns/medium-realistic-v2.json', import.meta.url), 'utf8')) as CampaignManifestV1;
+  const plan = await buildCampaignPlan(manifest);
+  const kurt = plan.users.find((user) => user.displayName === 'Kurt')!;
+  const fred = plan.users.find((user) => user.displayName === 'Fred')!;
+  const sean = plan.users.find((user) => user.displayName === 'Sean')!;
+  assert.deepEqual(kurt.causeIds, ['car-repair', 'gluten-free-cooking', 'game-commons']);
+  assert.equal(kurt.roles.includes('delegate'), true);
+  assert.deepEqual(fred.causeIds, ['game-commons']);
+  assert.equal(fred.delegatesTo, kurt.id);
+  assert.deepEqual(sean.causeIds, ['local-food']);
+  assert.equal(sean.roles.includes('delegate'), true);
+  const fredDelegations = plan.actions.filter((action) => action.type === 'delegate-note' && action.actorUserId === fred.id);
+  assert.ok(fredDelegations.length > 0);
+  assert.ok(fredDelegations.every((action) => action.delegateUserId === kurt.id));
+  assert.deepEqual([kurt, fred, sean].map((user) => user.spotlightOrder), [1, 2, 3]);
 });
 
 test('v2 funds one bridge project from both camps before retroactive reimbursement', async () => {

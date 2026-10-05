@@ -54,6 +54,12 @@ export interface CampaignUserProfile {
   bio: string;
   favoriteCauseId: string;
   interests: string[];
+  /** When set, replaces the persona's random cause draw. One to three ids, including favoriteCauseId. */
+  causeIds?: string[];
+  /** Another profiled user who should receive this user's delegated notes when they share a cause. */
+  delegatesTo?: string;
+  /** Lower numbers are listed first on the test-data admin page. */
+  spotlightOrder?: number;
 }
 
 export interface CampaignActionRule {
@@ -123,13 +129,27 @@ function validatePersonas(manifest: CampaignManifestV1): void {
     }
     if (persona.inactivityRate < 0 || persona.inactivityRate > 1) throw new Error(`invalid inactivityRate for persona ${persona.id}`);
   }
-  requireUnique((manifest.userProfiles ?? []).map((profile) => profile.userId), 'profile user IDs');
+  const profiles = manifest.userProfiles ?? [];
+  requireUnique(profiles.map((profile) => profile.userId), 'profile user IDs');
+  requireUnique(profiles.flatMap((profile) => profile.spotlightOrder === undefined ? [] : [String(profile.spotlightOrder)]), 'spotlight orders');
   const causeIds = new Set(manifest.causes.map((cause) => cause.id));
-  for (const profile of manifest.userProfiles ?? []) {
+  const profileIds = new Set(profiles.map((profile) => profile.userId));
+  for (const profile of profiles) {
     const userNumber = Number(profile.userId.match(/^user-(\d{3})$/)?.[1]);
     if (!Number.isInteger(userNumber) || userNumber < 1 || userNumber > manifest.campaign.userCount) throw new Error(`invalid profile user ID ${profile.userId}`);
     if (!causeIds.has(profile.favoriteCauseId) || !profile.displayName.trim() || !profile.bio.trim() || profile.interests.length === 0) {
       throw new Error(`invalid interest profile for ${profile.userId}`);
+    }
+    if (profile.causeIds) {
+      if (profile.causeIds.length < 1 || profile.causeIds.length > 3 || new Set(profile.causeIds).size !== profile.causeIds.length || profile.causeIds.some((causeId) => !causeIds.has(causeId)) || !profile.causeIds.includes(profile.favoriteCauseId)) {
+        throw new Error(`invalid pinned causes for ${profile.userId}`);
+      }
+    }
+    if (profile.delegatesTo && (profile.delegatesTo === profile.userId || !profileIds.has(profile.delegatesTo))) {
+      throw new Error(`invalid delegatesTo for ${profile.userId}`);
+    }
+    if (profile.spotlightOrder !== undefined && (!Number.isInteger(profile.spotlightOrder) || profile.spotlightOrder < 1)) {
+      throw new Error(`invalid spotlightOrder for ${profile.userId}`);
     }
   }
 }

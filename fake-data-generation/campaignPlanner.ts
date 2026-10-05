@@ -33,6 +33,8 @@ export interface PlannedUser {
   bio?: string;
   interests?: string[];
   favoriteCauseId?: string;
+  delegatesTo?: string;
+  spotlightOrder?: number;
 }
 
 export interface PlannedProject {
@@ -258,7 +260,9 @@ export async function buildCampaignPlan(manifest: CampaignManifestV1): Promise<C
     const id = `user-${String(users.length + 1).padStart(3, '0')}`;
     const profile = profiles.get(id);
     const causeCount = random.integer(persona.causesPerUser.min, persona.causesPerUser.max);
-    users.push({ id, walletSlot: `wallet-${id}`, personaId: persona.id, roles: persona.roles, causeIds: chooseDistinctCauses(manifest, causeCount, random, profile?.favoriteCauseId), inactive: random.next() < persona.inactivityRate, activityWeight: persona.activityWeight, fundingWeight: persona.fundingWeight, ...(profile ? { displayName: profile.displayName, bio: profile.bio, interests: profile.interests, favoriteCauseId: profile.favoriteCauseId } : {}) });
+    const rolledInactive = random.next() < persona.inactivityRate;
+    const pinnedCauses = profile?.causeIds;
+    users.push({ id, walletSlot: `wallet-${id}`, personaId: persona.id, roles: persona.roles, causeIds: pinnedCauses ?? chooseDistinctCauses(manifest, causeCount, random, profile?.favoriteCauseId), inactive: profile?.spotlightOrder || profile?.delegatesTo ? false : rolledInactive, activityWeight: persona.activityWeight, fundingWeight: persona.fundingWeight, ...(profile ? { displayName: profile.displayName, bio: profile.bio, interests: profile.interests, favoriteCauseId: profile.favoriteCauseId, ...(profile.delegatesTo ? { delegatesTo: profile.delegatesTo } : {}), ...(profile.spotlightOrder ? { spotlightOrder: profile.spotlightOrder } : {}) } : {}) });
   }
   const activeUsers = users.filter((user) => !user.inactive && user.activityWeight > 0);
   if (activeUsers.length === 0) throw new Error('campaign has no active users');
@@ -467,13 +471,18 @@ export async function buildCampaignPlan(manifest: CampaignManifestV1): Promise<C
   const deposits: PlannedAction[] = [];
   const delegatingDepositors = activeUsers.filter((owner) => delegates.some((delegate) => delegate.id !== owner.id && delegate.causeIds.some((causeId) => owner.causeIds.includes(causeId))));
   if (delegatingDepositors.length === 0) throw new Error('campaign has no users connected to the delegate trust graph');
-  for (let index = 0; index < countByType['deposit-note']; index++) { const actor = random.weighted(delegatingDepositors, (user) => user.activityWeight); deposits.push(add({ type: 'deposit-note', actorUserId: actor.id, noteId: `note-${String(index + 1).padStart(4, '0')}`, amount: Math.max(100, Math.round(actor.fundingWeight * 500)) * random.integer(1, 3), dependsOn: [] })); }
+  const pinnedDelegators = delegatingDepositors.filter((user) => user.delegatesTo);
+  for (let index = 0; index < countByType['deposit-note']; index++) {
+    const actor = index < pinnedDelegators.length ? pinnedDelegators[index] : random.weighted(delegatingDepositors, (user) => user.activityWeight);
+    deposits.push(add({ type: 'deposit-note', actorUserId: actor.id, noteId: `note-${String(index + 1).padStart(4, '0')}`, amount: Math.max(100, Math.round(actor.fundingWeight * 500)) * random.integer(1, 3), dependsOn: [] }));
+  }
   const delegations: PlannedAction[] = [];
   for (let index = 0; index < countByType['delegate-note']; index++) {
     const deposit = deposits[index % deposits.length]; const owner = users.find((user) => user.id === deposit.actorUserId)!;
     const candidates = delegates.filter((user) => user.id !== owner.id && user.causeIds.some((causeId) => owner.causeIds.includes(causeId)));
     if (candidates.length === 0) throw new Error(`no cause-aware delegate available for ${owner.id}`);
-    const delegate = random.weighted(candidates, (user) => user.activityWeight * user.causeIds.filter((causeId) => owner.causeIds.includes(causeId)).length);
+    const preferred = owner.delegatesTo ? candidates.find((user) => user.id === owner.delegatesTo) : undefined;
+    const delegate = preferred ?? random.weighted(candidates, (user) => user.activityWeight * user.causeIds.filter((causeId) => owner.causeIds.includes(causeId)).length);
     const sharedCauseIds = delegate.causeIds.filter((causeId) => owner.causeIds.includes(causeId)).sort();
     delegations.push(add({ type: 'delegate-note', actorUserId: owner.id, noteId: deposit.noteId, delegateUserId: delegate.id, amount: deposit.amount, delegationBasis: { sharedCauseIds, reason: 'shared-cause-trusted-role' }, dependsOn: [deposit.id] }));
   }
