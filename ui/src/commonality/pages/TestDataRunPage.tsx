@@ -21,6 +21,7 @@ export function TestDataRunPage() {
   const capability = search.get('key') ?? ''
   const [run, setRun] = useState<TestDataRun | null>(null)
   const [selected, setSelected] = useState('')
+  const [showCuratedOnly, setShowCuratedOnly] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [connectError, setConnectError] = useState<string | null>(null)
   const registryUrl = testDataRegistryUrl()
@@ -42,6 +43,14 @@ export function TestDataRunPage() {
 
   const pageGroups = useMemo(() => testDataPageGroups(run?.entities ?? {}), [run])
   const projects = useMemo(() => testDataRunProjects(run?.entities ?? {}), [run])
+
+  const curatedUsers = useMemo(() => {
+    return (run?.users ?? []).filter(user => user.label.includes('★'))
+  }, [run])
+
+  const displayedUsers = useMemo(() => {
+    return showCuratedOnly ? curatedUsers : (run?.users ?? [])
+  }, [run, showCuratedOnly, curatedUsers])
 
   const actionsByType = useMemo(() => {
     const counts = new Map<string, number>()
@@ -133,12 +142,23 @@ export function TestDataRunPage() {
           <Typography color="text.secondary" sx={{ mb: 2 }}>
             The selected disposable key stays in memory. Never fund or use these accounts outside this run's test network.
           </Typography>
-          <Stack direction={{ xs: 'column', sm: 'row' }} gap={2}>
-            <Select value={selected} onChange={event => setSelected(event.target.value)} displayEmpty sx={{ minWidth: 300 }}>
-              <MenuItem value="" disabled>Select a fake user</MenuItem>
-              {run.users.map(user => <MenuItem key={user.address} value={user.address}>{user.label} · {shortAddress(user.address)}</MenuItem>)}
-            </Select>
-            <Button variant="contained" disabled={!selected} onClick={connect}>Connect as selected user</Button>
+          <Stack spacing={2}>
+            <Stack direction="row" alignItems="center" gap={1}>
+              <Button
+                variant={showCuratedOnly ? 'contained' : 'outlined'}
+                size="small"
+                onClick={() => setShowCuratedOnly(!showCuratedOnly)}
+              >
+                {showCuratedOnly ? `Show all users (${run?.users.length ?? 0})` : `Show curated only (${curatedUsers.length}) ★`}
+              </Button>
+            </Stack>
+            <Stack direction={{ xs: 'column', sm: 'row' }} gap={2}>
+              <Select value={selected} onChange={event => setSelected(event.target.value)} displayEmpty sx={{ minWidth: 300 }}>
+                <MenuItem value="" disabled>Select a fake user</MenuItem>
+                {displayedUsers.map(user => <MenuItem key={user.address} value={user.address}>{user.label} · {shortAddress(user.address)}</MenuItem>)}
+              </Select>
+              <Button variant="contained" disabled={!selected} onClick={connect}>Connect as selected user</Button>
+            </Stack>
           </Stack>
           {connectError ? <Alert severity="error" sx={{ mt: 2 }}>{connectError}</Alert> : null}
         </CardContent>
@@ -151,9 +171,31 @@ export function TestDataRunPage() {
       </Stack>
 
       <Card variant="outlined"><CardContent>
-        <Typography variant="h6">Fake users</Typography><Divider sx={{ my: 2 }} />
-        <Table size="small"><TableHead><TableRow><TableCell>User</TableCell><TableCell>Address</TableCell><TableCell>Engagement</TableCell><TableCell>Interests</TableCell></TableRow></TableHead>
-          <TableBody>{run.users.map(user => <TableRow key={user.address}><TableCell>{user.label}</TableCell><TableCell sx={{ fontFamily: 'monospace' }}>{shortAddress(user.address)}</TableCell><TableCell>{user.engagement}</TableCell><TableCell>{Object.keys(user.interests).join(', ') || '—'}</TableCell></TableRow>)}</TableBody>
+        <Stack direction="row" justifyContent="space-between" alignItems="center">
+          <Typography variant="h6">Fake users {showCuratedOnly && <Typography component="span" color="primary">(curated only)</Typography>}</Typography>
+          <Typography color="text.secondary">{displayedUsers.length} of {run?.users.length ?? 0} total</Typography>
+        </Stack>
+        <Divider sx={{ my: 2 }} />
+        <Table size="small"><TableHead><TableRow><TableCell>User</TableCell><TableCell>Address</TableCell><TableCell>Role</TableCell><TableCell>Bio / Favorite</TableCell><TableCell>Interests</TableCell></TableRow></TableHead>
+          <TableBody>{displayedUsers.map(user => (
+            <TableRow key={user.address}>
+              <TableCell>{user.label}</TableCell>
+              <TableCell sx={{ fontFamily: 'monospace' }}>{shortAddress(user.address)}</TableCell>
+              <TableCell>{user.engagement}</TableCell>
+              <TableCell>
+                {user.bio ? (
+                  <Box sx={{ maxWidth: 300, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={String(user.bio)}>
+                    <Typography variant="body2">{String(user.bio)}</Typography>
+                  </Box>
+                ) : user.favoriteCauseId ? (
+                  <Typography variant="body2" color="text.secondary">Favorite: {String(user.favoriteCauseId)}</Typography>
+                ) : (
+                  <Typography variant="body2" color="text.disabled">—</Typography>
+                )}
+              </TableCell>
+              <TableCell>{Object.keys(user.interests).join(', ') || '—'}</TableCell>
+            </TableRow>
+          ))}</TableBody>
         </Table>
       </CardContent></Card>
 
