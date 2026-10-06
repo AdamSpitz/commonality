@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { estimateGroupGas, groupCampaignWrites } from './campaignBatching.js';
 import { type CampaignActionType, type CampaignManifestV1, type CampaignRole, validateCampaignManifest } from './campaignSchema.js';
 import { FAKE_DATA_NOTE, bridgeMediatorNote, causeBoardSummary, projectOutcome } from './campaignCopy.js';
-import { CAMPAIGN_PROJECT_STORIES } from './campaignProjectStories.js';
+import { CAMPAIGN_PROJECT_STORIES, SPOTLIGHT_PROJECTS } from './campaignProjectStories.js';
 import { flattenSeedStatements, loadSeedCollections, validateSeedCollection, type SeedCollection } from './seed-content-format.js';
 
 export const CAMPAIGN_PLAN_VERSION = 'commonality-campaign-plan-v1' as const;
@@ -440,9 +440,12 @@ export async function buildCampaignPlan(manifest: CampaignManifestV1): Promise<C
     ? activeUsers.filter((user) => user.causeIds.includes(bridgeProject.causeId) && user.fundingWeight > 0 && user.id !== bridgeProject.founderUserId).slice(0, 2)
     : [];
   if (bridgeProject && bridgeBackers.length < 2) throw new Error('v2 bridge project needs two independent camp backers');
-  const pinnedPledges = useStories ? users.filter((user) => user.spotlightOrder).flatMap((user) => user.causeIds.flatMap((causeId) => {
-    const project = projects.find((item) => item.causeId === causeId && item.founderUserId !== user.id);
-    return project ? [{ user, project }] : [];
+  const pinnedPledges = useStories ? users.filter((user) => user.spotlightOrder).flatMap((user) => user.causeIds.map((causeId) => {
+    const title = SPOTLIGHT_PROJECTS[user.displayName ?? '']?.[causeId];
+    if (!title) throw new Error(`missing spotlight project for ${user.displayName}/${causeId}`);
+    const project = projects.find((item) => item.causeId === causeId && item.title === title && item.founderUserId !== user.id);
+    if (!project) throw new Error(`spotlight project unavailable for ${user.displayName}/${causeId}: ${title}`);
+    return { user, project };
   })) : [];
   let pinnedPledgeCursor = 0;
   const campBeliefs = bridgeBackers.map((user, index) => {

@@ -6,7 +6,7 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { buildCampaignPlan, loadCampaignPlan, validatePlannedActions, writePlanArtifacts } from '../campaignPlanner.js';
-import { CAMPAIGN_PROJECT_STORIES } from '../campaignProjectStories.js';
+import { CAMPAIGN_PROJECT_STORIES, SPOTLIGHT_PROJECTS } from '../campaignProjectStories.js';
 
 async function loadManifest(): Promise<CampaignManifestV1> {
   return JSON.parse(await readFile(new URL('../campaigns/medium-realistic-v1.json', import.meta.url), 'utf8')) as CampaignManifestV1;
@@ -79,7 +79,9 @@ test('v2 pins the Grey County walkthrough profiles and Fred delegates to Kurt', 
   assert.ok(fredDelegations.every((action) => action.delegateUserId === kurt.id && action.delegationBasis!.sharedCauseIds.join() === 'game-commons'));
   for (const user of [kurt, fred, sean]) {
     for (const causeId of user.causeIds) {
-      assert.ok(plan.actions.some((action) => action.type === 'fund-project' && action.actorUserId === user.id && action.causeId === causeId));
+      const spotlightTitle = SPOTLIGHT_PROJECTS[user.displayName!]![causeId];
+      assert.ok(plan.actions.some((action) => action.type === 'fund-project' && action.actorUserId === user.id &&
+        action.causeId === causeId && plan.projects.find((project) => project.id === action.projectId)?.title === spotlightTitle));
     }
   }
   assert.deepEqual([kurt, fred, sean].map((user) => user.spotlightOrder), [1, 2, 3]);
