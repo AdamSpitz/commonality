@@ -86,7 +86,7 @@ describe('ProjectFactory', function () {
   it('creates and fully wires a threshold project', async function () {
     const [creator, owner, recipient] = await ethers.getSigners();
     const paymentToken = await ethers.deployContract('FreeERC20', ['USD Coin', 'USDC', 6]);
-    const { projectFactory, assuranceFactory, conditionFactory } = await deployProjectFactory();
+    const { projectFactory, conditionFactory } = await deployProjectFactory();
     const deadline = BigInt((await ethers.provider.getBlock('latest')).timestamp + 3600);
 
     const tx = await projectFactory
@@ -108,7 +108,7 @@ describe('ProjectFactory', function () {
     expect(event.args.creator).to.equal(creator.address);
     const token = await ethers.getContractAt('PremintingERC1155', event.args.token);
     const assurance = await ethers.getContractAt(
-      'MultiERC1155AssuranceContract',
+      'FixedControllerAssuranceContract',
       event.args.assuranceContract,
     );
     const condition = await ethers.getContractAt('ValueThresholdCondition', event.args.condition);
@@ -119,8 +119,56 @@ describe('ProjectFactory', function () {
     expect(await token.balanceOf(assurance.target, 2n)).to.equal(20n);
     expect(await token.owner()).to.equal(ethers.ZeroAddress);
     expect(await token.isReceiptTransferBridge(assurance.target)).to.equal(true);
-    expect(await assuranceFactory.isDeployedAssurance(assurance.target)).to.equal(true);
+    expect(await assurance.fixedPayout()).to.equal(recipient.address);
+    expect(await assurance.unclaimedProceedsWindow()).to.equal(90n * 24n * 60n * 60n);
     expect(await conditionFactory.isDeployedCondition(condition.target)).to.equal(true);
+  });
+
+  it('lets a fixed recipient refuse and contributors reclaim immediately after success', async function () {
+    const [contributor, owner, recipient, other] = await ethers.getSigners();
+    const paymentToken = await ethers.deployContract('FreeERC20', ['USD Coin', 'USDC', 6]);
+    const { projectFactory } = await deployProjectFactory();
+    const deadline = BigInt((await ethers.provider.getBlock('latest')).timestamp + 3600);
+    const args = defaultProjectParams(owner.address, recipient.address, paymentToken.target, deadline);
+    args[5] = 5n;
+    const tx = await projectFactory.createERC1155AndAssuranceContract(...args);
+    const receipt = await tx.wait();
+    const event = receipt.logs.map(log => { try { return projectFactory.interface.parseLog(log); } catch { return null; } })
+      .find(log => log?.name === 'ProjectCreated');
+    const assurance = await ethers.getContractAt('FixedControllerAssuranceContract', event.args.assuranceContract);
+    const token = await ethers.getContractAt('PremintingERC1155', event.args.token);
+    await paymentToken.mint(5n);
+    await paymentToken.approve(assurance.target, 5n);
+    await assurance.buyERC1155(contributor.address, token.target, [1n], [1n], '0x');
+    await expect(assurance.connect(other).refuse()).to.be.revertedWithCustomError(assurance, 'NotPayoutAddress');
+    await expect(assurance.connect(recipient).withdraw()).to.be.revertedWithCustomError(assurance, 'UseClaim');
+    await assurance.connect(recipient).refuse();
+    await assurance.connect(contributor).reclaimUnclaimedShare();
+    expect(await paymentToken.balanceOf(contributor.address)).to.equal(5n);
+  });
+
+  it('opens unclaimed fixed-recipient funds 90 days after success is noted', async function () {
+    const [contributor, owner, recipient] = await ethers.getSigners();
+    const paymentToken = await ethers.deployContract('FreeERC20', ['USD Coin', 'USDC', 6]);
+    const { projectFactory } = await deployProjectFactory();
+    const deadline = BigInt((await ethers.provider.getBlock('latest')).timestamp + 3600);
+    const args = defaultProjectParams(owner.address, recipient.address, paymentToken.target, deadline);
+    args[5] = 5n;
+    const receipt = await (await projectFactory.createERC1155AndAssuranceContract(...args)).wait();
+    const event = receipt.logs.map(log => { try { return projectFactory.interface.parseLog(log); } catch { return null; } })
+      .find(log => log?.name === 'ProjectCreated');
+    const assurance = await ethers.getContractAt('FixedControllerAssuranceContract', event.args.assuranceContract);
+    const token = await ethers.getContractAt('PremintingERC1155', event.args.token);
+    await paymentToken.mint(5n);
+    await paymentToken.approve(assurance.target, 5n);
+    await assurance.buyERC1155(contributor.address, token.target, [1n], [1n], '0x');
+    await assurance.noteSuccess();
+    await expect(assurance.reclaimUnclaimedShare()).to.be.revertedWithCustomError(assurance, 'ClaimWindowStillOpen');
+    await ethers.provider.send('evm_increaseTime', [90 * 24 * 60 * 60]);
+    await ethers.provider.send('evm_mine', []);
+    await expect(assurance.connect(recipient).claim()).to.be.revertedWithCustomError(assurance, 'ClaimWindowElapsed');
+    await assurance.reclaimUnclaimedShare();
+    expect(await paymentToken.balanceOf(contributor.address)).to.equal(5n);
   });
 
   it('rejects unsafe project parameters before deployment', async function () {

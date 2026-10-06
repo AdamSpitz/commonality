@@ -10,7 +10,6 @@ import {
   BuyTokensSection,
   ContributionPreviewPanel,
   RefundSection,
-  WithdrawSection,
   BeneficiaryProceedsSection,
   ReimbursementSection,
   Leaderboard,
@@ -451,25 +450,12 @@ export function ProjectDetailPage({
         />
       )}
 
-      {beneficiaryBinding.status !== 'none' && beneficiaryBinding.status !== 'mismatch' && projectContractAddress && (
+      {beneficiaryBinding.status !== 'mismatch' && projectContractAddress && (
         <BeneficiaryProceedsSection
           projectAddress={projectContractAddress as `0x${string}`}
           address={address}
           succeeded={status === 'succeeded'}
-          onRefresh={handleRefresh}
-        />
-      )}
-
-      {isConnected && status === 'succeeded' && beneficiaryBinding.status === 'none' && address?.toLowerCase() !== project.recipient.toLowerCase() && (
-        <Alert severity="success" sx={{ mb: 3 }}>
-          This project reached its funding goal. Only the recipient wallet can withdraw the pooled funds; contributor tokens remain as permanent recognition receipts.
-        </Alert>
-      )}
-
-      {isConnected && status === 'succeeded' && beneficiaryBinding.status === 'none' && address?.toLowerCase() === project.recipient.toLowerCase() && (
-        <WithdrawSection
-          project={project}
-          address={address}
+          hasBeneficiaryId={beneficiaryBinding.status !== 'none'}
           onRefresh={handleRefresh}
         />
       )}

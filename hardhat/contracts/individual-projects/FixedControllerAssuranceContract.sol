@@ -1,16 +1,14 @@
 //SPDX-License-Identifier: MIT
 pragma solidity 0.8.33;
 
-import {MultiERC1155AssuranceContract} from "./AssuranceContracts.sol";
+import {IdentityHeldProceeds} from "./IdentityHeldProceeds.sol";
 
 /**
  * @notice Pays a recipient fixed at creation, and records which beneficiary
  *         that recipient controlled at the time. A later registry rotation does
  *         not retarget these proceeds.
  */
-contract FixedControllerAssuranceContract is MultiERC1155AssuranceContract {
-    bytes32 public immutable beneficiaryId;
-    address public immutable proceedsRegistry;
+contract FixedControllerAssuranceContract is IdentityHeldProceeds {
 
     constructor(
         address owner,
@@ -19,13 +17,11 @@ contract FixedControllerAssuranceContract is MultiERC1155AssuranceContract {
         address erc1155Addr,
         string memory projectMetadataCid,
         bytes32 _beneficiaryId,
-        address registry
-    ) MultiERC1155AssuranceContract(owner, controller, paymentToken, erc1155Addr, projectMetadataCid) {
-        beneficiaryId = _beneficiaryId;
-        proceedsRegistry = registry;
-    }
+        address registry,
+        uint256 unclaimedWindow
+    ) IdentityHeldProceeds(owner, paymentToken, erc1155Addr, projectMetadataCid, registry, _beneficiaryId, controller, unclaimedWindow) {}
 
     function recipient() external view returns (address) {
-        return _recipient;
+        return fixedPayout;
     }
 }

@@ -6,6 +6,7 @@ import {FixedControllerAssuranceContract} from "./FixedControllerAssuranceContra
 /// @notice Deploys fixed-controller assurance contracts. DelegatableNotes authorizes
 ///         this factory on its own so AssuranceContractFactory stays under the size limit.
 contract FixedControllerFactory {
+    uint256 public constant UNCLAIMED_PROCEEDS_WINDOW = 90 days;
     error InvalidRegistry();
     address public immutable beneficiaryRegistry;
     mapping(address => bool) public isDeployedPrimaryMarket;
@@ -28,7 +29,23 @@ contract FixedControllerFactory {
     ) external returns (FixedControllerAssuranceContract ac) {
         if (registry != beneficiaryRegistry) revert InvalidRegistry();
         ac = new FixedControllerAssuranceContract(
-            owner, recipient, paymentToken, erc1155Addr, projectMetadataCid, beneficiaryId, registry
+            owner, recipient, paymentToken, erc1155Addr, projectMetadataCid, beneficiaryId, registry,
+            UNCLAIMED_PROCEEDS_WINDOW
+        );
+        isDeployedPrimaryMarket[address(ac)] = true;
+        emit FixedControllerAssuranceCreated(address(ac));
+    }
+
+    function createDirect(
+        address owner,
+        address recipient,
+        address paymentToken,
+        address erc1155Addr,
+        string memory projectMetadataCid
+    ) external returns (FixedControllerAssuranceContract ac) {
+        ac = new FixedControllerAssuranceContract(
+            owner, recipient, paymentToken, erc1155Addr, projectMetadataCid, bytes32(0), address(0),
+            UNCLAIMED_PROCEEDS_WINDOW
         );
         isDeployedPrimaryMarket[address(ac)] = true;
         emit FixedControllerAssuranceCreated(address(ac));
