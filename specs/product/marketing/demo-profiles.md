@@ -6,7 +6,7 @@ Curated fake-user profiles in the v2 campaign, marked with ★ in the admin page
 
 1. Run the v2 campaign locally or on testnet
 2. Open the test-data admin page (URL printed after execution)
-3. Click "Show curated only (8) ★" to filter to just these profiles
+3. Click "Show curated only" to list every profiled user. Kurt, Fred, and Sean are first. The eight archetypes are below.
 4. Browse bios and interests to pick the right one for your friend
 
 ## Grey County walkthrough profiles

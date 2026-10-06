@@ -6,11 +6,11 @@ This document covers the immediate setup for showing testnet to friends using cu
 
 1. **Campaign execution now writes users to test data** — The admin page shows all 100 campaign users with their display names, bios, interests, and favorite causes.
 
-2. **Curated profiles are marked with ★** — Eight demo archetypes plus 16 hobby-cause profiles are highlighted in the admin page.
+2. **Curated profiles are marked with ★** — Every profiled user is highlighted: the eight archetypes in [demo-profiles.md](./demo-profiles.md), the hobby-cause profiles, and Kurt, Fred, and Sean.
 
-3. **Filter toggle** — Click "Show curated only (8) ★" to see just the demo profiles, or "Show all users (100)" to browse everyone.
+3. **Filter toggle** — "Show curated only (N) ★" lists every profiled user, with Kurt, Fred, and Sean first. "Show all users (N)" browses the whole run. Both counts come from that run.
 
-4. **Enhanced user table** — Shows bio/favorite cause column alongside engagement level and interests.
+4. **Enhanced user table** — Shows engagement, bio and favorite cause together, and interests.
 
 ## Quick test (local)
 
@@ -30,8 +30,8 @@ npm run gen:campaign:execute --workspace=fake-data-generation -- --mode local
 Then:
 1. Open the admin URL
 2. Select the latest run
-3. Click "Show curated only (8) ★"
-4. Browse the eight demo profiles
+3. Click "Show curated only"
+4. Kurt, Fred, and Sean are listed first. The eight archetypes are in [demo-profiles.md](./demo-profiles.md)
 5. Pick one and click "Connect as selected user"
 6. Navigate to see their personalized view
 

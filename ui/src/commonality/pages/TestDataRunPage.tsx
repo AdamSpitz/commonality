@@ -188,19 +188,24 @@ export function TestDataRunPage() {
           <Typography color="text.secondary">{displayedUsers.length} of {run?.users.length ?? 0} total</Typography>
         </Stack>
         <Divider sx={{ my: 2 }} />
-        <Table size="small"><TableHead><TableRow><TableCell>User</TableCell><TableCell>Address</TableCell><TableCell>Role</TableCell><TableCell>Bio / Favorite</TableCell><TableCell>Interests</TableCell></TableRow></TableHead>
+        <Table size="small"><TableHead><TableRow><TableCell>User</TableCell><TableCell>Address</TableCell><TableCell>Engagement</TableCell><TableCell>Bio / Favorite</TableCell><TableCell>Interests</TableCell></TableRow></TableHead>
           <TableBody>{displayedUsers.map(user => (
             <TableRow key={user.address}>
               <TableCell>{user.label}</TableCell>
               <TableCell sx={{ fontFamily: 'monospace' }}>{shortAddress(user.address)}</TableCell>
               <TableCell>{user.engagement}</TableCell>
               <TableCell>
-                {user.bio ? (
-                  <Box sx={{ maxWidth: 300, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={String(user.bio)}>
-                    <Typography variant="body2">{String(user.bio)}</Typography>
+                {user.bio || user.favoriteCauseId ? (
+                  <Box sx={{ maxWidth: 300 }}>
+                    {user.bio ? (
+                      <Typography variant="body2" noWrap title={String(user.bio)}>{String(user.bio)}</Typography>
+                    ) : null}
+                    {user.favoriteCauseId ? (
+                      <Typography variant="body2" color="text.secondary" noWrap title={String(user.favoriteCauseId)}>
+                        Favorite: {String(user.favoriteCauseId)}
+                      </Typography>
+                    ) : null}
                   </Box>
-                ) : user.favoriteCauseId ? (
-                  <Typography variant="body2" color="text.secondary">Favorite: {String(user.favoriteCauseId)}</Typography>
                 ) : (
                   <Typography variant="body2" color="text.disabled">—</Typography>
                 )}

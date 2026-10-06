@@ -33,7 +33,7 @@ vi.mock('../testData/testDataDocuments', async () => {
         users: [
           { id: 0, label: 'Mira ★', address: '0x0000000000000000000000000000000000000001', privateKey: '0x1111111111111111111111111111111111111111111111111111111111111111', engagement: 'CASUAL', wealth: 1, interests: {}, trustNetwork: [] },
           { id: 28, label: 'Fred ★', address: '0x0000000000000000000000000000000000000002', privateKey: '0x2222222222222222222222222222222222222222222222222222222222222222', engagement: 'CASUAL', wealth: 1, interests: {}, trustNetwork: [], spotlightOrder: 2 },
-          { id: 82, label: 'Kurt ★', address: '0x0000000000000000000000000000000000000003', privateKey: '0x3333333333333333333333333333333333333333333333333333333333333333', engagement: 'ACTIVE', wealth: 1, interests: {}, trustNetwork: [], spotlightOrder: 1 },
+          { id: 82, label: 'Kurt ★', address: '0x0000000000000000000000000000000000000003', privateKey: '0x3333333333333333333333333333333333333333333333333333333333333333', engagement: 'ACTIVE', wealth: 1, interests: {}, trustNetwork: [], spotlightOrder: 1, bio: 'Sings in the choir', favoriteCauseId: 'congregational-music' },
         ],
         actions: [],
         metrics: { errors: [] },
@@ -79,5 +79,9 @@ describe('TestDataRunPage pages', () => {
     expect(kurt).toBeGreaterThan(-1)
     expect(kurt).toBeLessThan(fred)
     expect(fred).toBeLessThan(mira)
+    expect(screen.getByRole('columnheader', { name: 'Engagement' })).toBeTruthy()
+    const kurtRow = screen.getAllByRole('row').find((row) => (row.textContent ?? '').includes('Kurt'))
+    expect(kurtRow?.textContent).toContain('Sings in the choir')
+    expect(kurtRow?.textContent).toContain('Favorite: congregational-music')
   })
 })
