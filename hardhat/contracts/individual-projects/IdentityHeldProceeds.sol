@@ -33,7 +33,7 @@ abstract contract IdentityHeldProceeds is MultiERC1155AssuranceContract {
 
     address public immutable proceedsRegistry;
     bytes32 public immutable beneficiaryId;
-    address public immutable fixedPayout;
+    address internal immutable fixedPayout;
     uint256 public immutable unclaimedProceedsWindow;
 
     uint256 internal succeededAt;
@@ -83,8 +83,10 @@ abstract contract IdentityHeldProceeds is MultiERC1155AssuranceContract {
         noteSuccess();
         uint256 closedAt = succeededAt + unclaimedProceedsWindow;
         if (block.timestamp >= closedAt) revert ClaimWindowElapsed(closedAt);
-        uint256 withdrawableAt = IProceedsBeneficiaryRegistry(proceedsRegistry).claimWithdrawableAt(beneficiaryId);
-        if (block.timestamp < withdrawableAt) revert ClaimWaitingPeriodNotElapsed(withdrawableAt);
+        if (fixedPayout == address(0)) {
+            uint256 withdrawableAt = IProceedsBeneficiaryRegistry(proceedsRegistry).claimWithdrawableAt(beneficiaryId);
+            if (block.timestamp < withdrawableAt) revert ClaimWaitingPeriodNotElapsed(withdrawableAt);
+        }
         uint256 value = withdrawableRecipientBalance();
         if (value == 0) revert NothingToClaim();
         emit ProceedsClaimed(beneficiaryId, payout, value);
