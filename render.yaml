@@ -174,7 +174,7 @@ services:
       - key: PONDER_RPC_MAX_RESPONSE_BODY_SIZE
         value: 0
       - key: INDEXER_DEPLOYMENT_MANIFEST
-        value: "{\"chains\":{\"base-sepolia\":{\"Beliefs\":[{\"address\":\"0x353d650D50d8a5eA3A5a966FE1690177a8a82D92\",\"startBlock\":42768673}],\"Implications\":[{\"address\":\"0xF174ED372d1D3276e999970dDF82771Fb504BB3B\",\"startBlock\":42768673}],\"TrustRegistry\":[{\"address\":\"0x3a93BAB464Cc20333076b83490DE40357094355E\",\"startBlock\":42768673}],\"AccountAssertions\":[{\"address\":\"0x3991162F03F888f52FB2C655024Ba787F39A1367\",\"startBlock\":42768673}],\"AlignmentAttestations\":[{\"address\":\"0xAc19417eE26f7795AEeAD374911932b412Ef808d\",\"startBlock\":42768673}],\"MutableRefUpdater\":[{\"address\":\"0x472f9A996546bcc7572692B002B63483F3cDB70e\",\"startBlock\":42768673}],\"NudgePublications\":[{\"address\":\"0x94b76d80D7c837588299BDf1c29F5D46362e3427\",\"startBlock\":42768673}],\"PublishedData\":[{\"address\":\"0xC4074f563DA9E2b9751629e9A3213eB02099513e\",\"startBlock\":47467743}],\"BeneficiaryIdentity\":[{\"address\":\"0x35B418D30d84F35a8Ea5B7Fbb4ab0db8bfFc4CDf\",\"startBlock\":47467734}],\"NoteIntent\":[{\"address\":\"0x8665DD3Fc75240D99066A768C227aA5Cf5179E2a\",\"startBlock\":42768673}],\"DelegatableNotes\":[{\"address\":\"0xBE3bfC7fA423c3ABDcCd9d844AdCF666A1abDe50\",\"startBlock\":47467731}],\"RecurringPledges\":[{\"address\":\"0x37e4088b3fb4E8aDF229985FBe894D46C9a6847D\",\"startBlock\":47467731}],\"AssuranceContractFactory\":[{\"address\":\"0xFE1C7Dd586a8616ec15D38F27903e316F0897b5b\",\"startBlock\":47467729}],\"FixedControllerFactory\":[{\"address\":\"0x47Cd360C8B048E24Ca7B1059B75A8Ba4EcD02858\",\"startBlock\":42768673}],\"ProjectFactory\":[{\"address\":\"0x6baE1Cd3ee95e298585Ec632a84ABe2FF4f04967\",\"startBlock\":47467866}],\"ERC1155Factory\":[{\"address\":\"0xEc072252C65AD1A7e71E61Be1Badf70FCbDeF89e\",\"startBlock\":47467730}],\"ContentRegistry\":[{\"address\":\"0xA709fBFAe9791779ea9003ACb836E9cDf8758Cc4\",\"startBlock\":47467735}],\"BeneficiaryRegistry\":[{\"address\":\"0x212107039Fc473A3d58F660081Ad8027fB5A3049\",\"startBlock\":47467735}],\"BeneficiaryEscrow\":[{\"address\":\"0x311563095515d4E0C01404fE154effc6e49208FA\",\"startBlock\":47467735}],\"CreatorAssuranceDeployer\":[{\"address\":\"0xd304AD671094F0D8f3d4621abdE91Fd0Fd8A12eF\",\"startBlock\":47467736}],\"CreatorAssuranceContractFactory\":[{\"address\":\"0x0e203232c448D9ECA86f642AD4616ffF90e7a437\",\"startBlock\":47467737}],\"CreatorAssuranceVeto\":[{\"address\":\"0xeb1C857Ad97AFd32C843273784adb4e9EDffE078\",\"startBlock\":42768673}],\"ProspectiveContentRoundFactory\":[{\"address\":\"0xCA099F3d63a996D9E479Eb6D220Bf6B3e8407F4C\",\"startBlock\":47467739}]}}}"
+        value: "{\"chains\":{\"base-sepolia\":{\"Beliefs\":[{\"address\":\"0x353d650D50d8a5eA3A5a966FE1690177a8a82D92\",\"startBlock\":42768673}],\"Implications\":[{\"address\":\"0xF174ED372d1D3276e999970dDF82771Fb504BB3B\",\"startBlock\":42768673}],\"TrustRegistry\":[{\"address\":\"0x3a93BAB464Cc20333076b83490DE40357094355E\",\"startBlock\":42768673}],\"AccountAssertions\":[{\"address\":\"0x3991162F03F888f52FB2C655024Ba787F39A1367\",\"startBlock\":42768673}],\"AlignmentAttestations\":[{\"address\":\"0xAc19417eE26f7795AEeAD374911932b412Ef808d\",\"startBlock\":42768673}],\"MutableRefUpdater\":[{\"address\":\"0x472f9A996546bcc7572692B002B63483F3cDB70e\",\"startBlock\":42768673}],\"NudgePublications\":[{\"address\":\"0x94b76d80D7c837588299BDf1c29F5D46362e3427\",\"startBlock\":42768673}],\"PublishedData\":[{\"address\":\"0xC4074f563DA9E2b9751629e9A3213eB02099513e\",\"startBlock\":47467743}],\"BeneficiaryIdentity\":[{\"address\":\"0x35B418D30d84F35a8Ea5B7Fbb4ab0db8bfFc4CDf\",\"startBlock\":47467734}],\"NoteIntent\":[{\"address\":\"0x8665DD3Fc75240D99066A768C227aA5Cf5179E2a\",\"startBlock\":42768673}],\"DelegatableNotes\":[{\"address\":\"0x6291c2AE016A5A55c70Cc4B1A88A7365D7Bcd5DB\",\"startBlock\":47780560}],\"RecurringPledges\":[{\"address\":\"0x149ebCB6Cc6FF8092595E580B3e35C65ea6e165e\",\"startBlock\":47780561}],\"AssuranceContractFactory\":[{\"address\":\"0x8015981a15AD1eC2A1E2Cf34eC47A844686A3Eab\",\"startBlock\":47780560}],\"FixedControllerFactory\":[{\"address\":\"0x582Ef20Ef10727932F70071d7d01D163cB9d9dA0\",\"startBlock\":42768673}],\"ProjectFactory\":[{\"address\":\"0x3FA9303A5267c5Ba3679e35AC1AeFe97e157d265\",\"startBlock\":47780574}],\"ERC1155Factory\":[{\"address\":\"0xa11D1cceEBEC3FEC4F8feE6ce8AbA2546eC6E563\",\"startBlock\":47780560}],\"ContentRegistry\":[{\"address\":\"0x82dA2D9FB2d43803A22bA9407F7aB0aE5d62543D\",\"startBlock\":47780564}],\"BeneficiaryRegistry\":[{\"address\":\"0x212107039Fc473A3d58F660081Ad8027fB5A3049\",\"startBlock\":47467735}],\"BeneficiaryEscrow\":[{\"address\":\"0x311563095515d4E0C01404fE154effc6e49208FA\",\"startBlock\":47467735}],\"CreatorAssuranceDeployer\":[{\"address\":\"0xd304AD671094F0D8f3d4621abdE91Fd0Fd8A12eF\",\"startBlock\":47780565}],\"CreatorAssuranceContractFactory\":[{\"address\":\"0xCde16593DDaBaBc59BF53c768c7f45B69936A121\",\"startBlock\":47780566}],\"CreatorAssuranceVeto\":[{\"address\":\"0xcD9E8afF84F628F8e0B12508d9f1B45D74448005\",\"startBlock\":42768673}],\"ProspectiveContentRoundFactory\":[{\"address\":\"0x9dF1Cc71d4aF13792BF9AC69A62500532f376D88\",\"startBlock\":47780569}]}}}"
       - key: START_BLOCK
         value: "42768673"
       - key: BELIEFS_CONTRACT_ADDRESS
@@ -184,15 +184,15 @@ services:
       - key: ACCOUNT_ASSERTIONS_ADDRESS
         value: "0x3991162F03F888f52FB2C655024Ba787F39A1367"
       - key: ASSURANCE_CONTRACT_FACTORY_ADDRESS
-        value: "0xFE1C7Dd586a8616ec15D38F27903e316F0897b5b"
+        value: "0x8015981a15AD1eC2A1E2Cf34eC47A844686A3Eab"
       - key: PROJECT_FACTORY_ADDRESS
-        value: "0x6baE1Cd3ee95e298585Ec632a84ABe2FF4f04967"
+        value: "0x3FA9303A5267c5Ba3679e35AC1AeFe97e157d265"
       - key: ERC1155_FACTORY_ADDRESS
-        value: "0xEc072252C65AD1A7e71E61Be1Badf70FCbDeF89e"
+        value: "0xa11D1cceEBEC3FEC4F8feE6ce8AbA2546eC6E563"
       - key: DELEGATABLE_NOTES_ADDRESS
-        value: "0xBE3bfC7fA423c3ABDcCd9d844AdCF666A1abDe50"
+        value: "0x6291c2AE016A5A55c70Cc4B1A88A7365D7Bcd5DB"
       - key: RECURRING_PLEDGES_ADDRESS
-        value: "0x37e4088b3fb4E8aDF229985FBe894D46C9a6847D"
+        value: "0x149ebCB6Cc6FF8092595E580B3e35C65ea6e165e"
       - key: NOTE_INTENT_ADDRESS
         value: "0x8665DD3Fc75240D99066A768C227aA5Cf5179E2a"
       - key: ALIGNMENT_ATTESTATIONS_ADDRESS
@@ -210,13 +210,13 @@ services:
       - key: BENEFICIARY_IDENTITY_START_BLOCK
         value: "47467734"
       - key: CONTENT_REGISTRY_ADDRESS
-        value: "0xA709fBFAe9791779ea9003ACb836E9cDf8758Cc4"
+        value: "0x82dA2D9FB2d43803A22bA9407F7aB0aE5d62543D"
       - key: BENEFICIARY_REGISTRY_ADDRESS
         value: "0x212107039Fc473A3d58F660081Ad8027fB5A3049"
       - key: BENEFICIARY_ESCROW_ADDRESS
         value: "0x311563095515d4E0C01404fE154effc6e49208FA"
       - key: CREATOR_CONTRACT_FACTORY_ADDRESS
-        value: "0x0e203232c448D9ECA86f642AD4616ffF90e7a437"
+        value: "0xCde16593DDaBaBc59BF53c768c7f45B69936A121"
     healthCheckPath: /graphql
     # Intentional Render workaround: this disk is not used for indexer app state.
     # Render disables zero-downtime/rolling deploys for services with persistent
@@ -524,13 +524,13 @@ services:
       - key: ACCOUNT_ASSERTIONS_ADDRESS
         value: "0x3991162F03F888f52FB2C655024Ba787F39A1367"
       - key: ASSURANCE_CONTRACT_FACTORY_ADDRESS
-        value: "0xFE1C7Dd586a8616ec15D38F27903e316F0897b5b"
+        value: "0x8015981a15AD1eC2A1E2Cf34eC47A844686A3Eab"
       - key: ERC1155_FACTORY_ADDRESS
-        value: "0xEc072252C65AD1A7e71E61Be1Badf70FCbDeF89e"
+        value: "0xa11D1cceEBEC3FEC4F8feE6ce8AbA2546eC6E563"
       - key: DELEGATABLE_NOTES_ADDRESS
-        value: "0xBE3bfC7fA423c3ABDcCd9d844AdCF666A1abDe50"
+        value: "0x6291c2AE016A5A55c70Cc4B1A88A7365D7Bcd5DB"
       - key: RECURRING_PLEDGES_ADDRESS
-        value: "0x37e4088b3fb4E8aDF229985FBe894D46C9a6847D"
+        value: "0x149ebCB6Cc6FF8092595E580B3e35C65ea6e165e"
       - key: NOTE_INTENT_ADDRESS
         value: "0x8665DD3Fc75240D99066A768C227aA5Cf5179E2a"
       - key: ALIGNMENT_ATTESTATIONS_ADDRESS
