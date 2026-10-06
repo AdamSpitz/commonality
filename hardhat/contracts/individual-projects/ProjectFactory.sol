@@ -382,7 +382,7 @@ contract ProjectFactory {
     _validateProjectParams(params);
     PremintingERC1155 t = _deployToken(params);
 
-    MultiERC1155AssuranceContract ac = _assuranceFactory.createAssuranceContract(
+    MultiERC1155AssuranceContract ac = fixedControllerFactory.createDirect(
       address(this),
       params.recipient,
       params.paymentToken,

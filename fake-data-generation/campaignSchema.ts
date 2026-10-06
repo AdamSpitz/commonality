@@ -54,6 +54,12 @@ export interface CampaignUserProfile {
   bio: string;
   favoriteCauseId: string;
   interests: string[];
+  /** When set, replaces the persona's random cause draw. One to four ids, including favoriteCauseId. */
+  causeIds?: string[];
+  /** Another profiled user who should receive this user's delegated notes when they share a cause. */
+  delegatesTo?: string;
+  /** Lower numbers are listed first on the test-data admin page. */
+  spotlightOrder?: number;
 }
 
 export interface CampaignActionRule {
@@ -101,7 +107,7 @@ function validateCampaignIdentity(manifest: CampaignManifestV1): void {
 }
 
 function validateCauses(manifest: CampaignManifestV1): void {
-  if (manifest.causes.length < 8 || manifest.causes.length > 16) throw new Error('campaign must contain 8-16 causes');
+  if (manifest.causes.length < 8 || manifest.causes.length > 18) throw new Error('campaign must contain 8-18 causes');
   requireUnique(manifest.causes.map((cause) => cause.id), 'cause IDs');
   const statementRefs = manifest.causes.flatMap((cause) => cause.statementRefs);
   const statementKeys = statementRefs.map((ref) => `${ref.collectionId}/${ref.groupId}/${ref.statementId}`);
@@ -118,18 +124,32 @@ function validatePersonas(manifest: CampaignManifestV1): void {
   if (personaCount !== manifest.campaign.userCount) throw new Error(`persona counts total ${personaCount}, expected ${manifest.campaign.userCount}`);
   for (const persona of manifest.personas) {
     if (persona.count <= 0 || persona.activityWeight < 0 || persona.fundingWeight < 0) throw new Error(`invalid weights/count for persona ${persona.id}`);
-    if (persona.causesPerUser.min < 1 || persona.causesPerUser.max > 3 || persona.causesPerUser.min > persona.causesPerUser.max) {
-      throw new Error(`persona ${persona.id} must join 1-3 causes`);
+    if (persona.causesPerUser.min < 1 || persona.causesPerUser.max > 4 || persona.causesPerUser.min > persona.causesPerUser.max) {
+      throw new Error(`persona ${persona.id} must join 1-4 causes`);
     }
     if (persona.inactivityRate < 0 || persona.inactivityRate > 1) throw new Error(`invalid inactivityRate for persona ${persona.id}`);
   }
-  requireUnique((manifest.userProfiles ?? []).map((profile) => profile.userId), 'profile user IDs');
+  const profiles = manifest.userProfiles ?? [];
+  requireUnique(profiles.map((profile) => profile.userId), 'profile user IDs');
+  requireUnique(profiles.flatMap((profile) => profile.spotlightOrder === undefined ? [] : [String(profile.spotlightOrder)]), 'spotlight orders');
   const causeIds = new Set(manifest.causes.map((cause) => cause.id));
-  for (const profile of manifest.userProfiles ?? []) {
+  const profileIds = new Set(profiles.map((profile) => profile.userId));
+  for (const profile of profiles) {
     const userNumber = Number(profile.userId.match(/^user-(\d{3})$/)?.[1]);
     if (!Number.isInteger(userNumber) || userNumber < 1 || userNumber > manifest.campaign.userCount) throw new Error(`invalid profile user ID ${profile.userId}`);
     if (!causeIds.has(profile.favoriteCauseId) || !profile.displayName.trim() || !profile.bio.trim() || profile.interests.length === 0) {
       throw new Error(`invalid interest profile for ${profile.userId}`);
+    }
+    if (profile.causeIds) {
+      if (profile.causeIds.length < 1 || profile.causeIds.length > 4 || new Set(profile.causeIds).size !== profile.causeIds.length || profile.causeIds.some((causeId) => !causeIds.has(causeId)) || !profile.causeIds.includes(profile.favoriteCauseId)) {
+        throw new Error(`invalid pinned causes for ${profile.userId}`);
+      }
+    }
+    if (profile.delegatesTo && (profile.delegatesTo === profile.userId || !profileIds.has(profile.delegatesTo))) {
+      throw new Error(`invalid delegatesTo for ${profile.userId}`);
+    }
+    if (profile.spotlightOrder !== undefined && (!Number.isInteger(profile.spotlightOrder) || profile.spotlightOrder < 1)) {
+      throw new Error(`invalid spotlightOrder for ${profile.userId}`);
     }
   }
 }

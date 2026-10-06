@@ -28,7 +28,7 @@ In short: **the highest-risk design was replaced rather than merely renamed, whi
 5. **[Political funding](political-funding.md)** — Civility/CSM, generated political content, display/routing, and sponsored gas can create platform-side conduct.
 6. **[Privacy](privacy.md)** — public trust/activity graphs and permanent user-authored calldata require a real privacy analysis and policy.
 7. **[Money laundering](money-laundering.md)** — non-custodial and transparent architecture helps; stolen-card cash-out and partner controls remain.
-8. **[Charitable solicitation](charitable-solicitation.md)** and **[tax](tax.md)** — comparatively cheap compliance/wording work that is still undone.
+8. **[Charitable solicitation](charitable-solicitation.md)** and **[tax](tax.md)** — `tax.md` records the receipt stance: the charity decides; Commonality's job is the onchain facts (purchase, claim, forgo) plus links out to KYC and to the charity. Disclaimer copy on the pledge UX is still undone.
 9. **[Money transmission](money-transmission.md)** — comparatively low while funds remain non-custodial and Commonality charges no flow-based fee.
 10. **[Publishing smart contracts](smart-contracts.md)** — low risk as code publication; operated/admin-controlled services are analyzed separately.
 

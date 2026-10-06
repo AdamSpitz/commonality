@@ -580,23 +580,13 @@ export async function refundProjectTokens(
 }
 
 /**
- * Withdraw funds from a successful project
+ * Claim funds from a successful project. Retained as an alias for existing callers.
  */
 export async function withdrawProjectFunds(
   clients: WriteClients,
   assuranceContract: AssuranceContract
 ): Promise<Hash> {
-  const hash = await clients.walletClient.writeContract({
-    address: assuranceContract.address,
-    abi: assuranceContract.abi,
-    functionName: 'withdraw',
-    args: [],
-    chain: clients.walletClient.chain,
-    account: clients.walletClient.account!,
-  });
-
-  await clients.publicClient.waitForTransactionReceipt({ hash });
-  return hash;
+  return claimIdentityProceeds(clients, assuranceContract.address);
 }
 
 /**

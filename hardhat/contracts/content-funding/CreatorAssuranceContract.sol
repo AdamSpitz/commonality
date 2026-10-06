@@ -73,7 +73,7 @@ contract CreatorAssuranceContract is IdentityHeldProceeds, ICreatorAssuranceCont
         bytes32 _channelId,
         address registry,
         uint256 unclaimedWindow
-    ) IdentityHeldProceeds(owner, _paymentToken, _erc1155Addr, projectMetadataCid, registry, _channelId, unclaimedWindow) {
+    ) IdentityHeldProceeds(owner, _paymentToken, _erc1155Addr, projectMetadataCid, registry, _channelId, address(0), unclaimedWindow) {
         channelId = _channelId;
     }
 

@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { estimateGroupGas, groupCampaignWrites } from './campaignBatching.js';
 import { type CampaignActionType, type CampaignManifestV1, type CampaignRole, validateCampaignManifest } from './campaignSchema.js';
 import { FAKE_DATA_NOTE, bridgeMediatorNote, causeBoardSummary, projectOutcome } from './campaignCopy.js';
-import { CAMPAIGN_PROJECT_STORIES } from './campaignProjectStories.js';
+import { CAMPAIGN_PROJECT_STORIES, SPOTLIGHT_PROJECTS } from './campaignProjectStories.js';
 import { flattenSeedStatements, loadSeedCollections, validateSeedCollection, type SeedCollection } from './seed-content-format.js';
 
 export const CAMPAIGN_PLAN_VERSION = 'commonality-campaign-plan-v1' as const;
@@ -33,6 +33,8 @@ export interface PlannedUser {
   bio?: string;
   interests?: string[];
   favoriteCauseId?: string;
+  delegatesTo?: string;
+  spotlightOrder?: number;
 }
 
 export interface PlannedProject {
@@ -258,7 +260,9 @@ export async function buildCampaignPlan(manifest: CampaignManifestV1): Promise<C
     const id = `user-${String(users.length + 1).padStart(3, '0')}`;
     const profile = profiles.get(id);
     const causeCount = random.integer(persona.causesPerUser.min, persona.causesPerUser.max);
-    users.push({ id, walletSlot: `wallet-${id}`, personaId: persona.id, roles: persona.roles, causeIds: chooseDistinctCauses(manifest, causeCount, random, profile?.favoriteCauseId), inactive: random.next() < persona.inactivityRate, activityWeight: persona.activityWeight, fundingWeight: persona.fundingWeight, ...(profile ? { displayName: profile.displayName, bio: profile.bio, interests: profile.interests, favoriteCauseId: profile.favoriteCauseId } : {}) });
+    const rolledInactive = random.next() < persona.inactivityRate;
+    const pinnedCauses = profile?.causeIds;
+    users.push({ id, walletSlot: `wallet-${id}`, personaId: persona.id, roles: persona.roles, causeIds: pinnedCauses ?? chooseDistinctCauses(manifest, causeCount, random, profile?.favoriteCauseId), inactive: profile?.spotlightOrder || profile?.delegatesTo ? false : rolledInactive, activityWeight: persona.activityWeight, fundingWeight: persona.fundingWeight, ...(profile ? { displayName: profile.displayName, bio: profile.bio, interests: profile.interests, favoriteCauseId: profile.favoriteCauseId, ...(profile.delegatesTo ? { delegatesTo: profile.delegatesTo } : {}), ...(profile.spotlightOrder ? { spotlightOrder: profile.spotlightOrder } : {}) } : {}) });
   }
   const activeUsers = users.filter((user) => !user.inactive && user.activityWeight > 0);
   if (activeUsers.length === 0) throw new Error('campaign has no active users');
@@ -436,6 +440,14 @@ export async function buildCampaignPlan(manifest: CampaignManifestV1): Promise<C
     ? activeUsers.filter((user) => user.causeIds.includes(bridgeProject.causeId) && user.fundingWeight > 0 && user.id !== bridgeProject.founderUserId).slice(0, 2)
     : [];
   if (bridgeProject && bridgeBackers.length < 2) throw new Error('v2 bridge project needs two independent camp backers');
+  const pinnedPledges = useStories ? users.filter((user) => user.spotlightOrder).flatMap((user) => user.causeIds.map((causeId) => {
+    const title = SPOTLIGHT_PROJECTS[user.displayName ?? '']?.[causeId];
+    if (!title) throw new Error(`missing spotlight project for ${user.displayName}/${causeId}`);
+    const project = projects.find((item) => item.causeId === causeId && item.title === title && item.founderUserId !== user.id);
+    if (!project) throw new Error(`spotlight project unavailable for ${user.displayName}/${causeId}: ${title}`);
+    return { user, project };
+  })) : [];
+  let pinnedPledgeCursor = 0;
   const campBeliefs = bridgeBackers.map((user, index) => {
     const camp = index === 0 ? 'left' : 'right';
     const statement = statements.find((item) => item.causeId === bridgeProject!.causeId && item.role === `natural-${camp}`)!;
@@ -445,10 +457,11 @@ export async function buildCampaignPlan(manifest: CampaignManifestV1): Promise<C
   for (let index = 0; index < countByType['fund-project']; index++) {
     const featuredCause = useStories ? hobbyCauses[index] : undefined;
     const bridgePurchase = Boolean(bridgeProject && index >= hobbyCauses.length && index < hobbyCauses.length + 20);
-    const project = bridgePurchase ? bridgeProject! : featuredCause ? firstByCause.get(featuredCause)! : random.weighted(fundableProjects, (item) => Math.max(1, fundableProjects.length - (useStories ? fundableProjects.indexOf(item) : projects.indexOf(item))));
+    const pinnedPledge = !featuredCause && !bridgePurchase && pinnedPledgeCursor < pinnedPledges.length ? pinnedPledges[pinnedPledgeCursor++] : undefined;
+    const project = pinnedPledge ? pinnedPledge.project : bridgePurchase ? bridgeProject! : featuredCause ? firstByCause.get(featuredCause)! : random.weighted(fundableProjects, (item) => Math.max(1, fundableProjects.length - (useStories ? fundableProjects.indexOf(item) : projects.indexOf(item))));
     const supporters = activeUsers.filter((user) => user.causeIds.includes(project.causeId) && user.fundingWeight > 0 && (!useStories || user.id !== project.founderUserId));
     const interestedSupporters = featuredCause ? supporters.filter((user) => user.favoriteCauseId === featuredCause && user.id !== project.founderUserId) : [];
-    const actor = bridgePurchase ? bridgeBackers[(index - hobbyCauses.length) % 2] : random.weighted(interestedSupporters.length ? interestedSupporters : supporters, (user) => user.fundingWeight);
+    const actor = pinnedPledge ? pinnedPledge.user : bridgePurchase ? bridgeBackers[(index - hobbyCauses.length) % 2] : random.weighted(interestedSupporters.length ? interestedSupporters : supporters, (user) => user.fundingWeight);
     const alignment = alignments.find((item) => item.projectId === project.id);
     if (!alignment) throw new Error(`impossible fund-project: ${project.id} has no alignment action`);
     const tokenId = bridgePurchase ? 1 : 3;
@@ -459,6 +472,7 @@ export async function buildCampaignPlan(manifest: CampaignManifestV1): Promise<C
       dependsOn: [createProjects.get(project.id)!.id, alignment.id, ...(bridgePurchase ? [campBeliefs[(index - hobbyCauses.length) % 2].id] : [])] });
     if (bridgePurchase) thresholdPurchases.push(action);
   }
+  if (pinnedPledgeCursor !== pinnedPledges.length) throw new Error('v2 spotlight profiles did not each pledge on every joined cause');
   if (bridgeProject) for (let index = 0; index < 4; index++) {
     add({ type: 'fund-project', actorUserId: bridgeBackers[index % 2].id, causeId: bridgeProject.causeId, projectId: bridgeProject.id,
       amount: 25, funding: { kind: 'retroactive', camp: index % 2 === 0 ? 'left' : 'right' },
@@ -467,13 +481,18 @@ export async function buildCampaignPlan(manifest: CampaignManifestV1): Promise<C
   const deposits: PlannedAction[] = [];
   const delegatingDepositors = activeUsers.filter((owner) => delegates.some((delegate) => delegate.id !== owner.id && delegate.causeIds.some((causeId) => owner.causeIds.includes(causeId))));
   if (delegatingDepositors.length === 0) throw new Error('campaign has no users connected to the delegate trust graph');
-  for (let index = 0; index < countByType['deposit-note']; index++) { const actor = random.weighted(delegatingDepositors, (user) => user.activityWeight); deposits.push(add({ type: 'deposit-note', actorUserId: actor.id, noteId: `note-${String(index + 1).padStart(4, '0')}`, amount: Math.max(100, Math.round(actor.fundingWeight * 500)) * random.integer(1, 3), dependsOn: [] })); }
+  const pinnedDelegators = delegatingDepositors.filter((user) => user.delegatesTo);
+  for (let index = 0; index < countByType['deposit-note']; index++) {
+    const actor = index < pinnedDelegators.length ? pinnedDelegators[index] : random.weighted(delegatingDepositors, (user) => user.activityWeight);
+    deposits.push(add({ type: 'deposit-note', actorUserId: actor.id, noteId: `note-${String(index + 1).padStart(4, '0')}`, amount: Math.max(100, Math.round(actor.fundingWeight * 500)) * random.integer(1, 3), dependsOn: [] }));
+  }
   const delegations: PlannedAction[] = [];
   for (let index = 0; index < countByType['delegate-note']; index++) {
     const deposit = deposits[index % deposits.length]; const owner = users.find((user) => user.id === deposit.actorUserId)!;
     const candidates = delegates.filter((user) => user.id !== owner.id && user.causeIds.some((causeId) => owner.causeIds.includes(causeId)));
     if (candidates.length === 0) throw new Error(`no cause-aware delegate available for ${owner.id}`);
-    const delegate = random.weighted(candidates, (user) => user.activityWeight * user.causeIds.filter((causeId) => owner.causeIds.includes(causeId)).length);
+    const preferred = owner.delegatesTo ? candidates.find((user) => user.id === owner.delegatesTo) : undefined;
+    const delegate = preferred ?? random.weighted(candidates, (user) => user.activityWeight * user.causeIds.filter((causeId) => owner.causeIds.includes(causeId)).length);
     const sharedCauseIds = delegate.causeIds.filter((causeId) => owner.causeIds.includes(causeId)).sort();
     delegations.push(add({ type: 'delegate-note', actorUserId: owner.id, noteId: deposit.noteId, delegateUserId: delegate.id, amount: deposit.amount, delegationBasis: { sharedCauseIds, reason: 'shared-cause-trusted-role' }, dependsOn: [deposit.id] }));
   }
@@ -512,7 +531,10 @@ export function validatePlannedActions(manifest: CampaignManifestV1, statements:
     if (action.type === 'delegate-note' && (!action.delegationBasis || action.delegationBasis.sharedCauseIds.length === 0)) throw new Error(`${action.id} lacks a shared-cause delegation basis`);
   }
   for (const rule of manifest.actionRules) { const count = actions.filter((action) => action.type === rule.type).length; if (count < rule.targetCount.min || count > rule.targetCount.max) throw new Error(`${rule.type} planned count ${count} is outside target ${rule.targetCount.min}-${rule.targetCount.max}`); }
-  if (users.some((user) => user.causeIds.length < 1 || user.causeIds.length > 3)) throw new Error('user cause assignment is outside 1-3 causes');
+  if (users.some((user) => {
+    const persona = manifest.personas.find((item) => item.id === user.personaId);
+    return !persona || user.causeIds.length < persona.causesPerUser.min || user.causeIds.length > persona.causesPerUser.max;
+  })) throw new Error('user cause assignment is outside persona bounds');
   if (new Set(users.map((user) => user.walletSlot)).size !== users.length) throw new Error('planned wallet slots must be unique');
 }
 

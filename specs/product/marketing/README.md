@@ -14,6 +14,8 @@ This directory is the home for **research, positioning, education, and share too
 | [PLAN.md](./PLAN.md) | Sequenced work: demo room → friend walkthroughs → share artifacts → vertical content |
 | [posture.md](./posture.md) | Who we market to, what we refuse, founder recruiting vs Civility/CSM GTM |
 | [friend-walkthroughs.md](./friend-walkthroughs.md) | Script for showing testnet to real people before we want users |
+| [demo-profile-briefs.md](./demo-profile-briefs.md) | High-level descriptions of the real people behind the synthetic walkthrough users |
+| [demo-profiles.md](./demo-profiles.md) | How those users are wired into the current campaign and admin page |
 | [memes.md](./memes.md) | Slogans, tone, cause-flavored share artifacts (not umbrella virality) |
 | [notes.md](./notes.md) | Anonymized patterns from walkthroughs (fill as sessions happen) |
 

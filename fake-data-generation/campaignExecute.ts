@@ -170,18 +170,48 @@ async function main(): Promise<void> {
   const network = chainId === LOCAL_HARDHAT_CHAIN_ID ? 'local' : chainId === 84532 ? 'testnet' : undefined;
   if (network) {
     const publications = campaignRunPublications(plan, bindings);
+    const curatedUserIds = new Set((manifest.userProfiles ?? []).map((profile) => profile.userId));
+    const usersForTestData = plan.users.map((user) => {
+      const wallet = wallets.find((item) => item.walletSlot === user.walletSlot);
+      const baseLabel = user.displayName ?? `Fake user ${user.id.replace('user-', '')}`;
+      const isCurated = curatedUserIds.has(user.id);
+      const label = isCurated ? `${baseLabel} ★` : baseLabel;
+      return {
+        id: Number(user.id.replace('user-', '')) - 1,
+        address: wallet?.address ?? '0x0000000000000000000000000000000000000000',
+        privateKey: wallet?.privateKey ?? '0x0000000000000000000000000000000000000000000000000000000000000000',
+        engagement: user.inactive ? 'LURKER' : user.activityWeight > 5 ? 'POWER_USER' : user.activityWeight > 2 ? 'ACTIVE' : 'CASUAL',
+        actionsPerRound: user.inactive ? 1 : user.activityWeight > 5 ? 20 : user.activityWeight > 2 ? 8 : 3,
+        wealth: 1,
+        interests: Object.fromEntries((user.interests ?? []).map((interest) => [interest, true])),
+        trustNetworkSize: 0,
+        trustNetwork: [],
+        label,
+        displayName: user.displayName,
+        bio: user.bio,
+        favoriteCauseId: user.favoriteCauseId,
+        ...(user.spotlightOrder ? { spotlightOrder: user.spotlightOrder } : {}),
+      };
+    });
+    usersForTestData.sort((left, right) => userListRank(left) - userListRank(right) || left.id - right.id);
     await writeTestDataRun({
       network,
       chainId,
       parameters: { campaignId: plan.campaignId, kind: 'campaign', mined: summary.mined, failed: summary.failed },
       entities: publications,
-      users: [],
+      users: usersForTestData,
       actions: plan.actions
         .filter((action) => action.type === 'create-cause' || action.type === 'create-bridge-board' || action.type === 'create-bridge')
         .map((action) => ({ ...action })),
       metrics: { errors: [] },
     });
   }
+}
+
+function userListRank(user: { id: number; label: string; spotlightOrder?: number }): number {
+  if (user.spotlightOrder) return user.spotlightOrder;
+  if (user.label.includes('★')) return 1_000 + user.id;
+  return 10_000 + user.id;
 }
 
 function remoteFunderPrivateKey(): `0x${string}` {

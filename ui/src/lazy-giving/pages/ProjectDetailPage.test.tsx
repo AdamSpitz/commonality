@@ -56,7 +56,7 @@ vi.mock('@commonality/sdk/lazy-giving', async () => {
     buyProjectTokens: vi.fn(),
     approveERC1155ForOperator: vi.fn(),
     refundProjectTokens: vi.fn(),
-    withdrawProjectFunds: vi.fn(),
+    claimIdentityProceeds: vi.fn(),
   }
 })
 
@@ -76,7 +76,7 @@ vi.mock('@commonality/sdk/utils', async () => {
   }
 })
 
-import { getProject, getProjectTokens, getProjectContributions, getProjectRefunds, getProjectReimbursementState, getContributorReimbursementState, buyProjectTokens, approveERC1155ForOperator, refundProjectTokens, withdrawProjectFunds } from '@commonality/sdk/lazy-giving'
+import { getProject, getProjectTokens, getProjectContributions, getProjectRefunds, getProjectReimbursementState, getContributorReimbursementState, buyProjectTokens, approveERC1155ForOperator, refundProjectTokens, claimIdentityProceeds } from '@commonality/sdk/lazy-giving'
 import { createSDKMachinery } from '@commonality/sdk/machinery'
 import { fetchFromIPFS } from '@commonality/sdk/utils'
 
@@ -595,10 +595,10 @@ describe('ProjectDetailPage', () => {
       render(<ProjectDetailPage />)
 
       await waitFor(() => {
-        expect(screen.getByText(/only the recipient wallet can withdraw/i)).toBeInTheDocument()
-        expect(screen.getByText(/permanent recognition receipts/i)).toBeInTheDocument()
+        expect(screen.getByText(/contributors can reclaim the/i)).toBeInTheDocument()
+        expect(screen.getByRole('button', { name: 'Reclaim my unclaimed share' })).toBeInTheDocument()
       })
-      expect(screen.queryByRole('heading', { name: 'Withdraw Funds' })).not.toBeInTheDocument()
+      expect(screen.getByRole('heading', { name: 'Project proceeds' })).toBeInTheDocument()
     })
   })
 
@@ -831,14 +831,14 @@ describe('ProjectDetailPage', () => {
     })
   })
 
-  describe('Withdraw section', () => {
+  describe('Claim section', () => {
     const recipientAddr = '0xbbbbccccddddeeee1111222233334444aaaabbbb' as `0x${string}`
     const succeededProject = () => makeProject({
       totalReceived: '2000000000000000000', // above threshold
       recipient: recipientAddr,
     })
 
-    it('shows Withdraw section for recipient when threshold met', async () => {
+    it('shows claim controls for recipient when threshold met', async () => {
       mockAccount.address = recipientAddr
       mockAccount.isConnected = true
       vi.mocked(getProject).mockResolvedValue(succeededProject() as any)
@@ -846,12 +846,12 @@ describe('ProjectDetailPage', () => {
       render(<ProjectDetailPage />)
 
       await waitFor(() => {
-        expect(screen.getByRole('heading', { name: 'Withdraw Funds' })).toBeInTheDocument()
-        expect(screen.getByRole('button', { name: 'Withdraw Funds' })).toBeInTheDocument()
+        expect(screen.getByRole('heading', { name: 'Project proceeds' })).toBeInTheDocument()
+        expect(screen.getByRole('button', { name: 'Claim this project' })).toBeInTheDocument()
       })
     })
 
-    it('does not show Withdraw section for non-recipient', async () => {
+    it('shows reclaim controls for non-recipient', async () => {
       mockAccount.address = '0x1111111111111111111111111111111111111111' as `0x${string}`
       mockAccount.isConnected = true
       vi.mocked(getProject).mockResolvedValue(succeededProject() as any)
@@ -861,10 +861,10 @@ describe('ProjectDetailPage', () => {
       await waitFor(() => {
         expect(screen.getByText('Succeeded')).toBeInTheDocument()
       })
-      expect(screen.queryByRole('heading', { name: 'Withdraw Funds' })).not.toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Reclaim my unclaimed share' })).toBeInTheDocument()
     })
 
-    it('does not show Withdraw section for active projects', async () => {
+    it('shows the claim window rule for active projects', async () => {
       mockAccount.address = recipientAddr
       mockAccount.isConnected = true
       vi.mocked(getProject).mockResolvedValue(makeProject({ recipient: recipientAddr }) as any)
@@ -874,72 +874,72 @@ describe('ProjectDetailPage', () => {
       await waitFor(() => {
         expect(screen.getByText('Funding')).toBeInTheDocument()
       })
-      expect(screen.queryByRole('heading', { name: 'Withdraw Funds' })).not.toBeInTheDocument()
+      expect(screen.getByText(/90 days after success is noted/i)).toBeInTheDocument()
     })
 
-    it('calls withdrawProjectFunds when Withdraw button clicked', async () => {
+    it('calls claimIdentityProceeds when Claim button clicked', async () => {
       mockAccount.address = recipientAddr
       mockAccount.isConnected = true
       mockWalletClient.data = {} as any
       vi.mocked(getProject).mockResolvedValue(succeededProject() as any)
-      vi.mocked(withdrawProjectFunds).mockResolvedValue('0xhash' as any)
+      vi.mocked(claimIdentityProceeds).mockResolvedValue('0xhash' as any)
 
       render(<ProjectDetailPage />)
 
       await waitFor(() => {
-        expect(screen.getByRole('button', { name: 'Withdraw Funds' })).toBeInTheDocument()
+        expect(screen.getByRole('button', { name: 'Claim this project' })).toBeInTheDocument()
       })
 
       const user = userEvent.setup()
-      await user.click(screen.getByRole('button', { name: 'Withdraw Funds' }))
+      await user.click(screen.getByRole('button', { name: 'Claim this project' }))
 
       await waitFor(() => {
-        expect(withdrawProjectFunds).toHaveBeenCalledWith(
+        expect(claimIdentityProceeds).toHaveBeenCalledWith(
           expect.objectContaining({ account: recipientAddr }),
-          expect.objectContaining({ address: mockProjectAddress })
+          mockProjectAddress
         )
       })
     })
 
-    it('shows success message after withdrawal', async () => {
+    it('shows success message after claim', async () => {
       mockAccount.address = recipientAddr
       mockAccount.isConnected = true
       mockWalletClient.data = {} as any
       vi.mocked(getProject).mockResolvedValue(succeededProject() as any)
-      vi.mocked(withdrawProjectFunds).mockResolvedValue('0xhash' as any)
+      vi.mocked(claimIdentityProceeds).mockResolvedValue('0xhash' as any)
 
       render(<ProjectDetailPage />)
 
       await waitFor(() => {
-        expect(screen.getByRole('button', { name: 'Withdraw Funds' })).toBeInTheDocument()
+        expect(screen.getByRole('button', { name: 'Claim this project' })).toBeInTheDocument()
       })
 
       const user = userEvent.setup()
-      await user.click(screen.getByRole('button', { name: 'Withdraw Funds' }))
+      await user.click(screen.getByRole('button', { name: 'Claim this project' }))
 
       await waitFor(() => {
-        expect(screen.getByText('Funds withdrawn successfully!')).toBeInTheDocument()
+        expect(screen.getByText('This project was claimed. No other project was moved.')).toBeInTheDocument()
       })
     })
 
-    it('shows error message when withdrawal fails', async () => {
+    it('shows error message when claim fails', async () => {
       mockAccount.address = recipientAddr
       mockAccount.isConnected = true
       mockWalletClient.data = {} as any
       vi.mocked(getProject).mockResolvedValue(succeededProject() as any)
-      vi.mocked(withdrawProjectFunds).mockRejectedValue(new Error('Already withdrawn'))
+      vi.mocked(claimIdentityProceeds).mockRejectedValue(new Error('Already claimed'))
 
       render(<ProjectDetailPage />)
 
       await waitFor(() => {
-        expect(screen.getByRole('button', { name: 'Withdraw Funds' })).toBeInTheDocument()
+        expect(screen.getByRole('button', { name: 'Claim this project' })).toBeInTheDocument()
       })
 
       const user = userEvent.setup()
-      await user.click(screen.getByRole('button', { name: 'Withdraw Funds' }))
+      await user.click(screen.getByRole('button', { name: 'Claim this project' }))
 
       await waitFor(() => {
-        expect(screen.getByText('Already withdrawn')).toBeInTheDocument()
+        expect(screen.getByText('Already claimed')).toBeInTheDocument()
       })
     })
   })

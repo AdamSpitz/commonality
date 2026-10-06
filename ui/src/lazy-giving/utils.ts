@@ -30,7 +30,7 @@ export const STATUS_LABELS: Record<ProjectStatus, string> = {
 /** Short explanations for the status chip (and its info icon). */
 export const STATUS_TOOLTIPS: Record<ProjectStatus, string> = {
   active: 'Still raising. The minimum has not been met yet, and the deadline has not passed.',
-  succeeded: 'The project met its minimum — or has none. The recipient can withdraw contributed funds.',
+  succeeded: 'The project met its minimum — or has none. The recipient can claim its proceeds during the 90-day window after success is noted.',
   refunding: 'The deadline passed without meeting the minimum. Contributors can reclaim their funds.',
 }
 

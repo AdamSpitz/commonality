@@ -6,7 +6,7 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { buildCampaignPlan, loadCampaignPlan, validatePlannedActions, writePlanArtifacts } from '../campaignPlanner.js';
-import { CAMPAIGN_PROJECT_STORIES } from '../campaignProjectStories.js';
+import { CAMPAIGN_PROJECT_STORIES, SPOTLIGHT_PROJECTS } from '../campaignProjectStories.js';
 
 async function loadManifest(): Promise<CampaignManifestV1> {
   return JSON.parse(await readFile(new URL('../campaigns/medium-realistic-v1.json', import.meta.url), 'utf8')) as CampaignManifestV1;
@@ -41,15 +41,15 @@ test('v2 includes every hobby story and its interested synthetic people', async 
   const plan = await buildCampaignPlan(manifest);
   const hobbyCauses = ['music-learning', 'car-repair', 'gluten-free-cooking', 'game-commons'];
   assert.equal(plan.users.length, 100);
-  assert.equal(plan.statements.length, 58);
-  assert.equal(plan.projects.length, 29);
+  assert.equal(plan.statements.length, 65);
+  assert.equal(plan.projects.length, 37);
   for (const causeId of hobbyCauses) {
     assert.deepEqual(
       plan.projects.filter((project) => project.causeId === causeId).map((project) => project.title),
       CAMPAIGN_PROJECT_STORIES[causeId].map((story) => story.title),
     );
     const profiles = plan.users.filter((user) => user.favoriteCauseId === causeId);
-    assert.equal(profiles.length, 4);
+    assert.ok(profiles.length >= 4);
     assert.ok(profiles.every((user) => user.causeIds.includes(causeId) && user.displayName && user.bio && user.interests?.length));
     assert.ok(plan.projects.filter((project) => project.causeId === causeId).every((project) => profiles.some((user) => user.id === project.founderUserId)));
     const causeFounder = plan.actions.find((action) => action.type === 'create-cause' && action.causeId === causeId);
@@ -60,6 +60,31 @@ test('v2 includes every hobby story and its interested synthetic people', async 
   }
   assert.ok(plan.statements.filter((statement) => hobbyCauses.includes(statement.causeId)).every((statement) => statement.source.collectionId === 'medium-realistic-v2'));
   assert.ok(plan.projects.every((project) => project.blocker && project.statementIds.length > 0 && project.outcome.includes('This is fake data created for testing')));
+});
+
+test('v2 pins the Grey County walkthrough profiles and Fred delegates to Kurt', async () => {
+  const manifest = JSON.parse(await readFile(new URL('../campaigns/medium-realistic-v2.json', import.meta.url), 'utf8')) as CampaignManifestV1;
+  const plan = await buildCampaignPlan(manifest);
+  const kurt = plan.users.find((user) => user.displayName === 'Kurt')!;
+  const fred = plan.users.find((user) => user.displayName === 'Fred')!;
+  const sean = plan.users.find((user) => user.displayName === 'Sean')!;
+  assert.deepEqual(kurt.causeIds, ['car-repair', 'gluten-free-cooking', 'game-commons', 'music-learning']);
+  assert.equal(kurt.roles.includes('delegate'), true);
+  assert.deepEqual(fred.causeIds, ['game-commons', 'small-trades', 'congregational-music']);
+  assert.equal(fred.delegatesTo, kurt.id);
+  assert.deepEqual(sean.causeIds, ['local-food', 'staying-productive']);
+  assert.equal(sean.roles.includes('delegate'), true);
+  const fredDelegations = plan.actions.filter((action) => action.type === 'delegate-note' && action.actorUserId === fred.id);
+  assert.ok(fredDelegations.length > 0);
+  assert.ok(fredDelegations.every((action) => action.delegateUserId === kurt.id && action.delegationBasis!.sharedCauseIds.join() === 'game-commons'));
+  for (const user of [kurt, fred, sean]) {
+    for (const causeId of user.causeIds) {
+      const spotlightTitle = SPOTLIGHT_PROJECTS[user.displayName!]![causeId];
+      assert.ok(plan.actions.some((action) => action.type === 'fund-project' && action.actorUserId === user.id &&
+        action.causeId === causeId && plan.projects.find((project) => project.id === action.projectId)?.title === spotlightTitle));
+    }
+  }
+  assert.deepEqual([kurt, fred, sean].map((user) => user.spotlightOrder), [1, 2, 3]);
 });
 
 test('v2 funds one bridge project from both camps before retroactive reimbursement', async () => {

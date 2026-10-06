@@ -12,11 +12,13 @@ export function BeneficiaryProceedsSection({
   projectAddress,
   address,
   succeeded,
+  hasBeneficiaryId,
   onRefresh,
 }: {
   projectAddress: `0x${string}`
   address: string | undefined
   succeeded: boolean
+  hasBeneficiaryId: boolean
   onRefresh: () => void
 }) {
   const writeClients = useWriteClients(address)
@@ -43,13 +45,15 @@ export function BeneficiaryProceedsSection({
   return (
     <Paper sx={{ p: 3, mb: 3 }}>
       <Typography variant="h5" component="h2" gutterBottom>
-        Funds held for this name
+        Project proceeds
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-        This project holds its own funds. Proving control of the name and registering a payout
-        address does not accept this money. The current payout address can claim this project or
-        refuse it. Claiming or refusing here does not move any other project. If nobody claims
-        within 90 days after success is noted, contributors can reclaim the surplus.
+        This project holds its own funds until the recipient claims or refuses them.{' '}
+        {hasBeneficiaryId
+          ? 'For an unclaimed name, the current verified payout address can do that. For a name already verified when this project was created, the payout address was fixed at creation.'
+          : 'The recipient address chosen when this project was created can do that.'}{' '}
+        If nobody claims within 90 days after success is noted, contributors can reclaim the
+        unclaimed recipient surplus.
       </Typography>
       {succeeded && (
         <Button

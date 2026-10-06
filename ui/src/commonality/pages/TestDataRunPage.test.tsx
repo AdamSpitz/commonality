@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -30,7 +30,11 @@ vi.mock('../testData/testDataDocuments', async () => {
         network: 'testnet',
         chainId: 84532,
         parameters: {},
-        users: [],
+        users: [
+          { id: 0, label: 'Mira ★', address: '0x0000000000000000000000000000000000000001', privateKey: '0x1111111111111111111111111111111111111111111111111111111111111111', engagement: 'CASUAL', wealth: 1, interests: {}, trustNetwork: [] },
+          { id: 28, label: 'Fred ★', address: '0x0000000000000000000000000000000000000002', privateKey: '0x2222222222222222222222222222222222222222222222222222222222222222', engagement: 'CASUAL', wealth: 1, interests: {}, trustNetwork: [], spotlightOrder: 2 },
+          { id: 82, label: 'Kurt ★', address: '0x0000000000000000000000000000000000000003', privateKey: '0x3333333333333333333333333333333333333333333333333333333333333333', engagement: 'ACTIVE', wealth: 1, interests: {}, trustNetwork: [], spotlightOrder: 1, bio: 'Sings in the choir', favoriteCauseId: 'congregational-music' },
+        ],
         actions: [],
         metrics: { errors: [] },
         entities: {
@@ -63,5 +67,21 @@ describe('TestDataRunPage pages', () => {
     expect(cause).toHaveAttribute('href', '/cause/0x1/open-source')
     const section = screen.getByTestId('test-data-run-pages')
     expect(section.compareDocumentPosition(screen.getByText('All recorded activity'))).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
+  })
+
+  it('lists spotlight profiles first under Show curated only', async () => {
+    render(<MemoryRouter><TestDataRunPage /></MemoryRouter>)
+    fireEvent.click(await screen.findByRole('button', { name: /Show curated only/ }))
+    const labels = screen.getAllByRole('row').map((row) => row.textContent ?? '')
+    const kurt = labels.findIndex((text) => text.includes('Kurt'))
+    const fred = labels.findIndex((text) => text.includes('Fred'))
+    const mira = labels.findIndex((text) => text.includes('Mira'))
+    expect(kurt).toBeGreaterThan(-1)
+    expect(kurt).toBeLessThan(fred)
+    expect(fred).toBeLessThan(mira)
+    expect(screen.getByRole('columnheader', { name: 'Engagement' })).toBeTruthy()
+    const kurtRow = screen.getAllByRole('row').find((row) => (row.textContent ?? '').includes('Kurt'))
+    expect(kurtRow?.textContent).toContain('Sings in the choir')
+    expect(kurtRow?.textContent).toContain('Favorite: congregational-music')
   })
 })

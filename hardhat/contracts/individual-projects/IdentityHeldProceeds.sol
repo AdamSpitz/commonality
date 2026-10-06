@@ -23,15 +23,17 @@ error NothingToReclaim();
 error AlreadyReclaimed();
 
 /**
- * @notice Keeps successful proceeds in this contract until its beneficiary claims
+ * @notice Keeps successful proceeds in this contract until its recipient claims
  *         them, refuses them, or the unclaimed window elapses.
- * @dev The registry is read at claim time. Parent recipient is this contract.
+ * @dev For an unresolved beneficiary identity, the registry is read at claim time.
+ *      For a fixed recipient, the authorized payout address is set at creation.
  */
 abstract contract IdentityHeldProceeds is MultiERC1155AssuranceContract {
     using SafeERC20 for IERC20;
 
     address public immutable proceedsRegistry;
     bytes32 public immutable beneficiaryId;
+    address internal immutable fixedPayout;
     uint256 public immutable unclaimedProceedsWindow;
 
     uint256 internal succeededAt;
@@ -54,11 +56,13 @@ abstract contract IdentityHeldProceeds is MultiERC1155AssuranceContract {
         string memory projectMetadataCid,
         address registry,
         bytes32 _beneficiaryId,
+        address _fixedPayout,
         uint256 window
-    ) MultiERC1155AssuranceContract(owner, address(this), paymentToken, erc1155Addr, projectMetadataCid) {
-        if (registry == address(0) || window == 0) revert InvalidProceedsRegistry();
+    ) MultiERC1155AssuranceContract(owner, _fixedPayout == address(0) ? address(this) : _fixedPayout, paymentToken, erc1155Addr, projectMetadataCid) {
+        if (window == 0 || (_fixedPayout == address(0) && registry == address(0))) revert InvalidProceedsRegistry();
         proceedsRegistry = registry;
         beneficiaryId = _beneficiaryId;
+        fixedPayout = _fixedPayout;
         unclaimedProceedsWindow = window;
     }
 
@@ -79,8 +83,10 @@ abstract contract IdentityHeldProceeds is MultiERC1155AssuranceContract {
         noteSuccess();
         uint256 closedAt = succeededAt + unclaimedProceedsWindow;
         if (block.timestamp >= closedAt) revert ClaimWindowElapsed(closedAt);
-        uint256 withdrawableAt = IProceedsBeneficiaryRegistry(proceedsRegistry).claimWithdrawableAt(beneficiaryId);
-        if (block.timestamp < withdrawableAt) revert ClaimWaitingPeriodNotElapsed(withdrawableAt);
+        if (fixedPayout == address(0)) {
+            uint256 withdrawableAt = IProceedsBeneficiaryRegistry(proceedsRegistry).claimWithdrawableAt(beneficiaryId);
+            if (block.timestamp < withdrawableAt) revert ClaimWaitingPeriodNotElapsed(withdrawableAt);
+        }
         uint256 value = withdrawableRecipientBalance();
         if (value == 0) revert NothingToClaim();
         emit ProceedsClaimed(beneficiaryId, payout, value);
@@ -131,8 +137,12 @@ abstract contract IdentityHeldProceeds is MultiERC1155AssuranceContract {
     }
 
     function _payout() internal view returns (address payout) {
-        if (!IProceedsBeneficiaryRegistry(proceedsRegistry).isVerified(beneficiaryId)) revert NotPayoutAddress();
-        payout = IProceedsBeneficiaryRegistry(proceedsRegistry).payoutAddress(beneficiaryId);
+        if (fixedPayout != address(0)) {
+            payout = fixedPayout;
+        } else {
+            if (!IProceedsBeneficiaryRegistry(proceedsRegistry).isVerified(beneficiaryId)) revert NotPayoutAddress();
+            payout = IProceedsBeneficiaryRegistry(proceedsRegistry).payoutAddress(beneficiaryId);
+        }
         if (msg.sender != payout) revert NotPayoutAddress();
     }
 

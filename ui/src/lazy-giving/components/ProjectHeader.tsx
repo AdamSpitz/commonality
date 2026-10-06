@@ -128,7 +128,7 @@ export function ProjectHeader({ project, metadata, kind = 'project', beneficiary
           {hasMinimum ? (
             <Typography variant="body1">{progressPercent}%</Typography>
           ) : (
-            <InfoLabel title="This project has no funding minimum. The recipient can withdraw whenever the deadline allows, even if little or nothing has been raised.">
+            <InfoLabel title="This project has no funding minimum. Once it succeeds, the recipient can claim its proceeds during the 90-day window after success is noted, even if little or nothing has been raised.">
               <Typography variant="body1" component="span">No minimum</Typography>
             </InfoLabel>
           )}

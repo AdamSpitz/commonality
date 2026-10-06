@@ -2,6 +2,10 @@
 
 We already have governments and charities funding public goods. The world is not devoid of clean water, research, or parks. So the honest question isn't "could a public good exist without Commonality?" — obviously many do. But our existing institutions fail in characteristic ways, and Commonality has mechanisms with different strengths and weaknesses. Which kinds of public goods are *underproduced* today, why, and which of those might Commonality be good for?
 
+The primary case is not wealth redistribution. You pay because you want the thing. A pair of jeans is a private purchase: you pay, and you wear them. A park, a research result, a software release, or a blogger's next month of writing is a different shape. A whole bunch of people pay, and once it exists the people who paid and everyone else get to use it. That is a public good in the economist's sense — non-excludable, and usually non-rival — and it is where an assurance contract earns its keep. You cannot (or it would be awkward to) keep the result to the payers, and partial funding often buys nothing: the release, the study, or the month of work happens only if the total is reached.
+
+Ordinary charity is often the other shape. "We want people who can't afford them to have more food and clothing" benefits from every extra dollar, so a normal donation already does the job. Nothing stops someone from running that through Commonality. It just is not what the mechanism is for.
+
 Building a vertical and need concrete examples rather than categories? These seven
 are the *gate*; `specs/product/cause-taxonomy.md` is the
 generator that turns them into a populated fundable-projects board.

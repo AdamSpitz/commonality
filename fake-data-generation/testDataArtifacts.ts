@@ -20,7 +20,7 @@ export interface TestDataRun {
   gitCommit?: string;
   parameters: Record<string, unknown>;
   entities: Record<string, unknown>;
-  users: Array<Omit<User, 'privateKey'> & { privateKey: `0x${string}`; label: string }>;
+  users: Array<Omit<User, 'privateKey'> & { privateKey: `0x${string}`; label: string; displayName?: string; bio?: string; favoriteCauseId?: string; spotlightOrder?: number }>;
   actions: Array<Record<string, unknown>>;
   metrics: Record<string, unknown>;
 }

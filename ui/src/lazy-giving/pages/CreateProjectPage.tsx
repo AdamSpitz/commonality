@@ -463,10 +463,12 @@ export function CreateProjectPage() {
           </FormControl>
 
           {recipientKind === 'wallet' ? (
-            <RecipientPicker
-              address={address}
-              onChange={(addr) => setRecipient(addr)}
-            />
+            <Stack spacing={1}>
+              <RecipientPicker address={address} onChange={(addr) => setRecipient(addr)} />
+              <Alert severity="info">
+                After success, this wallet must claim this project's funds within 90 days after success is noted, or contributors can reclaim the unclaimed surplus. The wallet can refuse the funds sooner, which opens returns immediately.
+              </Alert>
+            </Stack>
           ) : (
             <Stack spacing={1}>
               <TextField
@@ -479,7 +481,7 @@ export function CreateProjectPage() {
                 required
               />
               <Alert severity="warning">
-                {COMMUNITY_CREATED_NOTICE} Claiming the website later does not accept this project's funds. Successful funds stay in this project until the current payout address claims or refuses this project, or contributors reclaim them after the unclaimed window. Registering a payout address does not accept any project. Contributions are not tax-deductible gifts and do not certify charity or legal-entity identity.
+                {COMMUNITY_CREATED_NOTICE} Claiming the website later does not accept this project's funds. Successful funds stay in this project until its payout address claims or refuses them. Anyone can note success to start a 90-day claim window; after that, contributors can reclaim the unclaimed surplus. Registering a payout address does not accept any project. Contributions are not tax-deductible gifts and do not certify charity or legal-entity identity.
               </Alert>
               <ExistingBeneficiaryProjects domain={beneficiaryDomain} />
             </Stack>
