@@ -54,7 +54,7 @@ export interface CampaignUserProfile {
   bio: string;
   favoriteCauseId: string;
   interests: string[];
-  /** When set, replaces the persona's random cause draw. One to three ids, including favoriteCauseId. */
+  /** When set, replaces the persona's random cause draw. One to four ids, including favoriteCauseId. */
   causeIds?: string[];
   /** Another profiled user who should receive this user's delegated notes when they share a cause. */
   delegatesTo?: string;
@@ -107,7 +107,7 @@ function validateCampaignIdentity(manifest: CampaignManifestV1): void {
 }
 
 function validateCauses(manifest: CampaignManifestV1): void {
-  if (manifest.causes.length < 8 || manifest.causes.length > 16) throw new Error('campaign must contain 8-16 causes');
+  if (manifest.causes.length < 8 || manifest.causes.length > 18) throw new Error('campaign must contain 8-18 causes');
   requireUnique(manifest.causes.map((cause) => cause.id), 'cause IDs');
   const statementRefs = manifest.causes.flatMap((cause) => cause.statementRefs);
   const statementKeys = statementRefs.map((ref) => `${ref.collectionId}/${ref.groupId}/${ref.statementId}`);
@@ -124,8 +124,8 @@ function validatePersonas(manifest: CampaignManifestV1): void {
   if (personaCount !== manifest.campaign.userCount) throw new Error(`persona counts total ${personaCount}, expected ${manifest.campaign.userCount}`);
   for (const persona of manifest.personas) {
     if (persona.count <= 0 || persona.activityWeight < 0 || persona.fundingWeight < 0) throw new Error(`invalid weights/count for persona ${persona.id}`);
-    if (persona.causesPerUser.min < 1 || persona.causesPerUser.max > 3 || persona.causesPerUser.min > persona.causesPerUser.max) {
-      throw new Error(`persona ${persona.id} must join 1-3 causes`);
+    if (persona.causesPerUser.min < 1 || persona.causesPerUser.max > 4 || persona.causesPerUser.min > persona.causesPerUser.max) {
+      throw new Error(`persona ${persona.id} must join 1-4 causes`);
     }
     if (persona.inactivityRate < 0 || persona.inactivityRate > 1) throw new Error(`invalid inactivityRate for persona ${persona.id}`);
   }
@@ -141,7 +141,7 @@ function validatePersonas(manifest: CampaignManifestV1): void {
       throw new Error(`invalid interest profile for ${profile.userId}`);
     }
     if (profile.causeIds) {
-      if (profile.causeIds.length < 1 || profile.causeIds.length > 3 || new Set(profile.causeIds).size !== profile.causeIds.length || profile.causeIds.some((causeId) => !causeIds.has(causeId)) || !profile.causeIds.includes(profile.favoriteCauseId)) {
+      if (profile.causeIds.length < 1 || profile.causeIds.length > 4 || new Set(profile.causeIds).size !== profile.causeIds.length || profile.causeIds.some((causeId) => !causeIds.has(causeId)) || !profile.causeIds.includes(profile.favoriteCauseId)) {
         throw new Error(`invalid pinned causes for ${profile.userId}`);
       }
     }

@@ -100,6 +100,19 @@
       { "collectionId": "medium-realistic-v2", "groupId": "game-commons", "statementId": "open-game-infrastructure" },
       { "collectionId": "medium-realistic-v2", "groupId": "game-commons", "statementId": "game-accessibility-tools" },
       { "collectionId": "medium-realistic-v2", "groupId": "game-commons", "statementId": "lawful-game-preservation" }
+    ]},
+    { "id": "small-trades", "title": "Open know-how for small trades", "activityTier": "medium", "membershipWeight": 9, "statementRefs": [
+      { "collectionId": "medium-realistic-v2", "groupId": "small-trades", "statementId": "shared-job-sheets" },
+      { "collectionId": "medium-realistic-v2", "groupId": "small-trades", "statementId": "shared-contractor-tools" },
+      { "collectionId": "medium-realistic-v2", "groupId": "small-trades", "statementId": "local-building-details" }
+    ]},
+    { "id": "congregational-music", "title": "Music for small congregations", "activityTier": "small", "membershipWeight": 7, "statementRefs": [
+      { "collectionId": "medium-realistic-v2", "groupId": "congregational-music", "statementId": "songs-this-church-sings" },
+      { "collectionId": "medium-realistic-v2", "groupId": "congregational-music", "statementId": "substitute-accompanist" }
+    ]},
+    { "id": "staying-productive", "title": "Staying productive under strain", "activityTier": "small", "membershipWeight": 6, "statementRefs": [
+      { "collectionId": "medium-realistic-v2", "groupId": "staying-productive", "statementId": "published-work-rest-trial" },
+      { "collectionId": "medium-realistic-v2", "groupId": "staying-productive", "statementId": "shared-quiet-block" }
     ]}
   ],
   "personas": [
@@ -107,7 +120,7 @@
     { "id": "regular-supporter", "count": 30, "roles": ["supporter"], "causesPerUser": { "min": 1, "max": 3 }, "activityWeight": 1, "inactivityRate": 0.08, "fundingWeight": 1 },
     { "id": "community-organizer", "count": 14, "roles": ["cause-founder", "supporter"], "causesPerUser": { "min": 2, "max": 3 }, "activityWeight": 2, "inactivityRate": 0, "fundingWeight": 1.2 },
     { "id": "project-builder", "count": 14, "roles": ["project-founder", "supporter"], "causesPerUser": { "min": 1, "max": 2 }, "activityWeight": 1.7, "inactivityRate": 0.03, "fundingWeight": 0.8 },
-    { "id": "trusted-delegate", "count": 8, "roles": ["delegate", "supporter"], "causesPerUser": { "min": 2, "max": 3 }, "activityWeight": 2.2, "inactivityRate": 0, "fundingWeight": 1.4 },
+    { "id": "trusted-delegate", "count": 8, "roles": ["delegate", "supporter"], "causesPerUser": { "min": 2, "max": 4 }, "activityWeight": 2.2, "inactivityRate": 0, "fundingWeight": 1.4 },
     { "id": "bridge-mediator", "count": 6, "roles": ["attester", "mediator"], "causesPerUser": { "min": 2, "max": 3 }, "activityWeight": 2.4, "inactivityRate": 0, "fundingWeight": 0.6 },
     { "id": "power-user", "count": 4, "roles": ["power-user", "supporter", "delegate"], "causesPerUser": { "min": 3, "max": 3 }, "activityWeight": 4, "inactivityRate": 0, "fundingWeight": 2.5 }
   ],
@@ -128,9 +141,9 @@
     { "userId": "user-070", "displayName": "Leah", "bio": "Films car diagnostics and documents the tools and safety checks behind each fix.", "favoriteCauseId": "car-repair", "interests": ["car repair", "teaching"] },
     { "userId": "user-071", "displayName": "Avery", "bio": "Develops low-cost gluten-free recipes and records precise measurements.", "favoriteCauseId": "gluten-free-cooking", "interests": ["recipe development", "local ingredients"] },
     { "userId": "user-072", "displayName": "Morgan", "bio": "Maintains open game servers and writes setup guides for small groups.", "favoriteCauseId": "game-commons", "interests": ["game servers", "open source"] },
-    { "userId": "user-083", "displayName": "Kurt", "bio": "Fixes cars for a living in Grey County, Ontario, and plays guitar at church. He would like the basics of music theory, plays video games, and has celiac disease. He might put money toward a gluten-free cookbook for his wife. He would pledge a monthly amount and may delegate retroactive funding.", "favoriteCauseId": "car-repair", "interests": ["Christianity", "fixing cars", "gluten-free", "guitar", "video games"], "causeIds": ["car-repair", "gluten-free-cooking", "game-commons"], "spotlightOrder": 1 },
-    { "userId": "user-029", "displayName": "Fred", "bio": "Lives in Grey County, Ontario, and works as a contractor doing general handyman jobs. He plays video games and would pledge a monthly amount delegated to Kurt. He might attest that a real-world organization lines up with a cause.", "favoriteCauseId": "game-commons", "interests": ["Christianity", "contracting", "handyman work", "video games"], "causeIds": ["game-commons"], "delegatesTo": "user-083", "spotlightOrder": 2 },
-    { "userId": "user-084", "displayName": "Sean", "bio": "Lives in Grey County, Ontario. He cares about local agriculture and about staying productive while managing stress. He would pledge a monthly amount, may delegate retroactive funding, and might attest that a real-world organization lines up with a cause.", "favoriteCauseId": "local-food", "interests": ["local agriculture", "managing stress"], "causeIds": ["local-food"], "spotlightOrder": 3 },
+    { "userId": "user-083", "displayName": "Kurt", "bio": "Fixes cars for a living in Grey County, Ontario, and plays guitar at church. He would like the basics of music theory, plays video games, and has celiac disease. He would pledge toward repair references, a tested gluten-free substitution table, open music-theory tools, and shared game infrastructure. He may delegate retroactive funding.", "favoriteCauseId": "car-repair", "interests": ["Christianity", "fixing cars", "gluten-free", "guitar", "video games"], "causeIds": ["car-repair", "gluten-free-cooking", "game-commons", "music-learning"], "spotlightOrder": 1 },
+    { "userId": "user-029", "displayName": "Fred", "bio": "Lives in Grey County, Ontario, and works as a contractor doing general handyman jobs. He plays video games and would delegate that pledge to Kurt. On his own he would pledge to shared contractor tools and to chord charts for the songs his church sings. He might attest that a real-world organization lines up with a cause.", "favoriteCauseId": "game-commons", "interests": ["Christianity", "contracting", "handyman work", "video games"], "causeIds": ["game-commons", "small-trades", "congregational-music"], "delegatesTo": "user-083", "spotlightOrder": 2 },
+    { "userId": "user-084", "displayName": "Sean", "bio": "Lives in Grey County, Ontario. He cares about local agriculture and about staying productive while managing stress. He would pledge to shared farm equipment and variety trials, and to a public work-rest trial. He may delegate retroactive funding, and might attest that a real-world organization lines up with a cause.", "favoriteCauseId": "local-food", "interests": ["local agriculture", "managing stress"], "causeIds": ["local-food", "staying-productive"], "spotlightOrder": 3 },
     { "userId": "user-031", "displayName": "Sam (casual donor)", "bio": "Wants to support local public goods with $20/month but doesn't have time to research every option.", "favoriteCauseId": "local-food", "interests": ["hands-off giving", "local community"] },
     { "userId": "user-060", "displayName": "Alex (community organizer)", "bio": "Runs a neighborhood club and wants to coordinate volunteers without becoming a nonprofit.", "favoriteCauseId": "education", "interests": ["volunteer coordination", "neighborhood projects"] },
     { "userId": "user-073", "displayName": "Jordan (expert scout)", "bio": "Evaluates whether open-source projects actually deliver on their promises before recommending funding.", "favoriteCauseId": "open-source", "interests": ["technical evaluation", "accountability"] },
@@ -141,11 +154,11 @@
     { "userId": "user-099", "displayName": "Quinn (power user)", "bio": "Deeply engaged across multiple causes: funds projects, delegates notes, and vouches for outcomes.", "favoriteCauseId": "environment", "interests": ["watershed monitoring", "soil practices", "delegation", "vouching"] }
   ],
   "actionRules": [
-    { "type": "publish-statement", "prerequisites": [], "targetCount": { "min": 58, "max": 58 } },
-    { "type": "create-cause", "prerequisites": ["publish-statement"], "targetCount": { "min": 14, "max": 14 } },
+    { "type": "publish-statement", "prerequisites": [], "targetCount": { "min": 65, "max": 65 } },
+    { "type": "create-cause", "prerequisites": ["publish-statement"], "targetCount": { "min": 17, "max": 17 } },
     { "type": "set-belief", "prerequisites": ["publish-statement"], "targetCount": { "min": 350, "max": 650 } },
     { "type": "attest-implication", "prerequisites": ["publish-statement"], "targetCount": { "min": 20, "max": 50 } },
-    { "type": "create-project", "prerequisites": ["create-cause"], "targetCount": { "min": 29, "max": 29 } },
+    { "type": "create-project", "prerequisites": ["create-cause"], "targetCount": { "min": 37, "max": 37 } },
     { "type": "attest-alignment", "prerequisites": ["create-project", "publish-statement"], "targetCount": { "min": 42, "max": 75 } },
     { "type": "fund-project", "prerequisites": ["create-project", "attest-alignment"], "targetCount": { "min": 350, "max": 900 } },
     { "type": "deposit-note", "prerequisites": [], "targetCount": { "min": 120, "max": 260 } },

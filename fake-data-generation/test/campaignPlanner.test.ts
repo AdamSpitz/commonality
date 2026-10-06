@@ -41,8 +41,8 @@ test('v2 includes every hobby story and its interested synthetic people', async 
   const plan = await buildCampaignPlan(manifest);
   const hobbyCauses = ['music-learning', 'car-repair', 'gluten-free-cooking', 'game-commons'];
   assert.equal(plan.users.length, 100);
-  assert.equal(plan.statements.length, 58);
-  assert.equal(plan.projects.length, 29);
+  assert.equal(plan.statements.length, 65);
+  assert.equal(plan.projects.length, 37);
   for (const causeId of hobbyCauses) {
     assert.deepEqual(
       plan.projects.filter((project) => project.causeId === causeId).map((project) => project.title),
@@ -68,15 +68,20 @@ test('v2 pins the Grey County walkthrough profiles and Fred delegates to Kurt', 
   const kurt = plan.users.find((user) => user.displayName === 'Kurt')!;
   const fred = plan.users.find((user) => user.displayName === 'Fred')!;
   const sean = plan.users.find((user) => user.displayName === 'Sean')!;
-  assert.deepEqual(kurt.causeIds, ['car-repair', 'gluten-free-cooking', 'game-commons']);
+  assert.deepEqual(kurt.causeIds, ['car-repair', 'gluten-free-cooking', 'game-commons', 'music-learning']);
   assert.equal(kurt.roles.includes('delegate'), true);
-  assert.deepEqual(fred.causeIds, ['game-commons']);
+  assert.deepEqual(fred.causeIds, ['game-commons', 'small-trades', 'congregational-music']);
   assert.equal(fred.delegatesTo, kurt.id);
-  assert.deepEqual(sean.causeIds, ['local-food']);
+  assert.deepEqual(sean.causeIds, ['local-food', 'staying-productive']);
   assert.equal(sean.roles.includes('delegate'), true);
   const fredDelegations = plan.actions.filter((action) => action.type === 'delegate-note' && action.actorUserId === fred.id);
   assert.ok(fredDelegations.length > 0);
-  assert.ok(fredDelegations.every((action) => action.delegateUserId === kurt.id));
+  assert.ok(fredDelegations.every((action) => action.delegateUserId === kurt.id && action.delegationBasis!.sharedCauseIds.join() === 'game-commons'));
+  for (const user of [kurt, fred, sean]) {
+    for (const causeId of user.causeIds) {
+      assert.ok(plan.actions.some((action) => action.type === 'fund-project' && action.actorUserId === user.id && action.causeId === causeId));
+    }
+  }
   assert.deepEqual([kurt, fred, sean].map((user) => user.spotlightOrder), [1, 2, 3]);
 });
 

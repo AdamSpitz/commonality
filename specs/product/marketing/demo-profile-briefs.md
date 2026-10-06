@@ -15,7 +15,7 @@ High-level descriptions of real people we want the synthetic walkthrough users t
 ## Fred
 
 - Location: Grey County, Ontario, Canada
-- Roles: pledge $X/month delegated to Kurt; might do alignment attestations for some real-world orgs
+- Roles: pledge to video games, delegated to Kurt; separate pledges, in his own name, to small-trades know-how and to congregational music; might do alignment attestations for some real-world orgs
 - Christianity
 - Contractor stuff
 - Handyman stuff in general

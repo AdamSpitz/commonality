@@ -40,6 +40,31 @@
         { "id": "game-accessibility-tools", "text": "I want reusable accessibility tools and public testing results that help more people play video games." },
         { "id": "lawful-game-preservation", "text": "I want lawful tools and documentation that help preserve access to older video games." }
       ]
+    },
+    {
+      "id": "small-trades",
+      "title": "Open know-how for small trades",
+      "statements": [
+        { "id": "shared-job-sheets", "text": "I want a free, reusable sheet for scoping, pricing, and doing small contracting jobs safely." },
+        { "id": "shared-contractor-tools", "text": "I want independent contractors to be able to share expensive tools, with the schedule and upkeep published." },
+        { "id": "local-building-details", "text": "I want public notes on how older buildings in Grey County, Ontario, were actually built, so the next job does not start from a hole in the wall." }
+      ]
+    },
+    {
+      "id": "congregational-music",
+      "title": "Music for small congregations",
+      "statements": [
+        { "id": "songs-this-church-sings", "text": "I want free chord charts, in playable keys, for the songs small congregations actually sing." },
+        { "id": "substitute-accompanist", "text": "I want practice tracks so a substitute musician can prepare when the regular player is away." }
+      ]
+    },
+    {
+      "id": "staying-productive",
+      "title": "Staying productive under strain",
+      "statements": [
+        { "id": "published-work-rest-trial", "text": "I want a public trial of a work-rest routine, including the result if it fails, so other people can judge it." },
+        { "id": "shared-quiet-block", "text": "I want a quiet work block that people who work alone can share, with a public record of whether it stayed quiet." }
+      ]
     }
   ]
 }

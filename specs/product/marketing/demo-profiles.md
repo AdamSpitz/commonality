@@ -15,9 +15,9 @@ The stable descriptions are in [demo-profile-briefs.md](./demo-profile-briefs.md
 
 | Profile | Slot | Boards they join | Notes |
 |---|---|---|---|
-| **Kurt** | trusted delegate (`user-083`) | Car repair, gluten-free cooking, video games | Church, guitar, and Christianity are in the bio. No Christianity board exists. |
-| **Fred** | regular supporter (`user-029`) | Video games | His delegated notes go to Kurt. Contracting and handyman work are in the bio only. |
-| **Sean** | trusted delegate (`user-084`) | Local food | Stress and productivity are in the bio. No board exists for that. |
+| **Kurt** | trusted delegate (`user-083`) | Car repair, gluten-free cooking, video games, open music learning | Church stays in the bio. Fred's congregational-music pledges are separate, so Kurt's guitar shows up as the theory tool and the county songbook. |
+| **Fred** | regular supporter (`user-029`) | Video games, small trades, congregational music | Game notes go to Kurt. His own pledges are the trade projects and the church-music projects. |
+| **Sean** | trusted delegate (`user-084`) | Local food, staying productive under strain | Local food is cold storage, a variety trial, and a shared implement. Strain is a published work-rest trial and a shared quiet morning. |
 
 A delegate slot joins the delegation graph. It does not guarantee that Kurt or Sean personally sign alignment attestations.
 

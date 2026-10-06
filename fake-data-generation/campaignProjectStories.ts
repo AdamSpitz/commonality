@@ -13,7 +13,8 @@ export const CAMPAIGN_PROJECT_STORIES: Record<string, CampaignProjectStory[]> = 
   ],
   'local-food': [
     { title: 'Shared cold storage for three farm markets', outcome: 'Equip a shared cold-storage hub serving growers and markets in three neighboring towns; publish usage and spoilage figures after one season.', statementRefs: ['farmers-markets-direct-connect', 'shorter-food-supply-chains'], blocker: 'Beneficiaries span municipal boundaries' },
-    { title: 'Neighborhood growing beds', outcome: 'Build and maintain publicly accessible growing beds on a permitted site, with an open volunteer schedule and harvest log.', statementRefs: ['neighborhood-growing'], blocker: 'Too small for a municipal capital program' },
+    { title: 'Which varieties survived here', outcome: 'Run a preregistered season of crop varieties on Grey County farms and publish the method, costs, yields, and failures so other growers can judge the result.', statementRefs: ['working-local-farms'], blocker: 'The useful result is unknowable until the season is over' },
+    { title: 'The implement three farms share', outcome: 'Buy and maintain one piece of equipment that three neighboring farms book together, and publish the schedule, repair costs, and hours used.', statementRefs: ['working-local-farms', 'shorter-food-supply-chains'], blocker: 'Each farm needs the machine some days and none can justify owning it' },
   ],
   'open-science': [
     { title: 'Independent replication of a promising result', outcome: 'Run a preregistered replication, publish the methods and raw data, and release the result whether it confirms the original finding or not.', statementRefs: ['independent-replication-studies', 'conflict-free-scientific-research'], blocker: 'Gatekept work whose value is clearest after completion' },
@@ -52,16 +53,29 @@ export const CAMPAIGN_PROJECT_STORIES: Record<string, CampaignProjectStory[]> = 
     { title: 'Music theory you can hear', outcome: 'Release an open interactive tool where beginners can hear and change intervals, chords, and progressions, with reusable lesson plans.', statementRefs: ['interactive-music-theory'], blocker: 'The teaching tool benefits many learners and small teachers without one budget owner' },
   ],
   'car-repair': [
-    { title: 'The rural driveway repair library', outcome: 'Film mechanics diagnosing common older-car faults; publish free tool lists, safety steps, and printable checklists.', statementRefs: ['repair-guides', 'grey-county-repair'], blocker: 'Shared repair knowledge helps many rural drivers who cannot individually commission it' },
+    { title: 'Parts that fit the cars dealers dropped', outcome: 'Publish an open interchange table for parts on the older vehicles still common in Grey County, including what does not fit. Any driver or independent shop can use it, and no dealer keeps it once the model is off the lot.', statementRefs: ['repair-guides', 'grey-county-repair'], blocker: 'A minority of drivers needs a reference no manufacturer will keep' },
     { title: 'Open car repair workshop kit', outcome: 'Publish a reusable beginner workshop plan with practice exercises, diagrams, and a safe-tool checklist for community groups.', statementRefs: ['repair-training'], blocker: 'Small workshops need the same material but cannot each pay to develop it' },
   ],
   'gluten-free-cooking': [
-    { title: 'Grey County gluten-free kitchen', outcome: 'Test affordable recipes using locally grown and ordinary grocery ingredients; publish measurements, substitutions, and cross-contact notes.', statementRefs: ['tested-open-recipes', 'grey-county-gluten-free'], blocker: 'The recipe library serves many households and growers without an exclusive owner' },
-    { title: 'Gluten-free pantry on a budget', outcome: 'Publish a free seasonal recipe collection with per-serving costs and tested substitutions available in ordinary shops.', statementRefs: ['affordable-ingredients', 'tested-open-recipes'], blocker: 'Useful tested guidance is costly to make and free to copy' },
+    { title: 'What actually substitutes', outcome: 'Test ordinary ingredients as gluten-free substitutes and publish the measurements, the failures, and the cross-contact notes. The result is a table anyone can copy.', statementRefs: ['tested-open-recipes', 'grey-county-gluten-free'], blocker: 'The testing is costly and the table is free to copy' },
+    { title: 'Which products are safe this month', outcome: 'Recheck ordinary Grey County grocery products on a published schedule and maintain a free list of which ones are gluten-free right now, including products whose labels changed.', statementRefs: ['affordable-ingredients', 'tested-open-recipes'], blocker: 'No one household can recheck the aisle for everyone else' },
   ],
   'game-commons': [
     { title: 'Keep the community game server alive', outcome: 'Maintain an open-source server used by small game communities; publish security fixes, supported releases, and setup guides.', statementRefs: ['open-game-infrastructure'], blocker: 'Many communities rely on the shared tool but none can cover its full maintenance' },
     { title: 'The accessible games test bench', outcome: 'Pay players with varied access needs to test open game tools; publish reproducible findings and reusable fixes.', statementRefs: ['game-accessibility-tools'], blocker: 'The public test results help many small studios after the work is proven' },
     { title: 'Games you can still play', outcome: 'Build a lawful open-source compatibility tool for older games and publish public documentation and test results.', statementRefs: ['lawful-game-preservation'], blocker: 'Fans benefit from preservation work that no single publisher will own' },
+  ],
+  'small-trades': [
+    { title: 'The small-job sheet', outcome: 'Publish one open scope, safety, and hours sheet for the small jobs Grey County handymen keep re-explaining. Every contractor can copy it, and none of them will get paid to write it.', statementRefs: ['shared-job-sheets'], blocker: 'The sheet is useful to every small contractor and owned by none of them' },
+    { title: 'The lift that sits in one shop', outcome: 'Keep one lift or scaffold booked across independent Grey County contractors, and publish the schedule, upkeep, and hours it actually ran.', statementRefs: ['shared-contractor-tools'], blocker: 'Each shop needs the machine some days and none can justify owning it' },
+    { title: 'What is behind Grey County plaster', outcome: 'Document how the county’s older houses were actually built and publish the details, including the surprises, so the next contractor is not starting from a hole in the wall.', statementRefs: ['local-building-details', 'shared-job-sheets'], blocker: 'Local building knowledge is non-excludable and fits no grant category' },
+  ],
+  'congregational-music': [
+    { title: 'Charts for the songs this church sings', outcome: 'Write chord charts in the keys a volunteer guitarist can play for the songs a small congregation actually sings, and release them for any other congregation to copy.', statementRefs: ['songs-this-church-sings'], blocker: 'A minority wants a public music resource that no publisher owns' },
+    { title: 'A substitute can play on Sunday', outcome: 'Record practice tracks in those congregational keys so a substitute player can rehearse without the regular musician in the room. Any small church that sings the songs can use them.', statementRefs: ['substitute-accompanist', 'songs-this-church-sings'], blocker: 'The regular player cannot be copied, and the tracks can' },
+  ],
+  'staying-productive': [
+    { title: 'A work-rest trial you can rerun', outcome: 'Run a preregistered four-week work-rest protocol with people who have to stay productive under strain. Publish the method, the adherence, and the results even if the protocol fails.', statementRefs: ['published-work-rest-trial'], blocker: 'Whether it works is unknowable until someone runs it in public' },
+    { title: 'The quiet morning three shops share', outcome: 'Rent one quiet work room for a published morning block that sole proprietors book together, and log whether the block was actually quiet.', statementRefs: ['shared-quiet-block'], blocker: 'Too small for a town program, and useless unless the whole block is funded' },
   ],
 };
