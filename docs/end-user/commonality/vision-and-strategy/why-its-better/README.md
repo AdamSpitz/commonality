@@ -20,4 +20,6 @@ First, a scoping question worth answering head-on: we already *have* governments
 
   - **Infrastructure as a public good:** The [rails](../ease-of-adoption/rails.md) are built once, available to everyone, auditable by anyone. Established orgs stop spending energy on infrastructure; new orgs get world-class infrastructure instantly without needing to establish their brand.
 
+For the underlying coordination problem, see [Why benefits fail to become incentives](./why-benefits-fail-to-become-incentives.md): sometimes a desired kind of value has never had a concrete funding destination, and sometimes it needs many contributors paying many independent producers through a shared funding purpose.
+
 Also better than private charity — see [charity.md](../legacy-frustrations/charity.md) for a detailed comparison.

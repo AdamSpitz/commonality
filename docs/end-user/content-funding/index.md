@@ -12,6 +12,15 @@ Under the hood, Content Funding is [LazyGiving](../lazyGiving/index.md) pointed 
 
 The first two are about *specific* work — a piece that exists, or a creator's next output. The third is about a *category*, and it feeds the first two: a cause pool can reward existing pieces that qualify or commission new ones.
 
+That third option gives a wish like “I want more careful explanations” a concrete
+funding destination. Many people can contribute toward the same stated qualities,
+and many independent creators can produce work that meets them, without each
+creator first building a separate paying audience. The shared pool is a place to
+both help pay for more of that work and discover opportunities to get paid for
+producing it. Qualifying work still needs a funding decision; a finite pool does
+not guarantee payment to every qualifying piece. The broader strategy is
+[a crowd paying a crowd for a kind of value](../commonality/vision-and-strategy/why-its-better/why-benefits-fail-to-become-incentives.md#a-crowd-paying-a-crowd-for-a-kind-of-value).
+
 ## How it works underneath
 
 A content contract isn't a special new thing — it's an ordinary [LazyGiving assurance contract](../lazyGiving/assurance-contracts.md), organized so that the "project" is your content. The creator owns the contract and receives the money; anyone can start one *for* a creator who hasn't shown up yet, but the funds wait for the creator, who [claims them by proving they control the account](get-your-content-funded.md) — never the third party.
