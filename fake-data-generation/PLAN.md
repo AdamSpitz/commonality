@@ -76,6 +76,7 @@ Do these in order unless Adam names a different one. Each item is a session-size
 5. **[ ] Refresh implication-evaluation corpus** after a model that returns JSON. Root TODO.
 6. **[ ] Volume of simple-cause uniques** (hundreds) only after (1)–(2) prove the loop. Then conceptspace seed, **no** fake users/projects.
 7. **[ ] Stress scale** (`gen:large` today is 100 users). 1000+ users, graphs, indexer deep-compare: not started.
+8. **[ ] Incentive demonstrations** — three synthetic stories (Civility's changed choice, a negative replication, a shared migration where money is not a commitment). Inventory, scenarios, and the authoring template: [`incentive-demonstrations.md`](./incentive-demonstrations.md). Do not put that backlog back into the public strategy page.
 
 ## Pointers
 
