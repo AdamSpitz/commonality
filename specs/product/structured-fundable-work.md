@@ -26,6 +26,14 @@ Work types should also supply recognizable categories and clearly specified fiel
 
 Only some description fields need determine identity. Structured forms improve discovery and comparison while helping providers describe their work without inventing everything in free text. They also communicate that funding this kind of work is an established, intended use of the system. Additional prose can remain available.
 
+### Some kinds of work that might be worth exploring
+
+  - Delivering services: e.g. tutoring sessions, translation assistance, repairs, mentoring, community transport
+  - Making existing things publicly available: e.g. releasing a book under an open license, opening a dataset, publishing source code, making an archive freely accessible.
+  - Producing evidence and checking claims: e.g. reproducing research, testing product claims, auditing accessibility, checking public records, or evaluating whether another funded project delivered.
+  - Hosting encounters and collective activities: e.g. public deliberations, workshops, community meals, skill exchanges, and cross-group discussions. (For Civility specifically, this would extend the scope from funding what people publish to funding **how people actually interact**. More generally, it gives movements a way to sustain local conveners.)
+  - Achieving and sustaining changes in the world: e.g. restoring a habitat, removing an accessibility barrier, or reducing a documented source of pollution. (This has potentially very broad reach: a movement could invite anyone capable of producing the desired change to do so. But it is also the hardest category here. Defining an outcome does not automatically make causation, measurement, or payment allocation straightforward.)
+
 ## Attestations follow the work to its funding requests
 
 Allow alignment attestations to refer to individual work items, sequences, or other relevant groupings independently of a particular funding request. Use explicit item-to-project relationships to surface the corresponding assurance contracts on fundable-projects boards, extending the content-funding pattern.
