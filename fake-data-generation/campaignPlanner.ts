@@ -53,6 +53,8 @@ export interface PlannedAction {
   delegationBasis?: { sharedCauseIds: string[]; reason: 'shared-cause-trusted-role' };
   implication?: { fromStatementId: string; toStatementId: string; evidence: 'accepted-bridge-role-pair' };
   dependsOn: string[];
+  /** Seconds from simulated world t0. Assigned by the planner; 0 if omitted. */
+  dueAtSim?: number;
 }
 
 export interface CampaignPlan {
@@ -71,7 +73,33 @@ export interface CampaignPlan {
     estimatedTotalGas: number;
     assumptions: { gasUnitsPerWrite: Record<CampaignActionType, number>; paymentTokenBaseUnit: number };
     estimatedPaymentTokenUnits: number;
+    clock?: { horizonSeconds: number; lastDueAtSim: number };
   };
+}
+
+/** Simulated history length used to stamp `dueAtSim` (30 days). */
+export const CAMPAIGN_SIMULATED_HORIZON_SECONDS = 30 * 24 * 60 * 60;
+
+export function plannedDueAtSim(action: PlannedAction): number {
+  return action.dueAtSim ?? 0;
+}
+
+/** Spread actions across the simulated horizon; never earlier than a mined dependency. */
+export function assignDueAtSim(
+  actions: PlannedAction[],
+  horizonSeconds: number = CAMPAIGN_SIMULATED_HORIZON_SECONDS,
+): void {
+  if (actions.length === 0) return;
+  const byId = new Map(actions.map((action) => [action.id, action]));
+  const lastIndex = Math.max(1, actions.length - 1);
+  for (const action of actions) {
+    const spread = Math.round(((action.sequence - 1) / lastIndex) * horizonSeconds);
+    let due = spread;
+    for (const dependencyId of action.dependsOn) {
+      due = Math.max(due, plannedDueAtSim(byId.get(dependencyId) ?? action));
+    }
+    action.dueAtSim = due;
+  }
 }
 
 const GAS_UNITS: Record<CampaignActionType, number> = {
@@ -256,11 +284,13 @@ export async function buildCampaignPlan(manifest: CampaignManifestV1): Promise<C
   }
   for (let index = 0; index < countByType['revoke-delegation']; index++) { const delegation = delegations[index % delegations.length]; add({ type: 'revoke-delegation', actorUserId: delegation.actorUserId, noteId: delegation.noteId, dependsOn: [delegation.id] }); }
 
+  assignDueAtSim(actions);
   validatePlannedActions(manifest, statements, users, projects, actions);
   const writesByType = Object.fromEntries(manifest.actionRules.map((rule) => [rule.type, actions.filter((action) => action.type === rule.type).length])) as Record<CampaignActionType, number>;
   const estimatedGasByType = Object.fromEntries(Object.entries(writesByType).map(([type, count]) => [type, count * GAS_UNITS[type as CampaignActionType]])) as Record<CampaignActionType, number>;
   const estimatedPaymentTokenUnits = actions.filter((action) => action.type === 'fund-project').reduce((sum, action) => sum + (action.amount ?? 0), 0);
-  return { version: CAMPAIGN_PLAN_VERSION, campaignId: manifest.campaign.id, deterministicSeed: manifest.campaign.deterministicSeed, manifestFingerprint: sha256(stableJson(manifest)), statements, users, projects, actions, estimate: { writesByType, totalWrites: actions.length, estimatedGasByType, estimatedTotalGas: Object.values(estimatedGasByType).reduce((sum, value) => sum + value, 0), assumptions: { gasUnitsPerWrite: GAS_UNITS, paymentTokenBaseUnit: 100 }, estimatedPaymentTokenUnits } };
+  const lastDueAtSim = actions.reduce((max, action) => Math.max(max, plannedDueAtSim(action)), 0);
+  return { version: CAMPAIGN_PLAN_VERSION, campaignId: manifest.campaign.id, deterministicSeed: manifest.campaign.deterministicSeed, manifestFingerprint: sha256(stableJson(manifest)), statements, users, projects, actions, estimate: { writesByType, totalWrites: actions.length, estimatedGasByType, estimatedTotalGas: Object.values(estimatedGasByType).reduce((sum, value) => sum + value, 0), assumptions: { gasUnitsPerWrite: GAS_UNITS, paymentTokenBaseUnit: 100 }, estimatedPaymentTokenUnits, clock: { horizonSeconds: CAMPAIGN_SIMULATED_HORIZON_SECONDS, lastDueAtSim } } };
 }
 
 export function validatePlannedActions(manifest: CampaignManifestV1, statements: PlannedStatement[], users: PlannedUser[], projects: PlannedProject[], actions: PlannedAction[]): void {
@@ -272,6 +302,13 @@ export function validatePlannedActions(manifest: CampaignManifestV1, statements:
     if (action.statementId && !statementIds.has(action.statementId)) throw new Error(`${action.id} has missing statement ${action.statementId}`);
     if (action.projectId && !projectIds.has(action.projectId)) throw new Error(`${action.id} has missing project ${action.projectId}`);
     for (const dependencyId of action.dependsOn) { const dependency = actionById.get(dependencyId); if (!dependency || dependency.sequence >= action.sequence) throw new Error(`${action.id} has impossible dependency ${dependencyId}`); }
+    if (action.dueAtSim !== undefined) {
+      if (!Number.isInteger(action.dueAtSim) || action.dueAtSim < 0) throw new Error(`${action.id} has invalid dueAtSim ${action.dueAtSim}`);
+      for (const dependencyId of action.dependsOn) {
+        const dependency = actionById.get(dependencyId)!;
+        if (plannedDueAtSim(action) < plannedDueAtSim(dependency)) throw new Error(`${action.id} is due before dependency ${dependencyId}`);
+      }
+    }
     const rule = manifest.actionRules.find((item) => item.type === action.type)!;
     for (const prerequisite of rule.prerequisites) if (!action.dependsOn.some((id) => actionById.get(id)?.type === prerequisite)) throw new Error(`${action.id} is missing ${prerequisite} prerequisite`);
     const actor = action.actorUserId ? users.find((user) => user.id === action.actorUserId) : undefined;
@@ -304,6 +341,7 @@ export async function loadCampaignPlan(manifest: CampaignManifestV1, outputDirec
     estimate: actionPlan.estimate as CampaignPlan['estimate'],
   };
   if (plan.campaignId !== actionPlan.campaignId) throw new Error('action-plan campaign ID does not match the manifest');
+  if (plan.actions.some((action) => action.dueAtSim === undefined)) assignDueAtSim(plan.actions);
   validatePlannedActions(manifest, plan.statements, plan.users, plan.projects, plan.actions);
   return plan;
 }
@@ -325,6 +363,8 @@ async function main(): Promise<void> {
   const plan = await buildCampaignPlan(manifest); await writePlanArtifacts(manifest, plan, outputDirectory);
   console.log(`Planned ${plan.users.length} users, ${plan.statements.length} statements, ${plan.projects.length} projects, and ${plan.estimate.totalWrites} writes.`);
   console.log(`Estimated gas: ${plan.estimate.estimatedTotalGas}; payment-token units: ${plan.estimate.estimatedPaymentTokenUnits}.`);
+  const lastDue = plan.estimate.clock?.lastDueAtSim ?? 0;
+  console.log(`Clock: last dueAtSim ${lastDue}s (${(lastDue / 86400).toFixed(1)} simulated days).`);
   console.log(`Wrote planning artifacts to ${outputDirectory}`);
 }
 

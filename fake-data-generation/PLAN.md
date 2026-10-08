@@ -65,6 +65,15 @@ The local capability file (`output/test-data/.admin-capability`) is fair game fo
 coding agent: read it and open the admin URL when inspecting this UI. Details:
 [`README.md`](./README.md#browsing-generated-runs).
 
+### F — Living / 24-7 simulations (recommendations only)
+
+Recommendations: [`continuous-simulation.md`](./continuous-simulation.md).
+Clock slice landed 2026-09-17: planner `dueAtSim`, `--replay compress|realtime`,
+`execution/heartbeat.json`. Operator UI and overnight trickle are still later.
+Do not mix this with jobs A–D. Finish the gated testnet campaign in
+[`TESTNET-SIMULATION-PLAN.md`](./TESTNET-SIMULATION-PLAN.md) before a 24/7
+testnet trickle.
+
 ## Next
 
 Do these in order unless Adam names a different one. Each item is a session-sized chunk.
@@ -80,5 +89,6 @@ Do these in order unless Adam names a different one. Each item is a session-size
 ## Pointers
 
 - Kinds of data also summarized in [`README.md`](./README.md), [seed-content rationale](/specs/tech/subsystems/conceptspace/seed-content/README.md), [local development](/workflow/local-development.md).
+- Clocked 24/7 / operator-UI recommendations: [`continuous-simulation.md`](./continuous-simulation.md).
 - One-shot engineering leftovers stay in root [`TODO.md`](/TODO.md) (demo UI pass, implication-regression refresh, funding-portal seed tests).
 - Do not file a second Christianity, a second abortion wording, or random `universe.json` statements into tiny.

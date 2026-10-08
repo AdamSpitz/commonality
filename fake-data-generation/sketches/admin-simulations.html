@@ -1,0 +1,463 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CauseStarter — Simulations (sketch)</title>
+  <style>
+    :root {
+      --bg0: #f7f5ef;
+      --bg1: #fffdf8;
+      --paper: #ffffff;
+      --ink: #1b1b1b;
+      --muted: #5f6368;
+      --line: rgba(0,0,0,.12);
+      --primary: #1976d2;
+      --primary-ink: #1565c0;
+      --teal: #0f766e;
+      --ok: #2e7d32;
+      --warn: #ed6c02;
+      --bad: #d32f2f;
+      --chip: #f5f5f5;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      font: 16px/1.5 "Roboto", "Helvetica Neue", system-ui, sans-serif;
+      background:
+        radial-gradient(circle at top, rgba(216,243,220,.55), transparent 36%),
+        linear-gradient(180deg, #f7f5ef 0%, #fffdf8 42%, #f4f8f2 100%);
+    }
+    a { color: var(--primary); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .shell { min-height: 100vh; display: flex; flex-direction: column; }
+    .bar {
+      position: relative; z-index: 2;
+      display: flex; align-items: center; gap: 8px;
+      min-height: 64px; padding: 0 24px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255,252,247,.88);
+      backdrop-filter: blur(12px);
+    }
+    .brand { font-weight: 800; letter-spacing: -.02em; font-size: 16px; }
+    .nav { display: flex; gap: 4px; margin-left: auto; margin-right: 8px; }
+    .nav a {
+      padding: 6px 12px; border-radius: 999px; color: var(--muted);
+      font-weight: 600; font-size: 14px; text-decoration: none;
+    }
+    .nav a:hover { background: rgba(0,0,0,.04); color: var(--ink); }
+    .icon { width: 36px; height: 36px; border: 0; background: transparent; border-radius: 999px; color: var(--muted); }
+    .connect {
+      background: var(--primary); color: #fff; border: 0; border-radius: 999px;
+      padding: 8px 16px; font-weight: 700; font-size: 14px;
+    }
+    .page { width: min(1200px, calc(100% - 48px)); margin: 28px auto 64px; }
+    .kicker { letter-spacing: .14em; font-weight: 700; color: var(--primary); font-size: 12px; text-transform: uppercase; }
+    h1 { font-size: 2rem; font-weight: 800; letter-spacing: -.03em; margin: 4px 0 8px; }
+    .lede { color: var(--muted); margin: 0 0 20px; max-width: 640px; }
+    .tabs { display: flex; gap: 8px; margin: 0 0 24px; border-bottom: 1px solid var(--line); }
+    .tabs a {
+      padding: 10px 4px; margin-bottom: -1px; color: var(--muted); font-weight: 600; font-size: 14px;
+      border-bottom: 2px solid transparent; text-decoration: none;
+    }
+    .tabs a.on { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+    .card {
+      background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 20px;
+    }
+    .row { display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+    .chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--chip); border-radius: 999px; padding: 4px 10px; font-size: 12px; font-weight: 600;
+    }
+    .chip.ok { background: #e8f5e9; color: var(--ok); }
+    .chip.warn { background: #fff3e0; color: var(--warn); }
+    .chip.bad { background: #ffebee; color: var(--bad); }
+    .chip.live { background: #e3f2fd; color: var(--primary-ink); }
+    .btn {
+      border: 1px solid var(--line); background: #fff; border-radius: 999px;
+      padding: 8px 16px; font-weight: 700; font-size: 14px; cursor: pointer;
+    }
+    .btn.primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .btn.danger { color: var(--bad); border-color: #ffcdd2; }
+    .btn:disabled { opacity: .45; }
+    .grid { display: grid; gap: 16px; }
+    .grid.two { grid-template-columns: 1fr 1fr; }
+    .grid.three { grid-template-columns: 1fr 1fr 1fr; }
+    .grid.templates { grid-template-columns: 1fr 1fr; }
+    h2 { font-size: 1.15rem; font-weight: 700; margin: 0 0 6px; }
+    h3 { font-size: 1rem; font-weight: 700; margin: 0 0 8px; }
+    .muted { color: var(--muted); font-size: 14px; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    th { color: var(--muted); font-weight: 600; font-size: 12px; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
+    label.field { display: block; font-size: 13px; font-weight: 700; margin: 12px 0 6px; }
+    select, input[type=text], input[type=number] {
+      width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--line); font: inherit;
+      background: #fff;
+    }
+    .choice { display: flex; gap: 8px; flex-wrap: wrap; }
+    .choice label {
+      border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; min-width: 160px;
+      font-size: 14px; cursor: pointer;
+    }
+    .choice label.on { border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary) inset; }
+    .choice small { display: block; color: var(--muted); font-weight: 400; }
+    .metric { font-size: 1.6rem; font-weight: 800; letter-spacing: -.03em; }
+    .alert {
+      border-radius: 8px; padding: 12px 14px; font-size: 14px; background: #e3f2fd; color: #0d47a1;
+    }
+    .alert.warn { background: #fff8e1; color: #e65100; }
+    .alert.bad { background: #ffebee; color: #b71c1c; }
+    .back { font-size: 14px; font-weight: 600; padding: 0; border: 0; background: none; color: var(--primary); }
+    .stack { display: flex; flex-direction: column; gap: 16px; }
+    .spark {
+      height: 36px; display: flex; align-items: flex-end; gap: 3px;
+    }
+    .spark i { display: block; width: 8px; background: var(--primary); border-radius: 2px 2px 0 0; opacity: .8; }
+    .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .screen { background: transparent; }
+    @media (max-width: 800px) {
+      .grid.two, .grid.three, .grid.templates { grid-template-columns: 1fr; }
+      .row { flex-direction: column; }
+      .page { width: calc(100% - 24px); }
+    }
+  </style>
+</head>
+<body>
+<section class="screen" data-screen="catalog">
+  <div class="shell">
+    <header class="bar">
+      <div class="brand">CauseStarter</div>
+      <nav class="nav">
+        <a href="#">Organize</a><a href="#">Work</a><a href="#">Sign</a><a href="#">Donate</a><a href="#">Fund</a><a href="#">Docs</a>
+      </nav>
+      <button class="icon" aria-label="profile">👤</button>
+      <button class="icon" aria-label="settings">⚙</button>
+      <button class="connect">Connect</button>
+    </header>
+    <main class="page">
+      <div class="kicker">Operator</div>
+      <h1>Simulations</h1>
+      <p class="lede">Create and watch synthetic worlds. Same capability key as test-data runs. Mainnet is disabled.</p>
+      <nav class="tabs">
+        <a href="#">Test-data runs</a>
+        <a class="on" href="#">Simulations</a>
+      </nav>
+
+      <div class="stack">
+        <div class="card">
+          <div class="row">
+            <div>
+              <h2>Live now</h2>
+              <div class="chips">
+                <span class="chip live">running</span>
+                <span class="chip">local · 31337</span>
+                <span class="chip">live-10u-trickle</span>
+                <span class="chip">due lag 4s</span>
+                <span class="chip ok">indexer lag 0</span>
+              </div>
+            </div>
+            <a class="btn primary" href="#live">Open live run</a>
+          </div>
+        </div>
+
+        <h3>Templates</h3>
+        <div class="grid templates">
+          <div class="card">
+            <div class="chips"><span class="chip">history factory</span><span class="chip">compress</span></div>
+            <h2 style="margin-top:10px">history-30d-100u</h2>
+            <p class="muted">Mill the medium-realistic v1 campaign as dated history. ~1,900 writes, not a day of life.</p>
+            <p class="muted">Last: local, 1932 mined, 0 failed · 11 Sep</p>
+            <div class="actions" style="margin-top:12px">
+              <button class="btn primary">New from template</button>
+              <button class="btn">Last analysis</button>
+            </div>
+          </div>
+          <div class="card">
+            <div class="chips"><span class="chip">live world</span><span class="chip">realtime</span></div>
+            <h2 style="margin-top:10px">live-10u-trickle</h2>
+            <p class="muted">Ten personas, 1–5 writes/hour. Safe to leave on the local stack overnight.</p>
+            <p class="muted">Last: running now · started today 09:12</p>
+            <div class="actions" style="margin-top:12px">
+              <button class="btn">New from template</button>
+              <button class="btn primary">Open live run</button>
+            </div>
+          </div>
+          <div class="card">
+            <div class="chips"><span class="chip">live world</span><span class="chip">diurnal</span></div>
+            <h2 style="margin-top:10px">live-100u-office-hours</h2>
+            <p class="muted">Campaign personas on a weekday curve. Pauses overnight. Needs a funded wallet pool.</p>
+            <p class="muted">Never run on this machine</p>
+            <div class="actions" style="margin-top:12px">
+              <button class="btn primary">New from template</button>
+            </div>
+          </div>
+          <div class="card">
+            <div class="chips"><span class="chip">soak / load</span><span class="chip">no extra writes</span></div>
+            <h2 style="margin-top:10px">soak-read</h2>
+            <p class="muted">Hammer folds and browse against an existing world. Does not mint activity.</p>
+            <p class="muted">Last: local, p95 cause fold 420ms · 11 Sep</p>
+            <div class="actions" style="margin-top:12px">
+              <button class="btn primary">New from template</button>
+              <button class="btn">Last analysis</button>
+            </div>
+          </div>
+        </div>
+        <p class="muted">Burst-write (Job D / gen:large) is a labelled load test, not a narrative template. It stays on the CLI until observers exist.</p>
+      </div>
+    </main>
+  </div>
+</section>
+
+<section class="screen" data-screen="create">
+  <div class="shell">
+    <header class="bar">
+      <div class="brand">CauseStarter</div>
+      <nav class="nav">
+        <a href="#">Organize</a><a href="#">Work</a><a href="#">Sign</a><a href="#">Donate</a><a href="#">Fund</a><a href="#">Docs</a>
+      </nav>
+      <button class="icon">👤</button><button class="icon">⚙</button>
+      <button class="connect">Connect</button>
+    </header>
+    <main class="page">
+      <button class="back">← Simulations</button>
+      <div class="kicker">Operator</div>
+      <h1>New simulation</h1>
+      <p class="lede">Frozen templates only. No free-form prompt. Dry-run before anything is submitted.</p>
+      <nav class="tabs">
+        <a href="#">Test-data runs</a>
+        <a class="on" href="#">Simulations</a>
+      </nav>
+
+      <div class="stack">
+        <div class="card">
+          <label class="field">Template</label>
+          <select>
+            <option>live-10u-trickle — realtime, 10 users</option>
+            <option>history-30d-100u — compress campaign v1</option>
+            <option>live-100u-office-hours — diurnal</option>
+            <option>soak-read — observers only</option>
+          </select>
+
+          <label class="field">Target</label>
+          <div class="choice">
+            <label class="on"><strong>Local</strong><small>chain 31337 · Hardhat + local indexer</small></label>
+            <label><strong>Testnet</strong><small>Base Sepolia 84532 · needs confirm + budget</small></label>
+          </div>
+
+          <label class="field">Clock</label>
+          <div class="choice">
+            <label><strong>Compress</strong><small>Mint dated history as fast as the chain allows</small></label>
+            <label class="on"><strong>Realtime</strong><small>Sleep until each action’s dueAtWall</small></label>
+          </div>
+
+          <div class="grid two">
+            <div>
+              <label class="field">Stop</label>
+              <select>
+                <option>Until stopped</option>
+                <option>After 24 hours</option>
+                <option>After 7 days</option>
+              </select>
+            </div>
+            <div>
+              <label class="field">Daily native-token cap</label>
+              <input type="text" value="0.05 ETH" />
+            </div>
+          </div>
+          <label class="field">Daily transaction cap</label>
+          <input type="number" value="80" />
+        </div>
+
+        <div class="card">
+          <h2>Dry-run estimate</h2>
+          <p class="muted">From the frozen plan. Nothing has been submitted.</p>
+          <div class="grid three" style="margin: 12px 0 16px">
+            <div><div class="metric">~3</div><div class="muted">writes / hour</div></div>
+            <div><div class="metric">0.012</div><div class="muted">ETH / day est.</div></div>
+            <div><div class="metric">10</div><div class="muted">wallets already funded</div></div>
+          </div>
+          <table>
+            <thead><tr><th>Statements that will be touched</th><th>Collection</th></tr></thead>
+            <tbody>
+              <tr><td>local-food-systems</td><td>simple-causes</td></tr>
+              <tr><td>christian-secular-bridge planks (4)</td><td>christian-secular-bridge</td></tr>
+            </tbody>
+          </table>
+          <p class="muted" style="margin-top:12px">Preflight: chain 31337, bytecode ok, indexer lag 0, capability key present. Testnet confirm is not required on local.</p>
+        </div>
+
+        <div class="actions">
+          <button class="btn primary">Start trickle</button>
+          <button class="btn">Save draft</button>
+        </div>
+      </div>
+    </main>
+  </div>
+</section>
+
+<section class="screen" data-screen="live">
+  <div class="shell">
+    <header class="bar">
+      <div class="brand">CauseStarter</div>
+      <nav class="nav">
+        <a href="#">Organize</a><a href="#">Work</a><a href="#">Sign</a><a href="#">Donate</a><a href="#">Fund</a><a href="#">Docs</a>
+      </nav>
+      <button class="icon">👤</button><button class="icon">⚙</button>
+      <button class="connect">Connect</button>
+    </header>
+    <main class="page">
+      <button class="back">← Simulations</button>
+      <div class="kicker">Operator · live-10u-trickle</div>
+      <h1>Run 20260915T091200Z</h1>
+      <p class="lede">local · chain 31337 · realtime · started today 09:12. Secrets stay on the runner, not in this page.</p>
+      <nav class="tabs">
+        <a href="#">Test-data runs</a>
+        <a class="on" href="#">Simulations</a>
+      </nav>
+
+      <div class="stack">
+        <div class="card">
+          <div class="row">
+            <div class="chips">
+              <span class="chip live">running</span>
+              <span class="chip ok">budget 24%</span>
+              <span class="chip ok">indexer lag 0</span>
+            </div>
+            <div class="actions">
+              <button class="btn">Pause</button>
+              <button class="btn" disabled>Resume</button>
+              <button class="btn danger">Stop</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid three">
+          <div class="card"><div class="metric">4s</div><div class="muted">Due lag</div></div>
+          <div class="card"><div class="metric">344</div><div class="muted">Chain head</div></div>
+          <div class="card"><div class="metric">344</div><div class="muted">Indexed head</div></div>
+        </div>
+        <div class="grid three">
+          <div class="card"><div class="metric">18</div><div class="muted">Mined this run</div></div>
+          <div class="card"><div class="metric">0</div><div class="muted">Failed</div></div>
+          <div class="card"><div class="metric">0.038</div><div class="muted">ETH used / 0.05 cap</div></div>
+        </div>
+
+        <div class="card">
+          <h2>Indexer lag (last hour)</h2>
+          <p class="muted">Blocks behind head. Red on the dashboard if this stays above 12 for five minutes.</p>
+          <div class="spark" aria-hidden="true">
+            <i style="height:8%"></i><i style="height:8%"></i><i style="height:12%"></i><i style="height:8%"></i>
+            <i style="height:20%"></i><i style="height:10%"></i><i style="height:8%"></i><i style="height:8%"></i>
+            <i style="height:40%"></i><i style="height:16%"></i><i style="height:8%"></i><i style="height:8%"></i>
+            <i style="height:8%"></i><i style="height:8%"></i><i style="height:12%"></i><i style="height:8%"></i>
+            <i style="height:8%"></i><i style="height:8%"></i><i style="height:8%"></i><i style="height:8%"></i>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Recent actions</h2>
+          <p class="muted">Same table language as a test-data run. Click a hash to the existing run detail.</p>
+          <table>
+            <thead><tr><th>Due</th><th>Type</th><th>Actor</th><th>Status</th><th>Tx</th></tr></thead>
+            <tbody>
+              <tr><td>09:41</td><td>set-belief</td><td class="mono">0xf39F…2266</td><td>mined</td><td class="mono">0xdddd…a34c</td></tr>
+              <tr><td>09:28</td><td>fund-project</td><td class="mono">0x7099…79C8</td><td>mined</td><td class="mono">0x9bd0…88b5</td></tr>
+              <tr><td>09:12</td><td>attest-alignment</td><td class="mono">0x3C44…93BC</td><td>mined</td><td class="mono">0x440c…1ee1</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="card">
+          <h2>Open the world</h2>
+          <p class="muted">Impersonation reuses the test-data in-memory wallet. Board URLs come from runtime bindings.</p>
+          <div class="actions">
+            <button class="btn primary">View as fake user</button>
+            <button class="btn">Local food systems board</button>
+            <button class="btn">Open analysis</button>
+            <button class="btn">Open test-data run</button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</section>
+
+<section class="screen" data-screen="analysis">
+  <div class="shell">
+    <header class="bar">
+      <div class="brand">CauseStarter</div>
+      <nav class="nav">
+        <a href="#">Organize</a><a href="#">Work</a><a href="#">Sign</a><a href="#">Donate</a><a href="#">Fund</a><a href="#">Docs</a>
+      </nav>
+      <button class="icon">👤</button><button class="icon">⚙</button>
+      <button class="connect">Connect</button>
+    </header>
+    <main class="page">
+      <button class="back">← Run 20260915T091200Z</button>
+      <div class="kicker">Operator · analysis</div>
+      <h1>What this trickle did</h1>
+      <p class="lede">Observers from the scalability-testing plan, attached to the run. Numbers here are illustrative for the sketch.</p>
+      <nav class="tabs">
+        <a href="#">Test-data runs</a>
+        <a class="on" href="#">Simulations</a>
+      </nav>
+
+      <div class="stack">
+        <div class="grid three">
+          <div class="card"><div class="metric">18 / 18</div><div class="muted">Reconciled writes</div></div>
+          <div class="card"><div class="metric">0</div><div class="muted">Mined but unindexed</div></div>
+          <div class="card"><div class="metric">420ms</div><div class="muted">p95 cause-board fold</div></div>
+        </div>
+
+        <div class="card">
+          <h2>Action mix</h2>
+          <table>
+            <thead><tr><th>Type</th><th>Planned</th><th>Mined</th><th>Failed</th></tr></thead>
+            <tbody>
+              <tr><td>set-belief</td><td>8</td><td>8</td><td>0</td></tr>
+              <tr><td>fund-project</td><td>6</td><td>6</td><td>0</td></tr>
+              <tr><td>attest-alignment</td><td>3</td><td>3</td><td>0</td></tr>
+              <tr><td>delegate-note</td><td>1</td><td>1</td><td>0</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="card">
+          <h2>UX sample (Playwright)</h2>
+          <p class="muted">Hourly against named runtime-binding URLs. Fail noisy; do not kill the trickle.</p>
+          <table>
+            <thead><tr><th>Surface</th><th>Result</th><th>Note</th></tr></thead>
+            <tbody>
+              <tr><td>Home</td><td>ok</td><td>Landing copy, 1.1s</td></tr>
+              <tr><td>Local food systems</td><td class="chip warn" style="margin:6px 0">warn</td><td>Garden listed; starter-network banner still on</td></tr>
+              <tr><td>Christianity board</td><td>ok</td><td>5 projects, 2.4s</td></tr>
+              <tr><td>Organize after HH#0</td><td>ok</td><td>11 boards; local-food not in Recent 10</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="card">
+          <h2>Read bench</h2>
+          <table>
+            <thead><tr><th>Path</th><th>p50</th><th>p95</th><th>Size</th></tr></thead>
+            <tbody>
+              <tr><td>Cause aligned-projects fold</td><td>180ms</td><td>420ms</td><td>84 KB</td></tr>
+              <tr><td>Browse statements by newest</td><td>90ms</td><td>210ms</td><td>22 KB</td></tr>
+              <tr><td>Largest project fold</td><td>140ms</td><td>310ms</td><td>41 KB</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="alert warn">
+          Do not treat these sketch numbers as a measured run. Wire observers before this screen shows real data.
+        </div>
+      </div>
+    </main>
+  </div>
+</section>
+</body>
+</html>

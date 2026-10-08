@@ -1,0 +1,108 @@
+[
+  {
+    "urlTried": "http://127.0.0.1:8090/#/cause/0xdfAe065fc6391Ab6C0168F2a9027345E7Ac20D57/open-common-ground",
+    "finalUrl": "http://127.0.0.1:8090/#/cause/0xdfAe065fc6391Ab6C0168F2a9027345E7Ac20D57/open-common-ground",
+    "h1": [
+      "There are enough of us. We just couldn’t work together."
+    ],
+    "testIds": [
+      "nav-causes",
+      "nav-work",
+      "nav-sign",
+      "nav-donate",
+      "nav-fund",
+      "nav-docs",
+      "nav-profile",
+      "wallet-connect-button",
+      "home-landing",
+      "home-dashboard",
+      "home-role-sign",
+      "home-role-donate",
+      "home-role-fund",
+      "home-role-work",
+      "home-role-organize",
+      "home-profile-link"
+    ],
+    "bodyHead": "CauseStarter\nOrganize\nWork\nSign\nDonate\nFund\nDocs\nConnect\nCAUSESTARTER\nThere are enough of us. We just couldn’t work together.\n\nA cause board is a bulletin of crowdfundable projects: raise a specific amount by a date to do a specific piece of work. If the crowd doesn’t show, contributors get their money back. That is a third way besides “government does it” and “a big charity does it.”\n\nYou do not have to watch the board — pledge a monthly amount to someone you already trust. You do not have to bet on pitches — reimburse work that already delivered. Signing a statement does not spend money.\n\nRead the short version\nWhat would you like to do?\n\nMoney, judgment, skilled work, and organizing do not have to arrive in one organization. Pick the job you would do anyway. Come back here to switch.\n\nS"
+  },
+  {
+    "urlTried": "http://127.0.0.1:8090/cause/0xdfAe065fc6391Ab6C0168F2a9027345E7Ac20D57/open-common-ground",
+    "finalUrl": "http://127.0.0.1:8090/cause/0xdfAe065fc6391Ab6C0168F2a9027345E7Ac20D57/open-common-ground",
+    "h1": [],
+    "testIds": [
+      "nav-causes",
+      "nav-work",
+      "nav-sign",
+      "nav-donate",
+      "nav-fund",
+      "nav-docs",
+      "nav-profile",
+      "wallet-connect-button"
+    ],
+    "bodyHead": "CauseStarter\nOrganize\nWork\nSign\nDonate\nFund\nDocs\nConnect\nCould not load the published cause for this link.\nBack to cause boards"
+  },
+  {
+    "urlTried": "http://127.0.0.1:8090/#/cause/0xdfae065fc6391ab6c0168f2a9027345e7ac20d57/open-common-ground",
+    "finalUrl": "http://127.0.0.1:8090/#/cause/0xdfae065fc6391ab6c0168f2a9027345e7ac20d57/open-common-ground",
+    "h1": [
+      "There are enough of us. We just couldn’t work together."
+    ],
+    "testIds": [
+      "nav-causes",
+      "nav-work",
+      "nav-sign",
+      "nav-donate",
+      "nav-fund",
+      "nav-docs",
+      "nav-profile",
+      "wallet-connect-button",
+      "home-landing",
+      "home-dashboard",
+      "home-role-sign",
+      "home-role-donate",
+      "home-role-fund",
+      "home-role-work",
+      "home-role-organize",
+      "home-profile-link"
+    ],
+    "bodyHead": "CauseStarter\nOrganize\nWork\nSign\nDonate\nFund\nDocs\nConnect\nCAUSESTARTER\nThere are enough of us. We just couldn’t work together.\n\nA cause board is a bulletin of crowdfundable projects: raise a specific amount by a date to do a specific piece of work. If the crowd doesn’t show, contributors get their money back. That is a third way besides “government does it” and “a big charity does it.”\n\nYou do not have to watch the board — pledge a monthly amount to someone you already trust. You do not have to bet on pitches — reimburse work that already delivered. Signing a statement does not spend money.\n\nRead the short version\nWhat would you like to do?\n\nMoney, judgment, skilled work, and organizing do not have to arrive in one organization. Pick the job you would do anyway. Come back here to switch.\n\nS"
+  },
+  {
+    "urlTried": "http://127.0.0.1:8090/cause/0xdfae065fc6391ab6c0168f2a9027345e7ac20d57/open-common-ground",
+    "finalUrl": "http://127.0.0.1:8090/cause/0xdfae065fc6391ab6c0168f2a9027345e7ac20d57/open-common-ground",
+    "h1": [],
+    "testIds": [
+      "nav-causes",
+      "nav-work",
+      "nav-sign",
+      "nav-donate",
+      "nav-fund",
+      "nav-docs",
+      "nav-profile",
+      "wallet-connect-button"
+    ],
+    "bodyHead": "CauseStarter\nOrganize\nWork\nSign\nDonate\nFund\nDocs\nConnect\nCould not load the published cause for this link.\nBack to cause boards"
+  },
+  {
+    "configProbe": {
+      "configJson": {
+        "VITE_IPFS_GATEWAY": "http://localhost:8080/ipfs",
+        "COMMONALITY_ENVIRONMENT": "local",
+        "VITE_PLATFORM_API_URL": "http://localhost:3001",
+        "VITE_ETH_RPC_URL": "http://127.0.0.1:8545",
+        "VITE_DEFAULT_ALIGNMENT_TRUST_ROOT": "0xD8C74E3E16E796117E7c5FcC2E00284225f27FB2",
+        "VITE_CHAIN_ID": "31337",
+        "VITE_COMMONALITY_URL": "http://commonality.localhost:8088/#/",
+        "VITE_LAZYGIVING_URL": "http://lazygiving.localhost:8088/#/",
+        "VITE_ALIGNMENT_URL": "http://alignment.localhost:8088/#/",
+        "VITE_TALLY_URL": "http://tally.localhost:8088/#/",
+        "VITE_CONTENT_FUNDING_URL": "http://content-funding.localhost:8088/#/",
+        "VITE_CIVILITY_URL": "http://civility.localhost:8088/#/",
+        "VITE_COMMON_SENSE_MAJORITY_URL": "http://common-sense-majority.localhost:8088/#/",
+        "VITE_CONCEPTSPACE_URL": "http://conceptspace.localhost:8088/#/"
+      },
+      "href": "http://127.0.0.1:8090/",
+      "hash": ""
+    }
+  }
+]

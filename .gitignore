@@ -42,3 +42,6 @@ tmp/
 .pi-subagents/
 
 .playwright-mcp/
+
+# local Grok API key
+.env.grok

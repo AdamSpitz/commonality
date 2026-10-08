@@ -1,0 +1,130 @@
+:root {
+  --ink: #1c1915;
+  --paper: #f4efe6;
+  --panel: #fffdf8;
+  --line: #d9d0c3;
+  --accent: #9a3412;
+  --accent-2: #1d4e4a;
+  --muted: #6b6258;
+  --chip: #efe6d8;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  background:
+    radial-gradient(1200px 500px at 10% -10%, rgba(154, 52, 18, 0.08), transparent 50%),
+    var(--paper);
+  color: var(--ink);
+  min-height: 100vh;
+}
+
+.top {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2.2rem 1.4rem 1rem;
+  display: grid;
+  gap: 0.75rem;
+}
+.kicker {
+  margin: 0;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  color: var(--accent);
+  font-family: "Avenir Next", "Segoe UI", sans-serif;
+}
+h1, h2 { margin: 0.15rem 0; font-weight: 650; }
+.lede { margin: 0; max-width: 46rem; color: var(--muted); line-height: 1.45; }
+
+.layout {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 1.4rem 3rem;
+  display: grid;
+  grid-template-columns: minmax(280px, 340px) 1fr;
+  gap: 1.2rem;
+  align-items: start;
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 1.1rem 1.15rem 1.2rem;
+  box-shadow: 0 10px 30px rgba(28, 25, 21, 0.04);
+}
+
+.field { display: grid; gap: 0.3rem; margin-bottom: 0.85rem; }
+.field span { font-size: 0.86rem; }
+.field em { color: var(--muted); font-style: normal; font-size: 0.78rem; }
+input[type="search"], input[type="url"] {
+  font: inherit;
+  padding: 0.55rem 0.7rem;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: #fff;
+}
+
+fieldset { border: 0; padding: 0; margin: 0 0 1rem; }
+legend { font-size: 0.86rem; margin-bottom: 0.4rem; }
+.chips { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.chip {
+  display: inline-flex;
+  gap: 0.4rem;
+  align-items: flex-start;
+  padding: 0.45rem 0.6rem;
+  background: var(--chip);
+  border-radius: 999px;
+  font-family: "Avenir Next", "Segoe UI", sans-serif;
+  font-size: 0.82rem;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+.chip input { margin-top: 0.15rem; }
+.chip.off { opacity: 0.45; }
+.chip .sub { display: block; color: var(--muted); font-size: 0.72rem; font-weight: 400; }
+.hint { color: var(--muted); font-size: 0.8rem; line-height: 1.35; margin: 0.5rem 0 0; }
+
+.actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+button {
+  font-family: "Avenir Next", "Segoe UI", sans-serif;
+  font-size: 0.92rem;
+  border: 0;
+  border-radius: 999px;
+  padding: 0.55rem 0.95rem;
+  cursor: pointer;
+}
+button[type="submit"] { background: var(--accent); color: #fff; }
+button[type="button"] { background: var(--accent-2); color: #fff; }
+button:disabled { opacity: 0.4; cursor: not-allowed; }
+.status { min-height: 1.2rem; color: var(--muted); font-size: 0.85rem; margin: 0.7rem 0 0; }
+
+.results-head { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; margin-bottom: 0.8rem; }
+.select-all { font-family: "Avenir Next", "Segoe UI", sans-serif; font-size: 0.82rem; color: var(--muted); }
+
+.result-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.65rem; }
+.result {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.65rem;
+  padding: 0.75rem 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+}
+.type {
+  font-family: "Avenir Next", "Segoe UI", sans-serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent-2);
+}
+.text { margin: 0.15rem 0 0.35rem; line-height: 1.4; }
+.meta { margin: 0; font-size: 0.78rem; color: var(--muted); }
+.meta a { color: inherit; }
+
+@media (max-width: 860px) {
+  .layout { grid-template-columns: 1fr; }
+}

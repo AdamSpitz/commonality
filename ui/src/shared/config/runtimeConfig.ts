@@ -60,6 +60,7 @@ export type RuntimeConfigKey =
   | 'VITE_CONCEPTSPACE_URL'
   | 'VITE_CAUSESTARTER_URL'
   | 'VITE_TEST_DATA_REGISTRY_URL'
+  | 'VITE_SIMULATION_HEARTBEAT_URL'
 
 const buildTimeConfig: UiRuntimeConfig = {
   VITE_EVENT_CACHE_URL: import.meta.env.VITE_EVENT_CACHE_URL,
@@ -120,6 +121,7 @@ const buildTimeConfig: UiRuntimeConfig = {
   VITE_CONCEPTSPACE_URL: import.meta.env.VITE_CONCEPTSPACE_URL,
   VITE_CAUSESTARTER_URL: import.meta.env.VITE_CAUSESTARTER_URL,
   VITE_TEST_DATA_REGISTRY_URL: import.meta.env.VITE_TEST_DATA_REGISTRY_URL,
+  VITE_SIMULATION_HEARTBEAT_URL: import.meta.env.VITE_SIMULATION_HEARTBEAT_URL,
 }
 
 let runtimeConfig: UiRuntimeConfig = stripEmptyValues(buildTimeConfig)

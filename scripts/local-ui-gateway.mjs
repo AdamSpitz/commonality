@@ -8,6 +8,8 @@ const artifactRoot = process.env.UI_IPFS_ARTIFACT_ROOT || path.resolve('data', '
 const ipfsGatewayBaseUrl = (process.env.UI_IPFS_GATEWAY_INTERNAL || 'http://localhost:8080/ipfs').replace(/\/$/, '')
 const indexerBaseUrl = (process.env.UI_INDEXER_INTERNAL || 'http://localhost:42069').replace(/\/$/, '')
 const testDataRoot = process.env.TEST_DATA_ARTIFACT_ROOT || path.resolve('fake-data-generation', 'output', 'test-data')
+const simulationHeartbeatPath = process.env.SIMULATION_HEARTBEAT_PATH
+  || path.resolve('fake-data-generation', 'output', 'campaigns', 'heartbeat.json')
 
 // The IPFS bundles ship a config.json without VITE_EVENT_CACHE_URL, so the SDK
 // falls back to the page origin and issues same-origin requests. Forward those
@@ -53,7 +55,8 @@ async function renderAdminPage() {
   let testDataLink = ''
   try {
     const capability = (await fs.readFile(path.join(testDataRoot, '.admin-capability'), 'utf8')).trim()
-    testDataLink = `<p><a href="http://causestarter.localhost:${port}/#/admin/test-data?key=${encodeURIComponent(capability)}">Browse generated test-data runs</a></p>`
+    testDataLink = `<p><a href="http://causestarter.localhost:${port}/#/admin/test-data?key=${encodeURIComponent(capability)}">Browse generated test-data runs</a></p>
+    <p><a href="http://causestarter.localhost:${port}/#/admin/simulations?key=${encodeURIComponent(capability)}">Watch campaign simulations</a></p>`
   } catch {
     testDataLink = '<p>No generated test-data runs yet. Run <code>./scripts/data.sh --seed</code> first.</p>'
   }
@@ -69,6 +72,24 @@ async function renderAdminPage() {
   </body>
 </html>
 `
+}
+
+async function serveSimulationHeartbeat(res) {
+  try {
+    const body = await fs.readFile(simulationHeartbeatPath)
+    res.writeHead(200, {
+      'content-type': 'application/json; charset=utf-8',
+      'cache-control': 'no-store',
+    })
+    res.end(body)
+  } catch (error) {
+    if (error?.code === 'ENOENT') {
+      res.writeHead(404, { 'content-type': 'application/json; charset=utf-8' })
+      res.end('{"error":"no-heartbeat"}\n')
+      return
+    }
+    throw error
+  }
 }
 
 async function serveTestData(req, res, pathname) {
@@ -160,6 +181,10 @@ const server = createServer(async (req, res) => {
 
     const domain = resolveDomainFromHost(req.headers.host)
     const pathname = requestUrlFor(req, domain || 'causestarter').pathname
+    if (domain && pathname === '/simulations/heartbeat.json') {
+      await serveSimulationHeartbeat(res)
+      return
+    }
     if (domain && pathname.startsWith('/test-data/')) {
       await serveTestData(req, res, pathname)
       return

@@ -1,0 +1,107 @@
+{
+  "bodyBeforeConnect": "CauseStarter\nOrganize\nWork\nSign\nDonate\nFund\nDocs\nConnect\nCould not load the published cause for this link.\nBack to cause boards",
+  "bodyAfterConnect": "CauseStarter\nOrganize\nWork\nSign\nDonate\nFund\nDocs\nConnect\nCould not load the published cause for this link.\nBack to cause boards",
+  "testIds": [
+    "nav-causes",
+    "nav-work",
+    "nav-sign",
+    "nav-donate",
+    "nav-fund",
+    "nav-docs",
+    "nav-profile",
+    "wallet-connect-button"
+  ],
+  "net": [
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:8090/cause/0xdfAe065fc6391Ab6C0168F2a9027345E7Ac20D57/open-common-ground",
+      "bodySnippet": ""
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:8090/cause/0xdfAe065fc6391Ab6C0168F2a9027345E7Ac20D57/config.json",
+      "bodySnippet": ""
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:8090/api/events?chainId=31337&eventName=RefUpdated&topic1=0x000000000000000000000000dfae065fc6391ab6c0168f2a9027345e7ac20d57&limit=1000",
+      "bodySnippet": "{\"items\":[{\"id\":\"31337-0x89a62428a996cd042d40015da5439921cde33394c0e977b6162f3ad9fcc4b7e0-0\",\"chainId\":31337,\"contractAddress\":\"0x0165878a594ca255338adfa4d48449f69242eb8f\",\"eventName\":\"RefUpdated\",\"blockNumber\":\"372\",\"blockTimestamp\":\"1789568422\",\"transactionHash\":\"0x89a62428a996cd042d40015da5439921"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:8090/api/published-data/0x748bfc071366f867caa015d09349420b3d5e9e128e01c9ee1e8d5b75b47ae8fc?chainId=31337&contractAddress=0xf5059a5D33d5853360D16C683c16e67980206f36",
+      "bodySnippet": "{\"status\":\"active\",\"dataId\":\"0x748bfc071366f867caa015d09349420b3d5e9e128e01c9ee1e8d5b75b47ae8fc\",\"livePublishers\":[\"0xdfAe065fc6391Ab6C0168F2a9027345E7Ac20D57\"],\"publications\":[{\"publisher\":\"0xdfAe065fc6391Ab6C0168F2a9027345E7Ac20D57\",\"blockNumber\":\"408\",\"transactionHash\":\"0x14d640bb70d0dfceb91a7e5d"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:8545/",
+      "bodySnippet": "{\"jsonrpc\":\"2.0\",\"id\":105,\"error\":{\"code\":3,\"message\":\"execution reverted\",\"data\":\"0x\"}}"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:8545/",
+      "bodySnippet": "{\"jsonrpc\":\"2.0\",\"id\":104,\"error\":{\"code\":3,\"message\":\"execution reverted\",\"data\":\"0x\"}}"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:8545/",
+      "bodySnippet": "{\"jsonrpc\":\"2.0\",\"id\":115,\"error\":{\"code\":3,\"message\":\"execution reverted\",\"data\":\"0x\"}}"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:8545/",
+      "bodySnippet": "{\"jsonrpc\":\"2.0\",\"id\":114,\"error\":{\"code\":3,\"message\":\"execution reverted\",\"data\":\"0x\"}}"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:8090/api/events?chainId=31337&eventName=RefUpdated&topic1=0x000000000000000000000000dfae065fc6391ab6c0168f2a9027345e7ac20d57&limit=1000",
+      "bodySnippet": "{\"items\":[{\"id\":\"31337-0x89a62428a996cd042d40015da5439921cde33394c0e977b6162f3ad9fcc4b7e0-0\",\"chainId\":31337,\"contractAddress\":\"0x0165878a594ca255338adfa4d48449f69242eb8f\",\"eventName\":\"RefUpdated\",\"blockNumber\":\"372\",\"blockTimestamp\":\"1789568422\",\"transactionHash\":\"0x89a62428a996cd042d40015da5439921"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:8090/api/published-data/0x748bfc071366f867caa015d09349420b3d5e9e128e01c9ee1e8d5b75b47ae8fc?chainId=31337&contractAddress=0xf5059a5D33d5853360D16C683c16e67980206f36",
+      "bodySnippet": "{\"status\":\"active\",\"dataId\":\"0x748bfc071366f867caa015d09349420b3d5e9e128e01c9ee1e8d5b75b47ae8fc\",\"livePublishers\":[\"0xdfAe065fc6391Ab6C0168F2a9027345E7Ac20D57\"],\"publications\":[{\"publisher\":\"0xdfAe065fc6391Ab6C0168F2a9027345E7Ac20D57\",\"blockNumber\":\"408\",\"transactionHash\":\"0x14d640bb70d0dfceb91a7e5d"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:8090/cause/0xdfAe065fc6391Ab6C0168F2a9027345E7Ac20D57/open-common-ground",
+      "bodySnippet": ""
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:8090/cause/0xdfAe065fc6391Ab6C0168F2a9027345E7Ac20D57/config.json",
+      "bodySnippet": ""
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:8090/api/events?chainId=31337&eventName=RefUpdated&topic1=0x000000000000000000000000dfae065fc6391ab6c0168f2a9027345e7ac20d57&limit=1000",
+      "bodySnippet": "{\"items\":[{\"id\":\"31337-0x89a62428a996cd042d40015da5439921cde33394c0e977b6162f3ad9fcc4b7e0-0\",\"chainId\":31337,\"contractAddress\":\"0x0165878a594ca255338adfa4d48449f69242eb8f\",\"eventName\":\"RefUpdated\",\"blockNumber\":\"372\",\"blockTimestamp\":\"1789568422\",\"transactionHash\":\"0x89a62428a996cd042d40015da5439921"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:8090/api/published-data/0x748bfc071366f867caa015d09349420b3d5e9e128e01c9ee1e8d5b75b47ae8fc?chainId=31337&contractAddress=0xf5059a5D33d5853360D16C683c16e67980206f36",
+      "bodySnippet": "{\"status\":\"active\",\"dataId\":\"0x748bfc071366f867caa015d09349420b3d5e9e128e01c9ee1e8d5b75b47ae8fc\",\"livePublishers\":[\"0xdfAe065fc6391Ab6C0168F2a9027345E7Ac20D57\"],\"publications\":[{\"publisher\":\"0xdfAe065fc6391Ab6C0168F2a9027345E7Ac20D57\",\"blockNumber\":\"408\",\"transactionHash\":\"0x14d640bb70d0dfceb91a7e5d"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:8545/",
+      "bodySnippet": "{\"jsonrpc\":\"2.0\",\"id\":105,\"error\":{\"code\":3,\"message\":\"execution reverted\",\"data\":\"0x\"}}"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:8545/",
+      "bodySnippet": "{\"jsonrpc\":\"2.0\",\"id\":104,\"error\":{\"code\":3,\"message\":\"execution reverted\",\"data\":\"0x\"}}"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:8545/",
+      "bodySnippet": "{\"jsonrpc\":\"2.0\",\"id\":115,\"error\":{\"code\":3,\"message\":\"execution reverted\",\"data\":\"0x\"}}"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:8545/",
+      "bodySnippet": "{\"jsonrpc\":\"2.0\",\"id\":114,\"error\":{\"code\":3,\"message\":\"execution reverted\",\"data\":\"0x\"}}"
+    }
+  ],
+  "allApiNon200": []
+}

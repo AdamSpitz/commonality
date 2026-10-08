@@ -1,0 +1,268 @@
+{
+  "appUp": true,
+  "method": "Playwright real UI (Start → roster title/summary → Write one manually × 3). Title/summary patched into causestarter.causes.v3 after UI fill because the UI only persists those fields on roster publish (wallet). Planks persist immediately via updateCause.",
+  "created": [
+    {
+      "title": "Extend Riverside Branch Library Hours",
+      "summary": "Working families need evening and weekend access to the Riverside Branch so the library is usable after the school day and on Sundays.",
+      "causeId": "fad7cdae-3154-4231-b1fd-70cd0b60fb86",
+      "url": "http://127.0.0.1:8090/#/cause/fad7cdae-3154-4231-b1fd-70cd0b60fb86",
+      "localUrl": "http://127.0.0.1:8090/#/cause/fad7cdae-3154-4231-b1fd-70cd0b60fb86",
+      "planks": [
+        "The Riverside Branch Library should stay open until 8pm on weekdays.",
+        "The Riverside Branch Library should be open on Sundays from noon to 5pm.",
+        "The city should restore Saturday morning hours at the Riverside Branch Library."
+      ],
+      "screenshot": "/tmp/causestarter-seed-out/cause-1-created.png"
+    },
+    {
+      "title": "Protected Bike Lanes on Maple Avenue",
+      "summary": "Residents want a continuous protected bike lane on Maple Avenue so people can ride to school and work without mixing with fast car traffic.",
+      "causeId": "e0f26436-1cf1-4961-9f5d-4676e3cb31ea",
+      "url": "http://127.0.0.1:8090/#/cause/e0f26436-1cf1-4961-9f5d-4676e3cb31ea",
+      "localUrl": "http://127.0.0.1:8090/#/cause/e0f26436-1cf1-4961-9f5d-4676e3cb31ea",
+      "planks": [
+        "Maple Avenue should have a protected bike lane from the river to City Hall.",
+        "Bike lane barriers on Maple Avenue should be in place before the next school year.",
+        "The city should add a signalized bike crossing at Maple Avenue and 4th Street."
+      ],
+      "screenshot": "/tmp/causestarter-seed-out/cause-2-created.png"
+    },
+    {
+      "title": "Neighborhood Compost Drop-Off",
+      "summary": "A weekly food-scraps drop-off would keep waste out of the landfill and give neighbors a simple way to compost without a backyard bin.",
+      "causeId": "627bd371-b7d3-4bba-9f68-faee38b8fd05",
+      "url": "http://127.0.0.1:8090/#/cause/627bd371-b7d3-4bba-9f68-faee38b8fd05",
+      "localUrl": "http://127.0.0.1:8090/#/cause/627bd371-b7d3-4bba-9f68-faee38b8fd05",
+      "planks": [
+        "The city should open a weekly food-scraps drop-off at the community garden.",
+        "Apartment buildings on Oak Street should get shared compost bins by this fall.",
+        "The sanitation department should collect food scraps from the drop-off every Tuesday."
+      ],
+      "screenshot": "/tmp/causestarter-seed-out/cause-3-created.png"
+    },
+    {
+      "title": "After-School Programs at Lincoln Rec Center",
+      "summary": "Families need affordable after-school care at Lincoln Rec Center so kids have a safe place to go until parents get off work.",
+      "causeId": "fae6d5d9-8aa0-48dc-b38b-e96f9a9739e1",
+      "url": "http://127.0.0.1:8090/#/cause/fae6d5d9-8aa0-48dc-b38b-e96f9a9739e1",
+      "localUrl": "http://127.0.0.1:8090/#/cause/fae6d5d9-8aa0-48dc-b38b-e96f9a9739e1",
+      "planks": [
+        "Lincoln Rec Center should offer after-school programs until 6pm on school days.",
+        "After-school enrollment at Lincoln Rec Center should stay free for families who qualify for free lunch.",
+        "The rec center should add a homework-help hour staffed four days a week."
+      ],
+      "screenshot": "/tmp/causestarter-seed-out/cause-4-created.png"
+    },
+    {
+      "title": "Better Lighting in Cedar Park",
+      "summary": "Evening walkers and families want working lights on the main paths so Cedar Park stays usable and feels safe after dark.",
+      "causeId": "8050860c-3f49-4aa3-8537-338ea5a87a6f",
+      "url": "http://127.0.0.1:8090/#/cause/8050860c-3f49-4aa3-8537-338ea5a87a6f",
+      "localUrl": "http://127.0.0.1:8090/#/cause/8050860c-3f49-4aa3-8537-338ea5a87a6f",
+      "planks": [
+        "Every main path in Cedar Park should have working lights by the end of the year.",
+        "The city should replace the broken fixtures at the Cedar Park playground this quarter.",
+        "Cedar Park parking lot lights should stay on until 10pm."
+      ],
+      "screenshot": "/tmp/causestarter-seed-out/cause-5-created.png"
+    }
+  ],
+  "verifications": [
+    {
+      "causeId": "fad7cdae-3154-4231-b1fd-70cd0b60fb86",
+      "title": "Extend Riverside Branch Library Hours",
+      "reachable": true,
+      "headingVisible": true,
+      "titleValue": "Extend Riverside Branch Library Hours",
+      "summaryValue": "Working families need evening and weekend access to the Riverside Branch so the library is usable after the school day and on Sundays.",
+      "draftCount": 3,
+      "plankTexts": [
+        "The Riverside Branch Library should stay open until 8pm on weekdays.",
+        "The Riverside Branch Library should be open on Sundays from noon to 5pm.",
+        "The city should restore Saturday morning hours at the Riverside Branch Library."
+      ],
+      "storedTitle": "Extend Riverside Branch Library Hours",
+      "storedSummary": "Working families need evening and weekend access to the Riverside Branch so the library is usable after the school day and on Sundays.",
+      "storedPlankTexts": [
+        "The Riverside Branch Library should stay open until 8pm on weekdays.",
+        "The Riverside Branch Library should be open on Sundays from noon to 5pm.",
+        "The city should restore Saturday morning hours at the Riverside Branch Library."
+      ],
+      "storedPlankOrigins": [
+        "user",
+        "user",
+        "user"
+      ],
+      "screenshot": "/tmp/causestarter-seed-out/cause-verify-fad7cdae-3154-4231-b1fd-70cd0b60fb86.png"
+    },
+    {
+      "causeId": "e0f26436-1cf1-4961-9f5d-4676e3cb31ea",
+      "title": "Protected Bike Lanes on Maple Avenue",
+      "reachable": true,
+      "headingVisible": true,
+      "titleValue": "Protected Bike Lanes on Maple Avenue",
+      "summaryValue": "Residents want a continuous protected bike lane on Maple Avenue so people can ride to school and work without mixing with fast car traffic.",
+      "draftCount": 3,
+      "plankTexts": [
+        "Maple Avenue should have a protected bike lane from the river to City Hall.",
+        "Bike lane barriers on Maple Avenue should be in place before the next school year.",
+        "The city should add a signalized bike crossing at Maple Avenue and 4th Street."
+      ],
+      "storedTitle": "Protected Bike Lanes on Maple Avenue",
+      "storedSummary": "Residents want a continuous protected bike lane on Maple Avenue so people can ride to school and work without mixing with fast car traffic.",
+      "storedPlankTexts": [
+        "Maple Avenue should have a protected bike lane from the river to City Hall.",
+        "Bike lane barriers on Maple Avenue should be in place before the next school year.",
+        "The city should add a signalized bike crossing at Maple Avenue and 4th Street."
+      ],
+      "storedPlankOrigins": [
+        "user",
+        "user",
+        "user"
+      ],
+      "screenshot": "/tmp/causestarter-seed-out/cause-verify-e0f26436-1cf1-4961-9f5d-4676e3cb31ea.png"
+    },
+    {
+      "causeId": "627bd371-b7d3-4bba-9f68-faee38b8fd05",
+      "title": "Neighborhood Compost Drop-Off",
+      "reachable": true,
+      "headingVisible": true,
+      "titleValue": "Neighborhood Compost Drop-Off",
+      "summaryValue": "A weekly food-scraps drop-off would keep waste out of the landfill and give neighbors a simple way to compost without a backyard bin.",
+      "draftCount": 3,
+      "plankTexts": [
+        "The city should open a weekly food-scraps drop-off at the community garden.",
+        "Apartment buildings on Oak Street should get shared compost bins by this fall.",
+        "The sanitation department should collect food scraps from the drop-off every Tuesday."
+      ],
+      "storedTitle": "Neighborhood Compost Drop-Off",
+      "storedSummary": "A weekly food-scraps drop-off would keep waste out of the landfill and give neighbors a simple way to compost without a backyard bin.",
+      "storedPlankTexts": [
+        "The city should open a weekly food-scraps drop-off at the community garden.",
+        "Apartment buildings on Oak Street should get shared compost bins by this fall.",
+        "The sanitation department should collect food scraps from the drop-off every Tuesday."
+      ],
+      "storedPlankOrigins": [
+        "user",
+        "user",
+        "user"
+      ],
+      "screenshot": "/tmp/causestarter-seed-out/cause-verify-627bd371-b7d3-4bba-9f68-faee38b8fd05.png"
+    },
+    {
+      "causeId": "fae6d5d9-8aa0-48dc-b38b-e96f9a9739e1",
+      "title": "After-School Programs at Lincoln Rec Center",
+      "reachable": true,
+      "headingVisible": true,
+      "titleValue": "After-School Programs at Lincoln Rec Center",
+      "summaryValue": "Families need affordable after-school care at Lincoln Rec Center so kids have a safe place to go until parents get off work.",
+      "draftCount": 3,
+      "plankTexts": [
+        "Lincoln Rec Center should offer after-school programs until 6pm on school days.",
+        "After-school enrollment at Lincoln Rec Center should stay free for families who qualify for free lunch.",
+        "The rec center should add a homework-help hour staffed four days a week."
+      ],
+      "storedTitle": "After-School Programs at Lincoln Rec Center",
+      "storedSummary": "Families need affordable after-school care at Lincoln Rec Center so kids have a safe place to go until parents get off work.",
+      "storedPlankTexts": [
+        "Lincoln Rec Center should offer after-school programs until 6pm on school days.",
+        "After-school enrollment at Lincoln Rec Center should stay free for families who qualify for free lunch.",
+        "The rec center should add a homework-help hour staffed four days a week."
+      ],
+      "storedPlankOrigins": [
+        "user",
+        "user",
+        "user"
+      ],
+      "screenshot": "/tmp/causestarter-seed-out/cause-verify-fae6d5d9-8aa0-48dc-b38b-e96f9a9739e1.png"
+    },
+    {
+      "causeId": "8050860c-3f49-4aa3-8537-338ea5a87a6f",
+      "title": "Better Lighting in Cedar Park",
+      "reachable": true,
+      "headingVisible": true,
+      "titleValue": "Better Lighting in Cedar Park",
+      "summaryValue": "Evening walkers and families want working lights on the main paths so Cedar Park stays usable and feels safe after dark.",
+      "draftCount": 3,
+      "plankTexts": [
+        "Every main path in Cedar Park should have working lights by the end of the year.",
+        "The city should replace the broken fixtures at the Cedar Park playground this quarter.",
+        "Cedar Park parking lot lights should stay on until 10pm."
+      ],
+      "storedTitle": "Better Lighting in Cedar Park",
+      "storedSummary": "Evening walkers and families want working lights on the main paths so Cedar Park stays usable and feels safe after dark.",
+      "storedPlankTexts": [
+        "Every main path in Cedar Park should have working lights by the end of the year.",
+        "The city should replace the broken fixtures at the Cedar Park playground this quarter.",
+        "Cedar Park parking lot lights should stay on until 10pm."
+      ],
+      "storedPlankOrigins": [
+        "user",
+        "user",
+        "user"
+      ],
+      "screenshot": "/tmp/causestarter-seed-out/cause-verify-8050860c-3f49-4aa3-8537-338ea5a87a6f.png"
+    }
+  ],
+  "momentum": {
+    "draftsHeading": true,
+    "emptyAlert": false,
+    "walletAlert": false,
+    "found": [
+      {
+        "title": "Extend Riverside Branch Library Hours",
+        "visible": true
+      },
+      {
+        "title": "Protected Bike Lanes on Maple Avenue",
+        "visible": true
+      },
+      {
+        "title": "Neighborhood Compost Drop-Off",
+        "visible": true
+      },
+      {
+        "title": "After-School Programs at Lincoln Rec Center",
+        "visible": true
+      },
+      {
+        "title": "Better Lighting in Cedar Park",
+        "visible": true
+      }
+    ],
+    "bodyExcerpt": "CauseStarter\nHome\nStart\nMomentum\nTools\nConnect\nMomentum\n\nCauses you are building on this device, plus causes whose main statement you have publicly supported on-chain.\n\nDrafts\nBetter Lighting in Cedar Park\nNothing published yet\n3 issues · 0 published\nAfter-School Programs at Lincoln Rec Center\nNothing published yet\n3 issues · 0 published\nNeighborhood Compost Drop-Off\nNothing published yet\n3 issues · 0 published\nProtected Bike Lanes on Maple Avenue\nNothing published yet\n3 issues · 0 published\nExtend Riverside Branch Library Hours\nNothing published yet\n3 issues · 0 published\nStart another cause",
+    "screenshot": "/tmp/causestarter-seed-out/momentum.png"
+  },
+  "walletWall": "No wallet wall blocked draft creation. Did not publish on-chain.",
+  "error": null,
+  "walletButtonVisibleOnHome": true,
+  "localStorageCount": 5,
+  "localStorageIds": [
+    {
+      "id": "fad7cdae-3154-4231-b1fd-70cd0b60fb86",
+      "title": "Extend Riverside Branch Library Hours",
+      "plankCount": 3
+    },
+    {
+      "id": "e0f26436-1cf1-4961-9f5d-4676e3cb31ea",
+      "title": "Protected Bike Lanes on Maple Avenue",
+      "plankCount": 3
+    },
+    {
+      "id": "627bd371-b7d3-4bba-9f68-faee38b8fd05",
+      "title": "Neighborhood Compost Drop-Off",
+      "plankCount": 3
+    },
+    {
+      "id": "fae6d5d9-8aa0-48dc-b38b-e96f9a9739e1",
+      "title": "After-School Programs at Lincoln Rec Center",
+      "plankCount": 3
+    },
+    {
+      "id": "8050860c-3f49-4aa3-8537-338ea5a87a6f",
+      "title": "Better Lighting in Cedar Park",
+      "plankCount": 3
+    }
+  ]
+}

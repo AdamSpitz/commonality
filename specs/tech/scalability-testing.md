@@ -42,6 +42,8 @@ Limitations for scalability testing:
 
 So the plan is to reuse this suite for data generation, then add a thin load-test harness around the real read paths.
 
+For 24/7 / clocked worlds and an operator UI, do not invent a second write harness: attach these observers to the campaign executor as described in [`fake-data-generation/continuous-simulation.md`](../../fake-data-generation/continuous-simulation.md). The `scripts/scalability-*.mjs` sketch below is still the right *measurement* shape; implement it as the live-run sidecar rather than as disconnected one-shots.
+
 ## Proposed automated test scripts
 
 Add these scripts rather than trying to make one mega-test do everything.

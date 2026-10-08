@@ -6,6 +6,8 @@ describe('pageWidthForPath', () => {
     expect(pageWidthForPath('/docs')).toBe('reading')
     expect(pageWidthForPath('/docs/causestarter/the-jobs')).toBe('reading')
     expect(pageWidthForPath('/settings')).toBe('reading')
+    expect(pageWidthForPath('/admin/test-data')).toBe('reading')
+    expect(pageWidthForPath('/admin/simulations')).toBe('reading')
   })
 
   it('treats cause boards and home as workspaces', () => {

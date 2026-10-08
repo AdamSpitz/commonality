@@ -595,6 +595,8 @@ services:
       VITE_CIVILITY_URL: ${VITE_CIVILITY_URL:-http://civility.localhost:8088/#/}
       VITE_COMMON_SENSE_MAJORITY_URL: ${VITE_COMMON_SENSE_MAJORITY_URL:-http://common-sense-majority.localhost:8088/#/}
       VITE_CONCEPTSPACE_URL: ${VITE_CONCEPTSPACE_URL:-http://conceptspace.localhost:8088/#/}
+    volumes:
+      - ./fake-data-generation/output/campaigns:/simulations:ro
     depends_on:
       cause-assist:
         condition: service_healthy

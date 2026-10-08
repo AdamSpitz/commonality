@@ -204,3 +204,4 @@ Do these in order unless Adam names a different item. Keep each item small enoug
 - [`statement-generation.md`](./statement-generation.md) remains the only acceptance pipeline for new real statements.
 - [`../workflow/testnet-working-plan.md`](../workflow/testnet-working-plan.md) owns shared-lab health and deployment operations.
 - The verifier should gain campaign-specific checks only when their desired inputs, cadence, and autonomy tier are understood; the first implementation can produce standalone reconciliation artifacts.
+- Clocked 24/7 living worlds and an operator create/run UI are **not** this plan. Recommendations: [`continuous-simulation.md`](./continuous-simulation.md). Finish the 10-user testnet canary here before a testnet trickle.

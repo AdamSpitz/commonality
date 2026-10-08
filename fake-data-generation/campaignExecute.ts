@@ -12,6 +12,7 @@ import {
 } from './campaignEnvironment.js';
 import { createCampaignContractAdapter, createLiveCampaignActionWriter, createReceiptLookup, persistCampaignBindings } from './campaignActionAdapter.js';
 import { executeCampaignPlan } from './campaignExecutor.js';
+import { parseCampaignReplayMode } from './campaignHeartbeat.js';
 import { loadCampaignPlan } from './campaignPlanner.js';
 import { createLiveCampaignFundingChain, provisionCampaignWallets } from './campaignProvisioning.js';
 import { createEmptyRuntimeBindings, loadRuntimeBindings } from './campaignRuntimeBindings.js';
@@ -123,6 +124,8 @@ async function main(): Promise<void> {
     getReceipt: createReceiptLookup(publicClient),
     persistBindings: (value) => persistCampaignBindings(plan, value, bindingsPath),
   });
+  const replay = parseCampaignReplayMode(parseOption('--replay', 'compress'));
+  const executionDirectory = path.dirname(path.join(outputDirectory, manifest.artifactLayout.executionState));
   const summary = await executeCampaignPlan({
     campaignId: plan.campaignId,
     manifestFingerprint: plan.manifestFingerprint,
@@ -130,6 +133,9 @@ async function main(): Promise<void> {
     adapter,
     options: {
       statePath: path.join(outputDirectory, manifest.artifactLayout.executionState),
+      heartbeatPath: path.join(executionDirectory, 'heartbeat.json'),
+      latestHeartbeatPath: path.join(path.dirname(outputDirectory), 'heartbeat.json'),
+      replay,
       concurrency: Number(parseOption('--concurrency', '1')),
       pacingMs: Number(parseOption('--pacing-ms', environment.mode === 'local' ? '0' : '250')),
       maxRetries: Number(parseOption('--max-retries', '2')),
@@ -138,7 +144,7 @@ async function main(): Promise<void> {
       nativeTokenBudget: BigInt(parseOption('--native-budget-wei', '10000000000000000000')!),
     },
   });
-  console.log(`Campaign ${plan.campaignId}: mined ${summary.mined}, failed ${summary.failed}, submitted ${summary.submitted}, planned ${summary.planned}.`);
+  console.log(`Campaign ${plan.campaignId} (${replay}): mined ${summary.mined}, failed ${summary.failed}, submitted ${summary.submitted}, planned ${summary.planned}.`);
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

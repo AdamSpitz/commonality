@@ -5,7 +5,7 @@ import type { CampaignManifestV1 } from '../campaignSchema.js';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { buildCampaignPlan, loadCampaignPlan, validatePlannedActions, writePlanArtifacts } from '../campaignPlanner.js';
+import { CAMPAIGN_SIMULATED_HORIZON_SECONDS, buildCampaignPlan, loadCampaignPlan, plannedDueAtSim, validatePlannedActions, writePlanArtifacts } from '../campaignPlanner.js';
 
 async function loadManifest(): Promise<CampaignManifestV1> {
   return JSON.parse(await readFile(new URL('../campaigns/medium-realistic-v1.json', import.meta.url), 'utf8')) as CampaignManifestV1;
@@ -84,10 +84,33 @@ test('delegations follow a shared-cause trust graph and revocations follow deleg
   }
 });
 
+test('validation rejects an action due before its dependency', async () => {
+  const manifest = await loadManifest(); const plan = await buildCampaignPlan(manifest); const invalid = structuredClone(plan.actions);
+  invalid[1].dueAtSim = 0;
+  invalid[0].dueAtSim = 10;
+  invalid[1].dependsOn = [invalid[0].id];
+  assert.throws(() => validatePlannedActions(manifest, plan.statements, plan.users, plan.projects, invalid), /due before dependency/);
+});
+
 test('validation rejects an action whose prerequisite points forward', async () => {
   const manifest = await loadManifest(); const plan = await buildCampaignPlan(manifest); const invalid = structuredClone(plan.actions);
   invalid[0].dependsOn = [invalid[1].id];
   assert.throws(() => validatePlannedActions(manifest, plan.statements, plan.users, plan.projects, invalid), /impossible dependency/);
+});
+
+test('planner stamps dueAtSim across the simulated horizon and never before a dependency', async () => {
+  const plan = await buildCampaignPlan(await loadManifest());
+  const byId = new Map(plan.actions.map((action) => [action.id, action]));
+  assert.equal(plannedDueAtSim(plan.actions[0]), 0);
+  assert.equal(plan.estimate.clock?.horizonSeconds, CAMPAIGN_SIMULATED_HORIZON_SECONDS);
+  assert.equal(plan.estimate.clock?.lastDueAtSim, plannedDueAtSim(plan.actions[plan.actions.length - 1]));
+  assert.ok((plan.estimate.clock?.lastDueAtSim ?? 0) >= CAMPAIGN_SIMULATED_HORIZON_SECONDS * 0.9);
+  for (const action of plan.actions) {
+    assert.equal(Number.isInteger(plannedDueAtSim(action)), true);
+    for (const dependencyId of action.dependsOn) {
+      assert.ok(plannedDueAtSim(action) >= plannedDueAtSim(byId.get(dependencyId)!));
+    }
+  }
 });
 
 test('written planning artifacts reload into the same campaign plan', async () => {

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Alert, Box, Button, Card, CardContent, Chip, Stack, Typography } from '@mui/material'
 import { Link as RouterLink, useSearchParams } from 'react-router-dom'
+import { OperatorAdminTabs } from '../components/OperatorAdminTabs'
 import {
   fetchEncryptedTestData,
   testDataEnvironment,
@@ -39,6 +40,7 @@ export function TestDataAdminPage() {
           An operator-only view of generated activity. Newest runs appear first.
         </Typography>
       </Box>
+      <OperatorAdminTabs capability={capability} active="test-data" />
       {registry.runs.length === 0 ? <Alert severity="info">No generated runs have been recorded yet.</Alert> : null}
       {registry.runs.map(run => (
         <Card key={run.runId} variant="outlined">

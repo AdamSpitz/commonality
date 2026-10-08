@@ -8,6 +8,7 @@ export type PageWidth = 'reading' | 'workspace'
 export function pageWidthForPath(pathname: string): PageWidth {
   if (pathname === '/docs' || pathname.startsWith('/docs/')) return 'reading'
   if (pathname === '/settings') return 'reading'
+  if (pathname === '/admin' || pathname.startsWith('/admin/')) return 'reading'
   return 'workspace'
 }
 

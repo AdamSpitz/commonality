@@ -1,0 +1,13 @@
+{
+  "name": "@commonality/data-mining",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Workbench for mining real-world Commonality artifact examples",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "start": "tsx src/server.ts",
+    "test": "tsx --test src/*.test.ts",
+    "typecheck": "tsc --noEmit"
+  }
+}

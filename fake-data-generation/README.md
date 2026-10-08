@@ -1,6 +1,6 @@
 # Fake data generation
 
-**Standing plan (current state + next step):** [`PLAN.md`](./PLAN.md). Statement-writing process: [`statement-generation.md`](./statement-generation.md).
+**Standing plan (current state + next step):** [`PLAN.md`](./PLAN.md). Statement-writing process: [`statement-generation.md`](./statement-generation.md). Clocked 24/7 simulations (recommendations only): [`continuous-simulation.md`](./continuous-simulation.md).
 
 This directory is **four jobs**, not one “generate fake data” switch:
 
@@ -17,7 +17,7 @@ Campaign execution uses the explicit environment boundary in `campaignEnvironmen
 
 Remote canary prep is `npm run gen:campaign:canary-preflight`. It is read-only: chain/bytecode + indexer lag, a 10-user slice of the planned graph, native/token budget and duration estimates, and secrets/retention notes. It writes `reports/remote-canary-preflight.json` and `.md` for Adam's approval and never sets `--confirm-remote-mutation`. Do not run remote execute until that proposal is approved.
 
-The reusable runner in `campaignExecutor.ts` consumes a frozen action plan through a chain adapter. It atomically persists planned/submitted/mined/failed state and transaction hashes, resumes submitted transactions by receipt lookup, respects action prerequisites, and enforces bounded concurrency, pacing, classified retries, a transaction cap, and a native-token budget. [`campaignActionAdapter.ts`](./campaignActionAdapter.ts) is the contract-binding layer: it maps each planned action type onto SDK writes, classifies RPC vs revert failures, and updates public runtime bindings (no private keys). `npm run gen:campaign:execute` runs that adapter locally after environment preflight and funds generated wallets (ETH plus payment tokens, minting locally when transfer fails). Remote mode still requires `--confirm-remote-mutation` and stays transfer-only. Pass `--skip-provision` only when wallets are already funded. Generated wallet secrets stay under `output/campaigns/secrets/` (gitignored via `output/`). The funding ledger is `execution/funding-ledger.json`.
+The reusable runner in `campaignExecutor.ts` consumes a frozen action plan through a chain adapter. It atomically persists planned/submitted/mined/failed state and transaction hashes, resumes submitted transactions by receipt lookup, respects action prerequisites, and enforces bounded concurrency, pacing, classified retries, a transaction cap, and a native-token budget. Planned actions carry `dueAtSim` (seconds from simulated t0, spread over 30 days). `npm run gen:campaign:execute -- --replay compress` (default) still submits as fast as the chain allows. `--replay realtime` sleeps until each action’s wall due time (`startedAt + dueAtSim`) and writes `execution/heartbeat.json` plus a well-known `output/campaigns/heartbeat.json` for the operator UI. Resume keeps the original `startedAt`. CauseStarter `/admin/simulations` (same capability key as test-data) is a read-only catalog that polls that heartbeat. [`campaignActionAdapter.ts`](./campaignActionAdapter.ts) is the contract-binding layer: it maps each planned action type onto SDK writes, classifies RPC vs revert failures, and updates public runtime bindings (no private keys). `npm run gen:campaign:execute` runs that adapter locally after environment preflight and funds generated wallets (ETH plus payment tokens, minting locally when transfer fails). Remote mode still requires `--confirm-remote-mutation` and stays transfer-only. Pass `--skip-provision` only when wallets are already funded. Generated wallet secrets stay under `output/campaigns/secrets/` (gitignored via `output/`). The funding ledger is `execution/funding-ledger.json`.
 
 Each local `fund-project` write currently spends `CAMPAIGN_FUND_PROJECT_TOKEN` (`0.01` of the 6-decimal payment token), not the planner’s persona-sized `amount`. Reconciliation’s SDK funding check uses that same unit cost. Note folds are looked up as `<contract.toLowerCase()>:<id>`.
 
@@ -116,7 +116,8 @@ Generated files are split into two directories to make their lifecycle explicit:
 Every completed simulation appends an encrypted run to the test-data registry. Locally,
 open `http://localhost:8088/admin` and follow **Browse generated test-data runs**. The
 run page provides the objective action/user summary and can connect CauseStarter as any
-disposable fake user from that run.
+disposable fake user from that run. The same key opens `/admin/simulations`, which tails
+`output/campaigns/heartbeat.json` while a clocked campaign is running.
 
 **Capability key and LLMs.** The AES key lives at
 `fake-data-generation/output/test-data/.admin-capability` (gitignored, never

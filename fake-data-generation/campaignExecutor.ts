@@ -1,7 +1,12 @@
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import type { Hex } from 'viem';
-import type { PlannedAction } from './campaignPlanner.js';
+import {
+  persistCampaignHeartbeat,
+  type CampaignHeartbeat,
+  type CampaignReplayMode,
+} from './campaignHeartbeat.js';
+import { plannedDueAtSim, type PlannedAction } from './campaignPlanner.js';
 
 export const CAMPAIGN_EXECUTION_VERSION = 'commonality-campaign-execution-v1' as const;
 
@@ -40,6 +45,7 @@ export interface CampaignExecutionState {
   manifestFingerprint: string;
   updatedAt: string;
   actions: CampaignActionExecution[];
+  replay?: { mode: CampaignReplayMode; startedAt: string };
 }
 
 export interface CampaignExecutionOptions {
@@ -50,6 +56,10 @@ export interface CampaignExecutionOptions {
   retryBackoffMs: number;
   transactionCap: number;
   nativeTokenBudget: bigint;
+  replay?: CampaignReplayMode;
+  heartbeatPath?: string;
+  /** Well-known latest pointer for the operator UI (`output/campaigns/heartbeat.json`). */
+  latestHeartbeatPath?: string;
   shouldStop?: () => boolean;
   now?: () => Date;
   sleep?: (milliseconds: number) => Promise<void>;
@@ -106,15 +116,28 @@ export async function executeCampaignPlan(input: {
   if (!Number.isInteger(options.concurrency) || options.concurrency < 1) throw new Error('campaign concurrency must be a positive integer');
   if (!Number.isInteger(options.transactionCap) || options.transactionCap < 0) throw new Error('campaign transaction cap must be a non-negative integer');
   if (options.nativeTokenBudget < 0n) throw new Error('campaign native-token budget must be non-negative');
+  const replay: CampaignReplayMode = options.replay ?? 'compress';
   const now = options.now ?? (() => new Date());
   const sleep = options.sleep ?? defaultSleep;
   let state = await loadState(options.statePath);
   if (!state) {
-    state = { version: CAMPAIGN_EXECUTION_VERSION, campaignId: input.campaignId, manifestFingerprint: input.manifestFingerprint, updatedAt: now().toISOString(), actions: actions.map((action) => ({ actionId: action.id, status: 'planned', attempts: 0 })) };
+    state = {
+      version: CAMPAIGN_EXECUTION_VERSION,
+      campaignId: input.campaignId,
+      manifestFingerprint: input.manifestFingerprint,
+      updatedAt: now().toISOString(),
+      actions: actions.map((action) => ({ actionId: action.id, status: 'planned', attempts: 0 })),
+      replay: { mode: replay, startedAt: now().toISOString() },
+    };
     await persistState(options.statePath, state);
   }
   if (state.version !== CAMPAIGN_EXECUTION_VERSION || state.campaignId !== input.campaignId || state.manifestFingerprint !== input.manifestFingerprint) throw new Error('execution state does not match this campaign plan');
   if (state.actions.length !== actions.length || state.actions.some((item, index) => item.actionId !== actions[index].id)) throw new Error('execution state action list does not match this campaign plan');
+  if (!state.replay) {
+    state.replay = { mode: replay, startedAt: now().toISOString() };
+    await persistState(options.statePath, state);
+  }
+  const startedAtMs = Date.parse(state.replay.startedAt);
 
   const records = new Map(state.actions.map((record) => [record.actionId, record]));
   let reservedNativeCost = state.actions.reduce((sum, record) => sum + BigInt(record.nativeCost ?? 0), 0n);
@@ -123,10 +146,69 @@ export async function executeCampaignPlan(input: {
   let stopped = false;
   let stateWrite = Promise.resolve();
   let submissionLock = Promise.resolve();
+
+  const buildHeartbeat = (stoppedNow: boolean): CampaignHeartbeat => {
+    const counts = summarize(state!, stoppedNow);
+    const simElapsed = Math.max(0, Math.floor((now().getTime() - startedAtMs) / 1000));
+    const minedSim = actions.reduce((max, action) => {
+      const record = records.get(action.id);
+      return record?.status === 'mined' ? Math.max(max, plannedDueAtSim(action)) : max;
+    }, 0);
+    const waiting = actions.filter((action) => {
+      const record = records.get(action.id)!;
+      if (record.status !== 'planned') return false;
+      return action.dependsOn.every((dependency) => records.get(dependency)?.status === 'mined');
+    });
+    const nextDueAtSim = waiting.length === 0 ? null : Math.min(...waiting.map(plannedDueAtSim));
+    const dueLagSeconds = replay === 'realtime' && nextDueAtSim !== null
+      ? Math.max(0, simElapsed - nextDueAtSim)
+      : 0;
+    return {
+      version: 'commonality-campaign-heartbeat-v1',
+      campaignId: input.campaignId,
+      replay,
+      startedAt: state!.replay!.startedAt,
+      updatedAt: now().toISOString(),
+      simNow: replay === 'realtime' ? simElapsed : minedSim,
+      nextDueAtSim,
+      dueLagSeconds,
+      mined: counts.mined,
+      failed: counts.failed,
+      submitted: counts.submitted,
+      planned: counts.planned,
+      stopped: stoppedNow,
+      nativeCost: counts.nativeCost.toString(),
+    };
+  };
+
+  const writeHeartbeat = async (): Promise<void> => {
+    const heartbeat = buildHeartbeat(stopped);
+    if (options.heartbeatPath) await persistCampaignHeartbeat(options.heartbeatPath, heartbeat);
+    if (options.latestHeartbeatPath) await persistCampaignHeartbeat(options.latestHeartbeatPath, heartbeat);
+  };
+
   const save = async (): Promise<void> => {
     state!.updatedAt = now().toISOString();
-    stateWrite = stateWrite.then(() => persistState(options.statePath, state!));
+    stateWrite = stateWrite.then(async () => {
+      await persistState(options.statePath, state!);
+      await writeHeartbeat();
+    });
     await stateWrite;
+  };
+
+  const actionIsDue = (action: PlannedAction, record: CampaignActionExecution): boolean => {
+    if (record.status === 'submitted') return true;
+    if (replay === 'compress') return true;
+    return now().getTime() >= startedAtMs + plannedDueAtSim(action) * 1000;
+  };
+
+  const sleepUntilDue = async (targetMs: number): Promise<void> => {
+    while (now().getTime() < targetMs) {
+      if (options.shouldStop?.()) { stopped = true; return; }
+      const remaining = targetMs - now().getTime();
+      await sleep(Math.max(1, Math.min(1000, remaining)));
+      await writeHeartbeat();
+    }
   };
 
   const submitWithinBudget = async (action: PlannedAction, record: CampaignActionExecution, estimate: bigint): Promise<void> => {
@@ -191,16 +273,24 @@ export async function executeCampaignPlan(input: {
 
   while (!stopped) {
     if (options.shouldStop?.()) { stopped = true; break; }
-    const ready = actions.filter((action) => {
+    const dependencyReady = actions.filter((action) => {
       const record = records.get(action.id)!;
       if (record.status === 'mined' || record.status === 'failed') return false;
       return record.status === 'submitted' || action.dependsOn.every((dependency) => records.get(dependency)?.status === 'mined');
     });
-    if (ready.length === 0) break;
+    const ready = dependencyReady.filter((action) => actionIsDue(action, records.get(action.id)!));
+    if (ready.length === 0) {
+      const waiting = dependencyReady.filter((action) => records.get(action.id)!.status === 'planned');
+      if (waiting.length === 0) break;
+      const nextDueMs = Math.min(...waiting.map((action) => startedAtMs + plannedDueAtSim(action) * 1000));
+      await sleepUntilDue(nextDueMs);
+      continue;
+    }
     const batch = ready.slice(0, options.concurrency);
     await Promise.all(batch.map(run));
     if (batch.every((action) => records.get(action.id)!.status === 'submitted')) break;
   }
   await stateWrite;
+  await writeHeartbeat();
   return summarize(state, stopped);
 }

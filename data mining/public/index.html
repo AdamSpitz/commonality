@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Data mining · Commonality artifacts</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="top">
+    <div>
+      <p class="kicker">Commonality research</p>
+      <h1>Mine example artifacts</h1>
+    </div>
+    <p class="lede">Pull real-world wording that could become a cause, goal, belief, plank, statement, or project. Pick the kinds you want, pick sources, then keep only the rows that survive a read-aloud.</p>
+  </header>
+
+  <main class="layout">
+    <form id="mine-form" class="panel controls">
+      <label class="field">
+        <span>Query</span>
+        <input id="query" name="query" type="search" placeholder="housing, climate, school choice…" autocomplete="off" />
+      </label>
+      <label class="field">
+        <span>Page URL <em>(for Open URL)</em></span>
+        <input id="url" name="url" type="url" placeholder="https://…" autocomplete="off" />
+      </label>
+
+      <fieldset>
+        <legend>Mine for</legend>
+        <div id="artifact-list" class="chips"></div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Geographic level</legend>
+        <div id="geo-list" class="chips"></div>
+        <p class="hint">Leave all checked for any scale. Uncheck to keep only that tier (global treaties vs a neighborhood association).</p>
+      </fieldset>
+
+      <fieldset>
+        <legend>Sources</legend>
+        <div id="source-list" class="chips"></div>
+        <p class="hint" id="source-hint">Wikipedia, DuckDuckGo, Open URL, and the local corpus work without keys. Grok, X, and Google Search light up with `grok_api_key` / `XAI_API_KEY`. X and Google use native tokens when those are set; otherwise they use xAI live search. Grok quotes published claims from model knowledge.</p>
+      </fieldset>
+
+      <div class="actions">
+        <button type="submit" id="mine-btn">Mine</button>
+        <button type="button" id="save-btn" disabled>Save selected to mined data/</button>
+      </div>
+      <p class="status" id="status"></p>
+    </form>
+
+    <section class="panel results">
+      <header class="results-head">
+        <h2>Candidates</h2>
+        <label class="select-all"><input type="checkbox" id="select-all" /> Select all</label>
+      </header>
+      <ol id="result-list" class="result-list"></ol>
+    </section>
+  </main>
+  <script src="/app.js"></script>
+</body>
+</html>

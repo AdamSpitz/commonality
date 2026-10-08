@@ -292,6 +292,9 @@ Encrypted run documents live under `fake-data-generation/output/test-data/`.
 Read `fake-data-generation/output/test-data/.admin-capability` yourself and
 open the URL with `?key=` — Adam does not treat that local key as a secret
 from the agent. See [`fake-data-generation/README.md`](../fake-data-generation/README.md#browsing-generated-runs).
+The same key opens `/admin/simulations`, a read-only catalog that polls
+`/simulations/heartbeat.json` (written by `gen:campaign:execute`). Start/stop
+still happen on the CLI.
 
 ### Prerequisites
 

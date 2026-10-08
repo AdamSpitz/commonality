@@ -19,7 +19,7 @@ export default defineConfig(({ mode }) => {
   build: {
     outDir: `dist/${domain}`,
   },
-  plugins: [react(), htmlTitlePlugin(domain), runtimeConfigPlugin(domain, env), endUserDocsPlugin({ domain }), apiDocsStaticPlugin(domain)],
+  plugins: [react(), htmlTitlePlugin(domain), runtimeConfigPlugin(domain, env), endUserDocsPlugin({ domain }), apiDocsStaticPlugin(domain), simulationHeartbeatPlugin()],
   worker: {
     format: 'es',
   },
@@ -143,6 +143,31 @@ function sendStaticFile(root: string, urlPath: string, res: ServerResponse, next
   }
   res.setHeader('Content-Type', types[ext] ?? 'application/octet-stream')
   createReadStream(file).pipe(res)
+}
+
+function simulationHeartbeatPlugin(): Plugin {
+  const file = path.resolve(process.cwd(), '../fake-data-generation/output/campaigns/heartbeat.json')
+  return {
+    name: 'simulation-heartbeat',
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
+        const url = (req.url ?? '').split('?')[0]
+        if (url !== '/simulations/heartbeat.json') {
+          next()
+          return
+        }
+        res.setHeader('cache-control', 'no-store')
+        if (!existsSync(file)) {
+          res.statusCode = 404
+          res.setHeader('content-type', 'application/json; charset=utf-8')
+          res.end('{"error":"no-heartbeat"}\n')
+          return
+        }
+        res.setHeader('content-type', 'application/json; charset=utf-8')
+        createReadStream(file).pipe(res)
+      })
+    },
+  }
 }
 
 function apiDocsStaticPlugin(buildDomain: string): Plugin {
