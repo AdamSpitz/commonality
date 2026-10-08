@@ -20,6 +20,12 @@ Users and communities should be able to define domain-specific canonical-ID sche
 
 Canonical means canonical within an identified scheme. Interfaces and communities can recognize useful schemes without requiring one universal authority. This need not prevent every abuse: making duplicate funding harder, easier to notice, or easier to demonstrate is already valuable. Competing schemes, changed details, and overlapping work are design questions to resolve later.
 
+## Who the work points at
+
+Content funding gets a payee for free: the canonical id embeds the channel, and proving control of that channel is enough to withdraw escrowed funds or to take over contract creation. See [channel claiming](../tech/subsystems/content-funding/channel-claiming.md). That pattern fits work whose identity already names a single party allowed to do it or dispose of it: a named performer, a repository's maintainers, a copyright holder releasing a specific work. The scheme can embed that rights-holder, and funds raised by a third party can wait until they prove control.
+
+It does not fit every category below. An open slot (any tutor for this session, any facilitator for this meeting) names a role, not a person. The work id still should not pretend to be a channel. Filling the slot is a separate choice of beneficiary on the LazyGiving project: Alice can create the project and name Bob, using the existing [beneficiary-id](../tech/subsystems/claimable-beneficiaries.md) system. There is no identity for "the human named Bob Smith." What exists is "the owner of this channel" or "the controller of this domain" (`x` / `youtube` / `substack` / `dns`), which is often enough. Bob proves control of that id and then claims or refuses. The same split applies when the doer is not derivable from the work at all: an independent check should not pay the owner of the thing being checked, and a world outcome (a restored habitat, a removed barrier) has no owner. A steward's permission to act is not proof that the change occurred. In those cases assignment or acceptance still sits between "this is the work" and "this beneficiary may withdraw."
+
 ## Structured descriptions and creation forms
 
 Work types should also supply recognizable categories and clearly specified fields. For example: maintenance → open-source software → repository → maintenance period, with additional fields for scope and commitments.
