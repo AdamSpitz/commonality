@@ -14,6 +14,8 @@ Getting **testnet to a two-person shared lab** is also a standing plan, not a pi
 
 ----
 
+- **(Ask)** Generalize content funding into extensible structured work types: domain-defined canonical work-item IDs, explicit links to funding requests with duplicate-claim rules, structured creation forms, and item/sequence alignment attestations feeding fundable-projects boards. Capture and refine the design before implementation; see [Structured fundable work](specs/product/structured-fundable-work.md).
+
 - **(Tell)** Next fake-data/seed-data step lives in [`fake-data-generation/PLAN.md`](fake-data-generation/PLAN.md). Abortion, immigration, crime, and LGBT-schools triples are accepted; next is the demo-seed live UI pass.
 
 - **(Tell)** Next testnet-lab step lives in [`workflow/testnet-working-plan.md`](workflow/testnet-working-plan.md). Items 1–10 are checked. The nightly wrapper exports the mutation flag itself. The job still exits red until the local deep-stack item below passes. Indexer ingest is in [`inbox.md`](inbox.md) only if GraphQL goes red again. Do not mix with mass fake activity or mainnet.
