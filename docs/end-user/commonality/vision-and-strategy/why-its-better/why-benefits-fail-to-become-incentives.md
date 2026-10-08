@@ -208,3 +208,84 @@ For a concrete project, a reader should be able to answer:
 
 The test is the same question from the start of this page: **Whose choice
 changes once this money can reach them—and why?**
+
+
+
+
+
+
+# Chat with Astra
+
+
+> Any suggestions for additions we could make to the product or the fake-data examples or whatever? Like, does this give you any ideas for cool new coordination mechanisms or ways we could use the existing ones or whatever?
+
+
+Yes. The most interesting shift is to make **“there is money available for more of this” a first-class product experience**. Right now, the docs describe the ingredients, but we could make their combination much more tangible.
+
+I’d explore these six ideas. The first two mostly assemble existing mechanisms; the others introduce new behavior.
+
+1. **Give every funding opportunity a producer-facing view.**
+
+   A cause board could answer: “What could I do here to get paid?” Show the desired qualities, examples of qualifying work, available funding, who makes funding decisions, and how to propose work.
+
+   Put **“Fund more of this”** and **“Produce something like this”** beside each other. That makes your two-sided coordination point visible. It should distinguish money people can currently direct from money actually committed to a particular piece of work.
+
+2. **Let people turn an example into a standing invitation.**
+
+   After funding a useful piece, offer: **“What about this would you like more of?”**
+
+   Someone funds an explanation of a contentious issue, then specifies: “Explains the strongest opposing argument accurately, for readers unfamiliar with it.” They can find an existing matching cause or publish that funding purpose and attach money.
+
+   This provides a path from *recognizing value afterward* to *requesting more beforehand*. Examples and counterexamples could also help evaluators interpret the criteria.
+
+3. **Let producers ask for a commitment before doing the work.**
+
+   A visible pool may attract twenty people to write essentially the same explainer. Only three get funded; the rest learn that responding to the incentive was a gamble.
+
+   Allow a lightweight proposal: “I could cover this topic for $200.” A contributor or delegate can then fund a prospective round using the existing assurance mechanism. A more ambitious extension would reserve part of a budget until a delivery deadline.
+
+   The new coordination benefit is **allocating effort before people spend it**, while preserving a route for unsolicited completed work.
+
+4. **Fund the missing pieces of a collection.**
+
+   Sometimes “more qualifying work” stops being useful because everyone tackles the easiest example. A pool could publish gaps: explanations for these five audiences, translations into these three languages, accessibility information for these uncovered locations.
+
+   Contributors still fund a shared purpose; producers choose gaps they can fill. Completing a gap changes what the pool seeks next. This would require additional tracking and allocation design, but gives the money a way to express *what is still missing*.
+
+5. **Make “this would be fundable if someone could evaluate it” actionable.**
+
+   Suppose people want to fund accessible translations but nobody trusts the available quality assessments. The board could expose that bottleneck and invite a separate funded proposal for evaluation work.
+
+   That creates a useful sequence: contributors express demand → a reviewer establishes usable criteria and assesses submissions → producers can respond to a credible opportunity. Existing projects, delegation, and attestations provide much of the machinery; the product addition is making the dependency visible.
+
+6. **Try a pool for maintaining a condition over time.**
+
+   For example: “Keep these public guides accurate as circumstances change.” Different people identify stale sections, make corrections, and review updates. Recurring funding supports continuing usefulness.
+
+   This is an interesting extension beyond rewarding discrete output: sometimes the value people want is **that something stays good**. It needs explicit review intervals and responsibility boundaries.
+
+For fake data, I’d start with **one pool, several strangers, two rounds**:
+
+- Several contributors fund careful explanations for a specified audience.
+- Three previously unrelated creators discover the opportunity.
+- One gets a prospective project funded; another submits existing qualifying work.
+- A third produces something that qualifies but receives no funding because the budget is exhausted.
+- In the next round, visible gaps and funding decisions guide what creators propose.
+
+That would extend the existing incentive-demonstrations plan beyond one writer changing their choice. It would demonstrate **a shared funding purpose coordinating several independent decisions**, including where the coordination fails.
+
+My first picks would be the producer-facing view and that synthetic story. They would make the core idea concrete and reveal which additional mechanism is actually needed.
+
+
+
+
+# My response
+
+Right, I like the idea of focusing on “there is money available for this” and making sure that it's a tangible thing, from both directions (donors and doers).
+
+The pattern in these suggestions seems to be something like: meta-data about the projects, or desired-projects, or something?
+
+What needs to be onchain and what doesn't? What's core to the protocol, versus just being offchain/out-of-protocol stuff that anyone can do separately in order to organize the onchain stuff? I'm more interested in figuring out what primitives would help; the offchain stuff is easier to iterate on later.
+
+The thought in my head is something like:
+  - Maybe there's a range of options on the spectrum between "this money is hard-committed to this particular assurance contract" and "this money is soft-committed, meant to be used for something sorta vaguely along these lines." That is, maybe there's a place for "this money is medium-committed, meant for a project that'll match this not-quite-fully-concrete description." i.e. Maybe a new kind of smart contract? It sorta feels like it needs to be a new kind of smart contract - e.g. it escrows the money for some period, and it has a clearer description - but is the purpose clear enough that it makes sense to make it a smart contract? Maybe there's an escrow period and a description of what's wanted; the escrow period helps the potential-donors demonstrate their commitment to donating to *something* along these lines, and the description is a fairly-clear semi-commitment. The donors aren't *required* to make the final commitment to donate to one of the concrete projects (this is important, since it's possible that none of the proposals will be good enough in the donor's estimation), but maybe the donors are at least required to provide an explanation for *why* they're passing? The point is that this makes bad-faith a bit easier to spot: it requires actually locking up the money for a while, and the project proposals can be compared to the request-for-proposals to see whether they actually look plausibly like a good fit, and there'll be an onchain record of the donor backing out (even if he does give a reason). I dunno, this doesn't feel super-compelling to me; maybe you have thoughts?
