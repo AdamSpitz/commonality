@@ -7,6 +7,14 @@ Each entry follows the same shape:
 - **When a user encounters it** — UI surfaces or moments in the user's flow where this concept becomes load-bearing.
 - **What they might want help with** — typical assistant tasks around this concept.
 
+## Why benefits fail to become incentives
+
+[Full page](commonality/vision-and-strategy/why-its-better/why-benefits-fail-to-become-incentives.md)
+
+- **What it is:** A strategy catalogue of why dispersed beneficiaries cannot reward better decisions. Two breaks come before ordinary commissioning: a desired kind of value may never have been imagined as fundable or given a concrete funding destination; and many contributors may need to fund qualifying work from many independent producers, without choosing all recipients in advance. Shared funding purposes connect both sides, with explicit criteria, actual money, and allocation decisions.
+- **When a user encounters it:** Evaluating a vertical, or explaining Civility's missing reward.
+- **What they might want help with:** Turning a vague wish into a fundable opportunity; distinguishing support for a producer from funding a kind of value; identifying whose choice changes and why. A pool does not guarantee payment to every qualifying submission, and evidence of work is not proof of its benefit. Examples beyond content are possible extensions, not implemented verification capabilities. Synthetic scenarios that would illustrate those breaks live in `fake-data-generation/incentive-demonstrations.md`, not on this page.
+
 ## Commonality API map (jobs → SDK / HTTP)
 
 [Full page](/docs/end-user/commonality/for-llms.md)

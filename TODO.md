@@ -6,6 +6,8 @@ If you have stuff that needs human attention, you can put it in [Adam's inbox](/
 
 Commonality also keeps its own product/architecture backlog in [`commonality-ui/TODO.md`](./commonality-ui/TODO.md) (open incompleteness allowed at merge). Prefer filing Commonality-specific follow-ups there when they are package-local; use this root list for cross-cutting work or items that should be visible to any LLM picking up the project inbox.
 
+Civility still has a product gap between the copy and the screens. The details are in [`civility/TODO.md`](./civility/TODO.md). Content-funding follow-ups that are not Civility-specific are in [`content-funding/TODO.md`](./content-funding/TODO.md).
+
 When an item from this page is done and no longer needs an LLM implementor's attention, don't mark it "done", just delete it. I don't want this file to get cluttered with already-completed items.
 
 Fake data / seed content is a **standing plan**, not a pile of one-shots: read [`fake-data-generation/PLAN.md`](fake-data-generation/PLAN.md) and do the next unchecked item there (tiny UI world vs real statements vs stress traffic). Do not invent a parallel seed pipeline.
@@ -13,6 +15,8 @@ Fake data / seed content is a **standing plan**, not a pile of one-shots: read [
 Getting **testnet to a two-person shared lab** is also a standing plan, not a pile of one-shots: read [`workflow/testnet-working-plan.md`](workflow/testnet-working-plan.md) and do the next unchecked item there. Do not mix that with mass fake activity or mainnet.
 
 ----
+
+- **(Ask)** Generalize content funding into extensible structured work types: domain-defined canonical work-item IDs, explicit links to funding requests with duplicate-claim rules, structured creation forms, and item/sequence alignment attestations feeding fundable-projects boards. Capture and refine the design before implementation; see [Structured fundable work](specs/product/structured-fundable-work.md).
 
 - **(Tell)** Next fake-data/seed-data step lives in [`fake-data-generation/PLAN.md`](fake-data-generation/PLAN.md). Abortion, immigration, crime, and LGBT-schools triples are accepted; next is the demo-seed live UI pass.
 

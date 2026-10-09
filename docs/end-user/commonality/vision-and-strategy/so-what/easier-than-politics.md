@@ -38,3 +38,5 @@ Commonality achieves the same goals without requiring a monolithic organization:
   - **No membership boundary.** Anyone can sign a statement, pledge to a project, or become a delegate. The system discovers commonality among people who happen to agree, without requiring them to formally join anything.
 
 The result is a *protocol* rather than an *organization*. No one needs to run it, no one can capture it, and it scales without governance headaches. It grows organically because each individual action is useful on its own.
+
+What that looks like as a set of fundable jobs — gatherings, directories, local hosts, and the rest of the network-state stack, minus the shared treasury — is in [something like a network society, without the society](../credible-solution/network-societies.md).

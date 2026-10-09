@@ -19,6 +19,11 @@ advantage for Commonality.
 
 ## The kinds it's better for
 
+For a complementary catalogue of where the connection between beneficiaries and
+decision-makers breaks, see [Why benefits fail to become incentives](./why-benefits-fail-to-become-incentives.md).
+It maps those failures to Commonality mechanisms, existing fake-data examples,
+and proposed demonstrations of how funding could change someone's choice.
+
 Organized not by topic but by *what's blocking them today* — each a specific failure mode of legacy institutions, paired with the specific Commonality mechanism that addresses it. These categories overlap rather than partition: a given good can sit in several at once.
 
 **1. Self-financed minority goods.** A dedicated minority cares intensely and is willing to pay for the thing itself — niche cultural or scholarly preservation, enthusiast infrastructure, specific community or religious goods, unconventional research.
