@@ -118,7 +118,7 @@ catalogues many types of institutional blockers. This page supplies a complement
 diagnosis: where does the connection between benefit and incentive break?
 [Unbundle the organization](./unbundled-organization.md) explains how different
 people can supply money, judgment, trust, distribution, and execution. The
-[cause taxonomy](/specs/product/cause-taxonomy.md) turns these considerations into
+cause taxonomy turns these considerations into
 varied, concrete projects.
 
 The distinction matters because a good cause title is not enough. “Science” does

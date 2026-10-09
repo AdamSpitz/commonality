@@ -14,6 +14,8 @@ const routes: ReactNode = (
     <Route path="/content" element={lazyRoute(() => import('./ContentPages'), 'ContentFundingCreatorsPage')} />
     <Route path="/content/new" element={lazyRoute(() => import('./ContentPages'), 'ContentFundingStartContractPage')} />
     <Route path="/explore" element={lazyRoute(() => import('./ContentPages'), 'ContentFundingExploreKindsPage')} />
+    <Route path="/explore/:propertyId/fund" element={lazyRoute(() => import('./ContentPages'), 'ContentFundingFundPropertyPage')} />
+    <Route path="/explore/:propertyId" element={lazyRoute(() => import('./ContentPages'), 'ContentFundingPropertyBoardPage')} />
     <Route path="/content/dashboard" element={lazyRoute(() => import('./ContentPages'), 'ContentFundingCreatorDashboardPage')} />
     <Route path="/content/contracts/:projectAddress" element={lazyRoute(() => import('./ContentPages'), 'ContentFundingContractPage')} />
     <Route path="/content/:platform" element={lazyRoute(() => import('./ContentPages'), 'ContentFundingBrowsePage')} />
@@ -39,6 +41,7 @@ export const contentFundingManifest: DomainManifest = {
   shell: {
     primaryNavigation: [
       { label: 'Browse Content', path: '/content' },
+      { label: 'Properties', path: '/explore' },
       { label: 'Start a Contract', path: '/content/new' },
       { label: 'How It Works', path: '/about' },
       { label: 'Docs', path: '/docs' },

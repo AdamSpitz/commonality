@@ -7,7 +7,7 @@ const sections = [
     description:
       'Browse the pieces AI evaluators have already vouched for, back the ones you like — or just delegate to a friend and forget about it.',
     cta: 'Explore fundable content',
-    path: '/content',
+    path: '/explore/civility',
   },
   {
     eyebrow: 'Creators',
@@ -43,7 +43,8 @@ export function NoninflammatoryLandingPage() {
       title="Fund content you'd actually read from the other side"
       description="Some of the good stuff already exists — political writing that argues hard without treating you as stupid or evil — and it goes unrewarded, because feeds only pay for outrage and dunks. The rest doesn't exist yet, for the same reason. Civility is the missing reward: pledge a few dollars a month, and creators see real money earmarked for content that informs instead of inflames — and write toward it."
       heroActions={[
-        { label: 'Explore fundable content', path: '/content' },
+        { label: 'Explore fundable content', path: '/explore/civility' },
+        { label: 'Put money on noninflammatory content', path: '/fund', variant: 'outlined' },
         { label: 'View popular filters', path: '/filters', variant: 'outlined' },
         { label: 'Popular Civility statements on Tally', path: '/popular-statements', variant: 'outlined' },
       ]}

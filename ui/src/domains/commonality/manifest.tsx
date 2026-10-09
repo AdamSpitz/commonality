@@ -61,6 +61,8 @@ const routes: ReactNode = (
     <Route path="/content/:platform/:channelId/new" element={lazyRoute(() => import('../content-funding/ContentPages'), 'ContentFundingCreateContractPage')} />
     <Route path="/content/:platform/:channelId/prospective/:roundAddress/materialize" element={lazyRoute(() => import('../content-funding/ContentPages'), 'ContentFundingMaterializeFutureContentPage')} />
     <Route path="/explore" element={lazyRoute(() => import('../content-funding/ContentPages'), 'ContentFundingExploreKindsPage')} />
+    <Route path="/explore/:propertyId/fund" element={lazyRoute(() => import('../content-funding/ContentPages'), 'ContentFundingFundPropertyPage')} />
+    <Route path="/explore/:propertyId" element={lazyRoute(() => import('../content-funding/ContentPages'), 'ContentFundingPropertyBoardPage')} />
     <Route path="/founders" element={<CommonalityFounderPage />} />
     <Route path="/for-organizations" element={<CommonalityForOrganizationsPage />} />
     <Route path="/docs" element={lazyRoute(() => import('../../commonality/pages/DocsPage'), 'DocsPage')} />

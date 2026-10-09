@@ -135,7 +135,11 @@ function getDocContent(docPath: string): LoadedDoc | null {
 }
 
 function normalizeDocsRoute(href: string): string {
-  return href.replace(/\/README\.md$/, '').replace(/\.md$/, '').replace(/\/README$/, '')
+  const hashIndex = href.indexOf('#')
+  const path = hashIndex === -1 ? href : href.slice(0, hashIndex)
+  const hash = hashIndex === -1 ? '' : href.slice(hashIndex)
+  const normalized = path.replace(/\/README\.md$/, '').replace(/\.md$/, '').replace(/\/README$/, '')
+  return `${normalized}${hash}`
 }
 
 function publicDocsRoute(docPath: string): string {

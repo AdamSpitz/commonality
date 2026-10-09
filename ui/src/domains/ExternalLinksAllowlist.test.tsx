@@ -6,6 +6,7 @@ import { domainManifests } from './index'
 import type { DomainId } from './types'
 
 const allowedExternalHosts = new Set([
+  'equilibriabook.com',
   'github.com',
   'linkdrop.io',
   'thirdweb.com',
