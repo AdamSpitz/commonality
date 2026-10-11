@@ -227,7 +227,7 @@ These aren't mandatory stages. Many people should be able to stay in the first m
 ADAM: I'm not sure about this, and also this isn't exactly contradictory, but I wonder whether it might be useful to think of this more as a set of primitives or patterns that are useful for cooperation-without-trust. That is, rather than thinking in terms of "modes" or "stages", just have these in the toolbox, and use whichever are useful.
   - Joint publication, must be agreed upon first before revealing.
   - Name a set of participants, and some rules they're agreeing to follow (within some context, for some duration, etc.)
-  - What else?
+  - What else? I mean, in a sense, all the rest of Commonality is primitives like this: assurance contracts, etc. And in fact a lot of the rest of the blockchain world is primitives like that - the whole *point* is cooperation without trust. But still, maybe you get what I mean? Any ideas for more primitive cooperation-without-trust tools to go in the toolkit?
 
 
 
@@ -308,3 +308,215 @@ For the first, an organizer could circulate the same project through several exi
 
 The practical scope I would favor is: write up unbundling clearly; hand-author one request with the exact shared terms and invite proposals; reuse existing funding and external coordination; keep a record of where people actually get stuck. Build the missing request/proposal links when they remove repeated friction. Treat coordinated publication as a small, separate experiment. We can make bridging a central use case without first building a complete system for managing alliances.
 
+
+
+# Another prompt
+
+Read docs/end-user/common-sense-majority/aaa-just-brainstorming.md and help me brainstorm. Any ideas for more primitive cooperation-without-trust tools to go in the toolkit? Think about what kinds of trust problems prevent people from working together in society in general or in the world in general; think about how we could structure cooperative efforts so that coordination is less necessary, trust is less necessary; think about what people have in *common* and how it really feels like we ought to be able to work together better than we actually do. If you can't come up with anything, fine, but be creative.
+
+
+
+# Astra's response
+
+Yes. I think there’s a rich seam here: **people can want the same outcome and still reasonably reject the arrangement offered for producing it.** They may distrust who gets control, who absorbs failure, whether cooperation becomes a permanent obligation, or whether their contribution will actually matter.
+
+Your unbundling idea removes one of those obstacles: “We don’t need to agree about everything.” There are analogous moves for time, authority, risk, credit, and evidence.
+
+These are brainstorming proposals, not claims that we’ve solved their implementation. Some are small primitives; others are patterns assembled from them.
+
+**1. Cooperate without choosing a shared authority**
+
+> “You trust your evaluator; I trust mine. We proceed when each of us has the assurance we need.”
+
+Suppose two communities want a water-treatment project but distrust each other’s institutions. Each chooses its own inspector. The funding activates when the agreed acceptance conditions are satisfied—including both inspectors’ approvals, if necessary.
+
+They need agreement about the undertaking, but don’t have to settle which institution deserves everyone’s trust.
+
+The primitive is **participant-specific approval conditions attached to contributions**. Different people can reach the same project through different chains of judgment. (ADAM: Oooh, I like that.)
+
+This seems especially close to Commonality’s strengths. The interesting generalization is: *we may be able to share actions without sharing epistemic authorities.*
+
+**2. Make cooperation expire automatically**
+
+> “I’ll try this for three months. Continuing requires another yes.”
+
+People may reject a useful arrangement because they fear getting trapped in it: temporary powers become permanent, an experimental policy becomes an entitlement, a coalition claims their support indefinitely.
+
+Give commitments an explicit duration, spending ceiling, and renewal requirement. Budget the exit or restoration work at the beginning.
+
+For example, two groups might agree to a temporary use of a shared building when they would never agree on its permanent ownership or mission.
+
+The primitive is **a bounded commitment with a specified ending**. It reduces how much confidence someone needs about the future. Physical consequences aren’t always reversible, so the relevant question is what can actually end or be restored.
+
+**3. Make the organizer replaceable**
+
+> “I’m willing to help build this, provided we can continue without you.”
+
+A subtle barrier to cooperation is that success can increase the organizer’s power. You help build a valuable resource, then discover that someone else controls access, the records, the name, or the ability to maintain it.
+
+Design projects so the useful output survives the operator:
+
+- Contributors can export the relevant records.
+- Another provider can maintain the result.
+- Shared materials have permission to be reused.
+- Essential assets have an agreed succession arrangement.
+
+An example would be jointly funding a community information service whose underlying information remains available to competing interfaces.
+
+The primitive is **a continuation right**: an explicit right and practical ability to carry the work forward.
+
+That changes the trust question from “Will this organization always behave well?” to “Can we recover if it stops behaving well?”
+
+**4. Agree on interfaces instead of decisions**
+
+> “Build your part however you like, as long as it connects here.”
+
+Sometimes we create unnecessary conflict by asking everyone to govern one organization when they could contribute independently to a shared system.
+
+Imagine groups mapping wheelchair accessibility. They don’t need one editorial board, one political identity, or even one preferred app. They need compatible records, explicit provenance, and ways to combine or filter observations.
+
+The primitive is **a contribution specification plus an acceptance test**.
+
+For Commonality, a request could ask for independently useful pieces that fit together: inspect one location, translate one document, maintain one sensor, implement one compatible component.
+
+This is a particularly interesting form of your set-union idea: **the work itself can accumulate without the contributors forming a coalition.**
+
+**5. Make incomplete cooperation still valuable**
+
+> “If only a few of us participate, we still get something worth having.”
+
+Assurance contracts address “nothing useful happens unless enough people join.” Another move is to redesign the undertaking so less participation produces a smaller useful result.
+
+Instead of “fund the entire regional accessibility survey,” fund completed blocks of coverage. Instead of “launch a comprehensive alternative institution,” fund one service people can use immediately.
+
+The primitive is **a useful increment**, with its own cost and completion criterion.
+
+This isn’t suitable for everything—a half-built bridge can be worthless—but it’s a powerful project-design question:
+
+> Can we turn this from a threshold problem into an accumulation problem?
+
+That would reduce the amount of coordination the funding mechanism has to solve.
+
+**6. Reserve a complete combination of contributions**
+
+> “My contribution is available if the other necessary ingredients are available too.”
+
+Money is only one missing ingredient. A project might require a venue, a qualified operator, equipment, permission, and volunteers at a particular time.
+
+A general commitment could say:
+
+> “This room is available on Saturday if an operator and six volunteers commit by Wednesday.”
+
+The toolkit would assemble a feasible combination and activate the reservations together. Unused reservations expire. The same room or volunteer hours cannot count as committed to several incompatible projects.
+
+This extends assurance beyond a scalar funding threshold to **a set of complementary commitments**.
+
+It cannot force someone to turn up. But even an honest reservation system could remove substantial “I can’t commit until they commit” friction.
+
+**7. Let people cooperate asynchronously**
+
+> “I can do my part now, even though nobody is ready to do the next part.”
+
+A lot of cooperation requires finding the right people at the same time. Durable, inspectable intermediate results can loosen that requirement.
+
+Someone documents a problem. Someone else later verifies it. A third person produces a design. Another funds implementation. Each leaves something useful for the next person.
+
+The primitive is **a handoff artifact with a clear status, reuse permissions, and remaining needs**.
+
+A request could survive its original organizer. A partially answered request could remain discoverable. Contributors could improve an existing piece instead of recruiting a whole team.
+
+This is cooperation through a shared environment: people respond to useful work left behind by others.
+
+**8. Back the people who bear the risk**
+
+> “If helping us exposes you to this specific loss, we have already set aside support.”
+
+Sometimes everyone benefits, but one person takes the dangerous step. The obstacle isn’t doubt that others approve. It’s doubt that approval will turn into help when it becomes costly.
+
+Imagine a business hosting a contentious community event. Many people want the event, but the host bears cancellation costs. Supporters could prefund a narrowly defined cancellation reserve.
+
+The primitive is **a contingent support commitment**, with a trigger, limit, beneficiary, and decision process.
+
+This also applies to smaller things: childcare if a volunteer is needed longer than expected, replacement equipment if borrowed equipment is damaged, transition costs for someone accepting a collective change.
+
+The important move is to stop asking one participant to absorb costs that everyone else treats as incidental. The hard part is agreeing what activates support and keeping promises within the pool’s capacity.
+
+**9. Separate producing the good from allocating its burdens**
+
+> “I support the benefit. I object to being the person who pays disproportionately for it.”
+
+A neighborhood may agree it needs a facility while disagreeing about who hosts it. Contributors may agree a project matters while resenting an equal contribution rule that ignores ability to pay.
+
+A request could therefore contain two distinct problems:
+
+- What useful thing should exist?
+- What distribution of costs and inconvenience would make it acceptable?
+
+Possible patterns include rotation, compensation, different contribution types, or a lottery among options participants have already accepted.
+
+The primitive is **explicit burden allocation**.
+
+This seems important because some apparent disagreements about values may actually be objections to an unfair assignment of sacrifice. Better wording won’t fix those; a different arrangement might.
+
+**10. Agree on what happens after learning something**
+
+> “We disagree about which approach will work. We can agree on an experiment and a response to its results.”
+
+Your document already discusses jointly funding an assessment. I’d add **conditional next-step commitments**.
+
+Before a pilot, participants specify:
+
+> “If the result falls in this range, I’ll support expansion. If it falls in that range, I’ll support stopping. Otherwise, we’ll need more evidence.”
+
+They needn’t pretend the experiment settles the whole controversy. The commitment can concern only a small next expenditure.
+
+The primitive is **an agreed observation linked to a bounded action**. Measurement methods and the treatment of inconclusive results belong in the agreement.
+
+This makes disagreement potentially productive: different expectations can coexist while people jointly buy information that changes what they do.
+
+**11. Find acceptable arrangements without requiring a public opening bid**
+
+> “Find something within my limits without making me publicly announce every concession I might accept.”
+
+People may resist revealing flexibility because it will be used against them. Their private acceptable range can be much wider than their public negotiating position.
+
+A tool could collect confidential constraints and seek a compatible proposal: acceptable locations, contribution ceilings, scheduling windows, requirements.
+
+Participants then approve the concrete proposal before anything activates.
+
+The primitive is **a private constraint submission followed by explicit acceptance of a match**.
+
+This is different from simultaneous publication: it helps discover whether an agreement exists in the first place. An initial version would require trust in whoever handles the private inputs; privacy guarantees would need their own design.
+
+**12. Cooperate on protections everyone wants when they lose**
+
+> “We disagree about who should be in charge. We both want limits on what being in charge permits.”
+
+What people have in common can include uncertainty about their future position.
+
+Groups could support portable records, transparent eligibility rules, independent appeals, continuity of access, or the ability to change providers because each can imagine needing those protections.
+
+The primitive is **a reciprocal protection that attaches to a role rather than a favored identity**: whoever is the applicant, minority, departing member, losing bidder, or critic gets the protection.
+
+A useful bridge-finding prompt would be:
+
+> What would both groups want available if the other group controlled this institution?
+
+That could produce concrete fundable infrastructure, even where agreement on the institution’s substantive mission remains impossible.
+
+---
+
+The ideas I’d explore first for Commonality are **independently useful contributions, participant-specific approval conditions, and continuation rights**. They seem capable of making cooperation easier without requiring much ongoing collective governance.
+
+There’s also a useful organizing question for the whole toolkit:
+
+> **What exactly would someone have to trust here, and can we remove that dependency?**
+
+Trust that enough others will join → conditional commitments.  
+Trust that everyone agrees → narrow the shared undertaking.  
+Trust that the organizer stays good → make replacement possible.  
+Trust that the project succeeds → make partial results useful.  
+Trust that others will help later → reserve that help now.  
+Trust that joining won’t trap you → specify the ending.
+
+The possibility that excites me most is **people building something together while retaining different reasons, different evaluators, different providers, and the ability to leave**. Their commonality can live in the useful thing they produce, without requiring them to become one social or political body.
