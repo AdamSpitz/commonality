@@ -499,7 +499,6 @@ People may resist revealing flexibility because it will be used against them. Th
 A tool could collect confidential constraints and seek a compatible proposal: acceptable locations, contribution ceilings, scheduling windows, requirements.
 
 Participants then approve the concrete proposal before anything activates.
-ecosystem
 The primitive is **a private constraint submission followed by explicit acceptance of a match**.
 
 This is different from simultaneous publication: it helps discover whether an agreement exists in the first place. An initial version would require trust in whoever handles the private inputs; privacy guarantees would need their own design.
@@ -541,3 +540,187 @@ The possibility that excites me most is **people building something together whi
 # My thoughts
 
 I like a lot of these ideas. I'm hoping we don't need to build them all ourselves, and certainly not right now. But maybe there are some enhancements that we could make now, to make our system *open* to users making use of ideas like this if they exist out there in the Ethereum ecosystem. Can you organize these ideas into some categories along those lines? Like... stuff that needs to be part of our core fundable-project system, stuff that can be independent smart contracts that could be made to play nicely with ours even though we don't necessarily know about them explicitly, stuff that's just general usage patterns, etc.? (Or something like that - use your judgment, do what makes sense to you. How would you organize this?)
+
+
+# Further responses and design sketches — 2026-10-12
+
+These are proposals for discussion, not accepted requirements or a commitment to build them. The code observations below describe the repository inspected today; they do not establish deployed availability or end-to-end UI support.
+
+**Yes: the inputs-and-outputs idea provides a useful organizing principle.** Commonality could make work discoverable, evaluable, fundable, and connectable while leaving communities to invent most of the arrangements around it. But an output needs enough meaning that another participant can tell whether it is a document, an assertion, a permission, or money. Merely attaching an arbitrary contract address would not establish those meanings.
+
+## A division of responsibilities
+
+I would separate five places an idea can live. A single pattern can involve several of them.
+
+| Place | What belongs here | Examples from this discussion |
+|---|---|---|
+| Shared work representation | Stable references and relationships that let independent tools describe the same work | Requests, proposals, parts, prerequisites, output versions, acceptance criteria, links to funding |
+| Financial interfaces | The small interfaces through which funding conditions, contributions, withdrawals, and refunds interact | Existing assurance conditions and purchase/refund paths; any necessary adapter interfaces |
+| Optional mechanisms | Particular rules implemented by independent contracts or services | Approval gates, staged payments, contingency reserves, contribution reservations, fallback allocation |
+| Authoring and presentation | Help people propose comprehensible arrangements and understand their actual commitments | Decomposition suggestions, a parts view, reuse and handoff fields, condition explanations |
+| Usage patterns | Advice about structuring work and cooperation | Try a limited experiment, distribute burdens explicitly, preserve exit, agree on measurement |
+
+The first two are the most plausible Commonality responsibilities. They still need not be one large core smart contract: much of work representation can be versioned metadata, with onchain commitments only where enforcement requires them. The third is where other builders should have room to innovate. The fourth can start in the reference UI and later support domain-specific renderers. The fifth can start as a catalog that humans and an AI assistant consult.
+
+An important boundary: **Commonality displaying a mechanism must not imply that Commonality guarantees its behavior.** A project can be discoverable even when its funding mechanism is not supported by our normal contribution UI. Unknown mechanisms should retain their identity and link to their own interface, rather than being presented as ordinary threshold projects.
+
+## What already exists for conditional donations?
+
+There is more here than my earlier answer acknowledged:
+
+- [`IAssuranceCondition`](/hardhat/contracts/individual-projects/IAssuranceCondition.sol) exposes `hasSucceeded()` and `hasFailed()`, allowing an undecided state as well.
+- [`AssuranceContract`](/hardhat/contracts/individual-projects/AssuranceContract.sol) has a condition set once; withdrawal and refund eligibility consult that condition.
+- [`ProjectFactory.createERC1155AndAssuranceContractWithCondition`](/hardhat/contracts/individual-projects/ProjectFactory.sol) accepts a pre-deployed custom condition. We do not need to invent a generic project-wide condition slot.
+- [`OracleCondition`](/hardhat/contracts/individual-projects/OracleCondition.sol) adapts an external oracle's undecided/succeeded/failed result. [`CancellableCondition`](/hardhat/contracts/individual-projects/CancellableCondition.sol) demonstrates wrapping another condition.
+- The [technical composability notes](/specs/tech/subsystems/lazyGiving/composability.md) already discuss condition combinators, progress aggregation, contract recipients, contract pledgers, and refunds into delegated notes. Several of those are proposed compositions, not complete supported products.
+
+That answers part of your question, but **project-wide conditions and donor-specific conditions are different features**. At least three meanings of “donate only if my evaluator approves” are possible:
+
+| Meaning | Where it belongs | What it guarantees |
+|---|---|---|
+| Only submit my contribution after approval | Donor, delegate, or spending-policy executor | Approval is checked before money enters the project; it does not add a later withdrawal right |
+| Let me reserve money now, then contribute after approval | Separate reservation mechanism with its own custody and expiry rules | The reservation has its own conditions until it becomes an ordinary project contribution |
+| Accept my money now but release it only under my personal conditions | Separate escrow or a funding mechanism that accounts for individual conditions | Requires explicit accounting for which money is releasable and which money can return |
+
+For the water-treatment example, the simplest arrangement might be two independently approved contributions into one ordinary assurance contract. If everyone instead wants both inspectors' approvals to govern the entire payout, that is a project-wide composite condition. Neither arrangement automatically gives every donor an individually cancellable pledge.
+
+One consequence: reserved money waiting for approval must not be shown as money already available in the project's assurance contract. Otherwise several impressive-looking conditional offers can create a false impression that construction is funded.
+
+There is also a readiness gap beyond the contracts. The [SDK chain reads](/sdk/src/utils/chain-reads.ts) include paths that try to read `threshold` and `deadline` from a condition and fall back to zeros on failure. A generic condition need not expose either. Supporting extensions well therefore includes recognizing condition types and displaying unsupported information honestly, not just passing an address to the factory.
+
+I would first exercise the existing custom-condition path with one concrete approval example, including SDK discovery and rendering, before proposing a new core interface. That experiment should also address deployment order: the current factory takes a condition that already exists, which needs an explicit wiring strategy if that condition must refer to the newly created assurance contract.
+
+## Inputs and outputs: three different connections
+
+Your generalization fits requests, decomposition, handoffs, and many conditional arrangements. I would distinguish these connections even if the UI draws them together:
+
+1. **Work connection:** “B uses the survey produced by A.” This references an artifact and its version, format, and reuse terms.
+2. **Decision connection:** “B's funding can release after this evaluator accepts A's survey.” This references a judgment or executable condition.
+3. **Money connection:** “A's payout contributes to B; if that contribution fails, funds return here.” This requires actual transactions and defined custody.
+
+None implies the other two. A can produce a useful survey without funding B. A can reach its fundraising threshold without producing a survey. An evaluator can accept a survey without having authority to spend anyone's money.
+
+That distinction also sharpens the phrase “successful completion of each step.” **Funding success is not delivery success.** If B needs A's completed work, B must depend on the relevant delivery evidence or acceptance, not merely A's fundraising condition. And if A needs money to perform the work, withholding all A's funding until delivery creates a financing problem. An advance, staged payment, or reimbursement arrangement must say who carries that gap.
+
+Some older [composability prose](/specs/tech/subsystems/lazyGiving/composability.md) needs qualification before becoming an implementation plan. In the inspected base contract, withdrawal is initiated by the recipient and transfers ERC-20 funds. Naming another assurance contract as recipient does not itself call that contract's purchase function, mint contribution receipts, or establish the downstream refund path. A routing adapter needs to perform those operations and handle a downstream project that has closed or become unsuitable.
+
+Likewise, OR-ing two success conditions does not allocate a budget to exactly one winning proposal. That requires a selection and spending rule. Summing progress does not move matching funds. These are good reasons to preserve the three connections instead of hiding everything behind a generic arrow.
+
+For a first description format, I would sketch optional records along these lines:
+
+- **Inputs:** referenced work/artifact version, required format, whether it is essential or substitutable, who accepts it.
+- **Outputs:** expected artifact or world outcome, publication location, reuse terms, evidence requirements.
+- **Relationships:** part of, depends on, alternative to, continues, answers this request. Distinct relationships should remain distinct.
+- **Funding links:** chain, funding contract, mechanism type/version, and the work scope that money is intended to cover.
+
+These are candidate fields, not a proposed universal workflow schema. Start with one domain and allow namespaced extensions. External tools should be able to preserve unfamiliar fields without pretending to understand or execute them.
+
+## Decomposition can be a product feature
+
+I agree that “hope people decompose things well” leaves too much on the table. Commonality can make a modest but useful contribution without becoming a universal project manager.
+
+Suppose the undertaking is “survey accessibility at these forty venues.” A domain-specific description identifies the forty slots; each completed survey has its own identity and evidence. The generic interface can show the collection and link to individual work items and funding requests.
+
+But “13/40 completed” needs an author and a criterion. Thirteen submissions, thirteen accepted by Alice, and thirteen independently checked are different counts. A useful display could say “13 of 40 accepted by your selected evaluator,” with a fixed version of the forty-item scope. Different evaluators can disagree without requiring one global completion verdict.
+
+The authoring assistant could offer concrete transformations:
+
+- “Could each venue be independently useful and independently funded?”
+- “These three tasks all need the same base map. Make it a shared prerequisite?”
+- “There are two proposed ways to fill this slot. Show them as alternatives?”
+- “Who checks that the independently produced pieces work together?”
+- “Does this leave maintenance or final assembly unfunded?”
+
+That last question matters. Decomposition can relocate coordination costs to an unpaid integrator. A useful pattern is to make integration and verification separately fundable work, with their own output and acceptance criteria.
+
+There is a particularly interesting economic move here: **fund interfaces and reusable prerequisites as public goods**. Several otherwise competing projects might all want the same test suite, survey, data conversion, or baseline map. An interface is valuable partly because it lets people disagree about implementation. Commonality could help fund the compatibility that makes independent efforts compose.
+
+Work grouping also needs to preserve funding scope. A parent request and its children should state whether the parent budget covers the children, only integration, or some other costs. The [structured fundable work proposal](/specs/product/structured-fundable-work.md) is already the right place to resolve identity and overlapping claims. A grouping alone must not duplicate the apparent amount of work or money available.
+
+## Expiration: a pattern with optional enforcement
+
+Yes, “make this a three-month experiment” is initially a usage pattern. Enforcing particular permissions for three months is a separate, potentially reusable mechanism.
+
+A private key does not itself expire. A contract or smart account can stop accepting that key's authority after a specified time, and can restrict which actions it authorizes. Session keys are an existing smart-account pattern; their constraints are enforced by wallet-specific validation, not supplied automatically by ERC-4337. See the [ERC-4337 session-key documentation](https://docs.erc4337.io/smart-accounts/session-keys-and-delegation.html).
+
+For example: “This operator may publish updates to this project's reference until January 1,” or “This account may spend up to the agreed budget on these permitted actions during the trial.” That belongs naturally in an optional controller or wallet mechanism, with Commonality showing the terms.
+
+Expiration must apply to the authority that actually matters. If the operator can use its temporary permission to appoint a permanent controller, grant lasting token allowances, or transfer the assets away, the apparent expiry provides much less protection. A useful design restricts those escape routes as part of the permission.
+
+Also, our current threshold deadline is not an experiment's hard ending. [`ValueThresholdCondition`](/hardhat/contracts/individual-projects/ValueThresholdCondition.sol) makes refunds eligible when the deadline passes below threshold; it does not permanently latch failure, and later funding can satisfy the threshold. A hard expiry needs explicit terminal semantics. Conditions that compose must specify whether their answers can change over time; never reporting success and failure simultaneously is necessary but insufficient for safe financial composition.
+
+## Replaceability: make handoff a deliverable
+
+Your publication-and-license fields would help. I would extend them into a small optional “Can someone continue this?” section:
+
+| Field | Question it answers |
+|---|---|
+| Versioned output reference | What exact material was delivered? |
+| Current publication reference | Where do updates appear? |
+| License and covered materials | What may another person reuse, including source data and editable files? |
+| Export format and instructions | Can another provider actually use it? |
+| Storage or hosting commitment | Who keeps the material available, and for how long? |
+| Controller and replacement procedure | Who can update the shared pointer or operate the service after departure? |
+| Handoff test | Has someone else successfully retrieved and used the result? |
+
+A mutable pointer answers only part of this. [`MutableRefUpdater`](/hardhat/contracts/utils/MutableRefUpdater.sol) stores names under `msg.sender`; it does not contain a built-in mechanism for transferring Alice's named reference to Bob. A controller contract could own the reference and implement replacement rules, or successors could publish new references with an explicit succession relationship. Those are different continuity guarantees.
+
+Similarly, a content reference identifies material but does not by itself arrange continued hosting. And a license declaration does not establish that the publisher owns all necessary rights. The form can record commitments and evidence without claiming to prove them.
+
+My favorite small addition would be **a funded handoff rehearsal**: a second provider demonstrates that it can reproduce the service or use the exported material. “Someone else has done it” is much stronger evidence of replaceability than a checkbox saying “portable.” This can be an ordinary work item rather than new protocol machinery.
+
+## Where the twelve patterns land
+
+| Pattern | Smallest useful start | Optional mechanism or later support |
+|---|---|---|
+| Different trusted evaluators | Separate approval decisions before contributing | Approval conditions or individually governed reservation pools |
+| Expiring cooperation | Duration, budget, renewal, and exit terms | Expiring permissions, hard-deadline escrows, restoration reserve |
+| Replaceable organizer | Reuse, export, hosting, and handoff commitments | Replaceable controller, succession registry, funded handoff test |
+| Compatible independent parts | Versioned input/output specification and acceptance test | Domain schemas, test runners, compatibility attestations |
+| Useful partial completion | Work collections and independently fundable parts | Domain-specific progress views and allocation policies |
+| Complementary reservations | Named resources, availability periods, confirmation states | Reservation service or contracts where resources can be represented faithfully |
+| Asynchronous cooperation | Discoverable artifacts, reuse terms, remaining needs | Matching services and notifications for newly satisfied prerequisites |
+| Backing risk-bearers | Explicit loss definition, support cap, adjudicator | Separately funded contingent-support pool |
+| Allocating burdens | Record who bears which costs and accepted distribution | Rotation, compensation, or allocation mechanism |
+| Acting on evidence | Experiment plan, measurement, bounded follow-up offers | Oracle adapters and conditional spending policies |
+| Private negotiation | Confidential coordinator and explicit approval of final terms | Privacy-preserving matching, separately designed and evaluated |
+| Reciprocal protections | Role-based requirements on proposed work | Appeal, access, portability, and governance mechanisms appropriate to the domain |
+
+Physical reservations deserve a qualification: a contract can prevent duplicate use of a reservation record within its own system, but cannot prevent someone promising the same room elsewhere. Such tools need identifiable issuers and evidence of authority. The representation should say who promised the resource and what remedy exists if it is unavailable.
+
+For the contingent-support and burden-allocation patterns, the promising common move is **funding the terms that make participation acceptable**. Perhaps the project already has enough supporters, but its budget omits childcare, access accommodations, handoff, restoration, or a cancellation reserve. Funding those can unlock cooperation more directly than recruiting additional signatures.
+
+## An AI reviewer with a small pattern catalog
+
+I like your reviewer idea. It could be useful before any new financial mechanisms exist. Each catalog entry could contain: the obstacle it addresses, when it is applicable, a suggested change, an example, and what remains unenforced.
+
+The reviewer should return a few specific suggestions tied to the proposal. For example:
+
+> “Your proposed directory could outlive its original operator. Add an export format and a budget for keeping the data available.”
+
+> “This project depends on another group's survey, but the survey has no referenced version or acceptance criterion.”
+
+> “You propose a three-month experiment, but the budget contains no restoration work. Would a separately funded restoration commitment make participation easier?”
+
+It should distinguish a text edit, a structured declaration, and an executable change. Adding “refund if the assessment fails” to prose must not manufacture a refund guarantee. When no supported mechanism implements a suggestion, the reviewer should say so and leave it as a design question.
+
+This could also serve a mediator: after finding a shared outcome, ask each participant what arrangement would make acting on it acceptable. The answer might be a smaller scope, independent evaluation, limited exposure, or practical exit. Then offer a relevant pattern instead of repeatedly polishing the common-ground statement.
+
+## A small next step, and a few further ideas
+
+I would develop one worked example across these layers: a reusable accessibility survey, independently fundable venue reports, two evaluators, and a follow-up project consuming the reports. First describe it using current publications and funding. Then identify precisely which connections the SDK/UI cannot preserve or explain. That would test the proposed work vocabulary and the existing condition interface without requiring a general workflow engine.
+
+For possible near-term enhancements, my shortlist is:
+
+1. Optional, versioned work references and explicit relationship types, aligned with structured fundable work.
+2. A way to identify and explain an external funding mechanism, with an honest unsupported state.
+3. A small pattern catalog and project-review prompt.
+4. One end-to-end custom-condition example to expose actual contract/SDK/UI gaps.
+
+Two further patterns seem worth adding to the brainstorm:
+
+**Fund the missing connector.** If several projects are blocked on the same reusable input, show that common dependency as a funding opportunity. An independent contributor can unlock several efforts by producing it. This requires evidence of actual demand: “three people linked this prerequisite” is weaker than “three downstream providers accepted this specification and committed to using it.” It can start as discovery, without a central allocation algorithm.
+
+**Make commitments about the downside.** A participant may be unsure whether a project will deliver its advertised benefit but quite clear about the harms they cannot accept. A proposal can specify a capped exposure, protected access, a restoration plan, or a stop condition. People might fund an experiment whose upside they disagree about because they accept the bounded downside. This composes expiration, burden allocation, evidence, and contingency funding; it does not make physical harms reversible by declaration.
+
+The broader opportunity is to help people change the arrangement until cooperation becomes individually reasonable. Commonality can support that by preserving the terms, exposing the dependencies, connecting compatible efforts, and making the actual financial rules intelligible. Most of the creativity can remain with the people proposing the work.
