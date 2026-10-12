@@ -2,7 +2,7 @@
 
 Assurance contracts compose. This document is the product-level "what becomes possible and why it's exciting"; the mechanics (the actual plug points, combinator semantics, and invariants) live in [specs/tech/subsystems/lazyGiving/composability.md](../tech/subsystems/lazyGiving/composability.md).
 
-The headline: several things that *look* like distinct features turn out to be **compositions of primitives we already have** — not new contract types. The architecture deliberately separated three concerns — *measurement* (how much has been pledged), *judgment* (has the contract succeeded/failed), and *money* (who gets paid) — and made each a pluggable seam. Most of the value below comes from treating each seam as a slot rather than a fixed thing.
+The headline: several things that *look* like distinct features turn out to be **compositions of primitives we already have** — not new contract types. The architecture deliberately separated three concerns — *measurement* (how much has been pledged), *judgment* (has the contract succeeded/failed), and *money* (who gets paid) — and made each a pluggable seam. Most of the value below comes from treating each seam as a slot rather than a fixed thing. A later catalog of cooperation patterns that should keep using those seams, rather than growing the core contract, is in [Cooperation without trust](/docs/end-user/common-sense-majority/cooperation-without-trust.md).
 
 ## Capabilities that fall out of composition
 

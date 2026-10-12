@@ -47,3 +47,5 @@ Allow alignment attestations to refer to individual work items, sequences, or ot
 The existing general subject-attestation model is a starting point; a future implementer should verify which identities and discovery paths are actually supported. Define how item and sequence attestations affect project inclusion without silently treating endorsement of one item as endorsement of every item in a bundle, or of all future installments.
 
 Keep work identity, description, funding eligibility, delivery evidence, and alignment judgments distinct but connected. This is an extension of how work is represented and connected to funding, not necessarily a new financial mechanism.
+
+The [cooperation-without-trust notes](/docs/end-user/common-sense-majority/cooperation-without-trust.md) are the place that records which later cooperation patterns should stay outside this work: requests and relationships can be citable metadata, while approval gates, reservations, and other mechanisms stay independent contracts. Nothing there is scheduled work.

@@ -22,6 +22,7 @@ A reading order for someone new to the project:
    - `specs/product/bridge-creator.md` — the AI that synthesizes modified statements and commonality statements from moderate positions on opposing sides.
   - `specs/product/bridge-causes.md` — the same triple as natural / modified / bridge *causes*, including human-authored clusters.
    - [hidden-majority patterns](../../end-user/common-sense-majority/hidden-majority-patterns.md) — the canonical taxonomy of gap types the bridge creator works against, and the thesis that a supermajority holds invisible common-sense positions.
+   - [Cooperation without trust](../../end-user/common-sense-majority/cooperation-without-trust.md) — later brainstorm on patterns that let people cooperate without sharing a platform, an authority, or a new core contract. Not a build list.
    - `specs/tech/subsystems/nudger/README.md` — the general nudger pattern the mediator is an instance of.
    - `specs/tech/subsystems/content-funding/noninflammatory-content/` — content attesters and beat agents, the machinery behind "fund an adjective."
 6. **The design notes in this directory** — pitching-reference, mediator-design, conditional-support-design.

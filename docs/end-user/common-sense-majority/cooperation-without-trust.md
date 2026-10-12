@@ -1,3 +1,9 @@
+# Cooperation without trust
+
+Working notes, not a product decision. This started as a scratch file. It asks how bridge-building and other cooperation can stay possible without baking a project-management system into Commonality.
+
+The conclusion at the end: no core contract change is required now. Keep the assurance contract a payer with a pluggable condition, keep work identity separate from that payer, and do not present an unknown funding mechanism as an ordinary threshold project. The patterns themselves are for later, and mostly for other people to build.
+
 # Initial prompt to Astra
 
 Take a look at the Common Sense Majority site, and at our bridge-building mechanisms in general. (Please also read docs/end-user/common-sense-majority/hidden-majority-patterns.md.) I want to think through what it'd look like to treat the bridging stuff as a first-class very-important use case (whereas currently it's a bit of an afterthought). Not just improving the UI, but also thinking through how we can use this system to facilitate finding-common-ground and building-organic-alliances for real out there in the world.
@@ -724,3 +730,26 @@ Two further patterns seem worth adding to the brainstorm:
 **Make commitments about the downside.** A participant may be unsure whether a project will deliver its advertised benefit but quite clear about the harms they cannot accept. A proposal can specify a capped exposure, protected access, a restoration plan, or a stop condition. People might fund an experiment whose upside they disagree about because they accept the bounded downside. This composes expiration, burden allocation, evidence, and contingency funding; it does not make physical harms reversible by declaration.
 
 The broader opportunity is to help people change the arrangement until cooperation becomes individually reasonable. Commonality can support that by preserving the terms, exposing the dependencies, connecting compatible efforts, and making the actual financial rules intelligible. Most of the creativity can remain with the people proposing the work.
+
+
+# Me
+
+Read docs/end-user/common-sense-majority/cooperation-without-trust.md and help me understand whether we're converging on some sort of useful minimal change to make to our core stuff now. I don't want to go down this rabbithole now; this is meant to be for later, and ideally for others within the ecosystem rather than us having to do it all ourselves. I just want to make sure the core thing we're building will be *able* to support a wide variety of stuff like this. Do we have a clear sense yet of what we want to do now?
+
+
+# Grok
+
+No core contract change is settled, and none is required to keep this door open. The brainstorm has converged on a boundary, not on a build.
+
+The funding core already has the extension point these patterns need. An assurance contract pays out or refunds according to one `IAssuranceCondition`: undecided, succeeded, or failed, and never both. The factory already accepts a condition deployed by someone else (`OracleCondition` and `CancellableCondition` are examples). A later approval gate, hard expiry, or staged rule can be that condition, or a contract that sits in front of an ordinary project. It does not need a new slot inside the assurance contract.
+
+What must stay true so other people can add the rest:
+
+- **Money, work, and judgment stay separate links.** "B uses A's survey," "this evaluator accepted A's survey," and "A's payout may fund B" are three different facts. Fundraising success is not delivery. Naming another contract as the recipient does not by itself buy into that contract or set up its refunds. A routing adapter is an optional mechanism someone else can write.
+- **One project-wide condition is not a personal pledge.** "I only send money after my inspector signs" can be two ordinary contributions, or a composite condition on the whole payout. "Hold my money until my own condition is met" is a separate reservation or escrow, and that money must not be shown as already in the project. Several of the twelve patterns (reservations, cancellation reserves, private matching, burden allocation) belong there, or in ordinary documents, not in the core contract.
+- **An unknown mechanism keeps its own name.** If the SDK or UI cannot read a condition, it should say so. Today some reads assume `threshold` and `deadline` and fall back to zeros. That is the footgun: a custom condition starts to look like an ordinary threshold project that is unfunded. Fixing that presentation is the only near-term core-adjacent change that matters, and it can wait until someone actually ships a second condition.
+- **Work needs a citable identity when you get to it.** Requests, proposals, parts, versions, acceptance tests, and "depends on / part of / alternative / continues" are versioned references other contracts can point at. That is the structured-fundable-work spec, and it is metadata plus the duplicate-claim rules, not a workflow engine. The cause board already has the social half: people vouch for alignment with a statement. The provider's promise, an evaluator's acceptance, and delivery evidence should remain three different acts.
+
+The twelve patterns then sort cleanly. Usage and authoring (expire the experiment, write the export terms, fund the handoff rehearsal, attach a motivation, run a trusted coordinator for a joint announcement) need no protocol change. Optional contracts (reservation sets, contingent-support pools, expiring session authority, succession controllers) can target the existing condition interface and a published work reference. A pattern catalog or an AI reviewer is a document, not a primitive.
+
+So the rule to hold while you build the current system is small: keep the assurance contract a payer with a pluggable condition, keep work identity citable and separate from that payer, and never render a mechanism you do not understand as a normal threshold project. The shortlist at the bottom of the brainstorm (relationship vocabulary, mechanism labels, a catalog, a custom-condition demo) is a reasonable later experiment for whoever wants it. It is not a change you need to make now.
