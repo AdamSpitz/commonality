@@ -332,7 +332,7 @@ Suppose two communities want a water-treatment project but distrust each other�
 
 They need agreement about the undertaking, but don’t have to settle which institution deserves everyone’s trust.
 
-The primitive is **participant-specific approval conditions attached to contributions**. Different people can reach the same project through different chains of judgment. (ADAM: Oooh, I like that.)
+The primitive is **participant-specific approval conditions attached to contributions**. Different people can reach the same project through different chains of judgment. (ADAM: Oooh, I like that. And it points to a generalization that maybe we should make to the LazyGiving assurance contracts: support arbitrary - or at least more-general - donation conditions? Actually, check, maybe we already have the ability to do something like that?)
 
 This seems especially close to Commonality’s strengths. The interesting generalization is: *we may be able to share actions without sharing epistemic authorities.*
 
@@ -347,6 +347,8 @@ Give commitments an explicit duration, spending ceiling, and renewal requirement
 For example, two groups might agree to a temporary use of a shared building when they would never agree on its permanent ownership or mission.
 
 The primitive is **a bounded commitment with a specified ending**. It reduces how much confidence someone needs about the future. Physical consequences aren’t always reversible, so the relevant question is what can actually end or be restored.
+
+(ADAM: This strikes me as a usage pattern rather than a smart-contract change that we need. Is that right? It still sounds like a good idea; let's have a catalogue of patterns, and maybe we can have an AI service that checks a proposed LazyGiving project and makes suggestions like "hey maybe put an expiration date on this" or whatever. But also: *is* there some way that the blockchain world can provide stuff that would help execute the patterns? e.g. Private keys that work for three months and then stop?)
 
 **3. Make the organizer replaceable**
 
@@ -367,6 +369,8 @@ The primitive is **a continuation right**: an explicit right and practical abili
 
 That changes the trust question from “Will this organization always behave well?” to “Can we recover if it stops behaving well?”
 
+(ADAM: Yes, good. Again, sounds somewhat like a usage pattern rather than a new contract I need to write? But also maybe we can make sure there are easy-to-use affordances in the project-creation UI to make stuff like that easier? e.g. "Results will be posted under this IPNS name or MutableRefUpdater name, using this sharing-friendly license", etc. What else could be done along those lines?)
+
 **4. Agree on interfaces instead of decisions**
 
 > “Build your part however you like, as long as it connects here.”
@@ -380,6 +384,8 @@ The primitive is **a contribution specification plus an acceptance test**.
 For Commonality, a request could ask for independently useful pieces that fit together: inspect one location, translate one document, maintain one sensor, implement one compatible component.
 
 This is a particularly interesting form of your set-union idea: **the work itself can accumulate without the contributors forming a coalition.**
+
+(ADAM: Yes, "do whatever you want as long as it passes this acceptance test" is probably often better than "do it this way". But also there's a point here about decomposition? Like, the ability to compose and decompose is extremely powerful anywhere we can manage it. But is there anything Commonality can provide that'll encourage/enable/support this kind of decomposition, or is this just "well I hope the world in general finds more ways of doing that"?)
 
 **5. Make incomplete cooperation still valuable**
 
@@ -397,6 +403,12 @@ This isn’t suitable for everything—a half-built bridge can be worthless—bu
 
 That would reduce the amount of coordination the funding mechanism has to solve.
 
+(ADAM: Yes, sounds like more decomposition to me? But it does suggest that maybe we'd benefit from having UIs that understand the whole/parts relationship and can explicitly show "we've got 13/40 completed" or whatever? In a very open-ended way; I'm not suggesting that we try to design a universal UI for showing the whole/parts relationships of everything in the world. And in fact even just venturing into the land of explicitly-representing the projects would be new for Commonality; until now a project has basically just been a textual description. So I'm not sure how much of this should be done by us and integrated into the Commonality UI, versus just being out-of-scope for Commonality... but I feel like it might be relevant enough to be worth expanding into this area, especially in light of the [structured fundable work](/specs/product/structured-fundable-work.md) stuff.
+
+One idea that occurs to me - do we already have something like this? - is that it might be helpful to be able to chain projects together, outputs to inputs, with money conditional on successful completion of each step, or something like that. I vaguely remember doing something sorta like that, but I'm not sure how far we got. Either way, maybe that'd be sufficient to allow an open-ended variety of different mechanisms, without requiring us to invent them all ourselves. We say "here's our notion of a project, it can particpate in our cause-board system by having people vouch for its alignment, and you can attach arbitrary inputs and outputs that can be produced or consumed by whatever smart contract you want" and then it's up to the rest of the Ethereum world - or us, if we get around to it - to invent whatever kinds of mechanisms would be useful.
+
+Does that make sense?)
+
 **6. Reserve a complete combination of contributions**
 
 > “My contribution is available if the other necessary ingredients are available too.”
@@ -413,6 +425,8 @@ This extends assurance beyond a scalar funding threshold to **a set of complemen
 
 It cannot force someone to turn up. But even an honest reservation system could remove substantial “I can’t commit until they commit” friction.
 
+(ADAM: Sounds good.)
+
 **7. Let people cooperate asynchronously**
 
 > “I can do my part now, even though nobody is ready to do the next part.”
@@ -426,6 +440,8 @@ The primitive is **a handoff artifact with a clear status, reuse permissions, an
 A request could survive its original organizer. A partially answered request could remain discoverable. Contributors could improve an existing piece instead of recruiting a whole team.
 
 This is cooperation through a shared environment: people respond to useful work left behind by others.
+
+(ADAM: Am I right in thinking that a lot of these ideas fit nicely into the "you can attach whatever inputs and outputs you want" framework?)
 
 **8. Back the people who bear the risk**
 
@@ -483,7 +499,7 @@ People may resist revealing flexibility because it will be used against them. Th
 A tool could collect confidential constraints and seek a compatible proposal: acceptable locations, contribution ceilings, scheduling windows, requirements.
 
 Participants then approve the concrete proposal before anything activates.
-
+ecosystem
 The primitive is **a private constraint submission followed by explicit acceptance of a match**.
 
 This is different from simultaneous publication: it helps discover whether an agreement exists in the first place. An initial version would require trust in whoever handles the private inputs; privacy guarantees would need their own design.
@@ -520,3 +536,8 @@ Trust that others will help later → reserve that help now.
 Trust that joining won’t trap you → specify the ending.
 
 The possibility that excites me most is **people building something together while retaining different reasons, different evaluators, different providers, and the ability to leave**. Their commonality can live in the useful thing they produce, without requiring them to become one social or political body.
+
+
+# My thoughts
+
+I like a lot of these ideas. I'm hoping we don't need to build them all ourselves, and certainly not right now. But maybe there are some enhancements that we could make now, to make our system *open* to users making use of ideas like this if they exist out there in the Ethereum ecosystem. Can you organize these ideas into some categories along those lines? Like... stuff that needs to be part of our core fundable-project system, stuff that can be independent smart contracts that could be made to play nicely with ours even though we don't necessarily know about them explicitly, stuff that's just general usage patterns, etc.? (Or something like that - use your judgment, do what makes sense to you. How would you organize this?)
