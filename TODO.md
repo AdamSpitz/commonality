@@ -16,7 +16,7 @@ Getting **testnet to a two-person shared lab** is also a standing plan, not a pi
 
 ----
 
-- **(Ask)** Generalize content funding into extensible structured work types: domain-defined canonical work-item IDs, explicit links to funding requests with duplicate-claim rules, structured creation forms, and item/sequence alignment attestations feeding fundable-projects boards. Capture and refine the design before implementation; see [Structured fundable work](specs/product/structured-fundable-work.md). While doing that, keep the boundary in [Cooperation without trust](docs/end-user/common-sense-majority/cooperation-without-trust.md): work, judgment, and money stay separate links, and unknown funding mechanisms are not ordinary threshold projects. Do not build the patterns in that note.
+- **(Ask)** Implement structured fundable work using the [implementation checklist](specs/product/structured-fundable-work-implementation-plan.md) and [product direction](specs/product/structured-fundable-work.md): optional open-ended work IDs, one successful funding request per item, shared project/content-funding relationships, inspectable history, and item attestations feeding fundable-projects boards. Reuse the existing document format; backward compatibility is unnecessary. The checklist identifies follow-ups and the boundary with separate cooperation mechanisms.
 
 - **(Tell)** Next fake-data/seed-data step lives in [`fake-data-generation/PLAN.md`](fake-data-generation/PLAN.md). Abortion, immigration, crime, and LGBT-schools triples are accepted; next is the demo-seed live UI pass.
 
