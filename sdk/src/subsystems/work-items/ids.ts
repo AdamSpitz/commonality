@@ -1,16 +1,27 @@
-import { getAddress, type Address, type Hex } from 'viem';
+import { encodeAbiParameters, getAddress, keccak256, type Address, type Hex } from 'viem';
 import { hashCanonicalId } from '../../content-identity/ids.js';
 
 /** Maximum UTF-8 byte length accepted by ContentRegistry.registerWorks. */
 export const MAX_WORK_ID_BYTES = 512;
 
 /**
- * Hash a work id the same way content funding hashes a canonical content id:
- * keccak256 of the exact UTF-8 bytes. Do not trim or lowercase here.
+ * Ordinary work hashes include its stable beneficiary identity. Omit the scope
+ * only for content canonical IDs, which already identify their beneficiary.
+ * Do not trim or lowercase the local work id.
  */
-export function workIdHash(workId: string): Hex {
+export function workIdHash(workId: string, beneficiaryId?: Hex): Hex {
   assertValidWorkId(workId);
-  return hashCanonicalId(workId);
+  const localHash = hashCanonicalId(workId);
+  if (beneficiaryId === undefined) return localHash;
+  if (!/^0x[0-9a-fA-F]{64}$/.test(beneficiaryId) || /^0x0{64}$/.test(beneficiaryId)) {
+    throw new Error('A work beneficiary must be a nonzero bytes32 identity.');
+  }
+  return keccak256(encodeAbiParameters([{ type: 'bytes32' }, { type: 'bytes32' }], [beneficiaryId, localHash]));
+}
+
+/** Stable wallet beneficiary scope, matching ProjectFactory.walletWorkBeneficiary. */
+export function walletWorkBeneficiaryId(wallet: Address): Hex {
+  return keccak256(encodeAbiParameters([{ type: 'string' }, { type: 'address' }], ['wallet', getAddress(wallet)]));
 }
 
 export function assertValidWorkId(workId: string): void {

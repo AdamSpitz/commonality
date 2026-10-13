@@ -65,13 +65,15 @@ The following were inspected when writing this plan; verify against current code
 ## Implementation checklist
 
 - [x] **Pin down the small shared data contract.** Recommended starting point:
-  opaque, nonempty work ID strings; `workIdHash = keccak256(UTF-8(workId))`;
+  opaque, nonempty local work ID strings; ordinary work hashes combine the
+  beneficiary identity with `keccak256(UTF-8(workId))`; content canonical IDs
+  retain their existing hash because they already identify their channel;
   optional `extras.workItems` entries containing an ID and descriptive fields or
   a description-document CID. Reuse current content IDs directly. Specify byte
   limits, exact-byte equality, and validation. Normalization belongs to helpers
   for particular conventions, not a generic lowercase/trim operation. Keep
-  account attribution separate from the hash so different people can reference
-  the same work. Specify an automatic default (for example `urn:uuid:...`) and
+  initiating-account attribution separate from the hash so different people can
+  propose the same beneficiary's work. Specify an automatic default (for example `urn:uuid:...`) and
   create it once per item, preserving it across submission retries. Record the
   final format in a focused technical spec; update glossary terms as needed.
 

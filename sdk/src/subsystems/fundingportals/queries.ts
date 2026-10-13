@@ -654,6 +654,7 @@ export interface AlignedProjectFunding {
   totalReceived: string;
   threshold: string;
   deadline: string;
+  conditionStatus?: 'active' | 'succeeded' | 'refunding';
 }
 
 /** The per-project portion of {@link CauseFundingMetrics} (everything but notes). */
@@ -750,6 +751,7 @@ export async function getAllAlignedProjectsForCause(
   totalReceived: string;
   threshold: string;
   deadline: string;
+  conditionStatus?: 'active' | 'succeeded' | 'refunding';
 }>> {
   const directAlignments = await getAlignedSubjects(
     machinery,
@@ -825,6 +827,7 @@ export async function getAllAlignedProjectsForCause(
       totalReceived: snapshot.totalReceived.toString(),
       threshold: snapshot.threshold.toString(),
       deadline: snapshot.deadline.toString(),
+      ...(snapshot.conditionStatus ? { conditionStatus: snapshot.conditionStatus } : {}),
       ...attestedWorkField(alignedProjects, snapshot.projectAddress),
     })));
   }
@@ -841,6 +844,7 @@ export async function getAllAlignedProjectsForCause(
         totalReceived: project.totalReceived,
         threshold: project.threshold,
         deadline: project.deadline,
+        ...(project.conditionStatus ? { conditionStatus: project.conditionStatus } : {}),
         ...(attestedWorkId ? { attestedWorkId } : {}),
       };
     }),

@@ -3,45 +3,7 @@ import hardhat from 'hardhat';
 
 const { ethers } = hardhat;
 
-async function deployProjectFactory() {
-  const tokenFactory = await ethers.deployContract('PremintingERC1155Factory');
-  const assuranceFactory = await ethers.deployContract('AssuranceContractFactory');
-  const conditionFactory = await ethers.deployContract('ValueThresholdConditionFactory');
-  const verifier = await ethers.deployContract('MockBeneficiaryVerifier');
-  const beneficiaryIdentity = await ethers.deployContract('BeneficiaryIdentity', [verifier.target]);
-  const beneficiaryRegistry = await ethers.deployContract('BeneficiaryRegistry', [beneficiaryIdentity.target]);
-  const fixedControllerFactory = await ethers.deployContract('FixedControllerFactory', [beneficiaryRegistry.target]);
-  const paymentToken = await ethers.deployContract('FreeERC20', ['USD Coin', 'USDC', 6]);
-  const beneficiaryEscrow = await ethers.deployContract('BeneficiaryEscrow', [beneficiaryRegistry.target, paymentToken.target]);
-  const workRegistry = await ethers.deployContract('ContentRegistry');
-  const projectFactory = await ethers.deployContract('ProjectFactory', [
-    tokenFactory.target,
-    assuranceFactory.target,
-    conditionFactory.target,
-    beneficiaryRegistry.target,
-    beneficiaryEscrow.target,
-    fixedControllerFactory.target,
-    workRegistry.target,
-  ]);
-  await workRegistry.setRegistrar(projectFactory.target, true);
-  return { projectFactory, assuranceFactory, conditionFactory, beneficiaryRegistry, beneficiaryEscrow, verifier, beneficiaryPaymentToken: paymentToken };
-}
-
-function defaultProjectParams(owner, recipient, paymentToken, deadline) {
-  return [
-    'ipfs://tokens/{id}.json',
-    'ipfs://contract.json',
-    owner,
-    recipient,
-    paymentToken,
-    100n,
-    deadline,
-    'bafyproject',
-    [1n, 2n],
-    [10n, 20n],
-    [5n, 7n],
-  ];
-}
+import { deployProjectFactory, defaultProjectParams } from './helpers/projectFactory.js';
 
 describe('ProjectFactory', function () {
   it('creates isolated receipt-token clones and initializes each exactly once', async function () {
@@ -114,7 +76,7 @@ describe('ProjectFactory', function () {
       'FixedControllerAssuranceContract',
       event.args.assuranceContract,
     );
-    const condition = await ethers.getContractAt('ValueThresholdCondition', event.args.condition);
+    const condition = await ethers.getContractAt('WorkFundingCondition', event.args.condition);
 
     expect(await assurance.owner()).to.equal(owner.address);
     expect(await assurance.paymentToken()).to.equal(paymentToken.target);
@@ -124,7 +86,7 @@ describe('ProjectFactory', function () {
     expect(await token.isReceiptTransferBridge(assurance.target)).to.equal(true);
     expect(await assurance.recipient()).to.equal(recipient.address);
     expect(await assurance.unclaimedProceedsWindow()).to.equal(90n * 24n * 60n * 60n);
-    expect(await conditionFactory.isDeployedCondition(condition.target)).to.equal(true);
+    expect(await conditionFactory.isDeployedCondition(await condition.baseCondition())).to.equal(true);
   });
 
   it('lets a fixed recipient claim proceeds without a beneficiary registry', async function () {
@@ -134,7 +96,7 @@ describe('ProjectFactory', function () {
     const deadline = BigInt((await ethers.provider.getBlock('latest')).timestamp + 3600);
     const args = defaultProjectParams(owner.address, recipient.address, paymentToken.target, deadline);
     args[5] = 5n;
-    const receipt = await (await projectFactory.createERC1155AndAssuranceContract(...args)).wait();
+    const receipt = await (await projectFactory.connect(recipient).createERC1155AndAssuranceContract(...args)).wait();
     const event = receipt.logs.map(log => { try { return projectFactory.interface.parseLog(log); } catch { return null; } })
       .find(log => log?.name === 'ProjectCreated');
     const assurance = await ethers.getContractAt('FixedControllerAssuranceContract', event.args.assuranceContract);
@@ -154,7 +116,7 @@ describe('ProjectFactory', function () {
     const deadline = BigInt((await ethers.provider.getBlock('latest')).timestamp + 3600);
     const args = defaultProjectParams(owner.address, recipient.address, paymentToken.target, deadline);
     args[5] = 5n;
-    const tx = await projectFactory.createERC1155AndAssuranceContract(...args);
+    const tx = await projectFactory.connect(recipient).createERC1155AndAssuranceContract(...args);
     const receipt = await tx.wait();
     const event = receipt.logs.map(log => { try { return projectFactory.interface.parseLog(log); } catch { return null; } })
       .find(log => log?.name === 'ProjectCreated');
@@ -177,7 +139,7 @@ describe('ProjectFactory', function () {
     const deadline = BigInt((await ethers.provider.getBlock('latest')).timestamp + 3600);
     const args = defaultProjectParams(owner.address, recipient.address, paymentToken.target, deadline);
     args[5] = 5n;
-    const receipt = await (await projectFactory.createERC1155AndAssuranceContract(...args)).wait();
+    const receipt = await (await projectFactory.connect(recipient).createERC1155AndAssuranceContract(...args)).wait();
     const event = receipt.logs.map(log => { try { return projectFactory.interface.parseLog(log); } catch { return null; } })
       .find(log => log?.name === 'ProjectCreated');
     const assurance = await ethers.getContractAt('FixedControllerAssuranceContract', event.args.assuranceContract);
@@ -227,7 +189,7 @@ describe('ProjectFactory', function () {
   it('keeps beneficiary proceeds in the project until that payout address claims', async function () {
     const [creator, owner, other] = await ethers.getSigners();
     const { projectFactory, beneficiaryRegistry, beneficiaryEscrow, verifier, beneficiaryPaymentToken: paymentToken } = await deployProjectFactory();
-    const deadline = BigInt((await ethers.provider.getBlock('latest')).timestamp + 3600);
+    const deadline = BigInt((await ethers.provider.getBlock('latest')).timestamp + 30 * 24 * 60 * 60);
     const beneficiaryId = ethers.keccak256(ethers.toUtf8Bytes('dns:example.org'));
 
     const args = defaultProjectParams(owner.address, ethers.ZeroAddress, paymentToken.target, deadline);
@@ -254,6 +216,9 @@ describe('ProjectFactory', function () {
     const nonce = ethers.keccak256(ethers.toUtf8Bytes('project-factory-beneficiary-claim'));
     const proofHash = ethers.keccak256(ethers.toUtf8Bytes('https://example.org/.well-known/commonality-claim.json'));
     await beneficiaryRegistry.verifyBeneficiary(beneficiaryId, owner.address, nonce, deadline, proofHash, '0x');
+    await projectFactory.connect(owner).acceptWorkProject(assurance.target);
+    await ethers.provider.send('evm_increaseTime', [7 * 24 * 60 * 60 + 1]);
+    await ethers.provider.send('evm_mine', []);
     await assurance.connect(owner).claim();
     expect(await paymentToken.balanceOf(owner.address)).to.equal(105n);
     expect(await beneficiaryEscrow.balance(beneficiaryId)).to.equal(0n);
@@ -387,12 +352,12 @@ describe('ProjectFactory', function () {
     }).find((log) => log?.name === 'ProjectCreated').args.assuranceContract;
     const workId = `project:${project.toLowerCase()}`;
     expect(await projectFactory.workIdsOf(project)).to.deep.equal([workId]);
-    expect(await registry.projectFor(ethers.keccak256(ethers.toUtf8Bytes(workId)))).to.equal(project);
+    expect(await registry.projectFor(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(['bytes32', 'bytes32'], [await projectFactory.workBeneficiaryOf(project), ethers.keccak256(ethers.toUtf8Bytes(workId))])))).to.equal(project);
 
     await ethers.provider.send('evm_increaseTime', [30]);
     await ethers.provider.send('evm_mine', []);
     await projectFactory.releaseWorkOnFailure(project);
-    expect(await registry.projectFor(ethers.keccak256(ethers.toUtf8Bytes(workId)))).to.equal(ethers.ZeroAddress);
+    expect(await registry.projectFor(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(['bytes32', 'bytes32'], [await projectFactory.workBeneficiaryOf(project), ethers.keccak256(ethers.toUtf8Bytes(workId))])))).to.equal(ethers.ZeroAddress);
 
     const explicit = 'maintenance:example-repo:2026-10';
     const later = BigInt((await ethers.provider.getBlock('latest')).timestamp + 3600);

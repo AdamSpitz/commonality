@@ -5,14 +5,16 @@ export interface ThresholdFundingSnapshot {
   totalReceived: string;
   threshold: string;
   deadline: string;
+  conditionStatus?: 'active' | 'succeeded' | 'refunding';
 }
 
-/** Threshold presentation only; custom conditions need their own adapter.
- * This is not an onchain success check or transaction authorization. */
+/** Prefer observed on-chain condition state; fall back to threshold presentation
+ * when it is unavailable. This snapshot is not transaction authorization. */
 export function classifyAlignedProjectStatus(
   project: ThresholdFundingSnapshot,
   nowSeconds: number = Math.floor(Date.now() / 1000),
 ): 'active' | 'succeeded' | 'refunding' {
+  if (project.conditionStatus) return project.conditionStatus;
   if (BigInt(project.totalReceived) >= BigInt(project.threshold)) return 'succeeded';
   if (Number(project.deadline) < nowSeconds) return 'refunding';
   return 'active';

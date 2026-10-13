@@ -440,6 +440,11 @@ export function CreateProjectPage() {
               ? ' After the project is created you can attest that it is aligned with the statement you started from — alignment is a claim about this project, not about every activity of the beneficiary.'
               : ''}
           </Alert>
+          {(recipientKind === 'website' || (recipient && recipient.toLowerCase() !== address?.toLowerCase())) && (
+            <Alert severity="info">
+              A proposal started by someone other than its beneficiary needs the beneficiary's acceptance before it can succeed. Acceptance starts a seven-day veto window that must finish before the funding deadline. Allow enough time for the beneficiary to respond. Expired or vetoed proposals are refundable even if they reached their funding goal.
+            </Alert>
+          )}
           <TextField
             label="Project Name"
             value={name}
@@ -460,7 +465,7 @@ export function CreateProjectPage() {
           <Stack spacing={1}>
             <Typography variant="subtitle1">Specific work items (optional)</Typography>
             <Typography variant="body2" color="text.secondary">
-              Leave this empty and the project still gets one generated work id. Add an item when you want a stable identity, such as a concert date or a maintenance period. The id is kept if you have to resubmit the transaction.
+              Leave this empty and the project still gets one generated work id. Add an item when you want a stable identity, such as a concert date or a maintenance period. Each id belongs to the recipient you choose below, so different recipients can use the same id. The id is kept if you have to resubmit the transaction.
             </Typography>
             {workItems.map((item, index) => (
               <Stack key={item.id} direction={{ xs: 'column', sm: 'row' }} spacing={1}>
@@ -469,7 +474,7 @@ export function CreateProjectPage() {
                   value={item.id}
                   onChange={(event) => setWorkItems((current) => current.map((row, rowIndex) => rowIndex === index ? { ...row, id: event.target.value } : row))}
                   fullWidth
-                  helperText="Exact text. A content id such as twitter:uid:123:456 is a valid work id."
+                  helperText="Exact text, scoped to this project's recipient."
                 />
                 <TextField
                   label="What this item is"

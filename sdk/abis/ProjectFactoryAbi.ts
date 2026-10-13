@@ -101,6 +101,11 @@ export const ProjectFactoryAbi = [
   },
   {
     "inputs": [],
+    "name": "ThirdPartyCustomConditionRequiresDeadline",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "TokenArrayLengthMismatch",
     "type": "error"
   },
@@ -201,6 +206,19 @@ export const ProjectFactoryAbi = [
       }
     ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "project",
+        "type": "address"
+      }
+    ],
+    "name": "acceptWorkProject",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -628,6 +646,76 @@ export const ProjectFactoryAbi = [
     "name": "releaseWorkOnFailure",
     "outputs": [],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "project",
+        "type": "address"
+      }
+    ],
+    "name": "vetoWorkProject",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "wallet",
+        "type": "address"
+      }
+    ],
+    "name": "walletWorkBeneficiary",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "pure",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "project",
+        "type": "address"
+      }
+    ],
+    "name": "workBeneficiaryOf",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "beneficiaryId",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "project",
+        "type": "address"
+      }
+    ],
+    "name": "workConditionOf",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "condition",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {

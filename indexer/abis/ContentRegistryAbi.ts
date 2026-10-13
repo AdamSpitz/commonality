@@ -243,6 +243,12 @@ export const ContentRegistryAbi = [
         "internalType": "string",
         "name": "workId",
         "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "bytes32",
+        "name": "beneficiaryId",
+        "type": "bytes32"
       }
     ],
     "name": "WorkItemRegistered",
@@ -372,6 +378,39 @@ export const ContentRegistryAbi = [
   {
     "inputs": [
       {
+        "internalType": "string[]",
+        "name": "workIds",
+        "type": "string[]"
+      },
+      {
+        "internalType": "address",
+        "name": "project",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "condition",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "creator",
+        "type": "address"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "beneficiaryId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "registerBeneficiaryWorks",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "uint256",
         "name": "contentId",
         "type": "uint256"
@@ -416,6 +455,29 @@ export const ContentRegistryAbi = [
       }
     ],
     "name": "registerWorks",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string[]",
+        "name": "workIds",
+        "type": "string[]"
+      },
+      {
+        "internalType": "address",
+        "name": "project",
+        "type": "address"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "beneficiaryId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "releaseBeneficiaryWorks",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

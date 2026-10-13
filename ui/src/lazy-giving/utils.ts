@@ -1,18 +1,13 @@
 import type { Project, Contribution, Refund } from '@commonality/sdk/lazy-giving'
+import { classifyAlignedProjectStatus } from '@commonality/sdk/lazy-giving'
 import { ETH_CURRENCY } from '@commonality/sdk/utils'
 
 export type ProjectStatus = 'active' | 'succeeded' | 'refunding'
 
 export type TokenBalance = { tokenId: string; count: bigint }
 
-export function getProjectStatus(project: Pick<Project, 'totalReceived' | 'threshold' | 'deadline'>): ProjectStatus {
-  const now = Math.floor(Date.now() / 1000)
-  const deadline = Number(project.deadline)
-  const thresholdMet = BigInt(project.totalReceived) >= BigInt(project.threshold)
-
-  if (thresholdMet) return 'succeeded'
-  if (deadline < now) return 'refunding'
-  return 'active'
+export function getProjectStatus(project: Pick<Project, 'totalReceived' | 'threshold' | 'deadline' | 'conditionStatus'>): ProjectStatus {
+  return classifyAlignedProjectStatus(project)
 }
 
 export const STATUS_COLORS: Record<ProjectStatus, 'success' | 'warning' | 'info'> = {
@@ -29,9 +24,9 @@ export const STATUS_LABELS: Record<ProjectStatus, string> = {
 
 /** Short explanations for the status chip (and its info icon). */
 export const STATUS_TOOLTIPS: Record<ProjectStatus, string> = {
-  active: 'Still raising. The minimum has not been met yet, and the deadline has not passed.',
-  succeeded: 'The project met its minimum — or has none. The recipient can claim its proceeds during the 90-day window after success is noted.',
-  refunding: 'The deadline passed without meeting the minimum. Contributors can reclaim their funds.',
+  active: 'The project is still raising funds or waiting for beneficiary acceptance and its veto window.',
+  succeeded: 'The funding condition succeeded. The recipient can claim its proceeds during the 90-day window after success is noted.',
+  refunding: 'The project failed, expired, or was vetoed. Contributors can reclaim their funds.',
 }
 
 export const DEADLINE_ENDED_TOOLTIP =

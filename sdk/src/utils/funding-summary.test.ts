@@ -12,6 +12,15 @@ describe('funding presentation boundaries', () => {
     deadline: '200',
   };
 
+  it('keeps fully funded proposals pending acceptance and makes vetoed proposals refundable', () => {
+    const funded = { ...thresholdProject, totalReceived: '100' };
+    const pending = summarizeThresholdFunding({ ...funded, conditionStatus: 'active' }, now);
+    const vetoed = summarizeThresholdFunding({ ...funded, conditionStatus: 'refunding' }, now);
+    assert.equal(pending.refund?.available, false);
+    assert.equal(pending.contribution?.remainingToGoal, 0n);
+    assert.equal(vetoed.refund?.available, true);
+  });
+
   it('combines ongoing donations and threshold funding without inventing a donation target', () => {
     const donation: FundingSummary = {
       fundingCurrency: ETH_CURRENCY,

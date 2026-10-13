@@ -27,6 +27,10 @@ interface IContentRegistry {
     function isRegistered(uint256 contentId) external view returns (bool);
     function registerWorks(string[] calldata workIds, address project, address condition, address creator) external;
     function releaseWorks(string[] calldata workIds, address project) external;
+    function registerBeneficiaryWorks(
+        string[] calldata workIds, address project, address condition, address creator, bytes32 beneficiaryId
+    ) external;
+    function releaseBeneficiaryWorks(string[] calldata workIds, address project, bytes32 beneficiaryId) external;
     function projectFor(bytes32 workIdHash) external view returns (address);
 }
 
@@ -71,7 +75,8 @@ contract ContentRegistry is IContentRegistry, Ownable {
         bytes32 indexed workIdHash,
         address indexed project,
         address indexed creator,
-        string workId
+        string workId,
+        bytes32 beneficiaryId
     );
 
     /// @notice A failed request released its reservation. The event remains the history.
@@ -117,7 +122,7 @@ contract ContentRegistry is IContentRegistry, Ownable {
         address assuranceContract,
         string calldata canonicalId
     ) external onlyRegistrarOrOwner onlyValidContentId(contentId) {
-        _occupy(contentId, assuranceContract, address(0), canonicalId, msg.sender);
+        _occupy(contentId, assuranceContract, address(0), canonicalId, msg.sender, bytes32(0));
     }
 
     /**
@@ -132,19 +137,42 @@ contract ContentRegistry is IContentRegistry, Ownable {
         address condition,
         address creator
     ) external onlyRegistrarOrOwner {
+        _registerWorks(workIds, project, condition, creator, bytes32(0));
+    }
+
+    /// @notice Reserve ordinary work for a beneficiary, independently of the initiator.
+    /// @dev Zero scope is reserved for canonical content IDs.
+    function registerBeneficiaryWorks(
+        string[] calldata workIds,
+        address project,
+        address condition,
+        address creator,
+        bytes32 beneficiaryId
+    ) external onlyRegistrarOrOwner {
+        if (beneficiaryId == bytes32(0)) revert InvalidWorkRegistration();
+        _registerWorks(workIds, project, condition, creator, beneficiaryId);
+    }
+
+    function _registerWorks(
+        string[] calldata workIds,
+        address project,
+        address condition,
+        address creator,
+        bytes32 beneficiaryId
+    ) private {
         if (workIds.length == 0) revert EmptyWorkBatch();
         if (project == address(0) || condition == address(0) || creator == address(0)) {
             revert InvalidWorkRegistration();
         }
         uint256[] memory hashes = new uint256[](workIds.length);
         for (uint256 i = 0; i < workIds.length; i++) {
-            hashes[i] = _hashWorkId(workIds[i]);
+            hashes[i] = _hashWorkId(workIds[i], beneficiaryId);
             for (uint256 j = 0; j < i; j++) {
                 if (hashes[j] == hashes[i]) revert DuplicateWorkId(hashes[i]);
             }
         }
         for (uint256 i = 0; i < workIds.length; i++) {
-            _occupy(hashes[i], project, condition, workIds[i], creator);
+            _occupy(hashes[i], project, condition, workIds[i], creator, beneficiaryId);
         }
     }
 
@@ -154,9 +182,20 @@ contract ContentRegistry is IContentRegistry, Ownable {
      *      clear a newer request. A succeeded condition cannot be released.
      */
     function releaseWorks(string[] calldata workIds, address project) external onlyRegistrarOrOwner {
+        _releaseWorks(workIds, project, bytes32(0));
+    }
+
+    function releaseBeneficiaryWorks(
+        string[] calldata workIds, address project, bytes32 beneficiaryId
+    ) external onlyRegistrarOrOwner {
+        if (beneficiaryId == bytes32(0)) revert InvalidWorkRegistration();
+        _releaseWorks(workIds, project, beneficiaryId);
+    }
+
+    function _releaseWorks(string[] calldata workIds, address project, bytes32 beneficiaryId) private {
         if (project == address(0)) revert InvalidWorkRegistration();
         for (uint256 i = 0; i < workIds.length; i++) {
-            uint256 contentId = _hashWorkId(workIds[i]);
+            uint256 contentId = _hashWorkId(workIds[i], beneficiaryId);
             address current = _contentContracts[contentId];
             if (current != project) revert StaleWorkRelease(contentId, current);
             _releaseIfFailed(contentId);
@@ -180,10 +219,11 @@ contract ContentRegistry is IContentRegistry, Ownable {
         _releaseIfFailed(contentId);
     }
 
-    function _hashWorkId(string calldata workId) private pure returns (uint256 contentId) {
+    function _hashWorkId(string calldata workId, bytes32 beneficiaryId) private pure returns (uint256 contentId) {
         bytes memory raw = bytes(workId);
         if (raw.length == 0 || raw.length > MAX_WORK_ID_BYTES) revert InvalidWorkId();
         contentId = uint256(keccak256(raw));
+        if (beneficiaryId != bytes32(0)) contentId = uint256(keccak256(abi.encode(beneficiaryId, bytes32(contentId))));
         if (contentId == 0) revert InvalidContentId();
     }
 
@@ -192,7 +232,8 @@ contract ContentRegistry is IContentRegistry, Ownable {
         address project,
         address condition,
         string memory workId,
-        address creator
+        address creator,
+        bytes32 beneficiaryId
     ) private {
         address existing = _contentContracts[contentId];
         if (existing != address(0)) {
@@ -202,7 +243,7 @@ contract ContentRegistry is IContentRegistry, Ownable {
         _contentContracts[contentId] = project;
         if (condition != address(0)) _conditions[contentId] = condition;
         emit ContentItemRegistered(contentId, project, workId);
-        emit WorkItemRegistered(bytes32(contentId), project, creator, workId);
+        emit WorkItemRegistered(bytes32(contentId), project, creator, workId, beneficiaryId);
     }
 
     function _releaseIfFailed(uint256 contentId) private {
@@ -215,6 +256,7 @@ contract ContentRegistry is IContentRegistry, Ownable {
         }
         address project = _contentContracts[contentId];
         delete _contentContracts[contentId];
+        delete _conditions[contentId];
         emit ContentItemReleased(contentId);
         emit WorkItemReleased(bytes32(contentId), project);
     }

@@ -243,10 +243,15 @@ export async function fetchLazyGivingProjectEvents(
 ): Promise<RawEventFromCache[]> {
   const paddedAddress = padAddressAsTopic(assuranceContractAddress);
 
-  const [factoryEvents, creatorFactoryEvents, cachedContractEvents] = await Promise.all([
+  const [factoryEvents, projectFactoryEvents, creatorFactoryEvents, cachedContractEvents] = await Promise.all([
     fetchEvents(machinery, {
       eventName: 'LazyGivingAssuranceContractCreated',
       topic1: paddedAddress,
+      limit: 10,
+    }),
+    fetchEvents(machinery, {
+      eventName: 'ProjectCreated',
+      topic3: paddedAddress,
       limit: 10,
     }),
     fetchEvents(machinery, {
@@ -265,7 +270,7 @@ export async function fetchLazyGivingProjectEvents(
     ? cachedContractEvents
     : await readUnindexedProjectLogs(machinery, assuranceContractAddress, options.blockNumber_gte);
 
-  return [...factoryEvents, ...creatorFactoryEvents, ...contractEvents];
+  return [...factoryEvents, ...projectFactoryEvents, ...creatorFactoryEvents, ...contractEvents];
 }
 
 async function readUnindexedProjectLogs(

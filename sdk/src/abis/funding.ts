@@ -14,6 +14,7 @@ export { PremintingERC1155FactoryAbi } from '../../abis/PremintingERC1155Factory
 export { AssuranceContractFactoryAbi } from '../../abis/AssuranceContractFactoryAbi.js';
 export { ValueThresholdConditionFactoryAbi } from '../../abis/ValueThresholdConditionFactoryAbi.js';
 export { ValueThresholdConditionAbi } from '../../abis/ValueThresholdConditionAbi.js';
+export { WorkFundingConditionAbi } from '../../abis/WorkFundingConditionAbi.js';
 export { ContentRegistryAbi } from '../../abis/ContentRegistryAbi.js';
 export { BeneficiaryRegistryAbi } from '../../abis/BeneficiaryRegistryAbi.js';
 export { BeneficiaryEscrowAbi } from '../../abis/BeneficiaryEscrowAbi.js';

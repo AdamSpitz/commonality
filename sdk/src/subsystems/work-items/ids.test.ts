@@ -4,6 +4,7 @@ import {
   defaultProjectWorkId,
   projectAddressFromAttestationSubject,
   workIdHash,
+  walletWorkBeneficiaryId,
   workItemsFromExtras,
 } from './ids.js';
 
@@ -17,6 +18,16 @@ describe('work item ids', () => {
   it('accepts an unfamiliar convention without a schema', () => {
     const id = 'concert:cedarvale:2026-10-08:violin';
     assert.equal(workIdHash(id), hashCanonicalId(id));
+  });
+
+  it('scopes ordinary work to its beneficiary and preserves that identity across initiators', () => {
+    const bob = walletWorkBeneficiaryId('0x1111111111111111111111111111111111111111');
+    const carol = walletWorkBeneficiaryId('0x2222222222222222222222222222222222222222');
+    const id = 'concert:cedarvale:2026-10-08';
+    assert.notEqual(workIdHash(id, bob), workIdHash(id, carol));
+    assert.notEqual(workIdHash(id, bob), workIdHash(id));
+    assert.notEqual(workIdHash(id, bob), workIdHash(id.toUpperCase(), bob));
+    assert.throws(() => workIdHash(id, `0x${'0'.repeat(64)}`), /nonzero bytes32/);
   });
 
   it('does not treat a work hash as an address', () => {

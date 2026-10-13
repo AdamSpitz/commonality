@@ -13,6 +13,7 @@ import {BeneficiaryAssuranceContract} from "./BeneficiaryAssuranceContract.sol";
 import {FixedControllerFactory} from "./FixedControllerFactory.sol";
 import {ContentRegistry} from "../content-funding/ContentRegistry.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+import {WorkFundingCondition} from "./WorkFundingCondition.sol";
 
 interface IProjectBeneficiaryRegistry {
   function isVerified(bytes32 beneficiaryId) external view returns (bool);
@@ -37,6 +38,7 @@ error BeneficiaryPaymentTokenMismatch();
 error BeneficiaryEscrowRegistryMismatch();
 error UnknownProjectWork(address project);
 error OnlyPayoutAddressCanCreateForControlledBeneficiary();
+error ThirdPartyCustomConditionRequiresDeadline();
 
 /**
  * @title PremintingERC1155Factory
@@ -190,6 +192,8 @@ contract ProjectFactory {
   ContentRegistry public immutable workRegistry;
   uint256 public constant UNCLAIMED_PROCEEDS_WINDOW = 90 days;
   mapping(address project => string[] workIds) private _projectWorkIds;
+  mapping(address project => bytes32 beneficiaryId) public workBeneficiaryOf;
+  mapping(address project => address condition) public workConditionOf;
 
   /**
    * @notice Emitted once per createERC1155...() call, tying together the three
@@ -241,6 +245,8 @@ contract ProjectFactory {
     uint256[] counts;
     uint256[] prices;
     string[] workIds;
+    bytes32 beneficiaryId;
+    uint256 deadline;
   }
 
   /**
@@ -273,7 +279,9 @@ contract ProjectFactory {
       ids: ids,
       counts: counts,
       prices: prices,
-      workIds: new string[](0)
+      workIds: new string[](0),
+      beneficiaryId: bytes32(0),
+      deadline: deadline
     });
 
     (PremintingERC1155 t, MultiERC1155AssuranceContract ac) = _deployTokenAndAC(params);
@@ -286,7 +294,7 @@ contract ProjectFactory {
 
     _wireUpAndFinalize(t, ac, IAssuranceCondition(address(condition)), params);
 
-    emit ProjectCreated(msg.sender, address(t), address(ac), address(condition));
+    emit ProjectCreated(msg.sender, address(t), address(ac), workConditionOf[address(ac)]);
 
     return (t, ac);
   }
@@ -328,7 +336,9 @@ contract ProjectFactory {
       ids: ids,
       counts: counts,
       prices: prices,
-      workIds: new string[](0)
+      workIds: new string[](0),
+      beneficiaryId: beneficiaryId,
+      deadline: deadline
     });
 
     _validateProjectParams(params);
@@ -345,7 +355,7 @@ contract ProjectFactory {
     }
     ValueThresholdCondition condition = _conditionFactory.createCondition(address(ac), threshold, deadline);
     _wireUpAndFinalize(t, ac, IAssuranceCondition(address(condition)), params);
-    emit ProjectCreated(msg.sender, address(t), address(ac), address(condition));
+    emit ProjectCreated(msg.sender, address(t), address(ac), workConditionOf[address(ac)]);
     return (t, ac);
   }
 
@@ -382,7 +392,9 @@ contract ProjectFactory {
       ids: ids,
       counts: counts,
       prices: prices,
-      workIds: workIds
+      workIds: workIds,
+      beneficiaryId: beneficiaryId,
+      deadline: deadline
     });
     _validateProjectParams(params);
     PremintingERC1155 t = _deployToken(params);
@@ -398,7 +410,7 @@ contract ProjectFactory {
     }
     ValueThresholdCondition condition = _conditionFactory.createCondition(address(ac), threshold, deadline);
     _wireUpAndFinalize(t, ac, IAssuranceCondition(address(condition)), params);
-    emit ProjectCreated(msg.sender, address(t), address(ac), address(condition));
+    emit ProjectCreated(msg.sender, address(t), address(ac), workConditionOf[address(ac)]);
     return (t, ac);
   }
 
@@ -428,14 +440,16 @@ contract ProjectFactory {
       ids: ids,
       counts: counts,
       prices: prices,
-      workIds: new string[](0)
+      workIds: new string[](0),
+      beneficiaryId: bytes32(0),
+      deadline: 0
     });
 
     (PremintingERC1155 t, MultiERC1155AssuranceContract ac) = _deployTokenAndAC(params);
 
     _wireUpAndFinalize(t, ac, condition, params);
 
-    emit ProjectCreated(msg.sender, address(t), address(ac), address(condition));
+    emit ProjectCreated(msg.sender, address(t), address(ac), workConditionOf[address(ac)]);
 
     return (t, ac);
   }
@@ -468,12 +482,14 @@ contract ProjectFactory {
       ids: ids,
       counts: counts,
       prices: prices,
-      workIds: workIds
+      workIds: workIds,
+      beneficiaryId: bytes32(0),
+      deadline: deadline
     });
     (PremintingERC1155 t, MultiERC1155AssuranceContract ac) = _deployTokenAndAC(params);
     ValueThresholdCondition condition = _conditionFactory.createCondition(address(ac), threshold, deadline);
     _wireUpAndFinalize(t, ac, IAssuranceCondition(address(condition)), params);
-    emit ProjectCreated(msg.sender, address(t), address(ac), address(condition));
+    emit ProjectCreated(msg.sender, address(t), address(ac), workConditionOf[address(ac)]);
     return (t, ac);
   }
 
@@ -485,7 +501,25 @@ contract ProjectFactory {
   function releaseWorkOnFailure(address project) external {
     string[] memory ids = _projectWorkIds[project];
     if (ids.length == 0) revert UnknownProjectWork(project);
-    workRegistry.releaseWorks(ids, project);
+    workRegistry.releaseBeneficiaryWorks(ids, project, workBeneficiaryOf[project]);
+  }
+
+  /// @notice Accept a proposal about your work; this starts its seven-day veto window.
+  function acceptWorkProject(address project) external {
+    if (workConditionOf[project] == address(0)) revert UnknownProjectWork(project);
+    WorkFundingCondition(workConditionOf[project]).accept(msg.sender);
+  }
+
+  /// @notice Veto a third-party proposal and atomically release its work reservations.
+  function vetoWorkProject(address project) external {
+    if (workConditionOf[project] == address(0)) revert UnknownProjectWork(project);
+    WorkFundingCondition(workConditionOf[project]).veto(msg.sender);
+    workRegistry.releaseBeneficiaryWorks(_projectWorkIds[project], project, workBeneficiaryOf[project]);
+  }
+
+  /// @notice Stable wallet identity for work occupancy; unrelated to contract ownership.
+  function walletWorkBeneficiary(address wallet) public pure returns (bytes32) {
+    return keccak256(abi.encode("wallet", wallet));
   }
 
   function _deployTokenAndAC(CreateProjectParams memory params)
@@ -524,6 +558,22 @@ contract ProjectFactory {
     IAssuranceCondition condition,
     CreateProjectParams memory params
   ) private {
+    address beneficiary = params.beneficiaryId == bytes32(0)
+      ? params.recipient
+      : beneficiaryRegistry.payoutAddress(params.beneficiaryId);
+    bool thirdParty = msg.sender != beneficiary;
+    // Custom conditions have no known deadline. Restrict this path to the
+    // recipient so a third party cannot create an unbounded reservation.
+    if (params.deadline == 0 && thirdParty) revert ThirdPartyCustomConditionRequiresDeadline();
+    WorkFundingCondition workCondition = new WorkFundingCondition(
+      address(condition), address(beneficiaryRegistry), params.recipient,
+      params.beneficiaryId, params.deadline, thirdParty
+    );
+    condition = IAssuranceCondition(address(workCondition));
+    workConditionOf[address(ac)] = address(condition);
+    workBeneficiaryOf[address(ac)] = params.beneficiaryId == bytes32(0)
+      ? walletWorkBeneficiary(params.recipient)
+      : params.beneficiaryId;
     ac.setCondition(condition);
     ac.setPricesERC1155(params.ids, params.prices);
     ac.transferOwnership(params.owner);
@@ -540,7 +590,7 @@ contract ProjectFactory {
       ids = new string[](1);
       ids[0] = string.concat("project:", Strings.toHexString(uint160(project), 20));
     }
-    workRegistry.registerWorks(ids, project, condition, msg.sender);
+    workRegistry.registerBeneficiaryWorks(ids, project, condition, msg.sender, workBeneficiaryOf[project]);
     _projectWorkIds[project] = ids;
   }
 
