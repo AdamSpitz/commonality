@@ -88,7 +88,7 @@ const SDK_SOURCE_ENTRIES: Record<string, string> = {
     [
       'conceptspace', 'content-funding', 'delegation', 'displayable-documents',
       'fundingportals', 'identity', 'lazy-giving', 'mutable-refs',
-      'nudger-publications', 'signer-profiles', 'subjectiv',
+      'nudger-publications', 'signer-profiles', 'subjectiv', 'work-requests',
     ].map((name) => [name, `subsystems/${name}/index.ts`]),
   ),
 }

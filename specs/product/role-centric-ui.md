@@ -259,13 +259,18 @@ entrusted counts). Expanding it lists individual notes and the preferred-fund co
 
 ## Work workspace (sixth slice implemented)
 
-`/work` is for the person who would do a piece of work:
+`/work` is for the person who would do a piece of work, and for someone who wants
+that work to exist before a provider does:
 
 1. **Create a project.**
 2. **Projects this wallet created** — the creator/owner relation from
    `ProjectCreated`.
 3. **Bookmarked projects** — the same wallet/device list as Fund
    (`bookmarked-projects`). Do not keep separate per-role bookmark lists.
+4. **Requests for work** (`/work/requests`) — publish an outcome and requirements,
+   attach a time-bounded funding offer, and answer with a project plus work items.
+   See [fundable work requests](fundable-work-requests.md). An offer is not a
+   contribution. Note backing is not a reservation.
 
 Organize no longer hosts project creation; it links to Work. Fund does not create
 projects; it links to Work and still shows the shared bookmark list.

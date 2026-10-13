@@ -1,6 +1,6 @@
 # Fundable-work requests and funding offers
 
-Design direction and implementation handoff, 2026-10-13. Adam approved writing up this direction for a fresh LLM to implement. This document describes the intended first slice; exact storage, event, and API designs still need an implementation review. Exclusive financial reservations are a later extension.
+Design direction, 2026-10-13. The first slice is implemented: versioned documents on `PublishedData`, latest pointers on `MutableRefUpdater`, SDK `@commonality/sdk/work-requests`, and Commonality pages under `/work/requests`. Storage choices are in [ADR 0020](../decisions/0020-work-requests-are-published-versions.md) and [work requests](../tech/subsystems/work-requests/README.md). Exclusive financial reservations are a later extension.
 
 ## Purpose
 
@@ -123,18 +123,18 @@ This extension, automatic selection, pooled governance, slashing, automatic repu
 
 ## High-level implementation to-do list
 
-This is the checklist for the fresh LLM when Adam assigns implementation. It does not authorize starting implementation solely because this planning document exists.
+First slice landed on `PublishedData` versions plus mutable-ref tips ([ADR 0020](../decisions/0020-work-requests-are-published-versions.md)). Exclusive reservations are still out of scope. Contribution links are author-published references to an existing contribution transaction; this slice does not submit the contribution itself.
 
-- [ ] Review the relevant project/developer guidance and current implementation. Map publication/authentication, note intent, live note queries, project metadata, work identities, contribution events, and UI ownership. Read branching guidance before branch operations.
-- [ ] Define the minimal versioned request, funding-offer, response, provider-acceptance, and decision formats. Resolve IDs, actor authority, historical discovery, updates/revocation, and optional versus required fields. Record consequential architecture choices through the project's decision process.
-- [ ] Add glossary definitions and clarify “funding request” (an existing project) versus “request for work” where existing prose would otherwise be ambiguous.
-- [ ] Implement durable authenticated publication and history using existing primitives where suitable; add contract/event support only where the reviewed gaps require it. Wire any new events through the thin event cache and SDK folds.
-- [ ] Implement SDK create/read/update actions and queries, exact-version links, response scope, provider acceptance, decisions, offer-to-contribution attribution, and live backing verification with deduplication/allocation rules.
-- [ ] Build the minimal end-to-end UI in the appropriate domain: publish a request, make an offer, optionally select/deposit a backing note, browse responses, link a project and its work items, accept terms as provider, approve/decline as offer author, and contribute through the existing flow.
-- [ ] Show independent totals for unfunded intentions, currently verified backing, recorded approvals, and actual contributions; explain expiry, revocability, shared demand, partial scope, and backing that has become unavailable. Preserve ordinary project raised totals.
-- [ ] Expose request/offer/response histories with attributable actors and optional explanations. Preserve old terms and show revisions; do not introduce automatic adverse judgments.
-- [ ] Validate authentication, immutable-version behavior, revised/withdrawn/expired offers, inadequate and unsolicited responses, competing projects, partial/multiple responses, note-backing changes and double counting, approval without payment, contribution attribution, and refund history. Run relevant workspace checks and meaningful contract/SDK/UI tests.
-- [ ] Demonstrate the playground example end to end, including two competing responses, one declined response, one approved contribution, and backing withdrawn before approval. Update relevant documentation and product navigation links to reflect the implemented behavior and remaining limits.
+- [x] Review the relevant project/developer guidance and current implementation. Map publication/authentication, note intent, live note queries, project metadata, work identities, contribution events, and UI ownership. Read branching guidance before branch operations.
+- [x] Define the minimal versioned request, funding-offer, response, provider-acceptance, and decision formats. Resolve IDs, actor authority, historical discovery, updates/revocation, and optional versus required fields. Record consequential architecture choices through the project's decision process.
+- [x] Add glossary definitions and clarify “funding request” (an existing project) versus “request for work” where existing prose would otherwise be ambiguous.
+- [x] Implement durable authenticated publication and history using existing primitives where suitable; add contract/event support only where the reviewed gaps require it. Wire any new events through the thin event cache and SDK folds.
+- [x] Implement SDK create/read/update actions and queries, exact-version links, response scope, provider acceptance, decisions, offer-to-contribution attribution, and live backing verification with deduplication/allocation rules.
+- [x] Build the minimal end-to-end UI in the appropriate domain: publish a request, make an offer, optionally name a backing note, browse responses, link a project and its work items, accept terms as provider, and approve or decline as the offer author. Paying still happens on the project page; the contribution link only records that an existing contribution transaction belongs to an offer and response.
+- [x] Show independent totals for unfunded intentions, currently verified backing, recorded approvals, and actual contributions; explain expiry, revocability, shared demand, partial scope, and backing that has become unavailable. Preserve ordinary project raised totals.
+- [x] Expose request/offer/response histories with attributable actors and optional explanations. Preserve old terms and show revisions; do not introduce automatic adverse judgments.
+- [x] Validate authentication, immutable-version behavior, revised/withdrawn/expired offers, inadequate and unsolicited responses, competing projects, partial/multiple responses, note-backing changes and double counting, approval without payment, contribution attribution, and refund history. Run relevant workspace checks and meaningful contract/SDK/UI tests.
+- [x] Demonstrate the playground example end to end, including two competing responses, one declined response, one approved contribution, and backing withdrawn before approval. Update relevant documentation and product navigation links to reflect the implemented behavior and remaining limits.
 
 ## Completion criteria
 

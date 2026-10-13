@@ -62,7 +62,7 @@ const statement = await getStatement(machinery, statementId);
 
 One subpath per subsystem: `conceptspace`, `content-funding`, `delegation`,
 `displayable-documents`, `fundingportals`, `identity`, `lazy-giving`, `mutable-refs`,
-`nudger-publications`, `published-data`, `signer-profiles`, `subjectiv`. Plus the shared
+`nudger-publications`, `published-data`, `signer-profiles`, `subjectiv`, `work-requests`. Plus the shared
 layers: `machinery` (SDK construction/config), `indexer-sync` (sync helpers), `policy-lists`
 (portable policy subject validation/canonicalization, strict root/list/resolved-bundle
 schemas, content-action extractors, and pure evaluation), `policy-lists/node` (the
