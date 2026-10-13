@@ -10,7 +10,7 @@ import {
   type WorkRequestBoard,
 } from '@commonality/sdk/work-requests'
 import { MutableRefUpdaterAbi, PublishedDataAbi } from '@commonality/sdk/abis'
-import { Button, Stack, TextField, Typography } from '@mui/material'
+import { Button, MenuItem, Stack, TextField, Typography } from '@mui/material'
 import { useState } from 'react'
 import { Link as RouterLink, useParams } from 'react-router-dom'
 import type { Abi } from 'viem'
@@ -20,7 +20,7 @@ import { useWorkRequests } from '../hooks/useWorkRequests'
 
 function formatTotals(board: WorkRequestBoard, request: WorkRequestBoard['requests'][number]): string[] {
   return totalsForRequest(board, request, Date.now()).map((totals) =>
-    `${totals.verifiedBacking} base units backed on chain ${totals.chainId}, ${totals.unfundedIntention} unfunded intention, ${totals.approved} recorded as approved, ${totals.contributed} contributed, ${totals.refunded} later refunded. Token ${totals.token}.`,
+    `${totals.verifiedBacking} base units backed on chain ${totals.chainId}, ${totals.unfundedIntention} unfunded intention, ${totals.approved} recorded as approved, ${totals.contributed} reported as contributed, ${totals.refunded} reported as refunded (transactions unverified). Token ${totals.token}.`,
   )
 }
 
@@ -30,6 +30,9 @@ export function WorkRequestDetailPage() {
   const machinery = useMachinery()
   const clients = useWriteClients()
   const { address } = useAccount()
+  const [pending, setPending] = useState(false)
+  const [selectedOffer, setSelectedOffer] = useState('')
+  const [selectedResponse, setSelectedResponse] = useState('')
   const [message, setMessage] = useState<string | null>(null)
   const [offerAmount, setOfferAmount] = useState('')
   const [offerToken, setOfferToken] = useState('')
@@ -53,12 +56,15 @@ export function WorkRequestDetailPage() {
 
   async function run(action: () => Promise<unknown>) {
     setMessage(null)
+    setPending(true)
     try {
       await action()
       setMessage('Published. Refreshing.')
       reload()
     } catch (cause) {
       setMessage(cause instanceof Error ? cause.message : 'Publish failed.')
+    } finally {
+      setPending(false)
     }
   }
 
@@ -70,6 +76,12 @@ export function WorkRequestDetailPage() {
   const offers = board.offers.filter((offer) => offer.current && versionCids.has(offer.current.body.requestVersionCid))
   const responses = board.responses.filter((response) => response.current && versionCids.has(response.current.body.requestVersionCid))
   const current = request.current
+  const linkedOffer = offers.find((offer) => `${offer.actor}:${offer.slug}` === selectedOffer)
+  const linkedResponse = responses.find((response) => `${response.actor}:${response.slug}` === selectedResponse)
+  const linkMatches = linkedOffer?.current && linkedResponse?.current
+    && linkedOffer.current.body.requestVersionCid === linkedResponse.current.body.requestVersionCid
+    && linkedOffer.actor === address?.toLowerCase()
+    && linkedOffer.current.body.chainId === linkedResponse.current.body.chainId
 
   return (
     <Stack spacing={2} data-testid="work-request-detail" sx={{ maxWidth: 760 }}>
@@ -106,7 +118,7 @@ export function WorkRequestDetailPage() {
           <TextField label="Settlement token" value={offerToken} onChange={(event) => setOfferToken(event.target.value)} />
           <TextField label="Expiry ISO time" value={offerExpiry} onChange={(event) => setOfferExpiry(event.target.value)} />
           <TextField label="Backing note id (optional)" value={offerNote} onChange={(event) => setOfferNote(event.target.value)} />
-          <Button variant="outlined" onClick={() => void run(() => publishWorkOffer(clients, contracts, {
+          <Button variant="outlined" disabled={pending} onClick={() => void run(() => publishWorkOffer(clients, contracts, {
             slug: `offer-${Date.now()}`,
             requestVersionCid: current.cid,
             amount: offerAmount,
@@ -145,31 +157,32 @@ export function WorkRequestDetailPage() {
                 </Typography>
               )
             })}
-            {clients && contracts && address && address.toLowerCase() === offerAuthor(offers, address) && offers[0] && response.current && (
-              <Stack direction="row" spacing={1}>
-                <Button size="small" onClick={() => void run(() => publishWorkDecision(clients, contracts, {
-                  offerOwner: address!,
-                  offerSlug: offers[0]!.slug,
-                  responseOwner: response.actor,
-                  responseSlug: response.slug,
-                  offerVersionCid: offers[0]!.current!.cid,
-                  responseVersionCid: response.current!.cid,
-                  outcome: 'approve',
-                  explanation: '',
-                  previousCid: null,
-                }))}>Approve first offer</Button>
-                <Button size="small" onClick={() => void run(() => publishWorkDecision(clients, contracts, {
-                  offerOwner: address!,
-                  offerSlug: offers[0]!.slug,
-                  responseOwner: response.actor,
-                  responseSlug: response.slug,
-                  offerVersionCid: offers[0]!.current!.cid,
-                  responseVersionCid: response.current!.cid,
-                  outcome: 'decline',
-                  explanation: '',
-                  previousCid: null,
-                }))}>Decline first offer</Button>
+            {clients && contracts && offers.filter((offer) => offer.actor === address?.toLowerCase()
+              && offer.current?.body.requestVersionCid === response.current?.body.requestVersionCid).map((offer) => (
+              <Stack key={`${offer.actor}:${offer.slug}`} direction="row" spacing={1}>
+                {(['approve', 'decline'] as const).map((outcome) => (
+                  <Button key={outcome} size="small" disabled={pending} onClick={() => void run(() => publishWorkDecision(clients, contracts, {
+                    offerOwner: offer.actor,
+                    offerSlug: offer.slug,
+                    responseOwner: response.actor,
+                    responseSlug: response.slug,
+                    offerVersionCid: offer.current!.cid,
+                    responseVersionCid: response.current!.cid,
+                    outcome,
+                    explanation: '',
+                    previousCid: decisionFor(board, offer, response)?.current?.cid ?? null,
+                  }))}>{outcome === 'approve' ? 'Approve' : 'Decline'} {offer.slug}</Button>
+                ))}
               </Stack>
+            ))}
+            {clients && contracts && response.current?.body.providerAddress.toLowerCase() === address?.toLowerCase() && (
+              <Button disabled={pending} onClick={() => void run(() => publishWorkAcceptance(clients, contracts, {
+                responseOwner: response.actor,
+                responseSlug: response.slug,
+                responseVersionCid: response.current!.cid,
+                capacity: 'I accept these terms',
+                previousCid: acceptance?.current?.cid ?? null,
+              }))}>Accept {response.slug} as provider</Button>
             )}
           </Stack>
         )
@@ -183,7 +196,7 @@ export function WorkRequestDetailPage() {
           <TextField label="Work item ids, comma separated" value={workItems} onChange={(event) => setWorkItems(event.target.value)} />
           <TextField label="Scope" value={scope} onChange={(event) => setScope(event.target.value)} />
           <TextField label="Exceptions" value={exceptions} onChange={(event) => setExceptions(event.target.value)} />
-          <Button variant="outlined" onClick={() => void run(async () => {
+          <Button variant="outlined" disabled={pending} onClick={() => void run(async () => {
             const responseSlug = `response-${Date.now()}`
             await publishWorkResponse(clients, contracts, {
               slug: responseSlug,
@@ -198,24 +211,26 @@ export function WorkRequestDetailPage() {
               previousCid: null,
             })
           })}>Publish response</Button>
-          <Button variant="outlined" onClick={() => void run(() => publishWorkAcceptance(clients, contracts, {
-            responseOwner: address ?? provider,
-            responseSlug: responses.find((response) => response.actor === (address ?? '').toLowerCase())?.slug ?? '',
-            responseVersionCid: responses.find((response) => response.actor === (address ?? '').toLowerCase())?.current?.cid ?? current.cid,
-            capacity: 'I accept these terms',
-            previousCid: null,
-          }))}>Accept my response as provider</Button>
+          <Typography variant="subtitle2">Report a contribution</Typography>
+          <Typography variant="body2">These links are claims by the publisher. Contribution and refund transactions are not yet verified.</Typography>
+          <TextField select label="Offer" value={selectedOffer} onChange={(event) => setSelectedOffer(event.target.value)}>
+            {offers.map((offer) => <MenuItem key={`${offer.actor}:${offer.slug}`} value={`${offer.actor}:${offer.slug}`}>{offer.actor} · {offer.slug}</MenuItem>)}
+          </TextField>
+          <TextField select label="Response" value={selectedResponse} onChange={(event) => setSelectedResponse(event.target.value)}>
+            {responses.map((response) => <MenuItem key={`${response.actor}:${response.slug}`} value={`${response.actor}:${response.slug}`}>{response.actor} · {response.slug}</MenuItem>)}
+          </TextField>
+          <TextField label="Contribution amount (base units)" value={offerAmount} onChange={(event) => setOfferAmount(event.target.value)} />
           <TextField label="Contribution transaction hash" value={contributionTx} onChange={(event) => setContributionTx(event.target.value)} />
           <TextField label="Refund transaction hash, if the contribution was later refunded" value={refundTx} onChange={(event) => setRefundTx(event.target.value)} />
-          <Button variant="outlined" onClick={() => void run(() => publishContributionLink(clients, contracts, {
+          <Button variant="outlined" disabled={pending || !linkMatches} onClick={() => void run(() => publishContributionLink(clients, contracts, {
             slug: `link-${Date.now()}`,
-            offerVersionCid: offers[0]?.current?.cid ?? current.cid,
-            responseVersionCid: responses[0]?.current?.cid ?? current.cid,
-            chainId: clients.walletClient.chain?.id ?? 0,
-            projectAddress: project || responses[0]?.current?.body.projectAddress || `0x${'11'.repeat(20)}`,
+            offerVersionCid: linkedOffer!.current!.cid,
+            responseVersionCid: linkedResponse!.current!.cid,
+            chainId: linkedOffer!.current!.body.chainId,
+            projectAddress: linkedResponse!.current!.body.projectAddress,
             txHash: contributionTx,
-            amount: offerAmount || '1',
-            token: offerToken || `0x${'11'.repeat(20)}`,
+            amount: offerAmount,
+            token: linkedOffer!.current!.body.token,
             refundTxHash: refundTx || null,
             previousCid: null,
           }))}>Record a contribution link</Button>
@@ -225,9 +240,4 @@ export function WorkRequestDetailPage() {
       <Button component={RouterLink} to="/work/requests" sx={{ px: 0, alignSelf: 'flex-start' }}>All requests</Button>
     </Stack>
   )
-}
-
-function offerAuthor(offers: WorkRequestBoard['offers'], address: string | undefined): string | undefined {
-  if (!address) return undefined
-  return offers.some((offer) => offer.actor === address.toLowerCase()) ? address.toLowerCase() : undefined
 }

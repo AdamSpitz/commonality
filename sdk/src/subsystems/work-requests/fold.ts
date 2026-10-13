@@ -1,5 +1,5 @@
 import type { DisplayableDocument } from '../displayable-documents/displayable-document.js';
-import { classifyWorkRefName, type WorkRefKind } from './names.js';
+import { classifyWorkRefName, decisionRefName, type WorkRefKind } from './names.js';
 import { parseWorkRecord, type AcceptanceBody, type ContributionLinkBody, type DecisionBody, type OfferBody, type RequestBody, type ResponseBody } from './documents.js';
 
 export interface WorkRefUpdate {
@@ -158,7 +158,7 @@ function currentOf<T>(versions: Version<T>[], series: Series): Version<T> | null
   const tip = series.updates.at(-1)?.value.trim() ?? '';
   if (!tip) return null;
   for (let index = versions.length - 1; index >= 0; index -= 1) {
-    if (versions[index]?.cid === tip) return versions[index] ?? null;
+    if (versions[index]?.cid === tip) return versions[index]?.retracted ? null : versions[index] ?? null;
   }
   return null;
 }
@@ -174,6 +174,7 @@ export function allocateBacking(input: {
   notes: readonly NoteBackingSnapshot[];
   settlementTokens: readonly string[];
   nowMs: number;
+  chainId?: number;
 }): BackingSlice[] {
   const notes = new Map(input.notes.map((note) => [note.id, note]));
   const allowed = new Set(input.settlementTokens.map((token) => token.toLowerCase()));
@@ -191,6 +192,10 @@ export function allocateBacking(input: {
   const slices: BackingSlice[] = [];
   for (const { offer, current } of live) {
     const noteId = current.body.backingNoteId;
+    if (input.chainId !== undefined && current.body.chainId !== input.chainId) {
+      slices.push({ offerActor: offer.actor, offerSlug: offer.slug, noteId, recognized: 0n, unavailableReason: 'chain-mismatch' });
+      continue;
+    }
     if (!noteId) {
       slices.push({ offerActor: offer.actor, offerSlug: offer.slug, noteId: null, recognized: 0n, unavailableReason: null });
       continue;
@@ -244,6 +249,7 @@ export function assembleWorkRequestBoard(input: {
   notes: readonly NoteBackingSnapshot[];
   settlementTokens: readonly string[];
   nowMs: number;
+  chainId?: number;
 }): WorkRequestBoard {
   const requests: RequestRecord[] = [];
   const offers: OfferRecord[] = [];
@@ -272,7 +278,15 @@ export function assembleWorkRequestBoard(input: {
     } else if (series.kind === 'acceptance') {
       acceptanceSeries.push(series);
     } else if (series.kind === 'decision') {
-      const versions = versionsFrom(series, input.documentsByCid, (document) => readKind<DecisionBody>(document, 'commonality.work-decision'));
+      const versions = versionsFrom(series, input.documentsByCid, (document) => {
+        const body = readKind<DecisionBody>(document, 'commonality.work-decision');
+        if (!body || body.offerOwner.toLowerCase() !== series.owner) return null;
+        try {
+          return decisionRefName(body.offerOwner, body.offerSlug, body.responseOwner, body.responseSlug) === series.name ? body : null;
+        } catch {
+          return null;
+        }
+      });
       decisions.push({ actor: series.owner, versions, current: currentOf(versions, series) });
     } else {
       const versions = versionsFrom(series, input.documentsByCid, (document) => readKind<ContributionLinkBody>(document, 'commonality.work-contribution-link'));
@@ -297,7 +311,8 @@ export function assembleWorkRequestBoard(input: {
       responseSlug,
       versions: matching,
       current,
-      authorityMatchesProvider: provider !== undefined && series.owner === provider,
+      authorityMatchesProvider: provider !== undefined && series.owner === provider
+        && current?.body.responseVersionCid === response?.current?.cid,
     });
   }
 
@@ -308,7 +323,7 @@ export function assembleWorkRequestBoard(input: {
     acceptances,
     decisions,
     contributionLinks,
-    backing: allocateBacking({ offers, notes: input.notes, settlementTokens: input.settlementTokens, nowMs: input.nowMs }),
+    backing: allocateBacking({ offers, notes: input.notes, settlementTokens: input.settlementTokens, nowMs: input.nowMs, chainId: input.chainId }),
   };
 }
 
@@ -349,6 +364,9 @@ export function totalsForRequest(board: WorkRequestBoard, request: RequestRecord
     if (decision.actor !== current.body.offerOwner.toLowerCase()) continue;
     const key = `${current.body.offerOwner.toLowerCase()}:${current.body.offerSlug}`;
     if (!offerIds.has(key)) continue;
+    const offer = relatedOffers.find((item) => `${item.actor}:${item.slug}` === key);
+    const response = board.responses.find((item) => item.actor === current.body.responseOwner.toLowerCase() && item.slug === current.body.responseSlug);
+    if (!offer || !response || decisionFor(board, offer, response) !== decision) continue;
     approvedOffers.add(key);
   }
   for (const key of approvedOffers) {
@@ -363,8 +381,16 @@ export function totalsForRequest(board: WorkRequestBoard, request: RequestRecord
     if (!current) continue;
     const offer = relatedOffers.find((item) => item.versions.some((version) => version.cid === current.body.offerVersionCid));
     if (!offer) continue;
-    if (seen.has(current.body.txHash)) continue;
-    seen.add(current.body.txHash);
+    if (link.actor !== offer.actor) continue;
+    const offerVersion = offer.versions.find((version) => version.cid === current.body.offerVersionCid)!;
+    const responseVersion = board.responses.flatMap((response) => response.versions).find((version) => version.cid === current.body.responseVersionCid);
+    if (!responseVersion || responseVersion.body.requestVersionCid !== offerVersion.body.requestVersionCid
+      || current.body.chainId !== offerVersion.body.chainId || current.body.chainId !== responseVersion.body.chainId
+      || current.body.token.toLowerCase() !== offerVersion.body.token.toLowerCase()
+      || current.body.projectAddress.toLowerCase() !== responseVersion.body.projectAddress.toLowerCase()) continue;
+    const txKey = `${current.body.chainId}:${current.body.txHash.toLowerCase()}`;
+    if (seen.has(txKey)) continue;
+    seen.add(txKey);
     const bucket = bucketFor(current.body.token, current.body.chainId);
     if (current.body.refundTxHash) bucket.refunded += BigInt(current.body.amount);
     else bucket.contributed += BigInt(current.body.amount);
@@ -383,6 +409,10 @@ export function decisionFor(
     const current = decision.current;
     return current
       && decision.actor === offer.actor
+      && current.body.offerOwner.toLowerCase() === offer.actor
+      && current.body.offerVersionCid === offer.current?.cid
+      && current.body.responseVersionCid === response.current?.cid
+      && offer.current?.body.requestVersionCid === response.current?.body.requestVersionCid
       && current.body.offerSlug === offer.slug
       && current.body.responseOwner.toLowerCase() === response.actor
       && current.body.responseSlug === response.slug;

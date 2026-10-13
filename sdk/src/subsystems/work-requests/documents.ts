@@ -4,6 +4,7 @@ import {
   type DisplayableDocument,
 } from '../displayable-documents/displayable-document.js';
 import type { PublishedDataCid } from '../published-data/index.js';
+import { assertWorkSlug } from './names.js';
 
 export const WORK_RECORD_SCHEMA = 1 as const;
 
@@ -114,7 +115,7 @@ function requireText(value: string, label: string): string {
 }
 
 function requireAmount(value: string): string {
-  if (!/^[0-9]+$/.test(value) || value === '0') throw new Error('Amount must be a positive integer in token base units.');
+  if (!/^[0-9]+$/.test(value) || BigInt(value) === 0n) throw new Error('Amount must be a positive integer in token base units.');
   return value;
 }
 
@@ -128,10 +129,15 @@ function requireHash(value: string, label: string): string {
   return value.toLowerCase();
 }
 
+function requireChainId(value: number): number {
+  if (!Number.isSafeInteger(value) || value <= 0) throw new Error('Chain id must be a positive integer.');
+  return value;
+}
+
 export function buildWorkRequestDocument(input: RequestBody): DisplayableDocument {
   const body: RequestBody = {
     ...input,
-    slug: input.slug,
+    slug: assertWorkSlug(input.slug),
     outcome: requireText(input.outcome, 'Outcome'),
     requirements: cleanList(input.requirements),
     participationLimits: cleanList(input.participationLimits),
@@ -157,7 +163,9 @@ export function buildWorkRequestDocument(input: RequestBody): DisplayableDocumen
 export function buildWorkOfferDocument(input: OfferBody): DisplayableDocument {
   const body: OfferBody = {
     ...input,
+    slug: assertWorkSlug(input.slug),
     amount: requireAmount(input.amount),
+    chainId: requireChainId(input.chainId),
     token: requireAddress(input.token, 'Token'),
     requestVersionCid: requireText(input.requestVersionCid, 'Request version'),
     expiry: requireText(input.expiry, 'Expiry'),
@@ -165,6 +173,7 @@ export function buildWorkOfferDocument(input: OfferBody): DisplayableDocument {
     backingNoteId: input.backingNoteId?.trim() || null,
     approvalAuthority: 'offer-author',
   };
+  if (!Number.isFinite(Date.parse(body.expiry))) throw new Error('Expiry must be a valid date.');
   return createDisplayableDocument({
     format: 'text/plain',
     content: lines('Funding offer', [
@@ -183,6 +192,8 @@ export function buildWorkOfferDocument(input: OfferBody): DisplayableDocument {
 export function buildWorkResponseDocument(input: ResponseBody): DisplayableDocument {
   const body: ResponseBody = {
     ...input,
+    slug: assertWorkSlug(input.slug),
+    chainId: requireChainId(input.chainId),
     requestVersionCid: requireText(input.requestVersionCid, 'Request version'),
     projectAddress: requireAddress(input.projectAddress, 'Project'),
     providerAddress: requireAddress(input.providerAddress, 'Provider'),
@@ -210,6 +221,7 @@ export function buildWorkResponseDocument(input: ResponseBody): DisplayableDocum
 export function buildWorkAcceptanceDocument(input: AcceptanceBody): DisplayableDocument {
   const body: AcceptanceBody = {
     ...input,
+    responseSlug: assertWorkSlug(input.responseSlug),
     responseOwner: requireAddress(input.responseOwner, 'Response author'),
     responseVersionCid: requireText(input.responseVersionCid, 'Response version'),
     capacity: requireText(input.capacity, 'Capacity'),
@@ -228,6 +240,8 @@ export function buildWorkAcceptanceDocument(input: AcceptanceBody): DisplayableD
 export function buildWorkDecisionDocument(input: DecisionBody): DisplayableDocument {
   const body: DecisionBody = {
     ...input,
+    offerSlug: assertWorkSlug(input.offerSlug),
+    responseSlug: assertWorkSlug(input.responseSlug),
     offerOwner: requireAddress(input.offerOwner, 'Offer author'),
     responseOwner: requireAddress(input.responseOwner, 'Response author'),
     offerVersionCid: requireText(input.offerVersionCid, 'Offer version'),
@@ -250,6 +264,8 @@ export function buildWorkDecisionDocument(input: DecisionBody): DisplayableDocum
 export function buildContributionLinkDocument(input: ContributionLinkBody): DisplayableDocument {
   const body: ContributionLinkBody = {
     ...input,
+    slug: assertWorkSlug(input.slug),
+    chainId: requireChainId(input.chainId),
     offerVersionCid: requireText(input.offerVersionCid, 'Offer version'),
     responseVersionCid: requireText(input.responseVersionCid, 'Response version'),
     projectAddress: requireAddress(input.projectAddress, 'Project'),
@@ -320,6 +336,9 @@ export function parseWorkRecord(document: DisplayableDocument): WorkRecordBody |
     const expiry = stringField(record, 'expiry');
     const status = stringField(record, 'status');
     if (!slug || !requestVersionCid || !amount || !token || !expiry) return null;
+    if (!/^[0-9]+$/.test(amount) || BigInt(amount) === 0n) return null;
+    if (!Number.isSafeInteger(record.chainId) || (record.chainId as number) <= 0) return null;
+    if (!/^0x[0-9a-fA-F]{40}$/.test(token)) return null;
     if (status !== 'open' && status !== 'withdrawn') return null;
     if (record.approvalAuthority !== 'offer-author') return null;
     return {
@@ -413,6 +432,8 @@ export function parseWorkRecord(document: DisplayableDocument): WorkRecordBody |
     const responseVersionCid = stringField(record, 'responseVersionCid');
     const projectAddress = stringField(record, 'projectAddress');
     if (!slug || !txHash || !amount || !token || !offerVersionCid || !responseVersionCid || !projectAddress) return null;
+    if (!/^[0-9]+$/.test(amount) || BigInt(amount) === 0n) return null;
+    if (!Number.isSafeInteger(record.chainId) || (record.chainId as number) <= 0) return null;
     return {
       kind,
       body: {

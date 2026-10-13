@@ -14,6 +14,8 @@ import {
   buildWorkRequestDocument,
   buildWorkResponseDocument,
   cidForWorkDocument,
+  parseWorkRecord,
+  type ResponseBody,
 } from './documents.js';
 import { acceptanceRefName, contributionLinkRefName, decisionRefName, offerRefName, requestRefName, responseRefName } from './names.js';
 import type { DisplayableDocument } from '../displayable-documents/displayable-document.js';
@@ -269,6 +271,24 @@ describe('fundable work requests', () => {
     assert.equal(decisionFor(board, intentionOffer, alice!)?.current?.body.outcome, 'approve');
     assert.equal(board.acceptances[0]?.authorityMatchesProvider, true);
     assert.notEqual(alice?.current?.body.workItemIds[0], bob?.current?.body.workItemIds[0]);
+
+    // A new response version requires a new acceptance and funding decision.
+    const revisedResponse = buildWorkResponseDocument({
+      ...(parseWorkRecord(responseA)!.body as ResponseBody),
+      scope: 'A revised scope',
+      previousCid: cidForWorkDocument(responseA),
+    });
+    documents.set(...docEntry(revisedResponse));
+    push(ALICE, responseRefName('design-build'), revisedResponse);
+    const revisedBoard = assembleWorkRequestBoard({ updates, documentsByCid: documents, notes: [note], settlementTokens: [USDC], nowMs: NOW });
+    const revisedAlice = revisedBoard.responses.find((response) => response.actor === ALICE)!;
+    assert.equal(revisedBoard.acceptances[0]?.authorityMatchesProvider, false);
+    assert.equal(decisionFor(revisedBoard, revisedBoard.offers.find((offer) => offer.slug === 'intention')!, revisedAlice), null);
+    assert.equal(totalsForRequest(revisedBoard, revisedBoard.requests[0]!, NOW)[0]?.approved, 0n);
+
+    // Notes on this chain cannot back an offer that declares another chain.
+    const otherChainBoard = assembleWorkRequestBoard({ updates, documentsByCid: documents, notes: [note], settlementTokens: [USDC], nowMs: NOW, chainId: 1 });
+    assert.equal(otherChainBoard.backing.every((slice) => slice.recognized === 0n), true);
   });
 
   it('does not treat another person\'s note or a receipt note as backing', () => {
@@ -317,5 +337,21 @@ describe('fundable work requests', () => {
       nowMs: NOW,
     });
     assert.equal(foreign.backing[0]?.unavailableReason, 'author-lacks-authority');
+  });
+
+  it('normalizes document slugs and ignores malformed published amounts', () => {
+    const request = buildWorkRequestDocument({ slug: ' Park ', outcome: 'A park', requirements: [], participationLimits: [], statementCids: [], contextNote: '', responseDeadline: null, previousCid: null });
+    assert.equal(request.extras?.slug, 'park');
+    const offer = buildWorkOfferDocument({ slug: ' Gift ', requestVersionCid: cidForWorkDocument(request), amount: '5', token: USDC, chainId: 1, expiry: '2026-12-01T00:00:00Z', approvalAuthority: 'offer-author', conditions: '', backingNoteId: null, status: 'open', previousCid: null });
+    assert.equal(offer.extras?.slug, 'gift');
+    for (const amount of ['garbage', '-5', '00']) {
+      const malformed = { ...offer, extras: { ...offer.extras, amount } };
+      assert.equal(parseWorkRecord(malformed), null);
+      const board = assembleWorkRequestBoard({
+        updates: [{ owner: DONOR, name: offerRefName('gift'), value: cidForWorkDocument(malformed), blockNumber: '1', logIndex: 0, timestamp: '1' }],
+        documentsByCid: new Map([docEntry(malformed)]), notes: [], settlementTokens: [USDC], nowMs: NOW,
+      });
+      assert.equal(board.offers[0]?.current, null);
+    }
   });
 });

@@ -25,4 +25,6 @@ A backed offer counts only while it is open, unexpired, and the named note is an
 
 ## Limits
 
+Contribution and refund links are offer-author reports, not verified transaction evidence. Totals display these as reported amounts. Response provider/work-item fields are declarations; acceptance checks the signer against the named provider and exact response version, but does not yet verify that provider against the project's beneficiary or work registry. These verification gaps and the remaining revision/withdrawal UI are tracked in [TODO.md](/TODO.md).
+
 The request id is not a work-item id. Provider acceptance is a separate publication and does not replace `acceptWorkProject`. There is no exclusive reservation.

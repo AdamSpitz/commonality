@@ -123,7 +123,7 @@ This extension, automatic selection, pooled governance, slashing, automatic repu
 
 ## High-level implementation to-do list
 
-First slice landed on `PublishedData` versions plus mutable-ref tips ([ADR 0020](../decisions/0020-work-requests-are-published-versions.md)). Exclusive reservations are still out of scope. Contribution links are author-published references to an existing contribution transaction; this slice does not submit the contribution itself.
+First slice uses `PublishedData` versions plus mutable-ref tips ([ADR 0020](../decisions/0020-work-requests-are-published-versions.md)). Exclusive reservations are still out of scope. Contribution links are offer-author reports of contribution/refund transactions; this slice neither submits nor verifies those transactions. Provider acceptance authenticates the signer against the provider named in the response, but project-beneficiary and work-registry verification remain pending. See [remaining tasks](/TODO.md).
 
 - [x] Review the relevant project/developer guidance and current implementation. Map publication/authentication, note intent, live note queries, project metadata, work identities, contribution events, and UI ownership. Read branching guidance before branch operations.
 - [x] Define the minimal versioned request, funding-offer, response, provider-acceptance, and decision formats. Resolve IDs, actor authority, historical discovery, updates/revocation, and optional versus required fields. Record consequential architecture choices through the project's decision process.
@@ -131,10 +131,10 @@ First slice landed on `PublishedData` versions plus mutable-ref tips ([ADR 0020]
 - [x] Implement durable authenticated publication and history using existing primitives where suitable; add contract/event support only where the reviewed gaps require it. Wire any new events through the thin event cache and SDK folds.
 - [x] Implement SDK create/read/update actions and queries, exact-version links, response scope, provider acceptance, decisions, offer-to-contribution attribution, and live backing verification with deduplication/allocation rules.
 - [x] Build the minimal end-to-end UI in the appropriate domain: publish a request, make an offer, optionally name a backing note, browse responses, link a project and its work items, accept terms as provider, and approve or decline as the offer author. Paying still happens on the project page; the contribution link only records that an existing contribution transaction belongs to an offer and response.
-- [x] Show independent totals for unfunded intentions, currently verified backing, recorded approvals, and actual contributions; explain expiry, revocability, shared demand, partial scope, and backing that has become unavailable. Preserve ordinary project raised totals.
-- [x] Expose request/offer/response histories with attributable actors and optional explanations. Preserve old terms and show revisions; do not introduce automatic adverse judgments.
-- [x] Validate authentication, immutable-version behavior, revised/withdrawn/expired offers, inadequate and unsolicited responses, competing projects, partial/multiple responses, note-backing changes and double counting, approval without payment, contribution attribution, and refund history. Run relevant workspace checks and meaningful contract/SDK/UI tests.
-- [x] Demonstrate the playground example end to end, including two competing responses, one declined response, one approved contribution, and backing withdrawn before approval. Update relevant documentation and product navigation links to reflect the implemented behavior and remaining limits.
+- [ ] Verify actual contribution/refund totals. Independent totals for intentions, backing, approvals, and reported payments are implemented; ordinary project raised totals are preserved.
+- [ ] Complete request/offer/response history inspection and revision/withdrawal controls in the UI. The SDK preserves version history; the page currently lists request versions and current offers/responses.
+- [ ] Complete validation of project/provider/work-item authority and actual payment attribution. SDK/UI regression tests cover version binding, shared backing, competing responses, approval without payment, and reported refund history.
+- [ ] Demonstrate the playground example in a browser end to end. The current SDK fixture covers two competing responses, a decline, an approval, a reported contribution/refund, and withdrawn backing; it is not a live transaction demonstration.
 
 ## Completion criteria
 

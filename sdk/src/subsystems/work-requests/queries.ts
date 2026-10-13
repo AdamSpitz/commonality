@@ -27,6 +27,7 @@ export async function loadWorkRequestBoard(machinery: SDKMachinery, nowMs = Date
   const documentsByCid = new Map<string, { document: DisplayableDocument; retracted: boolean }>();
   for (const cid of new Set(updates.map((update) => update.value.trim()).filter(Boolean))) {
     const result = await reader.read(cid as never);
+    if (result.status === 'unavailable') throw new Error('Work-record documents are temporarily unavailable.');
     if (result.status === 'active') documentsByCid.set(cid, { document: result.document, retracted: false });
     else if (result.status === 'retracted') documentsByCid.set(cid, { document: result.retractedDocument, retracted: true });
   }
@@ -56,5 +57,6 @@ export async function loadWorkRequestBoard(machinery: SDKMachinery, nowMs = Date
     notes,
     settlementTokens: machinery.settlementTokenAddresses ?? [],
     nowMs,
+    chainId: machinery.defaultChainId ?? machinery.publicClient?.chain?.id ?? 31337,
   });
 }

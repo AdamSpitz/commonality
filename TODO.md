@@ -16,6 +16,9 @@ Getting **testnet to a two-person shared lab** is also a standing plan, not a pi
 
 ----
 
+- **(Ask)** Verify work-request contribution/refund links against actual chain events, and verify response providers and work items against the project's beneficiary/registry before presenting verified payment or provider authority. The first slice displays reported contribution/refund amounts and authenticates acceptance only against the provider named by the response author. See [work requests](specs/tech/subsystems/work-requests/README.md).
+- **(Ask)** Complete work-request UI revisions and withdrawals, version/history inspection for offers and responses, and a browser-tested playground demonstration. SDK versioned publication actions exist; the current UI primarily creates records.
+
 - **(Tell)** Redeploy testnet `ContentRegistry`, `ProjectFactory`, and `CreatorAssuranceContractFactory` so structured work-item registration is live, including `setWorkRegistrar` for the project factory. Update deployment addresses and start blocks. Local wipe does not update Base Sepolia. Do not touch mainnet. Format: [work items](specs/tech/subsystems/work-items.md).
 
 - **(Tell)** Show a work item's funding history in the UI from `WorkItemRegistered` and `WorkItemReleased`, including failed attempts and the successful request. The project page currently lists the current description or the generated `project:` id only.
