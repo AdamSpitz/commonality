@@ -14,11 +14,23 @@ For example, a violin concert by a particular performer in Cedarvale Park on Oct
 
 Funding requests should explicitly reference their work items through queryable data, with enough on-chain representation for contracts to reject duplicate claims under the applicable rules. An observer should have an obvious place to find an item's current funding request and funding history. Identity and funding policy are separate: retries after failed requests, active versus successful claims, and legitimate divisions of work need appropriate rules rather than one universal prohibition.
 
+
+
+(ADAM: Let's be clear that this is *optional*. Or at least there are defaults in place so that people who say "I don't understand what the heck the point of any of this work-ID stuff is" can simply not-bother. If we decide that the system needs to have an invariant saying that there must be a work-item-ID for each work-item and/or that each fundable-project must be connected to at least work-item - I have no idea whether we want those invariants or not, but even if we do - we'll just have the default scheme be "if a fundable-project doesn't explicitly point to any work-items, just make one up that says it's the work-item for that project" and "if a work-item wasn't explicitly given a work-item-ID, just give it a random UUID (or hash-of-the-project-address or some other way of assigning a random unique ID)".
+
+The notion here is that none of this can be airtight; this is an *optional* way that a project creator can make his funding requests *more* trustworthy, by using straightforward IDs (organized in whatever way he chooses) so that it's just kinda obvious (a) how to find the right work-item-ID for any particular piece of work, and (b) that there won't be any duplicates within that scheme. If he doesn't do that, fine, he doesn't get that benefit of making it easier for his potential-donors to trust that he's not double-billing.)
+
+
+
 ## Open-ended identity schemes
 
 Users and communities should be able to define domain-specific canonical-ID schemes. A scheme determines which fields identify the work and how they are normalized; Commonality's author need not anticipate every domain.
 
 Canonical means canonical within an identified scheme. Interfaces and communities can recognize useful schemes without requiring one universal authority. This need not prevent every abuse: making duplicate funding harder, easier to notice, or easier to demonstrate is already valuable. Competing schemes, changed details, and overlapping work are design questions to resolve later.
+
+(ADAM: I was originally thinking we'd want something like Haskell-style ADTs, with closed sums and so on, but honestly that's complicated and not really extensible in any nice way. Instead let's just use something more open. More like a forall than like a closed sum. You can create work items whose ID is whatever kind of ID you want, even a new kind you've never used before. But an event will be emitted, so it's easy for indexers to keep track of all the work item IDs you've ever used.
+
+This of course doesn't stop anyone from using different accounts. But it does seem like maybe we've been baking unnecessary complexity into this - we can just keep track of all the work item IDs a given user has ever used, and don't we don't need to worry about fancy schemas.)
 
 ## Who the work points at
 
