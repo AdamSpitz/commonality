@@ -16,6 +16,8 @@ Getting **testnet to a two-person shared lab** is also a standing plan, not a pi
 
 ----
 
+- Do the [fundable work requests](/specs/product/fundable-work-requests.md) stuff.
+
 - **(Tell)** Redeploy testnet `ContentRegistry`, `ProjectFactory`, and `CreatorAssuranceContractFactory` so structured work-item registration is live, including `setWorkRegistrar` for the project factory. Update deployment addresses and start blocks. Local wipe does not update Base Sepolia. Do not touch mainnet. Format: [work items](specs/tech/subsystems/work-items.md).
 
 - **(Tell)** Show a work item's funding history in the UI from `WorkItemRegistered` and `WorkItemReleased`, including failed attempts and the successful request. The project page currently lists the current description or the generated `project:` id only.
