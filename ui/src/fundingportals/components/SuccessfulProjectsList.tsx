@@ -186,6 +186,9 @@ export function SuccessfulProjectsList({
 
                   <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
                     {successTypeExplanation(project.successType)}
+                    {project.attestedWorkId
+                      ? ` This vouch is for work item ${project.attestedWorkId.slice(0, 10)}…, not for every item bundled in the project.`
+                      : ''}
                   </Typography>
 
                   {metadata[project.projectAddress]?.description && (

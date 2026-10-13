@@ -395,7 +395,7 @@ describe('Noninflammatory branded surfaces', () => {
       expect(screen.getByText(/I am on the left.*right-wing content/i)).toBeInTheDocument()
       expect(screen.getByText(/I am on the right.*left-wing content/i)).toBeInTheDocument()
       expect(screen.getByText(/steels?mans the other side/i)).toBeInTheDocument()
-      expect(screen.getByRole('link', { name: /explore fundable content/i })).toHaveAttribute('href', '/content')
+      expect(screen.getByRole('link', { name: /explore fundable content/i })).toHaveAttribute('href', '/explore/civility')
     })
   })
 

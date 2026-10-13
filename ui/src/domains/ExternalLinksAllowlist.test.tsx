@@ -6,9 +6,15 @@ import { domainManifests } from './index'
 import type { DomainId } from './types'
 
 const allowedExternalHosts = new Set([
+  'community.docusign.com',
+  'docs.erc4337.io',
+  'doi.org',
+  'equilibriabook.com',
   'github.com',
+  'help.safe.global',
   'linkdrop.io',
   'thirdweb.com',
+  'www.moreincommon.com',
 ])
 
 const publicDocModules = import.meta.glob('../../../docs/end-user/**/*.md', { query: '?raw', import: 'default', eager: true }) as Record<string, string>

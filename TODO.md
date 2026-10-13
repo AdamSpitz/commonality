@@ -16,7 +16,13 @@ Getting **testnet to a two-person shared lab** is also a standing plan, not a pi
 
 ----
 
-- **(Ask)** Generalize content funding into extensible structured work types: domain-defined canonical work-item IDs, explicit links to funding requests with duplicate-claim rules, structured creation forms, and item/sequence alignment attestations feeding fundable-projects boards. Capture and refine the design before implementation; see [Structured fundable work](specs/product/structured-fundable-work.md).
+- Do the [fundable work requests](/specs/product/fundable-work-requests.md) stuff.
+
+- **(Tell)** Redeploy testnet `ContentRegistry`, `ProjectFactory`, and `CreatorAssuranceContractFactory` so structured work-item registration is live, including `setWorkRegistrar` for the project factory. Update deployment addresses and start blocks. Local wipe does not update Base Sepolia. Do not touch mainnet. Format: [work items](specs/tech/subsystems/work-items.md).
+
+- **(Tell)** Show a work item's funding history in the UI from `WorkItemRegistered` and `WorkItemReleased`, including failed attempts and the successful request. The project page currently lists the current description or the generated `project:` id only.
+
+- **(Tell)** Browser-check structured work on a live local stack: create a project with no work ids, create one with an explicit id, show the active-reservation conflict, and confirm a work-item attestation on a fundable-projects board names that item rather than the whole bundle.
 
 - **(Tell)** Next fake-data/seed-data step lives in [`fake-data-generation/PLAN.md`](fake-data-generation/PLAN.md). Abortion, immigration, crime, and LGBT-schools triples are accepted; next is the demo-seed live UI pass.
 

@@ -6,8 +6,9 @@ import { type Address, type Hash, type Abi, parseEventLogs, encodeFunctionData, 
 import { type WriteClients } from '../../utils/ethereum.js';
 import {
   PremintingERC1155Abi,
-  PremintingERC1155FactoryAbi,
-  AssuranceContractFactoryAbi,
+  ProjectFactoryAbi,
+  ContentRegistryAbi,
+  WorkFundingConditionAbi,
 } from '../../abis.js';
 import { IpfsCidV1 } from '../../utils/cid-types.js';
 import { approveERC20Spend, erc20ApproveAbi } from '../../utils/erc20.js';
@@ -26,6 +27,33 @@ export interface AssuranceContract {
   abi: Abi;
 }
 
+/** Beneficiary accepts a third-party proposal and opens its seven-day veto window. */
+export async function acceptWorkProject(clients: WriteClients, factory: Address, project: Address): Promise<Hash> {
+  const hash = await clients.walletClient.writeContract({
+    address: factory, abi: workProposalAbi, functionName: 'acceptWorkProject', args: [project], account: clients.walletClient.account!, chain: clients.walletClient.chain,
+  });
+  await clients.publicClient.waitForTransactionReceipt({ hash });
+  return hash;
+}
+
+/** Beneficiary vetoes a proposal; its reservations are released atomically. */
+export async function vetoWorkProject(clients: WriteClients, factory: Address, project: Address): Promise<Hash> {
+  const hash = await clients.walletClient.writeContract({
+    address: factory, abi: workProposalAbi, functionName: 'vetoWorkProject', args: [project], account: clients.walletClient.account!, chain: clients.walletClient.chain,
+  });
+  await clients.publicClient.waitForTransactionReceipt({ hash });
+  return hash;
+}
+
+/** Anyone may release this project's work after its condition has failed. */
+export async function releaseFailedProjectWork(clients: WriteClients, factory: Address, project: Address): Promise<Hash> {
+  const hash = await clients.walletClient.writeContract({
+    address: factory, abi: workProposalAbi, functionName: 'releaseWorkOnFailure', args: [project], account: clients.walletClient.account!, chain: clients.walletClient.chain,
+  });
+  await clients.publicClient.waitForTransactionReceipt({ hash });
+  return hash;
+}
+
 export interface ProjectDetails {
   tokenAddress: Address;
   marketplaceAddress: Address | null;
@@ -35,8 +63,17 @@ export interface ProjectDetails {
 /** Current ProjectFactory create entrypoint (post secondary-market removal). */
 const PROJECT_FACTORY_CREATE_FN =
   'createERC1155AndAssuranceContract' as const;
+const workProposalAbi = [
+  ...ProjectFactoryAbi,
+  ...ContentRegistryAbi.filter(entry => entry.type === 'error'),
+  ...WorkFundingConditionAbi.filter(entry => entry.type === 'error'),
+] as const;
 const PROJECT_FACTORY_CREATE_FOR_BENEFICIARY_FN =
   'createERC1155AndAssuranceContractForBeneficiary' as const;
+const PROJECT_FACTORY_CREATE_WITH_WORK_FN =
+  'createERC1155AndAssuranceContractWithWorkItems' as const;
+const PROJECT_FACTORY_CREATE_FOR_BENEFICIARY_WITH_WORK_FN =
+  'createERC1155AndAssuranceContractForBeneficiaryWithWorkItems' as const;
 
 /**
  * Enrich empty/opaque createProject reverts with a redeploy hint when the
@@ -208,6 +245,12 @@ export async function createProject(
     tokenPrices: bigint[];
     /** Optional per-token ERC-1155 metadata URIs. When present, each URI is installed after deployment so uri(id) resolves standard metadata. */
     tokenMetadataURIs?: string[];
+    /**
+     * Work item ids to reserve. Omit them and the factory generates one id,
+     * `project:` plus the project address. The same strings must be reused on a
+     * resubmitted transaction; do not mint new ids per attempt.
+     */
+    workIds?: string[];
   } & (
     | { /** Direct payout recipient. */ recipient: Address; beneficiaryId?: never }
     | { /** Claimable beneficiary; payout or escrow is resolved on-chain. */ beneficiaryId: `0x${string}`; recipient?: never }
@@ -220,9 +263,11 @@ export async function createProject(
     throw new Error('createProject requires exactly one of recipient or beneficiaryId');
   }
 
+  const explicitWorkIds = params.workIds ?? [];
+  const createAbi = [...projectFactoryContract.abi, ...ContentRegistryAbi.filter(entry => entry.type === 'error')];
   const functionName = params.beneficiaryId
-    ? PROJECT_FACTORY_CREATE_FOR_BENEFICIARY_FN
-    : PROJECT_FACTORY_CREATE_FN;
+    ? (explicitWorkIds.length > 0 ? PROJECT_FACTORY_CREATE_FOR_BENEFICIARY_WITH_WORK_FN : PROJECT_FACTORY_CREATE_FOR_BENEFICIARY_FN)
+    : (explicitWorkIds.length > 0 ? PROJECT_FACTORY_CREATE_WITH_WORK_FN : PROJECT_FACTORY_CREATE_FN);
   const recipientOrBeneficiary = params.beneficiaryId ?? params.recipient!;
   const createArgs = [
     params.metadataURI,
@@ -236,6 +281,7 @@ export async function createProject(
     params.tokenIds,
     params.tokenCounts,
     params.tokenPrices,
+    ...(explicitWorkIds.length > 0 ? [explicitWorkIds] : []),
   ] as const;
 
   // Only wrap factory simulate/write with the legacy-ABI redeploy hint.
@@ -245,7 +291,7 @@ export async function createProject(
     // Simulate first so ABI/dispatcher mismatches fail before a sent tx, with a clear message.
     await clients.publicClient.simulateContract({
       address: projectFactoryContract.address,
-      abi: projectFactoryContract.abi,
+      abi: createAbi,
       functionName,
       args: createArgs,
       account: clients.walletClient.account!,
@@ -253,7 +299,7 @@ export async function createProject(
 
     hash = await clients.walletClient.writeContract({
       address: projectFactoryContract.address,
-      abi: projectFactoryContract.abi,
+      abi: createAbi,
       functionName,
       args: createArgs,
       chain: clients.walletClient.chain,
@@ -265,26 +311,21 @@ export async function createProject(
 
   const receipt = await clients.publicClient.waitForTransactionReceipt({ hash });
 
-  // Parse the events to get the created contract addresses using viem's parseEventLogs
-  const tokenEvents = parseEventLogs({
-    abi: PremintingERC1155FactoryAbi,
-    eventName: 'LazyGivingERC1155ContractCreated',
+  // ProjectFactory authenticates the complete result, regardless of which
+  // assurance deployer serves the direct or named-beneficiary path.
+  const projectEvents = parseEventLogs({
+    abi: ProjectFactoryAbi,
+    eventName: 'ProjectCreated',
     logs: receipt.logs,
-  });
+  }).filter(event => event.address.toLowerCase() === projectFactoryContract.address.toLowerCase());
 
-  const assuranceEvents = parseEventLogs({
-    abi: AssuranceContractFactoryAbi,
-    eventName: 'LazyGivingAssuranceContractCreated',
-    logs: receipt.logs,
-  });
-
-  if (tokenEvents.length === 0 || assuranceEvents.length === 0) {
-    throw new Error(`Failed to extract contract addresses from transaction logs. Found: ${tokenEvents.length} token events, ${assuranceEvents.length} assurance events`);
+  if (projectEvents.length !== 1) {
+    throw new Error(`Expected one ProjectCreated event from the project factory, found ${projectEvents.length}`);
   }
 
-  const tokenAddress = tokenEvents[0].args.erc1155;
+  const tokenAddress = projectEvents[0].args.token;
   const marketplaceAddress = null;
-  const assuranceContractAddress = assuranceEvents[0].args.assuranceContract;
+  const assuranceContractAddress = projectEvents[0].args.assuranceContract;
 
   if (params.tokenMetadataURIs) {
     if (params.tokenMetadataURIs.length !== params.tokenIds.length) {

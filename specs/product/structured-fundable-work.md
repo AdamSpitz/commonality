@@ -1,36 +1,58 @@
 # Structured fundable work
 
-High-level product direction, captured 2026-10-08. Detailed design and implementation remain future work.
+High-level product direction, captured 2026-10-08 and clarified 2026-10-13. The on-chain format is [work items](../tech/subsystems/work-items.md). Sequence attestations and domain templates are still follow-ups.
 
 Generalize the idea behind [content funding](../tech/subsystems/content-funding/README.md) into an extensible system for identifying and describing fundable work. Content funding gives individual content items canonical identities and explicitly connects them to funding requests. Other domains could benefit from the same structure: concerts, software maintenance, service delivery, public-access releases, and many more.
 
 The purpose goes beyond making it easier to pay people. Once a recurring kind of activity can be discovered, evaluated, and funded consistently, alignment attestations can let movements support the qualities they want across a whole ecosystem of independent providers.
 
-## Identity belongs to the work
+## Optional identities for the work
 
-A work item should have an identity independent of the assurance contract requesting money for it. Creating another request for the same work should not automatically create another work item.
+A creator can give a work item an identity independent of the assurance contract requesting money for it. When using such an identity, another request for the same work should reference the same item. This makes its funding history easier to inspect and helps potential contributors judge whether they are being asked to pay twice for the same work.
 
 For example, a violin concert by a particular performer in Cedarvale Park on October 8, 2026 could have a structured identity; next week's concert would be a different item. Maintenance of a particular software repository for October 2026 could likewise be identified separately from November's maintenance.
 
-Funding requests should explicitly reference their work items through queryable data, with enough on-chain representation for contracts to reject duplicate claims under the applicable rules. An observer should have an obvious place to find an item's current funding request and funding history. Identity and funding policy are separate: retries after failed requests, active versus successful claims, and legitimate divisions of work need appropriate rules rather than one universal prohibition.
+Creators should not need to understand work IDs or choose an identity scheme to create a project. Whether every project must internally reference at least one work item, and whether every work item must have an ID, remain implementation questions. If those invariants are useful, defaults should satisfy them automatically: a project with no explicit work items can get a work item meaning "the work for this project," and an item with no explicit ID can get a generated unique ID, such as a UUID or an ID derived from the project address.
+
+Generated IDs provide references, but do not establish that two projects describe different real-world work. The extra trust comes from a creator voluntarily using a straightforward convention that makes it obvious how to find an item's ID and why the same work should not appear under multiple IDs within that convention. Creators who skip this still get to request funding; they simply forgo that additional basis for trust.
+
+Funding requests that reference work items should expose those relationships as queryable data. An observer should have an obvious place to find an item's current funding request and funding history.
+
+## Fund each work item once
+
+Use the same funding rule as content funding: within a registry's scope, a work item can belong to at most one active funding request, and successful funding permanently prevents another project from funding that same item. A project can fund several work items; each of those items is subject to this rule. "Successful" here means the assurance contract's funding condition succeeded, not that someone attested that the work was delivered.
+
+For ordinary work, an item is its intended beneficiary plus its local work ID. Different beneficiaries may use the same local ID independently. Anyone proposing the same beneficiary's item shares that slot, including third-party initiators. Named identity survives payout-wallet rotation; direct wallet recipients have their own scope. Content canonical IDs already identify their beneficiary and retain their existing uniqueness.
+
+A beneficiary may start their own project or accept a third-party proposal. Acceptance of an ordinary third-party proposal opens a seven-day veto window for that project, which must finish before the funding deadline. Proving control of a name does not accept every proposal about it. Veto frees the items for another attempt. Unaccepted proposals expire and permit refunds even if the funding goal was reached. Successful proceeds retain the existing per-project claim/refuse flow. See [the identity decision](../decisions/0019-beneficiary-scoped-work-identity.md).
+
+A failed funding request can release its work items for another attempt. Its historical links remain visible, so an item may have several failed requests in its history followed by one successful request. That history does not authorize concurrent requests or repeated successful funding. Retroactive donations through the successful project's existing reimbursement flow remain possible; they do not create another funding request for the work.
+
+Separate installments or genuinely distinct portions of work should have distinct work item IDs and clearly described scopes. Generalizing content funding does not require a more permissive rule for funding the same unit of work.
+
+Enforcement is against the same ID within the same registry scope, not proof of global real-world uniqueness. Using another ID or another registry can evade it; a transparent identity convention and inspectable history provide the additional basis for trust described above. Choosing a meaningful convention remains optional, while the once-funded rule applies to generated IDs too.
 
 ## Open-ended identity schemes
 
-Users and communities should be able to define domain-specific canonical-ID schemes. A scheme determines which fields identify the work and how they are normalized; Commonality's author need not anticipate every domain.
+Creators can use whatever kind of work ID suits their work, including a kind they have never used before. The system should accept an open set of IDs without requiring a closed list of work types, a registered schema, or a formal schema language. Commonality's author need not anticipate every domain.
 
-Canonical means canonical within an identified scheme. Interfaces and communities can recognize useful schemes without requiring one universal authority. This need not prevent every abuse: making duplicate funding harder, easier to notice, or easier to demonstrate is already valuable. Competing schemes, changed details, and overlapping work are design questions to resolve later.
+Using a work ID should emit an event that lets indexers associate the ID with the account using it and the relevant funding request. This should make it easy to enumerate all work IDs an account has used and inspect the requests associated with them. Exact encoding and event design remain future work.
+
+Users and communities can adopt useful conventions for which fields identify work and how to normalize them. "Canonical" means canonical within such a convention, not universally canonical. Interfaces can recognize those conventions and help people produce consistent IDs without making them prerequisites for using the underlying system. How IDs distinguish conventions or namespaces remains a design detail; a catalog of formal schemas is not required.
+
+None of this is airtight. Someone can use a different ID, switch conventions, or use another account for the same work. An account's visible history does not establish a unique human identity or a complete history across accounts. Making duplicate funding easier to notice or demonstrate is already valuable; preventing every possible duplicate is not the goal.
 
 ## Who the work points at
 
-Content funding gets a payee for free: the canonical id embeds the channel, and proving control of that channel is enough to withdraw escrowed funds or to take over contract creation. See [channel claiming](../tech/subsystems/content-funding/channel-claiming.md). That pattern fits work whose identity already names a single party allowed to do it or dispose of it: a named performer, a repository's maintainers, a copyright holder releasing a specific work. The scheme can embed that rights-holder, and funds raised by a third party can wait until they prove control.
+Content funding gets a payee for free: the canonical id embeds the channel, and proving control of that channel is enough to withdraw escrowed funds or to take over contract creation. See [channel claiming](../tech/subsystems/content-funding/channel-claiming.md). That pattern fits work whose identity already names a single party allowed to do it or dispose of it: a named performer, a repository's maintainers, a copyright holder releasing a specific work. A convention can embed that rights-holder, and a funding mechanism that understands the convention can hold funds raised by a third party until they prove control. Merely choosing an arbitrary work ID does not establish a beneficiary or prove control of anything it names.
 
 It does not fit every category below. An open slot (any tutor for this session, any facilitator for this meeting) names a role, not a person. The work id still should not pretend to be a channel. Filling the slot is a separate choice of beneficiary on the LazyGiving project: Alice can create the project and name Bob, using the existing [beneficiary-id](../tech/subsystems/claimable-beneficiaries.md) system. There is no identity for "the human named Bob Smith." What exists is "the owner of this channel" or "the controller of this domain" (`x` / `youtube` / `substack` / `dns`), which is often enough. Bob proves control of that id and then claims or refuses. The same split applies when the doer is not derivable from the work at all: an independent check should not pay the owner of the thing being checked, and a world outcome (a restored habitat, a removed barrier) has no owner. A steward's permission to act is not proof that the change occurred. In those cases assignment or acceptance still sits between "this is the work" and "this beneficiary may withdraw."
 
 ## Structured descriptions and creation forms
 
-Work types should also supply recognizable categories and clearly specified fields. For example: maintenance → open-source software → repository → maintenance period, with additional fields for scope and commitments.
+Interfaces and communities can offer optional templates with recognizable categories and clearly specified fields. For example: maintenance → open-source software → repository → maintenance period, with additional fields for scope and commitments. These templates need not form an exhaustive taxonomy or require the underlying system to understand every work type.
 
-Only some description fields need determine identity. Structured forms improve discovery and comparison while helping providers describe their work without inventing everything in free text. They also communicate that funding this kind of work is an established, intended use of the system. Additional prose can remain available.
+When a template helps generate a work ID, only some description fields need determine identity. Structured forms improve discovery and comparison while helping providers describe their work without inventing everything in free text. They also communicate that funding this kind of work is an established, intended use of the system. Free-text descriptions and default IDs remain available to creators who do not use a template.
 
 ### Some kinds of work that might be worth exploring
 
@@ -47,3 +69,5 @@ Allow alignment attestations to refer to individual work items, sequences, or ot
 The existing general subject-attestation model is a starting point; a future implementer should verify which identities and discovery paths are actually supported. Define how item and sequence attestations affect project inclusion without silently treating endorsement of one item as endorsement of every item in a bundle, or of all future installments.
 
 Keep work identity, description, funding eligibility, delivery evidence, and alignment judgments distinct but connected. This is an extension of how work is represented and connected to funding, not necessarily a new financial mechanism.
+
+The [cooperation-without-trust notes](/docs/end-user/common-sense-majority/cooperation-without-trust.md) are the place that records which later cooperation patterns should stay outside this work: requests and relationships can be citable metadata, while approval gates, reservations, and other mechanisms stay independent contracts. Nothing there is scheduled work.

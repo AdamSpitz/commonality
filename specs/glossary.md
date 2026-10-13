@@ -33,6 +33,10 @@ wrong (or this file is out of date and needs an ADR — see
 | Term | Means |
 |---|---|
 | **Project** | A crowdfunding effort run as an assurance contract. Its assurance-contract address *is* its ID |
+| **Work item** | A particular unit of work a project requests funding for, independent of the funding request itself. One project may fund several items. Within a registry's scope, an item can have at most one active request and can be successfully funded once; failed attempts remain in its history. See [structured fundable work](./product/structured-fundable-work.md) (product direction; implementation pending). |
+| **Work item ID** | A nonempty local UTF-8 string of at most 512 bytes, reused across funding attempts. Ordinary work identity combines the stable beneficiary with the exact local ID; content canonical IDs already identify their channel. The initiator does not affect identity. Creators may choose a meaningful convention or a generated ID (`project:` plus the project address, or `urn:uuid:...`). Registry and attestation hashes follow [work items](./tech/subsystems/work-items.md); an ID alone does not prove real-world uniqueness. |
+| **Work identity convention** | A voluntary convention for constructing consistent work item IDs, including any normalization rules. "Canonical" means canonical within that convention. No closed catalog or registered schema is required. |
+| **Content item** | A work item consisting of a particular piece of content. Content funding's canonical content IDs are a domain-specific instance of work item IDs in the structured-work direction. |
 | **Assurance contract** | The escrow mechanism underneath a project: funds held until threshold-or-deadline, refunded otherwise. The mechanism; "project" is the thing users see |
 | **Contribution** | Money going into a project *before* it succeeds, in exchange for receipts. Refundable if the threshold isn't met |
 | **Contributor** | Someone who made a contribution. The one word for the money-giver role pre-success |

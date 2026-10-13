@@ -108,6 +108,7 @@ describe("Conceptspace acceptance journeys", function () {
       beneficiaryRegistry.target,
       paymentToken.target,
     ]);
+    const workRegistry = await ethers.deployContract("ContentRegistry");
     const projectFactory = await ethers.deployContract("ProjectFactory", [
       tokenFactory.target,
       assuranceFactory.target,
@@ -115,7 +116,9 @@ describe("Conceptspace acceptance journeys", function () {
       beneficiaryRegistry.target,
       beneficiaryEscrow.target,
       fixedControllerFactory.target,
+      workRegistry.target,
     ]);
+    await workRegistry.setRegistrar(projectFactory.target, true);
 
     const [, owner, recipient] = await ethers.getSigners();
     const deadline = BigInt((await ethers.provider.getBlock("latest")).timestamp + 3600);

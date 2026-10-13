@@ -7,6 +7,14 @@ Each entry follows the same shape:
 - **When a user encounters it** — UI surfaces or moments in the user's flow where this concept becomes load-bearing.
 - **What they might want help with** — typical assistant tasks around this concept.
 
+## Cooperation without a shared platform
+
+[Full page](commonality/vision-and-strategy/why-its-better/cooperation-without-a-shared-platform.md)
+
+- **What it is:** Separately fundable undertakings let people cooperate for different reasons without agreeing on a whole platform. Each project can draw on a different collection of contributors; their union across projects is not support for the combined package. Distinct from unbundling organizational jobs.
+- **When a user encounters it:** Explaining organic coalitions, funding alongside political opponents, or deciding whether a bridge needs an explicit agreement.
+- **What they might want help with:** Distinguishing support for specific work from broader endorsement; keeping unrelated disagreements outside the transaction; recognizing when implementation conflicts still need resolution. Optional contribution motivations are a proposal, not a documented existing feature, and cannot add financial conditions.
+
 ## Why benefits fail to become incentives
 
 [Full page](commonality/vision-and-strategy/why-its-better/why-benefits-fail-to-become-incentives.md)

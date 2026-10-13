@@ -44,7 +44,7 @@ import {
   foldReimbursements,
   type ReimbursementEvent,
 } from './folds.js';
-import { readConditionParams, readProjectPaymentTokenInfo } from '../../utils/chain-reads.js';
+import { readConditionParams, readConditionStatus, readProjectPaymentTokenInfo } from '../../utils/chain-reads.js';
 import { ETH_CURRENCY, type Currency } from '../../utils/currency.js';
 
 async function fetchAndDecodeProjectEvents(
@@ -58,6 +58,11 @@ async function fetchAndDecodeProjectEvents(
   const projectEvents: ProjectEvent[] = [];
   for (const raw of rawEvents) {
     switch (raw.eventName) {
+      case 'ProjectCreated': {
+        const d = decodeProjectCreatedEvent(raw);
+        if (d) projectEvents.push({ type: 'created', event: d });
+        break;
+      }
       case 'LazyGivingAssuranceContractCreated': {
         const d = decodeLazyGivingAssuranceContractCreatedEvent(raw);
         if (d) projectEvents.push({ type: 'created', event: d });
@@ -160,17 +165,24 @@ export async function getProjectFold(
 
   let threshold = '0';
   let deadline = '0';
+  let conditionStatus: Project['conditionStatus'];
   if (machinery.publicClient && partial.conditionAddress) {
     try {
-      const params = await readConditionParams(machinery, partial.conditionAddress as `0x${string}`);
+      const [params, status] = await Promise.all([
+        readConditionParams(machinery, partial.conditionAddress as `0x${string}`),
+        readConditionStatus(machinery, partial.conditionAddress as `0x${string}`),
+      ]);
       threshold = params.threshold.toString();
       deadline = params.deadline.toString();
+      if (typeof status.hasSucceeded === 'boolean' && typeof status.hasFailed === 'boolean') {
+        conditionStatus = status.hasSucceeded ? 'succeeded' : status.hasFailed ? 'refunding' : 'active';
+      }
     } catch {
       // publicClient not configured or read failed — leave as '0'
     }
   }
 
-  return { project: { ...partial, threshold, deadline }, accumulator };
+  return { project: { ...partial, threshold, deadline, ...(conditionStatus ? { conditionStatus } : {}) }, accumulator };
 }
 
 /**
@@ -223,9 +235,13 @@ export async function getAllProjects(
 export async function getAllProjectAddresses(
   machinery: SDKMachinery
 ): Promise<string[]> {
-  const [lazyGivingEvents, creatorEvents] = await Promise.all([
+  const [lazyGivingEvents, projectFactoryEvents, creatorEvents] = await Promise.all([
     fetchEvents(machinery, {
       eventName: 'LazyGivingAssuranceContractCreated',
+      limit: 10000,
+    }),
+    fetchEvents(machinery, {
+      eventName: 'ProjectCreated',
       limit: 10000,
     }),
     fetchEvents(machinery, {
@@ -235,6 +251,10 @@ export async function getAllProjectAddresses(
   ]);
 
   const projectAddresses = [
+    ...projectFactoryEvents
+      .map(e => decodeProjectCreatedEvent(e))
+      .filter((d): d is NonNullable<typeof d> => d !== null)
+      .map(d => d.assuranceContract),
     ...lazyGivingEvents
       .map(e => decodeLazyGivingAssuranceContractCreatedEvent(e))
       .filter((d): d is NonNullable<typeof d> => d !== null)
