@@ -19,6 +19,7 @@ describe('WorkPage', () => {
     expect(screen.getByTestId('work-created-projects')).toBeInTheDocument()
     expect(screen.getByTestId('work-bookmarked-projects')).toBeInTheDocument()
     expect(screen.getByTestId('home-create-project')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Requests for work' })).toHaveAttribute('href', '/work/requests')
     expect(screen.getByRole('link', { name: 'Go to Fund' })).toHaveAttribute('href', '/dashboard')
     expect(screen.getByRole('link', { name: 'Go to Organize' })).toHaveAttribute('href', '/causes')
   })

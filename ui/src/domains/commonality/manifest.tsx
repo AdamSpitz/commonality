@@ -24,6 +24,9 @@ const routes: ReactNode = (
     <Route path="/bridge/:draftId" element={lazyRoute(() => import('../../commonality/pages/BridgeClusterPage'), 'BridgeClusterPage')} />
     <Route path="/causes" element={lazyRoute(() => import('../../commonality/pages/CausesPage'), 'CausesPage')} />
     <Route path="/work" element={lazyRoute(() => import('../../commonality/pages/WorkPage'), 'WorkPage')} />
+    <Route path="/work/requests" element={lazyRoute(() => import('../../commonality/pages/WorkRequestsPage'), 'WorkRequestsPage')} />
+    <Route path="/work/requests/new" element={lazyRoute(() => import('../../commonality/pages/NewWorkRequestPage'), 'NewWorkRequestPage')} />
+    <Route path="/work/requests/:author/:slug" element={lazyRoute(() => import('../../commonality/pages/WorkRequestDetailPage'), 'WorkRequestDetailPage')} />
     <Route path="/statements" element={lazyRoute(() => import('../../commonality/pages/StatementsPage'), 'StatementsPage')} />
     <Route path="/delegation" element={<Navigate to="/delegation/notes" replace />} />
     <Route path="/delegation/notes" element={lazyRoute(() => import('../../delegation/pages/MyNotesPage'), 'MyNotesPage')} />

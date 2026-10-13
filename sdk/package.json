@@ -99,6 +99,10 @@
     "./subjectiv": {
       "types": "./dist/src/subsystems/subjectiv/index.d.ts",
       "default": "./dist/src/subsystems/subjectiv/index.js"
+    },
+    "./work-requests": {
+      "types": "./dist/src/subsystems/work-requests/index.d.ts",
+      "default": "./dist/src/subsystems/work-requests/index.js"
     }
   },
   "dependencies": {
