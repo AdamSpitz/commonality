@@ -17,6 +17,8 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 ## Main list
 
+- **Tell Report:** Structured fundable work is implemented. Ordinary projects and content contracts reserve work ids in `ContentRegistry` (`specs/tech/subsystems/work-items.md`). Creation still works with no ids. The project page lists current items; failed-attempt history is the registry events, not a separate timeline yet. Sequence attestations and domain templates were not built. Testnet needs a redeploy of `ContentRegistry`, `ProjectFactory`, and `CreatorAssuranceContractFactory` before this bytecode is live there.
+
 - **Tell Report:** Civility and content-funding boards. `/explore` lists configured properties (Civility's noninflammatory check only). `/explore/civility` lists registry posts a trusted attester marked with the baked topic statement, capped at 40, with hide, one-channel, and followed-channel scopes. Posts never registered cannot appear, because the attestation stores a hash. `/fund` sends a pledge to the Aligning portal for that statement and a delegation deposit with the statement preselected. No new payment contract.
 
 - Think through the further delegation-narrowing ideas in [delegation-narrowing.md](specs/product/legal/delegation-narrowing.md). The three TODO.md items (one hop, one voice, optional delay) are the baseline. Still open: risk tiers based on vouches for payout addresses rather than "new project" or "address has been paid before"; signed spend rules; refunds and reimbursement returning to the donor; expiring authority; an optional watcher who can cancel but not spend; and whether the delegate should ever hold a balance. Not legal advice, and not a decision yet.

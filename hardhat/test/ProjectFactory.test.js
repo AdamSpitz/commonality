@@ -13,6 +13,7 @@ async function deployProjectFactory() {
   const fixedControllerFactory = await ethers.deployContract('FixedControllerFactory', [beneficiaryRegistry.target]);
   const paymentToken = await ethers.deployContract('FreeERC20', ['USD Coin', 'USDC', 6]);
   const beneficiaryEscrow = await ethers.deployContract('BeneficiaryEscrow', [beneficiaryRegistry.target, paymentToken.target]);
+  const workRegistry = await ethers.deployContract('ContentRegistry');
   const projectFactory = await ethers.deployContract('ProjectFactory', [
     tokenFactory.target,
     assuranceFactory.target,
@@ -20,7 +21,9 @@ async function deployProjectFactory() {
     beneficiaryRegistry.target,
     beneficiaryEscrow.target,
     fixedControllerFactory.target,
+    workRegistry.target,
   ]);
+  await workRegistry.setRegistrar(projectFactory.target, true);
   return { projectFactory, assuranceFactory, conditionFactory, beneficiaryRegistry, beneficiaryEscrow, verifier, beneficiaryPaymentToken: paymentToken };
 }
 
@@ -217,7 +220,7 @@ describe('ProjectFactory', function () {
     const dependency = await ethers.deployContract('PremintingERC1155Factory');
 
     await expect(
-      factory.deploy(ethers.ZeroAddress, dependency.target, dependency.target, dependency.target, dependency.target, dependency.target),
+      factory.deploy(ethers.ZeroAddress, dependency.target, dependency.target, dependency.target, dependency.target, dependency.target, dependency.target),
     ).to.be.revertedWithCustomError(factory, 'InvalidFactoryAddress');
   });
 
@@ -367,5 +370,36 @@ describe('ProjectFactory', function () {
       .to.emit(beneficiaryRegistry, 'ProjectDisavowalWithdrawn')
       .withArgs(beneficiaryId, project, owner.address);
     expect(await beneficiaryRegistry.isProjectDisavowed(beneficiaryId, project)).to.equal(false);
+  });
+
+  it('assigns one default work id and lets a failed request be retried once', async function () {
+    const [creator, owner, recipient] = await ethers.getSigners();
+    const paymentToken = await ethers.deployContract('FreeERC20', ['USD Coin', 'USDC', 6]);
+    const { projectFactory } = await deployProjectFactory();
+    const registry = await ethers.getContractAt('ContentRegistry', await projectFactory.workRegistry());
+    const deadline = BigInt((await ethers.provider.getBlock('latest')).timestamp + 10);
+    const create = () => projectFactory.connect(creator).createERC1155AndAssuranceContract(
+      ...defaultProjectParams(owner.address, recipient.address, paymentToken.target, deadline),
+    );
+    const first = await (await create()).wait();
+    const project = first.logs.map((log) => {
+      try { return projectFactory.interface.parseLog(log); } catch { return null; }
+    }).find((log) => log?.name === 'ProjectCreated').args.assuranceContract;
+    const workId = `project:${project.toLowerCase()}`;
+    expect(await projectFactory.workIdsOf(project)).to.deep.equal([workId]);
+    expect(await registry.projectFor(ethers.keccak256(ethers.toUtf8Bytes(workId)))).to.equal(project);
+
+    await ethers.provider.send('evm_increaseTime', [30]);
+    await ethers.provider.send('evm_mine', []);
+    await projectFactory.releaseWorkOnFailure(project);
+    expect(await registry.projectFor(ethers.keccak256(ethers.toUtf8Bytes(workId)))).to.equal(ethers.ZeroAddress);
+
+    const explicit = 'maintenance:example-repo:2026-10';
+    const later = BigInt((await ethers.provider.getBlock('latest')).timestamp + 3600);
+    const args = defaultProjectParams(owner.address, recipient.address, paymentToken.target, later);
+    await projectFactory.connect(creator).createERC1155AndAssuranceContractWithWorkItems(...args, [explicit]);
+    await expect(projectFactory.connect(creator).createERC1155AndAssuranceContractWithWorkItems(
+      ...args, [explicit],
+    )).to.be.revertedWithCustomError(registry, 'ContentAlreadyRegistered');
   });
 });

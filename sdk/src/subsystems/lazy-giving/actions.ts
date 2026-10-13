@@ -37,6 +37,10 @@ const PROJECT_FACTORY_CREATE_FN =
   'createERC1155AndAssuranceContract' as const;
 const PROJECT_FACTORY_CREATE_FOR_BENEFICIARY_FN =
   'createERC1155AndAssuranceContractForBeneficiary' as const;
+const PROJECT_FACTORY_CREATE_WITH_WORK_FN =
+  'createERC1155AndAssuranceContractWithWorkItems' as const;
+const PROJECT_FACTORY_CREATE_FOR_BENEFICIARY_WITH_WORK_FN =
+  'createERC1155AndAssuranceContractForBeneficiaryWithWorkItems' as const;
 
 /**
  * Enrich empty/opaque createProject reverts with a redeploy hint when the
@@ -208,6 +212,12 @@ export async function createProject(
     tokenPrices: bigint[];
     /** Optional per-token ERC-1155 metadata URIs. When present, each URI is installed after deployment so uri(id) resolves standard metadata. */
     tokenMetadataURIs?: string[];
+    /**
+     * Work item ids to reserve. Omit them and the factory generates one id,
+     * `project:` plus the project address. The same strings must be reused on a
+     * resubmitted transaction; do not mint new ids per attempt.
+     */
+    workIds?: string[];
   } & (
     | { /** Direct payout recipient. */ recipient: Address; beneficiaryId?: never }
     | { /** Claimable beneficiary; payout or escrow is resolved on-chain. */ beneficiaryId: `0x${string}`; recipient?: never }
@@ -220,9 +230,10 @@ export async function createProject(
     throw new Error('createProject requires exactly one of recipient or beneficiaryId');
   }
 
+  const explicitWorkIds = params.workIds ?? [];
   const functionName = params.beneficiaryId
-    ? PROJECT_FACTORY_CREATE_FOR_BENEFICIARY_FN
-    : PROJECT_FACTORY_CREATE_FN;
+    ? (explicitWorkIds.length > 0 ? PROJECT_FACTORY_CREATE_FOR_BENEFICIARY_WITH_WORK_FN : PROJECT_FACTORY_CREATE_FOR_BENEFICIARY_FN)
+    : (explicitWorkIds.length > 0 ? PROJECT_FACTORY_CREATE_WITH_WORK_FN : PROJECT_FACTORY_CREATE_FN);
   const recipientOrBeneficiary = params.beneficiaryId ?? params.recipient!;
   const createArgs = [
     params.metadataURI,
@@ -236,6 +247,7 @@ export async function createProject(
     params.tokenIds,
     params.tokenCounts,
     params.tokenPrices,
+    ...(explicitWorkIds.length > 0 ? [explicitWorkIds] : []),
   ] as const;
 
   // Only wrap factory simulate/write with the legacy-ABI redeploy hint.

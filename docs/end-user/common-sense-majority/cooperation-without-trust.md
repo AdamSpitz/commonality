@@ -58,7 +58,7 @@ The [hidden-majority catalog](../common-sense-majority/hidden-majority-patterns.
 
 This is more than psychological reluctance to “betray my side.” Sometimes the concern is materially correct.
 
-The [conditional-support design notes](/docs/founder/csm/conditional-support-design.md) explicitly consider formal assurance mechanisms and conclude that visible signatures probably suffice. I’d qualify that conclusion:
+The conditional-support design notes (`docs/founder/csm/conditional-support-design.md`) explicitly consider formal assurance mechanisms and conclude that visible signatures probably suffice. I’d qualify that conclusion:
 
 | What someone needs to know | What provides useful evidence |
 |---|---|
@@ -87,7 +87,7 @@ An initial version could support these stages:
 
 
 ...
-ADAM: Interesting. This kind of workflow would need a more-explicit, more-complicated model of projects than we've currently got; currently someone posts a project and people make alignment attestations regarding that project, and that's about it. But lately we've been discussing adding a fancier workflow in other ways that seem related; see [specs/product/structured-fundable-work.md](/specs/product/structured-fundable-work.md). In particular, it feels like we need the idea of a *request* for a project, where some details are specified but some aren't (e.g. ask for someone to build a playground in this park; someone else makes a specific proposal for doing so). Maybe that'd be useful here?
+ADAM: Interesting. This kind of workflow would need a more-explicit, more-complicated model of projects than we've currently got; currently someone posts a project and people make alignment attestations regarding that project, and that's about it. But lately we've been discussing adding a fancier workflow in other ways that seem related; see `specs/product/structured-fundable-work.md`. In particular, it feels like we need the idea of a *request* for a project, where some details are specified but some aren't (e.g. ask for someone to build a playground in this park; someone else makes a specific proposal for doing so). Maybe that'd be useful here?
 
 The idea is something like: if you want a project that is meant to be supportable by both sides ("I would help with this project under these conditions", like you said), then you find/create a suitable bridge (pattern of statements, with e.g. modified-left, modified-right, and common-ground statements), and in some way attach that bridge (or just the common-ground statement?) to the *request*, so that any project proposals that aim to fulfill that project-request are explicitly committing to being aligned with that statement. (And so the common-ground statement might be something with all those disclaimers and conditions, like "I'm not necessarily agreeing with either side on B or C or D, etc.") I mean, there's still the question of whether this project actually *will* do an adequate job of being aligned with the statement, but the point is that the people who express support for the request are saying "I'll support a project along these lines *if* it commits to this statement", and the project creator (by creating this project that is explicitly meant to answer that request) is saying "I promise that this project will be done in alignment with that statement".
 
@@ -243,7 +243,7 @@ We still need a compatible undertaking. If one wants the river opened to fishing
 
 I wrote a separate reference page for this: [Cooperation without a shared platform](../commonality/vision-and-strategy/why-its-better/cooperation-without-a-shared-platform.md). It distinguishes this idea from unbundling the *jobs* of an organization, which the existing docs already cover.
 
-**The request idea fits very well.** I read [structured fundable work](../../../specs/product/structured-fundable-work.md). Its separation of work identity from funding is useful here, but “please propose a way to achieve this outcome” adds a distinct step. A request can exist before anyone knows the provider, method, price, or even the exact work items that will fulfill it.
+**The request idea fits very well.** I read the structured fundable work notes (`specs/product/structured-fundable-work.md`). Its separation of work identity from funding is useful here, but “please propose a way to achieve this outcome” adds a distinct step. A request can exist before anyone knows the provider, method, price, or even the exact work items that will fulfill it.
 
 A concrete example:
 
@@ -409,7 +409,7 @@ This isn’t suitable for everything—a half-built bridge can be worthless—bu
 
 That would reduce the amount of coordination the funding mechanism has to solve.
 
-(ADAM: Yes, sounds like more decomposition to me? But it does suggest that maybe we'd benefit from having UIs that understand the whole/parts relationship and can explicitly show "we've got 13/40 completed" or whatever? In a very open-ended way; I'm not suggesting that we try to design a universal UI for showing the whole/parts relationships of everything in the world. And in fact even just venturing into the land of explicitly-representing the projects would be new for Commonality; until now a project has basically just been a textual description. So I'm not sure how much of this should be done by us and integrated into the Commonality UI, versus just being out-of-scope for Commonality... but I feel like it might be relevant enough to be worth expanding into this area, especially in light of the [structured fundable work](/specs/product/structured-fundable-work.md) stuff.
+(ADAM: Yes, sounds like more decomposition to me? But it does suggest that maybe we'd benefit from having UIs that understand the whole/parts relationship and can explicitly show "we've got 13/40 completed" or whatever? In a very open-ended way; I'm not suggesting that we try to design a universal UI for showing the whole/parts relationships of everything in the world. And in fact even just venturing into the land of explicitly-representing the projects would be new for Commonality; until now a project has basically just been a textual description. So I'm not sure how much of this should be done by us and integrated into the Commonality UI, versus just being out-of-scope for Commonality... but I feel like it might be relevant enough to be worth expanding into this area, especially in light of the structured fundable work notes (`specs/product/structured-fundable-work.md`).
 
 One idea that occurs to me - do we already have something like this? - is that it might be helpful to be able to chain projects together, outputs to inputs, with money conditional on successful completion of each step, or something like that. I vaguely remember doing something sorta like that, but I'm not sure how far we got. Either way, maybe that'd be sufficient to allow an open-ended variety of different mechanisms, without requiring us to invent them all ourselves. We say "here's our notion of a project, it can particpate in our cause-board system by having people vouch for its alignment, and you can attach arbitrary inputs and outputs that can be produced or consumed by whatever smart contract you want" and then it's up to the rest of the Ethereum world - or us, if we get around to it - to invent whatever kinds of mechanisms would be useful.
 
@@ -574,11 +574,11 @@ An important boundary: **Commonality displaying a mechanism must not imply that 
 
 There is more here than my earlier answer acknowledged:
 
-- [`IAssuranceCondition`](/hardhat/contracts/individual-projects/IAssuranceCondition.sol) exposes `hasSucceeded()` and `hasFailed()`, allowing an undecided state as well.
-- [`AssuranceContract`](/hardhat/contracts/individual-projects/AssuranceContract.sol) has a condition set once; withdrawal and refund eligibility consult that condition.
-- [`ProjectFactory.createERC1155AndAssuranceContractWithCondition`](/hardhat/contracts/individual-projects/ProjectFactory.sol) accepts a pre-deployed custom condition. We do not need to invent a generic project-wide condition slot.
-- [`OracleCondition`](/hardhat/contracts/individual-projects/OracleCondition.sol) adapts an external oracle's undecided/succeeded/failed result. [`CancellableCondition`](/hardhat/contracts/individual-projects/CancellableCondition.sol) demonstrates wrapping another condition.
-- The [technical composability notes](/specs/tech/subsystems/lazyGiving/composability.md) already discuss condition combinators, progress aggregation, contract recipients, contract pledgers, and refunds into delegated notes. Several of those are proposed compositions, not complete supported products.
+- `IAssuranceCondition` (`hardhat/contracts/individual-projects/IAssuranceCondition.sol`) exposes `hasSucceeded()` and `hasFailed()`, allowing an undecided state as well.
+- `AssuranceContract` (`hardhat/contracts/individual-projects/AssuranceContract.sol`) has a condition set once; withdrawal and refund eligibility consult that condition.
+- `ProjectFactory.createERC1155AndAssuranceContractWithCondition` (`hardhat/contracts/individual-projects/ProjectFactory.sol`) accepts a pre-deployed custom condition. We do not need to invent a generic project-wide condition slot.
+- `OracleCondition` (`hardhat/contracts/individual-projects/OracleCondition.sol`) adapts an external oracle's undecided/succeeded/failed result. `CancellableCondition` (`hardhat/contracts/individual-projects/CancellableCondition.sol`) demonstrates wrapping another condition.
+- The technical composability notes (`specs/tech/subsystems/lazyGiving/composability.md`) already discuss condition combinators, progress aggregation, contract recipients, contract pledgers, and refunds into delegated notes. Several of those are proposed compositions, not complete supported products.
 
 That answers part of your question, but **project-wide conditions and donor-specific conditions are different features**. At least three meanings of “donate only if my evaluator approves” are possible:
 
@@ -592,7 +592,7 @@ For the water-treatment example, the simplest arrangement might be two independe
 
 One consequence: reserved money waiting for approval must not be shown as money already available in the project's assurance contract. Otherwise several impressive-looking conditional offers can create a false impression that construction is funded.
 
-There is also a readiness gap beyond the contracts. The [SDK chain reads](/sdk/src/utils/chain-reads.ts) include paths that try to read `threshold` and `deadline` from a condition and fall back to zeros on failure. A generic condition need not expose either. Supporting extensions well therefore includes recognizing condition types and displaying unsupported information honestly, not just passing an address to the factory.
+There is also a readiness gap beyond the contracts. The SDK chain reads (`sdk/src/utils/chain-reads.ts`) include paths that try to read `threshold` and `deadline` from a condition and fall back to zeros on failure. A generic condition need not expose either. Supporting extensions well therefore includes recognizing condition types and displaying unsupported information honestly, not just passing an address to the factory.
 
 I would first exercise the existing custom-condition path with one concrete approval example, including SDK discovery and rendering, before proposing a new core interface. That experiment should also address deployment order: the current factory takes a condition that already exists, which needs an explicit wiring strategy if that condition must refer to the newly created assurance contract.
 
@@ -608,7 +608,7 @@ None implies the other two. A can produce a useful survey without funding B. A c
 
 That distinction also sharpens the phrase “successful completion of each step.” **Funding success is not delivery success.** If B needs A's completed work, B must depend on the relevant delivery evidence or acceptance, not merely A's fundraising condition. And if A needs money to perform the work, withholding all A's funding until delivery creates a financing problem. An advance, staged payment, or reimbursement arrangement must say who carries that gap.
 
-Some older [composability prose](/specs/tech/subsystems/lazyGiving/composability.md) needs qualification before becoming an implementation plan. In the inspected base contract, withdrawal is initiated by the recipient and transfers ERC-20 funds. Naming another assurance contract as recipient does not itself call that contract's purchase function, mint contribution receipts, or establish the downstream refund path. A routing adapter needs to perform those operations and handle a downstream project that has closed or become unsuitable.
+Some older composability prose (`specs/tech/subsystems/lazyGiving/composability.md`) needs qualification before becoming an implementation plan. In the inspected base contract, withdrawal is initiated by the recipient and transfers ERC-20 funds. Naming another assurance contract as recipient does not itself call that contract's purchase function, mint contribution receipts, or establish the downstream refund path. A routing adapter needs to perform those operations and handle a downstream project that has closed or become unsuitable.
 
 Likewise, OR-ing two success conditions does not allocate a budget to exactly one winning proposal. That requires a selection and spending rule. Summing progress does not move matching funds. These are good reasons to preserve the three connections instead of hiding everything behind a generic arrow.
 
@@ -641,7 +641,7 @@ That last question matters. Decomposition can relocate coordination costs to an 
 
 There is a particularly interesting economic move here: **fund interfaces and reusable prerequisites as public goods**. Several otherwise competing projects might all want the same test suite, survey, data conversion, or baseline map. An interface is valuable partly because it lets people disagree about implementation. Commonality could help fund the compatibility that makes independent efforts compose.
 
-Work grouping also needs to preserve funding scope. A parent request and its children should state whether the parent budget covers the children, only integration, or some other costs. The [structured fundable work proposal](/specs/product/structured-fundable-work.md) is already the right place to resolve identity and overlapping claims. A grouping alone must not duplicate the apparent amount of work or money available.
+Work grouping also needs to preserve funding scope. A parent request and its children should state whether the parent budget covers the children, only integration, or some other costs. The structured fundable work proposal (`specs/product/structured-fundable-work.md`) is already the right place to resolve identity and overlapping claims. A grouping alone must not duplicate the apparent amount of work or money available.
 
 ## Expiration: a pattern with optional enforcement
 
@@ -653,7 +653,7 @@ For example: “This operator may publish updates to this project's reference un
 
 Expiration must apply to the authority that actually matters. If the operator can use its temporary permission to appoint a permanent controller, grant lasting token allowances, or transfer the assets away, the apparent expiry provides much less protection. A useful design restricts those escape routes as part of the permission.
 
-Also, our current threshold deadline is not an experiment's hard ending. [`ValueThresholdCondition`](/hardhat/contracts/individual-projects/ValueThresholdCondition.sol) makes refunds eligible when the deadline passes below threshold; it does not permanently latch failure, and later funding can satisfy the threshold. A hard expiry needs explicit terminal semantics. Conditions that compose must specify whether their answers can change over time; never reporting success and failure simultaneously is necessary but insufficient for safe financial composition.
+Also, our current threshold deadline is not an experiment's hard ending. `ValueThresholdCondition` (`hardhat/contracts/individual-projects/ValueThresholdCondition.sol`) makes refunds eligible when the deadline passes below threshold; it does not permanently latch failure, and later funding can satisfy the threshold. A hard expiry needs explicit terminal semantics. Conditions that compose must specify whether their answers can change over time; never reporting success and failure simultaneously is necessary but insufficient for safe financial composition.
 
 ## Replaceability: make handoff a deliverable
 
@@ -669,7 +669,7 @@ Your publication-and-license fields would help. I would extend them into a small
 | Controller and replacement procedure | Who can update the shared pointer or operate the service after departure? |
 | Handoff test | Has someone else successfully retrieved and used the result? |
 
-A mutable pointer answers only part of this. [`MutableRefUpdater`](/hardhat/contracts/utils/MutableRefUpdater.sol) stores names under `msg.sender`; it does not contain a built-in mechanism for transferring Alice's named reference to Bob. A controller contract could own the reference and implement replacement rules, or successors could publish new references with an explicit succession relationship. Those are different continuity guarantees.
+A mutable pointer answers only part of this. `MutableRefUpdater` (`hardhat/contracts/utils/MutableRefUpdater.sol`) stores names under `msg.sender`; it does not contain a built-in mechanism for transferring Alice's named reference to Bob. A controller contract could own the reference and implement replacement rules, or successors could publish new references with an explicit succession relationship. Those are different continuity guarantees.
 
 Similarly, a content reference identifies material but does not by itself arrange continued hosting. And a license declaration does not establish that the publisher owns all necessary rights. The form can record commitments and evidence without claiming to prove them.
 

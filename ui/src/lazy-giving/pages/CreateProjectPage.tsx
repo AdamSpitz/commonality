@@ -29,7 +29,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAccount, usePublicClient } from 'wagmi'
 import { BeneficiaryRegistryAbi, ProjectFactoryAbi, PublishedDataAbi } from '@commonality/sdk/abis'
-import { createProject, type ProjectFactoryContract } from '@commonality/sdk/lazy-giving'
+import { assertValidWorkId, createProject, type ProjectFactoryContract } from '@commonality/sdk/lazy-giving'
 import { hashBeneficiaryId, normalizeDnsBeneficiary } from '@commonality/sdk/content-funding'
 import { createDefaultDocumentStore, createDisplayableDocument } from '@commonality/sdk/displayable-documents'
 import { isValidCidV1 } from '@commonality/sdk/utils'
@@ -99,6 +99,15 @@ export function CreateProjectPage() {
   const [stopAtGoal, setStopAtGoal] = useState(true)
   const [deadline, setDeadline] = useState('')
   const [tokenTypes, setTokenTypes] = useState<TokenTypeRow[]>([{ ...EMPTY_TOKEN_ROW }])
+  const [workItems, setWorkItems] = useState<Array<{ id: string; description: string }>>(() => {
+    try {
+      const saved = sessionStorage.getItem('commonality.work-item-draft')
+      const parsed = saved ? JSON.parse(saved) as Array<{ id: string; description: string }> : []
+      return Array.isArray(parsed) ? parsed.filter((item) => item && typeof item.id === 'string') : []
+    } catch {
+      return []
+    }
+  })
 
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -112,6 +121,10 @@ export function CreateProjectPage() {
   const tokenCapacitySummary = summarizeProjectTokenCapacity(tokenTypes, paymentCurrency.decimals)
   const tokenCapacityPreviewRows = formatTokenCapacityPreviewRows(tokenTypes, paymentCurrency.decimals, paymentSymbol)
   const hasSmallDonationOption = hasOneUnitDonationOption(tokenTypes, paymentCurrency.decimals)
+
+  useEffect(() => {
+    sessionStorage.setItem('commonality.work-item-draft', JSON.stringify(workItems))
+  }, [workItems])
 
   useEffect(() => {
     const preset = searchParams.get('beneficiary')
@@ -149,6 +162,13 @@ export function CreateProjectPage() {
     if (!name.trim()) return 'Project name is required'
     if (!threshold || parseFloat(threshold) <= 0) return 'Funding goal must be positive'
     if (!deadline) return 'Deadline is required'
+    for (const item of workItems) {
+      try {
+        assertValidWorkId(item.id)
+      } catch (cause) {
+        return cause instanceof Error ? cause.message : 'A work id is invalid'
+      }
+    }
 
     if (recipientKind === 'website') {
       if (!beneficiaryDomain.trim()) return 'Beneficiary website is required'
@@ -327,6 +347,12 @@ export function CreateProjectPage() {
         extras: {
           statementType: 'lazy-giving-project-metadata',
           ...projectMeta,
+          ...(workItems.length > 0 ? {
+            workItems: workItems.map((item) => ({
+              id: item.id,
+              ...(item.description.trim() ? { description: item.description.trim() } : {}),
+            })),
+          } : {}),
         },
       }))
       const metadataCid = metadataPublication.cid
@@ -374,10 +400,12 @@ export function CreateProjectPage() {
         tokenCounts: tokenTypes.map(t => BigInt(t.supply)),
         tokenPrices: tokenTypes.map(t => parsePaymentAmount(t.price)),
         tokenMetadataURIs,
+        ...(workItems.length > 0 ? { workIds: workItems.map((item) => item.id) } : {}),
       })
 
       setSuccess('Project created successfully!')
       setCreatedProjectAddress(projectDetails.assuranceContractAddress)
+      sessionStorage.removeItem('commonality.work-item-draft')
     } catch (err) {
       console.error('Error creating project:', err)
       setError(err instanceof Error ? err.message : 'Failed to create project')
@@ -428,6 +456,41 @@ export function CreateProjectPage() {
             multiline
             minRows={3}
           />
+
+          <Stack spacing={1}>
+            <Typography variant="subtitle1">Specific work items (optional)</Typography>
+            <Typography variant="body2" color="text.secondary">
+              Leave this empty and the project still gets one generated work id. Add an item when you want a stable identity, such as a concert date or a maintenance period. The id is kept if you have to resubmit the transaction.
+            </Typography>
+            {workItems.map((item, index) => (
+              <Stack key={item.id} direction={{ xs: 'column', sm: 'row' }} spacing={1}>
+                <TextField
+                  label="Work id"
+                  value={item.id}
+                  onChange={(event) => setWorkItems((current) => current.map((row, rowIndex) => rowIndex === index ? { ...row, id: event.target.value } : row))}
+                  fullWidth
+                  helperText="Exact text. A content id such as twitter:uid:123:456 is a valid work id."
+                />
+                <TextField
+                  label="What this item is"
+                  value={item.description}
+                  onChange={(event) => setWorkItems((current) => current.map((row, rowIndex) => rowIndex === index ? { ...row, description: event.target.value } : row))}
+                  fullWidth
+                />
+                <IconButton aria-label="Remove work item" onClick={() => setWorkItems((current) => current.filter((_, rowIndex) => rowIndex !== index))}>
+                  <DeleteIcon />
+                </IconButton>
+              </Stack>
+            ))}
+            <Button
+              variant="outlined"
+              startIcon={<AddIcon />}
+              onClick={() => setWorkItems((current) => [...current, { id: `urn:uuid:${crypto.randomUUID()}`, description: '' }])}
+              sx={{ alignSelf: 'flex-start' }}
+            >
+              Add a work item
+            </Button>
+          </Stack>
 
           <TextField
             label="Updates channel link (optional)"

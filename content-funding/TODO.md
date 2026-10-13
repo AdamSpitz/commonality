@@ -8,4 +8,6 @@ When an item is done, delete it.
 
 ----
 
-No open items. New content-funding gaps go back on this list.
+- **(Ask)** Sequence and group attestations for structured work, and optional domain creation templates. The shared work-id registry is in [work items](../specs/tech/subsystems/work-items.md). These two were explicitly left as follow-ups.
+
+- **(Tell)** Testnet redeploy, funding-history UI, and a browser pass for work items are on the root [TODO](../TODO.md). Do those before treating the feature as live outside local Hardhat.

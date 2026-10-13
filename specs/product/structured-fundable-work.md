@@ -1,6 +1,6 @@
 # Structured fundable work
 
-High-level product direction, captured 2026-10-08 and clarified 2026-10-13. Detailed design and implementation remain future work.
+High-level product direction, captured 2026-10-08 and clarified 2026-10-13. The on-chain format is [work items](../tech/subsystems/work-items.md). Sequence attestations and domain templates are still follow-ups.
 
 Generalize the idea behind [content funding](../tech/subsystems/content-funding/README.md) into an extensible system for identifying and describing fundable work. Content funding gives individual content items canonical identities and explicitly connects them to funding requests. Other domains could benefit from the same structure: concerts, software maintenance, service delivery, public-access releases, and many more.
 

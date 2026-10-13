@@ -64,7 +64,7 @@ The following were inspected when writing this plan; verify against current code
 
 ## Implementation checklist
 
-- [ ] **Pin down the small shared data contract.** Recommended starting point:
+- [x] **Pin down the small shared data contract.** Recommended starting point:
   opaque, nonempty work ID strings; `workIdHash = keccak256(UTF-8(workId))`;
   optional `extras.workItems` entries containing an ID and descriptive fields or
   a description-document CID. Reuse current content IDs directly. Specify byte
@@ -75,7 +75,7 @@ The following were inspected when writing this plan; verify against current code
   create it once per item, preserving it across submission retries. Record the
   final format in a focused technical spec; update glossary terms as needed.
 
-- [ ] **Define registry scope and authoritative relationships.** Decide how
+- [x] **Define registry scope and authoritative relationships.** Decide how
   general projects and existing per-platform deployments share or compose the
   registry primitive. IDs can be shared across deployments while occupancy is
   registry-scoped; do not accidentally let an unrelated deployment reserve IDs
@@ -86,7 +86,7 @@ The following were inspected when writing this plan; verify against current code
   attaching work to another person's project. Do not build an unrestricted
   many-projects-per-item funding registry.
 
-- [ ] **Implement the common contract lifecycle.** Register each project's items
+- [x] **Implement the common contract lifecycle.** Register each project's items
   atomically, computing hashes from the supplied IDs. Reject duplicate items in
   a batch, existing active reservations, and already-successfully-funded items.
   Release only on verified funding failure, retaining historical links. A
@@ -97,7 +97,7 @@ The following were inspected when writing this plan; verify against current code
   Define whether links are fixed at creation; accommodate prospective content's
   authorized later materialization without permitting arbitrary scope changes.
 
-- [ ] **Refactor both project families onto the common mechanism.** Update
+- [x] **Refactor both project families onto the common mechanism.** Update
   ordinary project creation and content-funding factories, including prospective
   rounds and materialization. Keep content-specific canonicalization, channel
   validation, beneficiary claiming, veto/failure handling, and recognition tokens
@@ -106,7 +106,7 @@ The following were inspected when writing this plan; verify against current code
   content-only relationship APIs once callers use the shared path; read relevant
   decision records before reversing architectural choices.
 
-- [ ] **Wire SDK, events, and metadata together.** Update ABIs, event-cache
+- [x] **Wire SDK, events, and metadata together.** Update ABIs, event-cache
   ingestion/configuration, decoders, folds, queries, creation actions, and metadata
   readers/writers. Keep business logic in SDK folds, following the thin-indexer
   architecture. Provide project-to-items, item-to-current-request/history, and
@@ -114,7 +114,7 @@ The following were inspected when writing this plan; verify against current code
   metadata and contract arguments from one validated input. Reuse PublishedData
   and DisplayableDocument; no new generic attachment transport is needed.
 
-- [ ] **Resolve work attestations into fundable projects.** Reuse bytes32 subject
+- [x] **Resolve work attestations into fundable projects.** Reuse bytes32 subject
   attestations. Replace assumptions that every subject is a project address with
   explicit resolution of known projects and work relationships. Preserve trust,
   revocation, and cause/implication filtering. Show which item an attestation
@@ -122,7 +122,7 @@ The following were inspected when writing this plan; verify against current code
   Define board inclusion for bundles explicitly. Keep alignment, funding success,
   and evidence of delivery distinct.
 
-- [ ] **Expose the feature without making creation harder.** Keep the default
+- [x] **Expose the feature without making creation harder.** Keep the default
   creation flow simple, with generated IDs. Offer optional explicit IDs and work
   descriptions, including multiple items. Show a project's items and an item's
   current request and funding history, including failed attempts. Explain active
@@ -130,13 +130,13 @@ The following were inspected when writing this plan; verify against current code
   shared views where practical. Optional domain templates can follow; a closed
   taxonomy is not a prerequisite.
 
-- [ ] **Update deployment and simulation inputs.** Update factory/registry wiring,
+- [x] **Update deployment and simulation inputs.** Update factory/registry wiring,
   deployment scripts, generated ABIs, UI configuration, fake-data generation, and
   fixtures. Exercise local fresh deployment and seeding; local ephemeral data may
   be wiped. Do not preserve obsolete interfaces just for simulated testnet data.
   Record any remaining testnet redeployment step explicitly.
 
-- [ ] **Verify the behavior end to end.** Add focused contract/SDK tests and an
+- [x] **Verify the behavior end to end.** Add focused contract/SDK tests and an
   integration journey covering the scenarios below. Run relevant workspace
   checks under the project's testing guidance, then exercise the creation,
   history, and board flows in the browser. Update technical/content-funding docs

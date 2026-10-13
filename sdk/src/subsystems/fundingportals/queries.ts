@@ -27,6 +27,8 @@ import {
   type TrustedAddressInput,
 } from '../alignment-attestations/queries.js';
 import { foldAlignmentAttestations } from '../alignment-attestations/folds.js';
+import { ContentRegistryAbi } from '../../abis.js';
+import { projectAddressFromAttestationSubject } from '../work-items/ids.js';
 import {
   getProject,
   getProjectContributions,
@@ -144,14 +146,52 @@ async function fetchDecodedSuccessLifecycleEvents(
   ];
 }
 
+const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
+
+function attestedWorkField(
+  projects: Array<{ projectAddress: string; attestedWorkId?: string }>,
+  projectAddress: string,
+): { attestedWorkId?: string } {
+  const match = projects.find((project) =>
+    project.projectAddress.toLowerCase() === projectAddress.toLowerCase() && project.attestedWorkId);
+  return match?.attestedWorkId ? { attestedWorkId: match.attestedWorkId } : {};
+}
+
+/** A project-address attestation names the project. Any other subject is a work hash. */
+async function resolveAttestedProject(
+  machinery: SDKMachinery,
+  subjectId: string,
+): Promise<{ projectAddress: `0x${string}`; attestedWorkId?: string } | null> {
+  const direct = projectAddressFromAttestationSubject(subjectId);
+  if (direct) return { projectAddress: direct };
+  const hex = subjectId.trim().toLowerCase();
+  const hash = (hex.startsWith('0x') ? hex : `0x${hex}`) as `0x${string}`;
+  if (!/^0x[0-9a-f]{64}$/.test(hash)) return null;
+  const registry = machinery.contractAddresses?.contentRegistry;
+  if (!registry || !machinery.publicClient) return null;
+  try {
+    const project = await machinery.publicClient.readContract({
+      address: registry,
+      abi: ContentRegistryAbi,
+      functionName: 'projectFor',
+      args: [hash],
+    } as never) as `0x${string}`;
+    if (!project || project.toLowerCase() === ZERO_ADDRESS) return null;
+    return { projectAddress: project, attestedWorkId: hash };
+  } catch {
+    return null;
+  }
+}
+
 function dedupeAlignedProjects<T extends {
   projectAddress: string;
   alignmentType: 'direct' | 'indirect';
+  attestedWorkId?: string;
 }>(projects: T[]): T[] {
   const deduped = new Map<string, T>();
 
   for (const project of projects) {
-    const key = project.projectAddress.toLowerCase();
+    const key = `${project.projectAddress.toLowerCase()}:${project.attestedWorkId ?? ''}`;
     const existing = deduped.get(key);
 
     if (!existing || (existing.alignmentType === 'indirect' && project.alignmentType === 'direct')) {
@@ -489,12 +529,13 @@ async function listSuccessVouchedProjectsForCause(
     projectMap.set(key, entry);
   }
 
-  const projects = [...projectMap.entries()].map(([subjectId, success]) => ({
-    projectAddress: `0x${subjectId.slice(-40)}` as `0x${string}`,
-    success,
-  }));
+  const projects = (await Promise.all([...projectMap.entries()].map(async ([subjectId, success]) => {
+    const resolved = await resolveAttestedProject(machinery, subjectId);
+    if (!resolved) return null;
+    return { ...resolved, success };
+  }))).filter((row): row is NonNullable<typeof row> => row !== null);
 
-  const rows = await Promise.all(projects.map(async ({ projectAddress, success }) => {
+  const rows = await Promise.all(projects.map(async ({ projectAddress, attestedWorkId, success }) => {
     const [project, reimbursement] = await Promise.all([
       getProject(machinery, projectAddress).catch(() => null),
       getReceiptReimbursementSnapshot(machinery, projectAddress).catch(() => ({ outstandingReceipts: 0n, outstandingUnreimbursedAmount: 0n, scoutRecords: [] })),
@@ -513,6 +554,7 @@ async function listSuccessVouchedProjectsForCause(
       successConfidenceScore: calculateSuccessConfidenceScore(success, weightsMap ?? undefined).toString(),
       successConfidenceBasis: (weightsMap ? 'trust-weighted' : 'attester-count') as 'trust-weighted' | 'attester-count',
       successAttesters: [...new Set([...success.directAttesters, ...success.indirectAttesters])],
+      ...(attestedWorkId ? { attestedWorkId } : {}),
     };
   }));
 
@@ -733,11 +775,11 @@ export async function getAllAlignedProjectsForCause(
     }
   });
 
-  const alignedProjects = [...projectMap.entries()].map(([subjectId, alignmentType]) => ({
-    // subjectId is bytes32 (left-padded address); extract the last 20 bytes as an address
-    projectAddress: `0x${subjectId.slice(-40)}` as `0x${string}`,
-    alignmentType,
-  }));
+  const alignedProjects = (await Promise.all([...projectMap.entries()].map(async ([subjectId, alignmentType]) => {
+    const resolved = await resolveAttestedProject(machinery, subjectId);
+    if (!resolved) return null;
+    return { ...resolved, alignmentType };
+  }))).filter((row): row is NonNullable<typeof row> => row !== null);
 
   if (alignedProjects.length === 0) {
     return [];
@@ -783,11 +825,12 @@ export async function getAllAlignedProjectsForCause(
       totalReceived: snapshot.totalReceived.toString(),
       threshold: snapshot.threshold.toString(),
       deadline: snapshot.deadline.toString(),
+      ...attestedWorkField(alignedProjects, snapshot.projectAddress),
     })));
   }
 
   const projects = await Promise.all(
-    alignedProjects.map(async ({ projectAddress, alignmentType }) => {
+    alignedProjects.map(async ({ projectAddress, alignmentType, attestedWorkId }) => {
       const project = await getProject(machinery, projectAddress);
       if (!project) return null;
 
@@ -798,6 +841,7 @@ export async function getAllAlignedProjectsForCause(
         totalReceived: project.totalReceived,
         threshold: project.threshold,
         deadline: project.deadline,
+        ...(attestedWorkId ? { attestedWorkId } : {}),
       };
     }),
   );
