@@ -15,7 +15,11 @@ const MAX_BATCH: Partial<Record<CampaignActionType, number>> = {
 
 /** Gas for a transaction that carries exactly one of these writes. */
 export const SOLO_GAS_UNITS: Record<CampaignActionType, bigint> = {
-  'publish-statement': 180_000n, 'create-cause': 120_000n, 'create-bridge-board': 120_000n, 'create-bridge': 120_000n, 'set-belief': 90_000n,
+  // publishDataBatch does not set gas; viem's estimate on a campaign statement
+  // batch was about 4e6. set-belief matches campaignActionAdapter: a single
+  // setBelief is 120_000, and setBeliefsInBatch is 40_000 + 80_000 * n
+  // (three beliefs => 280_000). The old 180k/90k figures left wallets short.
+  'publish-statement': 4_000_000n, 'create-cause': 120_000n, 'create-bridge-board': 120_000n, 'create-bridge': 120_000n, 'set-belief': 120_000n,
   // Base Sepolia clone-factory canary on 2026-09-29: five create-project
   // receipts averaged 2,851,538 gas. Keep a little headroom for colder storage.
   'attest-implication': 130_000n, 'create-project': 3_000_000n, 'attest-alignment': 130_000n,
@@ -24,8 +28,8 @@ export const SOLO_GAS_UNITS: Record<CampaignActionType, bigint> = {
 
 /** Storage and log cost of one extra item once the transaction overhead is paid. */
 const MARGINAL_GAS_UNITS: Partial<Record<CampaignActionType, bigint>> = {
-  'publish-statement': 80_000n,
-  'set-belief': 35_000n,
+  'publish-statement': 500_000n,
+  'set-belief': 80_000n,
   'attest-implication': 55_000n,
   'attest-alignment': 40_000n,
 };
@@ -85,8 +89,16 @@ export function groupCampaignWrites(actions: readonly PlannedAction[], options: 
 /** Native gas units for one grouped transaction, before the gas price. */
 export function estimateGroupGas(group: readonly PlannedAction[]): bigint {
   if (group.length === 0) throw new Error('cannot estimate an empty campaign write group');
-  if (group.length === 1) return SOLO_GAS_UNITS[group[0].type];
-  const marginal = MARGINAL_GAS_UNITS[group[0].type];
+  const type = group[0].type;
+  if (group.length === 1) return SOLO_GAS_UNITS[type];
+  // Belief and publish batches must cover the limit the writer asks viem for.
+  // overhead + small marginal underfunded setBeliefsInBatch (280_000 for three)
+  // and large publishDataBatch transactions.
+  if (type === 'set-belief' || type === 'publish-statement') {
+    const marginal = MARGINAL_GAS_UNITS[type]!;
+    return SOLO_GAS_UNITS[type] + marginal * BigInt(group.length - 1);
+  }
+  const marginal = MARGINAL_GAS_UNITS[type];
   if (marginal === undefined) return group.reduce((sum, action) => sum + SOLO_GAS_UNITS[action.type], 0n);
   return BATCH_OVERHEAD_GAS + marginal * BigInt(group.length);
 }

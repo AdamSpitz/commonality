@@ -40,6 +40,10 @@ Do not write this plan over `network-societies-v1-pilot` or `medium-realistic-v2
 
 A plan written after the attester pass has 446 writes. On 2026-10-16 the local chain mined 446/446 and reconciliation matched 446/446. The first pass left 14 actions failed for insufficient ETH; those wallets were topped up and the run resumed. Output is `output/campaigns/network-societies-v1-b2/`. Pilot and medium-realistic-v2 outputs were not overwritten.
 
+The shortfall was the funder, not the chain. `computeCampaignFundingNeeds` priced a belief write at 90_000 gas and a publish at 180_000. The executor asks viem for `40_000 + 80_000 * n` on `setBeliefsInBatch` (280_000 for three) and leaves `publishDataBatch` to viem, which estimated about 4_000_000 on the large publishes. Funding now uses those figures, with 500_000 extra gas per publish after the first in a batch. A later local run should not need a manual `hardhat_setBalance`.
+
+OpenCode Go DeepSeek ids (`deepseek-v4-flash`, `deepseek-v4.1-flash`, `deepseek-v4-pro`) return HTTP 400 on this workspace until privacy is set to Global. `opencode-go/qwen3.8-flash` returned parseable JSON and matched the v3.2 decision on the short dual-count natural-to-commonality refusal and the long Grey County modified-left-to-commonality bless. Verifier `clear-communication` leaves use that model. Other verifier leaves stay on `xai/grok-4.7`. Production `PRODUCTION_OPENROUTER_MODEL` stays `deepseek/deepseek-v4-flash-0731`.
+
 The Grey County assimilation commonality board is `http://commonality.localhost:8088/#/cause/0xEe6a18208ca061e2Eddd4A6fA7E4E4d4927eF352/network-societies-v1-b2-grey-assimilation-bridge`. Its statement page shows "Arriving through other statements." Direct and indirect counts were 0 on that load because the visible sentence had no signers yet.
 
 Persona `set-belief` choices are still not applied. Delegated spending and a recurring monthly pledge are still not campaign actions. The six clusters are not accepted seed.

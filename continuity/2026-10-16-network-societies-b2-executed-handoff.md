@@ -7,7 +7,7 @@ Next session: figure out which DeepSeek model `opencode-go` should use. `deepsee
 - [`fake-data-generation/campaigns/network-societies-v1-b2.md`](../fake-data-generation/campaigns/network-societies-v1-b2.md) — what batch 2 published.
 - [`fake-data-generation/campaigns/network-societies-v1-b2-implication-evaluations.json`](../fake-data-generation/campaigns/network-societies-v1-b2-implication-evaluations.json) — 68 live pairs. Model `deepseek/deepseek-v3.2`. Prompt fingerprint `2f61d4d61235214eceee97e9a364da48b8a6833f509089941cb758728302e891`.
 - [`fake-data-generation/campaigns/network-societies-v1-b2-decisions.json`](../fake-data-generation/campaigns/network-societies-v1-b2-decisions.json) — allowed arrows and the five first-wording refusals.
-- [`verifier/llm-routing.json`](../verifier/llm-routing.json) — subscription pin. Every task kind is `xai/grok-4.6`. Allowed providers are `xai` and `opencode-go`. Never OpenRouter for verifier leaves.
+- [`verifier/llm-routing.json`](../verifier/llm-routing.json) — subscription pin. Every task kind is `xai/grok-4.6`. Allowed providers are `xai` and `opencode-go`. (NOTE FROM ADAM: Also might as well use grok-4.7 instead of grok-4.6.) Never OpenRouter for verifier leaves.
 - [`services/attester-core/src/llm-models.ts`](../services/attester-core/src/llm-models.ts) and [`services/attester-core/src/openrouter.ts`](../services/attester-core/src/openrouter.ts) — production OpenRouter default is `deepseek/deepseek-v4-flash-0731`, and `requestJsonCompletionWithUsage` caps `max_tokens` at 500.
 - Branch `campaign`. Do not commit on `dev` or `master`.
 
