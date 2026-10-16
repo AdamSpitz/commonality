@@ -240,9 +240,9 @@ test('batch 2 keeps the pilot families, reuses accepted bridges, and shares one 
     assert.deepEqual(copy.statements, group.statements);
   }
   const plan = await buildCampaignPlan(manifest);
-  assert.equal(plan.users.length, 60);
-  assert.equal(plan.statements.length, 100);
-  assert.equal(plan.projects.length, 52);
+  assert.equal(plan.users.length, 67);
+  assert.equal(plan.statements.length, 117);
+  assert.equal(plan.projects.length, 57);
   const checklist = plan.statements.find((statement) => statement.source.statementId === 'moderator-checklist');
   assert.ok(checklist);
   assert.equal(checklist!.causeId, 'abortion-forum');

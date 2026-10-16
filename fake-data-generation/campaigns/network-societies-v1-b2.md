@@ -8,11 +8,11 @@ Keeps the four pilot families (Owen Sound checkout, Grey County civic life, Chri
 - Schools and pushing, using the accepted `lgbt-schools` wording unchanged, plus a separate Grey County conduct board. The schools statements do not settle drugs, surgery, or classroom names.
 - An Owen Sound non-binding voting trial.
 
-The other eight families in the brainstorming plan are not in this manifest.
+The other families in the brainstorming plan are not in this manifest, except an AI-pause board. That board is plain: every sentence stays visible. Five milder modified sentences contain one shared pause-treaty sentence and each keeps a reason the shared sentence leaves out. Naturals do not name the treaty. Hal wants a full stop and rejects the pause. Vic rejects the pause because other labs will not stop. No AI-pause implication is in the allowance list. Those pairs are unevaluated.
 
 ## What the plan publishes
 
-A plan written on 2026-10-16 has 60 users, 100 statements, 52 projects. Seed: `commonality-network-societies-v1-b2-2026-10-16`. Regenerate the plan before quoting a write count. The old 356-write figure was for 70 statements and 40 projects.
+A plan written on 2026-10-16 has 67 users, 117 statements, 57 projects. The earlier mined run was 60 users, 100 statements, and 52 projects. Seed: `commonality-network-societies-v1-b2-2026-10-16`. Regenerate the plan before quoting a write count. The old 356-write figure was for 70 statements and 40 projects.
 
 The abortion cause and the schools cause are bridge-shaped. Each main board lists only the accepted commonality sentence. The natural and modified sentences are on the side boards. The Michigan authority board and the Grey County conduct board are ordinary boards, so their own sentences stay visible there.
 

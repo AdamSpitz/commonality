@@ -2,9 +2,9 @@
   "schema": "commonality-testnet-campaign-v1",
   "campaign": {
     "id": "network-societies-v1-b2",
-    "label": "Network societies batch 2 — pilot families, accepted bridges, and six unevaluated draft bridges",
+    "label": "Network societies batch 2 — pilot families, accepted bridges, six unevaluated draft bridges, and an AI-pause board",
     "syntheticDataLabel": "SYNTHETIC CAMPAIGN — NOT REAL USERS, ORGANIZATIONS, OR DELIVERABLES",
-    "userCount": 60,
+    "userCount": 67,
     "deterministicSeed": "commonality-network-societies-v1-b2-2026-10-16",
     "randomAlgorithm": "xoshiro128**"
   },
@@ -17,10 +17,10 @@
     "campaignCollection": "network-societies-v1-b2-statements.json"
   },
   "scale": {
-    "minCauses": 15,
-    "maxCauses": 15,
-    "minStatements": 100,
-    "maxStatements": 100,
+    "minCauses": 16,
+    "maxCauses": 16,
+    "minStatements": 117,
+    "maxStatements": 117,
     "allowRepeatedStatementRefs": true
   },
   "projectStories": "network-societies-v1-b2-projects.json",
@@ -540,6 +540,31 @@
         { "collectionId": "network-societies-v1-b2", "groupId": "canada-us-ties", "statementId": "modified-right" },
         { "collectionId": "network-societies-v1-b2", "groupId": "canada-us-ties", "statementId": "commonality" }
       ]
+    },
+    {
+      "id": "ai-pause",
+      "title": "Pause AI capabilities research",
+      "activityTier": "medium",
+      "membershipWeight": 8,
+      "statementRefs": [
+        { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "commonality" },
+        { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "natural-small-chance" },
+        { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "modified-small-chance" },
+        { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "natural-jobs" },
+        { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "modified-jobs" },
+        { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "natural-industry" },
+        { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "modified-industry" },
+        { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "natural-not-luddite" },
+        { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "modified-not-luddite" },
+        { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "natural-children" },
+        { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "modified-children" },
+        { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "pole-stop" },
+        { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "pole-accelerate" },
+        { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "treaty-petition" },
+        { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "alignment-note" },
+        { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "warning-digest" },
+        { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "pause-host-kit" }
+      ]
     }
   ],
   "personas": [
@@ -688,6 +713,21 @@
         "max": 2
       },
       "activityWeight": 1,
+      "inactivityRate": 0,
+      "fundingWeight": 1
+    },
+    {
+      "id": "ai-pause-voice",
+      "count": 7,
+      "roles": [
+        "project-founder",
+        "supporter"
+      ],
+      "causesPerUser": {
+        "min": 1,
+        "max": 1
+      },
+      "activityWeight": 1.5,
       "inactivityRate": 0,
       "fundingWeight": 1
     }
@@ -1069,6 +1109,88 @@
         "abortion-forum"
       ],
       "spotlightOrder": 24
+    },
+    {
+      "userId": "user-061",
+      "displayName": "Priya",
+      "bio": "Will not sign a claim that superintelligent AI is going to kill us. She will sign the small-chance wording and the shared pause sentence.",
+      "favoriteCauseId": "ai-pause",
+      "interests": [
+        "small chance",
+        "pause treaty"
+      ],
+      "causeIds": ["ai-pause"],
+      "spotlightOrder": 25
+    },
+    {
+      "userId": "user-062",
+      "displayName": "Dean",
+      "bio": "Came in worried about jobs, not extinction. He signs the jobs wording and the shared pause sentence, and he does not sign the certain-doom sentence.",
+      "favoriteCauseId": "ai-pause",
+      "interests": [
+        "job loss",
+        "pause treaty"
+      ],
+      "causeIds": ["ai-pause"],
+      "spotlightOrder": 26
+    },
+    {
+      "userId": "user-063",
+      "displayName": "Noor",
+      "bio": "Repeats the industry warnings and has not signed the treaty. Someone can point her at the industry modified sentence.",
+      "favoriteCauseId": "ai-pause",
+      "interests": [
+        "industry warnings"
+      ],
+      "causeIds": ["ai-pause"],
+      "spotlightOrder": 27
+    },
+    {
+      "userId": "user-064",
+      "displayName": "Sam",
+      "bio": "Says he is not a Luddite. He signs the not-a-Luddite wording and the shared pause sentence, and he leaves the certain-doom sentence unsigned.",
+      "favoriteCauseId": "ai-pause",
+      "interests": [
+        "technology",
+        "risk"
+      ],
+      "causeIds": ["ai-pause"],
+      "spotlightOrder": 28
+    },
+    {
+      "userId": "user-065",
+      "displayName": "Tess",
+      "bio": "Talks about executives gambling with her children's lives. She has not signed the treaty yet.",
+      "favoriteCauseId": "ai-pause",
+      "interests": [
+        "children",
+        "executives"
+      ],
+      "causeIds": ["ai-pause"],
+      "spotlightOrder": 29
+    },
+    {
+      "userId": "user-066",
+      "displayName": "Hal",
+      "bio": "Wants the work to just stop. He rejects the pause-while-alignment sentence as too soft.",
+      "favoriteCauseId": "ai-pause",
+      "interests": [
+        "extinction",
+        "full stop"
+      ],
+      "causeIds": ["ai-pause"],
+      "spotlightOrder": 30
+    },
+    {
+      "userId": "user-067",
+      "displayName": "Vic",
+      "bio": "Thinks a pause is the dangerous move because other labs will not stop. He rejects the shared pause sentence and the small-chance wording.",
+      "favoriteCauseId": "ai-pause",
+      "interests": [
+        "capabilities race"
+      ],
+      "causeIds": ["ai-pause"],
+      "spotlightOrder": 31
     }
   ],
   "implicationAllowances": [
@@ -1094,8 +1216,8 @@
       "type": "publish-statement",
       "prerequisites": [],
       "targetCount": {
-        "min": 100,
-        "max": 100
+        "min": 117,
+        "max": 117
       }
     },
     {
@@ -1104,8 +1226,8 @@
         "publish-statement"
       ],
       "targetCount": {
-        "min": 15,
-        "max": 15
+        "min": 16,
+        "max": 16
       }
     },
     {
@@ -1134,8 +1256,8 @@
         "create-cause"
       ],
       "targetCount": {
-        "min": 52,
-        "max": 52
+        "min": 57,
+        "max": 57
       }
     },
     {
@@ -1145,8 +1267,8 @@
         "publish-statement"
       ],
       "targetCount": {
-        "min": 40,
-        "max": 40
+        "min": 57,
+        "max": 57
       }
     },
     {

@@ -447,5 +447,37 @@
       "statementRefs": ["modified-left", "modified-right", "commonality"],
       "blocker": "Without both wordings, one camp hears the page as praise and the other hears it as a boycott refusal they did not sign"
     }
+  ],
+  "ai-pause": [
+    {
+      "title": "Pause-treaty petition packet",
+      "outcome": "Publish the petition text, the governments it is addressed to, and a running signature count for one year. The packet includes the shared pause sentence and does not claim a government has agreed.",
+      "statementRefs": ["treaty-petition", "commonality"],
+      "blocker": "A petition nobody maintains becomes a slogan, and no single signer is paid to keep the count honest"
+    },
+    {
+      "title": "Small-chance explainer",
+      "outcome": "Publish a plain-language brief that states the small-chance modified sentence beside the shared pause sentence, so a reader can see what the shorter sentence does not claim.",
+      "statementRefs": ["modified-small-chance", "commonality"],
+      "blocker": "The milder wording is useful only if someone writes it down where the certain-doom sentence is not the only text on offer"
+    },
+    {
+      "title": "Checkable alignment note",
+      "outcome": "Commission one note on a published idea for keeping a more capable system from doing catastrophic harm. The note states the method, the result, and what was not shown. It does not claim the problem is solved.",
+      "statementRefs": ["alignment-note"],
+      "blocker": "A second person cannot check a safety claim that lives in a lab notebook nobody else is paid to read"
+    },
+    {
+      "title": "One-year warning digest",
+      "outcome": "For one year, publish a digest of public warnings from people who work on AI, each with a date and a source, and no claim added beyond the source.",
+      "statementRefs": ["warning-digest"],
+      "blocker": "The warnings are scattered, and no newsroom is paid to keep a list that refuses to sharpen them"
+    },
+    {
+      "title": "Pause-meeting host kit",
+      "outcome": "Write the agenda, the two sentences to read aloud, and the handoff steps so a second host can run the next meeting without the first host.",
+      "statementRefs": ["pause-host-kit", "commonality"],
+      "blocker": "The meeting stops when the first host is busy unless the hosting steps are written down"
+    }
   ]
 }

@@ -379,6 +379,88 @@
         { "id": "modified-right", "role": "modified-right", "text": "I want Canadians to keep buying ordinary goods from US businesses and visiting family in the US. Ordinary Canadians should keep buying from US businesses and visiting family in the US. This is not a statement about the current US administration. I'd still rather Canada also keep shared border staffing and ordinary military exercises with the US. I feel more strongly about purchases and family visits than about those, and I am not asking anyone to praise the administration." },
         { "id": "commonality", "role": "commonality", "text": "Ordinary Canadians should keep buying from US businesses and visiting family in the US. This is not a statement about the current US administration." }
       ]
+    },
+    {
+      "id": "ai-pause",
+      "title": "Pause new AI capabilities research while work on catastrophic harm continues",
+      "notes": [
+        "Different problems, same limited ask. The shared sentence is the treaty pause. Each milder statement keeps a reason the shared sentence does not contain, so signing the short sentence is not a signature of extinction, of job loss, or of contempt for executives.",
+        "Naturals are how someone talks before they have accepted the treaty. Modifieds add that ask. Poles do not contain it. No implication arrow is published: the pairs have not been given to the attester.",
+        "The shared sentence is: I'd be okay with an international treaty that pauses new research aimed at making AI systems more capable, for the length of that pause, while work continues on how to keep a more capable system from doing catastrophic harm. I'm not saying every current software tool has to be switched off."
+      ],
+      "statements": [
+        {
+          "id": "commonality",
+          "role": "commonality",
+          "text": "I'd be okay with an international treaty that pauses new research aimed at making AI systems more capable, for the length of that pause, while work continues on how to keep a more capable system from doing catastrophic harm. I'm not saying every current software tool has to be switched off."
+        },
+        {
+          "id": "natural-small-chance",
+          "text": "You don't have to be sure that a more capable AI will wipe us out. Even a small chance, something like one percent or ten percent, would be an absurd risk to take in any other context."
+        },
+        {
+          "id": "modified-small-chance",
+          "role": "modified-left",
+          "text": "I'm not willing to say that a more capable AI is going to wipe us out. I don't need that certainty. Even a small chance of it, something on the order of one or five or ten percent, is an absurd risk to take with everyone's lives. I'd be okay with an international treaty that pauses new research aimed at making AI systems more capable, for the length of that pause, while work continues on how to keep a more capable system from doing catastrophic harm. I'm not saying every current software tool has to be switched off. Signing this is not me joining the people who are already sure."
+        },
+        {
+          "id": "natural-jobs",
+          "text": "AI is going to lead to massive job loss. That is not worth it."
+        },
+        {
+          "id": "modified-jobs",
+          "role": "modified-right",
+          "text": "What I actually lose sleep over is the jobs. A race to more capable AI looks like a lot of people thrown out of work for a gain I didn't ask for. I'm not claiming I know the chance of extinction. I'd be okay with an international treaty that pauses new research aimed at making AI systems more capable, for the length of that pause, while work continues on how to keep a more capable system from doing catastrophic harm. I'm not saying every current software tool has to be switched off. The pause is the part I came for. The work on catastrophic harm is not my reason."
+        },
+        {
+          "id": "natural-industry",
+          "text": "An increasing number of people inside the AI industry are warning that pushing further has potentially catastrophic consequences."
+        },
+        {
+          "id": "modified-industry",
+          "text": "An increasing number of people who work on these systems are warning that pushing capability further could be catastrophic. I don't build the systems, and I'm not going to pretend I can check their math, but I don't think we should ignore them. I'd be okay with an international treaty that pauses new research aimed at making AI systems more capable, for the length of that pause, while work continues on how to keep a more capable system from doing catastrophic harm. I'm not saying every current software tool has to be switched off. Hearing the warning is not the same as being sure we all die."
+        },
+        {
+          "id": "natural-not-luddite",
+          "text": "I'm not a Luddite, but I'm not blindly in favour of all technology either. This just isn't worth the risk."
+        },
+        {
+          "id": "modified-not-luddite",
+          "text": "I'm not a Luddite, and I'm not against technology in general. Plenty of tools are worth having. A race to more capable AI is a different thing, and I don't think the upside covers the risk. I'd be okay with an international treaty that pauses new research aimed at making AI systems more capable, for the length of that pause, while work continues on how to keep a more capable system from doing catastrophic harm. I'm not saying every current software tool has to be switched off. This isn't a request to smash the machines we already use."
+        },
+        {
+          "id": "natural-children",
+          "text": "These tech executives are gambling with my children's lives."
+        },
+        {
+          "id": "modified-children",
+          "text": "I don't trust a handful of tech executives to keep gambling with my children's lives. They can be wrong and still get rich. I'd be okay with an international treaty that pauses new research aimed at making AI systems more capable, for the length of that pause, while work continues on how to keep a more capable system from doing catastrophic harm. I'm not saying every current software tool has to be switched off. My complaint is about who is taking the risk, not a claim that I want every program unplugged."
+        },
+        {
+          "id": "pole-stop",
+          "text": "A superintelligent AI is going to kill us. The work should just stop. A treaty that pauses new capability research while alignment work continues is not enough, because the same labs will keep going the moment the pause slips."
+        },
+        {
+          "id": "pole-accelerate",
+          "text": "We should not pause AI capabilities research. Falling behind other labs and other countries is the danger I actually take seriously."
+        },
+        {
+          "id": "treaty-petition",
+          "text": "I want a public petition that asks governments to negotiate an international treaty pausing new research aimed at making AI systems more capable, while work on catastrophic harm continues, and I want the petition text and the signature count published."
+        },
+        {
+          "id": "alignment-note",
+          "text": "I want a published piece of work on how to keep a more capable AI system from doing catastrophic harm, with the method and the result written so a second person can check them, and without a claim that the problem has been solved."
+        },
+        {
+          "id": "warning-digest",
+          "text": "I want a one-year digest that lists public warnings from people who work on AI, with the date and the source, and that does not add a claim the source did not make."
+        },
+        {
+          "id": "pause-host-kit",
+          "text": "I want a written host kit so a second person can run a meeting about that pause treaty without the first host."
+        }
+      ]
     }
   ]
 }
