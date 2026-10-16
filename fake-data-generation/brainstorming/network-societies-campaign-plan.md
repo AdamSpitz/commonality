@@ -1,6 +1,22 @@
 # Network societies fake-data campaign
 
-Status: implementation handoff, 2026-10-16. This document plans a new campaign; it does not generate data or authorize a remote deployment. Suggested campaign ID: `network-societies-v1`.
+Status: partial local campaign, updated 2026-10-16. This document is the target for the whole fifteen-family world. It does not generate data or authorize a remote deployment. The live ids are `network-societies-v1-pilot` and `network-societies-v1-b2`, not one `network-societies-v1` manifest.
+
+## Where the work stands
+
+Two local campaigns exist. Neither is the finished fifteen-family world, and neither has been published to testnet.
+
+**Pilot** ([`network-societies-v1-pilot.md`](../campaigns/network-societies-v1-pilot.md)). Four families: Owen Sound checkout, Grey County civic life, Christian teaching, home learning. About 40 users, 40 statements, 20 projects. A local run on 2026-10-16 mined and reconciled 207/207. No implication edges. The class-host directory is one statement on two boards. Pat delegates a note to Ned; the adapter can revoke a delegation. Persona belief choices in the pilot decisions file are still not applied by the planner.
+
+**Batch 2** ([`network-societies-v1-b2.md`](../campaigns/network-societies-v1-b2.md)). Keeps those four families and adds the accepted abortion settlement, the accepted schools-and-pushing bridge, an Owen Sound voting trial, and six draft bridges (assimilation sessions, dual-count poll, checkout trial, minors' medicine, ordinary opinions and employment, Canada–US ties). 60 users, 100 statements, 52 projects. Sixteen modified-to-commonality arrows are allowed: four accepted bridge pairs and twelve live attester blesses. Designed-negative pairs stay unpublished. The six draft clusters are not accepted seed. A local run on 2026-10-16 mined and reconciled 446/446 into `output/campaigns/network-societies-v1-b2/`. That output is the plan from before the belief pins. Do not regenerate into it.
+
+The planner now pins batch-2 `signs` and `rejects` from the decisions file. Eli's only planned belief on the abortion commonality is `disbelieve`. Unsigned is still not a rejection. The next chain run needs a fresh output directory.
+
+**Decided out of this campaign for now.** Delegated spending and a recurring monthly pledge. Pat already delegates a note, and revocation is a real action. Nothing spends a delegated note or repeats a pledge. Journey 5 below is therefore only partly demonstrated, and the "$20/month" filter is still a product gap.
+
+**Not started as families.** Eight of the fifteen rows below are not campaign manifests: low-carb, cancel-proof support, unwoke, Democracy 2.0, AI safety, US-friendly Canadians beyond the five-statement draft bridge, Islamic reform, and less regulation. Home learning and Grey County civic life stop at the pilot planks. Do not force a new triple onto an overlap that already shares a concrete want. The campaign note already treats several of these as overlaps.
+
+**Journeys.** Direct shared agreement and one reused statement on two boards are in the pilot. A declined bridge is authored for batch 2 (Eli) and is in the new plan, not in the mined output. Verified implication paths are planned for batch 2. Early-risk reimbursement, a friend actually spending a delegated note, recurring pledges, and the independent-reviewer walkthrough are not campaign demonstrations yet.
 
 ## Purpose
 
@@ -113,6 +129,8 @@ The brainstorming's “$20/month, fire-and-forget” and “delivered but not re
 
 ## Implementation sequence
 
+Steps 1–3 are done for the pilot, and step 3 is also done for batch 2 on the pre-pin plan. Step 4 is one batch in, with eight families still unauthored. Step 5 is not started. The notes under each step stay as the original instructions.
+
 ### 1. Make a capability and content inventory
 
 Inspect current runner/schema and record reusable paths versus missing wiring. Known issues to address: `campaignSchema.ts` currently caps the catalog at 70 statement references and requires at least eight causes, while the pilot below has four; it also treats statement references across causes as unique. The planner's implication evidence currently uses accepted bridge-role pairs, which is insufficient for new evaluated campaign statements. Existing project/story and cross-camp funding selection may contain campaign-specific assumptions.
@@ -157,4 +175,4 @@ Remote/testnet publication is a separate later step using existing preflight, bu
 - Required journeys have reconciled state and browser observations. Unsupported behaviors are listed as specific gaps, never counted as demonstrated; the full demo is not called complete while a required journey is silently missing.
 - The report identifies synthetic users/activity/deliverables, actual amounts and outcomes, exact reproduction steps, and the next unfinished task if work spans sessions.
 
-**First task for the implementing LLM:** inspect the current campaign schema/planner/adapter and write the capability table, then author the four-family pilot content. Do not start with a bulk random run or by drafting all 200 statements at once.
+**Next task:** author the next content batch from the eight families that are not manifests yet, skipping overlaps that already share a concrete want. Apply the pilot persona belief choices the same way batch 2 pins them, or leave that file marked unapplied. Do not regenerate `output/campaigns/network-societies-v1-b2/`. Do not start a bulk random run or draft all remaining statements at once.

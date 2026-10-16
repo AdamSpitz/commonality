@@ -22,9 +22,9 @@ Sixteen implication actions are planned. Four are the accepted abortion and scho
 
 `moderator-checklist` is one statement. It is on the Michigan authority board and the Owen Sound voting board. One project, "Moderator checklist card", references it.
 
-Persona decisions in that file are still not applied to `set-belief`. Eli's refusal of the settlement is authoring intent. The planner can still have him believe the commonality sentence.
+The manifest points `beliefDecisions` at that file. Each `signs` entry is one `believe` write and each `rejects` entry is one `disbelieve` write. Those pairs are not drawn again, so Eli never believes the abortion commonality. Unsigned statements stay unpinned.
 
-Delegated spending and a recurring monthly pledge are still not campaign actions.
+Delegated spending and a recurring monthly pledge stay out. Pat already delegates a note to Ned, and the adapter can revoke a delegation. No action spends a delegated note or repeats a pledge, and no persona in this manifest is written as doing either.
 
 ## Reproduce the plan
 
@@ -46,4 +46,4 @@ OpenCode Go DeepSeek ids (`deepseek-v4-flash`, `deepseek-v4.1-flash`, `deepseek-
 
 The Grey County assimilation commonality board is `http://commonality.localhost:8088/#/cause/0xEe6a18208ca061e2Eddd4A6fA7E4E4d4927eF352/network-societies-v1-b2-grey-assimilation-bridge`. Its statement page shows "Arriving through other statements." Direct and indirect counts were 0 on that load because the visible sentence had no signers yet.
 
-Persona `set-belief` choices are still not applied. Delegated spending and a recurring monthly pledge are still not campaign actions. The six clusters are not accepted seed.
+A plan built after the belief pins is not the plan that mined. `output/campaigns/network-societies-v1-b2/` keeps that executed run. Rewriting it would mark the wallets unprovisioned. The next chain run needs a new output directory. Delegated spending and a monthly pledge stay out. The six clusters are not accepted seed. The remaining brainstorm families stay unauthored where they already share a concrete want with a published board.

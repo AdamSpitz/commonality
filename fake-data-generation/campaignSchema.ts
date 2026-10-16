@@ -109,6 +109,11 @@ export interface CampaignManifestV1 {
    * Absent manifests still plan every modified-to-commonality pair as accepted-bridge-role-pair.
    */
   implicationAllowances?: CampaignImplicationAllowance[];
+  /**
+   * Persona sign and reject choices. The planner pins those set-belief writes
+   * and does not let the random draw overwrite them. Unsigned entries stay unpinned.
+   */
+  beliefDecisions?: string;
 }
 
 export type CampaignImplicationEvidence = 'accepted-bridge-role-pair' | 'live-attester-modified-to-commonality';
@@ -242,6 +247,9 @@ export function validateCampaignManifest(manifest: CampaignManifestV1): void {
   }
   if (manifest.projectStories && !/^[a-z0-9][a-z0-9-]*\.json$/.test(manifest.projectStories)) {
     throw new Error('projectStories must be a JSON filename in campaigns/');
+  }
+  if (manifest.beliefDecisions && !/^[a-z0-9][a-z0-9-]*\.json$/.test(manifest.beliefDecisions)) {
+    throw new Error('beliefDecisions must be a JSON filename in campaigns/');
   }
   validateCauses(manifest);
   validatePersonas(manifest);

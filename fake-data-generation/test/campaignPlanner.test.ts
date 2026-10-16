@@ -286,6 +286,33 @@ test('batch 2 keeps the pilot families, reuses accepted bridges, and shares one 
   }
 });
 
+test('batch 2 pins persona belief choices and never has Eli believe the settlement', async () => {
+  const manifest = JSON.parse(await readFile(new URL('../campaigns/network-societies-v1-b2.json', import.meta.url), 'utf8')) as CampaignManifestV1;
+  const decisions = JSON.parse(await readFile(new URL('../campaigns/network-societies-v1-b2-decisions.json', import.meta.url), 'utf8')) as {
+    people: { userId: string; name: string; signs?: string[]; rejects?: string[]; unsigned?: string[] }[];
+  };
+  const plan = await buildCampaignPlan(manifest);
+  const beliefs = plan.actions.filter((action) => action.type === 'set-belief');
+  assert.equal(beliefs.length, 90);
+  const byStatementId = (sourceId: string, userId: string) => beliefs.filter((action) => {
+    const statement = plan.statements.find((item) => item.id === action.statementId);
+    return action.actorUserId === userId && statement?.source.statementId === sourceId;
+  });
+  for (const person of decisions.people) {
+    for (const statementId of person.signs ?? []) {
+      const actions = byStatementId(statementId, person.userId);
+      assert.deepEqual(actions.map((action) => action.belief), ['believe'], `${person.name} ${statementId}`);
+    }
+    for (const statementId of person.rejects ?? []) {
+      const actions = byStatementId(statementId, person.userId);
+      assert.deepEqual(actions.map((action) => action.belief), ['disbelieve'], `${person.name} ${statementId}`);
+    }
+  }
+  const eli = plan.users.find((user) => user.displayName === 'Eli')!;
+  const settlement = plan.statements.find((statement) => statement.source.collectionId === 'compromise-abortion' && statement.source.statementId === 'commonality')!;
+  assert.equal(beliefs.some((action) => action.actorUserId === eli.id && action.statementId === settlement.id && action.belief === 'believe'), false);
+});
+
 test('written planning artifacts reload into the same campaign plan', async () => {
   const manifest = await loadManifest();
   const plan = await buildCampaignPlan(manifest);

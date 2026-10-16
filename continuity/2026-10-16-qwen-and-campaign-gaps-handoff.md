@@ -1,6 +1,6 @@
 # Handoff: leftover network-societies batch-2 campaign gaps
 
-Next session: apply the persona `set-belief` choices, then decide whether delegated spending and a monthly pledge belong in this campaign. Do not rewrite the batch-2 statements. Do not force triples onto the skipped overlaps.
+Next session: the persona `set-belief` pins are in the planner. Delegated spending and a monthly pledge stay out. Do not rewrite the batch-2 statements. Do not force triples onto the skipped overlaps. A new chain run needs a fresh output directory.
 
 ## Read first
 
@@ -19,8 +19,8 @@ The Grey County assimilation commonality board loaded with "Arriving through oth
 
 ## What to do
 
-1. Apply the persona `set-belief` choices in the decisions file. Eli must not be planned as believing the abortion commonality.
-2. Delegated spending and a recurring monthly pledge are still not campaign actions. Add them only if they fit an existing persona in this manifest.
+1. Done. `beliefDecisions` on the batch-2 manifest pins each `signs` and `rejects` entry. Eli's only planned belief on the abortion commonality is `disbelieve`. The mined directory `output/campaigns/network-societies-v1-b2/` is the earlier plan. Do not regenerate into it.
+2. Done as a decision. Pat already delegates a note to Ned. No persona spends a delegated note or makes a monthly pledge, and the adapter has no action for either. Leave them out.
 3. The remaining brainstorm families (low-carb, unwoke as an umbrella, Democracy 2.0, Islamic reform, permitting, home-school beyond the pilot) are still unauthored. The campaign note already skips several of these as overlaps. Do not force triples onto overlaps that already share a concrete want.
 
 ## Suggested skills

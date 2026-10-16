@@ -24,6 +24,7 @@
     "allowRepeatedStatementRefs": true
   },
   "projectStories": "network-societies-v1-b2-projects.json",
+  "beliefDecisions": "network-societies-v1-b2-decisions.json",
   "causes": [
     {
       "id": "crypto-merchants",

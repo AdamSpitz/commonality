@@ -250,6 +250,36 @@ async function loadCampaignStories(manifest: CampaignManifestV1): Promise<Record
   return JSON.parse(await readFile(sourcePath, 'utf8')) as Record<string, { title: string; outcome: string; statementRefs: string[]; blocker: string }[]>;
 }
 
+interface BeliefDecisionPerson {
+  userId: string;
+  name?: string;
+  signs?: string[];
+  rejects?: string[];
+}
+
+async function loadBeliefDecisions(manifest: CampaignManifestV1): Promise<BeliefDecisionPerson[]> {
+  if (!manifest.beliefDecisions) return [];
+  const sourcePath = path.join(path.dirname(fileURLToPath(import.meta.url)), 'campaigns', manifest.beliefDecisions);
+  const parsed = JSON.parse(await readFile(sourcePath, 'utf8')) as { people?: BeliefDecisionPerson[] };
+  return parsed.people ?? [];
+}
+
+function causeForSigner(user: PlannedUser, statement: PlannedStatement): string {
+  if (user.causeIds.includes(statement.causeId)) return statement.causeId;
+  const also = user.causeIds.find((causeId) => statement.alsoOnCauseIds?.includes(causeId));
+  if (!also) throw new Error(`${user.id} is not on a board that lists ${statement.source.statementId}`);
+  return also;
+}
+
+function resolveDecisionStatement(user: PlannedUser, statements: PlannedStatement[], statementId: string): PlannedStatement {
+  const visible = statements.filter((statement) => user.causeIds.some((causeId) => statement.causeId === causeId || statement.alsoOnCauseIds?.includes(causeId)));
+  const matches = visible.filter((statement) => statement.source.statementId === statementId);
+  if (matches.length !== 1) {
+    throw new Error(`${user.displayName ?? user.id} decision ${statementId} matches ${matches.length} statements on their boards`);
+  }
+  return matches[0];
+}
+
 export async function buildCampaignPlan(manifest: CampaignManifestV1): Promise<CampaignPlan> {
   validateCampaignManifest(manifest);
   const random = new Xoshiro128StarStar(manifest.campaign.deterministicSeed);
@@ -289,6 +319,7 @@ export async function buildCampaignPlan(manifest: CampaignManifestV1): Promise<C
     }
   }
   const storyDriven = await loadCampaignStories(manifest);
+  const beliefDecisions = await loadBeliefDecisions(manifest);
 
   const users: PlannedUser[] = [];
   const profiles = new Map((manifest.userProfiles ?? []).map((profile) => [profile.userId, profile]));
@@ -438,10 +469,36 @@ export async function buildCampaignPlan(manifest: CampaignManifestV1): Promise<C
   }
 
   const latestBelief = new Map<string, PlannedAction>();
-  for (let index = 0; index < countByType['set-belief']; index++) {
-    const actor = random.weighted(activeUsers, (user) => user.activityWeight);
-    const previous = index > Math.floor(countByType['set-belief'] * 0.92) && latestBelief.size > 0 ? random.pick([...latestBelief.values()]) : undefined;
-    const statement = previous ? statements.find((item) => item.id === previous.statementId)! : random.pick(preferredStatements(actor, statements));
+  const pinnedBeliefs = new Set<string>();
+  const usersById = new Map(users.map((user) => [user.id, user]));
+  for (const person of beliefDecisions) {
+    const user = usersById.get(person.userId);
+    if (!user) throw new Error(`belief decision names unknown user ${person.userId}`);
+    const chosen = [
+      ...(person.signs ?? []).map((statementId) => ({ statementId, belief: 'believe' as const })),
+      ...(person.rejects ?? []).map((statementId) => ({ statementId, belief: 'disbelieve' as const })),
+    ];
+    for (const choice of chosen) {
+      const statement = resolveDecisionStatement(user, statements, choice.statementId);
+      const key = `${user.id}/${statement.id}`;
+      if (pinnedBeliefs.has(key)) throw new Error(`${user.id} pins ${choice.statementId} more than once`);
+      const causeId = causeForSigner(user, statement);
+      const action = add({ type: 'set-belief', actorUserId: user.id, causeId, statementId: statement.id, belief: choice.belief, dependsOn: [publishes.get(statement.id)!.id] });
+      pinnedBeliefs.add(key);
+      latestBelief.set(key, action);
+    }
+  }
+  if (pinnedBeliefs.size > countByType['set-belief']) {
+    throw new Error(`belief decisions pin ${pinnedBeliefs.size} writes, above the set-belief target ${countByType['set-belief']}`);
+  }
+  const randomBeliefCount = countByType['set-belief'] - pinnedBeliefs.size;
+  for (let index = 0; index < randomBeliefCount; index++) {
+    const flipPool = [...latestBelief.values()].filter((action) => !pinnedBeliefs.has(`${action.actorUserId}/${action.statementId}`));
+    const previous = index > Math.floor(randomBeliefCount * 0.92) && flipPool.length > 0 ? random.pick(flipPool) : undefined;
+    const actor = previous ? usersById.get(previous.actorUserId!)! : random.weighted(activeUsers, (user) => user.activityWeight);
+    const openStatements = preferredStatements(actor, statements).filter((statement) => !pinnedBeliefs.has(`${actor.id}/${statement.id}`));
+    if (!previous && openStatements.length === 0) throw new Error(`${actor.id} has no unpinned statement to sign`);
+    const statement = previous ? statements.find((item) => item.id === previous.statementId)! : random.pick(openStatements);
     const beliefActor = users.find((user) => user.id === (previous?.actorUserId ?? actor.id))!;
     const causeId = beliefActor.causeIds.includes(statement.causeId)
       ? statement.causeId
