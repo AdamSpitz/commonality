@@ -18,6 +18,7 @@ import {
 } from '@ui/shared'
 import { CauseBoard, CauseLeaderboard } from '@ui/fundingportals'
 import { AlignmentTrustGate } from '../components/AlignmentTrustGate'
+import { BridgeContributions } from '../components/BridgeContributions'
 import { CauseViewStrip } from '../components/CauseViewStrip'
 import { CauseMediatorCard } from '../components/CauseMediatorCard'
 import { CauseBridgesSection } from '../components/CauseBridgesSection'
@@ -1091,6 +1092,13 @@ export function CauseDetailPage({ editMode = false }: { editMode?: boolean }) {
                 Signer counts could not be loaded: {countsError}
               </Alert>
             )}
+            <Box sx={{ mt: 1.5 }}>
+              <BridgeContributions
+                statementCids={selectedCids}
+                trustedImplicationAttesters={activeTrustedImplicationAttesters}
+                trustedAlignmentAttesters={trustedAlignmentAttesters}
+              />
+            </Box>
           </Box>
         )}
 

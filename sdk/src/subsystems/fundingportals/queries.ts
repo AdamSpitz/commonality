@@ -187,6 +187,7 @@ function dedupeAlignedProjects<T extends {
   projectAddress: string;
   alignmentType: 'direct' | 'indirect';
   attestedWorkId?: string;
+  viaStatementCids?: string[];
 }>(projects: T[]): T[] {
   const deduped = new Map<string, T>();
 
@@ -196,6 +197,14 @@ function dedupeAlignedProjects<T extends {
 
     if (!existing || (existing.alignmentType === 'indirect' && project.alignmentType === 'direct')) {
       deduped.set(key, project);
+      continue;
+    }
+    if (existing.alignmentType === 'indirect' && project.alignmentType === 'indirect') {
+      const viaStatementCids = [...new Set([
+        ...(existing.viaStatementCids ?? []),
+        ...(project.viaStatementCids ?? []),
+      ])];
+      deduped.set(key, { ...existing, viaStatementCids });
     }
   }
 
@@ -747,6 +756,8 @@ export async function getAllAlignedProjectsForCause(
 ): Promise<Array<{
   projectAddress: string;
   alignmentType: 'direct' | 'indirect';
+  /** Implying statements this project is aligned with, when alignment is indirect. */
+  viaStatementCids?: string[];
   fundingCurrency: Currency;
   totalReceived: string;
   threshold: string;
@@ -766,21 +777,26 @@ export async function getAllAlignedProjectsForCause(
     trustedAlignmentAttesters
   );
 
-  const projectMap = new Map<string, 'direct' | 'indirect'>();
+  const projectMap = new Map<string, { alignmentType: 'direct' | 'indirect'; viaStatementCids: string[] }>();
   directAlignments.forEach(a =>
-    projectMap.set(a.subjectId.toLowerCase(), 'direct')
+    projectMap.set(a.subjectId.toLowerCase(), { alignmentType: 'direct', viaStatementCids: [] })
   );
   indirectAlignments.forEach(a => {
     const addr = a.subjectId.toLowerCase();
-    if (!projectMap.has(addr)) {
-      projectMap.set(addr, 'indirect');
+    const existing = projectMap.get(addr);
+    if (!existing) {
+      projectMap.set(addr, { alignmentType: 'indirect', viaStatementCids: [a.directStatementCid] });
+      return;
+    }
+    if (existing.alignmentType === 'indirect' && !existing.viaStatementCids.includes(a.directStatementCid)) {
+      existing.viaStatementCids.push(a.directStatementCid);
     }
   });
 
-  const alignedProjects = (await Promise.all([...projectMap.entries()].map(async ([subjectId, alignmentType]) => {
+  const alignedProjects = (await Promise.all([...projectMap.entries()].map(async ([subjectId, alignment]) => {
     const resolved = await resolveAttestedProject(machinery, subjectId);
     if (!resolved) return null;
-    return { ...resolved, alignmentType };
+    return { ...resolved, ...alignment };
   }))).filter((row): row is NonNullable<typeof row> => row !== null);
 
   if (alignedProjects.length === 0) {
@@ -812,34 +828,39 @@ export async function getAllAlignedProjectsForCause(
       return [];
     }
 
-    const projectAlignmentType = new Map(
-      alignedProjects.map((project) => [project.projectAddress.toLowerCase(), project.alignmentType]),
+    const projectAlignment = new Map(
+      alignedProjects.map((project) => [project.projectAddress.toLowerCase(), project]),
     );
     const snapshots = await readProjectFundingSnapshots(machinery, projectsWithCondition);
     const paymentTokenInfo = await Promise.all(
       snapshots.map((snapshot) => readProjectPaymentTokenInfo(machinery, snapshot.projectAddress)),
     );
 
-    return dedupeAlignedProjects(snapshots.map((snapshot, index) => ({
+    return dedupeAlignedProjects(snapshots.map((snapshot, index) => {
+      const alignment = projectAlignment.get(snapshot.projectAddress.toLowerCase());
+      return {
       projectAddress: snapshot.projectAddress,
-      alignmentType: projectAlignmentType.get(snapshot.projectAddress.toLowerCase()) ?? 'direct',
+      alignmentType: alignment?.alignmentType ?? 'direct',
+      viaStatementCids: alignment?.viaStatementCids ?? [],
       fundingCurrency: paymentTokenInfo[index]?.currency ?? ETH_CURRENCY,
       totalReceived: snapshot.totalReceived.toString(),
       threshold: snapshot.threshold.toString(),
       deadline: snapshot.deadline.toString(),
       ...(snapshot.conditionStatus ? { conditionStatus: snapshot.conditionStatus } : {}),
       ...attestedWorkField(alignedProjects, snapshot.projectAddress),
-    })));
+    };
+    }));
   }
 
   const projects = await Promise.all(
-    alignedProjects.map(async ({ projectAddress, alignmentType, attestedWorkId }) => {
+    alignedProjects.map(async ({ projectAddress, alignmentType, viaStatementCids, attestedWorkId }) => {
       const project = await getProject(machinery, projectAddress);
       if (!project) return null;
 
       return {
         projectAddress: project.id,
         alignmentType,
+        viaStatementCids,
         fundingCurrency: project.fundingCurrency,
         totalReceived: project.totalReceived,
         threshold: project.threshold,
@@ -903,6 +924,13 @@ async function getUnionAlignedProjectsForStatements(
       const existing = byAddress.get(key);
       if (!existing || (existing.alignmentType === 'indirect' && project.alignmentType === 'direct')) {
         byAddress.set(key, project);
+        continue;
+      }
+      if (existing.alignmentType === 'indirect' && project.alignmentType === 'indirect') {
+        byAddress.set(key, {
+          ...existing,
+          viaStatementCids: [...new Set([...(existing.viaStatementCids ?? []), ...(project.viaStatementCids ?? [])])],
+        });
       }
     }
   }

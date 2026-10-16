@@ -88,7 +88,7 @@ Ordinary charity is often the other shape. "We want people who can't afford them
 
 The seven categories below explain the broader fit; they are not seven equally
 important launch priorities. For founders turning them into concrete projects,
-the [cause taxonomy](/specs/product/cause-taxonomy.md) provides a generation framework.
+the cause taxonomy (`specs/product/cause-taxonomy.md`) provides a generation framework.
 
 The test of fit applies to a **deliverable**, not merely a cause title. "Education" or
 "open science" might describe work an existing institution already funds well.
