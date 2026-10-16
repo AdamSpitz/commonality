@@ -80,7 +80,7 @@ Do these in order unless Adam names a different one. Each item is a session-size
 
 ### F — Network societies pilot
 
-Authoring for the four-family pilot (crypto merchants, Grey County civic life, Christian teaching, home learning) is in `campaigns/network-societies-v1-pilot.json` plus the statements, project, and decision files beside it. The capability table and the gaps that are still open are in [`campaigns/network-societies-v1-pilot.md`](./campaigns/network-societies-v1-pilot.md). The plan does not publish implication edges. Local execution and the other eleven families are still ahead.
+Authoring for the four-family pilot (crypto merchants, Grey County civic life, Christian teaching, home learning) is in `campaigns/network-societies-v1-pilot.json` plus the statements, project, and decision files beside it. The capability table and the gaps that are still open are in [`campaigns/network-societies-v1-pilot.md`](./campaigns/network-societies-v1-pilot.md). A local run on 2026-10-16 mined and reconciled 207/207. Cause pages show the shared class-host statement and do not list its project. The other eleven families are still ahead. The plan does not publish implication edges.
 
 ## Pointers
 

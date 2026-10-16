@@ -14,7 +14,7 @@ Families in this pilot: Owen Sound checkout trial, Grey County civic life, Grey 
 | Accepted-bridge implication evidence | Still the only evidence the planner will publish. Heuristic `implies: true` is not accepted. |
 | Fresh attester evaluation for new campaign pairs | Not run. The pilot stores candidates and publishes zero implication edges. |
 | Beliefs chosen by the persona decision file | Not wired. `network-societies-v1-pilot-decisions.json` is authoring intent. The planner still draws `set-belief`. |
-| One shared project contract on several boards | The class-host directory is one statement, published once, and one project. Civic life and home learning boards include that statement. Whether each board page shows the project depends on the product and has not been walked in a browser. |
+| One shared project contract on several boards | The class-host directory is one statement, published once, and one project (`project-015`). Civic life, Christian teaching, and home learning boards all show that statement. None of the four cause pages lists a project under Fundable Projects ("No aligned projects yet"), including the Christian teaching board that owns the projects. The project page itself renders: title, fake-data outcome, founder Nadia, and "0 of 2 USDZZZ raised." |
 | Early funding then retroactive reimbursement | Supported for v2's accepted abortion bridge. Not planned in this pilot. |
 | Delegated spending of a note | Deposit, delegate, and revoke exist. Spending through the delegation does not. Pat's note to Ned is a delegation, not a spent note. |
 | Recurring "$20/month" pledge | Not a campaign action. Do not describe a one-time deposit as that pledge. |
@@ -40,6 +40,19 @@ Pat (`user-021`) delegates notes to Ned (`user-011`). Some delegations are later
 
 No modified-statement bridge is published. A candidate negative pair is in the decisions file and is unevaluated.
 
+## Local run (2026-10-16)
+
+Clean localhost chain after `./scripts/data.sh --wipe` and `./scripts/services.sh --start`. Plan: 40 users, 40 statements, 20 projects, 207 writes. Execute mined 206, then one `fund-project` (`action-00157`, `user-031`, `0x7efF913d73fEc32ef2765A28824412617bBE1baC`) failed with insufficient ETH for gas. After a 1 ETH top-up from Hardhat account #0 and resetting that action to `planned`, the resume mined 207/207. Reconciliation: 207/207, chain and indexer both at block 295, lag 0.
+
+Boards:
+
+- Civic life: `http://commonality.localhost:8088/#/cause/0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC/campaign-network-societies-v1-pilot-civic-assimilation`
+- Christian teaching: `http://commonality.localhost:8088/#/cause/0x70997970C51812dc3A010C7d01b50e0d17dc79C8/campaign-network-societies-v1-pilot-christian-teaching`
+- Home learning: `http://commonality.localhost:8088/#/cause/0x90F79bf6EB2c4f870365E785982E1f101E93b906/campaign-network-societies-v1-pilot-home-learning`
+- Class-host directory project: `http://commonality.localhost:8088/#/projects/0x8744b336FC44395Da72850AD9f6220CF6Ea34962`
+
+Test-data run `20261016T181546620Z`. Admin: `http://commonality.localhost:8088/#/admin/test-data?key=` plus the key in `output/test-data/.admin-capability`.
+
 ## Next unfinished task
 
-Evaluate the candidate pairs with the real implication-attester prompt, or keep them unpublished, then execute this plan on a local chain and walk the boards. Do not add the other eleven families before that.
+Decide whether a cause page should list a project that is aligned to a statement on that board. The current pages do not. Do not add the other eleven families before that. Implication candidates stay unpublished.
