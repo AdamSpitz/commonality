@@ -241,8 +241,8 @@ test('batch 2 keeps the pilot families, reuses accepted bridges, and shares one 
   }
   const plan = await buildCampaignPlan(manifest);
   assert.equal(plan.users.length, 60);
-  assert.equal(plan.statements.length, 70);
-  assert.equal(plan.projects.length, 40);
+  assert.equal(plan.statements.length, 100);
+  assert.equal(plan.projects.length, 52);
   const checklist = plan.statements.find((statement) => statement.source.statementId === 'moderator-checklist');
   assert.ok(checklist);
   assert.equal(checklist!.causeId, 'abortion-forum');
@@ -268,6 +268,11 @@ test('batch 2 keeps the pilot families, reuses accepted bridges, and shares one 
   const forum = plan.actions.find((action) => action.type === 'create-cause' && action.causeId === 'abortion-forum')!.board!;
   assert.equal(forum.role, 'plain');
   assert.ok(forum.statementIds.includes(michigan.id));
+  for (const causeId of ['grey-assimilation', 'ranked-approval-poll', 'checkout-trial-bridge', 'minors-medicine', 'opinion-employment', 'canada-us-ties']) {
+    const board = plan.actions.find((action) => action.type === 'create-cause' && action.causeId === causeId)!.board!;
+    assert.equal(board.role, 'commonality');
+    assert.equal(implications.some((action) => action.causeId === causeId), false, causeId);
+  }
   for (const causeId of manifest.causes.map((cause) => cause.id)) {
     assert.ok(plan.projects.filter((project) => project.causeId === causeId).length >= 2, causeId);
   }

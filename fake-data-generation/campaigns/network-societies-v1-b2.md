@@ -12,11 +12,13 @@ The other eight families in the brainstorming plan are not in this manifest.
 
 ## What the plan publishes
 
-A plan written on 2026-10-16 has 60 users, 70 statements, 40 projects, and 356 writes. Seed: `commonality-network-societies-v1-b2-2026-10-16`.
+A plan written on 2026-10-16 has 60 users, 100 statements, 52 projects. Seed: `commonality-network-societies-v1-b2-2026-10-16`. Regenerate the plan before quoting a write count. The old 356-write figure was for 70 statements and 40 projects.
 
 The abortion cause and the schools cause are bridge-shaped. Each main board lists only the accepted commonality sentence. The natural and modified sentences are on the side boards. The Michigan authority board and the Grey County conduct board are ordinary boards, so their own sentences stay visible there.
 
-Four implication actions are planned. They are the accepted modified-left and modified-right arrows onto each commonality. Evidence recorded on the action is `accepted-bridge-role-pair`, the same marker the medium campaign uses. This session did not call the attester. No other pair is published. Candidates that were not evaluated are listed in `network-societies-v1-b2-decisions.json`.
+Six more causes are also bridge-shaped, from `statement-generation-exercises/06-network-society-alliances.json`: Grey County assimilation sessions, the Owen Sound dual-count poll, the Owen Sound checkout trial, minors' medicine and courtesy, ordinary opinions and employment, and ordinary Canada–US ties. Their side boards exist. No implication action is planned for them. The planner still stamps `accepted-bridge-role-pair` on every modified-to-commonality action it does emit, and that stamp is only honest for the accepted abortion and schools pairs. Keep the attest-implication count at 4 until a real attester blesses a new pair.
+
+Four implication actions are planned. They are the accepted modified-left and modified-right arrows onto each of those two commonalities. This session did not call the attester. Candidates that were not evaluated are listed in `network-societies-v1-b2-decisions.json`.
 
 `moderator-checklist` is one statement. It is on the Michigan authority board and the Owen Sound voting board. One project, "Moderator checklist card", references it.
 

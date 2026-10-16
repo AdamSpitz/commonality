@@ -363,5 +363,89 @@
       ],
       "blocker": "The checklist is useful on more than one board, and neither meeting owns the maintenance"
     }
+  ],
+  "grey-assimilation": [
+    {
+      "title": "Owen Sound evening sessions",
+      "outcome": "Run twelve evening practical-English sessions in Owen Sound with childcare, covering the library, the bus, and a township office. Township business stays in English. The sessions do not tell newcomers which customs to keep.",
+      "statementRefs": ["commonality"],
+      "blocker": "Childcare and a room have to be paid for before either camp can see whether the limited program is the one they would accept"
+    },
+    {
+      "title": "Session-limit card",
+      "outcome": "Print the commonality sentence and the two modified sentences, unchanged, so a host can show what the sessions will and will not do.",
+      "statementRefs": ["modified-left", "modified-right", "commonality"],
+      "blocker": "The limit is easy to drop in the room unless a card states it"
+    }
+  ],
+  "ranked-approval-poll": [
+    {
+      "title": "Dual-count association poll",
+      "outcome": "One Owen Sound community association runs a non-binding poll and publishes a ranked count and an approval count of the same ballots. The poll does not change a municipal election.",
+      "statementRefs": ["commonality"],
+      "blocker": "Printing both counts costs more than the association's usual show of hands"
+    },
+    {
+      "title": "Dual-count host card",
+      "outcome": "Print the two modified sentences so a host can say that publishing the other count is not a change of preferred system.",
+      "statementRefs": ["modified-left", "modified-right"],
+      "blocker": "Without the card, each side hears the second count as a concession they did not make"
+    }
+  ],
+  "checkout-trial-bridge": [
+    {
+      "title": "Six-shop trial on the bridge terms",
+      "outcome": "Six named Owen Sound shops try, for three months, a checkout that can take a crypto payment and refund it, show the fee on a twenty-dollar sale before the customer pays, and keep taking cash and cards.",
+      "statementRefs": ["commonality"],
+      "blocker": "No one shop pays for a trial whose useful result is a public record of fees and refunds"
+    },
+    {
+      "title": "Trial-terms card",
+      "outcome": "Print the two modified sentences so a merchant and a payments person can see the trial limits in their own wording.",
+      "statementRefs": ["modified-left", "modified-right"],
+      "blocker": "The shared sentence leaves out why each side showed up, and the card is what keeps those reasons visible"
+    }
+  ],
+  "minors-medicine": [
+    {
+      "title": "Rule comparison page",
+      "outcome": "Publish the commonality sentence as a proposal, labeled as a proposal, with no claim about current law or clinical results.",
+      "statementRefs": ["commonality"],
+      "blocker": "A one-page proposal is useful to people who will not attend a meeting, and nobody owns the page"
+    },
+    {
+      "title": "Separate-questions card",
+      "outcome": "Print the modified-right sentence so a host can keep classroom names and school drug approval off this page.",
+      "statementRefs": ["modified-right", "commonality"],
+      "blocker": "Those questions keep getting folded back in unless a maintained card holds them out"
+    }
+  ],
+  "opinion-employment": [
+    {
+      "title": "Appeal-before-blacklist card",
+      "outcome": "Publish the commonality sentence and a one-page appeal checklist a workplace can fill in before treating someone as unemployable for a stated opinion.",
+      "statementRefs": ["commonality"],
+      "blocker": "The checklist is useful to the next workplace and paid for by none of them"
+    },
+    {
+      "title": "Still-a-sanction note",
+      "outcome": "Publish the modified-left sentence so the card does not get read as a ban on every workplace response.",
+      "statementRefs": ["modified-left"],
+      "blocker": "The exception for threats and refused work disappears if only the short sentence is copied"
+    }
+  ],
+  "canada-us-ties": [
+    {
+      "title": "Ordinary-ties one-pager",
+      "outcome": "Publish the commonality sentence for one Canadian community group, labeled as a draft statement rather than as a finding about trade.",
+      "statementRefs": ["commonality"],
+      "blocker": "The page is a shared wording, and neither camp's organizer is paid to keep the other camp's wording intact"
+    },
+    {
+      "title": "Not-an-endorsement card",
+      "outcome": "Print both modified sentences beside the commonality so a reader can see the administration question was left out on purpose.",
+      "statementRefs": ["modified-left", "modified-right", "commonality"],
+      "blocker": "Without both wordings, one camp hears the page as praise and the other hears it as a boycott refusal they did not sign"
+    }
   ]
 }

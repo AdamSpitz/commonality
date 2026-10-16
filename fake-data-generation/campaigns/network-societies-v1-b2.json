@@ -2,7 +2,7 @@
   "schema": "commonality-testnet-campaign-v1",
   "campaign": {
     "id": "network-societies-v1-b2",
-    "label": "Network societies batch 2 — pilot families plus abortion, schools, and voting",
+    "label": "Network societies batch 2 — pilot families, accepted bridges, and six unevaluated draft bridges",
     "syntheticDataLabel": "SYNTHETIC CAMPAIGN — NOT REAL USERS, ORGANIZATIONS, OR DELIVERABLES",
     "userCount": 60,
     "deterministicSeed": "commonality-network-societies-v1-b2-2026-10-16",
@@ -17,10 +17,10 @@
     "campaignCollection": "network-societies-v1-b2-statements.json"
   },
   "scale": {
-    "minCauses": 9,
-    "maxCauses": 9,
-    "minStatements": 70,
-    "maxStatements": 70,
+    "minCauses": 15,
+    "maxCauses": 15,
+    "minStatements": 100,
+    "maxStatements": 100,
     "allowRepeatedStatementRefs": true
   },
   "projectStories": "network-societies-v1-b2-projects.json",
@@ -460,6 +460,84 @@
           "groupId": "abortion-forum",
           "statementId": "moderator-checklist"
         }
+      ]
+    },
+    {
+      "id": "grey-assimilation",
+      "title": "Grey County assimilation sessions",
+      "activityTier": "medium",
+      "membershipWeight": 8,
+      "statementRefs": [
+        { "collectionId": "network-societies-v1-b2", "groupId": "grey-assimilation", "statementId": "natural-left" },
+        { "collectionId": "network-societies-v1-b2", "groupId": "grey-assimilation", "statementId": "natural-right" },
+        { "collectionId": "network-societies-v1-b2", "groupId": "grey-assimilation", "statementId": "modified-left" },
+        { "collectionId": "network-societies-v1-b2", "groupId": "grey-assimilation", "statementId": "modified-right" },
+        { "collectionId": "network-societies-v1-b2", "groupId": "grey-assimilation", "statementId": "commonality" }
+      ]
+    },
+    {
+      "id": "ranked-approval-poll",
+      "title": "Owen Sound dual count",
+      "activityTier": "medium",
+      "membershipWeight": 7,
+      "statementRefs": [
+        { "collectionId": "network-societies-v1-b2", "groupId": "ranked-approval-poll", "statementId": "natural-left" },
+        { "collectionId": "network-societies-v1-b2", "groupId": "ranked-approval-poll", "statementId": "natural-right" },
+        { "collectionId": "network-societies-v1-b2", "groupId": "ranked-approval-poll", "statementId": "modified-left" },
+        { "collectionId": "network-societies-v1-b2", "groupId": "ranked-approval-poll", "statementId": "modified-right" },
+        { "collectionId": "network-societies-v1-b2", "groupId": "ranked-approval-poll", "statementId": "commonality" }
+      ]
+    },
+    {
+      "id": "checkout-trial-bridge",
+      "title": "Owen Sound checkout bridge",
+      "activityTier": "medium",
+      "membershipWeight": 8,
+      "statementRefs": [
+        { "collectionId": "network-societies-v1-b2", "groupId": "checkout-trial-bridge", "statementId": "natural-left" },
+        { "collectionId": "network-societies-v1-b2", "groupId": "checkout-trial-bridge", "statementId": "natural-right" },
+        { "collectionId": "network-societies-v1-b2", "groupId": "checkout-trial-bridge", "statementId": "modified-left" },
+        { "collectionId": "network-societies-v1-b2", "groupId": "checkout-trial-bridge", "statementId": "modified-right" },
+        { "collectionId": "network-societies-v1-b2", "groupId": "checkout-trial-bridge", "statementId": "commonality" }
+      ]
+    },
+    {
+      "id": "minors-medicine",
+      "title": "Minors medicine and courtesy",
+      "activityTier": "medium",
+      "membershipWeight": 7,
+      "statementRefs": [
+        { "collectionId": "network-societies-v1-b2", "groupId": "minors-medicine", "statementId": "natural-left" },
+        { "collectionId": "network-societies-v1-b2", "groupId": "minors-medicine", "statementId": "natural-right" },
+        { "collectionId": "network-societies-v1-b2", "groupId": "minors-medicine", "statementId": "modified-left" },
+        { "collectionId": "network-societies-v1-b2", "groupId": "minors-medicine", "statementId": "modified-right" },
+        { "collectionId": "network-societies-v1-b2", "groupId": "minors-medicine", "statementId": "commonality" }
+      ]
+    },
+    {
+      "id": "opinion-employment",
+      "title": "Ordinary opinion and employment",
+      "activityTier": "small",
+      "membershipWeight": 6,
+      "statementRefs": [
+        { "collectionId": "network-societies-v1-b2", "groupId": "opinion-employment", "statementId": "natural-left" },
+        { "collectionId": "network-societies-v1-b2", "groupId": "opinion-employment", "statementId": "natural-right" },
+        { "collectionId": "network-societies-v1-b2", "groupId": "opinion-employment", "statementId": "modified-left" },
+        { "collectionId": "network-societies-v1-b2", "groupId": "opinion-employment", "statementId": "modified-right" },
+        { "collectionId": "network-societies-v1-b2", "groupId": "opinion-employment", "statementId": "commonality" }
+      ]
+    },
+    {
+      "id": "canada-us-ties",
+      "title": "Ordinary Canada-US ties",
+      "activityTier": "small",
+      "membershipWeight": 6,
+      "statementRefs": [
+        { "collectionId": "network-societies-v1-b2", "groupId": "canada-us-ties", "statementId": "natural-left" },
+        { "collectionId": "network-societies-v1-b2", "groupId": "canada-us-ties", "statementId": "natural-right" },
+        { "collectionId": "network-societies-v1-b2", "groupId": "canada-us-ties", "statementId": "modified-left" },
+        { "collectionId": "network-societies-v1-b2", "groupId": "canada-us-ties", "statementId": "modified-right" },
+        { "collectionId": "network-societies-v1-b2", "groupId": "canada-us-ties", "statementId": "commonality" }
       ]
     }
   ],
@@ -991,8 +1069,8 @@
       "type": "publish-statement",
       "prerequisites": [],
       "targetCount": {
-        "min": 70,
-        "max": 70
+        "min": 100,
+        "max": 100
       }
     },
     {
@@ -1001,8 +1079,8 @@
         "publish-statement"
       ],
       "targetCount": {
-        "min": 9,
-        "max": 9
+        "min": 15,
+        "max": 15
       }
     },
     {
@@ -1031,8 +1109,8 @@
         "create-cause"
       ],
       "targetCount": {
-        "min": 40,
-        "max": 40
+        "min": 52,
+        "max": 52
       }
     },
     {
@@ -1091,8 +1169,8 @@
         "publish-statement"
       ],
       "targetCount": {
-        "min": 8,
-        "max": 8
+        "min": 32,
+        "max": 32
       }
     },
     {
@@ -1102,8 +1180,8 @@
         "create-bridge-board"
       ],
       "targetCount": {
-        "min": 2,
-        "max": 2
+        "min": 8,
+        "max": 8
       }
     }
   ],

@@ -1,0 +1,206 @@
+{
+  "format": "commonality-seed-content-v1",
+  "id": "statement-generation-exercise-06",
+  "title": "Exercise — network-society organic alliances (draft, not accepted)",
+  "description": "Draft bridges from fake-data-generation/brainstorming/README.md. Not loaded by loadSeedCollections. Not accepted into seed-content. No implication attester call has been run. Abortion cutoff and schools-pushing stay in their accepted files and are not rewritten here.",
+  "notes": [
+    "A bridge needs a real concession. Same outcome, different motive, with both sides already willing to sign the outcome, is overlap and is not given a triple.",
+    "Skipped as overlap or as a weaker same-conclusion pattern: low-carb enclaves, the unwoke umbrella, Democracy 2.0 as a second voting cause, Christianity crossed with secular conservatives, home-schoolers and school families sharing field-trip notes, and 'both sides already dislike first-past-the-post.'",
+    "The accepted immigration cluster is about deportation. The assimilation triple below is about what a local program does. Do not merge them.",
+    "The accepted schools cluster is about pushing versus support. The youth-medicine triple below does not settle that, classroom names, or school approval of drugs."
+  ],
+  "groups": [
+    {
+      "id": "grey-county-assimilation-sessions",
+      "title": "Grey County practical-English sessions, without a customs program or an origin-language township office",
+      "pattern": "compromise in the middle",
+      "statements": [
+        {
+          "id": "natural-left",
+          "role": "natural-left",
+          "text": "I want newcomers in Grey County to be able to learn practical English and how the library, the bus, and a township office work, and I want them to be able to keep their own customs."
+        },
+        {
+          "id": "natural-right",
+          "role": "natural-right",
+          "text": "If people move to Grey County, they should join the local way of life. I don't want the township running services in origin languages forever."
+        },
+        {
+          "id": "modified-left",
+          "role": "modified-left",
+          "text": "I want newcomers in Grey County to be able to learn practical English and how the library, the bus, and a township office work, and I want them to be able to keep their own customs. I'd be okay with twelve evening practical-English sessions in Owen Sound, with childcare, that explain those four things, while township business stays in English and the sessions stop short of telling newcomers which customs to keep. I would not want this to become a second township office in origin languages. This isn't my whole view of immigration."
+        },
+        {
+          "id": "modified-right",
+          "role": "modified-right",
+          "text": "If people move to Grey County, they should be able to function in the local civic life, and I don't want the township running services in origin languages forever. I'd still rather see less immigration, but that is a different question. I'd be okay with twelve evening practical-English sessions in Owen Sound, with childcare, that explain the library, the bus, and a township office, while township business stays in English and the sessions stop short of telling newcomers which customs to keep. This isn't my whole view of immigration."
+        },
+        {
+          "id": "commonality",
+          "role": "commonality",
+          "text": "I'd be okay with twelve evening practical-English sessions in Owen Sound, with childcare, that explain the library, the bus, and a township office, while township business stays in English and the sessions stop short of telling newcomers which customs to keep. This isn't my whole view of immigration."
+        }
+      ]
+    },
+    {
+      "id": "owen-sound-dual-count",
+      "title": "One non-binding Owen Sound poll that publishes both counts",
+      "pattern": "different preferred replacements, same limited trial",
+      "statements": [
+        {
+          "id": "natural-left",
+          "role": "natural-left",
+          "text": "First-past-the-post wastes my vote. I want ranked ballots."
+        },
+        {
+          "id": "natural-right",
+          "role": "natural-right",
+          "text": "First-past-the-post rewards the biggest camp. I want approval voting, not a ranked system."
+        },
+        {
+          "id": "modified-left",
+          "role": "modified-left",
+          "text": "First-past-the-post wastes my vote. I want ranked ballots for a real election. I'd be okay with one Owen Sound community association running a non-binding poll and publishing both a ranked count and an approval count of the same ballots. That is not a change to Owen Sound's municipal elections, and publishing the approval count is not me dropping ranked ballots."
+        },
+        {
+          "id": "modified-right",
+          "role": "modified-right",
+          "text": "First-past-the-post rewards the biggest camp. I want approval voting, not a ranked system, for a real election. I'd be okay with one Owen Sound community association running a non-binding poll and publishing both a ranked count and an approval count of the same ballots. That is not a change to Owen Sound's municipal elections, and publishing the ranked count is not me adopting ranked ballots."
+        },
+        {
+          "id": "commonality",
+          "role": "commonality",
+          "text": "I'd be okay with one Owen Sound community association running a non-binding poll and publishing both a ranked count and an approval count of the same ballots. That is not a change to Owen Sound's municipal elections."
+        }
+      ]
+    },
+    {
+      "id": "owen-sound-crypto-trial",
+      "title": "A three-month Owen Sound checkout trial that still takes cash and cards",
+      "pattern": "different problems, same solution",
+      "statements": [
+        {
+          "id": "natural-left",
+          "role": "natural-left",
+          "text": "I want shops to take crypto so a bank can't decide whether a customer gets to pay."
+        },
+        {
+          "id": "natural-right",
+          "role": "natural-right",
+          "text": "I'm tired of handing three percent of every sale to the card companies."
+        },
+        {
+          "id": "modified-left",
+          "role": "modified-left",
+          "text": "I want a willing shop and a willing customer to be able to complete a payment when a bank has blocked that customer. Replacing the banks is a bigger thing than this. I'd be okay with six named shops in Owen Sound trying, for three months, a checkout that can take a crypto payment and refund it, show the fee on a twenty-dollar sale before the customer pays, and keep taking cash and ordinary cards the whole time."
+        },
+        {
+          "id": "modified-right",
+          "role": "modified-right",
+          "text": "I'm tired of handing three percent of every sale to the card companies. I don't care about crypto as a cause. I'd still be okay with six named shops in Owen Sound trying, for three months, a checkout that can take a crypto payment and refund it, show the fee on a twenty-dollar sale before the customer pays, and keep taking cash and ordinary cards the whole time. If the trial is a bad deal, I want the fees and failures published."
+        },
+        {
+          "id": "commonality",
+          "role": "commonality",
+          "text": "I'd be okay with six named shops in Owen Sound trying, for three months, a checkout that can take a crypto payment and refund it, show the fee on a twenty-dollar sale before the customer pays, and keep taking cash and ordinary cards the whole time."
+        }
+      ]
+    },
+    {
+      "id": "minors-medicine-and-courtesy",
+      "title": "No cross-sex hormones or genital surgery for minors; adults decide; don't harass people",
+      "pattern": "compromise in the middle",
+      "statements": [
+        {
+          "id": "natural-left",
+          "role": "natural-left",
+          "text": "I want a young person in distress about their sex to be able to get medical treatment, including hormones, and I want the rest of us to stop being cruel about it."
+        },
+        {
+          "id": "natural-right",
+          "role": "natural-right",
+          "text": "I don't want children given drugs or surgery to try to change their sex."
+        },
+        {
+          "id": "modified-left",
+          "role": "modified-left",
+          "text": "I want adults to make their own medical decisions, and I want disagreeing with someone to not be a reason to harass them. I'd prefer doctors and families to decide about hormones for minors case by case, but I'd be okay with a rule that minors are not given cross-sex hormones or genital surgery, that an adult makes their own medical decision, and that disagreeing with someone is not a reason to harass them. This isn't my ideal."
+        },
+        {
+          "id": "modified-right",
+          "role": "modified-right",
+          "text": "I don't want children given drugs or surgery to try to change their sex. I'd be okay with a rule that minors are not given cross-sex hormones or genital surgery, that an adult makes their own medical decision, and that disagreeing with someone is not a reason to harass them. What name a classroom uses, and whether a school may approve those drugs, are separate questions, and this isn't my whole view."
+        },
+        {
+          "id": "commonality",
+          "role": "commonality",
+          "text": "I'd be okay with a rule that minors are not given cross-sex hormones or genital surgery, that an adult makes their own medical decision, and that disagreeing with someone is not a reason to harass them. This isn't my whole view."
+        }
+      ]
+    },
+    {
+      "id": "ordinary-opinion-not-unemployable",
+      "title": "An ordinary political opinion, by itself, does not make someone unemployable",
+      "pattern": "compromise in the middle",
+      "statements": [
+        {
+          "id": "natural-left",
+          "role": "natural-left",
+          "text": "Nobody should lose their livelihood because they said something unpopular."
+        },
+        {
+          "id": "natural-right",
+          "role": "natural-right",
+          "text": "Institutions are ending people's careers over ordinary political opinions, and that should stop."
+        },
+        {
+          "id": "modified-left",
+          "role": "modified-left",
+          "text": "I don't want someone treated as unemployable for an ordinary political opinion. I still want a workplace to respond to threats, to harassment of coworkers, and to someone refusing to do the job. I'd be okay with it if an ordinary political opinion, by itself, were not grounds for treating someone as unemployable, if threats, harassment of coworkers, and refusing the work still were, and if a published appeal came before that treatment. I don't have to defend every opinion."
+        },
+        {
+          "id": "modified-right",
+          "role": "modified-right",
+          "text": "Institutions should stop ending people's careers over ordinary political opinions. I'd be okay with it if an ordinary political opinion, by itself, were not grounds for treating someone as unemployable, if threats, harassment of coworkers, and refusing the work still were, and if a published appeal came before that treatment. I don't need every sanction anywhere to be forbidden."
+        },
+        {
+          "id": "commonality",
+          "role": "commonality",
+          "text": "I'd be okay with it if an ordinary political opinion, by itself, were not grounds for treating someone as unemployable, if threats, harassment of coworkers, and refusing the work still were, and if a published appeal came before that treatment."
+        }
+      ]
+    },
+    {
+      "id": "canada-ordinary-us-ties",
+      "title": "Keep ordinary Canada–US purchases and family visits, without a statement about the administration",
+      "pattern": "different problems, same solution",
+      "statements": [
+        {
+          "id": "natural-left",
+          "role": "natural-left",
+          "text": "I don't like Trump, and I still think it's foolish for Canadians to cut off ordinary buying and family visits to the US."
+        },
+        {
+          "id": "natural-right",
+          "role": "natural-right",
+          "text": "Canada should keep its ordinary ties with the US. There's nothing wrong with that."
+        },
+        {
+          "id": "modified-left",
+          "role": "modified-left",
+          "text": "I don't like the current US administration. I'd still rather Canadians keep buying ordinary goods from US businesses and visiting family there than join a boycott of those ordinary ties. I'd be okay with saying that ordinary Canadians should keep buying from US businesses and visiting family in the US, and that this is not a statement about the current US administration."
+        },
+        {
+          "id": "modified-right",
+          "role": "modified-right",
+          "text": "I want Canadians to keep buying ordinary goods from US businesses and visiting family in the US. I may be fine with the current administration, but that is not this question. I'd be okay with saying that ordinary Canadians should keep buying from US businesses and visiting family in the US, and that this is not a statement about the current US administration."
+        },
+        {
+          "id": "commonality",
+          "role": "commonality",
+          "text": "I'd be okay with saying that ordinary Canadians should keep buying from US businesses and visiting family in the US, and that this is not a statement about the current US administration."
+        }
+      ]
+    }
+  ]
+}
