@@ -249,14 +249,21 @@ test('batch 2 keeps the pilot families, reuses accepted bridges, and shares one 
   assert.deepEqual(checklist!.alsoOnCauseIds, ['voting']);
   assert.equal(plan.projects.filter((project) => project.statementIds.includes(checklist!.id)).length, 1);
   const implications = plan.actions.filter((action) => action.type === 'attest-implication');
-  assert.equal(implications.length, 4);
+  assert.equal(implications.length, 16);
+  const accepted = implications.filter((action) => action.implication!.evidence === 'accepted-bridge-role-pair');
+  const live = implications.filter((action) => action.implication!.evidence === 'live-attester-modified-to-commonality');
+  assert.equal(accepted.length, 4);
+  assert.equal(live.length, 12);
+  for (const action of accepted) {
+    const from = plan.statements.find((statement) => statement.id === action.implication!.fromStatementId)!;
+    assert.ok(from.source.collectionId === 'compromise-abortion' || from.source.collectionId === 'lgbt-schools');
+  }
   for (const action of implications) {
     const from = plan.statements.find((statement) => statement.id === action.implication!.fromStatementId)!;
     const to = plan.statements.find((statement) => statement.id === action.implication!.toStatementId)!;
-    assert.equal(action.implication!.evidence, 'accepted-bridge-role-pair');
     assert.ok(from.role === 'modified-left' || from.role === 'modified-right');
     assert.equal(to.role, 'commonality');
-    assert.ok(from.source.collectionId === 'compromise-abortion' || from.source.collectionId === 'lgbt-schools');
+    assert.equal(from.source.groupId, to.source.groupId);
   }
   const michigan = plan.statements.find((statement) => statement.source.statementId === 'michigan-legislature')!;
   assert.equal(implications.some((action) => action.implication!.fromStatementId === michigan.id || action.implication!.toStatementId === michigan.id), false);
@@ -271,7 +278,8 @@ test('batch 2 keeps the pilot families, reuses accepted bridges, and shares one 
   for (const causeId of ['grey-assimilation', 'ranked-approval-poll', 'checkout-trial-bridge', 'minors-medicine', 'opinion-employment', 'canada-us-ties']) {
     const board = plan.actions.find((action) => action.type === 'create-cause' && action.causeId === causeId)!.board!;
     assert.equal(board.role, 'commonality');
-    assert.equal(implications.some((action) => action.causeId === causeId), false, causeId);
+    assert.equal(implications.filter((action) => action.causeId === causeId).length, 2, causeId);
+    assert.ok(implications.filter((action) => action.causeId === causeId).every((action) => action.implication!.evidence === 'live-attester-modified-to-commonality'));
   }
   for (const causeId of manifest.causes.map((cause) => cause.id)) {
     assert.ok(plan.projects.filter((project) => project.causeId === causeId).length >= 2, causeId);

@@ -104,6 +104,19 @@ export interface CampaignManifestV1 {
   scale?: CampaignScale;
   /** Curated project stories beside the manifest. Not a TypeScript story module. */
   projectStories?: string;
+  /**
+   * When set, attest-implication uses only these pairs and their evidence labels.
+   * Absent manifests still plan every modified-to-commonality pair as accepted-bridge-role-pair.
+   */
+  implicationAllowances?: CampaignImplicationAllowance[];
+}
+
+export type CampaignImplicationEvidence = 'accepted-bridge-role-pair' | 'live-attester-modified-to-commonality';
+
+export interface CampaignImplicationAllowance {
+  from: CampaignStatementRef;
+  to: CampaignStatementRef;
+  evidence: CampaignImplicationEvidence;
 }
 
 function requireUnique(values: string[], label: string): void {
@@ -143,6 +156,21 @@ function validateCauses(manifest: CampaignManifestV1): void {
   if (manifest.causes.some((cause) => cause.membershipWeight <= 0 || cause.statementRefs.length === 0)) {
     throw new Error('every cause needs a positive membership weight and at least one statement');
   }
+  const allowances = manifest.implicationAllowances ?? [];
+  const allowanceKeys = allowances.map((item) => `${statementRefKey(item.from)}=>${statementRefKey(item.to)}`);
+  requireUnique(allowanceKeys, 'implication allowances');
+  for (const item of allowances) {
+    if (item.evidence !== 'accepted-bridge-role-pair' && item.evidence !== 'live-attester-modified-to-commonality') {
+      throw new Error(`invalid implication evidence for ${allowanceKeys[allowances.indexOf(item)]}`);
+    }
+    if (item.from.collectionId !== item.to.collectionId || item.from.groupId !== item.to.groupId) {
+      throw new Error(`implication allowance crosses groups: ${allowanceKeys[allowances.indexOf(item)]}`);
+    }
+  }
+}
+
+function statementRefKey(ref: CampaignStatementRef): string {
+  return `${ref.collectionId}/${ref.groupId}/${ref.statementId}`;
 }
 
 function validatePersonas(manifest: CampaignManifestV1): void {

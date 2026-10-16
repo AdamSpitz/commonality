@@ -1,5 +1,5 @@
 {
-  "note": "Authored persona decisions for batch 2. The planner still draws set-belief on its own. Unsigned is not the same as an explicit rejection. Implication edges in the plan are only the four accepted modified-to-commonality pairs from compromise-abortion and lgbt-schools. No new pair was sent to the attester.",
+  "note": "Authored persona decisions for batch 2. The planner still draws set-belief on its own. Unsigned is not the same as an explicit rejection. Sixteen modified-to-commonality arrows are allowed. The four abortion and schools arrows keep accepted-bridge-role-pair. The twelve draft arrows use live-attester-modified-to-commonality from campaigns/network-societies-v1-b2-implication-evaluations.json (deepseek/deepseek-v3.2, 2026-10-16). Designed-no pairs in that file stay unpublished. v4-flash returned empty content on longer pairs and was not used as a judgment.",
   "people": [
     { "userId": "user-041", "name": "Mara", "signs": ["modified-left", "commonality"], "rejects": ["no-early-abortions"], "unsigned": ["michigan-legislature", "one-federal-rule"], "notes": "The settlement signature is not a signature about which legislature writes the rule." },
     { "userId": "user-052", "name": "Eli", "signs": ["natural-right"], "rejects": ["modified-right", "commonality", "modified-left"], "notes": "Keeps the natural position and refuses the settlement. He must not be treated as a supporter of the cutoff through an arrow from natural-right." },
@@ -13,7 +13,26 @@
       { "from": "compromise-abortion/modified-left", "to": "compromise-abortion/commonality", "evidence": "accepted-bridge-role-pair", "why": "Accepted 2026-08-30. The planner does not re-run the model." },
       { "from": "compromise-abortion/modified-right", "to": "compromise-abortion/commonality", "evidence": "accepted-bridge-role-pair", "why": "Accepted 2026-08-30." },
       { "from": "lgbt-schools/modified-left", "to": "lgbt-schools/commonality", "evidence": "accepted-bridge-role-pair", "why": "Accepted 2026-08-31. This arrow is about pushing versus support. It is not a medical claim." },
-      { "from": "lgbt-schools/modified-right", "to": "lgbt-schools/commonality", "evidence": "accepted-bridge-role-pair", "why": "Accepted 2026-08-31." }
+      { "from": "lgbt-schools/modified-right", "to": "lgbt-schools/commonality", "evidence": "accepted-bridge-role-pair", "why": "Accepted 2026-08-31." },
+      { "from": "grey-assimilation/modified-left", "to": "grey-assimilation/commonality", "evidence": "live-attester-modified-to-commonality", "why": "2026-10-16 deepseek-v3.2 bless, high. Not accepted seed." },
+      { "from": "grey-assimilation/modified-right", "to": "grey-assimilation/commonality", "evidence": "live-attester-modified-to-commonality", "why": "2026-10-16 deepseek-v3.2 bless, high." },
+      { "from": "ranked-approval-poll/modified-left", "to": "ranked-approval-poll/commonality", "evidence": "live-attester-modified-to-commonality", "why": "2026-10-16 deepseek-v3.2 bless, high." },
+      { "from": "ranked-approval-poll/modified-right", "to": "ranked-approval-poll/commonality", "evidence": "live-attester-modified-to-commonality", "why": "2026-10-16 deepseek-v3.2 bless, high." },
+      { "from": "checkout-trial-bridge/modified-left", "to": "checkout-trial-bridge/commonality", "evidence": "live-attester-modified-to-commonality", "why": "2026-10-16 deepseek-v3.2 bless, high." },
+      { "from": "checkout-trial-bridge/modified-right", "to": "checkout-trial-bridge/commonality", "evidence": "live-attester-modified-to-commonality", "why": "2026-10-16 deepseek-v3.2 bless, high." },
+      { "from": "minors-medicine/modified-left", "to": "minors-medicine/commonality", "evidence": "live-attester-modified-to-commonality", "why": "2026-10-16 deepseek-v3.2 bless, high." },
+      { "from": "minors-medicine/modified-right", "to": "minors-medicine/commonality", "evidence": "live-attester-modified-to-commonality", "why": "2026-10-16 deepseek-v3.2 bless, high." },
+      { "from": "opinion-employment/modified-left", "to": "opinion-employment/commonality", "evidence": "live-attester-modified-to-commonality", "why": "Blessed after the modifieds gained a camp priority the commonality does not contain." },
+      { "from": "opinion-employment/modified-right", "to": "opinion-employment/commonality", "evidence": "live-attester-modified-to-commonality", "why": "Same rewrite. The first wording let commonality imply both modifieds." },
+      { "from": "canada-us-ties/modified-left", "to": "canada-us-ties/commonality", "evidence": "live-attester-modified-to-commonality", "why": "Blessed after the commonality dropped 'I'd be okay with saying that' and each modified kept a priority the commonality omits." },
+      { "from": "canada-us-ties/modified-right", "to": "canada-us-ties/commonality", "evidence": "live-attester-modified-to-commonality", "why": "The first modified-right was implied by the commonality. The rewrite was not." }
+    ],
+    "refusedAndUnpublished": [
+      { "from": "opinion-employment/commonality", "to": "opinion-employment/modified-left", "why": "First wording, 2026-10-16, implies true high. Rewritten. The replacement refuses." },
+      { "from": "opinion-employment/commonality", "to": "opinion-employment/modified-right", "why": "First wording, implies true high. Rewritten." },
+      { "from": "opinion-employment/modified-left", "to": "opinion-employment/modified-right", "why": "First wording, implies true high. Rewritten." },
+      { "from": "opinion-employment/modified-right", "to": "opinion-employment/modified-left", "why": "First wording, implies true high. Rewritten." },
+      { "from": "canada-us-ties/commonality", "to": "canada-us-ties/modified-right", "why": "First wording, implies true high. Rewritten." }
     ],
     "unevaluatedAndUnpublished": [
       { "from": "commonality", "to": "michigan-legislature", "why": "Agreement on a cutoff does not imply who should have the authority to write it." },

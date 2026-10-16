@@ -703,7 +703,8 @@
       ],
       "causeIds": [
         "crypto-merchants",
-        "civic-assimilation"
+        "civic-assimilation",
+        "grey-assimilation"
       ],
       "spotlightOrder": 1
     },
@@ -718,7 +719,8 @@
       ],
       "causeIds": [
         "christian-teaching",
-        "home-learning"
+        "home-learning",
+        "ranked-approval-poll"
       ],
       "spotlightOrder": 2
     },
@@ -733,7 +735,8 @@
       ],
       "causeIds": [
         "civic-assimilation",
-        "crypto-merchants"
+        "crypto-merchants",
+        "checkout-trial-bridge"
       ],
       "spotlightOrder": 3
     },
@@ -748,7 +751,8 @@
       ],
       "causeIds": [
         "home-learning",
-        "christian-teaching"
+        "christian-teaching",
+        "minors-medicine"
       ],
       "spotlightOrder": 4
     },
@@ -762,7 +766,8 @@
         "refunds"
       ],
       "causeIds": [
-        "crypto-merchants"
+        "crypto-merchants",
+        "opinion-employment"
       ],
       "spotlightOrder": 5
     },
@@ -776,7 +781,8 @@
         "township business"
       ],
       "causeIds": [
-        "civic-assimilation"
+        "civic-assimilation",
+        "canada-us-ties"
       ],
       "spotlightOrder": 6
     },
@@ -1064,6 +1070,24 @@
       "spotlightOrder": 24
     }
   ],
+  "implicationAllowances": [
+    { "from": { "collectionId": "compromise-abortion", "groupId": "abortion-gestational-cutoff", "statementId": "modified-left" }, "to": { "collectionId": "compromise-abortion", "groupId": "abortion-gestational-cutoff", "statementId": "commonality" }, "evidence": "accepted-bridge-role-pair" },
+    { "from": { "collectionId": "compromise-abortion", "groupId": "abortion-gestational-cutoff", "statementId": "modified-right" }, "to": { "collectionId": "compromise-abortion", "groupId": "abortion-gestational-cutoff", "statementId": "commonality" }, "evidence": "accepted-bridge-role-pair" },
+    { "from": { "collectionId": "lgbt-schools", "groupId": "lgbt-schools-pushing", "statementId": "modified-left" }, "to": { "collectionId": "lgbt-schools", "groupId": "lgbt-schools-pushing", "statementId": "commonality" }, "evidence": "accepted-bridge-role-pair" },
+    { "from": { "collectionId": "lgbt-schools", "groupId": "lgbt-schools-pushing", "statementId": "modified-right" }, "to": { "collectionId": "lgbt-schools", "groupId": "lgbt-schools-pushing", "statementId": "commonality" }, "evidence": "accepted-bridge-role-pair" },
+    { "from": { "collectionId": "network-societies-v1-b2", "groupId": "grey-assimilation", "statementId": "modified-left" }, "to": { "collectionId": "network-societies-v1-b2", "groupId": "grey-assimilation", "statementId": "commonality" }, "evidence": "live-attester-modified-to-commonality" },
+    { "from": { "collectionId": "network-societies-v1-b2", "groupId": "grey-assimilation", "statementId": "modified-right" }, "to": { "collectionId": "network-societies-v1-b2", "groupId": "grey-assimilation", "statementId": "commonality" }, "evidence": "live-attester-modified-to-commonality" },
+    { "from": { "collectionId": "network-societies-v1-b2", "groupId": "ranked-approval-poll", "statementId": "modified-left" }, "to": { "collectionId": "network-societies-v1-b2", "groupId": "ranked-approval-poll", "statementId": "commonality" }, "evidence": "live-attester-modified-to-commonality" },
+    { "from": { "collectionId": "network-societies-v1-b2", "groupId": "ranked-approval-poll", "statementId": "modified-right" }, "to": { "collectionId": "network-societies-v1-b2", "groupId": "ranked-approval-poll", "statementId": "commonality" }, "evidence": "live-attester-modified-to-commonality" },
+    { "from": { "collectionId": "network-societies-v1-b2", "groupId": "checkout-trial-bridge", "statementId": "modified-left" }, "to": { "collectionId": "network-societies-v1-b2", "groupId": "checkout-trial-bridge", "statementId": "commonality" }, "evidence": "live-attester-modified-to-commonality" },
+    { "from": { "collectionId": "network-societies-v1-b2", "groupId": "checkout-trial-bridge", "statementId": "modified-right" }, "to": { "collectionId": "network-societies-v1-b2", "groupId": "checkout-trial-bridge", "statementId": "commonality" }, "evidence": "live-attester-modified-to-commonality" },
+    { "from": { "collectionId": "network-societies-v1-b2", "groupId": "minors-medicine", "statementId": "modified-left" }, "to": { "collectionId": "network-societies-v1-b2", "groupId": "minors-medicine", "statementId": "commonality" }, "evidence": "live-attester-modified-to-commonality" },
+    { "from": { "collectionId": "network-societies-v1-b2", "groupId": "minors-medicine", "statementId": "modified-right" }, "to": { "collectionId": "network-societies-v1-b2", "groupId": "minors-medicine", "statementId": "commonality" }, "evidence": "live-attester-modified-to-commonality" },
+    { "from": { "collectionId": "network-societies-v1-b2", "groupId": "opinion-employment", "statementId": "modified-left" }, "to": { "collectionId": "network-societies-v1-b2", "groupId": "opinion-employment", "statementId": "commonality" }, "evidence": "live-attester-modified-to-commonality" },
+    { "from": { "collectionId": "network-societies-v1-b2", "groupId": "opinion-employment", "statementId": "modified-right" }, "to": { "collectionId": "network-societies-v1-b2", "groupId": "opinion-employment", "statementId": "commonality" }, "evidence": "live-attester-modified-to-commonality" },
+    { "from": { "collectionId": "network-societies-v1-b2", "groupId": "canada-us-ties", "statementId": "modified-left" }, "to": { "collectionId": "network-societies-v1-b2", "groupId": "canada-us-ties", "statementId": "commonality" }, "evidence": "live-attester-modified-to-commonality" },
+    { "from": { "collectionId": "network-societies-v1-b2", "groupId": "canada-us-ties", "statementId": "modified-right" }, "to": { "collectionId": "network-societies-v1-b2", "groupId": "canada-us-ties", "statementId": "commonality" }, "evidence": "live-attester-modified-to-commonality" }
+  ],
   "actionRules": [
     {
       "type": "publish-statement",
@@ -1099,8 +1123,8 @@
         "publish-statement"
       ],
       "targetCount": {
-        "min": 4,
-        "max": 4
+        "min": 16,
+        "max": 16
       }
     },
     {

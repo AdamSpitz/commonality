@@ -3,7 +3,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { estimateGroupGas, groupCampaignWrites } from './campaignBatching.js';
-import { type CampaignActionType, type CampaignManifestV1, type CampaignRole, validateCampaignManifest } from './campaignSchema.js';
+import { type CampaignActionType, type CampaignImplicationEvidence, type CampaignManifestV1, type CampaignRole, validateCampaignManifest } from './campaignSchema.js';
 import { FAKE_DATA_NOTE, bridgeMediatorNote, causeBoardSummary, projectOutcome } from './campaignCopy.js';
 import { CAMPAIGN_PROJECT_STORIES, SPOTLIGHT_PROJECTS } from './campaignProjectStories.js';
 import { flattenSeedStatements, loadSeedCollections, validateSeedCollection, type SeedCollection } from './seed-content-format.js';
@@ -64,7 +64,7 @@ export interface PlannedAction {
   funding?: { kind: 'early' | 'retroactive'; tokenId?: 1 | 3; tokenCount?: number; camp?: 'left' | 'right' };
   alignment?: 'supports-described-outcome';
   delegationBasis?: { sharedCauseIds: string[]; reason: 'shared-cause-trusted-role' };
-  implication?: { fromStatementId: string; toStatementId: string; evidence: 'accepted-bridge-role-pair' };
+  implication?: { fromStatementId: string; toStatementId: string; evidence: CampaignImplicationEvidence };
   /** Binding key when one cause publishes more than one board. Defaults to causeId. */
   boardId?: string;
   board?: PlannedCauseBoard;
@@ -216,7 +216,10 @@ function usersForCause(users: PlannedUser[], causeId: string): PlannedUser[] {
 
 function chooseCauseAttester(users: PlannedUser[], causeId: string, random: Xoshiro128StarStar): PlannedUser {
   const members = usersForCause(users, causeId);
-  return random.weighted(members, (user) => user.activityWeight * (user.roles.includes('attester') || user.roles.includes('mediator') ? 8 : 1));
+  const active = members.filter((user) => user.activityWeight > 0);
+  const pool = active.length > 0 ? active : members;
+  if (pool.length === 0) throw new Error(`no member to attest an implication on ${causeId}`);
+  return random.weighted(pool, (user) => Math.max(user.activityWeight, 1) * (user.roles.includes('attester') || user.roles.includes('mediator') ? 8 : 1));
 }
 
 function preferredStatements(user: PlannedUser, statements: PlannedStatement[]): PlannedStatement[] {
@@ -448,15 +451,25 @@ export async function buildCampaignPlan(manifest: CampaignManifestV1): Promise<C
     const action = add({ type: 'set-belief', actorUserId: beliefActor.id, causeId, statementId: statement.id, belief, dependsOn: previous ? [publishes.get(statement.id)!.id, previous.id] : [publishes.get(statement.id)!.id] });
     latestBelief.set(`${action.actorUserId}/${statement.id}`, action);
   }
-  const implicationPairs = manifest.causes.flatMap((cause) => {
-    const groupStatements = statementsOnCause(statements, cause.id);
-    const commonality = groupStatements.find((statement) => statement.role === 'commonality');
-    return commonality ? groupStatements.filter((statement) => statement.role === 'modified-left' || statement.role === 'modified-right').map((from) => ({ from, to: commonality })) : [];
-  });
+  const implicationPairs = manifest.implicationAllowances
+    ? manifest.implicationAllowances.map((allowance) => {
+      const from = statementByKey.get(statementKey(allowance.from));
+      const to = statementByKey.get(statementKey(allowance.to));
+      if (!from || !to) throw new Error(`implication allowance is not on a board: ${statementKey(allowance.from)} -> ${statementKey(allowance.to)}`);
+      return { from, to, evidence: allowance.evidence };
+    })
+    : manifest.causes.flatMap((cause) => {
+      const groupStatements = statementsOnCause(statements, cause.id);
+      const commonality = groupStatements.find((statement) => statement.role === 'commonality');
+      return commonality ? groupStatements.filter((statement) => statement.role === 'modified-left' || statement.role === 'modified-right').map((from) => ({ from, to: commonality, evidence: 'accepted-bridge-role-pair' as const })) : [];
+    });
   if (countByType['attest-implication'] > 0 && implicationPairs.length === 0) throw new Error('no suitable accepted implication pairs are available');
+  if (manifest.implicationAllowances && countByType['attest-implication'] > implicationPairs.length) {
+    throw new Error(`attest-implication target ${countByType['attest-implication']} exceeds ${implicationPairs.length} allowed pairs`);
+  }
   for (let index = 0; index < countByType['attest-implication']; index++) {
     const pair = implicationPairs[index % implicationPairs.length]; validateImplicationPair(pair.from, pair.to);
-    add({ type: 'attest-implication', actorUserId: chooseCauseAttester(activeUsers, pair.from.causeId, random).id, causeId: pair.from.causeId, implication: { fromStatementId: pair.from.id, toStatementId: pair.to.id, evidence: 'accepted-bridge-role-pair' }, dependsOn: [publishes.get(pair.from.id)!.id, publishes.get(pair.to.id)!.id] });
+    add({ type: 'attest-implication', actorUserId: chooseCauseAttester(users, pair.from.causeId, random).id, causeId: pair.from.causeId, implication: { fromStatementId: pair.from.id, toStatementId: pair.to.id, evidence: pair.evidence }, dependsOn: [publishes.get(pair.from.id)!.id, publishes.get(pair.to.id)!.id] });
   }
   const createProjects = new Map(projects.map((project) => [project.id, add({ type: 'create-project', actorUserId: project.founderUserId, causeId: project.causeId, projectId: project.id, dependsOn: [causes.get(project.causeId)!.id] })]));
   const alignments: PlannedAction[] = [];
