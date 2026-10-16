@@ -15,6 +15,8 @@ type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string
 export interface PlannedStatement {
   id: string;
   causeId: string;
+  /** Other boards that reuse this catalog statement. One publication, many boards. */
+  alsoOnCauseIds?: string[];
   source: { collectionId: string; groupId: string; statementId: string; fingerprint: string };
   text: string;
   role: string | null;
@@ -204,6 +206,10 @@ function validateImplicationPair(from: PlannedStatement, to: PlannedStatement): 
   if (!sameGroup || !approved) throw new Error(`unsuitable implication ${from.id} -> ${to.id}: pair lacks accepted bridge-role evidence`);
 }
 
+function statementsOnCause(statements: PlannedStatement[], causeId: string): PlannedStatement[] {
+  return statements.filter((statement) => statement.causeId === causeId || statement.alsoOnCauseIds?.includes(causeId));
+}
+
 function usersForCause(users: PlannedUser[], causeId: string): PlannedUser[] {
   return users.filter((user) => user.causeIds.includes(causeId));
 }
@@ -214,7 +220,7 @@ function chooseCauseAttester(users: PlannedUser[], causeId: string, random: Xosh
 }
 
 function preferredStatements(user: PlannedUser, statements: PlannedStatement[]): PlannedStatement[] {
-  const inCauses = statements.filter((statement) => user.causeIds.includes(statement.causeId));
+  const inCauses = statements.filter((statement) => user.causeIds.some((causeId) => statement.causeId === causeId || statement.alsoOnCauseIds?.includes(causeId)));
   if (!user.roles.includes('mediator')) return inCauses.filter((statement) => !statement.role?.startsWith('natural-'));
   return inCauses.filter((statement) => statement.role === null || statement.role === 'commonality' || statement.role.startsWith('modified-'));
 }
@@ -235,6 +241,12 @@ function projectCopy(causeTitle: string, selected: PlannedStatement[]): { title:
   };
 }
 
+async function loadCampaignStories(manifest: CampaignManifestV1): Promise<Record<string, { title: string; outcome: string; statementRefs: string[]; blocker: string }[]> | null> {
+  if (!manifest.projectStories) return null;
+  const sourcePath = path.join(path.dirname(fileURLToPath(import.meta.url)), 'campaigns', manifest.projectStories);
+  return JSON.parse(await readFile(sourcePath, 'utf8')) as Record<string, { title: string; outcome: string; statementRefs: string[]; blocker: string }[]>;
+}
+
 export async function buildCampaignPlan(manifest: CampaignManifestV1): Promise<CampaignPlan> {
   validateCampaignManifest(manifest);
   const random = new Xoshiro128StarStar(manifest.campaign.deterministicSeed);
@@ -248,11 +260,32 @@ export async function buildCampaignPlan(manifest: CampaignManifestV1): Promise<C
   }
   const records = flattenSeedStatements(collections);
   const recordByKey = new Map(records.map((record) => [statementKey({ collectionId: record.collection.id, groupId: record.group.id, statementId: record.statement.id }), record]));
-  const statements: PlannedStatement[] = manifest.causes.flatMap((cause) => cause.statementRefs.map((ref) => {
-    const record = recordByKey.get(statementKey(ref));
-    if (!record || manifest.sourcePolicy.excludeCollections.includes(ref.collectionId)) throw new Error(`missing or excluded statement reference ${statementKey(ref)}`);
-    return { id: `statement-${cause.id}-${ref.statementId}`, causeId: cause.id, source: { ...ref, fingerprint: sha256(stableJson(record.statement)) }, text: record.statement.text, role: record.statement.role ?? null };
-  }));
+  const statements: PlannedStatement[] = [];
+  const statementByKey = new Map<string, PlannedStatement>();
+  const allowReuse = manifest.scale?.allowRepeatedStatementRefs === true;
+  for (const cause of manifest.causes) {
+    for (const ref of cause.statementRefs) {
+      const key = statementKey(ref);
+      const existing = statementByKey.get(key);
+      if (existing) {
+        if (!allowReuse) throw new Error(`statement reference repeated without scale.allowRepeatedStatementRefs: ${key}`);
+        existing.alsoOnCauseIds = [...(existing.alsoOnCauseIds ?? []), cause.id];
+        continue;
+      }
+      const record = recordByKey.get(key);
+      if (!record || manifest.sourcePolicy.excludeCollections.includes(ref.collectionId)) throw new Error(`missing or excluded statement reference ${key}`);
+      const planned: PlannedStatement = {
+        id: allowReuse ? `statement-${ref.groupId}-${ref.statementId}` : `statement-${cause.id}-${ref.statementId}`,
+        causeId: cause.id,
+        source: { ...ref, fingerprint: sha256(stableJson(record.statement)) },
+        text: record.statement.text,
+        role: record.statement.role ?? null,
+      };
+      statementByKey.set(key, planned);
+      statements.push(planned);
+    }
+  }
+  const storyDriven = await loadCampaignStories(manifest);
 
   const users: PlannedUser[] = [];
   const profiles = new Map((manifest.userProfiles ?? []).map((profile) => [profile.userId, profile]));
@@ -276,26 +309,27 @@ export async function buildCampaignPlan(manifest: CampaignManifestV1): Promise<C
   if (projectFounders.length === 0 || attesters.length === 0 || delegates.length === 0) throw new Error('campaign lacks an active project founder, attester, or delegate');
 
   const useStories = manifest.campaign.id === 'medium-realistic-v2';
-  const scheduledStoryCauses = useStories
-    ? manifest.causes.flatMap((cause) => CAMPAIGN_PROJECT_STORIES[cause.id]?.map(() => cause.id) ?? [])
+  const projectStories = storyDriven ?? (useStories ? CAMPAIGN_PROJECT_STORIES : null);
+  const scheduledStoryCauses = projectStories
+    ? manifest.causes.flatMap((cause) => projectStories[cause.id]?.map(() => cause.id) ?? [])
     : [];
-  if (useStories && scheduledStoryCauses.length !== countByType['create-project']) {
-    throw new Error('v2 project target must match the curated story count');
+  if (projectStories && scheduledStoryCauses.length !== countByType['create-project']) {
+    throw new Error('project target must match the curated story count');
   }
   const storyCounts = new Map<string, number>();
   const projects: PlannedProject[] = Array.from({ length: countByType['create-project'] }, (_, index) => {
-    const scheduledCause = useStories ? scheduledStoryCauses[index] : undefined;
+    const scheduledCause = projectStories ? scheduledStoryCauses[index] : undefined;
     const eligibleFounders = scheduledCause ? projectFounders.filter((user) => user.causeIds.includes(scheduledCause)) : projectFounders;
-    const featuredFounders = useStories && scheduledCause
+    const featuredFounders = projectStories && scheduledCause
       ? eligibleFounders.filter((user) => user.favoriteCauseId === scheduledCause)
       : [];
     const founder = random.pick(featuredFounders.length ? featuredFounders : eligibleFounders.length ? eligibleFounders : projectFounders);
     const causeId = scheduledCause ?? random.pick(founder.causeIds);
-    const candidates = statements.filter((statement) => statement.causeId === causeId);
+    const candidates = statementsOnCause(statements, causeId);
     const storyIndex = storyCounts.get(causeId) ?? 0;
     storyCounts.set(causeId, storyIndex + 1);
-    const story = useStories ? CAMPAIGN_PROJECT_STORIES[causeId]?.[storyIndex % CAMPAIGN_PROJECT_STORIES[causeId].length] : undefined;
-    if (useStories && !story) throw new Error(`missing project story for ${causeId}`);
+    const story = projectStories ? projectStories[causeId]?.[storyIndex % projectStories[causeId].length] : undefined;
+    if (projectStories && !story) throw new Error(`missing project story for ${causeId}`);
     const selected = story
       ? story.statementRefs.map((ref) => {
         const match = candidates.find((statement) => statement.source.statementId === ref);
@@ -317,10 +351,10 @@ export async function buildCampaignPlan(manifest: CampaignManifestV1): Promise<C
   const causeFounders = activeUsers.filter((user) => user.roles.includes('cause-founder') || user.roles.includes('power-user'));
   const causes = new Map<string, PlannedAction>();
   for (const cause of manifest.causes) {
-    const group = statements.filter((statement) => statement.causeId === cause.id);
+    const group = statementsOnCause(statements, cause.id);
     const bridgeShaped = isBridgeCause(group);
     const byRole = new Map(group.map((statement) => [statement.role, statement]));
-    const interestedFounders = useStories ? causeFounders.filter((user) => user.favoriteCauseId === cause.id) : [];
+    const interestedFounders = projectStories ? causeFounders.filter((user) => user.favoriteCauseId === cause.id) : [];
     const actor = bridgeShaped ? random.pick(mediators) : random.pick(interestedFounders.length ? interestedFounders : causeFounders);
     const included = bridgeShaped ? [byRole.get('commonality')!] : group;
     const clusterSlug = bridgeShaped ? boardSlug(manifest.campaign.id, cause.id, 'cluster') : undefined;
@@ -405,12 +439,17 @@ export async function buildCampaignPlan(manifest: CampaignManifestV1): Promise<C
     const actor = random.weighted(activeUsers, (user) => user.activityWeight);
     const previous = index > Math.floor(countByType['set-belief'] * 0.92) && latestBelief.size > 0 ? random.pick([...latestBelief.values()]) : undefined;
     const statement = previous ? statements.find((item) => item.id === previous.statementId)! : random.pick(preferredStatements(actor, statements));
+    const beliefActor = users.find((user) => user.id === (previous?.actorUserId ?? actor.id))!;
+    const causeId = beliefActor.causeIds.includes(statement.causeId)
+      ? statement.causeId
+      : beliefActor.causeIds.find((id) => statement.alsoOnCauseIds?.includes(id));
+    if (!causeId) throw new Error(`no board for ${beliefActor.id} to sign ${statement.id}`);
     const belief = previous ? (previous.belief === 'believe' ? 'disbelieve' : 'believe') : (random.next() < 0.94 ? 'believe' : 'disbelieve');
-    const action = add({ type: 'set-belief', actorUserId: previous?.actorUserId ?? actor.id, causeId: statement.causeId, statementId: statement.id, belief, dependsOn: previous ? [publishes.get(statement.id)!.id, previous.id] : [publishes.get(statement.id)!.id] });
+    const action = add({ type: 'set-belief', actorUserId: beliefActor.id, causeId, statementId: statement.id, belief, dependsOn: previous ? [publishes.get(statement.id)!.id, previous.id] : [publishes.get(statement.id)!.id] });
     latestBelief.set(`${action.actorUserId}/${statement.id}`, action);
   }
   const implicationPairs = manifest.causes.flatMap((cause) => {
-    const groupStatements = statements.filter((statement) => statement.causeId === cause.id);
+    const groupStatements = statementsOnCause(statements, cause.id);
     const commonality = groupStatements.find((statement) => statement.role === 'commonality');
     return commonality ? groupStatements.filter((statement) => statement.role === 'modified-left' || statement.role === 'modified-right').map((from) => ({ from, to: commonality })) : [];
   });
@@ -427,11 +466,11 @@ export async function buildCampaignPlan(manifest: CampaignManifestV1): Promise<C
   }
   const fundableCount = Math.max(1, Math.floor(projects.length * 0.8));
   const firstByCause = new Map<string, PlannedProject>();
-  if (useStories) for (const project of projects) {
+  if (projectStories) for (const project of projects) {
     if (!firstByCause.has(project.causeId)) firstByCause.set(project.causeId, project);
   }
   const firstProjects = [...firstByCause.values()];
-  const fundableProjects = useStories
+  const fundableProjects = projectStories
     ? [...firstProjects, ...projects.filter((project) => !firstProjects.includes(project))].slice(0, fundableCount)
     : projects.slice(0, fundableCount);
   const hobbyCauses = ['music-learning', 'car-repair', 'gluten-free-cooking', 'game-commons'];

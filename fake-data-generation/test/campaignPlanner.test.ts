@@ -209,6 +209,28 @@ test('validation rejects an action whose prerequisite points forward', async () 
   assert.throws(() => validatePlannedActions(manifest, plan.statements, plan.users, plan.projects, invalid), /impossible dependency/);
 });
 
+test('network-societies pilot reuses one directory statement and publishes no implication', async () => {
+  const manifest = JSON.parse(await readFile(new URL('../campaigns/network-societies-v1-pilot.json', import.meta.url), 'utf8')) as CampaignManifestV1;
+  const plan = await buildCampaignPlan(manifest);
+  assert.equal(plan.users.length, 40);
+  assert.equal(plan.statements.length, 40);
+  assert.equal(plan.projects.length, 20);
+  const shared = plan.statements.find((statement) => statement.source.statementId === 'class-host-directory');
+  assert.ok(shared);
+  assert.deepEqual(shared!.alsoOnCauseIds, ['christian-teaching', 'home-learning']);
+  assert.equal(plan.actions.filter((action) => action.type === 'publish-statement' && action.statementId === shared!.id).length, 1);
+  assert.equal(plan.projects.filter((project) => project.statementIds.includes(shared!.id)).length, 1);
+  assert.equal(plan.actions.filter((action) => action.type === 'attest-implication').length, 0);
+  const pat = plan.users.find((user) => user.displayName === 'Pat')!;
+  const ned = plan.users.find((user) => user.displayName === 'Ned')!;
+  const patDelegations = plan.actions.filter((action) => action.type === 'delegate-note' && action.actorUserId === pat.id);
+  assert.ok(patDelegations.length > 0);
+  assert.ok(patDelegations.every((action) => action.delegateUserId === ned.id));
+  for (const causeId of manifest.causes.map((cause) => cause.id)) {
+    assert.ok(plan.projects.filter((project) => project.causeId === causeId).length >= 5);
+  }
+});
+
 test('written planning artifacts reload into the same campaign plan', async () => {
   const manifest = await loadManifest();
   const plan = await buildCampaignPlan(manifest);

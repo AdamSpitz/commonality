@@ -68,6 +68,16 @@ export interface CampaignActionRule {
   targetCount: { min: number; max: number };
 }
 
+/** Explicit size bounds. Omitted manifests keep the historical 8–18 causes and 30–70 statement refs. */
+export interface CampaignScale {
+  minCauses: number;
+  maxCauses: number;
+  /** Unique catalog statements. A statement reused on another board counts once. */
+  minStatements: number;
+  maxStatements: number;
+  allowRepeatedStatementRefs?: boolean;
+}
+
 export interface CampaignManifestV1 {
   schema: typeof CAMPAIGN_SCHEMA_VERSION;
   campaign: {
@@ -90,6 +100,10 @@ export interface CampaignManifestV1 {
   userProfiles?: CampaignUserProfile[];
   actionRules: CampaignActionRule[];
   artifactLayout: Record<string, string>;
+  /** When set, replaces the historical fixed cause and statement-ref caps. */
+  scale?: CampaignScale;
+  /** Curated project stories beside the manifest. Not a TypeScript story module. */
+  projectStories?: string;
 }
 
 function requireUnique(values: string[], label: string): void {
@@ -106,13 +120,26 @@ function validateCampaignIdentity(manifest: CampaignManifestV1): void {
   if (!campaign.deterministicSeed) throw new Error('campaign.deterministicSeed is required');
 }
 
+function campaignScale(manifest: CampaignManifestV1): CampaignScale {
+  return manifest.scale ?? { minCauses: 8, maxCauses: 18, minStatements: 30, maxStatements: 70, allowRepeatedStatementRefs: false };
+}
+
 function validateCauses(manifest: CampaignManifestV1): void {
-  if (manifest.causes.length < 8 || manifest.causes.length > 18) throw new Error('campaign must contain 8-18 causes');
+  const scale = campaignScale(manifest);
+  if (manifest.scale && (scale.minCauses < 1 || scale.maxCauses < scale.minCauses || scale.minStatements < 1 || scale.maxStatements < scale.minStatements)) {
+    throw new Error('campaign scale limits are invalid');
+  }
+  if (manifest.causes.length < scale.minCauses || manifest.causes.length > scale.maxCauses) {
+    throw new Error(manifest.scale ? `campaign must contain ${scale.minCauses}-${scale.maxCauses} causes` : 'campaign must contain 8-18 causes');
+  }
   requireUnique(manifest.causes.map((cause) => cause.id), 'cause IDs');
   const statementRefs = manifest.causes.flatMap((cause) => cause.statementRefs);
   const statementKeys = statementRefs.map((ref) => `${ref.collectionId}/${ref.groupId}/${ref.statementId}`);
-  requireUnique(statementKeys, 'statement references');
-  if (statementRefs.length < 30 || statementRefs.length > 70) throw new Error('campaign must contain 30-70 statements');
+  if (!scale.allowRepeatedStatementRefs) requireUnique(statementKeys, 'statement references');
+  const uniqueStatements = new Set(statementKeys).size;
+  if (uniqueStatements < scale.minStatements || uniqueStatements > scale.maxStatements) {
+    throw new Error(manifest.scale ? `campaign must contain ${scale.minStatements}-${scale.maxStatements} unique statements` : 'campaign must contain 30-70 statements');
+  }
   if (manifest.causes.some((cause) => cause.membershipWeight <= 0 || cause.statementRefs.length === 0)) {
     throw new Error('every cause needs a positive membership weight and at least one statement');
   }
@@ -184,6 +211,9 @@ export function validateCampaignManifest(manifest: CampaignManifestV1): void {
   }
   if (manifest.sourcePolicy.campaignCollection && !/^[a-z0-9][a-z0-9-]*\.json$/.test(manifest.sourcePolicy.campaignCollection)) {
     throw new Error('sourcePolicy.campaignCollection must be a JSON filename in campaigns/');
+  }
+  if (manifest.projectStories && !/^[a-z0-9][a-z0-9-]*\.json$/.test(manifest.projectStories)) {
+    throw new Error('projectStories must be a JSON filename in campaigns/');
   }
   validateCauses(manifest);
   validatePersonas(manifest);

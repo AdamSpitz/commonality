@@ -78,6 +78,10 @@ Do these in order unless Adam names a different one. Each item is a session-size
 7. **[ ] Stress scale** (`gen:large` today is 100 users). 1000+ users, graphs, indexer deep-compare: not started.
 8. **[ ] Incentive demonstrations** — three synthetic stories (Civility's changed choice, a negative replication, a shared migration where money is not a commitment). Inventory, scenarios, and the authoring template: [`incentive-demonstrations.md`](./incentive-demonstrations.md). Do not put that backlog back into the public strategy page.
 
+### F — Network societies pilot
+
+Authoring for the four-family pilot (crypto merchants, Grey County civic life, Christian teaching, home learning) is in `campaigns/network-societies-v1-pilot.json` plus the statements, project, and decision files beside it. The capability table and the gaps that are still open are in [`campaigns/network-societies-v1-pilot.md`](./campaigns/network-societies-v1-pilot.md). The plan does not publish implication edges. Local execution and the other eleven families are still ahead.
+
 ## Pointers
 
 - Kinds of data also summarized in [`README.md`](./README.md), [seed-content rationale](/specs/tech/subsystems/conceptspace/seed-content/README.md), [local development](/workflow/local-development.md).
