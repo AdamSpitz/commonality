@@ -1,5 +1,5 @@
 {
-  "note": "Authored persona decisions for batch 2. The planner pins each signs and rejects entry as one set-belief and does not overwrite it. Unsigned is not the same as an explicit rejection. Eli's rejection of the abortion commonality is authoring intent. Sixteen modified-to-commonality arrows are allowed. The four abortion and schools arrows keep accepted-bridge-role-pair. The twelve draft arrows use live-attester-modified-to-commonality from campaigns/network-societies-v1-b2-implication-evaluations.json (deepseek/deepseek-v3.2, 2026-10-16). Designed-no pairs in that file stay unpublished. v4-flash returned empty content on longer pairs and was not used as a judgment. Delegated spending and a monthly pledge stay out of this campaign: the adapter can delegate and revoke a note, and Pat already does that with Ned, but nothing spends a delegated note or repeats a pledge.",
+  "note": "Authored persona decisions for batch 2. The planner pins each signs and rejects entry as one set-belief and does not overwrite it. Unsigned is not the same as an explicit rejection. Eli's rejection of the abortion commonality is authoring intent. Twenty-one modified-to-commonality arrows are allowed. The four abortion and schools arrows keep accepted-bridge-role-pair. The twelve draft arrows and five AI-pause modified arrows use live-attester-modified-to-commonality from campaigns/network-societies-v1-b2-implication-evaluations.json (deepseek/deepseek-v3.2, 2026-10-16). Designed-no pairs in that file stay unpublished. The AI-pause pass matched on the first wording. v4-flash returned empty content on longer pairs and was not used as a judgment. Delegated spending and a monthly pledge stay out of this campaign: the adapter can delegate and revoke a note, and Pat already does that with Ned, but nothing spends a delegated note or repeats a pledge.",
   "people": [
     { "userId": "user-041", "name": "Mara", "signs": ["modified-left", "commonality"], "rejects": ["no-early-abortions"], "unsigned": ["michigan-legislature", "one-federal-rule"], "notes": "The settlement signature is not a signature about which legislature writes the rule." },
     { "userId": "user-052", "name": "Eli", "signs": ["natural-right"], "rejects": ["modified-right", "commonality", "modified-left"], "notes": "Keeps the natural position and refuses the settlement. He must not be treated as a supporter of the cutoff through an arrow from natural-right." },
@@ -7,7 +7,7 @@
     { "userId": "user-053", "name": "Jo", "signs": ["commonality"], "rejects": ["no-medical-limit"], "notes": "The schools commonality she means is the accepted conditional about pushing. It is not a position on drugs or surgery." },
     { "userId": "user-042", "name": "Nina", "signs": ["natural-left", "harassment-steps", "names-and-courtesy"], "rejects": ["no-medical-limit"], "unsigned": ["clinician-for-minors"] },
     { "userId": "user-043", "name": "Wes", "signs": ["ranked-poll", "approval-count", "keep-fptp", "moderator-checklist"], "rejects": ["show-of-hands"], "notes": "A non-binding poll and keeping first-past-the-post for municipal elections are compatible. Refusing the poll is the incompatible position." },
-    { "userId": "user-061", "name": "Priya", "signs": ["modified-small-chance", "commonality"], "rejects": ["pole-stop"], "unsigned": ["natural-small-chance", "pole-accelerate"], "notes": "Will not sign certain doom. The small-chance modified already contains the shared pause sentence. No arrow is published." },
+    { "userId": "user-061", "name": "Priya", "signs": ["modified-small-chance", "commonality"], "rejects": ["pole-stop"], "unsigned": ["natural-small-chance", "pole-accelerate"], "notes": "Will not sign certain doom. The small-chance modified already contains the shared pause sentence, and that arrow is allowed." },
     { "userId": "user-062", "name": "Dean", "signs": ["natural-jobs", "modified-jobs", "commonality"], "rejects": ["pole-stop"], "unsigned": ["modified-small-chance"], "notes": "Jobs, not extinction. Signing the shared sentence is not a signature of the small-chance odds." },
     { "userId": "user-063", "name": "Noor", "signs": ["natural-industry"], "unsigned": ["modified-industry", "commonality", "pole-stop"], "notes": "Has the warning and has not taken the treaty. A nudge target, not an implied supporter." },
     { "userId": "user-064", "name": "Sam", "signs": ["modified-not-luddite", "commonality"], "unsigned": ["pole-stop", "natural-not-luddite"], "notes": "Not a Luddite. The modified keeps that limit; the shared sentence does not." },
@@ -32,31 +32,31 @@
       { "from": "opinion-employment/modified-left", "to": "opinion-employment/commonality", "evidence": "live-attester-modified-to-commonality", "why": "Blessed after the modifieds gained a camp priority the commonality does not contain." },
       { "from": "opinion-employment/modified-right", "to": "opinion-employment/commonality", "evidence": "live-attester-modified-to-commonality", "why": "Same rewrite. The first wording let commonality imply both modifieds." },
       { "from": "canada-us-ties/modified-left", "to": "canada-us-ties/commonality", "evidence": "live-attester-modified-to-commonality", "why": "Blessed after the commonality dropped 'I'd be okay with saying that' and each modified kept a priority the commonality omits." },
-      { "from": "canada-us-ties/modified-right", "to": "canada-us-ties/commonality", "evidence": "live-attester-modified-to-commonality", "why": "The first modified-right was implied by the commonality. The rewrite was not." }
+      { "from": "canada-us-ties/modified-right", "to": "canada-us-ties/commonality", "evidence": "live-attester-modified-to-commonality", "why": "The first modified-right was implied by the commonality. The rewrite was not." },
+      { "from": "ai-pause/modified-small-chance", "to": "ai-pause/commonality", "evidence": "live-attester-modified-to-commonality", "why": "2026-10-16 deepseek-v3.2 bless, high, first wording. Role modified-left." },
+      { "from": "ai-pause/modified-jobs", "to": "ai-pause/commonality", "evidence": "live-attester-modified-to-commonality", "why": "2026-10-16 deepseek-v3.2 bless, high, first wording. Role modified-right." },
+      { "from": "ai-pause/modified-industry", "to": "ai-pause/commonality", "evidence": "live-attester-modified-to-commonality", "why": "2026-10-16 deepseek-v3.2 bless, high. Plain-board modified. The planner allows it because the evidence is live-attester, not because the board is bridge-shaped." },
+      { "from": "ai-pause/modified-not-luddite", "to": "ai-pause/commonality", "evidence": "live-attester-modified-to-commonality", "why": "2026-10-16 deepseek-v3.2 bless, high. Plain-board modified." },
+      { "from": "ai-pause/modified-children", "to": "ai-pause/commonality", "evidence": "live-attester-modified-to-commonality", "why": "2026-10-16 deepseek-v3.2 bless, high. Plain-board modified." }
     ],
     "refusedAndUnpublished": [
       { "from": "opinion-employment/commonality", "to": "opinion-employment/modified-left", "why": "First wording, 2026-10-16, implies true high. Rewritten. The replacement refuses." },
       { "from": "opinion-employment/commonality", "to": "opinion-employment/modified-right", "why": "First wording, implies true high. Rewritten." },
       { "from": "opinion-employment/modified-left", "to": "opinion-employment/modified-right", "why": "First wording, implies true high. Rewritten." },
       { "from": "opinion-employment/modified-right", "to": "opinion-employment/modified-left", "why": "First wording, implies true high. Rewritten." },
-      { "from": "canada-us-ties/commonality", "to": "canada-us-ties/modified-right", "why": "First wording, implies true high. Rewritten." }
+      { "from": "canada-us-ties/commonality", "to": "canada-us-ties/modified-right", "why": "First wording, implies true high. Rewritten." },
+      { "from": "ai-pause/natural-small-chance", "to": "ai-pause/commonality", "why": "2026-10-16 deepseek-v3.2 refused, high. The natural does not name the treaty." },
+      { "from": "ai-pause/natural-jobs", "to": "ai-pause/commonality", "why": "2026-10-16 deepseek-v3.2 refused, high. Job loss does not name the treaty." },
+      { "from": "ai-pause/pole-stop", "to": "ai-pause/commonality", "why": "2026-10-16 deepseek-v3.2 refused, high. Hal's full stop rejects a pause that keeps alignment work going." },
+      { "from": "ai-pause/pole-accelerate", "to": "ai-pause/commonality", "why": "2026-10-16 deepseek-v3.2 refused, high. Vic rejects the pause." },
+      { "from": "ai-pause/commonality", "to": "ai-pause/modified-small-chance", "why": "2026-10-16 deepseek-v3.2 refused, high. The shared sentence does not include the odds or the refusal to say extinction is certain." },
+      { "from": "ai-pause/commonality", "to": "ai-pause/modified-jobs", "why": "2026-10-16 deepseek-v3.2 refused, high. The shared sentence does not include the jobs priority." }
     ],
     "unevaluatedAndUnpublished": [
       { "from": "commonality", "to": "michigan-legislature", "why": "Agreement on a cutoff does not imply who should have the authority to write it." },
       { "from": "natural-right", "to": "commonality", "why": "Designed negative for the abortion bridge. Eli keeps this side." },
       { "from": "lgbt-schools/commonality", "to": "clinician-for-minors", "why": "The schools conditional does not settle medical treatment." },
-      { "from": "ranked-poll", "to": "keep-fptp", "why": "Wanting a non-binding poll does not imply a position on municipal elections, in either direction." },
-      { "from": "ai-pause/modified-small-chance", "to": "ai-pause/commonality", "why": "Draft. The modified contains the shared pause sentence plus a limit the shared sentence omits. Not sent to the attester. Unpublished." },
-      { "from": "ai-pause/modified-jobs", "to": "ai-pause/commonality", "why": "Draft. Same shared sentence, jobs priority omitted from the commonality. Unpublished." },
-      { "from": "ai-pause/modified-industry", "to": "ai-pause/commonality", "why": "Draft. Unpublished." },
-      { "from": "ai-pause/modified-not-luddite", "to": "ai-pause/commonality", "why": "Draft. Unpublished." },
-      { "from": "ai-pause/modified-children", "to": "ai-pause/commonality", "why": "Draft. Unpublished." },
-      { "from": "ai-pause/natural-small-chance", "to": "ai-pause/commonality", "why": "Designed negative. The natural does not name the treaty." },
-      { "from": "ai-pause/natural-jobs", "to": "ai-pause/commonality", "why": "Designed negative. Job loss does not name the treaty." },
-      { "from": "ai-pause/pole-stop", "to": "ai-pause/commonality", "why": "Designed negative. Hal's full stop rejects a pause that keeps alignment work going." },
-      { "from": "ai-pause/pole-accelerate", "to": "ai-pause/commonality", "why": "Designed negative. Vic rejects the pause." },
-      { "from": "ai-pause/commonality", "to": "ai-pause/modified-small-chance", "why": "Designed negative. The shared sentence does not include the odds or the refusal to say extinction is certain." },
-      { "from": "ai-pause/commonality", "to": "ai-pause/modified-jobs", "why": "Designed negative. The shared sentence does not include the jobs priority." }
+      { "from": "ranked-poll", "to": "keep-fptp", "why": "Wanting a non-binding poll does not imply a position on municipal elections, in either direction." }
     ]
   }
 }

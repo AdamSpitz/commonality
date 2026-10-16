@@ -200,10 +200,14 @@ function chooseDistinctCauses(manifest: CampaignManifestV1, count: number, rando
   return chosen;
 }
 
-function validateImplicationPair(from: PlannedStatement, to: PlannedStatement): void {
+function validateImplicationPair(from: PlannedStatement, to: PlannedStatement, evidence: string): void {
   const sameGroup = from.source.collectionId === to.source.collectionId && from.source.groupId === to.source.groupId;
-  const approved = (from.role === 'modified-left' || from.role === 'modified-right') && to.role === 'commonality';
-  if (!sameGroup || !approved) throw new Error(`unsuitable implication ${from.id} -> ${to.id}: pair lacks accepted bridge-role evidence`);
+  const bridgeRoles = (from.role === 'modified-left' || from.role === 'modified-right') && to.role === 'commonality';
+  // A plain board can still publish a blessed modified that is not one of the five bridge roles.
+  const liveModified = evidence === 'live-attester-modified-to-commonality'
+    && to.role === 'commonality'
+    && (from.role === 'modified-left' || from.role === 'modified-right' || from.source.statementId.startsWith('modified-'));
+  if (!sameGroup || (!bridgeRoles && !liveModified)) throw new Error(`unsuitable implication ${from.id} -> ${to.id}: pair lacks accepted bridge-role evidence`);
 }
 
 function statementsOnCause(statements: PlannedStatement[], causeId: string): PlannedStatement[] {
@@ -525,7 +529,7 @@ export async function buildCampaignPlan(manifest: CampaignManifestV1): Promise<C
     throw new Error(`attest-implication target ${countByType['attest-implication']} exceeds ${implicationPairs.length} allowed pairs`);
   }
   for (let index = 0; index < countByType['attest-implication']; index++) {
-    const pair = implicationPairs[index % implicationPairs.length]; validateImplicationPair(pair.from, pair.to);
+    const pair = implicationPairs[index % implicationPairs.length]; validateImplicationPair(pair.from, pair.to, pair.evidence);
     add({ type: 'attest-implication', actorUserId: chooseCauseAttester(users, pair.from.causeId, random).id, causeId: pair.from.causeId, implication: { fromStatementId: pair.from.id, toStatementId: pair.to.id, evidence: pair.evidence }, dependsOn: [publishes.get(pair.from.id)!.id, publishes.get(pair.to.id)!.id] });
   }
   const createProjects = new Map(projects.map((project) => [project.id, add({ type: 'create-project', actorUserId: project.founderUserId, causeId: project.causeId, projectId: project.id, dependsOn: [causes.get(project.causeId)!.id] })]));

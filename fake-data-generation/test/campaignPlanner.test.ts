@@ -249,11 +249,11 @@ test('batch 2 keeps the pilot families, reuses accepted bridges, and shares one 
   assert.deepEqual(checklist!.alsoOnCauseIds, ['voting']);
   assert.equal(plan.projects.filter((project) => project.statementIds.includes(checklist!.id)).length, 1);
   const implications = plan.actions.filter((action) => action.type === 'attest-implication');
-  assert.equal(implications.length, 16);
+  assert.equal(implications.length, 21);
   const accepted = implications.filter((action) => action.implication!.evidence === 'accepted-bridge-role-pair');
   const live = implications.filter((action) => action.implication!.evidence === 'live-attester-modified-to-commonality');
   assert.equal(accepted.length, 4);
-  assert.equal(live.length, 12);
+  assert.equal(live.length, 17);
   for (const action of accepted) {
     const from = plan.statements.find((statement) => statement.id === action.implication!.fromStatementId)!;
     assert.ok(from.source.collectionId === 'compromise-abortion' || from.source.collectionId === 'lgbt-schools');
@@ -261,7 +261,8 @@ test('batch 2 keeps the pilot families, reuses accepted bridges, and shares one 
   for (const action of implications) {
     const from = plan.statements.find((statement) => statement.id === action.implication!.fromStatementId)!;
     const to = plan.statements.find((statement) => statement.id === action.implication!.toStatementId)!;
-    assert.ok(from.role === 'modified-left' || from.role === 'modified-right');
+    const plainModified = from.role === null && from.source.statementId.startsWith('modified-') && action.implication!.evidence === 'live-attester-modified-to-commonality';
+    assert.ok(from.role === 'modified-left' || from.role === 'modified-right' || plainModified);
     assert.equal(to.role, 'commonality');
     assert.equal(from.source.groupId, to.source.groupId);
   }
@@ -280,6 +281,16 @@ test('batch 2 keeps the pilot families, reuses accepted bridges, and shares one 
     assert.equal(board.role, 'commonality');
     assert.equal(implications.filter((action) => action.causeId === causeId).length, 2, causeId);
     assert.ok(implications.filter((action) => action.causeId === causeId).every((action) => action.implication!.evidence === 'live-attester-modified-to-commonality'));
+  }
+  const pauseBoard = plan.actions.find((action) => action.type === 'create-cause' && action.causeId === 'ai-pause')!.board!;
+  assert.equal(pauseBoard.role, 'plain');
+  const pauseArrows = implications.filter((action) => action.causeId === 'ai-pause');
+  assert.equal(pauseArrows.length, 5);
+  const pauseFrom = pauseArrows.map((action) => plan.statements.find((statement) => statement.id === action.implication!.fromStatementId)!.source.statementId).sort();
+  assert.deepEqual(pauseFrom, ['modified-children', 'modified-industry', 'modified-jobs', 'modified-not-luddite', 'modified-small-chance']);
+  for (const statementId of ['natural-small-chance', 'natural-jobs', 'pole-stop', 'pole-accelerate']) {
+    const statement = plan.statements.find((item) => item.source.groupId === 'ai-pause' && item.source.statementId === statementId)!;
+    assert.equal(implications.some((action) => action.implication!.fromStatementId === statement.id || action.implication!.toStatementId === statement.id), false, statementId);
   }
   for (const causeId of manifest.causes.map((cause) => cause.id)) {
     assert.ok(plan.projects.filter((project) => project.causeId === causeId).length >= 2, causeId);
@@ -311,6 +322,16 @@ test('batch 2 pins persona belief choices and never has Eli believe the settleme
   const eli = plan.users.find((user) => user.displayName === 'Eli')!;
   const settlement = plan.statements.find((statement) => statement.source.collectionId === 'compromise-abortion' && statement.source.statementId === 'commonality')!;
   assert.equal(beliefs.some((action) => action.actorUserId === eli.id && action.statementId === settlement.id && action.belief === 'believe'), false);
+  const pauseCommonality = plan.statements.find((statement) => statement.source.groupId === 'ai-pause' && statement.source.statementId === 'commonality')!;
+  for (const name of ['Noor', 'Tess']) {
+    const user = plan.users.find((item) => item.displayName === name)!;
+    assert.equal(beliefs.some((action) => action.actorUserId === user.id && action.statementId === pauseCommonality.id), false, name);
+  }
+  for (const name of ['Hal', 'Vic']) {
+    const user = plan.users.find((item) => item.displayName === name)!;
+    assert.equal(beliefs.some((action) => action.actorUserId === user.id && action.statementId === pauseCommonality.id && action.belief === 'believe'), false, name);
+    assert.equal(beliefs.some((action) => action.actorUserId === user.id && action.statementId === pauseCommonality.id && action.belief === 'disbelieve'), true, name);
+  }
 });
 
 test('written planning artifacts reload into the same campaign plan', async () => {

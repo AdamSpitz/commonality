@@ -1209,7 +1209,12 @@
     { "from": { "collectionId": "network-societies-v1-b2", "groupId": "opinion-employment", "statementId": "modified-left" }, "to": { "collectionId": "network-societies-v1-b2", "groupId": "opinion-employment", "statementId": "commonality" }, "evidence": "live-attester-modified-to-commonality" },
     { "from": { "collectionId": "network-societies-v1-b2", "groupId": "opinion-employment", "statementId": "modified-right" }, "to": { "collectionId": "network-societies-v1-b2", "groupId": "opinion-employment", "statementId": "commonality" }, "evidence": "live-attester-modified-to-commonality" },
     { "from": { "collectionId": "network-societies-v1-b2", "groupId": "canada-us-ties", "statementId": "modified-left" }, "to": { "collectionId": "network-societies-v1-b2", "groupId": "canada-us-ties", "statementId": "commonality" }, "evidence": "live-attester-modified-to-commonality" },
-    { "from": { "collectionId": "network-societies-v1-b2", "groupId": "canada-us-ties", "statementId": "modified-right" }, "to": { "collectionId": "network-societies-v1-b2", "groupId": "canada-us-ties", "statementId": "commonality" }, "evidence": "live-attester-modified-to-commonality" }
+    { "from": { "collectionId": "network-societies-v1-b2", "groupId": "canada-us-ties", "statementId": "modified-right" }, "to": { "collectionId": "network-societies-v1-b2", "groupId": "canada-us-ties", "statementId": "commonality" }, "evidence": "live-attester-modified-to-commonality" },
+    { "from": { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "modified-small-chance" }, "to": { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "commonality" }, "evidence": "live-attester-modified-to-commonality" },
+    { "from": { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "modified-jobs" }, "to": { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "commonality" }, "evidence": "live-attester-modified-to-commonality" },
+    { "from": { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "modified-industry" }, "to": { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "commonality" }, "evidence": "live-attester-modified-to-commonality" },
+    { "from": { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "modified-not-luddite" }, "to": { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "commonality" }, "evidence": "live-attester-modified-to-commonality" },
+    { "from": { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "modified-children" }, "to": { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "commonality" }, "evidence": "live-attester-modified-to-commonality" }
   ],
   "actionRules": [
     {
@@ -1246,8 +1251,8 @@
         "publish-statement"
       ],
       "targetCount": {
-        "min": 16,
-        "max": 16
+        "min": 21,
+        "max": 21
       }
     },
     {

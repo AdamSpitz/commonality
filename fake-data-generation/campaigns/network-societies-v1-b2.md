@@ -8,7 +8,7 @@ Keeps the four pilot families (Owen Sound checkout, Grey County civic life, Chri
 - Schools and pushing, using the accepted `lgbt-schools` wording unchanged, plus a separate Grey County conduct board. The schools statements do not settle drugs, surgery, or classroom names.
 - An Owen Sound non-binding voting trial.
 
-The other families in the brainstorming plan are not in this manifest, except an AI-pause board. That board is plain: every sentence stays visible. Five milder modified sentences contain one shared pause-treaty sentence and each keeps a reason the shared sentence leaves out. Naturals do not name the treaty. Hal wants a full stop and rejects the pause. Vic rejects the pause because other labs will not stop. No AI-pause implication is in the allowance list. Those pairs are unevaluated.
+The other families in the brainstorming plan are not in this manifest, except an AI-pause board. That board is plain: every sentence stays visible. Five milder modified sentences contain one shared pause-treaty sentence and each keeps a reason the shared sentence leaves out. Naturals do not name the treaty. Hal wants a full stop and rejects the pause. Vic rejects the pause because other labs will not stop. Five modified-to-commonality arrows are allowed. Naturals, poles, and reverse arrows are not.
 
 ## What the plan publishes
 
@@ -18,7 +18,7 @@ The abortion cause and the schools cause are bridge-shaped. Each main board list
 
 Six more causes are also bridge-shaped, from `statement-generation-exercises/06-network-society-alliances.json`: Grey County assimilation sessions, the Owen Sound dual-count poll, the Owen Sound checkout trial, minors' medicine and courtesy, ordinary opinions and employment, and ordinary Canada–US ties.
 
-Sixteen implication actions are planned. Four are the accepted abortion and schools pairs, labeled `accepted-bridge-role-pair`. Twelve are the new modified-to-commonality pairs, labeled `live-attester-modified-to-commonality`. The live record is `network-societies-v1-b2-implication-evaluations.json` (deepseek/deepseek-v3.2, prompt fingerprint `2f61d4d61235214eceee97e9a364da48b8a6833f509089941cb758728302e891`). Every designed-yes blessed and every designed-no refused after one rewrite. Employment modifieds now name a camp priority the commonality does not contain (on-the-clock campaigning; churches and private clubs). The Canada commonality no longer says "I'd be okay with saying that," and each modified keeps a priority the commonality omits. Naturals, reverse arrows, cross-modified arrows, and the assimilation cluster against the accepted immigration statements stay unpublished. Those refusals are in the decisions file. The six clusters are still not accepted seed.
+Twenty-one implication actions are planned. Four are the accepted abortion and schools pairs, labeled `accepted-bridge-role-pair`. Seventeen are modified-to-commonality pairs, labeled `live-attester-modified-to-commonality`: twelve from the draft bridges and five from the AI-pause board. The live record is `network-societies-v1-b2-implication-evaluations.json` (deepseek/deepseek-v3.2, prompt fingerprint `2f61d4d61235214eceee97e9a364da48b8a6833f509089941cb758728302e891`, 79 pairs). The draft bridges blessed every designed-yes and refused every designed-no after one rewrite. Employment modifieds now name a camp priority the commonality does not contain (on-the-clock campaigning; churches and private clubs). The Canada commonality no longer says "I'd be okay with saying that," and each modified keeps a priority the commonality omits. The AI-pause pass matched on the first wording: each modified implies the shared pause sentence, and the naturals, poles, and reverse arrows do not. Naturals, reverse arrows, cross-modified arrows, and the assimilation cluster against the accepted immigration statements stay unpublished. Those refusals are in the decisions file. The six clusters and the AI-pause board are still not accepted seed.
 
 `moderator-checklist` is one statement. It is on the Michigan authority board and the Owen Sound voting board. One project, "Moderator checklist card", references it.
 
@@ -31,10 +31,10 @@ Delegated spending and a recurring monthly pledge stay out. Pat already delegate
 From `fake-data-generation/`:
 
 ```bash
-npm run gen:campaign:plan -- campaigns/network-societies-v1-b2.json output/campaigns/network-societies-v1-b2
+npm run gen:campaign:plan -- campaigns/network-societies-v1-b2.json output/campaigns/network-societies-v1-b2-ai-pause
 ```
 
-Do not write this plan over `network-societies-v1-pilot` or `medium-realistic-v2`. Pilot statement texts in `network-societies-v1-b2-statements.json` are a copy so the loader can see them. The accepted bridge sentences are referenced from `seed-content/`, not copied.
+Do not write this plan over `output/campaigns/network-societies-v1-b2/`. That directory is the mined run from before the belief pins and the AI-pause arrows. Do not write it over `network-societies-v1-pilot` or `medium-realistic-v2`. Pilot statement texts in `network-societies-v1-b2-statements.json` are a copy so the loader can see them. The accepted bridge sentences are referenced from `seed-content/`, not copied.
 
 ## Local execution
 
