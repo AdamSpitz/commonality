@@ -140,3 +140,11 @@ This isn't meant to be an exhaustive list, but here's a list:
 Note that a lot of these jobs are "public goods" within the network society. Maintaining the website, writing content, working on relevant open-source software, maintaining maps of chapters, etc., are all (to some degree) jobs that benefit everyone in the society but that everybody wants someone else to pay for. They're not exactly public goods in the same way that a public park benefits basically *everyone*; they're scoped to this specific "movement" of people. But they're still kinda got that non-excludable, non-rivalrous nature. So it's useful to have mechanisms like Commonality's assurance-contracts and retroactive-funding and so on, to get them funded.
 
 The Tally stuff is a good fit too: we can count up how many people have signed any of these N statements, to show how much support there is. See the durable-participation spec (`specs/product/durable-participation.md`). And again, note that this doesn't require the "network society" to be made of a single Discord whose membership list we can count.
+
+## Terminology
+
+One point about terminology: I've been thinking of these as "network societies" because my thinking about these ideas first came from reading Balaji Srinivasan's book. But that's a weird way to think about it.
+  - Some of them are more society-like than others. There are different aspects of society-ness: networks of personal relationships and private groups, public conversations on social media, small and big gatherings, collective endeavours.
+  - Calling them "network" societies is a bit weird. Like, okay, there's an online component; so what? Everything is online. I think the term "network" is also meant to mean something like "networks of people" (as opposed to the state, or something?), but again that's more true of some than others, and in any case the term doesn't really seem like the natural words we'd use to describe these things.
+
+So what would be a better way of naming/characterizing the kinds of things we're talking about here? Maybe just "cause", or "movement", or "community", or something?
