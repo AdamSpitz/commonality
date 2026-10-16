@@ -1,0 +1,367 @@
+{
+  "crypto-merchants": [
+    {
+      "title": "Six-shop refundable checkout trial",
+      "outcome": "Ship an open-source checkout, with refunds, and run it for three months at six named Owen Sound shops. Publish the code and the shop list.",
+      "statementRefs": [
+        "refundable-checkout",
+        "published-trial-record"
+      ],
+      "blocker": "No one shop can justify building a checkout whose useful result is a public trial record"
+    },
+    {
+      "title": "Independent checkout security review",
+      "outcome": "Pay a reviewer who does not write the checkout to publish findings and unfixed items before the Owen Sound trial ends.",
+      "statementRefs": [
+        "checkout-security-review"
+      ],
+      "blocker": "The shops and the programmer are poor judges of their own security claims"
+    },
+    {
+      "title": "Fee and failure table",
+      "outcome": "Publish the fee on a twenty-dollar Owen Sound trial sale, and a table of failed payments, before anyone calls the trial a success.",
+      "statementRefs": [
+        "fee-schedule",
+        "published-trial-record"
+      ],
+      "blocker": "The numbers are useful to every later shop and owned by none of them"
+    },
+    {
+      "title": "Owen Sound merchant directory",
+      "outcome": "Maintain, for one year, a directory that shows which trial shops still take the checkout and which shops stopped, with the date of each change.",
+      "statementRefs": [
+        "merchant-directory"
+      ],
+      "blocker": "A directory nobody maintains becomes an advertisement"
+    },
+    {
+      "title": "Quarterly checkout clinic and host kit",
+      "outcome": "Run four Saturday clinics in Owen Sound and leave a host kit so a second person can run the next one.",
+      "statementRefs": [
+        "deployment-clinic",
+        "host-kit"
+      ],
+      "blocker": "The clinic stops when the first host is busy unless the hosting steps are written down"
+    }
+  ],
+  "civic-assimilation": [
+    {
+      "title": "Twelve conversation sessions",
+      "outcome": "Hold twelve English conversation sessions in Owen Sound with childcare in the room, and publish attendance without naming children.",
+      "statementRefs": [
+        "language-sessions"
+      ],
+      "blocker": "Childcare and a room have to be paid before the first session, and no single family captures the benefit"
+    },
+    {
+      "title": "Grey County civics pack",
+      "outcome": "Write and release a plain-English pack for the library, the bus, a school meeting, and a township office in Grey County.",
+      "statementRefs": [
+        "civics-pack"
+      ],
+      "blocker": "Each office explains itself differently, and no office is paid to write the combined pack"
+    },
+    {
+      "title": "Harrison Park path season",
+      "outcome": "Run one summer of path repair in Harrison Park, Owen Sound, with newcomers and long-time residents, and publish hours and costs.",
+      "statementRefs": [
+        "park-paths"
+      ],
+      "blocker": "The work needs a full season of tools and insurance before anyone can see the paths"
+    },
+    {
+      "title": "Conversation-session handoff",
+      "outcome": "Write the steps, contacts, and childcare arrangements so a second organizer can run the next Owen Sound session series.",
+      "statementRefs": [
+        "organizer-handoff"
+      ],
+      "blocker": "The sessions are a public good only if they survive the first organizer"
+    },
+    {
+      "title": "Independent tutor-listing check",
+      "outcome": "For one season, have someone who does not run the sessions check Grey County language-tutor listings and publish which listings failed.",
+      "statementRefs": [
+        "tutor-check"
+      ],
+      "blocker": "A directory checked by its own organizer does not answer a skeptic"
+    }
+  ],
+  "christian-teaching": [
+    {
+      "title": "Midweek class notes",
+      "outcome": "Release the notes for one Grey County congregation's midweek class under terms another congregation can reuse.",
+      "statementRefs": [
+        "midweek-notes",
+        "named-confession"
+      ],
+      "blocker": "The second congregation can copy the notes, so neither congregation is paid by the other to write them"
+    },
+    {
+      "title": "Midweek class transcript",
+      "outcome": "Transcribe that class for people who cannot hear the recordings, and publish the transcript with the confession named.",
+      "statementRefs": [
+        "transcription",
+        "named-confession"
+      ],
+      "blocker": "Transcription is useful to every later listener and costly to the first congregation"
+    },
+    {
+      "title": "One-season substitute rota",
+      "outcome": "Publish a Sunday rota and sermon notes so a substitute can preach at one named Grey County church for one season.",
+      "statementRefs": [
+        "substitute-rota",
+        "interchurch-calendar"
+      ],
+      "blocker": "Each small church has too few substitutes to keep the rota alone"
+    },
+    {
+      "title": "Second-church host kit",
+      "outcome": "Write a one-season kit so a second Grey County church can run the same rota without the first host.",
+      "statementRefs": [
+        "host-kit"
+      ],
+      "blocker": "The rota dies with the first host unless the steps are written down"
+    },
+    {
+      "title": "Grey County class-host directory",
+      "outcome": "Publish one directory of Grey County people who will host a small class, with affiliation and an independent checker's note, and maintain it for one year.",
+      "statementRefs": [
+        "class-host-directory"
+      ],
+      "blocker": "Churches, tutors, and home-school hosts each need the same checked list, and none of them owns it"
+    }
+  ],
+  "home-learning": [
+    {
+      "title": "Printable grade-six science unit",
+      "outcome": "Release one grade-six science unit a Grey County family can print, with the teaching method named on the first page and no religious claims in the activities.",
+      "statementRefs": [
+        "science-unit",
+        "method-on-the-page",
+        "no-religious-claims"
+      ],
+      "blocker": "Every family can copy the unit after the first author writes it"
+    },
+    {
+      "title": "Grey County field-trip pack",
+      "outcome": "Release the permission form, map, and safety notes for one Grey County field trip so another family, including a school family, can run it.",
+      "statementRefs": [
+        "field-trip",
+        "school-families-may-borrow"
+      ],
+      "blocker": "The first family pays for the reconnaissance and every later family can copy the pack"
+    },
+    {
+      "title": "Store-item science kits",
+      "outcome": "Publish instructions for a home science kit of ordinary store items, including hazards and the adult supervision each activity needs.",
+      "statementRefs": [
+        "science-kits",
+        "lab-safety"
+      ],
+      "blocker": "A safe kit has to be tried once before other families can reuse it"
+    },
+    {
+      "title": "Eight Owen Sound Saturdays",
+      "outcome": "Host eight Saturday meetups in Owen Sound for home-school families and publish the dates before the first meeting.",
+      "statementRefs": [
+        "saturday-meetups"
+      ],
+      "blocker": "The room and the dates have to be reserved before any family can rely on them"
+    },
+    {
+      "title": "Successor host notes",
+      "outcome": "Name a successor and write the notes so the Owen Sound meetups can run a second season without the first host.",
+      "statementRefs": [
+        "successor-host"
+      ],
+      "blocker": "A meetup series that only the first host can run is not a maintained public good"
+    }
+  ],
+  "abortion": [
+    {
+      "title": "Grand Rapids settlement sessions",
+      "outcome": "Hold six moderated sessions in Grand Rapids, Michigan, on the accepted 12-16 week settlement sentence, and publish the notes. The notes do not say what Michigan law currently is.",
+      "statementRefs": [
+        "commonality"
+      ],
+      "blocker": "A room, a moderator, and a published record have to be paid for before either camp can point at the same notes"
+    },
+    {
+      "title": "Plain-language settlement page",
+      "outcome": "Publish one page that quotes the accepted settlement sentence and says, in plain language, what a 12-16 week cutoff would allow and forbid. Do not describe that sentence as current law.",
+      "statementRefs": [
+        "commonality",
+        "modified-left",
+        "modified-right"
+      ],
+      "blocker": "Each camp already has its own explanation, and neither is paid to write the shared one"
+    },
+    {
+      "title": "Five-statement posting",
+      "outcome": "Keep the five accepted abortion statements posted, unchanged, for one year, with the date of each posting.",
+      "statementRefs": [
+        "natural-left",
+        "natural-right",
+        "modified-left",
+        "modified-right",
+        "commonality"
+      ],
+      "blocker": "The posting is useful to every later reader and owned by none of them"
+    },
+    {
+      "title": "Settlement-session host kit",
+      "outcome": "Write the steps, the room notes, and the publication checklist so a second person can run the Grand Rapids sessions without the first host.",
+      "statementRefs": [
+        "commonality"
+      ],
+      "blocker": "The sessions stop when the first host is busy unless the steps are written down"
+    },
+    {
+      "title": "Independent notes check",
+      "outcome": "Have someone who did not host the Grand Rapids sessions check that the published notes quote the settlement sentence without adding a claim about current Michigan law.",
+      "statementRefs": [
+        "commonality"
+      ],
+      "blocker": "The host is a poor judge of whether their own notes stayed inside the sentence"
+    }
+  ],
+  "abortion-forum": [
+    {
+      "title": "Michigan authority brief",
+      "outcome": "Publish a two-page brief that quotes the legislature-decides sentence and the federal-statute sentence as opposing proposals, and does not say which proposal is law.",
+      "statementRefs": [
+        "michigan-legislature",
+        "one-federal-rule"
+      ],
+      "blocker": "Each side publishes its own brief, and nobody is paid to put the two proposals on one page"
+    },
+    {
+      "title": "From-the-start position page",
+      "outcome": "Publish one page that states the from-the-start ban and the keep-campaigning position as positions their signers hold, labeled as positions rather than as Michigan law.",
+      "statementRefs": [
+        "no-early-abortions",
+        "no-settlement"
+      ],
+      "blocker": "The page is a public record of dissent, and no single dissenter captures the benefit of maintaining it"
+    }
+  ],
+  "schools": [
+    {
+      "title": "Grand Rapids pushing-question meetings",
+      "outcome": "Hold four moderated meetings in Grand Rapids where the question is whether schools are pushing kids toward LGBT identities, and publish the transcripts without a clinical claim.",
+      "statementRefs": [
+        "natural-left",
+        "natural-right",
+        "commonality"
+      ],
+      "blocker": "The transcript is useful to people who were not in the room, and the first host pays for the room"
+    },
+    {
+      "title": "Unchanged schools packet",
+      "outcome": "Print the five accepted schools statements, unchanged, in a packet for one parent meeting, and record which statement each speaker is answering.",
+      "statementRefs": [
+        "natural-left",
+        "natural-right",
+        "modified-left",
+        "modified-right",
+        "commonality"
+      ],
+      "blocker": "A packet everyone can copy is not paid for by the second parent who uses it"
+    },
+    {
+      "title": "Schools-meeting host kit",
+      "outcome": "Write the agenda and the publication steps so a second person can run the next pushing-question meeting without the first host.",
+      "statementRefs": [
+        "commonality"
+      ],
+      "blocker": "The meeting series dies with the first host unless the steps are written down"
+    }
+  ],
+  "gender-conduct": [
+    {
+      "title": "Harassment-steps sheet",
+      "outcome": "Publish the reporting steps for one named Grey County school, including the line that the student need not agree with a classmate.",
+      "statementRefs": [
+        "harassment-steps"
+      ],
+      "blocker": "The sheet has to be checked against the school's actual desk procedure before other parents can rely on it"
+    },
+    {
+      "title": "Clinician boundary page",
+      "outcome": "Publish one page that states the clinician-outside-the-school proposal and the schools-do-not-approve-drugs proposal, without a claim about medical outcomes.",
+      "statementRefs": [
+        "clinician-for-minors",
+        "school-not-clinic"
+      ],
+      "blocker": "The two sentences are short, and nobody is paid to keep them from being rewritten into a treatment claim"
+    },
+    {
+      "title": "Courtesy and medicine one-pager",
+      "outcome": "Publish one page that separates using a requested classroom name from any decision about drugs or surgery, using the courtesy statement's own wording.",
+      "statementRefs": [
+        "names-and-courtesy"
+      ],
+      "blocker": "Each argument keeps folding the name into the medical decision unless a maintained page holds them apart"
+    },
+    {
+      "title": "Adult-speech note",
+      "outcome": "Publish the wording of the adult-speech statement and a one-season note of which Grey County school-board agendas allowed that speech.",
+      "statementRefs": [
+        "adult-medical-speech"
+      ],
+      "blocker": "The agenda record is useful to the next speaker and owned by none of them"
+    },
+    {
+      "title": "Conduct-page host kit",
+      "outcome": "Write who updates the harassment sheet and the boundary page for the next school year, so the first editor can leave.",
+      "statementRefs": [
+        "harassment-steps"
+      ],
+      "blocker": "A page nobody is assigned to update becomes an old photocopy"
+    }
+  ],
+  "voting": [
+    {
+      "title": "Owen Sound association poll",
+      "outcome": "Run one non-binding ranked-ballot poll at one named Owen Sound community association and publish the ballots and the ranked count. The poll does not change a municipal election.",
+      "statementRefs": [
+        "ranked-poll"
+      ],
+      "blocker": "Printing, a room, and a published count have to be paid for before anyone can inspect the result"
+    },
+    {
+      "title": "Approval count of the same ballots",
+      "outcome": "Publish an approval count of those same Owen Sound ballots beside the ranked count, with both methods named.",
+      "statementRefs": [
+        "ranked-poll",
+        "approval-count"
+      ],
+      "blocker": "A second count is useful to people comparing methods, and the association is not paid to run it"
+    },
+    {
+      "title": "Rerunnable counting notes",
+      "outcome": "Publish the counting method in enough detail that a second person can rerun it from the published ballots and match the count.",
+      "statementRefs": [
+        "counting-toolkit"
+      ],
+      "blocker": "The counter who ran the poll is a poor person to be the only one who can repeat it"
+    },
+    {
+      "title": "Second-host poll kit",
+      "outcome": "Write the room, ballot, and publication steps so a second Owen Sound resident can run the next non-binding poll.",
+      "statementRefs": [
+        "poll-host-kit"
+      ],
+      "blocker": "The poll stops when the first host is busy unless the steps are written down"
+    },
+    {
+      "title": "Moderator checklist card",
+      "outcome": "Print the moderator checklist and use it for the Owen Sound poll and for one other published meeting, then file both checklists in the Grey County trial directory.",
+      "statementRefs": [
+        "moderator-checklist",
+        "trial-directory"
+      ],
+      "blocker": "The checklist is useful on more than one board, and neither meeting owns the maintenance"
+    }
+  ]
+}

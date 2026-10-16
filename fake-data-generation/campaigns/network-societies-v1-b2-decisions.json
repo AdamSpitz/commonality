@@ -1,0 +1,25 @@
+{
+  "note": "Authored persona decisions for batch 2. The planner still draws set-belief on its own. Unsigned is not the same as an explicit rejection. Implication edges in the plan are only the four accepted modified-to-commonality pairs from compromise-abortion and lgbt-schools. No new pair was sent to the attester.",
+  "people": [
+    { "userId": "user-041", "name": "Mara", "signs": ["modified-left", "commonality"], "rejects": ["no-early-abortions"], "unsigned": ["michigan-legislature", "one-federal-rule"], "notes": "The settlement signature is not a signature about which legislature writes the rule." },
+    { "userId": "user-052", "name": "Eli", "signs": ["natural-right"], "rejects": ["modified-right", "commonality", "modified-left"], "notes": "Keeps the natural position and refuses the settlement. He must not be treated as a supporter of the cutoff through an arrow from natural-right." },
+    { "userId": "user-054", "name": "Bea", "signs": ["michigan-legislature"], "unsigned": ["commonality", "modified-left", "modified-right"], "rejects": ["one-federal-rule"], "notes": "State-level authority is a separate proposition from the 12-16 week sentence." },
+    { "userId": "user-053", "name": "Jo", "signs": ["commonality"], "rejects": ["no-medical-limit"], "notes": "The schools commonality she means is the accepted conditional about pushing. It is not a position on drugs or surgery." },
+    { "userId": "user-042", "name": "Nina", "signs": ["natural-left", "harassment-steps", "names-and-courtesy"], "rejects": ["no-medical-limit"], "unsigned": ["clinician-for-minors"] },
+    { "userId": "user-043", "name": "Wes", "signs": ["ranked-poll", "approval-count", "keep-fptp", "moderator-checklist"], "rejects": ["show-of-hands"], "notes": "A non-binding poll and keeping first-past-the-post for municipal elections are compatible. Refusing the poll is the incompatible position." }
+  ],
+  "implicationCandidates": {
+    "published": [
+      { "from": "compromise-abortion/modified-left", "to": "compromise-abortion/commonality", "evidence": "accepted-bridge-role-pair", "why": "Accepted 2026-08-30. The planner does not re-run the model." },
+      { "from": "compromise-abortion/modified-right", "to": "compromise-abortion/commonality", "evidence": "accepted-bridge-role-pair", "why": "Accepted 2026-08-30." },
+      { "from": "lgbt-schools/modified-left", "to": "lgbt-schools/commonality", "evidence": "accepted-bridge-role-pair", "why": "Accepted 2026-08-31. This arrow is about pushing versus support. It is not a medical claim." },
+      { "from": "lgbt-schools/modified-right", "to": "lgbt-schools/commonality", "evidence": "accepted-bridge-role-pair", "why": "Accepted 2026-08-31." }
+    ],
+    "unevaluatedAndUnpublished": [
+      { "from": "commonality", "to": "michigan-legislature", "why": "Agreement on a cutoff does not imply who should have the authority to write it." },
+      { "from": "natural-right", "to": "commonality", "why": "Designed negative for the abortion bridge. Eli keeps this side." },
+      { "from": "lgbt-schools/commonality", "to": "clinician-for-minors", "why": "The schools conditional does not settle medical treatment." },
+      { "from": "ranked-poll", "to": "keep-fptp", "why": "Wanting a non-binding poll does not imply a position on municipal elections, in either direction." }
+    ]
+  }
+}

@@ -55,6 +55,6 @@ Test-data run `20261016T181546620Z`. Admin: `http://commonality.localhost:8088/#
 
 ## Next unfinished task
 
-Do not add the other eleven families. Implication candidates stay unpublished.
+Do not add further families to this pilot manifest. Batch 2 is a separate campaign: [`network-societies-v1-b2.md`](./network-societies-v1-b2.md). Implication candidates in this pilot's decisions file stay unpublished.
 
 A wiped local chain leaves the generated alignment-trust bootstrap key with no ETH. Until `scripts/fund-local-service-wallets.mjs` tops it up, that worker crash-loops, the starter trust set stays empty, and cause pages hide every campaign vouch. The funder script now includes `ALIGNMENT_TRUST_BOOTSTRAP_PRIVATE_KEY`. On 2026-10-16 the wallet was topped up by hand, the worker admitted 8 attesters, and the directory project showed on the Christian teaching, civic life, and home learning boards.

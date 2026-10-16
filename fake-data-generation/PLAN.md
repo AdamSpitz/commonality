@@ -80,7 +80,9 @@ Do these in order unless Adam names a different one. Each item is a session-size
 
 ### F — Network societies pilot
 
-Authoring for the four-family pilot (crypto merchants, Grey County civic life, Christian teaching, home learning) is in `campaigns/network-societies-v1-pilot.json` plus the statements, project, and decision files beside it. The capability table and the gaps that are still open are in [`campaigns/network-societies-v1-pilot.md`](./campaigns/network-societies-v1-pilot.md). A local run on 2026-10-16 mined and reconciled 207/207. Cause pages list the shared class-host directory once the alignment-trust bootstrap wallet has gas. The other eleven families are still ahead. The plan does not publish implication edges.
+The four-family pilot (crypto merchants, Grey County civic life, Christian teaching, home learning) is in [`campaigns/network-societies-v1-pilot.md`](./campaigns/network-societies-v1-pilot.md). A local run on 2026-10-16 mined and reconciled 207/207. Cause pages list the shared class-host directory once the alignment-trust bootstrap wallet has gas.
+
+Batch 2 keeps those four families and adds the accepted abortion bridge, the accepted schools-pushing bridge, and an Owen Sound voting trial. The note is [`campaigns/network-societies-v1-b2.md`](./campaigns/network-societies-v1-b2.md). The plan has 60 users, 70 statements, 40 projects, and 356 writes. It publishes only the four already-accepted modified-to-commonality arrows. It has not been executed. Eight families from the brainstorming table are still ahead. Persona `set-belief` choices are still not wired.
 
 ## Pointers
 
