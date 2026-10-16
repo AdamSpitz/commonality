@@ -14,7 +14,7 @@ Families in this pilot: Owen Sound checkout trial, Grey County civic life, Grey 
 | Accepted-bridge implication evidence | Still the only evidence the planner will publish. Heuristic `implies: true` is not accepted. |
 | Fresh attester evaluation for new campaign pairs | Not run. The pilot stores candidates and publishes zero implication edges. |
 | Beliefs chosen by the persona decision file | Not wired. `network-societies-v1-pilot-decisions.json` is authoring intent. The planner still draws `set-belief`. |
-| One shared project contract on several boards | The class-host directory is one statement, published once, and one project (`project-015`). Civic life, Christian teaching, and home learning boards all show that statement. None of the four cause pages lists a project under Fundable Projects ("No aligned projects yet"), including the Christian teaching board that owns the projects. The project page itself renders: title, fake-data outcome, founder Nadia, and "0 of 2 USDZZZ raised." |
+| One shared project contract on several boards | The class-host directory is one statement, published once, and one project (`project-015`). Civic life, Christian teaching, and home learning all list it under Fundable Projects once the alignment-trust bootstrap has admitted the campaign attesters. The project page renders: title, fake-data outcome, founder Nadia, and "0 of 2 USDZZZ raised." |
 | Early funding then retroactive reimbursement | Supported for v2's accepted abortion bridge. Not planned in this pilot. |
 | Delegated spending of a note | Deposit, delegate, and revoke exist. Spending through the delegation does not. Pat's note to Ned is a delegation, not a spent note. |
 | Recurring "$20/month" pledge | Not a campaign action. Do not describe a one-time deposit as that pledge. |
@@ -55,4 +55,6 @@ Test-data run `20261016T181546620Z`. Admin: `http://commonality.localhost:8088/#
 
 ## Next unfinished task
 
-Decide whether a cause page should list a project that is aligned to a statement on that board. The current pages do not. Do not add the other eleven families before that. Implication candidates stay unpublished.
+Do not add the other eleven families. Implication candidates stay unpublished.
+
+A wiped local chain leaves the generated alignment-trust bootstrap key with no ETH. Until `scripts/fund-local-service-wallets.mjs` tops it up, that worker crash-loops, the starter trust set stays empty, and cause pages hide every campaign vouch. The funder script now includes `ALIGNMENT_TRUST_BOOTSTRAP_PRIVATE_KEY`. On 2026-10-16 the wallet was topped up by hand, the worker admitted 8 attesters, and the directory project showed on the Christian teaching, civic life, and home learning boards.
