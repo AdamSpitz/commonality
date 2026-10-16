@@ -1,0 +1,160 @@
+# Network societies fake-data campaign
+
+Status: implementation handoff, 2026-10-16. This document plans a new campaign; it does not generate data or authorize a remote deployment. Suggested campaign ID: `network-societies-v1`.
+
+## Purpose
+
+Build a substantial, believable synthetic world around **all fifteen named areas in [the brainstorming notes](./README.md)**. A prospective cause founder should see concrete work worth organizing, the people needed to do it, and how Commonality can bring together funding that would otherwise remain fragmented.
+
+The central story is overlapping constituencies funding particular outcomes without joining one organization. Show separate organizers, competing publications, practical disagreements, independent judgment, and people who decline to participate. Preserve the author's selection of causes and interest in bridges; do not replace it with a generic politically balanced charity catalog. Give dissenters plausible beliefs, rather than making them foils who inevitably convert.
+
+This is a realistic demonstration, not evidence of adoption, a prediction about public opinion, or a stress test. All people, organizations, activity, and claimed deliverables must be visibly synthetic. “Campaign” here names this data-generation run, not a new product object.
+
+## Read first, then reuse
+
+The implementing model should read the project README and relevant role guidance, then:
+
+- [Fake-data README](../README.md): commands, artifacts, environment boundaries, existing runner.
+- [Statement-generation process](../statement-generation.md), [statement wording constraints](../../specs/product/statements-are-peculiar-for-good-reasons.md), and [bridge creator](../../specs/product/bridge-creator.md): reuse their authoring and checking process.
+- [Network-society vision](../../docs/end-user/commonality/vision-and-strategy/credible-solution/network-societies.md): especially the distinction between base work, organizing work, and private benefits.
+- [V2 manifest](../campaigns/medium-realistic-v2.json), [project stories](../campaignProjectStories.ts), and [step-14 run report](../campaigns/medium-realistic-v2-step14-run.md): the closest implementation precedent.
+- [Glossary](../../specs/glossary.md): especially cause board, contribution, recurring pledge, and retroactive donation.
+
+Use the existing campaign planner, executor, provisioning, runtime bindings, reconciliation, and generated-run viewer. Add campaign-local content alongside existing manifests; keep authored source in version control and execution output/secrets in the established ignored locations. Give this campaign its own output directory. Do not overwrite existing executed runs or turn campaign drafts into accepted `seed-content`.
+
+Some older summaries are stale: the October step-14 report and current adapter already support varied receipt purchases, cross-camp contributions, and retroactive donations. Inspect current code before treating these as missing features.
+
+## Scope and scale
+
+Aim for **240 users, roughly 150–210 unique statements, and 75–90 projects** across fifteen topic families. These are authoring targets, not reasons to manufacture weak statements or meaningless transactions. Count unique statements/projects separately from their appearances on multiple boards.
+
+Each family should have:
+
+- 6–10 useful cause planks at different grains, including concrete local goals where appropriate.
+- 2–4 genuinely incompatible or limiting positions, with people who hold them. Neutrality and disinterest are separate from disagreement.
+- At least five projects: three base-level deliverables and two organizing/maintenance deliverables. More developed families can have six.
+- At least two constituencies with different motivations, plus people who reject part or all of the proposed program.
+- A named organizer, credible project founders, contributors, an independent reviewer, and a plausible funding director. People can hold several roles, but no single person should fill every role on their own project.
+
+Use 20–30 editorial cause boards across the fifteen families, including alternative organizers and a few shared boards. Families are authoring categories, not compulsory membership organizations or single canonical statements. Pilot/full scale must be explicit configuration, not a collection of hard-coded exceptions.
+
+## Content map
+
+These are project briefs and constituency suggestions, not finished statement wording. For each row, expand to the per-family minimum above. Make deliverables bounded and inspectable: a named place, duration, artifact or service, budget, completion criterion, and responsible fictional person.
+
+| Family | Base-level projects to develop | Organizing work | Coalition and disagreement to portray |
+| --- | --- | --- | --- |
+| Crypto-friendly communities | Open-source checkout integration with refunds; ten-merchant trial with published costs/failures; independent security review | Maintained merchant directory; quarterly deployment clinics and reusable host kit | Crypto enthusiasts, fee-conscious merchants, civil-liberties advocates; skeptics of volatility or privacy claims who may still want a fair trial |
+| Assimilation and shared civic life | Twelve practical language sessions with childcare; reusable civics pack; mixed newcomer/resident park-repair season | Tutor/venue directory with independent checking; local organizer handoff kit | Immigration restrictionists, pro-immigration integration advocates, newcomers seeking belonging; disagreement about language-service limits and cultural expectations |
+| Better voting systems | Open-source ranked/approval ballot demo; non-binding local comparison poll with methods/data; auditable counting toolkit | Local pilot organizer guide; maintained directory of trial groups | Left/right FPTP critics and independents; disagreement between alternatives and defenders of the status quo |
+| Abortion settlement | Clearly fictional policy-options comparison; moderated deliberation series with published outputs; accessible explanation of the proposed compromise | Maintained resource page; facilitator training and handoff | Reuse accepted compromise texts; include people on both sides who reject the compromise. State-level authority is a separate proposition, not implied by agreement on a cutoff |
+| Low-carb communities | Open recipe/menu collection; reproducible restaurant menu audit; eight-week community cooking series | Independently checked venue directory; host kit and calendar | People seeking a low-carb food environment for different reasons; people who favor dietary choice but reject an enclave. Avoid invented health-effect claims |
+| Cancel-proof support | Public corrections/appeals toolkit; documented fictional case-review method; resilient publishing tools | Independently reviewed support-provider directory; bounded intake/triage service | Conservatives, older free-speech liberals, civil-liberties advocates; disagreement about which sanctions are justified. Direct aid to one person is not the public-good showcase |
+| Common sense about gender | Source-comparison methods and evidence-literacy materials; facilitated school-policy discussion kit; practical anti-harassment resources | Resource maintenance; facilitator directory and training | Different views about youth interventions, adult autonomy, schools, and respectful conduct. Reuse relevant accepted school statements without pretending they settle all these questions |
+| Unwoke | Open due-process policy templates; viewpoint-neutral selection-rubric pilot; audit of a fictional institution's complaint process | Editorial front door covering selected planks; independent review digest | Overlap with cancellation/gender causes, but users can support one plank and reject another. Include a liberal due-process supporter who refuses the umbrella label |
+| Democracy 2.0 | Open civic issue explorer; non-binding participatory allocation experiment; independent evaluation of the experiment | Local facilitator network; public methods/history archive | Voting reformers, decentralists, civic technologists; skeptics of online participation. Do not claim a binding election or verified population census |
+| AI safety before capabilities races | Open evaluation tooling; independent replication of a safety result; public comparison of hypothetical verification mechanisms | Research digest; workshop and contributor onboarding kit | Safety researchers, cautious technologists, concerned citizens; accelerationists and people who dispute proposed restrictions. No invented technical success claims |
+| US-friendly Canadians | Shared cross-border cultural archive; public guide to maintaining civic/business ties; joint community event with reusable materials | Maintained exchange directory; local host succession | Conservatives, apolitical families, businesspeople, anti-Trump internationalists; people who favor a boycott or narrower ties |
+| Christianity | Open teaching materials; accessibility/transcription of shared resources; regional substitute-preacher coordination pilot | Independently checked resource directory; inter-church organizer/host kit | Different denominations, secular collaborators on specific civic work, nonparticipants; doctrinal agreement is not inferred from shared project funding |
+| Islamic reform | Open discussion/study materials by fictional reform-minded authors; moderated interpretation forum with published materials; reusable civic-coexistence workshop | Maintained resource library; facilitator training | Reform-minded Muslims, secular civil-liberties allies, traditionalist dissenters; specify actual propositions rather than treating Muslims as one position |
+| Less regulation | Open dataset of burdens in one fictional permitting process; reproducible comparison of alternative procedures; small-business application guide | Maintained reform-project tracker; independent methodology review | Entrepreneurs, libertarians, frustrated residents; safety-minded reformers and defenders of particular rules. An experimental medical zone remains a hypothetical policy proposal |
+| Home-schooling | Open curriculum unit; accessible shared field-trip materials; reusable science activity kits | Local meetup season with succession; independently checked tutor/resource directory | Religious/secular home-schoolers and school-system families borrowing resources; disagreement on pedagogy, oversight, and religious content |
+
+Use determinate geography: for example, Grey County, Ontario, Canada for Canadian local projects and a separately identified US setting for US policy examples. Do not blur jurisdictions. Synthetic policy proposals and evidence-research projects do not need assertions about current law or clinical truth; any such assertions that are included require sources checked at authoring time.
+
+Shared projects are particularly valuable. A civil-liberties toolkit can appear on cancel-proof, unwoke, and Democracy 2.0 boards; an open teaching resource can cross Christian and home-schooling boards. Publish one project and multiple justified alignments, not three copies. Give at least three cross-family projects this treatment.
+
+## Statements and bridges: the quality gate
+
+Author ordinary signable wants first. Avoid slogans, statements about how the funding platform works, and “people doing X deserve payment.” Produce granularity along topic and place axes. Geographic inclusion on a board is not a belief implication.
+
+Distinguish two legitimate stories:
+
+1. **Existing overlap:** different motivations already support the same concrete outcome. Crypto checkout testing and shared teaching resources are good candidates. This does not need a manufactured compromise triple.
+2. **A real belief gap:** the natural statements do not imply agreement. A mediator proposes modified statements containing a real concession; some personas accept and others decline. Only accepted modified statements may support the commonality through implication.
+
+Target four well-developed bridge stories: reuse the accepted abortion cluster; develop voting reform, crypto merchant trials, and assimilation/shared civic work as candidate alliances. Determine their actual pattern before writing. The accepted immigration cluster concerns a different proposition and must not be relabeled as assimilation. Likewise the accepted LGBT-schools cluster does not establish a position on medical interventions. Add more bridges only after these work; every family needs coalition possibilities, not a compulsory formal triple.
+
+For every proposed implication edge:
+
+- Evaluate the exact ordered pair with the **real implication-attester system prompt**, using the shared evaluator or existing generation machinery. A simulation attester identity is fine; invented evaluations are not.
+- Store statement-text hashes, prompt fingerprint, model/settings, decision, rationale, and evaluation status. Cache identical inputs; invalidate when text or prompt changes. Record refusals as well as approvals.
+- Require an actual successful model evaluation and an affirmative decision before publishing. `cause-assist/src/implicationCheck.ts` can return `implies: true` with `source: heuristic` after missing credentials or failures; **that is not evidence**. Errors, malformed output, stale caches, and heuristic fallbacks leave the edge unevaluated and unpublished.
+- Check designed-negative pairs: naturals to compromise, reverse arrows, incompatible claims, and nested-place rollups. If a designed-negative pair passes, investigate the wording/evaluation rather than silently publishing it.
+- Run routing and shape critique too: modified → commonality should feel already said; natural → modified should be a meaningful optional change. Reject pasted-in commonality sentences, mediator narration, and camp justifications leaking into the shared statement.
+
+Do not evaluate every possible pair in the whole catalog. Evaluate a bounded candidate graph, including its negative controls. Limit revision attempts per cluster (initially three); retain failed candidates in authoring reports and move to other work. Report any missing required bridge honestly.
+
+## People and behavior
+
+Create about 30 named spotlight people with short bios and explicit decisions; derive the rest deterministically from richer persona templates. Suggested primary-role distribution for 240 people: 20 organizers, 35 project doers, 85 contributors, 25 funding directors, 25 reviewers/attesters/mediators, and 50 sign-only or mostly inactive people. Secondary roles overlap.
+
+For each person record topic interests, issue-specific beliefs, budget, risk tolerance, locality, trusted people, and explicit exclusions. Avoid a single left/right score that determines everything. A Christian home-schooler can dislike crypto; a liberal merchant can support low fees and cancellation due process while rejecting “unwoke”; a newcomer can favor language integration while rejecting immigration restrictions.
+
+Separate **interest in a family**, **signing a statement**, **accepting a modified statement**, **trusting an attester**, and **funding a project**. None automatically entails the next. Beliefs should select actions; actions should not randomly determine beliefs afterward. Distinguish leaving a statement unsigned from explicitly rejecting it.
+
+Reserve a small authored timeline for spotlight users: initial signatures, offered bridge, accept/decline, project discovery, contribution or delegation, later evidence, optional reimbursement donation or revocation. Ensure signatures of the modified statements are explicit persona choices. Other users can have sparse, uneven histories rather than all performing every action.
+
+Funding must respect available balances and preferences. Seed a few well-supported projects, many with partial momentum, some unfunded, and differing contributor concentration. Have risk-tolerant people contribute early and other people donate retroactively. Keep real synthetic token amounts consistent with displayed amounts; if demonstration budgets are scaled, document one explicit conversion and never display the unscaled number as money actually raised.
+
+## Required demonstration journeys
+
+Each journey needs named actors, stable IDs, expected balances/relationships, and a short browser walkthrough with actual generated links.
+
+1. **Founder sees an ecosystem:** a cause board contains base work and organizing work, with three projects at visibly different funding stages. The founder can see which role is still missing.
+2. **Alliance without merger:** two differently motivated people contribute to the same project while retaining conflicting beliefs elsewhere. At least one journey uses a verified implication path; another uses direct shared agreement.
+3. **A bridge is declined:** one person accepts a modified statement, another keeps the natural position and refuses it. The latter must not appear as a supporter of the compromise through a fabricated arrow.
+4. **Early risk and later reimbursement:** early contributors reach a real contract threshold; later donors reimburse them through the existing waterfall. Separately identify funding success and fictional evidence of delivered work—crossing the threshold is not proof of delivery.
+5. **Trust someone with a limited budget:** a donor delegates to a named friend for particular work, and the friend's supported spending path is exercised. Another donor revokes. Merely creating a delegation is not evidence that delegated spending happened.
+6. **Same project, different boards:** one shared artifact appears on multiple justified boards without duplicate funding contracts or double-counted totals. Contradictory planks do not become implied endorsements.
+7. **Independent judgment:** a reviewer declines alignment for a superficially relevant project; another project earns it. Where existing trust filtering supports it, two viewers see the expected difference.
+
+The brainstorming's “$20/month, fire-and-forget” and “delivered but not reimbursed” filter are goals to inspect against current implementation. Record whether each is supported, requires a small campaign adapter extension, or remains a product gap. If only a one-time delegated deposit works, label that exact demonstration and leave recurring execution unfulfilled. Do not simulate unsupported UI/contract behavior with prose and call it complete.
+
+## Implementation sequence
+
+### 1. Make a capability and content inventory
+
+Inspect current runner/schema and record reusable paths versus missing wiring. Known issues to address: `campaignSchema.ts` currently caps the catalog at 70 statement references and requires at least eight causes, while the pilot below has four; it also treats statement references across causes as unique. The planner's implication evidence currently uses accepted bridge-role pairs, which is insufficient for new evaluated campaign statements. Existing project/story and cross-camp funding selection may contain campaign-specific assumptions.
+
+Generalize those constraints with explicit campaign configuration and tests while preserving historical manifests. Keep unique catalog identity separate from board reuse. Add evidence references for evaluated edges. Inspect actual recurring-payment, delegated-spending, success-attestation, and trust APIs before promising them. Prefer small extensions to existing adapters; do not build a second simulator or a new platform subsystem for this demo.
+
+Deliverable: proposed artifact layout and a short supported/extension/gap table. This is implementation preparation, not another open-ended planning exercise.
+
+### 2. Author and validate a four-family pilot
+
+Use crypto-friendly communities, assimilation, Christianity, and home-schooling: about 40 users, 20 projects, and 40–60 statements. This tests different motivations, local work, religious/secular overlap, and reusable organizing goods. Include at least one candidate implication-backed alliance and negative controls.
+
+Store structured campaign-local content: statements, project briefs, personas/decisions, board definitions, candidate implication pairs, evaluation results, and journey expectations. These can be separate files or existing schema extensions; prefer readable data over new bespoke TypeScript story modules.
+
+Run authoring checks and freeze content/evaluation fingerprints before planning actions. Generate a plan into a fresh output path. Validate referential integrity, actor prerequisites, funding budgets, dissent consistency, and planned journey outcomes before submitting transactions.
+
+### 3. Execute locally and prove the stories
+
+Use the established local runner and reconciliation. Wipe local data only if useful; keep the old campaign's files intact. Verify real indexed/SDK-derived results and walk the pilot in the browser. Record what an ordinary viewer sees, not just transaction success.
+
+Fix failures before scaling. The first executed pilot is the point to discover that a beautiful bridge does not route, or that a donor cannot perform the intended action.
+
+### 4. Expand in bounded content batches
+
+Add the remaining eleven families in batches of three or four. First reuse accepted statements where they mean exactly what is needed; then generate new campaign-local planks and validate new edges. Add the accepted abortion bridge as a full spotlight story. Complete all fifteen families rather than declaring the pilot the finished campaign.
+
+Scale to the target population with deterministic generation around authored constraints. Review a content matrix showing family, statements, dissenters, projects, organizers, funding stages, and shared projects. Uneven activity is desirable; an accidentally empty family is not.
+
+### 5. Deliver a reproducible local demonstration
+
+Run the full campaign, reconcile it, and perform every required journey. Save the committed source manifest/content and concise run report; retain execution evidence and secrets in their established ignored locations. Provide exact reproduction commands, seed/fingerprints, generated run-viewer access instructions, spotlight users, project/board links, and known gaps. Update `fake-data-generation/PLAN.md` and README with a pointer once implementation lands.
+
+Remote/testnet publication is a separate later step using existing preflight, budgets, and mutation controls. Local completion should not depend on it.
+
+## Acceptance and handoff checklist
+
+- All fifteen families have several signable planks, incompatible positions, at least five substantive projects, and people whose actions match their stated preferences.
+- Organizing work has concrete outputs and a term; no generic “fund our movement” pots. Each project explains the coordination problem it addresses: fragmented constituencies, threshold risk, maintenance nobody owns, discovery, or independent verification. Ordinary crowdfunding could still fund some projects; do not claim Commonality is uniquely necessary for every one.
+- Every published implication has fresh, affirmative model evidence from the actual attester prompt. Negative controls, failed candidates, and routing/shape decisions remain inspectable.
+- New campaign text stays outside the accepted real-statement catalog. Reused canonical bridge wording is referenced rather than silently rewritten.
+- Automated checks cover beliefs/actions consistency, missing/invalid evidence, shared-project identity, budget accounting, execution prerequisites, and reconciliation. Run relevant existing campaign tests and workspace checks when code changes; test these failure modes rather than only snapshotting the generated prose.
+- Required journeys have reconciled state and browser observations. Unsupported behaviors are listed as specific gaps, never counted as demonstrated; the full demo is not called complete while a required journey is silently missing.
+- The report identifies synthetic users/activity/deliverables, actual amounts and outcomes, exact reproduction steps, and the next unfinished task if work spans sessions.
+
+**First task for the implementing LLM:** inspect the current campaign schema/planner/adapter and write the capability table, then author the four-family pilot content. Do not start with a bulk random run or by drafting all 200 statements at once.
