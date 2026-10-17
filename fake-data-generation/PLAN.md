@@ -82,7 +82,7 @@ Do these in order unless Adam names a different one. Each item is a session-size
 
 The four-family pilot (crypto merchants, Grey County civic life, Christian teaching, home learning) is in [`campaigns/network-societies-v1-pilot.md`](./campaigns/network-societies-v1-pilot.md). A local run on 2026-10-16 mined and reconciled 207/207. Cause pages list the shared class-host directory once the alignment-trust bootstrap wallet has gas.
 
-Batch 2 keeps those four families and adds the accepted abortion bridge, the accepted schools-pushing bridge, an Owen Sound voting trial, six draft bridges, and a plain AI-pause board. The note is [`campaigns/network-societies-v1-b2.md`](./campaigns/network-societies-v1-b2.md). The current manifest is 67 users, 117 statements, and 57 projects. Twenty-one modified-to-commonality arrows are allowed. A local run on 2026-10-16 mined and reconciled 446/446 into `output/campaigns/network-societies-v1-b2/`. That directory is the earlier plan. Do not regenerate into it.
+Batch 2 keeps those four families and adds the accepted abortion bridge, the accepted schools-pushing bridge, an Owen Sound voting trial, six draft bridges, a Canada–US family past the five-statement draft, and a plain AI-pause board. The note is [`campaigns/network-societies-v1-b2.md`](./campaigns/network-societies-v1-b2.md). The current manifest is 72 users, 124 statements, and 62 projects. Twenty-one modified-to-commonality arrows are allowed. A local run on 2026-10-16 mined and reconciled 446/446 into `output/campaigns/network-societies-v1-b2/`. That directory is the earlier plan. Do not regenerate into it or into `output/campaigns/network-societies-v1-b2-ai-pause/`.
 
 ## Pointers
 

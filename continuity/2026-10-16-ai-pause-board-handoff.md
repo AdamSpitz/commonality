@@ -26,7 +26,7 @@ The eleven AI-pause pairs were sent to `evaluateImplicationWithLLM` on `deepseek
 
 ## What to do
 
-1. Author the next family batch. Still not manifests: low-carb, cancel-proof support, unwoke, Democracy 2.0, Islamic reform, less regulation, and US-friendly Canadians beyond the five-statement Canada–US draft. Home learning and Grey County civic life stop at the pilot planks. Do not force a new triple onto an overlap that already shares a concrete want. The campaign plan's "Next task" paragraph now says seven families.
+1. Author the next family batch. Still not manifests: low-carb, cancel-proof support, unwoke, Democracy 2.0, Islamic reform, and less regulation. US-friendly Canadians was expanded past the five-statement draft in a later session. Home learning and Grey County civic life stop at the pilot planks. Do not force a new triple onto an overlap that already shares a concrete want. The campaign plan's "Next task" paragraph lists those six families.
 2. Delegated spending and a recurring monthly pledge stay out. Do not start a bulk random run. Do not execute the AI-pause plan unless you mean to, and do not overwrite either existing output directory.
 
 ## Suggested skills

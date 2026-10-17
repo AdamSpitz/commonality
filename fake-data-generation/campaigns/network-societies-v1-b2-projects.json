@@ -446,6 +446,36 @@
       "outcome": "Print both modified sentences beside the commonality so a reader can see the administration question was left out on purpose.",
       "statementRefs": ["modified-left", "modified-right", "commonality"],
       "blocker": "Without both wordings, one camp hears the page as praise and the other hears it as a boycott refusal they did not sign"
+    },
+    {
+      "title": "Owen Sound cross-border archive",
+      "outcome": "Publish one year of dated Owen Sound stories about family visits and ordinary purchases across the Canada-US border, with a name only when the contributor asked for one.",
+      "statementRefs": ["cultural-archive"],
+      "blocker": "The stories are scattered across families, and no one family is paid to keep a public copy"
+    },
+    {
+      "title": "Civic and business ties guide",
+      "outcome": "Publish a guide for Owen Sound that lists practical steps for a family visit to the US and for buying from a US business, and that names no party and no administration.",
+      "statementRefs": ["ties-guide"],
+      "blocker": "The steps are useful to the next traveler and written down by none of them"
+    },
+    {
+      "title": "Owen Sound ties evening",
+      "outcome": "Hold one Owen Sound evening with a published agenda and a packet later hosts can copy. The evening is for talking about family visits and ordinary purchases. It does not ask anyone to praise or condemn the current US administration.",
+      "statementRefs": ["community-event"],
+      "blocker": "A one-night conversation leaves no materials unless someone is paid to write them down"
+    },
+    {
+      "title": "Grey County exchange directory",
+      "outcome": "Keep, for one year, a monthly-checked directory of Grey County hosts for conversations about Canada-US family visits and ordinary purchases. Each listing has a name, a town, and a way to see that it is still current.",
+      "statementRefs": ["exchange-directory"],
+      "blocker": "A host list that nobody checks becomes a list of people who moved"
+    },
+    {
+      "title": "Host handoff card",
+      "outcome": "Write the steps a second person in Owen Sound needs in order to host the next conversation about Canada-US family visits without the first host.",
+      "statementRefs": ["host-handoff"],
+      "blocker": "The conversation stops when the first host is busy unless the hosting steps are written down"
     }
   ],
   "ai-pause": [

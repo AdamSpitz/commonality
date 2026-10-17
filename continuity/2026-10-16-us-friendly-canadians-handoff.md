@@ -1,6 +1,8 @@
 # Handoff: finish the US-friendly Canadian family
 
-Next session: expand `canada-us-ties` from the five-statement draft into a real family. Do not start the other six missing families. Do not publish an implication the attester has not blessed. Do not write over `fake-data-generation/output/campaigns/network-societies-v1-b2/` or `output/campaigns/network-societies-v1-b2-ai-pause/`.
+Done in the session that read this note. `canada-us-ties` now has the five original sentences, five work planks, a boycott, and a narrower-ties sentence. Greta rejects the shared sentence. Neil rejects it too. The attester refused both designed-negative directions that were checked. No new arrow was published. The fresh plan is `fake-data-generation/output/campaigns/network-societies-v1-b2-canada-us/`. It was not executed. The mined directory and the AI-pause plan directory were not rewritten. Six families stay unauthored: low-carb, cancel-proof support, unwoke, Democracy 2.0, Islamic reform, and less regulation.
+
+Original brief, for the record: expand `canada-us-ties` from the five-statement draft into a real family. Do not start the other six missing families. Do not publish an implication the attester has not blessed. Do not write over `fake-data-generation/output/campaigns/network-societies-v1-b2/` or `output/campaigns/network-societies-v1-b2-ai-pause/`.
 
 ## Read first
 

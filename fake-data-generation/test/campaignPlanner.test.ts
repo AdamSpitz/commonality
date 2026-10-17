@@ -240,9 +240,9 @@ test('batch 2 keeps the pilot families, reuses accepted bridges, and shares one 
     assert.deepEqual(copy.statements, group.statements);
   }
   const plan = await buildCampaignPlan(manifest);
-  assert.equal(plan.users.length, 67);
-  assert.equal(plan.statements.length, 117);
-  assert.equal(plan.projects.length, 57);
+  assert.equal(plan.users.length, 72);
+  assert.equal(plan.statements.length, 124);
+  assert.equal(plan.projects.length, 62);
   const checklist = plan.statements.find((statement) => statement.source.statementId === 'moderator-checklist');
   assert.ok(checklist);
   assert.equal(checklist!.causeId, 'abortion-forum');
@@ -288,6 +288,15 @@ test('batch 2 keeps the pilot families, reuses accepted bridges, and shares one 
   assert.equal(pauseArrows.length, 5);
   const pauseFrom = pauseArrows.map((action) => plan.statements.find((statement) => statement.id === action.implication!.fromStatementId)!.source.statementId).sort();
   assert.deepEqual(pauseFrom, ['modified-children', 'modified-industry', 'modified-jobs', 'modified-not-luddite', 'modified-small-chance']);
+  const canadaBoard = plan.actions.find((action) => action.type === 'create-cause' && action.causeId === 'canada-us-ties')!.board!;
+  const canadaIds = canadaBoard.statementIds.map((id) => plan.statements.find((statement) => statement.id === id)!.source.statementId);
+  assert.deepEqual(canadaIds, ['commonality', 'cultural-archive', 'ties-guide', 'community-event', 'exchange-directory', 'host-handoff', 'boycott-ordinary-ties', 'narrower-than-visits']);
+  assert.equal(plan.projects.filter((project) => project.causeId === 'canada-us-ties').length, 7);
+  const boycott = plan.statements.find((statement) => statement.source.groupId === 'canada-us-ties' && statement.source.statementId === 'boycott-ordinary-ties')!;
+  const narrower = plan.statements.find((statement) => statement.source.groupId === 'canada-us-ties' && statement.source.statementId === 'narrower-than-visits')!;
+  const canadaCommonality = plan.statements.find((statement) => statement.source.groupId === 'canada-us-ties' && statement.source.statementId === 'commonality')!;
+  assert.equal(implications.some((action) => action.implication!.fromStatementId === boycott.id || action.implication!.toStatementId === boycott.id || action.implication!.fromStatementId === narrower.id || action.implication!.toStatementId === narrower.id), false);
+  assert.equal(implications.filter((action) => action.implication!.toStatementId === canadaCommonality.id).map((action) => plan.statements.find((statement) => statement.id === action.implication!.fromStatementId)!.source.statementId).sort().join(','), 'modified-left,modified-right');
   for (const statementId of ['natural-small-chance', 'natural-jobs', 'pole-stop', 'pole-accelerate']) {
     const statement = plan.statements.find((item) => item.source.groupId === 'ai-pause' && item.source.statementId === statementId)!;
     assert.equal(implications.some((action) => action.implication!.fromStatementId === statement.id || action.implication!.toStatementId === statement.id), false, statementId);
@@ -304,7 +313,7 @@ test('batch 2 pins persona belief choices and never has Eli believe the settleme
   };
   const plan = await buildCampaignPlan(manifest);
   const beliefs = plan.actions.filter((action) => action.type === 'set-belief');
-  assert.equal(beliefs.length, 90);
+  assert.equal(beliefs.length, 105);
   const byStatementId = (sourceId: string, userId: string) => beliefs.filter((action) => {
     const statement = plan.statements.find((item) => item.id === action.statementId);
     return action.actorUserId === userId && statement?.source.statementId === sourceId;
@@ -332,6 +341,19 @@ test('batch 2 pins persona belief choices and never has Eli believe the settleme
     assert.equal(beliefs.some((action) => action.actorUserId === user.id && action.statementId === pauseCommonality.id && action.belief === 'believe'), false, name);
     assert.equal(beliefs.some((action) => action.actorUserId === user.id && action.statementId === pauseCommonality.id && action.belief === 'disbelieve'), true, name);
   }
+  const canadaCommonality = plan.statements.find((statement) => statement.source.groupId === 'canada-us-ties' && statement.source.statementId === 'commonality')!;
+  const boycott = plan.statements.find((statement) => statement.source.groupId === 'canada-us-ties' && statement.source.statementId === 'boycott-ordinary-ties')!;
+  for (const name of ['Greta', 'Neil']) {
+    const user = plan.users.find((item) => item.displayName === name)!;
+    assert.equal(beliefs.some((action) => action.actorUserId === user.id && action.statementId === canadaCommonality.id && action.belief === 'believe'), false, name);
+    assert.equal(beliefs.some((action) => action.actorUserId === user.id && action.statementId === canadaCommonality.id && action.belief === 'disbelieve'), true, name);
+  }
+  const greta = plan.users.find((user) => user.displayName === 'Greta')!;
+  assert.equal(beliefs.some((action) => action.actorUserId === greta.id && action.statementId === boycott.id && action.belief === 'believe'), true);
+  const adele = plan.users.find((user) => user.displayName === 'Adele')!;
+  assert.equal(beliefs.some((action) => action.actorUserId === adele.id && action.statementId === canadaCommonality.id), false);
+  const canadaArrows = plan.actions.filter((action) => action.type === 'attest-implication' && action.causeId === 'canada-us-ties');
+  assert.equal(canadaArrows.some((action) => action.implication!.fromStatementId === boycott.id), false);
 });
 
 test('written planning artifacts reload into the same campaign plan', async () => {

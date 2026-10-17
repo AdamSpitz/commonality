@@ -5,8 +5,8 @@
   "promptFingerprintAlgorithm": "sha256",
   "statementHashAlgorithm": "sha256",
   "source": "evaluateImplicationWithLLM",
-  "note": "Live model decisions. Heuristic fallback was not used. A bless is not acceptance into seed-content. The AI-pause pairs were evaluated in a later pass on the same model and prompt fingerprint; see aiPauseEvaluatedAt.",
-  "pairCount": 79,
+  "note": "Live model decisions. Heuristic fallback was not used. A bless is not acceptance into seed-content. The AI-pause pairs were evaluated in a later pass on the same model and prompt fingerprint; see aiPauseEvaluatedAt. The Canada-US boycott and narrower pairs were evaluated in a later pass on the same model and prompt fingerprint; see canadaUsEvaluatedAt.",
+  "pairCount": 82,
   "mismatchCount": 0,
   "evaluations": [
     {
@@ -1351,7 +1351,59 @@
       "promptFingerprint": "2f61d4d61235214eceee97e9a364da48b8a6833f509089941cb758728302e891",
       "matched": true,
       "ms": 3377
+    },
+    {
+      "id": "canada-us-ties:boycott-ordinary-ties->commonality",
+      "expectImplies": false,
+      "fromGroup": "canada-us-ties",
+      "toGroup": "canada-us-ties",
+      "fromRole": "boycott-ordinary-ties",
+      "toRole": "commonality",
+      "fromHash": "1593d7d1861aaf7e3cd63985ac22f0386b0a1e84d10f6af3f9623fa86f74f7d2",
+      "toHash": "e5a9a394c98f213454d64522737b056a8c2a74cda984e033be47a2325ea0d5a7",
+      "implies": false,
+      "confidence": "high",
+      "reasoning": "S1 asserts a desire for Canadians to stop certain activities and a refusal to sign a call for them to continue. S2 is the direct opposite, calling for them to keep doing those activities. S1 does not contain the proposition in S2; it contains its negation.",
+      "model": "deepseek/deepseek-v3.2",
+      "promptFingerprint": "2f61d4d61235214eceee97e9a364da48b8a6833f509089941cb758728302e891",
+      "matched": true,
+      "ms": 3022
+    },
+    {
+      "id": "canada-us-ties:narrower-than-visits->commonality",
+      "expectImplies": false,
+      "fromGroup": "canada-us-ties",
+      "toGroup": "canada-us-ties",
+      "fromRole": "narrower-than-visits",
+      "toRole": "commonality",
+      "fromHash": "59774daa4e65ef6c831d8782d233202d7cdde662d8618a222747b65fb55056ca",
+      "toHash": "e5a9a394c98f213454d64522737b056a8c2a74cda984e033be47a2325ea0d5a7",
+      "implies": false,
+      "confidence": "high",
+      "reasoning": "S1 explicitly rejects the proposition that ordinary Canadians should keep buying from US businesses, while S2 asserts it. S2 adds a claim that is directly contradicted by S1.",
+      "model": "deepseek/deepseek-v3.2",
+      "promptFingerprint": "2f61d4d61235214eceee97e9a364da48b8a6833f509089941cb758728302e891",
+      "matched": true,
+      "ms": 2171
+    },
+    {
+      "id": "canada-us-ties:commonality->boycott-ordinary-ties",
+      "expectImplies": false,
+      "fromGroup": "canada-us-ties",
+      "toGroup": "canada-us-ties",
+      "fromRole": "commonality",
+      "toRole": "boycott-ordinary-ties",
+      "fromHash": "e5a9a394c98f213454d64522737b056a8c2a74cda984e033be47a2325ea0d5a7",
+      "toHash": "1593d7d1861aaf7e3cd63985ac22f0386b0a1e84d10f6af3f9623fa86f74f7d2",
+      "implies": false,
+      "confidence": "high",
+      "reasoning": "S1 asserts that ordinary Canadians should keep buying from US businesses and visiting family, explicitly distancing this from a statement about the current administration. S2 asserts the opposite position (they should stop) and adds a personal commitment not to sign a call for them to keep doing so. S2 adds a new, contradictory claim and a personal reservation absent from S1.",
+      "model": "deepseek/deepseek-v3.2",
+      "promptFingerprint": "2f61d4d61235214eceee97e9a364da48b8a6833f509089941cb758728302e891",
+      "matched": true,
+      "ms": 2933
     }
   ],
-  "aiPauseEvaluatedAt": "2026-10-16T21:52:11.796Z"
+  "aiPauseEvaluatedAt": "2026-10-16T21:52:11.796Z",
+  "canadaUsEvaluatedAt": "2026-10-16T22:30:00.000Z"
 }

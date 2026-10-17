@@ -371,13 +371,23 @@
     {
       "id": "canada-us-ties",
       "title": "Ordinary Canada-US ties",
-      "notes": ["Draft bridge. Unevaluated. Weakest wording: the commonality talks about being okay with saying the want."],
+      "notes": [
+        "Bridge on one want: ordinary purchases and family visits, with the administration question left out. The two modified-to-commonality arrows stay. This is not a second compromise on that same want.",
+        "The archive, the guide, the Owen Sound evening, the directory, and the host handoff are separate planks. A boycott and narrower-than-both are incompatible positions. Neither is an implication of the commonality, and neither is published as an arrow. Not accepted seed."
+      ],
       "statements": [
         { "id": "natural-left", "role": "natural-left", "text": "I don't like Trump, and I still think it's foolish for Canadians to cut off ordinary buying and family visits to the US." },
         { "id": "natural-right", "role": "natural-right", "text": "Canada should keep its ordinary ties with the US. There's nothing wrong with that." },
         { "id": "modified-left", "role": "modified-left", "text": "I don't like the current US administration. I'd still rather Canadians keep buying ordinary goods from US businesses and visiting family there than join a boycott of those ordinary ties. Ordinary Canadians should keep buying from US businesses and visiting family in the US. This is not a statement about the current US administration. I'd still rather people buy the Canadian good when the price and quality are the same. I feel less strongly about that preference than about refusing a boycott." },
         { "id": "modified-right", "role": "modified-right", "text": "I want Canadians to keep buying ordinary goods from US businesses and visiting family in the US. Ordinary Canadians should keep buying from US businesses and visiting family in the US. This is not a statement about the current US administration. I'd still rather Canada also keep shared border staffing and ordinary military exercises with the US. I feel more strongly about purchases and family visits than about those, and I am not asking anyone to praise the administration." },
-        { "id": "commonality", "role": "commonality", "text": "Ordinary Canadians should keep buying from US businesses and visiting family in the US. This is not a statement about the current US administration." }
+        { "id": "commonality", "role": "commonality", "text": "Ordinary Canadians should keep buying from US businesses and visiting family in the US. This is not a statement about the current US administration." },
+        { "id": "cultural-archive", "text": "I want a public archive, kept for one year, of dated stories from people in Owen Sound about family visits and ordinary purchases across the Canada-US border. A contributor's name goes on a story only if they asked for that." },
+        { "id": "ties-guide", "text": "I want a public guide for people in Owen Sound that lists practical steps for a family visit to the US and for buying from a US business, and that does not tell the reader which party or administration to support." },
+        { "id": "community-event", "text": "I want one Owen Sound evening, with a published agenda and reusable materials a later host can copy, where neighbors can talk about family visits and ordinary purchases across the Canada-US border. Nobody at that evening is asked to praise or condemn the current US administration." },
+        { "id": "exchange-directory", "text": "I want a directory, checked once a month for one year, of people in Grey County who will host a conversation about Canada-US family visits and ordinary purchases. Each listing names the person, the town, and how a reader can tell the listing is still current." },
+        { "id": "host-handoff", "text": "I want written handoff steps so a second person in Owen Sound can host the next conversation about Canada-US family visits without the first host." },
+        { "id": "boycott-ordinary-ties", "text": "I want ordinary Canadians to stop buying from US businesses and to stop family visits to the US while the current administration is in office. I will not sign a call for them to keep doing either of those things." },
+        { "id": "narrower-than-visits", "text": "I want Canadians to keep visiting family in the US. I do not want ordinary Canadians told to keep buying from US businesses. A sentence that asks for both of those is more than I will sign." }
       ]
     },
     {

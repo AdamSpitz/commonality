@@ -394,14 +394,16 @@ export async function buildCampaignPlan(manifest: CampaignManifestV1): Promise<C
     const byRole = new Map(group.map((statement) => [statement.role, statement]));
     const interestedFounders = projectStories ? causeFounders.filter((user) => user.favoriteCauseId === cause.id) : [];
     const actor = bridgeShaped ? random.pick(mediators) : random.pick(interestedFounders.length ? interestedFounders : causeFounders);
-    const included = bridgeShaped ? [byRole.get('commonality')!] : group;
+    // Role-less planks sit beside the shared sentence. Side boards stay one sentence each.
+    const bridgePlanks = bridgeShaped ? [byRole.get('commonality')!, ...group.filter((statement) => statement.role === null)] : [];
+    const included = bridgeShaped ? bridgePlanks : group;
     const clusterSlug = bridgeShaped ? boardSlug(manifest.campaign.id, cause.id, 'cluster') : undefined;
     const commonalityBoard: PlannedCauseBoard | undefined = bridgeShaped ? {
       role: 'commonality',
       slug: boardSlug(manifest.campaign.id, cause.id, 'bridge'),
       title: `${cause.title} — common ground`,
       summary: causeBoardSummary(cause.title, 'commonality'),
-      statementIds: [byRole.get('commonality')!.id],
+      statementIds: bridgePlanks.map((statement) => statement.id),
       clusterSlug,
     } : undefined;
     const plainBoard: PlannedCauseBoard | undefined = bridgeShaped ? undefined : {
@@ -499,9 +501,14 @@ export async function buildCampaignPlan(manifest: CampaignManifestV1): Promise<C
   for (let index = 0; index < randomBeliefCount; index++) {
     const flipPool = [...latestBelief.values()].filter((action) => !pinnedBeliefs.has(`${action.actorUserId}/${action.statementId}`));
     const previous = index > Math.floor(randomBeliefCount * 0.92) && flipPool.length > 0 ? random.pick(flipPool) : undefined;
-    const actor = previous ? usersById.get(previous.actorUserId!)! : random.weighted(activeUsers, (user) => user.activityWeight);
-    const openStatements = preferredStatements(actor, statements).filter((statement) => !pinnedBeliefs.has(`${actor.id}/${statement.id}`));
-    if (!previous && openStatements.length === 0) throw new Error(`${actor.id} has no unpinned statement to sign`);
+    let actor = previous ? usersById.get(previous.actorUserId!)! : random.weighted(activeUsers, (user) => user.activityWeight);
+    let openStatements = preferredStatements(actor, statements).filter((statement) => !pinnedBeliefs.has(`${actor.id}/${statement.id}`));
+    if (!previous && openStatements.length === 0) {
+      const eligible = activeUsers.filter((user) => preferredStatements(user, statements).some((statement) => !pinnedBeliefs.has(`${user.id}/${statement.id}`)));
+      if (eligible.length === 0) throw new Error('no user has an unpinned statement to sign');
+      actor = random.weighted(eligible, (user) => user.activityWeight);
+      openStatements = preferredStatements(actor, statements).filter((statement) => !pinnedBeliefs.has(`${actor.id}/${statement.id}`));
+    }
     const statement = previous ? statements.find((item) => item.id === previous.statementId)! : random.pick(openStatements);
     const beliefActor = users.find((user) => user.id === (previous?.actorUserId ?? actor.id))!;
     const causeId = beliefActor.causeIds.includes(statement.causeId)
