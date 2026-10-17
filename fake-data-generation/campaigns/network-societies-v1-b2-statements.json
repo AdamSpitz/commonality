@@ -1,0 +1,476 @@
+{
+  "format": "commonality-seed-content-v1",
+  "id": "network-societies-v1-b2",
+  "title": "Synthetic network-societies batch 2 statements",
+  "description": "Pilot groups copied verbatim, plus campaign-local statements for the abortion forum, gender conduct, and voting. Accepted bridge wording is not copied here.",
+  "notes": [
+    "Synthetic campaign only. Do not copy these into seed-content/.",
+    "Groups crypto-merchants, civic-assimilation, christian-teaching, home-learning, and shared-goods are copied from network-societies-v1-pilot-statements.json so this collection can load on its own. Edit those texts in the pilot file and re-copy; do not rewrite them here."
+  ],
+  "groups": [
+    {
+      "id": "crypto-merchants",
+      "title": "Crypto-friendly merchant trials in Owen Sound",
+      "statements": [
+        {
+          "id": "refundable-checkout",
+          "text": "I want six named shops in Owen Sound, Ontario, to be able to try a checkout that takes a crypto payment and can refund it, for a three-month trial."
+        },
+        {
+          "id": "published-trial-record",
+          "text": "I want the Owen Sound crypto-checkout trial to publish every fee, failed payment, and refund from those three months."
+        },
+        {
+          "id": "checkout-security-review",
+          "text": "I want an independent reviewer to publish the security findings in the Owen Sound trial checkout, including findings the shops have not yet fixed."
+        },
+        {
+          "id": "merchant-directory",
+          "text": "I want a directory of Owen Sound shops in the checkout trial that says which shops are still taking the payment and which shops stopped."
+        },
+        {
+          "id": "deployment-clinic",
+          "text": "I want a quarterly Saturday clinic in Owen Sound where a shop can run one test sale on the trial checkout and leave with a written result."
+        },
+        {
+          "id": "host-kit",
+          "text": "I want a written host kit so a second person can run the next Owen Sound checkout clinic without the first host."
+        },
+        {
+          "id": "keep-cash-and-card",
+          "text": "I want every shop in the Owen Sound crypto trial to keep taking cash and ordinary cards for the whole three months."
+        },
+        {
+          "id": "refuse-crypto-payments",
+          "text": "I want shops in Owen Sound to refuse customer payments in crypto."
+        },
+        {
+          "id": "bank-blocking",
+          "text": "I want a willing Owen Sound shop and a willing customer to be able to complete a payment when a bank has blocked that customer."
+        },
+        {
+          "id": "fee-schedule",
+          "text": "I want the Owen Sound trial checkout to show the fee for a twenty-dollar sale before the customer pays."
+        }
+      ]
+    },
+    {
+      "id": "civic-assimilation",
+      "title": "Shared civic life in Grey County",
+      "statements": [
+        {
+          "id": "language-sessions",
+          "text": "I want twelve practical English conversation sessions in Owen Sound, Ontario, with childcare in the room, for newcomers and long-time residents together."
+        },
+        {
+          "id": "civics-pack",
+          "text": "I want a reusable pack that explains, in plain English, how a person in Grey County uses the library, the bus, a school meeting, and a township office."
+        },
+        {
+          "id": "park-paths",
+          "text": "I want one summer of newcomers and long-time residents repairing paths in Harrison Park, Owen Sound, with the hours and costs published at the end."
+        },
+        {
+          "id": "tutor-check",
+          "text": "I want the Grey County language-tutor listings checked by someone who does not run the sessions, including a public note when a listing fails the check."
+        },
+        {
+          "id": "organizer-handoff",
+          "text": "I want a written handoff so a second organizer can run the next Owen Sound conversation session without the first organizer."
+        },
+        {
+          "id": "english-township-business",
+          "text": "I want township business in Grey County to stay in English, including when language classes are offered."
+        },
+        {
+          "id": "own-language-communities",
+          "text": "I want newcomers in Grey County to be able to keep their own language communities without a public program that expects them to adopt local customs."
+        },
+        {
+          "id": "housing-before-recruiting",
+          "text": "I want Grey County to stop recruiting more newcomers until the published housing and clinic wait times get shorter."
+        },
+        {
+          "id": "welcome-signage",
+          "text": "I want the Owen Sound bus terminal and library to post, in the languages already spoken in town, where the conversation sessions meet."
+        },
+        {
+          "id": "session-limit",
+          "text": "I want the Owen Sound conversation sessions to teach practical English, and I want them to stop short of telling newcomers which customs to keep."
+        }
+      ]
+    },
+    {
+      "id": "christian-teaching",
+      "title": "Christian teaching resources in Grey County",
+      "statements": [
+        {
+          "id": "midweek-notes",
+          "text": "I want the teaching notes for one Grey County congregation's midweek class released so another congregation can reuse them."
+        },
+        {
+          "id": "transcription",
+          "text": "I want the recordings of that Grey County midweek class transcribed for people who cannot hear them."
+        },
+        {
+          "id": "substitute-rota",
+          "text": "I want a published rota and sermon notes so a substitute can preach at a named Grey County church when the regular preacher is away for one season."
+        },
+        {
+          "id": "named-confession",
+          "text": "I want shared Grey County teaching notes to name the confession they come from."
+        },
+        {
+          "id": "no-joint-doctrine",
+          "text": "I want congregations that reuse the same Grey County teaching notes to stop short of publishing a joint statement of doctrine."
+        },
+        {
+          "id": "host-kit",
+          "text": "I want a one-season host kit so a second Grey County church can run the substitute-preacher rota after the first season."
+        },
+        {
+          "id": "civic-transcription-only",
+          "text": "I want to help transcribe public civic materials in Grey County, and I do not want that work to include church teaching."
+        },
+        {
+          "id": "keep-notes-inside",
+          "text": "I want a congregation's teaching notes to stay inside that congregation."
+        },
+        {
+          "id": "interchurch-calendar",
+          "text": "I want a public calendar of which Grey County church is short a preacher on which Sunday this season."
+        }
+      ]
+    },
+    {
+      "id": "home-learning",
+      "title": "Home learning in Grey County",
+      "statements": [
+        {
+          "id": "science-unit",
+          "text": "I want one open grade-six science unit, with materials a Grey County home-school family can print."
+        },
+        {
+          "id": "field-trip",
+          "text": "I want the permission form, map, and safety notes for one Grey County field trip released so another family can run the same trip."
+        },
+        {
+          "id": "science-kits",
+          "text": "I want instructions for a home science kit that uses ordinary store items, written so a Grey County family can repeat it."
+        },
+        {
+          "id": "saturday-meetups",
+          "text": "I want eight Saturday meetups in Owen Sound for home-school families, with the dates published before the first meeting."
+        },
+        {
+          "id": "successor-host",
+          "text": "I want a named successor, and written notes, so the Owen Sound home-school meetups can continue for a second season without the first host."
+        },
+        {
+          "id": "method-on-the-page",
+          "text": "I want each Grey County home-school unit to say which teaching method it uses."
+        },
+        {
+          "id": "no-religious-claims",
+          "text": "I want a Grey County science unit that contains no religious claims, so a secular home-school family can use it."
+        },
+        {
+          "id": "school-families-may-borrow",
+          "text": "I want families whose children attend school in Grey County to be allowed to use the same field-trip notes."
+        },
+        {
+          "id": "staffed-schools",
+          "text": "I want children in Grey County taught in staffed schools, and I do not want public rooms booked for home-school programs."
+        },
+        {
+          "id": "lab-safety",
+          "text": "I want the Grey County home science kit to list the hazards and the adult supervision each activity needs."
+        }
+      ]
+    },
+    {
+      "id": "shared-goods",
+      "title": "Goods reused across Grey County boards",
+      "statements": [
+        {
+          "id": "class-host-directory",
+          "text": "I want a public directory of people in Grey County, Ontario, who will host a small class, with each host's affiliation written down and a note when an independent checker has confirmed the listing."
+        }
+      ]
+    },
+    {
+      "id": "abortion-forum",
+      "title": "Michigan abortion authority, beside the accepted cutoff",
+      "notes": [
+        "These are separate wants. None of them is an implication of the accepted 12-16 week settlement.",
+        "Do not give these statements bridge roles."
+      ],
+      "statements": [
+        {
+          "id": "michigan-legislature",
+          "text": "I want Michigan's legislature, rather than a federal statute, to decide whether abortion is legal in Michigan."
+        },
+        {
+          "id": "one-federal-rule",
+          "text": "I want one federal statute to set the abortion rule for every US state, including Michigan."
+        },
+        {
+          "id": "no-settlement",
+          "text": "I want people in Michigan to keep campaigning for the abortion law they prefer, rather than accepting a cutoff neither side likes."
+        },
+        {
+          "id": "no-early-abortions",
+          "text": "I want abortion forbidden in Michigan from the start of pregnancy, including during the first 12 weeks."
+        },
+        {
+          "id": "options-on-a-page",
+          "text": "I want a written comparison of three Michigan proposals — a 12-16 week cutoff, a ban from the start of pregnancy, and no cutoff — that labels each one as a proposal and does not say which rule is in force."
+        },
+        {
+          "id": "moderator-checklist",
+          "text": "I want a written checklist a moderator can use to publish a meeting's question, the statements under discussion, and the notes, without claiming the meeting decided a law."
+        }
+      ]
+    },
+    {
+      "id": "gender-conduct",
+      "title": "Grey County school conduct, separate from the schools-pushing bridge",
+      "notes": [
+        "The accepted LGBT-schools statements are about pushing versus support. They do not settle medical treatment, adult speech, or classroom names. These statements do not use bridge roles."
+      ],
+      "statements": [
+        {
+          "id": "harassment-steps",
+          "text": "I want one Grey County school to publish the steps a student uses to report harassment, and to apply those steps without requiring the student to agree with a classmate."
+        },
+        {
+          "id": "clinician-for-minors",
+          "text": "I want any drug or surgery offered to a minor in Grey County as a gender treatment to require a licensed clinician outside the school, not a decision by school staff."
+        },
+        {
+          "id": "school-not-clinic",
+          "text": "I want Grey County schools to stay out of approving drugs or surgery for students."
+        },
+        {
+          "id": "no-medical-limit",
+          "text": "I want a Grey County school counselor to be allowed to approve a gender-related drug for a student without a clinician outside the school."
+        },
+        {
+          "id": "adult-medical-speech",
+          "text": "I want an adult in Grey County to be able to say, at a public school-board meeting, that they are seeking a gender-related medical treatment."
+        },
+        {
+          "id": "names-and-courtesy",
+          "text": "I want a Grey County classroom to use the name a student asks for in class, and I want that courtesy kept separate from any decision about drugs or surgery."
+        },
+        {
+          "id": "enrollment-name-only",
+          "text": "I want Grey County teachers to use only the name on a student's enrollment form, including when the student asks for a different name in class."
+        }
+      ]
+    },
+    {
+      "id": "voting",
+      "title": "Non-binding counts in Owen Sound",
+      "notes": [
+        "A non-binding association poll is not a change to municipal election law. No bridge roles."
+      ],
+      "statements": [
+        {
+          "id": "ranked-poll",
+          "text": "I want one Owen Sound community association to run a non-binding ranked-ballot poll and to publish the ballots and the count."
+        },
+        {
+          "id": "approval-count",
+          "text": "I want that Owen Sound association to publish an approval count of the same ballots beside the ranked count."
+        },
+        {
+          "id": "keep-fptp",
+          "text": "I want Owen Sound municipal elections to keep first-past-the-post."
+        },
+        {
+          "id": "show-of-hands",
+          "text": "I want the Owen Sound association to refuse a ranked-ballot poll and keep its usual show of hands."
+        },
+        {
+          "id": "counting-toolkit",
+          "text": "I want the Owen Sound poll to use a published counting method that a second person can rerun from the published ballots."
+        },
+        {
+          "id": "poll-host-kit",
+          "text": "I want a written host kit so a second Owen Sound resident can run the next non-binding poll without the first host."
+        },
+        {
+          "id": "trial-directory",
+          "text": "I want a one-year directory of Grey County groups that have published a non-binding ranked or approval count, including groups that stopped and the date they stopped."
+        }
+      ]
+    },
+    {
+      "id": "grey-assimilation",
+      "title": "Grey County practical-English sessions",
+      "notes": [
+        "Draft bridge from statement-generation-exercises/06-network-society-alliances.json. Modified-to-commonality was blessed on 2026-10-16 and is planned with live-attester evidence. This is not the accepted immigration cluster and it is not accepted seed."
+      ],
+      "statements": [
+        { "id": "natural-left", "role": "natural-left", "text": "I want newcomers in Grey County to be able to learn practical English and how the library, the bus, and a township office work, and I want them to be able to keep their own customs." },
+        { "id": "natural-right", "role": "natural-right", "text": "If people move to Grey County, they should join the local way of life. I don't want the township running services in origin languages forever." },
+        { "id": "modified-left", "role": "modified-left", "text": "I want newcomers in Grey County to be able to learn practical English and how the library, the bus, and a township office work, and I want them to be able to keep their own customs. I'd be okay with twelve evening practical-English sessions in Owen Sound, with childcare, that explain those four things, while township business stays in English and the sessions stop short of telling newcomers which customs to keep. I would not want this to become a second township office in origin languages. This isn't my whole view of immigration." },
+        { "id": "modified-right", "role": "modified-right", "text": "If people move to Grey County, they should be able to function in the local civic life, and I don't want the township running services in origin languages forever. I'd still rather see less immigration, but that is a different question. I'd be okay with twelve evening practical-English sessions in Owen Sound, with childcare, that explain the library, the bus, and a township office, while township business stays in English and the sessions stop short of telling newcomers which customs to keep. This isn't my whole view of immigration." },
+        { "id": "commonality", "role": "commonality", "text": "I'd be okay with twelve evening practical-English sessions in Owen Sound, with childcare, that explain the library, the bus, and a township office, while township business stays in English and the sessions stop short of telling newcomers which customs to keep. This isn't my whole view of immigration." }
+      ]
+    },
+    {
+      "id": "ranked-approval-poll",
+      "title": "Owen Sound dual-count poll",
+      "notes": ["Draft bridge. Unevaluated. The older voting group stays a plain board of separate planks."],
+      "statements": [
+        { "id": "natural-left", "role": "natural-left", "text": "First-past-the-post wastes my vote. I want ranked ballots." },
+        { "id": "natural-right", "role": "natural-right", "text": "First-past-the-post rewards the biggest camp. I want approval voting, not a ranked system." },
+        { "id": "modified-left", "role": "modified-left", "text": "First-past-the-post wastes my vote. I want ranked ballots for a real election. I'd be okay with one Owen Sound community association running a non-binding poll and publishing both a ranked count and an approval count of the same ballots. That is not a change to Owen Sound's municipal elections, and publishing the approval count is not me dropping ranked ballots." },
+        { "id": "modified-right", "role": "modified-right", "text": "First-past-the-post rewards the biggest camp. I want approval voting, not a ranked system, for a real election. I'd be okay with one Owen Sound community association running a non-binding poll and publishing both a ranked count and an approval count of the same ballots. That is not a change to Owen Sound's municipal elections, and publishing the ranked count is not me adopting ranked ballots." },
+        { "id": "commonality", "role": "commonality", "text": "I'd be okay with one Owen Sound community association running a non-binding poll and publishing both a ranked count and an approval count of the same ballots. That is not a change to Owen Sound's municipal elections." }
+      ]
+    },
+    {
+      "id": "checkout-trial-bridge",
+      "title": "Owen Sound checkout trial bridge",
+      "notes": ["Draft bridge. Unevaluated. The crypto-merchants planks stay on their own board."],
+      "statements": [
+        { "id": "natural-left", "role": "natural-left", "text": "I want shops to take crypto so a bank can't decide whether a customer gets to pay." },
+        { "id": "natural-right", "role": "natural-right", "text": "I'm tired of handing three percent of every sale to the card companies." },
+        { "id": "modified-left", "role": "modified-left", "text": "I want a willing shop and a willing customer to be able to complete a payment when a bank has blocked that customer. Replacing the banks is a bigger thing than this. I'd be okay with six named shops in Owen Sound trying, for three months, a checkout that can take a crypto payment and refund it, show the fee on a twenty-dollar sale before the customer pays, and keep taking cash and ordinary cards the whole time." },
+        { "id": "modified-right", "role": "modified-right", "text": "I'm tired of handing three percent of every sale to the card companies. I don't care about crypto as a cause. I'd still be okay with six named shops in Owen Sound trying, for three months, a checkout that can take a crypto payment and refund it, show the fee on a twenty-dollar sale before the customer pays, and keep taking cash and ordinary cards the whole time. If the trial is a bad deal, I want the fees and failures published." },
+        { "id": "commonality", "role": "commonality", "text": "I'd be okay with six named shops in Owen Sound trying, for three months, a checkout that can take a crypto payment and refund it, show the fee on a twenty-dollar sale before the customer pays, and keep taking cash and ordinary cards the whole time." }
+      ]
+    },
+    {
+      "id": "minors-medicine",
+      "title": "Minors' medicine and courtesy",
+      "notes": ["Draft bridge. Unevaluated. Does not settle the accepted schools-pushing cluster, classroom names, or a school approving drugs."],
+      "statements": [
+        { "id": "natural-left", "role": "natural-left", "text": "I want a young person in distress about their sex to be able to get medical treatment, including hormones, and I want the rest of us to stop being cruel about it." },
+        { "id": "natural-right", "role": "natural-right", "text": "I don't want children given drugs or surgery to try to change their sex." },
+        { "id": "modified-left", "role": "modified-left", "text": "I want adults to make their own medical decisions, and I want disagreeing with someone to not be a reason to harass them. I'd prefer doctors and families to decide about hormones for minors case by case, but I'd be okay with a rule that minors are not given cross-sex hormones or genital surgery, that an adult makes their own medical decision, and that disagreeing with someone is not a reason to harass them. This isn't my ideal." },
+        { "id": "modified-right", "role": "modified-right", "text": "I don't want children given drugs or surgery to try to change their sex. I'd be okay with a rule that minors are not given cross-sex hormones or genital surgery, that an adult makes their own medical decision, and that disagreeing with someone is not a reason to harass them. What name a classroom uses, and whether a school may approve those drugs, are separate questions, and this isn't my whole view." },
+        { "id": "commonality", "role": "commonality", "text": "I'd be okay with a rule that minors are not given cross-sex hormones or genital surgery, that an adult makes their own medical decision, and that disagreeing with someone is not a reason to harass them. This isn't my whole view." }
+      ]
+    },
+    {
+      "id": "opinion-employment",
+      "title": "Ordinary opinions and employment",
+      "notes": ["Draft bridge. Unevaluated."],
+      "statements": [
+        { "id": "natural-left", "role": "natural-left", "text": "Nobody should lose their livelihood because they said something unpopular." },
+        { "id": "natural-right", "role": "natural-right", "text": "Institutions are ending people's careers over ordinary political opinions, and that should stop." },
+        { "id": "modified-left", "role": "modified-left", "text": "I don't want someone treated as unemployable for an ordinary political opinion. I still want a workplace to respond to threats, to harassment of coworkers, and to someone refusing to do the job. I'd be okay with it if an ordinary political opinion, by itself, were not grounds for treating someone as unemployable, if threats, harassment of coworkers, and refusing the work still were, and if a published appeal came before that treatment. I'd still rather a workplace could tell people not to campaign for a candidate while they are on the clock. I feel less strongly about that than about someone losing a livelihood, and I don't have to defend every opinion." },
+        { "id": "modified-right", "role": "modified-right", "text": "Institutions should stop ending people's careers over ordinary political opinions. I'd be okay with it if an ordinary political opinion, by itself, were not grounds for treating someone as unemployable, if threats, harassment of coworkers, and refusing the work still were, and if a published appeal came before that treatment. I'd still rather a church or a private club could refuse membership over an ordinary political opinion. I feel more strongly about that freedom than about employment rules, and I don't need every sanction anywhere to be forbidden." },
+        { "id": "commonality", "role": "commonality", "text": "I'd be okay with it if an ordinary political opinion, by itself, were not grounds for treating someone as unemployable, if threats, harassment of coworkers, and refusing the work still were, and if a published appeal came before that treatment." }
+      ]
+    },
+    {
+      "id": "canada-us-ties",
+      "title": "Ordinary Canada-US ties",
+      "notes": [
+        "Bridge on one want: ordinary purchases and family visits, with the administration question left out. The two modified-to-commonality arrows stay. This is not a second compromise on that same want.",
+        "The archive, the guide, the Owen Sound evening, the directory, and the host handoff are separate planks. A boycott and narrower-than-both are incompatible positions. Neither is an implication of the commonality, and neither is published as an arrow. Not accepted seed."
+      ],
+      "statements": [
+        { "id": "natural-left", "role": "natural-left", "text": "I don't like Trump, and I still think it's foolish for Canadians to cut off ordinary buying and family visits to the US." },
+        { "id": "natural-right", "role": "natural-right", "text": "Canada should keep its ordinary ties with the US. There's nothing wrong with that." },
+        { "id": "modified-left", "role": "modified-left", "text": "I don't like the current US administration. I'd still rather Canadians keep buying ordinary goods from US businesses and visiting family there than join a boycott of those ordinary ties. Ordinary Canadians should keep buying from US businesses and visiting family in the US. This is not a statement about the current US administration. I'd still rather people buy the Canadian good when the price and quality are the same. I feel less strongly about that preference than about refusing a boycott." },
+        { "id": "modified-right", "role": "modified-right", "text": "I want Canadians to keep buying ordinary goods from US businesses and visiting family in the US. Ordinary Canadians should keep buying from US businesses and visiting family in the US. This is not a statement about the current US administration. I'd still rather Canada also keep shared border staffing and ordinary military exercises with the US. I feel more strongly about purchases and family visits than about those, and I am not asking anyone to praise the administration." },
+        { "id": "commonality", "role": "commonality", "text": "Ordinary Canadians should keep buying from US businesses and visiting family in the US. This is not a statement about the current US administration." },
+        { "id": "cultural-archive", "text": "I want a public archive, kept for one year, of dated stories from people in Owen Sound about family visits and ordinary purchases across the Canada-US border. A contributor's name goes on a story only if they asked for that." },
+        { "id": "ties-guide", "text": "I want a public guide for people in Owen Sound that lists practical steps for a family visit to the US and for buying from a US business, and that does not tell the reader which party or administration to support." },
+        { "id": "community-event", "text": "I want one Owen Sound evening, with a published agenda and reusable materials a later host can copy, where neighbors can talk about family visits and ordinary purchases across the Canada-US border. Nobody at that evening is asked to praise or condemn the current US administration." },
+        { "id": "exchange-directory", "text": "I want a directory, checked once a month for one year, of people in Grey County who will host a conversation about Canada-US family visits and ordinary purchases. Each listing names the person, the town, and how a reader can tell the listing is still current." },
+        { "id": "host-handoff", "text": "I want written handoff steps so a second person in Owen Sound can host the next conversation about Canada-US family visits without the first host." },
+        { "id": "boycott-ordinary-ties", "text": "I want ordinary Canadians to stop buying from US businesses and to stop family visits to the US while the current administration is in office. I will not sign a call for them to keep doing either of those things." },
+        { "id": "narrower-than-visits", "text": "I want Canadians to keep visiting family in the US. I do not want ordinary Canadians told to keep buying from US businesses. A sentence that asks for both of those is more than I will sign." }
+      ]
+    },
+    {
+      "id": "ai-pause",
+      "title": "Pause new AI capabilities research while work on catastrophic harm continues",
+      "notes": [
+        "Different problems, same limited ask. The shared sentence is the treaty pause. Each milder statement keeps a reason the shared sentence does not contain, so signing the short sentence is not a signature of extinction, of job loss, or of contempt for executives.",
+        "Naturals are how someone talks before they have accepted the treaty. Modifieds add that ask. Poles do not contain it. Five modified-to-commonality arrows are allowed after the 2026-10-16 deepseek-v3.2 pass. Naturals, poles, and the reverse arrows stay unpublished.",
+        "The shared sentence is: I'd be okay with an international treaty that pauses new research aimed at making AI systems more capable, for the length of that pause, while work continues on how to keep a more capable system from doing catastrophic harm. I'm not saying every current software tool has to be switched off."
+      ],
+      "statements": [
+        {
+          "id": "commonality",
+          "role": "commonality",
+          "text": "I'd be okay with an international treaty that pauses new research aimed at making AI systems more capable, for the length of that pause, while work continues on how to keep a more capable system from doing catastrophic harm. I'm not saying every current software tool has to be switched off."
+        },
+        {
+          "id": "natural-small-chance",
+          "text": "You don't have to be sure that a more capable AI will wipe us out. Even a small chance, something like one percent or ten percent, would be an absurd risk to take in any other context."
+        },
+        {
+          "id": "modified-small-chance",
+          "role": "modified-left",
+          "text": "I'm not willing to say that a more capable AI is going to wipe us out. I don't need that certainty. Even a small chance of it, something on the order of one or five or ten percent, is an absurd risk to take with everyone's lives. I'd be okay with an international treaty that pauses new research aimed at making AI systems more capable, for the length of that pause, while work continues on how to keep a more capable system from doing catastrophic harm. I'm not saying every current software tool has to be switched off. Signing this is not me joining the people who are already sure."
+        },
+        {
+          "id": "natural-jobs",
+          "text": "AI is going to lead to massive job loss. That is not worth it."
+        },
+        {
+          "id": "modified-jobs",
+          "role": "modified-right",
+          "text": "What I actually lose sleep over is the jobs. A race to more capable AI looks like a lot of people thrown out of work for a gain I didn't ask for. I'm not claiming I know the chance of extinction. I'd be okay with an international treaty that pauses new research aimed at making AI systems more capable, for the length of that pause, while work continues on how to keep a more capable system from doing catastrophic harm. I'm not saying every current software tool has to be switched off. The pause is the part I came for. The work on catastrophic harm is not my reason."
+        },
+        {
+          "id": "natural-industry",
+          "text": "An increasing number of people inside the AI industry are warning that pushing further has potentially catastrophic consequences."
+        },
+        {
+          "id": "modified-industry",
+          "text": "An increasing number of people who work on these systems are warning that pushing capability further could be catastrophic. I don't build the systems, and I'm not going to pretend I can check their math, but I don't think we should ignore them. I'd be okay with an international treaty that pauses new research aimed at making AI systems more capable, for the length of that pause, while work continues on how to keep a more capable system from doing catastrophic harm. I'm not saying every current software tool has to be switched off. Hearing the warning is not the same as being sure we all die."
+        },
+        {
+          "id": "natural-not-luddite",
+          "text": "I'm not a Luddite, but I'm not blindly in favour of all technology either. This just isn't worth the risk."
+        },
+        {
+          "id": "modified-not-luddite",
+          "text": "I'm not a Luddite, and I'm not against technology in general. Plenty of tools are worth having. A race to more capable AI is a different thing, and I don't think the upside covers the risk. I'd be okay with an international treaty that pauses new research aimed at making AI systems more capable, for the length of that pause, while work continues on how to keep a more capable system from doing catastrophic harm. I'm not saying every current software tool has to be switched off. This isn't a request to smash the machines we already use."
+        },
+        {
+          "id": "natural-children",
+          "text": "These tech executives are gambling with my children's lives."
+        },
+        {
+          "id": "modified-children",
+          "text": "I don't trust a handful of tech executives to keep gambling with my children's lives. They can be wrong and still get rich. I'd be okay with an international treaty that pauses new research aimed at making AI systems more capable, for the length of that pause, while work continues on how to keep a more capable system from doing catastrophic harm. I'm not saying every current software tool has to be switched off. My complaint is about who is taking the risk, not a claim that I want every program unplugged."
+        },
+        {
+          "id": "pole-stop",
+          "text": "A superintelligent AI is going to kill us. The work should just stop. A treaty that pauses new capability research while alignment work continues is not enough, because the same labs will keep going the moment the pause slips."
+        },
+        {
+          "id": "pole-accelerate",
+          "text": "We should not pause AI capabilities research. Falling behind other labs and other countries is the danger I actually take seriously."
+        },
+        {
+          "id": "treaty-petition",
+          "text": "I want a public petition that asks governments to negotiate an international treaty pausing new research aimed at making AI systems more capable, while work on catastrophic harm continues, and I want the petition text and the signature count published."
+        },
+        {
+          "id": "alignment-note",
+          "text": "I want a published piece of work on how to keep a more capable AI system from doing catastrophic harm, with the method and the result written so a second person can check them, and without a claim that the problem has been solved."
+        },
+        {
+          "id": "warning-digest",
+          "text": "I want a one-year digest that lists public warnings from people who work on AI, with the date and the source, and that does not add a claim the source did not make."
+        },
+        {
+          "id": "pause-host-kit",
+          "text": "I want a written host kit so a second person can run a meeting about that pause treaty without the first host."
+        }
+      ]
+    }
+  ]
+}

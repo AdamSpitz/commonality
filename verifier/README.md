@@ -94,7 +94,7 @@ Only use `verifier-run <checkId>` / `COMMONALITY_VERIFIER_ALLOW_LLM=1` when Adam
 
 Expensive (LLM/agent) checks are marked declaratively with `"cost": "llm"` in their `*.def.json`. Count them with `npm run verifier:llm -- --list`: standing `review.*` “acts like a human tester” leaves (including `review.testnet-two-person-lab`), two meta reviewers, `meta.report-currency`, the `root` narrative, and the `known-bad.report` fixture (that last one never calls a live model). **They do not auto-run.** Review/meta leaves are `trigger: manual`. `meta.report-currency` is an explicit legacy heuristic (`npm run verifier:currency:heuristic`) and is no longer a root input. `root` may still fold on input change, but its **narrative model call is opt-in** (`COMMONALITY_VERIFIER_ALLOW_LLM=1`, set by `verifier:root`). The scheduler therefore cannot burn tokens on human-tester leaves.
 
-They spend against Adam's **subscription** providers only (`xai/grok-4.6` by default, or `opencode-go/…` via `COMMONALITY_VERIFIER_LLM_PROVIDER=opencode-go`). `verifier/llm-routing.json` is the pin; OpenRouter and other pay-per-token gateways are rewritten away before `pi` is spawned.
+They spend against Adam's **subscription** providers only (`xai/grok-4.7` by default, `opencode-go/qwen3.8-flash` for `clear-communication`, or another `opencode-go/…` model via `COMMONALITY_VERIFIER_LLM_PROVIDER=opencode-go`). `verifier/llm-routing.json` is the pin; OpenRouter and other pay-per-token gateways are rewritten away before `pi` is spawned.
 
 To have the LLM you are already chatting with do the review (and have it count as a real stored Result): dump the prompt, write the JSON envelope the prompt asks for, then record it — no second `pi` process, no OpenRouter:
 

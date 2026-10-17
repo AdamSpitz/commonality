@@ -23,6 +23,13 @@ test('planner emits an identical, complete plan for the same seed', async () => 
   assert.equal(first.users.some((user) => 'privateKey' in user || 'address' in user), false);
 });
 
+test('validation rejects catalog statements that collide on a planned ID', async () => {
+  const manifest = await loadManifest();
+  const plan = await buildCampaignPlan(manifest);
+  plan.statements[1].id = plan.statements[0].id;
+  assert.throws(() => validatePlannedActions(manifest, plan.statements, plan.users, plan.projects, plan.actions), /planned statement IDs must be unique/);
+});
+
 test('v2 gives every cause a concrete project and bridge projects use shared outcomes', async () => {
   const manifest = JSON.parse(await readFile(new URL('../campaigns/medium-realistic-v2.json', import.meta.url), 'utf8')) as CampaignManifestV1;
   const plan = await buildCampaignPlan(manifest);
@@ -207,6 +214,153 @@ test('validation rejects an action whose prerequisite points forward', async () 
   const manifest = await loadManifest(); const plan = await buildCampaignPlan(manifest); const invalid = structuredClone(plan.actions);
   invalid[0].dependsOn = [invalid[1].id];
   assert.throws(() => validatePlannedActions(manifest, plan.statements, plan.users, plan.projects, invalid), /impossible dependency/);
+});
+
+test('network-societies pilot reuses one directory statement and publishes no implication', async () => {
+  const manifest = JSON.parse(await readFile(new URL('../campaigns/network-societies-v1-pilot.json', import.meta.url), 'utf8')) as CampaignManifestV1;
+  const plan = await buildCampaignPlan(manifest);
+  assert.equal(plan.users.length, 40);
+  assert.equal(plan.statements.length, 40);
+  assert.equal(plan.projects.length, 20);
+  const shared = plan.statements.find((statement) => statement.source.statementId === 'class-host-directory');
+  assert.ok(shared);
+  assert.deepEqual(shared!.alsoOnCauseIds, ['christian-teaching', 'home-learning']);
+  assert.equal(plan.actions.filter((action) => action.type === 'publish-statement' && action.statementId === shared!.id).length, 1);
+  assert.equal(plan.projects.filter((project) => project.statementIds.includes(shared!.id)).length, 1);
+  assert.equal(plan.actions.filter((action) => action.type === 'attest-implication').length, 0);
+  const pat = plan.users.find((user) => user.displayName === 'Pat')!;
+  const ned = plan.users.find((user) => user.displayName === 'Ned')!;
+  const patDelegations = plan.actions.filter((action) => action.type === 'delegate-note' && action.actorUserId === pat.id);
+  assert.ok(patDelegations.length > 0);
+  assert.ok(patDelegations.every((action) => action.delegateUserId === ned.id));
+  for (const causeId of manifest.causes.map((cause) => cause.id)) {
+    assert.ok(plan.projects.filter((project) => project.causeId === causeId).length >= 5);
+  }
+});
+
+test('batch 2 keeps the pilot families, reuses accepted bridges, and shares one checklist', async () => {
+  const manifest = JSON.parse(await readFile(new URL('../campaigns/network-societies-v1-b2.json', import.meta.url), 'utf8')) as CampaignManifestV1;
+  const pilotStatements = JSON.parse(await readFile(new URL('../campaigns/network-societies-v1-pilot-statements.json', import.meta.url), 'utf8'));
+  const batchStatements = JSON.parse(await readFile(new URL('../campaigns/network-societies-v1-b2-statements.json', import.meta.url), 'utf8'));
+  for (const group of pilotStatements.groups) {
+    const copy = batchStatements.groups.find((item: { id: string }) => item.id === group.id);
+    assert.deepEqual(copy.statements, group.statements);
+  }
+  const plan = await buildCampaignPlan(manifest);
+  assert.equal(plan.users.length, 72);
+  assert.equal(plan.statements.length, 124);
+  assert.equal(plan.projects.length, 62);
+  const checklist = plan.statements.find((statement) => statement.source.statementId === 'moderator-checklist');
+  assert.ok(checklist);
+  assert.equal(checklist!.causeId, 'abortion-forum');
+  assert.deepEqual(checklist!.alsoOnCauseIds, ['voting']);
+  assert.equal(plan.projects.filter((project) => project.statementIds.includes(checklist!.id)).length, 1);
+  const implications = plan.actions.filter((action) => action.type === 'attest-implication');
+  assert.equal(implications.length, 21);
+  const accepted = implications.filter((action) => action.implication!.evidence === 'accepted-bridge-role-pair');
+  const live = implications.filter((action) => action.implication!.evidence === 'live-attester-modified-to-commonality');
+  assert.equal(accepted.length, 4);
+  assert.equal(live.length, 17);
+  for (const action of accepted) {
+    const from = plan.statements.find((statement) => statement.id === action.implication!.fromStatementId)!;
+    assert.ok(from.source.collectionId === 'compromise-abortion' || from.source.collectionId === 'lgbt-schools');
+  }
+  for (const action of implications) {
+    const from = plan.statements.find((statement) => statement.id === action.implication!.fromStatementId)!;
+    const to = plan.statements.find((statement) => statement.id === action.implication!.toStatementId)!;
+    const plainModified = from.role === null && from.source.statementId.startsWith('modified-') && action.implication!.evidence === 'live-attester-modified-to-commonality';
+    assert.ok(from.role === 'modified-left' || from.role === 'modified-right' || plainModified);
+    assert.equal(to.role, 'commonality');
+    assert.equal(from.source.groupId, to.source.groupId);
+  }
+  const michigan = plan.statements.find((statement) => statement.source.statementId === 'michigan-legislature')!;
+  assert.equal(implications.some((action) => action.implication!.fromStatementId === michigan.id || action.implication!.toStatementId === michigan.id), false);
+  for (const causeId of ['abortion', 'schools']) {
+    const board = plan.actions.find((action) => action.type === 'create-cause' && action.causeId === causeId)!.board!;
+    assert.equal(board.role, 'commonality');
+    assert.equal(board.statementIds.length, 1);
+  }
+  const forum = plan.actions.find((action) => action.type === 'create-cause' && action.causeId === 'abortion-forum')!.board!;
+  assert.equal(forum.role, 'plain');
+  assert.ok(forum.statementIds.includes(michigan.id));
+  for (const causeId of ['grey-assimilation', 'ranked-approval-poll', 'checkout-trial-bridge', 'minors-medicine', 'opinion-employment', 'canada-us-ties']) {
+    const board = plan.actions.find((action) => action.type === 'create-cause' && action.causeId === causeId)!.board!;
+    assert.equal(board.role, 'commonality');
+    assert.equal(implications.filter((action) => action.causeId === causeId).length, 2, causeId);
+    assert.ok(implications.filter((action) => action.causeId === causeId).every((action) => action.implication!.evidence === 'live-attester-modified-to-commonality'));
+  }
+  const pauseBoard = plan.actions.find((action) => action.type === 'create-cause' && action.causeId === 'ai-pause')!.board!;
+  assert.equal(pauseBoard.role, 'plain');
+  const pauseArrows = implications.filter((action) => action.causeId === 'ai-pause');
+  assert.equal(pauseArrows.length, 5);
+  const pauseFrom = pauseArrows.map((action) => plan.statements.find((statement) => statement.id === action.implication!.fromStatementId)!.source.statementId).sort();
+  assert.deepEqual(pauseFrom, ['modified-children', 'modified-industry', 'modified-jobs', 'modified-not-luddite', 'modified-small-chance']);
+  const canadaBoard = plan.actions.find((action) => action.type === 'create-cause' && action.causeId === 'canada-us-ties')!.board!;
+  const canadaIds = canadaBoard.statementIds.map((id) => plan.statements.find((statement) => statement.id === id)!.source.statementId);
+  assert.deepEqual(canadaIds, ['commonality', 'cultural-archive', 'ties-guide', 'community-event', 'exchange-directory', 'host-handoff', 'boycott-ordinary-ties', 'narrower-than-visits']);
+  assert.equal(plan.projects.filter((project) => project.causeId === 'canada-us-ties').length, 7);
+  const boycott = plan.statements.find((statement) => statement.source.groupId === 'canada-us-ties' && statement.source.statementId === 'boycott-ordinary-ties')!;
+  const narrower = plan.statements.find((statement) => statement.source.groupId === 'canada-us-ties' && statement.source.statementId === 'narrower-than-visits')!;
+  const canadaCommonality = plan.statements.find((statement) => statement.source.groupId === 'canada-us-ties' && statement.source.statementId === 'commonality')!;
+  assert.equal(implications.some((action) => action.implication!.fromStatementId === boycott.id || action.implication!.toStatementId === boycott.id || action.implication!.fromStatementId === narrower.id || action.implication!.toStatementId === narrower.id), false);
+  assert.equal(implications.filter((action) => action.implication!.toStatementId === canadaCommonality.id).map((action) => plan.statements.find((statement) => statement.id === action.implication!.fromStatementId)!.source.statementId).sort().join(','), 'modified-left,modified-right');
+  for (const statementId of ['natural-small-chance', 'natural-jobs', 'pole-stop', 'pole-accelerate']) {
+    const statement = plan.statements.find((item) => item.source.groupId === 'ai-pause' && item.source.statementId === statementId)!;
+    assert.equal(implications.some((action) => action.implication!.fromStatementId === statement.id || action.implication!.toStatementId === statement.id), false, statementId);
+  }
+  for (const causeId of manifest.causes.map((cause) => cause.id)) {
+    assert.ok(plan.projects.filter((project) => project.causeId === causeId).length >= 2, causeId);
+  }
+});
+
+test('batch 2 pins persona belief choices and never has Eli believe the settlement', async () => {
+  const manifest = JSON.parse(await readFile(new URL('../campaigns/network-societies-v1-b2.json', import.meta.url), 'utf8')) as CampaignManifestV1;
+  const decisions = JSON.parse(await readFile(new URL('../campaigns/network-societies-v1-b2-decisions.json', import.meta.url), 'utf8')) as {
+    people: { userId: string; name: string; signs?: string[]; rejects?: string[]; unsigned?: string[] }[];
+  };
+  const plan = await buildCampaignPlan(manifest);
+  const beliefs = plan.actions.filter((action) => action.type === 'set-belief');
+  assert.equal(beliefs.length, 105);
+  const byStatementId = (sourceId: string, userId: string) => beliefs.filter((action) => {
+    const statement = plan.statements.find((item) => item.id === action.statementId);
+    return action.actorUserId === userId && statement?.source.statementId === sourceId;
+  });
+  for (const person of decisions.people) {
+    for (const statementId of person.signs ?? []) {
+      const actions = byStatementId(statementId, person.userId);
+      assert.deepEqual(actions.map((action) => action.belief), ['believe'], `${person.name} ${statementId}`);
+    }
+    for (const statementId of person.rejects ?? []) {
+      const actions = byStatementId(statementId, person.userId);
+      assert.deepEqual(actions.map((action) => action.belief), ['disbelieve'], `${person.name} ${statementId}`);
+    }
+  }
+  const eli = plan.users.find((user) => user.displayName === 'Eli')!;
+  const settlement = plan.statements.find((statement) => statement.source.collectionId === 'compromise-abortion' && statement.source.statementId === 'commonality')!;
+  assert.equal(beliefs.some((action) => action.actorUserId === eli.id && action.statementId === settlement.id && action.belief === 'believe'), false);
+  const pauseCommonality = plan.statements.find((statement) => statement.source.groupId === 'ai-pause' && statement.source.statementId === 'commonality')!;
+  for (const name of ['Noor', 'Tess']) {
+    const user = plan.users.find((item) => item.displayName === name)!;
+    assert.equal(beliefs.some((action) => action.actorUserId === user.id && action.statementId === pauseCommonality.id), false, name);
+  }
+  for (const name of ['Hal', 'Vic']) {
+    const user = plan.users.find((item) => item.displayName === name)!;
+    assert.equal(beliefs.some((action) => action.actorUserId === user.id && action.statementId === pauseCommonality.id && action.belief === 'believe'), false, name);
+    assert.equal(beliefs.some((action) => action.actorUserId === user.id && action.statementId === pauseCommonality.id && action.belief === 'disbelieve'), true, name);
+  }
+  const canadaCommonality = plan.statements.find((statement) => statement.source.groupId === 'canada-us-ties' && statement.source.statementId === 'commonality')!;
+  const boycott = plan.statements.find((statement) => statement.source.groupId === 'canada-us-ties' && statement.source.statementId === 'boycott-ordinary-ties')!;
+  for (const name of ['Greta', 'Neil']) {
+    const user = plan.users.find((item) => item.displayName === name)!;
+    assert.equal(beliefs.some((action) => action.actorUserId === user.id && action.statementId === canadaCommonality.id && action.belief === 'believe'), false, name);
+    assert.equal(beliefs.some((action) => action.actorUserId === user.id && action.statementId === canadaCommonality.id && action.belief === 'disbelieve'), true, name);
+  }
+  const greta = plan.users.find((user) => user.displayName === 'Greta')!;
+  assert.equal(beliefs.some((action) => action.actorUserId === greta.id && action.statementId === boycott.id && action.belief === 'believe'), true);
+  const adele = plan.users.find((user) => user.displayName === 'Adele')!;
+  assert.equal(beliefs.some((action) => action.actorUserId === adele.id && action.statementId === canadaCommonality.id), false);
+  const canadaArrows = plan.actions.filter((action) => action.type === 'attest-implication' && action.causeId === 'canada-us-ties');
+  assert.equal(canadaArrows.some((action) => action.implication!.fromStatementId === boycott.id), false);
 });
 
 test('written planning artifacts reload into the same campaign plan', async () => {

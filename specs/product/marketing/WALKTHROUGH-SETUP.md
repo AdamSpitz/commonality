@@ -39,7 +39,7 @@ Then:
 
 See [demo-profiles.md](./demo-profiles.md) for the full list. Quick picks:
 
-- **Friend who donates but doesn't organize:** Sam (casual donor)
+- **Friend who donates but doesn't organize:** Casey (casual donor)
 - **Friend who runs a club/meetup:** Alex (community organizer)
 - **Friend who evaluates tech/projects:** Jordan (expert scout)
 - **Friend building something public:** Taylor (project founder)

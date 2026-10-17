@@ -78,6 +78,12 @@ Do these in order unless Adam names a different one. Each item is a session-size
 7. **[ ] Stress scale** (`gen:large` today is 100 users). 1000+ users, graphs, indexer deep-compare: not started.
 8. **[ ] Incentive demonstrations** — three synthetic stories (Civility's changed choice, a negative replication, a shared migration where money is not a commitment). Inventory, scenarios, and the authoring template: [`incentive-demonstrations.md`](./incentive-demonstrations.md). Do not put that backlog back into the public strategy page.
 
+### F — Network societies pilot
+
+The four-family pilot (crypto merchants, Grey County civic life, Christian teaching, home learning) is in [`campaigns/network-societies-v1-pilot.md`](./campaigns/network-societies-v1-pilot.md). A local run on 2026-10-16 mined and reconciled 207/207. Cause pages list the shared class-host directory once the alignment-trust bootstrap wallet has gas.
+
+Batch 2 keeps those four families and adds the accepted abortion bridge, the accepted schools-pushing bridge, an Owen Sound voting trial, six draft bridges, a Canada–US family past the five-statement draft, and a plain AI-pause board. The note is [`campaigns/network-societies-v1-b2.md`](./campaigns/network-societies-v1-b2.md). The current manifest is 72 users, 124 statements, and 62 projects. Twenty-one modified-to-commonality arrows are allowed. A local run on 2026-10-16 mined and reconciled 446/446 into `output/campaigns/network-societies-v1-b2/`. That directory is the earlier plan. Do not regenerate into it or into `output/campaigns/network-societies-v1-b2-ai-pause/`.
+
 ## Pointers
 
 - Kinds of data also summarized in [`README.md`](./README.md), [seed-content rationale](/specs/tech/subsystems/conceptspace/seed-content/README.md), [local development](/workflow/local-development.md).

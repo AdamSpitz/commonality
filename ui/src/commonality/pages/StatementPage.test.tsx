@@ -14,11 +14,15 @@ vi.mock('wagmi', () => ({
 
 vi.mock('@commonality/sdk/conceptspace', () => ({
   getStatementWithContent: (...args: unknown[]) => getStatementWithContent(...args),
+  getImplicationsTo: async () => [],
+  getIndirectSupporters: async () => [],
+  getStatement: async () => null,
 }))
 
 vi.mock('@ui/shared', () => ({
   useMachinery: () => ({}),
   useTrustedAttesters: () => [],
+  getRuntimeConfig: () => ({}),
   loadDisplayDenylist: async () => ({ deniedCids: [], honoredRetractors: [] }),
   isCidDeniedByDisplayDenylist: () => false,
 }))

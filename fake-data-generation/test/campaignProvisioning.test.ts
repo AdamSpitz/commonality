@@ -7,6 +7,7 @@ import { parseEther, parseUnits, type Address, type Hex } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { LOCAL_HARDHAT_CHAIN_ID, type CampaignEnvironment } from '../campaignEnvironment.js';
 import type { CampaignPlan, PlannedAction } from '../campaignPlanner.js';
+import { estimateGroupGas } from '../campaignBatching.js';
 import { CAMPAIGN_NOTE_WEI, computeCampaignFundingNeeds, provisionCampaignWallets, type CampaignFundingChain } from '../campaignProvisioning.js';
 
 const generatedKey = '0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d' as const;
@@ -41,13 +42,13 @@ test('funding needs include gas, note deposits, and project token buys', () => {
   const [need] = computeCampaignFundingNeeds(plan, [wallet], 1_000_000_000n);
   assert.equal(need.walletSlot, 'wallet-user-001');
   assert.equal(need.paymentTokenUnits, parseUnits('0.01', 6));
-  assert.ok(need.nativeWei >= 90_000n * 1_000_000_000n + 180_000n * 1_000_000_000n + 150_000n * 1_000_000_000n + CAMPAIGN_NOTE_WEI);
+  assert.ok(need.nativeWei >= 120_000n * 1_000_000_000n + 180_000n * 1_000_000_000n + 150_000n * 1_000_000_000n + CAMPAIGN_NOTE_WEI);
 });
 
 test('native reserve scales with gas and leaves idle wallets unfunded', () => {
   const idle = { ...wallet, walletSlot: 'wallet-idle' };
   const needs = computeCampaignFundingNeeds(plan, [wallet, idle], 1_000_000_000n);
-  const estimatedGasWei = (90_000n + 180_000n + 150_000n) * 1_000_000_000n;
+  const estimatedGasWei = (120_000n + 180_000n + 150_000n) * 1_000_000_000n;
   assert.equal(needs[0].nativeWei, CAMPAIGN_NOTE_WEI + estimatedGasWei * 125n / 100n + parseEther('0.0001'));
   assert.equal(needs[1].nativeWei, 0n);
 });
@@ -55,7 +56,22 @@ test('native reserve scales with gas and leaves idle wallets unfunded', () => {
 test('publisher wallet receives gas for actorless statement writes', () => {
   const publishOnly = { ...plan, actions: [action({ id: 'publish', type: 'publish-statement', actorUserId: null })] } as CampaignPlan;
   const [need] = computeCampaignFundingNeeds(publishOnly, [wallet], 6_000_000n);
-  assert.ok(need.nativeWei > 180_000n * 6_000_000n);
+  assert.ok(need.nativeWei >= 4_000_000n * 6_000_000n);
+});
+
+test('belief batches and publishes are funded for the gas the writer requests', () => {
+  const beliefs = [1, 2, 3].map((n) => action({ id: `b${n}`, type: 'set-belief', sequence: n }));
+  const writerGas = 40_000n + 80_000n * 3n;
+  assert.equal(estimateGroupGas(beliefs), writerGas);
+  const beliefPlan = { ...plan, actions: beliefs } as CampaignPlan;
+  const [beliefNeed] = computeCampaignFundingNeeds(beliefPlan, [wallet], 1_000_000_000n);
+  assert.ok(beliefNeed.nativeWei >= writerGas * 1_000_000_000n);
+
+  const publishes = [1, 2].map((n) => action({ id: `p${n}`, type: 'publish-statement', actorUserId: null, sequence: n }));
+  assert.equal(estimateGroupGas(publishes), 4_000_000n + 500_000n);
+  const publishPlan = { ...plan, actions: publishes } as CampaignPlan;
+  const [publishNeed] = computeCampaignFundingNeeds(publishPlan, [wallet], 1_000_000_000n);
+  assert.ok(publishNeed.nativeWei >= estimateGroupGas(publishes) * 1_000_000_000n);
 });
 
 test('provisioning uses the supplied RPC gas-price quote', async () => {
