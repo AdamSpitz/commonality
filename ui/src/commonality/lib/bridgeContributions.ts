@@ -17,6 +17,7 @@ export interface BridgePledge {
   token: string
   causeRef: string
   amountPerPeriod: string
+  period: string
 }
 
 export interface BridgeProject {
@@ -63,15 +64,21 @@ export function buildBridgeContributions(input: {
   for (const pledge of input.pledges) {
     if (!pledge.active) continue
     if (!vias.has(pledge.causeRef)) continue
-    if (token && pledge.token.toLowerCase() !== token) continue
-    const amount = BigInt(pledge.amountPerPeriod)
+    if (!token || pledge.token.toLowerCase() !== token) continue
+    const period = BigInt(pledge.period)
+    if (period <= 0n) continue
+    const amount = BigInt(pledge.amountPerPeriod) * 2_592_000n / period
     pledged.set(pledge.causeRef, (pledged.get(pledge.causeRef) ?? 0n) + amount)
   }
 
   const raised = new Map<string, Map<string, RaisedAmount>>()
   const seenProjects = new Set<string>()
+  const directProjects = new Set(input.projects
+    .filter((project) => project.alignmentType === 'direct')
+    .map((project) => project.projectAddress.toLowerCase()))
   const indirect = input.projects
-    .filter((project) => project.alignmentType === 'indirect')
+    .filter((project) => project.alignmentType === 'indirect'
+      && !directProjects.has(project.projectAddress.toLowerCase()))
     .slice()
     .sort((a, b) => a.projectAddress.toLowerCase().localeCompare(b.projectAddress.toLowerCase()))
   for (const project of indirect) {

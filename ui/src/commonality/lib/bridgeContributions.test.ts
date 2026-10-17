@@ -14,10 +14,10 @@ describe('buildBridgeContributions', () => {
         { user: '0xC', viaStatementCid: 'bridge-c' },
       ],
       pledges: [
-        { active: true, token: '0xToken', causeRef: 'bridge-b', amountPerPeriod: '5' },
-        { active: false, token: '0xToken', causeRef: 'bridge-b', amountPerPeriod: '9' },
-        { active: true, token: '0xOther', causeRef: 'bridge-a', amountPerPeriod: '100' },
-        { active: true, token: '0xToken', causeRef: 'target', amountPerPeriod: '50' },
+        { active: true, token: '0xToken', causeRef: 'bridge-b', period: '2592000', amountPerPeriod: '5' },
+        { active: false, token: '0xToken', causeRef: 'bridge-b', period: '2592000', amountPerPeriod: '9' },
+        { active: true, token: '0xOther', causeRef: 'bridge-a', period: '2592000', amountPerPeriod: '100' },
+        { active: true, token: '0xToken', causeRef: 'target', period: '2592000', amountPerPeriod: '50' },
       ],
       paymentToken: '0xToken',
       projects: [
@@ -68,5 +68,34 @@ describe('buildBridgeContributions', () => {
     })
     expect(rows.map((row) => row.viaStatementCid)).toEqual(['big'])
     expect(omitted).toBe(1)
+  })
+
+  it('excludes projects directly aligned with another statement on the same board', () => {
+    const project = {
+      projectAddress: '0xProject',
+      totalReceived: '99',
+      fundingCurrency: eth,
+    }
+    const { rows } = buildBridgeContributions({
+      viaStatementCids: ['bridge'],
+      supporters: [],
+      pledges: [],
+      projects: [
+        { ...project, alignmentType: 'indirect', viaStatementCids: ['bridge'] },
+        { ...project, projectAddress: '0xproject', alignmentType: 'direct' },
+      ],
+    })
+    expect(rows).toEqual([])
+  })
+
+  it('normalizes pledge periods to 30 days and requires the configured token', () => {
+    const input = {
+      viaStatementCids: ['bridge'],
+      supporters: [],
+      projects: [],
+      pledges: [{ active: true, token: '0xToken', causeRef: 'bridge', amountPerPeriod: '7', period: '604800' }],
+    }
+    expect(buildBridgeContributions({ ...input, paymentToken: '0xToken' }).rows[0]?.pledgedMonthly).toBe(30n)
+    expect(buildBridgeContributions(input).rows).toEqual([])
   })
 })

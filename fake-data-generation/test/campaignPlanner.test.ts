@@ -23,6 +23,13 @@ test('planner emits an identical, complete plan for the same seed', async () => 
   assert.equal(first.users.some((user) => 'privateKey' in user || 'address' in user), false);
 });
 
+test('validation rejects catalog statements that collide on a planned ID', async () => {
+  const manifest = await loadManifest();
+  const plan = await buildCampaignPlan(manifest);
+  plan.statements[1].id = plan.statements[0].id;
+  assert.throws(() => validatePlannedActions(manifest, plan.statements, plan.users, plan.projects, plan.actions), /planned statement IDs must be unique/);
+});
+
 test('v2 gives every cause a concrete project and bridge projects use shared outcomes', async () => {
   const manifest = JSON.parse(await readFile(new URL('../campaigns/medium-realistic-v2.json', import.meta.url), 'utf8')) as CampaignManifestV1;
   const plan = await buildCampaignPlan(manifest);

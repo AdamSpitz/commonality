@@ -629,6 +629,7 @@ export async function buildCampaignPlan(manifest: CampaignManifestV1): Promise<C
 export function validatePlannedActions(manifest: CampaignManifestV1, statements: PlannedStatement[], users: PlannedUser[], projects: PlannedProject[], actions: PlannedAction[]): void {
   const actionById = new Map(actions.map((action) => [action.id, action]));
   const statementIds = new Set(statements.map((item) => item.id)); const userIds = new Set(users.map((item) => item.id)); const projectIds = new Set(projects.map((item) => item.id));
+  if (statementIds.size !== statements.length) throw new Error('planned statement IDs must be unique');
   if (actionById.size !== actions.length) throw new Error('planned action IDs must be unique');
   for (const action of actions) {
     if (action.actorUserId !== null && !userIds.has(action.actorUserId)) throw new Error(`${action.id} has missing actor ${action.actorUserId}`);
