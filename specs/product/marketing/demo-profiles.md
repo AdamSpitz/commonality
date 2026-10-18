@@ -25,7 +25,7 @@ A delegate slot joins the delegation graph. It does not guarantee that Kurt or S
 
 | Profile | Role | Best for showing... | Favorite cause |
 |---|---|---|---|
-| **Sam (casual donor)** | regular-supporter | Hands-off giving: "$20/month without research" | Local food systems |
+| **Casey (casual donor)** | regular-supporter | Hands-off giving: "$20/month without research" | Local food systems |
 | **Alex (community organizer)** | community-organizer | Coordinating volunteers without founding an org | Education and literacy |
 | **Jordan (expert scout)** | project-builder | Technical evaluation before recommending funding | Open-source infrastructure |
 | **Taylor (project founder)** | project-builder | Building public goods that need sustainable funding | Open science |
@@ -51,7 +51,7 @@ From [friend-walkthroughs.md](./friend-walkthroughs.md):
 1. **Before the screen:** Ask what cause they care about
 2. **Pick a matching profile:** Choose the demo user whose favorite cause aligns
 3. **Connect as that user:** Show their home page with personalized content
-4. **Map roles:** "You'd be like Sam (just donate) or Alex (organize)?"
+4. **Map roles:** "You'd be like Casey (just donate) or Alex (organize)?"
 5. **Show mechanisms:** One at a time, based on their interest
 
 Don't show all eight profiles in one session. Pick one that matches their cause and role inclination.

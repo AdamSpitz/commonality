@@ -1,30 +1,42 @@
 # Something like a network society, without the society
 
 This page does two things.
+  - It describes the vision: a population of aligned people who can find each other, meet, keep a memory, and fund concrete work, without first agreeing to join one group.
+  - And it lists jobs that population might want to fund, as a starting menu for anyone trying to build something like this.
 
-It describes the vision: a population of aligned people who can find each other, meet, keep a memory, and fund concrete work, without first agreeing to join one group. And it lists jobs that population might want to fund, as a starting menu for anyone trying to build something like this.
+Balaji Srinivasan's network state starts from a real observation: a lot of people who want the same concrete thing (a sugar-free food environment, medicine outside the FDA's menu, resistance to wokeness) cannot get it from the institutions they already live under. The book describes a "startup society" as having one moral innovation, one founder, one commandment, a community, in-person gatherings, some sort of crowdfunding capability, and eventually a census large enough to bargain with existing states. It sorta sounds like what Balaji was imagining was a million-member Discord with a treasury; maybe that's not actually what he had in mind, but either way I want to invent a more-decoupled way of achieving the same effect.
 
-Balaji Srinivasan's network state starts from a real observation: a lot of people who want the same concrete thing (a sugar-free food environment, medicine outside the FDA's menu, a school that teaches a particular curriculum) cannot get it from the institutions they already live under. The path I pictured while reading the book was a startup society: one moral innovation, one founder, one commandment, a shared community, a shared treasury, in-person gatherings, and eventually a census large enough to bargain with existing states. That picture may be more specific than what he is actually arguing. The rest of this page is about that picture, and about what to keep from it.
+The part worth keeping is the observation, the physical layer, and the point that a movement of aligned people needs a way to fund things together. A big Discord with a treasury achieves that funding capability, but what it gets wrong is the premise that the funding has to sit in one pot. The same effect can come from a more decentralized mechanism: many statements, many boards, many assurance contracts, and [organic coalitions](../why-its-better/organic-coalitions.md) that show up where people agree on a concrete outcome and nowhere else. The mechanism we're building is more complicated than a single shared treasury; the hope is that the extra complexity is worth it, because it sharply reduces how often anyone has to say "now let's all agree to join this one group."
 
-The part worth keeping is the observation, the physical layer, and the point that a movement of aligned people needs a way to fund things together. A big Discord with a treasury gets that last part right. What it gets wrong is the premise that the funding has to sit in one pot. The same effect can come from a more decentralized mechanism: many statements, many boards, many assurance contracts, and [organic coalitions](../why-its-better/organic-coalitions.md) that show up where people agree on a concrete outcome and nowhere else. The mechanism is more complicated than a treasury. The hope is that the extra complexity is worth it, because it sharply reduces how often anyone has to say "now let's all agree to join this one group."
+People with a shared preference still need:
+  - a "front door" (e.g. a website describing the ideas; there can be more than one of these)
+  - a way to find each other
+  - gatherings at a few scales
+  - a memory
+  - people who keep the local nodes alive
+  - and a small interface to the mainstream world (e.g. landlords, venues, and insurers).
 
-People with a shared preference still need a front door, a way to find each other, gatherings at a few scales, a memory, a way to trust or drop providers, people who keep the local nodes alive, and a small interface to landlords, venues, and insurers. The purpose changes the directory and the events. Those jobs stay the same. [Easier than politics](../so-what/easier-than-politics.md) already says why they should not be stuffed into a million-member group with a constitution and a membership boundary: that group is a new government, with the usual fight over who holds the pot.
+The base-level work of the "network society" will be different from society to society, but the above list of meta-level jobs ("meta-level" in the sense that this is about organizing and maintaining the society, not about doing the actual work that the society is meant to accomplish) stays the same.
 
-Two things follow.
+If all those meta-level jobs get done, they ought to produce something that *behaves* like a functioning network society. Nobody ratifies it, and nobody can capture it by taking the treasury, because there isn't one.
 
-A playbook is possible. The same list of jobs can be written as example projects. Funded together, they produce something that *behaves* like a functioning network society. Nobody ratifies it, and nobody can capture it by taking the treasury, because there isn't one.
-
-And a lot of the central roles in that startup-society picture shrink or split. They do not disappear. Someone still writes a good statement. Someone still draws a map. The difference is that a second statement and a second map are normal, not a schism.
+A lot of the central roles in the "Discord with a treasury" startup-society picture shrink or split, but they do not disappear. Someone still writes a good statement. Someone still draws a map. The difference is that a second statement and a second map are normal and fine, not a schism.
 
 ## Front door
 
 A stranger still needs somewhere to start. They do not need *the* door.
 
-**Canon.** The one-commandment picture wants a single text, revised on purpose so the loudest chapter does not silently replace it. Commonality wants many texts. Anyone can write a statement and center a cause board on the projects aligned with it. Leaders who can write a statement other people actually sign are still valuable. Writing it is usually not its own funded project. It is closer to a one-time task — not exactly once, but close — that a cause-founder does alongside the rest of the work of getting a preference started. What drops out is the requirement that everyone else coordinate on that one text. A chapter that rewrites the wording in its own words has not broken the society. There was no single society to break. Where two wordings still point at the same project, the implication graph can put that project on both boards. See [organic coalitions](../why-its-better/organic-coalitions.md).
+The one-commandment picture wants a single statement of the vision; Commonality is fine with having many such statements. It's no big deal if people rewrite in their own words, or with a slightly different idea or slightly different emphasis or whatever. The main purposes of the statements are (a) getting people to sign them on Tally so that we can get a sense of how many people agree, and (b) creating cause boards of crowdfundable projects aligned with that statement. Having multiple statements isn't a problem for that: users can sign whichever statements they like, and projects can be attested to be aligned with multiple statements (and sometimes the implication system will even recognize implied-alignment without anyone needing to explicitly attest). (We could even have a UI for making it easy for a user to follow projects aligned with *similar* statements to the ones he prefers, and then if he wants to he can do the alignment-attestations to make those projects also show up on his own preferred cause board.)
 
-**The site.** The one-front-door picture wants the map of chapters, the next events, and the canon, in one place. Here a chapter publishes its own existence if it wants to be found: a place, a time, a statement it cares about. Anyone can publish a map over the chapters that opted in. Tools can build directories off those publications. The job remains — a map nobody maintains is not a map — but "the" map is a product someone can fund, not an office someone has to hold.
+It's still valuable to have leaders who can write a statement other people actually sign; even better if it's a statement that'll be appealing to an [organic coalition](../why-its-better/organic-coalitions.md) of multiple different kinds of people. I don't know whether this is closer to being a one-time startup task (in which case it's probably not time-consuming enough to be worth asking for funding independently) or whether it'll need to be an ongoing task (watching for changes within the ecosystem, looking for alliance opportunities, splitting a statement into pieces to make it more useful to people who agree with some of it but not all of it, updating statements to match new contexts, etc.). Either way, this is a type of meta-work that needs to be done as part of starting/running the society. And maybe it's hard enough to be something that the society would want to fund explicitly.
 
-**Onboarding.** The path is from "I read a post" to "I know which statement I am willing to sign, which projects that puts in front of me, and who meets near me." There is no society-wide committee that rejects people for wanting the aesthetic. Filtering happens in two smaller places. A cause board only shows projects aligned with what you signed. A local chapter, which is just a small group with a room, can decide who it invites back. That second filter is ordinary hosting, not a membership roll.
+The front-door site probably wants other stuff on it too, so that it's all in one place: the map of chapters, the next events, good explainers for the ideas, etc. It would probably be good if those were separable jobs. But "maintaining the front-door site" is itself a job.
+
+## Mapping local chapters
+
+A local chapter can be as simple as a small group with a room. This is one level at which "membership" happens, but it doesn't need to be particularly formal; the people simply decide who they want to invite back, in the ordinary everyday way that local friend/acquaintance groups work in normal life.
+
+If a chapter is open to being found by strangers, it can publish its own existence (a place, a time, a statement). This might let general-purpose code (written by us) find and display a list of chapters that have opted in. Or maybe (to avoid spam) a hybrid: we add to the Commonality website a way for a person acting as a "map organizer" to publish a list of approved local chapters, but our site also checks to make sure that each of the local chapters has explicitly digitally-signed a message saying that they consent to being included in this list. Either way, the point is that there's this job that needs to be done, and it'd be good if the society had an easy way to fund that work.
 
 ## Finding each other
 
@@ -106,51 +118,33 @@ Gatherings, houses, and clinics still sit inside a country.
 
 **Crisis logistics, and helping one person.** A person is stranded, doxxed, or sick in a city where a parallel service exists. The public good is the response path: who to call, what is already arranged. The transfer of money to the person in trouble is not a public good. It can still be something aligned people want to crowdfund together — the "network union" half of the picture, people sticking with each other. That transfer fits an ordinary unconditional gift better than an assurance contract, because a partial amount already helps.
 
-## What to fund
+## Kinds of activity that could be funded
 
-| Job | What the project actually is | How to fund it |
-| --- | --- | --- |
-| A host kit, a one-time map, a legal-wrapper kit | A public artifact. Partial funding publishes nothing useful | Assurance contract |
-| A city's dinners for one quarter, a regional weekend, one annual event, one pop-up week | Hosting an encounter, budgeted with its own insurance and its own lessee | Assurance contract. The gathering happens only if the threshold is met |
-| An audit of a directory, a count of which chapters met, a check on a provider's claims | Evidence, published by someone other than the person being checked | Assurance contract. An unchecked claim is not worth buying |
-| A published set of statements, and the deduped headcount over that set | Choosing which statements count as "us," then publishing the union once identities can be deduped | Assurance contract. The artifact is the set and the count |
-| A month of introductions in one city, a month on call as the local host, mediation inside one chapter | A named person's availability for a bounded period, with a public log of what was done | Assurance contract. Same shape as a month of software maintenance |
-| Help for one stranded, doxxed, or sick person | A private transfer. Aligned people sticking together, not a good everyone can use | Ordinary unconditional gifts. Partial funding already helps |
-| A statement people can sign | Wording a cause-founder produces while doing the rest of the startup work | Usually not its own project |
-| "People should feel welcomed," a membership committee, a society spokesperson, a shared treasury | Not a project | There is nothing to deliver, or delivering it rebuilds the organization this setup exists to avoid |
+This isn't meant to be an exhaustive list, but here's a list:
+  - Writing statements, forming bridges.
+  - Creating social-media content or manifesto/explainer pages.
+  - Vouching for projects.
+  - Directing funding.
+  - Writing/maintaining/contributing-to open-source software that the cause could use.
+  - Doing research (scientific or other) that would further the cause.
+  - Helping people find a local chapter.
+  - Helping maintain the wider list of chapters.
+  - Sticking up for each other: "insurance", or just support. (e.g. Help for one stranded, doxxed, or sick person.)
+  - Organizing local meetups.
+  - Organizing larger meetups.
+  - Organizing enclaves so people can live near each other.
+  - Starting experiments (e.g. "FDA-free zone"), once you've actually got enough clout that it may be possible to carve out a place within a jurisdiction that might be amenable to that.
 
-## A starter playbook
+## How this fits in with Commonality in general
 
-These are examples for one preference in one city. Swap the purpose and the city. None of the funded items requires the others to exist first, which is the property that makes this a protocol rather than an organization. The lumpy public goods are assurance contracts. The standing local roles are repeating monthly or quarterly contracts. The mutual-aid item is an ordinary gift.
+Note that a lot of these jobs are "public goods" within the network society. Maintaining the website, writing content, working on relevant open-source software, maintaining maps of chapters, etc., are all (to some degree) jobs that benefit everyone in the society but that everybody wants someone else to pay for. They're not exactly public goods in the same way that a public park benefits basically *everyone*; they're scoped to this specific "movement" of people. But they're still kinda got that non-excludable, non-rivalrous nature. So it's useful to have mechanisms like Commonality's assurance-contracts and retroactive-funding and so on, to get them funded.
 
-1. **Write the statement,** as part of founding the rest of this, not as a project of its own. Specific enough that a project can align with it. Not a manifesto that settles every neighboring question.
-2. **Publish the host kit.** First ten people, first venue, first three months, when to stop calling it a chapter.
-3. **Host this city for this quarter.** Room, rhythm, facilitation, a published note that the meetings happened.
-4. **Be the introducer for this city for this month.** A public count of introductions. No dossier on the people introduced.
-5. **Publish a map** of gatherings and providers whose organizers opted in. Say what was left out on purpose.
-6. **Audit that map.** An independent pass over a stated sample. Publish which listings answered and which did not.
-7. **Run one regional weekend,** with ticket threshold, housing, program, and insurance inside the same contract.
-8. **Publish the one-event legal kit** used for that weekend, so the next city does not hire the same lawyer from scratch.
-9. **Hand off a role.** One contract whose deliverable is that a named next host, editor, or event lead has everything the last one had.
-10. **Publish a headcount set.** Name the statements that count as this cluster, and publish the deduped union once unique-human ids exist.
-11. **Measure the purpose,** separately. Whatever the preference claims to change in the world. That project cites the gatherings and the directory. It does not define who is a member.
-12. **Help one person in trouble,** when the cluster wants to, as ordinary gifts toward a named need. Not an assurance contract.
+The Tally stuff is a good fit too: we can count up how many people have signed any of these N statements, to show how much support there is. See the durable-participation spec (`specs/product/durable-participation.md`). And again, note that this doesn't require the "network society" to be made of a single Discord whose membership list we can count.
 
-Items 3 through 6 are the ones a treasury-Discord usually extracts from unpaid status. They are also the ones that decide whether two people in the same city ever meet. The purpose-specific meat — the clinic, the school, the sugar program — hangs off that, and can be funded by anyone whose statements reach it, including people who would never join a society together.
+## Terminology
 
-## Jobs worth funding
+One point about terminology: I've been thinking of these as "network societies" because my thinking about these ideas first came from reading Balaji Srinivasan's book. But that's a weird way to think about it.
+  - Some of them are more society-like than others. There are different aspects of society-ness: networks of personal relationships and private groups, public conversations on social media, small and big gatherings, collective endeavours.
+  - Calling them "network" societies is a bit weird. Like, okay, there's an online component; so what? Everything is online. I think the term "network" is also meant to mean something like "networks of people" (as opposed to the state, or something?), but again that's more true of some than others, and in any case the term doesn't really seem like the natural words we'd use to describe these things.
 
-Concrete projects one city can start from. Each line is something a person could pledge to. Statement-writing is omitted on purpose: a founder usually does that alongside the rest of the work, rather than as its own project.
-
-- Host kit for starting a chapter in a new city. A duplicated doc is enough.
-- This city's dinners for one quarter, including the room and a published note that they happened. Luma or Meetup for the room; the note is the record.
-- Introducer on call for this city for one month, with a public count of introductions. A calendar link and a count sheet. No dossier of who met whom.
-- Map of opted-in gatherings and providers, with an explicit "left out on purpose" section. A published spreadsheet, or uMap if it needs pins.
-- Independent audit of that map over a stated sample. Resample the same spreadsheet.
-- One regional weekend: program, tickets, housing, and insurance in one contract. Luma or Meetup for tickets and housing.
-- Legal kit for running a weekend like that one: incorporation and insurance, reusable by the next city. A duplicated doc.
-- Handoff of one named role (host, map editor, or event lead) to a named successor. The doc, plus a shared password vault.
-- A published set of statements for "how many of us," plus the deduped union count. A cause board already computes that union over its planks.
-- A liveness note: which of these cities actually met this month. Collect the "we met" notes.
-- An outcome measurement for the preference itself (the sugar metric, the case series, the school result), citing the gatherings and the directory. Use whatever instrument fits — a survey, a lab series — and cite it.
-- One person's emergency costs, funded as ordinary gifts, with the response path (who to call, what is already arranged) funded separately as a public artifact. An ordinary gift page, not an assurance contract.
+So what would be a better way of naming/characterizing the kinds of things we're talking about here? Maybe just "cause", or "movement", or "community", or something?

@@ -101,7 +101,7 @@ test("coerceSubscriptionModel keeps xai and opencode-go pins", () => {
 });
 
 test("coerceSubscriptionModel rewrites OpenRouter onto the workspace default", () => {
-  assert.equal(coerceSubscriptionModel("openrouter/deepseek/deepseek-v4-pro"), "xai/grok-4.6");
+  assert.equal(coerceSubscriptionModel("openrouter/deepseek/deepseek-v4-pro"), "xai/grok-4.7");
 });
 
 test("coerceSubscriptionModel honors COMMONALITY_VERIFIER_LLM_PROVIDER", () => {
@@ -116,7 +116,7 @@ test("coerceSubscriptionModel does not keep OpenRouter path tails under a provid
     coerceSubscriptionModel("openrouter/deepseek/deepseek-v4-pro", {
       COMMONALITY_VERIFIER_LLM_PROVIDER: "opencode-go"
     }),
-    "opencode-go/grok-4.6"
+    "opencode-go/grok-4.7"
   );
 });
 
