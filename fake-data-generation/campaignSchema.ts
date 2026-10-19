@@ -114,6 +114,16 @@ export interface CampaignManifestV1 {
    * and does not let the random draw overwrite them. Unsigned entries stay unpinned.
    */
   beliefDecisions?: string;
+  /**
+   * One named project gets early 0.10-receipt purchases, then retroactive
+   * donations that depend on those purchases. Twenty early purchases match
+   * the 2 USDZZZ project threshold. Absent on historical manifests.
+   */
+  reimbursement?: {
+    projectTitle: string;
+    earlyPurchases: number;
+    retroactiveDonations: number;
+  };
 }
 
 export type CampaignImplicationEvidence = 'accepted-bridge-role-pair' | 'live-attester-modified-to-commonality';
@@ -250,6 +260,12 @@ export function validateCampaignManifest(manifest: CampaignManifestV1): void {
   }
   if (manifest.beliefDecisions && !/^[a-z0-9][a-z0-9-]*\.json$/.test(manifest.beliefDecisions)) {
     throw new Error('beliefDecisions must be a JSON filename in campaigns/');
+  }
+  if (manifest.reimbursement) {
+    const { projectTitle, earlyPurchases, retroactiveDonations } = manifest.reimbursement;
+    if (!projectTitle.trim()) throw new Error('reimbursement.projectTitle is required');
+    if (!Number.isInteger(earlyPurchases) || earlyPurchases < 1) throw new Error('reimbursement.earlyPurchases must be a positive integer');
+    if (!Number.isInteger(retroactiveDonations) || retroactiveDonations < 1) throw new Error('reimbursement.retroactiveDonations must be a positive integer');
   }
   validateCauses(manifest);
   validatePersonas(manifest);

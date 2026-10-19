@@ -275,6 +275,7 @@ test('batch 2 keeps the pilot families, reuses accepted bridges, and shares one 
   assert.equal(plan.users.length, 72);
   assert.equal(plan.statements.length, 124);
   assert.equal(plan.projects.length, 62);
+  assert.equal(plan.actions.filter((action) => action.funding?.kind === 'retroactive').length, 0);
   const checklist = plan.statements.find((statement) => statement.source.statementId === 'moderator-checklist');
   assert.ok(checklist);
   assert.equal(checklist!.causeId, 'abortion-forum');
@@ -386,6 +387,26 @@ test('batch 2 pins persona belief choices and never has Eli believe the settleme
   assert.equal(beliefs.some((action) => action.actorUserId === adele.id && action.statementId === canadaCommonality.id), false);
   const canadaArrows = plan.actions.filter((action) => action.type === 'attest-implication' && action.causeId === 'canada-us-ties');
   assert.equal(canadaArrows.some((action) => action.implication!.fromStatementId === boycott.id), false);
+});
+
+test('reimbursement config plans early 0.10 receipts and later retroactive donations on one named project', async () => {
+  const manifest = JSON.parse(await readFile(new URL('../campaigns/network-societies-v1-b2.json', import.meta.url), 'utf8')) as CampaignManifestV1;
+  const fundRule = manifest.actionRules.find((rule) => rule.type === 'fund-project')!;
+  fundRule.targetCount = { min: 74, max: 74 };
+  manifest.reimbursement = { projectTitle: 'Six-shop refundable checkout trial', earlyPurchases: 20, retroactiveDonations: 4 };
+  const plan = await buildCampaignPlan(manifest);
+  const project = plan.projects.find((item) => item.title === 'Six-shop refundable checkout trial')!;
+  const early = plan.actions.filter((action) => action.projectId === project.id && action.funding?.kind === 'early');
+  const retroactive = plan.actions.filter((action) => action.projectId === project.id && action.funding?.kind === 'retroactive');
+  assert.equal(early.length, 20);
+  assert.ok(early.every((action) => action.funding?.tokenId === 1 && action.funding.tokenCount === 1 && action.amount === 10));
+  assert.equal(early.reduce((sum, action) => sum + action.amount!, 0), 200);
+  assert.equal(retroactive.length, 4);
+  assert.ok(retroactive.every((action) => early.every((purchase) => action.dependsOn.includes(purchase.id))));
+  const funders = new Set([...early, ...retroactive].map((action) => action.actorUserId));
+  assert.equal(funders.size, 2);
+  assert.equal(funders.has(project.founderUserId), false);
+  assert.equal(plan.actions.filter((action) => action.type === 'fund-project').length, 74);
 });
 
 test('written planning artifacts reload into the same campaign plan', async () => {

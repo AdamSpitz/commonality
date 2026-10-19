@@ -573,26 +573,46 @@ export async function buildCampaignPlan(manifest: CampaignManifestV1): Promise<C
     const statement = statements.find((item) => item.causeId === bridgeProject!.causeId && item.role === `natural-${camp}`)!;
     return add({ type: 'set-belief', actorUserId: user.id, causeId: bridgeProject!.causeId, statementId: statement.id, belief: 'believe', dependsOn: [publishes.get(statement.id)!.id] });
   });
+  const reimbursement = manifest.reimbursement;
+  const retroactiveCount = reimbursement?.retroactiveDonations ?? 0;
+  const earlyFundCount = countByType['fund-project'] - retroactiveCount;
+  if (reimbursement && (earlyFundCount < reimbursement.earlyPurchases || earlyFundCount < 1)) {
+    throw new Error('reimbursement purchases do not fit in the fund-project action count');
+  }
+  const reimbursementProject = reimbursement ? projects.find((project) => project.title === reimbursement.projectTitle) : undefined;
+  if (reimbursement && !reimbursementProject) throw new Error(`reimbursement project not planned: ${reimbursement.projectTitle}`);
+  const reimbursementBackers = reimbursementProject
+    ? activeUsers.filter((user) => user.causeIds.includes(reimbursementProject.causeId) && user.fundingWeight > 0 && user.id !== reimbursementProject.founderUserId)
+    : [];
+  if (reimbursement && reimbursementBackers.length < 2) throw new Error('reimbursement project needs two funders who are not the founder');
   const thresholdPurchases: PlannedAction[] = [];
-  for (let index = 0; index < countByType['fund-project']; index++) {
+  const reimbursementPurchases: PlannedAction[] = [];
+  for (let index = 0; index < earlyFundCount; index++) {
     const featuredCause = useStories ? hobbyCauses[index] : undefined;
     const bridgePurchase = Boolean(bridgeProject && index >= hobbyCauses.length && index < hobbyCauses.length + 20);
-    const pinnedPledge = !featuredCause && !bridgePurchase && pinnedPledgeCursor < pinnedPledges.length ? pinnedPledges[pinnedPledgeCursor++] : undefined;
-    const project = pinnedPledge ? pinnedPledge.project : bridgePurchase ? bridgeProject! : featuredCause ? firstByCause.get(featuredCause)! : random.weighted(fundableProjects, (item) => Math.max(1, fundableProjects.length - (useStories ? fundableProjects.indexOf(item) : projects.indexOf(item))));
+    const reimbursementPurchase = Boolean(reimbursementProject && !useStories && index < reimbursement!.earlyPurchases);
+    const pinnedPledge = !featuredCause && !bridgePurchase && !reimbursementPurchase && pinnedPledgeCursor < pinnedPledges.length ? pinnedPledges[pinnedPledgeCursor++] : undefined;
+    const project = pinnedPledge ? pinnedPledge.project : bridgePurchase ? bridgeProject! : reimbursementPurchase ? reimbursementProject! : featuredCause ? firstByCause.get(featuredCause)! : random.weighted(fundableProjects, (item) => Math.max(1, fundableProjects.length - (useStories ? fundableProjects.indexOf(item) : projects.indexOf(item))));
     const supporters = activeUsers.filter((user) => user.causeIds.includes(project.causeId) && user.fundingWeight > 0 && (!useStories || user.id !== project.founderUserId));
     const interestedSupporters = featuredCause ? supporters.filter((user) => user.favoriteCauseId === featuredCause && user.id !== project.founderUserId) : [];
-    const actor = pinnedPledge ? pinnedPledge.user : bridgePurchase ? bridgeBackers[(index - hobbyCauses.length) % 2] : random.weighted(interestedSupporters.length ? interestedSupporters : supporters, (user) => user.fundingWeight);
+    const actor = pinnedPledge ? pinnedPledge.user : bridgePurchase ? bridgeBackers[(index - hobbyCauses.length) % 2] : reimbursementPurchase ? reimbursementBackers[index % 2] : random.weighted(interestedSupporters.length ? interestedSupporters : supporters, (user) => user.fundingWeight);
     const alignment = alignments.find((item) => item.projectId === project.id);
     if (!alignment) throw new Error(`impossible fund-project: ${project.id} has no alignment action`);
     const tokenId = bridgePurchase ? 1 : 3;
     const tokenCount = bridgePurchase ? 1 : Math.max(1, Math.min(10, Math.round(fundingAmount(actor, projects.indexOf(project), random) / 100)));
     const action = add({ type: 'fund-project', actorUserId: actor.id, causeId: project.causeId, projectId: project.id,
-      amount: useStories ? tokenCount * (tokenId === 1 ? 10 : 1) : fundingAmount(actor, projects.indexOf(project), random),
-      ...(useStories ? { funding: { kind: 'early' as const, tokenId: tokenId as 1 | 3, tokenCount, ...(bridgePurchase ? { camp: ((index - hobbyCauses.length) % 2 === 0 ? 'left' : 'right') as 'left' | 'right' } : {}) } } : {}),
+      amount: reimbursementPurchase ? 10 : useStories ? tokenCount * (tokenId === 1 ? 10 : 1) : fundingAmount(actor, projects.indexOf(project), random),
+      ...(useStories || reimbursementPurchase ? { funding: { kind: 'early' as const, tokenId: (reimbursementPurchase ? 1 : tokenId) as 1 | 3, tokenCount: reimbursementPurchase ? 1 : tokenCount, ...(bridgePurchase ? { camp: ((index - hobbyCauses.length) % 2 === 0 ? 'left' : 'right') as 'left' | 'right' } : {}) } } : {}),
       dependsOn: [createProjects.get(project.id)!.id, alignment.id, ...(bridgePurchase ? [campBeliefs[(index - hobbyCauses.length) % 2].id] : [])] });
     if (bridgePurchase) thresholdPurchases.push(action);
+    if (reimbursementPurchase) reimbursementPurchases.push(action);
   }
   if (pinnedPledgeCursor !== pinnedPledges.length) throw new Error('v2 spotlight profiles did not each pledge on every joined cause');
+  if (reimbursement && reimbursementProject) for (let index = 0; index < reimbursement.retroactiveDonations; index++) {
+    add({ type: 'fund-project', actorUserId: reimbursementBackers[index % 2].id, causeId: reimbursementProject.causeId, projectId: reimbursementProject.id,
+      amount: 25, funding: { kind: 'retroactive' },
+      dependsOn: [createProjects.get(reimbursementProject.id)!.id, alignments.find((item) => item.projectId === reimbursementProject.id)!.id, ...reimbursementPurchases.map((purchase) => purchase.id)] });
+  }
   if (bridgeProject) for (let index = 0; index < 4; index++) {
     add({ type: 'fund-project', actorUserId: bridgeBackers[index % 2].id, causeId: bridgeProject.causeId, projectId: bridgeProject.id,
       amount: 25, funding: { kind: 'retroactive', camp: index % 2 === 0 ? 'left' : 'right' },
