@@ -26,7 +26,7 @@ Twenty-one implication actions are planned. Four are the accepted abortion and s
 
 The manifest points `beliefDecisions` at that file. Each `signs` entry is one `believe` write and each `rejects` entry is one `disbelieve` write. Those pairs are not drawn again, so Eli never believes the abortion commonality. Unsigned statements stay unpinned.
 
-Delegated spending and a recurring monthly pledge stay out. Pat already delegates a note to Ned, and the adapter can revoke a delegation. No action spends a delegated note or repeats a pledge, and no persona in this manifest is written as doing either.
+Delegated spending and a recurring monthly pledge stay out of this manifest. Pat already delegates a note to Ned, and the adapter can revoke a delegation. No action in this file spends a delegated note or repeats a pledge. Early funding and later reimbursement are on the copy [`network-societies-v1-b2-reimburse.json`](./network-societies-v1-b2-reimburse.json), not here.
 
 ## Reproduce the plan
 
