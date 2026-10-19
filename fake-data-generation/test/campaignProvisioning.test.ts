@@ -59,6 +59,16 @@ test('publisher wallet receives gas for actorless statement writes', () => {
   assert.ok(need.nativeWei >= 4_000_000n * 6_000_000n);
 });
 
+test('create-project quotes cover the local clone-factory receipt', () => {
+  const create = action({ id: 'project', type: 'create-project' });
+  // 2026-10-19 local receipts used 4,073,924 gas. The old 3,000,000 quote
+  // was below that, so the 25% buffer still left founders short.
+  assert.equal(estimateGroupGas([create]), 4_500_000n);
+  const projectPlan = { ...plan, actions: [create] } as CampaignPlan;
+  const [need] = computeCampaignFundingNeeds(projectPlan, [wallet], 1_000_000_000n);
+  assert.ok(need.nativeWei >= 4_073_924n * 1_000_000_000n);
+});
+
 test('belief batches and publishes are funded for the gas the writer requests', () => {
   const beliefs = [1, 2, 3].map((n) => action({ id: `b${n}`, type: 'set-belief', sequence: n }));
   const writerGas = 40_000n + 80_000n * 3n;
