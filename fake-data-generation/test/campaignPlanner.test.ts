@@ -216,6 +216,31 @@ test('validation rejects an action whose prerequisite points forward', async () 
   assert.throws(() => validatePlannedActions(manifest, plan.statements, plan.users, plan.projects, invalid), /impossible dependency/);
 });
 
+test('network-societies pilot pins persona belief choices', async () => {
+  const manifest = JSON.parse(await readFile(new URL('../campaigns/network-societies-v1-pilot.json', import.meta.url), 'utf8')) as CampaignManifestV1;
+  const decisions = JSON.parse(await readFile(new URL('../campaigns/network-societies-v1-pilot-decisions.json', import.meta.url), 'utf8')) as {
+    people: { userId: string; name: string; signs?: string[]; rejects?: string[]; unsigned?: string[] }[];
+  };
+  const plan = await buildCampaignPlan(manifest);
+  const beliefs = plan.actions.filter((action) => action.type === 'set-belief');
+  assert.equal(beliefs.length, 60);
+  const byStatementId = (sourceId: string, userId: string) => beliefs.filter((action) => {
+    const statement = plan.statements.find((item) => item.id === action.statementId);
+    return action.actorUserId === userId && statement?.source.statementId === sourceId;
+  });
+  for (const person of decisions.people) {
+    for (const statementId of person.signs ?? []) {
+      assert.deepEqual(byStatementId(statementId, person.userId).map((action) => action.belief), ['believe'], `${person.name} ${statementId}`);
+    }
+    for (const statementId of person.rejects ?? []) {
+      assert.deepEqual(byStatementId(statementId, person.userId).map((action) => action.belief), ['disbelieve'], `${person.name} ${statementId}`);
+    }
+  }
+  const owen = plan.users.find((user) => user.displayName === 'Owen')!;
+  const staffed = plan.statements.find((statement) => statement.source.statementId === 'staffed-schools')!;
+  assert.equal(beliefs.some((action) => action.actorUserId === owen.id && action.statementId === staffed.id && action.belief === 'disbelieve'), false);
+});
+
 test('network-societies pilot reuses one directory statement and publishes no implication', async () => {
   const manifest = JSON.parse(await readFile(new URL('../campaigns/network-societies-v1-pilot.json', import.meta.url), 'utf8')) as CampaignManifestV1;
   const plan = await buildCampaignPlan(manifest);

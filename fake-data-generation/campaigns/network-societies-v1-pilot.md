@@ -13,7 +13,7 @@ Families in this pilot: Owen Sound checkout trial, Grey County civic life, Grey 
 | Curated projects without a new TypeScript story module | Supported by `projectStories`, a JSON file beside the manifest |
 | Accepted-bridge implication evidence | Still the only evidence the planner will publish. Heuristic `implies: true` is not accepted. |
 | Fresh attester evaluation for new campaign pairs | Not run. The pilot stores candidates and publishes zero implication edges. |
-| Beliefs chosen by the persona decision file | Not wired. `network-societies-v1-pilot-decisions.json` is authoring intent. The planner still draws `set-belief`. |
+| Beliefs chosen by the persona decision file | Wired. Each `signs` entry is one `believe` and each `rejects` entry is one `disbelieve`. Unsigned stays unpinned. The mined 2026-10-16 run is the plan from before these pins. Do not regenerate into `output/campaigns/network-societies-v1-pilot/`. |
 | One shared project contract on several boards | The class-host directory is one statement, published once, and one project (`project-015`). Civic life, Christian teaching, and home learning all list it under Fundable Projects once the alignment-trust bootstrap has admitted the campaign attesters. The project page renders: title, fake-data outcome, founder Nadia, and "0 of 2 USDZZZ raised." |
 | Early funding then retroactive reimbursement | Supported for v2's accepted abortion bridge. Not planned in this pilot. |
 | Delegated spending of a note | Deposit, delegate, and revoke exist. Spending through the delegation does not. Pat's note to Ned is a delegation, not a spent note. |
@@ -34,7 +34,7 @@ Seed: `commonality-network-societies-v1-pilot-2026-10-16`. A plan written on 202
 
 Ruth and Len can both be on the checkout board while the dissent plank "shops refuse crypto" is a separate statement. That overlap does not use an implication arrow.
 
-Imani's rejection of the recruiting pause, and Owen's refusal of the midweek notes, are written in the decisions file. They are not yet enforced in `set-belief`.
+Imani's rejection of the recruiting pause, and Owen's refusal of the midweek notes, are pinned `set-belief` actions. Owen leaves `staffed-schools` unsigned, so that file does not disbelieve it.
 
 Pat (`user-021`) delegates notes to Ned (`user-011`). Some delegations are later revoked. The plan does not show Ned spending Pat's note.
 

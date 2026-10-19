@@ -1,5 +1,5 @@
 {
-  "note": "Authored persona decisions for the pilot. The planner does not yet apply these belief choices. Unsigned is not the same as an explicit rejection.",
+  "note": "Authored persona decisions for the pilot. The planner pins each signs and rejects entry as one set-belief and does not overwrite it. Unsigned is not the same as an explicit rejection.",
   "people": [
     { "userId": "user-001", "name": "Ruth", "signs": ["refundable-checkout", "published-trial-record", "fee-schedule", "keep-cash-and-card"], "rejects": ["refuse-crypto-payments"], "funds": "Six-shop refundable checkout trial" },
     { "userId": "user-003", "name": "Imani", "signs": ["language-sessions", "welcome-signage", "session-limit"], "rejects": ["housing-before-recruiting"], "funds": "Twelve conversation sessions" },
