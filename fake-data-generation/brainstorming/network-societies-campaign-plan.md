@@ -1,6 +1,6 @@
 # Network societies fake-data campaign
 
-Status: partial local campaign, updated 2026-10-16. This document is the target for the whole fifteen-family world. It does not generate data or authorize a remote deployment. The live ids are `network-societies-v1-pilot` and `network-societies-v1-b2`, not one `network-societies-v1` manifest.
+Status: partial local campaign, updated 2026-10-19. The nine families that already have campaign content are enough for now. Six named families still have no fake content, and we are not authoring them yet. This document does not generate data or authorize a remote deployment. The live ids are `network-societies-v1-pilot` and `network-societies-v1-b2`, not one `network-societies-v1` manifest.
 
 ## Where the work stands
 
@@ -14,13 +14,15 @@ The planner now pins batch-2 `signs` and `rejects` from the decisions file. Eli'
 
 **Decided out of this campaign for now.** Delegated spending and a recurring monthly pledge. Pat already delegates a note, and revocation is a real action. Nothing spends a delegated note or repeats a pledge. Journey 5 below is therefore only partly demonstrated, and the "$20/month" filter is still a product gap.
 
-**Not started as families.** Six of the fifteen rows below are not campaign manifests: low-carb, cancel-proof support, unwoke, Democracy 2.0, Islamic reform, and less regulation. US-friendly Canadians is in batch 2 past the five-statement draft. AI safety is a plain board in batch 2 (`ai-pause`): a shared pause-treaty sentence, milder wordings that contain it, naturals that do not, a full-stop refusal, and an accelerationist refusal. A 2026-10-16 attester pass blessed the five modified-to-commonality pairs and refused the designed negatives. Those five arrows are in the allowance list. Home learning and Grey County civic life stop at the pilot planks. Do not force a new triple onto an overlap that already shares a concrete want. The campaign note already treats several of these as overlaps.
+**Deferred, 2026-10-19.** Six of the fifteen rows below still have no campaign content: low-carb, cancel-proof support, unwoke, Democracy 2.0, Islamic reform, and less regulation. Leave them. The nine that already have statements, boards, or projects are enough for now: crypto-friendly checkout, Grey County civic life, Christian teaching, home learning, the abortion settlement, schools and conduct, the Owen Sound voting trial, US-friendly Canadians, and the AI-pause board. Do not open a content batch for the six empty rows.
+
+US-friendly Canadians is in batch 2 past the five-statement draft. AI safety is a plain board in batch 2 (`ai-pause`): a shared pause-treaty sentence, milder wordings that contain it, naturals that do not, a full-stop refusal, and an accelerationist refusal. A 2026-10-16 attester pass blessed the five modified-to-commonality pairs and refused the designed negatives. Those five arrows are in the allowance list. Home learning and Grey County civic life stop at the pilot planks. Do not force a new triple onto an overlap that already shares a concrete want. The campaign note already treats several of these as overlaps.
 
 **Journeys.** Direct shared agreement and one reused statement on two boards are in the pilot. A declined bridge is authored for batch 2 (Eli) and is in the new plan, not in the mined output. Verified implication paths are planned for batch 2. Early-risk reimbursement, a friend actually spending a delegated note, recurring pledges, and the independent-reviewer walkthrough are not campaign demonstrations yet.
 
 ## Purpose
 
-Build a substantial, believable synthetic world around **all fifteen named areas in [the brainstorming notes](./README.md)**. A prospective cause founder should see concrete work worth organizing, the people needed to do it, and how Commonality can bring together funding that would otherwise remain fragmented.
+Build a substantial, believable synthetic world around the network-society areas in [the brainstorming notes](./README.md). The notes name fifteen. Nine already have fake content, and that set is the campaign for now. A prospective cause founder should see concrete work worth organizing, the people needed to do it, and how Commonality can bring together funding that would otherwise remain fragmented.
 
 The central story is overlapping constituencies funding particular outcomes without joining one organization. Show separate organizers, competing publications, practical disagreements, independent judgment, and people who decline to participate. Preserve the author's selection of causes and interest in bridges; do not replace it with a generic politically balanced charity catalog. Give dissenters plausible beliefs, rather than making them foils who inevitably convert.
 
@@ -42,7 +44,7 @@ Some older summaries are stale: the October step-14 report and current adapter a
 
 ## Scope and scale
 
-Aim for **240 users, roughly 150–210 unique statements, and 75–90 projects** across fifteen topic families. These are authoring targets, not reasons to manufacture weak statements or meaningless transactions. Count unique statements/projects separately from their appearances on multiple boards.
+The original full-catalog aim was **240 users, roughly 150–210 unique statements, and 75–90 projects** across fifteen topic families. That scale waits with the six deferred families. Batch 2 is already 72 users, 124 statements, and 62 projects, and that is enough content to keep working from. These figures are authoring targets, not reasons to manufacture weak statements or meaningless transactions. Count unique statements/projects separately from their appearances on multiple boards.
 
 Each family should have:
 
@@ -52,11 +54,11 @@ Each family should have:
 - At least two constituencies with different motivations, plus people who reject part or all of the proposed program.
 - A named organizer, credible project founders, contributors, an independent reviewer, and a plausible funding director. People can hold several roles, but no single person should fill every role on their own project.
 
-Use 20–30 editorial cause boards across the fifteen families, including alternative organizers and a few shared boards. Families are authoring categories, not compulsory membership organizations or single canonical statements. Pilot/full scale must be explicit configuration, not a collection of hard-coded exceptions.
+The full catalog would use 20–30 editorial cause boards across the fifteen families, including alternative organizers and a few shared boards. Stay inside the nine families that already have content. Families are authoring categories, not compulsory membership organizations or single canonical statements. Pilot/full scale must be explicit configuration, not a collection of hard-coded exceptions.
 
 ## Content map
 
-These are project briefs and constituency suggestions, not finished statement wording. For each row, expand to the per-family minimum above. Make deliverables bounded and inspectable: a named place, duration, artifact or service, budget, completion criterion, and responsible fictional person.
+These are project briefs and constituency suggestions, not finished statement wording. The six rows with no campaign content yet — low-carb, cancel-proof support, unwoke, Democracy 2.0, Islamic reform, and less regulation — stay briefs. Do not expand them until someone decides to resume those families. For a family that is in the campaign, make deliverables bounded and inspectable: a named place, duration, artifact or service, budget, completion criterion, and responsible fictional person.
 
 | Family | Base-level projects to develop | Organizing work | Coalition and disagreement to portray |
 | --- | --- | --- | --- |
@@ -129,7 +131,7 @@ The brainstorming's “$20/month, fire-and-forget” and “delivered but not re
 
 ## Implementation sequence
 
-Steps 1–3 are done for the pilot, and step 3 is also done for batch 2 on the pre-pin plan. Step 4 has the six draft bridges and the AI-pause board in the manifest. Seven families are still unauthored. Step 5 is not started. The notes under each step stay as the original instructions.
+Steps 1–3 are done for the pilot, and step 3 is also done for batch 2 on the pre-pin plan. Step 4 has the six draft bridges and the AI-pause board in the manifest. Six families are still unauthored, and on 2026-10-19 they were deferred: low-carb, cancel-proof support, unwoke, Democracy 2.0, Islamic reform, and less regulation. Step 5 is a local demonstration of the nine families we have, not a wait for those six. The notes under each step stay as the original instructions.
 
 ### 1. Make a capability and content inventory
 
@@ -155,7 +157,7 @@ Fix failures before scaling. The first executed pilot is the point to discover t
 
 ### 4. Expand in bounded content batches
 
-Add the remaining eleven families in batches of three or four. First reuse accepted statements where they mean exactly what is needed; then generate new campaign-local planks and validate new edges. Add the accepted abortion bridge as a full spotlight story. Complete all fifteen families rather than declaring the pilot the finished campaign.
+The original instruction was to add the remaining families in batches of three or four, reuse accepted statements where they mean exactly what is needed, then generate new campaign-local planks and validate new edges. The accepted abortion bridge is already in batch 2. Do not add the six families that still have no content. The nine we have are the campaign for now.
 
 Scale to the target population with deterministic generation around authored constraints. Review a content matrix showing family, statements, dissenters, projects, organizers, funding stages, and shared projects. Uneven activity is desirable; an accidentally empty family is not.
 
@@ -167,7 +169,7 @@ Remote/testnet publication is a separate later step using existing preflight, bu
 
 ## Acceptance and handoff checklist
 
-- All fifteen families have several signable planks, incompatible positions, at least five substantive projects, and people whose actions match their stated preferences.
+- Each of the nine families already in the campaign has several signable planks, incompatible positions, substantive projects, and people whose actions match their stated preferences. The six deferred families are not part of this checklist.
 - Organizing work has concrete outputs and a term; no generic “fund our movement” pots. Each project explains the coordination problem it addresses: fragmented constituencies, threshold risk, maintenance nobody owns, discovery, or independent verification. Ordinary crowdfunding could still fund some projects; do not claim Commonality is uniquely necessary for every one.
 - Every published implication has fresh, affirmative model evidence from the actual attester prompt. Negative controls, failed candidates, and routing/shape decisions remain inspectable.
 - New campaign text stays outside the accepted real-statement catalog. Reused canonical bridge wording is referenced rather than silently rewritten.
@@ -175,4 +177,4 @@ Remote/testnet publication is a separate later step using existing preflight, bu
 - Required journeys have reconciled state and browser observations. Unsupported behaviors are listed as specific gaps, never counted as demonstrated; the full demo is not called complete while a required journey is silently missing.
 - The report identifies synthetic users/activity/deliverables, actual amounts and outcomes, exact reproduction steps, and the next unfinished task if work spans sessions.
 
-**Next task:** author the next content batch from the six families that are not manifests yet (low-carb, cancel-proof support, unwoke, Democracy 2.0, Islamic reform, and less regulation), skipping overlaps that already share a concrete want. Apply the pilot persona belief choices the same way batch 2 pins them, or leave that file marked unapplied. Do not regenerate `output/campaigns/network-societies-v1-b2/` or `output/campaigns/network-societies-v1-b2-ai-pause/`. Do not start a bulk random run or draft all remaining statements at once. US-friendly Canadians is no longer a missing family.
+**Next task:** keep working from the nine families already in the pilot and batch 2. Do not author low-carb, cancel-proof support, unwoke, Democracy 2.0, Islamic reform, or less regulation. Apply the pilot persona belief choices the same way batch 2 pins them, or leave that file marked unapplied. Do not regenerate `output/campaigns/network-societies-v1-b2/` or `output/campaigns/network-societies-v1-b2-ai-pause/`. Do not start a bulk random run.
