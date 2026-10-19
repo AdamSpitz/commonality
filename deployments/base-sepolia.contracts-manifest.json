@@ -193,7 +193,8 @@
     "CreatorAssuranceVeto": {
       "contractName": "CreatorAssuranceVeto",
       "address": "0xcD9E8afF84F628F8e0B12508d9f1B45D74448005",
-      "reused": false
+      "reused": false,
+      "blockNumber": 47780566
     },
     "ProspectiveRoundDeploymentHelper": {
       "contractName": "ProspectiveRoundDeploymentHelper",

@@ -324,10 +324,15 @@ async function main() {
       }
     }
     if (addresses.CreatorAssuranceVeto) {
+      const freshFactory = freshlyDeployed.has('CreatorAssuranceContractFactory');
+      const factoryBlock = manifest.contracts.CreatorAssuranceContractFactory?.blockNumber;
       manifest.contracts.CreatorAssuranceVeto = {
         contractName: 'CreatorAssuranceVeto',
         address: addresses.CreatorAssuranceVeto,
-        reused: !freshlyDeployed.has('CreatorAssuranceContractFactory'),
+        reused: !freshFactory,
+        // The veto is created in the factory constructor, so a fresh factory's
+        // receipt block is the veto's deploy block.
+        ...(freshFactory && factoryBlock != null ? { blockNumber: factoryBlock } : {}),
       };
     }
   }
@@ -555,6 +560,7 @@ async function main() {
     BENEFICIARY_IDENTITY_ADDRESS: addresses.BeneficiaryIdentity,
     BENEFICIARY_VERIFIER_TRUSTED_SIGNER_ADDRESS: trusted,
     CONTENT_REGISTRY_ADDRESS: addresses.ContentRegistry,
+    CREATOR_ASSURANCE_DEPLOYER_ADDRESS: addresses.CreatorAssuranceDeployer,
     BENEFICIARY_REGISTRY_ADDRESS: addresses.BeneficiaryRegistry,
     BENEFICIARY_ESCROW_ADDRESS: addresses.BeneficiaryEscrow,
     CREATOR_CONTRACT_FACTORY_ADDRESS: addresses.CreatorAssuranceContractFactory,
