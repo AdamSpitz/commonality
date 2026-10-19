@@ -14,7 +14,7 @@ Canada–US stays a bridge. The shared sentence is still ordinary purchases and 
 
 ## What the plan publishes
 
-A plan written on 2026-10-16 has 72 users, 124 statements, 62 projects, and 523 writes, in `output/campaigns/network-societies-v1-b2-canada-us/`. It was not executed. The earlier mined run was 60 users, 100 statements, and 52 projects. The AI-pause plan, before the Canada–US planks, was 67 users, 117 statements, and 57 projects. Seed: `commonality-network-societies-v1-b2-2026-10-16`. Regenerate the plan before quoting a write count. The old 356-write figure was for 70 statements and 40 projects.
+A plan written on 2026-10-16 has 72 users, 124 statements, 62 projects, and 523 writes, in `output/campaigns/network-societies-v1-b2-canada-us/`. It was not executed. On 2026-10-19 the source manifest was identical to that directory's `manifest.json`, so the 523-write graph is still current. Do not regenerate it while that stays true. The earlier mined run was 60 users, 100 statements, and 52 projects. The AI-pause plan, before the Canada–US planks, was 67 users, 117 statements, and 57 projects. Seed: `commonality-network-societies-v1-b2-2026-10-16`. Regenerate the plan before quoting a write count. The old 356-write figure was for 70 statements and 40 projects.
 
 The abortion cause and the schools cause are bridge-shaped. Each main board lists only the accepted commonality sentence. The natural and modified sentences are on the side boards. The Michigan authority board and the Grey County conduct board are ordinary boards, so their own sentences stay visible there.
 

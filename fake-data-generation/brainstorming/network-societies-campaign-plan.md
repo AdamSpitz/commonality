@@ -1,6 +1,26 @@
 # Network societies fake-data campaign
 
-Status: partial local campaign, updated 2026-10-19. The nine families that already have campaign content are enough for now. Six named families still have no fake content, and we are not authoring them yet. This document does not generate data or authorize a remote deployment. The live ids are `network-societies-v1-pilot` and `network-societies-v1-b2`, not one `network-societies-v1` manifest.
+## Adam's description of what we're doing here (don't edit this)
+
+The rest of this file was AI-generated (with my input, but I still don't feel like I trust it), so I want to try to describe what I'm after, and then you can amend the plan and the content to make sure we're doing what I want.
+
+In fake-data-generation/brainstorming/README.md I wrote a list of some ideas for "network societies" that I personally would be interested in supporting. (Some are more compelling than others; we've done some and decided to defer some.) I want us to flesh them out into fake-data campaigns (with statements, bridges from multiple plausible constituencies who all might agree, fake users who fall into various constituencies or don't agree at all, and fake usage data from those fake users).
+
+The hope is that this becomes useful for demoing the system, in a couple of ways.
+  - I show it to people who share some of my opinions and they find some of the examples compelling in the sense of "yeah, I can see how that *kind* of project is something that we have trouble funding in other ways. (The fact that they share my political opinions isn't important - the point isn't exactly "do exactly these things that align with my political beliefs" - but if the example causes aren't things they'd consider good, they'll be turned off.)
+  - It demonstrates the various roles, too: different people participate in different ways, and each is simple and the UI has a streamlined way to participate in just that role.
+
+So I'm imagining that for the fake-data campaign we're working on, there'll be an admin page where I can choose to log in as a particular fake user; that way I can have specific fake users with particular interests/roles (including some that would be similar to various friends of mine), and so I can demo the system through their eyes.
+
+Basically I just want to show this to my friends and have them understand it. :P
+
+
+
+
+
+## Current high-level status
+
+Partial local campaign, updated 2026-10-19. The nine families that already have campaign content are enough for now. Six named families still have no fake content, and we are not authoring them yet. This document does not generate data or authorize a remote deployment. The live ids are `network-societies-v1-pilot` and `network-societies-v1-b2`, not one `network-societies-v1` manifest.
 
 ## Where the work stands
 
@@ -10,7 +30,9 @@ Two local campaigns exist. Neither is the finished fifteen-family world, and nei
 
 **Batch 2** ([`network-societies-v1-b2.md`](../campaigns/network-societies-v1-b2.md)). Keeps those four families and adds the accepted abortion settlement, the accepted schools-and-pushing bridge, an Owen Sound voting trial, six draft bridges (assimilation sessions, dual-count poll, checkout trial, minors' medicine, ordinary opinions and employment, Canada–US ties), and a plain AI-pause board. Canada–US is past the five-statement draft: five work planks, a boycott, and a narrower-ties sentence sit on the commonality board. The current manifest is 72 users, 124 statements, and 62 projects. Twenty-one modified-to-commonality arrows are allowed: four accepted bridge pairs and seventeen live attester blesses, including five AI-pause modifieds. The Canada–US boycott and narrower sentence were refused and stay unpublished. Designed-negative pairs stay unpublished. The other five draft clusters and the AI-pause board are not accepted seed. Canada–US is not accepted seed either. A local run on 2026-10-16 mined and reconciled 446/446 into `output/campaigns/network-societies-v1-b2/`. That output is the plan from before the belief pins and before the AI-pause arrows. Do not regenerate into it. Do not regenerate into `output/campaigns/network-societies-v1-b2-ai-pause/`. A later plan belongs in a fresh directory such as `output/campaigns/network-societies-v1-b2-canada-us/`.
 
-The planner now pins batch-2 `signs` and `rejects` from the decisions file. Eli's only planned belief on the abortion commonality is `disbelieve`. Unsigned is still not a rejection. The next chain run needs a fresh output directory.
+The planner now pins batch-2 `signs` and `rejects` from the decisions file. Eli's only planned belief on the abortion commonality is `disbelieve`. Unsigned is still not a rejection.
+
+**Frozen plan, checked 2026-10-19.** `campaigns/network-societies-v1-b2.json` is identical to `output/campaigns/network-societies-v1-b2-canada-us/manifest.json`. That directory's action graph has 523 writes and has not been executed. Do not regenerate it while the source stays identical. Do not execute it over `output/campaigns/network-societies-v1-b2/`, `output/campaigns/network-societies-v1-b2-ai-pause/`, or the pilot directory. Eli (`user-052`) believes the abortion natural-right sentence and disbelieves the commonality and both modifieds. No project title is shared across causes. The graph has 8 `delegate-note` writes and 3 `revoke-delegation` writes, and zero retroactive `fund-project` writes. Nothing spends a delegated note.
 
 **Decided out of this campaign for now.** Delegated spending and a recurring monthly pledge. Pat already delegates a note, and revocation is a real action. Nothing spends a delegated note or repeats a pledge. Journey 5 below is therefore only partly demonstrated, and the "$20/month" filter is still a product gap.
 
@@ -19,6 +41,39 @@ The planner now pins batch-2 `signs` and `rejects` from the decisions file. Eli'
 US-friendly Canadians is in batch 2 past the five-statement draft. AI safety is a plain board in batch 2 (`ai-pause`): a shared pause-treaty sentence, milder wordings that contain it, naturals that do not, a full-stop refusal, and an accelerationist refusal. A 2026-10-16 attester pass blessed the five modified-to-commonality pairs and refused the designed negatives. Those five arrows are in the allowance list. Home learning and Grey County civic life stop at the pilot planks. Do not force a new triple onto an overlap that already shares a concrete want. The campaign note already treats several of these as overlaps.
 
 **Journeys.** Direct shared agreement and one reused statement on two boards are in the pilot. A declined bridge is authored for batch 2 (Eli) and is in the new plan, not in the mined output. Verified implication paths are planned for batch 2. Early-risk reimbursement, a friend actually spending a delegated note, recurring pledges, and the independent-reviewer walkthrough are not campaign demonstrations yet.
+
+## Inventory against the family minimum
+
+Counted from `network-societies-v1-b2-statements.json`, `network-societies-v1-b2-projects.json`, and the cause list on 2026-10-19. "Planks" is the number of statements in that group's file. Accepted abortion and schools wording lives in `seed-content/`, so those two rows also have five accepted sentences that are not in the campaign file. A family clears the written minimum at 6–10 planks, at least two incompatible positions, and at least five projects. Draft bridges are extra boards, not extra families.
+
+| Family | Planks in the campaign file | Projects | Against the minimum |
+| --- | --- | --- | --- |
+| Crypto-friendly checkout | 10 | 5 | Meets it. Includes a refusal of crypto payments. |
+| Grey County civic life | 10, plus a 5-statement assimilation draft | 5 on the main board, 2 on the draft | Main board meets it. The draft is not a second family. |
+| Christian teaching | 9 | 5 | Meets it. |
+| Home learning | 10 | 5 | Meets it. |
+| Abortion settlement | 6 on the Michigan authority board, plus the accepted five | 5 on the settlement, 2 on the forum | Meets it. Eli refuses the settlement. |
+| Schools and conduct | 7 on Grey County conduct, plus the accepted five | 3 on the schools cause, 5 on conduct | The family meets it. The schools cause alone has three projects. |
+| Owen Sound voting trial | 7, plus a 5-statement dual-count draft | 5 on the trial, 2 on the draft | Main board meets it. |
+| US-friendly Canadians | 12 | 7 | Meets it. Boycott and narrower-ties sentences are refused as arrows. |
+| AI pause | 17 | 5 | Meets it. Five modified-to-commonality arrows are allowed. |
+| Low-carb, cancel-proof support, unwoke, Democracy 2.0, Islamic reform, less regulation | none | none | Deferred. |
+
+One statement, the class-host directory, is on the Christian teaching board and the home-learning board. One statement, the moderator checklist, is on the Michigan authority board and the Owen Sound voting board. No project is one contract aligned to two boards. The three cross-family projects the scope section asks for are still missing.
+
+## Journeys the frozen plan can and cannot show
+
+These are properties of the 523-write graph, not of a chain run. A browser walkthrough still has to happen after execution.
+
+| Journey | In the frozen plan |
+| --- | --- |
+| 1. Founder sees an ecosystem | Yes, as content. Sixteen causes, and projects are not all funded the same way. Not yet seen in a browser on this plan. |
+| 2. Alliance without merger | Direct shared agreement is in the pilot families. Twenty-one implication writes are in this graph, including Eli's refused settlement staying off the arrow list. Not yet mined. |
+| 3. A bridge is declined | Yes. Eli disbelieves the abortion commonality and both modifieds, and believes only the natural-right sentence. |
+| 4. Early risk and later reimbursement | No retroactive `fund-project` write. The v2 planner emits those only for its own bridge project. This campaign does not. |
+| 5. Limited delegation | Pat delegates to Ned, and three revocations are planned. No action spends a delegated note. Recurring monthly pledges are not an action type here. |
+| 6. Same project, different boards | No. Two statements sit on two boards. Projects do not. |
+| 7. Independent judgment | June is described as a reviewer who refuses a superficial alignment. The graph's 62 alignment writes are all `supports-described-outcome`. A decline is not planned. |
 
 ## Purpose
 
@@ -177,4 +232,4 @@ Remote/testnet publication is a separate later step using existing preflight, bu
 - Required journeys have reconciled state and browser observations. Unsupported behaviors are listed as specific gaps, never counted as demonstrated; the full demo is not called complete while a required journey is silently missing.
 - The report identifies synthetic users/activity/deliverables, actual amounts and outcomes, exact reproduction steps, and the next unfinished task if work spans sessions.
 
-**Next task:** keep working from the nine families already in the pilot and batch 2. Do not author low-carb, cancel-proof support, unwoke, Democracy 2.0, Islamic reform, or less regulation. Pilot and batch 2 both pin `signs` and `rejects`. The mined outputs predate those pins. Do not regenerate `output/campaigns/network-societies-v1-pilot/`, `output/campaigns/network-societies-v1-b2/`, or `output/campaigns/network-societies-v1-b2-ai-pause/`. Do not start a bulk random run. A later plan belongs in a fresh output directory. The local demonstration in step 5 is still not done.
+**Next task:** execute the frozen plan already in `output/campaigns/network-societies-v1-b2-canada-us/` (523 writes; source manifest matches). Do not regenerate that directory while the source stays identical. Do not regenerate `output/campaigns/network-societies-v1-pilot/`, `output/campaigns/network-societies-v1-b2/`, or `output/campaigns/network-societies-v1-b2-ai-pause/`. Do not author low-carb, cancel-proof support, unwoke, Democracy 2.0, Islamic reform, or less regulation. Do not start a bulk random run. After reconciliation, walk journeys 1–3 in the browser and record the URLs. Journeys 4, 6, and 7 are not in the action graph: no retroactive fund, no shared project contract, and no declined alignment. Journey 5 stops at delegate and revoke. Leave those four as gaps until someone extends the planner. The local demonstration in step 5 is still not done.
