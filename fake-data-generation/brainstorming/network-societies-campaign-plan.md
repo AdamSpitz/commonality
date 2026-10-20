@@ -304,25 +304,22 @@ Read the current sentences in `network-societies-v1-b2-statements.json`. Adam is
 
 ### Grey County civic life (next)
 
-Board `civic-assimilation`. Check a box only if the wording is fine. Shared sentences also sit on other boards; a check here is about this board's use of them.
+Rewritten 2026-10-20 after Adam said the earlier sentences were too specific. The board is the assimilation want, two constituencies that already say it, a milder English sentence that does not say it, and a refusal. No implication arrow is published. The two longer sentences contain the assimilation sentence on purpose, so a later attester pass could bless them. Getting along in English is a designed no. The old class, park, and office sentences are off the board and kept only so mined copies still resolve. The Grey County assimilation-sessions draft still has the old session wording and is not this board.
 
-Sentences:
+- [ ] If people from other cultures and other languages live in Grey County, I want them to assimilate. (`assimilate`)
+- [ ] Keep welcoming some people from other cultures and other languages, and want those people to assimilate. (`some-immigration`)
+- [ ] Rather fewer people like that moved here. If they live here, they should assimilate. (`fewer-newcomers`)
+- [ ] No strong view on how many newcomers. People around here speak English, and people who live here should get along in English. (`english-around-here`)
+- [ ] People from other cultures and languages should be able to keep them, and should not be expected to assimilate. (`keep-own-ways`)
 
-- [ ] Newcomers in Grey County can learn practical English, and how the library, the bus, a school meeting, and a township office work. (`language-sessions`)
-- [ ] Newcomers and long-time residents take on practical work together in the county's public places. (`park-paths`)
-- [ ] Township business stays in English, including when language classes are offered. (`english-township-business`)
-- [ ] Newcomers can keep their own language communities without a public program that expects them to adopt local customs. (`own-language-communities`)
-- [ ] Stop recruiting more newcomers until the published housing and clinic wait times get shorter. (`housing-before-recruiting`)
-- [ ] Practical-English classes stop short of telling newcomers which customs to keep. (`session-limit`)
-- [ ] A person who will host a small class is findable, and that person's affiliation is written down. (`class-host-directory`, also on Christian teaching and home learning)
-- [ ] A public notice is readable without needing the recording. (`plain-text-notice`, also on Christian teaching)
+Projects stay. All five civic projects are aligned only to `assimilate`. Class-host and the plain-text notice stay on their own sentences.
 
-Projects on this board. The last two are one contract each, listed on more than one board.
+- [ ] Twelve conversation sessions. Aligned to `assimilate`.
+- [ ] Grey County civics pack. Aligned to `assimilate`.
+- [ ] Harrison Park path season. Aligned to `assimilate`.
+- [ ] Conversation-session handoff. Aligned to `assimilate`.
+- [ ] Independent tutor-listing check. Aligned to `assimilate`.
+- [ ] Grey County class-host directory. Still only `class-host-directory`.
+- [ ] Plain-text Grey County notice. Still only `plain-text-notice`. Not mined.
 
-- [ ] Twelve conversation sessions — twelve English conversation sessions in Owen Sound with childcare, attendance published without naming children. Aligned to `language-sessions`.
-- [ ] Grey County civics pack — plain-English pack for the library, the bus, a school meeting, and a township office. Aligned to `language-sessions`.
-- [ ] Harrison Park path season — one summer of path repair with newcomers and long-time residents, hours and costs published. Aligned to `park-paths`.
-- [ ] Conversation-session handoff — steps, contacts, and childcare so a second organizer can run the next series. Aligned to `language-sessions`.
-- [ ] Independent tutor-listing check — someone who does not run the sessions checks language-tutor listings for one season and publishes which listings failed. Aligned to `language-sessions`.
-- [ ] Grey County class-host directory — one directory of people who will host a small class, affiliation and an independent checker's note, maintained for one year. Aligned only to `class-host-directory`. Same contract on Christian teaching and home learning.
-- [ ] Plain-text Grey County notice — one library, bus, or township notice transcribed into plain text and posted beside the original for one year. Aligned only to `plain-text-notice`. The project is filed under Christian teaching in the source so the contract is not duplicated. Not mined.
+Pilot pins, not yet mined: Imani signs `some-immigration` and `assimilate`, and rejects `keep-own-ways`. Doug signs `fewer-newcomers` and `assimilate`, rejects `keep-own-ways` and `some-immigration`. Nobody spotlighted signs `english-around-here`.

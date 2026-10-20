@@ -245,7 +245,7 @@ test('network-societies pilot reuses one directory statement and publishes no im
   const manifest = JSON.parse(await readFile(new URL('../campaigns/network-societies-v1-pilot.json', import.meta.url), 'utf8')) as CampaignManifestV1;
   const plan = await buildCampaignPlan(manifest);
   assert.equal(plan.users.length, 40);
-  assert.equal(plan.statements.length, 21);
+  assert.equal(plan.statements.length, 20);
   assert.equal(plan.projects.length, 20);
   const shared = plan.statements.find((statement) => statement.source.statementId === 'class-host-directory');
   assert.ok(shared);
@@ -273,7 +273,7 @@ test('batch 2 keeps the pilot families, reuses accepted bridges, and shares one 
   }
   const plan = await buildCampaignPlan(manifest);
   assert.equal(plan.users.length, 72);
-  assert.equal(plan.statements.length, 94);
+  assert.equal(plan.statements.length, 93);
   assert.equal(plan.projects.length, 65);
   assert.equal(plan.actions.filter((action) => action.funding?.kind === 'retroactive').length, 0);
   const checklist = plan.statements.find((statement) => statement.source.statementId === 'moderator-checklist');

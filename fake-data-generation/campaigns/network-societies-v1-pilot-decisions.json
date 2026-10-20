@@ -16,11 +16,15 @@
       "userId": "user-003",
       "name": "Imani",
       "signs": [
-        "language-sessions",
-        "session-limit"
+        "some-immigration",
+        "assimilate"
       ],
       "rejects": [
-        "housing-before-recruiting"
+        "keep-own-ways"
+      ],
+      "unsigned": [
+        "english-around-here",
+        "fewer-newcomers"
       ],
       "funds": "Twelve conversation sessions"
     },
@@ -28,12 +32,15 @@
       "userId": "user-006",
       "name": "Doug",
       "signs": [
-        "park-paths",
-        "english-township-business",
-        "housing-before-recruiting"
+        "fewer-newcomers",
+        "assimilate"
       ],
       "rejects": [
-        "own-language-communities"
+        "keep-own-ways",
+        "some-immigration"
+      ],
+      "unsigned": [
+        "english-around-here"
       ],
       "funds": "Harrison Park path season"
     },
@@ -98,10 +105,10 @@
     "reason": "No fresh affirmative result from the real implication-attester prompt is stored. The pilot therefore publishes no implication edges.",
     "proposed": [
       {
-        "from": "language-sessions",
-        "to": "housing-before-recruiting",
+        "from": "english-around-here",
+        "to": "assimilate",
         "expect": "negative",
-        "why": "Wanting classes does not imply a recruiting pause."
+        "why": "Getting along in English does not already say assimilate. No arrow until a real attester pass, and this pair is a designed no."
       },
       {
         "from": "class-host-directory",

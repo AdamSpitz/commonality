@@ -19,8 +19,8 @@
   "scale": {
     "minCauses": 4,
     "maxCauses": 6,
-    "minStatements": 21,
-    "maxStatements": 21,
+    "minStatements": 20,
+    "maxStatements": 20,
     "allowRepeatedStatementRefs": true
   },
   "projectStories": "network-societies-v1-pilot-projects.json",
@@ -58,32 +58,27 @@
         {
           "collectionId": "network-societies-v1",
           "groupId": "civic-assimilation",
-          "statementId": "language-sessions"
+          "statementId": "assimilate"
         },
         {
           "collectionId": "network-societies-v1",
           "groupId": "civic-assimilation",
-          "statementId": "park-paths"
+          "statementId": "some-immigration"
         },
         {
           "collectionId": "network-societies-v1",
           "groupId": "civic-assimilation",
-          "statementId": "english-township-business"
+          "statementId": "fewer-newcomers"
         },
         {
           "collectionId": "network-societies-v1",
           "groupId": "civic-assimilation",
-          "statementId": "own-language-communities"
+          "statementId": "english-around-here"
         },
         {
           "collectionId": "network-societies-v1",
           "groupId": "civic-assimilation",
-          "statementId": "housing-before-recruiting"
-        },
-        {
-          "collectionId": "network-societies-v1",
-          "groupId": "civic-assimilation",
-          "statementId": "session-limit"
+          "statementId": "keep-own-ways"
         },
         {
           "collectionId": "network-societies-v1",
@@ -438,8 +433,8 @@
       "type": "publish-statement",
       "prerequisites": [],
       "targetCount": {
-        "min": 21,
-        "max": 21
+        "min": 20,
+        "max": 20
       }
     },
     {

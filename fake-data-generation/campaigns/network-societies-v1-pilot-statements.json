@@ -28,7 +28,30 @@
     {
       "id": "civic-assimilation",
       "title": "Shared civic life in Grey County",
+      "notes": [
+        "Same board sentences as network-societies-v1-b2-statements.json. Retired ids stay so older manifests can still load."
+      ],
       "statements": [
+        {
+          "id": "assimilate",
+          "text": "If people from other cultures and other languages live in Grey County, Ontario, I want them to assimilate."
+        },
+        {
+          "id": "some-immigration",
+          "text": "I want Grey County to keep welcoming some people from other cultures and other languages, and I want those people to assimilate."
+        },
+        {
+          "id": "fewer-newcomers",
+          "text": "I would rather fewer people from other cultures and other languages moved to Grey County. If people like that live here, I want them to assimilate."
+        },
+        {
+          "id": "english-around-here",
+          "text": "I don't have a strong view on how many newcomers Grey County should take. People around here speak English, and I want people who live here to get along in English."
+        },
+        {
+          "id": "keep-own-ways",
+          "text": "I want people in Grey County who come from other cultures and languages to be able to keep those cultures and languages, and I do not want them expected to assimilate."
+        },
         {
           "id": "language-sessions",
           "text": "I want newcomers in Grey County, Ontario, to be able to learn practical English, and to learn how the library, the bus, a school meeting, and a township office work."
