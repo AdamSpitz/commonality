@@ -260,7 +260,68 @@ Adam decided on 2026-10-19 to flesh these out. Nothing about the demo says they 
 
 **Journey 6 walk, 2026-10-20.** Same static server as journey 5: `http://127.0.0.1:5199`, indexer head 2603, run `20261020T130207000Z`. The project is `project-015`, contract `0x4be59d6F5BC7e4D4b215CCEa1252522C1A307115`, founder Nadia, 0.01 of 2 USDZZZ raised, one alignment to `statement-shared-goods-class-host-directory`. Christian teaching (`/cause/0x7099…79C8/campaign-ns-v1-b2-note-spend-christian-teaching`) and home learning (`/cause/0x90F7…b906/campaign-ns-v1-b2-note-spend-home-learning`) both list that contract under Fundable Projects, each as Direct, 0.01 / 2 USDZZZ. Grey County civic life lists the same title and the same 0.01 / 2. The home board's fundable list appears after the signer counts finish. The staffed-schools statement page does not list this project. A second alignment to a contradictory plank was not added.
 
-**Next task:** journeys 4, 5, and 6 have been walked, and journey 7 is dropped. The three cross-family projects are in the batch 2 source. Printed moderator checklist and Plain-text Grey County notice still need a fresh local plan and run. Do not regenerate `output/campaigns/network-societies-v1-b2-note-spend/`, `output/campaigns/network-societies-v1-b2-reimburse/`, `output/campaigns/network-societies-v1-b2-canada-us/`, `output/campaigns/network-societies-v1-pilot/`, `output/campaigns/network-societies-v1-b2/`, or `output/campaigns/network-societies-v1-b2-ai-pause/`. Do not author low-carb, cancel-proof support, unwoke, Democracy 2.0, Islamic reform, or less regulation. Do not start a bulk random run. Remote publication is a separate step. `fake-data-generation/PLAN.md` items 4–8 are not this chunk.
+**Next task:** Adam is reviewing the generated sentences and project titles. The checklist is [Adam's review list](#adams-review-list-2026-10-20) at the bottom of this file. Do not mine another copy, and do not edit statement or project text, until he checks a board. After that, Printed moderator checklist and Plain-text Grey County notice still need a fresh local plan and run. Journeys 4, 5, and 6 have been walked, and journey 7 is dropped. The three cross-family projects are in the batch 2 source. Do not regenerate `output/campaigns/network-societies-v1-b2-note-spend/`, `output/campaigns/network-societies-v1-b2-reimburse/`, `output/campaigns/network-societies-v1-b2-canada-us/`, `output/campaigns/network-societies-v1-pilot/`, `output/campaigns/network-societies-v1-b2/`, or `output/campaigns/network-societies-v1-b2-ai-pause/`. Do not author low-carb, cancel-proof support, unwoke, Democracy 2.0, Islamic reform, or less regulation. Do not start a bulk random run. Remote publication is a separate step. `fake-data-generation/PLAN.md` items 4–8 are not this chunk.
 
 
 NOTE FROM ADAM: Now that we've generated a bunch of fake data, I want to go through it myself and see whether it looks reasonable to me; I don't trust our LLM-generated stuff yet to be good without supervision. So let's make a list here of what I've approved and what still needs to be looked at.
+
+## Adam's review list (2026-10-20)
+
+Source of the sentences and project titles: `fake-data-generation/campaigns/network-societies-v1-b2-statements.json` and `network-societies-v1-b2-projects.json`. A box is checked only when Adam has said the item is fine. Nothing in the generated campaign text is checked yet.
+
+### Decisions already made
+
+These are scope calls, not a pass on the wording.
+
+- [x] Nine families are enough for now. Do not author low-carb, cancel-proof support, unwoke, Democracy 2.0, Islamic reform, or less regulation (2026-10-19).
+- [x] Do not add a negative alignment attestation. A missing yes is the refusal (2026-10-20).
+- [x] A recurring monthly pledge stays a product gap. Do not invent pledge transactions.
+- [x] Do not regenerate the mined output directories named in the next-task note above.
+- [x] Reuse the accepted abortion and schools-and-pushing sentences unchanged. They are not new campaign text.
+
+### Already accepted seed (wording lives in `seed-content/`, not in the campaign file)
+
+Skip these unless you want to re-read them. The campaign boards only point at them.
+
+- [x] Abortion cutoff bridge: the accepted five (`compromise-abortion`).
+- [x] Schools and pushing: the accepted five (`lgbt-schools`). The campaign does not treat those five as a position on drugs, surgery, or classroom names.
+
+### Still needs a look — statements
+
+One checkbox per board. The lines under it are the sentences on that board, so you can see what you are approving.
+
+- [ ] **Crypto-friendly checkout** (`crypto-merchants`, 10). Six-shop refundable trial; published fees and failures; independent security review; shop directory; Saturday clinic; host kit; keep cash and cards; refuse crypto payments; payment when a bank has blocked the customer; show the fee on a twenty-dollar sale.
+- [ ] **Grey County civic life** (`civic-assimilation`, 10). Twelve English sessions with childcare; civics pack; Harrison Park paths; independent tutor check; organizer handoff; township business stays in English; newcomers keep their own language communities; stop recruiting until housing and clinic waits shorten; welcome signage; sessions stop short of telling people which customs to keep.
+- [ ] **Christian teaching** (`christian-teaching`, 9). Reusable midweek notes; transcription; one-season substitute rota; name the confession; no joint doctrine; second-church host kit; civic transcription only; keep notes inside the congregation; public calendar of Sundays short a preacher.
+- [ ] **Home learning** (`home-learning`, 10). Printable grade-six science unit; field-trip pack; store-item kits; eight Saturday meetups; successor host; name the teaching method; no religious claims; school families may borrow the notes; children taught in staffed schools; list kit hazards.
+- [ ] **Shared class-host directory** (`shared-goods`, 1). Public directory of Grey County class hosts, affiliation written down, independent check noted. On civic life, Christian teaching, and home learning.
+- [ ] **Plain-text notice** (`cross-family`, 1). One Grey County public notice transcribed into plain text. On civic life and Christian teaching. Not in a mined run yet.
+- [ ] **Michigan abortion authority** (`abortion-forum`, 6). Legislature rather than a federal statute; one federal rule; keep campaigning instead of a cutoff; forbid abortion from the start; a comparison page that does not say which rule is in force; moderator checklist. Beside the accepted cutoff, not a rewrite of it.
+- [ ] **Grey County school conduct** (`gender-conduct`, 7). Published harassment steps; a clinician outside the school for a minor's drug or surgery; schools stay out of approving those; a counselor may approve without an outside clinician; an adult may say they are seeking treatment; classroom uses the name the student asks for, separate from medicine; teachers use only the enrollment-form name.
+- [ ] **Owen Sound voting trial** (`voting`, 7). Non-binding ranked poll with published ballots; an approval count of the same ballots; keep first-past-the-post for municipal elections; keep a show of hands; a second person can rerun the count; host kit; one-year directory of groups that published a count.
+- [ ] **Draft: Grey County assimilation sessions** (`grey-assimilation`, 5). Not accepted seed. Practical English while keeping customs; join the local way of life; two modifieds; a shorter commonality.
+- [ ] **Draft: dual-count poll** (`ranked-approval-poll`, 5). Not accepted seed.
+- [ ] **Draft: checkout trial** (`checkout-trial-bridge`, 5). Not accepted seed.
+- [ ] **Draft: minors' medicine** (`minors-medicine`, 5). Not accepted seed. Separate from the accepted schools sentences.
+- [ ] **Draft: ordinary opinions and employment** (`opinion-employment`, 5). Not accepted seed.
+- [ ] **Canada–US ties** (`canada-us-ties`, 12). Not accepted seed. Shared sentence is ordinary purchases and family visits, administration left out. Also: archive, Owen Sound guide, one evening, Grey County directory, host handoff, a boycott refusal, and a narrower sentence that keeps visits and drops the call to keep buying. Boycott and narrower sentence are not implication arrows.
+- [ ] **AI pause** (`ai-pause`, 17). Not accepted seed. One shared pause-treaty sentence; five milder modifieds that contain it; five naturals that do not; a full-stop refusal; an accelerationist refusal; petition, alignment note, warning digest, host kit.
+
+### Still needs a look — projects
+
+Titles only. Same files. A checked board above does not check these.
+
+- [ ] Crypto checkout (5): Six-shop refundable checkout trial; Independent checkout security review; Fee and failure table; Owen Sound merchant directory; Quarterly checkout clinic and host kit.
+- [ ] Civic life (5): Twelve conversation sessions; Grey County civics pack; Harrison Park path season; Conversation-session handoff; Independent tutor-listing check.
+- [ ] Christian teaching (6): Midweek class notes; Midweek class transcript; One-season substitute rota; Second-church host kit; Plain-text Grey County notice; Grey County class-host directory.
+- [ ] Home learning (5): Printable grade-six science unit; Grey County field-trip pack; Store-item science kits; Eight Owen Sound Saturdays; Successor host notes.
+- [ ] Abortion settlement (5), on the accepted wording: Grand Rapids settlement sessions; Plain-language settlement page; Five-statement posting; Settlement-session host kit; Independent notes check.
+- [ ] Michigan forum (2): Michigan authority brief; From-the-start position page.
+- [ ] Schools (3), on the accepted wording: Grand Rapids pushing-question meetings; Unchanged schools packet; Schools-meeting host kit.
+- [ ] School conduct (5): Harassment-steps sheet; Clinician boundary page; Courtesy and medicine one-pager; Adult-speech note; Conduct-page host kit.
+- [ ] Voting (6): Owen Sound association poll; Approval count of the same ballots; Rerunnable counting notes; Second-host poll kit; Printed moderator checklist; Moderator checklist card.
+- [ ] Draft and later boards (22): assimilation sessions (2), dual-count poll (2), checkout-trial bridge (2), minors' medicine (2), opinions and employment (2), Canada–US (7), AI pause (5). Titles are in the project file under those group ids.
+
+### Not a content review
+
+Journeys 1–6 were walked in the browser. That checked that the pages render the mined graph. It did not approve the sentences or the project briefs. Personas and who signs what are still unreviewed; start from `network-societies-v1-b2-decisions.json` after a board's sentences look right.
