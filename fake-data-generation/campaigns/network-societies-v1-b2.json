@@ -840,7 +840,7 @@
     {
       "userId": "user-002",
       "displayName": "Helen",
-      "bio": "Preaches at a small Grey County church and wants the midweek notes reusable, with the confession named. She does not treat a shared host directory as agreement on doctrine.",
+      "bio": "Preaches at a small Grey County church and wants freely available teaching notes that many English-speaking churches can use, with the confession named. She does not treat a shared host directory as agreement on doctrine.",
       "favoriteCauseId": "christian-teaching",
       "interests": [
         "preaching",
@@ -872,7 +872,7 @@
     {
       "userId": "user-004",
       "displayName": "Owen",
-      "bio": "Home-schools in Grey County and wants the printable science unit with no religious claims. He will not sign a request to release a congregation's midweek notes.",
+      "bio": "Home-schools in Grey County and wants the printable science unit with no religious claims. He will not sign a request for freely available church teaching notes.",
       "favoriteCauseId": "home-learning",
       "interests": [
         "home science",

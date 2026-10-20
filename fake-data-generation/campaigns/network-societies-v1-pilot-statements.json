@@ -57,30 +57,33 @@
     {
       "id": "christian-teaching",
       "title": "Christian teaching resources in Grey County",
+      "notes": [
+        "Same sentences as network-societies-v1-b2-statements.json. Rewritten 2026-10-20 so the board is wants, not project descriptions."
+      ],
       "statements": [
         {
           "id": "midweek-notes",
-          "text": "I want a Grey County congregation to be able to reuse another congregation's teaching notes."
+          "text": "I want more freely available teaching notes that people from many English-speaking churches can use."
         },
         {
           "id": "substitute-rota",
-          "text": "I want a Grey County church to be able to have a substitute preacher when the regular preacher is away."
+          "text": "I want independent churches in the Grey County area to be able to get the ordinary help they need without joining a larger denomination."
         },
         {
           "id": "named-confession",
-          "text": "I want shared Grey County teaching notes to name the confession they come from."
+          "text": "I want shared church teaching notes to name the confession they come from."
         },
         {
           "id": "no-joint-doctrine",
-          "text": "I want congregations that reuse the same Grey County teaching notes to stop short of publishing a joint statement of doctrine."
+          "text": "I want churches that reuse the same teaching notes to stop short of publishing a joint statement of doctrine."
         },
         {
           "id": "civic-transcription-only",
-          "text": "I want to help transcribe public civic materials in Grey County, and I do not want that work to include church teaching."
+          "text": "I want to help transcribe public civic materials, and I do not want that work to include church teaching."
         },
         {
           "id": "keep-notes-inside",
-          "text": "I want a congregation's teaching notes to stay inside that congregation."
+          "text": "I want a church's teaching notes to stay inside that church."
         }
       ]
     },
