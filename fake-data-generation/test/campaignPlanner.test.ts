@@ -273,14 +273,27 @@ test('batch 2 keeps the pilot families, reuses accepted bridges, and shares one 
   }
   const plan = await buildCampaignPlan(manifest);
   assert.equal(plan.users.length, 72);
-  assert.equal(plan.statements.length, 124);
-  assert.equal(plan.projects.length, 62);
+  assert.equal(plan.statements.length, 125);
+  assert.equal(plan.projects.length, 64);
   assert.equal(plan.actions.filter((action) => action.funding?.kind === 'retroactive').length, 0);
   const checklist = plan.statements.find((statement) => statement.source.statementId === 'moderator-checklist');
   assert.ok(checklist);
   assert.equal(checklist!.causeId, 'abortion-forum');
   assert.deepEqual(checklist!.alsoOnCauseIds, ['voting']);
-  assert.equal(plan.projects.filter((project) => project.statementIds.includes(checklist!.id)).length, 1);
+  assert.equal(plan.projects.filter((project) => project.statementIds.includes(checklist!.id)).length, 2);
+  const singleShared = plan.projects.filter((project) => {
+    if (project.statementIds.length !== 1) return false;
+    const statement = plan.statements.find((item) => item.id === project.statementIds[0]);
+    return (statement?.alsoOnCauseIds?.length ?? 0) >= 1;
+  });
+  assert.deepEqual(singleShared.map((project) => project.title).sort(), [
+    'Grey County class-host directory',
+    'Plain-text Grey County notice',
+    'Printed moderator checklist',
+  ]);
+  const notice = plan.statements.find((statement) => statement.source.statementId === 'plain-text-notice')!;
+  assert.equal(notice.causeId, 'civic-assimilation');
+  assert.deepEqual(notice.alsoOnCauseIds, ['christian-teaching']);
   const implications = plan.actions.filter((action) => action.type === 'attest-implication');
   assert.equal(implications.length, 21);
   const accepted = implications.filter((action) => action.implication!.evidence === 'accepted-bridge-role-pair');

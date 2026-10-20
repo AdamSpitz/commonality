@@ -19,8 +19,8 @@
   "scale": {
     "minCauses": 16,
     "maxCauses": 16,
-    "minStatements": 124,
-    "maxStatements": 124,
+    "minStatements": 125,
+    "maxStatements": 125,
     "allowRepeatedStatementRefs": true
   },
   "projectStories": "network-societies-v1-b2-projects.json",
@@ -144,6 +144,11 @@
           "collectionId": "network-societies-v1-b2",
           "groupId": "shared-goods",
           "statementId": "class-host-directory"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "cross-family",
+          "statementId": "plain-text-notice"
         }
       ]
     },
@@ -202,6 +207,11 @@
           "collectionId": "network-societies-v1-b2",
           "groupId": "shared-goods",
           "statementId": "class-host-directory"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "cross-family",
+          "statementId": "plain-text-notice"
         }
       ]
     },
@@ -1302,8 +1312,8 @@
       "type": "publish-statement",
       "prerequisites": [],
       "targetCount": {
-        "min": 124,
-        "max": 124
+        "min": 125,
+        "max": 125
       }
     },
     {
@@ -1342,8 +1352,8 @@
         "create-cause"
       ],
       "targetCount": {
-        "min": 62,
-        "max": 62
+        "min": 64,
+        "max": 64
       }
     },
     {
@@ -1353,8 +1363,8 @@
         "publish-statement"
       ],
       "targetCount": {
-        "min": 62,
-        "max": 62
+        "min": 64,
+        "max": 64
       }
     },
     {

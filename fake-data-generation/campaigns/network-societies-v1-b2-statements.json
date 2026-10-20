@@ -199,6 +199,19 @@
       ]
     },
     {
+      "id": "cross-family",
+      "title": "One more good reused across Grey County boards",
+      "notes": [
+        "Not in the pilot file. One statement, one project, two boards. Not an implication."
+      ],
+      "statements": [
+        {
+          "id": "plain-text-notice",
+          "text": "I want one Grey County public notice, from the library, the bus, or a township office, transcribed into plain text a person can read without the recording."
+        }
+      ]
+    },
+    {
       "id": "abortion-forum",
       "title": "Michigan abortion authority, beside the accepted cutoff",
       "notes": [

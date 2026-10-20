@@ -123,6 +123,14 @@
       "blocker": "The rota dies with the first host unless the steps are written down"
     },
     {
+      "title": "Plain-text Grey County notice",
+      "outcome": "Transcribe one published Grey County library, bus, or township notice into plain text and post that text beside the original for one year.",
+      "statementRefs": [
+        "plain-text-notice"
+      ],
+      "blocker": "The first transcription is useful to every later reader, and neither the township office nor a church transcription rota is paid to do it"
+    },
+    {
       "title": "Grey County class-host directory",
       "outcome": "Publish one directory of Grey County people who will host a small class, with affiliation and an independent checker's note, and maintain it for one year.",
       "statementRefs": [
@@ -353,6 +361,14 @@
         "poll-host-kit"
       ],
       "blocker": "The poll stops when the first host is busy unless the steps are written down"
+    },
+    {
+      "title": "Printed moderator checklist",
+      "outcome": "Print the moderator checklist and file one copy with the Owen Sound poll notes and one copy with the Michigan forum notes.",
+      "statementRefs": [
+        "moderator-checklist"
+      ],
+      "blocker": "Each meeting can use the same checklist, and neither meeting is paid to keep the card in print"
     },
     {
       "title": "Moderator checklist card",
