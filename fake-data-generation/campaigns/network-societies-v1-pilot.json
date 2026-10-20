@@ -19,8 +19,8 @@
   "scale": {
     "minCauses": 4,
     "maxCauses": 6,
-    "minStatements": 18,
-    "maxStatements": 18,
+    "minStatements": 16,
+    "maxStatements": 16,
     "allowRepeatedStatementRefs": true
   },
   "projectStories": "network-societies-v1-pilot-projects.json",
@@ -129,27 +129,17 @@
         {
           "collectionId": "network-societies-v1",
           "groupId": "home-learning",
-          "statementId": "science-unit"
+          "statementId": "reusable-home-materials"
         },
         {
           "collectionId": "network-societies-v1",
           "groupId": "home-learning",
-          "statementId": "method-on-the-page"
+          "statementId": "materials-without-religion"
         },
         {
           "collectionId": "network-societies-v1",
           "groupId": "home-learning",
-          "statementId": "no-religious-claims"
-        },
-        {
-          "collectionId": "network-societies-v1",
-          "groupId": "home-learning",
-          "statementId": "school-families-may-borrow"
-        },
-        {
-          "collectionId": "network-societies-v1",
-          "groupId": "home-learning",
-          "statementId": "staffed-schools"
+          "statementId": "taught-in-staffed-schools"
         },
         {
           "collectionId": "network-societies-v1",
@@ -423,8 +413,8 @@
       "type": "publish-statement",
       "prerequisites": [],
       "targetCount": {
-        "min": 18,
-        "max": 18
+        "min": 16,
+        "max": 16
       }
     },
     {

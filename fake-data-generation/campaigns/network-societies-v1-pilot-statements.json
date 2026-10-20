@@ -81,26 +81,21 @@
     },
     {
       "id": "home-learning",
-      "title": "Home learning in Grey County",
+      "title": "Home learning",
+      "notes": [
+        "Reusable materials are not a Grey County good. The method and school-family use sit inside that want. A materials sentence with no religious claims is a real further want. The staffed-schools sentence is the local refusal."
+      ],
       "statements": [
         {
-          "id": "science-unit",
-          "text": "I want Grey County families who teach their children at home to have teaching materials they can reuse."
+          "id": "reusable-home-materials",
+          "text": "I want families who teach their children at home to have teaching materials they can reuse. I want those materials to name the teaching method they use, and I want families whose children attend school to be able to use them too."
         },
         {
-          "id": "method-on-the-page",
-          "text": "I want a Grey County home-teaching unit to say which teaching method it uses."
+          "id": "materials-without-religion",
+          "text": "I want home-teaching materials that contain no religious claims, so a family that does not share those claims can use them."
         },
         {
-          "id": "no-religious-claims",
-          "text": "I want a Grey County science unit that contains no religious claims, so a secular home-school family can use it."
-        },
-        {
-          "id": "school-families-may-borrow",
-          "text": "I want families whose children attend school in Grey County to be allowed to use the same home-teaching materials."
-        },
-        {
-          "id": "staffed-schools",
+          "id": "taught-in-staffed-schools",
           "text": "I want children in Grey County taught in staffed schools, and I do not want public rooms booked for home-school programs."
         }
       ]

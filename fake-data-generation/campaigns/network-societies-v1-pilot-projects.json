@@ -130,9 +130,7 @@
       "title": "Printable grade-six science unit",
       "outcome": "Release one grade-six science unit a Grey County family can print, with the teaching method named on the first page and no religious claims in the activities.",
       "statementRefs": [
-        "science-unit",
-        "method-on-the-page",
-        "no-religious-claims"
+        "materials-without-religion"
       ],
       "blocker": "Every family can copy the unit after the first author writes it"
     },
@@ -140,8 +138,7 @@
       "title": "Grey County field-trip pack",
       "outcome": "Release the permission form, map, and safety notes for one Grey County field trip so another family, including a school family, can run it.",
       "statementRefs": [
-        "science-unit",
-        "school-families-may-borrow"
+        "reusable-home-materials"
       ],
       "blocker": "The first family pays for the reconnaissance and every later family can copy the pack"
     },
@@ -149,7 +146,7 @@
       "title": "Store-item science kits",
       "outcome": "Publish instructions for a home science kit of ordinary store items, including hazards and the adult supervision each activity needs.",
       "statementRefs": [
-        "science-unit"
+        "reusable-home-materials"
       ],
       "blocker": "A safe kit has to be tried once before other families can reuse it"
     },
@@ -157,7 +154,7 @@
       "title": "Eight Owen Sound Saturdays",
       "outcome": "Host eight Saturday meetups in Owen Sound for home-school families and publish the dates before the first meeting.",
       "statementRefs": [
-        "science-unit"
+        "reusable-home-materials"
       ],
       "blocker": "The room and the dates have to be reserved before any family can rely on them"
     },
@@ -165,7 +162,7 @@
       "title": "Successor host notes",
       "outcome": "Name a successor and write the notes so the Owen Sound meetups can run a second season without the first host.",
       "statementRefs": [
-        "science-unit"
+        "reusable-home-materials"
       ],
       "blocker": "A meetup series that only the first host can run is not a maintained public good"
     }

@@ -48,9 +48,8 @@
       "userId": "user-004",
       "name": "Owen",
       "signs": [
-        "science-unit",
-        "no-religious-claims",
-        "school-families-may-borrow",
+        "reusable-home-materials",
+        "materials-without-religion",
         "class-host-directory"
       ],
       "rejects": [
@@ -58,7 +57,7 @@
         "keep-notes-inside"
       ],
       "unsigned": [
-        "staffed-schools"
+        "taught-in-staffed-schools"
       ]
     },
     {

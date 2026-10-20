@@ -34,7 +34,7 @@ Seed: `commonality-network-societies-v1-pilot-2026-10-16`. A plan written on 202
 
 Ruth and Len can both be on the checkout board while the dissent plank "shops refuse crypto" is a separate statement. That overlap does not use an implication arrow.
 
-Imani's rejection of the recruiting pause, and Owen's refusal of the shared teaching-notes sentence, are pinned `set-belief` actions. Owen leaves `staffed-schools` unsigned, so that file does not disbelieve it.
+Imani's rejection of the recruiting pause, and Owen's refusal of the shared teaching-notes sentence, are pinned `set-belief` actions. Owen leaves `taught-in-staffed-schools` unsigned, so that file does not disbelieve it.
 
 Pat (`user-021`) delegates notes to Ned (`user-011`). Some delegations are later revoked. The plan does not show Ned spending Pat's note.
 
