@@ -54,7 +54,7 @@
       "title": "Twelve conversation sessions",
       "outcome": "Hold twelve English conversation sessions in Owen Sound with childcare in the room, and publish attendance without naming children.",
       "statementRefs": [
-        "language-sessions"
+        "assimilate"
       ],
       "blocker": "Childcare and a room have to be paid before the first session, and no single family captures the benefit"
     },
@@ -62,7 +62,7 @@
       "title": "Grey County civics pack",
       "outcome": "Write and release a plain-English pack for the library, the bus, a school meeting, and a township office in Grey County.",
       "statementRefs": [
-        "language-sessions"
+        "assimilate"
       ],
       "blocker": "Each office explains itself differently, and no office is paid to write the combined pack"
     },
@@ -70,7 +70,7 @@
       "title": "Harrison Park path season",
       "outcome": "Run one summer of path repair in Harrison Park, Owen Sound, with newcomers and long-time residents, and publish hours and costs.",
       "statementRefs": [
-        "park-paths"
+        "assimilate"
       ],
       "blocker": "The work needs a full season of tools and insurance before anyone can see the paths"
     },
@@ -78,7 +78,7 @@
       "title": "Conversation-session handoff",
       "outcome": "Write the steps, contacts, and childcare arrangements so a second organizer can run the next Owen Sound session series.",
       "statementRefs": [
-        "language-sessions"
+        "assimilate"
       ],
       "blocker": "The sessions are a public good only if they survive the first organizer"
     },
@@ -86,7 +86,7 @@
       "title": "Independent tutor-listing check",
       "outcome": "For one season, have someone who does not run the sessions check Grey County language-tutor listings and publish which listings failed.",
       "statementRefs": [
-        "language-sessions"
+        "assimilate"
       ],
       "blocker": "A directory checked by its own organizer does not answer a skeptic"
     }

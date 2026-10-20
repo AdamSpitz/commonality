@@ -260,7 +260,7 @@ Adam decided on 2026-10-19 to flesh these out. Nothing about the demo says they 
 
 **Journey 6 walk, 2026-10-20.** Same static server as journey 5: `http://127.0.0.1:5199`, indexer head 2603, run `20261020T130207000Z`. The project is `project-015`, contract `0x4be59d6F5BC7e4D4b215CCEa1252522C1A307115`, founder Nadia, 0.01 of 2 USDZZZ raised, one alignment to `statement-shared-goods-class-host-directory`. Christian teaching (`/cause/0x7099…79C8/campaign-ns-v1-b2-note-spend-christian-teaching`) and home learning (`/cause/0x90F7…b906/campaign-ns-v1-b2-note-spend-home-learning`) both list that contract under Fundable Projects, each as Direct, 0.01 / 2 USDZZZ. Grey County civic life lists the same title and the same 0.01 / 2. The home board's fundable list appears after the signer counts finish. The staffed-schools statement page does not list this project. A second alignment to a contradictory plank was not added.
 
-**Next task:** Adam is reviewing the generated sentences and project titles, one board at a time. Crypto is checked. The board in front of him is Grey County civic life, written out under [Adam's review list](#adams-review-list-2026-10-20). Do not mine another copy, and do not edit statement or project text, until he checks that board. After that, Printed moderator checklist and Plain-text Grey County notice still need a fresh local plan and run. Journeys 4, 5, and 6 have been walked, and journey 7 is dropped. The three cross-family projects are in the batch 2 source. Do not regenerate `output/campaigns/network-societies-v1-b2-note-spend/`, `output/campaigns/network-societies-v1-b2-reimburse/`, `output/campaigns/network-societies-v1-b2-canada-us/`, `output/campaigns/network-societies-v1-pilot/`, `output/campaigns/network-societies-v1-b2/`, or `output/campaigns/network-societies-v1-b2-ai-pause/`. Do not author low-carb, cancel-proof support, unwoke, Democracy 2.0, Islamic reform, or less regulation. Do not start a bulk random run. Remote publication is a separate step. `fake-data-generation/PLAN.md` items 4–8 are not this chunk.
+**Next task:** Adam is reviewing the generated sentences one board at a time, in fresh sessions. Crypto and Grey County civic life are good enough for now. The next board is Christian teaching. Do not mine another copy, and do not edit a board's statement or project text, until he is in that session. After that, Printed moderator checklist and Plain-text Grey County notice still need a fresh local plan and run. Journeys 4, 5, and 6 have been walked, and journey 7 is dropped. The three cross-family projects are in the batch 2 source. Do not regenerate `output/campaigns/network-societies-v1-b2-note-spend/`, `output/campaigns/network-societies-v1-b2-reimburse/`, `output/campaigns/network-societies-v1-b2-canada-us/`, `output/campaigns/network-societies-v1-pilot/`, `output/campaigns/network-societies-v1-b2/`, or `output/campaigns/network-societies-v1-b2-ai-pause/`. Do not author low-carb, cancel-proof support, unwoke, Democracy 2.0, Islamic reform, or less regulation. Do not start a bulk random run. Remote publication is a separate step. `fake-data-generation/PLAN.md` items 4–8 are not this chunk.
 
 
 NOTE FROM ADAM: Now that we've generated a bunch of fake data, I want to go through it myself and see whether it looks reasonable to me; I don't trust our LLM-generated stuff yet to be good without supervision. So let's make a list here of what I've approved and what still needs to be looked at.
@@ -302,24 +302,4 @@ Read the current sentences in `network-societies-v1-b2-statements.json`. Adam is
 
 - [x] Crypto board sentences, 2026-10-20. Adam said they look pretty decent. Projects on the refundable-checkout sentence stayed. Added "Blocked-customer sale record," aligned only to bank-blocking. Imani and June sign that sentence, reject a ban on crypto payments, and each fund the five checkout projects plus the new record. Not mined.
 
-### Grey County civic life (next)
-
-Rewritten 2026-10-20 after Adam said the earlier sentences were too specific. The board is the assimilation want, two constituencies that already say it, a milder English sentence that does not say it, and a refusal. No implication arrow is published. The two longer sentences contain the assimilation sentence on purpose, so a later attester pass could bless them. Getting along in English is a designed no. The old class, park, and office sentences are off the board and kept only so mined copies still resolve. The Grey County assimilation-sessions draft still has the old session wording and is not this board.
-
-- [ ] If people from other cultures and other languages live in Grey County, I want them to assimilate. (`assimilate`)
-- [ ] Keep welcoming some people from other cultures and other languages, and want those people to assimilate. (`some-immigration`)
-- [ ] Rather fewer people like that moved here. If they live here, they should assimilate. (`fewer-newcomers`)
-- [ ] No strong view on how many newcomers. People around here speak English, and people who live here should get along in English. (`english-around-here`)
-- [ ] People from other cultures and languages should be able to keep them, and should not be expected to assimilate. (`keep-own-ways`)
-
-Projects stay. All five civic projects are aligned only to `assimilate`. Class-host and the plain-text notice stay on their own sentences.
-
-- [ ] Twelve conversation sessions. Aligned to `assimilate`.
-- [ ] Grey County civics pack. Aligned to `assimilate`.
-- [ ] Harrison Park path season. Aligned to `assimilate`.
-- [ ] Conversation-session handoff. Aligned to `assimilate`.
-- [ ] Independent tutor-listing check. Aligned to `assimilate`.
-- [ ] Grey County class-host directory. Still only `class-host-directory`.
-- [ ] Plain-text Grey County notice. Still only `plain-text-notice`. Not mined.
-
-Pilot pins, not yet mined: Imani signs `some-immigration` and `assimilate`, and rejects `keep-own-ways`. Doug signs `fewer-newcomers` and `assimilate`, rejects `keep-own-ways` and `some-immigration`. Nobody spotlighted signs `english-around-here`.
+- [x] Grey County civic life, 2026-10-20. Good enough for now. The board is the assimilation want, two constituencies that already say it, a milder English sentence that does not, and a refusal. The five civic projects align only to `assimilate`. No implication arrow. The earlier class, park, and office sentences are deleted. The Grey County assimilation-sessions draft still has the old session wording and is not this board. Not mined.

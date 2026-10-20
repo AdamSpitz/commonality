@@ -23,7 +23,7 @@
     "maxStatements": 93,
     "allowRepeatedStatementRefs": true
   },
-  "projectStories": "network-societies-v1-b2-board-projects.json",
+  "projectStories": "network-societies-v1-b2-projects.json",
   "beliefDecisions": "network-societies-v1-b2-decisions.json",
   "causes": [
     {
