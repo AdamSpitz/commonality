@@ -62,6 +62,8 @@ export interface PlannedAction {
   belief?: 'believe' | 'disbelieve';
   amount?: number;
   funding?: { kind: 'early' | 'retroactive'; tokenId?: 1 | 3; tokenCount?: number; camp?: 'left' | 'right' };
+  /** Payment-token notes can be spent. ETH notes stay at 1 wei and are not spent. */
+  noteAsset?: 'erc20';
   alignment?: 'supports-described-outcome';
   delegationBasis?: { sharedCauseIds: string[]; reason: 'shared-cause-trusted-role' };
   implication?: { fromStatementId: string; toStatementId: string; evidence: CampaignImplicationEvidence };
@@ -119,7 +121,8 @@ export interface CampaignPlan {
 const GAS_UNITS: Record<CampaignActionType, number> = {
   'publish-statement': 4_000_000, 'create-cause': 120_000, 'create-bridge-board': 120_000, 'create-bridge': 120_000, 'set-belief': 120_000,
   'attest-implication': 130_000, 'create-project': 4_500_000, 'attest-alignment': 130_000,
-  'fund-project': 180_000, 'deposit-note': 150_000, 'delegate-note': 100_000, 'revoke-delegation': 90_000,
+  'fund-project': 180_000, 'deposit-note': 350_000, 'delegate-note': 100_000, 'revoke-delegation': 90_000,
+  'spend-delegated-note': 400_000,
 };
 
 function stableJson(value: unknown): string {
@@ -636,7 +639,44 @@ export async function buildCampaignPlan(manifest: CampaignManifestV1): Promise<C
     const sharedCauseIds = delegate.causeIds.filter((causeId) => owner.causeIds.includes(causeId)).sort();
     delegations.push(add({ type: 'delegate-note', actorUserId: owner.id, noteId: deposit.noteId, delegateUserId: delegate.id, amount: deposit.amount, delegationBasis: { sharedCauseIds, reason: 'shared-cause-trusted-role' }, dependsOn: [deposit.id] }));
   }
-  for (let index = 0; index < countByType['revoke-delegation']; index++) { const delegation = delegations[index % delegations.length]; add({ type: 'revoke-delegation', actorUserId: delegation.actorUserId, noteId: delegation.noteId, dependsOn: [delegation.id] }); }
+  const spend = manifest.delegatedSpend;
+  if (spend) {
+    const owner = users.find((user) => user.id === spend.ownerUserId);
+    const delegate = delegates.find((user) => user.id === spend.delegateUserId);
+    const project = projects.find((item) => item.title === spend.projectTitle);
+    if (!owner || owner.inactive) throw new Error(`delegatedSpend owner is not an active user: ${spend.ownerUserId}`);
+    if (!delegate) throw new Error(`delegatedSpend delegate is not an active delegate: ${spend.delegateUserId}`);
+    if (!project) throw new Error(`delegatedSpend project not planned: ${spend.projectTitle}`);
+    const sharedCauseIds = delegate.causeIds.filter((causeId) => owner.causeIds.includes(causeId)).sort();
+    if (sharedCauseIds.length === 0) throw new Error('delegatedSpend pair shares no cause');
+    if (project.founderUserId === delegate.id) throw new Error('delegatedSpend delegate must not be the project founder');
+    const deposit = deposits[countByType['delegate-note'] - 1];
+    if (!deposit) throw new Error('delegatedSpend needs a delegated deposit');
+    deposit.actorUserId = owner.id;
+    deposit.noteAsset = 'erc20';
+    deposit.amount = 1;
+    deposit.funding = { kind: 'early', tokenId: 3, tokenCount: 1 };
+    const delegation = delegations[delegations.length - 1];
+    if (!delegation || delegation.noteId !== deposit.noteId) throw new Error('delegatedSpend note is not the last delegation');
+    delegation.actorUserId = owner.id;
+    delegation.delegateUserId = delegate.id;
+    delegation.amount = deposit.amount;
+    delegation.delegationBasis = { sharedCauseIds, reason: 'shared-cause-trusted-role' };
+    const alignment = alignments.find((item) => item.projectId === project.id);
+    if (!alignment) throw new Error(`delegatedSpend project has no alignment: ${project.id}`);
+    add({
+      type: 'spend-delegated-note', actorUserId: delegate.id, causeId: project.causeId, projectId: project.id, noteId: deposit.noteId,
+      amount: 1, funding: { kind: 'early', tokenId: 3, tokenCount: 1 },
+      dependsOn: [delegation.id, createProjects.get(project.id)!.id, alignment.id],
+    });
+  }
+  for (let index = 0; index < countByType['revoke-delegation']; index++) {
+    const delegation = delegations[index % delegations.length];
+    if (spend && delegation.noteId === deposits[countByType['delegate-note'] - 1]?.noteId) {
+      throw new Error('delegatedSpend note would also be revoked');
+    }
+    add({ type: 'revoke-delegation', actorUserId: delegation.actorUserId, noteId: delegation.noteId, dependsOn: [delegation.id] });
+  }
 
   validatePlannedActions(manifest, statements, users, projects, actions);
   const writesByType = Object.fromEntries(manifest.actionRules.map((rule) => [rule.type, actions.filter((action) => action.type === rule.type).length])) as Record<CampaignActionType, number>;

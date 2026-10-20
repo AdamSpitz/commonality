@@ -94,7 +94,7 @@ export function createCampaignSdkDerivedCheckProvider(input: {
   for (const action of plan.actions) {
     if (action.type === 'set-belief') latestBelief.set(`${action.actorUserId}/${action.statementId}`, action);
     if (action.noteId) latestNoteAction.set(action.noteId, action);
-    if (action.type === 'fund-project') {
+    if (action.type === 'fund-project' || action.type === 'spend-delegated-note') {
       const target = action.funding?.kind === 'retroactive' ? retroByProject : fundingByProject;
       target.set(action.projectId!, (target.get(action.projectId!) ?? 0n) + campaignActionFundingCost(action));
     }
@@ -138,9 +138,10 @@ export function createCampaignSdkDerivedCheckProvider(input: {
           return [check('SDK project exists', true, (await queries.getProject(project(action.projectId))) !== null)];
         case 'attest-alignment':
           return [check('SDK active project alignment', true, await queries.hasAlignment(user(action.actorUserId), project(action.projectId), statement(action.statementId)))];
+        case 'spend-delegated-note':
         case 'fund-project': {
           const folded = await queries.getProject(project(action.projectId));
-          if (action.funding?.kind === 'retroactive') {
+          if (action.type === 'fund-project' && action.funding?.kind === 'retroactive') {
             const reimbursement = await queries.getProjectReimbursementState?.(project(action.projectId));
             return [check('SDK final retroactive donations', (retroByProject.get(action.projectId!) ?? 0n).toString(), reimbursement?.totalRetroactiveDonations ?? null)];
           }

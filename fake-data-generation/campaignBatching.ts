@@ -24,7 +24,9 @@ export const SOLO_GAS_UNITS: Record<CampaignActionType, bigint> = {
   // used 4,073,876–4,073,924 gas. A 3,000,000 quote left 17 founder wallets
   // short of the balance viem requires for that limit. Headroom above the max.
   'attest-implication': 130_000n, 'create-project': 4_500_000n, 'attest-alignment': 130_000n,
-  'fund-project': 180_000n, 'deposit-note': 150_000n, 'delegate-note': 100_000n, 'revoke-delegation': 90_000n,
+  'fund-project': 180_000n, 'deposit-note': 350_000n, 'delegate-note': 100_000n, 'revoke-delegation': 90_000n,
+  // ERC-20 deposit approves then deposits. A delegated-note purchase is larger than a wallet buy.
+  'spend-delegated-note': 400_000n,
 };
 
 /** Storage and log cost of one extra item once the transaction overhead is paid. */

@@ -42,13 +42,13 @@ test('funding needs include gas, note deposits, and project token buys', () => {
   const [need] = computeCampaignFundingNeeds(plan, [wallet], 1_000_000_000n);
   assert.equal(need.walletSlot, 'wallet-user-001');
   assert.equal(need.paymentTokenUnits, parseUnits('0.01', 6));
-  assert.ok(need.nativeWei >= 120_000n * 1_000_000_000n + 180_000n * 1_000_000_000n + 150_000n * 1_000_000_000n + CAMPAIGN_NOTE_WEI);
+  assert.ok(need.nativeWei >= 120_000n * 1_000_000_000n + 180_000n * 1_000_000_000n + 350_000n * 1_000_000_000n + CAMPAIGN_NOTE_WEI);
 });
 
 test('native reserve scales with gas and leaves idle wallets unfunded', () => {
   const idle = { ...wallet, walletSlot: 'wallet-idle' };
   const needs = computeCampaignFundingNeeds(plan, [wallet, idle], 1_000_000_000n);
-  const estimatedGasWei = (120_000n + 180_000n + 150_000n) * 1_000_000_000n;
+  const estimatedGasWei = (120_000n + 180_000n + 350_000n) * 1_000_000_000n;
   assert.equal(needs[0].nativeWei, CAMPAIGN_NOTE_WEI + estimatedGasWei * 125n / 100n + parseEther('0.0001'));
   assert.equal(needs[1].nativeWei, 0n);
 });

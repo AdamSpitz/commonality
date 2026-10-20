@@ -409,6 +409,38 @@ test('reimbursement config plans early 0.10 receipts and later retroactive donat
   assert.equal(plan.actions.filter((action) => action.type === 'fund-project').length, 74);
 });
 
+test('delegatedSpend plans one payment-token note that stays delegated and is spent once', async () => {
+  const manifest = JSON.parse(await readFile(new URL('../campaigns/network-societies-v1-b2.json', import.meta.url), 'utf8')) as CampaignManifestV1;
+  manifest.userProfiles = [...(manifest.userProfiles ?? []), {
+    userId: 'user-012',
+    displayName: 'Willa',
+    bio: 'Holds June\'s payment-token note for the six-shop checkout trial and spends it once.',
+    favoriteCauseId: 'crypto-merchants',
+    interests: ['limited notes', 'Owen Sound shops'],
+    causeIds: ['crypto-merchants', 'home-learning'],
+  }];
+  manifest.actionRules.push({ type: 'spend-delegated-note', prerequisites: ['delegate-note', 'create-project', 'attest-alignment'], targetCount: { min: 1, max: 1 } });
+  manifest.delegatedSpend = { ownerUserId: 'user-016', delegateUserId: 'user-012', projectTitle: 'Six-shop refundable checkout trial' };
+  const plan = await buildCampaignPlan(manifest);
+  const spends = plan.actions.filter((action) => action.type === 'spend-delegated-note');
+  assert.equal(spends.length, 1);
+  const spend = spends[0];
+  const deposit = plan.actions.find((action) => action.type === 'deposit-note' && action.noteId === spend.noteId)!;
+  const delegation = plan.actions.find((action) => action.type === 'delegate-note' && action.noteId === spend.noteId)!;
+  const revokes = plan.actions.filter((action) => action.type === 'revoke-delegation' && action.noteId === spend.noteId);
+  assert.equal(deposit.actorUserId, 'user-016');
+  assert.equal(deposit.noteAsset, 'erc20');
+  assert.equal(deposit.funding?.tokenId, 3);
+  assert.equal(delegation.delegateUserId, 'user-012');
+  assert.equal(spend.actorUserId, 'user-012');
+  assert.equal(spend.amount, 1);
+  assert.equal(revokes.length, 0);
+  assert.ok(spend.dependsOn.includes(delegation.id));
+  const patNote = plan.actions.find((action) => action.type === 'delegate-note' && action.actorUserId === 'user-021')!;
+  assert.ok(plan.actions.some((action) => action.type === 'revoke-delegation' && action.noteId === patNote.noteId));
+  assert.notEqual(patNote.noteId, spend.noteId);
+});
+
 test('written planning artifacts reload into the same campaign plan', async () => {
   const manifest = await loadManifest();
   const plan = await buildCampaignPlan(manifest);

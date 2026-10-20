@@ -106,7 +106,8 @@ export function computeCampaignFundingNeeds(plan: CampaignPlan, wallets: readonl
     need.nativeWei += gasWei;
     gasBySlot.set(walletSlot, (gasBySlot.get(walletSlot) ?? 0n) + gasWei);
     for (const action of group) {
-      if (action.type === 'deposit-note') need.nativeWei += campaignNoteWei(action);
+      if (action.type === 'deposit-note' && action.noteAsset === 'erc20') need.paymentTokenUnits += campaignActionFundingCost(action);
+      else if (action.type === 'deposit-note') need.nativeWei += campaignNoteWei(action);
       if (action.type === 'fund-project') need.paymentTokenUnits += campaignActionFundingCost(action);
     }
   }
