@@ -262,6 +262,7 @@ interface BeliefDecisionPerson {
   name?: string;
   signs?: string[];
   rejects?: string[];
+  funds?: string[] | string;
 }
 
 async function loadBeliefDecisions(manifest: CampaignManifestV1): Promise<BeliefDecisionPerson[]> {
@@ -571,6 +572,16 @@ export async function buildCampaignPlan(manifest: CampaignManifestV1): Promise<C
     return { user, project };
   })) : [];
   let pinnedPledgeCursor = 0;
+  const decisionPledges = beliefDecisions.flatMap((person) => (person.funds == null ? [] : Array.isArray(person.funds) ? person.funds : [person.funds]).map((title) => {
+    const user = usersById.get(person.userId);
+    if (!user || user.inactive) throw new Error(`fund decision names an inactive user ${person.userId}`);
+    if (user.fundingWeight <= 0) throw new Error(`fund decision user cannot fund: ${person.userId}`);
+    const project = projects.find((item) => item.title === title);
+    if (!project) throw new Error(`fund decision project not planned: ${title}`);
+    if (!user.causeIds.includes(project.causeId)) throw new Error(`${user.id} is not on the board for ${title}`);
+    return { user, project };
+  }));
+  let decisionPledgeCursor = 0;
   const campBeliefs = bridgeBackers.map((user, index) => {
     const camp = index === 0 ? 'left' : 'right';
     const statement = statements.find((item) => item.causeId === bridgeProject!.causeId && item.role === `natural-${camp}`)!;
@@ -594,11 +605,13 @@ export async function buildCampaignPlan(manifest: CampaignManifestV1): Promise<C
     const featuredCause = useStories ? hobbyCauses[index] : undefined;
     const bridgePurchase = Boolean(bridgeProject && index >= hobbyCauses.length && index < hobbyCauses.length + 20);
     const reimbursementPurchase = Boolean(reimbursementProject && !useStories && index < reimbursement!.earlyPurchases);
-    const pinnedPledge = !featuredCause && !bridgePurchase && !reimbursementPurchase && pinnedPledgeCursor < pinnedPledges.length ? pinnedPledges[pinnedPledgeCursor++] : undefined;
-    const project = pinnedPledge ? pinnedPledge.project : bridgePurchase ? bridgeProject! : reimbursementPurchase ? reimbursementProject! : featuredCause ? firstByCause.get(featuredCause)! : random.weighted(fundableProjects, (item) => Math.max(1, fundableProjects.length - (useStories ? fundableProjects.indexOf(item) : projects.indexOf(item))));
+    const openDecisionPledges = decisionPledges.filter((pledge) => pledge.project.title !== reimbursement?.projectTitle);
+    const decisionPledge = !featuredCause && !bridgePurchase && !reimbursementPurchase && decisionPledgeCursor < openDecisionPledges.length ? openDecisionPledges[decisionPledgeCursor++] : undefined;
+    const pinnedPledge = !featuredCause && !bridgePurchase && !reimbursementPurchase && !decisionPledge && pinnedPledgeCursor < pinnedPledges.length ? pinnedPledges[pinnedPledgeCursor++] : undefined;
+    const project = decisionPledge ? decisionPledge.project : pinnedPledge ? pinnedPledge.project : bridgePurchase ? bridgeProject! : reimbursementPurchase ? reimbursementProject! : featuredCause ? firstByCause.get(featuredCause)! : random.weighted(fundableProjects, (item) => Math.max(1, fundableProjects.length - (useStories ? fundableProjects.indexOf(item) : projects.indexOf(item))));
     const supporters = activeUsers.filter((user) => user.causeIds.includes(project.causeId) && user.fundingWeight > 0 && (!useStories || user.id !== project.founderUserId));
     const interestedSupporters = featuredCause ? supporters.filter((user) => user.favoriteCauseId === featuredCause && user.id !== project.founderUserId) : [];
-    const actor = pinnedPledge ? pinnedPledge.user : bridgePurchase ? bridgeBackers[(index - hobbyCauses.length) % 2] : reimbursementPurchase ? reimbursementBackers[index % 2] : random.weighted(interestedSupporters.length ? interestedSupporters : supporters, (user) => user.fundingWeight);
+    const actor = decisionPledge ? decisionPledge.user : pinnedPledge ? pinnedPledge.user : bridgePurchase ? bridgeBackers[(index - hobbyCauses.length) % 2] : reimbursementPurchase ? reimbursementBackers[index % 2] : random.weighted(interestedSupporters.length ? interestedSupporters : supporters, (user) => user.fundingWeight);
     const alignment = alignments.find((item) => item.projectId === project.id);
     if (!alignment) throw new Error(`impossible fund-project: ${project.id} has no alignment action`);
     const tokenId = bridgePurchase ? 1 : 3;
@@ -609,6 +622,9 @@ export async function buildCampaignPlan(manifest: CampaignManifestV1): Promise<C
       dependsOn: [createProjects.get(project.id)!.id, alignment.id, ...(bridgePurchase ? [campBeliefs[(index - hobbyCauses.length) % 2].id] : [])] });
     if (bridgePurchase) thresholdPurchases.push(action);
     if (reimbursementPurchase) reimbursementPurchases.push(action);
+  }
+  if (decisionPledgeCursor !== decisionPledges.filter((pledge) => pledge.project.title !== reimbursement?.projectTitle).length) {
+    throw new Error('persona fund decisions were not all planned');
   }
   if (pinnedPledgeCursor !== pinnedPledges.length) throw new Error('v2 spotlight profiles did not each pledge on every joined cause');
   if (reimbursement && reimbursementProject) for (let index = 0; index < reimbursement.retroactiveDonations; index++) {

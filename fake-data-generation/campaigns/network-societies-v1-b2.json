@@ -861,7 +861,7 @@
     {
       "userId": "user-003",
       "displayName": "Imani",
-      "bio": "Recently moved to Owen Sound and wants the twelve conversation sessions with childcare. She rejects the demand to stop recruiting newcomers.",
+      "bio": "Recently moved to Owen Sound and wants the twelve conversation sessions with childcare. She rejects the demand to stop recruiting newcomers. A bank hold is why she wants a shop to be able to finish a sale, and why she funds the checkout work that makes that possible.",
       "favoriteCauseId": "civic-assimilation",
       "interests": [
         "English practice",
@@ -985,7 +985,7 @@
     {
       "userId": "user-016",
       "displayName": "June",
-      "bio": "Reviews project alignments and will refuse a project that only sounds related to a statement.",
+      "bio": "Reviews project alignments and will refuse a project that only sounds related to a statement. She wants a willing shop to finish a sale when a bank has blocked the customer, and she funds the Owen Sound checkout work as that step.",
       "favoriteCauseId": "crypto-merchants",
       "interests": [
         "review",
@@ -1637,8 +1637,8 @@
         "create-cause"
       ],
       "targetCount": {
-        "min": 64,
-        "max": 64
+        "min": 65,
+        "max": 65
       }
     },
     {
@@ -1648,8 +1648,8 @@
         "publish-statement"
       ],
       "targetCount": {
-        "min": 64,
-        "max": 64
+        "min": 65,
+        "max": 65
       }
     },
     {

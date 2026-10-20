@@ -39,6 +39,14 @@
         "refundable-checkout"
       ],
       "blocker": "The clinic stops when the first host is busy unless the hosting steps are written down"
+    },
+    {
+      "title": "Blocked-customer sale record",
+      "outcome": "Write the steps a clerk at an Owen Sound shop follows when a customer's bank has blocked them, try those steps once at each of the six trial shops, and publish whether the sale completed. Do not publish the customer's name.",
+      "statementRefs": [
+        "bank-blocking"
+      ],
+      "blocker": "A shop will not keep a public record of a blocked customer unless someone else writes the steps and checks that the name stays off the page"
     }
   ],
   "civic-assimilation": [

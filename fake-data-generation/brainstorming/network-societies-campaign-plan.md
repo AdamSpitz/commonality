@@ -48,7 +48,7 @@ Counted from `network-societies-v1-b2-statements.json`, `network-societies-v1-b2
 
 | Family | Planks in the campaign file | Projects | Against the minimum |
 | --- | --- | --- | --- |
-| Crypto-friendly checkout | 10 | 5 | Meets it. Includes a refusal of crypto payments. |
+| Crypto-friendly checkout | 10 | 6 | Meets it. Includes a refusal of crypto payments. One project is aligned to the bank-blocking sentence. |
 | Grey County civic life | 10, plus a 5-statement assimilation draft | 5 on the main board, 2 on the draft | Main board meets it. The draft is not a second family. |
 | Christian teaching | 9 | 5 | Meets it. |
 | Home learning | 10 | 5 | Meets it. |
@@ -299,3 +299,5 @@ Skip these unless you want to re-read them. (ADAM: No, don't skip them; I want t
 Read the current sentences in `network-societies-v1-b2-statements.json`. Adam is reviewing them one board at a time, starting with crypto. Projects stayed; their alignments now point at the surviving want.
 
 (ADAM: Let's go through one by one, starting with looking at the crypto one again, now that we've significantly changed it.)
+
+- [x] Crypto board sentences, 2026-10-20. Adam said they look pretty decent. Projects on the refundable-checkout sentence stayed. Added "Blocked-customer sale record," aligned only to bank-blocking. Imani and June sign that sentence, reject a ban on crypto payments, and each fund the five checkout projects plus the new record. Not mined.

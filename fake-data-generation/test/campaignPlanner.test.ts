@@ -274,7 +274,7 @@ test('batch 2 keeps the pilot families, reuses accepted bridges, and shares one 
   const plan = await buildCampaignPlan(manifest);
   assert.equal(plan.users.length, 72);
   assert.equal(plan.statements.length, 94);
-  assert.equal(plan.projects.length, 64);
+  assert.equal(plan.projects.length, 65);
   assert.equal(plan.actions.filter((action) => action.funding?.kind === 'retroactive').length, 0);
   const checklist = plan.statements.find((statement) => statement.source.statementId === 'moderator-checklist');
   assert.ok(checklist);
@@ -399,6 +399,28 @@ test('batch 2 pins persona belief choices and never has Eli believe the settleme
     assert.equal(beliefs.some((action) => action.actorUserId === user.id && action.statementId === canadaCommonality.id && action.belief === 'believe'), false, name);
     assert.equal(beliefs.some((action) => action.actorUserId === user.id && action.statementId === canadaCommonality.id && action.belief === 'disbelieve'), true, name);
   }
+  const imani = plan.users.find((user) => user.displayName === 'Imani')!;
+  const june = plan.users.find((user) => user.displayName === 'June')!;
+  const blocked = plan.projects.find((project) => project.title === 'Blocked-customer sale record')!;
+  const blockedStatement = plan.statements.find((statement) => statement.id === blocked.statementIds[0])!;
+  assert.deepEqual(blocked.statementIds, [blockedStatement.id]);
+  assert.equal(blockedStatement.source.statementId, 'bank-blocking');
+  const checkoutTitles = [
+    'Six-shop refundable checkout trial',
+    'Independent checkout security review',
+    'Fee and failure table',
+    'Owen Sound merchant directory',
+    'Quarterly checkout clinic and host kit',
+    'Blocked-customer sale record',
+  ];
+  for (const title of checkoutTitles) {
+    const project = plan.projects.find((item) => item.title === title)!;
+    for (const user of [imani, june]) {
+      assert.equal(plan.actions.some((action) => action.type === 'fund-project' && action.actorUserId === user.id && action.projectId === project.id), true, `${user.displayName} ${title}`);
+    }
+  }
+  assert.deepEqual(byStatementId('bank-blocking', imani.id).map((action) => action.belief), ['believe']);
+  assert.deepEqual(byStatementId('refuse-crypto-payments', june.id).map((action) => action.belief), ['disbelieve']);
   const greta = plan.users.find((user) => user.displayName === 'Greta')!;
   assert.equal(beliefs.some((action) => action.actorUserId === greta.id && action.statementId === boycott.id && action.belief === 'believe'), true);
   const adele = plan.users.find((user) => user.displayName === 'Adele')!;
