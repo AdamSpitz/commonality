@@ -88,8 +88,7 @@
       "title": "Midweek class notes",
       "outcome": "Release the notes for one Grey County congregation's midweek class under terms another congregation can reuse.",
       "statementRefs": [
-        "midweek-notes",
-        "named-confession"
+        "shared-teaching-notes"
       ],
       "blocker": "The second congregation can copy the notes, so neither congregation is paid by the other to write them"
     },
@@ -97,8 +96,7 @@
       "title": "Midweek class transcript",
       "outcome": "Transcribe that class for people who cannot hear the recordings, and publish the transcript with the confession named.",
       "statementRefs": [
-        "midweek-notes",
-        "named-confession"
+        "shared-teaching-notes"
       ],
       "blocker": "Transcription is useful to every later listener and costly to the first congregation"
     },
@@ -106,7 +104,7 @@
       "title": "One-season substitute rota",
       "outcome": "Publish a Sunday rota and sermon notes so a substitute can preach at one named Grey County church for one season.",
       "statementRefs": [
-        "substitute-rota"
+        "independent-church-help"
       ],
       "blocker": "Each small church has too few substitutes to keep the rota alone"
     },
@@ -114,7 +112,7 @@
       "title": "Second-church host kit",
       "outcome": "Write a one-season kit so a second Grey County church can run the same rota without the first host.",
       "statementRefs": [
-        "substitute-rota"
+        "independent-church-help"
       ],
       "blocker": "The rota dies with the first host unless the steps are written down"
     },

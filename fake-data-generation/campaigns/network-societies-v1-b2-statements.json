@@ -59,32 +59,24 @@
       "id": "christian-teaching",
       "title": "Christian teaching resources in Grey County",
       "notes": [
-        "Rewritten 2026-10-20 after Adam said the board was restating the projects. Ids are unchanged. Notes and a transcript are projects under the shared-notes want. A substitute rota and a host kit are projects under the independent-churches want. Naming a confession, and refusing a joint doctrinal statement, are further signer positions, not extra deliverables."
+        "Rewritten 2026-10-20. Two wants, plus a refusal of sharing notes and a refusal to mix civic transcription with church teaching. Naming a confession and refusing a joint doctrinal statement are inside the notes want. Stating qualifications and doctrine is inside the independent-church want. The old midweek, rota, confession, and joint-doctrine ids are deleted."
       ],
       "statements": [
         {
-          "id": "midweek-notes",
-          "text": "I want more freely available teaching notes that people from many English-speaking churches can use."
+          "id": "shared-teaching-notes",
+          "text": "I want more freely available teaching notes that people from many English-speaking churches can use. I want those notes to name the confession and the other assumptions they rely on, and I do not want the churches that use them to have to publish a joint statement of doctrine."
         },
         {
-          "id": "substitute-rota",
-          "text": "I want independent churches in the Grey County area to be able to get the ordinary help they need without joining a larger denomination."
-        },
-        {
-          "id": "named-confession",
-          "text": "I want shared church teaching notes to name the confession they come from."
-        },
-        {
-          "id": "no-joint-doctrine",
-          "text": "I want churches that reuse the same teaching notes to stop short of publishing a joint statement of doctrine."
-        },
-        {
-          "id": "civic-transcription-only",
-          "text": "I want to help transcribe public civic materials, and I do not want that work to include church teaching."
+          "id": "independent-church-help",
+          "text": "I want independent churches in the Grey County area to be able to get ordinary help, including a substitute preacher, without joining a larger denomination. I want the person offering that help to state their qualifications and doctrine, so a church can decide whether that person is acceptable."
         },
         {
           "id": "keep-notes-inside",
           "text": "I want a church's teaching notes to stay inside that church."
+        },
+        {
+          "id": "civic-transcription-only",
+          "text": "I want to help transcribe public civic materials, and I do not want that work to include church teaching."
         }
       ]
     },

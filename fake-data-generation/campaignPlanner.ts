@@ -262,6 +262,7 @@ interface BeliefDecisionPerson {
   name?: string;
   signs?: string[];
   rejects?: string[];
+  unsigned?: string[];
   funds?: string[] | string;
 }
 
@@ -498,20 +499,33 @@ export async function buildCampaignPlan(manifest: CampaignManifestV1): Promise<C
       latestBelief.set(key, action);
     }
   }
+  const reservedBeliefs = new Set(pinnedBeliefs);
+  for (const person of beliefDecisions) {
+    const user = usersById.get(person.userId);
+    if (!user) continue;
+    for (const statementId of person.unsigned ?? []) {
+      const visible = statements.filter((statement) => user.causeIds.some((causeId) => statement.causeId === causeId || statement.alsoOnCauseIds?.includes(causeId)));
+      const matches = visible.filter((statement) => statement.source.statementId === statementId);
+      if (matches.length !== 1) continue;
+      const key = `${user.id}/${matches[0].id}`;
+      if (pinnedBeliefs.has(key)) throw new Error(`${user.id} pins ${statementId} and also leaves it unsigned`);
+      reservedBeliefs.add(key);
+    }
+  }
   if (pinnedBeliefs.size > countByType['set-belief']) {
     throw new Error(`belief decisions pin ${pinnedBeliefs.size} writes, above the set-belief target ${countByType['set-belief']}`);
   }
   const randomBeliefCount = countByType['set-belief'] - pinnedBeliefs.size;
   for (let index = 0; index < randomBeliefCount; index++) {
-    const flipPool = [...latestBelief.values()].filter((action) => !pinnedBeliefs.has(`${action.actorUserId}/${action.statementId}`));
+    const flipPool = [...latestBelief.values()].filter((action) => !reservedBeliefs.has(`${action.actorUserId}/${action.statementId}`));
     const previous = index > Math.floor(randomBeliefCount * 0.92) && flipPool.length > 0 ? random.pick(flipPool) : undefined;
     let actor = previous ? usersById.get(previous.actorUserId!)! : random.weighted(activeUsers, (user) => user.activityWeight);
-    let openStatements = preferredStatements(actor, statements).filter((statement) => !pinnedBeliefs.has(`${actor.id}/${statement.id}`));
+    let openStatements = preferredStatements(actor, statements).filter((statement) => !reservedBeliefs.has(`${actor.id}/${statement.id}`));
     if (!previous && openStatements.length === 0) {
-      const eligible = activeUsers.filter((user) => preferredStatements(user, statements).some((statement) => !pinnedBeliefs.has(`${user.id}/${statement.id}`)));
+      const eligible = activeUsers.filter((user) => preferredStatements(user, statements).some((statement) => !reservedBeliefs.has(`${user.id}/${statement.id}`)));
       if (eligible.length === 0) throw new Error('no user has an unpinned statement to sign');
       actor = random.weighted(eligible, (user) => user.activityWeight);
-      openStatements = preferredStatements(actor, statements).filter((statement) => !pinnedBeliefs.has(`${actor.id}/${statement.id}`));
+      openStatements = preferredStatements(actor, statements).filter((statement) => !reservedBeliefs.has(`${actor.id}/${statement.id}`));
     }
     const statement = previous ? statements.find((item) => item.id === previous.statementId)! : random.pick(openStatements);
     const beliefActor = users.find((user) => user.id === (previous?.actorUserId ?? actor.id))!;

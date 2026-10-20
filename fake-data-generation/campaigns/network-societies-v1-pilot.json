@@ -19,8 +19,8 @@
   "scale": {
     "minCauses": 4,
     "maxCauses": 6,
-    "minStatements": 20,
-    "maxStatements": 20,
+    "minStatements": 18,
+    "maxStatements": 18,
     "allowRepeatedStatementRefs": true
   },
   "projectStories": "network-societies-v1-pilot-projects.json",
@@ -96,32 +96,22 @@
         {
           "collectionId": "network-societies-v1",
           "groupId": "christian-teaching",
-          "statementId": "midweek-notes"
+          "statementId": "shared-teaching-notes"
         },
         {
           "collectionId": "network-societies-v1",
           "groupId": "christian-teaching",
-          "statementId": "substitute-rota"
-        },
-        {
-          "collectionId": "network-societies-v1",
-          "groupId": "christian-teaching",
-          "statementId": "named-confession"
-        },
-        {
-          "collectionId": "network-societies-v1",
-          "groupId": "christian-teaching",
-          "statementId": "no-joint-doctrine"
-        },
-        {
-          "collectionId": "network-societies-v1",
-          "groupId": "christian-teaching",
-          "statementId": "civic-transcription-only"
+          "statementId": "independent-church-help"
         },
         {
           "collectionId": "network-societies-v1",
           "groupId": "christian-teaching",
           "statementId": "keep-notes-inside"
+        },
+        {
+          "collectionId": "network-societies-v1",
+          "groupId": "christian-teaching",
+          "statementId": "civic-transcription-only"
         },
         {
           "collectionId": "network-societies-v1",
@@ -279,7 +269,7 @@
     {
       "userId": "user-002",
       "displayName": "Helen",
-      "bio": "Preaches at a small Grey County church and wants freely available teaching notes that many English-speaking churches can use, with the confession named. She does not treat a shared host directory as agreement on doctrine.",
+      "bio": "Preaches at a small Grey County church and wants freely available teaching notes that many English-speaking churches can use, with the confession named and without a joint doctrinal statement. She does not treat a shared host directory as agreement on doctrine.",
       "favoriteCauseId": "christian-teaching",
       "interests": [
         "preaching",
@@ -433,8 +423,8 @@
       "type": "publish-statement",
       "prerequisites": [],
       "targetCount": {
-        "min": 20,
-        "max": 20
+        "min": 18,
+        "max": 18
       }
     },
     {
@@ -453,8 +443,8 @@
         "publish-statement"
       ],
       "targetCount": {
-        "min": 60,
-        "max": 60
+        "min": 59,
+        "max": 59
       }
     },
     {

@@ -50,7 +50,7 @@ Counted from `network-societies-v1-b2-statements.json`, `network-societies-v1-b2
 | --- | --- | --- | --- |
 | Crypto-friendly checkout | 10 | 6 | Meets it. Includes a refusal of crypto payments. One project is aligned to the bank-blocking sentence. |
 | Grey County civic life | 10, plus a 5-statement assimilation draft | 5 on the main board, 2 on the draft | Main board meets it. The draft is not a second family. |
-| Christian teaching | 9 | 5 | Meets it. |
+| Christian teaching | 4, plus the class-host sentence and the plain-text notice on the board | 5 | Under review. Adam asked for fewer, broader wants on 2026-10-20. |
 | Home learning | 10 | 5 | Meets it. |
 | Abortion settlement | 6 on the Michigan authority board, plus the accepted five | 5 on the settlement, 2 on the forum | Meets it. Eli refuses the settlement. |
 | Schools and conduct | 7 on Grey County conduct, plus the accepted five | 3 on the schools cause, 5 on conduct | The family meets it. The schools cause alone has three projects. |
@@ -59,7 +59,7 @@ Counted from `network-societies-v1-b2-statements.json`, `network-societies-v1-b2
 | AI pause | 17 | 5 | Meets it. Five modified-to-commonality arrows are allowed. |
 | Low-carb, cancel-proof support, unwoke, Democracy 2.0, Islamic reform, less regulation | none | none | Deferred. |
 
-One statement, the class-host directory, is on the civic-life, Christian teaching, and home-learning boards. One statement, the moderator checklist, is on the Michigan authority board and the Owen Sound voting board. The class-host directory project is one contract aligned to that shared statement, so those three boards list the same raise. It is not aligned to the confession sentence or to the staffed-schools sentence. Two more single-statement projects are now in the batch 2 source: Printed moderator checklist, aligned only to the checklist already on the Michigan forum and the Owen Sound voting board, and Plain-text Grey County notice, aligned only to a new sentence on the civic and Christian teaching boards. They are not in the mined output directories.
+One statement, the class-host directory, is on the civic-life, Christian teaching, and home-learning boards. One statement, the moderator checklist, is on the Michigan authority board and the Owen Sound voting board. The class-host directory project is one contract aligned to that shared statement, so those three boards list the same raise. It is not aligned to a Christian-teaching sentence or to the staffed-schools sentence. Two more single-statement projects are now in the batch 2 source: Printed moderator checklist, aligned only to the checklist already on the Michigan forum and the Owen Sound voting board, and Plain-text Grey County notice, aligned only to a new sentence on the civic and Christian teaching boards. They are not in the mined output directories.
 
 ## Journeys the frozen plan can and cannot show
 
@@ -72,7 +72,7 @@ These are properties of the 523-write graph, not of a chain run. A browser walkt
 | 3. A bridge is declined | Mined. Eli's profile lists "Late-term abortion is horrific." and does not list the settlement sentence. The settlement statement page still offers him Sign. |
 | 4. Early risk and later reimbursement | Mined, reconciled, and walked on 2026-10-19 in `output/campaigns/network-societies-v1-b2-reimburse/`, not in the 523-write graph. As Ruth, [Six-shop refundable checkout trial](http://127.0.0.1:5199/projects/0x4251D15D9Ee936d6F489C5aF9646084dB23EE3DE) showed 2.04 of 2 USDZZZ raised, status Succeeded, and "Early contributors are still out 1.04 USDZZZ." Ruth's row is 1.01 USDZZZ net; Imani's is 1.00. A third row, `0x5eF7…6f74`, is 0.02. Len is the founder and the recipient, and he is not one of those rows. Ruth's scout reimbursement showed 0.495098 USDZZZ available now and 0.514901 future. The page says no success attestations yet. Crossing the threshold is not evidence that the fictional work was delivered. |
 | 5. Limited delegation | Delegate and revoke are mined. Pat's note to Ned was revoked, so the live page shows the note back with Pat. Walked 2026-10-19. The one-time spend is mined in `output/campaigns/network-societies-v1-b2-note-spend/`: June's payment-token note stays with Willa, who buys one 0.01 receipt. Walked 2026-10-20. A recurring monthly pledge stays a product gap. |
-| 6. Same project, different boards | Mined in the 523-write graph and in the later copies, and walked on 2026-10-20 from `output/campaigns/network-societies-v1-b2-note-spend/`. [Grey County class-host directory](http://127.0.0.1:5199/projects/0x4be59d6F5BC7e4D4b215CCEa1252522C1A307115) is one contract. Christian teaching and home learning both link it as `/projects/eip155:31337:0x4be59d6F5BC7e4D4b215CCEa1252522C1A307115`. Civic life lists the same title at 0.01 of 2 USDZZZ. The alignment is the shared class-host sentence, not the confession sentence and not the staffed-schools sentence. |
+| 6. Same project, different boards | Mined in the 523-write graph and in the later copies, and walked on 2026-10-20 from `output/campaigns/network-societies-v1-b2-note-spend/`. [Grey County class-host directory](http://127.0.0.1:5199/projects/0x4be59d6F5BC7e4D4b215CCEa1252522C1A307115) is one contract. Christian teaching and home learning both link it as `/projects/eip155:31337:0x4be59d6F5BC7e4D4b215CCEa1252522C1A307115`. Civic life lists the same title at 0.01 of 2 USDZZZ. The alignment is the shared class-host sentence, not a Christian-teaching sentence and not the staffed-schools sentence. |
 | 7. Independent judgment | Dropped 2026-10-20. A reviewer withholds a yes from a superficially relevant project. That is the judgment. Do not add a negative alignment attestation to make the refusal louder. |
 
 ## Purpose
@@ -250,7 +250,7 @@ Adam decided on 2026-10-19 to flesh these out. Nothing about the demo says they 
 
 **Journey 5. A friend spends a delegated note.** Delegate and revoke already run. Pat (`user-021`) delegated note `note-0001` to Ned (`user-011`) and then revoked that same note, so that pair cannot also show a spend. The copy [`network-societies-v1-b2-note-spend.json`](../campaigns/network-societies-v1-b2-note-spend.json) plans a different pair: June deposits one payment-token note, Willa keeps the delegation, and Willa spends it on one 0.01 receipt for the six-shop checkout trial. The action type is `spend-delegated-note`. It was mined on 2026-10-20. A recurring monthly pledge is still not an action type. Leave that as a product gap. Do not invent pledge transactions.
 
-**Journey 6. One project on two boards.** Done for one project. `project-015` has one `causeId` (`christian-teaching`) and one alignment, to the class-host sentence. That sentence is also on the civic and home-learning boards, so those boards list the same contract. Publishing a second contract would double-count the raise. The confession sentence and the staffed-schools sentence are not alignments of this project. The other two are in the batch 2 source as of 2026-10-20: Printed moderator checklist (only `moderator-checklist`) and Plain-text Grey County notice (only `plain-text-notice`). Neither has been mined.
+**Journey 6. One project on two boards.** Done for one project. `project-015` has one `causeId` (`christian-teaching`) and one alignment, to the class-host sentence. That sentence is also on the civic and home-learning boards, so those boards list the same contract. Publishing a second contract would double-count the raise. No Christian-teaching sentence is an alignment of this project, and the staffed-schools sentence is not either. The other two are in the batch 2 source as of 2026-10-20: Printed moderator checklist (only `moderator-checklist`) and Plain-text Grey County notice (only `plain-text-notice`). Neither has been mined.
 
 **Journey 7. Independent judgment.** Dropped on 2026-10-20. The contract records a yes or a later revoke of that same yes. Adam decided not to add a decline. A missing attestation is the refusal. Do not treat this as unfinished campaign work, and do not add a negative alignment type so the journey can be walked.
 
@@ -272,6 +272,17 @@ Adam rejected the project-shaped sentences (a six-shop, three-month trial as the
 The mined output directories still contain the old sentences. Do not regenerate them to catch up. A fresh plan is a later run.
 
 The review list that used to sit here described the old sentences. Adam is reading the new ones one board at a time.
+
+## How to rewrite a board Adam says is too specific
+
+Do what the Grey County civic rewrite did in `ef5aad57`, in the same session as the new sentences.
+
+- Delete the old statement ids. Remove them from the statement files, every cause `statementRefs` list, project alignments, persona pins, and the statement-count targets (`scale` and `publish-statement`).
+- Do not leave the old sentences in the file. Mined output directories are frozen. They do not need the old ids to keep resolving.
+- Do not keep an old id and only change its text. A new want gets a new id.
+- A limit that makes the want usable belongs inside that want. Naming assumptions, naming a confession, or stating qualifications is not a second sentence.
+- A real refusal of the want can stay as its own sentence.
+- Show Adam the new board. Leave it unchecked until he says it is good enough.
 
 ## Adam's review list (2026-10-20)
 
@@ -304,4 +315,4 @@ Read the current sentences in `network-societies-v1-b2-statements.json`. Adam is
 
 - [x] Grey County civic life, 2026-10-20. Good enough for now. The board is the assimilation want, two constituencies that already say it, a milder English sentence that does not, and a refusal. The five civic projects align only to `assimilate`. No implication arrow. The earlier class, park, and office sentences are deleted. The Grey County assimilation-sessions draft still has the old session wording and is not this board. Not mined.
 
-- [ ] Christian teaching, rewritten 2026-10-20 and not yet accepted. The notes sentence and the independent-churches sentence are broader wants. Confession-named and no joint doctrine stay as signer limits. Keeping notes inside the church, and civic transcription that excludes church teaching, stay as refusals. Ids are unchanged. Projects still align to those ids. Not mined.
+- [ ] Christian teaching, rewritten again 2026-10-20 and not yet accepted. The old six ids are deleted. The board is two wants (freely available notes, with the confession named and no joint doctrine; independent-church help, with qualifications and doctrine stated) and two refusals (notes stay inside the church; civic transcription excludes church teaching). Notes projects align only to `shared-teaching-notes`. The rota and the host kit align only to `independent-church-help`. Not mined.

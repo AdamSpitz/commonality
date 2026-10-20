@@ -19,8 +19,8 @@
   "scale": {
     "minCauses": 16,
     "maxCauses": 16,
-    "minStatements": 93,
-    "maxStatements": 93,
+    "minStatements": 91,
+    "maxStatements": 91,
     "allowRepeatedStatementRefs": true
   },
   "projectStories": "network-societies-v1-b2-projects.json",
@@ -101,32 +101,22 @@
         {
           "collectionId": "network-societies-v1-b2",
           "groupId": "christian-teaching",
-          "statementId": "midweek-notes"
+          "statementId": "shared-teaching-notes"
         },
         {
           "collectionId": "network-societies-v1-b2",
           "groupId": "christian-teaching",
-          "statementId": "substitute-rota"
-        },
-        {
-          "collectionId": "network-societies-v1-b2",
-          "groupId": "christian-teaching",
-          "statementId": "named-confession"
-        },
-        {
-          "collectionId": "network-societies-v1-b2",
-          "groupId": "christian-teaching",
-          "statementId": "no-joint-doctrine"
-        },
-        {
-          "collectionId": "network-societies-v1-b2",
-          "groupId": "christian-teaching",
-          "statementId": "civic-transcription-only"
+          "statementId": "independent-church-help"
         },
         {
           "collectionId": "network-societies-v1-b2",
           "groupId": "christian-teaching",
           "statementId": "keep-notes-inside"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "christian-teaching",
+          "statementId": "civic-transcription-only"
         },
         {
           "collectionId": "network-societies-v1-b2",
@@ -1607,8 +1597,8 @@
       "type": "publish-statement",
       "prerequisites": [],
       "targetCount": {
-        "min": 93,
-        "max": 93
+        "min": 91,
+        "max": 91
       }
     },
     {

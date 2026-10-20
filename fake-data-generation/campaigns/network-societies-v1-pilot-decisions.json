@@ -54,7 +54,7 @@
         "class-host-directory"
       ],
       "rejects": [
-        "midweek-notes",
+        "shared-teaching-notes",
         "keep-notes-inside"
       ],
       "unsigned": [
@@ -65,9 +65,8 @@
       "userId": "user-002",
       "name": "Helen",
       "signs": [
-        "midweek-notes",
-        "named-confession",
-        "no-joint-doctrine",
+        "shared-teaching-notes",
+        "independent-church-help",
         "class-host-directory"
       ],
       "rejects": [
@@ -112,9 +111,9 @@
       },
       {
         "from": "class-host-directory",
-        "to": "midweek-notes",
+        "to": "shared-teaching-notes",
         "expect": "negative",
-        "why": "A checked directory does not imply releasing church notes."
+        "why": "A checked directory does not imply freely available church teaching notes."
       }
     ],
     "allianceNotRequiringABridge": "Ruth and Len can both fund the checkout trial while Len refuses a crypto-identity plank. That is existing overlap, not a modified-statement triple."
