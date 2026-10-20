@@ -260,7 +260,7 @@ Adam decided on 2026-10-19 to flesh these out. Nothing about the demo says they 
 
 **Journey 6 walk, 2026-10-20.** Same static server as journey 5: `http://127.0.0.1:5199`, indexer head 2603, run `20261020T130207000Z`. The project is `project-015`, contract `0x4be59d6F5BC7e4D4b215CCEa1252522C1A307115`, founder Nadia, 0.01 of 2 USDZZZ raised, one alignment to `statement-shared-goods-class-host-directory`. Christian teaching (`/cause/0x7099…79C8/campaign-ns-v1-b2-note-spend-christian-teaching`) and home learning (`/cause/0x90F7…b906/campaign-ns-v1-b2-note-spend-home-learning`) both list that contract under Fundable Projects, each as Direct, 0.01 / 2 USDZZZ. Grey County civic life lists the same title and the same 0.01 / 2. The home board's fundable list appears after the signer counts finish. The staffed-schools statement page does not list this project. A second alignment to a contradictory plank was not added.
 
-**Next task:** Adam is reviewing the generated sentences and project titles. The checklist is [Adam's review list](#adams-review-list-2026-10-20) at the bottom of this file. Do not mine another copy, and do not edit statement or project text, until he checks a board. After that, Printed moderator checklist and Plain-text Grey County notice still need a fresh local plan and run. Journeys 4, 5, and 6 have been walked, and journey 7 is dropped. The three cross-family projects are in the batch 2 source. Do not regenerate `output/campaigns/network-societies-v1-b2-note-spend/`, `output/campaigns/network-societies-v1-b2-reimburse/`, `output/campaigns/network-societies-v1-b2-canada-us/`, `output/campaigns/network-societies-v1-pilot/`, `output/campaigns/network-societies-v1-b2/`, or `output/campaigns/network-societies-v1-b2-ai-pause/`. Do not author low-carb, cancel-proof support, unwoke, Democracy 2.0, Islamic reform, or less regulation. Do not start a bulk random run. Remote publication is a separate step. `fake-data-generation/PLAN.md` items 4–8 are not this chunk.
+**Next task:** Adam is reviewing the generated sentences and project titles, one board at a time. Crypto is checked. The board in front of him is Grey County civic life, written out under [Adam's review list](#adams-review-list-2026-10-20). Do not mine another copy, and do not edit statement or project text, until he checks that board. After that, Printed moderator checklist and Plain-text Grey County notice still need a fresh local plan and run. Journeys 4, 5, and 6 have been walked, and journey 7 is dropped. The three cross-family projects are in the batch 2 source. Do not regenerate `output/campaigns/network-societies-v1-b2-note-spend/`, `output/campaigns/network-societies-v1-b2-reimburse/`, `output/campaigns/network-societies-v1-b2-canada-us/`, `output/campaigns/network-societies-v1-pilot/`, `output/campaigns/network-societies-v1-b2/`, or `output/campaigns/network-societies-v1-b2-ai-pause/`. Do not author low-carb, cancel-proof support, unwoke, Democracy 2.0, Islamic reform, or less regulation. Do not start a bulk random run. Remote publication is a separate step. `fake-data-generation/PLAN.md` items 4–8 are not this chunk.
 
 
 NOTE FROM ADAM: Now that we've generated a bunch of fake data, I want to go through it myself and see whether it looks reasonable to me; I don't trust our LLM-generated stuff yet to be good without supervision. So let's make a list here of what I've approved and what still needs to be looked at.
@@ -301,3 +301,28 @@ Read the current sentences in `network-societies-v1-b2-statements.json`. Adam is
 (ADAM: Let's go through one by one, starting with looking at the crypto one again, now that we've significantly changed it.)
 
 - [x] Crypto board sentences, 2026-10-20. Adam said they look pretty decent. Projects on the refundable-checkout sentence stayed. Added "Blocked-customer sale record," aligned only to bank-blocking. Imani and June sign that sentence, reject a ban on crypto payments, and each fund the five checkout projects plus the new record. Not mined.
+
+### Grey County civic life (next)
+
+Board `civic-assimilation`. Check a box only if the wording is fine. Shared sentences also sit on other boards; a check here is about this board's use of them.
+
+Sentences:
+
+- [ ] Newcomers in Grey County can learn practical English, and how the library, the bus, a school meeting, and a township office work. (`language-sessions`)
+- [ ] Newcomers and long-time residents take on practical work together in the county's public places. (`park-paths`)
+- [ ] Township business stays in English, including when language classes are offered. (`english-township-business`)
+- [ ] Newcomers can keep their own language communities without a public program that expects them to adopt local customs. (`own-language-communities`)
+- [ ] Stop recruiting more newcomers until the published housing and clinic wait times get shorter. (`housing-before-recruiting`)
+- [ ] Practical-English classes stop short of telling newcomers which customs to keep. (`session-limit`)
+- [ ] A person who will host a small class is findable, and that person's affiliation is written down. (`class-host-directory`, also on Christian teaching and home learning)
+- [ ] A public notice is readable without needing the recording. (`plain-text-notice`, also on Christian teaching)
+
+Projects on this board. The last two are one contract each, listed on more than one board.
+
+- [ ] Twelve conversation sessions — twelve English conversation sessions in Owen Sound with childcare, attendance published without naming children. Aligned to `language-sessions`.
+- [ ] Grey County civics pack — plain-English pack for the library, the bus, a school meeting, and a township office. Aligned to `language-sessions`.
+- [ ] Harrison Park path season — one summer of path repair with newcomers and long-time residents, hours and costs published. Aligned to `park-paths`.
+- [ ] Conversation-session handoff — steps, contacts, and childcare so a second organizer can run the next series. Aligned to `language-sessions`.
+- [ ] Independent tutor-listing check — someone who does not run the sessions checks language-tutor listings for one season and publishes which listings failed. Aligned to `language-sessions`.
+- [ ] Grey County class-host directory — one directory of people who will host a small class, affiliation and an independent checker's note, maintained for one year. Aligned only to `class-host-directory`. Same contract on Christian teaching and home learning.
+- [ ] Plain-text Grey County notice — one library, bus, or township notice transcribed into plain text and posted beside the original for one year. Aligned only to `plain-text-notice`. The project is filed under Christian teaching in the source so the contract is not duplicated. Not mined.
