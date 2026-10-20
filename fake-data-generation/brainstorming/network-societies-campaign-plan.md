@@ -289,11 +289,13 @@ These are scope calls, not a pass on the wording.
 
 ### Already accepted seed (wording lives in `seed-content/`, not in the campaign file)
 
-Skip these unless you want to re-read them. The campaign boards only point at them.
+Skip these unless you want to re-read them. (ADAM: No, don't skip them; I want to reread them and make sure they're suitable for the current campaign's purposes.) The campaign boards only point at them.
 
-- [x] Abortion cutoff bridge: the accepted five (`compromise-abortion`).
-- [x] Schools and pushing: the accepted five (`lgbt-schools`). The campaign does not treat those five as a position on drugs, surgery, or classroom names.
+- [ ] Abortion cutoff bridge: the accepted five (`compromise-abortion`).
+- [ ] Schools and pushing: the accepted five (`lgbt-schools`). The campaign does not treat those five as a position on drugs, surgery, or classroom names.
 
 ### Still needs a look
 
 Read the current sentences in `network-societies-v1-b2-statements.json`. Adam is reviewing them one board at a time, starting with crypto. Projects stayed; their alignments now point at the surviving want.
+
+(ADAM: Let's go through one by one, starting with looking at the crypto one again, now that we've significantly changed it.)
