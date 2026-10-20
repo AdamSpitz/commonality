@@ -1,22 +1,114 @@
 {
   "note": "Authored persona decisions for the pilot. The planner pins each signs and rejects entry as one set-belief and does not overwrite it. Unsigned is not the same as an explicit rejection.",
   "people": [
-    { "userId": "user-001", "name": "Ruth", "signs": ["refundable-checkout", "published-trial-record", "fee-schedule", "keep-cash-and-card"], "rejects": ["refuse-crypto-payments"], "funds": "Six-shop refundable checkout trial" },
-    { "userId": "user-003", "name": "Imani", "signs": ["language-sessions", "welcome-signage", "session-limit"], "rejects": ["housing-before-recruiting"], "funds": "Twelve conversation sessions" },
-    { "userId": "user-006", "name": "Doug", "signs": ["park-paths", "english-township-business", "housing-before-recruiting"], "rejects": ["own-language-communities"], "funds": "Harrison Park path season" },
-    { "userId": "user-004", "name": "Owen", "signs": ["science-unit", "no-religious-claims", "school-families-may-borrow", "class-host-directory"], "rejects": ["midweek-notes", "keep-notes-inside"], "unsigned": ["staffed-schools"] },
-    { "userId": "user-002", "name": "Helen", "signs": ["midweek-notes", "named-confession", "no-joint-doctrine", "class-host-directory"], "rejects": ["civic-transcription-only"] },
-    { "userId": "user-005", "name": "Len", "signs": ["keep-cash-and-card", "refundable-checkout"], "rejects": ["refuse-crypto-payments"], "notes": "Direct agreement with Ruth on the trial. Not an implication bridge." },
-    { "userId": "user-021", "name": "Pat", "delegatesTo": "user-011", "limitedTo": "crypto-merchants", "revokes": true, "notes": "Ned (user-011) is a delegate who shares Pat's causes, so the planner can name Ned on Pat's notes. Delegated spending is not an action in the current adapter. Revocation is planned for some notes, not necessarily Pat's." },
-    { "userId": "user-016", "name": "June", "declinesAlignment": "A project that merely mentions Grey County is not enough.", "grantsAlignment": "Independent checkout security review against checkout-security-review" }
+    {
+      "userId": "user-001",
+      "name": "Ruth",
+      "signs": [
+        "refundable-checkout"
+      ],
+      "rejects": [
+        "refuse-crypto-payments"
+      ],
+      "funds": "Six-shop refundable checkout trial"
+    },
+    {
+      "userId": "user-003",
+      "name": "Imani",
+      "signs": [
+        "language-sessions",
+        "session-limit"
+      ],
+      "rejects": [
+        "housing-before-recruiting"
+      ],
+      "funds": "Twelve conversation sessions"
+    },
+    {
+      "userId": "user-006",
+      "name": "Doug",
+      "signs": [
+        "park-paths",
+        "english-township-business",
+        "housing-before-recruiting"
+      ],
+      "rejects": [
+        "own-language-communities"
+      ],
+      "funds": "Harrison Park path season"
+    },
+    {
+      "userId": "user-004",
+      "name": "Owen",
+      "signs": [
+        "science-unit",
+        "no-religious-claims",
+        "school-families-may-borrow",
+        "class-host-directory"
+      ],
+      "rejects": [
+        "midweek-notes",
+        "keep-notes-inside"
+      ],
+      "unsigned": [
+        "staffed-schools"
+      ]
+    },
+    {
+      "userId": "user-002",
+      "name": "Helen",
+      "signs": [
+        "midweek-notes",
+        "named-confession",
+        "no-joint-doctrine",
+        "class-host-directory"
+      ],
+      "rejects": [
+        "civic-transcription-only"
+      ]
+    },
+    {
+      "userId": "user-005",
+      "name": "Len",
+      "signs": [
+        "refundable-checkout"
+      ],
+      "rejects": [
+        "refuse-crypto-payments"
+      ],
+      "notes": "Direct agreement with Ruth on the trial. Not an implication bridge."
+    },
+    {
+      "userId": "user-021",
+      "name": "Pat",
+      "delegatesTo": "user-011",
+      "limitedTo": "crypto-merchants",
+      "revokes": true,
+      "notes": "Ned (user-011) is a delegate who shares Pat's causes, so the planner can name Ned on Pat's notes. Delegated spending is not an action in the current adapter. Revocation is planned for some notes, not necessarily Pat's."
+    },
+    {
+      "userId": "user-016",
+      "name": "June",
+      "declinesAlignment": "A project that merely mentions Grey County is not enough.",
+      "grantsAlignment": "Independent checkout security review, aligned to the Grey County blockchain-payment want."
+    }
   ],
   "implicationCandidates": {
     "status": "unevaluated",
     "reason": "No fresh affirmative result from the real implication-attester prompt is stored. The pilot therefore publishes no implication edges.",
     "proposed": [
-      { "from": "keep-cash-and-card", "to": "refundable-checkout", "expect": "negative", "why": "Keeping cards does not imply wanting a crypto trial." },
-      { "from": "language-sessions", "to": "housing-before-recruiting", "expect": "negative", "why": "Wanting classes does not imply a recruiting pause." },
-      { "from": "class-host-directory", "to": "midweek-notes", "expect": "negative", "why": "A checked directory does not imply releasing church notes." }
+      {
+        "from": "language-sessions",
+        "to": "housing-before-recruiting",
+        "expect": "negative",
+        "why": "Wanting classes does not imply a recruiting pause."
+      },
+      {
+        "from": "class-host-directory",
+        "to": "midweek-notes",
+        "expect": "negative",
+        "why": "A checked directory does not imply releasing church notes."
+      }
     ],
     "allianceNotRequiringABridge": "Ruth and Len can both fund the checkout trial while Len refuses a crypto-identity plank. That is existing overlap, not a modified-statement triple."
   }

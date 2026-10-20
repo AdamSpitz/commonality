@@ -3,76 +3,122 @@
   "id": "network-societies-v1",
   "title": "Synthetic network-societies pilot statements",
   "description": "Campaign-local synthetic statements for the four-family network-societies pilot. They are not accepted real Conceptspace seed content.",
-  "notes": ["Synthetic campaign only. Do not copy these into seed-content/."],
+  "notes": [
+    "Synthetic campaign only. Do not copy these into seed-content/."
+  ],
   "groups": [
     {
       "id": "crypto-merchants",
       "title": "Crypto-friendly merchant trials in Owen Sound",
       "statements": [
-        { "id": "refundable-checkout", "text": "I want six named shops in Owen Sound, Ontario, to be able to try a checkout that takes a crypto payment and can refund it, for a three-month trial." },
-        { "id": "published-trial-record", "text": "I want the Owen Sound crypto-checkout trial to publish every fee, failed payment, and refund from those three months." },
-        { "id": "checkout-security-review", "text": "I want an independent reviewer to publish the security findings in the Owen Sound trial checkout, including findings the shops have not yet fixed." },
-        { "id": "merchant-directory", "text": "I want a directory of Owen Sound shops in the checkout trial that says which shops are still taking the payment and which shops stopped." },
-        { "id": "deployment-clinic", "text": "I want a quarterly Saturday clinic in Owen Sound where a shop can run one test sale on the trial checkout and leave with a written result." },
-        { "id": "host-kit", "text": "I want a written host kit so a second person can run the next Owen Sound checkout clinic without the first host." },
-        { "id": "keep-cash-and-card", "text": "I want every shop in the Owen Sound crypto trial to keep taking cash and ordinary cards for the whole three months." },
-        { "id": "refuse-crypto-payments", "text": "I want shops in Owen Sound to refuse customer payments in crypto." },
-        { "id": "bank-blocking", "text": "I want a willing Owen Sound shop and a willing customer to be able to complete a payment when a bank has blocked that customer." },
-        { "id": "fee-schedule", "text": "I want the Owen Sound trial checkout to show the fee for a twenty-dollar sale before the customer pays." }
+        {
+          "id": "refundable-checkout",
+          "text": "I want a business in Grey County, Ontario, to be able to take a blockchain payment from a customer who asks to pay that way."
+        },
+        {
+          "id": "refuse-crypto-payments",
+          "text": "I want shops in Grey County to refuse customer payments in crypto."
+        },
+        {
+          "id": "bank-blocking",
+          "text": "I want a willing shop and a willing customer in Grey County to be able to complete a payment when a bank has blocked that customer."
+        }
       ]
     },
     {
       "id": "civic-assimilation",
       "title": "Shared civic life in Grey County",
       "statements": [
-        { "id": "language-sessions", "text": "I want twelve practical English conversation sessions in Owen Sound, Ontario, with childcare in the room, for newcomers and long-time residents together." },
-        { "id": "civics-pack", "text": "I want a reusable pack that explains, in plain English, how a person in Grey County uses the library, the bus, a school meeting, and a township office." },
-        { "id": "park-paths", "text": "I want one summer of newcomers and long-time residents repairing paths in Harrison Park, Owen Sound, with the hours and costs published at the end." },
-        { "id": "tutor-check", "text": "I want the Grey County language-tutor listings checked by someone who does not run the sessions, including a public note when a listing fails the check." },
-        { "id": "organizer-handoff", "text": "I want a written handoff so a second organizer can run the next Owen Sound conversation session without the first organizer." },
-        { "id": "english-township-business", "text": "I want township business in Grey County to stay in English, including when language classes are offered." },
-        { "id": "own-language-communities", "text": "I want newcomers in Grey County to be able to keep their own language communities without a public program that expects them to adopt local customs." },
-        { "id": "housing-before-recruiting", "text": "I want Grey County to stop recruiting more newcomers until the published housing and clinic wait times get shorter." },
-        { "id": "welcome-signage", "text": "I want the Owen Sound bus terminal and library to post, in the languages already spoken in town, where the conversation sessions meet." },
-        { "id": "session-limit", "text": "I want the Owen Sound conversation sessions to teach practical English, and I want them to stop short of telling newcomers which customs to keep." }
+        {
+          "id": "language-sessions",
+          "text": "I want newcomers in Grey County, Ontario, to be able to learn practical English, and to learn how the library, the bus, a school meeting, and a township office work."
+        },
+        {
+          "id": "park-paths",
+          "text": "I want newcomers and long-time residents in Grey County to take on practical work together in the county's public places."
+        },
+        {
+          "id": "english-township-business",
+          "text": "I want township business in Grey County to stay in English, including when language classes are offered."
+        },
+        {
+          "id": "own-language-communities",
+          "text": "I want newcomers in Grey County to be able to keep their own language communities without a public program that expects them to adopt local customs."
+        },
+        {
+          "id": "housing-before-recruiting",
+          "text": "I want Grey County to stop recruiting more newcomers until the published housing and clinic wait times get shorter."
+        },
+        {
+          "id": "session-limit",
+          "text": "I want practical-English classes in Grey County to stop short of telling newcomers which customs to keep."
+        }
       ]
     },
     {
       "id": "christian-teaching",
       "title": "Christian teaching resources in Grey County",
       "statements": [
-        { "id": "midweek-notes", "text": "I want the teaching notes for one Grey County congregation's midweek class released so another congregation can reuse them." },
-        { "id": "transcription", "text": "I want the recordings of that Grey County midweek class transcribed for people who cannot hear them." },
-        { "id": "substitute-rota", "text": "I want a published rota and sermon notes so a substitute can preach at a named Grey County church when the regular preacher is away for one season." },
-        { "id": "named-confession", "text": "I want shared Grey County teaching notes to name the confession they come from." },
-        { "id": "no-joint-doctrine", "text": "I want congregations that reuse the same Grey County teaching notes to stop short of publishing a joint statement of doctrine." },
-        { "id": "host-kit", "text": "I want a one-season host kit so a second Grey County church can run the substitute-preacher rota after the first season." },
-        { "id": "civic-transcription-only", "text": "I want to help transcribe public civic materials in Grey County, and I do not want that work to include church teaching." },
-        { "id": "keep-notes-inside", "text": "I want a congregation's teaching notes to stay inside that congregation." },
-        { "id": "interchurch-calendar", "text": "I want a public calendar of which Grey County church is short a preacher on which Sunday this season." }
+        {
+          "id": "midweek-notes",
+          "text": "I want a Grey County congregation to be able to reuse another congregation's teaching notes."
+        },
+        {
+          "id": "substitute-rota",
+          "text": "I want a Grey County church to be able to have a substitute preacher when the regular preacher is away."
+        },
+        {
+          "id": "named-confession",
+          "text": "I want shared Grey County teaching notes to name the confession they come from."
+        },
+        {
+          "id": "no-joint-doctrine",
+          "text": "I want congregations that reuse the same Grey County teaching notes to stop short of publishing a joint statement of doctrine."
+        },
+        {
+          "id": "civic-transcription-only",
+          "text": "I want to help transcribe public civic materials in Grey County, and I do not want that work to include church teaching."
+        },
+        {
+          "id": "keep-notes-inside",
+          "text": "I want a congregation's teaching notes to stay inside that congregation."
+        }
       ]
     },
     {
       "id": "home-learning",
       "title": "Home learning in Grey County",
       "statements": [
-        { "id": "science-unit", "text": "I want one open grade-six science unit, with materials a Grey County home-school family can print." },
-        { "id": "field-trip", "text": "I want the permission form, map, and safety notes for one Grey County field trip released so another family can run the same trip." },
-        { "id": "science-kits", "text": "I want instructions for a home science kit that uses ordinary store items, written so a Grey County family can repeat it." },
-        { "id": "saturday-meetups", "text": "I want eight Saturday meetups in Owen Sound for home-school families, with the dates published before the first meeting." },
-        { "id": "successor-host", "text": "I want a named successor, and written notes, so the Owen Sound home-school meetups can continue for a second season without the first host." },
-        { "id": "method-on-the-page", "text": "I want each Grey County home-school unit to say which teaching method it uses." },
-        { "id": "no-religious-claims", "text": "I want a Grey County science unit that contains no religious claims, so a secular home-school family can use it." },
-        { "id": "school-families-may-borrow", "text": "I want families whose children attend school in Grey County to be allowed to use the same field-trip notes." },
-        { "id": "staffed-schools", "text": "I want children in Grey County taught in staffed schools, and I do not want public rooms booked for home-school programs." },
-        { "id": "lab-safety", "text": "I want the Grey County home science kit to list the hazards and the adult supervision each activity needs." }
+        {
+          "id": "science-unit",
+          "text": "I want Grey County families who teach their children at home to have teaching materials they can reuse."
+        },
+        {
+          "id": "method-on-the-page",
+          "text": "I want a Grey County home-teaching unit to say which teaching method it uses."
+        },
+        {
+          "id": "no-religious-claims",
+          "text": "I want a Grey County science unit that contains no religious claims, so a secular home-school family can use it."
+        },
+        {
+          "id": "school-families-may-borrow",
+          "text": "I want families whose children attend school in Grey County to be allowed to use the same home-teaching materials."
+        },
+        {
+          "id": "staffed-schools",
+          "text": "I want children in Grey County taught in staffed schools, and I do not want public rooms booked for home-school programs."
+        }
       ]
     },
     {
       "id": "shared-goods",
       "title": "Goods reused across Grey County boards",
       "statements": [
-        { "id": "class-host-directory", "text": "I want a public directory of people in Grey County, Ontario, who will host a small class, with each host's affiliation written down and a note when an independent checker has confirmed the listing." }
+        {
+          "id": "class-host-directory",
+          "text": "I want a person in Grey County, Ontario, who will host a small class to be findable, and I want that person's affiliation written down."
+        }
       ]
     }
   ]

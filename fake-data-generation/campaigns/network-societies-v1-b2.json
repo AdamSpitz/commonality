@@ -19,8 +19,8 @@
   "scale": {
     "minCauses": 16,
     "maxCauses": 16,
-    "minStatements": 125,
-    "maxStatements": 125,
+    "minStatements": 94,
+    "maxStatements": 94,
     "allowRepeatedStatementRefs": true
   },
   "projectStories": "network-societies-v1-b2-projects.json",
@@ -40,47 +40,12 @@
         {
           "collectionId": "network-societies-v1-b2",
           "groupId": "crypto-merchants",
-          "statementId": "published-trial-record"
-        },
-        {
-          "collectionId": "network-societies-v1-b2",
-          "groupId": "crypto-merchants",
-          "statementId": "checkout-security-review"
-        },
-        {
-          "collectionId": "network-societies-v1-b2",
-          "groupId": "crypto-merchants",
-          "statementId": "merchant-directory"
-        },
-        {
-          "collectionId": "network-societies-v1-b2",
-          "groupId": "crypto-merchants",
-          "statementId": "deployment-clinic"
-        },
-        {
-          "collectionId": "network-societies-v1-b2",
-          "groupId": "crypto-merchants",
-          "statementId": "host-kit"
-        },
-        {
-          "collectionId": "network-societies-v1-b2",
-          "groupId": "crypto-merchants",
-          "statementId": "keep-cash-and-card"
-        },
-        {
-          "collectionId": "network-societies-v1-b2",
-          "groupId": "crypto-merchants",
           "statementId": "refuse-crypto-payments"
         },
         {
           "collectionId": "network-societies-v1-b2",
           "groupId": "crypto-merchants",
           "statementId": "bank-blocking"
-        },
-        {
-          "collectionId": "network-societies-v1-b2",
-          "groupId": "crypto-merchants",
-          "statementId": "fee-schedule"
         }
       ]
     },
@@ -98,22 +63,7 @@
         {
           "collectionId": "network-societies-v1-b2",
           "groupId": "civic-assimilation",
-          "statementId": "civics-pack"
-        },
-        {
-          "collectionId": "network-societies-v1-b2",
-          "groupId": "civic-assimilation",
           "statementId": "park-paths"
-        },
-        {
-          "collectionId": "network-societies-v1-b2",
-          "groupId": "civic-assimilation",
-          "statementId": "tutor-check"
-        },
-        {
-          "collectionId": "network-societies-v1-b2",
-          "groupId": "civic-assimilation",
-          "statementId": "organizer-handoff"
         },
         {
           "collectionId": "network-societies-v1-b2",
@@ -129,11 +79,6 @@
           "collectionId": "network-societies-v1-b2",
           "groupId": "civic-assimilation",
           "statementId": "housing-before-recruiting"
-        },
-        {
-          "collectionId": "network-societies-v1-b2",
-          "groupId": "civic-assimilation",
-          "statementId": "welcome-signage"
         },
         {
           "collectionId": "network-societies-v1-b2",
@@ -166,11 +111,6 @@
         {
           "collectionId": "network-societies-v1-b2",
           "groupId": "christian-teaching",
-          "statementId": "transcription"
-        },
-        {
-          "collectionId": "network-societies-v1-b2",
-          "groupId": "christian-teaching",
           "statementId": "substitute-rota"
         },
         {
@@ -186,22 +126,12 @@
         {
           "collectionId": "network-societies-v1-b2",
           "groupId": "christian-teaching",
-          "statementId": "host-kit"
-        },
-        {
-          "collectionId": "network-societies-v1-b2",
-          "groupId": "christian-teaching",
           "statementId": "civic-transcription-only"
         },
         {
           "collectionId": "network-societies-v1-b2",
           "groupId": "christian-teaching",
           "statementId": "keep-notes-inside"
-        },
-        {
-          "collectionId": "network-societies-v1-b2",
-          "groupId": "christian-teaching",
-          "statementId": "interchurch-calendar"
         },
         {
           "collectionId": "network-societies-v1-b2",
@@ -229,26 +159,6 @@
         {
           "collectionId": "network-societies-v1-b2",
           "groupId": "home-learning",
-          "statementId": "field-trip"
-        },
-        {
-          "collectionId": "network-societies-v1-b2",
-          "groupId": "home-learning",
-          "statementId": "science-kits"
-        },
-        {
-          "collectionId": "network-societies-v1-b2",
-          "groupId": "home-learning",
-          "statementId": "saturday-meetups"
-        },
-        {
-          "collectionId": "network-societies-v1-b2",
-          "groupId": "home-learning",
-          "statementId": "successor-host"
-        },
-        {
-          "collectionId": "network-societies-v1-b2",
-          "groupId": "home-learning",
           "statementId": "method-on-the-page"
         },
         {
@@ -265,11 +175,6 @@
           "collectionId": "network-societies-v1-b2",
           "groupId": "home-learning",
           "statementId": "staffed-schools"
-        },
-        {
-          "collectionId": "network-societies-v1-b2",
-          "groupId": "home-learning",
-          "statementId": "lab-safety"
         },
         {
           "collectionId": "network-societies-v1-b2",
@@ -453,21 +358,6 @@
         },
         {
           "collectionId": "network-societies-v1-b2",
-          "groupId": "voting",
-          "statementId": "counting-toolkit"
-        },
-        {
-          "collectionId": "network-societies-v1-b2",
-          "groupId": "voting",
-          "statementId": "poll-host-kit"
-        },
-        {
-          "collectionId": "network-societies-v1-b2",
-          "groupId": "voting",
-          "statementId": "trial-directory"
-        },
-        {
-          "collectionId": "network-societies-v1-b2",
           "groupId": "abortion-forum",
           "statementId": "moderator-checklist"
         }
@@ -479,11 +369,31 @@
       "activityTier": "medium",
       "membershipWeight": 8,
       "statementRefs": [
-        { "collectionId": "network-societies-v1-b2", "groupId": "grey-assimilation", "statementId": "natural-left" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "grey-assimilation", "statementId": "natural-right" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "grey-assimilation", "statementId": "modified-left" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "grey-assimilation", "statementId": "modified-right" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "grey-assimilation", "statementId": "commonality" }
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "grey-assimilation",
+          "statementId": "natural-left"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "grey-assimilation",
+          "statementId": "natural-right"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "grey-assimilation",
+          "statementId": "modified-left"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "grey-assimilation",
+          "statementId": "modified-right"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "grey-assimilation",
+          "statementId": "commonality"
+        }
       ]
     },
     {
@@ -492,11 +402,31 @@
       "activityTier": "medium",
       "membershipWeight": 7,
       "statementRefs": [
-        { "collectionId": "network-societies-v1-b2", "groupId": "ranked-approval-poll", "statementId": "natural-left" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "ranked-approval-poll", "statementId": "natural-right" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "ranked-approval-poll", "statementId": "modified-left" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "ranked-approval-poll", "statementId": "modified-right" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "ranked-approval-poll", "statementId": "commonality" }
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "ranked-approval-poll",
+          "statementId": "natural-left"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "ranked-approval-poll",
+          "statementId": "natural-right"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "ranked-approval-poll",
+          "statementId": "modified-left"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "ranked-approval-poll",
+          "statementId": "modified-right"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "ranked-approval-poll",
+          "statementId": "commonality"
+        }
       ]
     },
     {
@@ -505,11 +435,31 @@
       "activityTier": "medium",
       "membershipWeight": 8,
       "statementRefs": [
-        { "collectionId": "network-societies-v1-b2", "groupId": "checkout-trial-bridge", "statementId": "natural-left" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "checkout-trial-bridge", "statementId": "natural-right" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "checkout-trial-bridge", "statementId": "modified-left" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "checkout-trial-bridge", "statementId": "modified-right" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "checkout-trial-bridge", "statementId": "commonality" }
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "checkout-trial-bridge",
+          "statementId": "natural-left"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "checkout-trial-bridge",
+          "statementId": "natural-right"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "checkout-trial-bridge",
+          "statementId": "modified-left"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "checkout-trial-bridge",
+          "statementId": "modified-right"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "checkout-trial-bridge",
+          "statementId": "commonality"
+        }
       ]
     },
     {
@@ -518,11 +468,31 @@
       "activityTier": "medium",
       "membershipWeight": 7,
       "statementRefs": [
-        { "collectionId": "network-societies-v1-b2", "groupId": "minors-medicine", "statementId": "natural-left" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "minors-medicine", "statementId": "natural-right" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "minors-medicine", "statementId": "modified-left" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "minors-medicine", "statementId": "modified-right" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "minors-medicine", "statementId": "commonality" }
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "minors-medicine",
+          "statementId": "natural-left"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "minors-medicine",
+          "statementId": "natural-right"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "minors-medicine",
+          "statementId": "modified-left"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "minors-medicine",
+          "statementId": "modified-right"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "minors-medicine",
+          "statementId": "commonality"
+        }
       ]
     },
     {
@@ -531,11 +501,31 @@
       "activityTier": "small",
       "membershipWeight": 6,
       "statementRefs": [
-        { "collectionId": "network-societies-v1-b2", "groupId": "opinion-employment", "statementId": "natural-left" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "opinion-employment", "statementId": "natural-right" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "opinion-employment", "statementId": "modified-left" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "opinion-employment", "statementId": "modified-right" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "opinion-employment", "statementId": "commonality" }
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "opinion-employment",
+          "statementId": "natural-left"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "opinion-employment",
+          "statementId": "natural-right"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "opinion-employment",
+          "statementId": "modified-left"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "opinion-employment",
+          "statementId": "modified-right"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "opinion-employment",
+          "statementId": "commonality"
+        }
       ]
     },
     {
@@ -544,18 +534,41 @@
       "activityTier": "small",
       "membershipWeight": 6,
       "statementRefs": [
-        { "collectionId": "network-societies-v1-b2", "groupId": "canada-us-ties", "statementId": "natural-left" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "canada-us-ties", "statementId": "natural-right" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "canada-us-ties", "statementId": "modified-left" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "canada-us-ties", "statementId": "modified-right" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "canada-us-ties", "statementId": "commonality" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "canada-us-ties", "statementId": "cultural-archive" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "canada-us-ties", "statementId": "ties-guide" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "canada-us-ties", "statementId": "community-event" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "canada-us-ties", "statementId": "exchange-directory" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "canada-us-ties", "statementId": "host-handoff" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "canada-us-ties", "statementId": "boycott-ordinary-ties" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "canada-us-ties", "statementId": "narrower-than-visits" }
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "canada-us-ties",
+          "statementId": "natural-left"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "canada-us-ties",
+          "statementId": "natural-right"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "canada-us-ties",
+          "statementId": "modified-left"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "canada-us-ties",
+          "statementId": "modified-right"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "canada-us-ties",
+          "statementId": "commonality"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "canada-us-ties",
+          "statementId": "boycott-ordinary-ties"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "canada-us-ties",
+          "statementId": "narrower-than-visits"
+        }
       ]
     },
     {
@@ -564,23 +577,71 @@
       "activityTier": "medium",
       "membershipWeight": 8,
       "statementRefs": [
-        { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "commonality" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "natural-small-chance" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "modified-small-chance" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "natural-jobs" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "modified-jobs" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "natural-industry" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "modified-industry" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "natural-not-luddite" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "modified-not-luddite" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "natural-children" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "modified-children" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "pole-stop" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "pole-accelerate" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "treaty-petition" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "alignment-note" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "warning-digest" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "pause-host-kit" }
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "ai-pause",
+          "statementId": "commonality"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "ai-pause",
+          "statementId": "natural-small-chance"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "ai-pause",
+          "statementId": "modified-small-chance"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "ai-pause",
+          "statementId": "natural-jobs"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "ai-pause",
+          "statementId": "modified-jobs"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "ai-pause",
+          "statementId": "natural-industry"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "ai-pause",
+          "statementId": "modified-industry"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "ai-pause",
+          "statementId": "natural-not-luddite"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "ai-pause",
+          "statementId": "modified-not-luddite"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "ai-pause",
+          "statementId": "natural-children"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "ai-pause",
+          "statementId": "modified-children"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "ai-pause",
+          "statementId": "pole-stop"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "ai-pause",
+          "statementId": "pole-accelerate"
+        }
       ]
     }
   ],
@@ -1151,7 +1212,9 @@
         "small chance",
         "pause treaty"
       ],
-      "causeIds": ["ai-pause"],
+      "causeIds": [
+        "ai-pause"
+      ],
       "spotlightOrder": 25
     },
     {
@@ -1163,7 +1226,9 @@
         "job loss",
         "pause treaty"
       ],
-      "causeIds": ["ai-pause"],
+      "causeIds": [
+        "ai-pause"
+      ],
       "spotlightOrder": 26
     },
     {
@@ -1174,7 +1239,9 @@
       "interests": [
         "industry warnings"
       ],
-      "causeIds": ["ai-pause"],
+      "causeIds": [
+        "ai-pause"
+      ],
       "spotlightOrder": 27
     },
     {
@@ -1186,7 +1253,9 @@
         "technology",
         "risk"
       ],
-      "causeIds": ["ai-pause"],
+      "causeIds": [
+        "ai-pause"
+      ],
       "spotlightOrder": 28
     },
     {
@@ -1198,7 +1267,9 @@
         "children",
         "executives"
       ],
-      "causeIds": ["ai-pause"],
+      "causeIds": [
+        "ai-pause"
+      ],
       "spotlightOrder": 29
     },
     {
@@ -1210,7 +1281,9 @@
         "extinction",
         "full stop"
       ],
-      "causeIds": ["ai-pause"],
+      "causeIds": [
+        "ai-pause"
+      ],
       "spotlightOrder": 30
     },
     {
@@ -1221,7 +1294,9 @@
       "interests": [
         "capabilities race"
       ],
-      "causeIds": ["ai-pause"],
+      "causeIds": [
+        "ai-pause"
+      ],
       "spotlightOrder": 31
     },
     {
@@ -1233,7 +1308,9 @@
         "Owen Sound archive",
         "host handoff"
       ],
-      "causeIds": ["canada-us-ties"],
+      "causeIds": [
+        "canada-us-ties"
+      ],
       "spotlightOrder": 32
     },
     {
@@ -1245,7 +1322,9 @@
         "US businesses",
         "host directory"
       ],
-      "causeIds": ["canada-us-ties"],
+      "causeIds": [
+        "canada-us-ties"
+      ],
       "spotlightOrder": 33
     },
     {
@@ -1257,7 +1336,9 @@
         "family visits",
         "practical guide"
       ],
-      "causeIds": ["canada-us-ties"],
+      "causeIds": [
+        "canada-us-ties"
+      ],
       "spotlightOrder": 34
     },
     {
@@ -1268,7 +1349,9 @@
       "interests": [
         "boycott"
       ],
-      "causeIds": ["canada-us-ties"],
+      "causeIds": [
+        "canada-us-ties"
+      ],
       "spotlightOrder": 35
     },
     {
@@ -1280,40 +1363,242 @@
         "family visits",
         "narrower ties"
       ],
-      "causeIds": ["canada-us-ties"],
+      "causeIds": [
+        "canada-us-ties"
+      ],
       "spotlightOrder": 36
     }
   ],
   "implicationAllowances": [
-    { "from": { "collectionId": "compromise-abortion", "groupId": "abortion-gestational-cutoff", "statementId": "modified-left" }, "to": { "collectionId": "compromise-abortion", "groupId": "abortion-gestational-cutoff", "statementId": "commonality" }, "evidence": "accepted-bridge-role-pair" },
-    { "from": { "collectionId": "compromise-abortion", "groupId": "abortion-gestational-cutoff", "statementId": "modified-right" }, "to": { "collectionId": "compromise-abortion", "groupId": "abortion-gestational-cutoff", "statementId": "commonality" }, "evidence": "accepted-bridge-role-pair" },
-    { "from": { "collectionId": "lgbt-schools", "groupId": "lgbt-schools-pushing", "statementId": "modified-left" }, "to": { "collectionId": "lgbt-schools", "groupId": "lgbt-schools-pushing", "statementId": "commonality" }, "evidence": "accepted-bridge-role-pair" },
-    { "from": { "collectionId": "lgbt-schools", "groupId": "lgbt-schools-pushing", "statementId": "modified-right" }, "to": { "collectionId": "lgbt-schools", "groupId": "lgbt-schools-pushing", "statementId": "commonality" }, "evidence": "accepted-bridge-role-pair" },
-    { "from": { "collectionId": "network-societies-v1-b2", "groupId": "grey-assimilation", "statementId": "modified-left" }, "to": { "collectionId": "network-societies-v1-b2", "groupId": "grey-assimilation", "statementId": "commonality" }, "evidence": "live-attester-modified-to-commonality" },
-    { "from": { "collectionId": "network-societies-v1-b2", "groupId": "grey-assimilation", "statementId": "modified-right" }, "to": { "collectionId": "network-societies-v1-b2", "groupId": "grey-assimilation", "statementId": "commonality" }, "evidence": "live-attester-modified-to-commonality" },
-    { "from": { "collectionId": "network-societies-v1-b2", "groupId": "ranked-approval-poll", "statementId": "modified-left" }, "to": { "collectionId": "network-societies-v1-b2", "groupId": "ranked-approval-poll", "statementId": "commonality" }, "evidence": "live-attester-modified-to-commonality" },
-    { "from": { "collectionId": "network-societies-v1-b2", "groupId": "ranked-approval-poll", "statementId": "modified-right" }, "to": { "collectionId": "network-societies-v1-b2", "groupId": "ranked-approval-poll", "statementId": "commonality" }, "evidence": "live-attester-modified-to-commonality" },
-    { "from": { "collectionId": "network-societies-v1-b2", "groupId": "checkout-trial-bridge", "statementId": "modified-left" }, "to": { "collectionId": "network-societies-v1-b2", "groupId": "checkout-trial-bridge", "statementId": "commonality" }, "evidence": "live-attester-modified-to-commonality" },
-    { "from": { "collectionId": "network-societies-v1-b2", "groupId": "checkout-trial-bridge", "statementId": "modified-right" }, "to": { "collectionId": "network-societies-v1-b2", "groupId": "checkout-trial-bridge", "statementId": "commonality" }, "evidence": "live-attester-modified-to-commonality" },
-    { "from": { "collectionId": "network-societies-v1-b2", "groupId": "minors-medicine", "statementId": "modified-left" }, "to": { "collectionId": "network-societies-v1-b2", "groupId": "minors-medicine", "statementId": "commonality" }, "evidence": "live-attester-modified-to-commonality" },
-    { "from": { "collectionId": "network-societies-v1-b2", "groupId": "minors-medicine", "statementId": "modified-right" }, "to": { "collectionId": "network-societies-v1-b2", "groupId": "minors-medicine", "statementId": "commonality" }, "evidence": "live-attester-modified-to-commonality" },
-    { "from": { "collectionId": "network-societies-v1-b2", "groupId": "opinion-employment", "statementId": "modified-left" }, "to": { "collectionId": "network-societies-v1-b2", "groupId": "opinion-employment", "statementId": "commonality" }, "evidence": "live-attester-modified-to-commonality" },
-    { "from": { "collectionId": "network-societies-v1-b2", "groupId": "opinion-employment", "statementId": "modified-right" }, "to": { "collectionId": "network-societies-v1-b2", "groupId": "opinion-employment", "statementId": "commonality" }, "evidence": "live-attester-modified-to-commonality" },
-    { "from": { "collectionId": "network-societies-v1-b2", "groupId": "canada-us-ties", "statementId": "modified-left" }, "to": { "collectionId": "network-societies-v1-b2", "groupId": "canada-us-ties", "statementId": "commonality" }, "evidence": "live-attester-modified-to-commonality" },
-    { "from": { "collectionId": "network-societies-v1-b2", "groupId": "canada-us-ties", "statementId": "modified-right" }, "to": { "collectionId": "network-societies-v1-b2", "groupId": "canada-us-ties", "statementId": "commonality" }, "evidence": "live-attester-modified-to-commonality" },
-    { "from": { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "modified-small-chance" }, "to": { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "commonality" }, "evidence": "live-attester-modified-to-commonality" },
-    { "from": { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "modified-jobs" }, "to": { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "commonality" }, "evidence": "live-attester-modified-to-commonality" },
-    { "from": { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "modified-industry" }, "to": { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "commonality" }, "evidence": "live-attester-modified-to-commonality" },
-    { "from": { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "modified-not-luddite" }, "to": { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "commonality" }, "evidence": "live-attester-modified-to-commonality" },
-    { "from": { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "modified-children" }, "to": { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "commonality" }, "evidence": "live-attester-modified-to-commonality" }
+    {
+      "from": {
+        "collectionId": "compromise-abortion",
+        "groupId": "abortion-gestational-cutoff",
+        "statementId": "modified-left"
+      },
+      "to": {
+        "collectionId": "compromise-abortion",
+        "groupId": "abortion-gestational-cutoff",
+        "statementId": "commonality"
+      },
+      "evidence": "accepted-bridge-role-pair"
+    },
+    {
+      "from": {
+        "collectionId": "compromise-abortion",
+        "groupId": "abortion-gestational-cutoff",
+        "statementId": "modified-right"
+      },
+      "to": {
+        "collectionId": "compromise-abortion",
+        "groupId": "abortion-gestational-cutoff",
+        "statementId": "commonality"
+      },
+      "evidence": "accepted-bridge-role-pair"
+    },
+    {
+      "from": {
+        "collectionId": "lgbt-schools",
+        "groupId": "lgbt-schools-pushing",
+        "statementId": "modified-left"
+      },
+      "to": {
+        "collectionId": "lgbt-schools",
+        "groupId": "lgbt-schools-pushing",
+        "statementId": "commonality"
+      },
+      "evidence": "accepted-bridge-role-pair"
+    },
+    {
+      "from": {
+        "collectionId": "lgbt-schools",
+        "groupId": "lgbt-schools-pushing",
+        "statementId": "modified-right"
+      },
+      "to": {
+        "collectionId": "lgbt-schools",
+        "groupId": "lgbt-schools-pushing",
+        "statementId": "commonality"
+      },
+      "evidence": "accepted-bridge-role-pair"
+    },
+    {
+      "from": {
+        "collectionId": "network-societies-v1-b2",
+        "groupId": "ranked-approval-poll",
+        "statementId": "modified-left"
+      },
+      "to": {
+        "collectionId": "network-societies-v1-b2",
+        "groupId": "ranked-approval-poll",
+        "statementId": "commonality"
+      },
+      "evidence": "live-attester-modified-to-commonality"
+    },
+    {
+      "from": {
+        "collectionId": "network-societies-v1-b2",
+        "groupId": "ranked-approval-poll",
+        "statementId": "modified-right"
+      },
+      "to": {
+        "collectionId": "network-societies-v1-b2",
+        "groupId": "ranked-approval-poll",
+        "statementId": "commonality"
+      },
+      "evidence": "live-attester-modified-to-commonality"
+    },
+    {
+      "from": {
+        "collectionId": "network-societies-v1-b2",
+        "groupId": "minors-medicine",
+        "statementId": "modified-left"
+      },
+      "to": {
+        "collectionId": "network-societies-v1-b2",
+        "groupId": "minors-medicine",
+        "statementId": "commonality"
+      },
+      "evidence": "live-attester-modified-to-commonality"
+    },
+    {
+      "from": {
+        "collectionId": "network-societies-v1-b2",
+        "groupId": "minors-medicine",
+        "statementId": "modified-right"
+      },
+      "to": {
+        "collectionId": "network-societies-v1-b2",
+        "groupId": "minors-medicine",
+        "statementId": "commonality"
+      },
+      "evidence": "live-attester-modified-to-commonality"
+    },
+    {
+      "from": {
+        "collectionId": "network-societies-v1-b2",
+        "groupId": "opinion-employment",
+        "statementId": "modified-left"
+      },
+      "to": {
+        "collectionId": "network-societies-v1-b2",
+        "groupId": "opinion-employment",
+        "statementId": "commonality"
+      },
+      "evidence": "live-attester-modified-to-commonality"
+    },
+    {
+      "from": {
+        "collectionId": "network-societies-v1-b2",
+        "groupId": "opinion-employment",
+        "statementId": "modified-right"
+      },
+      "to": {
+        "collectionId": "network-societies-v1-b2",
+        "groupId": "opinion-employment",
+        "statementId": "commonality"
+      },
+      "evidence": "live-attester-modified-to-commonality"
+    },
+    {
+      "from": {
+        "collectionId": "network-societies-v1-b2",
+        "groupId": "canada-us-ties",
+        "statementId": "modified-left"
+      },
+      "to": {
+        "collectionId": "network-societies-v1-b2",
+        "groupId": "canada-us-ties",
+        "statementId": "commonality"
+      },
+      "evidence": "live-attester-modified-to-commonality"
+    },
+    {
+      "from": {
+        "collectionId": "network-societies-v1-b2",
+        "groupId": "canada-us-ties",
+        "statementId": "modified-right"
+      },
+      "to": {
+        "collectionId": "network-societies-v1-b2",
+        "groupId": "canada-us-ties",
+        "statementId": "commonality"
+      },
+      "evidence": "live-attester-modified-to-commonality"
+    },
+    {
+      "from": {
+        "collectionId": "network-societies-v1-b2",
+        "groupId": "ai-pause",
+        "statementId": "modified-small-chance"
+      },
+      "to": {
+        "collectionId": "network-societies-v1-b2",
+        "groupId": "ai-pause",
+        "statementId": "commonality"
+      },
+      "evidence": "live-attester-modified-to-commonality"
+    },
+    {
+      "from": {
+        "collectionId": "network-societies-v1-b2",
+        "groupId": "ai-pause",
+        "statementId": "modified-jobs"
+      },
+      "to": {
+        "collectionId": "network-societies-v1-b2",
+        "groupId": "ai-pause",
+        "statementId": "commonality"
+      },
+      "evidence": "live-attester-modified-to-commonality"
+    },
+    {
+      "from": {
+        "collectionId": "network-societies-v1-b2",
+        "groupId": "ai-pause",
+        "statementId": "modified-industry"
+      },
+      "to": {
+        "collectionId": "network-societies-v1-b2",
+        "groupId": "ai-pause",
+        "statementId": "commonality"
+      },
+      "evidence": "live-attester-modified-to-commonality"
+    },
+    {
+      "from": {
+        "collectionId": "network-societies-v1-b2",
+        "groupId": "ai-pause",
+        "statementId": "modified-not-luddite"
+      },
+      "to": {
+        "collectionId": "network-societies-v1-b2",
+        "groupId": "ai-pause",
+        "statementId": "commonality"
+      },
+      "evidence": "live-attester-modified-to-commonality"
+    },
+    {
+      "from": {
+        "collectionId": "network-societies-v1-b2",
+        "groupId": "ai-pause",
+        "statementId": "modified-children"
+      },
+      "to": {
+        "collectionId": "network-societies-v1-b2",
+        "groupId": "ai-pause",
+        "statementId": "commonality"
+      },
+      "evidence": "live-attester-modified-to-commonality"
+    }
   ],
   "actionRules": [
     {
       "type": "publish-statement",
       "prerequisites": [],
       "targetCount": {
-        "min": 125,
-        "max": 125
+        "min": 94,
+        "max": 94
       }
     },
     {
@@ -1342,8 +1627,8 @@
         "publish-statement"
       ],
       "targetCount": {
-        "min": 21,
-        "max": 21
+        "min": 17,
+        "max": 17
       }
     },
     {

@@ -2,10 +2,9 @@
   "crypto-merchants": [
     {
       "title": "Six-shop refundable checkout trial",
-      "outcome": "Ship an open-source checkout, with refunds, and run it for three months at six named Owen Sound shops. Publish the code and the shop list.",
+      "outcome": "Ship an open-source checkout, with refunds, and run it for three months at six named Owen Sound shops. Publish the code and the shop list, and the shops keep taking cash and ordinary cards for the whole trial.",
       "statementRefs": [
-        "refundable-checkout",
-        "published-trial-record"
+        "refundable-checkout"
       ],
       "blocker": "No one shop can justify building a checkout whose useful result is a public trial record"
     },
@@ -13,7 +12,7 @@
       "title": "Independent checkout security review",
       "outcome": "Pay a reviewer who does not write the checkout to publish findings and unfixed items before the Owen Sound trial ends.",
       "statementRefs": [
-        "checkout-security-review"
+        "refundable-checkout"
       ],
       "blocker": "The shops and the programmer are poor judges of their own security claims"
     },
@@ -21,8 +20,7 @@
       "title": "Fee and failure table",
       "outcome": "Publish the fee on a twenty-dollar Owen Sound trial sale, and a table of failed payments, before anyone calls the trial a success.",
       "statementRefs": [
-        "fee-schedule",
-        "published-trial-record"
+        "refundable-checkout"
       ],
       "blocker": "The numbers are useful to every later shop and owned by none of them"
     },
@@ -30,7 +28,7 @@
       "title": "Owen Sound merchant directory",
       "outcome": "Maintain, for one year, a directory that shows which trial shops still take the checkout and which shops stopped, with the date of each change.",
       "statementRefs": [
-        "merchant-directory"
+        "refundable-checkout"
       ],
       "blocker": "A directory nobody maintains becomes an advertisement"
     },
@@ -38,8 +36,7 @@
       "title": "Quarterly checkout clinic and host kit",
       "outcome": "Run four Saturday clinics in Owen Sound and leave a host kit so a second person can run the next one.",
       "statementRefs": [
-        "deployment-clinic",
-        "host-kit"
+        "refundable-checkout"
       ],
       "blocker": "The clinic stops when the first host is busy unless the hosting steps are written down"
     }
@@ -57,7 +54,7 @@
       "title": "Grey County civics pack",
       "outcome": "Write and release a plain-English pack for the library, the bus, a school meeting, and a township office in Grey County.",
       "statementRefs": [
-        "civics-pack"
+        "language-sessions"
       ],
       "blocker": "Each office explains itself differently, and no office is paid to write the combined pack"
     },
@@ -73,7 +70,7 @@
       "title": "Conversation-session handoff",
       "outcome": "Write the steps, contacts, and childcare arrangements so a second organizer can run the next Owen Sound session series.",
       "statementRefs": [
-        "organizer-handoff"
+        "language-sessions"
       ],
       "blocker": "The sessions are a public good only if they survive the first organizer"
     },
@@ -81,7 +78,7 @@
       "title": "Independent tutor-listing check",
       "outcome": "For one season, have someone who does not run the sessions check Grey County language-tutor listings and publish which listings failed.",
       "statementRefs": [
-        "tutor-check"
+        "language-sessions"
       ],
       "blocker": "A directory checked by its own organizer does not answer a skeptic"
     }
@@ -100,7 +97,7 @@
       "title": "Midweek class transcript",
       "outcome": "Transcribe that class for people who cannot hear the recordings, and publish the transcript with the confession named.",
       "statementRefs": [
-        "transcription",
+        "midweek-notes",
         "named-confession"
       ],
       "blocker": "Transcription is useful to every later listener and costly to the first congregation"
@@ -109,8 +106,7 @@
       "title": "One-season substitute rota",
       "outcome": "Publish a Sunday rota and sermon notes so a substitute can preach at one named Grey County church for one season.",
       "statementRefs": [
-        "substitute-rota",
-        "interchurch-calendar"
+        "substitute-rota"
       ],
       "blocker": "Each small church has too few substitutes to keep the rota alone"
     },
@@ -118,7 +114,7 @@
       "title": "Second-church host kit",
       "outcome": "Write a one-season kit so a second Grey County church can run the same rota without the first host.",
       "statementRefs": [
-        "host-kit"
+        "substitute-rota"
       ],
       "blocker": "The rota dies with the first host unless the steps are written down"
     },
@@ -154,7 +150,7 @@
       "title": "Grey County field-trip pack",
       "outcome": "Release the permission form, map, and safety notes for one Grey County field trip so another family, including a school family, can run it.",
       "statementRefs": [
-        "field-trip",
+        "science-unit",
         "school-families-may-borrow"
       ],
       "blocker": "The first family pays for the reconnaissance and every later family can copy the pack"
@@ -163,8 +159,7 @@
       "title": "Store-item science kits",
       "outcome": "Publish instructions for a home science kit of ordinary store items, including hazards and the adult supervision each activity needs.",
       "statementRefs": [
-        "science-kits",
-        "lab-safety"
+        "science-unit"
       ],
       "blocker": "A safe kit has to be tried once before other families can reuse it"
     },
@@ -172,7 +167,7 @@
       "title": "Eight Owen Sound Saturdays",
       "outcome": "Host eight Saturday meetups in Owen Sound for home-school families and publish the dates before the first meeting.",
       "statementRefs": [
-        "saturday-meetups"
+        "science-unit"
       ],
       "blocker": "The room and the dates have to be reserved before any family can rely on them"
     },
@@ -180,7 +175,7 @@
       "title": "Successor host notes",
       "outcome": "Name a successor and write the notes so the Owen Sound meetups can run a second season without the first host.",
       "statementRefs": [
-        "successor-host"
+        "science-unit"
       ],
       "blocker": "A meetup series that only the first host can run is not a maintained public good"
     }
@@ -350,7 +345,7 @@
       "title": "Rerunnable counting notes",
       "outcome": "Publish the counting method in enough detail that a second person can rerun it from the published ballots and match the count.",
       "statementRefs": [
-        "counting-toolkit"
+        "ranked-poll"
       ],
       "blocker": "The counter who ran the poll is a poor person to be the only one who can repeat it"
     },
@@ -358,7 +353,7 @@
       "title": "Second-host poll kit",
       "outcome": "Write the room, ballot, and publication steps so a second Owen Sound resident can run the next non-binding poll.",
       "statementRefs": [
-        "poll-host-kit"
+        "ranked-poll"
       ],
       "blocker": "The poll stops when the first host is busy unless the steps are written down"
     },
@@ -375,7 +370,7 @@
       "outcome": "Print the moderator checklist and use it for the Owen Sound poll and for one other published meeting, then file both checklists in the Grey County trial directory.",
       "statementRefs": [
         "moderator-checklist",
-        "trial-directory"
+        "ranked-poll"
       ],
       "blocker": "The checklist is useful on more than one board, and neither meeting owns the maintenance"
     }
@@ -384,13 +379,19 @@
     {
       "title": "Owen Sound evening sessions",
       "outcome": "Run twelve evening practical-English sessions in Owen Sound with childcare, covering the library, the bus, and a township office. Township business stays in English. The sessions do not tell newcomers which customs to keep.",
-      "statementRefs": ["commonality"],
+      "statementRefs": [
+        "commonality"
+      ],
       "blocker": "Childcare and a room have to be paid for before either camp can see whether the limited program is the one they would accept"
     },
     {
       "title": "Session-limit card",
       "outcome": "Print the commonality sentence and the two modified sentences, unchanged, so a host can show what the sessions will and will not do.",
-      "statementRefs": ["modified-left", "modified-right", "commonality"],
+      "statementRefs": [
+        "modified-left",
+        "modified-right",
+        "commonality"
+      ],
       "blocker": "The limit is easy to drop in the room unless a card states it"
     }
   ],
@@ -398,13 +399,18 @@
     {
       "title": "Dual-count association poll",
       "outcome": "One Owen Sound community association runs a non-binding poll and publishes a ranked count and an approval count of the same ballots. The poll does not change a municipal election.",
-      "statementRefs": ["commonality"],
+      "statementRefs": [
+        "commonality"
+      ],
       "blocker": "Printing both counts costs more than the association's usual show of hands"
     },
     {
       "title": "Dual-count host card",
       "outcome": "Print the two modified sentences so a host can say that publishing the other count is not a change of preferred system.",
-      "statementRefs": ["modified-left", "modified-right"],
+      "statementRefs": [
+        "modified-left",
+        "modified-right"
+      ],
       "blocker": "Without the card, each side hears the second count as a concession they did not make"
     }
   ],
@@ -412,13 +418,18 @@
     {
       "title": "Six-shop trial on the bridge terms",
       "outcome": "Six named Owen Sound shops try, for three months, a checkout that can take a crypto payment and refund it, show the fee on a twenty-dollar sale before the customer pays, and keep taking cash and cards.",
-      "statementRefs": ["commonality"],
+      "statementRefs": [
+        "commonality"
+      ],
       "blocker": "No one shop pays for a trial whose useful result is a public record of fees and refunds"
     },
     {
       "title": "Trial-terms card",
       "outcome": "Print the two modified sentences so a merchant and a payments person can see the trial limits in their own wording.",
-      "statementRefs": ["modified-left", "modified-right"],
+      "statementRefs": [
+        "modified-left",
+        "modified-right"
+      ],
       "blocker": "The shared sentence leaves out why each side showed up, and the card is what keeps those reasons visible"
     }
   ],
@@ -426,13 +437,18 @@
     {
       "title": "Rule comparison page",
       "outcome": "Publish the commonality sentence as a proposal, labeled as a proposal, with no claim about current law or clinical results.",
-      "statementRefs": ["commonality"],
+      "statementRefs": [
+        "commonality"
+      ],
       "blocker": "A one-page proposal is useful to people who will not attend a meeting, and nobody owns the page"
     },
     {
       "title": "Separate-questions card",
       "outcome": "Print the modified-right sentence so a host can keep classroom names and school drug approval off this page.",
-      "statementRefs": ["modified-right", "commonality"],
+      "statementRefs": [
+        "modified-right",
+        "commonality"
+      ],
       "blocker": "Those questions keep getting folded back in unless a maintained card holds them out"
     }
   ],
@@ -440,13 +456,17 @@
     {
       "title": "Appeal-before-blacklist card",
       "outcome": "Publish the commonality sentence and a one-page appeal checklist a workplace can fill in before treating someone as unemployable for a stated opinion.",
-      "statementRefs": ["commonality"],
+      "statementRefs": [
+        "commonality"
+      ],
       "blocker": "The checklist is useful to the next workplace and paid for by none of them"
     },
     {
       "title": "Still-a-sanction note",
       "outcome": "Publish the modified-left sentence so the card does not get read as a ban on every workplace response.",
-      "statementRefs": ["modified-left"],
+      "statementRefs": [
+        "modified-left"
+      ],
       "blocker": "The exception for threats and refused work disappears if only the short sentence is copied"
     }
   ],
@@ -454,43 +474,59 @@
     {
       "title": "Ordinary-ties one-pager",
       "outcome": "Publish the commonality sentence for one Canadian community group, labeled as a draft statement rather than as a finding about trade.",
-      "statementRefs": ["commonality"],
+      "statementRefs": [
+        "commonality"
+      ],
       "blocker": "The page is a shared wording, and neither camp's organizer is paid to keep the other camp's wording intact"
     },
     {
       "title": "Not-an-endorsement card",
       "outcome": "Print both modified sentences beside the commonality so a reader can see the administration question was left out on purpose.",
-      "statementRefs": ["modified-left", "modified-right", "commonality"],
+      "statementRefs": [
+        "modified-left",
+        "modified-right",
+        "commonality"
+      ],
       "blocker": "Without both wordings, one camp hears the page as praise and the other hears it as a boycott refusal they did not sign"
     },
     {
       "title": "Owen Sound cross-border archive",
       "outcome": "Publish one year of dated Owen Sound stories about family visits and ordinary purchases across the Canada-US border, with a name only when the contributor asked for one.",
-      "statementRefs": ["cultural-archive"],
+      "statementRefs": [
+        "commonality"
+      ],
       "blocker": "The stories are scattered across families, and no one family is paid to keep a public copy"
     },
     {
       "title": "Civic and business ties guide",
       "outcome": "Publish a guide for Owen Sound that lists practical steps for a family visit to the US and for buying from a US business, and that names no party and no administration.",
-      "statementRefs": ["ties-guide"],
+      "statementRefs": [
+        "commonality"
+      ],
       "blocker": "The steps are useful to the next traveler and written down by none of them"
     },
     {
       "title": "Owen Sound ties evening",
       "outcome": "Hold one Owen Sound evening with a published agenda and a packet later hosts can copy. The evening is for talking about family visits and ordinary purchases. It does not ask anyone to praise or condemn the current US administration.",
-      "statementRefs": ["community-event"],
+      "statementRefs": [
+        "commonality"
+      ],
       "blocker": "A one-night conversation leaves no materials unless someone is paid to write them down"
     },
     {
       "title": "Grey County exchange directory",
       "outcome": "Keep, for one year, a monthly-checked directory of Grey County hosts for conversations about Canada-US family visits and ordinary purchases. Each listing has a name, a town, and a way to see that it is still current.",
-      "statementRefs": ["exchange-directory"],
+      "statementRefs": [
+        "commonality"
+      ],
       "blocker": "A host list that nobody checks becomes a list of people who moved"
     },
     {
       "title": "Host handoff card",
       "outcome": "Write the steps a second person in Owen Sound needs in order to host the next conversation about Canada-US family visits without the first host.",
-      "statementRefs": ["host-handoff"],
+      "statementRefs": [
+        "commonality"
+      ],
       "blocker": "The conversation stops when the first host is busy unless the hosting steps are written down"
     }
   ],
@@ -498,31 +534,42 @@
     {
       "title": "Pause-treaty petition packet",
       "outcome": "Publish the petition text, the governments it is addressed to, and a running signature count for one year. The packet includes the shared pause sentence and does not claim a government has agreed.",
-      "statementRefs": ["treaty-petition", "commonality"],
+      "statementRefs": [
+        "commonality"
+      ],
       "blocker": "A petition nobody maintains becomes a slogan, and no single signer is paid to keep the count honest"
     },
     {
       "title": "Small-chance explainer",
       "outcome": "Publish a plain-language brief that states the small-chance modified sentence beside the shared pause sentence, so a reader can see what the shorter sentence does not claim.",
-      "statementRefs": ["modified-small-chance", "commonality"],
+      "statementRefs": [
+        "modified-small-chance",
+        "commonality"
+      ],
       "blocker": "The milder wording is useful only if someone writes it down where the certain-doom sentence is not the only text on offer"
     },
     {
       "title": "Checkable alignment note",
       "outcome": "Commission one note on a published idea for keeping a more capable system from doing catastrophic harm. The note states the method, the result, and what was not shown. It does not claim the problem is solved.",
-      "statementRefs": ["alignment-note"],
+      "statementRefs": [
+        "commonality"
+      ],
       "blocker": "A second person cannot check a safety claim that lives in a lab notebook nobody else is paid to read"
     },
     {
       "title": "One-year warning digest",
       "outcome": "For one year, publish a digest of public warnings from people who work on AI, each with a date and a source, and no claim added beyond the source.",
-      "statementRefs": ["warning-digest"],
+      "statementRefs": [
+        "commonality"
+      ],
       "blocker": "The warnings are scattered, and no newsroom is paid to keep a list that refuses to sharpen them"
     },
     {
       "title": "Pause-meeting host kit",
       "outcome": "Write the agenda, the two sentences to read aloud, and the handoff steps so a second host can run the next meeting without the first host.",
-      "statementRefs": ["pause-host-kit", "commonality"],
+      "statementRefs": [
+        "commonality"
+      ],
       "blocker": "The meeting stops when the first host is busy unless the hosting steps are written down"
     }
   ]

@@ -245,7 +245,7 @@ test('network-societies pilot reuses one directory statement and publishes no im
   const manifest = JSON.parse(await readFile(new URL('../campaigns/network-societies-v1-pilot.json', import.meta.url), 'utf8')) as CampaignManifestV1;
   const plan = await buildCampaignPlan(manifest);
   assert.equal(plan.users.length, 40);
-  assert.equal(plan.statements.length, 40);
+  assert.equal(plan.statements.length, 21);
   assert.equal(plan.projects.length, 20);
   const shared = plan.statements.find((statement) => statement.source.statementId === 'class-host-directory');
   assert.ok(shared);
@@ -273,7 +273,7 @@ test('batch 2 keeps the pilot families, reuses accepted bridges, and shares one 
   }
   const plan = await buildCampaignPlan(manifest);
   assert.equal(plan.users.length, 72);
-  assert.equal(plan.statements.length, 125);
+  assert.equal(plan.statements.length, 94);
   assert.equal(plan.projects.length, 64);
   assert.equal(plan.actions.filter((action) => action.funding?.kind === 'retroactive').length, 0);
   const checklist = plan.statements.find((statement) => statement.source.statementId === 'moderator-checklist');
@@ -295,11 +295,11 @@ test('batch 2 keeps the pilot families, reuses accepted bridges, and shares one 
   assert.equal(notice.causeId, 'civic-assimilation');
   assert.deepEqual(notice.alsoOnCauseIds, ['christian-teaching']);
   const implications = plan.actions.filter((action) => action.type === 'attest-implication');
-  assert.equal(implications.length, 21);
+  assert.equal(implications.length, 17);
   const accepted = implications.filter((action) => action.implication!.evidence === 'accepted-bridge-role-pair');
   const live = implications.filter((action) => action.implication!.evidence === 'live-attester-modified-to-commonality');
   assert.equal(accepted.length, 4);
-  assert.equal(live.length, 17);
+  assert.equal(live.length, 13);
   for (const action of accepted) {
     const from = plan.statements.find((statement) => statement.id === action.implication!.fromStatementId)!;
     assert.ok(from.source.collectionId === 'compromise-abortion' || from.source.collectionId === 'lgbt-schools');
@@ -322,7 +322,12 @@ test('batch 2 keeps the pilot families, reuses accepted bridges, and shares one 
   const forum = plan.actions.find((action) => action.type === 'create-cause' && action.causeId === 'abortion-forum')!.board!;
   assert.equal(forum.role, 'plain');
   assert.ok(forum.statementIds.includes(michigan.id));
-  for (const causeId of ['grey-assimilation', 'ranked-approval-poll', 'checkout-trial-bridge', 'minors-medicine', 'opinion-employment', 'canada-us-ties']) {
+  for (const causeId of ['grey-assimilation', 'checkout-trial-bridge']) {
+    const board = plan.actions.find((action) => action.type === 'create-cause' && action.causeId === causeId)!.board!;
+    assert.equal(board.role, 'commonality');
+    assert.equal(implications.filter((action) => action.causeId === causeId).length, 0, causeId);
+  }
+  for (const causeId of ['ranked-approval-poll', 'minors-medicine', 'opinion-employment', 'canada-us-ties']) {
     const board = plan.actions.find((action) => action.type === 'create-cause' && action.causeId === causeId)!.board!;
     assert.equal(board.role, 'commonality');
     assert.equal(implications.filter((action) => action.causeId === causeId).length, 2, causeId);
@@ -336,7 +341,7 @@ test('batch 2 keeps the pilot families, reuses accepted bridges, and shares one 
   assert.deepEqual(pauseFrom, ['modified-children', 'modified-industry', 'modified-jobs', 'modified-not-luddite', 'modified-small-chance']);
   const canadaBoard = plan.actions.find((action) => action.type === 'create-cause' && action.causeId === 'canada-us-ties')!.board!;
   const canadaIds = canadaBoard.statementIds.map((id) => plan.statements.find((statement) => statement.id === id)!.source.statementId);
-  assert.deepEqual(canadaIds, ['commonality', 'cultural-archive', 'ties-guide', 'community-event', 'exchange-directory', 'host-handoff', 'boycott-ordinary-ties', 'narrower-than-visits']);
+  assert.deepEqual(canadaIds, ['commonality', 'boycott-ordinary-ties', 'narrower-than-visits']);
   assert.equal(plan.projects.filter((project) => project.causeId === 'canada-us-ties').length, 7);
   const boycott = plan.statements.find((statement) => statement.source.groupId === 'canada-us-ties' && statement.source.statementId === 'boycott-ordinary-ties')!;
   const narrower = plan.statements.find((statement) => statement.source.groupId === 'canada-us-ties' && statement.source.statementId === 'narrower-than-visits')!;
