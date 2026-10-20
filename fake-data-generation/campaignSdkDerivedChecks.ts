@@ -155,11 +155,13 @@ export function createCampaignSdkDerivedCheckProvider(input: {
           const final = latestNoteAction.get(action.noteId!)!;
           const expectedOwner = final.type === 'delegate-note' ? user(final.delegateUserId) : user(final.actorUserId);
           const rootOwner = user(plan.actions.find((item) => item.type === 'deposit-note' && item.noteId === action.noteId)!.actorUserId);
+          // A spend of the whole note closes it. Delegate and revoke leave it active.
+          const remainsActive = final.type !== 'spend-delegated-note';
           return [
             check('SDK note exists', true, folded !== null),
             check('SDK final note owner', expectedOwner.toLowerCase(), folded?.owner.toLowerCase() ?? null),
             check('SDK note root owner', rootOwner.toLowerCase(), folded?.rootOwner.toLowerCase() ?? null),
-            check('SDK note remains active', true, folded?.active ?? null),
+            check('SDK note remains active', remainsActive, folded?.active ?? null),
           ];
         }
       }

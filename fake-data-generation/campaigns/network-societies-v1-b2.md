@@ -26,7 +26,7 @@ Twenty-one implication actions are planned. Four are the accepted abortion and s
 
 The manifest points `beliefDecisions` at that file. Each `signs` entry is one `believe` write and each `rejects` entry is one `disbelieve` write. Those pairs are not drawn again, so Eli never believes the abortion commonality. Unsigned statements stay unpinned.
 
-A recurring monthly pledge stays out of this manifest. Pat already delegates a note to Ned, and the adapter can revoke a delegation. No action in this file spends a delegated note. The one-time spend is on the copy [`network-societies-v1-b2-note-spend.json`](./network-societies-v1-b2-note-spend.json): June deposits a payment-token note, Willa keeps it, and Willa buys one 0.01 receipt. That copy is not mined. Early funding and later reimbursement are on the copy [`network-societies-v1-b2-reimburse.json`](./network-societies-v1-b2-reimburse.json), not here.
+A recurring monthly pledge stays out of this manifest. Pat already delegates a note to Ned, and the adapter can revoke a delegation. No action in this file spends a delegated note. The one-time spend is on the copy [`network-societies-v1-b2-note-spend.json`](./network-societies-v1-b2-note-spend.json): June deposits a payment-token note, Willa keeps it, and Willa buys one 0.01 receipt. That copy mined 524/524 on 2026-10-20 into `output/campaigns/network-societies-v1-b2-note-spend/`. Do not regenerate that directory. Early funding and later reimbursement are on the copy [`network-societies-v1-b2-reimburse.json`](./network-societies-v1-b2-reimburse.json), not here.
 
 ## Reproduce the plan
 
