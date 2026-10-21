@@ -17,10 +17,10 @@
     "campaignCollection": "network-societies-v1-b2-statements.json"
   },
   "scale": {
-    "minCauses": 14,
-    "maxCauses": 14,
-    "minStatements": 79,
-    "maxStatements": 79,
+    "minCauses": 13,
+    "maxCauses": 13,
+    "minStatements": 74,
+    "maxStatements": 74,
     "allowRepeatedStatementRefs": true
   },
   "projectStories": "network-societies-v1-b2-projects.json",
@@ -367,39 +367,6 @@
         {
           "collectionId": "network-societies-v1-b2",
           "groupId": "checkout-trial-bridge",
-          "statementId": "commonality"
-        }
-      ]
-    },
-    {
-      "id": "minors-medicine",
-      "title": "Minors medicine and courtesy",
-      "activityTier": "medium",
-      "membershipWeight": 7,
-      "statementRefs": [
-        {
-          "collectionId": "network-societies-v1-b2",
-          "groupId": "minors-medicine",
-          "statementId": "natural-left"
-        },
-        {
-          "collectionId": "network-societies-v1-b2",
-          "groupId": "minors-medicine",
-          "statementId": "natural-right"
-        },
-        {
-          "collectionId": "network-societies-v1-b2",
-          "groupId": "minors-medicine",
-          "statementId": "modified-left"
-        },
-        {
-          "collectionId": "network-societies-v1-b2",
-          "groupId": "minors-medicine",
-          "statementId": "modified-right"
-        },
-        {
-          "collectionId": "network-societies-v1-b2",
-          "groupId": "minors-medicine",
           "statementId": "commonality"
         }
       ]
@@ -793,8 +760,7 @@
       ],
       "causeIds": [
         "home-learning",
-        "christian-teaching",
-        "minors-medicine"
+        "christian-teaching"
       ],
       "spotlightOrder": 4
     },
@@ -1331,32 +1297,6 @@
     {
       "from": {
         "collectionId": "network-societies-v1-b2",
-        "groupId": "minors-medicine",
-        "statementId": "modified-left"
-      },
-      "to": {
-        "collectionId": "network-societies-v1-b2",
-        "groupId": "minors-medicine",
-        "statementId": "commonality"
-      },
-      "evidence": "live-attester-modified-to-commonality"
-    },
-    {
-      "from": {
-        "collectionId": "network-societies-v1-b2",
-        "groupId": "minors-medicine",
-        "statementId": "modified-right"
-      },
-      "to": {
-        "collectionId": "network-societies-v1-b2",
-        "groupId": "minors-medicine",
-        "statementId": "commonality"
-      },
-      "evidence": "live-attester-modified-to-commonality"
-    },
-    {
-      "from": {
-        "collectionId": "network-societies-v1-b2",
         "groupId": "opinion-employment",
         "statementId": "modified-left"
       },
@@ -1477,8 +1417,8 @@
       "type": "publish-statement",
       "prerequisites": [],
       "targetCount": {
-        "min": 79,
-        "max": 79
+        "min": 74,
+        "max": 74
       }
     },
     {
@@ -1487,8 +1427,8 @@
         "publish-statement"
       ],
       "targetCount": {
-        "min": 14,
-        "max": 14
+        "min": 13,
+        "max": 13
       }
     },
     {
@@ -1507,8 +1447,8 @@
         "publish-statement"
       ],
       "targetCount": {
-        "min": 15,
-        "max": 15
+        "min": 13,
+        "max": 13
       }
     },
     {
@@ -1517,8 +1457,8 @@
         "create-cause"
       ],
       "targetCount": {
-        "min": 58,
-        "max": 58
+        "min": 56,
+        "max": 56
       }
     },
     {
@@ -1528,8 +1468,8 @@
         "publish-statement"
       ],
       "targetCount": {
-        "min": 58,
-        "max": 58
+        "min": 56,
+        "max": 56
       }
     },
     {
@@ -1577,8 +1517,8 @@
         "publish-statement"
       ],
       "targetCount": {
-        "min": 32,
-        "max": 32
+        "min": 28,
+        "max": 28
       }
     },
     {
@@ -1588,8 +1528,8 @@
         "create-bridge-board"
       ],
       "targetCount": {
-        "min": 8,
-        "max": 8
+        "min": 7,
+        "max": 7
       }
     }
   ],
@@ -1606,5 +1546,6 @@
     "reconciliation": "reports/reconciliation.json",
     "browserObservations": "reports/browser-observations.json",
     "summary": "reports/summary.md"
-  }
+  },
+  "implicationCandidates": []
 }

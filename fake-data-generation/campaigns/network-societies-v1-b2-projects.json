@@ -402,25 +402,6 @@
       "blocker": "The shared sentence leaves out why each side showed up, and the card is what keeps those reasons visible"
     }
   ],
-  "minors-medicine": [
-    {
-      "title": "Rule comparison page",
-      "outcome": "Publish the commonality sentence as a proposal, labeled as a proposal, with no claim about current law or clinical results.",
-      "statementRefs": [
-        "commonality"
-      ],
-      "blocker": "A one-page proposal is useful to people who will not attend a meeting, and nobody owns the page"
-    },
-    {
-      "title": "Separate-questions card",
-      "outcome": "Print the modified-right sentence so a host can keep classroom names and school drug approval off this page.",
-      "statementRefs": [
-        "modified-right",
-        "commonality"
-      ],
-      "blocker": "Those questions keep getting folded back in unless a maintained card holds them out"
-    }
-  ],
   "opinion-employment": [
     {
       "title": "Appeal-before-blacklist card",

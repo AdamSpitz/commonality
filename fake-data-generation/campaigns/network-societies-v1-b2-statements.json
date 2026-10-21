@@ -265,40 +265,6 @@
       ]
     },
     {
-      "id": "minors-medicine",
-      "title": "Minors' medicine and courtesy",
-      "notes": [
-        "Draft bridge. Unevaluated. Does not settle the accepted schools-pushing cluster, classroom names, or a school approving drugs."
-      ],
-      "statements": [
-        {
-          "id": "natural-left",
-          "role": "natural-left",
-          "text": "I want a young person in distress about their sex to be able to get medical treatment, including hormones, and I want the rest of us to stop being cruel about it."
-        },
-        {
-          "id": "natural-right",
-          "role": "natural-right",
-          "text": "I don't want children given drugs or surgery to try to change their sex."
-        },
-        {
-          "id": "modified-left",
-          "role": "modified-left",
-          "text": "I want adults to make their own medical decisions, and I want disagreeing with someone to not be a reason to harass them. I'd prefer doctors and families to decide about hormones for minors case by case, but I'd be okay with a rule that minors are not given cross-sex hormones or genital surgery, that an adult makes their own medical decision, and that disagreeing with someone is not a reason to harass them. This isn't my ideal."
-        },
-        {
-          "id": "modified-right",
-          "role": "modified-right",
-          "text": "I don't want children given drugs or surgery to try to change their sex. I'd be okay with a rule that minors are not given cross-sex hormones or genital surgery, that an adult makes their own medical decision, and that disagreeing with someone is not a reason to harass them. What name a classroom uses, and whether a school may approve those drugs, are separate questions, and this isn't my whole view."
-        },
-        {
-          "id": "commonality",
-          "role": "commonality",
-          "text": "I'd be okay with a rule that minors are not given cross-sex hormones or genital surgery, that an adult makes their own medical decision, and that disagreeing with someone is not a reason to harass them. This isn't my whole view."
-        }
-      ]
-    },
-    {
       "id": "opinion-employment",
       "title": "Ordinary opinions and employment",
       "notes": [
