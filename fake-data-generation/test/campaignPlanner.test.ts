@@ -296,11 +296,13 @@ test('batch 2 keeps the pilot families, reuses accepted bridges, and shares one 
   assert.equal(notice.causeId, 'civic-assimilation');
   assert.deepEqual(notice.alsoOnCauseIds, ['christian-teaching']);
   const implications = plan.actions.filter((action) => action.type === 'attest-implication');
-  assert.equal(implications.length, 11);
+  assert.equal(implications.length, 17);
   const accepted = implications.filter((action) => action.implication!.evidence === 'accepted-bridge-role-pair');
   const live = implications.filter((action) => action.implication!.evidence === 'live-attester-modified-to-commonality');
+  const recorded = implications.filter((action) => action.implication!.evidence === 'live-attester-recorded-bless');
   assert.equal(accepted.length, 4);
-  assert.equal(live.length, 7);
+  assert.equal(live.length, 11);
+  assert.equal(recorded.length, 2);
   for (const action of accepted) {
     const from = plan.statements.find((statement) => statement.id === action.implication!.fromStatementId)!;
     assert.ok(from.source.collectionId === 'compromise-abortion' || from.source.collectionId === 'lgbt-schools');
@@ -309,8 +311,9 @@ test('batch 2 keeps the pilot families, reuses accepted bridges, and shares one 
     const from = plan.statements.find((statement) => statement.id === action.implication!.fromStatementId)!;
     const to = plan.statements.find((statement) => statement.id === action.implication!.toStatementId)!;
     const plainModified = from.role === null && from.source.statementId.startsWith('modified-') && action.implication!.evidence === 'live-attester-modified-to-commonality';
-    assert.ok(from.role === 'modified-left' || from.role === 'modified-right' || plainModified);
-    assert.equal(to.role, 'commonality');
+    const recordedBless = action.implication!.evidence === 'live-attester-recorded-bless';
+    assert.ok(from.role === 'modified-left' || from.role === 'modified-right' || plainModified || recordedBless);
+    assert.equal(to.role, recordedBless ? null : 'commonality');
     assert.equal(from.source.groupId, to.source.groupId);
   }
   const michigan = plan.statements.find((statement) => statement.source.statementId === 'michigan-legislature')!;
@@ -323,17 +326,20 @@ test('batch 2 keeps the pilot families, reuses accepted bridges, and shares one 
   const forum = plan.actions.find((action) => action.type === 'create-cause' && action.causeId === 'abortion-forum')!.board!;
   assert.equal(forum.role, 'plain');
   assert.ok(forum.statementIds.includes(michigan.id));
-  for (const causeId of ['grey-assimilation', 'checkout-trial-bridge', 'voting']) {
+  for (const causeId of ['grey-assimilation', 'checkout-trial-bridge']) {
     const board = plan.actions.find((action) => action.type === 'create-cause' && action.causeId === causeId)!.board!;
     assert.equal(board.role, 'commonality');
     assert.equal(implications.filter((action) => action.causeId === causeId).length, 0, causeId);
   }
+  const votingBoard = plan.actions.find((action) => action.type === 'create-cause' && action.causeId === 'voting')!.board!;
+  assert.equal(votingBoard.role, 'commonality');
+  assert.equal(implications.filter((action) => action.causeId === 'voting').length, 2);
   assert.equal(plan.actions.some((action) => action.type === 'create-cause' && action.causeId === 'minors-medicine'), false);
   for (const causeId of ['opinion-employment', 'canada-us-ties']) {
     const board = plan.actions.find((action) => action.type === 'create-cause' && action.causeId === causeId)!.board!;
     assert.equal(board.role, 'commonality');
   }
-  assert.equal(implications.filter((action) => action.causeId === 'opinion-employment').length, 0);
+  assert.equal(implications.filter((action) => action.causeId === 'opinion-employment').length, 2);
   assert.equal(implications.filter((action) => action.causeId === 'canada-us-ties').length, 2);
   assert.ok(implications.filter((action) => action.causeId === 'canada-us-ties').every((action) => action.implication!.evidence === 'live-attester-modified-to-commonality'));
   const pauseBoard = plan.actions.find((action) => action.type === 'create-cause' && action.causeId === 'ai-pause')!.board!;

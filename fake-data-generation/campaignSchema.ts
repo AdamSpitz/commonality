@@ -137,7 +137,10 @@ export interface CampaignManifestV1 {
   };
 }
 
-export type CampaignImplicationEvidence = 'accepted-bridge-role-pair' | 'live-attester-modified-to-commonality';
+export type CampaignImplicationEvidence =
+  | 'accepted-bridge-role-pair'
+  | 'live-attester-modified-to-commonality'
+  | 'live-attester-recorded-bless';
 
 export interface CampaignImplicationAllowance {
   from: CampaignStatementRef;
@@ -186,7 +189,7 @@ function validateCauses(manifest: CampaignManifestV1): void {
   const allowanceKeys = allowances.map((item) => `${statementRefKey(item.from)}=>${statementRefKey(item.to)}`);
   requireUnique(allowanceKeys, 'implication allowances');
   for (const item of allowances) {
-    if (item.evidence !== 'accepted-bridge-role-pair' && item.evidence !== 'live-attester-modified-to-commonality') {
+    if (item.evidence !== 'accepted-bridge-role-pair' && item.evidence !== 'live-attester-modified-to-commonality' && item.evidence !== 'live-attester-recorded-bless') {
       throw new Error(`invalid implication evidence for ${allowanceKeys[allowances.indexOf(item)]}`);
     }
     if (item.from.collectionId !== item.to.collectionId || item.from.groupId !== item.to.groupId) {

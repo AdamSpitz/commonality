@@ -1384,6 +1384,84 @@
         "statementId": "commonality"
       },
       "evidence": "live-attester-modified-to-commonality"
+    },
+    {
+      "from": {
+        "collectionId": "network-societies-v1-b2",
+        "groupId": "voting",
+        "statementId": "ranked-choice-and-try"
+      },
+      "to": {
+        "collectionId": "network-societies-v1-b2",
+        "groupId": "voting",
+        "statementId": "try-other-systems"
+      },
+      "evidence": "live-attester-modified-to-commonality"
+    },
+    {
+      "from": {
+        "collectionId": "network-societies-v1-b2",
+        "groupId": "voting",
+        "statementId": "approval-and-try"
+      },
+      "to": {
+        "collectionId": "network-societies-v1-b2",
+        "groupId": "voting",
+        "statementId": "try-other-systems"
+      },
+      "evidence": "live-attester-modified-to-commonality"
+    },
+    {
+      "from": {
+        "collectionId": "network-societies-v1-b2",
+        "groupId": "opinion-employment",
+        "statementId": "modified-left"
+      },
+      "to": {
+        "collectionId": "network-societies-v1-b2",
+        "groupId": "opinion-employment",
+        "statementId": "commonality"
+      },
+      "evidence": "live-attester-modified-to-commonality"
+    },
+    {
+      "from": {
+        "collectionId": "network-societies-v1-b2",
+        "groupId": "opinion-employment",
+        "statementId": "modified-right"
+      },
+      "to": {
+        "collectionId": "network-societies-v1-b2",
+        "groupId": "opinion-employment",
+        "statementId": "commonality"
+      },
+      "evidence": "live-attester-modified-to-commonality"
+    },
+    {
+      "from": {
+        "collectionId": "network-societies-v1-b2",
+        "groupId": "civic-assimilation",
+        "statementId": "some-immigration"
+      },
+      "to": {
+        "collectionId": "network-societies-v1-b2",
+        "groupId": "civic-assimilation",
+        "statementId": "assimilate"
+      },
+      "evidence": "live-attester-recorded-bless"
+    },
+    {
+      "from": {
+        "collectionId": "network-societies-v1-b2",
+        "groupId": "civic-assimilation",
+        "statementId": "fewer-newcomers"
+      },
+      "to": {
+        "collectionId": "network-societies-v1-b2",
+        "groupId": "civic-assimilation",
+        "statementId": "assimilate"
+      },
+      "evidence": "live-attester-recorded-bless"
     }
   ],
   "actionRules": [
@@ -1421,8 +1499,8 @@
         "publish-statement"
       ],
       "targetCount": {
-        "min": 11,
-        "max": 11
+        "min": 17,
+        "max": 17
       }
     },
     {

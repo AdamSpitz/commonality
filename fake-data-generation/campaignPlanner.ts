@@ -210,7 +210,9 @@ function validateImplicationPair(from: PlannedStatement, to: PlannedStatement, e
   const liveModified = evidence === 'live-attester-modified-to-commonality'
     && to.role === 'commonality'
     && (from.role === 'modified-left' || from.role === 'modified-right' || from.source.statementId.startsWith('modified-'));
-  if (!sameGroup || (!bridgeRoles && !liveModified)) throw new Error(`unsuitable implication ${from.id} -> ${to.id}: pair lacks accepted bridge-role evidence`);
+  // A same-group pair with no bridge role. The allowance exists only after a stored bless of the current text.
+  const recordedBless = evidence === 'live-attester-recorded-bless';
+  if (!sameGroup || (!bridgeRoles && !liveModified && !recordedBless)) throw new Error(`unsuitable implication ${from.id} -> ${to.id}: pair lacks accepted bridge-role evidence`);
 }
 
 function statementsOnCause(statements: PlannedStatement[], causeId: string): PlannedStatement[] {
