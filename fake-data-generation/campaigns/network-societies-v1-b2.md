@@ -33,10 +33,10 @@ A recurring monthly pledge stays out of this manifest. Pat already delegates a n
 From `fake-data-generation/`:
 
 ```bash
-npm run gen:campaign:plan -- campaigns/network-societies-v1-b2.json output/campaigns/network-societies-v1-b2-canada-us
+npm run gen:campaign:plan -- campaigns/network-societies-v1-b2.json output/campaigns/network-societies-v1-b2-current
 ```
 
-Do not write this plan over `output/campaigns/network-societies-v1-b2/`. That directory is the mined run from before the belief pins and the AI-pause arrows. Do not write it over `output/campaigns/network-societies-v1-b2-ai-pause/`. That directory is the plan from before the Canada–US planks. Do not write it over `network-societies-v1-pilot` or `medium-realistic-v2`. Pilot statement texts in `network-societies-v1-b2-statements.json` are a copy so the loader can see them. The accepted bridge sentences are referenced from `seed-content/`, not copied.
+That directory is the 2026-10-21 plan of the current manifest: 72 users, 74 statements, 55 projects, 446 writes. It mined 446/446 and reconciled 446/446 on a clean local chain (head 606, test-data run `20261021T203254843Z`). Do not regenerate it. Do not write this plan over `output/campaigns/network-societies-v1-b2/`. That directory is the mined run from before the belief pins and the AI-pause arrows. Do not write it over `output/campaigns/network-societies-v1-b2-ai-pause/`. That directory is the plan from before the Canada–US planks. Do not write it over `network-societies-v1-pilot` or `medium-realistic-v2`. Pilot statement texts in `network-societies-v1-b2-statements.json` are a copy so the loader can see them. The accepted bridge sentences are referenced from `seed-content/`, not copied.
 
 ## Local execution
 
