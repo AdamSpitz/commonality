@@ -1406,5 +1406,5 @@
   ],
   "aiPauseEvaluatedAt": "2026-10-16T21:52:11.796Z",
   "canadaUsEvaluatedAt": "2026-10-16T22:30:00.000Z",
-  "canadaUsWordingNote": "2026-10-21: boycott-ordinary-ties and narrower-than-visits dropped the clauses about refusing to sign. The fromHash and toHash values on those three rows are the longer wording. Do not treat the rows as evidence for the shorter sentences."
+  "canadaUsWordingNote": "2026-10-21: boycott-ordinary-ties dropped the clause about refusing to sign. narrower-than-visits now only names family visits. The fromHash and toHash values on those three rows are the longer wording. Do not treat the rows as evidence for the shorter sentences."
 }

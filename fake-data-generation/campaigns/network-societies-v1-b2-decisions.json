@@ -21,7 +21,7 @@
     { "userId": "user-069", "name": "Cal", "signs": ["commonality"], "rejects": ["boycott-ordinary-ties"], "unsigned": ["narrower-than-visits", "natural-right"], "notes": "Signs the shared sentence. A boycott is a refusal." },
     { "userId": "user-070", "name": "Adele", "signs": ["natural-left"], "unsigned": ["commonality", "modified-left", "boycott-ordinary-ties"], "notes": "Has the anti-Trump natural. The shared sentence is still a nudge, not an arrow from the natural." },
     { "userId": "user-071", "name": "Greta", "signs": ["boycott-ordinary-ties"], "rejects": ["commonality", "modified-left", "modified-right"], "unsigned": ["natural-left"], "notes": "Wants a boycott. She rejects the shared sentence. No arrow runs from the boycott to that sentence." },
-    { "userId": "user-072", "name": "Neil", "signs": ["narrower-than-visits"], "rejects": ["commonality"], "unsigned": ["boycott-ordinary-ties"], "notes": "Wants family visits without a general call to keep buying from US businesses. He rejects the sentence that asks for both." }
+    { "userId": "user-072", "name": "Neil", "signs": ["narrower-than-visits"], "rejects": ["commonality"], "unsigned": ["boycott-ordinary-ties"], "notes": "Signs only the family-visit sentence. That sentence does not reject purchases. He rejects the shared sentence, which asks for purchases and visits." }
   ],
   "implicationCandidates": {
     "published": [
@@ -54,7 +54,7 @@
       { "from": "ai-pause/commonality", "to": "ai-pause/modified-small-chance", "why": "2026-10-16 deepseek-v3.2 refused, high. The shared sentence does not include the odds or the refusal to say extinction is certain." },
       { "from": "ai-pause/commonality", "to": "ai-pause/modified-jobs", "why": "2026-10-16 deepseek-v3.2 refused, high. The shared sentence does not include the jobs priority." },
       { "from": "canada-us-ties/boycott-ordinary-ties", "to": "canada-us-ties/commonality", "why": "2026-10-16 deepseek-v3.2 refused, high, first wording. Greta's boycott is the negation of the shared sentence. The 2026-10-21 cut removed the clause about not signing. This row is evidence for the longer sentence only." },
-      { "from": "canada-us-ties/narrower-than-visits", "to": "canada-us-ties/commonality", "why": "2026-10-16 deepseek-v3.2 refused, high, first wording. Neil keeps family visits and rejects the purchase call. The 2026-10-21 cut removed the clause about not signing. This row is evidence for the longer sentence only." },
+      { "from": "canada-us-ties/narrower-than-visits", "to": "canada-us-ties/commonality", "why": "2026-10-16 deepseek-v3.2 refused, high, on the wording that also rejected the purchase call. The current sentence only names family visits. This row is evidence for the longer sentence only." },
       { "from": "canada-us-ties/commonality", "to": "canada-us-ties/boycott-ordinary-ties", "why": "2026-10-16 deepseek-v3.2 refused, high, first wording. The shared sentence does not contain a boycott. The 2026-10-21 cut removed the clause about not signing. This row is evidence for the longer sentence only." }
     ],
     "unevaluatedAndUnpublished": [

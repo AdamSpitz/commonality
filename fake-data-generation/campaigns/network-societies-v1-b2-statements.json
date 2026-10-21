@@ -337,7 +337,7 @@
       "title": "Ordinary Canada-US ties",
       "notes": [
         "Bridge on one want: ordinary purchases and family visits, with the administration question left out. The two modified-to-commonality arrows stay. This is not a second compromise on that same want.",
-        "Knowing that other people agree is the signer count on Tally, not a project. The projects are shop-here asks for Grey County businesses that kept ordinary US suppliers and then lost customers over that. A boycott and visits-without-the-purchase-call are incompatible positions. Neither is an implication of the commonality, and neither is published as an arrow. The 2026-10-16 attester refusal is for the longer wording of those two sentences. Not accepted seed."
+        "Knowing that other people agree is the signer count on Tally, not a project. The projects are shop-here asks for Grey County businesses that kept ordinary US suppliers and then lost customers over that. The boycott refuses the shared sentence. The narrower sentence only names family visits and does not reject the purchase call. Neither is an implication of the commonality, and neither is published as an arrow. The 2026-10-16 attester refusal is for the longer wording. Not accepted seed."
       ],
       "statements": [
         {
@@ -371,7 +371,7 @@
         },
         {
           "id": "narrower-than-visits",
-          "text": "I want Canadians to keep visiting family in the US. I do not want ordinary Canadians told to keep buying from US businesses."
+          "text": "I want Canadians to keep visiting family in the US."
         }
       ]
     },
