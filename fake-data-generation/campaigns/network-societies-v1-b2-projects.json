@@ -318,7 +318,7 @@
       "title": "Owen Sound association poll",
       "outcome": "Run one non-binding ranked-ballot poll at one named Owen Sound community association and publish the ballots and the ranked count. The poll does not change a municipal election.",
       "statementRefs": [
-        "ranked-poll"
+        "other-voting-systems"
       ],
       "blocker": "Printing, a room, and a published count have to be paid for before anyone can inspect the result"
     },
@@ -326,8 +326,7 @@
       "title": "Approval count of the same ballots",
       "outcome": "Publish an approval count of those same Owen Sound ballots beside the ranked count, with both methods named.",
       "statementRefs": [
-        "ranked-poll",
-        "approval-count"
+        "approval-voting"
       ],
       "blocker": "A second count is useful to people comparing methods, and the association is not paid to run it"
     },
@@ -335,7 +334,7 @@
       "title": "Rerunnable counting notes",
       "outcome": "Publish the counting method in enough detail that a second person can rerun it from the published ballots and match the count.",
       "statementRefs": [
-        "ranked-poll"
+        "other-voting-systems"
       ],
       "blocker": "The counter who ran the poll is a poor person to be the only one who can repeat it"
     },
@@ -343,7 +342,7 @@
       "title": "Second-host poll kit",
       "outcome": "Write the room, ballot, and publication steps so a second Owen Sound resident can run the next non-binding poll.",
       "statementRefs": [
-        "ranked-poll"
+        "other-voting-systems"
       ],
       "blocker": "The poll stops when the first host is busy unless the steps are written down"
     },
@@ -359,8 +358,7 @@
       "title": "Moderator checklist card",
       "outcome": "Print the moderator checklist and use it for the Owen Sound poll and for one other published meeting, then file both checklists in the Grey County trial directory.",
       "statementRefs": [
-        "moderator-checklist",
-        "ranked-poll"
+        "moderator-checklist"
       ],
       "blocker": "The checklist is useful on more than one board, and neither meeting owns the maintenance"
     }
@@ -383,25 +381,6 @@
         "commonality"
       ],
       "blocker": "The limit is easy to drop in the room unless a card states it"
-    }
-  ],
-  "ranked-approval-poll": [
-    {
-      "title": "Dual-count association poll",
-      "outcome": "One Owen Sound community association runs a non-binding poll and publishes a ranked count and an approval count of the same ballots. The poll does not change a municipal election.",
-      "statementRefs": [
-        "commonality"
-      ],
-      "blocker": "Printing both counts costs more than the association's usual show of hands"
-    },
-    {
-      "title": "Dual-count host card",
-      "outcome": "Print the two modified sentences so a host can say that publishing the other count is not a change of preferred system.",
-      "statementRefs": [
-        "modified-left",
-        "modified-right"
-      ],
-      "blocker": "Without the card, each side hears the second count as a concession they did not make"
     }
   ],
   "checkout-trial-bridge": [

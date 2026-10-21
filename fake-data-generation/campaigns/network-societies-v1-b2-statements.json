@@ -160,26 +160,22 @@
     },
     {
       "id": "voting",
-      "title": "Non-binding counts in Owen Sound",
+      "title": "Voting in Grey County",
       "notes": [
-        "A non-binding association poll is not a change to municipal election law. No bridge roles."
+        "A want that more voting in Grey County use something other than first-past-the-post, an approval-voting want that refuses ranked choice, and a refusal that keeps first-past-the-post. No bridge roles. The dual-count draft was the old poll wording and is deleted."
       ],
       "statements": [
         {
-          "id": "ranked-poll",
-          "text": "I want a community association in Owen Sound to be able to try a non-binding ranked ballot and to publish the ballots and the count."
+          "id": "other-voting-systems",
+          "text": "First-past-the-post is an awful voting system. I want more voting in Grey County, Ontario to be done using other voting systems, like ranked choice."
         },
         {
-          "id": "approval-count",
-          "text": "I want that same non-binding poll to publish an approval count of the same ballots beside the ranked count."
+          "id": "approval-voting",
+          "text": "First-past-the-post is an awful voting system. I want more voting in Grey County, Ontario to be done using approval voting, and not ranked choice."
         },
         {
-          "id": "keep-fptp",
-          "text": "I want Owen Sound municipal elections to keep first-past-the-post."
-        },
-        {
-          "id": "show-of-hands",
-          "text": "I want the Owen Sound association to refuse a ranked-ballot poll and keep its usual show of hands."
+          "id": "keep-first-past-the-post",
+          "text": "I want voting in Grey County, Ontario to keep first-past-the-post."
         }
       ]
     },
@@ -214,40 +210,6 @@
           "id": "commonality",
           "role": "commonality",
           "text": "I'd be okay with practical-English sessions in Owen Sound, with childcare, that explain the library, the bus, and a township office, while township business stays in English and the sessions stop short of telling newcomers which customs to keep. This isn't my whole view of immigration."
-        }
-      ]
-    },
-    {
-      "id": "ranked-approval-poll",
-      "title": "Owen Sound dual-count poll",
-      "notes": [
-        "Draft bridge. Unevaluated. The older voting group stays a plain board of separate planks."
-      ],
-      "statements": [
-        {
-          "id": "natural-left",
-          "role": "natural-left",
-          "text": "First-past-the-post wastes my vote. I want ranked ballots."
-        },
-        {
-          "id": "natural-right",
-          "role": "natural-right",
-          "text": "First-past-the-post rewards the biggest camp. I want approval voting, not a ranked system."
-        },
-        {
-          "id": "modified-left",
-          "role": "modified-left",
-          "text": "First-past-the-post wastes my vote. I want ranked ballots for a real election. I'd be okay with one Owen Sound community association running a non-binding poll and publishing both a ranked count and an approval count of the same ballots. That is not a change to Owen Sound's municipal elections, and publishing the approval count is not me dropping ranked ballots."
-        },
-        {
-          "id": "modified-right",
-          "role": "modified-right",
-          "text": "First-past-the-post rewards the biggest camp. I want approval voting, not a ranked system, for a real election. I'd be okay with one Owen Sound community association running a non-binding poll and publishing both a ranked count and an approval count of the same ballots. That is not a change to Owen Sound's municipal elections, and publishing the ranked count is not me adopting ranked ballots."
-        },
-        {
-          "id": "commonality",
-          "role": "commonality",
-          "text": "I'd be okay with one Owen Sound community association running a non-binding poll and publishing both a ranked count and an approval count of the same ballots. That is not a change to Owen Sound's municipal elections."
         }
       ]
     },

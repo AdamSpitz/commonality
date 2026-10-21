@@ -17,10 +17,10 @@
     "campaignCollection": "network-societies-v1-b2-statements.json"
   },
   "scale": {
-    "minCauses": 15,
-    "maxCauses": 15,
-    "minStatements": 82,
-    "maxStatements": 82,
+    "minCauses": 14,
+    "maxCauses": 14,
+    "minStatements": 76,
+    "maxStatements": 76,
     "allowRepeatedStatementRefs": true
   },
   "projectStories": "network-societies-v1-b2-projects.json",
@@ -264,29 +264,24 @@
     },
     {
       "id": "voting",
-      "title": "Owen Sound voting trial",
+      "title": "Voting in Grey County",
       "activityTier": "medium",
       "membershipWeight": 8,
       "statementRefs": [
         {
           "collectionId": "network-societies-v1-b2",
           "groupId": "voting",
-          "statementId": "ranked-poll"
+          "statementId": "other-voting-systems"
         },
         {
           "collectionId": "network-societies-v1-b2",
           "groupId": "voting",
-          "statementId": "approval-count"
+          "statementId": "approval-voting"
         },
         {
           "collectionId": "network-societies-v1-b2",
           "groupId": "voting",
-          "statementId": "keep-fptp"
-        },
-        {
-          "collectionId": "network-societies-v1-b2",
-          "groupId": "voting",
-          "statementId": "show-of-hands"
+          "statementId": "keep-first-past-the-post"
         },
         {
           "collectionId": "network-societies-v1-b2",
@@ -324,39 +319,6 @@
         {
           "collectionId": "network-societies-v1-b2",
           "groupId": "grey-assimilation",
-          "statementId": "commonality"
-        }
-      ]
-    },
-    {
-      "id": "ranked-approval-poll",
-      "title": "Owen Sound dual count",
-      "activityTier": "medium",
-      "membershipWeight": 7,
-      "statementRefs": [
-        {
-          "collectionId": "network-societies-v1-b2",
-          "groupId": "ranked-approval-poll",
-          "statementId": "natural-left"
-        },
-        {
-          "collectionId": "network-societies-v1-b2",
-          "groupId": "ranked-approval-poll",
-          "statementId": "natural-right"
-        },
-        {
-          "collectionId": "network-societies-v1-b2",
-          "groupId": "ranked-approval-poll",
-          "statementId": "modified-left"
-        },
-        {
-          "collectionId": "network-societies-v1-b2",
-          "groupId": "ranked-approval-poll",
-          "statementId": "modified-right"
-        },
-        {
-          "collectionId": "network-societies-v1-b2",
-          "groupId": "ranked-approval-poll",
           "statementId": "commonality"
         }
       ]
@@ -785,8 +747,7 @@
       ],
       "causeIds": [
         "christian-teaching",
-        "home-learning",
-        "ranked-approval-poll"
+        "home-learning"
       ],
       "spotlightOrder": 2
     },
@@ -978,11 +939,11 @@
     {
       "userId": "user-043",
       "displayName": "Wes",
-      "bio": "Wants the Owen Sound association poll and the published counts. He can sign keeping first-past-the-post for real municipal elections.",
+      "bio": "Wants more voting in Grey County, Ontario to use a system other than first-past-the-post, such as ranked choice. He rejects keeping first-past-the-post.",
       "favoriteCauseId": "voting",
       "interests": [
-        "Owen Sound",
-        "ballots"
+        "Grey County",
+        "ranked choice"
       ],
       "causeIds": [
         "voting",
@@ -1370,32 +1331,6 @@
     {
       "from": {
         "collectionId": "network-societies-v1-b2",
-        "groupId": "ranked-approval-poll",
-        "statementId": "modified-left"
-      },
-      "to": {
-        "collectionId": "network-societies-v1-b2",
-        "groupId": "ranked-approval-poll",
-        "statementId": "commonality"
-      },
-      "evidence": "live-attester-modified-to-commonality"
-    },
-    {
-      "from": {
-        "collectionId": "network-societies-v1-b2",
-        "groupId": "ranked-approval-poll",
-        "statementId": "modified-right"
-      },
-      "to": {
-        "collectionId": "network-societies-v1-b2",
-        "groupId": "ranked-approval-poll",
-        "statementId": "commonality"
-      },
-      "evidence": "live-attester-modified-to-commonality"
-    },
-    {
-      "from": {
-        "collectionId": "network-societies-v1-b2",
         "groupId": "minors-medicine",
         "statementId": "modified-left"
       },
@@ -1542,12 +1477,32 @@
       "type": "publish-statement",
       "prerequisites": [],
       "targetCount": {
-        "min": 82,
-        "max": 82
+        "min": 76,
+        "max": 76
       }
     },
     {
       "type": "create-cause",
+      "prerequisites": [
+        "publish-statement"
+      ],
+      "targetCount": {
+        "min": 14,
+        "max": 14
+      }
+    },
+    {
+      "type": "set-belief",
+      "prerequisites": [
+        "publish-statement"
+      ],
+      "targetCount": {
+        "min": 103,
+        "max": 103
+      }
+    },
+    {
+      "type": "attest-implication",
       "prerequisites": [
         "publish-statement"
       ],
@@ -1557,33 +1512,13 @@
       }
     },
     {
-      "type": "set-belief",
-      "prerequisites": [
-        "publish-statement"
-      ],
-      "targetCount": {
-        "min": 105,
-        "max": 105
-      }
-    },
-    {
-      "type": "attest-implication",
-      "prerequisites": [
-        "publish-statement"
-      ],
-      "targetCount": {
-        "min": 17,
-        "max": 17
-      }
-    },
-    {
       "type": "create-project",
       "prerequisites": [
         "create-cause"
       ],
       "targetCount": {
-        "min": 63,
-        "max": 63
+        "min": 61,
+        "max": 61
       }
     },
     {
@@ -1593,8 +1528,8 @@
         "publish-statement"
       ],
       "targetCount": {
-        "min": 62,
-        "max": 62
+        "min": 61,
+        "max": 61
       }
     },
     {
@@ -1642,8 +1577,8 @@
         "publish-statement"
       ],
       "targetCount": {
-        "min": 32,
-        "max": 32
+        "min": 28,
+        "max": 28
       }
     },
     {
@@ -1653,8 +1588,8 @@
         "create-bridge-board"
       ],
       "targetCount": {
-        "min": 8,
-        "max": 8
+        "min": 7,
+        "max": 7
       }
     },
     {

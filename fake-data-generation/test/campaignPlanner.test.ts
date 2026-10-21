@@ -273,8 +273,8 @@ test('batch 2 keeps the pilot families, reuses accepted bridges, and shares one 
   }
   const plan = await buildCampaignPlan(manifest);
   assert.equal(plan.users.length, 72);
-  assert.equal(plan.statements.length, 82);
-  assert.equal(plan.projects.length, 63);
+  assert.equal(plan.statements.length, 76);
+  assert.equal(plan.projects.length, 61);
   assert.equal(plan.actions.filter((action) => action.funding?.kind === 'retroactive').length, 0);
   const checklist = plan.statements.find((statement) => statement.source.statementId === 'moderator-checklist');
   assert.ok(checklist);
@@ -288,6 +288,7 @@ test('batch 2 keeps the pilot families, reuses accepted bridges, and shares one 
   });
   assert.deepEqual(singleShared.map((project) => project.title).sort(), [
     'Grey County class-host directory',
+    'Moderator checklist card',
     'Plain-text Grey County notice',
     'Printed moderator checklist',
   ]);
@@ -295,11 +296,11 @@ test('batch 2 keeps the pilot families, reuses accepted bridges, and shares one 
   assert.equal(notice.causeId, 'civic-assimilation');
   assert.deepEqual(notice.alsoOnCauseIds, ['christian-teaching']);
   const implications = plan.actions.filter((action) => action.type === 'attest-implication');
-  assert.equal(implications.length, 17);
+  assert.equal(implications.length, 15);
   const accepted = implications.filter((action) => action.implication!.evidence === 'accepted-bridge-role-pair');
   const live = implications.filter((action) => action.implication!.evidence === 'live-attester-modified-to-commonality');
   assert.equal(accepted.length, 4);
-  assert.equal(live.length, 13);
+  assert.equal(live.length, 11);
   for (const action of accepted) {
     const from = plan.statements.find((statement) => statement.id === action.implication!.fromStatementId)!;
     assert.ok(from.source.collectionId === 'compromise-abortion' || from.source.collectionId === 'lgbt-schools');
@@ -327,7 +328,7 @@ test('batch 2 keeps the pilot families, reuses accepted bridges, and shares one 
     assert.equal(board.role, 'commonality');
     assert.equal(implications.filter((action) => action.causeId === causeId).length, 0, causeId);
   }
-  for (const causeId of ['ranked-approval-poll', 'minors-medicine', 'opinion-employment', 'canada-us-ties']) {
+  for (const causeId of ['minors-medicine', 'opinion-employment', 'canada-us-ties']) {
     const board = plan.actions.find((action) => action.type === 'create-cause' && action.causeId === causeId)!.board!;
     assert.equal(board.role, 'commonality');
     assert.equal(implications.filter((action) => action.causeId === causeId).length, 2, causeId);
@@ -364,7 +365,7 @@ test('batch 2 pins persona belief choices and never has Eli believe the settleme
   };
   const plan = await buildCampaignPlan(manifest);
   const beliefs = plan.actions.filter((action) => action.type === 'set-belief');
-  assert.equal(beliefs.length, 105);
+  assert.equal(beliefs.length, 103);
   const byStatementId = (sourceId: string, userId: string) => beliefs.filter((action) => {
     const statement = plan.statements.find((item) => item.id === action.statementId);
     return action.actorUserId === userId && statement?.source.statementId === sourceId;
