@@ -60,10 +60,10 @@
     "unevaluatedAndUnpublished": [
       { "from": "commonality", "to": "michigan-legislature", "why": "Agreement on a cutoff does not imply who should have the authority to write it." },
       { "from": "natural-right", "to": "commonality", "why": "Designed negative for the abortion bridge. Eli keeps this side." },
-      { "from": "voting/ranked-choice", "to": "voting/try-other-systems", "why": "Wanting ranked choice does not include trying a system he does not prefer." },
-      { "from": "voting/approval-not-ranked", "to": "voting/try-other-systems", "why": "Wanting approval voting and not ranked choice does not include trying a system he does not prefer." },
-      { "from": "voting/try-other-systems", "to": "voting/ranked-choice-and-try", "why": "Trying another system does not name ranked choice as the system he wants chosen." },
-      { "from": "voting/try-other-systems", "to": "voting/approval-and-try", "why": "Trying another system does not name approval voting or refuse ranked choice." },
+      { "from": "voting/ranked-choice", "to": "voting/try-other-systems", "why": "Preferring ranked choice does not say an experiment with a less-preferred system is welcome." },
+      { "from": "voting/approval-not-ranked", "to": "voting/try-other-systems", "why": "Preferring approval voting does not say an experiment with a less-preferred system is welcome." },
+      { "from": "voting/try-other-systems", "to": "voting/ranked-choice-and-try", "why": "Saying the preference is unnamed does not name ranked choice." },
+      { "from": "voting/try-other-systems", "to": "voting/approval-and-try", "why": "Saying the preference is unnamed does not name approval voting." },
       { "from": "voting/keep-first-past-the-post", "to": "voting/commonality", "why": "Keeping first-past-the-post refuses the trial." }
     ]
   }

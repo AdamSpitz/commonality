@@ -6,7 +6,7 @@ Keeps the four pilot families (Owen Sound checkout, Grey County civic life, Chri
 
 - Abortion settlement, using the accepted `compromise-abortion` wording unchanged, plus a separate Michigan authority board.
 - Schools and pushing, using the accepted `lgbt-schools` wording unchanged. Grey County work is three projects on that board: Owen Sound meetings, a Grey County packet, and a host kit. There is no separate conduct board.
-- Voting in Grey County, as a bridge. Ranked choice and approval voting are the two naturals. The commonality is trying a system other than first-past-the-post in Grey County even when it is not the preferred one. Trying it is not adopting it. Keeping first-past-the-post is a refusal on that board. No arrow is published until an attester blesses this wording.
+- Voting in Grey County, as a bridge. One natural prefers ranked choice and the other prefers approval voting. The commonality is that switching off first-past-the-post matters more than which other system, and an experiment with a less-preferred system is welcome. Keeping first-past-the-post is a refusal on that board. No arrow is published until an attester blesses this wording.
 
 The other families in the brainstorming plan are not in this manifest, except an AI-pause board and the Canada–US family past its five-statement draft. The AI-pause board is plain: every sentence stays visible. Five milder modified sentences contain one shared pause-treaty sentence and each keeps a reason the shared sentence leaves out. Naturals do not name the treaty. Hal wants a full stop and rejects the pause. Vic rejects the pause because other labs will not stop. Five modified-to-commonality arrows are allowed. Naturals, poles, and reverse arrows are not.
 

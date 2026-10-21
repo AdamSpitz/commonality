@@ -162,33 +162,33 @@
       "id": "voting",
       "title": "Voting in Grey County",
       "notes": [
-        "Bridge. Each natural names one system and does not agree to try another. Each modified keeps that preference for the system that is chosen, and contains the commonality. The commonality is trying a system other than first-past-the-post in Grey County even when it is not the preferred one, and trying it is not adopting it. No attester pass yet, so no arrow is published. keep-first-past-the-post is a refusal on the commonality board."
+        "Bridge. Each natural prefers one system and does not say an experiment with another system is welcome. Each modified names that preference and contains the commonality. The commonality says switching off first-past-the-post matters more than which other system, and an experiment with a less-preferred system is welcome. No attester pass yet, so no arrow is published. keep-first-past-the-post is a refusal on the commonality board."
       ],
       "statements": [
         {
           "id": "ranked-choice",
           "role": "natural-left",
-          "text": "First-past-the-post is an awful voting system. I want more voting in Grey County, Ontario to use ranked choice."
+          "text": "First-past-the-post is an awful voting system. I want more voting in Grey County, Ontario to use some other voting system, preferably ranked choice."
         },
         {
           "id": "approval-not-ranked",
           "role": "natural-right",
-          "text": "First-past-the-post is an awful voting system. I want more voting in Grey County, Ontario to use approval voting, and not ranked choice."
+          "text": "First-past-the-post is an awful voting system. I want more voting in Grey County, Ontario to use some other voting system, preferably approval voting."
         },
         {
           "id": "ranked-choice-and-try",
           "role": "modified-left",
-          "text": "First-past-the-post is an awful voting system. I want more voting in Grey County, Ontario to use ranked choice when one system is chosen. I want more voting in Grey County, Ontario to try systems other than first-past-the-post, including a system that is not the one I prefer. Trying one is not a decision to adopt it."
+          "text": "First-past-the-post is an awful voting system. I want more voting in Grey County, Ontario to use some other voting system, preferably ranked choice. I have some preferences about which one, but FPTP is particularly awful, so switching away from it is more important to me than which particular other system we use; I'd be happy to see experiments with some other voting system, even if it's not the one I most prefer."
         },
         {
           "id": "approval-and-try",
           "role": "modified-right",
-          "text": "First-past-the-post is an awful voting system. I want more voting in Grey County, Ontario to use approval voting, and not ranked choice, when one system is chosen. I want more voting in Grey County, Ontario to try systems other than first-past-the-post, including a system that is not the one I prefer. Trying one is not a decision to adopt it."
+          "text": "First-past-the-post is an awful voting system. I want more voting in Grey County, Ontario to use some other voting system, preferably approval voting. I have some preferences about which one, but FPTP is particularly awful, so switching away from it is more important to me than which particular other system we use; I'd be happy to see experiments with some other voting system, even if it's not the one I most prefer."
         },
         {
           "id": "try-other-systems",
           "role": "commonality",
-          "text": "First-past-the-post is an awful voting system. I want more voting in Grey County, Ontario to try systems other than first-past-the-post, including a system that is not the one I prefer. Trying one is not a decision to adopt it."
+          "text": "First-past-the-post is an awful voting system. I want more voting in Grey County, Ontario to use some other voting system; I have some preferences about which one, but FPTP is particularly awful, so switching away from it is more important to me than which particular other system we use; I'd be happy to see experiments with some other voting system, even if it's not the one I most prefer."
         },
         {
           "id": "keep-first-past-the-post",
