@@ -1297,32 +1297,6 @@
     {
       "from": {
         "collectionId": "network-societies-v1-b2",
-        "groupId": "opinion-employment",
-        "statementId": "modified-left"
-      },
-      "to": {
-        "collectionId": "network-societies-v1-b2",
-        "groupId": "opinion-employment",
-        "statementId": "commonality"
-      },
-      "evidence": "live-attester-modified-to-commonality"
-    },
-    {
-      "from": {
-        "collectionId": "network-societies-v1-b2",
-        "groupId": "opinion-employment",
-        "statementId": "modified-right"
-      },
-      "to": {
-        "collectionId": "network-societies-v1-b2",
-        "groupId": "opinion-employment",
-        "statementId": "commonality"
-      },
-      "evidence": "live-attester-modified-to-commonality"
-    },
-    {
-      "from": {
-        "collectionId": "network-societies-v1-b2",
         "groupId": "canada-us-ties",
         "statementId": "modified-left"
       },
@@ -1447,8 +1421,8 @@
         "publish-statement"
       ],
       "targetCount": {
-        "min": 13,
-        "max": 13
+        "min": 11,
+        "max": 11
       }
     },
     {
@@ -1457,8 +1431,8 @@
         "create-cause"
       ],
       "targetCount": {
-        "min": 56,
-        "max": 56
+        "min": 55,
+        "max": 55
       }
     },
     {
@@ -1468,8 +1442,8 @@
         "publish-statement"
       ],
       "targetCount": {
-        "min": 56,
-        "max": 56
+        "min": 55,
+        "max": 55
       }
     },
     {

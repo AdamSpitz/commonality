@@ -268,7 +268,7 @@
       "id": "opinion-employment",
       "title": "Ordinary opinions and employment",
       "notes": [
-        "Draft bridge. Unevaluated."
+        "Draft bridge. On 2026-10-21 the published-appeal clause was removed from the commonality and both modifieds. The stored attester bless is for the longer wording and is not a published arrow."
       ],
       "statements": [
         {
@@ -284,17 +284,17 @@
         {
           "id": "modified-left",
           "role": "modified-left",
-          "text": "I don't want someone treated as unemployable for an ordinary political opinion. I still want a workplace to respond to threats, to harassment of coworkers, and to someone refusing to do the job. I'd be okay with it if an ordinary political opinion, by itself, were not grounds for treating someone as unemployable, if threats, harassment of coworkers, and refusing the work still were, and if a published appeal came before that treatment. I'd still rather a workplace could tell people not to campaign for a candidate while they are on the clock. I feel less strongly about that than about someone losing a livelihood, and I don't have to defend every opinion."
+          "text": "I don't want someone treated as unemployable for an ordinary political opinion. I still want a workplace to respond to threats, to harassment of coworkers, and to someone refusing to do the job. I'd be okay with it if an ordinary political opinion, by itself, were not grounds for treating someone as unemployable, and if threats, harassment of coworkers, and refusing the work still were. I'd still rather a workplace could tell people not to campaign for a candidate while they are on the clock. I feel less strongly about that than about someone losing a livelihood, and I don't have to defend every opinion."
         },
         {
           "id": "modified-right",
           "role": "modified-right",
-          "text": "Institutions should stop ending people's careers over ordinary political opinions. I'd be okay with it if an ordinary political opinion, by itself, were not grounds for treating someone as unemployable, if threats, harassment of coworkers, and refusing the work still were, and if a published appeal came before that treatment. I'd still rather a church or a private club could refuse membership over an ordinary political opinion. I feel more strongly about that freedom than about employment rules, and I don't need every sanction anywhere to be forbidden."
+          "text": "Institutions should stop ending people's careers over ordinary political opinions. I'd be okay with it if an ordinary political opinion, by itself, were not grounds for treating someone as unemployable, and if threats, harassment of coworkers, and refusing the work still were. I'd still rather a church or a private club could refuse membership over an ordinary political opinion. I feel more strongly about that freedom than about employment rules, and I don't need every sanction anywhere to be forbidden."
         },
         {
           "id": "commonality",
           "role": "commonality",
-          "text": "I'd be okay with it if an ordinary political opinion, by itself, were not grounds for treating someone as unemployable, if threats, harassment of coworkers, and refusing the work still were, and if a published appeal came before that treatment."
+          "text": "I'd be okay with it if an ordinary political opinion, by itself, were not grounds for treating someone as unemployable, and if threats, harassment of coworkers, and refusing the work still were."
         }
       ]
     },

@@ -274,7 +274,7 @@ test('batch 2 keeps the pilot families, reuses accepted bridges, and shares one 
   const plan = await buildCampaignPlan(manifest);
   assert.equal(plan.users.length, 72);
   assert.equal(plan.statements.length, 74);
-  assert.equal(plan.projects.length, 56);
+  assert.equal(plan.projects.length, 55);
   assert.equal(plan.actions.filter((action) => action.funding?.kind === 'retroactive').length, 0);
   const checklist = plan.statements.find((statement) => statement.source.statementId === 'moderator-checklist');
   assert.ok(checklist);
@@ -296,11 +296,11 @@ test('batch 2 keeps the pilot families, reuses accepted bridges, and shares one 
   assert.equal(notice.causeId, 'civic-assimilation');
   assert.deepEqual(notice.alsoOnCauseIds, ['christian-teaching']);
   const implications = plan.actions.filter((action) => action.type === 'attest-implication');
-  assert.equal(implications.length, 13);
+  assert.equal(implications.length, 11);
   const accepted = implications.filter((action) => action.implication!.evidence === 'accepted-bridge-role-pair');
   const live = implications.filter((action) => action.implication!.evidence === 'live-attester-modified-to-commonality');
   assert.equal(accepted.length, 4);
-  assert.equal(live.length, 9);
+  assert.equal(live.length, 7);
   for (const action of accepted) {
     const from = plan.statements.find((statement) => statement.id === action.implication!.fromStatementId)!;
     assert.ok(from.source.collectionId === 'compromise-abortion' || from.source.collectionId === 'lgbt-schools');
@@ -332,9 +332,10 @@ test('batch 2 keeps the pilot families, reuses accepted bridges, and shares one 
   for (const causeId of ['opinion-employment', 'canada-us-ties']) {
     const board = plan.actions.find((action) => action.type === 'create-cause' && action.causeId === causeId)!.board!;
     assert.equal(board.role, 'commonality');
-    assert.equal(implications.filter((action) => action.causeId === causeId).length, 2, causeId);
-    assert.ok(implications.filter((action) => action.causeId === causeId).every((action) => action.implication!.evidence === 'live-attester-modified-to-commonality'));
   }
+  assert.equal(implications.filter((action) => action.causeId === 'opinion-employment').length, 0);
+  assert.equal(implications.filter((action) => action.causeId === 'canada-us-ties').length, 2);
+  assert.ok(implications.filter((action) => action.causeId === 'canada-us-ties').every((action) => action.implication!.evidence === 'live-attester-modified-to-commonality'));
   const pauseBoard = plan.actions.find((action) => action.type === 'create-cause' && action.causeId === 'ai-pause')!.board!;
   assert.equal(pauseBoard.role, 'plain');
   const pauseArrows = implications.filter((action) => action.causeId === 'ai-pause');
@@ -355,7 +356,8 @@ test('batch 2 keeps the pilot families, reuses accepted bridges, and shares one 
     assert.equal(implications.some((action) => action.implication!.fromStatementId === statement.id || action.implication!.toStatementId === statement.id), false, statementId);
   }
   for (const causeId of manifest.causes.map((cause) => cause.id)) {
-    assert.ok(plan.projects.filter((project) => project.causeId === causeId).length >= 2, causeId);
+    const minimum = causeId === 'opinion-employment' ? 1 : 2;
+    assert.ok(plan.projects.filter((project) => project.causeId === causeId).length >= minimum, causeId);
   }
 });
 

@@ -404,20 +404,12 @@
   ],
   "opinion-employment": [
     {
-      "title": "Appeal-before-blacklist card",
-      "outcome": "Publish the commonality sentence and a one-page appeal checklist a workplace can fill in before treating someone as unemployable for a stated opinion.",
-      "statementRefs": [
-        "commonality"
-      ],
-      "blocker": "The checklist is useful to the next workplace and paid for by none of them"
-    },
-    {
       "title": "Still-a-sanction note",
-      "outcome": "Publish the modified-left sentence so the card does not get read as a ban on every workplace response.",
+      "outcome": "Publish the modified-left sentence, which keeps a workplace response to threats, harassment of coworkers, and someone refusing to do the job.",
       "statementRefs": [
         "modified-left"
       ],
-      "blocker": "The exception for threats and refused work disappears if only the short sentence is copied"
+      "blocker": "Those exceptions disappear if only the short sentence is copied"
     }
   ],
   "canada-us-ties": [
