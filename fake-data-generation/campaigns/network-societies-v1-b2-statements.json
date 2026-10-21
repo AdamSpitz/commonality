@@ -159,43 +159,6 @@
       ]
     },
     {
-      "id": "gender-conduct",
-      "title": "Grey County school conduct, separate from the schools-pushing bridge",
-      "notes": [
-        "The accepted LGBT-schools statements are about pushing versus support. They do not settle medical treatment, adult speech, or classroom names. These statements do not use bridge roles."
-      ],
-      "statements": [
-        {
-          "id": "harassment-steps",
-          "text": "I want a Grey County student to be able to report harassment without having to agree with a classmate."
-        },
-        {
-          "id": "clinician-for-minors",
-          "text": "I want any drug or surgery offered to a minor in Grey County as a gender treatment to require a licensed clinician outside the school, not a decision by school staff."
-        },
-        {
-          "id": "school-not-clinic",
-          "text": "I want Grey County schools to stay out of approving drugs or surgery for students."
-        },
-        {
-          "id": "no-medical-limit",
-          "text": "I want a Grey County school counselor to be allowed to approve a gender-related drug for a student without a clinician outside the school."
-        },
-        {
-          "id": "adult-medical-speech",
-          "text": "I want an adult in Grey County to be able to say, at a public school-board meeting, that they are seeking a gender-related medical treatment."
-        },
-        {
-          "id": "names-and-courtesy",
-          "text": "I want a Grey County classroom to use the name a student asks for in class, and I want that courtesy kept separate from any decision about drugs or surgery."
-        },
-        {
-          "id": "enrollment-name-only",
-          "text": "I want Grey County teachers to use only the name on a student's enrollment form, including when the student asks for a different name in class."
-        }
-      ]
-    },
-    {
       "id": "voting",
       "title": "Non-binding counts in Owen Sound",
       "notes": [

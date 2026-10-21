@@ -281,49 +281,36 @@
         "commonality"
       ],
       "blocker": "The meeting series dies with the first host unless the steps are written down"
-    }
-  ],
-  "gender-conduct": [
-    {
-      "title": "Harassment-steps sheet",
-      "outcome": "Publish the reporting steps for one named Grey County school, including the line that the student need not agree with a classmate.",
-      "statementRefs": [
-        "harassment-steps"
-      ],
-      "blocker": "The sheet has to be checked against the school's actual desk procedure before other parents can rely on it"
     },
     {
-      "title": "Clinician boundary page",
-      "outcome": "Publish one page that states the clinician-outside-the-school proposal and the schools-do-not-approve-drugs proposal, without a claim about medical outcomes.",
+      "title": "Owen Sound pushing-question meetings",
+      "outcome": "Hold four moderated meetings in Owen Sound on whether schools are pushing kids toward LGBT identities, and publish the transcripts. The transcripts quote the accepted statements and do not add a claim about drugs, surgery, or classroom names.",
       "statementRefs": [
-        "clinician-for-minors",
-        "school-not-clinic"
+        "natural-left",
+        "natural-right",
+        "commonality"
       ],
-      "blocker": "The two sentences are short, and nobody is paid to keep them from being rewritten into a treatment claim"
+      "blocker": "A room and a published transcript have to be paid for before either camp in Grey County can point at the same notes"
     },
     {
-      "title": "Courtesy and medicine one-pager",
-      "outcome": "Publish one page that separates using a requested classroom name from any decision about drugs or surgery, using the courtesy statement's own wording.",
+      "title": "Grey County schools packet",
+      "outcome": "Print the five accepted schools statements, unchanged, for one Grey County parent meeting, and record which statement each speaker is answering.",
       "statementRefs": [
-        "names-and-courtesy"
+        "natural-left",
+        "natural-right",
+        "modified-left",
+        "modified-right",
+        "commonality"
       ],
-      "blocker": "Each argument keeps folding the name into the medical decision unless a maintained page holds them apart"
+      "blocker": "The Grand Rapids packet does not reach a Grey County parent meeting unless someone prints this copy"
     },
     {
-      "title": "Adult-speech note",
-      "outcome": "Publish the wording of the adult-speech statement and a one-season note of which Grey County school-board agendas allowed that speech.",
+      "title": "Grey County meeting host kit",
+      "outcome": "Write the room, agenda, and publication steps so a second Grey County resident can run the next Owen Sound pushing-question meeting without the first host.",
       "statementRefs": [
-        "adult-medical-speech"
+        "commonality"
       ],
-      "blocker": "The agenda record is useful to the next speaker and owned by none of them"
-    },
-    {
-      "title": "Conduct-page host kit",
-      "outcome": "Write who updates the harassment sheet and the boundary page for the next school year, so the first editor can leave.",
-      "statementRefs": [
-        "harassment-steps"
-      ],
-      "blocker": "A page nobody is assigned to update becomes an old photocopy"
+      "blocker": "The Owen Sound meetings stop when the first host is busy unless the steps are written down"
     }
   ],
   "voting": [

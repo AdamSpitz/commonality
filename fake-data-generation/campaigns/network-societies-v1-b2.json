@@ -17,10 +17,10 @@
     "campaignCollection": "network-societies-v1-b2-statements.json"
   },
   "scale": {
-    "minCauses": 16,
-    "maxCauses": 16,
-    "minStatements": 89,
-    "maxStatements": 89,
+    "minCauses": 15,
+    "maxCauses": 15,
+    "minStatements": 82,
+    "maxStatements": 82,
     "allowRepeatedStatementRefs": true
   },
   "projectStories": "network-societies-v1-b2-projects.json",
@@ -259,49 +259,6 @@
           "collectionId": "lgbt-schools",
           "groupId": "lgbt-schools-pushing",
           "statementId": "commonality"
-        }
-      ]
-    },
-    {
-      "id": "gender-conduct",
-      "title": "Grey County school conduct",
-      "activityTier": "small",
-      "membershipWeight": 6,
-      "statementRefs": [
-        {
-          "collectionId": "network-societies-v1-b2",
-          "groupId": "gender-conduct",
-          "statementId": "harassment-steps"
-        },
-        {
-          "collectionId": "network-societies-v1-b2",
-          "groupId": "gender-conduct",
-          "statementId": "clinician-for-minors"
-        },
-        {
-          "collectionId": "network-societies-v1-b2",
-          "groupId": "gender-conduct",
-          "statementId": "school-not-clinic"
-        },
-        {
-          "collectionId": "network-societies-v1-b2",
-          "groupId": "gender-conduct",
-          "statementId": "no-medical-limit"
-        },
-        {
-          "collectionId": "network-societies-v1-b2",
-          "groupId": "gender-conduct",
-          "statementId": "adult-medical-speech"
-        },
-        {
-          "collectionId": "network-societies-v1-b2",
-          "groupId": "gender-conduct",
-          "statementId": "names-and-courtesy"
-        },
-        {
-          "collectionId": "network-societies-v1-b2",
-          "groupId": "gender-conduct",
-          "statementId": "enrollment-name-only"
         }
       ]
     },
@@ -991,15 +948,15 @@
     {
       "userId": "user-042",
       "displayName": "Nina",
-      "bio": "Wants the schools question argued from the accepted statements. She does not treat that question as a decision about drugs or surgery.",
+      "bio": "Wants the schools question argued from the accepted statements. She signs the left natural, that support is not a push, and she funds the Owen Sound meetings.",
       "favoriteCauseId": "schools",
       "interests": [
         "schools",
-        "Grey County"
+        "Owen Sound"
       ],
       "causeIds": [
         "schools",
-        "gender-conduct"
+        "voting"
       ],
       "spotlightOrder": 12
     },
@@ -1063,14 +1020,14 @@
     {
       "userId": "user-047",
       "displayName": "Hugh",
-      "bio": "Publishes the Grey County harassment steps and keeps them off the medical question.",
-      "favoriteCauseId": "gender-conduct",
+      "bio": "Hosts the Owen Sound meetings on whether schools are pushing kids toward LGBT identities. He signs the right natural and funds those meetings.",
+      "favoriteCauseId": "schools",
       "interests": [
-        "harassment reporting",
-        "Grey County schools"
+        "schools",
+        "Owen Sound"
       ],
       "causeIds": [
-        "gender-conduct"
+        "schools"
       ],
       "spotlightOrder": 17
     },
@@ -1098,8 +1055,7 @@
         "independent checks"
       ],
       "causeIds": [
-        "voting",
-        "gender-conduct"
+        "voting"
       ],
       "spotlightOrder": 19
     },
@@ -1123,17 +1079,17 @@
     {
       "userId": "user-051",
       "displayName": "Omar",
-      "bio": "Attests alignments on school conduct and will refuse a project that uses the schools statements as a medical claim.",
-      "favoriteCauseId": "gender-conduct",
+      "bio": "Attests alignments on the schools statements and the Owen Sound meetings. He will refuse a project that adds a claim about drugs, surgery, or classroom names.",
+      "favoriteCauseId": "schools",
       "interests": [
         "review",
         "Grey County"
       ],
       "causeIds": [
-        "gender-conduct",
         "schools",
         "voting",
-        "abortion-forum"
+        "abortion-forum",
+        "civic-assimilation"
       ],
       "spotlightOrder": 21
     },
@@ -1153,15 +1109,14 @@
     {
       "userId": "user-053",
       "displayName": "Jo",
-      "bio": "Signs the schools commonality if it is only the conditional about pushing. She rejects a school counselor approving a drug.",
+      "bio": "Signs the schools commonality, the conditional about pushing. She funds the Grey County packet and the host kit.",
       "favoriteCauseId": "schools",
       "interests": [
         "schools",
-        "clinicians"
+        "Grey County"
       ],
       "causeIds": [
-        "schools",
-        "gender-conduct"
+        "schools"
       ],
       "spotlightOrder": 23
     },
@@ -1572,8 +1527,8 @@
       "type": "publish-statement",
       "prerequisites": [],
       "targetCount": {
-        "min": 89,
-        "max": 89
+        "min": 82,
+        "max": 82
       }
     },
     {
@@ -1582,8 +1537,8 @@
         "publish-statement"
       ],
       "targetCount": {
-        "min": 16,
-        "max": 16
+        "min": 15,
+        "max": 15
       }
     },
     {
@@ -1612,8 +1567,8 @@
         "create-cause"
       ],
       "targetCount": {
-        "min": 65,
-        "max": 65
+        "min": 63,
+        "max": 63
       }
     },
     {
@@ -1623,8 +1578,8 @@
         "publish-statement"
       ],
       "targetCount": {
-        "min": 65,
-        "max": 65
+        "min": 63,
+        "max": 63
       }
     },
     {
