@@ -54,7 +54,7 @@ Counted from `network-societies-v1-b2-statements.json`, `network-societies-v1-b2
 | Home learning | 3 | 5 | Good enough for now (2026-10-21). Materials wants are not local. The staffed-schools sentence is. |
 | Abortion settlement | 6 on the Michigan authority board, plus the accepted five | 5 on the settlement, 2 on the forum | Good enough for now (2026-10-21). Wording unchanged. Eli refuses the settlement. |
 | Schools and pushing | the accepted five only | 3 in Grand Rapids, 3 in Grey County | Good enough for now (2026-10-21). Conduct sentences deleted. Grey County projects not mined. |
-| Voting in Grey County | 3, plus the shared moderator checklist | 6 | Rewritten 2026-10-21. Not yet called good enough. The dual-count draft is deleted. |
+| Voting in Grey County | 6, plus the shared moderator checklist | 6 | Bridge rewritten 2026-10-21. Not yet called good enough. No arrow yet. |
 | US-friendly Canadians | 12 | 7 | Meets it. Boycott and narrower-ties sentences are refused as arrows. |
 | AI pause | 17 | 5 | Meets it. Five modified-to-commonality arrows are allowed. |
 | Low-carb, cancel-proof support, unwoke, Democracy 2.0, Islamic reform, less regulation | none | none | Deferred. |
@@ -338,6 +338,6 @@ Boards that still have live arrows, and have not had this wording review: minors
 
 - [x] Schools and pushing, 2026-10-21. Good enough for now. The accepted five stay as written. Grand Rapids keeps its three projects. Grey County adds the Owen Sound meetings, the schools packet, and the meeting host kit, aligned only to those five. The conduct sentences are deleted. Not mined.
 
-- [ ] Voting in Grey County, 2026-10-21. Rewritten, not yet accepted. Three sentences: more voting in Grey County, Ontario should use other systems, like ranked choice; the same place should use approval voting and not ranked choice; voting there should keep first-past-the-post. The moderator checklist stays on the board. The poll, the counting notes, and the host kit align only to the ranked-choice example. The approval count aligns only to the approval sentence. Both checklist projects align only to the checklist. The dual-count draft is deleted. No implication arrow. Not mined.
+- [ ] Voting in Grey County, 2026-10-21. Rewritten as a bridge, not yet accepted. The ranked-choice natural and the approval natural do not agree to try the other system. Each modified keeps that preference for the system that is chosen, and contains the commonality: try a system other than first-past-the-post in Grey County, including one that is not the preferred one, and trying it is not adopting it. Keeping first-past-the-post stays on the commonality board as a refusal. The poll, the approval count, the counting notes, and the host kit align only to the commonality. No arrow until an attester blesses this wording. Not mined.
 
 The next board is US-friendly Canadians. Do not edit it until Adam is in that session.

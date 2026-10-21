@@ -273,7 +273,7 @@ test('batch 2 keeps the pilot families, reuses accepted bridges, and shares one 
   }
   const plan = await buildCampaignPlan(manifest);
   assert.equal(plan.users.length, 72);
-  assert.equal(plan.statements.length, 76);
+  assert.equal(plan.statements.length, 79);
   assert.equal(plan.projects.length, 61);
   assert.equal(plan.actions.filter((action) => action.funding?.kind === 'retroactive').length, 0);
   const checklist = plan.statements.find((statement) => statement.source.statementId === 'moderator-checklist');
@@ -323,7 +323,7 @@ test('batch 2 keeps the pilot families, reuses accepted bridges, and shares one 
   const forum = plan.actions.find((action) => action.type === 'create-cause' && action.causeId === 'abortion-forum')!.board!;
   assert.equal(forum.role, 'plain');
   assert.ok(forum.statementIds.includes(michigan.id));
-  for (const causeId of ['grey-assimilation', 'checkout-trial-bridge']) {
+  for (const causeId of ['grey-assimilation', 'checkout-trial-bridge', 'voting']) {
     const board = plan.actions.find((action) => action.type === 'create-cause' && action.causeId === causeId)!.board!;
     assert.equal(board.role, 'commonality');
     assert.equal(implications.filter((action) => action.causeId === causeId).length, 0, causeId);
@@ -365,7 +365,7 @@ test('batch 2 pins persona belief choices and never has Eli believe the settleme
   };
   const plan = await buildCampaignPlan(manifest);
   const beliefs = plan.actions.filter((action) => action.type === 'set-belief');
-  assert.equal(beliefs.length, 103);
+  assert.equal(beliefs.length, 104);
   const byStatementId = (sourceId: string, userId: string) => beliefs.filter((action) => {
     const statement = plan.statements.find((item) => item.id === action.statementId);
     return action.actorUserId === userId && statement?.source.statementId === sourceId;

@@ -162,16 +162,33 @@
       "id": "voting",
       "title": "Voting in Grey County",
       "notes": [
-        "A want that more voting in Grey County use something other than first-past-the-post, an approval-voting want that refuses ranked choice, and a refusal that keeps first-past-the-post. No bridge roles. The dual-count draft was the old poll wording and is deleted."
+        "Bridge. Each natural names one system and does not agree to try another. Each modified keeps that preference for the system that is chosen, and contains the commonality. The commonality is trying a system other than first-past-the-post in Grey County even when it is not the preferred one, and trying it is not adopting it. No attester pass yet, so no arrow is published. keep-first-past-the-post is a refusal on the commonality board."
       ],
       "statements": [
         {
-          "id": "other-voting-systems",
-          "text": "First-past-the-post is an awful voting system. I want more voting in Grey County, Ontario to be done using other voting systems, like ranked choice."
+          "id": "ranked-choice",
+          "role": "natural-left",
+          "text": "First-past-the-post is an awful voting system. I want more voting in Grey County, Ontario to use ranked choice."
         },
         {
-          "id": "approval-voting",
-          "text": "First-past-the-post is an awful voting system. I want more voting in Grey County, Ontario to be done using approval voting, and not ranked choice."
+          "id": "approval-not-ranked",
+          "role": "natural-right",
+          "text": "First-past-the-post is an awful voting system. I want more voting in Grey County, Ontario to use approval voting, and not ranked choice."
+        },
+        {
+          "id": "ranked-choice-and-try",
+          "role": "modified-left",
+          "text": "First-past-the-post is an awful voting system. I want more voting in Grey County, Ontario to use ranked choice when one system is chosen. I want more voting in Grey County, Ontario to try systems other than first-past-the-post, including a system that is not the one I prefer. Trying one is not a decision to adopt it."
+        },
+        {
+          "id": "approval-and-try",
+          "role": "modified-right",
+          "text": "First-past-the-post is an awful voting system. I want more voting in Grey County, Ontario to use approval voting, and not ranked choice, when one system is chosen. I want more voting in Grey County, Ontario to try systems other than first-past-the-post, including a system that is not the one I prefer. Trying one is not a decision to adopt it."
+        },
+        {
+          "id": "try-other-systems",
+          "role": "commonality",
+          "text": "First-past-the-post is an awful voting system. I want more voting in Grey County, Ontario to try systems other than first-past-the-post, including a system that is not the one I prefer. Trying one is not a decision to adopt it."
         },
         {
           "id": "keep-first-past-the-post",

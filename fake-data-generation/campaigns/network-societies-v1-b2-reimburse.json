@@ -19,8 +19,8 @@
   "scale": {
     "minCauses": 14,
     "maxCauses": 14,
-    "minStatements": 76,
-    "maxStatements": 76,
+    "minStatements": 79,
+    "maxStatements": 79,
     "allowRepeatedStatementRefs": true
   },
   "projectStories": "network-societies-v1-b2-projects.json",
@@ -271,12 +271,27 @@
         {
           "collectionId": "network-societies-v1-b2",
           "groupId": "voting",
-          "statementId": "other-voting-systems"
+          "statementId": "ranked-choice"
         },
         {
           "collectionId": "network-societies-v1-b2",
           "groupId": "voting",
-          "statementId": "approval-voting"
+          "statementId": "approval-not-ranked"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "voting",
+          "statementId": "ranked-choice-and-try"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "voting",
+          "statementId": "approval-and-try"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "voting",
+          "statementId": "try-other-systems"
         },
         {
           "collectionId": "network-societies-v1-b2",
@@ -924,7 +939,7 @@
     {
       "userId": "user-043",
       "displayName": "Wes",
-      "bio": "Wants more voting in Grey County, Ontario to use a system other than first-past-the-post, such as ranked choice. He rejects keeping first-past-the-post.",
+      "bio": "Wants ranked choice when Grey County chooses one system, and will try another system without adopting it. He rejects keeping first-past-the-post.",
       "favoriteCauseId": "voting",
       "interests": [
         "Grey County",
@@ -1462,8 +1477,8 @@
       "type": "publish-statement",
       "prerequisites": [],
       "targetCount": {
-        "min": 76,
-        "max": 76
+        "min": 79,
+        "max": 79
       }
     },
     {
@@ -1482,8 +1497,8 @@
         "publish-statement"
       ],
       "targetCount": {
-        "min": 103,
-        "max": 103
+        "min": 104,
+        "max": 104
       }
     },
     {
@@ -1562,8 +1577,8 @@
         "publish-statement"
       ],
       "targetCount": {
-        "min": 28,
-        "max": 28
+        "min": 32,
+        "max": 32
       }
     },
     {
@@ -1573,8 +1588,8 @@
         "create-bridge-board"
       ],
       "targetCount": {
-        "min": 7,
-        "max": 7
+        "min": 8,
+        "max": 8
       }
     }
   ],

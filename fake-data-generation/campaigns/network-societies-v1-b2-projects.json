@@ -318,7 +318,7 @@
       "title": "Owen Sound association poll",
       "outcome": "Run one non-binding ranked-ballot poll at one named Owen Sound community association and publish the ballots and the ranked count. The poll does not change a municipal election.",
       "statementRefs": [
-        "other-voting-systems"
+        "try-other-systems"
       ],
       "blocker": "Printing, a room, and a published count have to be paid for before anyone can inspect the result"
     },
@@ -326,7 +326,7 @@
       "title": "Approval count of the same ballots",
       "outcome": "Publish an approval count of those same Owen Sound ballots beside the ranked count, with both methods named.",
       "statementRefs": [
-        "approval-voting"
+        "try-other-systems"
       ],
       "blocker": "A second count is useful to people comparing methods, and the association is not paid to run it"
     },
@@ -334,7 +334,7 @@
       "title": "Rerunnable counting notes",
       "outcome": "Publish the counting method in enough detail that a second person can rerun it from the published ballots and match the count.",
       "statementRefs": [
-        "other-voting-systems"
+        "try-other-systems"
       ],
       "blocker": "The counter who ran the poll is a poor person to be the only one who can repeat it"
     },
@@ -342,7 +342,7 @@
       "title": "Second-host poll kit",
       "outcome": "Write the room, ballot, and publication steps so a second Owen Sound resident can run the next non-binding poll.",
       "statementRefs": [
-        "other-voting-systems"
+        "try-other-systems"
       ],
       "blocker": "The poll stops when the first host is busy unless the steps are written down"
     },

@@ -9,7 +9,7 @@
     { "userId": "user-053", "name": "Jo", "signs": ["commonality"], "funds": ["Grey County schools packet", "Grey County meeting host kit"], "notes": "The schools commonality is the accepted conditional about pushing. She funds the Grey County packet and the host kit." },
     { "userId": "user-042", "name": "Nina", "signs": ["natural-left"], "funds": ["Owen Sound pushing-question meetings"], "unsigned": ["commonality"], "notes": "She keeps the left natural: support is not a push. She funds the Owen Sound meetings and has not signed the conditional." },
     { "userId": "user-047", "name": "Hugh", "signs": ["natural-right"], "funds": ["Owen Sound pushing-question meetings"], "unsigned": ["commonality"], "notes": "He keeps the right natural: the push is happening and should stop. He funds the same Owen Sound meetings. This Hugh is user-047, not the Canada-US Hugh." },
-    { "userId": "user-043", "name": "Wes", "signs": ["other-voting-systems", "moderator-checklist"], "rejects": ["keep-first-past-the-post"], "notes": "He wants more voting in Grey County to use other systems, such as ranked choice. Keeping first-past-the-post is the refusal. Approval voting is a different want, and he has not signed it." },
+    { "userId": "user-043", "name": "Wes", "signs": ["ranked-choice-and-try", "try-other-systems", "moderator-checklist"], "rejects": ["keep-first-past-the-post"], "unsigned": ["ranked-choice", "approval-not-ranked", "approval-and-try"], "notes": "He will try a Grey County system that is not ranked choice, and trying it is not adopting it. When one system is chosen he still wants ranked choice. That modified contains the commonality. He has not signed the approval side. Keeping first-past-the-post is the refusal. No arrow is published until an attester blesses this wording." },
     { "userId": "user-061", "name": "Priya", "signs": ["modified-small-chance", "commonality"], "rejects": ["pole-stop"], "unsigned": ["natural-small-chance", "pole-accelerate"], "notes": "Will not sign certain doom. The small-chance modified already contains the shared pause sentence, and that arrow is allowed." },
     { "userId": "user-062", "name": "Dean", "signs": ["natural-jobs", "modified-jobs", "commonality"], "rejects": ["pole-stop"], "unsigned": ["modified-small-chance"], "notes": "Jobs, not extinction. Signing the shared sentence is not a signature of the small-chance odds." },
     { "userId": "user-063", "name": "Noor", "signs": ["natural-industry"], "unsigned": ["modified-industry", "commonality", "pole-stop"], "notes": "Has the warning and has not taken the treaty. A nudge target, not an implied supporter." },
@@ -60,8 +60,11 @@
     "unevaluatedAndUnpublished": [
       { "from": "commonality", "to": "michigan-legislature", "why": "Agreement on a cutoff does not imply who should have the authority to write it." },
       { "from": "natural-right", "to": "commonality", "why": "Designed negative for the abortion bridge. Eli keeps this side." },
-      { "from": "other-voting-systems", "to": "approval-voting", "why": "Wanting other systems, with ranked choice as an example, does not imply a refusal of ranked choice. The approval sentence is a different want." },
-      { "from": "other-voting-systems", "to": "keep-first-past-the-post", "why": "The two sentences are refusals of each other." }
+      { "from": "voting/ranked-choice", "to": "voting/try-other-systems", "why": "Wanting ranked choice does not include trying a system he does not prefer." },
+      { "from": "voting/approval-not-ranked", "to": "voting/try-other-systems", "why": "Wanting approval voting and not ranked choice does not include trying a system he does not prefer." },
+      { "from": "voting/try-other-systems", "to": "voting/ranked-choice-and-try", "why": "Trying another system does not name ranked choice as the system he wants chosen." },
+      { "from": "voting/try-other-systems", "to": "voting/approval-and-try", "why": "Trying another system does not name approval voting or refuse ranked choice." },
+      { "from": "voting/keep-first-past-the-post", "to": "voting/commonality", "why": "Keeping first-past-the-post refuses the trial." }
     ]
   }
 }
