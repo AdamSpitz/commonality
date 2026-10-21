@@ -121,7 +121,7 @@ export interface CampaignPlan {
 const GAS_UNITS: Record<CampaignActionType, number> = {
   'publish-statement': 4_000_000, 'create-cause': 120_000, 'create-bridge-board': 120_000, 'create-bridge': 120_000, 'set-belief': 120_000,
   'attest-implication': 130_000, 'create-project': 4_500_000, 'attest-alignment': 130_000,
-  'fund-project': 180_000, 'deposit-note': 350_000, 'delegate-note': 100_000, 'revoke-delegation': 90_000,
+  'fund-project': 400_000, 'deposit-note': 350_000, 'delegate-note': 100_000, 'revoke-delegation': 90_000,
   'spend-delegated-note': 400_000,
 };
 
