@@ -1517,8 +1517,8 @@
         "create-cause"
       ],
       "targetCount": {
-        "min": 61,
-        "max": 61
+        "min": 59,
+        "max": 59
       }
     },
     {
@@ -1528,8 +1528,8 @@
         "publish-statement"
       ],
       "targetCount": {
-        "min": 61,
-        "max": 61
+        "min": 59,
+        "max": 59
       }
     },
     {

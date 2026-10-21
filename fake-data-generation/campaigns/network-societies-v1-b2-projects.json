@@ -441,62 +441,44 @@
   ],
   "canada-us-ties": [
     {
-      "title": "Ordinary-ties one-pager",
-      "outcome": "Publish the commonality sentence for one Canadian community group, labeled as a draft statement rather than as a finding about trade.",
+      "title": "Owen Sound grocer shop-here note",
+      "outcome": "For one season, publish a note for one fictional Owen Sound grocery that kept its US suppliers. The note is the store's ask: if you live nearby, shop here. It names the store, the street, and which suppliers they kept. It says the store reports that some customers stopped coming because of that. It does not state a dollar loss.",
       "statementRefs": [
         "commonality"
       ],
-      "blocker": "The page is a shared wording, and neither camp's organizer is paid to keep the other camp's wording intact"
+      "blocker": "People who would shop there do not hear the ask unless someone writes it down where they already look"
     },
     {
-      "title": "Not-an-endorsement card",
-      "outcome": "Print both modified sentences beside the commonality so a reader can see the administration question was left out on purpose.",
+      "title": "Meaford hardware shop-here note",
+      "outcome": "For one season, publish the same kind of note for one fictional Meaford hardware store that still orders ordinary US parts and tools. The note is the store's ask to people who live nearby. It names the store, the street, and what they kept ordering. It does not state a dollar loss.",
       "statementRefs": [
-        "modified-left",
-        "modified-right",
         "commonality"
       ],
-      "blocker": "Without both wordings, one camp hears the page as praise and the other hears it as a boycott refusal they did not sign"
+      "blocker": "A second store's ask dies in a group chat if nobody publishes it the same way"
     },
     {
-      "title": "Owen Sound cross-border archive",
-      "outcome": "Publish one year of dated Owen Sound stories about family visits and ordinary purchases across the Canada-US border, with a name only when the contributor asked for one.",
+      "title": "One Saturday at the Owen Sound grocer",
+      "outcome": "Pick one Saturday when people who want those US goods still on the shelf shop at that Owen Sound grocery, and publish the store's count of how many came. No names unless someone asked to be named.",
       "statementRefs": [
         "commonality"
       ],
-      "blocker": "The stories are scattered across families, and no one family is paid to keep a public copy"
+      "blocker": "A note does not become a trip unless someone picks the day and tells people"
     },
     {
-      "title": "Civic and business ties guide",
-      "outcome": "Publish a guide for Owen Sound that lists practical steps for a family visit to the US and for buying from a US business, and that names no party and no administration.",
+      "title": "Grey County shop-here list",
+      "outcome": "For one year, keep a list of Grey County businesses that kept ordinary US suppliers and are asking nearby people to shop there. Each row has a name, a town, what they kept, and the date it was last confirmed.",
       "statementRefs": [
         "commonality"
       ],
-      "blocker": "The steps are useful to the next traveler and written down by none of them"
+      "blocker": "The asks are useless to the next town if each one lives only on the store's door"
     },
     {
-      "title": "Owen Sound ties evening",
-      "outcome": "Hold one Owen Sound evening with a published agenda and a packet later hosts can copy. The evening is for talking about family visits and ordinary purchases. It does not ask anyone to praise or condemn the current US administration.",
+      "title": "Shop-here list check",
+      "outcome": "Once a month for that same year, someone who did not write the listings confirms each row with the business and removes a row the business no longer wants.",
       "statementRefs": [
         "commonality"
       ],
-      "blocker": "A one-night conversation leaves no materials unless someone is paid to write them down"
-    },
-    {
-      "title": "Grey County exchange directory",
-      "outcome": "Keep, for one year, a monthly-checked directory of Grey County hosts for conversations about Canada-US family visits and ordinary purchases. Each listing has a name, a town, and a way to see that it is still current.",
-      "statementRefs": [
-        "commonality"
-      ],
-      "blocker": "A host list that nobody checks becomes a list of people who moved"
-    },
-    {
-      "title": "Host handoff card",
-      "outcome": "Write the steps a second person in Owen Sound needs in order to host the next conversation about Canada-US family visits without the first host.",
-      "statementRefs": [
-        "commonality"
-      ],
-      "blocker": "The conversation stops when the first host is busy unless the hosting steps are written down"
+      "blocker": "A list the writer also checks becomes an advertisement"
     }
   ],
   "ai-pause": [
