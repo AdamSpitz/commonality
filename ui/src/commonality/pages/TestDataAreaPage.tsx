@@ -42,61 +42,92 @@ function compareLabels(left: string, right: string): number {
   return left.localeCompare(right, undefined, { sensitivity: 'base', numeric: true })
 }
 
-function AreaStatements({ area }: { area: TestDataArea }) {
+interface AreaPart {
+  key: string
+  title?: string
+  statements: TestDataArea['statements']
+  boards: TestDataArea['causeBoards']
+  bridge?: TestDataArea['bridges'][number]
+}
+
+function areaParts(area: TestDataArea): AreaPart[] {
   const keys: string[] = []
-  for (const item of [...area.statements, ...area.causeBoards, ...area.bridges]) {
+  for (const item of [...area.bridges, ...area.statements, ...area.causeBoards]) {
     const key = partKey(item)
     if (!keys.includes(key)) keys.push(key)
   }
-  const parts = (keys.length ? keys : ['']).map(key => ({
+  return (keys.length ? keys : ['']).map(key => ({
     key,
     title: [...area.statements, ...area.causeBoards, ...area.bridges].find(item => partKey(item) === key)?.partTitle,
-    statements: [...area.statements.filter(statement => partKey(statement) === key)].sort((left, right) => statementRoleRank(left.role) - statementRoleRank(right.role) || left.id.localeCompare(right.id)),
+    statements: area.statements.filter(statement => partKey(statement) === key).sort((left, right) => statementRoleRank(left.role) - statementRoleRank(right.role) || left.id.localeCompare(right.id)),
     boards: area.causeBoards.filter(board => partKey(board) === key),
     bridge: area.bridges.find(bridge => partKey(bridge) === key),
   }))
-  return <Card variant="outlined"><CardContent>
-    <Typography variant="h6" component="h2">Statements ({area.statements.length})</Typography>
-    <Stack spacing={3} sx={{ mt: 2, maxHeight: 520, overflow: 'auto' }}>
-      {parts.map(part => {
-        const showHeading = parts.length > 1 && part.title && part.title !== area.title
-        const roles = [...new Set(part.statements.map(statement => statement.role ?? ''))]
-        return <Box key={part.key || 'statements'}>
-          {showHeading && <Typography variant="subtitle1">{part.bridge ? part.bridge.title.replace(/ bridge$/, '') : part.title}</Typography>}
-          <Stack direction="row" flexWrap="wrap" gap={1} sx={{ mb: 1 }}>
-            {part.bridge && <Button component={RouterLink} to={part.bridge.path} size="small" variant="contained">Open bridge</Button>}
-          </Stack>
-          <Stack spacing={2}>
-            {roles.map(role => {
-              const roleStatements = part.statements.filter(statement => (statement.role ?? '') === role)
-              const linkedBoards = new Set(roleStatements.map(statement => boardForStatement(part.boards, statement)?.path).filter((path): path is string => Boolean(path)))
-              const unlinkedBoards = part.boards.filter(board => (board.role ?? '') === role && !linkedBoards.has(board.path))
-              return <Box key={role || 'plain'}>
-                {role && <Typography variant="overline" color="text.secondary">{boardRoleLabel(role)}</Typography>}
-                {unlinkedBoards.map(board => <Box key={board.path} sx={{ mt: 0.5 }}>
-                  <Typography variant="subtitle2">{board.title}</Typography>
-                  <Button component={RouterLink} to={board.path} size="small" sx={{ px: 0 }}>Open cause board</Button>
-                </Box>)}
-                {roleStatements.map(statement => {
-                  const board = boardForStatement(part.boards, statement)
-                  const header = board?.title ?? (statement.role ? boardRoleLabel(statement.role) : undefined)
-                  return <Box key={statement.id} sx={{ mt: 0.5 }}>
-                    {header && <Typography variant="subtitle2">{header}</Typography>}
-                    <Typography>{statement.text}</Typography>
-                    <Stack direction="row" gap={1} sx={{ mt: 0.5 }}>
-                      {statement.path && <Button component={RouterLink} to={statement.path} size="small">Open statement</Button>}
-                      {board && <Button component={RouterLink} to={board.path} size="small">Open cause board</Button>}
-                    </Stack>
-                  </Box>
-                })}
-              </Box>
-            })}
-          </Stack>
+}
+
+/** Statements and boards that share a cause with a bridge belong to that bridge. */
+function PartStatements({ part, showHeading }: { part: AreaPart; showHeading: boolean }) {
+  const roles = [...new Set(part.statements.map(statement => statement.role ?? ''))]
+  return <Box>
+    {showHeading && part.title && <Typography variant="subtitle1">{part.title}</Typography>}
+    <Stack spacing={2}>
+      {roles.map(role => {
+        const roleStatements = part.statements.filter(statement => (statement.role ?? '') === role)
+        const linkedBoards = new Set(roleStatements.map(statement => boardForStatement(part.boards, statement)?.path).filter((path): path is string => Boolean(path)))
+        const unlinkedBoards = part.boards.filter(board => (board.role ?? '') === role && !linkedBoards.has(board.path))
+        return <Box key={role || 'plain'}>
+          {role && <Typography variant="overline" color="text.secondary">{boardRoleLabel(role)}</Typography>}
+          {unlinkedBoards.map(board => <Box key={board.path} sx={{ mt: 0.5 }}>
+            <Typography variant="subtitle2">{board.title}</Typography>
+            <Button component={RouterLink} to={board.path} size="small" sx={{ px: 0 }}>Open cause board</Button>
+          </Box>)}
+          {roleStatements.map(statement => {
+            const board = boardForStatement(part.boards, statement)
+            const header = board?.title ?? (statement.role ? boardRoleLabel(statement.role) : undefined)
+            return <Box key={statement.id} sx={{ mt: 0.5 }}>
+              {header && <Typography variant="subtitle2">{header}</Typography>}
+              <Typography>{statement.text}</Typography>
+              <Stack direction="row" gap={1} sx={{ mt: 0.5 }}>
+                {statement.path && <Button component={RouterLink} to={statement.path} size="small">Open statement</Button>}
+                {board && <Button component={RouterLink} to={board.path} size="small">Open cause board</Button>}
+              </Stack>
+            </Box>
+          })}
         </Box>
       })}
-      {!area.statements.length && <Typography color="text.secondary">No statements recorded in this area.</Typography>}
     </Stack>
-  </CardContent></Card>
+  </Box>
+}
+
+function AreaBridgesAndStatements({ area }: { area: TestDataArea }) {
+  const parts = areaParts(area)
+  const bridgeParts = parts.filter(part => part.bridge)
+  const looseParts = parts.filter(part => !part.bridge)
+  const looseCount = looseParts.reduce((count, part) => count + part.statements.length, 0)
+  return <>
+    {bridgeParts.length > 0 && <Card variant="outlined"><CardContent>
+      <Typography variant="h6" component="h2">Bridges ({bridgeParts.length})</Typography>
+      <Typography color="text.secondary" sx={{ mt: 0.5 }}>Each bridge lists the statements it is made of. Those statements are not repeated below.</Typography>
+      <Stack spacing={3} sx={{ mt: 2, maxHeight: 520, overflow: 'auto' }}>
+        {bridgeParts.map(part => <Box key={part.bridge!.path}>
+          <Typography variant="subtitle1">{part.bridge!.title}</Typography>
+          <Button component={RouterLink} to={part.bridge!.path} size="small" variant="contained" sx={{ my: 1 }}>Open bridge</Button>
+          <PartStatements part={part} showHeading={false} />
+        </Box>)}
+      </Stack>
+    </CardContent></Card>}
+    {(looseCount > 0 || bridgeParts.length === 0) && <Card variant="outlined"><CardContent>
+      <Typography variant="h6" component="h2">Statements ({looseCount})</Typography>
+      {bridgeParts.length > 0 && <Typography color="text.secondary" sx={{ mt: 0.5 }}>Statements in this area that are not part of a bridge.</Typography>}
+      <Stack spacing={3} sx={{ mt: 2, maxHeight: 520, overflow: 'auto' }}>
+        {looseParts.map(part => {
+          const titled = looseParts.filter(candidate => candidate.title && candidate.title !== area.title)
+          return <PartStatements key={part.key || 'statements'} part={part} showHeading={titled.length > 1} />
+        })}
+        {!looseCount && <Typography color="text.secondary">No statements recorded in this area.</Typography>}
+      </Stack>
+    </CardContent></Card>}
+  </>
 }
 
 export function TestDataAreaPage() {
@@ -132,7 +163,7 @@ export function TestDataAreaPage() {
       <Typography variant="h4" component="h1">{area.title}</Typography>
       <Typography color="text.secondary">Synthetic demo · {run.network} · {new Date(run.createdAt).toLocaleString()}</Typography>
     </Box>
-    <AreaStatements area={area} />
+    <AreaBridgesAndStatements area={area} />
     <Card variant="outlined"><CardContent><Typography variant="h6" component="h2">Projects ({area.projects.length})</Typography>
       <Stack alignItems="flex-start" sx={{ maxHeight: 280, overflow: 'auto' }}>{projects.map(project => <Button component={RouterLink} key={project.assuranceContract} to={project.path}>{project.title}</Button>)}</Stack>
       {!projects.length && <Typography color="text.secondary">No projects recorded in this area.</Typography>}

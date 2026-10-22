@@ -15,9 +15,12 @@ vi.mock('../testData/useTestDataRun', () => ({
       { id: 2, label: 'Bob', address: '0x2', privateKey: 'bob-key' },
     ],
     entities: { areas: [{ id: 'ai', title: 'AI pause', activeUserIds: [1, 3, 4],
-      statements: [{ id: 's1', text: 'Pause the labs', path: '/statement/cid1' }],
-      causeBoards: [{ title: 'Pause board', path: '/cause/owner/pause' }],
-      bridges: [{ title: 'Pause treaty', path: '/bridge/owner/treaty' }],
+      statements: [
+        { id: 's1', text: 'Pause the labs', path: '/statement/cid1', causeId: 'treaty', partTitle: 'Pause treaty' },
+        { id: 's2', text: 'A lab can pause itself', path: '/statement/cid2', causeId: 'labs', partTitle: 'Labs' },
+      ],
+      causeBoards: [{ title: 'Pause board', path: '/cause/owner/pause', causeId: 'treaty', partTitle: 'Pause treaty' }],
+      bridges: [{ title: 'Pause treaty', path: '/bridge/owner/treaty', causeId: 'treaty', partTitle: 'Pause treaty' }],
       projects: [
         { title: 'Treaty draft', path: '/projects/0x1', assuranceContract: '0x1' },
         { title: 'Alpha note', path: '/projects/0x2', assuranceContract: '0x2' },
@@ -48,11 +51,20 @@ describe('TestDataAreaPage', () => {
     expect(screen.getByRole('heading', { name: 'AI pause' })).toBeTruthy()
     expect(screen.getByText('Pause the labs')).toBeTruthy()
     expect(screen.getByText('Pause board').closest('a')).toBeNull()
-    expect(screen.getByRole('link', { name: 'Open statement' })).toHaveAttribute('href', '/statement/cid1')
+    expect(screen.getAllByRole('link', { name: 'Open statement' }).map(link => link.getAttribute('href'))).toEqual(['/statement/cid1', '/statement/cid2'])
     expect(screen.getByRole('link', { name: 'Open cause board' })).toHaveAttribute('href', '/cause/owner/pause')
     const projectLinks = screen.getAllByRole('link', { name: /Alpha note|Treaty draft/ })
     expect(projectLinks.map(link => link.textContent)).toEqual(['Alpha note', 'Treaty draft'])
+    expect(screen.getByRole('heading', { name: 'Bridges (1)' })).toBeTruthy()
+    expect(screen.getByRole('heading', { name: 'Statements (1)' })).toBeTruthy()
+    expect(screen.getAllByText('Pause the labs')).toHaveLength(1)
+    expect(screen.getByText('A lab can pause itself')).toBeTruthy()
     expect(screen.getByRole('link', { name: 'Open bridge' })).toHaveAttribute('href', '/bridge/owner/treaty')
+    const bridgeHeading = screen.getByText('Pause treaty')
+    const looseHeading = screen.getByRole('heading', { name: 'Statements (1)' })
+    expect(bridgeHeading.compareDocumentPosition(screen.getByText('Pause the labs')) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(looseHeading.compareDocumentPosition(screen.getByText('A lab can pause itself')) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(screen.getByText('Pause the labs').compareDocumentPosition(looseHeading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
     expect(screen.queryByText('Bob')).toBeNull()
     const names = ['Zoe ★', 'Alice', 'Fake user 2'].map(name => screen.getByText(name))
     expect(names[0].compareDocumentPosition(names[1]) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
