@@ -4,7 +4,7 @@
 
 The rest of this file was AI-generated (with my input, but I still don't feel like I trust it), so I want to try to describe what I'm after, and then you can amend the plan and the content to make sure we're doing what I want.
 
-In fake-data-generation/brainstorming/README.md I wrote a list of some ideas for "network societies" that I personally would be interested in supporting. (Some are more compelling than others; we've done some and decided to defer some.) I want us to flesh them out into fake-data campaigns (with statements, bridges from multiple plausible constituencies who all might agree, fake users who fall into various constituencies or don't agree at all, and fake usage data from those fake users).
+[Here](./initial-brainstorming.md) I wrote a list of some ideas for "network societies" that I personally would be interested in supporting. (Some are more compelling than others; we've done some and decided to defer some.) I want us to flesh them out into fake-data campaigns (with statements, bridges from multiple plausible constituencies who all might agree, fake users who fall into various constituencies or don't agree at all, and fake usage data from those fake users).
 
 The hope is that this becomes useful for demoing the system, in a couple of ways.
   - I show it to people who share some of my opinions and they find some of the examples compelling in the sense of "yeah, I can see how that *kind* of project is something that we have trouble funding in other ways. (The fact that they share my political opinions isn't important - the point isn't exactly "do exactly these things that align with my political beliefs" - but if the example causes aren't things they'd consider good, they'll be turned off.)
