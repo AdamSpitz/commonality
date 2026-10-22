@@ -36,3 +36,32 @@ test('areas include shared statements/projects and only users with confirmed rel
   assert.throws(() => campaignRunAreas(plan, bindings, [], { ...state, manifestFingerprint: 'different' }), /does not match/);
   assert.throws(() => campaignRunAreas(plan, { ...bindings, manifestFingerprint: 'different' }, [], state), /do not match/);
 });
+
+test('demo areas fold listed causes together and leave the rest alone', () => {
+  const plan = {
+    campaignId: 'test', manifestFingerprint: 'saved-plan',
+    users: [{ id: 'user-1', causeIds: ['checkout'] }],
+    statements: [
+      { id: 'trial', causeId: 'checkout', text: 'Take a blockchain payment', role: null },
+      { id: 'common', causeId: 'bridge', text: 'Try a refundable checkout', role: 'commonality' },
+    ],
+    projects: [],
+    actions: [
+      { id: 'belief', type: 'set-belief', statementId: 'trial', actorUserId: 'user-1' },
+      { id: 'belief-2', type: 'set-belief', statementId: 'common', actorUserId: 'user-1' },
+    ],
+  } as unknown as CampaignPlan;
+  const bindings = createEmptyRuntimeBindings(plan);
+  bindings.statements.trial = fakeIpfsCidV1('trial');
+  bindings.statements.common = fakeIpfsCidV1('common');
+  const state: CampaignExecutionState = {
+    version: CAMPAIGN_EXECUTION_VERSION, campaignId: plan.campaignId, manifestFingerprint: plan.manifestFingerprint, updatedAt: new Date().toISOString(),
+    actions: plan.actions.map((action) => ({ actionId: action.id, status: 'mined', attempts: 1 })),
+  };
+  const causes = [{ id: 'checkout', title: 'Checkout trial' }, { id: 'bridge', title: 'Checkout bridge' }, { id: 'schools', title: 'Schools and pushing' }];
+  const areas = campaignRunAreas(plan, bindings, causes, state, [{ id: 'blockchain-checkout', title: 'Blockchain checkout', causeIds: ['checkout', 'bridge'] }]);
+  assert.deepEqual(areas.map((area) => area.title), ['Blockchain checkout', 'Schools and pushing']);
+  assert.deepEqual(areas[0].statements.map((statement) => statement.partTitle), ['Checkout trial', 'Checkout bridge']);
+  assert.equal(areas[0].statements[1].role, 'commonality');
+  assert.deepEqual(areas[0].activeUserIds, [0]);
+});

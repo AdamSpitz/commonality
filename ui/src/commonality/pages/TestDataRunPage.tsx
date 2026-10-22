@@ -52,6 +52,10 @@ export function TestDataRunPage() {
 
   const pageGroups = useMemo(() => testDataPageGroups(run?.entities ?? {}), [run])
   const projects = useMemo(() => testDataRunProjects(run?.entities ?? {}), [run])
+  const areas = useMemo(
+    () => [...testDataRunAreas(run?.entities ?? {})].sort((left, right) => left.title.localeCompare(right.title, undefined, { sensitivity: 'base' })),
+    [run],
+  )
 
   const orderedUsers = useMemo(() => {
     return [...(run?.users ?? [])].sort((left, right) => userListRank(left) - userListRank(right) || left.id - right.id)
@@ -73,6 +77,12 @@ export function TestDataRunPage() {
     }
     return [...counts].sort((a, b) => b[1] - a[1])
   }, [run])
+
+  // Campaign runs store only board and bridge creation in the action log. Area pages
+  // already link those boards. A simulation run keeps the log when it has other types.
+  const boardSetupOnly = actionsByType.length > 0 && actionsByType.every(([type]) => (
+    type === 'create-cause' || type === 'create-bridge-board' || type === 'create-bridge'
+  ))
 
   if (environment === 'disabled') return <Alert severity="error">Test-data administration is disabled on mainnet.</Alert>
   if (!capability || !registryUrl) return <Alert severity="info">Open this run from the bookmarked test-data admin page.</Alert>
@@ -98,22 +108,23 @@ export function TestDataRunPage() {
         <Typography color="text.secondary">{new Date(run.createdAt).toLocaleString()} · {run.network} · chain {run.chainId}</Typography>
       </Box>
 
-      {testDataRunAreas(run.entities).length > 0 && <Card variant="outlined"><CardContent>
+      {areas.length > 0 && <Card variant="outlined"><CardContent>
         <Typography variant="h6">Demo by area</Typography>
         <Typography color="text.secondary">Open an area to see its statements, bridges, projects, and active fake users.</Typography>
-        <Stack alignItems="flex-start" sx={{ mt: 1 }}>{testDataRunAreas(run.entities).map(area => <Button
+        <Stack alignItems="flex-start" sx={{ mt: 1 }}>{areas.map(area => <Button
           key={area.id} component={RouterLink}
           to={`/admin/test-data/${encodeURIComponent(run.runId)}/areas/${encodeURIComponent(area.id)}?key=${encodeURIComponent(capability)}`}
         >{area.title}</Button>)}</Stack>
       </CardContent></Card>}
 
-      {(pageGroups.length > 0 || projects.length > 0) && (
+      {areas.length === 0 && (pageGroups.length > 0 || projects.length > 0) && (
         <Card variant="outlined" data-testid="test-data-run-pages">
           <CardContent>
             <Typography variant="h6">Pages created in this run</Typography>
             <Typography color="text.secondary" sx={{ mb: 2 }}>
-              Open each cause board, bridge, and project in the app.
+              This run has no area pages. Open a cause board, bridge, or project from here.
             </Typography>
+            <Box sx={{ maxHeight: 420, overflow: 'auto' }}>
             <Stack spacing={2.5}>
               {pageGroups.filter(group => group.kind === 'bridge').map(group => (
                 <Box key={group.path}>
@@ -154,6 +165,7 @@ export function TestDataRunPage() {
                 </Box>
               )}
             </Stack>
+            </Box>
           </CardContent>
         </Card>
       )}
@@ -198,7 +210,8 @@ export function TestDataRunPage() {
           <Typography color="text.secondary">{displayedUsers.length} of {run?.users.length ?? 0} total</Typography>
         </Stack>
         <Divider sx={{ my: 2 }} />
-        <Table size="small"><TableHead><TableRow><TableCell>User</TableCell><TableCell>Address</TableCell><TableCell>Engagement</TableCell><TableCell>Bio / Favorite</TableCell><TableCell>Interests</TableCell></TableRow></TableHead>
+        <Box sx={{ maxHeight: 360, overflow: 'auto' }}>
+        <Table size="small" stickyHeader><TableHead><TableRow><TableCell>User</TableCell><TableCell>Address</TableCell><TableCell>Engagement</TableCell><TableCell>Bio / Favorite</TableCell><TableCell>Interests</TableCell></TableRow></TableHead>
           <TableBody>{displayedUsers.map(user => (
             <TableRow key={user.address}>
               <TableCell>{user.label}</TableCell>
@@ -224,16 +237,19 @@ export function TestDataRunPage() {
             </TableRow>
           ))}</TableBody>
         </Table>
+        </Box>
       </CardContent></Card>
 
-      <Card variant="outlined"><CardContent>
+      {!boardSetupOnly && <Card variant="outlined"><CardContent>
         <Typography variant="h6">Activity by type</Typography><Divider sx={{ my: 2 }} />
         {actionsByType.map(([type, count]) => <Stack key={type} direction="row" justifyContent="space-between"><Typography>{type}</Typography><Typography>{count}</Typography></Stack>)}
-      </CardContent></Card>
+      </CardContent></Card>}
 
-      <Card variant="outlined"><CardContent>
-        <Typography variant="h6">All recorded activity</Typography><Divider sx={{ my: 2 }} />
-        <Table size="small"><TableHead><TableRow><TableCell>#</TableCell><TableCell>Type</TableCell><TableCell>Actor</TableCell><TableCell>Transaction / details</TableCell></TableRow></TableHead>
+      {!boardSetupOnly && <Card variant="outlined"><CardContent>
+        <Box component="details">
+          <Typography component="summary" variant="h6" sx={{ cursor: 'pointer' }}>All recorded activity ({run.actions.length})</Typography>
+          <Box sx={{ maxHeight: 420, overflow: 'auto', mt: 2 }}>
+        <Table size="small" stickyHeader><TableHead><TableRow><TableCell>#</TableCell><TableCell>Type</TableCell><TableCell>Actor</TableCell><TableCell>Transaction / details</TableCell></TableRow></TableHead>
           <TableBody>{run.actions.map((action, index) => {
             const type = String(action.type ?? action.action ?? 'unknown')
             const actor = String(action.userAddress ?? action.address ?? action.user ?? '—')
@@ -244,7 +260,9 @@ export function TestDataRunPage() {
             </TableRow>
           })}</TableBody>
         </Table>
-      </CardContent></Card>
+          </Box>
+        </Box>
+      </CardContent></Card>}
 
       <Card variant="outlined"><CardContent>
         <Typography variant="h6">Run parameters</Typography>
@@ -253,10 +271,12 @@ export function TestDataRunPage() {
       </CardContent></Card>
 
       <Card variant="outlined"><CardContent>
-        <Typography variant="h6">Generated entities</Typography>
-        <Typography color="text.secondary" sx={{ mb: 2 }}>Statements, projects, and contract bindings captured at the end of this run.</Typography>
-        <Box sx={{ overflowX: 'auto' }}>
-          <KeyValueTable record={run.entities} />
+        <Box component="details">
+          <Typography component="summary" variant="h6" sx={{ cursor: 'pointer' }}>Generated entities</Typography>
+          <Typography color="text.secondary" sx={{ my: 2 }}>Statements, projects, and contract bindings captured at the end of this run.</Typography>
+          <Box sx={{ maxHeight: 420, overflow: 'auto' }}>
+            <KeyValueTable record={run.entities} />
+          </Box>
         </Box>
       </CardContent></Card>
     </Stack>

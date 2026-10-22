@@ -128,13 +128,16 @@ open `http://localhost:8088/admin` and follow **Browse generated test-data runs*
 run page provides the objective action/user summary and can connect Commonality as any
 disposable fake user from that run.
 
-Campaign runs also offer **Demo by area**. Each area has a bookmarkable sub-page
+Campaign runs also offer **Demo by area**, listed A–Z. Each area has a bookmarkable sub-page
 at `/admin/test-data/:runId/areas/:areaId` (keep the capability query parameter).
 It lists that area's statements, boards, bridges, projects, and only fake users
 with mined activity in the area. Use **Connect as…**, then open any listed page
 or the user's dashboard to demonstrate their view. Shared statements and projects
 can appear in several areas. Historical runs without area metadata retain the
-ordinary run browser.
+ordinary run browser. A campaign run's saved action log is only board and bridge
+creation, which those area pages already link, so the run page hides **Activity by
+type** and **All recorded activity** for that log. Simulation runs that record
+other action types still show both sections.
 
 To enrich an existing campaign run without rerunning transactions, use
 `npx tsx fake-data-generation/backfillCampaignAreas.ts <saved-campaign-directory> <run-id>`

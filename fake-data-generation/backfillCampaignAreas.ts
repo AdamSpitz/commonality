@@ -29,11 +29,14 @@ async function main() {
   for (const user of plan.users) {
     const saved = run.users.find((candidate) => candidate.id === Number(user.id.replace('user-', '')) - 1);
     if (!saved || saved.address.toLowerCase() !== bindings.users[user.id]?.toLowerCase()) throw new Error(`run wallet does not match ${user.id}`);
+    saved.personaId = user.personaId;
+    saved.roles = user.roles;
   }
-  run.entities.areas = campaignRunAreas(plan, bindings, manifest.causes, state);
+  const areas = campaignRunAreas(plan, bindings, manifest.causes, state, manifest.demoAreas);
+  run.entities.areas = areas;
   await writeFile(`${runPath}.tmp`, `${JSON.stringify(encryptTestData(run, key), null, 2)}\n`);
   await rename(`${runPath}.tmp`, runPath);
-  console.log(`Enriched run ${runId} with ${manifest.causes.length} areas; registry and saved plan unchanged.`);
+  console.log(`Enriched run ${runId} with ${areas.length} areas; registry and saved plan unchanged.`);
 }
 
 main().catch((error) => { console.error(error instanceof Error ? error.message : error); process.exitCode = 1; });

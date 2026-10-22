@@ -189,6 +189,8 @@ async function main(): Promise<void> {
         trustNetworkSize: 0,
         trustNetwork: [],
         label,
+        personaId: user.personaId,
+        roles: user.roles,
         displayName: user.displayName,
         bio: user.bio,
         favoriteCauseId: user.favoriteCauseId,
@@ -202,7 +204,7 @@ async function main(): Promise<void> {
       parameters: { campaignId: plan.campaignId, kind: 'campaign', mined: summary.mined, failed: summary.failed },
       entities: {
         ...publications,
-        areas: campaignRunAreas(plan, bindings, manifest.causes, JSON.parse(await readFile(path.join(outputDirectory, stageDirectory, manifest.artifactLayout.executionState), 'utf8')) as CampaignExecutionState),
+        areas: campaignRunAreas(plan, bindings, manifest.causes, JSON.parse(await readFile(path.join(outputDirectory, stageDirectory, manifest.artifactLayout.executionState), 'utf8')) as CampaignExecutionState, manifest.demoAreas),
       },
       users: usersForTestData,
       actions: plan.actions

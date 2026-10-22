@@ -39,6 +39,13 @@ export interface CampaignCause {
   statementRefs: CampaignStatementRef[];
 }
 
+/** Demo navigation. Several causes can share one area. A cause not listed here stays its own area. */
+export interface CampaignDemoArea {
+  id: string;
+  title: string;
+  causeIds: string[];
+}
+
 export interface CampaignPersona {
   id: string;
   count: number;
@@ -97,6 +104,8 @@ export interface CampaignManifestV1 {
     campaignCollection?: string;
   };
   causes: CampaignCause[];
+  /** Optional coarser grouping for the test-data admin "Demo by area" list. */
+  demoAreas?: CampaignDemoArea[];
   personas: CampaignPersona[];
   userProfiles?: CampaignUserProfile[];
   actionRules: CampaignActionRule[];
@@ -202,6 +211,24 @@ function statementRefKey(ref: CampaignStatementRef): string {
   return `${ref.collectionId}/${ref.groupId}/${ref.statementId}`;
 }
 
+function validateDemoAreas(manifest: CampaignManifestV1): void {
+  const areas = manifest.demoAreas;
+  if (!areas) return;
+  if (areas.length === 0) throw new Error('demoAreas must list at least one area');
+  requireUnique(areas.map((area) => area.id), 'demo area IDs');
+  const known = new Set(manifest.causes.map((cause) => cause.id));
+  const membership = areas.flatMap((area) => area.causeIds);
+  requireUnique(membership, 'demo area cause IDs');
+  for (const area of areas) {
+    if (!/^[a-z0-9][a-z0-9-]+$/.test(area.id)) throw new Error(`demo area id must be kebab-case: ${area.id}`);
+    if (!area.title.trim()) throw new Error(`demo area ${area.id} needs a title`);
+    if (area.causeIds.length === 0) throw new Error(`demo area ${area.id} needs at least one cause`);
+    for (const causeId of area.causeIds) {
+      if (!known.has(causeId)) throw new Error(`demo area ${area.id} names unknown cause ${causeId}`);
+    }
+  }
+}
+
 function validatePersonas(manifest: CampaignManifestV1): void {
   requireUnique(manifest.personas.map((persona) => persona.id), 'persona IDs');
   const personaCount = manifest.personas.reduce((total, persona) => total + persona.count, 0);
@@ -295,6 +322,7 @@ export function validateCampaignManifest(manifest: CampaignManifestV1): void {
     throw new Error('spend-delegated-note requires delegatedSpend');
   }
   validateCauses(manifest);
+  validateDemoAreas(manifest);
   validatePersonas(manifest);
   validateActionRules(manifest);
   validateArtifactLayout(manifest);

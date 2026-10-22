@@ -35,10 +35,13 @@ vi.mock('../testData/testDataDocuments', async () => {
           { id: 28, label: 'Fred ★', address: '0x0000000000000000000000000000000000000002', privateKey: '0x2222222222222222222222222222222222222222222222222222222222222222', engagement: 'CASUAL', wealth: 1, interests: {}, trustNetwork: [], spotlightOrder: 2 },
           { id: 82, label: 'Kurt ★', address: '0x0000000000000000000000000000000000000003', privateKey: '0x3333333333333333333333333333333333333333333333333333333333333333', engagement: 'ACTIVE', wealth: 1, interests: {}, trustNetwork: [], spotlightOrder: 1, bio: 'Sings in the choir', favoriteCauseId: 'congregational-music' },
         ],
-        actions: [],
+        actions: [{ type: 'create-cause' }, { type: 'create-bridge' }, { type: 'create-bridge-board' }],
         metrics: { errors: [] },
         entities: {
-          areas: [{ id: 'ai', title: 'AI pause', statements: [], causeBoards: [], bridges: [], projects: [], activeUserIds: [82] }],
+          areas: [
+            { id: 'zebra', title: 'Zebra civic', statements: [], causeBoards: [], bridges: [], projects: [], activeUserIds: [] },
+            { id: 'ai', title: 'AI pause', statements: [], causeBoards: [], bridges: [], projects: [], activeUserIds: [82] },
+          ],
           causeBoards: [
             { title: 'open-source', role: 'plain', slug: 'campaign-open-source', path: '/cause/0x1/open-source' },
             { title: 'Abortion common ground — common ground', role: 'commonality', slug: 'medium-abortion-common-ground-bridge', path: '/cause/0x2/common' },
@@ -58,17 +61,16 @@ import { TestDataRunPage } from './TestDataRunPage'
 describe('TestDataRunPage pages', () => {
   beforeEach(() => { vi.clearAllMocks() })
 
-  it('links each bridge and cause board near the top of the run', async () => {
+  it('sends the run to area pages instead of listing every board', async () => {
     render(<MemoryRouter><TestDataRunPage /></MemoryRouter>)
-    const bridge = await screen.findByRole('link', { name: /Bridge\s+·\s+Abortion common ground/ })
-    const board = screen.getByRole('link', { name: /Natural left\s+·\s+Abortion common ground — natural-left/ })
-    const cause = screen.getByRole('link', { name: 'Open Source' })
-    expect(bridge).toHaveAttribute('href', '/bridge/0x2/cluster')
-    expect(board).toHaveAttribute('href', '/cause/0x2/left')
-    expect(cause).toHaveAttribute('href', '/cause/0x1/open-source')
-    expect(screen.getByRole('link', { name: 'AI pause' })).toHaveAttribute('href', '/admin/test-data/run-1/areas/ai?key=capability')
-    const section = screen.getByTestId('test-data-run-pages')
-    expect(section.compareDocumentPosition(screen.getByText('All recorded activity'))).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
+    const ai = await screen.findByRole('link', { name: 'AI pause' })
+    expect(ai).toHaveAttribute('href', '/admin/test-data/run-1/areas/ai?key=capability')
+    const zebra = screen.getByRole('link', { name: 'Zebra civic' })
+    expect(ai.compareDocumentPosition(zebra) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(screen.queryByTestId('test-data-run-pages')).toBeNull()
+    expect(screen.queryByRole('link', { name: /Bridge\s+·\s+Abortion common ground/ })).toBeNull()
+    expect(screen.queryByText('Activity by type')).toBeNull()
+    expect(screen.queryByText(/All recorded activity/)).toBeNull()
   })
 
   it('lists spotlight profiles first under Show curated only', async () => {
