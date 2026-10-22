@@ -24,6 +24,8 @@ import { loadEnv, RPC_URL } from './loadEnv.js';
 import { PUBLISH_DATA_BATCH_SELECTOR } from '@commonality/sdk/published-data';
 import { HARDHAT_PRIVATE_KEYS } from './generateUsers.js';
 import { writeTestDataRun } from './testDataArtifacts.js';
+import { campaignRunAreas } from './campaignAreas.js';
+import type { CampaignExecutionState } from './campaignExecutor.js';
 
 loadEnv();
 
@@ -198,7 +200,10 @@ async function main(): Promise<void> {
       network,
       chainId,
       parameters: { campaignId: plan.campaignId, kind: 'campaign', mined: summary.mined, failed: summary.failed },
-      entities: publications,
+      entities: {
+        ...publications,
+        areas: campaignRunAreas(plan, bindings, manifest.causes, JSON.parse(await readFile(path.join(outputDirectory, stageDirectory, manifest.artifactLayout.executionState), 'utf8')) as CampaignExecutionState),
+      },
       users: usersForTestData,
       actions: plan.actions
         .filter((action) => action.type === 'create-cause' || action.type === 'create-bridge-board' || action.type === 'create-bridge')

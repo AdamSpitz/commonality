@@ -50,6 +50,26 @@ export interface TestDataRun {
   metrics: Record<string, unknown>
 }
 
+export interface TestDataArea {
+  id: string
+  title: string
+  statements: Array<{ id: string; text: string; cid?: string; path?: string }>
+  causeBoards: Array<{ title: string; path: string; role?: string; slug?: string }>
+  bridges: Array<{ title: string; path: string; slug?: string }>
+  projects: Array<{ title: string; path: string; assuranceContract: string }>
+  activeUserIds: number[]
+}
+
+export function testDataRunAreas(entities: Record<string, unknown>): TestDataArea[] {
+  if (!Array.isArray(entities.areas)) return []
+  return entities.areas.filter((area): area is TestDataArea => {
+    if (!area || typeof area !== 'object') return false
+    const value = area as Record<string, unknown>
+    return typeof value.id === 'string' && typeof value.title === 'string'
+      && ['statements', 'causeBoards', 'bridges', 'projects', 'activeUserIds'].every(key => Array.isArray(value[key]))
+  })
+}
+
 function decodeBase64Url(value: string): Uint8Array<ArrayBuffer> {
   const base64 = value.replaceAll('-', '+').replaceAll('_', '/')
     .padEnd(Math.ceil(value.length / 4) * 4, '=')

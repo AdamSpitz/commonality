@@ -74,6 +74,7 @@ const routes: ReactNode = (
     <Route path="/settings" element={lazyRoute(() => import('../../commonality/pages/SettingsPage'), 'SettingsPage')} />
     <Route path="/admin/test-data" element={lazyRoute(() => import('../../commonality/pages/TestDataAdminPage'), 'TestDataAdminPage')} />
     <Route path="/admin/test-data/:runId" element={lazyRoute(() => import('../../commonality/pages/TestDataRunPage'), 'TestDataRunPage')} />
+    <Route path="/admin/test-data/:runId/areas/:areaId" element={lazyRoute(() => import('../../commonality/pages/TestDataAreaPage'), 'TestDataAreaPage')} />
   </>
 )
 

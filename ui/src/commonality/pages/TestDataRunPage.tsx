@@ -10,6 +10,7 @@ import {
   testDataPageGroups,
   testDataRegistryUrl,
   testDataRunProjects,
+  testDataRunAreas,
   type TestDataRegistry,
   type TestDataRun,
 } from '../testData/testDataDocuments'
@@ -96,6 +97,15 @@ export function TestDataRunPage() {
         <Typography variant="h4" component="h1">Run {run.runId}</Typography>
         <Typography color="text.secondary">{new Date(run.createdAt).toLocaleString()} · {run.network} · chain {run.chainId}</Typography>
       </Box>
+
+      {testDataRunAreas(run.entities).length > 0 && <Card variant="outlined"><CardContent>
+        <Typography variant="h6">Demo by area</Typography>
+        <Typography color="text.secondary">Open an area to see its statements, bridges, projects, and active fake users.</Typography>
+        <Stack alignItems="flex-start" sx={{ mt: 1 }}>{testDataRunAreas(run.entities).map(area => <Button
+          key={area.id} component={RouterLink}
+          to={`/admin/test-data/${encodeURIComponent(run.runId)}/areas/${encodeURIComponent(area.id)}?key=${encodeURIComponent(capability)}`}
+        >{area.title}</Button>)}</Stack>
+      </CardContent></Card>}
 
       {(pageGroups.length > 0 || projects.length > 0) && (
         <Card variant="outlined" data-testid="test-data-run-pages">

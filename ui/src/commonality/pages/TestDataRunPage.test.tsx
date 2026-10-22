@@ -38,6 +38,7 @@ vi.mock('../testData/testDataDocuments', async () => {
         actions: [],
         metrics: { errors: [] },
         entities: {
+          areas: [{ id: 'ai', title: 'AI pause', statements: [], causeBoards: [], bridges: [], projects: [], activeUserIds: [82] }],
           causeBoards: [
             { title: 'open-source', role: 'plain', slug: 'campaign-open-source', path: '/cause/0x1/open-source' },
             { title: 'Abortion common ground — common ground', role: 'commonality', slug: 'medium-abortion-common-ground-bridge', path: '/cause/0x2/common' },
@@ -65,6 +66,7 @@ describe('TestDataRunPage pages', () => {
     expect(bridge).toHaveAttribute('href', '/bridge/0x2/cluster')
     expect(board).toHaveAttribute('href', '/cause/0x2/left')
     expect(cause).toHaveAttribute('href', '/cause/0x1/open-source')
+    expect(screen.getByRole('link', { name: 'AI pause' })).toHaveAttribute('href', '/admin/test-data/run-1/areas/ai?key=capability')
     const section = screen.getByTestId('test-data-run-pages')
     expect(section.compareDocumentPosition(screen.getByText('All recorded activity'))).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
   })
