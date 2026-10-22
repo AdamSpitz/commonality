@@ -17,10 +17,10 @@
     "campaignCollection": "network-societies-v1-b2-statements.json"
   },
   "scale": {
-    "minCauses": 16,
-    "maxCauses": 16,
-    "minStatements": 124,
-    "maxStatements": 124,
+    "minCauses": 13,
+    "maxCauses": 13,
+    "minStatements": 74,
+    "maxStatements": 74,
     "allowRepeatedStatementRefs": true
   },
   "projectStories": "network-societies-v1-b2-projects.json",
@@ -40,47 +40,12 @@
         {
           "collectionId": "network-societies-v1-b2",
           "groupId": "crypto-merchants",
-          "statementId": "published-trial-record"
-        },
-        {
-          "collectionId": "network-societies-v1-b2",
-          "groupId": "crypto-merchants",
-          "statementId": "checkout-security-review"
-        },
-        {
-          "collectionId": "network-societies-v1-b2",
-          "groupId": "crypto-merchants",
-          "statementId": "merchant-directory"
-        },
-        {
-          "collectionId": "network-societies-v1-b2",
-          "groupId": "crypto-merchants",
-          "statementId": "deployment-clinic"
-        },
-        {
-          "collectionId": "network-societies-v1-b2",
-          "groupId": "crypto-merchants",
-          "statementId": "host-kit"
-        },
-        {
-          "collectionId": "network-societies-v1-b2",
-          "groupId": "crypto-merchants",
-          "statementId": "keep-cash-and-card"
-        },
-        {
-          "collectionId": "network-societies-v1-b2",
-          "groupId": "crypto-merchants",
           "statementId": "refuse-crypto-payments"
         },
         {
           "collectionId": "network-societies-v1-b2",
           "groupId": "crypto-merchants",
           "statementId": "bank-blocking"
-        },
-        {
-          "collectionId": "network-societies-v1-b2",
-          "groupId": "crypto-merchants",
-          "statementId": "fee-schedule"
         }
       ]
     },
@@ -93,57 +58,37 @@
         {
           "collectionId": "network-societies-v1-b2",
           "groupId": "civic-assimilation",
-          "statementId": "language-sessions"
+          "statementId": "assimilate"
         },
         {
           "collectionId": "network-societies-v1-b2",
           "groupId": "civic-assimilation",
-          "statementId": "civics-pack"
+          "statementId": "some-immigration"
         },
         {
           "collectionId": "network-societies-v1-b2",
           "groupId": "civic-assimilation",
-          "statementId": "park-paths"
+          "statementId": "fewer-newcomers"
         },
         {
           "collectionId": "network-societies-v1-b2",
           "groupId": "civic-assimilation",
-          "statementId": "tutor-check"
+          "statementId": "english-around-here"
         },
         {
           "collectionId": "network-societies-v1-b2",
           "groupId": "civic-assimilation",
-          "statementId": "organizer-handoff"
-        },
-        {
-          "collectionId": "network-societies-v1-b2",
-          "groupId": "civic-assimilation",
-          "statementId": "english-township-business"
-        },
-        {
-          "collectionId": "network-societies-v1-b2",
-          "groupId": "civic-assimilation",
-          "statementId": "own-language-communities"
-        },
-        {
-          "collectionId": "network-societies-v1-b2",
-          "groupId": "civic-assimilation",
-          "statementId": "housing-before-recruiting"
-        },
-        {
-          "collectionId": "network-societies-v1-b2",
-          "groupId": "civic-assimilation",
-          "statementId": "welcome-signage"
-        },
-        {
-          "collectionId": "network-societies-v1-b2",
-          "groupId": "civic-assimilation",
-          "statementId": "session-limit"
+          "statementId": "keep-own-ways"
         },
         {
           "collectionId": "network-societies-v1-b2",
           "groupId": "shared-goods",
           "statementId": "class-host-directory"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "cross-family",
+          "statementId": "plain-text-notice"
         }
       ]
     },
@@ -156,37 +101,12 @@
         {
           "collectionId": "network-societies-v1-b2",
           "groupId": "christian-teaching",
-          "statementId": "midweek-notes"
+          "statementId": "shared-teaching-notes"
         },
         {
           "collectionId": "network-societies-v1-b2",
           "groupId": "christian-teaching",
-          "statementId": "transcription"
-        },
-        {
-          "collectionId": "network-societies-v1-b2",
-          "groupId": "christian-teaching",
-          "statementId": "substitute-rota"
-        },
-        {
-          "collectionId": "network-societies-v1-b2",
-          "groupId": "christian-teaching",
-          "statementId": "named-confession"
-        },
-        {
-          "collectionId": "network-societies-v1-b2",
-          "groupId": "christian-teaching",
-          "statementId": "no-joint-doctrine"
-        },
-        {
-          "collectionId": "network-societies-v1-b2",
-          "groupId": "christian-teaching",
-          "statementId": "host-kit"
-        },
-        {
-          "collectionId": "network-societies-v1-b2",
-          "groupId": "christian-teaching",
-          "statementId": "civic-transcription-only"
+          "statementId": "independent-church-help"
         },
         {
           "collectionId": "network-societies-v1-b2",
@@ -196,12 +116,17 @@
         {
           "collectionId": "network-societies-v1-b2",
           "groupId": "christian-teaching",
-          "statementId": "interchurch-calendar"
+          "statementId": "civic-transcription-only"
         },
         {
           "collectionId": "network-societies-v1-b2",
           "groupId": "shared-goods",
           "statementId": "class-host-directory"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "cross-family",
+          "statementId": "plain-text-notice"
         }
       ]
     },
@@ -214,52 +139,17 @@
         {
           "collectionId": "network-societies-v1-b2",
           "groupId": "home-learning",
-          "statementId": "science-unit"
+          "statementId": "reusable-home-materials"
         },
         {
           "collectionId": "network-societies-v1-b2",
           "groupId": "home-learning",
-          "statementId": "field-trip"
+          "statementId": "materials-without-religion"
         },
         {
           "collectionId": "network-societies-v1-b2",
           "groupId": "home-learning",
-          "statementId": "science-kits"
-        },
-        {
-          "collectionId": "network-societies-v1-b2",
-          "groupId": "home-learning",
-          "statementId": "saturday-meetups"
-        },
-        {
-          "collectionId": "network-societies-v1-b2",
-          "groupId": "home-learning",
-          "statementId": "successor-host"
-        },
-        {
-          "collectionId": "network-societies-v1-b2",
-          "groupId": "home-learning",
-          "statementId": "method-on-the-page"
-        },
-        {
-          "collectionId": "network-societies-v1-b2",
-          "groupId": "home-learning",
-          "statementId": "no-religious-claims"
-        },
-        {
-          "collectionId": "network-societies-v1-b2",
-          "groupId": "home-learning",
-          "statementId": "school-families-may-borrow"
-        },
-        {
-          "collectionId": "network-societies-v1-b2",
-          "groupId": "home-learning",
-          "statementId": "staffed-schools"
-        },
-        {
-          "collectionId": "network-societies-v1-b2",
-          "groupId": "home-learning",
-          "statementId": "lab-safety"
+          "statementId": "taught-in-staffed-schools"
         },
         {
           "collectionId": "network-societies-v1-b2",
@@ -373,88 +263,40 @@
       ]
     },
     {
-      "id": "gender-conduct",
-      "title": "Grey County school conduct",
-      "activityTier": "small",
-      "membershipWeight": 6,
-      "statementRefs": [
-        {
-          "collectionId": "network-societies-v1-b2",
-          "groupId": "gender-conduct",
-          "statementId": "harassment-steps"
-        },
-        {
-          "collectionId": "network-societies-v1-b2",
-          "groupId": "gender-conduct",
-          "statementId": "clinician-for-minors"
-        },
-        {
-          "collectionId": "network-societies-v1-b2",
-          "groupId": "gender-conduct",
-          "statementId": "school-not-clinic"
-        },
-        {
-          "collectionId": "network-societies-v1-b2",
-          "groupId": "gender-conduct",
-          "statementId": "no-medical-limit"
-        },
-        {
-          "collectionId": "network-societies-v1-b2",
-          "groupId": "gender-conduct",
-          "statementId": "adult-medical-speech"
-        },
-        {
-          "collectionId": "network-societies-v1-b2",
-          "groupId": "gender-conduct",
-          "statementId": "names-and-courtesy"
-        },
-        {
-          "collectionId": "network-societies-v1-b2",
-          "groupId": "gender-conduct",
-          "statementId": "enrollment-name-only"
-        }
-      ]
-    },
-    {
       "id": "voting",
-      "title": "Owen Sound voting trial",
+      "title": "Voting in Grey County",
       "activityTier": "medium",
       "membershipWeight": 8,
       "statementRefs": [
         {
           "collectionId": "network-societies-v1-b2",
           "groupId": "voting",
-          "statementId": "ranked-poll"
+          "statementId": "ranked-choice"
         },
         {
           "collectionId": "network-societies-v1-b2",
           "groupId": "voting",
-          "statementId": "approval-count"
+          "statementId": "approval-not-ranked"
         },
         {
           "collectionId": "network-societies-v1-b2",
           "groupId": "voting",
-          "statementId": "keep-fptp"
+          "statementId": "ranked-choice-and-try"
         },
         {
           "collectionId": "network-societies-v1-b2",
           "groupId": "voting",
-          "statementId": "show-of-hands"
+          "statementId": "approval-and-try"
         },
         {
           "collectionId": "network-societies-v1-b2",
           "groupId": "voting",
-          "statementId": "counting-toolkit"
+          "statementId": "try-other-systems"
         },
         {
           "collectionId": "network-societies-v1-b2",
           "groupId": "voting",
-          "statementId": "poll-host-kit"
-        },
-        {
-          "collectionId": "network-societies-v1-b2",
-          "groupId": "voting",
-          "statementId": "trial-directory"
+          "statementId": "keep-first-past-the-post"
         },
         {
           "collectionId": "network-societies-v1-b2",
@@ -469,24 +311,31 @@
       "activityTier": "medium",
       "membershipWeight": 8,
       "statementRefs": [
-        { "collectionId": "network-societies-v1-b2", "groupId": "grey-assimilation", "statementId": "natural-left" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "grey-assimilation", "statementId": "natural-right" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "grey-assimilation", "statementId": "modified-left" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "grey-assimilation", "statementId": "modified-right" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "grey-assimilation", "statementId": "commonality" }
-      ]
-    },
-    {
-      "id": "ranked-approval-poll",
-      "title": "Owen Sound dual count",
-      "activityTier": "medium",
-      "membershipWeight": 7,
-      "statementRefs": [
-        { "collectionId": "network-societies-v1-b2", "groupId": "ranked-approval-poll", "statementId": "natural-left" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "ranked-approval-poll", "statementId": "natural-right" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "ranked-approval-poll", "statementId": "modified-left" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "ranked-approval-poll", "statementId": "modified-right" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "ranked-approval-poll", "statementId": "commonality" }
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "grey-assimilation",
+          "statementId": "natural-left"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "grey-assimilation",
+          "statementId": "natural-right"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "grey-assimilation",
+          "statementId": "modified-left"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "grey-assimilation",
+          "statementId": "modified-right"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "grey-assimilation",
+          "statementId": "commonality"
+        }
       ]
     },
     {
@@ -495,24 +344,31 @@
       "activityTier": "medium",
       "membershipWeight": 8,
       "statementRefs": [
-        { "collectionId": "network-societies-v1-b2", "groupId": "checkout-trial-bridge", "statementId": "natural-left" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "checkout-trial-bridge", "statementId": "natural-right" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "checkout-trial-bridge", "statementId": "modified-left" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "checkout-trial-bridge", "statementId": "modified-right" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "checkout-trial-bridge", "statementId": "commonality" }
-      ]
-    },
-    {
-      "id": "minors-medicine",
-      "title": "Minors medicine and courtesy",
-      "activityTier": "medium",
-      "membershipWeight": 7,
-      "statementRefs": [
-        { "collectionId": "network-societies-v1-b2", "groupId": "minors-medicine", "statementId": "natural-left" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "minors-medicine", "statementId": "natural-right" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "minors-medicine", "statementId": "modified-left" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "minors-medicine", "statementId": "modified-right" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "minors-medicine", "statementId": "commonality" }
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "checkout-trial-bridge",
+          "statementId": "natural-left"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "checkout-trial-bridge",
+          "statementId": "natural-right"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "checkout-trial-bridge",
+          "statementId": "modified-left"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "checkout-trial-bridge",
+          "statementId": "modified-right"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "checkout-trial-bridge",
+          "statementId": "commonality"
+        }
       ]
     },
     {
@@ -521,11 +377,31 @@
       "activityTier": "small",
       "membershipWeight": 6,
       "statementRefs": [
-        { "collectionId": "network-societies-v1-b2", "groupId": "opinion-employment", "statementId": "natural-left" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "opinion-employment", "statementId": "natural-right" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "opinion-employment", "statementId": "modified-left" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "opinion-employment", "statementId": "modified-right" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "opinion-employment", "statementId": "commonality" }
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "opinion-employment",
+          "statementId": "natural-left"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "opinion-employment",
+          "statementId": "natural-right"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "opinion-employment",
+          "statementId": "modified-left"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "opinion-employment",
+          "statementId": "modified-right"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "opinion-employment",
+          "statementId": "commonality"
+        }
       ]
     },
     {
@@ -534,18 +410,41 @@
       "activityTier": "small",
       "membershipWeight": 6,
       "statementRefs": [
-        { "collectionId": "network-societies-v1-b2", "groupId": "canada-us-ties", "statementId": "natural-left" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "canada-us-ties", "statementId": "natural-right" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "canada-us-ties", "statementId": "modified-left" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "canada-us-ties", "statementId": "modified-right" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "canada-us-ties", "statementId": "commonality" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "canada-us-ties", "statementId": "cultural-archive" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "canada-us-ties", "statementId": "ties-guide" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "canada-us-ties", "statementId": "community-event" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "canada-us-ties", "statementId": "exchange-directory" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "canada-us-ties", "statementId": "host-handoff" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "canada-us-ties", "statementId": "boycott-ordinary-ties" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "canada-us-ties", "statementId": "narrower-than-visits" }
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "canada-us-ties",
+          "statementId": "natural-left"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "canada-us-ties",
+          "statementId": "natural-right"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "canada-us-ties",
+          "statementId": "modified-left"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "canada-us-ties",
+          "statementId": "modified-right"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "canada-us-ties",
+          "statementId": "commonality"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "canada-us-ties",
+          "statementId": "boycott-ordinary-ties"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "canada-us-ties",
+          "statementId": "narrower-than-visits"
+        }
       ]
     },
     {
@@ -554,23 +453,71 @@
       "activityTier": "medium",
       "membershipWeight": 8,
       "statementRefs": [
-        { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "commonality" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "natural-small-chance" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "modified-small-chance" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "natural-jobs" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "modified-jobs" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "natural-industry" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "modified-industry" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "natural-not-luddite" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "modified-not-luddite" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "natural-children" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "modified-children" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "pole-stop" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "pole-accelerate" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "treaty-petition" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "alignment-note" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "warning-digest" },
-        { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "pause-host-kit" }
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "ai-pause",
+          "statementId": "commonality"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "ai-pause",
+          "statementId": "natural-small-chance"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "ai-pause",
+          "statementId": "modified-small-chance"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "ai-pause",
+          "statementId": "natural-jobs"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "ai-pause",
+          "statementId": "modified-jobs"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "ai-pause",
+          "statementId": "natural-industry"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "ai-pause",
+          "statementId": "modified-industry"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "ai-pause",
+          "statementId": "natural-not-luddite"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "ai-pause",
+          "statementId": "modified-not-luddite"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "ai-pause",
+          "statementId": "natural-children"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "ai-pause",
+          "statementId": "modified-children"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "ai-pause",
+          "statementId": "pole-stop"
+        },
+        {
+          "collectionId": "network-societies-v1-b2",
+          "groupId": "ai-pause",
+          "statementId": "pole-accelerate"
+        }
       ]
     }
   ],
@@ -774,7 +721,7 @@
     {
       "userId": "user-002",
       "displayName": "Helen",
-      "bio": "Preaches at a small Grey County church and wants the midweek notes reusable, with the confession named. She does not treat a shared host directory as agreement on doctrine.",
+      "bio": "Preaches at a small Grey County church and wants freely available teaching notes that many English-speaking churches can use, with the confession named and without a joint doctrinal statement. She does not treat a shared host directory as agreement on doctrine.",
       "favoriteCauseId": "christian-teaching",
       "interests": [
         "preaching",
@@ -782,15 +729,14 @@
       ],
       "causeIds": [
         "christian-teaching",
-        "home-learning",
-        "ranked-approval-poll"
+        "home-learning"
       ],
       "spotlightOrder": 2
     },
     {
       "userId": "user-003",
       "displayName": "Imani",
-      "bio": "Recently moved to Owen Sound and wants the twelve conversation sessions with childcare. She rejects the demand to stop recruiting newcomers.",
+      "bio": "Recently moved to Owen Sound and wants the twelve conversation sessions with childcare. She rejects the demand to stop recruiting newcomers. A bank hold is why she wants a shop to be able to finish a sale, and why she funds the checkout work that makes that possible.",
       "favoriteCauseId": "civic-assimilation",
       "interests": [
         "English practice",
@@ -806,7 +752,7 @@
     {
       "userId": "user-004",
       "displayName": "Owen",
-      "bio": "Home-schools in Grey County and wants the printable science unit with no religious claims. He will not sign a request to release a congregation's midweek notes.",
+      "bio": "Home-schools in Grey County and wants the printable science unit with no religious claims. He will not sign a request for freely available church teaching notes.",
       "favoriteCauseId": "home-learning",
       "interests": [
         "home science",
@@ -814,8 +760,7 @@
       ],
       "causeIds": [
         "home-learning",
-        "christian-teaching",
-        "minors-medicine"
+        "christian-teaching"
       ],
       "spotlightOrder": 4
     },
@@ -914,7 +859,7 @@
     {
       "userId": "user-016",
       "displayName": "June",
-      "bio": "Reviews project alignments and will refuse a project that only sounds related to a statement.",
+      "bio": "Reviews project alignments and will refuse a project that only sounds related to a statement. She wants a willing shop to finish a sale when a bank has blocked the customer, and she funds the Owen Sound checkout work as that step.",
       "favoriteCauseId": "crypto-merchants",
       "interests": [
         "review",
@@ -945,26 +890,26 @@
     {
       "userId": "user-042",
       "displayName": "Nina",
-      "bio": "Wants the schools question argued from the accepted statements. She does not treat that question as a decision about drugs or surgery.",
+      "bio": "Wants the schools question argued from the accepted statements. She signs the left natural, that support is not a push, and she funds the Owen Sound meetings.",
       "favoriteCauseId": "schools",
       "interests": [
         "schools",
-        "Grey County"
+        "Owen Sound"
       ],
       "causeIds": [
         "schools",
-        "gender-conduct"
+        "voting"
       ],
       "spotlightOrder": 12
     },
     {
       "userId": "user-043",
       "displayName": "Wes",
-      "bio": "Wants the Owen Sound association poll and the published counts. He can sign keeping first-past-the-post for real municipal elections.",
+      "bio": "Wants ranked choice when Grey County chooses one system, and will try another system without adopting it. He rejects keeping first-past-the-post.",
       "favoriteCauseId": "voting",
       "interests": [
-        "Owen Sound",
-        "ballots"
+        "Grey County",
+        "ranked choice"
       ],
       "causeIds": [
         "voting",
@@ -1017,14 +962,14 @@
     {
       "userId": "user-047",
       "displayName": "Hugh",
-      "bio": "Publishes the Grey County harassment steps and keeps them off the medical question.",
-      "favoriteCauseId": "gender-conduct",
+      "bio": "Hosts the Owen Sound meetings on whether schools are pushing kids toward LGBT identities. He signs the right natural and funds those meetings.",
+      "favoriteCauseId": "schools",
       "interests": [
-        "harassment reporting",
-        "Grey County schools"
+        "schools",
+        "Owen Sound"
       ],
       "causeIds": [
-        "gender-conduct"
+        "schools"
       ],
       "spotlightOrder": 17
     },
@@ -1052,8 +997,7 @@
         "independent checks"
       ],
       "causeIds": [
-        "voting",
-        "gender-conduct"
+        "voting"
       ],
       "spotlightOrder": 19
     },
@@ -1077,17 +1021,17 @@
     {
       "userId": "user-051",
       "displayName": "Omar",
-      "bio": "Attests alignments on school conduct and will refuse a project that uses the schools statements as a medical claim.",
-      "favoriteCauseId": "gender-conduct",
+      "bio": "Attests alignments on the schools statements and the Owen Sound meetings. He will refuse a project that adds a claim about drugs, surgery, or classroom names.",
+      "favoriteCauseId": "schools",
       "interests": [
         "review",
         "Grey County"
       ],
       "causeIds": [
-        "gender-conduct",
         "schools",
         "voting",
-        "abortion-forum"
+        "abortion-forum",
+        "civic-assimilation"
       ],
       "spotlightOrder": 21
     },
@@ -1107,15 +1051,14 @@
     {
       "userId": "user-053",
       "displayName": "Jo",
-      "bio": "Signs the schools commonality if it is only the conditional about pushing. She rejects a school counselor approving a drug.",
+      "bio": "Signs the schools commonality, the conditional about pushing. She funds the Grey County packet and the host kit.",
       "favoriteCauseId": "schools",
       "interests": [
         "schools",
-        "clinicians"
+        "Grey County"
       ],
       "causeIds": [
-        "schools",
-        "gender-conduct"
+        "schools"
       ],
       "spotlightOrder": 23
     },
@@ -1141,7 +1084,9 @@
         "small chance",
         "pause treaty"
       ],
-      "causeIds": ["ai-pause"],
+      "causeIds": [
+        "ai-pause"
+      ],
       "spotlightOrder": 25
     },
     {
@@ -1153,7 +1098,9 @@
         "job loss",
         "pause treaty"
       ],
-      "causeIds": ["ai-pause"],
+      "causeIds": [
+        "ai-pause"
+      ],
       "spotlightOrder": 26
     },
     {
@@ -1164,7 +1111,9 @@
       "interests": [
         "industry warnings"
       ],
-      "causeIds": ["ai-pause"],
+      "causeIds": [
+        "ai-pause"
+      ],
       "spotlightOrder": 27
     },
     {
@@ -1176,7 +1125,9 @@
         "technology",
         "risk"
       ],
-      "causeIds": ["ai-pause"],
+      "causeIds": [
+        "ai-pause"
+      ],
       "spotlightOrder": 28
     },
     {
@@ -1188,7 +1139,9 @@
         "children",
         "executives"
       ],
-      "causeIds": ["ai-pause"],
+      "causeIds": [
+        "ai-pause"
+      ],
       "spotlightOrder": 29
     },
     {
@@ -1200,7 +1153,9 @@
         "extinction",
         "full stop"
       ],
-      "causeIds": ["ai-pause"],
+      "causeIds": [
+        "ai-pause"
+      ],
       "spotlightOrder": 30
     },
     {
@@ -1211,7 +1166,9 @@
       "interests": [
         "capabilities race"
       ],
-      "causeIds": ["ai-pause"],
+      "causeIds": [
+        "ai-pause"
+      ],
       "spotlightOrder": 31
     },
     {
@@ -1223,7 +1180,9 @@
         "Owen Sound archive",
         "host handoff"
       ],
-      "causeIds": ["canada-us-ties"],
+      "causeIds": [
+        "canada-us-ties"
+      ],
       "spotlightOrder": 32
     },
     {
@@ -1235,7 +1194,9 @@
         "US businesses",
         "host directory"
       ],
-      "causeIds": ["canada-us-ties"],
+      "causeIds": [
+        "canada-us-ties"
+      ],
       "spotlightOrder": 33
     },
     {
@@ -1247,7 +1208,9 @@
         "family visits",
         "practical guide"
       ],
-      "causeIds": ["canada-us-ties"],
+      "causeIds": [
+        "canada-us-ties"
+      ],
       "spotlightOrder": 34
     },
     {
@@ -1258,7 +1221,9 @@
       "interests": [
         "boycott"
       ],
-      "causeIds": ["canada-us-ties"],
+      "causeIds": [
+        "canada-us-ties"
+      ],
       "spotlightOrder": 35
     },
     {
@@ -1270,40 +1235,242 @@
         "family visits",
         "narrower ties"
       ],
-      "causeIds": ["canada-us-ties"],
+      "causeIds": [
+        "canada-us-ties"
+      ],
       "spotlightOrder": 36
     }
   ],
   "implicationAllowances": [
-    { "from": { "collectionId": "compromise-abortion", "groupId": "abortion-gestational-cutoff", "statementId": "modified-left" }, "to": { "collectionId": "compromise-abortion", "groupId": "abortion-gestational-cutoff", "statementId": "commonality" }, "evidence": "accepted-bridge-role-pair" },
-    { "from": { "collectionId": "compromise-abortion", "groupId": "abortion-gestational-cutoff", "statementId": "modified-right" }, "to": { "collectionId": "compromise-abortion", "groupId": "abortion-gestational-cutoff", "statementId": "commonality" }, "evidence": "accepted-bridge-role-pair" },
-    { "from": { "collectionId": "lgbt-schools", "groupId": "lgbt-schools-pushing", "statementId": "modified-left" }, "to": { "collectionId": "lgbt-schools", "groupId": "lgbt-schools-pushing", "statementId": "commonality" }, "evidence": "accepted-bridge-role-pair" },
-    { "from": { "collectionId": "lgbt-schools", "groupId": "lgbt-schools-pushing", "statementId": "modified-right" }, "to": { "collectionId": "lgbt-schools", "groupId": "lgbt-schools-pushing", "statementId": "commonality" }, "evidence": "accepted-bridge-role-pair" },
-    { "from": { "collectionId": "network-societies-v1-b2", "groupId": "grey-assimilation", "statementId": "modified-left" }, "to": { "collectionId": "network-societies-v1-b2", "groupId": "grey-assimilation", "statementId": "commonality" }, "evidence": "live-attester-modified-to-commonality" },
-    { "from": { "collectionId": "network-societies-v1-b2", "groupId": "grey-assimilation", "statementId": "modified-right" }, "to": { "collectionId": "network-societies-v1-b2", "groupId": "grey-assimilation", "statementId": "commonality" }, "evidence": "live-attester-modified-to-commonality" },
-    { "from": { "collectionId": "network-societies-v1-b2", "groupId": "ranked-approval-poll", "statementId": "modified-left" }, "to": { "collectionId": "network-societies-v1-b2", "groupId": "ranked-approval-poll", "statementId": "commonality" }, "evidence": "live-attester-modified-to-commonality" },
-    { "from": { "collectionId": "network-societies-v1-b2", "groupId": "ranked-approval-poll", "statementId": "modified-right" }, "to": { "collectionId": "network-societies-v1-b2", "groupId": "ranked-approval-poll", "statementId": "commonality" }, "evidence": "live-attester-modified-to-commonality" },
-    { "from": { "collectionId": "network-societies-v1-b2", "groupId": "checkout-trial-bridge", "statementId": "modified-left" }, "to": { "collectionId": "network-societies-v1-b2", "groupId": "checkout-trial-bridge", "statementId": "commonality" }, "evidence": "live-attester-modified-to-commonality" },
-    { "from": { "collectionId": "network-societies-v1-b2", "groupId": "checkout-trial-bridge", "statementId": "modified-right" }, "to": { "collectionId": "network-societies-v1-b2", "groupId": "checkout-trial-bridge", "statementId": "commonality" }, "evidence": "live-attester-modified-to-commonality" },
-    { "from": { "collectionId": "network-societies-v1-b2", "groupId": "minors-medicine", "statementId": "modified-left" }, "to": { "collectionId": "network-societies-v1-b2", "groupId": "minors-medicine", "statementId": "commonality" }, "evidence": "live-attester-modified-to-commonality" },
-    { "from": { "collectionId": "network-societies-v1-b2", "groupId": "minors-medicine", "statementId": "modified-right" }, "to": { "collectionId": "network-societies-v1-b2", "groupId": "minors-medicine", "statementId": "commonality" }, "evidence": "live-attester-modified-to-commonality" },
-    { "from": { "collectionId": "network-societies-v1-b2", "groupId": "opinion-employment", "statementId": "modified-left" }, "to": { "collectionId": "network-societies-v1-b2", "groupId": "opinion-employment", "statementId": "commonality" }, "evidence": "live-attester-modified-to-commonality" },
-    { "from": { "collectionId": "network-societies-v1-b2", "groupId": "opinion-employment", "statementId": "modified-right" }, "to": { "collectionId": "network-societies-v1-b2", "groupId": "opinion-employment", "statementId": "commonality" }, "evidence": "live-attester-modified-to-commonality" },
-    { "from": { "collectionId": "network-societies-v1-b2", "groupId": "canada-us-ties", "statementId": "modified-left" }, "to": { "collectionId": "network-societies-v1-b2", "groupId": "canada-us-ties", "statementId": "commonality" }, "evidence": "live-attester-modified-to-commonality" },
-    { "from": { "collectionId": "network-societies-v1-b2", "groupId": "canada-us-ties", "statementId": "modified-right" }, "to": { "collectionId": "network-societies-v1-b2", "groupId": "canada-us-ties", "statementId": "commonality" }, "evidence": "live-attester-modified-to-commonality" },
-    { "from": { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "modified-small-chance" }, "to": { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "commonality" }, "evidence": "live-attester-modified-to-commonality" },
-    { "from": { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "modified-jobs" }, "to": { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "commonality" }, "evidence": "live-attester-modified-to-commonality" },
-    { "from": { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "modified-industry" }, "to": { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "commonality" }, "evidence": "live-attester-modified-to-commonality" },
-    { "from": { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "modified-not-luddite" }, "to": { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "commonality" }, "evidence": "live-attester-modified-to-commonality" },
-    { "from": { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "modified-children" }, "to": { "collectionId": "network-societies-v1-b2", "groupId": "ai-pause", "statementId": "commonality" }, "evidence": "live-attester-modified-to-commonality" }
+    {
+      "from": {
+        "collectionId": "compromise-abortion",
+        "groupId": "abortion-gestational-cutoff",
+        "statementId": "modified-left"
+      },
+      "to": {
+        "collectionId": "compromise-abortion",
+        "groupId": "abortion-gestational-cutoff",
+        "statementId": "commonality"
+      },
+      "evidence": "accepted-bridge-role-pair"
+    },
+    {
+      "from": {
+        "collectionId": "compromise-abortion",
+        "groupId": "abortion-gestational-cutoff",
+        "statementId": "modified-right"
+      },
+      "to": {
+        "collectionId": "compromise-abortion",
+        "groupId": "abortion-gestational-cutoff",
+        "statementId": "commonality"
+      },
+      "evidence": "accepted-bridge-role-pair"
+    },
+    {
+      "from": {
+        "collectionId": "lgbt-schools",
+        "groupId": "lgbt-schools-pushing",
+        "statementId": "modified-left"
+      },
+      "to": {
+        "collectionId": "lgbt-schools",
+        "groupId": "lgbt-schools-pushing",
+        "statementId": "commonality"
+      },
+      "evidence": "accepted-bridge-role-pair"
+    },
+    {
+      "from": {
+        "collectionId": "lgbt-schools",
+        "groupId": "lgbt-schools-pushing",
+        "statementId": "modified-right"
+      },
+      "to": {
+        "collectionId": "lgbt-schools",
+        "groupId": "lgbt-schools-pushing",
+        "statementId": "commonality"
+      },
+      "evidence": "accepted-bridge-role-pair"
+    },
+    {
+      "from": {
+        "collectionId": "network-societies-v1-b2",
+        "groupId": "canada-us-ties",
+        "statementId": "modified-left"
+      },
+      "to": {
+        "collectionId": "network-societies-v1-b2",
+        "groupId": "canada-us-ties",
+        "statementId": "commonality"
+      },
+      "evidence": "live-attester-modified-to-commonality"
+    },
+    {
+      "from": {
+        "collectionId": "network-societies-v1-b2",
+        "groupId": "canada-us-ties",
+        "statementId": "modified-right"
+      },
+      "to": {
+        "collectionId": "network-societies-v1-b2",
+        "groupId": "canada-us-ties",
+        "statementId": "commonality"
+      },
+      "evidence": "live-attester-modified-to-commonality"
+    },
+    {
+      "from": {
+        "collectionId": "network-societies-v1-b2",
+        "groupId": "ai-pause",
+        "statementId": "modified-small-chance"
+      },
+      "to": {
+        "collectionId": "network-societies-v1-b2",
+        "groupId": "ai-pause",
+        "statementId": "commonality"
+      },
+      "evidence": "live-attester-modified-to-commonality"
+    },
+    {
+      "from": {
+        "collectionId": "network-societies-v1-b2",
+        "groupId": "ai-pause",
+        "statementId": "modified-jobs"
+      },
+      "to": {
+        "collectionId": "network-societies-v1-b2",
+        "groupId": "ai-pause",
+        "statementId": "commonality"
+      },
+      "evidence": "live-attester-modified-to-commonality"
+    },
+    {
+      "from": {
+        "collectionId": "network-societies-v1-b2",
+        "groupId": "ai-pause",
+        "statementId": "modified-industry"
+      },
+      "to": {
+        "collectionId": "network-societies-v1-b2",
+        "groupId": "ai-pause",
+        "statementId": "commonality"
+      },
+      "evidence": "live-attester-modified-to-commonality"
+    },
+    {
+      "from": {
+        "collectionId": "network-societies-v1-b2",
+        "groupId": "ai-pause",
+        "statementId": "modified-not-luddite"
+      },
+      "to": {
+        "collectionId": "network-societies-v1-b2",
+        "groupId": "ai-pause",
+        "statementId": "commonality"
+      },
+      "evidence": "live-attester-modified-to-commonality"
+    },
+    {
+      "from": {
+        "collectionId": "network-societies-v1-b2",
+        "groupId": "ai-pause",
+        "statementId": "modified-children"
+      },
+      "to": {
+        "collectionId": "network-societies-v1-b2",
+        "groupId": "ai-pause",
+        "statementId": "commonality"
+      },
+      "evidence": "live-attester-modified-to-commonality"
+    },
+    {
+      "from": {
+        "collectionId": "network-societies-v1-b2",
+        "groupId": "voting",
+        "statementId": "ranked-choice-and-try"
+      },
+      "to": {
+        "collectionId": "network-societies-v1-b2",
+        "groupId": "voting",
+        "statementId": "try-other-systems"
+      },
+      "evidence": "live-attester-modified-to-commonality"
+    },
+    {
+      "from": {
+        "collectionId": "network-societies-v1-b2",
+        "groupId": "voting",
+        "statementId": "approval-and-try"
+      },
+      "to": {
+        "collectionId": "network-societies-v1-b2",
+        "groupId": "voting",
+        "statementId": "try-other-systems"
+      },
+      "evidence": "live-attester-modified-to-commonality"
+    },
+    {
+      "from": {
+        "collectionId": "network-societies-v1-b2",
+        "groupId": "opinion-employment",
+        "statementId": "modified-left"
+      },
+      "to": {
+        "collectionId": "network-societies-v1-b2",
+        "groupId": "opinion-employment",
+        "statementId": "commonality"
+      },
+      "evidence": "live-attester-modified-to-commonality"
+    },
+    {
+      "from": {
+        "collectionId": "network-societies-v1-b2",
+        "groupId": "opinion-employment",
+        "statementId": "modified-right"
+      },
+      "to": {
+        "collectionId": "network-societies-v1-b2",
+        "groupId": "opinion-employment",
+        "statementId": "commonality"
+      },
+      "evidence": "live-attester-modified-to-commonality"
+    },
+    {
+      "from": {
+        "collectionId": "network-societies-v1-b2",
+        "groupId": "civic-assimilation",
+        "statementId": "some-immigration"
+      },
+      "to": {
+        "collectionId": "network-societies-v1-b2",
+        "groupId": "civic-assimilation",
+        "statementId": "assimilate"
+      },
+      "evidence": "live-attester-recorded-bless"
+    },
+    {
+      "from": {
+        "collectionId": "network-societies-v1-b2",
+        "groupId": "civic-assimilation",
+        "statementId": "fewer-newcomers"
+      },
+      "to": {
+        "collectionId": "network-societies-v1-b2",
+        "groupId": "civic-assimilation",
+        "statementId": "assimilate"
+      },
+      "evidence": "live-attester-recorded-bless"
+    }
   ],
   "actionRules": [
     {
       "type": "publish-statement",
       "prerequisites": [],
       "targetCount": {
-        "min": 124,
-        "max": 124
+        "min": 74,
+        "max": 74
       }
     },
     {
@@ -1312,8 +1479,8 @@
         "publish-statement"
       ],
       "targetCount": {
-        "min": 16,
-        "max": 16
+        "min": 13,
+        "max": 13
       }
     },
     {
@@ -1322,8 +1489,8 @@
         "publish-statement"
       ],
       "targetCount": {
-        "min": 105,
-        "max": 105
+        "min": 104,
+        "max": 104
       }
     },
     {
@@ -1332,8 +1499,8 @@
         "publish-statement"
       ],
       "targetCount": {
-        "min": 21,
-        "max": 21
+        "min": 17,
+        "max": 17
       }
     },
     {
@@ -1342,8 +1509,8 @@
         "create-cause"
       ],
       "targetCount": {
-        "min": 62,
-        "max": 62
+        "min": 55,
+        "max": 55
       }
     },
     {
@@ -1353,8 +1520,8 @@
         "publish-statement"
       ],
       "targetCount": {
-        "min": 62,
-        "max": 62
+        "min": 55,
+        "max": 55
       }
     },
     {
@@ -1402,8 +1569,8 @@
         "publish-statement"
       ],
       "targetCount": {
-        "min": 32,
-        "max": 32
+        "min": 28,
+        "max": 28
       }
     },
     {
@@ -1413,8 +1580,8 @@
         "create-bridge-board"
       ],
       "targetCount": {
-        "min": 8,
-        "max": 8
+        "min": 7,
+        "max": 7
       }
     }
   ],
@@ -1431,5 +1598,6 @@
     "reconciliation": "reports/reconciliation.json",
     "browserObservations": "reports/browser-observations.json",
     "summary": "reports/summary.md"
-  }
+  },
+  "implicationCandidates": []
 }

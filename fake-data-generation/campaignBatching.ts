@@ -20,11 +20,23 @@ export const SOLO_GAS_UNITS: Record<CampaignActionType, bigint> = {
   // setBelief is 120_000, and setBeliefsInBatch is 40_000 + 80_000 * n
   // (three beliefs => 280_000). The old 180k/90k figures left wallets short.
   'publish-statement': 4_000_000n, 'create-cause': 120_000n, 'create-bridge-board': 120_000n, 'create-bridge': 120_000n, 'set-belief': 120_000n,
-  // Base Sepolia clone-factory canary on 2026-09-29: five create-project
-  // receipts averaged 2,851,538 gas. Keep a little headroom for colder storage.
-  'attest-implication': 130_000n, 'create-project': 3_000_000n, 'attest-alignment': 130_000n,
-  'fund-project': 180_000n, 'deposit-note': 150_000n, 'delegate-note': 100_000n, 'revoke-delegation': 90_000n,
+  // Local network-societies batch 2 on 2026-10-19: 62 create-project receipts
+  // used 4,073,876–4,073,924 gas. A 3,000,000 quote left 17 founder wallets
+  // short of the balance viem requires for that limit. Headroom above the max.
+  'attest-implication': 130_000n, 'create-project': 4_500_000n, 'attest-alignment': 130_000n,
+  // 2026-10-21 local buys used 252,635–257,259 gas. viem submits a higher gas
+  // limit than gas used, and the node checks that limit against the balance.
+  // A 180,000 quote, even with the 25% wallet buffer, left frequent funders short.
+  'fund-project': 400_000n, 'deposit-note': 350_000n, 'delegate-note': 100_000n, 'revoke-delegation': 90_000n,
+  // ERC-20 deposit approves then deposits. A delegated-note purchase is larger than a wallet buy.
+  'spend-delegated-note': 400_000n,
 };
+
+/**
+ * Gas limit for one ERC-20 `approve` the writer sends outside the planned action.
+ * A project buy approves once per project. An ERC-20 note deposit approves every time.
+ */
+export const ERC20_APPROVAL_GAS_UNITS = 80_000n;
 
 /** Storage and log cost of one extra item once the transaction overhead is paid. */
 const MARGINAL_GAS_UNITS: Partial<Record<CampaignActionType, bigint>> = {

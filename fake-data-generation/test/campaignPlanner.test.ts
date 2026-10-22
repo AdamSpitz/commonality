@@ -216,11 +216,36 @@ test('validation rejects an action whose prerequisite points forward', async () 
   assert.throws(() => validatePlannedActions(manifest, plan.statements, plan.users, plan.projects, invalid), /impossible dependency/);
 });
 
+test('network-societies pilot pins persona belief choices', async () => {
+  const manifest = JSON.parse(await readFile(new URL('../campaigns/network-societies-v1-pilot.json', import.meta.url), 'utf8')) as CampaignManifestV1;
+  const decisions = JSON.parse(await readFile(new URL('../campaigns/network-societies-v1-pilot-decisions.json', import.meta.url), 'utf8')) as {
+    people: { userId: string; name: string; signs?: string[]; rejects?: string[]; unsigned?: string[] }[];
+  };
+  const plan = await buildCampaignPlan(manifest);
+  const beliefs = plan.actions.filter((action) => action.type === 'set-belief');
+  assert.equal(beliefs.length, 59);
+  const byStatementId = (sourceId: string, userId: string) => beliefs.filter((action) => {
+    const statement = plan.statements.find((item) => item.id === action.statementId);
+    return action.actorUserId === userId && statement?.source.statementId === sourceId;
+  });
+  for (const person of decisions.people) {
+    for (const statementId of person.signs ?? []) {
+      assert.deepEqual(byStatementId(statementId, person.userId).map((action) => action.belief), ['believe'], `${person.name} ${statementId}`);
+    }
+    for (const statementId of person.rejects ?? []) {
+      assert.deepEqual(byStatementId(statementId, person.userId).map((action) => action.belief), ['disbelieve'], `${person.name} ${statementId}`);
+    }
+  }
+  const owen = plan.users.find((user) => user.displayName === 'Owen')!;
+  const staffed = plan.statements.find((statement) => statement.source.statementId === 'taught-in-staffed-schools')!;
+  assert.equal(beliefs.some((action) => action.actorUserId === owen.id && action.statementId === staffed.id && action.belief === 'disbelieve'), false);
+});
+
 test('network-societies pilot reuses one directory statement and publishes no implication', async () => {
   const manifest = JSON.parse(await readFile(new URL('../campaigns/network-societies-v1-pilot.json', import.meta.url), 'utf8')) as CampaignManifestV1;
   const plan = await buildCampaignPlan(manifest);
   assert.equal(plan.users.length, 40);
-  assert.equal(plan.statements.length, 40);
+  assert.equal(plan.statements.length, 16);
   assert.equal(plan.projects.length, 20);
   const shared = plan.statements.find((statement) => statement.source.statementId === 'class-host-directory');
   assert.ok(shared);
@@ -248,19 +273,36 @@ test('batch 2 keeps the pilot families, reuses accepted bridges, and shares one 
   }
   const plan = await buildCampaignPlan(manifest);
   assert.equal(plan.users.length, 72);
-  assert.equal(plan.statements.length, 124);
-  assert.equal(plan.projects.length, 62);
+  assert.equal(plan.statements.length, 74);
+  assert.equal(plan.projects.length, 55);
+  assert.equal(plan.actions.filter((action) => action.funding?.kind === 'retroactive').length, 0);
   const checklist = plan.statements.find((statement) => statement.source.statementId === 'moderator-checklist');
   assert.ok(checklist);
   assert.equal(checklist!.causeId, 'abortion-forum');
   assert.deepEqual(checklist!.alsoOnCauseIds, ['voting']);
-  assert.equal(plan.projects.filter((project) => project.statementIds.includes(checklist!.id)).length, 1);
+  assert.equal(plan.projects.filter((project) => project.statementIds.includes(checklist!.id)).length, 2);
+  const singleShared = plan.projects.filter((project) => {
+    if (project.statementIds.length !== 1) return false;
+    const statement = plan.statements.find((item) => item.id === project.statementIds[0]);
+    return (statement?.alsoOnCauseIds?.length ?? 0) >= 1;
+  });
+  assert.deepEqual(singleShared.map((project) => project.title).sort(), [
+    'Grey County class-host directory',
+    'Moderator checklist card',
+    'Plain-text Grey County notice',
+    'Printed moderator checklist',
+  ]);
+  const notice = plan.statements.find((statement) => statement.source.statementId === 'plain-text-notice')!;
+  assert.equal(notice.causeId, 'civic-assimilation');
+  assert.deepEqual(notice.alsoOnCauseIds, ['christian-teaching']);
   const implications = plan.actions.filter((action) => action.type === 'attest-implication');
-  assert.equal(implications.length, 21);
+  assert.equal(implications.length, 17);
   const accepted = implications.filter((action) => action.implication!.evidence === 'accepted-bridge-role-pair');
   const live = implications.filter((action) => action.implication!.evidence === 'live-attester-modified-to-commonality');
+  const recorded = implications.filter((action) => action.implication!.evidence === 'live-attester-recorded-bless');
   assert.equal(accepted.length, 4);
-  assert.equal(live.length, 17);
+  assert.equal(live.length, 11);
+  assert.equal(recorded.length, 2);
   for (const action of accepted) {
     const from = plan.statements.find((statement) => statement.id === action.implication!.fromStatementId)!;
     assert.ok(from.source.collectionId === 'compromise-abortion' || from.source.collectionId === 'lgbt-schools');
@@ -269,8 +311,9 @@ test('batch 2 keeps the pilot families, reuses accepted bridges, and shares one 
     const from = plan.statements.find((statement) => statement.id === action.implication!.fromStatementId)!;
     const to = plan.statements.find((statement) => statement.id === action.implication!.toStatementId)!;
     const plainModified = from.role === null && from.source.statementId.startsWith('modified-') && action.implication!.evidence === 'live-attester-modified-to-commonality';
-    assert.ok(from.role === 'modified-left' || from.role === 'modified-right' || plainModified);
-    assert.equal(to.role, 'commonality');
+    const recordedBless = action.implication!.evidence === 'live-attester-recorded-bless';
+    assert.ok(from.role === 'modified-left' || from.role === 'modified-right' || plainModified || recordedBless);
+    assert.equal(to.role, recordedBless ? null : 'commonality');
     assert.equal(from.source.groupId, to.source.groupId);
   }
   const michigan = plan.statements.find((statement) => statement.source.statementId === 'michigan-legislature')!;
@@ -283,12 +326,22 @@ test('batch 2 keeps the pilot families, reuses accepted bridges, and shares one 
   const forum = plan.actions.find((action) => action.type === 'create-cause' && action.causeId === 'abortion-forum')!.board!;
   assert.equal(forum.role, 'plain');
   assert.ok(forum.statementIds.includes(michigan.id));
-  for (const causeId of ['grey-assimilation', 'ranked-approval-poll', 'checkout-trial-bridge', 'minors-medicine', 'opinion-employment', 'canada-us-ties']) {
+  for (const causeId of ['grey-assimilation', 'checkout-trial-bridge']) {
     const board = plan.actions.find((action) => action.type === 'create-cause' && action.causeId === causeId)!.board!;
     assert.equal(board.role, 'commonality');
-    assert.equal(implications.filter((action) => action.causeId === causeId).length, 2, causeId);
-    assert.ok(implications.filter((action) => action.causeId === causeId).every((action) => action.implication!.evidence === 'live-attester-modified-to-commonality'));
+    assert.equal(implications.filter((action) => action.causeId === causeId).length, 0, causeId);
   }
+  const votingBoard = plan.actions.find((action) => action.type === 'create-cause' && action.causeId === 'voting')!.board!;
+  assert.equal(votingBoard.role, 'commonality');
+  assert.equal(implications.filter((action) => action.causeId === 'voting').length, 2);
+  assert.equal(plan.actions.some((action) => action.type === 'create-cause' && action.causeId === 'minors-medicine'), false);
+  for (const causeId of ['opinion-employment', 'canada-us-ties']) {
+    const board = plan.actions.find((action) => action.type === 'create-cause' && action.causeId === causeId)!.board!;
+    assert.equal(board.role, 'commonality');
+  }
+  assert.equal(implications.filter((action) => action.causeId === 'opinion-employment').length, 2);
+  assert.equal(implications.filter((action) => action.causeId === 'canada-us-ties').length, 2);
+  assert.ok(implications.filter((action) => action.causeId === 'canada-us-ties').every((action) => action.implication!.evidence === 'live-attester-modified-to-commonality'));
   const pauseBoard = plan.actions.find((action) => action.type === 'create-cause' && action.causeId === 'ai-pause')!.board!;
   assert.equal(pauseBoard.role, 'plain');
   const pauseArrows = implications.filter((action) => action.causeId === 'ai-pause');
@@ -297,8 +350,8 @@ test('batch 2 keeps the pilot families, reuses accepted bridges, and shares one 
   assert.deepEqual(pauseFrom, ['modified-children', 'modified-industry', 'modified-jobs', 'modified-not-luddite', 'modified-small-chance']);
   const canadaBoard = plan.actions.find((action) => action.type === 'create-cause' && action.causeId === 'canada-us-ties')!.board!;
   const canadaIds = canadaBoard.statementIds.map((id) => plan.statements.find((statement) => statement.id === id)!.source.statementId);
-  assert.deepEqual(canadaIds, ['commonality', 'cultural-archive', 'ties-guide', 'community-event', 'exchange-directory', 'host-handoff', 'boycott-ordinary-ties', 'narrower-than-visits']);
-  assert.equal(plan.projects.filter((project) => project.causeId === 'canada-us-ties').length, 7);
+  assert.deepEqual(canadaIds, ['commonality', 'boycott-ordinary-ties', 'narrower-than-visits']);
+  assert.equal(plan.projects.filter((project) => project.causeId === 'canada-us-ties').length, 4);
   const boycott = plan.statements.find((statement) => statement.source.groupId === 'canada-us-ties' && statement.source.statementId === 'boycott-ordinary-ties')!;
   const narrower = plan.statements.find((statement) => statement.source.groupId === 'canada-us-ties' && statement.source.statementId === 'narrower-than-visits')!;
   const canadaCommonality = plan.statements.find((statement) => statement.source.groupId === 'canada-us-ties' && statement.source.statementId === 'commonality')!;
@@ -309,7 +362,8 @@ test('batch 2 keeps the pilot families, reuses accepted bridges, and shares one 
     assert.equal(implications.some((action) => action.implication!.fromStatementId === statement.id || action.implication!.toStatementId === statement.id), false, statementId);
   }
   for (const causeId of manifest.causes.map((cause) => cause.id)) {
-    assert.ok(plan.projects.filter((project) => project.causeId === causeId).length >= 2, causeId);
+    const minimum = causeId === 'opinion-employment' ? 1 : 2;
+    assert.ok(plan.projects.filter((project) => project.causeId === causeId).length >= minimum, causeId);
   }
 });
 
@@ -320,7 +374,7 @@ test('batch 2 pins persona belief choices and never has Eli believe the settleme
   };
   const plan = await buildCampaignPlan(manifest);
   const beliefs = plan.actions.filter((action) => action.type === 'set-belief');
-  assert.equal(beliefs.length, 105);
+  assert.equal(beliefs.length, 104);
   const byStatementId = (sourceId: string, userId: string) => beliefs.filter((action) => {
     const statement = plan.statements.find((item) => item.id === action.statementId);
     return action.actorUserId === userId && statement?.source.statementId === sourceId;
@@ -355,12 +409,86 @@ test('batch 2 pins persona belief choices and never has Eli believe the settleme
     assert.equal(beliefs.some((action) => action.actorUserId === user.id && action.statementId === canadaCommonality.id && action.belief === 'believe'), false, name);
     assert.equal(beliefs.some((action) => action.actorUserId === user.id && action.statementId === canadaCommonality.id && action.belief === 'disbelieve'), true, name);
   }
+  const imani = plan.users.find((user) => user.displayName === 'Imani')!;
+  const june = plan.users.find((user) => user.displayName === 'June')!;
+  const blocked = plan.projects.find((project) => project.title === 'Blocked-customer sale record')!;
+  const blockedStatement = plan.statements.find((statement) => statement.id === blocked.statementIds[0])!;
+  assert.deepEqual(blocked.statementIds, [blockedStatement.id]);
+  assert.equal(blockedStatement.source.statementId, 'bank-blocking');
+  const checkoutTitles = [
+    'Six-shop refundable checkout trial',
+    'Independent checkout security review',
+    'Fee and failure table',
+    'Owen Sound merchant directory',
+    'Quarterly checkout clinic and host kit',
+    'Blocked-customer sale record',
+  ];
+  for (const title of checkoutTitles) {
+    const project = plan.projects.find((item) => item.title === title)!;
+    for (const user of [imani, june]) {
+      assert.equal(plan.actions.some((action) => action.type === 'fund-project' && action.actorUserId === user.id && action.projectId === project.id), true, `${user.displayName} ${title}`);
+    }
+  }
+  assert.deepEqual(byStatementId('bank-blocking', imani.id).map((action) => action.belief), ['believe']);
+  assert.deepEqual(byStatementId('refuse-crypto-payments', june.id).map((action) => action.belief), ['disbelieve']);
   const greta = plan.users.find((user) => user.displayName === 'Greta')!;
   assert.equal(beliefs.some((action) => action.actorUserId === greta.id && action.statementId === boycott.id && action.belief === 'believe'), true);
   const adele = plan.users.find((user) => user.displayName === 'Adele')!;
   assert.equal(beliefs.some((action) => action.actorUserId === adele.id && action.statementId === canadaCommonality.id), false);
   const canadaArrows = plan.actions.filter((action) => action.type === 'attest-implication' && action.causeId === 'canada-us-ties');
   assert.equal(canadaArrows.some((action) => action.implication!.fromStatementId === boycott.id), false);
+});
+
+test('reimbursement config plans early 0.10 receipts and later retroactive donations on one named project', async () => {
+  const manifest = JSON.parse(await readFile(new URL('../campaigns/network-societies-v1-b2.json', import.meta.url), 'utf8')) as CampaignManifestV1;
+  const fundRule = manifest.actionRules.find((rule) => rule.type === 'fund-project')!;
+  fundRule.targetCount = { min: 74, max: 74 };
+  manifest.reimbursement = { projectTitle: 'Six-shop refundable checkout trial', earlyPurchases: 20, retroactiveDonations: 4 };
+  const plan = await buildCampaignPlan(manifest);
+  const project = plan.projects.find((item) => item.title === 'Six-shop refundable checkout trial')!;
+  const early = plan.actions.filter((action) => action.projectId === project.id && action.funding?.kind === 'early');
+  const retroactive = plan.actions.filter((action) => action.projectId === project.id && action.funding?.kind === 'retroactive');
+  assert.equal(early.length, 20);
+  assert.ok(early.every((action) => action.funding?.tokenId === 1 && action.funding.tokenCount === 1 && action.amount === 10));
+  assert.equal(early.reduce((sum, action) => sum + action.amount!, 0), 200);
+  assert.equal(retroactive.length, 4);
+  assert.ok(retroactive.every((action) => early.every((purchase) => action.dependsOn.includes(purchase.id))));
+  const funders = new Set([...early, ...retroactive].map((action) => action.actorUserId));
+  assert.equal(funders.size, 2);
+  assert.equal(funders.has(project.founderUserId), false);
+  assert.equal(plan.actions.filter((action) => action.type === 'fund-project').length, 74);
+});
+
+test('delegatedSpend plans one payment-token note that stays delegated and is spent once', async () => {
+  const manifest = JSON.parse(await readFile(new URL('../campaigns/network-societies-v1-b2.json', import.meta.url), 'utf8')) as CampaignManifestV1;
+  manifest.userProfiles = [...(manifest.userProfiles ?? []), {
+    userId: 'user-012',
+    displayName: 'Willa',
+    bio: 'Holds June\'s payment-token note for the six-shop checkout trial and spends it once.',
+    favoriteCauseId: 'crypto-merchants',
+    interests: ['limited notes', 'Owen Sound shops'],
+    causeIds: ['crypto-merchants', 'home-learning'],
+  }];
+  manifest.actionRules.push({ type: 'spend-delegated-note', prerequisites: ['delegate-note', 'create-project', 'attest-alignment'], targetCount: { min: 1, max: 1 } });
+  manifest.delegatedSpend = { ownerUserId: 'user-016', delegateUserId: 'user-012', projectTitle: 'Six-shop refundable checkout trial' };
+  const plan = await buildCampaignPlan(manifest);
+  const spends = plan.actions.filter((action) => action.type === 'spend-delegated-note');
+  assert.equal(spends.length, 1);
+  const spend = spends[0];
+  const deposit = plan.actions.find((action) => action.type === 'deposit-note' && action.noteId === spend.noteId)!;
+  const delegation = plan.actions.find((action) => action.type === 'delegate-note' && action.noteId === spend.noteId)!;
+  const revokes = plan.actions.filter((action) => action.type === 'revoke-delegation' && action.noteId === spend.noteId);
+  assert.equal(deposit.actorUserId, 'user-016');
+  assert.equal(deposit.noteAsset, 'erc20');
+  assert.equal(deposit.funding?.tokenId, 3);
+  assert.equal(delegation.delegateUserId, 'user-012');
+  assert.equal(spend.actorUserId, 'user-012');
+  assert.equal(spend.amount, 1);
+  assert.equal(revokes.length, 0);
+  assert.ok(spend.dependsOn.includes(delegation.id));
+  const patNote = plan.actions.find((action) => action.type === 'delegate-note' && action.actorUserId === 'user-021')!;
+  assert.ok(plan.actions.some((action) => action.type === 'revoke-delegation' && action.noteId === patNote.noteId));
+  assert.notEqual(patNote.noteId, spend.noteId);
 });
 
 test('written planning artifacts reload into the same campaign plan', async () => {

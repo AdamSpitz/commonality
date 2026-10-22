@@ -11,7 +11,7 @@ import {
   AssuranceContractAbi,
 } from '@commonality/sdk/abis';
 import { attestImplication, attestImplicationsBatch } from '@commonality/sdk/conceptspace';
-import { depositETH, delegateNote, revokeNote } from '@commonality/sdk/delegation';
+import { depositERC20, depositETH, delegateNote, purchaseFromPrimaryMarketWithNotes, revokeNote } from '@commonality/sdk/delegation';
 import { createDefaultDocumentStore, createDisplayableDocument, createStatement, publishDocumentsToPublishedData } from '@commonality/sdk/displayable-documents';
 import { attestAlignment, attestAlignmentsBatch, PROJECT_ALIGNMENT_TOPIC, toSubjectId } from '@commonality/sdk/fundingportals';
 import { buyProjectTokens, createProject, donateRetroactive, getProject } from '@commonality/sdk/lazy-giving';
@@ -189,7 +189,10 @@ export function createLiveCampaignActionWriter(input: {
     clients,
     publishedDataContract: { address: input.contracts.publishedData, abi: PublishedDataAbi },
   });
-  const noteAmount = (action: PlannedAction) => campaignNoteWei(action);
+  const noteAmount = (action: PlannedAction) => {
+    const deposit = input.plan.actions.find((item) => item.type === 'deposit-note' && item.noteId === action.noteId);
+    return deposit?.noteAsset === 'erc20' ? campaignActionFundingCost(deposit) : campaignNoteWei(action);
+  };
 
   async function publishBoard(action: PlannedAction, clients: WriteClients): Promise<CampaignSubmittedWrite> {
     const board = action.board;
@@ -332,6 +335,10 @@ export function createLiveCampaignActionWriter(input: {
         approvalConfirmations: input.approvalConfirmations ?? 3 }) };
     },
     async 'deposit-note'(action, clients) {
+      if (action.noteAsset === 'erc20') {
+        const { hash, noteId } = await depositERC20(clients, notesContract, { token: input.contracts.paymentToken, amount: campaignActionFundingCost(action) });
+        return { hash, note: { contractAddress: input.contracts.delegatableNotes, noteId: noteId.toString() } };
+      }
       const { hash, noteId } = await depositETH(clients, notesContract, { amount: noteAmount(action) });
       return { hash, note: { contractAddress: input.contracts.delegatableNotes, noteId: noteId.toString() } };
     },
@@ -352,6 +359,28 @@ export function createLiveCampaignActionWriter(input: {
         owners: [requireBound(input.bindings.users[delegated?.delegateUserId ?? ''], `delegate for ${action.noteId}`), clients.account],
       });
       return { hash, note: binding };
+    },
+    async 'spend-delegated-note'(action, clients) {
+      const binding = requireBound(input.bindings.notes[action.noteId!], `note ${action.noteId}`);
+      const deposit = input.plan.actions.find((item) => item.type === 'deposit-note' && item.noteId === action.noteId);
+      const owner = requireBound(input.bindings.users[deposit?.actorUserId ?? ''], `note owner ${action.noteId}`);
+      const assurance = projectAddress(action.projectId);
+      let token = projectTokens.get(action.projectId!);
+      if (!token) {
+        const folded = await getProject(machinery, assurance);
+        if (!folded?.erc1155Address) throw new Error(`cannot spend a note on unknown project ${action.projectId}`);
+        token = folded.erc1155Address as Address;
+        projectTokens.set(action.projectId!, token);
+      }
+      const count = BigInt(action.funding?.tokenCount ?? 1);
+      const hash = await purchaseFromPrimaryMarketWithNotes(clients, notesContract, {
+        purchaseShares: [{ noteId: BigInt(binding.noteId), chain: [clients.account, owner], shares: count }],
+        primaryMarket: assurance,
+        erc1155Contract: token,
+        tokenId: BigInt(action.funding?.tokenId ?? 3),
+        count,
+      });
+      return { hash };
     },
   };
 

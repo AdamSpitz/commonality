@@ -42,13 +42,13 @@ test('funding needs include gas, note deposits, and project token buys', () => {
   const [need] = computeCampaignFundingNeeds(plan, [wallet], 1_000_000_000n);
   assert.equal(need.walletSlot, 'wallet-user-001');
   assert.equal(need.paymentTokenUnits, parseUnits('0.01', 6));
-  assert.ok(need.nativeWei >= 120_000n * 1_000_000_000n + 180_000n * 1_000_000_000n + 150_000n * 1_000_000_000n + CAMPAIGN_NOTE_WEI);
+  assert.ok(need.nativeWei >= 120_000n * 1_000_000_000n + 400_000n * 1_000_000_000n + 80_000n * 1_000_000_000n + 350_000n * 1_000_000_000n + CAMPAIGN_NOTE_WEI);
 });
 
 test('native reserve scales with gas and leaves idle wallets unfunded', () => {
   const idle = { ...wallet, walletSlot: 'wallet-idle' };
   const needs = computeCampaignFundingNeeds(plan, [wallet, idle], 1_000_000_000n);
-  const estimatedGasWei = (120_000n + 180_000n + 150_000n) * 1_000_000_000n;
+  const estimatedGasWei = (120_000n + 400_000n + 80_000n + 350_000n) * 1_000_000_000n;
   assert.equal(needs[0].nativeWei, CAMPAIGN_NOTE_WEI + estimatedGasWei * 125n / 100n + parseEther('0.0001'));
   assert.equal(needs[1].nativeWei, 0n);
 });
@@ -57,6 +57,29 @@ test('publisher wallet receives gas for actorless statement writes', () => {
   const publishOnly = { ...plan, actions: [action({ id: 'publish', type: 'publish-statement', actorUserId: null })] } as CampaignPlan;
   const [need] = computeCampaignFundingNeeds(publishOnly, [wallet], 6_000_000n);
   assert.ok(need.nativeWei >= 4_000_000n * 6_000_000n);
+});
+
+test('project buys fund one approval per project and the observed purchase gas', () => {
+  const buys = [
+    action({ id: 'buy-1', type: 'fund-project', projectId: 'project-001', sequence: 1 }),
+    action({ id: 'buy-2', type: 'fund-project', projectId: 'project-001', sequence: 2 }),
+    action({ id: 'buy-3', type: 'fund-project', projectId: 'project-002', sequence: 3 }),
+  ];
+  const buyPlan = { ...plan, actions: buys } as CampaignPlan;
+  const [need] = computeCampaignFundingNeeds(buyPlan, [wallet], 1_000_000_000n);
+  const gasWei = (400_000n * 3n + 80_000n * 2n) * 1_000_000_000n;
+  assert.equal(need.nativeWei, gasWei * 125n / 100n + parseEther('0.0001'));
+  assert.ok(need.nativeWei >= 257_259n * 3n * 1_000_000_000n);
+});
+
+test('create-project quotes cover the local clone-factory receipt', () => {
+  const create = action({ id: 'project', type: 'create-project' });
+  // 2026-10-19 local receipts used 4,073,924 gas. The old 3,000,000 quote
+  // was below that, so the 25% buffer still left founders short.
+  assert.equal(estimateGroupGas([create]), 4_500_000n);
+  const projectPlan = { ...plan, actions: [create] } as CampaignPlan;
+  const [need] = computeCampaignFundingNeeds(projectPlan, [wallet], 1_000_000_000n);
+  assert.ok(need.nativeWei >= 4_073_924n * 1_000_000_000n);
 });
 
 test('belief batches and publishes are funded for the gas the writer requests', () => {

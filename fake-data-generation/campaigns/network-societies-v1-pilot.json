@@ -11,17 +11,20 @@
   "sourcePolicy": {
     "kind": "accepted-plus-campaign-synthetic",
     "fingerprintAlgorithm": "sha256",
-    "excludeCollections": ["proliferation"],
+    "excludeCollections": [
+      "proliferation"
+    ],
     "campaignCollection": "network-societies-v1-pilot-statements.json"
   },
   "scale": {
     "minCauses": 4,
     "maxCauses": 6,
-    "minStatements": 40,
-    "maxStatements": 40,
+    "minStatements": 16,
+    "maxStatements": 16,
     "allowRepeatedStatementRefs": true
   },
   "projectStories": "network-societies-v1-pilot-projects.json",
+  "beliefDecisions": "network-societies-v1-pilot-decisions.json",
   "causes": [
     {
       "id": "crypto-merchants",
@@ -29,16 +32,21 @@
       "activityTier": "large",
       "membershipWeight": 12,
       "statementRefs": [
-        { "collectionId": "network-societies-v1", "groupId": "crypto-merchants", "statementId": "refundable-checkout" },
-        { "collectionId": "network-societies-v1", "groupId": "crypto-merchants", "statementId": "published-trial-record" },
-        { "collectionId": "network-societies-v1", "groupId": "crypto-merchants", "statementId": "checkout-security-review" },
-        { "collectionId": "network-societies-v1", "groupId": "crypto-merchants", "statementId": "merchant-directory" },
-        { "collectionId": "network-societies-v1", "groupId": "crypto-merchants", "statementId": "deployment-clinic" },
-        { "collectionId": "network-societies-v1", "groupId": "crypto-merchants", "statementId": "host-kit" },
-        { "collectionId": "network-societies-v1", "groupId": "crypto-merchants", "statementId": "keep-cash-and-card" },
-        { "collectionId": "network-societies-v1", "groupId": "crypto-merchants", "statementId": "refuse-crypto-payments" },
-        { "collectionId": "network-societies-v1", "groupId": "crypto-merchants", "statementId": "bank-blocking" },
-        { "collectionId": "network-societies-v1", "groupId": "crypto-merchants", "statementId": "fee-schedule" }
+        {
+          "collectionId": "network-societies-v1",
+          "groupId": "crypto-merchants",
+          "statementId": "refundable-checkout"
+        },
+        {
+          "collectionId": "network-societies-v1",
+          "groupId": "crypto-merchants",
+          "statementId": "refuse-crypto-payments"
+        },
+        {
+          "collectionId": "network-societies-v1",
+          "groupId": "crypto-merchants",
+          "statementId": "bank-blocking"
+        }
       ]
     },
     {
@@ -47,17 +55,36 @@
       "activityTier": "large",
       "membershipWeight": 12,
       "statementRefs": [
-        { "collectionId": "network-societies-v1", "groupId": "civic-assimilation", "statementId": "language-sessions" },
-        { "collectionId": "network-societies-v1", "groupId": "civic-assimilation", "statementId": "civics-pack" },
-        { "collectionId": "network-societies-v1", "groupId": "civic-assimilation", "statementId": "park-paths" },
-        { "collectionId": "network-societies-v1", "groupId": "civic-assimilation", "statementId": "tutor-check" },
-        { "collectionId": "network-societies-v1", "groupId": "civic-assimilation", "statementId": "organizer-handoff" },
-        { "collectionId": "network-societies-v1", "groupId": "civic-assimilation", "statementId": "english-township-business" },
-        { "collectionId": "network-societies-v1", "groupId": "civic-assimilation", "statementId": "own-language-communities" },
-        { "collectionId": "network-societies-v1", "groupId": "civic-assimilation", "statementId": "housing-before-recruiting" },
-        { "collectionId": "network-societies-v1", "groupId": "civic-assimilation", "statementId": "welcome-signage" },
-        { "collectionId": "network-societies-v1", "groupId": "civic-assimilation", "statementId": "session-limit" },
-        { "collectionId": "network-societies-v1", "groupId": "shared-goods", "statementId": "class-host-directory" }
+        {
+          "collectionId": "network-societies-v1",
+          "groupId": "civic-assimilation",
+          "statementId": "assimilate"
+        },
+        {
+          "collectionId": "network-societies-v1",
+          "groupId": "civic-assimilation",
+          "statementId": "some-immigration"
+        },
+        {
+          "collectionId": "network-societies-v1",
+          "groupId": "civic-assimilation",
+          "statementId": "fewer-newcomers"
+        },
+        {
+          "collectionId": "network-societies-v1",
+          "groupId": "civic-assimilation",
+          "statementId": "english-around-here"
+        },
+        {
+          "collectionId": "network-societies-v1",
+          "groupId": "civic-assimilation",
+          "statementId": "keep-own-ways"
+        },
+        {
+          "collectionId": "network-societies-v1",
+          "groupId": "shared-goods",
+          "statementId": "class-host-directory"
+        }
       ]
     },
     {
@@ -66,16 +93,31 @@
       "activityTier": "medium",
       "membershipWeight": 10,
       "statementRefs": [
-        { "collectionId": "network-societies-v1", "groupId": "christian-teaching", "statementId": "midweek-notes" },
-        { "collectionId": "network-societies-v1", "groupId": "christian-teaching", "statementId": "transcription" },
-        { "collectionId": "network-societies-v1", "groupId": "christian-teaching", "statementId": "substitute-rota" },
-        { "collectionId": "network-societies-v1", "groupId": "christian-teaching", "statementId": "named-confession" },
-        { "collectionId": "network-societies-v1", "groupId": "christian-teaching", "statementId": "no-joint-doctrine" },
-        { "collectionId": "network-societies-v1", "groupId": "christian-teaching", "statementId": "host-kit" },
-        { "collectionId": "network-societies-v1", "groupId": "christian-teaching", "statementId": "civic-transcription-only" },
-        { "collectionId": "network-societies-v1", "groupId": "christian-teaching", "statementId": "keep-notes-inside" },
-        { "collectionId": "network-societies-v1", "groupId": "christian-teaching", "statementId": "interchurch-calendar" },
-        { "collectionId": "network-societies-v1", "groupId": "shared-goods", "statementId": "class-host-directory" }
+        {
+          "collectionId": "network-societies-v1",
+          "groupId": "christian-teaching",
+          "statementId": "shared-teaching-notes"
+        },
+        {
+          "collectionId": "network-societies-v1",
+          "groupId": "christian-teaching",
+          "statementId": "independent-church-help"
+        },
+        {
+          "collectionId": "network-societies-v1",
+          "groupId": "christian-teaching",
+          "statementId": "keep-notes-inside"
+        },
+        {
+          "collectionId": "network-societies-v1",
+          "groupId": "christian-teaching",
+          "statementId": "civic-transcription-only"
+        },
+        {
+          "collectionId": "network-societies-v1",
+          "groupId": "shared-goods",
+          "statementId": "class-host-directory"
+        }
       ]
     },
     {
@@ -84,54 +126,408 @@
       "activityTier": "medium",
       "membershipWeight": 10,
       "statementRefs": [
-        { "collectionId": "network-societies-v1", "groupId": "home-learning", "statementId": "science-unit" },
-        { "collectionId": "network-societies-v1", "groupId": "home-learning", "statementId": "field-trip" },
-        { "collectionId": "network-societies-v1", "groupId": "home-learning", "statementId": "science-kits" },
-        { "collectionId": "network-societies-v1", "groupId": "home-learning", "statementId": "saturday-meetups" },
-        { "collectionId": "network-societies-v1", "groupId": "home-learning", "statementId": "successor-host" },
-        { "collectionId": "network-societies-v1", "groupId": "home-learning", "statementId": "method-on-the-page" },
-        { "collectionId": "network-societies-v1", "groupId": "home-learning", "statementId": "no-religious-claims" },
-        { "collectionId": "network-societies-v1", "groupId": "home-learning", "statementId": "school-families-may-borrow" },
-        { "collectionId": "network-societies-v1", "groupId": "home-learning", "statementId": "staffed-schools" },
-        { "collectionId": "network-societies-v1", "groupId": "home-learning", "statementId": "lab-safety" },
-        { "collectionId": "network-societies-v1", "groupId": "shared-goods", "statementId": "class-host-directory" }
+        {
+          "collectionId": "network-societies-v1",
+          "groupId": "home-learning",
+          "statementId": "reusable-home-materials"
+        },
+        {
+          "collectionId": "network-societies-v1",
+          "groupId": "home-learning",
+          "statementId": "materials-without-religion"
+        },
+        {
+          "collectionId": "network-societies-v1",
+          "groupId": "home-learning",
+          "statementId": "taught-in-staffed-schools"
+        },
+        {
+          "collectionId": "network-societies-v1",
+          "groupId": "shared-goods",
+          "statementId": "class-host-directory"
+        }
       ]
     }
   ],
   "personas": [
-    { "id": "community-organizer", "count": 4, "roles": ["cause-founder", "supporter"], "causesPerUser": { "min": 2, "max": 3 }, "activityWeight": 2, "inactivityRate": 0, "fundingWeight": 1.2 },
-    { "id": "project-builder", "count": 6, "roles": ["project-founder", "supporter"], "causesPerUser": { "min": 1, "max": 2 }, "activityWeight": 1.7, "inactivityRate": 0, "fundingWeight": 0.8 },
-    { "id": "trusted-delegate", "count": 5, "roles": ["delegate", "supporter"], "causesPerUser": { "min": 2, "max": 4 }, "activityWeight": 2, "inactivityRate": 0, "fundingWeight": 1.4 },
-    { "id": "bridge-mediator", "count": 5, "roles": ["attester", "mediator"], "causesPerUser": { "min": 2, "max": 4 }, "activityWeight": 2, "inactivityRate": 0, "fundingWeight": 0.4 },
-    { "id": "regular-supporter", "count": 14, "roles": ["supporter"], "causesPerUser": { "min": 1, "max": 3 }, "activityWeight": 1, "inactivityRate": 0.1, "fundingWeight": 1 },
-    { "id": "quiet-neighbor", "count": 6, "roles": ["lurker", "supporter"], "causesPerUser": { "min": 1, "max": 2 }, "activityWeight": 0.2, "inactivityRate": 0.4, "fundingWeight": 0.3 }
+    {
+      "id": "community-organizer",
+      "count": 4,
+      "roles": [
+        "cause-founder",
+        "supporter"
+      ],
+      "causesPerUser": {
+        "min": 2,
+        "max": 3
+      },
+      "activityWeight": 2,
+      "inactivityRate": 0,
+      "fundingWeight": 1.2
+    },
+    {
+      "id": "project-builder",
+      "count": 6,
+      "roles": [
+        "project-founder",
+        "supporter"
+      ],
+      "causesPerUser": {
+        "min": 1,
+        "max": 2
+      },
+      "activityWeight": 1.7,
+      "inactivityRate": 0,
+      "fundingWeight": 0.8
+    },
+    {
+      "id": "trusted-delegate",
+      "count": 5,
+      "roles": [
+        "delegate",
+        "supporter"
+      ],
+      "causesPerUser": {
+        "min": 2,
+        "max": 4
+      },
+      "activityWeight": 2,
+      "inactivityRate": 0,
+      "fundingWeight": 1.4
+    },
+    {
+      "id": "bridge-mediator",
+      "count": 5,
+      "roles": [
+        "attester",
+        "mediator"
+      ],
+      "causesPerUser": {
+        "min": 2,
+        "max": 4
+      },
+      "activityWeight": 2,
+      "inactivityRate": 0,
+      "fundingWeight": 0.4
+    },
+    {
+      "id": "regular-supporter",
+      "count": 14,
+      "roles": [
+        "supporter"
+      ],
+      "causesPerUser": {
+        "min": 1,
+        "max": 3
+      },
+      "activityWeight": 1,
+      "inactivityRate": 0.1,
+      "fundingWeight": 1
+    },
+    {
+      "id": "quiet-neighbor",
+      "count": 6,
+      "roles": [
+        "lurker",
+        "supporter"
+      ],
+      "causesPerUser": {
+        "min": 1,
+        "max": 2
+      },
+      "activityWeight": 0.2,
+      "inactivityRate": 0.4,
+      "fundingWeight": 0.3
+    }
   ],
   "userProfiles": [
-    { "userId": "user-001", "displayName": "Ruth", "bio": "Keeps the books for a shop in Owen Sound and wants the checkout trial's fees published. She will not sign a demand that shops refuse crypto.", "favoriteCauseId": "crypto-merchants", "interests": ["shop fees", "Owen Sound"], "causeIds": ["crypto-merchants", "civic-assimilation"], "spotlightOrder": 1 },
-    { "userId": "user-002", "displayName": "Helen", "bio": "Preaches at a small Grey County church and wants the midweek notes reusable, with the confession named. She does not treat a shared host directory as agreement on doctrine.", "favoriteCauseId": "christian-teaching", "interests": ["preaching", "Grey County churches"], "causeIds": ["christian-teaching", "home-learning"], "spotlightOrder": 2 },
-    { "userId": "user-003", "displayName": "Imani", "bio": "Recently moved to Owen Sound and wants the twelve conversation sessions with childcare. She rejects the demand to stop recruiting newcomers.", "favoriteCauseId": "civic-assimilation", "interests": ["English practice", "Owen Sound"], "causeIds": ["civic-assimilation", "crypto-merchants"], "spotlightOrder": 3 },
-    { "userId": "user-004", "displayName": "Owen", "bio": "Home-schools in Grey County and wants the printable science unit with no religious claims. He will not sign a request to release a congregation's midweek notes.", "favoriteCauseId": "home-learning", "interests": ["home science", "Grey County"], "causeIds": ["home-learning", "christian-teaching"], "spotlightOrder": 4 },
-    { "userId": "user-005", "displayName": "Len", "bio": "Runs a shop that wants to keep cash and cards while trying the refundable checkout. He is not a crypto enthusiast.", "favoriteCauseId": "crypto-merchants", "interests": ["retail", "refunds"], "causeIds": ["crypto-merchants"], "spotlightOrder": 5 },
-    { "userId": "user-006", "displayName": "Doug", "bio": "Has lived in Owen Sound for decades. He wants the park-path season and English township business, and he wants recruiting to wait on housing.", "favoriteCauseId": "civic-assimilation", "interests": ["Harrison Park", "township business"], "causeIds": ["civic-assimilation"], "spotlightOrder": 6 },
-    { "userId": "user-007", "displayName": "Nadia", "bio": "Checks directories for a living. She will confirm a class-host listing and will not treat that check as endorsement of the host's church or school.", "favoriteCauseId": "christian-teaching", "interests": ["directories", "independent checks"], "causeIds": ["christian-teaching", "home-learning"], "spotlightOrder": 7 },
-    { "userId": "user-008", "displayName": "Chris", "bio": "Builds the science-kit instructions and wants the hazards written down. He does not want public rooms closed to home-school meetups.", "favoriteCauseId": "home-learning", "interests": ["science kits", "lab safety"], "causeIds": ["home-learning"], "spotlightOrder": 8 },
-    { "userId": "user-011", "displayName": "Ned", "bio": "Accepts a limited note from Pat for Owen Sound shop work. Holding the note is not a belief about crypto, and it is not yet spent.", "favoriteCauseId": "crypto-merchants", "interests": ["Owen Sound shops", "limited notes"], "causeIds": ["crypto-merchants", "civic-assimilation", "christian-teaching", "home-learning"], "spotlightOrder": 9 },
-    { "userId": "user-021", "displayName": "Pat", "bio": "Delegates a small note to Ned for the checkout trial and can revoke it. The delegation is not a signature.", "favoriteCauseId": "crypto-merchants", "interests": ["delegation", "Owen Sound shops"], "causeIds": ["crypto-merchants", "civic-assimilation"], "delegatesTo": "user-011", "spotlightOrder": 10 },
-    { "userId": "user-016", "displayName": "June", "bio": "Reviews project alignments and will refuse a project that only sounds related to a statement.", "favoriteCauseId": "crypto-merchants", "interests": ["review", "Grey County"], "causeIds": ["crypto-merchants", "civic-assimilation", "christian-teaching", "home-learning"] }
+    {
+      "userId": "user-001",
+      "displayName": "Ruth",
+      "bio": "Keeps the books for a shop in Owen Sound and wants the checkout trial's fees published. She will not sign a demand that shops refuse crypto.",
+      "favoriteCauseId": "crypto-merchants",
+      "interests": [
+        "shop fees",
+        "Owen Sound"
+      ],
+      "causeIds": [
+        "crypto-merchants",
+        "civic-assimilation"
+      ],
+      "spotlightOrder": 1
+    },
+    {
+      "userId": "user-002",
+      "displayName": "Helen",
+      "bio": "Preaches at a small Grey County church and wants freely available teaching notes that many English-speaking churches can use, with the confession named and without a joint doctrinal statement. She does not treat a shared host directory as agreement on doctrine.",
+      "favoriteCauseId": "christian-teaching",
+      "interests": [
+        "preaching",
+        "Grey County churches"
+      ],
+      "causeIds": [
+        "christian-teaching",
+        "home-learning"
+      ],
+      "spotlightOrder": 2
+    },
+    {
+      "userId": "user-003",
+      "displayName": "Imani",
+      "bio": "Recently moved to Owen Sound and wants the twelve conversation sessions with childcare. She rejects the demand to stop recruiting newcomers.",
+      "favoriteCauseId": "civic-assimilation",
+      "interests": [
+        "English practice",
+        "Owen Sound"
+      ],
+      "causeIds": [
+        "civic-assimilation",
+        "crypto-merchants"
+      ],
+      "spotlightOrder": 3
+    },
+    {
+      "userId": "user-004",
+      "displayName": "Owen",
+      "bio": "Home-schools in Grey County and wants the printable science unit with no religious claims. He will not sign a request for freely available church teaching notes.",
+      "favoriteCauseId": "home-learning",
+      "interests": [
+        "home science",
+        "Grey County"
+      ],
+      "causeIds": [
+        "home-learning",
+        "christian-teaching"
+      ],
+      "spotlightOrder": 4
+    },
+    {
+      "userId": "user-005",
+      "displayName": "Len",
+      "bio": "Runs a shop that wants to keep cash and cards while trying the refundable checkout. He is not a crypto enthusiast.",
+      "favoriteCauseId": "crypto-merchants",
+      "interests": [
+        "retail",
+        "refunds"
+      ],
+      "causeIds": [
+        "crypto-merchants"
+      ],
+      "spotlightOrder": 5
+    },
+    {
+      "userId": "user-006",
+      "displayName": "Doug",
+      "bio": "Has lived in Owen Sound for decades. He wants the park-path season and English township business, and he wants recruiting to wait on housing.",
+      "favoriteCauseId": "civic-assimilation",
+      "interests": [
+        "Harrison Park",
+        "township business"
+      ],
+      "causeIds": [
+        "civic-assimilation"
+      ],
+      "spotlightOrder": 6
+    },
+    {
+      "userId": "user-007",
+      "displayName": "Nadia",
+      "bio": "Checks directories for a living. She will confirm a class-host listing and will not treat that check as endorsement of the host's church or school.",
+      "favoriteCauseId": "christian-teaching",
+      "interests": [
+        "directories",
+        "independent checks"
+      ],
+      "causeIds": [
+        "christian-teaching",
+        "home-learning"
+      ],
+      "spotlightOrder": 7
+    },
+    {
+      "userId": "user-008",
+      "displayName": "Chris",
+      "bio": "Builds the science-kit instructions and wants the hazards written down. He does not want public rooms closed to home-school meetups.",
+      "favoriteCauseId": "home-learning",
+      "interests": [
+        "science kits",
+        "lab safety"
+      ],
+      "causeIds": [
+        "home-learning"
+      ],
+      "spotlightOrder": 8
+    },
+    {
+      "userId": "user-011",
+      "displayName": "Ned",
+      "bio": "Accepts a limited note from Pat for Owen Sound shop work. Holding the note is not a belief about crypto, and it is not yet spent.",
+      "favoriteCauseId": "crypto-merchants",
+      "interests": [
+        "Owen Sound shops",
+        "limited notes"
+      ],
+      "causeIds": [
+        "crypto-merchants",
+        "civic-assimilation",
+        "christian-teaching",
+        "home-learning"
+      ],
+      "spotlightOrder": 9
+    },
+    {
+      "userId": "user-021",
+      "displayName": "Pat",
+      "bio": "Delegates a small note to Ned for the checkout trial and can revoke it. The delegation is not a signature.",
+      "favoriteCauseId": "crypto-merchants",
+      "interests": [
+        "delegation",
+        "Owen Sound shops"
+      ],
+      "causeIds": [
+        "crypto-merchants",
+        "civic-assimilation"
+      ],
+      "delegatesTo": "user-011",
+      "spotlightOrder": 10
+    },
+    {
+      "userId": "user-016",
+      "displayName": "June",
+      "bio": "Reviews project alignments and will refuse a project that only sounds related to a statement.",
+      "favoriteCauseId": "crypto-merchants",
+      "interests": [
+        "review",
+        "Grey County"
+      ],
+      "causeIds": [
+        "crypto-merchants",
+        "civic-assimilation",
+        "christian-teaching",
+        "home-learning"
+      ]
+    }
   ],
   "actionRules": [
-    { "type": "publish-statement", "prerequisites": [], "targetCount": { "min": 40, "max": 40 } },
-    { "type": "create-cause", "prerequisites": ["publish-statement"], "targetCount": { "min": 4, "max": 4 } },
-    { "type": "set-belief", "prerequisites": ["publish-statement"], "targetCount": { "min": 60, "max": 60 } },
-    { "type": "attest-implication", "prerequisites": ["publish-statement"], "targetCount": { "min": 0, "max": 0 } },
-    { "type": "create-project", "prerequisites": ["create-cause"], "targetCount": { "min": 20, "max": 20 } },
-    { "type": "attest-alignment", "prerequisites": ["create-project", "publish-statement"], "targetCount": { "min": 20, "max": 20 } },
-    { "type": "fund-project", "prerequisites": ["create-project", "attest-alignment"], "targetCount": { "min": 40, "max": 40 } },
-    { "type": "deposit-note", "prerequisites": [], "targetCount": { "min": 12, "max": 12 } },
-    { "type": "delegate-note", "prerequisites": ["deposit-note"], "targetCount": { "min": 8, "max": 8 } },
-    { "type": "revoke-delegation", "prerequisites": ["delegate-note"], "targetCount": { "min": 3, "max": 3 } },
-    { "type": "create-bridge-board", "prerequisites": ["publish-statement"], "targetCount": { "min": 0, "max": 0 } },
-    { "type": "create-bridge", "prerequisites": ["create-cause", "create-bridge-board"], "targetCount": { "min": 0, "max": 0 } }
+    {
+      "type": "publish-statement",
+      "prerequisites": [],
+      "targetCount": {
+        "min": 16,
+        "max": 16
+      }
+    },
+    {
+      "type": "create-cause",
+      "prerequisites": [
+        "publish-statement"
+      ],
+      "targetCount": {
+        "min": 4,
+        "max": 4
+      }
+    },
+    {
+      "type": "set-belief",
+      "prerequisites": [
+        "publish-statement"
+      ],
+      "targetCount": {
+        "min": 59,
+        "max": 59
+      }
+    },
+    {
+      "type": "attest-implication",
+      "prerequisites": [
+        "publish-statement"
+      ],
+      "targetCount": {
+        "min": 0,
+        "max": 0
+      }
+    },
+    {
+      "type": "create-project",
+      "prerequisites": [
+        "create-cause"
+      ],
+      "targetCount": {
+        "min": 20,
+        "max": 20
+      }
+    },
+    {
+      "type": "attest-alignment",
+      "prerequisites": [
+        "create-project",
+        "publish-statement"
+      ],
+      "targetCount": {
+        "min": 20,
+        "max": 20
+      }
+    },
+    {
+      "type": "fund-project",
+      "prerequisites": [
+        "create-project",
+        "attest-alignment"
+      ],
+      "targetCount": {
+        "min": 40,
+        "max": 40
+      }
+    },
+    {
+      "type": "deposit-note",
+      "prerequisites": [],
+      "targetCount": {
+        "min": 12,
+        "max": 12
+      }
+    },
+    {
+      "type": "delegate-note",
+      "prerequisites": [
+        "deposit-note"
+      ],
+      "targetCount": {
+        "min": 8,
+        "max": 8
+      }
+    },
+    {
+      "type": "revoke-delegation",
+      "prerequisites": [
+        "delegate-note"
+      ],
+      "targetCount": {
+        "min": 3,
+        "max": 3
+      }
+    },
+    {
+      "type": "create-bridge-board",
+      "prerequisites": [
+        "publish-statement"
+      ],
+      "targetCount": {
+        "min": 0,
+        "max": 0
+      }
+    },
+    {
+      "type": "create-bridge",
+      "prerequisites": [
+        "create-cause",
+        "create-bridge-board"
+      ],
+      "targetCount": {
+        "min": 0,
+        "max": 0
+      }
+    }
   ],
   "artifactLayout": {
     "manifest": "manifest.json",

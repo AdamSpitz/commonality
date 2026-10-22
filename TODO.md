@@ -18,6 +18,8 @@ Getting **testnet to a two-person shared lab** is also a standing plan, not a pi
 
 - We should have a UI for making it easy for a user to follow projects aligned with *similar* statements to the ones he prefers, and then if he wants to he can do the alignment-attestations to make those projects also show up on his own preferred cause board.
 
+- I've got the admin page for the whole fake-data run, but we may also want specific pages for particular causes, so that the cause-founder can look at it and see his ecosystem from various people's POV.
+
 - **(Ask)** Verify work-request contribution/refund links against actual chain events, and verify response providers and work items against the project's beneficiary/registry before presenting verified payment or provider authority. The first slice displays reported contribution/refund amounts and authenticates acceptance only against the provider named by the response author. See [work requests](specs/tech/subsystems/work-requests/README.md).
 - **(Ask)** Complete work-request UI revisions and withdrawals, version/history inspection for offers and responses, and a browser-tested playground demonstration. SDK versioned publication actions exist; the current UI primarily creates records.
 

@@ -22,7 +22,8 @@ export type CampaignActionType =
   | 'fund-project'
   | 'deposit-note'
   | 'delegate-note'
-  | 'revoke-delegation';
+  | 'revoke-delegation'
+  | 'spend-delegated-note';
 
 export interface CampaignStatementRef {
   collectionId: string;
@@ -114,9 +115,32 @@ export interface CampaignManifestV1 {
    * and does not let the random draw overwrite them. Unsigned entries stay unpinned.
    */
   beliefDecisions?: string;
+  /**
+   * One named project gets early 0.10-receipt purchases, then retroactive
+   * donations that depend on those purchases. Twenty early purchases match
+   * the 2 USDZZZ project threshold. Absent on historical manifests.
+   */
+  reimbursement?: {
+    projectTitle: string;
+    earlyPurchases: number;
+    retroactiveDonations: number;
+  };
+  /**
+   * One payment-token note stays delegated, and the delegate buys one cheap
+   * receipt on a named project. Absent on historical manifests. The Pat/Ned
+   * revoke pair is a different story and must not be this pair.
+   */
+  delegatedSpend?: {
+    ownerUserId: string;
+    delegateUserId: string;
+    projectTitle: string;
+  };
 }
 
-export type CampaignImplicationEvidence = 'accepted-bridge-role-pair' | 'live-attester-modified-to-commonality';
+export type CampaignImplicationEvidence =
+  | 'accepted-bridge-role-pair'
+  | 'live-attester-modified-to-commonality'
+  | 'live-attester-recorded-bless';
 
 export interface CampaignImplicationAllowance {
   from: CampaignStatementRef;
@@ -165,7 +189,7 @@ function validateCauses(manifest: CampaignManifestV1): void {
   const allowanceKeys = allowances.map((item) => `${statementRefKey(item.from)}=>${statementRefKey(item.to)}`);
   requireUnique(allowanceKeys, 'implication allowances');
   for (const item of allowances) {
-    if (item.evidence !== 'accepted-bridge-role-pair' && item.evidence !== 'live-attester-modified-to-commonality') {
+    if (item.evidence !== 'accepted-bridge-role-pair' && item.evidence !== 'live-attester-modified-to-commonality' && item.evidence !== 'live-attester-recorded-bless') {
       throw new Error(`invalid implication evidence for ${allowanceKeys[allowances.indexOf(item)]}`);
     }
     if (item.from.collectionId !== item.to.collectionId || item.from.groupId !== item.to.groupId) {
@@ -250,6 +274,25 @@ export function validateCampaignManifest(manifest: CampaignManifestV1): void {
   }
   if (manifest.beliefDecisions && !/^[a-z0-9][a-z0-9-]*\.json$/.test(manifest.beliefDecisions)) {
     throw new Error('beliefDecisions must be a JSON filename in campaigns/');
+  }
+  if (manifest.reimbursement) {
+    const { projectTitle, earlyPurchases, retroactiveDonations } = manifest.reimbursement;
+    if (!projectTitle.trim()) throw new Error('reimbursement.projectTitle is required');
+    if (!Number.isInteger(earlyPurchases) || earlyPurchases < 1) throw new Error('reimbursement.earlyPurchases must be a positive integer');
+    if (!Number.isInteger(retroactiveDonations) || retroactiveDonations < 1) throw new Error('reimbursement.retroactiveDonations must be a positive integer');
+  }
+  if (manifest.delegatedSpend) {
+    const { ownerUserId, delegateUserId, projectTitle } = manifest.delegatedSpend;
+    if (!/^user-\d{3}$/.test(ownerUserId) || !/^user-\d{3}$/.test(delegateUserId) || ownerUserId === delegateUserId) {
+      throw new Error('delegatedSpend needs two different user ids');
+    }
+    if (!projectTitle.trim()) throw new Error('delegatedSpend.projectTitle is required');
+    const spendRule = manifest.actionRules.find((rule) => rule.type === 'spend-delegated-note');
+    if (!spendRule || spendRule.targetCount.min !== 1 || spendRule.targetCount.max !== 1) {
+      throw new Error('delegatedSpend requires exactly one spend-delegated-note action');
+    }
+  } else if (manifest.actionRules.some((rule) => rule.type === 'spend-delegated-note')) {
+    throw new Error('spend-delegated-note requires delegatedSpend');
   }
   validateCauses(manifest);
   validatePersonas(manifest);

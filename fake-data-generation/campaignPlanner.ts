@@ -62,6 +62,8 @@ export interface PlannedAction {
   belief?: 'believe' | 'disbelieve';
   amount?: number;
   funding?: { kind: 'early' | 'retroactive'; tokenId?: 1 | 3; tokenCount?: number; camp?: 'left' | 'right' };
+  /** Payment-token notes can be spent. ETH notes stay at 1 wei and are not spent. */
+  noteAsset?: 'erc20';
   alignment?: 'supports-described-outcome';
   delegationBasis?: { sharedCauseIds: string[]; reason: 'shared-cause-trusted-role' };
   implication?: { fromStatementId: string; toStatementId: string; evidence: CampaignImplicationEvidence };
@@ -118,8 +120,9 @@ export interface CampaignPlan {
 
 const GAS_UNITS: Record<CampaignActionType, number> = {
   'publish-statement': 4_000_000, 'create-cause': 120_000, 'create-bridge-board': 120_000, 'create-bridge': 120_000, 'set-belief': 120_000,
-  'attest-implication': 130_000, 'create-project': 1_100_000, 'attest-alignment': 130_000,
-  'fund-project': 180_000, 'deposit-note': 150_000, 'delegate-note': 100_000, 'revoke-delegation': 90_000,
+  'attest-implication': 130_000, 'create-project': 4_500_000, 'attest-alignment': 130_000,
+  'fund-project': 400_000, 'deposit-note': 350_000, 'delegate-note': 100_000, 'revoke-delegation': 90_000,
+  'spend-delegated-note': 400_000,
 };
 
 function stableJson(value: unknown): string {
@@ -207,7 +210,9 @@ function validateImplicationPair(from: PlannedStatement, to: PlannedStatement, e
   const liveModified = evidence === 'live-attester-modified-to-commonality'
     && to.role === 'commonality'
     && (from.role === 'modified-left' || from.role === 'modified-right' || from.source.statementId.startsWith('modified-'));
-  if (!sameGroup || (!bridgeRoles && !liveModified)) throw new Error(`unsuitable implication ${from.id} -> ${to.id}: pair lacks accepted bridge-role evidence`);
+  // A same-group pair with no bridge role. The allowance exists only after a stored bless of the current text.
+  const recordedBless = evidence === 'live-attester-recorded-bless';
+  if (!sameGroup || (!bridgeRoles && !liveModified && !recordedBless)) throw new Error(`unsuitable implication ${from.id} -> ${to.id}: pair lacks accepted bridge-role evidence`);
 }
 
 function statementsOnCause(statements: PlannedStatement[], causeId: string): PlannedStatement[] {
@@ -259,6 +264,8 @@ interface BeliefDecisionPerson {
   name?: string;
   signs?: string[];
   rejects?: string[];
+  unsigned?: string[];
+  funds?: string[] | string;
 }
 
 async function loadBeliefDecisions(manifest: CampaignManifestV1): Promise<BeliefDecisionPerson[]> {
@@ -494,20 +501,33 @@ export async function buildCampaignPlan(manifest: CampaignManifestV1): Promise<C
       latestBelief.set(key, action);
     }
   }
+  const reservedBeliefs = new Set(pinnedBeliefs);
+  for (const person of beliefDecisions) {
+    const user = usersById.get(person.userId);
+    if (!user) continue;
+    for (const statementId of person.unsigned ?? []) {
+      const visible = statements.filter((statement) => user.causeIds.some((causeId) => statement.causeId === causeId || statement.alsoOnCauseIds?.includes(causeId)));
+      const matches = visible.filter((statement) => statement.source.statementId === statementId);
+      if (matches.length !== 1) continue;
+      const key = `${user.id}/${matches[0].id}`;
+      if (pinnedBeliefs.has(key)) throw new Error(`${user.id} pins ${statementId} and also leaves it unsigned`);
+      reservedBeliefs.add(key);
+    }
+  }
   if (pinnedBeliefs.size > countByType['set-belief']) {
     throw new Error(`belief decisions pin ${pinnedBeliefs.size} writes, above the set-belief target ${countByType['set-belief']}`);
   }
   const randomBeliefCount = countByType['set-belief'] - pinnedBeliefs.size;
   for (let index = 0; index < randomBeliefCount; index++) {
-    const flipPool = [...latestBelief.values()].filter((action) => !pinnedBeliefs.has(`${action.actorUserId}/${action.statementId}`));
+    const flipPool = [...latestBelief.values()].filter((action) => !reservedBeliefs.has(`${action.actorUserId}/${action.statementId}`));
     const previous = index > Math.floor(randomBeliefCount * 0.92) && flipPool.length > 0 ? random.pick(flipPool) : undefined;
     let actor = previous ? usersById.get(previous.actorUserId!)! : random.weighted(activeUsers, (user) => user.activityWeight);
-    let openStatements = preferredStatements(actor, statements).filter((statement) => !pinnedBeliefs.has(`${actor.id}/${statement.id}`));
+    let openStatements = preferredStatements(actor, statements).filter((statement) => !reservedBeliefs.has(`${actor.id}/${statement.id}`));
     if (!previous && openStatements.length === 0) {
-      const eligible = activeUsers.filter((user) => preferredStatements(user, statements).some((statement) => !pinnedBeliefs.has(`${user.id}/${statement.id}`)));
+      const eligible = activeUsers.filter((user) => preferredStatements(user, statements).some((statement) => !reservedBeliefs.has(`${user.id}/${statement.id}`)));
       if (eligible.length === 0) throw new Error('no user has an unpinned statement to sign');
       actor = random.weighted(eligible, (user) => user.activityWeight);
-      openStatements = preferredStatements(actor, statements).filter((statement) => !pinnedBeliefs.has(`${actor.id}/${statement.id}`));
+      openStatements = preferredStatements(actor, statements).filter((statement) => !reservedBeliefs.has(`${actor.id}/${statement.id}`));
     }
     const statement = previous ? statements.find((item) => item.id === previous.statementId)! : random.pick(openStatements);
     const beliefActor = users.find((user) => user.id === (previous?.actorUserId ?? actor.id))!;
@@ -568,31 +588,66 @@ export async function buildCampaignPlan(manifest: CampaignManifestV1): Promise<C
     return { user, project };
   })) : [];
   let pinnedPledgeCursor = 0;
+  const decisionPledges = beliefDecisions.flatMap((person) => (person.funds == null ? [] : Array.isArray(person.funds) ? person.funds : [person.funds]).map((title) => {
+    const user = usersById.get(person.userId);
+    if (!user || user.inactive) throw new Error(`fund decision names an inactive user ${person.userId}`);
+    if (user.fundingWeight <= 0) throw new Error(`fund decision user cannot fund: ${person.userId}`);
+    const project = projects.find((item) => item.title === title);
+    if (!project) throw new Error(`fund decision project not planned: ${title}`);
+    if (!user.causeIds.includes(project.causeId)) throw new Error(`${user.id} is not on the board for ${title}`);
+    return { user, project };
+  }));
+  let decisionPledgeCursor = 0;
   const campBeliefs = bridgeBackers.map((user, index) => {
     const camp = index === 0 ? 'left' : 'right';
     const statement = statements.find((item) => item.causeId === bridgeProject!.causeId && item.role === `natural-${camp}`)!;
     return add({ type: 'set-belief', actorUserId: user.id, causeId: bridgeProject!.causeId, statementId: statement.id, belief: 'believe', dependsOn: [publishes.get(statement.id)!.id] });
   });
+  const reimbursement = manifest.reimbursement;
+  const retroactiveCount = reimbursement?.retroactiveDonations ?? 0;
+  const earlyFundCount = countByType['fund-project'] - retroactiveCount;
+  if (reimbursement && (earlyFundCount < reimbursement.earlyPurchases || earlyFundCount < 1)) {
+    throw new Error('reimbursement purchases do not fit in the fund-project action count');
+  }
+  const reimbursementProject = reimbursement ? projects.find((project) => project.title === reimbursement.projectTitle) : undefined;
+  if (reimbursement && !reimbursementProject) throw new Error(`reimbursement project not planned: ${reimbursement.projectTitle}`);
+  const reimbursementBackers = reimbursementProject
+    ? activeUsers.filter((user) => user.causeIds.includes(reimbursementProject.causeId) && user.fundingWeight > 0 && user.id !== reimbursementProject.founderUserId)
+    : [];
+  if (reimbursement && reimbursementBackers.length < 2) throw new Error('reimbursement project needs two funders who are not the founder');
   const thresholdPurchases: PlannedAction[] = [];
-  for (let index = 0; index < countByType['fund-project']; index++) {
+  const reimbursementPurchases: PlannedAction[] = [];
+  for (let index = 0; index < earlyFundCount; index++) {
     const featuredCause = useStories ? hobbyCauses[index] : undefined;
     const bridgePurchase = Boolean(bridgeProject && index >= hobbyCauses.length && index < hobbyCauses.length + 20);
-    const pinnedPledge = !featuredCause && !bridgePurchase && pinnedPledgeCursor < pinnedPledges.length ? pinnedPledges[pinnedPledgeCursor++] : undefined;
-    const project = pinnedPledge ? pinnedPledge.project : bridgePurchase ? bridgeProject! : featuredCause ? firstByCause.get(featuredCause)! : random.weighted(fundableProjects, (item) => Math.max(1, fundableProjects.length - (useStories ? fundableProjects.indexOf(item) : projects.indexOf(item))));
+    const reimbursementPurchase = Boolean(reimbursementProject && !useStories && index < reimbursement!.earlyPurchases);
+    const openDecisionPledges = decisionPledges.filter((pledge) => pledge.project.title !== reimbursement?.projectTitle);
+    const decisionPledge = !featuredCause && !bridgePurchase && !reimbursementPurchase && decisionPledgeCursor < openDecisionPledges.length ? openDecisionPledges[decisionPledgeCursor++] : undefined;
+    const pinnedPledge = !featuredCause && !bridgePurchase && !reimbursementPurchase && !decisionPledge && pinnedPledgeCursor < pinnedPledges.length ? pinnedPledges[pinnedPledgeCursor++] : undefined;
+    const project = decisionPledge ? decisionPledge.project : pinnedPledge ? pinnedPledge.project : bridgePurchase ? bridgeProject! : reimbursementPurchase ? reimbursementProject! : featuredCause ? firstByCause.get(featuredCause)! : random.weighted(fundableProjects, (item) => Math.max(1, fundableProjects.length - (useStories ? fundableProjects.indexOf(item) : projects.indexOf(item))));
     const supporters = activeUsers.filter((user) => user.causeIds.includes(project.causeId) && user.fundingWeight > 0 && (!useStories || user.id !== project.founderUserId));
     const interestedSupporters = featuredCause ? supporters.filter((user) => user.favoriteCauseId === featuredCause && user.id !== project.founderUserId) : [];
-    const actor = pinnedPledge ? pinnedPledge.user : bridgePurchase ? bridgeBackers[(index - hobbyCauses.length) % 2] : random.weighted(interestedSupporters.length ? interestedSupporters : supporters, (user) => user.fundingWeight);
+    const actor = decisionPledge ? decisionPledge.user : pinnedPledge ? pinnedPledge.user : bridgePurchase ? bridgeBackers[(index - hobbyCauses.length) % 2] : reimbursementPurchase ? reimbursementBackers[index % 2] : random.weighted(interestedSupporters.length ? interestedSupporters : supporters, (user) => user.fundingWeight);
     const alignment = alignments.find((item) => item.projectId === project.id);
     if (!alignment) throw new Error(`impossible fund-project: ${project.id} has no alignment action`);
     const tokenId = bridgePurchase ? 1 : 3;
     const tokenCount = bridgePurchase ? 1 : Math.max(1, Math.min(10, Math.round(fundingAmount(actor, projects.indexOf(project), random) / 100)));
     const action = add({ type: 'fund-project', actorUserId: actor.id, causeId: project.causeId, projectId: project.id,
-      amount: useStories ? tokenCount * (tokenId === 1 ? 10 : 1) : fundingAmount(actor, projects.indexOf(project), random),
-      ...(useStories ? { funding: { kind: 'early' as const, tokenId: tokenId as 1 | 3, tokenCount, ...(bridgePurchase ? { camp: ((index - hobbyCauses.length) % 2 === 0 ? 'left' : 'right') as 'left' | 'right' } : {}) } } : {}),
+      amount: reimbursementPurchase ? 10 : useStories ? tokenCount * (tokenId === 1 ? 10 : 1) : fundingAmount(actor, projects.indexOf(project), random),
+      ...(useStories || reimbursementPurchase ? { funding: { kind: 'early' as const, tokenId: (reimbursementPurchase ? 1 : tokenId) as 1 | 3, tokenCount: reimbursementPurchase ? 1 : tokenCount, ...(bridgePurchase ? { camp: ((index - hobbyCauses.length) % 2 === 0 ? 'left' : 'right') as 'left' | 'right' } : {}) } } : {}),
       dependsOn: [createProjects.get(project.id)!.id, alignment.id, ...(bridgePurchase ? [campBeliefs[(index - hobbyCauses.length) % 2].id] : [])] });
     if (bridgePurchase) thresholdPurchases.push(action);
+    if (reimbursementPurchase) reimbursementPurchases.push(action);
+  }
+  if (decisionPledgeCursor !== decisionPledges.filter((pledge) => pledge.project.title !== reimbursement?.projectTitle).length) {
+    throw new Error('persona fund decisions were not all planned');
   }
   if (pinnedPledgeCursor !== pinnedPledges.length) throw new Error('v2 spotlight profiles did not each pledge on every joined cause');
+  if (reimbursement && reimbursementProject) for (let index = 0; index < reimbursement.retroactiveDonations; index++) {
+    add({ type: 'fund-project', actorUserId: reimbursementBackers[index % 2].id, causeId: reimbursementProject.causeId, projectId: reimbursementProject.id,
+      amount: 25, funding: { kind: 'retroactive' },
+      dependsOn: [createProjects.get(reimbursementProject.id)!.id, alignments.find((item) => item.projectId === reimbursementProject.id)!.id, ...reimbursementPurchases.map((purchase) => purchase.id)] });
+  }
   if (bridgeProject) for (let index = 0; index < 4; index++) {
     add({ type: 'fund-project', actorUserId: bridgeBackers[index % 2].id, causeId: bridgeProject.causeId, projectId: bridgeProject.id,
       amount: 25, funding: { kind: 'retroactive', camp: index % 2 === 0 ? 'left' : 'right' },
@@ -616,7 +671,44 @@ export async function buildCampaignPlan(manifest: CampaignManifestV1): Promise<C
     const sharedCauseIds = delegate.causeIds.filter((causeId) => owner.causeIds.includes(causeId)).sort();
     delegations.push(add({ type: 'delegate-note', actorUserId: owner.id, noteId: deposit.noteId, delegateUserId: delegate.id, amount: deposit.amount, delegationBasis: { sharedCauseIds, reason: 'shared-cause-trusted-role' }, dependsOn: [deposit.id] }));
   }
-  for (let index = 0; index < countByType['revoke-delegation']; index++) { const delegation = delegations[index % delegations.length]; add({ type: 'revoke-delegation', actorUserId: delegation.actorUserId, noteId: delegation.noteId, dependsOn: [delegation.id] }); }
+  const spend = manifest.delegatedSpend;
+  if (spend) {
+    const owner = users.find((user) => user.id === spend.ownerUserId);
+    const delegate = delegates.find((user) => user.id === spend.delegateUserId);
+    const project = projects.find((item) => item.title === spend.projectTitle);
+    if (!owner || owner.inactive) throw new Error(`delegatedSpend owner is not an active user: ${spend.ownerUserId}`);
+    if (!delegate) throw new Error(`delegatedSpend delegate is not an active delegate: ${spend.delegateUserId}`);
+    if (!project) throw new Error(`delegatedSpend project not planned: ${spend.projectTitle}`);
+    const sharedCauseIds = delegate.causeIds.filter((causeId) => owner.causeIds.includes(causeId)).sort();
+    if (sharedCauseIds.length === 0) throw new Error('delegatedSpend pair shares no cause');
+    if (project.founderUserId === delegate.id) throw new Error('delegatedSpend delegate must not be the project founder');
+    const deposit = deposits[countByType['delegate-note'] - 1];
+    if (!deposit) throw new Error('delegatedSpend needs a delegated deposit');
+    deposit.actorUserId = owner.id;
+    deposit.noteAsset = 'erc20';
+    deposit.amount = 1;
+    deposit.funding = { kind: 'early', tokenId: 3, tokenCount: 1 };
+    const delegation = delegations[delegations.length - 1];
+    if (!delegation || delegation.noteId !== deposit.noteId) throw new Error('delegatedSpend note is not the last delegation');
+    delegation.actorUserId = owner.id;
+    delegation.delegateUserId = delegate.id;
+    delegation.amount = deposit.amount;
+    delegation.delegationBasis = { sharedCauseIds, reason: 'shared-cause-trusted-role' };
+    const alignment = alignments.find((item) => item.projectId === project.id);
+    if (!alignment) throw new Error(`delegatedSpend project has no alignment: ${project.id}`);
+    add({
+      type: 'spend-delegated-note', actorUserId: delegate.id, causeId: project.causeId, projectId: project.id, noteId: deposit.noteId,
+      amount: 1, funding: { kind: 'early', tokenId: 3, tokenCount: 1 },
+      dependsOn: [delegation.id, createProjects.get(project.id)!.id, alignment.id],
+    });
+  }
+  for (let index = 0; index < countByType['revoke-delegation']; index++) {
+    const delegation = delegations[index % delegations.length];
+    if (spend && delegation.noteId === deposits[countByType['delegate-note'] - 1]?.noteId) {
+      throw new Error('delegatedSpend note would also be revoked');
+    }
+    add({ type: 'revoke-delegation', actorUserId: delegation.actorUserId, noteId: delegation.noteId, dependsOn: [delegation.id] });
+  }
 
   validatePlannedActions(manifest, statements, users, projects, actions);
   const writesByType = Object.fromEntries(manifest.actionRules.map((rule) => [rule.type, actions.filter((action) => action.type === rule.type).length])) as Record<CampaignActionType, number>;

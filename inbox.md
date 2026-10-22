@@ -88,6 +88,8 @@ Standing index: [`workflow/testnet-working-plan.md`](workflow/testnet-working-pl
 
 - Ultimately we want vertical founders to host their own vertical-specific services like mediators, but can we have a middle ground where we can run it for them on our infrastructure (modulo blocklist concerns) until/unless they decide to host it themselves?
 
+- Go to various groups, ask them "does this actually look useful to you? what would the real version look like?" etc. Try to model that group's actual world, not just vague/fake stuff. Point is, this is important: making that connection with real-world groups doing real stuff would be a big jump from "here's this theoretical machinery for doing public goods better."
+
 - How to eliminate Commonality’s reliance on browser `localStorage` for cause drafts / founder progress (`ui/src/commonality/lib/causeStore.ts`). Today drafts are origin-scoped (so Vite `:5174` vs Docker `:8090` don’t share them) and vanish across devices/clears. Worth thinking through durable alternatives (on-chain draft, IPFS + pointer, account-linked backend, etc.) without re-centralizing or making launch heavier.
 
 - Now that have (or at least are close to having) a proper testnet setup, can we start creating an ecosystem of simulated fake users of various types? (We can use LLMs to run the ones that need more intelligence, though ideally they'll mostly be made of conventional code, to avoid burning too many LLM tokens.)

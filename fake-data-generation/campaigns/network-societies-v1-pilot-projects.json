@@ -2,32 +2,42 @@
   "crypto-merchants": [
     {
       "title": "Six-shop refundable checkout trial",
-      "outcome": "Ship an open-source checkout, with refunds, and run it for three months at six named Owen Sound shops. Publish the code and the shop list.",
-      "statementRefs": ["refundable-checkout", "published-trial-record"],
+      "outcome": "Ship an open-source checkout, with refunds, and run it for three months at six named Owen Sound shops. Publish the code and the shop list, and the shops keep taking cash and ordinary cards for the whole trial.",
+      "statementRefs": [
+        "refundable-checkout"
+      ],
       "blocker": "No one shop can justify building a checkout whose useful result is a public trial record"
     },
     {
       "title": "Independent checkout security review",
       "outcome": "Pay a reviewer who does not write the checkout to publish findings and unfixed items before the Owen Sound trial ends.",
-      "statementRefs": ["checkout-security-review"],
+      "statementRefs": [
+        "refundable-checkout"
+      ],
       "blocker": "The shops and the programmer are poor judges of their own security claims"
     },
     {
       "title": "Fee and failure table",
       "outcome": "Publish the fee on a twenty-dollar Owen Sound trial sale, and a table of failed payments, before anyone calls the trial a success.",
-      "statementRefs": ["fee-schedule", "published-trial-record"],
+      "statementRefs": [
+        "refundable-checkout"
+      ],
       "blocker": "The numbers are useful to every later shop and owned by none of them"
     },
     {
       "title": "Owen Sound merchant directory",
       "outcome": "Maintain, for one year, a directory that shows which trial shops still take the checkout and which shops stopped, with the date of each change.",
-      "statementRefs": ["merchant-directory"],
+      "statementRefs": [
+        "refundable-checkout"
+      ],
       "blocker": "A directory nobody maintains becomes an advertisement"
     },
     {
       "title": "Quarterly checkout clinic and host kit",
       "outcome": "Run four Saturday clinics in Owen Sound and leave a host kit so a second person can run the next one.",
-      "statementRefs": ["deployment-clinic", "host-kit"],
+      "statementRefs": [
+        "refundable-checkout"
+      ],
       "blocker": "The clinic stops when the first host is busy unless the hosting steps are written down"
     }
   ],
@@ -35,31 +45,41 @@
     {
       "title": "Twelve conversation sessions",
       "outcome": "Hold twelve English conversation sessions in Owen Sound with childcare in the room, and publish attendance without naming children.",
-      "statementRefs": ["language-sessions"],
+      "statementRefs": [
+        "assimilate"
+      ],
       "blocker": "Childcare and a room have to be paid before the first session, and no single family captures the benefit"
     },
     {
       "title": "Grey County civics pack",
       "outcome": "Write and release a plain-English pack for the library, the bus, a school meeting, and a township office in Grey County.",
-      "statementRefs": ["civics-pack"],
+      "statementRefs": [
+        "assimilate"
+      ],
       "blocker": "Each office explains itself differently, and no office is paid to write the combined pack"
     },
     {
       "title": "Harrison Park path season",
       "outcome": "Run one summer of path repair in Harrison Park, Owen Sound, with newcomers and long-time residents, and publish hours and costs.",
-      "statementRefs": ["park-paths"],
+      "statementRefs": [
+        "assimilate"
+      ],
       "blocker": "The work needs a full season of tools and insurance before anyone can see the paths"
     },
     {
       "title": "Conversation-session handoff",
       "outcome": "Write the steps, contacts, and childcare arrangements so a second organizer can run the next Owen Sound session series.",
-      "statementRefs": ["organizer-handoff"],
+      "statementRefs": [
+        "assimilate"
+      ],
       "blocker": "The sessions are a public good only if they survive the first organizer"
     },
     {
       "title": "Independent tutor-listing check",
       "outcome": "For one season, have someone who does not run the sessions check Grey County language-tutor listings and publish which listings failed.",
-      "statementRefs": ["tutor-check"],
+      "statementRefs": [
+        "assimilate"
+      ],
       "blocker": "A directory checked by its own organizer does not answer a skeptic"
     }
   ],
@@ -67,31 +87,41 @@
     {
       "title": "Midweek class notes",
       "outcome": "Release the notes for one Grey County congregation's midweek class under terms another congregation can reuse.",
-      "statementRefs": ["midweek-notes", "named-confession"],
+      "statementRefs": [
+        "shared-teaching-notes"
+      ],
       "blocker": "The second congregation can copy the notes, so neither congregation is paid by the other to write them"
     },
     {
       "title": "Midweek class transcript",
       "outcome": "Transcribe that class for people who cannot hear the recordings, and publish the transcript with the confession named.",
-      "statementRefs": ["transcription", "named-confession"],
+      "statementRefs": [
+        "shared-teaching-notes"
+      ],
       "blocker": "Transcription is useful to every later listener and costly to the first congregation"
     },
     {
       "title": "One-season substitute rota",
       "outcome": "Publish a Sunday rota and sermon notes so a substitute can preach at one named Grey County church for one season.",
-      "statementRefs": ["substitute-rota", "interchurch-calendar"],
+      "statementRefs": [
+        "independent-church-help"
+      ],
       "blocker": "Each small church has too few substitutes to keep the rota alone"
     },
     {
       "title": "Second-church host kit",
       "outcome": "Write a one-season kit so a second Grey County church can run the same rota without the first host.",
-      "statementRefs": ["host-kit"],
+      "statementRefs": [
+        "independent-church-help"
+      ],
       "blocker": "The rota dies with the first host unless the steps are written down"
     },
     {
       "title": "Grey County class-host directory",
       "outcome": "Publish one directory of Grey County people who will host a small class, with affiliation and an independent checker's note, and maintain it for one year.",
-      "statementRefs": ["class-host-directory"],
+      "statementRefs": [
+        "class-host-directory"
+      ],
       "blocker": "Churches, tutors, and home-school hosts each need the same checked list, and none of them owns it"
     }
   ],
@@ -99,31 +129,41 @@
     {
       "title": "Printable grade-six science unit",
       "outcome": "Release one grade-six science unit a Grey County family can print, with the teaching method named on the first page and no religious claims in the activities.",
-      "statementRefs": ["science-unit", "method-on-the-page", "no-religious-claims"],
+      "statementRefs": [
+        "materials-without-religion"
+      ],
       "blocker": "Every family can copy the unit after the first author writes it"
     },
     {
       "title": "Grey County field-trip pack",
       "outcome": "Release the permission form, map, and safety notes for one Grey County field trip so another family, including a school family, can run it.",
-      "statementRefs": ["field-trip", "school-families-may-borrow"],
+      "statementRefs": [
+        "reusable-home-materials"
+      ],
       "blocker": "The first family pays for the reconnaissance and every later family can copy the pack"
     },
     {
       "title": "Store-item science kits",
       "outcome": "Publish instructions for a home science kit of ordinary store items, including hazards and the adult supervision each activity needs.",
-      "statementRefs": ["science-kits", "lab-safety"],
+      "statementRefs": [
+        "reusable-home-materials"
+      ],
       "blocker": "A safe kit has to be tried once before other families can reuse it"
     },
     {
       "title": "Eight Owen Sound Saturdays",
       "outcome": "Host eight Saturday meetups in Owen Sound for home-school families and publish the dates before the first meeting.",
-      "statementRefs": ["saturday-meetups"],
+      "statementRefs": [
+        "reusable-home-materials"
+      ],
       "blocker": "The room and the dates have to be reserved before any family can rely on them"
     },
     {
       "title": "Successor host notes",
       "outcome": "Name a successor and write the notes so the Owen Sound meetups can run a second season without the first host.",
-      "statementRefs": ["successor-host"],
+      "statementRefs": [
+        "reusable-home-materials"
+      ],
       "blocker": "A meetup series that only the first host can run is not a maintained public good"
     }
   ]

@@ -99,6 +99,19 @@ grain, including place when the cause is local. Do not treat “Linux” /
 “CSA” as the tightest allowed. Seed that is only category-level will look
 empty of places to put money.
 
+**A tighter grain is still a want someone would sign.** “Specific enough
+that implication can fire later” means determinate: “Linux desktop,” or
+“CSA in Grey County, Ontario,” not “open source” and not “technology.”
+It does not mean a headcount, a duration, a host kit, a checklist, or a
+directory. Those are projects aligned to the want. “I want a business in
+Grey County to be able to take a blockchain payment from a customer who
+asks to pay that way” is a plank. “I want six named shops to run that
+checkout for three months” is the project’s outcome. A second plank is
+for a real further want or a real refusal (“I want shops to refuse crypto
+payments”), not for each deliverable under the first want. Naming a park
+or a school is right when the want is about that place. It is not a
+reason to turn every project field into an “I want…” sentence.
+
 **Place-specific wants are signable planks, not board queries.** “I want
 more CSA in Grey County, Ontario” is a belief someone signs. “I want more
 CSA in Ontario” is a different belief, for people who actually hold a
