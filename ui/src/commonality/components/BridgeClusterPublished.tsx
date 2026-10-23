@@ -1,6 +1,6 @@
 import { Box, Button, CircularProgress, Link, Paper, Stack, Typography } from '@mui/material'
 import { Link as RouterLink } from 'react-router-dom'
-import { presentCampaignSummary } from '@ui/shared'
+import { InfoLabel, presentCampaignSummary } from '@ui/shared'
 import type { BridgeClusterFields } from '../lib/bridgeCluster'
 import { parentToModifiedNudges } from '../lib/bridgeNudges'
 import { campStories, type CampStory, type ClusterLayout } from '../lib/bridgeClusterReader'
@@ -22,38 +22,53 @@ function FlowArrow({ kind, label }: { kind: 'nudge' | 'implication'; label: stri
 
 function StatementCard({
   kicker,
+  hint,
   text,
   cid,
   caption,
+  causePath,
 }: {
   kicker: string
+  hint: string
   text: string
   cid?: string
   caption?: string
+  causePath?: string
 }) {
   return (
     <Paper elevation={0} sx={{ p: 2, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
-      <Typography variant="overline" sx={{ letterSpacing: '0.08em', color: 'text.secondary' }}>{kicker}</Typography>
+      <Typography variant="overline" component="div" sx={{ letterSpacing: '0.08em', color: 'text.secondary' }}>
+        <InfoLabel title={hint}>{kicker}</InfoLabel>
+      </Typography>
       <Typography variant="body1" sx={{ mt: 0.5 }}>{presentCampaignSummary(text)}</Typography>
       {caption && (
         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>{caption}</Typography>
       )}
-      {cid && (
-        <Link component={RouterLink} to={`/statement/${encodeURIComponent(cid)}`} variant="body2" sx={{ display: 'inline-block', mt: 1 }}>
-          Read and sign
-        </Link>
+      {(cid || causePath) && (
+        <Stack direction="row" spacing={2} sx={{ mt: 1 }}>
+          {cid && (
+            <Link component={RouterLink} to={`/statement/${encodeURIComponent(cid)}`} variant="body2">
+              Open statement
+            </Link>
+          )}
+          {causePath && (
+            <Link component={RouterLink} to={causePath} variant="body2">
+              Open cause board
+            </Link>
+          )}
+        </Stack>
       )}
     </Paper>
   )
 }
 
-function groundOf(stories: CampStory[], bridgePlanks: Array<{ cid: string; text: string }>): { text: string; cid?: string } {
+function groundOf(stories: CampStory[], bridgePlanks: Array<{ cid: string; text: string }>, bridgeCausePath: string): { text: string; cid?: string; causePath: string } {
   for (const story of stories) {
     const hit = story.implications[0]
-    if (hit?.toText) return { text: hit.toText, cid: hit.toCid }
+    if (hit?.toText) return { text: hit.toText, cid: hit.toCid, causePath: bridgeCausePath }
   }
   const plank = bridgePlanks.find((item) => item.text)
-  return { text: plank?.text || 'Common ground', cid: plank?.cid }
+  return { text: plank?.text || 'Common ground', cid: plank?.cid, causePath: bridgeCausePath }
 }
 
 /** Every camp at once: natural above its wording, both wordings meeting on one statement. */
@@ -62,7 +77,7 @@ function Convergence({
   ground,
 }: {
   stories: CampStory[]
-  ground: { text: string; cid?: string }
+  ground: { text: string; cid?: string; causePath: string }
 }) {
   const line = 'primary.main'
   return (
@@ -82,15 +97,22 @@ function Convergence({
             <Box key={story.id} data-testid={`bridge-camp-${story.shortName}`} sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', px: 0.75 }}>
               {pairs.map((pair) => (
                 <Stack key={`${pair.fromCid}->${pair.toCid}`} spacing={0.25} sx={{ flex: 1 }}>
-                  <StatementCard kicker={`${story.shortName} already says`} text={pair.fromText} cid={pair.fromCid} />
+                  <StatementCard
+                    kicker={`${story.shortName}: natural wording`}
+                    hint={`This is a statement that someone in the ${story.shortName} camp might naturally sign.`}
+                    text={pair.fromText}
+                    cid={pair.fromCid}
+                    causePath={story.parentCausePath}
+                  />
                   {pair.toText && (
                     <>
                       <FlowArrow kind="nudge" label="You might also sign" />
                       <StatementCard
-                        kicker={`${story.shortName} wording`}
+                        kicker={`${story.shortName}: suggested modification`}
+                        hint={`This is a statement that the bridge-creator is suggesting that someone in the ${story.shortName} camp might also be willing to sign. Signing this implies that the signer also believes the common-ground statement below.`}
                         text={pair.toText}
                         cid={pair.toCid}
-                        caption="A wording of this side. Not an official revision."
+                        causePath={story.modifiedCausePath ?? undefined}
                       />
                     </>
                   )}
@@ -105,11 +127,20 @@ function Convergence({
           )
         })}
       </Box>
-      <Box sx={{ width: 2, height: 18, bgcolor: line, mx: 'auto' }} />
-      <Typography variant="caption" sx={{ display: 'block', textAlign: 'center', fontWeight: 700, color: 'primary.main', mb: 0.75 }}>
-        both support
-      </Typography>
-      <StatementCard kicker="Common ground" text={ground.text} cid={ground.cid} />
+      <Stack alignItems="center" spacing={0.25}>
+        <Box sx={{ width: 2, height: 18, bgcolor: line }} />
+        <Typography variant="caption" sx={{ fontWeight: 700, color: 'primary.main' }}>
+          both support
+        </Typography>
+        <Box sx={{ width: 0, height: 0, borderLeft: '5px solid transparent', borderRight: '5px solid transparent', borderTop: '7px solid', borderTopColor: 'primary.main' }} />
+      </Stack>
+      <StatementCard
+        kicker="Common ground"
+        hint="This is a statement that the bridge-creator thinks both sides might believe."
+        text={ground.text}
+        cid={ground.cid}
+        causePath={ground.causePath}
+      />
     </Box>
   )
 }
@@ -135,6 +166,7 @@ export function BridgeClusterPublished({
   const bridgeTitle = layout?.bridge.title.trim() || 'Shared bridge'
   const sentence = fields.mediatorNote.trim() || layout?.bridge.summary.trim() || ''
   const bridgePlanks = layout?.bridge.planks ?? []
+  const bridgeCausePath = layout ? stableCausePath(layout.bridge) : null
 
   return (
     <Stack spacing={2.5} data-testid="bridge-cluster-page">
@@ -148,7 +180,9 @@ export function BridgeClusterPublished({
         {sentence && (
           <Typography variant="body1" color="text.secondary">{presentCampaignSummary(sentence)}</Typography>
         )}
-        <Typography variant="body2" color="text.secondary">Proposed by {fields.mediatorName}</Typography>
+        <Typography variant="body2" color="text.secondary">
+          Proposed by <Link component={RouterLink} to={`/mediator/${fields.mediatorAddress}`} sx={{ fontWeight: 600 }}>{fields.mediatorName}</Link>
+        </Typography>
       </Stack>
 
       {!layout && (
@@ -158,32 +192,9 @@ export function BridgeClusterPublished({
         </Stack>
       )}
 
-      {layout && stories.length > 0 && (
+      {layout && bridgeCausePath && stories.length > 0 && (
         <Stack spacing={2}>
-          <Typography variant="body1">
-            Each side keeps its own statement. A wording of that side is something you might also sign. Both wordings support the same common ground.
-          </Typography>
-          <Convergence stories={stories} ground={groundOf(stories, bridgePlanks)} />
-          <Typography variant="body2">
-            {layout.camps.map((row) => {
-              const name = stories.find((story) => story.id === `${row.parent.owner}/${row.parent.slug}`)?.shortName
-              return (
-              <span key={`${row.parent.owner}/${row.parent.slug}`}>
-                <Link component={RouterLink} to={stableCausePath(row.parent)}>
-                  {name} cause
-                </Link>
-                {row.modified && (
-                  <>
-                    {' · '}
-                    <Link component={RouterLink} to={stableCausePath(row.modified)}>wording</Link>
-                  </>
-                )}
-                {' · '}
-              </span>
-              )
-            })}
-            <Link component={RouterLink} to={stableCausePath(layout.bridge)}>Shared bridge</Link>
-          </Typography>
+          <Convergence stories={stories} ground={groundOf(stories, bridgePlanks, bridgeCausePath)} />
         </Stack>
       )}
 

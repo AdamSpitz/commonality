@@ -40,6 +40,7 @@ Then again, maybe not? Maybe that's just not actually that useful for demos.
 
 And to the extent that we want to see the different "constituencies" of an [organic coalition](/docs/end-user/commonality/vision-and-strategy/why-its-better/organic-coalitions.md), that's what a bridge page is for; we already have that.
 
+Yeah, if anything, let's maybe delete the area admin page and just have the run admin page point to the statements and bridges directly.
 
 
 ### Sending a link to someone in particular

@@ -331,6 +331,11 @@ test('batch 2 keeps the pilot families, reuses accepted bridges, and shares one 
     assert.equal(board.role, 'commonality');
     assert.equal(implications.filter((action) => action.causeId === causeId).length, 0, causeId);
   }
+  const checkoutBoards = plan.actions.filter((action) => action.causeId === 'checkout-trial-bridge' && action.board);
+  assert.ok(checkoutBoards.every((action) => action.board!.title === 'Owen Sound checkout bridge'));
+  const checkoutBridge = plan.actions.find((action) => action.type === 'create-bridge' && action.causeId === 'checkout-trial-bridge');
+  assert.match(checkoutBridge?.bridge?.mediatorNote ?? '', /censorship from banks/);
+  assert.doesNotMatch(checkoutBridge?.bridge?.mediatorNote ?? '', /A mediator assembled/);
   const votingBoard = plan.actions.find((action) => action.type === 'create-cause' && action.causeId === 'voting')!.board!;
   assert.equal(votingBoard.role, 'commonality');
   assert.equal(implications.filter((action) => action.causeId === 'voting').length, 2);

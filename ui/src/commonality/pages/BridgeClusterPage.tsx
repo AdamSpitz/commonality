@@ -202,7 +202,8 @@ export function BridgeClusterPage() {
             : item
         )),
       })
-      setStatus(`Loaded “${loaded.fields.title}”.`)
+      // The slot already shows "Loaded: …" once planks arrive. A page-level
+      // status would also appear under a published bridge that shares this state.
     } catch (error) {
       setStatus(error instanceof Error ? error.message : String(error))
     } finally {

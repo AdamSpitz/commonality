@@ -5,7 +5,7 @@
 
 import type { SDKMachinery } from '@commonality/sdk/machinery'
 import type { BridgeClusterFields, CauseRef, ImplicationPairRole } from './bridgeCluster'
-import { loadPlankTexts, loadRosterDocument, resolveRosterCid } from './causeRoster'
+import { loadPlankTexts, loadRosterDocument, resolveRosterCid, stableCausePath } from './causeRoster'
 
 export interface CauseSnapshot {
   owner: `0x${string}`
@@ -39,6 +39,10 @@ export interface CampStory {
   nudges: Array<{ fromCid: string; toCid: string; fromText: string; toText: string }>
   /** Modified (or natural, when there is no modified wording) → common ground. */
   implications: Array<{ fromCid: string; toCid: string; fromText: string; toText: string; attested: boolean }>
+  /** Stable path to the parent cause board. */
+  parentCausePath: string
+  /** Stable path to the modified cause board, if any. */
+  modifiedCausePath: string | null
 }
 
 export interface CampRow {
@@ -199,6 +203,8 @@ export function campStories(layout: ClusterLayout): CampStory[] {
         toText: plankText(layout.bridge.planks, pair.toCid, pair.toText),
         attested: pair.attested,
       })),
+      parentCausePath: stableCausePath(row.parent),
+      modifiedCausePath: row.modified ? stableCausePath(row.modified) : null,
     }
   })
 }
