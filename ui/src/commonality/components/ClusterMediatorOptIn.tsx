@@ -52,9 +52,8 @@ export function ClusterMediatorOptIn({
             Listen to this mediator
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            You are opting into <strong>{fields.mediatorName}</strong>'s address, not this page.
-            Later parent→modified suggestions appear if they publish again. Opening this cluster
-            does not subscribe you.
+            Later wording suggestions from <strong>{fields.mediatorName}</strong>, only if you ask.
+            Opening this page does not sign you up.
           </Typography>
         </Stack>
         <Button

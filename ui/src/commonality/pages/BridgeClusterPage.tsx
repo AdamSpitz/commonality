@@ -1,21 +1,21 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   Alert, Box, Button, Checkbox, CircularProgress, Divider, FormControlLabel,
-  Link, MenuItem, Paper, Stack, TextField, Typography,
+  MenuItem, Paper, Stack, TextField, Typography,
 } from '@mui/material'
 import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom'
-import { AddressDisplay, presentCampaignSummary } from '@ui/shared'
+import { getImplicationsFrom } from '@commonality/sdk/conceptspace'
+import type { IpfsCidV1 } from '@commonality/sdk/utils'
 import { useAccount } from 'wagmi'
 import { checkImplications } from '../lib/causeAssistClient'
 import {
   attestablePairs,
   loadClusterDocument,
-  nudgeTargets,
   parseClusterRouteParams,
   resolveClusterCid,
   type BridgeClusterFields,
 } from '../lib/bridgeCluster'
-import { parentToModifiedNudges, publishParentToModifiedNudges } from '../lib/bridgeNudges'
+import { publishParentToModifiedNudges } from '../lib/bridgeNudges'
 import { formatPairSummary, submitPairsToAttester } from '../lib/implicationAttesterClient'
 import {
   loadPlankTexts,
@@ -23,7 +23,6 @@ import {
   normalizeSlug,
   parseCauseLink,
   resolveRosterCid,
-  stableCausePath,
 } from '../lib/causeRoster'
 import {
   emptyParent,
@@ -32,7 +31,6 @@ import {
   getBridge,
   markClusterPublished,
   rememberPublishedCluster,
-  plankByCid,
   plankById,
   updateBridge,
   STAND_IN_CAUSE_NOTICE,
@@ -46,10 +44,17 @@ import {
 } from '../lib/causeStore'
 import { nextImplicationPair, sideLabel, truncate } from '../lib/bridgeClusterPageHelpers'
 import { publishBridgeClusterDraft } from '../lib/publishBridgeCluster'
-import { useMachinery, useWriteClients } from '../../shared'
+import { useMachinery, useTrustedAttesters, useWriteClients } from '../../shared'
 import { ConnectWalletHint } from '../components/ConnectWalletHint'
 import { BridgeClusterAssist } from '../components/BridgeClusterAssist'
-import { ClusterMediatorOptIn } from '../components/ClusterMediatorOptIn'
+import { BridgeClusterPublished } from '../components/BridgeClusterPublished'
+import {
+  causeKey,
+  layoutCluster,
+  loadCauseSnapshot,
+  pairKey,
+  type ClusterLayout,
+} from '../lib/bridgeClusterReader'
 
 export function BridgeClusterPage() {
   const params = useParams<{ draftId?: string; owner?: string; slugPart?: string }>()
@@ -66,6 +71,8 @@ export function BridgeClusterPage() {
 
   const [draft, setDraft] = useState<BridgeDraft | null>(null)
   const [published, setPublished] = useState<BridgeClusterFields | null>(null)
+  const [readerLayout, setReaderLayout] = useState<ClusterLayout | null>(null)
+  const trustedAttesters = useTrustedAttesters()
   const [loadError, setLoadError] = useState<string | null>(null)
   const [loading, setLoading] = useState(Boolean(routeRef))
   const [busy, setBusy] = useState(false)
@@ -122,6 +129,36 @@ export function BridgeClusterPage() {
     })()
     return () => { cancelled = true }
   }, [machinery, routeRef])
+
+  useEffect(() => {
+    if (!published) {
+      setReaderLayout(null)
+      return
+    }
+    let cancelled = false
+    setReaderLayout(null)
+    ;(async () => {
+      const refs = [...published.parents, ...published.modified, published.bridge]
+      const snapshots = new Map<string, Awaited<ReturnType<typeof loadCauseSnapshot>>>()
+      await Promise.all(refs.map(async (ref) => {
+        snapshots.set(causeKey(ref), await loadCauseSnapshot(machinery, ref))
+      }))
+      const cids = [...new Set(published.pairs.flatMap((pair) => [pair.fromCid, pair.toCid]))]
+      const texts = await loadPlankTexts(machinery, cids)
+      const attested = new Set<string>()
+      const trust = trustedAttesters.length > 0 ? trustedAttesters : undefined
+      await Promise.all([...new Set(published.pairs.map((pair) => pair.fromCid))].map(async (fromCid) => {
+        try {
+          const implications = await getImplicationsFrom(machinery, fromCid as IpfsCidV1, trust)
+          for (const edge of implications) attested.add(pairKey(fromCid, edge.toStatementCid))
+        } catch {
+          // Leave the pair as not attested when the query fails.
+        }
+      }))
+      if (!cancelled) setReaderLayout(layoutCluster(published, snapshots, texts, attested))
+    })()
+    return () => { cancelled = true }
+  }, [machinery, published, trustedAttesters])
 
   /** Parent slots we already tried to auto-load, so a failure is not retried forever. */
   const autoLoaded = useRef(new Set<string>())
@@ -348,115 +385,19 @@ export function BridgeClusterPage() {
   }
 
   if (published && routeRef) {
-    const nudges = nudgeTargets(published)
+    const isMediator = Boolean(
+      address && address.toLowerCase() === published.mediatorAddress.toLowerCase(),
+    )
     return (
-      <Stack spacing={2.5} data-testid="bridge-cluster-page">
-        <Alert severity="warning" sx={{ borderRadius: 2 }} data-testid="bridge-authorship">
-          This cluster is authored by <strong>{published.mediatorName}</strong>
-          {' '}(<AddressDisplay address={published.mediatorAddress} variant="body2" />).
-          The modified causes and the bridge are <strong>not</strong> official revisions of the
-          natural parents.
-        </Alert>
-        <Box>
-          <Typography variant="overline" sx={{ letterSpacing: '0.14em', fontWeight: 700, color: 'primary.main' }}>
-            Bridge cluster
-          </Typography>
-          <Typography variant="h4" component="h1" sx={{ fontWeight: 800, fontSize: { xs: '1.55rem', sm: '1.9rem' } }}>
-            {published.mediatorName}
-          </Typography>
-          {published.mediatorNote && (
-            <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>{presentCampaignSummary(published.mediatorNote)}</Typography>
-          )}
-        </Box>
-
-        <ClusterMediatorOptIn fields={published} />
-
-        <Paper elevation={0} sx={{ p: 2, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
-          <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>Nudge path: parent → modified</Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 1.25 }}>
-            Do not send parent-signers straight to the bridge wording. Offer the mediator’s
-            wording of their own side first; implication carries support to the bridge.
-          </Typography>
-          <Stack spacing={1}>
-            {nudges.map((nudge) => (
-              <Typography key={`${nudge.from.slug}->${nudge.to.slug}`} variant="body2">
-                <Link component={RouterLink} to={stableCausePath(nudge.from)}>{nudge.from.slug}</Link>
-                {' → '}
-                <Link component={RouterLink} to={stableCausePath(nudge.to)}>{nudge.to.slug}</Link>
-              </Typography>
-            ))}
-          </Stack>
-        </Paper>
-
-        <Paper elevation={0} sx={{ p: 2, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
-          <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>Natural parents</Typography>
-          {published.parents.map((parent) => (
-            <Typography key={`${parent.owner}/${parent.slug}`} variant="body2" sx={{ mt: 0.5 }}>
-              <Link component={RouterLink} to={stableCausePath(parent)}>{parent.slug}</Link>
-            </Typography>
-          ))}
-        </Paper>
-
-        <Paper elevation={0} sx={{ p: 2, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
-          <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>Modified causes</Typography>
-          {published.modified.map((modified) => (
-            <Typography key={modified.slug} variant="body2" sx={{ mt: 0.5 }}>
-              <Link component={RouterLink} to={stableCausePath(modified)}>{modified.slug}</Link>
-              {' '}for{' '}
-              <Link component={RouterLink} to={stableCausePath({ owner: modified.parentOwner, slug: modified.parentSlug })}>
-                {modified.parentSlug}
-              </Link>
-            </Typography>
-          ))}
-        </Paper>
-
-        <Paper elevation={0} sx={{ p: 2, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
-          <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>Bridge cause</Typography>
-          <Typography variant="body2" sx={{ mt: 0.5 }}>
-            <Link component={RouterLink} to={stableCausePath(published.bridge)}>{published.bridge.slug}</Link>
-          </Typography>
-        </Paper>
-
-        <Paper elevation={0} sx={{ p: 2, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
-          <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>Intended plank pairs</Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-            Recorded by the mediator. These are not cause-to-cause implications, and they are
-            not attested until the implication attester blesses each pair.
-          </Typography>
-          {published.pairs.map((pair) => (
-            <Typography key={`${pair.fromCid}-${pair.toCid}-${pair.role}`} variant="body2">
-              {pair.role.replace(/-/g, ' ')}:{' '}
-              {(draft && plankByCid(draft, pair.fromCid)?.text.trim()) || `${pair.fromCid.slice(0, 12)}…`}
-              {' → '}
-              {(draft && plankByCid(draft, pair.toCid)?.text.trim()) || `${pair.toCid.slice(0, 12)}…`}
-            </Typography>
-          ))}
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ mt: 1.5 }}>
-            <Button
-              variant="contained"
-              disabled={busy}
-              sx={{ textTransform: 'none' }}
-              onClick={() => void runSubmitPairs(published)}
-              data-testid="bridge-submit-pairs"
-            >
-              Submit pairs to attester
-            </Button>
-            <Button
-              variant="outlined"
-              disabled={busy || parentToModifiedNudges(published.pairs).length === 0}
-              sx={{ textTransform: 'none' }}
-              onClick={() => void runPublishNudges(published)}
-              data-testid="bridge-publish-nudges"
-            >
-              Publish parent→modified nudges
-            </Button>
-          </Stack>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-            Attestation is paid per batch and may refuse a pair. Nudges only exist when you recorded modified→parent pairs.
-          </Typography>
-        </Paper>
-        {status && <Alert severity="info" sx={{ borderRadius: 2, whiteSpace: 'pre-wrap' }}>{status}</Alert>}
-      </Stack>
+      <BridgeClusterPublished
+        fields={published}
+        layout={readerLayout}
+        isMediator={isMediator}
+        busy={busy}
+        status={status}
+        onSubmitPairs={() => void runSubmitPairs(published)}
+        onPublishNudges={() => void runPublishNudges(published)}
+      />
     )
   }
 
