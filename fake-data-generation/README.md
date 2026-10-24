@@ -128,16 +128,19 @@ open `http://localhost:8088/admin` and follow **Browse generated test-data runs*
 run page provides the objective action/user summary and can connect Commonality as any
 disposable fake user from that run.
 
-Campaign runs also offer **Demo by area**, listed A–Z. Each area has a bookmarkable sub-page
-at `/admin/test-data/:runId/areas/:areaId` (keep the capability query parameter).
-It lists that area's statements, boards, bridges, projects, and only fake users
-with mined activity in the area. Use **Connect as…**, then open any listed page
-or the user's dashboard to demonstrate their view. Shared statements and projects
-can appear in several areas. Historical runs without area metadata retain the
-ordinary run browser. A campaign run's saved action log is only board and bridge
-creation, which those area pages already link, so the run page hides **Activity by
-type** and **All recorded activity** for that log. Simulation runs that record
-other action types still show both sections.
+The run page is a **Demo launcher**. Campaign runs offer an A–Z **Demo area**
+selector; selection is bookmarkable at `/admin/test-data/:runId?key=…&area=:areaId`.
+Old `/admin/test-data/:runId/areas/:areaId` links redirect there, preserving the key.
+The launcher links directly to public bridges, standalone boards/statements, and
+projects. Bridge constituents are left to the public bridge page. Beside those
+links are fake users with mined activity in the selected area, their bios, and
+**Connect as…** buttons. **Show all users** includes users outside that area.
+The connected account and its dashboard link stay visible when returning to the
+launcher. Shared statements and projects can appear in several areas. **All areas**
+and historical runs without area metadata show the whole run.
+Parameters, metrics, generated entities, and recorded activity live under collapsed
+**Run diagnostics**. A campaign's saved action log may contain only board and bridge
+creation, rather than all mined activity.
 
 To enrich an existing campaign run without rerunning transactions, use
 `npx tsx fake-data-generation/backfillCampaignAreas.ts <saved-campaign-directory> <run-id>`

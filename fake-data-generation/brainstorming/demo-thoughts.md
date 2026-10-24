@@ -37,27 +37,18 @@ I want to show this system to my friends (or other particular people) in person,
 I've got the admin page to help with this.
   - We do a fake-data run (on testnet).
   - On the main admin page, there's a link to the run-specific page.
-  - On the run-specific page, there are links to area-specific pages: crypto, abortion, AI-pause, whatever.
+  - On the run-specific page, there are links to various pages (users, projects, statements, bridges) relevant to each area (crypto, abortion, AI-pause, whatever).
     - So when I'm talking to a person who's interested in one of those areas, I can focus in on that.
-    - And the area-specific page is designed to let me see an "ecosystem-wide" view of that area: relevant statements (and bridges), relevant projects, relevant users.
+    - And the area-specific list of stuff is designed to let me see an "ecosystem-wide" view of that area: relevant statements (and bridges), relevant projects, relevant users.
     - And because it's a fake-data run, the fake users have known keys so we can log in and see the system through their eyes.
 
-##### Idea: reify the "area"
-
-I wonder whether it'd be possible to make a *real* page (rather than relying on this private admin interface) for this idea of an "area"? (Needs a better name. "Cause area"? I dunno.)
-
-The notion is that whereas a cause is meant to be something that a user can agree with, an area might have multiple overlapping or conflicting statements/causes: e.g. a "blockchain-based-payments" area might contain pro-blockchain-based-payments because pro-crypto, pro-blockchain-based-payments because tired-of-paying-credit-card-companies-three-percent, anti-blockchain-based-payments, etc. The point is that it can be interesting to see that stuff all together.
-
-Then again, maybe not? Maybe that's just not actually that useful for demos.
-
-And to the extent that we want to see the different "constituencies" of an [organic coalition](/docs/end-user/commonality/vision-and-strategy/why-its-better/organic-coalitions.md), that's what a bridge page is for; we already have that.
-
-Yeah, if anything, let's maybe delete the area admin page and just have the run admin page point to the statements and bridges directly.
-
+I'll have to actually try it myself (running through demoing an area to someone to cares about it), but this seems like it could work okay, as long as the content is compelling and the fake-users illustrate different roles.
 
 ### Sending a link to someone in particular
 
-  - Send a link to particular orgs or people, so I'm not walking them through it, but I might send them particular suggestions for statements/projects/causes to start with.
+Here the idea is that I might send a link to particular orgs or people: "Hey, here's this system that might be useful for some cause that you care about. It's been pre-populated with some statements and bridges that I think might be what you want; for fundable projects, I haven't pre-populated it, but here are some example ideas."
+
+So I'm not walking them through it, but the page itself can be designed so that it offers guidance on how to use the system.
 
 ### Showing the general public
 
