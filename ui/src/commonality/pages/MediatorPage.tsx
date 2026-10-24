@@ -4,6 +4,7 @@ import { Link as RouterLink, useParams } from 'react-router-dom'
 import { listCauses, type CauseDraft } from '../lib/causeStore'
 import { loadClusterDocument, resolveClusterCid, type BridgeClusterFields } from '../lib/bridgeCluster'
 import { useMachinery } from '../../shared'
+import { ClusterMediatorOptIn } from '../components/ClusterMediatorOptIn'
 
 interface MediatorBridge {
   cause: CauseDraft
@@ -95,6 +96,8 @@ export function MediatorPage() {
           {params.address}
         </Typography>
       </Box>
+
+      {bridges[0] && <ClusterMediatorOptIn fields={bridges[0].fields} />}
 
       {bridges.length === 0 ? (
         <Typography color="text.secondary">No bridges found for this mediator.</Typography>

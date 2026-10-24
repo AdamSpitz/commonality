@@ -5,7 +5,6 @@ import type { BridgeClusterFields } from '../lib/bridgeCluster'
 import { parentToModifiedNudges } from '../lib/bridgeNudges'
 import { campStories, type CampStory, type ClusterLayout } from '../lib/bridgeClusterReader'
 import { stableCausePath } from '../lib/causeRoster'
-import { ClusterMediatorOptIn } from './ClusterMediatorOptIn'
 
 function FlowArrow({ kind, label }: { kind: 'nudge' | 'implication'; label: string }) {
   const color = kind === 'nudge' ? 'warning.main' : 'primary.main'
@@ -197,8 +196,6 @@ export function BridgeClusterPublished({
           <Convergence stories={stories} ground={groundOf(stories, bridgePlanks, bridgeCausePath)} />
         </Stack>
       )}
-
-      <ClusterMediatorOptIn fields={fields} />
 
       {isMediator && (
         <Paper elevation={0} sx={{ p: 2, borderRadius: 3, border: '1px solid', borderColor: 'divider' }} data-testid="bridge-mediator-tools">
