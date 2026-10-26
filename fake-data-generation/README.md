@@ -128,6 +128,26 @@ open `http://localhost:8088/admin` and follow **Browse generated test-data runs*
 run page provides the objective action/user summary and can connect Commonality as any
 disposable fake user from that run.
 
+The run page is a **Demo launcher**. Campaign runs offer an A–Z **Demo area**
+selector; selection is bookmarkable at `/admin/test-data/:runId?key=…&area=:areaId`.
+Old `/admin/test-data/:runId/areas/:areaId` links redirect there, preserving the key.
+The launcher links directly to public bridges, standalone boards/statements, and
+projects. Bridge constituents are left to the public bridge page. Beside those
+links are fake users with mined activity in the selected area, their bios, and
+**Connect as…** buttons. **Show all users** includes users outside that area.
+The connected account and its dashboard link stay visible when returning to the
+launcher. Shared statements and projects can appear in several areas. **All areas**
+and historical runs without area metadata show the whole run.
+Parameters, metrics, generated entities, and recorded activity live under collapsed
+**Run diagnostics**. A campaign's saved action log may contain only board and bridge
+creation, rather than all mined activity.
+
+To enrich an existing campaign run without rerunning transactions, use
+`npx tsx fake-data-generation/backfillCampaignAreas.ts <saved-campaign-directory> <run-id>`
+from the repository root. It reads the saved manifest, plan, runtime bindings, and
+mined execution state, verifies the run's wallet identities, and updates only the
+encrypted run document. The registry, run ID, saved plan, and chain stay unchanged.
+
 **Capability key and LLMs.** The AES key lives at
 `fake-data-generation/output/test-data/.admin-capability` (gitignored, never
 uploaded). Encryption is so the published registry is not world-readable; it is

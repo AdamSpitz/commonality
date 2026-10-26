@@ -28,7 +28,7 @@ import { DelegatableNotesAbi, RecurringPledgesAbi } from '@commonality/sdk/abis'
 import { getStatement } from '@commonality/sdk/conceptspace'
 import { getNotesByOwner, getNotesByRoot, getDelegationChain, getDonationActivityByRoot, delegateNote, partialTakeback, replaceDelegate, reclaimFunds, getActiveStandingPledgesByUser, cancelStandingPledge, type DonationActivity, type Note, type StandingPledge, type DelegatableNotesContract, type RecurringPledgesContract } from '@commonality/sdk/delegation'
 import { fetchEventsComplete, type Currency, type IpfsCidV1 } from '@commonality/sdk/utils'
-import { getDomainUrl, useMachinery } from '../../shared'
+import { AccountAddress, getDomainUrl, useMachinery } from '../../shared'
 import { useWriteClients } from '../../shared'
 import { formatCurrencyAmount, getCurrencyForNote } from '../../shared/funding'
 import { formatNoteAmount, isDelegate, truncateAddress, isEthNote, noteDetailPath, noteScopedKey, parsePartialTakebackAmount } from '../utils'
@@ -146,7 +146,7 @@ function NoteCard({
               )}
               {showDelegatedFrom && isDelegate(note) && (
                 <Chip
-                  label={`Delegated from ${truncateAddress(note.rootOwner)}`}
+                  label={<span>Delegated from <AccountAddress address={note.rootOwner} /></span>}
                   size="small"
                   color="info"
                   sx={{ mt: 0.5 }}
@@ -154,7 +154,7 @@ function NoteCard({
               )}
               {showCurrentOwner && isDelegate(note) && (
                 <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                  Controlled by {truncateAddress(note.owner)}
+                  Controlled by <AccountAddress address={note.owner} />
                 </Typography>
               )}
               {showCurrentOwner && !isDelegate(note) && (
@@ -402,7 +402,7 @@ function StandingPledgeCard({
               <Chip label="Auto-pull" color="success" size="small" />
             </Box>
             <Typography variant="body2" color="text.secondary">
-              Delegated to {truncateAddress(pledge.delegateTo)}
+              Delegated to <AccountAddress address={pledge.delegateTo} />
             </Typography>
             <Typography variant="body2" color="text.secondary">
               Cause:{' '}
@@ -496,7 +496,7 @@ function DonationActivityFeed({ activities, projectTitles, causeTitles, classByN
                         return <Chip label={label} size="small" color={label === 'Needs attention' ? 'warning' : label === 'On your list' ? 'success' : 'default'} />
                       })()}
                       <Typography variant="body2" color="text.secondary">
-                        Directed by {truncateAddress(activity.directedBy)} · {formatPledgeDate(activity.createdAt)}
+                        Directed by <AccountAddress address={activity.directedBy} /> · {formatPledgeDate(activity.createdAt)}
                       </Typography>
                     </Box>
                     <Chip label={activity.status} size="small" color={activity.status === 'refunded' ? 'warning' : activity.status === 'reimbursed' ? 'success' : 'default'} />

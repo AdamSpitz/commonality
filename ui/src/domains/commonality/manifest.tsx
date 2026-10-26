@@ -23,6 +23,7 @@ const routes: ReactNode = (
     <Route path="/bridge/:owner/:slugPart" element={lazyRoute(() => import('../../commonality/pages/BridgeClusterPage'), 'BridgeClusterPage')} />
     <Route path="/bridge/:draftId" element={lazyRoute(() => import('../../commonality/pages/BridgeClusterPage'), 'BridgeClusterPage')} />
     <Route path="/causes" element={lazyRoute(() => import('../../commonality/pages/CausesPage'), 'CausesPage')} />
+    <Route path="/mediator/:address" element={lazyRoute(() => import('../../commonality/pages/MediatorPage'), 'MediatorPage')} />
     <Route path="/work" element={lazyRoute(() => import('../../commonality/pages/WorkPage'), 'WorkPage')} />
     <Route path="/work/requests" element={lazyRoute(() => import('../../commonality/pages/WorkRequestsPage'), 'WorkRequestsPage')} />
     <Route path="/work/requests/new" element={lazyRoute(() => import('../../commonality/pages/NewWorkRequestPage'), 'NewWorkRequestPage')} />
@@ -74,6 +75,7 @@ const routes: ReactNode = (
     <Route path="/settings" element={lazyRoute(() => import('../../commonality/pages/SettingsPage'), 'SettingsPage')} />
     <Route path="/admin/test-data" element={lazyRoute(() => import('../../commonality/pages/TestDataAdminPage'), 'TestDataAdminPage')} />
     <Route path="/admin/test-data/:runId" element={lazyRoute(() => import('../../commonality/pages/TestDataRunPage'), 'TestDataRunPage')} />
+    <Route path="/admin/test-data/:runId/areas/:areaId" element={lazyRoute(() => import('../../commonality/pages/TestDataAreaPage'), 'TestDataAreaPage')} />
   </>
 )
 

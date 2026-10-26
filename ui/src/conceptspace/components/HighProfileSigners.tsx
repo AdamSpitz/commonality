@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { Box, Typography, Chip, Paper } from '@mui/material'
 import { getHighProfileSigners, type HighProfileSigner } from '@commonality/sdk/signer-profiles'
 import type { IpfsCidV1 } from '@commonality/sdk/utils'
-import { useMachinery } from '../../shared'
+import { AccountName, useMachinery } from '../../shared'
 import { useNavigate } from 'react-router-dom'
 
 interface HighProfileSignersProps {
@@ -67,7 +67,11 @@ export function HighProfileSigners({ statementCid, minFollowers = 10000 }: HighP
               key={signer.address}
               label={
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                  <span>{signer.twitterHandle ? `@${signer.twitterHandle}` : signer.ensName || `${signer.address.slice(0, 8)}...`}</span>
+                  <AccountName
+                    address={signer.address}
+                    label={signer.twitterHandle ? `@${signer.twitterHandle}` : signer.ensName || `${signer.address.slice(0, 8)}...`}
+                    detail={signer.ensName || signer.twitterHandle}
+                  />
                   {signer.followerCount != null && (
                     <Typography variant="caption" color="text.secondary">
                       ({formatFollowerCount(signer.followerCount)} followers)

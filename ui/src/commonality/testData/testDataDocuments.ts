@@ -50,6 +50,45 @@ export interface TestDataRun {
   metrics: Record<string, unknown>
 }
 
+export interface TestDataAreaStatement {
+  id: string
+  text: string
+  cid?: string
+  path?: string
+  role?: string | null
+  causeId?: string
+  partTitle?: string
+}
+
+export interface TestDataAreaBoard {
+  title: string
+  path: string
+  role?: string
+  slug?: string
+  causeId?: string
+  partTitle?: string
+}
+
+export interface TestDataArea {
+  id: string
+  title: string
+  statements: TestDataAreaStatement[]
+  causeBoards: TestDataAreaBoard[]
+  bridges: Array<{ title: string; path: string; slug?: string; causeId?: string; partTitle?: string }>
+  projects: Array<{ title: string; path: string; assuranceContract: string }>
+  activeUserIds: number[]
+}
+
+export function testDataRunAreas(entities: Record<string, unknown>): TestDataArea[] {
+  if (!Array.isArray(entities.areas)) return []
+  return entities.areas.filter((area): area is TestDataArea => {
+    if (!area || typeof area !== 'object') return false
+    const value = area as Record<string, unknown>
+    return typeof value.id === 'string' && typeof value.title === 'string'
+      && ['statements', 'causeBoards', 'bridges', 'projects', 'activeUserIds'].every(key => Array.isArray(value[key]))
+  })
+}
+
 function decodeBase64Url(value: string): Uint8Array<ArrayBuffer> {
   const base64 = value.replaceAll('-', '+').replaceAll('_', '/')
     .padEnd(Math.ceil(value.length / 4) * 4, '=')
@@ -133,7 +172,18 @@ const BOARD_ROLE_LABEL: Record<string, string> = {
 
 export function boardRoleLabel(role: string | undefined): string {
   if (!role) return 'Cause board'
-  return BOARD_ROLE_LABEL[role] ?? role
+  return BOARD_ROLE_LABEL[role] ?? role.replaceAll('-', ' ')
+}
+
+const STATEMENT_ROLE_ORDER = ['commonality', 'modified-left', 'modified-right', 'natural-left', 'natural-right']
+
+export function statementRoleRank(role: string | null | undefined): number {
+  if (!role) return 100
+  const known = STATEMENT_ROLE_ORDER.indexOf(role)
+  if (known >= 0) return known
+  if (role.startsWith('modified')) return 40
+  if (role.startsWith('natural')) return 60
+  return 80
 }
 
 function linksFrom(value: unknown): TestDataPageLink[] {

@@ -11,7 +11,8 @@ git switch -c feature/the-thing       # 2. branch off (you CAN'T commit on dev)
 git push -u origin feature/the-thing  # 3. push the branch (no gate to push)
 gh pr create --base dev --fill        # 4. open the PR
 # 5. review + post the receipt:  /code-review --comment  &&  scripts/post-review.sh
-gh pr merge --auto --merge            # 6. queue merge; do NOT wait for GitHub Actions
+# Stop here when asked only to create a PR.
+gh pr merge --merge                   # 6. only when asked to merge, after the review gate passes
 # 7. once it has landed: switch back to local dev and delete the local branch
 git switch dev && git pull
 git branch -d feature/the-thing
@@ -24,8 +25,13 @@ git branch -d feature/the-thing
   `gh pr create` (or telling an LLM "make a PR") bases onto `dev` automatically.
   Do not open a PR into `master` to release — fast-forward `master` to `dev`
   (see below).
+- **Creating a PR does not authorize merging it.** A request to "make a PR"
+  ends with the open PR and review receipt. Merge only when Adam asks for it.
 - **The review is a manual step** you trigger before merging — decide when the
-  branch is ready, run `/code-review`, address findings, then queue auto-merge.
+  branch is ready, run `/code-review`, address findings, then merge if authorized.
+- **Auto-merge is not part of this workflow.** Use `gh pr merge --merge` for
+  authorized merges. Do not try `--auto`, change the repository setting, or
+  report disabled auto-merge as a problem with creating or merging a PR.
 - **Do not sit on GitHub Actions.** Lint / build / UI / contract jobs on the PR
   are informational. They are **not** required to merge. If Adam says "merge
   when it's ready," that means review receipt + resolved threads, not a
@@ -82,19 +88,19 @@ this step.
    The `review-received` check must be green and every finding thread resolved
    before GitHub will let you merge. That referee is a short Actions job; it is
    **not** the lint/build/test workflow.
-5. **Queue the merge, then move on.** Do not poll GitHub Actions until the
-   full test jobs go green:
+5. **Merge only when asked.** Once `review-received` is green, all finding
+   threads are resolved, and the branch is up to date with `dev`, run:
    ```bash
-   gh pr merge --auto --merge    # or --squash; your call
+   gh pr merge --merge    # or --squash; your call
    ```
-   Auto-merge lands the PR as soon as `review-received` is green, threads are
-   resolved, and the branch is up to date with `dev` (`strict` is on). GitHub
-   deletes the remote branch. Once the PR has actually merged, switch the
+   GitHub enforces those requirements (`strict` is on) and deletes the remote
+   branch on merge. Once the PR has actually merged, switch the
    local checkout back to `dev`, pull, and delete the local branch
    (`git switch dev && git pull && git branch -d feature/your-thing`). Do not
    leave that checkout sitting on the merged branch, and do not keep the
-   local branch "just in case." If auto-merge has only been queued, stay on
-   the feature branch until it lands, then do the switch and delete.
+   local branch "just in case." If the merge is blocked, keep the feature
+   branch until it lands. Address the actual blocking requirement; do not
+   enable auto-merge or bypass branch protection.
 6. **Release:** fast-forward `master` to `dev`:
    ```bash
    scripts/promote-dev-to-master.sh
@@ -108,22 +114,23 @@ status check (plus resolved conversations, and the branch being up to date
 with `dev`). The "CI - Build and Test" workflow is extra signal. The same
 lint + build + fast tests already ran locally in `pre-commit`.
 
-Agents: after `scripts/post-review.sh`, run `gh pr merge --auto --merge` and
-**start the next task in the same turn**. Do not `sleep`, poll `gh pr checks`,
-or hold the conversation open for six minutes. If CI later fails, fix it in a
-follow-up — that is cheaper than blocking Adam.
+Agents: after `scripts/post-review.sh`, stop if the task was to create a PR.
+If merging was requested, wait only for the short required review gate and
+run `gh pr merge --merge`. Do not wait for the informational lint/build/test
+jobs. If CI later fails, fix it in a follow-up. Auto-merge is unnecessary;
+its repository setting is not a blocker or an action item.
 
 Starting the next task:
 
 - **Independent work:** `git fetch origin && git switch -c feature/next origin/dev`.
   If the earlier PR merges first, this one may go stale (`strict` is on);
-  auto-merge will wait until someone rebases onto the new `dev`. Rebase when
+  merging will be blocked until someone rebases onto the new `dev`. Rebase when
   you notice; don't sit watching for it.
 - **Depends on the open PR:** branch off that feature branch (or keep working
   in its worktree). Don't wait for it to reach `dev`.
 
 If you push more commits after the receipt, the head sha changes and you must
-review + `post-review.sh` again before auto-merge can fire.
+review + `post-review.sh` again before merging.
 
 ### Releasing `dev` to `master`
 

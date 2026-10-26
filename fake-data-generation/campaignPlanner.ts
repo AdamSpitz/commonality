@@ -408,7 +408,7 @@ export async function buildCampaignPlan(manifest: CampaignManifestV1): Promise<C
     const commonalityBoard: PlannedCauseBoard | undefined = bridgeShaped ? {
       role: 'commonality',
       slug: boardSlug(manifest.campaign.id, cause.id, 'bridge'),
-      title: `${cause.title} — common ground`,
+      title: cause.title,
       summary: causeBoardSummary(cause.title, 'commonality'),
       statementIds: bridgePlanks.map((statement) => statement.id),
       clusterSlug,
@@ -442,7 +442,7 @@ export async function buildCampaignPlan(manifest: CampaignManifestV1): Promise<C
       const board: PlannedCauseBoard = {
         role: side.role,
         slug: boardSlug(manifest.campaign.id, cause.id, side.suffix),
-        title: `${cause.title} — ${side.role}`,
+        title: cause.title,
         summary: causeBoardSummary(cause.title, side.role),
         statementIds: [byRole.get(side.role)!.id],
         clusterSlug,
@@ -468,7 +468,7 @@ export async function buildCampaignPlan(manifest: CampaignManifestV1): Promise<C
       bridge: {
         slug: clusterSlug!,
         mediatorName: 'Synthetic campaign mediator',
-        mediatorNote: bridgeMediatorNote(cause.title),
+        mediatorNote: bridgeMediatorNote(cause.title, cause.id),
         boardIds: {
           naturalLeft: `${cause.id}:natural-left`,
           naturalRight: `${cause.id}:natural-right`,

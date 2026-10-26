@@ -109,6 +109,7 @@ register("AlignmentAttestations:SuccessRevoked");
 
 // SUBJECTIV IDENTITY: AccountAssertions + TrustRegistry
 register("AccountAssertions:AccountAssertionSet");
+register("SuggestedNames:NameSuggested");
 register("TrustRegistry:TrustSet");
 
 // MUTABLE REFS

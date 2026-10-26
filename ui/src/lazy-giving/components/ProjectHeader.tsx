@@ -12,10 +12,10 @@ import {
   formatRelativeDeadline,
 } from '../utils'
 import {
+  AccountAddress,
   InfoChip,
   InfoLabel,
   presentCampaignProjectDescription,
-  truncateAddress,
 } from '../../shared'
 import { formatCurrencyRaised, MoneyText } from '../../shared/funding'
 import { WebsiteBeneficiaryClaimChip } from './WebsiteBeneficiaryClaimChip'
@@ -93,7 +93,7 @@ export function ProjectHeader({ project, metadata, kind = 'project', beneficiary
           ) : (
           <Stack direction="row" spacing={0.5} alignItems="center">
             <Typography variant="body2" color="text.secondary">
-              Recipient: {truncateAddress(project.recipient)}
+              Recipient: <AccountAddress address={project.recipient} />
             </Typography>
             <Tooltip title={copiedRecipient ? 'Copied!' : project.recipient}>
               <IconButton size="small" onClick={copyRecipient} aria-label="Copy recipient address">

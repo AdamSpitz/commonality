@@ -226,7 +226,7 @@ describe('MyNotesPage', () => {
         expect(screen.getByText('Monthly Pledges')).toBeInTheDocument()
         expect(screen.getByText('Monthly pledge #5')).toBeInTheDocument()
         expect(screen.getByText('1 USDZZZ/month')).toBeInTheDocument()
-        expect(screen.getByText(/Delegated to 0x2222...2222/i)).toBeInTheDocument()
+        expect(screen.getByText((_, element) => element?.textContent === 'Delegated to 0x2222...2222' && element.tagName === 'P')).toBeInTheDocument()
         expect(screen.getByRole('link', { name: 'Community food security' })).toHaveAttribute(
           'href',
           getDomainUrl('tally', '/statement/bafy-cause'),
@@ -264,7 +264,7 @@ describe('MyNotesPage', () => {
       await waitFor(() => {
         expect(screen.getByText('What my money did')).toBeInTheDocument()
         expect(screen.getByText('1 ETH')).toBeInTheDocument()
-        expect(screen.getByText(/Directed by 0x2222...2222/)).toBeInTheDocument()
+        expect(screen.getByText((_, element) => element?.textContent?.startsWith('Directed by 0x2222...2222') === true && element.tagName === 'P')).toBeInTheDocument()
         expect(screen.getByText('receipt active')).toBeInTheDocument()
       })
     })

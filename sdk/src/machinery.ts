@@ -35,6 +35,8 @@ export interface ConceptspaceContractAddresses {
   trustRegistry?: `0x${string}`;
   /** AccountAssertions.sol -- tier-0/1 proof-of-personhood self-declarations. */
   accountAssertions?: `0x${string}`;
+  /** SuggestedNames.sol -- display-name suggestions, with no uniqueness check. */
+  suggestedNames?: `0x${string}`;
   /** NudgePublications.sol -- records nudger publication CIDs. */
   nudgePublications?: `0x${string}`;
   /** PublishedData.sol -- shared user-published content/retraction registry. */

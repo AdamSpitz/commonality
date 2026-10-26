@@ -8,7 +8,7 @@ import PsychologyIcon from '@mui/icons-material/Psychology'
 import WarningAmberIcon from '@mui/icons-material/WarningAmber'
 import { createDefaultDocumentReader } from '@commonality/sdk/displayable-documents'
 import { type IpfsCidV1 } from '@commonality/sdk/utils'
-import { truncateAddress } from '../../shared'
+import { AccountName, truncateAddress } from '../../shared'
 import { useTrustedContentAttesters } from '../../shared'
 import { useBeatAgentTrustPolicy, checkTrustPolicyViolation } from '../../shared'
 import { displayPolicyFromDenylist, isCidDeniedByDisplayDenylist, loadDisplayDenylist, useMachinery } from '../../shared'
@@ -408,7 +408,7 @@ function BeatAgentAttestationChip({
       >
         <Chip
           icon={violatesTrustPolicy ? <WarningAmberIcon /> : <PsychologyIcon />}
-          label={displayName}
+          label={<AccountName address={entry.address} label={displayName} />}
           size="small"
           color={violatesTrustPolicy ? 'warning' : 'primary'}
           variant="filled"
@@ -515,7 +515,7 @@ export function ContentAttestationSummary({ attestations }: ContentAttestationSu
             >
               <Chip
                 icon={<WarningAmberIcon />}
-                label={`Not attested: ${displayName}`}
+                label={<span>Not attested: <AccountName address={attestation.attester} label={displayName} /></span>}
                 size="small"
                 color="warning"
                 variant="outlined"
@@ -559,7 +559,7 @@ export function ContentAttestationSummary({ attestations }: ContentAttestationSu
           >
             <Chip
               icon={trustedAttester ? <MemoryIcon /> : undefined}
-              label={displayName}
+              label={<AccountName address={attestation.attester} label={displayName} />}
               size="small"
               color="success"
               variant={trustedAttester ? 'filled' : 'outlined'}

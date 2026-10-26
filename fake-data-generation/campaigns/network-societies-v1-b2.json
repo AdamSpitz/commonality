@@ -25,6 +25,18 @@
   },
   "projectStories": "network-societies-v1-b2-projects.json",
   "beliefDecisions": "network-societies-v1-b2-decisions.json",
+  "demoAreas": [
+    { "id": "blockchain-checkout", "title": "Blockchain checkout", "causeIds": ["crypto-merchants", "checkout-trial-bridge"] },
+    { "id": "grey-county-civic-life", "title": "Grey County civic life", "causeIds": ["civic-assimilation", "grey-assimilation"] },
+    { "id": "christian-teaching", "title": "Christian teaching", "causeIds": ["christian-teaching"] },
+    { "id": "home-learning", "title": "Home learning", "causeIds": ["home-learning"] },
+    { "id": "abortion", "title": "Abortion", "causeIds": ["abortion", "abortion-forum"] },
+    { "id": "schools", "title": "Schools and pushing", "causeIds": ["schools"] },
+    { "id": "voting", "title": "Voting in Grey County", "causeIds": ["voting"] },
+    { "id": "opinion-employment", "title": "Ordinary opinions and employment", "causeIds": ["opinion-employment"] },
+    { "id": "canada-us-ties", "title": "Canada–US ties", "causeIds": ["canada-us-ties"] },
+    { "id": "ai-pause", "title": "AI pause", "causeIds": ["ai-pause"] }
+  ],
   "causes": [
     {
       "id": "crypto-merchants",

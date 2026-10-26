@@ -135,6 +135,8 @@ This isn't meant to be an exhaustive list, but here's a list:
   - Organizing enclaves so people can live near each other.
   - Starting experiments (e.g. "FDA-free zone"), once you've actually got enough clout that it may be possible to carve out a place within a jurisdiction that might be amenable to that.
 
+That's a big list, and at least at first there's no need to try to fund those separately; I imagine it'd be good enough at first to just say "hey, let's fund this person who's doing a bunch of this stuff." Later on maybe there's enough activity, and enough of an established understanding of what work is needed, that people can say "let's fund her to do the meetup-organizing stuff, and let's fund him to watch the ecosystem and keep the website updated and find bridges and write social-media content", or whatever.
+
 ## How this fits in with Commonality in general
 
 Note that a lot of these jobs are "public goods" within the network society. Maintaining the website, writing content, working on relevant open-source software, maintaining maps of chapters, etc., are all (to some degree) jobs that benefit everyone in the society but that everybody wants someone else to pay for. They're not exactly public goods in the same way that a public park benefits basically *everyone*; they're scoped to this specific "movement" of people. But they're still kinda got that non-excludable, non-rivalrous nature. So it's useful to have mechanisms like Commonality's assurance-contracts and retroactive-funding and so on, to get them funded.

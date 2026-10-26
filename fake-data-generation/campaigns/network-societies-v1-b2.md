@@ -40,6 +40,8 @@ That directory is the 2026-10-21 plan of the current manifest: 72 users, 74 stat
 
 ## Local execution
 
+On 2026-10-22 the existing `network-societies-v1-b2-current` run was checked again against the live local stack: 446/446 actions verified, chain and indexer both at head 606, with no indexing or derived-state discrepancies. No new execution or chain reset was needed. Its completed test-data registry entry is `20261021T203254843Z`; earlier partial entries are historical snapshots. This campaign has only local runs in the registry, although older medium-realistic campaigns also have Base Sepolia runs. Open `http://localhost:8088/admin` and follow **Browse generated test-data runs** to inspect it.
+
 A plan written after the attester pass has 446 writes. On 2026-10-16 the local chain mined 446/446 and reconciliation matched 446/446. The first pass left 14 actions failed for insufficient ETH; those wallets were topped up and the run resumed. Output is `output/campaigns/network-societies-v1-b2/`. Pilot and medium-realistic-v2 outputs were not overwritten.
 
 The shortfall was the funder, not the chain. `computeCampaignFundingNeeds` priced a belief write at 90_000 gas and a publish at 180_000. The executor asks viem for `40_000 + 80_000 * n` on `setBeliefsInBatch` (280_000 for three) and leaves `publishDataBatch` to viem, which estimated about 4_000_000 on the large publishes. Funding now uses those figures, with 500_000 extra gas per publish after the first in a batch. A 2026-10-21 run still failed four `fund-project` buys: receipts used about 257,000 gas, and each project also sends an ERC-20 approval that the quote omitted. `fund-project` is now 400,000 gas, plus 80,000 for one approval per project.

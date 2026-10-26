@@ -88,6 +88,7 @@ export function useMachinery(): SDKMachinery {
       mutableRefUpdater: getRuntimeConfigValue('VITE_MUTABLE_REF_UPDATER_CONTRACT_ADDRESS') as `0x${string}`,
       trustRegistry: getRuntimeConfigValue('VITE_TRUST_REGISTRY_CONTRACT_ADDRESS') as `0x${string}`,
       accountAssertions: getRuntimeConfigValue('VITE_ACCOUNT_ASSERTIONS_CONTRACT_ADDRESS') as `0x${string}` | undefined,
+      suggestedNames: getRuntimeConfigValue('VITE_SUGGESTED_NAMES_ADDRESS') as `0x${string}` | undefined,
       nudgePublications: getRuntimeConfigValue('VITE_NUDGE_PUBLICATIONS_CONTRACT_ADDRESS') as `0x${string}` | undefined,
       publishedData: getRuntimeConfigValue('VITE_PUBLISHED_DATA_CONTRACT_ADDRESS') as `0x${string}` | undefined,
       beneficiaryIdentity: getRuntimeConfigValue('VITE_BENEFICIARY_IDENTITY_ADDRESS') as `0x${string}` | undefined,

@@ -49,12 +49,10 @@ export function ClusterMediatorOptIn({
       >
         <Stack spacing={0.5} sx={{ minWidth: 0 }}>
           <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-            Listen to this mediator
+            If you like this mediator
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            You are opting into <strong>{fields.mediatorName}</strong>'s address, not this page.
-            Later parent→modified suggestions appear if they publish again. Opening this cluster
-            does not subscribe you.
+            If you choose to, you can opt in to receive statement-signing suggestions from <strong>{fields.mediatorName}</strong>.
           </Typography>
         </Stack>
         <Button
