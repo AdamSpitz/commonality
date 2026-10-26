@@ -1,7 +1,7 @@
 import { SuggestedNamesAbi } from '../../abis/conceptspace.js';
 import type { SDKMachinery } from '../../machinery.js';
 import { decodeRawEventArgs, decodedLogMeta } from '../../utils/decodeRawEvent.js';
-import { fetchEvents, padAddressAsTopic } from '../../utils/eventCacheClient.js';
+import { fetchEventsComplete, padAddressAsTopic } from '../../utils/eventCacheClient.js';
 import { pickSuggestedDisplayName } from './folds.js';
 import type { SuggestedName } from './types.js';
 
@@ -38,11 +38,10 @@ export async function getSuggestedDisplayName(
 ): Promise<SuggestedName | null> {
   const contract = machinery.contractAddresses?.suggestedNames;
   if (!contract || !machinery.eventCacheUrl || !isAddress(account)) return null;
-  const raw = await fetchEvents(machinery, {
+  const raw = await fetchEventsComplete(machinery, {
     contractAddress: contract,
     eventName: 'NameSuggested',
     topic2: padAddressAsTopic(account),
-    limit: 1000,
   });
   const events = raw
     .map(decodeSuggestedName)

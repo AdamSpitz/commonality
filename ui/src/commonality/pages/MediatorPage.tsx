@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react'
 import { Box, CircularProgress, Link, Paper, Stack, Typography } from '@mui/material'
 import { Link as RouterLink, useParams } from 'react-router-dom'
-import { listCauses, type CauseDraft } from '../lib/causeStore'
+import { listCauses } from '../lib/causeStore'
+import { listBridges } from '../lib/bridgeStore'
 import { loadClusterDocument, resolveClusterCid, type BridgeClusterFields } from '../lib/bridgeCluster'
 import { useMachinery } from '../../shared'
 import { ClusterMediatorOptIn } from '../components/ClusterMediatorOptIn'
 
 interface MediatorBridge {
-  cause: CauseDraft
+  causeTitle?: string
   fields: BridgeClusterFields
   path: string
 }
@@ -24,22 +25,37 @@ export function MediatorPage() {
 
   useEffect(() => {
     const address = params.address?.toLowerCase()
-    if (!address) return
+    setLoading(true)
+    setBridges([])
+    setMediatorName('')
+    if (!address) {
+      setLoading(false)
+      return
+    }
 
     let cancelled = false
     void (async () => {
       try {
-        const causes = listCauses()
-        const mediatorBridges: MediatorBridge[] = []
-
-        for (const cause of causes) {
+        const candidates = new Map<string, { owner: string; slug: string; causeTitle?: string }>()
+        for (const cause of listCauses()) {
           if (!cause.bridgeCluster) continue
+          const { clusterOwner: owner, clusterSlug: slug } = cause.bridgeCluster
+          candidates.set(`${owner.toLowerCase()}/${slug}`, { owner, slug, causeTitle: cause.title })
+        }
+        for (const bridge of listBridges()) {
+          if (!bridge.founderAddress || !bridge.slug || !bridge.clusterCid) continue
+          const key = `${bridge.founderAddress.toLowerCase()}/${bridge.slug}`
+          if (!candidates.has(key)) candidates.set(key, { owner: bridge.founderAddress, slug: bridge.slug })
+        }
+        const mediatorBridges: MediatorBridge[] = []
+        let name = ''
 
+        for (const candidate of candidates.values()) {
           try {
             const clusterCid = await resolveClusterCid(
               machinery,
-              cause.bridgeCluster.clusterOwner,
-              cause.bridgeCluster.clusterSlug,
+              candidate.owner,
+              candidate.slug,
             )
             if (cancelled || !clusterCid) continue
 
@@ -48,22 +64,21 @@ export function MediatorPage() {
 
             if (loaded.fields.mediatorAddress?.toLowerCase() !== address) continue
 
-            if (!mediatorName && loaded.fields.mediatorName) {
-              setMediatorName(loaded.fields.mediatorName)
-            }
+            if (!name) name = loaded.fields.mediatorName
 
             mediatorBridges.push({
-              cause,
+              causeTitle: candidate.causeTitle,
               fields: loaded.fields,
-              path: `/bridge/${cause.bridgeCluster.clusterOwner}/${encodeURIComponent(cause.bridgeCluster.clusterSlug)}`,
+              path: `/bridge/${candidate.owner}/${encodeURIComponent(candidate.slug)}`,
             })
           } catch (err) {
-            console.error('Failed to load bridge for cause:', cause.id, err)
+            console.error('Failed to load bridge:', candidate.slug, err)
           }
         }
 
         if (!cancelled) {
           setBridges(mediatorBridges)
+          setMediatorName(name)
           setLoading(false)
         }
       } catch (err) {
@@ -73,7 +88,7 @@ export function MediatorPage() {
     })()
 
     return () => { cancelled = true }
-  }, [params.address, machinery]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [params.address, machinery])
 
   if (loading) {
     return (
@@ -117,9 +132,9 @@ export function MediatorPage() {
                     {bridge.fields.mediatorNote}
                   </Typography>
                 )}
-                <Typography variant="caption" color="text.secondary">
-                  For: {bridge.cause.title}
-                </Typography>
+                {bridge.causeTitle && <Typography variant="caption" color="text.secondary">
+                  For: {bridge.causeTitle}
+                </Typography>}
               </Stack>
             </Paper>
           ))}
