@@ -2,6 +2,7 @@ import { BeliefsAbi } from "../../abis/BeliefsAbi";
 import { ImplicationsAbi } from "../../abis/ImplicationsAbi";
 import { AlignmentAttestationsAbi } from "../../abis/AlignmentAttestationsAbi";
 import { AccountAssertionsAbi } from "../../abis/AccountAssertionsAbi";
+import { SuggestedNamesAbi } from "../../abis/SuggestedNamesAbi";
 import { TrustRegistryAbi } from "../../abis/TrustRegistryAbi";
 import { MutableRefUpdaterAbi } from "../../abis/MutableRefUpdaterAbi";
 import { NudgePublicationsAbi } from "../../abis/NudgePublicationsAbi";
@@ -32,6 +33,11 @@ export function conceptspaceContracts(context: IndexerDeploymentContext) {
     "AccountAssertions",
     "ACCOUNT_ASSERTIONS_ADDRESS",
     context.contractStartBlock("ACCOUNT_ASSERTIONS_START_BLOCK", context.startBlock),
+  );
+  const suggestedNames = context.getDeployments(
+    "SuggestedNames",
+    "SUGGESTED_NAMES_ADDRESS",
+    context.contractStartBlock("SUGGESTED_NAMES_START_BLOCK", context.startBlock),
   );
   const trustRegistry = context.getDeployments(
     "TrustRegistry",
@@ -79,6 +85,11 @@ export function conceptspaceContracts(context: IndexerDeploymentContext) {
       abi: AccountAssertionsAbi,
       chain: context.chain,
       ...context.deploymentConfig(accountAssertions, context.startBlock),
+    },
+    SuggestedNames: {
+      abi: SuggestedNamesAbi,
+      chain: context.chain,
+      ...context.deploymentConfig(suggestedNames, context.startBlock),
     },
     TrustRegistry: {
       abi: TrustRegistryAbi,

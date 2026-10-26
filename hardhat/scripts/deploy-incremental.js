@@ -12,6 +12,7 @@ const ADDRESS_KEYS = {
   Implications: ['IMPLICATIONS_CONTRACT_ADDRESS'],
   TrustRegistry: ['TRUST_REGISTRY_ADDRESS'],
   AccountAssertions: ['ACCOUNT_ASSERTIONS_ADDRESS'],
+  SuggestedNames: ['SUGGESTED_NAMES_ADDRESS'],
   AlignmentAttestations: ['ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS', 'ALIGNMENT_ATTESTATIONS_ADDRESS', 'PROJECT_ALIGNMENT_CONTRACT_ADDRESS'],
   NoteIntent: ['NOTE_INTENT_ADDRESS'],
   MutableRefUpdater: ['MUTABLE_REF_UPDATER_CONTRACT_ADDRESS', 'MUTABLE_REF_UPDATER_ADDRESS'],
@@ -240,6 +241,7 @@ async function main() {
   await deployOrReuse('Implications', 'Implications');
   await deployOrReuse('TrustRegistry', 'TrustRegistry');
   await deployOrReuse('AccountAssertions', 'AccountAssertions');
+  await deployOrReuse('SuggestedNames', 'SuggestedNames');
   await deployOrReuse('AlignmentAttestations', 'AlignmentAttestations');
   await deployOrReuse('NoteIntent', 'NoteIntent');
   await deployOrReuse('MutableRefUpdater', 'MutableRefUpdater');
@@ -536,6 +538,7 @@ async function main() {
     IMPLICATIONS_CONTRACT_ADDRESS: addresses.Implications,
     TRUST_REGISTRY_ADDRESS: addresses.TrustRegistry,
     ACCOUNT_ASSERTIONS_ADDRESS: addresses.AccountAssertions,
+    SUGGESTED_NAMES_ADDRESS: addresses.SuggestedNames,
     ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS: addresses.AlignmentAttestations,
     ALIGNMENT_ATTESTATIONS_ADDRESS: addresses.AlignmentAttestations,
     PROJECT_ALIGNMENT_CONTRACT_ADDRESS: addresses.AlignmentAttestations,
