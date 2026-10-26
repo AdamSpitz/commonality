@@ -19,6 +19,7 @@ import {
 } from '../wallet/hardhatAccounts'
 import { isPrivyEnabled } from '../../wagmi'
 import { useTestDataSession } from '../wallet/testDataSession'
+import { ConnectedAccountFrame } from './AccountName'
 
 const PrivyWalletButton = lazy(() => import('./PrivyWalletButtonImpl'))
 
@@ -220,45 +221,58 @@ function TestDataWalletButton({ dense = false, testId = 'wallet-connect-button' 
   }
 
   return (
-    <Button
-      color="inherit"
-      variant={isConnected ? 'outlined' : 'contained'}
-      size="small"
-      onClick={() => void handleClick()}
-      disabled={busy || !connector}
-      data-testid={testId}
-      sx={buttonSx(isConnected, dense)}
-    >
-      {busy ? 'Connecting…' : label}
-    </Button>
+    <ConnectedAccountFrame address={isConnected ? address : undefined} label={label}>
+      {(name) => (
+        <Button
+          color="inherit"
+          variant={isConnected ? 'outlined' : 'contained'}
+          size="small"
+          onClick={() => void handleClick()}
+          disabled={busy || !connector}
+          data-testid={testId}
+          sx={buttonSx(isConnected, dense)}
+        >
+          {busy ? 'Connecting…' : name}
+        </Button>
+      )}
+    </ConnectedAccountFrame>
   )
 }
 
 function BrowserWalletButton({ dense = false, testId = 'wallet-connect-button' }: WalletButtonProps) {
   const { setOpen, open } = useModal()
+  const { address } = useAccount()
 
   return (
     <ConnectKitButton.Custom>
-      {({ isConnected, isConnecting, show, truncatedAddress, ensName }) => (
-        <Button
-          color="inherit"
-          variant={isConnected ? 'outlined' : 'contained'}
-          size="small"
-          onClick={() => {
-            if (typeof show === 'function') {
-              show()
-              return
-            }
-            setOpen(true)
-          }}
-          disabled={isConnecting}
-          aria-expanded={open}
-          data-testid={testId}
-          sx={buttonSx(isConnected, dense)}
-        >
-          {isConnecting ? 'Connecting…' : isConnected ? (ensName ?? truncatedAddress) : 'Connect'}
-        </Button>
-      )}
+      {({ isConnected, isConnecting, show, truncatedAddress, ensName }) => {
+        const fallback = ensName ?? truncatedAddress ?? 'Connected'
+        const buttonLabel = isConnecting ? 'Connecting…' : isConnected ? fallback : 'Connect'
+        return (
+          <ConnectedAccountFrame address={isConnected ? address : undefined} label={buttonLabel} detail={ensName}>
+            {(name) => (
+              <Button
+                color="inherit"
+                variant={isConnected ? 'outlined' : 'contained'}
+                size="small"
+                onClick={() => {
+                  if (typeof show === 'function') {
+                    show()
+                    return
+                  }
+                  setOpen(true)
+                }}
+                disabled={isConnecting}
+                aria-expanded={open}
+                data-testid={testId}
+                sx={buttonSx(isConnected, dense)}
+              >
+                {name}
+              </Button>
+            )}
+          </ConnectedAccountFrame>
+        )
+      }}
     </ConnectKitButton.Custom>
   )
 }

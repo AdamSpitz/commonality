@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
-import { Box, Typography, Tooltip } from '@mui/material'
+import { Box, Typography } from '@mui/material'
 import { getUserSocialData, type UserSocialData } from '@commonality/sdk/signer-profiles'
 import { useMachinery } from '../hooks/useMachinery'
+import { AccountName } from './AccountName'
 
 interface AddressDisplayProps {
   address: string
@@ -36,48 +37,23 @@ export function AddressDisplay({
 
   const ensName = socialData?.ensName
   const twitterHandle = socialData?.twitterHandle
-
-  if (ensName) {
-    return (
-      <Box>
-        <Tooltip title={address} arrow>
-          <Typography variant={variant} sx={{ fontWeight: 500 }}>
-            {ensName}
-          </Typography>
-        </Tooltip>
-        {showFullAddress && (
-          <Typography variant="caption" color="text.secondary" sx={{ fontFamily: 'monospace', display: 'block' }}>
-            {address}
-          </Typography>
-        )}
-        {explainAddress && <AddressExplanation />}
-      </Box>
-    )
-  }
-
-  if (twitterHandle) {
-    return (
-      <Box>
-        <Tooltip title={address} arrow>
-          <Typography variant={variant} sx={{ fontWeight: 500 }}>
-            {twitterHandle}
-          </Typography>
-        </Tooltip>
-        {showFullAddress && (
-          <Typography variant="caption" color="text.secondary" sx={{ fontFamily: 'monospace', display: 'block' }}>
-            {address}
-          </Typography>
-        )}
-        {explainAddress && <AddressExplanation />}
-      </Box>
-    )
-  }
+  const label = ensName || twitterHandle || address
+  const named = Boolean(ensName || twitterHandle)
 
   return (
     <Box>
-      <Typography variant={variant} color="text.secondary" sx={{ fontFamily: 'monospace' }}>
-        {address}
+      <Typography
+        variant={variant}
+        color={named ? undefined : 'text.secondary'}
+        sx={{ fontWeight: named ? 500 : undefined, fontFamily: named ? undefined : 'monospace' }}
+      >
+        <AccountName address={address} label={label} detail={named ? label : null} />
       </Typography>
+      {showFullAddress && label !== address && (
+        <Typography variant="caption" color="text.secondary" sx={{ fontFamily: 'monospace', display: 'block' }}>
+          {address}
+        </Typography>
+      )}
       {explainAddress && <AddressExplanation />}
     </Box>
   )

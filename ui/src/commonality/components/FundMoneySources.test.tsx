@@ -16,6 +16,7 @@ vi.mock('@ui/shared', () => ({
   getCurrencyForNote: () => ({ symbol: 'ETH', decimals: 18 }),
   formatCurrencyAmount: () => '1 ETH',
   truncateAddress: (address: string) => `${address.slice(0, 6)}…${address.slice(-4)}`,
+  AccountAddress: ({ address }: { address: string }) => <span>{`${address.slice(0, 6)}…${address.slice(-4)}`}</span>,
 }))
 
 const note = (overrides: Record<string, unknown> = {}) => ({

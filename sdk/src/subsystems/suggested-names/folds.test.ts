@@ -1,5 +1,5 @@
 import assert from 'assert';
-import { foldSelfAttestedNames, foldSuggestedNames } from './folds.js';
+import { foldSelfAttestedNames, foldSuggestedNames, pickSuggestedDisplayName } from './folds.js';
 import type { SuggestedName } from './types.js';
 
 const ALICE = '0x1111111111111111111111111111111111111111' as const;
@@ -32,6 +32,24 @@ describe('suggested names', () => {
   it('returns only names the account suggested for itself', () => {
     const names = foldSelfAttestedNames(ALICE, events).map((event) => event.name);
     assert.deepEqual(names, ['Ada', 'Ada Lovelace']);
+  });
+
+  it('prefers the latest name the account suggested for itself', () => {
+    assert.equal(pickSuggestedDisplayName(ALICE, events)?.name, 'Ada Lovelace');
+  });
+
+  it('uses the latest third-party name when the account has not named itself', () => {
+    const thirdParty = [
+      suggestion(ALICE, BOB, 'Robert', 1n),
+      suggestion(ALICE, BOB, 'Bob', 2n),
+    ];
+    assert.equal(pickSuggestedDisplayName(BOB, thirdParty)?.name, 'Bob');
+  });
+
+  it('skips blank names', () => {
+    const blank = [suggestion(ALICE, ALICE, '   ', 5n)];
+    assert.equal(pickSuggestedDisplayName(ALICE, [...events, ...blank])?.name, 'Ada Lovelace');
+    assert.equal(pickSuggestedDisplayName(BOB, [suggestion(ALICE, BOB, '  ', 1n)]), null);
   });
 
   it('treats attester and account addresses case-insensitively', () => {

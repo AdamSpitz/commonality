@@ -23,7 +23,7 @@ import { getStatement } from '@commonality/sdk/conceptspace'
 import { getSubjectStatements, attestAlignment, attestSuccess, getSubjectSuccessStatements, toSubjectId, PROJECT_ALIGNMENT_TOPIC, type AlignmentAttestation, type SuccessAttestation } from '@commonality/sdk/fundingportals'
 import { waitForIndexerToSyncToTxHash } from '@commonality/sdk/indexer-sync'
 import { cidToBytes32, readHasAlignment, type IpfsCidV1 } from '@commonality/sdk/utils'
-import { InfoChip, StatementPicker, truncateAddress, useMachinery, useWriteClients } from '../../shared'
+import { AccountAddress, InfoChip, StatementPicker, useMachinery, useWriteClients } from '../../shared'
 import { getAlignmentContract } from './alignmentContract'
 
 type AlignmentWithTitle = AlignmentAttestation & { statementTitle?: string }
@@ -316,7 +316,7 @@ export function AlignmentAttestationsSection({ projectAddress, initialStatementC
                     {a.statementTitle || `Statement ${a.statementCid.slice(0, 12)}...`}
                   </Typography>
                   <Typography variant="caption" color="text.secondary" display="block">
-                    Vouched by: {truncateAddress(a.attester)}
+                    Vouched by: <AccountAddress address={a.attester} />
                   </Typography>
                 </Box>
                 <InfoChip
@@ -347,7 +347,7 @@ export function AlignmentAttestationsSection({ projectAddress, initialStatementC
                     {a.statementTitle || `Statement ${a.statementCid.slice(0, 12)}...`}
                   </Typography>
                   <Typography variant="caption" color="text.secondary" display="block">
-                    Success vouched by: {truncateAddress(a.attester)}
+                    Success vouched by: <AccountAddress address={a.attester} />
                   </Typography>
                 </Box>
                 <InfoChip

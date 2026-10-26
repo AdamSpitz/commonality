@@ -11,7 +11,7 @@ import { useMachinery } from '../../shared'
 import { useWriteClients } from '../../shared'
 import { formatCurrencyAmount, MoneyText } from '../../shared/funding'
 import { getDomainUrl } from '../../shared'
-import { humanizeTxError, truncateAddress } from '../../shared'
+import { AccountAddress, humanizeTxError } from '../../shared'
 import { isDelegate, noteScopedKey } from '../../delegation'
 import { parseUnits } from 'viem'
 import { allocatePurchaseAmount } from '../purchaseAllocation'
@@ -446,7 +446,7 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
                   >
                     {notes.map(note => (
                       <MenuItem key={noteScopedKey(note)} value={noteScopedKey(note)}>
-                        Fund #{note.id} — <MoneyText text={formatCurrencyAmount(note.amount, fundingCurrency)} /> — {isDelegate(note) ? `entrusted by ${truncateAddress(note.rootOwner)}` : 'your fund'}
+                        Fund #{note.id} — <MoneyText text={formatCurrencyAmount(note.amount, fundingCurrency)} /> — {isDelegate(note) ? <>entrusted by <AccountAddress address={note.rootOwner} /></> : 'your fund'}
                       </MenuItem>
                     ))}
                   </Select>

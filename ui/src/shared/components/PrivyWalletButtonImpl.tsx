@@ -6,6 +6,7 @@ import type { ConnectedWallet } from '@privy-io/react-auth'
 import { useSetActiveWallet } from '@privy-io/wagmi'
 import { useAccount } from 'wagmi'
 import { truncateAddress } from '../utils/address'
+import { AccountAddress, ConnectedAccountFrame } from './AccountName'
 
 function getPreferredWalletAddress(wallets: ConnectedWallet[]) {
   const embeddedWallet = wallets.find((wallet) => wallet.walletClientType === 'privy')
@@ -87,9 +88,13 @@ export default function PrivyWalletButtonImpl() {
 
   return (
     <>
-      <Button color="inherit" variant="outlined" onClick={handleMenuOpen}>
-        {truncateAddress(connectedAddress)}
-      </Button>
+      <ConnectedAccountFrame address={connectedAddress} label={truncateAddress(connectedAddress)}>
+        {(name) => (
+          <Button color="inherit" variant="outlined" onClick={handleMenuOpen}>
+            {name}
+          </Button>
+        )}
+      </ConnectedAccountFrame>
       <Menu
         anchorEl={anchorEl}
         open={Boolean(anchorEl)}
@@ -97,7 +102,7 @@ export default function PrivyWalletButtonImpl() {
       >
         <MenuItem disabled>
           <ListItemText
-            primary={truncateAddress(connectedAddress)}
+            primary={<AccountAddress address={connectedAddress} />}
             secondary={connectedAddress}
           />
         </MenuItem>

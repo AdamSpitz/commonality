@@ -32,3 +32,23 @@ export function foldSelfAttestedNames(
   return foldSuggestedNames(account, events)
     .filter((event) => event.attester.toLowerCase() === target);
 }
+
+function hasVisibleName(event: SuggestedName): boolean {
+  return event.name.trim().length > 0;
+}
+
+/**
+ * One name to show for `account`.
+ * Prefer the latest non-empty name that account suggested for itself.
+ * Otherwise use the latest non-empty name from anyone else.
+ */
+export function pickSuggestedDisplayName(
+  account: `0x${string}`,
+  events: SuggestedName[],
+): SuggestedName | null {
+  const named = foldSuggestedNames(account, events).filter(hasVisibleName);
+  const target = account.toLowerCase();
+  const self = named.filter((event) => event.attester.toLowerCase() === target);
+  const chosen = (self.length > 0 ? self : named).at(-1);
+  return chosen ?? null;
+}

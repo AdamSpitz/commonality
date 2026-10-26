@@ -327,12 +327,15 @@ describe('ContentAttestationSummary', () => {
       />,
     )
 
-    const chip = screen.getByText('Not attested: Noninflammatory evaluator').closest('.MuiChip-root')
+    const chipLabel = screen.getByText((_, element) =>
+      element?.classList.contains('MuiChip-label') === true
+      && element.textContent === 'Not attested: Noninflammatory evaluator',
+    )
+    const chip = chipLabel.closest('.MuiChip-root')
     expect(chip).toHaveClass('MuiChip-colorWarning')
     expect(chip).toHaveClass('MuiChip-outlined')
-    expect(screen.queryByText('Noninflammatory evaluator')).not.toBeInTheDocument()
 
-    await userEvent.hover(screen.getByText('Not attested: Noninflammatory evaluator'))
+    await userEvent.hover(chipLabel)
     expect(await screen.findByText('Negative content attestation')).toBeInTheDocument()
     expect(screen.getByText(/did not attest that the content supports/)).toBeInTheDocument()
   })

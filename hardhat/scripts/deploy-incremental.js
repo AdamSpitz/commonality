@@ -606,6 +606,7 @@ async function main() {
     VITE_ALIGNMENT_ATTESTATIONS_CONTRACT_ADDRESS: addresses.AlignmentAttestations, VITE_TRUST_REGISTRY_CONTRACT_ADDRESS: addresses.TrustRegistry, VITE_NUDGE_PUBLICATIONS_CONTRACT_ADDRESS: addresses.NudgePublications,
     VITE_PUBLISHED_DATA_CONTRACT_ADDRESS: addresses.PublishedData,
     VITE_ACCOUNT_ASSERTIONS_CONTRACT_ADDRESS: addresses.AccountAssertions,
+    VITE_SUGGESTED_NAMES_ADDRESS: addresses.SuggestedNames,
     VITE_CONTENT_REGISTRY_ADDRESS: addresses.ContentRegistry, VITE_BENEFICIARY_IDENTITY_ADDRESS: addresses.BeneficiaryIdentity, VITE_BENEFICIARY_REGISTRY_ADDRESS: addresses.BeneficiaryRegistry, VITE_BENEFICIARY_VERIFIER_ADDRESS: addresses.BeneficiaryVerifier,
     VITE_BENEFICIARY_ESCROW_ADDRESS: addresses.BeneficiaryEscrow, VITE_CREATOR_CONTRACT_FACTORY_ADDRESS: addresses.CreatorAssuranceContractFactory, ...(addresses.CreatorAssuranceVeto ? { VITE_CREATOR_ASSURANCE_VETO_ADDRESS: addresses.CreatorAssuranceVeto } : {}), VITE_PROJECT_FACTORY_CONTRACT_ADDRESS: addresses.ProjectFactory,
     VITE_PROSPECTIVE_CONTENT_ROUND_FACTORY_ADDRESS: addresses.ProspectiveContentRoundFactory,

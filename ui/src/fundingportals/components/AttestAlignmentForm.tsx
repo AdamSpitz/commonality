@@ -18,7 +18,7 @@ import { getAllProjects, type Project } from '@commonality/sdk/lazy-giving'
 import type { IpfsCidV1 } from '@commonality/sdk/utils'
 import { useMachinery } from '../../shared'
 import { useWriteClients } from '../../shared'
-import { truncateAddress } from '../../shared'
+import { AccountName, truncateAddress } from '../../shared'
 import { addContact, getContacts, useResolvedAddress, type SavedContact } from '../../shared'
 import { getAlignmentContract } from './alignmentContract'
 import { NetworkSwitchPrompt, useIsWrongChain } from '../../shared'
@@ -224,8 +224,13 @@ export function AttestAlignmentForm({ statementCid }: Props) {
                         ? 'Looking up that name…'
                         : resolution.error && !projectAddress
                           ? resolution.error
-                          : resolution.ensName
-                            ? `${resolution.ensName} resolves to ${resolution.address}`
+                          : resolution.ensName && resolution.address
+                            ? (
+                              <>
+                                <AccountName address={resolution.address} label={resolution.ensName} detail={resolution.ensName} />
+                                {` resolves to ${resolution.address}`}
+                              </>
+                            )
                             : undefined
                     }
                     InputProps={{
