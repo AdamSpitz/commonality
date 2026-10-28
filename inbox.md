@@ -17,7 +17,7 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 ## Main list
 
-- **Tell Report:** Cold-start step 2 is started, not finished. My Notes no longer downloads every note or folds every project. A statement's note-intent total asks for that statement's intents only. `NoteIntentAttested` changed which fields are indexed, so local indexer data for that event must be rebuilt, and testnet `NoteIntent` still needs a redeploy (filed on `TODO.md`). The fold plan's later steps are not done.
+- **Tell Report:** Cold-start step 2 is started, not finished. My Notes, a single note, notes by owner or root, and a note's intents no longer download every note. Purchase, refund, and reimbursement events are still downloaded whole, because those note ids are not indexed. Statement browse, implications, content funding, standing pledges, and the project registry stay global for later steps. `NoteIntentAttested` changed which fields are indexed, so local indexer data for that event must be rebuilt, and testnet `NoteIntent` still needs a redeploy (filed on `TODO.md`). Bench numbers are not recorded yet.
 
 - **Tell Report:** Structured fundable work is implemented. Ordinary projects and content contracts reserve work ids in `ContentRegistry` (`specs/tech/subsystems/work-items.md`). Creation still works with no ids. The project page lists current items; failed-attempt history is the registry events, not a separate timeline yet. Sequence attestations and domain templates were not built. Testnet needs a redeploy of `ContentRegistry`, `ProjectFactory`, and `CreatorAssuranceContractFactory` before this bytecode is live there.
 

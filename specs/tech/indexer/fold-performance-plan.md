@@ -64,7 +64,19 @@ Landed in that branch:
 - `getDonationActivityByRoot` starts from `NoteCreated` filtered by owner, walks descendant note ids, and loads only those notes' intents. It no longer calls `getAllProjects()`. Project rows come from `ProjectCreated` filtered by the receipt token. `ERC1155Purchased`, `RefundedIntoNote`, and `ReimbursementClaimedIntoNote` stay whole-event fetches because their note ids are not indexed. Standing pledges are still the whole registry, then filtered to this root.
 - `NoteIntentAttested` now indexes `intendedStatementId` instead of `noteContract`. `getNoteIntentAggregate` and `getNoteIntentAttestationsByStatement` fetch that topic, then the notes those intents name (and their ancestors). `noteContract` is still in the event data. This needs a local reindex. Testnet redeploy is a separate TODO; do not do it in this step.
 
-Still open for this step: the other inventory rows (statement browse, implications, content funding, the project registry) stay global on purpose for steps 3–4. Re-read them before checking this step off. Bench numbers are not recorded. `fetchNoteIntentEvents(noteContract)` can no longer filter server-side.
+Still open for this step: bench numbers are not recorded. `fetchNoteIntentEvents(noteContract)` still downloads every intent, because `noteContract` is no longer indexed.
+
+Per-note and per-owner delegation reads (`getNote`, `getDelegationChain`, `getDelegationChainsForNotes`, `getNotesByOwner`, `getNotesByRoot`, `getNoteIntentAttestation`, `getNoteIntentAttestationsByNote`) now use the same topic filters as the donation page. Purchase, refund, and reimbursement events stay a whole-event download there, because those note ids are not indexed and the fold copies chains from them. `getPurchasedNoteEventsByTxHashes` stays global: the transaction hash is not indexed.
+
+These inventory rows stay global on purpose. Steps 3–4 cover them:
+
+- statement browse and `getAllStatements` (`DirectSupport`)
+- implication source activity
+- content-funding state
+- standing pledges
+- the project registry (`getAllProjects`) and `getUserContributions` (`ERC1155Bought` has no participant topic)
+- `getRefsByName` and the work-request board (every `RefUpdated`)
+- `getKnownProofTiers` (every `AccountAssertionSet`; a single account already filters topic1)
 
 Prefer asking for less over caching more. Contracts and the events API can both change.
 
