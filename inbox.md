@@ -17,6 +17,8 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 ## Main list
 
+- **Tell Report:** Cold-start step 4 is done. Global folds resume from a stored accumulator (`runResumableFold`). A reorg in the unfinalized tail is not saved. The local chain is shorter than the finality lag, so the step 2 bench still describes repeat-visit bytes. Workers are step 5.
+
 - **Tell Report:** Cold-start step 3 is done. Finalized history for one event name can be served as immutable segments (`GET /api/event-segments/...`), and global SDK fetches verify the hash and then download only the tail. The local chain is too short for a segment, so the step 2 bench still describes that stack. Resumable folds are step 4.
 
 - **Tell Report:** Cold-start step 2 is done. My Notes, a single note, notes by owner or root, and a note's intents no longer download every note. Purchase, refund, and reimbursement events are still downloaded whole, because those note ids are not indexed. Statement browse, implications, content funding, standing pledges, and the project registry stay global for later steps. The first bench is in the fold-performance plan: on the existing local chain, `getAllProjects` was 223 requests and 401 ms for 55 projects. Testnet `NoteIntent` still needs a redeploy (already on `TODO.md`).
