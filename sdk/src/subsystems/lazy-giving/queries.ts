@@ -18,6 +18,7 @@ import { SDKMachinery } from '../../machinery.js';
 import {
   fetchEvents,
   fetchEventsComplete,
+  readFinalizedThrough,
   fetchLazyGivingProjectEvents,
   fetchAllBoughtEvents,
   padAddressAsTopic,
@@ -36,8 +37,10 @@ import {
   decodeReimbursementWithdrawnEvent,
   decodeReimbursementForgoneEvent,
 } from '../../utils/eventDecoder.js';
+import { foldStoreKey, runResumableFold } from '../../utils/resumableFold.js';
 import {
   foldProject,
+  PROJECT_FOLD_VERSION,
   foldProjectTokens,
   foldContributionsFromEvents,
   type ProjectEvent,
@@ -145,6 +148,36 @@ export interface ProjectFoldResult {
  * Pass `initialAccumulator` / `blockNumber_gte` to continue from a saved cursor
  * instead of replaying every event.
  */
+function emptyProjectAccumulator(): ProjectAccumulator {
+  return {
+    foldVersion: PROJECT_FOLD_VERSION,
+    id: '',
+    erc1155Address: '',
+    recipient: '',
+    conditionAddress: null,
+    metadataCid: undefined,
+    createdAt: undefined,
+    blockNumber: undefined,
+    lastEventBlockNumber: undefined,
+    lastEventLogIndex: undefined,
+    totalReceived: 0n,
+  };
+}
+
+function serializeProjectAccumulator(accumulator: ProjectAccumulator): unknown {
+  return { ...accumulator, totalReceived: accumulator.totalReceived.toString() };
+}
+
+function deserializeProjectAccumulator(raw: unknown): ProjectAccumulator {
+  const record = raw as ProjectAccumulator & { totalReceived: string | bigint };
+  return {
+    ...emptyProjectAccumulator(),
+    ...record,
+    foldVersion: PROJECT_FOLD_VERSION,
+    totalReceived: typeof record.totalReceived === 'bigint' ? record.totalReceived : BigInt(record.totalReceived),
+  };
+}
+
 export async function getProjectFold(
   machinery: SDKMachinery,
   assuranceContractAddress: string,
@@ -153,15 +186,48 @@ export async function getProjectFold(
     blockNumber_gte?: string;
   }
 ): Promise<ProjectFoldResult | null> {
-  const projectEvents = await fetchAndDecodeProjectEvents(machinery, assuranceContractAddress, {
-    blockNumber_gte: options?.blockNumber_gte,
-  });
   const fundingCurrency = await readSettlementCurrency(machinery, assuranceContractAddress);
-  const { project: partial, accumulator } = foldProject(
-    projectEvents,
-    options?.initialAccumulator,
-    fundingCurrency,
-  );
+  const projectEvents = machinery.foldStore
+    ? []
+    : await fetchAndDecodeProjectEvents(machinery, assuranceContractAddress, {
+        blockNumber_gte: options?.blockNumber_gte,
+      });
+  const folded = machinery.foldStore
+    ? await runResumableFold<ProjectEvent, ProjectAccumulator, { project: Omit<Project, 'threshold' | 'deadline'> | null; accumulator: ProjectAccumulator }>({
+        id: 'project',
+        version: PROJECT_FOLD_VERSION,
+        key: foldStoreKey({
+          chainId: machinery.defaultChainId ?? 0,
+          eventCacheUrl: machinery.eventCacheUrl ?? '',
+          contracts: [
+            machinery.contractAddresses?.assuranceContractFactory ?? '',
+            assuranceContractAddress,
+          ],
+          id: 'project',
+          version: PROJECT_FOLD_VERSION,
+        }),
+        store: machinery.foldStore,
+        empty: emptyProjectAccumulator,
+        fetch: async cursor => ({
+          events: await fetchAndDecodeProjectEvents(machinery, assuranceContractAddress, {
+            blockNumber_gte: cursor?.blockNumber,
+          }),
+          finalizedThrough: await readFinalizedThrough(machinery, 'ProjectCreated'),
+        }),
+        position: event => ({
+          blockNumber: event.event.blockNumber.toString(),
+          logIndex: event.event.logIndex,
+        }),
+        step: (accumulator, events) => foldProject(events, accumulator, fundingCurrency).accumulator,
+        serialize: serializeProjectAccumulator,
+        deserialize: deserializeProjectAccumulator,
+        finish: accumulator => ({
+          project: foldProject([], accumulator, fundingCurrency).project,
+          accumulator,
+        }),
+      })
+    : foldProject(projectEvents, options?.initialAccumulator, fundingCurrency);
+  const { project: partial, accumulator } = folded;
   if (!partial) return null;
 
   let threshold = '0';

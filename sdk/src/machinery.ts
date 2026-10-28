@@ -222,6 +222,11 @@ export type SDKMachinery = {
    * half of the seam described in subsystems/published-data/content-resolver.ts.
    */
   publishedContentResolver?: ContentResolver;
+  /**
+   * Where resumable folds persist accumulators. Omit it and folds use the
+   * process-wide in-memory store. The UI passes an IndexedDB store.
+   */
+  foldStore?: import('./utils/resumableFold.js').FoldStore;
 };
 
 export function createSDKMachinery(options: Partial<SDKMachinery>): SDKMachinery {
@@ -242,6 +247,7 @@ export function createSDKMachinery(options: Partial<SDKMachinery>): SDKMachinery
       ? { settlementTokenAddresses: options.settlementTokenAddresses }
       : {}),
     publishedContentResolver: options.publishedContentResolver,
+    ...(options.foldStore ? { foldStore: options.foldStore } : {}),
   };
 }
 

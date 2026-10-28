@@ -132,6 +132,8 @@ Design (adjust details if the code argues otherwise, and record what you chose h
 
 ### [ ] 4. A general resumable-fold primitive in the SDK
 
+Started on `feature/resumable-folds`. Landed: `sdk/src/utils/resumableFold.ts` (`FoldStore`, `MemoryFoldStore`, `runResumableFold`, `foldStoreKey`), `readFinalizedThrough`, `machinery.foldStore`, and `createIndexedDbFoldStore`. `getProjectFold` uses the runner when `foldStore` is set. `getStandingPledges` always uses it (`STANDING_PLEDGES_FOLD_VERSION`). Still to move: delegation state and note intents, content-funding state, `DirectSupport` browse counts, implications, the project registry (`getAllProjects`), and retiring the older per-project load/save path in `foldCache.ts` so `loadProjectWithCache` is only the runner. Bench not re-run; a local chain shorter than the finality lag does not persist, so repeat-visit bytes do not change until history is finalized.
+
 This makes repeat visits cost only the new events. The project accumulator in `foldCache.ts` is the special case to generalize.
 
 - Add `sdk/src/utils/resumableFold.ts` (exported from the `utils` subpath) containing:

@@ -2,6 +2,7 @@ export * from './cid-types.js';
 export * from './ethereum.js';
 export * from './erc20.js';
 export * from './eventCacheClient.js';
+export * from './resumableFold.js';
 export * from './eventDecoder.js';
 export * from './ipfs.js';
 export * from './chain-reads.js';

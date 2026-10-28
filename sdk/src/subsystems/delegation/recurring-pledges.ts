@@ -1,7 +1,8 @@
 import { type Abi, type Address, type Hash, parseEventLogs } from 'viem';
 import { type WriteClients } from '../../utils/ethereum.js';
 import { SDKMachinery } from '../../machinery.js';
-import { fetchEventsComplete, type RawEventFromCache } from '../../utils/eventCacheClient.js';
+import { fetchEventsComplete, readFinalizedThrough, type RawEventFromCache } from '../../utils/eventCacheClient.js';
+import { foldStoreKey, runResumableFold } from '../../utils/resumableFold.js';
 import {
   decodeStandingPledgeCreatedEvent,
   decodeStandingPledgeExecutedEvent,
@@ -30,8 +31,13 @@ function contractScopedId(contractAddress: `0x${string}`, id: bigint | string): 
   return `${contractAddress.toLowerCase()}:${id.toString()}`;
 }
 
-export function foldStandingPledges(events: RecurringPledgeEvent[]): Map<string, StandingPledge> {
-  const pledges = new Map<string, StandingPledge>();
+export const STANDING_PLEDGES_FOLD_VERSION = 1;
+
+export function foldStandingPledges(
+  events: RecurringPledgeEvent[],
+  initial?: Map<string, StandingPledge>,
+): Map<string, StandingPledge> {
+  const pledges = initial ?? new Map<string, StandingPledge>();
 
   for (const ev of events) {
     switch (ev.type) {
@@ -151,8 +157,36 @@ function decodeRecurringPledgeEvents(rawEvents: RawEventFromCache[]): RecurringP
 export async function getStandingPledges(machinery: SDKMachinery): Promise<StandingPledge[]> {
   const address = machinery.contractAddresses?.recurringPledges;
   if (!address) throw new Error('recurringPledges contract address not configured');
-  const rawEvents = await fetchEventsComplete(machinery, { contractAddress: address });
-  return uniqueStandingPledges(foldStandingPledges(decodeRecurringPledgeEvents(rawEvents)).values());
+  const pledges = await runResumableFold<RecurringPledgeEvent, Map<string, StandingPledge>, Map<string, StandingPledge>>({
+    id: 'standing-pledges',
+    version: STANDING_PLEDGES_FOLD_VERSION,
+    key: foldStoreKey({
+      chainId: machinery.defaultChainId ?? 0,
+      eventCacheUrl: machinery.eventCacheUrl ?? '',
+      contracts: [address],
+      id: 'standing-pledges',
+      version: STANDING_PLEDGES_FOLD_VERSION,
+    }),
+    store: machinery.foldStore,
+    empty: () => new Map(),
+    fetch: async cursor => ({
+      events: decodeRecurringPledgeEvents(await fetchEventsComplete(
+        machinery,
+        { contractAddress: address },
+        cursor ? BigInt(cursor.blockNumber) : 0n,
+      )),
+      finalizedThrough: await readFinalizedThrough(machinery, 'StandingPledgeCreated'),
+    }),
+    position: event => ({
+      blockNumber: event.event.blockNumber.toString(),
+      logIndex: event.event.logIndex,
+    }),
+    step: (accumulator, events) => foldStandingPledges(events, accumulator),
+    serialize: accumulator => [...accumulator.entries()],
+    deserialize: raw => new Map(raw as [string, StandingPledge][]),
+    finish: accumulator => accumulator,
+  });
+  return uniqueStandingPledges(pledges.values());
 }
 
 export async function getActiveStandingPledgesByUser(

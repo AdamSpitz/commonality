@@ -5,6 +5,7 @@ import { createSDKMachinery, type SDKMachinery } from '@commonality/sdk/machiner
 import { getRuntimeConfigValue } from '../config/runtimeConfig'
 import { getActivePolicyBundle } from '../config/policyBundle'
 import { verifiedSocialAssociationLookup } from './verifiedSocialAssociation'
+import { createIndexedDbFoldStore } from '../stores/foldCache'
 
 export function civilityPolicyGatewayConfig(
   domain = import.meta.env.VITE_DOMAIN,
@@ -113,6 +114,7 @@ export function useMachinery(): SDKMachinery {
       publicClient: publicClient as any,
       eventCacheUrl,
       contractAddresses,
+      foldStore: createIndexedDbFoldStore(),
       settlementTokenAddresses: getRuntimeConfigValue('VITE_PAYMENT_TOKEN_ADDRESS')
         ? [getRuntimeConfigValue('VITE_PAYMENT_TOKEN_ADDRESS') as `0x${string}`]
         : [],

@@ -73,7 +73,7 @@ All contract event emitters share the single event cache, including Conceptspace
 
 The fold functions are designed for resumable folding. `foldProject` and `foldContributionsFromEvents` accept an optional `initialAccumulator` parameter and return the updated accumulator alongside the result. The intent is: store the accumulator + the block number it's current through, then on the next query fetch only new events and pass the saved accumulator in.
 
-The UI persists **per-project** accumulators in IndexedDB (`ui/src/shared/stores/foldCache.ts`) and `loadProjectWithCache` resumes from that cursor when present. Cause-board pages also persist the last successful **view snapshot** (metrics + aligned-project rows) so a reload can paint immediately while a live fold revalidates.
+The UI persists **per-project** accumulators in IndexedDB (`ui/src/shared/stores/foldCache.ts`). `loadProjectWithCache` still resumes through that older record. When machinery carries `foldStore` (`createIndexedDbFoldStore`), `getProjectFold` uses `runResumableFold` instead and only persists events at or before the indexer's `finalizedThrough`. Standing pledges use the same runner. Cause-board pages also persist the last successful **view snapshot** (metrics + aligned-project rows) so a reload can paint immediately while a live fold revalidates.
 
 The default query helpers (`getProject`, `getAllAlignedProjectsForCause`, etc.) still fold from scratch unless a caller passes an accumulator. Alignment/implication walks are **not** resumable yet; that waits until entities are large enough that from-scratch folds hurt.
 

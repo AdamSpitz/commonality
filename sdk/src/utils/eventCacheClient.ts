@@ -199,6 +199,7 @@ export async function fetchEvents(
 const EVENT_API_CAP = 10_000;
 
 type EventSegmentManifest = {
+  finalizedThrough?: string;
   segments: Array<{ fromBlock: string; toBlock: string; count: number; sha256: string }>;
 };
 
@@ -246,6 +247,27 @@ function decodeEventSegment(text: string, chainId: number, eventName: string): R
       data: String(tuple[10]),
     };
   });
+}
+
+/** Block through which the indexer treats this chain's logs as finalized. */
+export async function readFinalizedThrough(
+  machinery: SDKMachinery,
+  eventName: string,
+): Promise<bigint | null> {
+  const chainId = machinery.defaultChainId;
+  if (chainId == null || machinery.eventCacheUrl == null) return null;
+  const manifestUrl = buildEventCacheUrl(machinery.eventCacheUrl, 'event-segments/manifest', {
+    chainId,
+    eventName,
+  });
+  try {
+    const response = await fetchEventCacheResponse(manifestUrl);
+    const manifest = await response.json() as EventSegmentManifest;
+    if (typeof manifest.finalizedThrough !== 'string') return null;
+    return BigInt(manifest.finalizedThrough);
+  } catch {
+    return null;
+  }
 }
 
 function compareRawEvents(a: RawEventFromCache, b: RawEventFromCache): number {

@@ -58,7 +58,7 @@ See [multi-chain.md](multi-chain.md) for notes on keeping the option open for us
 - Per-statement page: O(believers) events
 - Per-note page: O(chain depth) events
 - No global folds — each query is independent
-- (Question: have we implemented cursors yet, so that a particular device can resume a particular fold from where it left off rather than repeating it from scratch each time? Not yet. That is step 4 of [fold-performance-plan.md](./indexer/fold-performance-plan.md). Step 3 serves finalized global history as immutable event segments so the download can be cached.)
+- Cursors: `runResumableFold` (`sdk/src/utils/resumableFold.ts`) resumes a stored accumulator. The UI IndexedDB store is `createIndexedDbFoldStore`. Project folds use it when machinery has `foldStore`. Standing pledges use it on every call. The other global folds in [fold-performance-plan.md](./indexer/fold-performance-plan.md) step 4 are not on it yet.
 
 ### IPFS Content
 
