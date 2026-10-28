@@ -349,6 +349,16 @@ describe('content-funding query helpers', () => {
     assert.strictEqual(folded.items.get(9n)?.canonicalId, 'twitter:uid:creator-a:1');
   });
 
+  it('resuming a content-registry fold matches folding every event at once', () => {
+    const first = makeRegisteredEvent({ contentId: 1n, canonicalId: 'twitter:uid:creator-a:1', blockNumber: 10n, logIndex: 0 });
+    const second = makeRegisteredEvent({ contentId: 2n, canonicalId: 'twitter:uid:creator-a:2', blockNumber: 11n, logIndex: 0 });
+    const released = { ...first, type: 'ContentItemReleased' as const, blockNumber: 12n, logIndex: 1 };
+    const full = foldContentRegistry([first, second, released]);
+    const resumed = foldContentRegistry([released], foldContentRegistry([first, second]));
+    assert.strictEqual(resumed.items.get(1n)?.status, full.items.get(1n)?.status);
+    assert.strictEqual(resumed.items.get(2n)?.canonicalId, full.items.get(2n)?.canonicalId);
+  });
+
   it('returns contract summaries for a channel with funding progress and status', () => {
     const contracts = getContractsForChannel(state, CHANNEL_A, {
       projects,

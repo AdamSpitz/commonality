@@ -16,6 +16,12 @@ Getting **testnet to a two-person shared lab** is also a standing plan, not a pi
 
 ----
 
+- **(Tell)** Fold-archive follow-ups from the cold-start work: segment manifests rebuild every window on each request; the gateway cache key is the URL while the body depends on `Accept-Encoding`; the implications fold key is the beliefs address, so an implications-contract change does not invalidate that accumulator.
+
+- **(Tell)** Redeploy testnet `NoteIntent` after the cold-start narrowing lands. `NoteIntentAttested` indexes `intendedStatementId` instead of `noteContract`. Update the deployment address and start block. Local wipe does not update Base Sepolia. Do not touch mainnet.
+
+
+
 - We should have a UI for making it easy for a user to follow projects aligned with *similar* statements to the ones he prefers, and then if he wants to he can do the alignment-attestations to make those projects also show up on his own preferred cause board.
 
 - **(Ask)** Verify work-request contribution/refund links against actual chain events, and verify response providers and work items against the project's beneficiary/registry before presenting verified payment or provider authority. The first slice displays reported contribution/refund amounts and authenticates acceptance only against the provider named by the response author. See [work requests](specs/tech/subsystems/work-requests/README.md).

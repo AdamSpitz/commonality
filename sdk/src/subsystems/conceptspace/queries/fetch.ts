@@ -22,8 +22,9 @@ export type ConceptspaceEventFilter = Omit<
 export async function fetchDecodedDirectSupportEvents(
   machinery: SDKMachinery,
   params: ConceptspaceEventFilter = {},
+  fromBlock = 0n,
 ): Promise<DecodedDirectSupportEvent[]> {
-  const events = await fetchEventsComplete(machinery, { ...params, eventName: 'DirectSupport' });
+  const events = await fetchEventsComplete(machinery, { ...params, eventName: 'DirectSupport' }, fromBlock);
   const decoded: DecodedDirectSupportEvent[] = [];
   for (const event of events) {
     const d = decodeDirectSupportEvent(event);
@@ -35,10 +36,11 @@ export async function fetchDecodedDirectSupportEvents(
 export async function fetchDecodedImplicationLifecycleEvents(
   machinery: SDKMachinery,
   params: ConceptspaceEventFilter = {},
+  fromBlock = 0n,
 ): Promise<Array<DecodedImplicationAttestationEvent | DecodedImplicationRevokedEvent>> {
   const [attestations, revocations] = await Promise.all([
-    fetchEventsComplete(machinery, { ...params, eventName: 'ImplicationAttestation' }),
-    fetchEventsComplete(machinery, { ...params, eventName: 'ImplicationRevoked' }),
+    fetchEventsComplete(machinery, { ...params, eventName: 'ImplicationAttestation' }, fromBlock),
+    fetchEventsComplete(machinery, { ...params, eventName: 'ImplicationRevoked' }, fromBlock),
   ]);
   const decoded: Array<DecodedImplicationAttestationEvent | DecodedImplicationRevokedEvent> = [];
   for (const event of attestations) {

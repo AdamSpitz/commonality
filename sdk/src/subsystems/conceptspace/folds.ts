@@ -97,15 +97,30 @@ export function foldUserBeliefs(events: DirectSupportEvent[]): UserBelief[] {
  * chain order, regardless of event-cache response order. Re-attestation after
  * a revocation starts a new active record.
  */
-export function foldImplications(events: ImplicationLifecycleEvent[]): Implication[] {
-  const map = new Map<string, Implication>();
+function implicationKey(event: ImplicationLifecycleEvent): string {
+  return `${event.attester.toLowerCase()}-${event.fromStatementCid}-${event.toStatementCid}`;
+}
+
+/** Bump when {@link stepImplications} changes the stored accumulator. */
+export const IMPLICATION_FOLD_VERSION = 1;
+
+export function emptyImplications(): Map<string, Implication> {
+  return new Map();
+}
+
+/** Apply implication events onto a copy of the active-edge map. */
+export function stepImplications(
+  accumulator: Map<string, Implication>,
+  events: ImplicationLifecycleEvent[],
+): Map<string, Implication> {
+  const map = new Map(accumulator);
   const ordered = [...events].sort((a, b) => {
     if (a.blockNumber !== b.blockNumber) return a.blockNumber < b.blockNumber ? -1 : 1;
     return a.logIndex - b.logIndex;
   });
 
   for (const e of ordered) {
-    const key = `${e.attester.toLowerCase()}-${e.fromStatementCid}-${e.toStatementCid}`;
+    const key = implicationKey(e);
     if (!('explanationCid' in e)) {
       map.delete(key);
       continue;
@@ -122,11 +137,24 @@ export function foldImplications(events: ImplicationLifecycleEvent[]): Implicati
         blockNumber: e.blockNumber.toString(),
       });
     } else {
-      existing.explanationCid = e.explanationCid as IpfsCidV1;
+      map.set(key, { ...existing, explanationCid: e.explanationCid as IpfsCidV1 });
     }
   }
 
-  return [...map.values()];
+  return map;
+}
+
+export function serializeImplications(accumulator: Map<string, Implication>): unknown {
+  return [...accumulator.entries()];
+}
+
+export function deserializeImplications(raw: unknown): Map<string, Implication> {
+  if (!Array.isArray(raw)) return emptyImplications();
+  return new Map(raw as Array<[string, Implication]>);
+}
+
+export function foldImplications(events: ImplicationLifecycleEvent[]): Implication[] {
+  return [...stepImplications(emptyImplications(), events).values()];
 }
 
 /**
@@ -173,4 +201,120 @@ export function foldAllStatements(
   }
 
   return statementCounts;
+}
+
+/** Bump when {@link stepDirectSupportBrowse} changes the stored accumulator. */
+export const DIRECT_SUPPORT_BROWSE_FOLD_VERSION = 1;
+
+export interface DirectSupportBrowseState {
+  latest: Map<string, { beliefState: number; blockNumber: bigint; logIndex: number }>;
+  firstSeen: Map<string, { blockTimestamp: bigint; blockNumber: bigint }>;
+  publishers: Map<string, string[]>;
+}
+
+export function emptyDirectSupportBrowse(): DirectSupportBrowseState {
+  return { latest: new Map(), firstSeen: new Map(), publishers: new Map() };
+}
+
+/**
+ * Apply DirectSupport events onto a browse accumulator.
+ *
+ * Counts come from the latest belief per user and statement. First-seen is the
+ * earliest `(blockTimestamp, blockNumber)`. Publishers keep first-seen order
+ * and drop later duplicates of the same address.
+ */
+export function stepDirectSupportBrowse(
+  state: DirectSupportBrowseState,
+  events: readonly DirectSupportEvent[],
+): DirectSupportBrowseState {
+  const latest = new Map(state.latest);
+  const firstSeen = new Map(state.firstSeen);
+  const publishers = new Map(Array.from(state.publishers, ([id, users]) => [id, [...users]]));
+
+  for (const event of events) {
+    const user = event.user.toLowerCase();
+    const key = `${user}:${event.statementId}`;
+    const prev = latest.get(key);
+    if (!prev || isLaterEvent(event, prev)) {
+      latest.set(key, {
+        beliefState: event.beliefState,
+        blockNumber: event.blockNumber,
+        logIndex: event.logIndex,
+      });
+    }
+
+    const seen = firstSeen.get(event.statementId);
+    if (
+      !seen
+      || event.blockTimestamp < seen.blockTimestamp
+      || (event.blockTimestamp === seen.blockTimestamp && event.blockNumber < seen.blockNumber)
+    ) {
+      firstSeen.set(event.statementId, {
+        blockTimestamp: event.blockTimestamp,
+        blockNumber: event.blockNumber,
+      });
+    }
+
+    const known = publishers.get(event.statementId) ?? [];
+    if (!known.some(address => address.toLowerCase() === user)) {
+      publishers.set(event.statementId, [...known, event.user]);
+    }
+  }
+
+  return { latest, firstSeen, publishers };
+}
+
+export function browseCountsFromState(
+  state: DirectSupportBrowseState,
+): Map<string, { believerCount: number; disbelieverCount: number }> {
+  const statementCounts = new Map<string, { believerCount: number; disbelieverCount: number }>();
+  for (const [key, { beliefState }] of state.latest) {
+    const statementId = key.slice(key.indexOf(':') + 1);
+    let counts = statementCounts.get(statementId);
+    if (!counts) {
+      counts = { believerCount: 0, disbelieverCount: 0 };
+      statementCounts.set(statementId, counts);
+    }
+    if (beliefState === 1) counts.believerCount++;
+    else if (beliefState === 2) counts.disbelieverCount++;
+  }
+  return statementCounts;
+}
+
+export function serializeDirectSupportBrowse(state: DirectSupportBrowseState): unknown {
+  return {
+    foldVersion: DIRECT_SUPPORT_BROWSE_FOLD_VERSION,
+    latest: [...state.latest].map(([key, value]) => ({
+      key,
+      beliefState: value.beliefState,
+      blockNumber: value.blockNumber.toString(),
+      logIndex: value.logIndex,
+    })),
+    firstSeen: [...state.firstSeen].map(([statementId, value]) => ({
+      statementId,
+      blockTimestamp: value.blockTimestamp.toString(),
+      blockNumber: value.blockNumber.toString(),
+    })),
+    publishers: [...state.publishers].map(([statementId, users]) => ({ statementId, users })),
+  };
+}
+
+export function deserializeDirectSupportBrowse(raw: unknown): DirectSupportBrowseState {
+  const record = raw as {
+    latest?: Array<{ key: string; beliefState: number; blockNumber: string; logIndex: number }>;
+    firstSeen?: Array<{ statementId: string; blockTimestamp: string; blockNumber: string }>;
+    publishers?: Array<{ statementId: string; users: string[] }>;
+  };
+  return {
+    latest: new Map((record.latest ?? []).map(entry => [entry.key, {
+      beliefState: entry.beliefState,
+      blockNumber: BigInt(entry.blockNumber),
+      logIndex: entry.logIndex,
+    }])),
+    firstSeen: new Map((record.firstSeen ?? []).map(entry => [entry.statementId, {
+      blockTimestamp: BigInt(entry.blockTimestamp),
+      blockNumber: BigInt(entry.blockNumber),
+    }])),
+    publishers: new Map((record.publishers ?? []).map(entry => [entry.statementId, [...entry.users]])),
+  };
 }

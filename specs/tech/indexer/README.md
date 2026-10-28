@@ -4,7 +4,7 @@ The Commonality indexer uses a design pattern called **Client-Side Folding**. Th
 
 ## What It Means
 
-The indexer is a **thin event cache**: it watches the blockchain for contract events, stores them raw, and serves application data via a simple REST API. Ponder also exposes `/graphql` for liveness/health checks, but application data access is `GET /api/events`. It does no aggregation, no business logic, no IPFS fetching — nothing except "store event → serve event".
+The indexer is a **thin event cache**: it watches the blockchain for contract events, stores them raw, and serves application data via a simple REST API. Ponder also exposes `/graphql` for liveness/health checks, but application data access is `GET /api/events`. It does no aggregation, no business logic, no IPFS fetching — nothing except "store event → serve event". Finalized history for one event name is also served as immutable byte-for-byte segments at `GET /api/event-segments/...`. Those segments are the same raw logs, partitioned by block window, so a CDN can cache them. They are not derived tables.
 
 All entity-state computation (reconstructing a project's state, computing funding totals, resolving delegation chains) happens **client-side in SDK fold functions**. The SDK fetches the raw events it needs, then folds them into typed entity state locally.
 
@@ -69,15 +69,13 @@ All contract event emitters share the single event cache, including Conceptspace
 
 ## Fold Versioning and Upgrades
 
-### Current state: per-project accumulators are stored in the browser; most queries still fold from scratch
+### Current state: global folds resume from a stored accumulator
 
-The fold functions are designed for resumable folding. `foldProject` and `foldContributionsFromEvents` accept an optional `initialAccumulator` parameter and return the updated accumulator alongside the result. The intent is: store the accumulator + the block number it's current through, then on the next query fetch only new events and pass the saved accumulator in.
+`runResumableFold` (`sdk/src/utils/resumableFold.ts`) stores the accumulator and cursor for events at or before the indexer's `finalizedThrough`, then folds the unfinalized tail without saving it. The UI store is IndexedDB (`createIndexedDbFoldStore` in `ui/src/shared/stores/foldCache.ts`), attached as `machinery.foldStore`. `loadProjectWithCache` calls `getProject`, which uses that store.
 
-The UI persists **per-project** accumulators in IndexedDB (`ui/src/shared/stores/foldCache.ts`) and `loadProjectWithCache` resumes from that cursor when present. Cause-board pages also persist the last successful **view snapshot** (metrics + aligned-project rows) so a reload can paint immediately while a live fold revalidates.
+Projects, standing pledges, content funding, statement browse, implication source activity, and the global delegation, note-intent, and purchase-lifecycle downloads all go through the runner. Each stored record includes a fold version; a mismatch discards the record. Cause-board pages also persist the last successful **view snapshot** (metrics + aligned-project rows) so a reload can paint immediately while a live fold revalidates.
 
-The default query helpers (`getProject`, `getAllAlignedProjectsForCause`, etc.) still fold from scratch unless a caller passes an accumulator. Alignment/implication walks are **not** resumable yet; that waits until entities are large enough that from-scratch folds hurt.
-
-For now this is fine at expected MVP scale. Wire more fold types into storage if fold latency becomes noticeable (e.g. a project with tens of thousands of contributions).
+A first visit still downloads finalized history. Repeat visits fetch from the stored cursor. The project registry and statement browse run in a Web Worker. The plan is [fold-performance-plan.md](fold-performance-plan.md).
 
 Projects that are not in the watch list are not copied here. Their history is read from a node on demand, cached briefly in the client, and repeated misses are reported for an operator to promote by hand. See [on-demand project reads](on-demand-project-reads.md).
 

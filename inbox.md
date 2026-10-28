@@ -17,6 +17,14 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 ## Main list
 
+- **Tell Report:** Cold-start step 5 is done. The project registry and statement browse run in a Web Worker. Smaller global folds stay on the calling thread. The step 2 bench still describes request counts.
+
+- **Tell Report:** Cold-start step 4 is done. Global folds resume from a stored accumulator (`runResumableFold`). A reorg in the unfinalized tail is not saved. The local chain is shorter than the finality lag, so the step 2 bench still describes repeat-visit bytes. Workers are step 5.
+
+- **Tell Report:** Cold-start step 3 is done. Finalized history for one event name can be served as immutable segments (`GET /api/event-segments/...`), and global SDK fetches verify the hash and then download only the tail. The local chain is too short for a segment, so the step 2 bench still describes that stack. Resumable folds are step 4.
+
+- **Tell Report:** Cold-start step 2 is done. My Notes, a single note, notes by owner or root, and a note's intents no longer download every note. Purchase, refund, and reimbursement events are still downloaded whole, because those note ids are not indexed. Statement browse, implications, content funding, standing pledges, and the project registry stay global for later steps. The first bench is in the fold-performance plan: on the existing local chain, `getAllProjects` was 223 requests and 401 ms for 55 projects. Testnet `NoteIntent` still needs a redeploy (already on `TODO.md`).
+
 - **Tell Report:** Structured fundable work is implemented. Ordinary projects and content contracts reserve work ids in `ContentRegistry` (`specs/tech/subsystems/work-items.md`). Creation still works with no ids. The project page lists current items; failed-attempt history is the registry events, not a separate timeline yet. Sequence attestations and domain templates were not built. Testnet needs a redeploy of `ContentRegistry`, `ProjectFactory`, and `CreatorAssuranceContractFactory` before this bytecode is live there.
 
 - **Tell Report:** Civility and content-funding boards. `/explore` lists configured properties (Civility's noninflammatory check only). `/explore/civility` lists registry posts a trusted attester marked with the baked topic statement, capped at 40, with hide, one-channel, and followed-channel scopes. Posts never registered cannot appear, because the attestation stores a hash. `/fund` sends a pledge to the Aligning portal for that statement and a delegation deposit with the statement preselected. No new payment contract.

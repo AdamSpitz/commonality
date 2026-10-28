@@ -11,7 +11,17 @@ import { db } from "ponder:api";
 import schema from "ponder:schema";
 import { Hono } from "hono";
 import { client, graphql } from "ponder";
-import { and, desc, eq, gte, lte, or } from "ponder";
+import { and, asc, desc, eq, gte, lte, max, or } from "ponder";
+import {
+  encodeSegmentTuples,
+  eventSegmentBlocks,
+  eventSegmentConfirmations,
+  finalizedThroughBlock,
+  immutableSegmentRanges,
+  maybeGzip,
+  segmentResponseHeaders,
+  segmentSha256,
+} from "./eventSegments";
 import { getAddress, isAddress, type Hex } from "viem";
 import { fundingIndexerRoutesEnabled } from "../indexing/contractCapabilities";
 import { noteIndexerWake, requestWakesIndexer } from "../rpc/idleHeadCache";
@@ -30,6 +40,31 @@ function serializeBigInts(obj: unknown): unknown {
     );
   }
   return obj;
+}
+
+const TOPIC_IN_LIMIT = 32;
+
+class TopicInError extends Error {}
+
+function parseTopicIn(value: string | undefined): string[] | undefined {
+  if (!value) return undefined;
+  const topics = value.split(",").map(part => part.trim()).filter(Boolean);
+  if (topics.length > TOPIC_IN_LIMIT) {
+    throw new TopicInError(`topic_in accepts at most ${TOPIC_IN_LIMIT} values`);
+  }
+  return topics.length > 0 ? topics : undefined;
+}
+
+function pushTopicIn(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  conditions: any[],
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  column: any,
+  topics: string[] | undefined,
+) {
+  if (!topics) return;
+  const match = or(...topics.map(topic => eq(column, topic)));
+  if (match) conditions.push(match);
 }
 
 function padAddressAsTopic(address: string): string {
@@ -244,6 +279,11 @@ app.get("/api/events", async (c) => {
     const topic1 = c.req.query("topic1");
     const topic2 = c.req.query("topic2");
     const topic3 = c.req.query("topic3");
+    const topicLists = {
+      topic1: parseTopicIn(c.req.query("topic1_in")),
+      topic2: parseTopicIn(c.req.query("topic2_in")),
+      topic3: parseTopicIn(c.req.query("topic3_in")),
+    };
     const blockNumber_gte = c.req.query("blockNumber_gte");
     const blockNumber_lte = c.req.query("blockNumber_lte");
     const limit = Math.min(parseInt(c.req.query("limit") ?? "1000", 10) || 1000, 10000);
@@ -256,6 +296,9 @@ app.get("/api/events", async (c) => {
     if (topic1) conditions.push(eq(schema.events.topic1, topic1));
     if (topic2) conditions.push(eq(schema.events.topic2, topic2));
     if (topic3) conditions.push(eq(schema.events.topic3, topic3));
+    pushTopicIn(conditions, schema.events.topic1, topicLists.topic1);
+    pushTopicIn(conditions, schema.events.topic2, topicLists.topic2);
+    pushTopicIn(conditions, schema.events.topic3, topicLists.topic3);
     if (blockNumber_gte) conditions.push(gte(schema.events.blockNumber, BigInt(blockNumber_gte)));
     if (blockNumber_lte) conditions.push(lte(schema.events.blockNumber, BigInt(blockNumber_lte)));
 
@@ -287,6 +330,95 @@ app.get("/api/events", async (c) => {
     }
 
     return c.json(serializeBigInts({ items }) as object);
+  } catch (error) {
+    if (error instanceof TopicInError) return c.json({ error: error.message }, 400);
+    return c.json({ error: String(error) }, 500);
+  }
+});
+
+app.get("/api/event-segments/manifest", async (c) => {
+  try {
+    const chainId = Number(c.req.query("chainId"));
+    const eventName = c.req.query("eventName");
+    if (!Number.isInteger(chainId) || !eventName) {
+      return c.json({ error: "chainId and eventName are required" }, 400);
+    }
+    const segmentSize = eventSegmentBlocks();
+    const confirmations = eventSegmentConfirmations();
+    const [headRow] = await db
+      .select({ head: max(schema.events.blockNumber) })
+      .from(schema.events)
+      .where(eq(schema.events.chainId, chainId));
+    const head = headRow?.head ?? null;
+    const finalizedThrough = finalizedThroughBlock(head, confirmations);
+    const ranges = immutableSegmentRanges(finalizedThrough, segmentSize);
+    const segments = [];
+    for (const range of ranges) {
+      const rows = await db.select().from(schema.events).where(and(
+        eq(schema.events.chainId, chainId),
+        eq(schema.events.eventName, eventName),
+        gte(schema.events.blockNumber, range.fromBlock),
+        lte(schema.events.blockNumber, range.toBlock),
+      )).orderBy(asc(schema.events.blockNumber), asc(schema.events.logIndex));
+      if (rows.length === 0) continue;
+      const body = encodeSegmentTuples(rows);
+      segments.push({
+        fromBlock: range.fromBlock.toString(),
+        toBlock: range.toBlock.toString(),
+        count: rows.length,
+        sha256: segmentSha256(body),
+      });
+    }
+    return c.json({
+      segmentSize: segmentSize.toString(),
+      confirmations: confirmations.toString(),
+      indexedHead: head == null ? null : head.toString(),
+      finalizedThrough: finalizedThrough.toString(),
+      segments,
+    }, 200, { "cache-control": "public, max-age=30" });
+  } catch (error) {
+    return c.json({ error: String(error) }, 500);
+  }
+});
+
+app.get("/api/event-segments/:chainId/:eventName/:fromBlock", async (c) => {
+  try {
+    const chainId = Number(c.req.param("chainId"));
+    const eventName = c.req.param("eventName");
+    const fromBlock = BigInt(c.req.param("fromBlock"));
+    const segmentSize = eventSegmentBlocks();
+    const confirmations = eventSegmentConfirmations();
+    if (!Number.isInteger(chainId) || fromBlock < 0n || fromBlock % segmentSize !== 0n) {
+      return c.json({ error: "segment is not a finalized aligned range" }, 400);
+    }
+    const toBlock = fromBlock + segmentSize - 1n;
+    const [headRow] = await db
+      .select({ head: max(schema.events.blockNumber) })
+      .from(schema.events)
+      .where(eq(schema.events.chainId, chainId));
+    const finalizedThrough = finalizedThroughBlock(headRow?.head ?? null, confirmations);
+    if (toBlock > finalizedThrough) {
+      return c.json({ error: "segment is not finalized" }, 404);
+    }
+    const rows = await db.select().from(schema.events).where(and(
+      eq(schema.events.chainId, chainId),
+      eq(schema.events.eventName, eventName),
+      gte(schema.events.blockNumber, fromBlock),
+      lte(schema.events.blockNumber, toBlock),
+    )).orderBy(asc(schema.events.blockNumber), asc(schema.events.logIndex));
+    if (rows.length === 0) {
+      return c.json({ error: "empty segment" }, 404);
+    }
+    const body = encodeSegmentTuples(rows);
+    const hash = segmentSha256(body);
+    const packed = maybeGzip(body, c.req.header("accept-encoding"));
+    const headers = segmentResponseHeaders(hash, true);
+    if (packed.encoding) headers["content-encoding"] = packed.encoding;
+    const bytes = packed.payload.buffer.slice(
+      packed.payload.byteOffset,
+      packed.payload.byteOffset + packed.payload.byteLength,
+    ) as ArrayBuffer;
+    return c.body(bytes, 200, headers);
   } catch (error) {
     return c.json({ error: String(error) }, 500);
   }

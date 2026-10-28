@@ -3,7 +3,12 @@ import {
   foldStatementBeliefs,
   foldUserBeliefs,
   foldImplications,
+  stepImplications,
+  emptyImplications,
+  browseCountsFromState,
+  emptyDirectSupportBrowse,
   foldAllStatements,
+  stepDirectSupportBrowse,
 } from './folds.js';
 import type {
   DirectSupportEvent,
@@ -310,6 +315,18 @@ describe('foldImplications', () => {
     foldImplications(events);
     assert.deepStrictEqual(events, copy);
   });
+
+  it('resuming a step matches a from-scratch fold', () => {
+    const first = makeImplicationEvent({ blockNumber: 100n, logIndex: 0 });
+    const boundary = makeImplicationEvent({ blockNumber: 200n, logIndex: 1, explanationCid: EXPL_2, toStatementCid: STMT_C });
+    const later = makeImplicationRevocation({ blockNumber: 200n, logIndex: 2 });
+    const full = foldImplications([later, first, boundary]);
+    const resumed = [...stepImplications(
+      stepImplications(emptyImplications(), [first]),
+      [boundary, later],
+    ).values()];
+    assert.deepStrictEqual(resumed, full);
+  });
 });
 
 // ============================================================================
@@ -388,5 +405,22 @@ describe('foldAllStatements', () => {
     const copy = [...events];
     foldAllStatements(events);
     assert.deepStrictEqual(events, copy);
+  });
+});
+
+describe('stepDirectSupportBrowse', () => {
+  it('matches a from-scratch fold when resumed across a shared block', () => {
+    const events = [
+      makeDirectSupportEvent({ user: USER_A, statementId: STMT_A, beliefState: 1, blockNumber: 10n, blockTimestamp: 1000n, logIndex: 0 }),
+      makeDirectSupportEvent({ user: USER_B, statementId: STMT_A, beliefState: 2, blockNumber: 10n, blockTimestamp: 1000n, logIndex: 1 }),
+      makeDirectSupportEvent({ user: USER_A, statementId: STMT_A, beliefState: 0, blockNumber: 11n, blockTimestamp: 1100n, logIndex: 0 }),
+      makeDirectSupportEvent({ user: USER_C, statementId: STMT_B, beliefState: 1, blockNumber: 9n, blockTimestamp: 900n, logIndex: 2 }),
+    ];
+    const whole = stepDirectSupportBrowse(emptyDirectSupportBrowse(), events);
+    const first = stepDirectSupportBrowse(emptyDirectSupportBrowse(), events.slice(0, 2));
+    const resumed = stepDirectSupportBrowse(first, events.slice(1));
+    assert.deepStrictEqual(browseCountsFromState(resumed), browseCountsFromState(whole));
+    assert.deepStrictEqual(resumed.firstSeen, whole.firstSeen);
+    assert.deepStrictEqual([...resumed.publishers.get(STMT_A)], [...whole.publishers.get(STMT_A)!]);
   });
 });

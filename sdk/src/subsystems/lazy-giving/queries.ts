@@ -17,6 +17,8 @@ import {
 import { SDKMachinery } from '../../machinery.js';
 import {
   fetchEvents,
+  fetchEventsComplete,
+  readFinalizedThrough,
   fetchLazyGivingProjectEvents,
   fetchAllBoughtEvents,
   padAddressAsTopic,
@@ -35,8 +37,10 @@ import {
   decodeReimbursementWithdrawnEvent,
   decodeReimbursementForgoneEvent,
 } from '../../utils/eventDecoder.js';
+import { foldStoreKey, runResumableFold } from '../../utils/resumableFold.js';
 import {
   foldProject,
+  PROJECT_FOLD_VERSION,
   foldProjectTokens,
   foldContributionsFromEvents,
   type ProjectEvent,
@@ -138,29 +142,80 @@ export interface ProjectFoldResult {
   accumulator: ProjectAccumulator;
 }
 
+function emptyProjectAccumulator(): ProjectAccumulator {
+  return {
+    foldVersion: PROJECT_FOLD_VERSION,
+    id: '',
+    erc1155Address: '',
+    recipient: '',
+    conditionAddress: null,
+    metadataCid: undefined,
+    createdAt: undefined,
+    blockNumber: undefined,
+    lastEventBlockNumber: undefined,
+    lastEventLogIndex: undefined,
+    totalReceived: 0n,
+  };
+}
+
+function serializeProjectAccumulator(accumulator: ProjectAccumulator): unknown {
+  return { ...accumulator, totalReceived: accumulator.totalReceived.toString() };
+}
+
+function deserializeProjectAccumulator(raw: unknown): ProjectAccumulator {
+  const record = raw as ProjectAccumulator & { totalReceived: string | bigint };
+  return {
+    ...emptyProjectAccumulator(),
+    ...record,
+    foldVersion: PROJECT_FOLD_VERSION,
+    totalReceived: typeof record.totalReceived === 'bigint' ? record.totalReceived : BigInt(record.totalReceived),
+  };
+}
+
 /**
  * Fold a project and return the resumable accumulator alongside the view model.
  *
- * Pass `initialAccumulator` / `blockNumber_gte` to continue from a saved cursor
- * instead of replaying every event.
+ * The fold store on the machinery (or the process default) keeps finalized history.
  */
 export async function getProjectFold(
   machinery: SDKMachinery,
   assuranceContractAddress: string,
-  options?: {
-    initialAccumulator?: ProjectAccumulator;
-    blockNumber_gte?: string;
-  }
 ): Promise<ProjectFoldResult | null> {
-  const projectEvents = await fetchAndDecodeProjectEvents(machinery, assuranceContractAddress, {
-    blockNumber_gte: options?.blockNumber_gte,
-  });
   const fundingCurrency = await readSettlementCurrency(machinery, assuranceContractAddress);
-  const { project: partial, accumulator } = foldProject(
-    projectEvents,
-    options?.initialAccumulator,
-    fundingCurrency,
-  );
+  const folded = await runResumableFold<ProjectEvent, ProjectAccumulator, { project: Omit<Project, 'threshold' | 'deadline'> | null; accumulator: ProjectAccumulator }>({
+    id: 'project',
+    version: PROJECT_FOLD_VERSION,
+    key: foldStoreKey({
+      chainId: machinery.defaultChainId ?? 0,
+      eventCacheUrl: machinery.eventCacheUrl ?? '',
+      contracts: [
+        machinery.contractAddresses?.assuranceContractFactory ?? '',
+        assuranceContractAddress,
+      ],
+      id: 'project',
+      version: PROJECT_FOLD_VERSION,
+    }),
+    store: machinery.foldStore,
+    empty: emptyProjectAccumulator,
+    fetch: async cursor => ({
+      events: await fetchAndDecodeProjectEvents(machinery, assuranceContractAddress, {
+        blockNumber_gte: cursor?.blockNumber,
+      }),
+      finalizedThrough: await readFinalizedThrough(machinery, 'ProjectCreated'),
+    }),
+    position: event => ({
+      blockNumber: event.event.blockNumber.toString(),
+      logIndex: event.event.logIndex,
+    }),
+    step: (accumulator, events) => foldProject(events, accumulator, fundingCurrency).accumulator,
+    serialize: serializeProjectAccumulator,
+    deserialize: deserializeProjectAccumulator,
+    finish: accumulator => ({
+      project: foldProject([], accumulator, fundingCurrency).project,
+      accumulator,
+    }),
+  });
+  const { project: partial, accumulator } = folded;
   if (!partial) return null;
 
   let threshold = '0';
@@ -193,20 +248,16 @@ export async function getProjectFold(
  *
  * @param machinery - SDK machinery with event cache configuration
  * @param assuranceContractAddress - Address of the project's assurance contract
- * @param options - Optional configuration for resumable folding
- * @param options.initialAccumulator - Previously saved accumulator to resume from (enables incremental fetching)
- * @param options.blockNumber_gte - Only fetch events at or after this block number (used with initialAccumulator)
+ *
+ * Resume uses the machinery fold store. Callers do not pass an accumulator.
+ *
  * @returns The project, or null if no creation event exists
  */
 export async function getProject(
   machinery: SDKMachinery,
   assuranceContractAddress: string,
-  options?: {
-    initialAccumulator?: ProjectAccumulator;
-    blockNumber_gte?: string;
-  }
 ): Promise<Project | null> {
-  const folded = await getProjectFold(machinery, assuranceContractAddress, options);
+  const folded = await getProjectFold(machinery, assuranceContractAddress);
   return folded?.project ?? null;
 }
 
@@ -219,6 +270,9 @@ export async function getProject(
 export async function getAllProjects(
   machinery: SDKMachinery
 ): Promise<Project[]> {
+  if (machinery.offThreadGlobalFold) {
+    return machinery.offThreadGlobalFold('getAllProjects', []) as Promise<Project[]>;
+  }
   const projectAddresses = await getAllProjectAddresses(machinery);
   const projects = await Promise.all(
     projectAddresses.map(addr => getProject(machinery, addr))
@@ -236,18 +290,9 @@ export async function getAllProjectAddresses(
   machinery: SDKMachinery
 ): Promise<string[]> {
   const [lazyGivingEvents, projectFactoryEvents, creatorEvents] = await Promise.all([
-    fetchEvents(machinery, {
-      eventName: 'LazyGivingAssuranceContractCreated',
-      limit: 10000,
-    }),
-    fetchEvents(machinery, {
-      eventName: 'ProjectCreated',
-      limit: 10000,
-    }),
-    fetchEvents(machinery, {
-      eventName: 'CreatorContractCreated',
-      limit: 10000,
-    }),
+    fetchEventsComplete(machinery, { eventName: 'LazyGivingAssuranceContractCreated' }),
+    fetchEventsComplete(machinery, { eventName: 'ProjectCreated' }),
+    fetchEventsComplete(machinery, { eventName: 'CreatorContractCreated' }),
   ]);
 
   const projectAddresses = [

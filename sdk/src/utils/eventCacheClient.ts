@@ -1,4 +1,5 @@
 import { SDKMachinery } from '../machinery.js';
+import { foldStoreKey, runResumableFold } from './resumableFold.js';
 import { cachedProjectLogs, projectLogCacheKey, storeProjectLogs } from './projectLogCache.js';
 import { readProjectLogsFromNode } from './projectLogRead.js';
 
@@ -50,12 +51,23 @@ export interface EventQueryParams {
   topic2?: string;
   /** Third indexed event topic to filter by. */
   topic3?: string;
+  /** Comma-separated topic values (max 32) for an indexed parameter. */
+  topic1_in?: string;
+  topic2_in?: string;
+  topic3_in?: string;
   /** Minimum block number, encoded as a decimal string. */
   blockNumber_gte?: string;
   /** Maximum block number, encoded as a decimal string. */
   blockNumber_lte?: string;
   /** Maximum number of events to return. Defaults to 1000. */
   limit?: number;
+  /**
+   * Return a full page even when older matches may have been dropped.
+   * `fetchEventsComplete` sets this while it splits the block range.
+   * Callers that want a sample must set it too; otherwise a page that
+   * fills `limit` without a topic filter is treated as a silent truncation.
+   */
+  allowTruncation?: boolean;
 }
 
 function buildEventCacheUrl(
@@ -145,6 +157,7 @@ export async function fetchEvents(
     throw new Error('eventCacheUrl not configured');
   }
 
+  const limit = params.limit ?? 1000;
   const url = buildEventCacheUrl(machinery.eventCacheUrl, 'events', {
     chainId: params.chainId ?? machinery.defaultChainId,
     contractAddress: params.contractAddress,
@@ -152,9 +165,12 @@ export async function fetchEvents(
     topic1: params.topic1,
     topic2: params.topic2,
     topic3: params.topic3,
+    topic1_in: params.topic1_in,
+    topic2_in: params.topic2_in,
+    topic3_in: params.topic3_in,
     blockNumber_gte: params.blockNumber_gte,
     blockNumber_lte: params.blockNumber_lte,
-    limit: params.limit ?? 1000,
+    limit,
   });
 
   const response = await fetchEventCacheResponse(url);
@@ -167,10 +183,156 @@ export async function fetchEvents(
     throw new Error(`Failed to parse event-cache response: ${message}`);
   }
 
-  return requireListResponse<RawEventFromCache>(data, 'event-cache response').items;
+  const items = requireListResponse<RawEventFromCache>(data, 'event-cache response').items;
+  const narrowedByTopic = params.topic1 != null || params.topic2 != null || params.topic3 != null
+    || params.topic1_in != null || params.topic2_in != null || params.topic3_in != null;
+  // A full page at or above the default limit is the truncation signal. Smaller
+  // explicit limits (a single creation event, a short sample) are left alone:
+  // returning exactly one row is usually the complete set.
+  if (!params.allowTruncation && !narrowedByTopic && limit >= 1000 && items.length >= limit) {
+    throw new Error(
+      `Event query returned ${items.length} rows, which meets the limit of ${limit}. Older matching events may be missing. Use fetchEventsComplete for a full result.`,
+    );
+  }
+  return items;
 }
 
 const EVENT_API_CAP = 10_000;
+
+type EventSegmentManifest = {
+  finalizedThrough?: string;
+  segments: Array<{ fromBlock: string; toBlock: string; count: number; sha256: string }>;
+};
+
+const manifestCache = new Map<string, { at: number; manifest: EventSegmentManifest }>();
+const MANIFEST_TTL_MS = 5_000;
+
+function usesEventArchive(
+  params: Omit<EventQueryParams, 'limit' | 'blockNumber_gte' | 'blockNumber_lte'>,
+  fromBlock: bigint,
+): boolean {
+  return fromBlock === 0n
+    && params.eventName != null
+    && params.contractAddress == null
+    && params.topic1 == null
+    && params.topic2 == null
+    && params.topic3 == null
+    && params.topic1_in == null
+    && params.topic2_in == null
+    && params.topic3_in == null;
+}
+
+async function sha256Hex(text: string): Promise<string> {
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+  return [...new Uint8Array(digest)].map(byte => byte.toString(16).padStart(2, '0')).join('');
+}
+
+function decodeEventSegment(text: string, chainId: number, eventName: string): RawEventFromCache[] {
+  const tuples: unknown = JSON.parse(text);
+  if (!Array.isArray(tuples)) throw new Error('Malformed event segment');
+  return tuples.map(tuple => {
+    if (!Array.isArray(tuple) || tuple.length !== 11) throw new Error('Malformed event segment row');
+    return {
+      id: String(tuple[0]),
+      chainId,
+      contractAddress: String(tuple[1]),
+      eventName,
+      blockNumber: String(tuple[2]),
+      blockTimestamp: String(tuple[3]),
+      transactionHash: String(tuple[4]),
+      logIndex: Number(tuple[5]),
+      topic0: tuple[6] == null ? null : String(tuple[6]),
+      topic1: tuple[7] == null ? null : String(tuple[7]),
+      topic2: tuple[8] == null ? null : String(tuple[8]),
+      topic3: tuple[9] == null ? null : String(tuple[9]),
+      data: String(tuple[10]),
+    };
+  });
+}
+
+/** Block through which the indexer treats this chain's logs as finalized. */
+export async function readFinalizedThrough(
+  machinery: SDKMachinery,
+  eventName: string,
+): Promise<bigint | null> {
+  const chainId = machinery.defaultChainId;
+  if (chainId == null || machinery.eventCacheUrl == null) return null;
+  const manifestUrl = buildEventCacheUrl(machinery.eventCacheUrl, 'event-segments/manifest', {
+    chainId,
+    eventName,
+  });
+  try {
+    const response = await fetchEventCacheResponse(manifestUrl);
+    const manifest = await response.json() as EventSegmentManifest;
+    if (typeof manifest.finalizedThrough !== 'string') return null;
+    return BigInt(manifest.finalizedThrough);
+  } catch {
+    return null;
+  }
+}
+
+function compareRawEvents(a: RawEventFromCache, b: RawEventFromCache): number {
+  const blockDelta = BigInt(a.blockNumber) - BigInt(b.blockNumber);
+  if (blockDelta !== 0n) return blockDelta < 0n ? -1 : 1;
+  return a.logIndex - b.logIndex;
+}
+
+async function readEventArchive(
+  machinery: SDKMachinery,
+  params: Omit<EventQueryParams, 'limit' | 'blockNumber_gte' | 'blockNumber_lte'>,
+): Promise<RawEventFromCache[] | null> {
+  const chainId = params.chainId ?? machinery.defaultChainId;
+  const eventName = params.eventName;
+  if (chainId == null || eventName == null || machinery.eventCacheUrl == null) return null;
+  const manifestUrl = buildEventCacheUrl(machinery.eventCacheUrl, 'event-segments/manifest', {
+    chainId,
+    eventName,
+  });
+  const cached = manifestCache.get(manifestUrl);
+  let manifest: EventSegmentManifest;
+  if (cached && Date.now() - cached.at < MANIFEST_TTL_MS) {
+    manifest = cached.manifest;
+  } else {
+    let response: Response;
+    try {
+      response = await fetchEventCacheResponse(manifestUrl);
+    } catch {
+      return null;
+    }
+    try {
+      manifest = await response.json() as EventSegmentManifest;
+    } catch {
+      return null;
+    }
+    if (!Array.isArray(manifest.segments)) return null;
+    manifestCache.set(manifestUrl, { at: Date.now(), manifest });
+  }
+  if (manifest.segments.length === 0) return null;
+
+  let archived: RawEventFromCache[];
+  try {
+    const pages = await Promise.all(manifest.segments.map(async segment => {
+      const url = `${machinery.eventCacheUrl!.replace(/\/$/, '')}/api/event-segments/${chainId}/${encodeURIComponent(eventName)}/${segment.fromBlock}`;
+      const response = await fetchEventCacheResponse(url);
+      const text = await response.text();
+      if (await sha256Hex(text) !== segment.sha256) {
+        throw new Error(`Event segment ${segment.fromBlock} failed its sha256 check`);
+      }
+      const rows = decodeEventSegment(text, chainId, eventName);
+      if (rows.length !== segment.count) {
+        throw new Error(`Event segment ${segment.fromBlock} has ${rows.length} rows, manifest says ${segment.count}`);
+      }
+      return rows;
+    }));
+    archived = pages.flat();
+  } catch {
+    return null;
+  }
+
+  const tailFrom = BigInt(manifest.segments[manifest.segments.length - 1]!.toBlock) + 1n;
+  const tail = await fetchEventsBySplitting(machinery, params, tailFrom);
+  return [...archived, ...tail].sort(compareRawEvents);
+}
 
 /** Fetch a complete event set by recursively splitting capped block ranges. */
 export async function fetchEventsComplete(
@@ -178,7 +340,24 @@ export async function fetchEventsComplete(
   params: Omit<EventQueryParams, 'limit' | 'blockNumber_gte' | 'blockNumber_lte'>,
   fromBlock = 0n,
 ): Promise<RawEventFromCache[]> {
-  const newest = await fetchEvents(machinery, { ...params, blockNumber_gte: fromBlock.toString(), limit: EVENT_API_CAP });
+  if (usesEventArchive(params, fromBlock)) {
+    const archived = await readEventArchive(machinery, params);
+    if (archived) return archived;
+  }
+  return fetchEventsBySplitting(machinery, params, fromBlock);
+}
+
+async function fetchEventsBySplitting(
+  machinery: SDKMachinery,
+  params: Omit<EventQueryParams, 'limit' | 'blockNumber_gte' | 'blockNumber_lte'>,
+  fromBlock: bigint,
+): Promise<RawEventFromCache[]> {
+  const newest = await fetchEvents(machinery, {
+    ...params,
+    blockNumber_gte: fromBlock.toString(),
+    limit: EVENT_API_CAP,
+    allowTruncation: true,
+  });
   if (newest.length < EVENT_API_CAP) return newest;
 
   const endBlock = newest.reduce((max, event) => {
@@ -192,6 +371,7 @@ export async function fetchEventsComplete(
       blockNumber_gte: start.toString(),
       blockNumber_lte: end.toString(),
       limit: EVENT_API_CAP,
+      allowTruncation: true,
     });
     if (events.length < EVENT_API_CAP) return events;
     if (start === end) {
@@ -221,6 +401,30 @@ export function padAddressAsTopic(address: string): string {
   return `0x${'0'.repeat(24)}${normalized}`;
 }
 
+/** Pad a uint256 to a 32-byte topic value. */
+export function padUintAsTopic(value: bigint): string {
+  return `0x${value.toString(16).padStart(64, '0')}`;
+}
+
+const TOPIC_IN_CHUNK = 32;
+
+/** Fetch one event name for many topic values, chunked to the API bound. */
+export async function fetchEventsByTopicList(
+  machinery: SDKMachinery,
+  eventName: string,
+  topic: 'topic1' | 'topic2' | 'topic3',
+  values: string[],
+): Promise<RawEventFromCache[]> {
+  if (values.length === 0) return [];
+  const unique = [...new Set(values)];
+  const pages: RawEventFromCache[] = [];
+  for (let i = 0; i < unique.length; i += TOPIC_IN_CHUNK) {
+    const chunk = unique.slice(i, i + TOPIC_IN_CHUNK).join(',');
+    pages.push(...await fetchEventsComplete(machinery, { eventName, [`${topic}_in`]: chunk }));
+  }
+  return pages;
+}
+
 // ============================================================================
 // Domain-specific event fetch helpers
 // ============================================================================
@@ -233,13 +437,13 @@ export function padAddressAsTopic(address: string): string {
  *
  * @param machinery - SDK machinery with event cache configuration
  * @param assuranceContractAddress - Address of the project's assurance contract
- * @param options - Optional limit on the number of events to fetch
+ * @param options - Optional block cursor for the assurance-contract logs
  * @returns Combined factory + contract events for the project
  */
 export async function fetchLazyGivingProjectEvents(
   machinery: SDKMachinery,
   assuranceContractAddress: string,
-  options: { limit?: number; blockNumber_gte?: string } = {}
+  options: { blockNumber_gte?: string } = {}
 ): Promise<RawEventFromCache[]> {
   const paddedAddress = padAddressAsTopic(assuranceContractAddress);
 
@@ -259,11 +463,11 @@ export async function fetchLazyGivingProjectEvents(
       topic1: paddedAddress,
       limit: 10,
     }),
-    fetchEvents(machinery, {
-      contractAddress: assuranceContractAddress,
-      blockNumber_gte: options.blockNumber_gte,
-      limit: options.limit ?? 10000,
-    }),
+    fetchEventsComplete(
+      machinery,
+      { contractAddress: assuranceContractAddress },
+      options.blockNumber_gte ? BigInt(options.blockNumber_gte) : 0n,
+    ),
   ]);
 
   const contractEvents = cachedContractEvents.length > 0 || !machinery.publicClient
@@ -300,69 +504,78 @@ async function readUnindexedProjectLogs(
  * Fetch all raw delegation events from every indexed DelegatableNotes contract version.
  *
  * @param machinery - SDK machinery with event cache configuration
- * @param options - Optional limit on the number of events to fetch
  * @returns Raw delegation events (note creation, delegation, revocation)
  */
+const DELEGATION_EVENT_NAMES = [
+  'NoteCreated',
+  'NoteDelegated',
+  'ChainSplit',
+  'NoteSplitSameChain',
+  'NoteRevoked',
+  'NotePartiallyTakenBack',
+  'FundsReclaimed',
+  'NoteConsumed',
+  'ERC1155Purchased',
+  'RefundedIntoNote',
+  'ReimbursementClaimedIntoNote',
+] as const;
+
 export async function fetchAllDelegationEvents(
   machinery: SDKMachinery,
-  options: { limit?: number } = {}
 ): Promise<RawEventFromCache[]> {
-  const limit = options.limit ?? 10000;
-  const eventNames = [
-    'NoteCreated',
-    'NoteDelegated',
-    'ChainSplit',
-    'NoteSplitSameChain',
-    'NoteRevoked',
-    'NotePartiallyTakenBack',
-    'FundsReclaimed',
-    'NoteConsumed',
-    'ERC1155Purchased',
-    'RefundedIntoNote',
-    'ReimbursementClaimedIntoNote',
-  ];
-  const eventGroups = await Promise.all(eventNames.map(eventName => fetchEvents(machinery, { eventName, limit })));
-  return eventGroups.flat();
-}
-
-export async function fetchAllDelegationEventsComplete(
-  machinery: SDKMachinery,
-): Promise<RawEventFromCache[]> {
-  const eventNames = [
-    'NoteCreated', 'NoteDelegated', 'ChainSplit', 'NoteSplitSameChain', 'NoteRevoked', 'NotePartiallyTakenBack', 'FundsReclaimed',
-    'NoteConsumed', 'ERC1155Purchased', 'RefundedIntoNote', 'ReimbursementClaimedIntoNote',
-  ];
-  return (await Promise.all(eventNames.map(eventName => fetchEventsComplete(machinery, { eventName })))).flat();
+  return fetchEventNamesResumable(machinery, 'delegation-events', DELEGATION_EVENT_NAMES);
 }
 
 /**
- * Fetch NoteIntentAttested events filtered by noteContract address.
+ * Fetch every NoteIntentAttested event.
  *
- * Note: `noteId` filtering is done client-side after fetching, since the event
- * cache only supports filtering by indexed topics.
- *
- * @param machinery - SDK machinery with event cache configuration
- * @param noteContract - Address of the note contract to filter by (topic2)
- * @param options - Optional limit on the number of events to fetch
- * @returns Raw NoteIntentAttested events
+ * There is no indexed filter for `noteContract`. Callers that know a statement
+ * or a set of note ids should use `fetchNoteIntentsForStatement` or
+ * `fetchNoteIntentsForNoteIds` in `scopedNotes.ts` instead of this.
  */
-export async function fetchNoteIntentEvents(
+export async function fetchAllNoteIntentEvents(
   machinery: SDKMachinery,
-  noteContract: string,
-  options: { limit?: number } = {}
 ): Promise<RawEventFromCache[]> {
-  const paddedNoteContract = padAddressAsTopic(noteContract);
-  return fetchEvents(machinery, {
-    eventName: 'NoteIntentAttested',
-    topic2: paddedNoteContract,
-    limit: options.limit ?? 10000,
-  });
+  return fetchEventNamesResumable(machinery, 'note-intent-events', ['NoteIntentAttested']);
 }
 
-export async function fetchAllNoteIntentEventsComplete(
+const RESUMABLE_RAW_EVENTS_VERSION = 1;
+
+/** Resume a global multi-name download. Finality is the earliest manifest. */
+export async function fetchEventNamesResumable(
   machinery: SDKMachinery,
+  id: string,
+  eventNames: readonly string[],
 ): Promise<RawEventFromCache[]> {
-  return fetchEventsComplete(machinery, { eventName: 'NoteIntentAttested' });
+  return runResumableFold({
+    id,
+    version: RESUMABLE_RAW_EVENTS_VERSION,
+    key: foldStoreKey({
+      chainId: machinery.defaultChainId ?? 0,
+      eventCacheUrl: machinery.eventCacheUrl ?? '',
+      contracts: [...eventNames],
+      id,
+      version: RESUMABLE_RAW_EVENTS_VERSION,
+    }),
+    store: machinery.foldStore,
+    empty: () => [],
+    fetch: async cursor => {
+      const fromBlock = cursor ? BigInt(cursor.blockNumber) : 0n;
+      const [pages, finalities] = await Promise.all([
+        Promise.all(eventNames.map(eventName => fetchEventsComplete(machinery, { eventName }, fromBlock))),
+        Promise.all(eventNames.map(eventName => readFinalizedThrough(machinery, eventName))),
+      ]);
+      const finalizedThrough = finalities.every(value => value != null)
+        ? finalities.reduce((min, value) => (value! < min! ? value : min))
+        : null;
+      return { events: pages.flat(), finalizedThrough };
+    },
+    position: event => ({ blockNumber: event.blockNumber, logIndex: event.logIndex }),
+    step: (accumulator, events) => [...accumulator, ...events],
+    serialize: accumulator => accumulator,
+    deserialize: raw => Array.isArray(raw) ? raw as RawEventFromCache[] : [],
+    finish: accumulator => accumulator,
+  });
 }
 
 /**
@@ -390,17 +603,12 @@ export async function fetchRefUpdatedEvents(
  * Fetch all RefUpdated events across all owners.
  *
  * @param machinery - SDK machinery with event cache configuration
- * @param options - Optional limit on the number of events to fetch
  * @returns Raw RefUpdated events from all owners
  */
 export async function fetchAllRefUpdatedEvents(
   machinery: SDKMachinery,
-  options: { limit?: number } = {}
 ): Promise<RawEventFromCache[]> {
-  return fetchEvents(machinery, {
-    eventName: 'RefUpdated',
-    limit: options.limit ?? 10000,
-  });
+  return fetchEventsComplete(machinery, { eventName: 'RefUpdated' });
 }
 
 /**
@@ -408,78 +616,47 @@ export async function fetchAllRefUpdatedEvents(
  *
  * @param machinery - SDK machinery with event cache configuration
  * @param erc1155Address - Address of the ERC-1155 token contract
- * @param options - Optional limit on the number of events to fetch
  * @returns Combined single and batch transfer events
  */
 export async function fetchERC1155TransferEvents(
   machinery: SDKMachinery,
   erc1155Address: string,
-  options: { limit?: number } = {}
 ): Promise<RawEventFromCache[]> {
   const [singles, batches] = await Promise.all([
-    fetchEvents(machinery, {
+    fetchEventsComplete(machinery, {
       contractAddress: erc1155Address,
       eventName: 'TransferSingle',
-      limit: options.limit ?? 10000,
     }),
-    fetchEvents(machinery, {
+    fetchEventsComplete(machinery, {
       contractAddress: erc1155Address,
       eventName: 'TransferBatch',
-      limit: options.limit ?? 10000,
     }),
   ]);
   return [...singles, ...batches];
 }
 
 /**
- * Fetch all NoteIntentAttested events across all note contracts.
- *
- * @param machinery - SDK machinery with event cache configuration
- * @param options - Optional limit on the number of events to fetch
- * @returns Raw NoteIntentAttested events from all note contracts
- */
-export async function fetchAllNoteIntentEvents(
-  machinery: SDKMachinery,
-  options: { limit?: number } = {}
-): Promise<RawEventFromCache[]> {
-  return fetchEvents(machinery, {
-    eventName: 'NoteIntentAttested',
-    limit: options.limit ?? 10000,
-  });
-}
-
-/**
  * Fetch all ERC1155Bought events across all contracts.
  *
  * @param machinery - SDK machinery with event cache configuration
- * @param options - Optional limit on the number of events to fetch
  * @returns Raw ERC1155Bought events from the secondary marketplace
  */
 export async function fetchAllBoughtEvents(
   machinery: SDKMachinery,
-  options: { limit?: number } = {}
 ): Promise<RawEventFromCache[]> {
-  return fetchEvents(machinery, {
-    eventName: 'ERC1155Bought',
-    limit: options.limit ?? 10000,
-  });
+  return fetchEventsComplete(machinery, { eventName: 'ERC1155Bought' });
 }
 
 /**
  * Fetch all ERC1155Sold events across all contracts.
  *
  * @param machinery - SDK machinery with event cache configuration
- * @param options - Optional limit on the number of events to fetch
  * @returns Raw ERC1155Sold events from the secondary marketplace
  */
 export async function fetchAllSoldEvents(
   machinery: SDKMachinery,
-  options: { limit?: number } = {}
 ): Promise<RawEventFromCache[]> {
-  return fetchEvents(machinery, {
-    eventName: 'ERC1155Sold',
-    limit: options.limit ?? 10000,
-  });
+  return fetchEventsComplete(machinery, { eventName: 'ERC1155Sold' });
 }
 
 // ============================================================================
@@ -494,14 +671,12 @@ export async function fetchAllSoldEvents(
  * Returns a flat array of raw events ready for decoding and folding.
  *
  * @param machinery - SDK machinery with event cache configuration
- * @param options - Optional limit on the number of events per contract
  * @returns Combined raw events from all four content-funding contracts
  */
 export async function fetchAllContentFundingEvents(
   machinery: SDKMachinery,
-  options: { limit?: number } = {}
+  fromBlock = 0n,
 ): Promise<RawEventFromCache[]> {
-  const limit = options.limit ?? 10000;
   const eventNames = [
     'ContentItemRegistered',
     'ContentItemReleased',
@@ -520,6 +695,6 @@ export async function fetchAllContentFundingEvents(
     'ContentMaterialized',
     'ContentTokenClaimed',
   ];
-  const eventGroups = await Promise.all(eventNames.map(eventName => fetchEvents(machinery, { eventName, limit })));
+  const eventGroups = await Promise.all(eventNames.map(eventName => fetchEventsComplete(machinery, { eventName }, fromBlock)));
   return eventGroups.flat();
 }
