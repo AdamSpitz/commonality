@@ -39,13 +39,13 @@ Useful search: `grep -rnE "fetchAll[A-Za-z]*\(|fetchEventsComplete\(|limit: 1000
 
 **Step 0, before any code: measure.** Write a small script (`sdk/scripts/bench-cold-load.ts` is fine to keep) that runs each inventory query against a running local stack and prints the request count, the response bytes, and the wall time. Seed enough data that the numbers mean something; [`fake-data-generation/PLAN.md`](/fake-data-generation/PLAN.md) describes the stress-traffic seeding, so do not build a parallel seeder. Record the baseline numbers in this file under each step as you go, so the later steps can show the improvement.
 
-Step 0 is still open. The script is `sdk/scripts/bench-cold-load.ts` (`npm run bench:cold-load` in `sdk/`). It needs a running local indexer. The first run has not been recorded: nothing was listening on port 42069. Record that run under step 1 and treat it as the baseline for later steps. Do not start a second seeder; use `./scripts/data.sh --seed=small` (or larger) when the stack is up, so the numbers are not a tiny world.
+The script is `sdk/scripts/bench-cold-load.ts` (`npm run bench:cold-load` in `sdk/`). It needs a running local indexer. The first recorded run is under step 2. There is no earlier run, so that table is the baseline for steps 3–5. It used the local chain that was already indexed (not a fresh `--seed=small`): about 104 `DirectSupport`, 55 `ProjectCreated`, 12 `NoteCreated`, 8 `NoteDelegated`, 48 `RefUpdated`, and no `NoteIntentAttested`, `ERC1155Bought`, or standing pledges.
 
 ## Steps
 
 ### [x] 1. Stop silently truncating global fetches (correctness)
 
-Done on `feature/stop-silent-event-truncation`. Wide helpers go through `fetchEventsComplete`. `fetchEvents` throws when an unfiltered query with `limit >= 1000` comes back full, unless the caller sets `allowTruncation` (the complete fetcher does). Topic-filtered queries still accept a limit. Bench numbers: not recorded yet.
+Done on `feature/stop-silent-event-truncation`. Wide helpers go through `fetchEventsComplete`. `fetchEvents` throws when an unfiltered query with `limit >= 1000` comes back full, unless the caller sets `allowTruncation` (the complete fetcher does). Topic-filtered queries still accept a limit. The first bench is the step 2 table; this step had no separate run.
 
 Several "fetch everything" helpers call plain `fetchEvents(..., { limit: 10000 })`. Once there are more than 10k events of that kind, they quietly return only the newest 10k, and the folds come out **wrong**. `fetchEventsComplete` (in `sdk/src/utils/eventCacheClient.ts`) already handles this by splitting block ranges; conceptspace uses it.
 
@@ -54,9 +54,28 @@ Several "fetch everything" helpers call plain `fetchEvents(..., { limit: 10000 }
 - Make truncation impossible to reintroduce quietly. One way: give `fetchEvents` a `limit` that has no default for unfiltered queries, or have it throw when an unfiltered query returns exactly `limit` rows.
 - Tests: a unit test with a fake event cache returning more than 10k events, which must come back complete through each converted helper (look for an existing `eventCacheClient` test to extend).
 
-### [ ] 2. Narrow queries that don't need to be global
+### [x] 2. Narrow queries that don't need to be global
 
-In progress on `feature/narrow-cold-start-queries` (stacked on the truncation branch, which is not on `dev` yet).
+Done on `feature/narrow-cold-start-queries` (stacked on the truncation branch, which is not on `dev` yet).
+
+First recorded bench, 2026-10-28, indexer `http://localhost:42069`, chain 31337, world described under Step 0. `getAllProjects` is the expensive row (223 event-cache requests, 401 ms) because each project is still folded on its own. `getDonationActivityByRoot` took 20 requests and returned 0 rows for the owner of the newest `NoteCreated`.
+
+| Query | Requests | Bytes | ms | Detail |
+|---|---:|---:|---:|---|
+| browseStatements (believerCount) | 1 | 69171 | 176 | 10 statements |
+| getAllStatements | 1 | 69171 | 133 | 46 statements |
+| getImplicationSourceActivity | 2 | 12569 | 5 | 17 implications |
+| fetchAndFoldContentFundingState | 16 | 47876 | 29 | folded |
+| getDonationActivityByRoot | 20 | 1948 | 37 | 0 rows |
+| fetchAllNoteIntentEvents | 1 | 12 | 2 | 0 events |
+| getNoteIntentAggregate | 1 | 12 | 2 | 0 notes |
+| getStandingPledges | 1 | 12 | 2 | 0 pledges |
+| getAllProjectAddresses | 3 | 40295 | 9 | 55 projects |
+| getAllProjects | 223 | 83140 | 401 | 55 projects |
+| getUserContributions | 1 | 12 | 2 | 0 contributions |
+| getRefsByName | 1 | 50219 | 7 | 0 refs |
+| loadWorkRequestBoard | 1 | 50219 | 6 | folded |
+| getKnownProofTiers | 1 | 12 | 4 | 0 tiers |
 
 Landed in that branch:
 
@@ -64,7 +83,7 @@ Landed in that branch:
 - `getDonationActivityByRoot` starts from `NoteCreated` filtered by owner, walks descendant note ids, and loads only those notes' intents. It no longer calls `getAllProjects()`. Project rows come from `ProjectCreated` filtered by the receipt token. `ERC1155Purchased`, `RefundedIntoNote`, and `ReimbursementClaimedIntoNote` stay whole-event fetches because their note ids are not indexed. Standing pledges are still the whole registry, then filtered to this root.
 - `NoteIntentAttested` now indexes `intendedStatementId` instead of `noteContract`. `getNoteIntentAggregate` and `getNoteIntentAttestationsByStatement` fetch that topic, then the notes those intents name (and their ancestors). `noteContract` is still in the event data. This needs a local reindex. Testnet redeploy is a separate TODO; do not do it in this step.
 
-Still open for this step: bench numbers are not recorded. `fetchNoteIntentEvents(noteContract)` is gone. It downloaded every intent and filtered `noteContract` out of the event data. Callers that know a statement or note ids use `fetchNoteIntentsForStatement` and `fetchNoteIntentsForNoteIds`. `fetchAllNoteIntentEvents` remains for a true global fold.
+`fetchNoteIntentEvents(noteContract)` is gone. It downloaded every intent and filtered `noteContract` out of the event data. Callers that know a statement or note ids use `fetchNoteIntentsForStatement` and `fetchNoteIntentsForNoteIds`. `fetchAllNoteIntentEvents` remains for a true global fold.
 
 Per-note and per-owner delegation reads (`getNote`, `getDelegationChain`, `getDelegationChainsForNotes`, `getNotesByOwner`, `getNotesByRoot`, `getNoteIntentAttestation`, `getNoteIntentAttestationsByNote`) now use the same topic filters as the donation page. Purchase, refund, and reimbursement events stay a whole-event download there, because those note ids are not indexed and the fold copies chains from them. `getPurchasedNoteEventsByTxHashes` stays global: the transaction hash is not indexed.
 
