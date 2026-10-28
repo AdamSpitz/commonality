@@ -378,24 +378,12 @@ export async function fetchAllDelegationEvents(
 }
 
 /**
- * Fetch NoteIntentAttested events for one note contract.
+ * Fetch every NoteIntentAttested event.
  *
- * `noteContract` is not indexed (the indexed slots are attester, statement, and
- * note id). This still downloads every intent and filters after decoding.
- *
- * @param machinery - SDK machinery with event cache configuration
- * @param noteContract - Address of the note contract to filter by
- * @returns Raw NoteIntentAttested events
+ * There is no indexed filter for `noteContract`. Callers that know a statement
+ * or a set of note ids should use `fetchNoteIntentsForStatement` or
+ * `fetchNoteIntentsForNoteIds` in `scopedNotes.ts` instead of this.
  */
-export async function fetchNoteIntentEvents(
-  machinery: SDKMachinery,
-  noteContract: string,
-): Promise<RawEventFromCache[]> {
-  const padded = padAddressAsTopic(noteContract).slice(2);
-  const events = await fetchAllNoteIntentEvents(machinery);
-  return events.filter(event => event.data.toLowerCase().includes(padded));
-}
-
 export async function fetchAllNoteIntentEvents(
   machinery: SDKMachinery,
 ): Promise<RawEventFromCache[]> {

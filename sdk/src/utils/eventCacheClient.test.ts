@@ -1,5 +1,5 @@
 import assert from 'assert';
-import { fetchAllBoughtEvents, fetchAllContentFundingEvents, fetchAllDelegationEvents, fetchAllNoteIntentEvents, fetchAllRefUpdatedEvents, fetchAllSoldEvents, fetchERC1155TransferEvents, fetchEvents, fetchEventsComplete, fetchNoteIntentEvents } from './eventCacheClient.js';
+import { fetchAllBoughtEvents, fetchAllContentFundingEvents, fetchAllDelegationEvents, fetchAllNoteIntentEvents, fetchAllRefUpdatedEvents, fetchAllSoldEvents, fetchERC1155TransferEvents, fetchEvents, fetchEventsComplete } from './eventCacheClient.js';
 import type { SDKMachinery } from '../machinery.js';
 
 const machinery = {
@@ -207,7 +207,6 @@ describe('complete global fetches', () => {
     ['fetchAllContentFundingEvents', () => fetchAllContentFundingEvents(machinery)],
     ['fetchAllRefUpdatedEvents', () => fetchAllRefUpdatedEvents(machinery)],
     ['fetchAllNoteIntentEvents', () => fetchAllNoteIntentEvents(machinery)],
-    ['fetchNoteIntentEvents', () => fetchNoteIntentEvents(machinery, '0x2222222222222222222222222222222222222222')],
     ['fetchAllBoughtEvents', () => fetchAllBoughtEvents(machinery)],
     ['fetchAllSoldEvents', () => fetchAllSoldEvents(machinery)],
     ['fetchERC1155TransferEvents', () => fetchERC1155TransferEvents(machinery, '0x3333333333333333333333333333333333333333')],
