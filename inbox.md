@@ -17,6 +17,8 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 ## Main list
 
+- **Tell Report:** Cold-start step 5 is done. The project registry and statement browse run in a Web Worker. Smaller global folds stay on the calling thread. The step 2 bench still describes request counts.
+
 - **Tell Report:** Cold-start step 4 is done. Global folds resume from a stored accumulator (`runResumableFold`). A reorg in the unfinalized tail is not saved. The local chain is shorter than the finality lag, so the step 2 bench still describes repeat-visit bytes. Workers are step 5.
 
 - **Tell Report:** Cold-start step 3 is done. Finalized history for one event name can be served as immutable segments (`GET /api/event-segments/...`), and global SDK fetches verify the hash and then download only the tail. The local chain is too short for a segment, so the step 2 bench still describes that stack. Resumable folds are step 4.

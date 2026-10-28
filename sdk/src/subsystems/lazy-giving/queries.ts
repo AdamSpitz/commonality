@@ -270,6 +270,9 @@ export async function getProject(
 export async function getAllProjects(
   machinery: SDKMachinery
 ): Promise<Project[]> {
+  if (machinery.offThreadGlobalFold) {
+    return machinery.offThreadGlobalFold('getAllProjects', []) as Promise<Project[]>;
+  }
   const projectAddresses = await getAllProjectAddresses(machinery);
   const projects = await Promise.all(
     projectAddresses.map(addr => getProject(machinery, addr))

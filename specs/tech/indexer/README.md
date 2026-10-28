@@ -75,7 +75,7 @@ All contract event emitters share the single event cache, including Conceptspace
 
 Projects, standing pledges, content funding, statement browse, implication source activity, and the global delegation, note-intent, and purchase-lifecycle downloads all go through the runner. Each stored record includes a fold version; a mismatch discards the record. Cause-board pages also persist the last successful **view snapshot** (metrics + aligned-project rows) so a reload can paint immediately while a live fold revalidates.
 
-A first visit still downloads finalized history. Repeat visits fetch from the stored cursor. Workers for those folds are step 5 of [fold-performance-plan.md](fold-performance-plan.md).
+A first visit still downloads finalized history. Repeat visits fetch from the stored cursor. The project registry and statement browse run in a Web Worker. The plan is [fold-performance-plan.md](fold-performance-plan.md).
 
 Projects that are not in the watch list are not copied here. Their history is read from a node on demand, cached briefly in the client, and repeated misses are reported for an operator to promote by hand. See [on-demand project reads](on-demand-project-reads.md).
 

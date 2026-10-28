@@ -227,6 +227,11 @@ export type SDKMachinery = {
    * process-wide in-memory store. The UI passes an IndexedDB store.
    */
   foldStore?: import('./utils/resumableFold.js').FoldStore;
+  /**
+   * When set, the heavy global folds call this instead of folding inline.
+   * The UI points it at a Web Worker. The worker's own machinery leaves it unset.
+   */
+  offThreadGlobalFold?: (name: string, args: readonly unknown[]) => Promise<unknown>;
 };
 
 export function createSDKMachinery(options: Partial<SDKMachinery>): SDKMachinery {
@@ -248,6 +253,7 @@ export function createSDKMachinery(options: Partial<SDKMachinery>): SDKMachinery
       : {}),
     publishedContentResolver: options.publishedContentResolver,
     ...(options.foldStore ? { foldStore: options.foldStore } : {}),
+    ...(options.offThreadGlobalFold ? { offThreadGlobalFold: options.offThreadGlobalFold } : {}),
   };
 }
 

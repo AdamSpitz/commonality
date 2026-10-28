@@ -6,6 +6,7 @@ import { getRuntimeConfigValue } from '../config/runtimeConfig'
 import { getActivePolicyBundle } from '../config/policyBundle'
 import { verifiedSocialAssociationLookup } from './verifiedSocialAssociation'
 import { createIndexedDbFoldStore } from '../stores/foldCache'
+import { createOffThreadGlobalFold } from '../folds/globalFoldWorkerClient'
 
 export function civilityPolicyGatewayConfig(
   domain = import.meta.env.VITE_DOMAIN,
@@ -105,6 +106,9 @@ export function useMachinery(): SDKMachinery {
     const publicClient = ethRpcUrl
       ? createPublicClient({ chain: chainForId(defaultChainId ?? hardhat.id), transport: http(ethRpcUrl) })
       : undefined
+    const settlementTokenAddresses = getRuntimeConfigValue('VITE_PAYMENT_TOKEN_ADDRESS')
+      ? [getRuntimeConfigValue('VITE_PAYMENT_TOKEN_ADDRESS') as `0x${string}`]
+      : []
     const machinery = createSDKMachinery({
       ipfsConfig,
       twitterApiConfig,
@@ -115,9 +119,16 @@ export function useMachinery(): SDKMachinery {
       eventCacheUrl,
       contractAddresses,
       foldStore: createIndexedDbFoldStore(),
-      settlementTokenAddresses: getRuntimeConfigValue('VITE_PAYMENT_TOKEN_ADDRESS')
-        ? [getRuntimeConfigValue('VITE_PAYMENT_TOKEN_ADDRESS') as `0x${string}`]
-        : [],
+      settlementTokenAddresses,
+      offThreadGlobalFold: createOffThreadGlobalFold({
+        eventCacheUrl,
+        contractAddresses,
+        defaultChainId,
+        gatewayUrl: ipfsConfig.gatewayUrl,
+        ethRpcUrl,
+        chainId: defaultChainId ?? hardhat.id,
+        settlementTokenAddresses,
+      }),
     })
     return defaultChainId ? { ...machinery, defaultChainId } : machinery
   }, [])

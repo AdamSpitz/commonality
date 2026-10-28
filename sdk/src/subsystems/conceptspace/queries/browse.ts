@@ -91,6 +91,9 @@ export async function browseStatementsByMostSupporters(
   machinery: SDKMachinery,
   options: BrowseStatementsOptions = {}
 ): Promise<StatementListItem[]> {
+  if (machinery.offThreadGlobalFold) {
+    return machinery.offThreadGlobalFold('browseStatementsByMostSupporters', [options]) as Promise<StatementListItem[]>;
+  }
   const { limit = 10, offset = 0, orderDirection = 'desc' } = options;
 
   const browse = await loadDirectSupportBrowse(machinery);
@@ -110,6 +113,9 @@ export async function browseStatementsByNewest(
   machinery: SDKMachinery,
   options: BrowseStatementsOptions = {}
 ): Promise<StatementListItem[]> {
+  if (machinery.offThreadGlobalFold) {
+    return machinery.offThreadGlobalFold('browseStatementsByNewest', [options]) as Promise<StatementListItem[]>;
+  }
   const { limit = 10, offset = 0, orderDirection = 'desc' } = options;
 
   const browse = await loadDirectSupportBrowse(machinery);
@@ -136,6 +142,9 @@ export async function browseStatements(
   machinery: SDKMachinery,
   options: BrowseStatementsOptions = {}
 ): Promise<StatementListItem[]> {
+  if (machinery.offThreadGlobalFold) {
+    return machinery.offThreadGlobalFold('browseStatements', [options]) as Promise<StatementListItem[]>;
+  }
   const { orderBy = 'createdAt' } = options;
 
   if (orderBy === 'believerCount' || orderBy === 'disbelieverCount') {
@@ -149,6 +158,9 @@ export async function getAllStatements(
   machinery: SDKMachinery,
   options: BrowseStatementsOptions = {}
 ): Promise<StatementListItem[]> {
+  if (machinery.offThreadGlobalFold) {
+    return machinery.offThreadGlobalFold('getAllStatements', [options]) as Promise<StatementListItem[]>;
+  }
   const { limit = 100, offset = 0 } = options;
 
   const browse = await loadDirectSupportBrowse(machinery);

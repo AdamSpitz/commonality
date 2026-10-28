@@ -149,7 +149,11 @@ This makes repeat visits cost only the new events. The project accumulator in `f
 - Move the lazy-giving project accumulator (`PROJECT_FOLD_VERSION`, `loadProjectWithCache`, `useCachedProject(s)`) onto the same primitive so there is one mechanism.
 - Tests: resuming from a stored accumulator must give exactly the same result as a from-scratch fold, across a boundary block that has several events, and after a simulated reorg in the tail.
 
-### [ ] 5. Run heavy folds off the main thread
+### [x] 5. Run heavy folds off the main thread
+
+Done on `feature/fold-workers`. The step 2 bench is the measurement: `getAllProjects` was 223 requests and 401 ms, and statement browse was one request and about 130–180 ms. The other inventory rows were under 40 ms, so they stay on the main thread.
+
+`machinery.offThreadGlobalFold` runs `getAllProjects`, `browseStatements`, `browseStatementsByNewest`, `browseStatementsByMostSupporters`, and `getAllStatements` in `ui/src/shared/folds/globalFoldWorker.ts`. The worker rebuilds machinery from the event-cache URL, contract addresses, chain id, IPFS gateway, and RPC URL, and uses the same IndexedDB fold store. When `Worker` is missing, the hook is unset and those functions fold inline. Bench not re-run; moving the work off the thread does not change request counts.
 
 - Precedent: `ui/src/shared/trust/subjectivTrustWorkerClient.ts`, which has a worker, a main-thread fallback, and progress messages.
 - Run the step-4 runner (fetch, decode, fold, persist) for the global folds inside a worker. The machinery has to be rebuilt in the worker from serializable config, as the trust worker does. BigInts survive structured clone. Maps do too, but check the result types.
