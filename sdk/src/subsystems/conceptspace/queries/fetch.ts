@@ -22,8 +22,9 @@ export type ConceptspaceEventFilter = Omit<
 export async function fetchDecodedDirectSupportEvents(
   machinery: SDKMachinery,
   params: ConceptspaceEventFilter = {},
+  fromBlock = 0n,
 ): Promise<DecodedDirectSupportEvent[]> {
-  const events = await fetchEventsComplete(machinery, { ...params, eventName: 'DirectSupport' });
+  const events = await fetchEventsComplete(machinery, { ...params, eventName: 'DirectSupport' }, fromBlock);
   const decoded: DecodedDirectSupportEvent[] = [];
   for (const event of events) {
     const d = decodeDirectSupportEvent(event);
