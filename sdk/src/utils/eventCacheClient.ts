@@ -634,6 +634,7 @@ export async function fetchAllSoldEvents(
  */
 export async function fetchAllContentFundingEvents(
   machinery: SDKMachinery,
+  fromBlock = 0n,
 ): Promise<RawEventFromCache[]> {
   const eventNames = [
     'ContentItemRegistered',
@@ -653,6 +654,6 @@ export async function fetchAllContentFundingEvents(
     'ContentMaterialized',
     'ContentTokenClaimed',
   ];
-  const eventGroups = await Promise.all(eventNames.map(eventName => fetchEventsComplete(machinery, { eventName })));
+  const eventGroups = await Promise.all(eventNames.map(eventName => fetchEventsComplete(machinery, { eventName }, fromBlock)));
   return eventGroups.flat();
 }
