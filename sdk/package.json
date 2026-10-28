@@ -126,7 +126,8 @@
     "check-abis": "tsx scripts/sync-abis.ts --check",
     "docs": "typedoc",
     "policy-lists:resolve": "tsx scripts/policy-lists-resolve.ts",
-    "policy-lists:inspect": "tsx scripts/policy-lists-inspect.ts"
+    "policy-lists:inspect": "tsx scripts/policy-lists-inspect.ts",
+    "bench:cold-load": "tsx scripts/bench-cold-load.ts"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.10",

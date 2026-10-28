@@ -39,7 +39,7 @@ Useful search: `grep -rnE "fetchAll[A-Za-z]*\(|fetchEventsComplete\(|limit: 1000
 
 **Step 0, before any code: measure.** Write a small script (`sdk/scripts/bench-cold-load.ts` is fine to keep) that runs each inventory query against a running local stack and prints the request count, the response bytes, and the wall time. Seed enough data that the numbers mean something; [`fake-data-generation/PLAN.md`](/fake-data-generation/PLAN.md) describes the stress-traffic seeding, so do not build a parallel seeder. Record the baseline numbers in this file under each step as you go, so the later steps can show the improvement.
 
-Step 0 is still open. Step 1 landed before the bench script existed; record the first numbers under step 1 when the bench runs, and treat that row as the baseline for later steps.
+Step 0 is still open. The script is `sdk/scripts/bench-cold-load.ts` (`npm run bench:cold-load` in `sdk/`). It needs a running local indexer. The first run has not been recorded: nothing was listening on port 42069. Record that run under step 1 and treat it as the baseline for later steps. Do not start a second seeder; use `./scripts/data.sh --seed=small` (or larger) when the stack is up, so the numbers are not a tiny world.
 
 ## Steps
 
