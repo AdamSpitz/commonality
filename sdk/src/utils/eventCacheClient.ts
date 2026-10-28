@@ -198,11 +198,136 @@ export async function fetchEvents(
 
 const EVENT_API_CAP = 10_000;
 
+type EventSegmentManifest = {
+  segments: Array<{ fromBlock: string; toBlock: string; count: number; sha256: string }>;
+};
+
+const manifestCache = new Map<string, { at: number; manifest: EventSegmentManifest }>();
+const MANIFEST_TTL_MS = 5_000;
+
+function usesEventArchive(
+  params: Omit<EventQueryParams, 'limit' | 'blockNumber_gte' | 'blockNumber_lte'>,
+  fromBlock: bigint,
+): boolean {
+  return fromBlock === 0n
+    && params.eventName != null
+    && params.contractAddress == null
+    && params.topic1 == null
+    && params.topic2 == null
+    && params.topic3 == null
+    && params.topic1_in == null
+    && params.topic2_in == null
+    && params.topic3_in == null;
+}
+
+async function sha256Hex(text: string): Promise<string> {
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+  return [...new Uint8Array(digest)].map(byte => byte.toString(16).padStart(2, '0')).join('');
+}
+
+function decodeEventSegment(text: string, chainId: number, eventName: string): RawEventFromCache[] {
+  const tuples: unknown = JSON.parse(text);
+  if (!Array.isArray(tuples)) throw new Error('Malformed event segment');
+  return tuples.map(tuple => {
+    if (!Array.isArray(tuple) || tuple.length !== 11) throw new Error('Malformed event segment row');
+    return {
+      id: String(tuple[0]),
+      chainId,
+      contractAddress: String(tuple[1]),
+      eventName,
+      blockNumber: String(tuple[2]),
+      blockTimestamp: String(tuple[3]),
+      transactionHash: String(tuple[4]),
+      logIndex: Number(tuple[5]),
+      topic0: tuple[6] == null ? null : String(tuple[6]),
+      topic1: tuple[7] == null ? null : String(tuple[7]),
+      topic2: tuple[8] == null ? null : String(tuple[8]),
+      topic3: tuple[9] == null ? null : String(tuple[9]),
+      data: String(tuple[10]),
+    };
+  });
+}
+
+function compareRawEvents(a: RawEventFromCache, b: RawEventFromCache): number {
+  const blockDelta = BigInt(a.blockNumber) - BigInt(b.blockNumber);
+  if (blockDelta !== 0n) return blockDelta < 0n ? -1 : 1;
+  return a.logIndex - b.logIndex;
+}
+
+async function readEventArchive(
+  machinery: SDKMachinery,
+  params: Omit<EventQueryParams, 'limit' | 'blockNumber_gte' | 'blockNumber_lte'>,
+): Promise<RawEventFromCache[] | null> {
+  const chainId = params.chainId ?? machinery.defaultChainId;
+  const eventName = params.eventName;
+  if (chainId == null || eventName == null || machinery.eventCacheUrl == null) return null;
+  const manifestUrl = buildEventCacheUrl(machinery.eventCacheUrl, 'event-segments/manifest', {
+    chainId,
+    eventName,
+  });
+  const cached = manifestCache.get(manifestUrl);
+  let manifest: EventSegmentManifest;
+  if (cached && Date.now() - cached.at < MANIFEST_TTL_MS) {
+    manifest = cached.manifest;
+  } else {
+    let response: Response;
+    try {
+      response = await fetchEventCacheResponse(manifestUrl);
+    } catch {
+      return null;
+    }
+    try {
+      manifest = await response.json() as EventSegmentManifest;
+    } catch {
+      return null;
+    }
+    if (!Array.isArray(manifest.segments)) return null;
+    manifestCache.set(manifestUrl, { at: Date.now(), manifest });
+  }
+  if (manifest.segments.length === 0) return null;
+
+  let archived: RawEventFromCache[];
+  try {
+    const pages = await Promise.all(manifest.segments.map(async segment => {
+      const url = `${machinery.eventCacheUrl!.replace(/\/$/, '')}/api/event-segments/${chainId}/${encodeURIComponent(eventName)}/${segment.fromBlock}`;
+      const response = await fetchEventCacheResponse(url);
+      const text = await response.text();
+      if (await sha256Hex(text) !== segment.sha256) {
+        throw new Error(`Event segment ${segment.fromBlock} failed its sha256 check`);
+      }
+      const rows = decodeEventSegment(text, chainId, eventName);
+      if (rows.length !== segment.count) {
+        throw new Error(`Event segment ${segment.fromBlock} has ${rows.length} rows, manifest says ${segment.count}`);
+      }
+      return rows;
+    }));
+    archived = pages.flat();
+  } catch {
+    return null;
+  }
+
+  const tailFrom = BigInt(manifest.segments[manifest.segments.length - 1]!.toBlock) + 1n;
+  const tail = await fetchEventsBySplitting(machinery, params, tailFrom);
+  return [...archived, ...tail].sort(compareRawEvents);
+}
+
 /** Fetch a complete event set by recursively splitting capped block ranges. */
 export async function fetchEventsComplete(
   machinery: SDKMachinery,
   params: Omit<EventQueryParams, 'limit' | 'blockNumber_gte' | 'blockNumber_lte'>,
   fromBlock = 0n,
+): Promise<RawEventFromCache[]> {
+  if (usesEventArchive(params, fromBlock)) {
+    const archived = await readEventArchive(machinery, params);
+    if (archived) return archived;
+  }
+  return fetchEventsBySplitting(machinery, params, fromBlock);
+}
+
+async function fetchEventsBySplitting(
+  machinery: SDKMachinery,
+  params: Omit<EventQueryParams, 'limit' | 'blockNumber_gte' | 'blockNumber_lte'>,
+  fromBlock: bigint,
 ): Promise<RawEventFromCache[]> {
   const newest = await fetchEvents(machinery, {
     ...params,

@@ -4,7 +4,7 @@ The Commonality indexer uses a design pattern called **Client-Side Folding**. Th
 
 ## What It Means
 
-The indexer is a **thin event cache**: it watches the blockchain for contract events, stores them raw, and serves application data via a simple REST API. Ponder also exposes `/graphql` for liveness/health checks, but application data access is `GET /api/events`. It does no aggregation, no business logic, no IPFS fetching — nothing except "store event → serve event".
+The indexer is a **thin event cache**: it watches the blockchain for contract events, stores them raw, and serves application data via a simple REST API. Ponder also exposes `/graphql` for liveness/health checks, but application data access is `GET /api/events`. It does no aggregation, no business logic, no IPFS fetching — nothing except "store event → serve event". Finalized history for one event name is also served as immutable byte-for-byte segments at `GET /api/event-segments/...`. Those segments are the same raw logs, partitioned by block window, so a CDN can cache them. They are not derived tables.
 
 All entity-state computation (reconstructing a project's state, computing funding totals, resolving delegation chains) happens **client-side in SDK fold functions**. The SDK fetches the raw events it needs, then folds them into typed entity state locally.
 

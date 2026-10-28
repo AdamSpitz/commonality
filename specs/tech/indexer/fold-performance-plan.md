@@ -104,7 +104,19 @@ Prefer asking for less over caching more. Contracts and the events API can both 
 - Look at each remaining inventory row and ask the same question. Totals the contracts already store (e.g. `totalReceived`) should come from chain view reads, multicall-batched, as [scalability.md](/specs/tech/scalability.md) recommends.
 - Leave in place what is truly global (statement browsing by supporter count, implication-attester activity, the project registry). Steps 3–4 handle those.
 
-### [ ] 3. Immutable archive segments for finalized history
+### [x] 3. Immutable archive segments for finalized history
+
+Done on `feature/event-archive-segments` (stacked on `feature/narrow-cold-start-queries`, which is not on `dev` yet).
+
+Choices recorded here:
+
+- Segment size is `EVENT_SEGMENT_BLOCKS` (default 50 000). Finality lag is `EVENT_SEGMENT_CONFIRMATIONS` (default 12), measured from the newest indexed block for that chain, not from an RPC head the API does not have.
+- Only complete windows are segments. A window that is finalized but shorter than the segment size stays out, so a segment's bytes never change. The SDK tail therefore starts at `lastSegment.toBlock + 1`, which can be earlier than `finalizedThrough + 1`. The manifest still reports `finalizedThrough`.
+- The segment body is a JSON array of tuples. `chainId` and `eventName` come from the path. `sha256` is of that uncompressed JSON. The response is gzipped when the client accepts it, and `Cache-Control` is `public, max-age=31536000, immutable`.
+- The gateway returns origin cache headers as-is and stores a hit in the Worker cache only for `GET /indexer/api/event-segments/:chainId/:eventName/:fromBlock` when the origin says `immutable`. The manifest is not cached there.
+- `fetchEventsComplete` uses the archive only for an `eventName` query with no contract or topic filter and `fromBlock === 0`. A missing manifest, an empty segment list, or a bad hash falls back to the block-range split. Results are sorted by `(blockNumber, logIndex)`.
+
+Bench was not re-run. The local chain from step 2 has no 50 000-block window, so the archive path is empty and the numbers would match step 2. The comparison test is `event archive segments` in `sdk/src/utils/eventCacheClient.test.ts`.
 
 This goes after the real bottleneck, the download, without adding any business logic or trust.
 

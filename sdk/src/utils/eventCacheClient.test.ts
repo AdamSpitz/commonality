@@ -220,3 +220,64 @@ describe('complete global fetches', () => {
     });
   }
 });
+
+describe('event archive segments', () => {
+  const originalFetch = globalThis.fetch;
+
+  afterEach(() => {
+    globalThis.fetch = originalFetch;
+  });
+
+  it('matches a full /api/events read and rejects a bad segment hash', async () => {
+    const archived = rawEvent('DirectSupport', 4, 0);
+    const tail = rawEvent('DirectSupport', 80, 1);
+    const segmentBody = JSON.stringify([[
+      archived.id,
+      archived.contractAddress,
+      archived.blockNumber,
+      archived.blockTimestamp,
+      archived.transactionHash,
+      archived.logIndex,
+      archived.topic0,
+      archived.topic1,
+      archived.topic2,
+      archived.topic3,
+      archived.data,
+    ]]);
+    const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(segmentBody));
+    const sha256 = [...new Uint8Array(digest)].map(byte => byte.toString(16).padStart(2, '0')).join('');
+    let segmentHits = 0;
+
+    globalThis.fetch = (async (input: RequestInfo | URL) => {
+      const url = new URL(String(input));
+      if (url.pathname.endsWith('/manifest')) {
+        const eventName = url.searchParams.get('eventName');
+        return new Response(JSON.stringify({
+          segments: [{
+            fromBlock: '0',
+            toBlock: '49',
+            count: 1,
+            sha256: eventName === 'BadHash' ? '00' : sha256,
+          }],
+        }), { status: 200 });
+      }
+      if (url.pathname.includes('/api/event-segments/')) {
+        segmentHits += 1;
+        return new Response(segmentBody, { status: 200 });
+      }
+      const gte = Number(url.searchParams.get('blockNumber_gte') ?? '0');
+      const items = [archived, tail].filter(event => Number(event.blockNumber) >= gte);
+      return new Response(JSON.stringify({ items }), { status: 200 });
+    }) as typeof fetch;
+
+    const archivedResult = await fetchEventsComplete(machinery, { eventName: 'DirectSupport', chainId: 31337 });
+    assert.deepStrictEqual(
+      archivedResult.map(event => event.blockNumber),
+      ['4', '80'],
+    );
+    assert.equal(segmentHits, 1);
+
+    const fallback = await fetchEventsComplete(machinery, { eventName: 'BadHash', chainId: 31337 });
+    assert.deepStrictEqual(fallback.map(event => event.blockNumber), ['4', '80']);
+  });
+});

@@ -42,7 +42,24 @@ export async function proxyServiceRequest(request, env) {
   upstreamRequest.headers.set('X-Forwarded-Host', requestUrl.host)
   upstreamRequest.headers.set('X-Forwarded-Proto', requestUrl.protocol.replace(':', ''))
 
-  return fetch(upstreamRequest)
+  const cache = immutableSegmentCache(request, requestUrl.pathname)
+  if (cache) {
+    const hit = await cache.match(request)
+    if (hit) return hit
+  }
+
+  const response = await fetch(upstreamRequest)
+  if (cache && response.ok && response.headers.get('cache-control')?.includes('immutable')) {
+    await cache.put(request, response.clone())
+  }
+  return response
+}
+
+const IMMUTABLE_EVENT_SEGMENT = /^\/indexer\/api\/event-segments\/[^/]+\/[^/]+\/[^/]+$/
+
+function immutableSegmentCache(request, pathname) {
+  if (request.method !== 'GET' || !IMMUTABLE_EVENT_SEGMENT.test(pathname)) return null
+  return globalThis.caches?.default ?? null
 }
 
 export function matchRoute(pathname) {
