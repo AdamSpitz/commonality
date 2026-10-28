@@ -33,7 +33,7 @@ describe("NoteIntent", function () {
         noteIntent.connect(alice).attestNoteIntent(noteContractAddr, 1, statementId)
       )
         .to.emit(noteIntent, "NoteIntentAttested")
-        .withArgs(alice.address, noteContractAddr, 1, statementId);
+        .withArgs(alice.address, statementId, 1, noteContractAddr);
     });
 
     it("Should reject zero note contract address", async function () {
@@ -47,7 +47,7 @@ describe("NoteIntent", function () {
     it("Should allow clearing intent with zero intendedStatementId", async function () {
       await expect(noteIntent.connect(alice).attestNoteIntent(noteContractAddr, 1, ethers.ZeroHash))
         .to.emit(noteIntent, "NoteIntentAttested")
-        .withArgs(alice.address, noteContractAddr, 1, ethers.ZeroHash);
+        .withArgs(alice.address, ethers.ZeroHash, 1, noteContractAddr);
       expect(await noteIntent.getAttestation(alice.address, noteContractAddr, 1)).to.equal(ethers.ZeroHash);
     });
 
@@ -131,10 +131,10 @@ describe("NoteIntent", function () {
 
       await expect(tx)
         .to.emit(noteIntent, "NoteIntentAttested")
-        .withArgs(alice.address, noteContractAddr, noteIds[0], statementIds[0]);
+        .withArgs(alice.address, statementIds[0], noteIds[0], noteContractAddr);
       await expect(tx)
         .to.emit(noteIntent, "NoteIntentAttested")
-        .withArgs(alice.address, noteContractAddr, noteIds[1], statementIds[1]);
+        .withArgs(alice.address, statementIds[1], noteIds[1], noteContractAddr);
     });
 
     it("Should reject batch with mismatched array lengths", async function () {

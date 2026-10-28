@@ -22,9 +22,9 @@ contract NoteIntent {
      */
     event NoteIntentAttested(
         address indexed attester,
-        address indexed noteContract,
+        bytes32 indexed intendedStatementId,
         uint256 indexed noteId,
-        bytes32 intendedStatementId
+        address noteContract
     );
 
     // Mapping to track if an intent has been attested by a specific attester
@@ -50,9 +50,9 @@ contract NoteIntent {
 
         emit NoteIntentAttested(
             msg.sender,
-            noteContract,
+            intendedStatementId,
             noteId,
-            intendedStatementId
+            noteContract
         );
     }
 
@@ -77,9 +77,9 @@ contract NoteIntent {
 
             emit NoteIntentAttested(
                 msg.sender,
-                noteContract,
+                statementId,
                 noteIds[i],
-                statementId
+                noteContract
             );
         }
     }

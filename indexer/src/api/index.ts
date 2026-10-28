@@ -32,6 +32,31 @@ function serializeBigInts(obj: unknown): unknown {
   return obj;
 }
 
+const TOPIC_IN_LIMIT = 32;
+
+class TopicInError extends Error {}
+
+function parseTopicIn(value: string | undefined): string[] | undefined {
+  if (!value) return undefined;
+  const topics = value.split(",").map(part => part.trim()).filter(Boolean);
+  if (topics.length > TOPIC_IN_LIMIT) {
+    throw new TopicInError(`topic_in accepts at most ${TOPIC_IN_LIMIT} values`);
+  }
+  return topics.length > 0 ? topics : undefined;
+}
+
+function pushTopicIn(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  conditions: any[],
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  column: any,
+  topics: string[] | undefined,
+) {
+  if (!topics) return;
+  const match = or(...topics.map(topic => eq(column, topic)));
+  if (match) conditions.push(match);
+}
+
 function padAddressAsTopic(address: string): string {
   return `0x${getAddress(address).slice(2).toLowerCase().padStart(64, "0")}`;
 }
@@ -244,6 +269,11 @@ app.get("/api/events", async (c) => {
     const topic1 = c.req.query("topic1");
     const topic2 = c.req.query("topic2");
     const topic3 = c.req.query("topic3");
+    const topicLists = {
+      topic1: parseTopicIn(c.req.query("topic1_in")),
+      topic2: parseTopicIn(c.req.query("topic2_in")),
+      topic3: parseTopicIn(c.req.query("topic3_in")),
+    };
     const blockNumber_gte = c.req.query("blockNumber_gte");
     const blockNumber_lte = c.req.query("blockNumber_lte");
     const limit = Math.min(parseInt(c.req.query("limit") ?? "1000", 10) || 1000, 10000);
@@ -256,6 +286,9 @@ app.get("/api/events", async (c) => {
     if (topic1) conditions.push(eq(schema.events.topic1, topic1));
     if (topic2) conditions.push(eq(schema.events.topic2, topic2));
     if (topic3) conditions.push(eq(schema.events.topic3, topic3));
+    pushTopicIn(conditions, schema.events.topic1, topicLists.topic1);
+    pushTopicIn(conditions, schema.events.topic2, topicLists.topic2);
+    pushTopicIn(conditions, schema.events.topic3, topicLists.topic3);
     if (blockNumber_gte) conditions.push(gte(schema.events.blockNumber, BigInt(blockNumber_gte)));
     if (blockNumber_lte) conditions.push(lte(schema.events.blockNumber, BigInt(blockNumber_lte)));
 
@@ -288,6 +321,7 @@ app.get("/api/events", async (c) => {
 
     return c.json(serializeBigInts({ items }) as object);
   } catch (error) {
+    if (error instanceof TopicInError) return c.json({ error: error.message }, 400);
     return c.json({ error: String(error) }, 500);
   }
 });

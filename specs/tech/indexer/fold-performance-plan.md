@@ -56,6 +56,16 @@ Several "fetch everything" helpers call plain `fetchEvents(..., { limit: 10000 }
 
 ### [ ] 2. Narrow queries that don't need to be global
 
+In progress on `feature/narrow-cold-start-queries` (stacked on the truncation branch, which is not on `dev` yet).
+
+Landed in that branch:
+
+- `/api/events` accepts `topic1_in`, `topic2_in`, and `topic3_in` (at most 32 comma-separated topics).
+- `getDonationActivityByRoot` starts from `NoteCreated` filtered by owner, walks descendant note ids, and loads only those notes' intents. It no longer calls `getAllProjects()`. Project rows come from `ProjectCreated` filtered by the receipt token. `ERC1155Purchased`, `RefundedIntoNote`, and `ReimbursementClaimedIntoNote` stay whole-event fetches because their note ids are not indexed. Standing pledges are still the whole registry, then filtered to this root.
+- `NoteIntentAttested` now indexes `intendedStatementId` instead of `noteContract`. `getNoteIntentAggregate` and `getNoteIntentAttestationsByStatement` fetch that topic, then the notes those intents name (and their ancestors). `noteContract` is still in the event data. This needs a local reindex. Testnet redeploy is a separate TODO; do not do it in this step.
+
+Still open for this step: the other inventory rows (statement browse, implications, content funding, the project registry) stay global on purpose for steps 3–4. Re-read them before checking this step off. Bench numbers are not recorded. `fetchNoteIntentEvents(noteContract)` can no longer filter server-side.
+
 Prefer asking for less over caching more. Contracts and the events API can both change.
 
 - **`getDonationActivityByRoot`** (MyNotesPage) must not fetch every note on the chain or fold every project to render one user's page. Instead, start from `NoteCreated` filtered by `owner` (topic2). Then walk descendants through the indexed parent/child ids on `NoteDelegated`, `ChainSplit`, and `NoteSplitSameChain` (read `foldDonationActivityByRoot` and `foldDelegationState` to learn which events matter). Fetch intents by `attester` (topic1) = the root. Fold only the projects the user's notes actually touched. If the descendant walk needs too many round-trips, add a list filter to `/api/events` (e.g. `topic1_in=a,b,c`, bounded length) rather than reverting to a global fetch.

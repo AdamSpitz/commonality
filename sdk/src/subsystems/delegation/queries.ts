@@ -16,6 +16,14 @@ import type { NoteIntentAttestedEvent } from './events.js';
 import { SDKMachinery } from '../../machinery.js';
 import { fetchAllDelegationEvents, fetchAllNoteIntentEvents } from '../../utils/eventCacheClient.js';
 import {
+  fetchDelegationEventsForNoteIds,
+  fetchDelegationEventsForRoot,
+  fetchNoteIntentsForNoteIds,
+  fetchNoteIntentsForStatement,
+  fetchProjectsForPurchases,
+  fetchPurchaseLifecycleEvents,
+} from './scopedNotes.js';
+import {
   decodeNoteCreatedEvent,
   decodeNoteDelegatedEvent,
   decodeChainSplitEvent,
@@ -31,7 +39,7 @@ import {
   decodeNoteIntentAttestedEvent,
 } from '../../utils/eventDecoder.js';
 import { foldDelegationState, foldNote, foldNoteIntentAttestations, uniqueNotes, type DelegationEvent } from './folds.js';
-import { getAllProjects, type Project } from '../lazy-giving/index.js';
+import { type Project } from '../lazy-giving/index.js';
 import { getStandingPledges } from './recurring-pledges.js';
 
 export function decodeDelegationEvents(rawEvents: Awaited<ReturnType<typeof fetchAllDelegationEvents>>): DelegationEvent[] {
@@ -207,22 +215,42 @@ export async function getDonationActivityByRoot(
   machinery: SDKMachinery,
   rootAddress: string,
 ): Promise<DonationActivity[]> {
-  const [delegationRaw, intentRaw, projects, standingPledges] = await Promise.all([
-    fetchAllDelegationEvents(machinery),
-    fetchAllNoteIntentEvents(machinery),
-    getAllProjects(machinery),
+  const [{ events: delegationRaw, noteIds }, standingPledges] = await Promise.all([
+    fetchDelegationEventsForRoot(machinery, rootAddress),
     machinery.contractAddresses?.recurringPledges ? getStandingPledges(machinery) : Promise.resolve([]),
+  ]);
+  const purchaseRaw = noteIds.size === 0 ? [] : await fetchPurchaseLifecycleEvents(machinery);
+  const relevantPurchases = purchaseRaw.filter(raw => purchaseMentionsNotes(raw, noteIds));
+  const [intentRaw, projects] = await Promise.all([
+    fetchNoteIntentsForNoteIds(machinery, [...noteIds].map(id => BigInt(id))),
+    fetchProjectsForPurchases(machinery, relevantPurchases.filter(raw => raw.eventName === 'ERC1155Purchased')),
   ]);
   const intentEvents = intentRaw
     .map(decodeNoteIntentAttestedEvent)
     .filter((event): event is NoteIntentAttestedEvent => event !== null);
   return foldDonationActivityByRoot(
     rootAddress,
-    decodeDelegationEvents(delegationRaw),
+    decodeDelegationEvents([...delegationRaw, ...relevantPurchases]),
     intentEvents,
     projects,
     standingPledges,
   );
+}
+
+function purchaseMentionsNotes(raw: { eventName: string }, noteIds: Set<string>): boolean {
+  if (raw.eventName === 'ERC1155Purchased') {
+    const decoded = decodeERC1155PurchasedEvent(raw as Parameters<typeof decodeERC1155PurchasedEvent>[0]);
+    return !!decoded && [...decoded.inputNoteIds, ...decoded.outputNoteIds].some(id => noteIds.has(id.toString()));
+  }
+  if (raw.eventName === 'RefundedIntoNote') {
+    const decoded = decodeRefundedIntoNoteEvent(raw as Parameters<typeof decodeRefundedIntoNoteEvent>[0]);
+    return !!decoded && (noteIds.has(decoded.inputNoteId.toString()) || noteIds.has(decoded.outputNoteId.toString()));
+  }
+  if (raw.eventName === 'ReimbursementClaimedIntoNote') {
+    const decoded = decodeReimbursementClaimedIntoNoteEvent(raw as Parameters<typeof decodeReimbursementClaimedIntoNoteEvent>[0]);
+    return !!decoded && noteIds.has(decoded.receiptNoteId.toString());
+  }
+  return false;
 }
 
 // ============================================================================
@@ -383,8 +411,7 @@ export async function getNoteIntentAttestationsByNote(
 /**
  * Get all note intent attestations targeting a specific statement.
  *
- * Since `intendedStatementId` is not indexed on-chain, this fetches all
- * NoteIntentAttested events and filters client-side.
+ * `intendedStatementId` is indexed, so this asks the event cache for that topic.
  *
  * @param machinery - SDK machinery with event cache configuration
  * @param intendedStatementId - CID of the intended statement
@@ -394,8 +421,7 @@ export async function getNoteIntentAttestationsByStatement(
   machinery: SDKMachinery,
   intendedStatementId: string
 ): Promise<NoteIntentAttestation[]> {
-  // intendedStatementId is non-indexed, so we fetch all and filter client-side
-  const rawEvents = await fetchAllNoteIntentEvents(machinery);
+  const rawEvents = await fetchNoteIntentsForStatement(machinery, intendedStatementId);
   const events: NoteIntentAttestedEvent[] = [];
   for (const raw of rawEvents) {
     const d = decodeNoteIntentAttestedEvent(raw);
@@ -408,31 +434,12 @@ export async function getNoteIntentAttestationsByStatement(
   return foldNoteIntentAttestations(events).filter(a => a.intendedStatementId === intendedStatementId);
 }
 
-type AggregateFetchCacheEntry = {
-  expiresAt: number;
-  delegation?: Promise<Awaited<ReturnType<typeof fetchAllDelegationEvents>>>;
-  intents: Promise<Awaited<ReturnType<typeof fetchAllNoteIntentEvents>>>;
-};
-const aggregateFetchCache = new WeakMap<SDKMachinery, AggregateFetchCacheEntry>();
-
-function getAggregateRawEvents(machinery: SDKMachinery) {
-  const cached = aggregateFetchCache.get(machinery);
-  if (cached && cached.expiresAt > Date.now()) return cached;
-  const next: AggregateFetchCacheEntry = {
-    expiresAt: Date.now() + 15_000,
-    intents: fetchAllNoteIntentEvents(machinery),
-  };
-  aggregateFetchCache.set(machinery, next);
-  return next;
-}
-
-/** Fold every note and latest intent once, then apply the normative validity filters. */
+/** Fold the notes that intend this statement, then apply the normative validity filters. */
 export async function getNoteIntentAggregate(
   machinery: SDKMachinery,
   statementId: string,
 ): Promise<NoteIntentAggregate> {
-  const cached = getAggregateRawEvents(machinery);
-  const intentRaw = await cached.intents;
+  const intentRaw = await fetchNoteIntentsForStatement(machinery, statementId);
   const decodedIntents = intentRaw
     .map(decodeNoteIntentAttestedEvent)
     .filter((event): event is NoteIntentAttestedEvent => event !== null)
@@ -442,8 +449,10 @@ export async function getNoteIntentAggregate(
     return { statementId, currencies: [], contributorCount: 0, noteCount: 0 };
   }
 
-  cached.delegation ??= fetchAllDelegationEvents(machinery);
-  const delegationRaw = await cached.delegation;
+  const noteIds = latest
+    .filter(attestation => attestation.intendedStatementId === statementId)
+    .map(attestation => BigInt(attestation.noteId));
+  const delegationRaw = await fetchDelegationEventsForNoteIds(machinery, noteIds);
   const { notes } = foldDelegationState(decodeDelegationEvents(delegationRaw));
 
   const noteContract = machinery.contractAddresses?.delegatableNotes?.toLowerCase();

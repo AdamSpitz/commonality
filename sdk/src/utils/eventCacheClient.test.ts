@@ -153,7 +153,9 @@ function rawEvent(eventName: string, blockNumber: number, logIndex: number) {
     topic1: null,
     topic2: null,
     topic3: null,
-    data: '0x',
+    data: eventName === 'NoteIntentAttested'
+      ? `0x${'0'.repeat(24)}2222222222222222222222222222222222222222`
+      : '0x',
   };
 }
 

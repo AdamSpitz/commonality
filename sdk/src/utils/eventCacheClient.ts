@@ -50,6 +50,10 @@ export interface EventQueryParams {
   topic2?: string;
   /** Third indexed event topic to filter by. */
   topic3?: string;
+  /** Comma-separated topic values (max 32) for an indexed parameter. */
+  topic1_in?: string;
+  topic2_in?: string;
+  topic3_in?: string;
   /** Minimum block number, encoded as a decimal string. */
   blockNumber_gte?: string;
   /** Maximum block number, encoded as a decimal string. */
@@ -160,6 +164,9 @@ export async function fetchEvents(
     topic1: params.topic1,
     topic2: params.topic2,
     topic3: params.topic3,
+    topic1_in: params.topic1_in,
+    topic2_in: params.topic2_in,
+    topic3_in: params.topic3_in,
     blockNumber_gte: params.blockNumber_gte,
     blockNumber_lte: params.blockNumber_lte,
     limit,
@@ -176,7 +183,8 @@ export async function fetchEvents(
   }
 
   const items = requireListResponse<RawEventFromCache>(data, 'event-cache response').items;
-  const narrowedByTopic = params.topic1 != null || params.topic2 != null || params.topic3 != null;
+  const narrowedByTopic = params.topic1 != null || params.topic2 != null || params.topic3 != null
+    || params.topic1_in != null || params.topic2_in != null || params.topic3_in != null;
   // A full page at or above the default limit is the truncation signal. Smaller
   // explicit limits (a single creation event, a short sample) are left alone:
   // returning exactly one row is usually the complete set.
@@ -243,6 +251,30 @@ export async function fetchEventsComplete(
 export function padAddressAsTopic(address: string): string {
   const normalized = address.toLowerCase().replace(/^0x/, '');
   return `0x${'0'.repeat(24)}${normalized}`;
+}
+
+/** Pad a uint256 to a 32-byte topic value. */
+export function padUintAsTopic(value: bigint): string {
+  return `0x${value.toString(16).padStart(64, '0')}`;
+}
+
+const TOPIC_IN_CHUNK = 32;
+
+/** Fetch one event name for many topic values, chunked to the API bound. */
+export async function fetchEventsByTopicList(
+  machinery: SDKMachinery,
+  eventName: string,
+  topic: 'topic1' | 'topic2' | 'topic3',
+  values: string[],
+): Promise<RawEventFromCache[]> {
+  if (values.length === 0) return [];
+  const unique = [...new Set(values)];
+  const pages: RawEventFromCache[] = [];
+  for (let i = 0; i < unique.length; i += TOPIC_IN_CHUNK) {
+    const chunk = unique.slice(i, i + TOPIC_IN_CHUNK).join(',');
+    pages.push(...await fetchEventsComplete(machinery, { eventName, [`${topic}_in`]: chunk }));
+  }
+  return pages;
 }
 
 // ============================================================================
@@ -346,24 +378,22 @@ export async function fetchAllDelegationEvents(
 }
 
 /**
- * Fetch NoteIntentAttested events filtered by noteContract address.
+ * Fetch NoteIntentAttested events for one note contract.
  *
- * Note: `noteId` filtering is done client-side after fetching, since the event
- * cache only supports filtering by indexed topics.
+ * `noteContract` is not indexed (the indexed slots are attester, statement, and
+ * note id). This still downloads every intent and filters after decoding.
  *
  * @param machinery - SDK machinery with event cache configuration
- * @param noteContract - Address of the note contract to filter by (topic2)
+ * @param noteContract - Address of the note contract to filter by
  * @returns Raw NoteIntentAttested events
  */
 export async function fetchNoteIntentEvents(
   machinery: SDKMachinery,
   noteContract: string,
 ): Promise<RawEventFromCache[]> {
-  const paddedNoteContract = padAddressAsTopic(noteContract);
-  return fetchEventsComplete(machinery, {
-    eventName: 'NoteIntentAttested',
-    topic2: paddedNoteContract,
-  });
+  const padded = padAddressAsTopic(noteContract).slice(2);
+  const events = await fetchAllNoteIntentEvents(machinery);
+  return events.filter(event => event.data.toLowerCase().includes(padded));
 }
 
 export async function fetchAllNoteIntentEvents(

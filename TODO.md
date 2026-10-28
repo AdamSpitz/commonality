@@ -16,6 +16,8 @@ Getting **testnet to a two-person shared lab** is also a standing plan, not a pi
 
 ----
 
+- **(Tell)** Redeploy testnet `NoteIntent` after the cold-start narrowing lands. `NoteIntentAttested` indexes `intendedStatementId` instead of `noteContract`. Update the deployment address and start block. Local wipe does not update Base Sepolia. Do not touch mainnet.
+
 - **(Tell)** Make cold-start folds cheap. Global SDK queries (statement browsing, delegation/intents, content funding, standing pledges, the project registry) download every event of their kind and fold from scratch on every first visit, and several of them silently truncate at 10k events. Follow [`specs/tech/indexer/fold-performance-plan.md`](specs/tech/indexer/fold-performance-plan.md) and do the next unchecked step there. It covers the truncation fix, narrower queries, immutable archive segments, resumable folds, and Web Workers. Breaking compatibility and reindexing are fine; do not redeploy testnet. Its "Ideas for later" section is not approved work.
 
 - We should have a UI for making it easy for a user to follow projects aligned with *similar* statements to the ones he prefers, and then if he wants to he can do the alignment-attestations to make those projects also show up on his own preferred cause board.
