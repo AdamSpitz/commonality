@@ -39,9 +39,13 @@ Useful search: `grep -rnE "fetchAll[A-Za-z]*\(|fetchEventsComplete\(|limit: 1000
 
 **Step 0, before any code: measure.** Write a small script (`sdk/scripts/bench-cold-load.ts` is fine to keep) that runs each inventory query against a running local stack and prints the request count, the response bytes, and the wall time. Seed enough data that the numbers mean something; [`fake-data-generation/PLAN.md`](/fake-data-generation/PLAN.md) describes the stress-traffic seeding, so do not build a parallel seeder. Record the baseline numbers in this file under each step as you go, so the later steps can show the improvement.
 
+Step 0 is still open. Step 1 landed before the bench script existed; record the first numbers under step 1 when the bench runs, and treat that row as the baseline for later steps.
+
 ## Steps
 
-### [ ] 1. Stop silently truncating global fetches (correctness)
+### [x] 1. Stop silently truncating global fetches (correctness)
+
+Done on `feature/stop-silent-event-truncation`. Wide helpers go through `fetchEventsComplete`. `fetchEvents` throws when an unfiltered query with `limit >= 1000` comes back full, unless the caller sets `allowTruncation` (the complete fetcher does). Topic-filtered queries still accept a limit. Bench numbers: not recorded yet.
 
 Several "fetch everything" helpers call plain `fetchEvents(..., { limit: 10000 })`. Once there are more than 10k events of that kind, they quietly return only the newest 10k, and the folds come out **wrong**. `fetchEventsComplete` (in `sdk/src/utils/eventCacheClient.ts`) already handles this by splitting block ranges; conceptspace uses it.
 

@@ -1,7 +1,7 @@
 import { type Abi, type Address, type Hash, parseEventLogs } from 'viem';
 import { type WriteClients } from '../../utils/ethereum.js';
 import { SDKMachinery } from '../../machinery.js';
-import { fetchEvents } from '../../utils/eventCacheClient.js';
+import { fetchEventsComplete, type RawEventFromCache } from '../../utils/eventCacheClient.js';
 import {
   decodeStandingPledgeCreatedEvent,
   decodeStandingPledgeExecutedEvent,
@@ -121,7 +121,7 @@ export function monthlyPledgedByCauseForToken(
   );
 }
 
-function decodeRecurringPledgeEvents(rawEvents: Awaited<ReturnType<typeof fetchEvents>>): RecurringPledgeEvent[] {
+function decodeRecurringPledgeEvents(rawEvents: RawEventFromCache[]): RecurringPledgeEvent[] {
   const events: RecurringPledgeEvent[] = [];
   for (const raw of rawEvents) {
     switch (raw.eventName) {
@@ -151,7 +151,7 @@ function decodeRecurringPledgeEvents(rawEvents: Awaited<ReturnType<typeof fetchE
 export async function getStandingPledges(machinery: SDKMachinery): Promise<StandingPledge[]> {
   const address = machinery.contractAddresses?.recurringPledges;
   if (!address) throw new Error('recurringPledges contract address not configured');
-  const rawEvents = await fetchEvents(machinery, { contractAddress: address, limit: 10000 });
+  const rawEvents = await fetchEventsComplete(machinery, { contractAddress: address });
   return uniqueStandingPledges(foldStandingPledges(decodeRecurringPledgeEvents(rawEvents)).values());
 }
 

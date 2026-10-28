@@ -1,6 +1,6 @@
 import { getStatement, getImplicationsFrom, getImplicationsTo } from '@commonality/sdk/conceptspace';
 import { getContractAddressesForChain, type SDKMachinery } from '@commonality/sdk/machinery';
-import { fetchEvents } from '@commonality/sdk/utils';
+import { fetchEventsComplete } from '@commonality/sdk/utils';
 import type { IpfsCidV1 } from '@commonality/sdk/utils';
 import { publishedDataIdToCid, type PublishedDataId } from '@commonality/sdk/published-data';
 import type { NudgerConfig, NudgeMessage } from '@commonality/nudger-core';
@@ -71,10 +71,9 @@ export class ImplicationGraphNudger {
     const publishedDataAddress = getContractAddressesForChain(machinery)?.publishedData;
     if (!publishedDataAddress) return [];
 
-    const retractionEvents = await fetchEvents(machinery, {
+    const retractionEvents = await fetchEventsComplete(machinery, {
       contractAddress: publishedDataAddress,
       eventName: 'DataRetracted',
-      limit: 10000,
     });
 
     const nudgesByPair = new Map<string, NudgeMessage>();

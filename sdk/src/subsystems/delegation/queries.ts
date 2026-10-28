@@ -14,7 +14,7 @@ import {
 } from './types.js';
 import type { NoteIntentAttestedEvent } from './events.js';
 import { SDKMachinery } from '../../machinery.js';
-import { fetchAllDelegationEvents, fetchAllDelegationEventsComplete, fetchAllNoteIntentEvents, fetchAllNoteIntentEventsComplete } from '../../utils/eventCacheClient.js';
+import { fetchAllDelegationEvents, fetchAllNoteIntentEvents } from '../../utils/eventCacheClient.js';
 import {
   decodeNoteCreatedEvent,
   decodeNoteDelegatedEvent,
@@ -329,7 +329,7 @@ export async function getNoteIntentAttestation(
   noteContract: string,
   noteId: string
 ): Promise<NoteIntentAttestation | null> {
-  const rawEvents = (await fetchAllNoteIntentEventsComplete(machinery)).filter(raw => {
+  const rawEvents = (await fetchAllNoteIntentEvents(machinery)).filter(raw => {
     const decoded = decodeNoteIntentAttestedEvent(raw);
     return decoded?.noteContract.toLowerCase() === noteContract.toLowerCase();
   });
@@ -362,7 +362,7 @@ export async function getNoteIntentAttestationsByNote(
   noteContract: string,
   noteId: string
 ): Promise<NoteIntentAttestation[]> {
-  const rawEvents = (await fetchAllNoteIntentEventsComplete(machinery)).filter(raw => {
+  const rawEvents = (await fetchAllNoteIntentEvents(machinery)).filter(raw => {
     const decoded = decodeNoteIntentAttestedEvent(raw);
     return decoded?.noteContract.toLowerCase() === noteContract.toLowerCase();
   });
@@ -410,8 +410,8 @@ export async function getNoteIntentAttestationsByStatement(
 
 type AggregateFetchCacheEntry = {
   expiresAt: number;
-  delegation?: Promise<Awaited<ReturnType<typeof fetchAllDelegationEventsComplete>>>;
-  intents: Promise<Awaited<ReturnType<typeof fetchAllNoteIntentEventsComplete>>>;
+  delegation?: Promise<Awaited<ReturnType<typeof fetchAllDelegationEvents>>>;
+  intents: Promise<Awaited<ReturnType<typeof fetchAllNoteIntentEvents>>>;
 };
 const aggregateFetchCache = new WeakMap<SDKMachinery, AggregateFetchCacheEntry>();
 
@@ -420,7 +420,7 @@ function getAggregateRawEvents(machinery: SDKMachinery) {
   if (cached && cached.expiresAt > Date.now()) return cached;
   const next: AggregateFetchCacheEntry = {
     expiresAt: Date.now() + 15_000,
-    intents: fetchAllNoteIntentEventsComplete(machinery),
+    intents: fetchAllNoteIntentEvents(machinery),
   };
   aggregateFetchCache.set(machinery, next);
   return next;
@@ -442,7 +442,7 @@ export async function getNoteIntentAggregate(
     return { statementId, currencies: [], contributorCount: 0, noteCount: 0 };
   }
 
-  cached.delegation ??= fetchAllDelegationEventsComplete(machinery);
+  cached.delegation ??= fetchAllDelegationEvents(machinery);
   const delegationRaw = await cached.delegation;
   const { notes } = foldDelegationState(decodeDelegationEvents(delegationRaw));
 

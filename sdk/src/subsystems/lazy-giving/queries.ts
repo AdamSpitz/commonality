@@ -17,6 +17,7 @@ import {
 import { SDKMachinery } from '../../machinery.js';
 import {
   fetchEvents,
+  fetchEventsComplete,
   fetchLazyGivingProjectEvents,
   fetchAllBoughtEvents,
   padAddressAsTopic,
@@ -236,18 +237,9 @@ export async function getAllProjectAddresses(
   machinery: SDKMachinery
 ): Promise<string[]> {
   const [lazyGivingEvents, projectFactoryEvents, creatorEvents] = await Promise.all([
-    fetchEvents(machinery, {
-      eventName: 'LazyGivingAssuranceContractCreated',
-      limit: 10000,
-    }),
-    fetchEvents(machinery, {
-      eventName: 'ProjectCreated',
-      limit: 10000,
-    }),
-    fetchEvents(machinery, {
-      eventName: 'CreatorContractCreated',
-      limit: 10000,
-    }),
+    fetchEventsComplete(machinery, { eventName: 'LazyGivingAssuranceContractCreated' }),
+    fetchEventsComplete(machinery, { eventName: 'ProjectCreated' }),
+    fetchEventsComplete(machinery, { eventName: 'CreatorContractCreated' }),
   ]);
 
   const projectAddresses = [
