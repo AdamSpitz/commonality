@@ -221,7 +221,13 @@ export async function getDonationActivityByRoot(
     fetchDelegationEventsForRoot(machinery, rootAddress),
     machinery.contractAddresses?.recurringPledges ? getStandingPledges(machinery) : Promise.resolve([]),
   ]);
-  const purchaseRaw = noteIds.size === 0 ? [] : await fetchPurchaseLifecycleEvents(machinery);
+  const completeRaw = noteIds.size === 0 ? delegationRaw : await attachPurchaseChainCopies(machinery, delegationRaw);
+  for (const raw of completeRaw) {
+    if (raw.eventName !== 'NoteCreated') continue;
+    const decoded = decodeNoteCreatedEvent(raw);
+    if (decoded) noteIds.add(decoded.noteId.toString());
+  }
+  const purchaseRaw = completeRaw;
   const relevantPurchases = purchaseRaw.filter(raw => purchaseMentionsNotes(raw, noteIds));
   const [intentRaw, projects] = await Promise.all([
     fetchNoteIntentsForNoteIds(machinery, [...noteIds].map(id => BigInt(id))),
@@ -232,7 +238,7 @@ export async function getDonationActivityByRoot(
     .filter((event): event is NoteIntentAttestedEvent => event !== null);
   return foldDonationActivityByRoot(
     rootAddress,
-    decodeDelegationEvents([...delegationRaw, ...relevantPurchases]),
+    decodeDelegationEvents(completeRaw),
     intentEvents,
     projects,
     standingPledges,

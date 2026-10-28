@@ -85,6 +85,7 @@ export function segmentSha256(body: string): string {
 export function segmentResponseHeaders(sha256: string, immutable: boolean): Record<string, string> {
   return {
     "content-type": "application/json; charset=utf-8",
+    "vary": "Accept-Encoding",
     "cache-control": immutable
       ? "public, max-age=31536000, immutable"
       : "public, max-age=30",
@@ -93,7 +94,13 @@ export function segmentResponseHeaders(sha256: string, immutable: boolean): Reco
 }
 
 export function maybeGzip(body: string, acceptEncoding: string | undefined): { payload: Uint8Array; encoding?: string } {
-  if (acceptEncoding?.includes("gzip")) {
+  const acceptsGzip = acceptEncoding?.split(",").some(part => {
+    const [encoding = "", ...parameters] = part.trim().toLowerCase().split(";");
+    if (encoding.trim() !== "gzip") return false;
+    const quality = parameters.find(parameter => parameter.trim().startsWith("q="));
+    return quality === undefined || Number(quality.trim().slice(2)) > 0;
+  });
+  if (acceptsGzip) {
     return { payload: gzipSync(Buffer.from(body)), encoding: "gzip" };
   }
   return { payload: Buffer.from(body) };

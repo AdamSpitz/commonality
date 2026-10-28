@@ -86,7 +86,7 @@ export async function runResumableFold<TEvent, TAcc, TResult>(
   fold: ResumableFold<TEvent, TAcc, TResult>,
 ): Promise<TResult> {
   const store = fold.store ?? defaultFoldStore;
-  const stored = await store.get(fold.key);
+  const stored = await store.get(fold.key).catch(() => null);
   let accumulator = fold.empty();
   let cursor: FoldCursor | null = null;
   if (stored?.version === fold.version) {
@@ -118,7 +118,7 @@ export async function runResumableFold<TEvent, TAcc, TResult>(
       version: fold.version,
       cursor: fold.position(finalized[finalized.length - 1]!),
       accumulator: fold.serialize(accumulator),
-    });
+    }).catch(() => { /* Persistence is optional; retain the computed view. */ });
   }
 
   const viewBase = fold.deserialize(fold.serialize(accumulator));

@@ -36,6 +36,16 @@ function definition(store: MemoryFoldStore, events: Event[], finalizedThrough: b
 }
 
 describe('runResumableFold', () => {
+  it('returns the complete view when optional storage is unavailable', async () => {
+    const store = new MemoryFoldStore();
+    store.get = async () => { throw new Error('storage unavailable'); };
+    store.put = async () => { throw new Error('quota exceeded'); };
+    const run = definition(store, [
+      { blockNumber: '5', logIndex: 0, value: 10 },
+      { blockNumber: '9', logIndex: 0, value: 1 },
+    ], 5n);
+    assert.equal(await runResumableFold(run.fold), 11);
+  });
   it('matches a from-scratch fold when resumed across a block that has several events', async () => {
     const events: Event[] = [
       { blockNumber: '10', logIndex: 0, value: 1 },

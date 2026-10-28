@@ -23,6 +23,7 @@ import {
   decodeERC1155PurchasedEvent,
   decodeRefundedIntoNoteEvent,
   decodeReimbursementClaimedIntoNoteEvent,
+  decodeNoteIntentAttestedEvent,
 } from '../../utils/eventDecoder.js';
 import { cidToBytes32 } from '../../utils/cid-types.js';
 import { getProject, type Project } from '../lazy-giving/index.js';
@@ -211,7 +212,7 @@ function noteIdsMentioned(events: RawEventFromCache[]): bigint[] {
       if (decoded) ids.push(decoded.inputNoteId, decoded.outputNoteId);
     } else if (raw.eventName === 'ReimbursementClaimedIntoNote') {
       const decoded = decodeReimbursementClaimedIntoNoteEvent(raw);
-      if (decoded) ids.push(decoded.receiptNoteId);
+      if (decoded) ids.push(decoded.receiptNoteId, decoded.reimbursementNoteId);
     } else {
       ids.push(...childIds([raw]), ...parentIds([raw]));
       if (raw.eventName === 'NoteCreated') {
@@ -273,10 +274,17 @@ export async function fetchNoteIntentsForStatement(
   machinery: SDKMachinery,
   statementId: string,
 ): Promise<RawEventFromCache[]> {
-  return fetchEventsComplete(machinery, {
+  const matching = await fetchEventsComplete(machinery, {
     eventName: 'NoteIntentAttested',
     topic2: cidToBytes32(statementId),
   });
+  // A later attestation may move the note to another statement. Include that
+  // history so callers can select the latest intent before filtering by target.
+  const noteIds = matching.flatMap(raw => {
+    const decoded = decodeNoteIntentAttestedEvent(raw);
+    return decoded ? [decoded.noteId] : [];
+  });
+  return fetchNoteIntentsForNoteIds(machinery, noteIds);
 }
 
 export async function fetchNoteIntentsForNoteIds(

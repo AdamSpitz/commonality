@@ -7,6 +7,7 @@ import {
   immutableSegmentRanges,
   maybeGzip,
   segmentSha256,
+  segmentResponseHeaders,
 } from "./eventSegments.js";
 
 assert.deepEqual(
@@ -46,6 +47,9 @@ assert.equal(segmentSha256(body), segmentSha256(body));
 const gzipped = maybeGzip(body, "gzip");
 assert.equal(gzipped.encoding, "gzip");
 assert.equal(gunzipSync(gzipped.payload).toString(), body);
+assert.equal(maybeGzip(body, "gzip;q=0, br").encoding, undefined);
+assert.equal(maybeGzip(body, "br, gzip;q=0.5").encoding, "gzip");
+assert.equal(segmentResponseHeaders("hash", true).vary, "Accept-Encoding");
 assert.equal(eventSegmentBlocks(), 50_000n);
 
 console.log("event segment tests passed");
