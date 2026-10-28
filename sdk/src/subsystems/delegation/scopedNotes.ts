@@ -6,6 +6,7 @@
 
 import type { SDKMachinery } from '../../machinery.js';
 import {
+  fetchEventNamesResumable,
   fetchEventsByTopicList,
   fetchEventsComplete,
   padAddressAsTopic,
@@ -293,9 +294,11 @@ export async function fetchNoteIntentsForNoteIds(
 export async function fetchPurchaseLifecycleEvents(
   machinery: SDKMachinery,
 ): Promise<RawEventFromCache[]> {
-  const names = ['ERC1155Purchased', 'RefundedIntoNote', 'ReimbursementClaimedIntoNote'] as const;
-  const pages = await Promise.all(names.map(eventName => fetchEventsComplete(machinery, { eventName })));
-  return pages.flat();
+  return fetchEventNamesResumable(machinery, 'purchase-lifecycle', [
+    'ERC1155Purchased',
+    'RefundedIntoNote',
+    'ReimbursementClaimedIntoNote',
+  ]);
 }
 
 function addressFromTopic(topic: string | null): string | null {

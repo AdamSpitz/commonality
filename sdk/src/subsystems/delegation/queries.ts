@@ -537,7 +537,7 @@ export async function getPurchasedNoteEventsByTxHashes(
 ): Promise<NoteEvent[]> {
   if (transactionHashes.length === 0) return [];
 
-  const rawEvents = await fetchAllDelegationEvents(machinery);
+  const rawEvents = await fetchPurchaseLifecycleEvents(machinery);
   const txHashSet = new Set(transactionHashes.map(h => h.toLowerCase()));
 
   const noteEvents: NoteEvent[] = [];

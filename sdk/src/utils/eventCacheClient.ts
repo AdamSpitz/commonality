@@ -1,4 +1,5 @@
 import { SDKMachinery } from '../machinery.js';
+import { foldStoreKey, runResumableFold } from './resumableFold.js';
 import { cachedProjectLogs, projectLogCacheKey, storeProjectLogs } from './projectLogCache.js';
 import { readProjectLogsFromNode } from './projectLogRead.js';
 
@@ -505,23 +506,24 @@ async function readUnindexedProjectLogs(
  * @param machinery - SDK machinery with event cache configuration
  * @returns Raw delegation events (note creation, delegation, revocation)
  */
+const DELEGATION_EVENT_NAMES = [
+  'NoteCreated',
+  'NoteDelegated',
+  'ChainSplit',
+  'NoteSplitSameChain',
+  'NoteRevoked',
+  'NotePartiallyTakenBack',
+  'FundsReclaimed',
+  'NoteConsumed',
+  'ERC1155Purchased',
+  'RefundedIntoNote',
+  'ReimbursementClaimedIntoNote',
+] as const;
+
 export async function fetchAllDelegationEvents(
   machinery: SDKMachinery,
 ): Promise<RawEventFromCache[]> {
-  const eventNames = [
-    'NoteCreated',
-    'NoteDelegated',
-    'ChainSplit',
-    'NoteSplitSameChain',
-    'NoteRevoked',
-    'NotePartiallyTakenBack',
-    'FundsReclaimed',
-    'NoteConsumed',
-    'ERC1155Purchased',
-    'RefundedIntoNote',
-    'ReimbursementClaimedIntoNote',
-  ];
-  return (await Promise.all(eventNames.map(eventName => fetchEventsComplete(machinery, { eventName })))).flat();
+  return fetchEventNamesResumable(machinery, 'delegation-events', DELEGATION_EVENT_NAMES);
 }
 
 /**
@@ -534,7 +536,46 @@ export async function fetchAllDelegationEvents(
 export async function fetchAllNoteIntentEvents(
   machinery: SDKMachinery,
 ): Promise<RawEventFromCache[]> {
-  return fetchEventsComplete(machinery, { eventName: 'NoteIntentAttested' });
+  return fetchEventNamesResumable(machinery, 'note-intent-events', ['NoteIntentAttested']);
+}
+
+const RESUMABLE_RAW_EVENTS_VERSION = 1;
+
+/** Resume a global multi-name download. Finality is the earliest manifest. */
+export async function fetchEventNamesResumable(
+  machinery: SDKMachinery,
+  id: string,
+  eventNames: readonly string[],
+): Promise<RawEventFromCache[]> {
+  return runResumableFold({
+    id,
+    version: RESUMABLE_RAW_EVENTS_VERSION,
+    key: foldStoreKey({
+      chainId: machinery.defaultChainId ?? 0,
+      eventCacheUrl: machinery.eventCacheUrl ?? '',
+      contracts: [...eventNames],
+      id,
+      version: RESUMABLE_RAW_EVENTS_VERSION,
+    }),
+    store: machinery.foldStore,
+    empty: () => [],
+    fetch: async cursor => {
+      const fromBlock = cursor ? BigInt(cursor.blockNumber) : 0n;
+      const [pages, finalities] = await Promise.all([
+        Promise.all(eventNames.map(eventName => fetchEventsComplete(machinery, { eventName }, fromBlock))),
+        Promise.all(eventNames.map(eventName => readFinalizedThrough(machinery, eventName))),
+      ]);
+      const finalizedThrough = finalities.every(value => value != null)
+        ? finalities.reduce((min, value) => (value! < min! ? value : min))
+        : null;
+      return { events: pages.flat(), finalizedThrough };
+    },
+    position: event => ({ blockNumber: event.blockNumber, logIndex: event.logIndex }),
+    step: (accumulator, events) => [...accumulator, ...events],
+    serialize: accumulator => accumulator,
+    deserialize: raw => Array.isArray(raw) ? raw as RawEventFromCache[] : [],
+    finish: accumulator => accumulator,
+  });
 }
 
 /**
