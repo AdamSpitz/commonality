@@ -10,6 +10,8 @@ import {
 import { getAllProjects } from '@commonality/sdk/lazy-giving'
 import { createPublicClient, http } from 'viem'
 import { baseSepolia, hardhat, mainnet } from 'viem/chains'
+import { loadActivePolicyBundle } from '../config/policyBundle'
+import { civilityPolicyGatewayConfig } from '../hooks/useMachinery'
 import { createIndexedDbFoldStore } from '../stores/foldCache'
 import type { FoldWorkerRequest, FoldWorkerResponse } from './globalFoldWorkerClient'
 
@@ -29,8 +31,12 @@ function machineryFromConfig(config: FoldWorkerRequest['config']): SDKMachinery 
   const publicClient = config.ethRpcUrl
     ? createPublicClient({ chain: chainForId(chainId), transport: http(config.ethRpcUrl) })
     : undefined
+  const policyGateway = civilityPolicyGatewayConfig()
   return createSDKMachinery({
-    ipfsConfig: { gatewayUrl: config.gatewayUrl },
+    ipfsConfig: {
+      gatewayUrl: policyGateway?.gatewayUrl ?? config.gatewayUrl,
+      ...(policyGateway ? { validateGatewayResponse: policyGateway.validateGatewayResponse } : {}),
+    },
     eventCacheUrl: config.eventCacheUrl,
     contractAddresses: config.contractAddresses,
     defaultChainId: config.defaultChainId,
@@ -41,6 +47,7 @@ function machineryFromConfig(config: FoldWorkerRequest['config']): SDKMachinery 
 }
 
 async function runFold(request: FoldWorkerRequest): Promise<unknown> {
+  await loadActivePolicyBundle()
   const machinery = machineryFromConfig(request.config)
   switch (request.name) {
     case 'getAllProjects':

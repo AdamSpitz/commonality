@@ -16,6 +16,8 @@ Getting **testnet to a two-person shared lab** is also a standing plan, not a pi
 
 ----
 
+- **(Tell)** Fold-archive follow-ups from the cold-start work: segment manifests rebuild every window on each request; the gateway cache key is the URL while the body depends on `Accept-Encoding`; the implications fold key is the beliefs address, so an implications-contract change does not invalidate that accumulator.
+
 - **(Tell)** Redeploy testnet `NoteIntent` after the cold-start narrowing lands. `NoteIntentAttested` indexes `intendedStatementId` instead of `noteContract`. Update the deployment address and start block. Local wipe does not update Base Sepolia. Do not touch mainnet.
 
 

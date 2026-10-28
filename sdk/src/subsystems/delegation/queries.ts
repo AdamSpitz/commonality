@@ -474,7 +474,12 @@ export async function getNoteIntentAggregate(
   const noteIds = latest
     .filter(attestation => attestation.intendedStatementId === statementId)
     .map(attestation => BigInt(attestation.noteId));
-  const delegationRaw = await fetchDelegationEventsForNoteIds(machinery, noteIds);
+  const noteHistory = await fetchDelegationEventsForNoteIds(machinery, noteIds);
+  // Receipt and refund outputs are minted with a one-link chain. The purchase
+  // events restore the root, and the root is who may attest the note.
+  const delegationRaw = noteIds.length === 0
+    ? noteHistory
+    : await attachPurchaseChainCopies(machinery, noteHistory);
   const { notes } = foldDelegationState(decodeDelegationEvents(delegationRaw));
 
   const noteContract = machinery.contractAddresses?.delegatableNotes?.toLowerCase();
