@@ -142,12 +142,6 @@ export interface ProjectFoldResult {
   accumulator: ProjectAccumulator;
 }
 
-/**
- * Fold a project and return the resumable accumulator alongside the view model.
- *
- * Pass `initialAccumulator` / `blockNumber_gte` to continue from a saved cursor
- * instead of replaying every event.
- */
 function emptyProjectAccumulator(): ProjectAccumulator {
   return {
     foldVersion: PROJECT_FOLD_VERSION,
@@ -178,55 +172,49 @@ function deserializeProjectAccumulator(raw: unknown): ProjectAccumulator {
   };
 }
 
+/**
+ * Fold a project and return the resumable accumulator alongside the view model.
+ *
+ * The fold store on the machinery (or the process default) keeps finalized history.
+ */
 export async function getProjectFold(
   machinery: SDKMachinery,
   assuranceContractAddress: string,
-  options?: {
-    initialAccumulator?: ProjectAccumulator;
-    blockNumber_gte?: string;
-  }
 ): Promise<ProjectFoldResult | null> {
   const fundingCurrency = await readSettlementCurrency(machinery, assuranceContractAddress);
-  const projectEvents = machinery.foldStore
-    ? []
-    : await fetchAndDecodeProjectEvents(machinery, assuranceContractAddress, {
-        blockNumber_gte: options?.blockNumber_gte,
-      });
-  const folded = machinery.foldStore
-    ? await runResumableFold<ProjectEvent, ProjectAccumulator, { project: Omit<Project, 'threshold' | 'deadline'> | null; accumulator: ProjectAccumulator }>({
-        id: 'project',
-        version: PROJECT_FOLD_VERSION,
-        key: foldStoreKey({
-          chainId: machinery.defaultChainId ?? 0,
-          eventCacheUrl: machinery.eventCacheUrl ?? '',
-          contracts: [
-            machinery.contractAddresses?.assuranceContractFactory ?? '',
-            assuranceContractAddress,
-          ],
-          id: 'project',
-          version: PROJECT_FOLD_VERSION,
-        }),
-        store: machinery.foldStore,
-        empty: emptyProjectAccumulator,
-        fetch: async cursor => ({
-          events: await fetchAndDecodeProjectEvents(machinery, assuranceContractAddress, {
-            blockNumber_gte: cursor?.blockNumber,
-          }),
-          finalizedThrough: await readFinalizedThrough(machinery, 'ProjectCreated'),
-        }),
-        position: event => ({
-          blockNumber: event.event.blockNumber.toString(),
-          logIndex: event.event.logIndex,
-        }),
-        step: (accumulator, events) => foldProject(events, accumulator, fundingCurrency).accumulator,
-        serialize: serializeProjectAccumulator,
-        deserialize: deserializeProjectAccumulator,
-        finish: accumulator => ({
-          project: foldProject([], accumulator, fundingCurrency).project,
-          accumulator,
-        }),
-      })
-    : foldProject(projectEvents, options?.initialAccumulator, fundingCurrency);
+  const folded = await runResumableFold<ProjectEvent, ProjectAccumulator, { project: Omit<Project, 'threshold' | 'deadline'> | null; accumulator: ProjectAccumulator }>({
+    id: 'project',
+    version: PROJECT_FOLD_VERSION,
+    key: foldStoreKey({
+      chainId: machinery.defaultChainId ?? 0,
+      eventCacheUrl: machinery.eventCacheUrl ?? '',
+      contracts: [
+        machinery.contractAddresses?.assuranceContractFactory ?? '',
+        assuranceContractAddress,
+      ],
+      id: 'project',
+      version: PROJECT_FOLD_VERSION,
+    }),
+    store: machinery.foldStore,
+    empty: emptyProjectAccumulator,
+    fetch: async cursor => ({
+      events: await fetchAndDecodeProjectEvents(machinery, assuranceContractAddress, {
+        blockNumber_gte: cursor?.blockNumber,
+      }),
+      finalizedThrough: await readFinalizedThrough(machinery, 'ProjectCreated'),
+    }),
+    position: event => ({
+      blockNumber: event.event.blockNumber.toString(),
+      logIndex: event.event.logIndex,
+    }),
+    step: (accumulator, events) => foldProject(events, accumulator, fundingCurrency).accumulator,
+    serialize: serializeProjectAccumulator,
+    deserialize: deserializeProjectAccumulator,
+    finish: accumulator => ({
+      project: foldProject([], accumulator, fundingCurrency).project,
+      accumulator,
+    }),
+  });
   const { project: partial, accumulator } = folded;
   if (!partial) return null;
 
@@ -260,20 +248,16 @@ export async function getProjectFold(
  *
  * @param machinery - SDK machinery with event cache configuration
  * @param assuranceContractAddress - Address of the project's assurance contract
- * @param options - Optional configuration for resumable folding
- * @param options.initialAccumulator - Previously saved accumulator to resume from (enables incremental fetching)
- * @param options.blockNumber_gte - Only fetch events at or after this block number (used with initialAccumulator)
+ *
+ * Resume uses the machinery fold store. Callers do not pass an accumulator.
+ *
  * @returns The project, or null if no creation event exists
  */
 export async function getProject(
   machinery: SDKMachinery,
   assuranceContractAddress: string,
-  options?: {
-    initialAccumulator?: ProjectAccumulator;
-    blockNumber_gte?: string;
-  }
 ): Promise<Project | null> {
-  const folded = await getProjectFold(machinery, assuranceContractAddress, options);
+  const folded = await getProjectFold(machinery, assuranceContractAddress);
   return folded?.project ?? null;
 }
 
