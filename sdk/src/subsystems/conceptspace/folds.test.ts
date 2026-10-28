@@ -3,6 +3,8 @@ import {
   foldStatementBeliefs,
   foldUserBeliefs,
   foldImplications,
+  stepImplications,
+  emptyImplications,
   browseCountsFromState,
   emptyDirectSupportBrowse,
   foldAllStatements,
@@ -312,6 +314,18 @@ describe('foldImplications', () => {
     const copy = [...events];
     foldImplications(events);
     assert.deepStrictEqual(events, copy);
+  });
+
+  it('resuming a step matches a from-scratch fold', () => {
+    const first = makeImplicationEvent({ blockNumber: 100n, logIndex: 0 });
+    const boundary = makeImplicationEvent({ blockNumber: 200n, logIndex: 1, explanationCid: EXPL_2, toStatementCid: STMT_C });
+    const later = makeImplicationRevocation({ blockNumber: 200n, logIndex: 2 });
+    const full = foldImplications([later, first, boundary]);
+    const resumed = [...stepImplications(
+      stepImplications(emptyImplications(), [first]),
+      [boundary, later],
+    ).values()];
+    assert.deepStrictEqual(resumed, full);
   });
 });
 

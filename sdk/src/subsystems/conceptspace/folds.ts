@@ -97,15 +97,30 @@ export function foldUserBeliefs(events: DirectSupportEvent[]): UserBelief[] {
  * chain order, regardless of event-cache response order. Re-attestation after
  * a revocation starts a new active record.
  */
-export function foldImplications(events: ImplicationLifecycleEvent[]): Implication[] {
-  const map = new Map<string, Implication>();
+function implicationKey(event: ImplicationLifecycleEvent): string {
+  return `${event.attester.toLowerCase()}-${event.fromStatementCid}-${event.toStatementCid}`;
+}
+
+/** Bump when {@link stepImplications} changes the stored accumulator. */
+export const IMPLICATION_FOLD_VERSION = 1;
+
+export function emptyImplications(): Map<string, Implication> {
+  return new Map();
+}
+
+/** Apply implication events onto a copy of the active-edge map. */
+export function stepImplications(
+  accumulator: Map<string, Implication>,
+  events: ImplicationLifecycleEvent[],
+): Map<string, Implication> {
+  const map = new Map(accumulator);
   const ordered = [...events].sort((a, b) => {
     if (a.blockNumber !== b.blockNumber) return a.blockNumber < b.blockNumber ? -1 : 1;
     return a.logIndex - b.logIndex;
   });
 
   for (const e of ordered) {
-    const key = `${e.attester.toLowerCase()}-${e.fromStatementCid}-${e.toStatementCid}`;
+    const key = implicationKey(e);
     if (!('explanationCid' in e)) {
       map.delete(key);
       continue;
@@ -122,11 +137,24 @@ export function foldImplications(events: ImplicationLifecycleEvent[]): Implicati
         blockNumber: e.blockNumber.toString(),
       });
     } else {
-      existing.explanationCid = e.explanationCid as IpfsCidV1;
+      map.set(key, { ...existing, explanationCid: e.explanationCid as IpfsCidV1 });
     }
   }
 
-  return [...map.values()];
+  return map;
+}
+
+export function serializeImplications(accumulator: Map<string, Implication>): unknown {
+  return [...accumulator.entries()];
+}
+
+export function deserializeImplications(raw: unknown): Map<string, Implication> {
+  if (!Array.isArray(raw)) return emptyImplications();
+  return new Map(raw as Array<[string, Implication]>);
+}
+
+export function foldImplications(events: ImplicationLifecycleEvent[]): Implication[] {
+  return [...stepImplications(emptyImplications(), events).values()];
 }
 
 /**

@@ -1,7 +1,7 @@
 import { type Address } from 'viem';
 import { cidToBytes32, IpfsCidV1 } from '../../../utils/cid-types.js';
 import { SDKMachinery } from '../../../machinery.js';
-import { foldImplications, foldStatementBeliefs } from '../folds.js';
+import { foldImplications, foldStatementBeliefs, deserializeImplications, emptyImplications, IMPLICATION_FOLD_VERSION, serializeImplications, stepImplications } from '../folds.js';
 import {
   computeAnonymizedId,
   foldAnonymizedBelieverIds,
@@ -18,6 +18,8 @@ import {
 } from '../types.js';
 import type { DecodedDirectSupportEvent } from '../../../utils/event-decoders/conceptspace.js';
 import { fetchDecodedDirectSupportEvents, fetchDecodedImplicationLifecycleEvents } from './fetch.js';
+import { readFinalizedThrough } from '../../../utils/eventCacheClient.js';
+import { foldStoreKey, runResumableFold } from '../../../utils/resumableFold.js';
 import { fetchStatementDocument, uniqueAddresses } from './documents.js';
 import { filterByTrustedAttesters } from './implications.js';
 
@@ -291,9 +293,38 @@ export async function getImplicationSourceActivity(
   machinery: SDKMachinery,
   trustedAttesters?: string[]
 ): Promise<ImplicationSourceActivity> {
-  const implications = foldImplications(
-    await fetchDecodedImplicationLifecycleEvents(machinery)
-  );
+  const beliefs = machinery.contractAddresses?.beliefs;
+  const active = await runResumableFold({
+    id: 'implications',
+    version: IMPLICATION_FOLD_VERSION,
+    key: foldStoreKey({
+      chainId: machinery.defaultChainId ?? 0,
+      eventCacheUrl: machinery.eventCacheUrl ?? '',
+      contracts: beliefs ? [beliefs] : [],
+      id: 'implications',
+      version: IMPLICATION_FOLD_VERSION,
+    }),
+    store: machinery.foldStore,
+    empty: emptyImplications,
+    fetch: async cursor => {
+      const fromBlock = cursor ? BigInt(cursor.blockNumber) : 0n;
+      const [events, attestationFinality, revocationFinality] = await Promise.all([
+        fetchDecodedImplicationLifecycleEvents(machinery, {}, fromBlock),
+        readFinalizedThrough(machinery, 'ImplicationAttestation'),
+        readFinalizedThrough(machinery, 'ImplicationRevoked'),
+      ]);
+      const finalizedThrough = attestationFinality == null || revocationFinality == null
+        ? null
+        : attestationFinality < revocationFinality ? attestationFinality : revocationFinality;
+      return { events, finalizedThrough };
+    },
+    position: event => ({ blockNumber: event.blockNumber.toString(), logIndex: event.logIndex }),
+    step: stepImplications,
+    serialize: serializeImplications,
+    deserialize: deserializeImplications,
+    finish: map => [...map.values()],
+  });
+  const implications = active;
 
   const countByAttester = new Map<string, number>();
   for (const implication of implications) {
