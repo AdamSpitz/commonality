@@ -79,6 +79,8 @@ The default query helpers (`getProject`, `getAllAlignedProjectsForCause`, etc.) 
 
 For now this is fine at expected MVP scale. Wire more fold types into storage if fold latency becomes noticeable (e.g. a project with tens of thousands of contributions).
 
+Global folds (statement browsing, delegation, content funding, standing pledges, the project registry) are the exception. They download every event of their kind on every cold load. The active plan to fix that is [fold-performance-plan.md](fold-performance-plan.md).
+
 Projects that are not in the watch list are not copied here. Their history is read from a node on demand, cached briefly in the client, and repeated misses are reported for an operator to promote by hand. See [on-demand project reads](on-demand-project-reads.md).
 
 ### If/when we store accumulators: versioning is required

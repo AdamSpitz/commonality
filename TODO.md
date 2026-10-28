@@ -16,6 +16,8 @@ Getting **testnet to a two-person shared lab** is also a standing plan, not a pi
 
 ----
 
+- **(Tell)** Make cold-start folds cheap. Global SDK queries (statement browsing, delegation/intents, content funding, standing pledges, the project registry) download every event of their kind and fold from scratch on every first visit, and several of them silently truncate at 10k events. Follow [`specs/tech/indexer/fold-performance-plan.md`](specs/tech/indexer/fold-performance-plan.md) and do the next unchecked step there. It covers the truncation fix, narrower queries, immutable archive segments, resumable folds, and Web Workers. Breaking compatibility and reindexing are fine; do not redeploy testnet. Its "Ideas for later" section is not approved work.
+
 - We should have a UI for making it easy for a user to follow projects aligned with *similar* statements to the ones he prefers, and then if he wants to he can do the alignment-attestations to make those projects also show up on his own preferred cause board.
 
 - **(Ask)** Verify work-request contribution/refund links against actual chain events, and verify response providers and work items against the project's beneficiary/registry before presenting verified payment or provider authority. The first slice displays reported contribution/refund amounts and authenticates acceptance only against the provider named by the response author. See [work requests](specs/tech/subsystems/work-requests/README.md).
