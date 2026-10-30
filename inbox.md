@@ -45,6 +45,8 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 - Now that I'm trying to do a vertical in a separate Git repo on a separate website, I'm finding that our model of users and logins doesn't quite work. Explore either Privy global wallets, or switching to Coinbase Smart Wallet, or just generally ditching the Privy thing and hoping there's a reasonably-easy "Connect Wallet" that people can use.
 
+- Maybe try making this "statement putter-togetherer" as a more-general UI widget on the Commonality site?
+
 - Fund-now / claim-later is now the [focus](focus.md) (replaced testnet-usable + Commonality UI). Product [fund-now-claim-later.md](specs/product/fund-now-claim-later.md), tech [claimable-beneficiaries.md](specs/tech/subsystems/claimable-beneficiaries.md).
 
 - Bridge-creator package is done; remaining work (CSM beat-agent stand-up, Civility-agent context source adapter, feeding signing outcomes into anchor reflection, and end-to-end rehearsal) is enumerated in [`bridge-creator-csm-next-steps.md`](workflow/bridge-creator-csm-next-steps.md). Mostly LLM-doable; the rehearsal pass needs your judgment.
