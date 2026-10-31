@@ -80,6 +80,12 @@ All configuration is via environment variables.
 - `COINBASE_CDP_API_KEY_ID` and `COINBASE_CDP_API_KEY_SECRET` optional, required for `POST /onramp/coinbase/session`
 - `BASE_RPC_URL` optional Base mainnet RPC override for `GET /onramp/base-usdc-balance`; defaults to `https://mainnet.base.org`
 
+### Sponsored gas
+
+- `CREATOR_GAS_TANK_ADDRESS` enables contribution/refund sponsorship through `POST /sponsored-gas/paymaster`.
+- `STATEMENT_GAS_TANK_ADDRESS` and `BELIEFS_CONTRACT_ADDRESS` together enable statement-signature sponsorship on the same endpoint. Only `believes` calls are eligible; the on-chain tank checks enrollment, shared sponsor, balance, and wallet limits.
+- Either sponsorship route may be configured independently. The endpoint supports Kernel v3 single and batch executions and both ERC-7677 paymaster methods.
+
 ### Caching and rate limits
 
 - `CHALLENGE_TTL_SECONDS` default `1800`

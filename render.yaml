@@ -461,6 +461,10 @@ services:
         value: "0xE6F071E35FFD935C08BD59bfCaAa479072B0527b"
       - key: CREATOR_GAS_TANK_ADDRESS
         value: "0x7F74e2Ad6A7A8947386513A59060F2eBD40a3B04"
+      - key: STATEMENT_GAS_TANK_ADDRESS
+        sync: false  # from-env: STATEMENT_GAS_TANK_ADDRESS
+      - key: BELIEFS_CONTRACT_ADDRESS
+        value: "0x353d650D50d8a5eA3A5a966FE1690177a8a82D92"
       - key: CHAIN_ID
         value: 84532
       - key: SUBMIT_VERIFICATION_TX

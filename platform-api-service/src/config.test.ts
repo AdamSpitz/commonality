@@ -37,3 +37,21 @@ function restore(key: string, value: string | undefined): void {
     process.env[key] = value;
   }
 }
+
+describe('sponsored gas configuration', () => {
+  it('loads statement sponsorship independently of creator sponsorship', () => {
+    const keys = ['CREATOR_GAS_TANK_ADDRESS', 'STATEMENT_GAS_TANK_ADDRESS', 'BELIEFS_CONTRACT_ADDRESS'] as const;
+    const saved = keys.map((key) => process.env[key]);
+    try {
+      delete process.env.CREATOR_GAS_TANK_ADDRESS;
+      process.env.STATEMENT_GAS_TANK_ADDRESS = '0x6666666666666666666666666666666666666666';
+      process.env.BELIEFS_CONTRACT_ADDRESS = '0x7777777777777777777777777777777777777777';
+      const config = loadConfig();
+      assert.equal(config.creatorGasTankAddress, undefined);
+      assert.equal(config.statementGasTankAddress, process.env.STATEMENT_GAS_TANK_ADDRESS);
+      assert.equal(config.beliefsAddress, process.env.BELIEFS_CONTRACT_ADDRESS);
+    } finally {
+      keys.forEach((key, index) => restore(key, saved[index]));
+    }
+  });
+});

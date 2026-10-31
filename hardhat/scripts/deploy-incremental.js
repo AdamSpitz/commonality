@@ -39,6 +39,7 @@ const ADDRESS_KEYS = {
   ProjectFactory: ['PROJECT_FACTORY_ADDRESS'],
   SponsoredGasEntryPoint: ['SPONSORED_GAS_ENTRY_POINT_ADDRESS'],
   CreatorGasTank: ['CREATOR_GAS_TANK_ADDRESS'],
+  StatementGasTank: ['STATEMENT_GAS_TANK_ADDRESS'],
   GasTankFunder: ['GAS_TANK_FUNDER_ADDRESS'],
   SponsoredGasWeth: ['SPONSORED_GAS_WETH_ADDRESS'],
   SponsoredGasSwapRouter: ['SPONSORED_GAS_SWAP_ROUTER_ADDRESS'],
@@ -459,6 +460,12 @@ async function main() {
     sponsoredGasWalletWindowSeconds,
     minSponsoredContributionAmount,
   ]);
+  await deployOrReuse('StatementGasTank', 'StatementGasTank', [
+    addresses.SponsoredGasEntryPoint,
+    addresses.Beliefs,
+    sponsoredGasMaxWeiPerWalletPerWindow,
+    sponsoredGasWalletWindowSeconds,
+  ]);
 
   const sponsoredGasSwapFee = envNumber(env, 'SPONSORED_GAS_SWAP_POOL_FEE', 500);
   if (isLocal) {
@@ -576,6 +583,7 @@ async function main() {
     ...startBlockEnvEntries(),
     SPONSORED_GAS_ENTRY_POINT_ADDRESS: addresses.SponsoredGasEntryPoint,
     CREATOR_GAS_TANK_ADDRESS: addresses.CreatorGasTank,
+    STATEMENT_GAS_TANK_ADDRESS: addresses.StatementGasTank,
     SPONSORED_GAS_MAX_WEI_PER_WALLET_PER_WINDOW: sponsoredGasMaxWeiPerWalletPerWindow.toString(),
     SPONSORED_GAS_WALLET_WINDOW_SECONDS: String(sponsoredGasWalletWindowSeconds),
     MIN_SPONSORED_CONTRIBUTION_AMOUNT: minSponsoredContributionAmount.toString(),
@@ -610,7 +618,7 @@ async function main() {
     VITE_CONTENT_REGISTRY_ADDRESS: addresses.ContentRegistry, VITE_BENEFICIARY_IDENTITY_ADDRESS: addresses.BeneficiaryIdentity, VITE_BENEFICIARY_REGISTRY_ADDRESS: addresses.BeneficiaryRegistry, VITE_BENEFICIARY_VERIFIER_ADDRESS: addresses.BeneficiaryVerifier,
     VITE_BENEFICIARY_ESCROW_ADDRESS: addresses.BeneficiaryEscrow, VITE_CREATOR_CONTRACT_FACTORY_ADDRESS: addresses.CreatorAssuranceContractFactory, ...(addresses.CreatorAssuranceVeto ? { VITE_CREATOR_ASSURANCE_VETO_ADDRESS: addresses.CreatorAssuranceVeto } : {}), VITE_PROJECT_FACTORY_CONTRACT_ADDRESS: addresses.ProjectFactory,
     VITE_PROSPECTIVE_CONTENT_ROUND_FACTORY_ADDRESS: addresses.ProspectiveContentRoundFactory,
-    VITE_CREATOR_GAS_TANK_ADDRESS: addresses.CreatorGasTank, VITE_SPONSORED_GAS_ENTRY_POINT_ADDRESS: addresses.SponsoredGasEntryPoint,
+    VITE_CREATOR_GAS_TANK_ADDRESS: addresses.CreatorGasTank, VITE_STATEMENT_GAS_TANK_ADDRESS: addresses.StatementGasTank, VITE_SPONSORED_GAS_ENTRY_POINT_ADDRESS: addresses.SponsoredGasEntryPoint,
     ...(addresses.GasTankFunder ? { VITE_GAS_TANK_FUNDER_ADDRESS: addresses.GasTankFunder } : {}),
     VITE_PAYMENT_TOKEN_ADDRESS: addresses.FreeERC20, VITE_PAYMENT_TOKEN_SYMBOL: 'USDZZZ', VITE_PAYMENT_TOKEN_DECIMALS: '6', ...(isLocal ? { VITE_IPFS_GATEWAY: 'http://localhost:8080/ipfs', VITE_DEFAULT_NUDGERS: LOCAL_SEED_NUDGER_ADDRESS } : {})
   };
