@@ -464,6 +464,10 @@ services:
         sync: false  # from-env: BENEFICIARY_VERIFIER_ADDRESS
       - key: CREATOR_GAS_TANK_ADDRESS
         sync: false  # from-env: CREATOR_GAS_TANK_ADDRESS
+      - key: STATEMENT_GAS_TANK_ADDRESS
+        sync: false  # from-env: STATEMENT_GAS_TANK_ADDRESS
+      - key: BELIEFS_CONTRACT_ADDRESS
+        sync: false  # from-env: BELIEFS_CONTRACT_ADDRESS
       - key: CHAIN_ID
         value: 84532
       - key: SUBMIT_VERIFICATION_TX

@@ -118,6 +118,10 @@ the UserOp's call target + selector:
 
 Sponsor only **embedded-wallet (card) contributors**; native crypto users already hold ETH.
 
+**Statement signatures are a separate tank.** `StatementGasTank` pays gas only for `Beliefs.setBelief` / `setBeliefsInBatch` where every stance is `believes` and every statement id is enrolled to the same sponsor as the anchor statement id carried in `paymasterData`. Anyone may fund a sponsor's tank. The sponsor enrolls statement ids. Commonality does not fund these tanks either. Disbelief and no-opinion are not sponsored, so a tank cannot be drained by signing against the statement. The per-wallet wei cap is the spam backstop, because a signature does not move USDC. Contribution tanks and statement tanks do not share a balance.
+
+Statement tanks conservatively charge each operation's **full EntryPoint maximum cost during validation**, even if execution fails. This reserves the sponsor balance and wallet quota before another operation in the same bundle validates. EntryPoint v0.7 computes final post-operation gas and unused-gas penalties after the paymaster callback, so its callback's `actualGasCost` cannot safely reconcile the complete bill. Any unused prefund refunded by EntryPoint remains **unallocated surplus**, not spendable sponsor credit; exact-cost reconciliation is a follow-up in [TODO.md](/TODO.md). Enrollment is first-come and permanent: anyone can bind an unclaimed statement to their own tank, including an empty tank. Recovery/multiple-sponsor policy and account-implementation authentication also remain pre-production follow-ups there. Per-wallet caps do not prevent repeated support signatures or Sybil wallets from consuming a tank.
+
 **Which projects — per-creator gas tanks.** A creator has a persistent ETH tank usable across
 **all** their projects. A project is *enrolled* to a creator's tank; sponsorship for a `buyERC1155`
 against that project draws from the creator's tank. Because tanks are per-creator and persistent,

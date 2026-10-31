@@ -32,6 +32,8 @@ export interface PlatformApiServiceConfig {
   coinbaseCdpApiKeySecret?: string;
   baseRpcUrl?: string;
   creatorGasTankAddress?: Address;
+  statementGasTankAddress?: Address;
+  beliefsAddress?: Address;
   blockedChannelIds?: string[];
   policyBundleUrl?: string;
   policyContentGatewayUrl?: string;
@@ -121,6 +123,8 @@ export function loadConfig(): PlatformApiServiceConfig {
     coinbaseCdpApiKeySecret: normalizeOptionalString(process.env.COINBASE_CDP_API_KEY_SECRET),
     baseRpcUrl: normalizeOptionalUrl(process.env.BASE_RPC_URL),
     creatorGasTankAddress: normalizeOptionalAddress(process.env.CREATOR_GAS_TANK_ADDRESS),
+    statementGasTankAddress: normalizeOptionalAddress(process.env.STATEMENT_GAS_TANK_ADDRESS),
+    beliefsAddress: normalizeOptionalAddress(process.env.BELIEFS_CONTRACT_ADDRESS),
     blockedChannelIds: parseCommaSeparated(process.env.BLOCKED_CHANNEL_IDS),
     policyBundleUrl,
     policyContentGatewayUrl,
