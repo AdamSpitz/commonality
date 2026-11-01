@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Base Account spike (no Privy)</title>
+    <style>
+      body { font-family: system-ui, sans-serif; max-width: 52rem; margin: 2rem auto; padding: 0 1rem; }
+      button { margin: 0.25rem 0.5rem 0.25rem 0; padding: 0.4rem 0.8rem; }
+      pre { background: #111; color: #eee; padding: 1rem; overflow: auto; white-space: pre-wrap; }
+      .hint { color: #444; }
+    </style>
+  </head>
+  <body>
+    <h1>Base Account / ERC-7677 spike</h1>
+    <p class="hint">
+      Localhost only. No Privy, no Commonality UI. Connect a <strong>Base Account</strong>
+      (passkey / keys.coinbase.com), then dump capabilities and probe whether the wallet
+      POSTs our dummy paymaster URL.
+    </p>
+    <p>
+      <button type="button" id="connect">Connect Base Account</button>
+      <button type="button" id="caps">wallet_getCapabilities</button>
+      <button type="button" id="probe">Probe paymasterService</button>
+    </p>
+    <p class="hint">Paymaster echo: <code id="paymaster-url"></code> — watch this terminal for <code>PAYMASTER</code> lines.</p>
+    <pre id="out">Not connected.</pre>
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>
