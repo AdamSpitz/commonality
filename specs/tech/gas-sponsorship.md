@@ -21,7 +21,7 @@ Three separate jobs got bundled together:
 | How the transaction is submitted | **Pimlico** | **Bundler**. It takes a **UserOperation** and puts it on-chain through the shared EntryPoint. |
 | The user's account | **Privy** email login creates an embedded key, which owns a **Kernel** smart account (`smartWalletType: kernel`). | **ERC-4337 smart account**. Kernel is ZeroDev's account implementation. |
 
-Recorded in [ADR 0001](specs/decisions/0001-custom-onchain-paymaster.md) and [specs/tech/sponsored-gas.md](specs/tech/sponsored-gas.md). The market contracts do not know gas was sponsored. The paymaster only allows contribution and refund calls (`buyERC1155`, USDC `approve`, `setApprovalForAll`, `refundERC1155`).
+Recorded in [ADR 0001](../decisions/0001-custom-onchain-paymaster.md) and [sponsored-gas.md](./sponsored-gas.md). The market contracts do not know gas was sponsored. The paymaster only allows contribution and refund calls (`buyERC1155`, USDC `approve`, `setApprovalForAll`, `refundERC1155`).
 
 Kernel was chosen on purpose. The paymaster decodes that account's `execute` / `executeBatch` calldata to see which statement or project the call is for. A different account bytecode means a new decoder. Pimlico was chosen because it will submit a UserOperation that names your paymaster, instead of forcing its own hosted balance.
 
@@ -52,3 +52,7 @@ The tanks, the "we run it, others fund it" policy, and Pimlico can all stay. The
 - Sponsorship still only happens when **your app** attaches your paymaster URL. Other sites will not drain a Commonality tank unless they also point at your paymaster and the tank's policy allows the call. The account is global; the gas budget stays per statement and per project.
 
 Base is also moving toward **native account abstraction (EIP-8130)**, which makes sponsorship and batching a chain feature instead of an ERC-4337 UserOperation. That is early (announced for Base's Cobalt upgrade). It is a reason not to dig a deeper Kernel-specific hole, and not a reason to rewrite the tanks this month.
+
+# Outcome
+
+Adam chose to drop Privy (2026-11-01). The implementation plan is [wallet-without-privy-plan.md](./wallet-without-privy-plan.md).
