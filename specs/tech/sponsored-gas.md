@@ -201,6 +201,25 @@ Implications for sponsorship budgeting:
   change and after choosing the account-abstraction provider, because UserOp validation/execution
   overhead is provider/account-model dependent.
 
+### Base Account (Coinbase Smart Wallet) calldata spike, 2026-11-01
+
+Local-owner run of `hardhat/scripts/spike-base-account-calldata.mjs` using viem
+`toCoinbaseSmartAccount({ version: '1.1' })` against Base Sepolia RPC. Same account
+contract as Base Account; not a real passkey wallet, so this does **not** prove that
+the Coinbase popup honors a third-party `paymasterService` URL.
+
+| Question | Result |
+| --- | --- |
+| EntryPoint | **v0.6** (`0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789`). Factory `0xba5ed110efdba3d005bfc882d75358acbbb85842`. |
+| Single call | `execute(address,uint256,bytes)` selector `0xb61d27f6` (SimpleAccount-shaped). |
+| Atomic batch | `executeBatch((address target,uint256 value,bytes data)[])` selector `0x34fcd5be`. |
+| Pimlico for this path | Not required to *encode* UserOps. Production Base Account uses the wallet's bundler. Pimlico still used for Kernel/Privy tests until Privy is removed. |
+| Third-party paymaster URL | **Unanswered** — needs a real Base Account in the browser. |
+| `wallet_getCapabilities` | **Unanswered** — same. |
+
+Phase 3 therefore needs **v0.6 tank variants** (plan 3b) plus the batch decoder (3a).
+Ask Adam before choosing two contracts per tank type vs split funding.
+
 ### 5. Abuse monitoring — verifier check
 
 Add a verifier check (skill: using-verifier) covering: tank drain rate vs. expected, ratio of

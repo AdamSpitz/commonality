@@ -1,6 +1,6 @@
 # Plan: drop Privy, let users bring a portable wallet
 
-Status: **approved direction (Adam, 2026-11-01), not yet started.** Background and options:
+Status: **approved direction (Adam, 2026-11-01). Phase 1 local-owner spike done; browser questions still open.** Background and options:
 [gas-sponsorship.md](./gas-sponsorship.md). Current design: [sponsored-gas.md](./sponsored-gas.md),
 [ADR 0001](/specs/decisions/0001-custom-onchain-paymaster.md).
 
@@ -54,6 +54,11 @@ contract. A local-owner run answers 1, 3 and 5. Only a real wallet answers 2 and
 
 Record the findings in [sponsored-gas.md](/specs/tech/sponsored-gas.md), following the "Base Sepolia gas
 measurements" section style, and keep any script under `hardhat/scripts/` or `spikes/`.
+
+**Local-owner results (script `hardhat/scripts/spike-base-account-calldata.mjs`):** EntryPoint **v0.6**;
+single `execute(address,uint256,bytes)` (`0xb61d27f6`); batch `executeBatch((address,uint256,bytes)[])`
+(`0x34fcd5be`). Pimlico is not needed to encode these calls. Still need Adam (or a browser session) for
+questions 2 and 4.
 
 ### Phase 2 — Capability-driven sponsorship in the SDK/UI (works for any wallet)
 
