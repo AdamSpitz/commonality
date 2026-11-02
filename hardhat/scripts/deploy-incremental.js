@@ -624,6 +624,7 @@ async function main() {
     PUBLISHED_DATA_CONTRACT_ADDRESS: addresses.PublishedData,
     ...startBlockEnvEntries(),
     SPONSORED_GAS_ENTRY_POINT_ADDRESS: addresses.SponsoredGasEntryPoint,
+    ...(entryPointV06 !== ethers.ZeroAddress ? { SPONSORED_GAS_ENTRY_POINT_V06_ADDRESS: entryPointV06 } : {}),
     CREATOR_GAS_TANK_ADDRESS: addresses.CreatorGasTank,
     CREATOR_GAS_TANK_PAYMASTER_ADDRESS: addresses.CreatorGasTankPaymaster,
     ...(addresses.CreatorGasTankPaymasterV06 ? { CREATOR_GAS_TANK_PAYMASTER_V06_ADDRESS: addresses.CreatorGasTankPaymasterV06 } : {}),

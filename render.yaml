@@ -174,7 +174,7 @@ services:
       - key: PONDER_RPC_MAX_RESPONSE_BODY_SIZE
         value: 0
       - key: INDEXER_DEPLOYMENT_MANIFEST
-        value: "{\"chains\":{\"base-sepolia\":{\"Beliefs\":[{\"address\":\"0x353d650D50d8a5eA3A5a966FE1690177a8a82D92\",\"startBlock\":42768673}],\"Implications\":[{\"address\":\"0xF174ED372d1D3276e999970dDF82771Fb504BB3B\",\"startBlock\":42768673}],\"TrustRegistry\":[{\"address\":\"0x3a93BAB464Cc20333076b83490DE40357094355E\",\"startBlock\":42768673}],\"AccountAssertions\":[{\"address\":\"0x3991162F03F888f52FB2C655024Ba787F39A1367\",\"startBlock\":42768673}],\"AlignmentAttestations\":[{\"address\":\"0xAc19417eE26f7795AEeAD374911932b412Ef808d\",\"startBlock\":42768673}],\"MutableRefUpdater\":[{\"address\":\"0x472f9A996546bcc7572692B002B63483F3cDB70e\",\"startBlock\":42768673}],\"NudgePublications\":[{\"address\":\"0x94b76d80D7c837588299BDf1c29F5D46362e3427\",\"startBlock\":42768673}],\"PublishedData\":[{\"address\":\"0xC4074f563DA9E2b9751629e9A3213eB02099513e\",\"startBlock\":47467743}],\"BeneficiaryIdentity\":[{\"address\":\"0x35B418D30d84F35a8Ea5B7Fbb4ab0db8bfFc4CDf\",\"startBlock\":47467734}],\"NoteIntent\":[{\"address\":\"0x8665DD3Fc75240D99066A768C227aA5Cf5179E2a\",\"startBlock\":42768673}],\"DelegatableNotes\":[{\"address\":\"0x6291c2AE016A5A55c70Cc4B1A88A7365D7Bcd5DB\",\"startBlock\":47780560}],\"RecurringPledges\":[{\"address\":\"0x149ebCB6Cc6FF8092595E580B3e35C65ea6e165e\",\"startBlock\":47780561}],\"AssuranceContractFactory\":[{\"address\":\"0x8015981a15AD1eC2A1E2Cf34eC47A844686A3Eab\",\"startBlock\":47780560}],\"FixedControllerFactory\":[{\"address\":\"0x582Ef20Ef10727932F70071d7d01D163cB9d9dA0\",\"startBlock\":47780572}],\"ProjectFactory\":[{\"address\":\"0x3FA9303A5267c5Ba3679e35AC1AeFe97e157d265\",\"startBlock\":47780574}],\"ERC1155Factory\":[{\"address\":\"0xa11D1cceEBEC3FEC4F8feE6ce8AbA2546eC6E563\",\"startBlock\":47780560}],\"ContentRegistry\":[{\"address\":\"0x82dA2D9FB2d43803A22bA9407F7aB0aE5d62543D\",\"startBlock\":47780564}],\"BeneficiaryRegistry\":[{\"address\":\"0x212107039Fc473A3d58F660081Ad8027fB5A3049\",\"startBlock\":47467735}],\"BeneficiaryEscrow\":[{\"address\":\"0x311563095515d4E0C01404fE154effc6e49208FA\",\"startBlock\":47467735}],\"CreatorAssuranceDeployer\":[{\"address\":\"0x34cD9Aac15e6bd1a150f85f2FdA119803fBAe785\",\"startBlock\":47780565}],\"CreatorAssuranceContractFactory\":[{\"address\":\"0xCde16593DDaBaBc59BF53c768c7f45B69936A121\",\"startBlock\":47780566}],\"CreatorAssuranceVeto\":[{\"address\":\"0xcD9E8afF84F628F8e0B12508d9f1B45D74448005\",\"startBlock\":47780566}],\"ProspectiveContentRoundFactory\":[{\"address\":\"0x9dF1Cc71d4aF13792BF9AC69A62500532f376D88\",\"startBlock\":47780569}]}}}"
+        value: "{\"chains\":{\"base-sepolia\":{\"Beliefs\":[{\"address\":\"0x353d650D50d8a5eA3A5a966FE1690177a8a82D92\",\"startBlock\":42768673}],\"Implications\":[{\"address\":\"0xF174ED372d1D3276e999970dDF82771Fb504BB3B\",\"startBlock\":42768673}],\"TrustRegistry\":[{\"address\":\"0x3a93BAB464Cc20333076b83490DE40357094355E\",\"startBlock\":42768673}],\"AccountAssertions\":[{\"address\":\"0x3991162F03F888f52FB2C655024Ba787F39A1367\",\"startBlock\":42768673}],\"SuggestedNames\":[{\"address\":\"0x87bceD5419859Fa41cFfc75a4FCF25030d53856a\",\"startBlock\":53602087}],\"AlignmentAttestations\":[{\"address\":\"0xAc19417eE26f7795AEeAD374911932b412Ef808d\",\"startBlock\":42768673}],\"MutableRefUpdater\":[{\"address\":\"0x472f9A996546bcc7572692B002B63483F3cDB70e\",\"startBlock\":42768673}],\"NudgePublications\":[{\"address\":\"0x94b76d80D7c837588299BDf1c29F5D46362e3427\",\"startBlock\":42768673}],\"PublishedData\":[{\"address\":\"0xC4074f563DA9E2b9751629e9A3213eB02099513e\",\"startBlock\":47467743}],\"BeneficiaryIdentity\":[{\"address\":\"0xC7bD00FFe150d31D8C829470677EA5298e0F73D4\",\"startBlock\":53602145}],\"NoteIntent\":[{\"address\":\"0x3eC52B95e1E53aBBA838d380551B7ab99681CA97\",\"startBlock\":53602094}],\"DelegatableNotes\":[{\"address\":\"0x6d1Df430c5e91bf6529E9eF14f8091657536F5e3\",\"startBlock\":53602114}],\"RecurringPledges\":[{\"address\":\"0xe169868A7d830A330237D453306f7F19BBed53C2\",\"startBlock\":53602120}],\"AssuranceContractFactory\":[{\"address\":\"0x7A1bA6e7B5802137309Cc01aD02Bb739701A9d40\",\"startBlock\":53602102}],\"FixedControllerFactory\":[{\"address\":\"0x3C121dB4007f76E05C651EEc38cCBD67A0E5BCA2\",\"startBlock\":53602221}],\"ProjectFactory\":[{\"address\":\"0x8130406Ee8cA7118E5C1dDE58b4422020cF0279D\",\"startBlock\":53602234}],\"ERC1155Factory\":[{\"address\":\"0x3656b9E3c0BDA4A7de1E0af33087Ac27cC6a9E40\",\"startBlock\":53602106}],\"ContentRegistry\":[{\"address\":\"0x16d4C8547A9E74776b97a0f535Ef36659D40fb11\",\"startBlock\":53602152}],\"BeneficiaryRegistry\":[{\"address\":\"0xdcf6c40be3DD3E0F060DC7ba491bde5e4B2BE86e\",\"startBlock\":53602158}],\"BeneficiaryEscrow\":[{\"address\":\"0xF7120c4Ff1F9e8A496086Bea8f016d1299F0efed\",\"startBlock\":53602164}],\"CreatorAssuranceDeployer\":[{\"address\":\"0x34cD9Aac15e6bd1a150f85f2FdA119803fBAe785\",\"startBlock\":47780565}],\"CreatorAssuranceContractFactory\":[{\"address\":\"0x46803715b98639772f193769350d06889E26Ff1b\",\"startBlock\":53602171}],\"CreatorAssuranceVeto\":[{\"address\":\"0xd7308fF2dC47Fc2F52e7de322E4648De1fDF9202\",\"startBlock\":53602171}],\"ProspectiveContentRoundFactory\":[{\"address\":\"0xf7E52D668d4f8aDf1b94F889bEEF6735C0AC7883\",\"startBlock\":53602190}]}}}"
       - key: START_BLOCK
         value: "42768673"
       - key: BELIEFS_CONTRACT_ADDRESS
@@ -184,17 +184,17 @@ services:
       - key: ACCOUNT_ASSERTIONS_ADDRESS
         value: "0x3991162F03F888f52FB2C655024Ba787F39A1367"
       - key: ASSURANCE_CONTRACT_FACTORY_ADDRESS
-        value: "0x8015981a15AD1eC2A1E2Cf34eC47A844686A3Eab"
+        value: "0x7A1bA6e7B5802137309Cc01aD02Bb739701A9d40"
       - key: PROJECT_FACTORY_ADDRESS
-        value: "0x3FA9303A5267c5Ba3679e35AC1AeFe97e157d265"
+        value: "0x8130406Ee8cA7118E5C1dDE58b4422020cF0279D"
       - key: ERC1155_FACTORY_ADDRESS
-        value: "0xa11D1cceEBEC3FEC4F8feE6ce8AbA2546eC6E563"
+        value: "0x3656b9E3c0BDA4A7de1E0af33087Ac27cC6a9E40"
       - key: DELEGATABLE_NOTES_ADDRESS
-        value: "0x6291c2AE016A5A55c70Cc4B1A88A7365D7Bcd5DB"
+        value: "0x6d1Df430c5e91bf6529E9eF14f8091657536F5e3"
       - key: RECURRING_PLEDGES_ADDRESS
-        value: "0x149ebCB6Cc6FF8092595E580B3e35C65ea6e165e"
+        value: "0xe169868A7d830A330237D453306f7F19BBed53C2"
       - key: NOTE_INTENT_ADDRESS
-        value: "0x8665DD3Fc75240D99066A768C227aA5Cf5179E2a"
+        value: "0x3eC52B95e1E53aBBA838d380551B7ab99681CA97"
       - key: ALIGNMENT_ATTESTATIONS_ADDRESS
         value: "0xAc19417eE26f7795AEeAD374911932b412Ef808d"
       - key: MUTABLE_REF_UPDATER_ADDRESS
@@ -206,17 +206,17 @@ services:
       - key: PUBLISHED_DATA_START_BLOCK
         value: "47467743"
       - key: BENEFICIARY_IDENTITY_ADDRESS
-        value: "0x35B418D30d84F35a8Ea5B7Fbb4ab0db8bfFc4CDf"
+        value: "0xC7bD00FFe150d31D8C829470677EA5298e0F73D4"
       - key: BENEFICIARY_IDENTITY_START_BLOCK
-        value: "47467734"
+        value: "53602145"
       - key: CONTENT_REGISTRY_ADDRESS
-        value: "0x82dA2D9FB2d43803A22bA9407F7aB0aE5d62543D"
+        value: "0x16d4C8547A9E74776b97a0f535Ef36659D40fb11"
       - key: BENEFICIARY_REGISTRY_ADDRESS
-        value: "0x212107039Fc473A3d58F660081Ad8027fB5A3049"
+        value: "0xdcf6c40be3DD3E0F060DC7ba491bde5e4B2BE86e"
       - key: BENEFICIARY_ESCROW_ADDRESS
-        value: "0x311563095515d4E0C01404fE154effc6e49208FA"
+        value: "0xF7120c4Ff1F9e8A496086Bea8f016d1299F0efed"
       - key: CREATOR_CONTRACT_FACTORY_ADDRESS
-        value: "0xCde16593DDaBaBc59BF53c768c7f45B69936A121"
+        value: "0x46803715b98639772f193769350d06889E26Ff1b"
     healthCheckPath: /graphql
     # Intentional Render workaround: this disk is not used for indexer app state.
     # Render disables zero-downtime/rolling deploys for services with persistent
@@ -454,23 +454,23 @@ services:
       - key: COINBASE_CDP_API_KEY_SECRET
         sync: false  # Secret: Coinbase Onramp session-token private key
       - key: BENEFICIARY_IDENTITY_ADDRESS
-        value: "0x35B418D30d84F35a8Ea5B7Fbb4ab0db8bfFc4CDf"
+        value: "0xC7bD00FFe150d31D8C829470677EA5298e0F73D4"
       - key: BENEFICIARY_REGISTRY_ADDRESS
-        value: "0x212107039Fc473A3d58F660081Ad8027fB5A3049"
+        value: "0xdcf6c40be3DD3E0F060DC7ba491bde5e4B2BE86e"
       - key: BENEFICIARY_VERIFIER_ADDRESS
-        value: "0xE6F071E35FFD935C08BD59bfCaAa479072B0527b"
+        value: "0x2fb7Be8502d8fD36F3db81A10684B1D22b90823E"
       - key: CREATOR_GAS_TANK_ADDRESS
-        value: "0x7F74e2Ad6A7A8947386513A59060F2eBD40a3B04"
-      - key: STATEMENT_GAS_TANK_ADDRESS
-        sync: false  # from-env: STATEMENT_GAS_TANK_ADDRESS
+        value: "0x2e0746fe7eE598273E3362f89C022DCe2dDff6AF"
       - key: CREATOR_GAS_TANK_PAYMASTER_ADDRESS
-        sync: false  # from-env: CREATOR_GAS_TANK_PAYMASTER_ADDRESS
+        value: "0xD32a6a36D554B033FFE143204F0EadA4F85A5bE6"
       - key: CREATOR_GAS_TANK_PAYMASTER_V06_ADDRESS
-        sync: false  # from-env: CREATOR_GAS_TANK_PAYMASTER_V06_ADDRESS
+        value: "0x6525Ec0F89FB2a295409FD977F3aCAb93152DD3e"
       - key: STATEMENT_GAS_TANK_PAYMASTER_ADDRESS
-        sync: false  # from-env: STATEMENT_GAS_TANK_PAYMASTER_ADDRESS
+        value: "0xD89f87bcab076270dE1f7c6b2F8B5F22fA492F61"
       - key: STATEMENT_GAS_TANK_PAYMASTER_V06_ADDRESS
-        sync: false  # from-env: STATEMENT_GAS_TANK_PAYMASTER_V06_ADDRESS
+        value: "0xd7EdCaD217FeAcC81630F1412bac936657CF9f7a"
+      - key: STATEMENT_GAS_TANK_ADDRESS
+        value: "0x9921D062C13abC17344274c7e3A961bBD8B499A9"
       - key: BELIEFS_CONTRACT_ADDRESS
         value: "0x353d650D50d8a5eA3A5a966FE1690177a8a82D92"
       - key: CHAIN_ID
@@ -536,15 +536,15 @@ services:
       - key: ACCOUNT_ASSERTIONS_ADDRESS
         value: "0x3991162F03F888f52FB2C655024Ba787F39A1367"
       - key: ASSURANCE_CONTRACT_FACTORY_ADDRESS
-        value: "0x8015981a15AD1eC2A1E2Cf34eC47A844686A3Eab"
+        value: "0x7A1bA6e7B5802137309Cc01aD02Bb739701A9d40"
       - key: ERC1155_FACTORY_ADDRESS
-        value: "0xa11D1cceEBEC3FEC4F8feE6ce8AbA2546eC6E563"
+        value: "0x3656b9E3c0BDA4A7de1E0af33087Ac27cC6a9E40"
       - key: DELEGATABLE_NOTES_ADDRESS
-        value: "0x6291c2AE016A5A55c70Cc4B1A88A7365D7Bcd5DB"
+        value: "0x6d1Df430c5e91bf6529E9eF14f8091657536F5e3"
       - key: RECURRING_PLEDGES_ADDRESS
-        value: "0x149ebCB6Cc6FF8092595E580B3e35C65ea6e165e"
+        value: "0xe169868A7d830A330237D453306f7F19BBed53C2"
       - key: NOTE_INTENT_ADDRESS
-        value: "0x8665DD3Fc75240D99066A768C227aA5Cf5179E2a"
+        value: "0x3eC52B95e1E53aBBA838d380551B7ab99681CA97"
       - key: ALIGNMENT_ATTESTATIONS_ADDRESS
         value: "0xAc19417eE26f7795AEeAD374911932b412Ef808d"
       - key: MUTABLE_REF_UPDATER_ADDRESS
