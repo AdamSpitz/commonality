@@ -1,4 +1,4 @@
-import { decodeAbiParameters, decodeFunctionData, getAddress, isAddress, slice, toFunctionSelector, type Address, type Hex } from 'viem';
+import { concat, decodeAbiParameters, decodeFunctionData, getAddress, isAddress, slice, toFunctionSelector, type Address, type Hex } from 'viem';
 import { HttpError } from './errors.js';
 
 const KERNEL_V3_EXECUTE_SELECTOR = '0xe9ae5c53';
@@ -16,6 +16,8 @@ const SET_BELIEFS_IN_BATCH_SELECTOR = toFunctionSelector('setBeliefsInBatch(byte
 const BELIEVES = 1;
 const PAYMASTER_VERIFICATION_GAS_LIMIT = 350_000n;
 const PAYMASTER_POST_OP_GAS_LIMIT = 80_000n;
+/** Canonical ERC-4337 EntryPoint v0.6 (Base / Base Sepolia). */
+export const ENTRY_POINT_V06_ADDRESS = getAddress('0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789');
 
 export interface SponsoredGasPaymasterConfig {
   creatorGasTankAddress?: Address;
@@ -49,6 +51,16 @@ export function handleSponsoredGasPaymasterRpc(body: unknown, config: SponsoredG
       throw new HttpError(400, 'invalid_user_operation', 'Missing UserOperation callData.');
     }
     const sponsored = inferSponsoredCall(userOperation.callData, config);
+    const entryPoint = parseEntryPoint(request.params?.[1]);
+    if (entryPoint === ENTRY_POINT_V06_ADDRESS) {
+      return {
+        jsonrpc: '2.0',
+        id,
+        result: {
+          paymasterAndData: concat([sponsored.paymaster, sponsored.paymasterData]),
+        },
+      };
+    }
     return {
       jsonrpc: '2.0',
       id,
@@ -268,4 +280,9 @@ function inferExecutionProject(execution: KernelExecution): { project: Address; 
 
 function toQuantity(value: bigint): Hex {
   return `0x${value.toString(16)}` as Hex;
+}
+
+function parseEntryPoint(value: unknown): Address | undefined {
+  if (typeof value !== 'string' || !isAddress(value)) return undefined;
+  return getAddress(value);
 }

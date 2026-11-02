@@ -45,6 +45,7 @@ describe("CreatorGasTank", function () {
       ethers.parseEther("0.01"),
       3600,
       0,
+      ethers.ZeroAddress,
     );
 
     accountInterface = new ethers.Interface([
@@ -291,5 +292,47 @@ describe("CreatorGasTank", function () {
     expect(await gasTank.tankBalance(creator.address)).to.equal(ethers.parseEther("0.0185"));
     await expect(entryPoint.validatePaymasterUserOp(gasTank, op, ethers.parseEther("0.001")))
       .to.be.revertedWithCustomError(gasTank, "WalletCapExceeded");
+  });
+
+  it("accepts EntryPoint v0.6 UserOperations and rebalances the deposit from the v0.7 pot", async function () {
+    const MockEntryPoint = await ethers.getContractFactory("MockEntryPoint");
+    const entryPointV06 = await MockEntryPoint.deploy();
+    const CreatorGasTank = await ethers.getContractFactory("CreatorGasTank");
+    const dualTank = await CreatorGasTank.deploy(
+      await entryPoint.getAddress(),
+      settlementToken.address,
+      ethers.parseEther("0.01"),
+      3600,
+      0,
+      await entryPointV06.getAddress(),
+    );
+    await dualTank.connect(creator).enroll(project.address);
+    const amount = ethers.parseEther("0.02");
+    await dualTank.connect(deployer).fundTank(creator.address, { value: amount });
+    expect(await entryPoint.balanceOf(await dualTank.getAddress())).to.equal(amount);
+
+    const paymasterAndData = ethers.solidityPacked(
+      ["address", "address"],
+      [await dualTank.getAddress(), project.address],
+    );
+    const opV06 = {
+      sender: wallet.address,
+      nonce: 0,
+      initCode: "0x",
+      callData: buyExecuteCall(),
+      callGasLimit: 0,
+      verificationGasLimit: 0,
+      preVerificationGas: 0,
+      maxFeePerGas: 0,
+      maxPriorityFeePerGas: 0,
+      paymasterAndData,
+      signature: "0x",
+    };
+    const maxCost = ethers.parseEther("0.001");
+    const result = await entryPointV06.validatePaymasterUserOpV06.staticCall(dualTank, opV06, maxCost);
+    expect(result.validationData).to.equal(0);
+    await entryPointV06.validatePaymasterUserOpV06(dualTank, opV06, maxCost);
+    expect(await entryPointV06.balanceOf(await dualTank.getAddress())).to.equal(maxCost);
+    expect(await entryPoint.balanceOf(await dualTank.getAddress())).to.equal(amount - maxCost);
   });
 });

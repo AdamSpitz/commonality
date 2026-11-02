@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
-import { encodeAbiParameters, encodeFunctionData, encodePacked, padHex, type Address, type Hex } from 'viem';
-import { handleSponsoredGasPaymasterRpc, inferSponsoredCall, inferSponsoredProject } from './sponsoredGasPaymaster.js';
+import { concat, encodeAbiParameters, encodeFunctionData, encodePacked, padHex, type Address, type Hex } from 'viem';
+import { ENTRY_POINT_V06_ADDRESS, handleSponsoredGasPaymasterRpc, inferSponsoredCall, inferSponsoredProject } from './sponsoredGasPaymaster.js';
 
 const project = '0x1111111111111111111111111111111111111111';
 const otherProject = '0x5555555555555555555555555555555555555555';
@@ -201,6 +201,23 @@ describe('sponsored gas paymaster RPC', () => {
         paymasterData: project,
         paymasterVerificationGasLimit: '0x55730',
         paymasterPostOpGasLimit: '0x13880',
+      },
+    });
+  });
+
+  it('returns v0.6 paymasterAndData when the request names EntryPoint v0.6', () => {
+    const result = handleSponsoredGasPaymasterRpc({
+      jsonrpc: '2.0',
+      id: 2,
+      method: 'pm_getPaymasterStubData',
+      params: [{ sender: buyer, callData: kernelExecute(project, buyCall()) }, ENTRY_POINT_V06_ADDRESS, '0x14a34'],
+    }, { creatorGasTankAddress: gasTank });
+
+    assert.deepEqual(result, {
+      jsonrpc: '2.0',
+      id: 2,
+      result: {
+        paymasterAndData: concat([gasTank, project]),
       },
     });
   });

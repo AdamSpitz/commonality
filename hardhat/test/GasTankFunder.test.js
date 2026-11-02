@@ -39,6 +39,7 @@ describe("GasTankFunder", function () {
       ethers.parseEther("0.01"),
       3600,
       ethers.parseUnits("1", 6),
+      ethers.ZeroAddress,
     );
 
     const GasTankFunder = await ethers.getContractFactory("GasTankFunder");

@@ -453,18 +453,21 @@ async function main() {
     'MIN_SPONSORED_CONTRIBUTION_AMOUNT',
     ethers.parseUnits('1', 6),
   );
+  const entryPointV06 = env.SPONSORED_GAS_ENTRY_POINT_V06_ADDRESS || ethers.ZeroAddress;
   await deployOrReuse('CreatorGasTank', 'CreatorGasTank', [
     addresses.SponsoredGasEntryPoint,
     addresses.FreeERC20,
     sponsoredGasMaxWeiPerWalletPerWindow,
     sponsoredGasWalletWindowSeconds,
     minSponsoredContributionAmount,
+    entryPointV06,
   ]);
   await deployOrReuse('StatementGasTank', 'StatementGasTank', [
     addresses.SponsoredGasEntryPoint,
     addresses.Beliefs,
     sponsoredGasMaxWeiPerWalletPerWindow,
     sponsoredGasWalletWindowSeconds,
+    entryPointV06,
   ]);
 
   const sponsoredGasSwapFee = envNumber(env, 'SPONSORED_GAS_SWAP_POOL_FEE', 500);

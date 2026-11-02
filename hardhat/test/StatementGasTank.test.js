@@ -46,6 +46,7 @@ describe("StatementGasTank", function () {
       beliefs.address,
       ethers.parseEther("0.01"),
       3600,
+      ethers.ZeroAddress,
     );
 
     accountInterface = new ethers.Interface([

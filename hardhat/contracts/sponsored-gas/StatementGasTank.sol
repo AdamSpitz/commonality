@@ -5,6 +5,9 @@ import {BasePaymaster} from "@account-abstraction/contracts/core/BasePaymaster.s
 import {PackedUserOperation} from "@account-abstraction/contracts/interfaces/PackedUserOperation.sol";
 import {IEntryPoint} from "@account-abstraction/contracts/interfaces/IEntryPoint.sol";
 import {AccountCallDecoder} from "./AccountCallDecoder.sol";
+import {GasTankEntryPointDeposits} from "./GasTankEntryPointDeposits.sol";
+import {IPaymasterV06} from "./IPaymasterV06.sol";
+import {UserOperationV06} from "./UserOperationV06.sol";
 
 /**
  * @title StatementGasTank
@@ -20,6 +23,7 @@ import {AccountCallDecoder} from "./AccountCallDecoder.sol";
  */
 contract StatementGasTank is BasePaymaster {
   uint256 private constant PAYMASTER_HEADER_LENGTH = 52;
+  uint256 private constant PAYMASTER_V06_HEADER_LENGTH = 20;
   uint8 private constant BELIEVES = 1;
 
   bytes4 private constant SET_BELIEF_SELECTOR =
@@ -43,6 +47,7 @@ contract StatementGasTank is BasePaymaster {
 
   SponsorshipConfig public sponsorshipConfig;
   address public immutable beliefs;
+  IEntryPoint public immutable entryPointV06;
 
   event TankFunded(address indexed funder, address indexed sponsor, uint256 amount);
   event StatementEnrolled(address indexed sponsor, bytes32 indexed statementId);
@@ -69,17 +74,23 @@ contract StatementGasTank is BasePaymaster {
   error InvalidBatchLengths();
   error SponsoredBeliefMustBeSupport(uint8 beliefState);
   error EmptySponsoredBatch();
+  error EntryPointV06NotSet();
+  error NotFromEntryPointV06();
 
   constructor(
     IEntryPoint entryPoint_,
     address beliefs_,
     uint192 maxSponsoredWeiPerWalletPerWindow_,
-    uint32 walletWindowSeconds_
+    uint32 walletWindowSeconds_,
+    IEntryPoint entryPointV06_
   ) BasePaymaster(entryPoint_) {
     if (beliefs_ == address(0)) revert InvalidBeliefs();
     beliefs = beliefs_;
+    entryPointV06 = entryPointV06_;
     _setSponsorshipConfig(maxSponsoredWeiPerWalletPerWindow_, walletWindowSeconds_);
   }
+
+  receive() external payable {}
 
   function fundTank(address sponsor) external payable {
     if (sponsor == address(0)) revert InvalidSponsor();
@@ -110,18 +121,46 @@ contract StatementGasTank is BasePaymaster {
     bytes32,
     uint256 maxCost
   ) internal override returns (bytes memory context, uint256 validationData) {
-    bytes32 anchor = _decodeAnchor(userOp.paymasterAndData);
+    bytes32 anchor = _decodeAnchor(userOp.paymasterAndData, PAYMASTER_HEADER_LENGTH);
+    return _validateSponsoredUserOp(anchor, userOp.sender, userOp.callData, maxCost, entryPoint, entryPointV06);
+  }
+
+  function validatePaymasterUserOp(
+    UserOperationV06 calldata userOp,
+    bytes32,
+    uint256 maxCost
+  ) external returns (bytes memory context, uint256 validationData) {
+    if (address(entryPointV06) == address(0)) revert EntryPointV06NotSet();
+    if (msg.sender != address(entryPointV06)) revert NotFromEntryPointV06();
+    bytes32 anchor = _decodeAnchor(userOp.paymasterAndData, PAYMASTER_V06_HEADER_LENGTH);
+    return _validateSponsoredUserOp(anchor, userOp.sender, userOp.callData, maxCost, entryPointV06, entryPoint);
+  }
+
+  function postOp(IPaymasterV06.PostOpMode, bytes calldata, uint256) external view {
+    if (address(entryPointV06) == address(0)) revert EntryPointV06NotSet();
+    if (msg.sender != address(entryPointV06)) revert NotFromEntryPointV06();
+  }
+
+  function _validateSponsoredUserOp(
+    bytes32 anchor,
+    address sender,
+    bytes calldata callData,
+    uint256 maxCost,
+    IEntryPoint depositEntryPoint,
+    IEntryPoint otherEntryPoint
+  ) private returns (bytes memory context, uint256 validationData) {
     address sponsor = sponsorOf[anchor];
     if (sponsor == address(0)) revert StatementNotEnrolled(anchor);
     if (tankBalance[sponsor] < maxCost) revert InsufficientTankBalance(tankBalance[sponsor], maxCost);
 
-    _validateWalletCap(sponsor, userOp.sender, maxCost);
-    _validateAccountCall(sponsor, anchor, userOp.callData);
+    _validateWalletCap(sponsor, sender, maxCost);
+    _validateAccountCall(sponsor, anchor, callData);
+    GasTankEntryPointDeposits.ensureDeposit(depositEntryPoint, otherEntryPoint, maxCost);
 
     // EntryPoint validates every operation before executing any of them. Reserve both budgets now.
     tankBalance[sponsor] -= maxCost;
-    _recordWalletUsage(sponsor, userOp.sender, maxCost);
-    emit TankDebited(sponsor, userOp.sender, maxCost);
+    _recordWalletUsage(sponsor, sender, maxCost);
+    emit TankDebited(sponsor, sender, maxCost);
     return ("", 0);
   }
 
@@ -136,11 +175,14 @@ contract StatementGasTank is BasePaymaster {
     emit SponsorshipConfigUpdated(maxSponsoredWeiPerWalletPerWindow, walletWindowSeconds);
   }
 
-  function _decodeAnchor(bytes calldata paymasterAndData) private pure returns (bytes32 anchor) {
-    if (paymasterAndData.length != PAYMASTER_HEADER_LENGTH + 32) {
+  function _decodeAnchor(
+    bytes calldata paymasterAndData,
+    uint256 headerLength
+  ) private pure returns (bytes32 anchor) {
+    if (paymasterAndData.length != headerLength + 32) {
       revert InvalidPaymasterDataLength(paymasterAndData.length);
     }
-    anchor = bytes32(paymasterAndData[PAYMASTER_HEADER_LENGTH:]);
+    anchor = bytes32(paymasterAndData[headerLength:]);
   }
 
   function _validateWalletCap(address sponsor, address wallet, uint256 requested) private view {

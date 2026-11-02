@@ -7,6 +7,9 @@ import {IEntryPoint} from "@account-abstraction/contracts/interfaces/IEntryPoint
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IERC1155} from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import {AccountCallDecoder} from "./AccountCallDecoder.sol";
+import {GasTankEntryPointDeposits} from "./GasTankEntryPointDeposits.sol";
+import {IPaymasterV06} from "./IPaymasterV06.sol";
+import {UserOperationV06} from "./UserOperationV06.sol";
 
 interface IERC1155PrimaryMarketPricing {
   function erc1155TotalCost(
@@ -25,6 +28,7 @@ interface IERC1155PrimaryMarketPricing {
  */
 contract CreatorGasTank is BasePaymaster {
   uint256 private constant PAYMASTER_HEADER_LENGTH = 52;
+  uint256 private constant PAYMASTER_V06_HEADER_LENGTH = 20;
   uint256 private constant ADDRESS_BYTES = 20;
 
   bytes4 private constant ERC20_APPROVE_SELECTOR = IERC20.approve.selector;
@@ -50,6 +54,7 @@ contract CreatorGasTank is BasePaymaster {
 
   SponsorshipConfig public sponsorshipConfig;
   address public immutable settlementToken;
+  IEntryPoint public immutable entryPointV06;
   uint256 public minSponsoredContributionAmount;
 
   event TankFunded(address indexed funder, address indexed creator, uint256 amount);
@@ -75,19 +80,25 @@ contract CreatorGasTank is BasePaymaster {
   error InvalidBatchLengths();
   error MissingSponsoredPrimaryAction();
   error SponsoredContributionBelowMinimum(uint256 contributionAmount, uint256 minimumAmount);
+  error EntryPointV06NotSet();
+  error NotFromEntryPointV06();
 
   constructor(
     IEntryPoint entryPoint_,
     address settlementToken_,
     uint192 maxSponsoredWeiPerWalletPerWindow_,
     uint32 walletWindowSeconds_,
-    uint256 minSponsoredContributionAmount_
+    uint256 minSponsoredContributionAmount_,
+    IEntryPoint entryPointV06_
   ) BasePaymaster(entryPoint_) {
     if (settlementToken_ == address(0)) revert InvalidProject();
     settlementToken = settlementToken_;
+    entryPointV06 = entryPointV06_;
     _setSponsorshipConfig(maxSponsoredWeiPerWalletPerWindow_, walletWindowSeconds_);
     _setMinSponsoredContributionAmount(minSponsoredContributionAmount_);
   }
+
+  receive() external payable {}
 
   function fundTank(address creator) external payable {
     if (creator == address(0)) revert InvalidProject();
@@ -122,15 +133,44 @@ contract CreatorGasTank is BasePaymaster {
     bytes32,
     uint256 maxCost
   ) internal override returns (bytes memory context, uint256 validationData) {
-    address project = _decodeProject(userOp.paymasterAndData);
+    address project = _decodeProject(userOp.paymasterAndData, PAYMASTER_HEADER_LENGTH);
+    return _validateSponsoredUserOp(project, userOp.sender, userOp.callData, maxCost, entryPoint, entryPointV06);
+  }
+
+  function validatePaymasterUserOp(
+    UserOperationV06 calldata userOp,
+    bytes32,
+    uint256 maxCost
+  ) external returns (bytes memory context, uint256 validationData) {
+    if (address(entryPointV06) == address(0)) revert EntryPointV06NotSet();
+    if (msg.sender != address(entryPointV06)) revert NotFromEntryPointV06();
+    address project = _decodeProject(userOp.paymasterAndData, PAYMASTER_V06_HEADER_LENGTH);
+    return _validateSponsoredUserOp(project, userOp.sender, userOp.callData, maxCost, entryPointV06, entryPoint);
+  }
+
+  function postOp(IPaymasterV06.PostOpMode mode, bytes calldata context, uint256 actualGasCost) external {
+    if (address(entryPointV06) == address(0)) revert EntryPointV06NotSet();
+    if (msg.sender != address(entryPointV06)) revert NotFromEntryPointV06();
+    _postOp(PostOpMode(uint8(mode)), context, actualGasCost, 0);
+  }
+
+  function _validateSponsoredUserOp(
+    address project,
+    address sender,
+    bytes calldata callData,
+    uint256 maxCost,
+    IEntryPoint depositEntryPoint,
+    IEntryPoint otherEntryPoint
+  ) private returns (bytes memory context, uint256 validationData) {
     address creator = creatorOf[project];
     if (creator == address(0)) revert ProjectNotEnrolled(project);
     if (tankBalance[creator] < maxCost) revert InsufficientTankBalance(tankBalance[creator], maxCost);
 
-    _validateWalletCap(creator, userOp.sender, maxCost);
-    _validateAccountCall(project, userOp.callData);
+    _validateWalletCap(creator, sender, maxCost);
+    _validateAccountCall(project, callData);
+    GasTankEntryPointDeposits.ensureDeposit(depositEntryPoint, otherEntryPoint, maxCost);
 
-    return (abi.encode(creator, userOp.sender), 0);
+    return (abi.encode(creator, sender), 0);
   }
 
   function _postOp(
@@ -165,11 +205,14 @@ contract CreatorGasTank is BasePaymaster {
     emit MinSponsoredContributionAmountUpdated(minSponsoredContributionAmount_);
   }
 
-  function _decodeProject(bytes calldata paymasterAndData) private pure returns (address project) {
-    if (paymasterAndData.length != PAYMASTER_HEADER_LENGTH + ADDRESS_BYTES) {
+  function _decodeProject(
+    bytes calldata paymasterAndData,
+    uint256 headerLength
+  ) private pure returns (address project) {
+    if (paymasterAndData.length != headerLength + ADDRESS_BYTES) {
       revert InvalidPaymasterDataLength(paymasterAndData.length);
     }
-    project = address(bytes20(paymasterAndData[PAYMASTER_HEADER_LENGTH:PAYMASTER_HEADER_LENGTH + ADDRESS_BYTES]));
+    project = address(bytes20(paymasterAndData[headerLength:headerLength + ADDRESS_BYTES]));
   }
 
   function _validateWalletCap(address creator, address wallet, uint256 requested) private view {
