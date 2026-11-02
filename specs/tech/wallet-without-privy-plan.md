@@ -59,8 +59,7 @@ measurements" section style, and keep any script under `hardhat/scripts/` or `sp
 single `execute(address,uint256,bytes)` (`0xb61d27f6`); batch `executeBatch((address,uint256,bytes)[])`
 (`0x34fcd5be`). Pimlico is not needed to encode these calls.
 
-**Browser (questions 2 and 4):** do not use testnet.commonality.works (still Privy). Run the local page in
-[`spikes/base-account-paymaster/README.md`](/spikes/base-account-paymaster/README.md).
+**Browser:** Base Account `wallet_getCapabilities` on Base Sepolia advertises `paymasterService` and atomic batches (see [sponsored-gas.md](/specs/tech/sponsored-gas.md)). A `wallet_sendCalls` probe returned `Request rejected`; confirm in the `serve.mjs` terminal whether a `PAYMASTER POST` happened. MetaMask/Rabby capabilities not captured. Do not use testnet.commonality.works (still Privy).
 
 ### Phase 2 — Capability-driven sponsorship in the SDK/UI (works for any wallet)
 

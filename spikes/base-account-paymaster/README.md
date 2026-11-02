@@ -11,16 +11,18 @@ This is a localhost page. It is not the Commonality UI.
 From the repository root (needs the existing `node_modules`; no extra install):
 
 ```sh
-npx vite --config spikes/base-account-paymaster/vite.config.js --port 4177 --strictPort
+node spikes/base-account-paymaster/serve.mjs
 ```
 
-Open **http://localhost:4177**. Passkeys need localhost or HTTPS.
+Do **not** use Vite for this spike: this machine is already at inotify `EMFILE` (too many open files / watches). The Node server bundles once with esbuild and does not watch files.
+
+Open **http://127.0.0.1:4177**. Passkeys need localhost or HTTPS.
 
 1. **Connect Base Account** — Coinbase passkey popup (`keys.coinbase.com`), not the Coinbase Wallet extension and not Privy.
 2. **wallet_getCapabilities** — copy the JSON (especially chain `0x14a34` / Base Sepolia).
-3. **Probe paymasterService** — sends `wallet_sendCalls` with `paymasterService.url` pointing at this Vite server.
+3. **Probe paymasterService** — sends `wallet_sendCalls` with `paymasterService.url` pointing at this server.
 
-In the **terminal** running Vite, look for a `PAYMASTER POST` log:
+In the **terminal** running `serve.mjs`, look for a `PAYMASTER POST` log:
 
 - **Present** — the wallet called our URL (question 2 is yes, even if the echo returns an error).
 - **Absent** — Coinbase ignored the third-party paymaster URL.
