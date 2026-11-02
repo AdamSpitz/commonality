@@ -136,6 +136,11 @@ fraction of a cent — seeding a tank with a few cents at a time and letting the
 project wraps is a perfectly acceptable model. Anyone may fund any creator's tank: the creator
 themselves, or supporters who believe in Commonality / a cause.
 
+**One pot per tank type across EntryPoint versions (Adam, 2026-11-02).** Base Account uses
+EntryPoint v0.6; existing tanks speak v0.7. Funders still see one balance and one deposit action.
+v0.6 vs v0.7 paymaster entrypoints are an implementation detail (shared vault or one contract with
+both ABIs). Do not split funding by wallet family. See [wallet-without-privy-plan.md](./wallet-without-privy-plan.md) Phase 3b.
+
 **Commonality (Adam) will NOT be the initial funder — intended posture, not a contract rule.** A
 creator who wants their project to be gasless for contributors funds their own tank; this holds even
 for early users. The `fundTank(creator)` mechanism is permissionless and Commonality *could* fund a
