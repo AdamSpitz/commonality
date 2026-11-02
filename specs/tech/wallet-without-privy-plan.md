@@ -65,9 +65,10 @@ single `execute(address,uint256,bytes)` (`0xb61d27f6`); batch `executeBatch((add
 
 Done on this branch: `wallet_getCapabilities` + `VITE_SPONSORED_GAS_PAYMASTER_URL` on `wallet_sendCalls`; UI batching no longer keys off Privy.
 
-- In `sdk/src/subsystems/lazy-giving/actions.ts` (`sendAtomicContractCalls`) and
-  `ui/src/commonality/lib/causeRoster.ts` (`sendCallsPreferAtomic`), call `wallet_getCapabilities` once per
-  account and chain. When `paymasterService` is supported, add our paymaster URL to `wallet_sendCalls`.
+- In `sdk/src/subsystems/lazy-giving/actions.ts` (`sendAtomicContractCalls`), cache `wallet_getCapabilities`
+  per wallet client, account and chain. For eligible purchases and refunds, add our paymaster URL to
+  `wallet_sendCalls` when supported. Roster publication stays unsponsored because its calls are outside
+  the tank allowlist. Statement-signature wiring remains tracked in the root TODO.
 - Replace the `isPrivySmartWalletEnabled` gates (for example `batchApproval` in
   `ui/src/lazy-giving/components/BuyTokensSection.tsx`, plus `RefundSection.tsx`) with "the wallet
   supports atomic batches" / "the wallet supports paymasterService".
@@ -85,7 +86,9 @@ alongside ERC-7579. Unknown formats still revert or 400.
 are vaults: `fundTank`, enrollment, caps, decoder policy, one `tankBalance`. The treasury stays on
 the vault. Each EntryPoint version is a thin paymaster adapter (`CreatorGasTankPaymaster` / `…V06`,
 same for statements). Funding tops each face's EntryPoint deposit up to `faceDepositFloor` so
-bundlers never see AA31. Owner `rebalanceFaceDeposits` can pull surplus back to the floor and restock
+operations within the available deposit can pass the EntryPoint's prefund check. A depleted deposit or
+an operation whose maximum cost exceeds it can still fail AA31; replenish before submission or raise
+the configured floor. Owner `rebalanceFaceDeposits` can pull surplus back to the floor and restock
 a dry face. Do not transfer ETH inside `validatePaymasterUserOp`. ERC-7677 returns `paymasterAndData`
 when `params[1]` is EntryPoint v0.6, using `CREATOR_GAS_TANK_PAYMASTER_V06_ADDRESS` (and statement
 equivalent). Set `SPONSORED_GAS_ENTRY_POINT_V06_ADDRESS` on deploy.

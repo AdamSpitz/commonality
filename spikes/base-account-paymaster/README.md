@@ -25,8 +25,10 @@ Open **http://127.0.0.1:4177**. Passkeys need localhost or HTTPS.
 In the **terminal** running `serve.mjs`, look for a `PAYMASTER POST` log:
 
 - **Present** — the wallet called our URL (question 2 is yes, even if the echo returns an error).
-- **Absent** — Coinbase ignored the third-party paymaster URL.
+- **Absent** — inspect the wallet error; this alone does not show that Coinbase ignored the URL. The recorded run rejected the local HTTP URL because HTTPS is required, before any POST.
 
 You can reject the on-chain send. Hitting the URL is the signal.
+
+The localhost probe only demonstrates URL validation with the current wallet. To test a POST, serve the echo through HTTPS and point `paymasterUrl` in `main.js` at that endpoint. A POST still does not prove sponsorship: complete a real operation through our deployed paymaster and the wallet's bundler for that.
 
 Paste the capabilities JSON and whether `PAYMASTER` appeared into chat or [sponsored-gas.md](../../specs/tech/sponsored-gas.md).

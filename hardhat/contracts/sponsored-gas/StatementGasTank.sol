@@ -120,7 +120,7 @@ contract StatementGasTank is Ownable {
   }
 
   function rebalanceFaceDeposits() external onlyOwner {
-    GasTankEntryPointDeposits.pullDownToFloor(paymasterFaces, faceDepositFloor);
+    GasTankEntryPointDeposits.pullDownToFloor(paymasterFaces, 0);
     GasTankEntryPointDeposits.topUpToFloor(paymasterFaces, faceDepositFloor);
   }
 

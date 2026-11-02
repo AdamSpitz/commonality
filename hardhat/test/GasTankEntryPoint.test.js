@@ -7,6 +7,40 @@ const { ethers } = hre;
 
 describe("Gas tank real EntryPoint prefunding", function () {
   for (const kind of ["Creator", "Statement"]) {
+    it(`${kind} shares small funding and rebalances a depleted face`, async function () {
+      const [owner, target, stranger] = await ethers.getSigners();
+      const ep = await (await ethers.getContractFactory("MockEntryPoint")).deploy();
+      const tank = await (await ethers.getContractFactory(`${kind}GasTank`)).deploy(
+        target.address, ethers.parseEther("1"), 3600, ...(kind === "Creator" ? [0] : []),
+      );
+      const face07 = await (await ethers.getContractFactory(`${kind}GasTankPaymaster`)).deploy(ep, tank);
+      const face06 = await (await ethers.getContractFactory(`${kind}GasTankPaymasterV06`)).deploy(ep, tank);
+      await tank.addPaymasterFace(face07);
+      await tank.addPaymasterFace(face06);
+      const amount = ethers.parseEther("0.0002");
+      await tank.fundTank(owner.address, { value: amount });
+      expect(await ep.balanceOf(face07)).to.equal(amount / 2n);
+      expect(await ep.balanceOf(face06)).to.equal(amount / 2n);
+      expect(await tank.tankBalance(owner.address)).to.equal(amount);
+
+      // Simulate EntryPoint consuming the v0.6 float while the vault is empty.
+      const faceSigner = await ethers.getImpersonatedSigner(await face06.getAddress());
+      await ethers.provider.send("hardhat_setBalance", [faceSigner.address, "0xDE0B6B3A7640000"]);
+      await ep.connect(faceSigner).withdrawTo(owner.address, amount / 2n);
+      await ethers.provider.send("hardhat_stopImpersonatingAccount", [faceSigner.address]);
+      await expect(tank.connect(stranger).rebalanceFaceDeposits()).to.be.revertedWithCustomError(tank, "OwnableUnauthorizedAccount");
+      await tank.rebalanceFaceDeposits();
+      expect(await ep.balanceOf(face07)).to.equal(amount / 4n);
+      expect(await ep.balanceOf(face06)).to.equal(amount / 4n);
+
+      // Permissionless replenishment can refill both faces from fresh treasury ETH.
+      const floor = await tank.faceDepositFloor();
+      await owner.sendTransaction({ to: await tank.getAddress(), value: floor * 2n });
+      await tank.connect(stranger).replenishFaceDeposits();
+      expect(await ep.balanceOf(face07)).to.equal(floor);
+      expect(await ep.balanceOf(face06)).to.equal(floor);
+    });
+
     it(`${kind} v0.6 face can manage its own stake`, async function () {
       const [owner, stranger] = await ethers.getSigners();
       const ep = await new ethers.ContractFactory(entryPointArtifact.abi, entryPointArtifact.bytecode, owner).deploy();

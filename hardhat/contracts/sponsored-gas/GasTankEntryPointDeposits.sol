@@ -9,9 +9,25 @@ import {IGasTankPaymasterFace} from "./IGasTankPaymasterFace.sol";
 library GasTankEntryPointDeposits {
   function topUpToFloor(address[] storage faces, uint256 floor) internal {
     if (floor == 0) return;
+    uint256[] memory shortfalls = new uint256[](faces.length);
+    uint256 remainingShortfall;
     for (uint256 i = 0; i < faces.length; i++) {
-      topUp(faces[i], floor);
-      if (address(this).balance == 0) return;
+      uint256 have = IGasTankPaymasterFace(faces[i]).entryPoint().balanceOf(faces[i]);
+      if (have < floor) {
+        shortfalls[i] = floor - have;
+        remainingShortfall += shortfalls[i];
+      }
+    }
+    // Allocate scarce liquidity across every face instead of exhausting it on the first.
+    for (uint256 i = 0; i < faces.length; i++) {
+      uint256 need = shortfalls[i];
+      if (need == 0) continue;
+      uint256 available = address(this).balance;
+      uint256 send = available >= remainingShortfall ? need : available * need / remainingShortfall;
+      remainingShortfall -= need;
+      if (send != 0) {
+        IGasTankPaymasterFace(faces[i]).entryPoint().depositTo{value: send}(faces[i]);
+      }
     }
   }
 
