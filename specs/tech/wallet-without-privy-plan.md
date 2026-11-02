@@ -79,15 +79,18 @@ In progress: `wallet_getCapabilities` + `VITE_SPONSORED_GAS_PAYMASTER_URL` on `w
 
 3a. **Coinbase / Base Account decoder.** Done on this branch: tanks and `sponsoredGasPaymaster.ts` decode
 `executeBatch((address,uint256,bytes)[])` plus SimpleAccount `execute` / `executeBatch(address[],uint256[],bytes[])`
-alongside ERC-7579. Unknown formats still revert or 400. v0.6 tank wrappers (3b) are still blocked on Adam.
+alongside ERC-7579. Unknown formats still revert or 400.
 
-3b. **Only if Phase 1 says v0.6:** build v0.6 versions of both tanks. Pull the policy logic (tank balances,
-enrollment, caps, allowed selectors) into shared internal code. Each EntryPoint version gets a thin paymaster
-wrapper with its own `UserOperation` struct and base contract. The API endpoint must then return v0.6-shaped
-data (`paymasterAndData`) or v0.7-shaped data (`paymaster` + `paymasterData` + gas limits), depending on the
-request's EntryPoint (ERC-7677 requires this). Funders currently fund one tank contract. Decide with Adam
-whether two contracts per tank type is acceptable, or whether funding should be split by EntryPoint version.
-**Ask before choosing.**
+3b. **v0.6 EntryPoint faces, one pot (Adam, 2026-11-02).** Base Account is v0.6, so each tank type needs a
+v0.6 `validatePaymasterUserOp` the Coinbase bundler can call. **Funders must not see two pots.** One funding
+address, one ETH balance, one enrollment/cap story per tank type (`CreatorGasTank` / `StatementGasTank`).
+Whether that is one contract with both ABIs or two thin paymasters that debit a shared vault is an
+implementation detail. Do not add a second "fund the Base Account tank" action, and do not let passkey
+users fail empty-tank because someone filled only the v0.7 wrapper.
+
+Pull policy logic (balances, enrollment, caps, allowed selectors) into shared internal code. The API
+endpoint must return v0.6-shaped data (`paymasterAndData`) or v0.7-shaped data (`paymaster` +
+`paymasterData` + gas limits) depending on the request's EntryPoint (ERC-7677).
 
 Redeploy to Base Sepolia with the incremental deploy script, and update the verifier's sponsored-gas config check.
 

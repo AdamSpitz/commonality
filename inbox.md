@@ -43,7 +43,7 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 ### Features that I'm realizing would make a big difference
 
-- Rethink the gas-sponsorship thingy we used. Phase 1 spike is done: Base Account is EntryPoint v0.6, honors third-party `paymasterService` **HTTPS** URLs, atomic batches. Notes in [sponsored-gas.md](./specs/tech/sponsored-gas.md). Next is plan Phase 2/3b. **Ask before** two tank contracts vs split funding by EntryPoint version.
+- Rethink the gas-sponsorship thingy we used. Phase 1 spike is done: Base Account is EntryPoint v0.6, honors third-party `paymasterService` **HTTPS** URLs, atomic batches. Notes in [sponsored-gas.md](./specs/tech/sponsored-gas.md). **(2026-11-02)** One funding pot per tank type; v0.6 vs v0.7 paymaster faces are internal. See [wallet-without-privy-plan.md](./specs/tech/wallet-without-privy-plan.md) Phase 3b.
 
 - Now that I'm trying to do a vertical in a separate Git repo on a separate website, I'm finding that our model of users and logins doesn't quite work. Explore either Privy global wallets, or switching to Coinbase Smart Wallet, or just generally ditching the Privy thing and hoping there's a reasonably-easy "Connect Wallet" that people can use.
 
