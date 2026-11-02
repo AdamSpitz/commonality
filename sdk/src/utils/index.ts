@@ -10,3 +10,4 @@ export * from './chainIds.js';
 export * from './currency.js';
 export * from './funding-summary.js';
 export * from './twitter.js';
+export * from './walletCapabilities.js';

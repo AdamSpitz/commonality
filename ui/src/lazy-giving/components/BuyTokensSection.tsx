@@ -5,7 +5,7 @@ import type { Project, ProjectToken, AssuranceContract } from '@commonality/sdk/
 import { AssuranceContractAbi, DelegatableNotesAbi } from '@commonality/sdk/abis'
 import { getNotesByOwner, getDelegationChain, purchaseFromPrimaryMarketWithNotes } from '@commonality/sdk/delegation'
 import { buyProjectTokens, donateNormally } from '@commonality/sdk/lazy-giving'
-import { ETH_CURRENCY } from '@commonality/sdk/utils'
+import { ETH_CURRENCY, getWriteClientCapabilities } from '@commonality/sdk/utils'
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useMachinery } from '../../shared'
 import { useWriteClients } from '../../shared'
@@ -18,7 +18,7 @@ import { allocatePurchaseAmount } from '../purchaseAllocation'
 import { ContributionNotificationEmail } from './ContributionNotificationEmail'
 import { createCoinbaseOnrampSession, getBaseUsdcBalance } from '../onrampClient'
 import { WalletButton } from '../../shared/components/WalletButton'
-import { isPrivySmartWalletEnabled } from '../../privy/config'
+import { getRuntimeConfigValue } from '../../shared'
 import { givingOptionLabel } from '../utils'
 
 interface BuyTokensSectionProps {
@@ -186,7 +186,8 @@ export function BuyTokensSection({ project, tokens, address, onProjectRefresh, t
         tokenIds: allocation.tokenIds,
         tokenCounts: allocation.tokenCounts,
         totalCost: allocation.totalCost,
-        batchApproval: isPrivySmartWalletEnabled,
+        batchApproval: (await getWriteClientCapabilities(clients)).atomicBatches,
+        paymasterUrl: getRuntimeConfigValue('VITE_SPONSORED_GAS_PAYMASTER_URL'),
       }
       const txHash = contributionKind === 'donation'
         ? await donateNormally(clients, assuranceContract, contributionParams)

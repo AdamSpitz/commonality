@@ -63,6 +63,8 @@ single `execute(address,uint256,bytes)` (`0xb61d27f6`); batch `executeBatch((add
 
 ### Phase 2 — Capability-driven sponsorship in the SDK/UI (works for any wallet)
 
+In progress: `wallet_getCapabilities` + `VITE_SPONSORED_GAS_PAYMASTER_URL` on `wallet_sendCalls`; UI batching no longer keys off Privy.
+
 - In `sdk/src/subsystems/lazy-giving/actions.ts` (`sendAtomicContractCalls`) and
   `ui/src/commonality/lib/causeRoster.ts` (`sendCallsPreferAtomic`), call `wallet_getCapabilities` once per
   account and chain. When `paymasterService` is supported, add our paymaster URL to `wallet_sendCalls`.
