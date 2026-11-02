@@ -5,20 +5,19 @@ import {IEntryPoint} from "@account-abstraction/contracts/interfaces/IEntryPoint
 import {StatementGasTank} from "./StatementGasTank.sol";
 import {IPaymasterV06} from "./IPaymasterV06.sol";
 import {UserOperationV06} from "./UserOperationV06.sol";
+import {PaymasterV06Stake} from "./PaymasterV06Stake.sol";
 
-contract StatementGasTankPaymasterV06 is IPaymasterV06 {
+contract StatementGasTankPaymasterV06 is IPaymasterV06, PaymasterV06Stake {
   uint256 private constant PAYMASTER_V06_HEADER_LENGTH = 20;
 
-  IEntryPoint public immutable entryPoint;
   StatementGasTank public immutable vault;
 
   error InvalidPaymasterDataLength(uint256 length);
   error InvalidVault();
   error NotFromEntryPoint();
 
-  constructor(IEntryPoint entryPoint_, StatementGasTank vault_) {
+  constructor(IEntryPoint entryPoint_, StatementGasTank vault_) PaymasterV06Stake(entryPoint_) {
     if (address(entryPoint_) == address(0) || address(vault_) == address(0)) revert InvalidVault();
-    entryPoint = entryPoint_;
     vault = vault_;
   }
 

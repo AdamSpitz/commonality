@@ -212,7 +212,7 @@ the Coinbase popup honors a third-party `paymasterService` URL.
 | Atomic batch | `executeBatch((address target,uint256 value,bytes data)[])` selector `0x34fcd5be`. |
 | Pimlico for this path | Not required to *encode* UserOps. Production Base Account uses the wallet's bundler. Pimlico still used for Kernel/Privy tests until Privy is removed. |
 | `wallet_getCapabilities` (real Base Account, 2026-11-01, `spikes/base-account-paymaster`) | **Base Sepolia `0x14a34`:** `paymasterService.supported: true`, `atomicBatch.supported: true`, `atomic.status: "supported"`, plus `auxiliaryFunds` and `dataSuffix`. Same paymaster/atomic flags on Base mainnet `0x2105` and several other chains. Not yet captured for MetaMask/Rabby. |
-| Third-party paymaster URL | **Yes, with HTTPS required.** Real Base Account `wallet_sendCalls` with `paymasterService.url = http://127.0.0.1:4177/paymaster` failed in `keys.coinbase.com` with `Paymaster URL must be a valid HTTPS URL`. They inspect our URL (not Coinbase-only). Local HTTP echo never gets a POST. Production `/sponsored-gas/paymaster` is HTTPS, so this constraint is fine. |
+| Third-party paymaster URL | **HTTPS validation confirmed; successful sponsorship still unverified.** Real Base Account `wallet_sendCalls` with `paymasterService.url = http://127.0.0.1:4177/paymaster` failed in `keys.coinbase.com` with `Paymaster URL must be a valid HTTPS URL`. The local HTTP echo never received a POST. This proves URL validation, not that the wallet/bundler accepts our paymaster. Complete a sponsored operation through the HTTPS endpoint after redeployment. |
 
 Phase 3 therefore needs **v0.6 tank variants** (plan 3b) plus the batch decoder (3a).
 Ask Adam before choosing two contracts per tank type vs split funding.

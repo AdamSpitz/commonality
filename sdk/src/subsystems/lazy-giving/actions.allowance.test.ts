@@ -149,6 +149,30 @@ describe('buyProjectTokens ERC20 allowance handling', () => {
     assert.strictEqual(payload.capabilities, undefined);
   });
 
+  it('still sponsors a purchase when the allowance already covers it', async () => {
+    const { clients, writes } = makeMockClients(100n);
+    let payload: { calls: unknown[]; capabilities?: unknown } | undefined;
+    Object.assign(clients.walletClient, {
+      chain: { id: 84532 },
+      request: async ({ method, params }: { method: string; params: unknown[] }) => {
+        if (method === 'wallet_getCapabilities') return { '0x14a34': {
+          atomic: { status: 'supported' }, paymasterService: { supported: true },
+        } };
+        if (method === 'wallet_sendCalls') {
+          payload = params[0] as typeof payload;
+          return 'batch-id';
+        }
+        return { status: 200, receipts: [{ transactionHash: '0xbatch' }] };
+      },
+    });
+    await buyProjectTokens(clients, { address: ASSURANCE, abi: AssuranceContractAbi }, {
+      ...buyParams, paymasterUrl: 'https://example.test/paymaster',
+    });
+    assert.deepStrictEqual(writes, []);
+    assert.strictEqual(payload?.calls.length, 1);
+    assert.deepStrictEqual(payload?.capabilities, { paymasterService: { url: 'https://example.test/paymaster' } });
+  });
+
   it('skips the approve when the existing allowance already covers the cost', async () => {
     const { clients, writes } = makeMockClients(100n);
     await buyProjectTokens(clients, { address: ASSURANCE, abi: AssuranceContractAbi }, buyParams);

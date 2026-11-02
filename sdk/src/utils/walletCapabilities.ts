@@ -10,12 +10,12 @@ export interface WalletCapabilities {
   paymasterService: boolean;
 }
 
-const cache = new Map<string, WalletCapabilities>();
+let cache = new WeakMap<RpcWallet, Map<string, WalletCapabilities>>();
 
 const NONE: WalletCapabilities = { atomicBatches: false, paymasterService: false };
 
 export function clearWalletCapabilitiesCache(): void {
-  cache.clear();
+  cache = new WeakMap();
 }
 
 function chainKey(chainId: number): string {
@@ -50,7 +50,12 @@ export async function getWalletCapabilities(
   chainId: number,
 ): Promise<WalletCapabilities> {
   const key = `${account.toLowerCase()}:${chainId}`;
-  const cached = cache.get(key);
+  let walletCache = cache.get(walletClient);
+  if (!walletCache) {
+    walletCache = new Map();
+    cache.set(walletClient, walletCache);
+  }
+  const cached = walletCache.get(key);
   if (cached) return cached;
   try {
     const raw = await walletClient.request({
@@ -58,10 +63,9 @@ export async function getWalletCapabilities(
       params: [account, [chainKey(chainId)]],
     });
     const caps = parseCapabilities(raw, chainId);
-    cache.set(key, caps);
+    walletCache.set(key, caps);
     return caps;
   } catch {
-    cache.set(key, NONE);
     return NONE;
   }
 }

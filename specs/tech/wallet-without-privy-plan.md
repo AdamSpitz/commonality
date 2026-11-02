@@ -59,7 +59,7 @@ measurements" section style, and keep any script under `hardhat/scripts/` or `sp
 single `execute(address,uint256,bytes)` (`0xb61d27f6`); batch `executeBatch((address,uint256,bytes)[])`
 (`0x34fcd5be`). Pimlico is not needed to encode these calls.
 
-**Browser:** Base Account on Base Sepolia advertises `paymasterService` and atomic batches. Coinbase **does** honor a third-party paymaster URL; it must be **HTTPS** (`Paymaster URL must be a valid HTTPS URL` from `keys.coinbase.com` against the local HTTP echo). See [sponsored-gas.md](/specs/tech/sponsored-gas.md). MetaMask/Rabby capabilities not captured. Phase 1 spike is done enough to start Phase 2/3b.
+**Browser:** Base Account on Base Sepolia advertises `paymasterService` and atomic batches. Its URL validator requires **HTTPS** (`Paymaster URL must be a valid HTTPS URL` from `keys.coinbase.com` against the local HTTP echo). No request reached that echo, so successful third-party sponsorship remains unverified until a real operation succeeds through our HTTPS endpoint. See [sponsored-gas.md](/specs/tech/sponsored-gas.md). MetaMask/Rabby capabilities not captured.
 
 ### Phase 2 — Capability-driven sponsorship in the SDK/UI (works for any wallet)
 

@@ -83,8 +83,6 @@ import {
 } from '@commonality/sdk/mutable-refs'
 import {
   cidToBytes32,
-  getWriteClientCapabilities,
-  paymasterServiceCapability,
   type IpfsCidV1,
   type WriteClients,
 } from '@commonality/sdk/utils'
@@ -259,11 +257,6 @@ export async function sendCallsPreferAtomic(
   if (chainId && calls.length > 1) {
     let batchId: string | null = null
     try {
-      const walletCaps = await getWriteClientCapabilities(clients)
-      const paymaster = paymasterServiceCapability(
-        getRuntimeConfigValue('VITE_SPONSORED_GAS_PAYMASTER_URL'),
-        walletCaps,
-      )
       const id = await clients.walletClient.request({
         method: 'wallet_sendCalls',
         params: [{
@@ -275,7 +268,6 @@ export async function sendCallsPreferAtomic(
             to,
             data: encodeFunctionData({ abi, functionName, args }),
           })),
-          ...(paymaster ? { capabilities: paymaster } : {}),
         }],
       })
       batchId = typeof id === 'string' ? id : (id as { id: string }).id

@@ -57,6 +57,23 @@ describe('walletCapabilities', () => {
     assert.strictEqual(calls, 1);
   });
 
+  it('does not reuse another connected wallet capabilities for the same account', async () => {
+    const smart = { request: async () => ({ '0x14a34': { atomicBatch: { supported: true } } }) };
+    const plain = { request: async () => ({}) };
+    assert.strictEqual((await getWalletCapabilities(smart, ACCOUNT, 84532)).atomicBatches, true);
+    assert.strictEqual((await getWalletCapabilities(plain, ACCOUNT, 84532)).atomicBatches, false);
+  });
+
+  it('retries after a transient RPC failure', async () => {
+    let attempts = 0;
+    const wallet = { request: async () => {
+      if (++attempts === 1) throw new Error('disconnected');
+      return { '0x14a34': { paymasterService: { supported: true } } };
+    } };
+    assert.strictEqual((await getWalletCapabilities(wallet, ACCOUNT, 84532)).paymasterService, false);
+    assert.strictEqual((await getWalletCapabilities(wallet, ACCOUNT, 84532)).paymasterService, true);
+  });
+
   it('attaches paymasterService only when the wallet supports it and a URL is set', () => {
     assert.deepStrictEqual(
       paymasterServiceCapability('https://example.test/paymaster', {

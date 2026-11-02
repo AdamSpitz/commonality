@@ -463,9 +463,9 @@ export async function buyProjectTokens(
   const buyArgs = [params.buyer, params.tokenAddress, params.tokenIds, params.tokenCounts, '0x'] as const;
 
   const batchApproval = params.batchApproval ?? (await getWriteClientCapabilities(clients)).atomicBatches;
-  if (!hasAllowance && batchApproval) {
+  if (batchApproval) {
     return sendAtomicContractCalls(clients, [
-      { to: paymentToken, abi: erc20ApproveAbi, functionName: 'approve', args: [assuranceContract.address, params.totalCost] },
+      ...(!hasAllowance ? [{ to: paymentToken, abi: erc20ApproveAbi, functionName: 'approve', args: [assuranceContract.address, params.totalCost] }] : []),
       { to: assuranceContract.address, abi: assuranceContract.abi, functionName: 'buyERC1155', args: buyArgs },
     ], params.paymasterUrl);
   }

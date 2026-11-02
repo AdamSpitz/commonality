@@ -464,6 +464,14 @@ services:
         sync: false  # from-env: BENEFICIARY_VERIFIER_ADDRESS
       - key: CREATOR_GAS_TANK_ADDRESS
         sync: false  # from-env: CREATOR_GAS_TANK_ADDRESS
+      - key: CREATOR_GAS_TANK_PAYMASTER_ADDRESS
+        sync: false  # from-env: CREATOR_GAS_TANK_PAYMASTER_ADDRESS
+      - key: CREATOR_GAS_TANK_PAYMASTER_V06_ADDRESS
+        sync: false  # from-env: CREATOR_GAS_TANK_PAYMASTER_V06_ADDRESS
+      - key: STATEMENT_GAS_TANK_PAYMASTER_ADDRESS
+        sync: false  # from-env: STATEMENT_GAS_TANK_PAYMASTER_ADDRESS
+      - key: STATEMENT_GAS_TANK_PAYMASTER_V06_ADDRESS
+        sync: false  # from-env: STATEMENT_GAS_TANK_PAYMASTER_V06_ADDRESS
       - key: STATEMENT_GAS_TANK_ADDRESS
         sync: false  # from-env: STATEMENT_GAS_TANK_ADDRESS
       - key: BELIEFS_CONTRACT_ADDRESS
