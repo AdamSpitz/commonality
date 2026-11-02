@@ -2,13 +2,11 @@ import { useEffect, useMemo, useState } from 'react'
 import { Alert, Button, CircularProgress, Stack } from '@mui/material'
 import { useAccount } from 'wagmi'
 import { BeliefsAbi } from '@commonality/sdk/abis'
-import { BeliefStates, getUserBelief } from '@commonality/sdk/conceptspace'
-import { cidToBytes32, type IpfsCidV1 } from '@commonality/sdk/utils'
+import { BeliefStates, getUserBelief, setBeliefsBatch } from '@commonality/sdk/conceptspace'
+import type { IpfsCidV1 } from '@commonality/sdk/utils'
 import type { SDKMachinery } from '@commonality/sdk/machinery'
 import { mapWithConcurrency, PLANK_QUERY_CONCURRENCY } from '../lib/concurrency'
-import { getRuntimeConfigValue } from '../../shared'
-import { sendCallsPreferAtomic } from '../lib/causeRoster'
-import { useWriteClients } from '../../shared'
+import { getRuntimeConfigValue, sponsoredBeliefOptions, useWriteClients } from '../../shared'
 import { ConnectWalletHint } from './ConnectWalletHint'
 
 interface SelectedPlank {
@@ -77,16 +75,14 @@ export function SelectedPlankSupport({ planks, machinery, onSupported }: Props) 
     setError(undefined)
     setResult(undefined)
     try {
-      const sent = await sendCallsPreferAtomic(clients, unsigned.map((plank) => ({
-        to: beliefsAddress,
-        abi: BeliefsAbi,
-        functionName: 'setBelief',
-        args: [cidToBytes32(plank.cid), BeliefStates.BELIEVES],
-      })))
+      await setBeliefsBatch(
+        clients,
+        { address: beliefsAddress, abi: BeliefsAbi },
+        unsigned.map((plank) => ({ statementCid: plank.cid, beliefState: BeliefStates.BELIEVES })),
+        sponsoredBeliefOptions(),
+      )
       const countLabel = unsigned.length === 1 ? '1 statement' : `${unsigned.length} statements`
-      setResult(sent.batched
-        ? `Signed ${countLabel} in one atomic wallet batch.`
-        : `Signed ${countLabel} in ${sent.hashes.length} transactions.`)
+      setResult(`Signed ${countLabel}.`)
       setSignedCids((current) => {
         const next = new Set(current)
         for (const plank of unsigned) next.add(plank.cid)

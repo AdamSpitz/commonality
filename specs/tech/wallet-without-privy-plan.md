@@ -68,7 +68,8 @@ Done on this branch: `wallet_getCapabilities` + `VITE_SPONSORED_GAS_PAYMASTER_UR
 - In `sdk/src/subsystems/lazy-giving/actions.ts` (`sendAtomicContractCalls`), cache `wallet_getCapabilities`
   per wallet client, account and chain. For eligible purchases and refunds, add our paymaster URL to
   `wallet_sendCalls` when supported. Roster publication stays unsponsored because its calls are outside
-  the tank allowlist. Statement-signature wiring remains tracked in the root TODO.
+  the tank allowlist. `believeStatement` / `setBeliefsBatch` attach the same URL only for enrolled
+  support-only calls with one sponsor.
 - Replace the `isPrivySmartWalletEnabled` gates (for example `batchApproval` in
   `ui/src/lazy-giving/components/BuyTokensSection.tsx`, plus `RefundSection.tsx`) with "the wallet
   supports atomic batches" / "the wallet supports paymasterService".
@@ -101,7 +102,7 @@ type is an object, not a string). Disconnected wallet CTA and first-time giver c
 
 - Make **Base Account** the main "create an account" path (passkey, no extension), and keep ConnectKit's
   usual list (MetaMask, Rabby, WalletConnect) for people who already have a wallet.
-- Remaining: confirm Coinbase Onramp still works with a fresh Base Account; confirm the same account on verticals.
+- Remaining (manual): confirm Coinbase Onramp still works with a fresh Base Account; confirm the same account on verticals.
 - Coinbase Onramp (card → USDC) stays and works with any address. Re-check that the walletless contribution
   flow still works end to end with a fresh Base Account.
 - Separate-site verticals: the same Base Account appears on every site. Confirm with the vertical repo
