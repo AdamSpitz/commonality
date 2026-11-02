@@ -211,13 +211,13 @@ describe('sponsored gas paymaster RPC', () => {
       id: 2,
       method: 'pm_getPaymasterStubData',
       params: [{ sender: buyer, callData: kernelExecute(project, buyCall()) }, ENTRY_POINT_V06_ADDRESS, '0x14a34'],
-    }, { creatorGasTankAddress: gasTank });
+    }, { creatorGasTankAddress: gasTank, creatorGasTankPaymasterV06Address: '0x8888888888888888888888888888888888888888' });
 
     assert.deepEqual(result, {
       jsonrpc: '2.0',
       id: 2,
       result: {
-        paymasterAndData: concat([gasTank, project]),
+        paymasterAndData: concat(['0x8888888888888888888888888888888888888888', project]),
       },
     });
   });

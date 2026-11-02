@@ -32,7 +32,9 @@ export interface PlatformApiServiceConfig {
   coinbaseCdpApiKeySecret?: string;
   baseRpcUrl?: string;
   creatorGasTankAddress?: Address;
+  creatorGasTankPaymasterV06Address?: Address;
   statementGasTankAddress?: Address;
+  statementGasTankPaymasterV06Address?: Address;
   beliefsAddress?: Address;
   blockedChannelIds?: string[];
   policyBundleUrl?: string;
@@ -122,8 +124,14 @@ export function loadConfig(): PlatformApiServiceConfig {
     coinbaseCdpApiKeyId: normalizeOptionalString(process.env.COINBASE_CDP_API_KEY_ID),
     coinbaseCdpApiKeySecret: normalizeOptionalString(process.env.COINBASE_CDP_API_KEY_SECRET),
     baseRpcUrl: normalizeOptionalUrl(process.env.BASE_RPC_URL),
-    creatorGasTankAddress: normalizeOptionalAddress(process.env.CREATOR_GAS_TANK_ADDRESS),
-    statementGasTankAddress: normalizeOptionalAddress(process.env.STATEMENT_GAS_TANK_ADDRESS),
+    creatorGasTankAddress: normalizeOptionalAddress(
+      process.env.CREATOR_GAS_TANK_PAYMASTER_ADDRESS || process.env.CREATOR_GAS_TANK_ADDRESS,
+    ),
+    creatorGasTankPaymasterV06Address: normalizeOptionalAddress(process.env.CREATOR_GAS_TANK_PAYMASTER_V06_ADDRESS),
+    statementGasTankAddress: normalizeOptionalAddress(
+      process.env.STATEMENT_GAS_TANK_PAYMASTER_ADDRESS || process.env.STATEMENT_GAS_TANK_ADDRESS,
+    ),
+    statementGasTankPaymasterV06Address: normalizeOptionalAddress(process.env.STATEMENT_GAS_TANK_PAYMASTER_V06_ADDRESS),
     beliefsAddress: normalizeOptionalAddress(process.env.BELIEFS_CONTRACT_ADDRESS),
     blockedChannelIds: parseCommaSeparated(process.env.BLOCKED_CHANNEL_IDS),
     policyBundleUrl,

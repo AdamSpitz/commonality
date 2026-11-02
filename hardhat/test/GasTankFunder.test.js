@@ -13,7 +13,6 @@ describe("GasTankFunder", function () {
   let usdc;
   let weth;
   let router;
-  let entryPoint;
   let gasTank;
   let gasTankFunder;
 
@@ -29,17 +28,12 @@ describe("GasTankFunder", function () {
     const MockUniswapV3SwapRouter = await ethers.getContractFactory("MockUniswapV3SwapRouter");
     router = await MockUniswapV3SwapRouter.deploy();
 
-    const MockEntryPoint = await ethers.getContractFactory("MockEntryPoint");
-    entryPoint = await MockEntryPoint.deploy();
-
     const CreatorGasTank = await ethers.getContractFactory("CreatorGasTank");
     gasTank = await CreatorGasTank.deploy(
-      await entryPoint.getAddress(),
       await usdc.getAddress(),
       ethers.parseEther("0.01"),
       3600,
       ethers.parseUnits("1", 6),
-      ethers.ZeroAddress,
     );
 
     const GasTankFunder = await ethers.getContractFactory("GasTankFunder");
@@ -71,7 +65,7 @@ describe("GasTankFunder", function () {
 
     expect(await usdc.balanceOf(funder.address)).to.equal(0n);
     expect(await gasTank.tankBalance(creator.address)).to.equal(ethOut);
-    expect(await entryPoint.balanceOf(await gasTank.getAddress())).to.equal(ethOut);
+    expect(await ethers.provider.getBalance(await gasTank.getAddress())).to.equal(ethOut);
 
     const lastParams = await router.lastParams();
     expect(lastParams.tokenIn).to.equal(await usdc.getAddress());

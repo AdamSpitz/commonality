@@ -21,7 +21,9 @@ export const ENTRY_POINT_V06_ADDRESS = getAddress('0x5FF137D4b0FDCD49DcA30c7CF57
 
 export interface SponsoredGasPaymasterConfig {
   creatorGasTankAddress?: Address;
+  creatorGasTankPaymasterV06Address?: Address;
   statementGasTankAddress?: Address;
+  statementGasTankPaymasterV06Address?: Address;
   beliefsAddress?: Address;
 }
 
@@ -52,12 +54,13 @@ export function handleSponsoredGasPaymasterRpc(body: unknown, config: SponsoredG
     }
     const sponsored = inferSponsoredCall(userOperation.callData, config);
     const entryPoint = parseEntryPoint(request.params?.[1]);
+    const paymaster = paymasterForEntryPoint(sponsored.paymaster, entryPoint, config);
     if (entryPoint === ENTRY_POINT_V06_ADDRESS) {
       return {
         jsonrpc: '2.0',
         id,
         result: {
-          paymasterAndData: concat([sponsored.paymaster, sponsored.paymasterData]),
+          paymasterAndData: concat([paymaster, sponsored.paymasterData]),
         },
       };
     }
@@ -65,7 +68,7 @@ export function handleSponsoredGasPaymasterRpc(body: unknown, config: SponsoredG
       jsonrpc: '2.0',
       id,
       result: {
-        paymaster: sponsored.paymaster,
+        paymaster,
         paymasterData: sponsored.paymasterData,
         paymasterVerificationGasLimit: toQuantity(PAYMASTER_VERIFICATION_GAS_LIMIT),
         paymasterPostOpGasLimit: toQuantity(PAYMASTER_POST_OP_GAS_LIMIT),
@@ -285,4 +288,19 @@ function toQuantity(value: bigint): Hex {
 function parseEntryPoint(value: unknown): Address | undefined {
   if (typeof value !== 'string' || !isAddress(value)) return undefined;
   return getAddress(value);
+}
+
+function paymasterForEntryPoint(
+  defaultPaymaster: Address,
+  entryPoint: Address | undefined,
+  config: SponsoredGasPaymasterConfig,
+): Address {
+  if (entryPoint !== ENTRY_POINT_V06_ADDRESS) return defaultPaymaster;
+  const v06 = defaultPaymaster === config.statementGasTankAddress
+    ? config.statementGasTankPaymasterV06Address
+    : config.creatorGasTankPaymasterV06Address;
+  if (!v06) {
+    throw new HttpError(503, 'entrypoint_v06_not_configured', 'EntryPoint v0.6 paymaster is not configured.');
+  }
+  return v06;
 }

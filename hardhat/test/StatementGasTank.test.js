@@ -31,7 +31,7 @@ function userOp(sender, callData, paymasterAndData) {
 }
 
 describe("StatementGasTank", function () {
-  let deployer, sponsor, otherSponsor, wallet, beliefs, stranger, entryPoint, gasTank;
+  let deployer, sponsor, otherSponsor, wallet, beliefs, stranger, entryPoint, gasTank, paymaster;
   let accountInterface, coinbaseInterface, kernelInterface, beliefsInterface;
 
   beforeEach(async function () {
@@ -42,12 +42,13 @@ describe("StatementGasTank", function () {
 
     const StatementGasTank = await ethers.getContractFactory("StatementGasTank");
     gasTank = await StatementGasTank.deploy(
-      await entryPoint.getAddress(),
       beliefs.address,
       ethers.parseEther("0.01"),
       3600,
-      ethers.ZeroAddress,
     );
+    const StatementGasTankPaymaster = await ethers.getContractFactory("StatementGasTankPaymaster");
+    paymaster = await StatementGasTankPaymaster.deploy(await entryPoint.getAddress(), await gasTank.getAddress());
+    await gasTank.addPaymasterFace(await paymaster.getAddress());
 
     accountInterface = new ethers.Interface([
       "function execute(address dest,uint256 value,bytes func)",
@@ -96,17 +97,18 @@ describe("StatementGasTank", function () {
     return userOp(
       wallet.address,
       accountCall,
-      paymasterData(await gasTank.getAddress(), statementId),
+      paymasterData(await paymaster.getAddress(), statementId),
     );
   }
 
-  it("funds a sponsor tank and forwards ETH into the EntryPoint deposit", async function () {
+  it("funds a sponsor tank on the vault without parking ETH on an EntryPoint", async function () {
     const amount = ethers.parseEther("0.005");
     await expect(gasTank.connect(stranger).fundTank(sponsor.address, { value: amount }))
       .to.emit(gasTank, "TankFunded")
       .withArgs(stranger.address, sponsor.address, amount);
     expect(await gasTank.tankBalance(sponsor.address)).to.equal(amount);
-    expect(await entryPoint.balanceOf(await gasTank.getAddress())).to.equal(amount);
+    expect(await ethers.provider.getBalance(await gasTank.getAddress())).to.equal(amount);
+    expect(await entryPoint.balanceOf(await paymaster.getAddress())).to.equal(0n);
   });
 
   it("lets a sponsor enroll a statement once", async function () {
@@ -125,7 +127,7 @@ describe("StatementGasTank", function () {
       [beliefs.address, 0, setBeliefCall(STATEMENT_A)],
     ]]);
     const op = await signedOp(accountCall);
-    const result = await entryPoint.validatePaymasterUserOp.staticCall(gasTank, op, ethers.parseEther("0.001"));
+    const result = await entryPoint.validatePaymasterUserOp.staticCall(paymaster, op, ethers.parseEther("0.001"));
     expect(result.validationData).to.equal(0);
   });
 
@@ -133,7 +135,7 @@ describe("StatementGasTank", function () {
     await fundAndEnroll();
     const accountCall = kernelV3Single(beliefs.address, 0, setBeliefCall(STATEMENT_A));
     const result = await entryPoint.validatePaymasterUserOp.staticCall(
-      gasTank,
+      paymaster,
       await signedOp(accountCall),
       ethers.parseEther("0.001"),
     );
@@ -155,7 +157,7 @@ describe("StatementGasTank", function () {
       },
     ]);
     const result = await entryPoint.validatePaymasterUserOp.staticCall(
-      gasTank,
+      paymaster,
       await signedOp(accountCall, STATEMENT_B),
       ethers.parseEther("0.001"),
     );
@@ -167,26 +169,26 @@ describe("StatementGasTank", function () {
     await gasTank.connect(otherSponsor).enroll(STATEMENT_C);
 
     await expect(entryPoint.validatePaymasterUserOp(
-      gasTank,
+      paymaster,
       await signedOp(kernelV3Single(beliefs.address, 0, setBeliefCall(STATEMENT_A, DISBELIEVES))),
       ethers.parseEther("0.001"),
     )).to.be.revertedWithCustomError(gasTank, "SponsoredBeliefMustBeSupport").withArgs(DISBELIEVES);
 
     await expect(entryPoint.validatePaymasterUserOp(
-      gasTank,
+      paymaster,
       await signedOp(kernelV3Single(beliefs.address, 0, setBeliefCall(STATEMENT_A)), STATEMENT_B),
       ethers.parseEther("0.001"),
     )).to.be.revertedWithCustomError(gasTank, "StatementNotEnrolled");
 
     await gasTank.connect(sponsor).enroll(STATEMENT_B);
     await expect(entryPoint.validatePaymasterUserOp(
-      gasTank,
+      paymaster,
       await signedOp(kernelV3Single(beliefs.address, 0, setBeliefCall(STATEMENT_B)), STATEMENT_A),
       ethers.parseEther("0.001"),
     )).to.be.revertedWithCustomError(gasTank, "AnchorStatementMissing").withArgs(STATEMENT_A);
 
     await expect(entryPoint.validatePaymasterUserOp(
-      gasTank,
+      paymaster,
       await signedOp(kernelV3Batch([
         { target: beliefs.address, value: 0, callData: setBeliefCall(STATEMENT_A) },
         { target: beliefs.address, value: 0, callData: setBeliefCall(STATEMENT_C) },
@@ -195,7 +197,7 @@ describe("StatementGasTank", function () {
     )).to.be.revertedWithCustomError(gasTank, "StatementSponsorMismatch");
 
     await expect(entryPoint.validatePaymasterUserOp(
-      gasTank,
+      paymaster,
       await signedOp(accountInterface.encodeFunctionData("execute", [
         stranger.address,
         0,
@@ -209,15 +211,15 @@ describe("StatementGasTank", function () {
     await fundAndEnroll();
     await gasTank.connect(deployer).setSponsorshipConfig(ethers.parseEther("0.002"), 3600);
     const op = await signedOp(kernelV3Single(beliefs.address, 0, setBeliefCall(STATEMENT_A)));
-    const { context } = await entryPoint.validatePaymasterUserOp.staticCall(gasTank, op, ethers.parseEther("0.0015"));
+    const { context } = await entryPoint.validatePaymasterUserOp.staticCall(paymaster, op, ethers.parseEther("0.0015"));
     expect(context).to.equal("0x");
 
-    await expect(entryPoint.validatePaymasterUserOp(gasTank, op, ethers.parseEther("0.0015")))
+    await expect(entryPoint.validatePaymasterUserOp(paymaster, op, ethers.parseEther("0.0015")))
       .to.emit(gasTank, "TankDebited")
       .withArgs(sponsor.address, wallet.address, ethers.parseEther("0.0015"));
 
     expect(await gasTank.tankBalance(sponsor.address)).to.equal(ethers.parseEther("0.0185"));
-    await expect(entryPoint.validatePaymasterUserOp(gasTank, op, ethers.parseEther("0.001")))
+    await expect(entryPoint.validatePaymasterUserOp(paymaster, op, ethers.parseEther("0.001")))
       .to.be.revertedWithCustomError(gasTank, "WalletCapExceeded");
   });
 
@@ -226,8 +228,8 @@ describe("StatementGasTank", function () {
     await gasTank.connect(otherSponsor).enroll(STATEMENT_B);
     await gasTank.fundTank(otherSponsor.address, { value: ethers.parseEther("0.02") });
     const op = await signedOp(kernelV3Single(beliefs.address, 0, setBeliefCall(STATEMENT_A)));
-    await entryPoint.validatePaymasterUserOp(gasTank, op, ethers.parseEther("0.001"));
-    await expect(entryPoint.validatePaymasterUserOp(gasTank, op, ethers.parseEther("0.001")))
+    await entryPoint.validatePaymasterUserOp(paymaster, op, ethers.parseEther("0.001"));
+    await expect(entryPoint.validatePaymasterUserOp(paymaster, op, ethers.parseEther("0.001")))
       .to.be.revertedWithCustomError(gasTank, "InsufficientTankBalance");
     expect(await gasTank.tankBalance(otherSponsor.address)).to.equal(ethers.parseEther("0.02"));
   });
@@ -242,7 +244,7 @@ describe("StatementGasTank", function () {
       [kernelV3Single(beliefs.address, 0, beliefsInterface.encodeFunctionData("setBeliefsInBatch", [[], []])), "EmptySponsoredBatch"],
     ];
     for (const [call, error] of cases) {
-      await expect(entryPoint.validatePaymasterUserOp(gasTank, await signedOp(call), 1000))
+      await expect(entryPoint.validatePaymasterUserOp(paymaster, await signedOp(call), 1000))
         .to.be.revertedWithCustomError(gasTank, error);
     }
     expect(await gasTank.tankBalance(sponsor.address)).to.equal(ethers.parseEther("0.02"));
@@ -252,12 +254,12 @@ describe("StatementGasTank", function () {
     await fundAndEnroll();
     await gasTank.setSponsorshipConfig(1000, 3600);
     const op = await signedOp(kernelV3Single(beliefs.address, 0, setBeliefCall(STATEMENT_A)));
-    await entryPoint.validatePaymasterUserOp(gasTank, op, 1000);
-    await expect(entryPoint.validatePaymasterUserOp(gasTank, op, 1))
+    await entryPoint.validatePaymasterUserOp(paymaster, op, 1000);
+    await expect(entryPoint.validatePaymasterUserOp(paymaster, op, 1))
       .to.be.revertedWithCustomError(gasTank, "WalletCapExceeded");
     await ethers.provider.send("evm_increaseTime", [3600]);
     await ethers.provider.send("evm_mine", []);
-    await entryPoint.validatePaymasterUserOp(gasTank, op, 600);
+    await entryPoint.validatePaymasterUserOp(paymaster, op, 600);
     expect((await gasTank.walletUsage(sponsor.address, wallet.address)).sponsoredWei).to.equal(600);
     expect(await gasTank.tankBalance(sponsor.address)).to.equal(ethers.parseEther("0.02") - 1600n);
   });

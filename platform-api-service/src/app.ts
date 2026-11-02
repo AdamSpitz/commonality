@@ -178,7 +178,9 @@ export function createApp(
   app.post('/sponsored-gas/paymaster', onrampLimiter, (req: Request, res: Response) => {
     res.json(handleSponsoredGasPaymasterRpc(req.body, {
       creatorGasTankAddress: config.creatorGasTankAddress,
+      creatorGasTankPaymasterV06Address: config.creatorGasTankPaymasterV06Address,
       statementGasTankAddress: config.statementGasTankAddress,
+      statementGasTankPaymasterV06Address: config.statementGasTankPaymasterV06Address,
       beliefsAddress: config.beliefsAddress,
     }));
   });
