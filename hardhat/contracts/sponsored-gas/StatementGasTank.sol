@@ -35,12 +35,14 @@ contract StatementGasTank is Ownable {
 
   SponsorshipConfig public sponsorshipConfig;
   address public immutable beliefs;
+  uint256 public faceDepositFloor;
 
   event TankFunded(address indexed funder, address indexed sponsor, uint256 amount);
   event StatementEnrolled(address indexed sponsor, bytes32 indexed statementId);
   event SponsorshipConfigUpdated(uint192 maxSponsoredWeiPerWalletPerWindow, uint32 walletWindowSeconds);
   event TankDebited(address indexed sponsor, address indexed wallet, uint256 amount);
   event PaymasterFaceAdded(address indexed face, address indexed entryPoint);
+  event FaceDepositFloorUpdated(uint256 floor);
 
   error EmptyTankFunding();
   error InvalidSponsor();
@@ -69,6 +71,7 @@ contract StatementGasTank is Ownable {
     if (beliefs_ == address(0)) revert InvalidBeliefs();
     beliefs = beliefs_;
     _setSponsorshipConfig(maxSponsoredWeiPerWalletPerWindow_, walletWindowSeconds_);
+    _setFaceDepositFloor(0.001 ether);
   }
 
   receive() external payable {}
@@ -78,6 +81,7 @@ contract StatementGasTank is Ownable {
     if (msg.value == 0) revert EmptyTankFunding();
     tankBalance[sponsor] += msg.value;
     emit TankFunded(msg.sender, sponsor, msg.value);
+    GasTankEntryPointDeposits.topUpToFloor(paymasterFaces, faceDepositFloor);
   }
 
   function enroll(bytes32 statementId) external {
@@ -96,6 +100,7 @@ contract StatementGasTank is Ownable {
     isPaymaster[face] = true;
     paymasterFaces.push(face);
     emit PaymasterFaceAdded(face, address(ep));
+    GasTankEntryPointDeposits.topUp(face, faceDepositFloor);
   }
 
   function setSponsorshipConfig(
@@ -103,6 +108,25 @@ contract StatementGasTank is Ownable {
     uint32 walletWindowSeconds
   ) external onlyOwner {
     _setSponsorshipConfig(maxSponsoredWeiPerWalletPerWindow, walletWindowSeconds);
+  }
+
+  function setFaceDepositFloor(uint256 floor) external onlyOwner {
+    _setFaceDepositFloor(floor);
+    GasTankEntryPointDeposits.topUpToFloor(paymasterFaces, floor);
+  }
+
+  function replenishFaceDeposits() external {
+    GasTankEntryPointDeposits.topUpToFloor(paymasterFaces, faceDepositFloor);
+  }
+
+  function rebalanceFaceDeposits() external onlyOwner {
+    GasTankEntryPointDeposits.pullDownToFloor(paymasterFaces, faceDepositFloor);
+    GasTankEntryPointDeposits.topUpToFloor(paymasterFaces, faceDepositFloor);
+  }
+
+  function topUpFace(address face, uint256 target) external onlyOwner {
+    if (!isPaymaster[face]) revert NotPaymasterFace();
+    GasTankEntryPointDeposits.topUp(face, target);
   }
 
   function validateStatementUserOp(
@@ -118,12 +142,6 @@ contract StatementGasTank is Ownable {
 
     _validateWalletCap(sponsor, sender, maxCost);
     _validateAccountCall(sponsor, anchor, callData);
-    GasTankEntryPointDeposits.ensureDeposit(
-      IGasTankPaymasterFace(msg.sender).entryPoint(),
-      msg.sender,
-      paymasterFaces,
-      maxCost
-    );
 
     tankBalance[sponsor] -= maxCost;
     _recordWalletUsage(sponsor, sender, maxCost);
@@ -140,6 +158,11 @@ contract StatementGasTank is Ownable {
       walletWindowSeconds: walletWindowSeconds
     });
     emit SponsorshipConfigUpdated(maxSponsoredWeiPerWalletPerWindow, walletWindowSeconds);
+  }
+
+  function _setFaceDepositFloor(uint256 floor) private {
+    faceDepositFloor = floor;
+    emit FaceDepositFloorUpdated(floor);
   }
 
   function _validateWalletCap(address sponsor, address wallet, uint256 requested) private view {

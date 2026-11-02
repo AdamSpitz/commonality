@@ -4,38 +4,37 @@ pragma solidity 0.8.33;
 import {IEntryPoint} from "@account-abstraction/contracts/interfaces/IEntryPoint.sol";
 import {IGasTankPaymasterFace} from "./IGasTankPaymasterFace.sol";
 
-/// @dev Keep ETH on the vault. Each paymaster face has its own EntryPoint deposit.
+/// @dev Keep the treasury on the vault. Each paymaster face holds a small EntryPoint float.
+///      Top-ups must happen before handleOps; EntryPoint reserves deposit before validation.
 library GasTankEntryPointDeposits {
-  function ensureDeposit(
-    IEntryPoint targetEp,
-    address paymaster,
-    address[] storage faces,
-    uint256 amount
-  ) internal {
-    if (amount == 0 || paymaster == address(0) || address(targetEp) == address(0)) return;
-    uint256 have = targetEp.balanceOf(paymaster);
-    if (have >= amount) return;
-    uint256 need = amount - have;
-    if (address(this).balance < need) {
-      _pullFromPeers(faces, paymaster, need - address(this).balance);
+  function topUpToFloor(address[] storage faces, uint256 floor) internal {
+    if (floor == 0) return;
+    for (uint256 i = 0; i < faces.length; i++) {
+      topUp(faces[i], floor);
+      if (address(this).balance == 0) return;
     }
-    uint256 toDeposit = address(this).balance;
-    if (toDeposit > need) toDeposit = need;
-    if (toDeposit == 0) return;
-    targetEp.depositTo{value: toDeposit}(paymaster);
   }
 
-  function _pullFromPeers(address[] storage faces, address recipient, uint256 amount) private {
-    uint256 remaining = amount;
-    for (uint256 i = 0; i < faces.length && remaining > 0; i++) {
+  function topUp(address face, uint256 target) internal {
+    if (face == address(0) || target == 0) return;
+    IEntryPoint ep = IGasTankPaymasterFace(face).entryPoint();
+    if (address(ep) == address(0)) return;
+    uint256 have = ep.balanceOf(face);
+    if (have >= target) return;
+    uint256 need = target - have;
+    uint256 send = address(this).balance;
+    if (send > need) send = need;
+    if (send == 0) return;
+    ep.depositTo{value: send}(face);
+  }
+
+  function pullDownToFloor(address[] storage faces, uint256 floor) internal {
+    for (uint256 i = 0; i < faces.length; i++) {
       address face = faces[i];
-      if (face == recipient) continue;
       IEntryPoint ep = IGasTankPaymasterFace(face).entryPoint();
-      uint256 peerBal = ep.balanceOf(face);
-      if (peerBal == 0) continue;
-      uint256 pull = peerBal < remaining ? peerBal : remaining;
-      IGasTankPaymasterFace(face).releaseDeposit(pull);
-      remaining -= pull;
+      uint256 have = ep.balanceOf(face);
+      if (have <= floor) continue;
+      IGasTankPaymasterFace(face).releaseDeposit(have - floor);
     }
   }
 }

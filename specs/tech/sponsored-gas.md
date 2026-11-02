@@ -130,7 +130,9 @@ themselves, or supporters who believe in Commonality / a cause.
 
 **One pot per tank type across EntryPoint versions (Adam, 2026-11-02).** Base Account uses
 EntryPoint v0.6; Kernel / tests use v0.7. Funders call `fundTank` on the vault. Each EntryPoint
-version is a paymaster adapter on even footing; ETH is deposited to whichever face is validating.
+version is a paymaster adapter on even footing. Accounting (`tankBalance`) stays on the vault.
+EntryPoint requires a paymaster deposit *before* validation, so `fundTank` (and `addPaymasterFace` /
+`replenishFaceDeposits`) tops each face up to `faceDepositFloor`. Validation does not move ETH.
 See [wallet-without-privy-plan.md](./wallet-without-privy-plan.md) Phase 3b.
 
 **Commonality (Adam) will NOT be the initial funder — intended posture, not a contract rule.** A

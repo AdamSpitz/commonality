@@ -82,10 +82,11 @@ Done on this branch: `wallet_getCapabilities` + `VITE_SPONSORED_GAS_PAYMASTER_UR
 alongside ERC-7579. Unknown formats still revert or 400.
 
 3b. **v0.6 EntryPoint faces, one pot (Adam, 2026-11-02).** `CreatorGasTank` / `StatementGasTank`
-are vaults: `fundTank`, enrollment, caps, decoder policy, one `tankBalance`. ETH stays on the vault.
-Each EntryPoint version is a thin paymaster adapter (`CreatorGasTankPaymaster` / `…V06`, same for
-statements) that deposits into **its** EntryPoint from the vault. Faces are peers: if a face is
-short, the vault can pull unused deposit from another face. ERC-7677 returns `paymasterAndData`
+are vaults: `fundTank`, enrollment, caps, decoder policy, one `tankBalance`. The treasury stays on
+the vault. Each EntryPoint version is a thin paymaster adapter (`CreatorGasTankPaymaster` / `…V06`,
+same for statements). Funding tops each face's EntryPoint deposit up to `faceDepositFloor` so
+bundlers never see AA31. Owner `rebalanceFaceDeposits` can pull surplus back to the floor and restock
+a dry face. Do not transfer ETH inside `validatePaymasterUserOp`. ERC-7677 returns `paymasterAndData`
 when `params[1]` is EntryPoint v0.6, using `CREATOR_GAS_TANK_PAYMASTER_V06_ADDRESS` (and statement
 equivalent). Set `SPONSORED_GAS_ENTRY_POINT_V06_ADDRESS` on deploy.
 Still needed: redeploy to Base Sepolia.

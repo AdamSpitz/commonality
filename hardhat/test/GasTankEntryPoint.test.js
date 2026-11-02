@@ -26,9 +26,7 @@ describe("Gas tank real EntryPoint prefunding", function () {
       expect((await ep.getDepositInfo(face)).stake).to.equal(0n);
     });
 
-    // Known blocker for PR #229. After fixing prefunding, replace the AA31
-    // expectation with a successful UserOperationEvent assertion.
-    it(`${kind} reproduces AA31 despite a funded vault (unresolved PR #229 blocker)`, async function () {
+    it(`${kind} v0.7 face sponsors an operation when the vault has prefunded the EntryPoint deposit`, async function () {
       const [owner, target] = await ethers.getSigners();
       const ep = await new ethers.ContractFactory(entryPointArtifact.abi, entryPointArtifact.bytecode, owner).deploy();
       const account = await (await ethers.getContractFactory("GasTankTestAccount")).deploy();
@@ -39,6 +37,7 @@ describe("Gas tank real EntryPoint prefunding", function () {
       const anchor = kind === "Creator" ? target.address : ethers.id("statement");
       await tank.enroll(anchor);
       await tank.fundTank(owner.address, { value: ethers.parseEther("0.02") });
+      expect(await ep.balanceOf(face)).to.equal(await tank.faceDepositFloor());
       const inner = kind === "Creator"
         ? new ethers.Interface(["function buyERC1155(address,address,uint256[],uint256[],bytes)"]).encodeFunctionData("buyERC1155", [await account.getAddress(), target.address, [1], [1], "0x"])
         : new ethers.Interface(["function setBelief(bytes32,uint8)"]).encodeFunctionData("setBelief", [anchor, 1]);
@@ -54,9 +53,32 @@ describe("Gas tank real EntryPoint prefunding", function () {
         ),
         signature: "0x",
       };
-      await expect(ep.handleOps([op], owner.address))
-        .to.be.revertedWithCustomError(ep, "FailedOp")
-        .withArgs(0, "AA31 paymaster deposit too low");
+      const tx = await ep.handleOps([op], owner.address);
+      const receipt = await tx.wait();
+      const parsed = receipt.logs
+        .map((log) => { try { return ep.interface.parseLog(log); } catch { return null; } })
+        .find((ev) => ev && ev.name === "UserOperationEvent");
+      expect(parsed).to.not.equal(undefined);
+      expect(parsed.args.success).to.equal(true);
     });
   }
+
+  it("v0.6 mock face is topped up on fund and when added after funding", async function () {
+    const [owner, target] = await ethers.getSigners();
+    const MockEntryPoint = await ethers.getContractFactory("MockEntryPoint");
+    const ep06 = await MockEntryPoint.deploy();
+    const ep07 = await MockEntryPoint.deploy();
+    const tank = await (await ethers.getContractFactory("CreatorGasTank")).deploy(
+      target.address, ethers.parseEther("1"), 3600, 0,
+    );
+    const face07 = await (await ethers.getContractFactory("CreatorGasTankPaymaster")).deploy(ep07, tank);
+    await tank.addPaymasterFace(face07);
+    await tank.fundTank(owner.address, { value: ethers.parseEther("0.05") });
+    const floor = await tank.faceDepositFloor();
+    expect(await ep07.balanceOf(face07)).to.equal(floor);
+    const face06 = await (await ethers.getContractFactory("CreatorGasTankPaymasterV06")).deploy(ep06, tank);
+    await tank.addPaymasterFace(face06);
+    expect(await ep06.balanceOf(face06)).to.equal(floor);
+    expect(await ethers.provider.getBalance(await tank.getAddress())).to.equal(ethers.parseEther("0.05") - floor - floor);
+  });
 });

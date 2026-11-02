@@ -101,14 +101,15 @@ describe("StatementGasTank", function () {
     );
   }
 
-  it("funds a sponsor tank on the vault without parking ETH on an EntryPoint", async function () {
+  it("funds a sponsor tank and tops the paymaster face up to the deposit floor", async function () {
     const amount = ethers.parseEther("0.005");
     await expect(gasTank.connect(stranger).fundTank(sponsor.address, { value: amount }))
       .to.emit(gasTank, "TankFunded")
       .withArgs(stranger.address, sponsor.address, amount);
+    const floor = await gasTank.faceDepositFloor();
     expect(await gasTank.tankBalance(sponsor.address)).to.equal(amount);
-    expect(await ethers.provider.getBalance(await gasTank.getAddress())).to.equal(amount);
-    expect(await entryPoint.balanceOf(await paymaster.getAddress())).to.equal(0n);
+    expect(await entryPoint.balanceOf(await paymaster.getAddress())).to.equal(floor);
+    expect(await ethers.provider.getBalance(await gasTank.getAddress())).to.equal(amount - floor);
   });
 
   it("lets a sponsor enroll a statement once", async function () {

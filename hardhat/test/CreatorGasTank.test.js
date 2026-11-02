@@ -104,16 +104,17 @@ describe("CreatorGasTank", function () {
     return accountInterface.encodeFunctionData("execute", [project.address, 0, buyCall]);
   }
 
-  it("funds a creator tank on the vault without parking ETH on an EntryPoint", async function () {
+  it("funds a creator tank and tops the paymaster face up to the deposit floor", async function () {
     const amount = ethers.parseEther("0.005");
+    const floor = await gasTank.faceDepositFloor();
 
     await expect(gasTank.connect(attacker).fundTank(creator.address, { value: amount }))
       .to.emit(gasTank, "TankFunded")
       .withArgs(attacker.address, creator.address, amount);
 
     expect(await gasTank.tankBalance(creator.address)).to.equal(amount);
-    expect(await ethers.provider.getBalance(await gasTank.getAddress())).to.equal(amount);
-    expect(await entryPoint.balanceOf(await paymaster.getAddress())).to.equal(0n);
+    expect(await entryPoint.balanceOf(await paymaster.getAddress())).to.equal(floor);
+    expect(await ethers.provider.getBalance(await gasTank.getAddress())).to.equal(amount - floor);
   });
 
   it("lets a creator self-enroll a project once", async function () {
@@ -296,7 +297,7 @@ describe("CreatorGasTank", function () {
       .to.be.revertedWithCustomError(gasTank, "WalletCapExceeded");
   });
 
-  it("deposits to the v0.6 face from the vault, then can pull peer-face deposits", async function () {
+  it("splits the deposit floor across v0.6 and v0.7 faces on fund, without moving ETH in validation", async function () {
     const MockEntryPoint = await ethers.getContractFactory("MockEntryPoint");
     const entryPointV06 = await MockEntryPoint.deploy();
     const CreatorGasTankPaymasterV06 = await ethers.getContractFactory("CreatorGasTankPaymasterV06");
@@ -307,7 +308,10 @@ describe("CreatorGasTank", function () {
     await gasTank.addPaymasterFace(await paymasterV06.getAddress());
     await fundAndEnroll();
     const amount = ethers.parseEther("0.02");
-    expect(await ethers.provider.getBalance(await gasTank.getAddress())).to.equal(amount);
+    const floor = await gasTank.faceDepositFloor();
+    expect(await entryPoint.balanceOf(await paymaster.getAddress())).to.equal(floor);
+    expect(await entryPointV06.balanceOf(await paymasterV06.getAddress())).to.equal(floor);
+    expect(await ethers.provider.getBalance(await gasTank.getAddress())).to.equal(amount - floor - floor);
 
     const paymasterAndData = ethers.solidityPacked(
       ["address", "address"],
@@ -330,8 +334,7 @@ describe("CreatorGasTank", function () {
     const result = await entryPointV06.validatePaymasterUserOpV06.staticCall(paymasterV06, opV06, maxCost);
     expect(result.validationData).to.equal(0);
     await entryPointV06.validatePaymasterUserOpV06(paymasterV06, opV06, maxCost);
-    expect(await entryPointV06.balanceOf(await paymasterV06.getAddress())).to.equal(maxCost);
-    expect(await ethers.provider.getBalance(await gasTank.getAddress())).to.equal(amount - maxCost);
-    expect(await entryPoint.balanceOf(await paymaster.getAddress())).to.equal(0n);
+    expect(await entryPointV06.balanceOf(await paymasterV06.getAddress())).to.equal(floor);
+    expect(await ethers.provider.getBalance(await gasTank.getAddress())).to.equal(amount - floor - floor);
   });
 });

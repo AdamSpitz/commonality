@@ -49,6 +49,7 @@ contract CreatorGasTank is Ownable {
   SponsorshipConfig public sponsorshipConfig;
   address public immutable settlementToken;
   uint256 public minSponsoredContributionAmount;
+  uint256 public faceDepositFloor;
 
   event TankFunded(address indexed funder, address indexed creator, uint256 amount);
   event ProjectEnrolled(address indexed creator, address indexed project);
@@ -56,6 +57,7 @@ contract CreatorGasTank is Ownable {
   event MinSponsoredContributionAmountUpdated(uint256 minSponsoredContributionAmount);
   event TankDebited(address indexed creator, address indexed wallet, uint256 amount);
   event PaymasterFaceAdded(address indexed face, address indexed entryPoint);
+  event FaceDepositFloorUpdated(uint256 floor);
 
   error EmptyTankFunding();
   error InvalidProject();
@@ -82,6 +84,7 @@ contract CreatorGasTank is Ownable {
     settlementToken = settlementToken_;
     _setSponsorshipConfig(maxSponsoredWeiPerWalletPerWindow_, walletWindowSeconds_);
     _setMinSponsoredContributionAmount(minSponsoredContributionAmount_);
+    _setFaceDepositFloor(0.001 ether);
   }
 
   receive() external payable {}
@@ -91,6 +94,7 @@ contract CreatorGasTank is Ownable {
     if (msg.value == 0) revert EmptyTankFunding();
     tankBalance[creator] += msg.value;
     emit TankFunded(msg.sender, creator, msg.value);
+    GasTankEntryPointDeposits.topUpToFloor(paymasterFaces, faceDepositFloor);
   }
 
   function enroll(address project) external {
@@ -109,6 +113,7 @@ contract CreatorGasTank is Ownable {
     isPaymaster[face] = true;
     paymasterFaces.push(face);
     emit PaymasterFaceAdded(face, address(ep));
+    GasTankEntryPointDeposits.topUp(face, faceDepositFloor);
   }
 
   function setSponsorshipConfig(
@@ -122,12 +127,31 @@ contract CreatorGasTank is Ownable {
     _setMinSponsoredContributionAmount(minSponsoredContributionAmount_);
   }
 
+  function setFaceDepositFloor(uint256 floor) external onlyOwner {
+    _setFaceDepositFloor(floor);
+    GasTankEntryPointDeposits.topUpToFloor(paymasterFaces, floor);
+  }
+
+  function replenishFaceDeposits() external {
+    GasTankEntryPointDeposits.topUpToFloor(paymasterFaces, faceDepositFloor);
+  }
+
+  function rebalanceFaceDeposits() external onlyOwner {
+    GasTankEntryPointDeposits.pullDownToFloor(paymasterFaces, faceDepositFloor);
+    GasTankEntryPointDeposits.topUpToFloor(paymasterFaces, faceDepositFloor);
+  }
+
+  function topUpFace(address face, uint256 target) external onlyOwner {
+    if (!isPaymaster[face]) revert NotPaymasterFace();
+    GasTankEntryPointDeposits.topUp(face, target);
+  }
+
   function validateCreatorUserOp(
     address project,
     address sender,
     bytes calldata callData,
     uint256 maxCost
-  ) external returns (bytes memory context) {
+  ) external view returns (bytes memory context) {
     if (!isPaymaster[msg.sender]) revert NotPaymasterFace();
     address creator = creatorOf[project];
     if (creator == address(0)) revert ProjectNotEnrolled(project);
@@ -135,12 +159,6 @@ contract CreatorGasTank is Ownable {
 
     _validateWalletCap(creator, sender, maxCost);
     _validateAccountCall(project, callData);
-    GasTankEntryPointDeposits.ensureDeposit(
-      IGasTankPaymasterFace(msg.sender).entryPoint(),
-      msg.sender,
-      paymasterFaces,
-      maxCost
-    );
     return abi.encode(creator, sender);
   }
 
@@ -170,6 +188,11 @@ contract CreatorGasTank is Ownable {
   function _setMinSponsoredContributionAmount(uint256 minSponsoredContributionAmount_) private {
     minSponsoredContributionAmount = minSponsoredContributionAmount_;
     emit MinSponsoredContributionAmountUpdated(minSponsoredContributionAmount_);
+  }
+
+  function _setFaceDepositFloor(uint256 floor) private {
+    faceDepositFloor = floor;
+    emit FaceDepositFloorUpdated(floor);
   }
 
   function _validateWalletCap(address creator, address wallet, uint256 requested) private view {
