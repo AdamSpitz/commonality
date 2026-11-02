@@ -27,7 +27,7 @@ function userOp(sender, callData, paymasterAndData) {
 
 describe("CreatorGasTank", function () {
   let deployer, creator, wallet, attacker, project, settlementToken, entryPoint, gasTank, mockMarket;
-  let accountInterface, kernelInterface, marketInterface, erc20Interface, erc1155Interface;
+  let accountInterface, coinbaseInterface, kernelInterface, marketInterface, erc20Interface, erc1155Interface;
 
   beforeEach(async function () {
     [deployer, creator, wallet, attacker, project, settlementToken] = await ethers.getSigners();
@@ -52,6 +52,9 @@ describe("CreatorGasTank", function () {
       "function executeBatch(address[] dest,uint256[] value,bytes[] func)",
     ]);
     // Kernel v3 (ERC-7579) routes every execution through execute(bytes32 mode, bytes executionCalldata).
+    coinbaseInterface = new ethers.Interface([
+      "function executeBatch((address dest,uint256 value,bytes data)[] calls)",
+    ]);
     kernelInterface = new ethers.Interface([
       "function execute(bytes32 mode, bytes executionCalldata)",
     ]);
@@ -220,6 +223,25 @@ describe("CreatorGasTank", function () {
     ]);
     const batchOp = userOp(wallet.address, batchCall, paymasterData(await gasTank.getAddress(), project.address));
     expect((await entryPoint.validatePaymasterUserOp.staticCall(gasTank, batchOp, ethers.parseEther("0.001"))).validationData)
+      .to.equal(0);
+  });
+
+  it("validates Coinbase Smart Wallet executeBatch((address,uint256,bytes)[])", async function () {
+    await fundAndEnroll();
+    const approveCall = erc20Interface.encodeFunctionData("approve", [project.address, 123]);
+    const buyCall = marketInterface.encodeFunctionData("buyERC1155", [
+      wallet.address,
+      attacker.address,
+      [1],
+      [2],
+      "0x",
+    ]);
+    const accountCall = coinbaseInterface.encodeFunctionData("executeBatch", [[
+      [settlementToken.address, 0, approveCall],
+      [project.address, 0, buyCall],
+    ]]);
+    const op = userOp(wallet.address, accountCall, paymasterData(await gasTank.getAddress(), project.address));
+    expect((await entryPoint.validatePaymasterUserOp.staticCall(gasTank, op, ethers.parseEther("0.001"))).validationData)
       .to.equal(0);
   });
 

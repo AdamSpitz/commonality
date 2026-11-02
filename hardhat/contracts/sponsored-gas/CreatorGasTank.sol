@@ -18,10 +18,9 @@ interface IERC1155PrimaryMarketPricing {
 /**
  * @title CreatorGasTank
  * @notice ERC-4337 paymaster with per-creator gas tanks for sponsored contribution/refund flows.
- * @dev Supports the SimpleAccount execute/executeBatch calldata shape from the ERC-4337 reference
- *      contracts plus Kernel v3's ERC-7579 execute(bytes32,bytes) shape used by the Privy smart-wallet
- *      setup (Privy react-auth v3 + EntryPoint v0.7 = Kernel v3 / ERC-7579). See
- *      workflow/sponsored-gas-live-trace.md for how the account calldata format was confirmed.
+ * @dev Supports SimpleAccount execute/executeBatch, Coinbase Smart Wallet / Base Account
+ *      executeBatch((address,uint256,bytes)[]), and Kernel v3 ERC-7579 execute(bytes32,bytes).
+ *      See workflow/sponsored-gas-live-trace.md and specs/tech/sponsored-gas.md.
  */
 contract CreatorGasTank is BasePaymaster {
   uint256 private constant PAYMASTER_HEADER_LENGTH = 52;
@@ -31,6 +30,9 @@ contract CreatorGasTank is BasePaymaster {
     bytes4(keccak256("execute(address,uint256,bytes)"));
   bytes4 private constant SIMPLE_ACCOUNT_EXECUTE_BATCH_SELECTOR =
     bytes4(keccak256("executeBatch(address[],uint256[],bytes[])"));
+  // Base Account / Coinbase Smart Wallet: executeBatch((address dest, uint256 value, bytes data)[])
+  bytes4 private constant COINBASE_SMART_WALLET_EXECUTE_BATCH_SELECTOR =
+    bytes4(keccak256("executeBatch((address,uint256,bytes)[])"));
   // Kernel v3 routes every execution through the ERC-7579 execute(bytes32 mode, bytes executionCalldata)
   // entrypoint (selector 0xe9ae5c53). `mode`'s first byte is the ERC-7579 CallType; single vs batch is
   // determined by that byte, not by a distinct selector.
@@ -241,6 +243,18 @@ contract CreatorGasTank is BasePaymaster {
       for (uint256 i = 0; i < targets.length; i++) {
         uint256 value = values.length == 0 ? 0 : values[i];
         hasPrimaryAction = _validateSponsoredCall(project, targets[i], value, calls[i]) || hasPrimaryAction;
+      }
+      if (!hasPrimaryAction) revert MissingSponsoredPrimaryAction();
+      return;
+    }
+
+    if (accountSelector == COINBASE_SMART_WALLET_EXECUTE_BATCH_SELECTOR) {
+      KernelExecution[] memory executions = abi.decode(accountCallData[4:], (KernelExecution[]));
+      bool hasPrimaryAction = false;
+      for (uint256 i = 0; i < executions.length; i++) {
+        hasPrimaryAction =
+          _validateSponsoredCall(project, executions[i].target, executions[i].value, executions[i].callData) ||
+          hasPrimaryAction;
       }
       if (!hasPrimaryAction) revert MissingSponsoredPrimaryAction();
       return;

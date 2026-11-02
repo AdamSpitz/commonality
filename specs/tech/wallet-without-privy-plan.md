@@ -77,11 +77,9 @@ In progress: `wallet_getCapabilities` + `VITE_SPONSORED_GAS_PAYMASTER_URL` on `w
 
 ### Phase 3 — Account-family support in the tanks and the paymaster endpoint
 
-3a. **Coinbase / Base Account decoder.** Add `executeBatch((address,uint256,bytes)[])` decoding next to the
-existing SimpleAccount and ERC-7579 branches in `CreatorGasTank._validateAccountCall` and the equivalent in
-`StatementGasTank`. Teach `sponsoredGasPaymaster.ts` (which accepts only Kernel v3 today) the same formats.
-Keep ERC-7579, which covers Kernel v3, Biconomy Nexus and Safe7579. Unknown formats must still revert or 400.
-Test with real calldata captured in Phase 1.
+3a. **Coinbase / Base Account decoder.** Done on this branch: tanks and `sponsoredGasPaymaster.ts` decode
+`executeBatch((address,uint256,bytes)[])` plus SimpleAccount `execute` / `executeBatch(address[],uint256[],bytes[])`
+alongside ERC-7579. Unknown formats still revert or 400. v0.6 tank wrappers (3b) are still blocked on Adam.
 
 3b. **Only if Phase 1 says v0.6:** build v0.6 versions of both tanks. Pull the policy logic (tank balances,
 enrollment, caps, allowed selectors) into shared internal code. Each EntryPoint version gets a thin paymaster

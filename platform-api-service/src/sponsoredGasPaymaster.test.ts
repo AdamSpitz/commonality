@@ -125,6 +125,38 @@ describe('sponsored gas paymaster RPC', () => {
     assert.equal(inferSponsoredProject(kernelExecute(project, buyCall())), project);
   });
 
+  it('infers the sponsored project from SimpleAccount execute and Coinbase executeBatch', () => {
+    const simple = encodeFunctionData({
+      abi: [{ type: 'function', name: 'execute', inputs: [{ type: 'address' }, { type: 'uint256' }, { type: 'bytes' }], outputs: [], stateMutability: 'payable' }],
+      functionName: 'execute',
+      args: [project, 0n, buyCall()],
+    });
+    assert.equal(inferSponsoredProject(simple), project);
+
+    const coinbase = encodeFunctionData({
+      abi: [{
+        type: 'function',
+        name: 'executeBatch',
+        inputs: [{
+          type: 'tuple[]',
+          components: [
+            { name: 'target', type: 'address' },
+            { name: 'value', type: 'uint256' },
+            { name: 'data', type: 'bytes' },
+          ],
+        }],
+        outputs: [],
+        stateMutability: 'payable',
+      }],
+      functionName: 'executeBatch',
+      args: [[
+        { target: token, value: 0n, data: approveCall(project) },
+        { target: project, value: 0n, data: buyCall() },
+      ]],
+    });
+    assert.equal(inferSponsoredProject(coinbase), project);
+  });
+
   it('infers one project from an atomic approval and contribution batch', () => {
     assert.equal(inferSponsoredProject(kernelExecuteBatch([
       { target: token, callData: approveCall(project) },

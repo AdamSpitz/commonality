@@ -26,6 +26,8 @@ contract StatementGasTank is BasePaymaster {
     bytes4(keccak256("execute(address,uint256,bytes)"));
   bytes4 private constant SIMPLE_ACCOUNT_EXECUTE_BATCH_SELECTOR =
     bytes4(keccak256("executeBatch(address[],uint256[],bytes[])"));
+  bytes4 private constant COINBASE_SMART_WALLET_EXECUTE_BATCH_SELECTOR =
+    bytes4(keccak256("executeBatch((address,uint256,bytes)[])"));
   bytes4 private constant KERNEL_V3_EXECUTE_SELECTOR =
     bytes4(keccak256("execute(bytes32,bytes)"));
   bytes1 private constant ERC7579_CALLTYPE_SINGLE = 0x00;
@@ -207,6 +209,18 @@ contract StatementGasTank is BasePaymaster {
       for (uint256 i = 0; i < targets.length; i++) {
         uint256 value = values.length == 0 ? 0 : values[i];
         sawAnchor = _validateSponsoredCall(sponsor, anchor, targets[i], value, calls[i]) || sawAnchor;
+      }
+    } else if (accountSelector == COINBASE_SMART_WALLET_EXECUTE_BATCH_SELECTOR) {
+      KernelExecution[] memory executions = abi.decode(accountCallData[4:], (KernelExecution[]));
+      if (executions.length == 0) revert EmptySponsoredBatch();
+      for (uint256 i = 0; i < executions.length; i++) {
+        sawAnchor = _validateSponsoredCall(
+          sponsor,
+          anchor,
+          executions[i].target,
+          executions[i].value,
+          executions[i].callData
+        ) || sawAnchor;
       }
     } else if (accountSelector == KERNEL_V3_EXECUTE_SELECTOR) {
       (bytes32 mode, bytes memory executionCalldata) = abi.decode(accountCallData[4:], (bytes32, bytes));

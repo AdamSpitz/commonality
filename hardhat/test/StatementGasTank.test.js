@@ -32,7 +32,7 @@ function userOp(sender, callData, paymasterAndData) {
 
 describe("StatementGasTank", function () {
   let deployer, sponsor, otherSponsor, wallet, beliefs, stranger, entryPoint, gasTank;
-  let accountInterface, kernelInterface, beliefsInterface;
+  let accountInterface, coinbaseInterface, kernelInterface, beliefsInterface;
 
   beforeEach(async function () {
     [deployer, sponsor, otherSponsor, wallet, beliefs, stranger] = await ethers.getSigners();
@@ -51,6 +51,9 @@ describe("StatementGasTank", function () {
     accountInterface = new ethers.Interface([
       "function execute(address dest,uint256 value,bytes func)",
       "function executeBatch(address[] dest,uint256[] value,bytes[] func)",
+    ]);
+    coinbaseInterface = new ethers.Interface([
+      "function executeBatch((address dest,uint256 value,bytes data)[] calls)",
     ]);
     kernelInterface = new ethers.Interface([
       "function execute(bytes32 mode, bytes executionCalldata)",
@@ -113,6 +116,16 @@ describe("StatementGasTank", function () {
     await expect(gasTank.connect(otherSponsor).enroll(STATEMENT_A))
       .to.be.revertedWithCustomError(gasTank, "StatementAlreadyEnrolled")
       .withArgs(sponsor.address);
+  });
+
+  it("sponsors a Coinbase Smart Wallet executeBatch of setBelief", async function () {
+    await fundAndEnroll();
+    const accountCall = coinbaseInterface.encodeFunctionData("executeBatch", [[
+      [beliefs.address, 0, setBeliefCall(STATEMENT_A)],
+    ]]);
+    const op = await signedOp(accountCall);
+    const result = await entryPoint.validatePaymasterUserOp.staticCall(gasTank, op, ethers.parseEther("0.001"));
+    expect(result.validationData).to.equal(0);
   });
 
   it("sponsors a Kernel v3 setBelief of believes on an enrolled statement", async function () {

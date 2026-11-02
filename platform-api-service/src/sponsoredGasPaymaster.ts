@@ -2,6 +2,9 @@ import { decodeAbiParameters, decodeFunctionData, getAddress, isAddress, slice, 
 import { HttpError } from './errors.js';
 
 const KERNEL_V3_EXECUTE_SELECTOR = '0xe9ae5c53';
+const SIMPLE_ACCOUNT_EXECUTE_SELECTOR = toFunctionSelector('execute(address,uint256,bytes)');
+const SIMPLE_ACCOUNT_EXECUTE_BATCH_SELECTOR = toFunctionSelector('executeBatch(address[],uint256[],bytes[])');
+const COINBASE_SMART_WALLET_EXECUTE_BATCH_SELECTOR = toFunctionSelector('executeBatch((address,uint256,bytes)[])');
 const ERC7579_SINGLE_CALL_TYPE = 0;
 const ERC7579_BATCH_CALL_TYPE = 1;
 const ERC20_APPROVE_SELECTOR = '0x095ea7b3';
@@ -65,7 +68,7 @@ export function handleSponsoredGasPaymasterRpc(body: unknown, config: SponsoredG
 }
 
 export function inferSponsoredCall(accountCallData: Hex, config: SponsoredGasPaymasterConfig): { paymaster: Address; paymasterData: Hex } {
-  const executions = listKernelExecutions(accountCallData);
+  const executions = listAccountExecutions(accountCallData);
   const beliefExecutions = executions.filter((execution) => isBeliefSelector(slice(execution.callData, 0, 4)));
   if (beliefExecutions.length > 0) {
     if (!config.statementGasTankAddress || !config.beliefsAddress) {
@@ -86,9 +89,64 @@ export function inferSponsoredCall(accountCallData: Hex, config: SponsoredGasPay
   return { paymaster: config.creatorGasTankAddress, paymasterData: inferExecutionsProject(executions) };
 }
 
-function listKernelExecutions(accountCallData: Hex): KernelExecution[] {
-  if (!accountCallData.startsWith(KERNEL_V3_EXECUTE_SELECTOR)) {
-    throw new HttpError(400, 'unsupported_account_call', 'Only Kernel v3 execute(bytes32,bytes) sponsored-gas calls are supported.');
+function listAccountExecutions(accountCallData: Hex): KernelExecution[] {
+  const selector = slice(accountCallData, 0, 4);
+  if (selector === SIMPLE_ACCOUNT_EXECUTE_SELECTOR) {
+    const { args } = decodeFunctionData({
+      abi: [{ type: 'function', name: 'execute', inputs: [{ type: 'address' }, { type: 'uint256' }, { type: 'bytes' }], outputs: [], stateMutability: 'payable' }],
+      data: accountCallData,
+    });
+    const [target, value, callData] = args as [Address, bigint, Hex];
+    return [{ target: getAddress(target), value, callData }];
+  }
+  if (selector === SIMPLE_ACCOUNT_EXECUTE_BATCH_SELECTOR) {
+    const { args } = decodeFunctionData({
+      abi: [{ type: 'function', name: 'executeBatch', inputs: [{ type: 'address[]' }, { type: 'uint256[]' }, { type: 'bytes[]' }], outputs: [], stateMutability: 'payable' }],
+      data: accountCallData,
+    });
+    const [targets, values, calls] = args as [Address[], bigint[], Hex[]];
+    if (targets.length !== calls.length || (values.length !== 0 && values.length !== calls.length)) {
+      throw new HttpError(400, 'malformed_account_call', 'SimpleAccount executeBatch lengths do not match.');
+    }
+    if (targets.length === 0) {
+      throw new HttpError(400, 'malformed_account_call', 'SimpleAccount executeBatch is empty.');
+    }
+    return targets.map((target, i) => ({
+      target: getAddress(target),
+      value: values.length === 0 ? 0n : values[i],
+      callData: calls[i],
+    }));
+  }
+  if (selector === COINBASE_SMART_WALLET_EXECUTE_BATCH_SELECTOR) {
+    const { args } = decodeFunctionData({
+      abi: [{
+        type: 'function',
+        name: 'executeBatch',
+        inputs: [{
+          type: 'tuple[]',
+          components: [
+            { name: 'target', type: 'address' },
+            { name: 'value', type: 'uint256' },
+            { name: 'data', type: 'bytes' },
+          ],
+        }],
+        outputs: [],
+        stateMutability: 'payable',
+      }],
+      data: accountCallData,
+    });
+    const [calls] = args as [{ target: Address; value: bigint; data: Hex }[]];
+    if (calls.length === 0) {
+      throw new HttpError(400, 'malformed_account_call', 'Coinbase executeBatch is empty.');
+    }
+    return calls.map((execution) => ({
+      target: getAddress(execution.target),
+      value: execution.value,
+      callData: execution.data,
+    }));
+  }
+  if (selector !== KERNEL_V3_EXECUTE_SELECTOR) {
+    throw new HttpError(400, 'unsupported_account_call', 'Unsupported account execute calldata for sponsored gas.');
   }
   const { args } = decodeFunctionData({
     abi: [{ type: 'function', name: 'execute', inputs: [{ type: 'bytes32', name: 'execMode' }, { type: 'bytes', name: 'executionCalldata' }], outputs: [], stateMutability: 'payable' }],
@@ -152,7 +210,7 @@ function statementIdsOf(execution: KernelExecution, beliefsAddress: Address): He
 }
 
 export function inferSponsoredProject(accountCallData: Hex): Address {
-  return inferExecutionsProject(listKernelExecutions(accountCallData));
+  return inferExecutionsProject(listAccountExecutions(accountCallData));
 }
 
 function inferExecutionsProject(executions: KernelExecution[]): Address {
