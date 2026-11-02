@@ -26,8 +26,8 @@ function userOp(sender, callData, paymasterAndData) {
 }
 
 describe("CreatorGasTank", function () {
-  let deployer, creator, wallet, attacker, project, settlementToken, entryPoint, gasTank, mockMarket;
-  let accountInterface, kernelInterface, marketInterface, erc20Interface, erc1155Interface;
+  let deployer, creator, wallet, attacker, project, settlementToken, entryPoint, gasTank, paymaster, mockMarket;
+  let accountInterface, coinbaseInterface, kernelInterface, marketInterface, erc20Interface, erc1155Interface;
 
   beforeEach(async function () {
     [deployer, creator, wallet, attacker, project, settlementToken] = await ethers.getSigners();
@@ -40,18 +40,23 @@ describe("CreatorGasTank", function () {
 
     const CreatorGasTank = await ethers.getContractFactory("CreatorGasTank");
     gasTank = await CreatorGasTank.deploy(
-      await entryPoint.getAddress(),
       settlementToken.address,
       ethers.parseEther("0.01"),
       3600,
       0,
     );
+    const CreatorGasTankPaymaster = await ethers.getContractFactory("CreatorGasTankPaymaster");
+    paymaster = await CreatorGasTankPaymaster.deploy(await entryPoint.getAddress(), await gasTank.getAddress());
+    await gasTank.addPaymasterFace(await paymaster.getAddress());
 
     accountInterface = new ethers.Interface([
       "function execute(address dest,uint256 value,bytes func)",
       "function executeBatch(address[] dest,uint256[] value,bytes[] func)",
     ]);
     // Kernel v3 (ERC-7579) routes every execution through execute(bytes32 mode, bytes executionCalldata).
+    coinbaseInterface = new ethers.Interface([
+      "function executeBatch((address dest,uint256 value,bytes data)[] calls)",
+    ]);
     kernelInterface = new ethers.Interface([
       "function execute(bytes32 mode, bytes executionCalldata)",
     ]);
@@ -99,15 +104,17 @@ describe("CreatorGasTank", function () {
     return accountInterface.encodeFunctionData("execute", [project.address, 0, buyCall]);
   }
 
-  it("funds a creator tank and forwards ETH into the EntryPoint deposit", async function () {
+  it("funds a creator tank and tops the paymaster face up to the deposit floor", async function () {
     const amount = ethers.parseEther("0.005");
+    const floor = await gasTank.faceDepositFloor();
 
     await expect(gasTank.connect(attacker).fundTank(creator.address, { value: amount }))
       .to.emit(gasTank, "TankFunded")
       .withArgs(attacker.address, creator.address, amount);
 
     expect(await gasTank.tankBalance(creator.address)).to.equal(amount);
-    expect(await entryPoint.balanceOf(await gasTank.getAddress())).to.equal(amount);
+    expect(await entryPoint.balanceOf(await paymaster.getAddress())).to.equal(floor);
+    expect(await ethers.provider.getBalance(await gasTank.getAddress())).to.equal(amount - floor);
   });
 
   it("lets a creator self-enroll a project once", async function () {
@@ -123,9 +130,9 @@ describe("CreatorGasTank", function () {
 
   it("validates a sponsored SimpleAccount buy call for an enrolled project", async function () {
     await fundAndEnroll();
-    const op = userOp(wallet.address, buyExecuteCall(), paymasterData(await gasTank.getAddress(), project.address));
+    const op = userOp(wallet.address, buyExecuteCall(), paymasterData(await paymaster.getAddress(), project.address));
 
-    const result = await entryPoint.validatePaymasterUserOp.staticCall(gasTank, op, ethers.parseEther("0.001"));
+    const result = await entryPoint.validatePaymasterUserOp.staticCall(paymaster, op, ethers.parseEther("0.001"));
     expect(result.validationData).to.equal(0);
     expect(ethers.AbiCoder.defaultAbiCoder().decode(["address", "address"], result.context)).to.deep.equal([
       creator.address,
@@ -134,9 +141,9 @@ describe("CreatorGasTank", function () {
   });
 
   it("rejects sponsored calls that target an unenrolled project", async function () {
-    const op = userOp(wallet.address, buyExecuteCall(), paymasterData(await gasTank.getAddress(), project.address));
+    const op = userOp(wallet.address, buyExecuteCall(), paymasterData(await paymaster.getAddress(), project.address));
 
-    await expect(entryPoint.validatePaymasterUserOp(gasTank, op, ethers.parseEther("0.001")))
+    await expect(entryPoint.validatePaymasterUserOp(paymaster, op, ethers.parseEther("0.001")))
       .to.be.revertedWithCustomError(gasTank, "ProjectNotEnrolled")
       .withArgs(project.address);
   });
@@ -144,15 +151,15 @@ describe("CreatorGasTank", function () {
   it("rejects malformed account or inner sponsored call calldata explicitly", async function () {
     await fundAndEnroll();
 
-    const malformedAccountOp = userOp(wallet.address, "0x123456", paymasterData(await gasTank.getAddress(), project.address));
-    await expect(entryPoint.validatePaymasterUserOp(gasTank, malformedAccountOp, ethers.parseEther("0.001")))
+    const malformedAccountOp = userOp(wallet.address, "0x123456", paymasterData(await paymaster.getAddress(), project.address));
+    await expect(entryPoint.validatePaymasterUserOp(paymaster, malformedAccountOp, ethers.parseEther("0.001")))
       .to.be.revertedWithCustomError(gasTank, "InvalidAccountCallDataLength")
       .withArgs(3);
 
     const malformedInnerCall = "0x123456";
     const accountCall = accountInterface.encodeFunctionData("execute", [project.address, 0, malformedInnerCall]);
-    const malformedInnerOp = userOp(wallet.address, accountCall, paymasterData(await gasTank.getAddress(), project.address));
-    await expect(entryPoint.validatePaymasterUserOp(gasTank, malformedInnerOp, ethers.parseEther("0.001")))
+    const malformedInnerOp = userOp(wallet.address, accountCall, paymasterData(await paymaster.getAddress(), project.address));
+    await expect(entryPoint.validatePaymasterUserOp(paymaster, malformedInnerOp, ethers.parseEther("0.001")))
       .to.be.revertedWithCustomError(gasTank, "InvalidSponsoredCallDataLength")
       .withArgs(3);
   });
@@ -161,9 +168,9 @@ describe("CreatorGasTank", function () {
     await fundAndEnroll();
     const badInnerCall = erc20Interface.encodeFunctionData("approve", [attacker.address, 1]);
     const badAccountCall = accountInterface.encodeFunctionData("execute", [settlementToken.address, 0, badInnerCall]);
-    const op = userOp(wallet.address, badAccountCall, paymasterData(await gasTank.getAddress(), project.address));
+    const op = userOp(wallet.address, badAccountCall, paymasterData(await paymaster.getAddress(), project.address));
 
-    await expect(entryPoint.validatePaymasterUserOp(gasTank, op, ethers.parseEther("0.001")))
+    await expect(entryPoint.validatePaymasterUserOp(paymaster, op, ethers.parseEther("0.001")))
       .to.be.revertedWithCustomError(gasTank, "UnsupportedSponsoredCall");
   });
 
@@ -183,8 +190,8 @@ describe("CreatorGasTank", function () {
       [],
       [approveCall, setApprovalCall],
     ]);
-    const approvalOnlyOp = userOp(wallet.address, approvalOnlyAccountCall, paymasterData(await gasTank.getAddress(), project.address));
-    await expect(entryPoint.validatePaymasterUserOp(gasTank, approvalOnlyOp, ethers.parseEther("0.001")))
+    const approvalOnlyOp = userOp(wallet.address, approvalOnlyAccountCall, paymasterData(await paymaster.getAddress(), project.address));
+    await expect(entryPoint.validatePaymasterUserOp(paymaster, approvalOnlyOp, ethers.parseEther("0.001")))
       .to.be.revertedWithCustomError(gasTank, "MissingSponsoredPrimaryAction");
 
     const accountCall = accountInterface.encodeFunctionData("executeBatch", [
@@ -192,9 +199,9 @@ describe("CreatorGasTank", function () {
       [],
       [approveCall, setApprovalCall, buyCall],
     ]);
-    const op = userOp(wallet.address, accountCall, paymasterData(await gasTank.getAddress(), project.address));
+    const op = userOp(wallet.address, accountCall, paymasterData(await paymaster.getAddress(), project.address));
 
-    const result = await entryPoint.validatePaymasterUserOp.staticCall(gasTank, op, ethers.parseEther("0.001"));
+    const result = await entryPoint.validatePaymasterUserOp.staticCall(paymaster, op, ethers.parseEther("0.001"));
     expect(result.validationData).to.equal(0);
   });
 
@@ -210,16 +217,35 @@ describe("CreatorGasTank", function () {
     const approveCall = erc20Interface.encodeFunctionData("approve", [project.address, 123]);
 
     const executeCall = kernelV3Single(project.address, 0, buyCall);
-    const executeOp = userOp(wallet.address, executeCall, paymasterData(await gasTank.getAddress(), project.address));
-    expect((await entryPoint.validatePaymasterUserOp.staticCall(gasTank, executeOp, ethers.parseEther("0.001"))).validationData)
+    const executeOp = userOp(wallet.address, executeCall, paymasterData(await paymaster.getAddress(), project.address));
+    expect((await entryPoint.validatePaymasterUserOp.staticCall(paymaster, executeOp, ethers.parseEther("0.001"))).validationData)
       .to.equal(0);
 
     const batchCall = kernelV3Batch([
       { target: settlementToken.address, value: 0, callData: approveCall },
       { target: project.address, value: 0, callData: buyCall },
     ]);
-    const batchOp = userOp(wallet.address, batchCall, paymasterData(await gasTank.getAddress(), project.address));
-    expect((await entryPoint.validatePaymasterUserOp.staticCall(gasTank, batchOp, ethers.parseEther("0.001"))).validationData)
+    const batchOp = userOp(wallet.address, batchCall, paymasterData(await paymaster.getAddress(), project.address));
+    expect((await entryPoint.validatePaymasterUserOp.staticCall(paymaster, batchOp, ethers.parseEther("0.001"))).validationData)
+      .to.equal(0);
+  });
+
+  it("validates Coinbase Smart Wallet executeBatch((address,uint256,bytes)[])", async function () {
+    await fundAndEnroll();
+    const approveCall = erc20Interface.encodeFunctionData("approve", [project.address, 123]);
+    const buyCall = marketInterface.encodeFunctionData("buyERC1155", [
+      wallet.address,
+      attacker.address,
+      [1],
+      [2],
+      "0x",
+    ]);
+    const accountCall = coinbaseInterface.encodeFunctionData("executeBatch", [[
+      [settlementToken.address, 0, approveCall],
+      [project.address, 0, buyCall],
+    ]]);
+    const op = userOp(wallet.address, accountCall, paymasterData(await paymaster.getAddress(), project.address));
+    expect((await entryPoint.validatePaymasterUserOp.staticCall(paymaster, op, ethers.parseEther("0.001"))).validationData)
       .to.equal(0);
   });
 
@@ -227,8 +253,8 @@ describe("CreatorGasTank", function () {
     await fundAndEnroll();
     const badInnerCall = erc20Interface.encodeFunctionData("approve", [attacker.address, 1]);
     const executeCall = kernelV3Single(settlementToken.address, 0, badInnerCall);
-    const op = userOp(wallet.address, executeCall, paymasterData(await gasTank.getAddress(), project.address));
-    await expect(entryPoint.validatePaymasterUserOp.staticCall(gasTank, op, ethers.parseEther("0.001")))
+    const op = userOp(wallet.address, executeCall, paymasterData(await paymaster.getAddress(), project.address));
+    await expect(entryPoint.validatePaymasterUserOp.staticCall(paymaster, op, ethers.parseEther("0.001")))
       .to.be.reverted;
   });
 
@@ -245,29 +271,70 @@ describe("CreatorGasTank", function () {
       "0x",
     ]);
     const accountCall = accountInterface.encodeFunctionData("execute", [await mockMarket.getAddress(), 0, buyCall]);
-    const op = userOp(wallet.address, accountCall, paymasterData(await gasTank.getAddress(), await mockMarket.getAddress()));
+    const op = userOp(wallet.address, accountCall, paymasterData(await paymaster.getAddress(), await mockMarket.getAddress()));
 
-    await expect(entryPoint.validatePaymasterUserOp(gasTank, op, ethers.parseEther("0.001")))
+    await expect(entryPoint.validatePaymasterUserOp(paymaster, op, ethers.parseEther("0.001")))
       .to.be.revertedWithCustomError(gasTank, "SponsoredContributionBelowMinimum")
       .withArgs(2, 3);
 
     await mockMarket.setPrice(2);
-    const result = await entryPoint.validatePaymasterUserOp.staticCall(gasTank, op, ethers.parseEther("0.001"));
+    const result = await entryPoint.validatePaymasterUserOp.staticCall(paymaster, op, ethers.parseEther("0.001"));
     expect(result.validationData).to.equal(0);
   });
 
   it("debits actual gas cost in postOp and applies the wallet cap to future validations", async function () {
     await fundAndEnroll();
     await gasTank.connect(deployer).setSponsorshipConfig(ethers.parseEther("0.002"), 3600);
-    const op = userOp(wallet.address, buyExecuteCall(), paymasterData(await gasTank.getAddress(), project.address));
-    const { context } = await entryPoint.validatePaymasterUserOp.staticCall(gasTank, op, ethers.parseEther("0.001"));
+    const op = userOp(wallet.address, buyExecuteCall(), paymasterData(await paymaster.getAddress(), project.address));
+    const { context } = await entryPoint.validatePaymasterUserOp.staticCall(paymaster, op, ethers.parseEther("0.001"));
 
-    await expect(entryPoint.postOp(gasTank, 0, context, ethers.parseEther("0.0015")))
+    await expect(entryPoint.postOp(paymaster, 0, context, ethers.parseEther("0.0015")))
       .to.emit(gasTank, "TankDebited")
       .withArgs(creator.address, wallet.address, ethers.parseEther("0.0015"));
 
     expect(await gasTank.tankBalance(creator.address)).to.equal(ethers.parseEther("0.0185"));
-    await expect(entryPoint.validatePaymasterUserOp(gasTank, op, ethers.parseEther("0.001")))
+    await expect(entryPoint.validatePaymasterUserOp(paymaster, op, ethers.parseEther("0.001")))
       .to.be.revertedWithCustomError(gasTank, "WalletCapExceeded");
+  });
+
+  it("splits the deposit floor across v0.6 and v0.7 faces on fund, without moving ETH in validation", async function () {
+    const MockEntryPoint = await ethers.getContractFactory("MockEntryPoint");
+    const entryPointV06 = await MockEntryPoint.deploy();
+    const CreatorGasTankPaymasterV06 = await ethers.getContractFactory("CreatorGasTankPaymasterV06");
+    const paymasterV06 = await CreatorGasTankPaymasterV06.deploy(
+      await entryPointV06.getAddress(),
+      await gasTank.getAddress(),
+    );
+    await gasTank.addPaymasterFace(await paymasterV06.getAddress());
+    await fundAndEnroll();
+    const amount = ethers.parseEther("0.02");
+    const floor = await gasTank.faceDepositFloor();
+    expect(await entryPoint.balanceOf(await paymaster.getAddress())).to.equal(floor);
+    expect(await entryPointV06.balanceOf(await paymasterV06.getAddress())).to.equal(floor);
+    expect(await ethers.provider.getBalance(await gasTank.getAddress())).to.equal(amount - floor - floor);
+
+    const paymasterAndData = ethers.solidityPacked(
+      ["address", "address"],
+      [await paymasterV06.getAddress(), project.address],
+    );
+    const opV06 = {
+      sender: wallet.address,
+      nonce: 0,
+      initCode: "0x",
+      callData: buyExecuteCall(),
+      callGasLimit: 0,
+      verificationGasLimit: 0,
+      preVerificationGas: 0,
+      maxFeePerGas: 0,
+      maxPriorityFeePerGas: 0,
+      paymasterAndData,
+      signature: "0x",
+    };
+    const maxCost = ethers.parseEther("0.001");
+    const result = await entryPointV06.validatePaymasterUserOpV06.staticCall(paymasterV06, opV06, maxCost);
+    expect(result.validationData).to.equal(0);
+    await entryPointV06.validatePaymasterUserOpV06(paymasterV06, opV06, maxCost);
+    expect(await entryPointV06.balanceOf(await paymasterV06.getAddress())).to.equal(floor);
+    expect(await ethers.provider.getBalance(await gasTank.getAddress())).to.equal(amount - floor - floor);
   });
 });

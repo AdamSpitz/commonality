@@ -38,6 +38,7 @@ import {
   rosterFieldsFromCause,
   rosterSubjectId,
   stableCausePath,
+  sendCallsPreferAtomic,
   textFromStatementDocument,
   validateSlug,
 } from './causeRoster'
@@ -54,6 +55,24 @@ function draft(partial: Partial<CauseDraft> & { planks: CauseDraft['planks'] }):
 }
 
 describe('causeRoster', () => {
+  it('publishes roster calls without requesting unsupported gas sponsorship', async () => {
+    const request = vi.fn(async ({ method }: { method: string }) => method === 'wallet_sendCalls'
+      ? 'batch-id'
+      : { status: 200, receipts: [{ transactionHash: '0x1234' }] })
+    const clients = {
+      account: '0x1111111111111111111111111111111111111111',
+      walletClient: { chain: { id: 84532 }, request },
+    } as unknown as Parameters<typeof sendCallsPreferAtomic>[0]
+    const call = {
+      to: clients.account,
+      abi: [{ type: 'function', name: 'publish', inputs: [], outputs: [], stateMutability: 'nonpayable' }] as const,
+      functionName: 'publish', args: [],
+    }
+    await sendCallsPreferAtomic(clients, [call, call])
+    expect(request.mock.calls[0][0]).toMatchObject({ method: 'wallet_sendCalls' })
+    expect(request.mock.calls[0][0]).not.toHaveProperty('params.0.capabilities')
+  })
+
   it('normalizes and validates slugs', () => {
     expect(normalizeSlug('  Free the Oaks! ')).toBe('free-the-oaks')
     expect(validateSlug('free-the-oaks')).toBeNull()

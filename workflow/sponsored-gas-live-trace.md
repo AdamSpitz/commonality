@@ -1,5 +1,8 @@
 # Sponsored-gas live-trace confirmation
 
+**Retired as a Privy obligation (2026-11-02).** Kernel/Privy traces below are historical.
+Current path: Base Account + ERC-7677, [wallet-without-privy-plan.md](/specs/tech/wallet-without-privy-plan.md).
+
 Closing out the last real obligation of the Privy+Pimlico spike: confirm that
 `CreatorGasTank`'s paymaster calldata decoder matches the calldata the **real**
 Privy+Pimlico smart-account stack actually emits. The provider/account setup spike
@@ -16,8 +19,8 @@ Deployed paymaster: `CREATOR_GAS_TANK_ADDRESS` in
 
 This is the bug the confirmation existed to catch, found before any live capture:
 
-- The UI configures Privy with `smartWalletType: 'kernel'`
-  ([ui/src/privy/PrivyAppProvider.tsx](/ui/src/privy/PrivyAppProvider.tsx)) on
+- The UI configured Privy with `smartWalletType: 'kernel'`
+  (`ui/src/privy/PrivyAppProvider.tsx`, since deleted) on
   `@privy-io/react-auth` v3, and our deployment uses **EntryPoint v0.7**. That pairing
   is **Kernel v3 (0.3.x), which is ERC-7579**. The installed Privy `smart-wallets`
   bundle confirms it: `kernelVersion 0.3.0–0.3.3`, `execMode`, `CallType`,

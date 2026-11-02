@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.33;
 
-import {BasePaymaster} from "@account-abstraction/contracts/core/BasePaymaster.sol";
-import {PackedUserOperation} from "@account-abstraction/contracts/interfaces/PackedUserOperation.sol";
 import {IEntryPoint} from "@account-abstraction/contracts/interfaces/IEntryPoint.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IERC1155} from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
+import {AccountCallDecoder} from "./AccountCallDecoder.sol";
+import {GasTankEntryPointDeposits} from "./GasTankEntryPointDeposits.sol";
+import {IGasTankPaymasterFace} from "./IGasTankPaymasterFace.sol";
 
 interface IERC1155PrimaryMarketPricing {
   function erc1155TotalCost(
@@ -17,29 +19,10 @@ interface IERC1155PrimaryMarketPricing {
 
 /**
  * @title CreatorGasTank
- * @notice ERC-4337 paymaster with per-creator gas tanks for sponsored contribution/refund flows.
- * @dev Supports the SimpleAccount execute/executeBatch calldata shape from the ERC-4337 reference
- *      contracts plus Kernel v3's ERC-7579 execute(bytes32,bytes) shape used by the Privy smart-wallet
- *      setup (Privy react-auth v3 + EntryPoint v0.7 = Kernel v3 / ERC-7579). See
- *      workflow/sponsored-gas-live-trace.md for how the account calldata format was confirmed.
+ * @notice Per-creator ETH pot and sponsorship policy. Not a paymaster.
+ *         EntryPoint v0.6 / v0.7 adapters call into this vault on even footing.
  */
-contract CreatorGasTank is BasePaymaster {
-  uint256 private constant PAYMASTER_HEADER_LENGTH = 52;
-  uint256 private constant ADDRESS_BYTES = 20;
-
-  bytes4 private constant SIMPLE_ACCOUNT_EXECUTE_SELECTOR =
-    bytes4(keccak256("execute(address,uint256,bytes)"));
-  bytes4 private constant SIMPLE_ACCOUNT_EXECUTE_BATCH_SELECTOR =
-    bytes4(keccak256("executeBatch(address[],uint256[],bytes[])"));
-  // Kernel v3 routes every execution through the ERC-7579 execute(bytes32 mode, bytes executionCalldata)
-  // entrypoint (selector 0xe9ae5c53). `mode`'s first byte is the ERC-7579 CallType; single vs batch is
-  // determined by that byte, not by a distinct selector.
-  bytes4 private constant KERNEL_V3_EXECUTE_SELECTOR =
-    bytes4(keccak256("execute(bytes32,bytes)"));
-  bytes1 private constant ERC7579_CALLTYPE_SINGLE = 0x00;
-  bytes1 private constant ERC7579_CALLTYPE_BATCH = 0x01;
-  // Packed single execution: address target (20) || uint256 value (32) || bytes callData (remainder).
-  uint256 private constant ERC7579_SINGLE_HEADER_LENGTH = 52;
+contract CreatorGasTank is Ownable {
   bytes4 private constant ERC20_APPROVE_SELECTOR = IERC20.approve.selector;
   bytes4 private constant ERC1155_SET_APPROVAL_FOR_ALL_SELECTOR = IERC1155.setApprovalForAll.selector;
   bytes4 private constant BUY_ERC1155_SELECTOR =
@@ -57,25 +40,24 @@ contract CreatorGasTank is BasePaymaster {
     uint192 sponsoredWei;
   }
 
-  struct KernelExecution {
-    address target;
-    uint256 value;
-    bytes callData;
-  }
-
   mapping(address creator => uint256 balance) public tankBalance;
   mapping(address project => address creator) public creatorOf;
   mapping(address creator => mapping(address wallet => WalletUsage usage)) public walletUsage;
+  mapping(address face => bool isPaymaster) public isPaymaster;
+  address[] public paymasterFaces;
 
   SponsorshipConfig public sponsorshipConfig;
   address public immutable settlementToken;
   uint256 public minSponsoredContributionAmount;
+  uint256 public faceDepositFloor;
 
   event TankFunded(address indexed funder, address indexed creator, uint256 amount);
   event ProjectEnrolled(address indexed creator, address indexed project);
   event SponsorshipConfigUpdated(uint192 maxSponsoredWeiPerWalletPerWindow, uint32 walletWindowSeconds);
   event MinSponsoredContributionAmountUpdated(uint256 minSponsoredContributionAmount);
   event TankDebited(address indexed creator, address indexed wallet, uint256 amount);
+  event PaymasterFaceAdded(address indexed face, address indexed entryPoint);
+  event FaceDepositFloorUpdated(uint256 floor);
 
   error EmptyTankFunding();
   error InvalidProject();
@@ -83,37 +65,36 @@ contract CreatorGasTank is BasePaymaster {
   error ProjectNotEnrolled(address project);
   error InsufficientTankBalance(uint256 balance, uint256 required);
   error WalletCapExceeded(uint256 alreadySponsored, uint256 requested, uint256 cap);
-  error UnsupportedAccountCall(bytes4 selector);
-  error UnsupportedCallType(bytes1 callType);
-  error InvalidExecutionCalldataLength(uint256 length);
   error UnsupportedSponsoredCall(address target, bytes4 selector);
-  error InvalidPaymasterDataLength(uint256 length);
-  error InvalidAccountCallDataLength(uint256 length);
   error InvalidSponsoredCallDataLength(uint256 length);
   error SponsoredCallValueNotAllowed();
-  error InvalidBatchLengths();
   error MissingSponsoredPrimaryAction();
   error SponsoredContributionBelowMinimum(uint256 contributionAmount, uint256 minimumAmount);
+  error NotPaymasterFace();
+  error PaymasterFaceAlreadyAdded();
+  error InvalidPaymasterFace();
 
   constructor(
-    IEntryPoint entryPoint_,
     address settlementToken_,
     uint192 maxSponsoredWeiPerWalletPerWindow_,
     uint32 walletWindowSeconds_,
     uint256 minSponsoredContributionAmount_
-  ) BasePaymaster(entryPoint_) {
+  ) Ownable(msg.sender) {
     if (settlementToken_ == address(0)) revert InvalidProject();
     settlementToken = settlementToken_;
     _setSponsorshipConfig(maxSponsoredWeiPerWalletPerWindow_, walletWindowSeconds_);
     _setMinSponsoredContributionAmount(minSponsoredContributionAmount_);
+    _setFaceDepositFloor(0.001 ether);
   }
+
+  receive() external payable {}
 
   function fundTank(address creator) external payable {
     if (creator == address(0)) revert InvalidProject();
     if (msg.value == 0) revert EmptyTankFunding();
     tankBalance[creator] += msg.value;
-    entryPoint.depositTo{value: msg.value}(address(this));
     emit TankFunded(msg.sender, creator, msg.value);
+    GasTankEntryPointDeposits.topUpToFloor(paymasterFaces, faceDepositFloor);
   }
 
   function enroll(address project) external {
@@ -122,6 +103,17 @@ contract CreatorGasTank is BasePaymaster {
     if (existingCreator != address(0)) revert ProjectAlreadyEnrolled(existingCreator);
     creatorOf[project] = msg.sender;
     emit ProjectEnrolled(msg.sender, project);
+  }
+
+  function addPaymasterFace(address face) external onlyOwner {
+    if (face == address(0)) revert InvalidPaymasterFace();
+    if (isPaymaster[face]) revert PaymasterFaceAlreadyAdded();
+    IEntryPoint ep = IGasTankPaymasterFace(face).entryPoint();
+    if (address(ep) == address(0)) revert InvalidPaymasterFace();
+    isPaymaster[face] = true;
+    paymasterFaces.push(face);
+    emit PaymasterFaceAdded(face, address(ep));
+    GasTankEntryPointDeposits.topUp(face, faceDepositFloor);
   }
 
   function setSponsorshipConfig(
@@ -135,29 +127,43 @@ contract CreatorGasTank is BasePaymaster {
     _setMinSponsoredContributionAmount(minSponsoredContributionAmount_);
   }
 
-  // solhint-disable-next-line func-mutability
-  function _validatePaymasterUserOp(
-    PackedUserOperation calldata userOp,
-    bytes32,
+  function setFaceDepositFloor(uint256 floor) external onlyOwner {
+    _setFaceDepositFloor(floor);
+    GasTankEntryPointDeposits.topUpToFloor(paymasterFaces, floor);
+  }
+
+  function replenishFaceDeposits() external {
+    GasTankEntryPointDeposits.topUpToFloor(paymasterFaces, faceDepositFloor);
+  }
+
+  function rebalanceFaceDeposits() external onlyOwner {
+    GasTankEntryPointDeposits.pullDownToFloor(paymasterFaces, 0);
+    GasTankEntryPointDeposits.topUpToFloor(paymasterFaces, faceDepositFloor);
+  }
+
+  function topUpFace(address face, uint256 target) external onlyOwner {
+    if (!isPaymaster[face]) revert NotPaymasterFace();
+    GasTankEntryPointDeposits.topUp(face, target);
+  }
+
+  function validateCreatorUserOp(
+    address project,
+    address sender,
+    bytes calldata callData,
     uint256 maxCost
-  ) internal override returns (bytes memory context, uint256 validationData) {
-    address project = _decodeProject(userOp.paymasterAndData);
+  ) external view returns (bytes memory context) {
+    if (!isPaymaster[msg.sender]) revert NotPaymasterFace();
     address creator = creatorOf[project];
     if (creator == address(0)) revert ProjectNotEnrolled(project);
     if (tankBalance[creator] < maxCost) revert InsufficientTankBalance(tankBalance[creator], maxCost);
 
-    _validateWalletCap(creator, userOp.sender, maxCost);
-    _validateAccountCall(project, userOp.callData);
-
-    return (abi.encode(creator, userOp.sender), 0);
+    _validateWalletCap(creator, sender, maxCost);
+    _validateAccountCall(project, callData);
+    return abi.encode(creator, sender);
   }
 
-  function _postOp(
-    PostOpMode,
-    bytes calldata context,
-    uint256 actualGasCost,
-    uint256
-  ) internal override {
+  function debitCreator(bytes calldata context, uint256 actualGasCost) external {
+    if (!isPaymaster[msg.sender]) revert NotPaymasterFace();
     (address creator, address wallet) = abi.decode(context, (address, address));
     uint256 debit = actualGasCost;
     if (tankBalance[creator] < debit) {
@@ -184,11 +190,9 @@ contract CreatorGasTank is BasePaymaster {
     emit MinSponsoredContributionAmountUpdated(minSponsoredContributionAmount_);
   }
 
-  function _decodeProject(bytes calldata paymasterAndData) private pure returns (address project) {
-    if (paymasterAndData.length != PAYMASTER_HEADER_LENGTH + ADDRESS_BYTES) {
-      revert InvalidPaymasterDataLength(paymasterAndData.length);
-    }
-    project = address(bytes20(paymasterAndData[PAYMASTER_HEADER_LENGTH:PAYMASTER_HEADER_LENGTH + ADDRESS_BYTES]));
+  function _setFaceDepositFloor(uint256 floor) private {
+    faceDepositFloor = floor;
+    emit FaceDepositFloorUpdated(floor);
   }
 
   function _validateWalletCap(address creator, address wallet, uint256 requested) private view {
@@ -218,83 +222,14 @@ contract CreatorGasTank is BasePaymaster {
   }
 
   function _validateAccountCall(address project, bytes calldata accountCallData) private view {
-    if (accountCallData.length < 4) revert InvalidAccountCallDataLength(accountCallData.length);
-    bytes4 accountSelector = bytes4(accountCallData[:4]);
-    if (accountSelector == SIMPLE_ACCOUNT_EXECUTE_SELECTOR) {
-      (address target, uint256 value, bytes memory innerCallData) = abi.decode(
-        accountCallData[4:],
-        (address, uint256, bytes)
-      );
-      if (!_validateSponsoredCall(project, target, value, innerCallData)) revert MissingSponsoredPrimaryAction();
-      return;
+    AccountCallDecoder.Execution[] memory executions = AccountCallDecoder.decodeExecutions(accountCallData);
+    bool hasPrimaryAction = false;
+    for (uint256 i = 0; i < executions.length; i++) {
+      hasPrimaryAction =
+        _validateSponsoredCall(project, executions[i].target, executions[i].value, executions[i].callData) ||
+        hasPrimaryAction;
     }
-
-    if (accountSelector == SIMPLE_ACCOUNT_EXECUTE_BATCH_SELECTOR) {
-      (address[] memory targets, uint256[] memory values, bytes[] memory calls) = abi.decode(
-        accountCallData[4:],
-        (address[], uint256[], bytes[])
-      );
-      if (targets.length != calls.length || (values.length != 0 && values.length != calls.length)) {
-        revert InvalidBatchLengths();
-      }
-      bool hasPrimaryAction = false;
-      for (uint256 i = 0; i < targets.length; i++) {
-        uint256 value = values.length == 0 ? 0 : values[i];
-        hasPrimaryAction = _validateSponsoredCall(project, targets[i], value, calls[i]) || hasPrimaryAction;
-      }
-      if (!hasPrimaryAction) revert MissingSponsoredPrimaryAction();
-      return;
-    }
-
-    if (accountSelector == KERNEL_V3_EXECUTE_SELECTOR) {
-      (bytes32 mode, bytes memory executionCalldata) = abi.decode(accountCallData[4:], (bytes32, bytes));
-      bytes1 callType = bytes1(mode);
-
-      if (callType == ERC7579_CALLTYPE_SINGLE) {
-        (address target, uint256 value, bytes memory innerCallData) = _decodeErc7579SingleExecution(executionCalldata);
-        if (!_validateSponsoredCall(project, target, value, innerCallData)) revert MissingSponsoredPrimaryAction();
-        return;
-      }
-
-      if (callType == ERC7579_CALLTYPE_BATCH) {
-        // ERC-7579 batch executionCalldata is abi.encode(Execution[]), Execution = (address,uint256,bytes),
-        // which is exactly the KernelExecution tuple.
-        KernelExecution[] memory executions = abi.decode(executionCalldata, (KernelExecution[]));
-        bool hasPrimaryAction = false;
-        for (uint256 i = 0; i < executions.length; i++) {
-          hasPrimaryAction = _validateSponsoredCall(project, executions[i].target, executions[i].value, executions[i].callData) || hasPrimaryAction;
-        }
-        if (!hasPrimaryAction) revert MissingSponsoredPrimaryAction();
-        return;
-      }
-
-      revert UnsupportedCallType(callType);
-    }
-
-    revert UnsupportedAccountCall(accountSelector);
-  }
-
-  /// @dev Parse an ERC-7579 single-call executionCalldata: packed target(20) || value(32) || callData(rest).
-  function _decodeErc7579SingleExecution(bytes memory executionCalldata)
-    private
-    pure
-    returns (address target, uint256 value, bytes memory innerCallData)
-  {
-    if (executionCalldata.length < ERC7579_SINGLE_HEADER_LENGTH) {
-      revert InvalidExecutionCalldataLength(executionCalldata.length);
-    }
-    uint256 innerLength = executionCalldata.length - ERC7579_SINGLE_HEADER_LENGTH;
-    innerCallData = new bytes(innerLength);
-    assembly {
-      let dataPtr := add(executionCalldata, 32)
-      target := shr(96, mload(dataPtr))
-      value := mload(add(dataPtr, ADDRESS_BYTES))
-      let src := add(dataPtr, ERC7579_SINGLE_HEADER_LENGTH)
-      let dst := add(innerCallData, 32)
-      for { let i := 0 } lt(i, innerLength) { i := add(i, 32) } {
-        mstore(add(dst, i), mload(add(src, i)))
-      }
-    }
+    if (!hasPrimaryAction) revert MissingSponsoredPrimaryAction();
   }
 
   function _validateSponsoredCall(

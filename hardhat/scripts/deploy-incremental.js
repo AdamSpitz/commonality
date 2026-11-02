@@ -39,7 +39,11 @@ const ADDRESS_KEYS = {
   ProjectFactory: ['PROJECT_FACTORY_ADDRESS'],
   SponsoredGasEntryPoint: ['SPONSORED_GAS_ENTRY_POINT_ADDRESS'],
   CreatorGasTank: ['CREATOR_GAS_TANK_ADDRESS'],
+  CreatorGasTankPaymaster: ['CREATOR_GAS_TANK_PAYMASTER_ADDRESS'],
+  CreatorGasTankPaymasterV06: ['CREATOR_GAS_TANK_PAYMASTER_V06_ADDRESS'],
   StatementGasTank: ['STATEMENT_GAS_TANK_ADDRESS'],
+  StatementGasTankPaymaster: ['STATEMENT_GAS_TANK_PAYMASTER_ADDRESS'],
+  StatementGasTankPaymasterV06: ['STATEMENT_GAS_TANK_PAYMASTER_V06_ADDRESS'],
   GasTankFunder: ['GAS_TANK_FUNDER_ADDRESS'],
   SponsoredGasWeth: ['SPONSORED_GAS_WETH_ADDRESS'],
   SponsoredGasSwapRouter: ['SPONSORED_GAS_SWAP_ROUTER_ADDRESS'],
@@ -453,19 +457,57 @@ async function main() {
     'MIN_SPONSORED_CONTRIBUTION_AMOUNT',
     ethers.parseUnits('1', 6),
   );
+  const entryPointV06 = env.SPONSORED_GAS_ENTRY_POINT_V06_ADDRESS || ethers.ZeroAddress;
   await deployOrReuse('CreatorGasTank', 'CreatorGasTank', [
-    addresses.SponsoredGasEntryPoint,
     addresses.FreeERC20,
     sponsoredGasMaxWeiPerWalletPerWindow,
     sponsoredGasWalletWindowSeconds,
     minSponsoredContributionAmount,
   ]);
   await deployOrReuse('StatementGasTank', 'StatementGasTank', [
-    addresses.SponsoredGasEntryPoint,
     addresses.Beliefs,
     sponsoredGasMaxWeiPerWalletPerWindow,
     sponsoredGasWalletWindowSeconds,
   ]);
+  if (addresses.CreatorGasTank) {
+    await deployOrReuse('CreatorGasTankPaymaster', 'CreatorGasTankPaymaster', [
+      addresses.SponsoredGasEntryPoint,
+      addresses.CreatorGasTank,
+    ]);
+    if (entryPointV06 !== ethers.ZeroAddress) {
+      await deployOrReuse('CreatorGasTankPaymasterV06', 'CreatorGasTankPaymasterV06', [
+        entryPointV06,
+        addresses.CreatorGasTank,
+      ]);
+    }
+  }
+  if (addresses.StatementGasTank) {
+    await deployOrReuse('StatementGasTankPaymaster', 'StatementGasTankPaymaster', [
+      addresses.SponsoredGasEntryPoint,
+      addresses.StatementGasTank,
+    ]);
+    if (entryPointV06 !== ethers.ZeroAddress) {
+      await deployOrReuse('StatementGasTankPaymasterV06', 'StatementGasTankPaymasterV06', [
+        entryPointV06,
+        addresses.StatementGasTank,
+      ]);
+    }
+  }
+  async function attachPaymasterFaces(vaultName, faceNames) {
+    const vaultAddr = addresses[vaultName];
+    if (!vaultAddr || planOnly) return;
+    const vault = await ethers.getContractAt(vaultName, vaultAddr);
+    for (const faceName of faceNames) {
+      const face = addresses[faceName];
+      if (!face) continue;
+      if (await vault.isPaymaster(face)) continue;
+      const tx = await vault.addPaymasterFace(face);
+      await tx.wait();
+      console.log(`linked ${faceName} to ${vaultName}`);
+    }
+  }
+  await attachPaymasterFaces('CreatorGasTank', ['CreatorGasTankPaymaster', 'CreatorGasTankPaymasterV06']);
+  await attachPaymasterFaces('StatementGasTank', ['StatementGasTankPaymaster', 'StatementGasTankPaymasterV06']);
 
   const sponsoredGasSwapFee = envNumber(env, 'SPONSORED_GAS_SWAP_POOL_FEE', 500);
   if (isLocal) {
@@ -583,7 +625,11 @@ async function main() {
     ...startBlockEnvEntries(),
     SPONSORED_GAS_ENTRY_POINT_ADDRESS: addresses.SponsoredGasEntryPoint,
     CREATOR_GAS_TANK_ADDRESS: addresses.CreatorGasTank,
+    CREATOR_GAS_TANK_PAYMASTER_ADDRESS: addresses.CreatorGasTankPaymaster,
+    ...(addresses.CreatorGasTankPaymasterV06 ? { CREATOR_GAS_TANK_PAYMASTER_V06_ADDRESS: addresses.CreatorGasTankPaymasterV06 } : {}),
     STATEMENT_GAS_TANK_ADDRESS: addresses.StatementGasTank,
+    STATEMENT_GAS_TANK_PAYMASTER_ADDRESS: addresses.StatementGasTankPaymaster,
+    ...(addresses.StatementGasTankPaymasterV06 ? { STATEMENT_GAS_TANK_PAYMASTER_V06_ADDRESS: addresses.StatementGasTankPaymasterV06 } : {}),
     SPONSORED_GAS_MAX_WEI_PER_WALLET_PER_WINDOW: sponsoredGasMaxWeiPerWalletPerWindow.toString(),
     SPONSORED_GAS_WALLET_WINDOW_SECONDS: String(sponsoredGasWalletWindowSeconds),
     MIN_SPONSORED_CONTRIBUTION_AMOUNT: minSponsoredContributionAmount.toString(),

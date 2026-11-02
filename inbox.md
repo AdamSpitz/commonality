@@ -43,7 +43,7 @@ Also, don't let any of the items get too long; usually there's a separate .md fi
 
 ### Features that I'm realizing would make a big difference
 
-- Now that I'm trying to do a vertical in a separate Git repo on a separate website, I'm finding that our model of users and logins doesn't quite work. Explore either Privy global wallets, or switching to Coinbase Smart Wallet, or just generally ditching the Privy thing and hoping there's a reasonably-easy "Connect Wallet" that people can use.
+- Rethink the gas-sponsorship thingy we used. Privy is removed in code (ADR 0021). Remaining: redeploy v0.6 tank faces to Base Sepolia; confirm Onramp + the same Base Account on a vertical. [wallet-without-privy-plan.md](./specs/tech/wallet-without-privy-plan.md).
 
 - Maybe try making this "statement putter-togetherer" as a more-general UI widget on the Commonality site?
 

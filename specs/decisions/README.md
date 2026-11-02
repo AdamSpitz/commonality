@@ -48,7 +48,7 @@ instance most needs answered and can't get anywhere else.
 
 | # | Title | Status |
 | --- | --- | --- |
-| [0001](./0001-custom-onchain-paymaster.md) | Custom onchain paymaster with per-creator gas tanks | Accepted |
+| [0001](./0001-custom-onchain-paymaster.md) | Custom onchain paymaster with per-creator gas tanks | Accepted (wallet provider superseded in part by 0021) |
 | [0002](./0002-code-quality-metrics.md) | Code-quality metrics as advisory reports, not gates | Accepted |
 | [0003](./0003-reimbursement-only-retroactive-funding.md) | Reimbursement-only retroactive funding | Accepted |
 | [0004](./0004-user-publishes-displayable-data.md) | Users publish their own displayable data | Accepted |
@@ -67,3 +67,5 @@ instance most needs answered and can't get anywhere else.
 | [0017](./0017-spend-classification.md) | Delegated spends are classified, and only a current controller is unsuspicious | Accepted |
 | [0018](./0018-pledge-classification-before-first-note.md) | A standing pledge applies its fine list before the first note, and new delegations prefill a 72 hour wait | Accepted |
 | [0019](./0019-beneficiary-scoped-work-identity.md) | Ordinary work identity belongs to its beneficiary | Accepted |
+| [0020](./0020-work-requests-are-published-versions.md) | Work requests are published versions | Accepted |
+| [0021](./0021-portable-wallets-not-privy.md) | Portable wallets (Base Account) instead of Privy | Accepted |

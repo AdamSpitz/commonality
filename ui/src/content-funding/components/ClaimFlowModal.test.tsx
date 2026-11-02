@@ -98,10 +98,10 @@ describe('ClaimFlowModal', () => {
     expect(screen.getByRole('dialog')).toBeInTheDocument()
   })
 
-  it('shows connect wallet step when not connected', () => {
+  it('shows create-an-account step when not connected', () => {
     render(<ClaimFlowModal {...defaultProps} />)
 
-    expect(screen.getByText('Connect your wallet')).toBeInTheDocument()
+    expect(screen.getAllByText('Create an account').length).toBeGreaterThan(0)
     expect(screen.getByText(/To verify your identity and claim these funds/)).toBeInTheDocument()
   })
 
@@ -745,7 +745,7 @@ describe('ClaimFlowModal', () => {
   it('shows stepper with correct steps', () => {
     render(<ClaimFlowModal {...defaultProps} />)
 
-    expect(screen.getByText('Connect Wallet')).toBeInTheDocument()
+    expect(screen.getAllByText('Create an account').length).toBeGreaterThan(0)
     expect(screen.getByText('Verify Identity')).toBeInTheDocument()
     expect(screen.getByText('Withdraw Funds')).toBeInTheDocument()
     expect(screen.getByText('Take Control')).toBeInTheDocument()
@@ -756,7 +756,7 @@ describe('ClaimFlowModal', () => {
 
     rerender(<ClaimFlowModal {...defaultProps} open={true} />)
 
-    expect(screen.getByText('Connect your wallet')).toBeInTheDocument()
+    expect(screen.getAllByText('Create an account').length).toBeGreaterThan(0)
   })
 
   it('calls onSuccess after successful verification', async () => {

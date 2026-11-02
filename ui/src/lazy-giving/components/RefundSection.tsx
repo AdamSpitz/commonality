@@ -6,7 +6,8 @@ import { useState } from 'react'
 import { computeUserTokenBalance } from '../utils'
 import { useWriteClients } from '../../shared'
 import { ContributionNotificationEmail } from './ContributionNotificationEmail'
-import { isPrivySmartWalletEnabled } from '../../privy/config'
+import { getWriteClientCapabilities } from '@commonality/sdk/utils'
+import { getRuntimeConfigValue } from '../../shared'
 
 interface RefundSectionProps {
   project: Project
@@ -42,7 +43,8 @@ export function RefundSection({ project, contributions, refunds, address, onRefr
 
       const clients = writeClients!
 
-      if (!isPrivySmartWalletEnabled) {
+      const batchApproval = (await getWriteClientCapabilities(clients)).atomicBatches
+      if (!batchApproval) {
         await approveERC1155ForOperator(
           clients,
           project.erc1155Address as `0x${string}`,
@@ -55,7 +57,8 @@ export function RefundSection({ project, contributions, refunds, address, onRefr
         tokenAddress: project.erc1155Address as `0x${string}`,
         tokenIds: userRefundableTokens.map(t => BigInt(t.tokenId)),
         tokenCounts: userRefundableTokens.map(t => t.count),
-        batchApproval: isPrivySmartWalletEnabled,
+        batchApproval,
+        paymasterUrl: getRuntimeConfigValue('VITE_SPONSORED_GAS_PAYMASTER_URL'),
       })
 
       const explorerUrl = clients.walletClient.chain?.blockExplorers?.default?.url

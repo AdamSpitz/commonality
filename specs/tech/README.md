@@ -33,6 +33,7 @@ remain an optional independence path. See [ADR 0006](/specs/decisions/0006-share
 - [security.md](security.md) — security and abuse prevention
 - [eliminating-ipfs.md](eliminating-ipfs.md) — inventory of every IPFS use and how each (and the dependency as a whole) could be eliminated, generalizing the self-published-statements calldata design
 - [bridges.md](bridges.md) — fiat/onchain interoperability: bridge-operator model, recommended no-custody on-ramp path, and fallback vendors
+- [sponsored-gas.md](sponsored-gas.md) — living design for the ERC-4337 paymaster and per-statement / per-project gas tanks. The wallet rethink (drop Privy for a portable account) is in [gas-sponsorship.md](gas-sponsorship.md), with the implementation plan in [wallet-without-privy-plan.md](wallet-without-privy-plan.md).
 
 ## Subsystems
 

@@ -82,8 +82,9 @@ All configuration is via environment variables.
 
 ### Sponsored gas
 
-- `CREATOR_GAS_TANK_ADDRESS` enables contribution/refund sponsorship through `POST /sponsored-gas/paymaster`.
-- `STATEMENT_GAS_TANK_ADDRESS` and `BELIEFS_CONTRACT_ADDRESS` together enable statement-signature sponsorship on the same endpoint. Only `believes` calls are eligible; the on-chain tank checks enrollment, shared sponsor, balance, and wallet limits.
+- `CREATOR_GAS_TANK_PAYMASTER_ADDRESS` (falls back to `CREATOR_GAS_TANK_ADDRESS`) is the v0.7 paymaster returned by `POST /sponsored-gas/paymaster`. `CREATOR_GAS_TANK_ADDRESS` is the vault funders enroll/fund.
+- `CREATOR_GAS_TANK_PAYMASTER_V06_ADDRESS` is used when the ERC-7677 request names EntryPoint v0.6.
+- `STATEMENT_GAS_TANK_PAYMASTER_ADDRESS` (falls back to `STATEMENT_GAS_TANK_ADDRESS`) plus `BELIEFS_CONTRACT_ADDRESS` enable statement-signature sponsorship. Only `believes` calls are eligible; the vault checks enrollment, shared sponsor, balance, and wallet limits. `STATEMENT_GAS_TANK_PAYMASTER_V06_ADDRESS` is the v0.6 face.
 - Either sponsorship route may be configured independently. The endpoint supports Kernel v3 single and batch executions and both ERC-7677 paymaster methods.
 
 ### Caching and rate limits

@@ -10,7 +10,7 @@ If you modify this code, please make sure "npm run build" (in the ui directory) 
 
 - **Framework:** React 19 + TypeScript + Vite
 - **UI Library:** Material UI (MUI)
-- **Blockchain:** viem, wagmi, ConnectKit, Privy
+- **Blockchain:** viem, wagmi, ConnectKit (Base Account + injected wallets)
 - **State Management:** @tanstack/react-query
 
 ## Dev stuff you can do
@@ -26,14 +26,7 @@ If you modify this code, please make sure "npm run build" (in the ui directory) 
 
 ## Wallet onboarding
 
-The UI now supports two wallet-onboarding modes:
-
-- Default local-dev / test mode: if `VITE_PRIVY_APP_ID` is unset, the app keeps using the existing ConnectKit flow.
-- Embedded-wallet mode: if `VITE_PRIVY_APP_ID` is set, the app uses Privy for email/social login plus embedded wallets while still allowing external Ethereum wallets.
-
-This keeps local development and Playwright E2E tests working without requiring a Privy app, while giving deployed environments a path to mainstream-friendly onboarding.
-
-To keep the initial app bundle smaller, the Privy provider tree and wallet button implementation now live behind lazy-loaded chunks. When `VITE_PRIVY_APP_ID` is unset, none of the Privy code is pulled into the ConnectKit path at runtime.
+ConnectKit is the only login path. Base Account (passkey smart wallet) is the preferred "create an account" option; MetaMask, Rabby, and WalletConnect remain for people who already have a wallet. Local Hardhat accounts still replace browser wallets on a local-dev host. Playwright E2E uses the mock connector (`VITE_E2E=true`). Wallets that advertise ERC-7677 `paymasterService` get `VITE_SPONSORED_GAS_PAYMASTER_URL` on `wallet_sendCalls`.
 
 Cross-domain links can be configured at build time or in `dist/<domain>/config.json` with `VITE_COMMONALITY_URL`, `VITE_LAZYGIVING_URL`, `VITE_ALIGNMENT_URL`, `VITE_TALLY_URL`, `VITE_CONTENT_FUNDING_URL`, `VITE_CIVILITY_URL`, `VITE_COMMON_SENSE_MAJORITY_URL`, and `VITE_CONCEPTSPACE_URL`. Delegation is no longer a standalone domain build; its management routes live under `/delegation` in LazyGiving and Content Funding. When a URL is missing, components fall back to a local route or `#` placeholder so local builds still render. Explicit path/hash URLs such as `../alignment/#/` or `https://commonality.eth.limo/testnet/alignment/#/` are preserved, which lets the same standalone app bundles run either under subdomains or inside an uber IPFS directory.
 

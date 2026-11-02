@@ -30,7 +30,6 @@
 - `AppShell` (35 tests — branding, primary/secondary navigation, More menu, footer, selected state, mobile drawer open/close, primary and secondary nav in drawer, selected-state behavior in drawer, custom navigation in drawer, accessibility landmarks for banner/main/contentinfo)
 - `AddressDisplay` (9 tests — ENS name, Twitter handle, raw address fallback, showFullAddress, twitterHandleHint)
 - `DomainLandingPage` (18 tests — hero section with eyebrow/title/description/action links, spotlight label/text conditional rendering, section cards with titles/descriptions/CTAs/eyebrows, children rendering, hero action variants, empty states)
-- `PrivyWalletButtonImpl` (14 tests — sign-in before auth, loading while initializing, embedded wallet sync to wagmi, connected address menu, logout, link another wallet, create wallet state, address truncation, wagmi address preference, wallet readiness, menu close behavior, full address display, setActiveWallet error handling, embedded vs external wallet preference)
 - `CreatorsLandingPage` (15 tests — default/custom title and descriptions, Twitter/YouTube/Substack platform cards with links and descriptions, learn more link, h1/h6 heading structure, clickable navigation)
 - `CommonalityLandingPage` (13 tests — hero section with eyebrow/title/description/action links/spotlight, section cards with titles/descriptions/CTAs/eyebrows, focused domain entry points with three domain cards)
 - `ContentFundingLandingPage` (10 tests — hero section with eyebrow/title/description/action links/spotlight, section cards with titles/descriptions/CTAs/eyebrows)
@@ -181,7 +180,7 @@ Maps each route surface to its Vitest and/or Playwright coverage.
 7. ~~**Accessibility assertions:**~~ Done (AppShell landmark tests for banner/main/contentinfo, ClaimFlowModal dialog role test, existing tests use accessible names for buttons/menus/drawers via Testing Library role queries).
 8. **DocsPage external links:** No included doc has external URLs, so `target="_blank"` behavior is untested. Internal public-doc links are crawled in Vitest.
 9. **Coverage inventory automation:** Manual inventory above may drift. No script regenerates it from source.
-10. ~~**PrivyWalletButtonImpl:**~~ Done (14 tests — sign-in, loading, embedded wallet sync, connected address menu, logout, link wallet, create wallet, address truncation, wagmi preference, wallet readiness, menu close, address display, error handling, wallet preference).
+10. ~~**PrivyWalletButtonImpl:**~~ Removed with Privy (ADR 0021).
 11. ~~**CreatorsLandingPage:**~~ Done (15 tests — default/custom title and descriptions, Twitter/YouTube/Substack platform cards with links, learn more link, heading structure, clickable navigation).
 
 ## Component Testing Pitfalls & Patterns (MUI + Testing Library)

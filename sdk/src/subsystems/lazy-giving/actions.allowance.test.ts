@@ -3,6 +3,7 @@ import type { Address, Hash } from 'viem';
 import { AssuranceContractAbi } from '../../abis.js';
 import { buyProjectTokens, refundProjectTokens } from './actions.js';
 import type { WriteClients } from '../../utils/ethereum.js';
+import { clearWalletCapabilitiesCache } from '../../utils/walletCapabilities.js';
 
 const BUYER = '0xbbbb000000000000000000000000000000000000' as Address;
 const ASSURANCE = '0xaaaa000000000000000000000000000000000000' as Address;
@@ -60,6 +61,7 @@ const buyParams = {
 };
 
 describe('buyProjectTokens ERC20 allowance handling', () => {
+  beforeEach(() => clearWalletCapabilitiesCache());
   it('sends an approve when the existing allowance is insufficient', async () => {
     const { clients, writes } = makeMockClients(0n);
     await buyProjectTokens(clients, { address: ASSURANCE, abi: AssuranceContractAbi }, buyParams);
@@ -91,6 +93,9 @@ describe('buyProjectTokens ERC20 allowance handling', () => {
       chain: { id: 84532 },
       request: async (request: { method: string; params: readonly unknown[] }) => {
         requests.push(request);
+        if (request.method === 'wallet_getCapabilities') {
+          return { '0x14a34': { paymasterService: { supported: true }, atomicBatch: { supported: true } } };
+        }
         if (request.method === 'wallet_sendCalls') return 'batch-id';
         return { status: 200, receipts: [{ transactionHash: '0xbatch' }] };
       },
@@ -99,15 +104,73 @@ describe('buyProjectTokens ERC20 allowance handling', () => {
     const hash = await buyProjectTokens(
       clients,
       { address: ASSURANCE, abi: AssuranceContractAbi },
-      { ...buyParams, batchApproval: true },
+      { ...buyParams, batchApproval: true, paymasterUrl: 'https://example.test/paymaster' },
     );
 
     assert.strictEqual(hash, '0xbatch');
     assert.deepStrictEqual(writes, []);
-    assert.deepStrictEqual(requests.map(({ method }) => method), ['wallet_sendCalls', 'wallet_getCallsStatus']);
-    const payload = requests[0].params[0] as { atomicRequired: boolean; calls: unknown[] };
+    assert.deepStrictEqual(requests.map(({ method }) => method), [
+      'wallet_getCapabilities',
+      'wallet_sendCalls',
+      'wallet_getCallsStatus',
+    ]);
+    const payload = requests[1].params[0] as {
+      atomicRequired: boolean;
+      calls: unknown[];
+      capabilities?: { paymasterService?: { url: string } };
+    };
     assert.strictEqual(payload.atomicRequired, true);
     assert.strictEqual(payload.calls.length, 2);
+    assert.strictEqual(payload.capabilities?.paymasterService?.url, 'https://example.test/paymaster');
+  });
+
+  it('omits paymasterService when the wallet does not advertise it', async () => {
+    const { clients } = makeMockClients(0n);
+    const requests: { method: string; params: readonly unknown[] }[] = [];
+    Object.assign(clients.walletClient, {
+      chain: { id: 84532 },
+      request: async (request: { method: string; params: readonly unknown[] }) => {
+        requests.push(request);
+        if (request.method === 'wallet_getCapabilities') {
+          return { '0x14a34': { atomicBatch: { supported: true } } };
+        }
+        if (request.method === 'wallet_sendCalls') return 'batch-id';
+        return { status: 200, receipts: [{ transactionHash: '0xbatch' }] };
+      },
+    });
+    await buyProjectTokens(
+      clients,
+      { address: ASSURANCE, abi: AssuranceContractAbi },
+      { ...buyParams, batchApproval: true, paymasterUrl: 'https://example.test/paymaster' },
+    );
+    const payload = requests.find((r) => r.method === 'wallet_sendCalls')!.params[0] as {
+      capabilities?: unknown;
+    };
+    assert.strictEqual(payload.capabilities, undefined);
+  });
+
+  it('still sponsors a purchase when the allowance already covers it', async () => {
+    const { clients, writes } = makeMockClients(100n);
+    let payload: { calls: unknown[]; capabilities?: unknown } | undefined;
+    Object.assign(clients.walletClient, {
+      chain: { id: 84532 },
+      request: async ({ method, params }: { method: string; params: unknown[] }) => {
+        if (method === 'wallet_getCapabilities') return { '0x14a34': {
+          atomic: { status: 'supported' }, paymasterService: { supported: true },
+        } };
+        if (method === 'wallet_sendCalls') {
+          payload = params[0] as typeof payload;
+          return 'batch-id';
+        }
+        return { status: 200, receipts: [{ transactionHash: '0xbatch' }] };
+      },
+    });
+    await buyProjectTokens(clients, { address: ASSURANCE, abi: AssuranceContractAbi }, {
+      ...buyParams, paymasterUrl: 'https://example.test/paymaster',
+    });
+    assert.deepStrictEqual(writes, []);
+    assert.strictEqual(payload?.calls.length, 1);
+    assert.deepStrictEqual(payload?.capabilities, { paymasterService: { url: 'https://example.test/paymaster' } });
   });
 
   it('skips the approve when the existing allowance already covers the cost', async () => {
@@ -124,6 +187,7 @@ describe('buyProjectTokens ERC20 allowance handling', () => {
       chain: { id: 84532 },
       request: async (request: { method: string; params: readonly unknown[] }) => {
         requests.push(request);
+        if (request.method === 'wallet_getCapabilities') return {};
         if (request.method === 'wallet_sendCalls') return 'refund-batch-id';
         return { status: 200, receipts: [{ transactionHash: '0xrefund' }] };
       },
@@ -137,7 +201,10 @@ describe('buyProjectTokens ERC20 allowance handling', () => {
 
     assert.strictEqual(hash, '0xrefund');
     assert.deepStrictEqual(writes, []);
-    const payload = requests[0].params[0] as { atomicRequired: boolean; calls: unknown[] };
+    const payload = requests.find((r) => r.method === 'wallet_sendCalls')!.params[0] as {
+      atomicRequired: boolean;
+      calls: unknown[];
+    };
     assert.strictEqual(payload.atomicRequired, true);
     assert.strictEqual(payload.calls.length, 2);
   });

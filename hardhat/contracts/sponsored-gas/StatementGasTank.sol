@@ -1,38 +1,19 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.33;
 
-import {BasePaymaster} from "@account-abstraction/contracts/core/BasePaymaster.sol";
-import {PackedUserOperation} from "@account-abstraction/contracts/interfaces/PackedUserOperation.sol";
 import {IEntryPoint} from "@account-abstraction/contracts/interfaces/IEntryPoint.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {AccountCallDecoder} from "./AccountCallDecoder.sol";
+import {GasTankEntryPointDeposits} from "./GasTankEntryPointDeposits.sol";
+import {IGasTankPaymasterFace} from "./IGasTankPaymasterFace.sol";
 
 /**
  * @title StatementGasTank
- * @notice ERC-4337 paymaster with per-sponsor gas tanks for signing enrolled statements.
- * @dev Sponsors only Beliefs.setBelief / setBeliefsInBatch where every stance is `believes` (1)
- *      and every statement id is enrolled to the same sponsor as the anchor id in paymasterData.
- *      Commonality does not fund tanks. Disbelief and no-opinion are not sponsored, so an opponent
- *      cannot drain a tank by signing against the statement. A per-wallet wei cap is the backstop
- *      against a supporter flipping the same belief repeatedly. Each operation charges its full
- *      EntryPoint maximum cost during validation, including when execution fails. This conservative
- *      charge covers postOp and unused-gas penalties and prevents bundled operations from spending
- *      another sponsor's deposit. Any EntryPoint refund remains an unallocated safety surplus.
+ * @notice Per-sponsor ETH pot for signing enrolled statements. Not a paymaster.
  */
-contract StatementGasTank is BasePaymaster {
-  uint256 private constant PAYMASTER_HEADER_LENGTH = 52;
-  uint256 private constant ADDRESS_BYTES = 20;
+contract StatementGasTank is Ownable {
   uint8 private constant BELIEVES = 1;
-
-  bytes4 private constant SIMPLE_ACCOUNT_EXECUTE_SELECTOR =
-    bytes4(keccak256("execute(address,uint256,bytes)"));
-  bytes4 private constant SIMPLE_ACCOUNT_EXECUTE_BATCH_SELECTOR =
-    bytes4(keccak256("executeBatch(address[],uint256[],bytes[])"));
-  bytes4 private constant KERNEL_V3_EXECUTE_SELECTOR =
-    bytes4(keccak256("execute(bytes32,bytes)"));
-  bytes1 private constant ERC7579_CALLTYPE_SINGLE = 0x00;
-  bytes1 private constant ERC7579_CALLTYPE_BATCH = 0x01;
-  uint256 private constant ERC7579_SINGLE_HEADER_LENGTH = 52;
-  bytes4 private constant SET_BELIEF_SELECTOR =
-    bytes4(keccak256("setBelief(bytes32,uint8)"));
+  bytes4 private constant SET_BELIEF_SELECTOR = bytes4(keccak256("setBelief(bytes32,uint8)"));
   bytes4 private constant SET_BELIEFS_IN_BATCH_SELECTOR =
     bytes4(keccak256("setBeliefsInBatch(bytes32[],uint8[])"));
 
@@ -46,23 +27,22 @@ contract StatementGasTank is BasePaymaster {
     uint192 sponsoredWei;
   }
 
-  struct KernelExecution {
-    address target;
-    uint256 value;
-    bytes callData;
-  }
-
   mapping(address sponsor => uint256 balance) public tankBalance;
   mapping(bytes32 statementId => address sponsor) public sponsorOf;
   mapping(address sponsor => mapping(address wallet => WalletUsage usage)) public walletUsage;
+  mapping(address face => bool isPaymaster) public isPaymaster;
+  address[] public paymasterFaces;
 
   SponsorshipConfig public sponsorshipConfig;
   address public immutable beliefs;
+  uint256 public faceDepositFloor;
 
   event TankFunded(address indexed funder, address indexed sponsor, uint256 amount);
   event StatementEnrolled(address indexed sponsor, bytes32 indexed statementId);
   event SponsorshipConfigUpdated(uint192 maxSponsoredWeiPerWalletPerWindow, uint32 walletWindowSeconds);
   event TankDebited(address indexed sponsor, address indexed wallet, uint256 amount);
+  event PaymasterFaceAdded(address indexed face, address indexed entryPoint);
+  event FaceDepositFloorUpdated(uint256 floor);
 
   error EmptyTankFunding();
   error InvalidSponsor();
@@ -73,44 +53,54 @@ contract StatementGasTank is BasePaymaster {
   error AnchorStatementMissing(bytes32 statementId);
   error InsufficientTankBalance(uint256 balance, uint256 required);
   error WalletCapExceeded(uint256 alreadySponsored, uint256 requested, uint256 cap);
-  error UnsupportedAccountCall(bytes4 selector);
-  error UnsupportedCallType(bytes1 callType);
-  error InvalidExecutionCalldataLength(uint256 length);
   error UnsupportedSponsoredCall(address target, bytes4 selector);
-  error InvalidPaymasterDataLength(uint256 length);
-  error InvalidAccountCallDataLength(uint256 length);
   error InvalidSponsoredCallDataLength(uint256 length);
   error SponsoredCallValueNotAllowed();
   error InvalidBatchLengths();
   error SponsoredBeliefMustBeSupport(uint8 beliefState);
   error EmptySponsoredBatch();
+  error NotPaymasterFace();
+  error PaymasterFaceAlreadyAdded();
+  error InvalidPaymasterFace();
 
   constructor(
-    IEntryPoint entryPoint_,
     address beliefs_,
     uint192 maxSponsoredWeiPerWalletPerWindow_,
     uint32 walletWindowSeconds_
-  ) BasePaymaster(entryPoint_) {
+  ) Ownable(msg.sender) {
     if (beliefs_ == address(0)) revert InvalidBeliefs();
     beliefs = beliefs_;
     _setSponsorshipConfig(maxSponsoredWeiPerWalletPerWindow_, walletWindowSeconds_);
+    _setFaceDepositFloor(0.001 ether);
   }
+
+  receive() external payable {}
 
   function fundTank(address sponsor) external payable {
     if (sponsor == address(0)) revert InvalidSponsor();
     if (msg.value == 0) revert EmptyTankFunding();
     tankBalance[sponsor] += msg.value;
-    entryPoint.depositTo{value: msg.value}(address(this));
     emit TankFunded(msg.sender, sponsor, msg.value);
+    GasTankEntryPointDeposits.topUpToFloor(paymasterFaces, faceDepositFloor);
   }
 
-  /// @notice Enroll a statement so signatures of `believes` draw from the caller's tank.
   function enroll(bytes32 statementId) external {
     if (statementId == bytes32(0)) revert StatementNotEnrolled(statementId);
     address existingSponsor = sponsorOf[statementId];
     if (existingSponsor != address(0)) revert StatementAlreadyEnrolled(existingSponsor);
     sponsorOf[statementId] = msg.sender;
     emit StatementEnrolled(msg.sender, statementId);
+  }
+
+  function addPaymasterFace(address face) external onlyOwner {
+    if (face == address(0)) revert InvalidPaymasterFace();
+    if (isPaymaster[face]) revert PaymasterFaceAlreadyAdded();
+    IEntryPoint ep = IGasTankPaymasterFace(face).entryPoint();
+    if (address(ep) == address(0)) revert InvalidPaymasterFace();
+    isPaymaster[face] = true;
+    paymasterFaces.push(face);
+    emit PaymasterFaceAdded(face, address(ep));
+    GasTankEntryPointDeposits.topUp(face, faceDepositFloor);
   }
 
   function setSponsorshipConfig(
@@ -120,24 +110,43 @@ contract StatementGasTank is BasePaymaster {
     _setSponsorshipConfig(maxSponsoredWeiPerWalletPerWindow, walletWindowSeconds);
   }
 
-  function _validatePaymasterUserOp(
-    PackedUserOperation calldata userOp,
-    bytes32,
+  function setFaceDepositFloor(uint256 floor) external onlyOwner {
+    _setFaceDepositFloor(floor);
+    GasTankEntryPointDeposits.topUpToFloor(paymasterFaces, floor);
+  }
+
+  function replenishFaceDeposits() external {
+    GasTankEntryPointDeposits.topUpToFloor(paymasterFaces, faceDepositFloor);
+  }
+
+  function rebalanceFaceDeposits() external onlyOwner {
+    GasTankEntryPointDeposits.pullDownToFloor(paymasterFaces, 0);
+    GasTankEntryPointDeposits.topUpToFloor(paymasterFaces, faceDepositFloor);
+  }
+
+  function topUpFace(address face, uint256 target) external onlyOwner {
+    if (!isPaymaster[face]) revert NotPaymasterFace();
+    GasTankEntryPointDeposits.topUp(face, target);
+  }
+
+  function validateStatementUserOp(
+    bytes32 anchor,
+    address sender,
+    bytes calldata callData,
     uint256 maxCost
-  ) internal override returns (bytes memory context, uint256 validationData) {
-    bytes32 anchor = _decodeAnchor(userOp.paymasterAndData);
+  ) external returns (bytes memory context) {
+    if (!isPaymaster[msg.sender]) revert NotPaymasterFace();
     address sponsor = sponsorOf[anchor];
     if (sponsor == address(0)) revert StatementNotEnrolled(anchor);
     if (tankBalance[sponsor] < maxCost) revert InsufficientTankBalance(tankBalance[sponsor], maxCost);
 
-    _validateWalletCap(sponsor, userOp.sender, maxCost);
-    _validateAccountCall(sponsor, anchor, userOp.callData);
+    _validateWalletCap(sponsor, sender, maxCost);
+    _validateAccountCall(sponsor, anchor, callData);
 
-    // EntryPoint validates every operation before executing any of them. Reserve both budgets now.
     tankBalance[sponsor] -= maxCost;
-    _recordWalletUsage(sponsor, userOp.sender, maxCost);
-    emit TankDebited(sponsor, userOp.sender, maxCost);
-    return ("", 0);
+    _recordWalletUsage(sponsor, sender, maxCost);
+    emit TankDebited(sponsor, sender, maxCost);
+    return "";
   }
 
   function _setSponsorshipConfig(
@@ -151,11 +160,9 @@ contract StatementGasTank is BasePaymaster {
     emit SponsorshipConfigUpdated(maxSponsoredWeiPerWalletPerWindow, walletWindowSeconds);
   }
 
-  function _decodeAnchor(bytes calldata paymasterAndData) private pure returns (bytes32 anchor) {
-    if (paymasterAndData.length != PAYMASTER_HEADER_LENGTH + 32) {
-      revert InvalidPaymasterDataLength(paymasterAndData.length);
-    }
-    anchor = bytes32(paymasterAndData[PAYMASTER_HEADER_LENGTH:]);
+  function _setFaceDepositFloor(uint256 floor) private {
+    faceDepositFloor = floor;
+    emit FaceDepositFloorUpdated(floor);
   }
 
   function _validateWalletCap(address sponsor, address wallet, uint256 requested) private view {
@@ -185,81 +192,22 @@ contract StatementGasTank is BasePaymaster {
   }
 
   function _validateAccountCall(address sponsor, bytes32 anchor, bytes calldata accountCallData) private view {
-    if (accountCallData.length < 4) revert InvalidAccountCallDataLength(accountCallData.length);
-    bytes4 accountSelector = bytes4(accountCallData[:4]);
+    AccountCallDecoder.Execution[] memory executions = AccountCallDecoder.decodeExecutions(accountCallData);
+    if (executions.length == 0) revert EmptySponsoredBatch();
     bool sawAnchor = false;
-
-    if (accountSelector == SIMPLE_ACCOUNT_EXECUTE_SELECTOR) {
-      (address target, uint256 value, bytes memory innerCallData) = abi.decode(
-        accountCallData[4:],
-        (address, uint256, bytes)
-      );
-      sawAnchor = _validateSponsoredCall(sponsor, anchor, target, value, innerCallData);
-    } else if (accountSelector == SIMPLE_ACCOUNT_EXECUTE_BATCH_SELECTOR) {
-      (address[] memory targets, uint256[] memory values, bytes[] memory calls) = abi.decode(
-        accountCallData[4:],
-        (address[], uint256[], bytes[])
-      );
-      if (targets.length != calls.length || (values.length != 0 && values.length != calls.length)) {
-        revert InvalidBatchLengths();
-      }
-      if (targets.length == 0) revert EmptySponsoredBatch();
-      for (uint256 i = 0; i < targets.length; i++) {
-        uint256 value = values.length == 0 ? 0 : values[i];
-        sawAnchor = _validateSponsoredCall(sponsor, anchor, targets[i], value, calls[i]) || sawAnchor;
-      }
-    } else if (accountSelector == KERNEL_V3_EXECUTE_SELECTOR) {
-      (bytes32 mode, bytes memory executionCalldata) = abi.decode(accountCallData[4:], (bytes32, bytes));
-      bytes1 callType = bytes1(mode);
-
-      if (callType == ERC7579_CALLTYPE_SINGLE) {
-        (address target, uint256 value, bytes memory innerCallData) = _decodeErc7579SingleExecution(executionCalldata);
-        sawAnchor = _validateSponsoredCall(sponsor, anchor, target, value, innerCallData);
-      } else if (callType == ERC7579_CALLTYPE_BATCH) {
-        KernelExecution[] memory executions = abi.decode(executionCalldata, (KernelExecution[]));
-        if (executions.length == 0) revert EmptySponsoredBatch();
-        for (uint256 i = 0; i < executions.length; i++) {
-          sawAnchor = _validateSponsoredCall(
-            sponsor,
-            anchor,
-            executions[i].target,
-            executions[i].value,
-            executions[i].callData
-          ) || sawAnchor;
-        }
-      } else {
-        revert UnsupportedCallType(callType);
-      }
-    } else {
-      revert UnsupportedAccountCall(accountSelector);
+    for (uint256 i = 0; i < executions.length; i++) {
+      sawAnchor =
+        _validateSponsoredCall(
+          sponsor,
+          anchor,
+          executions[i].target,
+          executions[i].value,
+          executions[i].callData
+        ) || sawAnchor;
     }
-
     if (!sawAnchor) revert AnchorStatementMissing(anchor);
   }
 
-  function _decodeErc7579SingleExecution(bytes memory executionCalldata)
-    private
-    pure
-    returns (address target, uint256 value, bytes memory innerCallData)
-  {
-    if (executionCalldata.length < ERC7579_SINGLE_HEADER_LENGTH) {
-      revert InvalidExecutionCalldataLength(executionCalldata.length);
-    }
-    uint256 innerLength = executionCalldata.length - ERC7579_SINGLE_HEADER_LENGTH;
-    innerCallData = new bytes(innerLength);
-    assembly {
-      let dataPtr := add(executionCalldata, 32)
-      target := shr(96, mload(dataPtr))
-      value := mload(add(dataPtr, ADDRESS_BYTES))
-      let src := add(dataPtr, ERC7579_SINGLE_HEADER_LENGTH)
-      let dst := add(innerCallData, 32)
-      for { let i := 0 } lt(i, innerLength) { i := add(i, 32) } {
-        mstore(add(dst, i), mload(add(src, i)))
-      }
-    }
-  }
-
-  /// @return sawAnchor True when this call includes the paymasterData anchor statement.
   function _validateSponsoredCall(
     address sponsor,
     bytes32 anchor,

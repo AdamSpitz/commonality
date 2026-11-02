@@ -12,6 +12,10 @@ import {
 } from '../../abis.js';
 import { IpfsCidV1 } from '../../utils/cid-types.js';
 import { approveERC20Spend, erc20ApproveAbi } from '../../utils/erc20.js';
+import {
+  getWriteClientCapabilities,
+  paymasterServiceCapability,
+} from '../../utils/walletCapabilities.js';
 
 // ============================================================================
 // LazyGiving Actions
@@ -158,9 +162,12 @@ async function ensureERC20Allowance(
 async function sendAtomicContractCalls(
   clients: WriteClients,
   calls: readonly { to: Address; abi: Abi; functionName: string; args: readonly unknown[] }[],
+  paymasterUrl?: string,
 ): Promise<Hash> {
   const chainId = clients.walletClient.chain?.id;
   if (!chainId) throw new Error('Atomic transactions require a configured wallet chain.');
+  const walletCaps = await getWriteClientCapabilities(clients);
+  const paymaster = paymasterServiceCapability(paymasterUrl, walletCaps);
   const id = await clients.walletClient.request({
     method: 'wallet_sendCalls',
     params: [{
@@ -172,6 +179,7 @@ async function sendAtomicContractCalls(
         to,
         data: encodeFunctionData({ abi, functionName, args }),
       })),
+      ...(paymaster ? { capabilities: paymaster } : {}),
     }],
   });
   const batchId = typeof id === 'string' ? id : (id as { id: string }).id;
@@ -437,6 +445,8 @@ export async function buyProjectTokens(
     totalCost: bigint;
     /** Submit a required approval and purchase as one EIP-5792 atomic batch. */
     batchApproval?: boolean;
+    /** ERC-7677 paymaster URL when the wallet advertises paymasterService. */
+    paymasterUrl?: string;
     /** Wait for this many confirmations before spending a newly approved allowance. */
     approvalConfirmations?: number;
   }
@@ -452,11 +462,12 @@ export async function buyProjectTokens(
   );
   const buyArgs = [params.buyer, params.tokenAddress, params.tokenIds, params.tokenCounts, '0x'] as const;
 
-  if (!hasAllowance && params.batchApproval) {
+  const batchApproval = params.batchApproval ?? (await getWriteClientCapabilities(clients)).atomicBatches;
+  if (batchApproval) {
     return sendAtomicContractCalls(clients, [
-      { to: paymentToken, abi: erc20ApproveAbi, functionName: 'approve', args: [assuranceContract.address, params.totalCost] },
+      ...(!hasAllowance ? [{ to: paymentToken, abi: erc20ApproveAbi, functionName: 'approve', args: [assuranceContract.address, params.totalCost] }] : []),
       { to: assuranceContract.address, abi: assuranceContract.abi, functionName: 'buyERC1155', args: buyArgs },
-    ]);
+    ], params.paymasterUrl);
   }
   if (!hasAllowance) {
     const approvalHash = await approveERC20Spend(clients, paymentToken, assuranceContract.address, params.totalCost);
@@ -592,10 +603,12 @@ export async function refundProjectTokens(
     tokenCounts: bigint[];
     /** Submit setApprovalForAll and refund as one EIP-5792 atomic batch. */
     batchApproval?: boolean;
+    paymasterUrl?: string;
   }
 ): Promise<Hash> {
   const refundArgs = [params.holder, params.tokenAddress, params.tokenIds, params.tokenCounts, '0x'] as const;
-  if (params.batchApproval) {
+  const batchApproval = params.batchApproval ?? (await getWriteClientCapabilities(clients)).atomicBatches;
+  if (batchApproval) {
     return sendAtomicContractCalls(clients, [
       {
         to: params.tokenAddress,
@@ -604,7 +617,7 @@ export async function refundProjectTokens(
         args: [assuranceContract.address, true],
       },
       { to: assuranceContract.address, abi: assuranceContract.abi, functionName: 'refundERC1155', args: refundArgs },
-    ]);
+    ], params.paymasterUrl);
   }
 
   const hash = await clients.walletClient.writeContract({

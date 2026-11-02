@@ -57,15 +57,15 @@ vi.mock('../../shared/components/WalletButton', () => ({
   WalletButton: () => <button type="button">Sign In / Wallet</button>,
 }))
 
-// Stubbed so the tests do not depend on whether the developer running them
-// happens to have VITE_PRIVY_SMART_WALLET_BUNDLER_URL set in ui/.env.
-const privySmartWallet = vi.hoisted(() => ({ enabled: false }))
+const walletCaps = vi.hoisted(() => ({ atomicBatches: false, paymasterService: false }))
 
-vi.mock('../../privy/config', () => ({
-  get isPrivySmartWalletEnabled() {
-    return privySmartWallet.enabled
-  },
-}))
+vi.mock('@commonality/sdk/utils', async () => {
+  const actual = await vi.importActual('@commonality/sdk/utils')
+  return {
+    ...actual,
+    getWriteClientCapabilities: async () => walletCaps,
+  }
+})
 
 import { useWalletClient, usePublicClient } from 'wagmi'
 import { getNotesByOwner, getDelegationChain, purchaseFromPrimaryMarketWithNotes } from '@commonality/sdk/delegation'
@@ -124,7 +124,8 @@ describe('BuyTokensSection', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
-    privySmartWallet.enabled = false
+    walletCaps.atomicBatches = false
+    walletCaps.paymasterService = false
     vi.mocked(createSDKMachinery).mockReturnValue(mockMachinery)
     vi.mocked(useWalletClient).mockReturnValue({
       data: { chain: { blockExplorers: { default: { url: 'https://explorer.example' } } } },
@@ -253,7 +254,7 @@ describe('BuyTokensSection', () => {
       const user = userEvent.setup()
       renderSection({ project: makeProject({ fundingCurrency: USDC_CURRENCY }), tokens: [makeToken({ price: '100000' })], address: undefined })
 
-      expect(screen.getByText(/Sign in or connect a wallet before giving/)).toBeInTheDocument()
+      expect(screen.getByText(/Create an account or use a wallet you already have before giving/)).toBeInTheDocument()
       expect(screen.getByRole('button', { name: 'Sign In / Wallet' })).toBeInTheDocument()
       await user.type(screen.getByLabelText('Give amount (USDC)'), '0.1')
       expect(screen.getByRole('button', { name: 'Give' })).toBeDisabled()
@@ -445,8 +446,8 @@ describe('BuyTokensSection', () => {
       })
     })
 
-    it('requests a batched approval when the smart wallet is enabled', async () => {
-      privySmartWallet.enabled = true
+    it('requests a batched approval when the wallet supports atomic batches', async () => {
+      walletCaps.atomicBatches = true
       const user = userEvent.setup()
       renderSection()
 
